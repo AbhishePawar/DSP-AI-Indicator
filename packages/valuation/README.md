@@ -14,7 +14,7 @@ packages/valuation/
 ├── README.md
 ├── pyproject.toml
 ├── src/valuation/
-│   ├── __init__.py                 # v0.6.0 — + Earnings Power Value
+│   ├── __init__.py                 # v0.7.0 — + Graham Intrinsic Value
 │   ├── core/                       # V1.5 shared infrastructure (no methodology)
 │   │   ├── result_models.py
 │   │   ├── confidence_engine.py
@@ -56,6 +56,11 @@ packages/valuation/
 │   │   ├── epv_models.py
 │   │   ├── epv_validation.py
 │   │   └── epv_explainability.py
+│   ├── graham/                     # V1.7 Graham Intrinsic Value (heuristic)
+│   │   ├── graham_engine.py
+│   │   ├── graham_models.py
+│   │   ├── graham_validation.py
+│   │   └── graham_explainability.py
 │   ├── methods/
 │   │   ├── base.py
 │   │   ├── dcf.py                  # legacy multi-method runner (unchanged API)
@@ -64,10 +69,11 @@ packages/valuation/
 │   │   ├── book_value.py
 │   │   └── residual_income.py      # legacy closed-form method (unchanged)
 │   └── engine/
-│       └── service.py              # ValuationEngine (+ dcf / reverse / residual / epv)
+│       └── service.py              # ValuationEngine (+ dcf / reverse / residual / epv / graham)
 └── tests/
     ├── test_core/                  # V1.5 core framework coverage
-    └── test_epv.py                 # V1.6 EPV coverage
+    ├── test_epv.py                 # V1.6 EPV coverage
+    └── test_graham.py              # V1.7 Graham coverage
 ```
 
 ## Valuation Core Framework (V1.5 / 0.5.0)
@@ -121,6 +127,29 @@ assert result.enterprise_epv.value == 750.0
 ```
 
 See [V1_SPRINT6_EPV.md](../../docs/V1_SPRINT6_EPV.md).
+
+## Graham Intrinsic Value (V1.7 / 0.7.0)
+
+Benjamin Graham heuristics (original + modern yield-adjusted). Research-only;
+assumptions stated explicitly. Does **not** enable Overall Valuation.
+
+```python
+from valuation import ValuationEngine, GrahamInputs, GrahamFormula
+
+result = ValuationEngine().analyze_graham(
+    GrahamInputs(
+        eps_trailing=2.0,
+        growth_rate=7.0,
+        aaa_bond_yield=0.044,
+        formula=GrahamFormula.ORIGINAL,
+        shares_outstanding=100,
+        current_market_price=30,
+    )
+)
+assert result.intrinsic_value_per_share.value == 45.0
+```
+
+See [V1_SPRINT7_GRAHAM.md](../../docs/V1_SPRINT7_GRAHAM.md).
 
 ## DCF Intelligence (V1.2)
 
@@ -326,4 +355,4 @@ Caller                ValuationEngine              Methods
 
 ## Version
 
-`0.6.0`
+`0.7.0`

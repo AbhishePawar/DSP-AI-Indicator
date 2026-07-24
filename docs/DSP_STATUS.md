@@ -2,7 +2,7 @@
 
 | Field | Value |
 |---|---|
-| **Version** | `1.2.8` |
+| **Version** | `1.2.9` |
 | **Status** | **Active** (Living) |
 | **Last updated** | 2026-07-24 |
 | **Audience** | Anyone starting work today |
@@ -19,22 +19,22 @@ Protection **policy** → [DSP_PROJECT_PROTECTION.md](DSP_PROJECT_PROTECTION.md)
 
 | Field | Value |
 |---|---|
-| **Current Version** | Backend RC **`v1.0.0-rc1`** · `valuation` **`0.6.0`** · Web **`2.4.0`** · Docs Suite **`1.2.8`** · API **`/api/v1`** |
-| **Active Sprint** | **V1.6 complete** — Earnings Power Value (`0.6.0`) · Overall Valuation still disabled |
-| **Production Modules** | Research ✓ · MIE ✓ · EMI ✓ · EQI ✓ · VIE Foundation ✓ · Domain DCF ✓ · Reverse DCF ✓ · Residual Income ✓ · Valuation Core ✓ · EPV ✓ (Overall Valuation still disabled) |
-| **Regression Status** | **GREEN** — **1702 PASS** (`--import-mode=importlib`) |
+| **Current Version** | Backend RC **`v1.0.0-rc1`** · `valuation` **`0.7.0`** · Web **`2.4.0`** · Docs Suite **`1.2.9`** · API **`/api/v1`** |
+| **Active Sprint** | **V1.7 complete** — Graham Intrinsic Value (`0.7.0`) · Overall Valuation still disabled |
+| **Production Modules** | Research ✓ · MIE ✓ · EMI ✓ · EQI ✓ · VIE Foundation ✓ · Domain DCF ✓ · Reverse DCF ✓ · Residual Income ✓ · Valuation Core ✓ · EPV ✓ · Graham ✓ (Overall Valuation still disabled) |
+| **Regression Status** | **GREEN** — **1726 PASS** (`--import-mode=importlib`) |
 | **Project Health** | **Healthy** |
-| **Last Safe Checkpoint** | Recommend tag **`milestone/V1.6-epv`** |
+| **Last Safe Checkpoint** | Recommend tag **`milestone/V1.7-graham`** |
 
 ### 2b. Valuation Intelligence
 
 | Item | Status |
 |---|---|
-| V1.6 EPV | **Complete** — zero-growth EPV on Valuation Core |
-| V1.5 Valuation Core | **Complete** — shared result / confidence / validation / sensitivity / scenario / explainability |
-| V1.4 Residual Income | **Complete + enhanced** |
+| V1.7 Graham | **Complete** — original + modern heuristics on Valuation Core |
+| V1.6 EPV | **Complete** |
+| V1.5 Valuation Core | **Complete** |
 | Overall Valuation | **DISABLED** |
-| Sprint brief | [V1_SPRINT6_EPV.md](V1_SPRINT6_EPV.md) |
+| Sprint brief | [V1_SPRINT7_GRAHAM.md](V1_SPRINT7_GRAHAM.md) |
 
 ## Related
 

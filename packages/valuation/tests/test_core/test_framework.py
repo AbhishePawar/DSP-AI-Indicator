@@ -503,4 +503,4 @@ class TestPackageImport:
         assert VALUATION_CORE_VERSION.startswith("0.5.0")
         import valuation
 
-        assert valuation.__version__ == "0.6.0"
+        assert valuation.__version__ == "0.7.0"

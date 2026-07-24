@@ -33,6 +33,7 @@ from valuation.residual_income import (
     ResidualIncomeResult,
 )
 from valuation.epv import EpvEngine, EpvInputs, EpvResult
+from valuation.graham import GrahamEngine, GrahamInputs, GrahamResult
 
 MethodResolver = Callable[[str], ValuationMethodRunner]
 Clock = Callable[[], datetime]
@@ -203,6 +204,13 @@ class ValuationEngine:
         Does not alter existing analyze paths. Does not enable Overall Valuation.
         """
         return EpvEngine().analyze(inputs)
+
+    def analyze_graham(self, inputs: GrahamInputs) -> GrahamResult:
+        """Run Graham Intrinsic Value (V1.7 additive; research-only).
+
+        Does not alter existing analyze paths. Does not enable Overall Valuation.
+        """
+        return GrahamEngine().analyze(inputs)
 
     def _run_method(
         self,

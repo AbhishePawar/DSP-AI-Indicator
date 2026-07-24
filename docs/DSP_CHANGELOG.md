@@ -2,7 +2,7 @@
 
 | Field | Value |
 |---|---|
-| **Version** | `1.2.8` |
+| **Version** | `1.2.9` |
 | **Status** | **Active** (Living) |
 | **Last updated** | 2026-07-24 |
 | **Audience** | Release managers · AI orientation |
@@ -27,6 +27,7 @@
 
 | Date | Suite | Change |
 |---|---|---|
+| 2026-07-24 | **1.2.9** | V1.7 Graham Intrinsic Value (`valuation` 0.7.0); original + modern heuristics; Overall Valuation still disabled |
 | 2026-07-24 | **1.2.8** | V1.6 Earnings Power Value (`valuation` 0.6.0); Core-integrated; Overall Valuation still disabled |
 | 2026-07-24 | **1.2.7** | V1.5 Valuation Core Framework (`valuation` 0.5.0); shared engines only; no method math change |
 | 2026-07-24 | **1.2.6** | V1.4 Residual Income best-practice enhancement (`valuation` 0.4.1); 100% RIV coverage |

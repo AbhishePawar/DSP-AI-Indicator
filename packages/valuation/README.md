@@ -14,24 +14,213 @@ packages/valuation/
 ├── README.md
 ├── pyproject.toml
 ├── src/valuation/
-│   ├── __init__.py
+│   ├── __init__.py                 # v0.6.0 — + Earnings Power Value
+│   ├── core/                       # V1.5 shared infrastructure (no methodology)
+│   │   ├── result_models.py
+│   │   ├── confidence_engine.py
+│   │   ├── sensitivity_engine.py
+│   │   ├── scenario_engine.py
+│   │   ├── explainability_engine.py
+│   │   ├── validation_engine.py
+│   │   ├── metadata.py
+│   │   ├── quality_flags.py
+│   │   ├── errors.py
+│   │   └── interfaces.py
 │   ├── exceptions.py
 │   ├── enums.py
-│   ├── assumptions.py      # injectable ValuationAssumptions
+│   ├── assumptions.py              # multi-method ValuationAssumptions
 │   ├── models.py
 │   ├── aggregation.py
 │   ├── registry.py
+│   ├── dcf_intelligence/           # V1.2 domain DCF engine (explainable)
+│   │   ├── engine.py
+│   │   ├── wacc.py
+│   │   ├── forecast.py
+│   │   ├── terminal.py
+│   │   ├── present_value.py
+│   │   ├── equity.py
+│   │   ├── margin.py
+│   │   └── sensitivity.py
+│   ├── reverse_dcf/                # V1.3 Reverse DCF (independent)
+│   │   ├── reverse_dcf_engine.py
+│   │   ├── reverse_dcf_models.py
+│   │   ├── reverse_dcf_validation.py
+│   │   └── reverse_dcf_explainability.py
+│   ├── residual_income/            # V1.4 Residual Income (independent)
+│   │   ├── residual_income_engine.py
+│   │   ├── residual_income_models.py
+│   │   ├── residual_income_validation.py
+│   │   └── residual_income_explainability.py
+│   ├── epv/                        # V1.6 Earnings Power Value (zero growth)
+│   │   ├── epv_engine.py
+│   │   ├── epv_models.py
+│   │   ├── epv_validation.py
+│   │   └── epv_explainability.py
 │   ├── methods/
 │   │   ├── base.py
-│   │   ├── dcf.py
+│   │   ├── dcf.py                  # legacy multi-method runner (unchanged API)
 │   │   ├── owner_earnings.py
 │   │   ├── earnings_multiple.py
 │   │   ├── book_value.py
-│   │   └── residual_income.py
+│   │   └── residual_income.py      # legacy closed-form method (unchanged)
 │   └── engine/
-│       └── service.py      # ValuationEngine
+│       └── service.py              # ValuationEngine (+ dcf / reverse / residual / epv)
 └── tests/
+    ├── test_core/                  # V1.5 core framework coverage
+    └── test_epv.py                 # V1.6 EPV coverage
 ```
+
+## Valuation Core Framework (V1.5 / 0.5.0)
+
+Shared research infrastructure for all future valuation methods. Does **not**
+introduce a new methodology. Existing DCF / Reverse DCF / Residual Income math
+is unchanged.
+
+```python
+from valuation import (
+    ValuationResult,
+    ConfidenceEngine,
+    ValidationEngine,
+    SensitivityEngine,
+    ScenarioEngine,
+    ExplainabilityEngine,
+    QualityFlag,
+)
+
+detail = ConfidenceEngine().score({"data_completeness": 1.0, "solver_accuracy": 1.0})
+assert detail.level in {"high", "medium", "low"}
+```
+
+See [V1_SPRINT5_VALUATION_CORE.md](../../docs/V1_SPRINT5_VALUATION_CORE.md).
+
+## Earnings Power Value (V1.6 / 0.6.0)
+
+Zero-growth capitalization of normalized owner earnings (Greenwald EPV).
+Uses Valuation Core for confidence, validation, scenarios, sensitivity, and
+explainability. Does **not** enable Overall Valuation.
+
+```python
+from valuation import ValuationEngine, EpvInputs, NormalizationMethod
+
+result = ValuationEngine().analyze_epv(
+    EpvInputs(
+        revenue=1000,
+        ebit=100,
+        tax_rate=0.25,
+        maintenance_capex=40,
+        depreciation=40,
+        cost_of_capital=0.10,
+        shares_outstanding=100,
+        cash=50,
+        debt=100,
+        current_market_price=5,
+        normalization_method=NormalizationMethod.MANUAL_OVERRIDE,
+    )
+)
+assert result.enterprise_epv.value == 750.0
+```
+
+See [V1_SPRINT6_EPV.md](../../docs/V1_SPRINT6_EPV.md).
+
+## DCF Intelligence (V1.2)
+
+Domain-first FCFF engine with CAPM WACC, Gordon / exit-multiple terminal value,
+equity bridge, MoS research posture, sensitivity matrix, and per-field
+explainability.
+
+```python
+from valuation import (
+    ValuationEngine,
+    DcfAnalysisInputs,
+    DcfForecastAssumptions,
+    CapmInputs,
+    CostOfDebtInputs,
+    CapitalStructure,
+)
+
+result = ValuationEngine().analyze_dcf(
+    DcfAnalysisInputs(
+        forecast=DcfForecastAssumptions(
+            base_revenue=1000,
+            revenue_growth=0.05,
+            operating_margin=0.20,
+            tax_rate=0.25,
+            depreciation_pct_of_revenue=0.04,
+            capex_pct_of_revenue=0.06,
+            nwc_pct_of_revenue=0.10,
+            forecast_years=10,
+        ),
+        capm=CapmInputs(0.04, 1.0, 0.05),
+        cost_of_debt=CostOfDebtInputs(0.06),
+        capital_structure=CapitalStructure(equity_weight=0.7, debt_weight=0.3),
+    )
+)
+assert result.present_value.enterprise_value.value is not None
+```
+
+MoS bands (`strong_buy` / `buy` / `hold` / `overvalued`) are **research postures**,
+not trade recommendations. Multi-method `analyze()` is unchanged.
+
+## Reverse DCF Intelligence (V1.3)
+
+Independent research engine: *what growth is implied by the market price?*
+
+```python
+from valuation import ValuationEngine, ReverseDcfInputs
+
+result = ValuationEngine().analyze_reverse_dcf(
+    ReverseDcfInputs(
+        current_share_price=50,
+        shares_outstanding=10,
+        cash=20,
+        debt=30,
+        minority_interest=0,
+        investments=0,
+        current_revenue=200,
+        current_ebit=40,
+        current_fcff=25,
+        current_operating_margin=0.20,
+        tax_rate=0.25,
+        reinvestment_rate=0.30,
+        forecast_years=10,
+        terminal_growth=0.02,
+        wacc=0.09,
+    )
+)
+assert result.implied_revenue_cagr.value is not None
+assert result.solver.converged
+```
+
+Binary-search solver (±0.01%, max 200 iters). Bear/Base/Bull scenarios +
+WACC / terminal-growth / price sensitivity. Does **not** modify DCF Intelligence
+or enable Overall Valuation. See [V1_SPRINT3_REVERSE_DCF.md](../../docs/V1_SPRINT3_REVERSE_DCF.md).
+
+## Residual Income Valuation (V1.4 / 0.4.1)
+
+Independent multi-period clean-surplus RIV with ROE path models, quality flags,
+clean-surplus checks, and `to_v2_aggregate_payload()` for future aggregation.
+
+```python
+from valuation import ValuationEngine, ResidualIncomeInputs, RoeForecastModel
+
+result = ValuationEngine().analyze_residual_income(
+    ResidualIncomeInputs(
+        current_book_value=1000,
+        roe_forecast=0.15,
+        cost_of_equity=0.10,
+        dividend_payout_ratio=0.40,
+        forecast_years=10,
+        terminal_growth=0.02,
+        shares_outstanding=100,
+        current_market_price=12,
+        roe_model=RoeForecastModel.CONSTANT,
+    )
+)
+assert result.clean_surplus_ok
+assert "research and educational" in result.disclaimer.lower()
+```
+
+See [V1_SPRINT4_RESIDUAL_INCOME.md](../../docs/V1_SPRINT4_RESIDUAL_INCOME.md).
 
 ## Dependency Diagram
 
@@ -137,4 +326,4 @@ Caller                ValuationEngine              Methods
 
 ## Version
 
-`0.1.0`
+`0.6.0`

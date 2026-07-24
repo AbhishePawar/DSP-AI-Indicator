@@ -53,7 +53,7 @@ K1.4 freeze rules; breaking public API changes require a new RC or major bump.
 | `dsp` | 0.2.0 |
 | `fundamental` | 0.1.0 |
 | `economic` | 0.1.1 |
-| `valuation` | 0.1.1 |
+| `valuation` | 0.6.0 |
 | `ai_committee` | 0.3.0 |
 | `snapshot_bridge` | 0.1.0 |
 | `compliance` | **0.1.0** (PR1.0 — flags / terminology / ports) |

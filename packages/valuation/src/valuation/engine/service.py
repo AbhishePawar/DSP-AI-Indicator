@@ -13,6 +13,11 @@ from fundamental import FinancialSnapshot
 import valuation.registry as method_registry
 from valuation.aggregation import aggregate_estimates
 from valuation.assumptions import ValuationAssumptions
+from valuation.dcf_intelligence import (
+    DcfAnalysisInputs,
+    DiscountedCashFlowEngine,
+    DiscountedCashFlowResult,
+)
 from valuation.exceptions import ValuationError
 from valuation.methods.base import ValuationMethodRunner
 from valuation.models import (
@@ -21,6 +26,13 @@ from valuation.models import (
     ValuationAssessment,
     ValuationEvidence,
 )
+from valuation.reverse_dcf import ReverseDcfEngine, ReverseDcfInputs, ReverseDcfResult
+from valuation.residual_income import (
+    ResidualIncomeEngine,
+    ResidualIncomeInputs,
+    ResidualIncomeResult,
+)
+from valuation.epv import EpvEngine, EpvInputs, EpvResult
 
 MethodResolver = Callable[[str], ValuationMethodRunner]
 Clock = Callable[[], datetime]
@@ -151,6 +163,46 @@ class ValuationEngine:
             as_of=latest.period_end,
             assessed_at=self._clock(),
         )
+
+    def analyze_dcf(
+        self,
+        inputs: DcfAnalysisInputs,
+    ) -> DiscountedCashFlowResult:
+        """Run the V1.2 DCF Intelligence Engine (additive; non-breaking).
+
+        This path does not alter multi-method :meth:`analyze` aggregation
+        and does not enable Overall Valuation.
+        """
+        return DiscountedCashFlowEngine().analyze(inputs)
+
+    def analyze_reverse_dcf(
+        self,
+        inputs: ReverseDcfInputs,
+    ) -> ReverseDcfResult:
+        """Run Reverse DCF Intelligence (V1.3 additive; research-only).
+
+        Does not alter :meth:`analyze` or :meth:`analyze_dcf`.
+        Does not enable Overall Valuation.
+        """
+        return ReverseDcfEngine().analyze(inputs)
+
+    def analyze_residual_income(
+        self,
+        inputs: ResidualIncomeInputs,
+    ) -> ResidualIncomeResult:
+        """Run Residual Income Valuation (V1.4 additive; research-only).
+
+        Does not alter :meth:`analyze`, :meth:`analyze_dcf`, or
+        :meth:`analyze_reverse_dcf`. Does not enable Overall Valuation.
+        """
+        return ResidualIncomeEngine().analyze(inputs)
+
+    def analyze_epv(self, inputs: EpvInputs) -> EpvResult:
+        """Run Earnings Power Value (V1.6 additive; research-only).
+
+        Does not alter existing analyze paths. Does not enable Overall Valuation.
+        """
+        return EpvEngine().analyze(inputs)
 
     def _run_method(
         self,

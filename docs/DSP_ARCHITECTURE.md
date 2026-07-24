@@ -4,7 +4,7 @@
 |---|---|
 | **Version** | `1.1.0` |
 | **Status** | **Stable** |
-| **Last updated** | 2026-07-23 |
+| **Last updated** | 2026-07-24 |
 | **Audience** | Architects · engineers · AI agents |
 
 ## Purpose
@@ -64,6 +64,8 @@ contracts / core / data_engine
 ```
 
 Nothing may depend **upward** against this order.
+
+Valuation domain note (V1.5): shared infrastructure lives in `packages/valuation/src/valuation/core/` (`ValuationResult`, confidence / validation / sensitivity / scenario / explainability). Future methods plug into core; existing DCF / Reverse DCF / Residual Income math is unchanged. Overall Valuation remains disabled. See [V1_SPRINT5_VALUATION_CORE.md](V1_SPRINT5_VALUATION_CORE.md).
 
 ---
 

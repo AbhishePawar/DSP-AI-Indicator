@@ -1,85 +1,60 @@
-# Epic V1.0 Sprint V1.2 — Discounted Cash Flow (DCF) Intelligence
+# Epic V1.0 Sprint V1.2 — Discounted Cash Flow Intelligence
 
-**Web:** `2.4.0` · **VIE:** `0.2.0-discounted-cash-flow`
+**Domain package:** `valuation` **`0.2.0`** · **DCF Intelligence:** `0.2.0-dcf-intelligence`  
+**Web VIE (presentation):** `0.2.0-discounted-cash-flow` under `apps/web/src/lib/valuation/` (unchanged API)
 
 ## Mission
 
-First valuation method for the Valuation Intelligence Engine: **Discounted Cash Flow (FCFF primary)**. Evidence-backed assumptions, deterministic forecasts, sensitivity, explainability. **Overall Valuation remains DISABLED.**
+Complete **domain** Discounted Cash Flow engine (Clean Architecture / DDD) inside
+`packages/valuation/dcf_intelligence/`. Evidence-first, deterministic, explainable.
+**Overall Valuation remains DISABLED** on the web VIE façade.
 
-## Location
+## Location (canonical domain)
 
-`apps/web/src/lib/valuation/` — independent of MIE / EMI / EQI.
+`packages/valuation/src/valuation/dcf_intelligence/`
 
-## Modules
+| Module | Role |
+|--------|------|
+| `assumptions.py` | Forecast, CAPM, capital structure, terminal, bridge, market, sensitivity specs |
+| `explain.py` | `ExplainedValue` (formula · inputs · intermediates · confidence) |
+| `wacc.py` | CAPM cost of equity · after-tax debt · WACC |
+| `forecast.py` | Historical FCF support · FCFF explicit forecast (default 10y) |
+| `terminal.py` | Gordon Growth · Exit Multiple (optional) · blend |
+| `present_value.py` | Discount FCFF + TV → Enterprise Value |
+| `equity.py` | Cash / debt / minority / investments → Equity · IV/share |
+| `margin.py` | MoS ratio + research posture bands |
+| `sensitivity.py` | Growth · WACC · terminal growth OTAT grid |
+| `engine.py` | `DiscountedCashFlowEngine.analyze` |
 
-| File | Role |
-|------|------|
-| `discountedCashFlowModels.ts` | FCFF assumptions · forecast · EV / equity / IV · sensitivity · score · risks |
-| `discountedCashFlowEvidence.ts` | Evidence mapping · index · repository helpers |
-| `discountedCashFlowScoring.ts` | `DCF_METRIC_WEIGHTS` · FCFF math · sensitivity · risks |
-| `discountedCashFlowBuilders.ts` | Analysis builders · healthy demo |
-| `discountedCashFlowSelectors.ts` | Pure selectors + category score mapper |
-| `discountedCashFlowValidators.ts` | Weights · forecast · sensitivity · serialization |
-| `discountedCashFlowEngine.ts` | Facade · `mergeIntoValuationAnalysis` |
+## Integration
 
-## Published weights (`DCF_METRIC_WEIGHTS` sum = 1.0)
+```python
+from valuation import ValuationEngine, DcfAnalysisInputs, ...
 
-| Metric | Weight |
-|--------|--------|
-| Revenue Growth Assumption | 0.09 |
-| EBIT Margin Assumption | 0.09 |
-| Tax Rate | 0.06 |
-| Depreciation Assumption | 0.06 |
-| Capital Expenditure | 0.08 |
-| Working Capital Requirement | 0.08 |
-| Free Cash Flow Growth | 0.10 |
-| Discount Rate (WACC) | 0.12 |
-| Terminal Growth Rate | 0.08 |
-| Terminal Value Contribution | 0.08 |
-| Forecast Period Quality | 0.08 |
-| DCF Confidence | 0.08 |
-
-## FCFF math
-
-`FCFF = EBIT(1−t) + D&A − CapEx − ΔNWC`  
-`TV = FCFF_n(1+g)/(WACC−g)` · `EV = Σ PV(FCFF) + PV(TV)` · `Equity = EV − netDebt`
-
-FCFE: **structure only** (`enabled=false`).
-
-## Forecast horizons
-
-5 · 7 · 10 years (+ terminal value)
-
-## Sensitivity cases
-
-Base · Bull · Bear · Low WACC · High WACC · Low Growth · High Growth
-
-## Public API
-
-```ts
-import { valuationEngine, discountedCashFlowEngine } from "@/lib/valuation";
-
-const dcf = discountedCashFlowEngine.demo();
-valuationEngine.applyDiscountedCashFlow(dcf);
-valuationEngine.demoWithDCF();
-valuationEngine.overallValuation(); // null
-valuationEngine.info.overallValuationEnabled; // false
+result = ValuationEngine().analyze_dcf(inputs)  # additive; analyze() unchanged
 ```
 
-## Engine flags
+Legacy multi-method `DcfMethod` / `analyze()` aggregation **unchanged** (no breaking API).
 
-- `discountedCashFlowScoringEnabled: true`
-- `overallValuationEnabled: false`
-- `finalScoringEnabled: false`
+## MoS research postures (not recommendations)
 
-## Risks (healthy demo = 0)
+| Band | Threshold |
+|------|-----------|
+| strong_buy | MoS ≥ 40% |
+| buy | MoS ≥ 20% |
+| hold | MoS ≥ 0% |
+| overvalued | MoS < 0% |
 
-Forecast · Terminal value dependence · Aggressive growth · Low cash flow visibility · Discount rate sensitivity · Working capital uncertainty · CapEx uncertainty
+Disclaimer attached on every result. Research Mode UIs must remap via compliance.
 
-## Non-goals
+## Protected modules (untouched)
 
-Overall Valuation · Other method engines · FCFE compute · Chart UI · Research / MIE / EMI / EQI coupling
+Research Platform · MIE · EMI · EQI · Decision Engine · completed web modules · `/api/v1`
+
+## Tests
+
+`packages/valuation/tests/test_dcf_intelligence.py` — WACC, terminal, DCF, MoS, sensitivity, integration.
 
 ## Next
 
-Sprint V1.3 — next method engine (e.g. Owner Earnings or Relative Valuation); overall remains disabled.
+Sprint V1.3 — next method engine; Overall Valuation stays disabled.

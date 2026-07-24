@@ -2,9 +2,9 @@
 
 | Field | Value |
 |---|---|
-| **Version** | `1.2.1` |
+| **Version** | `1.2.8` |
 | **Status** | **Active** (Living) |
-| **Last updated** | 2026-07-23 |
+| **Last updated** | 2026-07-24 |
 | **Audience** | Release managers · AI orientation |
 
 ## Purpose
@@ -27,6 +27,12 @@
 
 | Date | Suite | Change |
 |---|---|---|
+| 2026-07-24 | **1.2.8** | V1.6 Earnings Power Value (`valuation` 0.6.0); Core-integrated; Overall Valuation still disabled |
+| 2026-07-24 | **1.2.7** | V1.5 Valuation Core Framework (`valuation` 0.5.0); shared engines only; no method math change |
+| 2026-07-24 | **1.2.6** | V1.4 Residual Income best-practice enhancement (`valuation` 0.4.1); 100% RIV coverage |
+| 2026-07-24 | **1.2.5** | V1.4 Residual Income Valuation (`valuation` 0.4.0); STATUS regression 1626 PASS |
+| 2026-07-24 | **1.2.4** | V1.3 Reverse DCF Intelligence (`valuation` 0.3.0); STATUS regression 1595 PASS |
+| 2026-07-24 | **1.2.3** | V1.2 Domain DCF Intelligence in `packages/valuation` 0.2.0; STATUS regression 1561 PASS |
 | 2026-07-23 | **1.2.1** | PROJECT PROTECTION RULE (pre-sprint gate; integrity > features) in Protection §0 · Master · AI Collaboration · ADR-0020 |
 | 2026-07-23 | 1.2.0 | Permanent [DSP_PROJECT_PROTECTION.md](DSP_PROJECT_PROTECTION.md); STATUS Project Health dashboard; ADRs 0017–0019; Master/AI Collaboration wired to protection |
 | 2026-07-23 | 1.1.0 | Load order P1–P5 · context priority · protected modules · scope classes · dependency rules · AI safety checklist · GREEN · versioning · lifecycle · archive · token rules |

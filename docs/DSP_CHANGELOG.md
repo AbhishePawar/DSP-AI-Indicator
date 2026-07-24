@@ -2,7 +2,7 @@
 
 | Field | Value |
 |---|---|
-| **Version** | `1.2.9` |
+| **Version** | `1.2.14` |
 | **Status** | **Active** (Living) |
 | **Last updated** | 2026-07-24 |
 | **Audience** | Release managers · AI orientation |
@@ -27,6 +27,11 @@
 
 | Date | Suite | Change |
 |---|---|---|
+| 2026-07-24 | **1.2.14** | V1.12 Overall Valuation Aggregator (`valuation` 0.12.0); **Phase 1 Valuation Suite COMPLETE**; suite git tag pending approval |
+| 2026-07-24 | **1.2.13** | V1.11 Cross-Method Consensus (`valuation` 0.11.0); Overall Valuation still disabled; no suite git tag yet |
+| 2026-07-24 | **1.2.12** | V1.10 Relative Valuation Suite (`valuation` 0.10.0); Overall Valuation still disabled; no suite git tag yet |
+| 2026-07-24 | **1.2.11** | V1.9 Asset-Based & Liquidation (`valuation` 0.9.0); Overall Valuation still disabled; no suite git tag yet |
+| 2026-07-24 | **1.2.10** | V1.8 Dividend Discount Model (`valuation` 0.8.0); Overall Valuation still disabled; no suite git tag yet |
 | 2026-07-24 | **1.2.9** | V1.7 Graham Intrinsic Value (`valuation` 0.7.0); original + modern heuristics; Overall Valuation still disabled |
 | 2026-07-24 | **1.2.8** | V1.6 Earnings Power Value (`valuation` 0.6.0); Core-integrated; Overall Valuation still disabled |
 | 2026-07-24 | **1.2.7** | V1.5 Valuation Core Framework (`valuation` 0.5.0); shared engines only; no method math change |

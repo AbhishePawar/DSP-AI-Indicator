@@ -34,6 +34,11 @@ from valuation.residual_income import (
 )
 from valuation.epv import EpvEngine, EpvInputs, EpvResult
 from valuation.graham import GrahamEngine, GrahamInputs, GrahamResult
+from valuation.ddm import DdmEngine, DdmInputs, DdmResult
+from valuation.asset_based import AssetBasedEngine, AssetBasedInputs, AssetValuationResult
+from valuation.relative import RelativeEngine, RelativeInputs, RelativeValuationResult
+from valuation.consensus import ConsensusEngine, ConsensusInputs, ConsensusResult
+from valuation.overall import OverallEngine, OverallInputs, OverallValuationResult
 
 MethodResolver = Callable[[str], ValuationMethodRunner]
 Clock = Callable[[], datetime]
@@ -211,6 +216,52 @@ class ValuationEngine:
         Does not alter existing analyze paths. Does not enable Overall Valuation.
         """
         return GrahamEngine().analyze(inputs)
+
+    def analyze_ddm(self, inputs: DdmInputs) -> DdmResult:
+        """Run Dividend Discount Model (V1.8 additive; research-only).
+
+        Does not alter existing analyze paths. Does not enable Overall Valuation.
+        """
+        return DdmEngine().analyze(inputs)
+
+    def analyze_asset_based(
+        self, inputs: AssetBasedInputs
+    ) -> AssetValuationResult:
+        """Run Asset-Based Valuation (V1.9 additive; research-only).
+
+        Does not alter existing analyze paths. Does not enable Overall Valuation.
+        """
+        return AssetBasedEngine().analyze(inputs)
+
+    def analyze_relative(
+        self, inputs: RelativeInputs
+    ) -> RelativeValuationResult:
+        """Run Relative Valuation Suite (V1.10 additive; research-only).
+
+        Does not alter existing analyze paths. Does not enable Overall Valuation.
+        """
+        return RelativeEngine().analyze(inputs)
+
+    def analyze_consensus(
+        self, inputs: ConsensusInputs
+    ) -> ConsensusResult:
+        """Run Cross-Method Consensus (V1.11 additive; research-only).
+
+        Accepts standardized results only — does not call valuation engines.
+        Does not alter existing analyze paths. Does not enable Overall Valuation.
+        """
+        return ConsensusEngine().analyze(inputs)
+
+    def analyze_overall(
+        self, inputs: OverallInputs
+    ) -> OverallValuationResult:
+        """Run Overall Valuation Aggregator (V1.12; research-only).
+
+        Consumes Consensus + method outputs only — does not re-execute engines.
+        Enables the Overall Valuation research module for the first time.
+        Research labels are educational, not investment recommendations.
+        """
+        return OverallEngine().analyze(inputs)
 
     def _run_method(
         self,

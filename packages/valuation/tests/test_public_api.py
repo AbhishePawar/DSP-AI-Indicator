@@ -32,7 +32,7 @@ class TestPublicApi:
     def test_version(self) -> None:
         import valuation
 
-        assert valuation.__version__ == "0.7.0"
+        assert valuation.__version__ == "0.12.0"
         assert valuation.VALUATION_CORE_VERSION.startswith("0.5.0")
         assert valuation.ValuationResult is not None
         assert valuation.ConfidenceEngine is not None
@@ -40,6 +40,18 @@ class TestPublicApi:
         assert valuation.EpvEngine is not None
         assert valuation.GRAHAM_VERSION.startswith("0.7.0")
         assert valuation.GrahamEngine is not None
+        assert valuation.DDM_VERSION.startswith("0.8.0")
+        assert valuation.DdmEngine is not None
+        assert valuation.ASSET_BASED_VERSION.startswith("0.9.0")
+        assert valuation.AssetBasedEngine is not None
+        assert valuation.RELATIVE_VERSION.startswith("0.10.0")
+        assert valuation.RelativeEngine is not None
+        assert valuation.CONSENSUS_VERSION.startswith("0.11.0")
+        assert valuation.ConsensusEngine is not None
+        assert issubclass(valuation.ConsensusValidationError, valuation.ValuationError)
+        assert valuation.OVERALL_VERSION.startswith("0.12.0")
+        assert valuation.OverallEngine is not None
+        assert issubclass(valuation.OverallValuationError, valuation.ValuationError)
 
 
 class TestAssumptions:

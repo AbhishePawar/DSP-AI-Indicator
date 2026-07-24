@@ -101,7 +101,7 @@ Internal packages must not be imported by apps (enforced via
 | `universe` | Investment universe + multi-stock Decision Pack aggregation |
 | `industry` | Industry Identity + taxonomy mappings (AIMF) |
 | `dsp_platform` | Public façade, config, health, gates |
-| `valuation` | Valuation engine — Core + EPV + Graham (`0.7.0`) |
+| `valuation` | Valuation engine — Phase 1 Suite complete incl. Overall Aggregator (`0.12.0`) |
 
 ## Health & integration
 

@@ -14,7 +14,7 @@ packages/valuation/
 ├── README.md
 ├── pyproject.toml
 ├── src/valuation/
-│   ├── __init__.py                 # v0.7.0 — + Graham Intrinsic Value
+│   ├── __init__.py                 # v0.12.0 — + Overall Valuation Aggregator
 │   ├── core/                       # V1.5 shared infrastructure (no methodology)
 │   │   ├── result_models.py
 │   │   ├── confidence_engine.py
@@ -61,6 +61,31 @@ packages/valuation/
 │   │   ├── graham_models.py
 │   │   ├── graham_validation.py
 │   │   └── graham_explainability.py
+│   ├── ddm/                        # V1.8 Dividend Discount Model
+│   │   ├── ddm_engine.py
+│   │   ├── ddm_models.py
+│   │   ├── ddm_validation.py
+│   │   └── ddm_explainability.py
+│   ├── asset_based/                # V1.9 Asset-Based & Liquidation
+│   │   ├── asset_engine.py
+│   │   ├── asset_models.py
+│   │   ├── asset_validation.py
+│   │   └── asset_explainability.py
+│   ├── relative/                   # V1.10 Relative Valuation Suite
+│   │   ├── relative_engine.py
+│   │   ├── relative_models.py
+│   │   ├── relative_validation.py
+│   │   └── relative_explainability.py
+│   ├── consensus/                  # V1.11 Cross-Method Consensus
+│   │   ├── consensus_engine.py
+│   │   ├── consensus_models.py
+│   │   ├── consensus_validation.py
+│   │   └── consensus_explainability.py
+│   ├── overall/                    # V1.12 Overall Valuation Aggregator
+│   │   ├── overall_engine.py
+│   │   ├── overall_models.py
+│   │   ├── overall_validation.py
+│   │   └── overall_explainability.py
 │   ├── methods/
 │   │   ├── base.py
 │   │   ├── dcf.py                  # legacy multi-method runner (unchanged API)
@@ -69,11 +94,16 @@ packages/valuation/
 │   │   ├── book_value.py
 │   │   └── residual_income.py      # legacy closed-form method (unchanged)
 │   └── engine/
-│       └── service.py              # ValuationEngine (+ dcf / reverse / residual / epv / graham)
+│       └── service.py              # ValuationEngine (+ … / consensus / overall)
 └── tests/
-    ├── test_core/                  # V1.5 core framework coverage
-    ├── test_epv.py                 # V1.6 EPV coverage
-    └── test_graham.py              # V1.7 Graham coverage
+    ├── test_core/
+    ├── test_epv.py
+    ├── test_graham.py
+    ├── test_ddm.py
+    ├── test_asset_based.py
+    ├── test_relative.py
+    ├── test_consensus.py
+    └── test_overall.py
 ```
 
 ## Valuation Core Framework (V1.5 / 0.5.0)
@@ -150,6 +180,122 @@ assert result.intrinsic_value_per_share.value == 45.0
 ```
 
 See [V1_SPRINT7_GRAHAM.md](../../docs/V1_SPRINT7_GRAHAM.md).
+
+## Dividend Discount Model (V1.8 / 0.8.0)
+
+Zero-growth, Gordon, two-stage, and multi-stage DDM on Valuation Core.
+Research-only; does **not** enable Overall Valuation.
+
+```python
+from valuation import ValuationEngine, DdmInputs, DdmMethod
+
+result = ValuationEngine().analyze_ddm(
+    DdmInputs(
+        current_dps=2.0,
+        cost_of_equity=0.10,
+        expected_dividend_growth=0.03,
+        method=DdmMethod.GORDON,
+        shares_outstanding=100,
+        current_market_price=30,
+    )
+)
+assert result.intrinsic_value_per_share.value is not None
+```
+
+See [V1_SPRINT8_DDM.md](../../docs/V1_SPRINT8_DDM.md).
+
+## Asset-Based Valuation (V1.9 / 0.9.0)
+
+Book value, tangible book, NAV, adjusted NAV, liquidation, conservative
+liquidation, and replacement cost. Research-only; does **not** enable Overall Valuation.
+
+```python
+from valuation import ValuationEngine, AssetBasedInputs, AssetMethod
+
+result = ValuationEngine().analyze_asset_based(
+    AssetBasedInputs(
+        cash=100,
+        ppe=400,
+        long_term_debt=200,
+        shares_outstanding=100,
+        method=AssetMethod.BOOK_VALUE,
+    )
+)
+assert result.book_value.value is not None
+```
+
+See [V1_SPRINT9_ASSET_BASED.md](../../docs/V1_SPRINT9_ASSET_BASED.md).
+
+## Relative Valuation Suite (V1.10 / 0.10.0)
+
+Company vs industry / sector / peer / historical multiples (P/E, PEG, P/B,
+EV/EBITDA, dividend yield, and more). Benchmarks are **injected** — no market
+API dependency. Research-only; does **not** enable Overall Valuation.
+
+```python
+from valuation import (
+    ValuationEngine,
+    RelativeInputs,
+    RelativeMultiple,
+    BenchmarkScope,
+    BenchmarkMultiples,
+)
+
+result = ValuationEngine().analyze_relative(
+    RelativeInputs(
+        current_market_price=100,
+        shares_outstanding=10,
+        eps=5.0,
+        method=RelativeMultiple.PE,
+        benchmark_scope=BenchmarkScope.INDUSTRY,
+        industry=BenchmarkMultiples(median=15.0, count=12),
+        peer=BenchmarkMultiples(median=13.0, count=6),
+    )
+)
+assert result.implied_share_price.value is not None
+```
+
+See [V1_SPRINT10_RELATIVE.md](../../docs/V1_SPRINT10_RELATIVE.md).
+
+## Cross-Method Consensus (V1.11 / 0.11.0)
+
+Compares standardized `ValuationResult` / V2 payloads across methods.
+Does **not** call valuation engines. Does **not** enable Overall Valuation.
+
+```python
+from valuation import ValuationEngine, ConsensusInputs, WeightingMode
+
+result = ValuationEngine().analyze_consensus(
+    ConsensusInputs(
+        methods=[dcf_result, relative_result, asset_result],
+        weighting_mode=WeightingMode.AUTOMATIC,
+    )
+)
+assert result.consensus_per_share.value is not None
+```
+
+See [V1_SPRINT11_CONSENSUS.md](../../docs/V1_SPRINT11_CONSENSUS.md).
+
+## Overall Valuation Aggregator (V1.12 / 0.12.0)
+
+Assembles Consensus + method outputs into Overall Intrinsic Value, MoS,
+research labels, and scores. **Does not re-execute engines.** Research labels
+are educational — not investment recommendations.
+
+```python
+from valuation import ValuationEngine, OverallInputs
+
+overall = ValuationEngine().analyze_overall(
+    OverallInputs(
+        current_market_price=50.0,
+        consensus=consensus_result,
+        methods=[dcf_vr, relative_vr],
+    )
+)
+assert overall.overall_valuation_enabled is True
+```
+
+See [V1_SPRINT12_OVERALL.md](../../docs/V1_SPRINT12_OVERALL.md).
 
 ## DCF Intelligence (V1.2)
 
@@ -355,4 +501,4 @@ Caller                ValuationEngine              Methods
 
 ## Version
 
-`0.7.0`
+`0.12.0`

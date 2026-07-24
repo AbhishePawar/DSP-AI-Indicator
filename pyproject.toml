@@ -1,0 +1,269 @@
+[build-system]
+requires = ["setuptools>=69.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "dsp-ai-indicator"
+version = "0.1.0"
+description = "Institutional-grade AI equity research platform with DSP indicators"
+readme = "README.md"
+requires-python = ">=3.11"
+license = { text = "Proprietary" }
+authors = [{ name = "DSP AI Research" }]
+dependencies = [
+    "numpy>=1.26.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "black>=24.0.0",
+    "mypy>=1.10.0",
+    "pytest>=8.0.0",
+    "pytest-cov>=5.0.0",
+    "ruff>=0.4.0",
+]
+
+[tool.setuptools.packages.find]
+where = [
+    "packages/contracts/src",
+    "packages/core/src",
+    "packages/dsp/src",
+    "packages/data_engine/src",
+    "packages/fundamental/src",
+    "packages/ai_committee/src",
+    "packages/economic/src",
+    "packages/snapshot_bridge/src",
+    "packages/orchestration/src",
+    "packages/recommendation/src",
+    "packages/decision_intelligence/src",
+    "packages/universe/src",
+    "packages/industry/src",
+    "packages/comparison/src",
+    "packages/portfolio/src",
+    "packages/risk/src",
+    "packages/research/src",
+    "packages/quantitative_risk/src",
+    "packages/workflow/src",
+    "packages/knowledge_graph/src",
+    "packages/copilot/src",
+    "packages/dsp_platform/src",
+    "packages/valuation/src",
+    "packages/api_platform/src",
+    "packages/security_platform/src",
+    "packages/production_platform/src",
+    "packages/compliance/src",
+]
+
+[tool.pytest.ini_options]
+testpaths = ["packages", "tests"]
+pythonpath = [
+    "packages/contracts/src",
+    "packages/core/src",
+    "packages/dsp/src",
+    "packages/data_engine/src",
+    "packages/fundamental/src",
+    "packages/ai_committee/src",
+    "packages/economic/src",
+    "packages/snapshot_bridge/src",
+    "packages/orchestration/src",
+    "packages/recommendation/src",
+    "packages/decision_intelligence/src",
+    "packages/universe/src",
+    "packages/industry/src",
+    "packages/comparison/src",
+    "packages/portfolio/src",
+    "packages/risk/src",
+    "packages/research/src",
+    "packages/quantitative_risk/src",
+    "packages/workflow/src",
+    "packages/knowledge_graph/src",
+    "packages/copilot/src",
+    "packages/dsp_platform/src",
+    "packages/valuation/src",
+    "packages/api_platform/src",
+    "packages/security_platform/src",
+    "packages/production_platform/src",
+    "packages/compliance/src",
+]
+addopts = "-v --tb=short --import-mode=importlib"
+filterwarnings = ["ignore::DeprecationWarning"]
+
+[tool.black]
+line-length = 88
+target-version = ["py311"]
+include = '\.pyi?$'
+extend-exclude = '/(\.git|\.venv|build|dist)/'
+
+[tool.ruff]
+line-length = 88
+target-version = "py311"
+src = [
+    "packages/contracts/src",
+    "packages/core/src",
+    "packages/dsp/src",
+    "packages/data_engine/src",
+    "packages/fundamental/src",
+    "packages/ai_committee/src",
+    "packages/economic/src",
+    "packages/snapshot_bridge/src",
+    "packages/orchestration/src",
+    "packages/recommendation/src",
+    "packages/decision_intelligence/src",
+    "packages/universe/src",
+    "packages/industry/src",
+    "packages/comparison/src",
+    "packages/portfolio/src",
+    "packages/risk/src",
+    "packages/research/src",
+    "packages/quantitative_risk/src",
+    "packages/workflow/src",
+    "packages/knowledge_graph/src",
+    "packages/copilot/src",
+    "packages/dsp_platform/src",
+    "packages/valuation/src",
+    "packages/api_platform/src",
+    "packages/security_platform/src",
+    "packages/production_platform/src",
+    "packages/compliance/src",
+    "tests",
+]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "N", "W", "UP", "B", "C4", "SIM"]
+ignore = ["N818"]
+
+[tool.ruff.lint.isort]
+known-first-party = [
+    "contracts",
+    "core",
+    "dsp",
+    "data_engine",
+    "fundamental",
+    "ai_committee",
+    "economic",
+    "snapshot_bridge",
+    "orchestration",
+    "recommendation",
+    "decision_intelligence",
+    "universe",
+    "industry",
+    "comparison",
+    "portfolio",
+    "risk",
+    "research",
+    "quantitative_risk",
+    "workflow",
+    "knowledge_graph",
+    "copilot",
+    "dsp_platform",
+    "valuation",
+    "api_platform",
+    "security_platform",
+    "production_platform",
+]
+
+[tool.coverage.run]
+source = [
+    "contracts",
+    "core",
+    "dsp",
+    "data_engine",
+    "fundamental",
+    "ai_committee",
+    "economic",
+    "snapshot_bridge",
+    "orchestration",
+    "recommendation",
+    "decision_intelligence",
+    "universe",
+    "industry",
+    "comparison",
+    "portfolio",
+    "risk",
+    "research",
+    "quantitative_risk",
+    "workflow",
+    "knowledge_graph",
+    "copilot",
+    "dsp_platform",
+    "valuation",
+    "api_platform",
+    "security_platform",
+    "production_platform",
+]
+omit = ["*/tests/*", "*/__init__.py"]
+
+[tool.coverage.report]
+show_missing = true
+skip_empty = true
+
+# ---------------------------------------------------------------------------
+# Static typing (Phase A5) — mypy
+#
+# Covered packages (strict-ish boundary surface):
+#   contracts, core, orchestration, dsp_platform
+#
+# Other packages are not type-checked yet; follow_imports=silent so their
+# missing annotations do not fail the gate. See docs/TYPING.md.
+# ---------------------------------------------------------------------------
+[tool.mypy]
+python_version = "3.12"
+mypy_path = [
+    "packages/contracts/src",
+    "packages/core/src",
+    "packages/dsp/src",
+    "packages/data_engine/src",
+    "packages/fundamental/src",
+    "packages/ai_committee/src",
+    "packages/economic/src",
+    "packages/snapshot_bridge/src",
+    "packages/orchestration/src",
+    "packages/recommendation/src",
+    "packages/decision_intelligence/src",
+    "packages/universe/src",
+    "packages/industry/src",
+    "packages/comparison/src",
+    "packages/portfolio/src",
+    "packages/risk/src",
+    "packages/research/src",
+    "packages/quantitative_risk/src",
+    "packages/workflow/src",
+    "packages/knowledge_graph/src",
+    "packages/copilot/src",
+    "packages/dsp_platform/src",
+    "packages/valuation/src",
+    "packages/api_platform/src",
+    "packages/security_platform/src",
+    "packages/production_platform/src",
+]
+files = [
+    "packages/contracts/src/contracts",
+    "packages/core/src/core",
+    "packages/orchestration/src/orchestration",
+    "packages/dsp_platform/src/dsp_platform",
+]
+explicit_package_bases = true
+namespace_packages = true
+follow_imports = "silent"
+warn_unused_configs = true
+warn_return_any = true
+warn_redundant_casts = true
+warn_unused_ignores = true
+no_implicit_optional = true
+check_untyped_defs = true
+disallow_untyped_defs = true
+disallow_incomplete_defs = true
+disallow_untyped_decorators = true
+strict_equality = true
+extra_checks = true
+show_error_codes = true
+
+# Documented exception: mypy targets the 3.12 type system because current
+# numpy stubs use ``type`` statements unsupported under --python-version 3.11.
+# Runtime still supports Python >=3.11 (see requires-python).
+
+# Application import boundary (enforced in dsp_platform.boundaries /
+# packages/dsp_platform/tests/test_boundaries.py). Applications may import
+# only: dsp_platform, contracts. Forbidden: data_engine, snapshot_bridge,
+# dsp, fundamental, economic, valuation, ai_committee, orchestration,
+# recommendation, workflow, knowledge_graph, copilot, core.

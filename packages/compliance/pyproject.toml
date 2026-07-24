@@ -1,0 +1,16 @@
+[build-system]
+requires = ["setuptools>=69.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "compliance"
+version = "0.1.0"
+description = "DSP Compliance & Product Mode architecture — feature flags, disclosures, presentation terminology (PR1.0)"
+requires-python = ">=3.11"
+license = { text = "Proprietary" }
+dependencies = [
+    "core",
+]
+
+[tool.setuptools.packages.find]
+where = ["src"]

@@ -1,0 +1,17 @@
+[build-system]
+requires = ["setuptools>=69.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "ai-committee"
+version = "0.2.0"
+description = "AI Investment Committee — multi-engine deliberation for DSP AI Indicator"
+requires-python = ">=3.11"
+license = { text = "Proprietary" }
+dependencies = [
+    "contracts",
+    "core",
+]
+
+[tool.setuptools.packages.find]
+where = ["src"]

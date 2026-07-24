@@ -1,0 +1,141 @@
+@import "tailwindcss";
+
+:root {
+  --font-display: "Fraunces", Georgia, serif;
+  --font-body: "Sora", system-ui, sans-serif;
+
+  --bg: #f3efe6;
+  --fg: #1c2421;
+  --muted: #5c6b66;
+  --surface: #fffdf8;
+  --surface-2: #ebe4d6;
+  --border: #d5ccbc;
+  --accent: #0f6e56;
+  --accent-fg: #f4fff9;
+  --accent-soft: #d8f0e6;
+  --glow: rgba(15, 110, 86, 0.18);
+  --danger-bg: #fde8e4;
+  --danger-fg: #7a2e22;
+  --danger-border: #e7b1a6;
+}
+
+:root[data-theme="dark"] {
+  --bg: #101614;
+  --fg: #e8f0ec;
+  --muted: #9bb0a7;
+  --surface: #18211e;
+  --surface-2: #24302c;
+  --border: #31433d;
+  --accent: #3dba8f;
+  --accent-fg: #06241a;
+  --accent-soft: #1d3b32;
+  --glow: rgba(61, 186, 143, 0.16);
+  --danger-bg: #3a1d1a;
+  --danger-fg: #f3c4bc;
+  --danger-border: #6b3a33;
+}
+
+html,
+body {
+  min-height: 100%;
+}
+
+body {
+  margin: 0;
+  font-family: var(--font-body);
+  background: var(--bg);
+  color: var(--fg);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+button,
+input,
+select {
+  font: inherit;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}
+
+.focus\:not-sr-only:focus {
+  position: static;
+  width: auto;
+  height: auto;
+  padding: inherit;
+  margin: inherit;
+  overflow: visible;
+  clip: auto;
+  white-space: normal;
+}
+
+/* Sprint 11 — interactive affordance + route enter micro-interaction */
+.dsp-interactive {
+  transition:
+    background-color 160ms ease,
+    border-color 160ms ease,
+    box-shadow 160ms ease,
+    opacity 160ms ease;
+}
+
+.dsp-interactive:hover {
+  border-color: color-mix(in srgb, var(--accent) 35%, var(--border));
+}
+
+.dsp-interactive:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px var(--bg), 0 0 0 4px var(--accent);
+}
+
+@keyframes dsp-page-enter {
+  from {
+    opacity: 0.72;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.dsp-page-enter {
+  animation: dsp-page-enter 180ms ease-out;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+
+  .dsp-page-enter {
+    animation: none;
+  }
+}
+
+@media (prefers-contrast: more) {
+  :root {
+    --border: #1c2421;
+    --muted: #3a4743;
+  }
+}

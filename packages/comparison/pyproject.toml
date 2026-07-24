@@ -1,0 +1,20 @@
+[build-system]
+requires = ["setuptools>=69.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "comparison"
+version = "0.2.0"
+description = "Qualitative peer comparison engine (AIMF C2.5 + C3.7 evidence citations) — no rankings or scores"
+requires-python = ">=3.11"
+license = { text = "Proprietary" }
+dependencies = [
+    "contracts",
+    "core",
+    "decision_intelligence",
+    "universe",
+    "industry",
+]
+
+[tool.setuptools.packages.find]
+where = ["src"]

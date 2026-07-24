@@ -1,0 +1,16 @@
+[build-system]
+requires = ["setuptools>=69.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "production-platform"
+version = "0.1.0"
+description = "DSP Production Services — provider-neutral ops ports (K1.3)"
+requires-python = ">=3.11"
+license = { text = "Proprietary" }
+dependencies = [
+    "core",
+]
+
+[tool.setuptools.packages.find]
+where = ["src"]

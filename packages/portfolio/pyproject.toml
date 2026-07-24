@@ -1,0 +1,21 @@
+[build-system]
+requires = ["setuptools>=69.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "portfolio"
+version = "0.5.0"
+description = "DSP Portfolio models through monitoring (C4.1–C4.6)"
+requires-python = ">=3.11"
+license = { text = "Proprietary" }
+dependencies = [
+    "contracts",
+    "core",
+    "decision_intelligence",
+    "industry",
+    "comparison",
+    "universe",
+]
+
+[tool.setuptools.packages.find]
+where = ["src"]

@@ -1,0 +1,16 @@
+[build-system]
+requires = ["setuptools>=69.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "workflow"
+version = "0.4.0"
+description = "DSP Workflow Intelligence — models, assembler, engine, reporter (H1.0–H1.3)"
+requires-python = ">=3.11"
+license = { text = "Proprietary" }
+dependencies = [
+    "core",
+]
+
+[tool.setuptools.packages.find]
+where = ["src"]

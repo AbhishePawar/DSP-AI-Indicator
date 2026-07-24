@@ -1,0 +1,30 @@
+{
+  "appVersion": "1.0.0",
+  "promotedFrom": "0.9.5",
+  "codename": "Public Launch",
+  "releaseBranch": "release/web-1.0.0",
+  "frozenAt": "2026-07-22T12:00:00.000Z",
+  "backend": "v1.0.0-rc1",
+  "channel": "stable",
+  "qualityGates": {
+    "criticalBugs": "PASS",
+    "regression": "PASS",
+    "accessibility": "PASS",
+    "performance": "PASS",
+    "security": "PASS"
+  },
+  "dependencies": {
+    "next": "^15.1.0",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "@tanstack/react-query": "^5.66.0",
+    "tailwindcss": "^4.0.0",
+    "typescript": "^5.7.0"
+  },
+  "build": {
+    "compress": true,
+    "productionBrowserSourceMaps": false,
+    "csp": "enforced"
+  },
+  "trustNote": "No Decision Engine / Research / Portfolio / Copilot / Compliance / API contract changes."
+}

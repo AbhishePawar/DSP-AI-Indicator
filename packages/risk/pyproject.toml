@@ -1,0 +1,18 @@
+[build-system]
+requires = ["setuptools>=69.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "risk"
+version = "0.5.0"
+description = "DSP Risk Intelligence — qualitative assemble, analyze, report, integrate (E1.0–E1.4)"
+requires-python = ">=3.11"
+license = { text = "Proprietary" }
+dependencies = [
+    "core",
+    "portfolio",
+    "industry",
+]
+
+[tool.setuptools.packages.find]
+where = ["src"]

@@ -1,0 +1,121 @@
+"""Knowledge Graph public API (I1.3 — models + assembler + engine + reporter)."""
+
+from __future__ import annotations
+
+from knowledge_graph.assembler import (
+    AssemblyContext,
+    AssemblyResult,
+    KnowledgeGraphAssembler,
+)
+from knowledge_graph.engine import EngineContext, EngineResult, KnowledgeGraphEngine
+from knowledge_graph.enums import (
+    AssemblyStatus,
+    EngineStatus,
+    EvidenceLinkCategory,
+    LineageCategory,
+    NodeCategory,
+    RelationshipCategory,
+    ReportingStatus,
+)
+from knowledge_graph.exceptions import KnowledgeGraphError
+from knowledge_graph.models import (
+    EvidenceLink,
+    GraphEdge,
+    GraphIdentity,
+    GraphMetadata,
+    GraphNode,
+    GraphProfile,
+    GraphRelationship,
+    GraphSummary,
+    KnowledgeGraphReport,
+    Lineage,
+)
+from knowledge_graph.refs import (
+    AnalysisReference,
+    ComparisonReference,
+    DecisionReference,
+    IndustryEvidenceReference,
+    PortfolioReference,
+    QuantitativeRiskReference,
+    RecommendationReference,
+    ResearchReference,
+    RiskReference,
+    WorkflowReference,
+)
+from knowledge_graph.reporter import (
+    CategoryCount,
+    CollectionStatistics,
+    KnowledgeGraphReporter,
+    ReportMetadata,
+    ReportingContext,
+    ReportingResult,
+    ValidationStatusView,
+)
+from knowledge_graph.validation import (
+    EVIDENCE_LINK_CATEGORIES,
+    LINEAGE_CATEGORIES,
+    NODE_CATEGORIES,
+    RELATIONSHIP_CATEGORIES,
+    assert_evidence_link_category,
+    assert_lineage_category,
+    assert_node_category,
+    assert_relationship_category,
+    assert_unique_graph_ids,
+    require_decimal,
+)
+
+__all__ = [
+    "EVIDENCE_LINK_CATEGORIES",
+    "LINEAGE_CATEGORIES",
+    "NODE_CATEGORIES",
+    "RELATIONSHIP_CATEGORIES",
+    "AnalysisReference",
+    "AssemblyContext",
+    "AssemblyResult",
+    "AssemblyStatus",
+    "CategoryCount",
+    "CollectionStatistics",
+    "ComparisonReference",
+    "DecisionReference",
+    "EngineContext",
+    "EngineResult",
+    "EngineStatus",
+    "EvidenceLink",
+    "EvidenceLinkCategory",
+    "GraphEdge",
+    "GraphIdentity",
+    "GraphMetadata",
+    "GraphNode",
+    "GraphProfile",
+    "GraphRelationship",
+    "GraphSummary",
+    "IndustryEvidenceReference",
+    "KnowledgeGraphAssembler",
+    "KnowledgeGraphEngine",
+    "KnowledgeGraphError",
+    "KnowledgeGraphReport",
+    "KnowledgeGraphReporter",
+    "Lineage",
+    "LineageCategory",
+    "NodeCategory",
+    "PortfolioReference",
+    "QuantitativeRiskReference",
+    "RecommendationReference",
+    "RelationshipCategory",
+    "ReportMetadata",
+    "ReportingContext",
+    "ReportingResult",
+    "ReportingStatus",
+    "ResearchReference",
+    "RiskReference",
+    "ValidationStatusView",
+    "WorkflowReference",
+    "assert_evidence_link_category",
+    "assert_lineage_category",
+    "assert_node_category",
+    "assert_relationship_category",
+    "assert_unique_graph_ids",
+    "require_decimal",
+]
+
+__version__ = "0.4.0"

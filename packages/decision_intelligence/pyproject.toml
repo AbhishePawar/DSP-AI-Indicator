@@ -1,0 +1,19 @@
+[build-system]
+requires = ["setuptools>=69.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "decision-intelligence"
+version = "0.2.0"
+description = "Decision Brief, Assurance, Decision Pack (+ optional Evidence Bundle refs)"
+requires-python = ">=3.11"
+license = { text = "Proprietary" }
+dependencies = [
+    "contracts",
+    "core",
+    "ai_committee",
+    "industry",
+]
+
+[tool.setuptools.packages.find]
+where = ["src"]

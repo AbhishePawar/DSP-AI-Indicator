@@ -1,0 +1,17 @@
+[build-system]
+requires = ["setuptools>=69.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "industry"
+version = "0.9.0"
+description = "DSP AIMF + Industry Evidence definitions through Evidence Bundles (C2.1–C3.5)"
+requires-python = ">=3.11"
+license = { text = "Proprietary" }
+dependencies = [
+    "contracts",
+    "core",
+]
+
+[tool.setuptools.packages.find]
+where = ["src"]

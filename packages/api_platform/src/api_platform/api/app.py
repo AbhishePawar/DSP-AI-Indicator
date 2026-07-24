@@ -1,0 +1,209 @@
+"""FastAPI application factory (K1.1)."""
+
+from __future__ import annotations
+
+from collections.abc import Callable
+from typing import Any
+
+from fastapi import FastAPI, Request
+from fastapi.exceptions import RequestValidationError
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
+from pydantic import ValidationError
+
+from api_platform.api.dependencies import (
+    ApiState,
+    ContextStore,
+    ReportStore,
+    build_default_platform,
+)
+from api_platform.api.exceptions import ApiError, PlatformError
+from api_platform.api.middleware import RequestContextMiddleware
+from api_platform.api.routers import (
+    analysis,
+    auth,
+    comparison,
+    copilot,
+    health,
+    platform,
+    reports,
+    workflow,
+)
+from api_platform.api.schemas import ApiErrorBody
+from dsp_platform import DSPPlatform
+
+API_VERSION = "v1"
+API_TITLE = "DSP AI Indicator API Platform"
+API_DESCRIPTION = (
+    "HTTP surface over ``dsp_platform``. Contains no business logic — "
+    "routes validate requests and delegate to DSPPlatform public methods."
+)
+
+
+def create_app(
+    *,
+    platform: DSPPlatform | None = None,
+    platform_factory: Callable[[], DSPPlatform] | None = None,
+    api_version: str = API_VERSION,
+    security: Any | None = None,
+    enable_security: bool = False,
+) -> FastAPI:
+    """Create a versioned FastAPI application with OpenAPI / Swagger enabled.
+
+    Args:
+        platform: Optional pre-built ``DSPPlatform``.
+        platform_factory: Optional factory when ``platform`` is omitted.
+        api_version: HTTP API version label.
+        security: Optional ``security_platform.SecurityBundle``. When provided,
+            ``SecurityMiddleware`` protects non-public routes. DSP Platform
+            remains authentication-independent.
+        enable_security: When True and ``security`` is None, build a default
+            ``SecurityBundle`` (dev/RC convenience for the web app).
+    """
+    import os
+
+    if security is None and (
+        enable_security or os.environ.get("DSP_ENABLE_SECURITY", "").lower() in
+        {"1", "true", "yes"}
+    ):
+        from security_platform import SecurityBundle, SecuritySettings
+
+        security = SecurityBundle.create(
+            SecuritySettings(
+                jwt_secret=os.environ.get(
+                    "DSP_JWT_SECRET", "dev-only-change-me"
+                ),
+                require_auth=True,
+                allow_guest=False,
+            )
+        )
+
+    application = FastAPI(
+        title=API_TITLE,
+        description=API_DESCRIPTION,
+        version="0.1.0",
+        docs_url="/docs",
+        redoc_url="/redoc",
+        openapi_url="/openapi.json",
+    )
+
+    resolved = platform
+    if resolved is None:
+        factory = platform_factory or build_default_platform
+        resolved = factory()
+
+    application.state.api = ApiState(
+        platform=resolved,
+        reports=ReportStore(),
+        contexts=ContextStore(),
+        api_version=api_version,
+    )
+    application.state.security = security
+
+    application.add_middleware(
+        CORSMiddleware,
+        allow_origins=os.environ.get(
+            "DSP_CORS_ORIGINS",
+            "http://localhost:3000,http://127.0.0.1:3000",
+        ).split(","),
+        allow_credentials=True,
+        allow_methods=["*"],
+        allow_headers=["*"],
+    )
+
+    # Security middleware runs outermost when configured (added last in Starlette).
+    application.add_middleware(
+        RequestContextMiddleware, api_version=api_version
+    )
+    if security is not None:
+        from security_platform import SecurityMiddleware
+
+        application.add_middleware(SecurityMiddleware, bundle=security)
+
+    _register_exception_handlers(application)
+    _register_routers(application)
+    return application
+
+
+def _register_routers(application: FastAPI) -> None:
+    # Versioned mount: /api/v1/... plus root aliases matching the mission routes.
+    versioned = [
+        health.router,
+        platform.router,
+        auth.router,
+        analysis.router,
+        comparison.router,
+        workflow.router,
+        copilot.router,
+        reports.router,
+    ]
+    for router in versioned:
+        application.include_router(router)
+        application.include_router(router, prefix=f"/api/{API_VERSION}")
+
+
+def _register_exception_handlers(application: FastAPI) -> None:
+    @application.exception_handler(ApiError)
+    async def api_error_handler(
+        request: Request, exc: ApiError
+    ) -> JSONResponse:
+        body = ApiErrorBody(
+            error=type(exc).__name__,
+            detail=exc.message,
+            status_code=exc.status_code,
+            api_version=API_VERSION,
+        )
+        return JSONResponse(status_code=exc.status_code, content=body.model_dump())
+
+    @application.exception_handler(PlatformError)
+    async def platform_error_handler(
+        request: Request, exc: PlatformError
+    ) -> JSONResponse:
+        body = ApiErrorBody(
+            error="PlatformError",
+            detail=str(exc),
+            status_code=502,
+            api_version=API_VERSION,
+        )
+        return JSONResponse(status_code=502, content=body.model_dump())
+
+    @application.exception_handler(RequestValidationError)
+    async def request_validation_handler(
+        request: Request, exc: RequestValidationError
+    ) -> JSONResponse:
+        body = ApiErrorBody(
+            error="RequestValidationError",
+            detail=str(exc.errors()),
+            status_code=422,
+            api_version=API_VERSION,
+        )
+        return JSONResponse(status_code=422, content=body.model_dump())
+
+    @application.exception_handler(ValidationError)
+    async def pydantic_validation_handler(
+        request: Request, exc: ValidationError
+    ) -> JSONResponse:
+        body = ApiErrorBody(
+            error="ValidationError",
+            detail=str(exc),
+            status_code=422,
+            api_version=API_VERSION,
+        )
+        return JSONResponse(status_code=422, content=body.model_dump())
+
+    @application.exception_handler(Exception)
+    async def unhandled_handler(
+        request: Request, exc: Exception
+    ) -> JSONResponse:
+        body = ApiErrorBody(
+            error="InternalServerError",
+            detail=str(exc),
+            status_code=500,
+            api_version=API_VERSION,
+        )
+        return JSONResponse(status_code=500, content=body.model_dump())
+
+
+# Module-level app for ``uvicorn api_platform.api.app:app``
+# Set DSP_ENABLE_SECURITY=true for web login (L1.0).
+app = create_app()

@@ -1,0 +1,17 @@
+[build-system]
+requires = ["setuptools>=69.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "security-platform"
+version = "0.1.0"
+description = "DSP Authentication & Security Platform — JWT / RBAC / API keys (K1.2)"
+requires-python = ">=3.11"
+license = { text = "Proprietary" }
+dependencies = [
+    "core",
+    "starlette>=0.40.0",
+]
+
+[tool.setuptools.packages.find]
+where = ["src"]

@@ -1,0 +1,18 @@
+[build-system]
+requires = ["setuptools>=69.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "valuation"
+version = "0.1.0"
+description = "Valuation Engine — intrinsic value analysis for DSP AI Indicator"
+requires-python = ">=3.11"
+license = { text = "Proprietary" }
+dependencies = [
+    "contracts",
+    "core",
+    "fundamental",
+]
+
+[tool.setuptools.packages.find]
+where = ["src"]

@@ -1,0 +1,18 @@
+[build-system]
+requires = ["setuptools>=69.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "universe"
+version = "0.1.0"
+description = "Investment universe and multi-stock Decision Pack aggregation"
+requires-python = ">=3.11"
+license = { text = "Proprietary" }
+dependencies = [
+    "contracts",
+    "core",
+    "decision_intelligence",
+]
+
+[tool.setuptools.packages.find]
+where = ["src"]

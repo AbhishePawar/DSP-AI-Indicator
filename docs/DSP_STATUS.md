@@ -2,7 +2,7 @@
 
 | Field | Value |
 |---|---|
-| **Version** | `1.2.14` |
+| **Version** | `1.3.6` |
 | **Status** | **Active** (Living) |
 | **Last updated** | 2026-07-24 |
 | **Audience** | Anyone starting work today |
@@ -19,23 +19,29 @@ Protection **policy** → [DSP_PROJECT_PROTECTION.md](DSP_PROJECT_PROTECTION.md)
 
 | Field | Value |
 |---|---|
-| **Current Version** | Backend RC **`v1.0.0-rc1`** · `valuation` **`0.12.0`** · Web **`2.4.0`** · Docs Suite **`1.2.14`** · API **`/api/v1`** |
-| **Active Sprint** | **V1.12 complete** — Overall Valuation Aggregator (`0.12.0`) · **Phase 1 Valuation Suite COMPLETE** |
-| **Production Modules** | Research ✓ · MIE ✓ · EMI ✓ · EQI ✓ · VIE Foundation ✓ · Domain DCF ✓ · Reverse DCF ✓ · Residual Income ✓ · Valuation Core ✓ · EPV ✓ · Graham ✓ · DDM ✓ · Asset-Based ✓ · Relative ✓ · Consensus ✓ · **Overall ✓** |
-| **Regression Status** | **GREEN** — **1993 PASS** (`--import-mode=importlib`) |
+| **Current Version** | Backend RC **`v1.0.0-rc1`** · `valuation` **`0.12.0`** · `financial` **`0.7.0`** · Web **`2.4.0`** · Docs Suite **`1.3.6`** · API **`/api/v1`** |
+| **Active Sprint** | **F2.7 complete** — Financial Statement Aggregator (`financial` 0.7.0) · **Phase 2 Financial Statement Intelligence COMPLETE** |
+| **Production Modules** | Research ✓ · MIE ✓ · EMI ✓ · EQI ✓ · VIE Foundation ✓ · Valuation Suite ✓ · **Financial Domain ✓** |
+| **Regression Status** | **GREEN** — **2200 PASS** (`--import-mode=importlib`) |
 | **Project Health** | **Healthy** |
-| **Last Safe Checkpoint** | Phase 1 Valuation Suite complete — suite git tag pending explicit approval |
+| **Last Safe Checkpoint** | Phase 1 Valuation + Phase 2 Financial Intelligence complete — suite git tag deferred until explicit approval |
 
 ### 2b. Valuation Intelligence
 
 | Item | Status |
 |---|---|
-| V1.12 Overall | **Complete** — Overall Valuation **ENABLED** (aggregator; no engine re-execution) |
-| V1.11 Consensus | **Complete** |
-| V1.10 Relative | **Complete** |
-| Phase 1 Valuation Suite | **COMPLETE** |
-| Next | Suite milestone review → Phase 2 Financial Statement Intelligence |
-| Sprint brief | [V1_SPRINT12_OVERALL.md](V1_SPRINT12_OVERALL.md) |
+| Phase 1 Valuation Suite | **COMPLETE** (`valuation` 0.12.0) — frozen for F2.x |
+| Overall Valuation | **ENABLED** (aggregator) |
+
+### 2c. Financial Statement Intelligence
+
+| Item | Status |
+|---|---|
+| F2.1–F2.6 | **Complete** |
+| F2.7 Financial Statement Aggregator | **Complete** |
+| Phase 2 | **COMPLETE** |
+| Primary entry | `FinancialEngine.analyze_financials()` |
+| Sprint briefs | [F2_SPRINT1](F2_SPRINT1_FINANCIAL_DOMAIN.md) · [F2_SPRINT2](F2_SPRINT2_INCOME_INTELLIGENCE.md) · [F2_SPRINT3](F2_SPRINT3_BALANCE_INTELLIGENCE.md) · [F2_SPRINT4](F2_SPRINT4_CASHFLOW_INTELLIGENCE.md) · [F2_SPRINT5](F2_SPRINT5_FINANCIAL_RATIO_ENGINE.md) · [F2_SPRINT6](F2_SPRINT6_TREND_INTELLIGENCE.md) · [F2_SPRINT7](F2_SPRINT7_FINANCIAL_AGGREGATOR.md) |
 
 ## Related
 

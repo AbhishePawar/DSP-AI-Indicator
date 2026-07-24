@@ -1,0 +1,16 @@
+[build-system]
+requires = ["setuptools>=69.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "financial"
+version = "0.7.0"
+description = "Canonical Financial Statement Domain for DSP AI Indicator (Phase 2)"
+requires-python = ">=3.11"
+license = { text = "Proprietary" }
+dependencies = [
+    "core",
+]
+
+[tool.setuptools.packages.find]
+where = ["src"]

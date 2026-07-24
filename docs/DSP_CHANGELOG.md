@@ -2,7 +2,7 @@
 
 | Field | Value |
 |---|---|
-| **Version** | `1.2.14` |
+| **Version** | `1.3.6` |
 | **Status** | **Active** (Living) |
 | **Last updated** | 2026-07-24 |
 | **Audience** | Release managers · AI orientation |
@@ -27,6 +27,13 @@
 
 | Date | Suite | Change |
 |---|---|---|
+| 2026-07-24 | **1.3.6** | F2.7 Financial Statement Aggregator (`financial` 0.7.0); Phase 2 Financial Intelligence complete; Phase 1 Valuation untouched |
+| 2026-07-24 | **1.3.5** | F2.6 Trend & Time-Series Intelligence (`financial` 0.6.0); Phase 1 Valuation untouched |
+| 2026-07-24 | **1.3.4** | F2.5 Financial Ratio Engine (`financial` 0.5.0); Phase 1 Valuation untouched |
+| 2026-07-24 | **1.3.3** | F2.4 Cash Flow Intelligence (`financial` 0.4.0); Phase 1 Valuation untouched |
+| 2026-07-24 | **1.3.2** | F2.3 Balance Sheet Intelligence (`financial` 0.3.0); Phase 1 Valuation untouched |
+| 2026-07-24 | **1.3.1** | F2.2 Income Statement Intelligence (`financial` 0.2.0); Phase 1 Valuation untouched |
+| 2026-07-24 | **1.3.0** | F2.1 Financial Data Domain (`financial` 0.1.0); Phase 1 Valuation untouched; Phase 2 begun |
 | 2026-07-24 | **1.2.14** | V1.12 Overall Valuation Aggregator (`valuation` 0.12.0); **Phase 1 Valuation Suite COMPLETE**; suite git tag pending approval |
 | 2026-07-24 | **1.2.13** | V1.11 Cross-Method Consensus (`valuation` 0.11.0); Overall Valuation still disabled; no suite git tag yet |
 | 2026-07-24 | **1.2.12** | V1.10 Relative Valuation Suite (`valuation` 0.10.0); Overall Valuation still disabled; no suite git tag yet |

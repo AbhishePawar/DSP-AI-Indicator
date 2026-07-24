@@ -102,6 +102,7 @@ Internal packages must not be imported by apps (enforced via
 | `industry` | Industry Identity + taxonomy mappings (AIMF) |
 | `dsp_platform` | Public façade, config, health, gates |
 | `valuation` | Valuation engine — Phase 1 Suite complete incl. Overall Aggregator (`0.12.0`) |
+| `financial` | Canonical Financial Statement Domain + full F2.1–F2.7 Intelligence Aggregator — Phase 2 complete (`0.7.0`) |
 
 ## Health & integration
 

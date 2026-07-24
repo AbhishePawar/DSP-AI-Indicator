@@ -1,0 +1,17 @@
+[build-system]
+requires = ["setuptools>=69.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "business_quality"
+version = "0.3.0"
+description = "Canonical Business Quality Intelligence for DSP AI Indicator (Phase 3)"
+requires-python = ">=3.11"
+license = { text = "Proprietary" }
+dependencies = [
+    "core",
+    "financial",
+]
+
+[tool.setuptools.packages.find]
+where = ["src"]

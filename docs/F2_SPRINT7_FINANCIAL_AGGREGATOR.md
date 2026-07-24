@@ -65,4 +65,6 @@ Excellent Financial Health · Healthy Financial Position · Needs Attention · L
 
 ## Phase 2 status
 
-F2.1–F2.7 **complete**. Valuation Suite remains frozen. No git tag/commit from this sprint.
+F2.1–F2.7 **complete**. Valuation Suite remains frozen.
+
+**Phase 3 next:** [F3_SPRINT1_BUSINESS_QUALITY_FRAMEWORK.md](F3_SPRINT1_BUSINESS_QUALITY_FRAMEWORK.md).

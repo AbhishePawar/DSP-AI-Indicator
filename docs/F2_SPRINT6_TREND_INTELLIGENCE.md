@@ -70,4 +70,6 @@ Consistent Compounder · Improving / Deteriorating Business · Margin Expansion 
 
 **F2.7 — Financial Statement Aggregator** — completed; see [F2_SPRINT7_FINANCIAL_AGGREGATOR.md](F2_SPRINT7_FINANCIAL_AGGREGATOR.md).
 
-Phase 2 Financial Statement Intelligence (F2.1–F2.7) is complete.
+Phase 2 Financial Statement Intelligence (F2.1–F2.7) is complete and frozen.
+
+**Phase 3:** [F3_SPRINT1_BUSINESS_QUALITY_FRAMEWORK.md](F3_SPRINT1_BUSINESS_QUALITY_FRAMEWORK.md) (F3.1).

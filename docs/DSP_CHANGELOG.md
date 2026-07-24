@@ -2,7 +2,7 @@
 
 | Field | Value |
 |---|---|
-| **Version** | `1.3.6` |
+| **Version** | `1.3.9` |
 | **Status** | **Active** (Living) |
 | **Last updated** | 2026-07-24 |
 | **Audience** | Release managers · AI orientation |
@@ -27,6 +27,9 @@
 
 | Date | Suite | Change |
 |---|---|---|
+| 2026-07-24 | **1.3.9** | F3.3 Capital Allocation Intelligence (`business_quality` 0.3.0); Phase 1–2 frozen |
+| 2026-07-24 | **1.3.8** | F3.2 Earnings Quality Intelligence (`business_quality` 0.2.0); Phase 1–2 frozen |
+| 2026-07-24 | **1.3.7** | F3.1 Business Quality Framework (`business_quality` 0.1.0); Phase 1–2 frozen |
 | 2026-07-24 | **1.3.6** | F2.7 Financial Statement Aggregator (`financial` 0.7.0); Phase 2 Financial Intelligence complete; Phase 1 Valuation untouched |
 | 2026-07-24 | **1.3.5** | F2.6 Trend & Time-Series Intelligence (`financial` 0.6.0); Phase 1 Valuation untouched |
 | 2026-07-24 | **1.3.4** | F2.5 Financial Ratio Engine (`financial` 0.5.0); Phase 1 Valuation untouched |

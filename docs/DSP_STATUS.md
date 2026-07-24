@@ -2,7 +2,7 @@
 
 | Field | Value |
 |---|---|
-| **Version** | `1.3.6` |
+| **Version** | `1.3.9` |
 | **Status** | **Active** (Living) |
 | **Last updated** | 2026-07-24 |
 | **Audience** | Anyone starting work today |
@@ -19,29 +19,37 @@ Protection **policy** → [DSP_PROJECT_PROTECTION.md](DSP_PROJECT_PROTECTION.md)
 
 | Field | Value |
 |---|---|
-| **Current Version** | Backend RC **`v1.0.0-rc1`** · `valuation` **`0.12.0`** · `financial` **`0.7.0`** · Web **`2.4.0`** · Docs Suite **`1.3.6`** · API **`/api/v1`** |
-| **Active Sprint** | **F2.7 complete** — Financial Statement Aggregator (`financial` 0.7.0) · **Phase 2 Financial Statement Intelligence COMPLETE** |
-| **Production Modules** | Research ✓ · MIE ✓ · EMI ✓ · EQI ✓ · VIE Foundation ✓ · Valuation Suite ✓ · **Financial Domain ✓** |
-| **Regression Status** | **GREEN** — **2200 PASS** (`--import-mode=importlib`) |
+| **Current Version** | Backend RC **`v2.0.0`** · `valuation` **`0.12.0`** · `financial` **`0.7.0`** · `business_quality` **`0.3.0`** · Web **`2.4.0`** · Docs Suite **`1.3.9`** · API **`/api/v1`** |
+| **Active Sprint** | **F3.3 complete** — Capital Allocation Intelligence (`business_quality` 0.3.0) |
+| **Production Modules** | Research ✓ · MIE ✓ · EMI ✓ · EQI ✓ · VIE Foundation ✓ · Valuation Suite ✓ · Financial Domain ✓ |
+| **Regression Status** | **GREEN** — **2242 PASS** (`--import-mode=importlib`) |
 | **Project Health** | **Healthy** |
-| **Last Safe Checkpoint** | Phase 1 Valuation + Phase 2 Financial Intelligence complete — suite git tag deferred until explicit approval |
+| **Last Safe Checkpoint** | `v2.0.0-financial-intelligence` — Phase 1–2 complete; Phase 3 git milestone deferred until F3.7 |
 
 ### 2b. Valuation Intelligence
 
 | Item | Status |
 |---|---|
-| Phase 1 Valuation Suite | **COMPLETE** (`valuation` 0.12.0) — frozen for F2.x |
+| Phase 1 Valuation Suite | **COMPLETE** (`valuation` 0.12.0) — **FROZEN** |
 | Overall Valuation | **ENABLED** (aggregator) |
 
 ### 2c. Financial Statement Intelligence
 
 | Item | Status |
 |---|---|
-| F2.1–F2.6 | **Complete** |
-| F2.7 Financial Statement Aggregator | **Complete** |
-| Phase 2 | **COMPLETE** |
+| Phase 2 | **COMPLETE** (`financial` 0.7.0) — **FROZEN** |
 | Primary entry | `FinancialEngine.analyze_financials()` |
-| Sprint briefs | [F2_SPRINT1](F2_SPRINT1_FINANCIAL_DOMAIN.md) · [F2_SPRINT2](F2_SPRINT2_INCOME_INTELLIGENCE.md) · [F2_SPRINT3](F2_SPRINT3_BALANCE_INTELLIGENCE.md) · [F2_SPRINT4](F2_SPRINT4_CASHFLOW_INTELLIGENCE.md) · [F2_SPRINT5](F2_SPRINT5_FINANCIAL_RATIO_ENGINE.md) · [F2_SPRINT6](F2_SPRINT6_TREND_INTELLIGENCE.md) · [F2_SPRINT7](F2_SPRINT7_FINANCIAL_AGGREGATOR.md) |
+| Milestone | `v2.0.0-financial-intelligence` |
+
+### 2d. Business Quality Intelligence
+
+| Item | Status |
+|---|---|
+| F3.1 Framework | **Complete** |
+| F3.2 Earnings Quality | **Complete** |
+| F3.3 Capital Allocation | **Complete** |
+| Next | F3.4 Business Characteristics Intelligence |
+| Sprint briefs | [F3_SPRINT1](F3_SPRINT1_BUSINESS_QUALITY_FRAMEWORK.md) · [F3_SPRINT2](F3_SPRINT2_EARNINGS_QUALITY_INTELLIGENCE.md) · [F3_SPRINT3](F3_SPRINT3_CAPITAL_ALLOCATION_INTELLIGENCE.md) |
 
 ## Related
 

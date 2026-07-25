@@ -55,4 +55,4 @@ Excellent Capital Allocation · Disciplined Reinvestment · Shareholder Friendly
 
 ## Next
 
-**F3.4 — Business Characteristics Intelligence**
+**F3.4 — Business Characteristics Intelligence** — completed; see [F3_SPRINT4_BUSINESS_CHARACTERISTICS_INTELLIGENCE.md](F3_SPRINT4_BUSINESS_CHARACTERISTICS_INTELLIGENCE.md).

@@ -11,7 +11,7 @@ __all__ = [
     "BusinessQualityMetadata",
 ]
 
-BUSINESS_QUALITY_VERSION = "0.3.0-business-quality"
+BUSINESS_QUALITY_VERSION = "0.7.0-business-quality"
 FRAMEWORK_VERSION = "0.1.0-framework"
 
 

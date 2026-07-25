@@ -240,7 +240,7 @@ class TestEarningsQuality:
         bq = engine.analyze(fa)
         assert bq.score is not None
         assert bq.summary.headline
-        assert BUSINESS_QUALITY_VERSION.startswith("0.3.0")
+        assert BUSINESS_QUALITY_VERSION.startswith("0.7.0")
 
     def test_single_period(self) -> None:
         result = EarningsQualityEngine().analyze(_fa(1.0))
@@ -482,7 +482,7 @@ class TestPackageVersion:
     def test_version(self) -> None:
         import business_quality as bq
 
-        assert bq.__version__ == "0.3.0"
+        assert bq.__version__ == "0.7.0"
         assert hasattr(bq, "EarningsQualityAnalysis")
         assert hasattr(bq, "analyze_earnings_quality") is False
         assert hasattr(bq.BusinessQualityEngine, "analyze_earnings_quality")

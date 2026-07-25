@@ -54,7 +54,7 @@ K1.4 freeze rules; breaking public API changes require a new RC or major bump.
 | `fundamental` | 0.1.0 |
 | `economic` | 0.1.1 |
 | `financial` | 0.7.0 |
-| `business_quality` | 0.3.0 |
+| `business_quality` | 0.7.0 |
 | `valuation` | 0.12.0 |
 | `ai_committee` | 0.3.0 |
 | `snapshot_bridge` | 0.1.0 |

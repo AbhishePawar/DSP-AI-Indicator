@@ -203,8 +203,11 @@ class TestCapitalAllocation:
         assert bq.score is not None
         assert "EQ=" in bq.summary.headline
         assert "CA=" in bq.summary.headline
-        assert BUSINESS_QUALITY_VERSION.startswith("0.3.0")
+        assert BUSINESS_QUALITY_VERSION.startswith("0.7.0")
         assert len(bq.score.assessments) >= 10
+        assert "BC=" in bq.summary.headline
+        assert "CP=" in bq.summary.headline
+        assert bq.capital_allocation is not None
 
     def test_single_period(self) -> None:
         result = CapitalAllocationEngine().analyze(_fa(1.0))
@@ -404,7 +407,7 @@ class TestPackage:
     def test_exports(self) -> None:
         import business_quality as bq
 
-        assert bq.__version__ == "0.3.0"
+        assert bq.__version__ == "0.7.0"
         assert hasattr(bq, "CapitalAllocationAnalysis")
         assert hasattr(bq.BusinessQualityEngine, "analyze_capital_allocation")
 
@@ -412,7 +415,9 @@ class TestPackage:
         from business_quality.engine import _strengths, _weaknesses
         from business_quality.earnings_quality_models import EarningsQualityFlag
         from business_quality.capital_allocation_models import CapitalAllocationFlag
-        from business_quality.scoring import Confidence, Rating
+        from business_quality.business_characteristics_models import (
+            BusinessCharacteristicsFlag,
+        )
 
         eq = SimpleNamespace(
             quality_flags=(
@@ -426,7 +431,15 @@ class TestPackage:
                 CapitalAllocationFlag.DEBT_DEPENDENT,
             )
         )
-        assert any("high_earnings" in s for s in _strengths(eq, ca))
-        assert any("debt_dependent" in s for s in _weaknesses(eq, ca))
-        assert any("excellent_capital" in s for s in _strengths(eq, ca))
-        assert any("weak_cash" in s for s in _weaknesses(eq, ca))
+        bc = SimpleNamespace(
+            quality_flags=(
+                BusinessCharacteristicsFlag.MARGIN_DURABLE,
+                BusinessCharacteristicsFlag.CYCLICAL_BUSINESS,
+            )
+        )
+        assert any("high_earnings" in s for s in _strengths(eq, ca, bc, SimpleNamespace(quality_flags=())))
+        assert any("debt_dependent" in s for s in _weaknesses(eq, ca, bc, SimpleNamespace(quality_flags=())))
+        assert any("excellent_capital" in s for s in _strengths(eq, ca, bc, SimpleNamespace(quality_flags=())))
+        assert any("weak_cash" in s for s in _weaknesses(eq, ca, bc, SimpleNamespace(quality_flags=())))
+        assert any("margin_durable" in s for s in _strengths(eq, ca, bc, SimpleNamespace(quality_flags=())))
+        assert any("cyclical" in s for s in _weaknesses(eq, ca, bc, SimpleNamespace(quality_flags=())))

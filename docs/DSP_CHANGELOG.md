@@ -2,9 +2,9 @@
 
 | Field | Value |
 |---|---|
-| **Version** | `1.3.9` |
+| **Version** | `1.3.13` |
 | **Status** | **Active** (Living) |
-| **Last updated** | 2026-07-24 |
+| **Last updated** | 2026-07-25 |
 | **Audience** | Release managers · AI orientation |
 
 ## Purpose
@@ -27,6 +27,10 @@
 
 | Date | Suite | Change |
 |---|---|---|
+| 2026-07-25 | **1.3.13** | F3.7 Business Quality Aggregator (`business_quality` 0.7.0); **Phase 3 complete**; Phase 1–2 frozen |
+| 2026-07-25 | **1.3.12** | F3.6 Business Quality Engine (`business_quality` 0.6.0); Phase 1–2 frozen |
+| 2026-07-25 | **1.3.11** | F3.5 Competitive Position Indicators (`business_quality` 0.5.0); Phase 1–2 frozen |
+| 2026-07-25 | **1.3.10** | F3.4 Business Characteristics Intelligence (`business_quality` 0.4.0); Phase 1–2 frozen |
 | 2026-07-24 | **1.3.9** | F3.3 Capital Allocation Intelligence (`business_quality` 0.3.0); Phase 1–2 frozen |
 | 2026-07-24 | **1.3.8** | F3.2 Earnings Quality Intelligence (`business_quality` 0.2.0); Phase 1–2 frozen |
 | 2026-07-24 | **1.3.7** | F3.1 Business Quality Framework (`business_quality` 0.1.0); Phase 1–2 frozen |

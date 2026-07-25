@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "business_quality"
-version = "0.3.0"
+version = "0.7.0"
 description = "Canonical Business Quality Intelligence for DSP AI Indicator (Phase 3)"
 requires-python = ">=3.11"
 license = { text = "Proprietary" }

@@ -32,10 +32,11 @@ class TestEngine:
             engine.analyze({"anything": True})
 
     def test_package_exports(self) -> None:
-        assert bq.__version__ == "0.3.0"
-        assert bq.BUSINESS_QUALITY_VERSION.startswith("0.3.0")
+        assert bq.__version__ == "0.7.0"
+        assert bq.BUSINESS_QUALITY_VERSION.startswith("0.7.0")
         assert hasattr(bq, "BusinessQualityEngine")
         assert hasattr(bq, "EarningsQualityEngine")
         assert hasattr(bq, "CapitalAllocationEngine")
+        assert hasattr(bq, "BusinessQualityWeights")
         assert hasattr(bq, "Score")
         assert hasattr(bq, "validate_required_inputs")

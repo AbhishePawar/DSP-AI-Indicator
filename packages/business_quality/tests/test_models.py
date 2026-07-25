@@ -21,7 +21,8 @@ class TestFlagsAndScores:
     def test_flag_values(self) -> None:
         assert BusinessQualityFlag.EXCELLENT.value == "excellent"
         assert BusinessQualityFlag.INSUFFICIENT_DATA.value == "insufficient_data"
-        assert len(BusinessQualityFlag) == 7
+        assert BusinessQualityFlag.GOOD.value == "good"
+        assert len(BusinessQualityFlag) == 8
 
     def test_score_and_summary_dicts(self) -> None:
         score = BusinessQualityScore(

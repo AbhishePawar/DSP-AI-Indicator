@@ -5,12 +5,12 @@ Professional Investment Research for Everyone.
 
 Explainable AI Investment Research Platform — **not** a stock tip service.
 
-**Backend RC:** `v1.0.0-rc1` · **Product epic:** [PR1.0](docs/PR1_0_PRODUCT_STRATEGY_AND_COMPLIANCE.md) (Research Mode default)  
-**Vision:** [PRODUCT_VISION.md](docs/PRODUCT_VISION.md)
+**Backend API RC:** `v1.0.0-rc1` · **Milestones:** `v2.0.0-financial-intelligence` · `v3.0.0-business-quality` · **Product epic:** [PR1.0](docs/PR1_0_PRODUCT_STRATEGY_AND_COMPLIANCE.md) (Research Mode default)  
+**Vision:** [PRODUCT_VISION.md](docs/PRODUCT_VISION.md) · **Living status:** [docs/DSP_STATUS.md](docs/DSP_STATUS.md) · **Package ownership:** [docs/PACKAGE_OWNERSHIP_MATRIX.md](docs/PACKAGE_OWNERSHIP_MATRIX.md) · **Release engineering:** [docs/RELEASE_ENGINEERING.md](docs/RELEASE_ENGINEERING.md)
 
 Institutional AI Investment Research Platform.
 
-**Status:** Phase C2.1 complete · Industry Identity · AIMF design frozen (historical note below; see VERSION_MATRIX for current RC)
+**Status:** ASI **CLOSED**. FEATURE-001–004 complete (Moat, Management, Financial Strength, Earnings Quality). Await approval for next feature. See [docs/FEATURE_004_EARNINGS_QUALITY.md](docs/FEATURE_004_EARNINGS_QUALITY.md).
 
 ## Public entry point
 

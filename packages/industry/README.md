@@ -1,52 +1,104 @@
-# Industry Identity, Characteristics, Methodology & Peer Eligibility (AIMF C2.1–C2.4)
+# industry
 
-DSP owns **IndustryIdentity**. **InvestmentCharacteristics** supply defaults.
-**IndustryMethodology** is the policy authority. **Peer eligibility** decides
-whether companies may enter a future Comparison Engine — it does not compare them.
+## 1. Package Purpose
 
-## Architecture
+DSP AIMF + Industry Evidence definitions through Evidence Bundles (C2.1–C3.5)
+
+## 2. Responsibilities
+
+- Provide the `industry` domain façade for DSP AI Indicator.
+- Expose stable public exports via `__all__`.
+- Remain within architecture allowlists (ASI-003).
+
+## 3. Package Status
+
+**Production · Frozen**  
+Version: **0.9.0**  
+Canonical versions → [VERSION_MATRIX.md](../../docs/VERSION_MATRIX.md) · [DSP_STATUS.md](../../docs/DSP_STATUS.md)
+
+## 4. Public API
+
+- Package version: `0.9.0`
+- `EXAMPLE_APPLICABILITY_IDS`
+- `EXAMPLE_ARCHETYPE_IDS`
+- `EXAMPLE_EVIDENCE_IDS`
+- `EXAMPLE_INTERPRETER_IDS`
+- `EXAMPLE_METRIC_IDS`
+- `EXAMPLE_METHODOLOGY_IDS`
+- `EXAMPLE_PEER_POLICY_IDS`
+- `EXAMPLE_PROVIDER_IDS`
+- `ApplicabilityGroup`
+- `ApplicabilityLevel`
+- `AssembledMethodology`
+- `AssetIntensity`
+- `CapitalAllocationStyle`
+- `CapitalIntensity`
+- `CashFlowProfile`
+- `CharacteristicDefaults`
+- `CharacteristicLifecycle`
+- `ClassificationMappingRegistry`
+- `ClassificationReference`
+- `ComparisonDimension`
+- `ComparisonDimensionHint`
+- `CompetitiveCharacter`
+- `Cyclicality`
+- `EarningsStability`
+- `EligibilityOptions`
+- … and 110 more (see `__all__` in package `__init__.py`)
+
+Import the package root only for public use unless tests intentionally exercise internals.
+
+## 5. Package Structure
 
 ```
-Instrument → IndustryIdentity → IndustryMethodology → PeerEligibilityPolicy
-                                                          ↓
-                                              PeerEligibilityResult
-                                                          ↓
-                                              (future) ComparisonEngine
+packages/industry/
+├── README.md
+├── pyproject.toml (if present)
+├── src/industry/
+│   └── …
+└── tests/
 ```
 
-## Peer eligibility (quick start)
+## 6. Dependencies
+
+Declared in `pyproject.toml`:
+
+- `contracts`
+- `core`
+
+## 7. Architecture Notes
+
+- Feature freeze: do not add product behaviour under ASI documentation tasks.
+- Forbidden imports are enforced by `tests/test_architecture.py` where present.
+- Thin-client / platform rules → [ARCHITECTURE_GOVERNANCE.md](../../docs/ARCHITECTURE_GOVERNANCE.md).
+
+## 8. Usage Examples
 
 ```python
-from industry import (
-    IndustryTaxonomy,
-    InvestmentCharacteristicsRegistry,
-    IndustryMethodologyRegistry,
-    PeerEligibilityPolicyRegistry,
-    InstrumentIndustryRegistry,
-    PeerEligibilityEvaluator,
-    EligibilityOptions,
-    seed_peer_eligibility_context,
-)
+from industry import ClassificationMappingRegistry
 
-tax = IndustryTaxonomy()
-chars = InvestmentCharacteristicsRegistry()
-methods = IndustryMethodologyRegistry(tax, chars)
-policies = PeerEligibilityPolicyRegistry(tax)
-assignments = InstrumentIndustryRegistry(tax)
-seed_peer_eligibility_context(tax, chars, methods, policies, assignments)
-
-ev = PeerEligibilityEvaluator(
-    assignments=assignments, methodologies=methods, policies=policies
-)
-assert ev.evaluate_pair("HDFCBANK", "ICICIBANK").status.value == "direct_peer"
-assert ev.evaluate_pair("HDFCBANK", "TCS").status.value == "not_comparable"
+# See package tests for worked examples against frozen façades.
+_ = ClassificationMappingRegistry
 ```
 
-## Out of scope
+## 9. Testing
 
-Comparison Engine, ranking, scoring, metric formulas.
+```bash
+pytest packages/industry/tests -q --import-mode=importlib -p no:cov
+```
 
-## Compatibility
+## 10. Governance
 
-No changes to DecisionPack, Universe analysis semantics, Committee,
-Recommendation, Valuation Engine, or analysis engines.
+- Ownership → [PACKAGE_OWNERSHIP_MATRIX.md](../../docs/PACKAGE_OWNERSHIP_MATRIX.md)
+- Governance standard → [PACKAGE_GOVERNANCE.md](../../docs/PACKAGE_GOVERNANCE.md)
+- ASI framework → [ASI_IMPLEMENTATION_FRAMEWORK.md](../../docs/ASI_IMPLEMENTATION_FRAMEWORK.md)
+
+## 11. Limitations
+
+- Documents **current** implementation only.
+- Does not embed upstream report payloads or re-run foreign domain math.
+- Not a substitute for epic freeze docs under `docs/`.
+
+## 12. Future Extensions (future only)
+
+Any new analytics, providers, or API shapes require an approved epic and ADR. **Not implemented in this package README.**

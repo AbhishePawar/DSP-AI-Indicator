@@ -1,3 +1,67 @@
+<!-- ASI-005-PACKAGE-CARD -->
+# ai_committee
+
+> ASI-005 standard package card. Detailed historical notes follow in the appendix.
+
+## 1. Package Purpose
+
+AI Investment Committee — multi-engine deliberation for DSP AI Indicator
+
+## 2. Responsibilities
+
+Provide the stable `ai_committee` public façade; keep domain logic inside this package’s ownership boundaries.
+
+## 3. Package Status
+
+**Production · Frozen** · Version **0.3.0** · [VERSION_MATRIX.md](../../docs/VERSION_MATRIX.md) · [DSP_STATUS.md](../../docs/DSP_STATUS.md)
+
+## 4. Public API
+
+`__all__` exports (16): `CommitteeError`, `CommitteeInput`, `CommitteeMember`, `CommitteeReport`, `Decision`, `EconomicMember`, `FundamentalMember`, `InvestmentCommittee`, `InvestmentDecision`, `MemberVote`, `Opinion`, `TechnicalMember`, … (+4)
+
+## 5. Package Structure
+
+`packages/ai_committee/src/ai_committee/` · `packages/ai_committee/tests/` · local `pyproject.toml` when present.
+
+## 6. Dependencies
+
+`contracts`, `core`
+
+## 7. Architecture Notes
+
+Architecture allowlists / freeze policy apply. See appendix and [ARCHITECTURE_GOVERNANCE.md](../../docs/ARCHITECTURE_GOVERNANCE.md).
+
+## 8. Usage Examples
+
+```python
+import ai_committee
+print(ai_committee.__version__)
+```
+
+Worked examples live in `packages/ai_committee/tests/`.
+
+## 9. Testing
+
+```bash
+pytest packages/ai_committee/tests -q --import-mode=importlib -p no:cov
+```
+
+## 10. Governance
+
+[PACKAGE_OWNERSHIP_MATRIX.md](../../docs/PACKAGE_OWNERSHIP_MATRIX.md) · [PACKAGE_GOVERNANCE.md](../../docs/PACKAGE_GOVERNANCE.md)
+
+## 11. Limitations
+
+This card describes **current** implementation only. Epic freeze docs under `docs/` remain authoritative for certified behaviour.
+
+## 12. Future Extensions (future only)
+
+New features require an approved epic + ADR. **Not implemented here.**
+
+---
+
+## Appendix — Detailed package notes
+
 # AI Committee — Investment Committee
 
 `ai_committee` is the platform's **AI Investment Committee** (Section 3.11

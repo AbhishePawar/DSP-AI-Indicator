@@ -1,0 +1,43 @@
+[build-system]
+requires = ["setuptools>=69.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "dsp_platform"
+version = "0.7.1"
+description = "DSP Platform façade — composition entry point and application import boundaries"
+requires-python = ">=3.11"
+license = { text = "Proprietary" }
+dependencies = [
+    "comparison",
+    "contracts",
+    "copilot",
+    "core",
+    "data_engine",
+    "decision_intelligence",
+    "industry",
+    "knowledge_graph",
+    "orchestration",
+    "portfolio",
+    "quantitative_risk",
+    "recommendation",
+    "research",
+    "risk",
+    "snapshot_bridge",
+    "universe",
+    "workflow",
+    "financial",
+    "valuation",
+    "business_quality",
+    "economic_moat",
+    "management_quality",
+    "financial_strength",
+    "earnings_quality",
+    "growth_quality",
+    "business_quality_aggregator",
+    "investment_recommendation",
+    "investment_committee",
+]
+
+[tool.setuptools.packages.find]
+where = ["src"]

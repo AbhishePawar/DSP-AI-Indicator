@@ -226,7 +226,10 @@ own comparison; optimize; score; trade.
 
 ## 9. Technical debt (accepted)
 
-- No `packages/portfolio` yet  
+> **ASI-005 note (2026-07-26):** `packages/portfolio` **exists** and is production-frozen.
+> The bullet below is retained as **historical design debt from C4.0 drafting** and must not be read as current repository state. See [PACKAGE_OWNERSHIP_MATRIX.md](PACKAGE_OWNERSHIP_MATRIX.md).
+
+- ~~No `packages/portfolio` yet~~ *(obsolete — package shipped; historical note only)*  
 - No automatic pack/bundle → holding wiring  
 - IEF providers/interpreters still placeholder-rich  
 - Risk and execution subsystems not chartered  

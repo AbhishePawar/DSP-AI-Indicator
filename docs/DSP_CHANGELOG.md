@@ -2,9 +2,9 @@
 
 | Field | Value |
 |---|---|
-| **Version** | `1.3.13` |
+| **Version** | `1.3.33` |
 | **Status** | **Active** (Living) |
-| **Last updated** | 2026-07-25 |
+| **Last updated** | 2026-07-26 |
 | **Audience** | Release managers · AI orientation |
 
 ## Purpose
@@ -27,6 +27,26 @@
 
 | Date | Suite | Change |
 |---|---|---|
+| 2026-07-26 | **1.3.33** | EPIC-003 Intelligence Workspace: `dsp-web` **2.5.0** `/intelligence` over `/api/v1` only; Vitest **14 PASS**; backend unchanged |
+| 2026-07-26 | **1.3.32** | EPIC-002 `/api/v1` composition: `api_platform` **0.2.0** + `dsp_platform` **0.7.1** adapter; DTOs over `compose_intelligence`; no engine changes |
+| 2026-07-26 | **1.3.31** | EPIC-001 Platform Composition Phase 1: `dsp_platform` **0.7.0** internal orchestration of FEATURE packages; `/api/v1` unchanged |
+| 2026-07-26 | **1.3.30** | FEATURE-008 Investment Committee Phase 1: `investment_committee` **0.1.0** deterministic five-reviewer consensus; distinct from frozen `ai_committee`; package-only |
+| 2026-07-26 | **1.3.29** | FEATURE-007 Investment Recommendation Phase 1: `investment_recommendation` **0.1.0** deterministic MoS-gated decision engine; distinct from G1.3 recommendation; package-only |
+| 2026-07-26 | **1.3.28** | FEATURE-006 Business Quality Aggregator Phase 1: `business_quality_aggregator` **0.1.0** cross-domain explainable composition; distinct from F3.7 Aggregator; package-only |
+| 2026-07-26 | **1.3.27** | FEATURE-005 Growth Quality Phase 1: `growth_quality` **0.1.0** six-dimension explainable engine; Buffett-aligned reinvestment focus; package-only |
+| 2026-07-26 | **1.3.26** | FEATURE-004 Earnings Quality Phase 1: `earnings_quality` **0.1.0** six-dimension explainable engine; distinct from BQ F3.2 module; package-only |
+| 2026-07-26 | **1.3.25** | FEATURE-003 Financial Strength Phase 1: `financial_strength` **0.1.0** six-dimension explainable engine; package-only; `/api/v1` unchanged |
+| 2026-07-26 | **1.3.24** | FEATURE-002 Management Quality Phase 1: `management_quality` **0.1.0** six-dimension explainable engine; package-only; `/api/v1` unchanged |
+| 2026-07-26 | **1.3.23** | FEATURE-001 Economic Moat Phase 1: `economic_moat` **0.2.0** six-dimension explainable engine; package-only; `/api/v1` unchanged |
+| 2026-07-26 | **1.3.22** | REP-001 Release Engineering & Repository Cleanup: hygiene, packaging policy, sensitive-path purge; Professionalism **95/100**; no product/API change |
+| 2026-07-26 | **1.3.21** | ASI-008 Final Repository Audit & ASI closure; certificate issued; Overall Health **90/100**; feature freeze remains default |
+| 2026-07-26 | **1.3.20** | ASI-007 CI Quality: integrity/arch/smoke/full monorepo gates in GitHub Actions; `dev` extras for HTTP tests; `docs/CI.md`; no product code |
+| 2026-07-26 | **1.3.19** | ASI-006 Testing Excellence: arch tests for `dsp`/`economic`/`fundamental`/`snapshot_bridge`; monorepo façade smoke + determinism (**25 PASS**); no product code |
+| 2026-07-26 | **1.3.18** | ASI-005 Documentation Excellence: 100% package README coverage (standard 12-section card); documentation matrix; C4 stale portfolio notes; docs only |
+| 2026-07-26 | **1.3.17** | ASI-004 Package Governance: thin pyprojects for 8 foundation packages; `compliance` unused dep removed; ownership matrix; no API/behaviour change |
+| 2026-07-26 | **1.3.16** | ASI-003 Architecture Verification: additive `test_architecture.py` for 13 mandatory packages + cycle guard (**40 PASS**); no business logic |
+| 2026-07-26 | **1.3.15** | ASI-002 Repository Integrity: register `economic_moat`; align `ai_committee`/`economic` metadata; version-truth ADRs; orphan `data-ingestion` deferred; no business logic |
+| 2026-07-26 | **1.3.14** | ASI-001A enterprise Implementation Framework (ADR/rollback/health/debt/dashboard; revised phase order); docs only; no package code |
 | 2026-07-25 | **1.3.13** | F3.7 Business Quality Aggregator (`business_quality` 0.7.0); **Phase 3 complete**; Phase 1–2 frozen |
 | 2026-07-25 | **1.3.12** | F3.6 Business Quality Engine (`business_quality` 0.6.0); Phase 1–2 frozen |
 | 2026-07-25 | **1.3.11** | F3.5 Competitive Position Indicators (`business_quality` 0.5.0); Phase 1–2 frozen |
@@ -76,7 +96,7 @@ No application code, APIs, or engine behavior changed by this docs bump.
 
 | Area | Highlight | Detail |
 |---|---|---|
-| Backend RC | `v1.0.0-rc1` | [VERSION_MATRIX.md](VERSION_MATRIX.md) |
+| Backend API RC | `v1.0.0-rc1` | [VERSION_MATRIX.md](VERSION_MATRIX.md) |
 | PR1 | Research Mode + PXB + VLIS frozen | Governance |
 | L1.2 | Company Analysis through Saved Workspace | `L1_2_SPRINT*.md` |
 | V2 | Advisor platform | `V2_SPRINT*.md` |

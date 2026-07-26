@@ -1,0 +1,20 @@
+[build-system]
+requires = ["setuptools>=69.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "snapshot_bridge"
+version = "0.1.0"
+description = "DSP Snapshot Bridge — contracts to engine-native snapshots"
+requires-python = ">=3.11"
+license = { text = "Proprietary" }
+dependencies = [
+    "contracts",
+    "core",
+    "data_engine",
+    "economic",
+    "fundamental",
+]
+
+[tool.setuptools.packages.find]
+where = ["src"]

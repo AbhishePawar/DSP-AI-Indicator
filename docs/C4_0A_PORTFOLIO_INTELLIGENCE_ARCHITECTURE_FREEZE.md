@@ -237,7 +237,11 @@ Pattern: **extend by citation and new consumer packages**, never by forking Port
 
 ## 9. Technical debt (accepted until implementation phases)
 
-- No `packages/portfolio` yet (intentional until C4.1).  
+> **ASI-005 note (2026-07-26):** `packages/portfolio` **exists** and is production-frozen.
+> The bullet below is retained as **historical design debt from C4.0A drafting** only.
+> See [PACKAGE_OWNERSHIP_MATRIX.md](PACKAGE_OWNERSHIP_MATRIX.md).
+
+- ~~No `packages/portfolio` yet (intentional until C4.1).~~ *(obsolete — package shipped)*  
 - No assembler / persistence / monitoring implementation.  
 - IEF providers/interpreters still placeholder-rich (shared upstream debt).  
 - Risk Intelligence and OMS not chartered.  

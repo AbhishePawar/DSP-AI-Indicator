@@ -1,0 +1,18 @@
+[build-system]
+requires = ["setuptools>=69.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "growth_quality"
+version = "0.1.0"
+description = "Growth Quality & Capital Reinvestment Intelligence for DSP AI Indicator (FEATURE-005)"
+requires-python = ">=3.11"
+license = { text = "Proprietary" }
+dependencies = [
+    "core",
+    "financial",
+    "business_quality",
+]
+
+[tool.setuptools.packages.find]
+where = ["src"]

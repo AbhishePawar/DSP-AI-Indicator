@@ -1,3 +1,83 @@
+<!-- ASI-005-PACKAGE-CARD -->
+# dsp_platform
+
+> ASI-005 standard package card. Detailed historical notes follow in the appendix.
+
+## 1. Package Purpose
+
+DSP Platform façade — composition entry point and application import boundaries
+
+## 2. Responsibilities
+
+Provide the stable `dsp_platform` public façade; keep domain logic inside this package’s ownership boundaries.
+
+## 3. Package Status
+
+**Active · EPIC-001 composition + EPIC-002 API adapter** · Version **0.7.1** · [VERSION_MATRIX.md](../../docs/VERSION_MATRIX.md) · [DSP_STATUS.md](../../docs/DSP_STATUS.md)
+
+## 4. Public API
+
+`DSPPlatform`, `PlatformOrchestrator`, `CompositionRequest`, `PipelineResult`, plus existing façade exports.
+
+## 5. Package Structure
+
+`packages/dsp_platform/src/dsp_platform/` including `composition/` · `packages/dsp_platform/tests/`
+
+## 6. Dependencies
+
+Epic K peers plus FEATURE composition packages: `financial`, `valuation`, `business_quality`, `economic_moat`, `management_quality`, `financial_strength`, `earnings_quality`, `growth_quality`, `business_quality_aggregator`, `investment_recommendation`, `investment_committee`
+
+## 7. Architecture Notes
+
+EPIC-001 internal orchestration only — public package APIs, no score overrides, no `/api/v1` changes.
+
+## 8. Usage Examples
+
+```python
+from dsp_platform import DSPPlatform, CompositionRequest
+from investment_recommendation import ValuationSignals
+
+platform = DSPPlatform()
+result = platform.compose_intelligence(
+    CompositionRequest(
+        financial_statements=statements,
+        valuation_signals=ValuationSignals(
+            intrinsic_value_per_share=100.0,
+            current_market_price=70.0,
+        ),
+    )
+)
+print(result.ok, result.payload.investment_committee.decision)
+```
+
+## Pipeline flow
+
+```
+financial → valuation → moat/MQ/FS/EQ/GQ → aggregator → recommendation → committee
+```
+
+## 9. Testing
+
+```bash
+pytest packages/dsp_platform/tests -q --import-mode=importlib -p no:cov
+```
+
+## 10. Governance
+
+[PACKAGE_OWNERSHIP_MATRIX.md](../../docs/PACKAGE_OWNERSHIP_MATRIX.md) · [PACKAGE_GOVERNANCE.md](../../docs/PACKAGE_GOVERNANCE.md)
+
+## 11. Limitations
+
+This card describes **current** implementation only. Epic freeze docs under `docs/` remain authoritative for certified behaviour.
+
+## 12. Future Extensions (future only)
+
+New features require an approved epic + ADR. **Not implemented here.**
+
+---
+
+## Appendix — Detailed package notes
+
 # DSP Platform
 
 Sprint 7.3 — **public façade + configuration + integration gates**.

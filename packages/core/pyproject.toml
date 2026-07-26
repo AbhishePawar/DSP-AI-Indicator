@@ -1,0 +1,14 @@
+[build-system]
+requires = ["setuptools>=69.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "core"
+version = "0.2.0"
+description = "DSP AI Indicator technical foundation — exceptions, validation, registry"
+requires-python = ">=3.11"
+license = { text = "Proprietary" }
+dependencies = []
+
+[tool.setuptools.packages.find]
+where = ["src"]

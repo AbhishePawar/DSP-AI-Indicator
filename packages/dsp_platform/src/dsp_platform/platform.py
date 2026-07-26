@@ -39,7 +39,7 @@ __all__ = [
     "PlatformResult",
 ]
 
-_PLATFORM_VERSION = "0.6.0"
+_PLATFORM_VERSION = "0.7.1"
 
 
 @dataclass(frozen=True, slots=True)
@@ -620,6 +620,47 @@ class DSPPlatform:
             },
             limitations=(note, *limitations),
         )
+
+    def compose_intelligence(
+        self,
+        request: Any,
+    ) -> PlatformResult:
+        """EPIC-001: run the internal FEATURE composition pipeline.
+
+        Orchestrates public package engines only — no score/recommendation
+        overrides. Does not modify ``/api/v1``.
+        """
+        from dsp_platform.composition import (
+            CompositionRequest,
+            PlatformOrchestrator,
+        )
+
+        if not isinstance(request, CompositionRequest):
+            return self._err_result(
+                "compose_intelligence",
+                PlatformError(
+                    "compose_intelligence requires CompositionRequest, "
+                    f"got {type(request).__name__}"
+                ),
+            )
+        try:
+            if self._lifecycle.status == PlatformStatus.CREATED:
+                self._lifecycle.begin_initialize()
+                self._lifecycle.mark_ready(note="compose_intelligence")
+            orchestrator = PlatformOrchestrator(
+                platform_version=_PLATFORM_VERSION
+            )
+            pipeline_result = orchestrator.execute(request)
+            return PlatformResult(
+                ok=pipeline_result.ok,
+                capability="compose_intelligence",
+                payload=pipeline_result,
+                metadata=self._metadata(),
+                limitations=pipeline_result.limitations,
+                errors=pipeline_result.errors,
+            )
+        except Exception as exc:  # noqa: BLE001
+            return self._err_result("compose_intelligence", PlatformError(str(exc)))
 
     def get_platform_info(self) -> PlatformMetadata:
         """Return immutable platform metadata / capability discovery."""

@@ -1,3 +1,67 @@
+<!-- ASI-005-PACKAGE-CARD -->
+# fundamental
+
+> ASI-005 standard package card. Detailed historical notes follow in the appendix.
+
+## 1. Package Purpose
+
+DSP Fundamental Engine — company analysis over financial snapshots
+
+## 2. Responsibilities
+
+Provide the stable `fundamental` public façade; keep domain logic inside this package’s ownership boundaries.
+
+## 3. Package Status
+
+**Production · Frozen** · Version **0.1.0** · [VERSION_MATRIX.md](../../docs/VERSION_MATRIX.md) · [DSP_STATUS.md](../../docs/DSP_STATUS.md)
+
+## 4. Public API
+
+`__all__` exports (23): `DEFAULT_ANALYZER_NAMES`, `Analyzer`, `BusinessRuleOutcome`, `BusinessSignalGenerator`, `CompanyAnalysis`, `EvidenceGenerator`, `ExplanationGenerator`, `FinancialSnapshot`, `FundamentalEngine`, `FundamentalError`, `FundamentalMetric`, `FundamentalResult`, … (+11)
+
+## 5. Package Structure
+
+`packages/fundamental/src/fundamental/` · `packages/fundamental/tests/` · local `pyproject.toml` when present.
+
+## 6. Dependencies
+
+`contracts`, `core`
+
+## 7. Architecture Notes
+
+Architecture allowlists / freeze policy apply. See appendix and [ARCHITECTURE_GOVERNANCE.md](../../docs/ARCHITECTURE_GOVERNANCE.md).
+
+## 8. Usage Examples
+
+```python
+import fundamental
+print(fundamental.__version__)
+```
+
+Worked examples live in `packages/fundamental/tests/`.
+
+## 9. Testing
+
+```bash
+pytest packages/fundamental/tests -q --import-mode=importlib -p no:cov
+```
+
+## 10. Governance
+
+[PACKAGE_OWNERSHIP_MATRIX.md](../../docs/PACKAGE_OWNERSHIP_MATRIX.md) · [PACKAGE_GOVERNANCE.md](../../docs/PACKAGE_GOVERNANCE.md)
+
+## 11. Limitations
+
+This card describes **current** implementation only. Epic freeze docs under `docs/` remain authoritative for certified behaviour.
+
+## 12. Future Extensions (future only)
+
+New features require an approved epic + ADR. **Not implemented here.**
+
+---
+
+## Appendix — Detailed package notes
+
 # Fundamental — Business Analysis Engine
 
 `fundamental` is the platform's **Fundamental Engine** (Section 3.5 of

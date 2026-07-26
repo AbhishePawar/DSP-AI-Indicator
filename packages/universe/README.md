@@ -1,72 +1,96 @@
-# Universe — Multi-Stock Decision Foundation (Phase C1)
+# universe
 
-Aggregates completed **Decision Packs** across an investment universe.
+## 1. Package Purpose
 
-## Architecture position
+Investment universe and multi-stock Decision Pack aggregation
+
+## 2. Responsibilities
+
+- Provide the `universe` domain façade for DSP AI Indicator.
+- Expose stable public exports via `__all__`.
+- Remain within architecture allowlists (ASI-003).
+
+## 3. Package Status
+
+**Production · Frozen**  
+Version: **0.1.0**  
+Canonical versions → [VERSION_MATRIX.md](../../docs/VERSION_MATRIX.md) · [DSP_STATUS.md](../../docs/DSP_STATUS.md)
+
+## 4. Public API
+
+- Package version: `0.1.0`
+- `BatchFailurePolicy`
+- `BatchStatus`
+- `ComparableDecisionSummary`
+- `DecisionPackAnalyzer`
+- `InstrumentAnalysisFailure`
+- `InstrumentAnalysisOutcome`
+- `InstrumentOutcomeStatus`
+- `InvestmentUniverse`
+- `MultiStockAnalysisRequest`
+- `MultiStockAnalysisService`
+- `MultiStockDecisionResult`
+- `UniverseEntry`
+- `UniverseError`
+- `filter_entries`
+- `group_entries`
+- `instrument_identity_key`
+- `summarize_decision_pack`
+
+Import the package root only for public use unless tests intentionally exercise internals.
+
+## 5. Package Structure
 
 ```
-InvestmentUniverse
-        ↓
-DSPPlatform.analyze_universe / MultiStockAnalysisService
-        ↓
-per instrument: analyze_decision_pack (canonical pipeline)
-        ↓
-MultiStockDecisionResult  (DecisionPack × N + failures)
-        ↓
-ComparableDecisionSummary (read-only; no ranking)
+packages/universe/
+├── README.md
+├── pyproject.toml (if present)
+├── src/universe/
+│   └── …
+└── tests/
 ```
 
-**Never** aggregates raw engine votes.
+## 6. Dependencies
 
-## Ownership
+Declared in `pyproject.toml`:
 
-Package: `universe`  
-Depends on: `contracts`, `core`, `decision_intelligence`  
-Wired by: `dsp_platform` (composition root)
+- `contracts`
+- `core`
+- `decision_intelligence`
 
-## Public API
+## 7. Architecture Notes
+
+- Feature freeze: do not add product behaviour under ASI documentation tasks.
+- Forbidden imports are enforced by `tests/test_architecture.py` where present.
+- Thin-client / platform rules → [ARCHITECTURE_GOVERNANCE.md](../../docs/ARCHITECTURE_GOVERNANCE.md).
+
+## 8. Usage Examples
 
 ```python
-from datetime import date
-from dsp_platform import (
-    DSPPlatform,
-    InvestmentUniverse,
-    MultiStockAnalysisRequest,
-    BatchFailurePolicy,
-    summarize_decision_pack,
-    filter_entries,
-    group_entries,
-)
+from universe import MultiStockAnalysisService
 
-universe = InvestmentUniverse(name="nifty-bank-watchlist")
-universe.add(hdfc, tags={"nifty-bank"})
-universe.add(icici, tags={"nifty-bank"})
-
-result = platform.analyze_universe(
-    MultiStockAnalysisRequest(
-        universe=universe,
-        start=date(2024, 1, 1),
-        end=date(2024, 6, 30),
-        failure_policy=BatchFailurePolicy.PARTIAL,
-    )
-)
-
-for pack in result.packs:
-    print(summarize_decision_pack(pack).action)
+# See package tests for worked examples against frozen façades.
+_ = MultiStockAnalysisService
 ```
 
-## Failure policy
+## 9. Testing
 
-| Policy | Behavior |
-|--------|----------|
-| `PARTIAL` | Continue after failures; status SUCCESS / PARTIAL_SUCCESS / FAILURE |
-| `STRICT` | Stop after first failure; remaining instruments recorded as skipped failures (never silently omitted) |
+```bash
+pytest packages/universe/tests -q --import-mode=importlib -p no:cov
+```
 
-## Filtering / grouping
+## 10. Governance
 
-Uses only explicit `Instrument.sector` / `industry` / `asset_class` and user tags.
-No sector inference from names. No ranking.
+- Ownership → [PACKAGE_OWNERSHIP_MATRIX.md](../../docs/PACKAGE_OWNERSHIP_MATRIX.md)
+- Governance standard → [PACKAGE_GOVERNANCE.md](../../docs/PACKAGE_GOVERNANCE.md)
+- ASI framework → [ASI_IMPLEMENTATION_FRAMEWORK.md](../../docs/ASI_IMPLEMENTATION_FRAMEWORK.md)
 
-## Out of scope (later phases)
+## 11. Limitations
 
-Sector ranking, portfolio holdings, risk, behavioral, dashboard, LLMs.
+- Documents **current** implementation only.
+- Does not embed upstream report payloads or re-run foreign domain math.
+- Not a substitute for epic freeze docs under `docs/`.
+
+## 12. Future Extensions (future only)
+
+Any new analytics, providers, or API shapes require an approved epic and ADR. **Not implemented in this package README.**

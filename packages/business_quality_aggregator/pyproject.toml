@@ -1,0 +1,23 @@
+[build-system]
+requires = ["setuptools>=69.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "business_quality_aggregator"
+version = "0.1.0"
+description = "Cross-domain Business Quality Aggregator for DSP AI Indicator (FEATURE-006)"
+requires-python = ">=3.11"
+license = { text = "Proprietary" }
+dependencies = [
+    "core",
+    "financial",
+    "business_quality",
+    "economic_moat",
+    "management_quality",
+    "financial_strength",
+    "earnings_quality",
+    "growth_quality",
+]
+
+[tool.setuptools.packages.find]
+where = ["src"]

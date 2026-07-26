@@ -1,0 +1,23 @@
+[build-system]
+requires = ["setuptools>=69.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "investment_recommendation"
+version = "0.1.0"
+description = "Deterministic Investment Recommendation Engine for DSP AI Indicator (FEATURE-007)"
+requires-python = ">=3.11"
+license = { text = "Proprietary" }
+dependencies = [
+    "core",
+    "valuation",
+    "economic_moat",
+    "management_quality",
+    "financial_strength",
+    "earnings_quality",
+    "growth_quality",
+    "business_quality_aggregator",
+]
+
+[tool.setuptools.packages.find]
+where = ["src"]

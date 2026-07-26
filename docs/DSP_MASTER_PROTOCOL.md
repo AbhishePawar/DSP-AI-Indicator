@@ -55,11 +55,12 @@ Full framework → [DSP_PROJECT_PROTECTION.md](DSP_PROJECT_PROTECTION.md) §0.
 | **Project protection / recovery / Git / backups** | [DSP_PROJECT_PROTECTION.md](DSP_PROJECT_PROTECTION.md) — **before any implementation** |
 | Agent rules / safety checklist | [DSP_AI_COLLABORATION.md](DSP_AI_COLLABORATION.md) |
 | Coding rules / GREEN definition | [DSP_CODING_STANDARDS.md](DSP_CODING_STANDARDS.md) |
-| ADR / conflict | [DSP_DECISION_RECORDS.md](DSP_DECISION_RECORDS.md) |
+| ADR / conflict | [DSP_DECISION_RECORDS.md](DSP_DECISION_RECORDS.md) · ASI ADRs use [asi/ADR_TEMPLATE.md](asi/ADR_TEMPLATE.md) |
 | Terms | [DSP_GLOSSARY.md](DSP_GLOSSARY.md) |
 | Paths | [DSP_FOLDER_STRUCTURE.md](DSP_FOLDER_STRUCTURE.md) |
 | Release pointers | [DSP_CHANGELOG.md](DSP_CHANGELOG.md) |
 | One sprint/epic brief | `docs/<EPIC>_SPRINT*.md` |
+| **Architecture Stabilization (ASI)** | [ASI_COMPLETION_SUMMARY.md](ASI_COMPLETION_SUMMARY.md) · [ASI_ARCHITECTURE_STABILIZATION_CERTIFICATE.md](ASI_ARCHITECTURE_STABILIZATION_CERTIFICATE.md) · [ASI_IMPLEMENTATION_FRAMEWORK.md](ASI_IMPLEMENTATION_FRAMEWORK.md) · [CI.md](CI.md) |
 | UX freezes | PR1.0 / PR1.1 / PR1.2 — **search a section**, never paste whole files |
 | Package versions | [VERSION_MATRIX.md](VERSION_MATRIX.md) |
 | Historical specs | [archive/](archive/) — **never** unless user asks |

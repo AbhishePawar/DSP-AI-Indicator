@@ -1,3 +1,67 @@
+<!-- ASI-005-PACKAGE-CARD -->
+# snapshot_bridge
+
+> ASI-005 standard package card. Detailed historical notes follow in the appendix.
+
+## 1. Package Purpose
+
+DSP Snapshot Bridge — contracts to engine-native snapshots
+
+## 2. Responsibilities
+
+Provide the stable `snapshot_bridge` public façade; keep domain logic inside this package’s ownership boundaries.
+
+## 3. Package Status
+
+**Production · Frozen** · Version **0.1.0** · [VERSION_MATRIX.md](../../docs/VERSION_MATRIX.md) · [DSP_STATUS.md](../../docs/DSP_STATUS.md)
+
+## 4. Public API
+
+`__all__` exports (5): `EconomicBridgeService`, `EconomicSnapshotBuilder`, `FinancialBridgeService`, `FinancialSnapshotBuilder`, `SnapshotBridgeError`
+
+## 5. Package Structure
+
+`packages/snapshot_bridge/src/snapshot_bridge/` · `packages/snapshot_bridge/tests/` · local `pyproject.toml` when present.
+
+## 6. Dependencies
+
+`contracts`, `core`, `data_engine`, `economic`, `fundamental`
+
+## 7. Architecture Notes
+
+Architecture allowlists / freeze policy apply. See appendix and [ARCHITECTURE_GOVERNANCE.md](../../docs/ARCHITECTURE_GOVERNANCE.md).
+
+## 8. Usage Examples
+
+```python
+import snapshot_bridge
+print(snapshot_bridge.__version__)
+```
+
+Worked examples live in `packages/snapshot_bridge/tests/`.
+
+## 9. Testing
+
+```bash
+pytest packages/snapshot_bridge/tests -q --import-mode=importlib -p no:cov
+```
+
+## 10. Governance
+
+[PACKAGE_OWNERSHIP_MATRIX.md](../../docs/PACKAGE_OWNERSHIP_MATRIX.md) · [PACKAGE_GOVERNANCE.md](../../docs/PACKAGE_GOVERNANCE.md)
+
+## 11. Limitations
+
+This card describes **current** implementation only. Epic freeze docs under `docs/` remain authoritative for certified behaviour.
+
+## 12. Future Extensions (future only)
+
+New features require an approved epic + ADR. **Not implemented here.**
+
+---
+
+## Appendix — Detailed package notes
+
 # Snapshot Bridge
 
 Sprint 6.4 completes the **data plane** by translating Data Engine

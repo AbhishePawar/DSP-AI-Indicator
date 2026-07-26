@@ -1,0 +1,25 @@
+[build-system]
+requires = ["setuptools>=69.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "orchestration"
+version = "0.2.0"
+description = "DSP orchestration — single official analysis pipeline (flow only)"
+requires-python = ">=3.11"
+license = { text = "Proprietary" }
+dependencies = [
+    "ai_committee",
+    "contracts",
+    "core",
+    "data_engine",
+    "dsp",
+    "economic",
+    "fundamental",
+    "recommendation",
+    "snapshot_bridge",
+    "valuation",
+]
+
+[tool.setuptools.packages.find]
+where = ["src"]

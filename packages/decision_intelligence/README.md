@@ -1,3 +1,67 @@
+<!-- ASI-005-PACKAGE-CARD -->
+# decision_intelligence
+
+> ASI-005 standard package card. Detailed historical notes follow in the appendix.
+
+## 1. Package Purpose
+
+Decision Brief, Assurance, Decision Pack (+ optional Evidence Bundle refs)
+
+## 2. Responsibilities
+
+Provide the stable `decision_intelligence` public façade; keep domain logic inside this package’s ownership boundaries.
+
+## 3. Package Status
+
+**Production · Frozen** · Version **0.2.0** · [VERSION_MATRIX.md](../../docs/VERSION_MATRIX.md) · [DSP_STATUS.md](../../docs/DSP_STATUS.md)
+
+## 4. Public API
+
+`__all__` exports (23): `AgreementQuality`, `AssuranceAssessment`, `AssuranceLevel`, `AssumptionRiskLevel`, `ConfidenceDriver`, `DecisionBrief`, `DecisionIntelligenceError`, `DecisionIntelligenceService`, `DecisionPack`, `DecisionPackEvidenceSummary`, `DecisionPackView`, `DecisionResilience`, … (+11)
+
+## 5. Package Structure
+
+`packages/decision_intelligence/src/decision_intelligence/` · `packages/decision_intelligence/tests/` · local `pyproject.toml` when present.
+
+## 6. Dependencies
+
+`contracts`, `core`, `ai_committee`, `industry`
+
+## 7. Architecture Notes
+
+Architecture allowlists / freeze policy apply. See appendix and [ARCHITECTURE_GOVERNANCE.md](../../docs/ARCHITECTURE_GOVERNANCE.md).
+
+## 8. Usage Examples
+
+```python
+import decision_intelligence
+print(decision_intelligence.__version__)
+```
+
+Worked examples live in `packages/decision_intelligence/tests/`.
+
+## 9. Testing
+
+```bash
+pytest packages/decision_intelligence/tests -q --import-mode=importlib -p no:cov
+```
+
+## 10. Governance
+
+[PACKAGE_OWNERSHIP_MATRIX.md](../../docs/PACKAGE_OWNERSHIP_MATRIX.md) · [PACKAGE_GOVERNANCE.md](../../docs/PACKAGE_GOVERNANCE.md)
+
+## 11. Limitations
+
+This card describes **current** implementation only. Epic freeze docs under `docs/` remain authoritative for certified behaviour.
+
+## 12. Future Extensions (future only)
+
+New features require an approved epic + ADR. **Not implemented here.**
+
+---
+
+## Appendix — Detailed package notes
+
 # Decision Intelligence
 
 Phase B2 — investor-facing **Decision Pack** synthesis.

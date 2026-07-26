@@ -1,0 +1,17 @@
+[build-system]
+requires = ["setuptools>=69.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "fundamental"
+version = "0.1.0"
+description = "DSP Fundamental Engine — company analysis over financial snapshots"
+requires-python = ">=3.11"
+license = { text = "Proprietary" }
+dependencies = [
+    "contracts",
+    "core",
+]
+
+[tool.setuptools.packages.find]
+where = ["src"]

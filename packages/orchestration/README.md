@@ -1,3 +1,67 @@
+<!-- ASI-005-PACKAGE-CARD -->
+# orchestration
+
+> ASI-005 standard package card. Detailed historical notes follow in the appendix.
+
+## 1. Package Purpose
+
+DSP orchestration — single official analysis pipeline (flow only)
+
+## 2. Responsibilities
+
+Provide the stable `orchestration` public façade; keep domain logic inside this package’s ownership boundaries.
+
+## 3. Package Status
+
+**Production · Frozen (flow only)** · Version **0.2.0** · [VERSION_MATRIX.md](../../docs/VERSION_MATRIX.md) · [DSP_STATUS.md](../../docs/DSP_STATUS.md)
+
+## 4. Public API
+
+`__all__` exports (8): `AnalysisRequest`, `InvestmentAnalysisService`, `OrchestrationError`, `RecommendationMapper`, `to_economic_context`, `to_fundamental_context`, `to_technical_context`, `to_valuation_context`
+
+## 5. Package Structure
+
+`packages/orchestration/src/orchestration/` · `packages/orchestration/tests/` · local `pyproject.toml` when present.
+
+## 6. Dependencies
+
+`ai_committee`, `contracts`, `core`, `data_engine`, `dsp`, `economic`, `fundamental`, `recommendation`, `snapshot_bridge`, `valuation`
+
+## 7. Architecture Notes
+
+Architecture allowlists / freeze policy apply. See appendix and [ARCHITECTURE_GOVERNANCE.md](../../docs/ARCHITECTURE_GOVERNANCE.md).
+
+## 8. Usage Examples
+
+```python
+import orchestration
+print(orchestration.__version__)
+```
+
+Worked examples live in `packages/orchestration/tests/`.
+
+## 9. Testing
+
+```bash
+pytest packages/orchestration/tests -q --import-mode=importlib -p no:cov
+```
+
+## 10. Governance
+
+[PACKAGE_OWNERSHIP_MATRIX.md](../../docs/PACKAGE_OWNERSHIP_MATRIX.md) · [PACKAGE_GOVERNANCE.md](../../docs/PACKAGE_GOVERNANCE.md)
+
+## 11. Limitations
+
+This card describes **current** implementation only. Epic freeze docs under `docs/` remain authoritative for certified behaviour.
+
+## 12. Future Extensions (future only)
+
+New features require an approved epic + ADR. **Not implemented here.**
+
+---
+
+## Appendix — Detailed package notes
+
 # Orchestration
 
 Sprint 7.0 — thin **application layer** that owns the single official

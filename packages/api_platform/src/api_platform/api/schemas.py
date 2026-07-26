@@ -42,6 +42,12 @@ class ApiErrorBody(BaseModel):
     ok: bool = False
     error: str
     detail: str | None = None
+    message: str | None = None
+    error_code: str | None = None
+    pipeline_stage: str | None = None
+    validation_errors: list[str] = Field(default_factory=list)
+    correlation_id: str | None = None
+    timestamp: datetime | None = None
     api_version: str = "v1"
     status_code: int
 
@@ -53,6 +59,8 @@ class HealthResponse(BaseModel):
     ready: bool
     api_version: str = "v1"
     platform_version: str | None = None
+    pipeline_version: str | None = None
+    repository_version: str | None = None
     checks: list[dict[str, Any]] = Field(default_factory=list)
     limitations: list[str] = Field(default_factory=list)
 

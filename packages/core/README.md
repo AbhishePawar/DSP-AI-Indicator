@@ -1,3 +1,67 @@
+<!-- ASI-005-PACKAGE-CARD -->
+# core
+
+> ASI-005 standard package card. Detailed historical notes follow in the appendix.
+
+## 1. Package Purpose
+
+DSP AI Indicator technical foundation — exceptions, validation, registry
+
+## 2. Responsibilities
+
+Provide the stable `core` public façade; keep domain logic inside this package’s ownership boundaries.
+
+## 3. Package Status
+
+**Production · Frozen (technical foundation)** · Version **0.2.0** · [VERSION_MATRIX.md](../../docs/VERSION_MATRIX.md) · [DSP_STATUS.md](../../docs/DSP_STATUS.md)
+
+## 4. Public API
+
+`__all__` exports (6): `DSPAIError`, `Registry`, `ValidationError`, `create_output_array`, `validate_period`, `validate_prices`
+
+## 5. Package Structure
+
+`packages/core/src/core/` · `packages/core/tests/` · local `pyproject.toml` when present.
+
+## 6. Dependencies
+
+*(none declared)*
+
+## 7. Architecture Notes
+
+Architecture allowlists / freeze policy apply. See appendix and [ARCHITECTURE_GOVERNANCE.md](../../docs/ARCHITECTURE_GOVERNANCE.md).
+
+## 8. Usage Examples
+
+```python
+import core
+print(core.__version__)
+```
+
+Worked examples live in `packages/core/tests/`.
+
+## 9. Testing
+
+```bash
+pytest packages/core/tests -q --import-mode=importlib -p no:cov
+```
+
+## 10. Governance
+
+[PACKAGE_OWNERSHIP_MATRIX.md](../../docs/PACKAGE_OWNERSHIP_MATRIX.md) · [PACKAGE_GOVERNANCE.md](../../docs/PACKAGE_GOVERNANCE.md)
+
+## 11. Limitations
+
+This card describes **current** implementation only. Epic freeze docs under `docs/` remain authoritative for certified behaviour.
+
+## 12. Future Extensions (future only)
+
+New features require an approved epic + ADR. **Not implemented here.**
+
+---
+
+## Appendix — Detailed package notes
+
 # Core
 
 **Core is the generic technical foundation of the DSP AI Indicator platform.**

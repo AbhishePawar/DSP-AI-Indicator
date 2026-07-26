@@ -33,6 +33,7 @@ DEFAULT_CAPABILITIES: tuple[str, ...] = (
     "export_report",
     "health_check",
     "get_platform_info",
+    "compose_intelligence",
 )
 
 

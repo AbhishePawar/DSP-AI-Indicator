@@ -23,20 +23,24 @@ from api_platform.api.routers import (
     analysis,
     auth,
     comparison,
+    composition,
     copilot,
     health,
+    meta,
     platform,
     reports,
     workflow,
 )
 from api_platform.api.schemas import ApiErrorBody
+from api_platform.api.mappers import CompositionApiError, composition_error_body
 from dsp_platform import DSPPlatform
 
 API_VERSION = "v1"
 API_TITLE = "DSP AI Indicator API Platform"
 API_DESCRIPTION = (
     "HTTP surface over ``dsp_platform``. Contains no business logic — "
-    "routes validate requests and delegate to DSPPlatform public methods."
+    "routes validate requests and delegate to DSPPlatform public methods. "
+    "EPIC-002 exposes composition via POST /api/v1/analyse."
 )
 
 
@@ -81,7 +85,7 @@ def create_app(
     application = FastAPI(
         title=API_TITLE,
         description=API_DESCRIPTION,
-        version="0.1.0",
+        version="0.2.0",
         docs_url="/docs",
         redoc_url="/redoc",
         openapi_url="/openapi.json",
@@ -130,8 +134,10 @@ def _register_routers(application: FastAPI) -> None:
     versioned = [
         health.router,
         platform.router,
+        meta.router,
         auth.router,
         analysis.router,
+        composition.router,
         comparison.router,
         workflow.router,
         copilot.router,
@@ -143,65 +149,111 @@ def _register_routers(application: FastAPI) -> None:
 
 
 def _register_exception_handlers(application: FastAPI) -> None:
+    @application.exception_handler(CompositionApiError)
+    async def composition_error_handler(
+        request: Request, exc: CompositionApiError
+    ) -> JSONResponse:
+        if exc.correlation_id is None:
+            exc.correlation_id = getattr(request.state, "request_id", None)
+        body = composition_error_body(exc, api_version=API_VERSION)
+        return JSONResponse(
+            status_code=exc.status_code, content=body.model_dump(mode="json")
+        )
+
     @application.exception_handler(ApiError)
     async def api_error_handler(
         request: Request, exc: ApiError
     ) -> JSONResponse:
+        from datetime import UTC, datetime
+
         body = ApiErrorBody(
             error=type(exc).__name__,
             detail=exc.message,
+            message=exc.message,
+            error_code=type(exc).__name__,
+            correlation_id=getattr(request.state, "request_id", None),
+            timestamp=datetime.now(tz=UTC),
             status_code=exc.status_code,
             api_version=API_VERSION,
         )
-        return JSONResponse(status_code=exc.status_code, content=body.model_dump())
+        return JSONResponse(status_code=exc.status_code, content=body.model_dump(mode="json"))
 
     @application.exception_handler(PlatformError)
     async def platform_error_handler(
         request: Request, exc: PlatformError
     ) -> JSONResponse:
+        from datetime import UTC, datetime
+
         body = ApiErrorBody(
             error="PlatformError",
-            detail=str(exc),
+            detail="platform orchestration failure",
+            message="platform orchestration failure",
+            error_code="PLATFORM_ERROR",
+            correlation_id=getattr(request.state, "request_id", None),
+            timestamp=datetime.now(tz=UTC),
             status_code=502,
             api_version=API_VERSION,
         )
-        return JSONResponse(status_code=502, content=body.model_dump())
+        return JSONResponse(status_code=502, content=body.model_dump(mode="json"))
 
     @application.exception_handler(RequestValidationError)
     async def request_validation_handler(
         request: Request, exc: RequestValidationError
     ) -> JSONResponse:
+        from datetime import UTC, datetime
+
+        messages = [
+            f"{'.'.join(str(p) for p in err.get('loc', ()))}: {err.get('msg')}"
+            for err in exc.errors()
+        ]
         body = ApiErrorBody(
             error="RequestValidationError",
-            detail=str(exc.errors()),
+            detail="request validation failed",
+            message="request validation failed",
+            error_code="REQUEST_VALIDATION_ERROR",
+            validation_errors=messages,
+            correlation_id=getattr(request.state, "request_id", None),
+            timestamp=datetime.now(tz=UTC),
             status_code=422,
             api_version=API_VERSION,
         )
-        return JSONResponse(status_code=422, content=body.model_dump())
+        return JSONResponse(status_code=422, content=body.model_dump(mode="json"))
 
     @application.exception_handler(ValidationError)
     async def pydantic_validation_handler(
         request: Request, exc: ValidationError
     ) -> JSONResponse:
+        from datetime import UTC, datetime
+
         body = ApiErrorBody(
             error="ValidationError",
-            detail=str(exc),
+            detail="payload validation failed",
+            message="payload validation failed",
+            error_code="VALIDATION_ERROR",
+            correlation_id=getattr(request.state, "request_id", None),
+            timestamp=datetime.now(tz=UTC),
             status_code=422,
             api_version=API_VERSION,
         )
-        return JSONResponse(status_code=422, content=body.model_dump())
+        return JSONResponse(status_code=422, content=body.model_dump(mode="json"))
 
     @application.exception_handler(Exception)
     async def unhandled_handler(
         request: Request, exc: Exception
     ) -> JSONResponse:
+        from datetime import UTC, datetime
+
         body = ApiErrorBody(
             error="InternalServerError",
-            detail=str(exc),
+            detail="an unexpected error occurred",
+            message="an unexpected error occurred",
+            error_code="INTERNAL_ERROR",
+            correlation_id=getattr(request.state, "request_id", None),
+            timestamp=datetime.now(tz=UTC),
             status_code=500,
             api_version=API_VERSION,
         )
-        return JSONResponse(status_code=500, content=body.model_dump())
+        return JSONResponse(status_code=500, content=body.model_dump(mode="json"))
 
 
 # Module-level app for ``uvicorn api_platform.api.app:app``

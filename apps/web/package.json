@@ -1,13 +1,15 @@
 {
   "name": "dsp-web",
-  "version": "2.4.0",
+  "version": "2.5.0",
   "private": true,
-  "description": "DSP AI Indicator web — Web 2.4.0 Valuation Intelligence Engine",
+  "description": "DSP AI Indicator web — EPIC-003 Intelligence Workspace",
   "scripts": {
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
+    "test": "vitest run",
+    "test:watch": "vitest",
     "analyze": "echo Install @next/bundle-analyzer and set ANALYZE=true for bundle reports"
   },
   "dependencies": {
@@ -18,10 +20,14 @@
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4.0.0",
+    "@testing-library/jest-dom": "^6.6.3",
+    "@testing-library/react": "^16.2.0",
     "@types/node": "^22.10.0",
     "@types/react": "^19.0.0",
     "@types/react-dom": "^19.0.0",
+    "jsdom": "^26.0.0",
     "tailwindcss": "^4.0.0",
-    "typescript": "^5.7.0"
+    "typescript": "^5.7.0",
+    "vitest": "^3.0.5"
   }
 }

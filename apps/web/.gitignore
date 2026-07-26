@@ -6,3 +6,4 @@ out
 .env*.local
 !.env.example
 npm-debug.log*
+*.tsbuildinfo

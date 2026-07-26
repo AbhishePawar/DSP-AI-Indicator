@@ -1,0 +1,18 @@
+[build-system]
+requires = ["setuptools>=69.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "financial_strength"
+version = "0.1.0"
+description = "Financial Strength & Balance Sheet Quality Intelligence for DSP AI Indicator (FEATURE-003)"
+requires-python = ">=3.11"
+license = { text = "Proprietary" }
+dependencies = [
+    "core",
+    "financial",
+    "business_quality",
+]
+
+[tool.setuptools.packages.find]
+where = ["src"]

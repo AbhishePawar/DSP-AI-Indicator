@@ -25,20 +25,33 @@ wheels/
 venv/
 ENV/
 
-# Testing
+# Testing / coverage
 .pytest_cache/
 .coverage
+.coverage.*
+coverage.xml
+coverage.json
 htmlcov/
 .tox/
 .nox/
+pytest_out.txt
+*_pytest*.txt
 
 # Tooling
 .ruff_cache/
 .mypy_cache/
 
+# Node / frontend
+node_modules/
+**/node_modules/
+*.tsbuildinfo
+.next/
+out/
+
 # Environment
 .env
 .env.local
+.env.*.local
 
 # Data
 data/raw/
@@ -57,3 +70,9 @@ data/signals/
 # OS
 .DS_Store
 Thumbs.db
+
+# Logs / temporary
+*.log
+tmp/
+temp/
+.cache/

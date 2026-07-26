@@ -8,6 +8,7 @@ from fastapi import APIRouter, Depends
 
 from api_platform.api.dependencies import ApiState, get_api_state
 from api_platform.api.schemas import HealthResponse
+from dsp_platform import COMPOSITION_PIPELINE_VERSION
 
 router = APIRouter(tags=["health"])
 
@@ -36,11 +37,20 @@ def health(state: ApiState = Depends(get_api_state)) -> HealthResponse:
                 }
             )
     meta = result.metadata
+    checks.append(
+        {
+            "name": "composition_pipeline",
+            "status": "pass",
+            "message": f"pipeline={COMPOSITION_PIPELINE_VERSION}",
+        }
+    )
     return HealthResponse(
         status=status,
         ready=ready,
         api_version=state.api_version,
         platform_version=meta.version,
+        pipeline_version=COMPOSITION_PIPELINE_VERSION,
+        repository_version=meta.version,
         checks=checks,
         limitations=list(result.limitations),
     )

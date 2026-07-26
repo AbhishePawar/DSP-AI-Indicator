@@ -1,3 +1,7 @@
+# DSP Web (`dsp-web` 2.5.0)
+
+EPIC-003 Intelligence Workspace at `/intelligence` — consumes `/api/v1` only.
+
 # DSP Web (L1.2)
 
 Next.js thin client over frozen backend **v1.0.0-rc1** `/api/v1`.

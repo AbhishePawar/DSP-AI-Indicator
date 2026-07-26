@@ -1,0 +1,17 @@
+[build-system]
+requires = ["setuptools>=69.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "dsp"
+version = "0.2.0"
+description = "DSP Indicator Engine — technical indicators and explained signals"
+requires-python = ">=3.11"
+license = { text = "Proprietary" }
+dependencies = [
+    "contracts",
+    "core",
+]
+
+[tool.setuptools.packages.find]
+where = ["src"]

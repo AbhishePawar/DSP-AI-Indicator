@@ -1,3 +1,67 @@
+<!-- ASI-005-PACKAGE-CARD -->
+# valuation
+
+> ASI-005 standard package card. Detailed historical notes follow in the appendix.
+
+## 1. Package Purpose
+
+Valuation Engine — intrinsic value analysis for DSP AI Indicator
+
+## 2. Responsibilities
+
+Provide the stable `valuation` public façade; keep domain logic inside this package’s ownership boundaries.
+
+## 3. Package Status
+
+**Production · Frozen (Phase 1)** · Version **0.12.0** · [VERSION_MATRIX.md](../../docs/VERSION_MATRIX.md) · [DSP_STATUS.md](../../docs/DSP_STATUS.md)
+
+## 4. Public API
+
+`__all__` exports (130): `ASSET_BASED_VERSION`, `AssetBasedEngine`, `AssetBasedInputs`, `AssetMethod`, `AssetQuality`, `AssetQualityFlag`, `AssetValuationResult`, `BenchmarkMultiples`, `BenchmarkScope`, `CONSENSUS_VERSION`, `CapmInputs`, `CapitalStructure`, … (+118)
+
+## 5. Package Structure
+
+`packages/valuation/src/valuation/` · `packages/valuation/tests/` · local `pyproject.toml` when present.
+
+## 6. Dependencies
+
+`contracts`, `core`, `fundamental`
+
+## 7. Architecture Notes
+
+Architecture allowlists / freeze policy apply. See appendix and [ARCHITECTURE_GOVERNANCE.md](../../docs/ARCHITECTURE_GOVERNANCE.md).
+
+## 8. Usage Examples
+
+```python
+import valuation
+print(valuation.__version__)
+```
+
+Worked examples live in `packages/valuation/tests/`.
+
+## 9. Testing
+
+```bash
+pytest packages/valuation/tests -q --import-mode=importlib -p no:cov
+```
+
+## 10. Governance
+
+[PACKAGE_OWNERSHIP_MATRIX.md](../../docs/PACKAGE_OWNERSHIP_MATRIX.md) · [PACKAGE_GOVERNANCE.md](../../docs/PACKAGE_GOVERNANCE.md)
+
+## 11. Limitations
+
+This card describes **current** implementation only. Epic freeze docs under `docs/` remain authoritative for certified behaviour.
+
+## 12. Future Extensions (future only)
+
+New features require an approved epic + ADR. **Not implemented here.**
+
+---
+
+## Appendix — Detailed package notes
+
 # Valuation Engine
 
 Sprint 8.0 — standalone **Valuation Engine** for the DSP AI Indicator.

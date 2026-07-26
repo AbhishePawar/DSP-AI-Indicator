@@ -1,3 +1,67 @@
+<!-- ASI-005-PACKAGE-CARD -->
+# data_engine
+
+> ASI-005 standard package card. Detailed historical notes follow in the appendix.
+
+## 1. Package Purpose
+
+DSP AI Indicator data plane — providers, adapters, normalization
+
+## 2. Responsibilities
+
+Provide the stable `data_engine` public façade; keep domain logic inside this package’s ownership boundaries.
+
+## 3. Package Status
+
+**Production · Frozen** · Version **0.6.0** · [VERSION_MATRIX.md](../../docs/VERSION_MATRIX.md) · [DSP_STATUS.md](../../docs/DSP_STATUS.md)
+
+## 4. Public API
+
+`__all__` exports (73): `AlternativeDataNormalizer`, `AlternativeDataPort`, `AuthenticationType`, `BaseAdapter`, `CANONICAL_INDICATOR_CODES`, `CachePort`, `DataCapability`, `DataEngineConfig`, `DataEngineError`, `DefaultEconomicNormalizer`, `DefaultFundamentalNormalizer`, `DefaultMarketDataNormalizer`, … (+61)
+
+## 5. Package Structure
+
+`packages/data_engine/src/data_engine/` · `packages/data_engine/tests/` · local `pyproject.toml` when present.
+
+## 6. Dependencies
+
+`contracts`, `core`
+
+## 7. Architecture Notes
+
+Architecture allowlists / freeze policy apply. See appendix and [ARCHITECTURE_GOVERNANCE.md](../../docs/ARCHITECTURE_GOVERNANCE.md).
+
+## 8. Usage Examples
+
+```python
+import data_engine
+print(data_engine.__version__)
+```
+
+Worked examples live in `packages/data_engine/tests/`.
+
+## 9. Testing
+
+```bash
+pytest packages/data_engine/tests -q --import-mode=importlib -p no:cov
+```
+
+## 10. Governance
+
+[PACKAGE_OWNERSHIP_MATRIX.md](../../docs/PACKAGE_OWNERSHIP_MATRIX.md) · [PACKAGE_GOVERNANCE.md](../../docs/PACKAGE_GOVERNANCE.md)
+
+## 11. Limitations
+
+This card describes **current** implementation only. Epic freeze docs under `docs/` remain authoritative for certified behaviour.
+
+## 12. Future Extensions (future only)
+
+New features require an approved epic + ADR. **Not implemented here.**
+
+---
+
+## Appendix — Detailed package notes
+
 # Data Engine
 
 The Data Engine is the platform's data-acquisition and normalization

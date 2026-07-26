@@ -1,0 +1,18 @@
+[build-system]
+requires = ["setuptools>=69.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "economic_moat"
+version = "0.2.0"
+description = "Economic Moat Intelligence engine for DSP AI Indicator (Phase 4 / FEATURE-001)"
+requires-python = ">=3.11"
+license = { text = "Proprietary" }
+dependencies = [
+    "core",
+    "financial",
+    "business_quality",
+]
+
+[tool.setuptools.packages.find]
+where = ["src"]

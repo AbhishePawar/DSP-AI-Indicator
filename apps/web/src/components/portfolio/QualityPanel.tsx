@@ -9,7 +9,7 @@ export function QualityPanel({ quality }: { quality: PortfolioQualityAnalytics }
     <Card>
       <CardHeader
         title="Portfolio Quality"
-        description="Deterministic quality summary from current holdings"
+        description="Recommendation mix and research coverage — company quality scores come from /api/v1/analyse"
       />
       <CardBody>
         <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">

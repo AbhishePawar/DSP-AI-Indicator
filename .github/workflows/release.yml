@@ -1,0 +1,61 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*.*.*"
+      - "v*.*.*-*"
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    name: RC artifact packaging
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install monorepo
+        run: pip install -e ".[dev]"
+
+      - name: Run quality gates
+        run: |
+          python scripts/validate_env.py || true
+          pytest packages/api_platform/tests/test_health_rc1.py -q
+          pytest packages -q --import-mode=importlib -p no:cov --tb=line -x
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: apps/web/package-lock.json
+
+      - name: Frontend tests & build
+        working-directory: apps/web
+        env:
+          NEXT_PUBLIC_API_BASE_URL: http://127.0.0.1:8000/api/v1
+          NEXT_PUBLIC_BUILD_TIMESTAMP: ${{ github.sha }}
+        run: |
+          npm ci
+          npm test
+          npm run build
+
+      - name: Build container images
+        run: |
+          docker build -f docker/backend/Dockerfile -t dsp-api:${{ github.ref_name }} .
+          docker build -f docker/frontend/Dockerfile \
+            --build-arg NEXT_PUBLIC_BUILD_TIMESTAMP=${{ github.sha }} \
+            -t dsp-web:${{ github.ref_name }} .
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          generate_release_notes: true
+          files: |
+            .env.production.example

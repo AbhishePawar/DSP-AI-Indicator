@@ -11,6 +11,14 @@ from fastapi import Request
 from api_platform.api.exceptions import ApiNotFoundError
 from dsp_platform import DSPPlatform, PlatformBuilder, PlatformConfiguration
 
+try:
+    from llm_adapters import CopilotCompleteService, build_default_registry
+    from llm_adapters.registry import ProviderRegistry
+except ImportError:  # pragma: no cover - optional during partial installs
+    CopilotCompleteService = None  # type: ignore[misc, assignment]
+    build_default_registry = None  # type: ignore[misc, assignment]
+    ProviderRegistry = None  # type: ignore[misc, assignment]
+
 __all__ = [
     "ApiState",
     "ReportStore",
@@ -85,6 +93,22 @@ class ApiState:
     reports: ReportStore = field(default_factory=ReportStore)
     contexts: ContextStore = field(default_factory=ContextStore)
     api_version: str = "v1"
+    copilot_service: Any = field(default=None)
+    language_model: Any | None = None
+
+
+def build_copilot_service() -> Any:
+    if CopilotCompleteService is None:
+        return None
+    return CopilotCompleteService(build_default_registry())
+
+
+def build_language_model(registry: Any | None = None) -> Any | None:
+    if build_default_registry is None:
+        return None
+    reg = registry or build_default_registry()
+    _, adapter = reg.resolve_active()
+    return adapter
 
 
 def build_default_platform() -> DSPPlatform:

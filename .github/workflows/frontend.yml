@@ -1,0 +1,45 @@
+name: Frontend CI
+
+on:
+  push:
+    branches: [main, master]
+    paths:
+      - "apps/web/**"
+      - ".github/workflows/frontend.yml"
+  pull_request:
+    branches: [main, master]
+    paths:
+      - "apps/web/**"
+
+concurrency:
+  group: frontend-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  web:
+    name: Frontend build & test
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: apps/web
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: apps/web/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Unit tests
+        run: npm test
+
+      - name: Production build
+        env:
+          NEXT_PUBLIC_API_BASE_URL: http://127.0.0.1:8000/api/v1
+          NEXT_PUBLIC_BUILD_TIMESTAMP: ${{ github.run_id }}
+        run: npm run build

@@ -3,6 +3,7 @@
 import { Component, type ErrorInfo, type ReactNode } from "react";
 
 import { RetryCard, GracefulDegradationCard } from "@/components/reliability/RetryCard";
+import { logger } from "@/lib/observability/logger";
 
 type Props = {
   children: ReactNode;
@@ -22,8 +23,10 @@ export class GlobalErrorBoundary extends Component<Props, State> {
   }
 
   componentDidCatch(error: Error, info: ErrorInfo): void {
-    // Avoid logging secrets — message + componentStack only
-    console.error("[DSP GlobalErrorBoundary]", error.message, info.componentStack);
+    logger.recordClientError(error, "global-error-boundary");
+    logger.debug("GlobalErrorBoundary component stack", {
+      componentStack: info.componentStack,
+    });
     this.props.onError?.(error, info);
   }
 
@@ -58,7 +61,10 @@ export class SectionErrorBoundary extends Component<Props, State> {
   }
 
   componentDidCatch(error: Error, info: ErrorInfo): void {
-    console.error("[DSP SectionErrorBoundary]", error.message, info.componentStack);
+    logger.recordClientError(error, "section-error-boundary");
+    logger.debug("SectionErrorBoundary component stack", {
+      componentStack: info.componentStack,
+    });
     this.props.onError?.(error, info);
   }
 

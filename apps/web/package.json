@@ -1,8 +1,8 @@
 {
   "name": "dsp-web",
-  "version": "2.5.0",
+  "version": "3.0.0-rc1",
   "private": true,
-  "description": "DSP AI Indicator web — EPIC-003 Intelligence Workspace",
+  "description": "DSP AI Indicator web — RC1 Production Release",
   "scripts": {
     "dev": "next dev",
     "build": "next build",

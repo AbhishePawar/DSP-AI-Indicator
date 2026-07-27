@@ -1,0 +1,20 @@
+# DSP AI Indicator — Production compose override (RC1)
+services:
+  api:
+    environment:
+      DSP_ENVIRONMENT: production
+      DSP_ENABLE_SECURITY: "true"
+    deploy:
+      resources:
+        limits:
+          cpus: "2"
+          memory: 2G
+
+  web:
+    environment:
+      NODE_ENV: production
+    deploy:
+      resources:
+        limits:
+          cpus: "1"
+          memory: 1G

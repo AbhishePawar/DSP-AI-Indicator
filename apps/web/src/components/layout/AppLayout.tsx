@@ -5,9 +5,17 @@ import { usePathname, useRouter } from "next/navigation";
 
 import { FeedbackProvider } from "@/components/beta/FeedbackContext";
 import { BetaShellWidgets } from "@/components/beta/BetaShellWidgets";
+import { WorkspaceLoading } from "@/components/loading/WorkspaceLoading";
+import { useRouteTransitionTiming } from "@/hooks/usePerformanceTiming";
 import { useAuth } from "@/lib/auth/AuthProvider";
+import {
+  isAuthPublicPath,
+  loginRedirectUrl,
+  requiresAuth,
+} from "@/lib/auth/routeGuards";
 import { ContentArea } from "./ContentArea";
 import { Sidebar } from "./Sidebar";
+import { StatusBar } from "./StatusBar";
 import { Topbar } from "./Topbar";
 
 const COLLAPSE_KEY = "dsp.sidebar.collapsed.v1";
@@ -15,9 +23,11 @@ const COLLAPSE_KEY = "dsp.sidebar.collapsed.v1";
 export function AppLayout({ children }: { children: ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
-  const { session, ready } = useAuth();
+  const { session, status } = useAuth();
   const [collapsed, setCollapsed] = useState(false);
   const [drawerOpen, setDrawerOpen] = useState(false);
+
+  useRouteTransitionTiming();
 
   useEffect(() => {
     const stored = window.localStorage.getItem(COLLAPSE_KEY);
@@ -25,14 +35,23 @@ export function AppLayout({ children }: { children: ReactNode }) {
   }, []);
 
   useEffect(() => {
-    if (!ready) return;
-    if (!session && pathname !== "/login") {
-      router.replace("/login");
+    if (status === "loading" || status === "refreshing") return;
+
+    if (isAuthPublicPath(pathname)) {
+      if (session && pathname === "/login") {
+        router.replace("/dashboard");
+      }
+      return;
     }
-    if (session && pathname === "/login") {
-      router.replace("/dashboard");
+
+    if (requiresAuth(pathname) && !session) {
+      const target =
+        status === "expired"
+          ? `${loginRedirectUrl(pathname)}&expired=1`
+          : loginRedirectUrl(pathname);
+      router.replace(target);
     }
-  }, [ready, session, pathname, router]);
+  }, [status, session, pathname, router]);
 
   useEffect(() => {
     setDrawerOpen(false);
@@ -46,22 +65,26 @@ export function AppLayout({ children }: { children: ReactNode }) {
     });
   }
 
-  if (!ready) {
+  if (status === "loading" || status === "refreshing") {
     return (
-      <div className="grid min-h-screen place-items-center text-sm text-[var(--muted)]">
-        Loading session…
+      <div className="grid min-h-screen place-items-center px-4">
+        <WorkspaceLoading
+          label={
+            status === "refreshing" ? "Refreshing session…" : "Loading session…"
+          }
+        />
       </div>
     );
   }
 
-  if (pathname === "/login") {
+  if (isAuthPublicPath(pathname)) {
     return <>{children}</>;
   }
 
-  if (!session) {
+  if (requiresAuth(pathname) && !session) {
     return (
-      <div className="grid min-h-screen place-items-center text-sm text-[var(--muted)]">
-        Redirecting to login…
+      <div className="grid min-h-screen place-items-center px-4">
+        <WorkspaceLoading label="Redirecting to sign in…" />
       </div>
     );
   }
@@ -78,9 +101,10 @@ export function AppLayout({ children }: { children: ReactNode }) {
               onToggleCollapse={toggleCollapse}
               sidebarCollapsed={collapsed}
             />
-            <main id="main-content" className="flex-1">
+            <main id="main-content" className="flex-1 overflow-y-auto">
               <ContentArea>{children}</ContentArea>
             </main>
+            <StatusBar />
           </div>
         </div>
 

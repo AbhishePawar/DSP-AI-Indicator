@@ -15,10 +15,17 @@ from api_platform.api.dependencies import (
     ApiState,
     ContextStore,
     ReportStore,
+    build_copilot_service,
     build_default_platform,
+    build_language_model,
 )
 from api_platform.api.exceptions import ApiError, PlatformError
 from api_platform.api.middleware import RequestContextMiddleware
+from api_platform.api.ops_middleware import (
+    MetricsMiddleware,
+    RateLimitHookMiddleware,
+    SecurityHeadersMiddleware,
+)
 from api_platform.api.routers import (
     analysis,
     auth,
@@ -27,6 +34,7 @@ from api_platform.api.routers import (
     copilot,
     health,
     meta,
+    metrics,
     platform,
     reports,
     workflow,
@@ -101,6 +109,8 @@ def create_app(
         reports=ReportStore(),
         contexts=ContextStore(),
         api_version=api_version,
+        copilot_service=build_copilot_service(),
+        language_model=build_language_model(),
     )
     application.state.security = security
 
@@ -119,6 +129,9 @@ def create_app(
     application.add_middleware(
         RequestContextMiddleware, api_version=api_version
     )
+    application.add_middleware(SecurityHeadersMiddleware)
+    application.add_middleware(MetricsMiddleware)
+    application.add_middleware(RateLimitHookMiddleware)
     if security is not None:
         from security_platform import SecurityMiddleware
 
@@ -133,6 +146,7 @@ def _register_routers(application: FastAPI) -> None:
     # Versioned mount: /api/v1/... plus root aliases matching the mission routes.
     versioned = [
         health.router,
+        metrics.router,
         platform.router,
         meta.router,
         auth.router,

@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import Link from "next/link";
 import { useMutation, useQuery } from "@tanstack/react-query";
 
 import { AnalysisForm } from "@/components/intelligence/AnalysisForm";
@@ -21,6 +22,7 @@ import { ValidationBanner } from "@/components/intelligence/ValidationBanner";
 import { VersionCard } from "@/components/intelligence/VersionCard";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { Alert } from "@/components/ui/Alert";
+import { Button } from "@/components/ui/Button";
 import { api } from "@/lib/api/client";
 import type { AnalyseRequest } from "@/lib/api/compositionTypes";
 import { ApiClientError } from "@/lib/api/types";
@@ -29,6 +31,7 @@ import {
   emptyIntelligenceView,
   mapAnalyseResponse,
 } from "@/lib/intelligence/mapResponse";
+import { saveResearchSession } from "@/lib/research/sessionStore";
 
 export function IntelligenceWorkspace() {
   const { session } = useAuth();
@@ -60,6 +63,16 @@ export function IntelligenceWorkspace() {
 
   const analyseMutation = useMutation({
     mutationFn: (body: AnalyseRequest) => api.analyse(body, { token }),
+    onSuccess: (response, body) => {
+      saveResearchSession({
+        ticker: body.ticker,
+        exchange: body.exchange ?? null,
+        company: body.company ?? null,
+        analysedAt: new Date().toISOString(),
+        request: body,
+        response,
+      });
+    },
   });
 
   const view = useMemo(() => {
@@ -185,6 +198,22 @@ export function IntelligenceWorkspace() {
               Correlation ID: {view.correlationId}
             </p>
           ) : null}
+        </Alert>
+      ) : null}
+
+      {analyseMutation.data && lastRequest ? (
+        <Alert tone="success" title="Analysis ready">
+          <div className="flex flex-wrap items-center gap-3">
+            <span>
+              Open the structured Company Research view for{" "}
+              {lastRequest.ticker.toUpperCase()}.
+            </span>
+            <Link
+              href={`/research/${encodeURIComponent(lastRequest.ticker.toUpperCase())}`}
+            >
+              <Button size="sm">Open Company Research</Button>
+            </Link>
+          </div>
         </Alert>
       ) : null}
 

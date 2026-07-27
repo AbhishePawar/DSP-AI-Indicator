@@ -1,31 +1,20 @@
+export { PortfolioFoundation } from "./PortfolioFoundation";
+export { PortfolioSummary } from "./PortfolioSummary";
+export { PortfolioStatus } from "./PortfolioStatus";
+export { PortfolioCard } from "./PortfolioCard";
+export { HoldingRow } from "./HoldingRow";
+export { HoldingsTable } from "./HoldingsTable";
+export { AllocationCard } from "./AllocationCard";
+export { ActivityTimeline } from "./ActivityTimeline";
+export { EmptyPortfolio } from "./EmptyPortfolio";
+export { AddToPortfolioButton } from "./AddToPortfolioButton";
+export { RemoveHoldingButton } from "./RemoveHoldingButton";
+export { PortfolioActions } from "./PortfolioActions";
+export { PortfolioAnalytics } from "./PortfolioAnalytics";
+export { QualityPanel } from "./QualityPanel";
+export { SectorAllocation } from "./SectorAllocation";
+export { RecommendationDistribution } from "./RecommendationDistribution";
+export { ResearchCoverage } from "./ResearchCoverage";
+export { PortfolioHealth } from "./PortfolioHealth";
+export { DiversificationPanel } from "./DiversificationPanel";
 export { PortfolioWorkspace } from "./PortfolioWorkspace";
-export {
-  PortfolioOverviewCard,
-  PortfolioHoldingCard,
-  PortfolioAllocationChart,
-  PortfolioSectorChart,
-  PortfolioPerformanceCard,
-  PortfolioWatchlistCard,
-  PortfolioOpportunityCard,
-  PortfolioValuationSummary,
-  PortfolioMoatDistribution,
-  PortfolioQualityDistribution,
-  PortfolioDiversificationCard,
-  PortfolioRebalanceSuggestions,
-  PortfolioScenarioAnalysis,
-  PortfolioExpectedReturn,
-  PortfolioRiskMetrics,
-  PortfolioCashAllocation,
-  PortfolioNotes,
-  PortfolioExportPanel,
-} from "./PortfolioWorkspace";
-export {
-  PortfolioEmptyState,
-  PortfolioRiskHeatmap,
-  AllocationDonut,
-  SectorBarChart,
-  QualityHistogram,
-  WeightTreemap,
-  ExpectedReturnChart,
-  TrustedMetricBlock,
-} from "./PortfolioVisuals";

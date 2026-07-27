@@ -7,10 +7,20 @@ import { OfflineBanner } from "@/components/reliability/OfflineBanner";
 import { SessionRecoveryProvider } from "@/components/reliability/OfflineBanner";
 import { AuthProvider } from "@/lib/auth/AuthProvider";
 import { env } from "@/lib/env";
+import { PortfolioProvider } from "@/lib/portfolio/PortfolioProvider";
+import { MarketDataProvider } from "@/providers/MarketDataProvider";
+import { AIProviderContextProvider } from "@/providers/AIProviderContext";
+import { NotificationProvider } from "@/providers/NotificationProvider";
+import { PersistenceProvider } from "@/providers/PersistenceProvider";
 import { QueryProvider } from "@/providers/QueryProvider";
 import { ThemeProvider } from "@/providers/ThemeProvider";
 
 import "./globals.css";
+
+const marketConfig = {
+  cacheTtlMs: env.marketCacheTtlMs,
+  autoRefreshMs: env.marketRefreshMs,
+} as const;
 
 const display = Fraunces({
   subsets: ["latin"],
@@ -45,14 +55,24 @@ export default function RootLayout({
         </a>
         <ThemeProvider>
           <QueryProvider>
-            <AuthProvider>
-              <SessionRecoveryProvider>
-                <GlobalErrorBoundary>
-                  <OfflineBanner />
-                  <AppLayout>{children}</AppLayout>
-                </GlobalErrorBoundary>
-              </SessionRecoveryProvider>
-            </AuthProvider>
+            <MarketDataProvider config={marketConfig}>
+              <AIProviderContextProvider>
+                <NotificationProvider>
+                  <AuthProvider>
+                    <PersistenceProvider>
+                      <PortfolioProvider>
+                        <SessionRecoveryProvider>
+                          <GlobalErrorBoundary>
+                            <OfflineBanner />
+                            <AppLayout>{children}</AppLayout>
+                          </GlobalErrorBoundary>
+                        </SessionRecoveryProvider>
+                      </PortfolioProvider>
+                    </PersistenceProvider>
+                  </AuthProvider>
+                </NotificationProvider>
+              </AIProviderContextProvider>
+            </MarketDataProvider>
           </QueryProvider>
         </ThemeProvider>
       </body>

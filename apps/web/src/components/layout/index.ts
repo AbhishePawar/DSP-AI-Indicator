@@ -1,5 +1,6 @@
 export { AppLayout } from "./AppLayout";
 export { Sidebar } from "./Sidebar";
+export { StatusBar } from "./StatusBar";
 export { Topbar } from "./Topbar";
 export { ContentArea, WidgetGrid } from "./ContentArea";
 export { PageHeader } from "./PageHeader";

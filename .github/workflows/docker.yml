@@ -1,0 +1,28 @@
+name: Docker Build
+
+on:
+  push:
+    branches: [main, master]
+    tags: ["v*.*.*", "v*.*.*-*"]
+  pull_request:
+    branches: [main, master]
+
+jobs:
+  build-images:
+    name: Build Docker images
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build API image
+        run: docker build -f docker/backend/Dockerfile -t dsp-api:rc1 .
+
+      - name: Build Web image
+        run: |
+          docker build -f docker/frontend/Dockerfile \
+            --build-arg NEXT_PUBLIC_API_BASE_URL=http://127.0.0.1:8000/api/v1 \
+            --build-arg NEXT_PUBLIC_BUILD_TIMESTAMP=${{ github.run_id }} \
+            -t dsp-web:rc1 .
+
+      - name: Compose config validation
+        run: docker compose -f docker/docker-compose.yml config

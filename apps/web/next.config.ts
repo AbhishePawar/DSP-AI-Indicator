@@ -21,6 +21,7 @@ const nextConfig: NextConfig = {
   poweredByHeader: false,
   compress: true,
   productionBrowserSourceMaps: false,
+  output: "standalone",
   headers: async () => [
     {
       source: "/:path*",

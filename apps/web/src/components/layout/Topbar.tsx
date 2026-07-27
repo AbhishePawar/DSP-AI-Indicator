@@ -1,10 +1,13 @@
 "use client";
 
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 
 import { Button } from "@/components/ui/Button";
 import { Dropdown, DropdownItem } from "@/components/ui/Dropdown";
 import { useAuth } from "@/lib/auth/AuthProvider";
+import { sessionStatusLabel } from "@/lib/auth/types";
+import { env } from "@/lib/env";
 import { useTheme, type ThemeMode } from "@/providers/ThemeProvider";
 import { Breadcrumbs } from "./Breadcrumbs";
 
@@ -17,7 +20,7 @@ export function Topbar({
   onToggleCollapse: () => void;
   sidebarCollapsed: boolean;
 }) {
-  const { session, logout } = useAuth();
+  const { user, session, status, logout } = useAuth();
   const { mode, setMode } = useTheme();
   const router = useRouter();
 
@@ -49,9 +52,18 @@ export function Topbar({
           </div>
         </div>
         <div className="flex shrink-0 items-center gap-2">
-          <span className="hidden text-xs text-[var(--muted)] lg:inline">
-            {session?.username || session?.subject} · {session?.role}
+          <span className="hidden font-mono text-[10px] text-[var(--muted)] lg:inline">
+            v{env.frontendVersion} · {env.environment}
           </span>
+          {session && user ? (
+            <span className="hidden text-xs text-[var(--muted)] lg:inline">
+              {user.displayName} · {user.role} · {sessionStatusLabel(status)}
+            </span>
+          ) : (
+            <span className="hidden text-xs text-[var(--muted)] lg:inline">
+              Guest · {sessionStatusLabel(status)}
+            </span>
+          )}
           <label className="sr-only" htmlFor="theme-select">
             Theme
           </label>
@@ -66,16 +78,27 @@ export function Topbar({
             <option value="dark">Dark</option>
             <option value="system">System</option>
           </select>
-          <Dropdown label="Account">
-            <DropdownItem
-              onClick={() => {
-                logout();
-                router.push("/login");
-              }}
-            >
-              Logout
-            </DropdownItem>
-          </Dropdown>
+          {session ? (
+            <Dropdown label="Account">
+              <DropdownItem onClick={() => router.push("/profile")}>
+                Profile
+              </DropdownItem>
+              <DropdownItem
+                onClick={() => {
+                  logout();
+                  router.push("/login");
+                }}
+              >
+                Logout
+              </DropdownItem>
+            </Dropdown>
+          ) : (
+            <Link href="/login">
+              <Button size="sm" variant="secondary">
+                Sign in
+              </Button>
+            </Link>
+          )}
         </div>
       </div>
     </header>

@@ -20,19 +20,23 @@
 }
 
 :root[data-theme="dark"] {
-  --bg: #101614;
-  --fg: #e8f0ec;
-  --muted: #9bb0a7;
-  --surface: #18211e;
-  --surface-2: #24302c;
-  --border: #31433d;
-  --accent: #3dba8f;
-  --accent-fg: #06241a;
-  --accent-soft: #1d3b32;
-  --glow: rgba(61, 186, 143, 0.16);
-  --danger-bg: #3a1d1a;
-  --danger-fg: #f3c4bc;
-  --danger-border: #6b3a33;
+  --bg: #0a0e12;
+  --fg: #d4dce4;
+  --muted: #7b8fa0;
+  --surface: #0f1318;
+  --surface-2: #161c22;
+  --border: #1e2830;
+  --accent: #2cb67d;
+  --accent-fg: #0a0e12;
+  --accent-soft: #1a2f26;
+  --glow: rgba(44, 182, 125, 0.10);
+  --danger-bg: #2a1215;
+  --danger-fg: #f87171;
+  --danger-border: #4c1d1d;
+  --warning-bg: #2a2412;
+  --warning-fg: #fbbf24;
+  --header-bg: #080b0f;
+  --status-bg: #060809;
 }
 
 html,
@@ -138,4 +142,22 @@ select {
     --border: #1c2421;
     --muted: #3a4743;
   }
+}
+
+/* Terminal status dot */
+.terminal-dot {
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--accent);
+  box-shadow: 0 0 4px var(--accent);
+}
+.terminal-dot--warn {
+  background: var(--warning-fg, #fbbf24);
+  box-shadow: 0 0 4px var(--warning-fg, #fbbf24);
+}
+.terminal-dot--danger {
+  background: var(--danger-fg);
+  box-shadow: 0 0 4px var(--danger-fg);
 }

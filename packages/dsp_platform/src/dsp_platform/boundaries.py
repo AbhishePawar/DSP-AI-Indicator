@@ -37,6 +37,16 @@ FORBIDDEN_APPLICATION_PACKAGES: frozenset[str] = frozenset(
         "fundamental",
         "economic",
         "valuation",
+        "financial",
+        "business_quality",
+        "economic_moat",
+        "management_quality",
+        "financial_strength",
+        "earnings_quality",
+        "growth_quality",
+        "business_quality_aggregator",
+        "investment_recommendation",
+        "investment_committee",
         "ai_committee",
         "orchestration",
         "recommendation",
@@ -51,7 +61,12 @@ FORBIDDEN_APPLICATION_PACKAGES: frozenset[str] = frozenset(
         "workflow",
         "knowledge_graph",
         "copilot",
+        "llm_adapters",
+        "compliance",
         "core",
+        "api_platform",
+        "security_platform",
+        "production_platform",
     }
 )
 
@@ -67,6 +82,16 @@ PLATFORM_PACKAGES: frozenset[str] = frozenset(
         "fundamental",
         "economic",
         "valuation",
+        "financial",
+        "business_quality",
+        "economic_moat",
+        "management_quality",
+        "financial_strength",
+        "earnings_quality",
+        "growth_quality",
+        "business_quality_aggregator",
+        "investment_recommendation",
+        "investment_committee",
         "ai_committee",
         "orchestration",
         "recommendation",
@@ -81,7 +106,12 @@ PLATFORM_PACKAGES: frozenset[str] = frozenset(
         "workflow",
         "knowledge_graph",
         "copilot",
+        "llm_adapters",
+        "compliance",
         "dsp_platform",
+        "api_platform",
+        "security_platform",
+        "production_platform",
     }
 )
 
@@ -97,6 +127,9 @@ _ALLOWED_SHARED_KERNEL_PREFIXES: frozenset[str] = frozenset(
         "core.registry",
         "core.validation",
         "core.types",
+        # LanguageModelPort types — edge adapters implement the port contract
+        "copilot.enums",
+        "copilot.models",
     }
 )
 

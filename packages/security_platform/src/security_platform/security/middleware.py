@@ -26,12 +26,20 @@ __all__ = [
 PATH_PERMISSIONS: dict[str, Permission] = {
     "/analyze/company": Permission.ANALYZE_COMPANY,
     "/api/v1/analyze/company": Permission.ANALYZE_COMPANY,
+    "/analyse": Permission.ANALYZE_COMPANY,
+    "/api/v1/analyse": Permission.ANALYZE_COMPANY,
+    "/validate": Permission.ANALYZE_COMPANY,
+    "/api/v1/validate": Permission.ANALYZE_COMPANY,
     "/compare": Permission.COMPARE_COMPANIES,
     "/api/v1/compare": Permission.COMPARE_COMPANIES,
     "/workflow/run": Permission.RUN_WORKFLOW,
     "/api/v1/workflow/run": Permission.RUN_WORKFLOW,
     "/copilot/chat": Permission.ASK_COPILOT,
     "/api/v1/copilot/chat": Permission.ASK_COPILOT,
+    "/copilot/complete": Permission.ASK_COPILOT,
+    "/api/v1/copilot/complete": Permission.ASK_COPILOT,
+    "/copilot/stream": Permission.ASK_COPILOT,
+    "/api/v1/copilot/stream": Permission.ASK_COPILOT,
 }
 
 

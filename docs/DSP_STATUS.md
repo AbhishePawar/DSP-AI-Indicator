@@ -2,9 +2,9 @@
 
 | Field | Value |
 |---|---|
-| **Version** | `1.3.33` |
+| **Version** | `1.3.34` |
 | **Status** | **Active** (Living) |
-| **Last updated** | 2026-07-26 |
+| **Last updated** | 2026-07-27 |
 | **Audience** | Anyone starting work today |
 | **AI load** | **P2 — always with Master Protocol** |
 
@@ -19,12 +19,12 @@ Protection **policy** → [DSP_PROJECT_PROTECTION.md](DSP_PROJECT_PROTECTION.md)
 
 | Field | Value |
 |---|---|
-| **Current Version** | API RC **`v1.0.0-rc1`** · `api_platform` **0.2.0** · `dsp-web` **2.5.0** · Docs Suite **`1.3.33`** · API **`/api/v1`** |
-| **Active Sprint** | **None (EPIC-003 COMPLETE)** — await approval · [EPIC_003_FRONTEND_INTEGRATION.md](EPIC_003_FRONTEND_INTEGRATION.md) |
-| **Production Modules** | FEATURE domains ✓ · Platform composition ✓ · `/api/v1` ✓ · Intelligence Workspace ✓ |
-| **Regression Status** | **GREEN** — web vitest **14 PASS** · prior API/platform green |
-| **Project Health** | **Healthy** — Overall **91/100** · EPIC-003 **91/100** |
-| **Last Safe Checkpoint** | EPIC-003 `dsp-web` **2.5.0** (2026-07-26) |
+| **Current Version** | API RC **`v1.0.0-rc1`** → **GA APPROVED `v1.0.0`** (pending tag) · `api_platform` **0.2.0** · `dsp-web` **3.0.0-rc1** · Docs Suite **`1.3.34`** · API **`/api/v1`** |
+| **Active Sprint** | **EPIC-016 PASSED** — [EPIC_016_FINAL_PRODUCTION_READINESS_AUDIT.md](EPIC_016_FINAL_PRODUCTION_READINESS_AUDIT.md) |
+| **Production Modules** | FEATURE domains ✓ · Platform composition ✓ · `/api/v1` ✓ · Intelligence Workspace ✓ · Thin client ✓ |
+| **Regression Status** | **GREEN** — pytest **2601 PASS** · vitest **108 PASS** · integrity PASS · boundaries/cycles PASS |
+| **Project Health** | **Healthy** · Overall **94/100** · Thin-client **98/100** · **GA APPROVED** |
+| **Last Safe Checkpoint** | EPIC-016 Final Production Readiness Audit (2026-07-27) |
 
 ### 2b. Valuation Intelligence
 
@@ -211,8 +211,42 @@ Protection **policy** → [DSP_PROJECT_PROTECTION.md](DSP_PROJECT_PROTECTION.md)
 | Report | [EPIC_003_FRONTEND_INTEGRATION.md](EPIC_003_FRONTEND_INTEGRATION.md) |
 | Guide | [FRONTEND_INTELLIGENCE_WORKSPACE.md](FRONTEND_INTELLIGENCE_WORKSPACE.md) |
 | Mobile | **Not started** |
-| Next step | **STOP** — await approval before EPIC-004 |
+| **Next step** | EPIC-014 / EPIC-015 — see §2r · §2s |
+
+### 2r. Production Readiness Audit (EPIC-014)
+
+| Item | Status |
+|---|---|
+| Audit report | **Complete** — [EPIC_014_PRODUCTION_READINESS_AUDIT.md](EPIC_014_PRODUCTION_READINESS_AUDIT.md) |
+| Pytest | **2601 PASS** |
+| Vitest | **104 PASS** (pre-015) |
+| Integrity | **PASS** |
+| GA recommendation | **Hold pending thin-client fix** → addressed by EPIC-015 |
+| Next step | Re-audit after EPIC-015 |
+
+### 2s. Thin Client Remediation (EPIC-015)
+
+| Item | Status |
+|---|---|
+| Report | **Complete** — [EPIC_015_THIN_CLIENT_REMEDIATION.md](EPIC_015_THIN_CLIENT_REMEDIATION.md) |
+| Engines removed | `lib/moat` · `lib/valuation` · `lib/management` · `lib/earnings` (**278 files**) |
+| Vitest | **108 PASS** |
+| Thin-client score | **96 / 100** |
+| Backend logic | **Unchanged** |
+| Next step | EPIC-016 Final GA Audit — see §2t |
+
+### 2t. Final Production Readiness Audit (EPIC-016)
+
+| Item | Status |
+|---|---|
+| Report | **PASSED** — [EPIC_016_FINAL_PRODUCTION_READINESS_AUDIT.md](EPIC_016_FINAL_PRODUCTION_READINESS_AUDIT.md) |
+| Thin client | **PASS** (98/100) |
+| Pytest | **2601 PASS** |
+| Vitest | **108 PASS** |
+| Integrity / boundaries / cycles | **PASS** |
+| GA recommendation | **APPROVED** — promote `v1.0.0-rc1` → `v1.0.0` |
+| Next step | Tag `v1.0.0` · update VERSION / VERSION_MATRIX in release cut |
 
 ## Related
 
-[FEATURE_008_INVESTMENT_COMMITTEE.md](FEATURE_008_INVESTMENT_COMMITTEE.md) · [EPIC_001_PLATFORM_COMPOSITION.md](EPIC_001_PLATFORM_COMPOSITION.md) · [EPIC_002_API_INTEGRATION.md](EPIC_002_API_INTEGRATION.md)
+[FEATURE_008_INVESTMENT_COMMITTEE.md](FEATURE_008_INVESTMENT_COMMITTEE.md) · [EPIC_001_PLATFORM_COMPOSITION.md](EPIC_001_PLATFORM_COMPOSITION.md) · [EPIC_002_API_INTEGRATION.md](EPIC_002_API_INTEGRATION.md) · [EPIC_015_THIN_CLIENT_REMEDIATION.md](EPIC_015_THIN_CLIENT_REMEDIATION.md) · [EPIC_016_FINAL_PRODUCTION_READINESS_AUDIT.md](EPIC_016_FINAL_PRODUCTION_READINESS_AUDIT.md)

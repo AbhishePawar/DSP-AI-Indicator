@@ -51,8 +51,30 @@ class TestImportBoundaries:
         assert "knowledge_graph" in FORBIDDEN_APPLICATION_PACKAGES
         assert "copilot" in PLATFORM_PACKAGES
         assert "copilot" in FORBIDDEN_APPLICATION_PACKAGES
+        for name in (
+            "financial",
+            "business_quality",
+            "economic_moat",
+            "management_quality",
+            "financial_strength",
+            "earnings_quality",
+            "growth_quality",
+            "business_quality_aggregator",
+            "investment_recommendation",
+            "investment_committee",
+            "llm_adapters",
+            "compliance",
+        ):
+            assert name in FORBIDDEN_APPLICATION_PACKAGES
+            assert name in PLATFORM_PACKAGES
 
-    def test_compliant_sample_app(self) -> None:
+    def test_financial_and_committee_forbidden_for_apps(self) -> None:
+        with pytest.raises(PlatformError, match="financial"):
+            assert_application_imports("from financial import FinancialEngine\n")
+        with pytest.raises(PlatformError, match="investment_committee"):
+            assert_application_imports(
+                "from investment_committee import InvestmentCommittee\n"
+            )
         source = (_SAMPLES / "compliant_app.py").read_text(encoding="utf-8")
         imported = assert_application_imports(source, path="compliant_app.py")
         assert "dsp_platform" in imported
@@ -112,7 +134,8 @@ class TestPackageFacadeParity:
             if not root.is_dir():
                 continue
             for path in root.rglob("*.py"):
-                source = path.read_text(encoding="utf-8")
+                # utf-8-sig strips accidental BOM without touching package sources
+                source = path.read_text(encoding="utf-8-sig")
                 deep = scan_cross_package_deep_imports(
                     source, current_package=package
                 )

@@ -57,6 +57,7 @@ Status values: **Production** · **Scaffold** · **Orphan** · **Frozen**.
 | `universe` | `universe` | Universe selection | Production · Frozen | |
 | `valuation` | `valuation` | Valuation engines | Production · Frozen | Phase 1 |
 | `workflow` | `workflow` | Workflow domain | Production · Frozen | |
+| `llm_adapters` | `llm_adapters` | External LLM provider adapters (copilot edge) | Active · 0.1.0 | Outside frozen copilot; no engine override |
 | `data-ingestion` | `data_ingestion` | Empty stubs | **Orphan** | Unregistered — ADR-ASI-002-002 |
 
 ---

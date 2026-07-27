@@ -13,11 +13,9 @@ from dsp_platform import DSPPlatform, PlatformBuilder, PlatformConfiguration
 
 try:
     from llm_adapters import CopilotCompleteService, build_default_registry
-    from llm_adapters.registry import ProviderRegistry
 except ImportError:  # pragma: no cover - optional during partial installs
     CopilotCompleteService = None  # type: ignore[misc, assignment]
     build_default_registry = None  # type: ignore[misc, assignment]
-    ProviderRegistry = None  # type: ignore[misc, assignment]
 
 __all__ = [
     "ApiState",

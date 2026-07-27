@@ -85,6 +85,7 @@ class TestApiPlatformArchitecture:
         assert data["project"]["dependencies"] == [
             "dsp_platform",
             "contracts",
+            "llm_adapters",
             "fastapi>=0.115.0",
             "uvicorn>=0.30.0",
             "httpx>=0.27.0",

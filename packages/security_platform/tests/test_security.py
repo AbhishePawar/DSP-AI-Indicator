@@ -208,6 +208,10 @@ class TestApiIntegration:
         )
         client = TestClient(create_app(platform=platform, security=bundle))
         assert client.get("/health").status_code == 200
+        assert client.get("/health/live").status_code == 200
+        assert client.get("/health/ready").status_code == 200
+        assert client.get("/api/v1/health/live").status_code == 200
+        assert client.get("/metrics").status_code == 200
 
     def test_dsp_platform_has_no_security_import(self) -> None:
         import dsp_platform

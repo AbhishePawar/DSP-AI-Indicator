@@ -1,0 +1,5 @@
+# Root convenience entrypoint — canonical compose lives under docker/
+# Usage: docker compose up
+# Prod override: docker compose -f docker/docker-compose.yml -f docker/docker-compose.prod.yml up
+include:
+  - path: docker/docker-compose.yml

@@ -52,14 +52,24 @@ class SecuritySettings:
     require_auth: bool = True
     public_paths: tuple[str, ...] = (
         "/health",
+        "/health/live",
+        "/health/ready",
+        "/metrics",
         "/docs",
         "/redoc",
         "/openapi.json",
         "/api/v1/health",
+        "/api/v1/health/live",
+        "/api/v1/health/ready",
+        "/api/v1/metrics",
         "/auth/login",
         "/api/v1/auth/login",
         "/platform",
         "/api/v1/platform",
+        "/version",
+        "/api/v1/version",
+        "/capabilities",
+        "/api/v1/capabilities",
     )
     rate_limit: RateLimitConfig = field(default_factory=RateLimitConfig)
 

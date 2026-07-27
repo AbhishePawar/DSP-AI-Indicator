@@ -9,7 +9,7 @@ a freeze amendment.
 
 ---
 
-## 1. DSP Platform (`dsp_platform` 0.6.0)
+## 1. DSP Platform (`dsp_platform` 0.7.1)
 
 ```python
 from dsp_platform import DSPPlatform, PlatformBuilder, PlatformConfiguration
@@ -33,7 +33,7 @@ Also re-exports frozen domain types for application convenience (see package
 
 ---
 
-## 2. API Platform (`api_platform` 0.1.0)
+## 2. API Platform (`api_platform` 0.2.0)
 
 ```python
 from api_platform import create_app, app

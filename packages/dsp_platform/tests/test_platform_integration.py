@@ -64,7 +64,7 @@ def _recommendation(instrument: Instrument) -> Recommendation:
 
 class TestVersionAndExports:
     def test_platform_version(self) -> None:
-        assert __version__ == "0.6.0"
+        assert __version__ == "0.7.1"
 
     def test_k1_exports(self) -> None:
         assert PlatformBuilder is not None
@@ -143,7 +143,7 @@ class TestPlatformBuilderAndInfo:
         )
         info = platform.get_platform_info()
         assert isinstance(info, PlatformMetadata)
-        assert info.version == "0.6.0"
+        assert info.version == "0.7.1"
         assert info.status is PlatformStatus.READY
         assert "analyze_company" in info.capabilities
         assert "analysis_service" in info.registered_services

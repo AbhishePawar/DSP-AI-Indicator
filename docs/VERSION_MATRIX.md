@@ -75,6 +75,7 @@ Domain milestone tags (not a new HTTP RC):
 | `valuation` | 0.12.0 | Phase 1 frozen |
 | `ai_committee` | **0.3.0** | pyproject aligned ASI-002 |
 | `snapshot_bridge` | 0.1.0 | |
+| `llm_adapters` | **0.1.0** | Edge LLM adapters (EPIC-014 integrity) |
 | `compliance` | **0.1.0** | PR1.0 — flags / terminology / ports; unused `core` dep removed ASI-004 |
 
 ### Intentionally unregistered (orphan scaffold)
@@ -90,7 +91,7 @@ Domain milestone tags (not a new HTTP RC):
 | Surface | Version |
 |---|---|
 | HTTP API | **v1** (`/api/v1`, `X-API-Version`) |
-| OpenAPI `info.version` | 0.1.0 (`api_platform`) |
+| OpenAPI `info.version` | 0.2.0 (`api_platform`) |
 
 ---
 

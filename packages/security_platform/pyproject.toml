@@ -4,14 +4,17 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "security-platform"
-version = "0.1.0"
-description = "DSP Authentication & Security Platform — JWT / RBAC / API keys (K1.2)"
+version = "0.2.0"
+description = "DSP Authentication & Security Platform — JWT / RBAC / identity (K1.2 + PEP-001)"
 requires-python = ">=3.11"
 license = { text = "Proprietary" }
 dependencies = [
     "core",
     "starlette>=0.40.0",
 ]
+
+[project.optional-dependencies]
+argon2 = ["argon2-cffi>=23.0"]
 
 [tool.setuptools.packages.find]
 where = ["src"]

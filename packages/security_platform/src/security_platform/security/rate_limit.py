@@ -1,4 +1,4 @@
-"""Simple process-local rate limiter."""
+"""Simple rate limiter + PEP-002 RateLimitPort bridge."""
 
 from __future__ import annotations
 
@@ -6,10 +6,11 @@ import time
 from collections import defaultdict, deque
 from dataclasses import dataclass
 from threading import Lock
+from typing import Any
 
 from security_platform.security.exceptions import RateLimitError
 
-__all__ = ["RateLimitConfig", "RateLimiter"]
+__all__ = ["RateLimitConfig", "RateLimiter", "DistributedRateLimiter"]
 
 
 @dataclass(frozen=True, slots=True)
@@ -22,11 +23,9 @@ class RateLimitConfig:
 
     def __post_init__(self) -> None:
         if self.max_requests <= 0:
-            msg = "max_requests must be positive"
-            raise ValueError(msg)
+            raise ValueError("max_requests must be positive")
         if self.window_seconds <= 0:
-            msg = "window_seconds must be positive"
-            raise ValueError(msg)
+            raise ValueError("window_seconds must be positive")
 
 
 class RateLimiter:
@@ -52,11 +51,10 @@ class RateLimiter:
             while bucket and (now - bucket[0]) > window:
                 bucket.popleft()
             if len(bucket) >= self._config.max_requests:
-                msg = (
+                raise RateLimitError(
                     f"rate limit exceeded for {key!r}: "
                     f"{self._config.max_requests}/{self._config.window_seconds}s"
                 )
-                raise RateLimitError(msg)
             bucket.append(now)
 
     def reset(self, key: str | None = None) -> None:
@@ -65,3 +63,32 @@ class RateLimiter:
                 self._events.clear()
             else:
                 self._events.pop(key, None)
+
+
+class DistributedRateLimiter:
+    """RateLimiter façade over PEP-002 RateLimitPort."""
+
+    def __init__(self, port: Any, config: RateLimitConfig | None = None) -> None:
+        self._port = port
+        self._config = config or RateLimitConfig()
+
+    @property
+    def config(self) -> RateLimitConfig:
+        return self._config
+
+    def check(self, key: str) -> None:
+        if not self._config.enabled:
+            return
+        allowed = self._port.allow(
+            key,
+            limit=self._config.max_requests,
+            window_seconds=self._config.window_seconds,
+        )
+        if not allowed:
+            raise RateLimitError(
+                f"rate limit exceeded for {key!r}: "
+                f"{self._config.max_requests}/{self._config.window_seconds}s"
+            )
+
+    def reset(self, key: str | None = None) -> None:
+        _ = key  # distributed backends typically TTL away

@@ -11,7 +11,7 @@ from pathlib import Path
 _SRC = Path(__file__).resolve().parents[1] / "src" / "security_platform"
 _PKG_ROOT = Path(__file__).resolve().parents[1]
 _FORBIDDEN = frozenset(['ai_committee', 'api_platform', 'business_quality', 'comparison', 'compliance', 'contracts', 'copilot', 'data_engine', 'data_ingestion', 'decision_intelligence', 'dsp', 'dsp_platform', 'economic', 'economic_moat', 'financial', 'fundamental', 'industry', 'knowledge_graph', 'orchestration', 'portfolio', 'production_platform', 'quantitative_risk', 'recommendation', 'research', 'risk', 'snapshot_bridge', 'universe', 'valuation', 'workflow'])
-_EXPECTED_VERSION = "0.1.0"
+_EXPECTED_VERSION = "0.2.0"
 
 
 def _imported_top_levels(source: str) -> frozenset[str]:

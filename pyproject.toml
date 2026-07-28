@@ -69,6 +69,7 @@ where = [
     "packages/security_platform/src",
     "packages/production_platform/src",
     "packages/compliance/src",
+    "packages/platform_runtime/src",
 ]
 
 [tool.pytest.ini_options]
@@ -112,6 +113,7 @@ pythonpath = [
     "packages/security_platform/src",
     "packages/production_platform/src",
     "packages/compliance/src",
+    "packages/platform_runtime/src",
 ]
 addopts = "-v --tb=short --import-mode=importlib"
 filterwarnings = ["ignore::DeprecationWarning"]
@@ -164,6 +166,7 @@ src = [
     "packages/security_platform/src",
     "packages/production_platform/src",
     "packages/compliance/src",
+    "packages/platform_runtime/src",
     "tests",
 ]
 
@@ -210,6 +213,7 @@ known-first-party = [
     "security_platform",
     "production_platform",
     "compliance",
+    "platform_runtime",
 ]
 
 [tool.coverage.run]
@@ -251,6 +255,7 @@ source = [
     "security_platform",
     "production_platform",
     "compliance",
+    "platform_runtime",
 ]
 omit = ["*/tests/*", "*/__init__.py"]
 
@@ -308,6 +313,7 @@ mypy_path = [
     "packages/security_platform/src",
     "packages/production_platform/src",
     "packages/compliance/src",
+    "packages/platform_runtime/src",
 ]
 files = [
     "packages/contracts/src/contracts",

@@ -1,4 +1,4 @@
-"""Production platform tests (K1.3)."""
+"""Production platform tests (K1.3 + PEP-002)."""
 
 from __future__ import annotations
 
@@ -12,6 +12,7 @@ from production_platform import (
     FeatureFlagManager,
     InMemoryCachePort,
     InMemoryMetricsPort,
+    InfrastructureBundle,
     ProductionBundle,
     ProductionConfiguration,
     ProductionError,
@@ -31,6 +32,8 @@ _FORBIDDEN = frozenset(
         "google",
         "celery",
         "rq",
+        "psycopg",
+        "psycopg2",
         "dsp_platform",
         "api_platform",
         "security_platform",
@@ -56,9 +59,10 @@ def _imported_top_levels(source: str) -> frozenset[str]:
 
 class TestVersionAndArchitecture:
     def test_version(self) -> None:
-        assert __version__ == "0.1.0"
+        assert __version__ == "0.3.0"
 
-    def test_no_vendor_imports(self) -> None:
+    def test_no_static_vendor_imports(self) -> None:
+        """Vendor SDKs must only be loaded via importlib strings (lazy)."""
         violations: list[str] = []
         for path in _SRC.rglob("*.py"):
             bad = _imported_top_levels(path.read_text(encoding="utf-8")) & _FORBIDDEN
@@ -84,15 +88,23 @@ class TestBundle:
         assert cfg.environment is Environment.TEST
         assert bundle.get_feature_flags()["beta_ui"] is True
         meta = bundle.get_metadata()
-        assert meta.package_version == "0.1.0"
+        assert meta.package_version == "0.3.0"
         assert meta.service_name == "dsp-test"
 
     def test_diagnostics(self) -> None:
         bundle = ProductionBundle.create()
         report = bundle.diagnostics()
         assert report.health.ready is True
-        assert report.metadata.package_version == "0.1.0"
+        assert report.metadata.package_version == "0.3.0"
         assert report.metrics_snapshot is not None
+
+    def test_with_infrastructure(self) -> None:
+        bundle = ProductionBundle.create(with_infrastructure=True)
+        assert bundle.infrastructure is not None
+        assert bundle.infrastructure.database.ping() is True
+        assert bundle.health().ready is True
+        ports = bundle.get_metadata().ports
+        assert any(p.startswith("database=") for p in ports)
 
     def test_metrics_and_logging(self) -> None:
         bundle = ProductionBundle.create()
@@ -147,3 +159,30 @@ class TestBundle:
     def test_configuration_validation(self) -> None:
         with pytest.raises(Exception):
             ProductionConfiguration(service_name="")
+
+
+class TestInfrastructureComposition:
+    def test_offline_bundle(self) -> None:
+        infra = InfrastructureBundle.create_offline()
+        assert infra.database.ping() is True
+        infra.cache.set("k", "v")
+        assert infra.cache.get("k") == "v"
+        assert infra.india.timezone == "Asia/Kolkata"
+        assert infra.india.currency == "INR"
+
+    def test_from_environment_offline_force(self) -> None:
+        infra = InfrastructureBundle.from_environment(force_offline=True)
+        assert infra.diagnostics.database_adapter == "InMemoryDatabasePort"
+
+    def test_from_environment_missing_redis_falls_back(self) -> None:
+        infra = InfrastructureBundle.from_environment(
+            environ={
+                "DSP_ENVIRONMENT": "development",
+                "DSP_REDIS_URL": "redis://127.0.0.1:1/0",
+                "DSP_REDIS_FALLBACK": "true",
+                "DSP_REDIS_TIMEOUT": "0.05",
+            }
+        )
+        # Either redis connected (unlikely) or memory fallback with a note.
+        assert infra.cache is not None
+        assert infra.rate_limit.allow("t", limit=5, window_seconds=1.0) is True

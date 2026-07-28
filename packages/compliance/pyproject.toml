@@ -4,8 +4,8 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "compliance"
-version = "0.1.0"
-description = "DSP Compliance & Product Mode architecture — feature flags, disclosures, presentation terminology (PR1.0)"
+version = "0.2.0"
+description = "DSP Compliance — Research Mode, DPDP consent, disclosures, history (PR1.0 + PEP-004)"
 requires-python = ">=3.11"
 license = { text = "Proprietary" }
 dependencies = []

@@ -1,9 +1,10 @@
-"""User / principal models and permission helpers (in-memory only)."""
+"""User / principal models and permission helpers."""
 
 from __future__ import annotations
 
 from dataclasses import dataclass, field
 from datetime import UTC, datetime
+from typing import Any
 
 from security_platform.security.exceptions import SecurityError
 from security_platform.security.permissions import Permission, assert_permission
@@ -20,7 +21,7 @@ __all__ = [
 
 @dataclass(frozen=True, slots=True)
 class UserRecord:
-    """In-memory user record — not a database entity."""
+    """User identity record — durable via UserRepositoryPort adapters."""
 
     user_id: str
     username: str
@@ -28,14 +29,18 @@ class UserRecord:
     active: bool = True
     display_name: str | None = None
     extra_permissions: tuple[Permission, ...] = ()
+    email: str | None = None
+    password_hash: str | None = None
+    email_verified: bool = False
+    org_id: str | None = None
+    failed_login_count: int = 0
+    locked_until: datetime | None = None
 
     def __post_init__(self) -> None:
         if not self.user_id.strip():
-            msg = "user_id must not be empty"
-            raise SecurityError(msg)
+            raise SecurityError("user_id must not be empty")
         if not self.username.strip():
-            msg = "username must not be empty"
-            raise SecurityError(msg)
+            raise SecurityError("username must not be empty")
         object.__setattr__(self, "role", assert_role(self.role))
         object.__setattr__(
             self,
@@ -54,6 +59,7 @@ class UserPrincipal:
     auth_method: str
     username: str | None = None
     api_key_id: str | None = None
+    session_id: str | None = None
 
     def has_permission(self, permission: Permission | str) -> bool:
         return assert_permission(permission) in self.permissions
@@ -74,53 +80,54 @@ class SecurityContext:
 
         perm = assert_permission(permission)
         if not self.principal.has_permission(perm):
-            msg = (
-                f"permission denied: {perm.value} "
-                f"(role={self.principal.role.value})"
+            raise AuthorizationError(
+                f"permission denied: {perm.value} (role={self.principal.role.value})"
             )
-            raise AuthorizationError(msg)
 
 
 class UserStore:
-    """Process-local user registry — no durable database."""
+    """Compatibility façade over a UserRepositoryPort (in-memory by default)."""
 
-    def __init__(self) -> None:
-        self._by_id: dict[str, UserRecord] = {}
-        self._by_username: dict[str, str] = {}
+    def __init__(self, repository: Any | None = None) -> None:
+        if repository is None:
+            from security_platform.security.identity.repository import (
+                InMemoryUserRepository,
+            )
+
+            repository = InMemoryUserRepository()
+        self._repo = repository
+
+    @property
+    def repository(self) -> Any:
+        return self._repo
 
     def add(self, user: UserRecord, *, replace: bool = False) -> UserRecord:
-        key = user.user_id.strip().lower()
-        uname = user.username.strip().lower()
-        if key in self._by_id and not replace:
-            msg = f"duplicate user_id: {user.user_id!r}"
-            raise SecurityError(msg)
-        if uname in self._by_username and self._by_username[uname] != key:
+        existing = self._repo.get(user.user_id)
+        if existing is not None and not replace:
+            raise SecurityError(f"duplicate user_id: {user.user_id!r}")
+        by_name = self._repo.get_by_username(user.username)
+        if by_name is not None and by_name.user_id.lower() != user.user_id.lower():
             if not replace:
-                msg = f"duplicate username: {user.username!r}"
-                raise SecurityError(msg)
-        self._by_id[key] = user
-        self._by_username[uname] = key
-        return user
+                raise SecurityError(f"duplicate username: {user.username!r}")
+        return self._repo.upsert(user)
 
     def get(self, user_id: str) -> UserRecord:
-        key = user_id.strip().lower()
-        if key not in self._by_id:
-            msg = f"unknown user: {user_id!r}"
-            raise SecurityError(msg)
-        return self._by_id[key]
+        user = self._repo.get(user_id)
+        if user is None:
+            raise SecurityError(f"unknown user: {user_id!r}")
+        return user
 
     def get_by_username(self, username: str) -> UserRecord:
-        key = self._by_username.get(username.strip().lower())
-        if key is None:
-            msg = f"unknown username: {username!r}"
-            raise SecurityError(msg)
-        return self._by_id[key]
+        user = self._repo.get_by_username(username)
+        if user is None:
+            raise SecurityError(f"unknown username: {username!r}")
+        return user
 
     def list_users(self) -> tuple[UserRecord, ...]:
-        return tuple(self._by_id[k] for k in sorted(self._by_id))
+        return tuple(self._repo.list_users())
 
     def __len__(self) -> int:
-        return len(self._by_id)
+        return len(self.list_users())
 
 
 class PermissionManager:

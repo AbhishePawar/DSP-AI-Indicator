@@ -11,6 +11,12 @@ services:
     environment:
       DSP_ENVIRONMENT: ${DSP_ENVIRONMENT:-development}
       DSP_CORS_ORIGINS: http://localhost:3000,http://127.0.0.1:3000
+      DSP_DATABASE_URL: ${DSP_DATABASE_URL:-}
+      DSP_REDIS_URL: ${DSP_REDIS_URL:-}
+      DSP_REDIS_FALLBACK: ${DSP_REDIS_FALLBACK:-true}
+      DSP_REGION: ${DSP_REGION:-local}
+      DSP_INDIA_TIMEZONE: Asia/Kolkata
+      DSP_INDIA_CURRENCY: INR
     healthcheck:
       test: ["CMD", "curl", "-fsS", "http://127.0.0.1:8000/health/ready"]
       interval: 30s
@@ -39,3 +45,38 @@ services:
       retries: 3
       start_period: 35s
     restart: unless-stopped
+
+  # PEP-002 — optional enterprise infra (postgres + redis)
+  # Usage: docker compose --profile infra up
+  postgres:
+    profiles: ["infra"]
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: dsp
+      POSTGRES_PASSWORD: dsp
+      POSTGRES_DB: dsp
+    ports:
+      - "5432:5432"
+    volumes:
+      - dsp_pg_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U dsp -d dsp"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  redis:
+    profiles: ["infra"]
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+    restart: unless-stopped
+
+volumes:
+  dsp_pg_data:

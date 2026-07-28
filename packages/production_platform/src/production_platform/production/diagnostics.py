@@ -8,6 +8,7 @@ from datetime import UTC, datetime
 from production_platform.production.configuration import ConfigurationManager
 from production_platform.production.feature_flags import FeatureFlagManager
 from production_platform.production.health import HealthManager, HealthReport
+from production_platform.production.infrastructure import InfrastructureBundle
 from production_platform.production.interfaces import (
     CachePort,
     LoggingPort,
@@ -60,6 +61,7 @@ class DiagnosticsManager:
         scheduler: SchedulerPort,
         logging: LoggingPort,
         package_version: str,
+        infrastructure: InfrastructureBundle | None = None,
     ) -> None:
         self._configuration = configuration
         self._health = health
@@ -71,23 +73,36 @@ class DiagnosticsManager:
         self._scheduler = scheduler
         self._logging = logging
         self._package_version = package_version
+        self._infrastructure = infrastructure
 
     def metadata(self) -> ProductionMetadata:
         cfg = self._configuration.get()
+        ports = [
+            f"logging={type(self._logging).__name__}",
+            f"metrics={type(self._metrics).__name__}",
+            f"tracing={type(self._tracing).__name__}",
+            f"cache={type(self._cache).__name__}",
+            f"storage={type(self._storage).__name__}",
+            f"scheduler={type(self._scheduler).__name__}",
+        ]
+        if self._infrastructure is not None:
+            d = self._infrastructure.diagnostics
+            ports.extend(
+                [
+                    f"database={d.database_adapter}",
+                    f"rate_limit={d.rate_limit_adapter}",
+                    f"lock={d.lock_adapter}",
+                    f"session={d.session_adapter}",
+                    f"job_queue={d.job_queue_adapter}",
+                ]
+            )
         return ProductionMetadata(
             service_name=cfg.service_name,
             service_version=cfg.service_version,
             environment=cfg.environment.value,
             region=cfg.region,
             package_version=self._package_version,
-            ports=(
-                f"logging={type(self._logging).__name__}",
-                f"metrics={type(self._metrics).__name__}",
-                f"tracing={type(self._tracing).__name__}",
-                f"cache={type(self._cache).__name__}",
-                f"storage={type(self._storage).__name__}",
-                f"scheduler={type(self._scheduler).__name__}",
-            ),
+            ports=tuple(ports),
             generated_at=datetime.now(tz=UTC),
         )
 
@@ -96,12 +111,15 @@ class DiagnosticsManager:
         snap = getattr(self._metrics, "snapshot", None)
         if callable(snap):
             metrics_snapshot = snap()  # type: ignore[misc]
+        notes = [
+            "Provider-neutral defaults; vendor adapters resolved only in composition root.",
+        ]
+        if self._infrastructure is not None:
+            notes.extend(self._infrastructure.diagnostics.notes)
         return DiagnosticsReport(
             metadata=self.metadata(),
             health=self._health.health(),
             feature_flags=self._feature_flags.as_dict(),
             metrics_snapshot=metrics_snapshot,
-            notes=(
-                "Provider-neutral in-memory defaults; replace ports with adapters.",
-            ),
+            notes=tuple(notes),
         )

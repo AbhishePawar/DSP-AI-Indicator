@@ -34,8 +34,9 @@ Domain milestone tags (not a new HTTP RC):
 |---|---|---|
 | `dsp_platform` | **0.7.1** | K1.0 + EPIC-001 + EPIC-002 adapter |
 | `api_platform` | **0.2.0** | K1.1 + EPIC-002 composition routes |
-| `security_platform` | **0.1.0** | K1.2 |
-| `production_platform` | **0.1.0** | K1.3 |
+| `security_platform` | **0.2.0** | K1.2 + PEP-001 identity foundation |
+| `production_platform` | **0.3.0** | K1.3 + PEP-002 + PEP-003 observability |
+| `platform_runtime` | **0.1.0** | PEP-004.1 enterprise composition root |
 
 ---
 
@@ -76,7 +77,7 @@ Domain milestone tags (not a new HTTP RC):
 | `ai_committee` | **0.3.0** | pyproject aligned ASI-002 |
 | `snapshot_bridge` | 0.1.0 | |
 | `llm_adapters` | **0.1.0** | Edge LLM adapters (EPIC-014 integrity) |
-| `compliance` | **0.1.0** | PR1.0 — flags / terminology / ports; unused `core` dep removed ASI-004 |
+| `compliance` | **0.2.0** | PR1.0 + PEP-004 India compliance foundation |
 
 ### Intentionally unregistered (orphan scaffold)
 

@@ -1,4 +1,4 @@
-"""DSP Authentication & Security Platform (K1.2).
+"""DSP Authentication & Security Platform (K1.2 + PEP-001).
 
 Protects the API Platform. Never imports ``dsp_platform`` business façades
 and contains no financial / recommendation logic.
@@ -22,6 +22,17 @@ from security_platform.security.exceptions import (
     SecurityError,
     TokenError,
 )
+from security_platform.security.identity import (
+    ConsentRecord,
+    IdentityService,
+    InMemoryUserRepository,
+    LockoutPolicy,
+    PasswordPolicy,
+    SqlUserRepository,
+    TokenPair,
+    TokenService,
+    build_password_hasher,
+)
 from security_platform.security.jwt import JWTManager, TokenClaims
 from security_platform.security.middleware import SecurityMiddleware
 from security_platform.security.permissions import (
@@ -29,7 +40,11 @@ from security_platform.security.permissions import (
     Permission,
     assert_permission,
 )
-from security_platform.security.rate_limit import RateLimitConfig, RateLimiter
+from security_platform.security.rate_limit import (
+    DistributedRateLimiter,
+    RateLimitConfig,
+    RateLimiter,
+)
 from security_platform.security.roles import (
     ROLE_PERMISSIONS,
     ROLES,
@@ -54,9 +69,15 @@ __all__ = [
     "AuthenticationManager",
     "AuthorizationError",
     "AuthorizationManager",
+    "ConsentRecord",
+    "DistributedRateLimiter",
+    "IdentityService",
+    "InMemoryUserRepository",
     "JWTManager",
+    "LockoutPolicy",
     "OAuth2TokenValidator",
     "PERMISSIONS",
+    "PasswordPolicy",
     "Permission",
     "PermissionManager",
     "ROLE_PERMISSIONS",
@@ -71,14 +92,18 @@ __all__ = [
     "SecurityError",
     "SecurityMiddleware",
     "SecuritySettings",
+    "SqlUserRepository",
     "TokenClaims",
     "TokenError",
+    "TokenPair",
+    "TokenService",
     "UserPrincipal",
     "UserRecord",
     "UserStore",
     "assert_permission",
     "assert_role",
+    "build_password_hasher",
     "__version__",
 ]
 
-__version__ = "0.1.0"
+__version__ = "0.2.0"

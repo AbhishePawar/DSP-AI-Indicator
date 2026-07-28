@@ -41,3 +41,18 @@ npm run start
 ## Rollback
 
 Redeploy previous web artifact `0.9.5`; API contracts unchanged.
+
+## Enterprise infrastructure (PEP-002)
+
+Optional Postgres + Redis for local/staging:
+
+```bash
+docker compose --profile infra up postgres redis
+```
+
+See [INFRASTRUCTURE_ARCHITECTURE.md](INFRASTRUCTURE_ARCHITECTURE.md),
+[CONFIGURATION_GUIDE.md](CONFIGURATION_GUIDE.md),
+[LOCAL_DEVELOPMENT.md](LOCAL_DEVELOPMENT.md),
+[PRODUCTION_DEPLOYMENT.md](PRODUCTION_DEPLOYMENT.md).
+
+Default API/web compose still runs without external infra (in-memory ports).

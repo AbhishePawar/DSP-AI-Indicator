@@ -1,59 +1,71 @@
-# Compliance Architecture
+# Compliance Architecture (PR1.0 + PEP-004)
 
-**Package:** `packages/compliance` **0.1.0**  
-**Epic:** PR1.0  
-**Deps:** `core` only
+| Field | Value |
+|---|---|
+| **Package** | `packages/compliance` **0.2.0** |
+| **Authority** | PEP-000 · PEP-001 · PEP-002 · PEP-004 |
 
 ---
 
-## Why a new bounded context
+## Why a bounded context
 
-Product modes, disclosures, and SEBI activation are **cross-cutting product
-concerns**. They must not leak into valuation / recommendation engines.
+Product modes, disclosures, DPDP consent, and retention are **cross-cutting**.
+They must not leak into valuation / recommendation engines.
 
 ```text
-Clients (flags + terminology)
+Clients / platform_runtime.EnterprisePlatform (PEP-004.1)
         │
         ▼
-compliance  (flags, terminology, ports)
-        │  (does not call engines)
-        ▼
-presentation / future API wrappers
+ComplianceBundle  (CompliancePort)
+   ├─ FeatureFlags (Research Mode default)
+   ├─ ConsentPort (DPDP)  ← source of truth when composed
+   ├─ DisclosurePort + templates (IST/INR)
+   ├─ RecommendationHistoryPort
+   ├─ ResearchArchivePort
+   ├─ AuditPort + AuditRetentionPort
+   └─ ComplianceExportPort
+        │
+        ▼  (optional duck-typed DatabasePort — no production_platform import)
+persistence adapters
 ```
 
 ---
 
-## Modules
+## Ports (PEP-004)
 
-| Module | Role |
+| Port | Role |
 |---|---|
-| `feature_flags` | Research / Recommendation / SEBI / UI gates |
-| `terminology` | Action & field label presentation |
-| `disclosures` | Disclosure ports |
-| `disclaimer_engine` | Contextual disclaimers |
-| `conflicts` | Conflict-of-interest ports |
-| `audit` | Compliance audit ports |
-| `recommendation_history` | SEBI history archive ports |
-| `methodology` | Methodology disclosure stubs |
-| `research_archive` | Retention ports |
-| `ai_governance` | AI Challenge Mode ports |
-| `analyst_consensus` | Street consensus ports (no providers) |
-| `metric_presentation` | Metric card schema |
-| `analysis_sections` | Canonical analysis IA |
-| `interfaces` | Re-exports |
+| `CompliancePort` | Umbrella façade |
+| `ConsentPort` | DPDP consent + versioning |
+| `DisclosurePort` | Versioned disclosures |
+| `RecommendationHistoryPort` | Research assessments / future SEBI history |
+| `ResearchArchivePort` | Research artifact retention |
+| `AuditRetentionPort` | Immutable audit refs + ≥180d policy |
+| `ComplianceExportPort` | Data principal export |
+
+---
+
+## India defaults
+
+- Research Mode **ON**; SEBI Mode **gated**
+- Timezone presentation: `Asia/Kolkata`
+- Currency presentation: `INR`
+- CERT-In retention floor: **180 days**
+- No Aadhaar / PAN / DigiLocker / UPI implementations
 
 ---
 
 ## Non-goals
 
-- No SEBI registration workflow implementation  
-- No vendor consensus providers  
-- No mutation of `recommendation` / `valuation` packages  
-- No OMS  
+- SEBI registered adviser workflows  
+- Buy/Sell licensing UI  
+- Engine math changes  
+- OMS  
 
 ---
 
-## Tests
+## Related
 
-`packages/compliance/tests/test_compliance.py` — flags, terminology, IA order,
-boundary checks.
+- [DPDP_ARCHITECTURE.md](DPDP_ARCHITECTURE.md)
+- [DISCLOSURE_GUIDE.md](DISCLOSURE_GUIDE.md)
+- [PEP_004_INDIA_COMPLIANCE.md](PEP_004_INDIA_COMPLIANCE.md)

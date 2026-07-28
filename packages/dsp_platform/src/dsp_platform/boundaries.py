@@ -67,6 +67,7 @@ FORBIDDEN_APPLICATION_PACKAGES: frozenset[str] = frozenset(
         "api_platform",
         "security_platform",
         "production_platform",
+        "platform_runtime",
     }
 )
 
@@ -112,6 +113,7 @@ PLATFORM_PACKAGES: frozenset[str] = frozenset(
         "api_platform",
         "security_platform",
         "production_platform",
+        "platform_runtime",
     }
 )
 

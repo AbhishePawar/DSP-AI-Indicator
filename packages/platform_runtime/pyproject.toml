@@ -1,0 +1,18 @@
+[build-system]
+requires = ["setuptools>=69.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "platform-runtime"
+version = "0.1.0"
+description = "DSP enterprise composition root — PEP-001…004 integration (PEP-004.1)"
+requires-python = ">=3.11"
+license = { text = "Proprietary" }
+dependencies = [
+    "production-platform",
+    "security-platform",
+    "compliance",
+]
+
+[tool.setuptools.packages.find]
+where = ["src"]

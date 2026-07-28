@@ -11,7 +11,11 @@ __all__ = ["RecommendationHistoryEntry", "RecommendationHistoryPort"]
 
 @dataclass(frozen=True, slots=True)
 class RecommendationHistoryEntry:
-    """Historical recommendation row — stored only when SEBI Mode is active."""
+    """Historical recommendation / research assessment row.
+
+Research Mode stores educational assessments. SEBI-regulated tip rows remain
+gated behind SEBI Mode activation (separate legal epic).
+"""
 
     entry_id: str
     symbol: str

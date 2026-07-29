@@ -21,14 +21,14 @@ const repoRoot = join(__dirname, "..", "..", "..", "..");
 
 describe("Closed beta programme (living channel)", () => {
   it("aligns versions and epic", () => {
-    expect(FRONTEND_FOUNDATION_VERSION).toBe("2.0.0-rc");
-    expect(FRONTEND_FOUNDATION_EPIC).toBe("P6.1");
-    expect(FRONTEND_FOUNDATION_STATUS).toBe("release_candidate");
-    expect(BACKEND_PLATFORM_TARGET).toBe("dsp_platform@1.6.0");
-    expect(API_CONTRACT_TARGET).toBe("v1.0.0-rc1");
-    expect(env.frontendVersion).toBe("2.0.0-rc");
-    expect(manifest.foundationEpic).toBe("P6.1");
-    expect(manifest.channel).toBe("rc");
+    expect(FRONTEND_FOUNDATION_VERSION).toBe("2.0.0");
+    expect(FRONTEND_FOUNDATION_EPIC).toBe("P8.0");
+    expect(FRONTEND_FOUNDATION_STATUS).toBe("production");
+    expect(BACKEND_PLATFORM_TARGET).toBe("dsp_platform@2.0.0");
+    expect(API_CONTRACT_TARGET).toBe("v1.0.0");
+    expect(env.frontendVersion).toBe("2.0.0");
+    expect(manifest.foundationEpic).toBe("P8.0");
+    expect(manifest.channel).toBe("ga-candidate");
   });
 
   it("exposes closed beta feature flags and issue workflow", () => {

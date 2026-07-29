@@ -157,6 +157,6 @@ describe("EPIC-F003 layout primitives", () => {
 
 describe("EPIC-F003 foundation version", () => {
   it("tracks current foundation version", () => {
-    expect(FRONTEND_FOUNDATION_VERSION).toBe("2.0.0-rc");
+    expect(FRONTEND_FOUNDATION_VERSION).toBe("2.0.0");
   });
 });

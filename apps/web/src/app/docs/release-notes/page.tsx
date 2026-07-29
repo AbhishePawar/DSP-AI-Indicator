@@ -6,31 +6,31 @@ export default function ReleaseNotesDocPage() {
     <div>
       <PageHeader
         title="Release Notes"
-        description="Web 2.0.0-rc · Platform 1.6.0 (P6.1 Commercial RC)"
+        description="Web 2.0.0 · Platform 2.0.0 (P8.0 GA Candidate · Release Freeze)"
       />
       <DocArticle
-        title="Release Notes — Web 2.0.0-rc"
+        title="Release Notes — Web 2.0.0"
         sections={[
           {
-            heading: "Commercial readiness",
+            heading: "General Availability candidate",
             body: [
-              "P6.1 completes packaging, pricing, support, runbooks, and release assets for commercial RC.",
-              "No new analytical features. Analysis pipeline, valuation, recommendation, and AI Committee unchanged.",
+              "P8.0 certifies the platform for GA Candidate status and activates RELEASE FREEZE.",
+              "No analytical engine changes. API contract label remains v1.0.0 with frozen behaviour.",
             ],
           },
           {
             heading: "Highlights",
             body: [
-              "Editions: Research, Professional, Enterprise with documented usage limits.",
-              "In-app Quick Start, FAQ, Pricing, and Support documentation.",
-              "Operational runbooks for incident, outage, backup, deploy, rollback, and security.",
+              "Backend 2.0.0 · Frontend 2.0.0 · channel ga-candidate · certify_p8 gate.",
+              "Architecture certification, technical debt register, and freeze policy published.",
+              "Live operational conditions (paging webhooks, secrets manager, restore drills, ACME) remain.",
             ],
           },
           {
             heading: "Decision",
             body: [
-              "READY WITH MINOR CONDITIONS — controlled commercial RC; not unrestricted public GA.",
-              "See docs/P6_1_COMMERCIAL_READINESS.md and docs/RELEASE_NOTES_v2.0.0-rc.md.",
+              "PASS WITH CONDITIONS · GO WITH CONDITIONS — engineering freeze in effect.",
+              "See docs/P8_GENERAL_AVAILABILITY.md and docs/RELEASE_FREEZE.md.",
             ],
           },
         ]}

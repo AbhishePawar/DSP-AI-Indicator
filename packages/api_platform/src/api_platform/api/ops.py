@@ -40,9 +40,9 @@ class BuildMetadata:
 
 def get_build_metadata() -> BuildMetadata:
     return BuildMetadata(
-        application_version=os.environ.get("DSP_APP_VERSION", "1.6.0"),
+        application_version=os.environ.get("DSP_APP_VERSION", "2.0.0"),
         api_version=os.environ.get("DSP_API_VERSION", "v1"),
-        platform_version=os.environ.get("DSP_PLATFORM_VERSION", "1.6.0"),
+        platform_version=os.environ.get("DSP_PLATFORM_VERSION", "2.0.0"),
         pipeline_version=os.environ.get(
             "DSP_PIPELINE_VERSION", "1.0.0-epic-001"
         ),
@@ -51,7 +51,7 @@ def get_build_metadata() -> BuildMetadata:
             "BUILD_TIMESTAMP", os.environ.get("DSP_BUILD_TIMESTAMP", "unknown")
         ),
         environment=os.environ.get("DSP_ENVIRONMENT", "development"),
-        release_channel=os.environ.get("DSP_RELEASE_CHANNEL", "rc1"),
+        release_channel=os.environ.get("DSP_RELEASE_CHANNEL", "ga-candidate"),
     )
 
 

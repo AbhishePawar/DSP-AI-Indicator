@@ -1,11 +1,11 @@
 {
-  "appVersion": "2.0.0-rc",
-  "foundationVersion": "2.0.0-rc",
-  "foundationEpic": "P6.1",
-  "foundationStatus": "release_candidate",
-  "releaseBranch": "release/web-2.0.0-rc",
-  "apiContract": "v1.0.0-rc1",
-  "backend": "dsp_platform@1.6.0",
-  "channel": "rc",
-  "architectureNote": "P6.1 is commercial readiness only. No pipeline, valuation, recommendation, AI Committee, or analyse contract changes."
+  "appVersion": "2.0.0",
+  "foundationVersion": "2.0.0",
+  "foundationEpic": "P8.0",
+  "foundationStatus": "production",
+  "releaseBranch": "release/ga-2.0.0",
+  "apiContract": "v1.0.0",
+  "backend": "dsp_platform@2.0.0",
+  "channel": "ga-candidate",
+  "architectureNote": "P8.0 is GA certification and release freeze only. No pipeline, valuation, recommendation, AI Committee, or analyse behaviour changes."
 }

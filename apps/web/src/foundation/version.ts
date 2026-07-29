@@ -1,12 +1,13 @@
-/** P6.1 — Commercial Readiness & Go-To-Market (frontend RC). */
+/** P8.0 — General Availability (GA) Certification & Release Freeze. */
 
-export const FRONTEND_FOUNDATION_VERSION = "2.0.0-rc" as const;
+export const FRONTEND_FOUNDATION_VERSION = "2.0.0" as const;
 
-export const FRONTEND_FOUNDATION_EPIC = "P6.1" as const;
+export const FRONTEND_FOUNDATION_EPIC = "P8.0" as const;
 
-export const FRONTEND_FOUNDATION_STATUS = "release_candidate" as const;
+export const FRONTEND_FOUNDATION_STATUS = "production" as const;
 
 /** Target backend package for this frontend channel. */
-export const BACKEND_PLATFORM_TARGET = "dsp_platform@1.6.0" as const;
+export const BACKEND_PLATFORM_TARGET = "dsp_platform@2.0.0" as const;
 
-export const API_CONTRACT_TARGET = "v1.0.0-rc1" as const;
+/** Frozen analyse contract label — no behaviour changes. */
+export const API_CONTRACT_TARGET = "v1.0.0" as const;

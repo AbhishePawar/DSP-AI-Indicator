@@ -25,7 +25,7 @@ _FORBIDDEN = frozenset(
         "security_platform",
     ]
 )
-_EXPECTED_VERSION = "1.6.0"
+_EXPECTED_VERSION = "2.0.0"
 _EXPECTED_DEPS = [
     "comparison",
     "contracts",

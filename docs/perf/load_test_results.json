@@ -1,0 +1,61 @@
+{
+  "epic": "P7.3",
+  "scenarios": [
+    {
+      "users": 10,
+      "requests": 30,
+      "failures": 0,
+      "error_rate": 0.0,
+      "wall_seconds": 0.388,
+      "throughput_rps": 77.28,
+      "mean_ms": 109.563,
+      "p50_ms": 98.277,
+      "p95_ms": 220.984,
+      "p99_ms": 275.938,
+      "max_ms": 280.35,
+      "note": "In-process TestClient concurrency (not multi-host)."
+    },
+    {
+      "users": 50,
+      "requests": 150,
+      "failures": 0,
+      "error_rate": 0.0,
+      "wall_seconds": 2.219,
+      "throughput_rps": 67.6,
+      "mean_ms": 554.811,
+      "p50_ms": 407.401,
+      "p95_ms": 1563.795,
+      "p99_ms": 1705.742,
+      "max_ms": 1925.284,
+      "note": "In-process TestClient concurrency (not multi-host)."
+    },
+    {
+      "users": 100,
+      "requests": 300,
+      "failures": 0,
+      "error_rate": 0.0,
+      "wall_seconds": 4.605,
+      "throughput_rps": 65.14,
+      "mean_ms": 846.153,
+      "p50_ms": 667.41,
+      "p95_ms": 2260.922,
+      "p99_ms": 3638.661,
+      "max_ms": 4089.12,
+      "note": "In-process TestClient concurrency (not multi-host)."
+    },
+    {
+      "users": 500,
+      "requests": 1500,
+      "failures": 0,
+      "error_rate": 0.0,
+      "wall_seconds": 26.941,
+      "throughput_rps": 55.68,
+      "mean_ms": 1118.446,
+      "p50_ms": 790.268,
+      "p95_ms": 3270.523,
+      "p99_ms": 4898.711,
+      "max_ms": 11284.874,
+      "note": "In-process TestClient concurrency (not multi-host)."
+    }
+  ]
+}

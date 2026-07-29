@@ -22,7 +22,20 @@ const nextConfig: NextConfig = {
   compress: true,
   productionBrowserSourceMaps: false,
   output: "standalone",
+  // P7.3 — tree-shake heavy UI kits without changing product behaviour
+  experimental: {
+    optimizePackageImports: ["lucide-react"],
+  },
   headers: async () => [
+    {
+      source: "/_next/static/:path*",
+      headers: [
+        {
+          key: "Cache-Control",
+          value: "public, max-age=31536000, immutable",
+        },
+      ],
+    },
     {
       source: "/:path*",
       headers: [
@@ -36,6 +49,11 @@ const nextConfig: NextConfig = {
         {
           key: "Permissions-Policy",
           value: "camera=(), microphone=(), geolocation=()",
+        },
+        // Edge (Caddy) is primary HSTS; app-level header for direct access / defense in depth (P7.0).
+        {
+          key: "Strict-Transport-Security",
+          value: "max-age=31536000; includeSubDomains",
         },
       ],
     },

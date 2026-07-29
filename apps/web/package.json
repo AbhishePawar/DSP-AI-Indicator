@@ -1,8 +1,8 @@
 {
   "name": "dsp-web",
-  "version": "2.0.0-rc",
+  "version": "2.0.0",
   "private": true,
-  "description": "DSP AI Indicator web — Commercial Readiness RC 2.0.0-rc",
+  "description": "DSP AI Indicator web \u2014 GA Candidate 2.0.0 (P8.0)",
   "scripts": {
     "dev": "next dev",
     "build": "next build",

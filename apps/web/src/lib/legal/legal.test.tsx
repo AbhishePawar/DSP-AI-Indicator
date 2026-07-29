@@ -127,6 +127,6 @@ describe("P4.1 ResearchDisclaimerGate", () => {
 
 describe("P4.1 foundation version", () => {
   it("tracks host foundation version", () => {
-    expect(FRONTEND_FOUNDATION_VERSION).toBe("2.0.0-rc");
+    expect(FRONTEND_FOUNDATION_VERSION).toBe("2.0.0");
   });
 });

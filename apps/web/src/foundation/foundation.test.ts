@@ -14,11 +14,11 @@ import {
 } from "@/foundation";
 
 describe("EPIC-F000 foundation freeze", () => {
-  it("exposes foundation version 2.0.0-rc", () => {
-    expect(FRONTEND_FOUNDATION_VERSION).toBe("2.0.0-rc");
-    expect(FRONTEND_FOUNDATION_STATUS).toBe("release_candidate");
-    expect(BACKEND_PLATFORM_TARGET).toBe("dsp_platform@1.6.0");
-    expect(API_CONTRACT_TARGET).toBe("v1.0.0-rc1");
+  it("exposes foundation version 2.0.0", () => {
+    expect(FRONTEND_FOUNDATION_VERSION).toBe("2.0.0");
+    expect(FRONTEND_FOUNDATION_STATUS).toBe("production");
+    expect(BACKEND_PLATFORM_TARGET).toBe("dsp_platform@2.0.0");
+    expect(API_CONTRACT_TARGET).toBe("v1.0.0");
   });
 
   it("freezes feature routes without implementing them", () => {

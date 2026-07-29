@@ -5,8 +5,8 @@ Professional Investment Research for Everyone.
 
 Explainable AI Investment Research Platform — **not** a stock tip service.
 
-**Backend API RC:** `v1.0.0-rc1` · **Milestones:** `v2.0.0-financial-intelligence` · `v3.0.0-business-quality` · **Product epic:** [PR1.0](docs/PR1_0_PRODUCT_STRATEGY_AND_COMPLIANCE.md) (Research Mode default)  
-**Vision:** [PRODUCT_VISION.md](docs/PRODUCT_VISION.md) · **Living status:** [docs/DSP_STATUS.md](docs/DSP_STATUS.md) · **Package ownership:** [docs/PACKAGE_OWNERSHIP_MATRIX.md](docs/PACKAGE_OWNERSHIP_MATRIX.md) · **Release engineering:** [docs/RELEASE_ENGINEERING.md](docs/RELEASE_ENGINEERING.md)
+**Backend API:** `v1.0.0` · **Platform:** `dsp_platform 2.0.0` · **Web:** `2.0.0` · **Milestones:** `v2.0.0-financial-intelligence` · `v3.0.0-business-quality` · **Product epic:** [PR1.0](docs/PR1_0_PRODUCT_STRATEGY_AND_COMPLIANCE.md) (Research Mode default)  
+**Vision:** [PRODUCT_VISION.md](docs/PRODUCT_VISION.md) · **Engineering status:** [docs/ENGINEERING_STATUS.md](docs/ENGINEERING_STATUS.md) · **Living status:** [docs/DSP_STATUS.md](docs/DSP_STATUS.md) · **Architecture Bible:** [docs/ARCHITECTURE_BIBLE.md](docs/ARCHITECTURE_BIBLE.md) · **Core values CV-001…CV-010:** [docs/CORE_VALUES.md](docs/CORE_VALUES.md) · **Research Standards RS-001…RS-010:** [docs/RESEARCH_STANDARDS.md](docs/RESEARCH_STANDARDS.md) · **Institutional dashboard:** [docs/DASHBOARD_ARCHITECTURE.md](docs/DASHBOARD_ARCHITECTURE.md) · **Contributing:** [CONTRIBUTING.md](CONTRIBUTING.md) · **Package ownership:** [docs/PACKAGE_OWNERSHIP_MATRIX.md](docs/PACKAGE_OWNERSHIP_MATRIX.md) · **Release engineering:** [docs/RELEASE_ENGINEERING.md](docs/RELEASE_ENGINEERING.md)
 
 Institutional AI Investment Research Platform.
 

@@ -1,0 +1,19 @@
+{
+  "epic": "P7.3",
+  "import_app_module_ms": 12924.61,
+  "create_app_ms": 4.8,
+  "tracemalloc_current_mb": 49.077,
+  "tracemalloc_peak_mb": 49.078,
+  "rss_max_mb_approx": null,
+  "repeat_create_peak_delta_mb": [
+    -48.949,
+    -48.949,
+    -48.95
+  ],
+  "routes_registered": 60,
+  "notes": [
+    "No analyse engines invoked.",
+    "RSS optional on Windows without psutil.",
+    "Large positive deltas across repeats warrant leak investigation."
+  ]
+}

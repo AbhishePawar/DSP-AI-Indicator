@@ -40,6 +40,6 @@ describe("P6.1 support nav", () => {
     render(<LegalNavLinks />);
     const support = screen.getByRole("link", { name: "Support" });
     expect(support.getAttribute("href")).toBe("/docs/support");
-    expect(FRONTEND_FOUNDATION_VERSION).toBe("2.0.0-rc");
+    expect(FRONTEND_FOUNDATION_VERSION).toBe("2.0.0");
   });
 });

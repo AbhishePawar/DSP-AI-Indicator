@@ -1,0 +1,120 @@
+# EPIC-P7.4 — Prometheus alerting rules (ops only; no API/engine behaviour changes).
+groups:
+  - name: dsp-availability
+    rules:
+      - alert: DspApiUnavailable
+        expr: up{job="dsp-api"} == 0
+        for: 2m
+        labels:
+          severity: critical
+          service: dsp-api
+        annotations:
+          summary: "DSP API scrape target down"
+          description: "Prometheus cannot scrape dsp-api /metrics for >2m."
+          runbook: "docs/OPERATIONS_RUNBOOK.md#api-unavailable"
+
+      - alert: DspDatabaseUnavailable
+        expr: pg_up == 0 or absent(pg_up)
+        for: 2m
+        labels:
+          severity: critical
+          service: postgres
+        annotations:
+          summary: "PostgreSQL unavailable"
+          description: "postgres_exporter reports database down or metric absent."
+          runbook: "docs/OPERATIONS_RUNBOOK.md#database-failure"
+
+      - alert: DspRedisUnavailable
+        expr: redis_up == 0 or absent(redis_up)
+        for: 2m
+        labels:
+          severity: critical
+          service: redis
+        annotations:
+          summary: "Redis unavailable"
+          description: "redis_exporter reports Redis down or metric absent."
+          runbook: "docs/OPERATIONS_RUNBOOK.md#cache-failure"
+
+  - name: dsp-latency-errors
+    rules:
+      - alert: DspHighLatency
+        expr: dsp_api_latency_ms_last > 2000 or dsp_api_latency_ms_avg > 1500
+        for: 5m
+        labels:
+          severity: warning
+          service: dsp-api
+        annotations:
+          summary: "API latency elevated"
+          description: "Last or average API latency exceeds thresholds for 5m."
+          runbook: "docs/OPERATIONS_RUNBOOK.md#high-latency"
+
+      - alert: DspHighErrorRate
+        expr: |
+          (
+            rate(dsp_http_errors_total[5m])
+            /
+            clamp_min(rate(dsp_http_requests_total[5m]), 0.001)
+          ) > 0.05
+        for: 5m
+        labels:
+          severity: critical
+          service: dsp-api
+        annotations:
+          summary: "HTTP error rate >5%"
+          description: "Error ratio over 5 minutes exceeds 5%."
+          runbook: "docs/OPERATIONS_RUNBOOK.md#high-error-rate"
+
+  - name: dsp-resources
+    rules:
+      - alert: DspHighCpu
+        expr: |
+          avg by (container_label_com_docker_compose_service) (
+            rate(container_cpu_usage_seconds_total{
+              container_label_com_docker_compose_service=~"api|web|postgres|redis|proxy"
+            }[5m])
+          ) > 0.85
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High CPU on DSP service"
+          description: "Container CPU usage >85% for 10m."
+          runbook: "docs/OPERATIONS_RUNBOOK.md#high-cpu"
+
+      - alert: DspHighMemory
+        expr: |
+          (
+            container_memory_working_set_bytes{
+              container_label_com_docker_compose_service=~"api|web|postgres|redis"
+            }
+            /
+            container_spec_memory_limit_bytes{
+              container_label_com_docker_compose_service=~"api|web|postgres|redis"
+            }
+          ) > 0.90
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High memory on DSP service"
+          description: "Working set >90% of container memory limit for 10m."
+          runbook: "docs/OPERATIONS_RUNBOOK.md#high-memory"
+
+      - alert: DspLowDiskSpace
+        expr: |
+          (
+            node_filesystem_avail_bytes{mountpoint="/"} 
+            / node_filesystem_size_bytes{mountpoint="/"}
+          ) < 0.15
+          or
+          (
+            container_fs_usage_bytes{device!=""} 
+            / clamp_min(container_fs_limit_bytes{device!=""}, 1)
+          ) > 0.85
+        for: 15m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Low disk space"
+          description: "Host or container filesystem free space below threshold."
+          runbook: "docs/OPERATIONS_RUNBOOK.md#low-disk"

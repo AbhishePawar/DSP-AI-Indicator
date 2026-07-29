@@ -223,8 +223,8 @@ describe("EPIC-F011 workspace section registries", () => {
 
 describe("EPIC-F011 API integration journey", () => {
   it("locks thin-client API contract targets", () => {
-    expect(API_CONTRACT_TARGET).toBe("v1.0.0-rc1");
-    expect(BACKEND_PLATFORM_TARGET).toBe("dsp_platform@1.6.0");
+    expect(API_CONTRACT_TARGET).toBe("v1.0.0");
+    expect(BACKEND_PLATFORM_TARGET).toBe("dsp_platform@2.0.0");
   });
 
   it("exposes analyse and admin clients without inventing endpoints", async () => {
@@ -327,9 +327,9 @@ describe("EPIC-F011 performance smoke", () => {
 });
 
 describe("EPIC-F011 foundation version", () => {
-  it("is foundation 2.0.0-rc release_candidate", () => {
-    expect(FRONTEND_FOUNDATION_VERSION).toBe("2.0.0-rc");
-    expect(FRONTEND_FOUNDATION_EPIC).toBe("P6.1");
-    expect(FRONTEND_FOUNDATION_STATUS).toBe("release_candidate");
+  it("is foundation 2.0.0 production", () => {
+    expect(FRONTEND_FOUNDATION_VERSION).toBe("2.0.0");
+    expect(FRONTEND_FOUNDATION_EPIC).toBe("P8.0");
+    expect(FRONTEND_FOUNDATION_STATUS).toBe("production");
   });
 });

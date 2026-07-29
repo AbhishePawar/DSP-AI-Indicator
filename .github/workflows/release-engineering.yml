@@ -1,0 +1,41 @@
+# EPIC-P7.2 — Release engineering gates (version + packaging + certification)
+
+name: Release Engineering
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+    branches: [main, master]
+  workflow_dispatch:
+
+concurrency:
+  group: release-eng-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  version-and-release:
+    name: Version verification & release package
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Validate release versions
+        run: python scripts/release/validate_release.py
+
+      - name: Build release package
+        run: python scripts/release/build_release_package.py
+
+      - name: Certify P7.2
+        run: python scripts/ops/certify_p7_2.py
+
+      - name: Upload release artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: dsp-release-package
+          path: release/
+          if-no-files-found: error

@@ -1,26 +1,28 @@
 {
-  "milestone": "P6.1",
-  "codename": "Commercial Readiness & Go-To-Market",
-  "certifiedAt": "2026-07-29T10:00:00.000Z",
-  "backendVersion": "1.6.0",
-  "frontendVersion": "2.0.0-rc",
-  "apiContract": "v1.0.0-rc1",
+  "milestone": "P8.0",
+  "codename": "General Availability Certification & Release Freeze",
+  "certifiedAt": "2026-07-29T15:00:00.000Z",
+  "backendVersion": "2.0.0",
+  "frontendVersion": "2.0.0",
+  "apiContract": "v1.0.0",
   "backendPackage": "dsp_platform",
   "frontendPackage": "dsp-web",
-  "channel": "rc",
+  "channel": "ga-candidate",
   "images": {
-    "api": "dsp-api:1.6.0",
-    "web": "dsp-web:2.0.0-rc"
+    "api": "dsp-api:2.0.0",
+    "web": "dsp-web:2.0.0"
   },
-  "decision": "READY_WITH_MINOR_CONDITIONS",
-  "overallCommercialScore": 8.0,
-  "architectureNote": "P6.1 commercial readiness only. No engine or analyse contract changes.",
+  "decision": "GO_WITH_CONDITIONS",
+  "engineeringCertification": "PASS_WITH_CONDITIONS",
+  "gaReadinessScore": 8.2,
+  "overallEngineeringScore": 8.5,
+  "releaseFreeze": true,
+  "architectureNote": "P8.0 GA certification and release freeze only. No analytical or API behaviour changes. Live ops conditions remain.",
   "artifacts": [
-    "docs/P6_1_COMMERCIAL_READINESS.md",
-    "docs/RELEASE_NOTES_v2.0.0-rc.md",
-    "docs/commercial/PRODUCT_PACKAGING.md",
-    "docs/commercial/PRICING_STRATEGY.md",
-    "docs/commercial/CUSTOMER_SUPPORT.md",
-    "docs/ops/runbooks/INCIDENT_RESPONSE.md"
+    "docs/GA_ARCHITECTURE_CERTIFICATION.md",
+    "docs/GA_TECHNICAL_DEBT.md",
+    "docs/RELEASE_FREEZE.md",
+    "docs/P8_GENERAL_AVAILABILITY.md",
+    "scripts/ops/certify_p8.py"
   ]
 }

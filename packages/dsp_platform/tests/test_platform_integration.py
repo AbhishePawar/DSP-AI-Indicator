@@ -64,7 +64,7 @@ def _recommendation(instrument: Instrument) -> Recommendation:
 
 class TestVersionAndExports:
     def test_platform_version(self) -> None:
-        assert __version__ == "1.6.0"
+        assert __version__ == "2.0.0"
 
     def test_k1_exports(self) -> None:
         assert PlatformBuilder is not None

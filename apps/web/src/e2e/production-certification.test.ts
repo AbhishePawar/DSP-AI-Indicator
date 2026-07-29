@@ -1,5 +1,5 @@
 /**
- * Living version alignment smoke (tracks current foundation).
+ * Living version alignment smoke (P8.0 release engineering channel).
  */
 import { describe, expect, it } from "vitest";
 import { readFileSync } from "node:fs";
@@ -18,25 +18,26 @@ import manifest from "../../VERSION_MANIFEST.json";
 const repoRoot = join(__dirname, "..", "..", "..", "..");
 
 describe("Living production/version certification", () => {
-  it("aligns frontend 2.0.0-rc with backend target 1.6.0", () => {
-    expect(FRONTEND_FOUNDATION_VERSION).toBe("2.0.0-rc");
-    expect(FRONTEND_FOUNDATION_EPIC).toBe("P6.1");
-    expect(FRONTEND_FOUNDATION_STATUS).toBe("release_candidate");
-    expect(BACKEND_PLATFORM_TARGET).toBe("dsp_platform@1.6.0");
-    expect(API_CONTRACT_TARGET).toBe("v1.0.0-rc1");
-    expect(env.frontendVersion).toBe("2.0.0-rc");
-    expect(manifest.appVersion).toBe("2.0.0-rc");
-    expect(manifest.backend).toBe("dsp_platform@1.6.0");
+  it("aligns frontend 2.0.0 with backend target 2.0.0", () => {
+    expect(FRONTEND_FOUNDATION_VERSION).toBe("2.0.0");
+    expect(FRONTEND_FOUNDATION_EPIC).toBe("P8.0");
+    expect(FRONTEND_FOUNDATION_STATUS).toBe("production");
+    expect(BACKEND_PLATFORM_TARGET).toBe("dsp_platform@2.0.0");
+    expect(API_CONTRACT_TARGET).toBe("v1.0.0");
+    expect(env.frontendVersion).toBe("2.0.0");
+    expect(manifest.appVersion).toBe("2.0.0");
+    expect(manifest.backend).toBe("dsp_platform@2.0.0");
   });
 
-  it("keeps P1.1 / P5.1 / P5.2 / P6.1 certification docs", () => {
+  it("keeps P7 certification and release-engineering docs", () => {
     for (const rel of [
-      ["docs", "P1_1_PRODUCTION_DEPLOYMENT_CERTIFICATION.md"],
-      ["docs", "P5_1_CLOSED_BETA_LAUNCH.md"],
-      ["docs", "P5_2_BETA_STABILISATION.md"],
-      ["docs", "P6_1_COMMERCIAL_READINESS.md"],
-      ["docs", "ops", "BACKUP_AND_RECOVERY.md"],
-      ["docs", "ops", "runbooks", "INCIDENT_RESPONSE.md"],
+      ["docs", "P7_PRODUCTION_DEPLOYMENT.md"],
+      ["docs", "P7_PRODUCTION_CERTIFICATION.md"],
+      ["docs", "ENGINEERING_STATUS.md"],
+      ["docs", "REPOSITORY_AUDIT.md"],
+      ["docs", "VERSION_GOVERNANCE_REPORT.md"],
+      ["scripts", "release", "validate_release.py"],
+      ["scripts", "ops", "certify_p7_2.py"],
     ]) {
       const path = join(repoRoot, ...rel);
       expect(readFileSync(path, "utf8").length).toBeGreaterThan(100);

@@ -14,20 +14,23 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: P1.1 offline certification
-        run: python scripts/ops/certify_p11.py
+      - name: P1.1 / P7.0 offline certification
+        run: python scripts/ops/certify_p7.py
 
       - name: Build API image
-        run: docker build -f docker/backend/Dockerfile -t dsp-api:1.6.0 -t dsp-api:rc1 .
+        run: docker build -f docker/backend/Dockerfile -t dsp-api:2.0.0 -t dsp-api:latest .
+
 
       - name: Build Web image
         run: |
           docker build -f docker/frontend/Dockerfile \
             --build-arg NEXT_PUBLIC_API_BASE_URL=http://127.0.0.1:8000/api/v1 \
             --build-arg NEXT_PUBLIC_BUILD_TIMESTAMP=${{ github.run_id }} \
-            -t dsp-web:2.0.0-rc -t dsp-web:rc1 .
+            -t dsp-web:2.0.0 -t dsp-web:latest .
 
-      - name: Compose config validation (base + prod)
+
+      - name: Compose config validation (base + prod + P7 production)
         run: |
           docker compose -f docker/docker-compose.yml config
           docker compose -f docker/docker-compose.yml -f docker/docker-compose.prod.yml config
+          docker compose -f docker/docker-compose.production.yml config

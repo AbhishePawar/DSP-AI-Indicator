@@ -25,15 +25,15 @@ const repoRoot = join(__dirname, "..", "..", "..", "..");
 
 describe("P6.1 commercial readiness", () => {
   it("aligns versions and epic", () => {
-    expect(FRONTEND_FOUNDATION_VERSION).toBe("2.0.0-rc");
-    expect(FRONTEND_FOUNDATION_EPIC).toBe("P6.1");
-    expect(FRONTEND_FOUNDATION_STATUS).toBe("release_candidate");
-    expect(BACKEND_PLATFORM_TARGET).toBe("dsp_platform@1.6.0");
-    expect(API_CONTRACT_TARGET).toBe("v1.0.0-rc1");
-    expect(env.frontendVersion).toBe("2.0.0-rc");
-    expect(manifest.appVersion).toBe("2.0.0-rc");
-    expect(manifest.foundationEpic).toBe("P6.1");
-    expect(manifest.channel).toBe("rc");
+    expect(FRONTEND_FOUNDATION_VERSION).toBe("2.0.0");
+    expect(FRONTEND_FOUNDATION_EPIC).toBe("P8.0");
+    expect(FRONTEND_FOUNDATION_STATUS).toBe("production");
+    expect(BACKEND_PLATFORM_TARGET).toBe("dsp_platform@2.0.0");
+    expect(API_CONTRACT_TARGET).toBe("v1.0.0");
+    expect(env.frontendVersion).toBe("2.0.0");
+    expect(manifest.appVersion).toBe("2.0.0");
+    expect(manifest.foundationEpic).toBe("P8.0");
+    expect(manifest.channel).toBe("ga-candidate");
   });
 
   it("exposes product editions and support contacts", () => {
@@ -70,7 +70,7 @@ describe("P6.1 commercial readiness", () => {
       ["docs", "commercial", "CUSTOMER_SUPPORT.md"],
       ["docs", "ops", "runbooks", "INCIDENT_RESPONSE.md"],
       ["docs", "ops", "runbooks", "DEPLOYMENT.md"],
-      ["docs", "RELEASE_NOTES_v2.0.0-rc.md"],
+      ["docs", "RELEASE_NOTES_v2.0.0.md"],
       ["docs", "media-kit", "README.md"],
     ]) {
       const path = join(repoRoot, ...rel);

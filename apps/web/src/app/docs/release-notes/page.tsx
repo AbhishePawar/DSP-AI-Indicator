@@ -4,23 +4,33 @@ import { PageHeader } from "@/components/layout/PageHeader";
 export default function ReleaseNotesDocPage() {
   return (
     <div>
-      <PageHeader title="Release Notes" description="Web 1.0.0" />
+      <PageHeader
+        title="Release Notes"
+        description="Web 2.0.0-rc · Platform 1.6.0 (P6.1 Commercial RC)"
+      />
       <DocArticle
-        title="Release Notes — Web 1.0.0"
+        title="Release Notes — Web 2.0.0-rc"
         sections={[
           {
-            heading: "Promotion",
+            heading: "Commercial readiness",
             body: [
-              "Promotes Release Candidate 0.9.5 to the first stable public web release.",
-              "No new product features. Validation, freeze, monitoring, documentation, and launch ops only.",
+              "P6.1 completes packaging, pricing, support, runbooks, and release assets for commercial RC.",
+              "No new analytical features. Analysis pipeline, valuation, recommendation, and AI Committee unchanged.",
             ],
           },
           {
             heading: "Highlights",
             body: [
-              "Launch Dashboard with quality gates (critical=0, regression/a11y/perf/security PASS).",
-              "CSP enforced; production source maps disabled; version manifest frozen.",
-              "User, Administrator, Architecture, Methodology guides + Privacy, Terms, Disclaimer.",
+              "Editions: Research, Professional, Enterprise with documented usage limits.",
+              "In-app Quick Start, FAQ, Pricing, and Support documentation.",
+              "Operational runbooks for incident, outage, backup, deploy, rollback, and security.",
+            ],
+          },
+          {
+            heading: "Decision",
+            body: [
+              "READY WITH MINOR CONDITIONS — controlled commercial RC; not unrestricted public GA.",
+              "See docs/P6_1_COMMERCIAL_READINESS.md and docs/RELEASE_NOTES_v2.0.0-rc.md.",
             ],
           },
         ]}

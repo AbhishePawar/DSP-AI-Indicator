@@ -1,0 +1,26 @@
+{
+  "milestone": "P6.1",
+  "codename": "Commercial Readiness & Go-To-Market",
+  "certifiedAt": "2026-07-29T10:00:00.000Z",
+  "backendVersion": "1.6.0",
+  "frontendVersion": "2.0.0-rc",
+  "apiContract": "v1.0.0-rc1",
+  "backendPackage": "dsp_platform",
+  "frontendPackage": "dsp-web",
+  "channel": "rc",
+  "images": {
+    "api": "dsp-api:1.6.0",
+    "web": "dsp-web:2.0.0-rc"
+  },
+  "decision": "READY_WITH_MINOR_CONDITIONS",
+  "overallCommercialScore": 8.0,
+  "architectureNote": "P6.1 commercial readiness only. No engine or analyse contract changes.",
+  "artifacts": [
+    "docs/P6_1_COMMERCIAL_READINESS.md",
+    "docs/RELEASE_NOTES_v2.0.0-rc.md",
+    "docs/commercial/PRODUCT_PACKAGING.md",
+    "docs/commercial/PRICING_STRATEGY.md",
+    "docs/commercial/CUSTOMER_SUPPORT.md",
+    "docs/ops/runbooks/INCIDENT_RESPONSE.md"
+  ]
+}

@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "dsp_platform"
-version = "0.7.1"
+version = "1.6.0"
 description = "DSP Platform façade — composition entry point and application import boundaries"
 requires-python = ">=3.11"
 license = { text = "Proprietary" }
@@ -37,6 +37,9 @@ dependencies = [
     "business_quality_aggregator",
     "investment_recommendation",
     "investment_committee",
+    "persistence",
+    "auth",
+    "admin",
 ]
 
 [tool.setuptools.packages.find]

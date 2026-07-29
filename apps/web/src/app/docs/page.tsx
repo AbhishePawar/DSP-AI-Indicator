@@ -2,8 +2,25 @@ import Link from "next/link";
 
 import { PageHeader } from "@/components/layout/PageHeader";
 import { Card, CardBody, CardHeader } from "@/components/ui/Card";
+import { LEGAL_DOCUMENTS, LEGAL_DOC_VERSION } from "@/lib/legal";
 
 const DOCS = [
+  {
+    href: "/docs/quick-start",
+    title: "Quick Start",
+    file: "docs/P6_1_COMMERCIAL_READINESS.md",
+  },
+  { href: "/docs/faq", title: "FAQ", file: "docs/FAQ_CLOSED_BETA_RC.md" },
+  {
+    href: "/docs/pricing",
+    title: "Editions & Pricing",
+    file: "docs/commercial/PRODUCT_PACKAGING.md",
+  },
+  {
+    href: "/docs/support",
+    title: "Customer Support",
+    file: "docs/commercial/CUSTOMER_SUPPORT.md",
+  },
   { href: "/docs/user-guide", title: "User Guide", file: "docs/USER_GUIDE_v1.0.0.md" },
   {
     href: "/docs/administrator-guide",
@@ -20,10 +37,37 @@ const DOCS = [
     title: "Research Methodology",
     file: "docs/RESEARCH_METHODOLOGY_v1.0.0.md",
   },
-  { href: "/docs/release-notes", title: "Release Notes", file: "docs/RELEASE_NOTES_v1.0.0.md" },
-  { href: "/docs/privacy", title: "Privacy Policy", file: "docs/PRIVACY_POLICY_v1.0.0.md" },
-  { href: "/docs/terms", title: "Terms of Use", file: "docs/TERMS_OF_USE_v1.0.0.md" },
-  { href: "/docs/disclaimer", title: "Disclaimer", file: "docs/DISCLAIMER_v1.0.0.md" },
+  { href: "/docs/release-notes", title: "Release Notes", file: "docs/RELEASE_NOTES_v2.0.0-rc.md" },
+  {
+    href: LEGAL_DOCUMENTS.privacy.href,
+    title: LEGAL_DOCUMENTS.privacy.title,
+    file: LEGAL_DOCUMENTS.privacy.repoDoc,
+  },
+  {
+    href: LEGAL_DOCUMENTS.terms.href,
+    title: LEGAL_DOCUMENTS.terms.title,
+    file: LEGAL_DOCUMENTS.terms.repoDoc,
+  },
+  {
+    href: LEGAL_DOCUMENTS.disclaimer.href,
+    title: LEGAL_DOCUMENTS.disclaimer.title,
+    file: LEGAL_DOCUMENTS.disclaimer.repoDoc,
+  },
+  {
+    href: LEGAL_DOCUMENTS.risk.href,
+    title: LEGAL_DOCUMENTS.risk.title,
+    file: LEGAL_DOCUMENTS.risk.repoDoc,
+  },
+  {
+    href: LEGAL_DOCUMENTS.cookies.href,
+    title: LEGAL_DOCUMENTS.cookies.title,
+    file: LEGAL_DOCUMENTS.cookies.repoDoc,
+  },
+  {
+    href: LEGAL_DOCUMENTS["data-usage"].href,
+    title: LEGAL_DOCUMENTS["data-usage"].title,
+    file: LEGAL_DOCUMENTS["data-usage"].repoDoc,
+  },
 ] as const;
 
 export default function DocsIndexPage() {
@@ -31,7 +75,7 @@ export default function DocsIndexPage() {
     <div>
       <PageHeader
         title="Documentation"
-        description="Web 1.0.0 published guides — presentation summaries for operators and users."
+        description={`Web ${LEGAL_DOC_VERSION} published guides — presentation summaries for operators and users.`}
       />
       <div className="grid gap-3 sm:grid-cols-2">
         {DOCS.map((doc) => (

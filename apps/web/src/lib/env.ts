@@ -6,7 +6,9 @@ export const env = {
     "http://127.0.0.1:8000/api/v1",
   appName: process.env.NEXT_PUBLIC_APP_NAME || "DSP AI Indicator",
   tagline: "Complex Analysis. Simple Decisions.",
-  frontendVersion: "3.0.0-rc1",
+  /** P6.1 Commercial Readiness — frontend RC. */
+  frontendVersion: "2.0.0-rc",
+  foundationVersion: "2.0.0-rc",
   environment: process.env.NODE_ENV ?? "development",
   marketCacheTtlMs: Number(process.env.NEXT_PUBLIC_MARKET_CACHE_TTL_MS ?? 60_000),
   marketRefreshMs: Number(process.env.NEXT_PUBLIC_MARKET_REFRESH_MS ?? 60_000),

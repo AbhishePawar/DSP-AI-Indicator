@@ -32,9 +32,10 @@ Domain milestone tags (not a new HTTP RC):
 
 | Package | Version | Phase |
 |---|---|---|
-| `dsp_platform` | **0.7.1** | K1.0 + EPIC-001 + EPIC-002 adapter |
-| `api_platform` | **0.2.0** | K1.1 + EPIC-002 composition routes |
-| `security_platform` | **0.2.0** | K1.2 + PEP-001 identity foundation |
+| `dsp_platform` | **1.6.0** | **P6.1 commercial readiness** (ops/business; no engine changes) |
+| `dsp-web` foundation | **2.0.0-rc** | P6.1 commercial RC; host app `2.0.0-rc`; no new analytical features |
+| `api_platform` | **0.3.0** | K1.1 + composition routes + P1.2 security ops + P1.3 monitoring |
+| `security_platform` | **0.2.1** | K1.2 + PEP-001 identity + P1.2 institutional zone / research export permissions |
 | `production_platform` | **0.3.0** | K1.3 + PEP-002 + PEP-003 observability |
 | `platform_runtime` | **0.1.0** | PEP-004.1 enterprise composition root |
 
@@ -59,7 +60,7 @@ Domain milestone tags (not a new HTTP RC):
 | `orchestration` | 0.2.0 | |
 | `contracts` | 0.3.0 | |
 | `core` | 0.2.0 | |
-| `data_engine` | 0.6.0 | |
+| `data_engine` | 0.6.0 | EPIC-D001…D005 authenticated data + unified orchestrator |
 | `dsp` | 0.2.0 | |
 | `fundamental` | 0.1.0 | |
 | `economic` | **0.1.1** | pyproject aligned ASI-002 |

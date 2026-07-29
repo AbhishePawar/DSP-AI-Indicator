@@ -1,4 +1,14 @@
-# Known Limitations — Web 2.4.0
+# Known Limitations — Web 2.0.0-rc / Platform 1.6.0
+
+**Living channel:** P6.1 Commercial Readiness RC. Prior P5.2 limitations remain unless closed below.
+
+## P5.2 — Closed Beta / RC (ops)
+
+- Beta invite/feedback store is **process-local** unless operators export/import snapshots (`/admin/beta/snapshot`). Multi-replica shared state is deferred.
+- Screenshot **binary** uploads are not supported — screenshot notes only (trust boundary).
+- In-memory API rate limiting is not safe across multiple API replicas without an edge/Redis limiter.
+- Web HSTS should be terminated at the edge; API HSTS is enabled via prod compose flags.
+- Live multi-tenant soak metrics must be attached by operators; automated certification does not replace customer soak exports.
 
 ## Valuation Intelligence Engine (V1.1–V1.2 · **0.2.0-discounted-cash-flow**)
 

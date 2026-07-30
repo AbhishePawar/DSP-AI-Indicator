@@ -511,6 +511,170 @@ Initial institutional definition for REP-002.
 
 ## Definition
 
+An observation is the objective recording of information obtained through direct examination, measurement, or inspection without interpretation or inference. Within DSP AI Indicator, observations capture what is seen, measured, or reported before analytical conclusions are formed.
+
+## Purpose
+
+Observations provide the raw inputs for research by documenting objective findings that can later be validated, interpreted, and incorporated into investment analysis.
+
+## Why It Matters
+
+Separating observations from interpretations reduces analytical bias and improves research discipline. Accurate observations ensure that conclusions are based on what actually occurred rather than on assumptions or expectations.
+
+---
+
+# Characteristics
+
+## Characteristics
+
+An observation should be:
+
+- Objective
+- Specific
+- Measurable where possible
+- Evidence-based
+- Time-stamped
+- Clearly documented
+
+## What It Is Not
+
+An observation is not:
+
+- Interpretation
+- Opinion
+- Assumption
+- Prediction
+- Recommendation
+- Speculation
+
+---
+
+# Evidence
+
+## Evidence Requirements
+
+Observations should be supported by:
+
+- Direct measurements
+- Official disclosures
+- Financial statements
+- Verified datasets
+- Primary research sources
+- Reliable documentation
+
+## Confidence Drivers
+
+Confidence increases when:
+
+- Observations come from primary sources.
+- Measurements are repeatable.
+- Multiple independent observations agree.
+- Documentation is complete and traceable.
+
+## Validation
+
+Observations are validated through:
+
+- Source verification
+- Data consistency checks
+- Reproducibility
+- Cross-source comparison
+- Documentation review
+
+---
+
+# Relationships
+
+## Related Concepts
+
+- CP-001 Truth
+- CP-002 Evidence
+- CP-003 Fact
+- Assumption
+- Inference
+- Confidence
+
+## Dependencies
+
+Depends on:
+
+- CP-001 Truth
+- CP-002 Evidence
+- CP-003 Fact
+
+## Successor Concepts
+
+Supports:
+
+- Assumption
+- Inference
+- Confidence
+- Research Conclusion
+
+---
+
+# Research Guidance
+
+## Research Implication
+
+Research should clearly distinguish observations from interpretations. Every analytical conclusion must identify the underlying observations from which it was derived.
+
+## Examples
+
+Observations:
+
+- "Revenue increased by 18% year-over-year."
+- "Operating margin declined from 24% to 21%."
+- "Management announced a ₹500 crore capital expenditure programme."
+
+Not Observations:
+
+- "The company is becoming stronger."
+- "Margins will recover next year."
+- "Management made the right decision."
+
+## Limitations
+
+Observations describe what is recorded at a particular point in time. They may be incomplete, revised, or require additional context before meaningful conclusions can be drawn.
+
+---
+
+# Governance
+
+## Revision History
+
+Version: 0.1.0
+
+Status: Draft
+
+Created By: DSP Research Team
+
+## Review Notes
+
+Initial institutional definition for REP-002.
+
+---
+
+# Concept Metadata
+
+| Field | Value |
+|---|---|
+| Concept ID | CP-005 |
+| Concept Name | Assumption |
+| Category | Core Principle |
+| Ontology Book | Book 01 — Core Principles |
+| Status | Draft |
+| Version | 0.1.0 |
+| Author | DSP Research Team |
+| Reviewer | TBD |
+| Approved Date | TBD |
+
+---
+
+# Core Definition
+
+## Definition
+
 > TODO
 
 ## Purpose

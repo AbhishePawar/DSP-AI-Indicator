@@ -351,15 +351,15 @@ Initial institutional definition for REP-002.
 
 ## Definition
 
-> TODO
+A fact is a statement that has been established as true through sufficient, verifiable evidence. Within DSP AI Indicator, facts represent validated knowledge that can be relied upon as inputs for research, valuation, and decision-making.
 
 ## Purpose
 
-> TODO
+Facts provide the verified foundation upon which research conclusions, financial analysis, and investment decisions are built.
 
 ## Why It Matters
 
-> TODO
+Reliable research depends on distinguishing verified facts from assumptions, opinions, forecasts, and interpretations. This distinction reduces bias and improves analytical consistency.
 
 ---
 
@@ -367,11 +367,26 @@ Initial institutional definition for REP-002.
 
 ## Characteristics
 
-> TODO
+A fact should be:
+
+- Verifiable
+- Objective
+- Evidence-supported
+- Reproducible
+- Time-specific
+- Clearly documented
 
 ## What It Is Not
 
-> TODO
+A fact is not:
+
+- Opinion
+- Prediction
+- Assumption
+- Interpretation
+- Speculation
+- Rumour
+- Marketing claim
 
 ---
 
@@ -379,15 +394,32 @@ Initial institutional definition for REP-002.
 
 ## Evidence Requirements
 
-> TODO
+A fact should be supported by:
+
+- Verified evidence
+- Primary sources where available
+- Official documentation
+- Reliable datasets
+- Independent confirmation when appropriate
 
 ## Confidence Drivers
 
-> TODO
+Confidence increases when:
+
+- Evidence is independently verified.
+- Multiple reliable sources agree.
+- Documentation is complete.
+- Information is current and traceable.
 
 ## Validation
 
-> TODO
+Facts are validated through:
+
+- Evidence verification
+- Cross-source consistency
+- Source authenticity
+- Historical consistency
+- Independent review where appropriate
 
 ---
 
@@ -395,15 +427,27 @@ Initial institutional definition for REP-002.
 
 ## Related Concepts
 
-> TODO
+- CP-001 Truth
+- CP-002 Evidence
+- Observation
+- Validation
+- Confidence
 
 ## Dependencies
 
-> TODO
+Depends on:
+
+- CP-001 Truth
+- CP-002 Evidence
 
 ## Successor Concepts
 
-> TODO
+Supports:
+
+- Observation
+- Inference
+- Confidence
+- Research Conclusion
 
 ---
 
@@ -411,15 +455,23 @@ Initial institutional definition for REP-002.
 
 ## Research Implication
 
-> TODO
+Every factual statement used within DSP AI Indicator must be traceable to supporting evidence. Unverified statements must never be treated as facts.
 
 ## Examples
 
-> TODO
+Facts:
+
+- "The company reported revenue of ₹5,200 crore in FY2025."
+- "The annual report states the company has zero long-term debt."
+
+Not Facts:
+
+- "The company will outperform competitors."
+- "Management will probably increase dividends."
 
 ## Limitations
 
-> TODO
+Facts may become outdated as new information becomes available. A fact reflects verified reality at a specific point in time and should be reassessed when new evidence emerges.
 
 ---
 
@@ -435,4 +487,4 @@ Created By: DSP Research Team
 
 ## Review Notes
 
-> TODO
+Initial institutional definition for REP-002.

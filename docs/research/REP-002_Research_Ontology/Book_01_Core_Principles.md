@@ -675,15 +675,15 @@ Initial institutional definition for REP-002.
 
 ## Definition
 
-> TODO
+An assumption is an explicitly stated premise accepted temporarily for analysis when complete facts or evidence are unavailable. Within DSP AI Indicator, assumptions are documented, justified, and clearly distinguished from verified facts.
 
 ## Purpose
 
-> TODO
+Assumptions enable research, forecasting, and valuation to proceed despite uncertainty while maintaining transparency about the basis of analysis.
 
 ## Why It Matters
 
-> TODO
+Investment analysis frequently requires estimating future outcomes or filling gaps where complete information is unavailable. Clearly identifying assumptions prevents analytical errors by ensuring they are never confused with verified facts.
 
 ---
 
@@ -691,11 +691,25 @@ Initial institutional definition for REP-002.
 
 ## Characteristics
 
-> TODO
+An assumption should be:
+
+- Explicitly stated
+- Reasonable
+- Evidence-informed where possible
+- Testable
+- Transparent
+- Subject to revision
 
 ## What It Is Not
 
-> TODO
+An assumption is not:
+
+- A verified fact
+- Objective evidence
+- An observation
+- A guarantee
+- A conclusion
+- A certainty
 
 ---
 
@@ -703,15 +717,35 @@ Initial institutional definition for REP-002.
 
 ## Evidence Requirements
 
-> TODO
+Assumptions should be supported by:
+
+- Historical evidence
+- Industry trends
+- Economic data
+- Comparable companies
+- Relevant management guidance (appropriately qualified)
+- Reasoned analysis
 
 ## Confidence Drivers
 
-> TODO
+Confidence increases when:
+
+- Supporting evidence is strong.
+- Historical precedent exists.
+- Independent analyses reach similar assumptions.
+- Sensitivity analysis demonstrates robustness.
+- Assumptions remain valid under multiple scenarios.
 
 ## Validation
 
-> TODO
+Assumptions are validated through:
+
+- Comparison with actual outcomes
+- Sensitivity analysis
+- Scenario analysis
+- Periodic review
+- Evidence updates
+- Retrospective performance evaluation
 
 ---
 
@@ -719,15 +753,30 @@ Initial institutional definition for REP-002.
 
 ## Related Concepts
 
-> TODO
+- CP-001 Truth
+- CP-002 Evidence
+- CP-003 Fact
+- CP-004 Observation
+- Inference
+- Confidence
 
 ## Dependencies
 
-> TODO
+Depends on:
+
+- CP-001 Truth
+- CP-002 Evidence
+- CP-003 Fact
+- CP-004 Observation
 
 ## Successor Concepts
 
-> TODO
+Supports:
+
+- Inference
+- Valuation Models
+- Scenario Analysis
+- Confidence Assessment
 
 ---
 
@@ -735,15 +784,25 @@ Initial institutional definition for REP-002.
 
 ## Research Implication
 
-> TODO
+Every assumption used within DSP AI Indicator must be explicitly documented and clearly distinguishable from verified facts. Material assumptions should be periodically reviewed and updated whenever new evidence becomes available.
 
 ## Examples
 
-> TODO
+Assumptions:
+
+- Revenue will grow at 12% annually over the next five years.
+- Operating margins will gradually return to historical averages.
+- Capital expenditure will normalize after the current expansion cycle.
+
+Not Assumptions:
+
+- FY2025 revenue was ₹5,200 crore.
+- The annual report confirms zero long-term debt.
+- The company declared a dividend of ₹12 per share.
 
 ## Limitations
 
-> TODO
+Assumptions may prove incorrect as business conditions, markets, regulations, or company performance change. Research conclusions should therefore communicate their dependence on the assumptions used.
 
 ---
 
@@ -759,4 +818,4 @@ Created By: DSP Research Team
 
 ## Review Notes
 
-> TODO
+Initial institutional definition for REP-002.

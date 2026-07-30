@@ -174,15 +174,15 @@ Created By: DSP Research Team
 
 ## Definition
 
-> TODO
+Evidence is verifiable information, data, observation, or documentation that supports, contradicts, or helps establish the truth of a claim. Within DSP AI Indicator, evidence is the foundation upon which every research conclusion is built.
 
 ## Purpose
 
-> TODO
+Evidence provides the objective basis for evaluating companies, validating assumptions, supporting conclusions, and maintaining research integrity.
 
 ## Why It Matters
 
-> TODO
+Without reliable evidence, research becomes opinion. High-quality investment analysis depends on collecting, evaluating, and documenting evidence before reaching conclusions.
 
 ---
 
@@ -190,11 +190,27 @@ Created By: DSP Research Team
 
 ## Characteristics
 
-> TODO
+Evidence should be:
+
+- Verifiable
+- Relevant
+- Reliable
+- Traceable
+- Reproducible
+- Timely
+- Independent where possible
 
 ## What It Is Not
 
-> TODO
+Evidence is not:
+
+- Opinion
+- Speculation
+- Rumour
+- Marketing claims
+- Unsupported assumptions
+- Emotional conviction
+- AI-generated assertions without verification
 
 ---
 
@@ -202,15 +218,37 @@ Created By: DSP Research Team
 
 ## Evidence Requirements
 
-> TODO
+Acceptable evidence includes:
+
+- Audited financial statements
+- Annual reports
+- Quarterly reports
+- Regulatory filings
+- Official company disclosures
+- Exchange filings
+- Independent industry reports
+- Primary datasets
+- Deterministic calculations
 
 ## Confidence Drivers
 
-> TODO
+Confidence increases when:
+
+- Multiple independent sources agree.
+- Sources are primary rather than secondary.
+- Information is current.
+- Data quality is high.
+- Evidence is reproducible.
 
 ## Validation
 
-> TODO
+Evidence is validated through:
+
+- Source verification
+- Cross-source consistency
+- Authenticity checks
+- Timeliness assessment
+- Reproducibility
 
 ---
 
@@ -218,15 +256,27 @@ Created By: DSP Research Team
 
 ## Related Concepts
 
-> TODO
+- CP-001 Truth
+- Fact
+- Observation
+- Validation
+- Confidence
 
 ## Dependencies
 
-> TODO
+Depends on:
+
+- CP-001 Truth
 
 ## Successor Concepts
 
-> TODO
+Supports:
+
+- Fact
+- Observation
+- Inference
+- Confidence
+- Validation
 
 ---
 
@@ -234,15 +284,34 @@ Created By: DSP Research Team
 
 ## Research Implication
 
-> TODO
+Every material conclusion produced by DSP AI Indicator must be supported by sufficient evidence. If evidence is incomplete, conflicting, or unavailable, the platform must communicate that uncertainty explicitly rather than present unsupported conclusions.
 
 ## Examples
 
-> TODO
+Valid Evidence:
+
+- Company's audited annual report
+- Stock exchange filing
+- Official earnings release
+- Regulatory disclosure
+
+Not Evidence:
+
+- Anonymous social media post
+- Market rumours
+- Personal opinion
+- Promotional material without verification
 
 ## Limitations
 
-> TODO
+Evidence may be limited by:
+
+- Reporting delays
+- Incomplete disclosures
+- Accounting judgement
+- Data quality issues
+- Fraud
+- Information asymmetry
 
 ---
 
@@ -258,4 +327,4 @@ Created By: DSP Research Team
 
 ## Review Notes
 
-> TODO
+Initial institutional definition for REP-002.

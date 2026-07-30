@@ -328,3 +328,111 @@ Created By: DSP Research Team
 ## Review Notes
 
 Initial institutional definition for REP-002.
+
+---
+
+# Concept Metadata
+
+| Field | Value |
+|---|---|
+| Concept ID | CP-003 |
+| Concept Name | Fact |
+| Category | Core Principle |
+| Ontology Book | Book 01 — Core Principles |
+| Status | Draft |
+| Version | 0.1.0 |
+| Author | DSP Research Team |
+| Reviewer | TBD |
+| Approved Date | TBD |
+
+---
+
+# Core Definition
+
+## Definition
+
+> TODO
+
+## Purpose
+
+> TODO
+
+## Why It Matters
+
+> TODO
+
+---
+
+# Characteristics
+
+## Characteristics
+
+> TODO
+
+## What It Is Not
+
+> TODO
+
+---
+
+# Evidence
+
+## Evidence Requirements
+
+> TODO
+
+## Confidence Drivers
+
+> TODO
+
+## Validation
+
+> TODO
+
+---
+
+# Relationships
+
+## Related Concepts
+
+> TODO
+
+## Dependencies
+
+> TODO
+
+## Successor Concepts
+
+> TODO
+
+---
+
+# Research Guidance
+
+## Research Implication
+
+> TODO
+
+## Examples
+
+> TODO
+
+## Limitations
+
+> TODO
+
+---
+
+# Governance
+
+## Revision History
+
+Version: 0.1.0
+
+Status: Draft
+
+Created By: DSP Research Team
+
+## Review Notes
+
+> TODO

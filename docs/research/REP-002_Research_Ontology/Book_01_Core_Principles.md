@@ -842,15 +842,15 @@ Initial institutional definition for REP-002.
 
 ## Definition
 
-> TODO
+An inference is a logical conclusion derived from facts, observations, evidence, and explicitly documented assumptions. Within DSP AI Indicator, inferences represent reasoned analytical judgments rather than directly observed or verified facts.
 
 ## Purpose
 
-> TODO
+Inferences transform verified information into meaningful analytical conclusions that support valuation, risk assessment, business quality evaluation, and investment decision-making.
 
 ## Why It Matters
 
-> TODO
+Investment research rarely depends on facts alone. Analysts must interpret available information to draw conclusions. Clearly identifying inferences ensures analytical transparency and distinguishes reasoning from observed reality.
 
 ---
 
@@ -858,11 +858,25 @@ Initial institutional definition for REP-002.
 
 ## Characteristics
 
-> TODO
+An inference should be:
+
+- Logically derived
+- Evidence-supported
+- Transparent
+- Traceable
+- Reproducible
+- Explicitly documented
 
 ## What It Is Not
 
-> TODO
+An inference is not:
+
+- A verified fact
+- Raw observation
+- Objective evidence
+- Speculation without reasoning
+- Personal opinion
+- A guarantee of future outcomes
 
 ---
 
@@ -870,15 +884,33 @@ Initial institutional definition for REP-002.
 
 ## Evidence Requirements
 
-> TODO
+Inferences should be supported by:
+
+- Verified facts
+- Documented observations
+- Reliable evidence
+- Explicit assumptions
+- Logical reasoning
 
 ## Confidence Drivers
 
-> TODO
+Confidence increases when:
+
+- Supporting evidence is strong.
+- Facts are well established.
+- Assumptions are reasonable and documented.
+- Multiple analytical methods reach similar conclusions.
+- Alternative explanations have been considered.
 
 ## Validation
 
-> TODO
+Inferences are validated through:
+
+- Logical consistency review
+- Evidence traceability
+- Scenario testing
+- Sensitivity analysis
+- Independent analytical review
 
 ---
 
@@ -886,15 +918,32 @@ Initial institutional definition for REP-002.
 
 ## Related Concepts
 
-> TODO
+- CP-001 Truth
+- CP-002 Evidence
+- CP-003 Fact
+- CP-004 Observation
+- CP-005 Assumption
+- Confidence
 
 ## Dependencies
 
-> TODO
+Depends on:
+
+- CP-001 Truth
+- CP-002 Evidence
+- CP-003 Fact
+- CP-004 Observation
+- CP-005 Assumption
 
 ## Successor Concepts
 
-> TODO
+Supports:
+
+- Confidence Assessment
+- Investment Thesis
+- Risk Analysis
+- Valuation Conclusions
+- Final Recommendation
 
 ---
 
@@ -902,15 +951,25 @@ Initial institutional definition for REP-002.
 
 ## Research Implication
 
-> TODO
+Every inference produced by DSP AI Indicator must be traceable to its supporting facts, observations, evidence, and assumptions. Analytical conclusions should never be presented without a clear reasoning chain.
 
 ## Examples
 
-> TODO
+Valid Inferences:
+
+- "Consistent margin expansion suggests improving operational efficiency."
+- "Declining leverage combined with higher cash generation indicates strengthening financial flexibility."
+- "Sustained high ROIC may indicate the presence of a durable competitive advantage."
+
+Not Inferences:
+
+- "Revenue increased by 18%." (Fact)
+- "Operating margin was 24%." (Observation)
+- "Revenue will definitely double." (Unsupported prediction)
 
 ## Limitations
 
-> TODO
+Inferences depend on the quality of available information and assumptions. Different analysts may reach different conclusions from the same evidence, making transparency and traceability essential.
 
 ---
 
@@ -926,4 +985,4 @@ Created By: DSP Research Team
 
 ## Review Notes
 
-> TODO
+Initial institutional definition for REP-002.

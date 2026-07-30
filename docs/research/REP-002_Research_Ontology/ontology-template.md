@@ -13,50 +13,114 @@ DSP Research Constitution v1.0
 
 ---
 
-## Concept Name
+# Ontology Concept Template — Version 2
 
-<!-- Official concept name -->
+Reusable template for every future REP-002 concept.
+Do not populate this file with actual concept content.
+Copy this structure into the appropriate ontology book when authoring a concept.
+
+---
+
+# Concept Metadata
+
+| Field | Value |
+|---|---|
+| Concept ID | `<Concept ID>` |
+| Concept Name | `<Concept Name>` |
+| Category | `<Category>` |
+| Ontology Book | `<Ontology Book>` |
+| Status | `<Status>` |
+| Version | `<Version>` |
+| Author | `<Author>` |
+| Reviewer | `<Reviewer>` |
+| Approved Date | `<Approved Date>` |
+
+---
+
+# Core Definition
 
 ## Definition
 
-<!-- Exactly one official definition -->
+`<Official definition — exactly one meaning>`
 
 ## Purpose
 
-<!-- Why this concept exists in the research system -->
+`<Why this concept exists in the research system>`
 
-## Business Importance
+## Why It Matters
 
-<!-- Why the concept matters to research outcomes -->
+`<Why the concept matters to research outcomes>`
 
-## Measurement
+---
 
-<!-- How the concept is measured (meaning only; not algorithms) -->
+# Characteristics
 
-## Evidence Sources
+## Characteristics
 
-<!-- Acceptable evidence categories -->
+`<Observable or required characteristics of the concept>`
 
-## Related Concepts
+## What It Is Not
 
-<!-- Cross-book references only; do not redefine -->
+`<Explicit exclusions and common confusions>`
+
+---
+
+# Evidence
+
+## Evidence Requirements
+
+`<Acceptable evidence categories supporting use of the concept>`
 
 ## Confidence Drivers
 
-<!-- Factors that increase or decrease confidence -->
-
-## Limitations
-
-<!-- Known limits of interpretation -->
+`<Factors that increase or decrease confidence>`
 
 ## Validation
 
-<!-- How the concept definition is validated -->
+`<How application or interpretation of the concept is validated>`
+
+---
+
+# Relationships
+
+## Related Concepts
+
+`<Cross-references to related concepts — do not redefine them>`
+
+## Dependencies
+
+`<Concepts that must be understood before this concept>`
+
+## Successor Concepts
+
+`<Concepts that build upon or follow from this concept>`
+
+---
+
+# Research Guidance
+
+## Research Implication
+
+`<How researchers and platform surfaces must apply this concept>`
 
 ## Examples
 
-<!-- Illustrative examples (non-normative) -->
+`<Illustrative examples — non-normative>`
+
+## Limitations
+
+`<Known limits of interpretation or application>`
+
+---
+
+# Governance
 
 ## Revision History
 
-<!-- Date | Version | Change | Author -->
+| Version | Date | Change | Author |
+|---|---|---|---|
+| `<Version>` | `<Date>` | `<Change>` | `<Author>` |
+
+## Review Notes
+
+`<Reviewer comments, conditions, or approval notes>`

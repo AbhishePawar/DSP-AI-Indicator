@@ -1009,15 +1009,15 @@ Initial institutional definition for REP-002.
 
 ## Definition
 
-> TODO
+Confidence is the quantified degree of certainty associated with an inference, conclusion, valuation, or recommendation based on the quality, quantity, consistency, and reliability of supporting evidence. Within DSP AI Indicator, confidence expresses how strongly research supports a conclusion without implying absolute certainty.
 
 ## Purpose
 
-> TODO
+Confidence communicates the strength of analytical conclusions and enables users to distinguish between highly reliable findings and conclusions that depend on limited evidence or uncertain assumptions.
 
 ## Why It Matters
 
-> TODO
+Investment decisions involve uncertainty. Explicit confidence assessments improve transparency, reduce overconfidence, and help users understand the limitations of research conclusions.
 
 ---
 
@@ -1025,11 +1025,25 @@ Initial institutional definition for REP-002.
 
 ## Characteristics
 
-> TODO
+Confidence should be:
+
+- Evidence-based
+- Transparent
+- Traceable
+- Consistent
+- Reproducible
+- Continuously reviewable
 
 ## What It Is Not
 
-> TODO
+Confidence is not:
+
+- Proof
+- Certainty
+- Truth
+- A guarantee
+- Personal conviction
+- A substitute for evidence
 
 ---
 
@@ -1037,15 +1051,37 @@ Initial institutional definition for REP-002.
 
 ## Evidence Requirements
 
-> TODO
+Confidence assessments should consider:
+
+- Evidence quality
+- Evidence quantity
+- Source reliability
+- Consistency across evidence
+- Strength of supporting facts
+- Validity of assumptions
+- Robustness of inferences
 
 ## Confidence Drivers
 
-> TODO
+Confidence increases when:
+
+- Evidence is abundant and independently verified.
+- Facts are well established.
+- Observations are consistent.
+- Assumptions are limited and well supported.
+- Multiple analytical methods reach similar conclusions.
+- Historical outcomes validate previous reasoning.
 
 ## Validation
 
-> TODO
+Confidence assessments are validated through:
+
+- Back-testing
+- Outcome comparison
+- Independent review
+- Sensitivity analysis
+- Scenario analysis
+- Periodic recalibration
 
 ---
 
@@ -1053,15 +1089,33 @@ Initial institutional definition for REP-002.
 
 ## Related Concepts
 
-> TODO
+- CP-001 Truth
+- CP-002 Evidence
+- CP-003 Fact
+- CP-004 Observation
+- CP-005 Assumption
+- CP-006 Inference
 
 ## Dependencies
 
-> TODO
+Depends on:
+
+- CP-001 Truth
+- CP-002 Evidence
+- CP-003 Fact
+- CP-004 Observation
+- CP-005 Assumption
+- CP-006 Inference
 
 ## Successor Concepts
 
-> TODO
+Supports:
+
+- Investment Recommendation
+- Risk Assessment
+- Portfolio Decisions
+- Research Governance
+- Decision Frameworks
 
 ---
 
@@ -1069,15 +1123,25 @@ Initial institutional definition for REP-002.
 
 ## Research Implication
 
-> TODO
+Every material conclusion produced by DSP AI Indicator should include an explicit confidence assessment that reflects the supporting evidence, assumptions, and reasoning. Confidence must be periodically reassessed as new information becomes available.
 
 ## Examples
 
-> TODO
+High Confidence:
+
+- Multiple years of audited financial statements consistently support the conclusion.
+- Independent valuation methods produce similar intrinsic values.
+
+Low Confidence:
+
+- Limited disclosure.
+- Heavy reliance on assumptions.
+- Conflicting evidence.
+- Significant uncertainty regarding future outcomes.
 
 ## Limitations
 
-> TODO
+Confidence represents the current strength of available evidence and reasoning. It does not eliminate uncertainty and should evolve as additional evidence becomes available or assumptions change.
 
 ---
 
@@ -1093,4 +1157,4 @@ Created By: DSP Research Team
 
 ## Review Notes
 
-> TODO
+Initial institutional definition for REP-002.

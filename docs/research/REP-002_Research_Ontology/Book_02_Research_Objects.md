@@ -63,15 +63,15 @@ Draft
 
 ## Definition
 
-> TODO
+An entity is any uniquely identifiable object that can be represented, referenced, analyzed, or related within the DSP AI Indicator research system. Entities may be physical, legal, financial, conceptual, or informational.
 
 ## Purpose
 
-> TODO
+Entities provide the foundational objects upon which all research, valuation, governance, and analytical relationships are built.
 
 ## Why It Matters
 
-> TODO
+Every research activity ultimately concerns one or more entities. Defining entities consistently enables standardized analysis, traceability, relationship modeling, and reusable knowledge across the platform.
 
 ---
 
@@ -79,11 +79,25 @@ Draft
 
 ## Characteristics
 
-> TODO
+An entity should be:
+
+- Uniquely identifiable
+- Persistently referenceable
+- Well defined
+- Version aware
+- Traceable
+- Capable of participating in relationships
 
 ## What It Is Not
 
-> TODO
+An entity is not:
+
+- A relationship
+- An observation
+- A metric
+- A calculation
+- A conclusion
+- A temporary processing artifact
 
 ---
 
@@ -91,15 +105,33 @@ Draft
 
 ## Evidence Requirements
 
-> TODO
+Entity definitions should be supported by:
+
+- Official identifiers where available
+- Reliable documentation
+- Authoritative sources
+- Consistent naming
+- Stable reference information
 
 ## Confidence Drivers
 
-> TODO
+Confidence increases when:
+
+- Identity is independently verifiable.
+- Source documentation is authoritative.
+- Naming is consistent.
+- Historical continuity is maintained.
+- Conflicting identifiers are absent.
 
 ## Validation
 
-> TODO
+Entities are validated through:
+
+- Identity verification
+- Source confirmation
+- Duplicate detection
+- Reference integrity checks
+- Relationship consistency review
 
 ---
 
@@ -107,15 +139,31 @@ Draft
 
 ## Related Concepts
 
-> TODO
+- CP-001 Truth
+- CP-002 Evidence
+- CP-003 Fact
+- CP-004 Observation
+- CP-005 Assumption
+- CP-006 Inference
+- CP-007 Confidence
 
 ## Dependencies
 
-> TODO
+Depends on:
+
+- Book 01 — Core Principles
 
 ## Successor Concepts
 
-> TODO
+Supports:
+
+- Organization
+- Security
+- Financial Statement
+- Dataset
+- Source
+- Document
+- Metric
 
 ---
 
@@ -123,15 +171,23 @@ Draft
 
 ## Research Implication
 
-> TODO
+Every research object managed by DSP AI Indicator shall be represented as an entity with a unique identity, consistent metadata, and traceable relationships throughout the research lifecycle.
 
 ## Examples
 
-> TODO
+Examples include:
+
+- A publicly listed company
+- A stock
+- A financial statement
+- A regulatory filing
+- A dataset
+- A benchmark index
+- A research document
 
 ## Limitations
 
-> TODO
+An entity represents identity only. Analytical meaning is derived through its attributes, relationships, evidence, and associated research objects.
 
 ---
 
@@ -147,4 +203,4 @@ Created By: DSP Research Team
 
 ## Review Notes
 
-> TODO
+Initial institutional definition for REP-002.

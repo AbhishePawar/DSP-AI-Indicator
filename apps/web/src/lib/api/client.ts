@@ -115,6 +115,7 @@ export const api = {
 
   login: (body: {
     username?: string;
+    password?: string;
     api_key_id?: string;
     api_key_secret?: string;
   }) =>
@@ -122,6 +123,21 @@ export const api = {
       method: "POST",
       body: JSON.stringify(body),
     }),
+
+  refresh: (body: { refresh_token: string }, options?: RequestOptions) =>
+    request<
+      ApiResponse<{
+        access_token: string;
+        refresh_token?: string;
+        token_type: string;
+        expires_in?: number;
+        session_id?: string;
+      }>
+    >(
+      "/auth/refresh",
+      { method: "POST", body: JSON.stringify(body) },
+      options,
+    ),
 
   analyzeCompany: (
     body: {
@@ -204,6 +220,216 @@ export const api = {
   copilotProviders: (options?: RequestOptions) =>
     request<import("@/lib/api/copilotTypes").CopilotProvidersResponseBody>(
       "/copilot/providers",
+      { method: "GET" },
+      options,
+    ),
+
+  /** Authenticated market quote (EPIC-D001) — never invents missing fields. */
+  marketQuote: (
+    symbol: string,
+    options?: RequestOptions & { exchange?: string | null },
+  ) => {
+    const params = new URLSearchParams({ symbol: symbol.trim().toUpperCase() });
+    if (options?.exchange) {
+      params.set("exchange", options.exchange);
+    }
+    return request<import("@/lib/institutional-dashboard/mapInstitutionalDashboard").MarketQuotePayload>(
+      `/market/quote?${params.toString()}`,
+      { method: "GET" },
+      options,
+    );
+  },
+
+  marketHealth: (options?: RequestOptions) =>
+    request<{ ok: boolean; provider: Record<string, unknown> }>(
+      "/market/health",
+      { method: "GET" },
+      options,
+    ),
+
+  /** Authenticated financial statements (EPIC-D002) — never invents missing fields. */
+  financialStatements: (
+    symbol: string,
+    options?: RequestOptions & {
+      exchange?: string | null;
+      period_type?: string | null;
+      limit?: number;
+      include_restated?: boolean;
+    },
+  ) => {
+    const params = new URLSearchParams({ symbol: symbol.trim().toUpperCase() });
+    if (options?.exchange) params.set("exchange", options.exchange);
+    if (options?.period_type) params.set("period_type", options.period_type);
+    if (options?.limit != null) params.set("limit", String(options.limit));
+    if (options?.include_restated != null) {
+      params.set("include_restated", options.include_restated ? "true" : "false");
+    }
+    return request<
+      import("@/lib/institutional-dashboard/mapInstitutionalDashboard").FinancialStatementsPayload
+    >(`/fundamentals/statements?${params.toString()}`, { method: "GET" }, options);
+  },
+
+  fundamentalsHealth: (options?: RequestOptions) =>
+    request<{ ok: boolean; provider: Record<string, unknown> }>(
+      "/fundamentals/health",
+      { method: "GET" },
+      options,
+    ),
+
+  /** Authenticated corporate actions (EPIC-D003) — never invents events. */
+  corporateActions: (
+    symbol: string,
+    options?: RequestOptions & {
+      exchange?: string | null;
+      action_type?: string | null;
+      start_date?: string | null;
+      end_date?: string | null;
+      limit?: number;
+    },
+  ) => {
+    const params = new URLSearchParams({ symbol: symbol.trim().toUpperCase() });
+    if (options?.exchange) params.set("exchange", options.exchange);
+    if (options?.action_type) params.set("action_type", options.action_type);
+    if (options?.start_date) params.set("start_date", options.start_date);
+    if (options?.end_date) params.set("end_date", options.end_date);
+    if (options?.limit != null) params.set("limit", String(options.limit));
+    return request<
+      import("@/lib/institutional-dashboard/mapInstitutionalDashboard").CorporateActionsPayload
+    >(`/corporate-actions?${params.toString()}`, { method: "GET" }, options);
+  },
+
+  corporateActionsHealth: (options?: RequestOptions) =>
+    request<{ ok: boolean; provider: Record<string, unknown> }>(
+      "/corporate-actions/health",
+      { method: "GET" },
+      options,
+    ),
+
+  /** Authenticated historical series (EPIC-D004) — never invents history. */
+  historicalSeries: (
+    symbol: string,
+    seriesKind: string,
+    options?: RequestOptions & {
+      exchange?: string | null;
+      frequency?: string | null;
+      start_date?: string | null;
+      end_date?: string | null;
+      limit?: number;
+    },
+  ) => {
+    const params = new URLSearchParams({
+      symbol: symbol.trim().toUpperCase(),
+      series_kind: seriesKind,
+    });
+    if (options?.exchange) params.set("exchange", options.exchange);
+    if (options?.frequency) params.set("frequency", options.frequency);
+    if (options?.start_date) params.set("start_date", options.start_date);
+    if (options?.end_date) params.set("end_date", options.end_date);
+    if (options?.limit != null) params.set("limit", String(options.limit));
+    return request<
+      import("@/lib/institutional-dashboard/mapInstitutionalDashboard").HistoricalSeriesPayload
+    >(`/historical/series?${params.toString()}`, { method: "GET" }, options);
+  },
+
+  historicalHealth: (options?: RequestOptions) =>
+    request<{ ok: boolean; provider: Record<string, unknown> }>(
+      "/historical/health",
+      { method: "GET" },
+      options,
+    ),
+
+  /** Unified authenticated data gateway (EPIC-D005). */
+  dataBundle: (
+    symbol: string,
+    options?: RequestOptions & {
+      exchange?: string | null;
+      include_market_quote?: boolean;
+      include_financial_statements?: boolean;
+      include_corporate_actions?: boolean;
+      include_historical_series?: boolean;
+      historical_series_kind?: string;
+      historical_frequency?: string | null;
+      historical_limit?: number;
+    },
+  ) => {
+    const params = new URLSearchParams({ symbol: symbol.trim().toUpperCase() });
+    if (options?.exchange) params.set("exchange", options.exchange);
+    if (options?.include_market_quote != null) {
+      params.set("include_market_quote", String(options.include_market_quote));
+    }
+    if (options?.include_financial_statements != null) {
+      params.set(
+        "include_financial_statements",
+        String(options.include_financial_statements),
+      );
+    }
+    if (options?.include_corporate_actions != null) {
+      params.set(
+        "include_corporate_actions",
+        String(options.include_corporate_actions),
+      );
+    }
+    if (options?.include_historical_series != null) {
+      params.set(
+        "include_historical_series",
+        String(options.include_historical_series),
+      );
+    }
+    if (options?.historical_series_kind) {
+      params.set("historical_series_kind", options.historical_series_kind);
+    }
+    if (options?.historical_frequency) {
+      params.set("historical_frequency", options.historical_frequency);
+    }
+    if (options?.historical_limit != null) {
+      params.set("historical_limit", String(options.historical_limit));
+    }
+    return request<{
+      ok: boolean;
+      symbol?: string;
+      bundle?: import("@/lib/institutional-dashboard/mapInstitutionalDashboard").UnifiedDataBundlePayload;
+      message?: string | null;
+    }>(`/data/bundle?${params.toString()}`, { method: "GET" }, options);
+  },
+
+  dataHealth: (options?: RequestOptions) =>
+    request<{ ok: boolean; health: Record<string, unknown> }>(
+      "/data/health",
+      { method: "GET" },
+      options,
+    ),
+
+  /**
+   * Portfolio Intelligence (EPIC-A002 / P9.5) — summarize linked research only.
+   * Client must not invent research_objects; pass holdings/watchlist metadata only.
+   */
+  portfolioIntelligence: (
+    body: {
+      portfolio?: Record<string, unknown> | null;
+      watchlist?: Record<string, unknown> | null;
+      research_objects?: Record<string, unknown> | unknown[] | null;
+      reports?: Record<string, unknown> | unknown[] | null;
+      snapshots?: Record<string, unknown> | unknown[] | null;
+      snapshot_ids?: Record<string, string> | null;
+      result_id?: string | null;
+      created_at?: string | null;
+    },
+    options?: RequestOptions,
+  ) =>
+    request<{
+      ok: boolean;
+      result?: Record<string, unknown>;
+      message?: string | null;
+      error?: string;
+    }>(
+      "/portfolio/intelligence",
+      { method: "POST", body: JSON.stringify(body) },
+      options,
+    ),
+
+  portfolioIntelligenceSchema: (options?: RequestOptions) =>
+    request<{ ok: boolean; schema?: Record<string, unknown> }>(
+      "/portfolio/intelligence/schema",
       { method: "GET" },
       options,
     ),

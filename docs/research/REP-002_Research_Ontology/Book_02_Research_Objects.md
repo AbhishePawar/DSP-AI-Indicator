@@ -558,15 +558,15 @@ Initial institutional definition for REP-002.
 
 ## Definition
 
-> TODO
+A financial statement is a formally prepared financial report that presents the financial position, operating performance, cash flows, and related disclosures of an organization for a defined reporting period. Within DSP AI Indicator, financial statements are primary research objects that provide the authoritative evidence for financial analysis, valuation, and business assessment.
 
 ## Purpose
 
-> TODO
+Financial statements provide standardized, auditable, and comparable financial information required to evaluate the economic condition, operational performance, financial strength, and long-term sustainability of organizations.
 
 ## Why It Matters
 
-> TODO
+Nearly every analytical model within DSP AI Indicator derives its conclusions from financial statement data. Accurate financial statements enable consistent valuation, ratio analysis, profitability assessment, cash flow evaluation, capital allocation analysis, and investment research.
 
 ---
 
@@ -574,11 +574,25 @@ Initial institutional definition for REP-002.
 
 ## Characteristics
 
-> TODO
+A financial statement should be:
+
+- Officially reported
+- Time-bound
+- Internally consistent
+- Auditable where applicable
+- Comparable across reporting periods
+- Supported by regulatory disclosures
 
 ## What It Is Not
 
-> TODO
+A financial statement is not:
+
+- A market price
+- A financial ratio
+- A research opinion
+- A prediction
+- A valuation result
+- A portfolio recommendation
 
 ---
 
@@ -586,15 +600,35 @@ Initial institutional definition for REP-002.
 
 ## Evidence Requirements
 
-> TODO
+Financial statements should be supported by:
+
+- Audited annual reports
+- Quarterly financial reports
+- Regulatory filings
+- Exchange disclosures
+- Official corporate publications
+- Verified financial databases
 
 ## Confidence Drivers
 
-> TODO
+Confidence increases when:
+
+- Financial reports are audited.
+- Regulatory filings are complete.
+- Reporting standards are consistently applied.
+- Independent data sources agree.
+- Historical statements remain internally consistent.
 
 ## Validation
 
-> TODO
+Financial statements are validated through:
+
+- Regulatory verification
+- Internal consistency checks
+- Period reconciliation
+- Duplicate detection
+- Accounting integrity review
+- Source verification
 
 ---
 
@@ -602,15 +636,33 @@ Initial institutional definition for REP-002.
 
 ## Related Concepts
 
-> TODO
+- RO-001 Entity
+- RO-002 Organization
+- RO-003 Security
+- CP-001 Truth
+- CP-002 Evidence
+- CP-007 Confidence
 
 ## Dependencies
 
-> TODO
+Depends on:
+
+- Book 01 — Core Principles
+- RO-001 Entity
+- RO-002 Organization
+- RO-003 Security
 
 ## Successor Concepts
 
-> TODO
+Supports:
+
+- Financial Metrics
+- Valuation
+- Business Quality
+- Risk
+- Profitability
+- Cash Flow Analysis
+- Portfolio Analysis
 
 ---
 
@@ -618,15 +670,23 @@ Initial institutional definition for REP-002.
 
 ## Research Implication
 
-> TODO
+Financial statements represent the primary evidentiary foundation for quantitative research within DSP AI Indicator. Analytical engines shall derive financial conclusions from validated financial statement information rather than secondary interpretations whenever possible.
 
 ## Examples
 
-> TODO
+Examples include:
+
+- Balance Sheet
+- Income Statement
+- Cash Flow Statement
+- Statement of Changes in Equity
+- Notes to Accounts
+- Annual Financial Statements
+- Quarterly Financial Statements
 
 ## Limitations
 
-> TODO
+Financial statements represent historical financial information. They do not independently predict future performance and must be interpreted together with business quality, management, industry, and market evidence.
 
 ---
 
@@ -642,4 +702,4 @@ Created By: DSP Research Team
 
 ## Review Notes
 
-> TODO
+Initial institutional definition for REP-002.

@@ -1,4 +1,4 @@
-/** Route protection rules — EPIC-008 auth model. */
+/** Route protection rules — EPIC-008 auth model + F002 auth screens. */
 
 export const PUBLIC_ROUTE_PREFIXES = [
   "/dashboard",
@@ -12,9 +12,25 @@ export const PROTECTED_ROUTE_PREFIXES = [
   "/copilot",
   "/diagnostics",
   "/profile",
+  "/admin",
 ] as const;
 
-export const AUTH_PUBLIC_PATHS = ["/login"] as const;
+export const AUTH_PUBLIC_PATHS = [
+  "/login",
+  "/forgot-password",
+  "/session-expired",
+  "/unauthorized",
+  "/forbidden",
+] as const;
+
+/** P9.1 public marketing website — no app shell sidebar. */
+export const MARKETING_PUBLIC_PATHS = [
+  "/",
+  "/about",
+  "/contact",
+  "/pricing",
+  "/faq",
+] as const;
 
 export function normalizePath(pathname: string): string {
   if (!pathname || pathname === "/") return "/dashboard";
@@ -23,7 +39,24 @@ export function normalizePath(pathname: string): string {
     : pathname;
 }
 
+/** Strip trailing slash without remapping `/` to dashboard (marketing home). */
+export function canonicalizePath(pathname: string): string {
+  if (!pathname) return "/";
+  if (pathname === "/") return "/";
+  return pathname.endsWith("/") && pathname.length > 1
+    ? pathname.slice(0, -1)
+    : pathname;
+}
+
+export function isMarketingPath(pathname: string): boolean {
+  const path = canonicalizePath(pathname);
+  return MARKETING_PUBLIC_PATHS.some(
+    (route) => path === route || (route !== "/" && path.startsWith(`${route}/`)),
+  );
+}
+
 export function isAuthPublicPath(pathname: string): boolean {
+  if (isMarketingPath(pathname)) return true;
   const path = normalizePath(pathname);
   return AUTH_PUBLIC_PATHS.some(
     (route) => path === route || path.startsWith(`${route}/`),
@@ -31,6 +64,7 @@ export function isAuthPublicPath(pathname: string): boolean {
 }
 
 export function isPublicRoute(pathname: string): boolean {
+  if (isMarketingPath(pathname)) return true;
   const path = normalizePath(pathname);
   if (isAuthPublicPath(path)) return true;
   return PUBLIC_ROUTE_PREFIXES.some(
@@ -49,7 +83,9 @@ export function requiresAuth(pathname: string): boolean {
   return isProtectedRoute(pathname);
 }
 
-export function loginRedirectUrl(nextPath: string): string {
+export function loginRedirectUrl(nextPath: string, expired = false): string {
   const next = encodeURIComponent(normalizePath(nextPath));
-  return `/login?next=${next}`;
+  return expired
+    ? `/login?expired=1&next=${next}`
+    : `/login?next=${next}`;
 }

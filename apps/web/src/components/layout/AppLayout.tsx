@@ -1,38 +1,51 @@
 "use client";
 
-import { useEffect, useState, type ReactNode } from "react";
+import { useEffect, useRef, type ReactNode } from "react";
 import { usePathname, useRouter } from "next/navigation";
 
 import { FeedbackProvider } from "@/components/beta/FeedbackContext";
 import { BetaShellWidgets } from "@/components/beta/BetaShellWidgets";
-import { WorkspaceLoading } from "@/components/loading/WorkspaceLoading";
+import { ClosedBetaGate } from "@/components/beta/ClosedBetaGate";
+import { LoadingLayout } from "@/components/layout/ContentArea";
 import { useRouteTransitionTiming } from "@/hooks/usePerformanceTiming";
 import { useAuth } from "@/lib/auth/AuthProvider";
 import {
   isAuthPublicPath,
+  isMarketingPath,
   loginRedirectUrl,
   requiresAuth,
 } from "@/lib/auth/routeGuards";
+import { useUiStore } from "@/lib/shell";
 import { ContentArea } from "./ContentArea";
+import { ShellCommandPalette } from "./ShellCommandPalette";
 import { Sidebar } from "./Sidebar";
 import { StatusBar } from "./StatusBar";
 import { Topbar } from "./Topbar";
 
-const COLLAPSE_KEY = "dsp.sidebar.collapsed.v1";
+function focusableSelector() {
+  return [
+    "a[href]",
+    "button:not([disabled])",
+    "textarea:not([disabled])",
+    "input:not([disabled])",
+    "select:not([disabled])",
+    "[tabindex]:not([tabindex='-1'])",
+  ].join(",");
+}
 
 export function AppLayout({ children }: { children: ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
   const { session, status } = useAuth();
-  const [collapsed, setCollapsed] = useState(false);
-  const [drawerOpen, setDrawerOpen] = useState(false);
+
+  const sidebarCollapsed = useUiStore((s) => s.sidebarCollapsed);
+  const toggleSidebarCollapsed = useUiStore((s) => s.toggleSidebarCollapsed);
+  const drawerOpen = useUiStore((s) => s.mobileDrawerOpen);
+  const setDrawerOpen = useUiStore((s) => s.setMobileDrawerOpen);
+  const drawerRef = useRef<HTMLDivElement | null>(null);
+  const previousFocusRef = useRef<HTMLElement | null>(null);
 
   useRouteTransitionTiming();
-
-  useEffect(() => {
-    const stored = window.localStorage.getItem(COLLAPSE_KEY);
-    if (stored === "1") setCollapsed(true);
-  }, []);
 
   useEffect(() => {
     if (status === "loading" || status === "refreshing") return;
@@ -45,30 +58,57 @@ export function AppLayout({ children }: { children: ReactNode }) {
     }
 
     if (requiresAuth(pathname) && !session) {
-      const target =
-        status === "expired"
-          ? `${loginRedirectUrl(pathname)}&expired=1`
-          : loginRedirectUrl(pathname);
-      router.replace(target);
+      router.replace(loginRedirectUrl(pathname, status === "expired"));
     }
   }, [status, session, pathname, router]);
 
   useEffect(() => {
     setDrawerOpen(false);
-  }, [pathname]);
+  }, [pathname, setDrawerOpen]);
 
-  function toggleCollapse() {
-    setCollapsed((v) => {
-      const next = !v;
-      window.localStorage.setItem(COLLAPSE_KEY, next ? "1" : "0");
-      return next;
-    });
-  }
+  useEffect(() => {
+    if (!drawerOpen) return;
+
+    previousFocusRef.current =
+      document.activeElement instanceof HTMLElement
+        ? document.activeElement
+        : null;
+
+    const dialog = drawerRef.current;
+    const nodes = dialog
+      ? Array.from(dialog.querySelectorAll<HTMLElement>(focusableSelector()))
+      : [];
+    nodes[0]?.focus();
+
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        event.preventDefault();
+        setDrawerOpen(false);
+        return;
+      }
+      if (event.key !== "Tab" || nodes.length === 0) return;
+      const first = nodes[0]!;
+      const last = nodes[nodes.length - 1]!;
+      if (event.shiftKey && document.activeElement === first) {
+        event.preventDefault();
+        last.focus();
+      } else if (!event.shiftKey && document.activeElement === last) {
+        event.preventDefault();
+        first.focus();
+      }
+    };
+
+    window.addEventListener("keydown", onKeyDown);
+    return () => {
+      window.removeEventListener("keydown", onKeyDown);
+      previousFocusRef.current?.focus?.();
+    };
+  }, [drawerOpen, setDrawerOpen]);
 
   if (status === "loading" || status === "refreshing") {
     return (
-      <div className="grid min-h-screen place-items-center px-4">
-        <WorkspaceLoading
+      <div className="grid min-h-screen place-items-center bg-[var(--bg)]">
+        <LoadingLayout
           label={
             status === "refreshing" ? "Refreshing session…" : "Loading session…"
           }
@@ -77,14 +117,22 @@ export function AppLayout({ children }: { children: ReactNode }) {
     );
   }
 
-  if (isAuthPublicPath(pathname)) {
-    return <>{children}</>;
+  if (isMarketingPath(pathname) || isAuthPublicPath(pathname)) {
+    return (
+      <main
+        id="main-content"
+        tabIndex={-1}
+        className="min-h-screen bg-[var(--bg)] text-[var(--fg)]"
+      >
+        {children}
+      </main>
+    );
   }
 
   if (requiresAuth(pathname) && !session) {
     return (
-      <div className="grid min-h-screen place-items-center px-4">
-        <WorkspaceLoading label="Redirecting to sign in…" />
+      <div className="grid min-h-screen place-items-center bg-[var(--bg)]">
+        <LoadingLayout label="Redirecting to sign in…" />
       </div>
     );
   }
@@ -94,15 +142,21 @@ export function AppLayout({ children }: { children: ReactNode }) {
       <div className="min-h-screen bg-[var(--bg)] text-[var(--fg)]">
         <div className="pointer-events-none fixed inset-0 -z-10 bg-[radial-gradient(ellipse_at_top,_var(--glow)_0%,_transparent_55%)]" />
         <div className="flex min-h-screen">
-          <Sidebar collapsed={collapsed} />
+          <Sidebar collapsed={sidebarCollapsed} />
           <div className="flex min-w-0 flex-1 flex-col">
             <Topbar
               onMenuClick={() => setDrawerOpen(true)}
-              onToggleCollapse={toggleCollapse}
-              sidebarCollapsed={collapsed}
+              onToggleCollapse={toggleSidebarCollapsed}
+              sidebarCollapsed={sidebarCollapsed}
             />
-            <main id="main-content" className="flex-1 overflow-y-auto">
-              <ContentArea>{children}</ContentArea>
+            <main
+              id="main-content"
+              className="flex-1 overflow-auto scroll-smooth motion-reduce:scroll-auto"
+              tabIndex={-1}
+            >
+              <ContentArea>
+                <ClosedBetaGate>{children}</ClosedBetaGate>
+              </ContentArea>
             </main>
             <StatusBar />
           </div>
@@ -117,10 +171,11 @@ export function AppLayout({ children }: { children: ReactNode }) {
               onClick={() => setDrawerOpen(false)}
             />
             <div
+              ref={drawerRef}
               role="dialog"
               aria-modal="true"
               aria-label="Navigation"
-              className="absolute inset-y-0 left-0 border-r border-[var(--border)] bg-[var(--surface)] shadow-xl"
+              className="absolute inset-y-0 left-0 max-w-[min(100vw,20rem)] overflow-y-auto border-r border-[var(--border)] bg-[var(--surface)] shadow-xl"
             >
               <Sidebar
                 collapsed={false}
@@ -131,6 +186,7 @@ export function AppLayout({ children }: { children: ReactNode }) {
           </div>
         ) : null}
 
+        <ShellCommandPalette />
         <BetaShellWidgets />
       </div>
     </FeedbackProvider>

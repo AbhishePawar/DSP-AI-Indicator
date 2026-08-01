@@ -10,9 +10,12 @@ export {
 } from "./AuthProvider";
 export {
   AUTH_PUBLIC_PATHS,
+  MARKETING_PUBLIC_PATHS,
   PUBLIC_ROUTE_PREFIXES,
   PROTECTED_ROUTE_PREFIXES,
+  canonicalizePath,
   isAuthPublicPath,
+  isMarketingPath,
   isProtectedRoute,
   isPublicRoute,
   loginRedirectUrl,
@@ -27,7 +30,10 @@ export {
   readStoredSession,
   resolveExpiry,
   sessionFromLoginPayload,
+  sessionFromRbacLogin,
+  tokenStatus,
 } from "./sessionStore";
+export { useAuthStore } from "./authStore";
 export {
   sessionStatusLabel,
   userFromSession,

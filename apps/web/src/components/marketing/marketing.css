@@ -1,0 +1,57 @@
+/* P9.1 marketing motion — Design System Motion Guidelines */
+
+@keyframes mkt-fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes mkt-fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes mkt-wash {
+  from {
+    opacity: 0.55;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.mkt-reveal {
+  animation: mkt-fade-up var(--motion-slow, 280ms) var(--ease-standard, ease-out)
+    both;
+}
+
+.mkt-reveal-delay {
+  animation-delay: 80ms;
+}
+
+.mkt-fade {
+  animation: mkt-fade-in var(--motion-normal, 180ms)
+    var(--ease-standard, ease-out) both;
+}
+
+.mkt-hero-wash {
+  animation: mkt-wash 700ms var(--ease-standard, ease-out) both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mkt-reveal,
+  .mkt-reveal-delay,
+  .mkt-fade,
+  .mkt-hero-wash {
+    animation: none !important;
+  }
+}

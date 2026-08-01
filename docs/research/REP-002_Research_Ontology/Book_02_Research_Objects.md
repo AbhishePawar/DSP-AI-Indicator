@@ -703,3 +703,1013 @@ Created By: DSP Research Team
 ## Review Notes
 
 Initial institutional definition for REP-002.
+
+---
+
+# Concept Metadata
+
+| Field | Value |
+|---|---|
+| Concept ID | RO-005 |
+| Concept Name | Metric |
+| Category | Research Object |
+| Ontology Book | Book 02 — Research Objects |
+| Status | Draft |
+| Version | 0.1.0 |
+| Author | DSP Research Team |
+| Reviewer | TBD |
+| Approved Date | TBD |
+
+---
+
+# Core Definition
+
+## Definition
+
+A metric is a named quantitative or qualitative measure that expresses an observable attribute, computed value, or comparative indicator associated with one or more research objects. Within DSP AI Indicator, metrics are primary research objects used to summarize financial condition, operating performance, valuation, risk, and research quality in a consistent and reusable form.
+
+## Purpose
+
+Metrics provide standardized measures through which researchers and analytical engines compare entities, evaluate performance, track change over time, and communicate research findings with precision.
+
+## Why It Matters
+
+Investment research depends on measurable indicators. Correctly defining metrics enables consistent ratio analysis, valuation inputs, quality scoring, portfolio monitoring, and transparent comparison across organizations, securities, and reporting periods.
+
+---
+
+# Characteristics
+
+## Characteristics
+
+A metric should be:
+
+- Clearly named
+- Unambiguously defined
+- Associated with a measurement basis
+- Time-aware where applicable
+- Reproducible from underlying evidence
+- Comparable across appropriate peer sets
+
+## What It Is Not
+
+A metric is not:
+
+- An organization
+- A security
+- A financial statement
+- A dataset
+- A source
+- A research conclusion
+
+---
+
+# Evidence
+
+## Evidence Requirements
+
+Metric definitions and values should be supported by:
+
+- Official calculation methodologies
+- Financial statement inputs
+- Market data observations
+- Documented formulas
+- Authoritative data providers
+- Consistent unit and scale definitions
+
+## Confidence Drivers
+
+Confidence increases when:
+
+- The calculation method is explicit.
+- Underlying inputs are verified.
+- Units and periods are consistent.
+- Independent recomputation agrees.
+- Historical series remain coherent.
+
+## Validation
+
+Metrics are validated through:
+
+- Formula verification
+- Input source confirmation
+- Unit consistency checks
+- Period alignment
+- Duplicate definition detection
+- Cross-source reconciliation
+
+---
+
+# Relationships
+
+## Related Concepts
+
+- RO-001 Entity
+- RO-002 Organization
+- RO-003 Security
+- RO-004 Financial Statement
+- CP-001 Truth
+- CP-002 Evidence
+- CP-003 Fact
+- CP-007 Confidence
+
+## Dependencies
+
+Depends on:
+
+- Book 01 — Core Principles
+- RO-001 Entity
+- RO-004 Financial Statement
+
+## Successor Concepts
+
+Supports:
+
+- Valuation
+- Business Quality
+- Risk
+- Profitability
+- Portfolio Analysis
+- Performance Measurement
+- Research Scoring
+
+---
+
+# Research Guidance
+
+## Research Implication
+
+Every quantitative indicator used in DSP AI Indicator research shall be represented as a metric with a defined meaning, measurable basis, supporting evidence, and explicit limitations so that comparisons remain auditable and reproducible.
+
+## Examples
+
+Examples include:
+
+- Revenue
+- Net Profit Margin
+- Return on Equity
+- Debt to Equity
+- Free Cash Flow
+- Price to Earnings
+- Intrinsic Value Estimate
+
+## Limitations
+
+A metric expresses a measured attribute only. It does not replace underlying evidence, establish causal explanations, or constitute an investment recommendation.
+
+---
+
+# Governance
+
+## Revision History
+
+Version: 0.1.0
+
+Status: Draft
+
+Created By: DSP Research Team
+
+## Review Notes
+
+Initial institutional definition for REP-002.
+
+---
+
+# Concept Metadata
+
+| Field | Value |
+|---|---|
+| Concept ID | RO-006 |
+| Concept Name | Dataset |
+| Category | Research Object |
+| Ontology Book | Book 02 — Research Objects |
+| Status | Draft |
+| Version | 0.1.0 |
+| Author | DSP Research Team |
+| Reviewer | TBD |
+| Approved Date | TBD |
+
+---
+
+# Core Definition
+
+## Definition
+
+A dataset is a structured collection of related records assembled for research, analysis, comparison, or model input. Within DSP AI Indicator, datasets are primary research objects that organize observations, facts, and derived values into reusable analytical collections.
+
+## Purpose
+
+Datasets provide the organized information foundation required to perform research workflows, train and test analytical models, compare entities over time, and preserve reproducible research inputs.
+
+## Why It Matters
+
+Research quality depends on the integrity of the collections used for analysis. Correctly modeling datasets enables provenance tracking, consistent updates, controlled reuse, and transparent understanding of what information underpins research conclusions.
+
+---
+
+# Characteristics
+
+## Characteristics
+
+A dataset should be:
+
+- Clearly scoped
+- Internally structured
+- Provenance-aware
+- Versionable
+- Updateable with controlled history
+- Suitable for defined research uses
+
+## What It Is Not
+
+A dataset is not:
+
+- A single metric value
+- An organization
+- A security
+- A financial statement
+- A source by itself
+- A research recommendation
+
+---
+
+# Evidence
+
+## Evidence Requirements
+
+Dataset definitions should be supported by:
+
+- Documented collection methods
+- Identified contributing sources
+- Schema or field definitions
+- Coverage and period descriptions
+- Update and version records
+- Access and licensing information where applicable
+
+## Confidence Drivers
+
+Confidence increases when:
+
+- Provenance is complete.
+- Coverage is explicit.
+- Update history is maintained.
+- Field definitions are stable.
+- Source quality is high.
+
+## Validation
+
+Datasets are validated through:
+
+- Schema integrity checks
+- Coverage verification
+- Provenance confirmation
+- Duplicate detection
+- Version consistency review
+- Source reconciliation
+
+---
+
+# Relationships
+
+## Related Concepts
+
+- RO-001 Entity
+- RO-005 Metric
+- RO-007 Source
+- RO-008 Document
+- RO-009 Time Period
+- CP-001 Truth
+- CP-002 Evidence
+- CP-007 Confidence
+
+## Dependencies
+
+Depends on:
+
+- Book 01 — Core Principles
+- RO-001 Entity
+
+## Successor Concepts
+
+Supports:
+
+- Market Data
+- Financial Analysis
+- Valuation Inputs
+- Portfolio Construction
+- Model Training
+- Research Monitoring
+- Historical Comparison
+
+---
+
+# Research Guidance
+
+## Research Implication
+
+Analytical workflows within DSP AI Indicator shall reference datasets as governed research objects with defined scope, provenance, and version identity so that research results remain reproducible and auditable.
+
+## Examples
+
+Examples include:
+
+- Historical price series
+- Fundamental financial tables
+- Corporate actions collections
+- Peer comparison universes
+- Macroeconomic indicator sets
+- Research archive extracts
+- Benchmark constituent lists
+
+## Limitations
+
+A dataset organizes research information only. The correctness of conclusions depends on source quality, metric definitions, time periods, and analytical methods applied to the dataset.
+
+---
+
+# Governance
+
+## Revision History
+
+Version: 0.1.0
+
+Status: Draft
+
+Created By: DSP Research Team
+
+## Review Notes
+
+Initial institutional definition for REP-002.
+
+---
+
+# Concept Metadata
+
+| Field | Value |
+|---|---|
+| Concept ID | RO-007 |
+| Concept Name | Source |
+| Category | Research Object |
+| Ontology Book | Book 02 — Research Objects |
+| Status | Draft |
+| Version | 0.1.0 |
+| Author | DSP Research Team |
+| Reviewer | TBD |
+| Approved Date | TBD |
+
+---
+
+# Core Definition
+
+## Definition
+
+A source is an identifiable origin of information used to support research objects, evidence, and analytical conclusions. Within DSP AI Indicator, sources are primary research objects that establish provenance, authority, and traceability for research inputs.
+
+## Purpose
+
+Sources provide the institutional basis for attributing information, assessing reliability, and ensuring that research claims remain connected to verifiable origins.
+
+## Why It Matters
+
+Trustworthy research requires known origins. Correctly representing sources enables evidence attribution, confidence assessment, conflict resolution, and transparent distinction between official, market, and interpretive information.
+
+---
+
+# Characteristics
+
+## Characteristics
+
+A source should be:
+
+- Uniquely identifiable
+- Attributable to an originator
+- Classifiable by reliability
+- Timestamped or version-aware where applicable
+- Traceable to retrieved content
+- Suitable for citation in research outputs
+
+## What It Is Not
+
+A source is not:
+
+- A metric
+- A dataset by itself
+- A conclusion
+- An assumption
+- A recommendation
+- A temporary processing log
+
+---
+
+# Evidence
+
+## Evidence Requirements
+
+Source definitions should be supported by:
+
+- Publisher or provider identity
+- Access location or retrieval reference
+- Publication or retrieval date
+- Document or feed identifiers
+- Authority or licensing context
+- Retrieval records where available
+
+## Confidence Drivers
+
+Confidence increases when:
+
+- The originator is authoritative.
+- Publication details are complete.
+- Retrieval records are preserved.
+- Independent confirmation is available.
+- Conflicts with peer sources are limited.
+
+## Validation
+
+Sources are validated through:
+
+- Originator verification
+- Reference integrity checks
+- Duplicate source detection
+- Freshness assessment
+- Authority classification review
+- Citation consistency checks
+
+---
+
+# Relationships
+
+## Related Concepts
+
+- RO-001 Entity
+- RO-002 Organization
+- RO-006 Dataset
+- RO-008 Document
+- CP-001 Truth
+- CP-002 Evidence
+- CP-003 Fact
+- CP-007 Confidence
+
+## Dependencies
+
+Depends on:
+
+- Book 01 — Core Principles
+- RO-001 Entity
+
+## Successor Concepts
+
+Supports:
+
+- Evidence Attribution
+- Dataset Provenance
+- Document Authority
+- Confidence Assessment
+- Research Auditability
+- Conflict Resolution
+- Report Transparency
+
+---
+
+# Research Guidance
+
+## Research Implication
+
+Every material research input within DSP AI Indicator shall be attributable to a source so that users can inspect origin, assess reliability, and distinguish verified information from inference or opinion.
+
+## Examples
+
+Examples include:
+
+- Stock exchange data feeds
+- Regulatory filing repositories
+- Audited annual reports
+- Corporate investor presentations
+- Government statistical releases
+- Credit rating publications
+- Licensed market data providers
+
+## Limitations
+
+A source establishes provenance only. Presence of a source does not guarantee correctness, completeness, or suitability for a particular analytical use without further validation.
+
+---
+
+# Governance
+
+## Revision History
+
+Version: 0.1.0
+
+Status: Draft
+
+Created By: DSP Research Team
+
+## Review Notes
+
+Initial institutional definition for REP-002.
+
+---
+
+# Concept Metadata
+
+| Field | Value |
+|---|---|
+| Concept ID | RO-008 |
+| Concept Name | Document |
+| Category | Research Object |
+| Ontology Book | Book 02 — Research Objects |
+| Status | Draft |
+| Version | 0.1.0 |
+| Author | DSP Research Team |
+| Reviewer | TBD |
+| Approved Date | TBD |
+
+---
+
+# Core Definition
+
+## Definition
+
+A document is a discrete recorded information artefact that communicates facts, disclosures, analysis, policies, or other research-relevant content in a preserved form. Within DSP AI Indicator, documents are primary research objects used to capture filings, reports, notes, and other durable written evidence.
+
+## Purpose
+
+Documents provide durable, citable artefacts through which research evidence is recorded, reviewed, archived, and reused across analytical workflows.
+
+## Why It Matters
+
+Institutional research depends on written records. Correctly modeling documents enables evidence retention, citation integrity, version control, and transparent linkage between research conclusions and the materials that support them.
+
+---
+
+# Characteristics
+
+## Characteristics
+
+A document should be:
+
+- Persistently identifiable
+- Associated with one or more sources
+- Time-stamped or period-aware
+- Content-stable once published
+- Version-aware when revisions occur
+- Suitable for citation and archive
+
+## What It Is Not
+
+A document is not:
+
+- A metric
+- A dataset
+- A security
+- An organization
+- A live market quote
+- An unrecorded conversation
+
+---
+
+# Evidence
+
+## Evidence Requirements
+
+Document definitions should be supported by:
+
+- Title and document type
+- Publisher or authoring organization
+- Publication or filing date
+- Source reference
+- Version or revision identity
+- Retrieval or archive location
+
+## Confidence Drivers
+
+Confidence increases when:
+
+- The document is official or audited.
+- Publication details are complete.
+- Version identity is explicit.
+- Source linkage is verified.
+- Content remains unaltered after publication.
+
+## Validation
+
+Documents are validated through:
+
+- Identity verification
+- Source confirmation
+- Version consistency checks
+- Duplicate detection
+- Archive integrity review
+- Citation reference checks
+
+---
+
+# Relationships
+
+## Related Concepts
+
+- RO-001 Entity
+- RO-002 Organization
+- RO-004 Financial Statement
+- RO-007 Source
+- CP-001 Truth
+- CP-002 Evidence
+- CP-003 Fact
+- CP-007 Confidence
+
+## Dependencies
+
+Depends on:
+
+- Book 01 — Core Principles
+- RO-001 Entity
+- RO-007 Source
+
+## Successor Concepts
+
+Supports:
+
+- Research Archive
+- Evidence Packages
+- Report Generation
+- Governance Review
+- Disclosure Analysis
+- Audit Trails
+- Knowledge Preservation
+
+---
+
+# Research Guidance
+
+## Research Implication
+
+Material written evidence used in DSP AI Indicator shall be represented as a document with stable identity, source attribution, and version awareness so that research outputs remain inspectable and reproducible.
+
+## Examples
+
+Examples include:
+
+- Annual reports
+- Prospectuses
+- Board governance reports
+- Credit rating reports
+- Research notes
+- Regulatory circulars
+- Policy disclosures
+
+## Limitations
+
+A document preserves recorded content only. Interpretation, completeness relative to the full evidence set, and analytical conclusions remain separate research activities.
+
+---
+
+# Governance
+
+## Revision History
+
+Version: 0.1.0
+
+Status: Draft
+
+Created By: DSP Research Team
+
+## Review Notes
+
+Initial institutional definition for REP-002.
+
+---
+
+# Concept Metadata
+
+| Field | Value |
+|---|---|
+| Concept ID | RO-009 |
+| Concept Name | Time Period |
+| Category | Research Object |
+| Ontology Book | Book 02 — Research Objects |
+| Status | Draft |
+| Version | 0.1.0 |
+| Author | DSP Research Team |
+| Reviewer | TBD |
+| Approved Date | TBD |
+
+---
+
+# Core Definition
+
+## Definition
+
+A time period is a defined interval of time used to bound observations, financial reporting, performance measurement, and research comparison. Within DSP AI Indicator, time periods are primary research objects that establish temporal scope for statements, metrics, datasets, and analytical conclusions.
+
+## Purpose
+
+Time periods provide the temporal framework required to compare results consistently, align reporting cycles, and prevent invalid cross-period analysis.
+
+## Why It Matters
+
+Financial and market information is meaningful only within time. Correctly defining time periods enables accurate trend analysis, like-for-like comparison, reporting alignment, and trustworthy interpretation of historical and current research inputs.
+
+---
+
+# Characteristics
+
+## Characteristics
+
+A time period should be:
+
+- Explicitly bounded
+- Unambiguously labeled
+- Compatible with reporting calendars
+- Consistent in granularity
+- Comparable across related objects
+- Traceable to source reporting conventions
+
+## What It Is Not
+
+A time period is not:
+
+- A metric
+- A dataset
+- A document
+- A currency
+- A forecast by itself
+- An event without duration definition
+
+---
+
+# Evidence
+
+## Evidence Requirements
+
+Time period definitions should be supported by:
+
+- Explicit start and end boundaries
+- Reporting calendar conventions
+- Fiscal year definitions
+- Exchange trading calendars where applicable
+- Source-stated period labels
+- Alignment rules for restatements
+
+## Confidence Drivers
+
+Confidence increases when:
+
+- Boundaries are explicit.
+- Fiscal conventions are known.
+- Period labels match source documents.
+- Restatements are identified.
+- Comparisons use equivalent periods.
+
+## Validation
+
+Time periods are validated through:
+
+- Boundary completeness checks
+- Calendar consistency review
+- Fiscal year alignment
+- Duplicate period detection
+- Cross-object period reconciliation
+- Source label verification
+
+---
+
+# Relationships
+
+## Related Concepts
+
+- RO-001 Entity
+- RO-004 Financial Statement
+- RO-005 Metric
+- RO-006 Dataset
+- CP-001 Truth
+- CP-002 Evidence
+- CP-004 Observation
+- CP-007 Confidence
+
+## Dependencies
+
+Depends on:
+
+- Book 01 — Core Principles
+- RO-001 Entity
+
+## Successor Concepts
+
+Supports:
+
+- Trend Analysis
+- Period Comparison
+- Performance Measurement
+- Historical Valuation
+- Dataset Versioning
+- Reporting Alignment
+- Research Reproducibility
+
+---
+
+# Research Guidance
+
+## Research Implication
+
+Every time-sensitive research object and analytical comparison within DSP AI Indicator shall declare its time period so that users can assess temporal scope, comparability, and the validity of period-based conclusions.
+
+## Examples
+
+Examples include:
+
+- Fiscal year 2024
+- Quarter ended 31 March 2025
+- Trailing twelve months
+- Calendar year 2023
+- Intraday trading session
+- Five-year historical window
+- Since inception period
+
+## Limitations
+
+A time period defines temporal scope only. It does not determine data quality, analytical method, or the economic meaning of results observed within that period.
+
+---
+
+# Governance
+
+## Revision History
+
+Version: 0.1.0
+
+Status: Draft
+
+Created By: DSP Research Team
+
+## Review Notes
+
+Initial institutional definition for REP-002.
+
+---
+
+# Concept Metadata
+
+| Field | Value |
+|---|---|
+| Concept ID | RO-010 |
+| Concept Name | Currency |
+| Category | Research Object |
+| Ontology Book | Book 02 — Research Objects |
+| Status | Draft |
+| Version | 0.1.0 |
+| Author | DSP Research Team |
+| Reviewer | TBD |
+| Approved Date | TBD |
+
+---
+
+# Core Definition
+
+## Definition
+
+A currency is a standardized unit of monetary value used to express prices, financial amounts, and economic measurements. Within DSP AI Indicator, currencies are primary research objects that define the monetary denomination of securities, financial statements, metrics, and portfolio values.
+
+## Purpose
+
+Currencies provide the monetary reference system required for consistent valuation, financial comparison, portfolio aggregation, and cross-market research.
+
+## Why It Matters
+
+Monetary amounts are not comparable without a defined currency. Correctly representing currencies enables accurate conversion, prevents invalid cross-currency aggregation, and preserves transparency in valuation and portfolio analysis.
+
+---
+
+# Characteristics
+
+## Characteristics
+
+A currency should be:
+
+- Officially recognized
+- Uniquely identifiable by standard codes
+- Associated with a monetary authority or market convention
+- Usable for denomination of financial amounts
+- Compatible with conversion where required
+- Stable in identity across research records
+
+## What It Is Not
+
+A currency is not:
+
+- A security
+- An exchange rate by itself
+- A metric
+- A dataset
+- A time period
+- A valuation conclusion
+
+---
+
+# Evidence
+
+## Evidence Requirements
+
+Currency definitions should be supported by:
+
+- ISO or market-standard currency codes
+- Issuing authority references
+- Market convention documentation
+- Exchange and settlement references
+- Official monetary publications
+- Verified financial data standards
+
+## Confidence Drivers
+
+Confidence increases when:
+
+- Standard codes are used.
+- Issuing authority is clear.
+- Market conventions are consistent.
+- Conversion sources are authoritative.
+- Denomination is explicit in source data.
+
+## Validation
+
+Currencies are validated through:
+
+- Code verification
+- Authority confirmation
+- Denomination consistency checks
+- Duplicate detection
+- Conversion reference integrity
+- Cross-source agreement
+
+---
+
+# Relationships
+
+## Related Concepts
+
+- RO-001 Entity
+- RO-003 Security
+- RO-004 Financial Statement
+- RO-005 Metric
+- RO-009 Time Period
+- CP-001 Truth
+- CP-002 Evidence
+- CP-007 Confidence
+
+## Dependencies
+
+Depends on:
+
+- Book 01 — Core Principles
+- RO-001 Entity
+
+## Successor Concepts
+
+Supports:
+
+- Valuation
+- Portfolio Aggregation
+- Cross-Market Comparison
+- Financial Statement Analysis
+- Price Normalization
+- Risk Measurement
+- Performance Reporting
+
+---
+
+# Research Guidance
+
+## Research Implication
+
+Every monetary amount represented within DSP AI Indicator shall declare its currency so that valuation, comparison, aggregation, and reporting remain financially coherent and auditable.
+
+## Examples
+
+Examples include:
+
+- Indian Rupee (INR)
+- United States Dollar (USD)
+- Euro (EUR)
+- Japanese Yen (JPY)
+- British Pound Sterling (GBP)
+- Singapore Dollar (SGD)
+- Swiss Franc (CHF)
+
+## Limitations
+
+A currency defines monetary denomination only. Exchange rates, purchasing power, inflation adjustment, and valuation outcomes are determined through separate market data and analytical concepts.
+
+---
+
+# Governance
+
+## Revision History
+
+Version: 0.1.0
+
+Status: Draft
+
+Created By: DSP Research Team
+
+## Review Notes
+
+Initial institutional definition for REP-002.

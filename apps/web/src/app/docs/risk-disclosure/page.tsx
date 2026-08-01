@@ -2,8 +2,8 @@ import { DocArticle } from "@/components/launch/DocArticle";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { LEGAL_DOCUMENTS, LEGAL_DOC_VERSION } from "@/lib/legal";
 
-export default function DisclaimerPage() {
-  const doc = LEGAL_DOCUMENTS.disclaimer;
+export default function RiskDisclosurePage() {
+  const doc = LEGAL_DOCUMENTS.risk;
   return (
     <div>
       <PageHeader

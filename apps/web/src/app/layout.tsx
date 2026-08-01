@@ -14,6 +14,7 @@ import { NotificationProvider } from "@/providers/NotificationProvider";
 import { PersistenceProvider } from "@/providers/PersistenceProvider";
 import { QueryProvider } from "@/providers/QueryProvider";
 import { ThemeProvider } from "@/providers/ThemeProvider";
+import { AppearanceApplicator } from "@/components/settings-workspace/AppearanceApplicator";
 
 import "./globals.css";
 
@@ -54,6 +55,7 @@ export default function RootLayout({
           Skip to main content
         </a>
         <ThemeProvider>
+          <AppearanceApplicator />
           <QueryProvider>
             <MarketDataProvider config={marketConfig}>
               <AIProviderContextProvider>

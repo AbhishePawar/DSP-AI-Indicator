@@ -109,8 +109,10 @@ describe("EPIC-F004 dashboard registry", () => {
     expect(DEFAULT_WIDGET_ORDER).toEqual(
       expect.arrayContaining([
         "welcome",
+        "attention_brief",
         "quick_actions",
-        "company_search",
+        "market_overview",
+        "valuation_summary",
         "platform_health",
         "research_reports",
       ]),
@@ -156,9 +158,10 @@ describe("EPIC-F004 dashboard UI", () => {
     );
     wrap(<InstitutionalDashboard />);
     expect(
-      screen.getByRole("heading", { name: "Institutional Dashboard" }),
+      screen.getByRole("heading", { name: "Executive Dashboard" }),
     ).toBeTruthy();
     expect(screen.getByLabelText("Dashboard widgets")).toBeTruthy();
+    expect(screen.getByLabelText("Executive questions")).toBeTruthy();
     expect(await screen.findByText(/Welcome, Ada Analyst/i)).toBeTruthy();
   });
 
@@ -167,7 +170,7 @@ describe("EPIC-F004 dashboard UI", () => {
       "@/components/dashboard/widgets/ResearchPortfolioWidgets"
     );
     wrap(<PortfolioSummaryWidget />);
-    const heading = screen.getByRole("heading", { name: "Portfolio Summary" });
+    const heading = screen.getByRole("heading", { name: "Portfolio Snapshot" });
     const card = heading.closest('[class*="rounded"]') ?? heading.parentElement!;
     expect(within(card as HTMLElement).getAllByText("Data unavailable.").length).toBeGreaterThan(0);
     expect(

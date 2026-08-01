@@ -47,7 +47,7 @@ export function CompanySearchWidget() {
           onChange={(e) => setQuery(e.target.value)}
           onKeyDown={onKeyDown}
           aria-label="Company symbol"
-          placeholder="Symbol e.g. AAPL"
+          placeholder="Enter ticker"
         />
         <div className="flex flex-wrap gap-2">
           <Button size="sm" type="submit">

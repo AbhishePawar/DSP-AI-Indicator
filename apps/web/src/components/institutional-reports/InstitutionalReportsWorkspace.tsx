@@ -225,11 +225,14 @@ export function InstitutionalReportsWorkspace() {
     "Data unavailable.";
   const { success, error: notifyError } = useNotifications();
 
+  // RC3-003 — no silent default company.
   const urlSymbol = (
     searchParams.get("symbol") ||
     searchParams.get("ticker") ||
-    "AAPL"
-  ).toUpperCase();
+    ""
+  )
+    .trim()
+    .toUpperCase();
   const urlSection = searchParams.get("section") || "";
 
   const [symbol, setSymbol] = useState(urlSymbol);
@@ -269,11 +272,14 @@ export function InstitutionalReportsWorkspace() {
     const next = (
       searchParams.get("symbol") ||
       searchParams.get("ticker") ||
-      "AAPL"
-    ).toUpperCase();
+      ""
+    )
+      .trim()
+      .toUpperCase();
     setSymbol(next);
     setQuery(next);
     setSelectedTicker(next);
+    if (!next) setView(null);
   }, [searchParams, setSelectedTicker]);
 
   useEffect(() => {
@@ -342,6 +348,7 @@ export function InstitutionalReportsWorkspace() {
 
   const runLoad = useCallback(() => {
     const normalized = (query.trim() || symbol).toUpperCase();
+    if (!normalized) return;
     if (normalized !== symbol) {
       selectSymbol(normalized);
       return;
@@ -351,7 +358,9 @@ export function InstitutionalReportsWorkspace() {
     });
   }, [analyseMutation, query, runWithDisclaimer, selectSymbol, symbol]);
 
+  // Auto-run only when the user (or deep link) provides an explicit symbol.
   useEffect(() => {
+    if (!symbol) return;
     runWithDisclaimer(() => {
       analyseMutation.mutate();
     });
@@ -567,11 +576,17 @@ export function InstitutionalReportsWorkspace() {
 
           {!analyseMutation.isPending && !analyseMutation.isError && !view ? (
             <WorkspaceEmpty
-              description="Load a report to present backend research outputs for this symbol. No fabricated research is shown."
+              description={
+                symbol
+                  ? "Load a report to present backend research outputs for this symbol. No fabricated research is shown."
+                  : "Select a ticker to load an institutional research report. No company is pre-selected."
+              }
               action={
-                <Button size="sm" onClick={runLoad}>
-                  Load {symbol}
-                </Button>
+                symbol ? (
+                  <Button size="sm" onClick={runLoad}>
+                    Load {symbol}
+                  </Button>
+                ) : undefined
               }
             />
           ) : null}

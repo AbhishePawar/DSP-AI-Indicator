@@ -172,7 +172,8 @@ export function CompanyAnalysisWorkspace() {
   const token = session?.accessToken;
   const { success, error: notifyError } = useNotifications();
 
-  const urlSymbol = (searchParams.get("symbol") || "AAPL").toUpperCase();
+  // RC3-003 — no silent default company; require explicit symbol selection.
+  const urlSymbol = (searchParams.get("symbol") || "").trim().toUpperCase();
   const [symbol, setSymbol] = useState(urlSymbol);
   const [query, setQuery] = useState(urlSymbol);
   const [view, setView] = useState<ResearchView | null>(null);
@@ -195,9 +196,10 @@ export function CompanyAnalysisWorkspace() {
   const catalogue = useMemo(() => resolveCatalogue(symbol), [symbol]);
 
   useEffect(() => {
-    const next = (searchParams.get("symbol") || "AAPL").toUpperCase();
+    const next = (searchParams.get("symbol") || "").trim().toUpperCase();
     setSymbol(next);
     setQuery(next);
+    if (!next) setView(null);
   }, [searchParams]);
 
   const selectSymbol = useCallback(
@@ -253,6 +255,7 @@ export function CompanyAnalysisWorkspace() {
 
   const runAnalyse = useCallback(() => {
     const normalized = (query.trim() || symbol).toUpperCase();
+    if (!normalized) return;
     if (normalized !== symbol) {
       selectSymbol(normalized);
       return;
@@ -262,8 +265,9 @@ export function CompanyAnalysisWorkspace() {
     });
   }, [analyseMutation, query, runWithDisclaimer, selectSymbol, symbol]);
 
-  // Auto-run when symbol changes (including first mount) — gated by disclaimer.
+  // Auto-run only when the user (or deep link) provides an explicit symbol.
   useEffect(() => {
+    if (!symbol) return;
     runWithDisclaimer(() => {
       analyseMutation.mutate();
     });
@@ -379,11 +383,17 @@ export function CompanyAnalysisWorkspace() {
 
           {!analyseMutation.isPending && !analyseMutation.isError && !view ? (
             <WorkspaceEmpty
-              description="Run analysis to load backend research outputs for this symbol."
+              description={
+                symbol
+                  ? "Run analysis to load backend research outputs for this symbol."
+                  : "Select a ticker to begin company analysis. No company is pre-selected."
+              }
               action={
-                <Button size="sm" onClick={runAnalyse}>
-                  Analyze {symbol}
-                </Button>
+                symbol ? (
+                  <Button size="sm" onClick={runAnalyse}>
+                    Analyze {symbol}
+                  </Button>
+                ) : undefined
               }
             />
           ) : null}

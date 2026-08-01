@@ -54,7 +54,7 @@ export const useInstitutionalReportsPrefsStore =
         leftOpen: true,
         rightOpen: true,
         reportMode: "interactive",
-        selectedTicker: "AAPL",
+        selectedTicker: "",
         favourites: [],
         notes: [],
         tags: [],

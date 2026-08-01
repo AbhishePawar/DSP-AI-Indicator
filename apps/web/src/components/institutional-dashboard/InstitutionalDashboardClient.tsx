@@ -23,16 +23,22 @@ import { useAuth } from "@/lib/auth/AuthProvider";
 import { buildAnalyseRequestForTicker } from "@/lib/research/buildAnalyseRequest";
 
 export function InstitutionalDashboardClient({
-  initialTicker = "ACM",
+  initialTicker = "",
 }: {
   initialTicker?: string;
 }) {
   const { session } = useAuth();
-  const [ticker, setTicker] = useState(initialTicker.toUpperCase());
+  // RC3-003 — supporting panels view; no silent ACM/AAPL default.
+  const [ticker, setTicker] = useState(initialTicker.trim().toUpperCase());
 
   const mutation = useMutation({
     mutationFn: async () => {
       const symbol = ticker.trim().toUpperCase();
+      if (!symbol) {
+        throw new Error(
+          "Ticker is required — no default company is invented in the thin client.",
+        );
+      }
       const request = buildAnalyseRequestForTicker(symbol);
       const opts = { token: session?.accessToken };
       const [response, dataResp] = await Promise.all([
@@ -92,15 +98,47 @@ export function InstitutionalDashboardClient({
 
   function onSubmit(event: FormEvent) {
     event.preventDefault();
+    const symbol = ticker.trim().toUpperCase();
+    if (!symbol) return;
     mutation.mutate();
   }
 
-  const errorMessage =
-    mutation.error instanceof ApiClientError
-      ? mutation.error.message
-      : mutation.error
-        ? "Analysis request failed"
-        : null;
+  function describeIrdError(error: unknown): string {
+    if (error instanceof ApiClientError) {
+      if (error.status === 401) {
+        return "Permission denied — sign in required. No fabricated research is shown.";
+      }
+      if (error.status === 403) {
+        return "Permission denied — this account cannot run research for the requested symbol.";
+      }
+      if (error.status === 404) {
+        return "No coverage — analyse returned not found for this symbol. Data unavailable.";
+      }
+      if (error.status === 408 || error.status === 504) {
+        return "Network timeout — the analyse request did not complete. Retry when the API is available.";
+      }
+      if (error.status >= 500) {
+        return `API unavailable (${error.status}) — ${error.message}. Data unavailable.`;
+      }
+      return error.message || "Data unavailable.";
+    }
+    if (error instanceof Error) {
+      const msg = error.message.toLowerCase();
+      if (msg.includes("timeout") || msg.includes("network") || msg.includes("fetch")) {
+        return "Network timeout or connectivity failure — Data unavailable. Retry when online.";
+      }
+      return error.message;
+    }
+    return "Analysis request failed. Data unavailable.";
+  }
+
+  const errorMessage = mutation.error
+    ? describeIrdError(mutation.error)
+    : null;
+
+  const classicResearchHref = ticker.trim()
+    ? `/research/${encodeURIComponent(ticker.trim().toUpperCase())}`
+    : null;
 
   return (
     <div className="space-y-6">
@@ -132,15 +170,24 @@ export function InstitutionalDashboardClient({
                 required
               />
             </div>
-            <Button type="submit" disabled={mutation.isPending}>
+            <Button
+              type="submit"
+              disabled={mutation.isPending || !ticker.trim()}
+            >
               {mutation.isPending ? "Loading…" : "Run research"}
             </Button>
-            <Link
-              href={`/research/${encodeURIComponent(ticker.trim().toUpperCase() || "ACM")}`}
-              className="text-sm text-[var(--accent)] underline-offset-2 hover:underline"
-            >
-              Open classic research
-            </Link>
+            {classicResearchHref ? (
+              <Link
+                href={classicResearchHref}
+                className="text-sm text-[var(--accent)] underline-offset-2 hover:underline"
+              >
+                Open classic research
+              </Link>
+            ) : (
+              <span className="text-sm text-[var(--muted)]">
+                Enter a ticker to open classic research
+              </span>
+            )}
           </form>
         </CardBody>
       </Card>

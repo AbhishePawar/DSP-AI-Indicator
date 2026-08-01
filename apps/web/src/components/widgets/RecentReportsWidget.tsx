@@ -40,10 +40,10 @@ export function RecentReportsWidget() {
         description="GET /api/v1/report/{id} for locally remembered ids"
         action={
           <Link
-            href="/reports"
+            href="/research/institutional"
             className="text-xs text-[var(--accent)] hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
           >
-            All reports
+            Research Reports
           </Link>
         }
       />
@@ -65,7 +65,11 @@ export function RecentReportsWidget() {
                 <Tr key={entry.reportId}>
                   <Td>
                     <Link
-                      href={`/reports/${encodeURIComponent(entry.reportId)}`}
+                      href={
+                        entry.symbol
+                          ? `/research/institutional?symbol=${encodeURIComponent(entry.symbol)}`
+                          : "/research/institutional"
+                      }
                       className="text-[var(--accent)] hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
                     >
                       {entry.reportId}

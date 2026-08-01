@@ -291,34 +291,56 @@ export const DASHBOARD_WIDGETS: readonly DashboardWidgetMeta[] = [
   },
 ] as const;
 
-/** Executive-first default order for authenticated landing. */
+/**
+ * RC3-003 — Executive default: meaningful widgets only.
+ * Hollow insight stubs and unfinished AUX remain in the registry for customize,
+ * but start hidden via DEFAULT_HIDDEN_WIDGETS.
+ */
 export const DEFAULT_WIDGET_ORDER: DashboardWidgetId[] = [
   "welcome",
   "attention_brief",
   "quick_actions",
   "market_overview",
-  "portfolio_summary",
-  "watchlist_summary",
-  "valuation_summary",
-  "business_quality_summary",
-  "risk_summary",
-  "research_activity",
-  "research_reports",
-  "committee_activity",
-  "notifications",
-  "tasks",
-  "global_search",
   "company_search",
+  "global_search",
   "recent_companies",
   "pinned_companies",
-  "recent_research",
-  "research_alerts",
+  "portfolio_summary",
+  "watchlist_summary",
   "portfolio_activity",
-  "copilot_activity",
+  "research_activity",
+  "research_reports",
+  "recent_research",
+  "committee_activity",
   "platform_health",
   "api_status",
   "documentation",
   "recent_searches",
+  // Remaining registry ids keep customize/order support:
+  "valuation_summary",
+  "business_quality_summary",
+  "risk_summary",
+  "notifications",
+  "tasks",
+  "research_alerts",
+  "copilot_activity",
+  "saved_searches",
+  "archive_snapshots",
+  "research_diff",
+  "compliance_summary",
+  "workflow_summary",
+  "background_jobs",
+];
+
+/** Default-hidden: empty/placeholder executive cards and unfinished surfaces. */
+export const DEFAULT_HIDDEN_WIDGETS: DashboardWidgetId[] = [
+  "valuation_summary",
+  "business_quality_summary",
+  "risk_summary",
+  "notifications",
+  "tasks",
+  "research_alerts",
+  "copilot_activity",
   "saved_searches",
   "archive_snapshots",
   "research_diff",

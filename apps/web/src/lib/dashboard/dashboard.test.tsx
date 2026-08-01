@@ -89,6 +89,7 @@ vi.mock("@/lib/api/rbacAuth", () => ({
 
 import {
   DASHBOARD_WIDGETS,
+  DEFAULT_HIDDEN_WIDGETS,
   DEFAULT_WIDGET_ORDER,
   useDashboardPrefsStore,
 } from "@/lib/dashboard";
@@ -104,7 +105,7 @@ function wrap(ui: React.ReactNode) {
 }
 
 describe("EPIC-F004 dashboard registry", () => {
-  it("registers institutional widget set", () => {
+  it("registers institutional widget set with coherent defaults", () => {
     expect(DEFAULT_WIDGET_ORDER.length).toBe(DASHBOARD_WIDGETS.length);
     expect(DEFAULT_WIDGET_ORDER).toEqual(
       expect.arrayContaining([
@@ -112,9 +113,17 @@ describe("EPIC-F004 dashboard registry", () => {
         "attention_brief",
         "quick_actions",
         "market_overview",
-        "valuation_summary",
         "platform_health",
         "research_reports",
+      ]),
+    );
+    expect(DEFAULT_HIDDEN_WIDGETS).toEqual(
+      expect.arrayContaining([
+        "valuation_summary",
+        "business_quality_summary",
+        "risk_summary",
+        "tasks",
+        "copilot_activity",
       ]),
     );
   });
@@ -122,15 +131,19 @@ describe("EPIC-F004 dashboard registry", () => {
   it("persists widget visibility and order in store", () => {
     useDashboardPrefsStore.setState({
       widgetOrder: [...DEFAULT_WIDGET_ORDER],
-      hiddenWidgets: [],
+      hiddenWidgets: [...DEFAULT_HIDDEN_WIDGETS],
       pinnedCompanies: [],
       recentSearches: [],
       savedSearches: [],
     });
-    useDashboardPrefsStore.getState().toggleWidgetVisible("background_jobs");
-    expect(
-      useDashboardPrefsStore.getState().isWidgetVisible("background_jobs"),
-    ).toBe(false);
+    // Toggle a default-visible widget off (background_jobs is already in DEFAULT_HIDDEN).
+    expect(useDashboardPrefsStore.getState().isWidgetVisible("welcome")).toBe(
+      true,
+    );
+    useDashboardPrefsStore.getState().toggleWidgetVisible("welcome");
+    expect(useDashboardPrefsStore.getState().isWidgetVisible("welcome")).toBe(
+      false,
+    );
     useDashboardPrefsStore.getState().pinCompany("aapl", "Apple");
     expect(useDashboardPrefsStore.getState().isPinned("AAPL")).toBe(true);
     useDashboardPrefsStore.getState().recordSearch("MSFT");
@@ -145,7 +158,8 @@ describe("EPIC-F004 dashboard UI", () => {
     cleanup();
     useDashboardPrefsStore.setState({
       widgetOrder: [...DEFAULT_WIDGET_ORDER],
-      hiddenWidgets: [],
+      // RC3-003 — align test state with production defaults (empty executive widgets hidden).
+      hiddenWidgets: [...DEFAULT_HIDDEN_WIDGETS],
       pinnedCompanies: [],
       recentSearches: [],
       savedSearches: [],

@@ -9,6 +9,7 @@ import { create } from "zustand";
 import { persist } from "zustand/middleware";
 
 import {
+  DEFAULT_HIDDEN_WIDGETS,
   DEFAULT_WIDGET_ORDER,
   type DashboardWidgetId,
 } from "./widgetRegistry";
@@ -65,7 +66,7 @@ export const useDashboardPrefsStore = create<DashboardPrefsState>()(
   persist(
     (set, get) => ({
       widgetOrder: [...DEFAULT_WIDGET_ORDER],
-      hiddenWidgets: [],
+      hiddenWidgets: [...DEFAULT_HIDDEN_WIDGETS],
       pinnedCompanies: [],
       recentSearches: [],
       savedSearches: [],
@@ -152,11 +153,11 @@ export const useDashboardPrefsStore = create<DashboardPrefsState>()(
       resetLayout: () =>
         set({
           widgetOrder: [...DEFAULT_WIDGET_ORDER],
-          hiddenWidgets: [],
+          hiddenWidgets: [...DEFAULT_HIDDEN_WIDGETS],
         }),
     }),
     {
-      name: "dsp.dashboard.prefs.v1",
+      name: "dsp.dashboard.prefs.v2",
       partialize: (state) => ({
         widgetOrder: state.widgetOrder,
         hiddenWidgets: state.hiddenWidgets,

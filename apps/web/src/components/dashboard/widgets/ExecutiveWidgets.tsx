@@ -40,14 +40,14 @@ export function AttentionBriefWidget() {
 
   if (health.isError) {
     items.push({
-      label: "Platform health check failed — investigate connectivity",
-      href: "/health",
+      label: "Platform readiness check failed — continue via Company Analysis when online",
+      href: "/analysis",
       tone: "warning",
     });
   } else if (health.data && !health.data.ready) {
     items.push({
-      label: "Platform reports not ready — review health details",
-      href: "/health",
+      label: "Platform reports not ready — open Research Reports when coverage returns",
+      href: "/research/institutional",
       tone: "warning",
     });
   }
@@ -60,8 +60,8 @@ export function AttentionBriefWidget() {
     });
   } else {
     items.push({
-      label: `${reportCount} local report id${reportCount === 1 ? "" : "s"} remembered — verify freshness in Reports`,
-      href: "/reports",
+      label: `${reportCount} local report id${reportCount === 1 ? "" : "s"} remembered — verify freshness in Research Reports`,
+      href: "/research/institutional",
       tone: "info",
     });
   }
@@ -127,10 +127,10 @@ export function MarketOverviewWidget() {
       description="GET /api/v1/market/health — provider readiness only"
       action={
         <Link
-          href="/health"
+          href="/analysis"
           className="text-xs text-[var(--accent)] hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
         >
-          Health
+          Company Analysis
         </Link>
       }
     >
@@ -269,9 +269,9 @@ export function ResearchActivityWidget() {
               remembered report id{count === 1 ? "" : "s"} on this device
             </span>
           </p>
-          <Link href="/reports">
+          <Link href="/research/institutional">
             <Button size="sm" variant="secondary">
-              Open recent reports
+              Open Research Reports
             </Button>
           </Link>
         </div>
@@ -288,9 +288,9 @@ export function NotificationsWidget() {
     >
       <WidgetUnavailable
         title="Inbox empty / unavailable"
-        description="Data unavailable for push or in-app notifications. Use Research Monitoring when APIs are provisioned; until then check Reports and Health."
-        href="/research"
-        actionLabel="Open Research"
+        description="Data unavailable for push or in-app notifications. Use Research Monitoring when APIs are provisioned; until then check Company Analysis and Research Reports."
+        href="/research/institutional"
+        actionLabel="Open Research Reports"
       />
     </DashboardWidgetShell>
   );
@@ -319,8 +319,11 @@ export function TasksWidget() {
           </Link>
         </li>
         <li>
-          <Link className="text-[var(--accent)] hover:underline" href="/reports">
-            Revisit recent reports
+          <Link
+            className="text-[var(--accent)] hover:underline"
+            href="/research/institutional"
+          >
+            Revisit Research Reports
           </Link>
         </li>
         <li>

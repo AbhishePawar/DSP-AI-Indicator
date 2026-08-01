@@ -7,7 +7,7 @@ export const TUTORIAL_STEPS = [
   {
     id: "quickstart",
     title: "Quick start",
-    body: "Open Company Analysis, try sample symbol AAPL, run Analyze, then review Evidence, Confidence, Methodology, and Limitations.",
+    body: "Open Company Analysis, enter a ticker you cover, run Analyze, then review Evidence, Confidence, Methodology, and Limitations.",
   },
   {
     id: "analysis",

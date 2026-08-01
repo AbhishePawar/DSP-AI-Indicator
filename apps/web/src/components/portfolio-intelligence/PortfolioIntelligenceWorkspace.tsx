@@ -220,6 +220,40 @@ export function PortfolioIntelligenceWorkspace() {
   });
 
   const intel: PortfolioIntelligenceView | null = intelQuery.data ?? null;
+
+  function describeIntelError(error: unknown): string {
+    if (error instanceof ApiClientError) {
+      if (error.status === 401) {
+        return "Permission denied (401) — sign in required for /portfolio/intelligence.";
+      }
+      if (error.status === 403) {
+        return "Permission denied (403) — this account cannot load portfolio intelligence.";
+      }
+      if (error.status === 404) {
+        return "No coverage (404) — portfolio intelligence endpoint returned not found. Data unavailable.";
+      }
+      if (error.status === 408 || error.status === 504) {
+        return "Timeout — portfolio intelligence did not complete. Retry when the API is available.";
+      }
+      if (error.status >= 500) {
+        return `API unavailable (${error.status}) — ${error.message}. Data unavailable.`;
+      }
+      return error.message || `API error ${error.status}. Data unavailable.`;
+    }
+    if (error instanceof Error) {
+      const msg = error.message.toLowerCase();
+      if (
+        msg.includes("timeout") ||
+        msg.includes("network") ||
+        msg.includes("fetch")
+      ) {
+        return "Network failure — Data unavailable. Retry when online.";
+      }
+      return error.message || "Intelligence unavailable.";
+    }
+    return "Intelligence unavailable. Data unavailable.";
+  }
+
   const intelStatus = !token
     ? "Sign in to load /portfolio/intelligence"
     : holdings.length === 0
@@ -227,9 +261,7 @@ export function PortfolioIntelligenceWorkspace() {
       : intelQuery.isLoading
         ? "Loading intelligence…"
         : intelQuery.isError
-          ? intelQuery.error instanceof ApiClientError
-            ? `API error ${intelQuery.error.status}`
-            : "Intelligence unavailable"
+          ? describeIntelError(intelQuery.error)
           : intel
             ? `API linked research ${intel.linkedResearchCount} · schema ${intel.schemaVersion}`
             : "Data unavailable.";
@@ -357,11 +389,7 @@ export function PortfolioIntelligenceWorkspace() {
             <div className="mb-4">
               <ErrorState
                 title="Portfolio intelligence unavailable"
-                description={
-                  intelQuery.error instanceof ApiClientError
-                    ? intelQuery.error.message
-                    : "Data unavailable. Session holdings remain visible."
-                }
+                description={`${describeIntelError(intelQuery.error)} Session holdings remain visible.`}
                 action={
                   <Button
                     size="sm"
@@ -382,10 +410,10 @@ export function PortfolioIntelligenceWorkspace() {
                 owner={owner}
                 lastUpdated={lastUpdated}
                 holdingsCount={holdings.length}
-                researchConfidence={
+                researchCoverage={
                   coverage.total
                     ? `${coverage.covered}/${coverage.total} research-available (session)`
-                    : intelStatus
+                    : "No holdings — coverage not applicable"
                 }
                 onExport={() => goSection("export")}
                 onShare={() => void sharePortfolio()}

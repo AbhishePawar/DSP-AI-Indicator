@@ -21,7 +21,7 @@ export function CompanySearchWidget() {
           value={query}
           onChange={setQuery}
           label="Company symbol"
-          placeholder="Symbol e.g. AAPL"
+          placeholder="Enter ticker"
           onSubmit={() => {
             const symbol = query.trim().toUpperCase();
             if (!symbol) {

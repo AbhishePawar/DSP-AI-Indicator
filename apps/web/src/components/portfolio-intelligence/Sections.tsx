@@ -271,7 +271,11 @@ export function ResearchSection({
             {reports.slice(0, 5).map((r) => (
               <li key={r.reportId}>
                 <Link
-                  href={`/reports/${encodeURIComponent(r.reportId)}`}
+                  href={
+                    r.symbol
+                      ? `/research/institutional?symbol=${encodeURIComponent(r.symbol)}`
+                      : "/research/institutional"
+                  }
                   className="text-[var(--accent)] hover:underline"
                 >
                   {r.reportId}

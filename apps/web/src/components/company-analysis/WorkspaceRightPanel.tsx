@@ -125,10 +125,10 @@ export function WorkspaceRightPanel({
           <p className="text-xs text-[var(--muted)]">Data unavailable.</p>
         )}
         <Link
-          href="/reports"
+          href="/research/institutional"
           className="mt-2 inline-block text-sm text-[var(--accent)] hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
         >
-          Open reports
+          Open Research Reports
         </Link>
       </div>
 

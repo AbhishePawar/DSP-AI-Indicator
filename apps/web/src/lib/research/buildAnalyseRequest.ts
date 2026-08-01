@@ -7,7 +7,13 @@ export function buildAnalyseRequestForTicker(
   ticker: string,
   overrides?: Partial<Pick<AnalyseRequest, "exchange" | "company">>,
 ): AnalyseRequest {
-  const normalized = ticker.trim().toUpperCase() || "ACM";
+  // RC3-003 — never invent a demo ticker when the caller omits one.
+  const normalized = ticker.trim().toUpperCase();
+  if (!normalized) {
+    throw new Error(
+      "Ticker is required — no default company is invented in the thin client.",
+    );
+  }
   return {
     ...SAMPLE_ANALYSE_REQUEST,
     ticker: normalized,

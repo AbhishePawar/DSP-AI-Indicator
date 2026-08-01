@@ -77,18 +77,37 @@ describe("EPIC-F003 navigation registry", () => {
   it("builds breadcrumbs for nested and ticker routes", () => {
     expect(
       breadcrumbsForPath("/research/institutional").map((c) => c.label),
-    ).toEqual(["Home", "Research Workspace", "Institutional"]);
+    ).toEqual(["Home", "Research Workspace", "Research Reports"]);
     expect(breadcrumbsFor("/research/acm").map((c) => c.label)).toContain(
       "ACM",
     );
     expect(breadcrumbsForPath("/settings").at(-1)?.label).toBe("Settings");
   });
 
-  it("exposes searchable routes for command palette", () => {
-    const paths = searchableRoutes().map((r) => r.path);
-    expect(paths).toEqual(
-      expect.arrayContaining(["/analysis", "/portfolio", "/copilot"]),
+  it("RBAC-filters searchable routes and hides unfinished AUX", () => {
+    const analyst = searchableRoutes(
+      ["read_research"],
+      ["research_analyst"],
+    ).map((r) => r.path);
+    expect(analyst).toEqual(
+      expect.arrayContaining([
+        "/analysis",
+        "/portfolio",
+        "/research",
+        "/research/institutional",
+      ]),
     );
+    expect(analyst).not.toContain("/copilot");
+    expect(analyst).not.toContain("/advisor");
+    expect(analyst).not.toContain("/launch");
+    expect(analyst).not.toContain("/screening");
+    expect(analyst).not.toContain("/admin");
+
+    const admin = searchableRoutes(
+      ["manage_users", "read_research"],
+      ["administrator"],
+    ).map((r) => r.path);
+    expect(admin).toContain("/admin");
   });
 
   it("detects active paths", () => {

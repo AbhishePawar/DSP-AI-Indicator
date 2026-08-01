@@ -217,7 +217,7 @@ export function FeedbackDialog() {
               value={companyAnalysed}
               onChange={(e) => setCompanyAnalysed(e.target.value.toUpperCase())}
               maxLength={16}
-              placeholder="e.g. AAPL"
+              placeholder="e.g. ticker symbol"
             />
           </label>
           <label className="block text-sm">

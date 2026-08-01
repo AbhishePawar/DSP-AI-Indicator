@@ -51,10 +51,10 @@ export function RecentResearchReportsWidget() {
       span={2}
       action={
         <Link
-          href="/reports"
+          href="/research/institutional"
           className="text-xs text-[var(--accent)] hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
         >
-          All reports
+          Research Reports
         </Link>
       }
     >
@@ -80,7 +80,11 @@ export function RecentResearchReportsWidget() {
                 <TableRow key={entry.reportId}>
                   <TableCell>
                     <Link
-                      href={`/reports/${encodeURIComponent(entry.reportId)}`}
+                      href={
+                        entry.symbol
+                          ? `/research/institutional?symbol=${encodeURIComponent(entry.symbol)}`
+                          : "/research/institutional"
+                      }
                       className="text-[var(--accent)] hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
                     >
                       {entry.reportId}
@@ -216,7 +220,7 @@ export function DocumentationLinksWidget() {
     { href: "/documentation", label: "Platform documentation" },
     { href: "/docs", label: "Docs hub" },
     { href: "/docs/user-guide", label: "User guide" },
-    { href: "/health", label: "Health details" },
+    { href: "/dashboard", label: "Executive Dashboard" },
   ] as const;
 
   return (

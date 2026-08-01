@@ -2,6 +2,7 @@
 
 export {
   DASHBOARD_WIDGETS,
+  DEFAULT_HIDDEN_WIDGETS,
   DEFAULT_WIDGET_ORDER,
   widgetMeta,
   type DashboardWidgetId,

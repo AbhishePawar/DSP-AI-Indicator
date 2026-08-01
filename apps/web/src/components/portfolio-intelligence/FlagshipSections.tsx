@@ -70,7 +70,7 @@ export function PortfolioHeaderCard({
   owner,
   lastUpdated,
   holdingsCount,
-  researchConfidence,
+  researchCoverage,
   onExport,
   onShare,
 }: {
@@ -78,7 +78,8 @@ export function PortfolioHeaderCard({
   owner: string;
   lastUpdated: string | null;
   holdingsCount: number;
-  researchConfidence: string;
+  /** Session research-available coverage facts — not a confidence score. */
+  researchCoverage: string;
   onExport: () => void;
   onShare: () => void;
 }) {
@@ -110,7 +111,7 @@ export function PortfolioHeaderCard({
         />
         <FieldRow label="Holdings count" value={holdingsCount} />
         <FieldRow label="Last Updated" value={lastUpdated} />
-        <FieldRow label="Research Confidence" value={researchConfidence} />
+        <FieldRow label="Research coverage" value={researchCoverage} />
         <FieldRow
           label="Benchmark"
           value="Data unavailable. No benchmark API wired for this workspace."
@@ -154,14 +155,14 @@ export function ExecutivePortfolioSummary({
     <div className="space-y-4">
       <SectionCard
         title="Executive Portfolio Summary"
-        description="Research Mode — session counts and API pass-through only"
+        description="Research Mode — session coverage counts and API pass-through only"
       >
         <dl>
           <FieldRow
-            label="Portfolio Health"
+            label="Research coverage status"
             value={
               holdings.length === 0
-                ? "Empty session portfolio"
+                ? "Empty session portfolio — no holdings to cover"
                 : coverage.pending === 0
                   ? "All holdings flagged research-available (session)"
                   : "Partial research coverage (session)"
@@ -171,7 +172,7 @@ export function ExecutivePortfolioSummary({
             label="Overall Recommendation"
             value="Data unavailable. Portfolio-level recommendation requires linked research + committee feed."
           />
-          <FieldRow label="Research Confidence" value={intelStatus} />
+          <FieldRow label="Intelligence API status" value={intelStatus} />
           <FieldRow
             label="Portfolio Score"
             value="Data unavailable. No client-side portfolio score; engine scores are not fabricated."
@@ -529,9 +530,6 @@ export function RiskSection({
 
 export function WatchlistSection() {
   const watchlist = usePortfolioIntelPrefsStore((s) => s.watchlist);
-  const addWatchlistSymbol = usePortfolioIntelPrefsStore(
-    (s) => s.addWatchlistSymbol,
-  );
   const removeWatchlistSymbol = usePortfolioIntelPrefsStore(
     (s) => s.removeWatchlistSymbol,
   );
@@ -576,16 +574,9 @@ export function WatchlistSection() {
       </SectionCard>
       <SectionCard title="Candidates">
         <p className="text-sm text-[var(--muted)]">
-          Use Company Analysis to research candidates, then pin to watchlist.
+          Use Company Analysis to research a ticker, then pin it to this
+          watchlist. No demo symbols are pre-loaded.
         </p>
-        <Button
-          size="sm"
-          variant="secondary"
-          className="mt-2"
-          onClick={() => addWatchlistSymbol("AAPL", "Apple")}
-        >
-          Example: add AAPL to watchlist
-        </Button>
       </SectionCard>
       <SectionCard title="Recently Added">
         {watchlist.length === 0 ? (
@@ -649,9 +640,9 @@ export function OpportunitiesSection({
       <SectionCard title="Highest Conviction">
         <WorkspaceEmpty description="Data unavailable. Portfolio conviction ranking is not on the intelligence contract." />
       </SectionCard>
-      <SectionCard title="Quality Compounders">
+      <SectionCard title="Research-available holdings">
         {covered.length === 0 ? (
-          <WorkspaceEmpty description="Data unavailable." />
+          <WorkspaceEmpty description="Data unavailable. No session holdings flagged research-available." />
         ) : (
           <ul className="space-y-1 text-sm">
             {covered.slice(0, 8).map((h) => (
@@ -663,7 +654,7 @@ export function OpportunitiesSection({
                   {h.ticker}
                 </Link>
                 <span className="ml-2 text-xs text-[var(--muted)]">
-                  Investigate quality in Company Analysis
+                  Session flag: research-available — open Company Analysis
                 </span>
               </li>
             ))}
@@ -820,8 +811,8 @@ export function ExplainabilitySection({
           value={intel?.missingResearchCount ?? "Data unavailable."}
         />
       </SectionCard>
-      <SectionCard title="Confidence contributors">
-        <WorkspaceEmpty description="Data unavailable. Portfolio confidence contributors are not on the intelligence summary contract." />
+      <SectionCard title="Coverage contributors">
+        <WorkspaceEmpty description="Data unavailable. Portfolio coverage contributors are not on the intelligence summary contract." />
       </SectionCard>
       <SectionCard title="Contradictory evidence">
         {intel?.missingResearch.length ? (
@@ -854,9 +845,6 @@ export function ResearchActivitySection({
       <ResearchBody holdings={holdings} />
       <SectionCard title="Coverage Changes">
         <WorkspaceEmpty description="Data unavailable. No coverage-change timeline API." />
-      </SectionCard>
-      <SectionCard title="Confidence Changes">
-        <WorkspaceEmpty description="Data unavailable." />
       </SectionCard>
       <SectionCard title="Recent AI Committee Decisions">
         <WorkspaceEmpty description="Data unavailable at portfolio level. Open Company Analysis AI Committee per holding." />

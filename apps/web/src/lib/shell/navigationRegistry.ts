@@ -43,13 +43,17 @@ export type ShellNavIconId =
   | "settings"
   | "profile";
 
-/** Institutional primary shell (F003 checklist). */
+/**
+ * RC3-003 — Primary shell journey:
+ * Dashboard → Company Analysis → Research Workspace → Portfolio → Research Reports
+ * IRD is a supporting child under Research Reports, not a competing primary.
+ */
 export const SHELL_NAV: readonly ShellNavItem[] = [
   {
     id: "dashboard",
     href: "/dashboard",
     label: "Dashboard",
-    description: "Institutional overview",
+    description: "Executive overview and next investigation steps",
     section: "overview",
     icon: "dashboard",
   },
@@ -57,28 +61,16 @@ export const SHELL_NAV: readonly ShellNavItem[] = [
     id: "analysis",
     href: "/analysis",
     label: "Company Analysis",
-    description: "Company analysis via the backend API",
+    description: "Flagship company research workspace over /api/v1/analyse",
     section: "research",
     icon: "analysis",
     access: { anyOfPermissions: ["read_research"] },
   },
   {
-    id: "portfolio",
-    href: "/portfolio",
-    label: "Portfolio",
-    description: "Portfolio intelligence",
-    section: "research",
-    icon: "portfolio",
-    access: {
-      anyOfPermissions: ["read_research"],
-      anyOfRoles: ["portfolio_manager", "administrator"],
-    },
-  },
-  {
     id: "research",
     href: "/research",
     label: "Research Workspace",
-    description: "Research Mode workspace",
+    description: "Research library and session history",
     section: "research",
     icon: "research",
     access: { anyOfPermissions: ["read_research"] },
@@ -86,13 +78,35 @@ export const SHELL_NAV: readonly ShellNavItem[] = [
       {
         id: "research-institutional",
         href: "/research/institutional",
-        label: "Institutional",
-        description: "Institutional research reports & explainability",
+        label: "Research Reports",
+        description: "Publication and export surface for institutional reports",
+        section: "research",
+        icon: "research",
+        access: { anyOfPermissions: ["read_research"] },
+      },
+      {
+        id: "research-ird",
+        href: "/research/institutional/dashboard",
+        label: "Research Panels",
+        description:
+          "Supporting RS panel view — not the primary company research surface",
         section: "research",
         icon: "research",
         access: { anyOfPermissions: ["read_research"] },
       },
     ],
+  },
+  {
+    id: "portfolio",
+    href: "/portfolio",
+    label: "Portfolio",
+    description: "Portfolio coverage and intelligence (session + API)",
+    section: "research",
+    icon: "portfolio",
+    access: {
+      anyOfPermissions: ["read_research"],
+      anyOfRoles: ["portfolio_manager", "administrator"],
+    },
   },
   {
     id: "admin",
@@ -136,37 +150,38 @@ export const SECTION_LABELS: Record<ShellNavItem["section"], string> = {
   account: "Account",
 };
 
-/** Extra searchable / breadcrumb routes (legacy surfaces — not primary shell). */
+/**
+ * Extra breadcrumb routes (legacy / unfinished).
+ * RC3-003 — not searchable in the command palette (hide unfinished surfaces).
+ */
 export const AUX_ROUTES: readonly RouteMeta[] = [
   {
     id: "intelligence",
     path: "/intelligence",
     title: "Intelligence",
-    searchable: true,
+    searchable: false,
     group: "Workspace",
-    keywords: "composition pipeline",
   },
   {
     id: "companies",
     path: "/companies",
     title: "Companies",
-    searchable: true,
+    searchable: false,
     group: "Workspace",
   },
   {
     id: "screening",
     path: "/screening",
     title: "Screening",
-    searchable: true,
+    searchable: false,
     group: "Workspace",
   },
   {
     id: "copilot",
     path: "/copilot",
     title: "Copilot",
-    searchable: true,
+    searchable: false,
     group: "Workspace",
-    keywords: "ai assistant",
   },
   {
     id: "documentation",
@@ -179,42 +194,42 @@ export const AUX_ROUTES: readonly RouteMeta[] = [
     id: "health",
     path: "/health",
     title: "Health",
-    searchable: true,
+    searchable: false,
     group: "Ops",
   },
   {
     id: "diagnostics",
     path: "/diagnostics",
     title: "Diagnostics",
-    searchable: true,
+    searchable: false,
     group: "Ops",
   },
   {
     id: "platform",
     path: "/platform",
     title: "Platform",
-    searchable: true,
+    searchable: false,
     group: "Ops",
   },
   {
     id: "advisor",
     path: "/advisor",
     title: "Advisor",
-    searchable: true,
+    searchable: false,
     group: "Workspace",
   },
   {
     id: "reports",
     path: "/reports",
-    title: "Reports",
-    searchable: true,
+    title: "Legacy Reports",
+    searchable: false,
     group: "Workspace",
   },
   {
     id: "beta",
     path: "/beta",
     title: "Private Beta",
-    searchable: true,
+    searchable: false,
     group: "Workspace",
   },
   {
@@ -228,7 +243,7 @@ export const AUX_ROUTES: readonly RouteMeta[] = [
     id: "launch",
     path: "/launch",
     title: "Launch",
-    searchable: true,
+    searchable: false,
     group: "Ops",
   },
 ] as const;
@@ -412,8 +427,30 @@ export function breadcrumbsForPath(pathname: string): BreadcrumbCrumb[] {
   return crumbs;
 }
 
-export function searchableRoutes(): RouteMeta[] {
-  return ROUTE_REGISTRY.filter((r) => r.searchable !== false && r.path !== "/dashboard");
+/**
+ * RC3-003 — Command palette routes: shell-primary + help only, RBAC-filtered
+ * like the sidebar. Unfinished AUX destinations are not searchable.
+ */
+export function searchableRoutes(
+  permissions: readonly string[] = [],
+  roles: readonly string[] = [],
+): RouteMeta[] {
+  const visibleShell = filterShellNav(permissions, roles);
+  const allowedPaths = new Set<string>();
+  const walk = (items: readonly ShellNavItem[]) => {
+    for (const item of items) {
+      allowedPaths.add(item.href);
+      if (item.children?.length) walk(item.children);
+    }
+  };
+  walk(visibleShell);
+
+  return ROUTE_REGISTRY.filter((r) => {
+    if (r.searchable === false) return false;
+    if (r.path === "/dashboard") return false;
+    if (r.group === "Help") return true;
+    return allowedPaths.has(r.path);
+  });
 }
 
 export function isActivePath(pathname: string, href: string): boolean {

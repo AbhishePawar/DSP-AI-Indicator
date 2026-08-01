@@ -21,7 +21,7 @@ export function ResearchContextPanel({
   latestCitations?: ResearchCitationId[];
   onCompare?: () => void;
 }) {
-  const ticker = context.ticker ?? "ACM";
+  const ticker = context.ticker?.trim() || null;
 
   return (
     <div className="space-y-4">
@@ -57,17 +57,23 @@ export function ResearchContextPanel({
           }
         />
         <CardBody className="flex flex-wrap gap-2">
-          <Link href={`/research/${encodeURIComponent(ticker)}`}>
-            <Button size="sm" variant="secondary">
+          {ticker ? (
+            <Link href={`/research/${encodeURIComponent(ticker)}`}>
+              <Button size="sm" variant="secondary">
+                Open Research
+              </Button>
+            </Link>
+          ) : (
+            <Button size="sm" variant="secondary" disabled>
               Open Research
             </Button>
-          </Link>
+          )}
           <Link href="/portfolio">
             <Button size="sm" variant="secondary">
               Open Portfolio
             </Button>
           </Link>
-          <Link href="/analysis">
+          <Link href={ticker ? `/analysis?symbol=${encodeURIComponent(ticker)}` : "/analysis"}>
             <Button size="sm" variant="secondary">
               Run New Analysis
             </Button>

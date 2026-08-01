@@ -46,7 +46,7 @@ export function PlatformHealthWidget() {
       description="GET /api/v1/health · market/data health"
       action={
         <Link
-          href="/health"
+          href="/dashboard"
           className="text-xs text-[var(--accent)] hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
         >
           Details

@@ -77,10 +77,9 @@ export default function LoginForm() {
             </Alert>
           ) : null}
           {verified ? (
-            <Alert variant="info" title="Verification pending administrator">
-              A local verification request may have been captured. Email is not
-              confirmed by an API in this release — sign in only when your
-              administrator activates the account.
+            <Alert variant="info" title="Administrator activation required">
+              Email is not confirmed automatically in this release. Sign in only
+              when your administrator has provisioned the account.
             </Alert>
           ) : null}
 
@@ -145,11 +144,8 @@ export default function LoginForm() {
             </Link>
           </p>
           <p className="text-xs text-[var(--muted)]">
-            Authenticated via existing{" "}
-            <code className="font-[family-name:var(--font-mono)]">
-              POST /api/v1/auth/rbac/login
-            </code>
-            . Research Mode remains available on public routes.
+            Research Mode content on public routes does not require sign-in.
+            Access to protected research tools requires a provisioned account.
           </p>
         </Stack>
       </AuthCard>

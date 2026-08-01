@@ -1,119 +1,50 @@
-"use client";
-
+import type { Metadata } from "next";
 import Link from "next/link";
-import { useRouter, useSearchParams } from "next/navigation";
-import { FormEvent, Suspense, useState } from "react";
 
 import { AuthCard, AuthShell } from "@/components/auth";
-import {
-  Alert,
-  Button,
-  FormField,
-  Input,
-  Stack,
-  SuccessState,
-  ValidationMessage,
-} from "@/components/ds";
-import { WorkspaceLoading } from "@/components/loading/WorkspaceLoading";
+import { Alert, Button, EmptyState, Stack } from "@/components/ds";
+import { SUPPORT_CONTACT } from "@/lib/commercial";
 
-function VerifyEmailForm() {
-  const router = useRouter();
-  const searchParams = useSearchParams();
-  const initialCode = searchParams.get("code") ?? searchParams.get("token") ?? "";
+export const metadata: Metadata = {
+  title: "Email verification",
+};
 
-  const [code, setCode] = useState(initialCode);
-  const [error, setError] = useState<string | null>(null);
-  const [pending, setPending] = useState(false);
-  const [done, setDone] = useState(false);
-
-  function onSubmit(event: FormEvent) {
-    event.preventDefault();
-    setError(null);
-    if (!code.trim()) {
-      setError("Enter the verification code from your administrator or email.");
-      return;
-    }
-    setPending(true);
-    window.setTimeout(() => {
-      setPending(false);
-      setDone(true);
-    }, 400);
-  }
-
+/**
+ * RC3-002 — No fake verification success. Email verification service unavailable.
+ */
+export default function VerifyEmailPage() {
   return (
     <AuthShell>
       <AuthCard
         title="Email verification"
-        description="Confirm your work email when your organisation issues a verification code. No verification API is called in this release."
+        description="Automated email verification is not available in this release."
       >
         <Stack gap={4}>
-          {done ? (
-            <SuccessState
-              title="Verification request captured locally"
-              description="No email-verification API ran in this release. Sign in when your administrator confirms the account is active — do not treat this step as verified email."
-              action={
-                <Button onClick={() => router.push("/login")}>
-                  Continue to sign in
-                </Button>
-              }
-            />
-          ) : (
-            <>
-              <Alert variant="info" title="Verification UX">
-                Codes are not validated against a live email-verification
-                endpoint. Use administrator-issued codes only.
-              </Alert>
-              <form className="space-y-4" onSubmit={onSubmit} noValidate>
-                <FormField
-                  label="Verification code"
-                  htmlFor="verify-code"
-                  required
-                >
-                  <Input
-                    id="verify-code"
-                    value={code}
-                    onChange={(e) => setCode(e.target.value)}
-                    autoComplete="one-time-code"
-                    required
-                    disabled={pending}
-                  />
-                </FormField>
-                {error ? (
-                  <ValidationMessage tone="error">{error}</ValidationMessage>
-                ) : null}
-                <Button type="submit" className="w-full" disabled={pending}>
-                  {pending ? "Verifying…" : "Verify email"}
-                </Button>
-              </form>
-            </>
-          )}
-          <p className="text-center text-sm text-[var(--muted)]">
-            Waiting on email?{" "}
-            <Link
-              href="/verification-pending"
-              className="text-[var(--accent)] underline-offset-2 hover:underline"
-            >
-              Verification pending
-            </Link>
+          <EmptyState
+            title="Verification service unavailable"
+            description="DSP does not validate email verification codes through this interface. Account activation is confirmed by your administrator — not by submitting a code here."
+            action={
+              <div className="flex flex-wrap justify-center gap-2">
+                <Link href="/login">
+                  <Button>Sign in when provisioned</Button>
+                </Link>
+                <Link href="/signup">
+                  <Button variant="secondary">Request access</Button>
+                </Link>
+              </div>
+            }
+          />
+          <Alert variant="info" title="Honest status">
+            No verification API runs on this page. Do not treat any prior local
+            capture as confirmed email.
+          </Alert>
+          <p className="text-xs text-[var(--muted)]">
+            {SUPPORT_CONTACT.channelsPublished
+              ? `Support: ${SUPPORT_CONTACT.email}`
+              : SUPPORT_CONTACT.unpublishedNote}
           </p>
         </Stack>
       </AuthCard>
     </AuthShell>
-  );
-}
-
-export default function VerifyEmailPage() {
-  return (
-    <Suspense
-      fallback={
-        <AuthShell>
-          <AuthCard title="Email verification" description="Loading…">
-            <WorkspaceLoading label="Loading verification…" />
-          </AuthCard>
-        </AuthShell>
-      }
-    >
-      <VerifyEmailForm />
-    </Suspense>
   );
 }

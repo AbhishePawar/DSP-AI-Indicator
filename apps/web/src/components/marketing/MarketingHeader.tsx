@@ -47,16 +47,16 @@ export function MarketingHeader() {
             {resolved === "dark" ? "Dark" : "Light"}
           </button>
           <Link
-            href="/login"
+            href="/signup"
             className="hidden rounded-[var(--radius-sm)] border border-[var(--border)] bg-[var(--surface)] px-3 py-1.5 text-sm text-[var(--fg)] sm:inline-flex focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent)]"
           >
-            Sign in
+            Request access
           </Link>
           <Link
             href="/login"
             className="rounded-[var(--radius-sm)] bg-[var(--accent)] px-3 py-1.5 text-sm font-medium text-[var(--accent-fg)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent)]"
           >
-            Enter platform
+            Sign in
           </Link>
           <button
             type="button"
@@ -88,6 +88,15 @@ export function MarketingHeader() {
                 </Link>
               </li>
             ))}
+            <li>
+              <Link
+                href="/signup"
+                className="block py-2 text-sm text-[var(--fg)]"
+                onClick={() => setOpen(false)}
+              >
+                Request access
+              </Link>
+            </li>
             <li>
               <Link
                 href="/login"

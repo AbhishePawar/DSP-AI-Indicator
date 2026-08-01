@@ -55,15 +55,39 @@ export function mapAuthError(error: unknown): string {
   if (
     lower.includes("invalid credentials") ||
     lower.includes("401") ||
-    lower.includes("unauthorized")
+    lower.includes("unauthorized") ||
+    lower.includes("wrong password") ||
+    lower.includes("bad credentials")
   ) {
-    return "Those credentials were not accepted. Check username and password, then try again.";
+    return "Unable to sign in. Please verify your credentials.";
   }
-  if (lower.includes("network") || lower.includes("fetch")) {
-    return "Network unavailable. Check your connection and try again.";
+  if (
+    lower.includes("network") ||
+    lower.includes("fetch") ||
+    lower.includes("timeout") ||
+    lower.includes("failed to fetch")
+  ) {
+    return "Authentication service temporarily unavailable. Check your connection and try again.";
+  }
+  if (
+    lower.includes("503") ||
+    lower.includes("502") ||
+    lower.includes("500") ||
+    lower.includes("unavailable")
+  ) {
+    return "Authentication service temporarily unavailable. Try again shortly.";
   }
   if (lower.includes("403") || lower.includes("forbidden")) {
-    return "Access is forbidden for this account. Contact your administrator.";
+    return "Unable to sign in. Access is not permitted for this account. Contact your administrator.";
   }
-  return message || "Authentication failed. Try again or contact support.";
+  // Never surface raw API paths or implementation details to end users.
+  if (
+    lower.includes("/api/") ||
+    lower.includes("http") ||
+    lower.includes("endpoint") ||
+    lower.includes("rbac")
+  ) {
+    return "Unable to sign in. Please try again or contact your administrator.";
+  }
+  return "Unable to sign in. Please verify your credentials or try again later.";
 }

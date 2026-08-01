@@ -12,14 +12,16 @@ import { env } from "@/lib/env";
 
 export const metadata: Metadata = {
   title: "Pricing",
-  description: `${env.appName} editions and pricing — research use; not investment advice.`,
+  description: `${env.appName} illustrative product editions — not a live commercial offer.`,
   alternates: { canonical: "/pricing" },
 };
 
 function formatPrice(edition: (typeof PRODUCT_EDITIONS)[number]): string {
-  if (edition.monthlyPriceUsd === null) return "Contact for access";
-  if (edition.monthlyPriceUsd === 0) return "Illustrative · Free tier sketch";
-  return `Illustrative · $${edition.monthlyPriceUsd}/mo · $${edition.annualPriceUsd}/yr`;
+  if (edition.monthlyPriceUsd === null) return "Contact administrator for access";
+  if (edition.monthlyPriceUsd === 0) {
+    return "Illustrative · not available for purchase";
+  }
+  return `Illustrative · $${edition.monthlyPriceUsd}/mo · not available for purchase`;
 }
 
 export default function MarketingPricingPage() {
@@ -28,7 +30,7 @@ export default function MarketingPricingPage() {
       id="pricing"
       eyebrow="Pricing"
       title="Product editions"
-      lead={`${env.appName} commercial packaging for research use. Trial and subscription details are summarised in FAQ.`}
+      lead={`${env.appName} edition packaging is shown for planning only. These plans are not available for public purchase on this release.`}
     >
       <p
         role="note"
@@ -50,22 +52,28 @@ export default function MarketingPricingPage() {
               {formatPrice(edition)}
             </p>
             <p className="mt-2 text-sm text-[var(--muted)]">{edition.audience}</p>
-            <p className="mt-3 text-sm">
-              Illustrative trial:{" "}
-              {edition.trialDays > 0 ? `${edition.trialDays} days` : "N/A"} ·
-              Seats sketch: {edition.seatsIncluded}
+            <p className="mt-3 text-sm text-[var(--muted)]">
+              Illustrative seats: {edition.seatsIncluded}
+              {edition.trialDays > 0
+                ? ` · Illustrative trial length: ${edition.trialDays} days`
+                : null}
             </p>
           </li>
         ))}
       </ul>
 
       <h3 className="mt-12 font-[family-name:var(--font-display)] text-2xl font-medium tracking-tight">
-        Feature matrix
+        Capability matrix (illustrative)
       </h3>
+      <p className="mt-2 max-w-2xl text-sm text-[var(--muted)]">
+        Matrix cells describe intended packaging — not live entitlements or
+        checkout. Features marked Yes may still require administrator
+        provisioning.
+      </p>
       <div className="mt-4 overflow-x-auto">
         <table className="w-full min-w-[40rem] border-collapse text-left text-sm">
           <caption className="sr-only">
-            Feature availability by product edition
+            Illustrative feature packaging by product edition
           </caption>
           <thead>
             <tr className="border-b border-[var(--border)]">
@@ -88,7 +96,11 @@ export default function MarketingPricingPage() {
                 {PRODUCT_EDITIONS.map((edition) => {
                   const value = edition.features[row.key];
                   const label =
-                    typeof value === "boolean" ? (value ? "Yes" : "No") : String(value);
+                    typeof value === "boolean"
+                      ? value
+                        ? "Planned"
+                        : "Not in edition"
+                      : String(value);
                   return (
                     <td key={edition.id} className="px-2 py-2 text-[var(--muted)]">
                       {label}
@@ -120,8 +132,8 @@ export default function MarketingPricingPage() {
           Sign in
         </Link>
         {" · "}
-        <Link className="text-[var(--accent)] underline" href="/docs/pricing">
-          In-app pricing docs
+        <Link className="text-[var(--accent)] underline" href="/signup">
+          Request access
         </Link>
       </p>
     </Section>

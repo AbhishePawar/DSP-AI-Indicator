@@ -127,16 +127,16 @@ export const SUPPORT_CONTACT = {
   /** Honest RC disclosure when contacts are not yet production mailboxes. */
   channelsPublished: false,
   unpublishedNote:
-    "Contact channels are not published for this release candidate. Use in-app beta feedback or your programme administrator.",
+    "Contact channels are not yet publicly available. Use your programme administrator or in-app beta feedback when enrolled.",
 } as const;
 
 /**
- * RC honesty gate: dollar amounts and quotas in PRODUCT_EDITIONS are packaging
- * sketches, not live checkout / entitlement facts until a commercial CMS or
- * billing API is wired.
+ * RC honesty gate: dollar amounts and quotas in PRODUCT_EDITIONS are illustrative
+ * packaging only — not live checkout / entitlement facts until commercial
+ * billing is wired.
  */
 export const COMMERCIAL_PRICING_DISCLOSURE =
-  "Illustrative packaging for this release candidate — not a live offer, checkout, or entitlement. Contact your programme administrator for access.";
+  "Illustrative packaging for planning only — not a live offer, checkout, or entitlement. Plans are not available for public purchase on this release. Contact your programme administrator for access.";
 
 export const SAMPLE_ANALYSIS_SYMBOL = "AAPL" as const;
 

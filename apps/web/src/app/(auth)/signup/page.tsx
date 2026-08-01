@@ -1,44 +1,31 @@
 "use client";
 
 import Link from "next/link";
-import { FormEvent, useMemo, useState } from "react";
+import { FormEvent, useState } from "react";
 
-import {
-  AuthCard,
-  AuthShell,
-  PasswordStrengthMeter,
-  evaluatePasswordStrength,
-  isValidEmail,
-} from "@/components/auth";
+import { AuthCard, AuthShell, isValidEmail } from "@/components/auth";
 import {
   Alert,
   Button,
   FormField,
   Input,
-  PasswordInput,
   Stack,
-  SuccessState,
+  Textarea,
   ValidationMessage,
 } from "@/components/ds";
 import { SUPPORT_CONTACT } from "@/lib/commercial";
 
 /**
- * Sign-up / access request — UI experience only.
- * No public self-service registration API in the frozen auth surface.
+ * RC3-002 — Honest Request Access workflow.
+ * No self-service registration API; no password collection.
  */
 export default function SignUpPage() {
   const [email, setEmail] = useState("");
   const [name, setName] = useState("");
-  const [password, setPassword] = useState("");
-  const [confirm, setConfirm] = useState("");
+  const [organization, setOrganization] = useState("");
+  const [reason, setReason] = useState("");
   const [error, setError] = useState<string | null>(null);
-  const [pending, setPending] = useState(false);
-  const [submitted, setSubmitted] = useState(false);
-
-  const strength = useMemo(
-    () => evaluatePasswordStrength(password),
-    [password],
-  );
+  const [prepared, setPrepared] = useState(false);
 
   function onSubmit(event: FormEvent) {
     event.preventDefault();
@@ -51,48 +38,61 @@ export default function SignUpPage() {
       setError("Enter a valid work email.");
       return;
     }
-    if (strength.score < 2) {
-      setError("Choose a stronger password before continuing.");
-      return;
-    }
-    if (password !== confirm) {
-      setError("Passwords do not match.");
-      return;
-    }
-    setPending(true);
-    window.setTimeout(() => {
-      setPending(false);
-      setSubmitted(true);
-    }, 400);
+    // Local preparation only — no registration API, no account creation.
+    setPrepared(true);
   }
 
   return (
     <AuthShell>
       <AuthCard
         title="Request access"
-        description="Self-service registration is not open on this release. Submit your details to prepare an administrator-provisioned account."
+        description="Accounts are provisioned by DSP AI Indicator administrators. This form does not create an account or call a registration API."
       >
         <Stack gap={4}>
-          {submitted ? (
-            <SuccessState
-              title="Request recorded"
-              description="No registration API was called. An administrator must provision access. You can continue to verification pending for the expected next step."
-              action={
-                <div className="flex flex-wrap justify-center gap-2">
-                  <Link href="/verification-pending">
-                    <Button>View pending state</Button>
-                  </Link>
-                  <Link href="/login">
-                    <Button variant="secondary">Sign in</Button>
-                  </Link>
+          {prepared ? (
+            <>
+              <Alert variant="info" title="Access request not submitted online">
+                No account was created and no request was sent to DSP servers.
+                Share your details with your programme administrator so they can
+                provision access.
+              </Alert>
+              <dl className="space-y-2 rounded-[var(--radius-md)] border border-[var(--border)] bg-[var(--surface-2)] px-4 py-3 text-sm">
+                <div>
+                  <dt className="text-[var(--muted)]">Name</dt>
+                  <dd className="font-medium">{name.trim()}</dd>
                 </div>
-              }
-            />
+                <div>
+                  <dt className="text-[var(--muted)]">Email</dt>
+                  <dd className="font-medium">{email.trim()}</dd>
+                </div>
+                {organization.trim() ? (
+                  <div>
+                    <dt className="text-[var(--muted)]">Organization</dt>
+                    <dd className="font-medium">{organization.trim()}</dd>
+                  </div>
+                ) : null}
+                {reason.trim() ? (
+                  <div>
+                    <dt className="text-[var(--muted)]">Reason for access</dt>
+                    <dd className="font-medium">{reason.trim()}</dd>
+                  </div>
+                ) : null}
+              </dl>
+              <div className="flex flex-wrap gap-2">
+                <Button type="button" variant="secondary" onClick={() => setPrepared(false)}>
+                  Edit details
+                </Button>
+                <Link href="/login">
+                  <Button>Sign in if already provisioned</Button>
+                </Link>
+              </div>
+            </>
           ) : (
             <>
               <Alert variant="info" title="Administrator provisioning">
-                Accounts are created by your organisation administrator. This
-                form captures intent only — credentials are not created here.
+                Accounts are provisioned by the DSP AI Indicator administrators.
+                Prepare your details below, then contact your programme
+                administrator. Passwords are never collected on this page.
               </Alert>
               <form className="space-y-4" onSubmit={onSubmit} noValidate>
                 <FormField label="Full name" htmlFor="signup-name" required>
@@ -102,7 +102,6 @@ export default function SignUpPage() {
                     onChange={(e) => setName(e.target.value)}
                     autoComplete="name"
                     required
-                    disabled={pending}
                   />
                 </FormField>
                 <FormField label="Work email" htmlFor="signup-email" required>
@@ -113,43 +112,37 @@ export default function SignUpPage() {
                     onChange={(e) => setEmail(e.target.value)}
                     autoComplete="email"
                     required
-                    disabled={pending}
                   />
                 </FormField>
                 <FormField
-                  label="Proposed password"
-                  htmlFor="signup-password"
-                  required
+                  label="Organization"
+                  htmlFor="signup-org"
+                  hint="Optional"
                 >
-                  <PasswordInput
-                    id="signup-password"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    autoComplete="new-password"
-                    required
-                    disabled={pending}
+                  <Input
+                    id="signup-org"
+                    value={organization}
+                    onChange={(e) => setOrganization(e.target.value)}
+                    autoComplete="organization"
                   />
                 </FormField>
-                <PasswordStrengthMeter password={password} />
                 <FormField
-                  label="Confirm password"
-                  htmlFor="signup-confirm"
-                  required
+                  label="Reason for access"
+                  htmlFor="signup-reason"
+                  hint="Optional"
                 >
-                  <PasswordInput
-                    id="signup-confirm"
-                    value={confirm}
-                    onChange={(e) => setConfirm(e.target.value)}
-                    autoComplete="new-password"
-                    required
-                    disabled={pending}
+                  <Textarea
+                    id="signup-reason"
+                    value={reason}
+                    onChange={(e) => setReason(e.target.value)}
+                    rows={3}
                   />
                 </FormField>
                 {error ? (
                   <ValidationMessage tone="error">{error}</ValidationMessage>
                 ) : null}
-                <Button type="submit" className="w-full" disabled={pending}>
-                  {pending ? "Submitting…" : "Submit access request"}
+                <Button type="submit" className="w-full">
+                  Prepare access details
                 </Button>
               </form>
             </>
@@ -164,13 +157,9 @@ export default function SignUpPage() {
             </Link>
           </p>
           <p className="text-xs text-[var(--muted)]">
-            Sales:{" "}
-            <a
-              className="text-[var(--accent)] underline"
-              href={`mailto:${SUPPORT_CONTACT.salesEmail}`}
-            >
-              {SUPPORT_CONTACT.salesEmail}
-            </a>
+            {SUPPORT_CONTACT.channelsPublished
+              ? `Sales: ${SUPPORT_CONTACT.salesEmail}`
+              : SUPPORT_CONTACT.unpublishedNote}
           </p>
         </Stack>
       </AuthCard>

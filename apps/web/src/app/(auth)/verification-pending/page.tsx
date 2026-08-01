@@ -13,35 +13,33 @@ export default function VerificationPendingPage() {
   return (
     <AuthShell>
       <AuthCard
-        title="Verification pending"
-        description="Your account access is waiting on administrator action or email confirmation."
+        title="Access pending"
+        description="Waiting on administrator provisioning — not an automated verification queue."
       >
         <Stack gap={4}>
           <EmptyState
-            title="Nothing to verify yet"
-            description="Data unavailable for automated status. If you just requested access, wait for your administrator. If you already have a code, continue to email verification."
+            title="Administrator action required"
+            description="Data unavailable for automated verification status. If you requested access, wait for your administrator to provision the account, then sign in."
             action={
               <div className="flex flex-wrap justify-center gap-2">
-                <Link href="/verify-email">
-                  <Button>Enter verification code</Button>
-                </Link>
                 <Link href="/login">
-                  <Button variant="secondary">Sign in</Button>
+                  <Button>Sign in</Button>
+                </Link>
+                <Link href="/signup">
+                  <Button variant="secondary">Request access details</Button>
                 </Link>
               </div>
             }
           />
           <Alert variant="info" title="What happens next">
-            Provisioning and email confirmation are organisation-controlled in
-            this release. Contact{" "}
-            <a
-              className="underline"
-              href={`mailto:${SUPPORT_CONTACT.email}`}
-            >
-              {SUPPORT_CONTACT.email}
-            </a>{" "}
-            if you are blocked longer than expected.
+            Provisioning is organisation-controlled in this release. There is no
+            email-verification service to poll.
           </Alert>
+          <p className="text-xs text-[var(--muted)]">
+            {SUPPORT_CONTACT.channelsPublished
+              ? `Support: ${SUPPORT_CONTACT.email}`
+              : SUPPORT_CONTACT.unpublishedNote}
+          </p>
         </Stack>
       </AuthCard>
     </AuthShell>

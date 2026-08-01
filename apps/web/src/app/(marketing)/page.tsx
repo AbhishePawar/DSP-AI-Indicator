@@ -8,6 +8,7 @@ export const metadata: Metadata = {
   alternates: { canonical: "/" },
 };
 
+/** RC3-002 — No fake free Offer. Pricing is not publicly purchasable on this release. */
 const jsonLd = {
   "@context": "https://schema.org",
   "@type": "SoftwareApplication",
@@ -15,12 +16,7 @@ const jsonLd = {
   applicationCategory: "FinanceApplication",
   operatingSystem: "Web",
   description:
-    "Institutional investment research platform with explainability, governed AI, and Research Mode.",
-  offers: {
-    "@type": "Offer",
-    price: "0",
-    priceCurrency: "USD",
-  },
+    "Institutional investment research platform with explainability, governed AI, and Research Mode. Access is administrator-provisioned; pricing is not offered as a public checkout on this release.",
 };
 
 export default function MarketingHomePage() {

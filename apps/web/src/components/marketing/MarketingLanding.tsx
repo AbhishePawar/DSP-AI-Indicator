@@ -18,8 +18,10 @@ import { Section } from "./Section";
 
 function formatPrice(edition: (typeof PRODUCT_EDITIONS)[number]): string {
   if (edition.monthlyPriceUsd === null) return "Contact for access";
-  if (edition.monthlyPriceUsd === 0) return "Illustrative · Free tier sketch";
-  return `Illustrative · $${edition.monthlyPriceUsd}/mo`;
+  if (edition.monthlyPriceUsd === 0) {
+    return "Illustrative · not available for purchase";
+  }
+  return `Illustrative · $${edition.monthlyPriceUsd}/mo · not available for purchase`;
 }
 
 export function MarketingLanding() {
@@ -59,7 +61,7 @@ export function MarketingLanding() {
               href="/login"
               className="inline-flex min-h-11 items-center rounded-[var(--radius-sm)] bg-[var(--accent)] px-5 py-2.5 text-sm font-medium text-[var(--accent-fg)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent)]"
             >
-              Enter platform
+              Sign in
             </Link>
             <Link
               href="/#trust"
@@ -236,7 +238,7 @@ export function MarketingLanding() {
         id="pricing"
         eyebrow="Pricing"
         title="Editions for desks of every scale"
-        lead="Commercial packaging for research use. Full matrix available on the pricing page."
+        lead="Illustrative edition packaging for planning only — not available for public purchase on this release."
       >
         <p
           role="note"
@@ -307,8 +309,8 @@ export function MarketingLanding() {
       <Section
         id="auth"
         eyebrow="Access"
-        title="Authentication entry"
-        lead="Sign in to the research platform. Sessions use the existing auth architecture — no parallel login stack."
+        title="Sign in or request access"
+        lead="Provisioned users can sign in. New desks prepare an access request for their administrator — accounts are not self-registered."
       >
         <div className="flex flex-wrap gap-3">
           <Link
@@ -318,18 +320,16 @@ export function MarketingLanding() {
             Sign in
           </Link>
           <Link
-            href="/contact"
+            href="/signup"
             className="inline-flex min-h-11 items-center rounded-[var(--radius-sm)] border border-[var(--border)] px-5 py-2.5 text-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent)]"
           >
-            {SUPPORT_CONTACT.channelsPublished
-              ? `Contact sales (${SUPPORT_CONTACT.salesEmail})`
-              : "Request access"}
+            Request access
           </Link>
           <Link
-            href="/dashboard"
+            href="/contact"
             className="inline-flex min-h-11 items-center px-2 text-sm text-[var(--muted)] underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent)]"
           >
-            Go to dashboard
+            Contact
           </Link>
         </div>
       </Section>

@@ -20,10 +20,14 @@ describe("authValidation", () => {
     );
   });
 
-  it("maps rate-limit and credential errors", () => {
+  it("maps rate-limit and credential errors to user-facing copy", () => {
     expect(mapAuthError(new Error("429 too many"))).toMatch(/Too many attempts/i);
     expect(mapAuthError(new Error("Invalid credentials"))).toMatch(
-      /not accepted/i,
+      /Unable to sign in/i,
+    );
+    expect(mapAuthError(new Error("POST /api/v1/auth/rbac/login failed"))).not.toMatch(
+      /\/api\//i,
     );
   });
 });
+

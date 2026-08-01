@@ -392,15 +392,15 @@ Initial institutional definition for REP-002.
 
 ## Definition
 
-> TODO
+A security is a tradable financial instrument that represents ownership, debt, contractual rights, or other legally recognized financial interests. Within DSP AI Indicator, securities are primary research objects used for valuation, portfolio analysis, market research, and investment decision support.
 
 ## Purpose
 
-> TODO
+Securities provide the central financial objects through which markets allocate capital, investors participate in economic growth, and research models evaluate investment opportunities.
 
 ## Why It Matters
 
-> TODO
+Most analytical workflows within DSP AI Indicator ultimately evaluate one or more securities. Correctly representing securities enables consistent valuation, portfolio construction, performance analysis, risk assessment, and recommendation generation.
 
 ---
 
@@ -408,11 +408,25 @@ Initial institutional definition for REP-002.
 
 ## Characteristics
 
-> TODO
+A security should be:
+
+- Legally recognized
+- Tradable or transferable where applicable
+- Uniquely identifiable
+- Associated with one or more organizations
+- Governed by market regulations
+- Supported by authoritative market data
 
 ## What It Is Not
 
-> TODO
+A security is not:
+
+- An organization
+- A financial statement
+- A dataset
+- A metric
+- A document
+- A market event
 
 ---
 
@@ -420,15 +434,35 @@ Initial institutional definition for REP-002.
 
 ## Evidence Requirements
 
-> TODO
+Security definitions should be supported by:
+
+- Exchange listings
+- Regulatory records
+- Official identifiers
+- Market data providers
+- Corporate disclosures
+- Verified financial databases
 
 ## Confidence Drivers
 
-> TODO
+Confidence increases when:
+
+- Exchange information is verified.
+- Official identifiers are consistent.
+- Regulatory data is available.
+- Market information is authoritative.
+- Independent data providers agree.
 
 ## Validation
 
-> TODO
+Securities are validated through:
+
+- Identifier verification
+- Exchange confirmation
+- Regulatory consistency
+- Duplicate detection
+- Historical continuity
+- Relationship integrity
 
 ---
 
@@ -436,15 +470,31 @@ Initial institutional definition for REP-002.
 
 ## Related Concepts
 
-> TODO
+- RO-001 Entity
+- RO-002 Organization
+- CP-001 Truth
+- CP-002 Evidence
+- CP-007 Confidence
 
 ## Dependencies
 
-> TODO
+Depends on:
+
+- Book 01 — Core Principles
+- RO-001 Entity
+- RO-002 Organization
 
 ## Successor Concepts
 
-> TODO
+Supports:
+
+- Valuation
+- Portfolio
+- Risk
+- Performance
+- Financial Statements
+- Market Data
+- Investment Research
 
 ---
 
@@ -452,15 +502,23 @@ Initial institutional definition for REP-002.
 
 ## Research Implication
 
-> TODO
+Every investable financial instrument represented within DSP AI Indicator shall be modeled as a security with traceable identifiers, organizational relationships, market metadata, and supporting evidence.
 
 ## Examples
 
-> TODO
+Examples include:
+
+- Common shares
+- Preferred shares
+- Exchange traded funds
+- Mutual fund units
+- Bonds
+- REIT units
+- Infrastructure investment trusts
 
 ## Limitations
 
-> TODO
+A security definition establishes financial identity only. Valuation, investment quality, expected returns, and recommendations are determined through separate analytical engines and ontology concepts.
 
 ---
 
@@ -476,4 +534,4 @@ Created By: DSP Research Team
 
 ## Review Notes
 
-> TODO
+Initial institutional definition for REP-002.

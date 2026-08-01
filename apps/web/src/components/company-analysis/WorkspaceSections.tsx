@@ -66,14 +66,14 @@ export function SummarySection({
       />
       <SectionCard
         title="Executive Summary"
-        description="Institutional summary from /api/v1/analyse — Research Mode display"
+        description="Institutional summary from /api/v1/analyse — Research Mode · research before recommendation"
       >
         <dl>
           <FieldRow
-            label="Overall conclusion"
+            label="Institutional summary"
             value={view.committeeDecision || view.recommendation}
           />
-          <FieldRow label="Recommendation state" value={view.recommendation} />
+          <FieldRow label="Recommendation" value={view.recommendation} />
           <FieldRow
             label="Confidence"
             value={formatPct(view.recommendationConfidence)}
@@ -89,6 +89,7 @@ export function SummarySection({
           />
         </dl>
       </SectionCard>
+      <TrustLadderCard view={view} />
       <ListBlock title="Key positives" items={view.strengths} />
       <ListBlock title="Key risks" items={view.risks} />
       <AnalystNotesCard symbol={view.ticker} />
@@ -110,6 +111,65 @@ export function SummarySection({
   );
 }
 
+function TrustLadderCard({ view }: { view: ResearchView }) {
+  return (
+    <SectionCard
+      title="Research ladder"
+      description="DSP Trust Standard — Observed Facts → Analysis → Inference → Recommendation. Epistemic categories shown per layer."
+    >
+      <div className="mb-3 flex flex-wrap gap-2" aria-label="Epistemic categories">
+        <Badge variant="outline">Verified / Observed</Badge>
+        <Badge variant="outline">Calculated</Badge>
+        <Badge variant="outline">AI / Committee</Badge>
+        <Badge variant="accent">Research Mode</Badge>
+      </div>
+      <ol className="space-y-3 text-sm">
+        <li className="rounded-[var(--radius-md)] border border-[var(--border)] px-3 py-2">
+          <p className="text-xs font-medium uppercase tracking-wide text-[var(--muted)]">
+            1 · Observed facts · Verified / market signals
+          </p>
+          <p className="mt-1">
+            Price {view.valuation.currentPrice} · Coverage{" "}
+            {view.ok ? "analyse succeeded" : "incomplete / failed"} · Stages{" "}
+            {view.stages.length || "Data unavailable."}
+          </p>
+        </li>
+        <li className="rounded-[var(--radius-md)] border border-[var(--border)] px-3 py-2">
+          <p className="text-xs font-medium uppercase tracking-wide text-[var(--muted)]">
+            2 · Analysis · Calculated stage outputs
+          </p>
+          <p className="mt-1">
+            Quality {view.businessQualityLabel} · Moat {view.moat.label} · MoS{" "}
+            {view.valuation.marginOfSafety}
+          </p>
+        </li>
+        <li className="rounded-[var(--radius-md)] border border-[var(--border)] px-3 py-2">
+          <p className="text-xs font-medium uppercase tracking-wide text-[var(--muted)]">
+            3 · Inference · AI Committee
+          </p>
+          <p className="mt-1">
+            Committee {view.committeeDecision} · Confidence{" "}
+            {formatPct(view.committeeConfidence)}
+          </p>
+        </li>
+        <li className="rounded-[var(--radius-md)] border border-[var(--border)] px-3 py-2">
+          <p className="text-xs font-medium uppercase tracking-wide text-[var(--muted)]">
+            4 · Recommendation · Research Mode
+          </p>
+          <p className="mt-1">
+            {view.recommendation} · Confidence{" "}
+            {formatPct(view.recommendationConfidence)}
+          </p>
+          <p className="mt-1 text-xs text-[var(--muted)]">
+            Educational investigation — not personalised investment advice.
+            Confidence always shown; missing fields remain Data unavailable.
+          </p>
+        </li>
+      </ol>
+    </SectionCard>
+  );
+}
+
 function AnalystNotesCard({ symbol }: { symbol: string }) {
   const allNotes = useWorkspacePrefsStore((s) => s.notes);
   const addNote = useWorkspacePrefsStore((s) => s.addNote);
@@ -120,8 +180,8 @@ function AnalystNotesCard({ symbol }: { symbol: string }) {
 
   return (
     <SectionCard
-      title="Analyst notes"
-      description="Local workspace notes — not sent to the analyse API"
+      title="Research notes"
+      description="Local workspace notes — User category · not sent to the analyse API"
     >
       <form
         className="flex flex-col gap-2 sm:flex-row"
@@ -227,20 +287,48 @@ export function ResearchSection({ view }: { view: ResearchView }) {
   );
 }
 
+function valuationMethodValue(
+  methods: ResearchView["valuationTransparency"]["methods"],
+  names: string[],
+): string {
+  for (const name of names) {
+    const exact = methods.find(
+      (m) => m.methodName.toLowerCase() === name.toLowerCase(),
+    );
+    if (exact) {
+      return exact.intrinsicValue !== "Unavailable"
+        ? exact.intrinsicValue
+        : exact.status;
+    }
+  }
+  for (const name of names) {
+    const fuzzy = methods.find((m) =>
+      m.methodName.toLowerCase().includes(name.toLowerCase()),
+    );
+    if (fuzzy) {
+      return fuzzy.intrinsicValue !== "Unavailable"
+        ? fuzzy.intrinsicValue
+        : fuzzy.status;
+    }
+  }
+  return "Unavailable";
+}
+
 export function ValuationSection({ view }: { view: ResearchView }) {
   const valuationStage = view.stages.find((s) => s.stage === "valuation");
   const vt = view.valuationTransparency;
-  const dcf = vt.methods.find((m) =>
-    m.methodName.toLowerCase().includes("dcf"),
-  );
-  const relative = vt.methods.find((m) =>
-    m.methodName.toLowerCase().includes("relative"),
-  );
+  const dcf = valuationMethodValue(vt.methods, ["DCF"]);
+  const relative = valuationMethodValue(vt.methods, ["Relative Valuation", "Relative"]);
+  const residual = valuationMethodValue(vt.methods, [
+    "Residual Income",
+    "Residual",
+  ]);
+  const epv = valuationMethodValue(vt.methods, ["EPV"]);
   return (
     <div className="space-y-4">
       <SectionCard
         title="Valuation"
-        description="Values from analyse signals and valuation transparency — no client math"
+        description="Mapped engine outputs only — no client recalculation. Missing methods show Data unavailable."
       >
         <dl>
           <FieldRow label="Intrinsic Value" value={view.valuation.intrinsicValue} />
@@ -249,16 +337,10 @@ export function ValuationSection({ view }: { view: ResearchView }) {
             label="Margin of Safety"
             value={view.valuation.marginOfSafety}
           />
-          <FieldRow
-            label="DCF"
-            value={dcf?.intrinsicValue ?? dcf?.status ?? "Unavailable"}
-          />
-          <FieldRow
-            label="Relative Valuation"
-            value={
-              relative?.intrinsicValue ?? relative?.status ?? "Unavailable"
-            }
-          />
+          <FieldRow label="DCF" value={dcf} />
+          <FieldRow label="Relative Valuation" value={relative} />
+          <FieldRow label="Residual Income" value={residual} />
+          <FieldRow label="EPV" value={epv} />
           <FieldRow
             label="Overall Valuation"
             value={
@@ -319,29 +401,23 @@ export function QualitySection({ view }: { view: ResearchView }) {
         description="Aggregator and related stage outputs — dedicated Moat/Management/Risk sections for detail"
       >
         <dl>
-          <FieldRow label="Business Quality score" value={bq.score} />
+          <FieldRow label="Overall score" value={bq.score} />
           <FieldRow label="Label" value={bq.label} />
           <FieldRow
-            label="Capital allocation"
+            label="Capital Allocation Quality"
             value={view.management.label}
           />
           <FieldRow
-            label="Reinvestment"
+            label="Reinvestment Opportunity"
             value={
               view.growth.label !== "Unavailable"
                 ? view.growth.label
                 : view.growth.decision
             }
           />
-          <FieldRow
-            label="Operating discipline"
-            value={view.earnings.label}
-          />
-          <FieldRow
-            label="Industry structure"
-            value={view.moat.decision}
-          />
-          <FieldRow label="Franchise durability" value={view.moat.label} />
+          <FieldRow label="Operating Discipline" value={view.earnings.label} />
+          <FieldRow label="Industry Structure" value={view.moat.decision} />
+          <FieldRow label="Franchise Durability" value={view.moat.label} />
           <FieldRow label="Confidence" value={bq.confidence} />
         </dl>
       </SectionCard>
@@ -551,7 +627,7 @@ export function ExportSection({ view }: { view: ResearchView }) {
     <div className="space-y-4">
       <SectionCard
         title="Downloads"
-        description="PDF, research report, share link, and print — mapped fields only"
+        description="PDF, research report, share link, and print — mapped fields only · no recalculation"
       >
         <div className="flex flex-wrap gap-2">
           <Button

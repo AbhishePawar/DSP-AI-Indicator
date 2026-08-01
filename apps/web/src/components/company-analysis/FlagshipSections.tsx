@@ -58,19 +58,38 @@ export function ManagementSection({ view }: { view: ResearchView }) {
     <div className="space-y-4">
       <SectionCard
         title="Management"
-        description="Mapped from management_quality stage — no client scoring"
+        description="REP-002 Book 05 labels — values from management_quality stage only; never invent sub-scores"
       >
         <dl>
-          <FieldRow label="Management quality" value={m.label} />
-          <FieldRow label="Governance" value={m.decision} />
+          <FieldRow label="Management Quality" value={m.label} />
+          <FieldRow
+            label="Corporate Governance"
+            value={
+              metricValue(m, "Corporate Governance") !== "Unavailable"
+                ? metricValue(m, "Corporate Governance")
+                : m.decision
+            }
+          />
           <FieldRow label="Integrity" value={metricValue(m, "Integrity")} />
           <FieldRow
-            label="Capital allocation discipline"
-            value={metricValue(m, "Capital Allocation") || m.score}
+            label="Execution Capability"
+            value={
+              metricValue(m, "Execution Capability") !== "Unavailable"
+                ? metricValue(m, "Execution Capability")
+                : metricValue(m, "Execution")
+            }
           />
           <FieldRow
-            label="Shareholder orientation"
+            label="Shareholder Orientation"
             value={metricValue(m, "Shareholder Orientation")}
+          />
+          <FieldRow
+            label="Leadership Quality"
+            value={
+              metricValue(m, "Leadership Quality") !== "Unavailable"
+                ? metricValue(m, "Leadership Quality")
+                : metricValue(m, "Leadership")
+            }
           />
           <FieldRow label="Confidence" value={m.confidence} />
           <FieldRow label="Stage status" value={m.status} />
@@ -90,30 +109,49 @@ export function MoatSection({ view }: { view: ResearchView }) {
     <div className="space-y-4">
       <SectionCard
         title="Economic Moat"
-        description="Mapped from economic_moat stage outputs"
+        description="REP-002 Book 06 labels — values from economic_moat stage only"
       >
         <dl>
-          <FieldRow label="Moat label" value={moat.label} />
-          <FieldRow label="Brand" value={metricValue(moat, "Brand")} />
+          <FieldRow label="Economic Moat" value={moat.label} />
           <FieldRow
-            label="Switching Costs"
-            value={metricValue(moat, "Switching Costs")}
+            label="Brand Strength"
+            value={
+              metricValue(moat, "Brand Strength") !== "Unavailable"
+                ? metricValue(moat, "Brand Strength")
+                : metricValue(moat, "Brand")
+            }
           />
           <FieldRow
             label="Network Effects"
             value={metricValue(moat, "Network Effects")}
           />
           <FieldRow
-            label="Distribution"
-            value={metricValue(moat, "Distribution")}
+            label="Switching Costs"
+            value={metricValue(moat, "Switching Costs")}
           />
           <FieldRow
-            label="Cost Advantage"
-            value={metricValue(moat, "Cost Advantage")}
+            label="Distribution Advantage"
+            value={
+              metricValue(moat, "Distribution Advantage") !== "Unavailable"
+                ? metricValue(moat, "Distribution Advantage")
+                : metricValue(moat, "Distribution")
+            }
           />
           <FieldRow
-            label="Moat durability"
-            value={moat.decision || metricValue(moat, "Durability")}
+            label="Cost-Based Moat"
+            value={
+              metricValue(moat, "Cost-Based Moat") !== "Unavailable"
+                ? metricValue(moat, "Cost-Based Moat")
+                : metricValue(moat, "Cost Advantage")
+            }
+          />
+          <FieldRow
+            label="Moat Durability"
+            value={
+              metricValue(moat, "Moat Durability") !== "Unavailable"
+                ? metricValue(moat, "Moat Durability")
+                : moat.decision || metricValue(moat, "Durability")
+            }
           />
           <FieldRow label="Score" value={moat.score} />
           <FieldRow label="Confidence" value={moat.confidence} />
@@ -130,11 +168,17 @@ export function RiskSection({ view }: { view: ResearchView }) {
     <div className="space-y-4">
       <SectionCard
         title="Risk"
-        description="Risk notes and financial_strength stage — honest empty when fields absent"
+        description="REP-002 Book 07 concept labels. Sub-dimensions show Data unavailable unless present on analyse stage summaries — never alias another stage’s label as a risk type."
       >
         <dl>
-          <FieldRow label="Business Risk" value={fs.label} />
-          <FieldRow label="Financial Risk" value={fs.decision} />
+          <FieldRow
+            label="Business Risk"
+            value={metricValue(fs, "Business Risk")}
+          />
+          <FieldRow
+            label="Financial Risk"
+            value={metricValue(fs, "Financial Risk")}
+          />
           <FieldRow
             label="Operational Risk"
             value={metricValue(fs, "Operational Risk")}
@@ -151,8 +195,6 @@ export function RiskSection({ view }: { view: ResearchView }) {
             label="Margin of Safety"
             value={view.valuation.marginOfSafety}
           />
-          <FieldRow label="Strength score" value={fs.score} />
-          <FieldRow label="Confidence" value={fs.confidence} />
         </dl>
       </SectionCard>
       <ListBlock
@@ -161,7 +203,10 @@ export function RiskSection({ view }: { view: ResearchView }) {
         items={view.risks}
       />
       <ListBlock title="Weaknesses" items={view.weaknesses} />
-      <StageSectionCard title="Financial strength stage" section={fs} />
+      <StageSectionCard
+        title="Financial strength stage (related, not a Book 07 alias)"
+        section={fs}
+      />
     </div>
   );
 }
@@ -180,10 +225,10 @@ export function FinancialSection({ view }: { view: ResearchView }) {
           <FieldRow label="Revenue" value={metricValue(fin, "Revenue")} />
           <FieldRow label="Profit" value={metricValue(fin, "Profit")} />
           <FieldRow label="Cash Flow" value={metricValue(fin, "Cash Flow")} />
+          <FieldRow label="Margins" value={metricValue(fin, "Margins")} />
+          <FieldRow label="Debt" value={metricValue(fin, "Debt")} />
           <FieldRow label="ROE" value={metricValue(fin, "ROE")} />
           <FieldRow label="ROCE" value={metricValue(fin, "ROCE")} />
-          <FieldRow label="Debt" value={metricValue(fin, "Debt")} />
-          <FieldRow label="Margins" value={metricValue(fin, "Margins")} />
           <FieldRow label="Financial label" value={fin.label} />
           <FieldRow label="Financial score" value={fin.score} />
           <FieldRow label="Confidence" value={fin.confidence} />
@@ -204,10 +249,15 @@ export function FinancialSection({ view }: { view: ResearchView }) {
 export function ExplainabilitySection({ view }: { view: ResearchView }) {
   const modules = view.explainability.modules;
   const first = modules[0];
+  const contradictory = [
+    ...view.committee.opposingReasons,
+    ...view.weaknesses,
+    ...view.risks,
+  ];
   return (
     <div className="space-y-4">
       <SectionCard
-        title="Why recommendation?"
+        title="Reasoning path"
         description={view.explainability.disclaimer}
       >
         <dl>
@@ -227,7 +277,7 @@ export function ExplainabilitySection({ view }: { view: ResearchView }) {
         </dl>
       </SectionCard>
       <SectionCard
-        title="Evidence chain & reasoning path"
+        title="Evidence chain"
         description="Expandable module explainability — presentation map only"
       >
         {modules.length === 0 ? (
@@ -252,9 +302,14 @@ export function ExplainabilitySection({ view }: { view: ResearchView }) {
         )}
       </SectionCard>
       <ListBlock
-        title="Sources"
-        description="Stage strengths used as citation proxies"
+        title="Primary sources"
+        description="Stage strengths used as citation proxies — Calculated/AI categories only when present on response"
         items={view.strengths}
+      />
+      <ListBlock
+        title="Contradictory evidence"
+        description="Opposing committee notes, weaknesses, and risks — never omitted when present"
+        items={contradictory}
       />
     </div>
   );
@@ -264,8 +319,8 @@ export function EvidenceSection({ view }: { view: ResearchView }) {
   return (
     <div className="space-y-4">
       <SectionCard
-        title="Supporting Evidence"
-        description="Evidence cards from mapped analyse outputs — no fabricated filings"
+        title="Research objects"
+        description="Mapped analyse metadata — no fabricated filings or documents"
       >
         <dl>
           <FieldRow label="Correlation ID" value={view.correlationId} />
@@ -277,7 +332,7 @@ export function EvidenceSection({ view }: { view: ResearchView }) {
           />
         </dl>
       </SectionCard>
-      <ListBlock title="Evidence cards (stage strengths)" items={view.strengths} />
+      <ListBlock title="Evidence cards" items={view.strengths} />
       <ListBlock title="Research object warnings" items={view.warnings} />
       <SectionCard title="Documents">
         <WorkspaceEmpty description="Data unavailable. Document attachments are not exposed on the frozen analyse contract." />

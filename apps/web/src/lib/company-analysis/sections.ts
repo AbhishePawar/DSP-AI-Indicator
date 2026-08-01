@@ -111,7 +111,7 @@ export const ANALYSIS_SECTIONS: readonly AnalysisSectionMeta[] = [
   {
     id: "export",
     label: "Downloads",
-    description: "Export and print mapped outputs",
+    description: "PDF, research report, print, and share",
     shortcut: "0",
   },
   {

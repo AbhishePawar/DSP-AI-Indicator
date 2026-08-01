@@ -113,6 +113,35 @@ function resolveCatalogue(ticker: string) {
   );
 }
 
+function describeAnalyseError(error: unknown): string {
+  if (error instanceof ApiClientError) {
+    if (error.status === 401) {
+      return "Permission denied — sign in required for /api/v1/analyse. No fabricated research is shown.";
+    }
+    if (error.status === 403) {
+      return "Permission denied — this account cannot run analyse for the requested symbol.";
+    }
+    if (error.status === 404) {
+      return "No coverage — analyse returned not found for this symbol. Data unavailable.";
+    }
+    if (error.status === 408 || error.status === 504) {
+      return "Network timeout — the analyse request did not complete. Retry when the API is available.";
+    }
+    if (error.status >= 500) {
+      return `API unavailable (${error.status}) — ${error.message}. Data unavailable.`;
+    }
+    return error.message || "Data unavailable.";
+  }
+  if (error instanceof Error) {
+    const msg = error.message.toLowerCase();
+    if (msg.includes("timeout") || msg.includes("network")) {
+      return "Network timeout or connectivity failure — Data unavailable. Retry when online.";
+    }
+    return error.message;
+  }
+  return "Data unavailable.";
+}
+
 function SectionFallback() {
   return (
     <div role="status" aria-live="polite" className="space-y-3">
@@ -339,11 +368,7 @@ export function CompanyAnalysisWorkspace() {
           {analyseMutation.isError && !view ? (
             <ErrorState
               title="Analysis failed"
-              description={
-                analyseMutation.error instanceof Error
-                  ? analyseMutation.error.message
-                  : "Data unavailable."
-              }
+              description={describeAnalyseError(analyseMutation.error)}
               action={
                 <Button size="sm" variant="secondary" onClick={runAnalyse}>
                   Retry

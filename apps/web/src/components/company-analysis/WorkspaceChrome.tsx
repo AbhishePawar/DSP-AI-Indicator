@@ -44,6 +44,7 @@ export function CompanyHeaderBar({
       : view?.committeeConfidence != null
         ? formatPct(view.committeeConfidence)
         : null;
+  const sharePath = `/analysis?symbol=${encodeURIComponent(symbol)}`;
 
   return (
     <SectionCard
@@ -73,17 +74,37 @@ export function CompanyHeaderBar({
               Compare
             </Button>
           </Link>
+          <Button
+            size="sm"
+            variant="ghost"
+            aria-label="Copy share link for this analysis"
+            onClick={async () => {
+              const url =
+                typeof window !== "undefined"
+                  ? `${window.location.origin}${sharePath}`
+                  : sharePath;
+              try {
+                await navigator.clipboard.writeText(url);
+              } catch {
+                /* clipboard may be denied */
+              }
+            }}
+          >
+            Share
+          </Button>
         </div>
       }
     >
       <dl className="grid gap-x-6 sm:grid-cols-2 lg:grid-cols-3">
+        <FieldRow label="Company" value={company} />
+        <FieldRow label="Ticker" value={symbol} />
         <FieldRow label="Exchange" value={exchange} />
         <FieldRow label="Sector" value={catalogue?.sector} />
         <FieldRow label="Industry" value={catalogue?.industry} />
         <FieldRow label="Market Cap" value={catalogue?.marketCap} />
-        <FieldRow label="Coverage status" value={coverage} />
-        <FieldRow label="Last updated" value={lastUpdated} />
-        <FieldRow label="Research confidence" value={researchConfidence} />
+        <FieldRow label="Coverage" value={coverage} />
+        <FieldRow label="Research timestamp" value={lastUpdated} />
+        <FieldRow label="Confidence" value={researchConfidence} />
         <FieldRow label="Market status" value={marketStatus} />
       </dl>
     </SectionCard>

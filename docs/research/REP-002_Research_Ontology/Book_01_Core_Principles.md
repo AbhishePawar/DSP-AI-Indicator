@@ -2,9 +2,9 @@
 
 ## REP-002 — Research Ontology
 
-Version: 0.1.0
+Version: 1.0.0
 
-Status: Draft
+Status: Approved
 
 Owner: DSP Research Team
 
@@ -17,27 +17,49 @@ DSP Research Constitution v1.0
 
 ## Purpose
 
-<!-- Placeholder -->
+Define the foundational research language that governs how truth, evidence, facts, observations, assumptions, inferences, and confidence are distinguished and used across DSP AI Indicator.
 
 ## Scope
 
-<!-- Placeholder -->
+Core epistemological and analytical primitives required by every subsequent ontology book. This book does not define domain metrics, valuation methods, recommendation logic, APIs, or user-interface presentation.
 
-## Reserved Sections
+## Relationship to Later Books
 
-<!-- Placeholder: reserved structural sections for this book -->
+Book 01 is the base layer of REP-002. All later books must preserve Truth, Evidence, Fact, Observation, Assumption, Inference, and Confidence distinctions and must not redefine them.
+
+## Dependencies
+
+None. Book 01 has no ontology-book predecessors.
+
+## Book Status
+
+Approved
+
+## Version
+
+1.0.0
 
 ## Concepts
 
 ---
 
-# Concept ID
+# Concept Metadata
 
-CP-001
+| Field | Value |
+|---|---|
+| Concept ID | CP-001 |
+| Concept Name | Truth |
+| Category | Core Principle |
+| Ontology Book | Book 01 — Core Principles |
+| Status | Approved |
+| Version | 1.0.0 |
+| Author | DSP Research Team |
+| Reviewer | DSP Research Team |
+| Approved Date | 2026-08-01 |
 
-# Concept Name
+---
 
-Truth
+# Core Definition
 
 ## Definition
 
@@ -51,6 +73,10 @@ Truth establishes the foundation for every research activity within DSP AI Indic
 
 Consistent investment research is only possible when every analysis begins with an objective understanding of reality. Truth provides the foundation upon which evidence, analysis, valuation, recommendations, and validation are built.
 
+---
+
+# Characteristics
+
 ## Characteristics
 
 Truth should be:
@@ -63,7 +89,7 @@ Truth should be:
 - Time-aware
 - Independent of emotion
 
-## What Truth Is Not
+## What It Is Not
 
 Truth is not:
 
@@ -77,6 +103,10 @@ Truth is not:
 - Fear
 - AI speculation
 
+---
+
+# Evidence
+
 ## Evidence Requirements
 
 Truth should be supported by one or more of the following:
@@ -88,17 +118,6 @@ Truth should be supported by one or more of the following:
 - Reliable primary sources
 - Verifiable datasets
 
-## Related Concepts
-
-- Evidence
-- Fact
-- Observation
-- Validation
-- Confidence
-- Transparency
-- Explainability
-- Trust
-
 ## Confidence Drivers
 
 Confidence in truth increases when:
@@ -109,16 +128,6 @@ Confidence in truth increases when:
 - Data quality is high.
 - Results are reproducible.
 
-## Limitations
-
-Truth may be limited by:
-
-- Incomplete disclosures
-- Accounting judgement
-- Reporting delays
-- Fraud or manipulation
-- Unknown future events
-
 ## Validation
 
 Truth is validated through:
@@ -127,6 +136,47 @@ Truth is validated through:
 - Cross-source consistency
 - Reproducibility
 - Historical auditability
+
+---
+
+# Relationships
+
+## Related Concepts
+
+- CP-002 Evidence
+- CP-003 Fact
+- CP-004 Observation
+- CP-005 Assumption
+- CP-006 Inference
+- CP-007 Confidence
+- GV-002 Explainability
+- GV-007 Research Transparency
+
+## Dependencies
+
+Depends on:
+
+- None (base concept)
+
+## Successor Concepts
+
+Supports:
+
+- Evidence
+- Fact
+- Observation
+- Assumption
+- Inference
+- Confidence
+- All subsequent REP-002 books
+
+---
+
+# Research Guidance
+
+## Research Implication
+
+Every analytical conclusion within DSP AI Indicator must trace back to one or more verifiable sources of evidence. When evidence is insufficient, the platform must explicitly communicate uncertainty rather than present unsupported conclusions.
 
 ## Examples
 
@@ -140,17 +190,31 @@ Examples that are NOT Truth:
 
 "This stock will definitely double."
 
-## Research Implication
+## Limitations
 
-Every analytical conclusion within DSP AI Indicator must trace back to one or more verifiable sources of evidence. When evidence is insufficient, the platform must explicitly communicate uncertainty rather than present unsupported conclusions.
+Truth may be limited by:
+
+- Incomplete disclosures
+- Accounting judgement
+- Reporting delays
+- Fraud or manipulation
+- Unknown future events
+
+---
+
+# Governance
 
 ## Revision History
 
-Version: 0.1.0
+Version: 1.0.0
 
-Status: Draft
+Status: Approved
 
 Created By: DSP Research Team
+
+## Review Notes
+
+Normalized to Ontology Template Version 2 packaging for REP-002 v1.0.0 without altering the Truth definition.
 
 ---
 
@@ -162,11 +226,11 @@ Created By: DSP Research Team
 | Concept Name | Evidence |
 | Category | Core Principle |
 | Ontology Book | Book 01 — Core Principles |
-| Status | Draft |
-| Version | 0.1.0 |
+| Status | Approved |
+| Version | 1.0.0 |
 | Author | DSP Research Team |
-| Reviewer | TBD |
-| Approved Date | TBD |
+| Reviewer | DSP Research Team |
+| Approved Date | 2026-08-01 |
 
 ---
 
@@ -319,10 +383,9 @@ Evidence may be limited by:
 
 ## Revision History
 
-Version: 0.1.0
+Version: 1.0.0
 
-Status: Draft
-
+Status: Approved
 Created By: DSP Research Team
 
 ## Review Notes
@@ -339,11 +402,11 @@ Initial institutional definition for REP-002.
 | Concept Name | Fact |
 | Category | Core Principle |
 | Ontology Book | Book 01 — Core Principles |
-| Status | Draft |
-| Version | 0.1.0 |
+| Status | Approved |
+| Version | 1.0.0 |
 | Author | DSP Research Team |
-| Reviewer | TBD |
-| Approved Date | TBD |
+| Reviewer | DSP Research Team |
+| Approved Date | 2026-08-01 |
 
 ---
 
@@ -479,10 +542,9 @@ Facts may become outdated as new information becomes available. A fact reflects 
 
 ## Revision History
 
-Version: 0.1.0
+Version: 1.0.0
 
-Status: Draft
-
+Status: Approved
 Created By: DSP Research Team
 
 ## Review Notes
@@ -499,11 +561,11 @@ Initial institutional definition for REP-002.
 | Concept Name | Observation |
 | Category | Core Principle |
 | Ontology Book | Book 01 — Core Principles |
-| Status | Draft |
-| Version | 0.1.0 |
+| Status | Approved |
+| Version | 1.0.0 |
 | Author | DSP Research Team |
-| Reviewer | TBD |
-| Approved Date | TBD |
+| Reviewer | DSP Research Team |
+| Approved Date | 2026-08-01 |
 
 ---
 
@@ -643,10 +705,9 @@ Observations describe what is recorded at a particular point in time. They may b
 
 ## Revision History
 
-Version: 0.1.0
+Version: 1.0.0
 
-Status: Draft
-
+Status: Approved
 Created By: DSP Research Team
 
 ## Review Notes
@@ -663,11 +724,11 @@ Initial institutional definition for REP-002.
 | Concept Name | Assumption |
 | Category | Core Principle |
 | Ontology Book | Book 01 — Core Principles |
-| Status | Draft |
-| Version | 0.1.0 |
+| Status | Approved |
+| Version | 1.0.0 |
 | Author | DSP Research Team |
-| Reviewer | TBD |
-| Approved Date | TBD |
+| Reviewer | DSP Research Team |
+| Approved Date | 2026-08-01 |
 
 ---
 
@@ -810,10 +871,9 @@ Assumptions may prove incorrect as business conditions, markets, regulations, or
 
 ## Revision History
 
-Version: 0.1.0
+Version: 1.0.0
 
-Status: Draft
-
+Status: Approved
 Created By: DSP Research Team
 
 ## Review Notes
@@ -830,11 +890,11 @@ Initial institutional definition for REP-002.
 | Concept Name | Inference |
 | Category | Core Principle |
 | Ontology Book | Book 01 — Core Principles |
-| Status | Draft |
-| Version | 0.1.0 |
+| Status | Approved |
+| Version | 1.0.0 |
 | Author | DSP Research Team |
-| Reviewer | TBD |
-| Approved Date | TBD |
+| Reviewer | DSP Research Team |
+| Approved Date | 2026-08-01 |
 
 ---
 
@@ -977,10 +1037,9 @@ Inferences depend on the quality of available information and assumptions. Diffe
 
 ## Revision History
 
-Version: 0.1.0
+Version: 1.0.0
 
-Status: Draft
-
+Status: Approved
 Created By: DSP Research Team
 
 ## Review Notes
@@ -997,11 +1056,11 @@ Initial institutional definition for REP-002.
 | Concept Name | Confidence |
 | Category | Core Principle |
 | Ontology Book | Book 01 — Core Principles |
-| Status | Draft |
-| Version | 0.1.0 |
+| Status | Approved |
+| Version | 1.0.0 |
 | Author | DSP Research Team |
-| Reviewer | TBD |
-| Approved Date | TBD |
+| Reviewer | DSP Research Team |
+| Approved Date | 2026-08-01 |
 
 ---
 
@@ -1149,10 +1208,9 @@ Confidence represents the current strength of available evidence and reasoning. 
 
 ## Revision History
 
-Version: 0.1.0
+Version: 1.0.0
 
-Status: Draft
-
+Status: Approved
 Created By: DSP Research Team
 
 ## Review Notes

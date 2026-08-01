@@ -2,10 +2,9 @@
 
 ## REP-002 — Research Ontology
 
-Version: 0.1.0
+Version: 1.0.0
 
-Status: Draft
-
+Status: Approved
 Owner: DSP Research Team
 
 Governed By:
@@ -38,7 +37,7 @@ Book 07 consumes Book 01 — Core Principles, Book 02 — Research Objects, Book
 
 ## Book Status
 
-Draft
+Approved
 
 ## Version
 
@@ -56,11 +55,11 @@ Draft
 | Concept Name | Business Risk |
 | Category | Risk Concept |
 | Ontology Book | Book 07 — Risk |
-| Status | Draft |
-| Version | 0.1.0 |
+| Status | Approved |
+| Version | 1.0.0 |
 | Author | DSP Research Team |
-| Reviewer | TBD |
-| Approved Date | TBD |
+| Reviewer | DSP Research Team |
+| Approved Date | 2026-08-01 |
 
 ---
 
@@ -201,10 +200,9 @@ Business risk is partly judgmental and dynamic. Historical stability does not el
 
 ## Revision History
 
-Version: 0.1.0
+Version: 1.0.0
 
-Status: Draft
-
+Status: Approved
 Created By: DSP Research Team
 
 ## Review Notes
@@ -221,11 +219,11 @@ Initial institutional definition for REP-002.
 | Concept Name | Financial Risk |
 | Category | Risk Concept |
 | Ontology Book | Book 07 — Risk |
-| Status | Draft |
-| Version | 0.1.0 |
+| Status | Approved |
+| Version | 1.0.0 |
 | Author | DSP Research Team |
-| Reviewer | TBD |
-| Approved Date | TBD |
+| Reviewer | DSP Research Team |
+| Approved Date | 2026-08-01 |
 
 ---
 
@@ -366,10 +364,9 @@ Off-balance-sheet obligations and contingent claims can understate apparent fina
 
 ## Revision History
 
-Version: 0.1.0
+Version: 1.0.0
 
-Status: Draft
-
+Status: Approved
 Created By: DSP Research Team
 
 ## Review Notes
@@ -386,11 +383,11 @@ Initial institutional definition for REP-002.
 | Concept Name | Operational Risk |
 | Category | Risk Concept |
 | Ontology Book | Book 07 — Risk |
-| Status | Draft |
-| Version | 0.1.0 |
+| Status | Approved |
+| Version | 1.0.0 |
 | Author | DSP Research Team |
-| Reviewer | TBD |
-| Approved Date | TBD |
+| Reviewer | DSP Research Team |
+| Approved Date | 2026-08-01 |
 
 ---
 
@@ -529,10 +526,9 @@ Many operational risks are latent until an event occurs. Disclosure quality vari
 
 ## Revision History
 
-Version: 0.1.0
+Version: 1.0.0
 
-Status: Draft
-
+Status: Approved
 Created By: DSP Research Team
 
 ## Review Notes
@@ -549,11 +545,11 @@ Initial institutional definition for REP-002.
 | Concept Name | Industry Risk |
 | Category | Risk Concept |
 | Ontology Book | Book 07 — Risk |
-| Status | Draft |
-| Version | 0.1.0 |
+| Status | Approved |
+| Version | 1.0.0 |
 | Author | DSP Research Team |
-| Reviewer | TBD |
-| Approved Date | TBD |
+| Reviewer | DSP Research Team |
+| Approved Date | 2026-08-01 |
 
 ---
 
@@ -694,10 +690,9 @@ Industry boundaries can blur, and within-industry variance can be large. Industr
 
 ## Revision History
 
-Version: 0.1.0
+Version: 1.0.0
 
-Status: Draft
-
+Status: Approved
 Created By: DSP Research Team
 
 ## Review Notes
@@ -714,11 +709,11 @@ Initial institutional definition for REP-002.
 | Concept Name | Regulatory Risk |
 | Category | Risk Concept |
 | Ontology Book | Book 07 — Risk |
-| Status | Draft |
-| Version | 0.1.0 |
+| Status | Approved |
+| Version | 1.0.0 |
 | Author | DSP Research Team |
-| Reviewer | TBD |
-| Approved Date | TBD |
+| Reviewer | DSP Research Team |
+| Approved Date | 2026-08-01 |
 
 ---
 
@@ -857,10 +852,9 @@ Policy outcomes are uncertain and politically contingent. Apparent calm can prec
 
 ## Revision History
 
-Version: 0.1.0
+Version: 1.0.0
 
-Status: Draft
-
+Status: Approved
 Created By: DSP Research Team
 
 ## Review Notes
@@ -877,11 +871,11 @@ Initial institutional definition for REP-002.
 | Concept Name | Governance Risk |
 | Category | Risk Concept |
 | Ontology Book | Book 07 — Risk |
-| Status | Draft |
-| Version | 0.1.0 |
+| Status | Approved |
+| Version | 1.0.0 |
 | Author | DSP Research Team |
-| Reviewer | TBD |
-| Approved Date | TBD |
+| Reviewer | DSP Research Team |
+| Approved Date | 2026-08-01 |
 
 ---
 
@@ -1023,10 +1017,9 @@ Private board processes are often opaque. Formal governance codes can mask weak 
 
 ## Revision History
 
-Version: 0.1.0
+Version: 1.0.0
 
-Status: Draft
-
+Status: Approved
 Created By: DSP Research Team
 
 ## Review Notes
@@ -1043,11 +1036,11 @@ Initial institutional definition for REP-002.
 | Concept Name | Concentration Risk |
 | Category | Risk Concept |
 | Ontology Book | Book 07 — Risk |
-| Status | Draft |
-| Version | 0.1.0 |
+| Status | Approved |
+| Version | 1.0.0 |
 | Author | DSP Research Team |
-| Reviewer | TBD |
-| Approved Date | TBD |
+| Reviewer | DSP Research Team |
+| Approved Date | 2026-08-01 |
 
 ---
 
@@ -1187,10 +1180,9 @@ Disclosures may hide true concentration through aggregation. Apparent diversific
 
 ## Revision History
 
-Version: 0.1.0
+Version: 1.0.0
 
-Status: Draft
-
+Status: Approved
 Created By: DSP Research Team
 
 ## Review Notes
@@ -1207,11 +1199,11 @@ Initial institutional definition for REP-002.
 | Concept Name | Liquidity Risk |
 | Category | Risk Concept |
 | Ontology Book | Book 07 — Risk |
-| Status | Draft |
-| Version | 0.1.0 |
+| Status | Approved |
+| Version | 1.0.0 |
 | Author | DSP Research Team |
-| Reviewer | TBD |
-| Approved Date | TBD |
+| Reviewer | DSP Research Team |
+| Approved Date | 2026-08-01 |
 
 ---
 
@@ -1352,10 +1344,9 @@ Liquidity can disappear abruptly in crises. Historical average volumes may overs
 
 ## Revision History
 
-Version: 0.1.0
+Version: 1.0.0
 
-Status: Draft
-
+Status: Approved
 Created By: DSP Research Team
 
 ## Review Notes
@@ -1372,11 +1363,11 @@ Initial institutional definition for REP-002.
 | Concept Name | Currency Risk |
 | Category | Risk Concept |
 | Ontology Book | Book 07 — Risk |
-| Status | Draft |
-| Version | 0.1.0 |
+| Status | Approved |
+| Version | 1.0.0 |
 | Author | DSP Research Team |
-| Reviewer | TBD |
-| Approved Date | TBD |
+| Reviewer | DSP Research Team |
+| Approved Date | 2026-08-01 |
 
 ---
 
@@ -1516,10 +1507,9 @@ Hedge disclosures may be incomplete, and competitive FX effects are hard to isol
 
 ## Revision History
 
-Version: 0.1.0
+Version: 1.0.0
 
-Status: Draft
-
+Status: Approved
 Created By: DSP Research Team
 
 ## Review Notes
@@ -1536,11 +1526,11 @@ Initial institutional definition for REP-002.
 | Concept Name | Tail Risk |
 | Category | Risk Concept |
 | Ontology Book | Book 07 — Risk |
-| Status | Draft |
-| Version | 0.1.0 |
+| Status | Approved |
+| Version | 1.0.0 |
 | Author | DSP Research Team |
-| Reviewer | TBD |
-| Approved Date | TBD |
+| Reviewer | DSP Research Team |
+| Approved Date | 2026-08-01 |
 
 ---
 
@@ -1682,10 +1672,9 @@ Tail events are rare and hard to calibrate. Overemphasis can paralyze analysis; 
 
 ## Revision History
 
-Version: 0.1.0
+Version: 1.0.0
 
-Status: Draft
-
+Status: Approved
 Created By: DSP Research Team
 
 ## Review Notes
@@ -1702,11 +1691,11 @@ Initial institutional definition for REP-002.
 | Concept Name | Permanent Capital Loss |
 | Category | Risk Concept |
 | Ontology Book | Book 07 — Risk |
-| Status | Draft |
-| Version | 0.1.0 |
+| Status | Approved |
+| Version | 1.0.0 |
 | Author | DSP Research Team |
-| Reviewer | TBD |
-| Approved Date | TBD |
+| Reviewer | DSP Research Team |
+| Approved Date | 2026-08-01 |
 
 ---
 
@@ -1849,10 +1838,9 @@ Distinguishing temporary impairment from permanent loss can be difficult in real
 
 ## Revision History
 
-Version: 0.1.0
+Version: 1.0.0
 
-Status: Draft
-
+Status: Approved
 Created By: DSP Research Team
 
 ## Review Notes
@@ -1869,11 +1857,11 @@ Initial institutional definition for REP-002.
 | Concept Name | Margin of Safety |
 | Category | Risk Concept |
 | Ontology Book | Book 07 — Risk |
-| Status | Draft |
-| Version | 0.1.0 |
+| Status | Approved |
+| Version | 1.0.0 |
 | Author | DSP Research Team |
-| Reviewer | TBD |
-| Approved Date | TBD |
+| Reviewer | DSP Research Team |
+| Approved Date | 2026-08-01 |
 
 ---
 
@@ -2014,10 +2002,9 @@ Margin of safety reduces but does not eliminate risk. Excessive caution can also
 
 ## Revision History
 
-Version: 0.1.0
+Version: 1.0.0
 
-Status: Draft
-
+Status: Approved
 Created By: DSP Research Team
 
 ## Review Notes

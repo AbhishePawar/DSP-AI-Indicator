@@ -2,10 +2,9 @@
 
 ## REP-002 — Research Ontology
 
-Version: 0.1.0
+Version: 1.0.0
 
-Status: Draft
-
+Status: Approved
 Owner: DSP Research Team
 
 Governed By:
@@ -40,7 +39,7 @@ Book 10 consumes Books 01–08. Governance and AI Intelligence concepts must pre
 
 ## Book Status
 
-Draft
+Approved
 
 ## Version
 
@@ -58,11 +57,11 @@ Draft
 | Concept Name | AI Committee |
 | Category | Governance & AI Intelligence Concept |
 | Ontology Book | Book 10 — Governance & AI Intelligence |
-| Status | Draft |
-| Version | 0.1.0 |
+| Status | Approved |
+| Version | 1.0.0 |
 | Author | DSP Research Team |
-| Reviewer | TBD |
-| Approved Date | TBD |
+| Reviewer | DSP Research Team |
+| Approved Date | 2026-08-01 |
 
 ---
 
@@ -202,10 +201,9 @@ Committee process improves structure and challenge but cannot eliminate uncertai
 
 ## Revision History
 
-Version: 0.1.0
+Version: 1.0.0
 
-Status: Draft
-
+Status: Approved
 Created By: DSP Research Team
 
 ## Review Notes
@@ -222,11 +220,11 @@ Initial institutional definition for REP-002.
 | Concept Name | Explainability |
 | Category | Governance & AI Intelligence Concept |
 | Ontology Book | Book 10 — Governance & AI Intelligence |
-| Status | Draft |
-| Version | 0.1.0 |
+| Status | Approved |
+| Version | 1.0.0 |
 | Author | DSP Research Team |
-| Reviewer | TBD |
-| Approved Date | TBD |
+| Reviewer | DSP Research Team |
+| Approved Date | 2026-08-01 |
 
 ---
 
@@ -367,10 +365,9 @@ Explainability improves inspectability but does not by itself prove that the con
 
 ## Revision History
 
-Version: 0.1.0
+Version: 1.0.0
 
-Status: Draft
-
+Status: Approved
 Created By: DSP Research Team
 
 ## Review Notes
@@ -387,11 +384,11 @@ Initial institutional definition for REP-002.
 | Concept Name | Recommendation |
 | Category | Governance & AI Intelligence Concept |
 | Ontology Book | Book 10 — Governance & AI Intelligence |
-| Status | Draft |
-| Version | 0.1.0 |
+| Status | Approved |
+| Version | 1.0.0 |
 | Author | DSP Research Team |
-| Reviewer | TBD |
-| Approved Date | TBD |
+| Reviewer | DSP Research Team |
+| Approved Date | 2026-08-01 |
 
 ---
 
@@ -533,10 +530,9 @@ Even governed recommendations can be wrong. Users remain responsible for decisio
 
 ## Revision History
 
-Version: 0.1.0
+Version: 1.0.0
 
-Status: Draft
-
+Status: Approved
 Created By: DSP Research Team
 
 ## Review Notes
@@ -553,11 +549,11 @@ Initial institutional definition for REP-002.
 | Concept Name | Analytical Confidence Level |
 | Category | Governance & AI Intelligence Concept |
 | Ontology Book | Book 10 — Governance & AI Intelligence |
-| Status | Draft |
-| Version | 0.1.0 |
+| Status | Approved |
+| Version | 1.0.0 |
 | Author | DSP Research Team |
-| Reviewer | TBD |
-| Approved Date | TBD |
+| Reviewer | DSP Research Team |
+| Approved Date | 2026-08-01 |
 
 ---
 
@@ -697,10 +693,9 @@ Confidence labels remain partly judgmental. High confidence does not eliminate e
 
 ## Revision History
 
-Version: 0.1.0
+Version: 1.0.0
 
-Status: Draft
-
+Status: Approved
 Created By: DSP Research Team
 
 ## Review Notes
@@ -717,11 +712,11 @@ Initial institutional definition for REP-002.
 | Concept Name | Governance Rule |
 | Category | Governance & AI Intelligence Concept |
 | Ontology Book | Book 10 — Governance & AI Intelligence |
-| Status | Draft |
-| Version | 0.1.0 |
+| Status | Approved |
+| Version | 1.0.0 |
 | Author | DSP Research Team |
-| Reviewer | TBD |
-| Approved Date | TBD |
+| Reviewer | DSP Research Team |
+| Approved Date | 2026-08-01 |
 
 ---
 
@@ -859,10 +854,9 @@ Rules can be incomplete or outdated. Over-rigid rules can block legitimate resea
 
 ## Revision History
 
-Version: 0.1.0
+Version: 1.0.0
 
-Status: Draft
-
+Status: Approved
 Created By: DSP Research Team
 
 ## Review Notes
@@ -879,11 +873,11 @@ Initial institutional definition for REP-002.
 | Concept Name | Research Policy |
 | Category | Governance & AI Intelligence Concept |
 | Ontology Book | Book 10 — Governance & AI Intelligence |
-| Status | Draft |
-| Version | 0.1.0 |
+| Status | Approved |
+| Version | 1.0.0 |
 | Author | DSP Research Team |
-| Reviewer | TBD |
-| Approved Date | TBD |
+| Reviewer | DSP Research Team |
+| Approved Date | 2026-08-01 |
 
 ---
 
@@ -1022,10 +1016,9 @@ Policy cannot anticipate every edge case. Exception handling must remain logged 
 
 ## Revision History
 
-Version: 0.1.0
+Version: 1.0.0
 
-Status: Draft
-
+Status: Approved
 Created By: DSP Research Team
 
 ## Review Notes
@@ -1042,11 +1035,11 @@ Initial institutional definition for REP-002.
 | Concept Name | Research Transparency |
 | Category | Governance & AI Intelligence Concept |
 | Ontology Book | Book 10 — Governance & AI Intelligence |
-| Status | Draft |
-| Version | 0.1.0 |
+| Status | Approved |
+| Version | 1.0.0 |
 | Author | DSP Research Team |
-| Reviewer | TBD |
-| Approved Date | TBD |
+| Reviewer | DSP Research Team |
+| Approved Date | 2026-08-01 |
 
 ---
 
@@ -1186,10 +1179,9 @@ Transparency can be incomplete when sources are proprietary or legally restricte
 
 ## Revision History
 
-Version: 0.1.0
+Version: 1.0.0
 
-Status: Draft
-
+Status: Approved
 Created By: DSP Research Team
 
 ## Review Notes
@@ -1206,11 +1198,11 @@ Initial institutional definition for REP-002.
 | Concept Name | Traceability |
 | Category | Governance & AI Intelligence Concept |
 | Ontology Book | Book 10 — Governance & AI Intelligence |
-| Status | Draft |
-| Version | 0.1.0 |
+| Status | Approved |
+| Version | 1.0.0 |
 | Author | DSP Research Team |
-| Reviewer | TBD |
-| Approved Date | TBD |
+| Reviewer | DSP Research Team |
+| Approved Date | 2026-08-01 |
 
 ---
 
@@ -1350,10 +1342,9 @@ Perfect lineage can be constrained by third-party licensing and retention limits
 
 ## Revision History
 
-Version: 0.1.0
+Version: 1.0.0
 
-Status: Draft
-
+Status: Approved
 Created By: DSP Research Team
 
 ## Review Notes
@@ -1370,11 +1361,11 @@ Initial institutional definition for REP-002.
 | Concept Name | Auditability |
 | Category | Governance & AI Intelligence Concept |
 | Ontology Book | Book 10 — Governance & AI Intelligence |
-| Status | Draft |
-| Version | 0.1.0 |
+| Status | Approved |
+| Version | 1.0.0 |
 | Author | DSP Research Team |
-| Reviewer | TBD |
-| Approved Date | TBD |
+| Reviewer | DSP Research Team |
+| Approved Date | 2026-08-01 |
 
 ---
 
@@ -1514,10 +1505,9 @@ Retention and privacy constraints can limit audit depth. Auditability of process
 
 ## Revision History
 
-Version: 0.1.0
+Version: 1.0.0
 
-Status: Draft
-
+Status: Approved
 Created By: DSP Research Team
 
 ## Review Notes
@@ -1534,11 +1524,11 @@ Initial institutional definition for REP-002.
 | Concept Name | Decision Record |
 | Category | Governance & AI Intelligence Concept |
 | Ontology Book | Book 10 — Governance & AI Intelligence |
-| Status | Draft |
-| Version | 0.1.0 |
+| Status | Approved |
+| Version | 1.0.0 |
 | Author | DSP Research Team |
-| Reviewer | TBD |
-| Approved Date | TBD |
+| Reviewer | DSP Research Team |
+| Approved Date | 2026-08-01 |
 
 ---
 
@@ -1678,10 +1668,9 @@ Not every micro-inference needs a decision record. Scope must focus on material 
 
 ## Revision History
 
-Version: 0.1.0
+Version: 1.0.0
 
-Status: Draft
-
+Status: Approved
 Created By: DSP Research Team
 
 ## Review Notes
@@ -1698,11 +1687,11 @@ Initial institutional definition for REP-002.
 | Concept Name | Validation Rule |
 | Category | Governance & AI Intelligence Concept |
 | Ontology Book | Book 10 — Governance & AI Intelligence |
-| Status | Draft |
-| Version | 0.1.0 |
+| Status | Approved |
+| Version | 1.0.0 |
 | Author | DSP Research Team |
-| Reviewer | TBD |
-| Approved Date | TBD |
+| Reviewer | DSP Research Team |
+| Approved Date | 2026-08-01 |
 
 ---
 
@@ -1841,10 +1830,9 @@ Validation rules catch many defects but cannot detect all conceptual errors or f
 
 ## Revision History
 
-Version: 0.1.0
+Version: 1.0.0
 
-Status: Draft
-
+Status: Approved
 Created By: DSP Research Team
 
 ## Review Notes
@@ -1861,11 +1849,11 @@ Initial institutional definition for REP-002.
 | Concept Name | Human Oversight |
 | Category | Governance & AI Intelligence Concept |
 | Ontology Book | Book 10 — Governance & AI Intelligence |
-| Status | Draft |
-| Version | 0.1.0 |
+| Status | Approved |
+| Version | 1.0.0 |
 | Author | DSP Research Team |
-| Reviewer | TBD |
-| Approved Date | TBD |
+| Reviewer | DSP Research Team |
+| Approved Date | 2026-08-01 |
 
 ---
 
@@ -2006,10 +1994,9 @@ Human oversight quality varies with reviewer skill and time pressure. Oversight 
 
 ## Revision History
 
-Version: 0.1.0
+Version: 1.0.0
 
-Status: Draft
-
+Status: Approved
 Created By: DSP Research Team
 
 ## Review Notes

@@ -2,9 +2,9 @@
 
 ## REP-002 — Research Ontology
 
-Version: 0.1.0
+Version: 1.0.0
 
-Status: Draft
+Status: Approved
 
 Owner: DSP Research Team
 

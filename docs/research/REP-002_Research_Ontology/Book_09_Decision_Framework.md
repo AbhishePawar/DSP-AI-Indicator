@@ -2,10 +2,9 @@
 
 ## REP-002 — Research Ontology
 
-Version: 0.1.0
+Version: 1.0.0
 
-Status: Draft
-
+Status: Approved
 Owner: DSP Research Team
 
 Governed By:
@@ -41,7 +40,7 @@ Book 09 is the integration layer of REP-002. It consumes Book 01 — Core Princi
 
 ## Book Status
 
-Draft
+Approved
 
 ## Version
 
@@ -59,11 +58,11 @@ Draft
 | Concept Name | Research Conclusion |
 | Category | Decision Framework Concept |
 | Ontology Book | Book 09 — Decision Framework |
-| Status | Draft |
-| Version | 0.1.0 |
+| Status | Approved |
+| Version | 1.0.0 |
 | Author | DSP Research Team |
-| Reviewer | TBD |
-| Approved Date | TBD |
+| Reviewer | DSP Research Team |
+| Approved Date | 2026-08-01 |
 
 ---
 
@@ -208,10 +207,9 @@ Conclusions remain judgments under uncertainty. Integration quality depends on e
 
 ## Revision History
 
-Version: 0.1.0
+Version: 1.0.0
 
-Status: Draft
-
+Status: Approved
 Created By: DSP Research Team
 
 ## Review Notes
@@ -228,11 +226,11 @@ Initial institutional definition for REP-002.
 | Concept Name | Investment Thesis |
 | Category | Decision Framework Concept |
 | Ontology Book | Book 09 — Decision Framework |
-| Status | Draft |
-| Version | 0.1.0 |
+| Status | Approved |
+| Version | 1.0.0 |
 | Author | DSP Research Team |
-| Reviewer | TBD |
-| Approved Date | TBD |
+| Reviewer | DSP Research Team |
+| Approved Date | 2026-08-01 |
 
 ---
 
@@ -379,10 +377,9 @@ A clear thesis can still be wrong. Thesis quality is about structure and falsifi
 
 ## Revision History
 
-Version: 0.1.0
+Version: 1.0.0
 
-Status: Draft
-
+Status: Approved
 Created By: DSP Research Team
 
 ## Review Notes
@@ -399,11 +396,11 @@ Initial institutional definition for REP-002.
 | Concept Name | Decision Confidence |
 | Category | Decision Framework Concept |
 | Ontology Book | Book 09 — Decision Framework |
-| Status | Draft |
-| Version | 0.1.0 |
+| Status | Approved |
+| Version | 1.0.0 |
 | Author | DSP Research Team |
-| Reviewer | TBD |
-| Approved Date | TBD |
+| Reviewer | DSP Research Team |
+| Approved Date | 2026-08-01 |
 
 ---
 
@@ -546,10 +543,9 @@ Decision confidence remains partly judgmental. High confidence does not eliminat
 
 ## Revision History
 
-Version: 0.1.0
+Version: 1.0.0
 
-Status: Draft
-
+Status: Approved
 Created By: DSP Research Team
 
 ## Review Notes
@@ -566,11 +562,11 @@ Initial institutional definition for REP-002.
 | Concept Name | Recommendation State |
 | Category | Decision Framework Concept |
 | Ontology Book | Book 09 — Decision Framework |
-| Status | Draft |
-| Version | 0.1.0 |
+| Status | Approved |
+| Version | 1.0.0 |
 | Author | DSP Research Team |
-| Reviewer | TBD |
-| Approved Date | TBD |
+| Reviewer | DSP Research Team |
+| Approved Date | 2026-08-01 |
 
 ---
 
@@ -714,10 +710,9 @@ States simplify complex judgments. They must not conceal unresolved contradictio
 
 ## Revision History
 
-Version: 0.1.0
+Version: 1.0.0
 
-Status: Draft
-
+Status: Approved
 Created By: DSP Research Team
 
 ## Review Notes
@@ -734,11 +729,11 @@ Initial institutional definition for REP-002.
 | Concept Name | Decision Criteria |
 | Category | Decision Framework Concept |
 | Ontology Book | Book 09 — Decision Framework |
-| Status | Draft |
-| Version | 0.1.0 |
+| Status | Approved |
+| Version | 1.0.0 |
 | Author | DSP Research Team |
-| Reviewer | TBD |
-| Approved Date | TBD |
+| Reviewer | DSP Research Team |
+| Approved Date | 2026-08-01 |
 
 ---
 
@@ -880,10 +875,9 @@ Criteria can oversimplify. Rigid thresholds may miss context; vague criteria can
 
 ## Revision History
 
-Version: 0.1.0
+Version: 1.0.0
 
-Status: Draft
-
+Status: Approved
 Created By: DSP Research Team
 
 ## Review Notes
@@ -900,11 +894,11 @@ Initial institutional definition for REP-002.
 | Concept Name | Evidence Weighting |
 | Category | Decision Framework Concept |
 | Ontology Book | Book 09 — Decision Framework |
-| Status | Draft |
-| Version | 0.1.0 |
+| Status | Approved |
+| Version | 1.0.0 |
 | Author | DSP Research Team |
-| Reviewer | TBD |
-| Approved Date | TBD |
+| Reviewer | DSP Research Team |
+| Approved Date | 2026-08-01 |
 
 ---
 
@@ -1045,10 +1039,9 @@ Weighting remains partly judgmental. Explicit rationale reduces but does not eli
 
 ## Revision History
 
-Version: 0.1.0
+Version: 1.0.0
 
-Status: Draft
-
+Status: Approved
 Created By: DSP Research Team
 
 ## Review Notes
@@ -1065,11 +1058,11 @@ Initial institutional definition for REP-002.
 | Concept Name | Contradictory Evidence Handling |
 | Category | Decision Framework Concept |
 | Ontology Book | Book 09 — Decision Framework |
-| Status | Draft |
-| Version | 0.1.0 |
+| Status | Approved |
+| Version | 1.0.0 |
 | Author | DSP Research Team |
-| Reviewer | TBD |
-| Approved Date | TBD |
+| Reviewer | DSP Research Team |
+| Approved Date | 2026-08-01 |
 
 ---
 
@@ -1210,10 +1203,9 @@ Some contradictions remain unresolved for long periods. Handling process quality
 
 ## Revision History
 
-Version: 0.1.0
+Version: 1.0.0
 
-Status: Draft
-
+Status: Approved
 Created By: DSP Research Team
 
 ## Review Notes
@@ -1230,11 +1222,11 @@ Initial institutional definition for REP-002.
 | Concept Name | Scenario Analysis |
 | Category | Decision Framework Concept |
 | Ontology Book | Book 09 — Decision Framework |
-| Status | Draft |
-| Version | 0.1.0 |
+| Status | Approved |
+| Version | 1.0.0 |
 | Author | DSP Research Team |
-| Reviewer | TBD |
-| Approved Date | TBD |
+| Reviewer | DSP Research Team |
+| Approved Date | 2026-08-01 |
 
 ---
 
@@ -1377,10 +1369,9 @@ Scenarios can still miss true outcomes. Too many scenarios can create noise; too
 
 ## Revision History
 
-Version: 0.1.0
+Version: 1.0.0
 
-Status: Draft
-
+Status: Approved
 Created By: DSP Research Team
 
 ## Review Notes
@@ -1397,11 +1388,11 @@ Initial institutional definition for REP-002.
 | Concept Name | Decision Review |
 | Category | Decision Framework Concept |
 | Ontology Book | Book 09 — Decision Framework |
-| Status | Draft |
-| Version | 0.1.0 |
+| Status | Approved |
+| Version | 1.0.0 |
 | Author | DSP Research Team |
-| Reviewer | TBD |
-| Approved Date | TBD |
+| Reviewer | DSP Research Team |
+| Approved Date | 2026-08-01 |
 
 ---
 
@@ -1544,10 +1535,9 @@ Over-frequent review creates churn; under-frequent review creates staleness. Tri
 
 ## Revision History
 
-Version: 0.1.0
+Version: 1.0.0
 
-Status: Draft
-
+Status: Approved
 Created By: DSP Research Team
 
 ## Review Notes
@@ -1564,11 +1554,11 @@ Initial institutional definition for REP-002.
 | Concept Name | Decision Revision |
 | Category | Decision Framework Concept |
 | Ontology Book | Book 09 — Decision Framework |
-| Status | Draft |
-| Version | 0.1.0 |
+| Status | Approved |
+| Version | 1.0.0 |
 | Author | DSP Research Team |
-| Reviewer | TBD |
-| Approved Date | TBD |
+| Reviewer | DSP Research Team |
+| Approved Date | 2026-08-01 |
 
 ---
 
@@ -1709,10 +1699,9 @@ Not every minor estimate update requires a full revision event. Materiality thre
 
 ## Revision History
 
-Version: 0.1.0
+Version: 1.0.0
 
-Status: Draft
-
+Status: Approved
 Created By: DSP Research Team
 
 ## Review Notes
@@ -1729,11 +1718,11 @@ Initial institutional definition for REP-002.
 | Concept Name | Research Lifecycle |
 | Category | Decision Framework Concept |
 | Ontology Book | Book 09 — Decision Framework |
-| Status | Draft |
-| Version | 0.1.0 |
+| Status | Approved |
+| Version | 1.0.0 |
 | Author | DSP Research Team |
-| Reviewer | TBD |
-| Approved Date | TBD |
+| Reviewer | DSP Research Team |
+| Approved Date | 2026-08-01 |
 
 ---
 
@@ -1875,10 +1864,9 @@ Lifecycle overhead must remain proportionate. Not every exploratory note needs f
 
 ## Revision History
 
-Version: 0.1.0
+Version: 1.0.0
 
-Status: Draft
-
+Status: Approved
 Created By: DSP Research Team
 
 ## Review Notes
@@ -1895,11 +1883,11 @@ Initial institutional definition for REP-002.
 | Concept Name | Continuous Learning |
 | Category | Decision Framework Concept |
 | Ontology Book | Book 09 — Decision Framework |
-| Status | Draft |
-| Version | 0.1.0 |
+| Status | Approved |
+| Version | 1.0.0 |
 | Author | DSP Research Team |
-| Reviewer | TBD |
-| Approved Date | TBD |
+| Reviewer | DSP Research Team |
+| Approved Date | 2026-08-01 |
 
 ---
 
@@ -2042,10 +2030,9 @@ Learning from small samples can overfit. Improvements must remain evidence-based
 
 ## Revision History
 
-Version: 0.1.0
+Version: 1.0.0
 
-Status: Draft
-
+Status: Approved
 Created By: DSP Research Team
 
 ## Review Notes

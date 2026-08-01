@@ -2,10 +2,9 @@
 
 ## REP-002 — Research Ontology
 
-Version: 0.1.0
+Version: 1.0.0
 
-Status: Draft
-
+Status: Approved
 Owner: DSP Research Team
 
 Governed By:
@@ -34,7 +33,7 @@ Book 03 consumes Book 01 — Core Principles and Book 02 — Research Objects. F
 
 ## Book Status
 
-Draft
+Approved
 
 ## Version
 
@@ -52,11 +51,11 @@ Draft
 | Concept Name | Revenue |
 | Category | Financial Concept |
 | Ontology Book | Book 03 — Financial Ontology |
-| Status | Draft |
-| Version | 0.1.0 |
+| Status | Approved |
+| Version | 1.0.0 |
 | Author | DSP Research Team |
-| Reviewer | TBD |
-| Approved Date | TBD |
+| Reviewer | DSP Research Team |
+| Approved Date | 2026-08-01 |
 
 ---
 
@@ -202,10 +201,9 @@ Revenue measures recognized commercial activity only. It does not establish prof
 
 ## Revision History
 
-Version: 0.1.0
+Version: 1.0.0
 
-Status: Draft
-
+Status: Approved
 Created By: DSP Research Team
 
 ## Review Notes
@@ -222,11 +220,11 @@ Initial institutional definition for REP-002.
 | Concept Name | Operating Profit |
 | Category | Financial Concept |
 | Ontology Book | Book 03 — Financial Ontology |
-| Status | Draft |
-| Version | 0.1.0 |
+| Status | Approved |
+| Version | 1.0.0 |
 | Author | DSP Research Team |
-| Reviewer | TBD |
-| Approved Date | TBD |
+| Reviewer | DSP Research Team |
+| Approved Date | 2026-08-01 |
 
 ---
 
@@ -369,10 +367,9 @@ Operating profit reflects accounting operating results. It does not by itself me
 
 ## Revision History
 
-Version: 0.1.0
+Version: 1.0.0
 
-Status: Draft
-
+Status: Approved
 Created By: DSP Research Team
 
 ## Review Notes
@@ -389,11 +386,11 @@ Initial institutional definition for REP-002.
 | Concept Name | Free Cash Flow |
 | Category | Financial Concept |
 | Ontology Book | Book 03 — Financial Ontology |
-| Status | Draft |
-| Version | 0.1.0 |
+| Status | Approved |
+| Version | 1.0.0 |
 | Author | DSP Research Team |
-| Reviewer | TBD |
-| Approved Date | TBD |
+| Reviewer | DSP Research Team |
+| Approved Date | 2026-08-01 |
 
 ---
 
@@ -536,10 +533,9 @@ Free cash flow depends on definitional choices and timing of investment. A singl
 
 ## Revision History
 
-Version: 0.1.0
+Version: 1.0.0
 
-Status: Draft
-
+Status: Approved
 Created By: DSP Research Team
 
 ## Review Notes
@@ -556,11 +552,11 @@ Initial institutional definition for REP-002.
 | Concept Name | Capital Expenditure |
 | Category | Financial Concept |
 | Ontology Book | Book 03 — Financial Ontology |
-| Status | Draft |
-| Version | 0.1.0 |
+| Status | Approved |
+| Version | 1.0.0 |
 | Author | DSP Research Team |
-| Reviewer | TBD |
-| Approved Date | TBD |
+| Reviewer | DSP Research Team |
+| Approved Date | 2026-08-01 |
 
 ---
 
@@ -702,10 +698,9 @@ Capital expenditure timing can be lumpy. A single period may not represent the o
 
 ## Revision History
 
-Version: 0.1.0
+Version: 1.0.0
 
-Status: Draft
-
+Status: Approved
 Created By: DSP Research Team
 
 ## Review Notes
@@ -722,11 +717,11 @@ Initial institutional definition for REP-002.
 | Concept Name | Working Capital |
 | Category | Financial Concept |
 | Ontology Book | Book 03 — Financial Ontology |
-| Status | Draft |
-| Version | 0.1.0 |
+| Status | Approved |
+| Version | 1.0.0 |
 | Author | DSP Research Team |
-| Reviewer | TBD |
-| Approved Date | TBD |
+| Reviewer | DSP Research Team |
+| Approved Date | 2026-08-01 |
 
 ---
 
@@ -868,10 +863,9 @@ Working capital needs vary by industry and seasonality. Absolute levels are not 
 
 ## Revision History
 
-Version: 0.1.0
+Version: 1.0.0
 
-Status: Draft
-
+Status: Approved
 Created By: DSP Research Team
 
 ## Review Notes
@@ -888,11 +882,11 @@ Initial institutional definition for REP-002.
 | Concept Name | Return on Capital |
 | Category | Financial Concept |
 | Ontology Book | Book 03 — Financial Ontology |
-| Status | Draft |
-| Version | 0.1.0 |
+| Status | Approved |
+| Version | 1.0.0 |
 | Author | DSP Research Team |
-| Reviewer | TBD |
-| Approved Date | TBD |
+| Reviewer | DSP Research Team |
+| Approved Date | 2026-08-01 |
 
 ---
 
@@ -1035,10 +1029,9 @@ Return on capital is definition-sensitive and accounting-dependent. High returns
 
 ## Revision History
 
-Version: 0.1.0
+Version: 1.0.0
 
-Status: Draft
-
+Status: Approved
 Created By: DSP Research Team
 
 ## Review Notes
@@ -1055,11 +1048,11 @@ Initial institutional definition for REP-002.
 | Concept Name | Return on Equity |
 | Category | Financial Concept |
 | Ontology Book | Book 03 — Financial Ontology |
-| Status | Draft |
-| Version | 0.1.0 |
+| Status | Approved |
+| Version | 1.0.0 |
 | Author | DSP Research Team |
-| Reviewer | TBD |
-| Approved Date | TBD |
+| Reviewer | DSP Research Team |
+| Approved Date | 2026-08-01 |
 
 ---
 
@@ -1200,10 +1193,9 @@ Return on equity can be distorted by leverage, buybacks, write-downs, and accoun
 
 ## Revision History
 
-Version: 0.1.0
+Version: 1.0.0
 
-Status: Draft
-
+Status: Approved
 Created By: DSP Research Team
 
 ## Review Notes
@@ -1220,11 +1212,11 @@ Initial institutional definition for REP-002.
 | Concept Name | Leverage |
 | Category | Financial Concept |
 | Ontology Book | Book 03 — Financial Ontology |
-| Status | Draft |
-| Version | 0.1.0 |
+| Status | Approved |
+| Version | 1.0.0 |
 | Author | DSP Research Team |
-| Reviewer | TBD |
-| Approved Date | TBD |
+| Reviewer | DSP Research Team |
+| Approved Date | 2026-08-01 |
 
 ---
 
@@ -1365,10 +1357,9 @@ Leverage ratios are definition-sensitive and may understate risk when off-balanc
 
 ## Revision History
 
-Version: 0.1.0
+Version: 1.0.0
 
-Status: Draft
-
+Status: Approved
 Created By: DSP Research Team
 
 ## Review Notes
@@ -1385,11 +1376,11 @@ Initial institutional definition for REP-002.
 | Concept Name | Interest Coverage |
 | Category | Financial Concept |
 | Ontology Book | Book 03 — Financial Ontology |
-| Status | Draft |
-| Version | 0.1.0 |
+| Status | Approved |
+| Version | 1.0.0 |
 | Author | DSP Research Team |
-| Reviewer | TBD |
-| Approved Date | TBD |
+| Reviewer | DSP Research Team |
+| Approved Date | 2026-08-01 |
 
 ---
 
@@ -1532,10 +1523,9 @@ Interest coverage can be temporarily inflated by peak earnings or depressed by c
 
 ## Revision History
 
-Version: 0.1.0
+Version: 1.0.0
 
-Status: Draft
-
+Status: Approved
 Created By: DSP Research Team
 
 ## Review Notes
@@ -1552,11 +1542,11 @@ Initial institutional definition for REP-002.
 | Concept Name | Earnings Quality |
 | Category | Financial Concept |
 | Ontology Book | Book 03 — Financial Ontology |
-| Status | Draft |
-| Version | 0.1.0 |
+| Status | Approved |
+| Version | 1.0.0 |
 | Author | DSP Research Team |
-| Reviewer | TBD |
-| Approved Date | TBD |
+| Reviewer | DSP Research Team |
+| Approved Date | 2026-08-01 |
 
 ---
 
@@ -1700,10 +1690,9 @@ Earnings quality is partly judgmental. It can identify reliability concerns but 
 
 ## Revision History
 
-Version: 0.1.0
+Version: 1.0.0
 
-Status: Draft
-
+Status: Approved
 Created By: DSP Research Team
 
 ## Review Notes
@@ -1720,11 +1709,11 @@ Initial institutional definition for REP-002.
 | Concept Name | Cash Conversion |
 | Category | Financial Concept |
 | Ontology Book | Book 03 — Financial Ontology |
-| Status | Draft |
-| Version | 0.1.0 |
+| Status | Approved |
+| Version | 1.0.0 |
 | Author | DSP Research Team |
-| Reviewer | TBD |
-| Approved Date | TBD |
+| Reviewer | DSP Research Team |
+| Approved Date | 2026-08-01 |
 
 ---
 
@@ -1867,10 +1856,9 @@ Short-period cash conversion can be distorted by timing, seasonality, and lumpy 
 
 ## Revision History
 
-Version: 0.1.0
+Version: 1.0.0
 
-Status: Draft
-
+Status: Approved
 Created By: DSP Research Team
 
 ## Review Notes
@@ -1887,11 +1875,11 @@ Initial institutional definition for REP-002.
 | Concept Name | Capital Intensity |
 | Category | Financial Concept |
 | Ontology Book | Book 03 — Financial Ontology |
-| Status | Draft |
-| Version | 0.1.0 |
+| Status | Approved |
+| Version | 1.0.0 |
 | Author | DSP Research Team |
-| Reviewer | TBD |
-| Approved Date | TBD |
+| Reviewer | DSP Research Team |
+| Approved Date | 2026-08-01 |
 
 ---
 
@@ -2034,10 +2022,9 @@ Capital intensity varies structurally by industry. Cross-sector comparison witho
 
 ## Revision History
 
-Version: 0.1.0
+Version: 1.0.0
 
-Status: Draft
-
+Status: Approved
 Created By: DSP Research Team
 
 ## Review Notes

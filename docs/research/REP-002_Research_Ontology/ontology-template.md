@@ -2,9 +2,9 @@
 
 ## REP-002 — Research Ontology
 
-Version: 0.1.0
+Version: 1.0.0
 
-Status: Draft
+Status: Approved
 
 Owner: DSP Research Team
 
@@ -18,6 +18,22 @@ DSP Research Constitution v1.0
 Reusable template for every future REP-002 concept.
 Do not populate this file with actual concept content.
 Copy this structure into the appropriate ontology book when authoring a concept.
+
+## Variant 2a — Revision History (Approved for v1.0 corpus)
+
+Template Version 2 prefers a Revision History table. For REP-002 Version 1.0.0, the following prose mini-block is an **approved equivalent** (Variant 2a) and satisfies template compliance:
+
+```text
+## Revision History
+
+Version: <Version>
+
+Status: <Status>
+
+Created By: <Author>
+```
+
+New concepts after v1.0.0 should prefer the table form below unless governance extends Variant 2a.
 
 ---
 

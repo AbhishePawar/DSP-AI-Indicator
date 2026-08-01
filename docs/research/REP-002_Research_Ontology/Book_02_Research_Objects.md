@@ -2,10 +2,9 @@
 
 ## REP-002 — Research Ontology
 
-Version: 0.1.0
+Version: 1.0.0
 
-Status: Draft
-
+Status: Approved
 Owner: DSP Research Team
 
 Governed By:
@@ -33,7 +32,7 @@ Book 02 consumes Book 01 — Core Principles. Every research object must preserv
 
 ## Book Status
 
-Draft
+Approved
 
 ## Version
 
@@ -51,11 +50,11 @@ Draft
 | Concept Name | Entity |
 | Category | Research Object |
 | Ontology Book | Book 02 — Research Objects |
-| Status | Draft |
-| Version | 0.1.0 |
+| Status | Approved |
+| Version | 1.0.0 |
 | Author | DSP Research Team |
-| Reviewer | TBD |
-| Approved Date | TBD |
+| Reviewer | DSP Research Team |
+| Approved Date | 2026-08-01 |
 
 ---
 
@@ -195,10 +194,9 @@ An entity represents identity only. Analytical meaning is derived through its at
 
 ## Revision History
 
-Version: 0.1.0
+Version: 1.0.0
 
-Status: Draft
-
+Status: Approved
 Created By: DSP Research Team
 
 ## Review Notes
@@ -215,11 +213,11 @@ Initial institutional definition for REP-002.
 | Concept Name | Organization |
 | Category | Research Object |
 | Ontology Book | Book 02 — Research Objects |
-| Status | Draft |
-| Version | 0.1.0 |
+| Status | Approved |
+| Version | 1.0.0 |
 | Author | DSP Research Team |
-| Reviewer | TBD |
-| Approved Date | TBD |
+| Reviewer | DSP Research Team |
+| Approved Date | 2026-08-01 |
 
 ---
 
@@ -360,10 +358,9 @@ An organization definition establishes institutional identity only. Business qua
 
 ## Revision History
 
-Version: 0.1.0
+Version: 1.0.0
 
-Status: Draft
-
+Status: Approved
 Created By: DSP Research Team
 
 ## Review Notes
@@ -380,11 +377,11 @@ Initial institutional definition for REP-002.
 | Concept Name | Security |
 | Category | Research Object |
 | Ontology Book | Book 02 — Research Objects |
-| Status | Draft |
-| Version | 0.1.0 |
+| Status | Approved |
+| Version | 1.0.0 |
 | Author | DSP Research Team |
-| Reviewer | TBD |
-| Approved Date | TBD |
+| Reviewer | DSP Research Team |
+| Approved Date | 2026-08-01 |
 
 ---
 
@@ -526,10 +523,9 @@ A security definition establishes financial identity only. Valuation, investment
 
 ## Revision History
 
-Version: 0.1.0
+Version: 1.0.0
 
-Status: Draft
-
+Status: Approved
 Created By: DSP Research Team
 
 ## Review Notes
@@ -546,11 +542,11 @@ Initial institutional definition for REP-002.
 | Concept Name | Financial Statement |
 | Category | Research Object |
 | Ontology Book | Book 02 — Research Objects |
-| Status | Draft |
-| Version | 0.1.0 |
+| Status | Approved |
+| Version | 1.0.0 |
 | Author | DSP Research Team |
-| Reviewer | TBD |
-| Approved Date | TBD |
+| Reviewer | DSP Research Team |
+| Approved Date | 2026-08-01 |
 
 ---
 
@@ -694,10 +690,9 @@ Financial statements represent historical financial information. They do not ind
 
 ## Revision History
 
-Version: 0.1.0
+Version: 1.0.0
 
-Status: Draft
-
+Status: Approved
 Created By: DSP Research Team
 
 ## Review Notes
@@ -714,11 +709,11 @@ Initial institutional definition for REP-002.
 | Concept Name | Metric |
 | Category | Research Object |
 | Ontology Book | Book 02 — Research Objects |
-| Status | Draft |
-| Version | 0.1.0 |
+| Status | Approved |
+| Version | 1.0.0 |
 | Author | DSP Research Team |
-| Reviewer | TBD |
-| Approved Date | TBD |
+| Reviewer | DSP Research Team |
+| Approved Date | 2026-08-01 |
 
 ---
 
@@ -863,10 +858,9 @@ A metric expresses a measured attribute only. It does not replace underlying evi
 
 ## Revision History
 
-Version: 0.1.0
+Version: 1.0.0
 
-Status: Draft
-
+Status: Approved
 Created By: DSP Research Team
 
 ## Review Notes
@@ -883,11 +877,11 @@ Initial institutional definition for REP-002.
 | Concept Name | Dataset |
 | Category | Research Object |
 | Ontology Book | Book 02 — Research Objects |
-| Status | Draft |
-| Version | 0.1.0 |
+| Status | Approved |
+| Version | 1.0.0 |
 | Author | DSP Research Team |
-| Reviewer | TBD |
-| Approved Date | TBD |
+| Reviewer | DSP Research Team |
+| Approved Date | 2026-08-01 |
 
 ---
 
@@ -1031,10 +1025,9 @@ A dataset organizes research information only. The correctness of conclusions de
 
 ## Revision History
 
-Version: 0.1.0
+Version: 1.0.0
 
-Status: Draft
-
+Status: Approved
 Created By: DSP Research Team
 
 ## Review Notes
@@ -1051,11 +1044,11 @@ Initial institutional definition for REP-002.
 | Concept Name | Source |
 | Category | Research Object |
 | Ontology Book | Book 02 — Research Objects |
-| Status | Draft |
-| Version | 0.1.0 |
+| Status | Approved |
+| Version | 1.0.0 |
 | Author | DSP Research Team |
-| Reviewer | TBD |
-| Approved Date | TBD |
+| Reviewer | DSP Research Team |
+| Approved Date | 2026-08-01 |
 
 ---
 
@@ -1199,10 +1192,9 @@ A source establishes provenance only. Presence of a source does not guarantee co
 
 ## Revision History
 
-Version: 0.1.0
+Version: 1.0.0
 
-Status: Draft
-
+Status: Approved
 Created By: DSP Research Team
 
 ## Review Notes
@@ -1219,11 +1211,11 @@ Initial institutional definition for REP-002.
 | Concept Name | Document |
 | Category | Research Object |
 | Ontology Book | Book 02 — Research Objects |
-| Status | Draft |
-| Version | 0.1.0 |
+| Status | Approved |
+| Version | 1.0.0 |
 | Author | DSP Research Team |
-| Reviewer | TBD |
-| Approved Date | TBD |
+| Reviewer | DSP Research Team |
+| Approved Date | 2026-08-01 |
 
 ---
 
@@ -1368,10 +1360,9 @@ A document preserves recorded content only. Interpretation, completeness relativ
 
 ## Revision History
 
-Version: 0.1.0
+Version: 1.0.0
 
-Status: Draft
-
+Status: Approved
 Created By: DSP Research Team
 
 ## Review Notes
@@ -1388,11 +1379,11 @@ Initial institutional definition for REP-002.
 | Concept Name | Time Period |
 | Category | Research Object |
 | Ontology Book | Book 02 — Research Objects |
-| Status | Draft |
-| Version | 0.1.0 |
+| Status | Approved |
+| Version | 1.0.0 |
 | Author | DSP Research Team |
-| Reviewer | TBD |
-| Approved Date | TBD |
+| Reviewer | DSP Research Team |
+| Approved Date | 2026-08-01 |
 
 ---
 
@@ -1536,10 +1527,9 @@ A time period defines temporal scope only. It does not determine data quality, a
 
 ## Revision History
 
-Version: 0.1.0
+Version: 1.0.0
 
-Status: Draft
-
+Status: Approved
 Created By: DSP Research Team
 
 ## Review Notes
@@ -1556,11 +1546,11 @@ Initial institutional definition for REP-002.
 | Concept Name | Currency |
 | Category | Research Object |
 | Ontology Book | Book 02 — Research Objects |
-| Status | Draft |
-| Version | 0.1.0 |
+| Status | Approved |
+| Version | 1.0.0 |
 | Author | DSP Research Team |
-| Reviewer | TBD |
-| Approved Date | TBD |
+| Reviewer | DSP Research Team |
+| Approved Date | 2026-08-01 |
 
 ---
 
@@ -1704,10 +1694,9 @@ A currency defines monetary denomination only. Exchange rates, purchasing power,
 
 ## Revision History
 
-Version: 0.1.0
+Version: 1.0.0
 
-Status: Draft
-
+Status: Approved
 Created By: DSP Research Team
 
 ## Review Notes

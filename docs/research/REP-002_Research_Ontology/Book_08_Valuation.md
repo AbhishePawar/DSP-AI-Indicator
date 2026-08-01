@@ -2,10 +2,9 @@
 
 ## REP-002 — Research Ontology
 
-Version: 0.1.0
+Version: 1.0.0
 
-Status: Draft
-
+Status: Approved
 Owner: DSP Research Team
 
 Governed By:
@@ -39,7 +38,7 @@ Book 08 consumes Book 01 — Core Principles, Book 02 — Research Objects, Book
 
 ## Book Status
 
-Draft
+Approved
 
 ## Version
 
@@ -57,11 +56,11 @@ Draft
 | Concept Name | Intrinsic Value |
 | Category | Valuation Concept |
 | Ontology Book | Book 08 — Valuation |
-| Status | Draft |
-| Version | 0.1.0 |
+| Status | Approved |
+| Version | 1.0.0 |
 | Author | DSP Research Team |
-| Reviewer | TBD |
-| Approved Date | TBD |
+| Reviewer | DSP Research Team |
+| Approved Date | 2026-08-01 |
 
 ---
 
@@ -206,10 +205,9 @@ Intrinsic value is inherently uncertain and model-dependent. It can be wrong eve
 
 ## Revision History
 
-Version: 0.1.0
+Version: 1.0.0
 
-Status: Draft
-
+Status: Approved
 Created By: DSP Research Team
 
 ## Review Notes
@@ -226,11 +224,11 @@ Initial institutional definition for REP-002.
 | Concept Name | Fair Value |
 | Category | Valuation Concept |
 | Ontology Book | Book 08 — Valuation |
-| Status | Draft |
-| Version | 0.1.0 |
+| Status | Approved |
+| Version | 1.0.0 |
 | Author | DSP Research Team |
-| Reviewer | TBD |
-| Approved Date | TBD |
+| Reviewer | DSP Research Team |
+| Approved Date | 2026-08-01 |
 
 ---
 
@@ -370,10 +368,9 @@ Fair value depends on market conditions and participant assumptions. In inactive
 
 ## Revision History
 
-Version: 0.1.0
+Version: 1.0.0
 
-Status: Draft
-
+Status: Approved
 Created By: DSP Research Team
 
 ## Review Notes
@@ -390,11 +387,11 @@ Initial institutional definition for REP-002.
 | Concept Name | Market Value |
 | Category | Valuation Concept |
 | Ontology Book | Book 08 — Valuation |
-| Status | Draft |
-| Version | 0.1.0 |
+| Status | Approved |
+| Version | 1.0.0 |
 | Author | DSP Research Team |
-| Reviewer | TBD |
-| Approved Date | TBD |
+| Reviewer | DSP Research Team |
+| Approved Date | 2026-08-01 |
 
 ---
 
@@ -536,10 +533,9 @@ Market value can be distorted by low liquidity, temporary dislocations, or incom
 
 ## Revision History
 
-Version: 0.1.0
+Version: 1.0.0
 
-Status: Draft
-
+Status: Approved
 Created By: DSP Research Team
 
 ## Review Notes
@@ -556,11 +552,11 @@ Initial institutional definition for REP-002.
 | Concept Name | Valuation Margin of Safety |
 | Category | Valuation Concept |
 | Ontology Book | Book 08 — Valuation |
-| Status | Draft |
-| Version | 0.1.0 |
+| Status | Approved |
+| Version | 1.0.0 |
 | Author | DSP Research Team |
-| Reviewer | TBD |
-| Approved Date | TBD |
+| Reviewer | DSP Research Team |
+| Approved Date | 2026-08-01 |
 
 ---
 
@@ -703,10 +699,9 @@ A large valuation gap can reflect model error rather than opportunity. Protectiv
 
 ## Revision History
 
-Version: 0.1.0
+Version: 1.0.0
 
-Status: Draft
-
+Status: Approved
 Created By: DSP Research Team
 
 ## Review Notes
@@ -723,11 +718,11 @@ Initial institutional definition for REP-002.
 | Concept Name | Discount Rate |
 | Category | Valuation Concept |
 | Ontology Book | Book 08 — Valuation |
-| Status | Draft |
-| Version | 0.1.0 |
+| Status | Approved |
+| Version | 1.0.0 |
 | Author | DSP Research Team |
-| Reviewer | TBD |
-| Approved Date | TBD |
+| Reviewer | DSP Research Team |
+| Approved Date | 2026-08-01 |
 
 ---
 
@@ -867,10 +862,9 @@ Discount rates are judgment-heavy and not uniquely determined by data. False pre
 
 ## Revision History
 
-Version: 0.1.0
+Version: 1.0.0
 
-Status: Draft
-
+Status: Approved
 Created By: DSP Research Team
 
 ## Review Notes
@@ -887,11 +881,11 @@ Initial institutional definition for REP-002.
 | Concept Name | Discounted Cash Flow |
 | Category | Valuation Concept |
 | Ontology Book | Book 08 — Valuation |
-| Status | Draft |
-| Version | 0.1.0 |
+| Status | Approved |
+| Version | 1.0.0 |
 | Author | DSP Research Team |
-| Reviewer | TBD |
-| Approved Date | TBD |
+| Reviewer | DSP Research Team |
+| Approved Date | 2026-08-01 |
 
 ---
 
@@ -1035,10 +1029,9 @@ Projection error and terminal-value dominance can overwhelm apparent precision. 
 
 ## Revision History
 
-Version: 0.1.0
+Version: 1.0.0
 
-Status: Draft
-
+Status: Approved
 Created By: DSP Research Team
 
 ## Review Notes
@@ -1055,11 +1048,11 @@ Initial institutional definition for REP-002.
 | Concept Name | Terminal Value |
 | Category | Valuation Concept |
 | Ontology Book | Book 08 — Valuation |
-| Status | Draft |
-| Version | 0.1.0 |
+| Status | Approved |
+| Version | 1.0.0 |
 | Author | DSP Research Team |
-| Reviewer | TBD |
-| Approved Date | TBD |
+| Reviewer | DSP Research Team |
+| Approved Date | 2026-08-01 |
 
 ---
 
@@ -1199,10 +1192,9 @@ Long-horizon uncertainty is irreducible. Terminal value can create false precisi
 
 ## Revision History
 
-Version: 0.1.0
+Version: 1.0.0
 
-Status: Draft
-
+Status: Approved
 Created By: DSP Research Team
 
 ## Review Notes
@@ -1219,11 +1211,11 @@ Initial institutional definition for REP-002.
 | Concept Name | Relative Valuation |
 | Category | Valuation Concept |
 | Ontology Book | Book 08 — Valuation |
-| Status | Draft |
-| Version | 0.1.0 |
+| Status | Approved |
+| Version | 1.0.0 |
 | Author | DSP Research Team |
-| Reviewer | TBD |
-| Approved Date | TBD |
+| Reviewer | DSP Research Team |
+| Approved Date | 2026-08-01 |
 
 ---
 
@@ -1365,10 +1357,9 @@ Relative valuation inherits peer mispricing and comparability error. Cheap versu
 
 ## Revision History
 
-Version: 0.1.0
+Version: 1.0.0
 
-Status: Draft
-
+Status: Approved
 Created By: DSP Research Team
 
 ## Review Notes
@@ -1385,11 +1376,11 @@ Initial institutional definition for REP-002.
 | Concept Name | Residual Income Valuation |
 | Category | Valuation Concept |
 | Ontology Book | Book 08 — Valuation |
-| Status | Draft |
-| Version | 0.1.0 |
+| Status | Approved |
+| Version | 1.0.0 |
 | Author | DSP Research Team |
-| Reviewer | TBD |
-| Approved Date | TBD |
+| Reviewer | DSP Research Team |
+| Approved Date | 2026-08-01 |
 
 ---
 
@@ -1531,10 +1522,9 @@ Accounting distortions and dirty surplus items can impair residual income reliab
 
 ## Revision History
 
-Version: 0.1.0
+Version: 1.0.0
 
-Status: Draft
-
+Status: Approved
 Created By: DSP Research Team
 
 ## Review Notes
@@ -1551,11 +1541,11 @@ Initial institutional definition for REP-002.
 | Concept Name | Earnings Power Value |
 | Category | Valuation Concept |
 | Ontology Book | Book 08 — Valuation |
-| Status | Draft |
-| Version | 0.1.0 |
+| Status | Approved |
+| Version | 1.0.0 |
 | Author | DSP Research Team |
-| Reviewer | TBD |
-| Approved Date | TBD |
+| Reviewer | DSP Research Team |
+| Approved Date | 2026-08-01 |
 
 ---
 
@@ -1697,10 +1687,9 @@ Normalization is judgmental. Structural change can invalidate historical earning
 
 ## Revision History
 
-Version: 0.1.0
+Version: 1.0.0
 
-Status: Draft
-
+Status: Approved
 Created By: DSP Research Team
 
 ## Review Notes
@@ -1717,11 +1706,11 @@ Initial institutional definition for REP-002.
 | Concept Name | Asset-Based Valuation |
 | Category | Valuation Concept |
 | Ontology Book | Book 08 — Valuation |
-| Status | Draft |
-| Version | 0.1.0 |
+| Status | Approved |
+| Version | 1.0.0 |
 | Author | DSP Research Team |
-| Reviewer | TBD |
-| Approved Date | TBD |
+| Reviewer | DSP Research Team |
+| Approved Date | 2026-08-01 |
 
 ---
 
@@ -1862,10 +1851,9 @@ Asset realizability can be far below carrying or appraised values under stress. 
 
 ## Revision History
 
-Version: 0.1.0
+Version: 1.0.0
 
-Status: Draft
-
+Status: Approved
 Created By: DSP Research Team
 
 ## Review Notes
@@ -1882,11 +1870,11 @@ Initial institutional definition for REP-002.
 | Concept Name | Valuation Confidence |
 | Category | Valuation Concept |
 | Ontology Book | Book 08 — Valuation |
-| Status | Draft |
-| Version | 0.1.0 |
+| Status | Approved |
+| Version | 1.0.0 |
 | Author | DSP Research Team |
-| Reviewer | TBD |
-| Approved Date | TBD |
+| Reviewer | DSP Research Team |
+| Approved Date | 2026-08-01 |
 
 ---
 
@@ -2028,10 +2016,9 @@ Confidence labels remain partly judgmental. High confidence does not eliminate t
 
 ## Revision History
 
-Version: 0.1.0
+Version: 1.0.0
 
-Status: Draft
-
+Status: Approved
 Created By: DSP Research Team
 
 ## Review Notes

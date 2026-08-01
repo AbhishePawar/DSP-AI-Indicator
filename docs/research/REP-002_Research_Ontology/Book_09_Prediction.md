@@ -2,9 +2,9 @@
 
 ## REP-002 — Research Ontology
 
-Version: 0.1.0
+Version: 1.0.0
 
-Status: Draft
+Status: Deprecated Stub
 
 Owner: DSP Research Team
 
@@ -13,20 +13,23 @@ DSP Research Constitution v1.0
 
 ---
 
-# Book 09 — Prediction
+# DEPRECATED — Not a Version 1.0 Concept Home
 
-## Purpose
+**Filename:** `Book_09_Prediction.md`
 
-<!-- Placeholder -->
+This file is retained only as a deprecated stub for historical path continuity.
 
-## Scope
+## Disposition (REP-002 v1.0.0)
 
-<!-- Placeholder -->
+- **Not in scope** as a primary ontology book for Version 1.0.0.
+- Forecast / prediction language is constrained by **Book 01 — Core Principles** and explored through **Book 09 — Decision Framework** (especially Scenario Analysis), without a standalone Prediction book.
+- Canonical Book 09 for v1.0 is **Decision Framework** (`Book_09_Decision_Framework.md`).
+- Do not author concepts in this file.
+- Do not treat this file as authoritative.
 
-## Reserved Sections
+## Canonical references
 
-<!-- Placeholder: reserved structural sections for this book -->
-
-## Concepts
-
-<!-- Placeholder for Concepts — do not populate in framework phase -->
+- `Book_09_Decision_Framework.md`
+- `Book_01_Core_Principles.md`
+- `ONTOLOGY_ROADMAP.md`
+- `README.md`

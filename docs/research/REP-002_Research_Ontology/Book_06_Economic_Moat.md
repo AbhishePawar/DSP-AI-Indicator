@@ -2,10 +2,9 @@
 
 ## REP-002 — Research Ontology
 
-Version: 0.1.0
+Version: 1.0.0
 
-Status: Draft
-
+Status: Approved
 Owner: DSP Research Team
 
 Governed By:
@@ -37,7 +36,7 @@ Book 06 consumes Book 01 — Core Principles, Book 02 — Research Objects, Book
 
 ## Book Status
 
-Draft
+Approved
 
 ## Version
 
@@ -55,11 +54,11 @@ Draft
 | Concept Name | Economic Moat |
 | Category | Economic Moat Concept |
 | Ontology Book | Book 06 — Economic Moat |
-| Status | Draft |
-| Version | 0.1.0 |
+| Status | Approved |
+| Version | 1.0.0 |
 | Author | DSP Research Team |
-| Reviewer | TBD |
-| Approved Date | TBD |
+| Reviewer | DSP Research Team |
+| Approved Date | 2026-08-01 |
 
 ---
 
@@ -203,10 +202,9 @@ Economic moat is partly judgmental and can decay. Presence of a moat does not de
 
 ## Revision History
 
-Version: 0.1.0
+Version: 1.0.0
 
-Status: Draft
-
+Status: Approved
 Created By: DSP Research Team
 
 ## Review Notes
@@ -223,11 +221,11 @@ Initial institutional definition for REP-002.
 | Concept Name | Brand Strength |
 | Category | Economic Moat Concept |
 | Ontology Book | Book 06 — Economic Moat |
-| Status | Draft |
-| Version | 0.1.0 |
+| Status | Approved |
+| Version | 1.0.0 |
 | Author | DSP Research Team |
-| Reviewer | TBD |
-| Approved Date | TBD |
+| Reviewer | DSP Research Team |
+| Approved Date | 2026-08-01 |
 
 ---
 
@@ -367,10 +365,9 @@ Brand strength can fade with quality failures, cultural shifts, or better substi
 
 ## Revision History
 
-Version: 0.1.0
+Version: 1.0.0
 
-Status: Draft
-
+Status: Approved
 Created By: DSP Research Team
 
 ## Review Notes
@@ -387,11 +384,11 @@ Initial institutional definition for REP-002.
 | Concept Name | Network Effects |
 | Category | Economic Moat Concept |
 | Ontology Book | Book 06 — Economic Moat |
-| Status | Draft |
-| Version | 0.1.0 |
+| Status | Approved |
+| Version | 1.0.0 |
 | Author | DSP Research Team |
-| Reviewer | TBD |
-| Approved Date | TBD |
+| Reviewer | DSP Research Team |
+| Approved Date | 2026-08-01 |
 
 ---
 
@@ -531,10 +528,9 @@ Network effects can reverse, fragment, or be bypassed by multihoming and better 
 
 ## Revision History
 
-Version: 0.1.0
+Version: 1.0.0
 
-Status: Draft
-
+Status: Approved
 Created By: DSP Research Team
 
 ## Review Notes
@@ -551,11 +547,11 @@ Initial institutional definition for REP-002.
 | Concept Name | Switching Costs |
 | Category | Economic Moat Concept |
 | Ontology Book | Book 06 — Economic Moat |
-| Status | Draft |
-| Version | 0.1.0 |
+| Status | Approved |
+| Version | 1.0.0 |
 | Author | DSP Research Team |
-| Reviewer | TBD |
-| Approved Date | TBD |
+| Reviewer | DSP Research Team |
+| Approved Date | 2026-08-01 |
 
 ---
 
@@ -696,10 +692,9 @@ Switching costs can fall when standards improve, competitors subsidize migration
 
 ## Revision History
 
-Version: 0.1.0
+Version: 1.0.0
 
-Status: Draft
-
+Status: Approved
 Created By: DSP Research Team
 
 ## Review Notes
@@ -716,11 +711,11 @@ Initial institutional definition for REP-002.
 | Concept Name | Cost-Based Moat |
 | Category | Economic Moat Concept |
 | Ontology Book | Book 06 — Economic Moat |
-| Status | Draft |
-| Version | 0.1.0 |
+| Status | Approved |
+| Version | 1.0.0 |
 | Author | DSP Research Team |
-| Reviewer | TBD |
-| Approved Date | TBD |
+| Reviewer | DSP Research Team |
+| Approved Date | 2026-08-01 |
 
 ---
 
@@ -862,10 +857,9 @@ Cost-based moats erode when technology, capacity, or input markets change. Low c
 
 ## Revision History
 
-Version: 0.1.0
+Version: 1.0.0
 
-Status: Draft
-
+Status: Approved
 Created By: DSP Research Team
 
 ## Review Notes
@@ -882,11 +876,11 @@ Initial institutional definition for REP-002.
 | Concept Name | Intangible Assets |
 | Category | Economic Moat Concept |
 | Ontology Book | Book 06 — Economic Moat |
-| Status | Draft |
-| Version | 0.1.0 |
+| Status | Approved |
+| Version | 1.0.0 |
 | Author | DSP Research Team |
-| Reviewer | TBD |
-| Approved Date | TBD |
+| Reviewer | DSP Research Team |
+| Approved Date | 2026-08-01 |
 
 ---
 
@@ -1027,10 +1021,9 @@ Intangibles can expire, be invented around, or lose relevance. Legal ownership d
 
 ## Revision History
 
-Version: 0.1.0
+Version: 1.0.0
 
-Status: Draft
-
+Status: Approved
 Created By: DSP Research Team
 
 ## Review Notes
@@ -1047,11 +1040,11 @@ Initial institutional definition for REP-002.
 | Concept Name | Regulatory Advantage |
 | Category | Economic Moat Concept |
 | Ontology Book | Book 06 — Economic Moat |
-| Status | Draft |
-| Version | 0.1.0 |
+| Status | Approved |
+| Version | 1.0.0 |
 | Author | DSP Research Team |
-| Reviewer | TBD |
-| Approved Date | TBD |
+| Reviewer | DSP Research Team |
+| Approved Date | 2026-08-01 |
 
 ---
 
@@ -1190,10 +1183,9 @@ Regulatory advantages can be reformed, revoked, or competed away by policy chang
 
 ## Revision History
 
-Version: 0.1.0
+Version: 1.0.0
 
-Status: Draft
-
+Status: Approved
 Created By: DSP Research Team
 
 ## Review Notes
@@ -1210,11 +1202,11 @@ Initial institutional definition for REP-002.
 | Concept Name | Distribution Advantage |
 | Category | Economic Moat Concept |
 | Ontology Book | Book 06 — Economic Moat |
-| Status | Draft |
-| Version | 0.1.0 |
+| Status | Approved |
+| Version | 1.0.0 |
 | Author | DSP Research Team |
-| Reviewer | TBD |
-| Approved Date | TBD |
+| Reviewer | DSP Research Team |
+| Approved Date | 2026-08-01 |
 
 ---
 
@@ -1354,10 +1346,9 @@ Channels can disintermediate, consolidate, or open to rivals. Overdependence on 
 
 ## Revision History
 
-Version: 0.1.0
+Version: 1.0.0
 
-Status: Draft
-
+Status: Approved
 Created By: DSP Research Team
 
 ## Review Notes
@@ -1374,11 +1365,11 @@ Initial institutional definition for REP-002.
 | Concept Name | Scale-Based Moat |
 | Category | Economic Moat Concept |
 | Ontology Book | Book 06 — Economic Moat |
-| Status | Draft |
-| Version | 0.1.0 |
+| Status | Approved |
+| Version | 1.0.0 |
 | Author | DSP Research Team |
-| Reviewer | TBD |
-| Approved Date | TBD |
+| Reviewer | DSP Research Team |
+| Approved Date | 2026-08-01 |
 
 ---
 
@@ -1520,10 +1511,9 @@ Scale can create rigidity. In some industries, focused specialists defeat oversi
 
 ## Revision History
 
-Version: 0.1.0
+Version: 1.0.0
 
-Status: Draft
-
+Status: Approved
 Created By: DSP Research Team
 
 ## Review Notes
@@ -1540,11 +1530,11 @@ Initial institutional definition for REP-002.
 | Concept Name | Ecosystem Strength |
 | Category | Economic Moat Concept |
 | Ontology Book | Book 06 — Economic Moat |
-| Status | Draft |
-| Version | 0.1.0 |
+| Status | Approved |
+| Version | 1.0.0 |
 | Author | DSP Research Team |
-| Reviewer | TBD |
-| Approved Date | TBD |
+| Reviewer | DSP Research Team |
+| Approved Date | 2026-08-01 |
 
 ---
 
@@ -1687,10 +1677,9 @@ Ecosystems can be opened by standards, regulation, or superior rival platforms. 
 
 ## Revision History
 
-Version: 0.1.0
+Version: 1.0.0
 
-Status: Draft
-
+Status: Approved
 Created By: DSP Research Team
 
 ## Review Notes
@@ -1707,11 +1696,11 @@ Initial institutional definition for REP-002.
 | Concept Name | Moat Durability |
 | Category | Economic Moat Concept |
 | Ontology Book | Book 06 — Economic Moat |
-| Status | Draft |
-| Version | 0.1.0 |
+| Status | Approved |
+| Version | 1.0.0 |
 | Author | DSP Research Team |
-| Reviewer | TBD |
-| Approved Date | TBD |
+| Reviewer | DSP Research Team |
+| Approved Date | 2026-08-01 |
 
 ---
 
@@ -1852,10 +1841,9 @@ Moat durability is inherently uncertain. It is an evidence-supported judgment ab
 
 ## Revision History
 
-Version: 0.1.0
+Version: 1.0.0
 
-Status: Draft
-
+Status: Approved
 Created By: DSP Research Team
 
 ## Review Notes
@@ -1872,11 +1860,11 @@ Initial institutional definition for REP-002.
 | Concept Name | Moat Erosion |
 | Category | Economic Moat Concept |
 | Ontology Book | Book 06 — Economic Moat |
-| Status | Draft |
-| Version | 0.1.0 |
+| Status | Approved |
+| Version | 1.0.0 |
 | Author | DSP Research Team |
-| Reviewer | TBD |
-| Approved Date | TBD |
+| Reviewer | DSP Research Team |
+| Approved Date | 2026-08-01 |
 
 ---
 
@@ -2018,10 +2006,9 @@ Erosion signals can be false positives during transition investment or cyclical 
 
 ## Revision History
 
-Version: 0.1.0
+Version: 1.0.0
 
-Status: Draft
-
+Status: Approved
 Created By: DSP Research Team
 
 ## Review Notes

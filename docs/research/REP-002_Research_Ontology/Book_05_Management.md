@@ -2,10 +2,9 @@
 
 ## REP-002 — Research Ontology
 
-Version: 0.1.0
+Version: 1.0.0
 
-Status: Draft
-
+Status: Approved
 Owner: DSP Research Team
 
 Governed By:
@@ -36,7 +35,7 @@ Book 05 consumes Book 01 — Core Principles, Book 02 — Research Objects, Book
 
 ## Book Status
 
-Draft
+Approved
 
 ## Version
 
@@ -54,11 +53,11 @@ Draft
 | Concept Name | Management Quality |
 | Category | Management Concept |
 | Ontology Book | Book 05 — Management |
-| Status | Draft |
-| Version | 0.1.0 |
+| Status | Approved |
+| Version | 1.0.0 |
 | Author | DSP Research Team |
-| Reviewer | TBD |
-| Approved Date | TBD |
+| Reviewer | DSP Research Team |
+| Approved Date | 2026-08-01 |
 
 ---
 
@@ -202,10 +201,9 @@ Management quality is partly judgmental and can change with leadership transitio
 
 ## Revision History
 
-Version: 0.1.0
+Version: 1.0.0
 
-Status: Draft
-
+Status: Approved
 Created By: DSP Research Team
 
 ## Review Notes
@@ -222,11 +220,11 @@ Initial institutional definition for REP-002.
 | Concept Name | Integrity |
 | Category | Management Concept |
 | Ontology Book | Book 05 — Management |
-| Status | Draft |
-| Version | 0.1.0 |
+| Status | Approved |
+| Version | 1.0.0 |
 | Author | DSP Research Team |
-| Reviewer | TBD |
-| Approved Date | TBD |
+| Reviewer | DSP Research Team |
+| Approved Date | 2026-08-01 |
 
 ---
 
@@ -368,10 +366,9 @@ Integrity assessment can be incomplete when disclosures are limited or misconduc
 
 ## Revision History
 
-Version: 0.1.0
+Version: 1.0.0
 
-Status: Draft
-
+Status: Approved
 Created By: DSP Research Team
 
 ## Review Notes
@@ -388,11 +385,11 @@ Initial institutional definition for REP-002.
 | Concept Name | Corporate Governance |
 | Category | Management Concept |
 | Ontology Book | Book 05 — Management |
-| Status | Draft |
-| Version | 0.1.0 |
+| Status | Approved |
+| Version | 1.0.0 |
 | Author | DSP Research Team |
-| Reviewer | TBD |
-| Approved Date | TBD |
+| Reviewer | DSP Research Team |
+| Approved Date | 2026-08-01 |
 
 ---
 
@@ -534,10 +531,9 @@ Governance quality is jurisdiction-sensitive and can look strong on paper while 
 
 ## Revision History
 
-Version: 0.1.0
+Version: 1.0.0
 
-Status: Draft
-
+Status: Approved
 Created By: DSP Research Team
 
 ## Review Notes
@@ -554,11 +550,11 @@ Initial institutional definition for REP-002.
 | Concept Name | Incentive Alignment |
 | Category | Management Concept |
 | Ontology Book | Book 05 — Management |
-| Status | Draft |
-| Version | 0.1.0 |
+| Status | Approved |
+| Version | 1.0.0 |
 | Author | DSP Research Team |
-| Reviewer | TBD |
-| Approved Date | TBD |
+| Reviewer | DSP Research Team |
+| Approved Date | 2026-08-01 |
 
 ---
 
@@ -700,10 +696,9 @@ Incentive design can be complex and jurisdiction-specific. Apparent alignment ca
 
 ## Revision History
 
-Version: 0.1.0
+Version: 1.0.0
 
-Status: Draft
-
+Status: Approved
 Created By: DSP Research Team
 
 ## Review Notes
@@ -720,11 +715,11 @@ Initial institutional definition for REP-002.
 | Concept Name | Leadership Quality |
 | Category | Management Concept |
 | Ontology Book | Book 05 — Management |
-| Status | Draft |
-| Version | 0.1.0 |
+| Status | Approved |
+| Version | 1.0.0 |
 | Author | DSP Research Team |
-| Reviewer | TBD |
-| Approved Date | TBD |
+| Reviewer | DSP Research Team |
+| Approved Date | 2026-08-01 |
 
 ---
 
@@ -865,10 +860,9 @@ Attributing results to leadership versus industry luck is difficult. Leadership 
 
 ## Revision History
 
-Version: 0.1.0
+Version: 1.0.0
 
-Status: Draft
-
+Status: Approved
 Created By: DSP Research Team
 
 ## Review Notes
@@ -885,11 +879,11 @@ Initial institutional definition for REP-002.
 | Concept Name | Shareholder Orientation |
 | Category | Management Concept |
 | Ontology Book | Book 05 — Management |
-| Status | Draft |
-| Version | 0.1.0 |
+| Status | Approved |
+| Version | 1.0.0 |
 | Author | DSP Research Team |
-| Reviewer | TBD |
-| Approved Date | TBD |
+| Reviewer | DSP Research Team |
+| Approved Date | 2026-08-01 |
 
 ---
 
@@ -1030,10 +1024,9 @@ Orientation can be hard to observe in controlled companies. Apparent friendlines
 
 ## Revision History
 
-Version: 0.1.0
+Version: 1.0.0
 
-Status: Draft
-
+Status: Approved
 Created By: DSP Research Team
 
 ## Review Notes
@@ -1050,11 +1043,11 @@ Initial institutional definition for REP-002.
 | Concept Name | Transparency |
 | Category | Management Concept |
 | Ontology Book | Book 05 — Management |
-| Status | Draft |
-| Version | 0.1.0 |
+| Status | Approved |
+| Version | 1.0.0 |
 | Author | DSP Research Team |
-| Reviewer | TBD |
-| Approved Date | TBD |
+| Reviewer | DSP Research Team |
+| Approved Date | 2026-08-01 |
 
 ---
 
@@ -1196,10 +1189,9 @@ Regulatory minimums differ by market. High formal disclosure can still omit the 
 
 ## Revision History
 
-Version: 0.1.0
+Version: 1.0.0
 
-Status: Draft
-
+Status: Approved
 Created By: DSP Research Team
 
 ## Review Notes
@@ -1216,11 +1208,11 @@ Initial institutional definition for REP-002.
 | Concept Name | Accountability |
 | Category | Management Concept |
 | Ontology Book | Book 05 — Management |
-| Status | Draft |
-| Version | 0.1.0 |
+| Status | Approved |
+| Version | 1.0.0 |
 | Author | DSP Research Team |
-| Reviewer | TBD |
-| Approved Date | TBD |
+| Reviewer | DSP Research Team |
+| Approved Date | 2026-08-01 |
 
 ---
 
@@ -1361,10 +1353,9 @@ External observers may not see private board accountability processes. Public si
 
 ## Revision History
 
-Version: 0.1.0
+Version: 1.0.0
 
-Status: Draft
-
+Status: Approved
 Created By: DSP Research Team
 
 ## Review Notes
@@ -1381,11 +1372,11 @@ Initial institutional definition for REP-002.
 | Concept Name | Execution Capability |
 | Category | Management Concept |
 | Ontology Book | Book 05 — Management |
-| Status | Draft |
-| Version | 0.1.0 |
+| Status | Approved |
+| Version | 1.0.0 |
 | Author | DSP Research Team |
-| Reviewer | TBD |
-| Approved Date | TBD |
+| Reviewer | DSP Research Team |
+| Approved Date | 2026-08-01 |
 
 ---
 
@@ -1527,10 +1518,9 @@ External shocks can disrupt execution. Distinguishing bad luck from weak capabil
 
 ## Revision History
 
-Version: 0.1.0
+Version: 1.0.0
 
-Status: Draft
-
+Status: Approved
 Created By: DSP Research Team
 
 ## Review Notes
@@ -1547,11 +1537,11 @@ Initial institutional definition for REP-002.
 | Concept Name | Long-term Stewardship |
 | Category | Management Concept |
 | Ontology Book | Book 05 — Management |
-| Status | Draft |
-| Version | 0.1.0 |
+| Status | Approved |
+| Version | 1.0.0 |
 | Author | DSP Research Team |
-| Reviewer | TBD |
-| Approved Date | TBD |
+| Reviewer | DSP Research Team |
+| Approved Date | 2026-08-01 |
 
 ---
 
@@ -1693,10 +1683,9 @@ Long-term claims are easy to assert and hard to verify quickly. Stewardship qual
 
 ## Revision History
 
-Version: 0.1.0
+Version: 1.0.0
 
-Status: Draft
-
+Status: Approved
 Created By: DSP Research Team
 
 ## Review Notes
@@ -1713,11 +1702,11 @@ Initial institutional definition for REP-002.
 | Concept Name | Management Candor |
 | Category | Management Concept |
 | Ontology Book | Book 05 — Management |
-| Status | Draft |
-| Version | 0.1.0 |
+| Status | Approved |
+| Version | 1.0.0 |
 | Author | DSP Research Team |
-| Reviewer | TBD |
-| Approved Date | TBD |
+| Reviewer | DSP Research Team |
+| Approved Date | 2026-08-01 |
 
 ---
 
@@ -1859,10 +1848,9 @@ Cultural and legal norms affect communication style. Low verbosity is not the sa
 
 ## Revision History
 
-Version: 0.1.0
+Version: 1.0.0
 
-Status: Draft
-
+Status: Approved
 Created By: DSP Research Team
 
 ## Review Notes
@@ -1879,11 +1867,11 @@ Initial institutional definition for REP-002.
 | Concept Name | Succession Readiness |
 | Category | Management Concept |
 | Ontology Book | Book 05 — Management |
-| Status | Draft |
-| Version | 0.1.0 |
+| Status | Approved |
+| Version | 1.0.0 |
 | Author | DSP Research Team |
-| Reviewer | TBD |
-| Approved Date | TBD |
+| Reviewer | DSP Research Team |
+| Approved Date | 2026-08-01 |
 
 ---
 
@@ -2025,10 +2013,9 @@ Succession details are often private. Outsiders may underestimate or overestimat
 
 ## Revision History
 
-Version: 0.1.0
+Version: 1.0.0
 
-Status: Draft
-
+Status: Approved
 Created By: DSP Research Team
 
 ## Review Notes

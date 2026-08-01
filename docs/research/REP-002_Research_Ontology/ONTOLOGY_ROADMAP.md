@@ -2,9 +2,9 @@
 
 ## REP-002 — Research Ontology
 
-Version: 0.1.0
+Version: 1.0.0
 
-Status: Draft
+Status: Approved
 
 Owner: DSP Research Team
 
@@ -15,15 +15,15 @@ DSP Research Constitution v1.0
 
 # Ontology Roadmap
 
-This document defines the institutional architecture for completing REP-002 after Book 01 — Core Principles. It is a planning artefact only. It does not define concepts, methodologies, algorithms, or implementation requirements.
+This document is the institutional architecture map for REP-002 Version 1.0.0. It records the approved book structure, concept inventory, dependencies, and completion status.
 
-Concept entries must be authored later using `ontology-template.md` Version 2 and recorded in the appropriate book files and `ontology-index.md`.
+Concept definitions are authoritative in the ontology books and catalogued in `CONCEPT_ID_REGISTRY.md` and `ontology-index.md`. This roadmap does not redefine concepts.
 
 ---
 
 # Book 01 — Core Principles
 
-**Status:** Complete
+**Status:** Complete (Approved)
 
 ## Purpose
 
@@ -57,120 +57,44 @@ None. Book 01 is the base layer of REP-002.
 
 # Book 02 — Research Objects
 
-**Status:** Planned
+**Status:** Complete (Approved)
 
 ## Purpose
 
-Define the enduring research artefacts that DSP AI Indicator creates, stores, references, and revisits over time.
+Define the enduring research artefacts and identity objects that DSP AI Indicator creates, stores, references, and revisits over time.
 
 ## Scope
 
 Named research objects and their meaning as institutional artefacts, independent of storage technology or API shape.
 
-## Planned Concepts (Names Only)
+## Concepts (Authoritative)
 
-- Research Object
-- Company Profile
-- Research Note
-- Evidence Record
-- Assumption Register
-- Inference Chain
-- Confidence Record
-- Thesis Object
-- Valuation Object
-- Risk Register Object
-- Decision Record
-- Review Packet
+| Concept ID | Concept Name |
+|---|---|
+| RO-001 | Entity |
+| RO-002 | Organization |
+| RO-003 | Security |
+| RO-004 | Financial Statement |
+| RO-005 | Metric |
+| RO-006 | Dataset |
+| RO-007 | Source |
+| RO-008 | Document |
+| RO-009 | Time Period |
+| RO-010 | Currency |
 
 ## Dependencies
 
 Book 01 — Core Principles
 
-## Estimated Concept Count
+## Concept Count
 
-12
-
----
-
-# Book 03 — Research Process
-
-**Status:** Planned
-
-## Purpose
-
-Define the ordered meanings of research activities from intake through conclusion and review.
-
-## Scope
-
-Process stages and analytical states as ontology concepts, not workflow software design.
-
-## Planned Concepts (Names Only)
-
-- Research Mandate
-- Information Gathering
-- Evidence Assessment
-- Fact Establishment
-- Observation Recording
-- Assumption Declaration
-- Inference Formation
-- Confidence Assessment
-- Peer Review
-- Conclusion Publication
-- Periodic Reassessment
-- Research Closure
-
-## Dependencies
-
-Book 01 — Core Principles  
-Book 02 — Research Objects
-
-## Estimated Concept Count
-
-12
+10
 
 ---
 
-# Book 04 — Evidence & Sources
+# Book 03 — Financial Ontology
 
-**Status:** Planned
-
-## Purpose
-
-Define source categories and evidence-quality meanings used to classify and judge supporting material.
-
-## Scope
-
-Evidence types, source classes, and quality attributes as meanings. Does not include ingestion pipelines or connectors.
-
-## Planned Concepts (Names Only)
-
-- Primary Source
-- Secondary Source
-- Official Filing
-- Audited Statement
-- Regulatory Disclosure
-- Market Data Source
-- Industry Report
-- Management Communication
-- Source Reliability
-- Evidence Currency
-- Evidence Completeness
-- Conflicting Evidence
-
-## Dependencies
-
-Book 01 — Core Principles  
-Book 02 — Research Objects
-
-## Estimated Concept Count
-
-12
-
----
-
-# Book 05 — Financial Concepts
-
-**Status:** Planned
+**Status:** Complete (Approved)
 
 ## Purpose
 
@@ -180,35 +104,37 @@ Define the financial vocabulary used consistently in analysis, explanation, and 
 
 Statement elements, ratios, and financial condition concepts as meanings. Does not include calculation algorithms or scoring formulas.
 
-## Planned Concepts (Names Only)
+## Concepts (Authoritative)
 
-- Revenue
-- Operating Profit
-- Free Cash Flow
-- Capital Expenditure
-- Working Capital
-- Return on Capital
-- Return on Equity
-- Leverage
-- Interest Coverage
-- Earnings Quality
-- Cash Conversion
-- Capital Intensity
+| Concept ID | Concept Name |
+|---|---|
+| FC-001 | Revenue |
+| FC-002 | Operating Profit |
+| FC-003 | Free Cash Flow |
+| FC-004 | Capital Expenditure |
+| FC-005 | Working Capital |
+| FC-006 | Return on Capital |
+| FC-007 | Return on Equity |
+| FC-008 | Leverage |
+| FC-009 | Interest Coverage |
+| FC-010 | Earnings Quality |
+| FC-011 | Cash Conversion |
+| FC-012 | Capital Intensity |
 
 ## Dependencies
 
 Book 01 — Core Principles  
-Book 04 — Evidence & Sources
+Book 02 — Research Objects
 
-## Estimated Concept Count
+## Concept Count
 
 12
 
 ---
 
-# Book 06 — Business Quality
+# Book 04 — Business Quality
 
-**Status:** Planned
+**Status:** Complete (Approved)
 
 ## Purpose
 
@@ -218,35 +144,161 @@ Define qualitative and structural business characteristics used to judge durabil
 
 Business-quality meanings and related attributes. Does not include scoring engines or UI presentation.
 
-## Planned Concepts (Names Only)
+## Concepts (Authoritative)
 
-- Business Quality
-- Competitive Position
-- Pricing Power
-- Customer Stickiness
-- Cost Advantage
-- Scale Advantage
-- Industry Structure
-- Operating Discipline
-- Capital Allocation Quality
-- Reinvestment Opportunity
-- Franchise Durability
-- Quality Deterioration Signal
+| Concept ID | Concept Name |
+|---|---|
+| BQ-001 | Business Quality |
+| BQ-002 | Competitive Position |
+| BQ-003 | Pricing Power |
+| BQ-004 | Customer Stickiness |
+| BQ-005 | Cost Advantage |
+| BQ-006 | Scale Advantage |
+| BQ-007 | Industry Structure |
+| BQ-008 | Operating Discipline |
+| BQ-009 | Capital Allocation Quality |
+| BQ-010 | Reinvestment Opportunity |
+| BQ-011 | Franchise Durability |
+| BQ-012 | Quality Deterioration Signal |
 
 ## Dependencies
 
 Book 01 — Core Principles  
-Book 05 — Financial Concepts
+Book 03 — Financial Ontology
 
-## Estimated Concept Count
+## Concept Count
 
 12
 
 ---
 
-# Book 07 — Valuation Concepts
+# Book 05 — Management
 
-**Status:** Planned
+**Status:** Complete (Approved)
+
+## Purpose
+
+Define management quality, stewardship, and related qualitative factors used in research judgement.
+
+## Scope
+
+Management meanings as ontology concepts. Does not include HR systems, compensation calculators, or UI presentation.
+
+## Concepts (Authoritative)
+
+| Concept ID | Concept Name |
+|---|---|
+| MQ-001 | Management Quality |
+| MQ-002 | Integrity |
+| MQ-003 | Corporate Governance |
+| MQ-004 | Incentive Alignment |
+| MQ-005 | Leadership Quality |
+| MQ-006 | Shareholder Orientation |
+| MQ-007 | Transparency |
+| MQ-008 | Accountability |
+| MQ-009 | Execution Capability |
+| MQ-010 | Long-term Stewardship |
+| MQ-011 | Management Candor |
+| MQ-012 | Succession Readiness |
+
+## Dependencies
+
+Book 01 — Core Principles  
+Book 04 — Business Quality
+
+## Concept Count
+
+12
+
+---
+
+# Book 06 — Economic Moat
+
+**Status:** Complete (Approved)
+
+## Purpose
+
+Define durable competitive advantage and the structural conditions that sustain or erode it.
+
+## Scope
+
+Moat meanings and moat-source attributes. Does not include scoring algorithms or recommendation logic.
+
+## Concepts (Authoritative)
+
+| Concept ID | Concept Name |
+|---|---|
+| EM-001 | Economic Moat |
+| EM-002 | Brand Strength |
+| EM-003 | Network Effects |
+| EM-004 | Switching Costs |
+| EM-005 | Cost-Based Moat |
+| EM-006 | Intangible Assets |
+| EM-007 | Regulatory Advantage |
+| EM-008 | Distribution Advantage |
+| EM-009 | Scale-Based Moat |
+| EM-010 | Ecosystem Strength |
+| EM-011 | Moat Durability |
+| EM-012 | Moat Erosion |
+
+## Dependencies
+
+Book 01 — Core Principles  
+Book 04 — Business Quality  
+Book 05 — Management
+
+## Concept Count
+
+12
+
+---
+
+# Book 07 — Risk
+
+**Status:** Complete (Approved)
+
+## Purpose
+
+Define risk meanings used to communicate exposure, fragility, and incomplete knowledge.
+
+## Scope
+
+Risk classes and related attributes as ontology concepts. Does not include risk engines or portfolio optimisers.
+
+## Concepts (Authoritative)
+
+| Concept ID | Concept Name |
+|---|---|
+| RU-001 | Business Risk |
+| RU-002 | Financial Risk |
+| RU-003 | Operational Risk |
+| RU-004 | Industry Risk |
+| RU-005 | Regulatory Risk |
+| RU-006 | Governance Risk |
+| RU-007 | Concentration Risk |
+| RU-008 | Liquidity Risk |
+| RU-009 | Currency Risk |
+| RU-010 | Tail Risk |
+| RU-011 | Permanent Capital Loss |
+| RU-012 | Margin of Safety |
+
+## Dependencies
+
+Book 01 — Core Principles  
+Book 03 — Financial Ontology  
+Book 04 — Business Quality  
+Book 05 — Management  
+Book 06 — Economic Moat
+
+## Concept Count
+
+12
+
+---
+
+# Book 08 — Valuation
+
+**Status:** Complete (Approved)
 
 ## Purpose
 
@@ -256,68 +308,32 @@ Define valuation vocabulary so that intrinsic value language remains consistent 
 
 Valuation meanings and comparative value concepts. Does not include model code, discount-rate algorithms, or recommendation logic.
 
-## Planned Concepts (Names Only)
+## Concepts (Authoritative)
 
-- Intrinsic Value
-- Market Price
-- Margin of Safety
-- Earnings Power
-- Cash Flow Value
-- Asset Value
-- Relative Valuation
-- Normalised Earnings
-- Terminal Value Concept
-- Valuation Range
-- Valuation Uncertainty
-- Value vs Price Distinction
-
-## Dependencies
-
-Book 01 — Core Principles  
-Book 05 — Financial Concepts  
-Book 06 — Business Quality
-
-## Estimated Concept Count
-
-12
-
----
-
-# Book 08 — Risk & Uncertainty
-
-**Status:** Planned
-
-## Purpose
-
-Define risk and uncertainty meanings used to communicate exposure, fragility, and incomplete knowledge.
-
-## Scope
-
-Risk classes and uncertainty attributes as ontology concepts. Does not include risk engines or portfolio optimisers.
-
-## Planned Concepts (Names Only)
-
-- Risk
-- Uncertainty
-- Business Risk
-- Financial Risk
-- Liquidity Risk
-- Governance Risk
-- Regulatory Risk
-- Valuation Risk
-- Model Risk
-- Information Risk
-- Tail Risk
-- Risk Mitigant
+| Concept ID | Concept Name |
+|---|---|
+| VC-001 | Intrinsic Value |
+| VC-002 | Fair Value |
+| VC-003 | Market Value |
+| VC-004 | Valuation Margin of Safety |
+| VC-005 | Discount Rate |
+| VC-006 | Discounted Cash Flow |
+| VC-007 | Terminal Value |
+| VC-008 | Relative Valuation |
+| VC-009 | Residual Income Valuation |
+| VC-010 | Earnings Power Value |
+| VC-011 | Asset-Based Valuation |
+| VC-012 | Valuation Confidence |
 
 ## Dependencies
 
 Book 01 — Core Principles  
-Book 05 — Financial Concepts  
-Book 06 — Business Quality  
-Book 07 — Valuation Concepts
+Book 03 — Financial Ontology  
+Book 04 — Business Quality  
+Book 06 — Economic Moat  
+Book 07 — Risk
 
-## Estimated Concept Count
+## Concept Count
 
 12
 
@@ -325,76 +341,90 @@ Book 07 — Valuation Concepts
 
 # Book 09 — Decision Framework
 
-**Status:** Planned
+**Status:** Complete (Approved)
 
 ## Purpose
 
-Define decision-oriented research meanings that connect analysis to action without prescribing products or brokerage behaviour.
+Define the integration layer that combines evidence, financial analysis, quality, management, moat, risk, valuation, and governance into institutional research decisions.
 
 ## Scope
 
-Decision states, thesis language, and recommendation categories as meanings under Research Mode and institutional governance.
+Decision-oriented research meanings under Research Mode and institutional governance. Does not prescribe brokerage behaviour or order routing.
 
-## Planned Concepts (Names Only)
+## Concepts (Authoritative)
 
-- Investment Thesis
-- Decision Criterion
-- Watchlist Condition
-- Buy Case
-- Hold Case
-- Reduce Case
-- Avoid Case
-- Catalyst
-- Invalidation Condition
-- Position Sizing Premise
-- Time Horizon
-- Decision Review Trigger
+| Concept ID | Concept Name |
+|---|---|
+| DF-001 | Research Conclusion |
+| DF-002 | Investment Thesis |
+| DF-003 | Decision Confidence |
+| DF-004 | Recommendation State |
+| DF-005 | Decision Criteria |
+| DF-006 | Evidence Weighting |
+| DF-007 | Contradictory Evidence Handling |
+| DF-008 | Scenario Analysis |
+| DF-009 | Decision Review |
+| DF-010 | Decision Revision |
+| DF-011 | Research Lifecycle |
+| DF-012 | Continuous Learning |
 
 ## Dependencies
 
 Book 01 — Core Principles  
-Book 07 — Valuation Concepts  
-Book 08 — Risk & Uncertainty
+Book 02 — Research Objects  
+Book 03 — Financial Ontology  
+Book 04 — Business Quality  
+Book 05 — Management  
+Book 06 — Economic Moat  
+Book 07 — Risk  
+Book 08 — Valuation  
+Book 10 — Governance & AI Intelligence
 
-## Estimated Concept Count
+## Concept Count
 
 12
 
+## Layering Note
+
+Book 09 depends on Book 10 for governance presentation concepts (for example Recommendation and Analytical Confidence Level). Numeric book order does not imply that Decision Framework precedes Governance in the dependency graph.
+
 ---
 
-# Book 10 — Governance
+# Book 10 — Governance & AI Intelligence
 
-**Status:** Planned
+**Status:** Complete (Approved)
 
 ## Purpose
 
-Define governance meanings that protect ontology integrity, research accountability, and long-term institutional memory.
+Define governance and AI-intelligence meanings that protect research accountability, explainability, validation, and institutional memory.
 
 ## Scope
 
-Ownership, change control, auditability, and review concepts for research language and research artefacts.
+AI committee, explainability, recommendation presentation, confidence communication, policy, traceability, auditability, validation, and human oversight. Does not define model weights, prompts, APIs, or UI layout.
 
-## Planned Concepts (Names Only)
+## Concepts (Authoritative)
 
-- Ontology Ownership
-- Concept Approval
-- Breaking Change
-- Version Pinning
-- Research Audit Trail
-- Conflict of Definition
-- Superseded Concept
-- Deprecation Notice
-- Review Cadence
-- Exception Record
-- Compliance Alignment
-- Knowledge Continuity
+| Concept ID | Concept Name |
+|---|---|
+| GV-001 | AI Committee |
+| GV-002 | Explainability |
+| GV-003 | Recommendation |
+| GV-004 | Analytical Confidence Level |
+| GV-005 | Governance Rule |
+| GV-006 | Research Policy |
+| GV-007 | Research Transparency |
+| GV-008 | Traceability |
+| GV-009 | Auditability |
+| GV-010 | Decision Record |
+| GV-011 | Validation Rule |
+| GV-012 | Human Oversight |
 
 ## Dependencies
 
 Book 01 — Core Principles  
-All prior books (for cross-book governance application)
+Books 02–08 (consume by reference; do not redefine)
 
-## Estimated Concept Count
+## Concept Count
 
 12
 
@@ -404,42 +434,54 @@ All prior books (for cross-book governance application)
 
 | Book | Title | Status | Concepts |
 |---|---|---|---|
-| 01 | Core Principles | Complete | 7 |
-| 02 | Research Objects | Planned | 12 (estimated) |
-| 03 | Research Process | Planned | 12 (estimated) |
-| 04 | Evidence & Sources | Planned | 12 (estimated) |
-| 05 | Financial Concepts | Planned | 12 (estimated) |
-| 06 | Business Quality | Planned | 12 (estimated) |
-| 07 | Valuation Concepts | Planned | 12 (estimated) |
-| 08 | Risk & Uncertainty | Planned | 12 (estimated) |
-| 09 | Decision Framework | Planned | 12 (estimated) |
-| 10 | Governance | Planned | 12 (estimated) |
+| 01 | Core Principles | Complete (Approved) | 7 |
+| 02 | Research Objects | Complete (Approved) | 10 |
+| 03 | Financial Ontology | Complete (Approved) | 12 |
+| 04 | Business Quality | Complete (Approved) | 12 |
+| 05 | Management | Complete (Approved) | 12 |
+| 06 | Economic Moat | Complete (Approved) | 12 |
+| 07 | Risk | Complete (Approved) | 12 |
+| 08 | Valuation | Complete (Approved) | 12 |
+| 09 | Decision Framework | Complete (Approved) | 12 |
+| 10 | Governance & AI Intelligence | Complete (Approved) | 12 |
 
 ---
 
-# Estimated Total Concepts
+# Total Concepts
 
 | Category | Count |
 |---|---|
-| Completed (Book 01) | 7 |
-| Planned (Books 02–10) | 108 |
-| **Estimated total ontology concepts** | **115** |
-
-Estimates for Books 02–10 are planning targets. Actual counts may change through governance when books are authored, provided uniqueness and single-definition rules in `RULES.md` are preserved.
+| Approved (Books 01–10) | **113** |
+| Reserved-unused prefixes (RP, ES) | 0 IDs assigned |
+| **Official ontology concepts (v1.0.0)** | **113** |
 
 ---
 
 # Book Completion Checklist
 
 - [x] Book 01 — Core Principles
-- [ ] Book 02 — Research Objects
-- [ ] Book 03 — Research Process
-- [ ] Book 04 — Evidence & Sources
-- [ ] Book 05 — Financial Concepts
-- [ ] Book 06 — Business Quality
-- [ ] Book 07 — Valuation Concepts
-- [ ] Book 08 — Risk & Uncertainty
-- [ ] Book 09 — Decision Framework
-- [ ] Book 10 — Governance
+- [x] Book 02 — Research Objects
+- [x] Book 03 — Financial Ontology
+- [x] Book 04 — Business Quality
+- [x] Book 05 — Management
+- [x] Book 06 — Economic Moat
+- [x] Book 07 — Risk
+- [x] Book 08 — Valuation
+- [x] Book 09 — Decision Framework
+- [x] Book 10 — Governance & AI Intelligence
 
-A book is Complete only when its concepts are approved, indexed, and free of unresolved definition conflicts under REP-002 governance.
+A book is Complete when its concepts are approved, registered, indexed, and free of unresolved definition conflicts under REP-002 governance.
+
+---
+
+# Post–v1.0 Candidates (Not in Scope)
+
+The following domains are **explicitly out of REP-002 Version 1.0.0**. They may be authored later only through governance:
+
+- Portfolio ontology (multi-position context beyond Decision Framework / Governance references)
+- Standalone Prediction book (forecast language remains constrained by Book 01 and Decision Framework scenarios)
+- Standalone Validation book (validation meanings live primarily in GV-011 and related governance concepts)
+- Standalone Company Ontology book (issuer identity covered by Research Objects)
+- Standalone AI Intelligence book (merged into Book 10 — Governance & AI Intelligence)
+
+Placeholder files for these domains, if present, are deprecated stubs and must not be treated as v1.0 concept homes.

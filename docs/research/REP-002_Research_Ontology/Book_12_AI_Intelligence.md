@@ -2,9 +2,9 @@
 
 ## REP-002 — Research Ontology
 
-Version: 0.1.0
+Version: 1.0.0
 
-Status: Draft
+Status: Deprecated Stub
 
 Owner: DSP Research Team
 
@@ -13,20 +13,22 @@ DSP Research Constitution v1.0
 
 ---
 
-# Book 12 — AI Intelligence
+# DEPRECATED — Not a Version 1.0 Concept Home
 
-## Purpose
+**Filename:** `Book_12_AI_Intelligence.md`
 
-<!-- Placeholder -->
+This file is retained only as a deprecated stub for historical path continuity.
 
-## Scope
+## Disposition (REP-002 v1.0.0)
 
-<!-- Placeholder -->
+- **Not in scope** as a primary ontology book for Version 1.0.0.
+- AI Intelligence meanings are **merged into Book 10 — Governance & AI Intelligence** (`Book_10_Governance_AI_Intelligence.md`).
+- Do not author concepts in this file.
+- Do not treat this file as authoritative.
 
-## Reserved Sections
+## Canonical references
 
-<!-- Placeholder: reserved structural sections for this book -->
-
-## Concepts
-
-<!-- Placeholder for Concepts — do not populate in framework phase -->
+- `Book_10_Governance_AI_Intelligence.md`
+- `ONTOLOGY_ROADMAP.md`
+- `README.md`
+- `CONCEPT_ID_REGISTRY.md`

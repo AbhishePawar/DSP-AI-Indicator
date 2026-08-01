@@ -2,9 +2,9 @@
 
 ## REP-002 — Research Ontology
 
-Version: 0.1.0
+Version: 1.0.0
 
-Status: Draft
+Status: Deprecated Stub
 
 Owner: DSP Research Team
 
@@ -13,20 +13,22 @@ DSP Research Constitution v1.0
 
 ---
 
-# Book 02 — Company Ontology
+# DEPRECATED — Not a Version 1.0 Concept Home
 
-## Purpose
+**Filename:** `Book_02_Company_Ontology.md`
 
-<!-- Placeholder -->
+This file is retained only as a deprecated stub for historical path continuity.
 
-## Scope
+## Disposition (REP-002 v1.0.0)
 
-<!-- Placeholder -->
+- **Not in scope** as a primary ontology book for Version 1.0.0.
+- Issuer / company identity meanings are owned by **Book 02 — Research Objects** (`Book_02_Research_Objects.md`), especially Entity, Organization, and Security.
+- Do not author concepts in this file.
+- Do not treat this file as authoritative.
 
-## Reserved Sections
+## Canonical references
 
-<!-- Placeholder: reserved structural sections for this book -->
-
-## Concepts
-
-<!-- Placeholder for Concepts — do not populate in framework phase -->
+- `Book_02_Research_Objects.md`
+- `ONTOLOGY_ROADMAP.md`
+- `README.md`
+- `CONCEPT_ID_REGISTRY.md`

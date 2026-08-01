@@ -2,10 +2,9 @@
 
 ## REP-002 — Research Ontology
 
-Version: 0.1.0
+Version: 1.0.0
 
-Status: Draft
-
+Status: Approved
 Owner: DSP Research Team
 
 Governed By:
@@ -35,7 +34,7 @@ Book 04 consumes Book 01 — Core Principles, Book 02 — Research Objects, and 
 
 ## Book Status
 
-Draft
+Approved
 
 ## Version
 
@@ -53,11 +52,11 @@ Draft
 | Concept Name | Business Quality |
 | Category | Business Quality Concept |
 | Ontology Book | Book 04 — Business Quality |
-| Status | Draft |
-| Version | 0.1.0 |
+| Status | Approved |
+| Version | 1.0.0 |
 | Author | DSP Research Team |
-| Reviewer | TBD |
-| Approved Date | TBD |
+| Reviewer | DSP Research Team |
+| Approved Date | 2026-08-01 |
 
 ---
 
@@ -201,10 +200,9 @@ Business quality is partly judgmental and forward-looking in implication. It can
 
 ## Revision History
 
-Version: 0.1.0
+Version: 1.0.0
 
-Status: Draft
-
+Status: Approved
 Created By: DSP Research Team
 
 ## Review Notes
@@ -221,11 +219,11 @@ Initial institutional definition for REP-002.
 | Concept Name | Competitive Position |
 | Category | Business Quality Concept |
 | Ontology Book | Book 04 — Business Quality |
-| Status | Draft |
-| Version | 0.1.0 |
+| Status | Approved |
+| Version | 1.0.0 |
 | Author | DSP Research Team |
-| Reviewer | TBD |
-| Approved Date | TBD |
+| Reviewer | DSP Research Team |
+| Approved Date | 2026-08-01 |
 
 ---
 
@@ -366,10 +364,9 @@ Competitive position can change with technology, regulation, and customer behavi
 
 ## Revision History
 
-Version: 0.1.0
+Version: 1.0.0
 
-Status: Draft
-
+Status: Approved
 Created By: DSP Research Team
 
 ## Review Notes
@@ -386,11 +383,11 @@ Initial institutional definition for REP-002.
 | Concept Name | Pricing Power |
 | Category | Business Quality Concept |
 | Ontology Book | Book 04 — Business Quality |
-| Status | Draft |
-| Version | 0.1.0 |
+| Status | Approved |
+| Version | 1.0.0 |
 | Author | DSP Research Team |
-| Reviewer | TBD |
-| Approved Date | TBD |
+| Reviewer | DSP Research Team |
+| Approved Date | 2026-08-01 |
 
 ---
 
@@ -532,10 +529,9 @@ Apparent pricing power may be cyclical or policy-driven. It can weaken quickly i
 
 ## Revision History
 
-Version: 0.1.0
+Version: 1.0.0
 
-Status: Draft
-
+Status: Approved
 Created By: DSP Research Team
 
 ## Review Notes
@@ -552,11 +548,11 @@ Initial institutional definition for REP-002.
 | Concept Name | Customer Stickiness |
 | Category | Business Quality Concept |
 | Ontology Book | Book 04 — Business Quality |
-| Status | Draft |
-| Version | 0.1.0 |
+| Status | Approved |
+| Version | 1.0.0 |
 | Author | DSP Research Team |
-| Reviewer | TBD |
-| Approved Date | TBD |
+| Reviewer | DSP Research Team |
+| Approved Date | 2026-08-01 |
 
 ---
 
@@ -697,10 +693,9 @@ Stickiness can be eroded by better substitutes, regulatory change, or declining 
 
 ## Revision History
 
-Version: 0.1.0
+Version: 1.0.0
 
-Status: Draft
-
+Status: Approved
 Created By: DSP Research Team
 
 ## Review Notes
@@ -717,11 +712,11 @@ Initial institutional definition for REP-002.
 | Concept Name | Cost Advantage |
 | Category | Business Quality Concept |
 | Ontology Book | Book 04 — Business Quality |
-| Status | Draft |
-| Version | 0.1.0 |
+| Status | Approved |
+| Version | 1.0.0 |
 | Author | DSP Research Team |
-| Reviewer | TBD |
-| Approved Date | TBD |
+| Reviewer | DSP Research Team |
+| Approved Date | 2026-08-01 |
 
 ---
 
@@ -863,10 +858,9 @@ Cost advantages can be competed away by technology, capacity additions, or input
 
 ## Revision History
 
-Version: 0.1.0
+Version: 1.0.0
 
-Status: Draft
-
+Status: Approved
 Created By: DSP Research Team
 
 ## Review Notes
@@ -883,11 +877,11 @@ Initial institutional definition for REP-002.
 | Concept Name | Scale Advantage |
 | Category | Business Quality Concept |
 | Ontology Book | Book 04 — Business Quality |
-| Status | Draft |
-| Version | 0.1.0 |
+| Status | Approved |
+| Version | 1.0.0 |
 | Author | DSP Research Team |
-| Reviewer | TBD |
-| Approved Date | TBD |
+| Reviewer | DSP Research Team |
+| Approved Date | 2026-08-01 |
 
 ---
 
@@ -1028,10 +1022,9 @@ Scale can create rigidity and diseconomies. In some industries, nimble specialis
 
 ## Revision History
 
-Version: 0.1.0
+Version: 1.0.0
 
-Status: Draft
-
+Status: Approved
 Created By: DSP Research Team
 
 ## Review Notes
@@ -1048,11 +1041,11 @@ Initial institutional definition for REP-002.
 | Concept Name | Industry Structure |
 | Category | Business Quality Concept |
 | Ontology Book | Book 04 — Business Quality |
-| Status | Draft |
-| Version | 0.1.0 |
+| Status | Approved |
+| Version | 1.0.0 |
 | Author | DSP Research Team |
-| Reviewer | TBD |
-| Approved Date | TBD |
+| Reviewer | DSP Research Team |
+| Approved Date | 2026-08-01 |
 
 ---
 
@@ -1192,10 +1185,9 @@ Industry structure can shift with technology, regulation, and globalization. His
 
 ## Revision History
 
-Version: 0.1.0
+Version: 1.0.0
 
-Status: Draft
-
+Status: Approved
 Created By: DSP Research Team
 
 ## Review Notes
@@ -1212,11 +1204,11 @@ Initial institutional definition for REP-002.
 | Concept Name | Operating Discipline |
 | Category | Business Quality Concept |
 | Ontology Book | Book 04 — Business Quality |
-| Status | Draft |
-| Version | 0.1.0 |
+| Status | Approved |
+| Version | 1.0.0 |
 | Author | DSP Research Team |
-| Reviewer | TBD |
-| Approved Date | TBD |
+| Reviewer | DSP Research Team |
+| Approved Date | 2026-08-01 |
 
 ---
 
@@ -1358,10 +1350,9 @@ Operating discipline can appear strong in easy cycles and weaken under stress. R
 
 ## Revision History
 
-Version: 0.1.0
+Version: 1.0.0
 
-Status: Draft
-
+Status: Approved
 Created By: DSP Research Team
 
 ## Review Notes
@@ -1378,11 +1369,11 @@ Initial institutional definition for REP-002.
 | Concept Name | Capital Allocation Quality |
 | Category | Business Quality Concept |
 | Ontology Book | Book 04 — Business Quality |
-| Status | Draft |
-| Version | 0.1.0 |
+| Status | Approved |
+| Version | 1.0.0 |
 | Author | DSP Research Team |
-| Reviewer | TBD |
-| Approved Date | TBD |
+| Reviewer | DSP Research Team |
+| Approved Date | 2026-08-01 |
 
 ---
 
@@ -1525,10 +1516,9 @@ Capital allocation quality is revealed over long periods. Recent decisions may b
 
 ## Revision History
 
-Version: 0.1.0
+Version: 1.0.0
 
-Status: Draft
-
+Status: Approved
 Created By: DSP Research Team
 
 ## Review Notes
@@ -1545,11 +1535,11 @@ Initial institutional definition for REP-002.
 | Concept Name | Reinvestment Opportunity |
 | Category | Business Quality Concept |
 | Ontology Book | Book 04 — Business Quality |
-| Status | Draft |
-| Version | 0.1.0 |
+| Status | Approved |
+| Version | 1.0.0 |
 | Author | DSP Research Team |
-| Reviewer | TBD |
-| Approved Date | TBD |
+| Reviewer | DSP Research Team |
+| Approved Date | 2026-08-01 |
 
 ---
 
@@ -1692,10 +1682,9 @@ Reinvestment opportunities can close as markets saturate or competition intensif
 
 ## Revision History
 
-Version: 0.1.0
+Version: 1.0.0
 
-Status: Draft
-
+Status: Approved
 Created By: DSP Research Team
 
 ## Review Notes
@@ -1712,11 +1701,11 @@ Initial institutional definition for REP-002.
 | Concept Name | Franchise Durability |
 | Category | Business Quality Concept |
 | Ontology Book | Book 04 — Business Quality |
-| Status | Draft |
-| Version | 0.1.0 |
+| Status | Approved |
+| Version | 1.0.0 |
 | Author | DSP Research Team |
-| Reviewer | TBD |
-| Approved Date | TBD |
+| Reviewer | DSP Research Team |
+| Approved Date | 2026-08-01 |
 
 ---
 
@@ -1860,10 +1849,9 @@ Franchise durability is inherently uncertain. It is an evidence-supported judgme
 
 ## Revision History
 
-Version: 0.1.0
+Version: 1.0.0
 
-Status: Draft
-
+Status: Approved
 Created By: DSP Research Team
 
 ## Review Notes
@@ -1880,11 +1868,11 @@ Initial institutional definition for REP-002.
 | Concept Name | Quality Deterioration Signal |
 | Category | Business Quality Concept |
 | Ontology Book | Book 04 — Business Quality |
-| Status | Draft |
-| Version | 0.1.0 |
+| Status | Approved |
+| Version | 1.0.0 |
 | Author | DSP Research Team |
-| Reviewer | TBD |
-| Approved Date | TBD |
+| Reviewer | DSP Research Team |
+| Approved Date | 2026-08-01 |
 
 ---
 
@@ -2028,10 +2016,9 @@ Signals can be false positives in cyclical troughs or transitional investment ph
 
 ## Revision History
 
-Version: 0.1.0
+Version: 1.0.0
 
-Status: Draft
-
+Status: Approved
 Created By: DSP Research Team
 
 ## Review Notes

@@ -146,6 +146,10 @@ describe("research routing breadcrumbs", () => {
 
   it("builds ticker crumbs for /research/[ticker]", () => {
     const crumbs = breadcrumbsFor("/research/acm");
-    expect(crumbs.map((c) => c.label)).toEqual(["Home", "Research", "ACM"]);
+    expect(crumbs.map((c) => c.label)).toEqual([
+      "Home",
+      "Research Workspace",
+      "ACM",
+    ]);
   });
 });

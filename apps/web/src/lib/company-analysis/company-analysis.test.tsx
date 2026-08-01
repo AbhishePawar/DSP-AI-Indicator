@@ -221,16 +221,22 @@ describe("EPIC-F005 company analysis lib", () => {
     expect(ANALYSIS_SECTIONS.map((s) => s.id)).toEqual(
       expect.arrayContaining([
         "summary",
+        "valuation",
+        "quality",
+        "management",
+        "moat",
+        "risk",
+        "financial",
+        "ai",
+        "explainability",
+        "evidence",
+        "timeline",
+        "export",
         "ratings",
         "valuationTransparency",
         "research",
-        "valuation",
-        "quality",
-        "ai",
         "buffett",
         "compliance",
-        "timeline",
-        "export",
       ]),
     );
   });
@@ -303,7 +309,9 @@ describe("EPIC-F005 workspace UI", () => {
     await waitFor(() => {
       expect(analyseMock).toHaveBeenCalled();
     });
-    expect(await screen.findByText(/Executive Summary/i)).toBeTruthy();
+    expect(
+      await screen.findByRole("heading", { name: /Executive Summary/i }),
+    ).toBeTruthy();
   });
 
   it("blocks analyse until research disclaimer is acknowledged", async () => {
@@ -330,8 +338,8 @@ describe("EPIC-F005 workspace UI", () => {
     const request = buildAnalyseRequestForTicker("AAPL");
     const view = mapResearchView(sampleResponse, request, null);
     wrap(<ValuationSection view={view} />);
-    expect(screen.getByText("Intrinsic value")).toBeTruthy();
-    expect(screen.getByText("Margin of safety")).toBeTruthy();
+    expect(screen.getByText("Intrinsic Value")).toBeTruthy();
+    expect(screen.getByText("Margin of Safety")).toBeTruthy();
   });
 });
 

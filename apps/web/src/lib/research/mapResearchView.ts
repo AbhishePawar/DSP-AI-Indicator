@@ -14,6 +14,26 @@ import {
   mapAnalyseResponse,
   type IntelligenceView,
 } from "@/lib/intelligence/mapResponse";
+import {
+  mapBuffettReport,
+  type BuffettReportView,
+} from "@/lib/buffett-indicator";
+import {
+  mapInstitutionalRatings,
+  type InstitutionalRatingFramework,
+} from "@/lib/institutional-rating";
+import {
+  mapReportTransparency,
+  type ReportTransparencyView,
+} from "@/lib/report-transparency";
+import {
+  mapInstitutionalExplainability,
+  type InstitutionalExplainabilityFramework,
+} from "@/lib/explainability";
+import {
+  mapValuationTransparency,
+  type ValuationTransparencyView,
+} from "@/lib/valuation-transparency";
 
 export type StageSectionView = {
   stage: string;
@@ -52,6 +72,16 @@ export type ResearchView = IntelligenceView & {
     opposingReasons: string[];
     finalRecommendation: string;
   };
+  /** ARCH-001 — presentation synthesis after final recommendation (no new engine). */
+  buffett: BuffettReportView;
+  /** ARCH-002 — unified institutional rating framework (presentation aggregate). */
+  ratings: InstitutionalRatingFramework;
+  /** P2.1 — report transparency / Report Information card. */
+  transparency: ReportTransparencyView;
+  /** P2.2 — expandable explainability for each institutional rating. */
+  explainability: InstitutionalExplainabilityFramework;
+  /** P2.3 — institutional valuation transparency (presentation). */
+  valuationTransparency: ValuationTransparencyView;
 };
 
 function stageOrEmpty(
@@ -181,7 +211,14 @@ export function mapResearchView(
     ["Score", "Label", "Decision", "Confidence"],
   );
 
-  return {
+  const committee = {
+      ...committeeBase,
+      supportingReasons: base.strengths,
+      opposingReasons: [...base.weaknesses, ...base.risks],
+      finalRecommendation: base.recommendation,
+  };
+
+  const draft = {
     ...base,
     ticker: request.ticker.toUpperCase(),
     exchange: display(request.exchange, "—"),
@@ -209,11 +246,23 @@ export function mapResearchView(
     growth,
     businessQuality,
     recommendationStage,
-    committee: {
-      ...committeeBase,
-      supportingReasons: base.strengths,
-      opposingReasons: [...base.weaknesses, ...base.risks],
-      finalRecommendation: base.recommendation,
-    },
+    committee,
+  };
+  const withBuffett = {
+    ...draft,
+    buffett: mapBuffettReport(draft),
+  };
+  const withRatings = {
+    ...withBuffett,
+    ratings: mapInstitutionalRatings(withBuffett),
+  };
+  const withTransparency = {
+    ...withRatings,
+    transparency: mapReportTransparency(withRatings),
+    explainability: mapInstitutionalExplainability(withRatings.ratings.modules),
+  };
+  return {
+    ...withTransparency,
+    valuationTransparency: mapValuationTransparency(withTransparency),
   };
 }

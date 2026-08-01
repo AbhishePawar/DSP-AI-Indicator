@@ -2,7 +2,7 @@
 
 /**
  * P9.4 / EPIC-005 — Dedicated flagship workspace modules.
- * Display-only over ResearchView / explainability maps. No client scoring.
+ * RC3-001 — Display-only over ResearchView. No client scoring. No cross-stage aliases.
  */
 
 import Link from "next/link";
@@ -13,8 +13,10 @@ import { formatPct } from "@/lib/intelligence/mapResponse";
 import type { ResearchView } from "@/lib/research/mapResearchView";
 import {
   FieldRow,
+  firstStageMetric,
   SectionCard,
   StageSectionCard,
+  stageMetricValue,
   WorkspaceEmpty,
 } from "./WorkspacePrimitives";
 
@@ -42,54 +44,47 @@ function ListBlock({
   );
 }
 
-function metricValue(
-  section: ResearchView["moat"],
-  label: string,
-): string {
-  const hit = section.metrics.find(
-    (m) => m.label.toLowerCase() === label.toLowerCase(),
-  );
-  return hit?.value ?? "Unavailable";
-}
-
 export function ManagementSection({ view }: { view: ResearchView }) {
   const m = view.management;
   return (
     <div className="space-y-4">
       <SectionCard
         title="Management"
-        description="REP-002 Book 05 labels — values from management_quality stage only; never invent sub-scores"
+        description="REP-002 Book 05 — values from management_quality stage only. Missing metrics show Data unavailable. Never fall back to stage decision as a sub-dimension."
       >
         <dl>
           <FieldRow label="Management Quality" value={m.label} />
           <FieldRow
             label="Corporate Governance"
-            value={
-              metricValue(m, "Corporate Governance") !== "Unavailable"
-                ? metricValue(m, "Corporate Governance")
-                : m.decision
-            }
+            value={firstStageMetric(m, [
+              "Corporate Governance",
+              "Governance",
+            ])}
           />
-          <FieldRow label="Integrity" value={metricValue(m, "Integrity")} />
+          <FieldRow
+            label="Integrity"
+            value={stageMetricValue(m, "Integrity")}
+          />
           <FieldRow
             label="Execution Capability"
-            value={
-              metricValue(m, "Execution Capability") !== "Unavailable"
-                ? metricValue(m, "Execution Capability")
-                : metricValue(m, "Execution")
-            }
+            value={firstStageMetric(m, [
+              "Execution Capability",
+              "Execution",
+            ])}
           />
           <FieldRow
             label="Shareholder Orientation"
-            value={metricValue(m, "Shareholder Orientation")}
+            value={firstStageMetric(m, [
+              "Shareholder Orientation",
+              "Shareholder Alignment",
+            ])}
           />
           <FieldRow
             label="Leadership Quality"
-            value={
-              metricValue(m, "Leadership Quality") !== "Unavailable"
-                ? metricValue(m, "Leadership Quality")
-                : metricValue(m, "Leadership")
-            }
+            value={firstStageMetric(m, [
+              "Leadership Quality",
+              "Leadership",
+            ])}
           />
           <FieldRow label="Confidence" value={m.confidence} />
           <FieldRow label="Stage status" value={m.status} />
@@ -109,49 +104,45 @@ export function MoatSection({ view }: { view: ResearchView }) {
     <div className="space-y-4">
       <SectionCard
         title="Economic Moat"
-        description="REP-002 Book 06 labels — values from economic_moat stage only"
+        description="REP-002 Book 06 — values from economic_moat stage only. Synonym labels stay on the same stage; never substitute other engines."
       >
         <dl>
           <FieldRow label="Economic Moat" value={moat.label} />
           <FieldRow
             label="Brand Strength"
-            value={
-              metricValue(moat, "Brand Strength") !== "Unavailable"
-                ? metricValue(moat, "Brand Strength")
-                : metricValue(moat, "Brand")
-            }
+            value={firstStageMetric(moat, ["Brand Strength", "Brand"])}
           />
           <FieldRow
             label="Network Effects"
-            value={metricValue(moat, "Network Effects")}
+            value={firstStageMetric(moat, [
+              "Network Effects",
+              "Network Effect",
+            ])}
           />
           <FieldRow
             label="Switching Costs"
-            value={metricValue(moat, "Switching Costs")}
+            value={stageMetricValue(moat, "Switching Costs")}
           />
           <FieldRow
             label="Distribution Advantage"
-            value={
-              metricValue(moat, "Distribution Advantage") !== "Unavailable"
-                ? metricValue(moat, "Distribution Advantage")
-                : metricValue(moat, "Distribution")
-            }
+            value={firstStageMetric(moat, [
+              "Distribution Advantage",
+              "Distribution",
+            ])}
           />
           <FieldRow
             label="Cost-Based Moat"
-            value={
-              metricValue(moat, "Cost-Based Moat") !== "Unavailable"
-                ? metricValue(moat, "Cost-Based Moat")
-                : metricValue(moat, "Cost Advantage")
-            }
+            value={firstStageMetric(moat, [
+              "Cost-Based Moat",
+              "Cost Advantage",
+            ])}
           />
           <FieldRow
             label="Moat Durability"
-            value={
-              metricValue(moat, "Moat Durability") !== "Unavailable"
-                ? metricValue(moat, "Moat Durability")
-                : moat.decision || metricValue(moat, "Durability")
-            }
+            value={firstStageMetric(moat, [
+              "Moat Durability",
+              "Durability",
+            ])}
           />
           <FieldRow label="Score" value={moat.score} />
           <FieldRow label="Confidence" value={moat.confidence} />
@@ -163,49 +154,68 @@ export function MoatSection({ view }: { view: ResearchView }) {
 }
 
 export function RiskSection({ view }: { view: ResearchView }) {
-  const fs = view.financialStrength;
+  const riskStage = view.stages.find((s) =>
+    ["risk", "risk_assessment", "risk_unit"].includes(s.stage.toLowerCase()),
+  );
+  // Book 07 sub-dimensions require an explicit risk stage with named metrics.
+  // financial_strength / management / moat / valuation must never populate risk types.
+  const emptyRisk = { metrics: [] as { label: string; value: string }[] };
+
   return (
     <div className="space-y-4">
       <SectionCard
         title="Risk"
-        description="REP-002 Book 07 concept labels. Sub-dimensions show Data unavailable unless present on analyse stage summaries — never alias another stage’s label as a risk type."
+        description="REP-002 Book 07 — risk engine / risk stage metrics only. Never alias Financial Strength, Debt, Management, Business Quality, Growth, Moat, or Valuation into risk types."
       >
         <dl>
           <FieldRow
             label="Business Risk"
-            value={metricValue(fs, "Business Risk")}
+            value={stageMetricValue(emptyRisk, "Business Risk")}
           />
           <FieldRow
             label="Financial Risk"
-            value={metricValue(fs, "Financial Risk")}
+            value={stageMetricValue(emptyRisk, "Financial Risk")}
           />
           <FieldRow
             label="Operational Risk"
-            value={metricValue(fs, "Operational Risk")}
+            value={stageMetricValue(emptyRisk, "Operational Risk")}
           />
           <FieldRow
             label="Regulatory Risk"
-            value={metricValue(fs, "Regulatory Risk")}
+            value={stageMetricValue(emptyRisk, "Regulatory Risk")}
           />
           <FieldRow
             label="Permanent Capital Loss"
-            value={metricValue(fs, "Permanent Capital Loss")}
+            value={stageMetricValue(emptyRisk, "Permanent Capital Loss")}
           />
           <FieldRow
-            label="Margin of Safety"
-            value={view.valuation.marginOfSafety}
+            label="Risk stage"
+            value={
+              riskStage
+                ? `${riskStage.stage}: ${riskStage.status}`
+                : "Coverage unavailable."
+            }
+          />
+          <FieldRow
+            label="Risk stage label"
+            value={riskStage?.label ?? "Data unavailable."}
           />
         </dl>
+        <p className="mt-3 text-xs text-[var(--muted)]">
+          Book 07 typed dimensions are Data unavailable. until the analyse
+          contract exposes a dedicated risk stage with those metrics. Margin of
+          Safety belongs under Valuation — not Risk.
+        </p>
       </SectionCard>
       <ListBlock
         title="Key risks"
-        description="From pipeline stage warnings / mapped IntelligenceView.risks"
+        description="Pipeline warnings / mapped IntelligenceView.risks — not Book 07 type scores"
         items={view.risks}
       />
       <ListBlock title="Weaknesses" items={view.weaknesses} />
       <StageSectionCard
-        title="Financial strength stage (related, not a Book 07 alias)"
-        section={fs}
+        title="Financial strength stage (separate engine — not Book 07 Risk)"
+        section={view.financialStrength}
       />
     </div>
   );
@@ -213,32 +223,39 @@ export function RiskSection({ view }: { view: ResearchView }) {
 
 export function FinancialSection({ view }: { view: ResearchView }) {
   const fin = view.financial;
-  const growth = view.growth;
-  const earnings = view.earnings;
   return (
     <div className="space-y-4">
       <SectionCard
         title="Financial Performance"
-        description="Stage summaries only — line-item history requires filings APIs not wired here"
+        description="Values from the financial stage only — line-item history requires filings APIs not wired here. No cross-stage substitutes."
       >
         <dl>
-          <FieldRow label="Revenue" value={metricValue(fin, "Revenue")} />
-          <FieldRow label="Profit" value={metricValue(fin, "Profit")} />
-          <FieldRow label="Cash Flow" value={metricValue(fin, "Cash Flow")} />
-          <FieldRow label="Margins" value={metricValue(fin, "Margins")} />
-          <FieldRow label="Debt" value={metricValue(fin, "Debt")} />
-          <FieldRow label="ROE" value={metricValue(fin, "ROE")} />
-          <FieldRow label="ROCE" value={metricValue(fin, "ROCE")} />
+          <FieldRow
+            label="Revenue"
+            value={stageMetricValue(fin, "Revenue")}
+          />
+          <FieldRow label="Profit" value={stageMetricValue(fin, "Profit")} />
+          <FieldRow
+            label="Cash Flow"
+            value={stageMetricValue(fin, "Cash Flow")}
+          />
+          <FieldRow
+            label="Margins"
+            value={stageMetricValue(fin, "Margins")}
+          />
+          <FieldRow label="Debt" value={stageMetricValue(fin, "Debt")} />
+          <FieldRow label="ROE" value={stageMetricValue(fin, "ROE")} />
+          <FieldRow label="ROCE" value={stageMetricValue(fin, "ROCE")} />
           <FieldRow label="Financial label" value={fin.label} />
           <FieldRow label="Financial score" value={fin.score} />
           <FieldRow label="Confidence" value={fin.confidence} />
         </dl>
       </SectionCard>
-      <div className="grid gap-4 lg:grid-cols-2">
-        <StageSectionCard title="Financial stage" section={fin} />
-        <StageSectionCard title="Growth stage" section={growth} />
-        <StageSectionCard title="Earnings quality" section={earnings} />
-      </div>
+      <StageSectionCard title="Financial stage" section={fin} />
+      <p className="text-xs text-[var(--muted)]">
+        Growth and Earnings Quality are separate stages — not Financial
+        Performance substitutes.
+      </p>
       <SectionCard title="Historical trends">
         <WorkspaceEmpty description="Data unavailable. No multi-period financial series is exposed on AnalyseResponse for charting in this workspace." />
       </SectionCard>
@@ -302,8 +319,8 @@ export function ExplainabilitySection({ view }: { view: ResearchView }) {
         )}
       </SectionCard>
       <ListBlock
-        title="Primary sources"
-        description="Stage strengths used as citation proxies — Calculated/AI categories only when present on response"
+        title="Supporting strengths"
+        description="Stage strengths from analyse response — not filed citations. Document attachments remain Data unavailable."
         items={view.strengths}
       />
       <ListBlock
@@ -332,7 +349,11 @@ export function EvidenceSection({ view }: { view: ResearchView }) {
           />
         </dl>
       </SectionCard>
-      <ListBlock title="Evidence cards" items={view.strengths} />
+      <ListBlock
+        title="Supporting strengths"
+        description="Analyse strengths list — not a document catalogue"
+        items={view.strengths}
+      />
       <ListBlock title="Research object warnings" items={view.warnings} />
       <SectionCard title="Documents">
         <WorkspaceEmpty description="Data unavailable. Document attachments are not exposed on the frozen analyse contract." />
@@ -348,14 +369,14 @@ export function EvidenceSection({ view }: { view: ResearchView }) {
         action={
           <Link href="/research/institutional">
             <Button size="sm" variant="secondary">
-              Institutional dashboard
+              Institutional reports
             </Button>
           </Link>
         }
       >
         <p className="text-sm text-[var(--muted)]">
-          Open the institutional research surface for RS layout. This panel stays
-          honest about missing document payloads.
+          Open Institutional Reports for the publishing trust ladder. This panel
+          stays honest about missing document payloads.
         </p>
       </SectionCard>
     </div>

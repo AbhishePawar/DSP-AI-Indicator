@@ -225,8 +225,8 @@ export function mapInstitutionalRatings(
       ),
       dim(
         "Capital Allocation",
-        metric(view.management, "Capital Allocation"),
-        "management_quality metric",
+        "Unavailable",
+        "RC3-001 — Capital Allocation is Book 04, not management_quality",
       ),
       dim("Execution", "Unavailable", "Not separately exposed on AnalyseResponse"),
       dim(
@@ -246,13 +246,13 @@ export function mapInstitutionalRatings(
     [
       dim(
         "Revenue Stability",
-        metric(view.growth, "Revenue Growth"),
-        "growth_quality metric (proxy label only)",
+        "Unavailable",
+        "Not on earnings_quality stage — RC3-001 forbids growth_quality aliases",
       ),
       dim(
         "Profit Stability",
-        metric(view.growth, "Profit Growth"),
-        "growth_quality metric (proxy label only)",
+        "Unavailable",
+        "Not on earnings_quality stage — RC3-001 forbids growth_quality aliases",
       ),
       dim(
         "Margin Stability",
@@ -305,25 +305,25 @@ export function mapInstitutionalRatings(
   const capitalAllocation = fromStage(
     "capital_allocation",
     "Capital Allocation",
-    view.management,
-    ["management_quality", "growth_quality"],
+    view.businessQuality,
+    ["business_quality_aggregator"],
     [
       dim(
         "Reinvestment",
-        metric(view.growth, "Reinvestment"),
-        "growth_quality metric",
+        "Unavailable",
+        "RC3-001 — no dedicated capital_allocation stage on AnalyseResponse",
       ),
       dim("Dividend Policy", "Unavailable", "Not exposed on AnalyseResponse"),
       dim("Buybacks", "Unavailable", "Not exposed on AnalyseResponse"),
       dim(
         "Capital Efficiency",
-        metric(view.management, "Capital Allocation"),
-        "management_quality metric",
+        "Unavailable",
+        "RC3-001 — never alias management_quality as Capital Allocation",
       ),
     ],
     [],
     [],
-    "Capital Allocation remaps management_quality and growth_quality fields only.",
+    "Capital Allocation presentation — Book 04 fields stay Unavailable until the API exposes them on business_quality_aggregator.",
   );
 
   const riskItems = [...view.risks, ...view.weaknesses].slice(0, 12);
@@ -584,7 +584,7 @@ export function mapInstitutionalRatings(
       riskAssessment.weaknesses[0] !== "Data unavailable."
         ? "See Risk Assessment evidence"
         : "Unavailable",
-    expectedLongTermQuality: view.businessQualityLabel,
+    expectedLongTermQuality: "Unavailable",
     recommendation,
     recommendationReasoning: `Mapped from existing decision "${actionSource}". Overall grade ${overallGrade} averages available module letter bands only.`,
     explanation: `Overall Investment Rating is a display aggregate of available module grades/scores from existing analyse outputs for ${view.company} (${view.ticker}). No new engine scores were computed.`,

@@ -15,6 +15,30 @@ import {
 import type { StageSectionView } from "@/lib/research/mapResearchView";
 import { cn } from "@/lib/utils";
 
+/** Stage metric lookup — never invent or cross-alias values. */
+export function stageMetricValue(
+  section: { metrics: { label: string; value: string }[] },
+  label: string,
+): string {
+  const hit = section.metrics.find(
+    (m) => m.label.toLowerCase() === label.toLowerCase(),
+  );
+  if (!hit?.value || hit.value === "Unavailable") return "Data unavailable.";
+  return hit.value;
+}
+
+/** First matching metric label on the same stage only. */
+export function firstStageMetric(
+  section: { metrics: { label: string; value: string }[] },
+  labels: string[],
+): string {
+  for (const label of labels) {
+    const value = stageMetricValue(section, label);
+    if (value !== "Data unavailable.") return value;
+  }
+  return "Data unavailable.";
+}
+
 export function FieldRow({
   label,
   value,
@@ -23,7 +47,11 @@ export function FieldRow({
   value: string | null | undefined;
 }) {
   const display =
-    value === null || value === undefined || value === "" || value === "Unavailable"
+    value === null ||
+    value === undefined ||
+    value === "" ||
+    value === "Unavailable" ||
+    value === "—"
       ? "Data unavailable."
       : value;
   return (

@@ -180,7 +180,10 @@ export function metricValue(
   const hit = section.metrics.find(
     (m) => m.label.toLowerCase() === label.toLowerCase(),
   );
-  return hit?.value ?? "Unavailable";
+  if (!hit?.value || hit.value === "Unavailable" || hit.value === "—") {
+    return "Data unavailable.";
+  }
+  return hit.value;
 }
 
 export function firstMetric(
@@ -189,7 +192,7 @@ export function firstMetric(
 ): string {
   for (const label of labels) {
     const value = metricValue(section, label);
-    if (value !== "Unavailable") return value;
+    if (value !== "Data unavailable.") return value;
   }
-  return "Unavailable";
+  return "Data unavailable.";
 }

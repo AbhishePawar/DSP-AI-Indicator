@@ -18,6 +18,7 @@ import { mapReportTransparency } from "@/lib/report-transparency";
 import type { CompanyEntry } from "@/lib/companies/catalogue";
 import {
   FieldRow,
+  firstStageMetric,
   SectionCard,
   StageSectionCard,
   WorkspaceEmpty,
@@ -296,9 +297,14 @@ function valuationMethodValue(
       (m) => m.methodName.toLowerCase() === name.toLowerCase(),
     );
     if (exact) {
-      return exact.intrinsicValue !== "Unavailable"
-        ? exact.intrinsicValue
-        : exact.status;
+      if (
+        exact.intrinsicValue &&
+        exact.intrinsicValue !== "Unavailable" &&
+        exact.intrinsicValue !== "—"
+      ) {
+        return exact.intrinsicValue;
+      }
+      return "Data unavailable.";
     }
   }
   for (const name of names) {
@@ -306,12 +312,17 @@ function valuationMethodValue(
       m.methodName.toLowerCase().includes(name.toLowerCase()),
     );
     if (fuzzy) {
-      return fuzzy.intrinsicValue !== "Unavailable"
-        ? fuzzy.intrinsicValue
-        : fuzzy.status;
+      if (
+        fuzzy.intrinsicValue &&
+        fuzzy.intrinsicValue !== "Unavailable" &&
+        fuzzy.intrinsicValue !== "—"
+      ) {
+        return fuzzy.intrinsicValue;
+      }
+      return "Data unavailable.";
     }
   }
-  return "Unavailable";
+  return "Data unavailable.";
 }
 
 export function ValuationSection({ view }: { view: ResearchView }) {
@@ -343,11 +354,11 @@ export function ValuationSection({ view }: { view: ResearchView }) {
           <FieldRow label="EPV" value={epv} />
           <FieldRow
             label="Overall Valuation"
-            value={
-              vt.executive.valuationVerdict ||
-              vt.consensus.consensusValue ||
-              view.valuation.method
-            }
+            value={vt.executive.valuationVerdict}
+          />
+          <FieldRow
+            label="Valuation method (stage)"
+            value={view.valuation.method}
           />
           <FieldRow label="Confidence" value={view.valuation.confidence} />
         </dl>
@@ -398,41 +409,44 @@ export function QualitySection({ view }: { view: ResearchView }) {
     <div className="space-y-4">
       <SectionCard
         title="Business Quality"
-        description="Aggregator and related stage outputs — dedicated Moat/Management/Risk sections for detail"
+        description="REP-002 Book 04 — values from business_quality_aggregator only. Missing sub-dimensions show Data unavailable. Never alias Management, Growth, Moat, Risk, or Financial."
       >
         <dl>
           <FieldRow label="Overall score" value={bq.score} />
           <FieldRow label="Label" value={bq.label} />
           <FieldRow
             label="Capital Allocation Quality"
-            value={view.management.label}
+            value={firstStageMetric(bq, [
+              "Capital Allocation Quality",
+              "Capital Allocation",
+            ])}
+          />
+          <FieldRow
+            label="Industry Structure"
+            value={firstStageMetric(bq, ["Industry Structure"])}
+          />
+          <FieldRow
+            label="Operating Discipline"
+            value={firstStageMetric(bq, ["Operating Discipline"])}
+          />
+          <FieldRow
+            label="Franchise Durability"
+            value={firstStageMetric(bq, ["Franchise Durability"])}
           />
           <FieldRow
             label="Reinvestment Opportunity"
-            value={
-              view.growth.label !== "Unavailable"
-                ? view.growth.label
-                : view.growth.decision
-            }
+            value={firstStageMetric(bq, ["Reinvestment Opportunity"])}
           />
-          <FieldRow label="Operating Discipline" value={view.earnings.label} />
-          <FieldRow label="Industry Structure" value={view.moat.decision} />
-          <FieldRow label="Franchise Durability" value={view.moat.label} />
           <FieldRow label="Confidence" value={bq.confidence} />
+          <FieldRow label="Stage status" value={bq.status} />
         </dl>
       </SectionCard>
-      <div className="grid gap-4 lg:grid-cols-2">
-        <StageSectionCard
-          title="Business Quality Aggregator"
-          section={bq}
-        />
-        <StageSectionCard title="Earnings Quality" section={view.earnings} />
-        <StageSectionCard title="Growth Quality" section={view.growth} />
-        <StageSectionCard
-          title="Financial Strength"
-          section={view.financialStrength}
-        />
-      </div>
+      <StageSectionCard title="Business Quality Aggregator" section={bq} />
+      <p className="text-xs text-[var(--muted)]">
+        Earnings Quality, Growth Quality, and Financial Strength are separate
+        stages — open their dedicated sections. They are not Business Quality
+        substitutes.
+      </p>
     </div>
   );
 }

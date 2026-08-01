@@ -238,12 +238,7 @@ export function MoatModule({ view }: { view: ResearchView }) {
           />
           <FieldRow
             label="Moat Durability"
-            value={
-              firstMetric(moat, ["Moat Durability", "Durability"]) !==
-              "Unavailable"
-                ? firstMetric(moat, ["Moat Durability", "Durability"])
-                : moat.decision
-            }
+            value={firstMetric(moat, ["Moat Durability", "Durability"])}
           />
           <FieldRow label="Score" value={moat.score} />
           <FieldRow label="Confidence" value={moat.confidence} />
@@ -259,69 +254,50 @@ export function RiskModule({ view }: { view: ResearchView }) {
     view.stages.find((s) =>
       ["risk", "risk_assessment", "risk_unit"].includes(s.stage.toLowerCase()),
     ) ?? null;
-  const riskSection = riskStage
-    ? {
-        metrics: [] as { label: string; value: string }[],
-        label: riskStage.label,
-        decision: riskStage.decision,
-        confidence:
-          riskStage.confidence == null
-            ? "Unavailable"
-            : formatPct(riskStage.confidence),
-        status: riskStage.status,
-        score:
-          riskStage.score == null ? "Unavailable" : String(riskStage.score),
-        stage: riskStage.stage,
-        warnings: [] as string[],
-        error: null as string | null,
-      }
-    : null;
-
-  // Prefer explicit risk stage metrics when mapped onto financialStrength/businessQuality
-  // without aliasing unrelated stage labels as Book 07 risk types.
-  const source = view.financialStrength;
+  // RC3-001 — Book 07 types never read from financial_strength / valuation / other stages.
+  const emptyRisk = { metrics: [] as { label: string; value: string }[] };
 
   return (
     <div className="space-y-4 report-module" data-report-module="risk">
       <SectionCard
         title="Risk"
-        description="REP-002 Book 07 concept labels. Sub-dimensions show Data unavailable unless present on analyse stage summaries — never alias another stage’s label as a risk type."
+        description="REP-002 Book 07 — risk stage metrics only. Never alias Financial Strength, Management, Moat, or Valuation into risk types."
       >
         <dl>
           <FieldRow
             label="Business Risk"
-            value={metricValue(source, "Business Risk")}
+            value={metricValue(emptyRisk, "Business Risk")}
           />
           <FieldRow
             label="Financial Risk"
-            value={metricValue(source, "Financial Risk")}
+            value={metricValue(emptyRisk, "Financial Risk")}
           />
           <FieldRow
             label="Operational Risk"
-            value={metricValue(source, "Operational Risk")}
+            value={metricValue(emptyRisk, "Operational Risk")}
           />
           <FieldRow
             label="Governance Risk"
-            value={firstMetric(source, [
-              "Governance Risk",
-              "Regulatory Risk",
-            ])}
+            value={metricValue(emptyRisk, "Governance Risk")}
           />
           <FieldRow
             label="Permanent Capital Loss"
-            value={metricValue(source, "Permanent Capital Loss")}
+            value={metricValue(emptyRisk, "Permanent Capital Loss")}
           />
           <FieldRow
-            label="Margin of Safety"
-            value={view.valuation.marginOfSafety}
+            label="Risk stage"
+            value={
+              riskStage
+                ? `${riskStage.stage}: ${riskStage.status}`
+                : "Coverage unavailable."
+            }
           />
-          {riskSection ? (
-            <FieldRow
-              label="Risk stage status"
-              value={`${riskSection.stage}: ${riskSection.status}`}
-            />
-          ) : null}
         </dl>
+        <p className="mt-3 text-xs text-[var(--muted)]">
+          Typed Book 07 dimensions stay Data unavailable. until the analyse
+          contract exposes dedicated risk metrics. Margin of Safety is under
+          Valuation.
+        </p>
       </SectionCard>
       <ListBlock
         title="Key risks"
@@ -330,7 +306,7 @@ export function RiskModule({ view }: { view: ResearchView }) {
       />
       <ListBlock title="Weaknesses" items={view.weaknesses} />
       <StageSectionCard
-        title="Financial strength stage (related, not a Book 07 alias)"
+        title="Financial strength stage (separate engine — not Book 07 Risk)"
         section={view.financialStrength}
       />
     </div>

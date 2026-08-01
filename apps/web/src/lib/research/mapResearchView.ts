@@ -190,17 +190,29 @@ export function mapResearchView(
     "Profit Growth",
     "Reinvestment",
   ]);
+  // RC3-001 / GOV-001 — Business Quality metrics from business_quality_aggregator only.
+  // Never alias Management / Growth / Moat / Risk / Financial into Book 04 fields.
   const businessQuality = toSection(
     stageOrEmpty(stages, "business_quality_aggregator"),
-    ["Overall Score", "Moat", "Capital Allocation", "Competitive Position"],
+    [
+      "Overall Score",
+      "Label",
+      "Decision",
+      "Confidence",
+      "Capital Allocation Quality",
+      "Industry Structure",
+      "Operating Discipline",
+      "Franchise Durability",
+      "Reinvestment Opportunity",
+    ],
   );
-  // Prefer aggregator score for Overall; moat/capital from sibling stages when available
-  businessQuality.metrics = [
-    { label: "Overall Score", value: formatScore(base.businessQualityScore) },
-    { label: "Moat", value: moat.label },
-    { label: "Capital Allocation", value: management.label },
-    { label: "Competitive Position", value: moat.decision },
-  ];
+  if (base.businessQualityScore != null) {
+    businessQuality.metrics = businessQuality.metrics.map((m) =>
+      m.label === "Overall Score"
+        ? { ...m, value: formatScore(base.businessQualityScore) }
+        : m,
+    );
+  }
 
   const recommendationStage = toSection(
     stageOrEmpty(stages, "investment_recommendation"),

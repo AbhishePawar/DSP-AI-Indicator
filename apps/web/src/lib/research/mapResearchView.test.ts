@@ -137,6 +137,26 @@ describe("mapResearchView", () => {
     expect(view.committee.supportingReasons.length).toBeGreaterThan(0);
     expect(view.stages).toHaveLength(10);
   });
+
+  it("RC3-001 — does not alias Management/Moat into Business Quality metrics", () => {
+    const view = mapResearchView(
+      sampleResponse(),
+      SAMPLE_ANALYSE_REQUEST,
+      "2026-07-27T00:00:00.000Z",
+    );
+    const byLabel = Object.fromEntries(
+      view.businessQuality.metrics.map((m) => [m.label, m.value]),
+    );
+    expect(byLabel["Capital Allocation Quality"]).toBe("Unavailable");
+    expect(byLabel["Franchise Durability"]).toBe("Unavailable");
+    expect(byLabel["Industry Structure"]).toBe("Unavailable");
+    // Must not equal sibling stage labels/decisions
+    expect(byLabel["Capital Allocation Quality"]).not.toBe(
+      view.management.label,
+    );
+    expect(byLabel["Franchise Durability"]).not.toBe(view.moat.label);
+    expect(byLabel["Industry Structure"]).not.toBe(view.moat.decision);
+  });
 });
 
 describe("research routing breadcrumbs", () => {

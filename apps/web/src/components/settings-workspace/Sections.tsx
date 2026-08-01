@@ -631,7 +631,7 @@ export function NotificationsSection() {
 }
 
 export function SecuritySection() {
-  const { session, user, logout } = useAuth();
+  const { session, user } = useAuth();
   const token = tokenStatus(session);
   const sessionsQuery = useQuery({
     queryKey: ["settings", "sessions", session?.accessToken, session?.subject],

@@ -7,11 +7,15 @@ import Link from "next/link";
 import { InstitutionalResearchDashboard } from "@/components/institutional-dashboard/InstitutionalResearchDashboard";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { ResearchModeBanner } from "@/components/research/ResearchModeBanner";
-import { Alert } from "@/components/ui/Alert";
-import { Button } from "@/components/ui/Button";
-import { Card, CardBody } from "@/components/ui/Card";
-import { Input } from "@/components/ui/Input";
-import { Spinner } from "@/components/ui/Spinner";
+import {
+  Alert,
+  Button,
+  Card,
+  CardContent,
+  Input,
+  Skeleton,
+  Spinner,
+} from "@/components/ds";
 import {
   mapInstitutionalDashboard,
   payloadsFromUnifiedBundle,
@@ -149,7 +153,7 @@ export function InstitutionalDashboardClient({
       <ResearchModeBanner />
 
       <Card>
-        <CardBody>
+        <CardContent>
           <form
             onSubmit={onSubmit}
             className="flex flex-wrap items-end gap-3"
@@ -179,7 +183,7 @@ export function InstitutionalDashboardClient({
             {classicResearchHref ? (
               <Link
                 href={classicResearchHref}
-                className="text-sm text-[var(--accent)] underline-offset-2 hover:underline"
+                className="inline-flex min-h-11 items-center text-sm text-[var(--accent)] underline-offset-2 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
               >
                 Open classic research
               </Link>
@@ -189,27 +193,39 @@ export function InstitutionalDashboardClient({
               </span>
             )}
           </form>
-        </CardBody>
+        </CardContent>
       </Card>
 
       {mutation.isPending ? (
-        <div className="flex items-center gap-3 text-sm text-[var(--muted)]">
-          <Spinner />
-          Loading composition pipeline…
+        <div
+          className="space-y-3 rounded-[var(--radius-md)] border border-[var(--border)] bg-[var(--surface)] p-4"
+          role="status"
+          aria-live="polite"
+        >
+          <div className="flex items-center gap-3 text-sm text-[var(--muted)]">
+            <Spinner label="Loading composition pipeline" />
+            Loading composition pipeline…
+          </div>
+          <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+            <Skeleton className="h-20" />
+            <Skeleton className="h-20" />
+            <Skeleton className="h-20" />
+            <Skeleton className="h-32 sm:col-span-2 lg:col-span-3" />
+          </div>
         </div>
       ) : null}
 
-      {errorMessage ? <Alert tone="danger">{errorMessage}</Alert> : null}
+      {errorMessage ? <Alert variant="error">{errorMessage}</Alert> : null}
 
       {mutation.data?.dataGatewayNote ? (
-        <Alert tone="warning">
+        <Alert variant="warning">
           Partial coverage: analyse succeeded but the data gateway reported —{" "}
           {mutation.data.dataGatewayNote} Market/statement panels may show Data
           unavailable. Full trust ladder, contradictory evidence, and
           recommendation evidence live on{" "}
           <Link
             href="/research/institutional"
-            className="underline underline-offset-2"
+            className="underline underline-offset-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
           >
             Institutional Reports
           </Link>
@@ -218,13 +234,13 @@ export function InstitutionalDashboardClient({
       ) : null}
 
       {view && !mutation.data?.dataGatewayNote ? (
-        <Alert tone="info">
+        <Alert variant="info">
           This dashboard renders RS panels from the analyse composition. For the
           epistemic ladder (Facts → Analysis → Inference → Recommendation),
           opposing evidence, and report audit trail, open{" "}
           <Link
             href="/research/institutional"
-            className="underline underline-offset-2"
+            className="underline underline-offset-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
           >
             Institutional Reports
           </Link>
@@ -235,7 +251,7 @@ export function InstitutionalDashboardClient({
       {view ? <InstitutionalResearchDashboard view={view} /> : null}
 
       {!view && !mutation.isPending && !errorMessage ? (
-        <Alert tone="info">
+        <Alert variant="info">
           Enter a ticker and run research. Authenticated data without a configured
           provider will show Data unavailable. — never placeholders.
         </Alert>

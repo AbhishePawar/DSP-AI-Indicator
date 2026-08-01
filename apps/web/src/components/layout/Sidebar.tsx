@@ -5,6 +5,8 @@ import {
   Building2,
   Briefcase,
   BookOpen,
+  ChevronDown,
+  ChevronRight,
   Shield,
   Settings,
   User,
@@ -64,7 +66,7 @@ function NavLink({
       onClick={onNavigate}
       aria-current={active ? "page" : undefined}
       className={cn(
-        "inline-flex min-h-10 items-center gap-2 rounded-[var(--radius-md)] px-2.5 text-sm transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]",
+        "inline-flex min-h-11 items-center gap-2 rounded-[var(--radius-md)] px-2.5 text-sm transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] motion-reduce:transition-none",
         hideLabel ? "justify-center" : "justify-start",
         nested && !hideLabel ? "pl-8" : null,
         active
@@ -117,7 +119,7 @@ function NavTree({
               {hasChildren && !(collapsed && !mobile) ? (
                 <button
                   type="button"
-                  className="inline-flex size-8 shrink-0 items-center justify-center rounded-[var(--radius-md)] text-[var(--muted)] hover:bg-[var(--surface-2)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
+                  className="inline-flex size-11 shrink-0 items-center justify-center rounded-[var(--radius-md)] text-[var(--muted)] hover:bg-[var(--surface-2)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
                   aria-expanded={open}
                   aria-label={
                     open
@@ -128,9 +130,11 @@ function NavTree({
                     setExpanded((s) => ({ ...s, [item.id]: !open }))
                   }
                 >
-                  <span aria-hidden className="text-xs">
-                    {open ? "▾" : "▸"}
-                  </span>
+                  {open ? (
+                    <ChevronDown className="size-4" aria-hidden />
+                  ) : (
+                    <ChevronRight className="size-4" aria-hidden />
+                  )}
                 </button>
               ) : null}
             </div>

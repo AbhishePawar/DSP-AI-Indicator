@@ -90,7 +90,7 @@ export function Topbar({
         <button
           type="button"
           onClick={() => setCommandPaletteOpen(true)}
-          className="flex w-full max-w-md items-center gap-2 rounded-[var(--radius-md)] border border-[var(--border)] bg-[var(--surface-2)] px-3 py-1.5 text-left text-sm text-[var(--muted)] transition hover:border-[var(--accent)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
+          className="flex min-h-11 w-full max-w-md items-center gap-2 rounded-[var(--radius-md)] border border-[var(--border)] bg-[var(--surface-2)] px-3 py-1.5 text-left text-sm text-[var(--muted)] transition hover:border-[var(--accent)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] motion-reduce:transition-none"
           aria-label="Open search and command palette"
         >
           <Search className="size-4 shrink-0" aria-hidden />

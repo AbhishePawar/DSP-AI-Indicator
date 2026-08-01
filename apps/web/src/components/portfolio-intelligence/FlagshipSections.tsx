@@ -6,7 +6,6 @@
  */
 
 import Link from "next/link";
-import type { ComponentType } from "react";
 
 import { Badge, Button } from "@/components/ds";
 import type { PortfolioIntelligenceView } from "@/lib/portfolio-intelligence";
@@ -23,6 +22,7 @@ import {
   SectionCard,
   WorkspaceEmpty,
 } from "./Primitives";
+import { ResearchSection } from "./Sections";
 
 function CountBars({
   title,
@@ -834,15 +834,13 @@ export function ExplainabilitySection({
 export function ResearchActivitySection({
   holdings,
   activities,
-  ResearchBody,
 }: {
   holdings: PortfolioHolding[];
   activities: PortfolioActivity[];
-  ResearchBody: ComponentType<{ holdings: PortfolioHolding[] }>;
 }) {
   return (
     <div className="space-y-4">
-      <ResearchBody holdings={holdings} />
+      <ResearchSection holdings={holdings} />
       <SectionCard title="Coverage Changes">
         <WorkspaceEmpty description="Data unavailable. No coverage-change timeline API." />
       </SectionCard>

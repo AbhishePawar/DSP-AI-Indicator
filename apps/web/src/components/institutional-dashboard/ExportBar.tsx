@@ -1,6 +1,6 @@
 "use client";
 
-import { Button } from "@/components/ui/Button";
+import { Button } from "@/components/ds";
 import type { InstitutionalDashboardView } from "@/lib/institutional-dashboard/types";
 import { researchStandardsPass } from "@/lib/institutional-dashboard/rsValidation";
 
@@ -26,7 +26,7 @@ export function ExportBar({ view }: { view: InstitutionalDashboardView }) {
   }
 
   return (
-    <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-[var(--border)] bg-[var(--surface)] px-4 py-3">
+    <div className="flex flex-wrap items-center justify-between gap-3 rounded-[var(--radius-md)] border border-[var(--border)] bg-[var(--surface)] px-4 py-3">
       <p className="text-sm text-[var(--muted)]">
         RS panel-structure check (not report completeness):{" "}
         <span className={rsOk ? "text-[var(--accent)]" : "text-[var(--danger-fg)]"}>

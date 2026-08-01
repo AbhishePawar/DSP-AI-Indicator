@@ -12,7 +12,6 @@ import {
   useCallback,
   useEffect,
   useMemo,
-  useState,
   type ComponentType,
 } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -42,42 +41,101 @@ import { COMPANY_CATALOGUE } from "@/lib/companies/catalogue";
 import { cn } from "@/lib/utils";
 import { PortfolioLeftNav } from "./LeftNav";
 import { PortfolioRightPanel } from "./RightPanel";
-import {
-  ComplianceSection,
-  ExportSection,
-  HoldingsSection,
-  ResearchSection,
-} from "./Sections";
-import {
-  AllocationSection,
-  ExecutivePortfolioSummary,
-  ExplainabilitySection,
-  OpportunitiesSection,
-  PerformanceSection,
-  PortfolioHeaderCard,
-  QualitySection,
-  RebalancingSection,
-  ResearchActivitySection,
-  RiskSection,
-  ValuationSection,
-  WatchlistSection,
-} from "./FlagshipSections";
+import { ExportSection } from "./Sections";
 import { WorkspaceEmpty, WorkspaceSkeleton } from "./Primitives";
+import type { PortfolioHolding } from "@/lib/portfolio/model";
 
-const LazyHoldings = lazy(async () => ({ default: HoldingsSection }));
-const LazyAllocation = lazy(async () => ({ default: AllocationSection }));
-const LazyPerformance = lazy(async () => ({ default: PerformanceSection }));
-const LazyQuality = lazy(async () => ({ default: QualitySection }));
-const LazyValuation = lazy(async () => ({ default: ValuationSection }));
-const LazyRisk = lazy(async () => ({ default: RiskSection }));
-const LazyWatchlist = lazy(async () => ({ default: WatchlistSection }));
-const LazyOpportunities = lazy(async () => ({ default: OpportunitiesSection }));
-const LazyRebalancing = lazy(async () => ({ default: RebalancingSection }));
-const LazyExplainability = lazy(async () => ({ default: ExplainabilitySection }));
-const LazyResearchActivity = lazy(async () => ({
-  default: ResearchActivitySection,
-}));
-const LazyCompliance = lazy(async () => ({ default: ComplianceSection }));
+/** RC3-004 — real code-splitting (dynamic import), not cosmetic lazy wrappers. */
+const LazySummary = lazy(() =>
+  import("./FlagshipSections").then((m) => ({
+    default: function PortfolioSummaryBundle({
+      portfolioName,
+      owner,
+      lastUpdated,
+      holdingsCount,
+      researchCoverage,
+      onExport,
+      onShare,
+      holdings,
+      intel,
+      intelStatus,
+    }: {
+      portfolioName: string;
+      owner: string;
+      lastUpdated: string | null;
+      holdingsCount: number;
+      researchCoverage: string;
+      onExport: () => void;
+      onShare: () => void;
+      holdings: PortfolioHolding[];
+      intel: PortfolioIntelligenceView | null;
+      intelStatus: string;
+    }) {
+      return (
+        <div className="space-y-4">
+          <m.PortfolioHeaderCard
+            portfolioName={portfolioName}
+            owner={owner}
+            lastUpdated={lastUpdated}
+            holdingsCount={holdingsCount}
+            researchCoverage={researchCoverage}
+            onExport={onExport}
+            onShare={onShare}
+          />
+          <m.ExecutivePortfolioSummary
+            holdings={holdings}
+            intel={intel}
+            intelStatus={intelStatus}
+          />
+        </div>
+      );
+    },
+  })),
+);
+const LazyHoldings = lazy(() =>
+  import("./Sections").then((m) => ({ default: m.HoldingsSection })),
+);
+const LazyCompliance = lazy(() =>
+  import("./Sections").then((m) => ({ default: m.ComplianceSection })),
+);
+const LazyAllocation = lazy(() =>
+  import("./FlagshipSections").then((m) => ({ default: m.AllocationSection })),
+);
+const LazyPerformance = lazy(() =>
+  import("./FlagshipSections").then((m) => ({ default: m.PerformanceSection })),
+);
+const LazyQuality = lazy(() =>
+  import("./FlagshipSections").then((m) => ({ default: m.QualitySection })),
+);
+const LazyValuation = lazy(() =>
+  import("./FlagshipSections").then((m) => ({ default: m.ValuationSection })),
+);
+const LazyRisk = lazy(() =>
+  import("./FlagshipSections").then((m) => ({ default: m.RiskSection })),
+);
+const LazyWatchlist = lazy(() =>
+  import("./FlagshipSections").then((m) => ({ default: m.WatchlistSection })),
+);
+const LazyOpportunities = lazy(() =>
+  import("./FlagshipSections").then((m) => ({
+    default: m.OpportunitiesSection,
+  })),
+);
+const LazyRebalancing = lazy(() =>
+  import("./FlagshipSections").then((m) => ({
+    default: m.RebalancingSection,
+  })),
+);
+const LazyExplainability = lazy(() =>
+  import("./FlagshipSections").then((m) => ({
+    default: m.ExplainabilitySection,
+  })),
+);
+const LazyResearchActivity = lazy(() =>
+  import("./FlagshipSections").then((m) => ({
+    default: m.ResearchActivitySection,
+  })),
+);
 
 function SectionFallback() {
   return (
@@ -403,28 +461,22 @@ export function PortfolioIntelligenceWorkspace() {
             </div>
           ) : null}
 
-          {section === "summary" ? (
-            <div className="space-y-4">
-              <PortfolioHeaderCard
-                portfolioName={portfolioName}
-                owner={owner}
-                lastUpdated={lastUpdated}
-                holdingsCount={holdings.length}
-                researchCoverage={
-                  coverage.total
-                    ? `${coverage.covered}/${coverage.total} research-available (session)`
-                    : "No holdings — coverage not applicable"
-                }
-                onExport={() => goSection("export")}
-                onShare={() => void sharePortfolio()}
-              />
-              <ExecutivePortfolioSummary
-                holdings={holdings}
-                intel={intel}
-                intelStatus={intelStatus}
-              />
-            </div>
-          ) : null}
+          {section === "summary"
+            ? wrapLazy(LazySummary as ComponentType<Record<string, unknown>>, {
+                portfolioName,
+                owner,
+                lastUpdated,
+                holdingsCount: holdings.length,
+                researchCoverage: coverage.total
+                  ? `${coverage.covered}/${coverage.total} research-available (session)`
+                  : "No holdings — coverage not applicable",
+                onExport: () => goSection("export"),
+                onShare: () => void sharePortfolio(),
+                holdings,
+                intel,
+                intelStatus,
+              })
+            : null}
 
           {section === "allocation"
             ? wrapLazy(LazyAllocation as ComponentType<Record<string, unknown>>, {
@@ -456,7 +508,6 @@ export function PortfolioIntelligenceWorkspace() {
                 {
                   holdings,
                   activities: view.activities,
-                  ResearchBody: ResearchSection,
                 },
               )
             : null}

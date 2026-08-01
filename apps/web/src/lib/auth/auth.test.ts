@@ -39,12 +39,17 @@ describe("routeGuards", () => {
     expect(requiresAuth("/admin")).toBe(true);
   });
 
-  it("exposes F002 auth public screens", () => {
+  it("exposes F002 / P9.2 auth public screens", () => {
     expect(isAuthPublicPath("/login")).toBe(true);
+    expect(isAuthPublicPath("/signup")).toBe(true);
     expect(isAuthPublicPath("/forgot-password")).toBe(true);
+    expect(isAuthPublicPath("/reset-password")).toBe(true);
+    expect(isAuthPublicPath("/verify-email")).toBe(true);
+    expect(isAuthPublicPath("/verification-pending")).toBe(true);
     expect(isAuthPublicPath("/session-expired")).toBe(true);
     expect(isAuthPublicPath("/unauthorized")).toBe(true);
     expect(isAuthPublicPath("/forbidden")).toBe(true);
+    expect(isAuthPublicPath("/logout")).toBe(true);
   });
 
   it("exposes P9.1 marketing public paths", () => {

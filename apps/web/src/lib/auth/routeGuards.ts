@@ -17,10 +17,15 @@ export const PROTECTED_ROUTE_PREFIXES = [
 
 export const AUTH_PUBLIC_PATHS = [
   "/login",
+  "/signup",
   "/forgot-password",
+  "/reset-password",
+  "/verify-email",
+  "/verification-pending",
   "/session-expired",
   "/unauthorized",
   "/forbidden",
+  "/logout",
 ] as const;
 
 /** P9.1 public marketing website — no app shell sidebar. */

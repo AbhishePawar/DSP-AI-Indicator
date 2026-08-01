@@ -221,8 +221,9 @@ export function holdingFromInput(input: AddHoldingInput): PortfolioHolding {
     ticker: input.ticker.trim().toUpperCase(),
     sector: input.sector || "Unknown",
     allocationPercent: 0,
-    recommendation: input.recommendation ?? "Hold",
-    researchAvailable: input.researchAvailable ?? true,
+    recommendation: input.recommendation ?? "Data unavailable.",
+    // Never assume research coverage without an explicit verified flag.
+    researchAvailable: input.researchAvailable ?? false,
   };
 }
 

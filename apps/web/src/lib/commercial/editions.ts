@@ -116,6 +116,7 @@ export const FEATURE_MATRIX_ROWS = [
 ] as const;
 
 export const SUPPORT_CONTACT = {
+  /** Placeholder domain — not a live mailbox until ops publishes production channels. */
   email: "support@dsp-ai-indicator.example",
   salesEmail: "sales@dsp-ai-indicator.example",
   securityEmail: "security@dsp-ai-indicator.example",
@@ -123,7 +124,19 @@ export const SUPPORT_CONTACT = {
   knowledgeBasePath: "/docs",
   faqPath: "/docs/faq",
   statusPageNote: "Operator-managed status page (configure externally)",
+  /** Honest RC disclosure when contacts are not yet production mailboxes. */
+  channelsPublished: false,
+  unpublishedNote:
+    "Contact channels are not published for this release candidate. Use in-app beta feedback or your programme administrator.",
 } as const;
+
+/**
+ * RC honesty gate: dollar amounts and quotas in PRODUCT_EDITIONS are packaging
+ * sketches, not live checkout / entitlement facts until a commercial CMS or
+ * billing API is wired.
+ */
+export const COMMERCIAL_PRICING_DISCLOSURE =
+  "Illustrative packaging for this release candidate — not a live offer, checkout, or entitlement. Contact your programme administrator for access.";
 
 export const SAMPLE_ANALYSIS_SYMBOL = "AAPL" as const;
 

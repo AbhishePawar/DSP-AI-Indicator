@@ -199,7 +199,9 @@ export function HoldingsSection({
                   </TableCell>
                   <TableCell>
                     <Badge variant={h.researchAvailable ? "accent" : "outline"}>
-                      {h.researchAvailable ? "Available" : "Unavailable"}
+                      {h.researchAvailable
+                        ? "Session flag: linked"
+                        : "Not linked"}
                     </Badge>
                   </TableCell>
                   <TableCell>

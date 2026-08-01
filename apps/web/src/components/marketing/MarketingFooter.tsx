@@ -22,27 +22,42 @@ export function MarketingFooter() {
           </p>
           <ul className="mt-3 space-y-2 text-sm">
             <li>
-              <Link className="hover:text-[var(--accent)]" href="/#features">
+              <Link
+                className="rounded-sm hover:text-[var(--accent)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
+                href="/#features"
+              >
                 Features
               </Link>
             </li>
             <li>
-              <Link className="hover:text-[var(--accent)]" href="/pricing">
+              <Link
+                className="rounded-sm hover:text-[var(--accent)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
+                href="/pricing"
+              >
                 Pricing
               </Link>
             </li>
             <li>
-              <Link className="hover:text-[var(--accent)]" href="/faq">
+              <Link
+                className="rounded-sm hover:text-[var(--accent)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
+                href="/faq"
+              >
                 FAQ
               </Link>
             </li>
             <li>
-              <Link className="hover:text-[var(--accent)]" href="/about">
+              <Link
+                className="rounded-sm hover:text-[var(--accent)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
+                href="/about"
+              >
                 About
               </Link>
             </li>
             <li>
-              <Link className="hover:text-[var(--accent)]" href="/contact">
+              <Link
+                className="rounded-sm hover:text-[var(--accent)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
+                href="/contact"
+              >
                 Contact
               </Link>
             </li>
@@ -54,32 +69,50 @@ export function MarketingFooter() {
           </p>
           <ul className="mt-3 space-y-2 text-sm">
             <li>
-              <Link className="hover:text-[var(--accent)]" href="/login">
+              <Link
+                className="rounded-sm hover:text-[var(--accent)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
+                href="/login"
+              >
                 Sign in
               </Link>
             </li>
             <li>
-              <Link className="hover:text-[var(--accent)]" href="/docs/disclaimer">
+              <Link
+                className="rounded-sm hover:text-[var(--accent)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
+                href="/docs/disclaimer"
+              >
                 Research disclaimer
               </Link>
             </li>
             <li>
-              <Link className="hover:text-[var(--accent)]" href="/docs/privacy">
+              <Link
+                className="rounded-sm hover:text-[var(--accent)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
+                href="/docs/privacy"
+              >
                 Privacy
               </Link>
             </li>
             <li>
-              <Link className="hover:text-[var(--accent)]" href="/docs/terms">
+              <Link
+                className="rounded-sm hover:text-[var(--accent)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
+                href="/docs/terms"
+              >
                 Terms
               </Link>
             </li>
             <li>
-              <a
-                className="hover:text-[var(--accent)]"
-                href={`mailto:${SUPPORT_CONTACT.salesEmail}`}
-              >
-                {SUPPORT_CONTACT.salesEmail}
-              </a>
+              {SUPPORT_CONTACT.channelsPublished ? (
+                <a
+                  className="rounded-sm hover:text-[var(--accent)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
+                  href={`mailto:${SUPPORT_CONTACT.salesEmail}`}
+                >
+                  {SUPPORT_CONTACT.salesEmail}
+                </a>
+              ) : (
+                <span className="text-[var(--muted)]">
+                  {SUPPORT_CONTACT.unpublishedNote}
+                </span>
+              )}
             </li>
           </ul>
         </div>

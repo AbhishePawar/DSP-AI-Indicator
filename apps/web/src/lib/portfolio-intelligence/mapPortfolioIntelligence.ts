@@ -110,7 +110,7 @@ export function mapPortfolioIntelligenceResult(
     return {
       symbol: display(r.symbol ?? r.ticker),
       detail: display(
-        r.summary ?? r.label ?? r.message ?? (r.available === false ? "Data unavailable." : "Available"),
+        r.summary ?? r.label ?? r.message ?? "Data unavailable.",
       ),
     };
   });

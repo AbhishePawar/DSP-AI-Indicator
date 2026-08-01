@@ -77,8 +77,10 @@ export default function LoginForm() {
             </Alert>
           ) : null}
           {verified ? (
-            <Alert variant="success" title="Email verified">
-              Your email verification was recorded. You can sign in now.
+            <Alert variant="info" title="Verification pending administrator">
+              A local verification request may have been captured. Email is not
+              confirmed by an API in this release — sign in only when your
+              administrator activates the account.
             </Alert>
           ) : null}
 

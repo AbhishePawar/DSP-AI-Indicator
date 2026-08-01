@@ -49,12 +49,10 @@ function VerifyEmailForm() {
         <Stack gap={4}>
           {done ? (
             <SuccessState
-              title="Verification recorded"
-              description="Your code was accepted in the UI flow. Sign in when your administrator confirms the account is active."
+              title="Verification request captured locally"
+              description="No email-verification API ran in this release. Sign in when your administrator confirms the account is active — do not treat this step as verified email."
               action={
-                <Button
-                  onClick={() => router.push("/login?verified=1")}
-                >
+                <Button onClick={() => router.push("/login")}>
                   Continue to sign in
                 </Button>
               }

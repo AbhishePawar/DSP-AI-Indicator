@@ -243,7 +243,8 @@ export function PortfolioIntelligenceWorkspace() {
         ticker: sym,
         company: match?.name ?? sym,
         sector: match?.sector ?? "Unknown",
-        researchAvailable: true,
+        // Session add does not prove linked research — remain unavailable until API linkage.
+        researchAvailable: false,
         recommendation: "Data unavailable.",
       });
       recordResearchOpened(sym);

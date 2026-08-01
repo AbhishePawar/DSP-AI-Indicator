@@ -1,6 +1,10 @@
 import Link from "next/link";
 
-import { PRODUCT_EDITIONS, SUPPORT_CONTACT } from "@/lib/commercial";
+import {
+  COMMERCIAL_PRICING_DISCLOSURE,
+  PRODUCT_EDITIONS,
+  SUPPORT_CONTACT,
+} from "@/lib/commercial";
 import { env } from "@/lib/env";
 
 import {
@@ -13,9 +17,9 @@ import {
 import { Section } from "./Section";
 
 function formatPrice(edition: (typeof PRODUCT_EDITIONS)[number]): string {
-  if (edition.monthlyPriceUsd === null) return "Contact sales";
-  if (edition.monthlyPriceUsd === 0) return "Free";
-  return `$${edition.monthlyPriceUsd}/mo`;
+  if (edition.monthlyPriceUsd === null) return "Contact for access";
+  if (edition.monthlyPriceUsd === 0) return "Illustrative · Free tier sketch";
+  return `Illustrative · $${edition.monthlyPriceUsd}/mo`;
 }
 
 export function MarketingLanding() {
@@ -234,6 +238,12 @@ export function MarketingLanding() {
         title="Editions for desks of every scale"
         lead="Commercial packaging for research use. Full matrix available on the pricing page."
       >
+        <p
+          role="note"
+          className="mb-6 rounded-[var(--radius-md)] border border-[var(--border)] bg-[var(--surface-2)] px-4 py-3 text-sm text-[var(--muted)]"
+        >
+          {COMMERCIAL_PRICING_DISCLOSURE}
+        </p>
         <ul className="grid gap-6 lg:grid-cols-3">
           {PRODUCT_EDITIONS.map((edition) => (
             <li
@@ -311,7 +321,9 @@ export function MarketingLanding() {
             href="/contact"
             className="inline-flex min-h-11 items-center rounded-[var(--radius-sm)] border border-[var(--border)] px-5 py-2.5 text-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent)]"
           >
-            Contact sales ({SUPPORT_CONTACT.salesEmail})
+            {SUPPORT_CONTACT.channelsPublished
+              ? `Contact sales (${SUPPORT_CONTACT.salesEmail})`
+              : "Request access"}
           </Link>
           <Link
             href="/dashboard"

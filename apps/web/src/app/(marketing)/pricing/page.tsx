@@ -3,6 +3,7 @@ import Link from "next/link";
 
 import { Section } from "@/components/marketing";
 import {
+  COMMERCIAL_PRICING_DISCLOSURE,
   FEATURE_MATRIX_ROWS,
   PRODUCT_EDITIONS,
   SUPPORT_CONTACT,
@@ -16,9 +17,9 @@ export const metadata: Metadata = {
 };
 
 function formatPrice(edition: (typeof PRODUCT_EDITIONS)[number]): string {
-  if (edition.monthlyPriceUsd === null) return "Contact sales";
-  if (edition.monthlyPriceUsd === 0) return "Free";
-  return `$${edition.monthlyPriceUsd}/mo · $${edition.annualPriceUsd}/yr`;
+  if (edition.monthlyPriceUsd === null) return "Contact for access";
+  if (edition.monthlyPriceUsd === 0) return "Illustrative · Free tier sketch";
+  return `Illustrative · $${edition.monthlyPriceUsd}/mo · $${edition.annualPriceUsd}/yr`;
 }
 
 export default function MarketingPricingPage() {
@@ -29,6 +30,12 @@ export default function MarketingPricingPage() {
       title="Product editions"
       lead={`${env.appName} commercial packaging for research use. Trial and subscription details are summarised in FAQ.`}
     >
+      <p
+        role="note"
+        className="mb-6 rounded-[var(--radius-md)] border border-[var(--border)] bg-[var(--surface-2)] px-4 py-3 text-sm text-[var(--muted)]"
+      >
+        {COMMERCIAL_PRICING_DISCLOSURE}
+      </p>
       <ul className="grid gap-6 lg:grid-cols-3">
         {PRODUCT_EDITIONS.map((edition) => (
           <li
@@ -44,9 +51,9 @@ export default function MarketingPricingPage() {
             </p>
             <p className="mt-2 text-sm text-[var(--muted)]">{edition.audience}</p>
             <p className="mt-3 text-sm">
-              Trial:{" "}
+              Illustrative trial:{" "}
               {edition.trialDays > 0 ? `${edition.trialDays} days` : "N/A"} ·
-              Seats: {edition.seatsIncluded}
+              Seats sketch: {edition.seatsIncluded}
             </p>
           </li>
         ))}
@@ -95,14 +102,20 @@ export default function MarketingPricingPage() {
       </div>
 
       <p className="mt-8 text-sm text-[var(--muted)]">
-        Sales:{" "}
-        <a
-          className="text-[var(--accent)] underline"
-          href={`mailto:${SUPPORT_CONTACT.salesEmail}`}
-        >
-          {SUPPORT_CONTACT.salesEmail}
-        </a>
-        {" · "}
+        {SUPPORT_CONTACT.channelsPublished ? (
+          <>
+            Sales:{" "}
+            <a
+              className="text-[var(--accent)] underline"
+              href={`mailto:${SUPPORT_CONTACT.salesEmail}`}
+            >
+              {SUPPORT_CONTACT.salesEmail}
+            </a>
+            {" · "}
+          </>
+        ) : (
+          <>{SUPPORT_CONTACT.unpublishedNote}{" · "}</>
+        )}
         <Link className="text-[var(--accent)] underline" href="/login">
           Sign in
         </Link>

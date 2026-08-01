@@ -227,15 +227,15 @@ Initial institutional definition for REP-002.
 
 ## Definition
 
-> TODO
+An organization is a formally or informally structured entity composed of people, resources, governance, and processes that operates toward defined objectives. Within DSP AI Indicator, organizations are primary research objects that own, manage, regulate, or influence other entities.
 
 ## Purpose
 
-> TODO
+Organizations provide the institutional context required to understand ownership, governance, accountability, operational capability, and long-term business quality.
 
 ## Why It Matters
 
-> TODO
+Every company, regulator, exchange, fund house, rating agency, auditor, and government institution evaluated within DSP AI Indicator is represented as an organization. Correctly modeling organizations enables consistent research, governance analysis, relationship mapping, and evidence attribution.
 
 ---
 
@@ -243,11 +243,25 @@ Initial institutional definition for REP-002.
 
 ## Characteristics
 
-> TODO
+An organization should be:
+
+- Clearly identifiable
+- Governed by defined structures
+- Persistent over time
+- Capable of owning assets and responsibilities
+- Able to participate in institutional relationships
+- Supported by verifiable public information
 
 ## What It Is Not
 
-> TODO
+An organization is not:
+
+- An individual person
+- A financial instrument
+- A dataset
+- A metric
+- A document
+- A temporary event
 
 ---
 
@@ -255,15 +269,35 @@ Initial institutional definition for REP-002.
 
 ## Evidence Requirements
 
-> TODO
+Organization definitions should be supported by:
+
+- Official registration records
+- Regulatory filings
+- Corporate disclosures
+- Government databases
+- Exchange listings
+- Verified public documentation
 
 ## Confidence Drivers
 
-> TODO
+Confidence increases when:
+
+- Official identifiers exist.
+- Regulatory information is available.
+- Public disclosures are consistent.
+- Governance information is transparent.
+- Independent sources agree.
 
 ## Validation
 
-> TODO
+Organizations are validated through:
+
+- Registration verification
+- Regulatory confirmation
+- Duplicate detection
+- Identity consistency
+- Relationship integrity
+- Historical continuity
 
 ---
 
@@ -271,15 +305,30 @@ Initial institutional definition for REP-002.
 
 ## Related Concepts
 
-> TODO
+- RO-001 Entity
+- CP-001 Truth
+- CP-002 Evidence
+- CP-003 Fact
+- CP-007 Confidence
 
 ## Dependencies
 
-> TODO
+Depends on:
+
+- Book 01 — Core Principles
+- RO-001 Entity
 
 ## Successor Concepts
 
-> TODO
+Supports:
+
+- Security
+- Financial Statement
+- Governance
+- Ownership
+- Business Quality
+- Risk
+- Portfolio
 
 ---
 
@@ -287,15 +336,23 @@ Initial institutional definition for REP-002.
 
 ## Research Implication
 
-> TODO
+Organizations form the institutional backbone of DSP AI Indicator. Every company, regulator, exchange, or other institutional participant shall be represented consistently with traceable identities, governance attributes, and relationships.
 
 ## Examples
 
-> TODO
+Examples include:
+
+- Listed companies
+- Stock exchanges
+- Mutual fund houses
+- Regulators
+- Government institutions
+- Credit rating agencies
+- Audit firms
 
 ## Limitations
 
-> TODO
+An organization definition establishes institutional identity only. Business quality, valuation, governance, and performance are evaluated through separate ontology concepts and analytical engines.
 
 ---
 
@@ -311,4 +368,4 @@ Created By: DSP Research Team
 
 ## Review Notes
 
-> TODO
+Initial institutional definition for REP-002.

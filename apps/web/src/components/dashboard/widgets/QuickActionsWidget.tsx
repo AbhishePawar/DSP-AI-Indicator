@@ -4,6 +4,7 @@ import Link from "next/link";
 
 import { Button } from "@/components/ds";
 import { useAuth } from "@/lib/auth/AuthProvider";
+import { featureFlags } from "@/lib/featureFlags";
 import { canAccessNavItem, SHELL_NAV } from "@/lib/shell";
 import { DashboardWidgetShell } from "../DashboardWidgetShell";
 
@@ -16,20 +17,26 @@ const ACTIONS = [
     hint: "Flagship research",
   },
   {
+    href: "/research/canvas",
+    label: "2 · Research Canvas",
+    id: "research",
+    hint: "Research OS hub",
+  },
+  {
     href: "/research",
-    label: "2 · Research Workspace",
+    label: "3 · Research Workspace",
     id: "research",
     hint: "Library & history",
   },
   {
     href: "/portfolio",
-    label: "3 · Portfolio",
+    label: "4 · Portfolio",
     id: "portfolio",
     hint: "Coverage review",
   },
   {
     href: "/research/institutional",
-    label: "4 · Research Reports",
+    label: "5 · Research Reports",
     id: "research",
     hint: "Publish & export",
   },
@@ -49,6 +56,9 @@ export function QuickActionsWidget() {
   const roles = session?.roles ?? user?.roles ?? [];
 
   const visible = ACTIONS.filter((action) => {
+    if (action.href === "/research/canvas" && !featureFlags.researchCanvas) {
+      return false;
+    }
     if (action.href === "/research/institutional") {
       const research = SHELL_NAV.find((n) => n.id === "research");
       const child = research?.children?.find(
@@ -60,6 +70,14 @@ export function QuickActionsWidget() {
       return child
         ? canAccessNavItem(child, permissions, roles)
         : true;
+    }
+    if (action.href === "/research/canvas") {
+      const research = SHELL_NAV.find((n) => n.id === "research");
+      const child = research?.children?.find((c) => c.id === "research-canvas");
+      if (!research || !canAccessNavItem(research, permissions, roles)) {
+        return false;
+      }
+      return child ? canAccessNavItem(child, permissions, roles) : true;
     }
     const nav = SHELL_NAV.find((n) => n.id === action.id);
     if (!nav) return true;

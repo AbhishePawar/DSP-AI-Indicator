@@ -47,7 +47,10 @@ import type { PortfolioHolding } from "@/lib/portfolio/model";
 
 /** RC3-004 — real code-splitting (dynamic import), not cosmetic lazy wrappers. */
 const LazySummary = lazy(() =>
-  import("./FlagshipSections").then((m) => ({
+  Promise.all([
+    import("./FlagshipSections"),
+    import("./PortfolioV2Sections"),
+  ]).then(([m, v2]) => ({
     default: function PortfolioSummaryBundle({
       portfolioName,
       owner,
@@ -87,9 +90,26 @@ const LazySummary = lazy(() =>
             intel={intel}
             intelStatus={intelStatus}
           />
+          <v2.OverviewV2Extras holdings={holdings} intel={intel} />
         </div>
       );
     },
+  })),
+);
+const LazyScenarios = lazy(() =>
+  import("./PortfolioV2Sections").then((m) => ({ default: m.ScenariosSection })),
+);
+const LazyDrift = lazy(() =>
+  import("./PortfolioV2Sections").then((m) => ({ default: m.DriftSection })),
+);
+const LazyPortfolioTimeline = lazy(() =>
+  import("./PortfolioV2Sections").then((m) => ({
+    default: m.PortfolioTimelineSection,
+  })),
+);
+const LazyIntegrations = lazy(() =>
+  import("./PortfolioV2Sections").then((m) => ({
+    default: m.IntegrationsSection,
   })),
 );
 const LazyHoldings = lazy(() =>
@@ -515,6 +535,21 @@ export function PortfolioIntelligenceWorkspace() {
             : null}
           {section === "compliance"
             ? wrapLazy(LazyCompliance, {})
+            : null}
+          {section === "scenarios"
+            ? wrapLazy(LazyScenarios, { intel })
+            : null}
+          {section === "drift"
+            ? wrapLazy(LazyDrift, { intel, holdings })
+            : null}
+          {section === "timeline"
+            ? wrapLazy(LazyPortfolioTimeline, {
+                activities: view.activities,
+                holdings,
+              })
+            : null}
+          {section === "integrations"
+            ? wrapLazy(LazyIntegrations, { holdings })
             : null}
 
           {!isEmpty && section === "summary" && holdings.length === 0 ? (

@@ -34,7 +34,9 @@ export type DashboardWidgetId =
   | "documentation"
   | "global_search"
   | "recent_searches"
-  | "saved_searches";
+  | "saved_searches"
+  /** EPIC-014 — Research Command Center */
+  | "research_command_center";
 
 export type DashboardWidgetMeta = {
   id: DashboardWidgetId;
@@ -289,6 +291,15 @@ export const DASHBOARD_WIDGETS: readonly DashboardWidgetMeta[] = [
     span: 1,
     description: "UI only preferences",
   },
+  {
+    id: "research_command_center",
+    title: "Research Command Center",
+    section: "research",
+    span: 2,
+    description:
+      "Open research, portfolio status, coverage, comparisons, RI, committee, notes, watchlist",
+    lazy: true,
+  },
 ] as const;
 
 /**
@@ -300,6 +311,7 @@ export const DEFAULT_WIDGET_ORDER: DashboardWidgetId[] = [
   "welcome",
   "attention_brief",
   "quick_actions",
+  "research_command_center",
   "market_overview",
   "company_search",
   "global_search",

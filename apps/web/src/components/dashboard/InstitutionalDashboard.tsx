@@ -151,6 +151,11 @@ const LazyApiStatus = lazy(() =>
     default: m.ApiStatusWidget,
   })),
 );
+const LazyResearchCommandCenter = lazy(() =>
+  import("./widgets/ResearchCommandCenterWidget").then((m) => ({
+    default: m.ResearchCommandCenterWidget,
+  })),
+);
 
 function withSuspense(
   Comp: ComponentType,
@@ -177,6 +182,11 @@ function renderWidget(id: DashboardWidgetId): ReactNode {
       return <AttentionBriefWidget />;
     case "quick_actions":
       return <QuickActionsWidget />;
+    case "research_command_center":
+      return withSuspense(
+        LazyResearchCommandCenter,
+        "Research Command Center",
+      );
     case "market_overview":
       return withSuspense(MarketOverviewWidget, "Market Overview");
     case "valuation_summary":

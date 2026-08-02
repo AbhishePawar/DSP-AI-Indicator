@@ -10,6 +10,7 @@ import { useMemo } from "react";
 
 import { CommandPalette, type CommandPaletteItem } from "@/components/ds";
 import { useAuth } from "@/lib/auth/AuthProvider";
+import { filterResearchQuickActions } from "@/lib/research-canvas";
 import { searchableRoutes, useUiStore } from "@/lib/shell";
 
 function isAllowedPath(
@@ -74,6 +75,17 @@ export function ShellCommandPalette() {
         keywords: `${route.path} ${route.keywords ?? ""} ${route.description ?? ""}`,
         group: route.group ?? "Navigation",
         onSelect: () => router.push(route.path),
+      });
+    }
+
+    // EPIC-014/015 — Research OS quick actions (RBAC + feature-flag filtered)
+    for (const action of filterResearchQuickActions(permissions, roles)) {
+      list.push({
+        id: action.id,
+        label: action.label,
+        keywords: action.keywords,
+        group: "Quick Actions",
+        onSelect: () => router.push(action.href),
       });
     }
 

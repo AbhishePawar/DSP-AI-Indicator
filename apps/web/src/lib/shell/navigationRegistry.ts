@@ -90,6 +90,16 @@ export const SHELL_NAV: readonly ShellNavItem[] = [
     access: { anyOfPermissions: ["read_research"] },
     children: [
       {
+        id: "research-canvas",
+        href: "/research/canvas",
+        label: "Research Canvas",
+        description:
+          "Institutional Research Operating System — unified navigator, tabs, notebook, and timeline",
+        section: "research",
+        icon: "research",
+        access: { anyOfPermissions: ["read_research"] },
+      },
+      {
         id: "research-institutional",
         href: "/research/institutional",
         label: "Research Reports",
@@ -357,6 +367,10 @@ export function filterShellNav(
       if (c.id === "analysis-compare" && !featureFlags.companyComparison) {
         return false;
       }
+      // EPIC-014 — hide flagged-off Research Canvas
+      if (c.id === "research-canvas" && !featureFlags.researchCanvas) {
+        return false;
+      }
       return true;
     });
     return children ? { ...item, children } : item;
@@ -406,7 +420,8 @@ export function breadcrumbsForPath(pathname: string): BreadcrumbCrumb[] {
     if (
       pathname.startsWith("/research/") &&
       !pathname.startsWith("/research/institutional") &&
-      !pathname.startsWith("/research/intelligence")
+      !pathname.startsWith("/research/intelligence") &&
+      !pathname.startsWith("/research/canvas")
     ) {
       crumbs.push({ href: "/research", label: "Research Workspace" });
       const ticker = pathname.split("/")[2];
@@ -450,7 +465,9 @@ export function breadcrumbsForPath(pathname: string): BreadcrumbCrumb[] {
   if (
     match.path === "/research" &&
     pathname.startsWith("/research/") &&
-    !pathname.startsWith("/research/institutional")
+    !pathname.startsWith("/research/institutional") &&
+    !pathname.startsWith("/research/intelligence") &&
+    !pathname.startsWith("/research/canvas")
   ) {
     const ticker = pathname.split("/")[2];
     if (ticker) {

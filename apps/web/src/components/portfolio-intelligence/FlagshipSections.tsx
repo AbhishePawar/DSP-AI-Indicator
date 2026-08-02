@@ -700,8 +700,13 @@ export function RebalancingSection({
     <div className="space-y-4">
       <SectionCard
         title="Rebalancing"
-        description="Review queue only — no trade execution or optimisation"
+        description="Trade-off / evidence / confidence review only — NEVER transaction recommendations or personalized advice"
       >
+        <p className="mb-3 text-xs text-[var(--muted)]">
+          EPIC-015: Suggestions are investigation cues from coverage and
+          concentration pass-through. No BUY/SELL, no order tickets, no
+          optimizer.
+        </p>
         <dl>
           <FieldRow
             label="Suggested Reviews"

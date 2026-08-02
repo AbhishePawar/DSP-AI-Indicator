@@ -17,7 +17,12 @@ export type PortfolioSectionId =
   | "explainability"
   | "export"
   | "holdings"
-  | "compliance";
+  | "compliance"
+  /** EPIC-015 — Portfolio Intelligence 2.0 */
+  | "scenarios"
+  | "drift"
+  | "timeline"
+  | "integrations";
 
 export type PortfolioSectionMeta = {
   id: PortfolioSectionId;
@@ -123,6 +128,34 @@ export const PORTFOLIO_SECTIONS: readonly PortfolioSectionMeta[] = [
     label: "Compliance",
     description: "Policy flags presentation",
     shortcut: "C",
+    lazy: true,
+  },
+  {
+    id: "scenarios",
+    label: "Scenarios",
+    description: "Bull / Base / Bear — API pass-through only",
+    shortcut: "S",
+    lazy: true,
+  },
+  {
+    id: "drift",
+    label: "Drift",
+    description: "Allocation drift when feeds exist",
+    shortcut: "D",
+    lazy: true,
+  },
+  {
+    id: "timeline",
+    label: "Portfolio Timeline",
+    description: "Session activity + research coverage history",
+    shortcut: "L",
+    lazy: true,
+  },
+  {
+    id: "integrations",
+    label: "Research Links",
+    description: "Company Research · Comparison · RI · Evidence · Committee",
+    shortcut: "G",
     lazy: true,
   },
 ] as const;

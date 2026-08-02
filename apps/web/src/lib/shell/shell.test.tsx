@@ -43,6 +43,9 @@ describe("EPIC-F003 navigation registry", () => {
     expect(
       research?.children?.some((c) => c.href === "/research/institutional"),
     ).toBe(true);
+    expect(
+      research?.children?.some((c) => c.href === "/research/canvas"),
+    ).toBe(true);
   });
 
   it("filters admin without permissions", () => {
@@ -95,6 +98,7 @@ describe("EPIC-F003 navigation registry", () => {
         "/portfolio",
         "/research",
         "/research/institutional",
+        "/research/canvas",
       ]),
     );
     expect(analyst).not.toContain("/copilot");

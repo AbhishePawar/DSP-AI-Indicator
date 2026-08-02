@@ -18,7 +18,7 @@ Canonical multi-stage images and compose files live under [`docker/`](../../dock
 ```bash
 # From repo root
 cp .env.production.example .env.production   # fill secrets — never commit
-cp deploy/docker/env/staging.env.example .env.staging
+cp deploy/docker/staging.env.example .env.staging
 
 # Full production stack (API, web, postgres, redis, prometheus, grafana, caddy)
 ./scripts/deploy_production.sh

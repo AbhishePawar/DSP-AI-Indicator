@@ -393,10 +393,7 @@ export function PortfolioIntelligenceWorkspace() {
     }
   }, [section]);
 
-  function wrapLazy(
-    Comp: ComponentType<Record<string, unknown>>,
-    props: Record<string, unknown>,
-  ) {
+  function wrapLazy<P extends object>(Comp: ComponentType<P>, props: P) {
     return (
       <Suspense fallback={<SectionFallback />}>
         <Comp {...props} />
@@ -462,7 +459,7 @@ export function PortfolioIntelligenceWorkspace() {
           ) : null}
 
           {section === "summary"
-            ? wrapLazy(LazySummary as ComponentType<Record<string, unknown>>, {
+            ? wrapLazy(LazySummary, {
                 portfolioName,
                 owner,
                 lastUpdated,
@@ -479,58 +476,33 @@ export function PortfolioIntelligenceWorkspace() {
             : null}
 
           {section === "allocation"
-            ? wrapLazy(LazyAllocation as ComponentType<Record<string, unknown>>, {
-                holdings,
-              })
+            ? wrapLazy(LazyAllocation, { holdings })
             : null}
           {section === "performance"
-            ? wrapLazy(LazyPerformance as ComponentType<Record<string, unknown>>, {})
+            ? wrapLazy(LazyPerformance, {})
             : null}
           {section === "quality"
-            ? wrapLazy(LazyQuality as ComponentType<Record<string, unknown>>, {
-                holdings,
-                intel,
-              })
+            ? wrapLazy(LazyQuality, { holdings, intel })
             : null}
           {section === "valuation"
-            ? wrapLazy(LazyValuation as ComponentType<Record<string, unknown>>, {
-                intel,
-              })
+            ? wrapLazy(LazyValuation, { intel })
             : null}
-          {section === "risk"
-            ? wrapLazy(LazyRisk as ComponentType<Record<string, unknown>>, {
-                intel,
-              })
-            : null}
+          {section === "risk" ? wrapLazy(LazyRisk, { intel }) : null}
           {section === "research"
-            ? wrapLazy(
-                LazyResearchActivity as ComponentType<Record<string, unknown>>,
-                {
-                  holdings,
-                  activities: view.activities,
-                },
-              )
+            ? wrapLazy(LazyResearchActivity, {
+                holdings,
+                activities: view.activities,
+              })
             : null}
-          {section === "watchlist"
-            ? wrapLazy(LazyWatchlist as ComponentType<Record<string, unknown>>, {})
-            : null}
+          {section === "watchlist" ? wrapLazy(LazyWatchlist, {}) : null}
           {section === "opportunities"
-            ? wrapLazy(
-                LazyOpportunities as ComponentType<Record<string, unknown>>,
-                { holdings, intel },
-              )
+            ? wrapLazy(LazyOpportunities, { holdings, intel })
             : null}
           {section === "rebalancing"
-            ? wrapLazy(
-                LazyRebalancing as ComponentType<Record<string, unknown>>,
-                { holdings, intel },
-              )
+            ? wrapLazy(LazyRebalancing, { holdings, intel })
             : null}
           {section === "explainability"
-            ? wrapLazy(
-                LazyExplainability as ComponentType<Record<string, unknown>>,
-                { holdings, intel },
-              )
+            ? wrapLazy(LazyExplainability, { holdings, intel })
             : null}
           {section === "export" ? (
             <ExportSection
@@ -539,12 +511,10 @@ export function PortfolioIntelligenceWorkspace() {
             />
           ) : null}
           {section === "holdings"
-            ? wrapLazy(LazyHoldings as ComponentType<Record<string, unknown>>, {
-                holdings,
-              })
+            ? wrapLazy(LazyHoldings, { holdings })
             : null}
           {section === "compliance"
-            ? wrapLazy(LazyCompliance as ComponentType<Record<string, unknown>>, {})
+            ? wrapLazy(LazyCompliance, {})
             : null}
 
           {!isEmpty && section === "summary" && holdings.length === 0 ? (

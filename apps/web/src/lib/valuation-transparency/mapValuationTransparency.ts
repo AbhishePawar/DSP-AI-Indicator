@@ -156,10 +156,10 @@ function mapMarginOfSafety(
 function mapExecutive(
   view: Omit<ResearchView, "valuationTransparency">,
 ): ExecutiveValuationCard {
-  const module = view.ratings.modules.valuation;
+  const valuationModule = view.ratings.modules.valuation;
   return {
-    overallScoreOutOf10: orUnavailable(module.scoreOutOf10),
-    grade: orUnavailable(module.grade),
+    overallScoreOutOf10: orUnavailable(valuationModule.scoreOutOf10),
+    grade: orUnavailable(valuationModule.grade),
     confidence: orUnavailable(view.valuation.confidence),
     currentMarketPrice: orUnavailable(view.valuation.currentPrice),
     intrinsicValue: orUnavailable(view.valuation.intrinsicValue),

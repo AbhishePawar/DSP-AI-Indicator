@@ -270,6 +270,9 @@ textarea {
     overflow: visible !important;
     background: white !important;
     color: black !important;
+    /* WebKit/Blink honor forced print backgrounds only with print-color-adjust */
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
   }
 
   .institutional-report-print .report-module {

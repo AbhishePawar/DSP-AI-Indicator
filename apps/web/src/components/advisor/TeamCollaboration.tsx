@@ -225,7 +225,7 @@ export const TeamHeader = memo(function TeamHeader({
 
   return (
     <header
-      className="sticky top-0 z-20 space-y-3 border-b border-[var(--border)] bg-[var(--bg)]/95 pb-3 backdrop-blur-sm"
+      className="sticky top-0 z-20 space-y-3 border-b border-[var(--border)] bg-[var(--bg)]/95 pb-3 backdrop-blur-sm motion-reduce:backdrop-blur-none"
       aria-label="Team collaboration header"
     >
       <div className="flex flex-wrap items-start justify-between gap-3">

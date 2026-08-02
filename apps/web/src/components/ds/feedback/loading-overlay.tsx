@@ -25,7 +25,7 @@ export function LoadingOverlay({
       aria-live="polite"
       aria-busy="true"
       className={cn(
-        "absolute inset-0 z-20 flex flex-col items-center justify-center gap-3 bg-[color-mix(in_srgb,var(--bg)_72%,transparent)] backdrop-blur-[1px]",
+        "absolute inset-0 z-20 flex flex-col items-center justify-center gap-3 bg-[color-mix(in_srgb,var(--bg)_72%,transparent)] backdrop-blur-[1px] motion-reduce:backdrop-blur-none",
         className,
       )}
       {...props}

@@ -2,7 +2,7 @@
   "name": "dsp-web",
   "version": "2.0.0",
   "private": true,
-  "description": "DSP AI Indicator web \u2014 GA Candidate 2.0.0 (P8.0)",
+  "description": "DSP AI Indicator web — GA Candidate 2.0.0 (P8.0)",
   "scripts": {
     "dev": "next dev",
     "build": "next build",
@@ -12,8 +12,13 @@
     "format:check": "prettier --check .",
     "test": "vitest run",
     "test:watch": "vitest",
-    "test:e2e": "vitest run src/e2e src/lib/a11y/a11y-responsive.test.tsx src/lib/auth/auth.test.ts",
-    "analyze": "echo Install @next/bundle-analyzer and set ANALYZE=true for bundle reports"
+    "test:e2e": "vitest run src/e2e src/lib/a11y/a11y-responsive.test.tsx src/lib/a11y/a11y-automation.test.tsx src/lib/auth/auth.test.ts",
+    "test:a11y": "vitest run src/lib/a11y",
+    "test:perf": "vitest run src/lib/performance",
+    "test:quality": "vitest run src/lib/a11y src/lib/performance",
+    "analyze": "node scripts/run-analyze.mjs",
+    "perf:budget": "node scripts/check-bundle-budgets.mjs",
+    "lighthouse:ci": "npx --yes @lhci/cli@0.14.0 autorun --config=lighthouserc.cjs"
   },
   "dependencies": {
     "@radix-ui/react-accordion": "^1.2.20",
@@ -50,6 +55,7 @@
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3.2.0",
+    "@next/bundle-analyzer": "^15.5.22",
     "@tailwindcss/postcss": "^4.0.0",
     "@testing-library/jest-dom": "^6.6.3",
     "@testing-library/react": "^16.2.0",
@@ -62,7 +68,8 @@
     "prettier": "^3.4.2",
     "tailwindcss": "^4.0.0",
     "typescript": "^5.7.0",
-    "vitest": "^3.0.5"
+    "vitest": "^3.0.5",
+    "vitest-axe": "^0.1.0"
   },
   "f001DesignSystem": {
     "foundationVersion": "0.2.0",

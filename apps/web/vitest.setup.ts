@@ -1,4 +1,9 @@
 import "@testing-library/jest-dom/vitest";
+import { expect } from "vitest";
+import * as axeMatchers from "vitest-axe/matchers";
+
+/** EPIC-010 / GA-003 — axe matchers for accessibility automation. */
+expect.extend(axeMatchers);
 
 /** EPIC-F011 — jsdom matchMedia polyfill for responsive hooks. */
 if (typeof window !== "undefined" && typeof window.matchMedia !== "function") {

@@ -1,9 +1,17 @@
 import type { NextConfig } from "next";
+import bundleAnalyzer from "@next/bundle-analyzer";
 
 /**
  * Web 1.0.0 — CSP enforced for public launch (was Report-Only through 0.9.5 soak).
  * No Decision Engine / Research Mode / Feature Flag changes.
+ *
+ * EPIC-010 / GA-003 — set ANALYZE=true to emit webpack-bundle-analyzer reports
+ * (npm run analyze). Quality tooling only; no product behaviour change.
  */
+const withBundleAnalyzer = bundleAnalyzer({
+  enabled: process.env.ANALYZE === "true",
+});
+
 const csp = [
   "default-src 'self'",
   "script-src 'self' 'unsafe-inline' 'unsafe-eval'",
@@ -60,4 +68,4 @@ const nextConfig: NextConfig = {
   ],
 };
 
-export default nextConfig;
+export default withBundleAnalyzer(nextConfig);

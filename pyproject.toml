@@ -80,6 +80,7 @@ where = [
     "packages/persistence/src",
     "packages/auth/src",
     "packages/admin/src",
+    "packages/enterprise/src",
 ]
 
 [tool.pytest.ini_options]
@@ -127,6 +128,7 @@ pythonpath = [
     "packages/persistence/src",
     "packages/auth/src",
     "packages/admin/src",
+    "packages/enterprise/src",
 ]
 addopts = "-v --tb=short --import-mode=importlib"
 filterwarnings = ["ignore::DeprecationWarning"]
@@ -183,6 +185,7 @@ src = [
     "packages/persistence/src",
     "packages/auth/src",
     "packages/admin/src",
+    "packages/enterprise/src",
     "tests",
 ]
 
@@ -230,6 +233,7 @@ known-first-party = [
     "production_platform",
     "compliance",
     "platform_runtime",
+    "enterprise",
 ]
 
 [tool.coverage.run]
@@ -272,6 +276,7 @@ source = [
     "production_platform",
     "compliance",
     "platform_runtime",
+    "enterprise",
 ]
 omit = ["*/tests/*", "*/__init__.py"]
 
@@ -333,6 +338,7 @@ mypy_path = [
     "packages/persistence/src",
     "packages/auth/src",
     "packages/admin/src",
+    "packages/enterprise/src",
 ]
 files = [
     "packages/contracts/src/contracts",

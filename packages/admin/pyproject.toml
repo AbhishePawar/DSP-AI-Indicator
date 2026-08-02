@@ -1,0 +1,17 @@
+[build-system]
+requires = ["setuptools>=69.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "admin"
+version = "0.1.0"
+description = "DSP Enterprise Administration & Audit Console (EPIC-A010)"
+requires-python = ">=3.11"
+license = { text = "Proprietary" }
+dependencies = [
+    "persistence",
+    "auth",
+]
+
+[tool.setuptools.packages.find]
+where = ["src"]

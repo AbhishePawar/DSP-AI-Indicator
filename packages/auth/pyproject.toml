@@ -1,0 +1,16 @@
+[build-system]
+requires = ["setuptools>=69.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "auth"
+version = "0.1.0"
+description = "DSP Institutional Authentication & RBAC (EPIC-A009)"
+requires-python = ">=3.11"
+license = { text = "Proprietary" }
+dependencies = [
+    "persistence",
+]
+
+[tool.setuptools.packages.find]
+where = ["src"]

@@ -31,6 +31,11 @@ export type FeatureFlags = {
   betaBanner: boolean;
   betaInvitationOnly: boolean;
   betaReadOnlySafeguards: boolean;
+  /** EPS-002 — Enterprise Customer Portal (presentation only) */
+  enterprisePortal: boolean;
+  /** EPS-002 — Enterprise Admin / Ops surfaces (presentation only) */
+  enterpriseAdmin: boolean;
+  enterpriseOps: boolean;
 };
 
 export const featureFlags: FeatureFlags = {
@@ -52,6 +57,9 @@ export const featureFlags: FeatureFlags = {
   betaBanner: envBool("NEXT_PUBLIC_BETA_BANNER", true),
   betaInvitationOnly: envBool("NEXT_PUBLIC_BETA_INVITATION_ONLY", true),
   betaReadOnlySafeguards: envBool("NEXT_PUBLIC_BETA_READ_ONLY_SAFEGUARDS", true),
+  enterprisePortal: envBool("NEXT_PUBLIC_ENTERPRISE_PORTAL", true),
+  enterpriseAdmin: envBool("NEXT_PUBLIC_ENTERPRISE_ADMIN", true),
+  enterpriseOps: envBool("NEXT_PUBLIC_ENTERPRISE_OPS", true),
 };
 
 export function allowActionLabels(flags: FeatureFlags = featureFlags): boolean {

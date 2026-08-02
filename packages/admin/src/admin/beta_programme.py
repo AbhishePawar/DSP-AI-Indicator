@@ -63,7 +63,7 @@ class BetaProgrammeStore:
             ),
             "expiry_at": os.environ.get("DSP_BETA_EXPIRY_AT") or None,
             "read_only_safeguards": _truthy("DSP_BETA_READ_ONLY_SAFEGUARDS", True),
-            "version": "1.6.0",
+            "version": "1.7.2",
             "channel": "rc",
         }
         self._invites: dict[str, dict[str, Any]] = {}
@@ -473,7 +473,7 @@ class BetaProgrammeStore:
         with self._lock:
             return {
                 "kind": "dsp_beta_programme_snapshot",
-                "schema_version": "1.6.0",
+                "schema_version": "1.7.2",
                 "exported_at": _utcnow(),
                 "config": deepcopy(self._config),
                 "invites": deepcopy(list(self._invites.values())),

@@ -155,8 +155,34 @@ export const SHELL_NAV: readonly ShellNavItem[] = [
         "manage_roles",
         "configure_platform",
         "view_audit",
+        "admin.view",
+        "admin.manage",
       ],
-      anyOfRoles: ["administrator"],
+      anyOfRoles: ["administrator", "owner"],
+    },
+  },
+  {
+    id: "portal",
+    href: "/portal",
+    label: "Customer Portal",
+    description: "Organization, licenses, members, usage, and API keys",
+    section: "ops",
+    icon: "settings",
+    access: {
+      anyOfPermissions: ["org.view", "manage_users", "configure_platform"],
+      anyOfRoles: ["owner", "administrator"],
+    },
+  },
+  {
+    id: "ops",
+    href: "/ops",
+    label: "Operations",
+    description: "Enterprise health, incidents, and operational dashboard",
+    section: "ops",
+    icon: "admin",
+    access: {
+      anyOfPermissions: ["ops.view", "configure_platform", "admin.view"],
+      anyOfRoles: ["administrator", "owner"],
     },
   },
   {
@@ -236,6 +262,20 @@ export const AUX_ROUTES: readonly RouteMeta[] = [
     path: "/diagnostics",
     title: "Diagnostics",
     searchable: false,
+    group: "Ops",
+  },
+  {
+    id: "portal-meta",
+    path: "/portal",
+    title: "Customer Portal",
+    searchable: featureFlags.enterprisePortal,
+    group: "Ops",
+  },
+  {
+    id: "ops-meta",
+    path: "/ops",
+    title: "Operations",
+    searchable: featureFlags.enterpriseOps,
     group: "Ops",
   },
   {
@@ -357,6 +397,10 @@ export function filterShellNav(
 ): ShellNavItem[] {
   return SHELL_NAV.map((item) => {
     if (!canAccessNavItem(item, permissions, roles)) return null;
+    // EPS-002 — feature-flagged enterprise surfaces
+    if (item.id === "portal" && !featureFlags.enterprisePortal) return null;
+    if (item.id === "ops" && !featureFlags.enterpriseOps) return null;
+    if (item.id === "admin" && !featureFlags.enterpriseAdmin) return null;
     const children = item.children?.filter((c) => {
       if (!canAccessNavItem(c, permissions, roles)) return false;
       // EPIC-011B — hide unfinished / flagged-off Research Intelligence

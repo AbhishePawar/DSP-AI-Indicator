@@ -40,6 +40,10 @@ PATH_PERMISSIONS: dict[str, Permission] = {
     "/api/v1/copilot/complete": Permission.ASK_COPILOT,
     "/copilot/stream": Permission.ASK_COPILOT,
     "/api/v1/copilot/stream": Permission.ASK_COPILOT,
+    "/research/export": Permission.VIEW_REPORTS,
+    "/api/v1/research/export": Permission.VIEW_REPORTS,
+    "/research/report": Permission.VIEW_REPORTS,
+    "/api/v1/research/report": Permission.VIEW_REPORTS,
 }
 
 
@@ -51,11 +55,27 @@ def _permission_for_path(path: str) -> Permission | None:
     return None
 
 
+def _is_institutional_auth_zone(path: str) -> bool:
+    """Institutional RBAC/admin uses the ``auth`` package JWT — not security_platform."""
+    return (
+        path.startswith("/admin")
+        or path.startswith("/api/v1/admin")
+        or path.startswith("/auth/rbac")
+        or path.startswith("/api/v1/auth/rbac")
+        or path.startswith("/enterprise")
+        or path.startswith("/api/v1/enterprise")
+        or path.startswith("/beta")
+        or path.startswith("/api/v1/beta")
+    )
+
+
 class SecurityMiddleware(BaseHTTPMiddleware):
     """Authenticate / authorize HTTP requests; attach ``request.state.security``.
 
     Does not import or call ``dsp_platform``. Public paths skip auth when
     configured. Guest mode is optional via ``SecuritySettings.allow_guest``.
+    Institutional ``/admin`` and ``/auth/rbac`` zones are delegated to the
+    EPIC-A009/A010 stack (see ``require_admin_access``).
     """
 
     def __init__(self, app: Any, *, bundle: SecurityBundle) -> None:
@@ -70,7 +90,11 @@ class SecurityMiddleware(BaseHTTPMiddleware):
         path = request.url.path
         settings = self._bundle.settings
 
-        if path in settings.public_paths or not settings.require_auth:
+        if (
+            path in settings.public_paths
+            or not settings.require_auth
+            or _is_institutional_auth_zone(path)
+        ):
             # Still attach guest/anonymous context when possible.
             try:
                 if settings.allow_guest:

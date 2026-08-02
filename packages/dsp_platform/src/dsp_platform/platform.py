@@ -69,7 +69,7 @@ class PlatformMetadata:
 
 @dataclass(frozen=True, slots=True)
 class PlatformResult:
-    """Immutable orchestration result envelope — no business conclusions."""
+    """Immutable orchestration result envelope â€” no business conclusions."""
 
     ok: bool
     capability: str
@@ -95,7 +95,7 @@ class PlatformResult:
 
 
 class PlatformBuilder:
-    """Composition helper for ``DSPPlatform`` — registration only."""
+    """Composition helper for ``DSPPlatform`` â€” registration only."""
 
     def __init__(self) -> None:
         self._configuration: PlatformConfiguration | None = None
@@ -120,7 +120,7 @@ class PlatformBuilder:
     def with_analysis_service(
         self, analysis_service: InvestmentAnalysisService
     ) -> PlatformBuilder:
-        """Inject the frozen orchestration façade."""
+        """Inject the frozen orchestration faÃ§ade."""
         self._analysis_service = analysis_service
         return self
 
@@ -214,7 +214,7 @@ class DSPPlatform:
         registry: ServiceRegistry | None = None,
         lifecycle: PlatformLifecycle | None = None,
     ) -> None:
-        """Create a platform façade.
+        """Create a platform faÃ§ade.
 
         Legacy callers may pass only ``analysis_service`` (and optional
         ``features``). K1.0 callers typically use :class:`PlatformBuilder`.
@@ -478,7 +478,7 @@ class DSPPlatform:
     def run_workflow(self, context: Any) -> PlatformResult:
         """Orchestrate workflow execution via frozen WorkflowEngine API.
 
-        ``context`` must be a workflow ``EngineContext`` (with façade port).
+        ``context`` must be a workflow ``EngineContext`` (with faÃ§ade port).
         """
         self._require_capability("run_workflow")
         try:
@@ -551,7 +551,7 @@ class DSPPlatform:
         language_model: Any | None = None,
         metadata: Any | None = None,
     ) -> PlatformResult:
-        """Orchestrate Conversation → Explanation → Reporter via frozen APIs."""
+        """Orchestrate Conversation â†’ Explanation â†’ Reporter via frozen APIs."""
         self._require_capability("ask_copilot")
         try:
             from copilot import (
@@ -599,7 +599,7 @@ class DSPPlatform:
         format_name: str = "native",
         limitations: tuple[str, ...] = (),
     ) -> PlatformResult:
-        """Export an immutable report envelope — presentation only.
+        """Export an immutable report envelope â€” presentation only.
 
         Does not mutate ``report``. ``format_name`` is descriptive metadata
         for channel adapters (REST / UI / CLI); no serialization engine lives
@@ -627,7 +627,7 @@ class DSPPlatform:
     ) -> PlatformResult:
         """EPIC-001: run the internal FEATURE composition pipeline.
 
-        Orchestrates public package engines only — no score/recommendation
+        Orchestrates public package engines only â€” no score/recommendation
         overrides. Does not modify ``/api/v1``.
         """
         from dsp_platform.composition import (
@@ -920,6 +920,242 @@ class DSPPlatform:
             pass
         return instance
 
+    def auth_schema(self) -> dict[str, object]:
+        """Institutional Auth & RBAC schema descriptor (EPIC-A009)."""
+        from dsp_platform.auth_facade import auth_schema
+
+        return auth_schema()
+
+    def create_auth_user(
+        self,
+        *,
+        username: str,
+        email: str,
+        password: str,
+        display_name: str | None = None,
+        roles: list[str] | None = None,
+        user_id: str | None = None,
+        created_at: str | None = None,
+        password_salt: str | None = None,
+    ) -> dict[str, object]:
+        """Create an institutional user account (passwords hashed)."""
+        from dsp_platform.auth_facade import create_auth_user
+
+        return create_auth_user(
+            username=username,
+            email=email,
+            password=password,
+            display_name=display_name,
+            roles=roles,
+            user_id=user_id,
+            created_at=created_at,
+            password_salt=password_salt,
+        )
+
+    def list_auth_users(self) -> list[dict[str, object]]:
+        """List institutional users (no password hashes)."""
+        from dsp_platform.auth_facade import list_auth_users
+
+        return list_auth_users()
+
+    def get_auth_user(self, user_id: str) -> dict[str, object] | None:
+        """Fetch an institutional user by id."""
+        from dsp_platform.auth_facade import get_auth_user
+
+        return get_auth_user(user_id)
+
+    def set_auth_user_roles(
+        self, user_id: str, roles: list[str]
+    ) -> dict[str, object]:
+        """Assign roles to an institutional user."""
+        from dsp_platform.auth_facade import set_auth_user_roles
+
+        return set_auth_user_roles(user_id, roles)
+
+    def list_auth_roles(self) -> list[dict[str, object]]:
+        """List configurable institutional roles."""
+        from dsp_platform.auth_facade import list_auth_roles
+
+        return list_auth_roles()
+
+    def upsert_auth_role(
+        self,
+        role_id: str,
+        *,
+        name: str | None = None,
+        permissions: list[str] | None = None,
+    ) -> dict[str, object]:
+        """Create or update a configurable role."""
+        from dsp_platform.auth_facade import upsert_auth_role
+
+        return upsert_auth_role(role_id, name=name, permissions=permissions)
+
+    def list_auth_permissions(self) -> list[str]:
+        """List institutional permissions."""
+        from dsp_platform.auth_facade import list_auth_permissions
+
+        return list_auth_permissions()
+
+    def auth_login(self, **kwargs: object) -> dict[str, object]:
+        """Institutional login — JWT access + refresh tokens."""
+        from dsp_platform.auth_facade import auth_login
+
+        return auth_login(**kwargs)
+
+    def auth_logout(self, **kwargs: object) -> dict[str, object]:
+        """Revoke an institutional session."""
+        from dsp_platform.auth_facade import auth_logout
+
+        return auth_logout(**kwargs)
+
+    def auth_refresh(self, **kwargs: object) -> dict[str, object]:
+        """Refresh institutional access token."""
+        from dsp_platform.auth_facade import auth_refresh
+
+        return auth_refresh(**kwargs)
+
+    def auth_current_user(
+        self, access_token: str, **kwargs: object
+    ) -> dict[str, object]:
+        """Resolve current user from access token."""
+        from dsp_platform.auth_facade import auth_current_user
+
+        return auth_current_user(access_token, **kwargs)
+
+    def evaluate_auth_permission(
+        self, user_id: str, permission: str
+    ) -> dict[str, object]:
+        """Evaluate whether a user holds a permission."""
+        from dsp_platform.auth_facade import evaluate_auth_permission
+
+        return evaluate_auth_permission(user_id, permission)
+
+    def protect_with_permission(
+        self, access_token: str, permission: str, **kwargs: object
+    ) -> dict[str, object]:
+        """Validate token and require permission (optional platform guard)."""
+        from dsp_platform.auth_facade import protect_with_permission
+
+        return protect_with_permission(access_token, permission, **kwargs)
+
+    def admin_schema(self) -> dict[str, object]:
+        """Enterprise Admin Console schema (EPIC-A010)."""
+        from dsp_platform.admin_facade import admin_schema
+
+        return admin_schema()
+
+    def admin_dashboard(self, **kwargs: object) -> dict[str, object]:
+        """Read-only admin dashboard aggregate."""
+        from dsp_platform.admin_facade import admin_dashboard
+
+        return admin_dashboard(**kwargs)
+
+    def admin_list_users(self) -> list[dict[str, object]]:
+        from dsp_platform.admin_facade import admin_list_users
+
+        return admin_list_users()
+
+    def admin_get_user(self, user_id: str) -> dict[str, object] | None:
+        from dsp_platform.admin_facade import admin_get_user
+
+        return admin_get_user(user_id)
+
+    def admin_create_user(self, **kwargs: object) -> dict[str, object]:
+        from dsp_platform.admin_facade import admin_create_user
+
+        return admin_create_user(**kwargs)
+
+    def admin_set_user_roles(
+        self, user_id: str, roles: list[str]
+    ) -> dict[str, object]:
+        from dsp_platform.admin_facade import admin_set_user_roles
+
+        return admin_set_user_roles(user_id, roles)
+
+    def admin_list_roles(self) -> list[dict[str, object]]:
+        from dsp_platform.admin_facade import admin_list_roles
+
+        return admin_list_roles()
+
+    def admin_upsert_role(self, **kwargs: object) -> dict[str, object]:
+        from dsp_platform.admin_facade import admin_upsert_role
+
+        return admin_upsert_role(**kwargs)
+
+    def admin_list_permissions(self) -> list[str]:
+        from dsp_platform.admin_facade import admin_list_permissions
+
+        return admin_list_permissions()
+
+    def admin_list_sessions(
+        self, *, user_id: str | None = None
+    ) -> list[dict[str, object]]:
+        from dsp_platform.admin_facade import admin_list_sessions
+
+        return admin_list_sessions(user_id=user_id)
+
+    def admin_list_audit_records(self, **kwargs: object) -> list[dict[str, object]]:
+        from dsp_platform.admin_facade import admin_list_audit_records
+
+        return admin_list_audit_records(**kwargs)
+
+    def admin_list_workflow_history(self) -> list[dict[str, object]]:
+        from dsp_platform.admin_facade import admin_list_workflow_history
+
+        return admin_list_workflow_history()
+
+    def admin_list_research_archive_metadata(
+        self,
+    ) -> list[dict[str, object]]:
+        from dsp_platform.admin_facade import admin_list_research_archive_metadata
+
+        return admin_list_research_archive_metadata()
+
+    def admin_activity_timeline(
+        self, *, limit: int = 100
+    ) -> list[dict[str, object]]:
+        from dsp_platform.admin_facade import admin_activity_timeline
+
+        return admin_activity_timeline(limit=limit)
+
+    def admin_search(
+        self, query: str, *, scope: str = "audit"
+    ) -> dict[str, object]:
+        from dsp_platform.admin_facade import admin_search
+
+        return admin_search(query, scope=scope)
+
+    def admin_export_audit(self, **kwargs: object) -> dict[str, object]:
+        from dsp_platform.admin_facade import admin_export_audit
+
+        return admin_export_audit(**kwargs)
+
+    def admin_health_panel(self) -> dict[str, object]:
+        from dsp_platform.admin_facade import admin_health_panel
+
+        return admin_health_panel()
+
+    def admin_configuration(self) -> dict[str, object]:
+        from dsp_platform.admin_facade import admin_configuration
+
+        return admin_configuration()
+
+    def admin_versions(self) -> dict[str, object]:
+        from dsp_platform.admin_facade import admin_versions
+
+        return admin_versions()
+
+    def admin_feature_flags(
+        self, flags: dict[str, bool] | None = None
+    ) -> dict[str, object]:
+        from dsp_platform.admin_facade import admin_feature_flags
+
+        return admin_feature_flags(flags)
+
+    def admin_system_metrics(self) -> dict[str, object]:
+        from dsp_platform.admin_facade import admin_system_metrics
+
+        return admin_system_metrics()
     def _metadata(self) -> PlatformMetadata:
         return PlatformMetadata(
             name=self._configuration.platform_name,

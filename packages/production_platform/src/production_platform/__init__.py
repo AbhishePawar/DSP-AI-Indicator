@@ -46,8 +46,24 @@ from production_platform.production.diagnostics import (
 )
 from production_platform.production.exceptions import (
     ConfigurationError,
+    DatabaseUnavailableError,
+    DependencyError,
     ProductionError,
     ProviderError,
+    RedisUnavailableError,
+    StartupError,
+    safe_public_message,
+)
+from production_platform.production.runtime import (
+    RuntimeValidationReport,
+    build_runtime_infrastructure,
+    required_env_vars,
+    validate_runtime_environment,
+)
+from production_platform.production.versioning import (
+    normalize_version,
+    resolve_application_version,
+    resolve_service_version,
 )
 from production_platform.production.feature_flags import (
     FeatureFlag,
@@ -149,7 +165,9 @@ __all__ = [
     "ConfigurationPort",
     "DatabasePort",
     "DatabaseSettings",
+    "DatabaseUnavailableError",
     "DefaultRepositoryFactory",
+    "DependencyError",
     "DiagnosticsManager",
     "DiagnosticsReport",
     "Environment",
@@ -212,9 +230,11 @@ __all__ = [
     "RateLimitPort",
     "RateLimiterPort",
     "RedisSettings",
+    "RedisUnavailableError",
     "Repository",
     "RepositoryFactoryPort",
     "RetryPolicy",
+    "RuntimeValidationReport",
     "ScheduledJob",
     "SchedulerPort",
     "SecretProviderPort",
@@ -222,6 +242,7 @@ __all__ = [
     "SessionPort",
     "SpanRecord",
     "SqlRepository",
+    "StartupError",
     "StaticIndiaMarketCalendar",
     "StdlibLoggingPort",
     "StoragePort",
@@ -230,14 +251,21 @@ __all__ = [
     "TracingPort",
     "TransactionPort",
     "build_india_profile",
+    "build_runtime_infrastructure",
     "correlation_context",
     "get_correlation_id",
     "load_configuration_from_environ",
     "new_correlation_id",
     "new_request_id",
+    "normalize_version",
     "render_prometheus",
+    "required_env_vars",
+    "resolve_application_version",
+    "resolve_service_version",
+    "safe_public_message",
     "try_build_otel_tracing",
     "try_build_prometheus_client_metrics",
+    "validate_runtime_environment",
     "__version__",
 ]
 

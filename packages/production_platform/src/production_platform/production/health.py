@@ -109,6 +109,7 @@ class HealthManager:
             self._check_port("metrics", self._metrics),
             self._check_port("tracing", self._tracing),
             self._check_port("cache", self._cache),
+            self._check_cache_dependency(),
             self._check_port("storage", self._storage),
             self._check_port("scheduler", self._scheduler),
         ]
@@ -158,4 +159,32 @@ class HealthManager:
             name=name,
             status=HealthStatus.PASS,
             message=f"adapter={type(port).__name__}",
+        )
+
+    def _check_cache_dependency(self) -> HealthCheckResult:
+        """Report Redis vs memory cache posture — never fails when fallback OK."""
+        cfg = self._configuration.get()
+        adapter = type(self._cache).__name__
+        if not cfg.redis.url:
+            return HealthCheckResult(
+                name="redis",
+                status=HealthStatus.SKIP,
+                message="DSP_REDIS_URL unset; memory cache",
+            )
+        if "Redis" in adapter or "Fallback" in adapter:
+            return HealthCheckResult(
+                name="redis",
+                status=HealthStatus.PASS,
+                message=f"adapter={adapter}",
+            )
+        if cfg.redis.graceful_fallback:
+            return HealthCheckResult(
+                name="redis",
+                status=HealthStatus.SKIP,
+                message=f"degraded to {adapter}",
+            )
+        return HealthCheckResult(
+            name="redis",
+            status=HealthStatus.FAIL,
+            message="redis required but unavailable",
         )

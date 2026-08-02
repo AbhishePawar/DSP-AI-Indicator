@@ -1,10 +1,11 @@
-"""Operations metadata — build info, probes, metrics (EPIC-013 RC1 + P1.3)."""
+"""Operations metadata — build info, probes, metrics (EPIC-013 RC1 + EPIC-011A)."""
 
 from __future__ import annotations
 
 import os
 import time
 from dataclasses import dataclass
+from pathlib import Path
 from typing import Any
 
 from api_platform.api.monitoring import (
@@ -38,11 +39,32 @@ class BuildMetadata:
     release_channel: str
 
 
+def _default_app_version() -> str:
+    """Prefer env, else repo VERSION file, else 1.0.0 (EPIC-011A)."""
+    for key in ("DSP_APP_VERSION", "DSP_SERVICE_VERSION"):
+        raw = (os.environ.get(key) or "").strip()
+        if raw:
+            return raw[1:] if raw.lower().startswith("v") and len(raw) > 1 else raw
+    try:
+        for parent in Path(__file__).resolve().parents:
+            candidate = parent / "VERSION"
+            if candidate.is_file():
+                line = candidate.read_text(encoding="utf-8").splitlines()[0].strip()
+                if line.lower().startswith("v") and len(line) > 1:
+                    line = line[1:]
+                if line:
+                    return line
+    except OSError:
+        pass
+    return "1.0.0"
+
+
 def get_build_metadata() -> BuildMetadata:
+    app_version = _default_app_version()
     return BuildMetadata(
-        application_version=os.environ.get("DSP_APP_VERSION", "2.0.0"),
+        application_version=app_version,
         api_version=os.environ.get("DSP_API_VERSION", "v1"),
-        platform_version=os.environ.get("DSP_PLATFORM_VERSION", "2.0.0"),
+        platform_version=os.environ.get("DSP_PLATFORM_VERSION", app_version),
         pipeline_version=os.environ.get(
             "DSP_PIPELINE_VERSION", "1.0.0-epic-001"
         ),
@@ -58,7 +80,7 @@ def get_build_metadata() -> BuildMetadata:
 def collect_component_statuses(
     state: Any, *, platform_ready: bool
 ) -> dict[str, dict[str, str]]:
-    """Structured component health — Unavailable/skip when not wired."""
+    """Structured component health — live infra probes when attached."""
     lifecycle = get_lifecycle_state()
     security_on = os.environ.get("DSP_ENABLE_SECURITY", "").lower() in {
         "1",
@@ -68,11 +90,19 @@ def collect_component_statuses(
     has_api = state is not None
     has_copilot = getattr(state, "copilot_service", None) is not None
 
-    # Database / storage: report configured adapters only — no inventing connectivity.
-    db = os.environ.get("DSP_DATABASE_URL") or os.environ.get("DATABASE_URL")
+    infra = getattr(state, "infrastructure", None)
+    probes: dict[str, Any] = {}
+    if infra is not None and hasattr(infra, "health_checks"):
+        try:
+            probes = dict(infra.health_checks())
+        except Exception:  # noqa: BLE001
+            probes = {}
+
+    db_env = os.environ.get("DSP_DATABASE_URL") or os.environ.get("DATABASE_URL")
     storage = os.environ.get("DSP_STORAGE_BACKEND") or os.environ.get(
         "DSP_PERSISTENCE_BACKEND"
     )
+    redis_env = os.environ.get("DSP_REDIS_URL") or os.environ.get("REDIS_URL")
 
     def status(ok: bool, *, skip: bool = False, message: str = "") -> dict[str, str]:
         if skip:
@@ -81,6 +111,31 @@ def collect_component_statuses(
             "status": "pass" if ok else "fail",
             "message": message or ("ok" if ok else "unhealthy"),
         }
+
+    if probes:
+        db_ok = bool(probes.get("database"))
+        db_msg = f"adapter={probes.get('database_adapter', 'unknown')}"
+        db_skip = False
+    elif db_env:
+        db_ok, db_msg, db_skip = True, "configured", False
+    else:
+        db_ok, db_msg, db_skip = True, "Unavailable", True
+
+    redis_probe = probes.get("redis") if isinstance(probes.get("redis"), dict) else {}
+    if redis_probe:
+        r_status = str(redis_probe.get("status", "skip"))
+        if r_status == "pass":
+            redis_component = status(True, message="redis_stack")
+        elif r_status == "degraded":
+            redis_component = status(True, message="degraded_to_memory")
+        elif r_status == "fail":
+            redis_component = status(False, message="redis_unavailable")
+        else:
+            redis_component = status(True, skip=True, message="memory_cache")
+    elif redis_env:
+        redis_component = status(True, message="configured")
+    else:
+        redis_component = status(True, skip=True, message="Unavailable")
 
     return {
         "application": status(
@@ -97,15 +152,23 @@ def collect_component_statuses(
             skip=not security_on and not os.environ.get("DSP_JWT_SECRET"),
             message="security_enabled" if security_on else "optional",
         ),
-        "database": status(
+        "database": status(db_ok, skip=db_skip, message=db_msg),
+        "redis": redis_component,
+        "cache": status(
             True,
-            skip=db is None,
-            message="configured" if db else "Unavailable",
+            message=str(probes.get("cache_adapter", "Unavailable"))
+            if probes
+            else "Unavailable",
+            skip=not probes,
         ),
         "storage": status(
             True,
-            skip=storage is None,
-            message="configured" if storage else "Unavailable",
+            skip=storage is None and not probes,
+            message=(
+                str(probes.get("storage_adapter", "configured"))
+                if probes
+                else ("configured" if storage else "Unavailable")
+            ),
         ),
         "research_service": status(
             platform_ready,
@@ -152,6 +215,14 @@ def collect_health_snapshot(state: Any) -> dict[str, Any]:
     uptime_seconds = round(time.time() - _START_TIME, 2)
     resources = get_resource_snapshot()
 
+    infra = getattr(state, "infrastructure", None)
+    infra_probes: dict[str, Any] = {}
+    if infra is not None and hasattr(infra, "health_checks"):
+        try:
+            infra_probes = dict(infra.health_checks())
+        except Exception:  # noqa: BLE001
+            infra_probes = {}
+
     return {
         "status": "pass",
         "ready": True,
@@ -169,10 +240,16 @@ def collect_health_snapshot(state: Any) -> dict[str, Any]:
         "providers": providers,
         "llm": llm_status,
         "resources": resources,
+        "dependencies": infra_probes,
+        "infra_notes": list(getattr(state, "infra_notes", ()) or ())[:12],
         "service_readiness": {
             "platform": True,
             "copilot_service": state.copilot_service is not None,
             "api_state": state is not None,
+            "infrastructure": infra is not None,
+            "database": bool(infra_probes.get("database", False))
+            if infra_probes
+            else None,
         },
     }
 

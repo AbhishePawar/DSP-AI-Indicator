@@ -93,6 +93,10 @@ class ApiState:
     api_version: str = "v1"
     copilot_service: Any = field(default=None)
     language_model: Any | None = None
+    # EPIC-011A — optional production infra (duck-typed)
+    infrastructure: Any | None = None
+    production: Any | None = None
+    infra_notes: tuple[str, ...] = ()
 
 
 def build_copilot_service() -> Any:

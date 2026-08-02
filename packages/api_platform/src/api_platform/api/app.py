@@ -1,8 +1,9 @@
-"""FastAPI application factory (K1.1)."""
+"""FastAPI application factory (K1.1 + EPIC-011A infra bootstrap)."""
 
 from __future__ import annotations
 
-from collections.abc import Callable
+from collections.abc import AsyncIterator, Callable
+from contextlib import asynccontextmanager
 from typing import Any
 
 from fastapi import FastAPI, Request
@@ -20,7 +21,12 @@ from api_platform.api.dependencies import (
     build_language_model,
 )
 from api_platform.api.exceptions import ApiError, PlatformError
+from api_platform.api.infra_bootstrap import (
+    bootstrap_production_infrastructure,
+    public_startup_error,
+)
 from api_platform.api.middleware import RequestContextMiddleware
+from api_platform.api.ops import metrics_registry
 from api_platform.api.ops_middleware import (
     MetricsMiddleware,
     RateLimitHookMiddleware,
@@ -52,6 +58,28 @@ API_DESCRIPTION = (
 )
 
 
+@asynccontextmanager
+async def _app_lifespan(application: FastAPI) -> AsyncIterator[None]:
+    """Startup / graceful shutdown hooks — no business logic."""
+    metrics_registry.inc("dsp_system_restarts_total")
+    state = getattr(application.state, "api", None)
+    if state is not None and getattr(state, "infrastructure", None) is None:
+        try:
+            boot = bootstrap_production_infrastructure()
+            state.infrastructure = boot.infrastructure
+            state.production = boot.production
+            state.infra_notes = boot.notes
+            application.state.infrastructure = boot.infrastructure
+            application.state.production = boot.production
+        except Exception as exc:  # noqa: BLE001
+            code, message = public_startup_error(exc)
+            raise RuntimeError(f"{code}: {message}") from exc
+    try:
+        yield
+    finally:
+        pass
+
+
 def create_app(
     *,
     platform: DSPPlatform | None = None,
@@ -80,23 +108,36 @@ def create_app(
     ):
         from security_platform import SecurityBundle, SecuritySettings
 
+        jwt_secret = os.environ.get("DSP_JWT_SECRET", "dev-only-change-me")
+        is_prod = os.environ.get("DSP_ENVIRONMENT", "").lower() == "production"
+        if is_prod and jwt_secret in {
+            "dev-only-change-me",
+            "dsp-auth-dev-secret",
+            "",
+        }:
+            raise RuntimeError(
+                "DSP_JWT_SECRET must be set to a non-default value in production"
+            )
         security = SecurityBundle.create(
             SecuritySettings(
-                jwt_secret=os.environ.get(
-                    "DSP_JWT_SECRET", "dev-only-change-me"
-                ),
+                jwt_secret=jwt_secret,
                 require_auth=True,
                 allow_guest=False,
+                allow_passwordless=not is_prod,
             )
         )
 
+    app_version = os.environ.get("DSP_APP_VERSION") or os.environ.get(
+        "DSP_SERVICE_VERSION", "1.0.0"
+    )
     application = FastAPI(
         title=API_TITLE,
         description=API_DESCRIPTION,
-        version="0.2.0",
+        version=app_version.lstrip("v"),
         docs_url="/docs",
         redoc_url="/redoc",
         openapi_url="/openapi.json",
+        lifespan=_app_lifespan,
     )
 
     resolved = platform
@@ -104,6 +145,8 @@ def create_app(
         factory = platform_factory or build_default_platform
         resolved = factory()
 
+    # Eager infra bootstrap so TestClient (no lifespan) still sees adapters.
+    boot = bootstrap_production_infrastructure()
     application.state.api = ApiState(
         platform=resolved,
         reports=ReportStore(),
@@ -111,8 +154,13 @@ def create_app(
         api_version=api_version,
         copilot_service=build_copilot_service(),
         language_model=build_language_model(),
+        infrastructure=boot.infrastructure,
+        production=boot.production,
+        infra_notes=boot.notes,
     )
     application.state.security = security
+    application.state.infrastructure = boot.infrastructure
+    application.state.production = boot.production
 
     application.add_middleware(
         CORSMiddleware,

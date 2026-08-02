@@ -10,6 +10,7 @@ from typing import Mapping
 
 from production_platform.production.exceptions import ConfigurationError
 from production_platform.production.interfaces import SecretsPort
+from production_platform.production.versioning import resolve_service_version
 
 __all__ = [
     "ConfigurationManager",
@@ -31,6 +32,10 @@ class Environment(StrEnum):
     TEST = "test"
     STAGING = "staging"
     PRODUCTION = "production"
+
+
+# Resolved once at import from VERSION / env — not the package __version__.
+DEFAULT_SERVICE_VERSION = resolve_service_version()
 
 
 @dataclass(frozen=True, slots=True)
@@ -139,7 +144,7 @@ class ProductionConfiguration:
 
     environment: Environment = Environment.DEVELOPMENT
     service_name: str = "dsp-ai-indicator"
-    service_version: str = "0.2.0"
+    service_version: str = DEFAULT_SERVICE_VERSION
     region: str = "local"
     log_level: str = "INFO"
     metrics_enabled: bool = True
@@ -269,6 +274,10 @@ class ConfigurationManager:
                 raise ConfigurationError(
                     "production environment requires a non-local region"
                 )
+            if not cfg.database.url:
+                raise ConfigurationError(
+                    "production environment requires DSP_DATABASE_URL"
+                )
 
 
 def load_configuration_from_environ(
@@ -284,11 +293,16 @@ def load_configuration_from_environ(
 
     storage_provider = (env.get("DSP_OBJECT_STORAGE_PROVIDER") or "memory").lower()
     job_backend = (env.get("DSP_JOB_QUEUE_BACKEND") or "memory").lower()
+    service_version = (
+        env.get("DSP_SERVICE_VERSION")
+        or env.get("DSP_APP_VERSION")
+        or resolve_service_version(env)
+    )
 
     return ProductionConfiguration(
         environment=environment,
         service_name=env.get("DSP_SERVICE_NAME", "dsp-ai-indicator"),
-        service_version=env.get("DSP_SERVICE_VERSION", "0.2.0"),
+        service_version=service_version,
         region=env.get("DSP_REGION", "local" if environment is not Environment.PRODUCTION else "ap-south-1"),
         log_level=env.get("DSP_LOG_LEVEL", "INFO"),
         metrics_enabled=_bool(env.get("DSP_METRICS_ENABLED"), default=True),

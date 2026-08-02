@@ -63,6 +63,8 @@ class HealthResponse(BaseModel):
     repository_version: str | None = None
     checks: list[dict[str, Any]] = Field(default_factory=list)
     limitations: list[str] = Field(default_factory=list)
+    # EPIC-011A — optional dependency component map (DB/Redis/cache/…)
+    components: dict[str, Any] = Field(default_factory=dict)
 
 
 class PlatformInfoResponse(BaseModel):

@@ -27,6 +27,8 @@ from production_platform import (
     ObservabilitySettings,
     ProductionBundle,
     ProductionConfiguration,
+    build_runtime_infrastructure,
+    resolve_application_version,
 )
 from security_platform import SecurityBundle, SecuritySettings
 
@@ -57,10 +59,63 @@ class EnterprisePlatform:
         config = ProductionConfiguration(
             environment=environment,
             service_name="dsp-ai-indicator",
-            service_version="0.3.0",
+            service_version=resolve_application_version(),
             region="local",
         )
         infra = InfrastructureBundle.create_offline(configuration=config)
+        return cls._compose(
+            infra,
+            jwt_secret=jwt_secret,
+            seed_admin_password=seed_admin_password,
+            allow_passwordless=environment is not Environment.PRODUCTION,
+        )
+
+    @classmethod
+    def from_environment(
+        cls,
+        *,
+        environ: dict[str, str] | None = None,
+        force_offline: bool = False,
+        jwt_secret: str | None = None,
+        seed_admin_password: str | None = None,
+    ) -> EnterprisePlatform:
+        """Env-driven composition — Postgres/Redis when available (EPIC-011A)."""
+        import os
+
+        env_map = dict(environ if environ is not None else os.environ)
+        infra = build_runtime_infrastructure(
+            environ=env_map, force_offline=force_offline
+        )
+        secret = jwt_secret or env_map.get("DSP_JWT_SECRET") or "dev-only-change-me"
+        is_prod = infra.configuration.get().environment is Environment.PRODUCTION
+        if is_prod and secret in {"dev-only-change-me", "dsp-auth-dev-secret", ""}:
+            from production_platform import StartupError
+
+            raise StartupError(
+                "DSP_JWT_SECRET must be set to a non-default value in production"
+            )
+        password = seed_admin_password
+        if password is None:
+            password = env_map.get("DSP_SEED_ADMIN_PASSWORD")
+        return cls._compose(
+            infra,
+            jwt_secret=secret,
+            seed_admin_password=password if not is_prod or password else None,
+            seed_admin=not is_prod or bool(password),
+            allow_passwordless=not is_prod,
+        )
+
+    @classmethod
+    def _compose(
+        cls,
+        infra: InfrastructureBundle,
+        *,
+        jwt_secret: str,
+        seed_admin_password: str | None,
+        seed_admin: bool = True,
+        allow_passwordless: bool = False,
+    ) -> EnterprisePlatform:
+        config = infra.configuration.get()
         compliance = ComplianceBundle.create(
             flags=FeatureFlags(),
             database=infra.database,
@@ -68,8 +123,10 @@ class EnterprisePlatform:
         consent_bridge = ComplianceBackedConsentStore(compliance.consents)
         security = SecurityBundle.create_with_infrastructure(
             infra,
-            SecuritySettings(jwt_secret=jwt_secret, allow_passwordless=False),
-            seed_admin=True,
+            SecuritySettings(
+                jwt_secret=jwt_secret, allow_passwordless=allow_passwordless
+            ),
+            seed_admin=seed_admin,
             seed_admin_password=seed_admin_password,
             consent_store=consent_bridge,
         )
@@ -102,10 +159,14 @@ class EnterprisePlatform:
         return build_readiness_report(self)
 
     def diagnostics(self) -> dict[str, Any]:
+        probes = self.infrastructure.health_checks()
         return {
             "infrastructure": {
                 "database": self.infrastructure.diagnostics.database_adapter,
                 "cache": self.infrastructure.diagnostics.cache_adapter,
+                "redis_fallback": self.infrastructure.diagnostics.redis_fallback_active,
+                "probes": probes,
+                "notes": list(self.infrastructure.diagnostics.notes),
             },
             "observability": self.observability.diagnostics(),
             "compliance_flags": {
@@ -114,4 +175,5 @@ class EnterprisePlatform:
             },
             "consent_source_of_truth": self.consent_source_of_truth,
             "startup_ok": self.validate_startup().ok,
+            "service_version": self.production.get_configuration().service_version,
         }

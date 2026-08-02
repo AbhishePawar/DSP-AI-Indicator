@@ -1,5 +1,5 @@
 /**
- * EPIC-012/013 — Compose Institutional Company Comparison workspace model.
+ * EPIC-012/013/013A — Compose Institutional Company Comparison workspace model.
  * Pure presentation from mapped ResearchView slots + optional RI overlays.
  * No analytical recalculation.
  */
@@ -12,12 +12,19 @@ import {
   DATA_UNAVAILABLE,
   WORKSPACE_DISCLAIMER,
 } from "./constants";
+import { INSTITUTIONAL_UX_QUESTIONS } from "./decisionWorkflow";
 import { mapBuffettPreference } from "./mapBuffettPreference";
+import { mapCommitteeMemo } from "./mapCommitteeMemo";
+import { mapContradictoryEvidence } from "./mapContradictoryEvidence";
+import { mapEvidenceStrengthMeters } from "./mapEvidenceStrength";
+import { mapExecutiveScorecard } from "./mapExecutiveScorecard";
+import { mapSectorContext, type CatalogueSectorLookup } from "./mapSectorContext";
+import { mapSensitivityPanel } from "./mapSensitivity";
 import { mapTradeOffs } from "./mapTradeOffs";
+import { mapWhyNotAnalysis } from "./mapWhyNotAnalysis";
 import { mapWinnerMatrix } from "./mapWinnerMatrix";
 import {
   honestDisplay,
-  isUnavailableDisplay,
   parseExistingScore,
 } from "./ranking";
 import type {
@@ -32,6 +39,7 @@ import type {
   ScenarioCompareCell,
   ValuationCompareCell,
 } from "./types";
+import type { WeightingProfileId } from "./weightingProfiles";
 
 function methodStatus(
   view: ResearchView,
@@ -240,17 +248,52 @@ function mapExecutive(
   };
 }
 
+export type MapComparisonOptions = {
+  intelligence?: CompanyIntelligenceOverlay[];
+  weightingProfileId?: WeightingProfileId;
+  catalogue?: CatalogueSectorLookup[];
+  personalNotes?: { kind: string; text: string }[];
+  outstandingQuestions?: string[];
+};
+
 export function mapComparisonWorkspace(
   slots: ComparisonCompanySlot[],
-  intelligence: CompanyIntelligenceOverlay[] = [],
+  intelligenceOrOptions: CompanyIntelligenceOverlay[] | MapComparisonOptions = [],
 ): ComparisonWorkspaceModel {
+  const options: MapComparisonOptions = Array.isArray(intelligenceOrOptions)
+    ? { intelligence: intelligenceOrOptions }
+    : intelligenceOrOptions;
+  const intelligence = options.intelligence ?? [];
+  const weightingProfileId = options.weightingProfileId ?? "equal";
+
   const ready = slots.filter((s) => s.status === "ready" && s.view != null);
   const views = ready.map((s) => s.view!);
   const winnerMatrix = mapWinnerMatrix(views);
   const tradeOffs = mapTradeOffs(views, winnerMatrix);
+  const evidenceStrength = mapEvidenceStrengthMeters(views);
+  const contradictoryEvidence = mapContradictoryEvidence(views);
+  const whyNot = mapWhyNotAnalysis(views, winnerMatrix);
+  const scorecard = mapExecutiveScorecard(
+    views,
+    winnerMatrix,
+    evidenceStrength,
+    weightingProfileId,
+  );
+  const committeeMemo = mapCommitteeMemo(
+    views,
+    winnerMatrix,
+    tradeOffs,
+    contradictoryEvidence,
+    options.personalNotes ?? [],
+    options.outstandingQuestions ?? [],
+  );
+  const sectorContext = mapSectorContext(views, options.catalogue ?? []);
+  const sensitivity = mapSensitivityPanel(views);
+
   const coverageNotes = [
     WORKSPACE_DISCLAIMER,
     "Orchestration: client issues N frozen /api/v1/analyse calls (one per symbol). No backend comparison scoring.",
+    "Weighting profiles change presentation emphasis only — analytical outputs and Winner Matrix numerics are unchanged.",
     ...slots
       .filter((s) => s.status === "error" || s.status === "unavailable")
       .map(
@@ -281,6 +324,7 @@ export function mapComparisonWorkspace(
         null,
     })),
     executive: mapExecutive(views, winnerMatrix, tradeOffs.length),
+    scorecard,
     winnerMatrix,
     tradeOffs,
     valuation: mapValuation(views),
@@ -312,6 +356,12 @@ export function mapComparisonWorkspace(
       })),
     },
     evidence: mapEvidence(views),
+    evidenceStrength,
+    contradictoryEvidence,
+    whyNot,
+    committeeMemo,
+    sectorContext,
+    sensitivity,
     explainability: mapExplainability(views),
     intelligence: views.map((v) => {
       const hit = intelBySymbol.get(v.ticker.toUpperCase());
@@ -333,6 +383,8 @@ export function mapComparisonWorkspace(
     scenarios: mapScenarios(views),
     portfolioFit: mapPortfolioFit(views),
     coverageNotes,
+    weightingProfileId,
+    institutionalQuestions: [...INSTITUTIONAL_UX_QUESTIONS],
   };
 }
 

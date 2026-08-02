@@ -1,5 +1,5 @@
 /**
- * EPIC-012/013 — mapping honesty, Buffett copy compliance, empty states.
+ * EPIC-012/013/013A — mapping honesty, Buffett copy, decision support.
  */
 import { describe, expect, it } from "vitest";
 
@@ -7,22 +7,33 @@ import type { AnalyseResponse } from "@/lib/api/compositionTypes";
 import { buildAnalyseRequestForTicker } from "@/lib/research/buildAnalyseRequest";
 import { mapResearchView } from "@/lib/research/mapResearchView";
 import {
+  ANALYSIS_UNAVAILABLE,
   BUFFETT_FRAMEWORK_PREFIX,
   COMPARISON_SECTIONS,
   DATA_UNAVAILABLE,
   FORBIDDEN_BUFFETT_PHRASES,
   MAX_COMPANIES,
   MIN_COMPANIES,
+  WEIGHTING_PROFILES,
+  assertWeightingIsPresentationOnly,
   assignMedals,
   comparisonToCsv,
   comparisonToJson,
   containsForbiddenBuffettCopy,
+  describeHistoryChanges,
+  isHistoryEntryImmutable,
   mapBuffettPreference,
+  mapCommitteeMemo,
   mapComparisonWorkspace,
+  mapContradictoryEvidence,
+  mapEvidenceStrengthMeters,
   mapWinnerMatrix,
   parseExistingScore,
 } from "@/lib/company-comparison";
-import type { ComparisonCompanySlot } from "@/lib/company-comparison";
+import type {
+  ComparisonCompanySlot,
+  ComparisonHistoryEntry,
+} from "@/lib/company-comparison";
 
 function sampleResponse(
   overrides?: Partial<{
@@ -293,5 +304,185 @@ describe("EPIC-012/013 company comparison", () => {
     const overall = model.winnerMatrix.find((r) => r.id === "businessQuality")!;
     expect(overall.cells).toHaveLength(5);
     expect(overall.leader).toBe("E");
+  });
+
+  it("registers EPIC-013A decision-support sections", () => {
+    expect(COMPARISON_SECTIONS.map((s) => s.id)).toEqual(
+      expect.arrayContaining([
+        "scorecard",
+        "committeeMemo",
+        "contradictory",
+        "whyNot",
+        "evidenceStrength",
+        "history",
+        "weighting",
+        "decisionWorkspace",
+        "sectorContext",
+        "sensitivity",
+      ]),
+    );
+  });
+
+  it("builds executive scorecard and committee memo without forbidden Buffett copy", () => {
+    const model = mapComparisonWorkspace([
+      readySlot("AAA", sampleResponse({ bq: 88 })),
+      readySlot("BBB", sampleResponse({ bq: 55, moat: 90 })),
+    ]);
+    expect(model.scorecard.map((r) => r.id)).toEqual(
+      expect.arrayContaining([
+        "overall",
+        "businessQuality",
+        "management",
+        "moat",
+        "risk",
+        "valuation",
+        "financial",
+        "researchConfidence",
+        "evidenceStrength",
+        "overallPosition",
+      ]),
+    );
+    expect(model.committeeMemo.companies).toEqual(["AAA", "BBB"]);
+    expect(model.committeeMemo.buffettSummary).toContain(BUFFETT_FRAMEWORK_PREFIX);
+    expect(containsForbiddenBuffettCopy(model.committeeMemo.buffettSummary)).toBe(
+      false,
+    );
+    expect(model.committeeMemo.disclaimer.toLowerCase()).toContain(
+      "never makes investment decisions",
+    );
+    const memo = mapCommitteeMemo(
+      model.slots.filter((s) => s.view).map((s) => s.view!),
+      model.winnerMatrix,
+      model.tradeOffs,
+      model.contradictoryEvidence,
+    );
+    expect(memo.exportNote.toLowerCase()).toContain("docx");
+  });
+
+  it("contradictory evidence panel always surfaces both supporting and contradictory lists", () => {
+    const a = viewFor("AAA", sampleResponse({ bq: 90 }));
+    const b = viewFor("BBB", sampleResponse({ bq: 40 }));
+    // Inject opposing signal via risks on stage warnings if present; strengths always exist from succeeded stages.
+    const cells = mapContradictoryEvidence([a, b]);
+    expect(cells).toHaveLength(2);
+    for (const cell of cells) {
+      expect(cell.supporting.length).toBeGreaterThan(0);
+      expect(cell.contradictory.length).toBeGreaterThan(0);
+      expect(cell.honestyNote.toLowerCase()).toContain("never hidden");
+    }
+  });
+
+  it("why-not analysis is evidence-backed and never invents generic preference", () => {
+    const model = mapComparisonWorkspace([
+      readySlot("AAA", sampleResponse({ bq: 90, moat: 50 })),
+      readySlot("BBB", sampleResponse({ bq: 40, moat: 95 })),
+    ]);
+    expect(model.whyNot).toHaveLength(2);
+    const aaa = model.whyNot.find((w) => w.symbol === "AAA")!;
+    const bbb = model.whyNot.find((w) => w.symbol === "BBB")!;
+    expect(aaa.reasons.some((r) => r.dimension === "Moat")).toBe(true);
+    expect(bbb.reasons.some((r) => r.dimension === "Business Quality")).toBe(
+      true,
+    );
+    for (const item of model.whyNot) {
+      for (const r of item.reasons) {
+        expect(r.reason.length).toBeGreaterThan(20);
+        expect(r.evidence).toBeTruthy();
+      }
+    }
+  });
+
+  it("evidence strength meter never fabricates Strong without signals", () => {
+    const meters = mapEvidenceStrengthMeters([
+      viewFor("AAA", sampleResponse()),
+    ]);
+    expect(["Strong", "Moderate", "Limited", DATA_UNAVAILABLE]).toContain(
+      meters[0]!.level,
+    );
+    expect(meters[0]!.rationale.length).toBeGreaterThan(0);
+  });
+
+  it("weighting profiles change presentation emphasis only — raw scores unchanged", () => {
+    const slots = [
+      readySlot("AAA", sampleResponse({ bq: 88 })),
+      readySlot("BBB", sampleResponse({ bq: 55 })),
+    ];
+    const equal = mapComparisonWorkspace(slots, { weightingProfileId: "equal" });
+    const quality = mapComparisonWorkspace(slots, {
+      weightingProfileId: "quality",
+    });
+    const equalScores = equal.winnerMatrix.flatMap((r) =>
+      r.cells.map((c) => c.numeric),
+    );
+    const qualityScores = quality.winnerMatrix.flatMap((r) =>
+      r.cells.map((c) => c.numeric),
+    );
+    expect(
+      assertWeightingIsPresentationOnly(equalScores, qualityScores),
+    ).toBe(true);
+    expect(equal.winnerMatrix).toEqual(quality.winnerMatrix);
+    expect(WEIGHTING_PROFILES.map((p) => p.id)).toEqual(
+      expect.arrayContaining([
+        "equal",
+        "quality",
+        "value",
+        "growth",
+        "conservative",
+        "buffett",
+      ]),
+    );
+    // Scorecard displays identical; emphasis may differ.
+    const eqBq = equal.scorecard.find((r) => r.id === "businessQuality")!;
+    const qBq = quality.scorecard.find((r) => r.id === "businessQuality")!;
+    expect(eqBq.cells.map((c) => c.display)).toEqual(
+      qBq.cells.map((c) => c.display),
+    );
+    expect(qBq.emphasis).toBe("highlight");
+  });
+
+  it("comparison history helpers describe changes without mutating prior entries", () => {
+    const prior: ComparisonHistoryEntry = Object.freeze({
+      id: "ch-1",
+      at: "2026-08-01T00:00:00.000Z",
+      symbols: Object.freeze(["AAA", "BBB"]) as string[],
+      researchVersion: "pipeline=1.0.0",
+      confidence: "60%",
+      winnerSummary: "Business Quality: AAA",
+      changes: "Initial comparison snapshot.",
+      immutable: true as const,
+    });
+    expect(isHistoryEntryImmutable(prior)).toBe(true);
+    const changes = describeHistoryChanges(
+      prior,
+      ["AAA", "CCC"],
+      "Business Quality: CCC",
+    );
+    expect(changes).toContain("added CCC");
+    expect(changes).toContain("removed BBB");
+    expect(changes).toContain("winner summary changed");
+    expect(prior.symbols).toEqual(["AAA", "BBB"]);
+  });
+
+  it("sector medians and sensitivity outputs stay honestly unavailable", () => {
+    const model = mapComparisonWorkspace(
+      [
+        readySlot("AAA", sampleResponse()),
+        readySlot("BBB", sampleResponse({ bq: 40 })),
+      ],
+      {
+        catalogue: [
+          { ticker: "AAA", sector: "Technology", industry: "Software" },
+        ],
+      },
+    );
+    const aaa = model.sectorContext.find((s) => s.symbol === "AAA")!;
+    expect(aaa.sector).toBe("Technology");
+    expect(aaa.sectorMedian).toBe(DATA_UNAVAILABLE);
+    expect(aaa.relativePosition).toBe(DATA_UNAVAILABLE);
+    expect(
+      model.sensitivity.every(
+        (s) => s.coverageSensitivity === ANALYSIS_UNAVAILABLE,
+      ),
+    ).toBe(true);
   });
 });

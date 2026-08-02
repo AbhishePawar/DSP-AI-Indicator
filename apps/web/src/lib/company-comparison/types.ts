@@ -202,6 +202,123 @@ export type ExecutiveSummaryView = {
   evidenceQuality: string;
 };
 
+/** EPIC-012/013A — Executive Comparison Scorecard row. */
+export type ExecutiveScorecardRowId =
+  | "overall"
+  | "businessQuality"
+  | "management"
+  | "moat"
+  | "risk"
+  | "valuation"
+  | "financial"
+  | "researchConfidence"
+  | "evidenceStrength"
+  | "overallPosition";
+
+export type ExecutiveScorecardCell = {
+  symbol: string;
+  display: string;
+  evidence: string;
+  /** Presentation emphasis from weighting profile — does not alter scores. */
+  emphasis: "highlight" | "normal" | "deemphasize";
+};
+
+export type ExecutiveScorecardRow = {
+  id: ExecutiveScorecardRowId;
+  label: string;
+  emphasis: "highlight" | "normal" | "deemphasize";
+  cells: ExecutiveScorecardCell[];
+};
+
+export type EvidenceStrengthLevel =
+  | "Strong"
+  | "Moderate"
+  | "Limited"
+  | "Data unavailable.";
+
+export type EvidenceStrengthMeter = {
+  symbol: string;
+  level: EvidenceStrengthLevel;
+  coverage: string;
+  freshness: string;
+  completeness: string;
+  sourceQuality: string;
+  researchConfidence: string;
+  rationale: string;
+};
+
+export type ContradictoryEvidenceCell = {
+  symbol: string;
+  supporting: string[];
+  contradictory: string[];
+  coverage: string;
+  confidence: string;
+  sourceQuality: string;
+  honestyNote: string;
+};
+
+export type WhyNotReason = {
+  dimension: string;
+  reason: string;
+  evidence: string;
+};
+
+export type WhyNotAnalysis = {
+  symbol: string;
+  reasons: WhyNotReason[];
+  note: string;
+};
+
+export type CommitteeMemo = {
+  title: string;
+  companies: string[];
+  executiveSummary: string;
+  winnerMatrixSummary: string;
+  tradeOffs: string[];
+  supportingEvidence: string[];
+  contradictoryEvidence: string[];
+  buffettSummary: string;
+  confidence: string;
+  outstandingQuestions: string[];
+  decisionNotes: string[];
+  disclaimer: string;
+  generatedAt: string;
+  exportNote: string;
+};
+
+export type SectorContextCell = {
+  symbol: string;
+  sector: string;
+  industry: string;
+  sectorMedian: string;
+  industryMedian: string;
+  relativePosition: string;
+  note: string;
+};
+
+export type SensitivityCell = {
+  symbol: string;
+  coverageInput: string;
+  evidenceInput: string;
+  confidenceInput: string;
+  coverageSensitivity: string;
+  evidenceSensitivity: string;
+  confidenceSensitivity: string;
+  note: string;
+};
+
+/** Immutable historical comparison snapshot (append-only store). */
+export type ComparisonHistoryEntry = {
+  id: string;
+  at: string;
+  symbols: string[];
+  researchVersion: string;
+  confidence: string;
+  winnerSummary: string;
+  changes: string;
+  immutable: true;
+};
+
 /**
  * Extensible comparison engine contract — v1 implements company subjects only.
  * Future adapters may supply portfolio/ETF/MF/sector packs without UI redesign.
@@ -221,6 +338,8 @@ export type ComparisonWorkspaceModel = {
   symbols: string[];
   slots: ComparisonCompanySlot[];
   executive: ExecutiveSummaryView;
+  /** EPIC-012/013A institutional scorecard. */
+  scorecard: ExecutiveScorecardRow[];
   winnerMatrix: WinnerMatrixRow[];
   tradeOffs: TradeOffItem[];
   valuation: ValuationCompareCell[];
@@ -232,6 +351,12 @@ export type ComparisonWorkspaceModel = {
     financial: { symbol: string; score: string; label: string; confidence: string }[];
   };
   evidence: EvidenceQualityCell[];
+  evidenceStrength: EvidenceStrengthMeter[];
+  contradictoryEvidence: ContradictoryEvidenceCell[];
+  whyNot: WhyNotAnalysis[];
+  committeeMemo: CommitteeMemo;
+  sectorContext: SectorContextCell[];
+  sensitivity: SensitivityCell[];
   explainability: ExplainabilityCompareCell[];
   intelligence: CompanyIntelligenceOverlay[];
   buffettPreference: BuffettPreferenceRow[];
@@ -239,6 +364,9 @@ export type ComparisonWorkspaceModel = {
   scenarios: ScenarioCompareCell[];
   portfolioFit: PortfolioFitCell[];
   coverageNotes: string[];
+  /** Active weighting profile id (presentation emphasis only). */
+  weightingProfileId: string;
+  institutionalQuestions: string[];
 };
 
 /** Saved comparison snapshot (user-authored metadata + symbol set). */

@@ -1,7 +1,8 @@
-/** EPIC-012/013 — Comparison workspace section registry. */
+/** EPIC-012/013/013A — Comparison workspace section registry. */
 
 export type ComparisonSectionId =
   | "summary"
+  | "scorecard"
   | "winnerMatrix"
   | "tradeOffs"
   | "valuation"
@@ -11,12 +12,21 @@ export type ComparisonSectionId =
   | "risk"
   | "financial"
   | "evidence"
+  | "evidenceStrength"
+  | "contradictory"
+  | "whyNot"
   | "explainability"
   | "intelligence"
   | "buffett"
   | "heatmap"
   | "scenarios"
   | "portfolioFit"
+  | "sectorContext"
+  | "sensitivity"
+  | "committeeMemo"
+  | "decisionWorkspace"
+  | "history"
+  | "weighting"
   | "personal"
   | "export"
   | "architecture";
@@ -33,6 +43,12 @@ export const COMPARISON_SECTIONS: readonly ComparisonSectionDef[] = [
     id: "summary",
     label: "Executive Summary",
     description: "Overall institutional comparison summary",
+  },
+  {
+    id: "scorecard",
+    label: "Executive Scorecard",
+    description: "Institutional scorecard across core dimensions",
+    star: true,
   },
   {
     id: "winnerMatrix",
@@ -83,6 +99,24 @@ export const COMPARISON_SECTIONS: readonly ComparisonSectionDef[] = [
     star: true,
   },
   {
+    id: "evidenceStrength",
+    label: "Evidence Strength",
+    description: "Strong / Moderate / Limited meter from existing fields",
+    star: true,
+  },
+  {
+    id: "contradictory",
+    label: "Contradictory Evidence",
+    description: "Supporting and conflicting evidence — never hidden",
+    star: true,
+  },
+  {
+    id: "whyNot",
+    label: "Why Not Analysis",
+    description: "Evidence-backed reasons each company is not preferred",
+    star: true,
+  },
+  {
     id: "explainability",
     label: "Explainability",
     description: "Side-by-side explainability summaries",
@@ -116,6 +150,39 @@ export const COMPARISON_SECTIONS: readonly ComparisonSectionDef[] = [
     description: "Style tags — not personalised advice",
   },
   {
+    id: "sectorContext",
+    label: "Sector Context",
+    description: "Sector/industry median when API supports",
+  },
+  {
+    id: "sensitivity",
+    label: "Sensitivity",
+    description: "Coverage/evidence/confidence sensitivity",
+  },
+  {
+    id: "committeeMemo",
+    label: "IC Memo",
+    description: "Investment Committee memo generator",
+    star: true,
+  },
+  {
+    id: "decisionWorkspace",
+    label: "Decision Workspace",
+    description: "Guided workflow — user always decides",
+    star: true,
+  },
+  {
+    id: "history",
+    label: "Comparison History",
+    description: "Immutable append-only comparison timeline",
+    star: true,
+  },
+  {
+    id: "weighting",
+    label: "Weighting Profiles",
+    description: "Presentation emphasis only — never alters scores",
+  },
+  {
     id: "personal",
     label: "Personal Research",
     description: "User notes, thesis, watch, decisions",
@@ -124,7 +191,7 @@ export const COMPARISON_SECTIONS: readonly ComparisonSectionDef[] = [
   {
     id: "export",
     label: "Institutional Export",
-    description: "JSON / CSV / print / share",
+    description: "JSON / CSV / print / IC memo",
   },
   {
     id: "architecture",

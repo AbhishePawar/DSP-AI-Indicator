@@ -8,8 +8,13 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 
+import type {
+  DecisionWorkflowStepId,
+  ReviewModeId,
+} from "./decisionWorkflow";
 import type { ComparisonSectionId } from "./sections";
 import type { SavedComparison } from "./types";
+import type { WeightingProfileId } from "./weightingProfiles";
 
 export type PersonalNote = {
   id: string;
@@ -33,6 +38,9 @@ type ComparisonPrefsState = {
   notes: PersonalNote[];
   watch: WatchItem[];
   saved: SavedComparison[];
+  weightingProfileId: WeightingProfileId;
+  reviewMode: ReviewModeId;
+  workflowStep: DecisionWorkflowStepId;
   setActiveSection: (id: ComparisonSectionId) => void;
   setLeftOpen: (open: boolean) => void;
   toggleLeft: () => void;
@@ -49,6 +57,9 @@ type ComparisonPrefsState = {
   removeWatch: (id: string) => void;
   saveComparison: (title: string, symbols: string[], notes?: string) => void;
   removeSaved: (id: string) => void;
+  setWeightingProfileId: (id: WeightingProfileId) => void;
+  setReviewMode: (mode: ReviewModeId) => void;
+  setWorkflowStep: (step: DecisionWorkflowStepId) => void;
 };
 
 export const useComparisonPrefsStore = create<ComparisonPrefsState>()(
@@ -61,6 +72,9 @@ export const useComparisonPrefsStore = create<ComparisonPrefsState>()(
       notes: [],
       watch: [],
       saved: [],
+      weightingProfileId: "equal",
+      reviewMode: "standard",
+      workflowStep: "comparison",
       setActiveSection: (id) => set({ activeSection: id }),
       setLeftOpen: (open) => set({ leftOpen: open }),
       toggleLeft: () => set((s) => ({ leftOpen: !s.leftOpen })),
@@ -131,6 +145,9 @@ export const useComparisonPrefsStore = create<ComparisonPrefsState>()(
         }),
       removeSaved: (id) =>
         set((s) => ({ saved: s.saved.filter((x) => x.id !== id) })),
+      setWeightingProfileId: (id) => set({ weightingProfileId: id }),
+      setReviewMode: (mode) => set({ reviewMode: mode }),
+      setWorkflowStep: (step) => set({ workflowStep: step }),
     }),
     {
       name: "dsp.company-comparison.prefs.v1",
@@ -142,6 +159,9 @@ export const useComparisonPrefsStore = create<ComparisonPrefsState>()(
         watch: state.watch,
         saved: state.saved,
         activeSection: state.activeSection,
+        weightingProfileId: state.weightingProfileId,
+        reviewMode: state.reviewMode,
+        workflowStep: state.workflowStep,
       }),
     },
   ),

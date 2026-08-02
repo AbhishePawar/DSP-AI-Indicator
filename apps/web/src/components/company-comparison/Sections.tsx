@@ -1,22 +1,33 @@
 "use client";
 
-import { useState, type ReactNode } from "react";
+import { useMemo, useState, type ReactNode } from "react";
 
 import { Badge, Button, Input, Textarea } from "@/components/ds";
 import {
   BUFFETT_FRAMEWORK_PREFIX,
   COMPARISON_SECTIONS,
+  DECISION_WORKFLOW_STEPS,
   FUTURE_ARCHITECTURE_NOTES,
+  INSTITUTIONAL_UX_QUESTIONS,
   PLANNED_SUBJECT_KINDS,
+  REVIEW_MODES,
   SUPPORTED_SUBJECT_KINDS_V1,
+  WEIGHTING_PROFILES,
+  committeeMemoToHtml,
+  committeeMemoToJson,
   comparisonToCsv,
   comparisonToHtml,
   comparisonToJson,
   describeFutureAdapter,
   downloadText,
+  nextWorkflowStep,
+  prevWorkflowStep,
+  useComparisonHistoryStore,
   useComparisonPrefsStore,
   type ComparisonWorkspaceModel,
+  type WeightingProfileId,
 } from "@/lib/company-comparison";
+import { cn } from "@/lib/utils";
 import {
   AlignmentBadge,
   FieldRow,
@@ -24,6 +35,18 @@ import {
   MedalBadge,
   SectionCard,
 } from "./Primitives";
+
+function emphasisClass(
+  emphasis: "highlight" | "normal" | "deemphasize",
+): string {
+  if (emphasis === "highlight") {
+    return "bg-[var(--accent-soft)]/40 ring-1 ring-[var(--accent)]/30";
+  }
+  if (emphasis === "deemphasize") {
+    return "opacity-70";
+  }
+  return "";
+}
 
 function SymbolGrid({
   symbols,
@@ -64,13 +87,603 @@ export function ExecutiveSummarySection({
         <FieldRow label="Confidence" value={e.confidence} />
         <FieldRow label="Coverage" value={e.coverage} />
         <FieldRow label="Evidence quality" value={e.evidenceQuality} />
+        <FieldRow
+          label="Weighting profile"
+          value={`${model.weightingProfileId} (presentation emphasis only)`}
+        />
       </dl>
       <ul className="mt-3 list-disc space-y-1 pl-5 text-sm text-[var(--muted)]">
         {e.tradeOffs.map((t) => (
           <li key={t}>{t}</li>
         ))}
       </ul>
+      <div className="mt-4">
+        <p className="mb-2 text-xs font-medium text-[var(--muted)]">
+          Institutional review questions
+        </p>
+        <ul className="flex flex-wrap gap-2">
+          {INSTITUTIONAL_UX_QUESTIONS.map((q) => (
+            <li key={q}>
+              <Badge variant="outline">{q}</Badge>
+            </li>
+          ))}
+        </ul>
+      </div>
     </SectionCard>
+  );
+}
+
+export function ExecutiveScorecardSection({
+  model,
+}: {
+  model: ComparisonWorkspaceModel;
+}) {
+  const symbols = model.symbols.filter((s) =>
+    model.scorecard.some((r) => r.cells.some((c) => c.symbol === s)),
+  );
+  const cols = symbols.length ? symbols : model.symbols;
+
+  return (
+    <SectionCard
+      title="Executive Comparison Scorecard"
+      description="Institutional scorecard from existing research outputs. Highlighting reflects presentation weighting only — scores are never recalculated."
+    >
+      <p className="mb-3 text-xs text-[var(--muted)]">
+        Active weighting: {model.weightingProfileId} · presentation emphasis only
+      </p>
+      <div className="overflow-x-auto">
+        <table className="w-full min-w-[36rem] border-collapse text-sm">
+          <thead>
+            <tr className="border-b border-[var(--border)] text-left">
+              <th className="py-2 pr-3 font-medium">Metric</th>
+              {cols.map((s) => (
+                <th key={s} className="px-2 py-2 font-medium">
+                  {s}
+                </th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {model.scorecard.map((row) => (
+              <tr
+                key={row.id}
+                className={cn(
+                  "border-b border-[var(--border)] align-top",
+                  emphasisClass(row.emphasis),
+                )}
+              >
+                <td className="py-2 pr-3 text-[var(--muted)]">{row.label}</td>
+                {cols.map((sym) => {
+                  const cell = row.cells.find((c) => c.symbol === sym);
+                  return (
+                    <td key={sym} className="px-2 py-2">
+                      <span>{cell?.display ?? "Data unavailable."}</span>
+                    </td>
+                  );
+                })}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </SectionCard>
+  );
+}
+
+export function EvidenceStrengthSection({
+  model,
+}: {
+  model: ComparisonWorkspaceModel;
+}) {
+  return (
+    <SectionCard
+      title="Evidence Strength Meter"
+      description="Strong / Moderate / Limited / Data unavailable. — from coverage, freshness, completeness, source quality, and research confidence only."
+    >
+      <SymbolGrid symbols={model.evidenceStrength.map((e) => e.symbol)}>
+        {(symbol) => {
+          const e = model.evidenceStrength.find((x) => x.symbol === symbol)!;
+          return (
+            <div className="rounded-md border border-[var(--border)] p-3">
+              <div className="mb-2 flex items-center justify-between gap-2">
+                <p className="font-medium">{symbol}</p>
+                <Badge
+                  variant={
+                    e.level === "Strong"
+                      ? "accent"
+                      : e.level === "Moderate"
+                        ? "default"
+                        : "outline"
+                  }
+                >
+                  {e.level}
+                </Badge>
+              </div>
+              <dl>
+                <FieldRow label="Coverage" value={e.coverage} />
+                <FieldRow label="Freshness" value={e.freshness} />
+                <FieldRow label="Completeness" value={e.completeness} />
+                <FieldRow label="Source quality" value={e.sourceQuality} />
+                <FieldRow
+                  label="Research confidence"
+                  value={e.researchConfidence}
+                />
+              </dl>
+              <p className="mt-2 text-xs text-[var(--muted)]">{e.rationale}</p>
+            </div>
+          );
+        }}
+      </SymbolGrid>
+    </SectionCard>
+  );
+}
+
+export function ContradictoryEvidenceSection({
+  model,
+}: {
+  model: ComparisonWorkspaceModel;
+}) {
+  return (
+    <SectionCard
+      title="Contradictory Evidence Panel"
+      description="Supporting and contradictory evidence side-by-side. Conflicts are never hidden."
+    >
+      <div className="space-y-4">
+        {model.contradictoryEvidence.map((cell) => (
+          <div
+            key={cell.symbol}
+            className="rounded-md border border-[var(--border)] p-3"
+          >
+            <p className="font-medium">{cell.symbol}</p>
+            <dl className="mt-2">
+              <FieldRow label="Coverage" value={cell.coverage} />
+              <FieldRow label="Confidence" value={cell.confidence} />
+              <FieldRow label="Source quality" value={cell.sourceQuality} />
+            </dl>
+            <div className="mt-3 grid gap-3 md:grid-cols-2">
+              <div>
+                <p className="mb-1 text-xs font-semibold text-[var(--fg)]">
+                  Supporting
+                </p>
+                <ul className="list-disc space-y-1 pl-5 text-sm">
+                  {cell.supporting.map((s) => (
+                    <li key={s}>{s}</li>
+                  ))}
+                </ul>
+              </div>
+              <div>
+                <p className="mb-1 text-xs font-semibold text-[var(--fg)]">
+                  Contradictory
+                </p>
+                <ul className="list-disc space-y-1 pl-5 text-sm">
+                  {cell.contradictory.map((s) => (
+                    <li key={s}>{s}</li>
+                  ))}
+                </ul>
+              </div>
+            </div>
+            <p className="mt-2 text-xs text-[var(--muted)]">{cell.honestyNote}</p>
+          </div>
+        ))}
+      </div>
+    </SectionCard>
+  );
+}
+
+export function WhyNotSection({ model }: { model: ComparisonWorkspaceModel }) {
+  return (
+    <SectionCard
+      title="Why Not Analysis"
+      description="Evidence-backed reasons each company is not preferred. Never generic when differentials exist. Platform never decides."
+    >
+      <div className="space-y-4">
+        {model.whyNot.map((item) => (
+          <div
+            key={item.symbol}
+            className="rounded-md border border-[var(--border)] p-3"
+          >
+            <p className="font-medium">{item.symbol}</p>
+            <ul className="mt-2 space-y-2">
+              {item.reasons.map((r, i) => (
+                <li
+                  key={`${item.symbol}-${i}`}
+                  className="rounded border border-[var(--border)] p-2 text-sm"
+                >
+                  <Badge variant="outline">{r.dimension}</Badge>
+                  <p className="mt-1">{r.reason}</p>
+                  <p className="mt-1 text-xs text-[var(--muted)]">
+                    Evidence: {r.evidence}
+                  </p>
+                </li>
+              ))}
+            </ul>
+            <p className="mt-2 text-xs text-[var(--muted)]">{item.note}</p>
+          </div>
+        ))}
+      </div>
+    </SectionCard>
+  );
+}
+
+export function CommitteeMemoSection({
+  model,
+}: {
+  model: ComparisonWorkspaceModel;
+}) {
+  const memo = model.committeeMemo;
+  const stamp = model.symbols.join("-") || "memo";
+
+  return (
+    <SectionCard
+      title="Investment Committee Memo"
+      description="Executive Committee Memo assembled from existing comparison outputs. Assists review — never produces the investment decision."
+    >
+      <dl className="mb-3 space-y-1">
+        <FieldRow label="Title" value={memo.title} />
+        <FieldRow label="Companies" value={memo.companies.join(", ")} />
+        <FieldRow label="Summary" value={memo.executiveSummary} />
+        <FieldRow label="Winner Matrix" value={memo.winnerMatrixSummary} />
+        <FieldRow label="Confidence" value={memo.confidence} />
+      </dl>
+      <div className="space-y-3 text-sm">
+        <div>
+          <p className="font-medium">Trade-offs</p>
+          <ul className="mt-1 list-disc pl-5 text-[var(--muted)]">
+            {memo.tradeOffs.map((t) => (
+              <li key={t}>{t}</li>
+            ))}
+          </ul>
+        </div>
+        <div className="grid gap-3 md:grid-cols-2">
+          <div>
+            <p className="font-medium">Supporting evidence</p>
+            <ul className="mt-1 list-disc pl-5 text-[var(--muted)]">
+              {memo.supportingEvidence.map((t) => (
+                <li key={t}>{t}</li>
+              ))}
+            </ul>
+          </div>
+          <div>
+            <p className="font-medium">Contradictory evidence</p>
+            <ul className="mt-1 list-disc pl-5 text-[var(--muted)]">
+              {memo.contradictoryEvidence.map((t) => (
+                <li key={t}>{t}</li>
+              ))}
+            </ul>
+          </div>
+        </div>
+        <div>
+          <p className="font-medium">Buffett-style summary</p>
+          <p className="mt-1 text-[var(--muted)]">{memo.buffettSummary}</p>
+        </div>
+        <div>
+          <p className="font-medium">Outstanding questions</p>
+          <ul className="mt-1 list-disc pl-5 text-[var(--muted)]">
+            {memo.outstandingQuestions.map((t) => (
+              <li key={t}>{t}</li>
+            ))}
+          </ul>
+        </div>
+        <div>
+          <p className="font-medium">Decision notes (user-authored)</p>
+          <ul className="mt-1 list-disc pl-5 text-[var(--muted)]">
+            {memo.decisionNotes.map((t) => (
+              <li key={t}>{t}</li>
+            ))}
+          </ul>
+        </div>
+      </div>
+      <div className="mt-4 flex flex-wrap gap-2">
+        <Button
+          size="sm"
+          onClick={() =>
+            downloadText(
+              `dsp-ic-memo-${stamp}.json`,
+              committeeMemoToJson(model),
+              "application/json",
+            )
+          }
+        >
+          Export memo JSON
+        </Button>
+        <Button
+          size="sm"
+          variant="secondary"
+          onClick={() => {
+            const html = committeeMemoToHtml(memo);
+            const w = window.open("", "_blank");
+            if (!w) return;
+            w.document.write(html);
+            w.document.close();
+            w.focus();
+            w.print();
+          }}
+        >
+          Print / PDF memo
+        </Button>
+        <Button
+          size="sm"
+          variant="outline"
+          disabled
+          title="Native DOCX not available in current export patterns"
+        >
+          DOCX unavailable
+        </Button>
+      </div>
+      <p className="mt-2 text-xs text-[var(--muted)]">{memo.exportNote}</p>
+    </SectionCard>
+  );
+}
+
+export function SectorContextSection({
+  model,
+}: {
+  model: ComparisonWorkspaceModel;
+}) {
+  return (
+    <SectionCard
+      title="Sector Context"
+      description="Sector/industry labels when available. Authenticated medians/relatives require API support — otherwise Data unavailable."
+    >
+      <SymbolGrid symbols={model.sectorContext.map((s) => s.symbol)}>
+        {(symbol) => {
+          const s = model.sectorContext.find((x) => x.symbol === symbol)!;
+          return (
+            <div className="rounded-md border border-[var(--border)] p-3">
+              <p className="mb-2 font-medium">{symbol}</p>
+              <dl>
+                <FieldRow label="Sector" value={s.sector} />
+                <FieldRow label="Industry" value={s.industry} />
+                <FieldRow label="Sector median" value={s.sectorMedian} />
+                <FieldRow label="Industry median" value={s.industryMedian} />
+                <FieldRow label="Relative position" value={s.relativePosition} />
+              </dl>
+              <p className="mt-2 text-xs text-[var(--muted)]">{s.note}</p>
+            </div>
+          );
+        }}
+      </SymbolGrid>
+    </SectionCard>
+  );
+}
+
+export function SensitivitySection({
+  model,
+}: {
+  model: ComparisonWorkspaceModel;
+}) {
+  return (
+    <SectionCard
+      title="Sensitivity Panel"
+      description="Coverage / evidence / confidence sensitivity when certified — otherwise Analysis unavailable."
+    >
+      <SymbolGrid symbols={model.sensitivity.map((s) => s.symbol)}>
+        {(symbol) => {
+          const s = model.sensitivity.find((x) => x.symbol === symbol)!;
+          return (
+            <div className="rounded-md border border-[var(--border)] p-3">
+              <p className="mb-2 font-medium">{symbol}</p>
+              <dl>
+                <FieldRow label="Coverage input" value={s.coverageInput} />
+                <FieldRow label="Evidence input" value={s.evidenceInput} />
+                <FieldRow label="Confidence input" value={s.confidenceInput} />
+                <FieldRow
+                  label="Coverage sensitivity"
+                  value={s.coverageSensitivity}
+                />
+                <FieldRow
+                  label="Evidence sensitivity"
+                  value={s.evidenceSensitivity}
+                />
+                <FieldRow
+                  label="Confidence sensitivity"
+                  value={s.confidenceSensitivity}
+                />
+              </dl>
+              <p className="mt-2 text-xs text-[var(--muted)]">{s.note}</p>
+            </div>
+          );
+        }}
+      </SymbolGrid>
+    </SectionCard>
+  );
+}
+
+export function WeightingProfilesSection({
+  model,
+}: {
+  model: ComparisonWorkspaceModel;
+}) {
+  const { weightingProfileId, setWeightingProfileId } =
+    useComparisonPrefsStore();
+  const active = WEIGHTING_PROFILES.find((p) => p.id === weightingProfileId);
+
+  return (
+    <SectionCard
+      title="Comparison Weighting Profiles"
+      description="Equal / Quality / Value / Growth / Conservative / Buffett-style — presentation emphasis only. Analytical outputs never change."
+    >
+      <div className="flex flex-wrap gap-2">
+        {WEIGHTING_PROFILES.map((p) => (
+          <Button
+            key={p.id}
+            size="sm"
+            variant={weightingProfileId === p.id ? "default" : "secondary"}
+            aria-pressed={weightingProfileId === p.id}
+            onClick={() => setWeightingProfileId(p.id as WeightingProfileId)}
+          >
+            {p.label}
+          </Button>
+        ))}
+      </div>
+      {active ? (
+        <p className="mt-3 text-sm text-[var(--muted)]">{active.description}</p>
+      ) : null}
+      <p className="mt-2 text-xs text-[var(--muted)]">
+        Model weighting id: {model.weightingProfileId}. Scorecard highlighting
+        updates for emphasis; Winner Matrix numeric cells remain identical.
+      </p>
+    </SectionCard>
+  );
+}
+
+export function ComparisonHistorySection() {
+  const entries = useComparisonHistoryStore((s) => s.entries);
+  const search = useComparisonHistoryStore((s) => s.search);
+  const [query, setQuery] = useState("");
+  const filtered = useMemo(() => search(query), [search, query]);
+
+  return (
+    <SectionCard
+      title="Comparison History"
+      description="Immutable append-only timeline of comparisons. Past entries are never edited."
+    >
+      <Input
+        aria-label="Search comparison history"
+        value={query}
+        onChange={(e) => setQuery(e.target.value)}
+        placeholder="Filter by symbol, winner, version…"
+      />
+      {filtered.length === 0 ? (
+        <p className="mt-3 text-sm text-[var(--muted)]">
+          {entries.length === 0
+            ? "No history yet — run a comparison to append an immutable snapshot."
+            : "No history matches this filter."}
+        </p>
+      ) : (
+        <ol className="mt-3 space-y-2">
+          {filtered.map((e) => (
+            <li
+              key={e.id}
+              className="rounded-md border border-[var(--border)] p-3 text-sm"
+            >
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <span className="font-medium">{e.symbols.join(" · ")}</span>
+                <Badge variant="outline">immutable</Badge>
+              </div>
+              <dl className="mt-2">
+                <FieldRow label="Date" value={new Date(e.at).toLocaleString()} />
+                <FieldRow label="Research version" value={e.researchVersion} />
+                <FieldRow label="Confidence" value={e.confidence} />
+                <FieldRow label="Winner" value={e.winnerSummary} />
+                <FieldRow label="Changes" value={e.changes} />
+              </dl>
+            </li>
+          ))}
+        </ol>
+      )}
+    </SectionCard>
+  );
+}
+
+export function DecisionWorkspaceSection({
+  model,
+  onNavigateSection,
+}: {
+  model: ComparisonWorkspaceModel;
+  onNavigateSection?: (sectionId: string) => void;
+}) {
+  const { workflowStep, setWorkflowStep, setActiveSection } =
+    useComparisonPrefsStore();
+  const step =
+    DECISION_WORKFLOW_STEPS.find((s) => s.id === workflowStep) ??
+    DECISION_WORKFLOW_STEPS[0]!;
+  const prev = prevWorkflowStep(step.id);
+  const next = nextWorkflowStep(step.id);
+
+  const go = (target: typeof step) => {
+    setWorkflowStep(target.id);
+    setActiveSection(target.sectionId);
+    onNavigateSection?.(target.sectionId);
+  };
+
+  return (
+    <SectionCard
+      title="Decision Workspace"
+      description="Guided workflow: Comparison → Winner → Trade-offs → Contradictory → Buffett → RI → Notes → Thesis → Decision Memo → Export. The platform never produces the investment decision."
+    >
+      <ol className="mb-4 flex flex-wrap gap-2">
+        {DECISION_WORKFLOW_STEPS.map((s, i) => (
+          <li key={s.id}>
+            <Button
+              size="sm"
+              variant={s.id === step.id ? "default" : "ghost"}
+              aria-current={s.id === step.id ? "step" : undefined}
+              onClick={() => go(s)}
+            >
+              {i + 1}. {s.label}
+            </Button>
+          </li>
+        ))}
+      </ol>
+      <p className="text-sm font-medium">{step.label}</p>
+      <p className="mt-1 text-sm text-[var(--muted)]">{step.description}</p>
+      {step.userOwned ? (
+        <p className="mt-2 text-xs text-[var(--muted)]">
+          User-owned step — your notes/thesis/decision memo. Platform assists
+          only.
+        </p>
+      ) : null}
+      <div className="mt-4 flex flex-wrap gap-2">
+        <Button
+          size="sm"
+          variant="secondary"
+          disabled={!prev}
+          onClick={() => prev && go(prev)}
+        >
+          Previous
+        </Button>
+        <Button
+          size="sm"
+          disabled={!next}
+          onClick={() => next && go(next)}
+        >
+          Next
+        </Button>
+        <Button
+          size="sm"
+          variant="ghost"
+          onClick={() => {
+            setActiveSection(step.sectionId);
+            onNavigateSection?.(step.sectionId);
+          }}
+        >
+          Open section
+        </Button>
+      </div>
+      <ul className="mt-4 flex flex-wrap gap-2">
+        {model.institutionalQuestions.map((q) => (
+          <li key={q}>
+            <Badge variant="outline">{q}</Badge>
+          </li>
+        ))}
+      </ul>
+    </SectionCard>
+  );
+}
+
+export function ReviewModeControls() {
+  const { reviewMode, setReviewMode } = useComparisonPrefsStore();
+  return (
+    <div
+      className="flex flex-wrap items-center gap-2"
+      role="group"
+      aria-label="Institutional review mode"
+    >
+      <span className="text-xs text-[var(--muted)]">Review mode:</span>
+      {REVIEW_MODES.map((m) => (
+        <Button
+          key={m.id}
+          size="sm"
+          variant={reviewMode === m.id ? "default" : "ghost"}
+          aria-pressed={reviewMode === m.id}
+          title={m.description}
+          onClick={() => setReviewMode(m.id)}
+        >
+          {m.label}
+        </Button>
+      ))}
+    </div>
   );
 }
 
@@ -709,7 +1322,7 @@ export function ExportSection({ model }: { model: ComparisonWorkspaceModel }) {
   return (
     <SectionCard
       title="Institutional Export"
-      description="Comparison / IC-style executive snapshot. Native DOCX not available — use print for PDF."
+      description="Comparison / IC memo snapshot. Native DOCX not available — use print for PDF / HTML / JSON."
     >
       <div className="flex flex-wrap gap-2">
         <Button
@@ -754,6 +1367,34 @@ export function ExportSection({ model }: { model: ComparisonWorkspaceModel }) {
         </Button>
         <Button
           size="sm"
+          variant="secondary"
+          onClick={() =>
+            downloadText(
+              `dsp-ic-memo-${stamp}.json`,
+              committeeMemoToJson(model),
+              "application/json",
+            )
+          }
+        >
+          IC Memo JSON
+        </Button>
+        <Button
+          size="sm"
+          variant="secondary"
+          onClick={() => {
+            const html = committeeMemoToHtml(model.committeeMemo);
+            const w = window.open("", "_blank");
+            if (!w) return;
+            w.document.write(html);
+            w.document.close();
+            w.focus();
+            w.print();
+          }}
+        >
+          IC Memo Print / PDF
+        </Button>
+        <Button
+          size="sm"
           variant="ghost"
           onClick={async () => {
             const url = window.location.href;
@@ -772,7 +1413,8 @@ export function ExportSection({ model }: { model: ComparisonWorkspaceModel }) {
       </div>
       <p className="mt-3 text-xs text-[var(--muted)]">
         Exports serialize mapped research comparison fields only. No client-side
-        scoring is performed at export time.
+        scoring is performed at export time. The platform never produces the
+        investment decision.
       </p>
     </SectionCard>
   );

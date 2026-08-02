@@ -1,7 +1,7 @@
 "use client";
 
 /**
- * EPIC-012/013 — Institutional Company Comparison Workspace.
+ * EPIC-012/013/013A — Institutional Company Comparison Workspace.
  * Thin client: orchestrates N frozen /api/v1/analyse calls + optional RI overlays.
  * Assists decision-making — never makes investment decisions for users.
  */
@@ -26,12 +26,15 @@ import { useAuth } from "@/lib/auth/AuthProvider";
 import { COMPANY_CATALOGUE } from "@/lib/companies/catalogue";
 import {
   COMPARISON_SECTIONS,
+  DATA_UNAVAILABLE,
   MAX_COMPANIES,
   MIN_COMPANIES,
   WORKSPACE_DISCLAIMER,
+  describeHistoryChanges,
   isComparisonSectionId,
   mapComparisonWorkspace,
   mapIntelligenceOverlay,
+  useComparisonHistoryStore,
   useComparisonPrefsStore,
   type ComparisonCompanySlot,
   type ComparisonSectionId,
@@ -47,7 +50,13 @@ import {
   ArchitectureSection,
   BuffettPreferenceSection,
   BusinessQualitySection,
+  CommitteeMemoSection,
+  ComparisonHistorySection,
+  ContradictoryEvidenceSection,
+  DecisionWorkspaceSection,
   EvidenceSection,
+  EvidenceStrengthSection,
+  ExecutiveScorecardSection,
   ExecutiveSummarySection,
   ExplainabilitySection,
   ExportSection,
@@ -58,10 +67,15 @@ import {
   MoatSection,
   PersonalResearchSection,
   PortfolioFitSection,
+  ReviewModeControls,
   RiskSection,
   ScenarioSection,
+  SectorContextSection,
+  SensitivitySection,
   TradeOffSection,
   ValuationSection,
+  WeightingProfilesSection,
+  WhyNotSection,
   WinnerMatrixSection,
 } from "./Sections";
 import { WorkspaceEmpty, WorkspaceSkeleton } from "./Primitives";
@@ -70,6 +84,12 @@ const LazyWinner = lazy(async () => ({ default: WinnerMatrixSection }));
 const LazyTradeOff = lazy(async () => ({ default: TradeOffSection }));
 const LazyBuffett = lazy(async () => ({ default: BuffettPreferenceSection }));
 const LazyHeatmap = lazy(async () => ({ default: HeatmapSection }));
+const LazyScorecard = lazy(async () => ({ default: ExecutiveScorecardSection }));
+const LazyMemo = lazy(async () => ({ default: CommitteeMemoSection }));
+const LazyContradictory = lazy(async () => ({
+  default: ContradictoryEvidenceSection,
+}));
+const LazyWhyNot = lazy(async () => ({ default: WhyNotSection }));
 
 function resolveCatalogue(ticker: string) {
   return COMPANY_CATALOGUE.find(
@@ -102,9 +122,26 @@ type ModelSection = ComponentType<{ model: ComparisonWorkspaceModel }>;
 function renderModelSection(
   id: ComparisonSectionId,
   model: ComparisonWorkspaceModel,
+  onNavigateSection?: (sectionId: string) => void,
 ) {
+  if (id === "decisionWorkspace") {
+    return (
+      <DecisionWorkspaceSection
+        model={model}
+        onNavigateSection={onNavigateSection}
+      />
+    );
+  }
+  if (id === "history") {
+    return <ComparisonHistorySection />;
+  }
+  if (id === "weighting") {
+    return <WeightingProfilesSection model={model} />;
+  }
+
   const map: Partial<Record<ComparisonSectionId, ModelSection>> = {
     summary: ExecutiveSummarySection,
+    scorecard: LazyScorecard,
     winnerMatrix: LazyWinner,
     tradeOffs: LazyTradeOff,
     valuation: ValuationSection,
@@ -114,12 +151,18 @@ function renderModelSection(
     risk: RiskSection,
     financial: FinancialSection,
     evidence: EvidenceSection,
+    evidenceStrength: EvidenceStrengthSection,
+    contradictory: LazyContradictory,
+    whyNot: LazyWhyNot,
     explainability: ExplainabilitySection,
     intelligence: IntelligenceSection,
     buffett: LazyBuffett,
     heatmap: LazyHeatmap,
     scenarios: ScenarioSection,
     portfolioFit: PortfolioFitSection,
+    sectorContext: SectorContextSection,
+    sensitivity: SensitivitySection,
+    committeeMemo: LazyMemo,
     export: ExportSection,
   };
   const Comp = map[id];
@@ -146,7 +189,13 @@ export function CompanyComparisonWorkspace() {
     pinned,
     pinSymbol,
     unpinSymbol,
+    weightingProfileId,
+    reviewMode,
+    notes,
   } = useComparisonPrefsStore();
+
+  const appendHistory = useComparisonHistoryStore((s) => s.appendHistory);
+  const historyEntries = useComparisonHistoryStore((s) => s.entries);
 
   const initialFromUrl = useMemo(() => {
     const multi = parseSymbolsParam(searchParams.get("symbols"));
@@ -161,9 +210,6 @@ export function CompanyComparisonWorkspace() {
   const [intelligence, setIntelligence] = useState<
     CompanyIntelligenceOverlay[]
   >([]);
-  const [history, setHistory] = useState<
-    { at: string; symbols: string[] }[]
-  >([]);
 
   useEffect(() => {
     const section = searchParams.get("section");
@@ -173,15 +219,50 @@ export function CompanyComparisonWorkspace() {
   }, [searchParams, setActiveSection]);
 
   const syncUrl = useCallback(
-    (symbols: string[]) => {
+    (symbols: string[], section: ComparisonSectionId = activeSection) => {
       const params = new URLSearchParams();
       if (symbols.length) params.set("symbols", symbols.join(","));
-      if (activeSection !== "summary") params.set("section", activeSection);
+      if (section !== "summary") params.set("section", section);
       const qs = params.toString();
       router.replace(qs ? `/analysis/compare?${qs}` : "/analysis/compare");
     },
     [router, activeSection],
   );
+
+  const navigateSection = useCallback(
+    (sectionId: string) => {
+      if (!isComparisonSectionId(sectionId)) return;
+      setActiveSection(sectionId);
+      syncUrl(
+        slots.length ? slots.map((s) => s.symbol) : parseSymbolsParam(draftInput.replace(/\s+/g, ",")),
+        sectionId,
+      );
+    },
+    [setActiveSection, syncUrl, slots, draftInput],
+  );
+
+  // Keyboard navigation for institutional review modes.
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) {
+        return;
+      }
+      const idx = COMPARISON_SECTIONS.findIndex((s) => s.id === activeSection);
+      if (e.key === "ArrowDown" || e.key === "j") {
+        e.preventDefault();
+        const next = COMPARISON_SECTIONS[Math.min(idx + 1, COMPARISON_SECTIONS.length - 1)];
+        if (next) navigateSection(next.id);
+      } else if (e.key === "ArrowUp" || e.key === "k") {
+        e.preventDefault();
+        const prev = COMPARISON_SECTIONS[Math.max(idx - 1, 0)];
+        if (prev) navigateSection(prev.id);
+      } else if (e.key === "Escape" && reviewMode === "fullscreen") {
+        useComparisonPrefsStore.getState().setReviewMode("standard");
+      }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [activeSection, navigateSection, reviewMode]);
 
   const compareMutation = useMutation({
     mutationFn: async (symbols: string[]) => {
@@ -250,7 +331,6 @@ export function CompanyComparisonWorkspace() {
         }),
       );
 
-      // Optional Research Intelligence overlays (measurement only).
       let overlays: CompanyIntelligenceOverlay[] = [];
       if (featureFlags.researchIntelligence) {
         overlays = await Promise.all(
@@ -290,17 +370,45 @@ export function CompanyComparisonWorkspace() {
     onSuccess: ({ slots: next, overlays }) => {
       setSlots(next);
       setIntelligence(overlays);
+      setSymbols(next.map((s) => s.symbol));
+      syncUrl(next.map((s) => s.symbol));
+
+      const readyViews = next
+        .filter((s) => s.status === "ready" && s.view)
+        .map((s) => s.view!);
+      const preview = mapComparisonWorkspace(next, {
+        intelligence: overlays,
+        weightingProfileId,
+      });
+      const versions = Array.from(
+        new Set(
+          readyViews
+            .map(
+              (v) =>
+                `pipeline=${v.pipelineVersion ?? "n/a"};platform=${v.platformVersion ?? "n/a"}`,
+            )
+            .filter(Boolean),
+        ),
+      );
+      const previous =
+        useComparisonHistoryStore.getState().entries[0] ?? null;
+      appendHistory({
+        at: new Date().toISOString(),
+        symbols: next.map((s) => s.symbol),
+        researchVersion:
+          versions.length > 0 ? versions.join(" | ") : DATA_UNAVAILABLE,
+        confidence: preview.executive.confidence,
+        winnerSummary: preview.executive.winnerSummary,
+        changes: describeHistoryChanges(
+          previous,
+          next.map((s) => s.symbol),
+          preview.executive.winnerSummary,
+        ),
+      });
+
       const readySymbols = next
         .filter((s) => s.status === "ready")
         .map((s) => s.symbol);
-      setSymbols(next.map((s) => s.symbol));
-      syncUrl(next.map((s) => s.symbol));
-      setHistory((h) =>
-        [
-          { at: new Date().toISOString(), symbols: next.map((s) => s.symbol) },
-          ...h,
-        ].slice(0, 12),
-      );
       if (readySymbols.length >= MIN_COMPANIES) {
         success("Comparison research packs loaded.");
       } else {
@@ -314,9 +422,25 @@ export function CompanyComparisonWorkspace() {
     },
   });
 
+  const catalogueLookups = useMemo(
+    () =>
+      COMPANY_CATALOGUE.map((c) => ({
+        ticker: c.ticker,
+        sector: c.sector,
+        industry: c.industry,
+      })),
+    [],
+  );
+
   const model = useMemo(
-    () => mapComparisonWorkspace(slots, intelligence),
-    [slots, intelligence],
+    () =>
+      mapComparisonWorkspace(slots, {
+        intelligence,
+        weightingProfileId,
+        catalogue: catalogueLookups,
+        personalNotes: notes.map((n) => ({ kind: n.kind, text: n.text })),
+      }),
+    [slots, intelligence, weightingProfileId, catalogueLookups, notes],
   );
 
   const readyCount = slots.filter((s) => s.status === "ready").length;
@@ -348,13 +472,42 @@ export function CompanyComparisonWorkspace() {
     setDraftInput([b!, a!, ...rest].join(", "));
   };
 
+  const reviewClass =
+    reviewMode === "presentation" || reviewMode === "fullscreen"
+      ? "text-base md:text-lg"
+      : reviewMode === "print"
+        ? "print:bg-white"
+        : reviewMode === "evidence_first" || reviewMode === "committee"
+          ? ""
+          : "";
+
+  const preferredSection =
+    reviewMode === "evidence_first" &&
+    (activeSection === "summary" || activeSection === "scorecard")
+      ? "contradictory"
+      : reviewMode === "committee" && activeSection === "summary"
+        ? "committeeMemo"
+        : activeSection;
+
+  useEffect(() => {
+    if (preferredSection !== activeSection) {
+      setActiveSection(preferredSection);
+    }
+    // Only re-sync when review mode changes preference — avoid loops.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [reviewMode]);
+
   return (
     <div
-      className="overflow-hidden rounded-[var(--radius-lg,0.75rem)] border border-[var(--border)] bg-[var(--surface)]"
+      className={cn(
+        "overflow-hidden rounded-[var(--radius-lg,0.75rem)] border border-[var(--border)] bg-[var(--surface)]",
+        reviewMode === "fullscreen" && "fixed inset-0 z-50 rounded-none",
+        reviewClass,
+      )}
       data-testid="company-comparison-workspace"
+      data-review-mode={reviewMode}
     >
       {disclaimerGate}
-      {/* Comparison Header */}
       <header className="sticky top-0 z-10 space-y-3 border-b border-[var(--border)] bg-[var(--surface)]/95 p-3 backdrop-blur supports-[backdrop-filter]:bg-[var(--surface)]/80 md:p-4">
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div>
@@ -365,10 +518,24 @@ export function CompanyComparisonWorkspace() {
               {WORKSPACE_DISCLAIMER}
             </p>
           </div>
-          <Button size="sm" variant="ghost" onClick={toggleLeft}>
-            {leftOpen ? "Hide sections" : "Show sections"}
-          </Button>
+          <div className="flex flex-wrap gap-2">
+            <Button size="sm" variant="ghost" onClick={toggleLeft}>
+              {leftOpen ? "Hide sections" : "Show sections"}
+            </Button>
+            {reviewMode === "fullscreen" ? (
+              <Button
+                size="sm"
+                variant="secondary"
+                onClick={() =>
+                  useComparisonPrefsStore.getState().setReviewMode("standard")
+                }
+              >
+                Exit fullscreen
+              </Button>
+            ) : null}
+          </div>
         </div>
+        <ReviewModeControls />
         <div className="flex flex-col gap-2 lg:flex-row lg:items-end">
           <div className="flex-1">
             <label className="mb-1 block text-xs text-[var(--muted)]" htmlFor="cmp-symbols">
@@ -440,12 +607,12 @@ export function CompanyComparisonWorkspace() {
             ))}
           </div>
         ) : null}
-        {history.length > 0 ? (
+        {historyEntries.length > 0 ? (
           <div className="flex flex-wrap items-center gap-2 text-xs text-[var(--muted)]">
             <span>History:</span>
-            {history.slice(0, 5).map((h) => (
+            {historyEntries.slice(0, 5).map((h) => (
               <button
-                key={h.at}
+                key={h.id}
                 type="button"
                 className="rounded border border-[var(--border)] px-2 py-0.5 hover:bg-[var(--surface-2)]"
                 onClick={() => setDraftInput(h.symbols.join(", "))}
@@ -453,8 +620,18 @@ export function CompanyComparisonWorkspace() {
                 {h.symbols.join(" · ")}
               </button>
             ))}
+            <Button
+              size="sm"
+              variant="ghost"
+              onClick={() => navigateSection("history")}
+            >
+              Open timeline
+            </Button>
           </div>
         ) : null}
+        <p className="text-[10px] text-[var(--muted)]">
+          Keyboard: ↑/↓ or j/k to move sections · Esc exits fullscreen
+        </p>
       </header>
 
       <div className="flex min-h-[70vh] flex-col lg:flex-row">
@@ -474,16 +651,7 @@ export function CompanyComparisonWorkspace() {
                         ? "bg-[var(--accent-soft)] text-[var(--accent)]"
                         : "text-[var(--muted)] hover:bg-[var(--surface-2)] hover:text-[var(--fg)]",
                     )}
-                    onClick={() => {
-                      setActiveSection(section.id);
-                      const params = new URLSearchParams(searchParams.toString());
-                      if (section.id === "summary") params.delete("section");
-                      else params.set("section", section.id);
-                      const qs = params.toString();
-                      router.replace(
-                        qs ? `/analysis/compare?${qs}` : "/analysis/compare",
-                      );
-                    }}
+                    onClick={() => navigateSection(section.id)}
                   >
                     {section.label}
                     {section.star ? " ★" : ""}
@@ -521,7 +689,7 @@ export function CompanyComparisonWorkspace() {
               ) : activeSection === "architecture" ? (
                 <ArchitectureSection />
               ) : (
-                renderModelSection(activeSection, model)
+                renderModelSection(activeSection, model, navigateSection)
               )}
             </Suspense>
           ) : null}

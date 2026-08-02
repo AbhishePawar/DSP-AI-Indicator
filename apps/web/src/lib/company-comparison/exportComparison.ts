@@ -1,8 +1,9 @@
 /**
  * Institutional export helpers — serialize comparison model only.
- * No recalculation. PDF/DOCX via browser print (existing pattern).
+ * No recalculation. PDF via browser print; DOCX unavailable (documented).
  */
 
+import { committeeMemoToHtml } from "./mapCommitteeMemo";
 import type { ComparisonWorkspaceModel } from "./types";
 
 export function comparisonToJson(model: ComparisonWorkspaceModel): string {
@@ -16,12 +17,20 @@ export function comparisonToJson(model: ComparisonWorkspaceModel): string {
       disclaimer: model.disclaimer,
       buffettDisclaimer: model.buffettDisclaimer,
       symbols: model.symbols,
+      weightingProfileId: model.weightingProfileId,
       executive: model.executive,
+      scorecard: model.scorecard,
       winnerMatrix: model.winnerMatrix,
       tradeOffs: model.tradeOffs,
       valuation: model.valuation,
       qualityModules: model.qualityModules,
       evidence: model.evidence,
+      evidenceStrength: model.evidenceStrength,
+      contradictoryEvidence: model.contradictoryEvidence,
+      whyNot: model.whyNot,
+      committeeMemo: model.committeeMemo,
+      sectorContext: model.sectorContext,
+      sensitivity: model.sensitivity,
       explainability: model.explainability,
       intelligence: model.intelligence,
       buffettPreference: model.buffettPreference,
@@ -29,11 +38,36 @@ export function comparisonToJson(model: ComparisonWorkspaceModel): string {
       scenarios: model.scenarios,
       portfolioFit: model.portfolioFit,
       coverageNotes: model.coverageNotes,
+      institutionalQuestions: model.institutionalQuestions,
+      exportFormats: {
+        json: true,
+        csv: true,
+        printPdf: true,
+        html: true,
+        docx: false,
+        docxNote:
+          "Native DOCX generation is not available in current export patterns — use Print/PDF or HTML.",
+      },
     },
     null,
     2,
   );
 }
+
+export function committeeMemoToJson(model: ComparisonWorkspaceModel): string {
+  return JSON.stringify(
+    {
+      exportedAt: new Date().toISOString(),
+      source: "dsp_platform investment committee memo (presentation assembly)",
+      note: "Assists IC review — never produces the investment decision. Native DOCX unavailable.",
+      memo: model.committeeMemo,
+    },
+    null,
+    2,
+  );
+}
+
+export { committeeMemoToHtml };
 
 function csvEscape(value: string): string {
   if (/[",\n]/.test(value)) return `"${value.replace(/"/g, '""')}"`;
@@ -80,6 +114,25 @@ export function comparisonToHtml(model: ComparisonWorkspaceModel): string {
     .map((t) => `<li><strong>${t.dimension}:</strong> ${t.summary}</li>`)
     .join("");
 
+  const scorecardRows = model.scorecard
+    .map((row) => {
+      const cells = model.symbols
+        .map((sym) => {
+          const cell = row.cells.find((c) => c.symbol === sym);
+          return `<td>${cell?.display ?? "Data unavailable."}</td>`;
+        })
+        .join("");
+      return `<tr><th scope="row">${row.label}</th>${cells}</tr>`;
+    })
+    .join("");
+
+  const whyNot = model.whyNot
+    .map(
+      (w) =>
+        `<li><strong>${w.symbol}:</strong> ${w.reasons.map((r) => r.reason).join(" · ")}</li>`,
+    )
+    .join("");
+
   return `<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -98,10 +151,16 @@ export function comparisonToHtml(model: ComparisonWorkspaceModel): string {
 <h1>Institutional Company Comparison</h1>
 <p class="disclaimer">${model.disclaimer}</p>
 <p class="disclaimer">${model.buffettDisclaimer}</p>
+<p class="disclaimer">Weighting profile (presentation only): ${model.weightingProfileId}. Analytical outputs unchanged.</p>
 <h2>Executive Summary</h2>
 <p>${model.executive.overall}</p>
 <p>${model.executive.institutionalSummary}</p>
 <p><strong>Winners:</strong> ${model.executive.winnerSummary}</p>
+<h2>Executive Scorecard</h2>
+<table>
+<thead><tr><th>Metric</th>${model.symbols.map((s) => `<th>${s}</th>`).join("")}</tr></thead>
+<tbody>${scorecardRows}</tbody>
+</table>
 <h2>Winner Matrix</h2>
 <table>
 <thead><tr><th>Dimension</th>${model.symbols.map((s) => `<th>${s}</th>`).join("")}</tr></thead>
@@ -109,7 +168,9 @@ export function comparisonToHtml(model: ComparisonWorkspaceModel): string {
 </table>
 <h2>Trade-offs</h2>
 <ul>${tradeOffs || "<li>Data unavailable.</li>"}</ul>
-<p><em>Exported ${model.generatedAt}. Print this page for PDF.</em></p>
+<h2>Why Not</h2>
+<ul>${whyNot || "<li>Data unavailable.</li>"}</ul>
+<p><em>Exported ${model.generatedAt}. Print this page for PDF. Native DOCX unavailable. The platform never produces the investment decision.</em></p>
 </body>
 </html>`;
 }

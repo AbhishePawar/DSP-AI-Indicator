@@ -78,9 +78,12 @@ export function subjectRefFromTicker(
 }
 
 export const FUTURE_ARCHITECTURE_NOTES: readonly string[] = [
-  "Workspace shell (header, sections, export, personal notes) is subject-kind agnostic.",
+  "Workspace shell (header, sections, export, personal notes, decision workflow, review modes) is subject-kind agnostic.",
   "ComparisonWorkspaceModel.slots already carry status/error/view overlays suitable for non-company packs.",
   "Winner Matrix extractors are keyed by dimension id — future packs can supply the same ResearchView-shaped fields or a thin isomorphic view model.",
   "Do not redesign when adding ETF/MF: add an adapter that returns comparable packs, then reuse mapComparisonWorkspace.",
   "Backend /compare remains orchestration-only today; prefer server composition later if multi-pack latency or auth bundling requires it — still no new scoring.",
+  "EPIC-012/013A decision-support layers (scorecard, IC memo, contradictory evidence, why-not, evidence strength, history, weighting) are presentation/orchestration only and reuse the same adapter boundary.",
+  "Sector/industry median adapters must consume certified server aggregates — never catalogue screening proxies (CV-001).",
+  "Portfolio / ETF / MF / sector / industry / watchlist subjects plug in via ComparisonEngineAdapter without shell redesign.",
 ];

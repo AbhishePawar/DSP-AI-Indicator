@@ -67,7 +67,7 @@ export function CompanyHeaderBar({
             {isPinned ? "Watchlisted" : "Watchlist"}
           </Button>
           <Link
-            href={`/compare?symbol=${encodeURIComponent(symbol)}`}
+            href={`/analysis/compare?symbols=${encodeURIComponent(symbol)}`}
             className="inline-flex"
           >
             <Button size="sm" variant="ghost">

@@ -67,6 +67,18 @@ export const SHELL_NAV: readonly ShellNavItem[] = [
     section: "research",
     icon: "analysis",
     access: { anyOfPermissions: ["read_research"] },
+    children: [
+      {
+        id: "analysis-compare",
+        href: "/analysis/compare",
+        label: "Company Comparison",
+        description:
+          "Institutional decision workspace — compare 2–5 companies (supporting intelligence)",
+        section: "research",
+        icon: "analysis",
+        access: { anyOfPermissions: ["read_research"] },
+      },
+    ],
   },
   {
     id: "research",
@@ -339,6 +351,10 @@ export function filterShellNav(
       if (!canAccessNavItem(c, permissions, roles)) return false;
       // EPIC-011B — hide unfinished / flagged-off Research Intelligence
       if (c.id === "research-intelligence" && !featureFlags.researchIntelligence) {
+        return false;
+      }
+      // EPIC-012/013 — hide flagged-off Company Comparison
+      if (c.id === "analysis-compare" && !featureFlags.companyComparison) {
         return false;
       }
       return true;

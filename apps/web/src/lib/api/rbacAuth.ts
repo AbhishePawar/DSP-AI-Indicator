@@ -1,7 +1,12 @@
-/** A009 RBAC auth client — consumes /auth/rbac/* only. No backend changes. */
+/** A009 RBAC auth client — consumes /auth/rbac/* (EPIC-016 cookie-aware). */
 
 import { env } from "@/lib/env";
 import { ApiClientError, type ApiErrorBody } from "@/lib/api/types";
+import {
+  cookieAuthPreferred,
+  cookieFetchInit,
+} from "@/lib/auth/cookieSession";
+import { COOKIE_TOKEN_PLACEHOLDER } from "@/lib/auth/sessionStore";
 import type {
   RbacEnvelope,
   RbacLoginResult,
@@ -25,14 +30,21 @@ async function rbacRequest<T>(
   if (init.body && !headers.has("Content-Type")) {
     headers.set("Content-Type", "application/json");
   }
-  if (options.token) {
-    headers.set("Authorization", `Bearer ${options.token}`);
+  const token = options.token;
+  if (token && token !== COOKIE_TOKEN_PLACEHOLDER) {
+    headers.set("Authorization", `Bearer ${token}`);
   }
 
   const url = `${env.apiBaseUrl}${path.startsWith("/") ? path : `/${path}`}`;
+  const fetchInit = cookieAuthPreferred()
+    ? cookieFetchInit({ ...init, headers })
+    : { ...init, headers };
   let response: Response;
   try {
-    response = await fetch(url, { ...init, headers, signal: options.signal });
+    response = await fetch(url, {
+      ...fetchInit,
+      signal: options.signal,
+    });
   } catch (err) {
     const aborted =
       options.signal?.aborted ||
@@ -86,6 +98,7 @@ export const rbacAuthApi = {
     password: string;
     created_at?: string;
     session_id?: string;
+    remember_me?: boolean;
   }) =>
     rbacRequest<RbacLoginResult>("/auth/rbac/login", {
       method: "POST",
@@ -99,7 +112,7 @@ export const rbacAuthApi = {
     }),
 
   refresh: (body: {
-    refresh_token: string;
+    refresh_token?: string | null;
     created_at?: string;
     access_jti?: string;
   }) =>
@@ -108,10 +121,10 @@ export const rbacAuthApi = {
       body: JSON.stringify(body),
     }),
 
-  me: (token: string, options?: RbacRequestOptions) =>
+  me: (token?: string | null, options?: RbacRequestOptions) =>
     rbacRequest<RbacUser>("/auth/rbac/me", { method: "GET" }, {
       ...options,
-      token,
+      token: token ?? undefined,
     }),
 
   listSessions: (token: string, userId?: string) => {

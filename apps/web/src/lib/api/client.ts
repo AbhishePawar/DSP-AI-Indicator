@@ -36,15 +36,36 @@ async function request<T>(
   if (init.body && !headers.has("Content-Type")) {
     headers.set("Content-Type", "application/json");
   }
-  if (options.token) {
-    headers.set("Authorization", `Bearer ${options.token}`);
+  const token = options.token;
+  if (token && token !== "__cookie__") {
+    headers.set("Authorization", `Bearer ${token}`);
   }
 
   const url = `${env.apiBaseUrl}${path.startsWith("/") ? path : `/${path}`}`;
 
   let response: Response;
   try {
-    response = await fetch(url, { ...init, headers, signal: options.signal });
+    const cookieMode =
+      process.env.NEXT_PUBLIC_COOKIE_AUTH !== "false" &&
+      process.env.NEXT_PUBLIC_COOKIE_AUTH !== "0";
+    let csrf: Record<string, string> = {};
+    if (cookieMode && typeof window !== "undefined") {
+      try {
+        const { csrfHeaders } = await import("@/lib/auth/cookieSession");
+        csrf = csrfHeaders();
+      } catch {
+        csrf = {};
+      }
+      for (const [k, v] of Object.entries(csrf)) {
+        if (!headers.has(k)) headers.set(k, v);
+      }
+    }
+    response = await fetch(url, {
+      ...init,
+      headers,
+      signal: options.signal,
+      credentials: cookieMode ? "include" : init.credentials,
+    });
   } catch (err) {
     const aborted =
       options.signal?.aborted ||

@@ -90,6 +90,8 @@ class SecurityMiddleware(BaseHTTPMiddleware):
         path = request.url.path
         settings = self._bundle.settings
 
+        auth_header = _authorization_from_request(request)
+
         if (
             path in settings.public_paths
             or not settings.require_auth
@@ -101,7 +103,7 @@ class SecurityMiddleware(BaseHTTPMiddleware):
                     principal = self._bundle.authentication.guest_principal()
                 else:
                     principal = self._bundle.authentication.authenticate_headers(
-                        authorization=request.headers.get("authorization"),
+                        authorization=auth_header,
                         api_key_id=request.headers.get("x-api-key-id"),
                         api_key_secret=request.headers.get("x-api-key-secret"),
                     )
@@ -116,7 +118,7 @@ class SecurityMiddleware(BaseHTTPMiddleware):
 
         try:
             principal = self._bundle.authentication.authenticate_headers(
-                authorization=request.headers.get("authorization"),
+                authorization=auth_header,
                 api_key_id=request.headers.get("x-api-key-id"),
                 api_key_secret=request.headers.get("x-api-key-secret"),
             )
@@ -161,6 +163,23 @@ class SecurityMiddleware(BaseHTTPMiddleware):
             return _error_response(400, "SecurityError", str(exc))
 
         return await call_next(request)
+
+
+def _authorization_from_request(request: Request) -> str | None:
+    """Prefer Authorization header; fall back to HttpOnly access cookie (EPIC-016)."""
+    header = request.headers.get("authorization")
+    if header:
+        return header
+    try:
+        from security_platform.security.cookies import ACCESS_COOKIE, cookie_auth_enabled
+
+        if cookie_auth_enabled():
+            token = request.cookies.get(ACCESS_COOKIE)
+            if token:
+                return f"Bearer {token}"
+    except Exception:  # noqa: BLE001 — never break auth stack on cookie helper issues
+        pass
+    return None
 
 
 def _error_response(status: int, error: str, detail: str) -> JSONResponse:

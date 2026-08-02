@@ -10,7 +10,7 @@ import uuid
 from datetime import UTC, datetime, timedelta
 from typing import Any
 
-from enterprise.billing import BillingPort, NullBillingAdapter
+from enterprise.billing import BillingPort, NullBillingAdapter, build_billing_adapter
 from enterprise.collaboration import (
     NullCollaborationAdapter,
     collaboration_blueprint,
@@ -43,10 +43,12 @@ from enterprise.permissions import (
     has_permission,
     permissions_for_role,
 )
+from enterprise.ports import EnterpriseStorePort
 from enterprise.store import InMemoryEnterpriseStore
 
 __all__ = [
     "EnterpriseService",
+    "enterprise_service_configured",
     "get_enterprise_service",
     "reset_enterprise_service_for_tests",
 ]
@@ -63,12 +65,12 @@ class EnterpriseService:
 
     def __init__(
         self,
-        store: InMemoryEnterpriseStore | None = None,
+        store: EnterpriseStorePort | InMemoryEnterpriseStore | None = None,
         *,
         billing: BillingPort | None = None,
         collaboration: Any | None = None,
     ) -> None:
-        self.store = store or InMemoryEnterpriseStore()
+        self.store: EnterpriseStorePort = store or InMemoryEnterpriseStore()
         self.billing: BillingPort = billing or NullBillingAdapter()
         self.collaboration = collaboration or NullCollaborationAdapter()
 
@@ -83,9 +85,11 @@ class EnterpriseService:
                 "enterprise_rbac",
                 "licensing",
                 "billing_port",
+                "billing_providers_stripe_razorpay_paddle",
                 "customer_portal",
                 "sessions",
                 "immutable_audit",
+                "durable_enterprise_store",
                 "api_keys",
                 "usage_analytics",
                 "ops_incident_center",
@@ -723,6 +727,10 @@ class EnterpriseService:
         resource_type: str,
         resource_id: str | None,
         metadata: dict[str, Any] | None = None,
+        before: dict[str, Any] | None = None,
+        after: dict[str, Any] | None = None,
+        ip_address: str | None = None,
+        correlation_id: str | None = None,
     ) -> AuditRecord:
         record = AuditRecord(
             event_id=f"aud_{uuid.uuid4().hex[:16]}",
@@ -734,8 +742,13 @@ class EnterpriseService:
             created_at=utc_now().isoformat(),
             metadata=freeze_mapping(metadata),
             immutable=True,
+            before_state=freeze_mapping(before) if before is not None else None,
+            after_state=freeze_mapping(after) if after is not None else None,
+            ip_address=ip_address,
+            correlation_id=correlation_id,
         )
         self.store.audit.append(record)
+        self.store.flush()
         return record
 
     def record_audit(
@@ -747,6 +760,10 @@ class EnterpriseService:
         resource_type: str,
         resource_id: str | None = None,
         metadata: dict[str, Any] | None = None,
+        before: dict[str, Any] | None = None,
+        after: dict[str, Any] | None = None,
+        ip_address: str | None = None,
+        correlation_id: str | None = None,
     ) -> dict[str, Any]:
         return self._audit(
             org_id=org_id,
@@ -755,6 +772,10 @@ class EnterpriseService:
             resource_type=resource_type,
             resource_id=resource_id,
             metadata=metadata,
+            before=before,
+            after=after,
+            ip_address=ip_address,
+            correlation_id=correlation_id,
         ).to_dict()
 
     def list_audit(
@@ -914,6 +935,7 @@ class EnterpriseService:
     def increment_usage(self, org_id: str, metric: str, amount: int = 1) -> None:
         counters = self.store.usage_counters.setdefault(org_id, {})
         counters[metric] = counters.get(metric, 0) + amount
+        self.store.flush()
 
     def usage_snapshot(
         self, org_id: str, *, actor_user_id: str
@@ -1077,10 +1099,27 @@ class EnterpriseService:
 _SVC: EnterpriseService | None = None
 
 
-def get_enterprise_service() -> EnterpriseService:
+def enterprise_service_configured() -> bool:
+    return _SVC is not None
+
+
+def get_enterprise_service(
+    *,
+    database: Any | None = None,
+    billing: BillingPort | None = None,
+) -> EnterpriseService:
+    """Return process singleton — durable store when DatabasePort is supplied."""
     global _SVC
     if _SVC is None:
-        _SVC = EnterpriseService()
+        store: EnterpriseStorePort | None = None
+        if database is not None:
+            from enterprise.db_store import DatabaseEnterpriseStore
+
+            store = DatabaseEnterpriseStore(database)
+        _SVC = EnterpriseService(
+            store=store,
+            billing=billing or build_billing_adapter(),
+        )
     return _SVC
 
 

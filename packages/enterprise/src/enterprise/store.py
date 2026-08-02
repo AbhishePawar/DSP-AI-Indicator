@@ -1,4 +1,4 @@
-"""In-memory enterprise store — process-local foundation adapter."""
+"""In-memory enterprise store — process-local foundation / test adapter."""
 
 from __future__ import annotations
 
@@ -20,7 +20,11 @@ __all__ = ["InMemoryEnterpriseStore"]
 
 
 class InMemoryEnterpriseStore:
-    """Thread-safe in-memory persistence for enterprise domain objects."""
+    """Thread-safe in-memory persistence for enterprise domain objects.
+
+    Implements ``EnterpriseStorePort``. Prefer ``DatabaseEnterpriseStore``
+    for production durability (EPIC-016).
+    """
 
     def __init__(self) -> None:
         self._lock = Lock()
@@ -51,3 +55,6 @@ class InMemoryEnterpriseStore:
             self.sessions.clear()
             self.custom_roles.clear()
             self.usage_counters.clear()
+
+    def flush(self) -> None:
+        """No-op — in-memory adapter has no durable backend."""

@@ -27,6 +27,7 @@ from api_platform.api.infra_bootstrap import (
 )
 from api_platform.api.middleware import RequestContextMiddleware
 from api_platform.api.ops import metrics_registry
+from api_platform.api.csrf_middleware import CsrfMiddleware
 from api_platform.api.ops_middleware import (
     MetricsMiddleware,
     RateLimitHookMiddleware,
@@ -167,6 +168,20 @@ def create_app(
     application.state.infrastructure = boot.infrastructure
     application.state.production = boot.production
 
+    # EPIC-016: durable enterprise store when DatabasePort is available.
+    # Do not reset an existing singleton (tests inject InMemory services first).
+    try:
+        from enterprise.service import (
+            enterprise_service_configured,
+            get_enterprise_service,
+        )
+
+        if not enterprise_service_configured():
+            db = getattr(boot.infrastructure, "database", None)
+            get_enterprise_service(database=db)
+    except Exception:  # noqa: BLE001 — enterprise optional at boot
+        pass
+
     application.add_middleware(
         CORSMiddleware,
         allow_origins=os.environ.get(
@@ -185,6 +200,7 @@ def create_app(
     application.add_middleware(SecurityHeadersMiddleware)
     application.add_middleware(MetricsMiddleware)
     application.add_middleware(RateLimitHookMiddleware)
+    application.add_middleware(CsrfMiddleware)
     if security is not None:
         from security_platform import SecurityMiddleware
 

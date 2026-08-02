@@ -12,6 +12,7 @@ __all__ = [
     "InvoiceSummary",
     "NullBillingAdapter",
     "SubscriptionSummary",
+    "build_billing_adapter",
 ]
 
 
@@ -93,3 +94,32 @@ class NullBillingAdapter:
             "subscription": None,
             "invoices": [],
         }
+
+    def create_checkout_session(self, org_id: str, *, plan: str | None = None) -> dict[str, Any]:
+        _ = plan
+        return {
+            "ok": False,
+            "org_id": org_id,
+            "provider": self.provider_name(),
+            "message": UNAVAILABLE_MESSAGES.get(
+                "billing_provider", "Billing provider unavailable."
+            ),
+        }
+
+    def verify_webhook(self, payload: bytes, *, signature: str | None = None) -> dict[str, Any]:
+        _ = payload, signature
+        return {
+            "ok": False,
+            "provider": self.provider_name(),
+            "verified": False,
+            "message": UNAVAILABLE_MESSAGES.get(
+                "billing_provider", "Billing provider unavailable."
+            ),
+        }
+
+
+def build_billing_adapter(provider: str | None = None) -> BillingPort:
+    """Factory — re-exported from billing_providers for stable import path."""
+    from enterprise.billing_providers import build_billing_adapter as _build
+
+    return _build(provider)

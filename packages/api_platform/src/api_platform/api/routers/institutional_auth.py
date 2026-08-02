@@ -2,19 +2,69 @@
 
 Does not replace legacy ``/auth/login`` (security_platform). Paths live under
 ``/auth/rbac/*`` for backward compatibility.
+
+EPIC-016: HttpOnly cookie session issuance + cookie-aware /me and refresh.
 """
 
 from __future__ import annotations
 
 from typing import Any
 
-from fastapi import APIRouter, Depends, Header
+from fastapi import APIRouter, Depends, Header, Request
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field
 
 from api_platform.api.dependencies import ApiState, get_api_state
 
 router = APIRouter(tags=["auth-rbac"])
+
+
+def _attach_auth_cookies(
+    response: JSONResponse,
+    result: dict[str, Any],
+    *,
+    remember_me: bool = False,
+) -> JSONResponse:
+    try:
+        from security_platform.security.cookies import cookie_auth_enabled, set_auth_cookies
+
+        if not cookie_auth_enabled():
+            return response
+        tokens = result.get("tokens") or {}
+        access = tokens.get("access_token")
+        if not access:
+            return response
+        csrf = set_auth_cookies(
+            response,
+            access_token=str(access),
+            refresh_token=tokens.get("refresh_token"),
+            session_id=tokens.get("session_id")
+            or (result.get("session") or {}).get("session_id"),
+            remember_me=remember_me,
+        )
+        # Rebuild so CSRF lands in JSON body for SPA.
+        body = {
+            "ok": True,
+            "result": {
+                **result,
+                "csrf_token": csrf,
+                "cookie_auth": True,
+            },
+            "message": None,
+        }
+        out = JSONResponse(content=body)
+        set_auth_cookies(
+            out,
+            access_token=str(access),
+            refresh_token=tokens.get("refresh_token"),
+            session_id=tokens.get("session_id")
+            or (result.get("session") or {}).get("session_id"),
+            remember_me=remember_me,
+            csrf_token=csrf,
+        )
+        return out
+    except Exception:  # noqa: BLE001
+        return response
 
 
 class CreateUserRequest(BaseModel):
@@ -35,6 +85,7 @@ class LoginRequest(BaseModel):
     session_id: str | None = Field(None, max_length=128)
     access_jti: str | None = Field(None, max_length=128)
     refresh_jti: str | None = Field(None, max_length=128)
+    remember_me: bool = False
 
 
 class LogoutRequest(BaseModel):
@@ -43,7 +94,7 @@ class LogoutRequest(BaseModel):
 
 
 class RefreshRequest(BaseModel):
-    refresh_token: str = Field(..., min_length=16)
+    refresh_token: str | None = Field(None, min_length=16)
     created_at: str | None = Field(None, max_length=64)
     access_jti: str | None = Field(None, max_length=128)
 
@@ -91,7 +142,8 @@ def rbac_login(
     except Exception as exc:  # noqa: BLE001
         status = 401 if "credential" in str(exc).lower() else 400
         return _err(exc, status=status)
-    return JSONResponse({"ok": True, "result": result, "message": None})
+    response = JSONResponse({"ok": True, "result": result, "message": None})
+    return _attach_auth_cookies(response, result, remember_me=body.remember_me)
 
 
 @router.post("/auth/rbac/logout")
@@ -104,32 +156,62 @@ def rbac_logout(
         )
     except Exception as exc:  # noqa: BLE001
         return _err(exc)
-    return JSONResponse({"ok": True, "result": result, "message": None})
+    response = JSONResponse({"ok": True, "result": result, "message": None})
+    try:
+        from security_platform.security.cookies import clear_auth_cookies
+
+        clear_auth_cookies(response)
+    except Exception:  # noqa: BLE001
+        pass
+    return response
 
 
 @router.post("/auth/rbac/refresh")
 def rbac_refresh(
-    body: RefreshRequest, state: ApiState = Depends(get_api_state)
+    body: RefreshRequest,
+    request: Request,
+    state: ApiState = Depends(get_api_state),
 ) -> JSONResponse:
+    refresh_token = body.refresh_token
+    if not refresh_token:
+        try:
+            from security_platform.security.cookies import read_refresh_token
+
+            refresh_token = read_refresh_token(request)
+        except Exception:  # noqa: BLE001
+            refresh_token = None
+    if not refresh_token:
+        return _err(ValueError("refresh_token required"), status=401)
     try:
         result = state.platform.auth_refresh(
-            refresh_token=body.refresh_token,
+            refresh_token=refresh_token,
             created_at=body.created_at,
             access_jti=body.access_jti,
         )
     except Exception as exc:  # noqa: BLE001
         return _err(exc, status=401)
-    return JSONResponse({"ok": True, "result": result, "message": None})
+    response = JSONResponse({"ok": True, "result": result, "message": None})
+    return _attach_auth_cookies(response, result, remember_me=False)
 
 
 @router.get("/auth/rbac/me")
 def rbac_me(
+    request: Request,
     state: ApiState = Depends(get_api_state),
     authorization: str | None = Header(default=None),
 ) -> JSONResponse:
-    if not authorization or not authorization.lower().startswith("bearer "):
-        return _err(ValueError("Bearer token required"), status=401)
-    token = authorization.split(" ", 1)[1].strip()
+    token: str | None = None
+    if authorization and authorization.lower().startswith("bearer "):
+        token = authorization.split(" ", 1)[1].strip()
+    if not token:
+        try:
+            from security_platform.security.cookies import read_access_token
+
+            token = read_access_token(request)
+        except Exception:  # noqa: BLE001
+            token = None
+    if not token:
+        return _err(ValueError("Bearer token or session cookie required"), status=401)
     try:
         result = state.platform.auth_current_user(token)
     except Exception as exc:  # noqa: BLE001

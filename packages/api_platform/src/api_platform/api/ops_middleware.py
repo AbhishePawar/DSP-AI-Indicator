@@ -40,6 +40,9 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
         response.headers.setdefault("X-DNS-Prefetch-Control", "off")
         # EPS-003 RC: deny Adobe Flash/PDF cross-domain policy probes on JSON API.
         response.headers.setdefault("X-Permitted-Cross-Domain-Policies", "none")
+        # EPIC-016: reduce clickjacking / MIME sniffing ambiguity on API JSON.
+        response.headers.setdefault("Content-Security-Policy", "default-src 'none'; frame-ancestors 'none'; base-uri 'none'")
+        response.headers.setdefault("Cache-Control", "no-store")
         return response
 
 

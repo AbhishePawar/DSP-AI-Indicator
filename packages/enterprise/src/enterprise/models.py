@@ -31,14 +31,15 @@ __all__ = [
     "utc_now",
 ]
 
-ENTERPRISE_SCHEMA_VERSION = "1.0.0"
-ENTERPRISE_SERVICE_VERSION = "0.1.0"
+ENTERPRISE_SCHEMA_VERSION = "1.1.0"
+ENTERPRISE_SERVICE_VERSION = "0.2.0"
 
 UNAVAILABLE_MESSAGES = MappingProxyType(
     {
         "organizations": "No organizations available.",
         "license": "No license assigned.",
         "billing": "Billing unavailable.",
+        "billing_provider": "Billing provider unavailable.",
         "audit": "No audit records.",
         "api_keys": "No API keys.",
         "sessions": "No active sessions.",
@@ -46,6 +47,8 @@ UNAVAILABLE_MESSAGES = MappingProxyType(
         "invoices": "No invoices available.",
         "teams": "No teams available.",
         "members": "No members available.",
+        "sso": "SSO provider unavailable.",
+        "oidc": "OIDC client not configured.",
     }
 )
 
@@ -234,6 +237,10 @@ class AuditRecord:
     created_at: str
     metadata: Mapping[str, Any] = field(default_factory=dict)
     immutable: bool = True
+    before_state: Mapping[str, Any] | None = None
+    after_state: Mapping[str, Any] | None = None
+    ip_address: str | None = None
+    correlation_id: str | None = None
 
     def to_dict(self) -> dict[str, Any]:
         return {
@@ -246,6 +253,10 @@ class AuditRecord:
             "created_at": self.created_at,
             "metadata": dict(self.metadata),
             "immutable": True,
+            "before": dict(self.before_state) if self.before_state is not None else None,
+            "after": dict(self.after_state) if self.after_state is not None else None,
+            "ip_address": self.ip_address,
+            "correlation_id": self.correlation_id,
         }
 
 

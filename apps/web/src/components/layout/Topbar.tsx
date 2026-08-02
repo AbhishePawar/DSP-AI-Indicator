@@ -54,8 +54,7 @@ export function Topbar({
           <div className="flex items-center gap-2">
             <Button
               variant="ghost"
-              size="sm"
-              className="md:hidden"
+              className="min-h-11 md:hidden"
               onClick={onMenuClick}
               aria-label="Open navigation menu"
             >
@@ -63,8 +62,7 @@ export function Topbar({
             </Button>
             <Button
               variant="ghost"
-              size="sm"
-              className="hidden md:inline-flex"
+              className="hidden min-h-11 md:inline-flex"
               onClick={onToggleCollapse}
               aria-label={
                 sidebarCollapsed ? "Expand sidebar" : "Collapse sidebar"

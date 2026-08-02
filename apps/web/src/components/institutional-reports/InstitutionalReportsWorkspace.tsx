@@ -201,8 +201,8 @@ function Toolbar({
           <option value="pdf">PDF layout</option>
         </select>
         <Button
-          size="sm"
           variant="secondary"
+          className="min-h-11"
           onClick={onLoad}
           disabled={loading}
         >

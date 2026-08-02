@@ -20,7 +20,7 @@ const variants = {
   },
   warning: {
     className:
-      "border-[color-mix(in_srgb,#d4b56a_60%,var(--border))] bg-[#f7ecd2] text-[#6b5210] dark:bg-[var(--warning-bg,#2a2412)] dark:text-[var(--warning-fg,#fbbf24)]",
+      "border-[var(--warning-border)] bg-[var(--warning-bg)] text-[var(--warning-fg)]",
     Icon: AlertTriangle,
   },
   error: {

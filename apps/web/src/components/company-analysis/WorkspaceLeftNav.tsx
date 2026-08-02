@@ -61,7 +61,7 @@ export function WorkspaceLeftNav({
           aria-label="Company search"
         />
         <div className="mt-2 flex flex-wrap gap-2">
-          <Button size="sm" onClick={onAnalyze} disabled={analyzing}>
+          <Button className="min-h-11" onClick={onAnalyze} disabled={analyzing}>
             {analyzing ? "Analyzing…" : "Analyze"}
           </Button>
           <Button

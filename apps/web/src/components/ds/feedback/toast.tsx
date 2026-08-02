@@ -38,7 +38,7 @@ const toneClass: Record<ToastTone, string> = {
   success:
     "border-[color-mix(in_srgb,var(--accent)_35%,var(--border))] bg-[var(--accent-soft)] text-[var(--fg)]",
   warning:
-    "border-[color-mix(in_srgb,#d4b56a_60%,var(--border))] bg-[#f7ecd2] text-[#6b5210]",
+    "border-[var(--warning-border)] bg-[var(--warning-bg)] text-[var(--warning-fg)]",
   error:
     "border-[var(--danger-border)] bg-[var(--danger-bg)] text-[var(--danger-fg)]",
 };

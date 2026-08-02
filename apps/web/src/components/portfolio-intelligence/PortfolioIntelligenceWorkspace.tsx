@@ -188,15 +188,15 @@ function Toolbar({
       </div>
       <div className="flex flex-wrap gap-2">
         <Button
-          size="sm"
           variant="secondary"
+          className="min-h-11"
           onClick={onRefresh}
           disabled={refreshing}
         >
           {refreshing ? "Refreshing…" : "Refresh intelligence"}
         </Button>
         <Link href="/analysis">
-          <Button size="sm">Analyze company</Button>
+          <Button className="min-h-11">Analyze company</Button>
         </Link>
       </div>
     </div>

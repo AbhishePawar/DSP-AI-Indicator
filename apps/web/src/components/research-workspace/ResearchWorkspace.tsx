@@ -137,7 +137,7 @@ function Toolbar({
             </Button>
           </>
         ) : null}
-        <Button size="sm" onClick={onLoad} disabled={loading || !ticker}>
+        <Button className="min-h-11" onClick={onLoad} disabled={loading || !ticker}>
           {loading ? "Loading…" : "Load research"}
         </Button>
         <Link href="/research/institutional">

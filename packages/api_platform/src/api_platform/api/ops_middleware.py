@@ -38,6 +38,8 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
             "Permissions-Policy", "camera=(), microphone=(), geolocation=()"
         )
         response.headers.setdefault("X-DNS-Prefetch-Control", "off")
+        # EPS-003 RC: deny Adobe Flash/PDF cross-domain policy probes on JSON API.
+        response.headers.setdefault("X-Permitted-Cross-Domain-Policies", "none")
         return response
 
 

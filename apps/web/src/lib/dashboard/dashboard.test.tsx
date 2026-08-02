@@ -202,7 +202,7 @@ describe("EPIC-F004 dashboard UI", () => {
 });
 
 describe("EPIC-F004 foundation version", () => {
-  it("is foundation 2.0.0", () => {
-    expect(FRONTEND_FOUNDATION_VERSION).toBe("2.0.0");
+  it("is foundation 2.0.0-rc.1", () => {
+    expect(FRONTEND_FOUNDATION_VERSION).toBe("2.0.0-rc.1");
   });
 });

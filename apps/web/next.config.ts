@@ -2,8 +2,8 @@ import type { NextConfig } from "next";
 import bundleAnalyzer from "@next/bundle-analyzer";
 
 /**
- * Web 1.0.0 — CSP enforced for public launch (was Report-Only through 0.9.5 soak).
- * No Decision Engine / Research Mode / Feature Flag changes.
+ * Web 2.0.0-rc.1 — CSP enforced (EPS-003 RC hardening).
+ * No Decision Engine / Research Mode / Feature Flag product changes.
  *
  * EPIC-010 / GA-003 — set ANALYZE=true to emit webpack-bundle-analyzer reports
  * (npm run analyze). Quality tooling only; no product behaviour change.
@@ -19,6 +19,7 @@ const csp = [
   "img-src 'self' data: blob:",
   "font-src 'self' data:",
   "connect-src 'self' http://127.0.0.1:8000 http://localhost:8000 https:",
+  "object-src 'none'",
   "frame-ancestors 'none'",
   "base-uri 'self'",
   "form-action 'self'",

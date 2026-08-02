@@ -2,6 +2,7 @@
 
 | Tag | Backend | Frontend | Epic | Decision |
 |---|---|---|---|---|
+| `2.0.0-rc.1` | 2.0.0 | 2.0.0-rc.1 | EPS-003 Version 2.0 RC Hardening | RELEASE CANDIDATE (Commercial GA not approved) |
 | `2.0.0` (GA candidate) | 2.0.0 | 2.0.0 | P8.0 GA Certification & Release Freeze | PASS WITH CONDITIONS / GO WITH CONDITIONS |
 | `2.0.4` | 1.7.4 | 2.0.4 | P7.4 Operations, Observability & DR | GO WITH CONDITIONS |
 | `2.0.3` | 1.7.3 | 2.0.3 | P7.3 Performance & Scalability | GO WITH CONDITIONS |

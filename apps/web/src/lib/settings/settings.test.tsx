@@ -218,7 +218,7 @@ describe("EPIC-F009 settings workspace UI", () => {
 });
 
 describe("EPIC-F009 foundation version", () => {
-  it("is foundation 2.0.0", () => {
-    expect(FRONTEND_FOUNDATION_VERSION).toBe("2.0.0");
+  it("is foundation 2.0.0-rc.1", () => {
+    expect(FRONTEND_FOUNDATION_VERSION).toBe("2.0.0-rc.1");
   });
 });

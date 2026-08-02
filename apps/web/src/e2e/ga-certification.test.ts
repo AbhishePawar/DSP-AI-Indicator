@@ -16,13 +16,13 @@ import manifest from "../../VERSION_MANIFEST.json";
 const repoRoot = join(__dirname, "..", "..", "..", "..");
 
 describe("P8.0 GA certification", () => {
-  it("aligns foundation to GA candidate 2.0.0", () => {
-    expect(FRONTEND_FOUNDATION_VERSION).toBe("2.0.0");
-    expect(FRONTEND_FOUNDATION_EPIC).toBe("P8.0");
+  it("aligns foundation to Version 2.0 RC (2.0.0-rc.1)", () => {
+    expect(FRONTEND_FOUNDATION_VERSION).toBe("2.0.0-rc.1");
+    expect(FRONTEND_FOUNDATION_EPIC).toBe("EPS-003");
     expect(BACKEND_PLATFORM_TARGET).toBe("dsp_platform@2.0.0");
     expect(API_CONTRACT_TARGET).toBe("v1.0.0");
-    expect(manifest.appVersion).toBe("2.0.0");
-    expect(manifest.channel).toBe("ga-candidate");
+    expect(manifest.appVersion).toBe("2.0.0-rc.1");
+    expect(manifest.channel).toBe("rc");
   });
 
   it("ships GA governance docs", () => {

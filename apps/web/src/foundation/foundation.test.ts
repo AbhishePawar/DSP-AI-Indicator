@@ -15,8 +15,8 @@ import {
 
 describe("EPIC-F000 foundation freeze", () => {
   it("exposes foundation version 2.0.0", () => {
-    expect(FRONTEND_FOUNDATION_VERSION).toBe("2.0.0");
-    expect(FRONTEND_FOUNDATION_STATUS).toBe("production");
+    expect(FRONTEND_FOUNDATION_VERSION).toBe("2.0.0-rc.1");
+    expect(FRONTEND_FOUNDATION_STATUS).toBe("release-candidate");
     expect(BACKEND_PLATFORM_TARGET).toBe("dsp_platform@2.0.0");
     expect(API_CONTRACT_TARGET).toBe("v1.0.0");
   });

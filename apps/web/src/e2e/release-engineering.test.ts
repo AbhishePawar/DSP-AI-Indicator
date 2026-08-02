@@ -13,9 +13,9 @@ import {
 const repoRoot = join(__dirname, "..", "..", "..", "..");
 
 describe("P8.0 release engineering", () => {
-  it("aligns foundation to P8.0 / 2.0.0", () => {
-    expect(FRONTEND_FOUNDATION_VERSION).toBe("2.0.0");
-    expect(FRONTEND_FOUNDATION_EPIC).toBe("P8.0");
+  it("aligns foundation to EPS-003 / 2.0.0-rc.1", () => {
+    expect(FRONTEND_FOUNDATION_VERSION).toBe("2.0.0-rc.1");
+    expect(FRONTEND_FOUNDATION_EPIC).toBe("EPS-003");
   });
 
   it("ships audit and engineering docs", () => {

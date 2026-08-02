@@ -152,10 +152,11 @@ Ref: [`PERFORMANCE_CERTIFICATION.md`](./PERFORMANCE_CERTIFICATION.md).
 2. Firefox + Safari physical smoke on primary paths.  
 3. Universal trust-ladder / Research Mode chrome on Dashboard, Portfolio, Research Workspace, IRD.  
 4. Published Lighthouse / field CWV + stronger axe contrast/route coverage.  
-5. Stale `commercial.test.tsx` AAPL assertion fixed.  
+5. Stale `commercial.test.tsx` AAPL assertion fixed. *(addressed in EPS-003 RC test hygiene; re-verify in CI)*  
 6. Maintain marketing/auth honesty — no theatre regression.  
-7. Client limitations packet with every pilot desk (this package).  
-8. Product/governance sign-off before any GA promotion.
+7. Client limitations packet with every pilot desk (this package / RC4 limitations).  
+8. Product/governance sign-off before any GA promotion.  
+9. Durable enterprise store + real billing + SSO/MFA before commercial multi-tenant claims.
 
 ---
 
@@ -183,3 +184,21 @@ Ref: [`PERFORMANCE_CERTIFICATION.md`](./PERFORMANCE_CERTIFICATION.md).
 | Proposed tag | `v1.0.0` |
 | Tag message | `DSP AI Indicator 1.0.0 — closed-beta institutional UI freeze` |
 | Do not tag as | Commercial GA / Public self-serve |
+
+---
+
+## 6. Version 2.0 RC addendum (EPS-003 · 2026-08-02)
+
+| Field | Board position |
+|---|---|
+| Product version | **2.0.0-rc.1** |
+| Channel | `rc` |
+| Authority | [`RC4_RELEASE_CANDIDATE_REPORT.md`](./RC4_RELEASE_CANDIDATE_REPORT.md) |
+| RC for independent audit / deploy planning | **APPROVED** (feature-frozen) |
+| Unrestricted Commercial GA | **NOT APPROVED** (GA-005 decision stands) |
+| Enterprise foundation (EPS-002) | Included with Null billing / in-memory caveats |
+| GA-C6 stale AAPL onboarding test | Addressed in RC test hygiene |
+
+Living RC packet: `RELEASE_NOTES_v2.0_RC.md` · `RC4_KNOWN_LIMITATIONS.md` · `RC4_PRODUCTION_CHECKLIST.md` · `RC4_ARCHITECTURE_FREEZE.md` · `RC4_TECHNICAL_DEBT.md` · `RC4_FUTURE_ROADMAP.md`.
+
+§1–§5 above remain the historical **1.0.0** pilot board record and are not rewritten.

@@ -1,28 +1,30 @@
 {
-  "milestone": "P8.0",
-  "codename": "General Availability Certification & Release Freeze",
-  "certifiedAt": "2026-07-29T15:00:00.000Z",
+  "milestone": "EPS-003",
+  "codename": "Version 2.0 Release Candidate Hardening",
+  "certifiedAt": "2026-08-02T20:00:00.000Z",
   "backendVersion": "2.0.0",
-  "frontendVersion": "2.0.0",
+  "frontendVersion": "2.0.0-rc.1",
+  "productVersion": "2.0.0-rc.1",
   "apiContract": "v1.0.0",
   "backendPackage": "dsp_platform",
   "frontendPackage": "dsp-web",
-  "channel": "ga-candidate",
+  "channel": "rc",
   "images": {
-    "api": "dsp-api:2.0.0",
-    "web": "dsp-web:2.0.0"
+    "api": "dsp-api:2.0.0-rc.1",
+    "web": "dsp-web:2.0.0-rc.1"
   },
-  "decision": "GO_WITH_CONDITIONS",
-  "engineeringCertification": "PASS_WITH_CONDITIONS",
-  "gaReadinessScore": 8.2,
-  "overallEngineeringScore": 8.5,
+  "decision": "RELEASE_CANDIDATE",
+  "engineeringCertification": "RC_HARDENED",
+  "commercialGa": "NOT_APPROVED",
   "releaseFreeze": true,
-  "architectureNote": "P8.0 GA certification and release freeze only. No analytical or API behaviour changes. Live ops conditions remain.",
+  "architectureNote": "EPS-003 Version 2.0 RC hardening. Feature-freeze for independent audit. Enterprise foundation (EPS-002) included with Null billing / in-memory store caveats. Commercial GA remains rejected until conditions close.",
   "artifacts": [
-    "docs/GA_ARCHITECTURE_CERTIFICATION.md",
-    "docs/GA_TECHNICAL_DEBT.md",
-    "docs/RELEASE_FREEZE.md",
-    "docs/P8_GENERAL_AVAILABILITY.md",
-    "scripts/ops/certify_p8.py"
+    "docs/releases/RC4_RELEASE_CANDIDATE_REPORT.md",
+    "docs/releases/RELEASE_NOTES_v2.0_RC.md",
+    "docs/releases/RC4_KNOWN_LIMITATIONS.md",
+    "docs/releases/RC4_PRODUCTION_CHECKLIST.md",
+    "docs/releases/RC4_ARCHITECTURE_FREEZE.md",
+    "docs/releases/RC4_TECHNICAL_DEBT.md",
+    "docs/releases/RC4_FUTURE_ROADMAP.md"
   ]
 }

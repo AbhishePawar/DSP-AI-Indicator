@@ -15,9 +15,9 @@ import {
 const repoRoot = join(__dirname, "..", "..", "..", "..");
 
 describe("P8.0 performance engineering", () => {
-  it("aligns foundation to P8.0 / 2.0.0", () => {
-    expect(FRONTEND_FOUNDATION_VERSION).toBe("2.0.0");
-    expect(FRONTEND_FOUNDATION_EPIC).toBe("P8.0");
+  it("aligns foundation to EPS-003 / 2.0.0-rc.1", () => {
+    expect(FRONTEND_FOUNDATION_VERSION).toBe("2.0.0-rc.1");
+    expect(FRONTEND_FOUNDATION_EPIC).toBe("EPS-003");
     expect(BACKEND_PLATFORM_TARGET).toBe("dsp_platform@2.0.0");
     expect(API_CONTRACT_TARGET).toBe("v1.0.0");
   });

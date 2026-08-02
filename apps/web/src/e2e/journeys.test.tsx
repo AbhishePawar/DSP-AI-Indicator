@@ -328,8 +328,8 @@ describe("EPIC-F011 performance smoke", () => {
 
 describe("EPIC-F011 foundation version", () => {
   it("is foundation 2.0.0 production", () => {
-    expect(FRONTEND_FOUNDATION_VERSION).toBe("2.0.0");
-    expect(FRONTEND_FOUNDATION_EPIC).toBe("P8.0");
-    expect(FRONTEND_FOUNDATION_STATUS).toBe("production");
+    expect(FRONTEND_FOUNDATION_VERSION).toBe("2.0.0-rc.1");
+    expect(FRONTEND_FOUNDATION_EPIC).toBe("EPS-003");
+    expect(FRONTEND_FOUNDATION_STATUS).toBe("release-candidate");
   });
 });

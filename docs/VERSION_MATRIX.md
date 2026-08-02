@@ -1,7 +1,8 @@
 # Version Matrix
 
 **Platform API / HTTP contract:** **`v1.0.0`** (promoted from `v1.0.0-rc1` — frozen behaviour; label only — [K1.4](K1_4_PLATFORM_FREEZE.md))  
-**Freeze date (RC):** 2026-07-21 · **Stable label (P7.0):** 2026-07-29 · **Release eng (P7.2):** 2026-07-29 · **Perf (P7.3):** 2026-07-29 · **Ops (P7.4):** 2026-07-29 · **GA Candidate (P8.0):** 2026-07-29  
+**Product channel (living):** **`2.0.0-rc.1`** / `rc` (EPS-003 · 2026-08-02) — Commercial GA not approved  
+**Freeze date (RC):** 2026-07-21 · **Stable label (P7.0):** 2026-07-29 · **Release eng (P7.2):** 2026-07-29 · **Perf (P7.3):** 2026-07-29 · **Ops (P7.4):** 2026-07-29 · **GA Candidate (P8.0):** 2026-07-29 · **Version 2.0 RC (EPS-003):** 2026-08-02  
 **Historical RC regression gate:** **1538 / 1538** PASS (do not rewrite history)  
 **Living monorepo regression (STATUS):** see [DSP_STATUS.md](DSP_STATUS.md) (**2299 PASS** as of ASI-002)  
 **ASI integrity pass:** ASI-002 (2026-07-26)  
@@ -32,8 +33,8 @@ Domain milestone tags (not a new HTTP RC):
 
 | Package | Version | Phase |
 |---|---|---|
-| `dsp_platform` | **2.0.0** | **P8.0 GA certification & release freeze** (governance only) |
-| `dsp-web` foundation | **2.0.0** | P8.0 GA-candidate channel; host app `2.0.0`; no new analytical features |
+| `dsp_platform` | **2.0.0** | Backend package baseline; analyse behaviour frozen |
+| `dsp-web` foundation | **2.0.0-rc.1** | EPS-003 Version 2.0 RC channel `rc`; no new analytical features |
 | `api_platform` | **0.3.0** | K1.1 + composition routes + P1.2 security ops + P1.3 monitoring |
 | `security_platform` | **0.2.1** | K1.2 + PEP-001 identity + P1.2 institutional zone / research export permissions |
 | `production_platform` | **0.3.0** | K1.3 + PEP-002 + PEP-003 observability |

@@ -6,31 +6,32 @@ export default function ReleaseNotesDocPage() {
     <div>
       <PageHeader
         title="Release Notes"
-        description="Web 2.0.0 · Platform 2.0.0 (P8.0 GA Candidate · Release Freeze)"
+        description="Web 2.0.0-rc.1 · Platform 2.0.0 (EPS-003 Version 2.0 Release Candidate)"
       />
       <DocArticle
-        title="Release Notes — Web 2.0.0"
+        title="Release Notes — Web 2.0.0-rc.1"
         sections={[
           {
-            heading: "General Availability candidate",
+            heading: "Version 2.0 Release Candidate",
             body: [
-              "P8.0 certifies the platform for GA Candidate status and activates RELEASE FREEZE.",
+              "EPS-003 hardens the platform as a production-grade Release Candidate under feature freeze.",
               "No analytical engine changes. API contract label remains v1.0.0 with frozen behaviour.",
+              "Commercial GA is not approved — see docs/releases/RC4_RELEASE_CANDIDATE_REPORT.md.",
             ],
           },
           {
             heading: "Highlights",
             body: [
-              "Backend 2.0.0 · Frontend 2.0.0 · channel ga-candidate · certify_p8 gate.",
-              "Architecture certification, technical debt register, and freeze policy published.",
-              "Live operational conditions (paging webhooks, secrets manager, restore drills, ACME) remain.",
+              "Product 2.0.0-rc.1 · Frontend 2.0.0-rc.1 · Backend dsp_platform@2.0.0 · channel rc.",
+              "Enterprise foundation (EPS-002) included with Null billing / in-memory store caveats.",
+              "RC artefacts under docs/releases/ (RC4 report, limitations, checklist, freeze, debt, roadmap).",
             ],
           },
           {
             heading: "Decision",
             body: [
-              "PASS WITH CONDITIONS · GO WITH CONDITIONS — engineering freeze in effect.",
-              "See docs/P8_GENERAL_AVAILABILITY.md and docs/RELEASE_FREEZE.md.",
+              "RELEASE CANDIDATE — suitable for independent audit and deployment planning.",
+              "Not Commercial GA. See docs/releases/RELEASE_NOTES_v2.0_RC.md.",
             ],
           },
         ]}

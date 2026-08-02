@@ -29,7 +29,8 @@ describe("P6.1 commercial packaging", () => {
 
   it("keeps onboarding steps actionable", () => {
     const bodies = TUTORIAL_STEPS.map((s) => s.body).join(" ");
-    expect(bodies).toMatch(/AAPL/);
+    // Honest copy: analyst enters a ticker they cover — no silent demo ticker (RC3 / GA-C6).
+    expect(bodies).toMatch(/ticker you cover|Company Analysis/i);
     expect(bodies).toMatch(/Support|Feedback/i);
   });
 });
@@ -40,6 +41,6 @@ describe("P6.1 support nav", () => {
     render(<LegalNavLinks />);
     const support = screen.getByRole("link", { name: "Support" });
     expect(support.getAttribute("href")).toBe("/docs/support");
-    expect(FRONTEND_FOUNDATION_VERSION).toBe("2.0.0");
+    expect(FRONTEND_FOUNDATION_VERSION).toBe("2.0.0-rc.1");
   });
 });

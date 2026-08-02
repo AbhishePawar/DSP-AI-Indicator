@@ -19,13 +19,13 @@ const repoRoot = join(__dirname, "..", "..", "..", "..");
 
 describe("Living production/version certification", () => {
   it("aligns frontend 2.0.0 with backend target 2.0.0", () => {
-    expect(FRONTEND_FOUNDATION_VERSION).toBe("2.0.0");
-    expect(FRONTEND_FOUNDATION_EPIC).toBe("P8.0");
-    expect(FRONTEND_FOUNDATION_STATUS).toBe("production");
+    expect(FRONTEND_FOUNDATION_VERSION).toBe("2.0.0-rc.1");
+    expect(FRONTEND_FOUNDATION_EPIC).toBe("EPS-003");
+    expect(FRONTEND_FOUNDATION_STATUS).toBe("release-candidate");
     expect(BACKEND_PLATFORM_TARGET).toBe("dsp_platform@2.0.0");
     expect(API_CONTRACT_TARGET).toBe("v1.0.0");
-    expect(env.frontendVersion).toBe("2.0.0");
-    expect(manifest.appVersion).toBe("2.0.0");
+    expect(env.frontendVersion).toBe("2.0.0-rc.1");
+    expect(manifest.appVersion).toBe("2.0.0-rc.1");
     expect(manifest.backend).toBe("dsp_platform@2.0.0");
   });
 

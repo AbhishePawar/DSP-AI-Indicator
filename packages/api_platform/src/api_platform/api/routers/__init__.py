@@ -8,6 +8,7 @@ from api_platform.api.routers import (
     meta,
     platform,
     reports,
+    research_intelligence,
     workflow,
 )
 
@@ -21,5 +22,6 @@ __all__ = [
     "meta",
     "platform",
     "reports",
+    "research_intelligence",
     "workflow",
 ]

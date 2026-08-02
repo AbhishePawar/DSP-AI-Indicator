@@ -662,6 +662,177 @@ class DSPPlatform:
         except Exception as exc:  # noqa: BLE001
             return self._err_result("compose_intelligence", PlatformError(str(exc)))
 
+    def research_intelligence_schema(self) -> dict[str, object]:
+        """Research Intelligence schema descriptor (EPIC-011B)."""
+        from dsp_platform.research_intelligence_facade import research_intelligence_schema
+
+        return research_intelligence_schema()
+
+    def capture_research_intelligence_snapshot(
+        self,
+        payload: dict[str, object],
+        *,
+        research_id: str | None = None,
+        timestamp: str | None = None,
+        ticker: str | None = None,
+        company: str | None = None,
+        exchange: str | None = None,
+        research_version: str | None = None,
+        model_version: str | None = None,
+        allow_duplicate: bool = False,
+    ) -> dict[str, object]:
+        """Capture immutable research snapshot after analysis (EPIC-011B)."""
+        from dsp_platform.research_intelligence_facade import (
+            capture_canonical_research_snapshot,
+        )
+
+        return capture_canonical_research_snapshot(
+            payload,
+            research_id=research_id,
+            timestamp=timestamp,
+            ticker=ticker,
+            company=company,
+            exchange=exchange,
+            research_version=research_version,
+            model_version=model_version,
+            allow_duplicate=allow_duplicate,
+        )
+
+    def research_intelligence_list_snapshots(
+        self,
+        *,
+        symbol: str | None = None,
+        company: str | None = None,
+        limit: int | None = None,
+        offset: int = 0,
+    ) -> dict[str, object]:
+        from dsp_platform.research_intelligence_facade import (
+            research_intelligence_list_snapshots,
+        )
+
+        return research_intelligence_list_snapshots(
+            symbol=symbol, company=company, limit=limit, offset=offset
+        )
+
+    def research_intelligence_timeline(
+        self,
+        *,
+        symbol: str | None = None,
+        company: str | None = None,
+        limit: int | None = 100,
+        offset: int = 0,
+    ) -> dict[str, object]:
+        from dsp_platform.research_intelligence_facade import (
+            research_intelligence_timeline,
+        )
+
+        return research_intelligence_timeline(
+            symbol=symbol, company=company, limit=limit, offset=offset
+        )
+
+    def research_intelligence_measure(
+        self,
+        *,
+        research_id: str,
+        window_months: int,
+        price_at_horizon: float | None = None,
+        iv_at_horizon: float | None = None,
+        measured_at: str | None = None,
+    ) -> dict[str, object]:
+        from dsp_platform.research_intelligence_facade import (
+            research_intelligence_measure,
+        )
+
+        return research_intelligence_measure(
+            research_id=research_id,
+            window_months=window_months,
+            price_at_horizon=price_at_horizon,
+            iv_at_horizon=iv_at_horizon,
+            measured_at=measured_at,
+        )
+
+    def research_intelligence_measure_batch(
+        self,
+        *,
+        window_months: int,
+        horizon_prices: dict[str, float | None] | None = None,
+        measured_at: str | None = None,
+    ) -> dict[str, object]:
+        from dsp_platform.research_intelligence_facade import (
+            research_intelligence_measure_batch,
+        )
+
+        return research_intelligence_measure_batch(
+            window_months=window_months,
+            horizon_prices=horizon_prices,
+            measured_at=measured_at,
+        )
+
+    def research_intelligence_calibration(
+        self,
+        *,
+        window_months: int,
+        horizon_prices: dict[str, float | None] | None = None,
+        result_id: str | None = None,
+        created_at: str | None = None,
+        measured_at: str | None = None,
+    ) -> dict[str, object]:
+        from dsp_platform.research_intelligence_facade import (
+            research_intelligence_calibration,
+        )
+
+        return research_intelligence_calibration(
+            window_months=window_months,
+            horizon_prices=horizon_prices,
+            result_id=result_id,
+            created_at=created_at,
+            measured_at=measured_at,
+        )
+
+    def research_intelligence_performance(
+        self,
+        *,
+        window_months: int,
+        horizon_prices: dict[str, float | None] | None = None,
+        result_id: str | None = None,
+        created_at: str | None = None,
+        measured_at: str | None = None,
+    ) -> dict[str, object]:
+        from dsp_platform.research_intelligence_facade import (
+            research_intelligence_performance,
+        )
+
+        return research_intelligence_performance(
+            window_months=window_months,
+            horizon_prices=horizon_prices,
+            result_id=result_id,
+            created_at=created_at,
+            measured_at=measured_at,
+        )
+
+    def research_intelligence_insights(
+        self,
+        *,
+        window_months: int,
+        horizon_prices: dict[str, float | None] | None = None,
+        result_id: str | None = None,
+        created_at: str | None = None,
+        measured_at: str | None = None,
+        top_n: int = 5,
+    ) -> dict[str, object]:
+        from dsp_platform.research_intelligence_facade import (
+            research_intelligence_insights,
+        )
+
+        return research_intelligence_insights(
+            window_months=window_months,
+            horizon_prices=horizon_prices,
+            result_id=result_id,
+            created_at=created_at,
+            measured_at=measured_at,
+            top_n=top_n,
+        )
+
     def get_platform_info(self) -> PlatformMetadata:
         """Return immutable platform metadata / capability discovery."""
         return self._metadata()

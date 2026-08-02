@@ -18,6 +18,8 @@ export type FeatureFlags = {
   showBuySell: boolean;
   showModelPortfolio: boolean;
   showResearchAlerts: boolean;
+  /** EPIC-011B — Research Intelligence & Validation Platform (presentation only) */
+  researchIntelligence: boolean;
 };
 
 export const featureFlags: FeatureFlags = {
@@ -28,6 +30,7 @@ export const featureFlags: FeatureFlags = {
   showBuySell: envBool("NEXT_PUBLIC_SHOW_BUY_SELL", false),
   showModelPortfolio: envBool("NEXT_PUBLIC_SHOW_MODEL_PORTFOLIO", false),
   showResearchAlerts: envBool("NEXT_PUBLIC_SHOW_RESEARCH_ALERTS", false),
+  researchIntelligence: envBool("NEXT_PUBLIC_RESEARCH_INTELLIGENCE", true),
 };
 
 export function allowActionLabels(flags: FeatureFlags = featureFlags): boolean {

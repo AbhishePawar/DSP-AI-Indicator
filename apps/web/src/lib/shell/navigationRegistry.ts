@@ -3,6 +3,8 @@
  * Shell navigation only — no feature page content.
  */
 
+import { featureFlags } from "@/lib/featureFlags";
+
 export type NavPermissionRule = {
   /** Any of these permissions grants access. Empty = authenticated users. */
   anyOfPermissions?: readonly string[];
@@ -90,6 +92,16 @@ export const SHELL_NAV: readonly ShellNavItem[] = [
         label: "Research Panels",
         description:
           "Supporting RS panel view — not the primary company research surface",
+        section: "research",
+        icon: "research",
+        access: { anyOfPermissions: ["read_research"] },
+      },
+      {
+        id: "research-intelligence",
+        href: "/research/intelligence",
+        label: "Research Intelligence",
+        description:
+          "Research performance, calibration, and outcome validation (measurement only)",
         section: "research",
         icon: "research",
         access: { anyOfPermissions: ["read_research"] },
@@ -323,9 +335,14 @@ export function filterShellNav(
 ): ShellNavItem[] {
   return SHELL_NAV.map((item) => {
     if (!canAccessNavItem(item, permissions, roles)) return null;
-    const children = item.children?.filter((c) =>
-      canAccessNavItem(c, permissions, roles),
-    );
+    const children = item.children?.filter((c) => {
+      if (!canAccessNavItem(c, permissions, roles)) return false;
+      // EPIC-011B — hide unfinished / flagged-off Research Intelligence
+      if (c.id === "research-intelligence" && !featureFlags.researchIntelligence) {
+        return false;
+      }
+      return true;
+    });
     return children ? { ...item, children } : item;
   }).filter((item): item is ShellNavItem => item !== null);
 }
@@ -370,7 +387,11 @@ export function breadcrumbsForPath(pathname: string): BreadcrumbCrumb[] {
   const match = findRouteMeta(pathname);
   if (!match || match.path === "/dashboard") {
     // Dynamic research ticker
-    if (pathname.startsWith("/research/") && !pathname.startsWith("/research/institutional")) {
+    if (
+      pathname.startsWith("/research/") &&
+      !pathname.startsWith("/research/institutional") &&
+      !pathname.startsWith("/research/intelligence")
+    ) {
       crumbs.push({ href: "/research", label: "Research Workspace" });
       const ticker = pathname.split("/")[2];
       if (ticker) {

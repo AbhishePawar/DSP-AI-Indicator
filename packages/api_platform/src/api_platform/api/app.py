@@ -43,6 +43,7 @@ from api_platform.api.routers import (
     metrics,
     platform,
     reports,
+    research_intelligence,
     workflow,
 )
 from api_platform.api.schemas import ApiErrorBody
@@ -204,6 +205,7 @@ def _register_routers(application: FastAPI) -> None:
         workflow.router,
         copilot.router,
         reports.router,
+        research_intelligence.router,
     ]
     for router in versioned:
         application.include_router(router)

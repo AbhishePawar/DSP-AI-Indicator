@@ -433,4 +433,119 @@ export const api = {
       { method: "GET" },
       options,
     ),
+
+  /**
+   * Research Intelligence (EPIC-011B) — measurement & validation only.
+   * Thin client: no outcome fabrication; missing feeds stay Data unavailable.
+   */
+  researchIntelligenceSchema: (options?: RequestOptions) =>
+    request<{ ok: boolean; schema?: Record<string, unknown> }>(
+      "/research/intelligence/schema",
+      { method: "GET" },
+      options,
+    ),
+
+  researchIntelligenceSnapshots: (
+    params?: { symbol?: string; company?: string; limit?: number; offset?: number },
+    options?: RequestOptions,
+  ) => {
+    const q = new URLSearchParams();
+    if (params?.symbol) q.set("symbol", params.symbol);
+    if (params?.company) q.set("company", params.company);
+    if (params?.limit != null) q.set("limit", String(params.limit));
+    if (params?.offset != null) q.set("offset", String(params.offset));
+    const qs = q.toString();
+    return request<{
+      ok: boolean;
+      total?: number;
+      snapshots?: Record<string, unknown>[];
+      windows_supported?: number[];
+    }>(
+      `/research/intelligence/snapshots${qs ? `?${qs}` : ""}`,
+      { method: "GET" },
+      options,
+    );
+  },
+
+  researchIntelligenceTimeline: (
+    params?: { symbol?: string; company?: string; limit?: number; offset?: number },
+    options?: RequestOptions,
+  ) => {
+    const q = new URLSearchParams();
+    if (params?.symbol) q.set("symbol", params.symbol);
+    if (params?.company) q.set("company", params.company);
+    if (params?.limit != null) q.set("limit", String(params.limit));
+    if (params?.offset != null) q.set("offset", String(params.offset));
+    const qs = q.toString();
+    return request<{
+      ok: boolean;
+      total?: number;
+      timeline?: Record<string, unknown>[];
+      provenance?: Record<string, unknown>;
+    }>(
+      `/research/intelligence/timeline${qs ? `?${qs}` : ""}`,
+      { method: "GET" },
+      options,
+    );
+  },
+
+  researchIntelligencePerformance: (
+    body: {
+      window_months?: number;
+      horizon_prices?: Record<string, number | null>;
+      result_id?: string;
+      created_at?: string;
+    },
+    options?: RequestOptions,
+  ) =>
+    request<{
+      ok: boolean;
+      dashboard?: Record<string, unknown>;
+      message?: string | null;
+      error?: string;
+    }>(
+      "/research/intelligence/performance",
+      { method: "POST", body: JSON.stringify(body) },
+      options,
+    ),
+
+  researchIntelligenceCalibration: (
+    body: {
+      window_months?: number;
+      horizon_prices?: Record<string, number | null>;
+      result_id?: string;
+      created_at?: string;
+    },
+    options?: RequestOptions,
+  ) =>
+    request<{
+      ok: boolean;
+      calibration?: Record<string, unknown>;
+      message?: string | null;
+      error?: string;
+    }>(
+      "/research/intelligence/calibration",
+      { method: "POST", body: JSON.stringify(body) },
+      options,
+    ),
+
+  researchIntelligenceInsights: (
+    body: {
+      window_months?: number;
+      horizon_prices?: Record<string, number | null>;
+      result_id?: string;
+      top_n?: number;
+    },
+    options?: RequestOptions,
+  ) =>
+    request<{
+      ok: boolean;
+      insights?: Record<string, unknown>;
+      message?: string | null;
+      error?: string;
+    }>(
+      "/research/intelligence/insights",
+      { method: "POST", body: JSON.stringify(body) },
+      options,
+    ),
 };

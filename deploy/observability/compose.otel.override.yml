@@ -1,0 +1,22 @@
+# Optional OTel collector — merge with production compose:
+# docker compose -f docker/docker-compose.production.yml \
+#   -f deploy/observability/compose.otel.override.yml up -d
+services:
+  otel-collector:
+    image: otel/opentelemetry-collector-contrib:0.104.0
+    restart: unless-stopped
+    command: ["--config=/etc/otelcol/config.yaml"]
+    volumes:
+      - ./otel/otel-collector-config.yaml:/etc/otelcol/config.yaml:ro
+    networks:
+      - dsp_prod
+    expose:
+      - "4317"
+      - "4318"
+      - "8889"
+      - "13133"
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1:13133/"]
+      interval: 30s
+      timeout: 5s
+      retries: 3

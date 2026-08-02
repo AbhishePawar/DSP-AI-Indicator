@@ -1,0 +1,26 @@
+api:
+  replicaCount: 1
+  image:
+    tag: "2.0.0-rc.1"
+  hpa:
+    enabled: false
+
+web:
+  replicaCount: 1
+  image:
+    tag: "2.0.0-rc.1"
+
+config:
+  DSP_ENVIRONMENT: staging
+
+ingress:
+  hosts:
+    app: staging.your-domain.example
+    api: api.staging.your-domain.example
+
+postgres:
+  enabled: true
+  storage: 20Gi
+
+redis:
+  enabled: true

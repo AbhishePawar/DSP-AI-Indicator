@@ -9,16 +9,31 @@ import {
 import { COOKIE_TOKEN_PLACEHOLDER } from "@/lib/auth/sessionStore";
 import type { RbacEnvelope, RbacLoginResult } from "@/lib/api/rbacTypes";
 
+export type ProviderUiStatus = "available" | "unavailable" | "coming_soon";
+
 export type ProviderStatus = {
+  id?: string;
   provider: string;
+  status?: ProviderUiStatus;
   available: boolean;
   message?: string | null;
 };
 
 export type EnterpriseProvidersStatus = {
+  providers?: ProviderStatus[];
   oauth: ProviderStatus[];
-  sms: { provider: string; available: boolean };
-  magic_link?: { available: boolean; message?: string };
+  sms: {
+    provider: string;
+    available: boolean;
+    status?: ProviderUiStatus;
+    message?: string | null;
+  };
+  magic_link?: {
+    available: boolean;
+    status?: ProviderUiStatus;
+    message?: string;
+  };
+  mfa?: Record<string, unknown>;
 };
 
 async function enterpriseRequest<T>(
@@ -230,5 +245,143 @@ export const enterpriseAuthApi = {
       checks: Record<string, boolean>;
     }>(
       `/auth/enterprise/password/strength?password=${encodeURIComponent(password)}`,
+    ),
+
+  resendOtp: (mobile: string) =>
+    enterpriseRequest<{
+      challenge_id: string;
+      mobile: string;
+      expires_at: string;
+      sms?: { provider: string; debug_code?: string };
+    }>("/auth/otp/resend", {
+      method: "POST",
+      body: JSON.stringify({ mobile }),
+    }),
+
+  getProfile: (token?: string | null) =>
+    enterpriseRequest<Record<string, unknown>>("/auth/me", {}, { token }),
+
+  updateProfile: (
+    body: { name?: string; avatar?: string },
+    token?: string | null,
+  ) =>
+    enterpriseRequest<Record<string, unknown>>(
+      "/auth/me",
+      { method: "PATCH", body: JSON.stringify(body) },
+      { token },
+    ),
+
+  changePassword: (
+    body: { current_password: string; new_password: string },
+    token?: string | null,
+  ) =>
+    enterpriseRequest<Record<string, unknown>>(
+      "/auth/me/change-password",
+      { method: "POST", body: JSON.stringify(body) },
+      { token },
+    ),
+
+  changeEmail: (new_email: string, token?: string | null) =>
+    enterpriseRequest<Record<string, unknown>>(
+      "/auth/me/change-email",
+      { method: "POST", body: JSON.stringify({ new_email }) },
+      { token },
+    ),
+
+  unlinkProvider: (provider: string, token?: string | null) =>
+    enterpriseRequest<Record<string, unknown>>(
+      "/auth/me/providers/unlink",
+      { method: "POST", body: JSON.stringify({ provider }) },
+      { token },
+    ),
+
+  deleteAccount: (token?: string | null) =>
+    enterpriseRequest<Record<string, unknown>>(
+      "/auth/me",
+      { method: "DELETE" },
+      { token },
+    ),
+
+  listDevices: (token?: string | null) =>
+    enterpriseRequest<Record<string, unknown>[]>(
+      "/auth/me/devices",
+      {},
+      { token },
+    ),
+
+  trustDevice: (deviceId: string, trusted: boolean, token?: string | null) =>
+    enterpriseRequest<Record<string, unknown>>(
+      `/auth/me/devices/${encodeURIComponent(deviceId)}/trust`,
+      { method: "POST", body: JSON.stringify({ trusted }) },
+      { token },
+    ),
+
+  revokeDevice: (deviceId: string, token?: string | null) =>
+    enterpriseRequest<Record<string, unknown>>(
+      `/auth/me/devices/${encodeURIComponent(deviceId)}`,
+      { method: "DELETE" },
+      { token },
+    ),
+
+  myLoginHistory: (token?: string | null) =>
+    enterpriseRequest<Record<string, unknown>[]>(
+      "/auth/me/login-history",
+      {},
+      { token },
+    ),
+
+  revokeMySessions: (token?: string | null) =>
+    enterpriseRequest<Record<string, unknown>>(
+      "/auth/me/sessions/revoke-all",
+      { method: "POST", body: "{}" },
+      { token },
+    ),
+
+  adminProvisionUser: (
+    body: {
+      name: string;
+      email: string;
+      username?: string;
+      password?: string;
+      roles?: string[];
+    },
+    token?: string | null,
+  ) =>
+    enterpriseRequest<Record<string, unknown>>(
+      "/auth/enterprise/admin/users/provision",
+      { method: "POST", body: JSON.stringify(body) },
+      { token },
+    ),
+
+  adminUnlockUser: (userId: string, token?: string | null) =>
+    enterpriseRequest<Record<string, unknown>>(
+      `/auth/enterprise/admin/users/${encodeURIComponent(userId)}/unlock`,
+      { method: "POST", body: "{}" },
+      { token },
+    ),
+
+  adminRevokeSessions: (userId: string, token?: string | null) =>
+    enterpriseRequest<Record<string, unknown>>(
+      `/auth/enterprise/admin/users/${encodeURIComponent(userId)}/revoke-sessions`,
+      { method: "POST", body: "{}" },
+      { token },
+    ),
+
+  adminResetPassword: (
+    userId: string,
+    new_password: string,
+    token?: string | null,
+  ) =>
+    enterpriseRequest<Record<string, unknown>>(
+      `/auth/enterprise/admin/users/${encodeURIComponent(userId)}/reset-password`,
+      { method: "POST", body: JSON.stringify({ new_password }) },
+      { token },
+    ),
+
+  adminSetStatus: (userId: string, active: boolean, token?: string | null) =>
+    enterpriseRequest<Record<string, unknown>>(
+      `/auth/enterprise/admin/users/${encodeURIComponent(userId)}/status`,
+      { method: "POST", body: JSON.stringify({ active }) },
+      { token },
     ),
 };

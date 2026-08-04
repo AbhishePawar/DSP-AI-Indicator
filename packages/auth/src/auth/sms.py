@@ -11,6 +11,7 @@ __all__ = [
     "SmsProviderPort",
     "NullSmsAdapter",
     "DevSmsAdapter",
+    "ConsoleSmsAdapter",
     "TwilioSmsAdapter",
     "Msg91SmsAdapter",
     "FirebaseSmsAdapter",
@@ -88,6 +89,9 @@ class DevSmsAdapter:
 
     def last_code(self, mobile: str) -> str | None:
         return self._last.get(mobile)
+
+
+ConsoleSmsAdapter = DevSmsAdapter
 
 
 class TwilioSmsAdapter:
@@ -258,7 +262,7 @@ def build_sms_provider(name: str | None = None) -> SmsProviderPort:
         return firebase if firebase.is_available() else NullSmsAdapter()
     if preferred == "null":
         return NullSmsAdapter()
-    if preferred == "dev":
+    if preferred in {"dev", "console"}:
         return DevSmsAdapter()
 
     if twilio.is_available():

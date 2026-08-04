@@ -41,7 +41,10 @@ export default function LoginForm() {
   const [fieldError, setFieldError] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
   const [oauthProviders, setOauthProviders] = useState<ProviderStatus[]>([]);
-  const [smsAvailable, setSmsAvailable] = useState(true);
+  const [comingSoonProviders, setComingSoonProviders] = useState<ProviderStatus[]>([]);
+  const [otpStatus, setOtpStatus] = useState<"available" | "unavailable" | "coming_soon">(
+    "available",
+  );
   const [smsMessage, setSmsMessage] = useState<string | null>(null);
 
   const nextPath = normalizePath(searchParams.get("next") || "/dashboard");
@@ -60,22 +63,32 @@ export default function LoginForm() {
       .providers()
       .then((envelope) => {
         if (cancelled || !envelope.result) return;
-        setOauthProviders(envelope.result.oauth || []);
-        setSmsAvailable(Boolean(envelope.result.sms?.available));
-        if (!envelope.result.sms?.available) {
-          setSmsMessage(
-            "Mobile OTP unavailable — SMS provider credentials are not configured.",
-          );
+        const oauth = envelope.result.oauth || [];
+        // Hide unavailable (missing credentials); keep available + coming_soon
+        setOauthProviders(
+          oauth.filter(
+            (p) =>
+              p.status === "available" ||
+              (p.available && p.status !== "coming_soon" && p.status !== "unavailable"),
+          ),
+        );
+        setComingSoonProviders(
+          oauth.filter((p) => p.status === "coming_soon"),
+        );
+        const smsStatus =
+          envelope.result.sms?.status ||
+          (envelope.result.sms?.available ? "available" : "unavailable");
+        setOtpStatus(smsStatus as "available" | "unavailable" | "coming_soon");
+        setSmsMessage(envelope.result.sms?.message || null);
+        if (smsStatus === "unavailable") {
+          setMode((m) => (m === "otp" ? "password" : m));
         }
       })
       .catch(() => {
         if (!cancelled) {
-          setOauthProviders([
-            { provider: "GOOGLE", available: false, message: "Provider status unavailable." },
-            { provider: "MICROSOFT", available: false, message: "Provider status unavailable." },
-            { provider: "FACEBOOK", available: false, message: "Provider status unavailable." },
-          ]);
-          setSmsAvailable(false);
+          setOauthProviders([]);
+          setComingSoonProviders([]);
+          setOtpStatus("unavailable");
           setSmsMessage("Unable to load provider status from API.");
         }
       });
@@ -243,20 +256,24 @@ export default function LoginForm() {
                 type="button"
                 variant="secondary"
                 className="w-full"
-                disabled={pending || !p.available}
+                disabled={pending}
                 onClick={() => onOAuth(p.provider)}
-                title={p.available ? undefined : p.message || "Unavailable"}
               >
-                {p.available
-                  ? providerLabel(p.provider)
-                  : `${providerLabel(p.provider)} (unavailable)`}
+                {providerLabel(p.provider)}
               </Button>
             ))}
-            {!oauthProviders.length ? (
-              <p className="text-xs text-[var(--muted)]">
-                Loading social sign-in options…
-              </p>
-            ) : null}
+            {comingSoonProviders.map((p) => (
+              <Button
+                key={`soon-${p.provider}`}
+                type="button"
+                variant="secondary"
+                className="w-full opacity-70"
+                disabled
+                title={p.message || "Coming Soon"}
+              >
+                {providerLabel(p.provider)} — Coming Soon
+              </Button>
+            ))}
           </div>
 
           <div className="flex gap-2 text-sm">
@@ -271,18 +288,25 @@ export default function LoginForm() {
             >
               Email / Username
             </button>
-            <span className="text-[var(--muted)]">·</span>
-            <button
-              type="button"
-              className={
-                mode === "otp"
-                  ? "font-medium text-[var(--accent)] underline"
-                  : "text-[var(--muted)]"
-              }
-              onClick={() => setMode("otp")}
-            >
-              Mobile OTP
-            </button>
+            {otpStatus !== "unavailable" ? (
+              <>
+                <span className="text-[var(--muted)]">·</span>
+                <button
+                  type="button"
+                  className={
+                    mode === "otp"
+                      ? "font-medium text-[var(--accent)] underline"
+                      : "text-[var(--muted)]"
+                  }
+                  onClick={() => setMode("otp")}
+                  disabled={otpStatus === "coming_soon"}
+                >
+                  {otpStatus === "coming_soon"
+                    ? "Mobile OTP — Coming Soon"
+                    : "Mobile OTP"}
+                </button>
+              </>
+            ) : null}
           </div>
 
           {mode === "password" ? (
@@ -338,10 +362,9 @@ export default function LoginForm() {
             </form>
           ) : (
             <form className="space-y-4" onSubmit={onVerifyOtp} noValidate>
-              {!smsAvailable ? (
-                <Alert variant="warning" title="Mobile OTP unavailable">
-                  {smsMessage ||
-                    "SMS provider is not configured. Use email/username sign-in or configure Twilio/MSG91."}
+              {otpStatus === "coming_soon" ? (
+                <Alert variant="info" title="Coming Soon">
+                  {smsMessage || "Mobile OTP is intentionally disabled."}
                 </Alert>
               ) : null}
               <FormField label="India mobile (+91)" htmlFor="login-mobile" required>
@@ -352,14 +375,14 @@ export default function LoginForm() {
                   placeholder="+9198XXXXXXXX"
                   autoComplete="tel"
                   required
-                  disabled={pending || !smsAvailable}
+                  disabled={pending || otpStatus !== "available"}
                 />
               </FormField>
               <Button
                 type="button"
                 variant="secondary"
                 className="w-full"
-                disabled={pending || !smsAvailable || !mobile.trim()}
+                disabled={pending || otpStatus !== "available" || !mobile.trim()}
                 onClick={onRequestOtp}
               >
                 Send OTP
@@ -423,7 +446,8 @@ export default function LoginForm() {
           </p>
           <p className="text-xs text-[var(--muted)]">
             Research Mode content on public routes does not require sign-in.
-            OAuth buttons stay disabled when vendor credentials are absent.
+            Providers without credentials are hidden; intentionally disabled
+            providers show Coming Soon.
           </p>
         </Stack>
       </AuthCard>

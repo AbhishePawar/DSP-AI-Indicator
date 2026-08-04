@@ -72,10 +72,14 @@ def password_strength(password: str) -> dict[str, Any]:
 
 def _normalize_role(role: str | None) -> str:
     if not role:
-        return "viewer"
+        return "read_only"
     key = role.strip().lower()
     mapped = ENTERPRISE_ROLE_ALIASES.get(key)
     if mapped is None:
+        from auth.models import BUILTIN_ROLES
+
+        if key in BUILTIN_ROLES:
+            return key
         raise ValidationError(f"unknown role {role!r}")
     return mapped
 
@@ -248,8 +252,8 @@ class EnterpriseAuthPlatform:
                 username="admin",
                 email="admin@dspai.local",
                 password=password,
-                display_name="Super Admin",
-                roles=["super_admin"],
+                display_name="Administrator",
+                roles=["administrator"],
                 user_id="seed-admin",
             )
         except DuplicateUserError:
@@ -335,6 +339,7 @@ class EnterpriseAuthPlatform:
         user_agent_hint: str | None = None,
         detail: str | None = None,
         device_label: str | None = None,
+        reason: str | None = None,
     ) -> None:
         entry = LoginHistoryEntry(
             entry_id=str(uuid.uuid4()),
@@ -346,6 +351,7 @@ class EnterpriseAuthPlatform:
             user_agent_hint=user_agent_hint,
             detail=detail,
             device_label=device_label,
+            reason=reason,
         )
         payload = entry.to_dict()
         payload["auth_entity"] = "login_history"
@@ -369,23 +375,34 @@ class EnterpriseAuthPlatform:
         device_label: str | None = None,
         created_at: str | None = None,
     ) -> dict[str, Any]:
+        if user.status == "locked":
+            raise AuthenticationError("Account is locked. Contact an administrator.")
         if user.status != "active":
             raise AuthenticationError("Account is disabled.")
         meta = dict(user.metadata or {})
+        locked_until = meta.get("locked_until")
+        if locked_until:
+            try:
+                until = datetime.fromisoformat(str(locked_until))
+                if until.tzinfo is None:
+                    until = until.replace(tzinfo=timezone.utc)
+                if datetime.now(tz=timezone.utc) < until:
+                    raise AuthenticationError("Account is locked. Try again later.")
+            except AuthenticationError:
+                raise
+            except Exception:  # noqa: BLE001
+                pass
         if meta.get("provider") == AuthProvider.EMAIL.value and not meta.get("email_verified"):
-            # Username/enterprise seeded or OAuth-linked may skip; email self-reg must verify.
             if meta.get("requires_email_verification"):
                 raise AuthenticationError("Email not verified. Check your inbox or contact admin.")
         created = created_at or utc_now().isoformat()
         refresh_ttl = 86400 * 30 if remember_me else 86400 * 7
         access_ttl = 3600 * 8 if remember_me else 3600
-        # Temporarily adjust TTLs on authentication service
         authn = self.auth.authentication
         prev_access, prev_refresh = authn.access_ttl, authn.refresh_ttl
         authn.access_ttl = access_ttl
         authn.refresh_ttl = refresh_ttl
         try:
-            # Re-login path without password verify — issue tokens directly
             session = self.auth.sessions.create(
                 user_id=user.user_id,
                 expires_in=refresh_ttl,
@@ -410,18 +427,32 @@ class EnterpriseAuthPlatform:
             authn.access_ttl = prev_access
             authn.refresh_ttl = prev_refresh
 
+        device = self.devices.register(
+            user_id=user.user_id,
+            label=device_label,
+            ip_hint=ip_hint,
+            user_agent_hint=user_agent_hint,
+            session_id=session.session_id,
+        )
+        mfa_eval = self.mfa.evaluate(
+            user_id=user.user_id,
+            device_trusted=bool(device.trusted),
+        )
+        cleared_meta = dict(user.metadata or {})
+        cleared_meta["failed_login_count"] = 0
+        cleared_meta.pop("locked_until", None)
         updated = AuthUser(
             user_id=user.user_id,
             username=user.username,
             email=user.email,
             display_name=user.display_name,
             password_hash=user.password_hash,
-            status=user.status,
+            status="active",
             created_at=user.created_at,
             updated_at=created,
             last_login=created,
             roles=user.roles,
-            metadata=user.metadata,
+            metadata=freeze_mapping(cleared_meta),
         )
         self.auth.users.save(updated)
         self._record_login(
@@ -433,18 +464,20 @@ class EnterpriseAuthPlatform:
             device_label=device_label,
         )
         enterprise = enterprise_user_public_dict(updated)
-        # Include A009 fields for existing web sessionFromRbacLogin mapping.
         user_payload = {
             **updated.to_dict(),
             **enterprise,
             "display_name": updated.display_name,
         }
-        return {
+        result = {
             "user": user_payload,
             "tokens": pair.to_dict(),
             "session": session.to_dict(),
             "provider": provider,
+            "device": device.to_dict(),
         }
+        result.update(mfa_eval.additive_fields())
+        return result
 
     # --- registration / email --------------------------------------------
 
@@ -477,7 +510,7 @@ class EnterpriseAuthPlatform:
                 email=mail,
                 password=password,
                 display_name=name.strip(),
-                roles=["viewer"],
+                roles=["read_only"],
             )
         except DuplicateUserError:
             raise DuplicateUserError("An account with this email or username already exists.") from None
@@ -560,6 +593,40 @@ class EnterpriseAuthPlatform:
         self._verify_tokens.pop(token, None)
         return {"ok": True, "user": enterprise_user_public_dict(activated)}
 
+    def _register_failed_login(self, user: AuthUser, *, ip_hint: str | None, provider: str) -> None:
+        meta = dict(user.metadata or {})
+        fails = int(meta.get("failed_login_count") or 0) + 1
+        meta["failed_login_count"] = fails
+        status = user.status
+        if fails >= self._lockout_threshold:
+            until = (
+                datetime.now(tz=timezone.utc) + timedelta(seconds=self._lockout_seconds)
+            ).isoformat()
+            meta["locked_until"] = until
+            status = "locked"
+        updated = AuthUser(
+            user_id=user.user_id,
+            username=user.username,
+            email=user.email,
+            display_name=user.display_name,
+            password_hash=user.password_hash,
+            status=status,
+            created_at=user.created_at,
+            updated_at=utc_now().isoformat(),
+            last_login=user.last_login,
+            roles=user.roles,
+            metadata=freeze_mapping(meta),
+        )
+        self.auth.users.save(updated)
+        self._record_login(
+            user_id=user.user_id,
+            provider=provider,
+            success=False,
+            ip_hint=ip_hint,
+            detail="invalid credentials",
+            reason="invalid_credentials",
+        )
+
     def login_password(
         self,
         *,
@@ -577,17 +644,26 @@ class EnterpriseAuthPlatform:
             user = self._get_by_email(ident)
         if user is None:
             user = self.auth.users.get_by_username(ident)
+        provider = AuthProvider.EMAIL.value if "@" in ident else AuthProvider.USERNAME.value
         if user is None or not verify_password(password, user.password_hash):
             if user:
-                self._record_login(
-                    user_id=user.user_id,
-                    provider=AuthProvider.USERNAME.value,
-                    success=False,
-                    ip_hint=ip_hint,
-                    detail="invalid credentials",
-                )
+                self._register_failed_login(user, ip_hint=ip_hint, provider=provider)
             raise AuthenticationError("invalid credentials")
-        provider = AuthProvider.EMAIL.value if "@" in ident else AuthProvider.USERNAME.value
+        if needs_rehash(user.password_hash):
+            user = AuthUser(
+                user_id=user.user_id,
+                username=user.username,
+                email=user.email,
+                display_name=user.display_name,
+                password_hash=hash_password(password),
+                status=user.status,
+                created_at=user.created_at,
+                updated_at=utc_now().isoformat(),
+                last_login=user.last_login,
+                roles=user.roles,
+                metadata=user.metadata,
+            )
+            self.auth.users.save(user)
         return self._issue_session(
             user,
             remember_me=remember_me,
@@ -766,7 +842,7 @@ class EnterpriseAuthPlatform:
                         email=profile.email,
                         password=random_password,
                         display_name=profile.name or profile.email,
-                        roles=["viewer"],
+                        roles=["read_only"],
                     )
                 except DuplicateUserError:
                     # Race: fetch again
@@ -820,7 +896,14 @@ class EnterpriseAuthPlatform:
 
     def request_mobile_otp(self, mobile: str, *, ip_hint: str | None = None) -> dict[str, Any]:
         self._rate_check(f"otp:{ip_hint or mobile}", limit=10, window_sec=3600)
+        otp_flag = (os.environ.get("DSP_AUTH_PROVIDER_OTP") or "auto").strip().lower()
+        if otp_flag in {"disabled", "coming_soon", "off", "false", "0"}:
+            raise AuthenticationError("Mobile OTP intentionally disabled — Coming Soon.")
         return self.otp.request_otp(mobile, ip_hint=ip_hint)
+
+    def resend_mobile_otp(self, mobile: str, *, ip_hint: str | None = None) -> dict[str, Any]:
+        """Resend uses the same request path (enforces 30s cooldown)."""
+        return self.request_mobile_otp(mobile, ip_hint=ip_hint)
 
     def verify_mobile_otp(
         self,
@@ -844,7 +927,7 @@ class EnterpriseAuthPlatform:
                     email=email,
                     password=secrets.token_urlsafe(24),
                     display_name=name or f"Mobile {mobile[-4:]}",
-                    roles=["viewer"],
+                    roles=["read_only"],
                 )
             except DuplicateUserError:
                 created = self.auth.users.get_by_username(uname)
@@ -938,7 +1021,7 @@ class EnterpriseAuthPlatform:
                 email=email,
                 password=secrets.token_urlsafe(24),
                 display_name=email.split("@", 1)[0],
-                roles=["viewer"],
+                roles=["read_only"],
             )
             user = self._persist_meta(
                 created,
@@ -1206,13 +1289,15 @@ class EnterpriseAuthPlatform:
         self.auth.users.save(updated)
         return {"ok": True, "user": enterprise_user_public_dict(updated)}
 
-    def admin_assign_roles(self, user_id: str, roles: list[str]) -> dict[str, Any]:
+    def admin_assign_roles(self, user_id: str, roles: list[str], *, actor_roles: list[str] | None = None) -> dict[str, Any]:
         mapped = [_normalize_role(r) for r in roles]
-        # Also accept legacy A009 roles directly
-        normalized: list[str] = []
-        for r in mapped:
-            normalized.append(r)
-        return enterprise_user_public_dict(self.auth.users.set_roles(user_id, normalized))
+        if "super_admin" in mapped and "super_admin" not in (actor_roles or []):
+            raise AuthorizationError("Only Super Admin can assign super_admin.")
+        target = self.auth.users.get(user_id)
+        if target and "super_admin" in target.roles and "super_admin" not in mapped:
+            if "super_admin" not in (actor_roles or []):
+                raise AuthorizationError("Only Super Admin can modify Super Admin roles.")
+        return enterprise_user_public_dict(self.auth.users.set_roles(user_id, mapped))
 
     def login_history(self, user_id: str | None = None, *, limit: int = 100) -> list[dict[str, Any]]:
         out: list[dict[str, Any]] = []
@@ -1235,11 +1320,236 @@ class EnterpriseAuthPlatform:
         ) else []
         return [s.to_dict() if hasattr(s, "to_dict") else dict(s) for s in sessions if not getattr(s, "revoked", False)]
 
+    def get_profile(self, user_id: str) -> dict[str, Any]:
+        user = self.auth.users.get(user_id)
+        if user is None:
+            raise ValidationError("user not found")
+        return enterprise_user_public_dict(user)
+
+    def update_profile(
+        self,
+        user_id: str,
+        *,
+        name: str | None = None,
+        avatar: str | None = None,
+    ) -> dict[str, Any]:
+        user = self.auth.users.get(user_id)
+        if user is None:
+            raise ValidationError("user not found")
+        display = name.strip() if name else user.display_name
+        if name is not None and not display:
+            raise ValidationError("name is required")
+        meta = dict(user.metadata or {})
+        if avatar is not None:
+            meta["avatar"] = avatar
+        updated = AuthUser(
+            user_id=user.user_id,
+            username=user.username,
+            email=user.email,
+            display_name=display,
+            password_hash=user.password_hash,
+            status=user.status,
+            created_at=user.created_at,
+            updated_at=utc_now().isoformat(),
+            last_login=user.last_login,
+            roles=user.roles,
+            metadata=freeze_mapping(meta),
+        )
+        self.auth.users.save(updated)
+        return enterprise_user_public_dict(updated)
+
+    def change_email(self, user_id: str, new_email: str) -> dict[str, Any]:
+        mail = new_email.strip().lower()
+        if not _EMAIL_RE.match(mail):
+            raise ValidationError("invalid email")
+        if self._get_by_email(mail):
+            raise DuplicateUserError("Email already in use.")
+        user = self.auth.users.get(user_id)
+        if user is None:
+            raise ValidationError("user not found")
+        token = secrets.token_urlsafe(32)
+        self._email_change_tokens[token] = {
+            "user_id": user_id,
+            "email": mail,
+            "expires_at": (datetime.now(tz=timezone.utc) + timedelta(hours=24)).isoformat(),
+        }
+        self.email.send(
+            to=mail,
+            subject="Confirm your new DSP email",
+            body=f"Confirm email change.\nTOKEN={token}\n",
+            purpose="change_email",
+        )
+        out: dict[str, Any] = {
+            "ok": True,
+            "message": "Verification sent to the new email address.",
+            "verification_required": True,
+        }
+        env = (os.environ.get("DSP_ENVIRONMENT") or "development").lower()
+        if env not in {"production", "prod"}:
+            out["verification_token"] = token
+        return out
+
+    def confirm_change_email(self, token: str) -> dict[str, Any]:
+        meta = self._email_change_tokens.pop(token, None)
+        if not meta:
+            raise ValidationError("Invalid or expired email change token.")
+        user = self.auth.users.get(str(meta["user_id"]))
+        if user is None:
+            raise ValidationError("user not found")
+        updated = AuthUser(
+            user_id=user.user_id,
+            username=user.username,
+            email=str(meta["email"]),
+            display_name=user.display_name,
+            password_hash=user.password_hash,
+            status=user.status,
+            created_at=user.created_at,
+            updated_at=utc_now().isoformat(),
+            last_login=user.last_login,
+            roles=user.roles,
+            metadata=user.metadata,
+        )
+        updated = self._persist_meta(updated, {"email_verified": True})
+        return {"ok": True, "user": enterprise_user_public_dict(updated)}
+
+    def unlink_provider(self, user_id: str, provider: str) -> dict[str, Any]:
+        user = self.auth.users.get(user_id)
+        if user is None:
+            raise ValidationError("user not found")
+        meta = dict(user.metadata or {})
+        links = list(meta.get("linked_providers") or [])
+        target = provider.strip().upper()
+        remaining = [lnk for lnk in links if str(lnk.get("provider") or "").upper() != target]
+        has_password = bool(user.password_hash)
+        has_phone = bool(meta.get("phone_verified") and meta.get("mobile"))
+        auth_methods = len(remaining) + (1 if has_password else 0)
+        if has_phone and target != "PHONE":
+            auth_methods += 1
+        if auth_methods < 1:
+            raise ValidationError("Cannot unlink the last authentication method.")
+        meta["linked_providers"] = remaining
+        if target == "PHONE":
+            meta["phone_verified"] = False
+            meta.pop("mobile", None)
+        if str(meta.get("provider") or "").upper() == target:
+            meta["provider"] = AuthProvider.EMAIL.value if has_password else (
+                remaining[0]["provider"] if remaining else AuthProvider.EMAIL.value
+            )
+        user = self._persist_meta(user, meta)
+        return enterprise_user_public_dict(user)
+
+    def delete_account(self, user_id: str) -> dict[str, Any]:
+        user = self.auth.users.get(user_id)
+        if user is None:
+            raise ValidationError("user not found")
+        if "super_admin" in user.roles:
+            raise AuthorizationError("Super Admin accounts cannot be self-deleted.")
+        updated = self.admin_set_status(user_id, active=False)
+        self.devices.revoke_all(user_id)
+        return {"ok": True, "user": updated, "message": "Account disabled and sessions revoked."}
+
+    def list_my_devices(self, user_id: str) -> list[dict[str, Any]]:
+        return self.devices.list_for_user(user_id)
+
+    def trust_device(self, user_id: str, device_id: str, *, trusted: bool = True) -> dict[str, Any]:
+        try:
+            return self.devices.set_trusted(device_id, user_id=user_id, trusted=trusted)
+        except KeyError as exc:
+            raise ValidationError("device not found") from exc
+
+    def revoke_device(self, user_id: str, device_id: str) -> dict[str, Any]:
+        try:
+            self.devices.revoke(device_id, user_id=user_id)
+        except KeyError as exc:
+            raise ValidationError("device not found") from exc
+        return {"ok": True, "device_id": device_id}
+
+    def my_login_history(self, user_id: str, *, limit: int = 50) -> list[dict[str, Any]]:
+        return self.login_history(user_id, limit=limit)
+
+    def admin_provision_user(
+        self,
+        *,
+        name: str,
+        email: str,
+        username: str | None = None,
+        password: str | None = None,
+        roles: list[str] | None = None,
+        actor_roles: list[str] | None = None,
+    ) -> dict[str, Any]:
+        mapped = [_normalize_role(r) for r in (roles or ["read_only"])]
+        if "super_admin" in mapped and "super_admin" not in (actor_roles or []):
+            raise AuthorizationError("Only Super Admin can assign super_admin.")
+        mail = email.strip().lower()
+        if not _EMAIL_RE.match(mail):
+            raise ValidationError("invalid email")
+        uname = (username or mail.split("@", 1)[0]).strip().lower()
+        uname = re.sub(r"[^a-z0-9._-]", "", uname)[:64] or f"user_{secrets.token_hex(3)}"
+        pwd = password or secrets.token_urlsafe(16) + "Aa1!"
+        user = self.auth.users.create(
+            username=uname,
+            email=mail,
+            password=pwd,
+            display_name=name.strip() or uname,
+            roles=mapped,
+        )
+        user = self._persist_meta(
+            user,
+            {
+                "provider": AuthProvider.EMAIL.value,
+                "email_verified": True,
+                "requires_email_verification": False,
+                "provisioned": True,
+            },
+        )
+        out: dict[str, Any] = {"ok": True, "user": enterprise_user_public_dict(user)}
+        if password is None:
+            env = (os.environ.get("DSP_ENVIRONMENT") or "development").lower()
+            if env not in {"production", "prod"}:
+                out["temporary_password"] = pwd
+        return out
+
+    def admin_unlock_user(self, user_id: str) -> dict[str, Any]:
+        user = self.auth.users.get(user_id)
+        if user is None:
+            raise ValidationError("user not found")
+        meta = dict(user.metadata or {})
+        meta["failed_login_count"] = 0
+        meta.pop("locked_until", None)
+        updated = AuthUser(
+            user_id=user.user_id,
+            username=user.username,
+            email=user.email,
+            display_name=user.display_name,
+            password_hash=user.password_hash,
+            status="active",
+            created_at=user.created_at,
+            updated_at=utc_now().isoformat(),
+            last_login=user.last_login,
+            roles=user.roles,
+            metadata=freeze_mapping(meta),
+        )
+        self.auth.users.save(updated)
+        return enterprise_user_public_dict(updated)
+
+    def revoke_sessions_for_user(self, user_id: str) -> dict[str, Any]:
+        count = 0
+        for session in self.auth.sessions.list_sessions(user_id=user_id):
+            try:
+                self.auth.sessions.revoke(session.session_id)
+                count += 1
+            except Exception:  # noqa: BLE001
+                pass
+        devices = self.devices.revoke_all(user_id)
+        return {"ok": True, "sessions_revoked": count, "devices_revoked": devices}
+
+    def admin_revoke_sessions(self, user_id: str) -> dict[str, Any]:
+        return self.revoke_sessions_for_user(user_id)
+
     def require_admin(self, access_token: str) -> dict[str, Any]:
         user = self.auth.current_user(access_token)
         roles = set(user.get("roles") or [])
-        if "administrator" not in roles:
-            # permission fallback
+        if "super_admin" not in roles and "administrator" not in roles:
             try:
                 self.auth.require_permission(user, "manage_users")
             except AuthorizationError as exc:

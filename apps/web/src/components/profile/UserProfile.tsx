@@ -16,7 +16,10 @@ import {
   CardHeader,
   CardTitle,
   EmptyState,
+  FormField,
+  Input,
   PageLayout,
+  PasswordInput,
   Skeleton,
   Stack,
   Table,
@@ -25,8 +28,10 @@ import {
   TableHead,
   TableHeader,
   TableRow,
+  ValidationMessage,
 } from "@/components/ds";
 import { AuthGuard } from "@/components/auth/ProtectedRoute";
+import { enterpriseAuthApi } from "@/lib/api/enterpriseAuth";
 import { rbacAuthApi } from "@/lib/api/rbacAuth";
 import type { RbacSession } from "@/lib/api/rbacTypes";
 import { useAuth } from "@/lib/auth/AuthProvider";
@@ -50,6 +55,15 @@ function ProfileContent() {
   const [sessions, setSessions] = useState<RbacSession[] | null>(null);
   const [sessionsError, setSessionsError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const [devices, setDevices] = useState<Record<string, unknown>[]>([]);
+  const [history, setHistory] = useState<Record<string, unknown>[]>([]);
+  const [linked, setLinked] = useState<Record<string, unknown>[]>([]);
+  const [accountMsg, setAccountMsg] = useState<string | null>(null);
+  const [accountErr, setAccountErr] = useState<string | null>(null);
+  const [newName, setNewName] = useState("");
+  const [newEmail, setNewEmail] = useState("");
+  const [currentPassword, setCurrentPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
   const token = tokenStatus(session);
 
   useEffect(() => {
@@ -84,11 +98,35 @@ function ProfileContent() {
           );
         }
       }
+      try {
+        const [profileEnv, devicesEnv, historyEnv] = await Promise.all([
+          enterpriseAuthApi.getProfile(session.accessToken),
+          enterpriseAuthApi.listDevices(session.accessToken),
+          enterpriseAuthApi.myLoginHistory(session.accessToken),
+        ]);
+        if (cancelled) return;
+        if (profileEnv.result) {
+          const links = (profileEnv.result.linkedProviders ||
+            profileEnv.result.linked_providers ||
+            []) as Record<string, unknown>[];
+          setLinked(Array.isArray(links) ? links : []);
+          setNewName(String(profileEnv.result.name || user?.displayName || ""));
+          setNewEmail(String(profileEnv.result.email || user?.email || ""));
+        }
+        setDevices(
+          Array.isArray(devicesEnv.result) ? devicesEnv.result : [],
+        );
+        setHistory(
+          Array.isArray(historyEnv.result) ? historyEnv.result : [],
+        );
+      } catch {
+        /* profile extras optional when enterprise API offline */
+      }
     })();
     return () => {
       cancelled = true;
     };
-  }, [session?.accessToken, session?.subject]);
+  }, [session?.accessToken, session?.subject, user?.displayName, user?.email]);
 
   if (!user || !session) {
     return (
@@ -298,10 +336,309 @@ function ProfileContent() {
               >
                 Logout current session
               </Button>
-              <Button variant="outline" disabled title="Data unavailable.">
+              <Button
+                variant="outline"
+                disabled={busy || !session.accessToken}
+                onClick={async () => {
+                  if (!session.accessToken) return;
+                  setBusy(true);
+                  try {
+                    await enterpriseAuthApi.revokeMySessions(session.accessToken);
+                    await logout();
+                    router.push("/login");
+                  } catch {
+                    setAccountErr("Unable to revoke all sessions.");
+                  } finally {
+                    setBusy(false);
+                  }
+                }}
+              >
                 Logout all sessions
               </Button>
             </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Account security</CardTitle>
+            <CardDescription>
+              Profile, password, email, linked providers, and trusted devices.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {accountMsg ? (
+              <Alert variant="info" title="Account">
+                {accountMsg}
+              </Alert>
+            ) : null}
+            {accountErr ? (
+              <ValidationMessage tone="error">{accountErr}</ValidationMessage>
+            ) : null}
+            <FormField label="Display name" htmlFor="profile-name">
+              <Input
+                id="profile-name"
+                value={newName}
+                onChange={(e) => setNewName(e.target.value)}
+              />
+            </FormField>
+            <Button
+              size="sm"
+              disabled={busy}
+              onClick={async () => {
+                if (!session.accessToken) return;
+                setBusy(true);
+                setAccountErr(null);
+                try {
+                  await enterpriseAuthApi.updateProfile(
+                    { name: newName },
+                    session.accessToken,
+                  );
+                  setAccountMsg("Profile updated.");
+                  await loadProfile();
+                } catch (e) {
+                  setAccountErr(e instanceof Error ? e.message : "Update failed");
+                } finally {
+                  setBusy(false);
+                }
+              }}
+            >
+              Save name
+            </Button>
+            <FormField label="Change email" htmlFor="profile-email">
+              <Input
+                id="profile-email"
+                value={newEmail}
+                onChange={(e) => setNewEmail(e.target.value)}
+              />
+            </FormField>
+            <Button
+              size="sm"
+              variant="secondary"
+              disabled={busy}
+              onClick={async () => {
+                if (!session.accessToken) return;
+                setBusy(true);
+                setAccountErr(null);
+                try {
+                  const envl = await enterpriseAuthApi.changeEmail(
+                    newEmail,
+                    session.accessToken,
+                  );
+                  setAccountMsg(
+                    String(
+                      (envl.result as { message?: string })?.message ||
+                        "Verification sent to the new email.",
+                    ),
+                  );
+                } catch (e) {
+                  setAccountErr(e instanceof Error ? e.message : "Email change failed");
+                } finally {
+                  setBusy(false);
+                }
+              }}
+            >
+              Request email change
+            </Button>
+            <FormField label="Current password" htmlFor="profile-cur-pw">
+              <PasswordInput
+                id="profile-cur-pw"
+                value={currentPassword}
+                onChange={(e) => setCurrentPassword(e.target.value)}
+              />
+            </FormField>
+            <FormField label="New password" htmlFor="profile-new-pw">
+              <PasswordInput
+                id="profile-new-pw"
+                value={newPassword}
+                onChange={(e) => setNewPassword(e.target.value)}
+              />
+            </FormField>
+            <Button
+              size="sm"
+              variant="secondary"
+              disabled={busy}
+              onClick={async () => {
+                if (!session.accessToken) return;
+                setBusy(true);
+                setAccountErr(null);
+                try {
+                  await enterpriseAuthApi.changePassword(
+                    {
+                      current_password: currentPassword,
+                      new_password: newPassword,
+                    },
+                    session.accessToken,
+                  );
+                  setAccountMsg("Password changed.");
+                  setCurrentPassword("");
+                  setNewPassword("");
+                } catch (e) {
+                  setAccountErr(
+                    e instanceof Error ? e.message : "Password change failed",
+                  );
+                } finally {
+                  setBusy(false);
+                }
+              }}
+            >
+              Change password
+            </Button>
+            <div>
+              <p className="mb-2 text-sm text-[var(--muted)]">Linked providers</p>
+              {linked.length === 0 ? (
+                <p className="text-sm">No linked OAuth providers.</p>
+              ) : (
+                <ul className="space-y-2">
+                  {linked.map((lnk) => (
+                    <li
+                      key={String(lnk.provider)}
+                      className="flex items-center justify-between gap-2 text-sm"
+                    >
+                      <span>{String(lnk.provider)}</span>
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        onClick={async () => {
+                          if (!session.accessToken) return;
+                          try {
+                            await enterpriseAuthApi.unlinkProvider(
+                              String(lnk.provider),
+                              session.accessToken,
+                            );
+                            setLinked((prev) =>
+                              prev.filter(
+                                (p) => p.provider !== lnk.provider,
+                              ),
+                            );
+                          } catch (e) {
+                            setAccountErr(
+                              e instanceof Error
+                                ? e.message
+                                : "Unlink failed",
+                            );
+                          }
+                        }}
+                      >
+                        Unlink
+                      </Button>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+            <div>
+              <p className="mb-2 text-sm text-[var(--muted)]">Devices</p>
+              {devices.length === 0 ? (
+                <p className="text-sm">No devices registered yet.</p>
+              ) : (
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Label</TableHead>
+                      <TableHead>Trusted</TableHead>
+                      <TableHead />
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {devices.map((d) => (
+                      <TableRow key={String(d.device_id)}>
+                        <TableCell className="text-xs">
+                          {String(d.label || d.device_id)}
+                        </TableCell>
+                        <TableCell>{String(Boolean(d.trusted))}</TableCell>
+                        <TableCell className="space-x-1">
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            onClick={async () => {
+                              if (!session.accessToken) return;
+                              await enterpriseAuthApi.trustDevice(
+                                String(d.device_id),
+                                !d.trusted,
+                                session.accessToken,
+                              );
+                              const refreshed =
+                                await enterpriseAuthApi.listDevices(
+                                  session.accessToken,
+                                );
+                              setDevices(
+                                Array.isArray(refreshed.result)
+                                  ? refreshed.result
+                                  : [],
+                              );
+                            }}
+                          >
+                            {d.trusted ? "Untrust" : "Trust"}
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            onClick={async () => {
+                              if (!session.accessToken) return;
+                              await enterpriseAuthApi.revokeDevice(
+                                String(d.device_id),
+                                session.accessToken,
+                              );
+                              setDevices((prev) =>
+                                prev.filter(
+                                  (x) => x.device_id !== d.device_id,
+                                ),
+                              );
+                            }}
+                          >
+                            Revoke
+                          </Button>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              )}
+            </div>
+            <div>
+              <p className="mb-2 text-sm text-[var(--muted)]">Login history</p>
+              {history.length === 0 ? (
+                <p className="text-sm">No login history.</p>
+              ) : (
+                <ul className="max-h-40 space-y-1 overflow-auto text-xs">
+                  {history.slice(0, 20).map((h) => (
+                    <li key={String(h.entry_id)}>
+                      {String(h.created_at)} · {String(h.provider)} ·{" "}
+                      {h.success ? "ok" : "fail"}
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+            <Button
+              variant="danger"
+              disabled={busy}
+              onClick={async () => {
+                if (!session.accessToken) return;
+                if (
+                  !window.confirm(
+                    "Disable your account and revoke sessions? This cannot be undone from the UI.",
+                  )
+                ) {
+                  return;
+                }
+                setBusy(true);
+                try {
+                  await enterpriseAuthApi.deleteAccount(session.accessToken);
+                  await logout();
+                  router.push("/login");
+                } catch (e) {
+                  setAccountErr(
+                    e instanceof Error ? e.message : "Delete failed",
+                  );
+                } finally {
+                  setBusy(false);
+                }
+              }}
+            >
+              Delete account
+            </Button>
           </CardContent>
         </Card>
       </Stack>

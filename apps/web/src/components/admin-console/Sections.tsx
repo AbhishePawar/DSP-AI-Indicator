@@ -301,6 +301,85 @@ export function IdentitySection({
         ) : (
           <WorkspaceEmpty />
         )}
+        {selectedUserId ? (
+          <div className="mt-3 flex flex-wrap gap-2">
+            <Button
+              size="sm"
+              variant="secondary"
+              onClick={async () => {
+                await enterpriseAuthApi.adminSetStatus(
+                  selectedUserId,
+                  false,
+                  token,
+                );
+                await userDetailQuery.refetch();
+                await usersQuery.refetch();
+              }}
+            >
+              Disable user
+            </Button>
+            <Button
+              size="sm"
+              variant="secondary"
+              onClick={async () => {
+                await enterpriseAuthApi.adminUnlockUser(selectedUserId, token);
+                await userDetailQuery.refetch();
+                await usersQuery.refetch();
+              }}
+            >
+              Unlock user
+            </Button>
+            <Button
+              size="sm"
+              variant="secondary"
+              onClick={async () => {
+                const pwd = window.prompt(
+                  "Force new temporary password (min 12 chars, mixed case, digit, special):",
+                );
+                if (!pwd) return;
+                await enterpriseAuthApi.adminResetPassword(
+                  selectedUserId,
+                  pwd,
+                  token,
+                );
+              }}
+            >
+              Force password reset
+            </Button>
+            <Button
+              size="sm"
+              variant="secondary"
+              onClick={async () => {
+                await enterpriseAuthApi.adminRevokeSessions(
+                  selectedUserId,
+                  token,
+                );
+                await sessionsQuery.refetch();
+              }}
+            >
+              Revoke sessions
+            </Button>
+            <Button
+              size="sm"
+              onClick={async () => {
+                const email = window.prompt("Provision user email:");
+                if (!email) return;
+                const name = window.prompt("Display name:") || email;
+                await enterpriseAuthApi.adminProvisionUser(
+                  {
+                    name,
+                    email,
+                    roles: ["read_only"],
+                  },
+                  token,
+                );
+                await usersQuery.refetch();
+              }}
+            >
+              Provision user
+            </Button>
+          </div>
+        ) : null}
       </SectionCard>
 
       <SectionCard title="Role List" description="GET /admin/roles">

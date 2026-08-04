@@ -478,8 +478,12 @@ def enterprise_admin_roles(
 ) -> JSONResponse:
     try:
         token = _bearer(authorization)
-        _platform().require_admin(token)
-        result = _platform().admin_assign_roles(user_id, body.roles)
+        actor = _platform().require_admin(token)
+        result = _platform().admin_assign_roles(
+            user_id,
+            body.roles,
+            actor_roles=list(actor.get("roles") or []),
+        )
         return JSONResponse({"ok": True, "result": result})
     except Exception as exc:  # noqa: BLE001
         return _err(exc)
@@ -518,6 +522,383 @@ def enterprise_password_strength(password: str) -> dict[str, Any]:
     from auth.enterprise_platform import password_strength
 
     return {"ok": True, "result": password_strength(password)}
+
+
+# --- Plan aliases (/auth/*) + account / MFA reserved / admin extras ---------
+
+
+@router.get("/auth/providers")
+def auth_providers_alias() -> dict[str, Any]:
+    return {"ok": True, "result": _platform().provider_status()}
+
+
+@router.post("/auth/register")
+def auth_register_alias(body: RegisterRequest, request: Request) -> JSONResponse:
+    return enterprise_register(body, request)
+
+
+@router.post("/auth/verify-email")
+def auth_verify_email_alias(body: VerifyEmailRequest) -> JSONResponse:
+    return enterprise_verify_email(body)
+
+
+@router.post("/auth/forgot-password")
+def auth_forgot_alias(body: PasswordResetRequest, request: Request) -> JSONResponse:
+    return enterprise_forgot(body, request)
+
+
+@router.post("/auth/reset-password")
+def auth_reset_alias(body: PasswordResetConfirm) -> JSONResponse:
+    return enterprise_reset(body)
+
+
+@router.post("/auth/otp/request")
+def auth_otp_request_alias(body: OtpRequest, request: Request) -> JSONResponse:
+    return enterprise_otp_request(body, request)
+
+
+@router.post("/auth/otp/verify")
+def auth_otp_verify_alias(body: OtpVerifyRequest, request: Request) -> JSONResponse:
+    return enterprise_otp_verify(body, request)
+
+
+@router.post("/auth/otp/resend")
+def auth_otp_resend(body: OtpRequest, request: Request) -> JSONResponse:
+    try:
+        meta = _client_meta(request)
+        result = _platform().resend_mobile_otp(body.mobile, ip_hint=meta["ip_hint"])
+        return JSONResponse({"ok": True, "result": result})
+    except Exception as exc:  # noqa: BLE001
+        return _err(exc)
+
+
+@router.get("/auth/oauth/{provider}/start")
+def auth_oauth_start(
+    provider: str,
+    redirect_uri: str,
+    next: str | None = None,
+    state: str | None = None,
+) -> JSONResponse:
+    _ = next
+    try:
+        result = _platform().oauth_begin(provider, redirect_uri=redirect_uri, state=state)
+        status = 200 if result.get("available") else 503
+        return JSONResponse(
+            {"ok": bool(result.get("available")), "result": result},
+            status_code=status,
+        )
+    except Exception as exc:  # noqa: BLE001
+        return _err(exc)
+
+
+@router.get("/auth/oauth/{provider}/callback")
+def auth_oauth_callback_get(
+    provider: str,
+    request: Request,
+    code: str,
+    redirect_uri: str,
+    state: str | None = None,
+    remember_me: bool = False,
+) -> JSONResponse:
+    try:
+        meta = _client_meta(request)
+        result = _platform().oauth_callback(
+            provider,
+            code=code,
+            state=state,
+            redirect_uri=redirect_uri,
+            remember_me=remember_me,
+            ip_hint=meta["ip_hint"],
+            user_agent_hint=meta["user_agent_hint"],
+        )
+        response = JSONResponse({"ok": True, "result": result, "message": None})
+        return _attach_auth_cookies(response, result, remember_me=remember_me)
+    except Exception as exc:  # noqa: BLE001
+        return _err(exc)
+
+
+class ProfilePatchBody(BaseModel):
+    name: str | None = Field(None, max_length=128)
+    avatar: str | None = Field(None, max_length=1024)
+
+
+class ChangeEmailBody(BaseModel):
+    new_email: str = Field(..., min_length=3, max_length=256)
+
+
+class ConfirmEmailChangeBody(BaseModel):
+    token: str = Field(..., min_length=8, max_length=256)
+
+
+class UnlinkProviderBody(BaseModel):
+    provider: str = Field(..., min_length=2, max_length=32)
+
+
+class TrustDeviceBody(BaseModel):
+    trusted: bool = True
+
+
+class ProvisionUserBody(BaseModel):
+    name: str = Field(..., min_length=1, max_length=128)
+    email: str = Field(..., min_length=3, max_length=256)
+    username: str | None = Field(None, max_length=64)
+    password: str | None = Field(None, max_length=256)
+    roles: list[str] = Field(default_factory=lambda: ["read_only"])
+
+
+@router.get("/auth/me")
+def auth_me(authorization: str | None = Header(default=None)) -> JSONResponse:
+    try:
+        token = _bearer(authorization)
+        user = _platform().auth.current_user(token)
+        return JSONResponse(
+            {"ok": True, "result": _platform().get_profile(str(user["user_id"]))}
+        )
+    except Exception as exc:  # noqa: BLE001
+        return _err(exc)
+
+
+@router.patch("/auth/me")
+def auth_me_patch(
+    body: ProfilePatchBody,
+    authorization: str | None = Header(default=None),
+) -> JSONResponse:
+    try:
+        token = _bearer(authorization)
+        user = _platform().auth.current_user(token)
+        result = _platform().update_profile(
+            str(user["user_id"]), name=body.name, avatar=body.avatar
+        )
+        return JSONResponse({"ok": True, "result": result})
+    except Exception as exc:  # noqa: BLE001
+        return _err(exc)
+
+
+@router.post("/auth/me/change-password")
+def auth_me_change_password(
+    body: ChangePasswordRequest,
+    authorization: str | None = Header(default=None),
+) -> JSONResponse:
+    return enterprise_change_password(body, authorization)
+
+
+@router.post("/auth/me/change-email")
+def auth_me_change_email(
+    body: ChangeEmailBody,
+    authorization: str | None = Header(default=None),
+) -> JSONResponse:
+    try:
+        token = _bearer(authorization)
+        user = _platform().auth.current_user(token)
+        result = _platform().change_email(str(user["user_id"]), body.new_email)
+        return JSONResponse({"ok": True, "result": result})
+    except Exception as exc:  # noqa: BLE001
+        return _err(exc)
+
+
+@router.post("/auth/me/confirm-change-email")
+def auth_me_confirm_change_email(body: ConfirmEmailChangeBody) -> JSONResponse:
+    try:
+        return JSONResponse(
+            {"ok": True, "result": _platform().confirm_change_email(body.token)}
+        )
+    except Exception as exc:  # noqa: BLE001
+        return _err(exc)
+
+
+@router.delete("/auth/me")
+def auth_me_delete(authorization: str | None = Header(default=None)) -> JSONResponse:
+    try:
+        token = _bearer(authorization)
+        user = _platform().auth.current_user(token)
+        return JSONResponse(
+            {"ok": True, "result": _platform().delete_account(str(user["user_id"]))}
+        )
+    except Exception as exc:  # noqa: BLE001
+        return _err(exc)
+
+
+@router.post("/auth/me/providers/unlink")
+def auth_unlink_provider(
+    body: UnlinkProviderBody,
+    authorization: str | None = Header(default=None),
+) -> JSONResponse:
+    try:
+        token = _bearer(authorization)
+        user = _platform().auth.current_user(token)
+        result = _platform().unlink_provider(str(user["user_id"]), body.provider)
+        return JSONResponse({"ok": True, "result": result})
+    except Exception as exc:  # noqa: BLE001
+        return _err(exc)
+
+
+@router.get("/auth/me/devices")
+def auth_my_devices(authorization: str | None = Header(default=None)) -> JSONResponse:
+    try:
+        token = _bearer(authorization)
+        user = _platform().auth.current_user(token)
+        return JSONResponse(
+            {"ok": True, "result": _platform().list_my_devices(str(user["user_id"]))}
+        )
+    except Exception as exc:  # noqa: BLE001
+        return _err(exc)
+
+
+@router.delete("/auth/me/devices/{device_id}")
+def auth_revoke_device(
+    device_id: str,
+    authorization: str | None = Header(default=None),
+) -> JSONResponse:
+    try:
+        token = _bearer(authorization)
+        user = _platform().auth.current_user(token)
+        return JSONResponse(
+            {
+                "ok": True,
+                "result": _platform().revoke_device(str(user["user_id"]), device_id),
+            }
+        )
+    except Exception as exc:  # noqa: BLE001
+        return _err(exc)
+
+
+@router.post("/auth/me/devices/{device_id}/trust")
+def auth_trust_device(
+    device_id: str,
+    body: TrustDeviceBody,
+    authorization: str | None = Header(default=None),
+) -> JSONResponse:
+    try:
+        token = _bearer(authorization)
+        user = _platform().auth.current_user(token)
+        return JSONResponse(
+            {
+                "ok": True,
+                "result": _platform().trust_device(
+                    str(user["user_id"]), device_id, trusted=body.trusted
+                ),
+            }
+        )
+    except Exception as exc:  # noqa: BLE001
+        return _err(exc)
+
+
+@router.get("/auth/me/login-history")
+def auth_my_login_history(
+    authorization: str | None = Header(default=None),
+) -> JSONResponse:
+    try:
+        token = _bearer(authorization)
+        user = _platform().auth.current_user(token)
+        return JSONResponse(
+            {
+                "ok": True,
+                "result": _platform().my_login_history(str(user["user_id"])),
+            }
+        )
+    except Exception as exc:  # noqa: BLE001
+        return _err(exc)
+
+
+@router.post("/auth/me/sessions/revoke-all")
+def auth_revoke_my_sessions(
+    authorization: str | None = Header(default=None),
+) -> JSONResponse:
+    try:
+        token = _bearer(authorization)
+        user = _platform().auth.current_user(token)
+        return JSONResponse(
+            {
+                "ok": True,
+                "result": _platform().revoke_sessions_for_user(str(user["user_id"])),
+            }
+        )
+    except Exception as exc:  # noqa: BLE001
+        return _err(exc)
+
+
+def _mfa_reserved() -> JSONResponse:
+    status = _platform().mfa.status()
+    return JSONResponse(
+        {
+            "ok": False,
+            "error": "MFA not enabled",
+            "result": status,
+            "message": status.get("message"),
+        },
+        status_code=501,
+    )
+
+
+@router.post("/auth/mfa/totp/enroll")
+def auth_mfa_totp_enroll() -> JSONResponse:
+    return _mfa_reserved()
+
+
+@router.post("/auth/mfa/totp/verify")
+def auth_mfa_totp_verify() -> JSONResponse:
+    return _mfa_reserved()
+
+
+@router.post("/auth/mfa/webauthn/register")
+def auth_mfa_webauthn_register() -> JSONResponse:
+    return _mfa_reserved()
+
+
+@router.post("/auth/mfa/webauthn/authenticate")
+def auth_mfa_webauthn_authenticate() -> JSONResponse:
+    return _mfa_reserved()
+
+
+@router.post("/auth/enterprise/admin/users/provision")
+def enterprise_admin_provision(
+    body: ProvisionUserBody,
+    authorization: str | None = Header(default=None),
+) -> JSONResponse:
+    try:
+        token = _bearer(authorization)
+        actor = _platform().require_admin(token)
+        result = _platform().admin_provision_user(
+            name=body.name,
+            email=body.email,
+            username=body.username,
+            password=body.password,
+            roles=body.roles,
+            actor_roles=list(actor.get("roles") or []),
+        )
+        return JSONResponse({"ok": True, "result": result})
+    except Exception as exc:  # noqa: BLE001
+        return _err(exc)
+
+
+@router.post("/auth/enterprise/admin/users/{user_id}/unlock")
+def enterprise_admin_unlock(
+    user_id: str,
+    authorization: str | None = Header(default=None),
+) -> JSONResponse:
+    try:
+        token = _bearer(authorization)
+        _platform().require_admin(token)
+        return JSONResponse(
+            {"ok": True, "result": _platform().admin_unlock_user(user_id)}
+        )
+    except Exception as exc:  # noqa: BLE001
+        return _err(exc)
+
+
+@router.post("/auth/enterprise/admin/users/{user_id}/revoke-sessions")
+def enterprise_admin_revoke_sessions(
+    user_id: str,
+    authorization: str | None = Header(default=None),
+) -> JSONResponse:
+    try:
+        token = _bearer(authorization)
+        _platform().require_admin(token)
+        return JSONResponse(
+            {"ok": True, "result": _platform().admin_revoke_sessions(user_id)}
+        )
+    except Exception as exc:  # noqa: BLE001
+        return _err(exc)
 
 
 # Silence unused import when state wiring not needed for platform singleton.

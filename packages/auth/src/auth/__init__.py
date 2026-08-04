@@ -20,8 +20,11 @@ from auth.exceptions import (
     SessionError,
     ValidationError,
 )
-from auth.hashing import hash_password, verify_password
+from auth.devices import DeviceRegistry
+from auth.email_delivery import ConsoleEmailAdapter, build_email_provider
+from auth.hashing import hash_password, needs_rehash, verify_password
 from auth.jwt import JwtService
+from auth.mfa import MfaGateway, build_mfa_gateway
 from auth.models import (
     AUTH_SCHEMA_VERSION,
     AUTH_SERVICE_VERSION,
@@ -39,7 +42,7 @@ from auth.roles import RoleRegistry, builtin_roles, get_role_registry, reset_rol
 from auth.serde import session_to_dict, token_pair_to_dict, user_to_dict
 from auth.service import AuthService, get_auth_service, reset_auth_service_for_tests
 from auth.sessions import SessionManager
-from auth.sms import DevSmsAdapter, NullSmsAdapter, build_sms_provider
+from auth.sms import ConsoleSmsAdapter, DevSmsAdapter, NullSmsAdapter, build_sms_provider
 from auth.users import UserStore
 
 __all__ = [
@@ -59,11 +62,15 @@ __all__ = [
     "AuthenticationService",
     "AuthorizationError",
     "AuthorizationService",
+    "ConsoleEmailAdapter",
+    "ConsoleSmsAdapter",
+    "DeviceRegistry",
     "DevSmsAdapter",
     "DuplicateUserError",
     "EnterpriseAuthPlatform",
     "InvalidTokenError",
     "JwtService",
+    "MfaGateway",
     "NullSmsAdapter",
     "OtpService",
     "RoleDefinition",
@@ -73,6 +80,8 @@ __all__ = [
     "UserStore",
     "ValidationError",
     "assert_permission",
+    "build_email_provider",
+    "build_mfa_gateway",
     "build_sms_provider",
     "builtin_roles",
     "get_auth_service",
@@ -80,6 +89,7 @@ __all__ = [
     "get_role_registry",
     "hash_password",
     "list_permissions",
+    "needs_rehash",
     "normalize_india_mobile",
     "password_strength",
     "reset_auth_service_for_tests",

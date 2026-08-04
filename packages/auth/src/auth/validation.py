@@ -34,7 +34,13 @@ def assert_email(email: str) -> str:
 
 def assert_status(status: str) -> str:
     s = str(status or "active").strip().lower()
-    if s not in {"active", "disabled"}:
+    if s not in {
+        "active",
+        "disabled",
+        "locked",
+        "pending_verification",
+        "pending_approval",
+    }:
         raise ValidationError(f"invalid status {status!r}")
     return s
 

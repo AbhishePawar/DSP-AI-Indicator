@@ -167,6 +167,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
               );
               next = await enrichPermissions(next);
               applySession(next);
+              // Note: an additive MFA step-up signal (mfa_required) may be
+              // present on `envelope.result` here. This generic `login()`
+              // entry point has no per-screen UI to present that challenge,
+              // so callers that need step-up MFA (see LoginForm) call
+              // `enterpriseAuthApi.login` directly and handle the challenge
+              // via `lib/auth/finishEnterpriseSession.ts` instead of this
+              // method. Session establishment above is unaffected either way
+              // — see EnterpriseAuthPlatform's additive-fields contract.
               logger.info("User signed in (enterprise)", {
                 subject: next.subject,
                 role: next.role,

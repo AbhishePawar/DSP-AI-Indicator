@@ -31,7 +31,7 @@ describe("EPIC-F011 login journey", () => {
         <LoginForm />
       </ThemeProvider>,
     );
-    expect(screen.getByLabelText(/^username/i)).toBeTruthy();
+    expect(screen.getByLabelText(/username/i)).toBeTruthy();
     expect(document.getElementById("login-password")).toBeTruthy();
     expect(screen.getByRole("button", { name: /sign in/i })).toBeTruthy();
     expect(screen.getByRole("link", { name: /forgot password/i })).toBeTruthy();

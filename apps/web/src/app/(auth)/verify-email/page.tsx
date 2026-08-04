@@ -10,6 +10,7 @@ import {
   Button,
   FormField,
   Input,
+  Spinner,
   Stack,
   ValidationMessage,
 } from "@/components/ds";
@@ -99,7 +100,13 @@ function VerifyEmailForm() {
 export default function VerifyEmailPage() {
   return (
     <AuthShell>
-      <Suspense fallback={<AuthCard title="Verify email" description="Loading…" />}>
+      <Suspense
+        fallback={
+          <AuthCard title="Verify email" description="Loading…">
+            <Spinner label="Loading…" />
+          </AuthCard>
+        }
+      >
         <VerifyEmailForm />
       </Suspense>
     </AuthShell>

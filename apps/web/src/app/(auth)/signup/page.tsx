@@ -9,6 +9,8 @@ import {
   Button,
   FormField,
   Input,
+  RadioGroup,
+  RadioGroupItem,
   Stack,
   Textarea,
   ValidationMessage,
@@ -16,14 +18,26 @@ import {
 import { enterpriseAuthApi } from "@/lib/api/enterpriseAuth";
 import { SUPPORT_CONTACT } from "@/lib/commercial";
 
+type RequesterType = "individual" | "organization";
+
 /**
  * Enterprise Request Access workflow — Submit → Admin Approval → Invitation.
  * Coexists with self-service /register.
+ *
+ * The backend access-request schema only persists {name, email, organization,
+ * reason} (see AccessRequestBody in enterprise_auth_platform.py). Phone,
+ * industry, country and requester type have no dedicated backend columns —
+ * changing that schema is out of scope here — so they are captured honestly
+ * and packed into the structured `reason` text rather than silently dropped.
  */
 export default function SignUpPage() {
-  const [email, setEmail] = useState("");
+  const [requesterType, setRequesterType] = useState<RequesterType>("individual");
   const [name, setName] = useState("");
-  const [organization, setOrganization] = useState("");
+  const [company, setCompany] = useState("");
+  const [email, setEmail] = useState("");
+  const [phone, setPhone] = useState("");
+  const [industry, setIndustry] = useState("");
+  const [country, setCountry] = useState("");
   const [reason, setReason] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
@@ -41,13 +55,27 @@ export default function SignUpPage() {
       setError("Enter a valid work email.");
       return;
     }
+    if (requesterType === "organization" && !company.trim()) {
+      setError("Company name is required for organization requests.");
+      return;
+    }
     setPending(true);
     try {
+      const metadata = [
+        `Requester type: ${requesterType === "organization" ? "Organization" : "Individual"}`,
+        phone.trim() ? `Phone: ${phone.trim()}` : null,
+        industry.trim() ? `Industry: ${industry.trim()}` : null,
+        country.trim() ? `Country: ${country.trim()}` : null,
+      ]
+        .filter(Boolean)
+        .join(" · ");
+      const composedReason = [metadata, reason.trim()].filter(Boolean).join("\n\n");
+
       const envelope = await enterpriseAuthApi.submitAccessRequest({
         name: name.trim(),
         email: email.trim(),
-        organization: organization.trim(),
-        reason: reason.trim(),
+        organization: company.trim(),
+        reason: composedReason,
       });
       if (!envelope.ok) {
         throw new Error(envelope.error || "Request failed");
@@ -97,6 +125,27 @@ export default function SignUpPage() {
                 For immediate self-service, use Register instead.
               </Alert>
               <form className="space-y-4" onSubmit={onSubmit} noValidate>
+                <fieldset className="flex flex-col gap-1.5">
+                  <legend className="text-sm font-medium text-[var(--fg)]">
+                    Requesting access as
+                  </legend>
+                  <RadioGroup
+                    value={requesterType}
+                    onValueChange={(v) => setRequesterType(v as RequesterType)}
+                    className="flex gap-4"
+                    aria-label="Requester type"
+                  >
+                    <label className="flex items-center gap-2 text-sm text-[var(--fg)]">
+                      <RadioGroupItem value="individual" id="requester-individual" disabled={pending} />
+                      Individual
+                    </label>
+                    <label className="flex items-center gap-2 text-sm text-[var(--fg)]">
+                      <RadioGroupItem value="organization" id="requester-organization" disabled={pending} />
+                      Organization
+                    </label>
+                  </RadioGroup>
+                </fieldset>
+
                 <FormField label="Full name" htmlFor="signup-name" required>
                   <Input
                     id="signup-name"
@@ -104,6 +153,21 @@ export default function SignUpPage() {
                     onChange={(e) => setName(e.target.value)}
                     autoComplete="name"
                     required
+                    disabled={pending}
+                  />
+                </FormField>
+                <FormField
+                  label="Company"
+                  htmlFor="signup-company"
+                  required={requesterType === "organization"}
+                  hint={requesterType === "individual" ? "Optional" : undefined}
+                >
+                  <Input
+                    id="signup-company"
+                    value={company}
+                    onChange={(e) => setCompany(e.target.value)}
+                    autoComplete="organization"
+                    required={requesterType === "organization"}
                     disabled={pending}
                   />
                 </FormField>
@@ -118,15 +182,35 @@ export default function SignUpPage() {
                     disabled={pending}
                   />
                 </FormField>
-                <FormField label="Organization" htmlFor="signup-org" hint="Optional">
+                <FormField label="Phone" htmlFor="signup-phone" hint="Optional">
                   <Input
-                    id="signup-org"
-                    value={organization}
-                    onChange={(e) => setOrganization(e.target.value)}
-                    autoComplete="organization"
+                    id="signup-phone"
+                    type="tel"
+                    value={phone}
+                    onChange={(e) => setPhone(e.target.value)}
+                    autoComplete="tel"
                     disabled={pending}
                   />
                 </FormField>
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                  <FormField label="Industry" htmlFor="signup-industry" hint="Optional">
+                    <Input
+                      id="signup-industry"
+                      value={industry}
+                      onChange={(e) => setIndustry(e.target.value)}
+                      disabled={pending}
+                    />
+                  </FormField>
+                  <FormField label="Country" htmlFor="signup-country" hint="Optional">
+                    <Input
+                      id="signup-country"
+                      value={country}
+                      onChange={(e) => setCountry(e.target.value)}
+                      autoComplete="country-name"
+                      disabled={pending}
+                    />
+                  </FormField>
+                </div>
                 <FormField label="Reason for access" htmlFor="signup-reason" hint="Optional">
                   <Textarea
                     id="signup-reason"

@@ -4,7 +4,16 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { FormEvent, useCallback, useEffect, useState } from "react";
 
-import { AuthCard, AuthShell, mapAuthError } from "@/components/auth";
+import {
+  AuthCard,
+  AuthShell,
+  MfaChallenge,
+  MobileIcon,
+  EmailLinkIcon,
+  PasskeyButton,
+  ProviderButton,
+  mapAuthError,
+} from "@/components/auth";
 import {
   Alert,
   Button,
@@ -15,171 +24,95 @@ import {
   Stack,
   ValidationMessage,
 } from "@/components/ds";
-import { enterpriseAuthApi, type ProviderStatus } from "@/lib/api/enterpriseAuth";
+import { enterpriseAuthApi } from "@/lib/api/enterpriseAuth";
 import { useAuth } from "@/lib/auth/AuthProvider";
-import { isAuthPublicPath, normalizePath } from "@/lib/auth/routeGuards";
 import {
-  persistSession,
-  sessionFromRbacLogin,
-} from "@/lib/auth/sessionStore";
-
-type Mode = "password" | "otp";
+  extractMfaChallenge,
+  navigateAfterLogin,
+  persistEnterpriseSession,
+} from "@/lib/auth/finishEnterpriseSession";
+import { isAuthPublicPath, normalizePath } from "@/lib/auth/routeGuards";
+import type { MfaChallengeInfo } from "@/lib/auth/types";
+import { useAuthProviders } from "@/lib/auth/useAuthProviders";
 
 export default function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { login, status, session } = useAuth();
-  const [mode, setMode] = useState<Mode>("password");
   const [identifier, setIdentifier] = useState("");
   const [password, setPassword] = useState("");
-  const [mobile, setMobile] = useState("");
-  const [otpCode, setOtpCode] = useState("");
-  const [challengeId, setChallengeId] = useState<string | null>(null);
-  const [devOtpHint, setDevOtpHint] = useState<string | null>(null);
   const [rememberMe, setRememberMe] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [fieldError, setFieldError] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
-  const [oauthProviders, setOauthProviders] = useState<ProviderStatus[]>([]);
-  const [comingSoonProviders, setComingSoonProviders] = useState<ProviderStatus[]>([]);
-  const [otpStatus, setOtpStatus] = useState<"available" | "unavailable" | "coming_soon">(
-    "available",
-  );
-  const [smsMessage, setSmsMessage] = useState<string | null>(null);
+  const {
+    oauthAvailable: oauthProviders,
+    oauthComingSoon: comingSoonProviders,
+    smsStatus: otpStatus,
+    magicLinkStatus: emailLinkStatus,
+    webauthnAvailable,
+    webauthnMessage,
+  } = useAuthProviders();
+  const [passkeyPending, setPasskeyPending] = useState(false);
+  const [mfaChallenge, setMfaChallenge] = useState<MfaChallengeInfo | null>(null);
 
   const nextPath = normalizePath(searchParams.get("next") || "/dashboard");
   const expired = searchParams.get("expired") === "1";
   const verified = searchParams.get("verified") === "1";
 
   useEffect(() => {
-    if (status === "authenticated" && session) {
+    if (status === "authenticated" && session && !mfaChallenge) {
       router.replace(isAuthPublicPath(nextPath) ? "/dashboard" : nextPath);
     }
-  }, [status, session, nextPath, router]);
-
-  useEffect(() => {
-    let cancelled = false;
-    enterpriseAuthApi
-      .providers()
-      .then((envelope) => {
-        if (cancelled || !envelope.result) return;
-        const oauth = envelope.result.oauth || [];
-        // Hide unavailable (missing credentials); keep available + coming_soon
-        setOauthProviders(
-          oauth.filter(
-            (p) =>
-              p.status === "available" ||
-              (p.available && p.status !== "coming_soon" && p.status !== "unavailable"),
-          ),
-        );
-        setComingSoonProviders(
-          oauth.filter((p) => p.status === "coming_soon"),
-        );
-        const smsStatus =
-          envelope.result.sms?.status ||
-          (envelope.result.sms?.available ? "available" : "unavailable");
-        setOtpStatus(smsStatus as "available" | "unavailable" | "coming_soon");
-        setSmsMessage(envelope.result.sms?.message || null);
-        if (smsStatus === "unavailable") {
-          setMode((m) => (m === "otp" ? "password" : m));
-        }
-      })
-      .catch(() => {
-        if (!cancelled) {
-          setOauthProviders([]);
-          setComingSoonProviders([]);
-          setOtpStatus("unavailable");
-          setSmsMessage("Unable to load provider status from API.");
-        }
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, []);
+  }, [status, session, mfaChallenge, nextPath, router]);
 
   const finishEnterpriseLogin = useCallback(
-    (result: Parameters<typeof sessionFromRbacLogin>[0] & {
-      csrf_token?: string;
-      cookie_auth?: boolean;
-    }) => {
-      const next = sessionFromRbacLogin(result, rememberMe);
-      persistSession(next);
-      window.location.assign(isAuthPublicPath(nextPath) ? "/dashboard" : nextPath);
+    (result: Parameters<typeof persistEnterpriseSession>[0]) => {
+      persistEnterpriseSession(result, rememberMe);
+      const challenge = extractMfaChallenge(result);
+      if (challenge) {
+        setMfaChallenge(challenge);
+        return;
+      }
+      navigateAfterLogin(nextPath);
     },
     [nextPath, rememberMe],
   );
 
   async function onPasswordSubmit(event: FormEvent) {
     event.preventDefault();
-    setPending(true);
     setError(null);
     setFieldError(null);
-    try {
-      if (!identifier.trim() || !password) {
-        setFieldError("Email/username and password are required.");
-        return;
-      }
-      await login({
-        username: identifier.trim(),
-        password,
-        rememberMe,
-        useEnterprise: true,
-        useRbac: true,
-      });
-      router.replace(isAuthPublicPath(nextPath) ? "/dashboard" : nextPath);
-    } catch (err) {
-      setError(mapAuthError(err));
-    } finally {
-      setPending(false);
-    }
-  }
-
-  async function onRequestOtp() {
-    setPending(true);
-    setError(null);
-    setDevOtpHint(null);
-    try {
-      const envelope = await enterpriseAuthApi.requestOtp(mobile.trim());
-      if (!envelope.result?.challenge_id) {
-        throw new Error(envelope.error || "OTP request failed");
-      }
-      setChallengeId(envelope.result.challenge_id);
-      const debug = envelope.result.sms?.debug_code;
-      if (debug) {
-        setDevOtpHint(`Dev SMS adapter code: ${debug}`);
-      }
-    } catch (err) {
-      setError(mapAuthError(err));
-    } finally {
-      setPending(false);
-    }
-  }
-
-  async function onVerifyOtp(event: FormEvent) {
-    event.preventDefault();
-    if (!challengeId) {
-      setFieldError("Request an OTP first.");
+    if (!identifier.trim() || !password) {
+      setFieldError("Email/username and password are required.");
       return;
     }
     setPending(true);
-    setError(null);
     try {
-      const envelope = await enterpriseAuthApi.verifyOtp({
-        challenge_id: challengeId,
-        code: otpCode.trim(),
+      const envelope = await enterpriseAuthApi.login({
+        identifier: identifier.trim(),
+        password,
         remember_me: rememberMe,
       });
-      if (!envelope.ok || !envelope.result) {
-        throw new Error(envelope.error || "OTP verification failed");
+      if (!envelope.ok || !envelope.result?.tokens?.access_token) {
+        throw new Error(envelope.error || "Login failed");
       }
-      finishEnterpriseLogin(
-        envelope.result as Parameters<typeof sessionFromRbacLogin>[0] & {
-          csrf_token?: string;
-          cookie_auth?: boolean;
-        },
-      );
-    } catch (err) {
-      setError(mapAuthError(err));
+      finishEnterpriseLogin(envelope.result);
+    } catch (enterpriseErr) {
+      // Fall back to legacy / A009 RBAC accounts — preserves pre-existing
+      // login for users not (yet) provisioned in the enterprise store.
+      try {
+        await login({
+          username: identifier.trim(),
+          password,
+          rememberMe,
+          useEnterprise: false,
+          useRbac: true,
+        });
+        router.replace(isAuthPublicPath(nextPath) ? "/dashboard" : nextPath);
+      } catch (fallbackErr) {
+        setError(mapAuthError(fallbackErr ?? enterpriseErr));
+      }
     } finally {
       setPending(false);
     }
@@ -217,24 +150,40 @@ export default function LoginForm() {
     }
   }
 
-  const providerLabel = (p: string) => {
-    switch (p.toUpperCase()) {
-      case "GOOGLE":
-        return "Continue with Google";
-      case "MICROSOFT":
-        return "Continue with Microsoft";
-      case "FACEBOOK":
-        return "Continue with Facebook";
-      default:
-        return `Continue with ${p}`;
+  async function onPasskey() {
+    setPasskeyPending(true);
+    setError(null);
+    try {
+      const envelope = await enterpriseAuthApi.webauthnAuthenticateBegin();
+      if (!envelope.ok) {
+        throw new Error(envelope.error || "Passkey sign-in is unavailable.");
+      }
+    } catch (err) {
+      setError(
+        webauthnMessage ||
+          "Passkey sign-in is not yet configured on this deployment.",
+      );
+      void err;
+    } finally {
+      setPasskeyPending(false);
     }
-  };
+  }
+
+  if (mfaChallenge) {
+    return (
+      <AuthShell>
+        <AuthCard title="Verify your identity" description="One more step to finish signing in.">
+          <MfaChallenge challenge={mfaChallenge} onDone={() => navigateAfterLogin(nextPath)} />
+        </AuthCard>
+      </AuthShell>
+    );
+  }
 
   return (
     <AuthShell>
       <AuthCard
         title="Sign in"
-        description="Institutional access via email/username, social SSO, or mobile OTP. Destination is preserved after authentication."
+        description="Institutional access via email/username, social SSO, mobile, or passkey. Destination is preserved after authentication."
       >
         <Stack gap={4}>
           {expired ? (
@@ -249,160 +198,60 @@ export default function LoginForm() {
             </Alert>
           ) : null}
 
-          <div className="grid gap-2">
-            {oauthProviders.map((p) => (
-              <Button
-                key={p.provider}
-                type="button"
-                variant="secondary"
-                className="w-full"
+          {oauthProviders.length || comingSoonProviders.length ? (
+            <div className="grid gap-2">
+              {oauthProviders.map((p) => (
+                <ProviderButton
+                  key={p.provider}
+                  provider={p.provider}
+                  disabled={pending}
+                  onClick={() => onOAuth(p.provider)}
+                />
+              ))}
+              {comingSoonProviders.map((p) => (
+                <ProviderButton
+                  key={`soon-${p.provider}`}
+                  provider={p.provider}
+                  comingSoon
+                  disabled
+                  title={p.message || "Coming Soon"}
+                />
+              ))}
+            </div>
+          ) : null}
+
+          {oauthProviders.length || comingSoonProviders.length ? (
+            <div className="flex items-center gap-3 text-xs uppercase tracking-wide text-[var(--muted)]" role="separator">
+              <span className="h-px flex-1 bg-[var(--border)]" aria-hidden />
+              OR
+              <span className="h-px flex-1 bg-[var(--border)]" aria-hidden />
+            </div>
+          ) : null}
+
+          <form className="space-y-4" onSubmit={onPasswordSubmit} noValidate>
+            <FormField label="Email or username" htmlFor="login-identifier" required>
+              <Input
+                id="login-identifier"
+                value={identifier}
+                onChange={(e) => setIdentifier(e.target.value)}
+                autoComplete="username"
+                required
+                aria-required="true"
                 disabled={pending}
-                onClick={() => onOAuth(p.provider)}
-              >
-                {providerLabel(p.provider)}
-              </Button>
-            ))}
-            {comingSoonProviders.map((p) => (
-              <Button
-                key={`soon-${p.provider}`}
-                type="button"
-                variant="secondary"
-                className="w-full opacity-70"
-                disabled
-                title={p.message || "Coming Soon"}
-              >
-                {providerLabel(p.provider)} — Coming Soon
-              </Button>
-            ))}
-          </div>
-
-          <div className="flex gap-2 text-sm">
-            <button
-              type="button"
-              className={
-                mode === "password"
-                  ? "font-medium text-[var(--accent)] underline"
-                  : "text-[var(--muted)]"
-              }
-              onClick={() => setMode("password")}
-            >
-              Email / Username
-            </button>
-            {otpStatus !== "unavailable" ? (
-              <>
-                <span className="text-[var(--muted)]">·</span>
-                <button
-                  type="button"
-                  className={
-                    mode === "otp"
-                      ? "font-medium text-[var(--accent)] underline"
-                      : "text-[var(--muted)]"
-                  }
-                  onClick={() => setMode("otp")}
-                  disabled={otpStatus === "coming_soon"}
-                >
-                  {otpStatus === "coming_soon"
-                    ? "Mobile OTP — Coming Soon"
-                    : "Mobile OTP"}
-                </button>
-              </>
-            ) : null}
-          </div>
-
-          {mode === "password" ? (
-            <form className="space-y-4" onSubmit={onPasswordSubmit} noValidate>
-              <FormField label="Email or username" htmlFor="login-identifier" required>
-                <Input
-                  id="login-identifier"
-                  value={identifier}
-                  onChange={(e) => setIdentifier(e.target.value)}
-                  autoComplete="username"
-                  required
-                  aria-required="true"
-                  disabled={pending}
-                />
-              </FormField>
-              <FormField label="Password" htmlFor="login-password" required>
-                <PasswordInput
-                  id="login-password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  autoComplete="current-password"
-                  required
-                  aria-required="true"
-                  disabled={pending}
-                />
-              </FormField>
-              <div className="flex flex-wrap items-center justify-between gap-2">
-                <label className="flex items-center gap-2 text-sm text-[var(--muted)]">
-                  <Checkbox
-                    checked={rememberMe}
-                    onCheckedChange={(v) => setRememberMe(v === true)}
-                    aria-label="Remember me on this device"
-                    disabled={pending}
-                  />
-                  Remember me
-                </label>
-                <Link
-                  href="/forgot-password"
-                  className="text-sm text-[var(--accent)] underline-offset-2 hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent)]"
-                >
-                  Forgot password?
-                </Link>
-              </div>
-              {fieldError ? (
-                <ValidationMessage tone="error">{fieldError}</ValidationMessage>
-              ) : null}
-              {error ? (
-                <ValidationMessage tone="error">{error}</ValidationMessage>
-              ) : null}
-              <Button type="submit" disabled={pending} className="w-full">
-                {pending ? "Signing in…" : "Sign in"}
-              </Button>
-            </form>
-          ) : (
-            <form className="space-y-4" onSubmit={onVerifyOtp} noValidate>
-              {otpStatus === "coming_soon" ? (
-                <Alert variant="info" title="Coming Soon">
-                  {smsMessage || "Mobile OTP is intentionally disabled."}
-                </Alert>
-              ) : null}
-              <FormField label="India mobile (+91)" htmlFor="login-mobile" required>
-                <Input
-                  id="login-mobile"
-                  value={mobile}
-                  onChange={(e) => setMobile(e.target.value)}
-                  placeholder="+9198XXXXXXXX"
-                  autoComplete="tel"
-                  required
-                  disabled={pending || otpStatus !== "available"}
-                />
-              </FormField>
-              <Button
-                type="button"
-                variant="secondary"
-                className="w-full"
-                disabled={pending || otpStatus !== "available" || !mobile.trim()}
-                onClick={onRequestOtp}
-              >
-                Send OTP
-              </Button>
-              {devOtpHint ? (
-                <Alert variant="info" title="Development SMS">
-                  {devOtpHint}
-                </Alert>
-              ) : null}
-              <FormField label="6-digit OTP" htmlFor="login-otp" required>
-                <Input
-                  id="login-otp"
-                  value={otpCode}
-                  onChange={(e) => setOtpCode(e.target.value)}
-                  inputMode="numeric"
-                  autoComplete="one-time-code"
-                  required
-                  disabled={pending || !challengeId}
-                />
-              </FormField>
+              />
+            </FormField>
+            <FormField label="Password" htmlFor="login-password" required>
+              <PasswordInput
+                id="login-password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                autoComplete="current-password"
+                required
+                aria-required="true"
+                disabled={pending}
+              />
+            </FormField>
+            <div className="flex flex-wrap items-center justify-between gap-2">
               <label className="flex items-center gap-2 text-sm text-[var(--muted)]">
                 <Checkbox
                   checked={rememberMe}
@@ -412,36 +261,78 @@ export default function LoginForm() {
                 />
                 Remember me
               </label>
-              {fieldError ? (
-                <ValidationMessage tone="error">{fieldError}</ValidationMessage>
-              ) : null}
-              {error ? (
-                <ValidationMessage tone="error">{error}</ValidationMessage>
-              ) : null}
-              <Button
-                type="submit"
-                disabled={pending || !challengeId}
-                className="w-full"
+              <Link
+                href="/forgot-password"
+                className="text-sm text-[var(--accent)] underline-offset-2 hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent)]"
               >
-                {pending ? "Verifying…" : "Verify & sign in"}
-              </Button>
-            </form>
-          )}
+                Forgot password?
+              </Link>
+            </div>
+            {fieldError ? (
+              <ValidationMessage tone="error">{fieldError}</ValidationMessage>
+            ) : null}
+            {error ? <ValidationMessage tone="error">{error}</ValidationMessage> : null}
+            <Button type="submit" disabled={pending} className="w-full">
+              {pending ? "Signing in…" : "Sign in"}
+            </Button>
+          </form>
+
+          {otpStatus !== "unavailable" ||
+          emailLinkStatus !== "unavailable" ||
+          webauthnAvailable ? (
+            <div className="space-y-2 border-t border-[var(--border)] pt-4">
+              <p className="text-xs font-medium uppercase tracking-wide text-[var(--muted)]">
+                Alternative login
+              </p>
+              <div className="grid gap-2">
+                {otpStatus !== "unavailable" ? (
+                  <Button asChild variant="secondary" className="w-full justify-center">
+                    <Link href={`/mobile-login?next=${encodeURIComponent(nextPath)}`}>
+                      <MobileIcon />
+                      <span>
+                        {otpStatus === "coming_soon"
+                          ? "Continue with Mobile Number — Coming Soon"
+                          : "Continue with Mobile Number"}
+                      </span>
+                    </Link>
+                  </Button>
+                ) : null}
+                {emailLinkStatus !== "unavailable" ? (
+                  <Button asChild variant="secondary" className="w-full justify-center">
+                    <Link href={`/email-login?next=${encodeURIComponent(nextPath)}`}>
+                      <EmailLinkIcon />
+                      <span>
+                        {emailLinkStatus === "coming_soon"
+                          ? "Continue with Email Link — Coming Soon"
+                          : "Continue with Email Link"}
+                      </span>
+                    </Link>
+                  </Button>
+                ) : null}
+                <PasskeyButton
+                  serverAvailable={webauthnAvailable}
+                  serverMessage={webauthnMessage}
+                  pending={passkeyPending}
+                  onAuthenticate={onPasskey}
+                />
+              </div>
+            </div>
+          ) : null}
 
           <p className="text-center text-sm text-[var(--muted)]">
-            Need an account?{" "}
-            <Link
-              href="/register"
-              className="text-[var(--accent)] underline-offset-2 hover:underline"
-            >
-              Register
-            </Link>
-            {" · "}
+            Don&apos;t have an account?{" "}
             <Link
               href="/signup"
               className="text-[var(--accent)] underline-offset-2 hover:underline"
             >
               Request access
+            </Link>
+            {" · "}
+            <Link
+              href="/register"
+              className="text-[var(--accent)] underline-offset-2 hover:underline"
+            >
+              Register
             </Link>
           </p>
           <p className="text-xs text-[var(--muted)]">

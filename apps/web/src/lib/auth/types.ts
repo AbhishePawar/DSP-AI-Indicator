@@ -54,6 +54,20 @@ export type LoginCredentials = {
 /** @deprecated Use Session — kept for gradual migration. */
 export type AuthSession = Session;
 
+/**
+ * Additive, non-breaking MFA step-up signal from the EnterpriseAuthPlatform.
+ *
+ * The backend always issues a full session on primary login (password / OTP /
+ * OAuth / magic-link); when `DSP_AUTH_MFA=true` and a user has an enrolled
+ * factor, the login response additionally carries these fields so the
+ * frontend can present a step-up challenge without blocking the session or
+ * requiring a page refresh. See `packages/auth/src/auth/mfa.py` (MfaGateway).
+ */
+export type MfaChallengeInfo = {
+  mfaToken: string | null;
+  methods: string[];
+};
+
 export function userFromSession(session: Session): User {
   return {
     subject: session.subject,

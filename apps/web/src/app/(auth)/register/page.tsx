@@ -1,9 +1,15 @@
 "use client";
 
 import Link from "next/link";
-import { FormEvent, useEffect, useState } from "react";
+import { FormEvent, useState } from "react";
 
-import { AuthCard, AuthShell, isValidEmail, mapAuthError } from "@/components/auth";
+import {
+  AuthCard,
+  AuthShell,
+  PasswordStrengthMeter,
+  isValidEmail,
+  mapAuthError,
+} from "@/components/auth";
 import {
   Alert,
   Button,
@@ -25,28 +31,6 @@ export default function RegisterPage() {
   const [pending, setPending] = useState(false);
   const [done, setDone] = useState(false);
   const [verifyToken, setVerifyToken] = useState<string | null>(null);
-  const [strength, setStrength] = useState<{
-    score: number;
-    label: string;
-  } | null>(null);
-
-  useEffect(() => {
-    if (!password) {
-      setStrength(null);
-      return;
-    }
-    const handle = window.setTimeout(() => {
-      enterpriseAuthApi
-        .passwordStrength(password)
-        .then((env) => {
-          if (env.result) {
-            setStrength({ score: env.result.score, label: env.result.label });
-          }
-        })
-        .catch(() => setStrength(null));
-    }, 250);
-    return () => window.clearTimeout(handle);
-  }, [password]);
 
   async function onSubmit(event: FormEvent) {
     event.preventDefault();
@@ -147,20 +131,18 @@ export default function RegisterPage() {
                   id="reg-password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
+                  autoComplete="new-password"
                   required
                   disabled={pending}
                 />
               </FormField>
-              {strength ? (
-                <p className="text-xs text-[var(--muted)]">
-                  Strength: {strength.label} ({strength.score}/5)
-                </p>
-              ) : null}
+              <PasswordStrengthMeter password={password} />
               <FormField label="Confirm password" htmlFor="reg-confirm" required>
                 <PasswordInput
                   id="reg-confirm"
                   value={confirm}
                   onChange={(e) => setConfirm(e.target.value)}
+                  autoComplete="new-password"
                   required
                   disabled={pending}
                 />

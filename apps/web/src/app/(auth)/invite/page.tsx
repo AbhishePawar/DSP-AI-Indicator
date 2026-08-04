@@ -11,6 +11,7 @@ import {
   FormField,
   Input,
   PasswordInput,
+  Spinner,
   Stack,
   ValidationMessage,
 } from "@/components/ds";
@@ -118,7 +119,13 @@ function InviteForm() {
 export default function InvitePage() {
   return (
     <AuthShell>
-      <Suspense fallback={<AuthCard title="Accept invitation" description="Loading…" />}>
+      <Suspense
+        fallback={
+          <AuthCard title="Accept invitation" description="Loading…">
+            <Spinner label="Loading…" />
+          </AuthCard>
+        }
+      >
         <InviteForm />
       </Suspense>
     </AuthShell>

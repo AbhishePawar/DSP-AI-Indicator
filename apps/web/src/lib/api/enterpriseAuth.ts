@@ -33,7 +33,21 @@ export type EnterpriseProvidersStatus = {
     status?: ProviderUiStatus;
     message?: string;
   };
-  mfa?: Record<string, unknown>;
+  /** MfaGateway.status() — see packages/auth/src/auth/mfa.py. */
+  mfa?: {
+    enabled: boolean;
+    totp_available: boolean;
+    webauthn_available: boolean;
+    reserved_routes: string[];
+    message?: string | null;
+  };
+};
+
+/** Additive MFA fields merged onto a login/verify result when required. */
+export type MfaAdditiveFields = {
+  mfa_required?: boolean;
+  mfa_token?: string | null;
+  methods?: string[];
 };
 
 async function enterpriseRequest<T>(
@@ -127,10 +141,10 @@ export const enterpriseAuthApi = {
     password: string;
     remember_me?: boolean;
   }) =>
-    enterpriseRequest<RbacLoginResult>("/auth/enterprise/login", {
-      method: "POST",
-      body: JSON.stringify(body),
-    }),
+    enterpriseRequest<RbacLoginResult & MfaAdditiveFields>(
+      "/auth/enterprise/login",
+      { method: "POST", body: JSON.stringify(body) },
+    ),
 
   forgotPassword: (email: string) =>
     enterpriseRequest<Record<string, unknown>>(
@@ -169,10 +183,10 @@ export const enterpriseAuthApi = {
     redirect_uri: string;
     remember_me?: boolean;
   }) =>
-    enterpriseRequest<RbacLoginResult>("/auth/enterprise/oauth/callback", {
-      method: "POST",
-      body: JSON.stringify(body),
-    }),
+    enterpriseRequest<RbacLoginResult & MfaAdditiveFields>(
+      "/auth/enterprise/oauth/callback",
+      { method: "POST", body: JSON.stringify(body) },
+    ),
 
   requestOtp: (mobile: string) =>
     enterpriseRequest<{
@@ -192,10 +206,28 @@ export const enterpriseAuthApi = {
     remember_me?: boolean;
     name?: string;
   }) =>
-    enterpriseRequest<RbacLoginResult>("/auth/enterprise/otp/verify", {
+    enterpriseRequest<RbacLoginResult & MfaAdditiveFields>(
+      "/auth/enterprise/otp/verify",
+      { method: "POST", body: JSON.stringify(body) },
+    ),
+
+  /** Email "magic link" passwordless sign-in — gated by DSP_AUTH_MAGIC_LINK. */
+  requestEmailLink: (email: string) =>
+    enterpriseRequest<{
+      ok: boolean;
+      message?: string;
+      /** Non-production only — see enterprise_platform.request_magic_link. */
+      magic_token?: string;
+    }>("/auth/enterprise/magic-link/request", {
       method: "POST",
-      body: JSON.stringify(body),
+      body: JSON.stringify({ email }),
     }),
+
+  verifyEmailLink: (body: { token: string; remember_me?: boolean }) =>
+    enterpriseRequest<RbacLoginResult & MfaAdditiveFields>(
+      "/auth/enterprise/magic-link/consume",
+      { method: "POST", body: JSON.stringify(body) },
+    ),
 
   submitAccessRequest: (body: {
     name: string;
@@ -382,6 +414,31 @@ export const enterpriseAuthApi = {
     enterpriseRequest<Record<string, unknown>>(
       `/auth/enterprise/admin/users/${encodeURIComponent(userId)}/status`,
       { method: "POST", body: JSON.stringify({ active }) },
+      { token },
+    ),
+
+  // --- MFA / WebAuthn (Passkey) -----------------------------------------
+  // Reserved server routes — return HTTP 501 until DSP_AUTH_MFA=true and a
+  // real TOTP/WebAuthn adapter is configured (see auth/mfa.py). Calling them
+  // is honest wiring to the real EnterpriseAuthPlatform contract, not a mock;
+  // callers must handle the "not enabled" response gracefully.
+
+  mfaTotpVerify: (body: { mfa_token: string; code: string }) =>
+    enterpriseRequest<Record<string, unknown>>("/auth/mfa/totp/verify", {
+      method: "POST",
+      body: JSON.stringify(body),
+    }),
+
+  webauthnAuthenticateBegin: (body: { identifier?: string } = {}) =>
+    enterpriseRequest<Record<string, unknown>>(
+      "/auth/mfa/webauthn/authenticate",
+      { method: "POST", body: JSON.stringify(body) },
+    ),
+
+  webauthnRegisterBegin: (token?: string | null) =>
+    enterpriseRequest<Record<string, unknown>>(
+      "/auth/mfa/webauthn/register",
+      { method: "POST", body: "{}" },
       { token },
     ),
 };

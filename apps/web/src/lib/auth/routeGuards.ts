@@ -21,6 +21,8 @@ export const AUTH_PUBLIC_PATHS = [
   "/register",
   "/invite",
   "/oauth/callback",
+  "/mobile-login",
+  "/email-login",
   "/forgot-password",
   "/reset-password",
   "/verify-email",
@@ -40,11 +42,30 @@ export const MARKETING_PUBLIC_PATHS = [
   "/faq",
 ] as const;
 
+/**
+ * True when `path` is safe to hand to the router / `window.location` as a
+ * post-login redirect target — i.e. a same-origin, absolute path.
+ *
+ * Rejects anything that a browser could interpret as leaving the app:
+ * absolute URLs (`https://evil.com`), protocol-relative URLs
+ * (`//evil.com`, inherits the current scheme), and backslash variants
+ * (`/\evil.com`, normalised to `//evil.com` by some browsers). This is the
+ * standard open-redirect guard for a `?next=` query parameter.
+ */
+function isSafeRedirectPath(path: string): boolean {
+  if (!path.startsWith("/")) return false;
+  const rest = path.slice(1);
+  return !rest.startsWith("/") && !rest.startsWith("\\");
+}
+
 export function normalizePath(pathname: string): string {
-  if (!pathname || pathname === "/") return "/dashboard";
-  return pathname.endsWith("/") && pathname.length > 1
-    ? pathname.slice(0, -1)
-    : pathname;
+  if (!pathname) return "/dashboard";
+  const trimmed = pathname.trim();
+  if (trimmed === "/") return "/dashboard";
+  if (!isSafeRedirectPath(trimmed)) return "/dashboard";
+  return trimmed.endsWith("/") && trimmed.length > 1
+    ? trimmed.slice(0, -1)
+    : trimmed;
 }
 
 /** Strip trailing slash without remapping `/` to dashboard (marketing home). */

@@ -3,13 +3,20 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 
-import { AuthCard, AuthShell, mapAuthError } from "@/components/auth";
+import { AuthCard, AuthShell, MfaChallenge, mapAuthError } from "@/components/auth";
 import { Alert, Button, Stack } from "@/components/ds";
 import { enterpriseAuthApi } from "@/lib/api/enterpriseAuth";
-import { persistSession, sessionFromRbacLogin } from "@/lib/auth/sessionStore";
+import {
+  extractMfaChallenge,
+  navigateAfterLogin,
+  persistEnterpriseSession,
+} from "@/lib/auth/finishEnterpriseSession";
+import type { MfaChallengeInfo } from "@/lib/auth/types";
 
 export default function OAuthCallbackPage() {
   const [error, setError] = useState<string | null>(null);
+  const [mfaChallenge, setMfaChallenge] = useState<MfaChallengeInfo | null>(null);
+  const [nextPath, setNextPath] = useState("/dashboard");
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -43,6 +50,7 @@ export default function OAuthCallbackPage() {
       return;
     }
     sessionStorage.removeItem("dsp.oauth.pending");
+    setNextPath(pending.next || "/dashboard");
 
     enterpriseAuthApi
       .oauthCallback({
@@ -56,13 +64,13 @@ export default function OAuthCallbackPage() {
         if (!envelope.ok || !envelope.result) {
           throw new Error(envelope.error || "OAuth login failed");
         }
-        const result = envelope.result as typeof envelope.result & {
-          csrf_token?: string;
-          cookie_auth?: boolean;
-        };
-        const next = sessionFromRbacLogin(result, Boolean(pending.remember_me));
-        persistSession(next);
-        window.location.assign(pending.next || "/dashboard");
+        persistEnterpriseSession(envelope.result, Boolean(pending.remember_me));
+        const challenge = extractMfaChallenge(envelope.result);
+        if (challenge) {
+          setMfaChallenge(challenge);
+          return;
+        }
+        navigateAfterLogin(pending.next || "/dashboard");
       })
       .catch((err) => setError(mapAuthError(err)));
   }, []);
@@ -80,6 +88,8 @@ export default function OAuthCallbackPage() {
                 <Button className="w-full">Back to login</Button>
               </Link>
             </>
+          ) : mfaChallenge ? (
+            <MfaChallenge challenge={mfaChallenge} onDone={() => navigateAfterLogin(nextPath)} />
           ) : (
             <Alert variant="info" title="Please wait">
               Contacting the identity provider and establishing your session…

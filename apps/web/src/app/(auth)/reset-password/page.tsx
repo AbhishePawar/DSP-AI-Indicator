@@ -4,12 +4,18 @@ import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { FormEvent, Suspense, useState } from "react";
 
-import { AuthCard, AuthShell, mapAuthError } from "@/components/auth";
+import {
+  AuthCard,
+  AuthShell,
+  PasswordStrengthMeter,
+  mapAuthError,
+} from "@/components/auth";
 import {
   Alert,
   Button,
   FormField,
   PasswordInput,
+  Spinner,
   Stack,
   ValidationMessage,
 } from "@/components/ds";
@@ -78,10 +84,12 @@ function ResetPasswordForm() {
                 id="reset-password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
+                autoComplete="new-password"
                 required
                 disabled={pending}
               />
             </FormField>
+            <PasswordStrengthMeter password={password} />
             {error ? (
               <ValidationMessage tone="error">{error}</ValidationMessage>
             ) : null}
@@ -98,7 +106,13 @@ function ResetPasswordForm() {
 export default function ResetPasswordPage() {
   return (
     <AuthShell>
-      <Suspense fallback={<AuthCard title="Reset password" description="Loading…" />}>
+      <Suspense
+        fallback={
+          <AuthCard title="Reset password" description="Loading…">
+            <Spinner label="Loading…" />
+          </AuthCard>
+        }
+      >
         <ResetPasswordForm />
       </Suspense>
     </AuthShell>

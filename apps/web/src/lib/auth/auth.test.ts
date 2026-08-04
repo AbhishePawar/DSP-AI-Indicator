@@ -7,6 +7,7 @@ import {
   isProtectedRoute,
   isPublicRoute,
   loginRedirectUrl,
+  normalizePath,
   requiresAuth,
   isAuthPublicPath,
   isMarketingPath,
@@ -45,6 +46,9 @@ describe("routeGuards", () => {
     expect(isAuthPublicPath("/register")).toBe(true);
     expect(isAuthPublicPath("/invite")).toBe(true);
     expect(isAuthPublicPath("/oauth/callback")).toBe(true);
+    expect(isAuthPublicPath("/mobile-login")).toBe(true);
+    expect(isAuthPublicPath("/email-login")).toBe(true);
+    expect(isAuthPublicPath("/email-login/verify")).toBe(true);
     expect(isAuthPublicPath("/forgot-password")).toBe(true);
     expect(isAuthPublicPath("/reset-password")).toBe(true);
     expect(isAuthPublicPath("/verify-email")).toBe(true);
@@ -76,6 +80,23 @@ describe("routeGuards", () => {
     expect(loginRedirectUrl("/portfolio", true)).toBe(
       "/login?expired=1&next=%2Fportfolio",
     );
+  });
+
+  it("normalizes safe in-app paths", () => {
+    expect(normalizePath("/portfolio")).toBe("/portfolio");
+    expect(normalizePath("/portfolio/")).toBe("/portfolio");
+    expect(normalizePath("")).toBe("/dashboard");
+    expect(normalizePath("/")).toBe("/dashboard");
+  });
+
+  it("rejects open-redirect payloads in ?next=, falling back to /dashboard", () => {
+    expect(normalizePath("https://evil.com")).toBe("/dashboard");
+    expect(normalizePath("http://evil.com/phish")).toBe("/dashboard");
+    expect(normalizePath("//evil.com")).toBe("/dashboard");
+    expect(normalizePath("///evil.com")).toBe("/dashboard");
+    expect(normalizePath("/\\evil.com")).toBe("/dashboard");
+    expect(normalizePath("/\\/evil.com")).toBe("/dashboard");
+    expect(normalizePath("javascript:alert(1)")).toBe("/dashboard");
   });
 });
 

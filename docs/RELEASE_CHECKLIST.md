@@ -19,6 +19,36 @@
 | 8 | Known limitations recorded | **DONE** · K1.4 §4 |
 | 9 | Future roadmap documented | **DONE** · L1.0 Web Application next |
 | 10 | Dependency graph frozen | **DONE** · [DEPENDENCY_GRAPH.md](DEPENDENCY_GRAPH.md) |
+| 11 | **Tier-0 CV-001…CV-010** enforced in gates | **MANDATORY** · [CORE_VALUES.md](CORE_VALUES.md) · [ARCHITECTURE_CHECKLIST.md](ARCHITECTURE_CHECKLIST.md) |
+| 12 | **Research Standards RS-001…RS-010** | **MANDATORY** · [RESEARCH_STANDARDS.md](RESEARCH_STANDARDS.md) |
+
+---
+
+## Tier-0 release gate (all future releases)
+
+| ✓ | Requirement |
+|---|---|
+| | **CV-001** — no fabricated / placeholder production numbers |
+| | **CV-002** — no scores on incomplete mandatory sources |
+| | **CV-003** — explainability surface for scores/recommendations |
+| | **CV-004** — deterministic / reproducible research outputs |
+| | **CV-005** — uncertainty / Unable to calculate honest |
+| | **CV-006** — traceability chain |
+| | **CV-007** — audit envelope on research reports |
+| | **CV-008** — research before recommendation |
+| | **CV-009** — no governance bypass |
+| | **CV-010** — quality over speed |
+
+---
+
+## Research Standards release gate
+
+| ✓ | Requirement |
+|---|---|
+| | **RS-001…RS-010** minimum report sections enforced in validation |
+| | Mandatory header first; MoS prominent (**RS-005**) |
+| | Authenticated market data only (**RS-002**) |
+| | Audit & provenance complete (**RS-010**) |
 
 ---
 

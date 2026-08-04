@@ -68,11 +68,15 @@ export const DEFAULT_SHARED_RESEARCH_FILTERS: SharedResearchFilterState = {
   favoritesOnly: false,
 };
 
-export const SHARED_RESEARCH_NAV = [
+export const SHARED_RESEARCH_NAV: ReadonlyArray<{
+  href: string;
+  label: string;
+  exact?: boolean;
+}> = [
   { href: "/advisor/team/shared-research", label: "Overview", exact: true },
   { href: "/advisor/team/shared-research/library", label: "Library" },
   { href: "/advisor/team/shared-research/collections", label: "Collections" },
   { href: "/advisor/team/shared-research/compare", label: "Compare" },
   { href: "/advisor/team/shared-research/bookmarks", label: "Bookmarks" },
   { href: "/advisor/team/shared-research/activity", label: "Activity" },
-] as const;
+];

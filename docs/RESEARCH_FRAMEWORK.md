@@ -366,6 +366,9 @@ Before a research artifact (Decision Pack) is considered complete:
 | **Statement completeness** | Minimum 3 years income, balance sheet, and cash flow |
 | **Source coverage** | At least Priority 1, 3, and 5 sources consulted |
 | **Unavailable honesty** | Missing sources labeled Unavailable — not skipped silently |
+| **CV-001 authenticity** | No fabricated / placeholder market or financial numbers; show **Data unavailable.** |
+| **CV-002…CV-010** | Source-before-score · explainability · determinism · transparency · traceability · auditability · research-first · governance · quality-over-speed |
+| **RS-001…RS-010** | Minimum research report content — [RESEARCH_STANDARDS.md](RESEARCH_STANDARDS.md); missing section = FAIL |
 | **Evidence citations** | Every displayed metric has a citation in Evidence panel |
 | **AI Challenge complete** | Bull, bear, risks, and unknowns presented |
 | **Confidence assigned** | Every assessment carries confidence level |
@@ -380,6 +383,9 @@ Before a research artifact (Decision Pack) is considered complete:
 | [COMPANY_ANALYSIS_BLUEPRINT.md](COMPANY_ANALYSIS_BLUEPRINT.md) | 19-section analysis UX |
 | [AI_PRINCIPLES.md](AI_PRINCIPLES.md) | AI behavior and citation rules |
 | [USER_TRUST_STANDARD.md](USER_TRUST_STANDARD.md) | Trust enforcement |
+| [CORE_VALUES.md](CORE_VALUES.md) · [CV_001_DATA_AUTHENTICITY_FIRST.md](CV_001_DATA_AUTHENTICITY_FIRST.md) · [CV_002_TO_010_TIER0_CORE_VALUES.md](CV_002_TO_010_TIER0_CORE_VALUES.md) | Tier-0 Core Values |
+| [RESEARCH_STANDARDS.md](RESEARCH_STANDARDS.md) · [RS_001_TO_RS_010.md](RS_001_TO_RS_010.md) | Research Standards (report content) |
+| [RESEARCH_ARCHITECTURE.md](RESEARCH_ARCHITECTURE.md) · [REPORT_ARCHITECTURE.md](REPORT_ARCHITECTURE.md) | Research / report architecture |
 | [PRODUCT_CONSTITUTION.md](PRODUCT_CONSTITUTION.md) | Conflict resolution order |
 | [C3_0A_INDUSTRY_EVIDENCE_ARCHITECTURE_FREEZE.md](C3_0A_INDUSTRY_EVIDENCE_ARCHITECTURE_FREEZE.md) | Industry evidence framework |
 | [PROJECT_CHARTER.md](PROJECT_CHARTER.md) | Financial research philosophy (§7) |

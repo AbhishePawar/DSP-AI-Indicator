@@ -67,13 +67,13 @@ def client(platform: DSPPlatform) -> TestClient:
 
 class TestVersionAndOpenAPI:
     def test_version(self) -> None:
-        assert __version__ == "0.2.0"
+        assert __version__ == "0.3.0"
 
     def test_openapi_generated(self, client: TestClient) -> None:
         response = client.get("/openapi.json")
         assert response.status_code == 200
         data = response.json()
-        assert data["info"]["version"] == "0.2.0"
+        assert data["info"]["version"] == "0.3.0"
         paths = data["paths"]
         assert "/health" in paths
         assert "/platform" in paths
@@ -110,7 +110,7 @@ class TestHealthAndPlatform:
         response = client.get("/platform")
         assert response.status_code == 200
         body = response.json()
-        assert body["version"] == "0.7.1"
+        assert body["version"] == "1.0.0"
         assert "analyze_company" in body["capabilities"]
         assert "compose_intelligence" in body["capabilities"]
 

@@ -13,10 +13,10 @@ x-logging: &default-logging
 
 services:
   api:
-    image: ${DSP_API_IMAGE:-dsp-api}:${DSP_IMAGE_TAG:-1.6.0}
+    image: ${DSP_API_IMAGE:-dsp-api}:${DSP_IMAGE_TAG:-1.7.3}
     environment:
       DSP_ENVIRONMENT: production
-      DSP_APP_VERSION: ${DSP_APP_VERSION:-1.6.0}
+      DSP_APP_VERSION: ${DSP_APP_VERSION:-1.7.3}
       DSP_ENABLE_SECURITY: "true"
       DSP_REQUIRE_ADMIN_AUTH: "true"
       DSP_RATE_LIMIT_ENABLED: "true"
@@ -52,7 +52,7 @@ services:
       start_period: 30s
 
   web:
-    image: ${DSP_WEB_IMAGE:-dsp-web}:${DSP_IMAGE_TAG:-2.0.0-rc}
+    image: ${DSP_WEB_IMAGE:-dsp-web}:${DSP_IMAGE_TAG:-2.0.3}
     environment:
       NODE_ENV: production
       TZ: Asia/Kolkata

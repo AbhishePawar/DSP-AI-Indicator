@@ -11,7 +11,6 @@ import type {
   AIStreamResult,
 } from "@/lib/ai/types";
 import type { CopilotIntent, ResearchCitationId } from "@/lib/copilot/types";
-import type { CopilotCompleteRequestBody } from "@/lib/api/copilotTypes";
 
 const CONFIG: AIProviderConfig = {
   id: "backend",

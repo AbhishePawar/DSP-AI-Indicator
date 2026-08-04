@@ -73,6 +73,16 @@ Insights may additionally cite DecisionPack, Comparison, Portfolio, Monitoring,
 or Risk artifacts for cross-subsystem synthesis, but Evidence provenance remains
 mandatory for insight validity under this hardening.
 
+### Invariant 3b — Data Authenticity First (CV-001)
+
+Production research numbers **MUST** come from authenticated sources only
+(market data, financial statements, DSP calculated, user input, or derived from
+those). Missing inputs → **Data unavailable.** Never fabricate placeholders.
+
+Authority → [CV_001_DATA_AUTHENTICITY_FIRST.md](CV_001_DATA_AUTHENTICITY_FIRST.md) ·
+[CV_002_TO_010_TIER0_CORE_VALUES.md](CV_002_TO_010_TIER0_CORE_VALUES.md) ·
+[RESEARCH_ARCHITECTURE.md](RESEARCH_ARCHITECTURE.md).
+
 ### Invariant 4 — Conflicts are descriptive only
 
 `ResearchConflict` objects are **descriptive only**.

@@ -11,20 +11,25 @@ export type User = {
   subject: string;
   username: string;
   displayName: string;
-  /** Placeholder until profile API exists. */
   email: string | null;
   role: string;
+  roles: string[];
+  permissions: string[];
 };
 
 export type Session = {
   accessToken: string;
+  refreshToken: string | null;
   tokenType: string;
   role: string;
+  roles: string[];
+  permissions: string[];
   subject: string;
   username: string;
   displayName: string;
   email: string | null;
   authMethod: string;
+  sessionId: string | null;
   issuedAt: string;
   expiresAt: string | null;
   rememberMe: boolean;
@@ -38,7 +43,10 @@ export type AuthState = {
 
 export type LoginCredentials = {
   username: string;
+  password?: string;
   rememberMe?: boolean;
+  /** Prefer A009 RBAC when true (default). */
+  useRbac?: boolean;
 };
 
 /** @deprecated Use Session — kept for gradual migration. */
@@ -51,6 +59,8 @@ export function userFromSession(session: Session): User {
     displayName: session.displayName,
     email: session.email,
     role: session.role,
+    roles: session.roles,
+    permissions: session.permissions,
   };
 }
 

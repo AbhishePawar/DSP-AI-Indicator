@@ -1,51 +1,29 @@
-# Security Guide (PEP-001)
+# EPIC-A009 — Security Guide
 
-## Secrets
+## Passwords
 
-- Prefer `SecretsPort` / `DSP_SECRET_*` / `DSP_JWT_SECRET` from environment.
-- Never log JWT secrets, password hashes, refresh tokens, or reset tokens.
-- Production must not use `dev-only-change-me`.
+- Never stored in plaintext
+- Format: `pbkdf2$iterations$salt$digest` (SHA-256, 120k iterations)
+- Verification uses constant-time compare
 
-## Password policy (defaults)
+## Tokens
 
-- Minimum length 12
-- Require mixed case + digit
-- Reject empty / whitespace-only
-- Hash: Argon2id when `argon2-cffi` installed; else scrypt (stdlib reference)
+- Access JWT: short-lived (`token_use=access`)
+- Refresh JWT: longer-lived (`token_use=refresh`), bound to session `jti`
+- Logout revokes the session → subsequent access/refresh fail
 
-## Account lockout
+## Sessions
 
-- Threshold: 5 failed password attempts
-- Lock duration: 15 minutes
-- Audit: `login_failed`, `account_locked`
+- Concurrent sessions allowed
+- Per-session revocation does not invalidate sibling sessions
+- Expired sessions reject token use
 
-## Rate limiting
+## Validation
 
-- Login / refresh / reset keys via PEP-002 `RateLimitPort` when wired
-- Fallback: in-process `RateLimiter`
+Rejects: duplicate username/email, invalid credentials, malformed/expired tokens,
+unknown roles, missing permissions.
 
-## Audit events (minimum)
+## Compliance posture
 
-`login_success` · `login_failed` · `logout` · `token_refresh` · `token_revoke` · `password_change` · `password_reset_request` · `password_reset_confirm` · `user_activated` · `user_deactivated` · `mfa_*` · `consent_*`
-
-Append-only when using SQL audit store; in-memory ring for CI.
-
-## Headers
-
-API layer continues to apply CSP / nosniff / frame-deny via existing middleware. Identity layer does not weaken headers.
-
-## India / DPDP posture
-
-- Store consent records via `ConsentRecordPort`
-- Do not store Aadhaar numbers
-- PAN verification uses hashed identifiers only (port)
-- DigiLocker / KYC are ports only
-
-## Threat notes
-
-| Threat | Control |
-|---|---|
-| Credential stuffing | Lockout + rate limit |
-| Refresh theft | Rotation + revoke-on-password-change |
-| JWT secret leak | SecretsPort / rotate secret + invalidate |
-| Privilege escalation | Frozen RBAC + admin-only ManageUsers |
+Supports CV-001 / CV-002 / CV-003 identity controls without altering research
+immutability (RS-001…RS-010). Auth stores identity metadata only.

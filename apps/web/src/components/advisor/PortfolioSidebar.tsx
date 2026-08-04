@@ -3,13 +3,17 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
-const MP_LINKS = [
+const MP_LINKS: ReadonlyArray<{
+  href: string;
+  label: string;
+  exact?: boolean;
+}> = [
   { href: "/advisor/portfolios", label: "Library", exact: true },
   { href: "/advisor/portfolios/builder", label: "Builder" },
   { href: "/advisor/portfolios/compare", label: "Compare" },
   { href: "/advisor/portfolios/templates", label: "Templates" },
   { href: "/advisor/portfolios/notes", label: "Notes" },
-] as const;
+];
 
 export function PortfolioSidebar() {
   const pathname = usePathname();

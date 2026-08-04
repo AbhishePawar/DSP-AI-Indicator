@@ -1,6 +1,7 @@
 # DSP AI Indicator — RC1 Operations Handbook
 
-**Living RC target (P6.1):** Backend **1.6.0** · Frontend **2.0.0-rc** · API contract **v1.0.0-rc1**  
+**Living production target (P7.0):** Backend **1.7.0** · Frontend **2.0.0** · API contract **v1.0.0**  
+**Prior RC handbook target (P6.1):** Backend **1.6.0** · Frontend **2.0.0-rc** · API contract **v1.0.0-rc1**  
 **Historical RC1 label:** 1.0.0-rc1 · see also `docs/P5_2_BETA_STABILISATION.md`
 
 This handbook consolidates deployment, architecture, environment, monitoring, incident response, backup, and release guidance for Release Candidate builds.

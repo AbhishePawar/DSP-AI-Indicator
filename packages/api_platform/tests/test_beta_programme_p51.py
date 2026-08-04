@@ -57,7 +57,7 @@ def test_feedback_and_issue_workflow(client: TestClient) -> None:
             "description": "Feedback button overlaps status bar on mobile",
             "rating": 4,
             "acknowledgement": True,
-            "app_version": "2.0.0-rc",
+            "app_version": "2.0.2",
             "browser": "TestAgent",
             "company_analysed": "AAPL",
             "page_path": "/analysis",
@@ -112,7 +112,7 @@ def test_dsp_platform_version_expectation() -> None:
     # Imported lazily so package path resolution matches monorepo installs
     from dsp_platform import __version__
 
-    assert __version__ == "1.6.0"
+    assert __version__ == "1.7.2"
 
 
 def test_snapshot_classify_and_rc_assessment(client: TestClient) -> None:
@@ -125,7 +125,7 @@ def test_snapshot_classify_and_rc_assessment(client: TestClient) -> None:
             "description": "Spacing inconsistency on settings",
             "rating": 5,
             "acknowledgement": True,
-            "app_version": "2.0.0-rc",
+            "app_version": "2.0.2",
         },
     )
     issues = client.get("/api/v1/admin/beta/issues").json()["result"]

@@ -105,6 +105,8 @@ git archive --format=zip --output=dsp-ai-indicator-src.zip HEAD
 - [ ] No absolute local machine paths in tracked files  
 - [ ] No empty placeholder infra files  
 - [ ] `VERSION_MATRIX` / `DSP_STATUS` current  
+- [ ] **Tier-0 CV-001…CV-010** authenticity / governance gate reviewed ([RELEASE_CHECKLIST.md](RELEASE_CHECKLIST.md) · [CORE_VALUES.md](CORE_VALUES.md))  
+- [ ] **RS-001…RS-010** research standards gate reviewed ([RESEARCH_STANDARDS.md](RESEARCH_STANDARDS.md))  
 - [ ] Tag/milestone named per release policy  
 
 ---

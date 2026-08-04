@@ -1,6 +1,6 @@
 # SBOM Generation Report (EPIC-017)
 
-Generated: `2026-08-02T17:12:01.407243+00:00`
+Generated: `2026-08-04T06:25:31.067036+00:00`
 
 ## Artifacts
 

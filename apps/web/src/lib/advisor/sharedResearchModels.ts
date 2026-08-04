@@ -121,7 +121,7 @@ export function seedSharedActivity(): SharedResearchActivityItem[] {
       envelopeId: "re-aurora",
     },
     ...presented,
-  ].sort((a, b) => b.at.localeCompare(a.at));
+  ].sort((a, b) => b.at.localeCompare(a.at)) as SharedResearchActivityItem[];
 }
 
 export const FILTER_SECTORS = [

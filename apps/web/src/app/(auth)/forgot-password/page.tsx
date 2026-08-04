@@ -1,38 +1,94 @@
-import type { Metadata } from "next";
-import Link from "next/link";
+"use client";
 
-import { AuthCard, AuthShell } from "@/components/auth";
-import { Alert, Button, EmptyState, Stack } from "@/components/ds";
+import Link from "next/link";
+import { FormEvent, useState } from "react";
+
+import { AuthCard, AuthShell, isValidEmail, mapAuthError } from "@/components/auth";
+import {
+  Alert,
+  Button,
+  FormField,
+  Input,
+  Stack,
+  ValidationMessage,
+} from "@/components/ds";
+import { enterpriseAuthApi } from "@/lib/api/enterpriseAuth";
 import { SUPPORT_CONTACT } from "@/lib/commercial";
 
-export const metadata: Metadata = {
-  title: "Forgot password",
-};
-
-/**
- * RC3-002 — Honest password help. No reset API; no simulated emails.
- */
 export default function ForgotPasswordPage() {
+  const [email, setEmail] = useState("");
+  const [error, setError] = useState<string | null>(null);
+  const [pending, setPending] = useState(false);
+  const [done, setDone] = useState(false);
+  const [devToken, setDevToken] = useState<string | null>(null);
+
+  async function onSubmit(event: FormEvent) {
+    event.preventDefault();
+    setError(null);
+    if (!isValidEmail(email)) {
+      setError("Enter a valid email.");
+      return;
+    }
+    setPending(true);
+    try {
+      const envelope = await enterpriseAuthApi.forgotPassword(email.trim());
+      const token = (envelope.result as { reset_token?: string } | undefined)
+        ?.reset_token;
+      if (token) setDevToken(token);
+      setDone(true);
+    } catch (err) {
+      setError(mapAuthError(err));
+    } finally {
+      setPending(false);
+    }
+  }
+
   return (
     <AuthShell>
       <AuthCard
         title="Forgot password"
-        description="Password reset requests are currently handled by an administrator."
+        description="Request a password reset token. Production deployments deliver email via the configured mailer."
       >
         <Stack gap={4}>
-          <EmptyState
-            title="Self-service reset is not available"
-            description="The platform does not send password-reset emails in this release. Ask your organisation administrator to restore access."
-            action={
+          {done ? (
+            <>
+              <Alert variant="success" title="If an account exists">
+                A reset token was issued when the email matches an account.
+              </Alert>
+              {devToken ? (
+                <Alert variant="info" title="Development reset token">
+                  <Link
+                    href={`/reset-password?token=${encodeURIComponent(devToken)}`}
+                    className="underline"
+                  >
+                    Continue to reset password
+                  </Link>
+                </Alert>
+              ) : null}
               <Link href="/login">
-                <Button>Back to sign in</Button>
+                <Button className="w-full">Back to sign in</Button>
               </Link>
-            }
-          />
-          <Alert variant="info" title="How to regain access">
-            Contact your programme administrator with your username or work
-            email. Do not expect an automated reset message from DSP.
-          </Alert>
+            </>
+          ) : (
+            <form className="space-y-4" onSubmit={onSubmit} noValidate>
+              <FormField label="Work email" htmlFor="forgot-email" required>
+                <Input
+                  id="forgot-email"
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  required
+                  disabled={pending}
+                />
+              </FormField>
+              {error ? (
+                <ValidationMessage tone="error">{error}</ValidationMessage>
+              ) : null}
+              <Button type="submit" className="w-full" disabled={pending}>
+                {pending ? "Submitting…" : "Request reset"}
+              </Button>
+            </form>
+          )}
           <p className="text-xs text-[var(--muted)]">
             {SUPPORT_CONTACT.channelsPublished
               ? `Support: ${SUPPORT_CONTACT.email}`

@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { FormEvent, useState } from "react";
 
-import { AuthCard, AuthShell, isValidEmail } from "@/components/auth";
+import { AuthCard, AuthShell, isValidEmail, mapAuthError } from "@/components/auth";
 import {
   Alert,
   Button,
@@ -13,11 +13,12 @@ import {
   Textarea,
   ValidationMessage,
 } from "@/components/ds";
+import { enterpriseAuthApi } from "@/lib/api/enterpriseAuth";
 import { SUPPORT_CONTACT } from "@/lib/commercial";
 
 /**
- * RC3-002 — Honest Request Access workflow.
- * No self-service registration API; no password collection.
+ * Enterprise Request Access workflow — Submit → Admin Approval → Invitation.
+ * Coexists with self-service /register.
  */
 export default function SignUpPage() {
   const [email, setEmail] = useState("");
@@ -25,9 +26,11 @@ export default function SignUpPage() {
   const [organization, setOrganization] = useState("");
   const [reason, setReason] = useState("");
   const [error, setError] = useState<string | null>(null);
-  const [prepared, setPrepared] = useState(false);
+  const [pending, setPending] = useState(false);
+  const [submitted, setSubmitted] = useState(false);
+  const [requestId, setRequestId] = useState<string | null>(null);
 
-  function onSubmit(event: FormEvent) {
+  async function onSubmit(event: FormEvent) {
     event.preventDefault();
     setError(null);
     if (!name.trim()) {
@@ -38,61 +41,60 @@ export default function SignUpPage() {
       setError("Enter a valid work email.");
       return;
     }
-    // Local preparation only — no registration API, no account creation.
-    setPrepared(true);
+    setPending(true);
+    try {
+      const envelope = await enterpriseAuthApi.submitAccessRequest({
+        name: name.trim(),
+        email: email.trim(),
+        organization: organization.trim(),
+        reason: reason.trim(),
+      });
+      if (!envelope.ok) {
+        throw new Error(envelope.error || "Request failed");
+      }
+      const req = (envelope.result as { request?: { request_id?: string } } | undefined)
+        ?.request;
+      setRequestId(req?.request_id || null);
+      setSubmitted(true);
+    } catch (err) {
+      setError(mapAuthError(err));
+    } finally {
+      setPending(false);
+    }
   }
 
   return (
     <AuthShell>
       <AuthCard
         title="Request access"
-        description="Accounts are provisioned by DSP AI Indicator administrators. This form does not create an account or call a registration API."
+        description="Enterprise onboarding: submit a request for administrator approval. An invitation to create your password follows approval."
       >
         <Stack gap={4}>
-          {prepared ? (
+          {submitted ? (
             <>
-              <Alert variant="info" title="Access request not submitted online">
-                No account was created and no request was sent to DSP servers.
-                Share your details with your programme administrator so they can
-                provision access.
+              <Alert variant="success" title="Access request submitted">
+                Your request was recorded for administrator review. You will
+                receive an invitation to create a password after approval.
               </Alert>
-              <dl className="space-y-2 rounded-[var(--radius-md)] border border-[var(--border)] bg-[var(--surface-2)] px-4 py-3 text-sm">
-                <div>
-                  <dt className="text-[var(--muted)]">Name</dt>
-                  <dd className="font-medium">{name.trim()}</dd>
-                </div>
-                <div>
-                  <dt className="text-[var(--muted)]">Email</dt>
-                  <dd className="font-medium">{email.trim()}</dd>
-                </div>
-                {organization.trim() ? (
-                  <div>
-                    <dt className="text-[var(--muted)]">Organization</dt>
-                    <dd className="font-medium">{organization.trim()}</dd>
-                  </div>
-                ) : null}
-                {reason.trim() ? (
-                  <div>
-                    <dt className="text-[var(--muted)]">Reason for access</dt>
-                    <dd className="font-medium">{reason.trim()}</dd>
-                  </div>
-                ) : null}
-              </dl>
+              {requestId ? (
+                <p className="text-sm text-[var(--muted)]">
+                  Reference: <span className="font-medium">{requestId}</span>
+                </p>
+              ) : null}
               <div className="flex flex-wrap gap-2">
-                <Button type="button" variant="secondary" onClick={() => setPrepared(false)}>
-                  Edit details
-                </Button>
                 <Link href="/login">
                   <Button>Sign in if already provisioned</Button>
+                </Link>
+                <Link href="/register">
+                  <Button variant="secondary">Self-service register</Button>
                 </Link>
               </div>
             </>
           ) : (
             <>
-              <Alert variant="info" title="Administrator provisioning">
-                Accounts are provisioned by the DSP AI Indicator administrators.
-                Prepare your details below, then contact your programme
-                administrator. Passwords are never collected on this page.
+              <Alert variant="info" title="Enterprise workflow">
+                Submit → Admin Approval → Invitation → Create Password → Login.
+                For immediate self-service, use Register instead.
               </Alert>
               <form className="space-y-4" onSubmit={onSubmit} noValidate>
                 <FormField label="Full name" htmlFor="signup-name" required>
@@ -102,6 +104,7 @@ export default function SignUpPage() {
                     onChange={(e) => setName(e.target.value)}
                     autoComplete="name"
                     required
+                    disabled={pending}
                   />
                 </FormField>
                 <FormField label="Work email" htmlFor="signup-email" required>
@@ -112,37 +115,32 @@ export default function SignUpPage() {
                     onChange={(e) => setEmail(e.target.value)}
                     autoComplete="email"
                     required
+                    disabled={pending}
                   />
                 </FormField>
-                <FormField
-                  label="Organization"
-                  htmlFor="signup-org"
-                  hint="Optional"
-                >
+                <FormField label="Organization" htmlFor="signup-org" hint="Optional">
                   <Input
                     id="signup-org"
                     value={organization}
                     onChange={(e) => setOrganization(e.target.value)}
                     autoComplete="organization"
+                    disabled={pending}
                   />
                 </FormField>
-                <FormField
-                  label="Reason for access"
-                  htmlFor="signup-reason"
-                  hint="Optional"
-                >
+                <FormField label="Reason for access" htmlFor="signup-reason" hint="Optional">
                   <Textarea
                     id="signup-reason"
                     value={reason}
                     onChange={(e) => setReason(e.target.value)}
                     rows={3}
+                    disabled={pending}
                   />
                 </FormField>
                 {error ? (
                   <ValidationMessage tone="error">{error}</ValidationMessage>
                 ) : null}
-                <Button type="submit" className="w-full">
-                  Prepare access details
+                <Button type="submit" className="w-full" disabled={pending}>
+                  {pending ? "Submitting…" : "Submit access request"}
                 </Button>
               </form>
             </>
@@ -154,6 +152,13 @@ export default function SignUpPage() {
               className="text-[var(--accent)] underline-offset-2 hover:underline"
             >
               Sign in
+            </Link>
+            {" · "}
+            <Link
+              href="/register"
+              className="text-[var(--accent)] underline-offset-2 hover:underline"
+            >
+              Register
             </Link>
           </p>
           <p className="text-xs text-[var(--muted)]">

@@ -2,37 +2,34 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 import { AuthCard, AuthShell } from "@/components/auth";
-import { Button, EmptyState } from "@/components/ds";
+import { Alert, Button, Stack } from "@/components/ds";
 
 export const metadata: Metadata = {
   title: "Forbidden",
 };
 
-/** HTTP 403 experience — authenticated but missing permission. */
 export default function ForbiddenPage() {
   return (
     <AuthShell>
       <AuthCard
-        title="Forbidden"
-        description="You are signed in, but you do not have permission for this resource (HTTP 403)."
+        title="Access forbidden"
+        description="You do not have permission to view this resource."
       >
-        <EmptyState
-          title="Permission required"
-          description="Data unavailable for the requested action under your current roles. Return to the dashboard or review your profile with an administrator."
-          action={
-            <div className="flex flex-wrap justify-center gap-2">
-              <Link href="/dashboard">
-                <Button variant="secondary">Dashboard</Button>
-              </Link>
-              <Link href="/profile">
-                <Button>View profile</Button>
-              </Link>
-              <Link href="/logout">
-                <Button variant="ghost">Sign out</Button>
-              </Link>
-            </div>
-          }
-        />
+        <Stack gap={4}>
+          <Alert variant="warning" title="Insufficient privileges">
+            Your account is authenticated but lacks the required role or
+            permission. Contact an administrator if you believe this is an
+            error.
+          </Alert>
+          <div className="flex flex-wrap gap-2">
+            <Link href="/dashboard">
+              <Button>Research dashboard</Button>
+            </Link>
+            <Link href="/login">
+              <Button variant="secondary">Sign in as another user</Button>
+            </Link>
+          </div>
+        </Stack>
       </AuthCard>
     </AuthShell>
   );

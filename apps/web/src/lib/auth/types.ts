@@ -47,6 +47,8 @@ export type LoginCredentials = {
   rememberMe?: boolean;
   /** Prefer A009 RBAC when true (default). */
   useRbac?: boolean;
+  /** Use enterprise multi-provider password login (email or username). */
+  useEnterprise?: boolean;
 };
 
 /** @deprecated Use Session — kept for gradual migration. */

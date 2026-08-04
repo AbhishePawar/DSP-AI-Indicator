@@ -18,6 +18,9 @@ export const PROTECTED_ROUTE_PREFIXES = [
 export const AUTH_PUBLIC_PATHS = [
   "/login",
   "/signup",
+  "/register",
+  "/invite",
+  "/oauth/callback",
   "/forgot-password",
   "/reset-password",
   "/verify-email",

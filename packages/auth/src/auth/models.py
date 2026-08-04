@@ -41,6 +41,7 @@ PERMISSIONS = (
 )
 
 BUILTIN_ROLES = (
+    "super_admin",
     "administrator",
     "research_analyst",
     "senior_analyst",
@@ -49,9 +50,13 @@ BUILTIN_ROLES = (
     "investment_committee",
     "portfolio_manager",
     "read_only",
+    # Enterprise product roles (map to permission-based RBAC; UI must not hardcode)
+    "viewer",
+    "enterprise_client",
 )
 
 ROLE_PERMISSIONS: dict[str, tuple[str, ...]] = {
+    "super_admin": PERMISSIONS,
     "administrator": PERMISSIONS,
     "research_analyst": (
         "read_research",
@@ -93,6 +98,8 @@ ROLE_PERMISSIONS: dict[str, tuple[str, ...]] = {
         "submit_workflow",
     ),
     "read_only": ("read_research",),
+    "viewer": ("read_research",),  # UI alias: Read Only Viewer → prefer read_only
+    "enterprise_client": ("read_research",),
 }
 
 
@@ -139,7 +146,7 @@ class AuthUser:
     email: str
     display_name: str
     password_hash: str
-    status: str  # active | disabled
+    status: str  # active | disabled | locked | pending_verification | pending_approval
     created_at: str
     updated_at: str
     last_login: str | None = None

@@ -12,5 +12,9 @@ dependencies = [
     "persistence",
 ]
 
+[project.optional-dependencies]
+bcrypt = ["bcrypt>=4.0"]
+enterprise = ["bcrypt>=4.0"]
+
 [tool.setuptools.packages.find]
 where = ["src"]

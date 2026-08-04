@@ -15,6 +15,7 @@ import {
   TableRow,
 } from "@/components/ds";
 import { adminApi } from "@/lib/api/adminClient";
+import { enterpriseAuthApi } from "@/lib/api/enterpriseAuth";
 import type {
   AdminDashboard,
   AdminEntity,
@@ -142,6 +143,49 @@ export function IdentitySection({
     queryKey: ["admin", "user", selectedUserId, token],
     queryFn: () => adminApi.getUser(selectedUserId!, tokenOpts(token)),
     enabled: Boolean(selectedUserId),
+  });
+  const accessRequestsQuery = useQuery({
+    queryKey: ["admin", "enterprise-access-requests", token],
+    queryFn: async () => {
+      const envelope = await enterpriseAuthApi.listAccessRequests(token);
+      return (envelope.result || []) as Array<{
+        request_id: string;
+        name: string;
+        email: string;
+        organization?: string;
+        status: string;
+        created_at?: string;
+        invitation_token?: string | null;
+      }>;
+    },
+  });
+  const loginHistoryQuery = useQuery({
+    queryKey: ["admin", "enterprise-login-history", token, selectedUserId],
+    queryFn: async () => {
+      const headers: HeadersInit = {};
+      if (token && token !== "__cookie__") {
+        (headers as Record<string, string>).Authorization = `Bearer ${token}`;
+      }
+      const base =
+        (await import("@/lib/env")).env.apiBaseUrl +
+        `/auth/enterprise/admin/login-history${
+          selectedUserId ? `?user_id=${encodeURIComponent(selectedUserId)}` : ""
+        }`;
+      const { cookieAuthPreferred, cookieFetchInit } = await import(
+        "@/lib/auth/cookieSession"
+      );
+      const init = cookieAuthPreferred()
+        ? cookieFetchInit({ headers })
+        : { headers };
+      const res = await fetch(base, init);
+      const data = (await res.json()) as {
+        ok?: boolean;
+        result?: Array<Record<string, unknown>>;
+        error?: string;
+      };
+      if (!res.ok) throw new Error(data.error || `HTTP ${res.status}`);
+      return data.result || [];
+    },
   });
 
   const users = usersQuery.data ?? [];
@@ -381,6 +425,116 @@ export function IdentitySection({
                       ? "Data unavailable."
                       : String(s.revoked)}
                   </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        )}
+      </SectionCard>
+
+      <SectionCard
+        title="Enterprise access requests"
+        description="POST /auth/enterprise/access-requests — approve or reject pending enterprise onboarding."
+      >
+        {accessRequestsQuery.isLoading ? (
+          <WorkspaceSkeleton />
+        ) : accessRequestsQuery.isError ? (
+          <QueryError message={errMessage(accessRequestsQuery.error)} />
+        ) : (accessRequestsQuery.data || []).length === 0 ? (
+          <WorkspaceEmpty description="No access requests." />
+        ) : (
+          <Table aria-label="Enterprise access requests">
+            <TableHeader>
+              <TableRow>
+                <TableHead>Name</TableHead>
+                <TableHead>Email</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead>Created</TableHead>
+                <TableHead />
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {(accessRequestsQuery.data || []).map((req) => (
+                <TableRow key={req.request_id}>
+                  <TableCell>{req.name}</TableCell>
+                  <TableCell>{req.email}</TableCell>
+                  <TableCell>{req.status}</TableCell>
+                  <TableCell>{req.created_at || "Data unavailable."}</TableCell>
+                  <TableCell className="space-x-1">
+                    {req.status === "pending" ? (
+                      <>
+                        <Button
+                          size="sm"
+                          onClick={async () => {
+                            await enterpriseAuthApi.decideAccessRequest(
+                              req.request_id,
+                              { approve: true, role: "enterprise_client" },
+                              token,
+                            );
+                            await accessRequestsQuery.refetch();
+                          }}
+                        >
+                          Approve
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="secondary"
+                          onClick={async () => {
+                            await enterpriseAuthApi.decideAccessRequest(
+                              req.request_id,
+                              { approve: false },
+                              token,
+                            );
+                            await accessRequestsQuery.refetch();
+                          }}
+                        >
+                          Reject
+                        </Button>
+                      </>
+                    ) : req.invitation_token ? (
+                      <span className="font-mono text-xs">
+                        invite:{req.invitation_token.slice(0, 8)}…
+                      </span>
+                    ) : null}
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        )}
+      </SectionCard>
+
+      <SectionCard
+        title="Login history"
+        description="GET /auth/enterprise/admin/login-history — device/provider audit trail."
+      >
+        {loginHistoryQuery.isLoading ? (
+          <WorkspaceSkeleton />
+        ) : loginHistoryQuery.isError ? (
+          <QueryError message={errMessage(loginHistoryQuery.error)} />
+        ) : (loginHistoryQuery.data || []).length === 0 ? (
+          <WorkspaceEmpty description="No login history records." />
+        ) : (
+          <Table aria-label="Login history">
+            <TableHeader>
+              <TableRow>
+                <TableHead>User</TableHead>
+                <TableHead>Provider</TableHead>
+                <TableHead>Success</TableHead>
+                <TableHead>When</TableHead>
+                <TableHead>Device</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {(loginHistoryQuery.data || []).slice(0, 50).map((row) => (
+                <TableRow key={String(row.entry_id)}>
+                  <TableCell className="font-mono text-xs">
+                    {String(row.user_id || "")}
+                  </TableCell>
+                  <TableCell>{String(row.provider || "")}</TableCell>
+                  <TableCell>{String(row.success)}</TableCell>
+                  <TableCell>{String(row.created_at || "")}</TableCell>
+                  <TableCell>{String(row.device_label || "—")}</TableCell>
                 </TableRow>
               ))}
             </TableBody>

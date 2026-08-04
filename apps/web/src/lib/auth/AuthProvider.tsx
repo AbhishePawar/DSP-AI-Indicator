@@ -11,6 +11,7 @@ import {
 } from "react";
 
 import { api } from "@/lib/api/client";
+import { enterpriseAuthApi } from "@/lib/api/enterpriseAuth";
 import { rbacAuthApi } from "@/lib/api/rbacAuth";
 import { ApiClientError } from "@/lib/api/types";
 import { logger } from "@/lib/observability/logger";
@@ -147,7 +148,36 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setStatus("loading");
       syncStore("loading", null);
       const useRbac = credentials.useRbac !== false;
+      const useEnterprise = credentials.useEnterprise !== false;
       try {
+        if (useEnterprise && credentials.password) {
+          try {
+            const envelope = await enterpriseAuthApi.login({
+              identifier: credentials.username.trim(),
+              password: credentials.password,
+              remember_me: Boolean(credentials.rememberMe),
+            });
+            if (envelope.ok && envelope.result?.tokens?.access_token) {
+              let next = sessionFromRbacLogin(
+                envelope.result as typeof envelope.result & {
+                  csrf_token?: string;
+                  cookie_auth?: boolean;
+                },
+                Boolean(credentials.rememberMe),
+              );
+              next = await enrichPermissions(next);
+              applySession(next);
+              logger.info("User signed in (enterprise)", {
+                subject: next.subject,
+                role: next.role,
+              });
+              return;
+            }
+          } catch (enterpriseErr) {
+            if (!useRbac) throw enterpriseErr;
+            // Fall through to legacy RBAC username login.
+          }
+        }
         if (useRbac && credentials.password) {
           const envelope = await rbacAuthApi.login({
             username: credentials.username.trim(),

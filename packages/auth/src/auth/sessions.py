@@ -26,11 +26,13 @@ class SessionManager:
         session_id: str | None = None,
         refresh_token_id: str | None = None,
         created_at: str | None = None,
+        metadata: dict[str, Any] | None = None,
     ) -> AuthSession:
         created = created_at or utc_now().isoformat()
         created_dt = datetime.fromisoformat(created.replace("Z", "+00:00"))
         expires = (created_dt + timedelta(seconds=int(expires_in))).isoformat()
         sid = session_id or str(uuid.uuid4())
+        meta = {"auth_entity": "session", **(metadata or {})}
         session = AuthSession(
             session_id=sid,
             user_id=user_id,
@@ -38,7 +40,7 @@ class SessionManager:
             expires_at=expires,
             revoked=False,
             refresh_token_id=refresh_token_id,
-            metadata=freeze_mapping({"auth_entity": "session"}),
+            metadata=freeze_mapping(meta),
         )
         self._persistence.put(
             kind="metadata",
@@ -110,6 +112,20 @@ class SessionManager:
             sid = str(entity_id)[len(_SESSION_PREFIX) :]
             session = self.get(sid)
             if session and session.user_id == user_id:
+                out.append(session)
+        out.sort(key=lambda s: s.created_at)
+        return out
+
+    def list_sessions(self, user_id: str | None = None) -> list[AuthSession]:
+        if user_id:
+            return self.list_for_user(user_id)
+        out: list[AuthSession] = []
+        for entity_id in self._persistence.list_ids("metadata"):
+            if not str(entity_id).startswith(_SESSION_PREFIX):
+                continue
+            sid = str(entity_id)[len(_SESSION_PREFIX) :]
+            session = self.get(sid)
+            if session:
                 out.append(session)
         out.sort(key=lambda s: s.created_at)
         return out

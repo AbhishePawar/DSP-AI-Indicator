@@ -508,7 +508,7 @@ export function WeightingProfilesSection({
           <Button
             key={p.id}
             size="sm"
-            variant={weightingProfileId === p.id ? "default" : "secondary"}
+            variant={weightingProfileId === p.id ? "primary" : "secondary"}
             aria-pressed={weightingProfileId === p.id}
             onClick={() => setWeightingProfileId(p.id as WeightingProfileId)}
           >
@@ -607,7 +607,7 @@ export function DecisionWorkspaceSection({
           <li key={s.id}>
             <Button
               size="sm"
-              variant={s.id === step.id ? "default" : "ghost"}
+              variant={s.id === step.id ? "primary" : "ghost"}
               aria-current={s.id === step.id ? "step" : undefined}
               onClick={() => go(s)}
             >
@@ -675,7 +675,7 @@ export function ReviewModeControls() {
         <Button
           key={m.id}
           size="sm"
-          variant={reviewMode === m.id ? "default" : "ghost"}
+          variant={reviewMode === m.id ? "primary" : "ghost"}
           aria-pressed={reviewMode === m.id}
           title={m.description}
           onClick={() => setReviewMode(m.id)}

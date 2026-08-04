@@ -13,9 +13,11 @@ import Link from "next/link";
 
 import { Button, Skeleton } from "@/components/ds";
 import { useResearchDisclaimerGate } from "@/components/legal/useResearchDisclaimerGate";
+import { SurfaceTrustChrome } from "@/components/trust/SurfaceTrustChrome";
 import { api } from "@/lib/api/client";
 import { ApiClientError } from "@/lib/api/types";
 import { useAuth } from "@/lib/auth/AuthProvider";
+import { researchWorkspaceSurfaceTrust } from "@/lib/trust/surfaceTrust";
 import { pushRecentAnalysis } from "@/lib/analysis/recentAnalyses";
 import { COMPANY_CATALOGUE } from "@/lib/companies/catalogue";
 import { loadArchivedSession } from "@/lib/copilot/sessionArchive";
@@ -383,6 +385,27 @@ export function ResearchWorkspace() {
           tabIndex={-1}
           aria-label="Main research view"
         >
+          <div className="mb-4">
+            <SurfaceTrustChrome
+              summary={researchWorkspaceSurfaceTrust({
+                ticker: selectedTicker,
+                analyseOk: view ? view.ok : loadMutation.isError ? false : null,
+                stagesCount: view?.stages?.length ?? 0,
+                recommendation: view?.recommendation ?? null,
+                confidenceDisplay:
+                  view?.recommendationConfidence != null
+                    ? String(view.recommendationConfidence)
+                    : null,
+                opposingNotes: [
+                  ...(view?.weaknesses ?? []),
+                  ...(view?.risks ?? []),
+                  ...(error ? [error] : []),
+                ].slice(0, 6),
+                analysedAt: view?.analysedAt ?? null,
+              })}
+              title="Trust Ladder"
+            />
+          </div>
           {section === "library" ? (
             <LibrarySection onOpenTicker={openTicker} />
           ) : null}

@@ -19,13 +19,4 @@ export const runAxe = configureAxe({
   rules: { ...JSDOM_DISABLED_RULES },
 });
 
-export const A11Y_AUTOMATION_SCOPE = [
-  "keyboard-escape-dialogs",
-  "aria-dialog-modal",
-  "aria-live-loading",
-  "empty-state-status",
-  "skeleton-decorative",
-  "reduced-motion-hooks",
-  "touch-target-conventions",
-  "axe-core-component-scan",
-] as const;
+export { A11Y_AUTOMATION_SCOPE } from "./scope";

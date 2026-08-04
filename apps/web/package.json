@@ -16,6 +16,11 @@
     "test:a11y": "vitest run src/lib/a11y",
     "test:perf": "vitest run src/lib/performance",
     "test:quality": "vitest run src/lib/a11y src/lib/performance",
+    "test:visual": "playwright test e2e/visual",
+    "test:visual:update": "playwright test e2e/visual --update-snapshots",
+    "test:browser": "playwright test e2e/browser",
+    "test:playwright": "playwright test",
+    "playwright:install": "playwright install --with-deps chromium firefox webkit",
     "analyze": "node scripts/run-analyze.mjs",
     "perf:budget": "node scripts/check-bundle-budgets.mjs",
     "lighthouse:ci": "npx --yes @lhci/cli@0.14.0 autorun --config=lighthouserc.cjs"
@@ -56,6 +61,7 @@
   "devDependencies": {
     "@eslint/eslintrc": "^3.2.0",
     "@next/bundle-analyzer": "^15.5.22",
+    "@playwright/test": "^1.51.0",
     "@tailwindcss/postcss": "^4.0.0",
     "@testing-library/jest-dom": "^6.6.3",
     "@testing-library/react": "^16.2.0",

@@ -2,8 +2,9 @@ import type { NextConfig } from "next";
 import bundleAnalyzer from "@next/bundle-analyzer";
 
 /**
- * Web 2.0.0-rc.1 — CSP enforced (EPS-003 RC hardening).
- * No Decision Engine / Research Mode / Feature Flag product changes.
+ * Web 2.0.0-rc.1 — security headers (EPS-003 / EPIC-019A).
+ * CSP is issued per-request from src/middleware.ts (nonce; no static
+ * script-src 'unsafe-inline'/'unsafe-eval' in production). See CSP_REVIEW.md.
  *
  * EPIC-010 / GA-003 — set ANALYZE=true to emit webpack-bundle-analyzer reports
  * (npm run analyze). Quality tooling only; no product behaviour change.
@@ -11,19 +12,6 @@ import bundleAnalyzer from "@next/bundle-analyzer";
 const withBundleAnalyzer = bundleAnalyzer({
   enabled: process.env.ANALYZE === "true",
 });
-
-const csp = [
-  "default-src 'self'",
-  "script-src 'self' 'unsafe-inline' 'unsafe-eval'",
-  "style-src 'self' 'unsafe-inline'",
-  "img-src 'self' data: blob:",
-  "font-src 'self' data:",
-  "connect-src 'self' http://127.0.0.1:8000 http://localhost:8000 https:",
-  "object-src 'none'",
-  "frame-ancestors 'none'",
-  "base-uri 'self'",
-  "form-action 'self'",
-].join("; ");
 
 const nextConfig: NextConfig = {
   reactStrictMode: true,
@@ -48,10 +36,6 @@ const nextConfig: NextConfig = {
     {
       source: "/:path*",
       headers: [
-        {
-          key: "Content-Security-Policy",
-          value: csp,
-        },
         { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
         { key: "X-Content-Type-Options", value: "nosniff" },
         { key: "X-Frame-Options", value: "DENY" },

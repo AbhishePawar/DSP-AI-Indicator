@@ -21,9 +21,11 @@ import { useQuery } from "@tanstack/react-query";
 import { Button, ErrorState } from "@/components/ds";
 import { PortfolioActions } from "@/components/portfolio/PortfolioActions";
 import { PortfolioSync } from "@/components/persistence/PortfolioSync";
+import { SurfaceTrustChrome } from "@/components/trust/SurfaceTrustChrome";
 import { api } from "@/lib/api/client";
 import { ApiClientError } from "@/lib/api/types";
 import { useAuth } from "@/lib/auth/AuthProvider";
+import { portfolioSurfaceTrust } from "@/lib/trust/surfaceTrust";
 import {
   PORTFOLIO_SECTIONS,
   asPortfolioSectionId,
@@ -458,6 +460,21 @@ export function PortfolioIntelligenceWorkspace() {
           <div className="mb-4 space-y-3">
             <PortfolioSync />
             {isEmpty ? <PortfolioActions /> : null}
+            <SurfaceTrustChrome
+              summary={portfolioSurfaceTrust({
+                holdingsCount: holdings.length,
+                researchCovered: coverage.covered,
+                researchTotal: coverage.total,
+                intelStatus,
+                confidenceDisplay: intel?.schemaVersion
+                  ? `Schema ${intel.schemaVersion}`
+                  : null,
+                opposingNotes: intelQuery.isError
+                  ? [describeIntelError(intelQuery.error)]
+                  : [],
+              })}
+              title="Trust Ladder"
+            />
           </div>
 
           {intelQuery.isError && token && holdings.length > 0 ? (

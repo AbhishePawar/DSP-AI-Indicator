@@ -16,12 +16,14 @@ import {
 
 import { Alert, Button } from "@/components/ds";
 import { PageHeader } from "@/components/layout/PageHeader";
+import { SurfaceTrustChrome } from "@/components/trust/SurfaceTrustChrome";
 import {
   useDashboardPrefsStore,
   widgetMeta,
   type DashboardWidgetId,
 } from "@/lib/dashboard";
 import { useUiStore } from "@/lib/shell";
+import { dashboardSurfaceTrust } from "@/lib/trust/surfaceTrust";
 import { cn } from "@/lib/utils";
 import { DashboardCustomizePanel } from "./DashboardCustomizePanel";
 import {
@@ -306,6 +308,15 @@ export function InstitutionalDashboard() {
         issue buy/sell instructions. Shell navigation (top bar, sidebar, status
         footer) remains available around this workspace.
       </Alert>
+
+      <SurfaceTrustChrome
+        summary={dashboardSurfaceTrust({
+          widgetCount: visibleIds.length,
+          note: "Audit: executive dashboard orientation — widgets must not invent scores.",
+        })}
+        title="Trust Ladder"
+        showBanner={false}
+      />
 
       <section
         aria-label="Executive questions"

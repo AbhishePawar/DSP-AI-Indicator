@@ -7,6 +7,7 @@ import Link from "next/link";
 import { InstitutionalResearchDashboard } from "@/components/institutional-dashboard/InstitutionalResearchDashboard";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { ResearchModeBanner } from "@/components/research/ResearchModeBanner";
+import { CompactTrustLadder } from "@/components/trust/SurfaceTrustChrome";
 import {
   Alert,
   Button,
@@ -25,6 +26,7 @@ import { api } from "@/lib/api/client";
 import { ApiClientError } from "@/lib/api/types";
 import { useAuth } from "@/lib/auth/AuthProvider";
 import { buildAnalyseRequestForTicker } from "@/lib/research/buildAnalyseRequest";
+import { irdSurfaceTrust } from "@/lib/trust/surfaceTrust";
 
 export function InstitutionalDashboardClient({
   initialTicker = "",
@@ -151,6 +153,33 @@ export function InstitutionalDashboardClient({
         description="Production research surface implementing RS-001…RS-010 over frozen /api/v1 — thin client, no invented numbers."
       />
       <ResearchModeBanner />
+
+      <CompactTrustLadder
+        summary={irdSurfaceTrust({
+          ticker: ticker.trim() || null,
+          loaded: Boolean(view),
+          priceDisplay: view?.executive.currentMarketPrice.display ?? null,
+          mosDisplay: view?.executive.marginOfSafety.display ?? null,
+          confidenceDisplay: view?.executive.confidence.display ?? null,
+          recommendationDisplay: view?.executive.recommendation.display ?? null,
+          unavailableFieldCount: view
+            ? [
+                view.executive.currentMarketPrice,
+                view.executive.intrinsicValue,
+                view.executive.marginOfSafety,
+                view.executive.confidence,
+                view.executive.recommendation,
+              ].filter((f) => f.presence !== "available").length
+            : 5,
+          opposingNotes: mutation.data?.dataGatewayNote
+            ? [mutation.data.dataGatewayNote]
+            : errorMessage
+              ? [errorMessage]
+              : [],
+          reportTimestamp: view?.executive.reportTimestamp.display ?? null,
+        })}
+        title="Trust Ladder"
+      />
 
       <Card>
         <CardContent>

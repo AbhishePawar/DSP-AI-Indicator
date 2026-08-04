@@ -45,7 +45,10 @@ async function enterpriseRequest<T>(
       {
         ok: false,
         error: "NetworkError",
+        detail: aborted ? "Request cancelled" : "API unavailable",
         message: aborted ? "Request cancelled" : "API unavailable",
+        api_version: "v1",
+        status_code: aborted ? 408 : 0,
       } satisfies ApiErrorBody,
     );
   }
@@ -64,7 +67,10 @@ async function enterpriseRequest<T>(
       {
         ok: false,
         error: payload?.error || "EnterpriseError",
+        detail: payload?.message || "Data unavailable.",
         message: payload?.message || "Data unavailable.",
+        api_version: "v1",
+        status_code: response.status,
       },
     );
   }

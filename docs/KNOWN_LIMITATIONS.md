@@ -1,6 +1,7 @@
-# Known Limitations — Web 2.0.0-rc / Platform 1.6.0
+# Known Limitations — Web 2.0.0 / Platform 1.7.0
 
-**Living channel:** P6.1 Commercial Readiness RC. Prior P5.2 limitations remain unless closed below.
+**Living channel:** P7.0 Production Infrastructure. Prior P5.2/P6.1 limitations remain unless closed below.
+**P7 condition:** Live ACME/HTTPS and backup/rollback drills require an operator host with real DNS.
 
 ## P5.2 — Closed Beta / RC (ops)
 
@@ -77,3 +78,10 @@
 - Portfolio Intelligence is session-demo (no broker sync) — by design
 - Beta feedback/issues are device-local only
 - No broker APIs, trading, tax, or alerts
+
+## EPIC-019A — Commercial engineering (pointers)
+
+- Canonical split: `docs/commercial/ENGINEERING_READY_CHECKLIST.md` vs `EXTERNAL_DEPLOYMENT_PREREQUISITES.md`
+- CSP style `'unsafe-inline'` residual: `docs/security/CSP_REVIEW.md`
+- Soak 8–24h remains an ops prerequisite: `docs/testing/SOAK_TEST_REPORT.md`
+- Doc index: `docs/releases/DOC_INDEX_COMMERCIAL.md`

@@ -186,7 +186,9 @@ Optional env: `DSP_AUTH_JWT_SECRET` (defaults to dev secret when unset — repla
 Routes: `GET/POST /api/v1/auth/rbac/*` (schema, login, logout, refresh, me, users, roles, permissions, evaluate, protect).
 Legacy `POST /api/v1/auth/login` unchanged.
 
-Docs: [EPIC_A009_README.md](EPIC_A009_README.md) · [AUTH_ARCHITECTURE.md](AUTH_ARCHITECTURE.md) · [RBAC_GUIDE.md](RBAC_GUIDE.md) · [SECURITY_GUIDE.md](SECURITY_GUIDE.md) · [API_GUIDE.md](API_GUIDE.md) · [DEVELOPER_GUIDE.md](DEVELOPER_GUIDE.md).
+**Enterprise multi-provider auth** (Google / Microsoft / Facebook / India OTP / email lifecycle / admin IAM) extends A009 without Auth.js — see [AUTH_ENTERPRISE_PLATFORM.md](AUTH_ENTERPRISE_PLATFORM.md) and `.env.example` (`DSP_GOOGLE_*`, `DSP_MICROSOFT_*`, `DSP_FACEBOOK_*`, `DSP_SMS_PROVIDER`, `DSP_AUTH_PROVIDER_*`, Argon2id / lockout knobs).
+
+Docs: [EPIC_A009_README.md](EPIC_A009_README.md) · [AUTH_ARCHITECTURE.md](AUTH_ARCHITECTURE.md) · [AUTH_ENTERPRISE_PLATFORM.md](AUTH_ENTERPRISE_PLATFORM.md) · [RBAC_GUIDE.md](RBAC_GUIDE.md) · [SECURITY_GUIDE.md](SECURITY_GUIDE.md) · [API_GUIDE.md](API_GUIDE.md) · [DEVELOPER_GUIDE.md](DEVELOPER_GUIDE.md).
 
 ## Enterprise Administration & Audit Console (EPIC-A010)
 

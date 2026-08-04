@@ -39,9 +39,13 @@ sequenceDiagram
 
 Unchanged: `api_key_id` + `api_key_secret` or `Authorization: ApiKey …`.
 
-## OIDC (future)
+## OIDC / enterprise multi-provider
 
-Client redirects to IdP → code → `OidcClientPort` / `OAuth2TokenValidator` → local session + JWT. Passwordless username login is deprecated once OIDC or password+MFA is mandatory in production profile.
+Implemented via `EnterpriseAuthPlatform` (see [AUTH_ENTERPRISE_PLATFORM.md](AUTH_ENTERPRISE_PLATFORM.md)):
+
+Client redirects to IdP → authorization code + **PKCE** → API callback → link/create user → **same** local session + JWT/cookies. Not Auth.js.
+
+Passwordless username login is deprecated once OIDC or password+MFA is mandatory in production profile.
 
 ## Logout
 

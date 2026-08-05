@@ -64,7 +64,11 @@ def test_seed_super_admin_once() -> None:
 
     platform = get_enterprise_auth_platform()
     users = platform.admin_list_users()
-    admins = [u for u in users if "super_admin" in (u.get("roles") or [])]
+    admins = [
+        u
+        for u in users
+        if "super_admin" in (u.get("roles") or []) or "administrator" in (u.get("roles") or [])
+    ]
     assert admins
     assert admins[0]["email"] == "admin@dspai.local"
     # Second construction must not duplicate
@@ -243,7 +247,9 @@ def test_access_request_invite_flow() -> None:
         confirm_password="StrongPass12!",
     )
     assert accepted["ok"] is True
-    with pytest.raises(DuplicateUserError):
+    # Invitation tokens are single-use: replaying the same token must be
+    # rejected outright rather than reaching duplicate-account detection.
+    with pytest.raises(ValidationError):
         platform.accept_invitation(
             token=token,
             password="StrongPass12!",

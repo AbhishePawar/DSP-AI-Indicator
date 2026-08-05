@@ -5,6 +5,7 @@ from __future__ import annotations
 import base64
 import hashlib
 import json
+import logging
 import os
 import secrets
 import urllib.error
@@ -16,6 +17,9 @@ from typing import Any
 
 from auth.enterprise_models import AuthProvider, ProviderUiStatus
 from auth.exceptions import AuthenticationError, ValidationError
+from auth.oidc import OidcVerificationUnavailable, verify_id_token
+
+logger = logging.getLogger(__name__)
 
 __all__ = [
     "OAuthProfile",
@@ -69,6 +73,8 @@ class OAuthProviderAdapter:
         userinfo_url: str,
         scopes: tuple[str, ...],
         flag_env: str,
+        oidc_jwks_uri: str | None = None,
+        oidc_issuers: tuple[str, ...] = (),
     ) -> None:
         self.provider = provider
         self.client_id = client_id.strip()
@@ -78,6 +84,8 @@ class OAuthProviderAdapter:
         self.userinfo_url = userinfo_url
         self.scopes = scopes
         self.flag_env = flag_env
+        self.oidc_jwks_uri = oidc_jwks_uri
+        self.oidc_issuers = oidc_issuers
         self._states: dict[str, dict[str, Any]] = {}
         self._lock = Lock()
 
@@ -133,10 +141,12 @@ class OAuthProviderAdapter:
             }
         st = state or secrets.token_urlsafe(24)
         verifier, challenge = _pkce_pair()
+        nonce = secrets.token_urlsafe(24) if self.oidc_jwks_uri else None
         with self._lock:
             self._states[st] = {
                 "redirect_uri": redirect_uri,
                 "code_verifier": verifier,
+                "nonce": nonce,
             }
         params = {
             "client_id": self.client_id,
@@ -149,6 +159,8 @@ class OAuthProviderAdapter:
             "access_type": "online",
             "prompt": "select_account",
         }
+        if nonce:
+            params["nonce"] = nonce
         if self.provider == AuthProvider.MICROSOFT:
             params.pop("access_type", None)
             params["response_mode"] = "query"
@@ -177,11 +189,43 @@ class OAuthProviderAdapter:
             raise AuthenticationError("Invalid or expired OAuth state.")
         expected_redirect = str(meta.get("redirect_uri") or redirect_uri)
         verifier = str(meta.get("code_verifier") or "")
+        nonce = meta.get("nonce")
         token_payload = self._exchange_code(code, expected_redirect, verifier)
         access = str(token_payload.get("access_token") or "")
         if not access:
             raise AuthenticationError("OAuth token exchange failed.")
-        return self._fetch_profile(access, token_payload)
+        id_claims = self._verify_id_token(token_payload, nonce)
+        return self._fetch_profile(access, token_payload, id_claims)
+
+    def _verify_id_token(
+        self, token_payload: dict[str, Any], nonce: str | None
+    ) -> dict[str, Any] | None:
+        """Best-effort additive verification of the token endpoint's ``id_token``.
+
+        Returns decoded+verified claims, or ``None`` when verification could
+        not be attempted (missing token, missing ``cryptography`` dependency,
+        unsupported key type, or JWKS fetch failure) — callers must continue
+        to trust the existing userinfo-based flow in that case. Raises
+        :class:`AuthenticationError` when a token IS present and IS
+        cryptographically checkable but fails validation (bad signature,
+        issuer, audience, or nonce) — that is a genuine attack signal.
+        """
+        id_token = token_payload.get("id_token")
+        if not id_token or not self.oidc_jwks_uri or not self.oidc_issuers:
+            return None
+        try:
+            return verify_id_token(
+                str(id_token),
+                jwks_uri=self.oidc_jwks_uri,
+                issuer=self.oidc_issuers,
+                audience=self.client_id,
+                nonce=nonce,
+            )
+        except OidcVerificationUnavailable as exc:
+            logger.debug("%s id_token verification skipped: %s", self.provider_name(), exc)
+            return None
+        except ValueError as exc:
+            raise AuthenticationError(f"{self.provider_name()} id_token rejected: {exc}") from exc
 
     def _exchange_code(self, code: str, redirect_uri: str, code_verifier: str) -> dict[str, Any]:
         form = {
@@ -212,10 +256,16 @@ class OAuthProviderAdapter:
         except Exception as exc:  # noqa: BLE001
             raise AuthenticationError(f"OAuth token exchange failed: {exc}") from exc
 
-    def _fetch_profile(self, access_token: str, token_payload: dict[str, Any]) -> OAuthProfile:
+    def _fetch_profile(
+        self,
+        access_token: str,
+        token_payload: dict[str, Any],
+        id_claims: dict[str, Any] | None = None,
+    ) -> OAuthProfile:
         _ = token_payload
         if self.provider == AuthProvider.FACEBOOK:
-            url = f"{self.userinfo_url}?{urllib.parse.urlencode({'fields': 'id,name,email,picture'})}"
+            fields = "id,name,first_name,last_name,email,picture.type(large),locale"
+            url = f"{self.userinfo_url}?{urllib.parse.urlencode({'fields': fields})}"
         else:
             url = self.userinfo_url
         req = urllib.request.Request(
@@ -233,7 +283,7 @@ class OAuthProviderAdapter:
 
         if self.provider == AuthProvider.GOOGLE:
             email = claims.get("email")
-            return OAuthProfile(
+            profile = OAuthProfile(
                 provider=self.provider_name(),
                 subject=str(claims.get("sub") or ""),
                 email=str(email).strip().lower() if email else None,
@@ -242,9 +292,21 @@ class OAuthProviderAdapter:
                 avatar=claims.get("picture"),
                 raw_claims=claims,
             )
+            if id_claims is not None:
+                id_sub = str(id_claims.get("sub") or "")
+                if id_sub and id_sub != profile.subject:
+                    raise AuthenticationError(
+                        "Google id_token subject does not match userinfo response."
+                    )
+                id_email = id_claims.get("email")
+                if id_email and profile.email and str(id_email).strip().lower() != profile.email:
+                    raise AuthenticationError(
+                        "Google id_token email does not match userinfo response."
+                    )
+            return profile
         if self.provider == AuthProvider.MICROSOFT:
             email = claims.get("mail") or claims.get("userPrincipalName") or claims.get("email")
-            return OAuthProfile(
+            profile = OAuthProfile(
                 provider=self.provider_name(),
                 subject=str(claims.get("id") or claims.get("sub") or ""),
                 email=str(email).strip().lower() if email else None,
@@ -253,20 +315,42 @@ class OAuthProviderAdapter:
                 avatar=None,
                 raw_claims=claims,
             )
-        email = claims.get("email")
-        picture = None
-        pic = claims.get("picture")
-        if isinstance(pic, dict):
-            picture = (pic.get("data") or {}).get("url")
-        return OAuthProfile(
-            provider=self.provider_name(),
-            subject=str(claims.get("id") or ""),
-            email=str(email).strip().lower() if email else None,
-            email_verified=bool(email),
-            name=claims.get("name"),
-            avatar=picture,
-            raw_claims=claims,
-        )
+            if id_claims is not None:
+                id_oid = str(id_claims.get("oid") or id_claims.get("sub") or "")
+                if id_oid and id_oid != profile.subject:
+                    raise AuthenticationError(
+                        "Microsoft id_token subject does not match Graph profile."
+                    )
+            return profile
+        if self.provider == AuthProvider.FACEBOOK:
+            # Facebook's `email` permission only ever returns a confirmed,
+            # owner-verified address (or omits the field entirely) — there
+            # is no separate "email_verified" claim to cross-check, so
+            # presence of the field is itself the verification signal, the
+            # same convention already used for Microsoft's Graph `/me`.
+            email = claims.get("email")
+            first_name = claims.get("first_name")
+            last_name = claims.get("last_name")
+            display_name = claims.get("name") or " ".join(
+                part for part in (first_name, last_name) if part
+            ).strip() or None
+            picture = None
+            pic = claims.get("picture")
+            if isinstance(pic, dict):
+                picture = (pic.get("data") or {}).get("url")
+            subject = str(claims.get("id") or "")
+            if not subject:
+                raise AuthenticationError("Facebook profile response did not include a user id.")
+            return OAuthProfile(
+                provider=self.provider_name(),
+                subject=subject,
+                email=str(email).strip().lower() if email else None,
+                email_verified=bool(email),
+                name=display_name,
+                avatar=picture,
+                raw_claims=claims,
+            )
+        raise AuthenticationError(f"Unsupported OAuth provider {self.provider_name()!r}.")
 
 
 class OAuthProviderRegistry:
@@ -313,6 +397,8 @@ def build_oauth_registry() -> OAuthProviderRegistry:
             userinfo_url="https://openidconnect.googleapis.com/v1/userinfo",
             scopes=("openid", "email", "profile"),
             flag_env="DSP_AUTH_PROVIDER_GOOGLE",
+            oidc_jwks_uri="https://www.googleapis.com/oauth2/v3/certs",
+            oidc_issuers=("https://accounts.google.com", "accounts.google.com"),
         ),
         AuthProvider.MICROSOFT.value: OAuthProviderAdapter(
             provider=AuthProvider.MICROSOFT,
@@ -323,11 +409,26 @@ def build_oauth_registry() -> OAuthProviderRegistry:
             userinfo_url="https://graph.microsoft.com/v1.0/me",
             scopes=("openid", "email", "profile", "User.Read"),
             flag_env="DSP_AUTH_PROVIDER_MICROSOFT",
+            oidc_jwks_uri=f"https://login.microsoftonline.com/{tenant}/discovery/v2.0/keys",
+            oidc_issuers=(
+                f"https://login.microsoftonline.com/{tenant}/v2.0",
+                "https://login.microsoftonline.com/*/v2.0",
+            ),
         ),
         AuthProvider.FACEBOOK.value: OAuthProviderAdapter(
             provider=AuthProvider.FACEBOOK,
-            client_id=os.environ.get("DSP_FACEBOOK_APP_ID", ""),
-            client_secret=os.environ.get("DSP_FACEBOOK_APP_SECRET", ""),
+            # DSP_FACEBOOK_CLIENT_ID/SECRET is the canonical name (matches
+            # Google/Microsoft's DSP_<PROVIDER>_CLIENT_ID/SECRET convention);
+            # DSP_FACEBOOK_APP_ID/SECRET (Meta's own terminology) is kept as
+            # a fallback for backward compatibility with existing deployments.
+            client_id=(
+                os.environ.get("DSP_FACEBOOK_CLIENT_ID")
+                or os.environ.get("DSP_FACEBOOK_APP_ID", "")
+            ),
+            client_secret=(
+                os.environ.get("DSP_FACEBOOK_CLIENT_SECRET")
+                or os.environ.get("DSP_FACEBOOK_APP_SECRET", "")
+            ),
             authorize_url="https://www.facebook.com/v19.0/dialog/oauth",
             token_url="https://graph.facebook.com/v19.0/oauth/access_token",
             userinfo_url="https://graph.facebook.com/me",

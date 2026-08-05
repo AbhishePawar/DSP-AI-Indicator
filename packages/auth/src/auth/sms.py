@@ -14,6 +14,7 @@ __all__ = [
     "ConsoleSmsAdapter",
     "TwilioSmsAdapter",
     "Msg91SmsAdapter",
+    "Fast2SmsAdapter",
     "FirebaseSmsAdapter",
     "build_sms_provider",
 ]
@@ -206,6 +207,67 @@ class Msg91SmsAdapter:
             )
 
 
+class Fast2SmsAdapter:
+    """Fast2SMS DLT/OTP route — popular India-focused transactional SMS provider."""
+
+    def __init__(self, *, api_key: str, sender_id: str = "FSTSMS", route: str = "otp") -> None:
+        self._api_key = api_key
+        self._sender_id = sender_id
+        self._route = route
+
+    def provider_name(self) -> str:
+        return "fast2sms"
+
+    def is_available(self) -> bool:
+        return bool(self._api_key)
+
+    def send_otp(self, mobile: str, code: str, *, purpose: str = "login") -> SmsDeliveryResult:
+        if not self.is_available():
+            return SmsDeliveryResult(
+                ok=False,
+                provider=self.provider_name(),
+                detail="Fast2SMS credentials incomplete.",
+            )
+        try:
+            import json
+            import urllib.parse
+            import urllib.request
+
+            digits = "".join(ch for ch in mobile if ch.isdigit())[-10:]
+            params = {
+                "authorization": self._api_key,
+                "route": self._route,
+                "variables_values": code,
+                "numbers": digits,
+            }
+            if self._route == "dlt":
+                params["sender_id"] = self._sender_id
+            url = f"https://www.fast2sms.com/dev/bulkV2?{urllib.parse.urlencode(params)}"
+            req = urllib.request.Request(
+                url,
+                method="GET",
+                headers={"cache-control": "no-cache"},
+            )
+            with urllib.request.urlopen(req, timeout=15) as resp:  # noqa: S310
+                payload = json.loads(resp.read().decode("utf-8"))
+            ok = bool(payload.get("return"))
+            request_id = str(payload.get("request_id") or "")
+            if not ok:
+                message = "; ".join(str(m) for m in (payload.get("message") or [])) or "unknown error"
+                return SmsDeliveryResult(
+                    ok=False,
+                    provider=self.provider_name(),
+                    detail=f"Fast2SMS send failed: {message}",
+                )
+            return SmsDeliveryResult(ok=True, provider=self.provider_name(), message_id=request_id)
+        except Exception as exc:  # noqa: BLE001
+            return SmsDeliveryResult(
+                ok=False,
+                provider=self.provider_name(),
+                detail=f"Fast2SMS send failed: {exc}",
+            )
+
+
 class FirebaseSmsAdapter:
     """Firebase Identity Toolkit SMS — requires API key; honest when absent."""
 
@@ -252,12 +314,19 @@ def build_sms_provider(name: str | None = None) -> SmsProviderPort:
         sender_id=os.environ.get("DSP_MSG91_SENDER_ID", "DSPAI"),
         template_id=os.environ.get("DSP_MSG91_TEMPLATE_ID", ""),
     )
+    fast2sms = Fast2SmsAdapter(
+        api_key=os.environ.get("DSP_FAST2SMS_API_KEY", ""),
+        sender_id=os.environ.get("DSP_FAST2SMS_SENDER_ID", "FSTSMS"),
+        route=os.environ.get("DSP_FAST2SMS_ROUTE", "otp"),
+    )
     firebase = FirebaseSmsAdapter(api_key=os.environ.get("DSP_FIREBASE_API_KEY", ""))
 
     if preferred == "twilio":
         return twilio if twilio.is_available() else NullSmsAdapter()
     if preferred == "msg91":
         return msg91 if msg91.is_available() else NullSmsAdapter()
+    if preferred == "fast2sms":
+        return fast2sms if fast2sms.is_available() else NullSmsAdapter()
     if preferred == "firebase":
         return firebase if firebase.is_available() else NullSmsAdapter()
     if preferred == "null":
@@ -269,6 +338,8 @@ def build_sms_provider(name: str | None = None) -> SmsProviderPort:
         return twilio
     if msg91.is_available():
         return msg91
+    if fast2sms.is_available():
+        return fast2sms
     if env in {"production", "prod", "staging"}:
         return NullSmsAdapter()
     return DevSmsAdapter()

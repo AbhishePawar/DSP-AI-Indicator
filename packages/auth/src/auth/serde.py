@@ -24,7 +24,7 @@ def user_to_dict(user: AuthUser | Mapping[str, Any], *, include_hash: bool = Fal
 
 def session_to_dict(session: AuthSession | Mapping[str, Any]) -> dict[str, Any]:
     if isinstance(session, AuthSession):
-        return session.to_dict()
+        return session.to_public_dict()
     return dict(session)
 
 

@@ -187,6 +187,8 @@ def rbac_refresh(
             refresh_token=refresh_token,
             created_at=body.created_at,
             access_jti=body.access_jti,
+            ip_hint=request.client.host if request.client else None,
+            user_agent_hint=request.headers.get("user-agent"),
         )
     except Exception as exc:  # noqa: BLE001
         return _err(exc, status=401)

@@ -180,8 +180,24 @@ class AuthSession:
     revoked: bool = False
     refresh_token_id: str | None = None
     metadata: Mapping[str, Any] = field(default_factory=dict)
+    # Refresh-token-rotation (EPIC-A009 BCP hardening): SHA-256 digest of the
+    # *currently active* raw refresh JWT. Never the raw token itself — see
+    # ``auth.authentication._hash_refresh_token``. Compared on every refresh
+    # attempt in addition to ``refresh_token_id`` as defense in depth; any
+    # mismatch on an active session means the presented token was already
+    # rotated away (replay) or forged, and triggers family-wide revocation.
+    refresh_token_hash: str | None = None
+    # ISO-8601 timestamp of the most recent successful rotation, or None for
+    # a session whose refresh token has never been rotated (freshly issued).
+    refresh_rotated_at: str | None = None
 
     def to_dict(self) -> dict[str, Any]:
+        """Full internal representation, including the refresh-token digest.
+
+        Used for persistence round-tripping only. API responses and other
+        client-facing surfaces should use :meth:`to_public_dict` instead so
+        the at-rest security digest is never echoed back over the wire.
+        """
         return {
             "session_id": self.session_id,
             "user_id": self.user_id,
@@ -190,7 +206,15 @@ class AuthSession:
             "revoked": self.revoked,
             "refresh_token_id": self.refresh_token_id,
             "metadata": dict(self.metadata),
+            "refresh_token_hash": self.refresh_token_hash,
+            "refresh_rotated_at": self.refresh_rotated_at,
         }
+
+    def to_public_dict(self) -> dict[str, Any]:
+        """Client/API-facing view — omits the internal refresh-token digest."""
+        row = self.to_dict()
+        row.pop("refresh_token_hash", None)
+        return row
 
 
 @dataclass(frozen=True, slots=True)

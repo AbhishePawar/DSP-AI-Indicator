@@ -99,3 +99,52 @@ def test_user_crud_login_me_protect(client: TestClient) -> None:
     roles = client.get("/api/v1/auth/rbac/roles")
     assert roles.status_code == 200
     assert any(r["role_id"] == "administrator" for r in roles.json()["result"])
+
+
+def test_rbac_refresh_rotates_and_detects_reuse(client: TestClient) -> None:
+    client.post(
+        "/api/v1/auth/rbac/users",
+        json={
+            "username": "refreshuser",
+            "email": "refresh@example.com",
+            "password": "StrongPass12!",
+            "user_id": "u-refresh",
+            "created_at": FIXED,
+            "password_salt": "aabbccddeeff0011",
+        },
+    )
+    login = client.post(
+        "/api/v1/auth/rbac/login",
+        json={
+            "username": "refreshuser",
+            "password": "StrongPass12!",
+            "created_at": FIXED,
+        },
+    )
+    assert login.status_code == 200
+    old_refresh = login.json()["result"]["tokens"]["refresh_token"]
+
+    first = client.post(
+        "/api/v1/auth/rbac/refresh", json={"refresh_token": old_refresh}
+    )
+    assert first.status_code == 200
+    new_refresh = first.json()["result"]["tokens"]["refresh_token"]
+    assert new_refresh != old_refresh
+
+    # Replaying the already-rotated-away refresh token is rejected...
+    replay = client.post(
+        "/api/v1/auth/rbac/refresh", json={"refresh_token": old_refresh}
+    )
+    assert replay.status_code == 401
+
+    # ...and the entire session (family) is revoked, killing the rotated
+    # token too even though it was never itself replayed.
+    second = client.post(
+        "/api/v1/auth/rbac/refresh", json={"refresh_token": new_refresh}
+    )
+    assert second.status_code == 401
+
+
+def test_rbac_refresh_requires_token(client: TestClient) -> None:
+    response = client.post("/api/v1/auth/rbac/refresh", json={})
+    assert response.status_code == 401

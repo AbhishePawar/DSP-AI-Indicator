@@ -10,8 +10,15 @@ from datetime import datetime, timedelta, timezone
 from threading import Lock
 from typing import Any
 
+from auth.audit import AuditLogger
 from auth.devices import DeviceRegistry
 from auth.email_delivery import EmailProviderPort, build_email_provider
+from auth.email_templates import (
+    render_email_verification_email,
+    render_invitation_email,
+    render_magic_link_email,
+    render_password_reset_email,
+)
 from auth.enterprise_models import (
     ENTERPRISE_ROLE_ALIASES,
     PRODUCT_ROLES,
@@ -38,6 +45,7 @@ from auth.oauth_providers import (
 )
 from auth.otp import OtpService
 from auth.service import AuthService, get_auth_service
+from auth.single_use_tokens import SingleUseTokenError, SingleUseTokenService
 from auth.sms import build_sms_provider
 
 __all__ = [
@@ -50,10 +58,6 @@ __all__ = [
 _EMAIL_RE = re.compile(r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
 _ACCESS_PREFIX = "auth-access-"
 _HISTORY_PREFIX = "auth-login-hist-"
-_VERIFY_PREFIX = "auth-email-verify-"
-_RESET_PREFIX = "auth-pwd-reset-"
-_MAGIC_PREFIX = "auth-magic-"
-_INVITE_PREFIX = "auth-invite-"
 
 
 def password_strength(password: str) -> dict[str, Any]:
@@ -96,17 +100,30 @@ class EnterpriseAuthPlatform:
         devices: DeviceRegistry | None = None,
         mfa: MfaGateway | None = None,
         email: EmailProviderPort | None = None,
+        audit: AuditLogger | None = None,
+        tokens: SingleUseTokenService | None = None,
     ) -> None:
         self.auth = auth
         self.oauth = oauth or build_oauth_registry()
         self.otp = otp or OtpService(build_sms_provider())
         self.devices = devices or DeviceRegistry(auth.persistence)
-        self.mfa = mfa or build_mfa_gateway()
+        self.mfa = mfa or build_mfa_gateway(
+            persistence=auth.persistence, users=auth.users, jwt=auth.jwt
+        )
         self.email = email or build_email_provider()
-        self._verify_tokens: dict[str, dict[str, Any]] = {}
-        self._reset_tokens: dict[str, dict[str, Any]] = {}
-        self._magic_tokens: dict[str, dict[str, Any]] = {}
-        self._email_change_tokens: dict[str, dict[str, Any]] = {}
+        self.audit = audit or AuditLogger(auth.persistence)
+        # Single shared implementation for every one-time-link auth flow
+        # (email verification, password reset, magic link, invitations, and
+        # any future one-time flow) — see auth.single_use_tokens.
+        self.tokens = tokens or SingleUseTokenService(auth.persistence, audit=self.audit)
+        # AuthenticationService (A009) is audit-agnostic by design (lower
+        # layer, no dependency on this platform's AuditLogger). Wiring it
+        # here means refresh-token rotation/reuse events raised from
+        # ``AuthenticationService.refresh`` — including via the pre-existing
+        # ``/auth/rbac/refresh`` endpoint, which calls into the very same
+        # shared AuthService singleton — land in this platform's audit
+        # trail with zero duplicate logic or storage.
+        self.auth.authentication.audit = self.audit
         self._rate: dict[str, list[datetime]] = {}
         self._lock = Lock()
         self._lockout_threshold = int(os.environ.get("DSP_AUTH_LOCKOUT_THRESHOLD") or "5")
@@ -139,6 +156,8 @@ class EnterpriseAuthPlatform:
                 "remember_me": True,
                 "login_history": True,
                 "device_tracking": True,
+                "mfa_totp": self.mfa.enabled() and self.mfa.totp.is_available(),
+                "mfa_webauthn": self.mfa.enabled() and self.mfa.webauthn.is_available(),
             },
         }
 
@@ -199,6 +218,17 @@ class EnterpriseAuthPlatform:
                 else "Magic link intentionally disabled — Coming Soon.",
             },
             "mfa": self.mfa.status(),
+            # Dedicated, additive discovery block for primary/passwordless
+            # Passkey sign-in (`/auth/passkey/*`). Computed from the exact
+            # same gate as `mfa.webauthn_available` — one shared WebAuthn
+            # adapter/credential store backs both entry points — so there is
+            # no separate `DSP_AUTH_PASSKEY` flag to keep in sync.
+            "passkey": {
+                "available": bool(self.mfa.enabled() and self.mfa.webauthn.is_available()),
+                "message": None
+                if self.mfa.enabled()
+                else "Passkey sign-in disabled — enable with DSP_AUTH_MFA=true.",
+            },
         }
 
     def ensure_product_roles(self) -> None:
@@ -284,6 +314,19 @@ class EnterpriseAuthPlatform:
                 raise AuthenticationError("Rate limit exceeded. Try again later.")
             bucket.append(now)
             self._rate[key] = bucket
+
+    def _frontend_url(self) -> str:
+        return (os.environ.get("DSP_FRONTEND_URL") or "http://localhost:3000").rstrip("/")
+
+    # Every one-time-link flow below (email verification, password reset,
+    # magic link, invitation acceptance) issues/redeems its token through
+    # ``self.tokens`` (a `SingleUseTokenService`, see auth.single_use_tokens)
+    # instead of hand-rolling its own storage + expiry + replay logic. That
+    # service is the single reusable implementation of: secure random
+    # generation, expiry, single-use/atomic consumption, replay protection,
+    # revocation, purpose validation, user/organization binding, and audit
+    # logging — new one-time flows should use it rather than adding another
+    # bespoke token dict.
 
     def _get_by_email(self, email: str) -> AuthUser | None:
         target = email.strip().lower()
@@ -423,6 +466,7 @@ class EnterpriseAuthPlatform:
                 access_jti=str(uuid.uuid4()),
                 refresh_jti=session.refresh_token_id,
             )
+            authn.attach_initial_refresh_token(session, pair)
         finally:
             authn.access_ttl = prev_access
             authn.refresh_ttl = prev_refresh
@@ -436,7 +480,7 @@ class EnterpriseAuthPlatform:
         )
         mfa_eval = self.mfa.evaluate(
             user_id=user.user_id,
-            device_trusted=bool(device.trusted),
+            device_trusted=self.devices.is_record_trusted(device),
         )
         cleared_meta = dict(user.metadata or {})
         cleared_meta["failed_login_count"] = 0
@@ -472,7 +516,7 @@ class EnterpriseAuthPlatform:
         result = {
             "user": user_payload,
             "tokens": pair.to_dict(),
-            "session": session.to_dict(),
+            "session": session.to_public_dict(),
             "provider": provider,
             "device": device.to_dict(),
         }
@@ -539,19 +583,17 @@ class EnterpriseAuthPlatform:
             metadata=user.metadata,
         )
         self.auth.users.save(pending)
-        token = secrets.token_urlsafe(32)
-        self._verify_tokens[token] = {
-            "user_id": pending.user_id,
-            "expires_at": (datetime.now(tz=timezone.utc) + timedelta(hours=24)).isoformat(),
-        }
-        self.auth.persistence.put(
-            kind="metadata",
-            entity_id=f"{_VERIFY_PREFIX}{token}",
-            payload={"token": token, "user_id": pending.user_id, "auth_entity": "email_verify"},
-            refs={"auth_entity": "email_verify"},
-            created_at=utc_now().isoformat(),
-            allow_update=True,
+        token = self.tokens.issue(
+            purpose="email_verify",
+            ttl=timedelta(hours=24),
+            user_id=pending.user_id,
+            data={"email": pending.email},
         )
+        link_url = f"{self._frontend_url()}/verify-email?token={token}"
+        subject, text_body, html_body = render_email_verification_email(
+            link_url=link_url, token=token, expires_hours=24
+        )
+        self.email.send(to=pending.email, subject=subject, body=text_body, html_body=html_body, purpose="email_verify")
         out: dict[str, Any] = {
             "user": enterprise_user_public_dict(pending),
             "verification_required": True,
@@ -563,14 +605,13 @@ class EnterpriseAuthPlatform:
         return out
 
     def verify_email(self, token: str) -> dict[str, Any]:
-        meta = self._verify_tokens.get(token)
-        if meta is None:
-            row = self.auth.persistence.get("metadata", f"{_VERIFY_PREFIX}{token}")
-            if row:
-                meta = row.get("payload") or {}
-        if not meta:
-            raise ValidationError("Invalid or expired verification token.")
-        user = self.auth.users.get(str(meta["user_id"]))
+        record = self.tokens.consume(
+            purpose="email_verify",
+            token=token,
+            error_cls=ValidationError,
+            error_message="Invalid or expired verification token.",
+        )
+        user = self.auth.users.get(str(record.user_id or ""))
         if user is None:
             raise ValidationError("User not found.")
         activated = AuthUser(
@@ -590,7 +631,7 @@ class EnterpriseAuthPlatform:
             activated,
             {"email_verified": True, "requires_email_verification": False},
         )
-        self._verify_tokens.pop(token, None)
+        self.audit.record("email.verified", user_id=user.user_id)
         return {"ok": True, "user": enterprise_user_public_dict(activated)}
 
     def _register_failed_login(self, user: AuthUser, *, ip_hint: str | None, provider: str) -> None:
@@ -684,19 +725,17 @@ class EnterpriseAuthPlatform:
         }
         if user is None:
             return out
-        token = secrets.token_urlsafe(32)
-        self._reset_tokens[token] = {
-            "user_id": user.user_id,
-            "expires_at": (datetime.now(tz=timezone.utc) + timedelta(hours=1)).isoformat(),
-        }
-        self.auth.persistence.put(
-            kind="metadata",
-            entity_id=f"{_RESET_PREFIX}{token}",
-            payload={"token": token, "user_id": user.user_id, "auth_entity": "password_reset"},
-            refs={"auth_entity": "password_reset"},
-            created_at=utc_now().isoformat(),
-            allow_update=True,
+        token = self.tokens.issue(
+            purpose="password_reset",
+            ttl=timedelta(hours=1),
+            user_id=user.user_id,
+            ip_hint=ip_hint,
         )
+        link_url = f"{self._frontend_url()}/reset-password?token={token}"
+        subject, text_body, html_body = render_password_reset_email(
+            link_url=link_url, token=token, expires_minutes=60
+        )
+        self.email.send(to=user.email, subject=subject, body=text_body, html_body=html_body, purpose="password_reset")
         env = (os.environ.get("DSP_ENVIRONMENT") or "development").lower()
         if env not in {"production", "prod"}:
             out["reset_token"] = token
@@ -706,14 +745,13 @@ class EnterpriseAuthPlatform:
         strength = password_strength(new_password)
         if strength["score"] < 4:
             raise ValidationError("password is too weak")
-        meta = self._reset_tokens.get(token)
-        if meta is None:
-            row = self.auth.persistence.get("metadata", f"{_RESET_PREFIX}{token}")
-            if row:
-                meta = row.get("payload") or {}
-        if not meta:
-            raise ValidationError("Invalid or expired reset token.")
-        user = self.auth.users.get(str(meta["user_id"]))
+        record = self.tokens.consume(
+            purpose="password_reset",
+            token=token,
+            error_cls=ValidationError,
+            error_message="Invalid or expired reset token.",
+        )
+        user = self.auth.users.get(str(record.user_id or ""))
         if user is None:
             raise ValidationError("User not found.")
         updated = AuthUser(
@@ -730,13 +768,23 @@ class EnterpriseAuthPlatform:
             metadata=user.metadata,
         )
         self.auth.users.save(updated)
-        self._reset_tokens.pop(token, None)
+        # Any other outstanding reset links for this user are now stale.
+        self.tokens.revoke_all_for_user(purpose="password_reset", user_id=user.user_id)
+        self.audit.record("password.reset", user_id=user.user_id)
         # Revoke sessions
+        revoked_count = 0
         for session in self.auth.sessions.list_sessions(user_id=user.user_id):
             try:
                 self.auth.sessions.revoke(session.session_id)
+                revoked_count += 1
             except Exception:  # noqa: BLE001
                 pass
+        if revoked_count:
+            self.audit.record(
+                "session.revoked",
+                user_id=user.user_id,
+                detail=f"password_reset:{revoked_count}",
+            )
         return {"ok": True, "user": enterprise_user_public_dict(updated)}
 
     def change_password(
@@ -772,6 +820,16 @@ class EnterpriseAuthPlatform:
 
     # --- OAuth -----------------------------------------------------------
 
+    @staticmethod
+    def _oauth_event(provider: str, action: str) -> str:
+        """Namespaced audit event type, e.g. ``oauth.facebook.login``.
+
+        Single naming convention shared by every OAuth provider (Google,
+        Microsoft, Facebook, and any future one) — never hand-rolled
+        per-provider so provider-specific audit coverage comes "for free".
+        """
+        return f"oauth.{provider.strip().lower()}.{action}"
+
     def oauth_begin(self, provider: str, *, redirect_uri: str, state: str | None = None) -> dict[str, Any]:
         return self.oauth.begin(provider, redirect_uri=redirect_uri, state=state)
 
@@ -786,15 +844,131 @@ class EnterpriseAuthPlatform:
         ip_hint: str | None = None,
         user_agent_hint: str | None = None,
     ) -> dict[str, Any]:
-        profile = self.oauth.complete(
-            provider, code=code, state=state, redirect_uri=redirect_uri
+        try:
+            profile = self.oauth.complete(
+                provider, code=code, state=state, redirect_uri=redirect_uri
+            )
+            self.audit.record(
+                self._oauth_event(provider, "callback"),
+                ip_hint=ip_hint,
+                user_agent_hint=user_agent_hint,
+                detail=provider,
+            )
+        except Exception as exc:  # noqa: BLE001
+            self.audit.record(
+                self._oauth_event(provider, "failure"),
+                ip_hint=ip_hint,
+                user_agent_hint=user_agent_hint,
+                detail=str(exc)[:300],
+            )
+            raise
+        try:
+            return self._login_from_oauth_profile(
+                profile,
+                remember_me=remember_me,
+                ip_hint=ip_hint,
+                user_agent_hint=user_agent_hint,
+            )
+        except Exception as exc:  # noqa: BLE001
+            self.audit.record(
+                self._oauth_event(provider, "failure"),
+                ip_hint=ip_hint,
+                user_agent_hint=user_agent_hint,
+                detail=str(exc)[:300],
+            )
+            raise
+
+    def _attach_provider_link(self, user: AuthUser, profile: OAuthProfile) -> AuthUser:
+        """Bind ``profile`` to ``user`` as a linked identity (idempotent).
+
+        Shared by both implicit login-time linking (matching by verified
+        email in :meth:`_login_from_oauth_profile`) and explicit
+        authenticated linking (:meth:`link_oauth_provider`) so there is a
+        single place that mutates ``linked_providers`` — never duplicated.
+        """
+        meta = dict(user.metadata or {})
+        links = [
+            lnk
+            for lnk in (meta.get("linked_providers") or [])
+            if not (
+                str(lnk.get("provider") or "").upper() == profile.provider.upper()
+                and str(lnk.get("provider_subject") or "") == profile.subject
+            )
+        ]
+        links.append(
+            {
+                "provider": profile.provider,
+                "provider_subject": profile.subject,
+                "email": profile.email,
+                "linked_at": utc_now().isoformat(),
+            }
         )
-        return self._login_from_oauth_profile(
-            profile,
-            remember_me=remember_me,
+        return self._persist_meta(
+            user,
+            {
+                "linked_providers": links,
+                "avatar": profile.avatar or meta.get("avatar"),
+                "email_verified": True,
+                "requires_email_verification": False,
+            },
+        )
+
+    def link_oauth_provider(
+        self,
+        user_id: str,
+        provider: str,
+        *,
+        code: str,
+        state: str | None,
+        redirect_uri: str,
+        ip_hint: str | None = None,
+    ) -> dict[str, Any]:
+        """Link a verified OAuth identity to an *already-authenticated* user.
+
+        Unlike :meth:`oauth_callback` (sign-in — matches by verified email
+        or auto-provisions a new account), this binds the resulting
+        identity to a specific existing user and refuses the link outright
+        if that identity, or its email, already belongs to a *different*
+        account — preventing account takeover via a mismatched OAuth
+        response. Reuses the same PKCE/nonce/JWKS-verified OAuth exchange
+        (`self.oauth.complete`) as every other provider; no OAuth logic is
+        duplicated here.
+        """
+        user = self.auth.users.get(user_id)
+        if user is None:
+            raise ValidationError("user not found")
+        try:
+            profile = self.oauth.complete(provider, code=code, state=state, redirect_uri=redirect_uri)
+            if not profile.email:
+                raise AuthenticationError("OAuth provider did not return an email address.")
+            if not profile.email_verified:
+                raise AuthenticationError("OAuth email is not verified by the provider.")
+            existing = self._get_by_provider_subject(profile.provider, profile.subject)
+            if existing is not None and existing.user_id != user.user_id:
+                raise ValidationError(
+                    f"This {provider.title()} account is already linked to a different user."
+                )
+            other = self._get_by_email(profile.email)
+            if other is not None and other.user_id != user.user_id:
+                raise ValidationError(
+                    "This account's email is already associated with a different user."
+                )
+        except Exception as exc:  # noqa: BLE001
+            self.audit.record(
+                self._oauth_event(provider, "failure"),
+                user_id=user.user_id,
+                ip_hint=ip_hint,
+                detail=str(exc)[:300],
+            )
+            raise
+        updated = self._attach_provider_link(user, profile)
+        self.audit.record(
+            self._oauth_event(provider, "link"),
+            user_id=updated.user_id,
             ip_hint=ip_hint,
-            user_agent_hint=user_agent_hint,
+            detail=profile.provider,
         )
+        return {"ok": True, "user": enterprise_user_public_dict(updated)}
 
     def _login_from_oauth_profile(
         self,
@@ -813,25 +987,7 @@ class EnterpriseAuthPlatform:
             user = self._get_by_email(profile.email)
             if user is not None:
                 # Link provider to existing email account (prevent duplicates)
-                meta = dict(user.metadata or {})
-                links = list(meta.get("linked_providers") or [])
-                links.append(
-                    {
-                        "provider": profile.provider,
-                        "provider_subject": profile.subject,
-                        "email": profile.email,
-                        "linked_at": utc_now().isoformat(),
-                    }
-                )
-                user = self._persist_meta(
-                    user,
-                    {
-                        "linked_providers": links,
-                        "avatar": profile.avatar or meta.get("avatar"),
-                        "email_verified": True,
-                        "requires_email_verification": False,
-                    },
-                )
+                user = self._attach_provider_link(user, profile)
             else:
                 # Auto-create
                 username = stable_username_from_email(profile.email, profile.provider)
@@ -883,6 +1039,13 @@ class EnterpriseAuthPlatform:
                 metadata=user.metadata,
             )
             self.auth.users.save(user)
+        self.audit.record(
+            self._oauth_event(profile.provider, "login"),
+            user_id=user.user_id,
+            ip_hint=ip_hint,
+            user_agent_hint=user_agent_hint,
+            detail=profile.provider,
+        )
         return self._issue_session(
             user,
             remember_me=remember_me,
@@ -962,6 +1125,257 @@ class EnterpriseAuthPlatform:
             device_label="mobile-otp",
         )
 
+    # --- MFA: TOTP ---------------------------------------------------------
+
+    def _require_mfa_enabled(self) -> None:
+        if not self.mfa.enabled():
+            raise ValidationError(
+                "MFA is disabled on this deployment. Set DSP_AUTH_MFA=true to enable."
+            )
+
+    def mfa_totp_enroll_begin(self, user_id: str, *, ip_hint: str | None = None) -> dict[str, Any]:
+        self._require_mfa_enabled()
+        self._rate_check(f"mfa-enroll:{user_id}", limit=5, window_sec=3600)
+        user = self.auth.users.get(user_id)
+        if user is None:
+            raise ValidationError("user not found")
+        result = self.mfa.totp.begin_enroll(user_id, account_name=user.email or user.username)  # type: ignore[call-arg]
+        self.audit.record("mfa.enroll.begin", user_id=user_id, ip_hint=ip_hint, detail="totp")
+        return result
+
+    def mfa_totp_enroll_confirm(
+        self, user_id: str, code: str, *, ip_hint: str | None = None
+    ) -> dict[str, Any]:
+        self._require_mfa_enabled()
+        self._rate_check(f"mfa-enroll-confirm:{user_id}", limit=10, window_sec=600)
+        try:
+            result = self.mfa.totp.confirm_enroll(user_id, {"code": code})
+        except Exception as exc:  # noqa: BLE001
+            self.audit.record(
+                "mfa.enroll.failure", user_id=user_id, ip_hint=ip_hint, detail=str(exc)[:300]
+            )
+            raise
+        self.audit.record("mfa.enroll.success", user_id=user_id, ip_hint=ip_hint, detail="totp")
+        self.audit.record(
+            "mfa.enable",
+            user_id=user_id,
+            ip_hint=ip_hint,
+            detail="totp",
+            metadata={"recovery_codes_issued": len(result.get("recovery_codes") or [])},
+        )
+        return result
+
+    def mfa_totp_verify_stepup(
+        self,
+        *,
+        mfa_token: str,
+        code: str | None = None,
+        recovery_code: str | None = None,
+        remember_device: bool = False,
+        device_id: str | None = None,
+        ip_hint: str | None = None,
+        user_agent_hint: str | None = None,
+    ) -> dict[str, Any]:
+        self._require_mfa_enabled()
+        user_id = self.mfa.resolve_mfa_token(mfa_token)
+        self._rate_check(f"mfa-verify:{user_id}", limit=8, window_sec=300)
+        payload: dict[str, Any] = {}
+        if code:
+            payload["code"] = code
+        if recovery_code:
+            payload["recovery_code"] = recovery_code
+        ok = self.mfa.totp.verify_challenge(user_id, payload)
+        if not ok:
+            self.audit.record(
+                "mfa.verify.failure",
+                user_id=user_id,
+                ip_hint=ip_hint,
+                user_agent_hint=user_agent_hint,
+                detail="recovery_code" if recovery_code else "totp",
+            )
+            raise AuthenticationError("Invalid or expired authenticator code.")
+        self.audit.record(
+            "mfa.verify.success",
+            user_id=user_id,
+            ip_hint=ip_hint,
+            user_agent_hint=user_agent_hint,
+            detail="recovery_code" if recovery_code else "totp",
+        )
+        if recovery_code:
+            self.audit.record(
+                "mfa.recovery.used", user_id=user_id, ip_hint=ip_hint, user_agent_hint=user_agent_hint
+            )
+        if remember_device and device_id:
+            try:
+                self.devices.set_trusted(device_id, user_id=user_id, trusted=True)
+            except KeyError:
+                pass
+        return {"ok": True, "user_id": user_id}
+
+    def mfa_totp_disable(
+        self,
+        user_id: str,
+        *,
+        current_password: str | None = None,
+        ip_hint: str | None = None,
+    ) -> dict[str, Any]:
+        user = self.auth.users.get(user_id)
+        if user is None:
+            raise ValidationError("user not found")
+        if current_password is not None and not verify_password(current_password, user.password_hash):
+            raise AuthenticationError("invalid credentials")
+        totp = getattr(self.mfa, "totp", None)
+        if totp is not None and hasattr(totp, "disable"):
+            totp.disable(user_id)
+        self.audit.record("mfa.disable", user_id=user_id, ip_hint=ip_hint, detail="totp")
+        return {"ok": True}
+
+    def mfa_recovery_codes_status(self, user_id: str) -> dict[str, Any]:
+        self._require_mfa_enabled()
+        totp = getattr(self.mfa, "totp", None)
+        status = getattr(totp, "recovery_codes_status", None)
+        if status is None:
+            raise ValidationError("Recovery codes are not supported by this MFA adapter.")
+        return status(user_id)
+
+    def mfa_recovery_codes_regenerate(
+        self,
+        user_id: str,
+        *,
+        current_password: str | None = None,
+        ip_hint: str | None = None,
+    ) -> dict[str, Any]:
+        self._require_mfa_enabled()
+        self._rate_check(f"mfa-recovery-regen:{user_id}", limit=5, window_sec=3600)
+        user = self.auth.users.get(user_id)
+        if user is None:
+            raise ValidationError("user not found")
+        if current_password is not None and not verify_password(current_password, user.password_hash):
+            raise AuthenticationError("invalid credentials")
+        totp = getattr(self.mfa, "totp", None)
+        regenerate = getattr(totp, "regenerate_recovery_codes", None)
+        if regenerate is None:
+            raise ValidationError("Recovery codes are not supported by this MFA adapter.")
+        codes = regenerate(user_id)
+        self.audit.record(
+            "mfa.recovery.regenerated",
+            user_id=user_id,
+            ip_hint=ip_hint,
+            detail="totp",
+            metadata={"count": len(codes)},
+        )
+        return {"ok": True, "recovery_codes": codes}
+
+    # --- MFA / Passkey: WebAuthn --------------------------------------------
+    #
+    # One shared credential store + ceremony implementation
+    # (`auth.mfa_webauthn.WebAuthnAdapter`, behind `self.mfa.webauthn`)
+    # serves two entry points into the *same* passkeys:
+    #   - MFA step-up, via `/auth/mfa/webauthn/*` (registered credentials are
+    #     used as a *second* factor after password login).
+    #   - Primary, passwordless sign-in, via `/auth/passkey/*` (discoverable/
+    #     resident credentials let a user sign in with no prior identifier).
+    # Both route groups call these exact same platform methods — nothing is
+    # duplicated between them, only the URL surface differs.
+
+    def webauthn_register_begin(self, user_id: str, *, ip_hint: str | None = None) -> dict[str, Any]:
+        self._require_mfa_enabled()
+        self.audit.record("passkey.register.begin", user_id=user_id, ip_hint=ip_hint)
+        try:
+            return self.mfa.webauthn.begin_registration(user_id)
+        except Exception as exc:  # noqa: BLE001
+            self.audit.record(
+                "passkey.register.failure", user_id=user_id, ip_hint=ip_hint, detail=str(exc)[:300]
+            )
+            raise
+
+    def webauthn_register_complete(
+        self, user_id: str, credential: dict[str, Any], *, ip_hint: str | None = None
+    ) -> dict[str, Any]:
+        self._require_mfa_enabled()
+        try:
+            result = self.mfa.webauthn.complete_registration(user_id, credential)
+        except Exception as exc:  # noqa: BLE001
+            self.audit.record(
+                "passkey.register.failure", user_id=user_id, ip_hint=ip_hint, detail=str(exc)[:300]
+            )
+            raise
+        self.audit.record(
+            "passkey.register.success",
+            user_id=user_id,
+            ip_hint=ip_hint,
+            detail=str(result.get("credential_id") or ""),
+        )
+        return result
+
+    def webauthn_authenticate_begin(self, identifier: str | None = None) -> dict[str, Any]:
+        self._require_mfa_enabled()
+        webauthn = self.mfa.webauthn
+        begin = getattr(webauthn, "begin_discoverable_authentication", None)
+        if begin is None:
+            raise ValidationError("WebAuthn discoverable login not supported by this adapter.")
+        return begin(identifier)
+
+    def webauthn_authenticate_complete(
+        self,
+        assertion: dict[str, Any],
+        *,
+        remember_me: bool = False,
+        ip_hint: str | None = None,
+        user_agent_hint: str | None = None,
+    ) -> dict[str, Any]:
+        self._require_mfa_enabled()
+        webauthn = self.mfa.webauthn
+        complete = getattr(webauthn, "complete_discoverable_authentication", None)
+        if complete is None:
+            raise ValidationError("WebAuthn discoverable login not supported by this adapter.")
+        try:
+            resolved = complete(assertion)
+            user = self.auth.users.get(str(resolved.get("user_id") or ""))
+            if user is None:
+                raise AuthenticationError("Passkey account not found.")
+        except Exception as exc:  # noqa: BLE001
+            self.audit.record(
+                "passkey.login.failure",
+                ip_hint=ip_hint,
+                user_agent_hint=user_agent_hint,
+                detail=str(exc)[:300],
+            )
+            raise
+        session = self._issue_session(
+            user,
+            remember_me=remember_me,
+            provider=AuthProvider.PASSKEY.value,
+            ip_hint=ip_hint,
+            user_agent_hint=user_agent_hint,
+            device_label="passkey",
+        )
+        self.audit.record(
+            "passkey.login.success",
+            user_id=user.user_id,
+            ip_hint=ip_hint,
+            user_agent_hint=user_agent_hint,
+        )
+        return session
+
+    def webauthn_list_credentials(self, user_id: str) -> list[dict[str, Any]]:
+        webauthn = self.mfa.webauthn
+        lister = getattr(webauthn, "list_credentials", None)
+        return list(lister(user_id)) if lister else []
+
+    def webauthn_remove_credential(
+        self, user_id: str, credential_id: str, *, ip_hint: str | None = None
+    ) -> dict[str, Any]:
+        webauthn = self.mfa.webauthn
+        remover = getattr(webauthn, "remove_credential", None)
+        removed = bool(remover(user_id, credential_id)) if remover else False
+        if not removed:
+            raise ValidationError("credential not found")
+        self.audit.record(
+            "passkey.deleted", user_id=user_id, ip_hint=ip_hint, detail=credential_id
+        )
+        return {"ok": True}
+
     # --- Magic link ------------------------------------------------------
 
     def request_magic_link(self, email: str, *, ip_hint: str | None = None) -> dict[str, Any]:
@@ -969,19 +1383,17 @@ class EnterpriseAuthPlatform:
         mail = email.strip().lower()
         if not _EMAIL_RE.match(mail):
             raise ValidationError("invalid email")
-        token = secrets.token_urlsafe(32)
-        self._magic_tokens[token] = {
-            "email": mail,
-            "expires_at": (datetime.now(tz=timezone.utc) + timedelta(minutes=15)).isoformat(),
-        }
-        self.auth.persistence.put(
-            kind="metadata",
-            entity_id=f"{_MAGIC_PREFIX}{token}",
-            payload={"token": token, "email": mail, "auth_entity": "magic_link"},
-            refs={"auth_entity": "magic_link"},
-            created_at=utc_now().isoformat(),
-            allow_update=True,
+        token = self.tokens.issue(
+            purpose="magic_link",
+            ttl=timedelta(minutes=15),
+            data={"email": mail},
+            ip_hint=ip_hint,
         )
+        link_url = f"{self._frontend_url()}/magic-link?token={token}"
+        subject, text_body, html_body = render_magic_link_email(
+            link_url=link_url, token=token, expires_minutes=15
+        )
+        self.email.send(to=mail, subject=subject, body=text_body, html_body=html_body, purpose="magic_link")
         out: dict[str, Any] = {
             "ok": True,
             "message": "If the email is eligible, a magic link was issued.",
@@ -999,21 +1411,14 @@ class EnterpriseAuthPlatform:
         ip_hint: str | None = None,
         user_agent_hint: str | None = None,
     ) -> dict[str, Any]:
-        meta = self._magic_tokens.pop(token, None)
-        if meta is None:
-            row = self.auth.persistence.get("metadata", f"{_MAGIC_PREFIX}{token}")
-            if row:
-                meta = row.get("payload") or {}
-        if not meta:
-            raise AuthenticationError("Invalid or expired magic link.")
-        expires = meta.get("expires_at")
-        if expires:
-            exp = datetime.fromisoformat(str(expires))
-            if exp.tzinfo is None:
-                exp = exp.replace(tzinfo=timezone.utc)
-            if datetime.now(tz=timezone.utc) > exp:
-                raise AuthenticationError("Magic link expired.")
-        email = str(meta["email"]).lower()
+        record = self.tokens.consume(
+            purpose="magic_link",
+            token=token,
+            ip_hint=ip_hint,
+            error_cls=AuthenticationError,
+            error_message="Invalid or expired magic link.",
+        )
+        email = str(record.data.get("email") or "").lower()
         user = self._get_by_email(email)
         if user is None:
             created = self.auth.users.create(
@@ -1135,15 +1540,26 @@ class EnterpriseAuthPlatform:
             )
             return {"ok": True, "request": payload}
 
-        invite_token = secrets.token_urlsafe(24)
         mapped_role = _normalize_role(role)
+        organization = str(payload.get("organization") or "").strip() or None
+        invite_ttl_hours = 72
+        invite_token = self.tokens.issue(
+            purpose="invitation",
+            ttl=timedelta(hours=invite_ttl_hours),
+            organization_id=organization,
+            data={
+                "request_id": request_id,
+                "email": payload["email"],
+                "name": payload["name"],
+                "role": mapped_role,
+            },
+        )
         payload.update(
             {
                 "status": "invited",
                 "updated_at": now,
                 "decided_by": actor_user_id,
                 "notes": notes,
-                "invitation_token": invite_token,
                 "role": mapped_role,
             }
         )
@@ -1155,20 +1571,22 @@ class EnterpriseAuthPlatform:
             created_at=now,
             allow_update=True,
         )
-        self.auth.persistence.put(
-            kind="metadata",
-            entity_id=f"{_INVITE_PREFIX}{invite_token}",
-            payload={
-                "token": invite_token,
-                "request_id": request_id,
-                "email": payload["email"],
-                "name": payload["name"],
-                "role": mapped_role,
-                "auth_entity": "invitation",
-            },
-            refs={"auth_entity": "invitation"},
-            created_at=now,
-            allow_update=True,
+        link_url = f"{self._frontend_url()}/accept-invite?token={invite_token}"
+        subject, text_body, html_body = render_invitation_email(
+            link_url=link_url,
+            token=invite_token,
+            org_name=organization,
+            role=mapped_role,
+            expires_hours=invite_ttl_hours,
+        )
+        self.email.send(
+            to=str(payload["email"]), subject=subject, body=text_body, html_body=html_body, purpose="invitation"
+        )
+        self.audit.record(
+            "invitation.issued",
+            organization_id=organization,
+            detail=f"request_id={request_id};role={mapped_role}",
+            metadata={"actor_user_id": actor_user_id, "email": payload["email"]},
         )
         out = {"ok": True, "request": payload}
         env = (os.environ.get("DSP_ENVIRONMENT") or "development").lower()
@@ -1184,10 +1602,13 @@ class EnterpriseAuthPlatform:
         confirm_password: str,
         username: str | None = None,
     ) -> dict[str, Any]:
-        row = self.auth.persistence.get("metadata", f"{_INVITE_PREFIX}{token}")
-        if row is None:
-            raise ValidationError("Invalid invitation token.")
-        invite = row.get("payload") or {}
+        record = self.tokens.consume(
+            purpose="invitation",
+            token=token,
+            error_cls=ValidationError,
+            error_message="Invalid or expired invitation token.",
+        )
+        invite = record.data
         if password != confirm_password:
             raise ValidationError("password confirmation does not match")
         strength = password_strength(password)
@@ -1215,7 +1636,13 @@ class EnterpriseAuthPlatform:
                 "email_verified": True,
                 "requires_email_verification": False,
                 "via_invitation": True,
+                "organization": record.organization_id,
             },
+        )
+        self.audit.record(
+            "invitation.accepted",
+            user_id=user.user_id,
+            organization_id=record.organization_id,
         )
         # Mark request completed
         request_id = invite.get("request_id")
@@ -1259,11 +1686,19 @@ class EnterpriseAuthPlatform:
         )
         self.auth.users.save(updated)
         if not active:
+            revoked_count = 0
             for session in self.auth.sessions.list_sessions(user_id=user_id):
                 try:
                     self.auth.sessions.revoke(session.session_id)
+                    revoked_count += 1
                 except Exception:  # noqa: BLE001
                     pass
+            if revoked_count:
+                self.audit.record(
+                    "session.revoked",
+                    user_id=user_id,
+                    detail=f"admin_deactivate:{revoked_count}",
+                )
         return enterprise_user_public_dict(updated)
 
     def admin_reset_password(self, user_id: str, new_password: str) -> dict[str, Any]:
@@ -1318,7 +1753,11 @@ class EnterpriseAuthPlatform:
         sessions = self.auth.sessions.list_sessions(user_id=user_id) if hasattr(
             self.auth.sessions, "list_sessions"
         ) else []
-        return [s.to_dict() if hasattr(s, "to_dict") else dict(s) for s in sessions if not getattr(s, "revoked", False)]
+        return [
+            s.to_public_dict() if hasattr(s, "to_public_dict") else dict(s)
+            for s in sessions
+            if not getattr(s, "revoked", False)
+        ]
 
     def get_profile(self, user_id: str) -> dict[str, Any]:
         user = self.auth.users.get(user_id)
@@ -1367,12 +1806,12 @@ class EnterpriseAuthPlatform:
         user = self.auth.users.get(user_id)
         if user is None:
             raise ValidationError("user not found")
-        token = secrets.token_urlsafe(32)
-        self._email_change_tokens[token] = {
-            "user_id": user_id,
-            "email": mail,
-            "expires_at": (datetime.now(tz=timezone.utc) + timedelta(hours=24)).isoformat(),
-        }
+        token = self.tokens.issue(
+            purpose="email_change",
+            ttl=timedelta(hours=24),
+            user_id=user_id,
+            data={"email": mail},
+        )
         self.email.send(
             to=mail,
             subject="Confirm your new DSP email",
@@ -1390,16 +1829,19 @@ class EnterpriseAuthPlatform:
         return out
 
     def confirm_change_email(self, token: str) -> dict[str, Any]:
-        meta = self._email_change_tokens.pop(token, None)
-        if not meta:
-            raise ValidationError("Invalid or expired email change token.")
-        user = self.auth.users.get(str(meta["user_id"]))
+        record = self.tokens.consume(
+            purpose="email_change",
+            token=token,
+            error_cls=ValidationError,
+            error_message="Invalid or expired email change token.",
+        )
+        user = self.auth.users.get(str(record.user_id or ""))
         if user is None:
             raise ValidationError("user not found")
         updated = AuthUser(
             user_id=user.user_id,
             username=user.username,
-            email=str(meta["email"]),
+            email=str(record.data.get("email") or user.email),
             display_name=user.display_name,
             password_hash=user.password_hash,
             status=user.status,
@@ -1410,6 +1852,7 @@ class EnterpriseAuthPlatform:
             metadata=user.metadata,
         )
         updated = self._persist_meta(updated, {"email_verified": True})
+        self.audit.record("email.changed", user_id=user.user_id)
         return {"ok": True, "user": enterprise_user_public_dict(updated)}
 
     def unlink_provider(self, user_id: str, provider: str) -> dict[str, Any]:
@@ -1436,6 +1879,7 @@ class EnterpriseAuthPlatform:
                 remaining[0]["provider"] if remaining else AuthProvider.EMAIL.value
             )
         user = self._persist_meta(user, meta)
+        self.audit.record(self._oauth_event(target, "unlink"), user_id=user.user_id, detail=target)
         return enterprise_user_public_dict(user)
 
     def delete_account(self, user_id: str) -> dict[str, Any]:
@@ -1541,10 +1985,44 @@ class EnterpriseAuthPlatform:
             except Exception:  # noqa: BLE001
                 pass
         devices = self.devices.revoke_all(user_id)
+        if count:
+            self.audit.record(
+                "session.revoked", user_id=user_id, detail=f"admin_revoke_all:{count}"
+            )
         return {"ok": True, "sessions_revoked": count, "devices_revoked": devices}
 
     def admin_revoke_sessions(self, user_id: str) -> dict[str, Any]:
         return self.revoke_sessions_for_user(user_id)
+
+    def refresh_session(
+        self,
+        *,
+        refresh_token: str,
+        created_at: str | None = None,
+        access_jti: str | None = None,
+        ip_hint: str | None = None,
+        user_agent_hint: str | None = None,
+    ) -> dict[str, Any]:
+        """Rotate a refresh token with reuse detection — platform-level entry point.
+
+        Thin bridge over :meth:`AuthenticationService.refresh`. Reuses the
+        existing A009 session store (no duplicate token storage — the
+        rotation state lives on the same ``auth-session-*`` record already
+        used for everything else) and this platform's shared
+        :class:`~auth.audit.AuditLogger`, which is wired onto
+        ``self.auth.authentication`` in ``__init__``. Existing callers of
+        the lower-level ``AuthService.refresh`` / ``/auth/rbac/refresh``
+        continue to work unchanged and get the same rotation and reuse
+        detection guarantees, since both paths share one
+        ``AuthenticationService`` instance.
+        """
+        return self.auth.authentication.refresh(
+            refresh_token=refresh_token,
+            created_at=created_at,
+            access_jti=access_jti,
+            ip_hint=ip_hint,
+            user_agent_hint=user_agent_hint,
+        )
 
     def require_admin(self, access_token: str) -> dict[str, Any]:
         user = self.auth.current_user(access_token)

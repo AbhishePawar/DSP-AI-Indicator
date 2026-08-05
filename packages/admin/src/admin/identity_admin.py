@@ -37,7 +37,7 @@ class IdentityAdmin:
     def list_sessions(self, *, user_id: str | None = None) -> list[dict[str, Any]]:
         sessions = self._auth.sessions
         if user_id:
-            rows = [s.to_dict() for s in sessions.list_for_user(user_id)]
+            rows = [s.to_public_dict() for s in sessions.list_for_user(user_id)]
         else:
             rows = []
             persistence = self._auth.persistence
@@ -47,6 +47,6 @@ class IdentityAdmin:
                 sid = str(entity_id)[len("auth-session-") :]
                 session = sessions.get(sid)
                 if session is not None:
-                    rows.append(session.to_dict())
+                    rows.append(session.to_public_dict())
         rows.sort(key=lambda s: (s.get("created_at") or "", s.get("session_id") or ""))
         return rows

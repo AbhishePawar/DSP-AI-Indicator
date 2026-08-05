@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from auth.audit import AuditLogger
 from auth.authentication import AuthenticationService
 from auth.authorization import AuthorizationService
 from auth.enterprise_models import AuthProvider, PRODUCT_ROLES
@@ -17,14 +18,17 @@ from auth.exceptions import (
     AuthorizationError,
     DuplicateUserError,
     InvalidTokenError,
+    RefreshTokenReuseError,
     SessionError,
     ValidationError,
 )
 from auth.devices import DeviceRegistry
-from auth.email_delivery import ConsoleEmailAdapter, build_email_provider
+from auth.email_delivery import ConsoleEmailAdapter, SmtpEmailAdapter, build_email_provider
 from auth.hashing import hash_password, needs_rehash, verify_password
 from auth.jwt import JwtService
-from auth.mfa import MfaGateway, build_mfa_gateway
+from auth.mfa import MfaGateway, NullTotpAdapter, NullWebAuthnAdapter, build_mfa_gateway
+from auth.mfa_totp import TotpAdapter
+from auth.mfa_webauthn import WebAuthnAdapter
 from auth.models import (
     AUTH_SCHEMA_VERSION,
     AUTH_SERVICE_VERSION,
@@ -42,7 +46,16 @@ from auth.roles import RoleRegistry, builtin_roles, get_role_registry, reset_rol
 from auth.serde import session_to_dict, token_pair_to_dict, user_to_dict
 from auth.service import AuthService, get_auth_service, reset_auth_service_for_tests
 from auth.sessions import SessionManager
-from auth.sms import ConsoleSmsAdapter, DevSmsAdapter, NullSmsAdapter, build_sms_provider
+from auth.single_use_tokens import SingleUseTokenError, SingleUseTokenService
+from auth.sms import (
+    ConsoleSmsAdapter,
+    DevSmsAdapter,
+    Fast2SmsAdapter,
+    Msg91SmsAdapter,
+    NullSmsAdapter,
+    TwilioSmsAdapter,
+    build_sms_provider,
+)
 from auth.users import UserStore
 
 __all__ = [
@@ -52,6 +65,7 @@ __all__ = [
     "PERMISSIONS",
     "PRODUCT_ROLES",
     "ROLE_PERMISSIONS",
+    "AuditLogger",
     "AuthError",
     "AuthProvider",
     "AuthService",
@@ -68,15 +82,26 @@ __all__ = [
     "DevSmsAdapter",
     "DuplicateUserError",
     "EnterpriseAuthPlatform",
+    "Fast2SmsAdapter",
     "InvalidTokenError",
     "JwtService",
     "MfaGateway",
+    "Msg91SmsAdapter",
     "NullSmsAdapter",
+    "NullTotpAdapter",
+    "NullWebAuthnAdapter",
     "OtpService",
+    "RefreshTokenReuseError",
+    "SmtpEmailAdapter",
+    "TotpAdapter",
+    "TwilioSmsAdapter",
+    "WebAuthnAdapter",
     "RoleDefinition",
     "RoleRegistry",
     "SessionError",
     "SessionManager",
+    "SingleUseTokenError",
+    "SingleUseTokenService",
     "UserStore",
     "ValidationError",
     "assert_permission",

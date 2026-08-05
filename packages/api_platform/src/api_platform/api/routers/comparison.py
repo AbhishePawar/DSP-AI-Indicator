@@ -1,4 +1,9 @@
-"""Comparison routes — schema validation + platform orchestration envelope."""
+"""Comparison routes — HTTP -> DSPPlatform.compare_companies only.
+
+Business comparison logic lives entirely in ``comparison`` +
+``industry``; this router only resolves ``report_ids`` into previously
+computed ``DecisionPack`` reports and shapes the HTTP envelope.
+"""
 
 from __future__ import annotations
 
@@ -7,6 +12,7 @@ from fastapi import APIRouter, Depends
 from api_platform.api.dependencies import ApiState, get_api_state
 from api_platform.api.exceptions import ApiValidationError
 from api_platform.api.schemas import ApiResponse, CompareRequest
+from dsp_platform import DecisionPack, EligibilityOptions, comparison_result_public_dict
 
 router = APIRouter(tags=["comparison"])
 
@@ -16,38 +22,58 @@ def compare(
     body: CompareRequest,
     state: ApiState = Depends(get_api_state),
 ) -> ApiResponse:
-    """Validate comparison request; require Decision Pack payloads.
+    """Compare Decision Pack reports via the platform's comparison engine.
 
-    Full ``QualitativeComparisonEngine`` wiring remains a composition concern.
-    Without packs the API returns a validation error. When packs are present,
-    the API returns an orchestration envelope noting that engine injection is
-    required (no business comparison is performed in the API layer).
+    ``report_ids`` must reference reports previously created by
+    ``POST /analyze/company`` with ``as_decision_pack=true``.
     """
-    if not body.packs:
+    report_ids = [r.strip() for r in body.report_ids if r.strip()]
+    if len(set(report_ids)) < 2:
         raise ApiValidationError(
-            "compare requires at least one Decision Pack payload in packs"
+            "compare requires at least two distinct report_ids "
+            "(from POST /analyze/company with as_decision_pack=true)"
         )
 
-    limitations = [
-        "API layer performs no qualitative comparison math.",
-        "Provide a wired QualitativeComparisonEngine via platform composition "
-        "to execute DSPPlatform.compare_companies.",
-    ]
+    packs: list[DecisionPack] = []
+    missing: list[str] = []
+    invalid: list[str] = []
+    for report_id in report_ids:
+        if not state.reports.has(report_id):
+            missing.append(report_id)
+            continue
+        record = state.reports.get(report_id)
+        payload = record.get("payload") if isinstance(record, dict) else None
+        if not isinstance(payload, DecisionPack):
+            invalid.append(report_id)
+            continue
+        packs.append(payload)
+
+    if missing:
+        raise ApiValidationError(f"unknown report_ids: {missing}")
+    if invalid:
+        raise ApiValidationError(
+            "report_ids must reference Decision Pack reports "
+            f"(created with as_decision_pack=true): {invalid}"
+        )
+
+    result = state.platform.compare_companies(
+        packs,
+        eligibility_options=EligibilityOptions(
+            allow_related=body.allow_related, allow_limited=body.allow_limited
+        ),
+    )
+
+    payload = comparison_result_public_dict(result.payload) if result.ok else None
+    limitations = list(result.limitations)
     if body.note:
         limitations.append(body.note)
 
     return ApiResponse(
-        ok=False,
-        capability="compare_companies",
-        payload={
-            "pack_count": len(body.packs),
-            "status": "accepted_for_orchestration",
-        },
+        ok=result.ok,
+        capability=result.capability,
+        payload=payload,
         limitations=limitations,
-        errors=[
-            "comparison engine not injected in default API composition; "
-            "packs validated only"
-        ],
+        errors=list(result.errors),
         api_version=state.api_version,
-        platform_version=state.platform.get_platform_info().version,
+        platform_version=result.metadata.version,
     )

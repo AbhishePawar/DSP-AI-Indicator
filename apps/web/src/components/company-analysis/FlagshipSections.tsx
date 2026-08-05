@@ -10,6 +10,7 @@ import Link from "next/link";
 import { Accordion, Button } from "@/components/ds";
 import { ExplainableRatingItem } from "./ExplainableRatingItem";
 import { formatPct } from "@/lib/intelligence/mapResponse";
+import type { RiskCategoryPayload } from "@/lib/api/compositionTypes";
 import type { ResearchView } from "@/lib/research/mapResearchView";
 import {
   FieldRow,
@@ -153,68 +154,83 @@ export function MoatSection({ view }: { view: ResearchView }) {
   );
 }
 
+function riskLevelLabel(value: string | null | undefined): string {
+  if (!value) return "Data unavailable.";
+  return value
+    .split("_")
+    .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+    .join(" ");
+}
+
+function RiskCategoryRow({
+  label,
+  category,
+}: {
+  label: string;
+  category: RiskCategoryPayload | undefined;
+}) {
+  if (!category || !category.available) {
+    return (
+      <FieldRow
+        label={label}
+        value={category?.message ?? "Data unavailable."}
+      />
+    );
+  }
+  const detail = category.source_stage
+    ? `${riskLevelLabel(category.level)} (from ${category.source_stage})`
+    : riskLevelLabel(category.level);
+  return <FieldRow label={label} value={detail} />;
+}
+
 export function RiskSection({ view }: { view: ResearchView }) {
-  const riskStage = view.stages.find((s) =>
-    ["risk", "risk_assessment", "risk_unit"].includes(s.stage.toLowerCase()),
-  );
-  // Book 07 sub-dimensions require an explicit risk stage with named metrics.
-  // financial_strength / management / moat / valuation must never populate risk types.
-  const emptyRisk = { metrics: [] as { label: string; value: string }[] };
+  const risk = view.risk;
 
   return (
     <div className="space-y-4">
       <SectionCard
         title="Risk"
-        description="REP-002 Book 07 — risk engine / risk stage metrics only. Never alias Financial Strength, Debt, Management, Business Quality, Growth, Moat, or Valuation into risk types."
+        description="Composition Risk stage — structural aggregation of existing financial_strength / economic_moat ratings only. No new risk-scoring algorithm. Categories with no connected data source are honestly reported unavailable."
+        action={
+          risk ? (
+            <span className="text-xs text-[var(--muted)]">
+              {risk.categories_available}/{risk.categories_total} categories
+              covered
+            </span>
+          ) : undefined
+        }
       >
         <dl>
-          <FieldRow
-            label="Business Risk"
-            value={stageMetricValue(emptyRisk, "Business Risk")}
+          <RiskCategoryRow label="Business Risk" category={risk?.business_risk} />
+          <RiskCategoryRow label="Financial Risk" category={risk?.financial_risk} />
+          <RiskCategoryRow label="Regulatory Risk" category={risk?.regulatory_risk} />
+          <RiskCategoryRow label="Technology Risk" category={risk?.technology_risk} />
+          <RiskCategoryRow label="Currency Risk" category={risk?.currency_risk} />
+          <RiskCategoryRow
+            label="Customer Concentration Risk"
+            category={risk?.customer_concentration_risk}
           />
           <FieldRow
-            label="Financial Risk"
-            value={stageMetricValue(emptyRisk, "Financial Risk")}
-          />
-          <FieldRow
-            label="Operational Risk"
-            value={stageMetricValue(emptyRisk, "Operational Risk")}
-          />
-          <FieldRow
-            label="Regulatory Risk"
-            value={stageMetricValue(emptyRisk, "Regulatory Risk")}
-          />
-          <FieldRow
-            label="Permanent Capital Loss"
-            value={stageMetricValue(emptyRisk, "Permanent Capital Loss")}
-          />
-          <FieldRow
-            label="Risk stage"
-            value={
-              riskStage
-                ? `${riskStage.stage}: ${riskStage.status}`
-                : "Coverage unavailable."
-            }
-          />
-          <FieldRow
-            label="Risk stage label"
-            value={riskStage?.label ?? "Data unavailable."}
+            label="Overall Risk Level"
+            value={riskLevelLabel(risk?.overall_risk_level)}
           />
         </dl>
-        <p className="mt-3 text-xs text-[var(--muted)]">
-          Book 07 typed dimensions are Data unavailable. until the analyse
-          contract exposes a dedicated risk stage with those metrics. Margin of
-          Safety belongs under Valuation — not Risk.
-        </p>
+        {risk?.limitations?.length ? (
+          <ul className="mt-3 list-disc space-y-1 pl-4 text-xs text-[var(--muted)]">
+            {risk.limitations.map((l) => (
+              <li key={l}>{l}</li>
+            ))}
+          </ul>
+        ) : null}
       </SectionCard>
       <ListBlock
         title="Key risks"
-        description="Pipeline warnings / mapped IntelligenceView.risks — not Book 07 type scores"
+        description="Pipeline warnings / mapped IntelligenceView.risks — narrative, not the typed Risk stage above"
         items={view.risks}
       />
       <ListBlock title="Weaknesses" items={view.weaknesses} />
       <StageSectionCard
-        title="Financial strength stage (separate engine — not Book 07 Risk)"
+        title="Financial strength stage (source for Financial Risk above)"
         section={view.financialStrength}
       />
     </div>

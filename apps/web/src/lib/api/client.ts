@@ -550,6 +550,106 @@ export const api = {
       options,
     ),
 
+  /**
+   * Build a canonical Research Object from an existing `/analyse` response
+   * (EPIC-R001). No new scoring — passes through the already-computed
+   * analysis payload and optionally fetches the D005 data bundle.
+   */
+  researchObject: (
+    body: {
+      symbol: string;
+      company?: string | null;
+      exchange?: string | null;
+      correlation_id?: string | null;
+      data_bundle?: Record<string, unknown> | null;
+      analysis_payload?: Record<string, unknown> | null;
+      valuation_signals?: Record<string, unknown> | null;
+      fetch_data_bundle?: boolean;
+    },
+    options?: RequestOptions,
+  ) =>
+    request<{
+      ok: boolean;
+      symbol?: string;
+      research_object?: Record<string, unknown>;
+      message?: string | null;
+      error?: string;
+    }>(
+      "/research/object",
+      { method: "POST", body: JSON.stringify(body) },
+      options,
+    ),
+
+  /** Generate an Institutional Research Report from a Research Object (EPIC-R002). */
+  researchReport: (
+    body: {
+      research_object: Record<string, unknown>;
+      report_id?: string | null;
+      generated_at?: string | null;
+    },
+    options?: RequestOptions,
+  ) =>
+    request<{
+      ok: boolean;
+      symbol?: string;
+      report?: Record<string, unknown>;
+      message?: string | null;
+      error?: string;
+    }>(
+      "/research/report",
+      { method: "POST", body: JSON.stringify(body) },
+      options,
+    ),
+
+  /** Export an Institutional Research Report to json/csv/xlsx/pdf/docx/pptx (EPIC-R003). */
+  researchExport: (
+    body: {
+      report: Record<string, unknown>;
+      format: "json" | "csv" | "xlsx" | "pdf" | "docx" | "pptx";
+      export_id?: string | null;
+      exported_at?: string | null;
+    },
+    options?: RequestOptions,
+  ) =>
+    request<{
+      ok: boolean;
+      export?: {
+        metadata: {
+          filename: string;
+          content_type: string;
+          [key: string]: unknown;
+        };
+        content_base64: string;
+        [key: string]: unknown;
+      };
+      message?: string | null;
+      error?: string;
+    }>(
+      "/research/export",
+      { method: "POST", body: JSON.stringify(body) },
+      options,
+    ),
+
+  /**
+   * Peer comparison over pre-computed Decision Pack reports (EPIC — Peers tab).
+   * Reuses `comparison.QualitativeComparisonEngine` server-side; the client
+   * never re-derives peer eligibility or scores.
+   */
+  compare: (
+    body: {
+      report_ids: string[];
+      allow_related?: boolean;
+      allow_limited?: boolean;
+    },
+    options?: RequestOptions,
+  ) =>
+    request<{
+      ok: boolean;
+      result?: Record<string, unknown>;
+      message?: string | null;
+      error?: string;
+    }>("/compare", { method: "POST", body: JSON.stringify(body) }, options),
+
   researchIntelligenceInsights: (
     body: {
       window_months?: number;

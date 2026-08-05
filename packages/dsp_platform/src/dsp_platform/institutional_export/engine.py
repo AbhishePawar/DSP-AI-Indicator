@@ -12,9 +12,11 @@ from typing import Any, Mapping
 
 from dsp_platform.institutional_export.formats import (
     export_csv_bytes,
+    export_docx_bytes,
     export_json_bytes,
     export_json_document,
     export_pdf_bytes,
+    export_pptx_bytes,
     export_xlsx_bytes,
 )
 from dsp_platform.institutional_export.mapper import load_report
@@ -45,6 +47,8 @@ CONTENT_TYPES = {
     "csv": "text/csv; charset=utf-8",
     "xlsx": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
     "pdf": "application/pdf",
+    "docx": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+    "pptx": "application/vnd.openxmlformats-officedocument.presentationml.presentation",
 }
 
 _EXTENSIONS = {
@@ -52,6 +56,8 @@ _EXTENSIONS = {
     "csv": "csv",
     "xlsx": "xlsx",
     "pdf": "pdf",
+    "docx": "docx",
+    "pptx": "pptx",
 }
 
 
@@ -105,6 +111,10 @@ class InstitutionalExportEngine:
             raw = export_xlsx_bytes(report)
         elif fmt == "pdf":
             raw = export_pdf_bytes(report)
+        elif fmt == "docx":
+            raw = export_docx_bytes(report)
+        elif fmt == "pptx":
+            raw = export_pptx_bytes(report)
         else:  # pragma: no cover
             raise ValueError(f"unsupported format {fmt}")
 

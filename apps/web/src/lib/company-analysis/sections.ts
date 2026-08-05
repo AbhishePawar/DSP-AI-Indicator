@@ -20,7 +20,13 @@ export type AnalysisSectionId =
   | "valuationTransparency"
   | "research"
   | "buffett"
-  | "compliance";
+  | "compliance"
+  | "ownership"
+  | "peers"
+  | "documents"
+  | "news"
+  | "copilot"
+  | "settings";
 
 export type AnalysisSectionMeta = {
   id: AnalysisSectionId;
@@ -147,6 +153,48 @@ export const ANALYSIS_SECTIONS: readonly AnalysisSectionMeta[] = [
     label: "Compliance",
     description: "Policy flags and limitations",
     shortcut: "C",
+    lazy: true,
+  },
+  {
+    id: "ownership",
+    label: "Ownership",
+    description: "Promoter holding and insider transactions",
+    shortcut: "W",
+    lazy: true,
+  },
+  {
+    id: "peers",
+    label: "Peers",
+    description: "Qualitative peer comparison via the comparison engine",
+    shortcut: "P",
+    lazy: true,
+  },
+  {
+    id: "documents",
+    label: "Documents",
+    description: "Annual reports, quarterly results, presentations, corporate actions",
+    shortcut: "D",
+    lazy: true,
+  },
+  {
+    id: "news",
+    label: "News",
+    description: "Company news feed",
+    shortcut: "N",
+    lazy: true,
+  },
+  {
+    id: "copilot",
+    label: "AI Copilot",
+    description: "Ask the AI Investment Copilot about this company",
+    shortcut: "K",
+    lazy: true,
+  },
+  {
+    id: "settings",
+    label: "Settings",
+    description: "Workspace preferences — panels, theme, notes, tags",
+    shortcut: "S",
     lazy: true,
   },
 ] as const;

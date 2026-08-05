@@ -82,9 +82,29 @@ def test_export_pdf(client: TestClient) -> None:
     assert raw.startswith(b"%PDF")
 
 
-def test_export_bad_format(client: TestClient) -> None:
+def test_export_docx(client: TestClient) -> None:
     response = client.post(
         "/api/v1/research/export",
         json={"report": _report_dict(), "format": "docx"},
+    )
+    assert response.status_code == 200
+    raw = base64.b64decode(response.json()["export"]["content_base64"])
+    assert raw[:2] == b"PK"
+
+
+def test_export_pptx(client: TestClient) -> None:
+    response = client.post(
+        "/api/v1/research/export",
+        json={"report": _report_dict(), "format": "pptx"},
+    )
+    assert response.status_code == 200
+    raw = base64.b64decode(response.json()["export"]["content_base64"])
+    assert raw[:2] == b"PK"
+
+
+def test_export_bad_format(client: TestClient) -> None:
+    response = client.post(
+        "/api/v1/research/export",
+        json={"report": _report_dict(), "format": "txt"},
     )
     assert response.status_code == 400

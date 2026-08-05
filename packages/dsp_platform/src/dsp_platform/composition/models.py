@@ -133,6 +133,7 @@ class PipelineResult:
     financial_strength: Any = None
     earnings_quality: Any = None
     growth_quality: Any = None
+    risk: Any = None
     business_quality_analysis: Any = None  # F3 BQ input analysis
     business_quality: Any = None  # aggregator output
     investment_recommendation: Any = None
@@ -158,6 +159,7 @@ class PipelineResult:
             "has_financial_strength": self.financial_strength is not None,
             "has_earnings_quality": self.earnings_quality is not None,
             "has_growth_quality": self.growth_quality is not None,
+            "has_risk": self.risk is not None,
             "has_business_quality_analysis": self.business_quality_analysis is not None,
             "has_business_quality": self.business_quality is not None,
             "has_investment_recommendation": self.investment_recommendation is not None,

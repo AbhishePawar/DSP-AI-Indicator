@@ -2,15 +2,21 @@
 
 import Link from "next/link";
 import { useState } from "react";
+import { useMutation } from "@tanstack/react-query";
 
 import { Badge, Button } from "@/components/ds";
 import {
+  downloadBase64,
   downloadText,
   researchViewToCsv,
   researchViewToHtml,
   researchViewToJson,
   useWorkspacePrefsStore,
 } from "@/lib/company-analysis";
+import { api } from "@/lib/api/client";
+import type { AnalyseRequest, AnalyseResponse } from "@/lib/api/compositionTypes";
+import { ApiClientError } from "@/lib/api/types";
+import { useAuth } from "@/lib/auth/AuthProvider";
 import { featureFlags } from "@/lib/featureFlags";
 import { formatPct } from "@/lib/intelligence/mapResponse";
 import type { ResearchView } from "@/lib/research/mapResearchView";
@@ -52,10 +58,14 @@ export function SummarySection({
   view,
   catalogue,
   marketStatus,
+  marketQuote,
+  financialStatements,
 }: {
   view: ResearchView;
   catalogue: CompanyEntry | undefined;
   marketStatus: string;
+  marketQuote?: import("@/lib/institutional-dashboard/mapInstitutionalDashboard").MarketQuotePayload | null;
+  financialStatements?: import("@/lib/institutional-dashboard/mapInstitutionalDashboard").FinancialStatementsPayload | null;
 }) {
   return (
     <div className="space-y-4">
@@ -64,6 +74,8 @@ export function SummarySection({
         catalogue={catalogue}
         marketStatus={marketStatus}
         lastUpdated={view.analysedAt}
+        marketQuote={marketQuote}
+        financialStatements={financialStatements}
       />
       <SectionCard
         title="Executive Summary"
@@ -629,13 +641,79 @@ export function TimelineSection({ view }: { view: ResearchView }) {
   );
 }
 
-export function ExportSection({ view }: { view: ResearchView }) {
+function describeExportError(error: unknown): string {
+  if (error instanceof ApiClientError) {
+    if (error.status === 401) {
+      return "Permission denied — sign in required for institutional export.";
+    }
+    return error.message || `API error (${error.status})`;
+  }
+  if (error instanceof Error) return error.message;
+  return "Data unavailable.";
+}
+
+export function ExportSection({
+  view,
+  analyseRequest,
+  analyseResponse,
+}: {
+  view: ResearchView;
+  analyseRequest?: AnalyseRequest | null;
+  analyseResponse?: AnalyseResponse | null;
+}) {
+  const { session } = useAuth();
+  const token = session?.accessToken ?? null;
   const base = `${view.ticker.toLowerCase()}-research`;
   const sharePath = `/analysis?symbol=${encodeURIComponent(view.ticker)}`;
   const shareUrl =
     typeof window !== "undefined"
       ? `${window.location.origin}${sharePath}`
       : sharePath;
+
+  const institutionalExportMutation = useMutation({
+    mutationFn: async (format: "docx" | "pptx") => {
+      if (!analyseResponse) {
+        throw new Error(
+          "Run an analysis first — institutional export uses the loaded research, it does not fetch its own data.",
+        );
+      }
+      const objectRes = await api.researchObject(
+        {
+          symbol: view.ticker,
+          company: view.company,
+          exchange: view.exchange,
+          analysis_payload:
+            (analyseResponse.payload as Record<string, unknown> | undefined) ??
+            null,
+          fetch_data_bundle: false,
+        },
+        { token },
+      );
+      if (!objectRes.ok || !objectRes.research_object) {
+        throw new Error(objectRes.message ?? objectRes.error ?? "Data unavailable.");
+      }
+      const reportRes = await api.researchReport(
+        { research_object: objectRes.research_object },
+        { token },
+      );
+      if (!reportRes.ok || !reportRes.report) {
+        throw new Error(reportRes.message ?? reportRes.error ?? "Data unavailable.");
+      }
+      const exportRes = await api.researchExport(
+        { report: reportRes.report, format },
+        { token },
+      );
+      if (!exportRes.ok || !exportRes.export) {
+        throw new Error(exportRes.message ?? exportRes.error ?? "Data unavailable.");
+      }
+      downloadBase64(
+        exportRes.export.metadata.filename,
+        exportRes.export.content_base64,
+        exportRes.export.metadata.content_type,
+      );
+      return format;
+    },
+  });
 
   return (
     <div className="space-y-4">
@@ -719,6 +797,49 @@ export function ExportSection({ view }: { view: ResearchView }) {
           PDF uses browser print. Excel downloads CSV that Excel can open. Native
           XLSX/PDF engines are not shipped in this epic.
         </p>
+      </SectionCard>
+      <SectionCard
+        title="Institutional Report Export"
+        description="Word and PowerPoint generated server-side from dsp_platform.institutional_export — same frozen report as PDF/CSV/XLSX, no recalculation."
+      >
+        <div className="flex flex-wrap gap-2">
+          <Button
+            variant="secondary"
+            disabled={institutionalExportMutation.isPending || !analyseResponse}
+            onClick={() => institutionalExportMutation.mutate("docx")}
+          >
+            {institutionalExportMutation.isPending &&
+            institutionalExportMutation.variables === "docx"
+              ? "Exporting…"
+              : "Export Word (.docx)"}
+          </Button>
+          <Button
+            variant="secondary"
+            disabled={institutionalExportMutation.isPending || !analyseResponse}
+            onClick={() => institutionalExportMutation.mutate("pptx")}
+          >
+            {institutionalExportMutation.isPending &&
+            institutionalExportMutation.variables === "pptx"
+              ? "Exporting…"
+              : "Export PowerPoint (.pptx)"}
+          </Button>
+        </div>
+        {!analyseResponse ? (
+          <p className="mt-3 text-xs text-[var(--muted)]">
+            Run an analysis first to enable Word/PowerPoint export.
+          </p>
+        ) : null}
+        {institutionalExportMutation.isError ? (
+          <p className="mt-3 text-sm text-[var(--danger-fg)]" role="alert">
+            {describeExportError(institutionalExportMutation.error)}
+          </p>
+        ) : null}
+        {institutionalExportMutation.isSuccess ? (
+          <p className="mt-3 text-sm text-[var(--muted)]" role="status">
+            {institutionalExportMutation.data === "docx" ? "Word" : "PowerPoint"}{" "}
+            export downloaded.
+          </p>
+        ) : null}
       </SectionCard>
     </div>
   );

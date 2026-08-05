@@ -159,7 +159,9 @@ class TestAnalyse:
         assert payload["ok"] is True
         assert payload["has_investment_committee"] is True
         assert payload["committee_summary"] is not None
-        assert len(payload["stage_summaries"]) == 10
+        assert len(payload["stage_summaries"]) == 11
+        assert payload["risk"] is not None
+        assert payload["risk"]["financial_risk"]["available"] is True
         assert "X-Request-Id" in response.headers
 
     def test_analyse_validation_error(self, client: TestClient) -> None:

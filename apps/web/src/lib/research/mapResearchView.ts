@@ -6,6 +6,7 @@
 import type {
   AnalyseRequest,
   AnalyseResponse,
+  CompanyRiskPayload,
   StageSummary,
 } from "@/lib/api/compositionTypes";
 import {
@@ -82,6 +83,8 @@ export type ResearchView = IntelligenceView & {
   explainability: InstitutionalExplainabilityFramework;
   /** P2.3 — institutional valuation transparency (presentation). */
   valuationTransparency: ValuationTransparencyView;
+  /** Composition Risk stage — structural aggregation of existing engines only. */
+  risk: CompanyRiskPayload | null;
 };
 
 function stageOrEmpty(
@@ -259,6 +262,7 @@ export function mapResearchView(
     businessQuality,
     recommendationStage,
     committee,
+    risk: (response.payload?.risk as CompanyRiskPayload | null | undefined) ?? null,
   };
   const withBuffett = {
     ...draft,

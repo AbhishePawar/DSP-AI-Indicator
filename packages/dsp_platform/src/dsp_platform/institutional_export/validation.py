@@ -23,6 +23,10 @@ def validate_export_format(fmt: str) -> str:
     normalized = fmt.strip().lower()
     if normalized == "excel":
         normalized = "xlsx"
+    if normalized == "word":
+        normalized = "docx"
+    if normalized == "powerpoint":
+        normalized = "pptx"
     if normalized not in EXPORT_FORMATS:
         raise InstitutionalExportValidationError(
             f"unsupported export format {fmt!r}; allowed={EXPORT_FORMATS}"

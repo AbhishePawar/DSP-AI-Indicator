@@ -327,7 +327,7 @@ def export_research_report(
     body: ResearchExportRequest,
     state: ApiState = Depends(get_api_state),
 ) -> JSONResponse:
-    """Export Institutional Report to json/csv/xlsx/pdf (EPIC-R003).
+    """Export Institutional Report to json/csv/xlsx/pdf/docx/pptx (EPIC-R003).
 
     Additive — Report is the sole source. No calculations or reformatting.
     """

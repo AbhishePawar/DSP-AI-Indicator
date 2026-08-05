@@ -15,6 +15,7 @@ export {
 } from "./workspacePrefsStore";
 
 export {
+  downloadBase64,
   downloadText,
   researchViewToCsv,
   researchViewToHtml,

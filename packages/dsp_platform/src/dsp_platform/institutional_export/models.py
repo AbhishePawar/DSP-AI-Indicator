@@ -26,7 +26,7 @@ __all__ = [
 
 EXPORT_SCHEMA_VERSION = "1.0.0"
 EXPORTER_VERSION = "1.0.0"
-EXPORT_FORMATS = ("json", "csv", "xlsx", "pdf")
+EXPORT_FORMATS = ("json", "csv", "xlsx", "pdf", "docx", "pptx")
 
 
 def utc_now() -> datetime:

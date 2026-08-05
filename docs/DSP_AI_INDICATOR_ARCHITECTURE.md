@@ -282,3 +282,23 @@ DSP AI Indicator's architecture is designed so that today's engine additions are
 - **Deployment flexibility.** The strict package boundaries and dependency rules make it feasible to later split engines across services (e.g., running the AI Investment Committee and Research Engine as separately scaled services from the numerically intensive Indicator/Risk engines) if operational scale demands it, without having to first untangle an entangled codebase.
 
 The unifying theme across all of these growth paths is that they are extensions **within** the architecture defined in this document, not departures from it. Preserving the dependency rules, the explainability contract, and the registry-based extensibility pattern as the platform grows is what keeps "institutional-grade" a property of the system rather than a marketing description.
+
+---
+
+## 8. Addendum — Institutional Company Workspace & the Risk Composition Stage
+
+This addendum records two additions made when the platform's already-built engines were unified into a single flagship Company Workspace (`/analysis`). See `docs/COMPANY_WORKSPACE.md` for the full component/API/sequence-diagram treatment; this section only records where the additions sit within the architecture defined above.
+
+### 8.1 Risk as a real Composition stage
+
+Section 3.10 describes the Risk Engine (`risk`, `quantitative_risk`) as portfolio-centric. For single-company research, `dsp_platform.composition.pipeline` now includes a **Risk** stage (`PipelineStage.RISK`), positioned in `EXECUTION_ORDER` after `economic_moat`/`financial_strength` complete, alongside the other structural composition stages (Section 3.7–3.11). It does not add a new risk-scoring algorithm — it is a `dsp_platform.composition.risk_view.build_company_risk_view` aggregator that maps already-computed `financial_strength` and `economic_moat` ratings onto the requested risk taxonomy (Business, Financial, Regulatory, Technology, Currency, Customer Concentration). Categories with no connected upstream signal are reported `available: false` with an explicit message rather than a fabricated value — consistent with the explainability principle in Section 2.3. `PipelineResult.risk` and `pipeline_result_public_dict()["risk"]` expose it the same way existing stage summaries are exposed.
+
+### 8.2 Institutional Company Workspace as the flagship UI
+
+The Professional Dashboard (Section 3.13) is realized today as the Next.js `/analysis` route (`CompanyAnalysisWorkspace`). This is an orchestration-only consumer: it composes existing engine outputs into one workspace and introduces no new business logic. Per the dependency rules in Section 4, all new server-side work for this effort was either:
+
+1. **Composition-root wiring** inside `dsp_platform` (the Risk stage above; `QualitativeComparisonEngine` default-engine resolution + short-TTL caching for peer comparison in `DSPPlatform.compare_companies`), or
+2. **Re-mounting already-implemented, already-tested API routers** (`market`, `fundamentals`, `historical`, `corporate_actions`, `data`, `research`, `decision_workspace`, and several institutional/committee/workflow routers) that existed in `packages/api_platform` but were never imported into `app.py`, or
+3. **New serializers**, not new calculations — `docx`/`pptx` writers in `dsp_platform.institutional_export.formats` sit beside the existing `pdf_export.py`/`xlsx` writers and render the same frozen `InstitutionalResearchReport`.
+
+No engine package gained new algorithms as part of this work. Sections of the workspace with no connected data source anywhere in the platform (Ownership/insider transactions, News, filings/Documents) render an honest "Data unavailable — no data source connected." state rather than mocked data, matching the platform-wide convention described in Section 2.3.

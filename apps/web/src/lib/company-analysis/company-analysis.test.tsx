@@ -2,7 +2,7 @@
  * @vitest-environment jsdom
  */
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { cleanup, render, screen, waitFor } from "@testing-library/react";
+import { cleanup, render, screen, waitFor, within } from "@testing-library/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
 const push = vi.fn();
@@ -61,11 +61,19 @@ vi.mock("@/lib/research/sessionStore", () => ({
 
 const analyseMock = vi.fn();
 const marketQuoteMock = vi.fn();
+const financialStatementsMock = vi.fn();
+const corporateActionsMock = vi.fn();
+const copilotCompleteMock = vi.fn();
+const compareMock = vi.fn();
 
 vi.mock("@/lib/api/client", () => ({
   api: {
     analyse: (...args: unknown[]) => analyseMock(...args),
     marketQuote: (...args: unknown[]) => marketQuoteMock(...args),
+    financialStatements: (...args: unknown[]) => financialStatementsMock(...args),
+    corporateActions: (...args: unknown[]) => corporateActionsMock(...args),
+    copilotComplete: (...args: unknown[]) => copilotCompleteMock(...args),
+    compare: (...args: unknown[]) => compareMock(...args),
   },
 }));
 
@@ -204,6 +212,50 @@ const sampleResponse: AnalyseResponse = {
       consensus: "majority hold",
       rationale: "Minority prefers wait",
     },
+    risk: {
+      business_risk: {
+        category: "business_risk",
+        available: true,
+        level: "moderate",
+        source_stage: "economic_moat",
+        source_rating: "narrow",
+        evidence: [],
+      },
+      financial_risk: {
+        category: "financial_risk",
+        available: true,
+        level: "low",
+        source_stage: "financial_strength",
+        source_rating: "strong",
+        evidence: [],
+      },
+      regulatory_risk: {
+        category: "regulatory_risk",
+        available: false,
+        message: "Data unavailable — no data source connected.",
+      },
+      technology_risk: {
+        category: "technology_risk",
+        available: false,
+        message: "Data unavailable — no data source connected.",
+      },
+      currency_risk: {
+        category: "currency_risk",
+        available: false,
+        message: "Data unavailable — no data source connected.",
+      },
+      customer_concentration_risk: {
+        category: "customer_concentration_risk",
+        available: false,
+        message: "Data unavailable — no data source connected.",
+      },
+      overall_risk_level: "moderate",
+      categories_available: 2,
+      categories_total: 6,
+      limitations: [
+        "Structural aggregation of existing financial_strength / economic_moat ratings only — no new risk-scoring algorithm.",
+      ],
+    },
   },
 };
 
@@ -237,6 +289,12 @@ describe("EPIC-F005 company analysis lib", () => {
         "research",
         "buffett",
         "compliance",
+        "ownership",
+        "peers",
+        "documents",
+        "news",
+        "copilot",
+        "settings",
       ]),
     );
   });
@@ -264,6 +322,19 @@ describe("EPIC-F005 company analysis lib", () => {
     expect(csv).toContain("reportId");
     expect(view.ratings.kind).toBe("institutional_rating_framework");
     expect(view.transparency.kind).toBe("report_transparency");
+    expect(view.risk?.overall_risk_level).toBe("moderate");
+    expect(view.risk?.business_risk.level).toBe("moderate");
+    expect(view.risk?.regulatory_risk.available).toBe(false);
+  });
+
+  it("maps a missing risk payload to null without inventing values", () => {
+    const request = buildAnalyseRequestForTicker("AAPL");
+    const responseWithoutRisk: AnalyseResponse = {
+      ...sampleResponse,
+      payload: { ...sampleResponse.payload, risk: undefined },
+    };
+    const view = mapResearchView(responseWithoutRisk, request, null);
+    expect(view.risk).toBeNull();
   });
 
   it("persists workspace panel prefs", () => {
@@ -287,8 +358,14 @@ describe("EPIC-F005 workspace UI", () => {
     acknowledgeResearchDisclaimer();
     analyseMock.mockReset();
     marketQuoteMock.mockReset();
+    financialStatementsMock.mockReset();
+    corporateActionsMock.mockReset();
+    copilotCompleteMock.mockReset();
+    compareMock.mockReset();
     analyseMock.mockResolvedValue(sampleResponse);
     marketQuoteMock.mockResolvedValue({ ok: true });
+    financialStatementsMock.mockResolvedValue({ ok: true, available: false });
+    corporateActionsMock.mockResolvedValue({ ok: true, available: false });
     useWorkspacePrefsStore.setState({
       activeSection: "summary",
       leftOpen: true,
@@ -340,6 +417,44 @@ describe("EPIC-F005 workspace UI", () => {
     wrap(<ValuationSection view={view} />);
     expect(screen.getByText("Intrinsic Value")).toBeTruthy();
     expect(screen.getByText("Margin of Safety")).toBeTruthy();
+  });
+
+  it("renders the real Risk stage — available and honestly-unavailable categories", async () => {
+    const { RiskSection } = await import(
+      "@/components/company-analysis/FlagshipSections"
+    );
+    const request = buildAnalyseRequestForTicker("AAPL");
+    const view = mapResearchView(sampleResponse, request, null);
+    wrap(<RiskSection view={view} />);
+    expect(screen.getByText("Moderate (from economic_moat)")).toBeTruthy();
+    expect(screen.getByText("Low (from financial_strength)")).toBeTruthy();
+    expect(
+      screen.getAllByText("Data unavailable — no data source connected.")
+        .length,
+    ).toBeGreaterThanOrEqual(4);
+  });
+
+  it("does not fire a new lazy section's queries until it becomes active", async () => {
+    const { CompanyAnalysisWorkspace } = await import(
+      "@/components/company-analysis/CompanyAnalysisWorkspace"
+    );
+    wrap(<CompanyAnalysisWorkspace />);
+    await waitFor(() => expect(analyseMock).toHaveBeenCalled());
+    await screen.findByRole("heading", { name: /Executive Summary/i });
+
+    // Documents is a lazy, net-new section — its component (and therefore its
+    // corporateActions query) must not mount while Overview is active.
+    expect(corporateActionsMock).not.toHaveBeenCalled();
+
+    const sectionsNav = await screen.findByRole("navigation", {
+      name: "Analysis sections",
+    });
+    const documentsNavButton = within(sectionsNav).getByRole("button", {
+      name: /Documents/i,
+    });
+    documentsNavButton.click();
+
+    await waitFor(() => expect(corporateActionsMock).toHaveBeenCalled());
   });
 });
 

@@ -116,6 +116,27 @@ export function downloadText(
   URL.revokeObjectURL(url);
 }
 
+/** Downloads base64-encoded bytes from `POST /research/export` (docx/pptx/pdf/xlsx). */
+export function downloadBase64(
+  filename: string,
+  base64: string,
+  mime: string,
+): void {
+  if (typeof window === "undefined") return;
+  const binary = atob(base64);
+  const bytes = new Uint8Array(binary.length);
+  for (let i = 0; i < binary.length; i += 1) {
+    bytes[i] = binary.charCodeAt(i);
+  }
+  const blob = new Blob([bytes], { type: mime });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = filename;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
 export function researchViewToHtml(view: ResearchView): string {
   const matrixRows = view.buffett.decisionMatrix
     .map(

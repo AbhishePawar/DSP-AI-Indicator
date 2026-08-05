@@ -110,11 +110,17 @@ export function WorkspaceLeftNav({
               "moat",
               "risk",
               "financial",
+              "ownership",
+              "peers",
               "ai",
+              "copilot",
               "explainability",
               "evidence",
               "timeline",
+              "documents",
+              "news",
               "export",
+              "settings",
             ].includes(s.id),
           ).map((section) => (
             <li key={section.id}>

@@ -139,6 +139,52 @@ def test_pdf_export() -> None:
     assert artifact.metadata.content_type == "application/pdf"
 
 
+def test_docx_export_is_zip() -> None:
+    artifact = export_institutional_report(
+        _report(), format="docx", export_id=FIXED_EXP, exported_at=FIXED_TS
+    )
+    assert artifact.metadata.content_type == (
+        "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+    )
+    assert artifact.metadata.filename.endswith(".docx")
+    raw = base64.b64decode(artifact.content_base64)
+    assert raw[:2] == b"PK"
+    with zipfile.ZipFile(BytesIO(raw)) as zf:
+        names = set(zf.namelist())
+        assert "word/document.xml" in names
+        assert "[Content_Types].xml" in names
+        document = zf.read("word/document.xml").decode("utf-8")
+        assert "Data unavailable." in document
+        assert "190.5" in document
+
+
+def test_pptx_export_is_zip() -> None:
+    artifact = export_institutional_report(
+        _report(), format="pptx", export_id=FIXED_EXP, exported_at=FIXED_TS
+    )
+    assert artifact.metadata.content_type == (
+        "application/vnd.openxmlformats-officedocument.presentationml.presentation"
+    )
+    assert artifact.metadata.filename.endswith(".pptx")
+    raw = base64.b64decode(artifact.content_base64)
+    assert raw[:2] == b"PK"
+    with zipfile.ZipFile(BytesIO(raw)) as zf:
+        names = set(zf.namelist())
+        assert "ppt/presentation.xml" in names
+        assert "ppt/slideMasters/slideMaster1.xml" in names
+        assert "ppt/slideLayouts/slideLayout1.xml" in names
+        assert "ppt/theme/theme1.xml" in names
+        slide_names = sorted(n for n in names if n.startswith("ppt/slides/slide"))
+        assert len(slide_names) >= 2
+        blob = "".join(
+            zf.read(n).decode("utf-8")
+            for n in names
+            if n.startswith("ppt/slides/slide") and n.endswith(".xml")
+        )
+        assert "Data unavailable." in blob
+        assert "190.5" in blob
+
+
 def test_determinism() -> None:
     report = institutional_report_to_dict(_report())
     a = export_artifact_to_dict(
@@ -166,8 +212,13 @@ def test_serialization_roundtrip() -> None:
 
 def test_validator_rejects_bad_format() -> None:
     with pytest.raises(InstitutionalExportValidationError):
-        validate_export_format("docx")
+        validate_export_format("txt")
 
 
 def test_excel_alias() -> None:
     assert validate_export_format("excel") == "xlsx"
+
+
+def test_word_and_powerpoint_aliases() -> None:
+    assert validate_export_format("word") == "docx"
+    assert validate_export_format("powerpoint") == "pptx"

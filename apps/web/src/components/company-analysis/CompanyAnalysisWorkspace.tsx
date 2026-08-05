@@ -20,6 +20,7 @@ import { useMutation, useQuery } from "@tanstack/react-query";
 import { Button, ErrorState } from "@/components/ds";
 import { useResearchDisclaimerGate } from "@/components/legal/useResearchDisclaimerGate";
 import { api } from "@/lib/api/client";
+import type { AnalyseRequest, AnalyseResponse } from "@/lib/api/compositionTypes";
 import { ApiClientError } from "@/lib/api/types";
 import {
   ANALYSIS_SECTIONS,
@@ -106,6 +107,32 @@ const ValuationTransparencySection = lazy(() =>
     default: m.ValuationTransparencySection,
   })),
 );
+const PeersSection = lazy(() =>
+  import("./sections/PeersSection").then((m) => ({ default: m.PeersSection })),
+);
+const OwnershipSection = lazy(() =>
+  import("./sections/OwnershipSection").then((m) => ({
+    default: m.OwnershipSection,
+  })),
+);
+const DocumentsSection = lazy(() =>
+  import("./sections/DocumentsSection").then((m) => ({
+    default: m.DocumentsSection,
+  })),
+);
+const NewsSection = lazy(() =>
+  import("./sections/NewsSection").then((m) => ({ default: m.NewsSection })),
+);
+const SettingsSection = lazy(() =>
+  import("./sections/SettingsSection").then((m) => ({
+    default: m.SettingsSection,
+  })),
+);
+const AiCopilotSection = lazy(() =>
+  import("./sections/AiCopilotSection").then((m) => ({
+    default: m.AiCopilotSection,
+  })),
+);
 
 function resolveCatalogue(ticker: string) {
   return COMPANY_CATALOGUE.find(
@@ -178,6 +205,10 @@ export function CompanyAnalysisWorkspace() {
   const [query, setQuery] = useState(urlSymbol);
   const [view, setView] = useState<ResearchView | null>(null);
   const [analysedAt, setAnalysedAt] = useState<string | null>(null);
+  const [lastAnalyseRequest, setLastAnalyseRequest] =
+    useState<AnalyseRequest | null>(null);
+  const [lastAnalyseResponse, setLastAnalyseResponse] =
+    useState<AnalyseResponse | null>(null);
 
   const activeSection = useWorkspacePrefsStore((s) => s.activeSection);
   const setActiveSection = useWorkspacePrefsStore((s) => s.setActiveSection);
@@ -227,6 +258,8 @@ export function CompanyAnalysisWorkspace() {
     onSuccess: ({ body, response }) => {
       const at = new Date().toISOString();
       setAnalysedAt(at);
+      setLastAnalyseRequest(body);
+      setLastAnalyseResponse(response);
       const mapped = mapResearchView(response, body, at);
       setView(mapped);
       saveResearchSession({
@@ -277,6 +310,15 @@ export function CompanyAnalysisWorkspace() {
   const marketQuery = useQuery({
     queryKey: ["company-analysis", "market", symbol],
     queryFn: () => api.marketQuote(symbol, { token }),
+    enabled: Boolean(token && symbol),
+    retry: false,
+    staleTime: 60_000,
+  });
+
+  // EPIC-D002 — header enrichment only (Market Cap/52wk/ROE); independent of /analyse.
+  const financialStatementsQuery = useQuery({
+    queryKey: ["company-analysis", "financial-statements", symbol],
+    queryFn: () => api.financialStatements(symbol, { token, limit: 1 }),
     enabled: Boolean(token && symbol),
     retry: false,
     staleTime: 60_000,
@@ -410,6 +452,8 @@ export function CompanyAnalysisWorkspace() {
                   view={view}
                   catalogue={catalogue}
                   marketStatus={marketStatus}
+                  marketQuote={marketQuery.data ?? null}
+                  financialStatements={financialStatementsQuery.data ?? null}
                 />
               ) : null}
               {section === "valuation" ? (
@@ -442,7 +486,13 @@ export function CompanyAnalysisWorkspace() {
               {section === "timeline" ? (
                 <LazyViewSection Section={TimelineSection} view={view} />
               ) : null}
-              {section === "export" ? <ExportSection view={view} /> : null}
+              {section === "export" ? (
+                <ExportSection
+                  view={view}
+                  analyseRequest={lastAnalyseRequest}
+                  analyseResponse={lastAnalyseResponse}
+                />
+              ) : null}
               {section === "ratings" ? (
                 <Suspense fallback={<SectionFallback />}>
                   <InstitutionalRatingsSection
@@ -469,6 +519,30 @@ export function CompanyAnalysisWorkspace() {
               ) : null}
               {section === "compliance" ? (
                 <LazyViewSection Section={ComplianceSection} view={view} />
+              ) : null}
+              {section === "ownership" ? (
+                <LazyViewSection Section={OwnershipSection} view={view} />
+              ) : null}
+              {section === "peers" ? (
+                <LazyViewSection Section={PeersSection} view={view} />
+              ) : null}
+              {section === "documents" ? (
+                <LazyViewSection Section={DocumentsSection} view={view} />
+              ) : null}
+              {section === "news" ? (
+                <LazyViewSection Section={NewsSection} view={view} />
+              ) : null}
+              {section === "settings" ? (
+                <LazyViewSection Section={SettingsSection} view={view} />
+              ) : null}
+              {section === "copilot" ? (
+                <Suspense fallback={<SectionFallback />}>
+                  <AiCopilotSection
+                    view={view}
+                    analyseRequest={lastAnalyseRequest}
+                    analyseResponse={lastAnalyseResponse}
+                  />
+                </Suspense>
               ) : null}
               <p className="text-[10px] text-[var(--muted)]">
                 Last updated: {analysedAt ?? view.analysedAt ?? "Data unavailable."}{" "}

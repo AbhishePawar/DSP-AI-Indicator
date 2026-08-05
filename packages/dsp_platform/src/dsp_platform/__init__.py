@@ -22,6 +22,7 @@ from comparison import (
     ComparisonStatus,
     QualitativeComparisonEngine,
     compare_universe_result,
+    comparison_result_public_dict,
 )
 from decision_intelligence import (
     AssuranceAssessment,
@@ -59,10 +60,12 @@ from dsp_platform.exceptions import (
     PlatformLifecycleError,
     ServiceRegistryError,
 )
+from dsp_platform.comparison_engine import build_default_comparison_engine
 from dsp_platform.facade import DSPPlatform
 from dsp_platform.composition import (
     COMPOSITION_PIPELINE_VERSION,
     EXECUTION_ORDER,
+    CompanyRiskView,
     CompositionInputError,
     CompositionRequest,
     CompositionStageError,
@@ -74,6 +77,7 @@ from dsp_platform.composition import (
     PipelineResult,
     PipelineStage,
     PlatformOrchestrator,
+    RiskCategoryView,
     StageOutcome,
     StageStatus,
     build_composition_request,
@@ -731,6 +735,7 @@ __all__ = [
     "ComparisonStatus",
     "ComparisonReportReference",
     "COMPOSITION_PIPELINE_VERSION",
+    "CompanyRiskView",
     "CompositionInputError",
     "CompositionRequest",
     "CompositionStageError",
@@ -843,11 +848,13 @@ __all__ = [
     "PlatformOrchestrator",
     "PlatformResult",
     "build_composition_request",
+    "build_default_comparison_engine",
     "composition_capability_manifest",
     "composition_package_versions",
     "pipeline_result_public_dict",
     "PlatformSecrets",
     "PlatformStatus",
+    "RiskCategoryView",
     "DEFAULT_CAPABILITIES",
     "DependencyResolver",
     "ServiceDescriptor",
@@ -1210,6 +1217,7 @@ __all__ = [
     "build_example_evidence_providers",
     "build_example_methodologies",
     "compare_universe_result",
+    "comparison_result_public_dict",
     "filter_entries",
     "group_entries",
     "load_platform_config",

@@ -4,7 +4,6 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 from enum import Enum
-from types import MappingProxyType
 from typing import Any, Mapping
 
 from auth.models import utc_now
@@ -31,6 +30,7 @@ class AuthProvider(str, Enum):
     PHONE = "PHONE"
     USERNAME = "USERNAME"
     MAGIC_LINK = "MAGIC_LINK"
+    PASSKEY = "PASSKEY"
 
 
 class ProviderUiStatus(str, Enum):
@@ -186,12 +186,27 @@ class MfaCredential:
         }
 
 
+def _thaw(value: Any) -> Any:
+    """Recursively convert immutable ``MappingProxyType``/tuple wrappers
+    (used internally for `AuthUser.metadata`, see `auth.models.freeze_mapping`)
+    back into plain ``dict``/``list`` so the result is safely
+    JSON-serializable by a bare `JSONResponse` (which — unlike FastAPI's
+    default response handling — does not run values through
+    `jsonable_encoder`).
+    """
+    if isinstance(value, Mapping):
+        return {str(k): _thaw(v) for k, v in value.items()}
+    if isinstance(value, (list, tuple)):
+        return [_thaw(v) for v in value]
+    return value
+
+
 def enterprise_user_public_dict(user: Any) -> dict[str, Any]:
     """Normalize AuthUser (+ metadata) into the enterprise user shape."""
-    meta = dict(getattr(user, "metadata", None) or {})
+    meta = _thaw(dict(getattr(user, "metadata", None) or {}))
     if isinstance(user, Mapping):
         base = dict(user)
-        meta = dict(base.get("metadata") or {})
+        meta = _thaw(dict(base.get("metadata") or {}))
         roles = list(base.get("roles") or meta.get("roles") or [])
         return {
             "id": base.get("user_id") or base.get("id"),
@@ -213,7 +228,7 @@ def enterprise_user_public_dict(user: Any) -> dict[str, Any]:
             "updatedAt": base.get("updated_at"),
             "lastLogin": base.get("last_login"),
             "linkedProviders": list(meta.get("linked_providers") or []),
-            "metadata": MappingProxyType(meta) if meta else MappingProxyType({}),
+            "metadata": meta,
         }
     roles = list(getattr(user, "roles", ()) or ())
     return {

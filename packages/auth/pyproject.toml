@@ -14,7 +14,27 @@ dependencies = [
 
 [project.optional-dependencies]
 bcrypt = ["bcrypt>=4.0"]
-enterprise = ["bcrypt>=4.0"]
+argon2 = ["argon2-cffi>=23.1"]
+enterprise = ["bcrypt>=4.0", "argon2-cffi>=23.1"]
+# TOTP QR code image rendering. Without it, /auth/mfa/totp/enroll still
+# returns the otpauth:// URI + raw secret for manual entry.
+mfa = ["qrcode[pil]>=7.4"]
+# FIDO2 / WebAuthn passkey ceremonies (registration + authentication).
+# Narrow protocol library, not an authentication framework — see
+# auth/mfa_webauthn.py module docstring.
+passkey = ["webauthn>=2.2"]
+# RS256 ID-token signature verification for Google / Microsoft Entra OIDC.
+# Also powers encrypted-at-rest TOTP secret storage (auth.secret_box) when
+# DSP_AUTH_MFA=true — without it, TOTP secrets fall back to an explicitly
+# plaintext-tagged storage form rather than silently degrading security.
+oidc = ["cryptography>=42.0"]
+full = [
+    "bcrypt>=4.0",
+    "argon2-cffi>=23.1",
+    "qrcode[pil]>=7.4",
+    "webauthn>=2.2",
+    "cryptography>=42.0",
+]
 
 [tool.setuptools.packages.find]
 where = ["src"]

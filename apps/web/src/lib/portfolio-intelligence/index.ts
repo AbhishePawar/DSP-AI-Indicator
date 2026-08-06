@@ -68,3 +68,30 @@ export {
   usePortfolioAnalyticsQueries,
   type PortfolioAnalyticsQueries,
 } from "./usePortfolioAnalytics";
+
+export {
+  mapConcentrationView,
+  mapDiversificationView,
+  mapDriftView,
+  mapHealthScoreView,
+  mapOpportunitiesView,
+  mapPortfolioInsightsView,
+  mapRecommendations,
+  mapRiskSummaryView,
+  mapScenarioView,
+  mapValuationHeatmapView,
+  type ConcentrationView,
+  type DiversificationView,
+  type DriftView,
+  type HealthScoreView,
+  type OpportunitiesView,
+  type PortfolioInsightsView,
+  type RecommendationView,
+  type RiskSummaryView,
+  type ScenarioView,
+  type ValuationHeatmapView,
+} from "./mapPortfolioInsights";
+
+export { usePortfolioInsights } from "./usePortfolioInsights";
+
+export { buildResearchObjectsFromSavedAnalyses } from "./researchObjectsAdapter";

@@ -149,3 +149,102 @@ Response (`200`):
 | 403 | Authenticated, but does not own the requested portfolio |
 | 404 | Portfolio not found |
 | 400 | Validation error (e.g. unsupported `transaction_type`, empty `name`) |
+
+## Portfolio Intelligence Engine API (RC1 Milestone 4)
+
+Orchestration layer that combines `portfolio_analytics` (quantitative,
+frozen) and EPIC-A002's Research-Object linker into portfolio-level
+insights (Health Score, Concentration, Valuation Heatmap, Risk Summary,
+Recommendations, Drift, Diversification, Opportunity Finder, Scenario
+Summary). Thin routers over `dsp_platform.portfolio_intelligence_engine`;
+**no valuation, risk, or AI computation happens in `api_platform`** — see
+[PORTFOLIO_GUIDE.md](PORTFOLIO_GUIDE.md#portfolio-intelligence-engine-rc1-milestone-4)
+for the full reuse/data-honesty contract.
+
+Stateless — mirrors `/portfolio/analytics/*`: the caller supplies portfolio
+holdings (and, optionally, linked Research Objects) in the request body.
+Nothing here is persisted server-side. No authentication is required (same
+trust boundary as `/portfolio/analytics/*` and `/portfolio/intelligence`).
+
+**Not** the same endpoint as `POST /portfolio/intelligence` (EPIC-A002) —
+that endpoint only summarizes caller-linked Research Objects with
+`engines_called: false`; this one orchestrates `portfolio_analytics` plus
+those same linked Research Objects into new composite scores.
+
+Base: `/api/v1`
+
+| Method | Path | Purpose |
+|---|---|---|
+| POST | `/portfolio/insights` | Every capability at once |
+| POST | `/portfolio/insights/health` | Portfolio Health Score only |
+| POST | `/portfolio/insights/recommendations` | AI Recommendations only |
+| POST | `/portfolio/insights/opportunities` | Portfolio Opportunity Finder only |
+| POST | `/portfolio/insights/scenario` | AI Committee / Scenario Summary only |
+| GET | `/portfolio/insights/health-check` | Service health (versions only) |
+
+### Request body
+
+```json
+{
+  "portfolio": {
+    "holdings": [
+      { "symbol": "AAPL", "weight": 0.6, "sector": "Information Technology", "country": "US" },
+      { "symbol": "XOM", "weight": 0.4, "sector": "Energy", "country": "US" }
+    ]
+  },
+  "research_objects": {
+    "AAPL": {
+      "metadata": { "ticker": "AAPL" },
+      "margin_of_safety": { "available": true, "payload": { "margin_of_safety": 0.22 } },
+      "recommendation": { "available": true, "payload": { "confidence": 0.71, "margin_of_safety": 0.22 } },
+      "business_quality": { "available": true, "payload": { "score": 78 } }
+    }
+  },
+  "benchmark_symbol": "SPY",
+  "window_days": 252,
+  "cash_weight": 0.05,
+  "as_of": "2024-01-11"
+}
+```
+
+`research_objects` (and `reports`/`snapshots`/`snapshot_ids`) are
+**optional** and use the exact same shape `POST /portfolio/intelligence`
+already accepts (EPIC-A002 pass-through). When omitted, valuation/quality/
+committee-dependent fields are honestly `null`/empty with a `limitations`
+message; Risk Summary, Diversification Score, and Concentration Analysis
+remain fully available from `portfolio_analytics` alone. `cash_weight` and
+`stress_window_ids` are only accepted by `/portfolio/insights` and
+`/portfolio/insights/health` (cash allocation only affects the Health
+Score).
+
+### Response (`POST /portfolio/insights`, `200`)
+
+```json
+{
+  "ok": true,
+  "available": true,
+  "message": null,
+  "service_version": "1.0.0",
+  "holding_count": 2,
+  "health_score": { "status": "partial", "score": 62.4, "components": [ "..." ], "limitations": [] },
+  "concentration": { "status": "complete", "largest_holdings": [ "..." ], "flags": [], "limitations": [] },
+  "valuation_heatmap": { "status": "partial", "rows": [ "..." ], "limitations": [] },
+  "risk_summary": { "status": "partial", "beta": null, "value_at_risk_95": 0.18, "value_at_risk_method": "...", "conditional_value_at_risk_95": null, "limitations": [] },
+  "recommendations": [ { "symbol": "AAPL", "action": "increase", "reason": "...", "confidence": 0.71 } ],
+  "drift": { "status": "partial", "sector_drift": [ "..." ], "missing_sectors": [ "..." ], "limitations": [] },
+  "diversification": { "status": "partial", "score": 55.2, "explanation": [ "..." ], "limitations": [] },
+  "opportunities": { "status": "partial", "highest_margin_of_safety": [ "..." ], "highest_expected_cagr": [], "limitations": [ "Data unavailable. No single-company forward-looking equity CAGR..." ] },
+  "scenario": { "status": "partial", "cases": [ "..." ], "expected_cagr_basis": "Trailing realized annualized portfolio return...", "limitations": [] },
+  "limitations": []
+}
+```
+
+When no holdings are supplied, every endpoint returns
+`{ "ok": true, "available": false, "message": "Data unavailable.", "limitations": [...] }`
+— never a fabricated result.
+
+### Errors
+
+| HTTP | Meaning |
+|---|---|
+| 503 | Unhandled server-side error computing the result (`available: false`, `message: "Data unavailable."`) |

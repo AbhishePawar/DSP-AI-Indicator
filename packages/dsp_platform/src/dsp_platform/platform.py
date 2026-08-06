@@ -1658,6 +1658,157 @@ class DSPPlatform:
 
         return portfolio_analytics_health()
 
+    # -- Portfolio Intelligence Engine (RC1 Milestone 4) — orchestration only.
+    # Combines evaluate_portfolio_* (portfolio_analytics, above) with
+    # evaluate_portfolio_intelligence's linked-research pass-through
+    # (EPIC-A002) into portfolio-level insights. No valuation, risk, or AI
+    # computation happens here or in portfolio_intelligence_engine — every
+    # number is sourced from an already-frozen engine.
+
+    def evaluate_portfolio_intelligence_engine(
+        self,
+        portfolio: dict[str, object] | None,
+        *,
+        research_objects: dict[str, object] | list[object] | None = None,
+        reports: dict[str, object] | list[object] | None = None,
+        snapshots: dict[str, object] | list[object] | None = None,
+        snapshot_ids: dict[str, str] | None = None,
+        benchmark_symbol: str | None = None,
+        window_days: int = 252,
+        cash_weight: float | None = None,
+        stress_window_ids: list[str] | None = None,
+        as_of: object | None = None,
+    ) -> dict[str, object]:
+        from dsp_platform.portfolio_intelligence_engine import (
+            evaluate_portfolio_intelligence_engine,
+        )
+
+        return evaluate_portfolio_intelligence_engine(
+            portfolio,
+            research_objects=research_objects,
+            reports=reports,
+            snapshots=snapshots,
+            snapshot_ids=snapshot_ids,
+            benchmark_symbol=benchmark_symbol,
+            window_days=window_days,
+            cash_weight=cash_weight,
+            stress_window_ids=stress_window_ids,
+            as_of=as_of,
+        )
+
+    def evaluate_portfolio_health(
+        self,
+        portfolio: dict[str, object] | None,
+        *,
+        research_objects: dict[str, object] | list[object] | None = None,
+        reports: dict[str, object] | list[object] | None = None,
+        snapshots: dict[str, object] | list[object] | None = None,
+        snapshot_ids: dict[str, str] | None = None,
+        benchmark_symbol: str | None = None,
+        window_days: int = 252,
+        cash_weight: float | None = None,
+        as_of: object | None = None,
+    ) -> dict[str, object]:
+        from dsp_platform.portfolio_intelligence_engine import evaluate_portfolio_health
+
+        return evaluate_portfolio_health(
+            portfolio,
+            research_objects=research_objects,
+            reports=reports,
+            snapshots=snapshots,
+            snapshot_ids=snapshot_ids,
+            benchmark_symbol=benchmark_symbol,
+            window_days=window_days,
+            cash_weight=cash_weight,
+            as_of=as_of,
+        )
+
+    def evaluate_portfolio_recommendations(
+        self,
+        portfolio: dict[str, object] | None,
+        *,
+        research_objects: dict[str, object] | list[object] | None = None,
+        reports: dict[str, object] | list[object] | None = None,
+        snapshots: dict[str, object] | list[object] | None = None,
+        snapshot_ids: dict[str, str] | None = None,
+        benchmark_symbol: str | None = None,
+        window_days: int = 252,
+        as_of: object | None = None,
+    ) -> dict[str, object]:
+        from dsp_platform.portfolio_intelligence_engine import (
+            evaluate_portfolio_recommendations,
+        )
+
+        return evaluate_portfolio_recommendations(
+            portfolio,
+            research_objects=research_objects,
+            reports=reports,
+            snapshots=snapshots,
+            snapshot_ids=snapshot_ids,
+            benchmark_symbol=benchmark_symbol,
+            window_days=window_days,
+            as_of=as_of,
+        )
+
+    def evaluate_portfolio_opportunities(
+        self,
+        portfolio: dict[str, object] | None,
+        *,
+        research_objects: dict[str, object] | list[object] | None = None,
+        reports: dict[str, object] | list[object] | None = None,
+        snapshots: dict[str, object] | list[object] | None = None,
+        snapshot_ids: dict[str, str] | None = None,
+        benchmark_symbol: str | None = None,
+        window_days: int = 252,
+        as_of: object | None = None,
+    ) -> dict[str, object]:
+        from dsp_platform.portfolio_intelligence_engine import (
+            evaluate_portfolio_opportunities,
+        )
+
+        return evaluate_portfolio_opportunities(
+            portfolio,
+            research_objects=research_objects,
+            reports=reports,
+            snapshots=snapshots,
+            snapshot_ids=snapshot_ids,
+            benchmark_symbol=benchmark_symbol,
+            window_days=window_days,
+            as_of=as_of,
+        )
+
+    def evaluate_portfolio_scenario(
+        self,
+        portfolio: dict[str, object] | None,
+        *,
+        research_objects: dict[str, object] | list[object] | None = None,
+        reports: dict[str, object] | list[object] | None = None,
+        snapshots: dict[str, object] | list[object] | None = None,
+        snapshot_ids: dict[str, str] | None = None,
+        benchmark_symbol: str | None = None,
+        window_days: int = 252,
+        as_of: object | None = None,
+    ) -> dict[str, object]:
+        from dsp_platform.portfolio_intelligence_engine import evaluate_portfolio_scenario
+
+        return evaluate_portfolio_scenario(
+            portfolio,
+            research_objects=research_objects,
+            reports=reports,
+            snapshots=snapshots,
+            snapshot_ids=snapshot_ids,
+            benchmark_symbol=benchmark_symbol,
+            window_days=window_days,
+            as_of=as_of,
+        )
+
+    def portfolio_intelligence_engine_health(self) -> dict[str, object]:
+        from dsp_platform.portfolio_intelligence_engine import (
+            portfolio_intelligence_engine_health,
+        )
+
+        return portfolio_intelligence_engine_health()
+
     # -- Portfolio Store (RC1 Milestone 3) — server-side persistence for
     # Portfolio/Holdings/Transactions/Watchlist, replacing browser-only
     # localStorage. Ownership-checked by authenticated user_id. No analytics

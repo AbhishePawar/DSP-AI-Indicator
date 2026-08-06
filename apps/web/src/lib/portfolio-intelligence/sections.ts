@@ -31,7 +31,16 @@ export type PortfolioSectionId =
   | "scenario-impact"
   | "tax-optimization"
   | "position-limits"
-  | "factor-exposure";
+  | "factor-exposure"
+  /** Portfolio Intelligence Engine — RC1 Milestone 4 (orchestration only) */
+  | "insights-health"
+  | "insights-summary"
+  | "insights-recommendations"
+  | "insights-risk"
+  | "insights-valuation"
+  | "insights-opportunities"
+  | "insights-diversification"
+  | "insights-scenario";
 
 export type PortfolioSectionMeta = {
   id: PortfolioSectionId;
@@ -221,6 +230,62 @@ export const PORTFOLIO_SECTIONS: readonly PortfolioSectionMeta[] = [
     label: "Factor Exposure",
     description: "Weighted rollup of Value/Quality/Momentum/Size/Low-vol",
     shortcut: "V",
+    lazy: true,
+  },
+  {
+    id: "insights-health",
+    label: "Health Score",
+    description: "Portfolio Intelligence Engine — weighted composite of existing signals",
+    shortcut: "I",
+    lazy: true,
+  },
+  {
+    id: "insights-summary",
+    label: "AI Summary",
+    description: "Condensed overview of the Portfolio Intelligence Engine result",
+    shortcut: "A",
+    lazy: true,
+  },
+  {
+    id: "insights-recommendations",
+    label: "Recommendations",
+    description: "Rule-based Increase/Reduce/Hold/Review/Watch per holding",
+    shortcut: "K",
+    lazy: true,
+  },
+  {
+    id: "insights-risk",
+    label: "Risk Summary",
+    description: "Beta/Volatility/Max Drawdown/VaR/Stress/Monte Carlo, aggregated",
+    shortcut: "O",
+    lazy: true,
+  },
+  {
+    id: "insights-valuation",
+    label: "Valuation Heatmap",
+    description: "Undervalued/Fairly Valued/Overvalued classification",
+    shortcut: "B",
+    lazy: true,
+  },
+  {
+    id: "insights-opportunities",
+    label: "Opportunity Finder",
+    description: "Ranking by MoS/Quality/Risk/Conviction",
+    shortcut: "Y",
+    lazy: true,
+  },
+  {
+    id: "insights-diversification",
+    label: "Diversification",
+    description: "Diversification Score, Concentration, and Sector/Style Drift",
+    shortcut: "J",
+    lazy: true,
+  },
+  {
+    id: "insights-scenario",
+    label: "AI Committee Scenario",
+    description: "Bull/Base/Bear synthesis from linked valuation + portfolio volatility",
+    shortcut: "Q",
     lazy: true,
   },
 ] as const;

@@ -248,3 +248,259 @@ No component outside `PersistenceProvider.tsx` and
   Wiring a true multi-portfolio switcher to real, distinct server
   portfolios is additional frontend UI work, intentionally out of scope
   here to respect "no redesign."
+
+---
+
+# Portfolio Intelligence Engine (RC1 Milestone 4)
+
+Status: **COMPLETE**
+Priority: P0 · AI Portfolio Intelligence
+Related: [PORTFOLIO_ANALYTICS.md](PORTFOLIO_ANALYTICS.md) (quantitative
+engine — frozen, reused as-is), [EPIC_A002_PORTFOLIO_GUIDE.md](EPIC_A002_PORTFOLIO_GUIDE.md)
+(research-object linker — frozen, reused as-is), [API_GUIDE.md](API_GUIDE.md#portfolio-intelligence-engine-api-rc1-milestone-4)
+(endpoint reference), [DSP_AI_INDICATOR_ARCHITECTURE.md](DSP_AI_INDICATOR_ARCHITECTURE.md#86-portfolio-intelligence-engine-rc1-milestone-4)
+(architecture addendum, §8.6)
+
+## Goal
+
+Build an **orchestration layer** — the "Portfolio Intelligence Engine" —
+that combines outputs already produced by existing, frozen engines into
+portfolio-level insights:
+
+1. Portfolio Health Score (0–100)
+2. Portfolio Concentration Analysis
+3. Valuation Heatmap
+4. Portfolio Risk Summary
+5. AI Recommendations
+6. Sector & Style Drift
+7. Diversification Score
+8. Portfolio Opportunity Finder
+9. Portfolio AI Committee / Scenario Summary
+
+**No new valuation, risk, analytics, or AI engine was built.** Every number
+this layer produces is either (a) passed straight through from an existing
+engine, or (b) a disclosed, documented *combination* (weighted average,
+classification against a threshold, ranking) of numbers already computed
+elsewhere. See "Data honesty and reuse contract" below for the precise
+boundary.
+
+## Why a new name, and why not `/portfolio/intelligence`
+
+`POST /portfolio/intelligence` already exists (EPIC-A002, §"Portfolio
+Intelligence" module) and does something different: it *only* summarizes
+caller-supplied Research Objects (pass-through sector/MoS/quality lists, no
+engine orchestration, `providers_called: false`, `engines_called: false`).
+The Portfolio Intelligence Engine is a **new, additive, distinct**
+capability that *orchestrates* `portfolio_analytics` (quantitative) and the
+EPIC-A002 linker utilities into genuinely new composite scores
+(Health Score, Diversification Score, rule-based Recommendations, a
+Scenario Summary). Reusing the exact path `/portfolio/intelligence` for
+this would either silently change EPIC-A002's frozen contract or create two
+routes racing for the same path — both unacceptable. It is mounted at
+**`/portfolio/insights`** instead, following the same naming-collision
+resolution already used for `portfolio_analytics` vs. `portfolio_intelligence`
+in Milestone 1.
+
+## Architecture — who calls what
+
+```mermaid
+flowchart TB
+    subgraph Caller["Caller (frontend or API client)"]
+        Holdings["Portfolio holdings\n(symbol, weight, sector, country,\noptional industry/style/market_cap_bucket)"]
+        Research["Optional linked Research Objects\n(already produced by Company Workspace /analyse)"]
+    end
+
+    subgraph API["api_platform.routers.portfolio_intelligence_engine (thin)"]
+        R1["POST /portfolio/insights"]
+        R2["POST /portfolio/insights/health"]
+        R3["POST /portfolio/insights/recommendations"]
+        R4["POST /portfolio/insights/opportunities"]
+        R5["POST /portfolio/insights/scenario"]
+    end
+
+    subgraph Facade["dsp_platform.portfolio_intelligence_engine (orchestration)"]
+        Ctx["_build_context()\n— the only place engine calls happen"]
+    end
+
+    subgraph Reused["Reused, frozen engines"]
+        PA["portfolio_analytics\n(performance, risk attribution,\nMonte Carlo, stress tests)"]
+        Linker["portfolio_intelligence.linker\n(EPIC-A002 link_research_map/extract_field —\nreused utilities, not reimplemented)"]
+    end
+
+    subgraph Engine["portfolio_intelligence_engine (new, pure combination)"]
+        Health["health_score.py"]
+        Conc["concentration.py"]
+        Val["valuation_heatmap.py"]
+        Risk["risk_summary.py"]
+        Rec["recommendations.py"]
+        Drift["drift.py"]
+        Div["diversification.py"]
+        Opp["opportunities.py"]
+        Scen["scenario.py"]
+    end
+
+    Holdings --> R1 & R2 & R3 & R4 & R5
+    Research --> R1 & R2 & R3 & R4 & R5
+    R1 & R2 & R3 & R4 & R5 --> Ctx
+    Ctx --> PA
+    Ctx --> Linker
+    PA --> Ctx
+    Linker --> Ctx
+    Ctx --> Health & Conc & Val & Risk & Rec & Drift & Div & Opp & Scen
+    Health & Conc & Val & Risk & Rec & Drift & Div & Opp & Scen --> R1 & R2 & R3 & R4 & R5
+```
+
+- **`packages/portfolio_intelligence_engine`** — pure Python, zero I/O, zero
+  engine imports beyond `core`. Takes a tuple of `HoldingSignal` (a typed
+  carrier of already-computed per-holding values) plus already-computed
+  portfolio-level aggregates, and returns a scoring/classification/ranking
+  result. Every function is independently unit-tested (63 tests) with no
+  network, no database, no provider calls.
+- **`dsp_platform.portfolio_intelligence_engine`** — the *only* orchestration
+  layer. `_build_context()` is called once per request and:
+  1. Calls `dsp_platform.portfolio_analytics.evaluate_portfolio_performance` /
+     `evaluate_portfolio_risk_analytics` / `evaluate_portfolio_simulation` /
+     `evaluate_portfolio_stress_analytics` (frozen, RC1 Milestone 1) — for
+     Beta, Volatility, Max Drawdown, Tracking Error, per-holding risk
+     attribution (volatility + risk contribution), Monte Carlo, and stress
+     tests.
+  2. Calls `dsp_platform.portfolio_intelligence.linker.link_research_map` /
+     `extract_field` / `section_available` (frozen, EPIC-A002's own public
+     utilities — **not** duplicated JSON-path logic) — for margin of safety,
+     recommendation/committee confidence, and business-quality score,
+     pulled from caller-linked Research Objects.
+  3. Merges both into `HoldingSignal` tuples and calls the pure
+     `portfolio_intelligence_engine` functions.
+- **`api_platform.api.routers.portfolio_intelligence_engine`** — five thin
+  routes, each only calling the matching `DSPPlatform.evaluate_portfolio_*`
+  method and mapping the result to a JSON envelope. No business logic.
+
+## Data honesty and reuse contract
+
+| Capability | Source of every number | New logic in this milestone |
+|---|---|---|
+| Health Score | Diversification Score (below) + `portfolio_analytics` volatility/drawdown + linked MoS + linked quality score + Concentration HHI + caller-declared cash weight | **Combination formula only** — a disclosed weighted average (weights documented in `health_score.py`), renormalized over whichever sub-scores are available. No sub-score value is invented. |
+| Concentration Analysis | Caller-supplied weights/sector/country/industry/style | Bucketing + a disclosed excessive-exposure threshold (`reference.py`) |
+| Valuation Heatmap | Margin of safety (Valuation Engine, via linked Research Object) | Classification only — MoS ≥ +15% → Undervalued, ≤ −15% → Overvalued (disclosed threshold), else Fairly Valued |
+| Risk Summary | `portfolio_analytics` performance/risk-attribution/Monte Carlo/stress results | Aggregation + highlighting only. **Value at Risk (95%)** is the already-computed Monte Carlo 5th-percentile terminal return, relabelled — not a new calculation. **Conditional VaR is reported `null`/unavailable** — no engine exposes the full tail distribution needed to compute it honestly, and this milestone does not approximate one. |
+| AI Recommendations | Valuation classification + quality score + risk contribution + weight | A disclosed, auditable rule table (`recommendations.py`) — not a new ML model. Every recommendation cites its exact supporting metrics. |
+| Sector & Style Drift | Caller-supplied sector/style/cap-bucket + the published 11-sector GICS taxonomy | Deviation from an even 1/11 (or 1/N) baseline — a transparent reference, not an invented "target portfolio". Style/cap drift is honestly `Data unavailable.` unless the caller supplies those labels. |
+| Diversification Score | Holding count, sector count, position weights, `portfolio_analytics` correlation matrix and risk attribution | Combination formula only (documented weights in `diversification.py`) |
+| Opportunity Finder | Linked MoS, linked quality score, risk-attribution volatility, linked committee confidence | Ranking only. **"Highest Expected CAGR" is always empty and documented as unavailable** — no engine anywhere in the platform produces a forward-looking, per-company equity CAGR. |
+| Scenario Summary | Weighted linked MoS (Base Case) ± `portfolio_analytics` annualized volatility (Bull/Bear band); `portfolio_analytics` annualized return (Expected CAGR) and max drawdown (Worst-case drawdown) | A disclosed aggregation, explicitly labelled: Expected CAGR/worst-case drawdown are the portfolio's own **trailing realized** figures, not a forecast or stress-test projection — see `expected_cagr_basis`/`worst_case_drawdown_basis` on every response. |
+
+## Optional inputs — "richer when supplied, honest when not"
+
+Valuation/quality/committee-dependent capabilities (Valuation Heatmap,
+parts of Health Score, most of Opportunity Finder and Scenario Summary)
+require the caller to supply `research_objects` — the same optional,
+caller-linked-only input EPIC-A002's `/portfolio/intelligence` already
+accepts. When omitted, those specific fields are honestly `null`/empty with
+a `limitations` message — the Risk Summary, Diversification Score, and
+Concentration Analysis remain fully available from `portfolio_analytics`
+alone (which only needs symbol + weight + authenticated price history).
+
+The frontend sources `research_objects` from the user's own
+`savedAnalyses` (Company Workspace analyses already saved locally/synced) —
+see `apps/web/src/lib/portfolio-intelligence/researchObjectsAdapter.ts`,
+which performs **zero computation**, only reshapes fields the composition
+pipeline already computed (`recommendation_summary.margin_of_safety`,
+`.confidence`, and the `business_quality_aggregator` stage score) into the
+minimal Research-Object section shape the engine expects.
+
+## API
+
+See [API_GUIDE.md](API_GUIDE.md#portfolio-intelligence-engine-api-rc1-milestone-4)
+for the full request/response reference:
+
+- `POST /portfolio/insights` — every capability at once
+- `POST /portfolio/insights/health` — Health Score only
+- `POST /portfolio/insights/recommendations` — AI Recommendations only
+- `POST /portfolio/insights/opportunities` — Opportunity Finder only
+- `POST /portfolio/insights/scenario` — AI Committee Scenario Summary only
+- `GET /portfolio/insights/health-check` — service health (versions only —
+  distinct from the Health *Score* endpoint above)
+
+## Frontend
+
+New "AI Intelligence" navigation group in the Portfolio Intelligence
+Workspace (`/portfolio`), 8 lazy-loaded sections (`PortfolioInsightsSections.tsx`):
+Health Score, AI Summary, Recommendations, Risk Summary, Valuation Heatmap,
+Opportunity Finder, Diversification (folds in Concentration Analysis and
+Sector/Style Drift), and AI Committee Scenario. One `usePortfolioInsights`
+query fetches the full `/portfolio/insights` result once per section visit
+(`enabled` gated to the active section) — never five separate heavy calls.
+Uses the existing design system (`SectionCard`, `FieldRow`, `Badge`,
+`WorkspaceEmpty`) — no new visual language.
+
+## Testing
+
+- `packages/portfolio_intelligence_engine/tests/` — 63 unit tests for every
+  pure combination function (health score weighting/renormalization,
+  concentration flags, valuation classification boundaries, risk summary
+  VaR relabelling and CVaR unavailability, recommendation rule branches,
+  drift baselines, diversification scoring, opportunity ranking honesty,
+  scenario band/confidence math).
+- `packages/dsp_platform/tests/test_portfolio_intelligence_engine.py` — 19
+  tests verifying the orchestration façade correctly wires
+  `portfolio_analytics` + `portfolio_intelligence.linker` output into the
+  pure engine, that the 4 narrow endpoints return the exact same slice as
+  the full result, and `DSPPlatform` delegation.
+- `packages/api_platform/tests/test_portfolio_intelligence_engine_api.py`
+  — 10 API tests, including an explicit check that `/portfolio/insights`
+  does **not** collide with `/portfolio/intelligence`.
+- `apps/web/src/lib/portfolio-intelligence/mapPortfolioInsights.test.ts` —
+  15 mapper tests.
+- `apps/web/src/lib/portfolio-intelligence/researchObjectsAdapter.test.ts`
+  — 5 tests verifying the client-side reshaping never fabricates a section.
+- `apps/web/src/components/portfolio-intelligence/PortfolioInsightsSections.test.tsx`
+  — 12 component tests (honest-unavailable + populated states).
+- `apps/web/e2e/browser/portfolio-insights.smoke.spec.ts` — Playwright
+  structural smoke test (see file header for why deep authenticated
+  interaction isn't exercised in this environment).
+
+## Performance
+
+- `/portfolio/insights` (the "everything" endpoint) runs the same
+  `portfolio_analytics` calls the existing `/portfolio/analytics/*`
+  endpoints already run individually — no new provider calls, no new
+  network I/O. The narrow endpoints (`/health`, `/recommendations`,
+  `/opportunities`, `/scenario`) currently share the same internal
+  `_build_context()` for correctness/consistency, so they carry the same
+  cost as the full endpoint; a documented trade-off, not a duplicated
+  calculation.
+- A `max_holdings` guard (default 100) caps per-request analysis size — a
+  latency guard, disclosed in `limitations` when triggered, never a silent
+  data drop.
+
+## Security review
+
+- Stateless, same trust boundary as `/portfolio/analytics/*` and
+  `/portfolio/intelligence` — no new authentication mechanism, no new
+  persistence, no new secrets.
+- `research_objects`/`reports`/`snapshots` are caller-supplied and never
+  persisted or attributed to another user — mirrors EPIC-A002's existing
+  contract exactly.
+
+## Remaining gaps (recorded honestly, not silently worked around)
+
+- **Conditional VaR (Expected Shortfall) is unavailable.** No engine in the
+  platform exposes the full tail-return distribution needed to compute it
+  honestly; adding one would be a new risk calculation, out of scope for an
+  orchestration-only milestone.
+- **No per-company forward-looking CAGR** exists anywhere in the frozen
+  engines, so "Highest Expected CAGR" in the Opportunity Finder is always
+  empty, and the Scenario Summary's "Expected CAGR" is explicitly the
+  portfolio's trailing realized return, not a forecast.
+- **Industry and style/cap-bucket labels must be caller-supplied.** No
+  backend engine outputs these (confirmed absent from `contracts.Instrument`
+  and the composition payload) — Concentration/Drift honestly report
+  `Data unavailable.` for those specific dimensions unless the caller
+  supplies them on each holding.
+- **Playwright deep-interaction coverage deferred.** `/portfolio` requires
+  authentication; this sandbox has no live backend/seeded session to drive
+  a real login from Playwright. The written smoke test verifies the route
+  loads/redirects without crashing; the Vitest suite (95 tests across
+  mapper/component/full-workspace-integration) is the substantive
+  regression guard for the new UI until a CI environment with backend
+  fixtures can drive an authenticated Playwright run.

@@ -40,9 +40,11 @@ import {
   mapSimulationView,
   mapStressView,
   mapTaxView,
+  mapPortfolioInsightsView,
   researchCoverageFacts,
   usePortfolioAnalyticsQueries,
   usePortfolioIntelPrefsStore,
+  usePortfolioInsights,
   type PortfolioIntelligenceView,
   type PortfolioSectionId,
 } from "@/lib/portfolio-intelligence";
@@ -213,6 +215,42 @@ const LazyFactorExposure = lazy(() =>
     default: m.FactorExposureSection,
   })),
 );
+const LazyInsightsHealth = lazy(() =>
+  import("./PortfolioInsightsSections").then((m) => ({
+    default: m.HealthScoreSection,
+  })),
+);
+const LazyInsightsSummary = lazy(() =>
+  import("./PortfolioInsightsSections").then((m) => ({ default: m.AiSummarySection })),
+);
+const LazyInsightsRecommendations = lazy(() =>
+  import("./PortfolioInsightsSections").then((m) => ({
+    default: m.RecommendationCardsSection,
+  })),
+);
+const LazyInsightsRisk = lazy(() =>
+  import("./PortfolioInsightsSections").then((m) => ({ default: m.RiskSummarySection })),
+);
+const LazyInsightsValuation = lazy(() =>
+  import("./PortfolioInsightsSections").then((m) => ({
+    default: m.ValuationHeatmapSection,
+  })),
+);
+const LazyInsightsOpportunities = lazy(() =>
+  import("./PortfolioInsightsSections").then((m) => ({
+    default: m.OpportunityRankingSection,
+  })),
+);
+const LazyInsightsDiversification = lazy(() =>
+  import("./PortfolioInsightsSections").then((m) => ({
+    default: m.DiversificationAnalysisSection,
+  })),
+);
+const LazyInsightsScenario = lazy(() =>
+  import("./PortfolioInsightsSections").then((m) => ({
+    default: m.ScenarioAnalysisSection,
+  })),
+);
 
 function SectionFallback() {
   return (
@@ -329,7 +367,7 @@ export function PortfolioIntelligenceWorkspace() {
   // "server exists -> adopt; else migrate local (possibly empty)" strategy
   // already used for holdings in PersistenceProvider, reconciled once per
   // server portfolio. Never deletes the local Zustand-persisted copy.
-  const { serverPortfolioId, serverBenchmarkSymbol } = usePersistence();
+  const { serverPortfolioId, serverBenchmarkSymbol, savedAnalyses } = usePersistence();
   const watchlistReconciledFor = useRef<string | null>(null);
   const knownServerWatchlistSymbols = useRef<string[]>([]);
   const benchmarkSyncSkip = useRef(false);
@@ -573,6 +611,14 @@ export function PortfolioIntelligenceWorkspace() {
   const constraintsView = mapConstraintsView(analytics.constraintsQuery.data);
   const taxView = mapTaxView(analytics.taxQuery.data);
 
+  const insightsSectionActive = section.startsWith("insights-");
+  const insightsQuery = usePortfolioInsights(holdings, token, {
+    savedAnalyses,
+    benchmarkSymbol,
+    enabled: insightsSectionActive,
+  });
+  const insightsView = mapPortfolioInsightsView(insightsQuery.data);
+
   const sharePortfolio = useCallback(async () => {
     const url = `${window.location.origin}/portfolio?section=${section}`;
     try {
@@ -799,6 +845,56 @@ export function PortfolioIntelligenceWorkspace() {
             ? wrapLazy(LazyPositionLimits, {
                 constraints: constraintsView,
                 isLoading: analytics.constraintsQuery.isLoading,
+              })
+            : null}
+          {section === "insights-health"
+            ? wrapLazy(LazyInsightsHealth, {
+                health: insightsView.health,
+                isLoading: insightsQuery.isLoading,
+              })
+            : null}
+          {section === "insights-summary"
+            ? wrapLazy(LazyInsightsSummary, {
+                insights: insightsView,
+                isLoading: insightsQuery.isLoading,
+              })
+            : null}
+          {section === "insights-recommendations"
+            ? wrapLazy(LazyInsightsRecommendations, {
+                recommendations: insightsView.recommendations,
+                isLoading: insightsQuery.isLoading,
+              })
+            : null}
+          {section === "insights-risk"
+            ? wrapLazy(LazyInsightsRisk, {
+                risk: insightsView.riskSummary,
+                isLoading: insightsQuery.isLoading,
+              })
+            : null}
+          {section === "insights-valuation"
+            ? wrapLazy(LazyInsightsValuation, {
+                heatmap: insightsView.valuationHeatmap,
+                isLoading: insightsQuery.isLoading,
+              })
+            : null}
+          {section === "insights-opportunities"
+            ? wrapLazy(LazyInsightsOpportunities, {
+                opportunities: insightsView.opportunities,
+                isLoading: insightsQuery.isLoading,
+              })
+            : null}
+          {section === "insights-diversification"
+            ? wrapLazy(LazyInsightsDiversification, {
+                diversification: insightsView.diversification,
+                concentration: insightsView.concentration,
+                drift: insightsView.drift,
+                isLoading: insightsQuery.isLoading,
+              })
+            : null}
+          {section === "insights-scenario"
+            ? wrapLazy(LazyInsightsScenario, {
+                scenario: insightsView.scenario,
+                isLoading: insightsQuery.isLoading,
               })
             : null}
 

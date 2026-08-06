@@ -39,6 +39,17 @@ const ANALYTICS_IDS: PortfolioSectionId[] = [
   "factor-exposure",
 ];
 
+const INSIGHTS_IDS: PortfolioSectionId[] = [
+  "insights-health",
+  "insights-summary",
+  "insights-recommendations",
+  "insights-risk",
+  "insights-valuation",
+  "insights-opportunities",
+  "insights-diversification",
+  "insights-scenario",
+];
+
 export function PortfolioLeftNav({
   holdingsCount,
   onAddHoldingSymbol,
@@ -168,6 +179,33 @@ export function PortfolioLeftNav({
         </p>
         <ul className="space-y-0.5">
           {PORTFOLIO_SECTIONS.filter((s) => ANALYTICS_IDS.includes(s.id)).map(
+            (section) => (
+              <li key={section.id}>
+                <button
+                  type="button"
+                  onClick={() => selectSection(section.id)}
+                  aria-current={activeSection === section.id ? "page" : undefined}
+                  className={cn(
+                    "flex w-full items-center justify-between rounded-[var(--radius-md)] px-2 py-2 text-left text-sm transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]",
+                    activeSection === section.id
+                      ? "bg-[var(--accent-soft)] text-[var(--accent)]"
+                      : "text-[var(--muted)] hover:bg-[var(--surface-2)] hover:text-[var(--fg)]",
+                  )}
+                >
+                  <span>{section.label}</span>
+                  <kbd className="font-mono text-[10px] opacity-70">
+                    {section.shortcut}
+                  </kbd>
+                </button>
+              </li>
+            ),
+          )}
+        </ul>
+        <p className="mb-2 mt-4 text-xs font-medium uppercase tracking-wide text-[var(--muted)]">
+          AI Intelligence
+        </p>
+        <ul className="space-y-0.5">
+          {PORTFOLIO_SECTIONS.filter((s) => INSIGHTS_IDS.includes(s.id)).map(
             (section) => (
               <li key={section.id}>
                 <button

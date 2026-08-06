@@ -418,6 +418,226 @@ export type PortfolioAnalyticsHealthPayload = {
 };
 
 /**
+ * Portfolio Intelligence Engine (RC1 Milestone 4) — orchestration layer that
+ * combines existing engine outputs (Portfolio Analytics, Valuation Engine,
+ * AI Committee via linked Research Objects) into portfolio-level insights.
+ * Mounted at `/portfolio/insights` — distinct from the EPIC-A002
+ * `/portfolio/intelligence` endpoint (caller-supplied research summary
+ * only, no engine orchestration). Stateless; holdings + optional linked
+ * Research Objects are supplied by the caller.
+ */
+export type IntelligenceStatus = "complete" | "partial" | "unavailable";
+
+export type PortfolioInsightsRequestBody = {
+  portfolio?: PortfolioAnalyticsPortfolio | null;
+  research_objects?: Record<string, unknown> | unknown[] | null;
+  reports?: Record<string, unknown> | unknown[] | null;
+  snapshots?: Record<string, unknown> | unknown[] | null;
+  snapshot_ids?: Record<string, string> | null;
+  benchmark_symbol?: string | null;
+  window_days?: number;
+  as_of?: string | null;
+};
+
+export type HealthSubScorePayload = {
+  name: string;
+  available: boolean;
+  score: number | null;
+  weight: number;
+  contribution: number | null;
+  explanation: string;
+};
+
+export type HealthScorePayload = {
+  status: IntelligenceStatus;
+  score: number | null;
+  components: HealthSubScorePayload[];
+  method_id: string;
+  limitations: string[];
+};
+
+export type ConcentrationFlagPayload = {
+  kind: "position" | "sector" | "industry" | "style" | "country";
+  label: string;
+  weight: number;
+  threshold: number;
+  symbols: string[];
+};
+
+export type ConcentrationBucketPayload = { label: string; weight: number; symbols: string[] };
+
+export type ConcentrationAnalysisPayload = {
+  status: IntelligenceStatus;
+  largest_holdings: Array<{ symbol: string; weight: number; weight_pct_of_portfolio: number }>;
+  sector_concentration: ConcentrationBucketPayload[];
+  industry_concentration: ConcentrationBucketPayload[];
+  style_concentration: ConcentrationBucketPayload[];
+  country_concentration: ConcentrationBucketPayload[];
+  herfindahl_index: number | null;
+  flags: ConcentrationFlagPayload[];
+  limitations: string[];
+};
+
+export type ValuationHeatmapRowPayload = {
+  symbol: string;
+  weight: number;
+  valuation_class: "undervalued" | "fairly_valued" | "overvalued" | "unavailable";
+  margin_of_safety: number | null;
+  confidence: number | null;
+  message: string | null;
+};
+
+export type ValuationHeatmapPayload = {
+  status: IntelligenceStatus;
+  rows: ValuationHeatmapRowPayload[];
+  undervalued_weight: number;
+  fairly_valued_weight: number;
+  overvalued_weight: number;
+  unavailable_weight: number;
+  method_id: string;
+  limitations: string[];
+};
+
+export type RiskHighlightPayload = {
+  symbol: string;
+  weight: number;
+  volatility: number | null;
+  risk_contribution_pct: number | null;
+};
+
+export type PortfolioRiskSummaryPayload = {
+  status: IntelligenceStatus;
+  beta: number | null;
+  annualized_volatility: number | null;
+  max_drawdown: number | null;
+  tracking_error: number | null;
+  value_at_risk_95: number | null;
+  value_at_risk_method: string | null;
+  conditional_value_at_risk_95: number | null;
+  stress_test_count: number;
+  monte_carlo_available: boolean;
+  highest_risk_holdings: RiskHighlightPayload[];
+  limitations: string[];
+};
+
+export type PortfolioRecommendationPayload = {
+  symbol: string;
+  action: "increase" | "reduce" | "hold" | "review" | "watch";
+  reason: string;
+  supporting_metrics: Record<string, unknown>;
+  confidence: number | null;
+};
+
+export type DriftRowPayload = {
+  label: string;
+  weight: number;
+  baseline_weight: number;
+  direction: "overweight" | "underweight" | "missing" | "in_line";
+};
+
+export type DriftAnalysisPayload = {
+  status: IntelligenceStatus;
+  sector_drift: DriftRowPayload[];
+  missing_sectors: string[];
+  style_drift: DriftRowPayload[];
+  cap_drift: DriftRowPayload[];
+  method_id: string;
+  limitations: string[];
+};
+
+export type DiversificationScorePayload = {
+  status: IntelligenceStatus;
+  score: number | null;
+  holding_count: number;
+  sector_count: number;
+  average_pairwise_correlation: number | null;
+  largest_position_weight: number | null;
+  position_herfindahl_index: number | null;
+  risk_herfindahl_index: number | null;
+  explanation: string[];
+  limitations: string[];
+};
+
+export type OpportunityEntryPayload = { symbol: string; value: number; weight: number };
+
+export type OpportunityRankingPayload = {
+  status: IntelligenceStatus;
+  highest_margin_of_safety: OpportunityEntryPayload[];
+  highest_expected_cagr: OpportunityEntryPayload[];
+  best_quality: OpportunityEntryPayload[];
+  lowest_risk: OpportunityEntryPayload[];
+  highest_conviction: OpportunityEntryPayload[];
+  limitations: string[];
+};
+
+export type ScenarioCasePayload = { case: "bear" | "base" | "bull"; implied_return_pct: number | null };
+
+export type PortfolioScenarioSummaryPayload = {
+  status: IntelligenceStatus;
+  cases: ScenarioCasePayload[];
+  expected_cagr: number | null;
+  expected_cagr_basis: string | null;
+  worst_case_drawdown: number | null;
+  worst_case_drawdown_basis: string | null;
+  confidence: number | null;
+  confidence_basis: string | null;
+  method_id: string;
+  limitations: string[];
+};
+
+export type PortfolioInsightsPayload = {
+  ok?: boolean;
+  available: boolean;
+  message: string | null;
+  service_version?: string;
+  holding_count?: number;
+  health_score?: HealthScorePayload;
+  concentration?: ConcentrationAnalysisPayload;
+  valuation_heatmap?: ValuationHeatmapPayload;
+  risk_summary?: PortfolioRiskSummaryPayload;
+  recommendations?: PortfolioRecommendationPayload[];
+  drift?: DriftAnalysisPayload;
+  diversification?: DiversificationScorePayload;
+  opportunities?: OpportunityRankingPayload;
+  scenario?: PortfolioScenarioSummaryPayload;
+  limitations: string[];
+};
+
+export type PortfolioInsightsHealthPayload = {
+  ok?: boolean;
+  available: boolean;
+  message: string | null;
+  health_score?: HealthScorePayload;
+  diversification?: DiversificationScorePayload;
+  concentration?: ConcentrationAnalysisPayload;
+  limitations: string[];
+};
+
+export type PortfolioInsightsRecommendationsPayload = {
+  ok?: boolean;
+  available: boolean;
+  message: string | null;
+  recommendations?: PortfolioRecommendationPayload[];
+  limitations: string[];
+};
+
+export type PortfolioInsightsOpportunitiesPayload = {
+  ok?: boolean;
+  available: boolean;
+  message: string | null;
+  opportunities?: OpportunityRankingPayload;
+  limitations: string[];
+};
+
+export type PortfolioInsightsScenarioPayload = {
+  ok?: boolean;
+  available: boolean;
+  message: string | null;
+  scenario?: PortfolioScenarioSummaryPayload;
+  limitations: string[];
+};
+
+/**
  * Server-side Portfolio persistence (RC1 Milestone 3) — replaces browser-only
  * localStorage. Every route requires authentication; ownership is enforced
  * server-side by user_id (never trust a client-supplied identity).
@@ -1404,6 +1624,66 @@ export const api = {
     request<PortfolioAnalyticsHealthPayload>(
       "/portfolio/analytics/health",
       { method: "GET" },
+      options,
+    ),
+
+  /**
+   * Portfolio Intelligence Engine (RC1 Milestone 4) — orchestrates Portfolio
+   * Analytics + linked-research valuation/quality/committee signals into
+   * Health Score, Concentration, Valuation Heatmap, Risk Summary,
+   * Recommendations, Drift, Diversification, Opportunities, and Scenario
+   * Summary. Stateless; never persists holdings or research server-side.
+   */
+  portfolioInsights: (
+    body: PortfolioInsightsRequestBody & {
+      cash_weight?: number | null;
+      stress_window_ids?: string[] | null;
+    },
+    options?: RequestOptions,
+  ) =>
+    request<PortfolioInsightsPayload>(
+      "/portfolio/insights",
+      { method: "POST", body: JSON.stringify(body) },
+      options,
+    ),
+
+  portfolioInsightsHealth: (
+    body: PortfolioInsightsRequestBody & { cash_weight?: number | null },
+    options?: RequestOptions,
+  ) =>
+    request<PortfolioInsightsHealthPayload>(
+      "/portfolio/insights/health",
+      { method: "POST", body: JSON.stringify(body) },
+      options,
+    ),
+
+  portfolioInsightsRecommendations: (
+    body: PortfolioInsightsRequestBody,
+    options?: RequestOptions,
+  ) =>
+    request<PortfolioInsightsRecommendationsPayload>(
+      "/portfolio/insights/recommendations",
+      { method: "POST", body: JSON.stringify(body) },
+      options,
+    ),
+
+  portfolioInsightsOpportunities: (
+    body: PortfolioInsightsRequestBody,
+    options?: RequestOptions,
+  ) =>
+    request<PortfolioInsightsOpportunitiesPayload>(
+      "/portfolio/insights/opportunities",
+      { method: "POST", body: JSON.stringify(body) },
+      options,
+    ),
+
+  portfolioInsightsScenario: (
+    body: PortfolioInsightsRequestBody,
+    options?: RequestOptions,
+  ) =>
+    request<PortfolioInsightsScenarioPayload>(
+      "/portfolio/insights/scenario",
+      { method: "POST", body: JSON.stringify(body) },
       options,
     ),
 

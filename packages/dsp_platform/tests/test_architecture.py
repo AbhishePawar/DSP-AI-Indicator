@@ -37,6 +37,7 @@ _EXPECTED_DEPS = [
     "knowledge_graph",
     "orchestration",
     "portfolio",
+    "portfolio_analytics",
     "quantitative_risk",
     "recommendation",
     "research",

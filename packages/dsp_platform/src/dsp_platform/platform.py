@@ -1528,6 +1528,136 @@ class DSPPlatform:
             created_at=created_at,
         )
 
+    # -- Portfolio Intelligence Analytics Module (additive, reuses
+    # quantitative_risk + historical_series). Stateless — holdings are
+    # supplied by the caller, never persisted. See ``portfolio_analytics``
+    # and ``docs/PORTFOLIO_ANALYTICS.md``.
+
+    def evaluate_portfolio_performance(
+        self,
+        portfolio: dict[str, object] | None,
+        *,
+        benchmark_symbol: str | None = None,
+        window_days: int = 252,
+        risk_free_rate: float = 0.0,
+        as_of: object | None = None,
+    ) -> dict[str, object]:
+        from dsp_platform.portfolio_analytics import evaluate_portfolio_performance
+
+        return evaluate_portfolio_performance(
+            portfolio,
+            benchmark_symbol=benchmark_symbol,
+            window_days=window_days,
+            risk_free_rate=risk_free_rate,
+            as_of=as_of,
+        )
+
+    def evaluate_portfolio_risk_analytics(
+        self,
+        portfolio: dict[str, object] | None,
+        *,
+        window_days: int = 252,
+        as_of: object | None = None,
+    ) -> dict[str, object]:
+        from dsp_platform.portfolio_analytics import evaluate_portfolio_risk_analytics
+
+        return evaluate_portfolio_risk_analytics(
+            portfolio, window_days=window_days, as_of=as_of
+        )
+
+    def evaluate_portfolio_allocation_analytics(
+        self, portfolio: dict[str, object] | None
+    ) -> dict[str, object]:
+        from dsp_platform.portfolio_analytics import (
+            evaluate_portfolio_allocation_analytics,
+        )
+
+        return evaluate_portfolio_allocation_analytics(portfolio)
+
+    def evaluate_portfolio_simulation(
+        self,
+        portfolio: dict[str, object] | None,
+        *,
+        window_days: int = 252,
+        monte_carlo_paths: int = 1000,
+        monte_carlo_horizon_days: int = 252,
+        frontier_samples: int = 200,
+        seed: int | None = None,
+        as_of: object | None = None,
+    ) -> dict[str, object]:
+        from dsp_platform.portfolio_analytics import evaluate_portfolio_simulation
+
+        return evaluate_portfolio_simulation(
+            portfolio,
+            window_days=window_days,
+            monte_carlo_paths=monte_carlo_paths,
+            monte_carlo_horizon_days=monte_carlo_horizon_days,
+            frontier_samples=frontier_samples,
+            seed=seed,
+            as_of=as_of,
+        )
+
+    def evaluate_portfolio_stress_analytics(
+        self,
+        portfolio: dict[str, object] | None,
+        *,
+        scenarios: list[dict[str, object]] | None = None,
+        stress_window_ids: list[str] | None = None,
+        benchmark_symbol: str | None = None,
+        window_days: int = 252,
+        as_of: object | None = None,
+    ) -> dict[str, object]:
+        from dsp_platform.portfolio_analytics import evaluate_portfolio_stress_analytics
+
+        return evaluate_portfolio_stress_analytics(
+            portfolio,
+            scenarios=scenarios,
+            stress_window_ids=stress_window_ids,
+            benchmark_symbol=benchmark_symbol,
+            window_days=window_days,
+            as_of=as_of,
+        )
+
+    def evaluate_portfolio_constraints(
+        self,
+        portfolio: dict[str, object] | None,
+        *,
+        max_position_weight: float | None = None,
+        max_sector_weight: float | None = None,
+        sector_limits: dict[str, float] | None = None,
+        min_cash_weight: float | None = None,
+        cash_weight: float | None = None,
+        target_weights: dict[str, float] | None = None,
+        drift_threshold: float = 0.0,
+    ) -> dict[str, object]:
+        from dsp_platform.portfolio_analytics import evaluate_portfolio_constraints
+
+        return evaluate_portfolio_constraints(
+            portfolio,
+            max_position_weight=max_position_weight,
+            max_sector_weight=max_sector_weight,
+            sector_limits=sector_limits,
+            min_cash_weight=min_cash_weight,
+            cash_weight=cash_weight,
+            target_weights=target_weights,
+            drift_threshold=drift_threshold,
+        )
+
+    def evaluate_portfolio_tax_analytics(
+        self,
+        portfolio: dict[str, object] | None,
+        *,
+        as_of: object | None = None,
+    ) -> dict[str, object]:
+        from dsp_platform.portfolio_analytics import evaluate_portfolio_tax_analytics
+
+        return evaluate_portfolio_tax_analytics(portfolio, as_of=as_of)
+
+    def portfolio_analytics_health(self) -> dict[str, object]:
+        from dsp_platform.portfolio_analytics import portfolio_analytics_health
+
+        return portfolio_analytics_health()
+
     # -- Institutional Multi-Agent Committee (EPIC-A005) -----------------
 
     def institutional_committee_schema(self) -> dict[str, object]:

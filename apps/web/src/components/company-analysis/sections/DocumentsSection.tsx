@@ -3,10 +3,12 @@
 /**
  * Institutional Company Workspace — Document Center tab.
  *
- * Corporate Actions is real (EPIC-D003, GET /corporate-actions, newly
- * mounted). Annual Reports / Quarterly Results / Investor Presentations /
- * Conference Calls have no connected filings/document data source anywhere
- * in the platform — honest "Data unavailable." empty states, not mocked data.
+ * Corporate Actions (EPIC-D003, GET /corporate-actions), Filings (Data
+ * Connector Framework, GET /filings), and Conference Call transcripts
+ * (Data Connector Framework, GET /transcripts) are real authenticated
+ * feeds — each tries every configured provider in priority order
+ * (automatic failover). Honest "Data unavailable." empty states when no
+ * provider is configured or reports data, never mocked documents.
  */
 
 import { useQuery } from "@tanstack/react-query";
@@ -16,19 +18,9 @@ import { useAuth } from "@/lib/auth/AuthProvider";
 import type { ResearchView } from "@/lib/research/mapResearchView";
 import { FieldRow, SectionCard, WorkspaceEmpty } from "../WorkspacePrimitives";
 
-function DocumentPlaceholder({
-  title,
-  description,
-}: {
-  title: string;
-  description: string;
-}) {
-  return (
-    <SectionCard title={title}>
-      <WorkspaceEmpty description={description} />
-    </SectionCard>
-  );
-}
+const REPORT_FILING_TYPES = new Set(["10-K", "annual_report"]);
+const QUARTERLY_FILING_TYPES = new Set(["10-Q", "quarterly_report"]);
+const PRESENTATION_FILING_TYPES = new Set(["investor_presentation"]);
 
 export function DocumentsSection({ view }: { view: ResearchView }) {
   const { session } = useAuth();
@@ -43,8 +35,48 @@ export function DocumentsSection({ view }: { view: ResearchView }) {
     staleTime: 60_000,
   });
 
-  const payload = corporateActionsQuery.data;
-  const events = payload?.available && payload.authenticated ? payload.events ?? [] : [];
+  const filingsQuery = useQuery({
+    queryKey: ["company-analysis", "filings", symbol],
+    queryFn: () => api.filings(symbol, { token, limit: 50 }),
+    enabled: Boolean(token && symbol),
+    retry: false,
+    staleTime: 60_000,
+  });
+
+  const transcriptsQuery = useQuery({
+    queryKey: ["company-analysis", "transcripts", symbol],
+    queryFn: () => api.transcripts(symbol, { token, limit: 8 }),
+    enabled: Boolean(token && symbol),
+    retry: false,
+    staleTime: 60_000,
+  });
+
+  const corporateActionsPayload = corporateActionsQuery.data;
+  const events =
+    corporateActionsPayload?.available && corporateActionsPayload.authenticated
+      ? corporateActionsPayload.events ?? []
+      : [];
+
+  const filingsPayload = filingsQuery.data;
+  const filings =
+    filingsPayload?.available && filingsPayload.authenticated
+      ? filingsPayload.filings ?? []
+      : [];
+  const annualReports = filings.filter(
+    (f) => f.filing_type && REPORT_FILING_TYPES.has(f.filing_type),
+  );
+  const quarterlyResults = filings.filter(
+    (f) => f.filing_type && QUARTERLY_FILING_TYPES.has(f.filing_type),
+  );
+  const presentations = filings.filter(
+    (f) => f.filing_type && PRESENTATION_FILING_TYPES.has(f.filing_type),
+  );
+
+  const transcriptsPayload = transcriptsQuery.data;
+  const transcripts =
+    transcriptsPayload?.available && transcriptsPayload.authenticated
+      ? transcriptsPayload.transcripts ?? []
+      : [];
 
   return (
     <div className="space-y-4">
@@ -83,22 +115,98 @@ export function DocumentsSection({ view }: { view: ResearchView }) {
         )}
       </SectionCard>
 
-      <DocumentPlaceholder
+      <FilingListCard
         title="Annual Reports"
-        description="Data unavailable — no filings/documents data source connected."
+        description="Authenticated filings feed via GET /filings — real documents only."
+        isLoading={filingsQuery.isLoading}
+        filings={annualReports}
       />
-      <DocumentPlaceholder
+      <FilingListCard
         title="Quarterly Results"
-        description="Data unavailable — no filings/documents data source connected."
+        description="Authenticated filings feed via GET /filings — real documents only."
+        isLoading={filingsQuery.isLoading}
+        filings={quarterlyResults}
       />
-      <DocumentPlaceholder
+      <FilingListCard
         title="Investor Presentations"
-        description="Data unavailable — no filings/documents data source connected."
+        description="Authenticated filings feed via GET /filings — real documents only."
+        isLoading={filingsQuery.isLoading}
+        filings={presentations}
       />
-      <DocumentPlaceholder
+
+      <SectionCard
         title="Conference Calls"
-        description="Data unavailable — no filings/documents data source connected."
-      />
+        description="Authenticated earnings call transcript feed via GET /transcripts — real content only."
+      >
+        {transcriptsQuery.isLoading ? (
+          <p className="text-sm text-[var(--muted)]">Loading…</p>
+        ) : null}
+        {!transcriptsQuery.isLoading && transcripts.length === 0 ? (
+          <WorkspaceEmpty description="Data unavailable — no filings/documents data source connected." />
+        ) : (
+          <ul className="space-y-2 text-sm">
+            {transcripts.map((t) => (
+              <li
+                key={t.transcript_id}
+                className="border-b border-[var(--border)] pb-2 last:border-0"
+              >
+                {t.url ? (
+                  <a
+                    href={t.url}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="font-medium text-[var(--fg)] hover:underline"
+                  >
+                    {t.title}
+                  </a>
+                ) : (
+                  <span className="font-medium text-[var(--fg)]">{t.title}</span>
+                )}
+                <p className="mt-1 text-xs text-[var(--muted)]">{t.call_date ?? ""}</p>
+              </li>
+            ))}
+          </ul>
+        )}
+      </SectionCard>
     </div>
+  );
+}
+
+function FilingListCard({
+  title,
+  description,
+  isLoading,
+  filings,
+}: {
+  title: string;
+  description: string;
+  isLoading: boolean;
+  filings: NonNullable<
+    import("@/lib/api/client").FilingsPayload["filings"]
+  >;
+}) {
+  return (
+    <SectionCard title={title} description={description}>
+      {isLoading ? <p className="text-sm text-[var(--muted)]">Loading…</p> : null}
+      {!isLoading && filings.length === 0 ? (
+        <WorkspaceEmpty description="Data unavailable — no filings/documents data source connected." />
+      ) : (
+        <ul className="space-y-2 text-sm">
+          {filings.map((f) => (
+            <li key={f.filing_id} className="border-b border-[var(--border)] pb-2 last:border-0">
+              <a
+                href={f.url}
+                target="_blank"
+                rel="noreferrer"
+                className="font-medium text-[var(--fg)] hover:underline"
+              >
+                {f.title}
+              </a>
+              <p className="mt-1 text-xs text-[var(--muted)]">{f.filed_at}</p>
+            </li>
+          ))}
+        </ul>
+      )}
+    </SectionCard>
   );
 }

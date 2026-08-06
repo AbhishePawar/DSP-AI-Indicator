@@ -16,6 +16,11 @@ const corporateActionsMock = vi.fn();
 const copilotCompleteMock = vi.fn();
 const analyzeCompanyMock = vi.fn();
 const compareMock = vi.fn();
+const newsMock = vi.fn();
+const filingsMock = vi.fn();
+const ownershipMock = vi.fn();
+const insiderTradingMock = vi.fn();
+const transcriptsMock = vi.fn();
 
 vi.mock("@/lib/api/client", () => ({
   api: {
@@ -23,6 +28,11 @@ vi.mock("@/lib/api/client", () => ({
     copilotComplete: (...args: unknown[]) => copilotCompleteMock(...args),
     analyzeCompany: (...args: unknown[]) => analyzeCompanyMock(...args),
     compare: (...args: unknown[]) => compareMock(...args),
+    news: (...args: unknown[]) => newsMock(...args),
+    filings: (...args: unknown[]) => filingsMock(...args),
+    ownership: (...args: unknown[]) => ownershipMock(...args),
+    insiderTrading: (...args: unknown[]) => insiderTradingMock(...args),
+    transcripts: (...args: unknown[]) => transcriptsMock(...args),
   },
 }));
 
@@ -75,6 +85,15 @@ beforeEach(() => {
   copilotCompleteMock.mockReset();
   analyzeCompanyMock.mockReset();
   compareMock.mockReset();
+  newsMock.mockReset().mockResolvedValue({ ok: true, available: false, authenticated: false });
+  filingsMock.mockReset().mockResolvedValue({ ok: true, available: false, authenticated: false });
+  ownershipMock.mockReset().mockResolvedValue({ ok: true, available: false, authenticated: false });
+  insiderTradingMock
+    .mockReset()
+    .mockResolvedValue({ ok: true, available: false, authenticated: false });
+  transcriptsMock
+    .mockReset()
+    .mockResolvedValue({ ok: true, available: false, authenticated: false });
   useWorkspacePrefsStore.setState({
     activeSection: "summary",
     leftOpen: true,
@@ -137,18 +156,22 @@ describe("AiCopilotSection", () => {
 });
 
 describe("Honest empty-state sections", () => {
-  it("OwnershipSection reports no connected data source", () => {
+  it("OwnershipSection reports no connected data source by default", async () => {
     wrap(<OwnershipSection view={buildView()} />);
-    expect(
-      screen.getAllByText("Data unavailable — no data source connected.")
-        .length,
-    ).toBeGreaterThanOrEqual(3);
+    await waitFor(() => expect(ownershipMock).toHaveBeenCalled());
+    await waitFor(() =>
+      expect(
+        screen.getAllByText("Data unavailable — no data source connected.")
+          .length,
+      ).toBeGreaterThanOrEqual(3),
+    );
   });
 
-  it("NewsSection reports no connected data source", () => {
+  it("NewsSection reports no connected data source by default", async () => {
     wrap(<NewsSection view={buildView()} />);
+    await waitFor(() => expect(newsMock).toHaveBeenCalled());
     expect(
-      screen.getByText("Data unavailable — no data source connected."),
+      await screen.findByText("Data unavailable — no data source connected."),
     ).toBeTruthy();
   });
 
@@ -163,6 +186,8 @@ describe("Honest empty-state sections", () => {
     expect(screen.getByText("Annual Reports")).toBeTruthy();
     expect(screen.getByText("Corporate Actions")).toBeTruthy();
     await waitFor(() => expect(corporateActionsMock).toHaveBeenCalled());
+    await waitFor(() => expect(filingsMock).toHaveBeenCalled());
+    await waitFor(() => expect(transcriptsMock).toHaveBeenCalled());
   });
 
   it("SettingsSection reuses the workspace prefs store", () => {

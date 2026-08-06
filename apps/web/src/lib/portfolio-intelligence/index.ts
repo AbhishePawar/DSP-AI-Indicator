@@ -38,3 +38,31 @@ export {
   mapPortfolioIntelligenceResult,
   type PortfolioIntelligenceView,
 } from "./mapPortfolioIntelligence";
+
+export {
+  buildPortfolioAnalyticsPortfolio,
+  mapAllocationView,
+  mapConstraintsView,
+  mapPerformanceView,
+  mapRiskView,
+  mapSimulationView,
+  mapStressView,
+  mapTaxView,
+  type AllocationBucketView,
+  type AllocationDimensionView,
+  type AllocationView,
+  type ConstraintsView,
+  type FactorExposureView,
+  type PerformanceView,
+  type RiskAttributionRowView,
+  type RiskView,
+  type SimulationView,
+  type StressView,
+  type TaxLotView,
+  type TaxView,
+} from "./mapPortfolioAnalytics";
+
+export {
+  usePortfolioAnalyticsQueries,
+  type PortfolioAnalyticsQueries,
+} from "./usePortfolioAnalytics";

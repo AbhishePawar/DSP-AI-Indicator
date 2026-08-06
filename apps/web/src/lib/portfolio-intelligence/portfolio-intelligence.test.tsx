@@ -24,6 +24,14 @@ vi.mock("@/lib/auth/AuthProvider", () => ({
 
 vi.mock("@/lib/api/client", () => ({
   api: {
+    portfolioAnalyticsPerformance: vi.fn().mockResolvedValue({ ok: true, available: false, message: "Data unavailable." }),
+    portfolioAnalyticsRisk: vi.fn().mockResolvedValue({ ok: true, available: false, message: "Data unavailable." }),
+    portfolioAnalyticsAllocation: vi.fn().mockResolvedValue({ ok: true, available: false, message: "Data unavailable." }),
+    portfolioAnalyticsSimulation: vi.fn().mockResolvedValue({ ok: true, available: false, message: "Data unavailable." }),
+    portfolioAnalyticsStress: vi.fn().mockResolvedValue({ ok: true, available: false, message: "Data unavailable." }),
+    portfolioAnalyticsConstraints: vi.fn().mockResolvedValue({ ok: true, available: false, message: "Data unavailable." }),
+    portfolioAnalyticsTax: vi.fn().mockResolvedValue({ ok: true, available: false, message: "Data unavailable." }),
+    portfolioAnalyticsHealth: vi.fn().mockResolvedValue({ ok: true, health: {} }),
     portfolioIntelligence: vi.fn().mockResolvedValue({
       ok: true,
       result: {
@@ -174,6 +182,25 @@ describe("P9.5 portfolio intelligence lib", () => {
     );
   });
 
+  it("registers Portfolio Intelligence Analytics sections", () => {
+    expect(PORTFOLIO_SECTIONS.map((s) => s.id)).toEqual(
+      expect.arrayContaining([
+        "correlation",
+        "efficient-frontier",
+        "monte-carlo",
+        "stress-testing",
+        "scenario-impact",
+        "tax-optimization",
+        "position-limits",
+        "factor-exposure",
+      ]),
+    );
+    const ids = PORTFOLIO_SECTIONS.map((s) => s.id);
+    expect(new Set(ids).size).toBe(ids.length);
+    const shortcuts = PORTFOLIO_SECTIONS.map((s) => s.shortcut);
+    expect(new Set(shortcuts).size).toBe(shortcuts.length);
+  });
+
   it("exports holdings without inventing portfolio value", () => {
     const snapshot = buildPortfolioExportSnapshot({
       portfolioId: "primary",
@@ -310,6 +337,32 @@ describe("P9.5 workspace UI", () => {
     ).toBeTruthy();
     expect(screen.getByText("Holdings count")).toBeTruthy();
   });
+
+  it.each([
+    "performance",
+    "risk",
+    "allocation",
+    "rebalancing",
+    "correlation",
+    "efficient-frontier",
+    "monte-carlo",
+    "stress-testing",
+    "scenario-impact",
+    "tax-optimization",
+    "position-limits",
+    "factor-exposure",
+  ])(
+    "renders the %s section without crashing and stays honest when analytics data is unavailable",
+    async (sectionId) => {
+      usePortfolioIntelPrefsStore.setState({ activeSection: sectionId });
+      const { PortfolioIntelligenceWorkspace } = await import(
+        "@/components/portfolio-intelligence/PortfolioIntelligenceWorkspace"
+      );
+      wrap(<PortfolioIntelligenceWorkspace />);
+      expect(await screen.findByLabelText("Main portfolio view")).toBeTruthy();
+      expect((await screen.findAllByText(/Data unavailable/i)).length).toBeGreaterThan(0);
+    },
+  );
 
   it("renders holdings table with company links", async () => {
     usePortfolioIntelPrefsStore.setState({ activeSection: "holdings" });

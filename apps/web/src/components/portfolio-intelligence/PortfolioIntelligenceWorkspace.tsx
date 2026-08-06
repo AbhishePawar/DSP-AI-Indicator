@@ -31,8 +31,16 @@ import {
   asPortfolioSectionId,
   buildPortfolioIntelligenceRequest,
   isPortfolioSectionId,
+  mapAllocationView,
+  mapConstraintsView,
+  mapPerformanceView,
   mapPortfolioIntelligenceResult,
+  mapRiskView,
+  mapSimulationView,
+  mapStressView,
+  mapTaxView,
   researchCoverageFacts,
+  usePortfolioAnalyticsQueries,
   usePortfolioIntelPrefsStore,
   type PortfolioIntelligenceView,
   type PortfolioSectionId,
@@ -156,6 +164,44 @@ const LazyExplainability = lazy(() =>
 const LazyResearchActivity = lazy(() =>
   import("./FlagshipSections").then((m) => ({
     default: m.ResearchActivitySection,
+  })),
+);
+const LazyCorrelation = lazy(() =>
+  import("./AnalyticsSections").then((m) => ({
+    default: m.CorrelationMatrixSection,
+  })),
+);
+const LazyEfficientFrontier = lazy(() =>
+  import("./AnalyticsSections").then((m) => ({
+    default: m.EfficientFrontierSection,
+  })),
+);
+const LazyMonteCarlo = lazy(() =>
+  import("./AnalyticsSections").then((m) => ({ default: m.MonteCarloSection })),
+);
+const LazyStressTesting = lazy(() =>
+  import("./AnalyticsSections").then((m) => ({
+    default: m.StressTestingSection,
+  })),
+);
+const LazyScenarioImpact = lazy(() =>
+  import("./AnalyticsSections").then((m) => ({
+    default: m.ScenarioImpactSection,
+  })),
+);
+const LazyTaxOptimization = lazy(() =>
+  import("./AnalyticsSections").then((m) => ({
+    default: m.TaxOptimizationSection,
+  })),
+);
+const LazyPositionLimits = lazy(() =>
+  import("./AnalyticsSections").then((m) => ({
+    default: m.PositionLimitsSection,
+  })),
+);
+const LazyFactorExposure = lazy(() =>
+  import("./AnalyticsSections").then((m) => ({
+    default: m.FactorExposureSection,
   })),
 );
 
@@ -406,6 +452,19 @@ export function PortfolioIntelligenceWorkspace() {
     isPortfolioSectionId(activeSection) ? activeSection : "summary",
   );
 
+  const analytics = usePortfolioAnalyticsQueries(holdings, token, {
+    includeSimulation: section === "efficient-frontier" || section === "monte-carlo",
+    includeStress: section === "stress-testing" || section === "scenario-impact",
+    includeTax: section === "tax-optimization",
+  });
+  const performanceView = mapPerformanceView(analytics.performanceQuery.data);
+  const riskAnalyticsView = mapRiskView(analytics.riskQuery.data);
+  const allocationView = mapAllocationView(analytics.allocationQuery.data);
+  const simulationView = mapSimulationView(analytics.simulationQuery.data);
+  const stressView = mapStressView(analytics.stressQuery.data);
+  const constraintsView = mapConstraintsView(analytics.constraintsQuery.data);
+  const taxView = mapTaxView(analytics.taxQuery.data);
+
   const sharePortfolio = useCallback(async () => {
     const url = `${window.location.origin}/portfolio?section=${section}`;
     try {
@@ -513,10 +572,17 @@ export function PortfolioIntelligenceWorkspace() {
             : null}
 
           {section === "allocation"
-            ? wrapLazy(LazyAllocation, { holdings })
+            ? wrapLazy(LazyAllocation, {
+                holdings,
+                allocation: allocationView,
+                isLoading: analytics.allocationQuery.isLoading,
+              })
             : null}
           {section === "performance"
-            ? wrapLazy(LazyPerformance, {})
+            ? wrapLazy(LazyPerformance, {
+                performance: performanceView,
+                isLoading: analytics.performanceQuery.isLoading,
+              })
             : null}
           {section === "quality"
             ? wrapLazy(LazyQuality, { holdings, intel })
@@ -524,7 +590,13 @@ export function PortfolioIntelligenceWorkspace() {
           {section === "valuation"
             ? wrapLazy(LazyValuation, { intel })
             : null}
-          {section === "risk" ? wrapLazy(LazyRisk, { intel }) : null}
+          {section === "risk"
+            ? wrapLazy(LazyRisk, {
+                intel,
+                riskAnalytics: riskAnalyticsView,
+                isLoading: analytics.riskQuery.isLoading,
+              })
+            : null}
           {section === "research"
             ? wrapLazy(LazyResearchActivity, {
                 holdings,
@@ -536,7 +608,12 @@ export function PortfolioIntelligenceWorkspace() {
             ? wrapLazy(LazyOpportunities, { holdings, intel })
             : null}
           {section === "rebalancing"
-            ? wrapLazy(LazyRebalancing, { holdings, intel })
+            ? wrapLazy(LazyRebalancing, {
+                holdings,
+                intel,
+                constraints: constraintsView,
+                isLoading: analytics.constraintsQuery.isLoading,
+              })
             : null}
           {section === "explainability"
             ? wrapLazy(LazyExplainability, { holdings, intel })
@@ -567,6 +644,54 @@ export function PortfolioIntelligenceWorkspace() {
             : null}
           {section === "integrations"
             ? wrapLazy(LazyIntegrations, { holdings })
+            : null}
+          {section === "correlation"
+            ? wrapLazy(LazyCorrelation, {
+                risk: riskAnalyticsView,
+                isLoading: analytics.riskQuery.isLoading,
+              })
+            : null}
+          {section === "factor-exposure"
+            ? wrapLazy(LazyFactorExposure, {
+                risk: riskAnalyticsView,
+                isLoading: analytics.riskQuery.isLoading,
+              })
+            : null}
+          {section === "efficient-frontier"
+            ? wrapLazy(LazyEfficientFrontier, {
+                simulation: simulationView,
+                isLoading: analytics.simulationQuery.isLoading,
+              })
+            : null}
+          {section === "monte-carlo"
+            ? wrapLazy(LazyMonteCarlo, {
+                simulation: simulationView,
+                isLoading: analytics.simulationQuery.isLoading,
+              })
+            : null}
+          {section === "stress-testing"
+            ? wrapLazy(LazyStressTesting, {
+                stress: stressView,
+                isLoading: analytics.stressQuery.isLoading,
+              })
+            : null}
+          {section === "scenario-impact"
+            ? wrapLazy(LazyScenarioImpact, {
+                stress: stressView,
+                isLoading: analytics.stressQuery.isLoading,
+              })
+            : null}
+          {section === "tax-optimization"
+            ? wrapLazy(LazyTaxOptimization, {
+                tax: taxView,
+                isLoading: analytics.taxQuery.isLoading,
+              })
+            : null}
+          {section === "position-limits"
+            ? wrapLazy(LazyPositionLimits, {
+                constraints: constraintsView,
+                isLoading: analytics.constraintsQuery.isLoading,
+              })
             : null}
 
           {!isEmpty && section === "summary" && holdings.length === 0 ? (

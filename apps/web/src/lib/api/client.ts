@@ -177,6 +177,246 @@ export type TranscriptsPayload = {
   message?: string | null;
 };
 
+/** One caller-declared portfolio holding for the Portfolio Analytics module. */
+export type PortfolioAnalyticsHolding = {
+  symbol: string;
+  weight: number;
+  units?: number | null;
+  cost_basis_per_unit?: number | null;
+  purchase_date?: string | null;
+  sector?: string | null;
+  country?: string | null;
+  exchange?: string | null;
+  value_score?: number | null;
+  quality_score?: number | null;
+  momentum_score?: number | null;
+  size_score?: number | null;
+  volatility_score?: number | null;
+};
+
+export type PortfolioAnalyticsPortfolio = { holdings: PortfolioAnalyticsHolding[] };
+
+/** Sharpe/Sortino/Treynor/Alpha/Beta/Tracking Error/Information Ratio/Max Drawdown. */
+export type PerformanceRatiosPayload = {
+  status: "complete" | "partial" | "unavailable";
+  window_days: number;
+  sharpe_ratio: number | null;
+  sortino_ratio: number | null;
+  treynor_ratio: number | null;
+  jensen_alpha: number | null;
+  beta: number | null;
+  tracking_error: number | null;
+  information_ratio: number | null;
+  max_drawdown: number | null;
+  annualized_return: number | null;
+  annualized_volatility: number | null;
+  risk_free_rate: number;
+  limitations: string[];
+};
+
+export type PortfolioAnalyticsPerformancePayload = {
+  ok?: boolean;
+  available?: boolean;
+  message?: string | null;
+  result?: PerformanceRatiosPayload | null;
+  benchmark_symbol?: string | null;
+  limitations?: string[];
+};
+
+export type HeatmapCellPayload = {
+  symbol: string;
+  sector: string | null;
+  weight: number;
+  volatility: number | null;
+  risk_contribution_pct: number | null;
+};
+
+export type CorrelationMatrixPayload = {
+  symbols: string[];
+  matrix: (number | null)[][];
+  window_days: number;
+};
+
+export type RiskAttributionRowPayload = {
+  symbol: string;
+  weight: number;
+  volatility: number | null;
+  correlation_to_portfolio: number | null;
+  risk_contribution_pct: number | null;
+};
+
+export type RiskAttributionPayload = {
+  status: "complete" | "partial" | "unavailable";
+  rows: RiskAttributionRowPayload[];
+  heatmap: HeatmapCellPayload[];
+  correlation_matrix: CorrelationMatrixPayload | null;
+  limitations: string[];
+};
+
+export type FactorExposurePayload = {
+  status: "complete" | "partial" | "unavailable";
+  factors: Array<{
+    factor_name: string;
+    exposure_value: number | null;
+    contributing_positions: number;
+    total_positions: number;
+  }>;
+  limitations: string[];
+};
+
+export type PortfolioAnalyticsRiskPayload = {
+  ok?: boolean;
+  available?: boolean;
+  message?: string | null;
+  risk_attribution?: RiskAttributionPayload | null;
+  factor_exposure?: FactorExposurePayload | null;
+};
+
+export type AllocationBreakdownPayload = {
+  dimension: "sector" | "country";
+  status: "complete" | "partial" | "unavailable";
+  buckets: Array<{ label: string; weight: number; symbols: string[] }>;
+  unclassified_weight: number;
+  limitations: string[];
+};
+
+export type PortfolioAnalyticsAllocationPayload = {
+  ok?: boolean;
+  available?: boolean;
+  message?: string | null;
+  sector_allocation?: AllocationBreakdownPayload | null;
+  country_allocation?: AllocationBreakdownPayload | null;
+};
+
+export type MonteCarloPayload = {
+  status: "complete" | "partial" | "unavailable";
+  paths: number;
+  horizon_days: number;
+  percentiles: Record<string, number>;
+  mean_terminal_return: number | null;
+  method_id: string;
+  seed: number | null;
+  limitations: string[];
+};
+
+export type EfficientFrontierPointPayload = {
+  expected_return: number;
+  volatility: number;
+  weights: Record<string, number>;
+};
+
+export type EfficientFrontierPayload = {
+  status: "complete" | "partial" | "unavailable";
+  points: EfficientFrontierPointPayload[];
+  current_portfolio_point: EfficientFrontierPointPayload | null;
+  method_id: string;
+  samples: number;
+  limitations: string[];
+};
+
+export type PortfolioAnalyticsSimulationPayload = {
+  ok?: boolean;
+  available?: boolean;
+  message?: string | null;
+  monte_carlo?: MonteCarloPayload | null;
+  efficient_frontier?: EfficientFrontierPayload | null;
+};
+
+export type ScenarioImpactPayload = {
+  scenario_name: string;
+  shock_pct: number;
+  portfolio_impact_pct: number | null;
+  per_position_impact_pct: Record<string, number>;
+  method_id: string;
+};
+
+export type StressTestResultPayload = {
+  scenario_id: string;
+  description?: string;
+  available?: boolean;
+  message?: string;
+  window_start?: string;
+  window_end?: string;
+  portfolio_return_pct?: number | null;
+  per_position_return_pct?: Record<string, number>;
+  positions_with_history?: number;
+  positions_beta_scaled?: number;
+};
+
+export type PortfolioAnalyticsStressPayload = {
+  ok?: boolean;
+  available?: boolean;
+  message?: string | null;
+  scenarios?: ScenarioImpactPayload[];
+  stress_tests?: StressTestResultPayload[];
+  stress_window_catalog?: Record<
+    string,
+    { start: string; end: string; description: string }
+  >;
+};
+
+export type PositionLimitBreachPayload = {
+  label: string;
+  limit_type: string;
+  limit_value: number;
+  actual_value: number;
+  breached: boolean;
+};
+
+export type RebalancingTradePayload = {
+  symbol: string;
+  current_weight: number;
+  target_weight: number;
+  drift: number;
+  suggested_action: "increase" | "decrease" | "hold";
+  suggested_delta_weight: number;
+};
+
+export type PortfolioAnalyticsConstraintsPayload = {
+  ok?: boolean;
+  available?: boolean;
+  message?: string | null;
+  position_limits?: {
+    status: "complete" | "partial" | "unavailable";
+    breaches: PositionLimitBreachPayload[];
+    checks: PositionLimitBreachPayload[];
+  } | null;
+  rebalancing?: {
+    status: "complete" | "partial" | "unavailable";
+    trades: RebalancingTradePayload[];
+    total_drift: number;
+    disclaimer: string;
+  } | null;
+};
+
+export type TaxLotAnalysisPayload = {
+  symbol: string;
+  available: boolean;
+  unrealized_gain_loss_pct: number | null;
+  unrealized_gain_loss_per_unit: number | null;
+  holding_period_days: number | null;
+  term: "short_term" | "long_term" | null;
+  harvesting_candidate: boolean;
+  reason_unavailable: string | null;
+};
+
+export type PortfolioAnalyticsTaxPayload = {
+  ok?: boolean;
+  available?: boolean;
+  message?: string | null;
+  result?: {
+    status: "complete" | "partial" | "unavailable";
+    lots: TaxLotAnalysisPayload[];
+    harvesting_candidates: string[];
+    limitations: string[];
+  } | null;
+};
+
+export type PortfolioAnalyticsHealthPayload = {
+  ok?: boolean;
+  health?: Record<string, unknown>;
+};
+
 async function request<T>(
   path: string,
   init: RequestInit = {},
@@ -964,6 +1204,130 @@ export const api = {
     }>(
       "/research/intelligence/insights",
       { method: "POST", body: JSON.stringify(body) },
+      options,
+    ),
+
+  /**
+   * Portfolio Intelligence Analytics module (additive) — Sharpe/Sortino/
+   * Treynor/Alpha/Beta/Tracking Error/Information Ratio/Max Drawdown,
+   * Risk Attribution, Factor Exposure, Correlation Matrix, Heatmap,
+   * Sector/Country Allocation, Monte Carlo, Efficient Frontier, Scenario
+   * Analysis, Stress Testing, Position Limits, Rebalancing, Tax
+   * Optimization. Stateless — holdings are supplied by the caller, never
+   * persisted server-side. Reuses `quantitative_risk` (Max Drawdown) and
+   * authenticated `historical_series` price history server-side.
+   */
+  portfolioAnalyticsPerformance: (
+    body: {
+      portfolio?: PortfolioAnalyticsPortfolio | null;
+      benchmark_symbol?: string | null;
+      window_days?: number;
+      risk_free_rate?: number;
+      as_of?: string | null;
+    },
+    options?: RequestOptions,
+  ) =>
+    request<PortfolioAnalyticsPerformancePayload>(
+      "/portfolio/analytics/performance",
+      { method: "POST", body: JSON.stringify(body) },
+      options,
+    ),
+
+  portfolioAnalyticsRisk: (
+    body: {
+      portfolio?: PortfolioAnalyticsPortfolio | null;
+      window_days?: number;
+      as_of?: string | null;
+    },
+    options?: RequestOptions,
+  ) =>
+    request<PortfolioAnalyticsRiskPayload>(
+      "/portfolio/analytics/risk",
+      { method: "POST", body: JSON.stringify(body) },
+      options,
+    ),
+
+  portfolioAnalyticsAllocation: (
+    body: { portfolio?: PortfolioAnalyticsPortfolio | null },
+    options?: RequestOptions,
+  ) =>
+    request<PortfolioAnalyticsAllocationPayload>(
+      "/portfolio/analytics/allocation",
+      { method: "POST", body: JSON.stringify(body) },
+      options,
+    ),
+
+  portfolioAnalyticsSimulation: (
+    body: {
+      portfolio?: PortfolioAnalyticsPortfolio | null;
+      window_days?: number;
+      monte_carlo_paths?: number;
+      monte_carlo_horizon_days?: number;
+      frontier_samples?: number;
+      seed?: number | null;
+      as_of?: string | null;
+    },
+    options?: RequestOptions,
+  ) =>
+    request<PortfolioAnalyticsSimulationPayload>(
+      "/portfolio/analytics/simulation",
+      { method: "POST", body: JSON.stringify(body) },
+      options,
+    ),
+
+  portfolioAnalyticsStress: (
+    body: {
+      portfolio?: PortfolioAnalyticsPortfolio | null;
+      scenarios?: Array<{ name: string; shock_pct: number; default_beta?: number }> | null;
+      stress_window_ids?: string[] | null;
+      benchmark_symbol?: string | null;
+      window_days?: number;
+      as_of?: string | null;
+    },
+    options?: RequestOptions,
+  ) =>
+    request<PortfolioAnalyticsStressPayload>(
+      "/portfolio/analytics/stress",
+      { method: "POST", body: JSON.stringify(body) },
+      options,
+    ),
+
+  portfolioAnalyticsConstraints: (
+    body: {
+      portfolio?: PortfolioAnalyticsPortfolio | null;
+      max_position_weight?: number | null;
+      max_sector_weight?: number | null;
+      sector_limits?: Record<string, number> | null;
+      min_cash_weight?: number | null;
+      cash_weight?: number | null;
+      target_weights?: Record<string, number> | null;
+      drift_threshold?: number;
+    },
+    options?: RequestOptions,
+  ) =>
+    request<PortfolioAnalyticsConstraintsPayload>(
+      "/portfolio/analytics/constraints",
+      { method: "POST", body: JSON.stringify(body) },
+      options,
+    ),
+
+  portfolioAnalyticsTax: (
+    body: {
+      portfolio?: PortfolioAnalyticsPortfolio | null;
+      as_of?: string | null;
+    },
+    options?: RequestOptions,
+  ) =>
+    request<PortfolioAnalyticsTaxPayload>(
+      "/portfolio/analytics/tax",
+      { method: "POST", body: JSON.stringify(body) },
+      options,
+    ),
+
+  portfolioAnalyticsHealth: (options?: RequestOptions) =>
+    request<PortfolioAnalyticsHealthPayload>(
+      "/portfolio/analytics/health",
+      { method: "GET" },
       options,
     ),
 };

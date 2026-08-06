@@ -16,11 +16,18 @@ import {
   sessionAllocationBySector,
   usePortfolioIntelPrefsStore,
 } from "@/lib/portfolio-intelligence";
+import type {
+  AllocationView,
+  ConstraintsView,
+  PerformanceView,
+  RiskView,
+} from "@/lib/portfolio-intelligence/mapPortfolioAnalytics";
 import type { PortfolioActivity, PortfolioHolding } from "@/lib/portfolio/model";
 import {
   FieldRow,
   SectionCard,
   WorkspaceEmpty,
+  WorkspaceSkeleton,
 } from "./Primitives";
 import { ResearchSection } from "./Sections";
 
@@ -224,8 +231,12 @@ export function ExecutivePortfolioSummary({
 
 export function AllocationSection({
   holdings,
+  allocation,
+  isLoading,
 }: {
   holdings: PortfolioHolding[];
+  allocation?: AllocationView;
+  isLoading?: boolean;
 }) {
   const bySector = sectorHoldingCounts(holdings);
   const sessionAlloc = sessionAllocationBySector(holdings);
@@ -250,6 +261,48 @@ export function AllocationSection({
           </dl>
         )}
       </SectionCard>
+      <SectionCard
+        title="Sector Allocation (weight-based, server-computed)"
+        description="From POST /portfolio/analytics/allocation — market-value weights, not just holding counts"
+      >
+        {isLoading ? (
+          <WorkspaceSkeleton />
+        ) : allocation?.sector.buckets.length ? (
+          <dl>
+            {allocation.sector.buckets.map((b) => (
+              <FieldRow key={b.label} label={b.label} value={b.weight} />
+            ))}
+          </dl>
+        ) : (
+          <WorkspaceEmpty
+            description={
+              allocation?.sector.limitations[0] ??
+              "Data unavailable. No session holdings carry a declared weight/sector."
+            }
+          />
+        )}
+      </SectionCard>
+      <SectionCard
+        title="Country Allocation (server-computed)"
+        description="Derived from a declared country or exchange → country lookup — never guessed"
+      >
+        {isLoading ? (
+          <WorkspaceSkeleton />
+        ) : allocation?.country.buckets.length ? (
+          <dl>
+            {allocation.country.buckets.map((b) => (
+              <FieldRow key={b.label} label={b.label} value={b.weight} />
+            ))}
+          </dl>
+        ) : (
+          <WorkspaceEmpty
+            description={
+              allocation?.country.limitations[0] ??
+              "Data unavailable. Session holdings do not carry a country or exchange field yet."
+            }
+          />
+        )}
+      </SectionCard>
       <SectionCard title="Industry">
         <WorkspaceEmpty description="Data unavailable. Industry is not on the session PortfolioHolding model." />
       </SectionCard>
@@ -272,23 +325,51 @@ export function AllocationSection({
   );
 }
 
-export function PerformanceSection() {
+export function PerformanceSection({
+  performance,
+  isLoading,
+}: {
+  performance?: PerformanceView;
+  isLoading?: boolean;
+}) {
   return (
     <div className="space-y-4">
       <SectionCard
         title="Performance"
-        description="Returns and alpha require a certified performance feed — never inferred from prices in the browser"
+        description="Sharpe/Sortino/Treynor/Alpha/Beta/Tracking Error/Information Ratio/Max Drawdown from POST /portfolio/analytics/performance — never inferred client-side"
       >
-        <dl>
-          <FieldRow label="Portfolio Return" value="Data unavailable." />
-          <FieldRow label="Benchmark Return" value="Data unavailable." />
-          <FieldRow label="Alpha" value="Data unavailable." />
-          <FieldRow label="Drawdown" value="Data unavailable." />
-          <FieldRow label="Rolling Returns" value="Data unavailable." />
-          <FieldRow label="Historical Performance" value="Data unavailable." />
-        </dl>
+        {isLoading ? (
+          <WorkspaceSkeleton />
+        ) : (
+          <dl>
+            <FieldRow label="Status" value={performance?.status} />
+            <FieldRow label="Annualized Return" value={performance?.annualizedReturn} />
+            <FieldRow
+              label="Annualized Volatility"
+              value={performance?.annualizedVolatility}
+            />
+            <FieldRow label="Sharpe Ratio" value={performance?.sharpeRatio} />
+            <FieldRow label="Sortino Ratio" value={performance?.sortinoRatio} />
+            <FieldRow label="Treynor Ratio" value={performance?.treynorRatio} />
+            <FieldRow label="Jensen's Alpha" value={performance?.jensenAlpha} />
+            <FieldRow label="Beta" value={performance?.beta} />
+            <FieldRow label="Tracking Error" value={performance?.trackingError} />
+            <FieldRow label="Information Ratio" value={performance?.informationRatio} />
+            <FieldRow label="Max Drawdown" value={performance?.maxDrawdown} />
+            <FieldRow label="Benchmark" value={performance?.benchmarkSymbol} />
+            <FieldRow label="Window (days)" value={performance?.windowDays} />
+          </dl>
+        )}
       </SectionCard>
-      <WorkspaceEmpty description="Data unavailable. No portfolio performance / benchmark API is wired in the frozen thin client." />
+      {performance?.limitations.length ? (
+        <SectionCard title="Limitations">
+          <ul className="list-disc space-y-1 pl-4 text-sm text-[var(--muted)]">
+            {performance.limitations.map((l) => (
+              <li key={l}>{l}</li>
+            ))}
+          </ul>
+        </SectionCard>
+      ) : null}
     </div>
   );
 }
@@ -454,8 +535,12 @@ export function ValuationSection({
 
 export function RiskSection({
   intel,
+  riskAnalytics,
+  isLoading,
 }: {
   intel: PortfolioIntelligenceView | null;
+  riskAnalytics?: RiskView;
+  isLoading?: boolean;
 }) {
   return (
     <div className="space-y-4">
@@ -522,6 +607,49 @@ export function RiskSection({
           </ul>
         ) : (
           <WorkspaceEmpty description="Data unavailable. Heatmap cells require linked risk sections per holding." />
+        )}
+      </SectionCard>
+      <SectionCard
+        title="Risk Attribution (server-computed)"
+        description="Per-position contribution to total portfolio risk: weight × volatility × correlation-to-portfolio"
+      >
+        {isLoading ? (
+          <WorkspaceSkeleton />
+        ) : riskAnalytics?.rows.length ? (
+          <ul className="space-y-1 text-sm" aria-label="Risk attribution">
+            {riskAnalytics.rows.map((r) => (
+              <li key={r.symbol} className="flex justify-between gap-2 border-b border-[var(--border)] py-1">
+                <span className="font-mono text-xs">{r.symbol}</span>
+                <span>{r.riskContributionPct}</span>
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <WorkspaceEmpty
+            description={
+              riskAnalytics?.limitations[0] ??
+              "Data unavailable. Requires overlapping authenticated price history."
+            }
+          />
+        )}
+      </SectionCard>
+      <SectionCard
+        title="Factor Exposure (server-computed)"
+        description="Weighted rollup of Value/Quality/Momentum/Size/Low-volatility — see Factor Exposure tab for the full breakdown"
+      >
+        {isLoading ? (
+          <WorkspaceSkeleton />
+        ) : riskAnalytics?.factors.some((f) => f.exposureValue !== "Data unavailable.") ? (
+          <ul className="space-y-1 text-sm">
+            {riskAnalytics.factors.map((f) => (
+              <li key={f.factorName} className="flex justify-between gap-2">
+                <span className="capitalize">{f.factorName.replace("_", " ")}</span>
+                <span>{f.exposureValue}</span>
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <WorkspaceEmpty description="Data unavailable. No per-security factor proxies (value/quality/momentum/size/volatility scores) supplied for this session's holdings." />
         )}
       </SectionCard>
     </div>
@@ -691,9 +819,13 @@ export function OpportunitiesSection({
 export function RebalancingSection({
   holdings,
   intel,
+  constraints,
+  isLoading,
 }: {
   holdings: PortfolioHolding[];
   intel: PortfolioIntelligenceView | null;
+  constraints?: ConstraintsView;
+  isLoading?: boolean;
 }) {
   const pending = holdings.filter((h) => !h.researchAvailable);
   return (
@@ -762,6 +894,48 @@ export function RebalancingSection({
               </li>
             ))}
           </ul>
+        )}
+      </SectionCard>
+      <SectionCard
+        title="Rebalancing Analysis (server-computed)"
+        description={constraints?.disclaimer ?? "Analysis only — not a trade recommendation or order instruction."}
+      >
+        {isLoading ? (
+          <WorkspaceSkeleton />
+        ) : constraints?.trades.length ? (
+          <ul className="space-y-1 text-sm" aria-label="Rebalancing trades">
+            {constraints.trades.map((t) => (
+              <li key={t.symbol} className="flex justify-between gap-2 border-b border-[var(--border)] py-1">
+                <span className="font-mono text-xs">{t.symbol}</span>
+                <span>
+                  {t.current} → {t.target} ({t.action})
+                </span>
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <WorkspaceEmpty description="Data unavailable. No target weights configured for this session — set target allocations to see drift analysis." />
+        )}
+      </SectionCard>
+      <SectionCard
+        title="Position Limit Breaches (server-computed)"
+        description="Breach checks against caller-supplied max-position/max-sector/min-cash limits"
+      >
+        {isLoading ? (
+          <WorkspaceSkeleton />
+        ) : constraints?.breaches.length ? (
+          <ul className="space-y-1 text-sm">
+            {constraints.breaches.map((b) => (
+              <li key={`${b.limitType}-${b.label}`} className="flex justify-between gap-2">
+                <span>{b.label}</span>
+                <span className="font-medium text-[var(--danger,#ef4444)]">
+                  {b.actual} / {b.limit}
+                </span>
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <WorkspaceEmpty description="No breaches — or no limits configured for this session." />
         )}
       </SectionCard>
     </div>

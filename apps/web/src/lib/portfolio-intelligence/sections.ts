@@ -22,7 +22,16 @@ export type PortfolioSectionId =
   | "scenarios"
   | "drift"
   | "timeline"
-  | "integrations";
+  | "integrations"
+  /** Portfolio Intelligence Analytics module (additive) */
+  | "correlation"
+  | "efficient-frontier"
+  | "monte-carlo"
+  | "stress-testing"
+  | "scenario-impact"
+  | "tax-optimization"
+  | "position-limits"
+  | "factor-exposure";
 
 export type PortfolioSectionMeta = {
   id: PortfolioSectionId;
@@ -156,6 +165,62 @@ export const PORTFOLIO_SECTIONS: readonly PortfolioSectionMeta[] = [
     label: "Research Links",
     description: "Company Research · Comparison · RI · Evidence · Committee",
     shortcut: "G",
+    lazy: true,
+  },
+  {
+    id: "correlation",
+    label: "Correlation Matrix",
+    description: "Pairwise return correlation across session holdings",
+    shortcut: "X",
+    lazy: true,
+  },
+  {
+    id: "efficient-frontier",
+    label: "Efficient Frontier",
+    description: "Mean-variance random-weight sampling — approximation only",
+    shortcut: "F",
+    lazy: true,
+  },
+  {
+    id: "monte-carlo",
+    label: "Monte Carlo",
+    description: "Bootstrap-resampled terminal return percentiles",
+    shortcut: "M",
+    lazy: true,
+  },
+  {
+    id: "stress-testing",
+    label: "Stress Testing",
+    description: "Historical crash-window replay (2008 / 2020)",
+    shortcut: "T",
+    lazy: true,
+  },
+  {
+    id: "scenario-impact",
+    label: "Scenario Analysis",
+    description: "Caller-defined shock applied via beta sensitivity",
+    shortcut: "N",
+    lazy: true,
+  },
+  {
+    id: "tax-optimization",
+    label: "Tax Optimization",
+    description: "Unrealized gain/loss and loss-harvesting candidates",
+    shortcut: "U",
+    lazy: true,
+  },
+  {
+    id: "position-limits",
+    label: "Position Limits",
+    description: "Breach checks against caller-supplied limits",
+    shortcut: "P",
+    lazy: true,
+  },
+  {
+    id: "factor-exposure",
+    label: "Factor Exposure",
+    description: "Weighted rollup of Value/Quality/Momentum/Size/Low-vol",
+    shortcut: "V",
     lazy: true,
   },
 ] as const;

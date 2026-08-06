@@ -222,6 +222,21 @@ fields — the plumbing exists end-to-end and lights up the moment those
 inputs are present, exactly like the Data Connector Framework's
 "Data unavailable — no data source connected." convention.
 
+### Benchmark selection (RC1 milestone)
+
+`evaluate_portfolio_performance`/`evaluate_portfolio_stress_analytics` have
+always accepted an optional `benchmark_symbol`, but the workspace never
+collected one from the user — Beta, Jensen's Alpha, Treynor Ratio, Tracking
+Error, and Information Ratio were therefore always `"Data unavailable."` in
+production even though the backend fully supports them. A `BenchmarkSelector`
+component (common presets — `SPY`, `QQQ`, `DIA`, `NIFTYBEES` — plus free-text
+custom entry) now lives in the workspace toolbar, backed by a new persisted
+`benchmarkSymbol` field on `usePortfolioIntelPrefsStore` (same
+Zustand + `localStorage` pattern already used for `watchlist`/`portfolios`).
+The selected symbol flows through `usePortfolioAnalyticsQueries` into every
+query that accepts a benchmark — no backend change was needed; this was a
+pure activation of already-built, already-tested engine capability.
+
 ## Testing
 
 - `packages/portfolio_analytics/tests/test_*.py` — pure-function unit

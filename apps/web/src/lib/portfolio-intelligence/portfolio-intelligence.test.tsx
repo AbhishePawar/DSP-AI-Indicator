@@ -141,6 +141,7 @@ vi.mock("@/components/persistence/PortfolioSync", () => ({
 }));
 
 import {
+  BENCHMARK_PRESETS,
   PORTFOLIO_SECTIONS,
   buildPortfolioExportSnapshot,
   mapPortfolioIntelligenceResult,
@@ -148,7 +149,9 @@ import {
   portfolioSnapshotToJson,
   sectorHoldingCounts,
   usePortfolioIntelPrefsStore,
+  type PortfolioSectionId,
 } from "@/lib/portfolio-intelligence";
+import { api } from "@/lib/api/client";
 import { FRONTEND_FOUNDATION_VERSION } from "@/foundation";
 
 function wrap(ui: React.ReactNode) {
@@ -300,6 +303,25 @@ describe("P9.5 portfolio intelligence lib", () => {
       "holdings",
     );
   });
+
+  it("sets, normalizes, and clears the selected benchmark symbol", () => {
+    usePortfolioIntelPrefsStore.setState({ benchmarkSymbol: null });
+    usePortfolioIntelPrefsStore.getState().setBenchmarkSymbol(" spy ");
+    expect(usePortfolioIntelPrefsStore.getState().benchmarkSymbol).toBe("SPY");
+
+    usePortfolioIntelPrefsStore.getState().setBenchmarkSymbol(null);
+    expect(usePortfolioIntelPrefsStore.getState().benchmarkSymbol).toBeNull();
+
+    usePortfolioIntelPrefsStore.getState().setBenchmarkSymbol("   ");
+    expect(usePortfolioIntelPrefsStore.getState().benchmarkSymbol).toBeNull();
+  });
+
+  it("registers well-known benchmark presets", () => {
+    expect(BENCHMARK_PRESETS.length).toBeGreaterThan(0);
+    expect(BENCHMARK_PRESETS.map((p) => p.symbol)).toContain("SPY");
+    const symbols = BENCHMARK_PRESETS.map((p) => p.symbol);
+    expect(new Set(symbols).size).toBe(symbols.length);
+  });
 });
 
 describe("P9.5 workspace UI", () => {
@@ -338,7 +360,27 @@ describe("P9.5 workspace UI", () => {
     expect(screen.getByText("Holdings count")).toBeTruthy();
   });
 
-  it.each([
+  it("propagates the selected benchmark symbol into the analytics query", async () => {
+    usePortfolioIntelPrefsStore.setState({
+      activeSection: "performance",
+      benchmarkSymbol: "SPY",
+    });
+    const { PortfolioIntelligenceWorkspace } = await import(
+      "@/components/portfolio-intelligence/PortfolioIntelligenceWorkspace"
+    );
+    wrap(<PortfolioIntelligenceWorkspace />);
+
+    expect(await screen.findByLabelText("Benchmark selection")).toBeTruthy();
+
+    await vi.waitFor(() => {
+      expect(api.portfolioAnalyticsPerformance).toHaveBeenCalledWith(
+        expect.objectContaining({ benchmark_symbol: "SPY" }),
+        expect.anything(),
+      );
+    });
+  });
+
+  it.each<PortfolioSectionId>([
     "performance",
     "risk",
     "allocation",

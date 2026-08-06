@@ -9,7 +9,9 @@ export {
 } from "./sections";
 
 export {
+  BENCHMARK_PRESETS,
   usePortfolioIntelPrefsStore,
+  type BenchmarkPreset,
   type NamedPortfolioMeta,
   type PortfolioNote,
   type PortfolioTag,

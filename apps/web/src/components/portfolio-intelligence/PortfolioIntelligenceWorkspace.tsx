@@ -49,6 +49,7 @@ import { usePortfolio } from "@/lib/portfolio/PortfolioProvider";
 import { useCollapsePanelsBelowLg } from "@/lib/a11y";
 import { COMPANY_CATALOGUE } from "@/lib/companies/catalogue";
 import { cn } from "@/lib/utils";
+import { BenchmarkSelector } from "./BenchmarkSelector";
 import { PortfolioLeftNav } from "./LeftNav";
 import { PortfolioRightPanel } from "./RightPanel";
 import { ExportSection } from "./Sections";
@@ -230,43 +231,46 @@ function Toolbar({
   refreshing: boolean;
 }) {
   return (
-    <div className="sticky top-0 z-20 flex flex-wrap items-center justify-between gap-2 border-b border-[var(--border)] bg-[var(--surface)]/95 px-3 py-2 backdrop-blur motion-reduce:backdrop-blur-none">
-      <div className="flex flex-wrap items-center gap-2">
-        <Button
-          size="sm"
-          variant="ghost"
-          onClick={onToggleLeft}
-          aria-pressed={leftOpen}
-          aria-label={leftOpen ? "Hide navigation panel" : "Show navigation panel"}
-        >
-          {leftOpen ? "Hide nav" : "Show nav"}
-        </Button>
-        <Button
-          size="sm"
-          variant="ghost"
-          onClick={onToggleRight}
-          aria-pressed={rightOpen}
-          aria-label={rightOpen ? "Hide context panel" : "Show context panel"}
-        >
-          {rightOpen ? "Hide context" : "Show context"}
-        </Button>
-        <span className="hidden text-xs text-[var(--muted)] md:inline">
-          Shortcuts: 1–9 / R E H C 0 · [ / ] panels
-        </span>
+    <div className="sticky top-0 z-20 flex flex-col gap-2 border-b border-[var(--border)] bg-[var(--surface)]/95 px-3 py-2 backdrop-blur motion-reduce:backdrop-blur-none">
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <div className="flex flex-wrap items-center gap-2">
+          <Button
+            size="sm"
+            variant="ghost"
+            onClick={onToggleLeft}
+            aria-pressed={leftOpen}
+            aria-label={leftOpen ? "Hide navigation panel" : "Show navigation panel"}
+          >
+            {leftOpen ? "Hide nav" : "Show nav"}
+          </Button>
+          <Button
+            size="sm"
+            variant="ghost"
+            onClick={onToggleRight}
+            aria-pressed={rightOpen}
+            aria-label={rightOpen ? "Hide context panel" : "Show context panel"}
+          >
+            {rightOpen ? "Hide context" : "Show context"}
+          </Button>
+          <span className="hidden text-xs text-[var(--muted)] md:inline">
+            Shortcuts: 1–9 / R E H C 0 · [ / ] panels
+          </span>
+        </div>
+        <div className="flex flex-wrap gap-2">
+          <Button
+            variant="secondary"
+            className="min-h-11"
+            onClick={onRefresh}
+            disabled={refreshing}
+          >
+            {refreshing ? "Refreshing…" : "Refresh intelligence"}
+          </Button>
+          <Link href="/analysis">
+            <Button className="min-h-11">Analyze company</Button>
+          </Link>
+        </div>
       </div>
-      <div className="flex flex-wrap gap-2">
-        <Button
-          variant="secondary"
-          className="min-h-11"
-          onClick={onRefresh}
-          disabled={refreshing}
-        >
-          {refreshing ? "Refreshing…" : "Refresh intelligence"}
-        </Button>
-        <Link href="/analysis">
-          <Button className="min-h-11">Analyze company</Button>
-        </Link>
-      </div>
+      <BenchmarkSelector />
     </div>
   );
 }
@@ -294,6 +298,7 @@ export function PortfolioIntelligenceWorkspace() {
   const setLeftOpen = usePortfolioIntelPrefsStore((s) => s.setLeftOpen);
   const setRightOpen = usePortfolioIntelPrefsStore((s) => s.setRightOpen);
   const watchlist = usePortfolioIntelPrefsStore((s) => s.watchlist);
+  const benchmarkSymbol = usePortfolioIntelPrefsStore((s) => s.benchmarkSymbol);
   const touchPortfolio = usePortfolioIntelPrefsStore((s) => s.touchPortfolio);
   const activePortfolioId = usePortfolioIntelPrefsStore(
     (s) => s.activePortfolioId,
@@ -453,6 +458,7 @@ export function PortfolioIntelligenceWorkspace() {
   );
 
   const analytics = usePortfolioAnalyticsQueries(holdings, token, {
+    benchmarkSymbol,
     includeSimulation: section === "efficient-frontier" || section === "monte-carlo",
     includeStress: section === "stress-testing" || section === "scenario-impact",
     includeTax: section === "tax-optimization",

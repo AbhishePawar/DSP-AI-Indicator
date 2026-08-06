@@ -36,6 +36,16 @@ export type NamedPortfolioMeta = {
   lastOpenedAt: string;
 };
 
+/** Well-known benchmark presets — free-text entry is always also available. */
+export type BenchmarkPreset = { symbol: string; label: string };
+
+export const BENCHMARK_PRESETS: readonly BenchmarkPreset[] = [
+  { symbol: "SPY", label: "S&P 500 (SPY)" },
+  { symbol: "QQQ", label: "NASDAQ 100 (QQQ)" },
+  { symbol: "DIA", label: "Dow Jones (DIA)" },
+  { symbol: "NIFTYBEES", label: "NIFTY 50 (NIFTYBEES)" },
+] as const;
+
 type PortfolioIntelPrefsState = {
   activeSection: PortfolioSectionId;
   leftOpen: boolean;
@@ -45,6 +55,8 @@ type PortfolioIntelPrefsState = {
   watchlist: WatchlistEntry[];
   notes: PortfolioNote[];
   tags: PortfolioTag[];
+  /** Selected benchmark symbol for Performance/Stress analytics — null = none selected. */
+  benchmarkSymbol: string | null;
   setActiveSection: (id: PortfolioSectionId) => void;
   setLeftOpen: (open: boolean) => void;
   setRightOpen: (open: boolean) => void;
@@ -59,6 +71,7 @@ type PortfolioIntelPrefsState = {
   removeNote: (id: string) => void;
   addTag: (portfolioId: string, label: string) => void;
   removeTag: (id: string) => void;
+  setBenchmarkSymbol: (symbol: string | null) => void;
 };
 
 const PRIMARY: NamedPortfolioMeta = {
@@ -79,6 +92,7 @@ export const usePortfolioIntelPrefsStore = create<PortfolioIntelPrefsState>()(
       watchlist: [],
       notes: [],
       tags: [],
+      benchmarkSymbol: null,
       setActiveSection: (id) => set({ activeSection: id }),
       setLeftOpen: (open) => set({ leftOpen: open }),
       setRightOpen: (open) => set({ rightOpen: open }),
@@ -168,6 +182,10 @@ export const usePortfolioIntelPrefsStore = create<PortfolioIntelPrefsState>()(
         }),
       removeTag: (id) =>
         set((s) => ({ tags: s.tags.filter((t) => t.id !== id) })),
+      setBenchmarkSymbol: (symbol) => {
+        const cleaned = symbol?.trim().toUpperCase() || null;
+        set({ benchmarkSymbol: cleaned });
+      },
     }),
     {
       name: "dsp.portfolio-intelligence.prefs.v1",
@@ -180,6 +198,7 @@ export const usePortfolioIntelPrefsStore = create<PortfolioIntelPrefsState>()(
         watchlist: state.watchlist,
         notes: state.notes,
         tags: state.tags,
+        benchmarkSymbol: state.benchmarkSymbol,
       }),
     },
   ),

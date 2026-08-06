@@ -1026,6 +1026,146 @@ class DSPPlatform:
 
         return corporate_actions_health()
 
+    # -- Data Connector Framework: News/Filings/Ownership/Insider/ESG/
+    # Transcripts. Thin delegations to process-local façade services, each
+    # backed by a multi-provider priority registry with automatic failover
+    # (see ``data_engine.connector_framework``). Additive only.
+
+    def get_authenticated_news(
+        self,
+        symbol: str,
+        *,
+        exchange: str | None = None,
+        currency: str = "USD",
+        limit: int = 20,
+        since: object | None = None,
+    ) -> dict[str, object] | None:
+        from dsp_platform.news import get_authenticated_news
+
+        return get_authenticated_news(
+            symbol, exchange=exchange, currency=currency, limit=limit, since=since
+        )
+
+    def news_health(self) -> dict[str, object]:
+        from dsp_platform.news import news_health
+
+        return news_health()
+
+    def get_authenticated_filings(
+        self,
+        symbol: str,
+        *,
+        exchange: str | None = None,
+        currency: str = "USD",
+        filing_types: tuple[str, ...] = (),
+        start_date: object | None = None,
+        end_date: object | None = None,
+        limit: int = 50,
+    ) -> dict[str, object] | None:
+        from dsp_platform.filings import get_authenticated_filings
+
+        return get_authenticated_filings(
+            symbol,
+            exchange=exchange,
+            currency=currency,
+            filing_types=filing_types,
+            start_date=start_date,
+            end_date=end_date,
+            limit=limit,
+        )
+
+    def filings_health(self) -> dict[str, object]:
+        from dsp_platform.filings import filings_health
+
+        return filings_health()
+
+    def get_authenticated_ownership(
+        self,
+        symbol: str,
+        *,
+        exchange: str | None = None,
+        currency: str = "USD",
+        as_of: object | None = None,
+    ) -> dict[str, object] | None:
+        from dsp_platform.ownership import get_authenticated_ownership
+
+        return get_authenticated_ownership(
+            symbol, exchange=exchange, currency=currency, as_of=as_of
+        )
+
+    def ownership_health(self) -> dict[str, object]:
+        from dsp_platform.ownership import ownership_health
+
+        return ownership_health()
+
+    def get_authenticated_insider_activity(
+        self,
+        symbol: str,
+        *,
+        exchange: str | None = None,
+        currency: str = "USD",
+        start_date: object | None = None,
+        end_date: object | None = None,
+        limit: int = 50,
+    ) -> dict[str, object] | None:
+        from dsp_platform.insider_trading import get_authenticated_insider_activity
+
+        return get_authenticated_insider_activity(
+            symbol,
+            exchange=exchange,
+            currency=currency,
+            start_date=start_date,
+            end_date=end_date,
+            limit=limit,
+        )
+
+    def insider_trading_health(self) -> dict[str, object]:
+        from dsp_platform.insider_trading import insider_trading_health
+
+        return insider_trading_health()
+
+    def get_authenticated_esg_score(
+        self,
+        symbol: str,
+        *,
+        exchange: str | None = None,
+        currency: str = "USD",
+    ) -> dict[str, object] | None:
+        from dsp_platform.esg import get_authenticated_esg_score
+
+        return get_authenticated_esg_score(symbol, exchange=exchange, currency=currency)
+
+    def esg_health(self) -> dict[str, object]:
+        from dsp_platform.esg import esg_health
+
+        return esg_health()
+
+    def get_authenticated_transcripts(
+        self,
+        symbol: str,
+        *,
+        exchange: str | None = None,
+        currency: str = "USD",
+        year: int | None = None,
+        quarter: int | None = None,
+        limit: int = 8,
+    ) -> dict[str, object] | None:
+        from dsp_platform.transcripts import get_authenticated_transcripts
+
+        return get_authenticated_transcripts(
+            symbol,
+            exchange=exchange,
+            currency=currency,
+            year=year,
+            quarter=quarter,
+            limit=limit,
+        )
+
+    def transcripts_health(self) -> dict[str, object]:
+        from dsp_platform.transcripts import transcripts_health
+
+        return transcripts_health()
+
     def get_unified_data_bundle(
         self,
         symbol: str,

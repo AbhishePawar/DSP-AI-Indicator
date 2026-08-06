@@ -24,6 +24,159 @@ export type RequestOptions = {
   signal?: AbortSignal;
 };
 
+/** Shared envelope shape returned by every Data Connector Framework endpoint. */
+type ConnectorIdentity = {
+  symbol?: string;
+  exchange?: string | null;
+  company_name?: string | null;
+  isin?: string | null;
+  provider_company_id?: string | null;
+  currency?: string | null;
+} | null;
+
+type ConnectorProvenance = {
+  provider_id?: string;
+  provider_name?: string;
+  source_type?: string;
+  retrieved_at?: string;
+  as_of?: string | null;
+  request_id?: string | null;
+  cache_hit?: boolean;
+  auth_mode?: string;
+} | null;
+
+/** Authenticated news payload from GET /api/v1/news. */
+export type NewsPayload = {
+  ok?: boolean;
+  available?: boolean;
+  authenticated?: boolean;
+  symbol?: string;
+  identity?: ConnectorIdentity;
+  articles?: Array<{
+    article_id?: string;
+    headline?: string;
+    url?: string;
+    source?: string;
+    published_at?: string;
+    summary?: string | null;
+    sentiment?: string | null;
+    related_symbols?: string[];
+    image_url?: string | null;
+  }> | null;
+  provenance?: ConnectorProvenance;
+  attempted_provider_ids?: string[] | null;
+  message?: string | null;
+};
+
+/** Authenticated regulatory filings payload from GET /api/v1/filings. */
+export type FilingsPayload = {
+  ok?: boolean;
+  available?: boolean;
+  authenticated?: boolean;
+  symbol?: string;
+  identity?: ConnectorIdentity;
+  filings?: Array<{
+    filing_id?: string;
+    filing_type?: string;
+    title?: string;
+    url?: string;
+    filed_at?: string;
+    period_of_report?: string | null;
+    accession_number?: string | null;
+    source?: string | null;
+  }> | null;
+  provenance?: ConnectorProvenance;
+  attempted_provider_ids?: string[] | null;
+  message?: string | null;
+};
+
+/** Authenticated shareholding pattern payload from GET /api/v1/ownership. */
+export type OwnershipPayload = {
+  ok?: boolean;
+  available?: boolean;
+  authenticated?: boolean;
+  symbol?: string;
+  identity?: ConnectorIdentity;
+  as_of?: string | null;
+  stakes?: Array<{
+    holder_type?: string;
+    holder_name?: string | null;
+    percent_held?: number | null;
+    shares_held?: number | null;
+  }> | null;
+  promoter_holding_percent?: number | null;
+  institutional_holding_percent?: number | null;
+  public_holding_percent?: number | null;
+  provenance?: ConnectorProvenance;
+  attempted_provider_ids?: string[] | null;
+  message?: string | null;
+};
+
+/** Authenticated insider trading payload from GET /api/v1/insider-trading. */
+export type InsiderTradingPayload = {
+  ok?: boolean;
+  available?: boolean;
+  authenticated?: boolean;
+  symbol?: string;
+  identity?: ConnectorIdentity;
+  transactions?: Array<{
+    transaction_id?: string;
+    insider_name?: string;
+    role?: string | null;
+    transaction_type?: string;
+    shares?: number | null;
+    price?: number | null;
+    value?: number | null;
+    transaction_date?: string;
+    filed_at?: string | null;
+    source?: string | null;
+  }> | null;
+  provenance?: ConnectorProvenance;
+  attempted_provider_ids?: string[] | null;
+  message?: string | null;
+};
+
+/** Authenticated ESG score payload from GET /api/v1/esg. */
+export type EsgPayload = {
+  ok?: boolean;
+  available?: boolean;
+  authenticated?: boolean;
+  symbol?: string;
+  identity?: ConnectorIdentity;
+  as_of?: string | null;
+  environmental_score?: number | null;
+  social_score?: number | null;
+  governance_score?: number | null;
+  total_score?: number | null;
+  controversy_level?: string | null;
+  provenance?: ConnectorProvenance;
+  attempted_provider_ids?: string[] | null;
+  message?: string | null;
+};
+
+/** Authenticated earnings call transcripts payload from GET /api/v1/transcripts. */
+export type TranscriptsPayload = {
+  ok?: boolean;
+  available?: boolean;
+  authenticated?: boolean;
+  symbol?: string;
+  identity?: ConnectorIdentity;
+  transcripts?: Array<{
+    transcript_id?: string;
+    quarter?: number | null;
+    year?: number | null;
+    call_date?: string | null;
+    title?: string;
+    url?: string | null;
+    content?: string | null;
+    participants?: string[];
+    source?: string | null;
+  }> | null;
+  provenance?: ConnectorProvenance;
+  attempted_provider_ids?: string[] | null;
+  message?: string | null;
+};
+
 async function request<T>(
   path: string,
   init: RequestInit = {},
@@ -416,6 +569,150 @@ export const api = {
   dataHealth: (options?: RequestOptions) =>
     request<{ ok: boolean; health: Record<string, unknown> }>(
       "/data/health",
+      { method: "GET" },
+      options,
+    ),
+
+  // -- Data Connector Framework: News/Filings/Ownership/Insider/ESG/
+  // Transcripts. Each additive endpoint tries every configured provider in
+  // priority order (automatic failover) and returns HTTP 200 with
+  // `available: false` when no provider has data — never fabricated.
+
+  /** Authenticated company news — never invents headlines. */
+  news: (
+    symbol: string,
+    options?: RequestOptions & { exchange?: string | null; limit?: number },
+  ) => {
+    const params = new URLSearchParams({ symbol: symbol.trim().toUpperCase() });
+    if (options?.exchange) params.set("exchange", options.exchange);
+    if (options?.limit != null) params.set("limit", String(options.limit));
+    return request<NewsPayload>(`/news?${params.toString()}`, { method: "GET" }, options);
+  },
+
+  newsHealth: (options?: RequestOptions) =>
+    request<{ ok: boolean; providers: Record<string, unknown> }>(
+      "/news/health",
+      { method: "GET" },
+      options,
+    ),
+
+  /** Authenticated regulatory/corporate filings — never invents documents. */
+  filings: (
+    symbol: string,
+    options?: RequestOptions & {
+      exchange?: string | null;
+      filing_types?: string | null;
+      start_date?: string | null;
+      end_date?: string | null;
+      limit?: number;
+    },
+  ) => {
+    const params = new URLSearchParams({ symbol: symbol.trim().toUpperCase() });
+    if (options?.exchange) params.set("exchange", options.exchange);
+    if (options?.filing_types) params.set("filing_types", options.filing_types);
+    if (options?.start_date) params.set("start_date", options.start_date);
+    if (options?.end_date) params.set("end_date", options.end_date);
+    if (options?.limit != null) params.set("limit", String(options.limit));
+    return request<FilingsPayload>(`/filings?${params.toString()}`, { method: "GET" }, options);
+  },
+
+  filingsHealth: (options?: RequestOptions) =>
+    request<{ ok: boolean; providers: Record<string, unknown> }>(
+      "/filings/health",
+      { method: "GET" },
+      options,
+    ),
+
+  /** Authenticated shareholding pattern — never invents holders. */
+  ownership: (
+    symbol: string,
+    options?: RequestOptions & { exchange?: string | null; as_of?: string | null },
+  ) => {
+    const params = new URLSearchParams({ symbol: symbol.trim().toUpperCase() });
+    if (options?.exchange) params.set("exchange", options.exchange);
+    if (options?.as_of) params.set("as_of", options.as_of);
+    return request<OwnershipPayload>(
+      `/ownership?${params.toString()}`,
+      { method: "GET" },
+      options,
+    );
+  },
+
+  ownershipHealth: (options?: RequestOptions) =>
+    request<{ ok: boolean; providers: Record<string, unknown> }>(
+      "/ownership/health",
+      { method: "GET" },
+      options,
+    ),
+
+  /** Authenticated insider trading activity — never invents transactions. */
+  insiderTrading: (
+    symbol: string,
+    options?: RequestOptions & {
+      exchange?: string | null;
+      start_date?: string | null;
+      end_date?: string | null;
+      limit?: number;
+    },
+  ) => {
+    const params = new URLSearchParams({ symbol: symbol.trim().toUpperCase() });
+    if (options?.exchange) params.set("exchange", options.exchange);
+    if (options?.start_date) params.set("start_date", options.start_date);
+    if (options?.end_date) params.set("end_date", options.end_date);
+    if (options?.limit != null) params.set("limit", String(options.limit));
+    return request<InsiderTradingPayload>(
+      `/insider-trading?${params.toString()}`,
+      { method: "GET" },
+      options,
+    );
+  },
+
+  insiderTradingHealth: (options?: RequestOptions) =>
+    request<{ ok: boolean; providers: Record<string, unknown> }>(
+      "/insider-trading/health",
+      { method: "GET" },
+      options,
+    ),
+
+  /** Authenticated ESG score — never invents scores. */
+  esg: (symbol: string, options?: RequestOptions & { exchange?: string | null }) => {
+    const params = new URLSearchParams({ symbol: symbol.trim().toUpperCase() });
+    if (options?.exchange) params.set("exchange", options.exchange);
+    return request<EsgPayload>(`/esg?${params.toString()}`, { method: "GET" }, options);
+  },
+
+  esgHealth: (options?: RequestOptions) =>
+    request<{ ok: boolean; providers: Record<string, unknown> }>(
+      "/esg/health",
+      { method: "GET" },
+      options,
+    ),
+
+  /** Authenticated earnings call transcripts — never invents content. */
+  transcripts: (
+    symbol: string,
+    options?: RequestOptions & {
+      exchange?: string | null;
+      year?: number | null;
+      quarter?: number | null;
+      limit?: number;
+    },
+  ) => {
+    const params = new URLSearchParams({ symbol: symbol.trim().toUpperCase() });
+    if (options?.exchange) params.set("exchange", options.exchange);
+    if (options?.year != null) params.set("year", String(options.year));
+    if (options?.quarter != null) params.set("quarter", String(options.quarter));
+    if (options?.limit != null) params.set("limit", String(options.limit));
+    return request<TranscriptsPayload>(
+      `/transcripts?${params.toString()}`,
+      { method: "GET" },
+      options,
+    );
+  },
+
+  transcriptsHealth: (options?: RequestOptions) =>
+    request<{ ok: boolean; providers: Record<string, unknown> }>(
+      "/transcripts/health",
       { method: "GET" },
       options,
     ),

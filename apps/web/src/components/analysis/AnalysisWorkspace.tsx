@@ -108,7 +108,7 @@ function AnalysisWorkspaceBody({
 }) {
   return (
     <div className="relative pb-20">
-      <div className="sticky top-14 z-20 mb-4 space-y-2 border-b border-[var(--border)] bg-[var(--surface)]/95 p-3 backdrop-blur md:hidden">
+      <div className="sticky top-14 z-20 mb-4 space-y-2 border-b border-[var(--border)] bg-[var(--surface)]/95 p-3 backdrop-blur motion-reduce:backdrop-blur-none md:hidden">
         <p className="text-xs text-[var(--muted)]">
           {presentFieldLabel("recommendation")}
         </p>

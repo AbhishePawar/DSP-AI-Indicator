@@ -59,3 +59,9 @@ npm test
 
 Capture locally after 
 pm run dev against a running API (TD-E005 for CI visual pack).
+
+## Related — Institutional Research Dashboard (EPIC-W001)
+
+RS-001…RS-010 production dashboard → `/research/institutional` ·
+[DASHBOARD_ARCHITECTURE.md](DASHBOARD_ARCHITECTURE.md) ·
+[COMPONENT_INSTITUTIONAL_DASHBOARD.md](COMPONENT_INSTITUTIONAL_DASHBOARD.md).

@@ -3,12 +3,16 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
-const REVIEW_LINKS = [
+const REVIEW_LINKS: ReadonlyArray<{
+  href: string;
+  label: string;
+  exact?: boolean;
+}> = [
   { href: "/advisor/reviews", label: "Workspace", exact: true },
   { href: "/advisor/reviews/dashboard", label: "Dashboard" },
   { href: "/advisor/reviews/active", label: "Active Review" },
   { href: "/advisor/reviews/templates", label: "Templates" },
-] as const;
+];
 
 export function ReviewSidebar() {
   const pathname = usePathname();

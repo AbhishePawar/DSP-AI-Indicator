@@ -15,6 +15,13 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
+api = [
+    "fastapi>=0.115.0",
+    "uvicorn[standard]>=0.30.0",
+    "httpx>=0.27.0",
+    "starlette>=0.40.0",
+    "pydantic>=2.0",
+]
 dev = [
     "black>=24.0.0",
     "mypy>=1.10.0",
@@ -23,7 +30,7 @@ dev = [
     "ruff>=0.4.0",
     # CI / local test runtime for HTTP & security packages (ASI-007)
     "fastapi>=0.115.0",
-    "uvicorn>=0.30.0",
+    "uvicorn[standard]>=0.30.0",
     "httpx>=0.27.0",
     "starlette>=0.40.0",
     "pydantic>=2.0",
@@ -49,6 +56,7 @@ where = [
     "packages/risk/src",
     "packages/research/src",
     "packages/quantitative_risk/src",
+    "packages/portfolio_analytics/src",
     "packages/workflow/src",
     "packages/knowledge_graph/src",
     "packages/copilot/src",
@@ -70,6 +78,13 @@ where = [
     "packages/production_platform/src",
     "packages/compliance/src",
     "packages/platform_runtime/src",
+    "packages/persistence/src",
+    "packages/auth/src",
+    "packages/admin/src",
+    "packages/enterprise/src",
+    "packages/portfolio_store/src",
+    "packages/portfolio_intelligence_engine/src",
+    "packages/workflow_automation/src",
 ]
 
 [tool.pytest.ini_options]
@@ -93,6 +108,7 @@ pythonpath = [
     "packages/risk/src",
     "packages/research/src",
     "packages/quantitative_risk/src",
+    "packages/portfolio_analytics/src",
     "packages/workflow/src",
     "packages/knowledge_graph/src",
     "packages/copilot/src",
@@ -114,6 +130,13 @@ pythonpath = [
     "packages/production_platform/src",
     "packages/compliance/src",
     "packages/platform_runtime/src",
+    "packages/persistence/src",
+    "packages/auth/src",
+    "packages/admin/src",
+    "packages/enterprise/src",
+    "packages/portfolio_store/src",
+    "packages/portfolio_intelligence_engine/src",
+    "packages/workflow_automation/src",
 ]
 addopts = "-v --tb=short --import-mode=importlib"
 filterwarnings = ["ignore::DeprecationWarning"]
@@ -146,6 +169,7 @@ src = [
     "packages/risk/src",
     "packages/research/src",
     "packages/quantitative_risk/src",
+    "packages/portfolio_analytics/src",
     "packages/workflow/src",
     "packages/knowledge_graph/src",
     "packages/copilot/src",
@@ -167,6 +191,13 @@ src = [
     "packages/production_platform/src",
     "packages/compliance/src",
     "packages/platform_runtime/src",
+    "packages/persistence/src",
+    "packages/auth/src",
+    "packages/admin/src",
+    "packages/enterprise/src",
+    "packages/portfolio_store/src",
+    "packages/portfolio_intelligence_engine/src",
+    "packages/workflow_automation/src",
     "tests",
 ]
 
@@ -194,6 +225,7 @@ known-first-party = [
     "risk",
     "research",
     "quantitative_risk",
+    "portfolio_analytics",
     "workflow",
     "knowledge_graph",
     "copilot",
@@ -214,6 +246,10 @@ known-first-party = [
     "production_platform",
     "compliance",
     "platform_runtime",
+    "enterprise",
+    "portfolio_store",
+    "portfolio_intelligence_engine",
+    "workflow_automation",
 ]
 
 [tool.coverage.run]
@@ -236,6 +272,7 @@ source = [
     "risk",
     "research",
     "quantitative_risk",
+    "portfolio_analytics",
     "workflow",
     "knowledge_graph",
     "copilot",
@@ -256,6 +293,10 @@ source = [
     "production_platform",
     "compliance",
     "platform_runtime",
+    "enterprise",
+    "portfolio_store",
+    "portfolio_intelligence_engine",
+    "workflow_automation",
 ]
 omit = ["*/tests/*", "*/__init__.py"]
 
@@ -293,6 +334,7 @@ mypy_path = [
     "packages/risk/src",
     "packages/research/src",
     "packages/quantitative_risk/src",
+    "packages/portfolio_analytics/src",
     "packages/workflow/src",
     "packages/knowledge_graph/src",
     "packages/copilot/src",
@@ -314,6 +356,13 @@ mypy_path = [
     "packages/production_platform/src",
     "packages/compliance/src",
     "packages/platform_runtime/src",
+    "packages/persistence/src",
+    "packages/auth/src",
+    "packages/admin/src",
+    "packages/enterprise/src",
+    "packages/portfolio_store/src",
+    "packages/portfolio_intelligence_engine/src",
+    "packages/workflow_automation/src",
 ]
 files = [
     "packages/contracts/src/contracts",

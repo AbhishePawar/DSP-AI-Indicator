@@ -1,0 +1,869 @@
+{
+  "epic": "019A",
+  "mode": "testclient",
+  "started_at": "2026-08-04T06:22:30.566805+00:00",
+  "ended_at": "2026-08-04T06:25:30.576086+00:00",
+  "requested_duration_seconds": 180.0,
+  "wall_seconds": 180.01,
+  "interval_seconds": 5.0,
+  "paths": [
+    "/health",
+    "/health/ready",
+    "/health/live"
+  ],
+  "sample_count": 35,
+  "failures": 0,
+  "live_cluster": false,
+  "redis_observed": false,
+  "postgres_observed": false,
+  "memory": {
+    "tracemalloc_current_start_kb": 0.18,
+    "tracemalloc_current_end_kb": 2834.86,
+    "tracemalloc_peak_kb": 2939.56,
+    "rss_start_mb": null,
+    "rss_end_mb": null
+  },
+  "honest_claim": "PARTIAL synthetic soak \u2014 not multi-node 8\u201324h production certification",
+  "samples": [
+    {
+      "t": "2026-08-04T06:22:33.535206+00:00",
+      "paths": {
+        "/health": {
+          "ok": true,
+          "status": 200,
+          "elapsed_ms": 184.01,
+          "error": null
+        },
+        "/health/ready": {
+          "ok": true,
+          "status": 200,
+          "elapsed_ms": 39.64,
+          "error": null
+        },
+        "/health/live": {
+          "ok": true,
+          "status": 200,
+          "elapsed_ms": 18.36,
+          "error": null
+        }
+      },
+      "rss_mb": null
+    },
+    {
+      "t": "2026-08-04T06:22:38.784782+00:00",
+      "paths": {
+        "/health": {
+          "ok": true,
+          "status": 200,
+          "elapsed_ms": 19.06,
+          "error": null
+        },
+        "/health/ready": {
+          "ok": true,
+          "status": 200,
+          "elapsed_ms": 38.9,
+          "error": null
+        },
+        "/health/live": {
+          "ok": true,
+          "status": 200,
+          "elapsed_ms": 16.14,
+          "error": null
+        }
+      },
+      "rss_mb": null
+    },
+    {
+      "t": "2026-08-04T06:22:43.869360+00:00",
+      "paths": {
+        "/health": {
+          "ok": true,
+          "status": 200,
+          "elapsed_ms": 15.22,
+          "error": null
+        },
+        "/health/ready": {
+          "ok": true,
+          "status": 200,
+          "elapsed_ms": 28.97,
+          "error": null
+        },
+        "/health/live": {
+          "ok": true,
+          "status": 200,
+          "elapsed_ms": 15.62,
+          "error": null
+        }
+      },
+      "rss_mb": null
+    },
+    {
+      "t": "2026-08-04T06:22:48.939392+00:00",
+      "paths": {
+        "/health": {
+          "ok": true,
+          "status": 200,
+          "elapsed_ms": 15.53,
+          "error": null
+        },
+        "/health/ready": {
+          "ok": true,
+          "status": 200,
+          "elapsed_ms": 37.68,
+          "error": null
+        },
+        "/health/live": {
+          "ok": true,
+          "status": 200,
+          "elapsed_ms": 14.86,
+          "error": null
+        }
+      },
+      "rss_mb": null
+    },
+    {
+      "t": "2026-08-04T06:22:54.017205+00:00",
+      "paths": {
+        "/health": {
+          "ok": true,
+          "status": 200,
+          "elapsed_ms": 15.49,
+          "error": null
+        },
+        "/health/ready": {
+          "ok": true,
+          "status": 200,
+          "elapsed_ms": 38.06,
+          "error": null
+        },
+        "/health/live": {
+          "ok": true,
+          "status": 200,
+          "elapsed_ms": 15.48,
+          "error": null
+        }
+      },
+      "rss_mb": null
+    },
+    {
+      "t": "2026-08-04T06:22:59.095350+00:00",
+      "paths": {
+        "/health": {
+          "ok": true,
+          "status": 200,
+          "elapsed_ms": 15.12,
+          "error": null
+        },
+        "/health/ready": {
+          "ok": true,
+          "status": 200,
+          "elapsed_ms": 41.76,
+          "error": null
+        },
+        "/health/live": {
+          "ok": true,
+          "status": 200,
+          "elapsed_ms": 16.14,
+          "error": null
+        }
+      },
+      "rss_mb": null
+    },
+    {
+      "t": "2026-08-04T06:23:04.181119+00:00",
+      "paths": {
+        "/health": {
+          "ok": true,
+          "status": 200,
+          "elapsed_ms": 12.58,
+          "error": null
+        },
+        "/health/ready": {
+          "ok": true,
+          "status": 200,
+          "elapsed_ms": 28.3,
+          "error": null
+        },
+        "/health/live": {
+          "ok": true,
+          "status": 200,
+          "elapsed_ms": 11.83,
+          "error": null
+        }
+      },
+      "rss_mb": null
+    },
+    {
+      "t": "2026-08-04T06:23:09.240763+00:00",
+      "paths": {
+        "/health": {
+          "ok": true,
+          "status": 200,
+          "elapsed_ms": 12.78,
+          "error": null
+        },
+        "/health/ready": {
+          "ok": true,
+          "status": 200,
+          "elapsed_ms": 27.94,
+          "error": null
+        },
+        "/health/live": {
+          "ok": true,
+          "status": 200,
+          "elapsed_ms": 16.19,
+          "error": null
+        }
+      },
+      "rss_mb": null
+    },
+    {
+      "t": "2026-08-04T06:23:14.304430+00:00",
+      "paths": {
+        "/health": {
+          "ok": true,
+          "status": 200,
+          "elapsed_ms": 13.11,
+          "error": null
+        },
+        "/health/ready": {
+          "ok": true,
+          "status": 200,
+          "elapsed_ms": 31.73,
+          "error": null
+        },
+        "/health/live": {
+          "ok": true,
+          "status": 200,
+          "elapsed_ms": 13.47,
+          "error": null
+        }
+      },
+      "rss_mb": null
+    },
+    {
+      "t": "2026-08-04T06:23:19.369994+00:00",
+      "paths": {
+        "/health": {
+          "ok": true,
+          "status": 200,
+          "elapsed_ms": 16.39,
+          "error": null
+        },
+        "/health/ready": {
+          "ok": true,
+          "status": 200,
+          "elapsed_ms": 34.68,
+          "error": null
+        },
+        "/health/live": {
+          "ok": true,
+          "status": 200,
+          "elapsed_ms": 16.14,
+          "error": null
+        }
+      },
+      "rss_mb": null
+    },
+    {
+      "t": "2026-08-04T06:23:24.448808+00:00",
+      "paths": {
+        "/health": {
+          "ok": true,
+          "status": 200,
+          "elapsed_ms": 14.93,
+          "error": null
+        },
+        "/health/ready": {
+          "ok": true,
+          "status": 200,
+          "elapsed_ms": 38.7,
+          "error": null
+        },
+        "/health/live": {
+          "ok": true,
+          "status": 200,
+          "elapsed_ms": 13.93,
+          "error": null
+        }
+      },
+      "rss_mb": null
+    },
+    {
+      "t": "2026-08-04T06:23:29.527871+00:00",
+      "paths": {
+        "/health": {
+          "ok": true,
+          "status": 200,
+          "elapsed_ms": 17.97,
+          "error": null
+        },
+        "/health/ready": {
+          "ok": true,
+          "status": 200,
+          "elapsed_ms": 36.08,
+          "error": null
+        },
+        "/health/live": {
+          "ok": true,
+          "status": 200,
+          "elapsed_ms": 14.64,
+          "error": null
+        }
+      },
+      "rss_mb": null
+    },
+    {
+      "t": "2026-08-04T06:23:34.605025+00:00",
+      "paths": {
+        "/health": {
+          "ok": true,
+          "status": 200,
+          "elapsed_ms": 15.09,
+          "error": null
+        },
+        "/health/ready": {
+          "ok": true,
+          "status": 200,
+          "elapsed_ms": 34.28,
+          "error": null
+        },
+        "/health/live": {
+          "ok": true,
+          "status": 200,
+          "elapsed_ms": 16.13,
+          "error": null
+        }
+      },
+      "rss_mb": null
+    },
+    {
+      "t": "2026-08-04T06:23:39.677437+00:00",
+      "paths": {
+        "/health": {
+          "ok": true,
+          "status": 200,
+          "elapsed_ms": 13.21,
+          "error": null
+        },
+        "/health/ready": {
+          "ok": true,
+          "status": 200,
+          "elapsed_ms": 27.07,
+          "error": null
+        },
+        "/health/live": {
+          "ok": true,
+          "status": 200,
+          "elapsed_ms": 13.9,
+          "error": null
+        }
+      },
+      "rss_mb": null
+    },
+    {
+      "t": "2026-08-04T06:23:44.738763+00:00",
+      "paths": {
+        "/health": {
+          "ok": true,
+          "status": 200,
+          "elapsed_ms": 14.73,
+          "error": null
+        },
+        "/health/ready": {
+          "ok": true,
+          "status": 200,
+          "elapsed_ms": 30.94,
+          "error": null
+        },
+        "/health/live": {
+          "ok": true,
+          "status": 200,
+          "elapsed_ms": 16.17,
+          "error": null
+        }
+      },
+      "rss_mb": null
+    },
+    {
+      "t": "2026-08-04T06:23:49.808797+00:00",
+      "paths": {
+        "/health": {
+          "ok": true,
+          "status": 200,
+          "elapsed_ms": 16.09,
+          "error": null
+        },
+        "/health/ready": {
+          "ok": true,
+          "status": 200,
+          "elapsed_ms": 31.53,
+          "error": null
+        },
+        "/health/live": {
+          "ok": true,
+          "status": 200,
+          "elapsed_ms": 14.07,
+          "error": null
+        }
+      },
+      "rss_mb": null
+    },
+    {
+      "t": "2026-08-04T06:23:54.881524+00:00",
+      "paths": {
+        "/health": {
+          "ok": true,
+          "status": 200,
+          "elapsed_ms": 16.75,
+          "error": null
+        },
+        "/health/ready": {
+          "ok": true,
+          "status": 200,
+          "elapsed_ms": 35.43,
+          "error": null
+        },
+        "/health/live": {
+          "ok": true,
+          "status": 200,
+          "elapsed_ms": 14.65,
+          "error": null
+        }
+      },
+      "rss_mb": null
+    },
+    {
+      "t": "2026-08-04T06:23:59.957042+00:00",
+      "paths": {
+        "/health": {
+          "ok": true,
+          "status": 200,
+          "elapsed_ms": 15.42,
+          "error": null
+        },
+        "/health/ready": {
+          "ok": true,
+          "status": 200,
+          "elapsed_ms": 42.68,
+          "error": null
+        },
+        "/health/live": {
+          "ok": true,
+          "status": 200,
+          "elapsed_ms": 17.25,
+          "error": null
+        }
+      },
+      "rss_mb": null
+    },
+    {
+      "t": "2026-08-04T06:24:05.043554+00:00",
+      "paths": {
+        "/health": {
+          "ok": true,
+          "status": 200,
+          "elapsed_ms": 17.71,
+          "error": null
+        },
+        "/health/ready": {
+          "ok": true,
+          "status": 200,
+          "elapsed_ms": 42.05,
+          "error": null
+        },
+        "/health/live": {
+          "ok": true,
+          "status": 200,
+          "elapsed_ms": 16.69,
+          "error": null
+        }
+      },
+      "rss_mb": null
+    },
+    {
+      "t": "2026-08-04T06:24:10.129897+00:00",
+      "paths": {
+        "/health": {
+          "ok": true,
+          "status": 200,
+          "elapsed_ms": 17.65,
+          "error": null
+        },
+        "/health/ready": {
+          "ok": true,
+          "status": 200,
+          "elapsed_ms": 33.82,
+          "error": null
+        },
+        "/health/live": {
+          "ok": true,
+          "status": 200,
+          "elapsed_ms": 18.45,
+          "error": null
+        }
+      },
+      "rss_mb": null
+    },
+    {
+      "t": "2026-08-04T06:24:15.210549+00:00",
+      "paths": {
+        "/health": {
+          "ok": true,
+          "status": 200,
+          "elapsed_ms": 16.55,
+          "error": null
+        },
+        "/health/ready": {
+          "ok": true,
+          "status": 200,
+          "elapsed_ms": 40.81,
+          "error": null
+        },
+        "/health/live": {
+          "ok": true,
+          "status": 200,
+          "elapsed_ms": 16.96,
+          "error": null
+        }
+      },
+      "rss_mb": null
+    },
+    {
+      "t": "2026-08-04T06:24:20.294843+00:00",
+      "paths": {
+        "/health": {
+          "ok": true,
+          "status": 200,
+          "elapsed_ms": 12.9,
+          "error": null
+        },
+        "/health/ready": {
+          "ok": true,
+          "status": 200,
+          "elapsed_ms": 29.61,
+          "error": null
+        },
+        "/health/live": {
+          "ok": true,
+          "status": 200,
+          "elapsed_ms": 16.37,
+          "error": null
+        }
+      },
+      "rss_mb": null
+    },
+    {
+      "t": "2026-08-04T06:24:25.362867+00:00",
+      "paths": {
+        "/health": {
+          "ok": true,
+          "status": 200,
+          "elapsed_ms": 12.69,
+          "error": null
+        },
+        "/health/ready": {
+          "ok": true,
+          "status": 200,
+          "elapsed_ms": 28.36,
+          "error": null
+        },
+        "/health/live": {
+          "ok": true,
+          "status": 200,
+          "elapsed_ms": 13.47,
+          "error": null
+        }
+      },
+      "rss_mb": null
+    },
+    {
+      "t": "2026-08-04T06:24:30.427658+00:00",
+      "paths": {
+        "/health": {
+          "ok": true,
+          "status": 200,
+          "elapsed_ms": 12.74,
+          "error": null
+        },
+        "/health/ready": {
+          "ok": true,
+          "status": 200,
+          "elapsed_ms": 30.2,
+          "error": null
+        },
+        "/health/live": {
+          "ok": true,
+          "status": 200,
+          "elapsed_ms": 14.97,
+          "error": null
+        }
+      },
+      "rss_mb": null
+    },
+    {
+      "t": "2026-08-04T06:24:35.492772+00:00",
+      "paths": {
+        "/health": {
+          "ok": true,
+          "status": 200,
+          "elapsed_ms": 12.26,
+          "error": null
+        },
+        "/health/ready": {
+          "ok": true,
+          "status": 200,
+          "elapsed_ms": 30.24,
+          "error": null
+        },
+        "/health/live": {
+          "ok": true,
+          "status": 200,
+          "elapsed_ms": 12.42,
+          "error": null
+        }
+      },
+      "rss_mb": null
+    },
+    {
+      "t": "2026-08-04T06:24:40.556348+00:00",
+      "paths": {
+        "/health": {
+          "ok": true,
+          "status": 200,
+          "elapsed_ms": 17.55,
+          "error": null
+        },
+        "/health/ready": {
+          "ok": true,
+          "status": 200,
+          "elapsed_ms": 32.54,
+          "error": null
+        },
+        "/health/live": {
+          "ok": true,
+          "status": 200,
+          "elapsed_ms": 13.42,
+          "error": null
+        }
+      },
+      "rss_mb": null
+    },
+    {
+      "t": "2026-08-04T06:24:45.629884+00:00",
+      "paths": {
+        "/health": {
+          "ok": true,
+          "status": 200,
+          "elapsed_ms": 14.7,
+          "error": null
+        },
+        "/health/ready": {
+          "ok": true,
+          "status": 200,
+          "elapsed_ms": 34.3,
+          "error": null
+        },
+        "/health/live": {
+          "ok": true,
+          "status": 200,
+          "elapsed_ms": 14.54,
+          "error": null
+        }
+      },
+      "rss_mb": null
+    },
+    {
+      "t": "2026-08-04T06:24:50.700344+00:00",
+      "paths": {
+        "/health": {
+          "ok": true,
+          "status": 200,
+          "elapsed_ms": 12.5,
+          "error": null
+        },
+        "/health/ready": {
+          "ok": true,
+          "status": 200,
+          "elapsed_ms": 26.99,
+          "error": null
+        },
+        "/health/live": {
+          "ok": true,
+          "status": 200,
+          "elapsed_ms": 12.31,
+          "error": null
+        }
+      },
+      "rss_mb": null
+    },
+    {
+      "t": "2026-08-04T06:24:55.759197+00:00",
+      "paths": {
+        "/health": {
+          "ok": true,
+          "status": 200,
+          "elapsed_ms": 14.73,
+          "error": null
+        },
+        "/health/ready": {
+          "ok": true,
+          "status": 200,
+          "elapsed_ms": 36.05,
+          "error": null
+        },
+        "/health/live": {
+          "ok": true,
+          "status": 200,
+          "elapsed_ms": 12.02,
+          "error": null
+        }
+      },
+      "rss_mb": null
+    },
+    {
+      "t": "2026-08-04T06:25:00.830098+00:00",
+      "paths": {
+        "/health": {
+          "ok": true,
+          "status": 200,
+          "elapsed_ms": 13.38,
+          "error": null
+        },
+        "/health/ready": {
+          "ok": true,
+          "status": 200,
+          "elapsed_ms": 30.14,
+          "error": null
+        },
+        "/health/live": {
+          "ok": true,
+          "status": 200,
+          "elapsed_ms": 11.77,
+          "error": null
+        }
+      },
+      "rss_mb": null
+    },
+    {
+      "t": "2026-08-04T06:25:05.892701+00:00",
+      "paths": {
+        "/health": {
+          "ok": true,
+          "status": 200,
+          "elapsed_ms": 17.23,
+          "error": null
+        },
+        "/health/ready": {
+          "ok": true,
+          "status": 200,
+          "elapsed_ms": 38.3,
+          "error": null
+        },
+        "/health/live": {
+          "ok": true,
+          "status": 200,
+          "elapsed_ms": 14.53,
+          "error": null
+        }
+      },
+      "rss_mb": null
+    },
+    {
+      "t": "2026-08-04T06:25:10.974202+00:00",
+      "paths": {
+        "/health": {
+          "ok": true,
+          "status": 200,
+          "elapsed_ms": 14.08,
+          "error": null
+        },
+        "/health/ready": {
+          "ok": true,
+          "status": 200,
+          "elapsed_ms": 31.68,
+          "error": null
+        },
+        "/health/live": {
+          "ok": true,
+          "status": 200,
+          "elapsed_ms": 13.4,
+          "error": null
+        }
+      },
+      "rss_mb": null
+    },
+    {
+      "t": "2026-08-04T06:25:16.040742+00:00",
+      "paths": {
+        "/health": {
+          "ok": true,
+          "status": 200,
+          "elapsed_ms": 14.19,
+          "error": null
+        },
+        "/health/ready": {
+          "ok": true,
+          "status": 200,
+          "elapsed_ms": 27.39,
+          "error": null
+        },
+        "/health/live": {
+          "ok": true,
+          "status": 200,
+          "elapsed_ms": 13.0,
+          "error": null
+        }
+      },
+      "rss_mb": null
+    },
+    {
+      "t": "2026-08-04T06:25:21.103398+00:00",
+      "paths": {
+        "/health": {
+          "ok": true,
+          "status": 200,
+          "elapsed_ms": 15.04,
+          "error": null
+        },
+        "/health/ready": {
+          "ok": true,
+          "status": 200,
+          "elapsed_ms": 32.03,
+          "error": null
+        },
+        "/health/live": {
+          "ok": true,
+          "status": 200,
+          "elapsed_ms": 12.85,
+          "error": null
+        }
+      },
+      "rss_mb": null
+    },
+    {
+      "t": "2026-08-04T06:25:26.170250+00:00",
+      "paths": {
+        "/health": {
+          "ok": true,
+          "status": 200,
+          "elapsed_ms": 14.28,
+          "error": null
+        },
+        "/health/ready": {
+          "ok": true,
+          "status": 200,
+          "elapsed_ms": 30.56,
+          "error": null
+        },
+        "/health/live": {
+          "ok": true,
+          "status": 200,
+          "elapsed_ms": 14.47,
+          "error": null
+        }
+      },
+      "rss_mb": null
+    }
+  ]
+}

@@ -9,14 +9,15 @@ import { Button } from "@/components/ui/Button";
 import { Card, CardBody, CardHeader } from "@/components/ui/Card";
 import { Input } from "@/components/ui/Input";
 
+/** RC3-003 — section labels only; navigation requires an explicit ticker. */
 const CATEGORIES = [
-  { label: "Valuation", href: "/research/ACM#valuation" },
-  { label: "Business Quality", href: "/research/ACM#business-quality" },
-  { label: "Financial Strength", href: "/research/ACM#financial-strength" },
-  { label: "Management Quality", href: "/research/ACM#management" },
-  { label: "Earnings Quality", href: "/research/ACM#earnings" },
-  { label: "Growth Quality", href: "/research/ACM#growth" },
-  { label: "Investment Committee", href: "/research/ACM#committee" },
+  { label: "Valuation", hash: "valuation" },
+  { label: "Business Quality", hash: "business-quality" },
+  { label: "Financial Strength", hash: "financial-strength" },
+  { label: "Management Quality", hash: "management" },
+  { label: "Earnings Quality", hash: "earnings" },
+  { label: "Growth Quality", hash: "growth" },
+  { label: "Investment Committee", hash: "committee" },
 ] as const;
 
 export function ResearchHome() {
@@ -30,6 +31,8 @@ export function ResearchHome() {
     router.push(`/research/${encodeURIComponent(ticker)}`);
   }
 
+  const ticker = query.trim().toUpperCase();
+
   return (
     <div>
       <PageHeader
@@ -39,36 +42,45 @@ export function ResearchHome() {
 
       <div className="grid gap-4 lg:grid-cols-3">
         <Card className="lg:col-span-2">
-          <CardHeader title="Quick Search" description="UI only — navigates to research by ticker" />
+          <CardHeader
+            title="Quick Search"
+            description="UI only — navigates to research by ticker. No company is pre-selected."
+          />
           <CardBody>
             <form onSubmit={onSearch} className="flex flex-wrap gap-2">
               <Input
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
-                placeholder="Enter ticker (e.g. ACM)"
+                placeholder="Enter ticker"
                 aria-label="Ticker search"
                 className="min-w-[12rem] flex-1"
               />
-              <Button type="submit" disabled={!query.trim()}>
+              <Button type="submit" disabled={!ticker}>
                 Open Research
               </Button>
             </form>
             <p className="mt-3 text-xs text-[var(--muted)]">
-              Tip: run Analyse in{" "}
-              <Link href="/intelligence" className="underline">
-                Intelligence Workspace
+              Tip: run analysis in{" "}
+              <Link href="/analysis" className="underline">
+                Company Analysis
               </Link>{" "}
-              first, then open research for that ticker.
+              first, then open Research Reports or classic research for that
+              ticker.
             </p>
           </CardBody>
         </Card>
 
         <Card>
-          <CardHeader title="Sample" />
-          <CardBody>
-            <Link href="/research/ACM">
+          <CardHeader title="Primary journey" />
+          <CardBody className="space-y-2">
+            <Link href="/analysis">
               <Button variant="secondary" className="w-full">
-                Open ACM Research
+                Company Analysis
+              </Button>
+            </Link>
+            <Link href="/research/institutional">
+              <Button variant="ghost" className="w-full">
+                Research Reports
               </Button>
             </Link>
           </CardBody>
@@ -94,22 +106,36 @@ export function ResearchHome() {
         <Card>
           <CardHeader
             title="Research Categories"
-            description="Jump into a sample research page section"
+            description={
+              ticker
+                ? `Jump into ${ticker} research sections`
+                : "Enter a ticker above, then open a research section"
+            }
           />
           <CardBody>
             <ul className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
               {CATEGORIES.map((cat) => (
                 <li key={cat.label}>
-                  <Link
-                    href={cat.href}
-                    className="flex items-center gap-2 rounded-md border border-[var(--border)] px-3 py-2 text-sm transition hover:bg-[var(--surface-2)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
-                  >
-                    <span
-                      className="inline-block h-1.5 w-1.5 rounded-full bg-[var(--accent)]"
-                      aria-hidden
-                    />
-                    {cat.label}
-                  </Link>
+                  {ticker ? (
+                    <Link
+                      href={`/research/${encodeURIComponent(ticker)}#${cat.hash}`}
+                      className="flex items-center gap-2 rounded-md border border-[var(--border)] px-3 py-2 text-sm transition hover:bg-[var(--surface-2)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
+                    >
+                      <span
+                        className="inline-block h-1.5 w-1.5 rounded-full bg-[var(--accent)]"
+                        aria-hidden
+                      />
+                      {cat.label}
+                    </Link>
+                  ) : (
+                    <span className="flex items-center gap-2 rounded-md border border-[var(--border)] px-3 py-2 text-sm text-[var(--muted)]">
+                      <span
+                        className="inline-block h-1.5 w-1.5 rounded-full bg-[var(--border)]"
+                        aria-hidden
+                      />
+                      {cat.label}
+                    </span>
+                  )}
                 </li>
               ))}
             </ul>

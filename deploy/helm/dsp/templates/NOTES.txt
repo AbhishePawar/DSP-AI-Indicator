@@ -1,0 +1,11 @@
+DSP AI Indicator ({{ .Chart.AppVersion }}) released as {{ .Release.Name }}.
+
+1. Ensure Secret "{{ .Values.existingSecret }}" exists with JWT, DB URL, and admin seed.
+2. Verify:
+   kubectl get pods -l app.kubernetes.io/instance={{ .Release.Name }}
+3. Smoke:
+   DSP_SMOKE_API_BASE_URL=https://{{ .Values.ingress.hosts.api }} \
+   DSP_SMOKE_WEB_BASE_URL=https://{{ .Values.ingress.hosts.app }} \
+   python scripts/ops/production_smoke.py
+
+See docs/operations/Production_Deployment_Guide.md

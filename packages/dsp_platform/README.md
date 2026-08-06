@@ -13,7 +13,7 @@ Provide the stable `dsp_platform` public façade; keep domain logic inside this 
 
 ## 3. Package Status
 
-**Active · EPIC-001 composition + EPIC-002 API adapter** · Version **0.7.1** · [VERSION_MATRIX.md](../../docs/VERSION_MATRIX.md) · [DSP_STATUS.md](../../docs/DSP_STATUS.md)
+**Active · EPIC-V100 Production Certification** · Version **1.0.0** · [VERSION_MATRIX.md](../../docs/VERSION_MATRIX.md) · [DSP_STATUS.md](../../docs/DSP_STATUS.md)
 
 ## 4. Public API
 

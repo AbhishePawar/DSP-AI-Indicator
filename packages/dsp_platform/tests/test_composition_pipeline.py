@@ -73,6 +73,7 @@ def test_execution_order_is_canonical() -> None:
         "financial_strength",
         "earnings_quality",
         "growth_quality",
+        "risk",
         "business_quality_aggregator",
         "investment_recommendation",
         "investment_committee",
@@ -180,7 +181,9 @@ def test_build_composition_request_from_dict(statements: FinancialStatements) ->
     public = pipeline_result_public_dict(result)
     assert public["ok"] is True
     assert public["committee_summary"] is not None
-    assert len(public["stage_summaries"]) == 10
+    assert len(public["stage_summaries"]) == 11
+    assert public["risk"] is not None
+    assert public["risk"]["financial_risk"]["available"] is True
 
 
 def test_pipeline_configuration_defaults() -> None:

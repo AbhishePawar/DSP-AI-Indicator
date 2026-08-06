@@ -1,0 +1,14 @@
+export { InstitutionalResearchDashboard } from "@/components/institutional-dashboard/InstitutionalResearchDashboard";
+export { InstitutionalDashboardClient } from "@/components/institutional-dashboard/InstitutionalDashboardClient";
+export { ExecutiveHeader } from "@/components/institutional-dashboard/ExecutiveHeader";
+export { MarketDataPanel } from "@/components/institutional-dashboard/MarketDataPanel";
+export { FinancialStatementsPanel } from "@/components/institutional-dashboard/FinancialStatementsPanel";
+export { ValuationPanel } from "@/components/institutional-dashboard/ValuationPanel";
+export { MarginOfSafetyPanel } from "@/components/institutional-dashboard/MarginOfSafetyPanel";
+export { BusinessQualityPanel } from "@/components/institutional-dashboard/BusinessQualityPanel";
+export { RiskPanel } from "@/components/institutional-dashboard/RiskPanel";
+export { ScenarioPanel } from "@/components/institutional-dashboard/ScenarioPanel";
+export { ExplainabilityPanel } from "@/components/institutional-dashboard/ExplainabilityPanel";
+export { AuditPanel } from "@/components/institutional-dashboard/AuditPanel";
+export { MetricCell } from "@/components/institutional-dashboard/MetricCell";
+export { ExplainableScore } from "@/components/institutional-dashboard/ExplainableScore";

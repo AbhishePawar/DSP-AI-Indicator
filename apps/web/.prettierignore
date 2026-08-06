@@ -1,0 +1,7 @@
+# Ignore build artifacts — Prettier (EPIC-F000)
+.next
+node_modules
+coverage
+dist
+out
+*.min.js

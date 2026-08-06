@@ -6,7 +6,8 @@ const tones: Record<Tone, string> = {
   info: "border-[var(--border)] bg-[var(--surface-2)] text-[var(--fg)]",
   success:
     "border-[var(--accent)]/30 bg-[var(--accent-soft)] text-[var(--accent)]",
-  warning: "border-[#d4b56a] bg-[#f7ecd2] text-[#6b5210]",
+  warning:
+    "border-[var(--warning-border)] bg-[var(--warning-bg)] text-[var(--warning-fg)]",
   danger:
     "border-[var(--danger-border)] bg-[var(--danger-bg)] text-[var(--danger-fg)]",
 };

@@ -20,6 +20,8 @@
 | Scope discipline | One declared scope class; change only what the task requires |
 | Protected modules | Obey [DSP_STATUS.md](DSP_STATUS.md) §Protected |
 | No silent architecture edits | STOP → [DSP_DECISION_RECORDS.md](DSP_DECISION_RECORDS.md) |
+| **CV-001 authenticity** | Never invent production financial/market numbers; show **Data unavailable.** · [CORE_VALUES.md](CORE_VALUES.md) |
+| **Tier-0 CV-002…CV-010** | Source-before-score · explainability · determinism · transparency · traceability · audit · research-first · governance · quality-over-speed |
 | Safety checklist | [DSP_AI_COLLABORATION.md](DSP_AI_COLLABORATION.md) before code |
 | Secrets | Never commit keys |
 | Naming | [DSP_GLOSSARY.md](DSP_GLOSSARY.md) |
@@ -71,23 +73,24 @@ A change set is **GREEN** only when **all** applicable rows pass:
 |---|---|
 | **Build** | Relevant packages/apps compile/install without error |
 | **Tests** | Targeted suite passes; after Python package edits run `pytest --import-mode=importlib` (full regression when engines/API touched) |
-| **Architecture** | Ownership, dependency rules, thin-client invariants hold; no new cycles |
+| **Architecture** | Ownership, dependency rules, thin-client invariants hold; no new cycles; **Tier-0 CV-001…CV-010** |
 | **Public APIs** | `/api/v1` and public façades remain backward compatible unless epic/RC explicitly breaks |
 | **Deterministic outputs** | Same engine inputs → same outputs; presentation remaps labels only |
 | **Documentation** | Docs task: suite consistent; code task: freeze/status/changelog updated when release-facing |
 
 If any applicable dimension fails → **not GREEN**. Do not claim COMPLETE.
 
-Quality gate narrative → [IMPLEMENTATION_QUALITY_GATE.md](IMPLEMENTATION_QUALITY_GATE.md).
+Quality gate narrative → [IMPLEMENTATION_QUALITY_GATE.md](IMPLEMENTATION_QUALITY_GATE.md).  
+Authenticity → [CV_001_DATA_AUTHENTICITY_FIRST.md](CV_001_DATA_AUTHENTICITY_FIRST.md) · Tier-0 → [CV_002_TO_010_TIER0_CORE_VALUES.md](CV_002_TO_010_TIER0_CORE_VALUES.md) · Research Standards → [RESEARCH_STANDARDS.md](RESEARCH_STANDARDS.md) · [CODE_REVIEW_CHECKLIST.md](CODE_REVIEW_CHECKLIST.md).
 
 ---
 
 ## 7. Definition of done
 
-GREEN (§6) + Quality Gate + sprint DO NOT MODIFY honored.
+GREEN (§6) + Quality Gate + **Tier-0 CV-001…CV-010** + **RS-001…RS-010** (reports) + sprint DO NOT MODIFY honored.
 
 ---
 
 ## 8. Related
 
-[DSP_MASTER_PROTOCOL.md](DSP_MASTER_PROTOCOL.md) · [DSP_AI_COLLABORATION.md](DSP_AI_COLLABORATION.md) · [DSP_ARCHITECTURE.md](DSP_ARCHITECTURE.md)
+[DSP_MASTER_PROTOCOL.md](DSP_MASTER_PROTOCOL.md) · [DSP_AI_COLLABORATION.md](DSP_AI_COLLABORATION.md) · [DSP_ARCHITECTURE.md](DSP_ARCHITECTURE.md) · [CONTRIBUTING.md](CONTRIBUTING.md) · [DEVELOPER_GUIDE.md](DEVELOPER_GUIDE.md)

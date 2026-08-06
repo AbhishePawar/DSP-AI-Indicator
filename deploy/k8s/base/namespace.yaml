@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: dsp
+  labels:
+    app.kubernetes.io/part-of: dsp-ai-indicator
+    dsp.platform/tier: production

@@ -8,7 +8,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from datetime import UTC, date, datetime
-from typing import Any
+from typing import Any, Callable
 
 from comparison import ComparisonResult, QualitativeComparisonEngine
 from contracts import (
@@ -17,6 +17,7 @@ from contracts import (
     Recommendation,
     StatementPeriodType,
 )
+from data_engine import InMemoryCache
 from decision_intelligence import DecisionPack
 from dsp_platform.config import FeatureFlags, PlatformConfig
 from dsp_platform.configuration import PlatformConfiguration
@@ -38,6 +39,12 @@ __all__ = [
     "PlatformMetadata",
     "PlatformResult",
 ]
+
+# Peer comparisons fan out across multiple instruments' Decision Packs; a
+# short-TTL cache avoids re-running eligibility + comparison for repeat
+# requests (e.g. a Peers tab re-render) without risking stale results once
+# any of the referenced Decision Pack reports are refreshed.
+_COMPARISON_CACHE_TTL_SECONDS = 300.0
 
 _PLATFORM_VERSION = "0.7.1"
 
@@ -69,7 +76,7 @@ class PlatformMetadata:
 
 @dataclass(frozen=True, slots=True)
 class PlatformResult:
-    """Immutable orchestration result envelope — no business conclusions."""
+    """Immutable orchestration result envelope â€” no business conclusions."""
 
     ok: bool
     capability: str
@@ -95,7 +102,7 @@ class PlatformResult:
 
 
 class PlatformBuilder:
-    """Composition helper for ``DSPPlatform`` — registration only."""
+    """Composition helper for ``DSPPlatform`` â€” registration only."""
 
     def __init__(self) -> None:
         self._configuration: PlatformConfiguration | None = None
@@ -120,7 +127,7 @@ class PlatformBuilder:
     def with_analysis_service(
         self, analysis_service: InvestmentAnalysisService
     ) -> PlatformBuilder:
-        """Inject the frozen orchestration façade."""
+        """Inject the frozen orchestration faÃ§ade."""
         self._analysis_service = analysis_service
         return self
 
@@ -214,7 +221,7 @@ class DSPPlatform:
         registry: ServiceRegistry | None = None,
         lifecycle: PlatformLifecycle | None = None,
     ) -> None:
-        """Create a platform façade.
+        """Create a platform faÃ§ade.
 
         Legacy callers may pass only ``analysis_service`` (and optional
         ``features``). K1.0 callers typically use :class:`PlatformBuilder`.
@@ -411,16 +418,20 @@ class DSPPlatform:
         self,
         result: MultiStockDecisionResult,
         *,
-        engine: QualitativeComparisonEngine,
+        engine: QualitativeComparisonEngine | None = None,
         eligibility_options: EligibilityOptions | None = None,
         evidence_bundles: tuple[EvidenceBundle, ...] = (),
     ) -> ComparisonResult:
-        """Qualitative comparison of universe DecisionPacks."""
+        """Qualitative comparison of universe DecisionPacks.
+
+        ``engine`` defaults to the platform's shared comparison engine (see
+        :meth:`_default_comparison_engine`) when not supplied.
+        """
         from comparison import compare_universe_result
 
         try:
             return compare_universe_result(
-                engine,
+                engine or self._default_comparison_engine(),
                 result,
                 eligibility_options=eligibility_options,
                 evidence_bundles=evidence_bundles,
@@ -456,18 +467,50 @@ class DSPPlatform:
         self,
         packs: tuple[DecisionPack, ...] | list[DecisionPack],
         *,
-        engine: QualitativeComparisonEngine,
+        engine: QualitativeComparisonEngine | None = None,
         eligibility_options: EligibilityOptions | None = None,
         evidence_bundles: tuple[EvidenceBundle, ...] = (),
     ) -> PlatformResult:
-        """Orchestrate multi-company comparison via frozen comparison APIs."""
+        """Orchestrate multi-company comparison via frozen comparison APIs.
+
+        When ``engine`` is not supplied, resolves (and caches on this
+        platform instance) the default ``QualitativeComparisonEngine`` built
+        by :meth:`_default_comparison_engine` — no caller has to hand-wire
+        ``comparison``/``industry`` themselves for the common case. Pass a
+        custom ``engine`` to compare against a different industry taxonomy.
+
+        Results for the default engine (no ``evidence_bundles``, which are
+        not part of the cache key) are cached for a short TTL — see
+        :data:`_COMPARISON_CACHE_TTL_SECONDS` — using the existing
+        ``data_engine.cache.InMemoryCache`` port, keyed by the compared
+        symbols and eligibility options. No new cache mechanism is introduced.
+        """
         self._require_capability("compare_companies")
+        cache_key = None
+        if engine is None and not evidence_bundles:
+            cache_key = self._comparison_cache_key(packs, eligibility_options)
+
+        cache = self._comparison_cache() if cache_key is not None else None
+        if cache is not None:
+            cached = cache.get(cache_key)
+            if cached is not None:
+                return self._ok_result(
+                    "compare_companies",
+                    cached,
+                    limitations=(
+                        "comparison served from short-TTL cache "
+                        f"(<= {int(_COMPARISON_CACHE_TTL_SECONDS)}s old)",
+                    ),
+                )
+
         try:
-            payload = engine.compare_packs(
+            payload = (engine or self._default_comparison_engine()).compare_packs(
                 packs,
                 eligibility_options=eligibility_options,
                 evidence_bundles=evidence_bundles,
             )
+            if cache is not None:
+                cache.set(cache_key, payload, ttl_seconds=_COMPARISON_CACHE_TTL_SECONDS)
             return self._ok_result("compare_companies", payload)
         except Exception as exc:
             return self._err_result(
@@ -475,10 +518,41 @@ class DSPPlatform:
                 PlatformError(f"compare_companies failed: {exc}"),
             )
 
+    @staticmethod
+    def _comparison_cache_key(
+        packs: tuple[DecisionPack, ...] | list[DecisionPack],
+        eligibility_options: EligibilityOptions | None,
+    ) -> tuple[Any, ...] | None:
+        """Build a deterministic cache key, or ``None`` when uncacheable."""
+        try:
+            symbols = tuple(sorted(p.recommendation.instrument.symbol for p in packs))
+        except Exception:  # noqa: BLE001 — malformed packs fail the real call, not caching
+            return None
+        options = eligibility_options or EligibilityOptions()
+        return (symbols, options.allow_related, options.allow_limited)
+
+    def _comparison_cache(self) -> InMemoryCache:
+        """Resolve the platform's shared short-TTL comparison cache."""
+        return self._resolve_service(
+            "comparison_cache",
+            InMemoryCache,
+            capability="compare_companies",
+        )
+
+    def _default_comparison_engine(self) -> QualitativeComparisonEngine:
+        """Resolve the platform's shared default comparison engine (cached)."""
+        from dsp_platform.comparison_engine import build_default_comparison_engine
+
+        return self._resolve_service(
+            "comparison_engine",
+            build_default_comparison_engine,
+            capability="compare_companies",
+        )
+
     def run_workflow(self, context: Any) -> PlatformResult:
         """Orchestrate workflow execution via frozen WorkflowEngine API.
 
-        ``context`` must be a workflow ``EngineContext`` (with façade port).
+        ``context`` must be a workflow ``EngineContext`` (with faÃ§ade port).
         """
         self._require_capability("run_workflow")
         try:
@@ -551,7 +625,7 @@ class DSPPlatform:
         language_model: Any | None = None,
         metadata: Any | None = None,
     ) -> PlatformResult:
-        """Orchestrate Conversation → Explanation → Reporter via frozen APIs."""
+        """Orchestrate Conversation â†’ Explanation â†’ Reporter via frozen APIs."""
         self._require_capability("ask_copilot")
         try:
             from copilot import (
@@ -599,7 +673,7 @@ class DSPPlatform:
         format_name: str = "native",
         limitations: tuple[str, ...] = (),
     ) -> PlatformResult:
-        """Export an immutable report envelope — presentation only.
+        """Export an immutable report envelope â€” presentation only.
 
         Does not mutate ``report``. ``format_name`` is descriptive metadata
         for channel adapters (REST / UI / CLI); no serialization engine lives
@@ -627,7 +701,7 @@ class DSPPlatform:
     ) -> PlatformResult:
         """EPIC-001: run the internal FEATURE composition pipeline.
 
-        Orchestrates public package engines only — no score/recommendation
+        Orchestrates public package engines only â€” no score/recommendation
         overrides. Does not modify ``/api/v1``.
         """
         from dsp_platform.composition import (
@@ -661,6 +735,1704 @@ class DSPPlatform:
             )
         except Exception as exc:  # noqa: BLE001
             return self._err_result("compose_intelligence", PlatformError(str(exc)))
+
+    def research_intelligence_schema(self) -> dict[str, object]:
+        """Research Intelligence schema descriptor (EPIC-011B)."""
+        from dsp_platform.research_intelligence_facade import research_intelligence_schema
+
+        return research_intelligence_schema()
+
+    def capture_research_intelligence_snapshot(
+        self,
+        payload: dict[str, object],
+        *,
+        research_id: str | None = None,
+        timestamp: str | None = None,
+        ticker: str | None = None,
+        company: str | None = None,
+        exchange: str | None = None,
+        research_version: str | None = None,
+        model_version: str | None = None,
+        allow_duplicate: bool = False,
+    ) -> dict[str, object]:
+        """Capture immutable research snapshot after analysis (EPIC-011B)."""
+        from dsp_platform.research_intelligence_facade import (
+            capture_canonical_research_snapshot,
+        )
+
+        return capture_canonical_research_snapshot(
+            payload,
+            research_id=research_id,
+            timestamp=timestamp,
+            ticker=ticker,
+            company=company,
+            exchange=exchange,
+            research_version=research_version,
+            model_version=model_version,
+            allow_duplicate=allow_duplicate,
+        )
+
+    def research_intelligence_list_snapshots(
+        self,
+        *,
+        symbol: str | None = None,
+        company: str | None = None,
+        limit: int | None = None,
+        offset: int = 0,
+    ) -> dict[str, object]:
+        from dsp_platform.research_intelligence_facade import (
+            research_intelligence_list_snapshots,
+        )
+
+        return research_intelligence_list_snapshots(
+            symbol=symbol, company=company, limit=limit, offset=offset
+        )
+
+    def research_intelligence_timeline(
+        self,
+        *,
+        symbol: str | None = None,
+        company: str | None = None,
+        limit: int | None = 100,
+        offset: int = 0,
+    ) -> dict[str, object]:
+        from dsp_platform.research_intelligence_facade import (
+            research_intelligence_timeline,
+        )
+
+        return research_intelligence_timeline(
+            symbol=symbol, company=company, limit=limit, offset=offset
+        )
+
+    def research_intelligence_measure(
+        self,
+        *,
+        research_id: str,
+        window_months: int,
+        price_at_horizon: float | None = None,
+        iv_at_horizon: float | None = None,
+        measured_at: str | None = None,
+    ) -> dict[str, object]:
+        from dsp_platform.research_intelligence_facade import (
+            research_intelligence_measure,
+        )
+
+        return research_intelligence_measure(
+            research_id=research_id,
+            window_months=window_months,
+            price_at_horizon=price_at_horizon,
+            iv_at_horizon=iv_at_horizon,
+            measured_at=measured_at,
+        )
+
+    def research_intelligence_measure_batch(
+        self,
+        *,
+        window_months: int,
+        horizon_prices: dict[str, float | None] | None = None,
+        measured_at: str | None = None,
+    ) -> dict[str, object]:
+        from dsp_platform.research_intelligence_facade import (
+            research_intelligence_measure_batch,
+        )
+
+        return research_intelligence_measure_batch(
+            window_months=window_months,
+            horizon_prices=horizon_prices,
+            measured_at=measured_at,
+        )
+
+    def research_intelligence_calibration(
+        self,
+        *,
+        window_months: int,
+        horizon_prices: dict[str, float | None] | None = None,
+        result_id: str | None = None,
+        created_at: str | None = None,
+        measured_at: str | None = None,
+    ) -> dict[str, object]:
+        from dsp_platform.research_intelligence_facade import (
+            research_intelligence_calibration,
+        )
+
+        return research_intelligence_calibration(
+            window_months=window_months,
+            horizon_prices=horizon_prices,
+            result_id=result_id,
+            created_at=created_at,
+            measured_at=measured_at,
+        )
+
+    def research_intelligence_performance(
+        self,
+        *,
+        window_months: int,
+        horizon_prices: dict[str, float | None] | None = None,
+        result_id: str | None = None,
+        created_at: str | None = None,
+        measured_at: str | None = None,
+    ) -> dict[str, object]:
+        from dsp_platform.research_intelligence_facade import (
+            research_intelligence_performance,
+        )
+
+        return research_intelligence_performance(
+            window_months=window_months,
+            horizon_prices=horizon_prices,
+            result_id=result_id,
+            created_at=created_at,
+            measured_at=measured_at,
+        )
+
+    def research_intelligence_insights(
+        self,
+        *,
+        window_months: int,
+        horizon_prices: dict[str, float | None] | None = None,
+        result_id: str | None = None,
+        created_at: str | None = None,
+        measured_at: str | None = None,
+        top_n: int = 5,
+    ) -> dict[str, object]:
+        from dsp_platform.research_intelligence_facade import (
+            research_intelligence_insights,
+        )
+
+        return research_intelligence_insights(
+            window_months=window_months,
+            horizon_prices=horizon_prices,
+            result_id=result_id,
+            created_at=created_at,
+            measured_at=measured_at,
+            top_n=top_n,
+        )
+
+    # -- Authenticated data gateways (EPIC-D001..D005) -----------------
+    # Thin delegations to process-local façade services. Additive only —
+    # never alter ``/analyse`` composition or perform calculations here.
+
+    def get_authenticated_market_quote(
+        self,
+        symbol: str,
+        *,
+        exchange: str | None = None,
+        currency: str = "USD",
+    ) -> dict[str, object] | None:
+        from dsp_platform.market_quotes import get_authenticated_market_quote
+
+        return get_authenticated_market_quote(
+            symbol, exchange=exchange, currency=currency
+        )
+
+    def market_quote_health(self) -> dict[str, object]:
+        from dsp_platform.market_quotes import market_quote_health
+
+        return market_quote_health()
+
+    def get_authenticated_financial_statements(
+        self,
+        symbol: str,
+        *,
+        exchange: str | None = None,
+        currency: str = "USD",
+        period_type: str | None = None,
+        limit: int = 8,
+        include_restated: bool = True,
+    ) -> dict[str, object] | None:
+        from dsp_platform.financial_statements import (
+            get_authenticated_financial_statements,
+        )
+
+        return get_authenticated_financial_statements(
+            symbol,
+            exchange=exchange,
+            currency=currency,
+            period_type=period_type,
+            limit=limit,
+            include_restated=include_restated,
+        )
+
+    def resolve_company_identity(
+        self,
+        symbol: str,
+        *,
+        exchange: str | None = None,
+        currency: str = "USD",
+    ) -> dict[str, object] | None:
+        from dsp_platform.financial_statements import resolve_company_identity
+
+        return resolve_company_identity(symbol, exchange=exchange, currency=currency)
+
+    def financial_statement_health(self) -> dict[str, object]:
+        from dsp_platform.financial_statements import financial_statement_health
+
+        return financial_statement_health()
+
+    def get_authenticated_historical_series(
+        self,
+        symbol: str,
+        *,
+        series_kind: str,
+        exchange: str | None = None,
+        currency: str = "USD",
+        frequency: str | None = "daily",
+        start_date: object | None = None,
+        end_date: object | None = None,
+        limit: int = 500,
+    ) -> dict[str, object] | None:
+        from dsp_platform.historical_series import get_authenticated_historical_series
+
+        return get_authenticated_historical_series(
+            symbol,
+            series_kind=series_kind,
+            exchange=exchange,
+            currency=currency,
+            frequency=frequency,
+            start_date=start_date,
+            end_date=end_date,
+            limit=limit,
+        )
+
+    def historical_series_health(self) -> dict[str, object]:
+        from dsp_platform.historical_series import historical_series_health
+
+        return historical_series_health()
+
+    def get_authenticated_corporate_actions(
+        self,
+        symbol: str,
+        *,
+        exchange: str | None = None,
+        currency: str = "USD",
+        action_type: str | None = None,
+        start_date: object | None = None,
+        end_date: object | None = None,
+        limit: int = 50,
+    ) -> dict[str, object] | None:
+        from dsp_platform.corporate_actions import get_authenticated_corporate_actions
+
+        return get_authenticated_corporate_actions(
+            symbol,
+            exchange=exchange,
+            currency=currency,
+            action_type=action_type,
+            start_date=start_date,
+            end_date=end_date,
+            limit=limit,
+        )
+
+    def corporate_actions_health(self) -> dict[str, object]:
+        from dsp_platform.corporate_actions import corporate_actions_health
+
+        return corporate_actions_health()
+
+    # -- Data Connector Framework: News/Filings/Ownership/Insider/ESG/
+    # Transcripts. Thin delegations to process-local façade services, each
+    # backed by a multi-provider priority registry with automatic failover
+    # (see ``data_engine.connector_framework``). Additive only.
+
+    def get_authenticated_news(
+        self,
+        symbol: str,
+        *,
+        exchange: str | None = None,
+        currency: str = "USD",
+        limit: int = 20,
+        since: object | None = None,
+    ) -> dict[str, object] | None:
+        from dsp_platform.news import get_authenticated_news
+
+        return get_authenticated_news(
+            symbol, exchange=exchange, currency=currency, limit=limit, since=since
+        )
+
+    def news_health(self) -> dict[str, object]:
+        from dsp_platform.news import news_health
+
+        return news_health()
+
+    def get_authenticated_filings(
+        self,
+        symbol: str,
+        *,
+        exchange: str | None = None,
+        currency: str = "USD",
+        filing_types: tuple[str, ...] = (),
+        start_date: object | None = None,
+        end_date: object | None = None,
+        limit: int = 50,
+    ) -> dict[str, object] | None:
+        from dsp_platform.filings import get_authenticated_filings
+
+        return get_authenticated_filings(
+            symbol,
+            exchange=exchange,
+            currency=currency,
+            filing_types=filing_types,
+            start_date=start_date,
+            end_date=end_date,
+            limit=limit,
+        )
+
+    def filings_health(self) -> dict[str, object]:
+        from dsp_platform.filings import filings_health
+
+        return filings_health()
+
+    def get_authenticated_ownership(
+        self,
+        symbol: str,
+        *,
+        exchange: str | None = None,
+        currency: str = "USD",
+        as_of: object | None = None,
+    ) -> dict[str, object] | None:
+        from dsp_platform.ownership import get_authenticated_ownership
+
+        return get_authenticated_ownership(
+            symbol, exchange=exchange, currency=currency, as_of=as_of
+        )
+
+    def ownership_health(self) -> dict[str, object]:
+        from dsp_platform.ownership import ownership_health
+
+        return ownership_health()
+
+    def get_authenticated_insider_activity(
+        self,
+        symbol: str,
+        *,
+        exchange: str | None = None,
+        currency: str = "USD",
+        start_date: object | None = None,
+        end_date: object | None = None,
+        limit: int = 50,
+    ) -> dict[str, object] | None:
+        from dsp_platform.insider_trading import get_authenticated_insider_activity
+
+        return get_authenticated_insider_activity(
+            symbol,
+            exchange=exchange,
+            currency=currency,
+            start_date=start_date,
+            end_date=end_date,
+            limit=limit,
+        )
+
+    def insider_trading_health(self) -> dict[str, object]:
+        from dsp_platform.insider_trading import insider_trading_health
+
+        return insider_trading_health()
+
+    def get_authenticated_esg_score(
+        self,
+        symbol: str,
+        *,
+        exchange: str | None = None,
+        currency: str = "USD",
+    ) -> dict[str, object] | None:
+        from dsp_platform.esg import get_authenticated_esg_score
+
+        return get_authenticated_esg_score(symbol, exchange=exchange, currency=currency)
+
+    def esg_health(self) -> dict[str, object]:
+        from dsp_platform.esg import esg_health
+
+        return esg_health()
+
+    def get_authenticated_transcripts(
+        self,
+        symbol: str,
+        *,
+        exchange: str | None = None,
+        currency: str = "USD",
+        year: int | None = None,
+        quarter: int | None = None,
+        limit: int = 8,
+    ) -> dict[str, object] | None:
+        from dsp_platform.transcripts import get_authenticated_transcripts
+
+        return get_authenticated_transcripts(
+            symbol,
+            exchange=exchange,
+            currency=currency,
+            year=year,
+            quarter=quarter,
+            limit=limit,
+        )
+
+    def transcripts_health(self) -> dict[str, object]:
+        from dsp_platform.transcripts import transcripts_health
+
+        return transcripts_health()
+
+    def get_unified_data_bundle(
+        self,
+        symbol: str,
+        *,
+        exchange: str | None = None,
+        currency: str = "USD",
+        include_market_quote: bool = True,
+        include_financial_statements: bool = True,
+        include_corporate_actions: bool = True,
+        include_historical_series: bool = True,
+        historical_series_kind: str = "ohlcv",
+        historical_frequency: str | None = "daily",
+        historical_limit: int = 30,
+        statement_limit: int = 8,
+        corporate_actions_limit: int = 50,
+    ) -> dict[str, object]:
+        from dsp_platform.data_orchestrator import get_unified_data_bundle
+
+        return get_unified_data_bundle(
+            symbol,
+            exchange=exchange,
+            currency=currency,
+            include_market_quote=include_market_quote,
+            include_financial_statements=include_financial_statements,
+            include_corporate_actions=include_corporate_actions,
+            include_historical_series=include_historical_series,
+            historical_series_kind=historical_series_kind,
+            historical_frequency=historical_frequency,
+            historical_limit=historical_limit,
+            statement_limit=statement_limit,
+            corporate_actions_limit=corporate_actions_limit,
+        )
+
+    def unified_data_health(self) -> dict[str, object]:
+        from dsp_platform.data_orchestrator import unified_data_health
+
+        return unified_data_health()
+
+    # -- Research Object / Report / Export / Archive / Diff / Copilot --
+    # (EPIC-R001..R005, EPIC-A001, EPIC-A004). Thin delegations to
+    # process-local façade services — never recompute or re-score.
+
+    def research_object_schema(self) -> dict[str, object]:
+        from dsp_platform.research_object_facade import research_object_schema
+
+        return research_object_schema()
+
+    def build_research_object(
+        self,
+        symbol: str,
+        *,
+        data_bundle: dict[str, object] | None = None,
+        analysis_payload: dict[str, object] | None = None,
+        valuation_signals: dict[str, object] | None = None,
+        company: str | None = None,
+        exchange: str | None = None,
+        correlation_id: str | None = None,
+        fetch_data_bundle: bool = False,
+    ) -> dict[str, object]:
+        from dsp_platform.research_object_facade import build_canonical_research_object
+
+        return build_canonical_research_object(
+            symbol,
+            data_bundle=data_bundle,
+            analysis_payload=analysis_payload,
+            valuation_signals=valuation_signals,
+            company=company,
+            exchange=exchange,
+            correlation_id=correlation_id,
+            fetch_data_bundle=fetch_data_bundle,
+        )
+
+    def institutional_report_schema(self) -> dict[str, object]:
+        from dsp_platform.institutional_report_facade import institutional_report_schema
+
+        return institutional_report_schema()
+
+    def generate_institutional_report(
+        self,
+        research_object: dict[str, object],
+        *,
+        report_id: str | None = None,
+        generated_at: str | None = None,
+    ) -> dict[str, object]:
+        from dsp_platform.institutional_report_facade import (
+            generate_canonical_institutional_report,
+        )
+
+        return generate_canonical_institutional_report(
+            research_object, report_id=report_id, generated_at=generated_at
+        )
+
+    def institutional_export_schema(self) -> dict[str, object]:
+        from dsp_platform.institutional_export_facade import institutional_export_schema
+
+        return institutional_export_schema()
+
+    def export_institutional_report(
+        self,
+        report: dict[str, object],
+        *,
+        format: str = "json",
+        export_id: str | None = None,
+        exported_at: str | None = None,
+    ) -> dict[str, object]:
+        from dsp_platform.institutional_export_facade import (
+            export_canonical_institutional_report,
+        )
+
+        return export_canonical_institutional_report(
+            report, format=format, export_id=export_id, exported_at=exported_at
+        )
+
+    def research_archive_schema(self) -> dict[str, object]:
+        from dsp_platform.research_archive_facade import research_archive_schema
+
+        return research_archive_schema()
+
+    def archive_research_snapshot(
+        self,
+        kind: str,
+        payload: dict[str, object],
+        *,
+        lineage_id: str | None = None,
+        parent_snapshot_id: str | None = None,
+        snapshot_id: str | None = None,
+        archived_at: str | None = None,
+        provenance: dict[str, object] | None = None,
+    ) -> dict[str, object]:
+        from dsp_platform.research_archive_facade import archive_research_snapshot
+
+        return archive_research_snapshot(
+            kind,
+            payload,
+            lineage_id=lineage_id,
+            parent_snapshot_id=parent_snapshot_id,
+            snapshot_id=snapshot_id,
+            archived_at=archived_at,
+            provenance=provenance,
+        )
+
+    def get_research_snapshot(self, snapshot_id: str) -> dict[str, object]:
+        from dsp_platform.research_archive_facade import get_research_snapshot
+
+        return get_research_snapshot(snapshot_id)
+
+    def list_research_version_history(self, lineage_id: str) -> list[dict[str, object]]:
+        from dsp_platform.research_archive_facade import list_research_version_history
+
+        return list_research_version_history(lineage_id)
+
+    def compare_research_snapshots(
+        self, left_snapshot_id: str, right_snapshot_id: str
+    ) -> dict[str, object]:
+        from dsp_platform.research_archive_facade import compare_research_snapshots
+
+        return compare_research_snapshots(left_snapshot_id, right_snapshot_id)
+
+    def evaluate_research_retention(self, snapshot_id: str) -> dict[str, object]:
+        from dsp_platform.research_archive_facade import evaluate_research_retention
+
+        return evaluate_research_retention(snapshot_id)
+
+    def research_diff_schema(self) -> dict[str, object]:
+        from dsp_platform.research_diff_facade import research_diff_schema
+
+        return research_diff_schema()
+
+    def diff_research_snapshots(
+        self,
+        left_snapshot_id: str,
+        right_snapshot_id: str,
+        *,
+        diff_id: str | None = None,
+        created_at: str | None = None,
+    ) -> dict[str, object]:
+        from dsp_platform.research_diff_facade import diff_canonical_research_snapshots
+
+        return diff_canonical_research_snapshots(
+            left_snapshot_id,
+            right_snapshot_id,
+            diff_id=diff_id,
+            created_at=created_at,
+        )
+
+    def research_copilot_schema(self) -> dict[str, object]:
+        from dsp_platform.research_copilot_facade import research_copilot_schema
+
+        return research_copilot_schema()
+
+    def ask_research_copilot(
+        self,
+        question: str,
+        *,
+        research_object: dict[str, object] | None = None,
+        report: dict[str, object] | None = None,
+        archive_snapshot: dict[str, object] | None = None,
+        research_diff: dict[str, object] | None = None,
+        snapshot_id: str | None = None,
+        conversation_id: str | None = None,
+        response_id: str | None = None,
+        created_at: str | None = None,
+    ) -> dict[str, object]:
+        from dsp_platform.research_copilot_facade import ask_canonical_research_copilot
+
+        return ask_canonical_research_copilot(
+            question,
+            research_object=research_object,
+            report=report,
+            archive_snapshot=archive_snapshot,
+            research_diff=research_diff,
+            snapshot_id=snapshot_id,
+            conversation_id=conversation_id,
+            response_id=response_id,
+            created_at=created_at,
+        )
+
+    # -- Decision Workspace (EPIC-A004) ---------------------------------
+
+    def decision_workspace_schema(self) -> dict[str, object]:
+        from dsp_platform.decision_workspace_facade import decision_workspace_schema
+
+        return decision_workspace_schema()
+
+    def build_decision_workspace(
+        self,
+        *,
+        kind: str,
+        subject: str,
+        research_object: dict[str, object] | None = None,
+        report: dict[str, object] | None = None,
+        reports: dict[str, object] | list[object] | None = None,
+        snapshots: dict[str, object] | list[object] | None = None,
+        diffs: dict[str, object] | list[object] | None = None,
+        copilot_response: dict[str, object] | None = None,
+        portfolio_intelligence: dict[str, object] | None = None,
+        monitoring_result: dict[str, object] | None = None,
+        workspace_id: str | None = None,
+        created_at: str | None = None,
+    ) -> dict[str, object]:
+        from dsp_platform.decision_workspace_facade import (
+            build_canonical_decision_workspace,
+        )
+
+        return build_canonical_decision_workspace(
+            kind=kind,
+            subject=subject,
+            research_object=research_object,
+            report=report,
+            reports=reports,
+            snapshots=snapshots,
+            diffs=diffs,
+            copilot_response=copilot_response,
+            portfolio_intelligence=portfolio_intelligence,
+            monitoring_result=monitoring_result,
+            workspace_id=workspace_id,
+            created_at=created_at,
+        )
+
+    # -- Research Monitoring (EPIC-A003) --------------------------------
+
+    def research_monitoring_schema(self) -> dict[str, object]:
+        from dsp_platform.research_monitoring_facade import research_monitoring_schema
+
+        return research_monitoring_schema()
+
+    def register_monitoring_watchlist(self, symbols: list[str]) -> list[str]:
+        from dsp_platform.research_monitoring_facade import (
+            register_monitoring_watchlist,
+        )
+
+        return register_monitoring_watchlist(symbols)
+
+    def register_monitoring_portfolio(
+        self, portfolio_id: str, *, metadata: dict[str, object] | None = None
+    ) -> dict[str, object]:
+        from dsp_platform.research_monitoring_facade import (
+            register_monitoring_portfolio,
+        )
+
+        return register_monitoring_portfolio(portfolio_id, metadata=metadata)
+
+    def track_monitoring_snapshot(
+        self,
+        subject: str,
+        *,
+        subject_kind: str = "symbol",
+        baseline_snapshot_id: str | None = None,
+        current_snapshot_id: str | None = None,
+        tracked_at: str | None = None,
+    ) -> dict[str, object]:
+        from dsp_platform.research_monitoring_facade import track_monitoring_snapshot
+
+        return track_monitoring_snapshot(
+            subject,
+            subject_kind=subject_kind,
+            baseline_snapshot_id=baseline_snapshot_id,
+            current_snapshot_id=current_snapshot_id,
+            tracked_at=tracked_at,
+        )
+
+    def evaluate_research_monitoring(
+        self,
+        *,
+        snapshot_pairs: dict[str, dict[str, str]] | None = None,
+        portfolio_intelligence_baseline: dict[str, object] | None = None,
+        portfolio_intelligence_current: dict[str, object] | None = None,
+        portfolio_id: str | None = None,
+        result_id: str | None = None,
+        created_at: str | None = None,
+        register_watchlist_symbols: list[str] | None = None,
+    ) -> dict[str, object]:
+        from dsp_platform.research_monitoring_facade import (
+            evaluate_canonical_research_monitoring,
+        )
+
+        return evaluate_canonical_research_monitoring(
+            snapshot_pairs=snapshot_pairs,
+            portfolio_intelligence_baseline=portfolio_intelligence_baseline,
+            portfolio_intelligence_current=portfolio_intelligence_current,
+            portfolio_id=portfolio_id,
+            result_id=result_id,
+            created_at=created_at,
+            register_watchlist_symbols=register_watchlist_symbols,
+        )
+
+    # -- Portfolio Intelligence (EPIC-A002) ------------------------------
+
+    def portfolio_intelligence_schema(self) -> dict[str, object]:
+        from dsp_platform.portfolio_intelligence_facade import (
+            portfolio_intelligence_schema,
+        )
+
+        return portfolio_intelligence_schema()
+
+    def evaluate_portfolio_intelligence(
+        self,
+        *,
+        portfolio: dict[str, object] | None = None,
+        watchlist: dict[str, object] | None = None,
+        research_objects: dict[str, object] | list[object] | None = None,
+        reports: dict[str, object] | list[object] | None = None,
+        snapshots: dict[str, object] | list[object] | None = None,
+        snapshot_ids: dict[str, str] | None = None,
+        result_id: str | None = None,
+        created_at: str | None = None,
+    ) -> dict[str, object]:
+        from dsp_platform.portfolio_intelligence_facade import (
+            evaluate_canonical_portfolio_intelligence,
+        )
+
+        return evaluate_canonical_portfolio_intelligence(
+            portfolio=portfolio,
+            watchlist=watchlist,
+            research_objects=research_objects,
+            reports=reports,
+            snapshots=snapshots,
+            snapshot_ids=snapshot_ids,
+            result_id=result_id,
+            created_at=created_at,
+        )
+
+    # -- Portfolio Intelligence Analytics Module (additive, reuses
+    # quantitative_risk + historical_series). Stateless — holdings are
+    # supplied by the caller, never persisted. See ``portfolio_analytics``
+    # and ``docs/PORTFOLIO_ANALYTICS.md``.
+
+    def evaluate_portfolio_performance(
+        self,
+        portfolio: dict[str, object] | None,
+        *,
+        benchmark_symbol: str | None = None,
+        window_days: int = 252,
+        risk_free_rate: float = 0.0,
+        as_of: object | None = None,
+    ) -> dict[str, object]:
+        from dsp_platform.portfolio_analytics import evaluate_portfolio_performance
+
+        return evaluate_portfolio_performance(
+            portfolio,
+            benchmark_symbol=benchmark_symbol,
+            window_days=window_days,
+            risk_free_rate=risk_free_rate,
+            as_of=as_of,
+        )
+
+    def evaluate_portfolio_risk_analytics(
+        self,
+        portfolio: dict[str, object] | None,
+        *,
+        window_days: int = 252,
+        as_of: object | None = None,
+    ) -> dict[str, object]:
+        from dsp_platform.portfolio_analytics import evaluate_portfolio_risk_analytics
+
+        return evaluate_portfolio_risk_analytics(
+            portfolio, window_days=window_days, as_of=as_of
+        )
+
+    def evaluate_portfolio_allocation_analytics(
+        self, portfolio: dict[str, object] | None
+    ) -> dict[str, object]:
+        from dsp_platform.portfolio_analytics import (
+            evaluate_portfolio_allocation_analytics,
+        )
+
+        return evaluate_portfolio_allocation_analytics(portfolio)
+
+    def evaluate_portfolio_simulation(
+        self,
+        portfolio: dict[str, object] | None,
+        *,
+        window_days: int = 252,
+        monte_carlo_paths: int = 1000,
+        monte_carlo_horizon_days: int = 252,
+        frontier_samples: int = 200,
+        seed: int | None = None,
+        as_of: object | None = None,
+    ) -> dict[str, object]:
+        from dsp_platform.portfolio_analytics import evaluate_portfolio_simulation
+
+        return evaluate_portfolio_simulation(
+            portfolio,
+            window_days=window_days,
+            monte_carlo_paths=monte_carlo_paths,
+            monte_carlo_horizon_days=monte_carlo_horizon_days,
+            frontier_samples=frontier_samples,
+            seed=seed,
+            as_of=as_of,
+        )
+
+    def evaluate_portfolio_stress_analytics(
+        self,
+        portfolio: dict[str, object] | None,
+        *,
+        scenarios: list[dict[str, object]] | None = None,
+        stress_window_ids: list[str] | None = None,
+        benchmark_symbol: str | None = None,
+        window_days: int = 252,
+        as_of: object | None = None,
+    ) -> dict[str, object]:
+        from dsp_platform.portfolio_analytics import evaluate_portfolio_stress_analytics
+
+        return evaluate_portfolio_stress_analytics(
+            portfolio,
+            scenarios=scenarios,
+            stress_window_ids=stress_window_ids,
+            benchmark_symbol=benchmark_symbol,
+            window_days=window_days,
+            as_of=as_of,
+        )
+
+    def evaluate_portfolio_constraints(
+        self,
+        portfolio: dict[str, object] | None,
+        *,
+        max_position_weight: float | None = None,
+        max_sector_weight: float | None = None,
+        sector_limits: dict[str, float] | None = None,
+        min_cash_weight: float | None = None,
+        cash_weight: float | None = None,
+        target_weights: dict[str, float] | None = None,
+        drift_threshold: float = 0.0,
+    ) -> dict[str, object]:
+        from dsp_platform.portfolio_analytics import evaluate_portfolio_constraints
+
+        return evaluate_portfolio_constraints(
+            portfolio,
+            max_position_weight=max_position_weight,
+            max_sector_weight=max_sector_weight,
+            sector_limits=sector_limits,
+            min_cash_weight=min_cash_weight,
+            cash_weight=cash_weight,
+            target_weights=target_weights,
+            drift_threshold=drift_threshold,
+        )
+
+    def evaluate_portfolio_tax_analytics(
+        self,
+        portfolio: dict[str, object] | None,
+        *,
+        as_of: object | None = None,
+    ) -> dict[str, object]:
+        from dsp_platform.portfolio_analytics import evaluate_portfolio_tax_analytics
+
+        return evaluate_portfolio_tax_analytics(portfolio, as_of=as_of)
+
+    def portfolio_analytics_health(self) -> dict[str, object]:
+        from dsp_platform.portfolio_analytics import portfolio_analytics_health
+
+        return portfolio_analytics_health()
+
+    # -- Portfolio Intelligence Engine (RC1 Milestone 4) — orchestration only.
+    # Combines evaluate_portfolio_* (portfolio_analytics, above) with
+    # evaluate_portfolio_intelligence's linked-research pass-through
+    # (EPIC-A002) into portfolio-level insights. No valuation, risk, or AI
+    # computation happens here or in portfolio_intelligence_engine — every
+    # number is sourced from an already-frozen engine.
+
+    def evaluate_portfolio_intelligence_engine(
+        self,
+        portfolio: dict[str, object] | None,
+        *,
+        research_objects: dict[str, object] | list[object] | None = None,
+        reports: dict[str, object] | list[object] | None = None,
+        snapshots: dict[str, object] | list[object] | None = None,
+        snapshot_ids: dict[str, str] | None = None,
+        benchmark_symbol: str | None = None,
+        window_days: int = 252,
+        cash_weight: float | None = None,
+        stress_window_ids: list[str] | None = None,
+        as_of: object | None = None,
+    ) -> dict[str, object]:
+        from dsp_platform.portfolio_intelligence_engine import (
+            evaluate_portfolio_intelligence_engine,
+        )
+
+        return evaluate_portfolio_intelligence_engine(
+            portfolio,
+            research_objects=research_objects,
+            reports=reports,
+            snapshots=snapshots,
+            snapshot_ids=snapshot_ids,
+            benchmark_symbol=benchmark_symbol,
+            window_days=window_days,
+            cash_weight=cash_weight,
+            stress_window_ids=stress_window_ids,
+            as_of=as_of,
+        )
+
+    def evaluate_portfolio_health(
+        self,
+        portfolio: dict[str, object] | None,
+        *,
+        research_objects: dict[str, object] | list[object] | None = None,
+        reports: dict[str, object] | list[object] | None = None,
+        snapshots: dict[str, object] | list[object] | None = None,
+        snapshot_ids: dict[str, str] | None = None,
+        benchmark_symbol: str | None = None,
+        window_days: int = 252,
+        cash_weight: float | None = None,
+        as_of: object | None = None,
+    ) -> dict[str, object]:
+        from dsp_platform.portfolio_intelligence_engine import evaluate_portfolio_health
+
+        return evaluate_portfolio_health(
+            portfolio,
+            research_objects=research_objects,
+            reports=reports,
+            snapshots=snapshots,
+            snapshot_ids=snapshot_ids,
+            benchmark_symbol=benchmark_symbol,
+            window_days=window_days,
+            cash_weight=cash_weight,
+            as_of=as_of,
+        )
+
+    def evaluate_portfolio_recommendations(
+        self,
+        portfolio: dict[str, object] | None,
+        *,
+        research_objects: dict[str, object] | list[object] | None = None,
+        reports: dict[str, object] | list[object] | None = None,
+        snapshots: dict[str, object] | list[object] | None = None,
+        snapshot_ids: dict[str, str] | None = None,
+        benchmark_symbol: str | None = None,
+        window_days: int = 252,
+        as_of: object | None = None,
+    ) -> dict[str, object]:
+        from dsp_platform.portfolio_intelligence_engine import (
+            evaluate_portfolio_recommendations,
+        )
+
+        return evaluate_portfolio_recommendations(
+            portfolio,
+            research_objects=research_objects,
+            reports=reports,
+            snapshots=snapshots,
+            snapshot_ids=snapshot_ids,
+            benchmark_symbol=benchmark_symbol,
+            window_days=window_days,
+            as_of=as_of,
+        )
+
+    def evaluate_portfolio_opportunities(
+        self,
+        portfolio: dict[str, object] | None,
+        *,
+        research_objects: dict[str, object] | list[object] | None = None,
+        reports: dict[str, object] | list[object] | None = None,
+        snapshots: dict[str, object] | list[object] | None = None,
+        snapshot_ids: dict[str, str] | None = None,
+        benchmark_symbol: str | None = None,
+        window_days: int = 252,
+        as_of: object | None = None,
+    ) -> dict[str, object]:
+        from dsp_platform.portfolio_intelligence_engine import (
+            evaluate_portfolio_opportunities,
+        )
+
+        return evaluate_portfolio_opportunities(
+            portfolio,
+            research_objects=research_objects,
+            reports=reports,
+            snapshots=snapshots,
+            snapshot_ids=snapshot_ids,
+            benchmark_symbol=benchmark_symbol,
+            window_days=window_days,
+            as_of=as_of,
+        )
+
+    def evaluate_portfolio_scenario(
+        self,
+        portfolio: dict[str, object] | None,
+        *,
+        research_objects: dict[str, object] | list[object] | None = None,
+        reports: dict[str, object] | list[object] | None = None,
+        snapshots: dict[str, object] | list[object] | None = None,
+        snapshot_ids: dict[str, str] | None = None,
+        benchmark_symbol: str | None = None,
+        window_days: int = 252,
+        as_of: object | None = None,
+    ) -> dict[str, object]:
+        from dsp_platform.portfolio_intelligence_engine import evaluate_portfolio_scenario
+
+        return evaluate_portfolio_scenario(
+            portfolio,
+            research_objects=research_objects,
+            reports=reports,
+            snapshots=snapshots,
+            snapshot_ids=snapshot_ids,
+            benchmark_symbol=benchmark_symbol,
+            window_days=window_days,
+            as_of=as_of,
+        )
+
+    def portfolio_intelligence_engine_health(self) -> dict[str, object]:
+        from dsp_platform.portfolio_intelligence_engine import (
+            portfolio_intelligence_engine_health,
+        )
+
+        return portfolio_intelligence_engine_health()
+
+    # -- Portfolio Store (RC1 Milestone 3) — server-side persistence for
+    # Portfolio/Holdings/Transactions/Watchlist, replacing browser-only
+    # localStorage. Ownership-checked by authenticated user_id. No analytics
+    # or valuation here — see evaluate_portfolio_* above for that.
+
+    def portfolio_store_schema(self) -> dict[str, object]:
+        from dsp_platform.portfolio_store_facade import portfolio_store_schema
+
+        return portfolio_store_schema()
+
+    def create_portfolio(
+        self,
+        *,
+        user_id: str,
+        name: str,
+        is_default: bool | None = None,
+        benchmark_symbol: str | None = None,
+        metadata: dict[str, object] | None = None,
+        portfolio_id: str | None = None,
+        created_at: str | None = None,
+    ) -> dict[str, object]:
+        from dsp_platform.portfolio_store_facade import create_portfolio
+
+        return create_portfolio(
+            user_id=user_id,
+            name=name,
+            is_default=is_default,
+            benchmark_symbol=benchmark_symbol,
+            metadata=metadata,
+            portfolio_id=portfolio_id,
+            created_at=created_at,
+        )
+
+    def list_portfolios(self, *, user_id: str) -> list[dict[str, object]]:
+        from dsp_platform.portfolio_store_facade import list_portfolios
+
+        return list_portfolios(user_id=user_id)
+
+    def get_portfolio(self, portfolio_id: str, *, user_id: str) -> dict[str, object]:
+        from dsp_platform.portfolio_store_facade import get_portfolio
+
+        return get_portfolio(portfolio_id, user_id=user_id)
+
+    def get_default_portfolio(self, *, user_id: str) -> dict[str, object] | None:
+        from dsp_platform.portfolio_store_facade import get_default_portfolio
+
+        return get_default_portfolio(user_id=user_id)
+
+    def update_portfolio(
+        self,
+        portfolio_id: str,
+        *,
+        user_id: str,
+        name: str | None = None,
+        is_default: bool | None = None,
+        metadata: dict[str, object] | None = None,
+    ) -> dict[str, object]:
+        from dsp_platform.portfolio_store_facade import update_portfolio
+
+        return update_portfolio(
+            portfolio_id,
+            user_id=user_id,
+            name=name,
+            is_default=is_default,
+            metadata=metadata,
+        )
+
+    def delete_portfolio(self, portfolio_id: str, *, user_id: str) -> bool:
+        from dsp_platform.portfolio_store_facade import delete_portfolio
+
+        return delete_portfolio(portfolio_id, user_id=user_id)
+
+    def set_portfolio_benchmark(
+        self, portfolio_id: str, *, user_id: str, benchmark_symbol: str | None
+    ) -> dict[str, object]:
+        from dsp_platform.portfolio_store_facade import set_portfolio_benchmark
+
+        return set_portfolio_benchmark(
+            portfolio_id, user_id=user_id, benchmark_symbol=benchmark_symbol
+        )
+
+    def list_portfolio_holdings(
+        self, portfolio_id: str, *, user_id: str
+    ) -> list[dict[str, object]]:
+        from dsp_platform.portfolio_store_facade import list_portfolio_holdings
+
+        return list_portfolio_holdings(portfolio_id, user_id=user_id)
+
+    def upsert_portfolio_holding(
+        self,
+        portfolio_id: str,
+        *,
+        user_id: str,
+        symbol: str,
+        weight: float,
+        units: float | None = None,
+        cost_basis_per_unit: float | None = None,
+        purchase_date: str | None = None,
+        sector: str | None = None,
+        country: str | None = None,
+        exchange: str | None = None,
+        value_score: float | None = None,
+        quality_score: float | None = None,
+        momentum_score: float | None = None,
+        size_score: float | None = None,
+        volatility_score: float | None = None,
+    ) -> dict[str, object]:
+        from dsp_platform.portfolio_store_facade import upsert_portfolio_holding
+
+        return upsert_portfolio_holding(
+            portfolio_id,
+            user_id=user_id,
+            symbol=symbol,
+            weight=weight,
+            units=units,
+            cost_basis_per_unit=cost_basis_per_unit,
+            purchase_date=purchase_date,
+            sector=sector,
+            country=country,
+            exchange=exchange,
+            value_score=value_score,
+            quality_score=quality_score,
+            momentum_score=momentum_score,
+            size_score=size_score,
+            volatility_score=volatility_score,
+        )
+
+    def remove_portfolio_holding(
+        self, portfolio_id: str, *, user_id: str, symbol: str
+    ) -> bool:
+        from dsp_platform.portfolio_store_facade import remove_portfolio_holding
+
+        return remove_portfolio_holding(portfolio_id, user_id=user_id, symbol=symbol)
+
+    def record_portfolio_transaction(
+        self,
+        portfolio_id: str,
+        *,
+        user_id: str,
+        transaction_type: str,
+        transaction_date: str,
+        symbol: str | None = None,
+        quantity: float | None = None,
+        price: float | None = None,
+        amount: float | None = None,
+        currency: str = "USD",
+        notes: str | None = None,
+    ) -> dict[str, object]:
+        from dsp_platform.portfolio_store_facade import record_portfolio_transaction
+
+        return record_portfolio_transaction(
+            portfolio_id,
+            user_id=user_id,
+            transaction_type=transaction_type,
+            transaction_date=transaction_date,
+            symbol=symbol,
+            quantity=quantity,
+            price=price,
+            amount=amount,
+            currency=currency,
+            notes=notes,
+        )
+
+    def list_portfolio_transactions(
+        self,
+        portfolio_id: str,
+        *,
+        user_id: str,
+        symbol: str | None = None,
+        limit: int = 200,
+    ) -> list[dict[str, object]]:
+        from dsp_platform.portfolio_store_facade import list_portfolio_transactions
+
+        return list_portfolio_transactions(
+            portfolio_id, user_id=user_id, symbol=symbol, limit=limit
+        )
+
+    def list_portfolio_watchlist(
+        self, portfolio_id: str, *, user_id: str
+    ) -> list[dict[str, object]]:
+        from dsp_platform.portfolio_store_facade import list_portfolio_watchlist
+
+        return list_portfolio_watchlist(portfolio_id, user_id=user_id)
+
+    def add_portfolio_watchlist_symbol(
+        self,
+        portfolio_id: str,
+        *,
+        user_id: str,
+        symbol: str,
+        label: str | None = None,
+    ) -> dict[str, object]:
+        from dsp_platform.portfolio_store_facade import add_portfolio_watchlist_symbol
+
+        return add_portfolio_watchlist_symbol(
+            portfolio_id, user_id=user_id, symbol=symbol, label=label
+        )
+
+    def remove_portfolio_watchlist_symbol(
+        self, portfolio_id: str, *, user_id: str, symbol: str
+    ) -> bool:
+        from dsp_platform.portfolio_store_facade import (
+            remove_portfolio_watchlist_symbol,
+        )
+
+        return remove_portfolio_watchlist_symbol(
+            portfolio_id, user_id=user_id, symbol=symbol
+        )
+
+    def migrate_local_portfolio(
+        self,
+        *,
+        user_id: str,
+        name: str = "My Portfolio",
+        holdings: list[dict[str, object]] | None = None,
+        watchlist: list[dict[str, object]] | None = None,
+        benchmark_symbol: str | None = None,
+    ) -> dict[str, object]:
+        from dsp_platform.portfolio_store_facade import migrate_local_portfolio
+
+        return migrate_local_portfolio(
+            user_id=user_id,
+            name=name,
+            holdings=holdings,
+            watchlist=watchlist,
+            benchmark_symbol=benchmark_symbol,
+        )
+
+    # -- Workflow Automation (RC1 Milestone 5) — Alert Rules, Scheduled
+    # Reports, Notification Center. CRUD is thin delegation; evaluation
+    # reuses market_quotes/portfolio_store_facade/portfolio_intelligence_engine
+    # (all frozen) — no new engine. No autonomous scheduler exists at this
+    # boundary (production_platform is a forbidden import here) — run_now
+    # is the only implemented execution path.
+
+    def workflow_automation_schema(self) -> dict[str, object]:
+        from dsp_platform.workflow_automation import workflow_automation_schema
+
+        return workflow_automation_schema()
+
+    def create_alert_rule(
+        self,
+        *,
+        user_id: str,
+        rule_type: str,
+        symbol: str | None = None,
+        portfolio_id: str | None = None,
+        params: dict[str, object] | None = None,
+        active: bool = True,
+    ) -> dict[str, object]:
+        from dsp_platform.workflow_automation import create_alert_rule
+
+        return create_alert_rule(
+            user_id=user_id,
+            rule_type=rule_type,
+            symbol=symbol,
+            portfolio_id=portfolio_id,
+            params=params,
+            active=active,
+        )
+
+    def list_alert_rules(
+        self, *, user_id: str, active_only: bool = False
+    ) -> list[dict[str, object]]:
+        from dsp_platform.workflow_automation import list_alert_rules
+
+        return list_alert_rules(user_id=user_id, active_only=active_only)
+
+    def get_alert_rule(self, rule_id: str, *, user_id: str) -> dict[str, object]:
+        from dsp_platform.workflow_automation import get_alert_rule
+
+        return get_alert_rule(rule_id, user_id=user_id)
+
+    def update_alert_rule(
+        self,
+        rule_id: str,
+        *,
+        user_id: str,
+        active: bool | None = None,
+        params: dict[str, object] | None = None,
+    ) -> dict[str, object]:
+        from dsp_platform.workflow_automation import update_alert_rule
+
+        return update_alert_rule(rule_id, user_id=user_id, active=active, params=params)
+
+    def delete_alert_rule(self, rule_id: str, *, user_id: str) -> bool:
+        from dsp_platform.workflow_automation import delete_alert_rule
+
+        return delete_alert_rule(rule_id, user_id=user_id)
+
+    def create_scheduled_report(
+        self,
+        *,
+        user_id: str,
+        portfolio_id: str,
+        frequency: str,
+        format: str = "json",
+        recipients: list[str] | None = None,
+        active: bool = True,
+    ) -> dict[str, object]:
+        from dsp_platform.workflow_automation import create_scheduled_report
+
+        return create_scheduled_report(
+            user_id=user_id,
+            portfolio_id=portfolio_id,
+            frequency=frequency,
+            format=format,
+            recipients=recipients,
+            active=active,
+        )
+
+    def list_scheduled_reports(self, *, user_id: str) -> list[dict[str, object]]:
+        from dsp_platform.workflow_automation import list_scheduled_reports
+
+        return list_scheduled_reports(user_id=user_id)
+
+    def get_scheduled_report(self, schedule_id: str, *, user_id: str) -> dict[str, object]:
+        from dsp_platform.workflow_automation import get_scheduled_report
+
+        return get_scheduled_report(schedule_id, user_id=user_id)
+
+    def update_scheduled_report(
+        self,
+        schedule_id: str,
+        *,
+        user_id: str,
+        active: bool | None = None,
+        frequency: str | None = None,
+        format: str | None = None,
+        recipients: list[str] | None = None,
+    ) -> dict[str, object]:
+        from dsp_platform.workflow_automation import update_scheduled_report
+
+        return update_scheduled_report(
+            schedule_id,
+            user_id=user_id,
+            active=active,
+            frequency=frequency,
+            format=format,
+            recipients=recipients,
+        )
+
+    def delete_scheduled_report(self, schedule_id: str, *, user_id: str) -> bool:
+        from dsp_platform.workflow_automation import delete_scheduled_report
+
+        return delete_scheduled_report(schedule_id, user_id=user_id)
+
+    def list_notifications(
+        self, *, user_id: str, unread_only: bool = False, limit: int = 200
+    ) -> list[dict[str, object]]:
+        from dsp_platform.workflow_automation import list_notifications
+
+        return list_notifications(user_id=user_id, unread_only=unread_only, limit=limit)
+
+    def mark_notification_read(self, notification_id: str, *, user_id: str) -> dict[str, object]:
+        from dsp_platform.workflow_automation import mark_notification_read
+
+        return mark_notification_read(notification_id, user_id=user_id)
+
+    def evaluate_user_alerts(
+        self,
+        *,
+        user_id: str,
+        research_objects: dict[str, object] | list[object] | None = None,
+    ) -> dict[str, object]:
+        from dsp_platform.workflow_automation import evaluate_user_alerts
+
+        return evaluate_user_alerts(user_id=user_id, research_objects=research_objects)
+
+    def run_scheduled_report_now(
+        self,
+        schedule_id: str,
+        *,
+        user_id: str,
+        research_objects: dict[str, object] | list[object] | None = None,
+    ) -> dict[str, object]:
+        from dsp_platform.workflow_automation import run_scheduled_report_now
+
+        return run_scheduled_report_now(
+            schedule_id, user_id=user_id, research_objects=research_objects
+        )
+
+    def workflow_automation_health(self) -> dict[str, object]:
+        from dsp_platform.workflow_automation import workflow_automation_health
+
+        return workflow_automation_health()
+
+    # -- Institutional Multi-Agent Committee (EPIC-A005) -----------------
+
+    def institutional_committee_schema(self) -> dict[str, object]:
+        from dsp_platform.institutional_committee_facade import (
+            institutional_committee_schema,
+        )
+
+        return institutional_committee_schema()
+
+    def list_committee_agents(self) -> list[dict[str, str]]:
+        from dsp_platform.institutional_committee_facade import list_committee_agents
+
+        return list_committee_agents()
+
+    def run_institutional_committee(
+        self,
+        *,
+        subject: str,
+        research_object: dict[str, object] | None = None,
+        report: dict[str, object] | None = None,
+        snapshots: dict[str, object] | list[object] | None = None,
+        diffs: dict[str, object] | list[object] | None = None,
+        copilot_response: dict[str, object] | None = None,
+        portfolio_intelligence: dict[str, object] | None = None,
+        monitoring_result: dict[str, object] | None = None,
+        workspace: dict[str, object] | None = None,
+        report_id: str | None = None,
+        created_at: str | None = None,
+    ) -> dict[str, object]:
+        from dsp_platform.institutional_committee_facade import (
+            run_canonical_institutional_committee,
+        )
+
+        return run_canonical_institutional_committee(
+            subject=subject,
+            research_object=research_object,
+            report=report,
+            snapshots=snapshots,
+            diffs=diffs,
+            copilot_response=copilot_response,
+            portfolio_intelligence=portfolio_intelligence,
+            monitoring_result=monitoring_result,
+            workspace=workspace,
+            report_id=report_id,
+            created_at=created_at,
+        )
+
+    # -- Institutional Workflow & Approval (EPIC-A007) -------------------
+
+    def institutional_workflow_schema(self) -> dict[str, object]:
+        from dsp_platform.institutional_workflow_facade import (
+            institutional_workflow_schema,
+        )
+
+        return institutional_workflow_schema()
+
+    def list_workflow_templates(self) -> list[dict[str, object]]:
+        from dsp_platform.institutional_workflow_facade import (
+            list_canonical_workflow_templates,
+        )
+
+        return list_canonical_workflow_templates()
+
+    def apply_institutional_workflow(
+        self,
+        *,
+        action: str,
+        subject: str | None = None,
+        workflow_id: str | None = None,
+        template_id: str | None = None,
+        artifact_refs: dict[str, object] | None = None,
+        reviewers: list[dict[str, object]] | None = None,
+        to_stage: str | None = None,
+        actor_id: str | None = None,
+        author_id: str | None = None,
+        body: str | None = None,
+        reason: str | None = None,
+        note: str | None = None,
+        comment_id: str | None = None,
+        approval_id: str | None = None,
+        event_id: str | None = None,
+        reviewer_id: str | None = None,
+        role: str | None = None,
+        display_name: str | None = None,
+        metadata: dict[str, object] | None = None,
+        result_id: str | None = None,
+        created_at: str | None = None,
+    ) -> dict[str, object]:
+        from dsp_platform.institutional_workflow_facade import (
+            apply_canonical_workflow_action,
+        )
+
+        return apply_canonical_workflow_action(
+            action=action,
+            subject=subject,
+            workflow_id=workflow_id,
+            template_id=template_id,
+            artifact_refs=artifact_refs,
+            reviewers=reviewers,
+            to_stage=to_stage,
+            actor_id=actor_id,
+            author_id=author_id,
+            body=body,
+            reason=reason,
+            note=note,
+            comment_id=comment_id,
+            approval_id=approval_id,
+            event_id=event_id,
+            reviewer_id=reviewer_id,
+            role=role,
+            display_name=display_name,
+            metadata=metadata,
+            result_id=result_id,
+            created_at=created_at,
+        )
+
+    # -- Investment Policy & Compliance (EPIC-A006) ----------------------
+
+    def investment_policy_schema(self) -> dict[str, object]:
+        from dsp_platform.investment_policy_facade import investment_policy_schema
+
+        return investment_policy_schema()
+
+    def default_investment_policy(self) -> dict[str, object]:
+        from dsp_platform.investment_policy_facade import (
+            default_investment_policy_dict,
+        )
+
+        return default_investment_policy_dict()
+
+    def evaluate_investment_policy(
+        self,
+        *,
+        subject: str,
+        policy: dict[str, object] | None = None,
+        exceptions: list[dict[str, object]] | None = None,
+        research_object: dict[str, object] | None = None,
+        report: dict[str, object] | None = None,
+        snapshots: dict[str, object] | list[object] | None = None,
+        diffs: dict[str, object] | list[object] | None = None,
+        portfolio_intelligence: dict[str, object] | None = None,
+        monitoring_result: dict[str, object] | None = None,
+        workspace: dict[str, object] | None = None,
+        committee_report: dict[str, object] | None = None,
+        result_id: str | None = None,
+        created_at: str | None = None,
+    ) -> dict[str, object]:
+        from dsp_platform.investment_policy_facade import (
+            evaluate_canonical_investment_policy,
+        )
+
+        return evaluate_canonical_investment_policy(
+            subject=subject,
+            policy=policy,
+            exceptions=exceptions,
+            research_object=research_object,
+            report=report,
+            snapshots=snapshots,
+            diffs=diffs,
+            portfolio_intelligence=portfolio_intelligence,
+            monitoring_result=monitoring_result,
+            workspace=workspace,
+            committee_report=committee_report,
+            result_id=result_id,
+            created_at=created_at,
+        )
+
+    # -- Persistence support (EPIC-A008) ---------------------------------
+
+    def persistence_schema(self) -> dict[str, object]:
+        from dsp_platform.persistence_facade import persistence_schema
+
+        return persistence_schema()
+
+    def persist_entity(
+        self,
+        *,
+        kind: str,
+        payload: dict[str, object] | None = None,
+        refs: dict[str, object] | None = None,
+        provenance: dict[str, object] | None = None,
+        entity_id: str | None = None,
+        created_at: str | None = None,
+        allow_update: bool = True,
+    ) -> dict[str, object]:
+        from dsp_platform.persistence_facade import persist_canonical_entity
+
+        return persist_canonical_entity(
+            kind=kind,
+            payload=payload,
+            refs=refs,
+            provenance=provenance,
+            entity_id=entity_id,
+            created_at=created_at,
+            allow_update=allow_update,
+        )
+
+    def get_persisted_entity(
+        self, kind: str, entity_id: str
+    ) -> dict[str, object] | None:
+        from dsp_platform.persistence_facade import get_canonical_persisted_entity
+
+        return get_canonical_persisted_entity(kind, entity_id)
+
+    def persist_workflow_record(
+        self,
+        workflow: dict[str, object],
+        *,
+        entity_id: str | None = None,
+        created_at: str | None = None,
+    ) -> dict[str, object]:
+        from dsp_platform.persistence_facade import persist_canonical_workflow_record
+
+        return persist_canonical_workflow_record(
+            workflow, entity_id=entity_id, created_at=created_at
+        )
+
+    def create_persistence_snapshot(
+        self,
+        *,
+        kind: str,
+        source_entity_id: str,
+        payload: dict[str, object],
+        snapshot_id: str | None = None,
+        created_at: str | None = None,
+    ) -> dict[str, object]:
+        from dsp_platform.persistence_facade import (
+            create_canonical_persistence_snapshot,
+        )
+
+        return create_canonical_persistence_snapshot(
+            kind=kind,
+            source_entity_id=source_entity_id,
+            payload=payload,
+            snapshot_id=snapshot_id,
+            created_at=created_at,
+        )
 
     def get_platform_info(self) -> PlatformMetadata:
         """Return immutable platform metadata / capability discovery."""
@@ -731,7 +2503,7 @@ class DSPPlatform:
     def _resolve_service(
         self,
         name: str,
-        factory: type[Any],
+        factory: "type[Any] | Callable[[], Any]",
         *,
         capability: str,
     ) -> Any:
@@ -749,6 +2521,242 @@ class DSPPlatform:
             pass
         return instance
 
+    def auth_schema(self) -> dict[str, object]:
+        """Institutional Auth & RBAC schema descriptor (EPIC-A009)."""
+        from dsp_platform.auth_facade import auth_schema
+
+        return auth_schema()
+
+    def create_auth_user(
+        self,
+        *,
+        username: str,
+        email: str,
+        password: str,
+        display_name: str | None = None,
+        roles: list[str] | None = None,
+        user_id: str | None = None,
+        created_at: str | None = None,
+        password_salt: str | None = None,
+    ) -> dict[str, object]:
+        """Create an institutional user account (passwords hashed)."""
+        from dsp_platform.auth_facade import create_auth_user
+
+        return create_auth_user(
+            username=username,
+            email=email,
+            password=password,
+            display_name=display_name,
+            roles=roles,
+            user_id=user_id,
+            created_at=created_at,
+            password_salt=password_salt,
+        )
+
+    def list_auth_users(self) -> list[dict[str, object]]:
+        """List institutional users (no password hashes)."""
+        from dsp_platform.auth_facade import list_auth_users
+
+        return list_auth_users()
+
+    def get_auth_user(self, user_id: str) -> dict[str, object] | None:
+        """Fetch an institutional user by id."""
+        from dsp_platform.auth_facade import get_auth_user
+
+        return get_auth_user(user_id)
+
+    def set_auth_user_roles(
+        self, user_id: str, roles: list[str]
+    ) -> dict[str, object]:
+        """Assign roles to an institutional user."""
+        from dsp_platform.auth_facade import set_auth_user_roles
+
+        return set_auth_user_roles(user_id, roles)
+
+    def list_auth_roles(self) -> list[dict[str, object]]:
+        """List configurable institutional roles."""
+        from dsp_platform.auth_facade import list_auth_roles
+
+        return list_auth_roles()
+
+    def upsert_auth_role(
+        self,
+        role_id: str,
+        *,
+        name: str | None = None,
+        permissions: list[str] | None = None,
+    ) -> dict[str, object]:
+        """Create or update a configurable role."""
+        from dsp_platform.auth_facade import upsert_auth_role
+
+        return upsert_auth_role(role_id, name=name, permissions=permissions)
+
+    def list_auth_permissions(self) -> list[str]:
+        """List institutional permissions."""
+        from dsp_platform.auth_facade import list_auth_permissions
+
+        return list_auth_permissions()
+
+    def auth_login(self, **kwargs: object) -> dict[str, object]:
+        """Institutional login — JWT access + refresh tokens."""
+        from dsp_platform.auth_facade import auth_login
+
+        return auth_login(**kwargs)
+
+    def auth_logout(self, **kwargs: object) -> dict[str, object]:
+        """Revoke an institutional session."""
+        from dsp_platform.auth_facade import auth_logout
+
+        return auth_logout(**kwargs)
+
+    def auth_refresh(self, **kwargs: object) -> dict[str, object]:
+        """Refresh institutional access token."""
+        from dsp_platform.auth_facade import auth_refresh
+
+        return auth_refresh(**kwargs)
+
+    def auth_current_user(
+        self, access_token: str, **kwargs: object
+    ) -> dict[str, object]:
+        """Resolve current user from access token."""
+        from dsp_platform.auth_facade import auth_current_user
+
+        return auth_current_user(access_token, **kwargs)
+
+    def evaluate_auth_permission(
+        self, user_id: str, permission: str
+    ) -> dict[str, object]:
+        """Evaluate whether a user holds a permission."""
+        from dsp_platform.auth_facade import evaluate_auth_permission
+
+        return evaluate_auth_permission(user_id, permission)
+
+    def protect_with_permission(
+        self, access_token: str, permission: str, **kwargs: object
+    ) -> dict[str, object]:
+        """Validate token and require permission (optional platform guard)."""
+        from dsp_platform.auth_facade import protect_with_permission
+
+        return protect_with_permission(access_token, permission, **kwargs)
+
+    def admin_schema(self) -> dict[str, object]:
+        """Enterprise Admin Console schema (EPIC-A010)."""
+        from dsp_platform.admin_facade import admin_schema
+
+        return admin_schema()
+
+    def admin_dashboard(self, **kwargs: object) -> dict[str, object]:
+        """Read-only admin dashboard aggregate."""
+        from dsp_platform.admin_facade import admin_dashboard
+
+        return admin_dashboard(**kwargs)
+
+    def admin_list_users(self) -> list[dict[str, object]]:
+        from dsp_platform.admin_facade import admin_list_users
+
+        return admin_list_users()
+
+    def admin_get_user(self, user_id: str) -> dict[str, object] | None:
+        from dsp_platform.admin_facade import admin_get_user
+
+        return admin_get_user(user_id)
+
+    def admin_create_user(self, **kwargs: object) -> dict[str, object]:
+        from dsp_platform.admin_facade import admin_create_user
+
+        return admin_create_user(**kwargs)
+
+    def admin_set_user_roles(
+        self, user_id: str, roles: list[str]
+    ) -> dict[str, object]:
+        from dsp_platform.admin_facade import admin_set_user_roles
+
+        return admin_set_user_roles(user_id, roles)
+
+    def admin_list_roles(self) -> list[dict[str, object]]:
+        from dsp_platform.admin_facade import admin_list_roles
+
+        return admin_list_roles()
+
+    def admin_upsert_role(self, **kwargs: object) -> dict[str, object]:
+        from dsp_platform.admin_facade import admin_upsert_role
+
+        return admin_upsert_role(**kwargs)
+
+    def admin_list_permissions(self) -> list[str]:
+        from dsp_platform.admin_facade import admin_list_permissions
+
+        return admin_list_permissions()
+
+    def admin_list_sessions(
+        self, *, user_id: str | None = None
+    ) -> list[dict[str, object]]:
+        from dsp_platform.admin_facade import admin_list_sessions
+
+        return admin_list_sessions(user_id=user_id)
+
+    def admin_list_audit_records(self, **kwargs: object) -> list[dict[str, object]]:
+        from dsp_platform.admin_facade import admin_list_audit_records
+
+        return admin_list_audit_records(**kwargs)
+
+    def admin_list_workflow_history(self) -> list[dict[str, object]]:
+        from dsp_platform.admin_facade import admin_list_workflow_history
+
+        return admin_list_workflow_history()
+
+    def admin_list_research_archive_metadata(
+        self,
+    ) -> list[dict[str, object]]:
+        from dsp_platform.admin_facade import admin_list_research_archive_metadata
+
+        return admin_list_research_archive_metadata()
+
+    def admin_activity_timeline(
+        self, *, limit: int = 100
+    ) -> list[dict[str, object]]:
+        from dsp_platform.admin_facade import admin_activity_timeline
+
+        return admin_activity_timeline(limit=limit)
+
+    def admin_search(
+        self, query: str, *, scope: str = "audit"
+    ) -> dict[str, object]:
+        from dsp_platform.admin_facade import admin_search
+
+        return admin_search(query, scope=scope)
+
+    def admin_export_audit(self, **kwargs: object) -> dict[str, object]:
+        from dsp_platform.admin_facade import admin_export_audit
+
+        return admin_export_audit(**kwargs)
+
+    def admin_health_panel(self) -> dict[str, object]:
+        from dsp_platform.admin_facade import admin_health_panel
+
+        return admin_health_panel()
+
+    def admin_configuration(self) -> dict[str, object]:
+        from dsp_platform.admin_facade import admin_configuration
+
+        return admin_configuration()
+
+    def admin_versions(self) -> dict[str, object]:
+        from dsp_platform.admin_facade import admin_versions
+
+        return admin_versions()
+
+    def admin_feature_flags(
+        self, flags: dict[str, bool] | None = None
+    ) -> dict[str, object]:
+        from dsp_platform.admin_facade import admin_feature_flags
+
+        return admin_feature_flags(flags)
+
+    def admin_system_metrics(self) -> dict[str, object]:
+        from dsp_platform.admin_facade import admin_system_metrics
+
+        return admin_system_metrics()
     def _metadata(self) -> PlatformMetadata:
         return PlatformMetadata(
             name=self._configuration.platform_name,

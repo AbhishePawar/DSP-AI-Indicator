@@ -6,6 +6,7 @@
 import type {
   AnalyseRequest,
   AnalyseResponse,
+  CompanyRiskPayload,
   StageSummary,
 } from "@/lib/api/compositionTypes";
 import {
@@ -14,6 +15,26 @@ import {
   mapAnalyseResponse,
   type IntelligenceView,
 } from "@/lib/intelligence/mapResponse";
+import {
+  mapBuffettReport,
+  type BuffettReportView,
+} from "@/lib/buffett-indicator";
+import {
+  mapInstitutionalRatings,
+  type InstitutionalRatingFramework,
+} from "@/lib/institutional-rating";
+import {
+  mapReportTransparency,
+  type ReportTransparencyView,
+} from "@/lib/report-transparency";
+import {
+  mapInstitutionalExplainability,
+  type InstitutionalExplainabilityFramework,
+} from "@/lib/explainability";
+import {
+  mapValuationTransparency,
+  type ValuationTransparencyView,
+} from "@/lib/valuation-transparency";
 
 export type StageSectionView = {
   stage: string;
@@ -52,6 +73,18 @@ export type ResearchView = IntelligenceView & {
     opposingReasons: string[];
     finalRecommendation: string;
   };
+  /** ARCH-001 — presentation synthesis after final recommendation (no new engine). */
+  buffett: BuffettReportView;
+  /** ARCH-002 — unified institutional rating framework (presentation aggregate). */
+  ratings: InstitutionalRatingFramework;
+  /** P2.1 — report transparency / Report Information card. */
+  transparency: ReportTransparencyView;
+  /** P2.2 — expandable explainability for each institutional rating. */
+  explainability: InstitutionalExplainabilityFramework;
+  /** P2.3 — institutional valuation transparency (presentation). */
+  valuationTransparency: ValuationTransparencyView;
+  /** Composition Risk stage — structural aggregation of existing engines only. */
+  risk: CompanyRiskPayload | null;
 };
 
 function stageOrEmpty(
@@ -160,17 +193,29 @@ export function mapResearchView(
     "Profit Growth",
     "Reinvestment",
   ]);
+  // RC3-001 / GOV-001 — Business Quality metrics from business_quality_aggregator only.
+  // Never alias Management / Growth / Moat / Risk / Financial into Book 04 fields.
   const businessQuality = toSection(
     stageOrEmpty(stages, "business_quality_aggregator"),
-    ["Overall Score", "Moat", "Capital Allocation", "Competitive Position"],
+    [
+      "Overall Score",
+      "Label",
+      "Decision",
+      "Confidence",
+      "Capital Allocation Quality",
+      "Industry Structure",
+      "Operating Discipline",
+      "Franchise Durability",
+      "Reinvestment Opportunity",
+    ],
   );
-  // Prefer aggregator score for Overall; moat/capital from sibling stages when available
-  businessQuality.metrics = [
-    { label: "Overall Score", value: formatScore(base.businessQualityScore) },
-    { label: "Moat", value: moat.label },
-    { label: "Capital Allocation", value: management.label },
-    { label: "Competitive Position", value: moat.decision },
-  ];
+  if (base.businessQualityScore != null) {
+    businessQuality.metrics = businessQuality.metrics.map((m) =>
+      m.label === "Overall Score"
+        ? { ...m, value: formatScore(base.businessQualityScore) }
+        : m,
+    );
+  }
 
   const recommendationStage = toSection(
     stageOrEmpty(stages, "investment_recommendation"),
@@ -181,7 +226,14 @@ export function mapResearchView(
     ["Score", "Label", "Decision", "Confidence"],
   );
 
-  return {
+  const committee = {
+      ...committeeBase,
+      supportingReasons: base.strengths,
+      opposingReasons: [...base.weaknesses, ...base.risks],
+      finalRecommendation: base.recommendation,
+  };
+
+  const draft = {
     ...base,
     ticker: request.ticker.toUpperCase(),
     exchange: display(request.exchange, "—"),
@@ -209,11 +261,24 @@ export function mapResearchView(
     growth,
     businessQuality,
     recommendationStage,
-    committee: {
-      ...committeeBase,
-      supportingReasons: base.strengths,
-      opposingReasons: [...base.weaknesses, ...base.risks],
-      finalRecommendation: base.recommendation,
-    },
+    committee,
+    risk: (response.payload?.risk as CompanyRiskPayload | null | undefined) ?? null,
+  };
+  const withBuffett = {
+    ...draft,
+    buffett: mapBuffettReport(draft),
+  };
+  const withRatings = {
+    ...withBuffett,
+    ratings: mapInstitutionalRatings(withBuffett),
+  };
+  const withTransparency = {
+    ...withRatings,
+    transparency: mapReportTransparency(withRatings),
+    explainability: mapInstitutionalExplainability(withRatings.ratings.modules),
+  };
+  return {
+    ...withTransparency,
+    valuationTransparency: mapValuationTransparency(withTransparency),
   };
 }

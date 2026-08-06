@@ -63,6 +63,11 @@ class HealthResponse(BaseModel):
     repository_version: str | None = None
     checks: list[dict[str, Any]] = Field(default_factory=list)
     limitations: list[str] = Field(default_factory=list)
+    # EPIC-011A — optional dependency component map (DB/Redis/cache/…)
+    components: dict[str, Any] = Field(default_factory=dict)
+    # P1.3 — aggregate lifecycle-derived status (startup|ready|degraded|unhealthy).
+    # Additive/optional — existing consumers that ignore unknown fields are unaffected.
+    platform_status: str | None = None
 
 
 class PlatformInfoResponse(BaseModel):
@@ -97,16 +102,20 @@ class AnalyzeCompanyRequest(BaseModel):
 
 
 class CompareRequest(BaseModel):
-    """Comparison request — packs are opaque cite payloads for the platform.
+    """Comparison request — references already produced Decision Pack reports.
 
-    The API does not construct business conclusions. Callers supply already
-    produced Decision Pack payloads (as JSON-compatible dicts) for
-    orchestration. When packs are empty, the API returns a validation error.
+    The API does not construct business conclusions. Callers supply
+    ``report_ids`` returned by a prior ``POST /analyze/company`` call made
+    with ``as_decision_pack=true``; those in-memory Decision Packs are fed
+    into ``DSPPlatform.compare_companies`` unchanged. At least two distinct
+    report ids are required.
     """
 
     model_config = ConfigDict(extra="forbid")
 
-    packs: list[dict[str, Any]] = Field(default_factory=list)
+    report_ids: list[str] = Field(default_factory=list, min_length=0)
+    allow_related: bool = False
+    allow_limited: bool = False
     note: str | None = None
 
 

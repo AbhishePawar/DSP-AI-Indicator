@@ -1,5 +1,5 @@
 ---
-description: DSP frozen architecture, trust standard, and product constitution — mandatory for all implementation
+description: DSP Tier-0 CV-001…CV-010, Research Standards RS-001…RS-010, trust, and constitution — mandatory
 alwaysApply: true
 ---
 
@@ -9,39 +9,55 @@ alwaysApply: true
 
 Follow **exactly**:
 
-- PR1.0 Product Strategy & Compliance (`docs/PRODUCT_*`, `RESEARCH_MODE`, `FEATURE_FLAG_*`, `COMPLIANCE_*`)
-- PR1.1 Product Experience Blueprint (`docs/PRODUCT_EXPERIENCE_BLUEPRINT.md` and linked PXB docs)
-- PR1.2 Visual Language & Interaction System (`docs/PR1_2_*`, `VISUAL_LANGUAGE.md`, etc.)
+- `docs/ARCHITECTURE_BIBLE.md` · `docs/CORE_VALUES.md`
+- **CV-001** `docs/CV_001_DATA_AUTHENTICITY_FIRST.md`
+- **CV-002…CV-010** `docs/CV_002_TO_010_TIER0_CORE_VALUES.md`
+- **RS-001…RS-010** `docs/RESEARCH_STANDARDS.md` · `docs/RS_001_TO_RS_010.md`
+- PR1.0 / PR1.1 / PR1.2 product docs
 - `docs/ARCHITECTURE_GOVERNANCE.md`
 - `docs/USER_TRUST_STANDARD.md`
 - `docs/PRODUCT_CONSTITUTION.md`
 - `docs/IMPLEMENTATION_QUALITY_GATE.md`
+- `docs/ARCHITECTURE_CHECKLIST.md` · `docs/CODE_REVIEW_CHECKLIST.md`
 
 If implementation reveals an architectural issue: **STOP**, document the gap, **do not** redesign the platform.
 
+## Tier-0 Core Values (HOW — NON-NEGOTIABLE)
+
+| ID | Rule (short) |
+|---|---|
+| CV-001 | No fabricated numbers; **Data unavailable.** |
+| CV-002 | Source before score; never calculate on incomplete mandatory inputs |
+| CV-003 | Explainability before recommendation |
+| CV-004 | Determinism before intelligence; reproducible reports |
+| CV-005 | Transparency over confidence; prefer **Unable to calculate.** |
+| CV-006 | Traceability by design |
+| CV-007 | Auditability first |
+| CV-008 | Research before recommendation |
+| CV-009 | Governance over convenience — no bypasses |
+| CV-010 | Quality over speed |
+
+## Research Standards (WHAT — NON-NEGOTIABLE for reports)
+
+RS-001 Executive Summary · RS-002 Authenticated Market Data · RS-003 Financial Statements · RS-004 Valuation · RS-005 Margin of Safety (prominent) · RS-006 Business Quality · RS-007 Risk · RS-008 Scenarios · RS-009 Explainability · RS-010 Audit & Provenance.
+
+Mandatory header first: Price · IV · MoS · Fair Value Range · CAGR · Confidence · Overall Score · Research Status · Recommendation.
+
+**Missing RS section = Research Report Validation FAIL.**
+
+**Any CV or RS violation (in scope) = Architecture Violation (review MUST FAIL).**
+
 ## Thin client
 
-No valuation, recommendation, or AI reasoning in the browser. Use frozen `/api/v1` only. No engine/API/compliance redesign under UI epics.
-
-## User Trust Standard (every insight)
-
-1. **Traceable** — show source (statements, calculated, valuation, AI, consensus, user input)
-2. **Explainable** — What / Why / Why care / What next
-3. **Consistent** — terminology, ratings, colors, order, VLIS
-4. **Actionable** — always a next investigation step
-5. **Honest** — category: Verified / Calculated / Estimated / AI / Consensus / User / Unknown / Unavailable; never fabricate
-6. **Transparent AI** — separate raw data, calculated metrics, AI interpretation, street opinion
-7. **Research first** — educate before recommending; Research Mode labels unless SEBI flags unlock
+No valuation, recommendation, or AI reasoning in the browser. Use frozen `/api/v1` only. No engine/API/model/scoring/boundary redesign under UI epics.
 
 ## Product Constitution (priority order)
 
-Trust → Correctness → Explainability → Consistency → Accessibility → Performance → Visual Polish → Feature Completeness
-
-Never ship polish that reduces trust. Prefer simpler trust-increasing UX.
+**Tier-0 CV** → **RS (report content)** → Trust → Correctness → Explainability → Consistency → Accessibility → Performance → Visual Polish → Feature Completeness
 
 ## Quality gate before COMPLETE
 
-PR1.0–PR1.2 · Governance · Trust · Constitution · Four Questions · Research Mode · Feature flags · A11y · Performance · Responsive · Mobile · Thin client · Regression GREEN
+PR1.0–PR1.2 · Governance · **CV-001…CV-010** · **RS-001…RS-010** (reports) · Trust · Constitution · Four Questions · Research Mode · Feature flags · A11y · Performance · Responsive · Mobile · Thin client · Regression GREEN
 
 ## Implementation return format
 

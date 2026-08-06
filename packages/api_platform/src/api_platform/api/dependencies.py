@@ -2,11 +2,13 @@
 
 from __future__ import annotations
 
+import os
+from collections.abc import Callable
 from dataclasses import dataclass, field
 from threading import Lock
-from typing import Any, Callable
+from typing import Any
 
-from fastapi import Request
+from fastapi import Depends, Header, HTTPException, Request
 
 from api_platform.api.exceptions import ApiNotFoundError
 from dsp_platform import DSPPlatform, PlatformBuilder, PlatformConfiguration
@@ -22,10 +24,12 @@ __all__ = [
     "ReportStore",
     "ContextStore",
     "get_api_state",
+    "get_current_user_id",
     "get_platform",
     "get_report_store",
     "get_context_store",
     "build_default_platform",
+    "require_admin_access",
 ]
 
 
@@ -93,6 +97,10 @@ class ApiState:
     api_version: str = "v1"
     copilot_service: Any = field(default=None)
     language_model: Any | None = None
+    # EPIC-011A — optional production infra (duck-typed)
+    infrastructure: Any | None = None
+    production: Any | None = None
+    infra_notes: tuple[str, ...] = ()
 
 
 def build_copilot_service() -> Any:
@@ -151,3 +159,105 @@ def get_context_store(request: Request) -> ContextStore:
 
 
 PlatformFactory = Callable[[], DSPPlatform]
+
+
+def _admin_auth_enforced() -> bool:
+    """Enforce admin Bearer auth in production / secured / explicit flag modes."""
+    if os.environ.get("DSP_ENVIRONMENT", "").lower() == "production":
+        return True
+    if os.environ.get("DSP_ENABLE_SECURITY", "").lower() in {"1", "true", "yes"}:
+        return True
+    if os.environ.get("DSP_REQUIRE_ADMIN_AUTH", "").lower() in {"1", "true", "yes"}:
+        return True
+    return False
+
+
+def require_admin_access(request: Request) -> dict[str, Any] | None:
+    """Router dependency for institutional admin / beta admin routes (P1.2).
+
+    When enforcement is off (typical local tests), requests pass through.
+    When on, requires Bearer access token with ``configure_platform`` or
+    ``manage_users`` permission via the A009 auth package.
+    """
+    if not _admin_auth_enforced():
+        return None
+
+    auth_header = request.headers.get("authorization") or ""
+    if not auth_header.lower().startswith("bearer "):
+        raise HTTPException(
+            status_code=401,
+            detail="admin authentication required",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+    token = auth_header[7:].strip()
+    if not token:
+        raise HTTPException(status_code=401, detail="admin authentication required")
+
+    try:
+        from auth import get_auth_service
+
+        auth = get_auth_service()
+        user = auth.current_user(token)
+        uid = str(user.get("user_id") or "")
+        allowed = False
+        for perm in ("configure_platform", "manage_users"):
+            try:
+                auth.require_permission(user, perm)
+                allowed = True
+                break
+            except Exception:  # noqa: BLE001
+                continue
+        if not allowed:
+            raise HTTPException(status_code=403, detail="admin permission required")
+        return {"user_id": uid, "user": user}
+    except HTTPException:
+        raise
+    except Exception as exc:  # noqa: BLE001
+        raise HTTPException(
+            status_code=401,
+            detail="admin authentication required",
+            headers={"WWW-Authenticate": "Bearer"},
+        ) from exc
+
+
+def get_current_user_id(
+    request: Request,
+    state: ApiState = Depends(get_api_state),
+    authorization: str | None = Header(default=None),
+) -> str:
+    """Resolve the authenticated user id — Bearer token or RBAC session cookie.
+
+    Reuses the existing institutional auth (EPIC-A009,
+    ``DSPPlatform.auth_current_user``) — the exact same resolution
+    ``GET /auth/rbac/me`` already performs. No new auth scheme; required by
+    every per-user-owned resource route (e.g. Portfolio Store, RC1
+    Milestone 3) so ownership can be enforced server-side.
+    """
+    token: str | None = None
+    if authorization and authorization.lower().startswith("bearer "):
+        token = authorization.split(" ", 1)[1].strip()
+    if not token:
+        try:
+            from security_platform.security.cookies import read_access_token
+
+            token = read_access_token(request)
+        except Exception:  # noqa: BLE001
+            token = None
+    if not token:
+        raise HTTPException(
+            status_code=401,
+            detail="authentication required",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+    try:
+        result = state.platform.auth_current_user(token)
+    except Exception as exc:  # noqa: BLE001
+        raise HTTPException(
+            status_code=401,
+            detail="invalid or expired session",
+            headers={"WWW-Authenticate": "Bearer"},
+        ) from exc
+    user_id = str(result.get("user_id") or "").strip()
+    if not user_id:
+        raise HTTPException(status_code=401, detail="invalid or expired session")
+    return user_id

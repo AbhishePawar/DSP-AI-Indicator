@@ -38,14 +38,21 @@ const FORBIDDEN_FILENAME_RE =
 
 /** Allowlist dirs may contain presentation helpers only. */
 const LIB_ALLOWLIST = new Set([
+  "a11y",
+  "admin-console",
   "advisor",
   "ai",
   "analysis",
   "api",
   "auth",
   "beta",
+  "buffett-indicator",
+  "institutional-rating",
   "companies",
+  "company-analysis",
   "copilot",
+  "dashboard",
+  "institutional-dashboard",
   "intelligence",
   "launch",
   "market",
@@ -53,10 +60,18 @@ const LIB_ALLOWLIST = new Set([
   "perf",
   "persistence",
   "portfolio",
+  "portfolio-intelligence",
   "rc",
   "research",
+  "research-workspace",
+  "report-transparency",
+  "explainability",
+  "valuation-transparency",
   "screening",
+  "settings",
+  "shell",
   "trust",
+  "workflow-automation",
 ]);
 
 const CALC_SMELL_RE =

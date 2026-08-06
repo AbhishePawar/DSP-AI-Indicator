@@ -40,6 +40,10 @@ PATH_PERMISSIONS: dict[str, Permission] = {
     "/api/v1/copilot/complete": Permission.ASK_COPILOT,
     "/copilot/stream": Permission.ASK_COPILOT,
     "/api/v1/copilot/stream": Permission.ASK_COPILOT,
+    "/research/export": Permission.VIEW_REPORTS,
+    "/api/v1/research/export": Permission.VIEW_REPORTS,
+    "/research/report": Permission.VIEW_REPORTS,
+    "/api/v1/research/report": Permission.VIEW_REPORTS,
 }
 
 
@@ -51,11 +55,27 @@ def _permission_for_path(path: str) -> Permission | None:
     return None
 
 
+def _is_institutional_auth_zone(path: str) -> bool:
+    """Institutional RBAC/admin uses the ``auth`` package JWT — not security_platform."""
+    return (
+        path.startswith("/admin")
+        or path.startswith("/api/v1/admin")
+        or path.startswith("/auth/rbac")
+        or path.startswith("/api/v1/auth/rbac")
+        or path.startswith("/enterprise")
+        or path.startswith("/api/v1/enterprise")
+        or path.startswith("/beta")
+        or path.startswith("/api/v1/beta")
+    )
+
+
 class SecurityMiddleware(BaseHTTPMiddleware):
     """Authenticate / authorize HTTP requests; attach ``request.state.security``.
 
     Does not import or call ``dsp_platform``. Public paths skip auth when
     configured. Guest mode is optional via ``SecuritySettings.allow_guest``.
+    Institutional ``/admin`` and ``/auth/rbac`` zones are delegated to the
+    EPIC-A009/A010 stack (see ``require_admin_access``).
     """
 
     def __init__(self, app: Any, *, bundle: SecurityBundle) -> None:
@@ -70,14 +90,20 @@ class SecurityMiddleware(BaseHTTPMiddleware):
         path = request.url.path
         settings = self._bundle.settings
 
-        if path in settings.public_paths or not settings.require_auth:
+        auth_header = _authorization_from_request(request)
+
+        if (
+            path in settings.public_paths
+            or not settings.require_auth
+            or _is_institutional_auth_zone(path)
+        ):
             # Still attach guest/anonymous context when possible.
             try:
                 if settings.allow_guest:
                     principal = self._bundle.authentication.guest_principal()
                 else:
                     principal = self._bundle.authentication.authenticate_headers(
-                        authorization=request.headers.get("authorization"),
+                        authorization=auth_header,
                         api_key_id=request.headers.get("x-api-key-id"),
                         api_key_secret=request.headers.get("x-api-key-secret"),
                     )
@@ -92,7 +118,7 @@ class SecurityMiddleware(BaseHTTPMiddleware):
 
         try:
             principal = self._bundle.authentication.authenticate_headers(
-                authorization=request.headers.get("authorization"),
+                authorization=auth_header,
                 api_key_id=request.headers.get("x-api-key-id"),
                 api_key_secret=request.headers.get("x-api-key-secret"),
             )
@@ -137,6 +163,23 @@ class SecurityMiddleware(BaseHTTPMiddleware):
             return _error_response(400, "SecurityError", str(exc))
 
         return await call_next(request)
+
+
+def _authorization_from_request(request: Request) -> str | None:
+    """Prefer Authorization header; fall back to HttpOnly access cookie (EPIC-016)."""
+    header = request.headers.get("authorization")
+    if header:
+        return header
+    try:
+        from security_platform.security.cookies import ACCESS_COOKIE, cookie_auth_enabled
+
+        if cookie_auth_enabled():
+            token = request.cookies.get(ACCESS_COOKIE)
+            if token:
+                return f"Bearer {token}"
+    except Exception:  # noqa: BLE001 — never break auth stack on cookie helper issues
+        pass
+    return None
 
 
 def _error_response(status: int, error: str, detail: str) -> JSONResponse:

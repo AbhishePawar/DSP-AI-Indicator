@@ -1,0 +1,302 @@
+# DSP AI Indicator — Full production stack (EPIC-P7.0 + P7.4 observability)
+#
+# Usage (from repo root):
+#   cp .env.production.example .env.production   # fill secrets locally — never commit
+#   ./scripts/deploy_production.sh
+#
+# Secrets must come from .env.production or a secret manager — never bake into images.
+
+name: dsp-production
+
+x-logging: &default-logging
+  driver: json-file
+  options:
+    max-size: "20m"
+    max-file: "5"
+
+services:
+  proxy:
+    image: caddy:2.8-alpine
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp"
+    environment:
+      DSP_PUBLIC_DOMAIN: ${DSP_PUBLIC_DOMAIN:-localhost}
+      DSP_API_DOMAIN: ${DSP_API_DOMAIN:-api.localhost}
+      DSP_ACME_EMAIL: ${DSP_ACME_EMAIL:-ops@localhost}
+      DSP_AUTO_HTTPS: ${DSP_AUTO_HTTPS:-on}
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+      - caddy_logs:/var/log/caddy
+    depends_on:
+      api:
+        condition: service_healthy
+      web:
+        condition: service_healthy
+    networks:
+      - dsp_prod
+    logging: *default-logging
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1:2019/metrics"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
+
+  api:
+    image: ${DSP_API_IMAGE:-dsp-api}:${DSP_IMAGE_TAG:-2.0.0}
+    build:
+      context: ..
+      dockerfile: docker/backend/Dockerfile
+    restart: unless-stopped
+    env_file:
+      - ../.env.production
+    environment:
+      DSP_ENVIRONMENT: production
+      DSP_APP_VERSION: ${DSP_APP_VERSION:-2.0.0}
+      DSP_PLATFORM_VERSION: ${DSP_PLATFORM_VERSION:-2.0.0}
+      DSP_ENABLE_SECURITY: "true"
+      DSP_REQUIRE_ADMIN_AUTH: "true"
+      DSP_RATE_LIMIT_ENABLED: "true"
+      DSP_HSTS_ENABLED: "true"
+      DSP_INDIA_TIMEZONE: Asia/Kolkata
+      DSP_INDIA_CURRENCY: INR
+      DSP_REGION: ${DSP_REGION:-ap-south-1}
+      TZ: Asia/Kolkata
+      LANG: ${LANG:-en_IN.UTF-8}
+      DSP_TEMP_DIR: /tmp/dsp
+      DSP_BACKUP_DIR: /var/backups/dsp
+      DSP_DATABASE_URL: ${DSP_DATABASE_URL:-postgresql://dsp:${POSTGRES_PASSWORD:-dsp_change_me}@postgres:5432/dsp}
+      DSP_REDIS_URL: ${DSP_REDIS_URL:-redis://redis:6379/0}
+      DSP_REDIS_FALLBACK: ${DSP_REDIS_FALLBACK:-false}
+      DSP_FORWARDED_ALLOW_IPS: "*"
+    volumes:
+      - dsp_api_tmp:/tmp/dsp
+      - dsp_backups:/var/backups/dsp
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - dsp_prod
+    expose:
+      - "8000"
+    deploy:
+      resources:
+        limits:
+          cpus: "2"
+          memory: 2G
+    logging: *default-logging
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://127.0.0.1:8000/health/ready"]
+      interval: 20s
+      timeout: 5s
+      retries: 5
+      start_period: 40s
+
+  web:
+    image: ${DSP_WEB_IMAGE:-dsp-web}:${DSP_IMAGE_TAG_WEB:-2.0.0}
+    build:
+      context: ..
+      dockerfile: docker/frontend/Dockerfile
+      args:
+        NEXT_PUBLIC_API_BASE_URL: ${NEXT_PUBLIC_API_BASE_URL:-https://${DSP_PUBLIC_DOMAIN:-localhost}/api/v1}
+        NEXT_PUBLIC_APP_NAME: ${NEXT_PUBLIC_APP_NAME:-DSP AI Indicator}
+        NEXT_PUBLIC_BUILD_TIMESTAMP: ${BUILD_TIMESTAMP:-}
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      TZ: Asia/Kolkata
+    networks:
+      - dsp_prod
+    expose:
+      - "3000"
+    depends_on:
+      api:
+        condition: service_healthy
+    deploy:
+      resources:
+        limits:
+          cpus: "1"
+          memory: 1G
+    logging: *default-logging
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1:3000/api/health"]
+      interval: 20s
+      timeout: 5s
+      retries: 5
+      start_period: 45s
+
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-dsp}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-dsp_change_me}
+      POSTGRES_DB: ${POSTGRES_DB:-dsp}
+      TZ: Asia/Kolkata
+    volumes:
+      - dsp_pg_data:/var/lib/postgresql/data
+      - dsp_backups:/var/backups/dsp
+    networks:
+      - dsp_prod
+    expose:
+      - "5432"
+    deploy:
+      resources:
+        limits:
+          cpus: "2"
+          memory: 2G
+    logging: *default-logging
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER:-dsp} -d $${POSTGRES_DB:-dsp}"]
+      interval: 10s
+      timeout: 5s
+      retries: 8
+      start_period: 20s
+
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    command: ["redis-server", "--appendonly", "yes"]
+    volumes:
+      - dsp_redis_data:/data
+    networks:
+      - dsp_prod
+    expose:
+      - "6379"
+    deploy:
+      resources:
+        limits:
+          cpus: "1"
+          memory: 512M
+    logging: *default-logging
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+
+  prometheus:
+    image: prom/prometheus:v2.54.1
+    restart: unless-stopped
+    command:
+      - --config.file=/etc/prometheus/prometheus.yml
+      - --storage.tsdb.path=/prometheus
+      - --storage.tsdb.retention.time=15d
+      - --web.enable-lifecycle
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - ./prometheus/alerts.yml:/etc/prometheus/alerts.yml:ro
+      - prometheus_data:/prometheus
+    networks:
+      - dsp_prod
+    expose:
+      - "9090"
+    depends_on:
+      - api
+      - cadvisor
+      - alertmanager
+      - postgres-exporter
+      - redis-exporter
+    logging: *default-logging
+
+  alertmanager:
+    image: prom/alertmanager:v0.27.0
+    restart: unless-stopped
+    command:
+      - --config.file=/etc/alertmanager/alertmanager.yml
+      - --storage.path=/alertmanager
+    volumes:
+      - ./alertmanager.yml:/etc/alertmanager/alertmanager.yml:ro
+      - alertmanager_data:/alertmanager
+    networks:
+      - dsp_prod
+    expose:
+      - "9093"
+    logging: *default-logging
+
+  grafana:
+    image: grafana/grafana:11.1.0
+    restart: unless-stopped
+    environment:
+      GF_SECURITY_ADMIN_USER: ${GRAFANA_ADMIN_USER:-admin}
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_ADMIN_PASSWORD:-CHANGE_ME_GRAFANA_ADMIN}
+      GF_USERS_ALLOW_SIGN_UP: "false"
+      GF_SERVER_ROOT_URL: ${GRAFANA_ROOT_URL:-http://localhost:3001}
+      GF_AUTH_ANONYMOUS_ENABLED: "false"
+    volumes:
+      - ./grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./grafana/dashboards:/var/lib/grafana/dashboards:ro
+      - grafana_data:/var/lib/grafana
+    networks:
+      - dsp_prod
+    ports:
+      - "${GRAFANA_HOST_PORT:-3001}:3000"
+    depends_on:
+      - prometheus
+    logging: *default-logging
+
+  postgres-exporter:
+    image: quay.io/prometheuscommunity/postgres-exporter:v0.15.0
+    restart: unless-stopped
+    environment:
+      DATA_SOURCE_NAME: postgresql://${POSTGRES_USER:-dsp}:${POSTGRES_PASSWORD:-dsp_change_me}@postgres:5432/${POSTGRES_DB:-dsp}?sslmode=disable
+    networks:
+      - dsp_prod
+    expose:
+      - "9187"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    logging: *default-logging
+
+  redis-exporter:
+    image: oliver006/redis_exporter:v1.62.0
+    restart: unless-stopped
+    environment:
+      REDIS_ADDR: redis://redis:6379
+    networks:
+      - dsp_prod
+    expose:
+      - "9121"
+    depends_on:
+      redis:
+        condition: service_healthy
+    logging: *default-logging
+
+  cadvisor:
+    image: gcr.io/cadvisor/cadvisor:v0.49.1
+    restart: unless-stopped
+    privileged: true
+    volumes:
+      - /:/rootfs:ro
+      - /var/run:/var/run:ro
+      - /sys:/sys:ro
+      - /var/lib/docker/:/var/lib/docker:ro
+    networks:
+      - dsp_prod
+    expose:
+      - "8080"
+    logging: *default-logging
+
+networks:
+  dsp_prod:
+    driver: bridge
+
+volumes:
+  dsp_pg_data:
+  dsp_redis_data:
+  dsp_api_tmp:
+  dsp_backups:
+  caddy_data:
+  caddy_config:
+  caddy_logs:
+  prometheus_data:
+  alertmanager_data:
+  grafana_data:

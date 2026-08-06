@@ -97,6 +97,8 @@ def composition_package_versions() -> dict[str, str]:
         "investment_committee",
         "business_quality",
     )
+    # "risk" is a dsp_platform-native structural aggregation stage (see
+    # composition/risk_view.py), not an external engine package.
     out: dict[str, str] = {}
     for name in names:
         try:
@@ -124,6 +126,7 @@ def composition_capability_manifest() -> dict[str, Any]:
             "financial_strength",
             "earnings_quality",
             "growth_quality",
+            "risk",
             "business_quality",
             "investment_recommendation",
             "investment_committee",
@@ -145,6 +148,9 @@ def pipeline_result_public_dict(result: PipelineResult) -> dict[str, Any]:
     base["stage_summaries"] = summaries
     base["recommendation_summary"] = _decision_summary(result.investment_recommendation)
     base["committee_summary"] = _decision_summary(result.investment_committee)
+    base["risk"] = (
+        result.risk.to_dict() if hasattr(result.risk, "to_dict") else None
+    )
     return base
 
 
@@ -157,6 +163,7 @@ def _attr_for_stage(stage: PipelineStage) -> str:
         PipelineStage.FINANCIAL_STRENGTH: "financial_strength",
         PipelineStage.EARNINGS_QUALITY: "earnings_quality",
         PipelineStage.GROWTH_QUALITY: "growth_quality",
+        PipelineStage.RISK: "risk",
         PipelineStage.BUSINESS_QUALITY_AGGREGATOR: "business_quality",
         PipelineStage.INVESTMENT_RECOMMENDATION: "investment_recommendation",
         PipelineStage.INVESTMENT_COMMITTEE: "investment_committee",

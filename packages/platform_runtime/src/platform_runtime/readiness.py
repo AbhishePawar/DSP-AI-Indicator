@@ -48,6 +48,20 @@ def validate_enterprise_startup(platform: Any) -> StartupValidation:
 
     infra = getattr(platform, "infrastructure", None)
     _add("infrastructure", infra is not None and infra.database.ping())
+    if infra is not None:
+        probes = infra.health_checks()
+        _add(
+            "database",
+            bool(probes.get("database")),
+            detail=str(probes.get("database_adapter", "")),
+        )
+        redis = probes.get("redis") or {}
+        redis_status = str(redis.get("status", "skip"))
+        _add(
+            "redis",
+            redis_status in {"pass", "skip", "degraded"},
+            detail=f"status={redis_status}",
+        )
 
     obs = getattr(platform, "observability", None)
     _add(

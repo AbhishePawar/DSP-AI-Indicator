@@ -48,7 +48,7 @@ _FORBIDDEN = frozenset(
         "workflow",
     ]
 )
-_EXPECTED_VERSION = "0.2.0"
+_EXPECTED_VERSION = "0.3.0"
 
 
 def _imported_top_levels(source: str) -> frozenset[str]:

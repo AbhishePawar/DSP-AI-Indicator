@@ -432,7 +432,7 @@ export const PortfolioWorkspace = memo(function PortfolioWorkspace({
 
   return (
     <div className="relative pb-24 md:pb-8">
-      <div className="sticky top-14 z-20 mb-4 space-y-1 border-b border-[var(--border)] bg-[var(--surface)]/95 p-3 backdrop-blur lg:top-16">
+      <div className="sticky top-14 z-20 mb-4 space-y-1 border-b border-[var(--border)] bg-[var(--surface)]/95 p-3 backdrop-blur motion-reduce:backdrop-blur-none lg:top-16">
         <p className="text-xs text-[var(--muted)]">Portfolio summary · {view.version}</p>
         <p className="font-medium">
           Value {sticky.value} · Cash {sticky.cash} · Risk {sticky.risk}

@@ -1,0 +1,14 @@
+# Canary overlay — deploy a second Deployment with subset traffic via Ingress weight / service mesh.
+# Full procedure: docs/operations/Production_Deployment_Guide.md § Blue-Green & Canary
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+namespace: dsp
+resources:
+  - ../../base
+  - canary-api.yaml
+images:
+  - name: dsp-api
+    newTag: 2.0.0
+  - name: dsp-api-canary
+    newName: dsp-api
+    newTag: 2.0.1-canary

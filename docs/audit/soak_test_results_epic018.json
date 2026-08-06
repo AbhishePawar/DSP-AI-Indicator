@@ -1,0 +1,25 @@
+{
+  "epic": "018",
+  "title": "PARTIAL soak \u2014 synthetic in-process health endpoints",
+  "live_cluster": false,
+  "target_hours": "8-24",
+  "actual_duration_seconds": 6407.1,
+  "actual_duration_minutes": 106.79,
+  "status": "PARTIAL",
+  "workers": 4,
+  "endpoints": [
+    "/health/live",
+    "/health/ready",
+    "/metrics"
+  ],
+  "samples": 432,
+  "failures": 0,
+  "error_rate": 0.0,
+  "p50_ms": 24.036,
+  "p95_ms": 63.98,
+  "p99_ms": 104.26,
+  "mean_ms": 28.57,
+  "max_ms": 127.388,
+  "methodology": "In-process FastAPI TestClient continuous health poll \u2014 NOT multi-node 8-24h production soak.",
+  "residual_risk": "Memory leaks, connection pool exhaustion, Redis drift, and multi-replica session issues not evidenced."
+}

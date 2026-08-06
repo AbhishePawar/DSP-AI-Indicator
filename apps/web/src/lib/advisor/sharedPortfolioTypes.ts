@@ -81,11 +81,15 @@ export const DEFAULT_SHARED_PORTFOLIO_FILTERS: SharedPortfolioFilterState = {
   recentlyViewedOnly: false,
 };
 
-export const SHARED_PORTFOLIO_NAV = [
+export const SHARED_PORTFOLIO_NAV: ReadonlyArray<{
+  href: string;
+  label: string;
+  exact?: boolean;
+}> = [
   { href: "/advisor/team/shared-portfolios", label: "Overview", exact: true },
   { href: "/advisor/team/shared-portfolios/library", label: "Library" },
   { href: "/advisor/team/shared-portfolios/compare", label: "Compare" },
   { href: "/advisor/team/shared-portfolios/scenarios", label: "Scenarios" },
   { href: "/advisor/team/shared-portfolios/discussion", label: "Discussion" },
   { href: "/advisor/team/shared-portfolios/activity", label: "Activity" },
-] as const;
+];

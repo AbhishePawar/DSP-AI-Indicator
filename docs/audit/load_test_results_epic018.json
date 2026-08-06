@@ -1,0 +1,60 @@
+{
+  "epic": "018",
+  "title": "EPIC-018 production performance validation (synthetic)",
+  "methodology": "scripts/perf/epic017_load_scenarios.py via TestClient",
+  "live_cluster": false,
+  "scenarios": [
+    {
+      "users": 100,
+      "requests": 300,
+      "failures": 0,
+      "error_rate": 0.0,
+      "wall_seconds": 4.79,
+      "throughput_rps": 62.63,
+      "mean_ms": 904.023,
+      "p50_ms": 678.741,
+      "p95_ms": 2576.281,
+      "p99_ms": 3367.928,
+      "max_ms": 3808.754,
+      "note": "In-process TestClient concurrency (not multi-host).",
+      "methodology": "In-process FastAPI TestClient \u2014 synthetic concurrency, not multi-node production cluster load."
+    },
+    {
+      "users": 500,
+      "requests": 1500,
+      "failures": 0,
+      "error_rate": 0.0,
+      "wall_seconds": 26.716,
+      "throughput_rps": 56.15,
+      "mean_ms": 1108.925,
+      "p50_ms": 751.879,
+      "p95_ms": 3401.707,
+      "p99_ms": 4748.243,
+      "max_ms": 7520.125,
+      "note": "In-process TestClient concurrency (not multi-host).",
+      "methodology": "In-process FastAPI TestClient \u2014 synthetic concurrency, not multi-node production cluster load."
+    },
+    {
+      "users": 1000,
+      "requests": 3000,
+      "failures": 0,
+      "error_rate": 0.0,
+      "wall_seconds": 62.021,
+      "throughput_rps": 48.37,
+      "mean_ms": 1303.203,
+      "p50_ms": 896.553,
+      "p95_ms": 3890.727,
+      "p99_ms": 5888.325,
+      "max_ms": 12190.382,
+      "note": "In-process TestClient concurrency (not multi-host).",
+      "methodology": "In-process FastAPI TestClient \u2014 synthetic concurrency, not multi-node production cluster load.",
+      "caveat": "High VU counts share one process; results indicate relative pressure, not absolute production capacity."
+    }
+  ],
+  "bottlenecks_hypotheses": [
+    "Single-process GIL / TestClient shared app \u2014 understates horizontal scale",
+    "DB connection pool saturation under real Postgres (not exercised here)",
+    "Redis rate-limit / session ports dominate under authenticated traffic",
+    "Research/valuation paths excluded by design (architecture freeze)"
+  ]
+}

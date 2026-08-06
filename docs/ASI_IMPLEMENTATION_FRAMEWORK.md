@@ -122,6 +122,8 @@ A task may be marked **COMPLETE** only when **all** are true:
 |---|---|
 | 1 | Repository integrity verified for touched surfaces |
 | 2 | Architecture verified (boundaries / arch tests as applicable) |
+| 2b | **Tier-0 CV-001…CV-010** — [CORE_VALUES.md](CORE_VALUES.md); any violation = FAIL |
+| 2c | **RS-001…RS-010** — [RESEARCH_STANDARDS.md](RESEARCH_STANDARDS.md) when report surfaces touched; missing section = FAIL |
 | 3 | Package Health Checklist **PASS** for every modified package |
 | 4 | ADR completed **if** a significant decision was made |
 | 5 | Rollback strategy documented and reviewed |

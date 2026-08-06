@@ -1,0 +1,31 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: dsp-config
+  namespace: dsp
+  labels:
+    app.kubernetes.io/name: dsp
+data:
+  DSP_ENVIRONMENT: "production"
+  DSP_ENABLE_SECURITY: "true"
+  DSP_REQUIRE_ADMIN_AUTH: "true"
+  DSP_RATE_LIMIT_ENABLED: "true"
+  DSP_HSTS_ENABLED: "true"
+  DSP_INDIA_TIMEZONE: "Asia/Kolkata"
+  DSP_INDIA_CURRENCY: "INR"
+  DSP_REGION: "ap-south-1"
+  TZ: "Asia/Kolkata"
+  LANG: "en_IN.UTF-8"
+  DSP_TEMP_DIR: "/tmp/dsp"
+  DSP_BACKUP_DIR: "/var/backups/dsp"
+  DSP_REDIS_URL: "redis://redis:6379/0"
+  DSP_REDIS_FALLBACK: "false"
+  DSP_OTEL_ENABLED: "false"
+  OTEL_SERVICE_NAME: "dsp-api"
+  OTEL_EXPORTER_OTLP_ENDPOINT: "http://otel-collector:4318"
+  DSP_SENTRY_ENABLED: "false"
+  DSP_COOKIE_AUTH: "true"
+  DSP_CSRF_ENABLED: "true"
+  DSP_COOKIE_SECURE: "true"
+  DSP_COOKIE_SAMESITE: "lax"
+  DSP_FORWARDED_ALLOW_IPS: "*"

@@ -1,0 +1,16 @@
+[build-system]
+requires = ["setuptools>=69.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "portfolio_intelligence_engine"
+version = "0.1.0"
+description = "DSP Portfolio Intelligence Engine — orchestration layer combining existing engine outputs into portfolio-level insights (RC1 Milestone 4)"
+requires-python = ">=3.11"
+license = { text = "Proprietary" }
+dependencies = [
+    "core",
+]
+
+[tool.setuptools.packages.find]
+where = ["src"]

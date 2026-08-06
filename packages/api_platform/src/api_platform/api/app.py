@@ -75,6 +75,7 @@ from api_platform.api.routers import (
     research_monitoring,
     transcripts,
     workflow,
+    workflow_automation,
 )
 from api_platform.api.schemas import ApiErrorBody
 from dsp_platform import DSPPlatform
@@ -218,6 +219,18 @@ def create_app(
     except Exception:  # noqa: BLE001 — portfolio store optional at boot
         pass
 
+    # RC1 Milestone 5: durable Workflow Automation store when available.
+    # get_workflow_automation_service() only honors `database` on the first
+    # call, so this is safe to call unconditionally (tests inject InMemory
+    # services first via reset_workflow_automation_for_tests).
+    try:
+        from workflow_automation import get_workflow_automation_service
+
+        db = getattr(boot.infrastructure, "database", None)
+        get_workflow_automation_service(database=db)
+    except Exception:  # noqa: BLE001 — workflow automation optional at boot
+        pass
+
     application.add_middleware(
         CORSMiddleware,
         allow_origins=os.environ.get(
@@ -290,6 +303,7 @@ def _register_routers(application: FastAPI) -> None:
         portfolio_intelligence.router,
         portfolio_analytics.router,
         portfolio_intelligence_engine.router,
+        workflow_automation.router,
         institutional_committee.router,
         institutional_workflow.router,
         investment_policy.router,

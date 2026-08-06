@@ -2037,6 +2037,165 @@ class DSPPlatform:
             benchmark_symbol=benchmark_symbol,
         )
 
+    # -- Workflow Automation (RC1 Milestone 5) — Alert Rules, Scheduled
+    # Reports, Notification Center. CRUD is thin delegation; evaluation
+    # reuses market_quotes/portfolio_store_facade/portfolio_intelligence_engine
+    # (all frozen) — no new engine. No autonomous scheduler exists at this
+    # boundary (production_platform is a forbidden import here) — run_now
+    # is the only implemented execution path.
+
+    def workflow_automation_schema(self) -> dict[str, object]:
+        from dsp_platform.workflow_automation import workflow_automation_schema
+
+        return workflow_automation_schema()
+
+    def create_alert_rule(
+        self,
+        *,
+        user_id: str,
+        rule_type: str,
+        symbol: str | None = None,
+        portfolio_id: str | None = None,
+        params: dict[str, object] | None = None,
+        active: bool = True,
+    ) -> dict[str, object]:
+        from dsp_platform.workflow_automation import create_alert_rule
+
+        return create_alert_rule(
+            user_id=user_id,
+            rule_type=rule_type,
+            symbol=symbol,
+            portfolio_id=portfolio_id,
+            params=params,
+            active=active,
+        )
+
+    def list_alert_rules(
+        self, *, user_id: str, active_only: bool = False
+    ) -> list[dict[str, object]]:
+        from dsp_platform.workflow_automation import list_alert_rules
+
+        return list_alert_rules(user_id=user_id, active_only=active_only)
+
+    def get_alert_rule(self, rule_id: str, *, user_id: str) -> dict[str, object]:
+        from dsp_platform.workflow_automation import get_alert_rule
+
+        return get_alert_rule(rule_id, user_id=user_id)
+
+    def update_alert_rule(
+        self,
+        rule_id: str,
+        *,
+        user_id: str,
+        active: bool | None = None,
+        params: dict[str, object] | None = None,
+    ) -> dict[str, object]:
+        from dsp_platform.workflow_automation import update_alert_rule
+
+        return update_alert_rule(rule_id, user_id=user_id, active=active, params=params)
+
+    def delete_alert_rule(self, rule_id: str, *, user_id: str) -> bool:
+        from dsp_platform.workflow_automation import delete_alert_rule
+
+        return delete_alert_rule(rule_id, user_id=user_id)
+
+    def create_scheduled_report(
+        self,
+        *,
+        user_id: str,
+        portfolio_id: str,
+        frequency: str,
+        format: str = "json",
+        recipients: list[str] | None = None,
+        active: bool = True,
+    ) -> dict[str, object]:
+        from dsp_platform.workflow_automation import create_scheduled_report
+
+        return create_scheduled_report(
+            user_id=user_id,
+            portfolio_id=portfolio_id,
+            frequency=frequency,
+            format=format,
+            recipients=recipients,
+            active=active,
+        )
+
+    def list_scheduled_reports(self, *, user_id: str) -> list[dict[str, object]]:
+        from dsp_platform.workflow_automation import list_scheduled_reports
+
+        return list_scheduled_reports(user_id=user_id)
+
+    def get_scheduled_report(self, schedule_id: str, *, user_id: str) -> dict[str, object]:
+        from dsp_platform.workflow_automation import get_scheduled_report
+
+        return get_scheduled_report(schedule_id, user_id=user_id)
+
+    def update_scheduled_report(
+        self,
+        schedule_id: str,
+        *,
+        user_id: str,
+        active: bool | None = None,
+        frequency: str | None = None,
+        format: str | None = None,
+        recipients: list[str] | None = None,
+    ) -> dict[str, object]:
+        from dsp_platform.workflow_automation import update_scheduled_report
+
+        return update_scheduled_report(
+            schedule_id,
+            user_id=user_id,
+            active=active,
+            frequency=frequency,
+            format=format,
+            recipients=recipients,
+        )
+
+    def delete_scheduled_report(self, schedule_id: str, *, user_id: str) -> bool:
+        from dsp_platform.workflow_automation import delete_scheduled_report
+
+        return delete_scheduled_report(schedule_id, user_id=user_id)
+
+    def list_notifications(
+        self, *, user_id: str, unread_only: bool = False, limit: int = 200
+    ) -> list[dict[str, object]]:
+        from dsp_platform.workflow_automation import list_notifications
+
+        return list_notifications(user_id=user_id, unread_only=unread_only, limit=limit)
+
+    def mark_notification_read(self, notification_id: str, *, user_id: str) -> dict[str, object]:
+        from dsp_platform.workflow_automation import mark_notification_read
+
+        return mark_notification_read(notification_id, user_id=user_id)
+
+    def evaluate_user_alerts(
+        self,
+        *,
+        user_id: str,
+        research_objects: dict[str, object] | list[object] | None = None,
+    ) -> dict[str, object]:
+        from dsp_platform.workflow_automation import evaluate_user_alerts
+
+        return evaluate_user_alerts(user_id=user_id, research_objects=research_objects)
+
+    def run_scheduled_report_now(
+        self,
+        schedule_id: str,
+        *,
+        user_id: str,
+        research_objects: dict[str, object] | list[object] | None = None,
+    ) -> dict[str, object]:
+        from dsp_platform.workflow_automation import run_scheduled_report_now
+
+        return run_scheduled_report_now(
+            schedule_id, user_id=user_id, research_objects=research_objects
+        )
+
+    def workflow_automation_health(self) -> dict[str, object]:
+        from dsp_platform.workflow_automation import workflow_automation_health
+
+        return workflow_automation_health()
+
     # -- Institutional Multi-Agent Committee (EPIC-A005) -----------------
 
     def institutional_committee_schema(self) -> dict[str, object]:

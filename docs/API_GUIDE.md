@@ -248,3 +248,84 @@ When no holdings are supplied, every endpoint returns
 | HTTP | Meaning |
 |---|---|
 | 503 | Unhandled server-side error computing the result (`available: false`, `message: "Data unavailable."`) |
+
+## Workflow Automation API (RC1 Milestone 5)
+
+Alert Rules (Price / Valuation / Research Refresh / Earnings), Scheduled
+Report definitions, and the Notification Center. Thin routers over
+`dsp_platform.workflow_automation`; evaluation reuses `market_quotes` /
+`portfolio_intelligence_engine` / `portfolio_store_facade` entirely inside
+`dsp_platform` (see
+[WORKFLOW_AUTOMATION_GUIDE.md](WORKFLOW_AUTOMATION_GUIDE.md) for the full
+architecture and reuse table). Every route below except the two schema/
+health descriptors requires authentication (the same `GET /auth/rbac/me`
+resolution — no new auth scheme) and enforces per-user ownership
+server-side.
+
+**Not** the frozen H1 Workflow Engine (`POST /workflow/run`) or the
+EPIC-A007 institutional approval routes (`/workflow/schema`,
+`/workflow/templates`, `/workflow/action`) — both distinct, unrelated
+capabilities. Mounted at `/workflow-automation` to avoid any confusion.
+
+Base: `/api/v1`
+
+| Method | Path | Purpose |
+|---|---|---|
+| GET | `/workflow-automation/schema` | Schema descriptor (rule types, schedule frequencies/formats, rules) — no auth required |
+| GET | `/workflow-automation/health` | Service health — no auth required |
+| GET | `/workflow-automation/alerts` | List the authenticated user's alert rules (`?active_only=true`) |
+| POST | `/workflow-automation/alerts` | Create an alert rule (`rule_type`, `symbol?`, `portfolio_id?`, `params?`) |
+| GET | `/workflow-automation/alerts/{id}` | Get one alert rule (403 if not owned, 404 if missing) |
+| PUT | `/workflow-automation/alerts/{id}` | Update `active` / `params` |
+| DELETE | `/workflow-automation/alerts/{id}` | Delete an alert rule |
+| POST | `/workflow-automation/alerts/evaluate` | Evaluate every active rule for the caller now (optional `research_objects` for valuation alerts) |
+| GET | `/workflow-automation/schedules` | List the authenticated user's scheduled report definitions |
+| POST | `/workflow-automation/schedules` | Create a schedule (`portfolio_id`, `frequency`, `format?`, `recipients?`) |
+| GET | `/workflow-automation/schedules/{id}` | Get one schedule |
+| PUT | `/workflow-automation/schedules/{id}` | Update `active` / `frequency` / `format` / `recipients` |
+| DELETE | `/workflow-automation/schedules/{id}` | Delete a schedule |
+| POST | `/workflow-automation/schedules/{id}/run` | Run a schedule now — the only implemented execution path (no autonomous scheduler) |
+| GET | `/workflow-automation/notifications` | List the user's notifications (`?unread_only=true`, `?limit=`) |
+| POST | `/workflow-automation/notifications/{id}/read` | Mark one notification read |
+
+### Alert rule types
+
+`price_above`, `price_below`, `valuation_flip`, `research_stale`,
+`earnings_upcoming`. `earnings_upcoming` always evaluates to
+`"unavailable"` — no earnings-calendar data source is connected in the
+platform (never fabricated).
+
+### `POST /workflow-automation/alerts/evaluate` — response shape
+
+```json
+{
+  "ok": true,
+  "available": true,
+  "message": null,
+  "evaluated_count": 2,
+  "triggered_count": 1,
+  "results": [
+    {
+      "rule_id": "alr_...",
+      "rule_type": "price_above",
+      "symbol": "AAPL",
+      "status": "triggered",
+      "message": "AAPL is at 205.00, at or above the 200.00 threshold.",
+      "observed_value": 205.0
+    }
+  ],
+  "new_notifications": [ { "notification_id": "ntf_...", "title": "Alert triggered: AAPL", "...": "..." } ]
+}
+```
+
+A Notification is only created on a **transition** into `"triggered"` —
+re-evaluating an already-triggered rule never creates a duplicate.
+
+### Errors
+
+| HTTP | Meaning |
+|---|---|
+| 401 | Not authenticated |
+| 403 | Authenticated, but does not own the requested alert rule / schedule / notification |
+| 404 | Resource not found |
+| 400 | Validation error (e.g. unsupported `rule_type`/`frequency`/`format`, missing `symbol`) |

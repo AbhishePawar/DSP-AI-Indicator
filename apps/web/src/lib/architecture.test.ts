@@ -71,6 +71,7 @@ const LIB_ALLOWLIST = new Set([
   "settings",
   "shell",
   "trust",
+  "workflow-automation",
 ]);
 
 const CALC_SMELL_RE =

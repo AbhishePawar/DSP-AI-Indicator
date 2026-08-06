@@ -192,6 +192,7 @@ describe("mapDriftView", () => {
       missing_sectors: ["Energy", "Utilities"],
       style_drift: [],
       cap_drift: [],
+      method_id: "test",
       limitations: ["Data unavailable. No caller-supplied style labels."],
     });
     expect(view.sectorDrift[0]?.direction).toBe("Overweight");
@@ -250,6 +251,7 @@ describe("mapScenarioView", () => {
       worst_case_drawdown_basis: "Trailing realized maximum drawdown — historical.",
       confidence: 0.4,
       confidence_basis: "test basis",
+      method_id: "test",
       limitations: [],
     });
     expect(view.cases.map((c) => c.case)).toEqual(["Bear", "Base", "Bull"]);

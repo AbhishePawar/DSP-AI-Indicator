@@ -40,6 +40,7 @@ _EXPECTED_DEPS = [
     "portfolio_analytics",
     "portfolio_intelligence_engine",
     "portfolio_store",
+    "workflow_automation",
     "quantitative_risk",
     "recommendation",
     "research",

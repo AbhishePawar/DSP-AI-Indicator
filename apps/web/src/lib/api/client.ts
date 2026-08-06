@@ -796,6 +796,101 @@ async function request<T>(
   return data as T;
 }
 
+/**
+ * Workflow Automation (RC1 Milestone 5) — Alert Rules, Scheduled Reports,
+ * Notification Center. Server-side, user-owned; every route requires
+ * authentication. Mounted at `/workflow-automation` — distinct from the
+ * frozen `/workflow/*` H1 Workflow Engine and EPIC-A007 institutional
+ * approval routes.
+ */
+export type AlertRuleType =
+  | "price_above"
+  | "price_below"
+  | "valuation_flip"
+  | "research_stale"
+  | "earnings_upcoming";
+
+export type ServerAlertRule = {
+  rule_id: string;
+  user_id: string;
+  rule_type: AlertRuleType;
+  symbol: string | null;
+  portfolio_id: string | null;
+  active: boolean;
+  params: Record<string, unknown>;
+  last_evaluated_at: string | null;
+  last_status: "triggered" | "not_triggered" | "unavailable" | null;
+  created_at: string;
+  updated_at: string;
+};
+
+export type ServerScheduledReport = {
+  schedule_id: string;
+  user_id: string;
+  portfolio_id: string;
+  frequency: "daily" | "weekly" | "monthly";
+  format: "json" | "csv";
+  active: boolean;
+  recipients: string[];
+  last_run_at: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
+export type ServerNotification = {
+  notification_id: string;
+  user_id: string;
+  kind: "alert" | "scheduled_report" | "system";
+  title: string;
+  message: string;
+  related_rule_id: string | null;
+  related_schedule_id: string | null;
+  read_at: string | null;
+  created_at: string;
+};
+
+export type AlertEvaluationResult = {
+  rule_id: string;
+  rule_type: AlertRuleType;
+  symbol: string | null;
+  status: "triggered" | "not_triggered" | "unavailable";
+  message: string;
+  observed_value: number | string | null;
+};
+
+export type EvaluateAlertsPayload = {
+  ok?: boolean;
+  available: boolean;
+  message: string | null;
+  evaluated_count: number;
+  triggered_count: number;
+  results: AlertEvaluationResult[];
+  new_notifications: ServerNotification[];
+};
+
+export type RunScheduledReportPayload = {
+  ok?: boolean;
+  available: boolean;
+  message: string | null;
+  schedule_id?: string;
+  format?: "json" | "csv";
+  content?: string;
+  error?: string;
+};
+
+export type WorkflowAutomationSchemaPayload = {
+  ok?: boolean;
+  schema: {
+    schema_version: string;
+    service_version: string;
+    alert_rule_types: AlertRuleType[];
+    schedule_frequencies: string[];
+    schedule_formats: string[];
+    capabilities: string[];
+    rules: string[];
+  };
+};
+
 export const api = {
   health: (options?: RequestOptions) =>
     request<HealthResponse>("/health", { method: "GET" }, options),
@@ -1684,6 +1779,152 @@ export const api = {
     request<PortfolioInsightsScenarioPayload>(
       "/portfolio/insights/scenario",
       { method: "POST", body: JSON.stringify(body) },
+      options,
+    ),
+
+  /**
+   * Workflow Automation (RC1 Milestone 5) — Alert Rules, Scheduled Reports,
+   * Notification Center. Every route requires authentication.
+   */
+  workflowAutomationSchema: (options?: RequestOptions) =>
+    request<WorkflowAutomationSchemaPayload>(
+      "/workflow-automation/schema",
+      { method: "GET" },
+      options,
+    ),
+
+  alertRuleList: (
+    params?: { active_only?: boolean },
+    options?: RequestOptions,
+  ) => {
+    const query = params?.active_only ? "?active_only=true" : "";
+    return request<{ ok: boolean; rules: ServerAlertRule[] }>(
+      `/workflow-automation/alerts${query}`,
+      { method: "GET" },
+      options,
+    );
+  },
+
+  alertRuleCreate: (
+    body: {
+      rule_type: AlertRuleType;
+      symbol?: string | null;
+      portfolio_id?: string | null;
+      params?: Record<string, unknown> | null;
+      active?: boolean;
+    },
+    options?: RequestOptions,
+  ) =>
+    request<{ ok: boolean; rule: ServerAlertRule }>(
+      "/workflow-automation/alerts",
+      { method: "POST", body: JSON.stringify(body) },
+      options,
+    ),
+
+  alertRuleUpdate: (
+    ruleId: string,
+    body: { active?: boolean; params?: Record<string, unknown> | null },
+    options?: RequestOptions,
+  ) =>
+    request<{ ok: boolean; rule: ServerAlertRule }>(
+      `/workflow-automation/alerts/${encodeURIComponent(ruleId)}`,
+      { method: "PUT", body: JSON.stringify(body) },
+      options,
+    ),
+
+  alertRuleDelete: (ruleId: string, options?: RequestOptions) =>
+    request<{ ok: boolean }>(
+      `/workflow-automation/alerts/${encodeURIComponent(ruleId)}`,
+      { method: "DELETE" },
+      options,
+    ),
+
+  alertRuleEvaluate: (
+    body: { research_objects?: Record<string, unknown> | unknown[] | null },
+    options?: RequestOptions,
+  ) =>
+    request<EvaluateAlertsPayload>(
+      "/workflow-automation/alerts/evaluate",
+      { method: "POST", body: JSON.stringify(body) },
+      options,
+    ),
+
+  scheduledReportList: (options?: RequestOptions) =>
+    request<{ ok: boolean; schedules: ServerScheduledReport[] }>(
+      "/workflow-automation/schedules",
+      { method: "GET" },
+      options,
+    ),
+
+  scheduledReportCreate: (
+    body: {
+      portfolio_id: string;
+      frequency: "daily" | "weekly" | "monthly";
+      format?: "json" | "csv";
+      recipients?: string[] | null;
+      active?: boolean;
+    },
+    options?: RequestOptions,
+  ) =>
+    request<{ ok: boolean; schedule: ServerScheduledReport }>(
+      "/workflow-automation/schedules",
+      { method: "POST", body: JSON.stringify(body) },
+      options,
+    ),
+
+  scheduledReportUpdate: (
+    scheduleId: string,
+    body: {
+      active?: boolean;
+      frequency?: "daily" | "weekly" | "monthly";
+      format?: "json" | "csv";
+      recipients?: string[] | null;
+    },
+    options?: RequestOptions,
+  ) =>
+    request<{ ok: boolean; schedule: ServerScheduledReport }>(
+      `/workflow-automation/schedules/${encodeURIComponent(scheduleId)}`,
+      { method: "PUT", body: JSON.stringify(body) },
+      options,
+    ),
+
+  scheduledReportDelete: (scheduleId: string, options?: RequestOptions) =>
+    request<{ ok: boolean }>(
+      `/workflow-automation/schedules/${encodeURIComponent(scheduleId)}`,
+      { method: "DELETE" },
+      options,
+    ),
+
+  scheduledReportRunNow: (
+    scheduleId: string,
+    body: { research_objects?: Record<string, unknown> | unknown[] | null },
+    options?: RequestOptions,
+  ) =>
+    request<RunScheduledReportPayload>(
+      `/workflow-automation/schedules/${encodeURIComponent(scheduleId)}/run`,
+      { method: "POST", body: JSON.stringify(body) },
+      options,
+    ),
+
+  notificationList: (
+    params?: { unread_only?: boolean; limit?: number },
+    options?: RequestOptions,
+  ) => {
+    const query = new URLSearchParams();
+    if (params?.unread_only) query.set("unread_only", "true");
+    if (params?.limit) query.set("limit", String(params.limit));
+    const qs = query.toString();
+    return request<{ ok: boolean; notifications: ServerNotification[] }>(
+      `/workflow-automation/notifications${qs ? `?${qs}` : ""}`,
+      { method: "GET" },
+      options,
+    );
+  },
+
+  notificationMarkRead: (notificationId: string, options?: RequestOptions) =>
+    request<{ ok: boolean; notification: ServerNotification }>(
+      `/workflow-automation/notifications/${encodeURIComponent(notificationId)}/read`,
+      { method: "POST" },
       options,
     ),
 

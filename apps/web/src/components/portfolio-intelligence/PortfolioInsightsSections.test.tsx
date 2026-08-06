@@ -160,6 +160,7 @@ describe("Portfolio Intelligence Engine sections — populated data", () => {
       worst_case_drawdown_basis: "historical",
       confidence: 0.5,
       confidence_basis: "test",
+      method_id: "test",
       limitations: [],
     });
     render(<ScenarioAnalysisSection scenario={view} isLoading={false} />);

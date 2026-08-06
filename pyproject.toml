@@ -84,6 +84,7 @@ where = [
     "packages/enterprise/src",
     "packages/portfolio_store/src",
     "packages/portfolio_intelligence_engine/src",
+    "packages/workflow_automation/src",
 ]
 
 [tool.pytest.ini_options]
@@ -135,6 +136,7 @@ pythonpath = [
     "packages/enterprise/src",
     "packages/portfolio_store/src",
     "packages/portfolio_intelligence_engine/src",
+    "packages/workflow_automation/src",
 ]
 addopts = "-v --tb=short --import-mode=importlib"
 filterwarnings = ["ignore::DeprecationWarning"]
@@ -195,6 +197,7 @@ src = [
     "packages/enterprise/src",
     "packages/portfolio_store/src",
     "packages/portfolio_intelligence_engine/src",
+    "packages/workflow_automation/src",
     "tests",
 ]
 
@@ -246,6 +249,7 @@ known-first-party = [
     "enterprise",
     "portfolio_store",
     "portfolio_intelligence_engine",
+    "workflow_automation",
 ]
 
 [tool.coverage.run]
@@ -292,6 +296,7 @@ source = [
     "enterprise",
     "portfolio_store",
     "portfolio_intelligence_engine",
+    "workflow_automation",
 ]
 omit = ["*/tests/*", "*/__init__.py"]
 
@@ -357,6 +362,7 @@ mypy_path = [
     "packages/enterprise/src",
     "packages/portfolio_store/src",
     "packages/portfolio_intelligence_engine/src",
+    "packages/workflow_automation/src",
 ]
 files = [
     "packages/contracts/src/contracts",

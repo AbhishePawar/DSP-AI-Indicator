@@ -32,6 +32,16 @@ vi.mock("@/lib/api/client", () => ({
     portfolioAnalyticsConstraints: vi.fn().mockResolvedValue({ ok: true, available: false, message: "Data unavailable." }),
     portfolioAnalyticsTax: vi.fn().mockResolvedValue({ ok: true, available: false, message: "Data unavailable." }),
     portfolioAnalyticsHealth: vi.fn().mockResolvedValue({ ok: true, health: {} }),
+    portfolioListWatchlist: vi.fn().mockResolvedValue({ ok: true, result: [] }),
+    portfolioAddWatchlistSymbol: vi.fn().mockResolvedValue({
+      ok: true,
+      result: { item_id: "wl_1", portfolio_id: "pf_1", symbol: "NVDA", label: null, added_at: "2024-01-01T00:00:00Z" },
+    }),
+    portfolioRemoveWatchlistSymbol: vi.fn().mockResolvedValue({ ok: true, result: { removed: true } }),
+    portfolioSetBenchmark: vi.fn().mockResolvedValue({
+      ok: true,
+      result: { portfolio_id: "pf_1", user_id: "u1", org_id: null, name: "P", is_default: true, benchmark_symbol: "SPY", created_at: "2024-01-01T00:00:00Z", updated_at: "2024-01-01T00:00:00Z", metadata: {} },
+    }),
     portfolioIntelligence: vi.fn().mockResolvedValue({
       ok: true,
       result: {
@@ -124,6 +134,17 @@ vi.mock("@/lib/portfolio/PortfolioProvider", () => ({
     loadDemo: vi.fn(),
     clearPortfolio: vi.fn(),
   }),
+}));
+
+const usePersistenceMock = vi.fn(() => ({
+  serverPortfolioId: null as string | null,
+  serverBenchmarkSymbol: null as string | null,
+  portfolioSyncStatus: "idle" as const,
+  portfolioSyncError: null as string | null,
+}));
+
+vi.mock("@/providers/PersistenceProvider", () => ({
+  usePersistence: () => usePersistenceMock(),
 }));
 
 vi.mock("@/components/portfolio/RemoveHoldingButton", () => ({
@@ -377,6 +398,71 @@ describe("P9.5 workspace UI", () => {
         expect.objectContaining({ benchmark_symbol: "SPY" }),
         expect.anything(),
       );
+    });
+  });
+
+  it("reconciles the local watchlist to the server once a serverPortfolioId is known", async () => {
+    usePersistenceMock.mockReturnValue({
+      serverPortfolioId: "pf_1",
+      serverBenchmarkSymbol: null,
+      portfolioSyncStatus: "synced",
+      portfolioSyncError: null,
+    });
+    usePortfolioIntelPrefsStore.setState({
+      activeSection: "summary",
+      watchlist: [{ symbol: "NVDA", addedAt: "2024-01-01T00:00:00Z" }],
+    });
+    const { PortfolioIntelligenceWorkspace } = await import(
+      "@/components/portfolio-intelligence/PortfolioIntelligenceWorkspace"
+    );
+    wrap(<PortfolioIntelligenceWorkspace />);
+
+    await vi.waitFor(() => {
+      expect(api.portfolioListWatchlist).toHaveBeenCalledWith(
+        "pf_1",
+        expect.anything(),
+      );
+    });
+    // Server had none — the local (non-empty) watchlist is pushed up.
+    await vi.waitFor(() => {
+      expect(api.portfolioAddWatchlistSymbol).toHaveBeenCalledWith(
+        "pf_1",
+        expect.objectContaining({ symbol: "NVDA" }),
+        expect.anything(),
+      );
+    });
+    usePersistenceMock.mockReturnValue({
+      serverPortfolioId: null,
+      serverBenchmarkSymbol: null,
+      portfolioSyncStatus: "idle",
+      portfolioSyncError: null,
+    });
+  });
+
+  it("adopts the server benchmark when no local benchmark is selected", async () => {
+    usePersistenceMock.mockReturnValue({
+      serverPortfolioId: "pf_2",
+      serverBenchmarkSymbol: "QQQ",
+      portfolioSyncStatus: "synced",
+      portfolioSyncError: null,
+    });
+    usePortfolioIntelPrefsStore.setState({
+      activeSection: "summary",
+      benchmarkSymbol: null,
+    });
+    const { PortfolioIntelligenceWorkspace } = await import(
+      "@/components/portfolio-intelligence/PortfolioIntelligenceWorkspace"
+    );
+    wrap(<PortfolioIntelligenceWorkspace />);
+
+    await vi.waitFor(() => {
+      expect(usePortfolioIntelPrefsStore.getState().benchmarkSymbol).toBe("QQQ");
+    });
+    usePersistenceMock.mockReturnValue({
+      serverPortfolioId: null,
+      serverBenchmarkSymbol: null,
+      portfolioSyncStatus: "idle",
+      portfolioSyncError: null,
     });
   });
 

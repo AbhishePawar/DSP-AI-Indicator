@@ -12,6 +12,7 @@ import {
   useCallback,
   useEffect,
   useMemo,
+  useRef,
   type ComponentType,
 } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -46,6 +47,13 @@ import {
   type PortfolioSectionId,
 } from "@/lib/portfolio-intelligence";
 import { usePortfolio } from "@/lib/portfolio/PortfolioProvider";
+import {
+  addWatchlistSymbol as repoAddWatchlistSymbol,
+  fetchWatchlist,
+  removeWatchlistSymbol as repoRemoveWatchlistSymbol,
+  setPortfolioBenchmark,
+} from "@/lib/portfolio/repository";
+import { usePersistence } from "@/providers/PersistenceProvider";
 import { useCollapsePanelsBelowLg } from "@/lib/a11y";
 import { COMPANY_CATALOGUE } from "@/lib/companies/catalogue";
 import { cn } from "@/lib/utils";
@@ -299,6 +307,9 @@ export function PortfolioIntelligenceWorkspace() {
   const setRightOpen = usePortfolioIntelPrefsStore((s) => s.setRightOpen);
   const watchlist = usePortfolioIntelPrefsStore((s) => s.watchlist);
   const benchmarkSymbol = usePortfolioIntelPrefsStore((s) => s.benchmarkSymbol);
+  const storeAddWatchlistSymbol = usePortfolioIntelPrefsStore(
+    (s) => s.addWatchlistSymbol,
+  );
   const touchPortfolio = usePortfolioIntelPrefsStore((s) => s.touchPortfolio);
   const activePortfolioId = usePortfolioIntelPrefsStore(
     (s) => s.activePortfolioId,
@@ -313,6 +324,97 @@ export function PortfolioIntelligenceWorkspace() {
   useEffect(() => {
     touchPortfolio(activePortfolioId);
   }, [activePortfolioId, touchPortfolio]);
+
+  // RC1 Milestone 3 — Watchlist + Benchmark server persistence. Same
+  // "server exists -> adopt; else migrate local (possibly empty)" strategy
+  // already used for holdings in PersistenceProvider, reconciled once per
+  // server portfolio. Never deletes the local Zustand-persisted copy.
+  const { serverPortfolioId, serverBenchmarkSymbol } = usePersistence();
+  const watchlistReconciledFor = useRef<string | null>(null);
+  const knownServerWatchlistSymbols = useRef<string[]>([]);
+  const benchmarkSyncSkip = useRef(false);
+
+  useEffect(() => {
+    if (!serverPortfolioId) return;
+    if (watchlistReconciledFor.current === serverPortfolioId) return;
+    watchlistReconciledFor.current = serverPortfolioId;
+
+    if (serverBenchmarkSymbol && !benchmarkSymbol) {
+      benchmarkSyncSkip.current = true;
+      usePortfolioIntelPrefsStore.getState().setBenchmarkSymbol(serverBenchmarkSymbol);
+    } else if (benchmarkSymbol && !serverBenchmarkSymbol) {
+      void setPortfolioBenchmark(token, serverPortfolioId, benchmarkSymbol).catch(
+        () => {
+          /* honest degrade — local selection remains authoritative */
+        },
+      );
+    }
+
+    let cancelled = false;
+    void (async () => {
+      try {
+        const items = await fetchWatchlist(token, serverPortfolioId);
+        if (cancelled) return;
+        if (items.length > 0) {
+          knownServerWatchlistSymbols.current = items.map((i) => i.symbol);
+          for (const item of items) {
+            storeAddWatchlistSymbol(item.symbol, item.label ?? undefined);
+          }
+        } else if (watchlist.length > 0) {
+          await Promise.all(
+            watchlist.map((w) =>
+              repoAddWatchlistSymbol(token, serverPortfolioId, w.symbol, w.label),
+            ),
+          );
+          knownServerWatchlistSymbols.current = watchlist.map((w) => w.symbol);
+        }
+      } catch {
+        /* honest degrade — keep serving the local watchlist */
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [serverPortfolioId]);
+
+  // Push watchlist deltas (add/remove) to the server after reconciliation.
+  useEffect(() => {
+    if (!serverPortfolioId || watchlistReconciledFor.current !== serverPortfolioId) {
+      return;
+    }
+    const nextSymbols = watchlist.map((w) => w.symbol);
+    const known = knownServerWatchlistSymbols.current;
+    const added = watchlist.filter((w) => !known.includes(w.symbol));
+    const removed = known.filter((symbol) => !nextSymbols.includes(symbol));
+    if (added.length === 0 && removed.length === 0) return;
+    knownServerWatchlistSymbols.current = nextSymbols;
+    void Promise.all([
+      ...added.map((w) =>
+        repoAddWatchlistSymbol(token, serverPortfolioId, w.symbol, w.label),
+      ),
+      ...removed.map((symbol) =>
+        repoRemoveWatchlistSymbol(token, serverPortfolioId, symbol),
+      ),
+    ]).catch(() => {
+      /* honest degrade — local watchlist remains authoritative */
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [watchlist, serverPortfolioId]);
+
+  // Push benchmark changes to the server (skip the sync-triggered update).
+  useEffect(() => {
+    if (!serverPortfolioId) return;
+    if (benchmarkSyncSkip.current) {
+      benchmarkSyncSkip.current = false;
+      return;
+    }
+    if (watchlistReconciledFor.current !== serverPortfolioId) return;
+    void setPortfolioBenchmark(token, serverPortfolioId, benchmarkSymbol).catch(() => {
+      /* honest degrade — local selection remains authoritative */
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [benchmarkSymbol, serverPortfolioId]);
 
   useEffect(() => {
     const section = searchParams.get("section");

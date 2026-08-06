@@ -74,3 +74,78 @@ send the user back through the login flow.
 ```
 
 See [SECURITY_GUIDE.md](SECURITY_GUIDE.md#refresh-token-rotation--reuse-detection-oauth-20-security-bcp) and [ENTERPRISE_AUTH_PLATFORM.md §3e](security/ENTERPRISE_AUTH_PLATFORM.md) for the full design, audit event catalogue, and sequence diagrams.
+
+## Portfolio Store API (RC1 Milestone 3)
+
+Server-side, user-owned persistence for Portfolio/Holdings/Transactions/
+Watchlist/Benchmark — replaces browser-only `localStorage`. Thin routers
+over `dsp_platform.portfolio_store_facade` / `packages/portfolio_store`; no
+business logic, analytics, or valuation here (see
+[PORTFOLIO_GUIDE.md](PORTFOLIO_GUIDE.md) for the full architecture and
+[PORTFOLIO_ANALYTICS.md](PORTFOLIO_ANALYTICS.md) for the separate quant
+engine). Every route below requires authentication
+(`Authorization: Bearer <access_token>` or the RBAC session cookie — the
+exact same `GET /auth/rbac/me` resolution, no new auth scheme) and enforces
+per-user ownership server-side.
+
+Base: `/api/v1`
+
+| Method | Path | Purpose |
+|---|---|---|
+| GET | `/portfolio/schema` | Schema descriptor (transaction types, capabilities, rules) — no auth required |
+| GET | `/portfolio` | List the authenticated user's portfolios (default first) |
+| POST | `/portfolio` | Create a portfolio (`name`, `is_default?`, `benchmark_symbol?`, `metadata?`) |
+| GET | `/portfolio/{id}` | Get one portfolio (403 if not owned, 404 if missing) |
+| PUT | `/portfolio/{id}` | Update `name` / `is_default` / `metadata` |
+| DELETE | `/portfolio/{id}` | Delete a portfolio (cascades holdings + watchlist) |
+| PUT | `/portfolio/{id}/benchmark` | Set or clear (`null`) the selected benchmark symbol |
+| GET | `/portfolio/{id}/holdings` | List holdings |
+| POST | `/portfolio/{id}/holdings` | Upsert a holding by `symbol` (create or update in place) |
+| DELETE | `/portfolio/{id}/holdings/{symbol}` | Remove a holding |
+| GET | `/portfolio/{id}/transactions` | List transactions (`?symbol=`, `?limit=`, newest first) |
+| POST | `/portfolio/{id}/transactions` | Record a transaction (append-only ledger) |
+| GET | `/portfolio/{id}/watchlist` | List watched symbols |
+| POST | `/portfolio/{id}/watchlist` | Add a watched symbol (idempotent) |
+| DELETE | `/portfolio/{id}/watchlist/{symbol}` | Remove a watched symbol |
+| POST | `/portfolio/migrate` | Local → server migration (see below) |
+
+### Transaction types
+
+`buy`, `sell`, `dividend`, `bonus`, `split`, `rights`, `fee`, `tax`,
+`cash_deposit`, `cash_withdrawal`. Transactions are an **append-only
+ledger** — a record of what happened, not a reconciliation engine; holdings
+are managed independently via the Holdings routes above.
+
+### `POST /portfolio/migrate` — local → server migration
+
+Idempotent: if the authenticated user already has a default portfolio on
+the server, the request body is ignored and `migrated: false` is returned
+— the server never gets overwritten by a stray retry, and the caller's
+local copy is never assumed stale. Only when the user has **no** portfolio
+yet does this create one from the supplied snapshot (`migrated: true`).
+
+Request:
+
+```json
+{
+  "name": "My Portfolio",
+  "holdings": [{ "symbol": "AAPL", "weight": 0.6 }, { "symbol": "MSFT", "weight": 0.4 }],
+  "watchlist": [{ "symbol": "NVDA" }],
+  "benchmark_symbol": "SPY"
+}
+```
+
+Response (`200`):
+
+```json
+{ "ok": true, "result": { "migrated": true, "portfolio": { "portfolio_id": "pf_...", "...": "..." } }, "message": null }
+```
+
+### Errors
+
+| HTTP | Meaning |
+|---|---|
+| 401 | Not authenticated (missing/invalid Bearer token or session cookie) |
+| 403 | Authenticated, but does not own the requested portfolio |
+| 404 | Portfolio not found |
+| 400 | Validation error (e.g. unsupported `transaction_type`, empty `name`) |

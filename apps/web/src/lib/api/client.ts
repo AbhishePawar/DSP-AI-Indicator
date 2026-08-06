@@ -417,6 +417,82 @@ export type PortfolioAnalyticsHealthPayload = {
   health?: Record<string, unknown>;
 };
 
+/**
+ * Server-side Portfolio persistence (RC1 Milestone 3) — replaces browser-only
+ * localStorage. Every route requires authentication; ownership is enforced
+ * server-side by user_id (never trust a client-supplied identity).
+ */
+export type ServerPortfolio = {
+  portfolio_id: string;
+  user_id: string;
+  org_id: string | null;
+  name: string;
+  is_default: boolean;
+  benchmark_symbol: string | null;
+  created_at: string;
+  updated_at: string;
+  metadata: Record<string, unknown>;
+};
+
+export type ServerHolding = {
+  holding_id: string;
+  portfolio_id: string;
+  symbol: string;
+  weight: number;
+  units: number | null;
+  cost_basis_per_unit: number | null;
+  purchase_date: string | null;
+  sector: string | null;
+  country: string | null;
+  exchange: string | null;
+  value_score: number | null;
+  quality_score: number | null;
+  momentum_score: number | null;
+  size_score: number | null;
+  volatility_score: number | null;
+  created_at: string;
+  updated_at: string;
+};
+
+export type ServerTransaction = {
+  transaction_id: string;
+  portfolio_id: string;
+  transaction_type:
+    | "buy"
+    | "sell"
+    | "dividend"
+    | "bonus"
+    | "split"
+    | "rights"
+    | "fee"
+    | "tax"
+    | "cash_deposit"
+    | "cash_withdrawal";
+  transaction_date: string;
+  symbol: string | null;
+  quantity: number | null;
+  price: number | null;
+  amount: number | null;
+  currency: string;
+  notes: string | null;
+  created_at: string;
+};
+
+export type ServerWatchlistItem = {
+  item_id: string;
+  portfolio_id: string;
+  symbol: string;
+  label: string | null;
+  added_at: string;
+};
+
+type PortfolioEnvelope<T> = {
+  ok: boolean;
+  result?: T;
+  error?: string;
+  message?: string | null;
+};
+
 async function request<T>(
   path: string,
   init: RequestInit = {},
@@ -1328,6 +1404,208 @@ export const api = {
     request<PortfolioAnalyticsHealthPayload>(
       "/portfolio/analytics/health",
       { method: "GET" },
+      options,
+    ),
+
+  /** Server-side Portfolio Store (RC1 Milestone 3) — authenticated, owned by user_id. */
+  portfolioSchema: (options?: RequestOptions) =>
+    request<{ ok: boolean; schema?: Record<string, unknown> }>(
+      "/portfolio/schema",
+      { method: "GET" },
+      options,
+    ),
+
+  portfolioList: (options?: RequestOptions) =>
+    request<PortfolioEnvelope<ServerPortfolio[]>>(
+      "/portfolio",
+      { method: "GET" },
+      options,
+    ),
+
+  portfolioCreate: (
+    body: {
+      name: string;
+      is_default?: boolean | null;
+      benchmark_symbol?: string | null;
+      metadata?: Record<string, unknown> | null;
+    },
+    options?: RequestOptions,
+  ) =>
+    request<PortfolioEnvelope<ServerPortfolio>>(
+      "/portfolio",
+      { method: "POST", body: JSON.stringify(body) },
+      options,
+    ),
+
+  portfolioGet: (portfolioId: string, options?: RequestOptions) =>
+    request<PortfolioEnvelope<ServerPortfolio>>(
+      `/portfolio/${encodeURIComponent(portfolioId)}`,
+      { method: "GET" },
+      options,
+    ),
+
+  portfolioUpdate: (
+    portfolioId: string,
+    body: {
+      name?: string | null;
+      is_default?: boolean | null;
+      metadata?: Record<string, unknown> | null;
+    },
+    options?: RequestOptions,
+  ) =>
+    request<PortfolioEnvelope<ServerPortfolio>>(
+      `/portfolio/${encodeURIComponent(portfolioId)}`,
+      { method: "PUT", body: JSON.stringify(body) },
+      options,
+    ),
+
+  portfolioDelete: (portfolioId: string, options?: RequestOptions) =>
+    request<PortfolioEnvelope<{ deleted: boolean }>>(
+      `/portfolio/${encodeURIComponent(portfolioId)}`,
+      { method: "DELETE" },
+      options,
+    ),
+
+  portfolioSetBenchmark: (
+    portfolioId: string,
+    benchmarkSymbol: string | null,
+    options?: RequestOptions,
+  ) =>
+    request<PortfolioEnvelope<ServerPortfolio>>(
+      `/portfolio/${encodeURIComponent(portfolioId)}/benchmark`,
+      {
+        method: "PUT",
+        body: JSON.stringify({ benchmark_symbol: benchmarkSymbol }),
+      },
+      options,
+    ),
+
+  portfolioListHoldings: (portfolioId: string, options?: RequestOptions) =>
+    request<PortfolioEnvelope<ServerHolding[]>>(
+      `/portfolio/${encodeURIComponent(portfolioId)}/holdings`,
+      { method: "GET" },
+      options,
+    ),
+
+  portfolioUpsertHolding: (
+    portfolioId: string,
+    body: {
+      symbol: string;
+      weight: number;
+      units?: number | null;
+      cost_basis_per_unit?: number | null;
+      purchase_date?: string | null;
+      sector?: string | null;
+      country?: string | null;
+      exchange?: string | null;
+      value_score?: number | null;
+      quality_score?: number | null;
+      momentum_score?: number | null;
+      size_score?: number | null;
+      volatility_score?: number | null;
+    },
+    options?: RequestOptions,
+  ) =>
+    request<PortfolioEnvelope<ServerHolding>>(
+      `/portfolio/${encodeURIComponent(portfolioId)}/holdings`,
+      { method: "POST", body: JSON.stringify(body) },
+      options,
+    ),
+
+  portfolioRemoveHolding: (
+    portfolioId: string,
+    symbol: string,
+    options?: RequestOptions,
+  ) =>
+    request<PortfolioEnvelope<{ removed: boolean }>>(
+      `/portfolio/${encodeURIComponent(portfolioId)}/holdings/${encodeURIComponent(symbol)}`,
+      { method: "DELETE" },
+      options,
+    ),
+
+  portfolioListTransactions: (
+    portfolioId: string,
+    params?: { symbol?: string; limit?: number },
+    options?: RequestOptions,
+  ) => {
+    const q = new URLSearchParams();
+    if (params?.symbol) q.set("symbol", params.symbol);
+    if (params?.limit != null) q.set("limit", String(params.limit));
+    const qs = q.toString();
+    return request<PortfolioEnvelope<ServerTransaction[]>>(
+      `/portfolio/${encodeURIComponent(portfolioId)}/transactions${qs ? `?${qs}` : ""}`,
+      { method: "GET" },
+      options,
+    );
+  },
+
+  portfolioRecordTransaction: (
+    portfolioId: string,
+    body: {
+      transaction_type: string;
+      transaction_date: string;
+      symbol?: string | null;
+      quantity?: number | null;
+      price?: number | null;
+      amount?: number | null;
+      currency?: string;
+      notes?: string | null;
+    },
+    options?: RequestOptions,
+  ) =>
+    request<PortfolioEnvelope<ServerTransaction>>(
+      `/portfolio/${encodeURIComponent(portfolioId)}/transactions`,
+      { method: "POST", body: JSON.stringify(body) },
+      options,
+    ),
+
+  portfolioListWatchlist: (portfolioId: string, options?: RequestOptions) =>
+    request<PortfolioEnvelope<ServerWatchlistItem[]>>(
+      `/portfolio/${encodeURIComponent(portfolioId)}/watchlist`,
+      { method: "GET" },
+      options,
+    ),
+
+  portfolioAddWatchlistSymbol: (
+    portfolioId: string,
+    body: { symbol: string; label?: string | null },
+    options?: RequestOptions,
+  ) =>
+    request<PortfolioEnvelope<ServerWatchlistItem>>(
+      `/portfolio/${encodeURIComponent(portfolioId)}/watchlist`,
+      { method: "POST", body: JSON.stringify(body) },
+      options,
+    ),
+
+  portfolioRemoveWatchlistSymbol: (
+    portfolioId: string,
+    symbol: string,
+    options?: RequestOptions,
+  ) =>
+    request<PortfolioEnvelope<{ removed: boolean }>>(
+      `/portfolio/${encodeURIComponent(portfolioId)}/watchlist/${encodeURIComponent(symbol)}`,
+      { method: "DELETE" },
+      options,
+    ),
+
+  /**
+   * Local -> server migration (RC1 Milestone 3). Idempotent: if the user
+   * already has a server default portfolio, the local snapshot is ignored
+   * and `migrated: false` is returned — the caller's local copy is never
+   * assumed stale and must not be deleted regardless of the outcome.
+   */
+  portfolioMigrate: (
+    body: {
+      name?: string;
+      holdings?: Array<Record<string, unknown>> | null;
+      watchlist?: Array<Record<string, unknown>> | null;
+      benchmark_symbol?: string | null;
+    },
+    options?: RequestOptions,
+  ) =>
+    request<PortfolioEnvelope<{ migrated: boolean; portfolio: ServerPortfolio }>>(
+      "/portfolio/migrate",
+      { method: "POST", body: JSON.stringify(body) },
       options,
     ),
 };

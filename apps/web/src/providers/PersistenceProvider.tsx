@@ -13,7 +13,14 @@ import {
 
 import { useAuth } from "@/lib/auth/AuthProvider";
 import { logger } from "@/lib/observability/logger";
+import { buildPortfolioView } from "@/lib/portfolio/data";
 import type { PortfolioView } from "@/lib/portfolio/model";
+import {
+  fetchDefaultPortfolio,
+  fetchHoldings,
+  migrateLocalPortfolio,
+  syncHoldings,
+} from "@/lib/portfolio/repository";
 import type { CopilotConversation } from "@/lib/copilot/types";
 import { saveResearchSession } from "@/lib/research/sessionStore";
 import type { ThemeMode } from "@/providers/ThemeProvider";
@@ -37,6 +44,10 @@ import type {
 } from "@/lib/persistence/types";
 import { DEFAULT_PREFERENCES } from "@/lib/persistence/types";
 
+/** RC1 Milestone 3 — Portfolio server-sync status (additive; local-only
+ * consumers of `usePersistence()` can ignore these fields entirely). */
+export type PortfolioSyncStatus = "idle" | "syncing" | "synced" | "error";
+
 type PersistenceContextValue = {
   syncStatus: SyncStatus;
   lastSyncedAt: string | null;
@@ -54,6 +65,14 @@ type PersistenceContextValue = {
   persistCopilotConversations: (conversations: CopilotConversation[]) => void;
   updatePreferences: (patch: Partial<UserPreference>) => void;
   syncNow: () => Promise<void>;
+  /** Server-side portfolio id once migrated/loaded — null while local-only. */
+  serverPortfolioId: string | null;
+  /** Benchmark symbol observed on the server portfolio at load/migration time
+   * — a one-shot reconciliation hint for `usePortfolioIntelPrefsStore`,
+   * which owns ongoing benchmark/watchlist state (different domain). */
+  serverBenchmarkSymbol: string | null;
+  portfolioSyncStatus: PortfolioSyncStatus;
+  portfolioSyncError: string | null;
 };
 
 const PersistenceContext = createContext<PersistenceContextValue | null>(null);
@@ -71,7 +90,20 @@ export function PersistenceProvider({ children }: { children: ReactNode }) {
   const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const preferencesApplied = useRef(false);
 
+  // RC1 Milestone 3 — server-side Portfolio persistence.
+  const [serverPortfolioId, setServerPortfolioId] = useState<string | null>(null);
+  const [serverBenchmarkSymbol, setServerBenchmarkSymbol] = useState<string | null>(
+    null,
+  );
+  const [portfolioSyncStatus, setPortfolioSyncStatus] =
+    useState<PortfolioSyncStatus>("idle");
+  const [portfolioSyncError, setPortfolioSyncError] = useState<string | null>(null);
+  const knownServerSymbols = useRef<string[]>([]);
+  const migrationAttemptedFor = useRef<string | null>(null);
+  const skipPortfolioServerSync = useRef(false);
+
   const subject = session?.subject ?? null;
+  const accessToken = session?.accessToken ?? null;
 
   const flushSave = useCallback(
     (next: UserDataBundle) => {
@@ -115,6 +147,11 @@ export function PersistenceProvider({ children }: { children: ReactNode }) {
       setIsLoaded(true);
       setSyncStatus("idle");
       preferencesApplied.current = false;
+      setServerPortfolioId(null);
+      setServerBenchmarkSymbol(null);
+      setPortfolioSyncStatus("idle");
+      setPortfolioSyncError(null);
+      knownServerSymbols.current = [];
       return;
     }
 
@@ -129,6 +166,84 @@ export function PersistenceProvider({ children }: { children: ReactNode }) {
     setLastError(null);
     logger.info("User data loaded", { subject });
   }, [status, subject]);
+
+  // RC1 Milestone 3 — Migration strategy: on first authenticated load, IF a
+  // server portfolio already exists, it becomes the source of truth for
+  // holdings; ELSE the local snapshot (holdings/watchlist/benchmark —
+  // possibly empty) is migrated to the server. The local copy in
+  // `localStorage` is never deleted by this effect, win or lose.
+  useEffect(() => {
+    if (!isLoaded || status !== "authenticated" || !subject || !bundle) return;
+    if (migrationAttemptedFor.current === subject) return;
+    migrationAttemptedFor.current = subject;
+
+    let cancelled = false;
+    setPortfolioSyncStatus("syncing");
+    setPortfolioSyncError(null);
+
+    void (async () => {
+      try {
+        const existing = await fetchDefaultPortfolio(accessToken);
+        if (cancelled) return;
+
+        if (existing) {
+          const holdings = await fetchHoldings(accessToken, existing.portfolio_id);
+          if (cancelled) return;
+          knownServerSymbols.current = holdings.map((h) => h.ticker);
+          setServerPortfolioId(existing.portfolio_id);
+          setServerBenchmarkSymbol(existing.benchmark_symbol);
+          skipPortfolioServerSync.current = true;
+          setBundle((current) =>
+            current
+              ? {
+                  ...current,
+                  portfolio: userPortfolioFromView(
+                    buildPortfolioView(holdings, current.portfolio.activities),
+                    current.portfolio,
+                  ),
+                }
+              : current,
+          );
+          window.setTimeout(() => {
+            skipPortfolioServerSync.current = false;
+          }, 0);
+          logger.info("Loaded server portfolio", {
+            subject,
+            portfolioId: existing.portfolio_id,
+          });
+        } else {
+          const localHoldings = bundle.portfolio.holdings;
+          const result = await migrateLocalPortfolio(accessToken, {
+            name: bundle.portfolio.name || "My Portfolio",
+            holdings: localHoldings,
+          });
+          if (cancelled) return;
+          knownServerSymbols.current = localHoldings.map((h) => h.ticker);
+          setServerPortfolioId(result.portfolio.portfolio_id);
+          setServerBenchmarkSymbol(result.portfolio.benchmark_symbol);
+          logger.info("Portfolio migration to server complete", {
+            subject,
+            migrated: result.migrated,
+            portfolioId: result.portfolio.portfolio_id,
+          });
+        }
+        setPortfolioSyncStatus("synced");
+      } catch (error) {
+        if (cancelled) return;
+        const message =
+          error instanceof Error ? error.message : "Portfolio server sync failed";
+        setPortfolioSyncError(message);
+        setPortfolioSyncStatus("error");
+        // Honest degrade: keep serving the local copy — never lose data.
+        logger.error(message, { subject });
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isLoaded, status, subject, accessToken]);
 
   useEffect(() => {
     if (!bundle || preferencesApplied.current) return;
@@ -152,8 +267,28 @@ export function PersistenceProvider({ children }: { children: ReactNode }) {
         ...current,
         portfolio: userPortfolioFromView(view, current.portfolio),
       }));
+      // Server sync is best-effort and never blocks the local (always-on)
+      // save above — a failed sync keeps the local copy intact and simply
+      // retries on the next mutation.
+      if (serverPortfolioId && !skipPortfolioServerSync.current) {
+        const previousSymbols = knownServerSymbols.current;
+        const nextSymbols = view.holdings.map((h) => h.ticker);
+        syncHoldings(accessToken, serverPortfolioId, view.holdings, previousSymbols)
+          .then(() => {
+            knownServerSymbols.current = nextSymbols;
+            setPortfolioSyncStatus("synced");
+            setPortfolioSyncError(null);
+          })
+          .catch((error: unknown) => {
+            const message =
+              error instanceof Error ? error.message : "Portfolio server sync failed";
+            setPortfolioSyncStatus("error");
+            setPortfolioSyncError(message);
+            logger.error(message, { subject });
+          });
+      }
     },
-    [bundle, status, scheduleSave],
+    [bundle, status, scheduleSave, serverPortfolioId, accessToken, subject],
   );
 
   const saveAnalysis = useCallback(
@@ -262,6 +397,10 @@ export function PersistenceProvider({ children }: { children: ReactNode }) {
       persistCopilotConversations,
       updatePreferences,
       syncNow,
+      serverPortfolioId,
+      serverBenchmarkSymbol,
+      portfolioSyncStatus,
+      portfolioSyncError,
     }),
     [
       syncStatus,
@@ -277,6 +416,10 @@ export function PersistenceProvider({ children }: { children: ReactNode }) {
       persistCopilotConversations,
       updatePreferences,
       syncNow,
+      serverPortfolioId,
+      serverBenchmarkSymbol,
+      portfolioSyncStatus,
+      portfolioSyncError,
     ],
   );
 

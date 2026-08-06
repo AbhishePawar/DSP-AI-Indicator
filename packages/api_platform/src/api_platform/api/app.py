@@ -26,6 +26,7 @@ from api_platform.api.infra_bootstrap import (
     public_startup_error,
 )
 from api_platform.api.middleware import RequestContextMiddleware
+from api_platform.api.monitoring import PlatformLifecycleState, mark_lifecycle
 from api_platform.api.ops import metrics_registry
 from api_platform.api.csrf_middleware import CsrfMiddleware
 from api_platform.api.ops_middleware import (
@@ -229,6 +230,10 @@ def create_app(
 
     _register_exception_handlers(application)
     _register_routers(application)
+    # Eager lifecycle transition (mirrors the eager infra bootstrap above) so
+    # TestClient callers that never enter the ASGI lifespan context still see
+    # an accurate startup -> ready transition on /health/live and /health/ready.
+    mark_lifecycle(PlatformLifecycleState.READY)
     return application
 
 

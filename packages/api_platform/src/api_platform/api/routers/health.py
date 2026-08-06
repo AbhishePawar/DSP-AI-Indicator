@@ -8,10 +8,12 @@ from fastapi import APIRouter, Depends
 from fastapi.responses import JSONResponse
 
 from api_platform.api.dependencies import ApiState, get_api_state
+from api_platform.api.monitoring import get_lifecycle_state
 from api_platform.api.ops import (
     collect_component_statuses,
     collect_health_snapshot,
     get_build_metadata,
+    resolve_platform_status,
 )
 from api_platform.api.schemas import HealthResponse
 from dsp_platform import COMPOSITION_PIPELINE_VERSION
@@ -94,6 +96,9 @@ def health(state: ApiState = Depends(get_api_state)) -> HealthResponse:
     result = state.platform.health_check()
     meta = result.metadata
     components = collect_component_statuses(state, platform_ready=ready)
+    platform_status = resolve_platform_status(
+        platform_ready=ready, components=components
+    ).value
     return HealthResponse(
         status=status,
         ready=ready,
@@ -104,6 +109,7 @@ def health(state: ApiState = Depends(get_api_state)) -> HealthResponse:
         checks=checks,
         limitations=list(result.limitations),
         components=components,
+        platform_status=platform_status,
     )
 
 
@@ -114,6 +120,7 @@ def health_live() -> JSONResponse:
     return JSONResponse(
         {
             "status": "alive",
+            "lifecycle": get_lifecycle_state().value,
             "application_version": build.application_version,
             "release_channel": build.release_channel,
         }
@@ -134,6 +141,13 @@ def health_ready(state: ApiState = Depends(get_api_state)) -> JSONResponse:
     snapshot["status"] = "pass" if accept and platform_ready else status
     snapshot["ready"] = accept
     snapshot["platform_ready"] = platform_ready
+    # Derive the coarse lifecycle status from the same soft-fail signal that
+    # decides whether traffic is accepted (``accept``), not the strict
+    # ``platform_ready`` flag — a replica accepting traffic via the copilot
+    # soft-fail path is "degraded", never "unhealthy" (EPIC-011A).
+    snapshot["platform_status"] = resolve_platform_status(
+        platform_ready=accept, components=components
+    ).value
     snapshot["checks"] = checks
     snapshot["components"] = components
     snapshot["service_readiness"]["accepting_traffic"] = accept

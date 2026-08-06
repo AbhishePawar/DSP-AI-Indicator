@@ -23,8 +23,16 @@ New module: `api_platform.api.monitoring` (redaction, severity, lifecycle, resou
 | Endpoint | Purpose | States |
 |---|---|---|
 | `GET /health` | Platform offline checks + components | `status`, `ready`, `platform_status`, `components` |
-| `GET /health/live` | Liveness | `alive` / `stopping` |
-| `GET /health/ready` | Readiness for traffic | `ready` \| `degraded` → **200**; `unhealthy` \| `startup` \| shutdown → **503** |
+| `GET /health/live` | Liveness | `status: alive` / `stopping`; `lifecycle: startup\|ready\|degraded\|unhealthy\|shutting_down\|stopped` |
+| `GET /health/ready` | Readiness for traffic | `ready`, `platform_status: ready\|degraded` → **200**; `unhealthy` \| `startup` \| shutdown → **503** |
+
+`platform_status` (on both `/health` and `/health/ready`) is the same
+`PlatformLifecycleState` value resolved by `resolve_platform_status()` —
+additive field on `HealthResponse` (RC1: `test_monitoring_p13.py` fixed to
+match this always-emitted contract). On `/health/ready` it is derived from
+the soft-fail `accept` signal, not the strict platform-ready flag, so a
+replica accepting traffic via the copilot soft-fail path reports
+`degraded`, never `unhealthy`.
 
 ### Components (JSON)
 

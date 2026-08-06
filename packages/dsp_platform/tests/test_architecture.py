@@ -38,6 +38,7 @@ _EXPECTED_DEPS = [
     "orchestration",
     "portfolio",
     "portfolio_analytics",
+    "portfolio_store",
     "quantitative_risk",
     "recommendation",
     "research",

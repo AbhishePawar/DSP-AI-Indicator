@@ -1658,6 +1658,234 @@ class DSPPlatform:
 
         return portfolio_analytics_health()
 
+    # -- Portfolio Store (RC1 Milestone 3) — server-side persistence for
+    # Portfolio/Holdings/Transactions/Watchlist, replacing browser-only
+    # localStorage. Ownership-checked by authenticated user_id. No analytics
+    # or valuation here — see evaluate_portfolio_* above for that.
+
+    def portfolio_store_schema(self) -> dict[str, object]:
+        from dsp_platform.portfolio_store_facade import portfolio_store_schema
+
+        return portfolio_store_schema()
+
+    def create_portfolio(
+        self,
+        *,
+        user_id: str,
+        name: str,
+        is_default: bool | None = None,
+        benchmark_symbol: str | None = None,
+        metadata: dict[str, object] | None = None,
+        portfolio_id: str | None = None,
+        created_at: str | None = None,
+    ) -> dict[str, object]:
+        from dsp_platform.portfolio_store_facade import create_portfolio
+
+        return create_portfolio(
+            user_id=user_id,
+            name=name,
+            is_default=is_default,
+            benchmark_symbol=benchmark_symbol,
+            metadata=metadata,
+            portfolio_id=portfolio_id,
+            created_at=created_at,
+        )
+
+    def list_portfolios(self, *, user_id: str) -> list[dict[str, object]]:
+        from dsp_platform.portfolio_store_facade import list_portfolios
+
+        return list_portfolios(user_id=user_id)
+
+    def get_portfolio(self, portfolio_id: str, *, user_id: str) -> dict[str, object]:
+        from dsp_platform.portfolio_store_facade import get_portfolio
+
+        return get_portfolio(portfolio_id, user_id=user_id)
+
+    def get_default_portfolio(self, *, user_id: str) -> dict[str, object] | None:
+        from dsp_platform.portfolio_store_facade import get_default_portfolio
+
+        return get_default_portfolio(user_id=user_id)
+
+    def update_portfolio(
+        self,
+        portfolio_id: str,
+        *,
+        user_id: str,
+        name: str | None = None,
+        is_default: bool | None = None,
+        metadata: dict[str, object] | None = None,
+    ) -> dict[str, object]:
+        from dsp_platform.portfolio_store_facade import update_portfolio
+
+        return update_portfolio(
+            portfolio_id,
+            user_id=user_id,
+            name=name,
+            is_default=is_default,
+            metadata=metadata,
+        )
+
+    def delete_portfolio(self, portfolio_id: str, *, user_id: str) -> bool:
+        from dsp_platform.portfolio_store_facade import delete_portfolio
+
+        return delete_portfolio(portfolio_id, user_id=user_id)
+
+    def set_portfolio_benchmark(
+        self, portfolio_id: str, *, user_id: str, benchmark_symbol: str | None
+    ) -> dict[str, object]:
+        from dsp_platform.portfolio_store_facade import set_portfolio_benchmark
+
+        return set_portfolio_benchmark(
+            portfolio_id, user_id=user_id, benchmark_symbol=benchmark_symbol
+        )
+
+    def list_portfolio_holdings(
+        self, portfolio_id: str, *, user_id: str
+    ) -> list[dict[str, object]]:
+        from dsp_platform.portfolio_store_facade import list_portfolio_holdings
+
+        return list_portfolio_holdings(portfolio_id, user_id=user_id)
+
+    def upsert_portfolio_holding(
+        self,
+        portfolio_id: str,
+        *,
+        user_id: str,
+        symbol: str,
+        weight: float,
+        units: float | None = None,
+        cost_basis_per_unit: float | None = None,
+        purchase_date: str | None = None,
+        sector: str | None = None,
+        country: str | None = None,
+        exchange: str | None = None,
+        value_score: float | None = None,
+        quality_score: float | None = None,
+        momentum_score: float | None = None,
+        size_score: float | None = None,
+        volatility_score: float | None = None,
+    ) -> dict[str, object]:
+        from dsp_platform.portfolio_store_facade import upsert_portfolio_holding
+
+        return upsert_portfolio_holding(
+            portfolio_id,
+            user_id=user_id,
+            symbol=symbol,
+            weight=weight,
+            units=units,
+            cost_basis_per_unit=cost_basis_per_unit,
+            purchase_date=purchase_date,
+            sector=sector,
+            country=country,
+            exchange=exchange,
+            value_score=value_score,
+            quality_score=quality_score,
+            momentum_score=momentum_score,
+            size_score=size_score,
+            volatility_score=volatility_score,
+        )
+
+    def remove_portfolio_holding(
+        self, portfolio_id: str, *, user_id: str, symbol: str
+    ) -> bool:
+        from dsp_platform.portfolio_store_facade import remove_portfolio_holding
+
+        return remove_portfolio_holding(portfolio_id, user_id=user_id, symbol=symbol)
+
+    def record_portfolio_transaction(
+        self,
+        portfolio_id: str,
+        *,
+        user_id: str,
+        transaction_type: str,
+        transaction_date: str,
+        symbol: str | None = None,
+        quantity: float | None = None,
+        price: float | None = None,
+        amount: float | None = None,
+        currency: str = "USD",
+        notes: str | None = None,
+    ) -> dict[str, object]:
+        from dsp_platform.portfolio_store_facade import record_portfolio_transaction
+
+        return record_portfolio_transaction(
+            portfolio_id,
+            user_id=user_id,
+            transaction_type=transaction_type,
+            transaction_date=transaction_date,
+            symbol=symbol,
+            quantity=quantity,
+            price=price,
+            amount=amount,
+            currency=currency,
+            notes=notes,
+        )
+
+    def list_portfolio_transactions(
+        self,
+        portfolio_id: str,
+        *,
+        user_id: str,
+        symbol: str | None = None,
+        limit: int = 200,
+    ) -> list[dict[str, object]]:
+        from dsp_platform.portfolio_store_facade import list_portfolio_transactions
+
+        return list_portfolio_transactions(
+            portfolio_id, user_id=user_id, symbol=symbol, limit=limit
+        )
+
+    def list_portfolio_watchlist(
+        self, portfolio_id: str, *, user_id: str
+    ) -> list[dict[str, object]]:
+        from dsp_platform.portfolio_store_facade import list_portfolio_watchlist
+
+        return list_portfolio_watchlist(portfolio_id, user_id=user_id)
+
+    def add_portfolio_watchlist_symbol(
+        self,
+        portfolio_id: str,
+        *,
+        user_id: str,
+        symbol: str,
+        label: str | None = None,
+    ) -> dict[str, object]:
+        from dsp_platform.portfolio_store_facade import add_portfolio_watchlist_symbol
+
+        return add_portfolio_watchlist_symbol(
+            portfolio_id, user_id=user_id, symbol=symbol, label=label
+        )
+
+    def remove_portfolio_watchlist_symbol(
+        self, portfolio_id: str, *, user_id: str, symbol: str
+    ) -> bool:
+        from dsp_platform.portfolio_store_facade import (
+            remove_portfolio_watchlist_symbol,
+        )
+
+        return remove_portfolio_watchlist_symbol(
+            portfolio_id, user_id=user_id, symbol=symbol
+        )
+
+    def migrate_local_portfolio(
+        self,
+        *,
+        user_id: str,
+        name: str = "My Portfolio",
+        holdings: list[dict[str, object]] | None = None,
+        watchlist: list[dict[str, object]] | None = None,
+        benchmark_symbol: str | None = None,
+    ) -> dict[str, object]:
+        from dsp_platform.portfolio_store_facade import migrate_local_portfolio
+
+        return migrate_local_portfolio(
+            user_id=user_id,
+            name=name,
+            holdings=holdings,
+            watchlist=watchlist,
+            benchmark_symbol=benchmark_symbol,
+        )
+
     # -- Institutional Multi-Agent Committee (EPIC-A005) -----------------
 
     def institutional_committee_schema(self) -> dict[str, object]:

@@ -306,3 +306,32 @@ No engine package gained new algorithms as part of this work. Sections of the wo
 ### 8.3 Data Connector Framework — News, Filings, Ownership, Insider Trading, ESG, Transcripts
 
 Section 3.3 describes Data Engine's classic ports (`MarketDataPort`, `FundamentalsDataPort`, etc.). EPIC-D001–D004 introduced a second, parallel port pattern for authenticated snapshot data with built-in resilience (`MarketQuotePort`, `FinancialStatementPort`, `CorporateActionPort`). The Data Connector Framework generalizes that resilient pattern across six additional domains — `NewsProviderPort`, `FilingsProviderPort`, `OwnershipProviderPort`, `InsiderTradingProviderPort`, `EsgProviderPort`, `TranscriptProviderPort` — and extracts the shared plumbing common to all of them into a new `data_engine.connector_framework` package: normalized envelope models (company identity, provenance, health, optional field), a generic `PriorityProviderRegistry`, a `FailoverGroup` that tries every configured provider in priority order with full audit logging, and reuse (not reimplementation) of the existing `RateLimiter`/`CircuitBreaker`/`RetryPolicy` primitives from `market_quote.service`. Each domain still owns its own `models.py`/`validation.py`/`service.py`/`registry.py`/`adapters.py`, keeping vendor-specific fields confined to `adapters.py`. `dsp_platform` façades (`news.py`, `filings.py`, `ownership.py`, `insider_trading.py`, `esg.py`, `transcripts.py`) build each domain's registry from environment configuration and expose it to `DSPPlatform`; thin, additive API routers mount `GET /{domain}` and `GET /{domain}/health` with no business logic. See `docs/DATA_CONNECTOR_FRAMEWORK.md` for the full provider matrix, configuration, and compliance table.
+
+### 8.9 Super Admin Control Center (RC1 Milestone 11)
+
+`dsp_platform.control_center` is the Platform Operating System: a versioned
+Configuration Registry plus thin façades over Admin, SaaS, Ops, Enterprise
+audit, and Copilot provider discovery. It stores **config overlays only** and
+never executes valuation, risk, or recommendation engines.
+
+```mermaid
+flowchart TB
+  UI["/control-center"]
+  API["/api/v1/admin/*"]
+  CC["control_center.service"]
+  REG["ConfigurationRegistry"]
+  UI --> API --> CC --> REG
+  CC --> Admin["admin_facade"]
+  CC --> SaaS["saas_platform"]
+  CC --> Ops["production_ops"]
+```
+
+```mermaid
+flowchart LR
+  Change["Config change"] --> Ver["Version / author / old / new / reason"]
+  Ver --> RB["One-click rollback"]
+```
+
+Canonical product doc: [SUPER_ADMIN_CONTROL_CENTER.md](SUPER_ADMIN_CONTROL_CENTER.md).
+This milestone completes the RC1 feature roadmap (Feature Freeze next).
+

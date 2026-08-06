@@ -36,6 +36,8 @@ export type FeatureFlags = {
   /** EPS-002 — Enterprise Admin / Ops surfaces (presentation only) */
   enterpriseAdmin: boolean;
   enterpriseOps: boolean;
+  /** RC1 Milestone 11 — Super Admin Control Center (presentation only) */
+  controlCenter: boolean;
 };
 
 export const featureFlags: FeatureFlags = {
@@ -60,6 +62,7 @@ export const featureFlags: FeatureFlags = {
   enterprisePortal: envBool("NEXT_PUBLIC_ENTERPRISE_PORTAL", true),
   enterpriseAdmin: envBool("NEXT_PUBLIC_ENTERPRISE_ADMIN", true),
   enterpriseOps: envBool("NEXT_PUBLIC_ENTERPRISE_OPS", true),
+  controlCenter: envBool("NEXT_PUBLIC_CONTROL_CENTER", true),
 };
 
 export function allowActionLabels(flags: FeatureFlags = featureFlags): boolean {

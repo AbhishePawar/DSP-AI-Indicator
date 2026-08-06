@@ -4,7 +4,7 @@ import { expect, test } from "@playwright/test";
  * EPIC-019A — Cross-browser smoke (Chromium / Firefox / WebKit / Edge projects).
  */
 
-const PATHS = ["/", "/login", "/dashboard", "/portfolio", "/research"] as const;
+const PATHS = ["/", "/login", "/dashboard", "/portfolio", "/research", "/control-center"] as const;
 
 for (const path of PATHS) {
   test(`smoke ${path}`, async ({ page, browserName }) => {

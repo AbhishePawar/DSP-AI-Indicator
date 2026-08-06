@@ -60,6 +60,14 @@ Business contexts **own** their reports and engines. Platform layers
 Compliance owns **product mode policy and presentation vocabulary**, not
 investment math.
 
+
+**RC1 Milestone 11 — Super Admin Control Center (final RC1 feature):** Platform
+Operating System via `/api/v1/admin/*` control-center routes and
+`/control-center`. Central Configuration Registry with versioning/rollback,
+branding/CMS/flags/AI/valuation/risk/market overlays, business rules, and
+façades over Admin/SaaS/Ops. See
+[SUPER_ADMIN_CONTROL_CENTER.md](SUPER_ADMIN_CONTROL_CENTER.md).
+
 ---
 
 ## 3. Platform layers (Epic K)

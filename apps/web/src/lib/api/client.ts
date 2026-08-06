@@ -24,6 +24,16 @@ export type RequestOptions = {
   signal?: AbortSignal;
 };
 
+/** API envelope used by Control Center clients. */
+export type SaasEnvelope = {
+  ok: boolean;
+  action?: string;
+  result?: Record<string, unknown>;
+  message?: string | null;
+  error?: string;
+  provenance?: Record<string, unknown>;
+};
+
 /** Shared envelope shape returned by every Data Connector Framework endpoint. */
 type ConnectorIdentity = {
   symbol?: string;
@@ -744,6 +754,141 @@ export const api = {
       { method: "POST", body: JSON.stringify(body) },
       options,
     ),
+
+
+  /**
+   * RC1 Milestone 11 — Super Admin Control Center (orchestration only).
+   * Configuration registry overlays — never executes engines in the browser.
+   */
+  controlCenterSchema: (options?: RequestOptions) =>
+    request<{ ok: boolean; schema?: Record<string, unknown> }>(
+      "/admin/control-center/schema",
+      { method: "GET" },
+      options,
+    ),
+
+  controlCenterDashboard: (options?: RequestOptions) =>
+    request<SaasEnvelope>(
+      "/admin/control-center/dashboard",
+      { method: "GET" },
+      options,
+    ),
+
+  controlCenterRegistry: (
+    moduleId?: string,
+    options?: RequestOptions,
+  ) =>
+    request<SaasEnvelope>(
+      moduleId
+        ? `/admin/configuration/registry?module_id=${encodeURIComponent(moduleId)}`
+        : "/admin/configuration/registry",
+      { method: "GET" },
+      options,
+    ),
+
+  controlCenterUpdateConfiguration: (
+    body: Record<string, unknown>,
+    options?: RequestOptions,
+  ) =>
+    request<SaasEnvelope>(
+      "/admin/configuration",
+      { method: "POST", body: JSON.stringify(body) },
+      options,
+    ),
+
+  controlCenterHistory: (
+    params?: { module_id?: string; limit?: number },
+    options?: RequestOptions,
+  ) => {
+    const qs = new URLSearchParams();
+    if (params?.module_id) qs.set("module_id", params.module_id);
+    if (params?.limit != null) qs.set("limit", String(params.limit));
+    const q = qs.toString();
+    return request<SaasEnvelope>(
+      `/admin/configuration/history${q ? `?${q}` : ""}`,
+      { method: "GET" },
+      options,
+    );
+  },
+
+  controlCenterRollback: (
+    body: Record<string, unknown>,
+    options?: RequestOptions,
+  ) =>
+    request<SaasEnvelope>(
+      "/admin/rollback",
+      { method: "POST", body: JSON.stringify(body) },
+      options,
+    ),
+
+  controlCenterBranding: (
+    body: Record<string, unknown>,
+    options?: RequestOptions,
+  ) =>
+    request<SaasEnvelope>(
+      "/admin/branding",
+      { method: "POST", body: JSON.stringify(body) },
+      options,
+    ),
+
+  controlCenterFeatureFlags: (
+    body: Record<string, unknown>,
+    options?: RequestOptions,
+  ) =>
+    request<SaasEnvelope>(
+      "/admin/feature-flags/overrides",
+      { method: "POST", body: JSON.stringify(body) },
+      options,
+    ),
+
+  controlCenterValuation: (
+    body: Record<string, unknown>,
+    options?: RequestOptions,
+  ) =>
+    request<SaasEnvelope>(
+      "/admin/valuation/config",
+      { method: "POST", body: JSON.stringify(body) },
+      options,
+    ),
+
+  controlCenterAi: (
+    body: Record<string, unknown>,
+    options?: RequestOptions,
+  ) =>
+    request<SaasEnvelope>(
+      "/admin/ai/config",
+      { method: "POST", body: JSON.stringify(body) },
+      options,
+    ),
+
+  controlCenterBusinessRules: (options?: RequestOptions) =>
+    request<SaasEnvelope>("/admin/business-rules", { method: "GET" }, options),
+
+  controlCenterUpsertBusinessRule: (
+    body: Record<string, unknown>,
+    options?: RequestOptions,
+  ) =>
+    request<SaasEnvelope>(
+      "/admin/business-rules",
+      { method: "POST", body: JSON.stringify(body) },
+      options,
+    ),
+
+  controlCenterSecurity: (
+    body: Record<string, unknown>,
+    options?: RequestOptions,
+  ) =>
+    request<SaasEnvelope>(
+      "/admin/security/config",
+      { method: "POST", body: JSON.stringify(body) },
+      options,
+    ),
+
+  controlCenterMonitoring: (options?: RequestOptions) =>
+    request<SaasEnvelope>("/admin/monitoring", { method: "GET" }, options),
+
+  controlCenterAudit: (options?: RequestOptions) =>
+    request<SaasEnvelope>("/admin/audit/config", { method: "GET" }, options),
 
   portfolioIntelligenceSchema: (options?: RequestOptions) =>
     request<{ ok: boolean; schema?: Record<string, unknown> }>(

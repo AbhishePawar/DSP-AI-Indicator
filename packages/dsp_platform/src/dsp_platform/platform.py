@@ -1383,6 +1383,28 @@ class DSPPlatform:
             created_at=created_at,
         )
 
+
+    # -- Super Admin Control Center (RC1 Milestone 11) ------------------
+
+    def control_center_schema(self) -> dict[str, object]:
+        from dsp_platform.control_center import control_center_schema
+
+        return control_center_schema()
+
+    def run_control_center(
+        self,
+        action: str,
+        *,
+        api_state: object | None = None,
+        payload: dict[str, object] | None = None,
+    ) -> dict[str, object]:
+        """Orchestrate configuration registry + façades — never execute engines."""
+        from dsp_platform.control_center import run_control_center
+
+        return run_control_center(
+            action, platform=self, api_state=api_state, payload=payload
+        )
+
     # -- Decision Workspace (EPIC-A004) ---------------------------------
 
     def decision_workspace_schema(self) -> dict[str, object]:

@@ -74,3 +74,42 @@ send the user back through the login flow.
 ```
 
 See [SECURITY_GUIDE.md](SECURITY_GUIDE.md#refresh-token-rotation--reuse-detection-oauth-20-security-bcp) and [ENTERPRISE_AUTH_PLATFORM.md §3e](security/ENTERPRISE_AUTH_PLATFORM.md) for the full design, audit event catalogue, and sequence diagrams.
+
+## RC1 Milestone 11 — Super Admin Control Center
+
+Configuration Operating System. Overlays only — never executes valuation/AI/risk
+engines. Additive to A010 `/admin/*`. Full detail:
+[SUPER_ADMIN_CONTROL_CENTER.md](SUPER_ADMIN_CONTROL_CENTER.md).
+
+| Method | Path | Purpose |
+|---|---|---|
+| GET | `/admin/control-center/schema` | Modules, routes, reuse rules |
+| GET | `/admin/control-center/dashboard` | Control Center overview |
+| GET | `/admin/configuration/registry` | Full registry (`?module_id=` for one) |
+| POST | `/admin/configuration` | Versioned module update |
+| GET | `/admin/configuration/history` | Change history |
+| POST | `/admin/rollback` | One-click rollback to version |
+| POST | `/admin/branding` | Branding overlay |
+| POST | `/admin/cms` | CMS page overlay |
+| POST | `/admin/feature-flags/overrides` | Feature flag overrides |
+| POST | `/admin/valuation/config` | Valuation config overlay |
+| POST | `/admin/ai/config` | AI config overlay |
+| POST | `/admin/risk/config` | Risk config overlay |
+| POST | `/admin/market/config` | Market settings overlay |
+| POST | `/admin/connectors/config` | Connector control overlay |
+| GET/POST | `/admin/business-rules` | List / upsert rules |
+| DELETE | `/admin/business-rules/{id}` | Delete rule |
+| POST | `/admin/notifications/config` | Notifications overlay |
+| POST | `/admin/dashboard/layout` | Dashboard layout overlay |
+| POST | `/admin/security/config` | Security overlay |
+| POST | `/admin/templates/config` | Email/report templates overlay |
+| POST | `/admin/saas/control` | SaaS defaults + plans façade |
+| GET | `/admin/monitoring` | Ops + Admin metrics façade |
+| POST | `/admin/backup/control` | BackupPort façade |
+| GET | `/admin/release` | Release / environment profiles |
+| GET | `/admin/audit/config` | Configuration audit export |
+| GET | `/admin/users-orgs` | Users + organizations façade |
+
+A010 `GET /admin/configuration`, `GET /admin/feature-flags`, `GET /admin/audit`
+remain unchanged.
+

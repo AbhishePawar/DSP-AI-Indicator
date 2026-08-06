@@ -186,6 +186,25 @@ export const SHELL_NAV: readonly ShellNavItem[] = [
     },
   },
   {
+
+  {
+    id: "control-center",
+    href: "/control-center",
+    label: "Control Center",
+    description:
+      "Super Admin configuration registry, branding, flags, rules, and platform OS",
+    section: "ops",
+    icon: "admin",
+    access: {
+      anyOfPermissions: [
+        "configure_platform",
+        "admin.manage",
+        "admin.view",
+        "manage_roles",
+      ],
+      anyOfRoles: ["administrator", "owner"],
+    },
+  },
     id: "settings",
     href: "/settings",
     label: "Settings",

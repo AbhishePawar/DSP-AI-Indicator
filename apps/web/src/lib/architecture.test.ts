@@ -70,6 +70,7 @@ const LIB_ALLOWLIST = new Set([
   "screening",
   "settings",
   "shell",
+  "control-center",
   "trust",
 ]);
 

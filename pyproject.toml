@@ -82,6 +82,7 @@ where = [
     "packages/auth/src",
     "packages/admin/src",
     "packages/enterprise/src",
+    "packages/portfolio_store/src",
 ]
 
 [tool.pytest.ini_options]
@@ -131,6 +132,7 @@ pythonpath = [
     "packages/auth/src",
     "packages/admin/src",
     "packages/enterprise/src",
+    "packages/portfolio_store/src",
 ]
 addopts = "-v --tb=short --import-mode=importlib"
 filterwarnings = ["ignore::DeprecationWarning"]
@@ -189,6 +191,7 @@ src = [
     "packages/auth/src",
     "packages/admin/src",
     "packages/enterprise/src",
+    "packages/portfolio_store/src",
     "tests",
 ]
 
@@ -238,6 +241,7 @@ known-first-party = [
     "compliance",
     "platform_runtime",
     "enterprise",
+    "portfolio_store",
 ]
 
 [tool.coverage.run]
@@ -282,6 +286,7 @@ source = [
     "compliance",
     "platform_runtime",
     "enterprise",
+    "portfolio_store",
 ]
 omit = ["*/tests/*", "*/__init__.py"]
 
@@ -345,6 +350,7 @@ mypy_path = [
     "packages/auth/src",
     "packages/admin/src",
     "packages/enterprise/src",
+    "packages/portfolio_store/src",
 ]
 files = [
     "packages/contracts/src/contracts",

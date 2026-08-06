@@ -3,11 +3,12 @@
 from __future__ import annotations
 
 import os
+from collections.abc import Callable
 from dataclasses import dataclass, field
 from threading import Lock
-from typing import Any, Callable
+from typing import Any
 
-from fastapi import HTTPException, Request
+from fastapi import Depends, Header, HTTPException, Request
 
 from api_platform.api.exceptions import ApiNotFoundError
 from dsp_platform import DSPPlatform, PlatformBuilder, PlatformConfiguration
@@ -23,6 +24,7 @@ __all__ = [
     "ReportStore",
     "ContextStore",
     "get_api_state",
+    "get_current_user_id",
     "get_platform",
     "get_report_store",
     "get_context_store",
@@ -216,3 +218,46 @@ def require_admin_access(request: Request) -> dict[str, Any] | None:
             detail="admin authentication required",
             headers={"WWW-Authenticate": "Bearer"},
         ) from exc
+
+
+def get_current_user_id(
+    request: Request,
+    state: ApiState = Depends(get_api_state),
+    authorization: str | None = Header(default=None),
+) -> str:
+    """Resolve the authenticated user id — Bearer token or RBAC session cookie.
+
+    Reuses the existing institutional auth (EPIC-A009,
+    ``DSPPlatform.auth_current_user``) — the exact same resolution
+    ``GET /auth/rbac/me`` already performs. No new auth scheme; required by
+    every per-user-owned resource route (e.g. Portfolio Store, RC1
+    Milestone 3) so ownership can be enforced server-side.
+    """
+    token: str | None = None
+    if authorization and authorization.lower().startswith("bearer "):
+        token = authorization.split(" ", 1)[1].strip()
+    if not token:
+        try:
+            from security_platform.security.cookies import read_access_token
+
+            token = read_access_token(request)
+        except Exception:  # noqa: BLE001
+            token = None
+    if not token:
+        raise HTTPException(
+            status_code=401,
+            detail="authentication required",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+    try:
+        result = state.platform.auth_current_user(token)
+    except Exception as exc:  # noqa: BLE001
+        raise HTTPException(
+            status_code=401,
+            detail="invalid or expired session",
+            headers={"WWW-Authenticate": "Bearer"},
+        ) from exc
+    user_id = str(result.get("user_id") or "").strip()
+    if not user_id:
+        raise HTTPException(status_code=401, detail="invalid or expired session")
+    return user_id

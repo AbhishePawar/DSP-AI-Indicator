@@ -12,6 +12,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from pydantic import ValidationError
 
+from api_platform.api.csrf_middleware import CsrfMiddleware
 from api_platform.api.dependencies import (
     ApiState,
     ContextStore,
@@ -25,10 +26,10 @@ from api_platform.api.infra_bootstrap import (
     bootstrap_production_infrastructure,
     public_startup_error,
 )
+from api_platform.api.mappers import CompositionApiError, composition_error_body
 from api_platform.api.middleware import RequestContextMiddleware
 from api_platform.api.monitoring import PlatformLifecycleState, mark_lifecycle
 from api_platform.api.ops import metrics_registry
-from api_platform.api.csrf_middleware import CsrfMiddleware
 from api_platform.api.ops_middleware import (
     MetricsMiddleware,
     RateLimitHookMiddleware,
@@ -64,6 +65,7 @@ from api_platform.api.routers import (
     ownership,
     persistence,
     platform,
+    portfolio,
     portfolio_analytics,
     portfolio_intelligence,
     reports,
@@ -74,7 +76,6 @@ from api_platform.api.routers import (
     workflow,
 )
 from api_platform.api.schemas import ApiErrorBody
-from api_platform.api.mappers import CompositionApiError, composition_error_body
 from dsp_platform import DSPPlatform
 
 API_VERSION = "v1"
@@ -204,6 +205,18 @@ def create_app(
     except Exception:  # noqa: BLE001 — enterprise optional at boot
         pass
 
+    # RC1 Milestone 3: durable portfolio store when DatabasePort is available.
+    # get_portfolio_service() only honors `database` on the first call, so
+    # this is safe to call unconditionally (tests inject InMemory services
+    # first via reset_portfolio_store_for_tests, same convention as enterprise).
+    try:
+        from portfolio_store import get_portfolio_service
+
+        db = getattr(boot.infrastructure, "database", None)
+        get_portfolio_service(database=db)
+    except Exception:  # noqa: BLE001 — portfolio store optional at boot
+        pass
+
     application.add_middleware(
         CORSMiddleware,
         allow_origins=os.environ.get(
@@ -272,6 +285,7 @@ def _register_routers(application: FastAPI) -> None:
         research.router,
         research_monitoring.router,
         decision_workspace.router,
+        portfolio.router,
         portfolio_intelligence.router,
         portfolio_analytics.router,
         institutional_committee.router,

@@ -1,0 +1,15 @@
+{
+  "name": "DSP AI Indicator",
+  "install": "bash scripts/bootstrap/cloud-agent-install.sh",
+  "terminals": [
+    {
+      "name": "api",
+      "command": "python3 -m uvicorn api_platform.api.app:app --host 0.0.0.0 --port 8000"
+    },
+    {
+      "name": "web",
+      "command": "cd apps/web && npm run dev"
+    }
+  ],
+  "ports": [8000, 3000]
+}

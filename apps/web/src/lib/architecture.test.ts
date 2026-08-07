@@ -70,6 +70,11 @@ const LIB_ALLOWLIST = new Set([
   "screening",
   "settings",
   "shell",
+  "saas",
+  "enterprise",
+  "commercial",
+  "dashboards",
+  "ops",
   "control-center",
   "trust",
 ]);

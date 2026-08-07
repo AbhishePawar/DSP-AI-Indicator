@@ -2,12 +2,19 @@
 
 /**
  * EPS-002 — Operational Dashboard / Incident Center (thin client).
+ * RC1 M10 — also surfaces ProductionOpsPanel over /api/v1/ops/*.
  */
 
-import { useEffect, useState } from "react";
+import { Suspense, lazy, useEffect, useState } from "react";
 
 import { fetchOpsDashboard } from "@/lib/enterprise/enterpriseClient";
 import type { OpsDashboard } from "@/lib/enterprise/types";
+
+const ProductionOpsPanel = lazy(() =>
+  import("./ProductionOpsPanel").then((m) => ({
+    default: m.ProductionOpsPanel,
+  })),
+);
 
 function Empty({ children }: { children: React.ReactNode }) {
   return (
@@ -55,6 +62,16 @@ export function OpsPortal() {
 
   return (
     <div className="space-y-4" data-testid="ops-portal">
+      <Suspense
+        fallback={
+          <p className="text-sm text-[var(--dsp-text-muted)]">
+            Loading production operations…
+          </p>
+        }
+      >
+        <ProductionOpsPanel />
+      </Suspense>
+
       <section className="rounded-lg border border-[var(--dsp-border)] bg-[var(--dsp-surface)] p-4">
         <h2 className="mb-2 text-base font-semibold">Enterprise health</h2>
         <p className="text-sm">

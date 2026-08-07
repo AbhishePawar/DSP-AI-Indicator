@@ -40,7 +40,7 @@ export function ChatWindow({
 
   return (
     <Card className="flex min-h-[28rem] flex-col">
-      <CardHeader title="Chat" description="Explainability assistant — no LLM" />
+      <CardHeader title="Chat" description="Copilot 2.0 — orchestrates engines; never invents numbers" />
       <CardBody className="flex flex-1 flex-col gap-3">
         <div
           className="max-h-[22rem] flex-1 space-y-3 overflow-y-auto pr-1"

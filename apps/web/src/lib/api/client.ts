@@ -24,7 +24,42 @@ export type RequestOptions = {
   signal?: AbortSignal;
 };
 
-/** API envelope used by Control Center clients. */
+/** RC1 M6 — one dashboard widget section from GET /dashboards/{role}. */
+export type DashboardWidgetSection = {
+  available?: boolean;
+  source?: string;
+  data?: unknown;
+  message?: string | null;
+};
+
+/** RC1 M8 — Research Workspace API envelope. */
+export type ResearchWorkspaceEnvelope = {
+  ok: boolean;
+  action?: string;
+  result?: Record<string, unknown>;
+  message?: string | null;
+  error?: string;
+  provenance?: Record<string, unknown>;
+};
+
+export type ResearchWorkspaceNoteInput = {
+  title?: string;
+  body?: string;
+  format?: string;
+  folder_id?: string;
+  status?: string;
+  company?: string;
+  portfolio_id?: string;
+  research_object_id?: string;
+  document_refs?: string[];
+  attachments?: unknown[];
+  tag_ids?: string[];
+  assignee_id?: string;
+  created_by?: string;
+  ai_generated?: boolean;
+};
+
+/** RC1 M9 — Commercial SaaS Platform API envelope. */
 export type SaasEnvelope = {
   ok: boolean;
   action?: string;
@@ -408,6 +443,99 @@ export const api = {
       options,
     ),
 
+  /**
+   * RC1 Milestone 7 — Copilot 2.0 orchestration chat.
+   * Explains existing engine outputs only; never invents numbers.
+   */
+  copilotV2Chat: (
+    body: import("@/lib/api/copilotTypes").CopilotV2RequestBody,
+    options?: RequestOptions,
+  ) =>
+    request<import("@/lib/api/copilotTypes").CopilotV2ResponseBody>(
+      "/copilot/chat",
+      { method: "POST", body: JSON.stringify(body) },
+      options,
+    ),
+
+  copilotV2Company: (
+    body: import("@/lib/api/copilotTypes").CopilotV2RequestBody,
+    options?: RequestOptions,
+  ) =>
+    request<import("@/lib/api/copilotTypes").CopilotV2ResponseBody>(
+      "/copilot/company",
+      { method: "POST", body: JSON.stringify(body) },
+      options,
+    ),
+
+  copilotV2Portfolio: (
+    body: import("@/lib/api/copilotTypes").CopilotV2RequestBody,
+    options?: RequestOptions,
+  ) =>
+    request<import("@/lib/api/copilotTypes").CopilotV2ResponseBody>(
+      "/copilot/portfolio",
+      { method: "POST", body: JSON.stringify(body) },
+      options,
+    ),
+
+  copilotV2Valuation: (
+    body: import("@/lib/api/copilotTypes").CopilotV2RequestBody,
+    options?: RequestOptions,
+  ) =>
+    request<import("@/lib/api/copilotTypes").CopilotV2ResponseBody>(
+      "/copilot/valuation",
+      { method: "POST", body: JSON.stringify(body) },
+      options,
+    ),
+
+  copilotV2Comparison: (
+    body: import("@/lib/api/copilotTypes").CopilotV2RequestBody,
+    options?: RequestOptions,
+  ) =>
+    request<import("@/lib/api/copilotTypes").CopilotV2ResponseBody>(
+      "/copilot/comparison",
+      { method: "POST", body: JSON.stringify(body) },
+      options,
+    ),
+
+  copilotV2Document: (
+    body: import("@/lib/api/copilotTypes").CopilotV2RequestBody,
+    options?: RequestOptions,
+  ) =>
+    request<import("@/lib/api/copilotTypes").CopilotV2ResponseBody>(
+      "/copilot/document",
+      { method: "POST", body: JSON.stringify(body) },
+      options,
+    ),
+
+  copilotHistoryList: (options?: RequestOptions) =>
+    request<{
+      ok: boolean;
+      conversations: Array<{
+        conversation_id: string;
+        title?: string;
+        turn_count?: number;
+        updated_at?: string | null;
+        context?: Record<string, unknown>;
+      }>;
+    }>("/copilot/history", { method: "GET" }, options),
+
+  copilotHistoryGet: (conversationId: string, options?: RequestOptions) =>
+    request<{
+      ok: boolean;
+      result: {
+        conversation_id: string;
+        context: Record<string, unknown>;
+        turns: Array<Record<string, unknown>>;
+      };
+    }>(`/copilot/history/${encodeURIComponent(conversationId)}`, { method: "GET" }, options),
+
+  copilotHistoryDelete: (conversationId: string, options?: RequestOptions) =>
+    request<{ ok: boolean; deleted?: boolean; message?: string | null }>(
+      `/copilot/history/${encodeURIComponent(conversationId)}`,
+      { method: "DELETE" },
+      options,
+    ),
+
   /** Authenticated market quote (EPIC-D001) — never invents missing fields. */
   marketQuote: (
     symbol: string,
@@ -755,6 +883,47 @@ export const api = {
       options,
     ),
 
+  portfolioIntelligenceSchema: (options?: RequestOptions) =>
+    request<{ ok: boolean; schema?: Record<string, unknown> }>(
+      "/portfolio/intelligence/schema",
+      { method: "GET" },
+      options,
+    ),
+
+  /**
+   * RC1 Milestone 10 — Production Operations (aggregation only).
+   * Reuses /health and /metrics — never duplicates monitoring.
+   */
+  opsSchema: (options?: RequestOptions) =>
+    request<{ ok: boolean; schema?: Record<string, unknown> }>(
+      "/ops/schema",
+      { method: "GET" },
+      options,
+    ),
+
+  opsHealth: (options?: RequestOptions) =>
+    request<SaasEnvelope>("/ops/health", { method: "GET" }, options),
+
+  opsStatus: (options?: RequestOptions) =>
+    request<SaasEnvelope>("/ops/status", { method: "GET" }, options),
+
+  opsVersion: (options?: RequestOptions) =>
+    request<SaasEnvelope>("/ops/version", { method: "GET" }, options),
+
+  opsDependencies: (options?: RequestOptions) =>
+    request<SaasEnvelope>("/ops/dependencies", { method: "GET" }, options),
+
+  opsMetrics: (options?: RequestOptions) =>
+    request<SaasEnvelope>("/ops/metrics", { method: "GET" }, options),
+
+  opsDashboard: (options?: RequestOptions) =>
+    request<SaasEnvelope>("/ops/dashboard", { method: "GET" }, options),
+
+  opsObservability: (options?: RequestOptions) =>
+    request<SaasEnvelope>("/ops/observability", { method: "GET" }, options),
+
+  opsBackup: (options?: RequestOptions) =>
+    request<SaasEnvelope>("/ops/backup", { method: "GET" }, options),
 
   /**
    * RC1 Milestone 11 — Super Admin Control Center (orchestration only).
@@ -890,12 +1059,511 @@ export const api = {
   controlCenterAudit: (options?: RequestOptions) =>
     request<SaasEnvelope>("/admin/audit/config", { method: "GET" }, options),
 
-  portfolioIntelligenceSchema: (options?: RequestOptions) =>
+  /**
+   * RC1 Milestone 9 — Commercial SaaS Platform (orchestration only).
+   * Reuses enterprise orgs/IAM/billing ports — never fabricates payments.
+   */
+  saasSchema: (options?: RequestOptions) =>
     request<{ ok: boolean; schema?: Record<string, unknown> }>(
-      "/portfolio/intelligence/schema",
+      "/saas/schema",
       { method: "GET" },
       options,
     ),
+
+  saasDashboard: (options?: RequestOptions) =>
+    request<SaasEnvelope>("/saas/dashboard", { method: "GET" }, options),
+
+  saasPlans: (options?: RequestOptions) =>
+    request<SaasEnvelope>("/saas/plans", { method: "GET" }, options),
+
+  saasListOrganizations: (options?: RequestOptions) =>
+    request<SaasEnvelope>("/saas/organizations", { method: "GET" }, options),
+
+  saasCreateOrganization: (
+    body: Record<string, unknown>,
+    options?: RequestOptions,
+  ) =>
+    request<SaasEnvelope>(
+      "/saas/organization",
+      { method: "POST", body: JSON.stringify(body) },
+      options,
+    ),
+
+  saasGetOrganization: (orgId: string, options?: RequestOptions) =>
+    request<SaasEnvelope>(
+      `/saas/organization/${encodeURIComponent(orgId)}`,
+      { method: "GET" },
+      options,
+    ),
+
+  saasUpdateOrganization: (
+    orgId: string,
+    body: Record<string, unknown>,
+    options?: RequestOptions,
+  ) =>
+    request<SaasEnvelope>(
+      `/saas/organization/${encodeURIComponent(orgId)}`,
+      { method: "PUT", body: JSON.stringify(body) },
+      options,
+    ),
+
+  saasArchiveOrganization: (
+    orgId: string,
+    body: Record<string, unknown>,
+    options?: RequestOptions,
+  ) =>
+    request<SaasEnvelope>(
+      `/saas/organization/${encodeURIComponent(orgId)}/archive`,
+      { method: "POST", body: JSON.stringify(body) },
+      options,
+    ),
+
+  saasGetSettings: (orgId: string, options?: RequestOptions) =>
+    request<SaasEnvelope>(
+      `/saas/organization/${encodeURIComponent(orgId)}/settings`,
+      { method: "GET" },
+      options,
+    ),
+
+  saasUpdateSettings: (
+    orgId: string,
+    body: Record<string, unknown>,
+    options?: RequestOptions,
+  ) =>
+    request<SaasEnvelope>(
+      `/saas/organization/${encodeURIComponent(orgId)}/settings`,
+      { method: "PUT", body: JSON.stringify(body) },
+      options,
+    ),
+
+  saasCreateSubscription: (
+    body: Record<string, unknown>,
+    options?: RequestOptions,
+  ) =>
+    request<SaasEnvelope>(
+      "/saas/subscription",
+      { method: "POST", body: JSON.stringify(body) },
+      options,
+    ),
+
+  saasGetSubscription: (orgId: string, options?: RequestOptions) =>
+    request<SaasEnvelope>(
+      `/saas/organization/${encodeURIComponent(orgId)}/subscription`,
+      { method: "GET" },
+      options,
+    ),
+
+  saasAssignLicense: (
+    body: Record<string, unknown>,
+    options?: RequestOptions,
+  ) =>
+    request<SaasEnvelope>(
+      "/saas/license",
+      { method: "POST", body: JSON.stringify(body) },
+      options,
+    ),
+
+  saasGetLicense: (orgId: string, options?: RequestOptions) =>
+    request<SaasEnvelope>(
+      `/saas/organization/${encodeURIComponent(orgId)}/license`,
+      { method: "GET" },
+      options,
+    ),
+
+  saasCreateApiKey: (
+    body: Record<string, unknown>,
+    options?: RequestOptions,
+  ) =>
+    request<SaasEnvelope>(
+      "/saas/api-key",
+      { method: "POST", body: JSON.stringify(body) },
+      options,
+    ),
+
+  saasGetUsage: (orgId: string, options?: RequestOptions) =>
+    request<SaasEnvelope>(
+      `/saas/organization/${encodeURIComponent(orgId)}/usage`,
+      { method: "GET" },
+      options,
+    ),
+
+  saasRecordUsage: (
+    body: Record<string, unknown>,
+    options?: RequestOptions,
+  ) =>
+    request<SaasEnvelope>(
+      "/saas/usage",
+      { method: "POST", body: JSON.stringify(body) },
+      options,
+    ),
+
+  saasBillingStatus: (orgId: string, options?: RequestOptions) =>
+    request<SaasEnvelope>(
+      `/saas/organization/${encodeURIComponent(orgId)}/billing`,
+      { method: "GET" },
+      options,
+    ),
+
+  saasUpsertBillingProfile: (
+    orgId: string,
+    body: Record<string, unknown>,
+    options?: RequestOptions,
+  ) =>
+    request<SaasEnvelope>(
+      `/saas/organization/${encodeURIComponent(orgId)}/billing-profile`,
+      { method: "PUT", body: JSON.stringify(body) },
+      options,
+    ),
+
+  saasFeatureLimits: (orgId: string, options?: RequestOptions) =>
+    request<SaasEnvelope>(
+      `/saas/organization/${encodeURIComponent(orgId)}/limits`,
+      { method: "GET" },
+      options,
+    ),
+
+  saasCheckout: (body: Record<string, unknown>, options?: RequestOptions) =>
+    request<SaasEnvelope>(
+      "/saas/checkout",
+      { method: "POST", body: JSON.stringify(body) },
+      options,
+    ),
+
+  /**
+   * RC1 Milestone 8 — Institutional Research Workspace (orchestration only).
+   * Notes/folders/bookmarks/templates/search — no client research math.
+   */
+  researchWorkspaceSchema: (options?: RequestOptions) =>
+    request<{ ok: boolean; schema?: Record<string, unknown> }>(
+      "/research-workspace/schema",
+      { method: "GET" },
+      options,
+    ),
+
+  researchWorkspaceDashboard: (options?: RequestOptions) =>
+    request<ResearchWorkspaceEnvelope>(
+      "/research-workspace",
+      { method: "GET" },
+      options,
+    ),
+
+  researchWorkspaceListNotes: (options?: RequestOptions) =>
+    request<ResearchWorkspaceEnvelope>(
+      "/research-workspace/notes",
+      { method: "GET" },
+      options,
+    ),
+
+  researchWorkspaceGetNote: (noteId: string, options?: RequestOptions) =>
+    request<ResearchWorkspaceEnvelope>(
+      `/research-workspace/note/${encodeURIComponent(noteId)}`,
+      { method: "GET" },
+      options,
+    ),
+
+  researchWorkspaceCreateNote: (
+    body: ResearchWorkspaceNoteInput,
+    options?: RequestOptions,
+  ) =>
+    request<ResearchWorkspaceEnvelope>(
+      "/research-workspace/note",
+      { method: "POST", body: JSON.stringify(body) },
+      options,
+    ),
+
+  researchWorkspaceUpdateNote: (
+    noteId: string,
+    body: ResearchWorkspaceNoteInput,
+    options?: RequestOptions,
+  ) =>
+    request<ResearchWorkspaceEnvelope>(
+      `/research-workspace/note/${encodeURIComponent(noteId)}`,
+      { method: "PUT", body: JSON.stringify(body) },
+      options,
+    ),
+
+  researchWorkspaceDeleteNote: (noteId: string, options?: RequestOptions) =>
+    request<ResearchWorkspaceEnvelope>(
+      `/research-workspace/note/${encodeURIComponent(noteId)}`,
+      { method: "DELETE" },
+      options,
+    ),
+
+  researchWorkspaceNoteVersions: (noteId: string, options?: RequestOptions) =>
+    request<ResearchWorkspaceEnvelope>(
+      `/research-workspace/note/${encodeURIComponent(noteId)}/versions`,
+      { method: "GET" },
+      options,
+    ),
+
+  researchWorkspaceRestoreVersion: (
+    noteId: string,
+    version: number,
+    options?: RequestOptions,
+  ) =>
+    request<ResearchWorkspaceEnvelope>(
+      `/research-workspace/note/${encodeURIComponent(noteId)}/restore`,
+      { method: "POST", body: JSON.stringify({ version }) },
+      options,
+    ),
+
+  researchWorkspaceDiffVersions: (
+    noteId: string,
+    fromVersion: number,
+    toVersion: number,
+    options?: RequestOptions,
+  ) =>
+    request<ResearchWorkspaceEnvelope>(
+      `/research-workspace/note/${encodeURIComponent(noteId)}/diff`,
+      {
+        method: "POST",
+        body: JSON.stringify({
+          from_version: fromVersion,
+          to_version: toVersion,
+        }),
+      },
+      options,
+    ),
+
+  researchWorkspaceListFolders: (options?: RequestOptions) =>
+    request<ResearchWorkspaceEnvelope>(
+      "/research-workspace/folders",
+      { method: "GET" },
+      options,
+    ),
+
+  researchWorkspaceCreateFolder: (
+    body: { name: string; parent_id?: string },
+    options?: RequestOptions,
+  ) =>
+    request<ResearchWorkspaceEnvelope>(
+      "/research-workspace/folder",
+      { method: "POST", body: JSON.stringify(body) },
+      options,
+    ),
+
+  researchWorkspaceUpdateFolder: (
+    folderId: string,
+    body: { name?: string; parent_id?: string; archived?: boolean },
+    options?: RequestOptions,
+  ) =>
+    request<ResearchWorkspaceEnvelope>(
+      `/research-workspace/folder/${encodeURIComponent(folderId)}`,
+      { method: "PUT", body: JSON.stringify(body) },
+      options,
+    ),
+
+  researchWorkspaceDeleteFolder: (
+    folderId: string,
+    options?: RequestOptions,
+  ) =>
+    request<ResearchWorkspaceEnvelope>(
+      `/research-workspace/folder/${encodeURIComponent(folderId)}`,
+      { method: "DELETE" },
+      options,
+    ),
+
+  researchWorkspaceListBookmarks: (options?: RequestOptions) =>
+    request<ResearchWorkspaceEnvelope>(
+      "/research-workspace/bookmarks",
+      { method: "GET" },
+      options,
+    ),
+
+  researchWorkspaceCreateBookmark: (
+    body: {
+      kind: string;
+      label: string;
+      target_id?: string;
+      company?: string;
+      href?: string;
+    },
+    options?: RequestOptions,
+  ) =>
+    request<ResearchWorkspaceEnvelope>(
+      "/research-workspace/bookmark",
+      { method: "POST", body: JSON.stringify(body) },
+      options,
+    ),
+
+  researchWorkspaceDeleteBookmark: (
+    bookmarkId: string,
+    options?: RequestOptions,
+  ) =>
+    request<ResearchWorkspaceEnvelope>(
+      `/research-workspace/bookmark/${encodeURIComponent(bookmarkId)}`,
+      { method: "DELETE" },
+      options,
+    ),
+
+  researchWorkspaceApplyTemplate: (
+    body: {
+      template_id: string;
+      title?: string;
+      company?: string;
+      folder_id?: string;
+      enrich_with_ai?: boolean;
+    },
+    options?: RequestOptions,
+  ) =>
+    request<ResearchWorkspaceEnvelope>(
+      "/research-workspace/template",
+      { method: "POST", body: JSON.stringify(body) },
+      options,
+    ),
+
+  researchWorkspaceAddComment: (
+    body: {
+      note_id: string;
+      body: string;
+      author_id?: string;
+      mentions?: string[];
+    },
+    options?: RequestOptions,
+  ) =>
+    request<ResearchWorkspaceEnvelope>(
+      "/research-workspace/comment",
+      { method: "POST", body: JSON.stringify(body) },
+      options,
+    ),
+
+  researchWorkspaceResolveComment: (
+    commentId: string,
+    resolved?: boolean,
+    options?: RequestOptions,
+  ) =>
+    request<ResearchWorkspaceEnvelope>(
+      `/research-workspace/comment/${encodeURIComponent(commentId)}/resolve`,
+      {
+        method: "POST",
+        body: JSON.stringify({ resolved: resolved ?? true }),
+      },
+      options,
+    ),
+
+  researchWorkspaceShare: (
+    body: {
+      note_id: string;
+      user_ids?: string[];
+      permission?: string;
+      created_by?: string;
+    },
+    options?: RequestOptions,
+  ) =>
+    request<ResearchWorkspaceEnvelope>(
+      "/research-workspace/share",
+      { method: "POST", body: JSON.stringify(body) },
+      options,
+    ),
+
+  researchWorkspacePublish: (
+    body: {
+      note_id: string;
+      status: string;
+      actor_id?: string;
+      reason?: string;
+    },
+    options?: RequestOptions,
+  ) =>
+    request<ResearchWorkspaceEnvelope>(
+      "/research-workspace/publish",
+      { method: "POST", body: JSON.stringify(body) },
+      options,
+    ),
+
+  researchWorkspaceSearch: (q: string, options?: RequestOptions) =>
+    request<ResearchWorkspaceEnvelope>(
+      `/research-workspace/search?q=${encodeURIComponent(q)}`,
+      { method: "GET" },
+      options,
+    ),
+
+  researchWorkspaceAi: (
+    body: {
+      note_id?: string;
+      instruction: string;
+      mode?: string;
+      apply_to_note?: boolean;
+      company?: string;
+    },
+    options?: RequestOptions,
+  ) =>
+    request<ResearchWorkspaceEnvelope>(
+      "/research-workspace/ai",
+      { method: "POST", body: JSON.stringify(body) },
+      options,
+    ),
+
+  researchWorkspaceUpsertTag: (
+    body: {
+      tag_id?: string;
+      label: string;
+      color?: string;
+      kind?: string;
+    },
+    options?: RequestOptions,
+  ) =>
+    request<ResearchWorkspaceEnvelope>(
+      "/research-workspace/tag",
+      { method: "POST", body: JSON.stringify(body) },
+      options,
+    ),
+
+  researchWorkspaceDeleteTag: (tagId: string, options?: RequestOptions) =>
+    request<ResearchWorkspaceEnvelope>(
+      `/research-workspace/tag/${encodeURIComponent(tagId)}`,
+      { method: "DELETE" },
+      options,
+    ),
+
+  /**
+   * RC1 Milestone 6 — Enterprise role dashboards (aggregation only).
+   * Thin client: never invents KPIs; missing sections stay Data unavailable.
+   */
+  enterpriseDashboardSchema: (options?: RequestOptions) =>
+    request<{ ok: boolean; schema?: Record<string, unknown> }>(
+      "/dashboards/schema",
+      { method: "GET" },
+      options,
+    ),
+
+  enterpriseDashboard: (
+    role:
+      | "research"
+      | "portfolio-manager"
+      | "wealth-advisor"
+      | "family-office"
+      | "executive",
+    params?: {
+      portfolio_id?: string;
+      symbols?: string;
+      watchlist_id?: string;
+      client_portfolio_ids?: string;
+      workflow_id?: string;
+    },
+    options?: RequestOptions,
+  ) => {
+    const q = new URLSearchParams();
+    if (params?.portfolio_id) q.set("portfolio_id", params.portfolio_id);
+    if (params?.symbols) q.set("symbols", params.symbols);
+    if (params?.watchlist_id) q.set("watchlist_id", params.watchlist_id);
+    if (params?.client_portfolio_ids) {
+      q.set("client_portfolio_ids", params.client_portfolio_ids);
+    }
+    if (params?.workflow_id) q.set("workflow_id", params.workflow_id);
+    const qs = q.toString();
+    return request<{
+      ok: boolean;
+      result?: {
+        role: string;
+        generated_at?: string;
+        widgets?: Record<string, DashboardWidgetSection>;
+        provenance?: Record<string, unknown>;
+      };
+      message?: string | null;
+      error?: string;
+    }>(`/dashboards/${role}${qs ? `?${qs}` : ""}`, { method: "GET" }, options);
+  },
 
   /**
    * Research Intelligence (EPIC-011B) — measurement & validation only.

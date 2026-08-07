@@ -7,6 +7,7 @@ from api_platform.api.routers import (
     control_center,
     copilot,
     corporate_actions,
+    dashboards,
     data,
     decision_workspace,
     enterprise,
@@ -28,6 +29,9 @@ from api_platform.api.routers import (
     research,
     research_intelligence,
     research_monitoring,
+    research_workspace,
+    saas,
+    ops,
     workflow,
 )
 
@@ -40,6 +44,7 @@ __all__ = [
     "control_center",
     "copilot",
     "corporate_actions",
+    "dashboards",
     "data",
     "decision_workspace",
     "enterprise",
@@ -61,5 +66,8 @@ __all__ = [
     "research",
     "research_intelligence",
     "research_monitoring",
+    "research_workspace",
+    "saas",
+    "ops",
     "workflow",
 ]

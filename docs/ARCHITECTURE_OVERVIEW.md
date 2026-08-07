@@ -60,6 +60,29 @@ Business contexts **own** their reports and engines. Platform layers
 Compliance owns **product mode policy and presentation vocabulary**, not
 investment math.
 
+**RC1 Milestone 6 — Enterprise Dashboards:** role surfaces under
+`/dashboards/{role}` aggregate Portfolio Intelligence, Research, Workflow,
+Committee, Persistence, and Health via thin `/api/v1/dashboards/*` routers.
+See [DASHBOARDS.md](DASHBOARDS.md) and
+[DSP_AI_INDICATOR_ARCHITECTURE.md §8.4](DSP_AI_INDICATOR_ARCHITECTURE.md).
+
+**RC1 Milestone 7 — AI Research Copilot 2.0:** conversational orchestration
+over existing engines via `/api/v1/copilot/*` (chat, company, portfolio,
+valuation, comparison, document, history). See [COPILOT.md](COPILOT.md).
+
+**RC1 Milestone 8 — Research Workspace:** analyst notes/folders/bookmarks/
+templates/versions/publish/collaboration/search via
+`/api/v1/research-workspace/*` and `/research/workspace`. Reuses Copilot 2.0
+and Workflow Automation. See [RESEARCH_WORKSPACE.md](RESEARCH_WORKSPACE.md).
+
+**RC1 Milestone 9 — Commercial SaaS Platform:** organization-aware multi-tenant
+control plane via `/api/v1/saas/*` and `/saas`. Reuses Enterprise orgs/IAM/
+licenses/API keys/usage/audit and BillingPort interfaces. See
+[SAAS_PLATFORM.md](SAAS_PLATFORM.md).
+
+**RC1 Milestone 10 — Production Operations:** production readiness façade via
+`/api/v1/ops/*` aggregating health, metrics, observability, backup interfaces,
+and deployment docs. See [PRODUCTION_OPERATIONS.md](PRODUCTION_OPERATIONS.md).
 
 **RC1 Milestone 11 — Super Admin Control Center (final RC1 feature):** Platform
 Operating System via `/api/v1/admin/*` control-center routes and
@@ -67,6 +90,7 @@ Operating System via `/api/v1/admin/*` control-center routes and
 branding/CMS/flags/AI/valuation/risk/market overlays, business rules, and
 façades over Admin/SaaS/Ops. See
 [SUPER_ADMIN_CONTROL_CENTER.md](SUPER_ADMIN_CONTROL_CENTER.md).
+
 
 ---
 

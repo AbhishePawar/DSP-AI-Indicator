@@ -1383,6 +1383,96 @@ class DSPPlatform:
             created_at=created_at,
         )
 
+    # -- AI Research Copilot 2.0 (RC1 Milestone 7) ---------------------
+
+    def copilot_v2_schema(self) -> dict[str, object]:
+        from dsp_platform.copilot_v2 import copilot_v2_schema
+
+        return copilot_v2_schema()
+
+    def run_copilot_v2(self, **kwargs: object) -> dict[str, object]:
+        """Orchestrate Copilot 2.0 over existing engines (explanation only)."""
+        from dsp_platform.copilot_v2 import run_copilot_v2
+
+        return run_copilot_v2(platform=self, **kwargs)  # type: ignore[arg-type]
+
+    def list_copilot_history(self) -> list[dict[str, object]]:
+        from dsp_platform.copilot_v2 import get_copilot_memory_store
+
+        return get_copilot_memory_store().list_conversations()
+
+    def get_copilot_history(self, conversation_id: str) -> dict[str, object]:
+        from dsp_platform.copilot_v2 import get_copilot_memory_store
+
+        store = get_copilot_memory_store()
+        cid = store.ensure(conversation_id)
+        return {
+            "conversation_id": cid,
+            "context": store.get_context(cid),
+            "turns": list(store.history(cid)),
+        }
+
+    def delete_copilot_history(self, conversation_id: str) -> bool:
+        from dsp_platform.copilot_v2 import get_copilot_memory_store
+
+        return get_copilot_memory_store().delete(conversation_id)
+
+    # -- Research Workspace (RC1 Milestone 8) ---------------------------
+
+    def research_workspace_schema(self) -> dict[str, object]:
+        from dsp_platform.research_workspace import research_workspace_schema
+
+        return research_workspace_schema()
+
+    def run_research_workspace(
+        self,
+        action: str,
+        *,
+        payload: dict[str, object] | None = None,
+    ) -> dict[str, object]:
+        """Orchestrate Research Workspace actions (store + workflow + Copilot)."""
+        from dsp_platform.research_workspace import run_research_workspace
+
+        return run_research_workspace(action, platform=self, payload=payload)
+
+    # -- Commercial SaaS Platform (RC1 Milestone 9) ---------------------
+
+    def saas_platform_schema(self) -> dict[str, object]:
+        from dsp_platform.saas_platform import saas_platform_schema
+
+        return saas_platform_schema()
+
+    def run_saas_platform(
+        self,
+        action: str,
+        *,
+        payload: dict[str, object] | None = None,
+    ) -> dict[str, object]:
+        """Orchestrate SaaS actions — delegates to enterprise domain."""
+        from dsp_platform.saas_platform import run_saas_platform
+
+        return run_saas_platform(action, platform=self, payload=payload)
+
+    # -- Production Operations (RC1 Milestone 10) -----------------------
+
+    def production_ops_schema(self) -> dict[str, object]:
+        from dsp_platform.production_ops import production_ops_schema
+
+        return production_ops_schema()
+
+    def run_production_ops(
+        self,
+        action: str,
+        *,
+        api_state: object | None = None,
+        payload: dict[str, object] | None = None,
+    ) -> dict[str, object]:
+        """Aggregate production health/metrics/backup status — no new probes."""
+        from dsp_platform.production_ops import run_production_ops
+
+        return run_production_ops(
+            action, platform=self, api_state=api_state, payload=payload
+        )
 
     # -- Super Admin Control Center (RC1 Milestone 11) ------------------
 
@@ -1791,6 +1881,36 @@ class DSPPlatform:
     def get_platform_info(self) -> PlatformMetadata:
         """Return immutable platform metadata / capability discovery."""
         return self._metadata()
+
+    # -- Enterprise Dashboards (RC1 Milestone 6) -------------------------
+
+    def enterprise_dashboard_schema(self) -> dict[str, object]:
+        from dsp_platform.enterprise_dashboards import enterprise_dashboard_schema
+
+        return enterprise_dashboard_schema()
+
+    def get_enterprise_dashboard(
+        self,
+        role: str,
+        *,
+        portfolio_id: str | None = None,
+        symbols: list[str] | None = None,
+        watchlist_id: str | None = None,
+        client_portfolio_ids: list[str] | None = None,
+        workflow_id: str | None = None,
+    ) -> dict[str, object]:
+        """Aggregate a role dashboard from existing engines (no new calculations)."""
+        from dsp_platform.enterprise_dashboards import get_enterprise_dashboard
+
+        return get_enterprise_dashboard(
+            role,
+            platform=self,
+            portfolio_id=portfolio_id,
+            symbols=symbols,
+            watchlist_id=watchlist_id,
+            client_portfolio_ids=client_portfolio_ids,
+            workflow_id=workflow_id,
+        )
 
     def health_check(self) -> PlatformResult:
         """Offline health / readiness probe via frozen health service APIs."""

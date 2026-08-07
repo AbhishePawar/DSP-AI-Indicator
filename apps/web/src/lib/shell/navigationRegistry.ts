@@ -58,6 +58,17 @@ export const SHELL_NAV: readonly ShellNavItem[] = [
     description: "Executive overview and next investigation steps",
     section: "overview",
     icon: "dashboard",
+    children: [
+      {
+        id: "enterprise-dashboards",
+        href: "/dashboards",
+        label: "Enterprise Dashboards",
+        description:
+          "Role-specific research, portfolio, advisor, family office, and executive views",
+        section: "overview",
+        icon: "dashboard",
+      },
+    ],
   },
   {
     id: "analysis",
@@ -89,6 +100,16 @@ export const SHELL_NAV: readonly ShellNavItem[] = [
     icon: "research",
     access: { anyOfPermissions: ["read_research"] },
     children: [
+      {
+        id: "research-workspace-platform",
+        href: "/research/workspace",
+        label: "Analyst Workspace",
+        description:
+          "Institutional notes, folders, bookmarks, templates, versions, and publish workflow",
+        section: "research",
+        icon: "research",
+        access: { anyOfPermissions: ["read_research"] },
+      },
       {
         id: "research-canvas",
         href: "/research/canvas",
@@ -162,6 +183,24 @@ export const SHELL_NAV: readonly ShellNavItem[] = [
     },
   },
   {
+    id: "saas",
+    href: "/saas",
+    label: "SaaS Platform",
+    description:
+      "Commercial multi-tenant orgs, plans, licensing, billing profiles, and usage",
+    section: "ops",
+    icon: "admin",
+    access: {
+      anyOfPermissions: [
+        "admin.view",
+        "admin.manage",
+        "org.manage",
+        "configure_platform",
+      ],
+      anyOfRoles: ["owner", "administrator"],
+    },
+  },
+  {
     id: "portal",
     href: "/portal",
     label: "Customer Portal",
@@ -186,8 +225,6 @@ export const SHELL_NAV: readonly ShellNavItem[] = [
     },
   },
   {
-
-  {
     id: "control-center",
     href: "/control-center",
     label: "Control Center",
@@ -205,6 +242,7 @@ export const SHELL_NAV: readonly ShellNavItem[] = [
       anyOfRoles: ["administrator", "owner"],
     },
   },
+  {
     id: "settings",
     href: "/settings",
     label: "Settings",

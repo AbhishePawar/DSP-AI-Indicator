@@ -36,6 +36,14 @@ export type FeatureFlags = {
   /** EPS-002 — Enterprise Admin / Ops surfaces (presentation only) */
   enterpriseAdmin: boolean;
   enterpriseOps: boolean;
+  /** RC1 Milestone 6 — role-specific enterprise dashboards (presentation only) */
+  enterpriseDashboards: boolean;
+  /** RC1 Milestone 8 — institutional Research Workspace (orchestration UI only) */
+  researchWorkspacePlatform: boolean;
+  /** RC1 Milestone 9 — Commercial SaaS Platform (orchestration UI only) */
+  saasPlatform: boolean;
+  /** RC1 Milestone 10 — Production Operations dashboard (presentation only) */
+  productionOps: boolean;
   /** RC1 Milestone 11 — Super Admin Control Center (presentation only) */
   controlCenter: boolean;
 };
@@ -62,6 +70,13 @@ export const featureFlags: FeatureFlags = {
   enterprisePortal: envBool("NEXT_PUBLIC_ENTERPRISE_PORTAL", true),
   enterpriseAdmin: envBool("NEXT_PUBLIC_ENTERPRISE_ADMIN", true),
   enterpriseOps: envBool("NEXT_PUBLIC_ENTERPRISE_OPS", true),
+  enterpriseDashboards: envBool("NEXT_PUBLIC_ENTERPRISE_DASHBOARDS", true),
+  researchWorkspacePlatform: envBool(
+    "NEXT_PUBLIC_RESEARCH_WORKSPACE_PLATFORM",
+    true,
+  ),
+  saasPlatform: envBool("NEXT_PUBLIC_SAAS_PLATFORM", true),
+  productionOps: envBool("NEXT_PUBLIC_PRODUCTION_OPS", true),
   controlCenter: envBool("NEXT_PUBLIC_CONTROL_CENTER", true),
 };
 

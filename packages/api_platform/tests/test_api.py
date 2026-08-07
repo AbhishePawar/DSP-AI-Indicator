@@ -301,9 +301,16 @@ class TestCompareWorkflowCopilot:
         )
         assert response.status_code == 404
 
-    def test_copilot_requires_context_ref(self, client: TestClient) -> None:
+    def test_copilot_chat_accepts_freeform_without_context_ref(
+        self, client: TestClient
+    ) -> None:
+        """RC1 M7 — /copilot/chat orchestrates without J1 context_ref."""
         response = client.post("/copilot/chat", json={"user_text": "hi"})
-        assert response.status_code == 422
+        assert response.status_code == 200
+        body = response.json()
+        assert body["ok"] is True
+        assert body["result"]["unavailable"] is True
+
 
 
 class TestAuthLogin:

@@ -108,6 +108,13 @@ class Organization:
     parent_org_id: str | None = None
 
     def to_dict(self) -> dict[str, Any]:
+        def _plain(value: Any) -> Any:
+            if isinstance(value, Mapping):
+                return {str(k): _plain(v) for k, v in value.items()}
+            if isinstance(value, (list, tuple)):
+                return [_plain(v) for v in value]
+            return value
+
         return {
             "org_id": self.org_id,
             "name": self.name,
@@ -116,9 +123,9 @@ class Organization:
             "owner_user_id": self.owner_user_id,
             "created_at": self.created_at,
             "updated_at": self.updated_at,
-            "branding": dict(self.branding),
-            "preferences": dict(self.preferences),
-            "metadata": dict(self.metadata),
+            "branding": _plain(self.branding),
+            "preferences": _plain(self.preferences),
+            "metadata": _plain(self.metadata),
             "seat_limit": self.seat_limit,
             "parent_org_id": self.parent_org_id,
         }

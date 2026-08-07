@@ -139,3 +139,18 @@ def health_ready(state: ApiState = Depends(get_api_state)) -> JSONResponse:
     snapshot["service_readiness"]["accepting_traffic"] = accept
     code = 200 if accept else 503
     return JSONResponse(snapshot, status_code=code)
+
+
+@router.get("/health/startup")
+def health_startup(state: ApiState = Depends(get_api_state)) -> JSONResponse:
+    """RC1 M10 — startup probe via production_ops aggregation."""
+    result = state.platform.run_production_ops("startup", api_state=state)
+    code = 200 if result.get("ok") and (result.get("result") or {}).get("started") else 503
+    return JSONResponse(result, status_code=code)
+
+
+@router.get("/health/dependencies")
+def health_dependencies(state: ApiState = Depends(get_api_state)) -> JSONResponse:
+    """RC1 M10 — dependency aggregation (reuses infra + platform probes)."""
+    result = state.platform.run_production_ops("dependencies", api_state=state)
+    return JSONResponse(result, status_code=200 if result.get("ok") else 503)

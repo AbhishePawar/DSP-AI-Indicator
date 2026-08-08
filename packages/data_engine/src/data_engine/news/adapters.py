@@ -520,9 +520,14 @@ def build_default_news_registry_from_env() -> PriorityProviderRegistry[NewsProvi
 
     Registers every vendor with credentials/flags present, in a fixed
     priority order (licensed structured feeds before unofficial public
-    endpoints), and always registers :class:`NullNewsAdapter` last so
-    the registry is never empty.
+    endpoints). P1-03: Null is registered only outside production; production
+    refuses a Null-only / memory-only registry.
     """
+    from data_engine.connector_framework.production_profile import (
+        finalize_provider_registry,
+        memory_adapter_allowed,
+    )
+
     registry: PriorityProviderRegistry[NewsProviderPort] = PriorityProviderRegistry()
 
     fmp_key = os.environ.get("DSP_NEWS_FMP_API_KEY", "").strip()
@@ -550,10 +555,14 @@ def build_default_news_registry_from_env() -> PriorityProviderRegistry[NewsProvi
             YahooFinanceNewsAdapter(enabled=True), provider_id="yahoo_finance_news", priority=40
         )
 
-    if os.environ.get("DSP_NEWS_MEMORY", "").lower() in {"1", "true", "yes"}:
+    if memory_adapter_allowed("DSP_NEWS_MEMORY", connector="news"):
         registry.register(
             InMemoryNewsAdapter(api_key="dev-memory-key"), provider_id="memory_news", priority=90
         )
 
-    registry.register(NullNewsAdapter(), provider_id="null_news", priority=1000)
-    return registry
+    return finalize_provider_registry(
+        registry,
+        connector="news",
+        null_factory=NullNewsAdapter,
+        null_provider_id="null_news",
+    )

@@ -222,6 +222,11 @@ class FinancialModelingPrepTranscriptAdapter(TranscriptProviderPort):
 
 
 def build_default_transcript_registry_from_env() -> PriorityProviderRegistry[TranscriptProviderPort]:
+    from data_engine.connector_framework.production_profile import (
+        finalize_provider_registry,
+        memory_adapter_allowed,
+    )
+
     registry: PriorityProviderRegistry[TranscriptProviderPort] = PriorityProviderRegistry()
 
     fmp_key = os.environ.get("DSP_TRANSCRIPT_FMP_API_KEY", "").strip()
@@ -232,12 +237,16 @@ def build_default_transcript_registry_from_env() -> PriorityProviderRegistry[Tra
             priority=10,
         )
 
-    if os.environ.get("DSP_TRANSCRIPT_MEMORY", "").lower() in {"1", "true", "yes"}:
+    if memory_adapter_allowed("DSP_TRANSCRIPT_MEMORY", connector="transcripts"):
         registry.register(
             InMemoryTranscriptAdapter(api_key="dev-memory-key"),
             provider_id="memory_transcripts",
             priority=90,
         )
 
-    registry.register(NullTranscriptAdapter(), provider_id="null_transcripts", priority=1000)
-    return registry
+    return finalize_provider_registry(
+        registry,
+        connector="transcripts",
+        null_factory=NullTranscriptAdapter,
+        null_provider_id="null_transcripts",
+    )

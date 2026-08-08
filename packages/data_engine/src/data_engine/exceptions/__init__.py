@@ -39,6 +39,7 @@ from __future__ import annotations
 from core.exceptions import DSPAIError
 
 __all__ = [
+    "ConnectorConfigurationError",
     "DataEngineError",
     "InvalidProviderDataError",
     "MissingFieldError",
@@ -50,6 +51,10 @@ __all__ = [
 
 class DataEngineError(DSPAIError):
     """Base exception for all Data Engine errors."""
+
+
+class ConnectorConfigurationError(DataEngineError):
+    """Raised when production connector wiring would select Null/memory/fake data (P1-03)."""
 
 
 class NormalizationError(DataEngineError):

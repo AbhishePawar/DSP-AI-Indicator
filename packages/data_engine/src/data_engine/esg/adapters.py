@@ -270,6 +270,11 @@ class FinancialModelingPrepEsgAdapter(EsgProviderPort):
 
 
 def build_default_esg_registry_from_env() -> PriorityProviderRegistry[EsgProviderPort]:
+    from data_engine.connector_framework.production_profile import (
+        finalize_provider_registry,
+        memory_adapter_allowed,
+    )
+
     registry: PriorityProviderRegistry[EsgProviderPort] = PriorityProviderRegistry()
 
     fmp_key = os.environ.get("DSP_ESG_FMP_API_KEY", "").strip()
@@ -281,10 +286,14 @@ def build_default_esg_registry_from_env() -> PriorityProviderRegistry[EsgProvide
             YahooFinanceEsgAdapter(enabled=True), provider_id="yahoo_finance_esg", priority=20
         )
 
-    if os.environ.get("DSP_ESG_MEMORY", "").lower() in {"1", "true", "yes"}:
+    if memory_adapter_allowed("DSP_ESG_MEMORY", connector="esg"):
         registry.register(
             InMemoryEsgAdapter(api_key="dev-memory-key"), provider_id="memory_esg", priority=90
         )
 
-    registry.register(NullEsgAdapter(), provider_id="null_esg", priority=1000)
-    return registry
+    return finalize_provider_registry(
+        registry,
+        connector="esg",
+        null_factory=NullEsgAdapter,
+        null_provider_id="null_esg",
+    )

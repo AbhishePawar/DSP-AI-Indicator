@@ -719,6 +719,11 @@ class YahooFinanceInsiderTradingAdapter(InsiderTradingProviderPort):
 
 
 def build_default_insider_trading_registry_from_env() -> PriorityProviderRegistry[InsiderTradingProviderPort]:
+    from data_engine.connector_framework.production_profile import (
+        finalize_provider_registry,
+        memory_adapter_allowed,
+    )
+
     registry: PriorityProviderRegistry[InsiderTradingProviderPort] = PriorityProviderRegistry()
 
     sec_ua = os.environ.get("DSP_INSIDER_SEC_EDGAR_USER_AGENT", "").strip()
@@ -754,12 +759,16 @@ def build_default_insider_trading_registry_from_env() -> PriorityProviderRegistr
             priority=50,
         )
 
-    if os.environ.get("DSP_INSIDER_MEMORY", "").lower() in {"1", "true", "yes"}:
+    if memory_adapter_allowed("DSP_INSIDER_MEMORY", connector="insider_trading"):
         registry.register(
             InMemoryInsiderTradingAdapter(api_key="dev-memory-key"),
             provider_id="memory_insider_trading",
             priority=90,
         )
 
-    registry.register(NullInsiderTradingAdapter(), provider_id="null_insider_trading", priority=1000)
-    return registry
+    return finalize_provider_registry(
+        registry,
+        connector="insider_trading",
+        null_factory=NullInsiderTradingAdapter,
+        null_provider_id="null_insider_trading",
+    )

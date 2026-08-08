@@ -610,6 +610,11 @@ class ScreenerOwnershipAdapter(OwnershipProviderPort):
 
 
 def build_default_ownership_registry_from_env() -> PriorityProviderRegistry[OwnershipProviderPort]:
+    from data_engine.connector_framework.production_profile import (
+        finalize_provider_registry,
+        memory_adapter_allowed,
+    )
+
     registry: PriorityProviderRegistry[OwnershipProviderPort] = PriorityProviderRegistry()
 
     if os.environ.get("DSP_OWNERSHIP_SCREENER_ENABLED", "").lower() in {"1", "true", "yes"}:
@@ -640,12 +645,16 @@ def build_default_ownership_registry_from_env() -> PriorityProviderRegistry[Owne
             YahooFinanceOwnershipAdapter(enabled=True), provider_id="yahoo_finance_ownership", priority=50
         )
 
-    if os.environ.get("DSP_OWNERSHIP_MEMORY", "").lower() in {"1", "true", "yes"}:
+    if memory_adapter_allowed("DSP_OWNERSHIP_MEMORY", connector="ownership"):
         registry.register(
             InMemoryOwnershipAdapter(api_key="dev-memory-key"),
             provider_id="memory_ownership",
             priority=90,
         )
 
-    registry.register(NullOwnershipAdapter(), provider_id="null_ownership", priority=1000)
-    return registry
+    return finalize_provider_registry(
+        registry,
+        connector="ownership",
+        null_factory=NullOwnershipAdapter,
+        null_provider_id="null_ownership",
+    )

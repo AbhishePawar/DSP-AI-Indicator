@@ -454,19 +454,33 @@ class ConfiguredHttpCorporateActionAdapter(CorporateActionPort):
 
 
 def build_default_corporate_action_adapter_from_env() -> CorporateActionPort:
-    """Select corporate action adapter from environment (no fabricated data)."""
+    """Select corporate action adapter from environment (no fabricated data).
+
+    P1-03: production requires authenticated HTTP credentials; Null/memory
+    cannot silently become the production provider.
+    """
+    from data_engine.connector_framework.production_profile import (
+        memory_adapter_allowed,
+        require_authenticated_http_adapter,
+    )
+
     api_key = os.environ.get("DSP_CORPORATE_ACTIONS_API_KEY", "").strip()
     base_url = os.environ.get("DSP_CORPORATE_ACTIONS_BASE_URL", "").strip()
     if api_key and base_url:
         return ConfiguredHttpCorporateActionAdapter(
             base_url=base_url, api_key=api_key
         )
-    if os.environ.get("DSP_CORPORATE_ACTIONS_MEMORY", "").lower() in {
-        "1",
-        "true",
-        "yes",
-    }:
+    if memory_adapter_allowed(
+        "DSP_CORPORATE_ACTIONS_MEMORY", connector="corporate_actions"
+    ):
         return InMemoryAuthenticatedCorporateActionAdapter(
             api_key=api_key or "dev-memory-key"
         )
+    require_authenticated_http_adapter(
+        connector="corporate_actions",
+        api_key=api_key,
+        base_url=base_url,
+        api_key_env="DSP_CORPORATE_ACTIONS_API_KEY",
+        base_url_env="DSP_CORPORATE_ACTIONS_BASE_URL",
+    )
     return NullAuthenticatedCorporateActionAdapter()

@@ -157,6 +157,15 @@ def create_app(
             )
         )
 
+    # P1-03 — refuse production boot when investment connectors would
+    # silently select Null/memory providers (independent of security wiring).
+    if os.environ.get("DSP_ENVIRONMENT", "").lower() == "production":
+        from data_engine.connector_framework.production_profile import (
+            assert_production_investment_connectors_configured,
+        )
+
+        assert_production_investment_connectors_configured()
+
     app_version = os.environ.get("DSP_APP_VERSION") or os.environ.get(
         "DSP_SERVICE_VERSION", "1.0.0"
     )

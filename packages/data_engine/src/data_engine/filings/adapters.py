@@ -629,6 +629,11 @@ class ScreenerFilingsAdapter(FilingsProviderPort):
 
 
 def build_default_filings_registry_from_env() -> PriorityProviderRegistry[FilingsProviderPort]:
+    from data_engine.connector_framework.production_profile import (
+        finalize_provider_registry,
+        memory_adapter_allowed,
+    )
+
     registry: PriorityProviderRegistry[FilingsProviderPort] = PriorityProviderRegistry()
 
     sec_ua = os.environ.get("DSP_FILINGS_SEC_EDGAR_USER_AGENT", "").strip()
@@ -660,12 +665,16 @@ def build_default_filings_registry_from_env() -> PriorityProviderRegistry[Filing
             ScreenerFilingsAdapter(enabled=True), provider_id="screener_filings", priority=50
         )
 
-    if os.environ.get("DSP_FILINGS_MEMORY", "").lower() in {"1", "true", "yes"}:
+    if memory_adapter_allowed("DSP_FILINGS_MEMORY", connector="filings"):
         registry.register(
             InMemoryFilingsAdapter(api_key="dev-memory-key"),
             provider_id="memory_filings",
             priority=90,
         )
 
-    registry.register(NullFilingsAdapter(), provider_id="null_filings", priority=1000)
-    return registry
+    return finalize_provider_registry(
+        registry,
+        connector="filings",
+        null_factory=NullFilingsAdapter,
+        null_provider_id="null_filings",
+    )

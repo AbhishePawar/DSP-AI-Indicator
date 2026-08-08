@@ -448,17 +448,31 @@ class ConfiguredHttpStatementAdapter(FinancialStatementPort):
 
 
 def build_default_statement_adapter_from_env() -> FinancialStatementPort:
-    """Select statement adapter from environment (no fabricated data)."""
+    """Select statement adapter from environment (no fabricated data).
+
+    P1-03: production requires authenticated HTTP credentials; Null/memory
+    cannot silently become the production provider.
+    """
+    from data_engine.connector_framework.production_profile import (
+        memory_adapter_allowed,
+        require_authenticated_http_adapter,
+    )
+
     api_key = os.environ.get("DSP_FINANCIAL_STATEMENT_API_KEY", "").strip()
     base_url = os.environ.get("DSP_FINANCIAL_STATEMENT_BASE_URL", "").strip()
     if api_key and base_url:
         return ConfiguredHttpStatementAdapter(base_url=base_url, api_key=api_key)
-    if os.environ.get("DSP_FINANCIAL_STATEMENT_MEMORY", "").lower() in {
-        "1",
-        "true",
-        "yes",
-    }:
+    if memory_adapter_allowed(
+        "DSP_FINANCIAL_STATEMENT_MEMORY", connector="financial_statement"
+    ):
         return InMemoryAuthenticatedStatementAdapter(
             api_key=api_key or "dev-memory-key"
         )
+    require_authenticated_http_adapter(
+        connector="financial_statement",
+        api_key=api_key,
+        base_url=base_url,
+        api_key_env="DSP_FINANCIAL_STATEMENT_API_KEY",
+        base_url_env="DSP_FINANCIAL_STATEMENT_BASE_URL",
+    )
     return NullAuthenticatedStatementAdapter()

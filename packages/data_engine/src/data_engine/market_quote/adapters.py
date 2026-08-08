@@ -210,12 +210,29 @@ class ConfiguredHttpQuoteAdapter(MarketQuotePort):
 
 
 def build_default_quote_adapter_from_env() -> MarketQuotePort:
-    """Select quote adapter from environment (no fabricated data)."""
+    """Select quote adapter from environment (no fabricated data).
+
+    P1-03: production requires authenticated HTTP credentials; Null/memory
+    cannot silently become the production provider.
+    """
+    from data_engine.connector_framework.production_profile import (
+        memory_adapter_allowed,
+        require_authenticated_http_adapter,
+    )
+
     api_key = os.environ.get("DSP_MARKET_QUOTE_API_KEY", "").strip()
     base_url = os.environ.get("DSP_MARKET_QUOTE_BASE_URL", "").strip()
     if api_key and base_url:
         return ConfiguredHttpQuoteAdapter(base_url=base_url, api_key=api_key)
-    # Memory adapter only when explicitly enabled for tests/ops seeding
-    if os.environ.get("DSP_MARKET_QUOTE_MEMORY", "").lower() in {"1", "true", "yes"}:
+    if memory_adapter_allowed(
+        "DSP_MARKET_QUOTE_MEMORY", connector="market_quote"
+    ):
         return InMemoryAuthenticatedQuoteAdapter(api_key=api_key or "dev-memory-key")
+    require_authenticated_http_adapter(
+        connector="market_quote",
+        api_key=api_key,
+        base_url=base_url,
+        api_key_env="DSP_MARKET_QUOTE_API_KEY",
+        base_url_env="DSP_MARKET_QUOTE_BASE_URL",
+    )
     return NullAuthenticatedQuoteAdapter()

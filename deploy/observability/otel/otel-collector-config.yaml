@@ -1,0 +1,56 @@
+# OpenTelemetry Collector — vendor-neutral (EPIC-017)
+# Enable alongside compose/k8s when DSP_OTEL_ENABLED=true
+receivers:
+  otlp:
+    protocols:
+      grpc:
+        endpoint: 0.0.0.0:4317
+      http:
+        endpoint: 0.0.0.0:4318
+
+processors:
+  batch:
+    timeout: 5s
+    send_batch_size: 512
+  memory_limiter:
+    check_interval: 2s
+    limit_mib: 256
+  attributes:
+    actions:
+      - key: service.namespace
+        value: dsp
+        action: upsert
+
+exporters:
+  prometheus:
+    endpoint: 0.0.0.0:8889
+    namespace: dsp_otel
+  logging:
+    loglevel: info
+  # Optional backends (uncomment when configured — no lock-in):
+  # otlp/jaeger:
+  #   endpoint: jaeger:4317
+  #   tls:
+  #     insecure: true
+
+extensions:
+  health_check:
+    endpoint: 0.0.0.0:13133
+  pprof:
+    endpoint: 0.0.0.0:1777
+
+service:
+  extensions: [health_check, pprof]
+  pipelines:
+    traces:
+      receivers: [otlp]
+      processors: [memory_limiter, batch, attributes]
+      exporters: [logging]
+    metrics:
+      receivers: [otlp]
+      processors: [memory_limiter, batch, attributes]
+      exporters: [prometheus, logging]
+    logs:
+      receivers: [otlp]
+      processors: [memory_limiter, batch, attributes]
+      exporters: [logging]

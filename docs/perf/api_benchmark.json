@@ -1,0 +1,39 @@
+{
+  "epic": "P7.3",
+  "mode": "fastapi_testclient",
+  "iterations": 30,
+  "endpoints": {
+    "/health": {
+      "n": 30,
+      "mean_ms": 6.102,
+      "p50_ms": 6.074,
+      "p95_ms": 6.683,
+      "p99_ms": 6.763,
+      "max_ms": 6.786
+    },
+    "/health/live": {
+      "n": 30,
+      "mean_ms": 5.885,
+      "p50_ms": 5.476,
+      "p95_ms": 7.129,
+      "p99_ms": 10.279,
+      "max_ms": 11.432
+    },
+    "/health/ready": {
+      "n": 30,
+      "mean_ms": 10.12,
+      "p50_ms": 9.984,
+      "p95_ms": 11.513,
+      "p99_ms": 11.676,
+      "max_ms": 11.714
+    },
+    "/metrics": {
+      "n": 30,
+      "mean_ms": 5.769,
+      "p50_ms": 5.541,
+      "p95_ms": 7.527,
+      "p99_ms": 8.486,
+      "max_ms": 8.587
+    }
+  }
+}

@@ -226,6 +226,48 @@
 
 ---
 
+## ADR-CV-001 — Data Authenticity First (core value)
+
+| Field | Content |
+|---|---|
+| **Status** | Accepted (2026-07-28) |
+| **Context** | Risk of placeholder / fabricated market and financial numbers in production research UI and reports |
+| **Decision** | Permanent core value **CV-001**: allowed numeric sources only (market, statements, DSP calculated, user, derived); unavailable → “Data unavailable.”; mandatory report header; metric provenance; explainable scores; violation fails architecture review |
+| **Consequences** | Quality gates, code review, release, and DoD include CV-001; future report emitters must validate authenticity; no engine/API/scoring changes in this decision |
+| **Alternatives** | Soft guideline / example numbers with disclaimer — rejected |
+| **India** | Applies in Research Mode and any future SEBI Mode equally |
+| **Full ADR** | [adr/ADR-CV-001-data-authenticity-first.md](adr/ADR-CV-001-data-authenticity-first.md) · [CV_001_DATA_AUTHENTICITY_FIRST.md](CV_001_DATA_AUTHENTICITY_FIRST.md) |
+
+---
+
+## ADR-CV-002-010 — Tier-0 Core Values CV-002…CV-010
+
+| Field | Content |
+|---|---|
+| **Status** | Accepted (2026-07-28) |
+| **Context** | Need constitutional constraints beyond authenticity for scoring, explainability, determinism, uncertainty, provenance, audit, research-first, and governance |
+| **Decision** | Adopt CV-002…CV-010 as Tier-0 Architecture Governance; any violation fails all enforcement gates |
+| **Consequences** | Checklists / DoD / release / production / package health / Cursor rules updated; no engine/API/scoring/model/boundary code changes |
+| **Alternatives** | Soft guidelines — rejected |
+| **India** | Applies equally in Research Mode and any future SEBI Mode |
+| **Full ADR** | [adr/ADR-CV-002-010-tier0-core-values.md](adr/ADR-CV-002-010-tier0-core-values.md) · [CV_002_TO_010_TIER0_CORE_VALUES.md](CV_002_TO_010_TIER0_CORE_VALUES.md) |
+
+---
+
+## ADR-RS-001 — Constitutional Research Standards (RS-001…RS-010)
+
+| Field | Content |
+|---|---|
+| **Status** | Accepted (2026-07-28) |
+| **Context** | CV defines behaviour; reports still need a mandatory minimum content set |
+| **Decision** | Adopt RS-001…RS-010 as constitutional report content; missing section fails Research Report Validation |
+| **Consequences** | Specs / checklists / gates updated; no engine/API/scoring/model/boundary changes |
+| **Alternatives** | Soft optional sections — rejected |
+| **India** | Research Mode terminology for Recommendation Status; flags still gate advice labels |
+| **Full ADR** | [adr/ADR-RS-001-research-standards.md](adr/ADR-RS-001-research-standards.md) · [RESEARCH_STANDARDS.md](RESEARCH_STANDARDS.md) |
+
+---
+
 ## Pending ADRs (to be filed during implementation)
 
 | ID | Topic | When |

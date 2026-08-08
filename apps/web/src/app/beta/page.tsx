@@ -12,8 +12,8 @@ export default function BetaPage() {
   return (
     <div>
       <PageHeader
-        title="Private Beta"
-        description="Feedback and usability signals — Web 1.0.0 stable; engines unchanged."
+        title="Closed Beta"
+        description="P5.1 programme — feedback, issues, and usability signals. Engines unchanged."
       />
       <div className="flex flex-wrap gap-3 text-sm">
         <Link className="text-[var(--accent)] underline" href="/beta/issues">

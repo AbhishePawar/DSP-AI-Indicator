@@ -1,0 +1,76 @@
+{
+  "epic": "017",
+  "title": "Production performance validation (synthetic)",
+  "methodology": "scripts/perf/epic017_load_scenarios.py via TestClient",
+  "live_cluster": false,
+  "scenarios": [
+    {
+      "users": 100,
+      "requests": 300,
+      "failures": 0,
+      "error_rate": 0.0,
+      "wall_seconds": 5.596,
+      "throughput_rps": 53.61,
+      "mean_ms": 1070.509,
+      "p50_ms": 742.923,
+      "p95_ms": 3371.308,
+      "p99_ms": 4693.221,
+      "max_ms": 5285.543,
+      "note": "In-process TestClient concurrency (not multi-host).",
+      "methodology": "In-process FastAPI TestClient \u2014 synthetic concurrency, not multi-node production cluster load."
+    },
+    {
+      "users": 500,
+      "requests": 1500,
+      "failures": 0,
+      "error_rate": 0.0,
+      "wall_seconds": 28.755,
+      "throughput_rps": 52.17,
+      "mean_ms": 1199.161,
+      "p50_ms": 841.542,
+      "p95_ms": 3588.562,
+      "p99_ms": 5513.859,
+      "max_ms": 9819.167,
+      "note": "In-process TestClient concurrency (not multi-host).",
+      "methodology": "In-process FastAPI TestClient \u2014 synthetic concurrency, not multi-node production cluster load."
+    },
+    {
+      "users": 1000,
+      "requests": 3000,
+      "failures": 0,
+      "error_rate": 0.0,
+      "wall_seconds": 61.425,
+      "throughput_rps": 48.84,
+      "mean_ms": 1291.111,
+      "p50_ms": 914.29,
+      "p95_ms": 3807.59,
+      "p99_ms": 5537.359,
+      "max_ms": 10803.52,
+      "note": "In-process TestClient concurrency (not multi-host).",
+      "methodology": "In-process FastAPI TestClient \u2014 synthetic concurrency, not multi-node production cluster load.",
+      "caveat": "High VU counts share one process; results indicate relative pressure, not absolute production capacity."
+    },
+    {
+      "users": 5000,
+      "requests": 15000,
+      "failures": 0,
+      "error_rate": 0.0,
+      "wall_seconds": 512.564,
+      "throughput_rps": 29.26,
+      "mean_ms": 2179.6,
+      "p50_ms": 1491.128,
+      "p95_ms": 6459.172,
+      "p99_ms": 10353.172,
+      "max_ms": 19621.098,
+      "note": "In-process TestClient concurrency (not multi-host).",
+      "methodology": "In-process FastAPI TestClient \u2014 synthetic concurrency, not multi-node production cluster load.",
+      "caveat": "High VU counts share one process; results indicate relative pressure, not absolute production capacity."
+    }
+  ],
+  "bottlenecks_hypotheses": [
+    "Single-process GIL / TestClient shared app \u2014 understates horizontal scale",
+    "DB connection pool saturation under real Postgres (not exercised here)",
+    "Redis rate-limit / session ports dominate under authenticated traffic",
+    "Research/valuation paths excluded by design (architecture freeze)"
+  ]
+}

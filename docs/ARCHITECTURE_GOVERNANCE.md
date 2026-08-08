@@ -18,9 +18,37 @@ Implementation must follow them **exactly**.
 
 Supporting constitution:
 
+- [ARCHITECTURE_BIBLE.md](ARCHITECTURE_BIBLE.md)  
+- [CORE_VALUES.md](CORE_VALUES.md) · [CV_001_DATA_AUTHENTICITY_FIRST.md](CV_001_DATA_AUTHENTICITY_FIRST.md) · [CV_002_TO_010_TIER0_CORE_VALUES.md](CV_002_TO_010_TIER0_CORE_VALUES.md)  
+- [RESEARCH_STANDARDS.md](RESEARCH_STANDARDS.md) · [RS_001_TO_RS_010.md](RS_001_TO_RS_010.md)  
 - [USER_TRUST_STANDARD.md](USER_TRUST_STANDARD.md)  
 - [PRODUCT_CONSTITUTION.md](PRODUCT_CONSTITUTION.md)  
 - [IMPLEMENTATION_QUALITY_GATE.md](IMPLEMENTATION_QUALITY_GATE.md)  
+- [ARCHITECTURE_CHECKLIST.md](ARCHITECTURE_CHECKLIST.md)  
+
+---
+
+## 1b. Tier-0 Core Values (CV-001…CV-010)
+
+[CORE_VALUES.md](CORE_VALUES.md) · [CV_002_TO_010_TIER0_CORE_VALUES.md](CV_002_TO_010_TIER0_CORE_VALUES.md)
+
+Any Tier-0 violation is an **Architecture Violation**. Architecture review
+**MUST FAIL**. No feature may bypass Architecture · Compliance · Governance ·
+Audit · Security · Core Values (**CV-009**).
+
+### CV-001 (authenticity)
+
+Fabricated / placeholder financial or market numbers in production research
+output are forbidden. Show **Data unavailable.** when inputs are missing.
+
+---
+
+## 1c. Research Standards (RS-001…RS-010)
+
+[RESEARCH_STANDARDS.md](RESEARCH_STANDARDS.md)
+
+Minimum report content is constitutional. **Missing required section = Research
+Report Validation FAIL.** CV governs behaviour; RS governs content.
 
 ---
 
@@ -32,7 +60,8 @@ Supporting constitution:
 | Wire thin client to existing `/api/v1` | Changing API contracts without a new epic |
 | Presentation / Research Mode terminology | Changing valuation / recommendation / workflow engines |
 | Feature-flag gated UI | Inventing SEBI recommendation UI while flags off |
-| Document gaps when blocked | “Fixing” architecture by redesigning the platform |
+| Honest **Data unavailable.** / **Unable to calculate.** | Fabricating numbers or certainty (**CV-001**, **CV-005**) |
+| Document gaps when blocked | Bypassing governance for convenience (**CV-009**) |
 
 ---
 

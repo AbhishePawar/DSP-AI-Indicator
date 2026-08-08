@@ -1,8 +1,9 @@
-"""FastAPI application factory (K1.1)."""
+"""FastAPI application factory (K1.1 + EPIC-011A infra bootstrap)."""
 
 from __future__ import annotations
 
-from collections.abc import Callable
+from collections.abc import AsyncIterator, Callable
+from contextlib import asynccontextmanager
 from typing import Any
 
 from fastapi import FastAPI, Request
@@ -20,7 +21,13 @@ from api_platform.api.dependencies import (
     build_language_model,
 )
 from api_platform.api.exceptions import ApiError, PlatformError
+from api_platform.api.infra_bootstrap import (
+    bootstrap_production_infrastructure,
+    public_startup_error,
+)
 from api_platform.api.middleware import RequestContextMiddleware
+from api_platform.api.ops import metrics_registry
+from api_platform.api.csrf_middleware import CsrfMiddleware
 from api_platform.api.ops_middleware import (
     MetricsMiddleware,
     RateLimitHookMiddleware,
@@ -29,14 +36,44 @@ from api_platform.api.ops_middleware import (
 from api_platform.api.routers import (
     analysis,
     auth,
+    beta_programme,
     comparison,
     composition,
+    control_center,
     copilot,
+    corporate_actions,
+    dashboards,
+    data,
+    decision_workspace,
+    enterprise,
+    enterprise_auth_platform,
+    esg,
+    filings,
+    fundamentals,
     health,
+    historical,
+    insider_trading,
+    institutional_admin,
+    institutional_auth,
+    institutional_committee,
+    institutional_workflow,
+    investment_policy,
+    market,
     meta,
     metrics,
+    news,
+    ownership,
+    persistence,
     platform,
+    portfolio_intelligence,
     reports,
+    research,
+    research_intelligence,
+    research_monitoring,
+    research_workspace,
+    saas,
+    ops,
+    transcripts,
     workflow,
 )
 from api_platform.api.schemas import ApiErrorBody
@@ -50,6 +87,28 @@ API_DESCRIPTION = (
     "routes validate requests and delegate to DSPPlatform public methods. "
     "EPIC-002 exposes composition via POST /api/v1/analyse."
 )
+
+
+@asynccontextmanager
+async def _app_lifespan(application: FastAPI) -> AsyncIterator[None]:
+    """Startup / graceful shutdown hooks — no business logic."""
+    metrics_registry.inc("dsp_system_restarts_total")
+    state = getattr(application.state, "api", None)
+    if state is not None and getattr(state, "infrastructure", None) is None:
+        try:
+            boot = bootstrap_production_infrastructure()
+            state.infrastructure = boot.infrastructure
+            state.production = boot.production
+            state.infra_notes = boot.notes
+            application.state.infrastructure = boot.infrastructure
+            application.state.production = boot.production
+        except Exception as exc:  # noqa: BLE001
+            code, message = public_startup_error(exc)
+            raise RuntimeError(f"{code}: {message}") from exc
+    try:
+        yield
+    finally:
+        pass
 
 
 def create_app(
@@ -80,23 +139,36 @@ def create_app(
     ):
         from security_platform import SecurityBundle, SecuritySettings
 
+        jwt_secret = os.environ.get("DSP_JWT_SECRET", "dev-only-change-me")
+        is_prod = os.environ.get("DSP_ENVIRONMENT", "").lower() == "production"
+        if is_prod and jwt_secret in {
+            "dev-only-change-me",
+            "dsp-auth-dev-secret",
+            "",
+        }:
+            raise RuntimeError(
+                "DSP_JWT_SECRET must be set to a non-default value in production"
+            )
         security = SecurityBundle.create(
             SecuritySettings(
-                jwt_secret=os.environ.get(
-                    "DSP_JWT_SECRET", "dev-only-change-me"
-                ),
+                jwt_secret=jwt_secret,
                 require_auth=True,
                 allow_guest=False,
+                allow_passwordless=not is_prod,
             )
         )
 
+    app_version = os.environ.get("DSP_APP_VERSION") or os.environ.get(
+        "DSP_SERVICE_VERSION", "1.0.0"
+    )
     application = FastAPI(
         title=API_TITLE,
         description=API_DESCRIPTION,
-        version="0.2.0",
+        version=app_version.lstrip("v"),
         docs_url="/docs",
         redoc_url="/redoc",
         openapi_url="/openapi.json",
+        lifespan=_app_lifespan,
     )
 
     resolved = platform
@@ -104,6 +176,8 @@ def create_app(
         factory = platform_factory or build_default_platform
         resolved = factory()
 
+    # Eager infra bootstrap so TestClient (no lifespan) still sees adapters.
+    boot = bootstrap_production_infrastructure()
     application.state.api = ApiState(
         platform=resolved,
         reports=ReportStore(),
@@ -111,8 +185,27 @@ def create_app(
         api_version=api_version,
         copilot_service=build_copilot_service(),
         language_model=build_language_model(),
+        infrastructure=boot.infrastructure,
+        production=boot.production,
+        infra_notes=boot.notes,
     )
     application.state.security = security
+    application.state.infrastructure = boot.infrastructure
+    application.state.production = boot.production
+
+    # EPIC-016: durable enterprise store when DatabasePort is available.
+    # Do not reset an existing singleton (tests inject InMemory services first).
+    try:
+        from enterprise.service import (
+            enterprise_service_configured,
+            get_enterprise_service,
+        )
+
+        if not enterprise_service_configured():
+            db = getattr(boot.infrastructure, "database", None)
+            get_enterprise_service(database=db)
+    except Exception:  # noqa: BLE001 — enterprise optional at boot
+        pass
 
     application.add_middleware(
         CORSMiddleware,
@@ -132,6 +225,7 @@ def create_app(
     application.add_middleware(SecurityHeadersMiddleware)
     application.add_middleware(MetricsMiddleware)
     application.add_middleware(RateLimitHookMiddleware)
+    application.add_middleware(CsrfMiddleware)
     if security is not None:
         from security_platform import SecurityMiddleware
 
@@ -150,12 +244,43 @@ def _register_routers(application: FastAPI) -> None:
         platform.router,
         meta.router,
         auth.router,
+        institutional_auth.router,
+        enterprise_auth_platform.router,
+        institutional_admin.router,
+        control_center.router,
+        beta_programme.public_router,
+        beta_programme.admin_router,
+        enterprise.router,
         analysis.router,
         composition.router,
         comparison.router,
         workflow.router,
         copilot.router,
         reports.router,
+        research_intelligence.router,
+        market.router,
+        fundamentals.router,
+        historical.router,
+        corporate_actions.router,
+        news.router,
+        filings.router,
+        ownership.router,
+        insider_trading.router,
+        esg.router,
+        transcripts.router,
+        dashboards.router,
+        data.router,
+        research.router,
+        research_monitoring.router,
+        research_workspace.router,
+        saas.router,
+        ops.router,
+        decision_workspace.router,
+        portfolio_intelligence.router,
+        institutional_committee.router,
+        institutional_workflow.router,
+        investment_policy.router,
+        persistence.router,
     ]
     for router in versioned:
         application.include_router(router)

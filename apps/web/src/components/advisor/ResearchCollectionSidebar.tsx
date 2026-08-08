@@ -3,14 +3,18 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
-const RESEARCH_LINKS = [
+const RESEARCH_LINKS: ReadonlyArray<{
+  href: string;
+  label: string;
+  exact?: boolean;
+}> = [
   { href: "/advisor/research", label: "Library", exact: true },
   { href: "/advisor/research/collections", label: "Collections" },
   { href: "/advisor/research/compare", label: "Compare" },
   { href: "/advisor/research/notes", label: "Notes" },
   { href: "/advisor/research/timeline", label: "Timeline" },
   { href: "/advisor/research/bookmarks", label: "Bookmarks" },
-] as const;
+];
 
 export function ResearchCollectionSidebar() {
   const pathname = usePathname();

@@ -3,6 +3,7 @@ import { SOURCE_LABELS, type SourceKind } from "@/lib/trust/labels";
 
 const TONE: Record<SourceKind, "neutral" | "success" | "warning" | "accent"> = {
   verified_financial_statement: "success",
+  authenticated_market_data: "success",
   calculated_metric: "accent",
   estimated_value: "warning",
   ai_interpretation: "warning",

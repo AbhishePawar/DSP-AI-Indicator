@@ -1,0 +1,30 @@
+{
+  "milestone": "EPS-003",
+  "codename": "Version 2.0 Release Candidate Hardening",
+  "certifiedAt": "2026-08-02T20:00:00.000Z",
+  "backendVersion": "2.0.0",
+  "frontendVersion": "2.0.0-rc.1",
+  "productVersion": "2.0.0-rc.1",
+  "apiContract": "v1.0.0",
+  "backendPackage": "dsp_platform",
+  "frontendPackage": "dsp-web",
+  "channel": "rc",
+  "images": {
+    "api": "dsp-api:2.0.0-rc.1",
+    "web": "dsp-web:2.0.0-rc.1"
+  },
+  "decision": "RELEASE_CANDIDATE",
+  "engineeringCertification": "RC_HARDENED",
+  "commercialGa": "NOT_APPROVED",
+  "releaseFreeze": true,
+  "architectureNote": "EPS-003 Version 2.0 RC hardening. Feature-freeze for independent audit. Enterprise foundation (EPS-002) included with Null billing / in-memory store caveats. Commercial GA remains rejected until conditions close.",
+  "artifacts": [
+    "docs/releases/RC4_RELEASE_CANDIDATE_REPORT.md",
+    "docs/releases/RELEASE_NOTES_v2.0_RC.md",
+    "docs/releases/RC4_KNOWN_LIMITATIONS.md",
+    "docs/releases/RC4_PRODUCTION_CHECKLIST.md",
+    "docs/releases/RC4_ARCHITECTURE_FREEZE.md",
+    "docs/releases/RC4_TECHNICAL_DEBT.md",
+    "docs/releases/RC4_FUTURE_ROADMAP.md"
+  ]
+}

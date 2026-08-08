@@ -56,7 +56,7 @@ function seedDiscussions(): Record<string, PortfolioDiscussionDraft> {
   return out;
 }
 
-let collections = seedSharedPortfolioCollections();
+const collections = seedSharedPortfolioCollections();
 let pinnedIds = ["mp-lib-growth", "mp-lib-balanced"];
 let favoriteIds = ["mp-lib-growth", "mp-lib-quality", "mp-lib-income"];
 let recentlyViewed = ["mp-lib-growth", "mp-lib-balanced", "mp-lib-income"];

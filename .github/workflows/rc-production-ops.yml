@@ -1,0 +1,58 @@
+name: RC Production Ops
+
+# RC1 Milestone 10 — Release Candidate production-ops pipeline.
+# Reuses existing lint/test/security/docker workflows — does not duplicate gates.
+
+on:
+  push:
+    branches: [main, master, "rc/**", "release/**"]
+  pull_request:
+    branches: [main, master]
+  workflow_dispatch:
+
+concurrency:
+  group: rc-ops-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  production-ops-tests:
+    name: Production ops unit + API
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Install
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e ".[dev]"
+      - name: Production ops tests
+        run: |
+          pytest \
+            packages/dsp_platform/tests/test_production_ops.py \
+            packages/api_platform/tests/test_ops_api.py \
+            -q --import-mode=importlib -p no:cov --tb=short
+      - name: Env validation (production profile dry-run)
+        run: python scripts/validate_env.py --profile development || true
+
+  security-scan:
+    name: Dependency / security scan pointer
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Note
+        run: |
+          echo "Full security scan lives in .github/workflows/security.yml and devsecops.yml"
+          echo "This RC job verifies ops contracts only."
+
+  docker-build-hint:
+    name: Docker build (path filter)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Note
+        run: |
+          echo "Docker image builds are owned by .github/workflows/docker.yml"
+          echo "Backend HEALTHCHECK uses /health/ready (see docker/backend/Dockerfile)"

@@ -1,27 +1,18 @@
 import { DocArticle } from "@/components/launch/DocArticle";
 import { PageHeader } from "@/components/layout/PageHeader";
+import { LEGAL_DOCUMENTS, LEGAL_DOC_VERSION } from "@/lib/legal";
 
 export default function DisclaimerPage() {
+  const doc = LEGAL_DOCUMENTS.disclaimer;
   return (
     <div>
-      <PageHeader title="Disclaimer" description="Web 1.0.0" />
+      <PageHeader
+        title={doc.title}
+        description={`Web ${LEGAL_DOC_VERSION} · ${doc.repoDoc}`}
+      />
       <DocArticle
-        title="Disclaimer (1.0.0)"
-        sections={[
-          {
-            heading: "Not investment advice",
-            body: [
-              "DSP outputs are research intelligence artifacts. They are not personalized investment advice, solicitations, or recommendations to buy, sell, or hold securities.",
-              "Always consider Evidence, Confidence, Methodology, and Limitations. Verify with independent sources and qualified professionals where required.",
-            ],
-          },
-          {
-            heading: "Limitations",
-            body: [
-              "Data may be incomplete, delayed, or unavailable. Models can be wrong. Past patterns do not guarantee future outcomes.",
-            ],
-          },
-        ]}
+        title={`${doc.title} (${LEGAL_DOC_VERSION})`}
+        sections={doc.sections}
       />
     </div>
   );

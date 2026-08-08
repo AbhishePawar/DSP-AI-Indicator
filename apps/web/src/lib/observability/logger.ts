@@ -52,14 +52,19 @@ function pushLog(level: LogLevel, message: string, context?: Record<string, unkn
   logBuffer = [entry, ...logBuffer].slice(0, MAX_LOG_ENTRIES);
 
   const prefix = `[DSP ${level.toUpperCase()}]`;
+  const isProd = process.env.NODE_ENV === "production";
+
+  // Production: keep warn/error only — suppress debug/info console noise.
   if (level === "error") {
     console.error(prefix, message, context ?? "");
   } else if (level === "warn") {
     console.warn(prefix, message, context ?? "");
-  } else if (level === "debug") {
-    console.debug(prefix, message, context ?? "");
-  } else {
-    console.info(prefix, message, context ?? "");
+  } else if (!isProd) {
+    if (level === "debug") {
+      console.debug(prefix, message, context ?? "");
+    } else {
+      console.info(prefix, message, context ?? "");
+    }
   }
 
   return entry;

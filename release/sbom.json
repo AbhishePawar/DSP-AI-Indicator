@@ -1,0 +1,29 @@
+{
+  "bomFormat": "CycloneDX",
+  "specVersion": "1.5",
+  "version": 1,
+  "metadata": {
+    "timestamp": "2026-07-29T13:46:39.652894+00:00",
+    "component": {
+      "type": "application",
+      "name": "dsp-ai-indicator",
+      "version": "2.0.0"
+    }
+  },
+  "components": [
+    {
+      "type": "library",
+      "name": "dsp_platform",
+      "version": "2.0.0",
+      "purl": "pkg:pypi/dsp-platform@2.0.0"
+    },
+    {
+      "type": "application",
+      "name": "dsp-web",
+      "version": "2.0.0",
+      "purl": "pkg:npm/dsp-web@2.0.0"
+    }
+  ],
+  "dependencies_note": "Full transitive SBOM should be generated in CI with cyclonedx-bom / syft when available. This file is the release-channel bill of materials anchor for P8.0.",
+  "root_pyproject_present": true
+}

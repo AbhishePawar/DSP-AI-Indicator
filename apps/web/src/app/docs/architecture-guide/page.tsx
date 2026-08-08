@@ -11,7 +11,7 @@ export default function ArchitectureGuidePage() {
           {
             heading: "Shape",
             body: [
-              "Thin Next.js client over frozen backend v1.0.0-rc1 /api/v1.",
+              "Thin Next.js client over frozen backend v1.0.0 /api/v1.",
               "Layers: Research Analysis → Knowledge Graph → Copilot (deterministic) → Reports → Portfolio presentation → Launch/Beta ops.",
             ],
           },

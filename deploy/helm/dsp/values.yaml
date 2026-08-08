@@ -1,0 +1,83 @@
+# Default values — EPIC-017 Helm chart (override per environment)
+
+nameOverride: ""
+fullnameOverride: "dsp"
+
+imagePullSecrets: []
+
+api:
+  replicaCount: 2
+  image:
+    repository: dsp-api
+    tag: "2.0.0"
+    pullPolicy: IfNotPresent
+  resources:
+    requests:
+      cpu: 250m
+      memory: 256Mi
+    limits:
+      cpu: "2"
+      memory: 2Gi
+  hpa:
+    enabled: true
+    minReplicas: 2
+    maxReplicas: 8
+    targetCPUUtilizationPercentage: 70
+  service:
+    port: 8000
+
+web:
+  replicaCount: 2
+  image:
+    repository: dsp-web
+    tag: "2.0.0"
+    pullPolicy: IfNotPresent
+  resources:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+    limits:
+      cpu: "1"
+      memory: 1Gi
+  service:
+    port: 3000
+
+redis:
+  enabled: true
+  image: redis:7-alpine
+  maxmemory: 256mb
+
+postgres:
+  # Prefer external managed Postgres in production
+  enabled: true
+  image: postgres:16-alpine
+  storage: 50Gi
+
+ingress:
+  enabled: true
+  className: nginx
+  hosts:
+    app: app.your-domain.example
+    api: api.your-domain.example
+  tlsSecretName: dsp-tls
+
+config:
+  DSP_ENVIRONMENT: production
+  DSP_ENABLE_SECURITY: "true"
+  DSP_REQUIRE_ADMIN_AUTH: "true"
+  DSP_RATE_LIMIT_ENABLED: "true"
+  DSP_HSTS_ENABLED: "true"
+  DSP_REDIS_FALLBACK: "false"
+  DSP_OTEL_ENABLED: "false"
+  OTEL_SERVICE_NAME: dsp-api
+  OTEL_EXPORTER_OTLP_ENDPOINT: http://otel-collector:4318
+  DSP_INDIA_TIMEZONE: Asia/Kolkata
+  DSP_INDIA_CURRENCY: INR
+  TZ: Asia/Kolkata
+
+# Secrets must be provided out-of-band (existing Secret name)
+existingSecret: dsp-secrets
+
+observability:
+  otelCollector:
+    enabled: false

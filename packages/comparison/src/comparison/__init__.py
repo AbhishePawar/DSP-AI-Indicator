@@ -6,6 +6,7 @@ does not score, rank, or declare winners.
 
 from __future__ import annotations
 
+from comparison.adapters import comparison_result_public_dict
 from comparison.engine import QualitativeComparisonEngine
 from comparison.enums import ComparisonStatus
 from comparison.exceptions import ComparisonError
@@ -34,6 +35,7 @@ __all__ = [
     "ComparisonStatus",
     "QualitativeComparisonEngine",
     "compare_universe_result",
+    "comparison_result_public_dict",
 ]
 
 __version__ = "0.2.0"

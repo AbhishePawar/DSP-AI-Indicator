@@ -29,18 +29,26 @@ export function AnalysisActions({
     <Card>
       <CardHeader title="Quick Actions" />
       <CardBody className="flex flex-wrap gap-2">
-        <Link href={`/research/${encodeURIComponent(ticker || "ACM")}`}>
-          <Button variant="secondary" size="sm" disabled={!ticker}>
+        {ticker.trim() ? (
+          <Link href={`/research/${encodeURIComponent(ticker.trim().toUpperCase())}`}>
+            <Button variant="secondary" size="sm">
+              Open Research
+            </Button>
+          </Link>
+        ) : (
+          <Button variant="secondary" size="sm" disabled>
             Open Research
           </Button>
-        </Link>
-        <AddToPortfolioButton
-          company={company || ticker || "Company"}
-          ticker={ticker || "ACM"}
-          sector={sector || "Unknown"}
-          recommendation={recommendation}
-          researchAvailable={hasResult}
-        />
+        )}
+        {ticker.trim() ? (
+          <AddToPortfolioButton
+            company={company || ticker}
+            ticker={ticker.trim().toUpperCase()}
+            sector={sector || "Unknown"}
+            recommendation={recommendation}
+            researchAvailable={hasResult}
+          />
+        ) : null}
         {onSaveAnalysis ? (
           <Button
             variant="secondary"

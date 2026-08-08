@@ -78,4 +78,10 @@ ids are rejected.
 ## Non-goals
 
 Synthesizer logic, workflow, recommendation, LLM, optimization, risk
-calculations, forecasting, persistence, API providers.
+recomputation, calculations, forecasting, persistence, API providers, or
+inventing market/financial numbers (**CV-001**).
+
+Report authenticity / mandatory header / **RS-001…RS-010** →
+[REPORT_ARCHITECTURE.md](REPORT_ARCHITECTURE.md) ·
+[RESEARCH_REPORT_SPECIFICATION.md](RESEARCH_REPORT_SPECIFICATION.md) ·
+[RESEARCH_STANDARDS.md](RESEARCH_STANDARDS.md).

@@ -1,0 +1,23 @@
+{
+  "generatedAt": "2026-07-29T13:46:39.650936+00:00",
+  "epic": "P8.0",
+  "backendVersion": "2.0.0",
+  "frontendVersion": "2.0.0",
+  "apiContract": "v1.0.0",
+  "images": {
+    "api": "dsp-api:2.0.0",
+    "web": "dsp-web:2.0.0"
+  },
+  "artifacts": [
+    "release/RELEASE_NOTES.md",
+    "release/RELEASE_CHECKLIST.md",
+    "release/BUILD_MANIFEST.json",
+    "release/CHECKSUMS.sha256",
+    "release/sbom.json"
+  ],
+  "constraints": [
+    "No analytical engine changes",
+    "No API behaviour changes",
+    "Thin client preserved"
+  ]
+}

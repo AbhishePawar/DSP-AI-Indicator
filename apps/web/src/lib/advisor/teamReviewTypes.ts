@@ -88,14 +88,18 @@ export const DEFAULT_TEAM_REVIEW_FILTERS: TeamReviewFilterState = {
   completedOnly: false,
 };
 
-export const TEAM_REVIEW_NAV = [
+export const TEAM_REVIEW_NAV: ReadonlyArray<{
+  href: string;
+  label: string;
+  exact?: boolean;
+}> = [
   { href: "/advisor/team/shared-reviews", label: "Overview", exact: true },
   { href: "/advisor/team/shared-reviews/board", label: "Assignment Board" },
   { href: "/advisor/team/shared-reviews/discussion", label: "Discussion" },
   { href: "/advisor/team/shared-reviews/timeline", label: "Timeline" },
   { href: "/advisor/team/shared-reviews/progress", label: "Progress" },
   { href: "/advisor/team/shared-reviews/activity", label: "Activity" },
-] as const;
+];
 
 export const DEMO_OWNERS = [
   "Unassigned",

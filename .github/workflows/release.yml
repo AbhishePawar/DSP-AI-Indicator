@@ -24,9 +24,17 @@ jobs:
       - name: Install monorepo
         run: pip install -e ".[dev]"
 
+      - name: Validate release versions
+        run: python scripts/release/validate_release.py --tag ${{ github.ref_name }}
+
+      - name: Build release package
+        run: python scripts/release/build_release_package.py
+
+      - name: Certify P7.2
+        run: python scripts/ops/certify_p7_2.py
+
       - name: Run quality gates
         run: |
-          python scripts/validate_env.py || true
           pytest packages/api_platform/tests/test_health_rc1.py -q
           pytest packages -q --import-mode=importlib -p no:cov --tb=line -x
 

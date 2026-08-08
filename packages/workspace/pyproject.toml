@@ -1,0 +1,14 @@
+[build-system]
+requires = ["setuptools>=69.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "workspace"
+version = "0.1.0"
+description = "DSP Research Workspace & Project Management (EPIC-A010) — references only"
+requires-python = ">=3.11"
+license = { text = "Proprietary" }
+dependencies = []
+
+[tool.setuptools.packages.find]
+where = ["src"]

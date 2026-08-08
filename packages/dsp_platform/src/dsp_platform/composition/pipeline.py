@@ -30,6 +30,7 @@ from dsp_platform.composition.models import (
     StageOutcome,
     StageStatus,
 )
+from dsp_platform.composition.risk_view import build_company_risk_view
 from dsp_platform.composition.versions import COMPOSITION_PIPELINE_VERSION
 
 __all__ = ["EXECUTION_ORDER", "PipelineStage", "run_execution_pipeline"]
@@ -43,6 +44,7 @@ class PipelineStage(str, Enum):
     FINANCIAL_STRENGTH = "financial_strength"
     EARNINGS_QUALITY = "earnings_quality"
     GROWTH_QUALITY = "growth_quality"
+    RISK = "risk"
     BUSINESS_QUALITY_AGGREGATOR = "business_quality_aggregator"
     INVESTMENT_RECOMMENDATION = "investment_recommendation"
     INVESTMENT_COMMITTEE = "investment_committee"
@@ -56,6 +58,7 @@ EXECUTION_ORDER: tuple[PipelineStage, ...] = (
     PipelineStage.FINANCIAL_STRENGTH,
     PipelineStage.EARNINGS_QUALITY,
     PipelineStage.GROWTH_QUALITY,
+    PipelineStage.RISK,
     PipelineStage.BUSINESS_QUALITY_AGGREGATOR,
     PipelineStage.INVESTMENT_RECOMMENDATION,
     PipelineStage.INVESTMENT_COMMITTEE,
@@ -69,6 +72,10 @@ _PKG = {
     PipelineStage.FINANCIAL_STRENGTH: ("financial_strength", FinancialStrengthEngine),
     PipelineStage.EARNINGS_QUALITY: ("earnings_quality", EarningsQualityEngine),
     PipelineStage.GROWTH_QUALITY: ("growth_quality", GrowthQualityEngine),
+    # Structural aggregation stage native to dsp_platform — see risk_view.py.
+    # Not a delegated external engine package (see composition/risk_view.py
+    # module docstring for why risk/quantitative_risk packages are not used).
+    PipelineStage.RISK: ("dsp_platform", None),
     PipelineStage.BUSINESS_QUALITY_AGGREGATOR: (
         "business_quality_aggregator",
         BusinessQualityAggregatorEngine,
@@ -140,6 +147,7 @@ def run_execution_pipeline(
         PipelineStage.GROWTH_QUALITY: lambda: _stage_domain(
             ctx, "growth_quality", GrowthQualityEngine().analyze
         ),
+        PipelineStage.RISK: lambda: _stage_risk(ctx),
         PipelineStage.BUSINESS_QUALITY_AGGREGATOR: lambda: _stage_aggregator(ctx),
         PipelineStage.INVESTMENT_RECOMMENDATION: lambda: _stage_recommendation(ctx),
         PipelineStage.INVESTMENT_COMMITTEE: lambda: _stage_committee(ctx),
@@ -231,6 +239,7 @@ def run_execution_pipeline(
         financial_strength=ctx.results.get(PipelineStage.FINANCIAL_STRENGTH.value),
         earnings_quality=ctx.results.get(PipelineStage.EARNINGS_QUALITY.value),
         growth_quality=ctx.results.get(PipelineStage.GROWTH_QUALITY.value),
+        risk=ctx.results.get(PipelineStage.RISK.value),
         business_quality_analysis=ctx.results.get("business_quality_analysis"),
         business_quality=ctx.results.get(
             PipelineStage.BUSINESS_QUALITY_AGGREGATOR.value
@@ -327,6 +336,33 @@ def _stage_domain(
     if fa is None or bq is None:
         raise ValueError(f"{key} requires financial_analysis and business_quality_analysis")
     return analyze(fa, bq), [], StageStatus.SUCCEEDED
+
+
+def _stage_risk(
+    ctx: ExecutionContext,
+) -> tuple[Any, list[str], StageStatus]:
+    """Aggregate already-computed engine ratings into the Risk section.
+
+    Structural mapping only — see ``composition.risk_view`` for the fixed
+    rating -> risk-level tables. Requires ``financial_strength`` to have run
+    (economic_moat is optional; its category degrades gracefully when absent).
+    """
+    financial_strength = ctx.results.get(PipelineStage.FINANCIAL_STRENGTH.value)
+    if financial_strength is None:
+        raise ValueError("risk requires financial_strength")
+    economic_moat = ctx.results.get(PipelineStage.ECONOMIC_MOAT.value)
+    warnings: list[str] = []
+    if economic_moat is None:
+        warnings.append("business_risk unavailable — economic_moat did not run")
+    view = build_company_risk_view(
+        financial_strength=financial_strength, economic_moat=economic_moat
+    )
+    status = (
+        StageStatus.SUCCEEDED
+        if view.categories_available == view.categories_total
+        else StageStatus.DEGRADED
+    )
+    return view, warnings, status
 
 
 def _stage_aggregator(

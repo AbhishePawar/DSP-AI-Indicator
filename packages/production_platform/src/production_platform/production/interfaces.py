@@ -14,6 +14,7 @@ from typing import Any, Protocol, runtime_checkable
 __all__ = [
     "AuditEventPort",
     "BackgroundTaskPort",
+    "BackupPort",
     "CacheInvalidationPort",
     "CachePort",
     "ClockPort",
@@ -32,11 +33,13 @@ __all__ = [
     "RepositoryFactoryPort",
     "SchedulerPort",
     "SecretProviderPort",
+    "SecretRotationHookPort",
     "SecretsPort",
     "SessionPort",
     "StoragePort",
     "TracingPort",
     "TransactionPort",
+    "VaultSecretsProviderPort",
 ]
 
 
@@ -353,3 +356,11 @@ class MarketCalendarPort(Protocol):
 
     def next_trading_day(self, day: Any, *, exchange: str = "NSE") -> Any:
         """Return the next trading day on or after ``day``."""
+
+
+# RC1 M10 — re-export backup / secrets provider protocols (definitions in backup.py)
+from production_platform.production.backup import (  # noqa: E402
+    BackupPort,
+    SecretRotationHookPort,
+    VaultSecretsProviderPort,
+)

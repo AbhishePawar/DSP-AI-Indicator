@@ -1,0 +1,52 @@
+{{- if .Values.redis.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "dsp.fullname" . }}-redis
+  labels:
+    {{- include "dsp.labels" . | nindent 4 }}
+    app.kubernetes.io/component: redis
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/component: redis
+      app.kubernetes.io/instance: {{ .Release.Name }}
+  template:
+    metadata:
+      labels:
+        {{- include "dsp.labels" . | nindent 8 }}
+        app.kubernetes.io/component: redis
+    spec:
+      containers:
+        - name: redis
+          image: {{ .Values.redis.image }}
+          args:
+            - redis-server
+            - --appendonly
+            - "yes"
+            - --maxmemory
+            - {{ .Values.redis.maxmemory | quote }}
+            - --maxmemory-policy
+            - allkeys-lru
+          ports:
+            - containerPort: 6379
+              name: redis
+          readinessProbe:
+            exec:
+              command: ["redis-cli", "ping"]
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "dsp.fullname" . }}-redis
+  labels:
+    {{- include "dsp.labels" . | nindent 4 }}
+spec:
+  selector:
+    app.kubernetes.io/component: redis
+    app.kubernetes.io/instance: {{ .Release.Name }}
+  ports:
+    - port: 6379
+      targetPort: redis
+{{- end }}

@@ -293,9 +293,29 @@ class InfrastructureBundle:
 
     def health_checks(self) -> dict[str, Any]:
         """Lightweight infra probes for readiness aggregation."""
+        redis_configured = bool(self.configuration.get().redis.url)
+        redis_status = "skip"
+        if redis_configured:
+            if self.diagnostics.redis_fallback_active:
+                redis_status = "degraded"
+            elif "Redis" in self.diagnostics.cache_adapter or "Fallback" in (
+                self.diagnostics.cache_adapter
+            ):
+                redis_status = "pass"
+            else:
+                redis_status = "fail"
         return {
             "database": self.database.ping(),
+            "database_adapter": self.diagnostics.database_adapter,
             "cache_adapter": type(self.cache).__name__,
+            "redis": {
+                "configured": redis_configured,
+                "status": redis_status,
+                "fallback_active": self.diagnostics.redis_fallback_active,
+                "rate_limit_adapter": self.diagnostics.rate_limit_adapter,
+                "lock_adapter": self.diagnostics.lock_adapter,
+                "session_adapter": self.diagnostics.session_adapter,
+            },
             "storage_adapter": type(self.storage).__name__,
             "india_timezone": self.india.timezone,
             "india_currency": self.india.currency,

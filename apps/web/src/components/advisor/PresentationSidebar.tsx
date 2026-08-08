@@ -3,13 +3,17 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
-const PRES_LINKS = [
+const PRES_LINKS: ReadonlyArray<{
+  href: string;
+  label: string;
+  exact?: boolean;
+}> = [
   { href: "/advisor/presentations", label: "Library", exact: true },
   { href: "/advisor/presentations/builder", label: "Builder" },
   { href: "/advisor/presentations/preview", label: "Preview" },
   { href: "/advisor/presentations/templates", label: "Templates" },
   { href: "/advisor/presentations/export", label: "Export" },
-] as const;
+];
 
 export function PresentationSidebar() {
   const pathname = usePathname();

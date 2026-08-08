@@ -16,6 +16,7 @@ __all__ = [
     "DigiLockerIdentityPort",
     "EnterpriseKycPort",
     "MfaPort",
+    "WebAuthnPort",
     "OidcClientPort",
     "OrgMembership",
     "Organisation",
@@ -123,7 +124,7 @@ class ConsentRecordPort(Protocol):
 
 @runtime_checkable
 class MfaPort(Protocol):
-    """MFA enrollment / verification — architecture."""
+    """MFA enrollment / verification — architecture (TOTP)."""
 
     def enroll(self, user_id: str) -> str:
         """Begin enrollment; return secret or provisioning URI material."""
@@ -133,6 +134,23 @@ class MfaPort(Protocol):
 
     def is_enabled(self, user_id: str) -> bool:
         """Return True when MFA is active for the user."""
+
+
+@runtime_checkable
+class WebAuthnPort(Protocol):
+    """Passkeys / FIDO2 — architecture; plug in without changing primary login APIs."""
+
+    def begin_registration(self, user_id: str) -> dict[str, Any]:
+        """Return WebAuthn registration options."""
+
+    def complete_registration(self, user_id: str, credential: dict[str, Any]) -> dict[str, Any]:
+        """Persist credential after client attestation."""
+
+    def begin_authentication(self, user_id: str) -> dict[str, Any]:
+        """Return WebAuthn authentication options."""
+
+    def complete_authentication(self, user_id: str, assertion: dict[str, Any]) -> bool:
+        """Verify assertion; return True on success."""
 
 
 @runtime_checkable

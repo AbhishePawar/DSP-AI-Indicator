@@ -1,0 +1,76 @@
+# Extended production alerts (EPIC-017) — complement docker/prometheus/alerts.yml
+groups:
+  - name: dsp_production_slo
+    rules:
+      - alert: DspApiP95LatencyHigh
+        expr: dsp:api_latency_p95_ms > 1500 or dsp_api_latency_ms_avg > 1500
+        for: 10m
+        labels:
+          severity: warning
+          service: dsp-api
+        annotations:
+          summary: "API P95 latency elevated"
+          runbook: "docs/operations/Incident_Response.md#high-latency"
+
+      - alert: DspApiP99LatencyCritical
+        expr: dsp:api_latency_p99_ms > 3000
+        for: 5m
+        labels:
+          severity: critical
+          service: dsp-api
+        annotations:
+          summary: "API P99 latency critical"
+          runbook: "docs/operations/Incident_Response.md#high-latency"
+
+      - alert: DspAuthFailureSpike
+        expr: increase(dsp_auth_failures_total[5m]) > 50
+        for: 5m
+        labels:
+          severity: warning
+          service: auth
+        annotations:
+          summary: "Auth failure spike"
+          runbook: "docs/operations/Incident_Response.md#auth-failures"
+
+      - alert: DspRateLimitViolationsHigh
+        expr: increase(dsp_rate_limit_violations_total[5m]) > 100
+        for: 5m
+        labels:
+          severity: warning
+          service: dsp-api
+        annotations:
+          summary: "Rate-limit violations elevated"
+          runbook: "docs/operations/Monitoring_Guide.md#rate-limits"
+
+      - alert: DspCacheHitRatioLow
+        expr: dsp:redis_hit_ratio < 0.5
+        for: 15m
+        labels:
+          severity: warning
+          service: redis
+        annotations:
+          summary: "Redis cache hit ratio below 50%"
+          runbook: "docs/operations/Monitoring_Guide.md#cache"
+
+      - alert: DspQueueDepthHigh
+        expr: dsp:queue_depth > 1000
+        for: 10m
+        labels:
+          severity: warning
+          service: queue
+        annotations:
+          summary: "Background job queue depth high"
+          runbook: "docs/operations/Monitoring_Guide.md#queues"
+
+      - alert: DspDiskPressure
+        expr: |
+          (
+            node_filesystem_avail_bytes{mountpoint="/"} 
+            / node_filesystem_size_bytes{mountpoint="/"}
+          ) < 0.15
+        for: 10m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Root filesystem <15% free"
+          runbook: "docs/operations/Incident_Response.md#disk"

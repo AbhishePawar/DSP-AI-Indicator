@@ -8,8 +8,8 @@ export function PortfolioHealth({ health }: { health: PortfolioHealthAnalytics }
   return (
     <Card>
       <CardHeader
-        title="Portfolio Health"
-        description="Deterministic frontend rules only — no live market signals"
+        title="Research coverage"
+        description="Deterministic session coverage rules only — no live market signals or health scores"
       />
       <CardBody className="space-y-3">
         <p className="font-[family-name:var(--font-display)] text-2xl tracking-tight">

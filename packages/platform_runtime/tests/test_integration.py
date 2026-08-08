@@ -58,3 +58,13 @@ class TestEnterpriseComposition:
         platform = EnterprisePlatform.create_offline()
         assert platform.compliance.flags.sebi_mode is False
         assert platform.compliance.flags.is_research_only() is True
+
+    def test_from_environment_offline(self) -> None:
+        platform = EnterprisePlatform.from_environment(force_offline=True)
+        validation = platform.validate_startup()
+        assert validation.ok, validation.errors
+        diag = platform.diagnostics()
+        assert diag["infrastructure"]["database"] == "InMemoryDatabasePort"
+        assert "probes" in diag["infrastructure"]
+        assert any(c.name == "database" and c.ok for c in platform.readiness().checks)
+        assert any(c.name == "redis" and c.ok for c in platform.readiness().checks)

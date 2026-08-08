@@ -2,6 +2,7 @@
 
 export type SourceKind =
   | "verified_financial_statement"
+  | "authenticated_market_data"
   | "calculated_metric"
   | "estimated_value"
   | "ai_interpretation"
@@ -28,6 +29,7 @@ export type ConfidenceLevel =
 
 export const SOURCE_LABELS: Record<SourceKind, string> = {
   verified_financial_statement: "Verified Financial Statement",
+  authenticated_market_data: "Authenticated Market Data",
   calculated_metric: "Calculated Metric",
   estimated_value: "Estimated Value",
   ai_interpretation: "AI Interpretation",

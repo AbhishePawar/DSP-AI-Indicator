@@ -1,0 +1,62 @@
+{
+  "annotations": { "list": [] },
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 0,
+  "id": null,
+  "links": [],
+  "panels": [
+    {
+      "title": "API request rate",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 0 },
+      "targets": [
+        {
+          "expr": "rate(dsp_http_requests_total[5m])",
+          "legendFormat": "{{method}} {{path}}"
+        }
+      ],
+      "description": "Reuses Prometheus scrape of /metrics — no duplicate instrumentation."
+    },
+    {
+      "title": "API latency (p95)",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 0 },
+      "targets": [
+        {
+          "expr": "histogram_quantile(0.95, sum(rate(dsp_http_request_duration_seconds_bucket[5m])) by (le))",
+          "legendFormat": "p95"
+        }
+      ]
+    },
+    {
+      "title": "Errors",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 8 },
+      "targets": [
+        {
+          "expr": "rate(dsp_http_requests_total{status=~\"5..\"}[5m])",
+          "legendFormat": "5xx"
+        }
+      ]
+    },
+    {
+      "title": "Process memory",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 8 },
+      "targets": [
+        {
+          "expr": "process_resident_memory_bytes",
+          "legendFormat": "RSS"
+        }
+      ]
+    }
+  ],
+  "schemaVersion": 39,
+  "tags": ["dsp", "rc1", "production-ops"],
+  "templating": { "list": [] },
+  "time": { "from": "now-6h", "to": "now" },
+  "title": "DSP RC1 — Production Operations",
+  "uid": "dsp-rc1-production-ops",
+  "version": 1
+}

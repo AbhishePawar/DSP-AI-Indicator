@@ -1,32 +1,32 @@
 export const TUTORIAL_STEPS = [
   {
     id: "welcome",
-    title: "Welcome to DSP Private Beta",
-    body: "DSP explains businesses before decisions. Research Mode never shows Buy/Sell advice in this beta.",
+    title: "Welcome to DSP AI Indicator",
+    body: "Complex analysis, simple decisions — in Research Mode. Outputs are educational research, not personalised investment advice.",
+  },
+  {
+    id: "quickstart",
+    title: "Quick start",
+    body: "Open Company Analysis, enter a ticker you cover, run Analyze, then review Evidence, Confidence, Methodology, and Limitations.",
   },
   {
     id: "analysis",
-    title: "First Analysis Guide",
-    body: "Open Company Analysis, enter a symbol, and run Analyze. Unavailable fields stay honest — we never invent numbers.",
+    title: "Company Analysis",
+    body: "Ratings, explainability, valuation transparency, and Buffett Indicator sections map backend outputs only — Unavailable stays Unavailable.",
   },
   {
     id: "portfolio",
-    title: "Portfolio Guide",
-    body: "Portfolio Intelligence is a presentation layer over session holdings. Rebalance suggestions are not trades.",
+    title: "Portfolio Intelligence",
+    body: "Portfolio tools are demonstrative unless separately contracted. Rebalance suggestions are not trades.",
   },
   {
     id: "copilot",
-    title: "Copilot Guide",
-    body: "Ask Research Copilot to explain evidence, confidence, and assumptions. It does not override DSP Research.",
+    title: "Research Copilot",
+    body: "Ask Copilot to explain evidence and assumptions. It does not override DSP research engines.",
   },
   {
-    id: "reports",
-    title: "Reports Guide",
-    body: "Reports & Export always include limitations, confidence, methodology, and evidence references.",
-  },
-  {
-    id: "feedback",
-    title: "Share Feedback",
-    body: "Use the Feedback button anytime. Never paste holdings, tokens, or private research into tickets.",
+    id: "support",
+    title: "Help & feedback",
+    body: "Use Feedback for bugs/features, Docs for guides, and Support for commercial assistance. Never paste secrets or holdings.",
   },
 ] as const;

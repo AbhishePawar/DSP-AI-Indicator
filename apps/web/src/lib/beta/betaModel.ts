@@ -1,6 +1,8 @@
-/** Sprint 10 — Private Beta feedback & issue models (local-only, no research data). */
+/** Sprint 10 + P5.1 — Private / Closed Beta feedback & issue models. */
 
-export const APP_VERSION = "2.4.0";
+import { env } from "@/lib/env";
+
+export const APP_VERSION = env.frontendVersion;
 
 export type FeedbackCategory =
   | "bug_report"
@@ -9,14 +11,20 @@ export type FeedbackCategory =
   | "ux_feedback"
   | "performance_issue"
   | "accessibility_issue"
-  | "general_suggestion";
+  | "general_suggestion"
+  | "general_comments";
 
 export type FeedbackSeverity = "critical" | "high" | "medium" | "low";
 
+/** P5.1 issue workflow */
 export type IssueStatus =
-  | "open"
+  | "new"
+  | "triaged"
   | "in_progress"
   | "resolved"
+  | "closed"
+  /** legacy local values still readable */
+  | "open"
   | "deferred"
   | "duplicate";
 
@@ -37,7 +45,10 @@ export type FeedbackRecord = {
   deviceInfo: string;
   appVersion: string;
   createdAt: string;
-  /** Redacted — never stores symbols, holdings, tokens */
+  companyAnalysed: string | null;
+  acknowledgement: boolean;
+  acknowledgedAt: string | null;
+  /** Redacted — never stores symbols beyond optional ticker metadata, holdings, tokens */
   trustNote: string;
 };
 
@@ -49,6 +60,8 @@ export type IssueRecord = {
   severity: FeedbackSeverity;
   priority: IssuePriority;
   status: IssueStatus;
+  version: string | null;
+  resolution: string | null;
   createdAt: string;
   updatedAt: string;
 };
@@ -68,6 +81,7 @@ export type AnalyticsSnapshot = {
 export const FEEDBACK_CATEGORIES: { id: FeedbackCategory; label: string }[] = [
   { id: "bug_report", label: "Bug Report" },
   { id: "feature_request", label: "Feature Request" },
+  { id: "general_comments", label: "General Comments" },
   { id: "research_issue", label: "Research Issue" },
   { id: "ux_feedback", label: "UX Feedback" },
   { id: "performance_issue", label: "Performance Issue" },
@@ -78,12 +92,22 @@ export const FEEDBACK_CATEGORIES: { id: FeedbackCategory; label: string }[] = [
 export const SEVERITIES: FeedbackSeverity[] = ["critical", "high", "medium", "low"];
 
 export const ISSUE_STATUSES: IssueStatus[] = [
-  "open",
+  "new",
+  "triaged",
   "in_progress",
   "resolved",
-  "deferred",
-  "duplicate",
+  "closed",
 ];
+
+export const BETA_SUCCESS_CRITERIA = {
+  crashFreeSessionsPct: 99,
+  analysisSuccessRatePct: 99,
+  criticalBugsMax: 0,
+  highSeverityBugsMax: 2,
+  averageFeedbackMin: 4.0,
+  infrastructureUptimePct: 99.5,
+  securityIncidentsMax: 0,
+} as const;
 
 const FEEDBACK_KEY = "dsp.beta.feedback.v1";
 const ISSUES_KEY = "dsp.beta.issues.v1";
@@ -151,7 +175,10 @@ export function submitFeedback(input: {
   sectionId?: string | null;
   satisfaction?: number | null;
   screenshotNote?: string | null;
+  companyAnalysed?: string | null;
+  acknowledgement?: boolean;
 }): FeedbackRecord {
+  const now = new Date().toISOString();
   const record: FeedbackRecord = {
     id: uid("fb"),
     category: input.category,
@@ -167,7 +194,12 @@ export function submitFeedback(input: {
     browserInfo: collectBrowserInfo(),
     deviceInfo: collectDeviceInfo(),
     appVersion: APP_VERSION,
-    createdAt: new Date().toISOString(),
+    createdAt: now,
+    companyAnalysed: input.companyAnalysed
+      ? input.companyAnalysed.toUpperCase().slice(0, 16)
+      : null,
+    acknowledgement: input.acknowledgement !== false,
+    acknowledgedAt: input.acknowledgement === false ? null : now,
     trustNote:
       "Local beta store only — no research envelopes, portfolio holdings, or API secrets are persisted.",
   };
@@ -206,7 +238,9 @@ export function createIssueFromFeedback(fb: FeedbackRecord): IssueRecord {
     component: fb.category,
     severity: fb.severity,
     priority,
-    status: "open",
+    status: "new",
+    version: fb.appVersion,
+    resolution: null,
     createdAt: fb.createdAt,
     updatedAt: fb.createdAt,
   };
@@ -314,12 +348,24 @@ export function buildBetaDashboard(): BetaDashboardView {
     .slice(0, 5)
     .map(([t]) => t);
 
-  const openIssues = issues.filter((i) => i.status === "open" || i.status === "in_progress").length;
+  const openIssues = issues.filter(
+    (i) =>
+      i.status === "new" ||
+      i.status === "triaged" ||
+      i.status === "in_progress" ||
+      i.status === "open",
+  ).length;
   const criticalBugs = issues.filter(
     (i) =>
-      i.severity === "critical" && (i.status === "open" || i.status === "in_progress"),
+      i.severity === "critical" &&
+      (i.status === "new" ||
+        i.status === "triaged" ||
+        i.status === "in_progress" ||
+        i.status === "open"),
   ).length;
-  const resolvedIssues = issues.filter((i) => i.status === "resolved").length;
+  const resolvedIssues = issues.filter(
+    (i) => i.status === "resolved" || i.status === "closed",
+  ).length;
 
   let releaseReadiness = "Collecting feedback";
   if (criticalBugs > 0) releaseReadiness = "Blocked — critical bugs open";
@@ -357,10 +403,19 @@ export function buildReleaseCandidate(): ReleaseCandidateView {
   const issues = listIssues();
   const openCritical = issues.filter(
     (i) =>
-      i.severity === "critical" && (i.status === "open" || i.status === "in_progress"),
+      i.severity === "critical" &&
+      (i.status === "new" ||
+        i.status === "triaged" ||
+        i.status === "in_progress" ||
+        i.status === "open"),
   ).length;
   const openHigh = issues.filter(
-    (i) => i.severity === "high" && (i.status === "open" || i.status === "in_progress"),
+    (i) =>
+      i.severity === "high" &&
+      (i.status === "new" ||
+        i.status === "triaged" ||
+        i.status === "in_progress" ||
+        i.status === "open"),
   ).length;
   const openBugs = issues.filter(
     (i) =>
@@ -368,13 +423,19 @@ export function buildReleaseCandidate(): ReleaseCandidateView {
         i.component === "accessibility_issue" ||
         i.component === "performance_issue" ||
         i.component === "research_issue") &&
-      (i.status === "open" || i.status === "in_progress"),
+      (i.status === "new" ||
+        i.status === "triaged" ||
+        i.status === "in_progress" ||
+        i.status === "open"),
   ).length;
 
   const accessibilityStatus = issues.some(
     (i) =>
       i.component === "accessibility_issue" &&
-      (i.status === "open" || i.status === "in_progress") &&
+      (i.status === "new" ||
+        i.status === "triaged" ||
+        i.status === "in_progress" ||
+        i.status === "open") &&
       (i.severity === "critical" || i.severity === "high"),
   )
     ? "At risk"

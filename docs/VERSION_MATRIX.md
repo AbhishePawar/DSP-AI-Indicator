@@ -2,6 +2,7 @@
 
 **Platform API / HTTP contract:** **`v1.0.0`** (promoted from `v1.0.0-rc1` — frozen behaviour; label only — [K1.4](K1_4_PLATFORM_FREEZE.md))  
 **Product channel (living):** **`2.0.0-rc.1`** / `rc` (EPS-003 · 2026-08-02) — Commercial GA not approved  
+**Root `VERSION` file:** product channel version (`2.0.0-rc.1`) — not the HTTP API contract (`v1.0.0`) and not a collapsed single-version. Release validators select RC vs GA profiles from `PRODUCTION_VERSION_MANIFEST.json` (`scripts/release/release_identity.py`).  
 **Freeze date (RC):** 2026-07-21 · **Stable label (P7.0):** 2026-07-29 · **Release eng (P7.2):** 2026-07-29 · **Perf (P7.3):** 2026-07-29 · **Ops (P7.4):** 2026-07-29 · **GA Candidate (P8.0):** 2026-07-29 · **Version 2.0 RC (EPS-003):** 2026-08-02  
 **Historical RC regression gate:** **1538 / 1538** PASS (do not rewrite history)  
 **Living monorepo regression (STATUS):** see [DSP_STATUS.md](DSP_STATUS.md) (**2299 PASS** as of ASI-002)  

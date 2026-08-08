@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import json
 import subprocess
 import sys
 from pathlib import Path
@@ -29,10 +30,12 @@ def test_certify_p11_script_passes() -> None:
 
 
 def test_production_manifest_decision() -> None:
-    import json
-
-    data = json.loads((ROOT / "PRODUCTION_VERSION_MANIFEST.json").read_text(encoding="utf-8"))
+    data = json.loads(
+        (ROOT / "PRODUCTION_VERSION_MANIFEST.json").read_text(encoding="utf-8")
+    )
     assert data["backendVersion"] == "2.0.0"
-    assert data["frontendVersion"] == "2.0.0"
-    assert data["decision"] == "GO_WITH_CONDITIONS"
+    assert data["frontendVersion"] == "2.0.0-rc.1"
+    assert data["decision"] == "RELEASE_CANDIDATE"
+    assert data["channel"] == "rc"
+    assert data["milestone"] == "EPS-003"
     assert data["apiContract"] == "v1.0.0"

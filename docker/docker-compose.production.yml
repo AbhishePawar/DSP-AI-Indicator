@@ -100,7 +100,7 @@ services:
       start_period: 40s
 
   web:
-    image: ${DSP_WEB_IMAGE:-dsp-web}:${DSP_IMAGE_TAG_WEB:-2.0.0}
+    image: ${DSP_WEB_IMAGE:-dsp-web}:${DSP_IMAGE_TAG_WEB:-2.0.0-rc.1}
     build:
       context: ..
       dockerfile: docker/frontend/Dockerfile

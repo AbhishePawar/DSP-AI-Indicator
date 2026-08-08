@@ -9,6 +9,8 @@ import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
+sys.path.insert(0, str(ROOT / "scripts" / "release"))
+from release_identity import resolve_profile  # noqa: E402
 
 
 def _ok(name: str, passed: bool, detail: str = "") -> bool:
@@ -99,9 +101,32 @@ def main() -> int:
     )
 
     prod = json.loads((ROOT / "PRODUCTION_VERSION_MANIFEST.json").read_text(encoding="utf-8"))
-    passed &= _ok("manifest epic P8.0", prod.get("milestone") == "P8.0")
-    passed &= _ok("manifest backend 2.0.0", prod.get("backendVersion") == "2.0.0")
-    passed &= _ok("manifest frontend 2.0.0", prod.get("frontendVersion") == "2.0.0")
+    try:
+        expected = resolve_profile(prod)
+    except ValueError as exc:
+        passed &= _ok("release profile", False, str(exc))
+        print("CERTIFICATION_P7_2 FAIL")
+        return 1
+    passed &= _ok(
+        "manifest milestone",
+        prod.get("milestone") == expected["milestone"],
+        str(prod.get("milestone")),
+    )
+    passed &= _ok(
+        "manifest backend",
+        prod.get("backendVersion") == expected["backend"],
+        str(prod.get("backendVersion")),
+    )
+    passed &= _ok(
+        "manifest frontend",
+        prod.get("frontendVersion") == expected["frontend"],
+        str(prod.get("frontendVersion")),
+    )
+    passed &= _ok(
+        "manifest channel",
+        prod.get("channel") == expected["channel"],
+        str(prod.get("channel")),
+    )
 
     print("CERTIFICATION_P7_2", "PASS" if passed else "FAIL")
     return 0 if passed else 1

@@ -15,11 +15,16 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
 
-EXPECTED_BE = "2.0.0"
-EXPECTED_FE = "2.0.0"
-EXPECTED_API = "v1.0.0"
-EXPECTED_EPIC = "P8.0"
-EXPECTED_CHANNEL = "ga-candidate"
+# GA-only certification — intentionally does NOT accept living RC identity.
+sys.path.insert(0, str(ROOT / "scripts" / "release"))
+from release_identity import GA_PROFILE  # noqa: E402
+
+EXPECTED_BE = GA_PROFILE["backend"]
+EXPECTED_FE = GA_PROFILE["frontend"]
+EXPECTED_API = GA_PROFILE["api_contract"]
+EXPECTED_EPIC = GA_PROFILE["epic"]
+EXPECTED_CHANNEL = GA_PROFILE["channel"]
+EXPECTED_DECISION = GA_PROFILE["decision"]
 
 
 def _ok(name: str, passed: bool, detail: str = "") -> bool:
@@ -132,8 +137,9 @@ def main() -> int:
     passed &= _ok("prod frontend 2.0.0", prod.get("frontendVersion") == EXPECTED_FE)
     passed &= _ok("prod channel ga-candidate", prod.get("channel") == EXPECTED_CHANNEL)
     passed &= _ok(
-        "prod decision GO_WITH_CONDITIONS",
-        prod.get("decision") == "GO_WITH_CONDITIONS",
+        f"prod decision {EXPECTED_DECISION}",
+        prod.get("decision") == EXPECTED_DECISION,
+        str(prod.get("decision")),
     )
 
     # Prior living certifications

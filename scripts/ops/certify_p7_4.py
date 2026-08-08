@@ -108,27 +108,43 @@ def main() -> int:
     passed &= _ok("DR RPO", "RPO" in dr)
     passed &= _ok("DR RTO", "RTO" in dr)
 
-    # Version alignment — living baseline P8.0
+    # Version alignment — living release profile (RC today; GA when promoted)
+    sys.path.insert(0, str(ROOT / "scripts" / "release"))
+    from release_identity import resolve_profile
+
+    prod = json.loads(
+        (ROOT / "PRODUCTION_VERSION_MANIFEST.json").read_text(encoding="utf-8")
+    )
+    try:
+        expected = resolve_profile(prod)
+    except ValueError as exc:
+        passed &= _ok("release profile", False, str(exc))
+        print("CERTIFICATION_P7_4 FAIL")
+        return 1
+
     init_py = (
         ROOT / "packages" / "dsp_platform" / "src" / "dsp_platform" / "__init__.py"
     ).read_text(encoding="utf-8")
     m = re.search(r'__version__\s*=\s*"([^"]+)"', init_py)
-    passed &= _ok("backend 2.0.0", (m.group(1) if m else "") == "2.0.0")
+    passed &= _ok("backend", (m.group(1) if m else "") == expected["backend"])
 
     fe = json.loads((ROOT / "apps" / "web" / "VERSION_MANIFEST.json").read_text(encoding="utf-8"))
-    passed &= _ok("frontend 2.0.0", fe.get("appVersion") == "2.0.0")
-    passed &= _ok("epic P8.0", fe.get("foundationEpic") == "P8.0")
-    passed &= _ok("api v1.0.0", fe.get("apiContract") == "v1.0.0")
+    passed &= _ok("frontend", fe.get("appVersion") == expected["frontend"])
+    passed &= _ok("epic", fe.get("foundationEpic") == expected["epic"])
+    passed &= _ok("api", fe.get("apiContract") == expected["api_contract"])
 
     ver_ts = (ROOT / "apps" / "web" / "src" / "foundation" / "version.ts").read_text(
         encoding="utf-8"
     )
-    passed &= _ok('API_CONTRACT_TARGET = "v1.0.0"', 'API_CONTRACT_TARGET = "v1.0.0"' in ver_ts)
+    passed &= _ok(
+        "API_CONTRACT_TARGET frozen",
+        f'API_CONTRACT_TARGET = "{expected["api_contract"]}"' in ver_ts,
+    )
 
     # No analyse contract markers altered in foundation
     passed &= _ok(
-        "backend target 2.0.0",
-        'BACKEND_PLATFORM_TARGET = "dsp_platform@2.0.0"' in ver_ts,
+        "backend target",
+        f'BACKEND_PLATFORM_TARGET = "dsp_platform@{expected["backend"]}"' in ver_ts,
     )
 
     proc = subprocess.run(

@@ -118,14 +118,15 @@ class TestValidation:
             )
 
     def test_warnings(self) -> None:
-        s = validate_ddm_inputs(
-            _base(
-                method=DdmMethod.ZERO_GROWTH,
-                current_dps=0.0,
-                expected_dividend_growth=0.25,
+        # P1-04 — zero DPS is hard-fail (unavailable), not a warning + IV=0.
+        with pytest.raises(ValuationError, match="current_dps is zero"):
+            validate_ddm_inputs(
+                _base(
+                    method=DdmMethod.ZERO_GROWTH,
+                    current_dps=0.0,
+                    expected_dividend_growth=0.25,
+                )
             )
-        )
-        assert s.warnings
         s2 = validate_ddm_inputs(
             _base(
                 method=DdmMethod.ZERO_GROWTH,

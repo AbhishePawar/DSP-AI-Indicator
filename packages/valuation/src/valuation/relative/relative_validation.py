@@ -24,7 +24,9 @@ def _finite(value: float, name: str, errors: list[str]) -> None:
         errors.append(f"{name} is infinite")
 
 
-def _bench_ok(b: BenchmarkMultiples) -> bool:
+def _bench_ok(b: BenchmarkMultiples | None) -> bool:
+    if b is None:
+        return False
     return (b.median is not None and b.median > 0) or (
         b.mean is not None and b.mean > 0
     )
@@ -81,6 +83,8 @@ def validate_relative_inputs(inputs: RelativeInputs) -> ValidationSummary:
         ("sector", inputs.sector),
         ("peer", inputs.peer),
     ):
+        if bench is None:
+            continue
         for attr in ("median", "mean", "percentile_25", "percentile_75"):
             v = getattr(bench, attr)
             if v is not None:
@@ -193,7 +197,7 @@ def validate_relative_inputs(inputs: RelativeInputs) -> ValidationSummary:
         else:
             checks.append("weights sum to 1")
 
-    if inputs.peer.count > 0 and inputs.peer.count < 3:
+    if inputs.peer is not None and inputs.peer.count > 0 and inputs.peer.count < 3:
         warnings.append("weak peer set (count < 3)")
 
     if inputs.eps is not None and inputs.eps < 0:

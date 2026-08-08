@@ -77,9 +77,12 @@ def validate_ddm_inputs(inputs: DdmInputs) -> ValidationSummary:
     if inputs.current_dps < 0:
         errors.append(f"current_dps must be non-negative, got {inputs.current_dps}")
     elif inputs.current_dps == 0:
-        warnings.append("current_dps is zero — intrinsic value will be zero")
+        # P1-04 — zero dividend is not a valid DDM input; do not fabricate IV=0.
+        errors.append(
+            "current_dps is zero — DDM unavailable (no valid dividend)"
+        )
     else:
-        checks.append("current_dps >= 0")
+        checks.append("current_dps > 0")
 
     if inputs.shares_outstanding <= 0:
         errors.append(

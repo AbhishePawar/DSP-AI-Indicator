@@ -81,6 +81,29 @@ class DcfMethod(ValuationMethodRunner):
         g_t = float(assumptions.terminal_growth_rate)
         n = int(assumptions.projection_years)
 
+        # P1-04 — runtime Gordon guard (defense in depth beyond assumptions ctor).
+        if r <= 0:
+            return IntrinsicValueEstimate(
+                method=ValuationMethod.DCF,
+                intrinsic_value=None,
+                applicable=False,
+                formula=_FORMULA,
+                rationale=f"DCF unavailable: invalid discount_rate ({r}).",
+                inputs_used=inputs,
+            )
+        if g_t >= r:
+            return IntrinsicValueEstimate(
+                method=ValuationMethod.DCF,
+                intrinsic_value=None,
+                applicable=False,
+                formula=_FORMULA,
+                rationale=(
+                    "DCF unavailable: terminal_growth_rate >= discount_rate "
+                    f"(g_t={g_t:g}, r={r:g})."
+                ),
+                inputs_used=inputs,
+            )
+
         present_value = 0.0
         fcf_n = fcf0
         for t in range(1, n + 1):

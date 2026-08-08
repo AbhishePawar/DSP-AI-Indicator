@@ -103,38 +103,45 @@ class ConsensusEngine:
             app_explain=app_explain,
             outlier_methods=outlier_methods,
             inputs=inputs,
+            values=values,
         )
 
         included = [
             m
             for m in methods
             if weights_map.get(m.method, 0.0) > 0
+            and values.get(m.method) is not None
             and (
                 m.method not in outlier_methods
                 or not inputs.outlier_thresholds.exclude_outliers_from_consensus
             )
         ]
         if not included:
-            # Fall back to all methods with positive raw value
+            # Fall back to methods with a real intrinsic value only (P1-04).
             included = [m for m in methods if values.get(m.method) is not None]
             if not included:
                 raise ConsensusValidationError(
                     "Consensus validation failed: no usable intrinsic values"
                 )
-            # Equal rescue weights
+            # Equal rescue weights among valid methods only
             weights_map = {m.method: 1.0 / len(included) for m in included}
             weight_details = tuple(
                 MethodWeightDetail(
                     method=m.method,
                     category=m.category,
-                    weight=weights_map[m.method],
+                    weight=weights_map.get(m.method, 0.0),
                     applicability_score=applicability[m.method],
                     confidence_score=m.confidence_score,
-                    included_in_consensus=True,
+                    included_in_consensus=m.method in weights_map,
                     is_outlier=m.method in outlier_methods,
-                    explanation="Rescue equal weight — all prior weights excluded",
+                    explanation=(
+                        "Rescue equal weight among methods with valid IV — "
+                        "unavailable methods excluded (P1-04)"
+                        if m.method in weights_map
+                        else "Excluded — unavailable / null intrinsic value (P1-04)"
+                    ),
                 )
-                for m in included
+                for m in methods
             )
 
         series = [
@@ -436,10 +443,12 @@ class ConsensusEngine:
         app_explain: Mapping[str, str],
         outlier_methods: set[str],
         inputs: ConsensusInputs,
+        values: Mapping[str, float | None] | None = None,
     ) -> tuple[dict[str, float], tuple[MethodWeightDetail, ...]]:
         mode = inputs.weighting_mode
         raw: dict[str, float] = {}
         explanations: dict[str, str] = {}
+        value_map = values or {}
 
         for m in methods:
             if mode is WeightingMode.EQUAL:
@@ -477,6 +486,11 @@ class ConsensusEngine:
             else:
                 raise ConsensusValidationError(f"unknown weighting mode: {mode!r}")
 
+            # P1-04 — unavailable / null IV must never receive consensus weight.
+            if value_map.get(m.method) is None:
+                raw[m.method] = 0.0
+                explanations[m.method] += "; excluded — unavailable intrinsic value"
+
             if (
                 inputs.outlier_thresholds.exclude_outliers_from_consensus
                 and m.method in outlier_methods
@@ -486,15 +500,22 @@ class ConsensusEngine:
 
         total = sum(raw.values())
         if total <= 0:
-            # All zero — equal among non-outlier (or all if all outliers)
+            # All zero — equal among methods that have a real IV (P1-04).
             candidates = [
                 m.method
                 for m in methods
-                if m.method not in outlier_methods
-                or not inputs.outlier_thresholds.exclude_outliers_from_consensus
+                if value_map.get(m.method) is not None
+                and (
+                    m.method not in outlier_methods
+                    or not inputs.outlier_thresholds.exclude_outliers_from_consensus
+                )
             ]
             if not candidates:
-                candidates = [m.method for m in methods]
+                candidates = [
+                    m.method
+                    for m in methods
+                    if value_map.get(m.method) is not None
+                ]
             raw = {k: (1.0 if k in candidates else 0.0) for k in raw}
             total = sum(raw.values())
 
@@ -507,7 +528,9 @@ class ConsensusEngine:
                 weight=weights[m.method],
                 applicability_score=applicability[m.method],
                 confidence_score=m.confidence_score,
-                included_in_consensus=weights[m.method] > 0,
+                included_in_consensus=(
+                    weights[m.method] > 0 and value_map.get(m.method) is not None
+                ),
                 is_outlier=m.method in outlier_methods,
                 explanation=explanations[m.method],
             )

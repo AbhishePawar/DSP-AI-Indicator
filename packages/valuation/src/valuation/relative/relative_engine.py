@@ -443,8 +443,14 @@ class RelativeEngine:
         implied = primary.implied_price
         if fair is None:
             raise ValuationError("unable to resolve fair multiple from benchmarks")
+        # P1-04 — never substitute market price for an unresolved implied IV.
+        if implied is None:
+            raise ValuationError(
+                "relative valuation unavailable: implied price could not be "
+                "derived from the fair multiple (missing required fundamentals)"
+            )
 
-        ivps = implied if implied is not None else inputs.current_market_price
+        ivps = float(implied)
         intrinsic = ivps * inputs.shares_outstanding
         pd = primary.premium_discount
         mos = None

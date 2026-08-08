@@ -6,8 +6,9 @@ from dataclasses import dataclass
 
 from valuation.dcf_intelligence.assumptions import DcfBridgeInputs
 from valuation.dcf_intelligence.explain import ExplainedValue
+from valuation.exceptions import ValuationError
 
-__all__ = ["EquityBridgeResult", "compute_equity_bridge"]
+__all__ = ["EquityBridgeResult", "compute_equity_bridge", "validate_equity_bridge"]
 
 
 @dataclass(frozen=True, slots=True)
@@ -18,6 +19,38 @@ class EquityBridgeResult:
     intrinsic_value_per_share: ExplainedValue
 
 
+def validate_equity_bridge(
+    *,
+    enterprise_value: float,
+    bridge: DcfBridgeInputs,
+) -> None:
+    """P1-04 — fail closed on invalid EV→equity bridge inputs.
+
+    Detects structural abuses (not accounting restatement):
+    * negative enterprise value
+    * cash / debt / MI / investments already validated non-negative on bridge
+    * cash + investments exceeding EV by an absurd margin (likely double-count)
+    * shares missing when caller later needs IV/share (soft — returns None IVPS)
+    """
+    if enterprise_value < 0:
+        raise ValuationError(
+            f"enterprise_value must be non-negative, got {enterprise_value}"
+        )
+    add_backs = bridge.cash + bridge.non_operating_investments
+    # Absurd add-backs vs EV strongly suggest cash/investments double counting.
+    if enterprise_value > 0 and add_backs > enterprise_value * 2.0 + 1.0:
+        raise ValuationError(
+            "equity bridge unavailable: cash + investments exceed 2× enterprise "
+            "value (possible double counting)"
+        )
+    claims = bridge.total_debt + bridge.minority_interest
+    if enterprise_value > 0 and claims > enterprise_value * 5.0 + 1.0:
+        raise ValuationError(
+            "equity bridge unavailable: debt + minority interest exceed 5× "
+            "enterprise value (possible double counting)"
+        )
+
+
 def compute_equity_bridge(
     *,
     enterprise_value: float,
@@ -26,7 +59,10 @@ def compute_equity_bridge(
     """Bridge EV to equity value.
 
     ``Equity = EV − Debt − Minority + Cash + Investments``
+
+    Each adjustment is applied exactly once.
     """
+    validate_equity_bridge(enterprise_value=enterprise_value, bridge=bridge)
     equity = (
         enterprise_value
         - bridge.total_debt

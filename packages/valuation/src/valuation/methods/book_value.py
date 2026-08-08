@@ -42,6 +42,18 @@ class BookValueMethod(ValuationMethodRunner):
                 rationale="Book value unavailable: total_equity is missing.",
                 inputs_used=("total_equity",),
             )
+        # P1-04 — negative/zero book equity is not a usable asset-based IV.
+        if float(equity) <= 0:
+            return IntrinsicValueEstimate(
+                method=ValuationMethod.BOOK_VALUE,
+                intrinsic_value=None,
+                applicable=False,
+                formula=_FORMULA,
+                rationale=(
+                    f"Book value unavailable: total_equity is non-positive ({equity})."
+                ),
+                inputs_used=("total_equity",),
+            )
         return IntrinsicValueEstimate(
             method=ValuationMethod.BOOK_VALUE,
             intrinsic_value=float(equity),

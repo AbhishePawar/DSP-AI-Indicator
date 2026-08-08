@@ -399,14 +399,20 @@ def _stage_valuation(
             mid = getattr(vr, "mid", None)
         if price is None:
             raise ValueError("current_market_price is required with financial_snapshot")
+        # P1-04 — company-level mid is NOT IV/share. Without authoritative shares
+        # (authenticated path), do not fabricate per-share IV or MoS.
         signals = ValuationSignals(
-            intrinsic_value_per_share=float(mid) if mid is not None else None,
+            intrinsic_value_per_share=None,
             current_market_price=float(price),
-            confidence=0.55,
+            confidence=0.55 if mid is not None else 0.25,
         )
         ctx.results["valuation_signals"] = signals
         warnings.append(
             "valuation used request financial_snapshot (non-authenticated path)"
+        )
+        warnings.append(
+            "P1-04: company-level IV not converted to per-share without "
+            "authenticated shares — MoS unavailable"
         )
         return assessment, warnings, StageStatus.SUCCEEDED
 

@@ -86,9 +86,14 @@ class OverallEngine:
             raise OverallValuationError(
                 "Overall valuation validation failed: unable to resolve intrinsic value"
             )
+        # P1-04 — zero / invalid IV cannot produce MoS or recommendation inputs.
+        if ivps == 0:
+            raise OverallValuationError(
+                "Overall valuation unavailable: intrinsic value per share is zero"
+            )
 
-        mos = (ivps - price) / ivps if ivps != 0 else None
-        premium = (price - ivps) / ivps if ivps != 0 else None
+        mos = (ivps - price) / ivps
+        premium = (price - ivps) / ivps
         mos_class = self._mos_class(mos, inputs.mos_thresholds)
         label = self._research_label(mos, mos_class)
 

@@ -687,17 +687,18 @@ class TestEdgeCases:
         assert eng._research_label(None, MosClassification.FAIRLY_VALUED) is ResearchLabel.WATCHLIST
 
     def test_zero_ivps_mos(self) -> None:
-        r = OverallEngine().analyze(
-            OverallInputs(
-                current_market_price=5.0,
-                consensus={
-                    "method": "consensus",
-                    "intrinsic_value_per_share": 0.0,
-                    "confidence": "medium",
-                },
+        # P1-04 — zero IV/share cannot produce MoS; fail closed.
+        with pytest.raises(OverallValuationError, match="zero"):
+            OverallEngine().analyze(
+                OverallInputs(
+                    current_market_price=5.0,
+                    consensus={
+                        "method": "consensus",
+                        "intrinsic_value_per_share": 0.0,
+                        "confidence": "medium",
+                    },
+                )
             )
-        )
-        assert r.margin_of_safety.value is None
 
     def test_ci_from_scenarios_fallback(self) -> None:
         eng = OverallEngine()

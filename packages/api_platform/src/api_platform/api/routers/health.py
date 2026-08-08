@@ -8,10 +8,15 @@ from fastapi import APIRouter, Depends
 from fastapi.responses import JSONResponse
 
 from api_platform.api.dependencies import ApiState, get_api_state
+from api_platform.api.monitoring import (
+    PlatformLifecycleState,
+    get_lifecycle_state,
+)
 from api_platform.api.ops import (
     collect_component_statuses,
     collect_health_snapshot,
     get_build_metadata,
+    resolve_platform_status,
 )
 from api_platform.api.schemas import HealthResponse
 from dsp_platform import COMPOSITION_PIPELINE_VERSION
@@ -94,6 +99,9 @@ def health(state: ApiState = Depends(get_api_state)) -> HealthResponse:
     result = state.platform.health_check()
     meta = result.metadata
     components = collect_component_statuses(state, platform_ready=ready)
+    platform_status = resolve_platform_status(
+        platform_ready=ready, components=components
+    )
     return HealthResponse(
         status=status,
         ready=ready,
@@ -104,16 +112,28 @@ def health(state: ApiState = Depends(get_api_state)) -> HealthResponse:
         checks=checks,
         limitations=list(result.limitations),
         components=components,
+        platform_status=platform_status.value,
     )
 
 
 @router.get("/health/live")
 def health_live() -> JSONResponse:
-    """Liveness probe — process is running."""
+    """Liveness probe — process is running (P1.3 lifecycle + build metadata)."""
     build = get_build_metadata()
+    lifecycle = get_lifecycle_state()
+    live_status = (
+        "stopping"
+        if lifecycle
+        in {
+            PlatformLifecycleState.SHUTTING_DOWN,
+            PlatformLifecycleState.STOPPED,
+        }
+        else "alive"
+    )
     return JSONResponse(
         {
-            "status": "alive",
+            "status": live_status,
+            "lifecycle": lifecycle.value,
             "application_version": build.application_version,
             "release_channel": build.release_channel,
         }
@@ -127,6 +147,9 @@ def health_ready(state: ApiState = Depends(get_api_state)) -> JSONResponse:
     _append_infra_checks(state, checks)
     snapshot = collect_health_snapshot(state)
     components = collect_component_statuses(state, platform_ready=platform_ready)
+    platform_status = resolve_platform_status(
+        platform_ready=platform_ready, components=components
+    )
     # Soft-fail: accept traffic when platform is ready even if optional copilot
     # or Redis are degraded (EPIC-011A).
     copilot_ok = bool(snapshot.get("service_readiness", {}).get("copilot_service"))
@@ -134,10 +157,21 @@ def health_ready(state: ApiState = Depends(get_api_state)) -> JSONResponse:
     snapshot["status"] = "pass" if accept and platform_ready else status
     snapshot["ready"] = accept
     snapshot["platform_ready"] = platform_ready
+    snapshot["platform_status"] = platform_status.value
+    snapshot["lifecycle"] = get_lifecycle_state().value
     snapshot["checks"] = checks
     snapshot["components"] = components
     snapshot["service_readiness"]["accepting_traffic"] = accept
-    code = 200 if accept else 503
+    # P1.3: ready|degraded → 200; unhealthy|startup|shutdown → 503
+    if platform_status in {
+        PlatformLifecycleState.UNHEALTHY,
+        PlatformLifecycleState.STARTUP,
+        PlatformLifecycleState.SHUTTING_DOWN,
+        PlatformLifecycleState.STOPPED,
+    }:
+        code = 503
+    else:
+        code = 200 if accept else 503
     return JSONResponse(snapshot, status_code=code)
 
 

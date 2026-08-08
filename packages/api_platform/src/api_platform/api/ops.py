@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import json
 import os
 import time
 from dataclasses import dataclass
@@ -59,6 +60,31 @@ def _default_app_version() -> str:
     return "1.0.0"
 
 
+def _default_release_channel() -> str:
+    """Prefer env, else living PRODUCTION_VERSION_MANIFEST channel, else ``rc``.
+
+    Authoritative product identity is the production manifest (currently RC /
+    ``rc``). ``ga-candidate`` is only valid when the manifest (or an explicit
+    ``DSP_RELEASE_CHANNEL`` override) declares a GA promotion — never as a
+    silent ops default.
+    """
+    env = (os.environ.get("DSP_RELEASE_CHANNEL") or "").strip()
+    if env:
+        return env
+    try:
+        for parent in Path(__file__).resolve().parents:
+            candidate = parent / "PRODUCTION_VERSION_MANIFEST.json"
+            if not candidate.is_file():
+                continue
+            data = json.loads(candidate.read_text(encoding="utf-8"))
+            channel = str(data.get("channel") or "").strip()
+            if channel:
+                return channel
+    except (OSError, TypeError, ValueError, json.JSONDecodeError):
+        pass
+    return "rc"
+
+
 def get_build_metadata() -> BuildMetadata:
     app_version = _default_app_version()
     return BuildMetadata(
@@ -73,7 +99,7 @@ def get_build_metadata() -> BuildMetadata:
             "BUILD_TIMESTAMP", os.environ.get("DSP_BUILD_TIMESTAMP", "unknown")
         ),
         environment=os.environ.get("DSP_ENVIRONMENT", "development"),
-        release_channel=os.environ.get("DSP_RELEASE_CHANNEL", "ga-candidate"),
+        release_channel=_default_release_channel(),
     )
 
 
@@ -191,15 +217,24 @@ def resolve_platform_status(
     platform_ready: bool,
     components: dict[str, dict[str, str]],
 ) -> PlatformLifecycleState:
-    """Map component checks → startup|ready|degraded|unhealthy."""
+    """Map component checks → startup|ready|degraded|unhealthy.
+
+    Critical API/application failures are unhealthy. Partial readiness
+    (optional analysis wiring, missing copilot, overall fail while still
+    accepting traffic) is degraded — aligned with P1.3 soft-fail readiness.
+    """
     lifecycle = get_lifecycle_state()
     if lifecycle in {
         PlatformLifecycleState.SHUTTING_DOWN,
         PlatformLifecycleState.STOPPED,
     }:
         return lifecycle
-    if not platform_ready or components.get("api", {}).get("status") == "fail":
+    if components.get("api", {}).get("status") == "fail":
         return PlatformLifecycleState.UNHEALTHY
+    if components.get("application", {}).get("status") == "fail":
+        return PlatformLifecycleState.UNHEALTHY
+    if not platform_ready or components.get("overall", {}).get("status") != "pass":
+        return PlatformLifecycleState.DEGRADED
     if components.get("copilot", {}).get("status") != "pass":
         return PlatformLifecycleState.DEGRADED
     if lifecycle == PlatformLifecycleState.STARTUP:

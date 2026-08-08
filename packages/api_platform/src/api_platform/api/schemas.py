@@ -65,6 +65,8 @@ class HealthResponse(BaseModel):
     limitations: list[str] = Field(default_factory=list)
     # EPIC-011A — optional dependency component map (DB/Redis/cache/…)
     components: dict[str, Any] = Field(default_factory=dict)
+    # P1.3 — aggregated operational status (ready|degraded|unhealthy|startup|…)
+    platform_status: str | None = None
 
 
 class PlatformInfoResponse(BaseModel):

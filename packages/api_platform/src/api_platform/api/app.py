@@ -233,6 +233,13 @@ def create_app(
 
     _register_exception_handlers(application)
     _register_routers(application)
+
+    # P1.3 — synchronous ready mark so TestClient (no lifespan) and cold
+    # probes observe lifecycle=ready once the app graph is wired.
+    from api_platform.api.monitoring import PlatformLifecycleState, mark_lifecycle
+
+    mark_lifecycle(PlatformLifecycleState.READY)
+
     return application
 
 

@@ -1,0 +1,130 @@
+name: G11 Postgres Restore Drill
+
+# P1-08 / G11 — hard gate: real PostgreSQL pg_dump → wipe → restore →
+# two-worker shared state → ownership → tenant isolation → restart.
+# Soft-pass / || true is forbidden.
+
+on:
+  push:
+    branches:
+      - main
+      - master
+      - fix/asi003-dsp-platform-boundaries
+      - "rc/**"
+      - "release/**"
+  pull_request:
+    branches: [main, master]
+  workflow_dispatch:
+
+concurrency:
+  group: g11-postgres-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  g11-postgres-restore:
+    name: Real PostgreSQL backup/restore (G11)
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: dsp
+          POSTGRES_PASSWORD: dsp_g11_ci_only
+          POSTGRES_DB: dsp
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U dsp -d dsp"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 20
+
+    env:
+      DSP_DATABASE_URL: postgresql://dsp:dsp_g11_ci_only@localhost:5432/dsp
+      DSP_BACKUP_DIR: ${{ github.workspace }}/backups
+      DSP_BACKUP_ADAPTER: shell
+      DSP_BACKUP_RESTORE_CONFIRM: "YES"
+      DSP_INFRA_OFFLINE: "0"
+      DSP_ENVIRONMENT: development
+      PYTHONUNBUFFERED: "1"
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install PostgreSQL client tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y postgresql-client gzip
+          command -v pg_dump
+          command -v psql
+          command -v gzip
+          command -v bash
+          pg_dump --version
+          psql --version
+
+      - name: Install monorepo + psycopg
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e ".[dev]"
+          pip install 'psycopg[binary]>=3.1'
+          python -c "import psycopg; print('psycopg', psycopg.__version__)"
+
+      - name: Wait for PostgreSQL
+        run: |
+          for i in $(seq 1 30); do
+            if pg_isready -h localhost -p 5432 -U dsp -d dsp; then
+              echo "postgres ready"
+              exit 0
+            fi
+            sleep 2
+          done
+          echo "postgres not ready" >&2
+          exit 1
+
+      - name: G11 real PostgreSQL restore drill
+        id: drill
+        run: |
+          chmod +x scripts/ops/backup_postgres.sh scripts/ops/restore_postgres.sh
+          python scripts/ops/g11_postgres_restore_drill.py
+
+      - name: Upload G11 evidence artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: g11-postgres-restore-evidence
+          path: |
+            artifacts/g11_postgres_restore_evidence.json
+            backups/*.sql.gz
+            backups/*.sha256
+          if-no-files-found: warn
+
+      - name: G11 summary
+        if: always()
+        run: |
+          {
+            echo "## G11 PostgreSQL restore drill"
+            echo ""
+            echo "| Field | Value |"
+            echo "|---|---|"
+            echo "| Job | ${{ job.status }} |"
+            echo "| Drill step | ${{ steps.drill.outcome }} |"
+            echo "| Commit | \`${{ github.sha }}\` |"
+            echo "| Runner | ubuntu-latest + postgres:16-alpine |"
+            echo ""
+            if [[ -f artifacts/g11_postgres_restore_evidence.json ]]; then
+              echo '```json'
+              cat artifacts/g11_postgres_restore_evidence.json
+              echo '```'
+            else
+              echo "Evidence JSON missing."
+            fi
+          } >> "$GITHUB_STEP_SUMMARY"

@@ -58,7 +58,17 @@ def test_gate_ready_only_with_full_http_credentials() -> None:
     }
     gate = mod.classify_gate(environ=env)
     assert gate["ready"] is True
+    assert gate["route"] == "configured_http"
     assert gate["evidence_class"] == "real_live_authenticated_provider"
+
+
+def test_gate_ready_with_single_fmp_key() -> None:
+    mod = _load_drill()
+    gate = mod.classify_gate(environ={"DSP_FMP_API_KEY": "k"})
+    assert gate["ready"] is True
+    assert gate["route"] == "fmp"
+    assert gate["evidence_class"] == "real_live_authenticated_provider"
+    assert gate["credential_presence"]["DSP_FMP_API_KEY"] == "PRESENT"
 
 
 def test_drill_fails_closed_without_credentials(
@@ -69,6 +79,8 @@ def test_drill_fails_closed_without_credentials(
         "DSP_MARKET_QUOTE_BASE_URL",
         "DSP_FINANCIAL_STATEMENT_API_KEY",
         "DSP_FINANCIAL_STATEMENT_BASE_URL",
+        "DSP_FMP_API_KEY",
+        "DSP_INVESTMENT_FMP_API_KEY",
         "DSP_MARKET_QUOTE_MEMORY",
         "DSP_FINANCIAL_STATEMENT_MEMORY",
     ):
@@ -103,7 +115,9 @@ def test_workflow_scaffolding_exists() -> None:
     text = wf.read_text(encoding="utf-8")
     assert "live-data-evidence" in text
     assert "workflow_dispatch" in text
+    assert "DSP_FMP_API_KEY" in text
     assert "DSP_MARKET_QUOTE_API_KEY" in text
     assert "g2_live_vendor_evidence_drill.py" in text
+    assert "g2_provider_configuration_diagnostic.py" in text
     # Must not run automatically on every PR push.
     assert "pull_request:" not in text

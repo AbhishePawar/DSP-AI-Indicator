@@ -476,16 +476,28 @@ def build_default_statement_adapter_from_env() -> FinancialStatementPort:
 
     P1-03: production requires authenticated HTTP credentials; Null/memory
     cannot silently become the production provider.
+
+    Routes (first match wins):
+    1. ConfiguredHttp — statement key + base URL
+    2. FMP — ``DSP_FMP_API_KEY`` or ``DSP_INVESTMENT_FMP_API_KEY``
+    3. Memory — non-production flag only
     """
     from data_engine.connector_framework.production_profile import (
         memory_adapter_allowed,
         require_authenticated_http_adapter,
+    )
+    from data_engine.fmp_investment import (
+        FinancialModelingPrepStatementAdapter,
+        resolve_fmp_api_key,
     )
 
     api_key = os.environ.get("DSP_FINANCIAL_STATEMENT_API_KEY", "").strip()
     base_url = os.environ.get("DSP_FINANCIAL_STATEMENT_BASE_URL", "").strip()
     if api_key and base_url:
         return ConfiguredHttpStatementAdapter(base_url=base_url, api_key=api_key)
+    fmp_key = resolve_fmp_api_key()
+    if fmp_key:
+        return FinancialModelingPrepStatementAdapter(api_key=fmp_key)
     if memory_adapter_allowed(
         "DSP_FINANCIAL_STATEMENT_MEMORY", connector="financial_statement"
     ):

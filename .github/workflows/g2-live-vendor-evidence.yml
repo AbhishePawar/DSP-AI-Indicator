@@ -4,6 +4,9 @@ name: G2 Live Authenticated Vendor Evidence
 # Credentials MUST come from the protected GitHub Environment
 # ``live-data-evidence`` (manual workflow_dispatch). Never place vendor
 # secrets in ordinary PR jobs. Soft-pass / fabricated live evidence is forbidden.
+#
+# Preferred: single secret DSP_FMP_API_KEY (Financial Modeling Prep free tier).
+# Alternative: four ConfiguredHttp secrets (quote + statement key/URL).
 
 on:
   workflow_dispatch:
@@ -32,7 +35,10 @@ jobs:
       DSP_INFRA_OFFLINE: "0"
       PYTHONUNBUFFERED: "1"
       DSP_G2_TICKER: ${{ inputs.ticker || 'AAPL' }}
-      # Secret *names* only — values from Environment ``live-data-evidence``.
+      # Preferred single-key FMP route (Environment ``live-data-evidence``).
+      DSP_FMP_API_KEY: ${{ secrets.DSP_FMP_API_KEY }}
+      DSP_INVESTMENT_FMP_API_KEY: ${{ secrets.DSP_INVESTMENT_FMP_API_KEY }}
+      # Alternative ConfiguredHttp route.
       DSP_MARKET_QUOTE_API_KEY: ${{ secrets.DSP_MARKET_QUOTE_API_KEY }}
       DSP_MARKET_QUOTE_BASE_URL: ${{ secrets.DSP_MARKET_QUOTE_BASE_URL }}
       DSP_FINANCIAL_STATEMENT_API_KEY: ${{ secrets.DSP_FINANCIAL_STATEMENT_API_KEY }}
@@ -53,21 +59,9 @@ jobs:
           python -m pip install --upgrade pip
           pip install -e ".[dev]"
 
-      - name: Credential presence gate (no secret values)
+      - name: Credential / adapter diagnostic (no secret values)
         id: creds
-        run: |
-          python - <<'PY'
-          import os
-          names = [
-              "DSP_MARKET_QUOTE_API_KEY",
-              "DSP_MARKET_QUOTE_BASE_URL",
-              "DSP_FINANCIAL_STATEMENT_API_KEY",
-              "DSP_FINANCIAL_STATEMENT_BASE_URL",
-          ]
-          for n in names:
-              present = bool(str(os.environ.get(n) or "").strip())
-              print(f"{n}={'PRESENT' if present else 'ABSENT'}")
-          PY
+        run: python scripts/ops/g2_provider_configuration_diagnostic.py
 
       - name: G2 live authenticated vendor drill
         id: drill
@@ -94,6 +88,7 @@ jobs:
             echo "| Commit | \`${{ github.sha }}\` |"
             echo "| Ticker | \`${{ env.DSP_G2_TICKER }}\` |"
             echo "| Environment | \`live-data-evidence\` |"
+            echo "| Preferred secret | \`DSP_FMP_API_KEY\` |"
             echo ""
             if [[ -f artifacts/g2_live_vendor_evidence.json ]]; then
               echo '```json'

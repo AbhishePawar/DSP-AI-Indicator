@@ -11,6 +11,10 @@ Proves (when credentials are present):
 Fails closed when credentials are absent. Never fabricates live evidence.
 Never logs API keys / Authorization headers.
 
+Routes (either is sufficient):
+  A) Single-key FMP — DSP_FMP_API_KEY or DSP_INVESTMENT_FMP_API_KEY
+  B) ConfiguredHttp — quote key+URL and statement key+URL
+
 Evidence: artifacts/g2_live_vendor_evidence.json
 """
 
@@ -33,12 +37,20 @@ RELEASE_IDENTITY = {
     "label": "EPS-003 · 2.0.0-rc.1 · rc · RELEASE_CANDIDATE",
 }
 
-REQUIRED_ENV = (
+HTTP_REQUIRED_ENV = (
     "DSP_MARKET_QUOTE_API_KEY",
     "DSP_MARKET_QUOTE_BASE_URL",
     "DSP_FINANCIAL_STATEMENT_API_KEY",
     "DSP_FINANCIAL_STATEMENT_BASE_URL",
 )
+
+FMP_KEY_ENVS = (
+    "DSP_FMP_API_KEY",
+    "DSP_INVESTMENT_FMP_API_KEY",
+)
+
+# Back-compat alias used by older tests / docs.
+REQUIRED_ENV = HTTP_REQUIRED_ENV
 
 FORBIDDEN_LIVE_FLAGS = (
     "DSP_MARKET_QUOTE_MEMORY",
@@ -62,11 +74,30 @@ def credential_presence(
 ) -> dict[str, bool]:
     """Return PRESENT/ABSENT map — never values."""
     env = environ if environ is not None else os.environ
-    return {name: bool(str(env.get(name) or "").strip()) for name in REQUIRED_ENV}
+    names = list(HTTP_REQUIRED_ENV) + list(FMP_KEY_ENVS)
+    return {name: bool(str(env.get(name) or "").strip()) for name in names}
+
+
+def http_credentials_ready(environ: dict[str, str] | None = None) -> bool:
+    present = credential_presence(environ)
+    return all(present[name] for name in HTTP_REQUIRED_ENV)
+
+
+def fmp_credentials_ready(environ: dict[str, str] | None = None) -> bool:
+    present = credential_presence(environ)
+    return any(present[name] for name in FMP_KEY_ENVS)
 
 
 def credentials_ready(environ: dict[str, str] | None = None) -> bool:
-    return all(credential_presence(environ).values())
+    return http_credentials_ready(environ) or fmp_credentials_ready(environ)
+
+
+def selected_route(environ: dict[str, str] | None = None) -> str:
+    if http_credentials_ready(environ):
+        return "configured_http"
+    if fmp_credentials_ready(environ):
+        return "fmp"
+    return "none"
 
 
 def memory_flags_enabled(environ: dict[str, str] | None = None) -> list[str]:
@@ -79,7 +110,8 @@ def classify_gate(
     """Pure gate classification — no network I/O."""
     present = credential_presence(environ)
     memory = memory_flags_enabled(environ)
-    ready = all(present.values()) and not memory
+    route = selected_route(environ)
+    ready = credentials_ready(environ) and not memory
     if memory:
         evidence_class = "memory_seed_refused_as_live"
         status = "BLOCKED"
@@ -88,32 +120,39 @@ def classify_gate(
             f"disable {', '.join(memory)}"
         )
     elif not ready:
-        missing = [k for k, ok in present.items() if not ok]
         evidence_class = "credentials_unavailable"
         status = "BLOCKED"
         reason = (
-            "G2 live authenticated vendor evidence requires secrets: "
-            + ", ".join(missing)
+            "G2 live authenticated vendor evidence requires EITHER "
+            "(A) DSP_FMP_API_KEY or DSP_INVESTMENT_FMP_API_KEY "
+            "(single-key Financial Modeling Prep free developer tier), "
+            "OR (B) all four ConfiguredHttp secrets: "
+            + ", ".join(HTTP_REQUIRED_ENV)
             + ". Inject via GitHub Environment 'live-data-evidence' "
-            "(workflow_dispatch) or a secure local runtime — never commit."
+            "(workflow_dispatch) or a secure local runtime - never commit."
         )
     else:
         evidence_class = "real_live_authenticated_provider"
         status = "READY"
-        reason = "credentials present; live execution permitted"
+        reason = f"credentials present via route={route}; live execution permitted"
     return {
         "ready": ready,
         "status": status,
         "evidence_class": evidence_class,
         "reason": reason,
+        "route": route,
         "credential_presence": {k: ("PRESENT" if v else "ABSENT") for k, v in present.items()},
         "memory_flags_enabled": memory,
-        "required_secrets": list(REQUIRED_ENV),
+        "required_secrets": [
+            "DSP_FMP_API_KEY (preferred single-key FMP route)",
+            *HTTP_REQUIRED_ENV,
+        ],
         "secure_injection": [
             "GitHub Environment: live-data-evidence",
             "workflow_dispatch protected job",
             "organization/repository Actions secrets (names only above)",
             "production secret manager → runtime env (never source tree)",
+            "FMP free developer signup: https://site.financialmodelingprep.com/developer/docs",
         ],
     }
 
@@ -131,6 +170,23 @@ def _write_evidence(evidence: dict[str, Any]) -> Path:
     return path
 
 
+def _provider_meta(route: str) -> dict[str, Any]:
+    if route == "fmp":
+        return {
+            "quote_provider_id": "fmp_market_quote",
+            "statement_provider_id": "fmp_financial_statements",
+            "auth_mode": "api_key",
+            "vendor": "financial_modeling_prep",
+            "note": "Single authenticated FMP key satisfies quote + statements",
+        }
+    return {
+        "quote_provider_id": "configured_http_quote",
+        "statement_provider_id": "configured_http_statements",
+        "auth_mode": "api_key_bearer",
+        "note": "Vendor-neutral ConfiguredHttp* adapters; base URL identifies endpoint",
+    }
+
+
 def _base_evidence(*, gate: dict[str, Any], commit: str) -> dict[str, Any]:
     return {
         "ok": False,
@@ -139,6 +195,7 @@ def _base_evidence(*, gate: dict[str, Any], commit: str) -> dict[str, Any]:
         "evidence_class": gate["evidence_class"],
         "g2_status": gate["status"],
         "reason": gate["reason"],
+        "route": gate.get("route"),
         "credential_presence": gate["credential_presence"],
         "memory_flags_enabled": gate["memory_flags_enabled"],
         "required_secrets": gate["required_secrets"],
@@ -148,12 +205,7 @@ def _base_evidence(*, gate: dict[str, Any], commit: str) -> dict[str, Any]:
         "started_at": datetime.now(tz=UTC).isoformat(),
         "ticker": os.environ.get("DSP_G2_TICKER", DEFAULT_TICKER).strip().upper()
         or DEFAULT_TICKER,
-        "provider": {
-            "quote_provider_id": "configured_http_quote",
-            "statement_provider_id": "configured_http_statements",
-            "auth_mode": "api_key_bearer",
-            "note": "Vendor-neutral ConfiguredHttp* adapters; base URL identifies endpoint",
-        },
+        "provider": _provider_meta(str(gate.get("route") or "none")),
         "steps": {},
         "secrets_logged": False,
     }
@@ -203,6 +255,23 @@ def _assert_not_unsafe_adapter(adapter: Any, *, kind: str) -> None:
         )
 
 
+def _classify_live_failure(exc: BaseException) -> str:
+    text = f"{type(exc).__name__}: {exc}".lower()
+    if "401" in text or "unauthorized" in text or "forbidden" in text or "403" in text:
+        return "authentication_failure"
+    if "timeout" in text or "timed out" in text:
+        return "provider_timeout"
+    if "schema" in text or "invalidproviderdata" in text or "missing" in text:
+        return "schema_failure"
+    if "integrity" in text or "p1-02" in text or "financialintegrity" in text:
+        return "p1_02_integrity_failure"
+    if "connection" in text or "network" in text or "resolve" in text:
+        return "network_failure"
+    if "provider" in text:
+        return "provider_response_failure"
+    return "live_execution_failure"
+
+
 def _run_live(evidence: dict[str, Any]) -> int:
     """Execute real authenticated provider → analyse → provenance chain."""
     ticker = evidence["ticker"]
@@ -212,12 +281,17 @@ def _run_live(evidence: dict[str, Any]) -> int:
     for flag in FORBIDDEN_LIVE_FLAGS:
         os.environ.pop(flag, None)
 
-    from contracts.domain.instrument import Instrument
+    from contracts.domain.instrument import AssetClass, Instrument
     from data_engine.financial_statement.adapters import (
         build_default_statement_adapter_from_env,
     )
-    from data_engine.financial_statement.models import StatementQuery
+    from data_engine.financial_statement.service import StatementQuery
     from data_engine.market_quote.adapters import build_default_quote_adapter_from_env
+
+    def _instrument(symbol: str) -> Instrument:
+        return Instrument(
+            symbol=symbol, asset_class=AssetClass.EQUITY, currency="USD"
+        )
     from dsp_platform import (
         PlatformBuilder,
         PlatformConfiguration,
@@ -239,30 +313,38 @@ def _run_live(evidence: dict[str, Any]) -> int:
     stmt_adapter = build_default_statement_adapter_from_env()
     _assert_not_unsafe_adapter(quote_adapter, kind="quote")
     _assert_not_unsafe_adapter(stmt_adapter, kind="statements")
+    q_health = quote_adapter.health()
+    s_health = stmt_adapter.health()
     steps["adapters"] = {
         "quote": {
             "class": type(quote_adapter).__name__,
             "provider_id": quote_adapter.provider_id,
-            "health": quote_adapter.health().to_dict()
-            if hasattr(quote_adapter.health(), "to_dict")
+            "authenticated": bool(getattr(q_health, "authenticated", False)),
+            "health": q_health.to_dict()
+            if hasattr(q_health, "to_dict")
             else {
                 "provider_id": quote_adapter.provider_id,
-                "authenticated": True,
+                "authenticated": bool(getattr(q_health, "authenticated", False)),
             },
         },
         "statements": {
             "class": type(stmt_adapter).__name__,
             "provider_id": stmt_adapter.provider_id,
-            "health": stmt_adapter.health().to_dict()
-            if hasattr(stmt_adapter.health(), "to_dict")
+            "authenticated": bool(getattr(s_health, "authenticated", False)),
+            "health": s_health.to_dict()
+            if hasattr(s_health, "to_dict")
             else {
                 "provider_id": stmt_adapter.provider_id,
-                "authenticated": True,
+                "authenticated": bool(getattr(s_health, "authenticated", False)),
             },
         },
     }
+    if not steps["adapters"]["quote"]["authenticated"]:
+        return _fail("quote adapter health reports authenticated=false", evidence)
+    if not steps["adapters"]["statements"]["authenticated"]:
+        return _fail("statement adapter health reports authenticated=false", evidence)
 
-    instrument = Instrument(symbol=ticker, currency="USD")
+    instrument = _instrument(ticker)
     quote = quote_adapter.get_quote(instrument)
     if quote is None:
         return _fail(f"quote unavailable for {ticker}", evidence)
@@ -312,13 +394,11 @@ def _run_live(evidence: dict[str, Any]) -> int:
 
     def _get_statements(symbol: str):
         return stmt_adapter.get_statements(
-            StatementQuery(
-                instrument=Instrument(symbol=symbol, currency="USD"), limit=4
-            )
+            StatementQuery(instrument=_instrument(symbol), limit=4)
         )
 
     def _get_quote(symbol: str):
-        return quote_adapter.get_quote(Instrument(symbol=symbol, currency="USD"))
+        return quote_adapter.get_quote(_instrument(symbol))
 
     bundle = load_authenticated_valuation_bundle(
         ticker,
@@ -343,8 +423,6 @@ def _run_live(evidence: dict[str, Any]) -> int:
     reset_investment_provenance_store_for_tests(DatabaseInvestmentProvenanceStore(db))
 
     price = float(bundle.current_market_price)
-    # Build minimal composition request from authenticated statements conversion
-    # when available; otherwise fail closed (do not use client ACM demo).
     from dsp_platform.composition.authenticated_valuation import (
         to_financial_statements,
     )
@@ -431,9 +509,20 @@ def _run_live(evidence: dict[str, Any]) -> int:
     evidence["ok"] = True
     evidence["g2_status"] = "CLEARED"
     evidence["evidence_class"] = "real_live_authenticated_provider"
+    evidence["authenticated"] = True
+    evidence["quote_adapter"] = type(quote_adapter).__name__
+    evidence["statement_adapter"] = type(stmt_adapter).__name__
+    evidence["quote_retrieved_at"] = steps["quote"]["retrieved_at"]
+    evidence["statement_retrieved_at"] = steps["statements"]["retrieved_at"]
+    evidence["currency"] = steps["statements"]["currency"] or steps["quote"]["currency"]
+    evidence["statement_basis"] = steps["statements"]["statement_basis"]
+    evidence["unit_scale"] = steps["statements"]["unit_scale"]
     evidence["analysis_id"] = analysis_id
     evidence["input_fingerprint"] = record.input_fingerprint
     evidence["result_fingerprint"] = record.result_fingerprint
+    evidence["valuation_status"] = (record.valuation or {}).get("status")
+    evidence["buffett_status"] = (record.buffett or {}).get("overall_status")
+    evidence["provenance_status"] = "durable"
     evidence["finished_at"] = datetime.now(tz=UTC).isoformat()
     _write_evidence(evidence)
     print("OK G2 real authenticated vendor evidence PASS")
@@ -447,6 +536,7 @@ def main(argv: list[str] | None = None) -> int:
     evidence["steps"]["gate"] = {
         "ready": gate["ready"],
         "status": gate["status"],
+        "route": gate.get("route"),
     }
 
     if not gate["ready"]:
@@ -456,6 +546,7 @@ def main(argv: list[str] | None = None) -> int:
     try:
         return _run_live(evidence)
     except Exception as exc:  # noqa: BLE001
+        evidence["failure_class"] = _classify_live_failure(exc)
         evidence["traceback"] = traceback.format_exc(limit=8)
         return _fail(f"live execution failed: {exc}", evidence, code=1)
 

@@ -90,6 +90,7 @@ class ResearchWorkspaceStore:
         name: str,
         parent_id: str | None = None,
         folder_id: str | None = None,
+        created_by: str | None = None,
     ) -> dict[str, Any]:
         with self._lock:
             fid = folder_id or _id("folder")
@@ -101,6 +102,7 @@ class ResearchWorkspaceStore:
                 "name": name.strip() or "Untitled",
                 "parent_id": parent,
                 "archived": False,
+                "created_by": created_by,
                 "created_at": _now(),
                 "updated_at": _now(),
             }
@@ -343,6 +345,7 @@ class ResearchWorkspaceStore:
                 "company": payload.get("company"),
                 "href": payload.get("href"),
                 "meta": dict(payload.get("meta") or {}),
+                "created_by": payload.get("created_by"),
                 "created_at": _now(),
             }
             self._bookmarks[bid] = row

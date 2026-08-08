@@ -2,13 +2,19 @@
 
 from __future__ import annotations
 
+from typing import Any
 from uuid import uuid4
 
 from fastapi import APIRouter, Depends
 
-from api_platform.api.dependencies import ApiState, get_api_state
+from api_platform.api.dependencies import (
+    ApiState,
+    get_api_state,
+    require_authenticated_actor,
+)
 from api_platform.api.exceptions import ApiValidationError
 from api_platform.api.schemas import AnalyzeCompanyRequest, ApiResponse
+from api_platform.api.tenant_isolation import stamp_report_owner
 from contracts import Instrument
 from contracts.enums import AssetClass
 
@@ -28,10 +34,18 @@ def _asset_class(value: str) -> AssetClass:
 def analyze_company(
     body: AnalyzeCompanyRequest,
     state: ApiState = Depends(get_api_state),
+    auth: dict[str, Any] = Depends(require_authenticated_actor),
 ) -> ApiResponse:
-    """Delegate single-company analysis to ``DSPPlatform.analyze_company``."""
+    """Delegate single-company analysis to ``DSPPlatform.analyze_company``.
+
+    P1-07 — reports are stamped with the authenticated owner only.
+    """
     if body.end < body.start:
         raise ApiValidationError("end date must be on or after start date")
+
+    owner = str(auth.get("user_id") or "").strip()
+    if not owner:
+        raise ApiValidationError("authentication required")
 
     instrument = Instrument(
         symbol=body.symbol.strip().upper(),
@@ -54,11 +68,14 @@ def analyze_company(
     report_id = f"rpt-{uuid4().hex[:12]}"
     state.reports.put(
         report_id,
-        {
-            "capability": result.capability,
-            "payload": result.payload,
-            "ok": result.ok,
-        },
+        stamp_report_owner(
+            {
+                "capability": result.capability,
+                "payload": result.payload,
+                "ok": result.ok,
+            },
+            owner,
+        ),
     )
 
     payload = {

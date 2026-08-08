@@ -115,14 +115,14 @@ def run_saas_platform(
     handlers = {
         "schema": lambda: saas_platform_schema(),
         "plans": lambda: compare_plans(),
-        "dashboard": lambda: _admin_dashboard(enterprise, overlay),
+        "dashboard": lambda: _admin_dashboard(enterprise, overlay, body),
         "list_organizations": lambda: {
             "organizations": enterprise.list_organizations(
                 user_id=body.get("user_id") or body.get("actor_user_id")
             )
         },
         "get_organization": lambda: _require_org(
-            enterprise, str(body.get("org_id") or "")
+            enterprise, str(body.get("org_id") or ""), _actor(body)
         ),
         "create_organization": lambda: _create_org(enterprise, overlay, body),
         "update_organization": lambda: _update_org(enterprise, body),
@@ -168,18 +168,18 @@ def run_saas_platform(
             )
         },
         "list_roles": lambda: {
-            "roles": enterprise.list_roles(str(body.get("org_id") or ""))
+            "roles": enterprise.list_roles(
+                str(body.get("org_id") or ""), actor_user_id=_actor(body)
+            )
         },
         "create_subscription": lambda: _create_subscription(
             enterprise, overlay, body
         ),
-        "get_subscription": lambda: _get_subscription(overlay, body),
-        "billing_profile": lambda: _billing_profile(overlay, body),
-        "upsert_billing_profile": lambda: {
-            "profile": overlay.upsert_billing_profile(
-                str(body.get("org_id") or ""), body
-            )
-        },
+        "get_subscription": lambda: _get_subscription(enterprise, overlay, body),
+        "billing_profile": lambda: _billing_profile(enterprise, overlay, body),
+        "upsert_billing_profile": lambda: _upsert_billing_profile(
+            enterprise, overlay, body
+        ),
         "billing_status": lambda: enterprise.billing_status(
             str(body.get("org_id") or ""), actor_user_id=_actor(body)
         ),
@@ -200,9 +200,12 @@ def run_saas_platform(
         "get_license": lambda: enterprise.get_license(
             str(body.get("org_id") or ""), actor_user_id=_actor(body)
         ),
-        "validate_license": lambda: enterprise.validate_license(
-            str(body.get("org_id") or "")
-        ),
+        "validate_license": lambda: (
+            enterprise.require_permission(
+                str(body.get("org_id") or ""), _actor(body), "license.view"
+            ),
+            enterprise.validate_license(str(body.get("org_id") or "")),
+        )[1],
         "create_api_key": lambda: {
             "api_key": enterprise.create_api_key(
                 str(body.get("org_id") or ""),
@@ -235,7 +238,7 @@ def run_saas_platform(
         "usage": lambda: enterprise.usage_snapshot(
             str(body.get("org_id") or ""), actor_user_id=_actor(body)
         ),
-        "feature_limits": lambda: _feature_limits(overlay, body),
+        "feature_limits": lambda: _feature_limits(enterprise, overlay, body),
         "customer_portal": lambda: enterprise.customer_portal(
             str(body.get("org_id") or ""), actor_user_id=_actor(body)
         ),
@@ -298,8 +301,14 @@ def _actor(body: dict[str, Any]) -> str:
     return actor
 
 
-def _require_org(enterprise: Any, org_id: str) -> dict[str, Any]:
-    org = enterprise.get_organization(org_id)
+def _require_org(
+    enterprise: Any, org_id: str, actor: str | None = None
+) -> dict[str, Any]:
+    """Resolve org; with actor enforce membership (P1-07)."""
+    if actor:
+        org = enterprise.get_organization(org_id, actor_user_id=actor)
+    else:
+        org = enterprise.get_organization(org_id)
     if org is None:
         raise ValueError("organization not found")
     return {"organization": org}
@@ -372,7 +381,7 @@ def _delete_org(enterprise: Any, body: dict[str, Any]) -> dict[str, Any]:
     """Soft-delete: archive org. Hard removal is not fabricated for active orgs."""
     org_id = str(body.get("org_id") or "")
     actor = _actor(body)
-    org = enterprise.get_organization(org_id)
+    org = enterprise.get_organization(org_id, actor_user_id=actor)
     if org is None:
         raise ValueError("organization not found")
     hard = bool(body.get("hard"))
@@ -417,7 +426,10 @@ def _delete_org(enterprise: Any, body: dict[str, Any]) -> dict[str, Any]:
 
 
 def _org_settings(enterprise: Any, body: dict[str, Any]) -> dict[str, Any]:
-    org = enterprise.get_organization(str(body.get("org_id") or ""))
+    actor = _actor(body)
+    org = enterprise.get_organization(
+        str(body.get("org_id") or ""), actor_user_id=actor
+    )
     if org is None:
         raise ValueError("organization not found")
     return {
@@ -431,7 +443,8 @@ def _org_settings(enterprise: Any, body: dict[str, Any]) -> dict[str, Any]:
 
 def _update_settings(enterprise: Any, body: dict[str, Any]) -> dict[str, Any]:
     org_id = str(body.get("org_id") or "")
-    existing = enterprise.get_organization(org_id)
+    actor = _actor(body)
+    existing = enterprise.get_organization(org_id, actor_user_id=actor)
     if existing is None:
         raise ValueError("organization not found")
     branding = dict(existing.get("branding") or {})
@@ -477,6 +490,12 @@ def _create_subscription(
     if plan_id not in PLAN_IDS:
         raise ValueError(f"invalid plan_id: {plan_id}")
     plan = get_plan(plan_id) or {}
+    # P1-07 — authorize before any overlay mutation (no cross-tenant write).
+    actor = str(body.get("actor_user_id") or body.get("owner_user_id") or "").strip()
+    if not actor:
+        raise ValueError("actor_user_id required")
+    enterprise.require_permission(org_id, actor, "license.manage")
+
     status = str(body.get("status") or "trialing")
     trial_ends = body.get("trial_ends_at")
     if status == "trialing" and not trial_ends:
@@ -501,34 +520,28 @@ def _create_subscription(
         },
     )
 
-    # Bind seats/limits via existing license system (no duplicate licensing)
-    actor = body.get("actor_user_id") or body.get("owner_user_id")
-    license_row = None
-    if actor:
-        tier = PLAN_TO_LICENSE_TIER[plan_id]
-        seats = body.get("seats") or plan.get("seat_limit") or 1
-        license_row = enterprise.assign_license(
+    tier = PLAN_TO_LICENSE_TIER[plan_id]
+    seats = body.get("seats") or plan.get("seat_limit") or 1
+    license_row = enterprise.assign_license(
+        org_id,
+        tier=tier,
+        seats=int(seats),
+        actor_user_id=actor,
+        expires_at=body.get("expires_at") or trial_ends,
+        usage_limits=plan_limits(plan_id),
+    )
+    try:
+        enterprise.update_organization(
             org_id,
-            tier=tier,
-            seats=int(seats),
-            actor_user_id=str(actor),
-            expires_at=body.get("expires_at") or trial_ends,
-            usage_limits=plan_limits(plan_id),
+            actor_user_id=actor,
+            seat_limit=int(seats) if seats else None,
         )
-        # Align org seat_limit with plan
-        try:
-            enterprise.update_organization(
-                org_id,
-                actor_user_id=str(actor),
-                seat_limit=int(seats) if seats else None,
-            )
-        except Exception:  # noqa: BLE001
-            pass
+    except Exception:  # noqa: BLE001
+        pass
 
     billing = None
     try:
-        if actor:
-            billing = enterprise.billing_status(org_id, actor_user_id=str(actor))
+        billing = enterprise.billing_status(org_id, actor_user_id=actor)
     except Exception:  # noqa: BLE001
         billing = {
             "available": False,
@@ -547,8 +560,11 @@ def _create_subscription(
     }
 
 
-def _get_subscription(overlay: Any, body: dict[str, Any]) -> dict[str, Any]:
+def _get_subscription(
+    enterprise: Any, overlay: Any, body: dict[str, Any]
+) -> dict[str, Any]:
     org_id = str(body.get("org_id") or "")
+    enterprise.require_permission(org_id, _actor(body), "org.view")
     sub = overlay.get_subscription(org_id)
     if sub is None:
         return {
@@ -566,8 +582,11 @@ def _get_subscription(overlay: Any, body: dict[str, Any]) -> dict[str, Any]:
     }
 
 
-def _billing_profile(overlay: Any, body: dict[str, Any]) -> dict[str, Any]:
+def _billing_profile(
+    enterprise: Any, overlay: Any, body: dict[str, Any]
+) -> dict[str, Any]:
     org_id = str(body.get("org_id") or "")
+    enterprise.require_permission(org_id, _actor(body), "billing.view")
     profile = overlay.get_billing_profile(org_id)
     if profile is None:
         return {
@@ -578,9 +597,20 @@ def _billing_profile(overlay: Any, body: dict[str, Any]) -> dict[str, Any]:
     return {"available": True, "profile": profile}
 
 
+def _upsert_billing_profile(
+    enterprise: Any, overlay: Any, body: dict[str, Any]
+) -> dict[str, Any]:
+    org_id = str(body.get("org_id") or "")
+    enterprise.require_permission(org_id, _actor(body), "billing.view")
+    return {
+        "profile": overlay.upsert_billing_profile(org_id, body),
+    }
+
+
 def _checkout(enterprise: Any, body: dict[str, Any]) -> dict[str, Any]:
     """Never fake payments — delegate to BillingPort checkout if present."""
     org_id = str(body.get("org_id") or "")
+    enterprise.require_permission(org_id, _actor(body), "billing.view")
     billing = getattr(enterprise, "billing", None)
     if billing is None or not hasattr(billing, "create_checkout_session"):
         return {
@@ -669,14 +699,14 @@ def _activate_license(
 
 def _record_usage(enterprise: Any, body: dict[str, Any]) -> dict[str, Any]:
     org_id = str(body.get("org_id") or "")
+    actor = _actor(body)
     metric = str(body.get("metric") or "api_requests")
     amount = int(body.get("amount") or 1)
-    enterprise.increment_usage(org_id, metric, amount)
-    # Also append audit for usage events (reuse audit logger — no duplicate)
+    enterprise.increment_usage(org_id, metric, amount, actor_user_id=actor)
     try:
         enterprise.record_audit(
             org_id=org_id,
-            actor_user_id=body.get("actor_user_id") or "system",
+            actor_user_id=actor,
             action=f"usage.{metric}",
             resource_type="usage",
             resource_id=org_id,
@@ -687,8 +717,11 @@ def _record_usage(enterprise: Any, body: dict[str, Any]) -> dict[str, Any]:
     return {"org_id": org_id, "metric": metric, "amount": amount, "recorded": True}
 
 
-def _feature_limits(overlay: Any, body: dict[str, Any]) -> dict[str, Any]:
+def _feature_limits(
+    enterprise: Any, overlay: Any, body: dict[str, Any]
+) -> dict[str, Any]:
     org_id = str(body.get("org_id") or "")
+    enterprise.require_permission(org_id, _actor(body), "org.view")
     sub = overlay.get_subscription(org_id)
     plan_id = str((sub or {}).get("plan_id") or body.get("plan_id") or "starter")
     return {
@@ -701,12 +734,24 @@ def _feature_limits(overlay: Any, body: dict[str, Any]) -> dict[str, Any]:
     }
 
 
-def _admin_dashboard(enterprise: Any, overlay: Any) -> dict[str, Any]:
-    """Admin SaaS dashboard — honest aggregates; no fake revenue KPIs."""
-    overview = enterprise.admin_overview()
+def _admin_dashboard(
+    enterprise: Any, overlay: Any, body: dict[str, Any]
+) -> dict[str, Any]:
+    """Member-scoped SaaS dashboard — never leaks foreign org state (P1-07)."""
+    actor = _actor(body)
+    orgs = enterprise.list_organizations(user_id=actor)
+    member_org_ids = {o["org_id"] for o in orgs}
+    overview = {
+        "organizations": len(orgs),
+        "scoped_to_actor": actor,
+        "note": "Dashboard aggregates are limited to organizations the actor belongs to.",
+    }
     usage = enterprise.platform_usage_analytics()
-    orgs = enterprise.list_organizations()
-    subs = overlay.list_subscriptions()
+    subs = [
+        s
+        for s in overlay.list_subscriptions()
+        if str(s.get("org_id") or "") in member_org_ids
+    ]
     plan_distribution: dict[str, int] = {p: 0 for p in PLAN_IDS}
     for sub in subs:
         pid = str(sub.get("plan_id") or "")

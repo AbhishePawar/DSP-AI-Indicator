@@ -7,11 +7,18 @@ computed ``DecisionPack`` reports and shapes the HTTP envelope.
 
 from __future__ import annotations
 
+from typing import Any
+
 from fastapi import APIRouter, Depends
 
-from api_platform.api.dependencies import ApiState, get_api_state
+from api_platform.api.dependencies import (
+    ApiState,
+    get_api_state,
+    require_authenticated_actor,
+)
 from api_platform.api.exceptions import ApiValidationError
 from api_platform.api.schemas import ApiResponse, CompareRequest
+from api_platform.api.tenant_isolation import actor_owns_report
 from dsp_platform import DecisionPack, EligibilityOptions, comparison_result_public_dict
 
 router = APIRouter(tags=["comparison"])
@@ -21,12 +28,18 @@ router = APIRouter(tags=["comparison"])
 def compare(
     body: CompareRequest,
     state: ApiState = Depends(get_api_state),
+    auth: dict[str, Any] = Depends(require_authenticated_actor),
 ) -> ApiResponse:
     """Compare Decision Pack reports via the platform's comparison engine.
 
     ``report_ids`` must reference reports previously created by
     ``POST /analyze/company`` with ``as_decision_pack=true``.
+    P1-07 — actor may only compare reports they own.
     """
+    actor = str(auth.get("user_id") or "").strip()
+    if not actor:
+        raise ApiValidationError("authentication required")
+
     report_ids = [r.strip() for r in body.report_ids if r.strip()]
     if len(set(report_ids)) < 2:
         raise ApiValidationError(
@@ -42,6 +55,9 @@ def compare(
             missing.append(report_id)
             continue
         record = state.reports.get(report_id)
+        if not actor_owns_report(record, actor):
+            missing.append(report_id)
+            continue
         payload = record.get("payload") if isinstance(record, dict) else None
         if not isinstance(payload, DecisionPack):
             invalid.append(report_id)

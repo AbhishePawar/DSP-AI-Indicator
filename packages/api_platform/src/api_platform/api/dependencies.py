@@ -64,10 +64,15 @@ class ReportStore:
 
 
 class DatabaseReportStore(ReportStore):
-    """P0-06 — report registry shared via DatabasePort snapshots."""
+    """P0-06 — report registry shared via DatabasePort snapshots.
+
+    Uses pickle (not JSON) so DecisionPack / Recommendation objects remain
+    durable across workers without losing type fidelity (P1-07 isolation
+    depends on owner metadata surviving the round-trip).
+    """
 
     _TABLE = "api_report_snapshots"
-    _KEY = "reports_v1"
+    _KEY = "reports_v2_pickle"
 
     def __init__(self, database: Any) -> None:
         super().__init__()
@@ -87,37 +92,35 @@ class DatabaseReportStore(ReportStore):
 
     def _hydrate(self) -> None:
         import base64
-        import json
+        import pickle
 
         rows = self._db.fetchall(f"SELECT * FROM {self._TABLE}")
-        payload: dict[str, Any] | None = None
+        items: dict[str, Any] = {}
         for row in rows:
             if str(row.get("snapshot_key")) != self._KEY:
                 continue
             raw = row.get("payload")
-            if isinstance(raw, dict):
-                payload = raw
-            elif isinstance(raw, str) and raw:
+            if isinstance(raw, str) and raw:
                 try:
-                    decoded = base64.b64decode(raw.encode("ascii")).decode("utf-8")
-                    data = json.loads(decoded)
-                    payload = data if isinstance(data, dict) else None
+                    loaded = pickle.loads(base64.b64decode(raw.encode("ascii")))
+                    if isinstance(loaded, dict):
+                        items = dict(loaded.get("items") or loaded)
                 except Exception:  # noqa: BLE001
-                    payload = None
+                    items = {}
             break
         with self._lock:
-            self._items = dict((payload or {}).get("items") or {})
+            self._items = items
 
     def _flush(self) -> None:
         import base64
-        import json
+        import pickle
         from datetime import UTC, datetime
 
         with self._persist_lock:
             with self._lock:
                 items = dict(self._items)
             encoded = base64.b64encode(
-                json.dumps({"items": items}, separators=(",", ":")).encode("utf-8")
+                pickle.dumps({"items": items}, protocol=pickle.HIGHEST_PROTOCOL)
             ).decode("ascii")
             now = datetime.now(tz=UTC).isoformat().replace("'", "''")
             key = self._KEY.replace("'", "''")

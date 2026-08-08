@@ -134,8 +134,21 @@ class EnterpriseService:
         return member
 
     def evaluate_permission(
-        self, org_id: str, user_id: str, permission: str
+        self,
+        org_id: str,
+        user_id: str,
+        permission: str,
+        *,
+        actor_user_id: str | None = None,
     ) -> dict[str, Any]:
+        # P1-07 — callers may only probe self, or members.view for others.
+        if actor_user_id is not None:
+            actor = str(actor_user_id).strip()
+            target = str(user_id or "").strip()
+            if actor != target:
+                self.require_permission(org_id, actor, "members.view")
+            else:
+                self.require_permission(org_id, actor, "org.view")
         try:
             self.require_permission(org_id, user_id, permission)
             allowed = True
@@ -151,7 +164,11 @@ class EnterpriseService:
             "reason": reason,
         }
 
-    def list_roles(self, org_id: str) -> list[dict[str, Any]]:
+    def list_roles(
+        self, org_id: str, *, actor_user_id: str | None = None
+    ) -> list[dict[str, Any]]:
+        if actor_user_id is not None:
+            self.require_permission(org_id, actor_user_id, "org.view")
         builtin = [
             {
                 "role_id": rid,
@@ -178,8 +195,10 @@ class EnterpriseService:
         permissions: list[str] | None = None,
         actor_user_id: str | None = None,
     ) -> dict[str, Any]:
-        if actor_user_id:
-            self.require_permission(org_id, actor_user_id, "roles.manage")
+        # P1-07 — custom roles always require an authenticated org actor.
+        if not actor_user_id:
+            raise ForbiddenError("actor_user_id required")
+        self.require_permission(org_id, actor_user_id, "roles.manage")
         rid = str(role_id or "").strip().lower()
         if not rid or rid in BUILTIN_ENTERPRISE_ROLES:
             raise ValidationError("invalid or reserved role_id")
@@ -288,8 +307,13 @@ class EnterpriseService:
             return []
         return [o.to_dict() for o in sorted(orgs, key=lambda x: x.name.lower())]
 
-    def get_organization(self, org_id: str) -> dict[str, Any] | None:
+    def get_organization(
+        self, org_id: str, *, actor_user_id: str | None = None
+    ) -> dict[str, Any] | None:
+        """Return org dict; with actor_user_id enforce org.view (P1-07)."""
         self._ensure_fresh()
+        if actor_user_id is not None:
+            self.require_permission(org_id, actor_user_id, "org.view")
         org = self.store.organizations.get(org_id)
         return org.to_dict() if org else None
 
@@ -775,7 +799,16 @@ class EnterpriseService:
         after: dict[str, Any] | None = None,
         ip_address: str | None = None,
         correlation_id: str | None = None,
+        enforce_membership: bool = True,
     ) -> dict[str, Any]:
+        # P1-07 — public audit writes require membership; internal _audit may skip.
+        if (
+            enforce_membership
+            and org_id
+            and actor_user_id
+            and str(actor_user_id) != "system"
+        ):
+            self.require_permission(str(org_id), str(actor_user_id), "org.view")
         return self._audit(
             org_id=org_id,
             actor_user_id=actor_user_id,
@@ -943,7 +976,17 @@ class EnterpriseService:
         return record.to_public_dict()
 
     # ------------------------------------------------------------------- usage
-    def increment_usage(self, org_id: str, metric: str, amount: int = 1) -> None:
+    def increment_usage(
+        self,
+        org_id: str,
+        metric: str,
+        amount: int = 1,
+        *,
+        actor_user_id: str | None = None,
+    ) -> None:
+        # P1-07 — usage writes must be org-scoped to an authenticated member.
+        if actor_user_id is not None:
+            self.require_permission(org_id, actor_user_id, "usage.view")
         counters = self.store.usage_counters.setdefault(org_id, {})
         counters[metric] = counters.get(metric, 0) + amount
         self.store.flush()

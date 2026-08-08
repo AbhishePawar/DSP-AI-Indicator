@@ -19,6 +19,7 @@ from fastapi.testclient import TestClient
 from recommendation import RecommendationMapper
 
 from api_platform import __version__, create_app
+from auth_test_helpers import bearer_headers, register_user
 from contracts.domain.instrument import Instrument
 from contracts.domain.recommendation import Recommendation
 from contracts.enums import AssetClass, RecommendationAction
@@ -186,8 +187,11 @@ class TestHealthAndPlatform:
 
 class TestAnalyzeAndReport:
     def test_analyze_company(self, client: TestClient) -> None:
+        register_user(client, user_id="analyze-owner", username="analyzeowner")
+        headers = bearer_headers(client, username="analyzeowner")
         response = client.post(
             "/analyze/company",
+            headers=headers,
             json={
                 "symbol": "AAPL",
                 "asset_class": "equity",
@@ -204,13 +208,16 @@ class TestAnalyzeAndReport:
         report_id = body["payload"]["report_id"]
         assert report_id.startswith("rpt-")
 
-        report = client.get(f"/report/{report_id}")
+        report = client.get(f"/report/{report_id}", headers=headers)
         assert report.status_code == 200
         assert report.json()["report_id"] == report_id
 
     def test_analyze_validation_error(self, client: TestClient) -> None:
+        register_user(client, user_id="analyze-val", username="analyzeval")
+        headers = bearer_headers(client, username="analyzeval")
         response = client.post(
             "/analyze/company",
+            headers=headers,
             json={
                 "symbol": "AAPL",
                 "start": "2024-06-01",
@@ -220,7 +227,9 @@ class TestAnalyzeAndReport:
         assert response.status_code == 422
 
     def test_report_not_found(self, client: TestClient) -> None:
-        response = client.get("/report/missing")
+        register_user(client, user_id="analyze-miss", username="analyzemiss")
+        headers = bearer_headers(client, username="analyzemiss")
+        response = client.get("/report/missing", headers=headers)
         assert response.status_code == 404
 
 

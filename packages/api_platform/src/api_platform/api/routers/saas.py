@@ -118,8 +118,7 @@ def saas_dashboard(
     state: ApiState = Depends(get_api_state),
     auth: dict[str, Any] = Depends(require_authenticated_actor),
 ) -> JSONResponse:
-    _ = auth
-    return _dispatch(state, "dashboard")
+    return _dispatch(state, "dashboard", {"actor_user_id": _actor(auth)})
 
 
 @router.get("/saas/organizations")
@@ -150,8 +149,11 @@ def get_organization(
     state: ApiState = Depends(get_api_state),
     auth: dict[str, Any] = Depends(require_authenticated_actor),
 ) -> JSONResponse:
-    _ = auth
-    return _dispatch(state, "get_organization", {"org_id": org_id})
+    return _dispatch(
+        state,
+        "get_organization",
+        {"org_id": org_id, "actor_user_id": _actor(auth)},
+    )
 
 
 @router.put("/saas/organization/{org_id}")
@@ -198,8 +200,11 @@ def get_settings(
     state: ApiState = Depends(get_api_state),
     auth: dict[str, Any] = Depends(require_authenticated_actor),
 ) -> JSONResponse:
-    _ = auth
-    return _dispatch(state, "organization_settings", {"org_id": org_id})
+    return _dispatch(
+        state,
+        "organization_settings",
+        {"org_id": org_id, "actor_user_id": _actor(auth)},
+    )
 
 
 @router.put("/saas/organization/{org_id}/settings")
@@ -265,8 +270,11 @@ def get_subscription(
     state: ApiState = Depends(get_api_state),
     auth: dict[str, Any] = Depends(require_authenticated_actor),
 ) -> JSONResponse:
-    _ = auth
-    return _dispatch(state, "get_subscription", {"org_id": org_id})
+    return _dispatch(
+        state,
+        "get_subscription",
+        {"org_id": org_id, "actor_user_id": _actor(auth)},
+    )
 
 
 @router.post("/saas/license")
@@ -409,8 +417,11 @@ def get_billing_profile(
     state: ApiState = Depends(get_api_state),
     auth: dict[str, Any] = Depends(require_authenticated_actor),
 ) -> JSONResponse:
-    _ = auth
-    return _dispatch(state, "billing_profile", {"org_id": org_id})
+    return _dispatch(
+        state,
+        "billing_profile",
+        {"org_id": org_id, "actor_user_id": _actor(auth)},
+    )
 
 
 @router.get("/saas/organization/{org_id}/limits")
@@ -419,8 +430,11 @@ def feature_limits(
     state: ApiState = Depends(get_api_state),
     auth: dict[str, Any] = Depends(require_authenticated_actor),
 ) -> JSONResponse:
-    _ = auth
-    return _dispatch(state, "feature_limits", {"org_id": org_id})
+    return _dispatch(
+        state,
+        "feature_limits",
+        {"org_id": org_id, "actor_user_id": _actor(auth)},
+    )
 
 
 @router.post("/saas/coupon")

@@ -183,7 +183,12 @@ def get_organization(
     org_id: str,
     auth: dict[str, Any] = Depends(require_authenticated_actor),
 ) -> JSONResponse:
-    result = get_enterprise_service().get_organization(org_id)
+    try:
+        result = get_enterprise_service().get_organization(
+            org_id, actor_user_id=_actor(auth)
+        )
+    except Exception as exc:  # noqa: BLE001
+        return _err(exc)
     if result is None:
         return _err(NotFoundError("organization not found"), status=404)
     return JSONResponse({"ok": True, "result": result, "message": None})
@@ -319,8 +324,14 @@ def invite_member(
 def list_roles(
     org_id: str,
     auth: dict[str, Any] = Depends(require_authenticated_actor),
-) -> dict[str, Any]:
-    return {"ok": True, "result": get_enterprise_service().list_roles(org_id)}
+) -> JSONResponse:
+    try:
+        result = get_enterprise_service().list_roles(
+            org_id, actor_user_id=_actor(auth)
+        )
+    except Exception as exc:  # noqa: BLE001
+        return _err(exc)
+    return JSONResponse({"ok": True, "result": result, "message": None})
 
 
 @router.post("/enterprise/organizations/{org_id}/roles")
@@ -347,13 +358,17 @@ def evaluate_permission(
     org_id: str,
     body: EvaluateBody,
     auth: dict[str, Any] = Depends(require_authenticated_actor),
-) -> dict[str, Any]:
-    return {
-        "ok": True,
-        "result": get_enterprise_service().evaluate_permission(
-            org_id, body.user_id, body.permission
-        ),
-    }
+) -> JSONResponse:
+    try:
+        result = get_enterprise_service().evaluate_permission(
+            org_id,
+            body.user_id,
+            body.permission,
+            actor_user_id=_actor(auth),
+        )
+    except Exception as exc:  # noqa: BLE001
+        return _err(exc)
+    return JSONResponse({"ok": True, "result": result, "message": None})
 
 
 @router.get("/enterprise/organizations/{org_id}/license")

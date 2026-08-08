@@ -13,6 +13,52 @@ UNAVAILABLE_MESSAGE = "Data unavailable."
 RESEARCH_WORKSPACE_SCHEMA_VERSION = "1.0.0"
 RESEARCH_WORKSPACE_SERVICE_VERSION = "0.1.0"
 
+
+class WorkspaceForbiddenError(PermissionError):
+    """P1-07 — cross-tenant / non-owner workspace access."""
+
+
+def _actor(body: dict[str, Any]) -> str:
+    actor = str(body.get("actor_user_id") or "").strip()
+    if not actor:
+        raise WorkspaceForbiddenError("actor_user_id required")
+    # Client-supplied owner fields are never authoritative.
+    body.pop("created_by", None)
+    body.pop("author_id", None)
+    body.pop("actor_id", None)
+    body["created_by"] = actor
+    body["actor_id"] = actor
+    body["author_id"] = actor
+    return actor
+
+
+def _owned_by(row: dict[str, Any] | None, actor: str) -> bool:
+    if row is None:
+        return False
+    owner = str(row.get("created_by") or "").strip()
+    return bool(owner and owner == actor)
+
+
+def _require_note_owner(store: Any, note_id: str, actor: str) -> dict[str, Any]:
+    note = store.get_note(note_id)
+    if note is None:
+        raise ValueError("note not found")
+    if not _owned_by(note, actor):
+        raise WorkspaceForbiddenError("forbidden")
+    return note
+
+
+def _require_folder_owner(store: Any, folder_id: str, actor: str) -> dict[str, Any]:
+    folders = {f["folder_id"]: f for f in store.list_folders()}
+    folder = folders.get(folder_id)
+    if folder is None:
+        raise ValueError("folder not found")
+    if folder_id == "folder-root":
+        return folder
+    if not _owned_by(folder, actor):
+        raise WorkspaceForbiddenError("forbidden")
+    return folder
+
 _STATUS_TO_WORKFLOW = {
     "draft": "draft",
     "review": "review",
@@ -76,87 +122,143 @@ def run_research_workspace(
     body = dict(payload or {})
     act = (action or "").strip().lower()
 
+    # Schema remains public; every product action requires server actor (P1-07).
+    actor: str | None = None
+    if act not in {"schema"}:
+        actor = _actor(body)
+
+    def _owned_notes() -> list[dict[str, Any]]:
+        assert actor is not None
+        return [n for n in store.list_notes() if _owned_by(n, actor)]
+
+    def _owned_folders() -> list[dict[str, Any]]:
+        assert actor is not None
+        return [
+            f
+            for f in store.list_folders()
+            if f.get("folder_id") == "folder-root" or _owned_by(f, actor)
+        ]
+
+    def _owned_bookmarks() -> list[dict[str, Any]]:
+        assert actor is not None
+        return [b for b in store.list_bookmarks() if _owned_by(b, actor)]
+
     handlers = {
-        "dashboard": lambda: _dashboard(store, platform),
-        "list_notes": lambda: {"notes": store.list_notes()},
-        "get_note": lambda: _require(store.get_note(str(body.get("note_id") or ""))),
+        "dashboard": lambda: _dashboard(store, platform, actor=actor),
+        "list_notes": lambda: {"notes": _owned_notes()},
+        "get_note": lambda: _require(
+            _require_note_owner(store, str(body.get("note_id") or ""), actor or "")
+        ),
         "create_note": lambda: {"note": store.create_note(body)},
-        "update_note": lambda: {
-            "note": store.update_note(str(body.get("note_id") or ""), body)
-        },
-        "delete_note": lambda: {
-            "deleted": store.delete_note(str(body.get("note_id") or ""))
-        },
-        "list_versions": lambda: {
-            "versions": store.list_versions(str(body.get("note_id") or ""))
-        },
-        "restore_version": lambda: {
-            "note": store.restore_version(
-                str(body.get("note_id") or ""),
-                int(body.get("version") or 0),
-            )
-        },
+        "update_note": lambda: (
+            _require_note_owner(store, str(body.get("note_id") or ""), actor or ""),
+            {"note": store.update_note(str(body.get("note_id") or ""), body)},
+        )[1],
+        "delete_note": lambda: (
+            _require_note_owner(store, str(body.get("note_id") or ""), actor or ""),
+            {"deleted": store.delete_note(str(body.get("note_id") or ""))},
+        )[1],
+        "list_versions": lambda: (
+            _require_note_owner(store, str(body.get("note_id") or ""), actor or ""),
+            {"versions": store.list_versions(str(body.get("note_id") or ""))},
+        )[1],
+        "restore_version": lambda: (
+            _require_note_owner(store, str(body.get("note_id") or ""), actor or ""),
+            {
+                "note": store.restore_version(
+                    str(body.get("note_id") or ""),
+                    int(body.get("version") or 0),
+                )
+            },
+        )[1],
         "create_folder": lambda: {
             "folder": store.create_folder(
                 name=str(body.get("name") or "Folder"),
                 parent_id=body.get("parent_id"),
                 folder_id=body.get("folder_id"),
+                created_by=actor,
             )
         },
-        "rename_folder": lambda: {
-            "folder": store.rename_folder(
-                str(body.get("folder_id") or ""),
-                str(body.get("name") or ""),
-            )
-        },
-        "move_folder": lambda: {
-            "folder": store.move_folder(
-                str(body.get("folder_id") or ""),
-                body.get("parent_id"),
-            )
-        },
-        "archive_folder": lambda: {
-            "folder": store.archive_folder(
-                str(body.get("folder_id") or ""),
-                bool(body.get("archived", True)),
-            )
-        },
-        "delete_folder": lambda: {
-            "deleted": store.delete_folder(str(body.get("folder_id") or ""))
-        },
-        "list_folders": lambda: {"folders": store.list_folders()},
+        "rename_folder": lambda: (
+            _require_folder_owner(store, str(body.get("folder_id") or ""), actor or ""),
+            {
+                "folder": store.rename_folder(
+                    str(body.get("folder_id") or ""),
+                    str(body.get("name") or ""),
+                )
+            },
+        )[1],
+        "move_folder": lambda: (
+            _require_folder_owner(store, str(body.get("folder_id") or ""), actor or ""),
+            {
+                "folder": store.move_folder(
+                    str(body.get("folder_id") or ""),
+                    body.get("parent_id"),
+                )
+            },
+        )[1],
+        "archive_folder": lambda: (
+            _require_folder_owner(store, str(body.get("folder_id") or ""), actor or ""),
+            {
+                "folder": store.archive_folder(
+                    str(body.get("folder_id") or ""),
+                    bool(body.get("archived", True)),
+                )
+            },
+        )[1],
+        "delete_folder": lambda: (
+            _require_folder_owner(store, str(body.get("folder_id") or ""), actor or ""),
+            {"deleted": store.delete_folder(str(body.get("folder_id") or ""))},
+        )[1],
+        "list_folders": lambda: {"folders": _owned_folders()},
         "create_bookmark": lambda: {"bookmark": store.create_bookmark(body)},
-        "delete_bookmark": lambda: {
-            "deleted": store.delete_bookmark(str(body.get("bookmark_id") or ""))
-        },
-        "list_bookmarks": lambda: {"bookmarks": store.list_bookmarks()},
+        "delete_bookmark": lambda: _delete_bookmark_owned(
+            store, str(body.get("bookmark_id") or ""), actor or ""
+        ),
+        "list_bookmarks": lambda: {"bookmarks": _owned_bookmarks()},
         "upsert_tag": lambda: {"tag": store.upsert_tag(body)},
         "delete_tag": lambda: {
             "deleted": store.delete_tag(str(body.get("tag_id") or ""))
         },
         "list_tags": lambda: {"tags": store.list_tags()},
-        "add_comment": lambda: {"comment": store.add_comment(body)},
-        "resolve_comment": lambda: {
-            "comment": store.resolve_comment(
-                str(body.get("comment_id") or ""),
-                bool(body.get("resolved", True)),
-            )
-        },
-        "list_comments": lambda: {
-            "comments": store.list_comments(body.get("note_id"))
-        },
-        "share": lambda: {"share": store.share_note(body)},
-        "list_shares": lambda: {"shares": store.list_shares(body.get("note_id"))},
+        "add_comment": lambda: (
+            _require_note_owner(store, str(body.get("note_id") or ""), actor or ""),
+            {"comment": store.add_comment(body)},
+        )[1],
+        "resolve_comment": lambda: _resolve_comment_owned(store, body, actor or ""),
+        "list_comments": lambda: _list_comments_owned(store, body, actor or ""),
+        "share": lambda: (
+            _require_note_owner(store, str(body.get("note_id") or ""), actor or ""),
+            {"share": store.share_note(body)},
+        )[1],
+        "list_shares": lambda: (
+            _require_note_owner(store, str(body.get("note_id") or ""), actor or ""),
+            {"shares": store.list_shares(body.get("note_id"))},
+        )[1],
         "apply_template": lambda: _apply_template(store, platform, body),
-        "publish": lambda: _publish(store, platform, body),
-        "search": lambda: {"query": body.get("query"), **store.search(str(body.get("query") or ""))},
+        "publish": lambda: (
+            _require_note_owner(store, str(body.get("note_id") or ""), actor or ""),
+            _publish(store, platform, body),
+        )[1],
+        "search": lambda: _search_owned(store, body, actor or ""),
         "ai": lambda: _ai_assist(store, platform, body),
-        "diff_versions": lambda: _diff_versions(store, body),
+        "diff_versions": lambda: (
+            _require_note_owner(store, str(body.get("note_id") or ""), actor or ""),
+            _diff_versions(store, body),
+        )[1],
     }
     if act not in handlers:
         raise ValueError(f"Unknown research-workspace action: {action!r}")
     try:
         result = handlers[act]()
+    except WorkspaceForbiddenError as exc:
+        return {
+            "ok": False,
+            "action": act,
+            "message": UNAVAILABLE_MESSAGE,
+            "error": str(exc),
+            "error_type": "ForbiddenError",
+        }
     except ValueError:
         raise
     except Exception as exc:  # noqa: BLE001
@@ -180,18 +282,92 @@ def run_research_workspace(
     }
 
 
+def _delete_bookmark_owned(store: Any, bookmark_id: str, actor: str) -> dict[str, Any]:
+    bookmarks = {b["bookmark_id"]: b for b in store.list_bookmarks()}
+    row = bookmarks.get(bookmark_id)
+    if row is None:
+        return {"deleted": False}
+    if not _owned_by(row, actor):
+        raise WorkspaceForbiddenError("forbidden")
+    return {"deleted": store.delete_bookmark(bookmark_id)}
+
+
+def _resolve_comment_owned(
+    store: Any, body: dict[str, Any], actor: str
+) -> dict[str, Any]:
+    cid = str(body.get("comment_id") or "")
+    comments = {c["comment_id"]: c for c in store.list_comments()}
+    comment = comments.get(cid)
+    if comment is None:
+        raise ValueError("comment not found")
+    _require_note_owner(store, str(comment.get("note_id") or ""), actor)
+    return {
+        "comment": store.resolve_comment(
+            cid, bool(body.get("resolved", True))
+        )
+    }
+
+
+def _list_comments_owned(
+    store: Any, body: dict[str, Any], actor: str
+) -> dict[str, Any]:
+    note_id = body.get("note_id")
+    if note_id:
+        _require_note_owner(store, str(note_id), actor)
+        return {"comments": store.list_comments(note_id)}
+    owned_ids = {n["note_id"] for n in store.list_notes() if _owned_by(n, actor)}
+    return {
+        "comments": [
+            c for c in store.list_comments() if c.get("note_id") in owned_ids
+        ]
+    }
+
+
+def _search_owned(store: Any, body: dict[str, Any], actor: str) -> dict[str, Any]:
+    raw = store.search(str(body.get("query") or ""))
+    return {
+        "query": body.get("query"),
+        "notes": [n for n in raw.get("notes", []) if _owned_by(n, actor)],
+        "folders": [
+            f
+            for f in raw.get("folders", [])
+            if f.get("folder_id") == "folder-root" or _owned_by(f, actor)
+        ],
+        "bookmarks": [b for b in raw.get("bookmarks", []) if _owned_by(b, actor)],
+        "tags": raw.get("tags", []),
+        "comments": [
+            c
+            for c in raw.get("comments", [])
+            if _owned_by(store.get_note(str(c.get("note_id") or "")) or {}, actor)
+        ],
+    }
+
+
 def _require(row: dict[str, Any] | None) -> dict[str, Any]:
     if row is None:
         raise ValueError("not found")
     return {"note": row}
 
 
-def _dashboard(store: Any, platform: Any) -> dict[str, Any]:
-    notes = store.list_notes()
+def _dashboard(
+    store: Any, platform: Any, *, actor: str | None = None
+) -> dict[str, Any]:
+    notes = [
+        n
+        for n in store.list_notes()
+        if actor is None or _owned_by(n, actor)
+    ]
     pending = [n for n in notes if n.get("status") in {"draft", "review"}]
     published = [n for n in notes if n.get("status") == "published"]
-    bookmarks = store.list_bookmarks()
-    comments = store.list_comments()
+    bookmarks = [
+        b
+        for b in store.list_bookmarks()
+        if actor is None or _owned_by(b, actor)
+    ]
+    owned_ids = {n.get("note_id") for n in notes}
+    comments = [
+        c for c in store.list_comments() if c.get("note_id") in owned_ids
+    ]
     open_comments = [c for c in comments if not c.get("resolved")]
     tasks = [
         {

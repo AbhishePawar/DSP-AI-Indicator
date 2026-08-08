@@ -42,7 +42,10 @@ from persistence.service import (
 from persistence.storage import InMemoryStorageProvider
 from persistence.transactions import TransactionManager
 
+__version__ = "0.1.0"
+
 __all__ = [
+    "__version__",
     "ENTITY_KINDS",
     "PERSISTENCE_SCHEMA_VERSION",
     "PERSISTENCE_SERVICE_VERSION",

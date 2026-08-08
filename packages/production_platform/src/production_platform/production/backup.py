@@ -2,12 +2,15 @@
 
 from __future__ import annotations
 
+import os
+from pathlib import Path
 from typing import Any, Protocol, runtime_checkable
 
 __all__ = [
     "BACKUP_UNAVAILABLE",
     "BackupPort",
     "NullBackupAdapter",
+    "build_backup_adapter",
     "SecretRotationHookPort",
     "NullSecretRotationHook",
     "VaultSecretsProviderPort",
@@ -72,6 +75,58 @@ class NullBackupAdapter:
             "available": False,
             "message": BACKUP_UNAVAILABLE,
         }
+
+
+def build_backup_adapter(
+    *,
+    database: Any | None = None,
+    backup_root: str | Path | None = None,
+) -> Any:
+    """P1-08 — select BackupPort implementation.
+
+    ``DSP_BACKUP_ADAPTER``:
+    - ``null`` (default): honest unavailable
+    - ``logical``: durable product-state JSON dump via DatabasePort
+    - ``shell``: scripts/ops pg_dump wrapper (requires tools + DSN)
+    - ``auto``: shell when available, else logical when database present, else null
+    """
+    mode = (os.environ.get("DSP_BACKUP_ADAPTER") or "null").strip().lower()
+    if mode in {"", "null", "none", "off"}:
+        return NullBackupAdapter()
+
+    if mode in {"shell", "pg_dump", "postgres"}:
+        from production_platform.production.shell_pg_backup import (
+            ShellPgDumpBackupAdapter,
+        )
+
+        return ShellPgDumpBackupAdapter(backup_root=backup_root)
+
+    if mode == "logical":
+        if database is None:
+            return NullBackupAdapter()
+        from production_platform.production.product_state_backup import (
+            LogicalProductStateBackupAdapter,
+        )
+
+        return LogicalProductStateBackupAdapter(database, backup_root=backup_root)
+
+    if mode == "auto":
+        from production_platform.production.shell_pg_backup import (
+            ShellPgDumpBackupAdapter,
+        )
+
+        shell = ShellPgDumpBackupAdapter(backup_root=backup_root)
+        if shell.is_available():
+            return shell
+        if database is not None:
+            from production_platform.production.product_state_backup import (
+                LogicalProductStateBackupAdapter,
+            )
+
+            return LogicalProductStateBackupAdapter(database, backup_root=backup_root)
+        return NullBackupAdapter()
+
+    return NullBackupAdapter()
 
 
 @runtime_checkable

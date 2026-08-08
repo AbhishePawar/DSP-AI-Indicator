@@ -70,6 +70,8 @@ services:
       LANG: ${LANG:-en_IN.UTF-8}
       DSP_TEMP_DIR: /tmp/dsp
       DSP_BACKUP_DIR: /var/backups/dsp
+      # P1-08 — Non-Null BackupPort: shell pg_dump when tools exist, else logical
+      DSP_BACKUP_ADAPTER: ${DSP_BACKUP_ADAPTER:-auto}
       DSP_DATABASE_URL: ${DSP_DATABASE_URL:-postgresql://dsp:${POSTGRES_PASSWORD:-dsp_change_me}@postgres:5432/dsp}
       DSP_REDIS_URL: ${DSP_REDIS_URL:-redis://redis:6379/0}
       DSP_REDIS_FALLBACK: ${DSP_REDIS_FALLBACK:-false}

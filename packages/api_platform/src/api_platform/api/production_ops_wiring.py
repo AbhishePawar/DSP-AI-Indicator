@@ -23,7 +23,18 @@ from dsp_platform.production_ops import ProductionOpsDeps
 __all__ = ["build_production_ops_deps"]
 
 
-def _load_production_ops_ports() -> dict[str, Any]:
+def _resolve_database_port() -> Any | None:
+    """Best-effort DatabasePort from infra bootstrap (for logical backup)."""
+    try:
+        boot_mod = importlib.import_module("api_platform.api.infra_bootstrap")
+        boot = boot_mod.bootstrap_production_infrastructure()
+        infra = getattr(boot, "infrastructure", None)
+        return getattr(infra, "database", None) if infra is not None else None
+    except Exception:  # noqa: BLE001
+        return None
+
+
+def _load_production_ops_ports(*, database: Any | None = None) -> dict[str, Any]:
     """Resolve optional production_platform ports without a static import."""
     ports: dict[str, Any] = {
         "try_build_otel_tracing": None,
@@ -46,7 +57,9 @@ def _load_production_ops_ports() -> dict[str, Any]:
         pass
     try:
         backup = importlib.import_module("production_platform.production.backup")
-        ports["backup_adapter"] = backup.NullBackupAdapter()
+        # P1-08 — Non-Null when DSP_BACKUP_ADAPTER selects logical/shell/auto.
+        # Default remains NullBackupAdapter (honest unavailable).
+        ports["backup_adapter"] = backup.build_backup_adapter(database=database)
         ports["secret_rotation_hook"] = backup.NullSecretRotationHook()
         ports["vault_secrets_provider"] = backup.NullVaultSecretsProvider()
     except Exception:  # noqa: BLE001
@@ -56,7 +69,8 @@ def _load_production_ops_ports() -> dict[str, Any]:
 
 def build_production_ops_deps() -> ProductionOpsDeps:
     """Build injected ports for DSPPlatform.run_production_ops."""
-    ports = _load_production_ops_ports()
+    database = _resolve_database_port()
+    ports = _load_production_ops_ports(database=database)
     return ProductionOpsDeps(
         get_build_metadata=get_build_metadata,
         collect_component_statuses=collect_component_statuses,

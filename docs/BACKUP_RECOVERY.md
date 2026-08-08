@@ -7,11 +7,13 @@ This document is the RC1 product entrypoint. Detailed ops scripts remain under
 
 | Interface | Location | Default |
 |---|---|---|
-| `BackupPort` | `production_platform.production.backup` | `NullBackupAdapter` (unavailable) |
-| HTTP status | `GET /ops/backup` | Honest unavailable |
+| `BackupPort` | `production_platform.production.backup` | `NullBackupAdapter` unless `DSP_BACKUP_ADAPTER` is set |
+| Adapters (P1-08) | `logical` / `shell` / `auto` via `build_backup_adapter` | Logical product-state JSON+sha256; shell wraps `pg_dump` scripts |
+| HTTP status | `GET /ops/backup` | Honest unavailable by default; Non-Null when adapter configured |
 | Shell backups | `scripts/ops/backup_postgres.sh` | Operational |
+| Isolation drill | `scripts/ops/restore_drill_isolation.py` | Ownership + tenant isolation after restore |
 
-**Never fabricate backup snapshots in software.**
+**Never fabricate backup snapshots in software.** Restore requires `DSP_BACKUP_RESTORE_CONFIRM=YES` and checksum verification.
 
 ## Configuration backup
 

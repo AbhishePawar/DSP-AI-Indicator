@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import re
+from typing import Any
 
 from api_platform.api.composition_schemas import AnalyseRequest
 
@@ -10,6 +11,25 @@ __all__ = ["validate_analyse_request"]
 
 _TICKER_RE = re.compile(r"^[A-Za-z0-9.\-]{1,32}$")
 _EXCHANGE_RE = re.compile(r"^[A-Za-z0-9_\-]{1,32}$")
+
+# P1-05 — client-controlled Buffett / investment-quality conclusions are never
+# authoritative. Reject when smuggled into statement maps or metadata.
+_FORBIDDEN_BUFFETT_CLIENT_KEYS = frozenset(
+    {
+        "buffett_score",
+        "buffett_rating",
+        "buffett_conclusion",
+        "buffett_signals",
+        "moat_score",
+        "management_score",
+        "quality_score",
+        "capital_allocation_score",
+        "governance_score",
+        "investment_quality",
+        "overall_buffett_rating",
+        "buffett_action",
+    }
+)
 
 
 def validate_analyse_request(body: AnalyseRequest) -> list[str]:
@@ -68,4 +88,27 @@ def validate_analyse_request(body: AnalyseRequest) -> list[str]:
     if not income:
         errors.append("financial_statements.income_statement is required")
 
+    # P1-05 — reject smuggled Buffett / quality conclusion fields.
+    fs = body.financial_statements
+    for path, mapping in (
+        ("financial_statements.income_statement", fs.income_statement),
+        ("financial_statements.balance_sheet", fs.balance_sheet),
+        ("financial_statements.cash_flow", fs.cash_flow),
+        ("financial_statements.statement_metadata", fs.statement_metadata),
+    ):
+        errors.extend(_forbidden_buffett_keys(mapping, path))
+
     return errors
+
+
+def _forbidden_buffett_keys(mapping: Any, path: str) -> list[str]:
+    if not isinstance(mapping, dict):
+        return []
+    hits: list[str] = []
+    for key in mapping:
+        normalized = str(key).strip().lower()
+        if normalized in _FORBIDDEN_BUFFETT_CLIENT_KEYS:
+            hits.append(
+                f"client-supplied {path}.{key} is not accepted (P1-05)"
+            )
+    return hits

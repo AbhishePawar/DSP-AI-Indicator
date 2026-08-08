@@ -171,10 +171,53 @@ describe("ARCH-001 Buffett Indicator report", () => {
       true,
     );
     expect(report.verdict).toContain("Apple");
-    expect(report.disclaimer.toLowerCase()).toContain("does not recalculate");
+    expect(report.disclaimer.toLowerCase()).toContain("server-authoritative");
     // High ROE must stay honest when not exposed
     const roe = report.decisionMatrix.find((m) => m.criterion === "High ROE");
     expect(roe?.state).toBe("unavailable");
+  });
+
+  it("P1-05: overall rating remaps server business_quality score only", () => {
+    const request = buildDemoAnalyseRequest("AAPL", {
+      company: "Apple",
+      exchange: "NASDAQ",
+    });
+    const view = mapResearchView(sampleResponse, request);
+    // Sample BQ score=76 → letter band B+ (not an average of other grades).
+    expect(view.buffett.overallRating).toBe("B+");
+    expect(letterGradeFromExistingScore(view.businessQuality.score)).toBe(
+      view.buffett.overallRating,
+    );
+    const overallRow = view.buffett.scorecard.find(
+      (r) => r.dimension === "Overall Buffett Rating",
+    );
+    expect(overallRow?.evidence.toLowerCase()).toContain("business_quality_aggregator");
+    expect(overallRow?.evidence.toLowerCase()).not.toContain("average");
+  });
+
+  it("P1-05: unavailable business_quality yields unavailable overall rating", () => {
+    const unavailable: AnalyseResponse = {
+      ...sampleResponse,
+      payload: {
+        ...sampleResponse.payload,
+        stage_summaries: (
+          sampleResponse.payload.stage_summaries as Array<Record<string, unknown>>
+        ).map((s) =>
+          s.stage === "business_quality_aggregator"
+            ? {
+                ...s,
+                status: "failed",
+                has_result: false,
+                score: null,
+                label: null,
+              }
+            : s,
+        ),
+      },
+    };
+    const request = buildDemoAnalyseRequest("AAPL", { company: "Apple" });
+    const report = mapResearchView(unavailable, request).buffett;
+    expect(report.overallRating).toBe("Unavailable");
   });
 
   it("is deterministic for the same inputs", () => {

@@ -1,10 +1,10 @@
 /**
- * ARCH-001 — Buffett Indicator Analysis report mapper.
+ * ARCH-001 / P1-05 — Buffett Indicator Analysis report mapper.
  *
- * Reporting enhancement only:
- * - No pipeline / package / engine / API changes
+ * Display-only presentation of server-authoritative pipeline stages:
  * - No recalculation of ROE, ROCE, DCF, IV, MoS, debt, FCF, moat, etc.
- * - Synthesizes existing ResearchView / stage summary fields only
+ * - No client invention of overall Buffett rating / investment conclusion
+ * - Overall rating remaps existing business_quality_aggregator score 1:1
  * - Fully deterministic
  */
 
@@ -19,7 +19,7 @@ import type {
 } from "./types";
 
 const DISCLAIMER =
-  "Buffett Indicator Analysis is a presentation synthesis of existing /api/v1/analyse outputs. It does not recalculate fundamentals, valuation, or recommendations. Research Mode — not investment advice.";
+  "Buffett Indicator Analysis displays server-authoritative /api/v1/analyse stage outputs only. It does not recalculate fundamentals, invent Buffett scores, or override recommendations. Research Mode — not investment advice.";
 
 function isUnavailable(value: string | null | undefined): boolean {
   if (value == null) return true;
@@ -124,25 +124,6 @@ function scorecardRow(
   evidence: string,
 ): BuffettScorecardRow {
   return { dimension, grade, evidence };
-}
-
-function overallFromGrades(grades: string[]): string {
-  const map: Record<string, number> = {
-    "A+": 97,
-    A: 90,
-    "B+": 77,
-    B: 70,
-    C: 55,
-    D: 45,
-    F: 20,
-  };
-  const nums = grades
-    .map((g) => map[g])
-    .filter((n): n is number => typeof n === "number");
-  if (nums.length === 0) return "Unavailable";
-  // Display-only average of existing letter bands — not a new fundamental score.
-  const avg = nums.reduce((a, b) => a + b, 0) / nums.length;
-  return letterGradeFromExistingScore(String(avg));
 }
 
 export function mapBuffettReport(
@@ -395,11 +376,9 @@ export function mapBuffettReport(
     ),
   ];
 
-  const gradeOnly = scorecard
-    .filter((r) => r.dimension !== "Margin of Safety")
-    .map((r) => r.grade)
-    .filter((g) => g !== "Unavailable" && !g.includes("%"));
-  const overallRating = overallFromGrades(gradeOnly);
+  // P1-05 — overall Buffett rating is a 1:1 display remap of the server
+  // business_quality_aggregator score. Never invent by averaging letter grades.
+  const overallRating = letterGradeFromExistingScore(bq.score);
 
   const actionSource =
     view.committee.finalRecommendation !== "Unavailable"
@@ -450,7 +429,7 @@ export function mapBuffettReport(
       scorecardRow(
         "Overall Buffett Rating",
         overallRating,
-        "Display-only average of existing letter-banded stage scores — not a new engine score.",
+        `Server-authoritative business_quality_aggregator score=${bq.score} (P1-05 display remap only).`,
       ),
     ],
     overallRating,

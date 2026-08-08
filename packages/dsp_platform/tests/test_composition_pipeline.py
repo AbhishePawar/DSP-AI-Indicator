@@ -198,6 +198,8 @@ def test_build_composition_request_from_dict(statements: FinancialStatements) ->
     assert len(public["stage_summaries"]) == 11
     assert public["risk"] is not None
     assert public["risk"]["financial_risk"]["available"] is True
+    assert public["buffett_authority"]["authority"] == "server"
+    assert public["buffett_authority"]["client_overrides_accepted"] is False
 
 
 def test_pipeline_configuration_defaults() -> None:

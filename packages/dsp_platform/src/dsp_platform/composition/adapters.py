@@ -130,9 +130,14 @@ def composition_capability_manifest() -> dict[str, Any]:
             "business_quality",
             "investment_recommendation",
             "investment_committee",
+            "buffett_authority",
             "pipeline_result",
         ],
         "package_versions": composition_package_versions(),
+        "authority": {
+            "buffett_analysis": "server",
+            "client_buffett_overrides": "rejected",
+        },
     }
 
 
@@ -148,10 +153,115 @@ def pipeline_result_public_dict(result: PipelineResult) -> dict[str, Any]:
     base["stage_summaries"] = summaries
     base["recommendation_summary"] = _decision_summary(result.investment_recommendation)
     base["committee_summary"] = _decision_summary(result.investment_committee)
+    base["buffett_authority"] = _buffett_authority_summary(result, summaries)
     base["risk"] = (
         result.risk.to_dict() if hasattr(result.risk, "to_dict") else None
     )
     return base
+
+
+def _buffett_authority_summary(
+    result: PipelineResult, summaries: list[dict[str, Any]]
+) -> dict[str, Any]:
+    """P1-05 — server-authoritative Buffett / investment-quality surface.
+
+    Aggregates existing pipeline stage scores only. Does not invent a new
+    Buffett methodology or recompute fundamentals.
+    """
+    by_stage = {s["stage"]: s for s in summaries}
+    factors = {
+        "economic_moat": _factor_from_stage(by_stage.get("economic_moat")),
+        "management_quality": _factor_from_stage(by_stage.get("management_quality")),
+        "financial_strength": _factor_from_stage(by_stage.get("financial_strength")),
+        "earnings_quality": _factor_from_stage(by_stage.get("earnings_quality")),
+        "growth_quality": _factor_from_stage(by_stage.get("growth_quality")),
+        "business_quality": _factor_from_stage(
+            by_stage.get("business_quality_aggregator")
+        ),
+        "valuation": _factor_from_stage(by_stage.get("valuation")),
+        "investment_recommendation": _factor_from_stage(
+            by_stage.get("investment_recommendation")
+        ),
+    }
+    bq = factors["business_quality"]
+    rec = _decision_summary(result.investment_recommendation)
+    committee = _decision_summary(result.investment_committee)
+    buffett_reviewer = _buffett_reviewer_from_committee(result.investment_committee)
+    return {
+        "authority": "server",
+        "methodology": "existing_pipeline_stages",
+        "client_overrides_accepted": False,
+        "factors": factors,
+        "overall_score": bq.get("score"),
+        "overall_label": bq.get("label"),
+        "overall_status": bq.get("status"),
+        "recommendation": (rec or {}).get("decision"),
+        "recommendation_score": (rec or {}).get("score"),
+        "committee_decision": (committee or {}).get("decision"),
+        "buffett_reviewer": buffett_reviewer,
+    }
+
+
+def _factor_from_stage(summary: dict[str, Any] | None) -> dict[str, Any]:
+    if summary is None:
+        return {
+            "score": None,
+            "label": None,
+            "decision": None,
+            "confidence": None,
+            "status": "unavailable",
+            "available": False,
+        }
+    status = str(summary.get("status") or "unavailable")
+    score = summary.get("score")
+    available = bool(
+        summary.get("has_result")
+        and status in {"succeeded", "degraded"}
+        and score is not None
+    )
+    return {
+        "score": score if available else None,
+        "label": summary.get("label") if available else None,
+        "decision": summary.get("decision") if available else None,
+        "confidence": summary.get("confidence") if available else None,
+        "status": status if available else "unavailable",
+        "available": available,
+    }
+
+
+def _buffett_reviewer_from_committee(payload: object | None) -> dict[str, Any] | None:
+    if payload is None or not hasattr(payload, "to_dict"):
+        return None
+    try:
+        raw = payload.to_dict()
+    except Exception:  # noqa: BLE001
+        return None
+    if not isinstance(raw, dict):
+        return None
+    reviewers = raw.get("reviewers") or []
+    for reviewer in reviewers:
+        if not isinstance(reviewer, dict):
+            continue
+        role = str(reviewer.get("role") or "").lower()
+        if "buffett" not in role:
+            continue
+        score = reviewer.get("score")
+        if isinstance(score, dict):
+            score = score.get("value")
+        confidence = reviewer.get("confidence")
+        if isinstance(confidence, dict):
+            confidence = confidence.get("value")
+        opinion = reviewer.get("opinion")
+        if isinstance(opinion, dict):
+            opinion = opinion.get("value") or opinion.get("decision")
+        return {
+            "role": reviewer.get("role"),
+            "opinion": opinion,
+            "score": score,
+            "confidence": confidence,
+            "available": score is not None,
+        }
+    return None
 
 
 def _attr_for_stage(stage: PipelineStage) -> str:
@@ -176,15 +286,25 @@ def _stage_summary(
 ) -> dict[str, Any]:
     status = getattr(outcome, "status", None)
     status_val = getattr(status, "value", str(status) if status else "unknown")
+    score = _opt_float(getattr(payload, "score", None) if payload else None)
+    if score is None and payload is not None:
+        # BQ aggregator exposes the assessed float separately from Score object.
+        score = _opt_float(getattr(payload, "overall_business_quality_score", None))
     return {
         "stage": stage,
         "status": status_val,
         "has_result": payload is not None,
-        "score": _opt_float(getattr(payload, "score", None) if payload else None),
+        "score": score,
         "label": _opt_str(getattr(payload, "label", None) if payload else None)
-        or _opt_str(getattr(payload, "rating", None) if payload else None),
+        or _opt_str(getattr(payload, "rating", None) if payload else None)
+        or _opt_str(
+            getattr(payload, "overall_business_quality_rating", None)
+            if payload
+            else None
+        ),
         "decision": _opt_str(getattr(payload, "decision", None) if payload else None)
-        or _opt_str(getattr(payload, "action", None) if payload else None),
+        or _opt_str(getattr(payload, "action", None) if payload else None)
+        or _opt_str(getattr(payload, "recommendation", None) if payload else None),
         "confidence": _opt_float(
             getattr(payload, "confidence", None) if payload else None
         ),
@@ -220,18 +340,29 @@ def _decision_summary(payload: object | None) -> dict[str, Any] | None:
                     "consensus",
                     "rationale",
                 ):
-                    if key in raw and key not in summary:
-                        summary[key] = raw[key]
-                    elif key in raw and summary.get(key) is None:
-                        summary[key] = raw[key]
+                    if key not in raw:
+                        continue
+                    if summary.get(key) is not None:
+                        continue
+                    if key in {"confidence", "score", "margin_of_safety"}:
+                        summary[key] = _opt_float(raw[key])
+                    else:
+                        summary[key] = _opt_str(raw[key]) or raw[key]
         except Exception:  # noqa: BLE001
             pass
     return summary
 
 
 def _opt_float(value: object) -> float | None:
+    """Coerce engine Score/Confidence wrappers and plain numbers to float."""
     if value is None:
         return None
+    if isinstance(value, bool):
+        return None
+    if isinstance(value, dict):
+        return _opt_float(value.get("value"))
+    if hasattr(value, "value") and not isinstance(value, (str, bytes, int, float)):
+        return _opt_float(getattr(value, "value"))
     try:
         return float(value)  # type: ignore[arg-type]
     except (TypeError, ValueError):
@@ -241,5 +372,15 @@ def _opt_float(value: object) -> float | None:
 def _opt_str(value: object) -> str | None:
     if value is None:
         return None
-    text = str(getattr(value, "value", value))
+    if isinstance(value, dict):
+        for key in ("value", "label", "decision", "action", "recommendation"):
+            if key in value and value[key] is not None:
+                return _opt_str(value[key])
+        return None
+    # Enum / score wrappers expose ``.value``; prefer string enums only.
+    inner = getattr(value, "value", value)
+    if inner is not value and not isinstance(inner, (str, bytes)):
+        # Numeric Score.value — not a label.
+        return None
+    text = str(inner).strip()
     return text if text else None

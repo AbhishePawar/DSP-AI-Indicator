@@ -31,6 +31,23 @@ _FORBIDDEN_BUFFETT_CLIENT_KEYS = frozenset(
     }
 )
 
+# P1-06 — client-forged audit / provenance evidence is never authoritative.
+_FORBIDDEN_PROVENANCE_CLIENT_KEYS = frozenset(
+    {
+        "analysis_id",
+        "audit_reference",
+        "audit_result",
+        "provenance",
+        "source_evidence",
+        "authenticated_valuation_trace",
+        "input_fingerprint",
+        "result_fingerprint",
+        "valuation_result",
+        "buffett_result",
+        "investment_conclusion",
+    }
+)
+
 
 def validate_analyse_request(body: AnalyseRequest) -> list[str]:
     """Return validation error strings (empty when valid). Does not execute."""
@@ -88,7 +105,7 @@ def validate_analyse_request(body: AnalyseRequest) -> list[str]:
     if not income:
         errors.append("financial_statements.income_statement is required")
 
-    # P1-05 — reject smuggled Buffett / quality conclusion fields.
+    # P1-05 / P1-06 — reject smuggled Buffett / provenance conclusion fields.
     fs = body.financial_statements
     for path, mapping in (
         ("financial_statements.income_statement", fs.income_statement),
@@ -96,12 +113,12 @@ def validate_analyse_request(body: AnalyseRequest) -> list[str]:
         ("financial_statements.cash_flow", fs.cash_flow),
         ("financial_statements.statement_metadata", fs.statement_metadata),
     ):
-        errors.extend(_forbidden_buffett_keys(mapping, path))
+        errors.extend(_forbidden_client_keys(mapping, path))
 
     return errors
 
 
-def _forbidden_buffett_keys(mapping: Any, path: str) -> list[str]:
+def _forbidden_client_keys(mapping: Any, path: str) -> list[str]:
     if not isinstance(mapping, dict):
         return []
     hits: list[str] = []
@@ -110,5 +127,9 @@ def _forbidden_buffett_keys(mapping: Any, path: str) -> list[str]:
         if normalized in _FORBIDDEN_BUFFETT_CLIENT_KEYS:
             hits.append(
                 f"client-supplied {path}.{key} is not accepted (P1-05)"
+            )
+        elif normalized in _FORBIDDEN_PROVENANCE_CLIENT_KEYS:
+            hits.append(
+                f"client-supplied {path}.{key} is not accepted (P1-06)"
             )
     return hits

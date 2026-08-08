@@ -143,6 +143,8 @@ def composition_capability_manifest() -> dict[str, Any]:
 
 def pipeline_result_public_dict(result: PipelineResult) -> dict[str, Any]:
     """Stable public dict for API DTOs — never returns raw domain objects."""
+    from dsp_platform.investment_provenance import source_evidence_from_trace
+
     base = result.to_dict()
     summaries: list[dict[str, Any]] = []
     by_stage = {s.stage: s for s in result.stages}
@@ -154,6 +156,10 @@ def pipeline_result_public_dict(result: PipelineResult) -> dict[str, Any]:
     base["recommendation_summary"] = _decision_summary(result.investment_recommendation)
     base["committee_summary"] = _decision_summary(result.investment_committee)
     base["buffett_authority"] = _buffett_authority_summary(result, summaries)
+    # P1-06 — public source evidence for lineage (secrets redacted in builder).
+    base["source_evidence"] = source_evidence_from_trace(
+        result.authenticated_valuation_trace
+    )
     base["risk"] = (
         result.risk.to_dict() if hasattr(result.risk, "to_dict") else None
     )

@@ -284,6 +284,9 @@ def run_execution_pipeline(
             PipelineStage.INVESTMENT_RECOMMENDATION.value
         ),
         investment_committee=ctx.results.get(PipelineStage.INVESTMENT_COMMITTEE.value),
+        authenticated_valuation_trace=ctx.results.get(
+            "authenticated_valuation_trace"
+        ),
         errors=tuple(ctx.errors),
     )
 

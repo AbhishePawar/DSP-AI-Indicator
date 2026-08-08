@@ -138,6 +138,8 @@ class PipelineResult:
     business_quality: Any = None  # aggregator output
     investment_recommendation: Any = None
     investment_committee: Any = None
+    # P1-06 — authenticated source/valuation evidence for durable provenance.
+    authenticated_valuation_trace: dict[str, Any] | None = None
     limitations: tuple[str, ...] = (
         "Composition orchestrates public package APIs only.",
         "No score/recommendation overrides are applied by the platform.",
@@ -164,6 +166,9 @@ class PipelineResult:
             "has_business_quality": self.business_quality is not None,
             "has_investment_recommendation": self.investment_recommendation is not None,
             "has_investment_committee": self.investment_committee is not None,
+            "has_authenticated_valuation_trace": (
+                self.authenticated_valuation_trace is not None
+            ),
             "limitations": list(self.limitations),
             "errors": list(self.errors),
         }

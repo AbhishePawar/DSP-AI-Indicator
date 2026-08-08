@@ -45,6 +45,12 @@ def configure_durable_product_stores(database: Any | None) -> ReportStore:
     require_durable_product_database(database)
 
     if not is_durable_database(database):
+        # Non-production / no DB — process-local provenance store (tests only).
+        try:
+            prov = importlib.import_module("dsp_platform.investment_provenance")
+            prov.configure_investment_provenance_store(None)
+        except Exception:  # noqa: BLE001
+            pass
         return build_report_store(None)
 
     try:
@@ -69,6 +75,13 @@ def configure_durable_product_stores(database: Any | None) -> ReportStore:
         ws_store.reset_research_workspace_store_for_tests(
             ws_db.DatabaseResearchWorkspaceStore(database)
         )
+    except Exception:  # noqa: BLE001
+        pass
+
+    # P1-06 — append-only investment provenance / decision lineage.
+    try:
+        prov = importlib.import_module("dsp_platform.investment_provenance")
+        prov.configure_investment_provenance_store(database)
     except Exception:  # noqa: BLE001
         pass
 

@@ -2,14 +2,21 @@
 
 from __future__ import annotations
 
-from fastapi import APIRouter, Depends, Request
+import os
+from typing import Any
+
+from fastapi import APIRouter, Depends, Query, Request
 
 from api_platform.api.composition_schemas import (
     AnalyseRequest,
     AnalyseResponse,
     ValidateResponse,
 )
-from api_platform.api.dependencies import ApiState, get_api_state
+from api_platform.api.dependencies import (
+    ApiState,
+    get_api_state,
+    resolve_access_token,
+)
 from api_platform.api.mappers import (
     CompositionApiError,
     map_pipeline_payload,
@@ -17,6 +24,13 @@ from api_platform.api.mappers import (
 )
 from api_platform.api.validation import validate_analyse_request
 from dsp_platform import CompositionInputError, build_composition_request
+from dsp_platform.investment_provenance import (
+    InvestmentProvenanceError,
+    InvestmentProvenanceForbidden,
+    build_investment_provenance,
+    get_investment_provenance_store,
+    new_analysis_id,
+)
 
 router = APIRouter(tags=["composition"])
 
@@ -88,11 +102,19 @@ def analyse(
             f"pipeline degraded; failed_stage={failed}"
         ]
 
+    # P1-06 — durable investment provenance (server-authored only).
+    _persist_investment_provenance(
+        response=response,
+        public_payload=public_payload if isinstance(public_payload, dict) else {},
+        body=body,
+        pipeline=pipeline,
+        request=request,
+        correlation_id=correlation_id,
+    )
+
     # EPIC-011B — best-effort immutable snapshot capture AFTER pipeline completes.
     # Never alters engines, recommendation logic, or the analyse response contract.
     try:
-        import os
-
         if os.getenv("DSP_RI_AUTO_CAPTURE", "1").lower() in {
             "1",
             "true",
@@ -113,6 +135,72 @@ def analyse(
         pass
 
     return response
+
+
+@router.get("/analyse/provenance/{analysis_id}")
+def get_analyse_provenance(
+    analysis_id: str,
+    request: Request,
+    org_id: str | None = Query(default=None, max_length=128),
+) -> dict[str, Any]:
+    """P1-06 — retrieve durable investment provenance by analysis_id."""
+    store = get_investment_provenance_store()
+    store.ensure_fresh()
+    actor = _optional_actor(request)
+    try:
+        record = store.get(
+            analysis_id,
+            actor_user_id=actor.get("user_id") if actor else None,
+            org_id=org_id,
+        )
+    except InvestmentProvenanceForbidden as exc:
+        raise CompositionApiError(
+            str(exc),
+            error_code="PROVENANCE_FORBIDDEN",
+            status_code=403,
+            correlation_id=getattr(request.state, "request_id", None),
+        ) from None
+    if record is None:
+        raise CompositionApiError(
+            "investment provenance not found",
+            error_code="PROVENANCE_NOT_FOUND",
+            status_code=404,
+            correlation_id=getattr(request.state, "request_id", None),
+        )
+    return {
+        "ok": True,
+        "capability": "investment_provenance",
+        "audit_reference": record.analysis_id,
+        "provenance": record.to_dict(),
+        "api_version": "v1",
+    }
+
+
+@router.get("/analyse/provenance")
+def list_analyse_provenance(
+    request: Request,
+    ticker: str = Query(min_length=1, max_length=32),
+    org_id: str | None = Query(default=None, max_length=128),
+    limit: int = Query(default=20, ge=1, le=100),
+) -> dict[str, Any]:
+    """P1-06 — list durable investment provenance rows for a ticker."""
+    store = get_investment_provenance_store()
+    store.ensure_fresh()
+    actor = _optional_actor(request)
+    rows = store.list_by_ticker(
+        ticker,
+        actor_user_id=actor.get("user_id") if actor else None,
+        org_id=org_id,
+        limit=limit,
+    )
+    return {
+        "ok": True,
+        "capability": "investment_provenance",
+        "ticker": ticker.strip().upper(),
+        "count": len(rows),
+        "items": [r.to_dict() for r in rows],
+        "api_version": "v1",
+    }
 
 
 @router.post("/validate", response_model=ValidateResponse)
@@ -140,3 +228,127 @@ def validate_payload(
         warnings=warnings,
         api_version=state.api_version,
     )
+
+
+def _persist_investment_provenance(
+    *,
+    response: AnalyseResponse,
+    public_payload: dict[str, Any],
+    body: AnalyseRequest,
+    pipeline: Any,
+    request: Request,
+    correlation_id: str | None,
+) -> None:
+    """Append durable lineage; fail closed in production on persistence errors."""
+    analysis_id = new_analysis_id()
+    actor = _optional_actor(request)
+    # P0-05 / P1-07 — owner from server-validated JWT only. Never stamp org
+    # from client headers (forgeable). Org filter applies on owned reads when set.
+    owner_user_id = actor.get("user_id") if actor else None
+    org_id = None
+    fs_digest = {
+        "period": body.financial_statements.period.model_dump(),
+        "income_keys": sorted(
+            (body.financial_statements.income_statement or {}).keys()
+        ),
+        "balance_keys": sorted(
+            (body.financial_statements.balance_sheet or {}).keys()
+        ),
+        "cash_flow_keys": sorted(
+            (body.financial_statements.cash_flow or {}).keys()
+        ),
+        "statement_metadata": dict(
+            body.financial_statements.statement_metadata or {}
+        ),
+    }
+    auth_trace = getattr(pipeline, "authenticated_valuation_trace", None)
+    record = build_investment_provenance(
+        public_payload=public_payload,
+        ticker=body.ticker,
+        company=body.company or "",
+        exchange=body.exchange,
+        correlation_id=correlation_id,
+        analysis_id=analysis_id,
+        owner_user_id=owner_user_id,
+        org_id=org_id,
+        authenticated_valuation_trace=auth_trace,
+        financial_statements_digest=fs_digest,
+    )
+    store = get_investment_provenance_store()
+    production = (os.environ.get("DSP_ENVIRONMENT") or "").lower() == "production"
+    if production and type(store).__name__ == "InMemoryInvestmentProvenanceStore":
+        raise CompositionApiError(
+            "investment provenance persistence failed — "
+            "auditable conclusion not claimed",
+            error_code="AUDIT_PERSISTENCE_FAILED",
+            status_code=503,
+            validation_errors=[
+                "P1-06: production requires durable DatabasePort provenance store"
+            ],
+            correlation_id=correlation_id,
+        )
+    try:
+        store.append(record)
+    except InvestmentProvenanceError as exc:
+        if production:
+            raise CompositionApiError(
+                "investment provenance persistence failed — "
+                "auditable conclusion not claimed",
+                error_code="AUDIT_PERSISTENCE_FAILED",
+                status_code=503,
+                validation_errors=[str(exc)],
+                correlation_id=correlation_id,
+                detail=str(exc),
+            ) from None
+        response.provenance_persisted = False
+        response.limitations = list(response.limitations) + [
+            "P1-06: investment provenance not persisted (degraded non-production mode)"
+        ]
+        return
+    except Exception as exc:  # noqa: BLE001
+        if production:
+            raise CompositionApiError(
+                "investment provenance persistence failed — "
+                "auditable conclusion not claimed",
+                error_code="AUDIT_PERSISTENCE_FAILED",
+                status_code=503,
+                validation_errors=[str(exc)],
+                correlation_id=correlation_id,
+                detail=str(exc),
+            ) from None
+        response.provenance_persisted = False
+        response.limitations = list(response.limitations) + [
+            "P1-06: investment provenance not persisted (degraded non-production mode)"
+        ]
+        return
+
+    response.analysis_id = analysis_id
+    response.audit_reference = analysis_id
+    response.provenance_persisted = True
+    # Pydantic may copy payload on assignment — update the response object.
+    payload = dict(response.payload or {})
+    payload["analysis_id"] = analysis_id
+    payload["audit_reference"] = analysis_id
+    payload["provenance_persisted"] = True
+    response.payload = payload
+    public_payload["analysis_id"] = analysis_id
+    public_payload["audit_reference"] = analysis_id
+    public_payload["provenance_persisted"] = True
+
+
+def _optional_actor(request: Request) -> dict[str, Any] | None:
+    token = resolve_access_token(request)
+    if not token:
+        return None
+    try:
+        from auth import get_auth_service
+
+        auth = get_auth_service()
+        user = auth.current_user(token)
+        uid = str(user.get("user_id") or "").strip()
+        if not uid:
+            return None
+        return {"user_id": uid, "user": user}
+    except Exception:  # noqa: BLE001
+        return None
+

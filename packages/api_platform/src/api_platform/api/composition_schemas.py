@@ -93,6 +93,10 @@ class AnalyseResponse(BaseModel):
     platform_version: str | None = None
     pipeline_version: str | None = None
     correlation_id: str | None = None
+    # P1-06 — durable investment provenance reference (server-assigned only).
+    analysis_id: str | None = None
+    audit_reference: str | None = None
+    provenance_persisted: bool = False
 
 
 class ValidateResponse(BaseModel):

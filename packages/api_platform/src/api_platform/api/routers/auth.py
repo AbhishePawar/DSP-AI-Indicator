@@ -49,7 +49,7 @@ def _maybe_set_cookies(
         "errors": [],
     }
     try:
-        from security_platform.security.cookies import cookie_auth_enabled, set_auth_cookies
+        from security_platform import cookie_auth_enabled, set_auth_cookies
 
         if cookie_auth_enabled():
             response = JSONResponse(content=body)
@@ -198,7 +198,7 @@ def refresh(body: RefreshRequest, request: Request) -> JSONResponse:
     refresh_token = body.refresh_token
     if not refresh_token:
         try:
-            from security_platform.security.cookies import read_refresh_token
+            from security_platform import read_refresh_token
 
             refresh_token = read_refresh_token(request)
         except Exception:  # noqa: BLE001
@@ -229,7 +229,7 @@ def refresh(body: RefreshRequest, request: Request) -> JSONResponse:
 @router.post("/auth/logout")
 def logout(request: Request) -> JSONResponse:
     """Invalidate cookie session (EPIC-016)."""
-    from security_platform.security.cookies import clear_auth_cookies, cookie_auth_enabled
+    from security_platform import clear_auth_cookies, cookie_auth_enabled
 
     response = JSONResponse(
         content={
@@ -246,7 +246,7 @@ def logout(request: Request) -> JSONResponse:
 @router.get("/auth/session")
 def session_probe(request: Request) -> JSONResponse:
     """Return non-secret session metadata for cookie-mode SPA bootstrap."""
-    from security_platform.security.cookies import (
+    from security_platform import (
         ACCESS_COOKIE,
         CSRF_COOKIE,
         SESSION_COOKIE,

@@ -28,7 +28,7 @@ def _attach_auth_cookies(
     remember_me: bool = False,
 ) -> JSONResponse:
     try:
-        from security_platform.security.cookies import cookie_auth_enabled, set_auth_cookies
+        from security_platform import cookie_auth_enabled, set_auth_cookies
 
         if not cookie_auth_enabled():
             return response
@@ -76,7 +76,7 @@ def _attach_cookies_to_redirect(
     JSON body since the browser is following a Location header.
     """
     try:
-        from security_platform.security.cookies import cookie_auth_enabled, set_auth_cookies
+        from security_platform import cookie_auth_enabled, set_auth_cookies
 
         if not cookie_auth_enabled():
             return response

@@ -15,6 +15,21 @@ from security_platform.security.auth import (
     SecurityBundle,
     SecuritySettings,
 )
+from security_platform.security.cookies import (
+    ACCESS_COOKIE,
+    CSRF_COOKIE,
+    CSRF_HEADER,
+    REFRESH_COOKIE,
+    SESSION_COOKIE,
+    clear_auth_cookies,
+    cookie_auth_enabled,
+    csrf_token_from_request,
+    issue_csrf_token,
+    read_access_token,
+    read_refresh_token,
+    set_auth_cookies,
+    validate_csrf,
+)
 from security_platform.security.exceptions import (
     AuthenticationError,
     AuthorizationError,
@@ -61,6 +76,7 @@ from security_platform.security.users import (
 )
 
 __all__ = [
+    "ACCESS_COOKIE",
     "ApiKeyManager",
     "ApiKeyRecord",
     "AuditEvent",
@@ -69,6 +85,8 @@ __all__ = [
     "AuthenticationManager",
     "AuthorizationError",
     "AuthorizationManager",
+    "CSRF_COOKIE",
+    "CSRF_HEADER",
     "ConsentRecord",
     "DistributedRateLimiter",
     "IdentityService",
@@ -80,6 +98,7 @@ __all__ = [
     "PasswordPolicy",
     "Permission",
     "PermissionManager",
+    "REFRESH_COOKIE",
     "ROLE_PERMISSIONS",
     "ROLES",
     "RateLimitConfig",
@@ -87,6 +106,7 @@ __all__ = [
     "RateLimiter",
     "Role",
     "RoleManager",
+    "SESSION_COOKIE",
     "SecurityBundle",
     "SecurityContext",
     "SecurityError",
@@ -103,6 +123,14 @@ __all__ = [
     "assert_permission",
     "assert_role",
     "build_password_hasher",
+    "clear_auth_cookies",
+    "cookie_auth_enabled",
+    "csrf_token_from_request",
+    "issue_csrf_token",
+    "read_access_token",
+    "read_refresh_token",
+    "set_auth_cookies",
+    "validate_csrf",
     "__version__",
 ]
 

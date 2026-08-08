@@ -10,7 +10,7 @@ from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.requests import Request
 from starlette.responses import JSONResponse, Response
 
-from security_platform.security.cookies import (
+from security_platform import (
     ACCESS_COOKIE,
     cookie_auth_enabled,
     validate_csrf,

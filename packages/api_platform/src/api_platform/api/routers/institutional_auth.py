@@ -26,7 +26,7 @@ def _attach_auth_cookies(
     remember_me: bool = False,
 ) -> JSONResponse:
     try:
-        from security_platform.security.cookies import cookie_auth_enabled, set_auth_cookies
+        from security_platform import cookie_auth_enabled, set_auth_cookies
 
         if not cookie_auth_enabled():
             return response
@@ -158,7 +158,7 @@ def rbac_logout(
         return _err(exc)
     response = JSONResponse({"ok": True, "result": result, "message": None})
     try:
-        from security_platform.security.cookies import clear_auth_cookies
+        from security_platform import clear_auth_cookies
 
         clear_auth_cookies(response)
     except Exception:  # noqa: BLE001
@@ -175,7 +175,7 @@ def rbac_refresh(
     refresh_token = body.refresh_token
     if not refresh_token:
         try:
-            from security_platform.security.cookies import read_refresh_token
+            from security_platform import read_refresh_token
 
             refresh_token = read_refresh_token(request)
         except Exception:  # noqa: BLE001
@@ -207,7 +207,7 @@ def rbac_me(
         token = authorization.split(" ", 1)[1].strip()
     if not token:
         try:
-            from security_platform.security.cookies import read_access_token
+            from security_platform import read_access_token
 
             token = read_access_token(request)
         except Exception:  # noqa: BLE001

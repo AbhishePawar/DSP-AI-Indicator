@@ -56,5 +56,8 @@ class InMemoryEnterpriseStore:
             self.custom_roles.clear()
             self.usage_counters.clear()
 
+    def ensure_fresh(self) -> None:
+        """No-op — in-memory adapter has no shared backend."""
+
     def flush(self) -> None:
         """No-op — in-memory adapter has no durable backend."""

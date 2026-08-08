@@ -16,6 +16,10 @@ from dsp_platform.saas_platform.service import (
     run_saas_platform,
     saas_platform_schema,
 )
+from dsp_platform.saas_platform.db_store import (
+    DatabaseSaasOverlayStore,
+    build_saas_overlay_store,
+)
 from dsp_platform.saas_platform.store import (
     SaasOverlayStore,
     get_saas_overlay_store,
@@ -29,7 +33,9 @@ __all__ = [
     "SAAS_SCHEMA_VERSION",
     "SAAS_SERVICE_VERSION",
     "UNAVAILABLE_MESSAGE",
+    "DatabaseSaasOverlayStore",
     "SaasOverlayStore",
+    "build_saas_overlay_store",
     "compare_plans",
     "get_plan",
     "get_saas_overlay_store",

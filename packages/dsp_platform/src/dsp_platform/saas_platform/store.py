@@ -1,7 +1,8 @@
 """SaaS overlay store — billing profiles / coupons / subscription records only.
 
 Does NOT store organizations, teams, licenses, or API keys (those live in
-packages/enterprise). Process-local for RC1; never fabricates payments.
+packages/enterprise). Prefer DatabaseSaasOverlayStore when a DatabasePort is
+available (P0-06). Never fabricates payments.
 """
 
 from __future__ import annotations
@@ -176,10 +177,16 @@ class SaasOverlayStore:
 _STORE: SaasOverlayStore | None = None
 
 
-def get_saas_overlay_store() -> SaasOverlayStore:
+def get_saas_overlay_store(*, database: Any | None = None) -> SaasOverlayStore:
+    """Return process singleton — durable when DatabasePort is supplied (P0-06)."""
     global _STORE
     if _STORE is None:
-        _STORE = SaasOverlayStore()
+        if database is not None:
+            from dsp_platform.saas_platform.db_store import DatabaseSaasOverlayStore
+
+            _STORE = DatabaseSaasOverlayStore(database)
+        else:
+            _STORE = SaasOverlayStore()
     return _STORE
 
 

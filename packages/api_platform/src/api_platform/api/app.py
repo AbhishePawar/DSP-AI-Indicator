@@ -15,7 +15,6 @@ from pydantic import ValidationError
 from api_platform.api.dependencies import (
     ApiState,
     ContextStore,
-    ReportStore,
     build_copilot_service,
     build_default_platform,
     build_language_model,
@@ -178,9 +177,17 @@ def create_app(
 
     # Eager infra bootstrap so TestClient (no lifespan) still sees adapters.
     boot = bootstrap_production_infrastructure()
+    db = getattr(boot.infrastructure, "database", None) if boot.infrastructure else None
+
+    # P0-06 / EPIC-016 — durable multi-tenant product stores when DatabasePort
+    # is available. Tests may pre-inject enterprise singletons; those are kept.
+    from api_platform.api.durable_product_stores import configure_durable_product_stores
+
+    report_store = configure_durable_product_stores(db)
+
     application.state.api = ApiState(
         platform=resolved,
-        reports=ReportStore(),
+        reports=report_store,
         contexts=ContextStore(),
         api_version=api_version,
         copilot_service=build_copilot_service(),
@@ -192,20 +199,6 @@ def create_app(
     application.state.security = security
     application.state.infrastructure = boot.infrastructure
     application.state.production = boot.production
-
-    # EPIC-016: durable enterprise store when DatabasePort is available.
-    # Do not reset an existing singleton (tests inject InMemory services first).
-    try:
-        from enterprise.service import (
-            enterprise_service_configured,
-            get_enterprise_service,
-        )
-
-        if not enterprise_service_configured():
-            db = getattr(boot.infrastructure, "database", None)
-            get_enterprise_service(database=db)
-    except Exception:  # noqa: BLE001 — enterprise optional at boot
-        pass
 
     application.add_middleware(
         CORSMiddleware,

@@ -1,7 +1,8 @@
-"""Process-local Research Workspace store (notes/folders/bookmarks/tags).
+"""Research Workspace store (notes/folders/bookmarks/tags).
 
 Stores analyst workspace artifacts only — never valuation/scoring engine
-payloads. Separate from persistence ENTITY_KINDS (refs/metadata freeze).
+payloads. Prefer DatabaseResearchWorkspaceStore when a DatabasePort is
+available (P0-06). Separate from persistence ENTITY_KINDS.
 """
 
 from __future__ import annotations
@@ -517,10 +518,20 @@ class ResearchWorkspaceStore:
 _STORE: ResearchWorkspaceStore | None = None
 
 
-def get_research_workspace_store() -> ResearchWorkspaceStore:
+def get_research_workspace_store(
+    *, database: Any | None = None
+) -> ResearchWorkspaceStore:
+    """Return process singleton — durable when DatabasePort is supplied (P0-06)."""
     global _STORE
     if _STORE is None:
-        _STORE = ResearchWorkspaceStore()
+        if database is not None:
+            from dsp_platform.research_workspace.db_store import (
+                DatabaseResearchWorkspaceStore,
+            )
+
+            _STORE = DatabaseResearchWorkspaceStore(database)
+        else:
+            _STORE = ResearchWorkspaceStore()
     return _STORE
 
 

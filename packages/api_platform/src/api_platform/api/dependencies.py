@@ -20,6 +20,7 @@ except ImportError:  # pragma: no cover - optional during partial installs
 __all__ = [
     "ApiState",
     "ReportStore",
+    "DatabaseReportStore",
     "ContextStore",
     "get_api_state",
     "get_platform",
@@ -29,12 +30,13 @@ __all__ = [
     "resolve_access_token",
     "require_authenticated_actor",
     "require_admin_access",
+    "build_report_store",
 ]
 
 
 @dataclass
 class ReportStore:
-    """Process-local ephemeral report registry — not durable persistence."""
+    """Report registry — process-local unless replaced by DatabaseReportStore."""
 
     _items: dict[str, Any] = field(default_factory=dict)
     _lock: Lock = field(default_factory=Lock)
@@ -59,6 +61,86 @@ class ReportStore:
     def has(self, report_id: str) -> bool:
         with self._lock:
             return report_id.strip() in self._items
+
+
+class DatabaseReportStore(ReportStore):
+    """P0-06 — report registry shared via DatabasePort snapshots."""
+
+    _TABLE = "api_report_snapshots"
+    _KEY = "reports_v1"
+
+    def __init__(self, database: Any) -> None:
+        super().__init__()
+        self._db = database
+        self._persist_lock = Lock()
+        self._ensure_schema()
+        self._hydrate()
+
+    def _ensure_schema(self) -> None:
+        self._db.execute(
+            f"CREATE TABLE IF NOT EXISTS {self._TABLE} ("
+            "snapshot_key TEXT PRIMARY KEY, "
+            "payload TEXT NOT NULL, "
+            "updated_at TEXT NOT NULL"
+            ")"
+        )
+
+    def _hydrate(self) -> None:
+        import base64
+        import json
+
+        rows = self._db.fetchall(f"SELECT * FROM {self._TABLE}")
+        payload: dict[str, Any] | None = None
+        for row in rows:
+            if str(row.get("snapshot_key")) != self._KEY:
+                continue
+            raw = row.get("payload")
+            if isinstance(raw, dict):
+                payload = raw
+            elif isinstance(raw, str) and raw:
+                try:
+                    decoded = base64.b64decode(raw.encode("ascii")).decode("utf-8")
+                    data = json.loads(decoded)
+                    payload = data if isinstance(data, dict) else None
+                except Exception:  # noqa: BLE001
+                    payload = None
+            break
+        with self._lock:
+            self._items = dict((payload or {}).get("items") or {})
+
+    def _flush(self) -> None:
+        import base64
+        import json
+        from datetime import UTC, datetime
+
+        with self._persist_lock:
+            with self._lock:
+                items = dict(self._items)
+            encoded = base64.b64encode(
+                json.dumps({"items": items}, separators=(",", ":")).encode("utf-8")
+            ).decode("ascii")
+            now = datetime.now(tz=UTC).isoformat().replace("'", "''")
+            key = self._KEY.replace("'", "''")
+            enc = encoded.replace("'", "''")
+            self._db.execute(f"DELETE FROM {self._TABLE}")
+            self._db.execute(
+                f"INSERT INTO {self._TABLE} (snapshot_key, payload, updated_at) "
+                f"VALUES ('{key}', '{enc}', '{now}')"
+            )
+
+    def put(self, report_id: str, payload: Any) -> str:
+        self._hydrate()
+        key = super().put(report_id, payload)
+        self._flush()
+        return key
+
+    def get(self, report_id: str) -> Any:
+        self._hydrate()
+        return super().get(report_id)
+
+    def has(self, report_id: str) -> bool:
+        self._hydrate()
+        return super().has(report_id)
 
 
 @dataclass
@@ -147,8 +229,15 @@ def get_platform(request: Request) -> DSPPlatform:
     return get_api_state(request).platform
 
 
+def build_report_store(database: Any | None = None) -> ReportStore:
+    """P0-06 — durable reports when DatabasePort is available."""
+    if database is None:
+        return ReportStore()
+    return DatabaseReportStore(database)
+
+
 def get_report_store(request: Request) -> ReportStore:
-    """Dependency: ephemeral report store."""
+    """Dependency: report store (durable when wired at app boot)."""
     return get_api_state(request).reports
 
 

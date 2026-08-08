@@ -76,6 +76,11 @@ class DatabaseEnterpriseStore(InMemoryEnterpriseStore):
         for stmt in ENTERPRISE_MIGRATIONS_SQL:
             self._db.execute(stmt.strip())
 
+    def ensure_fresh(self) -> None:
+        """P0-06 — reload shared DB state before cross-worker reads/writes."""
+        with self._persist_lock:
+            self.hydrate()
+
     def hydrate(self) -> None:
         rows = self._db.fetchall("SELECT * FROM enterprise_snapshots")
         payload: dict[str, Any] | None = None

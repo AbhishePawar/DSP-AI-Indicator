@@ -74,6 +74,12 @@ class EnterpriseService:
         self.billing: BillingPort = billing or NullBillingAdapter()
         self.collaboration = collaboration or NullCollaborationAdapter()
 
+    def _ensure_fresh(self) -> None:
+        """P0-06 — sync durable store before reads/writes across workers."""
+        ensure = getattr(self.store, "ensure_fresh", None)
+        if callable(ensure):
+            ensure()
+
     # ------------------------------------------------------------------ schema
     def schema(self) -> dict[str, Any]:
         return {
@@ -218,6 +224,7 @@ class EnterpriseService:
         metadata: dict[str, Any] | None = None,
         created_at: str | None = None,
     ) -> dict[str, Any]:
+        self._ensure_fresh()
         clean_name = str(name or "").strip()
         clean_slug = str(slug or "").strip().lower()
         owner = str(owner_user_id or "").strip()
@@ -268,6 +275,7 @@ class EnterpriseService:
         return org.to_dict()
 
     def list_organizations(self, *, user_id: str | None = None) -> list[dict[str, Any]]:
+        self._ensure_fresh()
         orgs = list(self.store.organizations.values())
         if user_id:
             member_orgs = {
@@ -281,6 +289,7 @@ class EnterpriseService:
         return [o.to_dict() for o in sorted(orgs, key=lambda x: x.name.lower())]
 
     def get_organization(self, org_id: str) -> dict[str, Any] | None:
+        self._ensure_fresh()
         org = self.store.organizations.get(org_id)
         return org.to_dict() if org else None
 
@@ -380,6 +389,7 @@ class EnterpriseService:
 
     # ----------------------------------------------------------------- members
     def get_member(self, org_id: str, user_id: str) -> OrgMember | None:
+        self._ensure_fresh()
         return self.store.members.get(self.store.member_key(org_id, user_id))
 
     def list_members(self, org_id: str, *, actor_user_id: str) -> list[dict[str, Any]]:
@@ -732,6 +742,7 @@ class EnterpriseService:
         ip_address: str | None = None,
         correlation_id: str | None = None,
     ) -> AuditRecord:
+        # Persist working set after mutation; durable stores flush to shared DB.
         record = AuditRecord(
             event_id=f"aud_{uuid.uuid4().hex[:16]}",
             org_id=org_id,

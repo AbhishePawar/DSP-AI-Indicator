@@ -42,7 +42,7 @@ import {
   type CompanyIntelligenceOverlay,
 } from "@/lib/company-comparison";
 import { featureFlags } from "@/lib/featureFlags";
-import { buildAnalyseRequestForTicker } from "@/lib/research/buildAnalyseRequest";
+import { loadAuthenticatedAnalyseRequest } from "@/lib/research/buildAnalyseRequest";
 import { mapResearchView } from "@/lib/research/mapResearchView";
 import { useNotifications } from "@/providers/NotificationProvider";
 import { cn } from "@/lib/utils";
@@ -294,11 +294,14 @@ export function CompanyComparisonWorkspace() {
       const results = await Promise.all(
         unique.map(async (symbol) => {
           const cat = resolveCatalogue(symbol);
-          const body = buildAnalyseRequestForTicker(symbol, {
-            company: cat?.name,
-            exchange: cat?.exchange,
-          });
           try {
+            // P0-01 — authenticated statements only; never clone demo ACM financials.
+            const body = await loadAuthenticatedAnalyseRequest(symbol, {
+              company: cat?.name,
+              exchange: cat?.exchange,
+              loadStatements: () =>
+                api.financialStatements(symbol, { token, limit: 1 }),
+            });
             const response = await api.analyse(body, { token });
             const at = new Date().toISOString();
             const view = mapResearchView(response, body, at);

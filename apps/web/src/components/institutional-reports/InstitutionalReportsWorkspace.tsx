@@ -34,7 +34,7 @@ import {
   useInstitutionalReportsPrefsStore,
   type ReportSectionId,
 } from "@/lib/institutional-reports";
-import { buildAnalyseRequestForTicker } from "@/lib/research/buildAnalyseRequest";
+import { loadAuthenticatedAnalyseRequest } from "@/lib/research/buildAnalyseRequest";
 import {
   mapResearchView,
   type ResearchView,
@@ -307,9 +307,12 @@ export function InstitutionalReportsWorkspace() {
   const analyseMutation = useMutation({
     mutationFn: async () => {
       const match = resolveCatalogue(symbol);
-      const body = buildAnalyseRequestForTicker(symbol, {
+      // P0-01 — authenticated statements only; never clone demo ACM financials.
+      const body = await loadAuthenticatedAnalyseRequest(symbol, {
         exchange: match?.exchange,
         company: match?.name,
+        loadStatements: () =>
+          api.financialStatements(symbol, { token, limit: 1 }),
       });
       const response = await api.analyse(body, { token });
       return { body, response };

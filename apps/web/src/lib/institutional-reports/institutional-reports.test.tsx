@@ -61,11 +61,14 @@ vi.mock("@/lib/research/sessionStore", () => ({
 
 const analyseMock = vi.fn();
 const marketQuoteMock = vi.fn();
+const financialStatementsMock = vi.fn();
 
 vi.mock("@/lib/api/client", () => ({
   api: {
     analyse: (...args: unknown[]) => analyseMock(...args),
     marketQuote: (...args: unknown[]) => marketQuoteMock(...args),
+    financialStatements: (...args: unknown[]) =>
+      financialStatementsMock(...args),
   },
 }));
 
@@ -76,7 +79,7 @@ import {
   useInstitutionalReportsPrefsStore,
 } from "@/lib/institutional-reports";
 import { mapResearchView } from "@/lib/research/mapResearchView";
-import { buildAnalyseRequestForTicker } from "@/lib/research/buildAnalyseRequest";
+import { buildDemoAnalyseRequest } from "@/lib/research/buildAnalyseRequest";
 import { acknowledgeResearchDisclaimer } from "@/lib/legal";
 import type { AnalyseResponse } from "@/lib/api/compositionTypes";
 
@@ -242,8 +245,25 @@ describe("P9.6 / EPIC-007 report modules", () => {
     acknowledgeResearchDisclaimer();
     analyseMock.mockReset();
     marketQuoteMock.mockReset();
+    financialStatementsMock.mockReset();
     analyseMock.mockResolvedValue(sampleResponse);
     marketQuoteMock.mockResolvedValue({ ok: true });
+    financialStatementsMock.mockResolvedValue({
+      ok: true,
+      available: true,
+      authenticated: true,
+      reporting_currency: "USD",
+      periods: [
+        {
+          period_type: "annual",
+          period_end: "2025-09-27",
+          fiscal_year: 2025,
+          income_statement: { revenue: 391_035, net_income: 93_736 },
+          balance_sheet: { total_assets: 364_980, total_equity: 56_950 },
+          cash_flow: { operating_cash_flow: 118_254, free_cash_flow: 98_771 },
+        },
+      ],
+    });
     useInstitutionalReportsPrefsStore.setState({
       activeSection: "cover",
       leftOpen: true,
@@ -280,7 +300,7 @@ describe("P9.6 / EPIC-007 report modules", () => {
     const { BusinessQualityModule } = await import(
       "@/components/institutional-reports/ReportModules"
     );
-    const request = buildAnalyseRequestForTicker("AAPL");
+    const request = buildDemoAnalyseRequest("AAPL");
     const view = mapResearchView(sampleResponse, request, null);
     wrap(<BusinessQualityModule view={view} />);
     expect(screen.getAllByText("Capital Allocation").length).toBeGreaterThan(0);
@@ -295,7 +315,7 @@ describe("P9.6 / EPIC-007 report modules", () => {
     const { RiskModule } = await import(
       "@/components/institutional-reports/ReportModules"
     );
-    const request = buildAnalyseRequestForTicker("AAPL");
+    const request = buildDemoAnalyseRequest("AAPL");
     const view = mapResearchView(sampleResponse, request, null);
     wrap(<RiskModule view={view} />);
     expect(screen.getByText("Business Risk")).toBeTruthy();
@@ -310,7 +330,7 @@ describe("P9.6 / EPIC-007 report modules", () => {
     const { AiCommitteeModule, ValuationModule } = await import(
       "@/components/institutional-reports/ReportModules"
     );
-    const request = buildAnalyseRequestForTicker("AAPL");
+    const request = buildDemoAnalyseRequest("AAPL");
     const view = mapResearchView(sampleResponse, request, null);
     wrap(<ValuationModule view={view} />);
     expect(screen.getByText("Intrinsic Value")).toBeTruthy();
@@ -326,7 +346,7 @@ describe("P9.6 / EPIC-007 report modules", () => {
     const { ExplainabilityModule, AuditModule, CoverSection } = await import(
       "@/components/institutional-reports/Sections"
     );
-    const request = buildAnalyseRequestForTicker("AAPL");
+    const request = buildDemoAnalyseRequest("AAPL");
     const view = mapResearchView(
       sampleResponse,
       request,

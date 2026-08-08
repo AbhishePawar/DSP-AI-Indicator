@@ -14,7 +14,7 @@ import {
   truncateWords,
 } from "@/lib/explainability";
 import { mapResearchView } from "@/lib/research/mapResearchView";
-import { buildAnalyseRequestForTicker } from "@/lib/research/buildAnalyseRequest";
+import { buildDemoAnalyseRequest } from "@/lib/research/buildAnalyseRequest";
 import {
   researchViewToCsv,
   researchViewToHtml,
@@ -184,7 +184,7 @@ describe("P2.2 explainability framework", () => {
   });
 
   it("attaches explainability to ResearchView from existing ratings only", () => {
-    const request = buildAnalyseRequestForTicker("AAPL", {
+    const request = buildDemoAnalyseRequest("AAPL", {
       company: "Apple",
       exchange: "NASDAQ",
     });
@@ -210,7 +210,7 @@ describe("P2.2 explainability framework", () => {
   });
 
   it("expands accordion to reveal evidence and collapses again", () => {
-    const request = buildAnalyseRequestForTicker("AAPL", {
+    const request = buildDemoAnalyseRequest("AAPL", {
       company: "Apple",
       exchange: "NASDAQ",
     });
@@ -241,7 +241,7 @@ describe("P2.2 explainability framework", () => {
   });
 
   it("includes explainability in JSON/HTML and CSV summary only", () => {
-    const request = buildAnalyseRequestForTicker("AAPL", {
+    const request = buildDemoAnalyseRequest("AAPL", {
       company: "Apple",
       exchange: "NASDAQ",
     });

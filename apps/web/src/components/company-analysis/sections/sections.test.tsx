@@ -36,7 +36,7 @@ vi.mock("@/lib/api/client", () => ({
   },
 }));
 
-import { buildAnalyseRequestForTicker } from "@/lib/research/buildAnalyseRequest";
+import { buildDemoAnalyseRequest } from "@/lib/research/buildAnalyseRequest";
 import { mapResearchView } from "@/lib/research/mapResearchView";
 import type { AnalyseResponse } from "@/lib/api/compositionTypes";
 import { useWorkspacePrefsStore } from "@/lib/company-analysis";
@@ -62,7 +62,7 @@ const sampleResponse: AnalyseResponse = {
 };
 
 function buildView() {
-  const request = buildAnalyseRequestForTicker("AAPL", {
+  const request = buildDemoAnalyseRequest("AAPL", {
     company: "Apple",
     exchange: "NASDAQ",
   });
@@ -139,7 +139,7 @@ describe("AiCopilotSection", () => {
       limitations: [],
     });
     const view = buildView();
-    const request = buildAnalyseRequestForTicker("AAPL");
+    const request = buildDemoAnalyseRequest("AAPL");
     wrap(
       <AiCopilotSection
         view={view}

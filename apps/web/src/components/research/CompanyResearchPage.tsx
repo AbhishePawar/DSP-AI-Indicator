@@ -11,7 +11,8 @@ import { api } from "@/lib/api/client";
 import { ApiClientError } from "@/lib/api/types";
 import { useAuth } from "@/lib/auth/AuthProvider";
 import { logger } from "@/lib/observability/logger";
-import { buildAnalyseRequestForTicker } from "@/lib/research/buildAnalyseRequest";
+import type { AnalyseRequest } from "@/lib/api/compositionTypes";
+import { loadAuthenticatedAnalyseRequest } from "@/lib/research/buildAnalyseRequest";
 import { mapResearchView } from "@/lib/research/mapResearchView";
 import {
   clearResearchSession,
@@ -21,7 +22,7 @@ import {
 import { CompanyResearchLayout } from "./CompanyResearchLayout";
 
 type LoadResult = {
-  request: ReturnType<typeof buildAnalyseRequestForTicker>;
+  request: AnalyseRequest;
   response: Awaited<ReturnType<typeof api.analyse>>;
   analysedAt: string;
   cached: boolean;
@@ -49,7 +50,11 @@ export function CompanyResearchPage({ ticker }: { ticker: string }) {
         clearResearchSession();
       }
 
-      const request = buildAnalyseRequestForTicker(normalized);
+      // P0-01 — authenticated statements only; never clone demo ACM financials.
+      const request = await loadAuthenticatedAnalyseRequest(normalized, {
+        loadStatements: () =>
+          api.financialStatements(normalized, { token, limit: 1 }),
+      });
       const response = await api.analyse(request, { token });
       const analysedAt = new Date().toISOString();
       saveResearchSession({

@@ -1,4 +1,9 @@
-/** Default sample analyse payload for the Intelligence Workspace (demo only). */
+/**
+ * Demo-only ACM analyse fixture (non-production).
+ *
+ * P0-01 — Must not be cloned onto real tickers by production builders.
+ * Use `buildDemoAnalyseRequest` in tests; production uses authenticated statements.
+ */
 
 import type { AnalyseRequest } from "@/lib/api/compositionTypes";
 

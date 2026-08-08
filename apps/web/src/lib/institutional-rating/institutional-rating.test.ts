@@ -11,7 +11,7 @@ import {
   scoreOutOf10FromExisting,
 } from "@/lib/institutional-rating";
 import { mapResearchView } from "@/lib/research/mapResearchView";
-import { buildAnalyseRequestForTicker } from "@/lib/research/buildAnalyseRequest";
+import { buildDemoAnalyseRequest } from "@/lib/research/buildAnalyseRequest";
 import type { AnalyseResponse } from "@/lib/api/compositionTypes";
 
 const sampleResponse: AnalyseResponse = {
@@ -149,7 +149,7 @@ describe("ARCH-002 institutional rating framework", () => {
   });
 
   it("builds framework with all modules and honest Unavailable for missing risk score", () => {
-    const request = buildAnalyseRequestForTicker("AAPL", {
+    const request = buildDemoAnalyseRequest("AAPL", {
       company: "Apple",
       exchange: "NASDAQ",
     });
@@ -169,7 +169,7 @@ describe("ARCH-002 institutional rating framework", () => {
   });
 
   it("is deterministic", () => {
-    const request = buildAnalyseRequestForTicker("AAPL", {
+    const request = buildDemoAnalyseRequest("AAPL", {
       company: "Apple",
       exchange: "NASDAQ",
     });

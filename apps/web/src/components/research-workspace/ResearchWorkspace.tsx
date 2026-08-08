@@ -27,7 +27,7 @@ import {
   useResearchWorkspacePrefsStore,
 } from "@/lib/research-workspace";
 import { useCollapsePanelsBelowLg } from "@/lib/a11y";
-import { buildAnalyseRequestForTicker } from "@/lib/research/buildAnalyseRequest";
+import { loadAuthenticatedAnalyseRequest } from "@/lib/research/buildAnalyseRequest";
 import {
   mapResearchView,
   type ResearchView,
@@ -214,9 +214,12 @@ export function ResearchWorkspace() {
         };
       }
       const match = COMPANY_CATALOGUE.find((c) => c.ticker === sym);
-      const body = buildAnalyseRequestForTicker(sym, {
+      // P0-01 — authenticated statements only; never clone demo ACM financials.
+      const body = await loadAuthenticatedAnalyseRequest(sym, {
         exchange: match?.exchange,
         company: match?.name,
+        loadStatements: () =>
+          api.financialStatements(sym, { token, limit: 1 }),
       });
       const response = await api.analyse(body, { token });
       return {

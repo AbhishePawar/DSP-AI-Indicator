@@ -42,7 +42,10 @@ import {
   formatPct,
   mapAnalyseResponse,
 } from "@/lib/intelligence/mapResponse";
-import { buildAnalyseRequestForTicker } from "@/lib/research/buildAnalyseRequest";
+import {
+  ANALYSE_DATA_UNAVAILABLE,
+  loadAuthenticatedAnalyseRequest,
+} from "@/lib/research/buildAnalyseRequest";
 import { saveResearchSession } from "@/lib/research/sessionStore";
 import { useNotifications } from "@/providers/NotificationProvider";
 import { usePersistence } from "@/providers/PersistenceProvider";
@@ -183,16 +186,26 @@ export function AnalysisWorkspace() {
     analyseMutation.data?.correlation_id ||
     null;
 
-  function runAnalysis(event?: FormEvent) {
+  async function runAnalysis(event?: FormEvent) {
     event?.preventDefault();
     const match = resolveCompany(ticker);
-    const request = buildAnalyseRequestForTicker(ticker, {
-      exchange: exchange || match?.exchange,
-      company: company || match?.name,
-    });
-    setLastRequest(request);
-    analysisTiming.start();
-    analyseMutation.mutate(request);
+    try {
+      // P0-01 — authenticated statements only; never clone demo ACM financials.
+      const request = await loadAuthenticatedAnalyseRequest(ticker, {
+        exchange: exchange || match?.exchange,
+        company: company || match?.name,
+        loadStatements: () =>
+          api.financialStatements(ticker, { token, limit: 1 }),
+      });
+      setLastRequest(request);
+      analysisTiming.start();
+      analyseMutation.mutate(request);
+    } catch (err) {
+      notifyError(
+        err instanceof Error ? err.message : ANALYSE_DATA_UNAVAILABLE,
+        "Analyse",
+      );
+    }
   }
 
   function analyseAnother() {

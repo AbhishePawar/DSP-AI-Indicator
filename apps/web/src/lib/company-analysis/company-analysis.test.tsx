@@ -84,7 +84,7 @@ import {
   useWorkspacePrefsStore,
 } from "@/lib/company-analysis";
 import { mapResearchView } from "@/lib/research/mapResearchView";
-import { buildAnalyseRequestForTicker } from "@/lib/research/buildAnalyseRequest";
+import { buildDemoAnalyseRequest } from "@/lib/research/buildAnalyseRequest";
 import { FRONTEND_FOUNDATION_VERSION } from "@/foundation";
 import { acknowledgeResearchDisclaimer } from "@/lib/legal";
 import type { AnalyseResponse } from "@/lib/api/compositionTypes";
@@ -300,7 +300,7 @@ describe("EPIC-F005 company analysis lib", () => {
   });
 
   it("exports mapped research view without inventing scores", () => {
-    const request = buildAnalyseRequestForTicker("AAPL", {
+    const request = buildDemoAnalyseRequest("AAPL", {
       company: "Apple",
       exchange: "NASDAQ",
     });
@@ -328,7 +328,7 @@ describe("EPIC-F005 company analysis lib", () => {
   });
 
   it("maps a missing risk payload to null without inventing values", () => {
-    const request = buildAnalyseRequestForTicker("AAPL");
+    const request = buildDemoAnalyseRequest("AAPL");
     const responseWithoutRisk: AnalyseResponse = {
       ...sampleResponse,
       payload: { ...sampleResponse.payload, risk: undefined },
@@ -364,7 +364,23 @@ describe("EPIC-F005 workspace UI", () => {
     compareMock.mockReset();
     analyseMock.mockResolvedValue(sampleResponse);
     marketQuoteMock.mockResolvedValue({ ok: true });
-    financialStatementsMock.mockResolvedValue({ ok: true, available: false });
+    // P0-01 — production analyse requires authenticated statements (not ACM clone).
+    financialStatementsMock.mockResolvedValue({
+      ok: true,
+      available: true,
+      authenticated: true,
+      reporting_currency: "USD",
+      periods: [
+        {
+          period_type: "annual",
+          period_end: "2025-09-27",
+          fiscal_year: 2025,
+          income_statement: { revenue: 391_035, net_income: 93_736 },
+          balance_sheet: { total_assets: 364_980, total_equity: 56_950 },
+          cash_flow: { operating_cash_flow: 118_254, free_cash_flow: 98_771 },
+        },
+      ],
+    });
     corporateActionsMock.mockResolvedValue({ ok: true, available: false });
     useWorkspacePrefsStore.setState({
       activeSection: "summary",
@@ -384,11 +400,39 @@ describe("EPIC-F005 workspace UI", () => {
     expect(screen.getByLabelText("Main analysis area")).toBeTruthy();
     expect(screen.getByLabelText("Context panel")).toBeTruthy();
     await waitFor(() => {
+      expect(financialStatementsMock).toHaveBeenCalled();
       expect(analyseMock).toHaveBeenCalled();
     });
+    const body = analyseMock.mock.calls[0]?.[0] as {
+      ticker: string;
+      financial_statements: { income_statement?: { revenue?: number } };
+      valuation_signals?: unknown;
+    };
+    expect(body.ticker).toBe("AAPL");
+    expect(body.financial_statements.income_statement?.revenue).toBe(391_035);
+    expect(body.financial_statements.income_statement?.revenue).not.toBe(1000);
+    expect(body.valuation_signals).toBeUndefined();
     expect(
       await screen.findByRole("heading", { name: /Executive Summary/i }),
     ).toBeTruthy();
+  });
+
+  it("does not call analyse when authenticated statements are unavailable", async () => {
+    financialStatementsMock.mockResolvedValue({
+      ok: true,
+      available: false,
+      authenticated: false,
+      periods: null,
+      message: "Data unavailable.",
+    });
+    const { CompanyAnalysisWorkspace } = await import(
+      "@/components/company-analysis/CompanyAnalysisWorkspace"
+    );
+    wrap(<CompanyAnalysisWorkspace />);
+    await waitFor(() => {
+      expect(financialStatementsMock).toHaveBeenCalled();
+    });
+    expect(analyseMock).not.toHaveBeenCalled();
   });
 
   it("blocks analyse until research disclaimer is acknowledged", async () => {
@@ -412,7 +456,7 @@ describe("EPIC-F005 workspace UI", () => {
     const { ValuationSection } = await import(
       "@/components/company-analysis/WorkspaceSections"
     );
-    const request = buildAnalyseRequestForTicker("AAPL");
+    const request = buildDemoAnalyseRequest("AAPL");
     const view = mapResearchView(sampleResponse, request, null);
     wrap(<ValuationSection view={view} />);
     expect(screen.getByText("Intrinsic Value")).toBeTruthy();
@@ -423,7 +467,7 @@ describe("EPIC-F005 workspace UI", () => {
     const { RiskSection } = await import(
       "@/components/company-analysis/FlagshipSections"
     );
-    const request = buildAnalyseRequestForTicker("AAPL");
+    const request = buildDemoAnalyseRequest("AAPL");
     const view = mapResearchView(sampleResponse, request, null);
     wrap(<RiskSection view={view} />);
     expect(screen.getByText("Moderate (from economic_moat)")).toBeTruthy();

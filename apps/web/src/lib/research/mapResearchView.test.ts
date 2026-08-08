@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import type { AnalyseResponse } from "@/lib/api/compositionTypes";
 import { SAMPLE_ANALYSE_REQUEST } from "@/lib/intelligence/sampleRequest";
-import { buildAnalyseRequestForTicker } from "@/lib/research/buildAnalyseRequest";
+import { buildDemoAnalyseRequest } from "@/lib/research/buildAnalyseRequest";
 import { mapResearchView } from "@/lib/research/mapResearchView";
 import { breadcrumbsFor, getPrimaryNav } from "@/lib/navigation";
 
@@ -112,13 +112,14 @@ function sampleResponse(): AnalyseResponse {
   };
 }
 
-describe("buildAnalyseRequestForTicker", () => {
-  it("overrides ticker while keeping sample statements", () => {
-    const req = buildAnalyseRequestForTicker("msft");
+describe("buildDemoAnalyseRequest", () => {
+  it("explicit demo fixture may reuse sample statements (tests only)", () => {
+    const req = buildDemoAnalyseRequest("msft");
     expect(req.ticker).toBe("MSFT");
     expect(req.financial_statements.period.period_type).toBe(
       SAMPLE_ANALYSE_REQUEST.financial_statements.period.period_type,
     );
+    expect(req.company).toContain("demo fixture");
   });
 });
 

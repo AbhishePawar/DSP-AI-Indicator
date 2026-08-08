@@ -14,7 +14,7 @@ import {
   mapReportTransparency,
 } from "@/lib/report-transparency";
 import { mapResearchView } from "@/lib/research/mapResearchView";
-import { buildAnalyseRequestForTicker } from "@/lib/research/buildAnalyseRequest";
+import { buildDemoAnalyseRequest } from "@/lib/research/buildAnalyseRequest";
 import { researchViewToCsv, researchViewToJson } from "@/lib/company-analysis";
 import { ReportInformationCard } from "@/components/company-analysis/ReportInformationCard";
 import type { AnalyseResponse } from "@/lib/api/compositionTypes";
@@ -170,7 +170,7 @@ describe("P2.1 report transparency", () => {
   });
 
   it("maps transparency from ResearchView without inventing period", () => {
-    const request = buildAnalyseRequestForTicker("AAPL", {
+    const request = buildDemoAnalyseRequest("AAPL", {
       company: "Apple",
       exchange: "NASDAQ",
     });
@@ -190,7 +190,7 @@ describe("P2.1 report transparency", () => {
   });
 
   it("renders Report Information card", () => {
-    const request = buildAnalyseRequestForTicker("AAPL", {
+    const request = buildDemoAnalyseRequest("AAPL", {
       company: "Apple",
       exchange: "NASDAQ",
     });
@@ -210,7 +210,7 @@ describe("P2.1 report transparency", () => {
   });
 
   it("includes report information in exports", () => {
-    const request = buildAnalyseRequestForTicker("AAPL", {
+    const request = buildDemoAnalyseRequest("AAPL", {
       company: "Apple",
       exchange: "NASDAQ",
     });

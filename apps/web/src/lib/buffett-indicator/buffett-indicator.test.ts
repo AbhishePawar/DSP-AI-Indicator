@@ -11,7 +11,7 @@ import {
   mapBuffettReport,
 } from "@/lib/buffett-indicator";
 import { mapResearchView } from "@/lib/research/mapResearchView";
-import { buildAnalyseRequestForTicker } from "@/lib/research/buildAnalyseRequest";
+import { buildDemoAnalyseRequest } from "@/lib/research/buildAnalyseRequest";
 import type { AnalyseResponse } from "@/lib/api/compositionTypes";
 
 const sampleResponse: AnalyseResponse = {
@@ -158,7 +158,7 @@ describe("ARCH-001 Buffett Indicator report", () => {
   });
 
   it("synthesizes report from ResearchView with evidence references", () => {
-    const request = buildAnalyseRequestForTicker("AAPL", {
+    const request = buildDemoAnalyseRequest("AAPL", {
       company: "Apple",
       exchange: "NASDAQ",
     });
@@ -178,7 +178,7 @@ describe("ARCH-001 Buffett Indicator report", () => {
   });
 
   it("is deterministic for the same inputs", () => {
-    const request = buildAnalyseRequestForTicker("AAPL", {
+    const request = buildDemoAnalyseRequest("AAPL", {
       company: "Apple",
       exchange: "NASDAQ",
     });

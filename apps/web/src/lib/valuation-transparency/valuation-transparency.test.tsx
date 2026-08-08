@@ -13,7 +13,7 @@ import {
   mapValuationTransparency,
 } from "@/lib/valuation-transparency";
 import { mapResearchView } from "@/lib/research/mapResearchView";
-import { buildAnalyseRequestForTicker } from "@/lib/research/buildAnalyseRequest";
+import { buildDemoAnalyseRequest } from "@/lib/research/buildAnalyseRequest";
 import {
   researchViewToCsv,
   researchViewToHtml,
@@ -154,7 +154,7 @@ const sampleResponse: AnalyseResponse = {
 
 describe("P2.3 valuation transparency", () => {
   it("maps transparency without inventing method weights or categories", () => {
-    const request = buildAnalyseRequestForTicker("AAPL", {
+    const request = buildDemoAnalyseRequest("AAPL", {
       company: "Apple",
       exchange: "NASDAQ",
     });
@@ -191,7 +191,7 @@ describe("P2.3 valuation transparency", () => {
   });
 
   it("never derives consensus statistics from a single intrinsic value", () => {
-    const request = buildAnalyseRequestForTicker("AAPL", {
+    const request = buildDemoAnalyseRequest("AAPL", {
       company: "Apple",
       exchange: "NASDAQ",
     });
@@ -214,7 +214,7 @@ describe("P2.3 valuation transparency", () => {
   });
 
   it("renders executive card and method cards", () => {
-    const request = buildAnalyseRequestForTicker("AAPL", {
+    const request = buildDemoAnalyseRequest("AAPL", {
       company: "Apple",
       exchange: "NASDAQ",
     });
@@ -238,7 +238,7 @@ describe("P2.3 valuation transparency", () => {
   });
 
   it("includes valuation transparency in JSON/HTML and CSV summary", () => {
-    const request = buildAnalyseRequestForTicker("AAPL", {
+    const request = buildDemoAnalyseRequest("AAPL", {
       company: "Apple",
       exchange: "NASDAQ",
     });

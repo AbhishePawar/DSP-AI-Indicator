@@ -25,7 +25,7 @@ import {
 import { api } from "@/lib/api/client";
 import { ApiClientError } from "@/lib/api/types";
 import { useAuth } from "@/lib/auth/AuthProvider";
-import { buildAnalyseRequestForTicker } from "@/lib/research/buildAnalyseRequest";
+import { loadAuthenticatedAnalyseRequest } from "@/lib/research/buildAnalyseRequest";
 import { irdSurfaceTrust } from "@/lib/trust/surfaceTrust";
 
 export function InstitutionalDashboardClient({
@@ -45,8 +45,12 @@ export function InstitutionalDashboardClient({
           "Ticker is required — no default company is invented in the thin client.",
         );
       }
-      const request = buildAnalyseRequestForTicker(symbol);
       const opts = { token: session?.accessToken };
+      // P0-01 — authenticated statements only; never clone demo ACM financials.
+      const request = await loadAuthenticatedAnalyseRequest(symbol, {
+        loadStatements: () =>
+          api.financialStatements(symbol, { ...opts, limit: 1 }),
+      });
       const [response, dataResp] = await Promise.all([
         api.analyse(request, opts),
         api

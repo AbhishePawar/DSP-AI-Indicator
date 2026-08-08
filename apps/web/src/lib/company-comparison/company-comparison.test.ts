@@ -4,7 +4,7 @@
 import { describe, expect, it } from "vitest";
 
 import type { AnalyseResponse } from "@/lib/api/compositionTypes";
-import { buildAnalyseRequestForTicker } from "@/lib/research/buildAnalyseRequest";
+import { buildDemoAnalyseRequest } from "@/lib/research/buildAnalyseRequest";
 import { mapResearchView } from "@/lib/research/mapResearchView";
 import {
   ANALYSIS_UNAVAILABLE,
@@ -175,7 +175,7 @@ function sampleResponse(
 }
 
 function viewFor(ticker: string, response: AnalyseResponse) {
-  const request = buildAnalyseRequestForTicker(ticker, {
+  const request = buildDemoAnalyseRequest(ticker, {
     company: ticker,
     exchange: "NASDAQ",
   });

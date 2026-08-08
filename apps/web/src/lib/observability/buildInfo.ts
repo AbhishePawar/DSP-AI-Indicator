@@ -57,9 +57,9 @@ export function getFeatureFlagPlaceholders(): FeatureFlagPlaceholder[] {
     },
     {
       id: "live_market_data",
-      label: "Live Market Data",
+      label: "Authenticated Market Data",
       enabled: true,
-      note: "Presentation-layer quotes (EPIC-010)",
+      note: "GET /api/v1/market/quote only; never fabricated (P0-03)",
     },
     {
       id: "external_telemetry",

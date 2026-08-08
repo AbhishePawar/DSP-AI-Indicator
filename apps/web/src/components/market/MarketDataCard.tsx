@@ -35,7 +35,7 @@ function MetricRow({
 
 export function MarketDataCard({
   ticker,
-  title = "Live Market Data",
+  title = "Market Data",
   description = "Supplemental prices — does not affect deterministic scoring",
 }: {
   ticker: string;
@@ -63,8 +63,10 @@ export function MarketDataCard({
         ) : (
           <p className="text-sm text-[var(--muted)]">
             {status === "error"
-              ? "Unable to load market data for this ticker."
-              : "Loading live market data…"}
+              ? "Data unavailable."
+              : status === "loading"
+                ? "Loading market data…"
+                : "Data unavailable."}
           </p>
         )}
       </CardBody>

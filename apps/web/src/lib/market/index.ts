@@ -15,8 +15,10 @@ export {
   _resetMarketCache,
 } from "./cache";
 export {
+  MARKET_DATA_UNAVAILABLE,
   fetchMarketQuote,
   fetchMarketQuotes,
+  marketQuoteFromAuthenticated,
   seedQuoteForTicker,
 } from "./quoteService";
 export {

@@ -6,9 +6,9 @@ import { Badge } from "@/components/ui/Badge";
 const LABELS: Record<MarketDataStatus, string> = {
   idle: "Market idle",
   loading: "Loading market data",
-  success: "Live market data",
+  success: "Authenticated market data",
   stale: "Stale market data",
-  error: "Market data error",
+  error: "Data unavailable.",
 };
 
 const TONES: Record<
@@ -39,7 +39,7 @@ export function MarketStatusIndicator({
 export function LiveMarketDataLabel({ className = "" }: { className?: string }) {
   return (
     <Badge tone="accent" className={className}>
-      Live Market Data
+      Market Data
     </Badge>
   );
 }

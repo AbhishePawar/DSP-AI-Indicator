@@ -20,6 +20,15 @@ from investment_recommendation import (
 from management_quality import ManagementEngine
 from valuation import ValuationEngine
 
+from dsp_platform.composition.authenticated_valuation import (
+    DATA_UNAVAILABLE,
+    AuthenticatedValuationBundle,
+    AuthenticatedValuationError,
+    load_authenticated_valuation_bundle,
+    production_requires_authenticated_bundle,
+    signals_from_assessment,
+    to_financial_statements,
+)
 from dsp_platform.composition.collectors import EvidenceCollector, TimingCollector, timed
 from dsp_platform.composition.context import ExecutionContext
 from dsp_platform.composition.errors import CompositionStageError
@@ -34,6 +43,10 @@ from dsp_platform.composition.risk_view import build_company_risk_view
 from dsp_platform.composition.versions import COMPOSITION_PIPELINE_VERSION
 
 __all__ = ["EXECUTION_ORDER", "PipelineStage", "run_execution_pipeline"]
+
+_AUTH_BUNDLE_KEY = "authenticated_valuation_bundle"
+_AUTH_ERROR_KEY = "authenticated_valuation_error"
+_AUTH_STATEMENTS_KEY = "authenticated_financial_statements"
 
 
 class PipelineStage(str, Enum):
@@ -113,6 +126,27 @@ def _confidence(obj: object | None) -> float | None:
         return None
 
 
+def _preload_authenticated_valuation_bundle(ctx: ExecutionContext) -> None:
+    """P1-01 — attempt server-side authenticated quote + statements load."""
+    ticker = str(ctx.request.ticker or "").strip().upper()
+    if not ticker:
+        return
+    try:
+        bundle = load_authenticated_valuation_bundle(ticker)
+    except AuthenticatedValuationError as exc:
+        ctx.results[_AUTH_ERROR_KEY] = str(exc) or DATA_UNAVAILABLE
+        return
+    except Exception as exc:  # noqa: BLE001 — map provider faults to unavailable
+        ctx.results[_AUTH_ERROR_KEY] = f"{DATA_UNAVAILABLE} ({type(exc).__name__})"
+        return
+    ctx.results[_AUTH_BUNDLE_KEY] = bundle
+    try:
+        ctx.results[_AUTH_STATEMENTS_KEY] = to_financial_statements(bundle)
+    except AuthenticatedValuationError as exc:
+        ctx.results[_AUTH_ERROR_KEY] = str(exc) or DATA_UNAVAILABLE
+        ctx.results.pop(_AUTH_BUNDLE_KEY, None)
+
+
 def run_execution_pipeline(
     ctx: ExecutionContext,
     *,
@@ -128,6 +162,8 @@ def run_execution_pipeline(
     timing = TimingCollector()
     evidence = EvidenceCollector()
     outcomes: list[StageOutcome] = []
+
+    _preload_authenticated_valuation_bundle(ctx)
 
     handlers: dict[PipelineStage, Callable[[], Any]] = {
         PipelineStage.FINANCIAL: lambda: _stage_financial(ctx),
@@ -263,8 +299,31 @@ def _stage_financial(
         warnings.append("financial_analysis provided — FinancialEngine skipped")
         return ctx.request.financial_analysis, warnings, StageStatus.DEGRADED
 
+    # P1-01 — prefer authenticated server statements over client payload.
+    auth_statements = ctx.results.get(_AUTH_STATEMENTS_KEY)
+    if auth_statements is not None:
+        fa = FinancialEngine().analyze_financials(auth_statements)
+        bq = BusinessQualityEngine().analyze(fa)
+        ctx.results["business_quality_analysis"] = bq
+        ctx.package_versions["business_quality"] = (
+            _pkg_version("business_quality") or ""
+        )
+        warnings.append(
+            "P1-01: financial stage used authenticated server statements"
+        )
+        return fa, warnings, StageStatus.SUCCEEDED
+
+    ticker = str(ctx.request.ticker or "").strip()
+    auth_err = ctx.results.get(_AUTH_ERROR_KEY)
+    if production_requires_authenticated_bundle() and ticker:
+        raise ValueError(str(auth_err) if auth_err else DATA_UNAVAILABLE)
+
     if ctx.request.financial_statements is None:
-        raise ValueError("financial_statements or financial_analysis is required")
+        raise ValueError(
+            str(auth_err)
+            if auth_err
+            else "financial_statements or financial_analysis is required"
+        )
 
     fa = FinancialEngine().analyze_financials(ctx.request.financial_statements)
     bq = BusinessQualityEngine().analyze(fa)
@@ -283,6 +342,10 @@ def _stage_valuation(
     market *price* input only; intrinsic value, MoS, premium/discount, and
     confidence are ignored so clients cannot skip ``ValuationEngine`` or set
     IV/MoS/recommendation outcomes.
+
+    P1-01 — When authenticated quote + statements are available for the
+    request ticker, ``ValuationEngine`` runs on the server bundle. Production
+    fails closed with ``Data unavailable.`` when that bundle cannot be built.
     """
     warnings: list[str] = []
     price = ctx.request.current_market_price
@@ -296,10 +359,34 @@ def _stage_valuation(
     if ctx.request.valuation_signals is not None:
         warnings.append(
             "client valuation_signals ignored for investment conclusions "
-            "(P0-02); ValuationEngine / price-only path used instead"
+            "(P0-02); ValuationEngine / authenticated path used instead"
         )
         if price is None:
             price = ctx.request.valuation_signals.current_market_price
+
+    bundle = ctx.results.get(_AUTH_BUNDLE_KEY)
+    if isinstance(bundle, AuthenticatedValuationBundle):
+        assessment = ValuationEngine().analyze(
+            bundle.financial_snapshot,
+            bundle.market_snapshot,
+        )
+        signals = signals_from_assessment(
+            assessment,
+            current_market_price=bundle.current_market_price,
+            shares_outstanding=bundle.shares_outstanding,
+        )
+        ctx.results["valuation_signals"] = signals
+        ctx.results["authenticated_valuation_trace"] = bundle.to_trace_dict()
+        warnings.append(
+            "P1-01: ValuationEngine used authenticated server data bundle"
+        )
+        return assessment, warnings, StageStatus.SUCCEEDED
+
+    auth_err = ctx.results.get(_AUTH_ERROR_KEY)
+    if production_requires_authenticated_bundle() and str(
+        ctx.request.ticker or ""
+    ).strip():
+        raise ValueError(str(auth_err) if auth_err else DATA_UNAVAILABLE)
 
     if ctx.request.financial_snapshot is not None:
         assessment = ValuationEngine().analyze(
@@ -318,14 +405,21 @@ def _stage_valuation(
             confidence=0.55,
         )
         ctx.results["valuation_signals"] = signals
+        warnings.append(
+            "valuation used request financial_snapshot (non-authenticated path)"
+        )
         return assessment, warnings, StageStatus.SUCCEEDED
 
     if price is None:
         raise ValueError(
-            "current_market_price is required when ValuationEngine inputs "
-            "are unavailable; client valuation conclusions are not accepted"
+            str(auth_err)
+            if auth_err
+            else (
+                "current_market_price is required when ValuationEngine inputs "
+                "are unavailable; client valuation conclusions are not accepted"
+            )
         )
-    # Graceful degradation: price-only signals (IV unknown — never client IV)
+    # Graceful degradation (non-production): price-only signals (IV unknown)
     signals = ValuationSignals(
         intrinsic_value_per_share=None,
         current_market_price=float(price),
@@ -333,8 +427,11 @@ def _stage_valuation(
     )
     ctx.results["valuation_signals"] = signals
     warnings.append(
-        "valuation degraded: no IV source — ValuationSignals price-only"
+        "valuation degraded: no authenticated IV source — "
+        "ValuationSignals price-only"
     )
+    if auth_err:
+        warnings.append(f"authenticated valuation unavailable: {auth_err}")
     return signals, warnings, StageStatus.DEGRADED
 
 

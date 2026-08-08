@@ -64,7 +64,10 @@ from dsp_platform.comparison_engine import build_default_comparison_engine
 from dsp_platform.facade import DSPPlatform
 from dsp_platform.composition import (
     COMPOSITION_PIPELINE_VERSION,
+    DATA_UNAVAILABLE,
     EXECUTION_ORDER,
+    AuthenticatedValuationBundle,
+    AuthenticatedValuationError,
     CompanyRiskView,
     CompositionInputError,
     CompositionRequest,
@@ -83,8 +86,10 @@ from dsp_platform.composition import (
     build_composition_request,
     composition_capability_manifest,
     composition_package_versions,
+    load_authenticated_valuation_bundle,
     pipeline_result_public_dict,
     run_execution_pipeline,
+    signals_from_assessment,
 )
 from dsp_platform.configuration import (
     DEFAULT_CAPABILITIES,
@@ -735,6 +740,9 @@ __all__ = [
     "ComparisonStatus",
     "ComparisonReportReference",
     "COMPOSITION_PIPELINE_VERSION",
+    "DATA_UNAVAILABLE",
+    "AuthenticatedValuationBundle",
+    "AuthenticatedValuationError",
     "CompanyRiskView",
     "CompositionInputError",
     "CompositionRequest",
@@ -848,6 +856,8 @@ __all__ = [
     "PlatformOrchestrator",
     "PlatformResult",
     "build_composition_request",
+    "load_authenticated_valuation_bundle",
+    "signals_from_assessment",
     "build_default_comparison_engine",
     "composition_capability_manifest",
     "composition_package_versions",

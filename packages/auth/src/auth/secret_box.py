@@ -1,12 +1,12 @@
 """Encryption-at-rest for sensitive MFA secret material (RFC 6238 seeds).
 
 Uses ``cryptography.fernet.Fernet`` (AES-128-CBC + HMAC-SHA256, authenticated
-encryption) — the same *optional* dependency already used for OIDC JWKS
-signature verification (see :mod:`auth.oidc`). No new mandatory dependency is
-introduced: when ``cryptography`` is not installed, secrets are written with
-an explicit ``plain:`` tag rather than silently masquerading as encrypted, so
-operators can always tell exactly what protection is active via
-:func:`is_encrypted`.
+encryption) — the same dependency already used for OIDC JWKS signature
+verification (see :mod:`auth.oidc`).
+
+Cryptography is a hard dependency of ``auth``. Encryption never falls back to
+plaintext persistence: if Fernet cannot run, :func:`encrypt_secret` raises
+:class:`~auth.exceptions.AuthenticationError`.
 
 Key management
 --------------
@@ -15,16 +15,17 @@ Key management
   supports independent rotation from the JWT signing secret.
 - When unset, a key is deterministically derived (SHA-256) from
   ``DSP_AUTH_JWT_SECRET`` so encryption works out of the box in development
-  without any extra configuration.
+  without any extra configuration. Never commit production key material.
 - ``DSP_MFA_SECRET_KEY_PREVIOUS`` — optional comma-separated list of retired
   keys, tried for *decrypt-only* fallback. This lets an operator rotate
   ``DSP_MFA_SECRET_KEY`` without invalidating existing TOTP enrollments; new
   writes always use the current active key.
 
-Ciphertext format is self-describing and forward-compatible:
-``"enc:v1:<fernet-token>"`` for encrypted values, ``"plain:<value>"`` for the
-graceful-degradation fallback. Legacy unprefixed values (written before this
-module existed) are still readable by :func:`decrypt_secret`.
+Ciphertext format is self-describing:
+``"enc:v1:<fernet-token>"`` for encrypted values.
+
+Legacy readers still accept historical ``plain:`` / unprefixed records for
+decrypt-only migration, but new writes never produce those forms.
 """
 
 from __future__ import annotations
@@ -47,7 +48,7 @@ _PLAIN_PREFIX = "plain:"
 
 
 def secret_encryption_available() -> bool:
-    """Return ``True`` when the optional ``cryptography`` package is installed."""
+    """Return ``True`` when Fernet authenticated encryption can be used."""
     try:
         import cryptography.fernet  # noqa: F401
     except ImportError:
@@ -77,13 +78,15 @@ def _previous_keys() -> list[bytes]:
 
 
 def encrypt_secret(plaintext: str) -> str:
-    """Encrypt ``plaintext`` for at-rest storage.
+    """Encrypt ``plaintext`` for at-rest storage (authenticated ciphertext).
 
-    Falls back to an explicitly-tagged plaintext form when the optional
-    ``cryptography`` dependency is unavailable — never raises.
+    Raises :class:`~auth.exceptions.AuthenticationError` when the cryptography
+    package is unavailable — never persists plaintext MFA secrets.
     """
     if not secret_encryption_available():
-        return f"{_PLAIN_PREFIX}{plaintext}"
+        raise AuthenticationError(
+            "Cannot encrypt MFA secret: the 'cryptography' package is required."
+        )
     from cryptography.fernet import Fernet
 
     token = Fernet(_active_key()).encrypt(plaintext.encode("utf-8")).decode("ascii")
@@ -98,6 +101,7 @@ def decrypt_secret(stored: str) -> str:
     rotated-away key with no ``DSP_MFA_SECRET_KEY_PREVIOUS`` entry).
     """
     if stored.startswith(_PLAIN_PREFIX):
+        # Historical records only — new writes never use this form.
         return stored[len(_PLAIN_PREFIX) :]
     if stored.startswith(_ENC_PREFIX):
         if not secret_encryption_available():
@@ -112,7 +116,9 @@ def decrypt_secret(stored: str) -> str:
                 return Fernet(key).decrypt(token).decode("utf-8")
             except InvalidToken:
                 continue
-        raise AuthenticationError("MFA secret could not be decrypted (key mismatch or tampering).")
+        raise AuthenticationError(
+            "MFA secret could not be decrypted (key mismatch or tampering)."
+        )
     # Legacy records persisted before this module existed: raw, unprefixed secret.
     return stored
 

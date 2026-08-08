@@ -10,6 +10,8 @@ requires-python = ">=3.11"
 license = { text = "Proprietary" }
 dependencies = [
     "persistence",
+    # Required for authenticated encryption of TOTP secrets (auth.secret_box).
+    "cryptography>=42.0",
 ]
 
 [project.optional-dependencies]

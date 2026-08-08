@@ -87,16 +87,14 @@ def test_secret_box_roundtrip() -> None:
     assert decrypt_secret(stored) == "JBSWY3DPEHPK3PXP"
 
 
-def test_secret_box_falls_back_to_plain_when_cryptography_unavailable(
+def test_secret_box_refuses_plaintext_when_cryptography_unavailable(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     import auth.secret_box as secret_box
 
     monkeypatch.setattr(secret_box, "secret_encryption_available", lambda: False)
-    stored = secret_box.encrypt_secret("MYSECRET")
-    assert stored.startswith("plain:")
-    assert not is_encrypted(stored)
-    assert secret_box.decrypt_secret(stored) == "MYSECRET"
+    with pytest.raises(AuthenticationError, match="cryptography"):
+        secret_box.encrypt_secret("MYSECRET")
 
 
 def test_secret_box_rejects_tampered_ciphertext() -> None:

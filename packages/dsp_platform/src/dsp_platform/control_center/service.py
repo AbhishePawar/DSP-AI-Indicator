@@ -75,6 +75,7 @@ def run_control_center(
     platform: Any = None,
     api_state: Any = None,
     payload: Mapping[str, Any] | None = None,
+    ops_deps: Any = None,
 ) -> dict[str, Any]:
     body = dict(payload or {})
     act = (action or "").strip().lower().replace("-", "_")
@@ -118,14 +119,16 @@ def run_control_center(
                 str(body.get("rule_id") or ""), author=_author(body)
             )
         },
-        "monitoring": lambda: _monitoring(platform, api_state),
-        "backup": lambda: _backup(platform, api_state, body),
-        "release": lambda: _release(platform, api_state, registry),
+        "monitoring": lambda: _monitoring(platform, api_state, ops_deps),
+        "backup": lambda: _backup(platform, api_state, body, ops_deps),
+        "release": lambda: _release(platform, api_state, registry, ops_deps),
         "audit": lambda: {
             "audit": registry.export_audit(limit=int(body.get("limit") or 200))
         },
         "users_orgs": lambda: _users_orgs(platform),
-        "dashboard": lambda: _control_dashboard(platform, api_state, registry),
+        "dashboard": lambda: _control_dashboard(
+            platform, api_state, registry, ops_deps
+        ),
     }
     if act not in handlers:
         raise ValueError(f"Unknown control-center action: {action!r}")
@@ -279,16 +282,8 @@ def _feature_flags(registry: Any, body: dict[str, Any], platform: Any) -> dict[s
         reason=body.get("reason") or "feature flag update",
     )
     _audit_enterprise(platform, body, result.get("change") or {})
-    # Also try runtime FeatureFlagManager when present
-    try:
-        from production_platform.production.feature_flags import FeatureFlagManager
-
-        mgr = FeatureFlagManager()
-        for key, val in flags.items():
-            if hasattr(mgr, "set_flag"):
-                mgr.set_flag(str(key), bool(val))
-    except Exception:  # noqa: BLE001
-        pass
+    # Feature-flag overlays are owned by ConfigurationRegistry (ASI-003:
+    # do not import production_platform FeatureFlagManager from dsp_platform).
     return result
 
 
@@ -329,12 +324,18 @@ def _saas_control(registry: Any, body: dict[str, Any], platform: Any) -> dict[st
     return {**written, "saas_plans": saas_snapshot}
 
 
-def _monitoring(platform: Any, api_state: Any) -> dict[str, Any]:
+def _monitoring(
+    platform: Any,
+    api_state: Any,
+    ops_deps: Any = None,
+) -> dict[str, Any]:
     ops = None
     admin_metrics = None
     if platform is not None:
         try:
-            ops = platform.run_production_ops("dashboard", api_state=api_state)
+            ops = platform.run_production_ops(
+                "dashboard", api_state=api_state, deps=ops_deps
+            )
         except Exception:  # noqa: BLE001
             ops = {"ok": False, "message": UNAVAILABLE_MESSAGE}
         try:
@@ -348,7 +349,12 @@ def _monitoring(platform: Any, api_state: Any) -> dict[str, Any]:
     }
 
 
-def _backup(platform: Any, api_state: Any, body: dict[str, Any]) -> dict[str, Any]:
+def _backup(
+    platform: Any,
+    api_state: Any,
+    body: dict[str, Any],
+    ops_deps: Any = None,
+) -> dict[str, Any]:
     if platform is None:
         return {"available": False, "message": UNAVAILABLE_MESSAGE}
     payload = {"backup_action": body.get("backup_action") or "status"}
@@ -358,17 +364,24 @@ def _backup(platform: Any, api_state: Any, body: dict[str, Any]) -> dict[str, An
         payload["label"] = body["label"]
     try:
         return platform.run_production_ops(
-            "backup", api_state=api_state, payload=payload
+            "backup", api_state=api_state, payload=payload, deps=ops_deps
         )
     except Exception as exc:  # noqa: BLE001
         return {"available": False, "message": UNAVAILABLE_MESSAGE, "error": str(exc)}
 
 
-def _release(platform: Any, api_state: Any, registry: Any) -> dict[str, Any]:
+def _release(
+    platform: Any,
+    api_state: Any,
+    registry: Any,
+    ops_deps: Any = None,
+) -> dict[str, Any]:
     version = None
     if platform is not None:
         try:
-            version = platform.run_production_ops("version", api_state=api_state)
+            version = platform.run_production_ops(
+                "version", api_state=api_state, deps=ops_deps
+            )
         except Exception:  # noqa: BLE001
             version = {"ok": False, "message": UNAVAILABLE_MESSAGE}
     release_cfg = registry.get_module("release") or {}
@@ -399,7 +412,10 @@ def _users_orgs(platform: Any) -> dict[str, Any]:
 
 
 def _control_dashboard(
-    platform: Any, api_state: Any, registry: Any
+    platform: Any,
+    api_state: Any,
+    registry: Any,
+    ops_deps: Any = None,
 ) -> dict[str, Any]:
     return {
         "modules": registry.list_modules(),
@@ -407,7 +423,7 @@ def _control_dashboard(
         "branding": registry.get_module("branding"),
         "recent_changes": registry.history(limit=10),
         "business_rules_count": len(registry.list_rules()),
-        "monitoring": _monitoring(platform, api_state),
-        "release": _release(platform, api_state, registry),
+        "monitoring": _monitoring(platform, api_state, ops_deps),
+        "release": _release(platform, api_state, registry, ops_deps),
         "note": "Super Admin Control Center — configuration operating system.",
     }

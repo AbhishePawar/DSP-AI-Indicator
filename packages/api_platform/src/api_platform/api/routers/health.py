@@ -144,7 +144,11 @@ def health_ready(state: ApiState = Depends(get_api_state)) -> JSONResponse:
 @router.get("/health/startup")
 def health_startup(state: ApiState = Depends(get_api_state)) -> JSONResponse:
     """RC1 M10 — startup probe via production_ops aggregation."""
-    result = state.platform.run_production_ops("startup", api_state=state)
+    from api_platform.api.production_ops_wiring import build_production_ops_deps
+
+    result = state.platform.run_production_ops(
+        "startup", api_state=state, deps=build_production_ops_deps()
+    )
     code = 200 if result.get("ok") and (result.get("result") or {}).get("started") else 503
     return JSONResponse(result, status_code=code)
 
@@ -152,5 +156,9 @@ def health_startup(state: ApiState = Depends(get_api_state)) -> JSONResponse:
 @router.get("/health/dependencies")
 def health_dependencies(state: ApiState = Depends(get_api_state)) -> JSONResponse:
     """RC1 M10 — dependency aggregation (reuses infra + platform probes)."""
-    result = state.platform.run_production_ops("dependencies", api_state=state)
+    from api_platform.api.production_ops_wiring import build_production_ops_deps
+
+    result = state.platform.run_production_ops(
+        "dependencies", api_state=state, deps=build_production_ops_deps()
+    )
     return JSONResponse(result, status_code=200 if result.get("ok") else 503)

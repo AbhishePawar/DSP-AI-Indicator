@@ -10,6 +10,8 @@ import os
 import time
 from typing import Any, Mapping
 
+from dsp_platform.production_ops.deps import ProductionOpsDeps
+
 UNAVAILABLE_MESSAGE = "Data unavailable."
 PRODUCTION_OPS_SCHEMA_VERSION = "1.0.0"
 PRODUCTION_OPS_SERVICE_VERSION = "0.1.0"
@@ -64,24 +66,29 @@ def run_production_ops(
     platform: Any = None,
     api_state: Any = None,
     payload: Mapping[str, Any] | None = None,
+    deps: ProductionOpsDeps | None = None,
 ) -> dict[str, Any]:
-    """Dispatch a production-ops action — aggregation only."""
+    """Dispatch a production-ops action — aggregation only.
+
+    Infra/HTTP helpers must be supplied via ``deps`` from the composition root
+    (never imported from api_platform / production_platform here).
+    """
     body = dict(payload or {})
     act = (action or "").strip().lower().replace("-", "_")
     handlers = {
         "schema": production_ops_schema,
-        "health": lambda: _health(platform, api_state),
-        "live": lambda: _live(),
+        "health": lambda: _health(platform, api_state, deps),
+        "live": lambda: _live(deps),
         "ready": lambda: _ready(platform, api_state),
-        "startup": lambda: _startup(platform, api_state),
-        "status": lambda: _status(platform, api_state),
-        "version": lambda: _version(),
+        "startup": lambda: _startup(platform, api_state, deps),
+        "status": lambda: _status(platform, api_state, deps),
+        "version": lambda: _version(deps),
         "dependencies": lambda: _dependencies(platform, api_state),
-        "metrics": lambda: _metrics_summary(),
-        "observability": lambda: _observability(),
-        "backup": lambda: _backup(body),
-        "secrets": lambda: _secrets(),
-        "dashboard": lambda: _dashboard(platform, api_state),
+        "metrics": lambda: _metrics_summary(deps),
+        "observability": lambda: _observability(deps),
+        "backup": lambda: _backup(body, deps),
+        "secrets": lambda: _secrets(deps),
+        "dashboard": lambda: _dashboard(platform, api_state, deps),
     }
     if act not in handlers:
         raise ValueError(f"Unknown production-ops action: {action!r}")
@@ -108,33 +115,34 @@ def run_production_ops(
     }
 
 
-def _version() -> dict[str, Any]:
-    try:
-        from api_platform.api.ops import get_build_metadata
+def _version(deps: ProductionOpsDeps | None = None) -> dict[str, Any]:
+    getter = deps.get_build_metadata if deps is not None else None
+    if getter is not None:
+        try:
+            build = getter()
+            return {
+                "application_version": build.application_version,
+                "api_version": build.api_version,
+                "platform_version": build.platform_version,
+                "pipeline_version": build.pipeline_version,
+                "git_sha": build.git_sha,
+                "build_timestamp": build.build_timestamp,
+                "environment": build.environment,
+                "release_channel": build.release_channel,
+                "uptime_seconds": round(time.time() - _START, 2),
+            }
+        except Exception:  # noqa: BLE001
+            pass
+    return {
+        "application_version": os.environ.get("DSP_APP_VERSION", "unknown"),
+        "git_sha": os.environ.get("GIT_SHA", "unknown"),
+        "environment": os.environ.get("DSP_ENVIRONMENT", "development"),
+        "message": UNAVAILABLE_MESSAGE,
+    }
 
-        build = get_build_metadata()
-        return {
-            "application_version": build.application_version,
-            "api_version": build.api_version,
-            "platform_version": build.platform_version,
-            "pipeline_version": build.pipeline_version,
-            "git_sha": build.git_sha,
-            "build_timestamp": build.build_timestamp,
-            "environment": build.environment,
-            "release_channel": build.release_channel,
-            "uptime_seconds": round(time.time() - _START, 2),
-        }
-    except Exception:  # noqa: BLE001
-        return {
-            "application_version": os.environ.get("DSP_APP_VERSION", "unknown"),
-            "git_sha": os.environ.get("GIT_SHA", "unknown"),
-            "environment": os.environ.get("DSP_ENVIRONMENT", "development"),
-            "message": UNAVAILABLE_MESSAGE,
-        }
 
-
-def _live() -> dict[str, Any]:
-    ver = _version()
+def _live(deps: ProductionOpsDeps | None = None) -> dict[str, Any]:
+    ver = _version(deps)
     return {
         "status": "alive",
         "probe": "live",
@@ -207,14 +215,19 @@ def _ready(platform: Any, api_state: Any) -> dict[str, Any]:
     }
 
 
-def _startup(platform: Any, api_state: Any) -> dict[str, Any]:
-    try:
-        from api_platform.api.monitoring import get_lifecycle_state
-
-        lifecycle = get_lifecycle_state()
-        lifecycle_value = getattr(lifecycle, "value", str(lifecycle))
-    except Exception:  # noqa: BLE001
-        lifecycle_value = "unknown"
+def _startup(
+    platform: Any,
+    api_state: Any,
+    deps: ProductionOpsDeps | None = None,
+) -> dict[str, Any]:
+    lifecycle_value = "unknown"
+    getter = deps.get_lifecycle_state if deps is not None else None
+    if getter is not None:
+        try:
+            lifecycle = getter()
+            lifecycle_value = getattr(lifecycle, "value", str(lifecycle))
+        except Exception:  # noqa: BLE001
+            lifecycle_value = "unknown"
 
     ready, checks = _platform_ready(platform)
     startup_ok = lifecycle_value not in {"unhealthy", "stopped", "shutting_down"}
@@ -298,90 +311,114 @@ def _dependencies(platform: Any, api_state: Any) -> dict[str, Any]:
     }
 
 
-def _health(platform: Any, api_state: Any) -> dict[str, Any]:
+def _health(
+    platform: Any,
+    api_state: Any,
+    deps: ProductionOpsDeps | None = None,
+) -> dict[str, Any]:
     return {
-        "live": _live(),
+        "live": _live(deps),
         "ready": _ready(platform, api_state),
-        "startup": _startup(platform, api_state),
+        "startup": _startup(platform, api_state, deps),
         "dependencies": _dependencies(platform, api_state),
-        "version": _version(),
+        "version": _version(deps),
     }
 
 
-def _status(platform: Any, api_state: Any) -> dict[str, Any]:
-    try:
-        from api_platform.api.ops import (
-            collect_component_statuses,
-            collect_health_snapshot,
-            resolve_platform_status,
-        )
+def _status(
+    platform: Any,
+    api_state: Any,
+    deps: ProductionOpsDeps | None = None,
+) -> dict[str, Any]:
+    collect_statuses = deps.collect_component_statuses if deps is not None else None
+    resolve_status = deps.resolve_platform_status if deps is not None else None
+    collect_snapshot = deps.collect_health_snapshot if deps is not None else None
+    if collect_statuses is not None and resolve_status is not None:
+        try:
+            ready, _ = _platform_ready(platform)
+            components = collect_statuses(api_state, platform_ready=ready)
+            lifecycle = resolve_status(platform_ready=ready, components=components)
+            snapshot = (
+                collect_snapshot(api_state)
+                if collect_snapshot is not None and api_state
+                else {}
+            )
+            return {
+                "lifecycle": getattr(lifecycle, "value", str(lifecycle)),
+                "platform_ready": ready,
+                "components": components,
+                "snapshot": snapshot,
+                "observability": _observability(deps),
+            }
+        except Exception as exc:  # noqa: BLE001
+            ready, checks = _platform_ready(platform)
+            return {
+                "lifecycle": "unknown",
+                "platform_ready": ready,
+                "checks": checks,
+                "message": UNAVAILABLE_MESSAGE,
+                "error": str(exc),
+            }
+    ready, checks = _platform_ready(platform)
+    return {
+        "lifecycle": "unknown",
+        "platform_ready": ready,
+        "checks": checks,
+        "message": UNAVAILABLE_MESSAGE,
+    }
 
-        ready, _ = _platform_ready(platform)
-        components = collect_component_statuses(api_state, platform_ready=ready)
-        lifecycle = resolve_platform_status(
-            platform_ready=ready, components=components
-        )
-        snapshot = collect_health_snapshot(api_state) if api_state else {}
-        return {
-            "lifecycle": getattr(lifecycle, "value", str(lifecycle)),
-            "platform_ready": ready,
-            "components": components,
-            "snapshot": snapshot,
-            "observability": _observability(),
-        }
-    except Exception as exc:  # noqa: BLE001
-        ready, checks = _platform_ready(platform)
-        return {
-            "lifecycle": "unknown",
-            "platform_ready": ready,
-            "checks": checks,
-            "message": UNAVAILABLE_MESSAGE,
-            "error": str(exc),
-        }
 
-
-def _metrics_summary() -> dict[str, Any]:
+def _metrics_summary(deps: ProductionOpsDeps | None = None) -> dict[str, Any]:
     """Summary pointer to Prometheus /metrics — does not duplicate scrape payload."""
-    try:
-        from api_platform.api.ops import metrics_registry
+    render = deps.render_prometheus if deps is not None else None
+    if render is not None:
+        try:
+            text = render()
+            lines = [ln for ln in text.splitlines() if ln and not ln.startswith("#")]
+            return {
+                "available": True,
+                "scrape_path": "/metrics",
+                "ops_alias": "/ops/metrics",
+                "sample_series_count": len(lines),
+                "note": (
+                    "Full exposition at GET /metrics (Prometheus). "
+                    "Ops alias returns this summary + text."
+                ),
+                "prometheus_text_preview": "\n".join(lines[:40]),
+            }
+        except Exception as exc:  # noqa: BLE001
+            return {
+                "available": False,
+                "scrape_path": "/metrics",
+                "message": UNAVAILABLE_MESSAGE,
+                "error": str(exc),
+            }
+    return {
+        "available": False,
+        "scrape_path": "/metrics",
+        "message": UNAVAILABLE_MESSAGE,
+    }
 
-        text = metrics_registry.render_prometheus()
-        lines = [ln for ln in text.splitlines() if ln and not ln.startswith("#")]
-        return {
-            "available": True,
-            "scrape_path": "/metrics",
-            "ops_alias": "/ops/metrics",
-            "sample_series_count": len(lines),
-            "note": "Full exposition at GET /metrics (Prometheus). Ops alias returns this summary + text.",
-            "prometheus_text_preview": "\n".join(lines[:40]),
-        }
-    except Exception as exc:  # noqa: BLE001
-        return {
-            "available": False,
-            "scrape_path": "/metrics",
-            "message": UNAVAILABLE_MESSAGE,
-            "error": str(exc),
-        }
 
-
-def _observability() -> dict[str, Any]:
+def _observability(deps: ProductionOpsDeps | None = None) -> dict[str, Any]:
     otel_endpoint = os.environ.get("OTEL_EXPORTER_OTLP_ENDPOINT") or os.environ.get(
         "DSP_OTEL_ENDPOINT"
     )
-    try:
-        from production_platform.production.otel_tracing import try_build_otel_tracing
+    tracing_available = False
+    try_build = deps.try_build_otel_tracing if deps is not None else None
+    if try_build is not None:
+        try:
+            tracing_available = try_build() is not None
+        except Exception:  # noqa: BLE001
+            tracing_available = False
 
-        tracing = try_build_otel_tracing()
-        tracing_available = tracing is not None
-    except Exception:  # noqa: BLE001
-        tracing_available = False
-
-    try:
-        from production_platform.production.correlation import get_correlation_id
-
-        corr = get_correlation_id()
-    except Exception:  # noqa: BLE001
-        corr = None
+    corr = None
+    get_corr = deps.get_correlation_id if deps is not None else None
+    if get_corr is not None:
+        try:
+            corr = get_corr()
+        except Exception:  # noqa: BLE001
+            corr = None
 
     return {
         "structured_logging": {
@@ -434,20 +471,20 @@ def _observability() -> dict[str, Any]:
     }
 
 
-def _backup_adapter() -> Any:
-    try:
-        from production_platform.production.backup import NullBackupAdapter
-
-        return NullBackupAdapter()
-    except Exception:  # noqa: BLE001
-        return None
-
-
-def _backup(body: dict[str, Any]) -> dict[str, Any]:
-    adapter = _backup_adapter()
-    if adapter is None:
-        return {"available": False, "message": UNAVAILABLE_MESSAGE}
+def _backup(
+    body: dict[str, Any],
+    deps: ProductionOpsDeps | None = None,
+) -> dict[str, Any]:
+    adapter = deps.backup_adapter if deps is not None else None
     action = str(body.get("backup_action") or "status").lower()
+    if adapter is None:
+        payload: dict[str, Any] = {
+            "available": False,
+            "message": UNAVAILABLE_MESSAGE,
+        }
+        if action in {"create", "restore"}:
+            payload["ok"] = False
+        return payload
     if action == "list":
         return {
             "available": adapter.is_available(),
@@ -461,18 +498,18 @@ def _backup(body: dict[str, Any]) -> dict[str, Any]:
     return adapter.status()
 
 
-def _secrets() -> dict[str, Any]:
-    try:
-        from production_platform.production.backup import (
-            NullSecretRotationHook,
-            NullVaultSecretsProvider,
-        )
-
-        rotation = NullSecretRotationHook().rotation_status()
-        vault = NullVaultSecretsProvider().status()
-    except Exception:  # noqa: BLE001
-        rotation = {"available": False, "message": UNAVAILABLE_MESSAGE}
-        vault = {"available": False, "message": UNAVAILABLE_MESSAGE}
+def _secrets(deps: ProductionOpsDeps | None = None) -> dict[str, Any]:
+    rotation = {"available": False, "message": UNAVAILABLE_MESSAGE}
+    vault = {"available": False, "message": UNAVAILABLE_MESSAGE}
+    if deps is not None:
+        try:
+            if deps.secret_rotation_hook is not None:
+                rotation = deps.secret_rotation_hook.rotation_status()
+            if deps.vault_secrets_provider is not None:
+                vault = deps.vault_secrets_provider.status()
+        except Exception:  # noqa: BLE001
+            rotation = {"available": False, "message": UNAVAILABLE_MESSAGE}
+            vault = {"available": False, "message": UNAVAILABLE_MESSAGE}
 
     env_validation = {
         "script": "scripts/validate_env.py",
@@ -487,7 +524,11 @@ def _secrets() -> dict[str, Any]:
     }
 
 
-def _dashboard(platform: Any, api_state: Any) -> dict[str, Any]:
+def _dashboard(
+    platform: Any,
+    api_state: Any,
+    deps: ProductionOpsDeps | None = None,
+) -> dict[str, Any]:
     """Admin production ops dashboard — honest aggregates."""
     enterprise_ops = None
     try:
@@ -502,12 +543,12 @@ def _dashboard(platform: Any, api_state: Any) -> dict[str, Any]:
         enterprise_ops = {"available": False, "message": UNAVAILABLE_MESSAGE}
 
     return {
-        "health": _health(platform, api_state),
-        "version": _version(),
-        "observability": _observability(),
-        "metrics": _metrics_summary(),
-        "backup": _backup({"backup_action": "status"}),
-        "secrets": _secrets(),
+        "health": _health(platform, api_state, deps),
+        "version": _version(deps),
+        "observability": _observability(deps),
+        "metrics": _metrics_summary(deps),
+        "backup": _backup({"backup_action": "status"}, deps),
+        "secrets": _secrets(deps),
         "enterprise_ops": enterprise_ops,
         "security_hardening": {
             "headers": "api_platform.ops_middleware.SecurityHeadersMiddleware",

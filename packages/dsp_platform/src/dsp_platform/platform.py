@@ -1466,12 +1466,21 @@ class DSPPlatform:
         *,
         api_state: object | None = None,
         payload: dict[str, object] | None = None,
+        deps: object | None = None,
     ) -> dict[str, object]:
-        """Aggregate production health/metrics/backup status — no new probes."""
-        from dsp_platform.production_ops import run_production_ops
+        """Aggregate production health/metrics/backup status — no new probes.
 
+        ``deps`` is supplied by the HTTP composition root (api_platform).
+        """
+        from dsp_platform.production_ops import ProductionOpsDeps, run_production_ops
+
+        typed_deps = deps if isinstance(deps, ProductionOpsDeps) else None
         return run_production_ops(
-            action, platform=self, api_state=api_state, payload=payload
+            action,
+            platform=self,
+            api_state=api_state,
+            payload=payload,
+            deps=typed_deps,
         )
 
     # -- Super Admin Control Center (RC1 Milestone 11) ------------------
@@ -1487,12 +1496,17 @@ class DSPPlatform:
         *,
         api_state: object | None = None,
         payload: dict[str, object] | None = None,
+        ops_deps: object | None = None,
     ) -> dict[str, object]:
         """Orchestrate configuration registry + façades — never execute engines."""
         from dsp_platform.control_center import run_control_center
 
         return run_control_center(
-            action, platform=self, api_state=api_state, payload=payload
+            action,
+            platform=self,
+            api_state=api_state,
+            payload=payload,
+            ops_deps=ops_deps,
         )
 
     # -- Decision Workspace (EPIC-A004) ---------------------------------

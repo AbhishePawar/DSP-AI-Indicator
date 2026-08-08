@@ -14,6 +14,7 @@ from pydantic import BaseModel, ConfigDict, Field
 
 from api_platform.api.dependencies import ApiState, get_api_state
 from api_platform.api.ops import metrics_registry
+from api_platform.api.production_ops_wiring import build_production_ops_deps
 
 router = APIRouter(tags=["ops"])
 
@@ -34,7 +35,10 @@ def _dispatch(
 ) -> JSONResponse:
     try:
         result = state.platform.run_production_ops(
-            action, api_state=state, payload=payload
+            action,
+            api_state=state,
+            payload=payload,
+            deps=build_production_ops_deps(),
         )
     except ValueError as exc:
         return JSONResponse(

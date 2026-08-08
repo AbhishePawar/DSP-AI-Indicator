@@ -91,6 +91,8 @@ def _seed_statements(symbol: str = TICKER):
                 "currency": "USD",
             },
             "reporting_currency": "USD",
+            "statement_basis": "consolidated",
+            "unit_scale": "actual",
             "periods": [
                 {
                     "period_type": "annual",
@@ -108,6 +110,7 @@ def _seed_statements(symbol: str = TICKER):
                     "balance_sheet": {
                         "cash": 50.0,
                         "total_assets": 1500.0,
+                        "total_liabilities": 500.0,
                         "equity": 1000.0,
                         "total_debt": 200.0,
                     },
@@ -128,10 +131,15 @@ def _seed_statements(symbol: str = TICKER):
                         "net_income": 90.0,
                         "eps_basic": 0.9,
                     },
-                    "balance_sheet": {"equity": 900.0, "total_assets": 1400.0},
+                    "balance_sheet": {
+                        "equity": 900.0,
+                        "total_assets": 1400.0,
+                        "total_liabilities": 500.0,
+                    },
                     "cash_flow": {
                         "operating_cash_flow": 130.0,
                         "capex": -25.0,
+                        "free_cash_flow": 105.0,
                     },
                     "ratios": {},
                 },

@@ -96,6 +96,15 @@ def build_period_from_mapping(payload: Mapping[str, Any]) -> AuthenticatedStatem
         payload.get("reporting_currency") or payload.get("currency")
     )
 
+    basis_raw = payload.get("statement_basis") or payload.get("basis")
+    statement_basis = (
+        str(basis_raw).strip().lower() if basis_raw is not None and str(basis_raw).strip() else None
+    )
+    unit_raw = payload.get("unit_scale") or payload.get("units")
+    unit_scale = (
+        str(unit_raw).strip().lower() if unit_raw is not None and str(unit_raw).strip() else None
+    )
+
     return AuthenticatedStatementPeriod(
         period_type=period_type,
         fiscal_year=fiscal_year,
@@ -137,6 +146,8 @@ def build_period_from_mapping(payload: Mapping[str, Any]) -> AuthenticatedStatem
         net_margin=_sf(ratios_m, "net_margin"),
         revenue_growth=_sf(ratios_m, "revenue_growth"),
         eps_growth=_sf(ratios_m, "eps_growth"),
+        statement_basis=statement_basis,
+        unit_scale=unit_scale,
     )
 
 
@@ -186,7 +197,20 @@ def build_statements_from_mapping(
     if not isinstance(periods_raw, list) or not periods_raw:
         raise InvalidProviderDataError("statements payload missing periods")
 
-    periods = tuple(build_period_from_mapping(p) for p in periods_raw if isinstance(p, Mapping))
+    # Bundle-level defaults (P1-02) applied when period omits basis/unit.
+    default_basis = payload.get("statement_basis") or payload.get("basis")
+    default_unit = payload.get("unit_scale") or payload.get("units")
+    built: list[AuthenticatedStatementPeriod] = []
+    for p in periods_raw:
+        if not isinstance(p, Mapping):
+            continue
+        period_payload = dict(p)
+        if default_basis is not None and not period_payload.get("statement_basis") and not period_payload.get("basis"):
+            period_payload["statement_basis"] = default_basis
+        if default_unit is not None and not period_payload.get("unit_scale") and not period_payload.get("units"):
+            period_payload["unit_scale"] = default_unit
+        built.append(build_period_from_mapping(period_payload))
+    periods = tuple(built)
     if not periods:
         raise InvalidProviderDataError("statements payload has no valid periods")
 

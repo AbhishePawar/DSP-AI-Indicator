@@ -87,6 +87,15 @@ def _validate_period(period: AuthenticatedStatementPeriod, index: int) -> None:
         raise InvalidProviderDataError(
             f"{prefix}.fiscal_quarter must be 1..4 or null"
         )
+    if period.statement_basis is not None:
+        basis = str(period.statement_basis).strip().lower()
+        if basis not in {"consolidated", "standalone"}:
+            raise InvalidProviderDataError(
+                f"{prefix}.statement_basis must be consolidated|standalone, "
+                f"got {period.statement_basis!r}"
+            )
+    if period.unit_scale is not None and not str(period.unit_scale).strip():
+        raise InvalidProviderDataError(f"{prefix}.unit_scale must be non-empty when set")
     for name in _PERIOD_FIELDS:
         _check_field(f"{prefix}.{name}", getattr(period, name))
 

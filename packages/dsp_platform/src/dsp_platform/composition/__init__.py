@@ -16,6 +16,11 @@ from dsp_platform.composition.authenticated_valuation import (
     load_authenticated_valuation_bundle,
     signals_from_assessment,
 )
+from dsp_platform.composition.financial_integrity import (
+    FinancialIntegrityError,
+    normalize_periods_to_actual,
+    unit_scale_factor,
+)
 from dsp_platform.composition.config import PipelineConfiguration
 from dsp_platform.composition.context import ExecutionContext
 from dsp_platform.composition.errors import CompositionStageError
@@ -43,6 +48,7 @@ __all__ = [
     "EXECUTION_ORDER",
     "AuthenticatedValuationBundle",
     "AuthenticatedValuationError",
+    "FinancialIntegrityError",
     "CompanyRiskView",
     "CompositionInputError",
     "CompositionRequest",
@@ -62,7 +68,9 @@ __all__ = [
     "composition_capability_manifest",
     "composition_package_versions",
     "load_authenticated_valuation_bundle",
+    "normalize_periods_to_actual",
     "pipeline_result_public_dict",
     "run_execution_pipeline",
     "signals_from_assessment",
+    "unit_scale_factor",
 ]

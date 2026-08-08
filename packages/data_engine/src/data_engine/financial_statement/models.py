@@ -149,6 +149,11 @@ class AuthenticatedStatementPeriod:
     net_margin: StatementField
     revenue_growth: StatementField
     eps_growth: StatementField
+    # P1-02 integrity metadata — required for authoritative valuation path.
+    # statement_basis: "consolidated" | "standalone"
+    # unit_scale: actual|thousands|millions|billions|lakh|crore|...
+    statement_basis: str | None = None
+    unit_scale: str | None = None
 
     def to_public_dict(self) -> dict[str, Any]:
         def _f(q: StatementField) -> float | None:
@@ -164,6 +169,8 @@ class AuthenticatedStatementPeriod:
             "filing_date": self.filing_date.isoformat() if self.filing_date else None,
             "reporting_currency": self.reporting_currency,
             "restated": self.restated,
+            "statement_basis": self.statement_basis,
+            "unit_scale": self.unit_scale,
             "income_statement": {
                 "revenue": _f(self.revenue),
                 "cost_of_revenue": _f(self.cost_of_revenue),

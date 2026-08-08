@@ -33,13 +33,27 @@ from financial import (
     FinancialStatements,
     IncomeStatement,
     PeriodType,
+    UnitScale,
 )
+from financial.metadata import StatementMetadata
 from fundamental import FinancialSnapshot
 from investment_recommendation import ValuationSignals
 from valuation import MarketSnapshot, ValuationAssessment, ValuationConfidence
 
 from data_engine.connector_framework.production_profile import (
     is_production_environment,
+)
+from dsp_platform.composition.financial_integrity import (
+    FinancialIntegrityError,
+    assert_balance_sheet_integrity,
+    assert_cash_flow_integrity,
+    assert_duplicate_periods,
+    assert_eps_share_integrity,
+    assert_profitability_sanity,
+    assert_share_count_integrity,
+    assert_statement_basis,
+    assert_unit_homogeneous,
+    normalize_periods_to_actual,
 )
 
 __all__ = [
@@ -76,7 +90,7 @@ class AuthenticatedValuationError(ValueError):
 
 @dataclass(frozen=True, slots=True)
 class AuthenticatedValuationBundle:
-    """Server-authoritative inputs for ValuationEngine (P1-01)."""
+    """Server-authoritative inputs for ValuationEngine (P1-01 / P1-02)."""
 
     ticker: str
     financial_snapshot: FinancialSnapshot
@@ -87,17 +101,30 @@ class AuthenticatedValuationBundle:
     statement_provenance: dict[str, Any]
     quote_provenance: dict[str, Any]
     period_kind: str
+    statement_basis: str
+    unit_scale: str
     company_name: str | None = None
 
     def to_trace_dict(self) -> dict[str, Any]:
+        latest = self.financial_snapshot.latest
         return {
             "ticker": self.ticker,
             "reporting_currency": self.reporting_currency,
             "period_kind": self.period_kind,
+            "statement_basis": self.statement_basis,
+            "unit_scale": self.unit_scale,
             "current_market_price": self.current_market_price,
             "shares_outstanding": self.shares_outstanding,
             "market_cap": self.market_snapshot.market_cap,
             "company_name": self.company_name,
+            "revenue": latest.revenue,
+            "operating_income": latest.operating_income,
+            "net_income": latest.net_income,
+            "operating_cash_flow": latest.operating_cash_flow,
+            "capital_expenditures": latest.capital_expenditures,
+            "total_equity": latest.total_equity,
+            "total_debt": latest.total_debt,
+            "cash_and_equivalents": latest.cash_and_equivalents,
             "statement_provenance": dict(self.statement_provenance),
             "quote_provenance": dict(self.quote_provenance),
             "authenticated": True,
@@ -230,6 +257,10 @@ def _to_fundamental_statement(
         value = _sf(getattr(period, name))
         if value is not None:
             extras.append((name, value))
+    # Valuation methods treat capex as a non-negative outflow magnitude.
+    capex = _sf(period.capital_expenditures)
+    if capex is not None:
+        capex = abs(capex)
     return FundamentalStatement(
         instrument=instrument,
         period_end=period.period_end,
@@ -251,7 +282,7 @@ def _to_fundamental_statement(
         operating_cash_flow=_sf(period.operating_cash_flow),
         investing_cash_flow=_sf(period.investing_cash_flow),
         financing_cash_flow=_sf(period.financing_cash_flow),
-        capital_expenditures=_sf(period.capital_expenditures),
+        capital_expenditures=capex,
         extra_line_items=tuple(extras),
     )
 
@@ -269,6 +300,12 @@ def to_financial_statements(
         ) from exc
     currency = CurrencyRef.parse(latest.currency)
     shares = bundle.shares_outstanding
+    fcf = None
+    if (
+        latest.operating_cash_flow is not None
+        and latest.capital_expenditures is not None
+    ):
+        fcf = latest.operating_cash_flow - abs(latest.capital_expenditures)
     return FinancialStatements(
         period=FinancialPeriod(
             period_type=period_type,
@@ -304,7 +341,9 @@ def to_financial_statements(
                 if latest.capital_expenditures is not None
                 else None
             ),
+            free_cash_flow=fcf,
         ),
+        statement_metadata=StatementMetadata(unit_scale=UnitScale.ACTUAL),
     )
 
 
@@ -388,13 +427,56 @@ def load_authenticated_valuation_bundle(
         )
 
     selected = _select_homogeneous_periods(statements.periods)
+    try:
+        statement_basis = assert_statement_basis(selected)
+        source_unit = assert_unit_homogeneous(selected)
+        assert_duplicate_periods(selected)
+        selected = normalize_periods_to_actual(selected, source_unit=source_unit)
+        for period in selected:
+            assert_profitability_sanity(period)
+            assert_cash_flow_integrity(period)
+            assert_balance_sheet_integrity(period)
+    except FinancialIntegrityError as exc:
+        raise AuthenticatedValuationError(str(exc)) from exc
+
     reporting_currency = _validate_currency_set(selected, quote.currency)
     price = _resolve_price(quote)
-    shares = _resolve_shares(quote, selected[0])
+
+    quote_shares = _qf(quote.shares_outstanding)
+    derived_shares = None
+    latest_period = selected[0]
+    net_income = _sf(latest_period.net_income)
+    eps = _sf(latest_period.eps_basic) or _sf(latest_period.eps_diluted)
+    if net_income is not None and eps is not None and eps != 0:
+        derived_shares = float(abs(net_income / eps))
+    try:
+        assert_share_count_integrity(
+            quote_shares=quote_shares,
+            derived_shares=derived_shares,
+        )
+    except FinancialIntegrityError as exc:
+        raise AuthenticatedValuationError(str(exc)) from exc
+
+    shares = _resolve_shares(quote, latest_period)
+    try:
+        assert_eps_share_integrity(latest_period, shares)
+    except FinancialIntegrityError as exc:
+        raise AuthenticatedValuationError(str(exc)) from exc
 
     market_cap = _qf(quote.market_cap)
     if market_cap is None or market_cap <= 0:
         market_cap = price * shares
+    elif quote_shares is not None and quote_shares > 0:
+        # Reject market_cap that implies a materially different share count.
+        implied_shares = float(market_cap) / price
+        try:
+            assert_share_count_integrity(
+                quote_shares=quote_shares,
+                derived_shares=implied_shares,
+                tolerance=0.25,
+            )
+        except FinancialIntegrityError as exc:
+            raise AuthenticatedValuationError(str(exc)) from exc
 
     instrument = Instrument(
         symbol=symbol,
@@ -430,6 +512,8 @@ def load_authenticated_valuation_bundle(
         statement_provenance=statements.provenance.to_dict(),
         quote_provenance=quote.provenance.to_dict(),
         period_kind=selected[0].period_type,
+        statement_basis=statement_basis,
+        unit_scale="actual",
         company_name=statements.identity.company_name,
     )
 

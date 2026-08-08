@@ -34,15 +34,34 @@ def validate_analyse_request(body: AnalyseRequest) -> list[str]:
     if not period.period_end.strip():
         errors.append("financial_statements.period.period_end is required")
 
-    has_signals = body.valuation_signals is not None and (
-        body.valuation_signals.intrinsic_value_per_share is not None
-        or body.valuation_signals.current_market_price is not None
+    # P0-02 — clients may supply market price only. Investment conclusions
+    # (IV / MoS / premium-discount) are rejected at the HTTP boundary.
+    if body.valuation_signals is not None:
+        vs = body.valuation_signals
+        if vs.intrinsic_value_per_share is not None:
+            errors.append(
+                "client-supplied valuation_signals.intrinsic_value_per_share "
+                "is not accepted (P0-02)"
+            )
+        if vs.margin_of_safety is not None:
+            errors.append(
+                "client-supplied valuation_signals.margin_of_safety "
+                "is not accepted (P0-02)"
+            )
+        if vs.premium_discount is not None:
+            errors.append(
+                "client-supplied valuation_signals.premium_discount "
+                "is not accepted (P0-02)"
+            )
+
+    has_price = body.current_market_price is not None or (
+        body.valuation_signals is not None
+        and body.valuation_signals.current_market_price is not None
     )
-    has_price = body.current_market_price is not None
-    if not has_signals and not has_price:
+    if not has_price:
         errors.append(
-            "missing valuation data: provide valuation_signals and/or "
-            "current_market_price"
+            "missing valuation data: provide current_market_price "
+            "(client investment conclusions are not accepted)"
         )
 
     income = body.financial_statements.income_statement or {}

@@ -125,9 +125,13 @@ def validate_payload(
     warnings: list[str] = []
     if body.exchange is None:
         warnings.append("exchange not provided")
-    if body.valuation_signals is None and body.current_market_price is not None:
+    if body.current_market_price is not None or (
+        body.valuation_signals is not None
+        and body.valuation_signals.current_market_price is not None
+    ):
         warnings.append(
-            "price-only valuation path may run degraded valuation stage"
+            "price-only valuation path may run when ValuationEngine inputs "
+            "are unavailable; client IV/MoS conclusions are never accepted"
         )
     return ValidateResponse(
         ok=len(errors) == 0,

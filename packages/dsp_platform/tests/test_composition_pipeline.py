@@ -90,11 +90,7 @@ def test_execution_order_is_canonical() -> None:
 def test_pipeline_runs_end_to_end(statements: FinancialStatements) -> None:
     request = CompositionRequest(
         financial_statements=statements,
-        valuation_signals=ValuationSignals(
-            intrinsic_value_per_share=100.0,
-            current_market_price=70.0,
-            confidence=0.7,
-        ),
+        current_market_price=70.0,
         company="Acme",
         ticker="ACM",
     )
@@ -116,10 +112,7 @@ def test_pipeline_runs_end_to_end(statements: FinancialStatements) -> None:
 def test_pipeline_is_deterministic(statements: FinancialStatements) -> None:
     request = CompositionRequest(
         financial_statements=statements,
-        valuation_signals=ValuationSignals(
-            intrinsic_value_per_share=100.0,
-            current_market_price=70.0,
-        ),
+        current_market_price=70.0,
     )
     orch = PlatformOrchestrator(platform_version="0.7.0")
     a = orch.execute(request).to_dict()
@@ -152,15 +145,39 @@ def test_platform_compose_intelligence(statements: FinancialStatements) -> None:
     platform = DSPPlatform()
     request = CompositionRequest(
         financial_analysis=FinancialEngine().analyze_financials(statements),
-        valuation_signals=ValuationSignals(
-            intrinsic_value_per_share=100.0,
-            current_market_price=75.0,
-        ),
+        current_market_price=75.0,
     )
     envelope = platform.compose_intelligence(request)
     assert envelope.capability == "compose_intelligence"
     assert envelope.ok is True
     assert envelope.payload.investment_committee is not None
+
+
+def test_p0_02_client_valuation_signals_cannot_set_intrinsic_value(
+    statements: FinancialStatements,
+) -> None:
+    """P0-02 — forged client IV must not become authoritative signals."""
+    forged_iv = 999.0
+    request = CompositionRequest(
+        financial_statements=statements,
+        valuation_signals=ValuationSignals(
+            intrinsic_value_per_share=forged_iv,
+            current_market_price=70.0,
+            confidence=0.99,
+        ),
+        company="Acme",
+        ticker="ACM",
+    )
+    result = PlatformOrchestrator(platform_version="0.7.0").execute(request)
+    assert result.ok is True
+    valuation_outcome = next(s for s in result.stages if s.stage == "valuation")
+    assert any("P0-02" in w for w in valuation_outcome.warnings)
+    signals = result.valuation
+    # Pipeline returns ValuationSignals on the degraded price-only path.
+    assert signals is not None
+    iv = getattr(signals, "intrinsic_value_per_share", None)
+    assert iv != forged_iv
+    assert iv is None  # no ValuationEngine snapshot → honest price-only
 
 
 def test_build_composition_request_from_dict(statements: FinancialStatements) -> None:
@@ -170,10 +187,7 @@ def test_build_composition_request_from_dict(statements: FinancialStatements) ->
         ticker="acm",
         company="Acme",
         financial_statements=statements.to_dict(),
-        valuation_signals={
-            "intrinsic_value_per_share": 100.0,
-            "current_market_price": 70.0,
-        },
+        current_market_price=70.0,
     )
     assert req.ticker == "ACM"
     assert req.financial_statements is not None

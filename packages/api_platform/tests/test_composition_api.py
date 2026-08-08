@@ -80,11 +80,8 @@ def _analyse_body(**overrides: object) -> dict:
             },
             "statement_metadata": {"unit_scale": "millions"},
         },
-        "valuation_signals": {
-            "intrinsic_value_per_share": 100.0,
-            "current_market_price": 70.0,
-            "confidence": 0.7,
-        },
+        # P0-02 — market price input only; never client IV/MoS conclusions.
+        "current_market_price": 70.0,
     }
     body.update(overrides)
     return body
@@ -132,12 +129,25 @@ class TestValidate:
 
     def test_validate_missing_valuation(self, client: TestClient) -> None:
         payload = _analyse_body()
-        payload.pop("valuation_signals")
+        payload.pop("current_market_price")
         response = client.post("/api/v1/validate", json=payload)
         assert response.status_code == 200
         body = response.json()
         assert body["valid"] is False
-        assert any("valuation" in e for e in body["errors"])
+        assert any("valuation" in e or "current_market_price" in e for e in body["errors"])
+
+    def test_validate_rejects_client_intrinsic_value(self, client: TestClient) -> None:
+        payload = _analyse_body(
+            valuation_signals={
+                "intrinsic_value_per_share": 999.0,
+                "current_market_price": 70.0,
+            }
+        )
+        response = client.post("/api/v1/validate", json=payload)
+        assert response.status_code == 200
+        body = response.json()
+        assert body["valid"] is False
+        assert any("P0-02" in e for e in body["errors"])
 
     def test_validate_bad_ticker(self, client: TestClient) -> None:
         response = client.post(
@@ -166,7 +176,7 @@ class TestAnalyse:
 
     def test_analyse_validation_error(self, client: TestClient) -> None:
         payload = _analyse_body()
-        payload.pop("valuation_signals")
+        payload.pop("current_market_price")
         response = client.post("/api/v1/analyse", json=payload)
         assert response.status_code == 422
         body = response.json()
@@ -174,7 +184,41 @@ class TestAnalyse:
         assert body["error_code"] == "VALIDATION_ERROR"
         assert body["correlation_id"]
         assert body["timestamp"]
-        assert any("valuation" in e for e in body["validation_errors"])
+        assert any(
+            "valuation" in e or "current_market_price" in e
+            for e in body["validation_errors"]
+        )
+
+    def test_analyse_rejects_forged_client_iv(self, client: TestClient) -> None:
+        """P0-02 — forged client IV must fail closed at the HTTP boundary."""
+        payload = _analyse_body(
+            valuation_signals={
+                "intrinsic_value_per_share": 999.0,
+                "current_market_price": 70.0,
+                "confidence": 0.99,
+            }
+        )
+        response = client.post("/api/v1/analyse", json=payload)
+        assert response.status_code == 422
+        body = response.json()
+        assert body["ok"] is False
+        assert body["error_code"] == "VALIDATION_ERROR"
+        assert any("intrinsic_value_per_share" in e for e in body["validation_errors"])
+
+    def test_analyse_accepts_price_only_without_client_iv(
+        self, client: TestClient
+    ) -> None:
+        """P0-02 — analyse proceeds with market price; no client IV required."""
+        response = client.post("/api/v1/analyse", json=_analyse_body())
+        assert response.status_code == 200
+        body = response.json()
+        assert body["ok"] is True
+        payload = body["payload"]
+        assert payload["ok"] is True
+        valuation_stage = next(
+            s for s in payload["stage_summaries"] if s["stage"] == "valuation"
+        )
+        assert valuation_stage["status"] in {"succeeded", "degraded"}
 
     def test_analyse_schema_rejects_extra(self, client: TestClient) -> None:
         payload = _analyse_body()

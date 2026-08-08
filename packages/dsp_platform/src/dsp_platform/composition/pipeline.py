@@ -276,18 +276,30 @@ def _stage_financial(
 def _stage_valuation(
     ctx: ExecutionContext,
 ) -> tuple[Any, list[str], StageStatus]:
+    """Compute valuation signals for downstream recommendation stages.
+
+    P0-02 — Client-supplied investment conclusions are never authoritative.
+    ``valuation_signals`` / ``overall_valuation`` on the request may supply a
+    market *price* input only; intrinsic value, MoS, premium/discount, and
+    confidence are ignored so clients cannot skip ``ValuationEngine`` or set
+    IV/MoS/recommendation outcomes.
+    """
     warnings: list[str] = []
     price = ctx.request.current_market_price
 
     if ctx.request.overall_valuation is not None:
-        signals = ValuationSignals.from_overall(ctx.request.overall_valuation)
-        ctx.results["valuation_signals"] = signals
-        return ctx.request.overall_valuation, warnings, StageStatus.SUCCEEDED
+        warnings.append(
+            "client overall_valuation ignored — investment conclusions are "
+            "server-authoritative (P0-02)"
+        )
 
     if ctx.request.valuation_signals is not None:
-        ctx.results["valuation_signals"] = ctx.request.valuation_signals
-        warnings.append("valuation_signals provided — ValuationEngine skipped")
-        return ctx.request.valuation_signals, warnings, StageStatus.DEGRADED
+        warnings.append(
+            "client valuation_signals ignored for investment conclusions "
+            "(P0-02); ValuationEngine / price-only path used instead"
+        )
+        if price is None:
+            price = ctx.request.valuation_signals.current_market_price
 
     if ctx.request.financial_snapshot is not None:
         assessment = ValuationEngine().analyze(
@@ -310,10 +322,10 @@ def _stage_valuation(
 
     if price is None:
         raise ValueError(
-            "Provide overall_valuation, valuation_signals, or "
-            "financial_snapshot + current_market_price"
+            "current_market_price is required when ValuationEngine inputs "
+            "are unavailable; client valuation conclusions are not accepted"
         )
-    # Graceful degradation: price-only signals (IV unknown)
+    # Graceful degradation: price-only signals (IV unknown — never client IV)
     signals = ValuationSignals(
         intrinsic_value_per_share=None,
         current_market_price=float(price),

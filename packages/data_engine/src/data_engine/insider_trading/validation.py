@@ -1,18 +1,60 @@
-"""Bytecode-backed recovery shim — loads frozen RC1 connector bytecode."""
+"""Validate authenticated insider trading bundles — reject invalid / fabricated envelopes."""
+
 from __future__ import annotations
 
-from importlib.machinery import SourcelessFileLoader
-from pathlib import Path
-import sys
+from data_engine.connector_framework.models import ConnectorField
+from data_engine.exceptions import InvalidProviderDataError
+from data_engine.insider_trading.models import (
+    INSIDER_TRANSACTION_TYPES,
+    AuthenticatedInsiderActivity,
+    InsiderTransaction,
+)
 
-_REPO = Path(__file__).resolve()
-# Walk up to repo root (contains .bytecode_backup)
-_root = _REPO
-while _root.parent != _root and not (_root / '.bytecode_backup').exists():
-    _root = _root.parent
-_BACKUP = _root / '.bytecode_backup' / 'packages__data_engine__src__data_engine__insider_trading' / 'validation.cpython-313.pyc'
-_loader = SourcelessFileLoader(__name__, str(_BACKUP))
-_code = _loader.get_code(__name__)
-if _code is None:
-    raise ImportError(f'Unable to load bytecode from {_BACKUP}')
-exec(_code, globals())
+__all__ = ["validate_authenticated_insider_activity"]
+
+_DISALLOWED_SOURCE = frozenset(
+    {"", "example", "dummy", "placeholder", "fabricated", "estimated"}
+)
+
+
+def _check_field(name: str, f: ConnectorField) -> None:
+    if f.available and f.value is None:
+        raise InvalidProviderDataError(f"insider field '{name}' marked available with null value")
+    if not f.available and f.value is not None:
+        raise InvalidProviderDataError(f"insider field '{name}' has value but marked unavailable")
+
+
+def _validate_transaction(txn: InsiderTransaction, index: int) -> None:
+    prefix = f"transactions[{index}]"
+    if not txn.transaction_id or not str(txn.transaction_id).strip():
+        raise InvalidProviderDataError(f"{prefix} missing transaction_id")
+    if not txn.insider_name or not str(txn.insider_name).strip():
+        raise InvalidProviderDataError(f"{prefix} missing insider_name")
+    if txn.transaction_type not in INSIDER_TRANSACTION_TYPES:
+        raise InvalidProviderDataError(
+            f"{prefix}.transaction_type must be one of {sorted(INSIDER_TRANSACTION_TYPES)}, "
+            f"got {txn.transaction_type!r}"
+        )
+    for name in ("shares", "price", "value"):
+        _check_field(f"{prefix}.{name}", getattr(txn, name))
+
+
+def validate_authenticated_insider_activity(bundle: AuthenticatedInsiderActivity) -> None:
+    """Reject structurally invalid insider bundles. Never invent replacements."""
+    if not bundle.identity.symbol or not str(bundle.identity.symbol).strip():
+        raise InvalidProviderDataError("insider activity missing identity.symbol")
+    if not bundle.provenance.provider_id.strip():
+        raise InvalidProviderDataError("insider activity missing provider_id provenance")
+    if not bundle.provenance.provider_name.strip():
+        raise InvalidProviderDataError("insider activity missing provider_name provenance")
+    if bundle.provenance.source_type.strip().lower() in _DISALLOWED_SOURCE:
+        raise InvalidProviderDataError(
+            f"disallowed provenance source_type={bundle.provenance.source_type!r}"
+        )
+    if not bundle.transactions:
+        raise InvalidProviderDataError(
+            "authenticated insider activity must include at least one transaction "
+            "(use None from adapter when unavailable)"
+        )
+    for i, txn in enumerate(bundle.transactions):
+        _validate_transaction(txn, i)

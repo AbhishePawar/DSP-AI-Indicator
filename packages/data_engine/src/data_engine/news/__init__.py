@@ -1,18 +1,38 @@
-"""Bytecode-backed recovery shim — loads frozen RC1 connector bytecode."""
+"""Authenticated company news (Data Connector Framework)."""
+
 from __future__ import annotations
 
-from importlib.machinery import SourcelessFileLoader
-from pathlib import Path
-import sys
+from data_engine.news.adapters import (
+    AlphaVantageNewsAdapter,
+    FinancialModelingPrepNewsAdapter,
+    InMemoryNewsAdapter,
+    NullNewsAdapter,
+    PolygonNewsAdapter,
+    YahooFinanceNewsAdapter,
+    build_default_news_registry_from_env,
+    build_news_feed_from_mapping,
+)
+from data_engine.news.models import SENTIMENT_LABELS, AuthenticatedNewsFeed, NewsArticle
+from data_engine.news.registry import NewsProviderRegistry
+from data_engine.news.service import NewsProviderPort, NewsQuery, NewsService, NewsServiceMetrics
+from data_engine.news.validation import validate_authenticated_news_feed
 
-_REPO = Path(__file__).resolve()
-# Walk up to repo root (contains .bytecode_backup)
-_root = _REPO
-while _root.parent != _root and not (_root / '.bytecode_backup').exists():
-    _root = _root.parent
-_BACKUP = _root / '.bytecode_backup' / 'packages__data_engine__src__data_engine__news' / '__init__.cpython-313.pyc'
-_loader = SourcelessFileLoader(__name__, str(_BACKUP))
-_code = _loader.get_code(__name__)
-if _code is None:
-    raise ImportError(f'Unable to load bytecode from {_BACKUP}')
-exec(_code, globals())
+__all__ = [
+    "SENTIMENT_LABELS",
+    "AlphaVantageNewsAdapter",
+    "AuthenticatedNewsFeed",
+    "FinancialModelingPrepNewsAdapter",
+    "InMemoryNewsAdapter",
+    "NewsArticle",
+    "NewsProviderPort",
+    "NewsProviderRegistry",
+    "NewsQuery",
+    "NewsService",
+    "NewsServiceMetrics",
+    "NullNewsAdapter",
+    "PolygonNewsAdapter",
+    "YahooFinanceNewsAdapter",
+    "build_default_news_registry_from_env",
+    "build_news_feed_from_mapping",
+    "validate_authenticated_news_feed",
+]

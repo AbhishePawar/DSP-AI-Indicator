@@ -1,18 +1,45 @@
-"""Bytecode-backed recovery shim — loads frozen RC1 connector bytecode."""
+"""Authenticated regulatory/corporate filings (Data Connector Framework)."""
+
 from __future__ import annotations
 
-from importlib.machinery import SourcelessFileLoader
-from pathlib import Path
-import sys
+from data_engine.filings.adapters import (
+    BseFilingsAdapter,
+    FinancialModelingPrepFilingsAdapter,
+    InMemoryFilingsAdapter,
+    NseFilingsAdapter,
+    NullFilingsAdapter,
+    ScreenerFilingsAdapter,
+    SecEdgarFilingsAdapter,
+    build_default_filings_registry_from_env,
+    build_filings_bundle_from_mapping,
+)
+from data_engine.filings.models import FILING_TYPES, AuthenticatedFilings, Filing
+from data_engine.filings.registry import FilingsProviderRegistry
+from data_engine.filings.service import (
+    FilingsProviderPort,
+    FilingsQuery,
+    FilingsService,
+    FilingsServiceMetrics,
+)
+from data_engine.filings.validation import validate_authenticated_filings
 
-_REPO = Path(__file__).resolve()
-# Walk up to repo root (contains .bytecode_backup)
-_root = _REPO
-while _root.parent != _root and not (_root / '.bytecode_backup').exists():
-    _root = _root.parent
-_BACKUP = _root / '.bytecode_backup' / 'packages__data_engine__src__data_engine__filings' / '__init__.cpython-313.pyc'
-_loader = SourcelessFileLoader(__name__, str(_BACKUP))
-_code = _loader.get_code(__name__)
-if _code is None:
-    raise ImportError(f'Unable to load bytecode from {_BACKUP}')
-exec(_code, globals())
+__all__ = [
+    "FILING_TYPES",
+    "AuthenticatedFilings",
+    "BseFilingsAdapter",
+    "Filing",
+    "FilingsProviderPort",
+    "FilingsProviderRegistry",
+    "FilingsQuery",
+    "FilingsService",
+    "FilingsServiceMetrics",
+    "FinancialModelingPrepFilingsAdapter",
+    "InMemoryFilingsAdapter",
+    "NseFilingsAdapter",
+    "NullFilingsAdapter",
+    "ScreenerFilingsAdapter",
+    "SecEdgarFilingsAdapter",
+    "build_default_filings_registry_from_env",
+    "build_filings_bundle_from_mapping",
+    "validate_authenticated_filings",
+]

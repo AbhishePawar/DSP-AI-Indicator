@@ -1,18 +1,76 @@
-"""Bytecode-backed recovery shim — loads frozen RC1 connector bytecode."""
+"""Authenticated news models.
+
+Retrieval and normalization only — no sentiment scoring is computed
+here; a ``sentiment`` label is only ever carried through when a
+provider reports one itself (never invented, never derived).
+"""
+
 from __future__ import annotations
 
-from importlib.machinery import SourcelessFileLoader
-from pathlib import Path
-import sys
+from dataclasses import dataclass, field
+from datetime import datetime
+from typing import Any
 
-_REPO = Path(__file__).resolve()
-# Walk up to repo root (contains .bytecode_backup)
-_root = _REPO
-while _root.parent != _root and not (_root / '.bytecode_backup').exists():
-    _root = _root.parent
-_BACKUP = _root / '.bytecode_backup' / 'packages__data_engine__src__data_engine__news' / 'models.cpython-313.pyc'
-_loader = SourcelessFileLoader(__name__, str(_BACKUP))
-_code = _loader.get_code(__name__)
-if _code is None:
-    raise ImportError(f'Unable to load bytecode from {_BACKUP}')
-exec(_code, globals())
+from data_engine.connector_framework.models import (
+    ConnectorCompanyIdentity,
+    ConnectorProvenance,
+)
+
+__all__ = [
+    "SENTIMENT_LABELS",
+    "AuthenticatedNewsFeed",
+    "NewsArticle",
+]
+
+SENTIMENT_LABELS = frozenset({"positive", "negative", "neutral", "mixed"})
+
+
+@dataclass(frozen=True, slots=True)
+class NewsArticle:
+    """One authenticated news article — as-reported fields only."""
+
+    article_id: str
+    headline: str
+    url: str
+    source: str
+    published_at: datetime
+    summary: str | None = None
+    sentiment: str | None = None
+    """Only present when the provider itself reports it; never computed here."""
+    related_symbols: tuple[str, ...] = ()
+    image_url: str | None = None
+    metadata: dict[str, str] = field(default_factory=dict)
+
+    def to_public_dict(self) -> dict[str, Any]:
+        return {
+            "article_id": self.article_id,
+            "headline": self.headline,
+            "url": self.url,
+            "source": self.source,
+            "published_at": self.published_at.isoformat(),
+            "summary": self.summary,
+            "sentiment": self.sentiment,
+            "related_symbols": list(self.related_symbols),
+            "image_url": self.image_url,
+            "metadata": dict(self.metadata),
+        }
+
+
+@dataclass(frozen=True, slots=True)
+class AuthenticatedNewsFeed:
+    """Authenticated news bundle for one company."""
+
+    identity: ConnectorCompanyIdentity
+    articles: tuple[NewsArticle, ...]
+    provenance: ConnectorProvenance
+
+    def has_any_article(self) -> bool:
+        return len(self.articles) > 0
+
+    def to_public_dict(self) -> dict[str, Any]:
+        return {
+            "authenticated": True,
+            "identity": self.identity.to_dict(),
+            "articles": [a.to_public_dict() for a in self.articles],
+            "provenance": self.provenance.to_dict(),
+        }

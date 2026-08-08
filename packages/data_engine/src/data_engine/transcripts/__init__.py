@@ -1,18 +1,36 @@
-"""Bytecode-backed recovery shim — loads frozen RC1 connector bytecode."""
+"""Authenticated earnings call transcripts (Data Connector Framework)."""
+
 from __future__ import annotations
 
-from importlib.machinery import SourcelessFileLoader
-from pathlib import Path
-import sys
+from data_engine.transcripts.adapters import (
+    FinancialModelingPrepTranscriptAdapter,
+    InMemoryTranscriptAdapter,
+    NullTranscriptAdapter,
+    build_default_transcript_registry_from_env,
+    build_transcripts_bundle_from_mapping,
+)
+from data_engine.transcripts.models import AuthenticatedTranscripts, EarningsCallTranscript
+from data_engine.transcripts.registry import TranscriptProviderRegistry
+from data_engine.transcripts.service import (
+    TranscriptProviderPort,
+    TranscriptQuery,
+    TranscriptService,
+    TranscriptServiceMetrics,
+)
+from data_engine.transcripts.validation import validate_authenticated_transcripts
 
-_REPO = Path(__file__).resolve()
-# Walk up to repo root (contains .bytecode_backup)
-_root = _REPO
-while _root.parent != _root and not (_root / '.bytecode_backup').exists():
-    _root = _root.parent
-_BACKUP = _root / '.bytecode_backup' / 'packages__data_engine__src__data_engine__transcripts' / '__init__.cpython-313.pyc'
-_loader = SourcelessFileLoader(__name__, str(_BACKUP))
-_code = _loader.get_code(__name__)
-if _code is None:
-    raise ImportError(f'Unable to load bytecode from {_BACKUP}')
-exec(_code, globals())
+__all__ = [
+    "AuthenticatedTranscripts",
+    "EarningsCallTranscript",
+    "FinancialModelingPrepTranscriptAdapter",
+    "InMemoryTranscriptAdapter",
+    "NullTranscriptAdapter",
+    "TranscriptProviderPort",
+    "TranscriptProviderRegistry",
+    "TranscriptQuery",
+    "TranscriptService",
+    "TranscriptServiceMetrics",
+    "build_default_transcript_registry_from_env",
+    "build_transcripts_bundle_from_mapping",
+    "validate_authenticated_transcripts",
+]

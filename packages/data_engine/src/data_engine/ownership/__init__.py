@@ -1,18 +1,49 @@
-"""Bytecode-backed recovery shim — loads frozen RC1 connector bytecode."""
+"""Authenticated shareholding/ownership (Data Connector Framework)."""
+
 from __future__ import annotations
 
-from importlib.machinery import SourcelessFileLoader
-from pathlib import Path
-import sys
+from data_engine.ownership.adapters import (
+    BseOwnershipAdapter,
+    FinancialModelingPrepOwnershipAdapter,
+    InMemoryOwnershipAdapter,
+    NseOwnershipAdapter,
+    NullOwnershipAdapter,
+    ScreenerOwnershipAdapter,
+    YahooFinanceOwnershipAdapter,
+    build_default_ownership_registry_from_env,
+    build_ownership_bundle_from_mapping,
+)
+from data_engine.ownership.models import (
+    OWNERSHIP_HOLDER_TYPES,
+    AuthenticatedOwnership,
+    OwnershipStake,
+)
+from data_engine.ownership.registry import OwnershipProviderRegistry
+from data_engine.ownership.service import (
+    OwnershipProviderPort,
+    OwnershipQuery,
+    OwnershipService,
+    OwnershipServiceMetrics,
+)
+from data_engine.ownership.validation import validate_authenticated_ownership
 
-_REPO = Path(__file__).resolve()
-# Walk up to repo root (contains .bytecode_backup)
-_root = _REPO
-while _root.parent != _root and not (_root / '.bytecode_backup').exists():
-    _root = _root.parent
-_BACKUP = _root / '.bytecode_backup' / 'packages__data_engine__src__data_engine__ownership' / '__init__.cpython-313.pyc'
-_loader = SourcelessFileLoader(__name__, str(_BACKUP))
-_code = _loader.get_code(__name__)
-if _code is None:
-    raise ImportError(f'Unable to load bytecode from {_BACKUP}')
-exec(_code, globals())
+__all__ = [
+    "OWNERSHIP_HOLDER_TYPES",
+    "AuthenticatedOwnership",
+    "BseOwnershipAdapter",
+    "FinancialModelingPrepOwnershipAdapter",
+    "InMemoryOwnershipAdapter",
+    "NseOwnershipAdapter",
+    "NullOwnershipAdapter",
+    "OwnershipProviderPort",
+    "OwnershipProviderRegistry",
+    "OwnershipQuery",
+    "OwnershipService",
+    "OwnershipServiceMetrics",
+    "OwnershipStake",
+    "ScreenerOwnershipAdapter",
+    "YahooFinanceOwnershipAdapter",
+    "build_default_ownership_registry_from_env",
+    "build_ownership_bundle_from_mapping",
+    "validate_authenticated_ownership",
+]

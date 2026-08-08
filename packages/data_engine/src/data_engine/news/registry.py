@@ -1,18 +1,12 @@
-"""Bytecode-backed recovery shim — loads frozen RC1 connector bytecode."""
+"""News provider registry — priority-aware, thread-safe."""
+
 from __future__ import annotations
 
-from importlib.machinery import SourcelessFileLoader
-from pathlib import Path
-import sys
+from data_engine.connector_framework.registry import PriorityProviderRegistry
+from data_engine.news.service import NewsProviderPort
 
-_REPO = Path(__file__).resolve()
-# Walk up to repo root (contains .bytecode_backup)
-_root = _REPO
-while _root.parent != _root and not (_root / '.bytecode_backup').exists():
-    _root = _root.parent
-_BACKUP = _root / '.bytecode_backup' / 'packages__data_engine__src__data_engine__news' / 'registry.cpython-313.pyc'
-_loader = SourcelessFileLoader(__name__, str(_BACKUP))
-_code = _loader.get_code(__name__)
-if _code is None:
-    raise ImportError(f'Unable to load bytecode from {_BACKUP}')
-exec(_code, globals())
+__all__ = ["NewsProviderRegistry"]
+
+
+class NewsProviderRegistry(PriorityProviderRegistry[NewsProviderPort]):
+    """Registry of authenticated news providers, ordered by priority."""

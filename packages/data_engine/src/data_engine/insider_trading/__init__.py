@@ -1,18 +1,49 @@
-"""Bytecode-backed recovery shim — loads frozen RC1 connector bytecode."""
+"""Authenticated insider trading (Data Connector Framework)."""
+
 from __future__ import annotations
 
-from importlib.machinery import SourcelessFileLoader
-from pathlib import Path
-import sys
+from data_engine.insider_trading.adapters import (
+    BseInsiderTradingAdapter,
+    FinancialModelingPrepInsiderTradingAdapter,
+    InMemoryInsiderTradingAdapter,
+    NseInsiderTradingAdapter,
+    NullInsiderTradingAdapter,
+    SecEdgarInsiderTradingAdapter,
+    YahooFinanceInsiderTradingAdapter,
+    build_default_insider_trading_registry_from_env,
+    build_insider_activity_from_mapping,
+)
+from data_engine.insider_trading.models import (
+    INSIDER_TRANSACTION_TYPES,
+    AuthenticatedInsiderActivity,
+    InsiderTransaction,
+)
+from data_engine.insider_trading.registry import InsiderTradingProviderRegistry
+from data_engine.insider_trading.service import (
+    InsiderTradingProviderPort,
+    InsiderTradingQuery,
+    InsiderTradingService,
+    InsiderTradingServiceMetrics,
+)
+from data_engine.insider_trading.validation import validate_authenticated_insider_activity
 
-_REPO = Path(__file__).resolve()
-# Walk up to repo root (contains .bytecode_backup)
-_root = _REPO
-while _root.parent != _root and not (_root / '.bytecode_backup').exists():
-    _root = _root.parent
-_BACKUP = _root / '.bytecode_backup' / 'packages__data_engine__src__data_engine__insider_trading' / '__init__.cpython-313.pyc'
-_loader = SourcelessFileLoader(__name__, str(_BACKUP))
-_code = _loader.get_code(__name__)
-if _code is None:
-    raise ImportError(f'Unable to load bytecode from {_BACKUP}')
-exec(_code, globals())
+__all__ = [
+    "INSIDER_TRANSACTION_TYPES",
+    "AuthenticatedInsiderActivity",
+    "BseInsiderTradingAdapter",
+    "FinancialModelingPrepInsiderTradingAdapter",
+    "InMemoryInsiderTradingAdapter",
+    "InsiderTradingProviderPort",
+    "InsiderTradingProviderRegistry",
+    "InsiderTradingQuery",
+    "InsiderTradingService",
+    "InsiderTradingServiceMetrics",
+    "InsiderTransaction",
+    "NseInsiderTradingAdapter",
+    "NullInsiderTradingAdapter",
+    "SecEdgarInsiderTradingAdapter",
+    "YahooFinanceInsiderTradingAdapter",
+    "build_default_insider_trading_registry_from_env",
+    "build_insider_activity_from_mapping",
+    "validate_authenticated_insider_activity",
+]

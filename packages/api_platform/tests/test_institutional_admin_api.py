@@ -1,6 +1,8 @@
-"""EPIC-A010 institutional admin API smoke tests."""
+"""EPIC-A010 institutional admin API smoke tests (P0-05 always-on admin gate)."""
 
 from __future__ import annotations
+
+from datetime import UTC, datetime
 
 import pytest
 from fastapi.testclient import TestClient
@@ -13,6 +15,7 @@ from auth import (
     reset_auth_service_for_tests,
     reset_role_registry_for_tests,
 )
+from auth_test_helpers import admin_headers, bearer_headers, register_user
 from persistence import (
     InMemoryStorageProvider,
     PersistenceService,
@@ -22,10 +25,7 @@ from persistence import (
     reset_repository_registry_for_tests,
 )
 
-from datetime import UTC, datetime
-
 FIXED = datetime.now(UTC).replace(microsecond=0).isoformat()
-
 
 
 @pytest.fixture()
@@ -49,27 +49,44 @@ def client() -> TestClient:
     reset_repository_registry_for_tests(None)
 
 
-def test_admin_schema_dashboard_health_metrics(client: TestClient) -> None:
-    schema = client.get("/api/v1/admin/schema")
+@pytest.fixture()
+def headers(client: TestClient) -> dict[str, str]:
+    return admin_headers(client, user_id="u-adminops", username="adminops")
+
+
+def test_admin_schema_dashboard_health_metrics(
+    client: TestClient, headers: dict[str, str]
+) -> None:
+    client.cookies.clear()
+    assert client.get("/api/v1/admin/schema").status_code == 401
+
+    schema = client.get("/api/v1/admin/schema", headers=headers)
     assert schema.status_code == 200
     assert schema.json()["ok"] is True
 
-    dash = client.get("/api/v1/admin/dashboard", params={"generated_at": FIXED})
+    dash = client.get(
+        "/api/v1/admin/dashboard",
+        headers=headers,
+        params={"generated_at": FIXED},
+    )
     assert dash.status_code == 200
     assert dash.json()["result"]["generated_at"] == FIXED
 
-    health = client.get("/api/v1/admin/health")
+    health = client.get("/api/v1/admin/health", headers=headers)
     assert health.status_code == 200
     assert health.json()["result"]["ready"] is True
 
-    metrics = client.get("/api/v1/admin/metrics")
+    metrics = client.get("/api/v1/admin/metrics", headers=headers)
     assert metrics.status_code == 200
     assert "users" in metrics.json()["result"]
 
 
-def test_admin_users_audit_search_export(client: TestClient) -> None:
+def test_admin_users_audit_search_export(
+    client: TestClient, headers: dict[str, str]
+) -> None:
     created = client.post(
         "/api/v1/admin/users",
+        headers=headers,
         json={
             "username": "console1",
             "email": "c1@example.com",
@@ -82,7 +99,7 @@ def test_admin_users_audit_search_export(client: TestClient) -> None:
     )
     assert created.status_code == 200
 
-    users = client.get("/api/v1/admin/users")
+    users = client.get("/api/v1/admin/users", headers=headers)
     assert users.status_code == 200
     assert any(u["user_id"] == "u-c1" for u in users.json()["result"])
 
@@ -97,65 +114,55 @@ def test_admin_users_audit_search_export(client: TestClient) -> None:
         created_at=FIXED,
     )
 
-    audit = client.get("/api/v1/admin/audit", params={"subject": "INFY"})
+    audit = client.get(
+        "/api/v1/admin/audit",
+        headers=headers,
+        params={"subject": "INFY"},
+    )
     assert audit.status_code == 200
     assert len(audit.json()["result"]) == 1
 
     search = client.post(
         "/api/v1/admin/search",
+        headers=headers,
         json={"query": "ops note", "scope": "audit"},
     )
     assert search.status_code == 200
     assert search.json()["result"]["count"] == 1
 
-    export = client.get("/api/v1/admin/audit/export")
+    export = client.get("/api/v1/admin/audit/export", headers=headers)
     assert export.status_code == 200
     assert export.json()["result"]["count"] == 1
 
-    roles = client.get("/api/v1/admin/roles")
+    roles = client.get("/api/v1/admin/roles", headers=headers)
     assert roles.status_code == 200
-    versions = client.get("/api/v1/admin/versions")
+    versions = client.get("/api/v1/admin/versions", headers=headers)
     assert versions.status_code == 200
-    flags = client.get("/api/v1/admin/feature-flags")
+    flags = client.get("/api/v1/admin/feature-flags", headers=headers)
     assert flags.status_code == 200
 
 
-def test_admin_requires_bearer_when_enforced(
-    client: TestClient, monkeypatch: pytest.MonkeyPatch
-) -> None:
-    created = client.post(
-        "/api/v1/auth/rbac/users",
-        json={
-            "username": "adminops",
-            "email": "adminops@example.com",
-            "password": "StrongPass12!",
-            "roles": ["administrator"],
-            "user_id": "u-adminops",
-            "created_at": FIXED,
-            "password_salt": "aabbccddeeff0011",
-        },
-    )
-    assert created.status_code == 200
-
-    monkeypatch.setenv("DSP_REQUIRE_ADMIN_AUTH", "true")
+def test_admin_requires_bearer_always(client: TestClient) -> None:
+    """P0-05 — admin gate is always enforced (not opt-in)."""
     denied = client.get("/api/v1/admin/users")
     assert denied.status_code == 401
 
-    login = client.post(
-        "/api/v1/auth/rbac/login",
-        json={
-            "username": "adminops",
-            "password": "StrongPass12!",
-            "created_at": FIXED,
-            "session_id": "s-adminops",
-            "access_jti": "a-adminops",
-            "refresh_jti": "r-adminops",
-        },
+    register_user(
+        client,
+        user_id="u-adminops2",
+        username="adminops2",
+        roles=["administrator"],
     )
-    assert login.status_code == 200
-    token = login.json()["result"]["tokens"]["access_token"]
-    allowed = client.get(
-        "/api/v1/admin/users",
-        headers={"Authorization": f"Bearer {token}"},
-    )
+    token_headers = bearer_headers(client, username="adminops2")
+    allowed = client.get("/api/v1/admin/users", headers=token_headers)
     assert allowed.status_code == 200
+
+    # Header spoof without Bearer/cookie fails.
+    client.cookies.clear()
+    assert (
+        client.get(
+            "/api/v1/admin/users",
+            headers={"X-User-Id": "u-adminops2"},
+        ).status_code
+        == 401
+    )

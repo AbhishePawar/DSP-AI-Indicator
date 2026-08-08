@@ -1,4 +1,4 @@
-"""RC1 Milestone 10 — /ops/* thin API tests."""
+"""RC1 Milestone 10 — /ops/* thin API tests (P0-05 gated sensitive routes)."""
 
 from __future__ import annotations
 
@@ -6,6 +6,7 @@ import pytest
 from fastapi.testclient import TestClient
 
 from api_platform import create_app
+from auth_test_helpers import admin_headers
 from dsp_platform import DSPPlatform, PlatformBuilder, PlatformConfiguration
 
 
@@ -53,10 +54,12 @@ def test_ops_metrics_summary_and_prometheus(client: TestClient) -> None:
 
 
 def test_ops_backup_and_legacy_health(client: TestClient) -> None:
-    backup = client.get("/api/v1/ops/backup")
+    # P0-05 — backup status requires admin
+    assert client.get("/api/v1/ops/backup").status_code == 401
+    headers = admin_headers(client, user_id="u-ops-backup", username="opsbackup")
+    backup = client.get("/api/v1/ops/backup", headers=headers)
     assert backup.status_code == 200
     assert backup.json()["result"]["available"] is False
-    # Existing health routes remain
     assert client.get("/api/v1/health/live").status_code == 200
     startup = client.get("/api/v1/health/startup")
     assert startup.status_code in {200, 503}
@@ -65,9 +68,25 @@ def test_ops_backup_and_legacy_health(client: TestClient) -> None:
 
 
 def test_ops_dashboard(client: TestClient) -> None:
-    dash = client.get("/api/v1/ops/dashboard")
+    assert client.get("/api/v1/ops/dashboard").status_code == 401
+    assert (
+        client.get(
+            "/api/v1/ops/dashboard",
+            headers={"X-User-Id": "attacker"},
+        ).status_code
+        == 401
+    )
+    headers = admin_headers(client, user_id="u-ops-dash", username="opsdash")
+    dash = client.get("/api/v1/ops/dashboard", headers=headers)
     assert dash.status_code == 200
     body = dash.json()
     assert body["ok"] is True
     assert "observability" in body["result"]
     assert "security_hardening" in body["result"]
+
+
+def test_ops_secrets_requires_admin(client: TestClient) -> None:
+    assert client.get("/api/v1/ops/secrets").status_code == 401
+    headers = admin_headers(client, user_id="u-ops-sec", username="opssec")
+    secrets = client.get("/api/v1/ops/secrets", headers=headers)
+    assert secrets.status_code == 200

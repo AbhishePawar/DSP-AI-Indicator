@@ -12,7 +12,11 @@ from fastapi import APIRouter, Depends, Query
 from fastapi.responses import JSONResponse, PlainTextResponse
 from pydantic import BaseModel, ConfigDict, Field
 
-from api_platform.api.dependencies import ApiState, get_api_state
+from api_platform.api.dependencies import (
+    ApiState,
+    get_api_state,
+    require_admin_access,
+)
 from api_platform.api.ops import metrics_registry
 from api_platform.api.production_ops_wiring import build_production_ops_deps
 
@@ -113,12 +117,18 @@ def ops_metrics(
 
 
 @router.get("/ops/observability")
-def ops_observability(state: ApiState = Depends(get_api_state)) -> JSONResponse:
+def ops_observability(
+    state: ApiState = Depends(get_api_state),
+    _admin: dict[str, Any] = Depends(require_admin_access),
+) -> JSONResponse:
     return _dispatch(state, "observability")
 
 
 @router.get("/ops/backup")
-def ops_backup_status(state: ApiState = Depends(get_api_state)) -> JSONResponse:
+def ops_backup_status(
+    state: ApiState = Depends(get_api_state),
+    _admin: dict[str, Any] = Depends(require_admin_access),
+) -> JSONResponse:
     return _dispatch(state, "backup", {"backup_action": "status"})
 
 
@@ -126,15 +136,22 @@ def ops_backup_status(state: ApiState = Depends(get_api_state)) -> JSONResponse:
 def ops_backup_action(
     body: OpsPayload,
     state: ApiState = Depends(get_api_state),
+    _admin: dict[str, Any] = Depends(require_admin_access),
 ) -> JSONResponse:
     return _dispatch(state, "backup", body.model_dump(exclude_none=True))
 
 
 @router.get("/ops/secrets")
-def ops_secrets(state: ApiState = Depends(get_api_state)) -> JSONResponse:
+def ops_secrets(
+    state: ApiState = Depends(get_api_state),
+    _admin: dict[str, Any] = Depends(require_admin_access),
+) -> JSONResponse:
     return _dispatch(state, "secrets")
 
 
 @router.get("/ops/dashboard")
-def ops_dashboard(state: ApiState = Depends(get_api_state)) -> JSONResponse:
+def ops_dashboard(
+    state: ApiState = Depends(get_api_state),
+    _admin: dict[str, Any] = Depends(require_admin_access),
+) -> JSONResponse:
     return _dispatch(state, "dashboard")

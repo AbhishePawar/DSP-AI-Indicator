@@ -123,6 +123,7 @@ pythonpath = [
     "packages/investment_recommendation/src",
     "packages/investment_committee/src",
     "packages/api_platform/src",
+    "packages/api_platform/tests",
     "packages/security_platform/src",
     "packages/production_platform/src",
     "packages/compliance/src",

@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import os
 from dataclasses import dataclass, field
 from threading import Lock
 from typing import Any, Callable
@@ -27,6 +26,8 @@ __all__ = [
     "get_report_store",
     "get_context_store",
     "build_default_platform",
+    "resolve_access_token",
+    "require_authenticated_actor",
     "require_admin_access",
 ]
 
@@ -159,44 +160,74 @@ def get_context_store(request: Request) -> ContextStore:
 PlatformFactory = Callable[[], DSPPlatform]
 
 
-def _admin_auth_enforced() -> bool:
-    """Enforce admin Bearer auth in production / secured / explicit flag modes."""
-    if os.environ.get("DSP_ENVIRONMENT", "").lower() == "production":
-        return True
-    if os.environ.get("DSP_ENABLE_SECURITY", "").lower() in {"1", "true", "yes"}:
-        return True
-    if os.environ.get("DSP_REQUIRE_ADMIN_AUTH", "").lower() in {"1", "true", "yes"}:
-        return True
-    return False
-
-
-def require_admin_access(request: Request) -> dict[str, Any] | None:
-    """Router dependency for institutional admin / beta admin routes (P1.2).
-
-    When enforcement is off (typical local tests), requests pass through.
-    When on, requires Bearer access token with ``configure_platform`` or
-    ``manage_users`` permission via the A009 auth package.
-    """
-    if not _admin_auth_enforced():
-        return None
-
+def resolve_access_token(request: Request) -> str | None:
+    """Extract Bearer or HttpOnly access cookie — never client identity headers."""
     auth_header = request.headers.get("authorization") or ""
-    if not auth_header.lower().startswith("bearer "):
+    if auth_header.lower().startswith("bearer "):
+        token = auth_header[7:].strip()
+        if token:
+            return token
+    try:
+        from security_platform import read_access_token
+
+        cookie_token = read_access_token(request)
+        if cookie_token:
+            return str(cookie_token).strip() or None
+    except Exception:  # noqa: BLE001
+        return None
+    return None
+
+
+def require_authenticated_actor(request: Request) -> dict[str, Any]:
+    """P0-05 — resolve actor solely from server-validated JWT/session.
+
+    Client headers such as ``X-User-Id`` and body ``actor_user_id`` are never
+    authoritative identity.
+    """
+    token = resolve_access_token(request)
+    if not token:
         raise HTTPException(
             status_code=401,
-            detail="admin authentication required",
+            detail="authentication required",
             headers={"WWW-Authenticate": "Bearer"},
         )
-    token = auth_header[7:].strip()
-    if not token:
-        raise HTTPException(status_code=401, detail="admin authentication required")
-
     try:
         from auth import get_auth_service
 
         auth = get_auth_service()
         user = auth.current_user(token)
-        uid = str(user.get("user_id") or "")
+        uid = str(user.get("user_id") or "").strip()
+        if not uid:
+            raise HTTPException(
+                status_code=401,
+                detail="authentication required",
+                headers={"WWW-Authenticate": "Bearer"},
+            )
+        return {"user_id": uid, "user": user}
+    except HTTPException:
+        raise
+    except Exception as exc:  # noqa: BLE001
+        raise HTTPException(
+            status_code=401,
+            detail="authentication required",
+            headers={"WWW-Authenticate": "Bearer"},
+        ) from exc
+
+
+def require_admin_access(request: Request) -> dict[str, Any]:
+    """P0-05 — always gate admin / control-center / sensitive ops routes.
+
+    Requires Bearer/cookie access token with ``configure_platform`` or
+    ``manage_users`` via the institutional auth package.
+    """
+    actor = require_authenticated_actor(request)
+    user = actor.get("user") or {}
+    uid = str(actor.get("user_id") or "")
+
+    try:
+        from auth import get_auth_service
+
+        auth = get_auth_service()
         allowed = False
         for perm in ("configure_platform", "manage_users"):
             try:

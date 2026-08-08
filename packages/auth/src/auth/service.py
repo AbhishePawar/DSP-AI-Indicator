@@ -177,6 +177,15 @@ def get_auth_service(
             import os
 
             jwt_secret = os.environ.get("DSP_AUTH_JWT_SECRET") or "dsp-auth-dev-secret"
+            # P0-05 — fail closed: never mint/validate institutional JWT with
+            # a default secret when DSP_ENVIRONMENT=production.
+            if os.environ.get("DSP_ENVIRONMENT", "").lower() == "production" and (
+                jwt_secret in {"", "dsp-auth-dev-secret", "dev-only-change-me"}
+            ):
+                raise RuntimeError(
+                    "DSP_AUTH_JWT_SECRET must be set to a non-default value "
+                    "in production"
+                )
         _SVC = AuthService(persistence_service, jwt_secret=jwt_secret)
     return _SVC
 

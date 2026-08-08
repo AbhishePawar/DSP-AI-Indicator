@@ -8,7 +8,7 @@ from __future__ import annotations
 
 from typing import Any
 
-from fastapi import APIRouter, Depends, Header, Query
+from fastapi import APIRouter, Depends, Query
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -52,15 +52,10 @@ class ControlCenterPayload(BaseModel):
     org_id: str | None = Field(None, max_length=128)
 
 
-def _author(
-    body: ControlCenterPayload | None,
-    x_user_id: str | None,
-) -> str:
-    if body and body.author:
-        return body.author
-    if body and body.actor_user_id:
-        return body.actor_user_id
-    return (x_user_id or "").strip() or "admin"
+def _author(admin: dict[str, Any], body: ControlCenterPayload | None = None) -> str:
+    """P0-05 — authorship is the authenticated admin principal only."""
+    actor = str(admin.get("user_id") or "").strip()
+    return actor or "admin"
 
 
 def _dispatch(
@@ -114,11 +109,11 @@ def configuration_registry(
 @router.post("/admin/configuration")
 def update_configuration(
     body: ControlCenterPayload,
-    x_user_id: str | None = Header(None, alias="X-User-Id"),
+    admin: dict[str, Any] = Depends(require_admin_access),
     state: ApiState = Depends(get_api_state),
 ) -> JSONResponse:
     payload = body.model_dump(exclude_none=True)
-    payload["author"] = _author(body, x_user_id)
+    payload["author"] = _author(admin, body)
     return _dispatch(state, "update_configuration", payload)
 
 
@@ -136,99 +131,99 @@ def configuration_history(
 @router.post("/admin/rollback")
 def rollback_configuration(
     body: ControlCenterPayload,
-    x_user_id: str | None = Header(None, alias="X-User-Id"),
+    admin: dict[str, Any] = Depends(require_admin_access),
     state: ApiState = Depends(get_api_state),
 ) -> JSONResponse:
     payload = body.model_dump(exclude_none=True)
-    payload["author"] = _author(body, x_user_id)
+    payload["author"] = _author(admin, body)
     return _dispatch(state, "rollback", payload)
 
 
 @router.post("/admin/branding")
 def update_branding(
     body: ControlCenterPayload,
-    x_user_id: str | None = Header(None, alias="X-User-Id"),
+    admin: dict[str, Any] = Depends(require_admin_access),
     state: ApiState = Depends(get_api_state),
 ) -> JSONResponse:
     payload = body.model_dump(exclude_none=True)
-    payload["author"] = _author(body, x_user_id)
+    payload["author"] = _author(admin, body)
     return _dispatch(state, "branding", payload)
 
 
 @router.post("/admin/cms")
 def update_cms(
     body: ControlCenterPayload,
-    x_user_id: str | None = Header(None, alias="X-User-Id"),
+    admin: dict[str, Any] = Depends(require_admin_access),
     state: ApiState = Depends(get_api_state),
 ) -> JSONResponse:
     payload = body.model_dump(exclude_none=True)
-    payload["author"] = _author(body, x_user_id)
+    payload["author"] = _author(admin, body)
     return _dispatch(state, "cms", payload)
 
 
 @router.post("/admin/feature-flags/overrides")
 def update_feature_flags(
     body: ControlCenterPayload,
-    x_user_id: str | None = Header(None, alias="X-User-Id"),
+    admin: dict[str, Any] = Depends(require_admin_access),
     state: ApiState = Depends(get_api_state),
 ) -> JSONResponse:
     payload = body.model_dump(exclude_none=True)
-    payload["author"] = _author(body, x_user_id)
+    payload["author"] = _author(admin, body)
     return _dispatch(state, "feature_flags", payload)
 
 
 @router.post("/admin/valuation/config")
 def update_valuation_config(
     body: ControlCenterPayload,
-    x_user_id: str | None = Header(None, alias="X-User-Id"),
+    admin: dict[str, Any] = Depends(require_admin_access),
     state: ApiState = Depends(get_api_state),
 ) -> JSONResponse:
     payload = body.model_dump(exclude_none=True)
-    payload["author"] = _author(body, x_user_id)
+    payload["author"] = _author(admin, body)
     return _dispatch(state, "valuation", payload)
 
 
 @router.post("/admin/ai/config")
 def update_ai_config(
     body: ControlCenterPayload,
-    x_user_id: str | None = Header(None, alias="X-User-Id"),
+    admin: dict[str, Any] = Depends(require_admin_access),
     state: ApiState = Depends(get_api_state),
 ) -> JSONResponse:
     payload = body.model_dump(exclude_none=True)
-    payload["author"] = _author(body, x_user_id)
+    payload["author"] = _author(admin, body)
     return _dispatch(state, "ai", payload)
 
 
 @router.post("/admin/risk/config")
 def update_risk_config(
     body: ControlCenterPayload,
-    x_user_id: str | None = Header(None, alias="X-User-Id"),
+    admin: dict[str, Any] = Depends(require_admin_access),
     state: ApiState = Depends(get_api_state),
 ) -> JSONResponse:
     payload = body.model_dump(exclude_none=True)
-    payload["author"] = _author(body, x_user_id)
+    payload["author"] = _author(admin, body)
     return _dispatch(state, "risk", payload)
 
 
 @router.post("/admin/market/config")
 def update_market_config(
     body: ControlCenterPayload,
-    x_user_id: str | None = Header(None, alias="X-User-Id"),
+    admin: dict[str, Any] = Depends(require_admin_access),
     state: ApiState = Depends(get_api_state),
 ) -> JSONResponse:
     payload = body.model_dump(exclude_none=True)
-    payload["author"] = _author(body, x_user_id)
+    payload["author"] = _author(admin, body)
     return _dispatch(state, "market", payload)
 
 
 @router.post("/admin/connectors/config")
 def update_connectors_config(
     body: ControlCenterPayload,
-    x_user_id: str | None = Header(None, alias="X-User-Id"),
+    admin: dict[str, Any] = Depends(require_admin_access),
     state: ApiState = Depends(get_api_state),
 ) -> JSONResponse:
     payload = body.model_dump(exclude_none=True)
-    payload["author"] = _author(body, x_user_id)
+    payload["author"] = _author(admin, body)
     return _dispatch(state, "connectors", payload)
 
 
@@ -240,79 +235,79 @@ def list_business_rules(state: ApiState = Depends(get_api_state)) -> JSONRespons
 @router.post("/admin/business-rules")
 def upsert_business_rule(
     body: ControlCenterPayload,
-    x_user_id: str | None = Header(None, alias="X-User-Id"),
+    admin: dict[str, Any] = Depends(require_admin_access),
     state: ApiState = Depends(get_api_state),
 ) -> JSONResponse:
     payload = body.model_dump(exclude_none=True)
-    payload["author"] = _author(body, x_user_id)
+    payload["author"] = _author(admin, body)
     return _dispatch(state, "business_rules_upsert", payload)
 
 
 @router.delete("/admin/business-rules/{rule_id}")
 def delete_business_rule(
     rule_id: str,
-    x_user_id: str | None = Header(None, alias="X-User-Id"),
+    admin: dict[str, Any] = Depends(require_admin_access),
     state: ApiState = Depends(get_api_state),
 ) -> JSONResponse:
     return _dispatch(
         state,
         "business_rules_delete",
-        {"rule_id": rule_id, "author": (x_user_id or "").strip() or "admin"},
+        {"rule_id": rule_id, "author": _author(admin)},
     )
 
 
 @router.post("/admin/notifications/config")
 def update_notifications(
     body: ControlCenterPayload,
-    x_user_id: str | None = Header(None, alias="X-User-Id"),
+    admin: dict[str, Any] = Depends(require_admin_access),
     state: ApiState = Depends(get_api_state),
 ) -> JSONResponse:
     payload = body.model_dump(exclude_none=True)
-    payload["author"] = _author(body, x_user_id)
+    payload["author"] = _author(admin, body)
     return _dispatch(state, "notifications", payload)
 
 
 @router.post("/admin/dashboard/layout")
 def update_dashboard_layout(
     body: ControlCenterPayload,
-    x_user_id: str | None = Header(None, alias="X-User-Id"),
+    admin: dict[str, Any] = Depends(require_admin_access),
     state: ApiState = Depends(get_api_state),
 ) -> JSONResponse:
     payload = body.model_dump(exclude_none=True)
-    payload["author"] = _author(body, x_user_id)
+    payload["author"] = _author(admin, body)
     return _dispatch(state, "dashboard_layout", payload)
 
 
 @router.post("/admin/security/config")
 def update_security_config(
     body: ControlCenterPayload,
-    x_user_id: str | None = Header(None, alias="X-User-Id"),
+    admin: dict[str, Any] = Depends(require_admin_access),
     state: ApiState = Depends(get_api_state),
 ) -> JSONResponse:
     payload = body.model_dump(exclude_none=True)
-    payload["author"] = _author(body, x_user_id)
+    payload["author"] = _author(admin, body)
     return _dispatch(state, "security", payload)
 
 
 @router.post("/admin/templates/config")
 def update_templates(
     body: ControlCenterPayload,
-    x_user_id: str | None = Header(None, alias="X-User-Id"),
+    admin: dict[str, Any] = Depends(require_admin_access),
     state: ApiState = Depends(get_api_state),
 ) -> JSONResponse:
     payload = body.model_dump(exclude_none=True)
-    payload["author"] = _author(body, x_user_id)
+    payload["author"] = _author(admin, body)
     return _dispatch(state, "templates", payload)
 
 
 @router.post("/admin/saas/control")
 def saas_control(
     body: ControlCenterPayload,
-    x_user_id: str | None = Header(None, alias="X-User-Id"),
+    admin: dict[str, Any] = Depends(require_admin_access),
     state: ApiState = Depends(get_api_state),
 ) -> JSONResponse:
     payload = body.model_dump(exclude_none=True)
-    payload["author"] = _author(body, x_user_id)
+    payload["author"] = _author(admin, body)
     return _dispatch(state, "saas_control", payload)
 
 
@@ -324,11 +319,11 @@ def monitoring_center(state: ApiState = Depends(get_api_state)) -> JSONResponse:
 @router.post("/admin/backup/control")
 def backup_control(
     body: ControlCenterPayload,
-    x_user_id: str | None = Header(None, alias="X-User-Id"),
+    admin: dict[str, Any] = Depends(require_admin_access),
     state: ApiState = Depends(get_api_state),
 ) -> JSONResponse:
     payload = body.model_dump(exclude_none=True)
-    payload["author"] = _author(body, x_user_id)
+    payload["author"] = _author(admin, body)
     return _dispatch(state, "backup", payload)
 
 

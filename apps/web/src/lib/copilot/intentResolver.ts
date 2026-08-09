@@ -18,6 +18,12 @@ const SUGGESTED_TO_INTENT: Record<SuggestedQuestionId, CopilotIntent> = {
   explain_growth_quality: "explain_growth_quality",
   explain_margin_of_safety: "explain_margin_of_safety",
   compare_companies: "compare_companies",
+  // P1-09 build completeness — map newer suggested ids onto existing intents.
+  explain_risk: "explain_risk",
+  analyze_portfolio: "analyze_portfolio",
+  document_qa: "document_qa",
+  investment_memo: "investment_memo",
+  buffett: "buffett",
 };
 
 type IntentRule = {

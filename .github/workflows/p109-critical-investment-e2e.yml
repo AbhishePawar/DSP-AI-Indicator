@@ -112,13 +112,9 @@ jobs:
         working-directory: apps/web
         run: npx playwright install --with-deps chromium
 
-      - name: Build web (standalone)
+      - name: Build web
         working-directory: apps/web
-        run: |
-          npm run build
-          mkdir -p .next/standalone/.next
-          cp -r public .next/standalone/public
-          cp -r .next/static .next/standalone/.next/static
+        run: npm run build
 
       - name: Start API (fixture mode)
         id: start_api
@@ -139,11 +135,12 @@ jobs:
           cat /tmp/p109-api.log >&2 || true
           exit 1
 
-      - name: Start web
+      - name: Start web (next start)
         id: start_web
-        working-directory: apps/web/.next/standalone
+        working-directory: apps/web
         run: |
-          nohup node server.js > /tmp/p109-web.log 2>&1 &
+          # Prefer next start over nested monorepo standalone paths.
+          nohup npm run start -- -H 127.0.0.1 -p 3000 > /tmp/p109-web.log 2>&1 &
           echo $! > /tmp/p109-web.pid
           for i in $(seq 1 60); do
             if curl -fsS http://127.0.0.1:3000 >/dev/null; then
@@ -156,8 +153,6 @@ jobs:
           cat /tmp/p109-web.log >&2 || true
           exit 1
         env:
-          PORT: "3000"
-          HOSTNAME: "127.0.0.1"
           NEXT_PUBLIC_API_BASE_URL: http://127.0.0.1:8000/api/v1
 
       - name: Verify fixture quote/statements

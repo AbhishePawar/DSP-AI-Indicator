@@ -78,6 +78,16 @@ export function RoleDashboard({
     [meta?.widgetKeys],
   );
 
+  // Hooks must run unconditionally (P1-09 build gate / rules-of-hooks).
+  const trustSummary = useMemo(
+    () =>
+      dashboardSurfaceTrust({
+        widgetCount: widgetKeys.length,
+        note: `Enterprise role dashboard · ${role} · aggregation only`,
+      }),
+    [role, widgetKeys.length],
+  );
+
   if (!featureFlags.enterpriseDashboards) {
     return (
       <div className="space-y-4 p-6">
@@ -87,15 +97,6 @@ export function RoleDashboard({
       </div>
     );
   }
-
-  const trustSummary = useMemo(
-    () =>
-      dashboardSurfaceTrust({
-        widgetCount: widgetKeys.length,
-        note: `Enterprise role dashboard · ${role} · aggregation only`,
-      }),
-    [role, widgetKeys.length],
-  );
 
   return (
     <div className="space-y-6 p-4 md:p-6" data-testid={`role-dashboard-${role}`}>

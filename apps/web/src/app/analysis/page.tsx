@@ -3,25 +3,17 @@
 /**
  * EPIC-F005 — Company Analysis Workspace route.
  * Flagship module — frozen /api/v1 only.
- * RC3-004 — dynamic import keeps initial route shell light.
+ *
+ * P1-09 — use a static import for the workspace. The previous
+ * next/dynamic({ ssr: false }) path left the route stuck on the skeleton
+ * in production builds (critical journey could not mount).
  */
 
-import dynamic from "next/dynamic";
 import { Suspense } from "react";
 
+import { CompanyAnalysisWorkspace } from "@/components/company-analysis";
 import { WorkspaceSkeleton } from "@/components/company-analysis/WorkspacePrimitives";
 import { PageHeader } from "@/components/layout/PageHeader";
-
-const CompanyAnalysisWorkspace = dynamic(
-  () =>
-    import("@/components/company-analysis").then((m) => ({
-      default: m.CompanyAnalysisWorkspace,
-    })),
-  {
-    ssr: false,
-    loading: () => <WorkspaceSkeleton />,
-  },
-);
 
 export default function AnalysisRoute() {
   return (

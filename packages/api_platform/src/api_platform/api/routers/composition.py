@@ -41,7 +41,18 @@ def analyse(
     request: Request,
     state: ApiState = Depends(get_api_state),
 ) -> AnalyseResponse:
-    """Run the platform composition pipeline; return public PipelineResult DTO."""
+    """Run the platform composition pipeline; return public PipelineResult DTO.
+
+    Authentication policy (intentional — P1-12):
+    - Route itself does not hard-require JWT so Research Mode / fixture journeys
+      remain usable when ``DSP_ENABLE_SECURITY`` is off (development).
+    - When ``DSP_ENABLE_SECURITY`` is on, security middleware requires auth +
+      ``ANALYZE_COMPANY`` before this handler runs.
+    - Optional JWT stamps ownership on durable provenance; unowned provenance
+      is not world-readable. Institutional export / provenance GET require an
+      authenticated owner (or matching org) — public analyse cannot escalate
+      into another principal's export trust chain.
+    """
     correlation_id = getattr(request.state, "request_id", None)
     errors = validate_analyse_request(body)
     if errors:

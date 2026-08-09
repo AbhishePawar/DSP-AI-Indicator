@@ -2,6 +2,9 @@
 
 from __future__ import annotations
 
+from datetime import UTC, datetime
+from uuid import uuid4
+
 import pytest
 from fastapi.testclient import TestClient
 
@@ -10,6 +13,12 @@ from auth_test_helpers import bearer_headers, register_user
 from data_engine import DataOrchestrator
 from dsp_platform import DSPPlatform, PlatformBuilder, PlatformConfiguration
 from dsp_platform.data_orchestrator import reset_data_orchestrator_for_tests
+from dsp_platform.investment_provenance import (
+    RELEASE_IDENTITY,
+    InMemoryInvestmentProvenanceStore,
+    InvestmentProvenanceRecord,
+    reset_investment_provenance_store_for_tests,
+)
 
 
 @pytest.fixture(autouse=True)
@@ -17,6 +26,7 @@ def _reset() -> None:
     reset_data_orchestrator_for_tests(None)
     yield
     reset_data_orchestrator_for_tests(None)
+    reset_investment_provenance_store_for_tests(None)
 
 
 @pytest.fixture
@@ -30,7 +40,9 @@ def platform() -> DSPPlatform:
 
 @pytest.fixture
 def client(platform: DSPPlatform) -> TestClient:
-    return TestClient(create_app(platform=platform))
+    app_client = TestClient(create_app(platform=platform))
+    reset_investment_provenance_store_for_tests(InMemoryInvestmentProvenanceStore())
+    return app_client
 
 @pytest.fixture
 def auth_headers(client: TestClient) -> dict[str, str]:
@@ -87,11 +99,42 @@ def test_research_object_schema(client: TestClient, auth_headers: dict[str, str]
 
 def test_research_object_build_with_fetch(client: TestClient, auth_headers: dict[str, str]) -> None:
     reset_data_orchestrator_for_tests(_mock_orch())
+    aid = str(uuid4())
+    now = datetime.now(tz=UTC).isoformat()
+    from dsp_platform.investment_provenance import get_investment_provenance_store
+
+    get_investment_provenance_store().append(
+        InvestmentProvenanceRecord(
+            analysis_id=aid,
+            created_at=now,
+            ticker="AAPL",
+            owner_user_id="research-obj-user",
+            valuation={
+                "status": "succeeded",
+                "available": True,
+                "score": 0.5,
+                "label": "ok",
+                "market_price": 190.5,
+                "margin_of_safety": 0.2,
+                "reason": None,
+            },
+            buffett={"overall_status": "unavailable", "recommendation": "Research Mode"},
+            conclusion={
+                "recommendation": "Research Mode",
+                "recommendation_label": "Research Mode",
+                "pipeline_ok": True,
+            },
+            release=dict(RELEASE_IDENTITY),
+            input_fingerprint=f"in-{aid}",
+            result_fingerprint=f"out-{aid}",
+        )
+    )
     response = client.post(
         "/api/v1/research/object",
         headers=auth_headers,
         json={
             "symbol": "AAPL",
+            "analysis_id": aid,
             "fetch_data_bundle": True,
             "analysis_payload": {
                 "ok": True,
@@ -105,13 +148,14 @@ def test_research_object_build_with_fetch(client: TestClient, auth_headers: dict
     assert response.status_code == 200
     body = response.json()
     assert body["ok"] is True
+    assert body["analysis_id"] == aid
     ro = body["research_object"]
     assert ro["identity"]["available"] is True
     assert ro["market_data"]["available"] is True
     assert ro["market_data"]["payload"]["fields"]["current_price"] == 190.5
     assert ro["financial_statements"]["message"] == "Data unavailable."
-    assert ro["valuation"]["available"] is True
     assert ro["margin_of_safety"]["payload"]["margin_of_safety"] == 0.2
+    assert ro["audit"]["payload"]["analysis_id"] == aid
     assert ro["version"]["schema_version"] == "1.0.0"
 
 

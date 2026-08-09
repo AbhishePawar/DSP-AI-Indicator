@@ -1,6 +1,7 @@
 """Additive Research Object routes (EPIC-R001).
 
 Aggregates existing D005 + analysis payloads only — never re-runs engines.
+P1-12 — investment conclusions must bind to owned server provenance by analysis_id.
 """
 
 from __future__ import annotations
@@ -16,6 +17,14 @@ from api_platform.api.dependencies import (
     get_api_state,
     require_authenticated_actor,
 )
+from api_platform.api.trust_chain import (
+    TrustChainError,
+    assert_report_bound,
+    assert_research_object_bound,
+    bind_analysis_payload_to_provenance,
+    load_owned_provenance,
+    requires_trust_binding,
+)
 
 router = APIRouter(tags=["research"])
 
@@ -30,6 +39,11 @@ class ResearchObjectRequest(BaseModel):
     company: str | None = Field(None, max_length=256)
     exchange: str | None = Field(None, max_length=32)
     correlation_id: str | None = Field(None, max_length=128)
+    analysis_id: str | None = Field(
+        None,
+        max_length=128,
+        description="Server analysis_id — required when binding investment conclusions.",
+    )
     data_bundle: dict[str, Any] | None = None
     analysis_payload: dict[str, Any] | None = None
     valuation_signals: dict[str, Any] | None = None
@@ -323,6 +337,11 @@ class ResearchReportRequest(BaseModel):
     """Generate report from an existing Research Object only."""
 
     research_object: dict[str, Any]
+    analysis_id: str | None = Field(
+        None,
+        max_length=128,
+        description="Server analysis_id — required when research object carries conclusions.",
+    )
     report_id: str | None = Field(None, max_length=128)
     generated_at: str | None = Field(None, max_length=64)
 
@@ -331,28 +350,65 @@ class ResearchExportRequest(BaseModel):
     """Export an existing Institutional Report only."""
 
     report: dict[str, Any]
+    analysis_id: str | None = Field(
+        None,
+        max_length=128,
+        description="Server analysis_id — required for institutional investment export.",
+    )
     format: str = Field("json", max_length=16)
     export_id: str | None = Field(None, max_length=128)
     exported_at: str | None = Field(None, max_length=64)
+
+
+def _trust_chain_error_response(exc: TrustChainError) -> JSONResponse:
+    return JSONResponse(
+        status_code=exc.status_code,
+        content={
+            "ok": False,
+            "error": exc.error_code,
+            "message": exc.message,
+            "error_code": exc.error_code,
+        },
+    )
+
+
+def _report_requires_binding(report: dict[str, Any]) -> bool:
+    """Investment export always requires provenance binding (P1-12)."""
+    if not isinstance(report, dict) or not report:
+        return True
+    for key in ("valuation", "margin_of_safety", "recommendation", "audit"):
+        section = report.get(key)
+        if isinstance(section, dict) and (
+            section.get("available") is True
+            or isinstance(section.get("payload"), dict)
+        ):
+            return True
+    return True
 
 
 @router.post("/research/export")
 def export_research_report(
     body: ResearchExportRequest,
     state: ApiState = Depends(get_api_state),
-    _actor: _ResearchActor = Depends(require_authenticated_actor),
+    actor: _ResearchActor = Depends(require_authenticated_actor),
 ) -> JSONResponse:
     """Export Institutional Report to json/csv/xlsx/pdf/docx/pptx (EPIC-R003).
 
-    Additive — Report is the sole source. No calculations or reformatting.
+    Additive — Report is the sole projection source. No recalculation.
+    P1-12 — report must bind to owned server provenance via analysis_id.
     """
     try:
+        if _report_requires_binding(body.report):
+            record = load_owned_provenance(body.analysis_id, actor)
+            assert_report_bound(body.report, record)
         artifact = state.platform.export_institutional_report(
             body.report,
             format=body.format,
             export_id=body.export_id,
             exported_at=body.exported_at,
         )
+    except TrustChainError as exc:
+        return _trust_chain_error_response(exc)
     except ValueError as exc:
         return JSONResponse(
             status_code=400,
@@ -376,6 +432,7 @@ def export_research_report(
         {
             "ok": True,
             "export": artifact,
+            "analysis_id": (body.analysis_id or "").strip() or None,
             "message": None,
         }
     )
@@ -385,19 +442,53 @@ def export_research_report(
 def generate_research_report(
     body: ResearchReportRequest,
     state: ApiState = Depends(get_api_state),
-    _actor: _ResearchActor = Depends(require_authenticated_actor),
+    actor: _ResearchActor = Depends(require_authenticated_actor),
 ) -> JSONResponse:
     """Generate Institutional Research Report from Research Object v1.0.0 only.
 
     Additive — does not alter ``/analyse`` or Research Object builder.
     No calculations, scoring, or valuation.
+    P1-12 — research object must be bound to owned analysis_id when present.
     """
     try:
+        audit = body.research_object.get("audit") if isinstance(
+            body.research_object, dict
+        ) else None
+        audit_payload = (
+            audit.get("payload")
+            if isinstance(audit, dict) and isinstance(audit.get("payload"), dict)
+            else None
+        )
+        valuation_section = (
+            body.research_object.get("valuation")
+            if isinstance(body.research_object, dict)
+            else None
+        )
+        valuation_available = (
+            isinstance(valuation_section, dict)
+            and valuation_section.get("available") is True
+        )
+        needs_bind = bool(
+            body.analysis_id
+            or (
+                isinstance(audit_payload, dict)
+                and (
+                    audit_payload.get("analysis_id")
+                    or audit_payload.get("trust_chain")
+                )
+            )
+            or valuation_available
+        )
+        if needs_bind:
+            record = load_owned_provenance(body.analysis_id, actor)
+            assert_research_object_bound(body.research_object, record)
         report = state.platform.generate_institutional_report(
             body.research_object,
             report_id=body.report_id,
             generated_at=body.generated_at,
         )
+    except TrustChainError as exc:
+        return _trust_chain_error_response(exc)
     except ValueError as exc:
         return JSONResponse(
             status_code=400,
@@ -427,6 +518,7 @@ def generate_research_report(
             "ok": True,
             "symbol": symbol,
             "report": report,
+            "analysis_id": (body.analysis_id or "").strip() or None,
             "message": None,
         }
     )
@@ -436,25 +528,55 @@ def generate_research_report(
 def build_research_object(
     body: ResearchObjectRequest,
     state: ApiState = Depends(get_api_state),
-    _actor: _ResearchActor = Depends(require_authenticated_actor),
+    actor: _ResearchActor = Depends(require_authenticated_actor),
 ) -> JSONResponse:
     """Build canonical immutable Research Object from existing outputs.
 
     Additive — does not alter ``/analyse``. When ``data_bundle`` is omitted and
-    ``fetch_data_bundle`` is True, loads D005 unified bundle. Analysis must be
-    supplied by the caller (never re-scored here).
+    ``fetch_data_bundle`` is True, loads D005 unified bundle. Analysis is never
+    re-scored here. P1-12 — investment conclusions bind to owned provenance.
     """
+    analysis_payload = body.analysis_payload
+    valuation_signals = body.valuation_signals
+    bound_analysis_id: str | None = None
     try:
+        if requires_trust_binding(
+            analysis_payload=analysis_payload,
+            valuation_signals=valuation_signals,
+        ):
+            record = load_owned_provenance(body.analysis_id, actor)
+            analysis_payload = bind_analysis_payload_to_provenance(
+                analysis_payload,
+                record,
+                symbol=body.symbol,
+            )
+            # Client valuation_signals must not inject IV/MoS after binding.
+            valuation_signals = None
+            bound_analysis_id = record.analysis_id
+        elif body.analysis_id:
+            # Explicit analysis_id still requires ownership even for empty payloads.
+            record = load_owned_provenance(body.analysis_id, actor)
+            if analysis_payload is not None:
+                analysis_payload = bind_analysis_payload_to_provenance(
+                    analysis_payload,
+                    record,
+                    symbol=body.symbol,
+                )
+            valuation_signals = None
+            bound_analysis_id = record.analysis_id
+
         research = state.platform.build_research_object(
             body.symbol,
             data_bundle=body.data_bundle,
-            analysis_payload=body.analysis_payload,
-            valuation_signals=body.valuation_signals,
+            analysis_payload=analysis_payload,
+            valuation_signals=valuation_signals,
             company=body.company,
             exchange=body.exchange,
             correlation_id=body.correlation_id,
             fetch_data_bundle=body.fetch_data_bundle,
         )
+    except TrustChainError as exc:
+        return _trust_chain_error_response(exc)
     except ValueError as exc:
         return JSONResponse(
             status_code=400,
@@ -479,6 +601,7 @@ def build_research_object(
             "ok": True,
             "symbol": body.symbol.strip().upper(),
             "research_object": research,
+            "analysis_id": bound_analysis_id,
             "message": None,
         }
     )

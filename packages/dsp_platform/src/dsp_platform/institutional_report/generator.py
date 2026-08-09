@@ -345,24 +345,31 @@ class InstitutionalReportGenerator:
             ro_section=ro.explainability,
         )
 
+        ro_audit = section_payload_dict(ro.audit)
         audit_payload: dict[str, Any] = {
             "report_id": report_id,
             "audit_reference": field_or_unavailable(
-                section_payload_dict(ro.audit),
-                "research_object_id",
+                ro_audit,
+                "analysis_id",
                 "audit_reference",
+                "research_object_id",
                 "correlation_id",
+            ),
+            "analysis_id": field_or_unavailable(
+                ro_audit,
+                "analysis_id",
+                "audit_reference",
             ),
             "generation_timestamp": generated_at,
             "engine_version": field_or_unavailable(
-                section_payload_dict(ro.audit),
+                ro_audit,
                 "pipeline_version",
                 "platform_version",
                 "engine_version",
             ),
             "rules_version": REPORT_SCHEMA_VERSION,
             "data_timestamp": field_or_unavailable(
-                section_payload_dict(ro.audit),
+                ro_audit,
                 "created_at",
                 "data_timestamp",
             ),
@@ -372,7 +379,16 @@ class InstitutionalReportGenerator:
                 "reporting_period",
                 "as_of",
             ),
-            "source_metadata": section_payload_dict(ro.audit),
+            "source_metadata": ro_audit,
+            "trust_chain": (
+                dict(ro_audit["trust_chain"])
+                if isinstance(ro_audit.get("trust_chain"), dict)
+                else UNAVAILABLE_MESSAGE
+            ),
+            "result_fingerprint": field_or_unavailable(
+                ro_audit,
+                "result_fingerprint",
+            ),
             "calculation_metadata": UNAVAILABLE_MESSAGE,  # R002 never calculates
             "research_version": ro.version.schema_version,
             "research_object_id": meta.research_object_id,

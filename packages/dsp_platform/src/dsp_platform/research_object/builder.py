@@ -345,6 +345,20 @@ class ResearchObjectBuilder:
             pipeline_version = meta_block.get("pipeline_version")
             platform_version = platform_version or meta_block.get("platform_version")
 
+        analysis_id = None
+        result_fingerprint = None
+        trust_chain = None
+        if isinstance(self._analysis, Mapping):
+            raw_aid = self._analysis.get("analysis_id") or self._analysis.get(
+                "audit_reference"
+            )
+            if raw_aid is not None and str(raw_aid).strip():
+                analysis_id = str(raw_aid).strip()
+            if self._analysis.get("result_fingerprint") is not None:
+                result_fingerprint = self._analysis.get("result_fingerprint")
+            if isinstance(self._analysis.get("trust_chain"), Mapping):
+                trust_chain = dict(self._analysis["trust_chain"])  # type: ignore[index]
+
         audit_payload = {
             "research_object_id": object_id,
             "correlation_id": self._correlation_id or meta_block.get("correlation_id"),
@@ -352,6 +366,10 @@ class ResearchObjectBuilder:
             "pipeline_version": pipeline_version,
             "platform_version": platform_version,
             "package_versions": package_versions,
+            "analysis_id": analysis_id,
+            "audit_reference": analysis_id,
+            "result_fingerprint": result_fingerprint,
+            "trust_chain": trust_chain,
             "analysis_ok": (
                 self._analysis.get("ok")
                 if isinstance(self._analysis, Mapping)

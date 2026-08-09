@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useState } from "react";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 
 import { Badge, Button } from "@/components/ds";
 import {
@@ -244,7 +244,41 @@ function AnalystNotesCard({ symbol }: { symbol: string }) {
   );
 }
 
+function provenanceText(value: unknown): string {
+  if (value === null || value === undefined || value === "") {
+    return "Data unavailable.";
+  }
+  if (typeof value === "boolean") return value ? "Yes" : "No";
+  if (typeof value === "number" || typeof value === "string") return String(value);
+  return "Data unavailable.";
+}
+
 export function ResearchSection({ view }: { view: ResearchView }) {
+  const { session } = useAuth();
+  const token = session?.accessToken ?? null;
+  const analysisId = view.analysisId?.trim() || "";
+  const provenanceQuery = useQuery({
+    queryKey: ["analyse-provenance", analysisId, Boolean(token)],
+    enabled: Boolean(analysisId && token),
+    queryFn: async () => {
+      const res = await api.analyseProvenance(analysisId, { token });
+      if (!res.ok || !res.provenance) {
+        throw new Error(res.message ?? res.error ?? "Data unavailable.");
+      }
+      return res.provenance;
+    },
+    retry: false,
+  });
+  const provenance = provenanceQuery.data;
+  const sourceEvidence =
+    provenance && typeof provenance.source_evidence === "object"
+      ? (provenance.source_evidence as Record<string, unknown>)
+      : null;
+  const release =
+    provenance && typeof provenance.release === "object"
+      ? (provenance.release as Record<string, unknown>)
+      : null;
+
   return (
     <div className="space-y-4">
       <SectionCard
@@ -278,6 +312,90 @@ export function ResearchSection({ view }: { view: ResearchView }) {
             }
           />
         </dl>
+      </SectionCard>
+      <SectionCard
+        title="Investment Provenance"
+        description="Server-owned lineage for the displayed analysis_id — read-only"
+      >
+        {!analysisId ? (
+          <WorkspaceEmpty description="Data unavailable. Run an analysis to load provenance." />
+        ) : !token ? (
+          <WorkspaceEmpty description="Sign in to load server provenance for this analysis." />
+        ) : provenanceQuery.isLoading ? (
+          <p className="text-sm text-[var(--muted)]" role="status">
+            Loading provenance…
+          </p>
+        ) : provenanceQuery.isError ? (
+          <p className="text-sm text-[var(--danger-fg)]" role="alert">
+            {provenanceQuery.error instanceof Error
+              ? provenanceQuery.error.message
+              : "Data unavailable."}
+          </p>
+        ) : provenance ? (
+          <dl>
+            <FieldRow
+              label="Analysis ID"
+              value={provenanceText(provenance.analysis_id)}
+            />
+            <FieldRow
+              label="Source / provider"
+              value={provenanceText(
+                sourceEvidence?.statement_provider ??
+                  sourceEvidence?.quote_provider ??
+                  sourceEvidence?.status,
+              )}
+            />
+            <FieldRow
+              label="Evidence class"
+              value={provenanceText(
+                sourceEvidence?.statement_source_type ??
+                  sourceEvidence?.quote_source_type ??
+                  (sourceEvidence?.authenticated ? "authenticated" : "unavailable"),
+              )}
+            />
+            <FieldRow
+              label="Retrieval timestamp"
+              value={provenanceText(
+                sourceEvidence?.statement_retrieved_at ??
+                  sourceEvidence?.quote_retrieved_at ??
+                  provenance.calculated_at ??
+                  provenance.created_at,
+              )}
+            />
+            <FieldRow
+              label="Statement basis"
+              value={provenanceText(sourceEvidence?.statement_basis)}
+            />
+            <FieldRow
+              label="Persistence state"
+              value={
+                view.provenancePersisted === true
+                  ? "Persisted"
+                  : view.provenancePersisted === false
+                    ? "Not persisted"
+                    : "Data unavailable."
+              }
+            />
+            <FieldRow
+              label="Release identity"
+              value={provenanceText(release?.label ?? release?.product_version)}
+            />
+            <FieldRow
+              label="Input fingerprint"
+              value={provenanceText(provenance.input_fingerprint)}
+            />
+            <FieldRow
+              label="Result fingerprint"
+              value={provenanceText(provenance.result_fingerprint)}
+            />
+            <FieldRow
+              label="Authority"
+              value={provenanceText(provenance.authority ?? "server")}
+            />
+          </dl>
+        ) : (
+          <WorkspaceEmpty description="Data unavailable." />
+        )}
       </SectionCard>
       <SectionCard title="Institutional Report Viewer">
         <p className="text-sm text-[var(--muted)]">
@@ -689,11 +807,33 @@ export function ExportSection({
           "Run an analysis first — institutional export uses the loaded research, it does not fetch its own data.",
         );
       }
+      const analysisId =
+        view.analysisId?.trim() ||
+        (typeof analyseResponse.analysis_id === "string"
+          ? analyseResponse.analysis_id.trim()
+          : "") ||
+        (typeof (analyseResponse.payload as { analysis_id?: unknown } | undefined)
+          ?.analysis_id === "string"
+          ? String(
+              (analyseResponse.payload as { analysis_id?: string }).analysis_id,
+            ).trim()
+          : "");
+      if (!analysisId) {
+        throw new Error(
+          "Server analysis_id is required for institutional export — run analysis again.",
+        );
+      }
+      if (!token) {
+        throw new Error(
+          "Sign in required for institutional export — server ownership is enforced.",
+        );
+      }
       const objectRes = await api.researchObject(
         {
           symbol: view.ticker,
           company: view.company,
           exchange: view.exchange,
+          analysis_id: analysisId,
           analysis_payload:
             (analyseResponse.payload as Record<string, unknown> | undefined) ??
             null,
@@ -704,15 +844,28 @@ export function ExportSection({
       if (!objectRes.ok || !objectRes.research_object) {
         throw new Error(objectRes.message ?? objectRes.error ?? "Data unavailable.");
       }
+      if (
+        objectRes.analysis_id &&
+        String(objectRes.analysis_id).trim() !== analysisId
+      ) {
+        throw new Error("Export analysis_id mismatch — refusing stale client state.");
+      }
       const reportRes = await api.researchReport(
-        { research_object: objectRes.research_object },
+        {
+          research_object: objectRes.research_object,
+          analysis_id: analysisId,
+        },
         { token },
       );
       if (!reportRes.ok || !reportRes.report) {
         throw new Error(reportRes.message ?? reportRes.error ?? "Data unavailable.");
       }
       const exportRes = await api.researchExport(
-        { report: reportRes.report, format },
+        {
+          report: reportRes.report,
+          analysis_id: analysisId,
+          format,
+        },
         { token },
       );
       if (!exportRes.ok || !exportRes.export) {

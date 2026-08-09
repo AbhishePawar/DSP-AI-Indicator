@@ -352,6 +352,22 @@ export const api = {
       options,
     ),
 
+  /** P1-06 / P1-12 — fetch server-owned investment provenance by analysis_id. */
+  analyseProvenance: (analysisId: string, options?: RequestOptions) =>
+    request<{
+      ok: boolean;
+      capability?: string;
+      audit_reference?: string;
+      provenance?: Record<string, unknown>;
+      message?: string | null;
+      error?: string;
+      error_code?: string;
+    }>(
+      `/analyse/provenance/${encodeURIComponent(analysisId)}`,
+      { method: "GET" },
+      options,
+    ),
+
   login: (body: {
     username?: string;
     password?: string;
@@ -1691,6 +1707,7 @@ export const api = {
       company?: string | null;
       exchange?: string | null;
       correlation_id?: string | null;
+      analysis_id?: string | null;
       data_bundle?: Record<string, unknown> | null;
       analysis_payload?: Record<string, unknown> | null;
       valuation_signals?: Record<string, unknown> | null;
@@ -1702,8 +1719,10 @@ export const api = {
       ok: boolean;
       symbol?: string;
       research_object?: Record<string, unknown>;
+      analysis_id?: string | null;
       message?: string | null;
       error?: string;
+      error_code?: string;
     }>(
       "/research/object",
       { method: "POST", body: JSON.stringify(body) },
@@ -1714,6 +1733,7 @@ export const api = {
   researchReport: (
     body: {
       research_object: Record<string, unknown>;
+      analysis_id?: string | null;
       report_id?: string | null;
       generated_at?: string | null;
     },
@@ -1723,8 +1743,10 @@ export const api = {
       ok: boolean;
       symbol?: string;
       report?: Record<string, unknown>;
+      analysis_id?: string | null;
       message?: string | null;
       error?: string;
+      error_code?: string;
     }>(
       "/research/report",
       { method: "POST", body: JSON.stringify(body) },
@@ -1735,6 +1757,7 @@ export const api = {
   researchExport: (
     body: {
       report: Record<string, unknown>;
+      analysis_id?: string | null;
       format: "json" | "csv" | "xlsx" | "pdf" | "docx" | "pptx";
       export_id?: string | null;
       exported_at?: string | null;
@@ -1752,8 +1775,10 @@ export const api = {
         content_base64: string;
         [key: string]: unknown;
       };
+      analysis_id?: string | null;
       message?: string | null;
       error?: string;
+      error_code?: string;
     }>(
       "/research/export",
       { method: "POST", body: JSON.stringify(body) },

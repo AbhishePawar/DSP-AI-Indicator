@@ -35,7 +35,14 @@ const sampleResponse: AnalyseResponse = {
   platform_version: "1.0.0",
   pipeline_version: "1.0.0",
   correlation_id: "corr-1",
-  payload: { ok: true, stage_summaries: [] },
+  analysis_id: "analysis-p112-1",
+  audit_reference: "analysis-p112-1",
+  provenance_persisted: true,
+  payload: {
+    ok: true,
+    analysis_id: "analysis-p112-1",
+    stage_summaries: [],
+  },
 };
 
 function buildView() {
@@ -128,15 +135,25 @@ describe("ExportSection — institutional DOCX/PPTX export", () => {
 
     await waitFor(() => expect(researchExportMock).toHaveBeenCalled());
     expect(researchObjectMock).toHaveBeenCalledWith(
-      expect.objectContaining({ symbol: "AAPL" }),
+      expect.objectContaining({
+        symbol: "AAPL",
+        analysis_id: "analysis-p112-1",
+      }),
       expect.anything(),
     );
     expect(researchReportMock).toHaveBeenCalledWith(
-      { research_object: { symbol: "AAPL" } },
+      {
+        research_object: { symbol: "AAPL" },
+        analysis_id: "analysis-p112-1",
+      },
       expect.anything(),
     );
     expect(researchExportMock).toHaveBeenCalledWith(
-      { report: { symbol: "AAPL", sections: [] }, format: "docx" },
+      {
+        report: { symbol: "AAPL", sections: [] },
+        analysis_id: "analysis-p112-1",
+        format: "docx",
+      },
       expect.anything(),
     );
     await waitFor(() => expect(createObjectURLSpy).toHaveBeenCalled());

@@ -49,11 +49,83 @@ class FakeJsonClient:
         if path.endswith("/profile"):
             return {"status": "success", "data": {"company_profile": "State Bank of India"}}
         if path.endswith("/income-statement"):
-            return {"status": "success", "data": {"income_statement": [{"category": "Revenue", "history": [{"period": "Mar 2026", "value": 100}]}]}}
+            return {
+                "status": "success",
+                "data": {
+                    "type": "consolidated",
+                    "time_period": "yearly",
+                    "units_in": "crore",
+                    "income_statement": [
+                        {
+                            "category": "revenue",
+                            "history": [{"period": "Mar 2026", "value": 100}],
+                        },
+                        {
+                            "category": "net_profit",
+                            "history": [{"period": "Mar 2026", "value": 20}],
+                        },
+                    ],
+                    "full_statement": [
+                        {
+                            "particular": "EPS - Basic",
+                            "history": [{"period": "Mar 2026", "value": 5.0}],
+                        },
+                        {
+                            "particular": "EPS - Diluted",
+                            "history": [{"period": "Mar 2026", "value": 4.9}],
+                        },
+                    ],
+                },
+            }
         if path.endswith("/balance-sheet"):
-            return {"status": "success", "data": {"full_statement": [{"particular": "Total Assets", "history": [{"period": "Mar 2026", "value": 1000}]}]}}
+            return {
+                "status": "success",
+                "data": {
+                    "type": "consolidated",
+                    "units_in": "crore",
+                    "history": [
+                        {"total_asset": 1000, "total_liability": 400, "period": "Mar 2026"}
+                    ],
+                    "full_statement": [
+                        {
+                            "particular": "Total Assets",
+                            "history": [{"period": "Mar 2026", "value": 1000}],
+                        },
+                        {
+                            "particular": "Current Assets",
+                            "history": [{"period": "Mar 2026", "value": 300}],
+                        },
+                        {
+                            "particular": "Current Liabilities",
+                            "history": [{"period": "Mar 2026", "value": 200}],
+                        },
+                        {
+                            "particular": "Equity Capital",
+                            "history": [{"period": "Mar 2026", "value": 600}],
+                        },
+                    ],
+                },
+            }
         if path.endswith("/cash-flow"):
-            return {"status": "success", "data": {"full_statement": [{"particular": "Cash Flow from Operations", "history": [{"period": "Mar 2026", "value": 200}]}]}}
+            return {
+                "status": "success",
+                "data": {
+                    "type": "consolidated",
+                    "units_in": "crore",
+                    "cash_flow": [
+                        {
+                            "category": "operating",
+                            "history": [{"period": "Mar 2026", "value": 200}],
+                        }
+                    ],
+                    "full_statement": [
+                        {
+                            "particular": "Cash flow from Operations",
+                            "history": [{"period": "Mar 2026", "value": 200}],
+                        }
+                    ],
+                },
+            }
         raise AssertionError(f"unexpected path: {path}")
 
 

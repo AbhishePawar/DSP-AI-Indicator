@@ -145,8 +145,10 @@ def evaluate_revenue_growth(
     organic = None
     if goodwill is not None:
         organic = max(0.0, min(1.0, 1.0 - min(0.5, float(goodwill) * 1.5)))
-    cagr_s = _map_growth(cagr if cagr is not None else yoy)
-    value = mean_present([cagr_s, stab, rev_stab, scale, organic])
+    # Do not treat YoY as CAGR — separate mapped signals only.
+    cagr_s = _map_growth(cagr) if cagr is not None else None
+    yoy_s = _map_growth(yoy) if yoy is not None else None
+    value = mean_present([cagr_s, yoy_s, stab, rev_stab, scale, organic])
     conf = _confidence(
         [cagr, yoy, stab, rev_stab, scale, goodwill],
         basis="revenue_growth_quality_proxies",
@@ -155,6 +157,11 @@ def evaluate_revenue_growth(
         conf = GrowthQualityConfidence(
             value=min(conf.value, 0.50),
             basis=conf.basis + "_insufficient_history",
+        )
+    elif cagr is None and yoy is not None:
+        conf = GrowthQualityConfidence(
+            value=min(conf.value, 0.60),
+            basis=conf.basis + "_yoy_only_not_cagr",
         )
     positives: list[str] = []
     negatives: list[str] = []
@@ -312,10 +319,8 @@ def evaluate_reinvestment(
         safe_getattr(financial_analysis, "ratios", "profitability"), "roic"
     )
     roic_s = None if roic is None else max(0.0, min(1.0, float(roic) / 0.18))
-    # ROIC vs growth: high ROIC with moderate growth is excellent compounding
+    # ROIC vs growth uses annual CAGR only — never silent YoY substitution.
     cagr = safe_getattr(financial_analysis, "income", "revenue", "cagr")
-    if cagr is None:
-        cagr = safe_getattr(financial_analysis, "income", "revenue", "yoy_growth")
     roic_vs_g = None
     if roic is not None and cagr is not None and float(cagr) > 0:
         # Prefer ROIC comfortably above growth (value-creating reinvestment)
@@ -397,13 +402,13 @@ def evaluate_capital_support(
     debt_fund = None
     if debt_issued is not None:
         debt_fund = 0.75 if float(debt_issued) <= 0 else 0.40
-    # Dilution: prefer buyback quality over issuance (issuance not always exposed)
-    dilution = buyback
+    # Dilution is independent of buybacks — never alias buyback quality as dilution.
+    dilution = _bq(ca, "dilution_discipline")
     value = mean_present(
-        [cash_deploy, flex, debt_red, internal, debt_fund, dilution]
+        [cash_deploy, flex, debt_red, buyback, internal, debt_fund, dilution]
     )
     conf = _confidence(
-        [cash_deploy, flex, debt_red, fcf, debt_issued, buyback],
+        [cash_deploy, flex, debt_red, fcf, debt_issued, buyback, dilution],
         basis="capital_allocation_support_proxies",
     )
     positives: list[str] = []

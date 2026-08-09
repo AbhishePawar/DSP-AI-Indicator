@@ -354,9 +354,9 @@ class FinancialRatioEngine:
             invested = eq + (debt or 0.0) - (bs.cash or 0.0)
         tax_rate = _safe_div(inc.tax, inc.pretax_income)
         nopat = None
-        if inc.ebit is not None:
-            tr = tax_rate if tax_rate is not None else 0.25
-            tr = max(0.0, min(0.6, tr))
+        # Fail closed — do not invent a statutory tax rate for ROIC.
+        if inc.ebit is not None and tax_rate is not None:
+            tr = max(0.0, min(0.6, tax_rate))
             nopat = inc.ebit * (1.0 - tr)
         roic = _safe_div(nopat, invested)
 
@@ -669,13 +669,10 @@ class FinancialRatioEngine:
                 or 1.0,
             )
         ) if cf.capex is not None and ocf is not None else None
-        # Prefer sibling cash quality when present
+        # Prefer sibling cash quality when present — never invent perfect
+        # sustainability merely because FCF exists (CV-001 / CV-005).
         div_sust = cash_an.quality.dividend_sustainability
         bb_sust = cash_an.quality.buyback_sustainability
-        if div_sust is None and fcf is not None:
-            div_sust = 1.0
-        if bb_sust is None and fcf is not None:
-            bb_sust = 1.0
 
         net_raise = None
         if cf.debt_issued is not None or cf.debt_repaid is not None:

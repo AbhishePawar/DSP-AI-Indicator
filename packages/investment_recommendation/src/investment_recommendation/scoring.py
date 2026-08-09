@@ -34,6 +34,7 @@ class DecisionComponent(str, Enum):
 
 
 class InvestmentRecommendationAction(str, Enum):
+    UNAVAILABLE = "unavailable"
     STRONG_SELL = "strong_sell"
     SELL = "sell"
     REDUCE = "reduce"
@@ -102,8 +103,9 @@ def mos_to_valuation_score(mos_ratio: float | None) -> float | None:
 
 
 def action_from_score(score: float | None) -> InvestmentRecommendationAction:
+    # CV-001 / CV-005 — insufficient score must not invent HOLD.
     if score is None:
-        return InvestmentRecommendationAction.HOLD
+        return InvestmentRecommendationAction.UNAVAILABLE
     if score >= 85.0:
         return InvestmentRecommendationAction.STRONG_BUY
     if score >= 75.0:

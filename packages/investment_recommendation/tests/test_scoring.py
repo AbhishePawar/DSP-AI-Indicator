@@ -22,7 +22,7 @@ def test_default_weights_sum_to_one() -> None:
 @pytest.mark.parametrize(
     ("score", "expected"),
     [
-        (None, InvestmentRecommendationAction.HOLD),
+        (None, InvestmentRecommendationAction.UNAVAILABLE),
         (10.0, InvestmentRecommendationAction.STRONG_SELL),
         (24.9, InvestmentRecommendationAction.STRONG_SELL),
         (25.0, InvestmentRecommendationAction.SELL),

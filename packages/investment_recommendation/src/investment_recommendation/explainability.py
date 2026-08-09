@@ -69,6 +69,11 @@ def build_recommendation_text(
     action: InvestmentRecommendationAction,
     confidence: InvestmentRecommendationConfidence,
 ) -> str:
+    if action is InvestmentRecommendationAction.UNAVAILABLE:
+        return (
+            "Recommendation unavailable — insufficient evidence to form a "
+            "directional research posture. No HOLD is inferred from missing inputs."
+        )
     if confidence.value < 0.35:
         return (
             "Low decision confidence — treat the recommendation as provisional "

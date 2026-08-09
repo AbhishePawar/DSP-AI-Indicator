@@ -47,7 +47,10 @@ def safe_score_value(analysis: object | None) -> float | None:
     return explained_value(analysis, "score")
 
 
-def safe_confidence(analysis: object | None, *, default: float = 0.35) -> float:
+def safe_confidence(
+    analysis: object | None, *, default: float | None = None
+) -> float | None:
+    """Return engine confidence or None — never invent a default confidence."""
     value = explained_value(analysis, "confidence")
     if value is None:
         return default
@@ -57,7 +60,7 @@ def safe_confidence(analysis: object | None, *, default: float = 0.35) -> float:
 def extract_margin_of_safety(
     valuation: object | None,
     *,
-    business_quality_confidence: float,
+    business_quality_confidence: float | None,
 ) -> MarginOfSafetyAssessment:
     # Prefer ValuationSignals public contract; also accept OverallValuationResult
     from investment_recommendation.valuation_signals import ValuationSignals
@@ -67,7 +70,7 @@ def extract_margin_of_safety(
         price = valuation.current_market_price
         mos = valuation.margin_of_safety
         premium = valuation.premium_discount
-        val_conf = valuation.confidence
+        raw_conf = valuation.confidence
     else:
         ivps = explained_value(valuation, "overall_intrinsic_value_per_share")
         price = explained_value(valuation, "current_market_price")
@@ -77,11 +80,12 @@ def extract_margin_of_safety(
             mos = (ivps - price) / ivps
         if premium is None and ivps is not None and price is not None and ivps != 0:
             premium = (price - ivps) / ivps
-        val_conf = explained_value(valuation, "confidence")
-        if val_conf is None:
-            val_conf = 0.55 if mos is not None else 0.25
-        else:
-            val_conf = max(0.0, min(1.0, float(val_conf)))
+        raw_conf = explained_value(valuation, "confidence")
+
+    # Missing confidence is 0.0 — never invent mid-confidence floats (0.55/0.25).
+    val_conf = (
+        0.0 if raw_conf is None else max(0.0, min(1.0, float(raw_conf)))
+    )
 
     valuation_score = mos_to_valuation_score(mos)
 
@@ -129,7 +133,7 @@ def make_contribution(
     score_value: float | None,
     *,
     weight: float,
-    confidence: float,
+    confidence: float | None,
 ) -> DecisionContribution:
     score = (
         InvestmentRecommendationScore(value=None, status="insufficient_data")
@@ -139,13 +143,19 @@ def make_contribution(
         )
     )
     contribution = None if score_value is None else round(score_value * weight, 4)
+    conf_value = 0.0 if confidence is None else max(0.0, min(1.0, float(confidence)))
+    conf_basis = (
+        f"{component.value}_confidence_unavailable"
+        if confidence is None
+        else f"{component.value}_confidence"
+    )
     return DecisionContribution(
         component=component,
         score=score,
         weight=weight,
         weighted_contribution=contribution,
         confidence=InvestmentRecommendationConfidence(
-            value=round(confidence, 4), basis=f"{component.value}_confidence"
+            value=round(conf_value, 4), basis=conf_basis
         ),
         data_available=score_value is not None,
     )

@@ -24,7 +24,8 @@ class ValuationSignals:
     current_market_price: float | None
     margin_of_safety: float | None = None
     premium_discount: float | None = None
-    confidence: float = 0.55
+    # Default 0.0 — never invent mid-confidence when callers omit evidence.
+    confidence: float = 0.0
 
     def __post_init__(self) -> None:
         conf = float(self.confidence)
@@ -61,7 +62,7 @@ class ValuationSignals:
             ),
             margin_of_safety=explained_value(valuation, "margin_of_safety"),
             premium_discount=explained_value(valuation, "premium_discount"),
-            confidence=explained_value(valuation, "confidence") or 0.55,
+            confidence=explained_value(valuation, "confidence") or 0.0,
         )
 
     def to_dict(self) -> dict[str, Any]:

@@ -110,9 +110,8 @@ def evaluate_capital_allocation(
     reinvest = _bq_first(ca, "reinvestment_quality")
     capex = _bq_first(ca, "capex_discipline")
     buyback = _bq_first(ca, "share_buyback_quality", "buyback_quality")
-    dilution = _bq_first(
-        ca, "debt_reduction_discipline", "dilution_discipline", "share_issuance_discipline"
-    )
+    # Dilution must never silently alias debt-reduction discipline (CV-001).
+    dilution = _bq_first(ca, "dilution_discipline", "share_issuance_discipline")
     acquisition = _bq_first(
         ca, "cash_deployment_quality", "acquisition_quality", "m_and_a_discipline"
     )

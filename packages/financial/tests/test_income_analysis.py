@@ -640,9 +640,11 @@ class TestHelpersAndEdges:
                 ),
             ]
         )
-        # YoY scan walks past the None slot (no FY-1=2023 peer)
+        # YoY scan walks past the None slot (no FY-1=2023 peer).
+        # Sequential period growth must not silently fill YoY (CV-001).
         assert result.revenue.revenue == 1000.0
-        assert result.revenue.yoy_growth == result.revenue.revenue_growth
+        assert result.revenue.yoy_growth is None
+        assert result.revenue.revenue_growth is not None
 
     def test_other_income_vs_revenue_fallback(self) -> None:
         eng = IncomeStatementEngine()

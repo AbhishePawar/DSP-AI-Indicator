@@ -159,13 +159,12 @@ def evaluate_balance_sheet(
     equity_score = _map_ratio(equity_ratio, good=0.55, bad=0.20)
     net_debt_score = None
     if net_debt is not None:
-        # Prefer ratio-linked signal; net cash is a positive fortress signal
+        # Prefer ratio-linked signal; net cash is a positive fortress signal.
+        # Do not invent a mid-score when debt/assets is unavailable.
         if float(net_debt) <= 0:
             net_debt_score = 0.90
         elif dta_score is not None:
             net_debt_score = dta_score
-        else:
-            net_debt_score = 0.40
 
     value = mean_present([dte_score, dta_score, equity_score, tangible_proxy, net_debt_score])
     conf = _confidence(

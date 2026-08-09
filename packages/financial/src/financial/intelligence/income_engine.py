@@ -325,11 +325,24 @@ class IncomeStatementEngine:
                     yoy = _growth(rev, incomes[i].revenue)
                     break
 
-        # CAGR across annual-like span
+        # CAGR only over annual statements with fiscal-year span (never quarterly
+        # period-count-as-years — that invents annualised growth).
         cagr = None
-        if len(incomes) >= 2 and incomes[0].revenue and rev:
-            years = len(incomes) - 1
-            cagr = _cagr(incomes[0].revenue, rev, years)
+        annual_points: list[tuple[int, float]] = []
+        for income, stmt in zip(incomes, stmts, strict=False):
+            if stmt is None or stmt.period.period_type is not PeriodType.ANNUAL:
+                continue
+            fy = stmt.period.fiscal_year
+            if fy is None or income.revenue is None or income.revenue <= 0:
+                continue
+            annual_points.append((int(fy), float(income.revenue)))
+        if len(annual_points) >= 2:
+            annual_points.sort(key=lambda item: item[0])
+            start_fy, start_rev = annual_points[0]
+            end_fy, end_rev = annual_points[-1]
+            years = end_fy - start_fy
+            if years >= 1:
+                cagr = _cagr(start_rev, end_rev, years)
 
         rev_series = [i.revenue for i in incomes if i.revenue is not None]
         growth_rates: list[float] = []
@@ -365,17 +378,26 @@ class IncomeStatementEngine:
             out.append(
                 build_explanation(
                     name="cagr",
-                    formula="(end/start)^(1/n) - 1",
+                    formula="(end/start)^(1/n) - 1 using annual fiscal years",
                     inputs={
-                        "start": incomes[0].revenue,
-                        "end": rev,
-                        "periods": len(incomes) - 1,
+                        "start": annual_points[0][1],
+                        "end": annual_points[-1][1],
+                        "years": annual_points[-1][0] - annual_points[0][0],
                     },
                     intermediates={"cagr": cagr},
                     result=cagr,
-                    confidence=_confidence_from_history(len(incomes), has_value=True),
-                    interpretation=f"Revenue CAGR over {len(incomes) - 1} periods is {cagr * 100:.2f}%.",
-                    limitations="Assumes equal period spacing; negative revenues unsupported.",
+                    confidence=_confidence_from_history(
+                        len(annual_points), has_value=True
+                    ),
+                    interpretation=(
+                        f"Revenue CAGR over "
+                        f"{annual_points[-1][0] - annual_points[0][0]} "
+                        f"fiscal years is {cagr * 100:.2f}%."
+                    ),
+                    limitations=(
+                        "Annual statements only; quarterly histories do not "
+                        "produce CAGR. Negative revenues unsupported."
+                    ),
                 )
             )
 
@@ -383,7 +405,8 @@ class IncomeStatementEngine:
             revenue=rev,
             revenue_growth=revenue_growth,
             qoq_growth=qoq,
-            yoy_growth=yoy if yoy is not None else revenue_growth,
+            # YoY must not silently fall back to sequential period growth.
+            yoy_growth=yoy,
             cagr=cagr,
             growth_stability=growth_stability,
             trend_class=trend_class,

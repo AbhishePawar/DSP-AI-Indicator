@@ -34,6 +34,7 @@ _NEGATIVE_MOS = -0.15
 _DEEP_MOS = 0.30
 
 ACTION_RANK: dict[InvestmentRecommendationAction, int] = {
+    InvestmentRecommendationAction.UNAVAILABLE: -1,
     InvestmentRecommendationAction.STRONG_SELL: 0,
     InvestmentRecommendationAction.SELL: 1,
     InvestmentRecommendationAction.REDUCE: 2,
@@ -48,6 +49,9 @@ def cap_action(
     action: InvestmentRecommendationAction,
     cap: InvestmentRecommendationAction | None,
 ) -> InvestmentRecommendationAction:
+    # Unavailable is sticky — caps must never invent a directional action.
+    if action is InvestmentRecommendationAction.UNAVAILABLE:
+        return action
     if cap is None:
         return action
     if ACTION_RANK[action] > ACTION_RANK[cap]:

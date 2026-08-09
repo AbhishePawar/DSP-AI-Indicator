@@ -38,14 +38,21 @@ class ValuationSignals:
         price = self.current_market_price
         mos = self.margin_of_safety
         premium = self.premium_discount
-        if mos is None and ivps is not None and price is not None and ivps != 0:
+        # IV <= 0 is not a usable intrinsic value for MoS (avoid divide-by-zero /
+        # nonsense ratios from non-positive IV).
+        if (
+            mos is None
+            and ivps is not None
+            and price is not None
+            and float(ivps) > 0
+        ):
             mos = (float(ivps) - float(price)) / float(ivps)
             object.__setattr__(self, "margin_of_safety", mos)
         if (
             premium is None
             and ivps is not None
             and price is not None
-            and ivps != 0
+            and float(ivps) > 0
         ):
             premium = (float(price) - float(ivps)) / float(ivps)
             object.__setattr__(self, "premium_discount", premium)

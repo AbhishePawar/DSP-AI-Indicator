@@ -76,9 +76,19 @@ def extract_margin_of_safety(
         price = explained_value(valuation, "current_market_price")
         mos = explained_value(valuation, "margin_of_safety")
         premium = explained_value(valuation, "premium_discount")
-        if mos is None and ivps is not None and price is not None and ivps != 0:
+        if (
+            mos is None
+            and ivps is not None
+            and price is not None
+            and float(ivps) > 0
+        ):
             mos = (ivps - price) / ivps
-        if premium is None and ivps is not None and price is not None and ivps != 0:
+        if (
+            premium is None
+            and ivps is not None
+            and price is not None
+            and float(ivps) > 0
+        ):
             premium = (price - ivps) / ivps
         raw_conf = explained_value(valuation, "confidence")
 
@@ -92,7 +102,8 @@ def extract_margin_of_safety(
     if mos is None:
         classification = "unavailable"
         reasoning = (
-            "Margin of safety unavailable — intrinsic value and/or market price missing."
+            "Margin of safety unavailable — intrinsic value missing, "
+            "non-positive, and/or market price missing."
         )
     elif mos >= 0.40:
         classification = "deep_value"

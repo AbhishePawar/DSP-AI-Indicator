@@ -396,18 +396,16 @@ def _stage_valuation(
             ctx.request.financial_snapshot,  # type: ignore[arg-type]
             ctx.request.market_snapshot,  # type: ignore[arg-type]
         )
-        mid = None
-        vr = getattr(assessment, "valuation_range", None)
-        if vr is not None:
-            mid = getattr(vr, "mid", None)
         if price is None:
             raise ValueError("current_market_price is required with financial_snapshot")
         # P1-04 — company-level mid is NOT IV/share. Without authoritative shares
         # (authenticated path), do not fabricate per-share IV or MoS.
+        # CV-001/005 — never invent mid-range confidence (0.55/0.25) on a
+        # degraded non-auth path where MoS is unavailable.
         signals = ValuationSignals(
             intrinsic_value_per_share=None,
             current_market_price=float(price),
-            confidence=0.55 if mid is not None else 0.25,
+            confidence=0.0,
         )
         ctx.results["valuation_signals"] = signals
         warnings.append(
@@ -432,7 +430,7 @@ def _stage_valuation(
     signals = ValuationSignals(
         intrinsic_value_per_share=None,
         current_market_price=float(price),
-        confidence=0.25,
+        confidence=0.0,
     )
     ctx.results["valuation_signals"] = signals
     warnings.append(

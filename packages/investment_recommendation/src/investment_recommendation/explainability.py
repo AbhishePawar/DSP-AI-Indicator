@@ -223,6 +223,12 @@ def analysis_confidence(
     contributions: tuple[DecisionContribution, ...],
     mos: MarginOfSafetyAssessment,
 ) -> InvestmentRecommendationConfidence:
+    # CV-005 — missing MoS must not leave residual "soft" confidence that
+    # implies a usable directional recommendation.
+    if mos.margin_of_safety is None:
+        return InvestmentRecommendationConfidence(
+            value=0.0, basis="margin_of_safety_unavailable"
+        )
     values = [c.confidence.value for c in contributions if c.data_available]
     if not values:
         return InvestmentRecommendationConfidence(
@@ -230,8 +236,7 @@ def analysis_confidence(
         )
     coverage = sum(1 for c in contributions if c.data_available) / len(contributions)
     mean_conf = sum(values) / len(values)
-    mos_factor = 1.0 if mos.margin_of_safety is not None else 0.75
     return InvestmentRecommendationConfidence(
-        value=round(mean_conf * (0.65 + 0.35 * coverage) * mos_factor, 4),
-        basis="mean_contribution_confidence_x_coverage_x_mos",
+        value=round(mean_conf * (0.65 + 0.35 * coverage), 4),
+        basis="mean_contribution_confidence_x_coverage",
     )

@@ -112,6 +112,26 @@ def apply_decision_rules(
     premium = mos.premium_discount
 
     # --- Valuation gates (hard) ---
+    # RS-005 / Buffett — MoS is mandatory for an authoritative action.
+    # Omitting valuation_mos and renormalizing remaining quality weights must
+    # not invent Buy/Hold/Sell from incomplete valuation evidence.
+    if mos_ratio is None:
+        _add(
+            "margin_of_safety_unavailable",
+            "margin_of_safety",
+            "Margin of safety unavailable — no authoritative valuation-based "
+            "action (quality alone cannot justify Buy/Hold/Sell).",
+            score_delta=0.0,
+            cap=InvestmentRecommendationAction.UNAVAILABLE,
+            engines=("valuation",),
+            metrics=["mos=None"],
+        )
+        return DecisionRuleResult(
+            rules=tuple(rules),
+            adjusted_score=None,
+            action_cap=InvestmentRecommendationAction.UNAVAILABLE,
+        )
+
     if premium is not None and premium >= _MATERIAL_PREMIUM:
         _add(
             "materially_above_intrinsic_value",

@@ -132,9 +132,14 @@ def classify_gate(
             "(workflow_dispatch) or a secure local runtime - never commit."
         )
     else:
-        evidence_class = "real_live_authenticated_provider"
+        # Credentials are necessary but not sufficient. Do NOT claim
+        # real_live_authenticated_provider until CLEARED after live I/O.
+        evidence_class = "credentials_present_pending_live"
         status = "READY"
-        reason = f"credentials present via route={route}; live execution permitted"
+        reason = (
+            f"credentials present via route={route}; "
+            "live execution permitted — evidence_class pending CLEARED"
+        )
     return {
         "ready": ready,
         "status": status,
@@ -179,11 +184,19 @@ def _provider_meta(route: str) -> dict[str, Any]:
             "vendor": "financial_modeling_prep",
             "note": "Single authenticated FMP key satisfies quote + statements",
         }
+    if route == "configured_http":
+        return {
+            "quote_provider_id": "configured_http_quote",
+            "statement_provider_id": "configured_http_statements",
+            "auth_mode": "api_key_bearer",
+            "note": "Vendor-neutral ConfiguredHttp* adapters; base URL identifies endpoint",
+        }
     return {
-        "quote_provider_id": "configured_http_quote",
-        "statement_provider_id": "configured_http_statements",
-        "auth_mode": "api_key_bearer",
-        "note": "Vendor-neutral ConfiguredHttp* adapters; base URL identifies endpoint",
+        "quote_provider_id": None,
+        "statement_provider_id": None,
+        "auth_mode": None,
+        "vendor": None,
+        "note": "No authenticated route selected — provider identity withheld",
     }
 
 
@@ -233,6 +246,11 @@ def _fail(msg: str, evidence: dict[str, Any], code: int = 2) -> int:
     evidence["finished_at"] = datetime.now(tz=UTC).isoformat()
     if evidence.get("g2_status") != "CLEARED":
         evidence["g2_status"] = evidence.get("g2_status") or "BLOCKED"
+    # Never leave real_live_authenticated_provider on a failed/blocked run.
+    if evidence.get("evidence_class") == "real_live_authenticated_provider":
+        evidence["evidence_class"] = "live_execution_failed"
+    elif evidence.get("evidence_class") == "credentials_present_pending_live":
+        evidence["evidence_class"] = "live_execution_failed"
     _write_evidence(evidence)
     print(f"FAIL G2: {msg}", file=sys.stderr)
     return code
@@ -465,9 +483,13 @@ def _run_live(evidence: dict[str, Any]) -> int:
         "no_client_overrides": buffett.get("client_overrides_accepted") is False,
     }
 
-    # Reject demo/null contamination signals.
-    if source.get("status") == "live" and not source.get("authenticated"):
-        return _fail("provenance claimed live without authenticated flag", evidence)
+    # Reject demo/null contamination signals (builder emits status=authenticated).
+    if source.get("authenticated") is not True:
+        return _fail("provenance not authenticated after live analyse", evidence)
+    if str(source.get("status") or "") in {"live", "unavailable"} and not source.get(
+        "authenticated"
+    ):
+        return _fail("provenance claimed live/unavailable without auth", evidence)
 
     analysis_id = new_analysis_id()
     record = build_investment_provenance(

@@ -18,8 +18,8 @@ export type MarketQuote = {
   dailyChangePercent: number;
   marketCap: number | null;
   volume: number | null;
-  week52High: number;
-  week52Low: number;
+  week52High: number | null;
+  week52Low: number | null;
   lastUpdated: string;
   source: MarketQuoteSource;
 };

@@ -97,9 +97,20 @@ export function marketQuoteFromAuthenticated(
       ? Number(payload.fields.week_52_low)
       : null;
 
+  const retrievedAt =
+    payload.provenance?.retrieved_at || payload.provenance?.as_of || null;
+  if (!retrievedAt) {
+    // Fail closed — do not invent timestamps (CV-001).
+    return null;
+  }
+  const currency = (payload.currency || "").trim();
+  if (!currency) {
+    return null;
+  }
+
   return {
     ticker: (payload.symbol || "").trim().toUpperCase(),
-    currency: payload.currency || "USD",
+    currency,
     currentPrice: Number(currentPrice),
     previousClose,
     dailyChange,
@@ -113,12 +124,10 @@ export function marketQuoteFromAuthenticated(
       payload.fields.volume != null && Number.isFinite(payload.fields.volume)
         ? Number(payload.fields.volume)
         : null,
-    week52High: week52High ?? currentPrice,
-    week52Low: week52Low ?? currentPrice,
-    lastUpdated:
-      payload.provenance?.retrieved_at ||
-      payload.provenance?.as_of ||
-      new Date().toISOString(),
+    // Missing range stays unavailable — never clone currentPrice as 52w band.
+    week52High,
+    week52Low,
+    lastUpdated: retrievedAt,
     // Authenticated provider response only — never a client-side seed.
     source: "live",
   };

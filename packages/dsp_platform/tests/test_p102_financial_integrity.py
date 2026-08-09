@@ -301,7 +301,28 @@ def test_balance_sheet_imbalance_rejected() -> None:
         load_authenticated_valuation_bundle(TICKER)
 
 
-def test_duplicate_quarter_rejected() -> None:
+def test_duplicate_annual_period_rejected() -> None:
+    _seed(
+        [
+            _period(
+                period_type="annual",
+                fiscal_year=2024,
+                period_end="2024-12-31",
+                fcf=120.0,
+            ),
+            _period(
+                period_type="annual",
+                fiscal_year=2024,
+                period_end="2024-12-30",
+                fcf=120.0,
+            ),
+        ]
+    )
+    with pytest.raises(AuthenticatedValuationError, match="duplicate"):
+        load_authenticated_valuation_bundle(TICKER)
+
+
+def test_quarterly_only_refused_for_authenticated_valuation() -> None:
     _seed(
         [
             _period(
@@ -310,15 +331,9 @@ def test_duplicate_quarter_rejected() -> None:
                 period_end="2024-03-31",
                 fcf=120.0,
             ),
-            _period(
-                period_type="quarterly",
-                fiscal_quarter=1,
-                period_end="2024-03-30",
-                fcf=120.0,
-            ),
         ]
     )
-    with pytest.raises(AuthenticatedValuationError, match="duplicate"):
+    with pytest.raises(AuthenticatedValuationError, match="quarterly-only"):
         load_authenticated_valuation_bundle(TICKER)
 
 

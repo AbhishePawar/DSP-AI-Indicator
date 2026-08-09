@@ -109,7 +109,11 @@ def _analyse_body(**overrides: object) -> dict:
 
 class TestP106Positive:
     def test_analyse_creates_durable_provenance(self, client: TestClient) -> None:
-        response = client.post("/api/v1/analyse", json=_analyse_body())
+        register_user(client, user_id="p106-pos-owner", username="p106pos")
+        headers = bearer_headers(client, username="p106pos")
+        response = client.post(
+            "/api/v1/analyse", json=_analyse_body(), headers=headers
+        )
         assert response.status_code == 200, response.text
         body = response.json()
         assert body["ok"] is True
@@ -120,7 +124,9 @@ class TestP106Positive:
         assert "source_evidence" in body["payload"]
         assert "buffett_authority" in body["payload"]
 
-        got = client.get(f"/api/v1/analyse/provenance/{body['analysis_id']}")
+        got = client.get(
+            f"/api/v1/analyse/provenance/{body['analysis_id']}", headers=headers
+        )
         assert got.status_code == 200, got.text
         prov = got.json()["provenance"]
         assert prov["analysis_id"] == body["analysis_id"]
@@ -139,6 +145,7 @@ class TestP106Positive:
         assert "conclusion" in prov
         assert prov["input_fingerprint"]
         assert prov["result_fingerprint"]
+        assert prov.get("owner_user_id") == "p106-pos-owner"
 
     def test_multi_worker_read_same_provenance(self, db: InMemoryDatabasePort) -> None:
         platform = (
@@ -151,13 +158,17 @@ class TestP106Positive:
         reset_investment_provenance_store_for_tests(
             DatabaseInvestmentProvenanceStore(db)
         )
-        resp = client_a.post("/api/v1/analyse", json=_analyse_body())
+        register_user(client_a, user_id="p106-mw-owner", username="p106mw")
+        headers = bearer_headers(client_a, username="p106mw")
+        resp = client_a.post(
+            "/api/v1/analyse", json=_analyse_body(), headers=headers
+        )
         assert resp.status_code == 200
         analysis_id = resp.json()["analysis_id"]
 
         # Worker B — new store instance, same DatabasePort.
         store_b = DatabaseInvestmentProvenanceStore(db)
-        record = store_b.get(analysis_id)
+        record = store_b.get(analysis_id, actor_user_id="p106-mw-owner")
         assert record is not None
         assert record.analysis_id == analysis_id
         assert record.ticker == "ACM"
@@ -174,15 +185,19 @@ class TestP106Positive:
         reset_investment_provenance_store_for_tests(
             DatabaseInvestmentProvenanceStore(db)
         )
-        analysis_id = client.post("/api/v1/analyse", json=_analyse_body()).json()[
-            "analysis_id"
-        ]
+        register_user(client, user_id="p106-rs-owner", username="p106rs")
+        headers = bearer_headers(client, username="p106rs")
+        analysis_id = client.post(
+            "/api/v1/analyse", json=_analyse_body(), headers=headers
+        ).json()["analysis_id"]
 
         # Simulate process restart: drop process singleton, rebuild from DB.
         reset_investment_provenance_store_for_tests(
             DatabaseInvestmentProvenanceStore(db)
         )
-        restored = get_investment_provenance_store().get(analysis_id)
+        restored = get_investment_provenance_store().get(
+            analysis_id, actor_user_id="p106-rs-owner"
+        )
         assert restored is not None
         assert restored.analysis_id == analysis_id
         assert restored.immutable is True
@@ -370,14 +385,38 @@ class TestP106Negative:
 
 class TestP106QueryAndAuth:
     def test_list_by_ticker(self, client: TestClient) -> None:
-        a = client.post("/api/v1/analyse", json=_analyse_body()).json()
-        b = client.post("/api/v1/analyse", json=_analyse_body(ticker="MSFT")).json()
-        listed = client.get("/api/v1/analyse/provenance", params={"ticker": "ACM"})
+        register_user(client, user_id="p106-list-owner", username="p106list")
+        headers = bearer_headers(client, username="p106list")
+        a = client.post(
+            "/api/v1/analyse", json=_analyse_body(), headers=headers
+        ).json()
+        b = client.post(
+            "/api/v1/analyse",
+            json=_analyse_body(ticker="MSFT"),
+            headers=headers,
+        ).json()
+        listed = client.get(
+            "/api/v1/analyse/provenance",
+            params={"ticker": "ACM"},
+            headers=headers,
+        )
         assert listed.status_code == 200
         items = listed.json()["items"]
         ids = {i["analysis_id"] for i in items}
         assert a["analysis_id"] in ids
         assert b["analysis_id"] not in ids
+
+    def test_unowned_provenance_not_world_readable(self, client: TestClient) -> None:
+        created = client.post("/api/v1/analyse", json=_analyse_body()).json()
+        analysis_id = created["analysis_id"]
+        assert analysis_id
+        denied = client.get(f"/api/v1/analyse/provenance/{analysis_id}")
+        assert denied.status_code in {403, 404}
+        listed = client.get("/api/v1/analyse/provenance", params={"ticker": "ACM"})
+        assert listed.status_code == 200
+        assert created["analysis_id"] not in {
+            i["analysis_id"] for i in listed.json()["items"]
+        }
 
     def test_cross_user_owned_provenance_denied(self, client: TestClient) -> None:
         # Unique ids — auth service is process-singleton across TestClients.

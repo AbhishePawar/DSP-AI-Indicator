@@ -27,6 +27,8 @@ async function enterpriseRequest<T>(
   if (init.body && !headers.has("Content-Type")) {
     headers.set("Content-Type", "application/json");
   }
+  // Prefer cookie session; do not treat X-User-Id as authority.
+  // Keep header only for legacy diagnostics when explicitly supplied.
   if (options.userId) {
     headers.set("X-User-Id", options.userId);
   }
@@ -34,7 +36,12 @@ async function enterpriseRequest<T>(
   const url = `${env.apiBaseUrl}${path.startsWith("/") ? path : `/${path}`}`;
   let response: Response;
   try {
-    response = await fetch(url, { ...init, headers, signal: options.signal });
+    response = await fetch(url, {
+      ...init,
+      headers,
+      credentials: "include",
+      signal: options.signal,
+    });
   } catch (err) {
     const aborted =
       options.signal?.aborted ||
@@ -88,16 +95,14 @@ export async function listOrganizations(
   options?: EnterpriseRequestOptions,
 ): Promise<{ result: Organization[]; message: string | null }> {
   const qs = userId ? `?user_id=${encodeURIComponent(userId)}` : "";
-  const headers = new Headers();
-  const url = `${env.apiBaseUrl}/api/v1/enterprise/organizations${qs}`;
-  const response = await fetch(url, {
-    headers: { Accept: "application/json" },
-    signal: options?.signal,
-  });
-  const payload = (await response.json()) as EnterpriseEnvelope<Organization[]>;
+  const result = await enterpriseRequest<Organization[]>(
+    `/api/v1/enterprise/organizations${qs}`,
+    {},
+    { ...options, userId: userId ?? options?.userId },
+  );
   return {
-    result: payload.result ?? [],
-    message: payload.message ?? null,
+    result: Array.isArray(result) ? result : [],
+    message: null,
   };
 }
 

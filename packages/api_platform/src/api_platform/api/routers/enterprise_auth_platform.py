@@ -793,11 +793,29 @@ def enterprise_sessions(
         return _err(exc)
 
 
-@router.get("/auth/enterprise/password/strength")
-def enterprise_password_strength(password: str) -> dict[str, Any]:
+class PasswordStrengthBody(BaseModel):
+    password: str = Field(min_length=1, max_length=512)
+
+
+@router.post("/auth/enterprise/password/strength")
+def enterprise_password_strength(body: PasswordStrengthBody) -> dict[str, Any]:
+    """Password strength check — POST body only (never query-string secrets)."""
     from auth.enterprise_platform import password_strength
 
-    return {"ok": True, "result": password_strength(password)}
+    return {"ok": True, "result": password_strength(body.password)}
+
+
+@router.get("/auth/enterprise/password/strength")
+def enterprise_password_strength_get_rejected() -> JSONResponse:
+    return JSONResponse(
+        {
+            "ok": False,
+            "error": "MethodNotAllowed",
+            "detail": "Use POST /auth/enterprise/password/strength with JSON body",
+            "message": "Passwords must not be sent as query parameters",
+        },
+        status_code=405,
+    )
 
 
 # --- Plan aliases (/auth/*) + account / MFA reserved / admin extras ---------

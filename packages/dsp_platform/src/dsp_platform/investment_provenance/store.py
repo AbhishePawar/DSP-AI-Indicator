@@ -289,8 +289,10 @@ def _enforce_tenant(
     req_org = (org_id or "").strip()
 
     if not owner and not record_org:
-        # Unowned research-path records: readable without tenant stamp.
-        return
+        # Unowned records are not world-readable (P1-06 / P1-07).
+        raise InvestmentProvenanceForbidden(
+            "unowned investment provenance is not readable without owner stamp"
+        )
 
     if record_org:
         if not req_org or req_org != record_org:

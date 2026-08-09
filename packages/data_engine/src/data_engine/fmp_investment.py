@@ -101,7 +101,7 @@ class FinancialModelingPrepQuoteAdapter(MarketQuotePort):
             return None
         fields = {
             "exchange": row.get("exchange"),
-            "currency": row.get("currency") or instrument.currency or "USD",
+            "currency": row.get("currency") or instrument.currency or None,
             "current_price": row.get("price"),
             "open": row.get("open"),
             "high": row.get("dayHigh"),
@@ -231,17 +231,34 @@ class FinancialModelingPrepStatementAdapter(FinancialStatementPort):
                 fiscal_year = int(calendar_year)
             except (TypeError, ValueError):
                 fiscal_year = date.fromisoformat(period_end).year
-            period_label = str(row.get("period") or "FY").strip().upper()
-            period_type = "annual" if period_label in {"FY", "ANNUAL"} else "quarterly"
+            period_label = str(row.get("period") or "").strip().upper()
+            if not period_label:
+                continue
+            if period_label in {"FY", "ANNUAL"}:
+                period_type = "annual"
+            elif period_label == "TTM":
+                period_type = "ttm"
+            elif period_label.startswith("Q") and period_label[1:].isdigit():
+                period_type = "quarterly"
+            else:
+                # Unknown labels must not silently become quarterly.
+                continue
             fiscal_quarter = None
-            if period_type == "quarterly" and period_label.startswith("Q"):
+            if period_type == "quarterly":
                 try:
                     fiscal_quarter = int(period_label[1:])
                 except ValueError:
-                    fiscal_quarter = None
-            currency = normalize_reporting_currency(
-                row.get("reportedCurrency") or identity.currency or "USD"
+                    continue
+            raw_currency = (
+                row.get("reportedCurrency") or identity.currency or ""
             )
+            raw_currency = str(raw_currency).strip()
+            if not raw_currency:
+                # Fail closed — do not invent USD (CV-001).
+                continue
+            currency = normalize_reporting_currency(raw_currency, default=raw_currency)
+            # FMP income-statement endpoint is the consolidated feed; record
+            # convention explicitly rather than inventing from thin air.
             periods.append(
                 {
                     "period_type": period_type,
@@ -299,11 +316,21 @@ class FinancialModelingPrepStatementAdapter(FinancialStatementPort):
             source_type="licensed_vendor",
             retrieved_at=stmt_utc_now(),
             auth_mode="api_key",
-            metadata={"base_url": self.base_url, "vendor": "fmp"},
+            metadata={
+                "base_url": self.base_url,
+                "vendor": "fmp",
+                "statement_basis_source": "fmp_consolidated_endpoint_convention",
+                "unit_scale_source": "fmp_reported_actuals_convention",
+            },
         )
+        reporting = str(
+            periods[0].get("reporting_currency") or identity.currency or ""
+        ).strip()
+        if not reporting:
+            return None
         envelope = {
             "identity": identity.to_dict(),
-            "reporting_currency": identity.currency or "USD",
+            "reporting_currency": reporting,
             "statement_basis": "consolidated",
             "unit_scale": "actual",
             "periods": periods,

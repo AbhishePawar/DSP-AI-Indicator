@@ -59,7 +59,8 @@ def test_gate_ready_only_with_full_http_credentials() -> None:
     gate = mod.classify_gate(environ=env)
     assert gate["ready"] is True
     assert gate["route"] == "configured_http"
-    assert gate["evidence_class"] == "real_live_authenticated_provider"
+    # Credentials alone never claim real_live — only CLEARED drill may.
+    assert gate["evidence_class"] == "credentials_present_pending_live"
 
 
 def test_gate_ready_with_single_fmp_key() -> None:
@@ -67,7 +68,7 @@ def test_gate_ready_with_single_fmp_key() -> None:
     gate = mod.classify_gate(environ={"DSP_FMP_API_KEY": "k"})
     assert gate["ready"] is True
     assert gate["route"] == "fmp"
-    assert gate["evidence_class"] == "real_live_authenticated_provider"
+    assert gate["evidence_class"] == "credentials_present_pending_live"
     assert gate["credential_presence"]["DSP_FMP_API_KEY"] == "PRESENT"
 
 

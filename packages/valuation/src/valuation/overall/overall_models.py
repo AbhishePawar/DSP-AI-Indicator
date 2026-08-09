@@ -62,6 +62,7 @@ class MosClassification(str, Enum):
     FAIRLY_VALUED = "fairly_valued"
     OVERVALUED = "overvalued"
     EXTREMELY_OVERVALUED = "extremely_overvalued"
+    UNAVAILABLE = "unavailable"
 
 
 class ResearchLabel(str, Enum):

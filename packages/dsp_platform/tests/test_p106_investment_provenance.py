@@ -31,18 +31,19 @@ def test_source_evidence_from_authenticated_trace() -> None:
             "current_market_price": 70.0,
             "shares_outstanding": 100.0,
             "statement_provenance": {
-                "provider": "fixture_provider",
+                "provider_id": "fixture_provider",
                 "retrieved_at": "2026-08-08T00:00:00Z",
                 "api_key": "should-redact",
             },
             "quote_provenance": {
-                "provider": "quote_provider",
+                "provider_id": "quote_provider",
                 "retrieved_at": "2026-08-08T00:00:00Z",
             },
         }
     )
     assert evidence["authenticated"] is True
     assert evidence["statement_provider"] == "fixture_provider"
+    assert evidence["quote_provider"] == "quote_provider"
     assert evidence["statement_provenance"]["api_key"] == "[REDACTED]"
 
 
@@ -99,13 +100,14 @@ def test_backup_restore_simulation_retains_provenance() -> None:
         },
         ticker="ACM",
         analysis_id="restore-1",
+        owner_user_id="restore-owner",
         created_at="2026-08-08T00:00:00+00:00",
     )
     worker_a.append(record)
 
     # Simulate restore onto a fresh worker process sharing the same DB bytes.
     worker_b = DatabaseInvestmentProvenanceStore(db)
-    restored = worker_b.get("restore-1")
+    restored = worker_b.get("restore-1", actor_user_id="restore-owner")
     assert restored is not None
     assert restored.conclusion["recommendation"] == "buy"
     assert restored.buffett["overall_score"] == 76

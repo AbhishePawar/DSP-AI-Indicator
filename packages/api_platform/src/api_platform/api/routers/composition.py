@@ -137,11 +137,23 @@ def analyse(
     return response
 
 
+def _actor_org_id(actor: dict[str, Any] | None) -> str | None:
+    """Org from server-validated JWT only — never from client query params."""
+    if not actor:
+        return None
+    user = actor.get("user") if isinstance(actor.get("user"), dict) else {}
+    claims = user.get("claims") if isinstance(user.get("claims"), dict) else {}
+    for key in ("org_id", "organization_id", "tenant_id"):
+        raw = user.get(key) or claims.get(key)
+        if raw is not None and str(raw).strip():
+            return str(raw).strip()
+    return None
+
+
 @router.get("/analyse/provenance/{analysis_id}")
 def get_analyse_provenance(
     analysis_id: str,
     request: Request,
-    org_id: str | None = Query(default=None, max_length=128),
 ) -> dict[str, Any]:
     """P1-06 — retrieve durable investment provenance by analysis_id."""
     store = get_investment_provenance_store()
@@ -151,7 +163,7 @@ def get_analyse_provenance(
         record = store.get(
             analysis_id,
             actor_user_id=actor.get("user_id") if actor else None,
-            org_id=org_id,
+            org_id=_actor_org_id(actor),
         )
     except InvestmentProvenanceForbidden as exc:
         raise CompositionApiError(
@@ -180,7 +192,6 @@ def get_analyse_provenance(
 def list_analyse_provenance(
     request: Request,
     ticker: str = Query(min_length=1, max_length=32),
-    org_id: str | None = Query(default=None, max_length=128),
     limit: int = Query(default=20, ge=1, le=100),
 ) -> dict[str, Any]:
     """P1-06 — list durable investment provenance rows for a ticker."""
@@ -190,7 +201,7 @@ def list_analyse_provenance(
     rows = store.list_by_ticker(
         ticker,
         actor_user_id=actor.get("user_id") if actor else None,
-        org_id=org_id,
+        org_id=_actor_org_id(actor),
         limit=limit,
     )
     return {
@@ -245,7 +256,16 @@ def _persist_investment_provenance(
     # P0-05 / P1-07 — owner from server-validated JWT only. Never stamp org
     # from client headers (forgeable). Org filter applies on owned reads when set.
     owner_user_id = actor.get("user_id") if actor else None
+    # Org from server-validated JWT claims only — never client query/headers.
     org_id = None
+    if actor:
+        user = actor.get("user") if isinstance(actor.get("user"), dict) else {}
+        claims = user.get("claims") if isinstance(user.get("claims"), dict) else {}
+        for key in ("org_id", "organization_id", "tenant_id"):
+            raw = user.get(key) or claims.get(key)
+            if raw is not None and str(raw).strip():
+                org_id = str(raw).strip()
+                break
     fs_digest = {
         "period": body.financial_statements.period.model_dump(),
         "income_keys": sorted(

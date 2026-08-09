@@ -683,8 +683,8 @@ class TestEdgeCases:
 
     def test_mos_none_path(self) -> None:
         eng = OverallEngine()
-        assert eng._mos_class(None, MosThresholds()) is MosClassification.FAIRLY_VALUED
-        assert eng._research_label(None, MosClassification.FAIRLY_VALUED) is ResearchLabel.WATCHLIST
+        assert eng._mos_class(None, MosThresholds()) is MosClassification.UNAVAILABLE
+        assert eng._research_label(None, MosClassification.UNAVAILABLE) is ResearchLabel.WATCHLIST
 
     def test_zero_ivps_mos(self) -> None:
         # P1-04 — zero IV/share cannot produce MoS; fail closed.

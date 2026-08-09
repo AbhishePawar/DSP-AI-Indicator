@@ -423,7 +423,8 @@ class OverallEngine:
         self, mos: float | None, thr: MosThresholds
     ) -> MosClassification:
         if mos is None:
-            return MosClassification.FAIRLY_VALUED
+            # Missing MoS is unavailable — never invent fairly_valued (CV-001/005).
+            return MosClassification.UNAVAILABLE
         if mos >= thr.deep_value:
             return MosClassification.DEEP_VALUE
         if mos >= thr.undervalued:
@@ -437,7 +438,7 @@ class OverallEngine:
     def _research_label(
         self, mos: float | None, mos_class: MosClassification
     ) -> ResearchLabel:
-        if mos is None:
+        if mos is None or mos_class is MosClassification.UNAVAILABLE:
             return ResearchLabel.WATCHLIST
         mapping = {
             MosClassification.DEEP_VALUE: ResearchLabel.STRONG_BUY_CANDIDATE,

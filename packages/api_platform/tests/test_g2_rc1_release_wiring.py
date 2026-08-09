@@ -111,10 +111,53 @@ def test_g2_genuine_clearance_contract_pass(gate) -> None:
             "ok": True,
             "g2_status": "CLEARED",
             "evidence_class": "real_live_authenticated_provider",
+            "authenticated": True,
+            "quote_adapter": "ConfiguredHttpMarketQuoteAdapter",
+            "statement_adapter": "ConfiguredHttpFinancialStatementAdapter",
+            "quote_retrieved_at": "2026-08-09T00:00:00+00:00",
+            "steps": {"quote": {"retrieved_at": "2026-08-09T00:00:00+00:00"}},
         }
     )
     assert status == "PASS"
     assert "CLEARED" in reason
+
+
+def test_g2_cleared_without_live_shape_blocked(gate) -> None:
+    status, reason = gate.classify_g2_artifact_status(
+        {
+            "ok": True,
+            "g2_status": "CLEARED",
+            "evidence_class": "real_live_authenticated_provider",
+        }
+    )
+    assert status == "BLOCKED"
+    assert "live drill shape" in reason
+
+
+def test_g2_pending_live_class_blocked(gate) -> None:
+    status, _reason = gate.classify_g2_artifact_status(
+        {
+            "ok": False,
+            "g2_status": "READY",
+            "evidence_class": "credentials_present_pending_live",
+        }
+    )
+    assert status == "BLOCKED"
+
+
+def test_g2_public_web_never_clears(gate) -> None:
+    status, _reason = gate.classify_g2_artifact_status(
+        {
+            "ok": True,
+            "g2_status": "CLEARED",
+            "evidence_class": "public_web",
+            "authenticated": True,
+            "quote_adapter": "x",
+            "statement_adapter": "y",
+            "quote_retrieved_at": "t",
+        }
+    )
+    assert status == "BLOCKED"
 
 
 def test_release_workflow_requires_g2_reusable() -> None:
@@ -221,10 +264,10 @@ def test_collect_live_statuses_fixture_g2_never_pass(
             path.write_text(previous, encoding="utf-8")
 
 
-def test_collect_live_statuses_unit_genuine_artifact_pass(
+def test_collect_live_statuses_unit_fixture_marker_never_pass(
     gate, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    """Classifier PASS with isolated unit artifact — not a live vendor drill."""
+    """unit_fixture markers must never clear G2 via collect_live_statuses."""
     artifacts = ROOT / "artifacts"
     artifacts.mkdir(parents=True, exist_ok=True)
     path = artifacts / "g2_live_vendor_evidence.json"
@@ -236,6 +279,10 @@ def test_collect_live_statuses_unit_genuine_artifact_pass(
                     "ok": True,
                     "g2_status": "CLEARED",
                     "evidence_class": "real_live_authenticated_provider",
+                    "authenticated": True,
+                    "quote_adapter": "ConfiguredHttpMarketQuoteAdapter",
+                    "statement_adapter": "ConfiguredHttpFinancialStatementAdapter",
+                    "quote_retrieved_at": "2026-08-09T00:00:00+00:00",
                     "unit_fixture": True,
                 }
             )
@@ -243,10 +290,16 @@ def test_collect_live_statuses_unit_genuine_artifact_pass(
             encoding="utf-8",
         )
         statuses, reasons, _ok, _identity = gate.collect_live_statuses(environ={})
-        assert statuses["G2"] == "PASS"
-        assert "CLEARED" in reasons["G2"]
+        assert statuses["G2"] == "BLOCKED"
+        assert "unit_fixture" in reasons["G2"]
     finally:
         if previous is None:
             path.unlink(missing_ok=True)
         else:
             path.write_text(previous, encoding="utf-8")
+
+
+def test_release_discards_checked_in_g2_artifact() -> None:
+    text = RELEASE_WF.read_text(encoding="utf-8")
+    assert "Discard checked-in G2 artifact before download" in text
+    assert "rm -f artifacts/g2_live_vendor_evidence.json" in text

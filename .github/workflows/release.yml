@@ -162,6 +162,12 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
+      - name: Discard checked-in G2 artifact before download
+        run: |
+          # Never allow a committed/workspace g2_live_vendor_evidence.json to
+          # satisfy clearance. Authority is the g2-live-vendor job artifact only.
+          rm -f artifacts/g2_live_vendor_evidence.json
+          mkdir -p artifacts
       - name: Download prerequisite evidence
         uses: actions/download-artifact@v4
         with:

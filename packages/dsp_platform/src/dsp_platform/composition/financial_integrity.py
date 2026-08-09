@@ -165,13 +165,16 @@ def assert_unit_homogeneous(
 def assert_duplicate_periods(
     periods: tuple[AuthenticatedStatementPeriod, ...],
 ) -> None:
-    """Reject duplicate fiscal quarters / identical period ends in one set."""
+    """Reject duplicate fiscal periods / identical period ends in one set."""
     ends = [p.period_end for p in periods]
     if len(ends) != len(set(ends)):
         raise FinancialIntegrityError(
             f"{DATA_UNAVAILABLE} (duplicate statement periods)"
         )
-    if periods and periods[0].period_type == "quarterly":
+    if not periods:
+        return
+    kind = periods[0].period_type
+    if kind == "quarterly":
         keys = []
         for p in periods:
             if p.fiscal_quarter is None:
@@ -182,6 +185,12 @@ def assert_duplicate_periods(
         if len(keys) != len(set(keys)):
             raise FinancialIntegrityError(
                 f"{DATA_UNAVAILABLE} (duplicate fiscal quarter)"
+            )
+    elif kind in {"annual", "ttm"}:
+        keys = [(p.period_type, p.fiscal_year) for p in periods]
+        if len(keys) != len(set(keys)):
+            raise FinancialIntegrityError(
+                f"{DATA_UNAVAILABLE} (duplicate fiscal period)"
             )
 
 

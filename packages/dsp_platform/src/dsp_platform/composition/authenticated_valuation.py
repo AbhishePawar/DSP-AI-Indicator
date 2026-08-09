@@ -163,10 +163,17 @@ def _select_homogeneous_periods(
             f"{DATA_UNAVAILABLE} (no financial statement periods)"
         )
     ordered = sorted(periods, key=lambda p: (p.period_end, p.fiscal_year), reverse=True)
-    for kind in ("annual", "ttm", "quarterly"):
+    # Annual / TTM only — quarterly cash flows must not enter annual-style DCF.
+    for kind in ("annual", "ttm"):
         selected = tuple(p for p in ordered if p.period_type == kind)
         if selected:
             return selected
+    quarterly = tuple(p for p in ordered if p.period_type == "quarterly")
+    if quarterly:
+        raise AuthenticatedValuationError(
+            f"{DATA_UNAVAILABLE} "
+            "(annual/TTM statements required; quarterly-only refused for valuation)"
+        )
     raise AuthenticatedValuationError(
         f"{DATA_UNAVAILABLE} (unsupported statement period types)"
     )
@@ -207,20 +214,13 @@ def _resolve_shares(
     quote: AuthenticatedMarketQuote,
     latest: AuthenticatedStatementPeriod,
 ) -> float:
+    """Require authenticated quote shares — never invent from NI/EPS."""
+    _ = latest  # EPS integrity checked separately against quote shares
     shares = _qf(quote.shares_outstanding)
     if shares is not None and shares > 0:
         return float(shares)
-    net_income = _sf(latest.net_income)
-    eps = _sf(latest.eps_basic) or _sf(latest.eps_diluted)
-    if (
-        net_income is not None
-        and eps is not None
-        and eps != 0
-        and abs(net_income / eps) > 0
-    ):
-        return float(abs(net_income / eps))
     raise AuthenticatedValuationError(
-        f"{DATA_UNAVAILABLE} (shares outstanding unavailable)"
+        f"{DATA_UNAVAILABLE} (authenticated shares outstanding unavailable)"
     )
 
 
@@ -548,7 +548,7 @@ def _fetch_statements(
             exchange=exchange,
         )
         bundle = service.get_statements(
-            StatementQuery(instrument=instrument, limit=8, include_restated=True)
+            StatementQuery(instrument=instrument, limit=8, include_restated=False)
         )
     if bundle is None:
         raise AuthenticatedValuationError(

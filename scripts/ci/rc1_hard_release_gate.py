@@ -48,6 +48,11 @@ REFUSED_G2_EVIDENCE_CLASSES = frozenset(
     {
         "test_fixture",
         "credentials_unavailable",
+        "credentials_present_pending_live",
+        "live_execution_failed",
+        "public_web",
+        "public_filing",
+        "authenticated_provider",
         "memory",
         "seed",
         "offline",
@@ -55,7 +60,7 @@ REFUSED_G2_EVIDENCE_CLASSES = frozenset(
         "memory_seed_refused_as_live",
     }
 )
-REFUSED_G2_CLASS_TOKENS = ("memory", "seed", "offline", "mock", "fixture")
+REFUSED_G2_CLASS_TOKENS = ("memory", "seed", "offline", "mock", "fixture", "public")
 
 
 def classify_g2_artifact_status(
@@ -64,12 +69,15 @@ def classify_g2_artifact_status(
     """Return (PASS|BLOCKED, reason) for a G2 evidence artifact.
 
     Only ``ok=true`` + ``g2_status=CLEARED`` +
-    ``evidence_class=real_live_authenticated_provider`` may PASS.
-    Unit fixtures may exercise this helper; never use fake live evidence
-    against the production release gate path.
+    ``evidence_class=real_live_authenticated_provider`` plus live drill
+    shape fields may PASS. Unit fixtures may exercise this helper; never use
+    fake live evidence against the production release gate path.
     """
     if not evidence:
         return "BLOCKED", "G2 BLOCKED — missing g2_live_vendor_evidence.json"
+
+    if evidence.get("unit_fixture") is True:
+        return "BLOCKED", "G2 BLOCKED — unit_fixture marker refused"
 
     evidence_class = str(evidence.get("evidence_class") or "")
     ok = evidence.get("ok") is True
@@ -90,12 +98,37 @@ def classify_g2_artifact_status(
                 f"(refused token={token})",
             )
 
+    steps = evidence.get("steps") if isinstance(evidence.get("steps"), dict) else {}
+    quote_step = steps.get("quote") if isinstance(steps.get("quote"), dict) else {}
+    has_live_shape = bool(
+        evidence.get("quote_adapter")
+        and evidence.get("statement_adapter")
+        and (
+            evidence.get("quote_retrieved_at")
+            or quote_step.get("retrieved_at")
+        )
+        and evidence.get("authenticated") is True
+    )
+
     if (
         ok
         and g2_status == "CLEARED"
         and evidence_class == "real_live_authenticated_provider"
+        and has_live_shape
     ):
         return "PASS", "live vendor evidence artifact ok (CLEARED)"
+
+    if (
+        ok
+        and g2_status == "CLEARED"
+        and evidence_class == "real_live_authenticated_provider"
+        and not has_live_shape
+    ):
+        return (
+            "BLOCKED",
+            "G2 BLOCKED — CLEARED claim missing live drill shape "
+            "(adapters/retrieved_at/authenticated)",
+        )
 
     return (
         "BLOCKED",

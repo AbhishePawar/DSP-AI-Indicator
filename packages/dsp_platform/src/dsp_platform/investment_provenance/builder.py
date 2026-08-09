@@ -46,10 +46,20 @@ def source_evidence_from_trace(trace: Mapping[str, Any] | None) -> dict[str, Any
             "unit_scale": trace.get("unit_scale"),
             "current_market_price": trace.get("current_market_price"),
             "shares_outstanding": trace.get("shares_outstanding"),
-            "statement_provider": stmt.get("provider") or stmt.get("source"),
+            "statement_provider": (
+                stmt.get("provider_id")
+                or stmt.get("provider_name")
+                or stmt.get("provider")
+                or stmt.get("source")
+            ),
             "statement_source_type": stmt.get("source_type") or stmt.get("kind"),
             "statement_retrieved_at": stmt.get("retrieved_at") or stmt.get("as_of"),
-            "quote_provider": quote.get("provider") or quote.get("source"),
+            "quote_provider": (
+                quote.get("provider_id")
+                or quote.get("provider_name")
+                or quote.get("provider")
+                or quote.get("source")
+            ),
             "quote_source_type": quote.get("source_type") or quote.get("kind"),
             "quote_retrieved_at": quote.get("retrieved_at") or quote.get("as_of"),
             "statement_provenance": stmt,
@@ -139,12 +149,31 @@ def build_investment_provenance(
         "pipeline_ok": bool(public_payload.get("ok")),
     }
 
+    # Prefer authenticated server trace for fingerprint authority; client
+    # statement digests are non-authoritative attachment only.
+    auth_trace = dict(authenticated_valuation_trace or {})
     input_fp_payload = redact_secrets(
         {
             "ticker": ticker.strip().upper(),
             "company": company,
             "exchange": exchange,
-            "financial_statements": financial_statements_digest or {},
+            "authenticated_valuation_trace": {
+                k: auth_trace.get(k)
+                for k in (
+                    "ticker",
+                    "reporting_currency",
+                    "period_kind",
+                    "statement_basis",
+                    "unit_scale",
+                    "current_market_price",
+                    "shares_outstanding",
+                    "statement_provenance",
+                    "quote_provenance",
+                )
+                if auth_trace
+            }
+            or None,
+            "client_financial_statements_digest": financial_statements_digest or {},
             "source_evidence": {
                 k: source.get(k)
                 for k in (

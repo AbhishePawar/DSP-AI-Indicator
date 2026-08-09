@@ -282,7 +282,21 @@ export function CompanyAnalysisWorkspace() {
         recommendation: mapped.recommendation,
         analysedAt: at,
       });
-      success(`Analysis loaded for ${body.ticker.toUpperCase()}`, "Analyse");
+      // Do not toast success when the API reports unavailable/degraded conclusion.
+      const iv = mapped.valuation.intrinsicValue;
+      const valuationUnavailable =
+        !iv ||
+        iv === "Unavailable" ||
+        iv === "—" ||
+        iv === "Data unavailable.";
+      if (response.ok && !valuationUnavailable) {
+        success(`Analysis loaded for ${body.ticker.toUpperCase()}`, "Analyse");
+      } else {
+        notifyError(
+          "Analysis completed with unavailable valuation or incomplete data",
+          "Analyse",
+        );
+      }
     },
     onError: (err) => {
       const message =

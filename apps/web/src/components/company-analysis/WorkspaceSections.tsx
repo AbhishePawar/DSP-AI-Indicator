@@ -253,6 +253,8 @@ export function ResearchSection({ view }: { view: ResearchView }) {
       >
         <dl>
           <FieldRow label="OK" value={String(view.ok)} />
+          <FieldRow label="Analysis ID" value={view.analysisId} />
+          <FieldRow label="Audit reference" value={view.auditReference} />
           <FieldRow label="Correlation ID" value={view.correlationId} />
           <FieldRow label="Pipeline version" value={view.pipelineVersion} />
           <FieldRow label="Platform version" value={view.platformVersion} />

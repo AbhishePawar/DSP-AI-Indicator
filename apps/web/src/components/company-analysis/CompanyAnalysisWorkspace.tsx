@@ -254,6 +254,8 @@ export function CompanyAnalysisWorkspace() {
         company: match?.name,
         loadStatements: () =>
           api.financialStatements(symbol, { token, limit: 1 }),
+        // P0-02 — market price only from authenticated quote (never client IV).
+        loadQuote: () => api.marketQuote(symbol, { token }),
       });
       const response = await api.analyse(body, { token });
       return { body, response };

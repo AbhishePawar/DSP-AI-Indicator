@@ -152,9 +152,16 @@ export function buildDemoAnalyseRequest(
   };
 }
 
+export type AuthenticatedQuoteSource = {
+  available?: boolean;
+  authenticated?: boolean;
+  fields?: { current_price?: number | null } | null;
+};
+
 /**
- * Load a production AnalyseRequest from an authenticated statements fetch.
+ * Load a production AnalyseRequest from authenticated statements (+ optional quote).
  * Fails closed with {@link ANALYSE_DATA_UNAVAILABLE} when statements are absent.
+ * Market price is taken only from an authenticated quote when provided (P0-02).
  */
 export async function loadAuthenticatedAnalyseRequest(
   ticker: string,
@@ -162,6 +169,7 @@ export async function loadAuthenticatedAnalyseRequest(
     exchange?: string | null;
     company?: string;
     loadStatements: () => Promise<AuthenticatedStatementsSource>;
+    loadQuote?: () => Promise<AuthenticatedQuoteSource | null | undefined>;
   },
 ): Promise<AnalyseRequest> {
   let payload: AuthenticatedStatementsSource;
@@ -174,9 +182,29 @@ export async function loadAuthenticatedAnalyseRequest(
   if (!statements) {
     throw new Error(ANALYSE_DATA_UNAVAILABLE);
   }
+
+  let currentMarketPrice: number | undefined;
+  if (options.loadQuote) {
+    try {
+      const quote = await options.loadQuote();
+      const price = quote?.fields?.current_price;
+      if (
+        quote?.available &&
+        quote.authenticated &&
+        typeof price === "number" &&
+        Number.isFinite(price)
+      ) {
+        currentMarketPrice = price;
+      }
+    } catch {
+      // Quote optional for builder; HTTP validation may still require a price.
+    }
+  }
+
   return buildAnalyseRequestForTicker(ticker, {
     exchange: options.exchange,
     company: options.company,
     financial_statements: statements,
+    current_market_price: currentMarketPrice,
   });
 }

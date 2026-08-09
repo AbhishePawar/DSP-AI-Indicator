@@ -19,6 +19,7 @@
     "test:visual": "playwright test e2e/visual",
     "test:visual:update": "playwright test e2e/visual --update-snapshots",
     "test:browser": "playwright test e2e/browser",
+    "test:p109": "playwright test e2e/browser/p109-critical-investment.journey.spec.ts --project=chromium",
     "test:playwright": "playwright test",
     "playwright:install": "playwright install --with-deps chromium firefox webkit",
     "analyze": "node scripts/run-analyze.mjs",

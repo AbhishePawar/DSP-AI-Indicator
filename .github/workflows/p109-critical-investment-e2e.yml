@@ -1,0 +1,220 @@
+name: P1-09 Critical Investment E2E
+
+# Hard-gate: login → analyse → valuation → Buffett → provenance → export
+# Mode A uses deterministic test_fixture (memory) — NEVER claims live vendor evidence.
+# Soft-fail / || true / continue-on-error on the critical journey is forbidden.
+
+on:
+  push:
+    branches:
+      - main
+      - master
+      - fix/asi003-dsp-platform-boundaries
+      - "rc/**"
+      - "release/**"
+  pull_request:
+    branches: [main, master]
+  workflow_dispatch:
+
+concurrency:
+  group: p109-critical-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  p109-api-hard-gate:
+    name: P1-09 API critical journey (test_fixture)
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      DSP_ENVIRONMENT: development
+      DSP_INFRA_OFFLINE: "0"
+      PYTHONUNBUFFERED: "1"
+      DSP_SEED_ADMIN_PASSWORD: Admin@123
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install monorepo
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e ".[dev]"
+
+      - name: P1-09 API hard-gate
+        id: api_gate
+        run: |
+          pytest \
+            packages/api_platform/tests/test_p109_critical_investment_journey.py \
+            -q --tb=short --import-mode=importlib
+
+      - name: Upload API evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: p109-api-evidence
+          path: artifacts/p109_critical_investment_evidence.json
+          if-no-files-found: warn
+
+  p109-playwright-hard-gate:
+    name: P1-09 Playwright critical journey (Chromium)
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    needs: [p109-api-hard-gate]
+    env:
+      DSP_ENVIRONMENT: development
+      DSP_INFRA_OFFLINE: "0"
+      DSP_MARKET_QUOTE_MEMORY: "1"
+      DSP_FINANCIAL_STATEMENT_MEMORY: "1"
+      DSP_P109_E2E_FIXTURE: "1"
+      DSP_SEED_ADMIN_PASSWORD: Admin@123
+      DSP_COOKIE_AUTH: "true"
+      DSP_ENABLE_SECURITY: "false"
+      PYTHONUNBUFFERED: "1"
+      NEXT_PUBLIC_API_BASE_URL: http://127.0.0.1:8000/api/v1
+      PLAYWRIGHT_BASE_URL: http://127.0.0.1:3000
+      PLAYWRIGHT_API_BASE_URL: http://127.0.0.1:8000/api/v1
+      PLAYWRIGHT_SKIP_WEBSERVER: "1"
+      CI: "true"
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: apps/web/package-lock.json
+
+      - name: Install Python monorepo
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e ".[dev]"
+
+      - name: Install web dependencies
+        working-directory: apps/web
+        run: npm ci
+
+      - name: Install Playwright Chromium
+        working-directory: apps/web
+        run: npx playwright install --with-deps chromium
+
+      - name: Build web (standalone)
+        working-directory: apps/web
+        run: |
+          npm run build
+          mkdir -p .next/standalone/.next
+          cp -r public .next/standalone/public
+          cp -r .next/static .next/standalone/.next/static
+
+      - name: Start API (fixture mode)
+        id: start_api
+        run: |
+          nohup python -m uvicorn api_platform.api.app:app \
+            --host 127.0.0.1 --port 8000 \
+            > /tmp/p109-api.log 2>&1 &
+          echo $! > /tmp/p109-api.pid
+          for i in $(seq 1 60); do
+            if curl -fsS http://127.0.0.1:8000/health/live >/dev/null \
+              && curl -fsS http://127.0.0.1:8000/health/ready >/dev/null; then
+              echo "API ready"
+              exit 0
+            fi
+            sleep 2
+          done
+          echo "API failed to become ready" >&2
+          cat /tmp/p109-api.log >&2 || true
+          exit 1
+
+      - name: Start web
+        id: start_web
+        working-directory: apps/web/.next/standalone
+        run: |
+          nohup node server.js > /tmp/p109-web.log 2>&1 &
+          echo $! > /tmp/p109-web.pid
+          for i in $(seq 1 60); do
+            if curl -fsS http://127.0.0.1:3000 >/dev/null; then
+              echo "Web ready"
+              exit 0
+            fi
+            sleep 2
+          done
+          echo "Web failed to become ready" >&2
+          cat /tmp/p109-web.log >&2 || true
+          exit 1
+        env:
+          PORT: "3000"
+          HOSTNAME: "127.0.0.1"
+          NEXT_PUBLIC_API_BASE_URL: http://127.0.0.1:8000/api/v1
+
+      - name: Verify fixture quote/statements
+        run: |
+          curl -fsS "http://127.0.0.1:8000/api/v1/market/quote?symbol=DSPFIX" | tee /tmp/p109-quote.json
+          python - <<'PY'
+          import json
+          q = json.load(open("/tmp/p109-quote.json"))
+          assert q.get("available") is True, q
+          assert q.get("authenticated") is True, q
+          print("fixture quote OK")
+          PY
+          curl -fsS "http://127.0.0.1:8000/api/v1/fundamentals/statements?symbol=DSPFIX&limit=1" | tee /tmp/p109-stmt.json
+          python - <<'PY'
+          import json
+          s = json.load(open("/tmp/p109-stmt.json"))
+          assert s.get("available") is True, s
+          assert s.get("authenticated") is True, s
+          print("fixture statements OK")
+          PY
+
+      - name: P1-09 Playwright critical journey
+        id: playwright
+        working-directory: apps/web
+        run: npx playwright test e2e/browser/p109-critical-investment.journey.spec.ts --project=chromium
+
+      - name: Upload Playwright artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: p109-playwright-report
+          path: |
+            apps/web/playwright-report
+            apps/web/test-results
+            apps/web/playwright-results.json
+            artifacts/p109_playwright_evidence.json
+            /tmp/p109-api.log
+            /tmp/p109-web.log
+          if-no-files-found: warn
+
+      - name: Stop services
+        if: always()
+        run: |
+          kill $(cat /tmp/p109-api.pid) 2>/dev/null || true
+          kill $(cat /tmp/p109-web.pid) 2>/dev/null || true
+
+      - name: P1-09 summary
+        if: always()
+        run: |
+          {
+            echo "## P1-09 Critical Investment E2E"
+            echo ""
+            echo "| Field | Value |"
+            echo "|---|---|"
+            echo "| API gate | ${{ needs.p109-api-hard-gate.result }} |"
+            echo "| Playwright | ${{ steps.playwright.outcome }} |"
+            echo "| Evidence class | \`test_fixture\` |"
+            echo "| G2 claim | false |"
+            echo "| Commit | \`${{ github.sha }}\` |"
+          } >> "$GITHUB_STEP_SUMMARY"

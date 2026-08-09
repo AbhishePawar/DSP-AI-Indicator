@@ -149,6 +149,10 @@ export type AnalyseResponse = {
   platform_version: string | null;
   pipeline_version: string | null;
   correlation_id: string | null;
+  /** P1-06 / P1-09 — durable audit reference (server-issued). */
+  analysis_id?: string | null;
+  audit_reference?: string | null;
+  provenance_persisted?: boolean | null;
 };
 
 export type ValidateResponse = {

@@ -9,6 +9,9 @@ import type {
 
 export type IntelligenceView = {
   ok: boolean;
+  /** P1-06 / P1-09 — server-issued durable analysis id (presentation only). */
+  analysisId: string | null;
+  auditReference: string | null;
   correlationId: string | null;
   pipelineVersion: string | null;
   platformVersion: string | null;
@@ -102,8 +105,21 @@ export function mapAnalyseResponse(response: AnalyseResponse): IntelligenceView 
     minorityNotes.push(`Consensus: ${committee.consensus}`);
   }
 
+  const analysisId =
+    response.analysis_id ??
+    (typeof payload.analysis_id === "string" ? payload.analysis_id : null) ??
+    null;
+  const auditReference =
+    response.audit_reference ??
+    (typeof payload.audit_reference === "string"
+      ? payload.audit_reference
+      : null) ??
+    analysisId;
+
   return {
     ok: Boolean(response.ok && payload.ok),
+    analysisId: analysisId ? String(analysisId) : null,
+    auditReference: auditReference ? String(auditReference) : null,
     correlationId: response.correlation_id,
     pipelineVersion: response.pipeline_version ?? meta.pipeline_version ?? null,
     platformVersion: response.platform_version ?? meta.platform_version ?? null,
@@ -143,6 +159,8 @@ export function mapAnalyseResponse(response: AnalyseResponse): IntelligenceView 
 export function emptyIntelligenceView(): IntelligenceView {
   return {
     ok: false,
+    analysisId: null,
+    auditReference: null,
     correlationId: null,
     pipelineVersion: null,
     platformVersion: null,

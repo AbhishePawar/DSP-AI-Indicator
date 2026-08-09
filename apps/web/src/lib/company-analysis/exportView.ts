@@ -15,6 +15,8 @@ export function researchViewToJson(view: ResearchView): string {
       company: view.company,
       exchange: view.exchange,
       analysedAt: view.analysedAt,
+      analysisId: view.analysisId,
+      auditReference: view.auditReference,
       correlationId: view.correlationId,
       platformVersion: view.platformVersion,
       pipelineVersion: view.pipelineVersion,

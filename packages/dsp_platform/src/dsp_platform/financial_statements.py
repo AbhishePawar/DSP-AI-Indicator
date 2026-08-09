@@ -33,6 +33,20 @@ def _service() -> FinancialStatementService:
     with _LOCK:
         if _SERVICE is None:
             adapter = build_default_statement_adapter_from_env()
+            # P1-09 CI fixture only — never production / never live vendor evidence.
+            try:
+                from dsp_platform.p109_e2e_fixture import (
+                    build_p109_statements,
+                    p109_fixture_enabled,
+                )
+                from data_engine import InMemoryAuthenticatedStatementAdapter
+
+                if p109_fixture_enabled() and isinstance(
+                    adapter, InMemoryAuthenticatedStatementAdapter
+                ):
+                    adapter.put(build_p109_statements())
+            except Exception:  # noqa: BLE001
+                pass
             _SERVICE = FinancialStatementService(adapter)
         return _SERVICE
 

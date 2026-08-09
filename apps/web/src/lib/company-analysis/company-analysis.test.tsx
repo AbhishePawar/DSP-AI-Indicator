@@ -363,7 +363,12 @@ describe("EPIC-F005 workspace UI", () => {
     copilotCompleteMock.mockReset();
     compareMock.mockReset();
     analyseMock.mockResolvedValue(sampleResponse);
-    marketQuoteMock.mockResolvedValue({ ok: true });
+    marketQuoteMock.mockResolvedValue({
+      ok: true,
+      available: true,
+      authenticated: true,
+      fields: { current_price: 190.5 },
+    });
     // P0-01 — production analyse requires authenticated statements (not ACM clone).
     financialStatementsMock.mockResolvedValue({
       ok: true,
@@ -407,11 +412,14 @@ describe("EPIC-F005 workspace UI", () => {
       ticker: string;
       financial_statements: { income_statement?: { revenue?: number } };
       valuation_signals?: unknown;
+      current_market_price?: number;
     };
     expect(body.ticker).toBe("AAPL");
     expect(body.financial_statements.income_statement?.revenue).toBe(391_035);
     expect(body.financial_statements.income_statement?.revenue).not.toBe(1000);
     expect(body.valuation_signals).toBeUndefined();
+    expect(body.current_market_price).toBe(190.5);
+    expect(marketQuoteMock).toHaveBeenCalled();
     expect(
       await screen.findByRole("heading", { name: /Executive Summary/i }),
     ).toBeTruthy();

@@ -215,10 +215,13 @@ def build_default_quote_adapter_from_env() -> MarketQuotePort:
     P1-03: production requires authenticated HTTP credentials; Null/memory
     cannot silently become the production provider.
 
-    Routes (first match wins):
-    1. ConfiguredHttp — ``DSP_MARKET_QUOTE_API_KEY`` + ``DSP_MARKET_QUOTE_BASE_URL``
-    2. FMP — ``DSP_FMP_API_KEY`` or ``DSP_INVESTMENT_FMP_API_KEY`` (quote + statements)
-    3. Memory — non-production flag only
+    Routes:
+    - ``DSP_INVESTMENT_DATA_PROVIDER=upstox`` → Upstox U2 only (no FMP fallback)
+    - ``DSP_INVESTMENT_DATA_PROVIDER=fmp`` → FMP only
+    - unset / ``auto`` (first match wins):
+      1. ConfiguredHttp — ``DSP_MARKET_QUOTE_API_KEY`` + ``DSP_MARKET_QUOTE_BASE_URL``
+      2. FMP — ``DSP_FMP_API_KEY`` or ``DSP_INVESTMENT_FMP_API_KEY``
+      3. Memory — non-production flag only
     """
     from data_engine.connector_framework.production_profile import (
         memory_adapter_allowed,
@@ -228,7 +231,35 @@ def build_default_quote_adapter_from_env() -> MarketQuotePort:
         FinancialModelingPrepQuoteAdapter,
         resolve_fmp_api_key,
     )
+    from data_engine.investment_data_provider import (
+        require_upstox_analytics_token,
+        resolve_investment_data_provider,
+    )
 
+    provider = resolve_investment_data_provider()
+
+    if provider == "upstox":
+        from data_engine.upstox_investment import UpstoxQuoteAdapter
+
+        token = require_upstox_analytics_token(connector="market_quote")
+        if token:
+            return UpstoxQuoteAdapter(access_token=token)
+        return NullAuthenticatedQuoteAdapter()
+
+    if provider == "fmp":
+        fmp_key = resolve_fmp_api_key()
+        if fmp_key:
+            return FinancialModelingPrepQuoteAdapter(api_key=fmp_key)
+        require_authenticated_http_adapter(
+            connector="market_quote",
+            api_key="",
+            base_url="",
+            api_key_env="DSP_FMP_API_KEY",
+            base_url_env="DSP_FMP_API_KEY",
+        )
+        return NullAuthenticatedQuoteAdapter()
+
+    # auto — existing FMP / ConfiguredHttp route (unchanged precedence)
     api_key = os.environ.get("DSP_MARKET_QUOTE_API_KEY", "").strip()
     base_url = os.environ.get("DSP_MARKET_QUOTE_BASE_URL", "").strip()
     if api_key and base_url:

@@ -135,6 +135,8 @@ class FreeCashFlowMetrics:
     owner_earnings: float | None = None
     cash_surplus: float | None = None
     fcf_source: str = "unavailable"
+    # Point-in-time FCF / Net Income (distinct from cash_conversion = FCF/OCF)
+    fcf_to_earnings: float | None = None
 
     def to_dict(self) -> dict[str, Any]:
         return {
@@ -145,6 +147,7 @@ class FreeCashFlowMetrics:
             "owner_earnings": self.owner_earnings,
             "cash_surplus": self.cash_surplus,
             "fcf_source": self.fcf_source,
+            "fcf_to_earnings": self.fcf_to_earnings,
         }
 
 

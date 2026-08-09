@@ -204,7 +204,7 @@ class FinancialRatioEngine:
         efficiency = self._efficiency(primary, prior, explanations)
         cash_flow = self._cash_ratios(primary, prior, explanations)
         shareholder = self._shareholder(primary, prior, explanations)
-        capital = self._capital_allocation(primary, cash_an, explanations)
+        capital = self._capital_allocation(primary, cash_an, income_an, explanations)
         flags = self._flags(
             profitability, liquidity, leverage, efficiency, cash_flow, capital, cash_an
         )
@@ -656,6 +656,7 @@ class FinancialRatioEngine:
         self,
         cur: FinancialStatements,
         cash_an,
+        income_an,
         out: list[MetricExplanation],
     ) -> CapitalAllocationMetrics:
         cf = cur.cash_flow
@@ -681,6 +682,11 @@ class FinancialRatioEngine:
         if net_raise is not None:
             debt_red = 1.0 if net_raise < 0 else _clip01(1.0 - min(1.0, abs(net_raise) / max(abs(ocf or 1.0), 1.0)))
 
+        # True share dilution from income intelligence (weighted_shares history).
+        # Not aliased from buybacks / debt reduction.
+        share_dilution = getattr(income_an.profitability, "share_dilution_rate", None)
+        dilution_disc = getattr(income_an.profitability, "dilution_discipline", None)
+
         parts = [p for p in (capex_disc, div_sust, bb_sust, debt_red) if p is not None]
         score = sum(parts) / len(parts) if parts else None
         out.append(
@@ -701,15 +707,44 @@ class FinancialRatioEngine:
                     if score is None
                     else f"Capital allocation score = {score:.4f}."
                 ),
-                limitations="Composed from cash-flow intelligence sustainability metrics where available.",
+                limitations=(
+                    "Composed from cash-flow intelligence sustainability metrics where "
+                    "available. Share dilution is exposed separately and not folded into "
+                    "this mean without an architecture decision."
+                ),
             )
         )
+        if share_dilution is not None or dilution_disc is not None:
+            out.append(
+                build_explanation(
+                    name="share_dilution_rate",
+                    formula="(weighted_shares_end - weighted_shares_start) / start [annual FY]",
+                    inputs={
+                        "share_dilution_rate": share_dilution,
+                        "dilution_discipline": dilution_disc,
+                    },
+                    intermediates={},
+                    result=share_dilution,
+                    confidence=_confidence(1, has_value=share_dilution is not None),
+                    interpretation=(
+                        "Share dilution unavailable."
+                        if share_dilution is None
+                        else f"Share dilution rate = {share_dilution:.4f}."
+                    ),
+                    limitations=(
+                        "Uses statement weighted_shares as provided; does not invent "
+                        "split adjustments. Distinct from buyback activity."
+                    ),
+                )
+            )
         return CapitalAllocationMetrics(
             capex_discipline=capex_disc,
             dividend_sustainability=div_sust,
             buyback_sustainability=bb_sust,
             debt_reduction_quality=debt_red,
             capital_allocation_score=score,
+            share_dilution_rate=share_dilution,
+            dilution_discipline=dilution_disc,
         )
 
     def _flags(
@@ -767,7 +802,11 @@ class FinancialRatioEngine:
 
         if CashFlowQualityFlag.SHAREHOLDER_FRIENDLY in cash_an.quality_flags:
             flags.append(RatioQualityFlag.SHAREHOLDER_FRIENDLY)
-        if (capital.capital_allocation_score or 1.0) < 0.55:
+        # Treat 0.0 as a real (weak) score — do not coerce via `or 1.0`.
+        if (
+            capital.capital_allocation_score is not None
+            and capital.capital_allocation_score < 0.55
+        ):
             flags.append(RatioQualityFlag.CAPITAL_ALLOCATION_WARNING)
 
         return tuple(dict.fromkeys(flags))

@@ -136,6 +136,32 @@ class CapitalAllocationEngine:
                 evidence,
             )
         )
+        # True share-count dilution — never alias buybacks or debt reduction.
+        dilution_value = None
+        if getattr(cap, "dilution_discipline", None) is not None:
+            dilution_value = cap.dilution_discipline
+        else:
+            income = getattr(fa, "income", None)
+            profit = getattr(income, "profitability", None) if income is not None else None
+            dilution_value = getattr(profit, "dilution_discipline", None)
+        assessments.append(
+            self._assess(
+                "dilution_discipline",
+                "Share Dilution Discipline",
+                dilution_value,
+                "FinancialAnalysis.ratios.capital_allocation / income.profitability",
+                (
+                    "Uses annual weighted_shares change rate mapped to [0,1]. "
+                    "Independent of buyback and debt-reduction assessments."
+                ),
+                explanations,
+                evidence,
+                extra_evidence=(
+                    f"share_dilution_rate="
+                    f"{getattr(cap, 'share_dilution_rate', None)}"
+                ),
+            )
+        )
         assessments.append(
             self._assess(
                 "cash_deployment_quality",

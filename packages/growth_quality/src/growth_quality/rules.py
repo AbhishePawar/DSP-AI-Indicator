@@ -240,21 +240,54 @@ def evaluate_earnings_growth(
         safe_getattr(business_quality_analysis, "earnings_quality"),
         "free_cash_flow_support",
     )
+    eps_cagr = safe_getattr(
+        financial_analysis, "income", "profitability", "eps_cagr"
+    )
+    eps_cagr_basis = safe_getattr(
+        financial_analysis, "income", "profitability", "eps_cagr_basis"
+    )
     ocf_s = _map_growth(ocf_growth)
+    eps_cagr_s = _map_growth(eps_cagr) if eps_cagr is not None else None
     value = mean_present(
-        [earn_cons, profit_pers, ni_quality, op_quality, fcf_support, ocf_s]
+        [
+            earn_cons,
+            profit_pers,
+            ni_quality,
+            op_quality,
+            fcf_support,
+            ocf_s,
+            eps_cagr_s,
+        ]
     )
     conf = _confidence(
-        [earn_cons, profit_pers, ni_quality, op_quality, fcf_support, ocf_growth],
+        [
+            earn_cons,
+            profit_pers,
+            ni_quality,
+            op_quality,
+            fcf_support,
+            ocf_growth,
+            eps_cagr,
+        ],
         basis="earnings_growth_quality_proxies",
     )
+    if eps_cagr is None:
+        conf = GrowthQualityConfidence(
+            value=min(conf.value, 0.60),
+            basis=conf.basis + "_eps_cagr_unavailable",
+        )
     positives: list[str] = []
     negatives: list[str] = []
     if profit_pers is not None and profit_pers >= 0.7:
         positives.append("Persistent profitability supports earnings growth quality")
     if fcf_support is not None and fcf_support < 0.4:
         negatives.append("Weak cash backing of earnings growth")
-    risks = ("Explicit EPS CAGR may be unavailable without multi-period series",)
+    if eps_cagr is not None and 0.05 <= float(eps_cagr) <= 0.15:
+        positives.append("EPS CAGR in durable compounding range")
+    risks = (
+        "EPS CAGR unavailable when diluted/basic series incomplete or non-positive",
+        "Negative→positive EPS transitions do not yield a conventional CAGR",
+    )
     metrics = [
         f"earnings_consistency_01={earn_cons}",
         f"profitability_persistence_01={profit_pers}",
@@ -262,19 +295,25 @@ def evaluate_earnings_growth(
         f"operating_earnings_quality_01={op_quality}",
         f"free_cash_flow_support_01={fcf_support}",
         f"operating_cash_flow_growth={ocf_growth}",
+        f"eps_cagr={eps_cagr}",
+        f"eps_cagr_basis={eps_cagr_basis}",
     ]
     evidence = [
         _evidence(
             source="BusinessQualityAnalysis",
-            reference="earnings_quality / competitive_position / cash_flow",
-            summary="Earnings/cash growth consistency and cash support",
+            reference="earnings_quality / competitive_position / cash_flow / eps_cagr",
+            summary="Earnings/cash growth consistency, EPS CAGR, and cash support",
             reasoning=(
                 "Quality earnings growth is cash-backed and persistent. We reuse "
-                "BQ consistency/persistence and cash-support assessments."
+                "BQ consistency/persistence and cash-support assessments, and score "
+                "first-class annual-fiscal EPS CAGR when evidence allows."
             ),
             confidence=conf.value,
             metrics=metrics,
-            limitations=["Does not invent multi-year EPS CAGR from a single period"],
+            limitations=[
+                "Does not invent multi-year EPS CAGR from a single period",
+                "Does not mix diluted and basic EPS in one CAGR",
+            ],
         )
     ]
     return _component(

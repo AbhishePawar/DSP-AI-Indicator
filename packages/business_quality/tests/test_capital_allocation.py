@@ -190,6 +190,7 @@ class TestCapitalAllocation:
         names = {a.name for a in result.assessments}
         assert "capex_discipline" in names
         assert "debt_reduction_discipline" in names
+        assert "dilution_discipline" in names
         assert "shareholder_capital_stewardship" in names
         assert result.explainability
         assert result.to_dict()["overall_rating"]
@@ -212,7 +213,7 @@ class TestCapitalAllocation:
     def test_single_period(self) -> None:
         result = CapitalAllocationEngine().analyze(_fa(1.0))
         assert result.validation.ok
-        assert len(result.assessments) == 10
+        assert len(result.assessments) == 11
 
     def test_heavy_capex_path(self) -> None:
         stmts = []

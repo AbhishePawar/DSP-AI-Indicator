@@ -34,6 +34,7 @@ from business_quality.scoring import (
     weighted_mean,
 )
 from business_quality.explainability import BusinessQualityExplainability
+from financial.intelligence.quality_signals import map_fcf_to_earnings_01
 
 __all__ = ["EarningsQualityEngine", "EARNINGS_QUALITY_VERSION"]
 
@@ -423,23 +424,38 @@ class EarningsQualityEngine:
         fcf = cash.free_cash_flow.free_cash_flow
         stability = cash.free_cash_flow.fcf_stability
         conversion = cash.operating.cash_conversion
-        value = stability
+        fcf_to_earn = getattr(cash.free_cash_flow, "fcf_to_earnings", None)
+        # Prefer first-class FCF/NI when available; keep FCF/OCF as secondary.
+        fte_01 = map_fcf_to_earnings_01(fcf_to_earn)
+        parts = [p for p in (fte_01, stability) if p is not None]
+        value = sum(parts) / len(parts) if parts else None
         if value is None and conversion is not None:
             value = min(1.0, max(0.0, conversion if conversion <= 1.5 else 1.0))
         if value is None and fcf is not None:
             value = 0.7 if fcf > 0 else 0.25
         evidence.append(f"fcf={fcf}")
         evidence.append(f"fcf_stability={stability}")
-        conf = _confidence_from_present(fcf, stability, conversion)
+        evidence.append(f"fcf_to_earnings={fcf_to_earn}")
+        conf = _confidence_from_present(fcf, stability, conversion, fcf_to_earn)
         out.append(
             eq_explanation(
                 title="Free Cash Flow Support",
                 description="FCF support for reported earnings.",
-                evidence=(f"fcf={fcf}", f"fcf_stability={stability}"),
-                reasoning="Reuses cash_flow.free_cash_flow fields.",
+                evidence=(
+                    f"fcf={fcf}",
+                    f"fcf_stability={stability}",
+                    f"fcf_to_earnings={fcf_to_earn}",
+                ),
+                reasoning=(
+                    "Prefers fcf_to_earnings (FCF/NI) with FCF stability; "
+                    "falls back to cash_conversion (FCF/OCF) then FCF sign."
+                ),
                 confidence=conf,
                 limitations="Does not recompute FCF from statements.",
-                references=("FinancialAnalysis.cash_flow.free_cash_flow",),
+                references=(
+                    "FinancialAnalysis.cash_flow.free_cash_flow",
+                    "FinancialAnalysis.cash_flow.free_cash_flow.fcf_to_earnings",
+                ),
             )
         )
         return Assessment(

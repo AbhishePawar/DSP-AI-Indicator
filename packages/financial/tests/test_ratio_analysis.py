@@ -325,8 +325,10 @@ class TestAnalysis:
                 )
             )
         )
-        assert result.capital_allocation.dividend_sustainability == 1.0
-        assert result.capital_allocation.buyback_sustainability == 1.0
+        # No dividend/buyback activity fields → sustainability unavailable
+        # (never invent perfect 1.0 merely because FCF exists).
+        assert result.capital_allocation.dividend_sustainability is None
+        assert result.capital_allocation.buyback_sustainability is None
 
     def test_missing_total_assets(self) -> None:
         with pytest.raises(FinancialRatioError, match="total_assets"):

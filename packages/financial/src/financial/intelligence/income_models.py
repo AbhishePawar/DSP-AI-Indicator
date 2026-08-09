@@ -147,6 +147,13 @@ class ProfitabilityMetrics:
     eps_growth: float | None = None
     eps_stability: float | None = None
     earnings_consistency: float | None = None
+    # First-class multi-year EPS CAGR (annual FY; diluted preferred, else basic)
+    eps_cagr: float | None = None
+    eps_cagr_basis: str = "unavailable"
+    # True share-count change over annual FY span (weighted_shares)
+    share_dilution_rate: float | None = None
+    # [0,1] discipline mapped from share_dilution_rate (None if unavailable)
+    dilution_discipline: float | None = None
 
     def to_dict(self) -> dict[str, Any]:
         return {
@@ -161,6 +168,10 @@ class ProfitabilityMetrics:
             "eps_growth": self.eps_growth,
             "eps_stability": self.eps_stability,
             "earnings_consistency": self.earnings_consistency,
+            "eps_cagr": self.eps_cagr,
+            "eps_cagr_basis": self.eps_cagr_basis,
+            "share_dilution_rate": self.share_dilution_rate,
+            "dilution_discipline": self.dilution_discipline,
         }
 
 

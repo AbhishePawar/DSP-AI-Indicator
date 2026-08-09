@@ -90,6 +90,9 @@ class CapitalAllocationMetrics:
     buyback_sustainability: float | None = None
     debt_reduction_quality: float | None = None
     capital_allocation_score: float | None = None
+    # Evidence-driven share-count change (not buyback/debt aliases)
+    share_dilution_rate: float | None = None
+    dilution_discipline: float | None = None
 
     def to_dict(self) -> dict[str, Any]:
         return {
@@ -98,6 +101,8 @@ class CapitalAllocationMetrics:
             "buyback_sustainability": self.buyback_sustainability,
             "debt_reduction_quality": self.debt_reduction_quality,
             "capital_allocation_score": self.capital_allocation_score,
+            "share_dilution_rate": self.share_dilution_rate,
+            "dilution_discipline": self.dilution_discipline,
         }
 
 

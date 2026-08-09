@@ -4,6 +4,8 @@ from __future__ import annotations
 
 from datetime import date
 
+import pytest
+
 from financial import (
     CurrencyCode,
     CurrencyRef,
@@ -152,3 +154,63 @@ def test_dilution_does_not_use_debt_reduction_discipline() -> None:
     component = evaluate_capital_allocation(_FA(), _BQ(), weight=1.0)
     # Debt-reduction alone must not be scored as dilution / capital allocation.
     assert component.score.value is None or component.status == "insufficient_data"
+
+
+def test_eps_cagr_positive_annual_series() -> None:
+    engine = IncomeStatementEngine()
+    incomes = [
+        IncomeStatement(
+            revenue=100.0,
+            net_income=10.0,
+            eps=1.0,
+            diluted_eps=0.90,
+            weighted_shares=100.0,
+        ),
+        IncomeStatement(
+            revenue=121.0,
+            net_income=12.1,
+            eps=1.21,
+            diluted_eps=1.089,
+            weighted_shares=100.0,
+        ),
+    ]
+    stmts = [
+        _stmt(incomes[0], _period(end=date(2022, 12, 31), fy=2022)),
+        _stmt(incomes[1], _period(end=date(2024, 12, 31), fy=2024)),
+    ]
+    result = engine.analyze(stmts)
+    assert result.profitability.eps_cagr_basis == "diluted"
+    assert result.profitability.eps_cagr is not None
+    assert abs(result.profitability.eps_cagr - 0.10) < 1e-5
+    assert result.profitability.share_dilution_rate == 0.0
+
+
+def test_eps_cagr_negative_to_positive_unavailable() -> None:
+    engine = IncomeStatementEngine()
+    incomes = [
+        IncomeStatement(revenue=100.0, eps=-1.0, diluted_eps=-1.0, weighted_shares=100.0),
+        IncomeStatement(revenue=110.0, eps=1.0, diluted_eps=1.0, weighted_shares=100.0),
+    ]
+    stmts = [
+        _stmt(incomes[0], _period(end=date(2022, 12, 31), fy=2022)),
+        _stmt(incomes[1], _period(end=date(2024, 12, 31), fy=2024)),
+    ]
+    result = engine.analyze(stmts)
+    assert result.profitability.eps_cagr is None
+    assert result.profitability.eps_cagr_basis == "unavailable"
+
+
+def test_share_dilution_from_weighted_shares_not_buybacks() -> None:
+    engine = IncomeStatementEngine()
+    incomes = [
+        IncomeStatement(revenue=100.0, weighted_shares=100.0, eps=1.0),
+        IncomeStatement(revenue=110.0, weighted_shares=120.0, eps=1.1),
+    ]
+    stmts = [
+        _stmt(incomes[0], _period(end=date(2022, 12, 31), fy=2022)),
+        _stmt(incomes[1], _period(end=date(2024, 12, 31), fy=2024)),
+    ]
+    result = engine.analyze(stmts)
+    assert result.profitability.share_dilution_rate == pytest.approx(0.20)
+    assert result.profitability.dilution_discipline is not None
+    assert result.profitability.dilution_discipline < 0.85

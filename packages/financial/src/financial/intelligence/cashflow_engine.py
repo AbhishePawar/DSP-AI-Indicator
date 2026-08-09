@@ -34,6 +34,7 @@ from financial.intelligence.cashflow_validation import (
     validate_cashflow_for_analysis,
 )
 from financial.intelligence.income_models import TrendDirection
+from financial.intelligence.quality_signals import fcf_to_earnings_ratio
 from financial.models import FinancialSnapshot, FinancialStatements
 
 __all__ = ["CashFlowEngine", "CASHFLOW_INTELLIGENCE_VERSION"]
@@ -144,7 +145,10 @@ class CashFlowEngine:
         operating = self._operating(flows, explanations)
         investing = self._investing(primary, operating, explanations)
         financing = self._financing(primary, operating, explanations)
-        fcf = self._fcf(flows, revenue, explanations)
+        net_income = None
+        if primary_stmt is not None:
+            net_income = primary_stmt.income_statement.net_income
+        fcf = self._fcf(flows, revenue, net_income, explanations)
         quality = self._quality(primary, operating, investing, financing, fcf, explanations)
         flags = self._flags(operating, investing, financing, fcf, quality)
         trends = self._trends(flows, operating, financing, fcf)
@@ -382,6 +386,7 @@ class CashFlowEngine:
         self,
         flows: Sequence[CashFlowStatement],
         revenue: float | None,
+        net_income: float | None,
         out: list[MetricExplanation],
     ) -> FreeCashFlowMetrics:
         primary = flows[-1]
@@ -397,6 +402,7 @@ class CashFlowEngine:
                 fcf_series.append(v)
         stability = _stability(fcf_series) if len(fcf_series) >= 2 else None
         margin = _safe_div(fcf, revenue)
+        fcf_to_earn = fcf_to_earnings_ratio(fcf, net_income)
 
         # Owner earnings: domain placeholder — pass through only
         owner = primary.owner_earnings
@@ -427,6 +433,25 @@ class CashFlowEngine:
         )
         out.append(
             build_explanation(
+                name="fcf_to_earnings",
+                formula="FCF / net_income (point-in-time; NI > 0 required)",
+                inputs={"fcf": fcf, "net_income": net_income},
+                intermediates={},
+                result=fcf_to_earn,
+                confidence=_confidence(1, has_value=fcf_to_earn is not None),
+                interpretation=(
+                    "FCF-to-earnings unavailable."
+                    if fcf_to_earn is None
+                    else f"FCF/NI = {fcf_to_earn:.4f}."
+                ),
+                limitations=(
+                    "Distinct from cash_conversion (FCF/OCF). Zero/negative NI → unavailable. "
+                    "Does not substitute OCF for FCF or revenue for NI."
+                ),
+            )
+        )
+        out.append(
+            build_explanation(
                 name="owner_earnings",
                 formula="domain placeholder (pass-through)",
                 inputs={"owner_earnings": owner},
@@ -450,6 +475,7 @@ class CashFlowEngine:
             owner_earnings=owner,
             cash_surplus=surplus,
             fcf_source=source,
+            fcf_to_earnings=fcf_to_earn,
         )
 
     def _quality(

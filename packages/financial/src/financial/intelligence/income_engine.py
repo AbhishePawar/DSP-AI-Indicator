@@ -33,6 +33,11 @@ from financial.intelligence.income_validation import (
     coerce_income_series,
     validate_income_for_analysis,
 )
+from financial.intelligence.quality_signals import (
+    dilution_discipline_01,
+    eps_cagr_from_series,
+    share_dilution_rate,
+)
 from financial.models import FinancialSnapshot, FinancialStatements
 from financial.period import PeriodType
 
@@ -143,7 +148,7 @@ class IncomeStatementEngine:
         margins = self._margins(primary, explanations)
         expenses = self._expenses(primary, incomes, explanations)
         revenue = self._revenue(incomes, stmts, explanations)
-        profitability = self._profitability(incomes, margins, explanations)
+        profitability = self._profitability(incomes, stmts, margins, explanations)
         growth = self._growth_block(incomes, explanations)
         consistency = self._consistency(incomes, margins, growth, explanations)
         flags = self._flags(revenue, margins, growth, consistency, incomes)
@@ -441,6 +446,7 @@ class IncomeStatementEngine:
     def _profitability(
         self,
         incomes: Sequence[IncomeStatement],
+        stmts: Sequence[FinancialStatements | None],
         margins: MarginMetrics,
         out: list[MetricExplanation],
     ) -> ProfitabilityMetrics:
@@ -501,6 +507,10 @@ class IncomeStatementEngine:
         ni_vals = [i.net_income for i in incomes if i.net_income is not None]
         earnings_consistency = _stability(ni_vals) if len(ni_vals) >= 2 else None
 
+        eps_cagr, eps_cagr_basis = eps_cagr_from_series(incomes, stmts)
+        dilution_rate = share_dilution_rate(incomes, stmts)
+        dilution_disc = dilution_discipline_01(dilution_rate)
+
         for name, result, formula, inputs in (
             (
                 "gross_profit_quality",
@@ -528,6 +538,18 @@ class IncomeStatementEngine:
                     "eps_t": primary.eps,
                     "eps_t-1": incomes[-2].eps if len(incomes) >= 2 else None,
                 },
+            ),
+            (
+                "eps_cagr",
+                eps_cagr,
+                "(eps_end / eps_start)^(1/years) - 1 [annual FY; diluted preferred]",
+                {"eps_cagr_basis": eps_cagr_basis},
+            ),
+            (
+                "share_dilution_rate",
+                dilution_rate,
+                "(weighted_shares_end - weighted_shares_start) / weighted_shares_start",
+                {"share_field": "weighted_shares"},
             ),
         ):
             out.append(
@@ -561,6 +583,10 @@ class IncomeStatementEngine:
             eps_growth=eps_growth,
             eps_stability=eps_stability,
             earnings_consistency=earnings_consistency,
+            eps_cagr=eps_cagr,
+            eps_cagr_basis=eps_cagr_basis,
+            share_dilution_rate=dilution_rate,
+            dilution_discipline=dilution_disc,
         )
 
     def _growth_block(

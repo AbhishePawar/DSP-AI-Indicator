@@ -33,6 +33,9 @@ jobs:
       - name: Certify P7.2
         run: python scripts/ops/certify_p7_2.py
 
+      - name: P1-10 authenticity hard-fail (release blocking)
+        run: python scripts/ci/run_p110_authenticity_hard_fail.py
+
       - name: Run quality gates
         run: |
           pytest packages/api_platform/tests/test_health_rc1.py -q

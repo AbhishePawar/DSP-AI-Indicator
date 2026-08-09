@@ -33,6 +33,14 @@ jobs:
       - name: Certify P7.2
         run: python scripts/ops/certify_p7_2.py
 
+      - name: Install monorepo (for authenticity gate)
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e ".[dev]"
+
+      - name: P1-10 authenticity hard-fail (release blocking)
+        run: python scripts/ci/run_p110_authenticity_hard_fail.py
+
       - name: Upload release artifacts
         uses: actions/upload-artifact@v4
         with:

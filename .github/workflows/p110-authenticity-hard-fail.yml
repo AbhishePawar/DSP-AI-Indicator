@@ -1,0 +1,84 @@
+name: P1-10 Authenticity Hard-Fail
+
+# Merge/release blocking authenticity gate.
+# AUTHENTICITY VIOLATION → CI FAIL → RELEASE BLOCKED
+#
+# Soft-fail / || true / continue-on-error on the authenticity suite is forbidden.
+# Reuses P1-09 API critical journey assertions; does NOT claim G2 live evidence.
+
+on:
+  push:
+    branches:
+      - main
+      - master
+      - fix/asi003-dsp-platform-boundaries
+      - "rc/**"
+      - "release/**"
+    tags:
+      - "v*.*.*"
+      - "v*.*.*-*"
+  pull_request:
+    branches: [main, master]
+  workflow_dispatch:
+
+concurrency:
+  group: p110-authenticity-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  p110-authenticity-hard-fail:
+    name: P1-10 Authenticity hard-fail (release gate)
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    env:
+      DSP_ENVIRONMENT: development
+      DSP_INFRA_OFFLINE: "0"
+      PYTHONUNBUFFERED: "1"
+      DSP_SEED_ADMIN_PASSWORD: Admin@123
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install monorepo
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e ".[dev]"
+
+      - name: P1-10 authenticity hard-fail suite
+        id: authenticity
+        run: python scripts/ci/run_p110_authenticity_hard_fail.py
+
+      - name: Upload authenticity evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: p110-authenticity-evidence
+          path: |
+            artifacts/p110_authenticity_hard_fail_evidence.json
+            artifacts/p110_authenticity_ci_summary.json
+            artifacts/p109_critical_investment_evidence.json
+          if-no-files-found: warn
+
+      - name: P1-10 summary
+        if: always()
+        run: |
+          {
+            echo "## P1-10 Authenticity Hard-Fail"
+            echo ""
+            echo "| Field | Value |"
+            echo "|---|---|"
+            echo "| Authenticity suite | ${{ steps.authenticity.outcome }} |"
+            echo "| Hard-fail | true |"
+            echo "| Soft-fail | forbidden |"
+            echo "| G2 claim | false |"
+            echo "| Commit | \`${{ github.sha }}\` |"
+            echo ""
+            echo "AUTHENTICITY VIOLATION → CI FAIL → RELEASE BLOCKED"
+          } >> "$GITHUB_STEP_SUMMARY"

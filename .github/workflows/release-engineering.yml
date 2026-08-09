@@ -41,9 +41,41 @@ jobs:
       - name: P1-10 authenticity hard-fail (release blocking)
         run: python scripts/ci/run_p110_authenticity_hard_fail.py
 
+      - name: P1-11 RC1 hard gate evaluate (must NO-GO while G2 blocked)
+        id: rc1_gate
+        run: |
+          # Packaging certification proves the aggregator hard-blocks GO while G2
+          # lacks real_live_authenticated_provider evidence. Tag publish remains
+          # blocked in release.yml until --evaluate exits 0.
+          set +e
+          python scripts/ci/rc1_hard_release_gate.py --evaluate
+          code=$?
+          set -e
+          if [ "$code" -eq 0 ]; then
+            echo "UNEXPECTED RC1 GO without G2 live evidence" >&2
+            exit 1
+          fi
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          data = json.loads(Path("artifacts/rc1_hard_release_gate.json").read_text())
+          assert data["release_allowed"] is False
+          assert data["decision"] == "NO-GO"
+          assert "G2" in data["blocking"]
+          print("rc1_no_go_confirmed")
+          PY
+
       - name: Upload release artifacts
         uses: actions/upload-artifact@v4
         with:
           name: dsp-release-package
           path: release/
           if-no-files-found: error
+
+      - name: Upload RC1 gate evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: rc1-hard-release-gate
+          path: artifacts/rc1_hard_release_gate.json
+          if-no-files-found: warn

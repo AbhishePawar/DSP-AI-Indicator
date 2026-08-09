@@ -1,0 +1,134 @@
+name: P1-11 Hard Release Gates
+
+# Authoritative RC1 hard-gate mechanism tests + live evaluate.
+# Soft-fail / || true / continue-on-error on the gate is forbidden.
+#
+# While G2 credentials are absent, --evaluate MUST return NO-GO.
+# That is expected and proves the release decision is hard-gated.
+
+on:
+  push:
+    branches:
+      - main
+      - master
+      - fix/asi003-dsp-platform-boundaries
+      - "rc/**"
+      - "release/**"
+    tags:
+      - "v*.*.*"
+      - "v*.*.*-*"
+  pull_request:
+    branches: [main, master]
+  workflow_dispatch:
+
+concurrency:
+  group: p111-hard-release-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  p111-gate-unit-tests:
+    name: P1-11 gate unit + negative proofs
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      DSP_ENVIRONMENT: development
+      PYTHONUNBUFFERED: "1"
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install monorepo
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e ".[dev]"
+
+      - name: P1-11 hard-gate tests
+        id: gate_tests
+        run: |
+          pytest \
+            packages/api_platform/tests/test_p111_hard_release_gates.py \
+            -q --tb=short --import-mode=importlib -p no:cov
+
+      - name: Negative proof — G2 BLOCKED blocks release
+        run: |
+          set +e
+          python scripts/ci/rc1_hard_release_gate.py --inject G2=BLOCKED
+          code=$?
+          set -e
+          test "$code" -ne 0
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          data = json.loads(Path("artifacts/rc1_hard_release_gate.json").read_text())
+          assert data["release_allowed"] is False
+          assert data["decision"] == "NO-GO"
+          assert "G2" in data["blocking"]
+          print("negative_proof_g2_ok")
+          PY
+
+      - name: Negative proof — soft-fail attempt propagates
+        run: |
+          set +e
+          python scripts/ci/rc1_hard_release_gate.py --simulate-critical-failure 9
+          code=$?
+          set -e
+          test "$code" -eq 9
+
+      - name: Prepare prerequisite evidence (P1-09/P1-10) for live evaluate
+        run: |
+          python scripts/ci/run_p110_authenticity_hard_fail.py
+
+      - name: Live RC1 evaluate (expect NO-GO while G2 blocked)
+        id: evaluate
+        run: |
+          set +e
+          python scripts/ci/rc1_hard_release_gate.py --evaluate
+          code=$?
+          set -e
+          if [ "$code" -eq 0 ]; then
+            echo "UNEXPECTED GO while G2 credentials are absent" >&2
+            exit 1
+          fi
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          data = json.loads(Path("artifacts/rc1_hard_release_gate.json").read_text())
+          assert data["release_allowed"] is False, data
+          assert data["decision"] == "NO-GO", data
+          assert "G2" in data["blocking"], data
+          print("live_evaluate_no_go_ok")
+          print("blocking=", data["blocking"])
+          PY
+
+      - name: Upload RC1 gate evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: p111-rc1-hard-release-gate
+          path: |
+            artifacts/rc1_hard_release_gate.json
+            artifacts/p110_authenticity_ci_summary.json
+            artifacts/p109_critical_investment_evidence.json
+          if-no-files-found: warn
+
+      - name: P1-11 summary
+        if: always()
+        run: |
+          {
+            echo "## P1-11 Hard Release Gates"
+            echo ""
+            echo "| Field | Value |"
+            echo "|---|---|"
+            echo "| Gate unit tests | ${{ steps.gate_tests.outcome }} |"
+            echo "| Live evaluate | ${{ steps.evaluate.outcome }} |"
+            echo "| Expected RC1 | NO-GO while G2 BLOCKED |"
+            echo "| Soft-fail | forbidden |"
+            echo "| Commit | \`${{ github.sha }}\` |"
+          } >> "$GITHUB_STEP_SUMMARY"

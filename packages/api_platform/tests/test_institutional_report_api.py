@@ -6,6 +6,7 @@ import pytest
 from fastapi.testclient import TestClient
 
 from api_platform import create_app
+from auth_test_helpers import bearer_headers, register_user
 from dsp_platform import DSPPlatform, PlatformBuilder, PlatformConfiguration
 from dsp_platform.research_object import build_research_object, research_object_to_dict
 
@@ -22,6 +23,11 @@ def platform() -> DSPPlatform:
 @pytest.fixture
 def client(platform: DSPPlatform) -> TestClient:
     return TestClient(create_app(platform=platform))
+
+@pytest.fixture
+def auth_headers(client: TestClient) -> dict[str, str]:
+    register_user(client, user_id="research-rpt-user", username="researchrpt")
+    return bearer_headers(client, username="researchrpt")
 
 
 def _ro_dict() -> dict:
@@ -83,7 +89,7 @@ def _ro_dict() -> dict:
     return research_object_to_dict(obj)
 
 
-def test_report_schema(client: TestClient) -> None:
+def test_report_schema(client: TestClient, auth_headers: dict[str, str]) -> None:
     response = client.get("/api/v1/research/report/schema")
     assert response.status_code == 200
     body = response.json()
@@ -93,9 +99,10 @@ def test_report_schema(client: TestClient) -> None:
     assert "RS-001" in body["schema"]["rs_coverage"]
 
 
-def test_generate_report(client: TestClient) -> None:
+def test_generate_report(client: TestClient, auth_headers: dict[str, str]) -> None:
     response = client.post(
         "/api/v1/research/report",
+        headers=auth_headers,
         json={
             "research_object": _ro_dict(),
             "report_id": "rpt-api-1",
@@ -113,6 +120,7 @@ def test_generate_report(client: TestClient) -> None:
     assert report["version"]["research_object_schema_version"] == "1.0.0"
 
 
-def test_generate_report_requires_object(client: TestClient) -> None:
-    response = client.post("/api/v1/research/report", json={})
+def test_generate_report_requires_object(client: TestClient, auth_headers: dict[str, str]) -> None:
+    response = client.post("/api/v1/research/report",
+        headers=auth_headers, json={})
     assert response.status_code == 422

@@ -27,11 +27,8 @@ async function enterpriseRequest<T>(
   if (init.body && !headers.has("Content-Type")) {
     headers.set("Content-Type", "application/json");
   }
-  // Prefer cookie session; do not treat X-User-Id as authority.
-  // Keep header only for legacy diagnostics when explicitly supplied.
-  if (options.userId) {
-    headers.set("X-User-Id", options.userId);
-  }
+  // Never send X-User-Id — identity is cookie/Bearer only (P0-05).
+  void options.userId;
 
   const url = `${env.apiBaseUrl}${path.startsWith("/") ? path : `/${path}`}`;
   let response: Response;
@@ -94,11 +91,12 @@ export async function listOrganizations(
   userId?: string | null,
   options?: EnterpriseRequestOptions,
 ): Promise<{ result: Organization[]; message: string | null }> {
-  const qs = userId ? `?user_id=${encodeURIComponent(userId)}` : "";
+  // userId ignored — server resolves actor from session (P0-05).
+  void userId;
   const result = await enterpriseRequest<Organization[]>(
-    `/api/v1/enterprise/organizations${qs}`,
+    "/api/v1/enterprise/organizations",
     {},
-    { ...options, userId: userId ?? options?.userId },
+    options,
   );
   return {
     result: Array.isArray(result) ? result : [],

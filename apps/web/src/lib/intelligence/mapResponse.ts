@@ -12,6 +12,8 @@ export type IntelligenceView = {
   /** P1-06 / P1-09 — server-issued durable analysis id (presentation only). */
   analysisId: string | null;
   auditReference: string | null;
+  /** P1-06 — whether durable provenance was persisted for this analyse. */
+  provenancePersisted: boolean | null;
   correlationId: string | null;
   pipelineVersion: string | null;
   platformVersion: string | null;
@@ -115,11 +117,18 @@ export function mapAnalyseResponse(response: AnalyseResponse): IntelligenceView 
       ? payload.audit_reference
       : null) ??
     analysisId;
+  const provenancePersisted =
+    typeof response.provenance_persisted === "boolean"
+      ? response.provenance_persisted
+      : typeof payload.provenance_persisted === "boolean"
+        ? payload.provenance_persisted
+        : null;
 
   return {
     ok: Boolean(response.ok && payload.ok),
     analysisId: analysisId ? String(analysisId) : null,
     auditReference: auditReference ? String(auditReference) : null,
+    provenancePersisted,
     correlationId: response.correlation_id,
     pipelineVersion: response.pipeline_version ?? meta.pipeline_version ?? null,
     platformVersion: response.platform_version ?? meta.platform_version ?? null,
@@ -161,6 +170,7 @@ export function emptyIntelligenceView(): IntelligenceView {
     ok: false,
     analysisId: null,
     auditReference: null,
+    provenancePersisted: null,
     correlationId: null,
     pipelineVersion: null,
     platformVersion: null,

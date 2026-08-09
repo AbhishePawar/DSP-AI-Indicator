@@ -150,8 +150,25 @@ export function mapResearchView(
 ): ResearchView {
   const base = mapAnalyseResponse(response);
   const stages = base.stages;
-  const signals = request.valuation_signals;
   const valuationStage = stageOrEmpty(stages, "valuation");
+  // Server-authoritative valuation display — never client valuation_signals IV/MoS.
+  const serverValuation = (
+    response.payload as {
+      server_valuation?: {
+        intrinsic_value_per_share?: number | null;
+        current_market_price?: number | null;
+        confidence?: number | null;
+      } | null;
+      source_evidence?: {
+        current_market_price?: number | null;
+      } | null;
+    }
+  ).server_valuation;
+  const sourceEvidence = (
+    response.payload as {
+      source_evidence?: { current_market_price?: number | null } | null;
+    }
+  ).source_evidence;
 
   const financial = toSection(stageOrEmpty(stages, "financial"), [
     "Score",
@@ -240,9 +257,12 @@ export function mapResearchView(
     company: display(request.company, request.ticker.toUpperCase()),
     analysedAt: analysedAt ?? null,
     valuation: {
-      intrinsicValue: money(signals?.intrinsic_value_per_share),
+      intrinsicValue: money(serverValuation?.intrinsic_value_per_share ?? null),
       currentPrice: money(
-        request.current_market_price ?? signals?.current_market_price,
+        serverValuation?.current_market_price ??
+          sourceEvidence?.current_market_price ??
+          request.current_market_price ??
+          null,
       ),
       marginOfSafety: formatPct(base.marginOfSafety),
       method: display(
@@ -250,7 +270,9 @@ export function mapResearchView(
         "API valuation stage",
       ),
       confidence: formatPct(
-        valuationStage?.confidence ?? signals?.confidence ?? null,
+        serverValuation?.confidence ??
+          valuationStage?.confidence ??
+          null,
       ),
     },
     financial,

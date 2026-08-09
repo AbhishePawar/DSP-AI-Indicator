@@ -222,6 +222,16 @@ export type TranscriptsPayload = {
   message?: string | null;
 };
 
+type AuthFailureHandler = (status: 401 | 403) => void;
+let authFailureHandler: AuthFailureHandler | null = null;
+
+/** Wire AuthProvider session expiry / forbidden handling into the API client. */
+export function setApiAuthFailureHandler(
+  handler: AuthFailureHandler | null,
+): void {
+  authFailureHandler = handler;
+}
+
 async function request<T>(
   path: string,
   init: RequestInit = {},
@@ -295,6 +305,16 @@ async function request<T>(
 
   if (!response.ok) {
     const body = (data as ApiErrorBody | null) ?? null;
+    if (
+      (response.status === 401 || response.status === 403) &&
+      authFailureHandler
+    ) {
+      try {
+        authFailureHandler(response.status);
+      } catch {
+        // Never block error propagation on handler failure.
+      }
+    }
     throw new ApiClientError(
       body?.message || body?.detail || body?.error || `HTTP ${response.status}`,
       response.status,

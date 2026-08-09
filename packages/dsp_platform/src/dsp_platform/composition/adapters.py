@@ -160,6 +160,26 @@ def pipeline_result_public_dict(result: PipelineResult) -> dict[str, Any]:
     base["source_evidence"] = source_evidence_from_trace(
         result.authenticated_valuation_trace
     )
+    # Server-computed valuation display fields (never from client request).
+    signals = result.valuation_signals
+    if signals is not None:
+        base["server_valuation"] = {
+            "authority": "server",
+            "intrinsic_value_per_share": _opt_float(
+                getattr(signals, "intrinsic_value_per_share", None)
+            ),
+            "current_market_price": _opt_float(
+                getattr(signals, "current_market_price", None)
+            ),
+            "confidence": _opt_float(getattr(signals, "confidence", None)),
+        }
+    else:
+        base["server_valuation"] = {
+            "authority": "server",
+            "intrinsic_value_per_share": None,
+            "current_market_price": None,
+            "confidence": None,
+        }
     base["risk"] = (
         result.risk.to_dict() if hasattr(result.risk, "to_dict") else None
     )

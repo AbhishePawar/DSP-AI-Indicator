@@ -78,6 +78,29 @@ const analyseMock = vi.fn();
 vi.mock("@/lib/api/client", () => ({
   api: {
     analyse: (...args: unknown[]) => analyseMock(...args),
+    financialStatements: vi.fn(async () => ({
+      available: true,
+      authenticated: true,
+      reporting_currency: "USD",
+      periods: [
+        {
+          period_type: "annual",
+          period_end: "2024-12-31",
+          fiscal_year: 2024,
+          reporting_currency: "USD",
+          income_statement: { revenue: 1000, net_income: 100 },
+          balance_sheet: { total_equity: 500 },
+          cash_flow: { operating_cash_flow: 120 },
+        },
+      ],
+    })),
+    marketQuote: vi.fn(async () => ({
+      available: true,
+      authenticated: true,
+      currency: "USD",
+      fields: { current_price: 50 },
+      provenance: { retrieved_at: "2026-08-09T00:00:00Z" },
+    })),
   },
 }));
 

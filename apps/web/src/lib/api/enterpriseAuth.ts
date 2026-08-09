@@ -275,9 +275,10 @@ export const enterpriseAuthApi = {
       max: number;
       label: string;
       checks: Record<string, boolean>;
-    }>(
-      `/auth/enterprise/password/strength?password=${encodeURIComponent(password)}`,
-    ),
+    }>("/auth/enterprise/password/strength", {
+      method: "POST",
+      body: JSON.stringify({ password }),
+    }),
 
   resendOtp: (mobile: string) =>
     enterpriseRequest<{

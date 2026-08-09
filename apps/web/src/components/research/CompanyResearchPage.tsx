@@ -51,9 +51,11 @@ export function CompanyResearchPage({ ticker }: { ticker: string }) {
       }
 
       // P0-01 — authenticated statements only; never clone demo ACM financials.
+      // P0-02 — market price from authenticated quote (same as flagship workspace).
       const request = await loadAuthenticatedAnalyseRequest(normalized, {
         loadStatements: () =>
           api.financialStatements(normalized, { token, limit: 1 }),
+        loadQuote: () => api.marketQuote(normalized, { token }),
       });
       const response = await api.analyse(request, { token });
       const analysedAt = new Date().toISOString();

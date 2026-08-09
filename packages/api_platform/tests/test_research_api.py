@@ -6,6 +6,7 @@ import pytest
 from fastapi.testclient import TestClient
 
 from api_platform import create_app
+from auth_test_helpers import bearer_headers, register_user
 from data_engine import DataOrchestrator
 from dsp_platform import DSPPlatform, PlatformBuilder, PlatformConfiguration
 from dsp_platform.data_orchestrator import reset_data_orchestrator_for_tests
@@ -30,6 +31,11 @@ def platform() -> DSPPlatform:
 @pytest.fixture
 def client(platform: DSPPlatform) -> TestClient:
     return TestClient(create_app(platform=platform))
+
+@pytest.fixture
+def auth_headers(client: TestClient) -> dict[str, str]:
+    register_user(client, user_id="research-obj-user", username="researchobj")
+    return bearer_headers(client, username="researchobj")
 
 
 def _mock_orch() -> DataOrchestrator:
@@ -70,7 +76,7 @@ def _mock_orch() -> DataOrchestrator:
     )
 
 
-def test_research_object_schema(client: TestClient) -> None:
+def test_research_object_schema(client: TestClient, auth_headers: dict[str, str]) -> None:
     response = client.get("/api/v1/research/object/schema")
     assert response.status_code == 200
     body = response.json()
@@ -79,10 +85,11 @@ def test_research_object_schema(client: TestClient) -> None:
     assert body["schema"]["immutable"] is True
 
 
-def test_research_object_build_with_fetch(client: TestClient) -> None:
+def test_research_object_build_with_fetch(client: TestClient, auth_headers: dict[str, str]) -> None:
     reset_data_orchestrator_for_tests(_mock_orch())
     response = client.post(
         "/api/v1/research/object",
+        headers=auth_headers,
         json={
             "symbol": "AAPL",
             "fetch_data_bundle": True,
@@ -108,9 +115,10 @@ def test_research_object_build_with_fetch(client: TestClient) -> None:
     assert ro["version"]["schema_version"] == "1.0.0"
 
 
-def test_research_object_without_fetch(client: TestClient) -> None:
+def test_research_object_without_fetch(client: TestClient, auth_headers: dict[str, str]) -> None:
     response = client.post(
         "/api/v1/research/object",
+        headers=auth_headers,
         json={
             "symbol": "MSFT",
             "fetch_data_bundle": False,

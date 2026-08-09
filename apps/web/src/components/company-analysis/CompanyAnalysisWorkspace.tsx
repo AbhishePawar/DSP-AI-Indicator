@@ -11,6 +11,7 @@ import {
   useCallback,
   useEffect,
   useMemo,
+  useRef,
   useState,
   type ComponentType,
 } from "react";
@@ -209,6 +210,8 @@ export function CompanyAnalysisWorkspace() {
     useState<AnalyseRequest | null>(null);
   const [lastAnalyseResponse, setLastAnalyseResponse] =
     useState<AnalyseResponse | null>(null);
+  /** Monotonic generation — drop stale analyse responses after symbol change. */
+  const analyseGeneration = useRef(0);
 
   const activeSection = useWorkspacePrefsStore((s) => s.activeSection);
   const setActiveSection = useWorkspacePrefsStore((s) => s.setActiveSection);
@@ -228,9 +231,17 @@ export function CompanyAnalysisWorkspace() {
 
   useEffect(() => {
     const next = (searchParams.get("symbol") || "").trim().toUpperCase();
-    setSymbol(next);
+    setSymbol((prev) => {
+      if (prev === next) return prev;
+      // Clear prior company research only when the ticker actually changes.
+      analyseGeneration.current += 1;
+      setView(null);
+      setLastAnalyseRequest(null);
+      setLastAnalyseResponse(null);
+      setAnalysedAt(null);
+      return next;
+    });
     setQuery(next);
-    if (!next) setView(null);
   }, [searchParams]);
 
   const selectSymbol = useCallback(
@@ -247,20 +258,25 @@ export function CompanyAnalysisWorkspace() {
 
   const analyseMutation = useMutation({
     mutationFn: async () => {
-      const match = resolveCatalogue(symbol);
+      const generation = ++analyseGeneration.current;
+      const requestedSymbol = symbol;
+      const match = resolveCatalogue(requestedSymbol);
       // P0-01 — authenticated statements only; never clone demo ACM financials.
-      const body = await loadAuthenticatedAnalyseRequest(symbol, {
+      const body = await loadAuthenticatedAnalyseRequest(requestedSymbol, {
         exchange: match?.exchange,
         company: match?.name,
         loadStatements: () =>
-          api.financialStatements(symbol, { token, limit: 1 }),
+          api.financialStatements(requestedSymbol, { token, limit: 1 }),
         // P0-02 — market price only from authenticated quote (never client IV).
-        loadQuote: () => api.marketQuote(symbol, { token }),
+        loadQuote: () => api.marketQuote(requestedSymbol, { token }),
       });
       const response = await api.analyse(body, { token });
-      return { body, response };
+      return { body, response, generation, requestedSymbol };
     },
-    onSuccess: ({ body, response }) => {
+    onSuccess: ({ body, response, generation, requestedSymbol }) => {
+      // Drop stale responses after navigation / newer analyse.
+      if (generation !== analyseGeneration.current) return;
+      if (body.ticker.toUpperCase() !== requestedSymbol.toUpperCase()) return;
       const at = new Date().toISOString();
       setAnalysedAt(at);
       setLastAnalyseRequest(body);
@@ -282,14 +298,16 @@ export function CompanyAnalysisWorkspace() {
         recommendation: mapped.recommendation,
         analysedAt: at,
       });
-      // Do not toast success when the API reports unavailable/degraded conclusion.
-      const iv = mapped.valuation.intrinsicValue;
-      const valuationUnavailable =
-        !iv ||
-        iv === "Unavailable" ||
-        iv === "—" ||
-        iv === "Data unavailable.";
-      if (response.ok && !valuationUnavailable) {
+      const serverIv = (
+        response.payload as {
+          server_valuation?: { intrinsic_value_per_share?: number | null };
+        }
+      )?.server_valuation?.intrinsic_value_per_share;
+      const valuationOk =
+        response.ok === true &&
+        typeof serverIv === "number" &&
+        Number.isFinite(serverIv);
+      if (valuationOk) {
         success(`Analysis loaded for ${body.ticker.toUpperCase()}`, "Analyse");
       } else {
         notifyError(

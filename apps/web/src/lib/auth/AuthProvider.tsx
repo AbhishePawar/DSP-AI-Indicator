@@ -10,10 +10,11 @@ import {
   type ReactNode,
 } from "react";
 
-import { api } from "@/lib/api/client";
+import { api, setApiAuthFailureHandler } from "@/lib/api/client";
 import { enterpriseAuthApi } from "@/lib/api/enterpriseAuth";
 import { rbacAuthApi } from "@/lib/api/rbacAuth";
 import { ApiClientError } from "@/lib/api/types";
+import { env } from "@/lib/env";
 import { logger } from "@/lib/observability/logger";
 import { useAuthStore } from "./authStore";
 import {
@@ -25,7 +26,10 @@ import {
   sessionFromLoginPayload,
   sessionFromRbacLogin,
 } from "./sessionStore";
+import { clearRecentAnalyses } from "@/lib/analysis/recentAnalyses";
+import { clearMarketCache } from "@/lib/market/cache";
 import { clearMemoryUserData } from "@/lib/persistence/storage";
+import { clearResearchSession } from "@/lib/research/sessionStore";
 import type {
   AuthState,
   AuthenticationStatus,
@@ -250,8 +254,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         });
       }
     }
+    // Clear HttpOnly auth cookies (enterprise cookie session).
+    try {
+      await fetch(`${env.apiBaseUrl}/auth/logout`, {
+        method: "POST",
+        credentials: "include",
+        headers: { Accept: "application/json" },
+      });
+    } catch (error) {
+      logger.warn("Cookie logout failed — clearing local session", {
+        error: error instanceof Error ? error.message : String(error),
+      });
+    }
     applySession(null);
     if (subject) clearMemoryUserData(subject);
+    clearResearchSession();
+    clearRecentAnalyses();
+    clearMarketCache();
     logger.info("User signed out", { subject });
   }, [applySession, session]);
 
@@ -341,6 +360,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       window.location.assign("/forbidden");
     }
   }, []);
+
+  useEffect(() => {
+    setApiAuthFailureHandler((status) => {
+      if (status === 401) handleUnauthorized();
+      else if (status === 403) handleForbidden();
+    });
+    return () => setApiAuthFailureHandler(null);
+  }, [handleUnauthorized, handleForbidden]);
 
   const setSession = useCallback(
     (next: Session | null) => {

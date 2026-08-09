@@ -11,9 +11,16 @@ from fastapi import APIRouter, Depends
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field
 
-from api_platform.api.dependencies import ApiState, get_api_state
+from api_platform.api.dependencies import (
+    ApiState,
+    get_api_state,
+    require_authenticated_actor,
+)
 
 router = APIRouter(tags=["research"])
+
+# Authenticated actor dependency for mutation / archive reads (IDOR prevention).
+_ResearchActor = dict[str, Any]
 
 
 class ResearchObjectRequest(BaseModel):
@@ -101,6 +108,7 @@ class ResearchCopilotAskRequest(BaseModel):
 def research_copilot_ask(
     body: ResearchCopilotAskRequest,
     state: ApiState = Depends(get_api_state),
+    _actor: _ResearchActor = Depends(require_authenticated_actor),
 ) -> JSONResponse:
     """Grounded Q&A over R001/R002/R004/R005 — never fabricates or recalculates."""
     try:
@@ -146,6 +154,7 @@ class ResearchDiffRequest(BaseModel):
 def research_diff(
     body: ResearchDiffRequest,
     state: ApiState = Depends(get_api_state),
+    _actor: _ResearchActor = Depends(require_authenticated_actor),
 ) -> JSONResponse:
     """Deterministic structural diff of two R004 snapshots — no interpretation."""
     try:
@@ -194,6 +203,7 @@ class ArchiveCompareRequest(BaseModel):
 def archive_snapshot(
     body: ArchiveSnapshotRequest,
     state: ApiState = Depends(get_api_state),
+    _actor: _ResearchActor = Depends(require_authenticated_actor),
 ) -> JSONResponse:
     """Create an immutable archived snapshot (EPIC-R004)."""
     try:
@@ -228,6 +238,7 @@ def archive_snapshot(
 def get_archived_snapshot(
     snapshot_id: str,
     state: ApiState = Depends(get_api_state),
+    _actor: _ResearchActor = Depends(require_authenticated_actor),
 ) -> JSONResponse:
     """Read-only retrieval of an archived snapshot."""
     try:
@@ -249,6 +260,7 @@ def get_archived_snapshot(
 def archive_version_history(
     lineage_id: str,
     state: ApiState = Depends(get_api_state),
+    _actor: _ResearchActor = Depends(require_authenticated_actor),
 ) -> JSONResponse:
     """Return immutable version history for a lineage."""
     history = state.platform.list_research_version_history(lineage_id)
@@ -261,6 +273,7 @@ def archive_version_history(
 def compare_archived_snapshots(
     body: ArchiveCompareRequest,
     state: ApiState = Depends(get_api_state),
+    _actor: _ResearchActor = Depends(require_authenticated_actor),
 ) -> JSONResponse:
     """Compare two snapshots — integrity / version metadata only."""
     try:
@@ -288,6 +301,7 @@ class ArchiveRetentionRequest(BaseModel):
 def evaluate_archive_retention(
     body: ArchiveRetentionRequest,
     state: ApiState = Depends(get_api_state),
+    _actor: _ResearchActor = Depends(require_authenticated_actor),
 ) -> JSONResponse:
     """Advisory retention evaluation — never mutates archived content."""
     try:
@@ -326,6 +340,7 @@ class ResearchExportRequest(BaseModel):
 def export_research_report(
     body: ResearchExportRequest,
     state: ApiState = Depends(get_api_state),
+    _actor: _ResearchActor = Depends(require_authenticated_actor),
 ) -> JSONResponse:
     """Export Institutional Report to json/csv/xlsx/pdf/docx/pptx (EPIC-R003).
 
@@ -370,6 +385,7 @@ def export_research_report(
 def generate_research_report(
     body: ResearchReportRequest,
     state: ApiState = Depends(get_api_state),
+    _actor: _ResearchActor = Depends(require_authenticated_actor),
 ) -> JSONResponse:
     """Generate Institutional Research Report from Research Object v1.0.0 only.
 
@@ -420,6 +436,7 @@ def generate_research_report(
 def build_research_object(
     body: ResearchObjectRequest,
     state: ApiState = Depends(get_api_state),
+    _actor: _ResearchActor = Depends(require_authenticated_actor),
 ) -> JSONResponse:
     """Build canonical immutable Research Object from existing outputs.
 

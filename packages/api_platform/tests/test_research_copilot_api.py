@@ -6,6 +6,7 @@ import pytest
 from fastapi.testclient import TestClient
 
 from api_platform import create_app
+from auth_test_helpers import bearer_headers, register_user
 from dsp_platform import DSPPlatform, PlatformBuilder, PlatformConfiguration
 from dsp_platform.research_copilot import (
     ConversationStore,
@@ -36,8 +37,13 @@ def platform() -> DSPPlatform:
 def client(platform: DSPPlatform) -> TestClient:
     return TestClient(create_app(platform=platform))
 
+@pytest.fixture
+def auth_headers(client: TestClient) -> dict[str, str]:
+    register_user(client, user_id="research-cop-user", username="researchcop")
+    return bearer_headers(client, username="researchcop")
 
-def test_copilot_schema(client: TestClient) -> None:
+
+def test_copilot_schema(client: TestClient, auth_headers: dict[str, str]) -> None:
     response = client.get("/api/v1/research/copilot/schema")
     assert response.status_code == 200
     body = response.json()
@@ -46,7 +52,7 @@ def test_copilot_schema(client: TestClient) -> None:
     assert "no_provider_calls" in body["schema"]["rules"]
 
 
-def test_copilot_ask(client: TestClient) -> None:
+def test_copilot_ask(client: TestClient, auth_headers: dict[str, str]) -> None:
     ro = research_object_to_dict(
         build_research_object(
             symbol="AAPL",
@@ -60,6 +66,7 @@ def test_copilot_ask(client: TestClient) -> None:
     )
     response = client.post(
         "/api/v1/research/copilot/ask",
+        headers=auth_headers,
         json={
             "question": "What is the recommendation?",
             "research_object": ro,
@@ -74,9 +81,10 @@ def test_copilot_ask(client: TestClient) -> None:
     assert body["response"]["provenance"]["providers_called"] is False
 
 
-def test_copilot_ask_no_context(client: TestClient) -> None:
+def test_copilot_ask_no_context(client: TestClient, auth_headers: dict[str, str]) -> None:
     response = client.post(
         "/api/v1/research/copilot/ask",
+        headers=auth_headers,
         json={"question": "What is the price?", "created_at": FIXED},
     )
     assert response.status_code == 200

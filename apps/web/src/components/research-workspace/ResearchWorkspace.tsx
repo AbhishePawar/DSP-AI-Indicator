@@ -220,6 +220,7 @@ export function ResearchWorkspace() {
         company: match?.name,
         loadStatements: () =>
           api.financialStatements(sym, { token, limit: 1 }),
+        loadQuote: () => api.marketQuote(sym, { token }),
       });
       const response = await api.analyse(body, { token });
       return {

@@ -6,6 +6,7 @@ import pytest
 from fastapi.testclient import TestClient
 
 from api_platform import create_app
+from auth_test_helpers import bearer_headers, register_user
 from dsp_platform import DSPPlatform, PlatformBuilder, PlatformConfiguration
 from dsp_platform.research_archive import (
     InMemoryArchiveStore,
@@ -37,6 +38,11 @@ def platform() -> DSPPlatform:
 def client(platform: DSPPlatform) -> TestClient:
     return TestClient(create_app(platform=platform))
 
+@pytest.fixture
+def auth_headers(client: TestClient) -> dict[str, str]:
+    register_user(client, user_id="research-arch-user", username="researcharch")
+    return bearer_headers(client, username="researcharch")
+
 
 def _payload() -> dict:
     return research_object_to_dict(
@@ -48,7 +54,7 @@ def _payload() -> dict:
     )
 
 
-def test_archive_schema(client: TestClient) -> None:
+def test_archive_schema(client: TestClient, auth_headers: dict[str, str]) -> None:
     response = client.get("/api/v1/research/archive/schema")
     assert response.status_code == 200
     body = response.json()
@@ -57,10 +63,11 @@ def test_archive_schema(client: TestClient) -> None:
     assert "research_object" in body["schema"]["kinds"]
 
 
-def test_archive_retrieve_history_compare(client: TestClient) -> None:
+def test_archive_retrieve_history_compare(client: TestClient, auth_headers: dict[str, str]) -> None:
     payload = _payload()
     r1 = client.post(
         "/api/v1/research/archive/snapshots",
+        headers=auth_headers,
         json={
             "kind": "research_object",
             "payload": payload,
@@ -74,6 +81,7 @@ def test_archive_retrieve_history_compare(client: TestClient) -> None:
 
     r2 = client.post(
         "/api/v1/research/archive/snapshots",
+        headers=auth_headers,
         json={
             "kind": "research_object",
             "payload": {**payload, "x": 1},
@@ -85,16 +93,19 @@ def test_archive_retrieve_history_compare(client: TestClient) -> None:
     assert r2.status_code == 200
     assert r2.json()["snapshot"]["version"]["version_number"] == 2
 
-    got = client.get("/api/v1/research/archive/snapshots/api-snap-1")
+    got = client.get("/api/v1/research/archive/snapshots/api-snap-1",
+        headers=auth_headers)
     assert got.status_code == 200
     assert got.json()["snapshot"]["snapshot_id"] == "api-snap-1"
 
-    hist = client.get("/api/v1/research/archive/lineages/api-line-1/history")
+    hist = client.get("/api/v1/research/archive/lineages/api-line-1/history",
+        headers=auth_headers)
     assert hist.status_code == 200
     assert len(hist.json()["history"]) == 2
 
     cmp_ = client.post(
         "/api/v1/research/archive/compare",
+        headers=auth_headers,
         json={"left_snapshot_id": "api-snap-1", "right_snapshot_id": "api-snap-2"},
     )
     assert cmp_.status_code == 200
@@ -102,12 +113,14 @@ def test_archive_retrieve_history_compare(client: TestClient) -> None:
 
     ret = client.post(
         "/api/v1/research/archive/retention/evaluate",
+        headers=auth_headers,
         json={"snapshot_id": "api-snap-1"},
     )
     assert ret.status_code == 200
     assert ret.json()["retention"]["retain"] is True
 
 
-def test_archive_missing(client: TestClient) -> None:
-    response = client.get("/api/v1/research/archive/snapshots/missing")
+def test_archive_missing(client: TestClient, auth_headers: dict[str, str]) -> None:
+    response = client.get("/api/v1/research/archive/snapshots/missing",
+        headers=auth_headers)
     assert response.status_code == 404

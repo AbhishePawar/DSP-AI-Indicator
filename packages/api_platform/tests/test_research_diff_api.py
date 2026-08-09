@@ -6,6 +6,7 @@ import pytest
 from fastapi.testclient import TestClient
 
 from api_platform import create_app
+from auth_test_helpers import bearer_headers, register_user
 from dsp_platform import DSPPlatform, PlatformBuilder, PlatformConfiguration
 from dsp_platform.research_archive import (
     InMemoryArchiveStore,
@@ -37,8 +38,13 @@ def platform() -> DSPPlatform:
 def client(platform: DSPPlatform) -> TestClient:
     return TestClient(create_app(platform=platform))
 
+@pytest.fixture
+def auth_headers(client: TestClient) -> dict[str, str]:
+    register_user(client, user_id="research-diff-user", username="researchdiff")
+    return bearer_headers(client, username="researchdiff")
 
-def test_diff_schema(client: TestClient) -> None:
+
+def test_diff_schema(client: TestClient, auth_headers: dict[str, str]) -> None:
     response = client.get("/api/v1/research/diff/schema")
     assert response.status_code == 200
     body = response.json()
@@ -47,12 +53,13 @@ def test_diff_schema(client: TestClient) -> None:
     assert body["schema"]["read_only"] is True
 
 
-def test_diff_api(client: TestClient) -> None:
+def test_diff_api(client: TestClient, auth_headers: dict[str, str]) -> None:
     payload = research_object_to_dict(
         build_research_object(symbol="AAPL", object_id="ro-api-d", created_at=FIXED)
     )
     client.post(
         "/api/v1/research/archive/snapshots",
+        headers=auth_headers,
         json={
             "kind": "research_object",
             "payload": payload,
@@ -77,6 +84,7 @@ def test_diff_api(client: TestClient) -> None:
     }
     client.post(
         "/api/v1/research/archive/snapshots",
+        headers=auth_headers,
         json={
             "kind": "research_object",
             "payload": changed,
@@ -87,6 +95,7 @@ def test_diff_api(client: TestClient) -> None:
     )
     response = client.post(
         "/api/v1/research/diff",
+        headers=auth_headers,
         json={
             "left_snapshot_id": "api-d-a",
             "right_snapshot_id": "api-d-b",
@@ -101,9 +110,10 @@ def test_diff_api(client: TestClient) -> None:
     assert body["diff"]["change_summary"]["identical_content"] is False
 
 
-def test_diff_missing_snapshot(client: TestClient) -> None:
+def test_diff_missing_snapshot(client: TestClient, auth_headers: dict[str, str]) -> None:
     response = client.post(
         "/api/v1/research/diff",
+        headers=auth_headers,
         json={"left_snapshot_id": "missing-a", "right_snapshot_id": "missing-b"},
     )
     assert response.status_code == 404

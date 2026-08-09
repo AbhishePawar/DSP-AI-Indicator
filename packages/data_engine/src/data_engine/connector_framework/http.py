@@ -17,6 +17,7 @@ from __future__ import annotations
 import json
 from collections.abc import Mapping
 from typing import Any, Protocol
+from urllib.error import HTTPError
 from urllib.parse import urlencode
 from urllib.request import Request, urlopen
 
@@ -89,12 +90,26 @@ class UrllibJsonHttpClient:
         try:
             with urlopen(request, timeout=self._timeout_seconds) as response:
                 raw_body = response.read()
+        except HTTPError as exc:
+            # Never include Authorization headers or response bodies (may echo secrets).
+            status = int(getattr(exc, "code", 0) or 0)
+            if status == 429:
+                raise ProviderRequestError(
+                    f"HTTP 429 rate limited for '{url}'"
+                ) from None
+            if status in {401, 403}:
+                raise ProviderRequestError(
+                    f"HTTP {status} authentication failed for '{url}'"
+                ) from None
+            raise ProviderRequestError(
+                f"HTTP {status} for '{url}'"
+            ) from None
         except OSError as exc:
-            msg = f"HTTP request to '{url}' failed: {exc}"
-            raise ProviderRequestError(msg) from exc
+            msg = f"HTTP request to '{url}' failed: {type(exc).__name__}"
+            raise ProviderRequestError(msg) from None
 
         try:
             return json.loads(raw_body)
         except json.JSONDecodeError as exc:
-            msg = f"HTTP response from '{url}' was not valid JSON: {exc}"
-            raise ProviderRequestError(msg) from exc
+            msg = f"HTTP response from '{url}' was not valid JSON: {type(exc).__name__}"
+            raise ProviderRequestError(msg) from None

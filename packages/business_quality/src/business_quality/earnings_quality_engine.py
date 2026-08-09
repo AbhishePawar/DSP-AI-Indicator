@@ -34,7 +34,10 @@ from business_quality.scoring import (
     weighted_mean,
 )
 from business_quality.explainability import BusinessQualityExplainability
-from financial.intelligence.quality_signals import map_fcf_to_earnings_01
+from financial.intelligence.quality_signals import (
+    map_fcf_to_earnings_01,
+    map_ocf_to_earnings_01,
+)
 
 __all__ = ["EarningsQualityEngine", "EARNINGS_QUALITY_VERSION"]
 
@@ -324,12 +327,13 @@ class EarningsQualityEngine:
         )
 
     def _assess_accrual_quality(self, cash, income, out, evidence) -> Assessment:
-        # Accrual quality ≈ cash conversion support (already computed)
+        # Prefer OCF/NI accrual bridge; fall back to FCF/OCF cash_conversion.
+        ocf_to_earn = getattr(cash.operating, "ocf_to_earnings", None)
         conversion = cash.operating.cash_conversion
-        # Map conversion into [0,1]-ish quality: higher conversion → better
-        value = None
-        if conversion is not None:
-            # clip conversion into a quality index without recomputing OCF/NI
+        value = map_ocf_to_earnings_01(ocf_to_earn)
+        source_note = "ocf_to_earnings"
+        if value is None and conversion is not None:
+            source_note = "cash_conversion_fcf_ocf_fallback"
             if conversion >= 1.0:
                 value = 0.95
             elif conversion >= 0.8:
@@ -340,20 +344,31 @@ class EarningsQualityEngine:
                 value = 0.35
             else:
                 value = 0.20
+        evidence.append(f"ocf_to_earnings={ocf_to_earn}")
         evidence.append(f"cash_conversion={conversion}")
-        conf = _confidence_from_present(conversion, income.profitability.net_income_quality)
+        conf = _confidence_from_present(
+            ocf_to_earn, conversion, income.profitability.net_income_quality
+        )
         out.append(
             eq_explanation(
                 title="Accrual Quality",
-                description="Accrual risk inferred from cash conversion support.",
-                evidence=(f"cash_conversion={conversion}",),
+                description="Accrual risk from OCF/NI bridge (preferred) or FCF/OCF fallback.",
+                evidence=(
+                    f"ocf_to_earnings={ocf_to_earn}",
+                    f"cash_conversion={conversion}",
+                    f"source={source_note}",
+                ),
                 reasoning=(
-                    "Uses FinancialAnalysis cash_conversion as accrual-support "
-                    "proxy; does not recompute accruals."
+                    "Prefers ocf_to_earnings (OCF/NI). Falls back to cash_conversion "
+                    "(FCF/OCF) when the accrual bridge is unavailable. Does not invent "
+                    "forensic accrual models."
                 ),
                 confidence=conf,
-                limitations="Heuristic mapping of conversion → accrual quality.",
+                limitations=(
+                    "Not a Jones/Beneish model. Zero/negative NI keeps OCF/NI unavailable."
+                ),
                 references=(
+                    "FinancialAnalysis.cash_flow.operating.ocf_to_earnings",
                     "FinancialAnalysis.cash_flow.operating.cash_conversion",
                 ),
             )
@@ -365,7 +380,7 @@ class EarningsQualityEngine:
             confidence=conf,
             evidence_level=EvidenceLevel.ADEQUATE,
             risk_level=_risk_from_01(value, invert=True),
-            notes="Derived from cash_conversion only",
+            notes=f"Derived from {source_note}",
         )
 
     def _assess_margin_stability(self, income, out, evidence) -> Assessment:

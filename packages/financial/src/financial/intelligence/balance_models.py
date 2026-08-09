@@ -171,6 +171,18 @@ class WorkingCapitalMetrics:
     asset_quality: float | None = None
     debt_burden: float | None = None
     financial_flexibility: float | None = None
+    # Operating WC = AR + Inventory − AP (cash/debt excluded; all three required)
+    operating_working_capital: float | None = None
+    operating_working_capital_change: float | None = None
+    operating_working_capital_change_rate: float | None = None
+    # Component growth (adjacent annual periods when available)
+    receivables_growth: float | None = None
+    inventory_growth: float | None = None
+    payables_growth: float | None = None
+    # Growth gaps vs revenue / COGS (evidence only — no invented warning thresholds)
+    receivables_vs_revenue_growth: float | None = None
+    inventory_vs_revenue_growth: float | None = None
+    payables_vs_cogs_growth: float | None = None
 
     def to_dict(self) -> dict[str, Any]:
         return {
@@ -185,6 +197,17 @@ class WorkingCapitalMetrics:
             "asset_quality": self.asset_quality,
             "debt_burden": self.debt_burden,
             "financial_flexibility": self.financial_flexibility,
+            "operating_working_capital": self.operating_working_capital,
+            "operating_working_capital_change": self.operating_working_capital_change,
+            "operating_working_capital_change_rate": (
+                self.operating_working_capital_change_rate
+            ),
+            "receivables_growth": self.receivables_growth,
+            "inventory_growth": self.inventory_growth,
+            "payables_growth": self.payables_growth,
+            "receivables_vs_revenue_growth": self.receivables_vs_revenue_growth,
+            "inventory_vs_revenue_growth": self.inventory_vs_revenue_growth,
+            "payables_vs_cogs_growth": self.payables_vs_cogs_growth,
         }
 
 

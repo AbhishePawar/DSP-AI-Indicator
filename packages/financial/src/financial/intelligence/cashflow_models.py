@@ -55,9 +55,12 @@ class OperatingCashMetrics:
     operating_cash_flow: float | None = None
     operating_cash_flow_growth: float | None = None
     cash_earnings_quality: float | None = None
+    # FCF / OCF — retained definition (distinct from OCF/NI and FCF/NI)
     cash_conversion: float | None = None
     cash_flow_stability: float | None = None
     cash_generation_trend: TrendDirection | None = None
+    # Point-in-time OCF / Net Income (accrual bridge; distinct from cash_conversion)
+    ocf_to_earnings: float | None = None
 
     def to_dict(self) -> dict[str, Any]:
         return {
@@ -71,6 +74,7 @@ class OperatingCashMetrics:
                 if self.cash_generation_trend
                 else None
             ),
+            "ocf_to_earnings": self.ocf_to_earnings,
         }
 
 

@@ -215,46 +215,87 @@ def evaluate_quality(
     conversion = safe_getattr(
         financial_analysis, "cash_flow", "operating", "cash_conversion"
     )
+    ocf_to_earn = safe_getattr(
+        financial_analysis, "cash_flow", "operating", "ocf_to_earnings"
+    )
     one_time = safe_getattr(
         financial_analysis, "income", "consistency", "one_time_items_detected"
     )
     recurring = _bq_eq(business_quality_analysis, "recurring_earnings")
+    ar_vs_rev = safe_getattr(
+        financial_analysis,
+        "balance_sheet",
+        "working_capital",
+        "receivables_vs_revenue_growth",
+    )
     one_time_s = None if one_time is None else (0.35 if one_time else 0.80)
     conv_s = None
     if conversion is not None:
         conv_s = max(0.0, min(1.0, float(conversion) if float(conversion) <= 1.5 else 1.0))
+    ocf_ni_s = None
+    if ocf_to_earn is not None:
+        ocf_ni_s = max(0.0, min(1.0, float(ocf_to_earn) if float(ocf_to_earn) <= 1.5 else 1.0))
+        if float(ocf_to_earn) < 0:
+            ocf_ni_s = 0.15
+    # Soften slightly when receivables grow faster than revenue (evidence gap, not a hard flag).
+    wc_drag = None
+    if ar_vs_rev is not None:
+        gap = float(ar_vs_rev)
+        if gap > 0:
+            wc_drag = max(0.20, 1.0 - min(0.80, gap))
+        else:
+            wc_drag = 0.85
     value = mean_present(
-        [cash_eq, accruals, fcf_support, conv_s, one_time_s, recurring]
+        [cash_eq, accruals, fcf_support, conv_s, ocf_ni_s, one_time_s, recurring, wc_drag]
     )
     conf = _confidence(
-        [cash_eq, accruals, fcf_support, conversion, one_time, recurring],
+        [
+            cash_eq,
+            accruals,
+            fcf_support,
+            conversion,
+            ocf_to_earn,
+            one_time,
+            recurring,
+            ar_vs_rev,
+        ],
         basis="earnings_quality_proxies",
     )
     positives: list[str] = []
     negatives: list[str] = []
     if fcf_support is not None and fcf_support >= 0.7:
         positives.append("Earnings well supported by free cash flow")
+    if ocf_to_earn is not None and float(ocf_to_earn) >= 1.0:
+        positives.append("Operating cash flow covers net income")
     if one_time:
         negatives.append("One-time items detected — review non-recurring adjustments")
     if accruals is not None and accruals < 0.4:
         negatives.append("Weak accrual quality")
-    risks = ("CFO vs NI bridge not recomputed line-by-line",)
+    if ar_vs_rev is not None and float(ar_vs_rev) > 0.10:
+        negatives.append("Receivables growing faster than revenue")
+    risks = (
+        "Forensic accrual models not computed",
+        "Authenticated vendor statements may omit AR/Inv/AP → WC gaps unavailable",
+    )
     metrics = [
         f"cash_earnings_quality_01={cash_eq}",
         f"accrual_quality_01={accruals}",
         f"free_cash_flow_support_01={fcf_support}",
-        f"cash_conversion={conversion}",
+        f"cash_conversion_fcf_ocf={conversion}",
+        f"ocf_to_earnings={ocf_to_earn}",
+        f"receivables_vs_revenue_growth={ar_vs_rev}",
         f"one_time_items_detected={one_time}",
         f"recurring_earnings_01={recurring}",
     ]
     evidence = [
         _evidence(
             source="FinancialAnalysis",
-            reference="cash_flow / income + BQ earnings_quality",
-            summary="Cash-backed earnings, accruals, and one-time items",
+            reference="cash_flow / balance_sheet.working_capital + BQ earnings_quality",
+            summary="Cash-backed earnings, OCF/NI accruals, WC growth gaps, one-time items",
             reasoning=(
                 "High-quality earnings are cash-backed and recurring. We emphasise "
-                "cash conversion, accrual quality, FCF support, and exceptional items."
+                "OCF/NI, FCF/OCF retention, accrual quality, FCF support, receivables "
+                "vs revenue growth evidence, and exceptional items."
             ),
             confidence=conf.value,
             metrics=metrics,

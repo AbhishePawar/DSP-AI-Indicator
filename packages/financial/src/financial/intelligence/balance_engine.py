@@ -32,7 +32,13 @@ from financial.intelligence.balance_validation import (
     validate_balance_for_analysis,
 )
 from financial.intelligence.income_models import TrendDirection
+from financial.intelligence.quality_signals import (
+    growth_gap,
+    operating_working_capital,
+    period_change_rate,
+)
 from financial.models import FinancialSnapshot, FinancialStatements
+from financial.period import PeriodType
 
 __all__ = ["BalanceSheetEngine", "BALANCE_INTELLIGENCE_VERSION"]
 
@@ -160,7 +166,13 @@ class BalanceSheetEngine:
         liabilities = self._liabilities(primary, explanations)
         equity = self._equity_metrics(balances, explanations)
         working = self._working_capital(
-            primary, liquidity, leverage, assets, equity, explanations
+            balances,
+            stmts,
+            liquidity,
+            leverage,
+            assets,
+            equity,
+            explanations,
         )
         flags = self._flags(liquidity, leverage, assets, equity, working)
         trends = self._trends(balances, liquidity, leverage, assets, equity)
@@ -521,13 +533,15 @@ class BalanceSheetEngine:
 
     def _working_capital(
         self,
-        bs: BalanceSheet,
+        balances: Sequence[BalanceSheet],
+        stmts: Sequence[FinancialStatements | None],
         liquidity: LiquidityMetrics,
         leverage: LeverageMetrics,
         assets: AssetMetrics,
         equity: EquityMetrics,
         out: list[MetricExplanation],
     ) -> WorkingCapitalMetrics:
+        bs = balances[-1]
         cash_pos = bs.cash
         # Inventory efficiency proxy: lower inventory concentration is better
         inv_eff = None
@@ -556,6 +570,53 @@ class BalanceSheetEngine:
         strength_parts = [p for p in (liq_q, cap_q, asset_q, flex) if p is not None]
         strength = sum(strength_parts) / len(strength_parts) if strength_parts else None
 
+        owc = operating_working_capital(
+            bs.accounts_receivable, bs.inventory, bs.accounts_payable
+        )
+        owc_change = None
+        owc_change_rate = None
+        ar_g = None
+        inv_g = None
+        ap_g = None
+        ar_vs_rev = None
+        inv_vs_rev = None
+        ap_vs_cogs = None
+
+        # Adjacent annual fiscal periods only for growth / ΔOWC (never quarterly-as-years).
+        if len(balances) >= 2 and len(stmts) >= 2:
+            cur_stmt = stmts[-1]
+            prev_stmt = stmts[-2]
+            if (
+                cur_stmt is not None
+                and prev_stmt is not None
+                and cur_stmt.period.period_type is PeriodType.ANNUAL
+                and prev_stmt.period.period_type is PeriodType.ANNUAL
+                and cur_stmt.period.fiscal_year is not None
+                and prev_stmt.period.fiscal_year is not None
+                and cur_stmt.period.fiscal_year > prev_stmt.period.fiscal_year
+            ):
+                prev = balances[-2]
+                prev_owc = operating_working_capital(
+                    prev.accounts_receivable, prev.inventory, prev.accounts_payable
+                )
+                if owc is not None and prev_owc is not None:
+                    owc_change = owc - prev_owc
+                    owc_change_rate = period_change_rate(owc, prev_owc)
+                ar_g = period_change_rate(bs.accounts_receivable, prev.accounts_receivable)
+                inv_g = period_change_rate(bs.inventory, prev.inventory)
+                ap_g = period_change_rate(bs.accounts_payable, prev.accounts_payable)
+                rev_g = period_change_rate(
+                    cur_stmt.income_statement.revenue,
+                    prev_stmt.income_statement.revenue,
+                )
+                cogs_g = period_change_rate(
+                    cur_stmt.income_statement.cogs,
+                    prev_stmt.income_statement.cogs,
+                )
+                ar_vs_rev = growth_gap(ar_g, rev_g)
+                inv_vs_rev = growth_gap(inv_g, rev_g)
+                ap_vs_cogs = growth_gap(ap_g, cogs_g)
+
         out.append(
             build_explanation(
                 name="balance_sheet_strength",
@@ -577,6 +638,34 @@ class BalanceSheetEngine:
                 limitations="Composite research score — not a credit rating.",
             )
         )
+        out.append(
+            build_explanation(
+                name="operating_working_capital",
+                formula="accounts_receivable + inventory - accounts_payable",
+                inputs={
+                    "accounts_receivable": bs.accounts_receivable,
+                    "inventory": bs.inventory,
+                    "accounts_payable": bs.accounts_payable,
+                },
+                intermediates={
+                    "owc_change": owc_change,
+                    "receivables_vs_revenue_growth": ar_vs_rev,
+                    "inventory_vs_revenue_growth": inv_vs_rev,
+                },
+                result=owc,
+                confidence=_confidence(1, has_value=owc is not None),
+                interpretation=(
+                    "Operating working capital unavailable."
+                    if owc is None
+                    else f"Operating WC = {owc:.4f}."
+                ),
+                limitations=(
+                    "Requires AR, inventory, and AP. Excludes cash and debt by design. "
+                    "Growth gaps are evidence only — no invented warning thresholds. "
+                    "Authenticated vendor schemas that omit AR/Inv/AP remain unavailable."
+                ),
+            )
+        )
 
         return WorkingCapitalMetrics(
             cash_position=cash_pos,
@@ -590,6 +679,15 @@ class BalanceSheetEngine:
             asset_quality=asset_q,
             debt_burden=debt_burden,
             financial_flexibility=flex,
+            operating_working_capital=owc,
+            operating_working_capital_change=owc_change,
+            operating_working_capital_change_rate=owc_change_rate,
+            receivables_growth=ar_g,
+            inventory_growth=inv_g,
+            payables_growth=ap_g,
+            receivables_vs_revenue_growth=ar_vs_rev,
+            inventory_vs_revenue_growth=inv_vs_rev,
+            payables_vs_cogs_growth=ap_vs_cogs,
         )
 
     def _flags(

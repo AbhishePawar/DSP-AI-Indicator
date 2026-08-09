@@ -1,4 +1,6 @@
-"""First-class financial quality signals — EPS CAGR, FCF/NI, share dilution.
+"""First-class financial quality signals.
+
+EPS CAGR, FCF/NI, OCF/NI, share dilution, operating working capital.
 
 Fail-closed: missing / invalid evidence → None (never invent).
 Annual fiscal-year endpoints only for multi-year rates.
@@ -15,9 +17,15 @@ __all__ = [
     "annual_positive_cagr",
     "eps_cagr_from_series",
     "fcf_to_earnings_ratio",
+    "ocf_to_earnings_ratio",
+    "map_fcf_to_earnings_01",
+    "map_ocf_to_earnings_01",
     "share_dilution_rate",
     "dilution_discipline_01",
-    "map_fcf_to_earnings_01",
+    "operating_working_capital",
+    "period_change_rate",
+    "growth_gap",
+    "days_from_turnover",
 ]
 
 
@@ -137,6 +145,119 @@ def map_fcf_to_earnings_01(ratio: float | None) -> float | None:
     if r >= 1.0:
         return min(1.0, 0.80 + min(0.20, (r - 1.0) * 0.20))
     return max(0.20, min(0.80, r * 0.80))
+
+
+def ocf_to_earnings_ratio(
+    ocf: float | None,
+    net_income: float | None,
+) -> float | None:
+    """Point-in-time OCF / Net Income (accrual-bridge signal).
+
+    Distinct from ``cash_conversion`` (FCF/OCF) and ``fcf_to_earnings`` (FCF/NI).
+    NI == 0 or NI < 0 → unavailable. Negative OCF with positive NI → negative ratio.
+    """
+    if ocf is None or net_income is None:
+        return None
+    try:
+        ocf_f = float(ocf)
+        ni_f = float(net_income)
+    except (TypeError, ValueError):
+        return None
+    if not math.isfinite(ocf_f) or not math.isfinite(ni_f):
+        return None
+    if ni_f == 0.0:
+        return None
+    if ni_f < 0.0:
+        return None
+    result = ocf_f / ni_f
+    if math.isnan(result) or math.isinf(result):
+        return None
+    return result
+
+
+def map_ocf_to_earnings_01(ratio: float | None) -> float | None:
+    """Map OCF/NI to [0, 1] accrual-quality contribution (None stays None)."""
+    # Same shape as FCF/NI mapping — both are earnings-cash conversion ratios.
+    return map_fcf_to_earnings_01(ratio)
+
+
+def operating_working_capital(
+    accounts_receivable: float | None,
+    inventory: float | None,
+    accounts_payable: float | None,
+) -> float | None:
+    """Operating WC = AR + Inventory − AP.
+
+    Requires all three line items. Does not substitute CA−CL or invent zeros
+    for missing components (cash/debt excluded by construction).
+    """
+    if (
+        accounts_receivable is None
+        or inventory is None
+        or accounts_payable is None
+    ):
+        return None
+    try:
+        ar = float(accounts_receivable)
+        inv = float(inventory)
+        ap = float(accounts_payable)
+    except (TypeError, ValueError):
+        return None
+    if not all(math.isfinite(v) for v in (ar, inv, ap)):
+        return None
+    return ar + inv - ap
+
+
+def period_change_rate(
+    current: float | None,
+    prior: float | None,
+) -> float | None:
+    """(current − prior) / |prior|. Zero/missing prior → unavailable."""
+    if current is None or prior is None:
+        return None
+    try:
+        cur = float(current)
+        prev = float(prior)
+    except (TypeError, ValueError):
+        return None
+    if not math.isfinite(cur) or not math.isfinite(prev) or prev == 0.0:
+        return None
+    result = (cur - prev) / abs(prev)
+    if math.isnan(result) or math.isinf(result):
+        return None
+    return result
+
+
+def growth_gap(
+    component_growth: float | None,
+    reference_growth: float | None,
+) -> float | None:
+    """component_growth − reference_growth when both present."""
+    if component_growth is None or reference_growth is None:
+        return None
+    try:
+        gap = float(component_growth) - float(reference_growth)
+    except (TypeError, ValueError):
+        return None
+    if not math.isfinite(gap):
+        return None
+    return gap
+
+
+def days_from_turnover(turnover: float | None, *, days: float = 365.0) -> float | None:
+    """Convert a turnover ratio into days outstanding. turnover ≤ 0 → None."""
+    if turnover is None:
+        return None
+    try:
+        t = float(turnover)
+    except (TypeError, ValueError):
+        return None
+    if not math.isfinite(t) or t <= 0.0:
+        return None
+    result = days / t
+    if math.isnan(result) or math.isinf(result):
+        return None
+    return result
 
 
 def share_dilution_rate(

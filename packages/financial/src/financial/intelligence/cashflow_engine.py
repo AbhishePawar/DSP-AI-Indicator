@@ -34,7 +34,10 @@ from financial.intelligence.cashflow_validation import (
     validate_cashflow_for_analysis,
 )
 from financial.intelligence.income_models import TrendDirection
-from financial.intelligence.quality_signals import fcf_to_earnings_ratio
+from financial.intelligence.quality_signals import (
+    fcf_to_earnings_ratio,
+    ocf_to_earnings_ratio,
+)
 from financial.models import FinancialSnapshot, FinancialStatements
 
 __all__ = ["CashFlowEngine", "CASHFLOW_INTELLIGENCE_VERSION"]
@@ -142,12 +145,12 @@ class CashFlowEngine:
             revenue = primary_stmt.income_statement.revenue
 
         explanations: list[MetricExplanation] = []
-        operating = self._operating(flows, explanations)
-        investing = self._investing(primary, operating, explanations)
-        financing = self._financing(primary, operating, explanations)
         net_income = None
         if primary_stmt is not None:
             net_income = primary_stmt.income_statement.net_income
+        operating = self._operating(flows, net_income, explanations)
+        investing = self._investing(primary, operating, explanations)
+        financing = self._financing(primary, operating, explanations)
         fcf = self._fcf(flows, revenue, net_income, explanations)
         quality = self._quality(primary, operating, investing, financing, fcf, explanations)
         flags = self._flags(operating, investing, financing, fcf, quality)
@@ -176,6 +179,7 @@ class CashFlowEngine:
     def _operating(
         self,
         flows: Sequence[CashFlowStatement],
+        net_income: float | None,
         out: list[MetricExplanation],
     ) -> OperatingCashMetrics:
         primary = flows[-1]
@@ -190,9 +194,10 @@ class CashFlowEngine:
         ]
         stability = _stability(ocf_series) if len(ocf_series) >= 2 else None
 
-        # Cash conversion: FCF / OCF when available
+        # Cash conversion: FCF / OCF when available (intentional; ≠ OCF/NI)
         fcf_val, _ = _resolve_fcf(primary)
         conversion = _safe_div(fcf_val, ocf)
+        ocf_to_earn = ocf_to_earnings_ratio(ocf, net_income)
 
         # Earnings quality proxy without NI: positive stable OCF → higher
         quality = None
@@ -237,9 +242,31 @@ class CashFlowEngine:
                 interpretation=(
                     "Cash conversion unavailable."
                     if conversion is None
-                    else f"Cash conversion = {conversion:.4f}."
+                    else f"Cash conversion (FCF/OCF) = {conversion:.4f}."
                 ),
-                limitations="Uses reported or computed FCF.",
+                limitations=(
+                    "FCF/OCF by design. Distinct from ocf_to_earnings (OCF/NI) "
+                    "and fcf_to_earnings (FCF/NI). OCF=0 → unavailable."
+                ),
+            )
+        )
+        out.append(
+            build_explanation(
+                name="ocf_to_earnings",
+                formula="operating_cash_flow / net_income (point-in-time; NI > 0)",
+                inputs={"ocf": ocf, "net_income": net_income},
+                intermediates={},
+                result=ocf_to_earn,
+                confidence=_confidence(1, has_value=ocf_to_earn is not None),
+                interpretation=(
+                    "OCF-to-earnings unavailable."
+                    if ocf_to_earn is None
+                    else f"OCF/NI = {ocf_to_earn:.4f}."
+                ),
+                limitations=(
+                    "Accrual-bridge signal. Zero/negative NI → unavailable. "
+                    "Does not substitute revenue for NI."
+                ),
             )
         )
 
@@ -250,6 +277,7 @@ class CashFlowEngine:
             cash_conversion=conversion,
             cash_flow_stability=stability,
             cash_generation_trend=gen_trend,
+            ocf_to_earnings=ocf_to_earn,
         )
 
     def _investing(

@@ -329,11 +329,17 @@ def evaluate_cash_flow(
     conversion = safe_getattr(
         financial_analysis, "cash_flow", "operating", "cash_conversion"
     )
+    ocf_to_earn = safe_getattr(
+        financial_analysis, "cash_flow", "operating", "ocf_to_earnings"
+    )
     fcf = safe_getattr(
         financial_analysis, "cash_flow", "free_cash_flow", "free_cash_flow"
     )
     fcf_stab = safe_getattr(
         financial_analysis, "cash_flow", "free_cash_flow", "fcf_stability"
+    )
+    fcf_to_earn = safe_getattr(
+        financial_analysis, "cash_flow", "free_cash_flow", "fcf_to_earnings"
     )
     cash_quality = assessment_score_01(
         safe_getattr(business_quality_analysis, "earnings_quality"),
@@ -342,6 +348,10 @@ def evaluate_cash_flow(
     fcf_support = assessment_score_01(
         safe_getattr(business_quality_analysis, "earnings_quality"),
         "free_cash_flow_support",
+    )
+    accrual_q = assessment_score_01(
+        safe_getattr(business_quality_analysis, "earnings_quality"),
+        "accrual_quality",
     )
     revenue = safe_getattr(financial_analysis, "income", "margins")
     # FCF margin needs revenue - try ratio
@@ -354,46 +364,81 @@ def evaluate_cash_flow(
 
     ocf_s = 0.8 if ocf is not None and float(ocf) > 0 else (0.25 if ocf is not None else None)
     fcf_s = 0.8 if fcf is not None and float(fcf) > 0 else (0.25 if fcf is not None else None)
+    # cash_conversion = FCF/OCF (not earnings conversion)
     conv_s = None if conversion is None else max(0.0, min(1.0, float(conversion) if float(conversion) <= 1.5 else 1.0))
+    ocf_ni_s = None
+    if ocf_to_earn is not None:
+        ocf_ni_s = max(0.0, min(1.0, float(ocf_to_earn) if float(ocf_to_earn) <= 1.5 else 1.0))
+        if float(ocf_to_earn) < 0:
+            ocf_ni_s = 0.15
     fcf_m_s = _map_ratio(fcf_margin, good=0.12, bad=0.0)
     value = mean_present(
-        [ocf_s, fcf_s, conv_s, fcf_stab, cash_quality, fcf_support, fcf_m_s]
+        [
+            ocf_s,
+            fcf_s,
+            conv_s,
+            ocf_ni_s,
+            fcf_stab,
+            cash_quality,
+            fcf_support,
+            accrual_q,
+            fcf_m_s,
+        ]
     )
     conf = _confidence(
-        [ocf, fcf, conversion, fcf_stab, cash_quality, fcf_support, fcf_margin],
+        [
+            ocf,
+            fcf,
+            conversion,
+            ocf_to_earn,
+            fcf_stab,
+            cash_quality,
+            fcf_support,
+            accrual_q,
+            fcf_margin,
+        ],
         basis="cash_flow_quality_proxies",
     )
     positives: list[str] = []
     negatives: list[str] = []
     if fcf is not None and float(fcf) > 0:
         positives.append("Positive free cash flow")
+    if ocf_to_earn is not None and float(ocf_to_earn) >= 1.0:
+        positives.append("OCF fully covers reported earnings")
     if conversion is not None and float(conversion) >= 0.9:
-        positives.append("Strong cash conversion of earnings")
+        positives.append("Strong FCF retention of operating cash flow")
     if fcf is not None and float(fcf) < 0:
         negatives.append("Negative free cash flow")
+    if ocf_to_earn is not None and float(ocf_to_earn) < 0.5:
+        negatives.append("Weak OCF conversion of earnings")
     risks = ("Multi-year cash-flow consistency depends on upstream history depth",)
     metrics = [
         f"operating_cash_flow={ocf}",
         f"free_cash_flow={fcf}",
-        f"cash_conversion={conversion}",
+        f"cash_conversion_fcf_ocf={conversion}",
+        f"ocf_to_earnings={ocf_to_earn}",
+        f"fcf_to_earnings={fcf_to_earn}",
         f"fcf_stability={fcf_stab}",
         f"fcf_margin={fcf_margin}",
         f"cash_earnings_quality_01={cash_quality}",
         f"free_cash_flow_support_01={fcf_support}",
+        f"accrual_quality_01={accrual_q}",
     ]
     evidence = [
         _evidence(
             source="FinancialAnalysis",
             reference="cash_flow / BusinessQuality earnings_quality",
-            summary="OCF, FCF, conversion, and earnings-cash support",
+            summary="OCF, FCF, FCF/OCF, OCF/NI, and earnings-cash support",
             reasoning=(
                 "High-quality cash generation is central to financial strength. "
-                "We emphasise positive OCF/FCF, conversion vs earnings, and BQ "
-                "cash-support assessments."
+                "We emphasise positive OCF/FCF, FCF/OCF retention, OCF/NI accrual "
+                "bridge, and BQ cash-support assessments."
             ),
             confidence=conf.value,
             metrics=metrics,
-            limitations=["CFO vs NI accrual bridge not recomputed line-by-line"],
+            limitations=[
+                "cash_conversion remains FCF/OCF; earnings conversion is ocf_to_earnings / fcf_to_earnings",
+            ],
         )
     ]
     _ = revenue
@@ -404,7 +449,7 @@ def evaluate_cash_flow(
         confidence=conf,
         evidence=evidence,
         reasoning=(
-            "Cash-flow quality scored from OCF/FCF, conversion, stability, and "
+            "Cash-flow quality scored from OCF/FCF, FCF/OCF, OCF/NI, stability, and "
             "earnings-cash support proxies."
         ),
         positives=positives,

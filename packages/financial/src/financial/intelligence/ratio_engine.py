@@ -14,6 +14,7 @@ from financial.intelligence.cashflow_engine import CashFlowEngine
 from financial.intelligence.cashflow_validation import _computed_fcf
 from financial.intelligence.income_engine import IncomeStatementEngine
 from financial.intelligence.income_models import TrendDirection
+from financial.intelligence.quality_signals import days_from_turnover
 from financial.intelligence.ratio_explainability import (
     RATIO_RESEARCH_DISCLAIMER,
     MetricExplanation,
@@ -524,6 +525,12 @@ class FinancialRatioEngine:
         ap_to = _safe_div(cogs, avg_ap)
         wc_to = _safe_div(inc.revenue, wc)
         fa_to = _safe_div(inc.revenue, bs.ppe)
+        dso = days_from_turnover(ar_to)
+        dio = days_from_turnover(inv_to)
+        dpo = days_from_turnover(ap_to)
+        ccc = None
+        if dso is not None and dio is not None and dpo is not None:
+            ccc = dso + dio - dpo
         n = 2 if prior else 1
 
         metrics = []
@@ -534,18 +541,38 @@ class FinancialRatioEngine:
             ("payable_turnover", "|cogs| / average_payables", ap_to, {"cogs": inc.cogs, "avg_ap": avg_ap}),
             ("working_capital_turnover", "revenue / working_capital", wc_to, {"revenue": inc.revenue, "working_capital": wc}),
             ("fixed_asset_turnover", "revenue / ppe", fa_to, {"revenue": inc.revenue, "ppe": bs.ppe}),
+            ("days_sales_outstanding", "365 / receivable_turnover", dso, {"receivable_turnover": ar_to}),
+            ("days_inventory_outstanding", "365 / inventory_turnover", dio, {"inventory_turnover": inv_to}),
+            ("days_payables_outstanding", "365 / payable_turnover", dpo, {"payable_turnover": ap_to}),
+            (
+                "cash_conversion_cycle",
+                "DSO + DIO - DPO",
+                ccc,
+                {"dso": dso, "dio": dio, "dpo": dpo},
+            ),
         ):
+            is_days = name.startswith("days_") or name == "cash_conversion_cycle"
             metrics.append(
                 self._metric(
                     name=name,
                     formula=formula,
                     value=value,
                     inputs=inputs,
-                    benchmark=_benchmark_ratio(value, excellent=1.5, strong=1.0, adequate=0.5),
+                    benchmark=(
+                        # Days/CCC are evidence only — no arbitrary quality bands.
+                        BenchmarkClass.INSUFFICIENT
+                        if is_days
+                        else _benchmark_ratio(value, excellent=1.5, strong=1.0, adequate=0.5)
+                    ),
                     trend=None,
                     periods=n,
                     interpretation=f"{name} = {value:.4f}." if value is not None else f"{name} unavailable.",
-                    limitations="Single-period turnovers use ending balances when averages unavailable.",
+                    limitations=(
+                        "Days metrics are raw evidence from turnovers — no invented "
+                        "warning thresholds. Missing AR/Inv/AP/COGS → unavailable."
+                        if is_days
+                        else "Single-period turnovers use ending balances when averages unavailable."
+                    ),
                     out=out,
                 )
             )

@@ -12,7 +12,6 @@ import os
 from collections.abc import Mapping
 from dataclasses import dataclass
 from typing import Any
-from urllib.parse import urlencode
 
 from contracts.domain.instrument import Instrument
 from data_engine.connector_framework.http import JsonHttpClient, UrllibJsonHttpClient
@@ -32,12 +31,7 @@ from data_engine.financial_statement.service import (
     StatementProviderHealth,
     StatementQuery,
 )
-from data_engine.market_quote.adapters import build_quote_from_mapping
-from data_engine.market_quote.models import (
-    AuthenticatedMarketQuote,
-    MarketQuoteProvenance,
-    utc_now as quote_utc_now,
-)
+from data_engine.market_quote.models import AuthenticatedMarketQuote
 from data_engine.market_quote.service import MarketQuotePort, QuoteProviderHealth
 
 __all__ = [
@@ -94,48 +88,51 @@ class _UpstoxBase:
             # client only when the injected client exposes no header parameter.
             raise
 
+    def _resolve_identity(self, instrument: Instrument):
+        """Resolve via U1 — never silently prefer NSE on ambiguity."""
+        from data_engine.upstox_instrument_resolver import (
+            UpstoxInstrumentResolver,
+            UpstoxResolveRequest,
+        )
+
+        resolver = UpstoxInstrumentResolver(
+            access_token=self.access_token,
+            base_url=self.base_url,
+            timeout_seconds=self.timeout_seconds,
+            http_client=self.http_client,
+        )
+        result = resolver.resolve(
+            UpstoxResolveRequest(
+                symbol=instrument.symbol,
+                preferred_exchange=instrument.exchange,
+            )
+        )
+        if result.status != "RESOLVED" or result.identity is None:
+            return None
+        return result.identity
+
     def _instrument(self, instrument: Instrument) -> dict[str, Any] | None:
-        query = instrument.isin or instrument.symbol.strip().upper()
-        params = {
-            "query": query,
-            "exchanges": "NSE,BSE",
-            "segments": "EQ",
-            "page_number": 1,
-            "records": 30,
+        """Compatibility shim — U1 only (no silent NSE selection)."""
+        identity = self._resolve_identity(instrument)
+        if identity is None:
+            return None
+        return {
+            "name": identity.company_name,
+            "segment": identity.segment,
+            "exchange": identity.exchange,
+            "isin": identity.isin,
+            "instrument_type": identity.instrument_type,
+            "instrument_key": identity.provider_instrument_id,
+            "trading_symbol": identity.trading_symbol,
         }
-        payload = self._get("instruments/search", params)
-        if not isinstance(payload, Mapping):
-            raise InvalidProviderDataError("Upstox instrument search response must be an object")
-        rows = payload.get("data")
-        if not isinstance(rows, list):
-            return None
-        candidates = [r for r in rows if isinstance(r, Mapping)]
-        candidates = [
-            r for r in candidates
-            if str(r.get("segment") or "").upper() in {"NSE_EQ", "BSE_EQ"}
-            and str(r.get("instrument_type") or "").upper() in {"EQ", "BE", "A", "B", "X"}
-        ]
-        if instrument.isin:
-            candidates = [
-                r for r in candidates
-                if str(r.get("isin") or "").upper() == instrument.isin.upper()
-            ]
-        if instrument.exchange:
-            wanted = instrument.exchange.strip().upper()
-            exact = [r for r in candidates if str(r.get("exchange") or "").upper() == wanted]
-            if exact:
-                candidates = exact
-        if not candidates:
-            return None
-        # Prefer NSE for Indian equity research unless the Instrument explicitly
-        # requests BSE; both listings normally share the same ISIN.
-        candidates.sort(key=lambda r: 0 if str(r.get("exchange") or "").upper() == "NSE" else 1)
-        return dict(candidates[0])
 
 
 @dataclass
 class UpstoxQuoteAdapter(_UpstoxBase, MarketQuotePort):
-    """Authenticated Upstox full-market quote → AuthenticatedMarketQuote."""
+    """Authenticated Upstox full-market quote → AuthenticatedMarketQuote.
+
+    Uses U1 resolver + U2 market-quote path. Does not silently select NSE.
+    """
 
     _provider_id: str = "upstox_market_quote"
 
@@ -144,53 +141,24 @@ class UpstoxQuoteAdapter(_UpstoxBase, MarketQuotePort):
         return self._provider_id
 
     def get_quote(self, instrument: Instrument) -> AuthenticatedMarketQuote | None:
-        resolved = self._instrument(instrument)
-        if resolved is None:
-            return None
-        key = str(resolved.get("instrument_key") or "").strip()
-        if not key:
-            raise InvalidProviderDataError("Upstox instrument search result missing instrument_key")
-        payload = self._get("market-quote/quotes", {"instrument_key": key})
-        if not isinstance(payload, Mapping):
-            raise InvalidProviderDataError("Upstox market quote response must be an object")
-        data = payload.get("data")
-        if not isinstance(data, Mapping) or not data:
-            return None
-        row = data.get(key) or next(iter(data.values()))
-        if not isinstance(row, Mapping):
-            return None
-        ohlc = row.get("ohlc") if isinstance(row.get("ohlc"), Mapping) else {}
-        exchange = str(resolved.get("exchange") or instrument.exchange or "NSE").upper()
-        fields = {
-            "exchange": exchange,
-            "currency": "INR",
-            "current_price": row.get("last_price"),
-            "open": ohlc.get("open"),
-            "high": ohlc.get("high"),
-            "low": ohlc.get("low"),
-            "previous_close": ohlc.get("close"),
-            "volume": row.get("volume"),
-            "average_volume": row.get("average_price"),
-        }
-        provenance = MarketQuoteProvenance(
-            provider_id=self.provider_id,
-            provider_name=self.provider_name,
-            source_type="licensed_vendor",
-            retrieved_at=quote_utc_now(),
-            as_of=str(row.get("timestamp")) if row.get("timestamp") else None,
-            auth_mode="bearer_token",
-            metadata={
-                "base_url": self.base_url,
-                "vendor": "upstox",
-                "instrument_key": key,
-                "instrument_search_exchange": exchange,
-            },
+        from data_engine.upstox_market_quote import (
+            UpstoxMarketQuoteClient,
+            UpstoxMarketQuoteRequest,
         )
-        return build_quote_from_mapping(
-            symbol=str(row.get("symbol") or resolved.get("trading_symbol") or instrument.symbol),
-            payload=fields,
-            provenance=provenance,
+
+        client = UpstoxMarketQuoteClient(
+            access_token=self.access_token,
+            base_url=self.base_url,
+            timeout_seconds=self.timeout_seconds,
+            http_client=self.http_client,
         )
+        result = client.get_quote(
+            UpstoxMarketQuoteRequest(
+                symbol=instrument.symbol,
+                preferred_exchange=instrument.exchange,
+            )
+        )
+        return result.quote if result.status == "OK" else None
 
     def health(self) -> QuoteProviderHealth:
         ok = bool(self.access_token.strip())
@@ -227,7 +195,7 @@ class UpstoxStatementAdapter(_UpstoxBase, FinancialStatementPort):
             return None
         return CompanyIdentity(
             symbol=str(resolved.get("trading_symbol") or instrument.symbol).strip().upper(),
-            exchange=str(resolved.get("exchange") or instrument.exchange or "NSE").upper(),
+            exchange=str(resolved.get("exchange") or "").strip().upper() or None,
             company_name=str(resolved.get("name")) if resolved.get("name") else None,
             isin=isin,
             provider_company_id=isin,

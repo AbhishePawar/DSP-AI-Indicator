@@ -1,8 +1,12 @@
 name: Release
 
-# Tag release packaging — hard-gated by P1-09, P1-10, and P1-11 RC aggregator.
-# Create GitHub Release / publish runs ONLY after RC1 hard gate PASS.
+# Tag release packaging — hard-gated by:
+#   P1-09 → P1-10 → G11 → G2 (live-data-evidence) → P1-11 RC aggregator → publish
+# Create GitHub Release runs ONLY after RC1 hard gate PASS.
 # Soft-fail / || true / continue-on-error on critical gates is forbidden.
+#
+# G2 is owned by reusable workflow g2-live-vendor-evidence.yml using
+# environment ``live-data-evidence``. Missing credential ⇒ G2 job fails ⇒ NO-GO.
 
 on:
   push:
@@ -124,20 +128,35 @@ jobs:
           path: artifacts/g11_postgres_restore_evidence.json
           if-no-files-found: warn
 
+  # Authoritative G2 — reusable workflow owns live-data-evidence secrets.
+  # Hard-fails when credential absent or evidence_class ≠ real_live_authenticated_provider.
+  g2-live-vendor:
+    name: G2 live authenticated vendor evidence
+    uses: ./.github/workflows/g2-live-vendor-evidence.yml
+    secrets: inherit
+    with:
+      ticker: AAPL
+
   rc1-hard-gate:
     name: P1-11 RC1 hard gate (release blocking)
     runs-on: ubuntu-latest
-    needs: [p109-api, p110-authenticity, g11-postgres]
+    # P1-11 waits for P1-09, P1-10, G11, and G2.
+    # G2 may finish as failure (BLOCKED evidence uploaded); P1-11 then
+    # evaluates to NO-GO. Publish still requires this job to succeed.
+    needs: [p109-api, p110-authenticity, g11-postgres, g2-live-vendor]
+    if: >-
+      always()
+      && !cancelled()
+      && needs.p109-api.result == 'success'
+      && needs.p110-authenticity.result == 'success'
+      && needs.g11-postgres.result == 'success'
+      && contains(fromJSON('["success","failure"]'), needs.g2-live-vendor.result)
     timeout-minutes: 20
     env:
       PYTHONUNBUFFERED: "1"
-      # G2 live secrets — only clear G2 when genuine credentials are present.
-      DSP_FMP_API_KEY: ${{ secrets.DSP_FMP_API_KEY }}
-      DSP_INVESTMENT_FMP_API_KEY: ${{ secrets.DSP_INVESTMENT_FMP_API_KEY }}
-      DSP_MARKET_QUOTE_API_KEY: ${{ secrets.DSP_MARKET_QUOTE_API_KEY }}
-      DSP_MARKET_QUOTE_BASE_URL: ${{ secrets.DSP_MARKET_QUOTE_BASE_URL }}
-      DSP_FINANCIAL_STATEMENT_API_KEY: ${{ secrets.DSP_FINANCIAL_STATEMENT_API_KEY }}
-      DSP_FINANCIAL_STATEMENT_BASE_URL: ${{ secrets.DSP_FINANCIAL_STATEMENT_BASE_URL }}
+      # G2 clearance is artifact-authoritative (from g2-live-vendor job).
+      # Do NOT inject repository-level vendor secrets here — that bypassed
+      # the protected live-data-evidence environment boundary.
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -164,6 +183,35 @@ jobs:
               cp "$found" "artifacts/$f"
             fi
           done
+          test -f artifacts/g2_live_vendor_evidence.json
+      - name: Require G2 clearance artifact before evaluate
+        run: |
+          python - <<'PY'
+          import json
+          import sys
+          from pathlib import Path
+
+          path = Path("artifacts/g2_live_vendor_evidence.json")
+          data = json.loads(path.read_text(encoding="utf-8"))
+          cleared = (
+              data.get("ok") is True
+              and data.get("g2_status") == "CLEARED"
+              and data.get("evidence_class") == "real_live_authenticated_provider"
+          )
+          print(
+              "g2_artifact "
+              f"ok={data.get('ok')} "
+              f"g2_status={data.get('g2_status')} "
+              f"evidence_class={data.get('evidence_class')}"
+          )
+          if not cleared:
+              print(
+                  "G2 BLOCKED — release cannot evaluate as GO without "
+                  "real_live_authenticated_provider evidence",
+                  file=sys.stderr,
+              )
+              sys.exit(1)
+          PY
       - name: RC1 hard gate evaluate
         id: rc1_gate
         run: python scripts/ci/rc1_hard_release_gate.py --evaluate

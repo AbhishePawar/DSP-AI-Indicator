@@ -1,12 +1,12 @@
 name: G2 Live Authenticated Vendor Evidence
 
-# G2 — real authenticated quote + statements → analyse → provenance.
-# Credentials MUST come from the protected GitHub Environment
-# ``live-data-evidence`` (manual workflow_dispatch). Never place vendor
-# secrets in ordinary PR jobs. Soft-pass / fabricated live evidence is forbidden.
+# Authoritative G2 drill — single definition used by:
+#   * manual workflow_dispatch (diagnostic / force-close)
+#   * release.yml via workflow_call (RC1 hard prerequisite)
 #
-# Preferred: single secret DSP_FMP_API_KEY (Financial Modeling Prep free tier).
-# Alternative: four ConfiguredHttp secrets (quote + statement key/URL).
+# Credentials MUST come from protected GitHub Environment ``live-data-evidence``.
+# Soft-pass / fabricated live evidence is forbidden.
+# Missing credential ⇒ job fails ⇒ RC1 NO-GO.
 
 on:
   workflow_dispatch:
@@ -15,12 +15,17 @@ on:
         description: "Liquid ticker for live smoke (default AAPL)"
         required: false
         default: "AAPL"
-  # Optional: allow re-runs from the remediation branch without auto-claiming
-  # evidence when secrets are absent (job fails closed).
+        type: string
   workflow_call:
+    inputs:
+      ticker:
+        description: "Liquid ticker for live smoke (default AAPL)"
+        required: false
+        default: "AAPL"
+        type: string
 
 concurrency:
-  group: g2-live-vendor-${{ github.workflow }}-${{ github.ref }}
+  group: g2-live-vendor-${{ github.workflow }}-${{ github.ref }}-${{ github.event_name }}
   cancel-in-progress: true
 
 jobs:
@@ -67,6 +72,46 @@ jobs:
         id: drill
         run: python scripts/ops/g2_live_vendor_evidence_drill.py
 
+      - name: Assert G2 clearance contract
+        id: assert_clearance
+        run: |
+          python - <<'PY'
+          import json
+          import sys
+          from pathlib import Path
+
+          path = Path("artifacts/g2_live_vendor_evidence.json")
+          if not path.is_file():
+              print("G2 BLOCKED — evidence artifact missing", file=sys.stderr)
+              sys.exit(1)
+
+          data = json.loads(path.read_text(encoding="utf-8"))
+          blob = json.dumps(data)
+          if "Bearer " in blob:
+              print("G2 BLOCKED — secret material detected in evidence", file=sys.stderr)
+              sys.exit(1)
+
+          ok = data.get("ok") is True
+          status = data.get("g2_status")
+          evidence_class = data.get("evidence_class")
+          cleared = (
+              ok
+              and status == "CLEARED"
+              and evidence_class == "real_live_authenticated_provider"
+          )
+          print(
+              f"g2_contract ok={ok} g2_status={status} evidence_class={evidence_class}"
+          )
+          if not cleared:
+              print(
+                  "G2 BLOCKED — clearance contract failed "
+                  f"(ok={ok!r}, g2_status={status!r}, evidence_class={evidence_class!r})",
+                  file=sys.stderr,
+              )
+              sys.exit(1)
+          print("G2 CLEARANCE CONTRACT PASS")
+          PY
+
       - name: Upload G2 evidence artifact
         if: always()
         uses: actions/upload-artifact@v4
@@ -84,14 +129,17 @@ jobs:
             echo "| Field | Value |"
             echo "|---|---|"
             echo "| Job | ${{ job.status }} |"
-            echo "| Drill step | ${{ steps.drill.outcome }} |"
+            echo "| Drill | ${{ steps.drill.outcome }} |"
+            echo "| Clearance assert | ${{ steps.assert_clearance.outcome }} |"
             echo "| Commit | \`${{ github.sha }}\` |"
             echo "| Ticker | \`${{ env.DSP_G2_TICKER }}\` |"
             echo "| Environment | \`live-data-evidence\` |"
             echo "| Preferred secret | \`DSP_FMP_API_KEY\` |"
+            echo "| Hard-fail | true |"
             echo ""
             if [[ -f artifacts/g2_live_vendor_evidence.json ]]; then
               echo '```json'
+              # Artifact is redacted by the drill; still do not echo env secrets.
               cat artifacts/g2_live_vendor_evidence.json
               echo '```'
             else

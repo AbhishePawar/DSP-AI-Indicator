@@ -113,11 +113,14 @@ def test_drill_fails_closed_without_credentials(
 def test_workflow_scaffolding_exists() -> None:
     wf = ROOT / ".github" / "workflows" / "g2-live-vendor-evidence.yml"
     text = wf.read_text(encoding="utf-8")
-    assert "live-data-evidence" in text
+    assert "environment: live-data-evidence" in text
     assert "workflow_dispatch" in text
+    assert "workflow_call:" in text
     assert "DSP_FMP_API_KEY" in text
     assert "DSP_MARKET_QUOTE_API_KEY" in text
     assert "g2_live_vendor_evidence_drill.py" in text
     assert "g2_provider_configuration_diagnostic.py" in text
+    assert "Assert G2 clearance contract" in text
+    assert "real_live_authenticated_provider" in text
     # Must not run automatically on every PR push.
     assert "pull_request:" not in text

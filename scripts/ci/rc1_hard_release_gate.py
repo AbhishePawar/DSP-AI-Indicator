@@ -42,6 +42,67 @@ GATE_IDS = ("G1", "G2", "G3", "G4", "G5", "G6", "G7", "G8", "G9", "G10", "G11")
 BLOCKING_STATUSES = frozenset({"FAIL", "BLOCKED"})
 PASS_STATUSES = frozenset({"PASS"})
 
+# G2 PASS only when ok + CLEARED + real_live_authenticated_provider.
+# These classes (and similar tokens) must never clear G2.
+REFUSED_G2_EVIDENCE_CLASSES = frozenset(
+    {
+        "test_fixture",
+        "credentials_unavailable",
+        "memory",
+        "seed",
+        "offline",
+        "mock",
+        "memory_seed_refused_as_live",
+    }
+)
+REFUSED_G2_CLASS_TOKENS = ("memory", "seed", "offline", "mock", "fixture")
+
+
+def classify_g2_artifact_status(
+    evidence: Mapping[str, Any] | None,
+) -> tuple[str, str]:
+    """Return (PASS|BLOCKED, reason) for a G2 evidence artifact.
+
+    Only ``ok=true`` + ``g2_status=CLEARED`` +
+    ``evidence_class=real_live_authenticated_provider`` may PASS.
+    Unit fixtures may exercise this helper; never use fake live evidence
+    against the production release gate path.
+    """
+    if not evidence:
+        return "BLOCKED", "G2 BLOCKED — missing g2_live_vendor_evidence.json"
+
+    evidence_class = str(evidence.get("evidence_class") or "")
+    ok = evidence.get("ok") is True
+    g2_status = str(evidence.get("g2_status") or "")
+    lowered = evidence_class.lower()
+
+    if evidence_class in REFUSED_G2_EVIDENCE_CLASSES:
+        return (
+            "BLOCKED",
+            f"G2 BLOCKED — evidence_class={evidence_class} "
+            "(not real_live_authenticated_provider)",
+        )
+    for token in REFUSED_G2_CLASS_TOKENS:
+        if token in lowered and evidence_class != "real_live_authenticated_provider":
+            return (
+                "BLOCKED",
+                f"G2 BLOCKED — evidence_class={evidence_class} "
+                f"(refused token={token})",
+            )
+
+    if (
+        ok
+        and g2_status == "CLEARED"
+        and evidence_class == "real_live_authenticated_provider"
+    ):
+        return "PASS", "live vendor evidence artifact ok (CLEARED)"
+
+    return (
+        "BLOCKED",
+        "G2 BLOCKED — clearance contract failed "
+        f"(ok={ok!r}, g2_status={g2_status!r}, evidence_class={evidence_class!r})",
+    )
+
 
 class GateDecision:
     """Plain decision object (avoid dataclass + dynamic import quirks)."""
@@ -229,33 +290,19 @@ def collect_live_statuses(
         reasons["G1"] = f"integrity error: {exc}"
 
     # G2 — real live authenticated vendor evidence only
+    # Artifact is authoritative (produced by live-data-evidence G2 job).
     g2_mod = _load_g2_classify()
     g2_gate = g2_mod.classify_gate(environ=env)
     g2_evidence = load_json(ROOT / "artifacts" / "g2_live_vendor_evidence.json")
-    if (
-        g2_evidence
-        and g2_evidence.get("ok") is True
-        and g2_evidence.get("evidence_class") == "real_live_authenticated_provider"
-    ):
-        # ok=true + real_live class is the only PASS path
-        statuses["G2"] = "PASS"
-        reasons["G2"] = "live vendor evidence artifact ok"
+    g2_status, g2_reason = classify_g2_artifact_status(g2_evidence)
+    statuses["G2"] = g2_status
+    if g2_status == "PASS":
+        reasons["G2"] = g2_reason
     else:
-        statuses["G2"] = "BLOCKED"
-        reasons["G2"] = (
-            g2_gate.get("reason")
-            or "G2 BLOCKED — awaiting legitimate FMP / authenticated vendor credential"
-        )
-        # Refuse fixture masquerading as live
-        if g2_evidence and g2_evidence.get("evidence_class") in {
-            "test_fixture",
-            "memory_seed_refused_as_live",
-            "credentials_unavailable",
-        }:
-            reasons["G2"] = (
-                f"G2 BLOCKED — evidence_class={g2_evidence.get('evidence_class')} "
-                "(test_fixture ≠ real_live_authenticated_provider)"
-            )
+        # Prefer artifact refusal reason; fall back to credential classifier.
+        reasons["G2"] = g2_reason
+        if g2_evidence is None and g2_gate.get("reason"):
+            reasons["G2"] = str(g2_gate["reason"])
 
     # G3 / G10 — authenticity hard-fail (P1-10)
     p110_summary = load_json(ROOT / "artifacts" / "p110_authenticity_ci_summary.json")

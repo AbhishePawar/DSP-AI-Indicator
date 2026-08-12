@@ -1,0 +1,60 @@
+# Cloud Build — API image → Artifact Registry → Cloud Run
+#
+# Build context is the repository root (this file's directory).
+# Dockerfile: docker/backend/Dockerfile
+#
+# Trigger: use Repository configuration (this file), not Inline.
+# Do not set the trigger's Dockerfile directory to docker/backend.
+
+substitutions:
+  _REGION: asia-south1
+  _SERVICE: dsp-ai-indicator
+  _AR_REPOSITORY: dsp-ai-indicator
+  _IMAGE: dsp-ai-indicator
+
+options:
+  logging: CLOUD_LOGGING_ONLY
+
+timeout: 1800s
+
+steps:
+  - id: build
+    name: gcr.io/cloud-builders/docker
+    args:
+      - build
+      - -f
+      - docker/backend/Dockerfile
+      - -t
+      - $_REGION-docker.pkg.dev/$PROJECT_ID/$_AR_REPOSITORY/$_IMAGE:$COMMIT_SHA
+      - -t
+      - $_REGION-docker.pkg.dev/$PROJECT_ID/$_AR_REPOSITORY/$_IMAGE:latest
+      - .
+
+  - id: push-sha
+    name: gcr.io/cloud-builders/docker
+    args:
+      - push
+      - $_REGION-docker.pkg.dev/$PROJECT_ID/$_AR_REPOSITORY/$_IMAGE:$COMMIT_SHA
+
+  - id: push-latest
+    name: gcr.io/cloud-builders/docker
+    args:
+      - push
+      - $_REGION-docker.pkg.dev/$PROJECT_ID/$_AR_REPOSITORY/$_IMAGE:latest
+
+  - id: deploy
+    name: gcr.io/google.com/cloudsdktool/cloud-sdk
+    entrypoint: gcloud
+    args:
+      - run
+      - deploy
+      - $_SERVICE
+      - --image=$_REGION-docker.pkg.dev/$PROJECT_ID/$_AR_REPOSITORY/$_IMAGE:$COMMIT_SHA
+      - --region=$_REGION
+      - --platform=managed
+      - --port=8000
+      - --quiet
+
+images:
+  - $_REGION-docker.pkg.dev/$PROJECT_ID/$_AR_REPOSITORY/$_IMAGE:$COMMIT_SHA
+  - $_REGION-docker.pkg.dev/$PROJECT_ID/$_AR_REPOSITORY/$_IMAGE:latest

@@ -5,7 +5,8 @@
 substitutions:
   _REGION: asia-south1
   _SERVICE: dsp-ai-indicator
-  _AR_REPOSITORY: dsp-ai-indicator
+  # This repository is already used by the existing Cloud Build trigger.
+  _AR_REPOSITORY: cloud-run-source-deploy
   _IMAGE: dsp-ai-indicator
 
 options:

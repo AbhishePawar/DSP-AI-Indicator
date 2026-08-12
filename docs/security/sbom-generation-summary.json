@@ -1,0 +1,28 @@
+{
+  "epic": "017",
+  "generated_at": "2026-08-04T06:25:31.067036+00:00",
+  "tools": {
+    "pip_freeze": {
+      "ok": true
+    },
+    "npm_lock": {
+      "ok": true,
+      "count": 641
+    },
+    "syft": {
+      "ok": false,
+      "detail": "not installed"
+    }
+  },
+  "artifacts": [
+    "docs\\security\\sbom-python-lite.json",
+    "docs\\security\\sbom-web-lite.json",
+    "docs\\security\\SBOM_GENERATION_REPORT.md"
+  ],
+  "instructions": {
+    "syft": "syft packages dir:. -o cyclonedx-json=docs/security/sbom-syft.cdx.json",
+    "cyclonedx_npm": "cd apps/web && npx @cyclonedx/cyclonedx-npm --output-file ../../docs/security/sbom-web.cdx.json",
+    "pip_audit": "pip-audit -r <(pip freeze) --format json -o docs/security/pip-audit.json",
+    "npm_audit": "cd apps/web && npm audit --json > ../../docs/security/npm-audit.json"
+  }
+}

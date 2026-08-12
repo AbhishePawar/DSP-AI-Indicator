@@ -62,9 +62,10 @@ export function AnalysisWorkspace() {
   const analysisTiming = usePerformanceTiming("analysis.execution");
   const { saveAnalysis } = usePersistence();
 
-  const [ticker, setTicker] = useState("AAPL");
-  const [exchange, setExchange] = useState("NASDAQ");
-  const [company, setCompany] = useState("Apple");
+  // RC3-003 — no silent default company; require explicit ticker.
+  const [ticker, setTicker] = useState("");
+  const [exchange, setExchange] = useState("");
+  const [company, setCompany] = useState("");
   const [recent, setRecent] = useState<RecentAnalysisEntry[]>([]);
   const [tick, setTick] = useState(0);
   const [lastRequest, setLastRequest] = useState<AnalyseRequest | null>(null);
@@ -279,7 +280,7 @@ export function AnalysisWorkspace() {
                     className="mt-1"
                     value={ticker}
                     onChange={(e) => setTicker(e.target.value.toUpperCase())}
-                    placeholder="AAPL"
+                    placeholder="Enter ticker"
                     required
                     aria-label="Ticker"
                   />

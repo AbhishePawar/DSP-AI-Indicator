@@ -1,0 +1,26 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+namespace: dsp-staging
+resources:
+  - ../../base
+namePrefix: staging-
+patches:
+  - target:
+      kind: Deployment
+      name: dsp-api
+    patch: |-
+      - op: replace
+        path: /spec/replicas
+        value: 1
+  - target:
+      kind: ConfigMap
+      name: dsp-config
+    patch: |-
+      - op: replace
+        path: /data/DSP_ENVIRONMENT
+        value: staging
+images:
+  - name: dsp-api
+    newTag: 2.0.0-rc.1
+  - name: dsp-web
+    newTag: 2.0.0-rc.1

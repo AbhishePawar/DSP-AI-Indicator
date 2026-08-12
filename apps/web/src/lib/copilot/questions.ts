@@ -61,6 +61,31 @@ export const SUGGESTED_QUESTIONS: readonly SuggestedQuestion[] = [
     label: "Compare companies.",
     intent: "compare_companies",
   },
+  {
+    id: "explain_risk",
+    label: "Explain the biggest risks.",
+    intent: "explain_risk",
+  },
+  {
+    id: "analyze_portfolio",
+    label: "Analyze my portfolio.",
+    intent: "analyze_portfolio",
+  },
+  {
+    id: "document_qa",
+    label: "Summarize authenticated filings.",
+    intent: "document_qa",
+  },
+  {
+    id: "investment_memo",
+    label: "Generate an investment memo.",
+    intent: "investment_memo",
+  },
+  {
+    id: "buffett",
+    label: "Explain like Buffett.",
+    intent: "buffett",
+  },
 ] as const;
 
 export const UNAVAILABLE_ANSWER =

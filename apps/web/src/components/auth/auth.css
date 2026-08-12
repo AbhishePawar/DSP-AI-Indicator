@@ -1,0 +1,23 @@
+/* P9.2 auth motion — Design System Motion Guidelines */
+
+@keyframes auth-fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.auth-reveal {
+  animation: auth-fade-up var(--motion-slow, 280ms) var(--ease-standard, ease-out)
+    both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .auth-reveal {
+    animation: none !important;
+  }
+}

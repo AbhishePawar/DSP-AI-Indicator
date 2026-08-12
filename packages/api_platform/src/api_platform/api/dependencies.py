@@ -2,11 +2,12 @@
 
 from __future__ import annotations
 
+import os
 from dataclasses import dataclass, field
 from threading import Lock
 from typing import Any, Callable
 
-from fastapi import Request
+from fastapi import HTTPException, Request
 
 from api_platform.api.exceptions import ApiNotFoundError
 from dsp_platform import DSPPlatform, PlatformBuilder, PlatformConfiguration
@@ -26,6 +27,7 @@ __all__ = [
     "get_report_store",
     "get_context_store",
     "build_default_platform",
+    "require_admin_access",
 ]
 
 
@@ -93,6 +95,10 @@ class ApiState:
     api_version: str = "v1"
     copilot_service: Any = field(default=None)
     language_model: Any | None = None
+    # EPIC-011A — optional production infra (duck-typed)
+    infrastructure: Any | None = None
+    production: Any | None = None
+    infra_notes: tuple[str, ...] = ()
 
 
 def build_copilot_service() -> Any:
@@ -151,3 +157,62 @@ def get_context_store(request: Request) -> ContextStore:
 
 
 PlatformFactory = Callable[[], DSPPlatform]
+
+
+def _admin_auth_enforced() -> bool:
+    """Enforce admin Bearer auth in production / secured / explicit flag modes."""
+    if os.environ.get("DSP_ENVIRONMENT", "").lower() == "production":
+        return True
+    if os.environ.get("DSP_ENABLE_SECURITY", "").lower() in {"1", "true", "yes"}:
+        return True
+    if os.environ.get("DSP_REQUIRE_ADMIN_AUTH", "").lower() in {"1", "true", "yes"}:
+        return True
+    return False
+
+
+def require_admin_access(request: Request) -> dict[str, Any] | None:
+    """Router dependency for institutional admin / beta admin routes (P1.2).
+
+    When enforcement is off (typical local tests), requests pass through.
+    When on, requires Bearer access token with ``configure_platform`` or
+    ``manage_users`` permission via the A009 auth package.
+    """
+    if not _admin_auth_enforced():
+        return None
+
+    auth_header = request.headers.get("authorization") or ""
+    if not auth_header.lower().startswith("bearer "):
+        raise HTTPException(
+            status_code=401,
+            detail="admin authentication required",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+    token = auth_header[7:].strip()
+    if not token:
+        raise HTTPException(status_code=401, detail="admin authentication required")
+
+    try:
+        from auth import get_auth_service
+
+        auth = get_auth_service()
+        user = auth.current_user(token)
+        uid = str(user.get("user_id") or "")
+        allowed = False
+        for perm in ("configure_platform", "manage_users"):
+            try:
+                auth.require_permission(user, perm)
+                allowed = True
+                break
+            except Exception:  # noqa: BLE001
+                continue
+        if not allowed:
+            raise HTTPException(status_code=403, detail="admin permission required")
+        return {"user_id": uid, "user": user}
+    except HTTPException:
+        raise
+    except Exception as exc:  # noqa: BLE001
+        raise HTTPException(
+            status_code=401,
+            detail="admin authentication required",
+            headers={"WWW-Authenticate": "Bearer"},
+        ) from exc

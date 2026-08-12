@@ -282,3 +282,176 @@ DSP AI Indicator's architecture is designed so that today's engine additions are
 - **Deployment flexibility.** The strict package boundaries and dependency rules make it feasible to later split engines across services (e.g., running the AI Investment Committee and Research Engine as separately scaled services from the numerically intensive Indicator/Risk engines) if operational scale demands it, without having to first untangle an entangled codebase.
 
 The unifying theme across all of these growth paths is that they are extensions **within** the architecture defined in this document, not departures from it. Preserving the dependency rules, the explainability contract, and the registry-based extensibility pattern as the platform grows is what keeps "institutional-grade" a property of the system rather than a marketing description.
+
+---
+
+## 8. Addendum — Institutional Company Workspace & the Risk Composition Stage
+
+This addendum records two additions made when the platform's already-built engines were unified into a single flagship Company Workspace (`/analysis`). See `docs/COMPANY_WORKSPACE.md` for the full component/API/sequence-diagram treatment; this section only records where the additions sit within the architecture defined above.
+
+### 8.1 Risk as a real Composition stage
+
+Section 3.10 describes the Risk Engine (`risk`, `quantitative_risk`) as portfolio-centric. For single-company research, `dsp_platform.composition.pipeline` now includes a **Risk** stage (`PipelineStage.RISK`), positioned in `EXECUTION_ORDER` after `economic_moat`/`financial_strength` complete, alongside the other structural composition stages (Section 3.7–3.11). It does not add a new risk-scoring algorithm — it is a `dsp_platform.composition.risk_view.build_company_risk_view` aggregator that maps already-computed `financial_strength` and `economic_moat` ratings onto the requested risk taxonomy (Business, Financial, Regulatory, Technology, Currency, Customer Concentration). Categories with no connected upstream signal are reported `available: false` with an explicit message rather than a fabricated value — consistent with the explainability principle in Section 2.3. `PipelineResult.risk` and `pipeline_result_public_dict()["risk"]` expose it the same way existing stage summaries are exposed.
+
+### 8.2 Institutional Company Workspace as the flagship UI
+
+The Professional Dashboard (Section 3.13) is realized today as the Next.js `/analysis` route (`CompanyAnalysisWorkspace`). This is an orchestration-only consumer: it composes existing engine outputs into one workspace and introduces no new business logic. Per the dependency rules in Section 4, all new server-side work for this effort was either:
+
+1. **Composition-root wiring** inside `dsp_platform` (the Risk stage above; `QualitativeComparisonEngine` default-engine resolution + short-TTL caching for peer comparison in `DSPPlatform.compare_companies`), or
+2. **Re-mounting already-implemented, already-tested API routers** (`market`, `fundamentals`, `historical`, `corporate_actions`, `data`, `research`, `decision_workspace`, and several institutional/committee/workflow routers) that existed in `packages/api_platform` but were never imported into `app.py`, or
+3. **New serializers**, not new calculations — `docx`/`pptx` writers in `dsp_platform.institutional_export.formats` sit beside the existing `pdf_export.py`/`xlsx` writers and render the same frozen `InstitutionalResearchReport`.
+
+No engine package gained new algorithms as part of this work. Sections of the workspace with no connected data source anywhere in the platform (Ownership/insider transactions, News, filings/Documents) render an honest "Data unavailable — no data source connected." state rather than mocked data, matching the platform-wide convention described in Section 2.3. See Section 8.3 for the connector framework that lets these sections light up once a real provider is configured.
+
+### 8.3 Data Connector Framework — News, Filings, Ownership, Insider Trading, ESG, Transcripts
+
+Section 3.3 describes Data Engine's classic ports (`MarketDataPort`, `FundamentalsDataPort`, etc.). EPIC-D001–D004 introduced a second, parallel port pattern for authenticated snapshot data with built-in resilience (`MarketQuotePort`, `FinancialStatementPort`, `CorporateActionPort`). The Data Connector Framework generalizes that resilient pattern across six additional domains — `NewsProviderPort`, `FilingsProviderPort`, `OwnershipProviderPort`, `InsiderTradingProviderPort`, `EsgProviderPort`, `TranscriptProviderPort` — and extracts the shared plumbing common to all of them into a new `data_engine.connector_framework` package: normalized envelope models (company identity, provenance, health, optional field), a generic `PriorityProviderRegistry`, a `FailoverGroup` that tries every configured provider in priority order with full audit logging, and reuse (not reimplementation) of the existing `RateLimiter`/`CircuitBreaker`/`RetryPolicy` primitives from `market_quote.service`. Each domain still owns its own `models.py`/`validation.py`/`service.py`/`registry.py`/`adapters.py`, keeping vendor-specific fields confined to `adapters.py`. `dsp_platform` façades (`news.py`, `filings.py`, `ownership.py`, `insider_trading.py`, `esg.py`, `transcripts.py`) build each domain's registry from environment configuration and expose it to `DSPPlatform`; thin, additive API routers mount `GET /{domain}` and `GET /{domain}/health` with no business logic. See `docs/DATA_CONNECTOR_FRAMEWORK.md` for the full provider matrix, configuration, and compliance table.
+
+### 8.4 Enterprise Role Dashboards (RC1 Milestone 6)
+
+Role-specific dashboards (`/dashboards/{role}`) are **aggregation-only** surfaces
+over existing engines. They do not redesign Portfolio Intelligence, Research,
+Workflow, Committee, or Portfolio Store. Thin routers expose:
+
+- `GET /api/v1/dashboards/research`
+- `GET /api/v1/dashboards/portfolio-manager`
+- `GET /api/v1/dashboards/wealth-advisor`
+- `GET /api/v1/dashboards/family-office`
+- `GET /api/v1/dashboards/executive`
+
+```mermaid
+flowchart TB
+  subgraph presentation [Thin client]
+    Pages["/dashboards/* pages"]
+    Lazy["Lazy DashboardSectionCard"]
+  end
+  subgraph api [api_platform]
+    R["dashboards.router"]
+  end
+  subgraph platform [dsp_platform]
+    Agg["enterprise_dashboards.service"]
+  end
+  Pages --> Lazy --> R --> Agg
+  Agg --> PI[Portfolio Intelligence]
+  Agg --> Res[Research / Monitoring]
+  Agg --> Wf[Workflow]
+  Agg --> Store[Persistence]
+  Agg --> Health[Health / Admin]
+```
+
+Canonical product doc: [DASHBOARDS.md](DASHBOARDS.md). The existing
+`/dashboard` Institutional Executive Dashboard (P9.3) is unchanged.
+
+### 8.5 AI Research Copilot 2.0 (RC1 Milestone 7)
+
+Copilot 2.0 (`dsp_platform.copilot_v2`) is an **orchestration and explanation**
+layer. It classifies intent, maintains conversation memory, and explains
+outputs from Company Workspace, Valuation (via analyse payloads), AI Committee,
+Risk, Portfolio Intelligence, Comparison, and Data Connectors. It never
+duplicates calculations or invents numbers.
+
+```mermaid
+flowchart TB
+  UI["/copilot UI"]
+  API["/api/v1/copilot/*"]
+  V2["copilot_v2.orchestrator"]
+  UI --> API --> V2
+  V2 --> Engines["Existing engines only"]
+```
+
+Canonical product doc: [COPILOT.md](COPILOT.md).
+
+### 8.6 Research Workspace (RC1 Milestone 8)
+
+The Institutional Research Workspace (`dsp_platform.research_workspace`) is an
+**orchestration store** for analyst notes, folders, bookmarks, templates, tags,
+comments, shares, and version history. Publishing reuses Institutional Workflow;
+AI assist reuses Copilot 2.0. It never duplicates Research / Valuation /
+Committee / Risk engines.
+
+```mermaid
+flowchart TB
+  UI["/research/workspace"]
+  API["/api/v1/research-workspace/*"]
+  RW["research_workspace.service"]
+  Store["WorkspaceStore"]
+  UI --> API --> RW --> Store
+  RW --> Copilot["copilot_v2"]
+  RW --> Workflow["institutional_workflow"]
+```
+
+Canonical product doc: [RESEARCH_WORKSPACE.md](RESEARCH_WORKSPACE.md).
+F007 `/research` library/viewer remains a separate presentation surface.
+
+### 8.7 Commercial SaaS Platform (RC1 Milestone 9)
+
+`dsp_platform.saas_platform` is an **orchestration façade** for multi-tenant
+commercial operations. Organizations, teams, RBAC, licenses, org API keys,
+usage, and audit remain owned by `packages/enterprise`. Billing stays behind
+`BillingPort` adapters (no fake payments). Subscription overlays, coupons, and
+license keys live in a thin SaaS overlay store.
+
+```mermaid
+flowchart TB
+  UI["/saas"]
+  API["/api/v1/saas/*"]
+  Saas["saas_platform.service"]
+  Ent["enterprise.EnterpriseService"]
+  UI --> API --> Saas --> Ent
+  Saas --> Overlay["SaasOverlayStore"]
+  Ent --> Billing["BillingPort"]
+```
+
+Canonical product doc: [SAAS_PLATFORM.md](SAAS_PLATFORM.md).
+Customer Portal (`/portal`) and Ops (`/ops`) remain additive presentation surfaces.
+
+### 8.8 Production Operations (RC1 Milestone 10)
+
+`dsp_platform.production_ops` aggregates existing health, Prometheus metrics,
+JSON logging / correlation, OpenTelemetry ports, enterprise ops dashboard, and
+`BackupPort` interfaces. It does **not** duplicate monitoring or invent KPIs.
+
+```mermaid
+flowchart TB
+  UI["/ops ProductionOpsPanel"]
+  API["/api/v1/ops/*"]
+  PO["production_ops.service"]
+  UI --> API --> PO
+  PO --> Health["/health*"]
+  PO --> Metrics["/metrics"]
+  PO --> Prod["production_platform"]
+  PO --> Backup["BackupPort"]
+```
+
+Canonical docs: [PRODUCTION_OPERATIONS.md](PRODUCTION_OPERATIONS.md),
+[DEPLOYMENT_GUIDE.md](DEPLOYMENT_GUIDE.md), [OPERATIONS_RUNBOOK.md](OPERATIONS_RUNBOOK.md),
+[BACKUP_RECOVERY.md](BACKUP_RECOVERY.md).
+
+### 8.9 Super Admin Control Center (RC1 Milestone 11)
+
+`dsp_platform.control_center` is the Platform Operating System: a versioned
+Configuration Registry plus thin façades over Admin, SaaS, Ops, Enterprise
+audit, and Copilot provider discovery. It stores **config overlays only** and
+never executes valuation, risk, or recommendation engines.
+
+```mermaid
+flowchart TB
+  UI["/control-center"]
+  API["/api/v1/admin/*"]
+  CC["control_center.service"]
+  REG["ConfigurationRegistry"]
+  UI --> API --> CC --> REG
+  CC --> Admin["admin_facade"]
+  CC --> SaaS["saas_platform"]
+  CC --> Ops["production_ops"]
+```
+
+```mermaid
+flowchart LR
+  Change["Config change"] --> Ver["Version / author / old / new / reason"]
+  Ver --> RB["One-click rollback"]
+```
+
+Canonical product doc: [SUPER_ADMIN_CONTROL_CENTER.md](SUPER_ADMIN_CONTROL_CENTER.md).
+This milestone completes the RC1 feature roadmap (Feature Freeze next).
+

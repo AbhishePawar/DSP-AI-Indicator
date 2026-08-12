@@ -1,61 +1,37 @@
 "use client";
 
-import Link from "next/link";
+/**
+ * EPIC-F009 — Settings & User Preferences landing page.
+ * RC3-004 — dynamic import for workspace code-splitting.
+ */
 
-import { PreferenceManager } from "@/components/persistence/PreferenceManager";
+import dynamic from "next/dynamic";
+import { Suspense } from "react";
+
+import { WorkspaceSkeleton } from "@/components/settings-workspace/Primitives";
 import { PageHeader } from "@/components/layout/PageHeader";
-import { Button } from "@/components/ui/Button";
-import { Card, CardBody, CardHeader } from "@/components/ui/Card";
-import { env } from "@/lib/env";
+
+const SettingsWorkspace = dynamic(
+  () =>
+    import("@/components/settings-workspace").then((m) => ({
+      default: m.SettingsWorkspace,
+    })),
+  {
+    ssr: false,
+    loading: () => <WorkspaceSkeleton />,
+  },
+);
 
 export default function SettingsPage() {
   return (
-    <div>
+    <div className="space-y-4">
       <PageHeader
-        title="Settings"
-        description="Client preferences and platform information."
+        title="Settings & Preferences"
+        description="Manage UI preferences locally and view account information from existing auth APIs. No new backend behaviour."
       />
-      <div className="grid gap-4 sm:grid-cols-2">
-        <PreferenceManager />
-        <Card>
-          <CardHeader title="Environment" />
-          <CardBody className="space-y-2 font-mono text-sm">
-            <Row label="Version" value={`v${env.frontendVersion}`} />
-            <Row label="Environment" value={env.environment} />
-            <Row label="API Base URL" value={env.apiBaseUrl} />
-            <div className="pt-2">
-              <Link href="/diagnostics">
-                <Button variant="secondary" size="sm">
-                  Open diagnostics
-                </Button>
-              </Link>
-            </div>
-          </CardBody>
-        </Card>
-        <Card className="sm:col-span-2">
-          <CardHeader title="About DSP AI Indicator" />
-          <CardBody className="text-sm text-[var(--muted)]">
-            <p>
-              Professional investment research platform. Explainable AI decision
-              support over frozen analytical APIs. The frontend is a presentation
-              boundary only — no business logic runs in the browser.
-            </p>
-            <p className="mt-2">
-              Architecture: Next.js thin client → /api/v1 → dsp_platform →
-              FEATURE domain engines.
-            </p>
-          </CardBody>
-        </Card>
-      </div>
-    </div>
-  );
-}
-
-function Row({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="flex justify-between gap-4">
-      <span className="text-[var(--muted)]">{label}</span>
-      <span className="truncate">{value}</span>
+      <Suspense fallback={<WorkspaceSkeleton />}>
+        <SettingsWorkspace />
+      </Suspense>
     </div>
   );
 }

@@ -1,8 +1,24 @@
 # DSP AI Indicator — RC1 Operations Handbook
 
-**Release:** 1.0.0-rc1 · **Frontend:** 3.0.0-rc1 · **API Platform:** 0.2.0
+**Living production target (P7.0):** Backend **1.7.0** · Frontend **2.0.0** · API contract **v1.0.0**  
+**Prior RC handbook target (P6.1):** Backend **1.6.0** · Frontend **2.0.0-rc** · API contract **v1.0.0-rc1**  
+**Historical RC1 label:** 1.0.0-rc1 · see also `docs/P5_2_BETA_STABILISATION.md`
 
-This handbook consolidates deployment, architecture, environment, monitoring, incident response, backup, and release guidance for Release Candidate 1.
+This handbook consolidates deployment, architecture, environment, monitoring, incident response, backup, and release guidance for Release Candidate builds.
+
+### P5.2 closed beta ops (quick)
+
+| Task | Command / path |
+|---|---|
+| Validate prod env | `python scripts/validate_env.py production` |
+| Offline certify | `python scripts/ops/certify_p11.py` |
+| Live smoke | `python scripts/ops/production_smoke.py` |
+| Export beta snapshot | `GET /api/v1/admin/beta/snapshot` or Admin → Closed Beta |
+| Import snapshot | `POST /api/v1/admin/beta/snapshot/import` |
+| RC assessment | `GET /api/v1/admin/beta/rc-assessment` |
+| Postgres backup | `scripts/ops/backup_postgres.sh` |
+
+Before API restart in invitation-only mode: **export a beta snapshot**.
 
 ---
 

@@ -27,11 +27,13 @@ from dsp_platform.composition.pipeline import (
     run_execution_pipeline,
 )
 from dsp_platform.composition.resolver import DependencyResolver
+from dsp_platform.composition.risk_view import CompanyRiskView, RiskCategoryView
 from dsp_platform.composition.versions import COMPOSITION_PIPELINE_VERSION
 
 __all__ = [
     "COMPOSITION_PIPELINE_VERSION",
     "EXECUTION_ORDER",
+    "CompanyRiskView",
     "CompositionInputError",
     "CompositionRequest",
     "CompositionStageError",
@@ -43,6 +45,7 @@ __all__ = [
     "PipelineResult",
     "PipelineStage",
     "PlatformOrchestrator",
+    "RiskCategoryView",
     "StageOutcome",
     "StageStatus",
     "build_composition_request",

@@ -44,7 +44,7 @@ Consequences: …
 | **ADR-0003** | `dsp_platform` is composition façade; domains must not import it | Baseline |
 | **ADR-0004** | Security wraps API, not domain façade | Architecture Overview |
 | **ADR-0005** | Single ownership; cite don’t embed | Baseline §2 |
-| **ADR-0006** | Unavailable > fabricated consensus / prices | Trust Standard |
+| **ADR-0006** | Unavailable > fabricated consensus / prices | Trust Standard · elevated by **ADR-CV-001** |
 | **ADR-0007** | Feature flags gate recommendation / SEBI-style labels | PR1.0 |
 | **ADR-0008** | Copilot is explainability assistant, not autonomous recommender | L1.2 Sprint 6 |
 | **ADR-0009** | Presentation KG / reports / workspace may use localStorage; must disclose | L1.2 Sprint 7–8 |
@@ -81,6 +81,9 @@ Consequences: …
 | **ADR-EPIC-001-001** | Compose FEATURE packages into `dsp_platform` orchestration pipeline; no `/api/v1` / scoring changes | [adr/ADR-EPIC-001-001-platform-composition.md](adr/ADR-EPIC-001-001-platform-composition.md) |
 | **ADR-EPIC-002-001** | Expose composition via `/api/v1` DTOs over `dsp_platform` only; no engine changes | [adr/ADR-EPIC-002-001-api-composition.md](adr/ADR-EPIC-002-001-api-composition.md) |
 | **ADR-EPIC-003-001** | Intelligence Workspace over `/api/v1` only; no backend package imports | [adr/ADR-EPIC-003-001-intelligence-workspace.md](adr/ADR-EPIC-003-001-intelligence-workspace.md) |
+| **ADR-CV-001** | **Data Authenticity First** — permanent core value; fabricated numbers fail architecture review | [adr/ADR-CV-001-data-authenticity-first.md](adr/ADR-CV-001-data-authenticity-first.md) · [CORE_VALUES.md](CORE_VALUES.md) |
+| **ADR-CV-002-010** | Tier-0 Core Values CV-002…CV-010 — constitutional; violation fails all gates | [adr/ADR-CV-002-010-tier0-core-values.md](adr/ADR-CV-002-010-tier0-core-values.md) · [CV_002_TO_010_TIER0_CORE_VALUES.md](CV_002_TO_010_TIER0_CORE_VALUES.md) |
+| **ADR-RS-001** | Research Standards RS-001…RS-010 — minimum report content; missing section = FAIL | [adr/ADR-RS-001-research-standards.md](adr/ADR-RS-001-research-standards.md) · [RESEARCH_STANDARDS.md](RESEARCH_STANDARDS.md) |
 
 ---
 

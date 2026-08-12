@@ -6,7 +6,17 @@ from datetime import UTC, date, datetime
 from typing import Any
 
 import pytest
+from ai_committee import (
+    CommitteeReport,
+    Decision,
+    InvestmentDecision,
+    MemberVote,
+    Opinion,
+)
+from contracts import EngineSource, Evidence
+from decision_intelligence import DecisionIntelligenceService, DecisionPack
 from fastapi.testclient import TestClient
+from recommendation import RecommendationMapper
 
 from api_platform import __version__, create_app
 from contracts.domain.instrument import Instrument
@@ -20,6 +30,65 @@ from dsp_platform import (
 )
 
 FIXED_NOW = datetime(2024, 6, 15, 12, 0, 0, tzinfo=UTC)
+
+
+def _peer_instrument(symbol: str) -> Instrument:
+    return Instrument(
+        symbol=symbol, asset_class=AssetClass.EQUITY, currency="INR", name=symbol
+    )
+
+
+def _peer_opinion(source: str, decision: Decision) -> Opinion:
+    return Opinion(
+        source=source,
+        recommendation=decision,
+        reasoning=f"{source} for {decision.value}",
+        evidence=(
+            Evidence(
+                source_engine=EngineSource.AI_COMMITTEE,
+                claim=f"{source} evidence",
+                value=1.0,
+                reference="t",
+                weight=0.5,
+            ),
+        ),
+        engine=EngineSource.AI_COMMITTEE,
+    )
+
+
+def make_decision_pack(
+    symbol: str, *, decision: Decision = Decision.BUY
+) -> DecisionPack:
+    """Build a real ``DecisionPack`` for compare-endpoint tests.
+
+    Mirrors ``packages/comparison/tests/test_comparison.py::make_pack`` —
+    the same construction sequence ``DSPPlatform.analyze_decision_pack``
+    uses in production once wired to a live analysis service.
+    """
+    instrument = _peer_instrument(symbol)
+    sources = ("technical", "fundamental", "economic")
+    decisions = (decision, decision, Decision.HOLD)
+    opinions = []
+    votes = []
+    for source, member in zip(sources, decisions, strict=True):
+        op = _peer_opinion(source, member)
+        opinions.append(op)
+        votes.append(MemberVote(source=source, recommendation=member, opinion=op))
+    report = CommitteeReport(
+        instrument=instrument,
+        opinions=tuple(opinions),
+        votes=tuple(votes),
+        decision=InvestmentDecision(
+            instrument=instrument,
+            decision=decision,
+            rationale=f"Committee {decision.value}",
+            decided_at=FIXED_NOW,
+        ),
+        voting_summary="synthetic",
+        explanation="synthetic",
+    )
+    recommendation = RecommendationMapper.map(report)
+    return DecisionIntelligenceService().build_pack(report, recommendation)
 
 
 class _FakeAnalysisService:
@@ -67,13 +136,13 @@ def client(platform: DSPPlatform) -> TestClient:
 
 class TestVersionAndOpenAPI:
     def test_version(self) -> None:
-        assert __version__ == "0.2.0"
+        assert __version__ == "0.3.0"
 
     def test_openapi_generated(self, client: TestClient) -> None:
         response = client.get("/openapi.json")
         assert response.status_code == 200
         data = response.json()
-        assert data["info"]["version"] == "0.2.0"
+        assert data["info"]["version"] == "0.3.0"
         paths = data["paths"]
         assert "/health" in paths
         assert "/platform" in paths
@@ -110,7 +179,7 @@ class TestHealthAndPlatform:
         response = client.get("/platform")
         assert response.status_code == 200
         body = response.json()
-        assert body["version"] == "0.7.1"
+        assert body["version"] == "1.0.0"
         assert "analyze_company" in body["capabilities"]
         assert "compose_intelligence" in body["capabilities"]
 
@@ -156,18 +225,71 @@ class TestAnalyzeAndReport:
 
 
 class TestCompareWorkflowCopilot:
-    def test_compare_requires_packs(self, client: TestClient) -> None:
-        response = client.post("/compare", json={"packs": []})
+    def test_compare_requires_two_report_ids(self, client: TestClient) -> None:
+        response = client.post("/compare", json={"report_ids": []})
         assert response.status_code == 422
 
-    def test_compare_validates_packs(self, client: TestClient) -> None:
+        response = client.post("/compare", json={"report_ids": ["only-one"]})
+        assert response.status_code == 422
+
+    def test_compare_unknown_report_id(self, client: TestClient) -> None:
         response = client.post(
-            "/compare", json={"packs": [{"id": "pack-1"}]}
+            "/compare", json={"report_ids": ["missing-a", "missing-b"]}
+        )
+        assert response.status_code == 422
+
+    def test_compare_rejects_non_decision_pack_report(
+        self, client: TestClient
+    ) -> None:
+        state = client.app.state.api  # type: ignore[attr-defined]
+        state.reports.put("rpt-not-a-pack", {"payload": {"not": "a pack"}})
+        state.reports.put("rpt-also-not", {"payload": None})
+        response = client.post(
+            "/compare",
+            json={"report_ids": ["rpt-not-a-pack", "rpt-also-not"]},
+        )
+        assert response.status_code == 422
+
+    def test_compare_end_to_end(self, client: TestClient) -> None:
+        state = client.app.state.api  # type: ignore[attr-defined]
+        state.reports.put(
+            "rpt-hdfcbank", {"payload": make_decision_pack("HDFCBANK")}
+        )
+        state.reports.put(
+            "rpt-icicibank", {"payload": make_decision_pack("ICICIBANK")}
+        )
+        response = client.post(
+            "/compare",
+            json={"report_ids": ["rpt-hdfcbank", "rpt-icicibank"]},
         )
         assert response.status_code == 200
         body = response.json()
+        assert body["ok"] is True
         assert body["capability"] == "compare_companies"
-        assert body["payload"]["pack_count"] == 1
+        payload = body["payload"]
+        assert payload["status"] == "complete"
+        assert payload["report"]["included_symbols"] == [
+            "HDFCBANK",
+            "ICICIBANK",
+        ]
+        assert payload["report"]["excluded_symbols"] == []
+        assert payload["report"]["pair_observations"]
+
+    def test_compare_refuses_incompatible_industries(
+        self, client: TestClient
+    ) -> None:
+        state = client.app.state.api  # type: ignore[attr-defined]
+        state.reports.put("rpt-bank2", {"payload": make_decision_pack("HDFCBANK")})
+        state.reports.put("rpt-software2", {"payload": make_decision_pack("TCS")})
+        response = client.post(
+            "/compare",
+            json={"report_ids": ["rpt-bank2", "rpt-software2"]},
+        )
+        assert response.status_code == 200
+        body = response.json()
+        assert body["ok"] is True
+        assert body["payload"]["status"] == "refused"
+        assert body["payload"]["report"]["included_symbols"] == []
 
     def test_workflow_requires_context_ref(self, client: TestClient) -> None:
         response = client.post("/workflow/run", json={})
@@ -179,9 +301,16 @@ class TestCompareWorkflowCopilot:
         )
         assert response.status_code == 404
 
-    def test_copilot_requires_context_ref(self, client: TestClient) -> None:
+    def test_copilot_chat_accepts_freeform_without_context_ref(
+        self, client: TestClient
+    ) -> None:
+        """RC1 M7 — /copilot/chat orchestrates without J1 context_ref."""
         response = client.post("/copilot/chat", json={"user_text": "hi"})
-        assert response.status_code == 422
+        assert response.status_code == 200
+        body = response.json()
+        assert body["ok"] is True
+        assert body["result"]["unavailable"] is True
+
 
 
 class TestAuthLogin:

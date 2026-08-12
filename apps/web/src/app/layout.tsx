@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Fraunces, Sora } from "next/font/google";
+import { headers } from "next/headers";
 
 import { AppLayout } from "@/components/layout/AppLayout";
 import { GlobalErrorBoundary } from "@/components/reliability/GlobalErrorBoundary";
@@ -14,6 +15,7 @@ import { NotificationProvider } from "@/providers/NotificationProvider";
 import { PersistenceProvider } from "@/providers/PersistenceProvider";
 import { QueryProvider } from "@/providers/QueryProvider";
 import { ThemeProvider } from "@/providers/ThemeProvider";
+import { AppearanceApplicator } from "@/components/settings-workspace/AppearanceApplicator";
 
 import "./globals.css";
 
@@ -39,14 +41,19 @@ export const metadata: Metadata = {
   description: "DSP AI Indicator web client — backend-driven analysis only",
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  // EPIC-019A — propagate CSP nonce from middleware for Next inline scripts.
+  const nonce = (await headers()).get("x-nonce") ?? undefined;
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className={`${display.variable} ${body.variable} antialiased`}>
+      <body
+        className={`${display.variable} ${body.variable} antialiased`}
+        data-csp-nonce={nonce ? "present" : "absent"}
+      >
         <a
           href="#main-content"
           className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-[100] focus:rounded-md focus:bg-[var(--accent)] focus:px-3 focus:py-2 focus:text-[var(--accent-fg)]"
@@ -54,6 +61,7 @@ export default function RootLayout({
           Skip to main content
         </a>
         <ThemeProvider>
+          <AppearanceApplicator />
           <QueryProvider>
             <MarketDataProvider config={marketConfig}>
               <AIProviderContextProvider>

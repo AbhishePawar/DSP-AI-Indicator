@@ -1,0 +1,74 @@
+{
+  "annotations": { "list": [] },
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 1,
+  "id": null,
+  "links": [],
+  "panels": [
+    {
+      "type": "stat",
+      "title": "API up",
+      "gridPos": { "h": 4, "w": 4, "x": 0, "y": 0 },
+      "targets": [{ "expr": "up{job=\"dsp-api\"}", "refId": "A" }],
+      "options": { "reduceOptions": { "calcs": ["lastNotNull"] } }
+    },
+    {
+      "type": "stat",
+      "title": "Redis up",
+      "gridPos": { "h": 4, "w": 4, "x": 4, "y": 0 },
+      "targets": [{ "expr": "redis_up", "refId": "A" }]
+    },
+    {
+      "type": "stat",
+      "title": "Postgres up",
+      "gridPos": { "h": 4, "w": 4, "x": 8, "y": 0 },
+      "targets": [{ "expr": "pg_up", "refId": "A" }]
+    },
+    {
+      "type": "timeseries",
+      "title": "API latency (avg / last)",
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 4 },
+      "targets": [
+        { "expr": "dsp_api_latency_ms_avg", "legendFormat": "avg", "refId": "A" },
+        { "expr": "dsp_api_latency_ms_last", "legendFormat": "last", "refId": "B" }
+      ]
+    },
+    {
+      "type": "timeseries",
+      "title": "HTTP requests / errors",
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 4 },
+      "targets": [
+        { "expr": "rate(dsp_http_requests_total[5m])", "legendFormat": "req/s", "refId": "A" },
+        { "expr": "rate(dsp_http_errors_total[5m])", "legendFormat": "err/s", "refId": "B" }
+      ]
+    },
+    {
+      "type": "timeseries",
+      "title": "Redis hit ratio",
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 12 },
+      "targets": [
+        { "expr": "dsp:redis_hit_ratio", "legendFormat": "hit_ratio", "refId": "A" }
+      ]
+    },
+    {
+      "type": "timeseries",
+      "title": "Container CPU (compose labels)",
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 12 },
+      "targets": [
+        {
+          "expr": "rate(container_cpu_usage_seconds_total{container_label_com_docker_compose_service=~\"api|web|postgres|redis\"}[5m])",
+          "legendFormat": "{{container_label_com_docker_compose_service}}",
+          "refId": "A"
+        }
+      ]
+    }
+  ],
+  "schemaVersion": 39,
+  "tags": ["dsp", "epic-017", "production"],
+  "templating": { "list": [] },
+  "time": { "from": "now-6h", "to": "now" },
+  "title": "DSP Production Health (EPIC-017)",
+  "uid": "dsp-epic017-health",
+  "version": 1
+}

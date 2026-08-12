@@ -223,9 +223,9 @@ function weightedAvg(
   return vSum / wSum;
 }
 
-function groupWeights(
-  holdings: PortfolioHolding[],
-  keyFn: (h: PortfolioHolding) => string,
+function groupWeights<T extends PortfolioHolding>(
+  holdings: T[],
+  keyFn: (h: T) => string,
   total: number,
 ): AllocationSlice[] {
   const map = new Map<string, number>();
@@ -657,14 +657,14 @@ function finalizePortfolio(args: {
     (h) => h.moatRating ?? "Unavailable",
     total,
   );
-  const mosBuckets = holdings.map((h) => {
+  const mosBuckets: Array<PortfolioHolding & { bucket: string }> = holdings.map((h) => {
     if (h.marginOfSafety == null) return { ...h, bucket: "Unavailable" };
     if (h.marginOfSafety < 0) return { ...h, bucket: "Negative MOS" };
     if (h.marginOfSafety < 10) return { ...h, bucket: "0–10%" };
     if (h.marginOfSafety < 20) return { ...h, bucket: "10–20%" };
     return { ...h, bucket: "20%+" };
   });
-  const mosDistribution = groupWeights(mosBuckets, (h) => (h as { bucket: string }).bucket, total);
+  const mosDistribution = groupWeights(mosBuckets, (h) => h.bucket, total);
 
   const empty = holdings.length === 0 && cashAmount <= 0;
 

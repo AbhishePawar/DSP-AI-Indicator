@@ -13,12 +13,21 @@ export type ResearchCitationId =
   | "Recommendation"
   | "Overview";
 
+export type CopilotSourceRef = {
+  engine?: string;
+  detail?: string | null;
+  note?: string | null;
+};
+
 export type CopilotMessage = {
   id: string;
   role: CopilotRole;
   content: string;
   createdAt: string;
   citations?: ResearchCitationId[];
+  /** RC1 M7 — engine source references from Copilot 2.0 */
+  sources?: CopilotSourceRef[];
+  markdown?: boolean;
 };
 
 export type ConversationContextState = {
@@ -48,6 +57,11 @@ export type CopilotIntent =
   | "explain_growth_quality"
   | "explain_margin_of_safety"
   | "compare_companies"
+  | "explain_risk"
+  | "analyze_portfolio"
+  | "document_qa"
+  | "investment_memo"
+  | "buffett"
   | "unknown";
 
 /** Legacy suggested question ids mapped onto CopilotIntent. */
@@ -63,7 +77,12 @@ export type SuggestedQuestionId =
   | "explain_earnings_quality"
   | "explain_growth_quality"
   | "explain_margin_of_safety"
-  | "compare_companies";
+  | "compare_companies"
+  | "explain_risk"
+  | "analyze_portfolio"
+  | "document_qa"
+  | "investment_memo"
+  | "buffett";
 
 export type SuggestedQuestion = {
   id: SuggestedQuestionId;

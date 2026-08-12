@@ -1,7 +1,9 @@
 # Version Matrix
 
-**Platform API / HTTP contract RC:** **`v1.0.0-rc1`** (frozen — [K1.4](K1_4_PLATFORM_FREEZE.md))  
-**Freeze date (RC):** 2026-07-21  
+**Platform API / HTTP contract:** **`v1.0.0`** (promoted from `v1.0.0-rc1` — frozen behaviour; label only — [K1.4](K1_4_PLATFORM_FREEZE.md))  
+**Product channel (living):** **`2.0.0-rc.1`** / `rc` (EPS-003 · 2026-08-02) — Commercial GA not approved  
+**Root `VERSION` file:** product channel version (`2.0.0-rc.1`) — not the HTTP API contract (`v1.0.0`) and not a collapsed single-version. Release validators select RC vs GA profiles from `PRODUCTION_VERSION_MANIFEST.json` (`scripts/release/release_identity.py`).  
+**Freeze date (RC):** 2026-07-21 · **Stable label (P7.0):** 2026-07-29 · **Release eng (P7.2):** 2026-07-29 · **Perf (P7.3):** 2026-07-29 · **Ops (P7.4):** 2026-07-29 · **GA Candidate (P8.0):** 2026-07-29 · **Version 2.0 RC (EPS-003):** 2026-08-02  
 **Historical RC regression gate:** **1538 / 1538** PASS (do not rewrite history)  
 **Living monorepo regression (STATUS):** see [DSP_STATUS.md](DSP_STATUS.md) (**2299 PASS** as of ASI-002)  
 **ASI integrity pass:** ASI-002 (2026-07-26)  
@@ -21,7 +23,7 @@ Domain milestone tags (not a new HTTP RC):
 
 | Artifact | Version |
 |---|---|
-| **DSP AI Indicator Backend API RC** | **v1.0.0-rc1** |
+| **DSP AI Indicator Backend API** | **v1.0.0** |
 | Root project (`dsp-ai-indicator`) | 0.1.0 (monorepo meta) |
 | Financial Intelligence milestone | `v2.0.0-financial-intelligence` |
 | Business Quality milestone | `v3.0.0-business-quality` |
@@ -32,9 +34,10 @@ Domain milestone tags (not a new HTTP RC):
 
 | Package | Version | Phase |
 |---|---|---|
-| `dsp_platform` | **0.7.1** | K1.0 + EPIC-001 + EPIC-002 adapter |
-| `api_platform` | **0.2.0** | K1.1 + EPIC-002 composition routes |
-| `security_platform` | **0.2.0** | K1.2 + PEP-001 identity foundation |
+| `dsp_platform` | **2.0.0** | Backend package baseline; analyse behaviour frozen |
+| `dsp-web` foundation | **2.0.0-rc.1** | EPS-003 Version 2.0 RC channel `rc`; no new analytical features |
+| `api_platform` | **0.3.0** | K1.1 + composition routes + P1.2 security ops + P1.3 monitoring |
+| `security_platform` | **0.2.1** | K1.2 + PEP-001 identity + P1.2 institutional zone / research export permissions |
 | `production_platform` | **0.3.0** | K1.3 + PEP-002 + PEP-003 observability |
 | `platform_runtime` | **0.1.0** | PEP-004.1 enterprise composition root |
 
@@ -59,7 +62,7 @@ Domain milestone tags (not a new HTTP RC):
 | `orchestration` | 0.2.0 | |
 | `contracts` | 0.3.0 | |
 | `core` | 0.2.0 | |
-| `data_engine` | 0.6.0 | |
+| `data_engine` | 0.6.0 | EPIC-D001…D005 authenticated data + unified orchestrator |
 | `dsp` | 0.2.0 | |
 | `fundamental` | 0.1.0 | |
 | `economic` | **0.1.1** | pyproject aligned ASI-002 |

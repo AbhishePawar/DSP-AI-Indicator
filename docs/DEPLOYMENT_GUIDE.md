@@ -1,58 +1,44 @@
-# Deployment Guide — DSP Web 1.0.0
+# Deployment Guide (RC1 Milestone 10)
 
-## Prerequisites
+## Production checklist
 
-- Frozen backend **v1.0.0-rc1** on `/api/v1`
-- Node 20+ for web build
-- Python venv for API + pytest
+1. Run `python scripts/validate_env.py --profile production` (no placeholder JWT secrets).
+2. Confirm `GET /health/live` and `GET /health/ready` return healthy.
+3. Confirm `GET /ops/version` reports expected `git_sha` / channel.
+4. Confirm Prometheus scrapes `/metrics` (or `/ops/metrics?format=prometheus`).
+5. Confirm Grafana dashboards provisioned (ops + RC1 production-ops).
+6. Confirm backups scheduled (`scripts/ops/backup_postgres.sh` or BackupPort adapter).
+7. Confirm CORS (`DSP_CORS_ORIGINS`) and security headers (API middleware + Caddy).
+8. Confirm rate limits enabled for public edges.
+9. Roll out via Helm/Kustomize with rolling update; watch readiness probes.
+10. Run `scripts/perf/rc1_m10_load_scenarios.py` against staging before cutover.
 
-## API
+## Scaling guide
 
-```bash
-set DSP_ENABLE_SECURITY=true
-uvicorn api_platform.api.app:app --host 0.0.0.0 --port 8000
-```
+- Horizontal: scale API Deployment replicas; sticky sessions not required for JWT APIs.
+- Redis/cache: configure `DSP_REDIS_URL` for shared cache / rate-limit backends.
+- Workers: use existing job queue / background ports — do not invent a second queue.
+- Autoscaling: HPA on CPU/memory + request rate (see Helm values).
 
-## Web
+## Docker
 
-```bash
-cd apps/web
-npm ci
-cp .env.example .env.local
-npm run build
-npm run start
-```
+- Backend: `docker/backend/Dockerfile` (multi-stage, HEALTHCHECK → `/health/ready`)
+- Frontend: `docker/frontend/Dockerfile`
+- Compose: `docker/docker-compose.prod.yml`, `deploy/docker/compose.production.yml`
 
-## Verification
+## Kubernetes
 
-1. `/login` → seeded admin  
-2. `/health` API status  
-3. `/launch` — GO PUBLIC · quality gates PASS  
-4. `/analysis` smoke  
-5. `/portfolio` demo session  
-6. Copilot open/close  
-7. Report Markdown export  
-8. `/docs` documentation hub  
+- Helm: `deploy/helm/dsp/`
+- Kustomize: `deploy/k8s/base` + overlays
+- Probes: liveness `/health/live`, readiness `/health/ready`
+- Secrets: `deploy/k8s/base/secrets.example.yaml` — never commit live secrets
 
-## Headers
+## Monitoring guide
 
-`next.config.ts` ships **enforced** CSP plus nosniff, frame deny, referrer, permissions policy. `productionBrowserSourceMaps=false`.
+- Prometheus scrape `/metrics`
+- Grafana: System Health, API Usage, Errors (existing + RC1 panel)
+- Ops UI: `/ops` (enterprise ops + ProductionOpsPanel)
 
-## Rollback
+## Backup & recovery
 
-Redeploy previous web artifact `0.9.5`; API contracts unchanged.
-
-## Enterprise infrastructure (PEP-002)
-
-Optional Postgres + Redis for local/staging:
-
-```bash
-docker compose --profile infra up postgres redis
-```
-
-See [INFRASTRUCTURE_ARCHITECTURE.md](INFRASTRUCTURE_ARCHITECTURE.md),
-[CONFIGURATION_GUIDE.md](CONFIGURATION_GUIDE.md),
-[LOCAL_DEVELOPMENT.md](LOCAL_DEVELOPMENT.md),
-[PRODUCTION_DEPLOYMENT.md](PRODUCTION_DEPLOYMENT.md).
-
-Default API/web compose still runs without external infra (in-memory ports).
+See [BACKUP_RECOVERY.md](BACKUP_RECOVERY.md).

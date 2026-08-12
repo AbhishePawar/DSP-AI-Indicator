@@ -53,6 +53,12 @@ out/
 .env
 .env.local
 .env.*.local
+.env.production
+.env.staging
+!.env.production.example
+!.env.example
+backups/
+*.sql.gz
 
 # Data
 data/raw/
@@ -77,3 +83,9 @@ Thumbs.db
 tmp/
 temp/
 .cache/
+
+# Playwright (EPIC-019A)
+apps/web/playwright-report/
+apps/web/test-results/
+apps/web/playwright-results.json
+.tmp-browser-cert/

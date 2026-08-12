@@ -33,7 +33,8 @@ export default function AnalysisClient() {
   const { session } = useAuth();
   const searchParams = useSearchParams();
   const range = defaultRange();
-  const [symbol, setSymbol] = useState("AAPL");
+  // RC3-003 — no silent default company; require explicit symbol.
+  const [symbol, setSymbol] = useState("");
   const [start, setStart] = useState(range.start);
   const [end, setEnd] = useState(range.end);
   const [restoredView, setRestoredView] = useState<AnalysisWorkspaceView | null>(

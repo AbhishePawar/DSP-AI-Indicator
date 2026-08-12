@@ -1,0 +1,5 @@
+# EPIC-017 thin wrapper — delegates to canonical production compose.
+# Usage (repo root):
+#   docker compose --env-file .env.production -f deploy/docker/compose.production.yml up -d
+include:
+  - path: ../../docker/docker-compose.production.yml

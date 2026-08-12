@@ -1,6 +1,10 @@
-/** Primary navigation map — L1.1 + optional Advisor (V2.0 demo gate). */
+/** Primary navigation map — L1.1 + optional Advisor (V2.0 demo gate).
+ * EPIC-F003: institutional shell uses `@/lib/shell` SHELL_NAV;
+ * this module remains for legacy surfaces and breadcrumb fallbacks.
+ */
 
 import { isAdvisorDemoEnabled } from "@/lib/advisor/isAdvisorDemoEnabled";
+import { breadcrumbsForPath } from "@/lib/shell/navigationRegistry";
 
 export type NavItem = {
   href: string;
@@ -45,6 +49,11 @@ const CORE_NAV: readonly NavItem[] = [
     description: "Company research over composition results",
   },
   {
+    href: "/research/institutional",
+    label: "Institutional",
+    description: "Institutional research reports & explainability workspace",
+  },
+  {
     href: "/copilot",
     label: "Copilot",
     description: "AI research explainability assistant",
@@ -79,58 +88,7 @@ export function getPrimaryNav(): NavItem[] {
   return next;
 }
 
+/** Breadcrumbs — delegated to F003 route registry. */
 export function breadcrumbsFor(pathname: string): { href: string; label: string }[] {
-  const crumbs: { href: string; label: string }[] = [
-    { href: "/dashboard", label: "Home" },
-  ];
-  if (pathname === "/dashboard" || pathname === "/") {
-    return crumbs;
-  }
-  const nav = getPrimaryNav();
-  const match = nav.find(
-    (item) => pathname === item.href || pathname.startsWith(`${item.href}/`),
-  );
-  if (match) {
-    crumbs.push({ href: match.href, label: match.label });
-    if (pathname.startsWith("/advisor/clients/") && pathname !== "/advisor/clients") {
-      crumbs.push({ href: pathname, label: "Client" });
-    }
-    if (match.href === "/research" && pathname.startsWith("/research/")) {
-      const ticker = pathname.split("/")[2];
-      if (ticker) {
-        crumbs.push({
-          href: pathname,
-          label: decodeURIComponent(ticker).toUpperCase(),
-        });
-      }
-    }
-  } else if (pathname === "/health") {
-    crumbs.push({ href: "/health", label: "Health" });
-  } else if (pathname === "/diagnostics") {
-    crumbs.push({ href: "/diagnostics", label: "Diagnostics" });
-  } else if (pathname === "/profile") {
-    crumbs.push({ href: "/profile", label: "Profile" });
-  } else if (pathname === "/intelligence") {
-    crumbs.push({ href: "/intelligence", label: "Intelligence" });
-  } else if (pathname === "/companies") {
-    crumbs.push({ href: "/companies", label: "Companies" });
-  } else if (pathname === "/screening") {
-    crumbs.push({ href: "/screening", label: "Screening" });
-  } else if (pathname === "/documentation") {
-    crumbs.push({ href: "/documentation", label: "Documentation" });
-  } else if (pathname === "/platform") {
-    crumbs.push({ href: "/platform", label: "Platform" });
-  } else if (pathname.startsWith("/reports/")) {
-    crumbs.push({ href: "/reports", label: "Reports" });
-    crumbs.push({ href: pathname, label: "Report" });
-  } else if (pathname.startsWith("/launch")) {
-    crumbs.push({ href: "/launch", label: "Launch" });
-  } else if (pathname.startsWith("/docs")) {
-    crumbs.push({ href: "/docs", label: "Docs" });
-  } else if (pathname.startsWith("/beta")) {
-    crumbs.push({ href: "/beta", label: "Private Beta" });
-  } else if (pathname.startsWith("/advisor")) {
-    crumbs.push({ href: "/advisor", label: "Advisor" });
-  }
-  return crumbs;
+  return breadcrumbsForPath(pathname);
 }

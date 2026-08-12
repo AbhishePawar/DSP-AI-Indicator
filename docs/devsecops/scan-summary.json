@@ -1,0 +1,29 @@
+{
+  "epic": "019A",
+  "generated_at": "2026-08-04T06:25:30.983773+00:00",
+  "tools": {
+    "generate_sbom": {
+      "exit": 0
+    },
+    "cyclonedx_npm": {
+      "exit": 0,
+      "available": true
+    },
+    "trivy": {
+      "available": false
+    },
+    "pip_audit": {
+      "exit": 1,
+      "available": true,
+      "via": "python -m pip_audit"
+    },
+    "npm_audit": {
+      "exit": 1,
+      "available": true
+    }
+  },
+  "artifacts": [
+    "docs/security/SBOM_GENERATION_REPORT.md",
+    "docs\\devsecops\\sbom-web.cdx.json"
+  ]
+}

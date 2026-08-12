@@ -22,7 +22,7 @@ Duplicate this section once per modified package in the ASI task brief.
 |---|---|---|
 | **Repository Integrity** | PASS / FAIL / N/A | Discoverable; registered; no orphan refs |
 | **Documentation** | PASS / FAIL / N/A | README accurate; freeze/non-goals clear |
-| **Architecture** | PASS / FAIL / N/A | Boundaries respected; arch test if required |
+| **Architecture** | PASS / FAIL / N/A | Boundaries; Tier-0 CV; **RS-001…RS-010** if research report packages touched |
 | **Dependencies** | PASS / FAIL / N/A | Allowed deps only; no new illegal edges |
 | **Public API** | PASS / FAIL / N/A | Exports stable; no unintended surface growth |
 | **Testing** | PASS / FAIL / N/A | Relevant tests pass; additive only |

@@ -71,8 +71,33 @@ export type DecisionSummary = {
   [key: string]: unknown;
 };
 
+export type RiskCategoryPayload = {
+  category: string;
+  available: boolean;
+  level?: string | null;
+  source_stage?: string | null;
+  source_rating?: string | null;
+  evidence?: string[];
+  message?: string | null;
+};
+
+export type CompanyRiskPayload = {
+  business_risk: RiskCategoryPayload;
+  financial_risk: RiskCategoryPayload;
+  regulatory_risk: RiskCategoryPayload;
+  technology_risk: RiskCategoryPayload;
+  currency_risk: RiskCategoryPayload;
+  customer_concentration_risk: RiskCategoryPayload;
+  overall_risk_level?: string | null;
+  categories_available: number;
+  categories_total: number;
+  limitations?: string[];
+};
+
 export type PipelinePayload = {
   ok: boolean;
+  /** Structural risk aggregation stage (financial_strength + economic_moat only). */
+  risk?: CompanyRiskPayload | null;
   metadata?: {
     pipeline_version?: string;
     platform_version?: string;

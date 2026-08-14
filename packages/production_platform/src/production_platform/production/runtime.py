@@ -19,6 +19,7 @@ from production_platform.production.configuration import (
 from production_platform.production.exceptions import (
     ConfigurationError,
     DatabaseUnavailableError,
+    ProviderError,
     RedisUnavailableError,
     StartupError,
 )
@@ -210,6 +211,12 @@ def build_runtime_infrastructure(
 
     try:
         infra = InfrastructureBundle.from_environment(environ=env_map)
+    except ProviderError as exc:
+        # Only the database adapter propagates ProviderError from composition;
+        # report why PostgreSQL could not be built instead of a generic error.
+        raise DatabaseUnavailableError(
+            f"PostgreSQL required for this profile but adapter is unavailable: {exc}"
+        ) from exc
     except Exception as exc:  # noqa: BLE001
         raise StartupError("infrastructure composition failed") from exc
 

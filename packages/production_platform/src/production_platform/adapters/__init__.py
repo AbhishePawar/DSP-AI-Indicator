@@ -12,6 +12,7 @@ from production_platform.adapters.object_storage import (
 )
 from production_platform.adapters.postgres import (
     PostgresDatabasePort,
+    build_postgres,
     try_build_postgres,
 )
 from production_platform.adapters.redis_stack import (
@@ -29,6 +30,7 @@ __all__ = [
     "RedisRateLimitPort",
     "RedisSessionPort",
     "S3CompatibleStoragePort",
+    "build_postgres",
     "try_build_postgres",
     "try_build_redis_stack",
     "try_build_s3_storage",

@@ -22,6 +22,7 @@ from production_platform.production.cache import (
 from production_platform.production.clock import ensure_clock_port
 from production_platform.production.configuration import (
     ConfigurationManager,
+    Environment,
     EnvSecretsPort,
     InMemorySecretsPort,
     ProductionConfiguration,
@@ -31,6 +32,7 @@ from production_platform.production.database import (
     InMemoryDatabasePort,
     ensure_database_port,
 )
+from production_platform.production.exceptions import ConfigurationError, ProviderError
 from production_platform.production.india import (
     IndiaOperationalProfile,
     build_india_profile,
@@ -179,20 +181,26 @@ class InfrastructureBundle:
         database = ensure_database_port(None)
         db_name = type(database).__name__
         if cfg.database.url:
-            from production_platform.adapters.postgres import try_build_postgres
+            from production_platform.adapters.postgres import build_postgres
 
-            pg = try_build_postgres(
-                cfg.database.url,
-                connect_timeout=cfg.database.connect_timeout_seconds,
-                application_name=cfg.database.application_name,
-            )
-            if pg is not None:
+            try:
+                pg = build_postgres(
+                    cfg.database.url,
+                    connect_timeout=cfg.database.connect_timeout_seconds,
+                    application_name=cfg.database.application_name,
+                )
+            except (ConfigurationError, ProviderError, ImportError) as exc:
+                # Production must never silently degrade to InMemoryDatabasePort;
+                # the real reason has to reach startup logs.
+                if cfg.environment is Environment.PRODUCTION:
+                    raise
+                notes.append(
+                    f"PostgreSQL unavailable or driver missing ({exc}); "
+                    "using InMemoryDatabasePort"
+                )
+            else:
                 database = pg
                 db_name = type(pg).__name__
-            else:
-                notes.append(
-                    "PostgreSQL unavailable or driver missing; using InMemoryDatabasePort"
-                )
 
         cache: CachePort = InMemoryCachePort()
         rate_limit: RateLimitPort = InMemoryRateLimitPort()

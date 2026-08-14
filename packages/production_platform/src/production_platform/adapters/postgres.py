@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import importlib
+import re
 from collections.abc import Iterator
 from contextlib import contextmanager
 from typing import Any
@@ -10,7 +11,21 @@ from typing import Any
 from production_platform.production.exceptions import ConfigurationError, ProviderError
 from production_platform.production.interfaces import DatabasePort, TransactionPort
 
-__all__ = ["PostgresDatabasePort", "try_build_postgres"]
+__all__ = [
+    "PostgresDatabasePort",
+    "build_postgres",
+    "redact_dsn_secrets",
+    "try_build_postgres",
+]
+
+_URI_CREDENTIALS = re.compile(r"(?i)(?P<scheme>[a-z0-9+.\-]+://)(?P<user>[^:/?#@\s]+):[^@\s]*@")
+_KEYWORD_PASSWORD = re.compile(r"(?i)\bpassword\s*=\s*(?:'[^']*'|\"[^\"]*\"|\S+)")
+
+
+def redact_dsn_secrets(text: str) -> str:
+    """Strip DSN passwords so adapter failures are safe for ops logs."""
+    redacted = _URI_CREDENTIALS.sub(r"\g<scheme>\g<user>:***@", text)
+    return _KEYWORD_PASSWORD.sub("password=***", redacted)
 
 
 class _PostgresTransaction:
@@ -68,7 +83,15 @@ class PostgresDatabasePort:
                 application_name=self._application_name,
             )
         except Exception as exc:  # noqa: BLE001
-            raise ProviderError(f"postgres connect failed: {exc}") from exc
+            raise ProviderError(
+                f"postgres connect failed: {redact_dsn_secrets(str(exc))}"
+            ) from exc
+
+    def verify(self) -> None:
+        """Round-trip ``SELECT 1``, raising ProviderError with the real reason."""
+        with self._connect() as conn, conn.cursor() as cur:
+            cur.execute("SELECT 1")
+            cur.fetchone()
 
     def ping(self) -> bool:
         try:
@@ -117,6 +140,27 @@ class PostgresDatabasePort:
             conn.close()
 
 
+def build_postgres(
+    dsn: str | None,
+    *,
+    connect_timeout: float = 5.0,
+    application_name: str = "dsp",
+) -> DatabasePort:
+    """Return a verified PostgresDatabasePort or raise the real failure reason.
+
+    Raises ConfigurationError when the DSN is absent/blank and ProviderError
+    when the driver is missing or the connection cannot be established.
+    Messages are redacted and never contain DSN passwords.
+    """
+    if not dsn or not dsn.strip():
+        raise ConfigurationError("postgres DSN must not be empty")
+    port = PostgresDatabasePort(
+        dsn, connect_timeout=connect_timeout, application_name=application_name
+    )
+    port.verify()
+    return port
+
+
 def try_build_postgres(
     dsn: str | None,
     *,
@@ -127,12 +171,9 @@ def try_build_postgres(
     if not dsn:
         return None
     try:
-        port = PostgresDatabasePort(
+        return build_postgres(
             dsn, connect_timeout=connect_timeout, application_name=application_name
         )
-        if not port.ping():
-            return None
-        return port
     except (ConfigurationError, ProviderError, ImportError):
         return None
 

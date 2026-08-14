@@ -137,7 +137,10 @@ class ProductionBundle:
 
         extra_checks = ()
         if infra is not None:
-            extra_checks = (lambda: _infra_db_check(infra),)
+            extra_checks = (
+                lambda: _infra_db_check(infra),
+                lambda: _infra_redis_check(infra),
+            )
 
         health_mgr = HealthManager(
             configuration=config_mgr,
@@ -214,6 +217,27 @@ class ProductionBundle:
     def get_metadata(self) -> ProductionMetadata:
         return self.diagnostics_manager.metadata()
 
+    @classmethod
+    def from_environment(
+        cls,
+        *,
+        environ: dict[str, str] | None = None,
+        force_offline: bool = False,
+        with_observability: bool = True,
+        feature_flags: dict[str, bool] | None = None,
+    ) -> ProductionBundle:
+        """Compose ProductionBundle from env-driven InfrastructureBundle."""
+        from production_platform.production.runtime import build_runtime_infrastructure
+
+        infra = build_runtime_infrastructure(
+            environ=environ, force_offline=force_offline
+        )
+        return cls.create(
+            infrastructure=infra,
+            with_observability=with_observability,
+            feature_flags=feature_flags,
+        )
+
 
 def _infra_db_check(infra: InfrastructureBundle):  # type: ignore[no-untyped-def]
     from production_platform.production.health import HealthCheckResult, HealthStatus
@@ -223,4 +247,25 @@ def _infra_db_check(infra: InfrastructureBundle):  # type: ignore[no-untyped-def
         name="database",
         status=HealthStatus.PASS if ok else HealthStatus.FAIL,
         message=f"adapter={infra.diagnostics.database_adapter} ping={'ok' if ok else 'fail'}",
+    )
+
+
+def _infra_redis_check(infra: InfrastructureBundle):  # type: ignore[no-untyped-def]
+    from production_platform.production.health import HealthCheckResult, HealthStatus
+
+    probes = infra.health_checks().get("redis", {})
+    status_raw = str(probes.get("status", "skip"))
+    if status_raw == "pass":
+        status = HealthStatus.PASS
+    elif status_raw == "fail":
+        status = HealthStatus.FAIL
+    else:
+        status = HealthStatus.SKIP
+    return HealthCheckResult(
+        name="redis_stack",
+        status=status,
+        message=(
+            f"status={status_raw} cache={infra.diagnostics.cache_adapter} "
+            f"fallback={infra.diagnostics.redis_fallback_active}"
+        ),
     )

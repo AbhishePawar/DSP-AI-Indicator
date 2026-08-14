@@ -2,37 +2,49 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useEffect } from "react";
 
-import { breadcrumbsFor } from "@/lib/navigation";
+import {
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbSeparator,
+} from "@/components/ds";
+import { breadcrumbsForPath, useUiStore } from "@/lib/shell";
 
 export function Breadcrumbs() {
   const pathname = usePathname();
-  const crumbs = breadcrumbsFor(pathname);
+  const crumbs = breadcrumbsForPath(pathname);
+  const recordRecentPage = useUiStore((s) => s.recordRecentPage);
+
+  useEffect(() => {
+    const current = crumbs[crumbs.length - 1];
+    if (current) {
+      recordRecentPage(pathname, current.label);
+    }
+  }, [pathname, recordRecentPage]); // eslint-disable-line react-hooks/exhaustive-deps -- record on path change only
 
   return (
-    <nav aria-label="Breadcrumb" className="text-xs text-[var(--muted)]">
-      <ol className="flex flex-wrap items-center gap-1">
-        {crumbs.map((crumb, i) => {
-          const last = i === crumbs.length - 1;
-          return (
-            <li key={`${crumb.href}-${i}`} className="flex items-center gap-1">
-              {i > 0 ? <span aria-hidden>/</span> : null}
-              {last ? (
-                <span aria-current="page" className="text-[var(--fg)]">
-                  {crumb.label}
-                </span>
-              ) : (
+    <Breadcrumb className="text-xs">
+      {crumbs.map((crumb, i) => {
+        const last = i === crumbs.length - 1;
+        return (
+          <span key={`${crumb.href}-${i}`} className="contents">
+            {i > 0 ? <BreadcrumbSeparator /> : null}
+            {last ? (
+              <BreadcrumbItem current>{crumb.label}</BreadcrumbItem>
+            ) : (
+              <li className="inline-flex items-center">
                 <Link
                   href={crumb.href}
-                  className="hover:text-[var(--accent)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
+                  className="rounded-sm text-[var(--muted)] transition hover:text-[var(--fg)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
                 >
                   {crumb.label}
                 </Link>
-              )}
-            </li>
-          );
-        })}
-      </ol>
-    </nav>
+              </li>
+            )}
+          </span>
+        );
+      })}
+    </Breadcrumb>
   );
 }

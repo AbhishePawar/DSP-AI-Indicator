@@ -1,4 +1,15 @@
-# Known Limitations — Web 2.4.0
+# Known Limitations — Web 2.0.0 / Platform 1.7.0
+
+**Living channel:** P7.0 Production Infrastructure. Prior P5.2/P6.1 limitations remain unless closed below.
+**P7 condition:** Live ACME/HTTPS and backup/rollback drills require an operator host with real DNS.
+
+## P5.2 — Closed Beta / RC (ops)
+
+- Beta invite/feedback store is **process-local** unless operators export/import snapshots (`/admin/beta/snapshot`). Multi-replica shared state is deferred.
+- Screenshot **binary** uploads are not supported — screenshot notes only (trust boundary).
+- In-memory API rate limiting is not safe across multiple API replicas without an edge/Redis limiter.
+- Web HSTS should be terminated at the edge; API HSTS is enabled via prod compose flags.
+- Live multi-tenant soak metrics must be attached by operators; automated certification does not replace customer soak exports.
 
 ## Valuation Intelligence Engine (V1.1–V1.2 · **0.2.0-discounted-cash-flow**)
 
@@ -67,3 +78,10 @@
 - Portfolio Intelligence is session-demo (no broker sync) — by design
 - Beta feedback/issues are device-local only
 - No broker APIs, trading, tax, or alerts
+
+## EPIC-019A — Commercial engineering (pointers)
+
+- Canonical split: `docs/commercial/ENGINEERING_READY_CHECKLIST.md` vs `EXTERNAL_DEPLOYMENT_PREREQUISITES.md`
+- CSP style `'unsafe-inline'` residual: `docs/security/CSP_REVIEW.md`
+- Soak 8–24h remains an ops prerequisite: `docs/testing/SOAK_TEST_REPORT.md`
+- Doc index: `docs/releases/DOC_INDEX_COMMERCIAL.md`

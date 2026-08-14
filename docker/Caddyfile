@@ -1,0 +1,79 @@
+# DSP AI Indicator — Caddy reverse proxy (EPIC-P7.0)
+# Automatic HTTPS via Let's Encrypt when DSP_PUBLIC_DOMAIN is a real public hostname.
+# For local dry-run set DSP_TLS_MODE=internal (self-signed).
+
+{
+	email {$DSP_ACME_EMAIL:ops@localhost}
+	auto_https {$DSP_AUTO_HTTPS:on}
+	admin 0.0.0.0:2019
+	servers {
+		metrics
+	}
+}
+
+# Public application hostname (web UI)
+{$DSP_PUBLIC_DOMAIN:localhost} {
+	encode gzip zstd
+
+	header {
+		Strict-Transport-Security "max-age=31536000; includeSubDomains; preload"
+		X-Content-Type-Options "nosniff"
+		X-Frame-Options "DENY"
+		Referrer-Policy "strict-origin-when-cross-origin"
+		Permissions-Policy "camera=(), microphone=(), geolocation=()"
+		-Server
+	}
+
+	# Next.js static assets — long cache
+	@static path /_next/static/*
+	header @static Cache-Control "public, max-age=31536000, immutable"
+
+	handle /api/v1/* {
+		reverse_proxy api:8000
+	}
+
+	handle /health* {
+		reverse_proxy api:8000
+	}
+
+	handle /metrics {
+		reverse_proxy api:8000
+	}
+
+	handle {
+		reverse_proxy web:3000
+	}
+
+	log {
+		output file /var/log/caddy/access.log {
+			roll_size 20MiB
+			roll_keep 10
+		}
+		format json
+	}
+}
+
+# Optional dedicated API hostname
+{$DSP_API_DOMAIN:api.localhost} {
+	encode gzip zstd
+
+	header {
+		Strict-Transport-Security "max-age=31536000; includeSubDomains; preload"
+		X-Content-Type-Options "nosniff"
+		X-Frame-Options "DENY"
+		Referrer-Policy "strict-origin-when-cross-origin"
+		-Server
+	}
+
+	handle {
+		reverse_proxy api:8000
+	}
+
+	log {
+		output file /var/log/caddy/api-access.log {
+			roll_size 20MiB
+			roll_keep 10
+		}
+		format json
+	}
+}

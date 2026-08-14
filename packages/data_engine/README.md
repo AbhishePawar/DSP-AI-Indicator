@@ -77,6 +77,33 @@ As of Sprint 6.3, this package contains three real provider integrations:
   annual/quarterly financial statements via Yahoo Finance quoteSummary
 - `FredEconomicAdapter` (Sprint 6.3) — US macroeconomic series via FRED
 
+**EPIC-D001** adds authenticated **market quote** snapshots (`data_engine.market_quote`)
+for RS-002 / CV-001: port, registry, null/memory/HTTP adapters, cache, rate limit,
+retry, circuit breaker, validation, provenance, metrics, and health. See
+[EPIC_D001_MARKET_DATA_PROVIDER.md](../../docs/EPIC_D001_MARKET_DATA_PROVIDER.md).
+
+**EPIC-D002** adds authenticated **financial statements** (`data_engine.financial_statement`)
+for RS-003 / CV-001 / CV-002: annual/quarterly/TTM periods, company resolution,
+provenance, and the same resilience stack — retrieval/validation only (no
+calculations). See
+[EPIC_D002_PROVIDER_GUIDE.md](../../docs/EPIC_D002_PROVIDER_GUIDE.md).
+
+**EPIC-D003** adds authenticated **corporate actions** (`data_engine.corporate_actions`)
+for splits, dividends, buybacks, mergers, and related events — retrieval/validation
+only (no adjusted prices). See
+[EPIC_D003_PROVIDER_GUIDE.md](../../docs/EPIC_D003_PROVIDER_GUIDE.md).
+
+**EPIC-D004** adds authenticated **historical time-series** (`data_engine.historical_series`)
+for OHLCV (daily/weekly/monthly), market cap, volume, enterprise value, and
+pass-through fundamentals/ratios history — retrieval/validation only (no
+indicators). See
+[EPIC_D004_PROVIDER_GUIDE.md](../../docs/EPIC_D004_PROVIDER_GUIDE.md).
+
+**EPIC-D005** adds the **Unified Data Orchestrator** (`data_engine.data_orchestrator`)
+that parallel-fetches D001–D004 into one read-only bundle with provenance,
+health, and partial-failure status. See
+[EPIC_D005_ORCHESTRATOR_DESIGN.md](../../docs/EPIC_D005_ORCHESTRATOR_DESIGN.md).
+
 Sprints 2.1–2.3 built the ports, provider framework, and normalization
 pipeline that made all adapters additive rather than redesigns.
 

@@ -12,8 +12,9 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 COPY pyproject.toml README.md ./
 COPY packages ./packages
 
+# P7.3 — install runtime/API deps only (exclude black/mypy/pytest from image)
 RUN python -m pip install --upgrade pip && \
-    pip install -e ".[dev]"
+    pip install -e ".[api]"
 
 # --- Runtime ---
 FROM python:3.12-slim AS runtime
@@ -21,6 +22,7 @@ FROM python:3.12-slim AS runtime
 WORKDIR /app
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
+    PYTHONOPTIMIZE=1 \
     DSP_ENVIRONMENT=production
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
@@ -39,7 +41,7 @@ RUN chmod +x /app/scripts/start-api.sh && \
 USER dsp
 EXPOSE 8000
 
-HEALTHCHECK --interval=30s --timeout=5s --start-period=20s --retries=3 \
-  CMD curl -fsS http://127.0.0.1:8000/health/live || exit 1
+HEALTHCHECK --interval=30s --timeout=5s --start-period=25s --retries=3 \
+  CMD curl -fsS http://127.0.0.1:8000/health/ready || exit 1
 
 CMD ["/app/scripts/start-api.sh"]

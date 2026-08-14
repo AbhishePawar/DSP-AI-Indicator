@@ -1,0 +1,156 @@
+{
+  "annotations": { "list": [] },
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 1,
+  "id": null,
+  "links": [],
+  "panels": [
+    {
+      "type": "stat",
+      "title": "System Health (API up)",
+      "id": 1,
+      "gridPos": { "h": 4, "w": 4, "x": 0, "y": 0 },
+      "targets": [{ "expr": "up{job=\"dsp-api\"}", "refId": "A" }],
+      "fieldConfig": {
+        "defaults": {
+          "mappings": [
+            { "type": "value", "options": { "0": { "text": "DOWN", "color": "red" }, "1": { "text": "UP", "color": "green" } } }
+          ]
+        }
+      }
+    },
+    {
+      "type": "stat",
+      "title": "Postgres up",
+      "id": 2,
+      "gridPos": { "h": 4, "w": 4, "x": 4, "y": 0 },
+      "targets": [{ "expr": "pg_up", "refId": "A" }]
+    },
+    {
+      "type": "stat",
+      "title": "Redis up",
+      "id": 3,
+      "gridPos": { "h": 4, "w": 4, "x": 8, "y": 0 },
+      "targets": [{ "expr": "redis_up", "refId": "A" }]
+    },
+    {
+      "type": "stat",
+      "title": "API uptime (s)",
+      "id": 4,
+      "gridPos": { "h": 4, "w": 4, "x": 12, "y": 0 },
+      "targets": [{ "expr": "dsp_uptime_seconds", "refId": "A" }]
+    },
+    {
+      "type": "stat",
+      "title": "Latency last (ms)",
+      "id": 5,
+      "gridPos": { "h": 4, "w": 4, "x": 16, "y": 0 },
+      "targets": [{ "expr": "dsp_api_latency_ms_last", "refId": "A" }]
+    },
+    {
+      "type": "stat",
+      "title": "Build info",
+      "id": 6,
+      "gridPos": { "h": 4, "w": 4, "x": 20, "y": 0 },
+      "targets": [{ "expr": "dsp_build_info", "legendFormat": "{{version}}", "refId": "A" }]
+    },
+    {
+      "type": "timeseries",
+      "title": "API Requests / Error Rate",
+      "id": 10,
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 4 },
+      "targets": [
+        { "expr": "rate(dsp_http_requests_total[5m])", "legendFormat": "req/s", "refId": "A" },
+        { "expr": "rate(dsp_http_errors_total[5m])", "legendFormat": "err/s", "refId": "B" }
+      ]
+    },
+    {
+      "type": "timeseries",
+      "title": "Response Time (ms)",
+      "id": 11,
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 4 },
+      "targets": [
+        { "expr": "dsp_api_latency_ms_last", "legendFormat": "last", "refId": "A" },
+        { "expr": "dsp_api_latency_ms_avg", "legendFormat": "avg", "refId": "B" }
+      ]
+    },
+    {
+      "type": "timeseries",
+      "title": "CPU (containers)",
+      "id": 20,
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 12 },
+      "targets": [
+        {
+          "expr": "rate(container_cpu_usage_seconds_total{container_label_com_docker_compose_service=~\"api|web|postgres|redis|proxy\"}[5m])",
+          "legendFormat": "{{container_label_com_docker_compose_service}}",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "type": "timeseries",
+      "title": "Memory working set",
+      "id": 21,
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 12 },
+      "targets": [
+        {
+          "expr": "container_memory_working_set_bytes{container_label_com_docker_compose_service=~\"api|web|postgres|redis\"}",
+          "legendFormat": "{{container_label_com_docker_compose_service}}",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "type": "timeseries",
+      "title": "Disk / filesystem usage",
+      "id": 22,
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 20 },
+      "targets": [
+        {
+          "expr": "container_fs_usage_bytes{container_label_com_docker_compose_service=~\"postgres|redis|api\"}",
+          "legendFormat": "{{container_label_com_docker_compose_service}}",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "type": "timeseries",
+      "title": "Active analysis / research / export (counters rate)",
+      "id": 30,
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 20 },
+      "targets": [
+        { "expr": "rate(dsp_analysis_requests_total[5m])", "legendFormat": "analysis", "refId": "A" },
+        { "expr": "rate(dsp_research_requests_total[5m])", "legendFormat": "research", "refId": "B" },
+        { "expr": "rate(dsp_export_requests_total[5m])", "legendFormat": "export", "refId": "C" }
+      ]
+    },
+    {
+      "type": "timeseries",
+      "title": "Auth / rate-limit events",
+      "id": 31,
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 28 },
+      "targets": [
+        { "expr": "rate(dsp_auth_failures_total[5m])", "legendFormat": "auth fail", "refId": "A" },
+        { "expr": "rate(dsp_rate_limit_events_total[5m])", "legendFormat": "429", "refId": "B" }
+      ]
+    },
+    {
+      "type": "stat",
+      "title": "Background / restarts",
+      "id": 32,
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 28 },
+      "targets": [
+        { "expr": "dsp_system_restarts_total", "legendFormat": "restarts", "refId": "A" }
+      ]
+    }
+  ],
+  "schemaVersion": 39,
+  "tags": ["dsp", "p7.4", "operations"],
+  "templating": { "list": [] },
+  "time": { "from": "now-1h", "to": "now" },
+  "timezone": "Asia/Kolkata",
+  "title": "DSP Operations Dashboard",
+  "uid": "dsp-operations-p74",
+  "version": 1
+}

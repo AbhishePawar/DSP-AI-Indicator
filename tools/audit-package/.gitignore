@@ -1,0 +1,15 @@
+# Regenerable heavy artefacts — run generate-audit-package.ps1 / .sh
+DSP_AI_INDICATOR_AUDIT_PACKAGE/archives/*.zip
+DSP_AI_INDICATOR_AUDIT_PACKAGE/source/
+DSP_AI_INDICATOR_AUDIT_PACKAGE/configs/
+DSP_AI_INDICATOR_AUDIT_PACKAGE/workflows/
+DSP_AI_INDICATOR_AUDIT_PACKAGE/docs/project/
+DSP_AI_INDICATOR_AUDIT_PACKAGE/docs/design/
+DSP_AI_INDICATOR_AUDIT_PACKAGE/docs/governance/
+DSP_AI_INDICATOR_AUDIT_PACKAGE/docs/research/
+DSP_AI_INDICATOR_AUDIT_PACKAGE/docs/releases/
+DSP_AI_INDICATOR_AUDIT_PACKAGE/docs/reviews/
+DSP_AI_INDICATOR_AUDIT_PACKAGE/docs/root/
+# Keep manifests & reports & guides in git; ignore regenerated size logs
+*.tmp
+*.log

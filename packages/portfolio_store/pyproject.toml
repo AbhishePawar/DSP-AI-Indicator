@@ -1,0 +1,14 @@
+[build-system]
+requires = ["setuptools>=69.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "portfolio_store"
+version = "1.0.0"
+description = "DSP Portfolio persistence — Portfolio/Holdings/Transactions/Watchlist ownership store (RC1 Milestone 3)"
+requires-python = ">=3.11"
+license = { text = "Proprietary" }
+dependencies = []
+
+[tool.setuptools.packages.find]
+where = ["src"]

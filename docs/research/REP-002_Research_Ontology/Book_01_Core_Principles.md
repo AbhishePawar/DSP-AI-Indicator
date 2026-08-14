@@ -1,0 +1,1218 @@
+# DSP AI Indicator
+
+## REP-002 — Research Ontology
+
+Version: 1.0.0
+
+Status: Approved
+
+Owner: DSP Research Team
+
+Governed By:
+DSP Research Constitution v1.0
+
+---
+
+# Book 01 — Core Principles
+
+## Purpose
+
+Define the foundational research language that governs how truth, evidence, facts, observations, assumptions, inferences, and confidence are distinguished and used across DSP AI Indicator.
+
+## Scope
+
+Core epistemological and analytical primitives required by every subsequent ontology book. This book does not define domain metrics, valuation methods, recommendation logic, APIs, or user-interface presentation.
+
+## Relationship to Later Books
+
+Book 01 is the base layer of REP-002. All later books must preserve Truth, Evidence, Fact, Observation, Assumption, Inference, and Confidence distinctions and must not redefine them.
+
+## Dependencies
+
+None. Book 01 has no ontology-book predecessors.
+
+## Book Status
+
+Approved
+
+## Version
+
+1.0.0
+
+## Concepts
+
+---
+
+# Concept Metadata
+
+| Field | Value |
+|---|---|
+| Concept ID | CP-001 |
+| Concept Name | Truth |
+| Category | Core Principle |
+| Ontology Book | Book 01 — Core Principles |
+| Status | Approved |
+| Version | 1.0.0 |
+| Author | DSP Research Team |
+| Reviewer | DSP Research Team |
+| Approved Date | 2026-08-01 |
+
+---
+
+# Core Definition
+
+## Definition
+
+Truth is the most accurate representation of reality that can be established using the best available evidence at a given point in time. It is independent of opinion, preference, market sentiment, or desired outcomes, and may evolve only when new, verifiable evidence becomes available.
+
+## Purpose
+
+Truth establishes the foundation for every research activity within DSP AI Indicator. Every analytical conclusion must originate from verifiable evidence rather than opinion, speculation, or unsupported assumptions.
+
+## Why It Matters
+
+Consistent investment research is only possible when every analysis begins with an objective understanding of reality. Truth provides the foundation upon which evidence, analysis, valuation, recommendations, and validation are built.
+
+---
+
+# Characteristics
+
+## Characteristics
+
+Truth should be:
+
+- Evidence-based
+- Objective
+- Verifiable
+- Transparent
+- Reproducible
+- Time-aware
+- Independent of emotion
+
+## What It Is Not
+
+Truth is not:
+
+- Opinion
+- Rumour
+- Prediction
+- Assumption
+- Estimate
+- Marketing
+- Hope
+- Fear
+- AI speculation
+
+---
+
+# Evidence
+
+## Evidence Requirements
+
+Truth should be supported by one or more of the following:
+
+- Audited financial statements
+- Official company filings
+- Regulatory disclosures
+- Deterministic calculations
+- Reliable primary sources
+- Verifiable datasets
+
+## Confidence Drivers
+
+Confidence in truth increases when:
+
+- Multiple independent sources agree.
+- Primary evidence exists.
+- Evidence is recent.
+- Data quality is high.
+- Results are reproducible.
+
+## Validation
+
+Truth is validated through:
+
+- Independent verification
+- Cross-source consistency
+- Reproducibility
+- Historical auditability
+
+---
+
+# Relationships
+
+## Related Concepts
+
+- CP-002 Evidence
+- CP-003 Fact
+- CP-004 Observation
+- CP-005 Assumption
+- CP-006 Inference
+- CP-007 Confidence
+- GV-002 Explainability
+- GV-007 Research Transparency
+
+## Dependencies
+
+Depends on:
+
+- None (base concept)
+
+## Successor Concepts
+
+Supports:
+
+- Evidence
+- Fact
+- Observation
+- Assumption
+- Inference
+- Confidence
+- All subsequent REP-002 books
+
+---
+
+# Research Guidance
+
+## Research Implication
+
+Every analytical conclusion within DSP AI Indicator must trace back to one or more verifiable sources of evidence. When evidence is insufficient, the platform must explicitly communicate uncertainty rather than present unsupported conclusions.
+
+## Examples
+
+Example of Truth:
+
+"The company reported a ROCE of 24% in its audited annual report."
+
+Examples that are NOT Truth:
+
+"This company is amazing."
+
+"This stock will definitely double."
+
+## Limitations
+
+Truth may be limited by:
+
+- Incomplete disclosures
+- Accounting judgement
+- Reporting delays
+- Fraud or manipulation
+- Unknown future events
+
+---
+
+# Governance
+
+## Revision History
+
+Version: 1.0.0
+
+Status: Approved
+
+Created By: DSP Research Team
+
+## Review Notes
+
+Normalized to Ontology Template Version 2 packaging for REP-002 v1.0.0 without altering the Truth definition.
+
+---
+
+# Concept Metadata
+
+| Field | Value |
+|---|---|
+| Concept ID | CP-002 |
+| Concept Name | Evidence |
+| Category | Core Principle |
+| Ontology Book | Book 01 — Core Principles |
+| Status | Approved |
+| Version | 1.0.0 |
+| Author | DSP Research Team |
+| Reviewer | DSP Research Team |
+| Approved Date | 2026-08-01 |
+
+---
+
+# Core Definition
+
+## Definition
+
+Evidence is verifiable information, data, observation, or documentation that supports, contradicts, or helps establish the truth of a claim. Within DSP AI Indicator, evidence is the foundation upon which every research conclusion is built.
+
+## Purpose
+
+Evidence provides the objective basis for evaluating companies, validating assumptions, supporting conclusions, and maintaining research integrity.
+
+## Why It Matters
+
+Without reliable evidence, research becomes opinion. High-quality investment analysis depends on collecting, evaluating, and documenting evidence before reaching conclusions.
+
+---
+
+# Characteristics
+
+## Characteristics
+
+Evidence should be:
+
+- Verifiable
+- Relevant
+- Reliable
+- Traceable
+- Reproducible
+- Timely
+- Independent where possible
+
+## What It Is Not
+
+Evidence is not:
+
+- Opinion
+- Speculation
+- Rumour
+- Marketing claims
+- Unsupported assumptions
+- Emotional conviction
+- AI-generated assertions without verification
+
+---
+
+# Evidence
+
+## Evidence Requirements
+
+Acceptable evidence includes:
+
+- Audited financial statements
+- Annual reports
+- Quarterly reports
+- Regulatory filings
+- Official company disclosures
+- Exchange filings
+- Independent industry reports
+- Primary datasets
+- Deterministic calculations
+
+## Confidence Drivers
+
+Confidence increases when:
+
+- Multiple independent sources agree.
+- Sources are primary rather than secondary.
+- Information is current.
+- Data quality is high.
+- Evidence is reproducible.
+
+## Validation
+
+Evidence is validated through:
+
+- Source verification
+- Cross-source consistency
+- Authenticity checks
+- Timeliness assessment
+- Reproducibility
+
+---
+
+# Relationships
+
+## Related Concepts
+
+- CP-001 Truth
+- Fact
+- Observation
+- Validation
+- Confidence
+
+## Dependencies
+
+Depends on:
+
+- CP-001 Truth
+
+## Successor Concepts
+
+Supports:
+
+- Fact
+- Observation
+- Inference
+- Confidence
+- Validation
+
+---
+
+# Research Guidance
+
+## Research Implication
+
+Every material conclusion produced by DSP AI Indicator must be supported by sufficient evidence. If evidence is incomplete, conflicting, or unavailable, the platform must communicate that uncertainty explicitly rather than present unsupported conclusions.
+
+## Examples
+
+Valid Evidence:
+
+- Company's audited annual report
+- Stock exchange filing
+- Official earnings release
+- Regulatory disclosure
+
+Not Evidence:
+
+- Anonymous social media post
+- Market rumours
+- Personal opinion
+- Promotional material without verification
+
+## Limitations
+
+Evidence may be limited by:
+
+- Reporting delays
+- Incomplete disclosures
+- Accounting judgement
+- Data quality issues
+- Fraud
+- Information asymmetry
+
+---
+
+# Governance
+
+## Revision History
+
+Version: 1.0.0
+
+Status: Approved
+Created By: DSP Research Team
+
+## Review Notes
+
+Initial institutional definition for REP-002.
+
+---
+
+# Concept Metadata
+
+| Field | Value |
+|---|---|
+| Concept ID | CP-003 |
+| Concept Name | Fact |
+| Category | Core Principle |
+| Ontology Book | Book 01 — Core Principles |
+| Status | Approved |
+| Version | 1.0.0 |
+| Author | DSP Research Team |
+| Reviewer | DSP Research Team |
+| Approved Date | 2026-08-01 |
+
+---
+
+# Core Definition
+
+## Definition
+
+A fact is a statement that has been established as true through sufficient, verifiable evidence. Within DSP AI Indicator, facts represent validated knowledge that can be relied upon as inputs for research, valuation, and decision-making.
+
+## Purpose
+
+Facts provide the verified foundation upon which research conclusions, financial analysis, and investment decisions are built.
+
+## Why It Matters
+
+Reliable research depends on distinguishing verified facts from assumptions, opinions, forecasts, and interpretations. This distinction reduces bias and improves analytical consistency.
+
+---
+
+# Characteristics
+
+## Characteristics
+
+A fact should be:
+
+- Verifiable
+- Objective
+- Evidence-supported
+- Reproducible
+- Time-specific
+- Clearly documented
+
+## What It Is Not
+
+A fact is not:
+
+- Opinion
+- Prediction
+- Assumption
+- Interpretation
+- Speculation
+- Rumour
+- Marketing claim
+
+---
+
+# Evidence
+
+## Evidence Requirements
+
+A fact should be supported by:
+
+- Verified evidence
+- Primary sources where available
+- Official documentation
+- Reliable datasets
+- Independent confirmation when appropriate
+
+## Confidence Drivers
+
+Confidence increases when:
+
+- Evidence is independently verified.
+- Multiple reliable sources agree.
+- Documentation is complete.
+- Information is current and traceable.
+
+## Validation
+
+Facts are validated through:
+
+- Evidence verification
+- Cross-source consistency
+- Source authenticity
+- Historical consistency
+- Independent review where appropriate
+
+---
+
+# Relationships
+
+## Related Concepts
+
+- CP-001 Truth
+- CP-002 Evidence
+- Observation
+- Validation
+- Confidence
+
+## Dependencies
+
+Depends on:
+
+- CP-001 Truth
+- CP-002 Evidence
+
+## Successor Concepts
+
+Supports:
+
+- Observation
+- Inference
+- Confidence
+- Research Conclusion
+
+---
+
+# Research Guidance
+
+## Research Implication
+
+Every factual statement used within DSP AI Indicator must be traceable to supporting evidence. Unverified statements must never be treated as facts.
+
+## Examples
+
+Facts:
+
+- "The company reported revenue of ₹5,200 crore in FY2025."
+- "The annual report states the company has zero long-term debt."
+
+Not Facts:
+
+- "The company will outperform competitors."
+- "Management will probably increase dividends."
+
+## Limitations
+
+Facts may become outdated as new information becomes available. A fact reflects verified reality at a specific point in time and should be reassessed when new evidence emerges.
+
+---
+
+# Governance
+
+## Revision History
+
+Version: 1.0.0
+
+Status: Approved
+Created By: DSP Research Team
+
+## Review Notes
+
+Initial institutional definition for REP-002.
+
+---
+
+# Concept Metadata
+
+| Field | Value |
+|---|---|
+| Concept ID | CP-004 |
+| Concept Name | Observation |
+| Category | Core Principle |
+| Ontology Book | Book 01 — Core Principles |
+| Status | Approved |
+| Version | 1.0.0 |
+| Author | DSP Research Team |
+| Reviewer | DSP Research Team |
+| Approved Date | 2026-08-01 |
+
+---
+
+# Core Definition
+
+## Definition
+
+An observation is the objective recording of information obtained through direct examination, measurement, or inspection without interpretation or inference. Within DSP AI Indicator, observations capture what is seen, measured, or reported before analytical conclusions are formed.
+
+## Purpose
+
+Observations provide the raw inputs for research by documenting objective findings that can later be validated, interpreted, and incorporated into investment analysis.
+
+## Why It Matters
+
+Separating observations from interpretations reduces analytical bias and improves research discipline. Accurate observations ensure that conclusions are based on what actually occurred rather than on assumptions or expectations.
+
+---
+
+# Characteristics
+
+## Characteristics
+
+An observation should be:
+
+- Objective
+- Specific
+- Measurable where possible
+- Evidence-based
+- Time-stamped
+- Clearly documented
+
+## What It Is Not
+
+An observation is not:
+
+- Interpretation
+- Opinion
+- Assumption
+- Prediction
+- Recommendation
+- Speculation
+
+---
+
+# Evidence
+
+## Evidence Requirements
+
+Observations should be supported by:
+
+- Direct measurements
+- Official disclosures
+- Financial statements
+- Verified datasets
+- Primary research sources
+- Reliable documentation
+
+## Confidence Drivers
+
+Confidence increases when:
+
+- Observations come from primary sources.
+- Measurements are repeatable.
+- Multiple independent observations agree.
+- Documentation is complete and traceable.
+
+## Validation
+
+Observations are validated through:
+
+- Source verification
+- Data consistency checks
+- Reproducibility
+- Cross-source comparison
+- Documentation review
+
+---
+
+# Relationships
+
+## Related Concepts
+
+- CP-001 Truth
+- CP-002 Evidence
+- CP-003 Fact
+- Assumption
+- Inference
+- Confidence
+
+## Dependencies
+
+Depends on:
+
+- CP-001 Truth
+- CP-002 Evidence
+- CP-003 Fact
+
+## Successor Concepts
+
+Supports:
+
+- Assumption
+- Inference
+- Confidence
+- Research Conclusion
+
+---
+
+# Research Guidance
+
+## Research Implication
+
+Research should clearly distinguish observations from interpretations. Every analytical conclusion must identify the underlying observations from which it was derived.
+
+## Examples
+
+Observations:
+
+- "Revenue increased by 18% year-over-year."
+- "Operating margin declined from 24% to 21%."
+- "Management announced a ₹500 crore capital expenditure programme."
+
+Not Observations:
+
+- "The company is becoming stronger."
+- "Margins will recover next year."
+- "Management made the right decision."
+
+## Limitations
+
+Observations describe what is recorded at a particular point in time. They may be incomplete, revised, or require additional context before meaningful conclusions can be drawn.
+
+---
+
+# Governance
+
+## Revision History
+
+Version: 1.0.0
+
+Status: Approved
+Created By: DSP Research Team
+
+## Review Notes
+
+Initial institutional definition for REP-002.
+
+---
+
+# Concept Metadata
+
+| Field | Value |
+|---|---|
+| Concept ID | CP-005 |
+| Concept Name | Assumption |
+| Category | Core Principle |
+| Ontology Book | Book 01 — Core Principles |
+| Status | Approved |
+| Version | 1.0.0 |
+| Author | DSP Research Team |
+| Reviewer | DSP Research Team |
+| Approved Date | 2026-08-01 |
+
+---
+
+# Core Definition
+
+## Definition
+
+An assumption is an explicitly stated premise accepted temporarily for analysis when complete facts or evidence are unavailable. Within DSP AI Indicator, assumptions are documented, justified, and clearly distinguished from verified facts.
+
+## Purpose
+
+Assumptions enable research, forecasting, and valuation to proceed despite uncertainty while maintaining transparency about the basis of analysis.
+
+## Why It Matters
+
+Investment analysis frequently requires estimating future outcomes or filling gaps where complete information is unavailable. Clearly identifying assumptions prevents analytical errors by ensuring they are never confused with verified facts.
+
+---
+
+# Characteristics
+
+## Characteristics
+
+An assumption should be:
+
+- Explicitly stated
+- Reasonable
+- Evidence-informed where possible
+- Testable
+- Transparent
+- Subject to revision
+
+## What It Is Not
+
+An assumption is not:
+
+- A verified fact
+- Objective evidence
+- An observation
+- A guarantee
+- A conclusion
+- A certainty
+
+---
+
+# Evidence
+
+## Evidence Requirements
+
+Assumptions should be supported by:
+
+- Historical evidence
+- Industry trends
+- Economic data
+- Comparable companies
+- Relevant management guidance (appropriately qualified)
+- Reasoned analysis
+
+## Confidence Drivers
+
+Confidence increases when:
+
+- Supporting evidence is strong.
+- Historical precedent exists.
+- Independent analyses reach similar assumptions.
+- Sensitivity analysis demonstrates robustness.
+- Assumptions remain valid under multiple scenarios.
+
+## Validation
+
+Assumptions are validated through:
+
+- Comparison with actual outcomes
+- Sensitivity analysis
+- Scenario analysis
+- Periodic review
+- Evidence updates
+- Retrospective performance evaluation
+
+---
+
+# Relationships
+
+## Related Concepts
+
+- CP-001 Truth
+- CP-002 Evidence
+- CP-003 Fact
+- CP-004 Observation
+- Inference
+- Confidence
+
+## Dependencies
+
+Depends on:
+
+- CP-001 Truth
+- CP-002 Evidence
+- CP-003 Fact
+- CP-004 Observation
+
+## Successor Concepts
+
+Supports:
+
+- Inference
+- Valuation Models
+- Scenario Analysis
+- Confidence Assessment
+
+---
+
+# Research Guidance
+
+## Research Implication
+
+Every assumption used within DSP AI Indicator must be explicitly documented and clearly distinguishable from verified facts. Material assumptions should be periodically reviewed and updated whenever new evidence becomes available.
+
+## Examples
+
+Assumptions:
+
+- Revenue will grow at 12% annually over the next five years.
+- Operating margins will gradually return to historical averages.
+- Capital expenditure will normalize after the current expansion cycle.
+
+Not Assumptions:
+
+- FY2025 revenue was ₹5,200 crore.
+- The annual report confirms zero long-term debt.
+- The company declared a dividend of ₹12 per share.
+
+## Limitations
+
+Assumptions may prove incorrect as business conditions, markets, regulations, or company performance change. Research conclusions should therefore communicate their dependence on the assumptions used.
+
+---
+
+# Governance
+
+## Revision History
+
+Version: 1.0.0
+
+Status: Approved
+Created By: DSP Research Team
+
+## Review Notes
+
+Initial institutional definition for REP-002.
+
+---
+
+# Concept Metadata
+
+| Field | Value |
+|---|---|
+| Concept ID | CP-006 |
+| Concept Name | Inference |
+| Category | Core Principle |
+| Ontology Book | Book 01 — Core Principles |
+| Status | Approved |
+| Version | 1.0.0 |
+| Author | DSP Research Team |
+| Reviewer | DSP Research Team |
+| Approved Date | 2026-08-01 |
+
+---
+
+# Core Definition
+
+## Definition
+
+An inference is a logical conclusion derived from facts, observations, evidence, and explicitly documented assumptions. Within DSP AI Indicator, inferences represent reasoned analytical judgments rather than directly observed or verified facts.
+
+## Purpose
+
+Inferences transform verified information into meaningful analytical conclusions that support valuation, risk assessment, business quality evaluation, and investment decision-making.
+
+## Why It Matters
+
+Investment research rarely depends on facts alone. Analysts must interpret available information to draw conclusions. Clearly identifying inferences ensures analytical transparency and distinguishes reasoning from observed reality.
+
+---
+
+# Characteristics
+
+## Characteristics
+
+An inference should be:
+
+- Logically derived
+- Evidence-supported
+- Transparent
+- Traceable
+- Reproducible
+- Explicitly documented
+
+## What It Is Not
+
+An inference is not:
+
+- A verified fact
+- Raw observation
+- Objective evidence
+- Speculation without reasoning
+- Personal opinion
+- A guarantee of future outcomes
+
+---
+
+# Evidence
+
+## Evidence Requirements
+
+Inferences should be supported by:
+
+- Verified facts
+- Documented observations
+- Reliable evidence
+- Explicit assumptions
+- Logical reasoning
+
+## Confidence Drivers
+
+Confidence increases when:
+
+- Supporting evidence is strong.
+- Facts are well established.
+- Assumptions are reasonable and documented.
+- Multiple analytical methods reach similar conclusions.
+- Alternative explanations have been considered.
+
+## Validation
+
+Inferences are validated through:
+
+- Logical consistency review
+- Evidence traceability
+- Scenario testing
+- Sensitivity analysis
+- Independent analytical review
+
+---
+
+# Relationships
+
+## Related Concepts
+
+- CP-001 Truth
+- CP-002 Evidence
+- CP-003 Fact
+- CP-004 Observation
+- CP-005 Assumption
+- Confidence
+
+## Dependencies
+
+Depends on:
+
+- CP-001 Truth
+- CP-002 Evidence
+- CP-003 Fact
+- CP-004 Observation
+- CP-005 Assumption
+
+## Successor Concepts
+
+Supports:
+
+- Confidence Assessment
+- Investment Thesis
+- Risk Analysis
+- Valuation Conclusions
+- Final Recommendation
+
+---
+
+# Research Guidance
+
+## Research Implication
+
+Every inference produced by DSP AI Indicator must be traceable to its supporting facts, observations, evidence, and assumptions. Analytical conclusions should never be presented without a clear reasoning chain.
+
+## Examples
+
+Valid Inferences:
+
+- "Consistent margin expansion suggests improving operational efficiency."
+- "Declining leverage combined with higher cash generation indicates strengthening financial flexibility."
+- "Sustained high ROIC may indicate the presence of a durable competitive advantage."
+
+Not Inferences:
+
+- "Revenue increased by 18%." (Fact)
+- "Operating margin was 24%." (Observation)
+- "Revenue will definitely double." (Unsupported prediction)
+
+## Limitations
+
+Inferences depend on the quality of available information and assumptions. Different analysts may reach different conclusions from the same evidence, making transparency and traceability essential.
+
+---
+
+# Governance
+
+## Revision History
+
+Version: 1.0.0
+
+Status: Approved
+Created By: DSP Research Team
+
+## Review Notes
+
+Initial institutional definition for REP-002.
+
+---
+
+# Concept Metadata
+
+| Field | Value |
+|---|---|
+| Concept ID | CP-007 |
+| Concept Name | Confidence |
+| Category | Core Principle |
+| Ontology Book | Book 01 — Core Principles |
+| Status | Approved |
+| Version | 1.0.0 |
+| Author | DSP Research Team |
+| Reviewer | DSP Research Team |
+| Approved Date | 2026-08-01 |
+
+---
+
+# Core Definition
+
+## Definition
+
+Confidence is the quantified degree of certainty associated with an inference, conclusion, valuation, or recommendation based on the quality, quantity, consistency, and reliability of supporting evidence. Within DSP AI Indicator, confidence expresses how strongly research supports a conclusion without implying absolute certainty.
+
+## Purpose
+
+Confidence communicates the strength of analytical conclusions and enables users to distinguish between highly reliable findings and conclusions that depend on limited evidence or uncertain assumptions.
+
+## Why It Matters
+
+Investment decisions involve uncertainty. Explicit confidence assessments improve transparency, reduce overconfidence, and help users understand the limitations of research conclusions.
+
+---
+
+# Characteristics
+
+## Characteristics
+
+Confidence should be:
+
+- Evidence-based
+- Transparent
+- Traceable
+- Consistent
+- Reproducible
+- Continuously reviewable
+
+## What It Is Not
+
+Confidence is not:
+
+- Proof
+- Certainty
+- Truth
+- A guarantee
+- Personal conviction
+- A substitute for evidence
+
+---
+
+# Evidence
+
+## Evidence Requirements
+
+Confidence assessments should consider:
+
+- Evidence quality
+- Evidence quantity
+- Source reliability
+- Consistency across evidence
+- Strength of supporting facts
+- Validity of assumptions
+- Robustness of inferences
+
+## Confidence Drivers
+
+Confidence increases when:
+
+- Evidence is abundant and independently verified.
+- Facts are well established.
+- Observations are consistent.
+- Assumptions are limited and well supported.
+- Multiple analytical methods reach similar conclusions.
+- Historical outcomes validate previous reasoning.
+
+## Validation
+
+Confidence assessments are validated through:
+
+- Back-testing
+- Outcome comparison
+- Independent review
+- Sensitivity analysis
+- Scenario analysis
+- Periodic recalibration
+
+---
+
+# Relationships
+
+## Related Concepts
+
+- CP-001 Truth
+- CP-002 Evidence
+- CP-003 Fact
+- CP-004 Observation
+- CP-005 Assumption
+- CP-006 Inference
+
+## Dependencies
+
+Depends on:
+
+- CP-001 Truth
+- CP-002 Evidence
+- CP-003 Fact
+- CP-004 Observation
+- CP-005 Assumption
+- CP-006 Inference
+
+## Successor Concepts
+
+Supports:
+
+- Investment Recommendation
+- Risk Assessment
+- Portfolio Decisions
+- Research Governance
+- Decision Frameworks
+
+---
+
+# Research Guidance
+
+## Research Implication
+
+Every material conclusion produced by DSP AI Indicator should include an explicit confidence assessment that reflects the supporting evidence, assumptions, and reasoning. Confidence must be periodically reassessed as new information becomes available.
+
+## Examples
+
+High Confidence:
+
+- Multiple years of audited financial statements consistently support the conclusion.
+- Independent valuation methods produce similar intrinsic values.
+
+Low Confidence:
+
+- Limited disclosure.
+- Heavy reliance on assumptions.
+- Conflicting evidence.
+- Significant uncertainty regarding future outcomes.
+
+## Limitations
+
+Confidence represents the current strength of available evidence and reasoning. It does not eliminate uncertainty and should evolve as additional evidence becomes available or assumptions change.
+
+---
+
+# Governance
+
+## Revision History
+
+Version: 1.0.0
+
+Status: Approved
+Created By: DSP Research Team
+
+## Review Notes
+
+Initial institutional definition for REP-002.

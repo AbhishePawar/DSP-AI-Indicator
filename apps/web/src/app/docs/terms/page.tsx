@@ -1,27 +1,18 @@
 import { DocArticle } from "@/components/launch/DocArticle";
 import { PageHeader } from "@/components/layout/PageHeader";
+import { LEGAL_DOCUMENTS, LEGAL_DOC_VERSION } from "@/lib/legal";
 
 export default function TermsPage() {
+  const doc = LEGAL_DOCUMENTS.terms;
   return (
     <div>
-      <PageHeader title="Terms of Use" description="Web 1.0.0" />
+      <PageHeader
+        title={doc.title}
+        description={`Web ${LEGAL_DOC_VERSION} · ${doc.repoDoc}`}
+      />
       <DocArticle
-        title="Terms of Use (1.0.0)"
-        sections={[
-          {
-            heading: "Acceptable use",
-            body: [
-              "Use DSP for research intelligence and education within your organization's authorization.",
-              "Do not attempt to bypass authentication, scrape undisclosed APIs, or reverse-engineer restricted components.",
-            ],
-          },
-          {
-            heading: "No brokerage",
-            body: [
-              "DSP does not provide brokerage, order execution, or custody. Portfolio tools are demonstrative unless separately contracted.",
-            ],
-          },
-        ]}
+        title={`${doc.title} (${LEGAL_DOC_VERSION})`}
+        sections={doc.sections}
       />
     </div>
   );

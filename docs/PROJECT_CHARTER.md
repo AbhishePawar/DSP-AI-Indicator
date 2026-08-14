@@ -4,7 +4,7 @@
 |---|---|
 | **Version** | `1.0.0` |
 | **Status** | **Active** |
-| **Last updated** | 2026-07-27 |
+| **Last updated** | 2026-07-28 |
 | **Audience** | Leadership · product · engineering · research · compliance |
 | **Authority** | Canonical project charter; operational companion → [DSP_MASTER_PROTOCOL.md](DSP_MASTER_PROTOCOL.md) |
 
@@ -45,8 +45,13 @@ DSP is an **AI Investment Intelligence Platform**. It is explicitly **not** a st
 
 ## 4. Core Values
 
+Canonical register → [CORE_VALUES.md](CORE_VALUES.md) · [ARCHITECTURE_BIBLE.md](ARCHITECTURE_BIBLE.md).
+
 | Value | Meaning in practice |
 |---|---|
+| **CV-001 Data Authenticity First** | **NON-NEGOTIABLE** — no fabricated / placeholder financial or market numbers; show **Data unavailable.** ([CV_001_DATA_AUTHENTICITY_FIRST.md](CV_001_DATA_AUTHENTICITY_FIRST.md)) |
+| **CV-002…CV-010 Tier-0** | Source-before-score · explainability · determinism · transparency · traceability · auditability · research-first · governance-over-convenience · quality-over-speed ([CV_002_TO_010_TIER0_CORE_VALUES.md](CV_002_TO_010_TIER0_CORE_VALUES.md)) |
+| **RS-001…RS-010 Research Standards** | Minimum production research report content ([RESEARCH_STANDARDS.md](RESEARCH_STANDARDS.md)) |
 | **Truth over convenience** | Missing data is labeled Unavailable — never fabricated |
 | **Evidence over opinion** | Filings and statements rank above news and narrative |
 | **Clarity over complexity** | Summary first; progressive disclosure for depth |
@@ -242,11 +247,13 @@ A feature, sprint, or epic is **DONE** when **all** conditions are met:
 |---|---|
 | 1 | **GREEN** — build, tests, architecture, API compatibility, determinism pass |
 | 2 | **Quality Gate** — [IMPLEMENTATION_QUALITY_GATE.md](IMPLEMENTATION_QUALITY_GATE.md) satisfied |
-| 3 | **Trust Standard** — [USER_TRUST_STANDARD.md](USER_TRUST_STANDARD.md) honored in all user-visible outputs |
-| 4 | **Ownership** — exactly one package owns new durable artifacts |
-| 5 | **Documentation** — STATUS, VERSION_MATRIX, and sprint brief updated if release-facing |
-| 6 | **Freeze respected** — no unauthorized edits to protected modules |
-| 7 | **ADR filed** — if architecture, dependency direction, or public API changed |
+| 3 | **Tier-0 CV-001…CV-010** — [CORE_VALUES.md](CORE_VALUES.md) honored |
+| 3b | **RS-001…RS-010** — [RESEARCH_STANDARDS.md](RESEARCH_STANDARDS.md) when research reports in scope |
+| 4 | **Trust Standard** — [USER_TRUST_STANDARD.md](USER_TRUST_STANDARD.md) honored in all user-visible outputs |
+| 5 | **Ownership** — exactly one package owns new durable artifacts |
+| 6 | **Documentation** — STATUS, VERSION_MATRIX, and sprint brief updated if release-facing |
+| 7 | **Freeze respected** — no unauthorized edits to protected modules |
+| 8 | **ADR filed** — if architecture, dependency direction, or public API changed |
 
 "Mostly done" or "works on my machine" is not DONE.
 

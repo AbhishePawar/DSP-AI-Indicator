@@ -90,6 +90,28 @@ Every displayed value must declare its **epistemic category**:
 Missing data must **never** be hidden.  
 Never fabricate values, analyst opinions, or forecasts.
 
+### CV-001 — Data Authenticity First (mandatory)
+
+Production research output **MUST NOT** show fabricated, placeholder, guessed,
+example, dummy, or invented financial/market numbers. Display
+**Data unavailable.** instead.
+
+Allowed numeric sources only: Market Data · Financial Statement Data ·
+DSP AI Calculated · User Input · Derived (authenticated inputs only).
+
+Honesty category **Estimated Value** applies only to real deterministic /
+model outputs from authenticated inputs — never to inventing a missing market
+price, market cap, or statement line.
+
+Full rule → [CV_001_DATA_AUTHENTICITY_FIRST.md](CV_001_DATA_AUTHENTICITY_FIRST.md) ·
+[CORE_VALUES.md](CORE_VALUES.md).
+
+Violation = **Architecture Violation**.
+
+Tier-0 companions → [CV_002_TO_010_TIER0_CORE_VALUES.md](CV_002_TO_010_TIER0_CORE_VALUES.md)
+(**CV-002** source-before-score · **CV-005** prefer Unable to calculate ·
+**CV-003** explainability · **CV-004** determinism).
+
 ---
 
 ## 6. TRANSPARENT AI

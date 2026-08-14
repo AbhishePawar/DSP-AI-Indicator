@@ -87,6 +87,31 @@ def analyse(
         response.errors = list(response.errors) + [
             f"pipeline degraded; failed_stage={failed}"
         ]
+
+    # EPIC-011B — best-effort immutable snapshot capture AFTER pipeline completes.
+    # Never alters engines, recommendation logic, or the analyse response contract.
+    try:
+        import os
+
+        if os.getenv("DSP_RI_AUTO_CAPTURE", "1").lower() in {
+            "1",
+            "true",
+            "yes",
+            "on",
+        }:
+            capture_payload = (
+                public_payload if isinstance(public_payload, dict) else {}
+            )
+            state.platform.capture_research_intelligence_snapshot(
+                capture_payload,
+                ticker=body.ticker,
+                company=body.company or None,
+                exchange=body.exchange,
+                allow_duplicate=True,
+            )
+    except Exception:  # noqa: BLE001
+        pass
+
     return response
 
 

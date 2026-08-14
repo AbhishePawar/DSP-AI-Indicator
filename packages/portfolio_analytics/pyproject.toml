@@ -1,0 +1,17 @@
+[build-system]
+requires = ["setuptools>=69.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "portfolio_analytics"
+version = "0.1.0"
+description = "DSP Portfolio Intelligence Analytics — quantitative engine (performance, risk, simulation, constraints, tax)"
+requires-python = ">=3.11"
+license = { text = "Proprietary" }
+dependencies = [
+    "core",
+    "quantitative_risk",
+]
+
+[tool.setuptools.packages.find]
+where = ["src"]

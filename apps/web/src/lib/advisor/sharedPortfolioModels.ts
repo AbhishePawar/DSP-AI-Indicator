@@ -149,7 +149,7 @@ export function seedSharedPortfolioActivity(): SharedPortfolioActivityItem[] {
       portfolioId: "mp-lib-balanced",
     },
     ...presented,
-  ].sort((a, b) => b.at.localeCompare(a.at));
+  ].sort((a, b) => b.at.localeCompare(a.at)) as SharedPortfolioActivityItem[];
 }
 
 export function getPortfolioById(id: string): ModelPortfolioDraft | undefined {

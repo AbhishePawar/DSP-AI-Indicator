@@ -2,7 +2,7 @@ import type { UserDataBundle } from "./types";
 
 const STORAGE_PREFIX = "dsp.userData.v1";
 
-let memoryCache = new Map<string, UserDataBundle>();
+const memoryCache = new Map<string, UserDataBundle>();
 
 function storageKey(subject: string): string {
   return `${STORAGE_PREFIX}.${subject}`;

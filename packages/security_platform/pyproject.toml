@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "security-platform"
-version = "0.2.0"
+version = "0.2.1"
 description = "DSP Authentication & Security Platform — JWT / RBAC / identity (K1.2 + PEP-001)"
 requires-python = ">=3.11"
 license = { text = "Proprietary" }

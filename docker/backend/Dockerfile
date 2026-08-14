@@ -14,7 +14,7 @@ COPY packages ./packages
 
 # P7.3 — install runtime/API deps only (exclude black/mypy/pytest from image)
 RUN python -m pip install --upgrade pip && \
-    pip install -e ".[api]"
+    pip install ".[api]"
 
 # --- Runtime ---
 FROM python:3.12-slim AS runtime

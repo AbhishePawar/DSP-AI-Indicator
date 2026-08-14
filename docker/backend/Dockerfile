@@ -33,6 +33,9 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && rm -rf /var/lib/apt/lists/*
 
 COPY --from=builder /usr/local /usr/local
+
+# RC1 runtime verification — prove installed API package survives builder→runtime copy
+RUN DSP_ENVIRONMENT=development python -c "import sys, api_platform; from api_platform.api.app import app; print('RUNTIME API IMPORT OK:', api_platform.__file__); print('RUNTIME APP OK:', app.title); print('RUNTIME PYTHON:', sys.executable)"
 COPY pyproject.toml README.md ./
 COPY packages ./packages
 COPY scripts/start-api.sh /app/scripts/start-api.sh

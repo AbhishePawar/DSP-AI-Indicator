@@ -16,6 +16,9 @@ COPY packages ./packages
 RUN python -m pip install --upgrade pip && \
     pip install ".[api]"
 
+# Fail the image build if api_platform cannot be imported after install
+RUN python -c "import api_platform; from api_platform.api.app import app; print('API IMPORT OK:', api_platform.__file__); print('APP OK:', app.title)"
+
 # --- Runtime ---
 FROM python:3.12-slim AS runtime
 

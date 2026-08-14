@@ -53,6 +53,9 @@ steps:
       - --region=$_REGION
       - --platform=managed
       - --port=8000
+      - --set-env-vars=DSP_ENVIRONMENT=production,DSP_REGION=ap-south-1,DSP_INVESTMENT_DATA_PROVIDER=upstox
+      - --set-secrets=DSP_DATABASE_URL=dsp-database-url:latest,DSP_UPSTOX_ANALYTICS_TOKEN=dsp-upstox-analytics-token:latest
+      - --add-cloudsql-instances=project-34de429e-3c43-4ae7-b75:asia-south1:dsp-postgres
       - --quiet
 
 images:

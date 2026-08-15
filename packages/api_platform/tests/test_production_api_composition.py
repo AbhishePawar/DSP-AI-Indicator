@@ -9,6 +9,7 @@ production adapters — and never by the legacy Yahoo/FRED
 
 from __future__ import annotations
 
+from datetime import date
 from typing import Any
 
 import pytest
@@ -327,3 +328,44 @@ class TestDevelopmentBehaviourIntact:
         response = client.post("/api/v1/validate", json=_analyse_body())
         assert response.status_code == 200
         assert response.json()["valid"] is True
+
+
+class TestLegacyAnalyzeCompanyUnchanged:
+    """The legacy route keeps its own semantics; readiness no longer depends on it.
+
+    Relaxing ``dependency_wiring`` to SKIP must not silently reroute
+    ``/analyze/company`` onto the canonical pipeline, nor loosen its auth.
+    """
+
+    def test_legacy_route_still_requires_authentication(
+        self, client: TestClient
+    ) -> None:
+        response = client.post(
+            "/analyze/company",
+            json={
+                "symbol": "AAPL",
+                "asset_class": "equity",
+                "currency": "USD",
+                "start": "2024-01-01",
+                "end": "2024-06-01",
+            },
+        )
+        assert response.status_code == 401
+
+    def test_legacy_platform_path_remains_fail_closed(self) -> None:
+        """Without the legacy service the legacy capability still refuses to answer."""
+        from contracts import Instrument
+        from contracts.enums import AssetClass
+
+        platform = build_default_platform()
+        request = platform.make_request(
+            Instrument(
+                symbol="AAPL", asset_class=AssetClass.EQUITY, currency="USD"
+            ),
+            date(2024, 1, 1),
+            date(2024, 6, 1),
+        )
+        result = platform.analyze_company(request)
+        assert result.ok is False
+        assert result.errors
+        assert "analysis service" in " ".join(result.errors).lower()

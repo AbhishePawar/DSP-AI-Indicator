@@ -56,6 +56,38 @@ class TestPsycopgInstallPath:
         )
         assert '".[api]"' in dockerfile
 
+    def test_dockerfile_verifies_psycopg_in_builder_and_runtime(self) -> None:
+        dockerfile = (_REPO_ROOT / "docker" / "backend" / "Dockerfile").read_text(
+            encoding="utf-8"
+        )
+        assert "import psycopg, psycopg.pq" in dockerfile
+        assert "BUILDER PSYCOPG OK" in dockerfile
+        assert "RUNTIME PSYCOPG OK" in dockerfile
+        assert "pip show psycopg psycopg-binary" in dockerfile
+        # Image must install via root .[api], not a nested package postgres extra.
+        assert 'pip install ".[api]"' in dockerfile
+        pip_lines = [
+            line.strip()
+            for line in dockerfile.splitlines()
+            if "pip install" in line and not line.strip().startswith("#")
+        ]
+        assert pip_lines
+        assert all("[postgres]" not in line for line in pip_lines)
+
+    def test_load_psycopg_preserves_import_error_detail(self, monkeypatch) -> None:
+        from production_platform.adapters import postgres as pg_mod
+
+        def _boom(_name: str) -> None:
+            raise ImportError("No module named 'psycopg'")
+
+        monkeypatch.setattr(pg_mod.importlib, "import_module", _boom)
+        with pytest.raises(ProviderError) as excinfo:
+            pg_mod._load_psycopg()
+        message = str(excinfo.value)
+        assert "No module named 'psycopg'" in message
+        assert "psycopg import failed" in message
+        assert "production-platform[postgres]" not in message
+
 
 class TestProductionFailsExplicitly:
     def test_production_dsn_configured_but_postgres_unavailable(self) -> None:

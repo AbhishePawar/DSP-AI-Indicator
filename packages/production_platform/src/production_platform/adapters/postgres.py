@@ -182,6 +182,13 @@ def _load_psycopg() -> Any:
     try:
         return importlib.import_module("psycopg")
     except ImportError as exc:
+        # Preserve the original ImportError text: "not installed" vs "binary/pq
+        # failed to load" are different Cloud Run failures. Root install path is
+        # pip install '.[api]' (psycopg[binary]>=3.1), not nested package extras.
+        detail = redact_dsn_secrets(str(exc)).strip() or type(exc).__name__
         raise ProviderError(
-            "psycopg is not installed; pip install 'production-platform[postgres]'"
+            "psycopg import failed "
+            f"({type(exc).__name__}: {detail}); "
+            "ensure the API image was built with pip install '.[api]' "
+            "including psycopg[binary]>=3.1"
         ) from exc

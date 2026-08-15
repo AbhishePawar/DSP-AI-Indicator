@@ -13,8 +13,16 @@ COPY pyproject.toml README.md ./
 COPY packages ./packages
 
 # P7.3 — install runtime/API deps only (exclude black/mypy/pytest from image)
+# Root [api] is the authoritative production dependency set and must include
+# psycopg[binary]. Nested package optional-extras are not used by this image.
 RUN python -m pip install --upgrade pip && \
     pip install ".[api]"
+
+# Prove the PostgreSQL driver is installed AND importable (distribution + pq impl).
+# api_platform import alone is insufficient: create_app() only loads psycopg under
+# DSP_ENVIRONMENT=production, which cannot run at image-build time without secrets.
+RUN python -m pip show psycopg psycopg-binary && \
+    python -c "import psycopg, psycopg.pq; print('BUILDER PSYCOPG OK:', psycopg.__version__, psycopg.__file__); print('BUILDER PQ IMPL:', psycopg.pq.__impl__); print('BUILDER PQ VERSION:', psycopg.pq.version())"
 
 # Fail the image build if api_platform cannot be imported after install
 RUN python -c "import api_platform; from api_platform.api.app import app; print('API IMPORT OK:', api_platform.__file__); print('APP OK:', app.title)"
@@ -34,7 +42,10 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 COPY --from=builder /usr/local /usr/local
 
-# RC1 runtime verification — prove installed API package survives builder→runtime copy
+# Prove driver + API survive builder→runtime /usr/local copy (before USER dsp).
+RUN python -m pip show psycopg psycopg-binary && \
+    python -c "import sys, psycopg, psycopg.pq; print('RUNTIME PSYCOPG OK:', psycopg.__version__, psycopg.__file__); print('RUNTIME PQ IMPL:', psycopg.pq.__impl__); print('RUNTIME PQ VERSION:', psycopg.pq.version()); print('RUNTIME PYTHON:', sys.executable)"
+# Development override: create_app() must not require Cloud SQL/secrets at build time.
 RUN DSP_ENVIRONMENT=development python -c "import sys, api_platform; from api_platform.api.app import app; print('RUNTIME API IMPORT OK:', api_platform.__file__); print('RUNTIME APP OK:', app.title); print('RUNTIME PYTHON:', sys.executable)"
 COPY pyproject.toml README.md ./
 COPY packages ./packages

@@ -92,3 +92,9 @@ apps/web/playwright-report/
 apps/web/test-results/
 apps/web/playwright-results.json
 .tmp-browser-cert/
+.env.*
+*.env
+credentials.json
+*.pem
+*.key
+.credentials

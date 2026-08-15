@@ -131,13 +131,22 @@ def _preload_authenticated_valuation_bundle(ctx: ExecutionContext) -> None:
     ticker = str(ctx.request.ticker or "").strip().upper()
     if not ticker:
         return
+    exchange = getattr(ctx.request, "exchange", None)
+    exchange = str(exchange).strip().upper() if exchange else None
     try:
-        bundle = load_authenticated_valuation_bundle(ticker)
+        bundle = load_authenticated_valuation_bundle(ticker, exchange=exchange)
     except AuthenticatedValuationError as exc:
         ctx.results[_AUTH_ERROR_KEY] = str(exc) or DATA_UNAVAILABLE
         return
     except Exception as exc:  # noqa: BLE001 — map provider faults to unavailable
-        ctx.results[_AUTH_ERROR_KEY] = f"{DATA_UNAVAILABLE} ({type(exc).__name__})"
+        # Preserve the provider's (secret-redacted) reason so the fail-closed
+        # financial stage reports why, instead of an opaque generic message.
+        reason = str(exc).strip()
+        ctx.results[_AUTH_ERROR_KEY] = (
+            f"{DATA_UNAVAILABLE} ({type(exc).__name__}: {reason})"
+            if reason
+            else f"{DATA_UNAVAILABLE} ({type(exc).__name__})"
+        )
         return
     ctx.results[_AUTH_BUNDLE_KEY] = bundle
     try:

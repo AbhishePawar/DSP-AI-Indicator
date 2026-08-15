@@ -46,6 +46,9 @@ class CompositionRequest:
     market_snapshot: object | None = None  # contracts.MarketSnapshot
     company: str = ""
     ticker: str = ""
+    # Public request field threaded to the authenticated provider so the
+    # Upstox U1 resolver can disambiguate dual-listed NSE/BSE equities.
+    exchange: str | None = None
     stop_on_stage_failure: bool = False
 
 

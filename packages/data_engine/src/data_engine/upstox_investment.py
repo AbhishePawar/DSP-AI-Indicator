@@ -216,7 +216,18 @@ class UpstoxStatementAdapter(_UpstoxBase, FinancialStatementPort):
                 limit=int(query.limit or 4),
             )
         )
-        return result.statements if result.status == "OK" else None
+        if result.status == "OK":
+            return result.statements
+        # EMPTY = resolved but genuinely no periods → honest None (unavailable).
+        if result.status == "EMPTY":
+            return None
+        # Hard provider failures (NOT_FOUND / AMBIGUOUS / UNAVAILABLE / REJECTED)
+        # must not collapse into an opaque None: raise with the (already
+        # secret-redacted) U4 status + detail so the fail-closed financial stage
+        # surfaces the real reason. Does not weaken fail-closed behaviour.
+        raise ProviderRequestError(
+            f"Upstox fundamentals unavailable [{result.status}]: {result.detail}"
+        )
 
     def health(self) -> StatementProviderHealth:
         ok = bool(self.access_token.strip())

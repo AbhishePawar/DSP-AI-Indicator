@@ -68,6 +68,7 @@ def analyse(
         composition_request = build_composition_request(
             ticker=body.ticker,
             company=body.company,
+            exchange=body.exchange,
             current_market_price=body.current_market_price,
             financial_statements=body.financial_statements.model_dump(),
             valuation_signals=(

@@ -15,9 +15,12 @@ from data_engine.providers import (
     ProviderRegistry,
 )
 from dsp_platform import (
+    DEFAULT_CAPABILITIES,
     CheckStatus,
     Environment,
+    PlatformBuilder,
     PlatformConfig,
+    PlatformConfiguration,
     PlatformError,
     PlatformHealthService,
     ProviderSettings,
@@ -117,6 +120,111 @@ class TestHealthService:
         )
         with pytest.raises(PlatformError, match="platform not ready"):
             service.assert_ready()
+
+    def test_canonical_platform_ready_without_legacy_analysis_service(self) -> None:
+        """The API composition root serves /analyse via compose_intelligence.
+
+        A platform composed with ``require_analysis_service=False`` must report
+        ready: the canonical composition pipeline — not the legacy
+        Yahoo/FRED ``InvestmentAnalysisService`` — is the production path.
+        """
+        platform = (
+            PlatformBuilder()
+            .with_configuration(
+                PlatformConfiguration(require_analysis_service=False)
+            )
+            .auto_ready(True)
+            .build()
+        )
+        report = PlatformHealthService(
+            config=PlatformConfig(environment=Environment.TEST),
+            platform=platform,
+        ).check()
+        by_name = {c.name: c for c in report.checks}
+        assert by_name["composition_pipeline"].status is CheckStatus.PASS
+        assert by_name["dependency_wiring"].status is CheckStatus.SKIP
+        assert "canonical" in by_name["dependency_wiring"].message
+        assert report.ready is True
+        assert report.status is CheckStatus.PASS
+
+    def test_no_analysis_path_at_all_fails(self) -> None:
+        """Readiness is not faked: with no canonical path and no legacy service."""
+        capabilities = tuple(
+            c for c in DEFAULT_CAPABILITIES if c != "compose_intelligence"
+        )
+        platform = (
+            PlatformBuilder()
+            .with_configuration(
+                PlatformConfiguration(
+                    require_analysis_service=False,
+                    enabled_capabilities=capabilities,
+                )
+            )
+            .auto_ready(True)
+            .build()
+        )
+        report = PlatformHealthService(
+            config=PlatformConfig(environment=Environment.TEST),
+            platform=platform,
+        ).check()
+        by_name = {c.name: c for c in report.checks}
+        assert by_name["composition_pipeline"].status is CheckStatus.FAIL
+        assert by_name["dependency_wiring"].status is CheckStatus.FAIL
+        assert report.ready is False
+
+    def test_legacy_analysis_service_still_passes(self, build_platform) -> None:
+        """Injecting the legacy service remains a valid, reported wiring."""
+        report = PlatformHealthService(
+            config=PlatformConfig(environment=Environment.TEST),
+            platform=build_platform(),
+        ).check()
+        by_name = {c.name: c for c in report.checks}
+        assert by_name["dependency_wiring"].status is CheckStatus.PASS
+        assert by_name["composition_pipeline"].status is CheckStatus.PASS
+        assert report.ready is True
+
+    def test_investment_data_provider_skipped_outside_production(
+        self, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        monkeypatch.delenv("DSP_ENVIRONMENT", raising=False)
+        report = PlatformHealthService(
+            config=PlatformConfig(environment=Environment.TEST)
+        ).check()
+        by_name = {c.name: c for c in report.checks}
+        assert by_name["investment_data_provider"].status is CheckStatus.SKIP
+
+    def test_investment_data_provider_fails_closed_in_production(
+        self, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        """P1-03 — production without Upstox credentials must not report ready."""
+        monkeypatch.setenv("DSP_ENVIRONMENT", "production")
+        monkeypatch.setenv("DSP_INVESTMENT_DATA_PROVIDER", "upstox")
+        monkeypatch.delenv("DSP_UPSTOX_ANALYTICS_TOKEN", raising=False)
+        report = PlatformHealthService(
+            config=PlatformConfig(environment=Environment.PRODUCTION)
+        ).check()
+        by_name = {c.name: c for c in report.checks}
+        assert by_name["investment_data_provider"].status is CheckStatus.FAIL
+        assert report.ready is False
+
+    def test_investment_data_provider_passes_with_upstox_token(
+        self, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        monkeypatch.setenv("DSP_ENVIRONMENT", "production")
+        monkeypatch.setenv("DSP_INVESTMENT_DATA_PROVIDER", "upstox")
+        monkeypatch.setenv("DSP_UPSTOX_ANALYTICS_TOKEN", "super-secret-token")
+        report = PlatformHealthService(
+            config=PlatformConfig(environment=Environment.PRODUCTION)
+        ).check()
+        by_name = {c.name: c for c in report.checks}
+        check = by_name["investment_data_provider"]
+        assert check.status is CheckStatus.PASS
+        assert "Upstox" in check.message
+        # CV-001 / security: adapter class names only, never credentials.
+        assert "super-secret-token" not in check.message
+        assert all(
+            "super-secret-token" not in c.message for c in report.checks
+        )
 
     def test_no_network_on_registry_check(self) -> None:
         """Registry health must not invoke adapter I/O."""

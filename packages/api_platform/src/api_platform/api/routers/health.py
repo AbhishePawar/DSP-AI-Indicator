@@ -45,13 +45,8 @@ def _platform_health(state: ApiState) -> tuple[bool, str, list[dict[str, Any]]]:
                     "message": getattr(check, "message", ""),
                 }
             )
-    checks.append(
-        {
-            "name": "composition_pipeline",
-            "status": "pass",
-            "message": f"pipeline={COMPOSITION_PIPELINE_VERSION}",
-        }
-    )
+    # ``composition_pipeline`` is reported by PlatformHealthService itself so the
+    # canonical /analyse path is probed, not assumed.
     return ready, status, checks
 
 

@@ -208,7 +208,9 @@ assert report.ready
 | feature_flags | Feature flag model present |
 | provider_settings | Enabled provider ids listed |
 | provider_registry | Required ids registered (if registry injected) |
-| dependency_wiring | `DSPPlatform.analysis_service` present |
+| composition_pipeline | Canonical `compose_intelligence` path importable and enabled |
+| investment_data_provider | Production resolves authenticated investment connectors (P1-03); skipped elsewhere |
+| dependency_wiring | Legacy `DSPPlatform.analysis_service` present; skipped when the canonical composition path serves analysis |
 
 Never performs network I/O.
 

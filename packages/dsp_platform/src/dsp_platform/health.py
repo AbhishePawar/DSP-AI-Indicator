@@ -98,12 +98,17 @@ class PlatformHealthService:
 
     def check(self) -> PlatformHealthReport:
         """Run all readiness checks and return an aggregated report."""
+        composition = self._check_composition_pipeline()
         checks: list[HealthCheckResult] = [
             self._check_configuration(),
             self._check_feature_flags(),
             self._check_provider_settings(),
             self._check_provider_registry(),
-            self._check_wiring(),
+            composition,
+            self._check_investment_data_provider(),
+            self._check_wiring(
+                canonical_ready=composition.status is CheckStatus.PASS
+            ),
         ]
         failed = any(c.status is CheckStatus.FAIL for c in checks)
         status = CheckStatus.FAIL if failed else CheckStatus.PASS
@@ -225,7 +230,106 @@ class PlatformHealthService:
             message=f"required providers present: {list(required)}",
         )
 
-    def _check_wiring(self) -> HealthCheckResult:
+    def _check_composition_pipeline(self) -> HealthCheckResult:
+        """Readiness of the canonical composition path served by ``/analyse``.
+
+        ``/analyse`` runs ``DSPPlatform.compose_intelligence`` →
+        ``PlatformOrchestrator`` → ``run_execution_pipeline``, which needs no
+        legacy ``InvestmentAnalysisService``. Offline only: verifies the
+        capability is enabled and the canonical stage graph is importable.
+        """
+        if self._platform is None:
+            return HealthCheckResult(
+                name="composition_pipeline",
+                status=CheckStatus.SKIP,
+                message="no platform instance injected",
+            )
+        if not callable(getattr(self._platform, "compose_intelligence", None)):
+            return HealthCheckResult(
+                name="composition_pipeline",
+                status=CheckStatus.FAIL,
+                message="platform does not expose compose_intelligence",
+            )
+        configuration = getattr(self._platform, "configuration", None)
+        has_capability = getattr(configuration, "has_capability", None)
+        if callable(has_capability) and not has_capability("compose_intelligence"):
+            return HealthCheckResult(
+                name="composition_pipeline",
+                status=CheckStatus.FAIL,
+                message="capability disabled: 'compose_intelligence'",
+            )
+        try:
+            from dsp_platform.composition.orchestrator import PlatformOrchestrator
+            from dsp_platform.composition.pipeline import EXECUTION_ORDER
+            from dsp_platform.composition.versions import (
+                COMPOSITION_PIPELINE_VERSION,
+            )
+        except Exception as exc:  # noqa: BLE001 — surface as health failure
+            return HealthCheckResult(
+                name="composition_pipeline",
+                status=CheckStatus.FAIL,
+                message=f"canonical composition pipeline unavailable: {exc}",
+            )
+        if not callable(getattr(PlatformOrchestrator, "execute", None)):
+            return HealthCheckResult(
+                name="composition_pipeline",
+                status=CheckStatus.FAIL,
+                message="orchestrator does not expose execute",
+            )
+        if not EXECUTION_ORDER:
+            return HealthCheckResult(
+                name="composition_pipeline",
+                status=CheckStatus.FAIL,
+                message="canonical composition pipeline has no stages",
+            )
+        return HealthCheckResult(
+            name="composition_pipeline",
+            status=CheckStatus.PASS,
+            message=(
+                f"pipeline={COMPOSITION_PIPELINE_VERSION}, "
+                f"stages={len(EXECUTION_ORDER)}"
+            ),
+        )
+
+    def _check_investment_data_provider(self) -> HealthCheckResult:
+        """P1-03 — production must resolve authenticated investment connectors.
+
+        Reuses the existing production gate; adapters are constructed offline
+        (no provider I/O) and only class names / env-var names are reported.
+        """
+        try:
+            from dsp_platform.composition.authenticated_valuation import (
+                production_investment_connectors,
+                production_requires_authenticated_bundle,
+            )
+        except Exception as exc:  # noqa: BLE001 — surface as health failure
+            return HealthCheckResult(
+                name="investment_data_provider",
+                status=CheckStatus.FAIL,
+                message=f"production profile unavailable: {exc}",
+            )
+        if not production_requires_authenticated_bundle():
+            return HealthCheckResult(
+                name="investment_data_provider",
+                status=CheckStatus.SKIP,
+                message="non-production environment",
+            )
+        try:
+            selected = production_investment_connectors()
+        except Exception as exc:  # noqa: BLE001 — fail closed, never fabricate
+            return HealthCheckResult(
+                name="investment_data_provider",
+                status=CheckStatus.FAIL,
+                message=f"{type(exc).__name__}: {exc}",
+            )
+        detail = ", ".join(f"{k}={v}" for k, v in sorted(selected.items()))
+        return HealthCheckResult(
+            name="investment_data_provider",
+            status=CheckStatus.PASS,
+            message=f"authenticated adapters: {detail}" if detail else "configured",
+        )
+
+    def _check_wiring(self, *, canonical_ready: bool = False) -> HealthCheckResult:
         if self._platform is None:
             return HealthCheckResult(
                 name="dependency_wiring",
@@ -235,6 +339,15 @@ class PlatformHealthService:
         try:
             analysis = self._platform.analysis_service
         except Exception as exc:  # noqa: BLE001 — surface as health failure
+            if canonical_ready:
+                return HealthCheckResult(
+                    name="dependency_wiring",
+                    status=CheckStatus.SKIP,
+                    message=(
+                        "legacy analysis service not wired; canonical "
+                        "composition pipeline serves analysis"
+                    ),
+                )
             return HealthCheckResult(
                 name="dependency_wiring",
                 status=CheckStatus.FAIL,

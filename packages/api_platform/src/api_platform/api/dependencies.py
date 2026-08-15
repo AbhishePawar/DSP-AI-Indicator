@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import os
 from dataclasses import dataclass, field
 from threading import Lock
 from typing import Any, Callable
@@ -9,7 +10,12 @@ from typing import Any, Callable
 from fastapi import HTTPException, Request
 
 from api_platform.api.exceptions import ApiNotFoundError
-from dsp_platform import DSPPlatform, PlatformBuilder, PlatformConfiguration
+from dsp_platform import (
+    DSPPlatform,
+    Environment,
+    PlatformBuilder,
+    PlatformConfiguration,
+)
 
 try:
     from llm_adapters import CopilotCompleteService, build_default_registry
@@ -27,6 +33,7 @@ __all__ = [
     "get_report_store",
     "get_context_store",
     "build_default_platform",
+    "resolve_platform_environment",
     "resolve_access_token",
     "require_authenticated_actor",
     "require_admin_access",
@@ -201,17 +208,37 @@ def build_language_model(registry: Any | None = None) -> Any | None:
     return adapter
 
 
-def build_default_platform() -> DSPPlatform:
-    """Build a ready platform shell for API hosting.
+def resolve_platform_environment() -> Environment:
+    """Project ``DSP_ENVIRONMENT`` (production source of truth) onto the platform.
 
-    Uses ``require_analysis_service=False`` so the HTTP app can start without
-    live provider secrets. Analyze routes still require a wired analysis
-    service (injected via ``PlatformBuilder`` / app lifespan override).
+    Deliberately reads the same variable the production connector profile uses
+    instead of introducing a second configuration layer. Unrecognised values
+    fall back to development so platform metadata never overstates the target.
+    """
+    raw = os.environ.get("DSP_ENVIRONMENT", "").strip().lower()
+    try:
+        return Environment(raw)
+    except ValueError:
+        return Environment.DEVELOPMENT
+
+
+def build_default_platform() -> DSPPlatform:
+    """Compose the canonical analysis platform for API hosting.
+
+    ``POST /analyse`` runs ``DSPPlatform.compose_intelligence`` → the canonical
+    composition orchestrator → ``run_execution_pipeline``, which sources
+    authenticated quotes/statements from the production investment adapters and
+    never uses the legacy ``InvestmentAnalysisService``. Hence
+    ``require_analysis_service=False``: the legacy Yahoo/FRED analyze path stays
+    optional and must be injected explicitly when a caller wants it.
     """
     return (
         PlatformBuilder()
         .with_configuration(
-            PlatformConfiguration(require_analysis_service=False)
+            PlatformConfiguration(
+                environment=resolve_platform_environment(),
+                require_analysis_service=False,
+            )
         )
         .auto_ready(True)
         .build()

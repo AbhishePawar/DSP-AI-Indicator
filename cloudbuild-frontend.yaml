@@ -1,0 +1,73 @@
+# Cloud Build — Frontend image → Artifact Registry → NEW Cloud Run service
+#
+# Deploys ONLY dsp-ai-indicator-web (Next.js :3000).
+# Does NOT redeploy or modify dsp-ai-indicator (backend API).
+#
+# Submit from repo root (with gcloud installed):
+#   gcloud builds submit --config=cloudbuild-frontend.yaml \
+#     --project=project-34de429e-3c43-4ae7-b75
+#
+# Build-time API URL is baked into NEXT_PUBLIC_* (required for Next.js).
+
+substitutions:
+  _REGION: asia-south1
+  _SERVICE: dsp-ai-indicator-web
+  _AR_REPOSITORY: dsp-ai-indicator
+  _IMAGE: dsp-web
+  _API_BASE_URL: https://dsp-ai-indicator-6uxsluxowq-el.a.run.app/api/v1
+
+options:
+  logging: CLOUD_LOGGING_ONLY
+
+timeout: 2400s
+
+steps:
+  - id: build-frontend
+    name: gcr.io/cloud-builders/docker
+    args:
+      - build
+      - -f
+      - docker/frontend/Dockerfile
+      - --build-arg
+      - NEXT_PUBLIC_API_BASE_URL=${_API_BASE_URL}
+      - --build-arg
+      - NEXT_PUBLIC_APP_NAME=DSP AI Indicator
+      - --build-arg
+      - NEXT_PUBLIC_AI_PROVIDER=backend
+      - --build-arg
+      - NEXT_PUBLIC_BUILD_TIMESTAMP=$COMMIT_SHA
+      - -t
+      - ${_REGION}-docker.pkg.dev/$PROJECT_ID/${_AR_REPOSITORY}/${_IMAGE}:frontend-$SHORT_SHA
+      - -t
+      - ${_REGION}-docker.pkg.dev/$PROJECT_ID/${_AR_REPOSITORY}/${_IMAGE}:frontend-latest
+      - .
+
+  - id: push-sha
+    name: gcr.io/cloud-builders/docker
+    args:
+      - push
+      - ${_REGION}-docker.pkg.dev/$PROJECT_ID/${_AR_REPOSITORY}/${_IMAGE}:frontend-$SHORT_SHA
+
+  - id: push-latest
+    name: gcr.io/cloud-builders/docker
+    args:
+      - push
+      - ${_REGION}-docker.pkg.dev/$PROJECT_ID/${_AR_REPOSITORY}/${_IMAGE}:frontend-latest
+
+  - id: deploy-web
+    name: gcr.io/google.com/cloudsdktool/cloud-sdk
+    entrypoint: gcloud
+    args:
+      - run
+      - deploy
+      - ${_SERVICE}
+      - --image=${_REGION}-docker.pkg.dev/$PROJECT_ID/${_AR_REPOSITORY}/${_IMAGE}:frontend-$SHORT_SHA
+      - --region=${_REGION}
+      - --platform=managed
+      - --port=3000
+      - --allow-unauthenticated
+      - --quiet
+
+images:
+  - ${_REGION}-docker.pkg.dev/$PROJECT_ID/${_AR_REPOSITORY}/${_IMAGE}:frontend-$SHORT_SHA
+  - ${_REGION}-docker.pkg.dev/$PROJECT_ID/${_AR_REPOSITORY}/${_IMAGE}:frontend-latest

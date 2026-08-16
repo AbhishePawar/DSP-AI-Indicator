@@ -70,7 +70,11 @@ def analyse(
             company=body.company,
             exchange=body.exchange,
             current_market_price=body.current_market_price,
-            financial_statements=body.financial_statements.model_dump(),
+            financial_statements=(
+                body.financial_statements.model_dump()
+                if body.financial_statements is not None
+                else None
+            ),
             valuation_signals=(
                 body.valuation_signals.model_dump()
                 if body.valuation_signals is not None
@@ -278,21 +282,27 @@ def _persist_investment_provenance(
             if raw is not None and str(raw).strip():
                 org_id = str(raw).strip()
                 break
-    fs_digest = {
-        "period": body.financial_statements.period.model_dump(),
-        "income_keys": sorted(
-            (body.financial_statements.income_statement or {}).keys()
-        ),
-        "balance_keys": sorted(
-            (body.financial_statements.balance_sheet or {}).keys()
-        ),
-        "cash_flow_keys": sorted(
-            (body.financial_statements.cash_flow or {}).keys()
-        ),
-        "statement_metadata": dict(
-            body.financial_statements.statement_metadata or {}
-        ),
-    }
+    if body.financial_statements is None:
+        fs_digest: dict[str, Any] = {
+            "source": "server_authenticated",
+            "client_financial_statements": None,
+        }
+    else:
+        fs_digest = {
+            "period": body.financial_statements.period.model_dump(),
+            "income_keys": sorted(
+                (body.financial_statements.income_statement or {}).keys()
+            ),
+            "balance_keys": sorted(
+                (body.financial_statements.balance_sheet or {}).keys()
+            ),
+            "cash_flow_keys": sorted(
+                (body.financial_statements.cash_flow or {}).keys()
+            ),
+            "statement_metadata": dict(
+                body.financial_statements.statement_metadata or {}
+            ),
+        }
     auth_trace = getattr(pipeline, "authenticated_valuation_trace", None)
     record = build_investment_provenance(
         public_payload=public_payload,

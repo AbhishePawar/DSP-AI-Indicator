@@ -65,12 +65,6 @@ def validate_analyse_request(body: AnalyseRequest) -> list[str]:
         elif not _EXCHANGE_RE.match(exchange):
             errors.append("exchange has unsupported format")
 
-    period = body.financial_statements.period
-    if not period.period_type.strip():
-        errors.append("financial_statements.period.period_type is required")
-    if not period.period_end.strip():
-        errors.append("financial_statements.period.period_end is required")
-
     # P0-02 — clients may supply market price only. Investment conclusions
     # (IV / MoS / premium-discount) are rejected at the HTTP boundary.
     if body.valuation_signals is not None:
@@ -91,6 +85,25 @@ def validate_analyse_request(body: AnalyseRequest) -> list[str]:
                 "is not accepted (P0-02)"
             )
 
+    fs = body.financial_statements
+    ticker_only_auth_path = bool(ticker) and fs is None
+
+    if ticker_only_auth_path:
+        # Production path: server loads authenticated statements + quote
+        # (Upstox P1-01). Client FS / price are not required at the boundary.
+        return errors
+
+    # CLIENT-FS PATH — preserve historical validation when FS is supplied.
+    if fs is None:
+        errors.append("financial_statements is required when ticker is absent")
+        return errors
+
+    period = fs.period
+    if not period.period_type.strip():
+        errors.append("financial_statements.period.period_type is required")
+    if not period.period_end.strip():
+        errors.append("financial_statements.period.period_end is required")
+
     has_price = body.current_market_price is not None or (
         body.valuation_signals is not None
         and body.valuation_signals.current_market_price is not None
@@ -101,12 +114,11 @@ def validate_analyse_request(body: AnalyseRequest) -> list[str]:
             "(client investment conclusions are not accepted)"
         )
 
-    income = body.financial_statements.income_statement or {}
+    income = fs.income_statement or {}
     if not income:
         errors.append("financial_statements.income_statement is required")
 
     # P1-05 / P1-06 — reject smuggled Buffett / provenance conclusion fields.
-    fs = body.financial_statements
     for path, mapping in (
         ("financial_statements.income_statement", fs.income_statement),
         ("financial_statements.balance_sheet", fs.balance_sheet),

@@ -70,7 +70,7 @@ steps:
           --build-arg "NEXT_PUBLIC_BUILD_TIMESTAMP=$$TS" \
           -t "$$IMAGE" \
           -t "$$LATEST" \
-          .
+          apps/web
         echo -n "$$IMAGE" > /workspace/.frontend_image
 
   - id: push-sha

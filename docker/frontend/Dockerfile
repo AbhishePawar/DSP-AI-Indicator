@@ -1,13 +1,13 @@
 # DSP AI Indicator — Frontend (multi-stage, RC1)
 FROM node:22-alpine AS deps
 WORKDIR /app
-COPY apps/web/package.json apps/web/package-lock.json* ./
+COPY package.json package-lock.json* ./
 RUN npm ci
 
 FROM node:22-alpine AS builder
 WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
-COPY apps/web ./
+COPY . ./
 # Next may ship without a checked-in public/ tree; standalone runner still expects it.
 RUN mkdir -p public
 ARG NEXT_PUBLIC_API_BASE_URL=http://127.0.0.1:8000/api/v1

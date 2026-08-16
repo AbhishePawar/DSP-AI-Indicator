@@ -3,9 +3,14 @@
 # Deploys ONLY dsp-ai-indicator-web (Next.js :3000).
 # Does NOT redeploy or modify dsp-ai-indicator (backend API).
 #
-# Submit from repo root (with gcloud installed):
+# Manual submit (from repo root) — pass Git SHA so tags stay commit-derived:
 #   gcloud builds submit --config=cloudbuild-frontend.yaml \
-#     --project=project-34de429e-3c43-4ae7-b75
+#     --project=project-34de429e-3c43-4ae7-b75 \
+#     --substitutions=COMMIT_SHA=$(git rev-parse HEAD),SHORT_SHA=$(git rev-parse --short=7 HEAD)
+#
+# Note: for source-upload submits (no repo trigger), Cloud Build leaves
+# COMMIT_SHA/SHORT_SHA empty unless provided via --substitutions. The resolve
+# step falls back to BUILD_ID so the tag never becomes "frontend-".
 #
 # Build-time API URL is baked into NEXT_PUBLIC_* (required for Next.js).
 
@@ -22,52 +27,86 @@ options:
 timeout: 2400s
 
 steps:
+  - id: resolve-image-tag
+    name: gcr.io/cloud-builders/gcloud
+    entrypoint: bash
+    args:
+      - -c
+      - |
+        set -euo pipefail
+        SS='${SHORT_SHA}'
+        CS='${COMMIT_SHA}'
+        BI='${BUILD_ID}'
+        if [ -n "$$SS" ]; then
+          TAG="$$SS"
+        elif [ -n "$$CS" ]; then
+          TAG="$$(printf '%.7s' "$$CS")"
+        else
+          TAG="$$BI"
+        fi
+        echo -n "frontend-$$TAG" > /workspace/.frontend_tag
+        TS="$$CS"
+        if [ -z "$$TS" ]; then TS="$$BI"; fi
+        echo -n "$$TS" > /workspace/.frontend_build_timestamp
+        echo "Resolved image tag: $$(cat /workspace/.frontend_tag)"
+        echo "Resolved build timestamp: $$(cat /workspace/.frontend_build_timestamp)"
+
   - id: build-frontend
     name: gcr.io/cloud-builders/docker
+    entrypoint: bash
     args:
-      - build
-      - -f
-      - docker/frontend/Dockerfile
-      - --build-arg
-      - NEXT_PUBLIC_API_BASE_URL=${_API_BASE_URL}
-      - --build-arg
-      - NEXT_PUBLIC_APP_NAME=DSP AI Indicator
-      - --build-arg
-      - NEXT_PUBLIC_AI_PROVIDER=backend
-      - --build-arg
-      - NEXT_PUBLIC_BUILD_TIMESTAMP=$COMMIT_SHA
-      - -t
-      - ${_REGION}-docker.pkg.dev/$PROJECT_ID/${_AR_REPOSITORY}/${_IMAGE}:frontend-$SHORT_SHA
-      - -t
-      - ${_REGION}-docker.pkg.dev/$PROJECT_ID/${_AR_REPOSITORY}/${_IMAGE}:frontend-latest
-      - .
+      - -c
+      - |
+        set -euo pipefail
+        TAG="$$(cat /workspace/.frontend_tag)"
+        TS="$$(cat /workspace/.frontend_build_timestamp)"
+        IMAGE="${_REGION}-docker.pkg.dev/$PROJECT_ID/${_AR_REPOSITORY}/${_IMAGE}:$$TAG"
+        LATEST="${_REGION}-docker.pkg.dev/$PROJECT_ID/${_AR_REPOSITORY}/${_IMAGE}:frontend-latest"
+        docker build \
+          -f docker/frontend/Dockerfile \
+          --build-arg "NEXT_PUBLIC_API_BASE_URL=${_API_BASE_URL}" \
+          --build-arg "NEXT_PUBLIC_APP_NAME=DSP AI Indicator" \
+          --build-arg "NEXT_PUBLIC_AI_PROVIDER=backend" \
+          --build-arg "NEXT_PUBLIC_BUILD_TIMESTAMP=$$TS" \
+          -t "$$IMAGE" \
+          -t "$$LATEST" \
+          .
+        echo -n "$$IMAGE" > /workspace/.frontend_image
 
   - id: push-sha
     name: gcr.io/cloud-builders/docker
+    entrypoint: bash
     args:
-      - push
-      - ${_REGION}-docker.pkg.dev/$PROJECT_ID/${_AR_REPOSITORY}/${_IMAGE}:frontend-$SHORT_SHA
+      - -c
+      - |
+        set -euo pipefail
+        docker push "$$(cat /workspace/.frontend_image)"
 
   - id: push-latest
     name: gcr.io/cloud-builders/docker
+    entrypoint: bash
     args:
-      - push
-      - ${_REGION}-docker.pkg.dev/$PROJECT_ID/${_AR_REPOSITORY}/${_IMAGE}:frontend-latest
+      - -c
+      - |
+        set -euo pipefail
+        LATEST="${_REGION}-docker.pkg.dev/$PROJECT_ID/${_AR_REPOSITORY}/${_IMAGE}:frontend-latest"
+        docker push "$$LATEST"
 
   - id: deploy-web
     name: gcr.io/google.com/cloudsdktool/cloud-sdk
-    entrypoint: gcloud
+    entrypoint: bash
     args:
-      - run
-      - deploy
-      - ${_SERVICE}
-      - --image=${_REGION}-docker.pkg.dev/$PROJECT_ID/${_AR_REPOSITORY}/${_IMAGE}:frontend-$SHORT_SHA
-      - --region=${_REGION}
-      - --platform=managed
-      - --port=3000
-      - --allow-unauthenticated
-      - --quiet
+      - -c
+      - |
+        set -euo pipefail
+        IMAGE="$$(cat /workspace/.frontend_image)"
+        gcloud run deploy "${_SERVICE}" \
+          --image="$$IMAGE" \
+          --region="${_REGION}" \
+          --platform=managed \
+          --port=3000 \
+          --allow-unauthenticated \
+          --quiet
 
 images:
-  - ${_REGION}-docker.pkg.dev/$PROJECT_ID/${_AR_REPOSITORY}/${_IMAGE}:frontend-$SHORT_SHA
   - ${_REGION}-docker.pkg.dev/$PROJECT_ID/${_AR_REPOSITORY}/${_IMAGE}:frontend-latest

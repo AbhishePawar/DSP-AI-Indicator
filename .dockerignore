@@ -18,7 +18,11 @@ htmlcov
 .next
 out
 
-apps
+# Keep non-web app trees out of Docker context; allow apps/web for the
+# frontend Dockerfile (COPY apps/web/**). Backend image never COPY apps/.
+apps/*
+!apps/web/
+!apps/web/**
 artifacts
 .bytecode_backup
 docs

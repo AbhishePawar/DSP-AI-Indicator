@@ -156,6 +156,25 @@ def create_app(
                 allow_passwordless=not is_prod,
             )
         )
+        # Seed an email+password admin (idempotent) so login is testable
+        # immediately. Extends the existing IdentityService; email == username.
+        try:
+            admin_email = os.environ.get("DSP_ADMIN_EMAIL", "admin@dsp.ai").strip().lower()
+            admin_password = os.environ.get("DSP_ADMIN_PASSWORD", "DspAdminPass2026")
+            identity = getattr(security, "identity", None)
+            if identity is not None:
+                try:
+                    security.users.get_by_username(admin_email)
+                except Exception:  # noqa: BLE001 — not found => provision
+                    identity.provision(
+                        username=admin_email,
+                        role="ADMIN",
+                        password=admin_password,
+                        email=admin_email,
+                        display_name="Platform Admin",
+                    )
+        except Exception:  # noqa: BLE001 — never block app boot on seeding
+            pass
 
     # P1-03 — refuse production boot when investment connectors would
     # silently select Null/memory providers (independent of security wiring).

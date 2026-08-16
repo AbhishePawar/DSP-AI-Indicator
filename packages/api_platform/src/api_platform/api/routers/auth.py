@@ -30,6 +30,16 @@ class RefreshRequest(BaseModel):
     refresh_token: str | None = Field(default=None, min_length=16, max_length=512)
 
 
+class RegisterRequest(BaseModel):
+    """Email + password registration (email is the login identifier)."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    email: str = Field(min_length=3, max_length=254)
+    password: str = Field(min_length=1, max_length=256)
+    display_name: str | None = Field(default=None, max_length=128)
+
+
 def _maybe_set_cookies(
     payload: dict,
     *,
@@ -241,6 +251,118 @@ def logout(request: Request) -> JSONResponse:
     )
     clear_auth_cookies(response)
     return response
+
+
+@router.post("/auth/register")
+def register(body: RegisterRequest, request: Request) -> JSONResponse:
+    """Register a new account with email + password, then issue a JWT session.
+
+    Email is the login identifier (stored as the username). Extends the existing
+    ``security_platform`` IdentityService (Argon2/scrypt hashing + policy).
+    """
+    bundle = getattr(request.app.state, "security", None)
+    if bundle is None:
+        raise ApiError("security bundle is not configured on the API", status_code=503)
+    identity = getattr(bundle, "identity", None)
+    if identity is None:
+        raise ApiError("identity service is not configured", status_code=503)
+
+    email = (body.email or "").strip().lower()
+    if "@" not in email:
+        raise ApiValidationError("a valid email address is required")
+
+    try:
+        bundle.users.get_by_username(email)
+        raise ApiError("email already registered", status_code=409)
+    except ApiError:
+        raise
+    except Exception:  # noqa: BLE001 — SecurityError means "not found" => proceed
+        pass
+
+    try:
+        identity.provision(
+            username=email,
+            role="CLIENT",
+            password=body.password,
+            email=email,
+            display_name=body.display_name or email.split("@")[0],
+        )
+    except Exception as exc:  # noqa: BLE001 — password policy / duplicate
+        raise ApiValidationError(str(exc) or "registration failed") from exc
+
+    try:
+        pair = identity.authenticate(email, body.password)
+    except Exception as exc:  # noqa: BLE001
+        raise ApiError(str(exc) or "authentication failed", status_code=401) from exc
+    user = bundle.users.get_by_username(email)
+    return _maybe_set_cookies(
+        {
+            "access_token": pair.access_token,
+            "refresh_token": pair.refresh_token,
+            "token_type": "bearer",
+            "expires_in": pair.expires_in,
+            "role": user.role.value,
+            "subject": user.user_id,
+            "username": user.username,
+            "email": user.email,
+            "auth_method": "jwt",
+            "session_id": pair.session_id,
+        },
+        access_token=pair.access_token,
+        refresh_token=pair.refresh_token,
+        session_id=pair.session_id,
+        api_version=getattr(request.app.state.api, "api_version", "v1"),
+        capability="auth.register",
+    )
+
+
+@router.get("/auth/me")
+def me(request: Request) -> JSONResponse:
+    """Return the authenticated user's profile (cookie or Bearer token)."""
+    bundle = getattr(request.app.state, "security", None)
+    if bundle is None:
+        raise ApiError("security bundle is not configured on the API", status_code=503)
+
+    token = None
+    try:
+        from security_platform import ACCESS_COOKIE
+
+        token = request.cookies.get(ACCESS_COOKIE)
+    except Exception:  # noqa: BLE001
+        token = None
+    if not token:
+        auth_header = request.headers.get("Authorization", "")
+        if auth_header.lower().startswith("bearer "):
+            token = auth_header[7:].strip()
+    if not token:
+        raise ApiError("not authenticated", status_code=401)
+
+    try:
+        principal = bundle.authentication.authenticate_jwt(token)
+    except Exception as exc:  # noqa: BLE001
+        raise ApiError("invalid or expired token", status_code=401) from exc
+
+    email = None
+    try:
+        user = bundle.users.get_by_username(principal.username or "")
+        email = user.email
+    except Exception:  # noqa: BLE001
+        user = None
+    return JSONResponse(
+        content={
+            "ok": True,
+            "capability": "auth.me",
+            "payload": {
+                "subject": principal.subject,
+                "username": principal.username,
+                "email": email,
+                "role": principal.role.value,
+                "authenticated": True,
+            },
+            "api_version": getattr(request.app.state.api, "api_version", "v1"),
+            "errors": [],
+        }
+    )
 
 
 @router.get("/auth/session")

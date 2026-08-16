@@ -1,0 +1,24 @@
+{
+  "analysis_id": "180e0566-11f1-459e-b4ae-3dd4c28ec1eb",
+  "codes_enforced": [
+    "PRODUCTION_NULL_FALLBACK_DETECTED",
+    "PRODUCTION_MEMORY_FALLBACK_DETECTED",
+    "CLIENT_IDENTITY_SPOOF_ACCEPTED",
+    "CLIENT_VALUATION_OVERRIDE_DETECTED",
+    "CLIENT_BUFFETT_OVERRIDE_DETECTED",
+    "PROVENANCE_FORGERY_DETECTED",
+    "DATA_UNAVAILABLE_NOT_HONESTLY_HANDLED",
+    "RELEASE_IDENTITY_STALE"
+  ],
+  "evidence_class": "test_fixture",
+  "g2_claim": false,
+  "gate": "P1-10",
+  "ok": true,
+  "release_identity": {
+    "channel": "rc",
+    "decision": "RELEASE_CANDIDATE",
+    "epic": "EPS-003",
+    "label": "EPS-003 \u00b7 2.0.0-rc.1 \u00b7 rc \u00b7 RELEASE_CANDIDATE",
+    "product_version": "2.0.0-rc.1"
+  }
+}

@@ -40,6 +40,46 @@ class RegisterRequest(BaseModel):
     display_name: str | None = Field(default=None, max_length=128)
 
 
+class ResetPasswordRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    token: str = Field(min_length=8, max_length=512)
+    new_password: str = Field(min_length=1, max_length=256)
+
+
+class VerifyEmailConfirmRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    token: str = Field(min_length=8, max_length=512)
+
+
+class ForgotPasswordRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    email: str = Field(min_length=3, max_length=254)
+
+
+def _principal_from_request(request: Request, bundle):
+    """Resolve the authenticated principal from a cookie or Bearer token."""
+    token = None
+    try:
+        from security_platform import ACCESS_COOKIE
+
+        token = request.cookies.get(ACCESS_COOKIE)
+    except Exception:  # noqa: BLE001
+        token = None
+    if not token:
+        header = request.headers.get("Authorization", "")
+        if header.lower().startswith("bearer "):
+            token = header[7:].strip()
+    if not token:
+        raise ApiError("not authenticated", status_code=401)
+    try:
+        return bundle.authentication.authenticate_jwt(token)
+    except Exception as exc:  # noqa: BLE001
+        raise ApiError("invalid or expired token", status_code=401) from exc
+
+
 def _maybe_set_cookies(
     payload: dict,
     *,
@@ -362,6 +402,86 @@ def me(request: Request) -> JSONResponse:
             "api_version": getattr(request.app.state.api, "api_version", "v1"),
             "errors": [],
         }
+    )
+
+
+@router.post("/auth/forgot-password")
+def forgot_password(body: ForgotPasswordRequest, request: Request) -> JSONResponse:
+    """Request a password-reset token. Never reveals whether the email exists."""
+    bundle = getattr(request.app.state, "security", None)
+    identity = getattr(bundle, "identity", None) if bundle else None
+    if identity is None:
+        raise ApiError("identity service is not configured", status_code=503)
+    email = (body.email or "").strip().lower()
+    token = identity.request_password_reset(email) if email else None
+    import os as _os
+
+    is_prod = _os.environ.get("DSP_ENVIRONMENT", "development").lower() == "production"
+    payload = {"requested": True, "email": email or None}
+    # No email provider wired: expose the token only outside production so the
+    # flow is testable. In production the token must be delivered out-of-band.
+    if token and not is_prod:
+        payload["reset_token"] = token
+    return JSONResponse(
+        content={"ok": True, "capability": "auth.forgot_password", "payload": payload,
+                 "api_version": getattr(request.app.state.api, "api_version", "v1"), "errors": []}
+    )
+
+
+@router.post("/auth/reset-password")
+def reset_password(body: ResetPasswordRequest, request: Request) -> JSONResponse:
+    """Complete a password reset using the opaque token."""
+    bundle = getattr(request.app.state, "security", None)
+    identity = getattr(bundle, "identity", None) if bundle else None
+    if identity is None:
+        raise ApiError("identity service is not configured", status_code=503)
+    try:
+        user = identity.confirm_password_reset(body.token, body.new_password)
+    except Exception as exc:  # noqa: BLE001 — invalid/expired token or policy
+        raise ApiError(str(exc) or "password reset failed", status_code=400) from exc
+    return JSONResponse(
+        content={"ok": True, "capability": "auth.reset_password",
+                 "payload": {"reset": True, "username": user.username},
+                 "api_version": getattr(request.app.state.api, "api_version", "v1"), "errors": []}
+    )
+
+
+@router.post("/auth/verify-email/request")
+def request_email_verification(request: Request) -> JSONResponse:
+    """Issue an email-verification token for the authenticated user."""
+    bundle = getattr(request.app.state, "security", None)
+    identity = getattr(bundle, "identity", None) if bundle else None
+    if identity is None:
+        raise ApiError("identity service is not configured", status_code=503)
+    principal = _principal_from_request(request, bundle)
+    token = identity.issue_email_verification(principal.subject)
+    import os as _os
+
+    is_prod = _os.environ.get("DSP_ENVIRONMENT", "development").lower() == "production"
+    payload = {"requested": True}
+    if not is_prod:
+        payload["verification_token"] = token
+    return JSONResponse(
+        content={"ok": True, "capability": "auth.verify_email_request", "payload": payload,
+                 "api_version": getattr(request.app.state.api, "api_version", "v1"), "errors": []}
+    )
+
+
+@router.post("/auth/verify-email/confirm")
+def confirm_email_verification(body: VerifyEmailConfirmRequest, request: Request) -> JSONResponse:
+    """Confirm an email-verification token."""
+    bundle = getattr(request.app.state, "security", None)
+    identity = getattr(bundle, "identity", None) if bundle else None
+    if identity is None:
+        raise ApiError("identity service is not configured", status_code=503)
+    try:
+        user = identity.confirm_email_verification(body.token)
+    except Exception as exc:  # noqa: BLE001
+        raise ApiError(str(exc) or "verification failed", status_code=400) from exc
+    return JSONResponse(
+        content={"ok": True, "capability": "auth.verify_email_confirm",
+                 "payload": {"email_verified": True, "username": user.username},
+                 "api_version": getattr(request.app.state.api, "api_version", "v1"), "errors": []}
     )
 
 

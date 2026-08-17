@@ -65,6 +65,7 @@ Register → [CORE_VALUES.md](CORE_VALUES.md).
 4. **Frozen `/api/v1`** — no silent contract breaks  
 5. **Hexagonal engines** — adapters at edges; engines stay auth-/infra-independent  
 6. **Research Mode default** — SEBI-style advice UI only behind flags  
+7. **Financial derivation** — never guess data; calculate only with a defined formula and verified compatible inputs; label **CALCULATED** vs **REPORTED**; else **UNAVAILABLE**. Spec → [FINANCIAL_DATA_DERIVATION_POLICY.md](FINANCIAL_DATA_DERIVATION_POLICY.md)  
 
 ---
 

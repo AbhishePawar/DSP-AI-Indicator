@@ -2,6 +2,10 @@
 
 Composes Income / Balance / Cash Flow Intelligence into canonical ratios.
 No forecasting, valuation, market data, or provider I/O.
+
+Policy-compliant REPORTED / CALCULATED / UNAVAILABLE derivation lives in
+``financial.derivation``. Helpers below (_avg, _total_debt, _current_assets)
+retain F2.5 legacy fallbacks and must not be copied into the derivation engine.
 """
 
 from __future__ import annotations

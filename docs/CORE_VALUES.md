@@ -39,6 +39,8 @@ ADRs → [ADR-CV-001](adr/ADR-CV-001-data-authenticity-first.md) · [ADR-CV-002-
 
 Never display fabricated / placeholder / dummy financial or market numbers.
 Allowed sources only. Missing → **Data unavailable.**
+Operational field states: **reported** | **calculated** | **unavailable** —
+[FINANCIAL_DATA_DERIVATION_POLICY.md](FINANCIAL_DATA_DERIVATION_POLICY.md).
 
 ### CV-002 — Source Before Score
 

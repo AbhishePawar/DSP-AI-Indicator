@@ -52,6 +52,7 @@ A single **FAIL** on a required row fails architecture review.
 | ✓ | Check |
 |---|---|
 | | Metric provenance present |
+| | Financial fields are **reported**, **calculated**, or **unavailable** — no guessed numbers ([derivation policy](FINANCIAL_DATA_DERIVATION_POLICY.md)) |
 | | Research report validation includes **CV-001…CV-010** and **RS-001…RS-010** |
 | | Emitter validation planned/implemented for new report generators |
 

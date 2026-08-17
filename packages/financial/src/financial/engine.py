@@ -2,11 +2,17 @@
 
 from __future__ import annotations
 
-from typing import Any, Sequence
+from collections.abc import Mapping, Sequence
+from typing import Any
 
 from financial.balance_sheet import BalanceSheet
 from financial.cash_flow import CashFlowStatement
 from financial.currency import CurrencyCode, CurrencyRef
+from financial.derivation import (
+    DerivationInput,
+    DerivedFinancialValue,
+    FinancialDerivationEngine,
+)
 from financial.income_statement import IncomeStatement
 from financial.intelligence.aggregator_engine import FinancialAggregatorEngine
 from financial.intelligence.aggregator_models import FinancialAnalysis
@@ -41,6 +47,7 @@ class FinancialEngine:
         self._ratio_engine = FinancialRatioEngine()
         self._trend_engine = TrendEngine()
         self._aggregator_engine = FinancialAggregatorEngine()
+        self._derivation_engine = FinancialDerivationEngine()
 
     def validate(
         self,
@@ -153,3 +160,15 @@ class FinancialEngine:
     ) -> FinancialAnalysis:
         """Primary entry: aggregate F2.2–F2.6 into ``FinancialAnalysis`` (F2.7)."""
         return self._aggregator_engine.analyze(source)
+
+    def reported_value(self, item: DerivationInput) -> DerivedFinancialValue:
+        """Preserve a provider-reported field (never relabel calculated as reported)."""
+        return self._derivation_engine.reported(item)
+
+    def derive(
+        self,
+        formula_id: str,
+        inputs: Mapping[str, DerivationInput] | Sequence[DerivationInput],
+    ) -> DerivedFinancialValue:
+        """Deterministic derivation: calculated or unavailable — never guessed."""
+        return self._derivation_engine.derive(formula_id, inputs)

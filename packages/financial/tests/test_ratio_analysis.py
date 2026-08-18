@@ -42,6 +42,14 @@ from financial.intelligence.ratio_engine import (
 from financial.intelligence.ratio_explainability import RATIO_RESEARCH_DISCLAIMER
 from financial.intelligence.ratio_validation import coerce_ratio_series
 from financial.metadata import StatementMetadata
+from financial.derivation import (
+    FORMULA_GROSS_MARGIN,
+    FORMULA_NET_MARGIN,
+    FORMULA_OPERATING_MARGIN,
+    DerivationInput,
+    FinancialValueStatus,
+    as_reported,
+)
 
 
 def _period(*, end: date = date(2024, 12, 31), fy: int | None = 2024) -> FinancialPeriod:
@@ -454,3 +462,127 @@ class TestEngineFacade:
         assert result.capital_allocation.to_dict()["capital_allocation_score"] is not None
         assert result.trend_summary.to_dict()["profitability"]
         assert result.metadata.to_dict()["periods_used"] == 2
+
+
+def _by_name(result: FinancialRatioAnalysis, name: str):
+    return next(m for m in result.profitability if m.name == name)
+
+
+class TestPhase1DerivedMargins:
+    """F2.5 Phase 1: gross / operating / net margin via financial.derivation."""
+
+    def test_gross_margin_valid_is_calculated(self) -> None:
+        result = FinancialRatioEngine().analyze(_full())
+        gm = _by_name(result, "gross_margin")
+        assert gm.value == pytest.approx(0.6)
+        assert gm.status == FinancialValueStatus.CALCULATED.value
+        assert gm.formula_id == FORMULA_GROSS_MARGIN
+        assert gm.formula == "gross_profit / revenue"
+        assert gm.inputs["gross_profit"] == 600.0
+        assert gm.inputs["revenue"] == 1000.0
+
+    def test_operating_margin_valid_is_calculated(self) -> None:
+        result = FinancialRatioEngine().analyze(_full())
+        om = _by_name(result, "operating_margin")
+        assert om.value == pytest.approx(0.3)
+        assert om.status == FinancialValueStatus.CALCULATED.value
+        assert om.formula_id == FORMULA_OPERATING_MARGIN
+        assert om.formula == "ebit / revenue"
+
+    def test_net_margin_valid_is_calculated(self) -> None:
+        result = FinancialRatioEngine().analyze(_full())
+        nm = _by_name(result, "net_margin")
+        assert nm.value == pytest.approx(0.21)
+        assert nm.status == FinancialValueStatus.CALCULATED.value
+        assert nm.formula_id == FORMULA_NET_MARGIN
+        assert nm.formula == "net_income / revenue"
+
+    def test_missing_gross_profit_is_unavailable(self) -> None:
+        stmt = _full(
+            income=IncomeStatement(
+                revenue=1000.0,
+                ebit=300.0,
+                ebitda=350.0,
+                net_income=210.0,
+            )
+        )
+        gm = _by_name(FinancialRatioEngine().analyze(stmt), "gross_margin")
+        assert gm.value is None
+        assert gm.status == FinancialValueStatus.UNAVAILABLE.value
+        assert gm.formula_id == FORMULA_GROSS_MARGIN
+
+    def test_missing_ebit_operating_margin_unavailable(self) -> None:
+        stmt = _full(
+            income=IncomeStatement(
+                revenue=1000.0,
+                gross_profit=600.0,
+                net_income=210.0,
+            )
+        )
+        om = _by_name(FinancialRatioEngine().analyze(stmt), "operating_margin")
+        assert om.value is None
+        assert om.status == FinancialValueStatus.UNAVAILABLE.value
+        assert om.formula_id == FORMULA_OPERATING_MARGIN
+
+    def test_missing_net_income_net_margin_unavailable(self) -> None:
+        stmt = _full(
+            income=IncomeStatement(
+                revenue=1000.0,
+                gross_profit=600.0,
+                ebit=300.0,
+            )
+        )
+        nm = _by_name(FinancialRatioEngine().analyze(stmt), "net_margin")
+        assert nm.value is None
+        assert nm.status == FinancialValueStatus.UNAVAILABLE.value
+        assert nm.formula_id == FORMULA_NET_MARGIN
+
+    def test_zero_revenue_never_fabricates(self) -> None:
+        stmt = _full(income=IncomeStatement(revenue=0.0, net_income=0.0))
+        with pytest.raises(FinancialRatioError, match="Divide-by-zero"):
+            FinancialRatioEngine().analyze(stmt)
+
+    def test_provenance_and_calculated_not_reported(self) -> None:
+        gm = _by_name(FinancialRatioEngine().analyze(_full()), "gross_margin")
+        payload = gm.to_dict()
+        assert payload["formula_id"] == FORMULA_GROSS_MARGIN
+        assert payload["formula"] == "gross_profit / revenue"
+        assert payload["inputs"]["gross_profit"] == 600.0
+        assert payload["inputs"]["revenue"] == 1000.0
+        refs = payload["intermediates"]["derivation_inputs"]
+        assert {item["field_id"] for item in refs} == {"gross_profit", "revenue"}
+        assert payload["status"] == FinancialValueStatus.CALCULATED.value
+        assert payload["status"] != FinancialValueStatus.REPORTED.value
+        relabeled = as_reported(
+            DerivationInput(
+                field_id="gross_margin",
+                value=gm.value,
+                status=FinancialValueStatus.CALCULATED,
+            )
+        )
+        assert relabeled.status is FinancialValueStatus.UNAVAILABLE
+        assert relabeled.unavailable_reason == "calculated_cannot_be_reported"
+
+    def test_unmigrated_ebit_margins_have_no_phase1_status(self) -> None:
+        result = FinancialRatioEngine().analyze(_full())
+        ebit = _by_name(result, "ebit_margin")
+        ebitda = _by_name(result, "ebitda_margin")
+        assert ebit.status is None
+        assert ebit.formula_id is None
+        assert ebitda.status is None
+        assert ebit.value == pytest.approx(0.3)
+        assert ebitda.value == pytest.approx(0.35)
+
+    def test_no_cogs_fallback_for_gross_margin(self) -> None:
+        stmt = _full(
+            income=IncomeStatement(
+                revenue=1000.0,
+                cogs=400.0,
+                ebit=300.0,
+                net_income=210.0,
+            )
+        )
+        gm = _by_name(FinancialRatioEngine().analyze(stmt), "gross_margin")
+        assert gm.value is None
+        assert gm.status == FinancialValueStatus.UNAVAILABLE.value
+

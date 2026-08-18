@@ -13,6 +13,15 @@ from __future__ import annotations
 import math
 from typing import Any, Callable, Sequence
 
+from financial.derivation import (
+    FORMULA_GROSS_MARGIN,
+    FORMULA_NET_MARGIN,
+    FORMULA_OPERATING_MARGIN,
+    DerivationInput,
+    DerivedFinancialValue,
+    FinancialValueStatus,
+    derive,
+)
 from financial.intelligence.balance_engine import BalanceSheetEngine
 from financial.intelligence.cashflow_engine import CashFlowEngine
 from financial.intelligence.cashflow_validation import _computed_fcf
@@ -98,6 +107,67 @@ def _fcf(cf) -> float | None:
     if cf.free_cash_flow is not None:
         return cf.free_cash_flow
     return _computed_fcf(cf)
+
+
+def _statement_derivation_input(
+    stmt: FinancialStatements,
+    field_id: str,
+    value: float | None,
+) -> DerivationInput:
+    """Map a statement line item into a derivation input. Never invent values."""
+    period = stmt.period
+    meta = stmt.statement_metadata
+    reported = value is not None
+    return DerivationInput(
+        field_id=field_id,
+        value=value,
+        status=(
+            FinancialValueStatus.REPORTED
+            if reported
+            else FinancialValueStatus.UNAVAILABLE
+        ),
+        period_type=period.period_type,
+        period_end=period.period_end,
+        unit_scale=meta.unit_scale,
+        currency=period.currency,
+        source=meta.source or period.source,
+    )
+
+
+def _phase1_margin(
+    stmt: FinancialStatements,
+    formula_id: str,
+    numerator_id: str,
+    numerator: float | None,
+) -> DerivedFinancialValue:
+    """Same-period margin via the canonical derivation engine.
+
+    Never falls back to an alternate formula. Calculated ratios are never
+    labelled reported.
+    """
+    return derive(
+        formula_id,
+        {
+            numerator_id: _statement_derivation_input(
+                stmt, numerator_id, numerator
+            ),
+            "revenue": _statement_derivation_input(
+                stmt, "revenue", stmt.income_statement.revenue
+            ),
+        },
+    )
+
+
+def _phase1_ratio_status(derived: DerivedFinancialValue) -> str:
+    if derived.status is FinancialValueStatus.CALCULATED:
+        return FinancialValueStatus.CALCULATED.value
+    return FinancialValueStatus.UNAVAILABLE.value
+
+
+def _phase1_ratio_value(derived: DerivedFinancialValue) -> float | None:
+    if derived.status is FinancialValueStatus.CALCULATED:
+        return derived.value
+    return None
 
 
 def _confidence(n: int, *, has_value: bool) -> str:
@@ -274,6 +344,8 @@ class FinancialRatioEngine:
         interpretation: str,
         risk_notes: str = "",
         limitations: str = "",
+        status: str | None = None,
+        formula_id: str | None = None,
         out: list[MetricExplanation],
     ) -> RatioMetric:
         conf = _confidence(periods, has_value=value is not None)
@@ -301,6 +373,8 @@ class FinancialRatioEngine:
             interpretation=interpretation,
             risk_notes=risk_notes,
             limitations=limitations or "Research heuristic — verify filings.",
+            status=status,
+            formula_id=formula_id,
         )
 
     def _profitability(
@@ -317,20 +391,65 @@ class FinancialRatioEngine:
             return fn(prior) if prior else None
 
         metrics: list[RatioMetric] = []
-        pairs = [
-            ("gross_margin", "gross_profit / revenue", _safe_div(inc.gross_profit, rev), {"gross_profit": inc.gross_profit, "revenue": rev}),
-            ("operating_margin", "ebit / revenue", _safe_div(inc.ebit, rev), {"ebit": inc.ebit, "revenue": rev}),
+
+        def _append_phase1(
+            name: str,
+            formula_id: str,
+            numer_id: str,
+            numer: float | None,
+        ) -> None:
+            derived = _phase1_margin(cur, formula_id, numer_id, numer)
+            value = _phase1_ratio_value(derived)
+            status = _phase1_ratio_status(derived)
+            prior_v = None
+            if prior is not None:
+                prior_derived = _phase1_margin(
+                    prior,
+                    formula_id,
+                    numer_id,
+                    getattr(prior.income_statement, numer_id),
+                )
+                prior_v = _phase1_ratio_value(prior_derived)
+            metrics.append(
+                self._metric(
+                    name=name,
+                    formula=derived.formula or "",
+                    formula_id=derived.formula_id,
+                    value=value,
+                    inputs={numer_id: numer, "revenue": rev},
+                    intermediates={
+                        "formula_id": derived.formula_id,
+                        "derivation_inputs": [dict(item) for item in derived.inputs],
+                        "unavailable_reason": derived.unavailable_reason,
+                    },
+                    benchmark=_benchmark_margin(value),
+                    trend=_trend(value, prior_v),
+                    periods=n,
+                    interpretation=(
+                        f"{name} = {value:.4f}."
+                        if value is not None
+                        else f"{name} unavailable."
+                    ),
+                    status=status,
+                    out=out,
+                )
+            )
+
+        _append_phase1(
+            "gross_margin", FORMULA_GROSS_MARGIN, "gross_profit", inc.gross_profit
+        )
+        _append_phase1(
+            "operating_margin", FORMULA_OPERATING_MARGIN, "ebit", inc.ebit
+        )
+
+        legacy_pairs = [
             ("ebit_margin", "ebit / revenue", _safe_div(inc.ebit, rev), {"ebit": inc.ebit, "revenue": rev}),
             ("ebitda_margin", "ebitda / revenue", _safe_div(inc.ebitda, rev), {"ebitda": inc.ebitda, "revenue": rev}),
-            ("net_margin", "net_income / revenue", _safe_div(inc.net_income, rev), {"net_income": inc.net_income, "revenue": rev}),
         ]
-        for name, formula, value, inputs in pairs:
+        for name, formula, value, inputs in legacy_pairs:
             p_map = {
-                "gross_margin": lambda s: _safe_div(s.income_statement.gross_profit, s.income_statement.revenue),
-                "operating_margin": lambda s: _safe_div(s.income_statement.ebit, s.income_statement.revenue),
                 "ebit_margin": lambda s: _safe_div(s.income_statement.ebit, s.income_statement.revenue),
                 "ebitda_margin": lambda s: _safe_div(s.income_statement.ebitda, s.income_statement.revenue),
-                "net_margin": lambda s: _safe_div(s.income_statement.net_income, s.income_statement.revenue),
             }
             metrics.append(
                 self._metric(
@@ -345,6 +464,10 @@ class FinancialRatioEngine:
                     out=out,
                 )
             )
+
+        _append_phase1(
+            "net_margin", FORMULA_NET_MARGIN, "net_income", inc.net_income
+        )
 
         roa = _safe_div(inc.net_income, bs.total_assets)
         roe = _safe_div(inc.net_income, _equity(bs))

@@ -64,6 +64,9 @@ class RatioMetric:
     interpretation: str
     risk_notes: str = ""
     limitations: str = ""
+    # Additive derivation state. None = not yet migrated off F2.5 helpers.
+    status: str | None = None
+    formula_id: str | None = None
 
     def to_dict(self) -> dict[str, Any]:
         return {
@@ -78,6 +81,8 @@ class RatioMetric:
             "interpretation": self.interpretation,
             "risk_notes": self.risk_notes,
             "limitations": self.limitations,
+            "status": self.status,
+            "formula_id": self.formula_id,
         }
 
 

@@ -8,7 +8,7 @@ from urllib.parse import quote
 
 from fastapi import APIRouter, Depends, Header, Request
 from fastapi.responses import JSONResponse, RedirectResponse, Response
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, model_validator
 
 from api_platform.api.dependencies import ApiState, get_api_state
 
@@ -196,14 +196,41 @@ class OAuthLinkRequest(BaseModel):
 
 
 class OtpRequest(BaseModel):
-    mobile: str = Field(..., min_length=10, max_length=20)
+    """Unified OTP request: prefer ``identifier`` (email or mobile).
+
+    ``mobile`` remains accepted for backward compatibility with existing clients.
+    """
+
+    identifier: str | None = Field(None, min_length=3, max_length=256)
+    mobile: str | None = Field(None, min_length=10, max_length=20)
+
+    @model_validator(mode="after")
+    def _require_identifier(self) -> OtpRequest:
+        if not (self.identifier or self.mobile):
+            raise ValueError("identifier or mobile is required")
+        return self
+
+    def resolved_identifier(self) -> str:
+        return (self.identifier or self.mobile or "").strip()
 
 
 class OtpVerifyRequest(BaseModel):
     challenge_id: str = Field(..., min_length=8, max_length=128)
-    code: str = Field(..., min_length=4, max_length=8)
+    code: str | None = Field(None, min_length=4, max_length=8)
+    # Alias used by the frozen frontend OTP contract.
+    otp: str | None = Field(None, min_length=4, max_length=8)
     remember_me: bool = False
     name: str | None = Field(None, max_length=128)
+    identifier: str | None = Field(None, max_length=256)
+
+    @model_validator(mode="after")
+    def _require_code(self) -> OtpVerifyRequest:
+        if not (self.code or self.otp):
+            raise ValueError("code or otp is required")
+        return self
+
+    def resolved_code(self) -> str:
+        return (self.code or self.otp or "").strip()
 
 
 class MagicLinkRequest(BaseModel):
@@ -593,7 +620,8 @@ def auth_facebook_unlink(authorization: str | None = Header(default=None)) -> JS
 def enterprise_otp_request(body: OtpRequest, request: Request) -> JSONResponse:
     try:
         meta = _client_meta(request)
-        result = _platform().request_mobile_otp(body.mobile, ip_hint=meta["ip_hint"])
+        identifier = body.resolved_identifier()
+        result = _platform().request_login_otp(identifier, ip_hint=meta["ip_hint"])
         return JSONResponse({"ok": True, "result": result})
     except Exception as exc:  # noqa: BLE001
         return _err(exc)
@@ -603,9 +631,9 @@ def enterprise_otp_request(body: OtpRequest, request: Request) -> JSONResponse:
 def enterprise_otp_verify(body: OtpVerifyRequest, request: Request) -> JSONResponse:
     try:
         meta = _client_meta(request)
-        result = _platform().verify_mobile_otp(
+        result = _platform().verify_login_otp(
             challenge_id=body.challenge_id,
-            code=body.code,
+            code=body.resolved_code(),
             remember_me=body.remember_me,
             name=body.name,
             ip_hint=meta["ip_hint"],
@@ -860,7 +888,9 @@ def auth_otp_verify_alias(body: OtpVerifyRequest, request: Request) -> JSONRespo
 def auth_otp_resend(body: OtpRequest, request: Request) -> JSONResponse:
     try:
         meta = _client_meta(request)
-        result = _platform().resend_mobile_otp(body.mobile, ip_hint=meta["ip_hint"])
+        result = _platform().resend_login_otp(
+            body.resolved_identifier(), ip_hint=meta["ip_hint"]
+        )
         return JSONResponse({"ok": True, "result": result})
     except Exception as exc:  # noqa: BLE001
         return _err(exc)

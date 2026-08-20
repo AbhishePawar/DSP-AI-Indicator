@@ -40,7 +40,7 @@ from auth.models import (
     AuthUser,
     RoleDefinition,
 )
-from auth.otp import OtpService, normalize_india_mobile
+from auth.otp import OtpService, classify_otp_identifier, normalize_india_mobile, try_normalize_india_mobile
 from auth.permissions import assert_permission, list_permissions
 from auth.roles import RoleRegistry, builtin_roles, get_role_registry, reset_role_registry_for_tests
 from auth.serde import session_to_dict, token_pair_to_dict, user_to_dict
@@ -109,6 +109,7 @@ __all__ = [
     "build_mfa_gateway",
     "build_sms_provider",
     "builtin_roles",
+    "classify_otp_identifier",
     "get_auth_service",
     "get_enterprise_auth_platform",
     "get_role_registry",
@@ -122,6 +123,7 @@ __all__ = [
     "reset_role_registry_for_tests",
     "session_to_dict",
     "token_pair_to_dict",
+    "try_normalize_india_mobile",
     "user_to_dict",
     "verify_password",
 ]

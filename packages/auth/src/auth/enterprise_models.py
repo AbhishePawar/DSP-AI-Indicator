@@ -129,6 +129,14 @@ class LoginHistoryEntry:
 
 @dataclass(frozen=True, slots=True)
 class OtpChallenge:
+    """One-time login challenge for mobile SMS or email delivery.
+
+    ``mobile`` remains the historical field name for the destination when
+    ``channel == "mobile"``. Email challenges store the address in
+    ``destination`` and leave ``mobile`` empty. Public responses never
+    include the plaintext OTP.
+    """
+
     challenge_id: str
     mobile: str
     code_hash: str
@@ -137,15 +145,28 @@ class OtpChallenge:
     attempts: int = 0
     consumed: bool = False
     resend_available_at: str | None = None
+    channel: str = "mobile"  # mobile | email
+    destination: str = ""
+
+    def resolved_destination(self) -> str:
+        return self.destination or self.mobile
 
     def to_public_dict(self) -> dict[str, Any]:
-        return {
+        dest = self.resolved_destination()
+        out: dict[str, Any] = {
             "challenge_id": self.challenge_id,
-            "mobile": self.mobile,
+            "channel": self.channel,
             "expires_at": self.expires_at,
             "resend_available_at": self.resend_available_at,
             "consumed": self.consumed,
         }
+        if self.channel == "mobile":
+            out["mobile"] = dest
+        elif dest and "@" in dest:
+            local, _, domain = dest.partition("@")
+            masked_local = (local[:1] + "***") if local else "***"
+            out["email_hint"] = f"{masked_local}@{domain}"
+        return out
 
 
 @dataclass(frozen=True, slots=True)

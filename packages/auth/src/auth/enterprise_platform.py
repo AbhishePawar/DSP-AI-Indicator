@@ -43,7 +43,11 @@ from auth.oauth_providers import (
     build_oauth_registry,
     stable_username_from_email,
 )
-from auth.otp import OtpService
+from auth.otp import (
+    OtpService,
+    classify_otp_identifier,
+    try_normalize_india_mobile,
+)
 from auth.service import AuthService, get_auth_service
 from auth.single_use_tokens import SingleUseTokenError, SingleUseTokenService
 from auth.sms import build_sms_provider
@@ -105,12 +109,12 @@ class EnterpriseAuthPlatform:
     ) -> None:
         self.auth = auth
         self.oauth = oauth or build_oauth_registry()
-        self.otp = otp or OtpService(build_sms_provider())
+        self.email = email or build_email_provider()
+        self.otp = otp or OtpService(build_sms_provider(), email=self.email)
         self.devices = devices or DeviceRegistry(auth.persistence)
         self.mfa = mfa or build_mfa_gateway(
             persistence=auth.persistence, users=auth.users, jwt=auth.jwt
         )
-        self.email = email or build_email_provider()
         self.audit = audit or AuditLogger(auth.persistence)
         # Single shared implementation for every one-time-link auth flow
         # (email verification, password reset, magic link, invitations, and
@@ -145,10 +149,13 @@ class EnterpriseAuthPlatform:
             "features": {
                 "email_password": True,
                 "username_password": True,
+                "mobile_password": True,
                 "google_oauth": True,
                 "microsoft_oauth": True,
                 "facebook_oauth": True,
                 "mobile_otp": True,
+                "email_otp": True,
+                "unified_otp": True,
                 "magic_link": True,
                 "request_access": True,
                 "email_verification": True,
@@ -336,11 +343,31 @@ class EnterpriseAuthPlatform:
         return None
 
     def _get_by_mobile(self, mobile: str) -> AuthUser | None:
+        """Return the single user bound to ``mobile``, or None.
+
+        If more than one account shares the same mobile value, fail closed
+        (return None) so callers never guess an identity. Password login uses
+        :meth:`_find_verified_mobile_users` for an explicit ambiguity check.
+        """
+        matches = [
+            user
+            for user in self.auth.users.list_users()
+            if str(dict(user.metadata or {}).get("mobile") or "") == mobile
+        ]
+        if len(matches) == 1:
+            return matches[0]
+        return None
+
+    def _find_verified_mobile_users(self, mobile: str) -> list[AuthUser]:
+        matches: list[AuthUser] = []
         for user in self.auth.users.list_users():
             meta = dict(user.metadata or {})
-            if str(meta.get("mobile") or "") == mobile:
-                return user
-        return None
+            if str(meta.get("mobile") or "") != mobile:
+                continue
+            if not bool(meta.get("phone_verified")):
+                continue
+            matches.append(user)
+        return matches
 
     def _get_by_provider_subject(self, provider: str, subject: str) -> AuthUser | None:
         for user in self.auth.users.list_users():
@@ -681,12 +708,34 @@ class EnterpriseAuthPlatform:
         self._rate_check(f"login:{ip_hint or identifier}", limit=20, window_sec=300)
         ident = identifier.strip()
         user = None
+        provider = AuthProvider.USERNAME.value
         if "@" in ident:
             user = self._get_by_email(ident)
+            provider = AuthProvider.EMAIL.value
         if user is None:
-            user = self.auth.users.get_by_username(ident)
-        provider = AuthProvider.EMAIL.value if "@" in ident else AuthProvider.USERNAME.value
-        if user is None or not verify_password(password, user.password_hash):
+            # Username lookup rejects non-username shapes (email/mobile); ignore.
+            try:
+                user = self.auth.users.get_by_username(ident)
+            except ValidationError:
+                user = None
+            if user is not None:
+                provider = AuthProvider.USERNAME.value
+        if user is None:
+            # Verified-mobile password login (after email/username miss).
+            mobile = try_normalize_india_mobile(ident)
+            if mobile is not None:
+                matches = self._find_verified_mobile_users(mobile)
+                if len(matches) > 1:
+                    # Ambiguous verified mobile — never guess.
+                    raise AuthenticationError("invalid credentials")
+                if len(matches) == 1:
+                    user = matches[0]
+                    provider = AuthProvider.PHONE.value
+                # Unverified or unknown mobile: fall through as invalid
+                # credentials (same message as unknown identifier).
+        if user is None or not user.password_hash or not verify_password(
+            password, user.password_hash
+        ):
             if user:
                 self._register_failed_login(user, ip_hint=ip_hint, provider=provider)
             raise AuthenticationError("invalid credentials")
@@ -1056,17 +1105,82 @@ class EnterpriseAuthPlatform:
         )
 
     # --- OTP -------------------------------------------------------------
+    #
+    # Phase 2B: one public login-OTP flow (identifier = email OR mobile).
+    # Mobile OTP may still auto-provision ``@phone.dspai.local`` users
+    # (preserved for compatibility). Email OTP never auto-creates accounts
+    # and only delivers to verified emails. Automatic phone↔email merging is
+    # intentionally deferred to Phase 2F.
 
-    def request_mobile_otp(self, mobile: str, *, ip_hint: str | None = None) -> dict[str, Any]:
-        self._rate_check(f"otp:{ip_hint or mobile}", limit=10, window_sec=3600)
+    def request_login_otp(
+        self,
+        identifier: str,
+        *,
+        ip_hint: str | None = None,
+    ) -> dict[str, Any]:
+        """Unified OTP request: ``identifier`` is a verified email or India mobile."""
+        self._rate_check(f"otp:{ip_hint or identifier}", limit=10, window_sec=3600)
         otp_flag = (os.environ.get("DSP_AUTH_PROVIDER_OTP") or "auto").strip().lower()
         if otp_flag in {"disabled", "coming_soon", "off", "false", "0"}:
-            raise AuthenticationError("Mobile OTP intentionally disabled — Coming Soon.")
-        return self.otp.request_otp(mobile, ip_hint=ip_hint)
+            raise AuthenticationError("OTP intentionally disabled — Coming Soon.")
+        channel, destination = classify_otp_identifier(identifier)
+        if channel == "mobile":
+            return self.otp.request_otp(destination, ip_hint=ip_hint)
+        # Email: opaque success whether or not the address is eligible.
+        user = self._get_by_email(destination)
+        meta = dict(user.metadata or {}) if user else {}
+        eligible = bool(user) and bool(meta.get("email_verified"))
+        return self.otp.request_email_otp(
+            destination, ip_hint=ip_hint, deliver=eligible
+        )
+
+    def request_mobile_otp(self, mobile: str, *, ip_hint: str | None = None) -> dict[str, Any]:
+        """Backward-compatible mobile-only entry point."""
+        return self.request_login_otp(mobile, ip_hint=ip_hint)
 
     def resend_mobile_otp(self, mobile: str, *, ip_hint: str | None = None) -> dict[str, Any]:
         """Resend uses the same request path (enforces 30s cooldown)."""
-        return self.request_mobile_otp(mobile, ip_hint=ip_hint)
+        return self.request_login_otp(mobile, ip_hint=ip_hint)
+
+    def resend_login_otp(self, identifier: str, *, ip_hint: str | None = None) -> dict[str, Any]:
+        return self.request_login_otp(identifier, ip_hint=ip_hint)
+
+    def verify_login_otp(
+        self,
+        *,
+        challenge_id: str,
+        code: str,
+        remember_me: bool = False,
+        name: str | None = None,
+        ip_hint: str | None = None,
+        user_agent_hint: str | None = None,
+    ) -> dict[str, Any]:
+        """Unified OTP verify — issues the normal enterprise session."""
+        result = self.otp.verify_otp_result(
+            challenge_id=challenge_id, code=code, ip_hint=ip_hint
+        )
+        if result.channel == "mobile":
+            return self._complete_mobile_otp_login(
+                mobile=result.destination,
+                remember_me=remember_me,
+                name=name,
+                ip_hint=ip_hint,
+                user_agent_hint=user_agent_hint,
+            )
+        user = self._get_by_email(result.destination)
+        if user is None:
+            raise AuthenticationError("Invalid or expired OTP challenge.")
+        meta = dict(user.metadata or {})
+        if not meta.get("email_verified"):
+            raise AuthenticationError("Invalid or expired OTP challenge.")
+        return self._issue_session(
+            user,
+            remember_me=remember_me,
+            provider=AuthProvider.EMAIL.value,
+            ip_hint=ip_hint,
+            user_agent_hint=user_agent_hint,
+            device_label="email-otp",
+        )
 
     def verify_mobile_otp(
         self,
@@ -1078,10 +1192,29 @@ class EnterpriseAuthPlatform:
         ip_hint: str | None = None,
         user_agent_hint: str | None = None,
     ) -> dict[str, Any]:
-        mobile = self.otp.verify_otp(challenge_id=challenge_id, code=code, ip_hint=ip_hint)
+        """Backward-compatible mobile verify (delegates to unified path)."""
+        return self.verify_login_otp(
+            challenge_id=challenge_id,
+            code=code,
+            remember_me=remember_me,
+            name=name,
+            ip_hint=ip_hint,
+            user_agent_hint=user_agent_hint,
+        )
+
+    def _complete_mobile_otp_login(
+        self,
+        *,
+        mobile: str,
+        remember_me: bool,
+        name: str | None,
+        ip_hint: str | None,
+        user_agent_hint: str | None,
+    ) -> dict[str, Any]:
         user = self._get_by_mobile(mobile)
         if user is None:
-            # Auto-create phone user
+            # Auto-create phone user (Phase 2F will address linking to email
+            # identities; do not merge here).
             uname = f"m{mobile[-10:]}"
             email = f"{uname}@phone.dspai.local"
             try:

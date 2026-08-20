@@ -103,11 +103,14 @@ class ConsoleEmailAdapter:
         html_body: str | None = None,
     ) -> EmailDeliveryResult:
         _ = html_body
-        self._sent.append({"to": to, "subject": subject, "purpose": purpose})
-        # Optional: TOKEN=... line for local flows
+        # Body retained in-memory for local/dev tests only — never logged.
+        self._sent.append(
+            {"to": to, "subject": subject, "purpose": purpose, "body": body}
+        )
+        # Optional: TOKEN=... / OTP=... markers for local flows (not for API exposure).
         debug = None
         for line in body.splitlines():
-            if line.startswith("TOKEN="):
+            if line.startswith("TOKEN=") or line.startswith("OTP="):
                 debug = line.split("=", 1)[1].strip()
                 break
         return EmailDeliveryResult(

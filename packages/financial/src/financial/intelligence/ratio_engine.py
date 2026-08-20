@@ -4,8 +4,7 @@ Composes Income / Balance / Cash Flow Intelligence into canonical ratios.
 No forecasting, valuation, market data, or provider I/O.
 
 Policy-compliant REPORTED / CALCULATED / UNAVAILABLE derivation lives in
-``financial.derivation``. Helpers below (_avg, _total_debt, _current_assets)
-retain F2.5 legacy fallbacks and must not be copied into the derivation engine.
+``financial.derivation``.
 """
 
 from __future__ import annotations
@@ -14,20 +13,52 @@ import math
 from typing import Any, Callable, Sequence
 
 from financial.derivation import (
+    FORMULA_ASSET_TURNOVER,
+    FORMULA_AVERAGE_BALANCE,
+    FORMULA_CASH_CONVERSION_CYCLE,
+    FORMULA_CASH_CONVERSION_RATIO,
+    FORMULA_CASH_RATIO,
+    FORMULA_CURRENT_RATIO,
+    FORMULA_DAYS_INVENTORY_OUTSTANDING,
+    FORMULA_DAYS_PAYABLES_OUTSTANDING,
+    FORMULA_DAYS_SALES_OUTSTANDING,
+    FORMULA_DEBT_COVERAGE,
+    FORMULA_DEBT_TO_ASSETS,
+    FORMULA_DEBT_TO_EQUITY,
+    FORMULA_DIVIDEND_COVERAGE,
+    FORMULA_FCF,
+    FORMULA_FCF_MARGIN,
+    FORMULA_FIXED_ASSET_TURNOVER,
     FORMULA_GROSS_MARGIN,
+    FORMULA_INVENTORY_TURNOVER,
+    FORMULA_INVESTED_CAPITAL,
+    FORMULA_NET_DEBT,
+    FORMULA_NET_DEBT_TO_EBITDA,
     FORMULA_NET_MARGIN,
+    FORMULA_NOPAT,
     FORMULA_OPERATING_MARGIN,
+    FORMULA_PAYABLE_TURNOVER,
+    FORMULA_QUICK_RATIO,
+    FORMULA_RECEIVABLE_TURNOVER,
+    FORMULA_ROA,
+    FORMULA_ROCE,
+    FORMULA_ROE,
+    FORMULA_ROIC,
+    FORMULA_TOTAL_DEBT,
+    FORMULA_WORKING_CAPITAL,
+    FORMULA_WORKING_CAPITAL_RATIO,
+    FORMULA_WORKING_CAPITAL_TURNOVER,
     DerivationInput,
     DerivedFinancialValue,
     FinancialValueStatus,
+    as_reported,
     derive,
 )
+from financial.derivation.formulas import get_formula
 from financial.intelligence.balance_engine import BalanceSheetEngine
 from financial.intelligence.cashflow_engine import CashFlowEngine
-from financial.intelligence.cashflow_validation import _computed_fcf
 from financial.intelligence.income_engine import IncomeStatementEngine
 from financial.intelligence.income_models import TrendDirection
-from financial.intelligence.quality_signals import days_from_turnover
 from financial.intelligence.ratio_explainability import (
     RATIO_RESEARCH_DISCLAIMER,
     MetricExplanation,
@@ -68,45 +99,8 @@ def _clip01(value: float | None) -> float | None:
     return max(0.0, min(1.0, value))
 
 
-def _avg(a: float | None, b: float | None) -> float | None:
-    if a is None and b is None:
-        return None
-    if a is None:
-        return b
-    if b is None:
-        return a
-    return (a + b) / 2.0
-
-
 def _equity(bs) -> float | None:
     return bs.total_equity if bs.total_equity is not None else bs.equity
-
-
-def _total_debt(bs) -> float | None:
-    if bs.short_term_debt is None and bs.long_term_debt is None:
-        return None
-    return (bs.short_term_debt or 0.0) + (bs.long_term_debt or 0.0)
-
-
-def _current_assets(bs) -> float | None:
-    if bs.current_assets is not None:
-        return bs.current_assets
-    parts = [
-        bs.cash,
-        bs.short_term_investments,
-        bs.accounts_receivable,
-        bs.inventory,
-        bs.other_current_assets,
-    ]
-    if all(p is None for p in parts):
-        return None
-    return sum(p or 0.0 for p in parts)
-
-
-def _fcf(cf) -> float | None:
-    if cf.free_cash_flow is not None:
-        return cf.free_cash_flow
-    return _computed_fcf(cf)
 
 
 def _statement_derivation_input(
@@ -168,6 +162,252 @@ def _phase1_ratio_value(derived: DerivedFinancialValue) -> float | None:
     if derived.status is FinancialValueStatus.CALCULATED:
         return derived.value
     return None
+
+
+def _unavailable_derived(
+    formula_id: str,
+    reason: str,
+    inputs: tuple[dict, ...] = (),
+) -> DerivedFinancialValue:
+    spec = get_formula(formula_id)
+    return DerivedFinancialValue(
+        status=FinancialValueStatus.UNAVAILABLE,
+        value=None,
+        formula_id=formula_id,
+        formula=spec.formula if spec else None,
+        inputs=inputs,
+        unavailable_reason=reason,
+    )
+
+
+def _derive_roe(
+    cur: FinancialStatements,
+    prior: FinancialStatements | None,
+) -> DerivedFinancialValue:
+    """ROE = NI / average equity. Beginning equity is never invented."""
+    end_eq = _equity(cur.balance_sheet)
+    ni = cur.income_statement.net_income
+    if prior is None:
+        return _unavailable_derived(
+            FORMULA_ROE,
+            "missing_input",
+            inputs=(
+                _statement_derivation_input(cur, "net_income", ni).to_ref(),
+                {
+                    "field_id": "beginning_equity",
+                    "value": None,
+                    "status": FinancialValueStatus.UNAVAILABLE.value,
+                    "period_type": None,
+                    "period_end": None,
+                    "fiscal_year": None,
+                    "fiscal_quarter": None,
+                    "unit_scale": None,
+                    "currency": None,
+                    "accounting_basis": None,
+                    "source": "",
+                    "converted_value": None,
+                },
+                _statement_derivation_input(cur, "ending_equity", end_eq).to_ref(),
+            ),
+        )
+    return derive(
+        FORMULA_ROE,
+        {
+            "net_income": _statement_derivation_input(cur, "net_income", ni),
+            "beginning_equity": _statement_derivation_input(
+                prior, "beginning_equity", _equity(prior.balance_sheet)
+            ),
+            "ending_equity": _statement_derivation_input(
+                cur, "ending_equity", end_eq
+            ),
+        },
+    )
+
+
+def _derive_debt_to_equity(stmt: FinancialStatements) -> DerivedFinancialValue:
+    """D/E requires both ST and LT debt; missing legs are not zero-filled."""
+    bs = stmt.balance_sheet
+    total_debt = _derive_total_debt(stmt)
+    debt_input = _derived_input(total_debt, stmt, "total_debt")
+    return derive(
+        FORMULA_DEBT_TO_EQUITY,
+        {
+            "total_debt": debt_input,
+            "equity": _statement_derivation_input(stmt, "equity", _equity(bs)),
+        },
+    )
+
+
+def _derived_input(
+    derived: DerivedFinancialValue,
+    stmt: FinancialStatements,
+    field_id: str,
+) -> DerivationInput:
+    return DerivationInput(
+        field_id=field_id,
+        value=derived.value,
+        status=derived.status,
+        period_type=stmt.period.period_type,
+        period_end=stmt.period.period_end,
+        unit_scale=stmt.statement_metadata.unit_scale,
+        currency=stmt.period.currency,
+        source=stmt.statement_metadata.source or stmt.period.source,
+    )
+
+
+def _derive_total_debt(stmt: FinancialStatements) -> DerivedFinancialValue:
+    bs = stmt.balance_sheet
+    return derive(
+        FORMULA_TOTAL_DEBT,
+        {
+            "short_term_debt": _statement_derivation_input(
+                stmt, "short_term_debt", bs.short_term_debt
+            ),
+            "long_term_debt": _statement_derivation_input(
+                stmt, "long_term_debt", bs.long_term_debt
+            ),
+        },
+    )
+
+
+def _derive_fcf(stmt: FinancialStatements) -> DerivedFinancialValue:
+    """Reported FCF when present; otherwise OCF − |capex| via FORMULA_FCF."""
+    cf = stmt.cash_flow
+    if cf.free_cash_flow is not None:
+        return as_reported(
+            _statement_derivation_input(
+                stmt, "free_cash_flow", cf.free_cash_flow
+            )
+        )
+    return derive(
+        FORMULA_FCF,
+        {
+            "operating_cash_flow": _statement_derivation_input(
+                stmt, "operating_cash_flow", cf.operating_cash_flow
+            ),
+            "capex": _statement_derivation_input(stmt, "capex", cf.capex),
+        },
+    )
+
+
+def _derive_average_balance(
+    cur: FinancialStatements,
+    prior: FinancialStatements | None,
+    *,
+    field_prefix: str,
+    beginning: float | None,
+    ending: float | None,
+) -> DerivedFinancialValue:
+    if prior is None:
+        return _unavailable_derived(
+            FORMULA_AVERAGE_BALANCE,
+            "missing_input",
+            inputs=(
+                {
+                    "field_id": "beginning_balance",
+                    "value": None,
+                    "status": FinancialValueStatus.UNAVAILABLE.value,
+                    "period_type": None,
+                    "period_end": None,
+                    "fiscal_year": None,
+                    "fiscal_quarter": None,
+                    "unit_scale": None,
+                    "currency": None,
+                    "accounting_basis": None,
+                    "source": "",
+                    "converted_value": None,
+                },
+                _statement_derivation_input(
+                    cur, f"ending_{field_prefix}", ending
+                ).to_ref(),
+            ),
+        )
+    return derive(
+        FORMULA_AVERAGE_BALANCE,
+        {
+            "beginning_balance": _statement_derivation_input(
+                prior, "beginning_balance", beginning
+            ),
+            "ending_balance": _statement_derivation_input(
+                cur, "ending_balance", ending
+            ),
+        },
+    )
+
+
+def _derive_roic(cur: FinancialStatements) -> DerivedFinancialValue:
+    bs, inc = cur.balance_sheet, cur.income_statement
+    total_debt = _derive_total_debt(cur)
+    invested = derive(
+        FORMULA_INVESTED_CAPITAL,
+        {
+            "equity": _statement_derivation_input(cur, "equity", _equity(bs)),
+            "total_debt": _derived_input(total_debt, cur, "total_debt"),
+            "cash": _statement_derivation_input(cur, "cash", bs.cash),
+        },
+    )
+    nopat = derive(
+        FORMULA_NOPAT,
+        {
+            "ebit": _statement_derivation_input(cur, "ebit", inc.ebit),
+            "tax": _statement_derivation_input(cur, "tax", inc.tax),
+            "pretax_income": _statement_derivation_input(
+                cur, "pretax_income", inc.pretax_income
+            ),
+        },
+    )
+    return derive(
+        FORMULA_ROIC,
+        {
+            "nopat": _derived_input(nopat, cur, "nopat"),
+            "invested_capital": _derived_input(invested, cur, "invested_capital"),
+        },
+    )
+
+
+def _derive_from_fields(
+    stmt: FinancialStatements,
+    formula_id: str,
+    fields: dict[str, float | None],
+) -> DerivedFinancialValue:
+    """Same-statement derivation. Missing fields stay unavailable — never 0-filled."""
+    return derive(
+        formula_id,
+        {
+            name: _statement_derivation_input(stmt, name, value)
+            for name, value in fields.items()
+        },
+    )
+
+
+def _derive_working_capital(stmt: FinancialStatements) -> DerivedFinancialValue:
+    """Working-capital amount from reported current assets and liabilities."""
+    bs = stmt.balance_sheet
+    return _derive_from_fields(
+        stmt,
+        FORMULA_WORKING_CAPITAL,
+        {
+            "current_assets": bs.current_assets,
+            "current_liabilities": bs.current_liabilities,
+        },
+    )
+
+
+def _derive_working_capital_turnover(
+    stmt: FinancialStatements,
+) -> tuple[DerivedFinancialValue, DerivedFinancialValue]:
+    """Ending WC turnover: revenue / (CA − CL). Does not average periods."""
+    wc = _derive_working_capital(stmt)
+    turnover = derive(
+        FORMULA_WORKING_CAPITAL_TURNOVER,
+        {
+            "revenue": _statement_derivation_input(
+                stmt, "revenue", stmt.income_statement.revenue
+            ),
+            "working_capital": _derived_input(wc, stmt, "working_capital"),
+        },
+    )
+    return wc, turnover
 
 
 def _confidence(n: int, *, has_value: bool) -> str:
@@ -469,48 +709,143 @@ class FinancialRatioEngine:
             "net_margin", FORMULA_NET_MARGIN, "net_income", inc.net_income
         )
 
-        roa = _safe_div(inc.net_income, bs.total_assets)
-        roe = _safe_div(inc.net_income, _equity(bs))
-        capital_employed = None
-        if bs.total_assets is not None and bs.current_liabilities is not None:
-            capital_employed = bs.total_assets - bs.current_liabilities
-        roce = _safe_div(inc.ebit, capital_employed)
-        debt = _total_debt(bs)
-        invested = None
-        eq = _equity(bs)
-        if eq is not None:
-            invested = eq + (debt or 0.0) - (bs.cash or 0.0)
-        tax_rate = _safe_div(inc.tax, inc.pretax_income)
-        nopat = None
-        # Fail closed — do not invent a statutory tax rate for ROIC.
-        if inc.ebit is not None and tax_rate is not None:
-            tr = max(0.0, min(0.6, tax_rate))
-            nopat = inc.ebit * (1.0 - tr)
-        roic = _safe_div(nopat, invested)
+        roa_derived = _derive_from_fields(
+            cur,
+            FORMULA_ROA,
+            {"net_income": inc.net_income, "total_assets": bs.total_assets},
+        )
+        roa_value = _phase1_ratio_value(roa_derived)
+        prior_roa = None
+        if prior is not None:
+            prior_roa = _phase1_ratio_value(
+                _derive_from_fields(
+                    prior,
+                    FORMULA_ROA,
+                    {
+                        "net_income": prior.income_statement.net_income,
+                        "total_assets": prior.balance_sheet.total_assets,
+                    },
+                )
+            )
+        roce_derived = _derive_from_fields(
+            cur,
+            FORMULA_ROCE,
+            {
+                "ebit": inc.ebit,
+                "total_assets": bs.total_assets,
+                "current_liabilities": bs.current_liabilities,
+            },
+        )
+        roce_value = _phase1_ratio_value(roce_derived)
+        roic_derived = _derive_roic(cur)
+        roic_value = _phase1_ratio_value(roic_derived)
+        roe_derived = _derive_roe(cur, prior)
 
-        for name, formula, value, inputs, bench_fn in (
-            ("roa", "net_income / total_assets", roa, {"net_income": inc.net_income, "total_assets": bs.total_assets}, lambda v: _benchmark_margin(v)),
-            ("roe", "net_income / equity", roe, {"net_income": inc.net_income, "equity": eq}, lambda v: _benchmark_margin(v)),
-            ("roce", "ebit / (total_assets - current_liabilities)", roce, {"ebit": inc.ebit, "capital_employed": capital_employed}, lambda v: _benchmark_margin(v)),
-            ("roic", "nopat / invested_capital", roic, {"nopat": nopat, "invested_capital": invested}, lambda v: _benchmark_margin(v)),
+        metrics.append(
+            self._metric(
+                name="roa",
+                formula=roa_derived.formula or "",
+                formula_id=roa_derived.formula_id,
+                value=roa_value,
+                inputs={
+                    "net_income": inc.net_income,
+                    "total_assets": bs.total_assets,
+                },
+                intermediates={
+                    "formula_id": roa_derived.formula_id,
+                    "derivation_inputs": [dict(item) for item in roa_derived.inputs],
+                    "unavailable_reason": roa_derived.unavailable_reason,
+                },
+                benchmark=_benchmark_margin(roa_value),
+                trend=_trend(roa_value, prior_roa),
+                periods=n,
+                interpretation=(
+                    f"roa = {roa_value:.4f}."
+                    if roa_value is not None
+                    else "roa unavailable."
+                ),
+                status=_phase1_ratio_status(roa_derived),
+                out=out,
+            )
+        )
+        roe_value = _phase1_ratio_value(roe_derived)
+        metrics.append(
+            self._metric(
+                name="roe",
+                formula=roe_derived.formula or "",
+                formula_id=roe_derived.formula_id,
+                value=roe_value,
+                inputs={
+                    "net_income": inc.net_income,
+                    "beginning_equity": (
+                        _equity(prior.balance_sheet) if prior is not None else None
+                    ),
+                    "ending_equity": _equity(bs),
+                },
+                intermediates={
+                    "formula_id": roe_derived.formula_id,
+                    "derivation_inputs": [dict(item) for item in roe_derived.inputs],
+                    "unavailable_reason": roe_derived.unavailable_reason,
+                },
+                benchmark=_benchmark_margin(roe_value),
+                trend=None,
+                periods=n,
+                interpretation=(
+                    f"roe = {roe_value:.4f}."
+                    if roe_value is not None
+                    else "roe unavailable."
+                ),
+                status=_phase1_ratio_status(roe_derived),
+                out=out,
+            )
+        )
+        for name, derived, value, inputs in (
+            (
+                "roce",
+                roce_derived,
+                roce_value,
+                {
+                    "ebit": inc.ebit,
+                    "total_assets": bs.total_assets,
+                    "current_liabilities": bs.current_liabilities,
+                },
+            ),
+            (
+                "roic",
+                roic_derived,
+                roic_value,
+                {
+                    "ebit": inc.ebit,
+                    "tax": inc.tax,
+                    "pretax_income": inc.pretax_income,
+                    "equity": _equity(bs),
+                    "short_term_debt": bs.short_term_debt,
+                    "long_term_debt": bs.long_term_debt,
+                    "cash": bs.cash,
+                },
+            ),
         ):
-            prior_v = None
-            if prior is not None:
-                if name == "roa":
-                    prior_v = _safe_div(prior.income_statement.net_income, prior.balance_sheet.total_assets)
-                elif name == "roe":
-                    prior_v = _safe_div(prior.income_statement.net_income, _equity(prior.balance_sheet))
             metrics.append(
                 self._metric(
                     name=name,
-                    formula=formula,
+                    formula=derived.formula or "",
+                    formula_id=derived.formula_id,
                     value=value,
                     inputs=inputs,
-                    intermediates={"tax_rate": tax_rate} if name == "roic" else {},
-                    benchmark=bench_fn(value),
-                    trend=_trend(value, prior_v),
+                    intermediates={
+                        "formula_id": derived.formula_id,
+                        "derivation_inputs": [dict(item) for item in derived.inputs],
+                        "unavailable_reason": derived.unavailable_reason,
+                    },
+                    benchmark=_benchmark_margin(value),
+                    trend=None,
                     periods=n,
-                    interpretation=f"{name} = {value:.4f}." if value is not None else f"{name} unavailable.",
+                    interpretation=(
+                        f"{name} = {value:.4f}."
+                        if value is not None
+                        else f"{name} unavailable."
+                    ),
+                    status=_phase1_ratio_status(derived),
                     out=out,
                 )
             )
@@ -524,42 +859,114 @@ class FinancialRatioEngine:
         out: list[MetricExplanation],
     ) -> tuple[RatioMetric, ...]:
         bs = cur.balance_sheet
-        ca = _current_assets(bs)
-        cl = bs.current_liabilities
-        current = _safe_div(ca, cl)
-        quick = _safe_div((ca - (bs.inventory or 0.0)) if ca is not None else None, cl)
-        cash_r = _safe_div(
-            (bs.cash or 0.0) + (bs.short_term_investments or 0.0) if bs.cash is not None else None,
-            cl,
-        )
-        # Working capital ratio = current ratio alias research label
-        wc_ratio = current
         n = 2 if prior else 1
         prior_cr = None
         if prior is not None:
-            pca = _current_assets(prior.balance_sheet)
-            prior_cr = _safe_div(pca, prior.balance_sheet.current_liabilities)
+            prior_cr = _phase1_ratio_value(
+                _derive_from_fields(
+                    prior,
+                    FORMULA_CURRENT_RATIO,
+                    {
+                        "current_assets": prior.balance_sheet.current_assets,
+                        "current_liabilities": prior.balance_sheet.current_liabilities,
+                    },
+                )
+            )
 
-        # Prefer sibling balance liquidity trend when available
         _ = balance_an
+        specs: tuple[
+            tuple[str, str, dict[str, float | None], dict[str, float | None], bool],
+            ...,
+        ] = (
+            (
+                "current_ratio",
+                FORMULA_CURRENT_RATIO,
+                {
+                    "current_assets": bs.current_assets,
+                    "current_liabilities": bs.current_liabilities,
+                },
+                {
+                    "current_assets": bs.current_assets,
+                    "current_liabilities": bs.current_liabilities,
+                },
+                True,
+            ),
+            (
+                "quick_ratio",
+                FORMULA_QUICK_RATIO,
+                {
+                    "current_assets": bs.current_assets,
+                    "inventory": bs.inventory,
+                    "current_liabilities": bs.current_liabilities,
+                },
+                {
+                    "current_assets": bs.current_assets,
+                    "inventory": bs.inventory,
+                    "current_liabilities": bs.current_liabilities,
+                },
+                False,
+            ),
+            (
+                "cash_ratio",
+                FORMULA_CASH_RATIO,
+                {
+                    "cash": bs.cash,
+                    "short_term_investments": bs.short_term_investments,
+                    "current_liabilities": bs.current_liabilities,
+                },
+                {
+                    "cash": bs.cash,
+                    "sti": bs.short_term_investments,
+                    "current_liabilities": bs.current_liabilities,
+                },
+                False,
+            ),
+            (
+                "working_capital_ratio",
+                FORMULA_WORKING_CAPITAL_RATIO,
+                {
+                    "current_assets": bs.current_assets,
+                    "current_liabilities": bs.current_liabilities,
+                },
+                {
+                    "current_assets": bs.current_assets,
+                    "current_liabilities": bs.current_liabilities,
+                },
+                True,
+            ),
+        )
         metrics = []
-        for name, formula, value, inputs in (
-            ("current_ratio", "current_assets / current_liabilities", current, {"current_assets": ca, "current_liabilities": cl}),
-            ("quick_ratio", "(current_assets - inventory) / current_liabilities", quick, {"current_assets": ca, "inventory": bs.inventory, "current_liabilities": cl}),
-            ("cash_ratio", "(cash + STI) / current_liabilities", cash_r, {"cash": bs.cash, "sti": bs.short_term_investments, "current_liabilities": cl}),
-            ("working_capital_ratio", "current_assets / current_liabilities", wc_ratio, {"current_assets": ca, "current_liabilities": cl}),
-        ):
+        for name, formula_id, derive_fields, inputs, uses_cr_trend in specs:
+            derived = _derive_from_fields(cur, formula_id, derive_fields)
+            value = _phase1_ratio_value(derived)
             metrics.append(
                 self._metric(
                     name=name,
-                    formula=formula,
+                    formula=derived.formula or "",
+                    formula_id=derived.formula_id,
                     value=value,
                     inputs=inputs,
-                    benchmark=_benchmark_ratio(value, excellent=2.0, strong=1.5, adequate=1.0),
-                    trend=_trend(value, prior_cr if name in ("current_ratio", "working_capital_ratio") else None),
+                    intermediates={
+                        "formula_id": derived.formula_id,
+                        "derivation_inputs": [dict(item) for item in derived.inputs],
+                        "unavailable_reason": derived.unavailable_reason,
+                    },
+                    benchmark=_benchmark_ratio(
+                        value, excellent=2.0, strong=1.5, adequate=1.0
+                    ),
+                    trend=_trend(value, prior_cr if uses_cr_trend else None),
                     periods=n,
-                    interpretation=f"{name} = {value:.4f}." if value is not None else f"{name} unavailable.",
-                    risk_notes="Below 1.0 indicates short-term solvency pressure." if value is not None and value < 1.0 else "",
+                    interpretation=(
+                        f"{name} = {value:.4f}."
+                        if value is not None
+                        else f"{name} unavailable."
+                    ),
+                    risk_notes=(
+                        "Below 1.0 indicates short-term solvency pressure."
+                        if value is not None and value < 1.0
+                        else ""
+                    ),
+                    status=_phase1_ratio_status(derived),
                     out=out,
                 )
             )
@@ -573,30 +980,112 @@ class FinancialRatioEngine:
     ) -> tuple[RatioMetric, ...]:
         bs, inc = cur.balance_sheet, cur.income_statement
         eq = _equity(bs)
-        debt = _total_debt(bs)
-        dte = _safe_div(debt, eq)
-        dta = _safe_div(debt, bs.total_assets)
+        total_debt_derived = _derive_total_debt(cur)
+        debt = _phase1_ratio_value(total_debt_derived)
+        dte_derived = _derive_debt_to_equity(cur)
+        dte = _phase1_ratio_value(dte_derived)
+        dta_derived = derive(
+            FORMULA_DEBT_TO_ASSETS,
+            {
+                "total_debt": _derived_input(total_debt_derived, cur, "total_debt"),
+                "total_assets": _statement_derivation_input(
+                    cur, "total_assets", bs.total_assets
+                ),
+            },
+        )
+        dta = _phase1_ratio_value(dta_derived)
+        net_debt_derived = derive(
+            FORMULA_NET_DEBT,
+            {
+                "total_debt": _derived_input(total_debt_derived, cur, "total_debt"),
+                "cash": _statement_derivation_input(cur, "cash", bs.cash),
+            },
+        )
+        net_debt = _phase1_ratio_value(net_debt_derived)
+        nd_ebitda_derived = derive(
+            FORMULA_NET_DEBT_TO_EBITDA,
+            {
+                "net_debt": _derived_input(net_debt_derived, cur, "net_debt"),
+                "ebitda": _statement_derivation_input(cur, "ebitda", inc.ebitda),
+            },
+        )
+        nd_ebitda = _phase1_ratio_value(nd_ebitda_derived)
         equity_ratio = _safe_div(eq, bs.total_assets)
-        net_debt = None if debt is None else debt - (bs.cash or 0.0)
-        nd_ebitda = _safe_div(net_debt, inc.ebitda)
         interest_cov = _safe_div(inc.ebit, abs(inc.interest_expense) if inc.interest_expense else None)
         fin_lev = _safe_div(bs.total_assets, eq)
         n = 2 if prior else 1
-        prior_dte = None
-        if prior is not None:
-            prior_dte = _safe_div(_total_debt(prior.balance_sheet), _equity(prior.balance_sheet))
+        prior_dte = (
+            _phase1_ratio_value(_derive_debt_to_equity(prior)) if prior is not None else None
+        )
 
         metrics = []
-        specs = (
-            ("debt_to_equity", "total_debt / equity", dte, {"debt": debt, "equity": eq}, False, 0.3, 0.75, 1.5),
-            ("debt_to_assets", "total_debt / total_assets", dta, {"debt": debt, "total_assets": bs.total_assets}, False, 0.2, 0.4, 0.6),
-            ("equity_ratio", "equity / total_assets", equity_ratio, {"equity": eq, "total_assets": bs.total_assets}, True, 0.5, 0.4, 0.3),
-            ("net_debt", "total_debt - cash", net_debt, {"debt": debt, "cash": bs.cash}, False, -1e18, 0.0, 1e18),  # special
-            ("net_debt_to_ebitda", "net_debt / ebitda", nd_ebitda, {"net_debt": net_debt, "ebitda": inc.ebitda}, False, 1.0, 2.0, 3.5),
-            ("interest_coverage", "ebit / |interest_expense|", interest_cov, {"ebit": inc.ebit, "interest_expense": inc.interest_expense}, True, 8.0, 4.0, 2.0),
-            ("financial_leverage", "total_assets / equity", fin_lev, {"total_assets": bs.total_assets, "equity": eq}, False, 1.5, 2.5, 3.5),
+        metrics.append(
+            self._metric(
+                name="debt_to_equity",
+                formula=dte_derived.formula or "",
+                formula_id=dte_derived.formula_id,
+                value=dte,
+                inputs={
+                    "equity": eq,
+                    "short_term_debt": bs.short_term_debt,
+                    "long_term_debt": bs.long_term_debt,
+                },
+                intermediates={
+                    "formula_id": dte_derived.formula_id,
+                    "derivation_inputs": [dict(item) for item in dte_derived.inputs],
+                    "unavailable_reason": dte_derived.unavailable_reason,
+                },
+                benchmark=_benchmark_ratio(
+                    dte,
+                    excellent=0.3,
+                    strong=0.75,
+                    adequate=1.5,
+                    higher_better=False,
+                ),
+                trend=_trend(dte, prior_dte, higher_better=False),
+                periods=n,
+                interpretation=(
+                    f"debt_to_equity = {dte:.4f}."
+                    if dte is not None
+                    else "debt_to_equity unavailable."
+                ),
+                status=_phase1_ratio_status(dte_derived),
+                out=out,
+            )
         )
-        for name, formula, value, inputs, higher_better, exc, strong, adeq in specs:
+        derived_specs = (
+            (
+                "debt_to_assets",
+                dta_derived,
+                dta,
+                {"debt": debt, "total_assets": bs.total_assets},
+                False,
+                0.2,
+                0.4,
+                0.6,
+            ),
+            (
+                "net_debt",
+                net_debt_derived,
+                net_debt,
+                {"debt": debt, "cash": bs.cash},
+                False,
+                -1e18,
+                0.0,
+                1e18,
+            ),
+            (
+                "net_debt_to_ebitda",
+                nd_ebitda_derived,
+                nd_ebitda,
+                {"net_debt": net_debt, "ebitda": inc.ebitda},
+                False,
+                1.0,
+                2.0,
+                3.5,
+            ),
+        )
+        for name, derived, value, inputs, higher_better, exc, strong, adeq in derived_specs:
             if name == "net_debt":
                 bench = (
                     BenchmarkClass.INSUFFICIENT
@@ -618,11 +1107,48 @@ class FinancialRatioEngine:
             metrics.append(
                 self._metric(
                     name=name,
+                    formula=derived.formula or "",
+                    formula_id=derived.formula_id,
+                    value=value,
+                    inputs=inputs,
+                    intermediates={
+                        "formula_id": derived.formula_id,
+                        "derivation_inputs": [dict(item) for item in derived.inputs],
+                        "unavailable_reason": derived.unavailable_reason,
+                    },
+                    benchmark=bench,
+                    trend=None,
+                    periods=n,
+                    interpretation=(
+                        f"{name} = {value:.4f}."
+                        if value is not None
+                        else f"{name} unavailable."
+                    ),
+                    status=_phase1_ratio_status(derived),
+                    out=out,
+                )
+            )
+        legacy_specs = (
+            ("equity_ratio", "equity / total_assets", equity_ratio, {"equity": eq, "total_assets": bs.total_assets}, True, 0.5, 0.4, 0.3),
+            ("interest_coverage", "ebit / |interest_expense|", interest_cov, {"ebit": inc.ebit, "interest_expense": inc.interest_expense}, True, 8.0, 4.0, 2.0),
+            ("financial_leverage", "total_assets / equity", fin_lev, {"total_assets": bs.total_assets, "equity": eq}, False, 1.5, 2.5, 3.5),
+        )
+        for name, formula, value, inputs, higher_better, exc, strong, adeq in legacy_specs:
+            bench = _benchmark_ratio(
+                value,
+                excellent=exc,
+                strong=strong,
+                adequate=adeq,
+                higher_better=higher_better,
+            )
+            metrics.append(
+                self._metric(
+                    name=name,
                     formula=formula,
                     value=value,
                     inputs=inputs,
                     benchmark=bench,
-                    trend=_trend(value, prior_dte if name == "debt_to_equity" else None, higher_better=higher_better),
+                    trend=None,
                     periods=n,
                     interpretation=f"{name} = {value:.4f}." if value is not None else f"{name} unavailable.",
                     out=out,
@@ -638,68 +1164,255 @@ class FinancialRatioEngine:
     ) -> tuple[RatioMetric, ...]:
         inc, bs = cur.income_statement, cur.balance_sheet
         prev_bs = prior.balance_sheet if prior else None
-        avg_assets = _avg(bs.total_assets, prev_bs.total_assets if prev_bs else None)
-        avg_inv = _avg(bs.inventory, prev_bs.inventory if prev_bs else None)
-        avg_ar = _avg(bs.accounts_receivable, prev_bs.accounts_receivable if prev_bs else None)
-        avg_ap = _avg(bs.accounts_payable, prev_bs.accounts_payable if prev_bs else None)
-        ca = _current_assets(bs)
-        wc = (ca - bs.current_liabilities) if ca is not None and bs.current_liabilities is not None else None
-        cogs = abs(inc.cogs) if inc.cogs is not None else None
-
-        asset_to = _safe_div(inc.revenue, avg_assets)
-        inv_to = _safe_div(cogs, avg_inv)
-        ar_to = _safe_div(inc.revenue, avg_ar)
-        ap_to = _safe_div(cogs, avg_ap)
-        wc_to = _safe_div(inc.revenue, wc)
-        fa_to = _safe_div(inc.revenue, bs.ppe)
-        dso = days_from_turnover(ar_to)
-        dio = days_from_turnover(inv_to)
-        dpo = days_from_turnover(ap_to)
-        ccc = None
-        if dso is not None and dio is not None and dpo is not None:
-            ccc = dso + dio - dpo
         n = 2 if prior else 1
 
-        metrics = []
-        for name, formula, value, inputs in (
-            ("asset_turnover", "revenue / average_total_assets", asset_to, {"revenue": inc.revenue, "avg_assets": avg_assets}),
-            ("inventory_turnover", "|cogs| / average_inventory", inv_to, {"cogs": inc.cogs, "avg_inventory": avg_inv}),
-            ("receivable_turnover", "revenue / average_receivables", ar_to, {"revenue": inc.revenue, "avg_ar": avg_ar}),
-            ("payable_turnover", "|cogs| / average_payables", ap_to, {"cogs": inc.cogs, "avg_ap": avg_ap}),
-            ("working_capital_turnover", "revenue / working_capital", wc_to, {"revenue": inc.revenue, "working_capital": wc}),
-            ("fixed_asset_turnover", "revenue / ppe", fa_to, {"revenue": inc.revenue, "ppe": bs.ppe}),
-            ("days_sales_outstanding", "365 / receivable_turnover", dso, {"receivable_turnover": ar_to}),
-            ("days_inventory_outstanding", "365 / inventory_turnover", dio, {"inventory_turnover": inv_to}),
-            ("days_payables_outstanding", "365 / payable_turnover", dpo, {"payable_turnover": ap_to}),
+        avg_assets_d = _derive_average_balance(
+            cur,
+            prior,
+            field_prefix="total_assets",
+            beginning=prev_bs.total_assets if prev_bs else None,
+            ending=bs.total_assets,
+        )
+        asset_to_d = derive(
+            FORMULA_ASSET_TURNOVER,
+            {
+                "revenue": _statement_derivation_input(cur, "revenue", inc.revenue),
+                "average_total_assets": _derived_input(
+                    avg_assets_d, cur, "average_total_assets"
+                ),
+            },
+        )
+        avg_inv_d = _derive_average_balance(
+            cur,
+            prior,
+            field_prefix="inventory",
+            beginning=prev_bs.inventory if prev_bs else None,
+            ending=bs.inventory,
+        )
+        inv_to_d = derive(
+            FORMULA_INVENTORY_TURNOVER,
+            {
+                "cogs": _statement_derivation_input(cur, "cogs", inc.cogs),
+                "average_inventory": _derived_input(
+                    avg_inv_d, cur, "average_inventory"
+                ),
+            },
+        )
+        avg_ar_d = _derive_average_balance(
+            cur,
+            prior,
+            field_prefix="accounts_receivable",
+            beginning=prev_bs.accounts_receivable if prev_bs else None,
+            ending=bs.accounts_receivable,
+        )
+        ar_to_d = derive(
+            FORMULA_RECEIVABLE_TURNOVER,
+            {
+                "revenue": _statement_derivation_input(cur, "revenue", inc.revenue),
+                "average_receivables": _derived_input(
+                    avg_ar_d, cur, "average_receivables"
+                ),
+            },
+        )
+        avg_ap_d = _derive_average_balance(
+            cur,
+            prior,
+            field_prefix="accounts_payable",
+            beginning=prev_bs.accounts_payable if prev_bs else None,
+            ending=bs.accounts_payable,
+        )
+        ap_to_d = derive(
+            FORMULA_PAYABLE_TURNOVER,
+            {
+                "cogs": _statement_derivation_input(cur, "cogs", inc.cogs),
+                "average_payables": _derived_input(
+                    avg_ap_d, cur, "average_payables"
+                ),
+            },
+        )
+        wc_derived, wc_to_derived = _derive_working_capital_turnover(cur)
+        wc = _phase1_ratio_value(wc_derived)
+        wc_to = _phase1_ratio_value(wc_to_derived)
+        fa_to_d = _derive_from_fields(
+            cur,
+            FORMULA_FIXED_ASSET_TURNOVER,
+            {"revenue": inc.revenue, "ppe": bs.ppe},
+        )
+        dso_d = derive(
+            FORMULA_DAYS_SALES_OUTSTANDING,
+            {
+                "receivable_turnover": _derived_input(
+                    ar_to_d, cur, "receivable_turnover"
+                ),
+            },
+        )
+        dio_d = derive(
+            FORMULA_DAYS_INVENTORY_OUTSTANDING,
+            {
+                "inventory_turnover": _derived_input(
+                    inv_to_d, cur, "inventory_turnover"
+                ),
+            },
+        )
+        dpo_d = derive(
+            FORMULA_DAYS_PAYABLES_OUTSTANDING,
+            {
+                "payable_turnover": _derived_input(ap_to_d, cur, "payable_turnover"),
+            },
+        )
+        ccc_d = derive(
+            FORMULA_CASH_CONVERSION_CYCLE,
+            {
+                "days_sales_outstanding": _derived_input(
+                    dso_d, cur, "days_sales_outstanding"
+                ),
+                "days_inventory_outstanding": _derived_input(
+                    dio_d, cur, "days_inventory_outstanding"
+                ),
+                "days_payables_outstanding": _derived_input(
+                    dpo_d, cur, "days_payables_outstanding"
+                ),
+            },
+        )
+
+        derived_specs: tuple[
+            tuple[
+                str,
+                DerivedFinancialValue,
+                dict[str, float | None],
+                str,
+                bool,
+            ],
+            ...,
+        ] = (
+            (
+                "asset_turnover",
+                asset_to_d,
+                {"revenue": inc.revenue, "avg_assets": _phase1_ratio_value(avg_assets_d)},
+                "Average total assets require prior-period balance sheet.",
+                False,
+            ),
+            (
+                "inventory_turnover",
+                inv_to_d,
+                {"cogs": inc.cogs, "avg_inventory": _phase1_ratio_value(avg_inv_d)},
+                "Average inventory requires prior-period balance sheet.",
+                False,
+            ),
+            (
+                "receivable_turnover",
+                ar_to_d,
+                {"revenue": inc.revenue, "avg_ar": _phase1_ratio_value(avg_ar_d)},
+                "Average receivables require prior-period balance sheet.",
+                False,
+            ),
+            (
+                "payable_turnover",
+                ap_to_d,
+                {"cogs": inc.cogs, "avg_ap": _phase1_ratio_value(avg_ap_d)},
+                "Average payables require prior-period balance sheet.",
+                False,
+            ),
+            (
+                "fixed_asset_turnover",
+                fa_to_d,
+                {"revenue": inc.revenue, "ppe": bs.ppe},
+                "",
+                False,
+            ),
+            (
+                "days_sales_outstanding",
+                dso_d,
+                {"receivable_turnover": _phase1_ratio_value(ar_to_d)},
+                "Days metrics are raw evidence from turnovers — no invented warning thresholds.",
+                True,
+            ),
+            (
+                "days_inventory_outstanding",
+                dio_d,
+                {"inventory_turnover": _phase1_ratio_value(inv_to_d)},
+                "Days metrics are raw evidence from turnovers — no invented warning thresholds.",
+                True,
+            ),
+            (
+                "days_payables_outstanding",
+                dpo_d,
+                {"payable_turnover": _phase1_ratio_value(ap_to_d)},
+                "Days metrics are raw evidence from turnovers — no invented warning thresholds.",
+                True,
+            ),
             (
                 "cash_conversion_cycle",
-                "DSO + DIO - DPO",
-                ccc,
-                {"dso": dso, "dio": dio, "dpo": dpo},
+                ccc_d,
+                {
+                    "dso": _phase1_ratio_value(dso_d),
+                    "dio": _phase1_ratio_value(dio_d),
+                    "dpo": _phase1_ratio_value(dpo_d),
+                },
+                "Days metrics are raw evidence from turnovers — no invented warning thresholds.",
+                True,
             ),
-        ):
-            is_days = name.startswith("days_") or name == "cash_conversion_cycle"
+        )
+
+        metrics: list[RatioMetric] = []
+        metrics.append(
+            self._metric(
+                name="working_capital_turnover",
+                formula=wc_to_derived.formula or "revenue / working_capital",
+                formula_id=wc_to_derived.formula_id,
+                value=wc_to,
+                inputs={"revenue": inc.revenue, "working_capital": wc},
+                intermediates={
+                    "formula_id": wc_to_derived.formula_id,
+                    "derivation_inputs": [dict(item) for item in wc_to_derived.inputs],
+                    "unavailable_reason": wc_to_derived.unavailable_reason,
+                },
+                benchmark=_benchmark_ratio(wc_to, excellent=1.5, strong=1.0, adequate=0.5),
+                trend=None,
+                periods=n,
+                interpretation=(
+                    f"working_capital_turnover = {wc_to:.4f}."
+                    if wc_to is not None
+                    else "working_capital_turnover unavailable."
+                ),
+                limitations=(
+                    "Ending working capital from reported current assets "
+                    "and current liabilities — not an average."
+                ),
+                status=_phase1_ratio_status(wc_to_derived),
+                out=out,
+            )
+        )
+        for name, derived, inputs, limitations, is_days in derived_specs:
+            value = _phase1_ratio_value(derived)
             metrics.append(
                 self._metric(
                     name=name,
-                    formula=formula,
+                    formula=derived.formula or "",
+                    formula_id=derived.formula_id,
                     value=value,
                     inputs=inputs,
+                    intermediates={
+                        "formula_id": derived.formula_id,
+                        "derivation_inputs": [dict(item) for item in derived.inputs],
+                        "unavailable_reason": derived.unavailable_reason,
+                    },
                     benchmark=(
-                        # Days/CCC are evidence only — no arbitrary quality bands.
                         BenchmarkClass.INSUFFICIENT
                         if is_days
-                        else _benchmark_ratio(value, excellent=1.5, strong=1.0, adequate=0.5)
+                        else _benchmark_ratio(
+                            value, excellent=1.5, strong=1.0, adequate=0.5
+                        )
                     ),
                     trend=None,
                     periods=n,
-                    interpretation=f"{name} = {value:.4f}." if value is not None else f"{name} unavailable.",
-                    limitations=(
-                        "Days metrics are raw evidence from turnovers — no invented "
-                        "warning thresholds. Missing AR/Inv/AP/COGS → unavailable."
-                        if is_days
-                        else "Single-period turnovers use ending balances when averages unavailable."
+                    interpretation=(
+                        f"{name} = {value:.4f}."
+                        if value is not None
+                        else f"{name} unavailable."
                     ),
+                    limitations=limitations,
+                    status=_phase1_ratio_status(derived),
                     out=out,
                 )
             )
@@ -713,15 +1426,52 @@ class FinancialRatioEngine:
     ) -> tuple[RatioMetric, ...]:
         cf, inc, bs = cur.cash_flow, cur.income_statement, cur.balance_sheet
         ocf = cf.operating_cash_flow
-        fcf = _fcf(cf)
+        fcf_derived = _derive_fcf(cur)
+        fcf = _phase1_ratio_value(fcf_derived)
+        total_debt_derived = _derive_total_debt(cur)
+        debt = _phase1_ratio_value(total_debt_derived)
         cl = bs.current_liabilities
         ocf_ratio = _safe_div(ocf, cl)
         ocf_margin = _safe_div(ocf, inc.revenue)
-        fcf_margin = _safe_div(fcf, inc.revenue)
-        cash_conv = _safe_div(fcf, ocf)
+        fcf_margin_d = derive(
+            FORMULA_FCF_MARGIN,
+            {
+                "fcf": _derived_input(fcf_derived, cur, "fcf"),
+                "revenue": _statement_derivation_input(cur, "revenue", inc.revenue),
+            },
+        )
+        fcf_margin = _phase1_ratio_value(fcf_margin_d)
+        cash_conv_d = derive(
+            FORMULA_CASH_CONVERSION_RATIO,
+            {
+                "fcf": _derived_input(fcf_derived, cur, "fcf"),
+                "operating_cash_flow": _statement_derivation_input(
+                    cur, "operating_cash_flow", ocf
+                ),
+            },
+        )
+        cash_conv = _phase1_ratio_value(cash_conv_d)
         capex_ocf = _safe_div(abs(cf.capex) if cf.capex is not None else None, abs(ocf) if ocf is not None else None)
-        div_cov = _safe_div(fcf, abs(cf.dividends_paid) if cf.dividends_paid else None)
-        debt_cov = _safe_div(ocf, _total_debt(bs))
+        div_cov_d = derive(
+            FORMULA_DIVIDEND_COVERAGE,
+            {
+                "fcf": _derived_input(fcf_derived, cur, "fcf"),
+                "dividends_paid": _statement_derivation_input(
+                    cur, "dividends_paid", cf.dividends_paid
+                ),
+            },
+        )
+        div_cov = _phase1_ratio_value(div_cov_d)
+        debt_cov_d = derive(
+            FORMULA_DEBT_COVERAGE,
+            {
+                "operating_cash_flow": _statement_derivation_input(
+                    cur, "operating_cash_flow", ocf
+                ),
+                "total_debt": _derived_input(total_debt_derived, cur, "total_debt"),
+            },
+        )
+        debt_cov = _phase1_ratio_value(debt_cov_d)
         cash_int = _safe_div(ocf, abs(inc.interest_expense) if inc.interest_expense else None)
         n = 2 if prior else 1
         prior_ocf_m = None
@@ -731,16 +1481,86 @@ class FinancialRatioEngine:
             )
 
         metrics = []
-        for name, formula, value, inputs, higher_better, exc, strong, adeq in (
+        legacy_specs = (
             ("operating_cash_flow_ratio", "OCF / current_liabilities", ocf_ratio, {"ocf": ocf, "current_liabilities": cl}, True, 0.5, 0.3, 0.1),
             ("operating_cash_flow_margin", "OCF / revenue", ocf_margin, {"ocf": ocf, "revenue": inc.revenue}, True, 0.2, 0.12, 0.05),
-            ("free_cash_flow_margin", "FCF / revenue", fcf_margin, {"fcf": fcf, "revenue": inc.revenue}, True, 0.15, 0.08, 0.03),
-            ("cash_conversion_ratio", "FCF / OCF", cash_conv, {"fcf": fcf, "ocf": ocf}, True, 0.8, 0.6, 0.4),
             ("capex_to_ocf", "|capex| / |OCF|", capex_ocf, {"capex": cf.capex, "ocf": ocf}, False, 0.3, 0.5, 0.8),
-            ("dividend_coverage", "FCF / |dividends|", div_cov, {"fcf": fcf, "dividends": cf.dividends_paid}, True, 2.0, 1.5, 1.0),
-            ("debt_coverage", "OCF / total_debt", debt_cov, {"ocf": ocf, "debt": _total_debt(bs)}, True, 0.5, 0.3, 0.15),
             ("cash_interest_coverage", "OCF / |interest|", cash_int, {"ocf": ocf, "interest": inc.interest_expense}, True, 8.0, 4.0, 2.0),
-        ):
+        )
+        derived_specs = (
+            (
+                "free_cash_flow_margin",
+                fcf_margin_d,
+                fcf_margin,
+                {"fcf": fcf, "revenue": inc.revenue},
+                True,
+                0.15,
+                0.08,
+                0.03,
+            ),
+            (
+                "cash_conversion_ratio",
+                cash_conv_d,
+                cash_conv,
+                {"fcf": fcf, "ocf": ocf},
+                True,
+                0.8,
+                0.6,
+                0.4,
+            ),
+            (
+                "dividend_coverage",
+                div_cov_d,
+                div_cov,
+                {"fcf": fcf, "dividends": cf.dividends_paid},
+                True,
+                2.0,
+                1.5,
+                1.0,
+            ),
+            (
+                "debt_coverage",
+                debt_cov_d,
+                debt_cov,
+                {"ocf": ocf, "debt": debt},
+                True,
+                0.5,
+                0.3,
+                0.15,
+            ),
+        )
+        for name, derived, value, inputs, higher_better, exc, strong, adeq in derived_specs:
+            metrics.append(
+                self._metric(
+                    name=name,
+                    formula=derived.formula or "",
+                    formula_id=derived.formula_id,
+                    value=value,
+                    inputs=inputs,
+                    intermediates={
+                        "formula_id": derived.formula_id,
+                        "derivation_inputs": [dict(item) for item in derived.inputs],
+                        "unavailable_reason": derived.unavailable_reason,
+                    },
+                    benchmark=_benchmark_ratio(
+                        value,
+                        excellent=exc,
+                        strong=strong,
+                        adequate=adeq,
+                        higher_better=higher_better,
+                    ),
+                    trend=None,
+                    periods=n,
+                    interpretation=(
+                        f"{name} = {value:.4f}."
+                        if value is not None
+                        else f"{name} unavailable."
+                    ),
+                    status=_phase1_ratio_status(derived),
+                    out=out,
+                )
+            )
+        for name, formula, value, inputs, higher_better, exc, strong, adeq in legacy_specs:
             metrics.append(
                 self._metric(
                     name=name,
@@ -814,7 +1634,6 @@ class FinancialRatioEngine:
         out: list[MetricExplanation],
     ) -> CapitalAllocationMetrics:
         cf = cur.cash_flow
-        fcf = _fcf(cf)
         ocf = cf.operating_cash_flow
         capex_disc = _clip01(
             1.0

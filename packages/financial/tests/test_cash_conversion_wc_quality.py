@@ -9,9 +9,11 @@ import pytest
 from financial import (
     BalanceSheet,
     CashFlowStatement,
+    CompanyMetadata,
     CurrencyCode,
     CurrencyRef,
     FinancialPeriod,
+    FinancialSnapshot,
     FinancialStatements,
     IncomeStatement,
     PeriodType,
@@ -304,25 +306,40 @@ class TestDaysAndHelpers:
         assert growth_gap(None, 0.1) is None
 
     def test_ratio_engine_ccc_from_turnovers(self) -> None:
-        stmt = _stmt(
-            period=_period(end=date(2024, 12, 31), fy=2024),
-            income=IncomeStatement(revenue=365.0, cogs=365.0, net_income=50.0),
-            balance=BalanceSheet(
-                accounts_receivable=45.0,
-                inventory=30.0,
-                accounts_payable=20.0,
-                current_assets=100.0,
-                current_liabilities=40.0,
-                total_assets=400.0,
-                total_liabilities=150.0,
-                equity=250.0,
-                ppe=100.0,
-            ),
-            cash=CashFlowStatement(operating_cash_flow=80.0, free_cash_flow=60.0, capex=-20.0),
+        balance = BalanceSheet(
+            accounts_receivable=45.0,
+            inventory=30.0,
+            accounts_payable=20.0,
+            current_assets=100.0,
+            current_liabilities=40.0,
+            total_assets=400.0,
+            total_liabilities=150.0,
+            equity=250.0,
+            ppe=100.0,
         )
-        result = FinancialRatioEngine().analyze(stmt)
+        income = IncomeStatement(revenue=365.0, cogs=365.0, net_income=50.0)
+        cash = CashFlowStatement(
+            operating_cash_flow=80.0, free_cash_flow=60.0, capex=-20.0
+        )
+        prior = _stmt(
+            period=_period(end=date(2023, 12, 31), fy=2023),
+            income=income,
+            balance=balance,
+            cash=cash,
+        )
+        current = _stmt(
+            period=_period(end=date(2024, 12, 31), fy=2024),
+            income=income,
+            balance=balance,
+            cash=cash,
+        )
+        snap = FinancialSnapshot(
+            company=CompanyMetadata(company="Acme", ticker="ACM"),
+            statements=(prior, current),
+        )
+        result = FinancialRatioEngine().analyze(snap)
         by_name = {m.name: m.value for m in result.efficiency}
-        # turnover AR = 365/45 → DSO ≈ 45
+        # Average balances match ending → turnover AR = 365/45 → DSO ≈ 45
         assert by_name["days_sales_outstanding"] == pytest.approx(45.0)
         assert by_name["days_inventory_outstanding"] == pytest.approx(30.0)
         assert by_name["days_payables_outstanding"] == pytest.approx(20.0)

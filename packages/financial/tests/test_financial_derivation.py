@@ -11,11 +11,18 @@ from datetime import date
 
 from financial import (
     DERIVATION_ENGINE_VERSION,
+    FORMULA_AVERAGE_BALANCE,
+    FORMULA_CASH_RATIO,
+    FORMULA_CURRENT_RATIO,
     FORMULA_FCF,
+    FORMULA_FCF_MARGIN,
     FORMULA_GROSS_MARGIN,
     FORMULA_GROSS_MARGIN_FROM_COGS,
+    FORMULA_NET_DEBT,
+    FORMULA_QUICK_RATIO,
     FORMULA_ROE,
     FORMULA_WORKING_CAPITAL,
+    FORMULA_WORKING_CAPITAL_TURNOVER,
     CurrencyCode,
     CurrencyRef,
     DerivationInput,
@@ -327,3 +334,207 @@ class TestFinancialDerivationPolicy:
         )
         assert calculated.status is FinancialValueStatus.CALCULATED
         assert calculated.value == 60_000.0
+
+
+class TestPhase3LiquidityFormulas:
+    """Catalog coverage for liquidity formulas registered in Phase 3."""
+
+    def test_current_ratio_is_calculated(self) -> None:
+        result = derive(
+            FORMULA_CURRENT_RATIO,
+            {
+                "current_assets": _reported("current_assets", 80_000.0),
+                "current_liabilities": _reported("current_liabilities", 20_000.0),
+            },
+        )
+        assert result.status is FinancialValueStatus.CALCULATED
+        assert result.value == 4.0
+        assert result.formula_id == FORMULA_CURRENT_RATIO
+
+    def test_current_ratio_missing_assets_unavailable(self) -> None:
+        result = derive(
+            FORMULA_CURRENT_RATIO,
+            {
+                "current_assets": _reported("current_assets", None),
+                "current_liabilities": _reported("current_liabilities", 20_000.0),
+            },
+        )
+        assert result.status is FinancialValueStatus.UNAVAILABLE
+        assert result.value is None
+        assert result.unavailable_reason == "missing_input"
+
+    def test_current_ratio_zero_liabilities_unavailable(self) -> None:
+        result = derive(
+            FORMULA_CURRENT_RATIO,
+            {
+                "current_assets": _reported("current_assets", 80_000.0),
+                "current_liabilities": _reported("current_liabilities", 0.0),
+            },
+        )
+        assert result.status is FinancialValueStatus.UNAVAILABLE
+        assert result.value is None
+        assert result.unavailable_reason == "division_by_zero"
+
+    def test_current_ratio_currency_mismatch_unavailable(self) -> None:
+        result = derive(
+            FORMULA_CURRENT_RATIO,
+            {
+                "current_assets": _reported("current_assets", 80_000.0),
+                "current_liabilities": _reported(
+                    "current_liabilities", 20_000.0, currency=CurrencyCode.USD
+                ),
+            },
+        )
+        assert result.status is FinancialValueStatus.UNAVAILABLE
+        assert result.unavailable_reason == "currency_mismatch"
+
+    def test_quick_ratio_requires_inventory(self) -> None:
+        missing = derive(
+            FORMULA_QUICK_RATIO,
+            {
+                "current_assets": _reported("current_assets", 80_000.0),
+                "inventory": _reported("inventory", None),
+                "current_liabilities": _reported("current_liabilities", 20_000.0),
+            },
+        )
+        assert missing.status is FinancialValueStatus.UNAVAILABLE
+        ok = derive(
+            FORMULA_QUICK_RATIO,
+            {
+                "current_assets": _reported("current_assets", 80_000.0),
+                "inventory": _reported("inventory", 10_000.0),
+                "current_liabilities": _reported("current_liabilities", 20_000.0),
+            },
+        )
+        assert ok.status is FinancialValueStatus.CALCULATED
+        assert ok.value == 3.5
+
+    def test_cash_ratio_requires_cash_and_sti(self) -> None:
+        missing_sti = derive(
+            FORMULA_CASH_RATIO,
+            {
+                "cash": _reported("cash", 15_000.0),
+                "short_term_investments": _reported("short_term_investments", None),
+                "current_liabilities": _reported("current_liabilities", 20_000.0),
+            },
+        )
+        assert missing_sti.status is FinancialValueStatus.UNAVAILABLE
+        ok = derive(
+            FORMULA_CASH_RATIO,
+            {
+                "cash": _reported("cash", 15_000.0),
+                "short_term_investments": _reported("short_term_investments", 5_000.0),
+                "current_liabilities": _reported("current_liabilities", 20_000.0),
+            },
+        )
+        assert ok.status is FinancialValueStatus.CALCULATED
+        assert ok.value == 1.0
+
+    def test_working_capital_turnover_uses_calculated_wc(self) -> None:
+        wc = derive(
+            FORMULA_WORKING_CAPITAL,
+            {
+                "current_assets": _reported("current_assets", 80_000.0),
+                "current_liabilities": _reported("current_liabilities", 20_000.0),
+            },
+        )
+        result = derive(
+            FORMULA_WORKING_CAPITAL_TURNOVER,
+            {
+                "revenue": _reported("revenue", _TCS_REVENUE),
+                "working_capital": DerivationInput(
+                    field_id="working_capital",
+                    value=wc.value,
+                    status=wc.status,
+                    period_type=PeriodType.ANNUAL,
+                    period_end=_FY24,
+                    unit_scale=UnitScale.ACTUAL,
+                    currency=CurrencyCode.INR,
+                    accounting_basis="consolidated",
+                    source="u4-shaped-fixture",
+                ),
+            },
+        )
+        assert result.status is FinancialValueStatus.CALCULATED
+        assert result.value == _TCS_REVENUE / 60_000.0
+        assert result.formula_id == FORMULA_WORKING_CAPITAL_TURNOVER
+
+
+class TestF25AverageAndDebtFormulas:
+    def test_average_balance_requires_both_periods(self) -> None:
+        missing = derive(
+            FORMULA_AVERAGE_BALANCE,
+            {
+                "beginning_balance": _reported("beginning_balance", None),
+                "ending_balance": _reported("ending_balance", 100_000.0),
+            },
+        )
+        assert missing.status is FinancialValueStatus.UNAVAILABLE
+        ok = derive(
+            FORMULA_AVERAGE_BALANCE,
+            {
+                "beginning_balance": _reported(
+                    "beginning_balance", 90_000.0, period_end=_FY23
+                ),
+                "ending_balance": _reported("ending_balance", 110_000.0),
+            },
+        )
+        assert ok.status is FinancialValueStatus.CALCULATED
+        assert ok.value == 100_000.0
+
+    def test_net_debt_requires_cash(self) -> None:
+        from financial import FORMULA_TOTAL_DEBT
+
+        debt = derive(
+            FORMULA_TOTAL_DEBT,
+            {
+                "short_term_debt": _reported("short_term_debt", 10_000.0),
+                "long_term_debt": _reported("long_term_debt", 40_000.0),
+            },
+        )
+        missing = derive(
+            FORMULA_NET_DEBT,
+            {
+                "total_debt": DerivationInput(
+                    field_id="total_debt",
+                    value=debt.value,
+                    status=debt.status,
+                    period_type=PeriodType.ANNUAL,
+                    period_end=_FY24,
+                    unit_scale=UnitScale.ACTUAL,
+                    currency=CurrencyCode.INR,
+                    accounting_basis="consolidated",
+                    source="u4-shaped-fixture",
+                ),
+                "cash": _reported("cash", None),
+            },
+        )
+        assert missing.status is FinancialValueStatus.UNAVAILABLE
+
+    def test_fcf_margin_uses_fcf_input(self) -> None:
+        fcf = derive(
+            FORMULA_FCF,
+            {
+                "operating_cash_flow": _reported("operating_cash_flow", 40_000.0),
+                "capex": _reported("capex", -8_000.0),
+            },
+        )
+        margin = derive(
+            FORMULA_FCF_MARGIN,
+            {
+                "fcf": DerivationInput(
+                    field_id="fcf",
+                    value=fcf.value,
+                    status=fcf.status,
+                    period_type=PeriodType.ANNUAL,
+                    period_end=_FY24,
+                    unit_scale=UnitScale.ACTUAL,
+                    currency=CurrencyCode.INR,
+                    accounting_basis="consolidated",
+                    source="u4-shaped-fixture",
+                ),
+                "revenue": _reported("revenue", _TCS_REVENUE),
+            },
+        )
+        assert margin.status is FinancialValueStatus.CALCULATED
+        assert margin.value == 32_000.0 / _TCS_REVENUE

@@ -31,7 +31,6 @@ from financial import (
 )
 from financial.intelligence.ratio_engine import (
     RATIO_INTELLIGENCE_VERSION,
-    _avg,
     _benchmark_margin,
     _benchmark_ratio,
     _clip01,
@@ -43,9 +42,25 @@ from financial.intelligence.ratio_explainability import RATIO_RESEARCH_DISCLAIME
 from financial.intelligence.ratio_validation import coerce_ratio_series
 from financial.metadata import StatementMetadata
 from financial.derivation import (
+    FORMULA_ASSET_TURNOVER,
+    FORMULA_AVERAGE_BALANCE,
+    FORMULA_CASH_RATIO,
+    FORMULA_CURRENT_RATIO,
+    FORMULA_DEBT_COVERAGE,
+    FORMULA_DEBT_TO_ASSETS,
+    FORMULA_DEBT_TO_EQUITY,
+    FORMULA_DIVIDEND_COVERAGE,
+    FORMULA_FCF_MARGIN,
     FORMULA_GROSS_MARGIN,
+    FORMULA_NET_DEBT,
     FORMULA_NET_MARGIN,
     FORMULA_OPERATING_MARGIN,
+    FORMULA_QUICK_RATIO,
+    FORMULA_ROA,
+    FORMULA_ROE,
+    FORMULA_ROIC,
+    FORMULA_WORKING_CAPITAL_RATIO,
+    FORMULA_WORKING_CAPITAL_TURNOVER,
     DerivationInput,
     FinancialValueStatus,
     as_reported,
@@ -111,6 +126,31 @@ def _full(**kwargs) -> FinancialStatements:
         cash_flow=cash,
         statement_metadata=StatementMetadata(unit_scale=UnitScale.MILLIONS),
     )
+
+
+def _bs(**overrides) -> BalanceSheet:
+    """Full-fixture balance sheet with explicit field overrides (including None)."""
+    fields = dict(
+        cash=150.0,
+        short_term_investments=50.0,
+        accounts_receivable=120.0,
+        inventory=80.0,
+        current_assets=450.0,
+        ppe=400.0,
+        goodwill=50.0,
+        intangibles=50.0,
+        total_assets=1000.0,
+        accounts_payable=60.0,
+        short_term_debt=50.0,
+        current_liabilities=200.0,
+        long_term_debt=200.0,
+        total_liabilities=400.0,
+        retained_earnings=300.0,
+        equity=600.0,
+        total_equity=600.0,
+    )
+    fields.update(overrides)
+    return BalanceSheet(**fields)
 
 
 def _snap(*stmts: FinancialStatements) -> FinancialSnapshot:
@@ -353,43 +393,44 @@ class TestAnalysis:
         assert result.metadata.periods_used == 2
 
     def test_composed_current_assets(self) -> None:
+        # Fail-closed: component cash/AR/inventory cannot substitute for
+        # unreported current_assets (CV-001 — no or-0 composition).
         eng = FinancialRatioEngine()
         stmt = _full(
-            balance=BalanceSheet(
+            balance=_bs(
+                current_assets=None,
                 cash=100.0,
                 accounts_receivable=50.0,
                 inventory=50.0,
-                total_assets=1000.0,
                 current_liabilities=100.0,
-                total_liabilities=400.0,
-                equity=600.0,
-                total_equity=600.0,
-                short_term_debt=50.0,
-                long_term_debt=150.0,
             )
         )
         result = eng.analyze(stmt)
         cr = next(m for m in result.liquidity if m.name == "current_ratio")
-        assert cr.value == pytest.approx(2.0)
+        assert cr.value is None
+        assert cr.status == FinancialValueStatus.UNAVAILABLE.value
+        assert cr.formula_id == FORMULA_CURRENT_RATIO
 
     def test_efficiency_and_poor(self) -> None:
         eng = FinancialRatioEngine()
-        # low asset turnover
-        stmt = _full(
-            income=IncomeStatement(
-                revenue=100.0,
-                cogs=50.0,
-                gross_profit=50.0,
-                ebit=20.0,
-                ebitda=25.0,
-                interest_expense=5.0,
-                pretax_income=15.0,
-                tax=3.0,
-                net_income=12.0,
-                weighted_shares=10.0,
-            )
+        low_rev = IncomeStatement(
+            revenue=100.0,
+            cogs=50.0,
+            gross_profit=50.0,
+            ebit=20.0,
+            ebitda=25.0,
+            interest_expense=5.0,
+            pretax_income=15.0,
+            tax=3.0,
+            net_income=12.0,
+            weighted_shares=10.0,
         )
-        result = eng.analyze(stmt)
+        prior = _full(
+            period=_period(end=date(2023, 12, 31), fy=2023),
+            income=low_rev,
+        )
+        current = _full(income=low_rev)
+        result = eng.analyze(_snap(prior, current))
         assert RatioQualityFlag.POOR_EFFICIENCY in result.quality_flags
 
 
@@ -400,10 +441,6 @@ class TestHelpers:
         assert _safe_div(1e308, 1e-308) is None
         assert _clip01(None) is None
         assert _clip01(2) == 1.0
-        assert _avg(None, None) is None
-        assert _avg(None, 2.0) == 2.0
-        assert _avg(2.0, None) == 2.0
-        assert _avg(2.0, 4.0) == 3.0
         assert _benchmark_margin(None) is BenchmarkClass.INSUFFICIENT
         assert _benchmark_margin(0.3) is BenchmarkClass.EXCELLENT
         assert _benchmark_margin(0.2) is BenchmarkClass.STRONG
@@ -585,4 +622,425 @@ class TestPhase1DerivedMargins:
         gm = _by_name(FinancialRatioEngine().analyze(stmt), "gross_margin")
         assert gm.value is None
         assert gm.status == FinancialValueStatus.UNAVAILABLE.value
+
+
+def _lev(result: FinancialRatioAnalysis, name: str):
+    return next(m for m in result.leverage if m.name == name)
+
+
+class TestPhase2DerivedRoeAndDebtToEquity:
+    """F2.5 Phase 2: ROE (average equity) and fail-closed debt/equity."""
+
+    def test_roe_valid_two_period_is_calculated(self) -> None:
+        prior = _full(
+            period=_period(end=date(2023, 12, 31), fy=2023),
+            balance=BalanceSheet(
+                cash=150.0,
+                current_assets=450.0,
+                total_assets=1000.0,
+                current_liabilities=200.0,
+                short_term_debt=50.0,
+                long_term_debt=200.0,
+                total_liabilities=400.0,
+                equity=400.0,
+                total_equity=400.0,
+            ),
+        )
+        current = _full()
+        roe = _by_name(FinancialRatioEngine().analyze(_snap(prior, current)), "roe")
+        assert roe.value == pytest.approx(210.0 / 500.0)
+        assert roe.status == FinancialValueStatus.CALCULATED.value
+        assert roe.formula_id == FORMULA_ROE
+        assert roe.formula == "net_income / ((beginning_equity + ending_equity) / 2)"
+        assert roe.inputs["beginning_equity"] == 400.0
+        assert roe.inputs["ending_equity"] == 600.0
+        assert roe.status != FinancialValueStatus.REPORTED.value
+
+    def test_roe_missing_beginning_equity_unavailable(self) -> None:
+        roe = _by_name(FinancialRatioEngine().analyze(_full()), "roe")
+        assert roe.value is None
+        assert roe.status == FinancialValueStatus.UNAVAILABLE.value
+        assert roe.formula_id == FORMULA_ROE
+
+    def test_roe_period_type_mismatch_unavailable(self) -> None:
+        prior = _full(
+            period=FinancialPeriod(
+                period_type=PeriodType.QUARTERLY,
+                period_end=date(2023, 12, 31),
+                fiscal_year=2023,
+                fiscal_quarter=4,
+                currency=CurrencyRef(CurrencyCode.USD),
+            )
+        )
+        roe = _by_name(FinancialRatioEngine().analyze(_snap(prior, _full())), "roe")
+        assert roe.value is None
+        assert roe.status == FinancialValueStatus.UNAVAILABLE.value
+        assert roe.intermediates["unavailable_reason"] == "period_mismatch"
+
+    def test_roe_currency_mismatch_unavailable(self) -> None:
+        prior = _full(
+            period=FinancialPeriod(
+                period_type=PeriodType.ANNUAL,
+                period_end=date(2023, 12, 31),
+                fiscal_year=2023,
+                currency=CurrencyRef(CurrencyCode.INR),
+            )
+        )
+        roe = _by_name(FinancialRatioEngine().analyze(_snap(prior, _full())), "roe")
+        assert roe.value is None
+        assert roe.status == FinancialValueStatus.UNAVAILABLE.value
+        assert roe.intermediates["unavailable_reason"] == "currency_mismatch"
+
+    def test_roe_unknown_unit_unavailable(self) -> None:
+        prior = FinancialStatements(
+            period=_period(end=date(2023, 12, 31), fy=2023),
+            income_statement=_full().income_statement,
+            balance_sheet=_full().balance_sheet,
+            cash_flow=_full().cash_flow,
+            statement_metadata=StatementMetadata(unit_scale="widgets"),
+        )
+        roe = _by_name(FinancialRatioEngine().analyze(_snap(prior, _full())), "roe")
+        assert roe.value is None
+        assert roe.status == FinancialValueStatus.UNAVAILABLE.value
+        assert roe.intermediates["unavailable_reason"] == "unit_mismatch"
+
+    def test_roe_calculated_cannot_be_reported(self) -> None:
+        prior = _full(period=_period(end=date(2023, 12, 31), fy=2023))
+        roe = _by_name(FinancialRatioEngine().analyze(_snap(prior, _full())), "roe")
+        assert roe.status == FinancialValueStatus.CALCULATED.value
+        relabeled = as_reported(
+            DerivationInput(
+                field_id="roe",
+                value=roe.value,
+                status=FinancialValueStatus.CALCULATED,
+            )
+        )
+        assert relabeled.status is FinancialValueStatus.UNAVAILABLE
+        assert relabeled.unavailable_reason == "calculated_cannot_be_reported"
+
+    def test_debt_to_equity_valid_is_calculated(self) -> None:
+        dte = _lev(FinancialRatioEngine().analyze(_full()), "debt_to_equity")
+        assert dte.value == pytest.approx(250.0 / 600.0)
+        assert dte.status == FinancialValueStatus.CALCULATED.value
+        assert dte.formula_id == FORMULA_DEBT_TO_EQUITY
+        assert dte.formula == "total_debt / equity"
+        assert dte.inputs["short_term_debt"] == 50.0
+        assert dte.inputs["long_term_debt"] == 200.0
+        assert dte.status != FinancialValueStatus.REPORTED.value
+
+    def test_debt_to_equity_missing_long_term_unavailable(self) -> None:
+        stmt = _full(
+            balance=BalanceSheet(
+                cash=150.0,
+                current_assets=450.0,
+                total_assets=1000.0,
+                current_liabilities=200.0,
+                short_term_debt=50.0,
+                total_liabilities=400.0,
+                equity=600.0,
+                total_equity=600.0,
+            )
+        )
+        dte = _lev(FinancialRatioEngine().analyze(stmt), "debt_to_equity")
+        assert dte.value is None
+        assert dte.status == FinancialValueStatus.UNAVAILABLE.value
+        assert dte.formula_id == FORMULA_DEBT_TO_EQUITY
+
+    def test_debt_to_equity_missing_short_term_unavailable(self) -> None:
+        stmt = _full(
+            balance=BalanceSheet(
+                cash=150.0,
+                current_assets=450.0,
+                total_assets=1000.0,
+                current_liabilities=200.0,
+                long_term_debt=200.0,
+                total_liabilities=400.0,
+                equity=600.0,
+                total_equity=600.0,
+            )
+        )
+        dte = _lev(FinancialRatioEngine().analyze(stmt), "debt_to_equity")
+        assert dte.value is None
+        assert dte.status == FinancialValueStatus.UNAVAILABLE.value
+
+    def test_debt_to_equity_missing_equity_unavailable(self) -> None:
+        stmt = _full(
+            balance=BalanceSheet(
+                cash=150.0,
+                current_assets=450.0,
+                total_assets=1000.0,
+                current_liabilities=200.0,
+                short_term_debt=50.0,
+                long_term_debt=200.0,
+                total_liabilities=400.0,
+            )
+        )
+        dte = _lev(FinancialRatioEngine().analyze(stmt), "debt_to_equity")
+        assert dte.value is None
+        assert dte.status == FinancialValueStatus.UNAVAILABLE.value
+
+    def test_debt_to_equity_calculated_cannot_be_reported(self) -> None:
+        dte = _lev(FinancialRatioEngine().analyze(_full()), "debt_to_equity")
+        relabeled = as_reported(
+            DerivationInput(
+                field_id="debt_to_equity",
+                value=dte.value,
+                status=FinancialValueStatus.CALCULATED,
+            )
+        )
+        assert relabeled.status is FinancialValueStatus.UNAVAILABLE
+        assert relabeled.unavailable_reason == "calculated_cannot_be_reported"
+
+
+def _liq(result: FinancialRatioAnalysis, name: str):
+    return next(m for m in result.liquidity if m.name == name)
+
+
+def _eff(result: FinancialRatioAnalysis, name: str):
+    return next(m for m in result.efficiency if m.name == name)
+
+
+class TestPhase3DerivedLiquidity:
+    """F2.5 Phase 3: liquidity ratios via reported current assets, fail-closed."""
+
+    def test_current_ratio_valid_is_calculated(self) -> None:
+        cr = _liq(FinancialRatioEngine().analyze(_full()), "current_ratio")
+        assert cr.value == pytest.approx(450.0 / 200.0)
+        assert cr.status == FinancialValueStatus.CALCULATED.value
+        assert cr.formula_id == FORMULA_CURRENT_RATIO
+        assert cr.formula == "current_assets / current_liabilities"
+        assert cr.inputs["current_assets"] == 450.0
+        assert cr.inputs["current_liabilities"] == 200.0
+        assert cr.status != FinancialValueStatus.REPORTED.value
+
+    def test_working_capital_ratio_is_ratio_not_amount(self) -> None:
+        wcr = _liq(FinancialRatioEngine().analyze(_full()), "working_capital_ratio")
+        assert wcr.value == pytest.approx(450.0 / 200.0)
+        assert wcr.status == FinancialValueStatus.CALCULATED.value
+        assert wcr.formula_id == FORMULA_WORKING_CAPITAL_RATIO
+        assert wcr.formula == "current_assets / current_liabilities"
+        assert wcr.formula_id != "working_capital"
+
+    def test_quick_ratio_valid_is_calculated(self) -> None:
+        qr = _liq(FinancialRatioEngine().analyze(_full()), "quick_ratio")
+        assert qr.value == pytest.approx((450.0 - 80.0) / 200.0)
+        assert qr.status == FinancialValueStatus.CALCULATED.value
+        assert qr.formula_id == FORMULA_QUICK_RATIO
+        assert qr.formula == "(current_assets - inventory) / current_liabilities"
+        assert qr.inputs["inventory"] == 80.0
+
+    def test_cash_ratio_valid_is_calculated(self) -> None:
+        cash_r = _liq(FinancialRatioEngine().analyze(_full()), "cash_ratio")
+        assert cash_r.value == pytest.approx((150.0 + 50.0) / 200.0)
+        assert cash_r.status == FinancialValueStatus.CALCULATED.value
+        assert cash_r.formula_id == FORMULA_CASH_RATIO
+        assert cash_r.formula == "(cash + short_term_investments) / current_liabilities"
+        assert cash_r.inputs["cash"] == 150.0
+        assert cash_r.inputs["sti"] == 50.0
+
+    def test_working_capital_turnover_uses_ending_wc(self) -> None:
+        wc_to = _eff(
+            FinancialRatioEngine().analyze(_full()), "working_capital_turnover"
+        )
+        assert wc_to.value == pytest.approx(1000.0 / 250.0)
+        assert wc_to.status == FinancialValueStatus.CALCULATED.value
+        assert wc_to.formula_id == FORMULA_WORKING_CAPITAL_TURNOVER
+        assert wc_to.formula == "revenue / working_capital"
+        assert wc_to.inputs["revenue"] == 1000.0
+        assert wc_to.inputs["working_capital"] == 250.0
+
+    def test_missing_current_assets_unavailable(self) -> None:
+        stmt = _full(balance=_bs(current_assets=None))
+        result = FinancialRatioEngine().analyze(stmt)
+        for name in ("current_ratio", "quick_ratio", "working_capital_ratio"):
+            metric = _liq(result, name)
+            assert metric.value is None
+            assert metric.status == FinancialValueStatus.UNAVAILABLE.value
+        wc_to = _eff(result, "working_capital_turnover")
+        assert wc_to.value is None
+        assert wc_to.status == FinancialValueStatus.UNAVAILABLE.value
+
+    def test_missing_current_liabilities_unavailable(self) -> None:
+        stmt = _full(balance=_bs(current_liabilities=None))
+        cr = _liq(FinancialRatioEngine().analyze(stmt), "current_ratio")
+        assert cr.value is None
+        assert cr.status == FinancialValueStatus.UNAVAILABLE.value
+        assert cr.formula_id == FORMULA_CURRENT_RATIO
+
+    def test_missing_inventory_quick_ratio_unavailable(self) -> None:
+        stmt = _full(balance=_bs(inventory=None))
+        result = FinancialRatioEngine().analyze(stmt)
+        qr = _liq(result, "quick_ratio")
+        assert qr.value is None
+        assert qr.status == FinancialValueStatus.UNAVAILABLE.value
+        assert qr.formula_id == FORMULA_QUICK_RATIO
+        cr = _liq(result, "current_ratio")
+        assert cr.value == pytest.approx(450.0 / 200.0)
+
+    def test_missing_sti_cash_ratio_unavailable(self) -> None:
+        stmt = _full(balance=_bs(short_term_investments=None))
+        cash_r = _liq(FinancialRatioEngine().analyze(stmt), "cash_ratio")
+        assert cash_r.value is None
+        assert cash_r.status == FinancialValueStatus.UNAVAILABLE.value
+        assert cash_r.formula_id == FORMULA_CASH_RATIO
+
+    def test_missing_cash_cash_ratio_unavailable(self) -> None:
+        stmt = _full(balance=_bs(cash=None))
+        cash_r = _liq(FinancialRatioEngine().analyze(stmt), "cash_ratio")
+        assert cash_r.value is None
+        assert cash_r.status == FinancialValueStatus.UNAVAILABLE.value
+
+    def test_reported_zero_current_assets_is_calculated(self) -> None:
+        stmt = _full(balance=_bs(current_assets=0.0))
+        cr = _liq(FinancialRatioEngine().analyze(stmt), "current_ratio")
+        assert cr.value == pytest.approx(0.0)
+        assert cr.status == FinancialValueStatus.CALCULATED.value
+
+    def test_reported_zero_inventory_is_calculated(self) -> None:
+        stmt = _full(balance=_bs(inventory=0.0))
+        qr = _liq(FinancialRatioEngine().analyze(stmt), "quick_ratio")
+        assert qr.value == pytest.approx(450.0 / 200.0)
+        assert qr.status == FinancialValueStatus.CALCULATED.value
+
+    def test_reported_zero_sti_is_calculated(self) -> None:
+        stmt = _full(balance=_bs(short_term_investments=0.0))
+        cash_r = _liq(FinancialRatioEngine().analyze(stmt), "cash_ratio")
+        assert cash_r.value == pytest.approx(150.0 / 200.0)
+        assert cash_r.status == FinancialValueStatus.CALCULATED.value
+
+    def test_zero_current_liabilities_unavailable(self) -> None:
+        stmt = _full(balance=_bs(current_liabilities=0.0))
+        cr = _liq(FinancialRatioEngine().analyze(stmt), "current_ratio")
+        assert cr.value is None
+        assert cr.status == FinancialValueStatus.UNAVAILABLE.value
+        assert cr.intermediates["unavailable_reason"] == "division_by_zero"
+
+    def test_current_ratio_calculated_cannot_be_reported(self) -> None:
+        cr = _liq(FinancialRatioEngine().analyze(_full()), "current_ratio")
+        relabeled = as_reported(
+            DerivationInput(
+                field_id="current_ratio",
+                value=cr.value,
+                status=FinancialValueStatus.CALCULATED,
+            )
+        )
+        assert relabeled.status is FinancialValueStatus.UNAVAILABLE
+        assert relabeled.unavailable_reason == "calculated_cannot_be_reported"
+
+    def test_regression_full_fixture_liquidity(self) -> None:
+        result = FinancialRatioEngine().analyze(_full())
+        assert _liq(result, "current_ratio").value == pytest.approx(2.25)
+        assert _liq(result, "quick_ratio").value == pytest.approx(1.85)
+        assert _liq(result, "cash_ratio").value == pytest.approx(1.0)
+        assert _liq(result, "working_capital_ratio").value == pytest.approx(2.25)
+        assert _eff(result, "working_capital_turnover").value == pytest.approx(4.0)
+
+
+def _cf(result: FinancialRatioAnalysis, name: str):
+    return next(m for m in result.cash_flow if m.name == name)
+
+
+class TestF25FinalMigration:
+    """Remaining F2.5 metrics: averages, debt composition, FCF-derived ratios."""
+
+    def test_asset_turnover_requires_prior_period(self) -> None:
+        at = _eff(FinancialRatioEngine().analyze(_full()), "asset_turnover")
+        assert at.value is None
+        assert at.status == FinancialValueStatus.UNAVAILABLE.value
+        assert at.formula_id == FORMULA_ASSET_TURNOVER
+
+    def test_asset_turnover_two_period_calculated(self) -> None:
+        prior = _full(period=_period(end=date(2023, 12, 31), fy=2023))
+        result = FinancialRatioEngine().analyze(_snap(prior, _full()))
+        at = _eff(result, "asset_turnover")
+        assert at.value == pytest.approx(1000.0 / 1000.0)
+        assert at.status == FinancialValueStatus.CALCULATED.value
+        assert at.formula_id == FORMULA_ASSET_TURNOVER
+
+    def test_debt_to_assets_missing_long_term_unavailable(self) -> None:
+        stmt = _full(
+            balance=_bs(long_term_debt=None),
+        )
+        dta = next(m for m in FinancialRatioEngine().analyze(stmt).leverage if m.name == "debt_to_assets")
+        assert dta.value is None
+        assert dta.status == FinancialValueStatus.UNAVAILABLE.value
+        assert dta.formula_id == FORMULA_DEBT_TO_ASSETS
+
+    def test_net_debt_missing_cash_unavailable(self) -> None:
+        stmt = _full(balance=_bs(cash=None))
+        nd = next(m for m in FinancialRatioEngine().analyze(stmt).leverage if m.name == "net_debt")
+        assert nd.value is None
+        assert nd.status == FinancialValueStatus.UNAVAILABLE.value
+        assert nd.formula_id == FORMULA_NET_DEBT
+
+    def test_net_debt_reported_zero_cash(self) -> None:
+        stmt = _full(balance=_bs(cash=0.0))
+        nd = next(m for m in FinancialRatioEngine().analyze(stmt).leverage if m.name == "net_debt")
+        assert nd.value == pytest.approx(250.0)
+        assert nd.status == FinancialValueStatus.CALCULATED.value
+
+    def test_roic_missing_cash_unavailable(self) -> None:
+        stmt = _full(balance=_bs(cash=None))
+        roic = next(m for m in FinancialRatioEngine().analyze(stmt).profitability if m.name == "roic")
+        assert roic.value is None
+        assert roic.status == FinancialValueStatus.UNAVAILABLE.value
+        assert roic.formula_id == FORMULA_ROIC
+
+    def test_roa_calculated(self) -> None:
+        roa = next(m for m in FinancialRatioEngine().analyze(_full()).profitability if m.name == "roa")
+        assert roa.value == pytest.approx(210.0 / 1000.0)
+        assert roa.status == FinancialValueStatus.CALCULATED.value
+        assert roa.formula_id == FORMULA_ROA
+
+    def test_fcf_margin_calculated(self) -> None:
+        fcfm = _cf(FinancialRatioEngine().analyze(_full()), "free_cash_flow_margin")
+        assert fcfm.value == pytest.approx(170.0 / 1000.0)
+        assert fcfm.status == FinancialValueStatus.CALCULATED.value
+        assert fcfm.formula_id == FORMULA_FCF_MARGIN
+
+    def test_debt_coverage_missing_debt_leg_unavailable(self) -> None:
+        stmt = _full(balance=_bs(long_term_debt=None))
+        dc = _cf(FinancialRatioEngine().analyze(stmt), "debt_coverage")
+        assert dc.value is None
+        assert dc.status == FinancialValueStatus.UNAVAILABLE.value
+        assert dc.formula_id == FORMULA_DEBT_COVERAGE
+
+    def test_dividend_coverage_missing_dividends_unavailable(self) -> None:
+        stmt = _full(
+            cash=CashFlowStatement(
+                operating_cash_flow=250.0,
+                capex=-80.0,
+                free_cash_flow=170.0,
+            )
+        )
+        div = _cf(FinancialRatioEngine().analyze(stmt), "dividend_coverage")
+        assert div.value is None
+        assert div.status == FinancialValueStatus.UNAVAILABLE.value
+        assert div.formula_id == FORMULA_DIVIDEND_COVERAGE
+
+    def test_regression_full_fixture_debt_and_fcf(self) -> None:
+        prior = _full(period=_period(end=date(2023, 12, 31), fy=2023))
+        result = FinancialRatioEngine().analyze(_snap(prior, _full()))
+        dte = next(m for m in result.leverage if m.name == "debt_to_equity")
+        dta = next(m for m in result.leverage if m.name == "debt_to_assets")
+        nd = next(m for m in result.leverage if m.name == "net_debt")
+        assert dte.value == pytest.approx(250.0 / 600.0)
+        assert dta.value == pytest.approx(250.0 / 1000.0)
+        assert nd.value == pytest.approx(100.0)
+        assert _cf(result, "free_cash_flow_margin").value == pytest.approx(0.17)
+        assert _cf(result, "debt_coverage").value == pytest.approx(250.0 / 250.0)
+        assert _eff(result, "asset_turnover").value == pytest.approx(1.0)
+
+    def test_derived_metric_cannot_be_reported(self) -> None:
+        roa = next(m for m in FinancialRatioEngine().analyze(_full()).profitability if m.name == "roa")
+        relabeled = as_reported(
+            DerivationInput(
+                field_id="roa",
+                value=roa.value,
+                status=FinancialValueStatus.CALCULATED,
+            )
+        )
+        assert relabeled.status is FinancialValueStatus.UNAVAILABLE
+        assert relabeled.unavailable_reason == "calculated_cannot_be_reported"
+
 

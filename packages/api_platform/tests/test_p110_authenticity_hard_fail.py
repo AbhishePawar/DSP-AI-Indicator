@@ -235,11 +235,36 @@ class TestProductionConnectorAuthenticity:
             f"production selected {type(adapter).__name__}",
         )
 
-    def test_production_api_boot_rejects_null_connectors(
+    def test_production_investment_factory_rejects_null_connectors(
         self, monkeypatch: pytest.MonkeyPatch
     ) -> None:
+        """P1-03 fail-closed lives at connector use, not create_app boot.
+
+        Auth/core API may start without investment credentials; factories still
+        refuse Null/memory selection in production (authenticity preserved).
+        """
         monkeypatch.setenv("DSP_ENVIRONMENT", "production")
         monkeypatch.setenv("DSP_JWT_SECRET", "unit-test-production-secret-not-default")
+        monkeypatch.setenv("DSP_INFRA_OFFLINE", "1")
+        monkeypatch.setattr(
+            "api_platform.api.durable_product_stores.require_durable_product_database",
+            lambda database: None,
+        )
+        for key in (
+            "DSP_INVESTMENT_DATA_PROVIDER",
+            "DSP_UPSTOX_ANALYTICS_TOKEN",
+            "DSP_UPSTOX_ACCESS_TOKEN",
+            "DSP_FMP_API_KEY",
+            "DSP_INVESTMENT_FMP_API_KEY",
+            "DSP_MARKET_QUOTE_API_KEY",
+            "DSP_MARKET_QUOTE_BASE_URL",
+            "DSP_MARKET_QUOTE_MEMORY",
+            "DSP_FINANCIAL_STATEMENT_API_KEY",
+            "DSP_FINANCIAL_STATEMENT_BASE_URL",
+            "DSP_FINANCIAL_STATEMENT_MEMORY",
+        ):
+            monkeypatch.delenv(key, raising=False)
+
         platform = (
             PlatformBuilder()
             .with_configuration(PlatformConfiguration(require_analysis_service=False))
@@ -247,7 +272,22 @@ class TestProductionConnectorAuthenticity:
             .build()
         )
         try:
-            create_app(platform=platform, enable_security=False)
+            app = create_app(platform=platform, enable_security=False)
+        except Exception as exc:  # noqa: BLE001 — hard-fail authenticity contract
+            hard_fail(
+                False,
+                PRODUCTION_NULL_FALLBACK_DETECTED,
+                f"create_app must boot without investment connectors; got: {exc}",
+            )
+            return
+        hard_fail(
+            app is not None,
+            PRODUCTION_NULL_FALLBACK_DETECTED,
+            "create_app returned None",
+        )
+
+        try:
+            build_default_quote_adapter_from_env()
         except ConnectorConfigurationError as exc:
             hard_fail(
                 "P1-03" in str(exc),
@@ -258,7 +298,7 @@ class TestProductionConnectorAuthenticity:
         hard_fail(
             False,
             PRODUCTION_NULL_FALLBACK_DETECTED,
-            "create_app allowed Null connectors in production",
+            "quote factory allowed Null connectors in production",
         )
 
     def test_null_adapters_classified_unsafe(self) -> None:

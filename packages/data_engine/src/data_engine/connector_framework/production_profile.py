@@ -147,7 +147,11 @@ def finalize_provider_registry(
 
 
 def assert_production_investment_connectors_configured() -> dict[str, str]:
-    """Eager production gate for investment-critical connectors (quote + statements).
+    """Validate investment-critical connectors (quote + statements) for production.
+
+    Intended for investment use paths, health/composition checks, and explicit
+    ops certification — **not** for FastAPI ``create_app`` boot. Client auth
+    must remain available when investment credentials are absent.
 
     Returns a map of connector → selected provider class name. Raises
     :class:`ConnectorConfigurationError` when production would select Null/memory.

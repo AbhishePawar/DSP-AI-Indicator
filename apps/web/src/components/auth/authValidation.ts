@@ -12,6 +12,37 @@ export function isValidEmail(value: string): boolean {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v);
 }
 
+/** Match backend India mobile normalization (auth.otp.normalize_india_mobile). */
+const INDIA_MOBILE_RE = /^(?:\+91|91|0)?([6-9]\d{9})$/;
+
+export function normalizeIndiaMobileInput(value: string): string | null {
+  const raw = (value || "").trim().replace(/[\s-]/g, "");
+  const match = INDIA_MOBILE_RE.exec(raw);
+  if (!match) return null;
+  return `+91${match[1]}`;
+}
+
+/**
+ * Normalize a unified OTP/password identifier for API submission.
+ * Emails lowercased; India mobiles normalized to +91XXXXXXXXXX; else trimmed.
+ */
+export function normalizeLoginIdentifier(value: string): string {
+  const trimmed = value.trim();
+  if (!trimmed) return "";
+  if (trimmed.includes("@")) return trimmed.toLowerCase();
+  const mobile = normalizeIndiaMobileInput(trimmed);
+  return mobile ?? trimmed;
+}
+
+export function isPlausibleLoginIdentifier(value: string): boolean {
+  const trimmed = value.trim();
+  if (!trimmed) return false;
+  if (trimmed.includes("@")) return isValidEmail(trimmed);
+  if (normalizeIndiaMobileInput(trimmed)) return true;
+  // Username: 3–64 of common username charset (server validates strictly).
+  return /^[a-zA-Z0-9._-]{3,64}$/.test(trimmed);
+}
+
 export function evaluatePasswordStrength(password: string): PasswordStrength {
   const hints: string[] = [];
   let score = 0 as PasswordStrength["score"];

@@ -2,8 +2,11 @@ import { describe, expect, it } from "vitest";
 
 import {
   evaluatePasswordStrength,
+  isPlausibleLoginIdentifier,
   isValidEmail,
   mapAuthError,
+  normalizeIndiaMobileInput,
+  normalizeLoginIdentifier,
 } from "./authValidation";
 
 describe("authValidation", () => {
@@ -11,6 +14,20 @@ describe("authValidation", () => {
     expect(isValidEmail("a@b.co")).toBe(true);
     expect(isValidEmail("bad")).toBe(false);
     expect(isValidEmail("")).toBe(false);
+  });
+
+  it("normalizes India mobile identifiers", () => {
+    expect(normalizeIndiaMobileInput("9876543210")).toBe("+919876543210");
+    expect(normalizeIndiaMobileInput("+91 98765-43210")).toBe("+919876543210");
+    expect(normalizeIndiaMobileInput("12345")).toBeNull();
+  });
+
+  it("accepts username, email, or India mobile as login identifiers", () => {
+    expect(isPlausibleLoginIdentifier("analyst")).toBe(true);
+    expect(isPlausibleLoginIdentifier("a@b.co")).toBe(true);
+    expect(isPlausibleLoginIdentifier("9876543210")).toBe(true);
+    expect(isPlausibleLoginIdentifier("no")).toBe(false);
+    expect(normalizeLoginIdentifier("Ada@Example.COM")).toBe("ada@example.com");
   });
 
   it("scores password strength", () => {

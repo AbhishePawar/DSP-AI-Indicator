@@ -8,6 +8,7 @@ import LoginForm from "./LoginForm";
 
 export const metadata: Metadata = {
   title: "Sign in",
+  description: "Login with password, OTP, or Google",
 };
 
 export default function LoginPage() {

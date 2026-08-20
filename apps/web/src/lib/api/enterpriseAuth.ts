@@ -188,21 +188,26 @@ export const enterpriseAuthApi = {
       { method: "POST", body: JSON.stringify(body) },
     ),
 
-  requestOtp: (mobile: string) =>
+  requestOtp: (identifier: string) =>
     enterpriseRequest<{
       challenge_id: string;
-      mobile: string;
+      channel?: "email" | "mobile";
+      mobile?: string;
+      email_hint?: string;
       expires_at: string;
       resend_available_at?: string;
+      consumed?: boolean;
+      email?: { ok?: boolean; detail?: string };
       sms?: { provider: string; debug_code?: string; detail?: string };
     }>("/auth/enterprise/otp/request", {
       method: "POST",
-      body: JSON.stringify({ mobile }),
+      body: JSON.stringify({ identifier }),
     }),
 
   verifyOtp: (body: {
     challenge_id: string;
-    code: string;
+    code?: string;
+    otp?: string;
     remember_me?: boolean;
     name?: string;
   }) =>
@@ -280,15 +285,18 @@ export const enterpriseAuthApi = {
       body: JSON.stringify({ password }),
     }),
 
-  resendOtp: (mobile: string) =>
+  resendOtp: (identifier: string) =>
     enterpriseRequest<{
       challenge_id: string;
-      mobile: string;
+      channel?: "email" | "mobile";
+      mobile?: string;
+      email_hint?: string;
       expires_at: string;
       sms?: { provider: string; debug_code?: string };
+      email?: { ok?: boolean; detail?: string };
     }>("/auth/otp/resend", {
       method: "POST",
-      body: JSON.stringify({ mobile }),
+      body: JSON.stringify({ identifier }),
     }),
 
   getProfile: (token?: string | null) =>

@@ -2,8 +2,11 @@ export { AuthCard, AuthShell } from "./AuthShell";
 export { PasswordStrengthMeter } from "./PasswordStrength";
 export {
   evaluatePasswordStrength,
+  isPlausibleLoginIdentifier,
   isValidEmail,
   mapAuthError,
+  normalizeIndiaMobileInput,
+  normalizeLoginIdentifier,
   type PasswordStrength,
 } from "./authValidation";
 export { ProviderButton, type ProviderButtonProps } from "./ProviderButton";

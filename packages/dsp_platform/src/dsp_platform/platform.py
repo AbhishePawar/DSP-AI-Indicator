@@ -1942,10 +1942,11 @@ class DSPPlatform:
             limitations: list[str] = []
             if self._lifecycle.status is PlatformStatus.DEGRADED:
                 limitations.append("lifecycle=degraded")
-            if not report.ready:
-                failed = [
-                    c.name for c in report.checks if c.status.value == "fail"
-                ]
+            failed = [
+                c.name for c in report.checks if c.status.value == "fail"
+            ]
+            if failed:
+                # Includes non-blocking investment failures for ops visibility.
                 limitations.append(f"failed_checks={failed}")
             return PlatformResult(
                 ok=ok,

@@ -196,7 +196,7 @@ class TestHealthService:
     def test_investment_data_provider_fails_closed_in_production(
         self, monkeypatch: pytest.MonkeyPatch
     ) -> None:
-        """P1-03 — production without Upstox credentials must not report ready."""
+        """P1-03 — missing Upstox is reported but does not block API readiness."""
         monkeypatch.setenv("DSP_ENVIRONMENT", "production")
         monkeypatch.setenv("DSP_INVESTMENT_DATA_PROVIDER", "upstox")
         monkeypatch.delenv("DSP_UPSTOX_ANALYTICS_TOKEN", raising=False)
@@ -205,7 +205,10 @@ class TestHealthService:
         ).check()
         by_name = {c.name: c for c in report.checks}
         assert by_name["investment_data_provider"].status is CheckStatus.FAIL
-        assert report.ready is False
+        assert "DSP_UPSTOX_ANALYTICS_TOKEN" in by_name["investment_data_provider"].message
+        # Auth/API boot must remain ready without investment credentials.
+        assert report.ready is True
+        assert report.status is CheckStatus.FAIL
 
     def test_investment_data_provider_passes_with_upstox_token(
         self, monkeypatch: pytest.MonkeyPatch

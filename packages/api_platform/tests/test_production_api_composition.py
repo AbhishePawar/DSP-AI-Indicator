@@ -246,7 +246,7 @@ class TestHealthReflectsCanonicalComposition:
 class TestProductionFailClosed:
     """Production must fail closed rather than silently degrade."""
 
-    def test_missing_upstox_token_fails_platform_health(
+    def test_missing_upstox_token_reports_investment_fail_without_blocking_ready(
         self, monkeypatch: pytest.MonkeyPatch
     ) -> None:
         platform = build_default_platform()
@@ -254,9 +254,11 @@ class TestProductionFailClosed:
         monkeypatch.setenv("DSP_INVESTMENT_DATA_PROVIDER", "upstox")
         monkeypatch.delenv("DSP_UPSTOX_ANALYTICS_TOKEN", raising=False)
         result = platform.health_check()
-        assert result.ok is False
+        assert result.ok is True
         by_name = {c.name: c.status.value for c in result.payload.checks}
         assert by_name["investment_data_provider"] == "fail"
+        assert result.payload.ready is True
+        assert "investment_data_provider" in " ".join(result.limitations)
 
     def test_upstox_provider_selection_intact(
         self, monkeypatch: pytest.MonkeyPatch

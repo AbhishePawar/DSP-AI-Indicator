@@ -2,7 +2,7 @@
 
 Proves:
 A) Production create_app succeeds without investment credentials
-B) Auth endpoints remain reachable in that condition
+B) Auth endpoints and readiness probes remain reachable in that condition
 C) Investment adapter construction still fails closed (P1-03)
 D) Valid Upstox configuration still selects Upstox adapters
 E) P1-03 assert helper remains usable for investment/ops paths
@@ -95,6 +95,28 @@ def test_b_auth_endpoints_accessible_without_investment_config(
     paths = openapi.json().get("paths", {})
     assert any("/auth/login" in path for path in paths)
     assert any("/auth/enterprise" in path or "/auth/rbac" in path for path in paths)
+
+
+def test_b_ready_probe_accepts_traffic_without_upstox_token(
+    monkeypatch: pytest.MonkeyPatch, platform: DSPPlatform
+) -> None:
+    """Cloud Run / Docker HEALTHCHECK must not require Upstox for API readiness."""
+    from api_platform import create_app
+
+    _strip_investment_credentials(monkeypatch)
+    monkeypatch.setenv("DSP_INVESTMENT_DATA_PROVIDER", "upstox")
+    client = TestClient(create_app(platform=platform, enable_security=False))
+
+    ready = client.get("/api/v1/health/ready")
+    assert ready.status_code == 200
+    body = ready.json()
+    assert body.get("ready") is True
+    assert body.get("platform_ready") is True
+    checks = {c["name"]: c for c in body.get("checks", [])}
+    investment = checks.get("investment_data_provider")
+    assert investment is not None
+    assert investment["status"] == "fail"
+    assert "DSP_UPSTOX_ANALYTICS_TOKEN" in investment["message"]
 
 
 # --- TEST C -----------------------------------------------------------------

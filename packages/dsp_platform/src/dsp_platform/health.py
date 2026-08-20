@@ -46,7 +46,10 @@ class PlatformHealthReport:
     """Aggregated readiness report for the platform.
 
     Attributes:
-        ready: ``True`` when every non-skipped check passed.
+        ready: ``True`` when every *blocking* non-skipped check passed.
+            ``investment_data_provider`` may fail without clearing readiness so
+            auth/API boot is independent of Upstox/FMP credentials (P1-03 still
+            fail-closes on investment use paths).
         status: Overall status (``pass`` if ready else ``fail``).
         checks: Individual check results.
         checked_at: UTC timestamp of the report.
@@ -56,6 +59,11 @@ class PlatformHealthReport:
     status: CheckStatus
     checks: tuple[HealthCheckResult, ...]
     checked_at: datetime
+
+
+# Capability probes that must remain visible but must not block API readiness.
+# Client authentication and process health must boot without investment tokens.
+_NON_BLOCKING_READY_CHECKS = frozenset({"investment_data_provider"})
 
 
 class ProviderRegistryView(Protocol):
@@ -110,10 +118,17 @@ class PlatformHealthService:
                 canonical_ready=composition.status is CheckStatus.PASS
             ),
         ]
-        failed = any(c.status is CheckStatus.FAIL for c in checks)
-        status = CheckStatus.FAIL if failed else CheckStatus.PASS
+        blocking_failed = any(
+            c.status is CheckStatus.FAIL
+            and c.name not in _NON_BLOCKING_READY_CHECKS
+            for c in checks
+        )
+        # Surface any failure (including investment) in overall status while
+        # keeping readiness gated only on blocking checks.
+        any_failed = any(c.status is CheckStatus.FAIL for c in checks)
+        status = CheckStatus.FAIL if any_failed else CheckStatus.PASS
         return PlatformHealthReport(
-            ready=not failed,
+            ready=not blocking_failed,
             status=status,
             checks=tuple(checks),
             checked_at=datetime.now(tz=UTC),
@@ -292,10 +307,13 @@ class PlatformHealthService:
         )
 
     def _check_investment_data_provider(self) -> HealthCheckResult:
-        """P1-03 — production must resolve authenticated investment connectors.
+        """P1-03 — report whether authenticated investment connectors resolve.
 
-        Reuses the existing production gate; adapters are constructed offline
-        (no provider I/O) and only class names / env-var names are reported.
+        Failure is recorded for ops visibility but does not block overall
+        platform readiness (see ``_NON_BLOCKING_READY_CHECKS``). Investment
+        routes still fail closed via adapter factories when credentials are
+        missing. Adapters are constructed offline (no provider I/O); only
+        class names / env-var names are reported.
         """
         try:
             from dsp_platform.composition.authenticated_valuation import (

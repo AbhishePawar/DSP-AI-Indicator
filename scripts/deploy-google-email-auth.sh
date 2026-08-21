@@ -18,12 +18,12 @@ echo "Deploying commit $COMMIT"
 gcloud builds submit "$ROOT" \
   --config="$ROOT/cloudbuild.yaml" \
   --project="$PROJECT" \
-  --substitutions="COMMIT_SHA=${COMMIT},SHORT_SHA=${SHORT}"
+  --substitutions="COMMIT_SHA=${COMMIT}"
 
 gcloud builds submit "$ROOT" \
   --config="$ROOT/cloudbuild-frontend.yaml" \
   --project="$PROJECT" \
-  --substitutions="COMMIT_SHA=${COMMIT},SHORT_SHA=${SHORT}"
+  --substitutions="COMMIT_SHA=${COMMIT}"
 
 if gcloud secrets describe dsp-google-client-id --project="$PROJECT" >/dev/null 2>&1 \
   && gcloud secrets describe dsp-google-client-secret --project="$PROJECT" >/dev/null 2>&1; then

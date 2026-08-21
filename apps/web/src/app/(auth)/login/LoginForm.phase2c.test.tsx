@@ -1,7 +1,7 @@
 /**
  * @vitest-environment jsdom
  *
- * Phase 2C — client login chooser wiring (no demo auth).
+ * Client login chooser — password + Google (no email OTP / demo auth).
  */
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
@@ -60,7 +60,7 @@ vi.mock("@/lib/auth/finishEnterpriseSession", () => ({
 
 afterEach(() => cleanup());
 
-describe("Phase 2C login form", () => {
+describe("Login form — Google email + password", () => {
   beforeEach(() => {
     loginMock.mockReset();
     requestOtpMock.mockReset();
@@ -76,6 +76,24 @@ describe("Phase 2C login form", () => {
       </ThemeProvider>,
     );
     expect(screen.queryByText(/demo mode/i)).toBeNull();
+  });
+
+  it("shows password and Google; hides numeric email OTP entry", async () => {
+    const { default: LoginForm } = await import("@/app/(auth)/login/LoginForm");
+    render(
+      <ThemeProvider>
+        <LoginForm />
+      </ThemeProvider>,
+    );
+    expect(
+      screen.getByRole("button", { name: /login with password/i }),
+    ).toBeTruthy();
+    expect(
+      screen.getByRole("button", { name: /continue with google/i }),
+    ).toBeTruthy();
+    expect(screen.queryByRole("button", { name: /login with otp/i })).toBeNull();
+    expect(screen.queryByRole("button", { name: /send otp/i })).toBeNull();
+    expect(screen.getByRole("link", { name: /sign in with mobile/i })).toBeTruthy();
   });
 
   it("submits enterprise password login with normalized identifier", async () => {
@@ -113,17 +131,22 @@ describe("Phase 2C login form", () => {
       password: "StrongPass1!",
       remember_me: false,
     });
+    expect(requestOtpMock).not.toHaveBeenCalled();
   });
 
-  it("requests OTP with identifier body (email or mobile)", async () => {
-    requestOtpMock.mockResolvedValue({
+  it("starts Google OAuth via existing enterprise oauthBegin", async () => {
+    oauthBeginMock.mockResolvedValue({
       ok: true,
       result: {
-        challenge_id: "chal-1",
-        channel: "email",
-        expires_at: new Date().toISOString(),
-        email: { ok: true, detail: "If an account exists, a one-time code was sent." },
+        available: true,
+        authorization_url: "https://accounts.google.com/o/oauth2/v2/auth?x=1",
+        state: "state-1",
       },
+    });
+    const assign = vi.fn();
+    Object.defineProperty(window, "location", {
+      configurable: true,
+      value: { ...window.location, origin: "http://localhost:3000", assign },
     });
     const { default: LoginForm } = await import("@/app/(auth)/login/LoginForm");
     render(
@@ -131,13 +154,15 @@ describe("Phase 2C login form", () => {
         <LoginForm />
       </ThemeProvider>,
     );
-    fireEvent.click(screen.getByRole("button", { name: /login with otp/i }));
-    fireEvent.change(screen.getByLabelText(/email or mobile/i), {
-      target: { value: "otp@example.com" },
-    });
-    fireEvent.click(screen.getByRole("button", { name: /send otp/i }));
-    await waitFor(() => expect(requestOtpMock).toHaveBeenCalledWith("otp@example.com"));
-    expect(screen.getByRole("heading", { name: /enter otp/i })).toBeTruthy();
-    expect(screen.queryByText(/debug/i)).toBeNull();
+    fireEvent.click(screen.getByRole("button", { name: /continue with google/i }));
+    await waitFor(() => expect(oauthBeginMock).toHaveBeenCalled());
+    expect(oauthBeginMock.mock.calls[0][0]).toBe("GOOGLE");
+    expect(oauthBeginMock.mock.calls[0][1]).toBe(
+      "http://localhost:3000/oauth/callback",
+    );
+    expect(assign).toHaveBeenCalledWith(
+      "https://accounts.google.com/o/oauth2/v2/auth?x=1",
+    );
+    expect(requestOtpMock).not.toHaveBeenCalled();
   });
 });

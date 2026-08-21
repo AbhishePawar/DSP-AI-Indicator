@@ -8,13 +8,9 @@ import {
   AuthCard,
   AuthShell,
   MfaChallenge,
-  OtpInput,
   ProviderButton,
-  ResendCountdown,
   isPlausibleLoginIdentifier,
-  isValidEmail,
   mapAuthError,
-  normalizeIndiaMobileInput,
   normalizeLoginIdentifier,
 } from "@/components/auth";
 import {
@@ -39,12 +35,14 @@ import type { MfaChallengeInfo } from "@/lib/auth/types";
 import { useAuthProviders } from "@/lib/auth/useAuthProviders";
 import { env } from "@/lib/env";
 
-type Step = "chooser" | "password" | "otp-request" | "otp-verify";
+type Step = "chooser" | "password";
 
 /**
- * DSP client login — frozen UX:
- * chooser → Password | OTP | Continue with Google.
- * Uses Phase 2B enterprise endpoints only (no demo auth).
+ * DSP client login:
+ * chooser → Password | Continue with Google.
+ * Email sign-in is Google OAuth only (no numeric email OTP on this page).
+ * Mobile OTP remains on /mobile-login.
+ * Uses existing Enterprise/RBAC endpoints only (no demo auth).
  */
 export default function LoginForm() {
   const router = useRouter();
@@ -55,10 +53,6 @@ export default function LoginForm() {
   const [step, setStep] = useState<Step>("chooser");
   const [identifier, setIdentifier] = useState("");
   const [password, setPassword] = useState("");
-  const [otpIdentifier, setOtpIdentifier] = useState("");
-  const [otpCode, setOtpCode] = useState("");
-  const [challengeId, setChallengeId] = useState<string | null>(null);
-  const [otpChannel, setOtpChannel] = useState<"email" | "mobile" | null>(null);
   const [rememberMe, setRememberMe] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [fieldError, setFieldError] = useState<string | null>(null);
@@ -124,93 +118,6 @@ export default function LoginForm() {
       });
       if (!envelope.ok || !envelope.result?.tokens?.access_token) {
         throw new Error(envelope.error || "Login failed");
-      }
-      finishEnterpriseLogin(envelope.result);
-    } catch (err) {
-      setError(mapAuthError(err));
-    } finally {
-      setPending(false);
-    }
-  }
-
-  function resolveOtpIdentifier(raw: string): string | null {
-    const trimmed = raw.trim();
-    if (!trimmed) return null;
-    if (trimmed.includes("@")) {
-      return isValidEmail(trimmed) ? trimmed.toLowerCase() : null;
-    }
-    return normalizeIndiaMobileInput(trimmed);
-  }
-
-  async function onSendOtp(event: FormEvent) {
-    event.preventDefault();
-    setError(null);
-    setFieldError(null);
-    const id = resolveOtpIdentifier(otpIdentifier);
-    if (!id) {
-      setFieldError("Enter a valid email or India mobile number (+91).");
-      return;
-    }
-    setPending(true);
-    try {
-      const envelope = await enterpriseAuthApi.requestOtp(id);
-      if (!envelope.result?.challenge_id) {
-        throw new Error(envelope.error || "OTP request failed");
-      }
-      setChallengeId(envelope.result.challenge_id);
-      const channel =
-        envelope.result.channel === "email" || envelope.result.channel === "mobile"
-          ? envelope.result.channel
-          : id.includes("@")
-            ? "email"
-            : "mobile";
-      setOtpChannel(channel);
-      setOtpCode("");
-      setStep("otp-verify");
-    } catch (err) {
-      setError(mapAuthError(err));
-    } finally {
-      setPending(false);
-    }
-  }
-
-  async function onResendOtp() {
-    setError(null);
-    const id = resolveOtpIdentifier(otpIdentifier);
-    if (!id) {
-      setError("Enter a valid email or India mobile number (+91).");
-      return;
-    }
-    try {
-      const envelope = await enterpriseAuthApi.resendOtp(id);
-      if (envelope.result?.challenge_id) {
-        setChallengeId(envelope.result.challenge_id);
-      }
-    } catch (err) {
-      setError(mapAuthError(err));
-    }
-  }
-
-  async function onVerifyOtp(code: string) {
-    if (!challengeId) {
-      setError("Request an OTP first.");
-      return;
-    }
-    const trimmed = code.replace(/\D/g, "");
-    if (trimmed.length !== 6) {
-      setError("Enter the 6-digit code.");
-      return;
-    }
-    setPending(true);
-    setError(null);
-    try {
-      const envelope = await enterpriseAuthApi.verifyOtp({
-        challenge_id: challengeId,
-        code: trimmed,
-        remember_me: rememberMe,
-      });
-      if (!envelope.ok || !envelope.result) {
-        throw new Error(envelope.error || "OTP verification failed");
       }
       finishEnterpriseLogin(envelope.result);
     } catch (err) {
@@ -302,18 +209,6 @@ export default function LoginForm() {
             >
               Login with Password
             </Button>
-            <Button
-              type="button"
-              variant="secondary"
-              className="w-full"
-              disabled={pending}
-              onClick={() => {
-                setError(null);
-                setStep("otp-request");
-              }}
-            >
-              Login with OTP
-            </Button>
 
             <div
               className="flex items-center gap-3 text-xs uppercase tracking-wide text-[var(--muted)]"
@@ -343,6 +238,16 @@ export default function LoginForm() {
             )}
 
             <p className="text-center text-sm text-[var(--muted)]">
+              Prefer mobile OTP?{" "}
+              <Link
+                href="/mobile-login"
+                className="text-[var(--accent)] underline-offset-2 hover:underline"
+              >
+                Sign in with mobile
+              </Link>
+            </p>
+
+            <p className="text-center text-sm text-[var(--muted)]">
               Don&apos;t have an account?{" "}
               <Link
                 href="/signup"
@@ -357,110 +262,43 @@ export default function LoginForm() {
     );
   }
 
-  if (step === "password") {
-    return (
-      <AuthShell>
-        <AuthCard
-          title="Login with Password"
-          description="Sign in with your username, email, or verified mobile number."
-        >
-          <Stack gap={4}>
-            <form className="space-y-4" onSubmit={onPasswordSubmit} noValidate>
-              <FormField
-                label="Identifier"
-                htmlFor="login-identifier"
-                required
-                hint="Username, email, or India mobile"
-              >
-                <Input
-                  id="login-identifier"
-                  value={identifier}
-                  onChange={(e) => setIdentifier(e.target.value)}
-                  autoComplete="username"
-                  placeholder="Username / Email / Mobile"
-                  required
-                  aria-required="true"
-                  disabled={pending}
-                />
-              </FormField>
-              <FormField label="Password" htmlFor="login-password" required>
-                <PasswordInput
-                  id="login-password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  autoComplete="current-password"
-                  required
-                  aria-required="true"
-                  disabled={pending}
-                />
-              </FormField>
-              <div className="flex flex-wrap items-center justify-between gap-2">
-                <label className="flex items-center gap-2 text-sm text-[var(--muted)]">
-                  <Checkbox
-                    checked={rememberMe}
-                    onCheckedChange={(v) => setRememberMe(v === true)}
-                    aria-label="Remember me on this device"
-                    disabled={pending}
-                  />
-                  Remember me
-                </label>
-                <Link
-                  href="/forgot-password"
-                  className="text-sm text-[var(--accent)] underline-offset-2 hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent)]"
-                >
-                  Forgot password?
-                </Link>
-              </div>
-              {fieldError ? (
-                <ValidationMessage tone="error">{fieldError}</ValidationMessage>
-              ) : null}
-              {error ? (
-                <ValidationMessage tone="error">{error}</ValidationMessage>
-              ) : null}
-              <Button type="submit" disabled={pending} className="w-full">
-                {pending ? "Signing in…" : "Login"}
-              </Button>
-            </form>
-            <Button
-              type="button"
-              variant="ghost"
-              className="w-full"
-              disabled={pending}
-              onClick={goChooser}
+  return (
+    <AuthShell>
+      <AuthCard
+        title="Login with Password"
+        description="Sign in with your username, email, or verified mobile number."
+      >
+        <Stack gap={4}>
+          <form className="space-y-4" onSubmit={onPasswordSubmit} noValidate>
+            <FormField
+              label="Identifier"
+              htmlFor="login-identifier"
+              required
+              hint="Username, email, or India mobile"
             >
-              Back
-            </Button>
-          </Stack>
-        </AuthCard>
-      </AuthShell>
-    );
-  }
-
-  if (step === "otp-request") {
-    return (
-      <AuthShell>
-        <AuthCard
-          title="Login with OTP"
-          description="We'll send a one-time code to your verified email or India mobile number."
-        >
-          <Stack gap={4}>
-            <form className="space-y-4" onSubmit={onSendOtp} noValidate>
-              <FormField
-                label="Email or Mobile"
-                htmlFor="otp-identifier"
+              <Input
+                id="login-identifier"
+                value={identifier}
+                onChange={(e) => setIdentifier(e.target.value)}
+                autoComplete="username"
+                placeholder="Username / Email / Mobile"
                 required
-                hint="Email address or +91 mobile starting 6–9"
-              >
-                <Input
-                  id="otp-identifier"
-                  value={otpIdentifier}
-                  onChange={(e) => setOtpIdentifier(e.target.value)}
-                  autoComplete="username"
-                  placeholder="email@example.com or 9876543210"
-                  required
-                  disabled={pending}
-                />
-              </FormField>
+                aria-required="true"
+                disabled={pending}
+              />
+            </FormField>
+            <FormField label="Password" htmlFor="login-password" required>
+              <PasswordInput
+                id="login-password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                autoComplete="current-password"
+                required
+                aria-required="true"
+                disabled={pending}
+              />
+            </FormField>
+            <div className="flex flex-wrap items-center justify-between gap-2">
               <label className="flex items-center gap-2 text-sm text-[var(--muted)]">
                 <Checkbox
                   checked={rememberMe}
@@ -470,85 +308,29 @@ export default function LoginForm() {
                 />
                 Remember me
               </label>
-              {fieldError ? (
-                <ValidationMessage tone="error">{fieldError}</ValidationMessage>
-              ) : null}
-              {error ? (
-                <ValidationMessage tone="error">{error}</ValidationMessage>
-              ) : null}
-              <Button
-                type="submit"
-                className="w-full"
-                disabled={pending || !otpIdentifier.trim()}
+              <Link
+                href="/forgot-password"
+                className="text-sm text-[var(--accent)] underline-offset-2 hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent)]"
               >
-                {pending ? "Sending…" : "Send OTP"}
-              </Button>
-            </form>
-            <Button
-              type="button"
-              variant="ghost"
-              className="w-full"
-              disabled={pending}
-              onClick={goChooser}
-            >
-              Back
+                Forgot password?
+              </Link>
+            </div>
+            {fieldError ? (
+              <ValidationMessage tone="error">{fieldError}</ValidationMessage>
+            ) : null}
+            {error ? (
+              <ValidationMessage tone="error">{error}</ValidationMessage>
+            ) : null}
+            <Button type="submit" disabled={pending} className="w-full">
+              {pending ? "Signing in…" : "Login"}
             </Button>
-          </Stack>
-        </AuthCard>
-      </AuthShell>
-    );
-  }
-
-  // otp-verify
-  const destinationHint =
-    otpChannel === "email"
-      ? otpIdentifier.trim().toLowerCase()
-      : resolveOtpIdentifier(otpIdentifier) || otpIdentifier.trim();
-
-  return (
-    <AuthShell>
-      <AuthCard
-        title="Enter OTP"
-        description={`Enter the 6-digit code sent to ${destinationHint}.`}
-      >
-        <Stack gap={4}>
-          <OtpInput
-            label="One-time code"
-            value={otpCode}
-            onChange={setOtpCode}
-            onComplete={(code) => {
-              if (!pending) void onVerifyOtp(code);
-            }}
-            disabled={pending}
-            autoFocus
-          />
-          {error ? (
-            <ValidationMessage tone="error">{error}</ValidationMessage>
-          ) : null}
-          <Button
-            type="button"
-            className="w-full"
-            disabled={pending || otpCode.replace(/\D/g, "").length !== 6}
-            onClick={() => void onVerifyOtp(otpCode)}
-          >
-            {pending ? "Verifying…" : "Verify & Login"}
-          </Button>
-          <ResendCountdown
-            seconds={30}
-            disabled={pending}
-            onResend={onResendOtp}
-          />
+          </form>
           <Button
             type="button"
             variant="ghost"
             className="w-full"
             disabled={pending}
-            onClick={() => {
-              setError(null);
-              setOtpCode("");
-              setChallengeId(null);
-              setStep("otp-request");
-            }}
+            onClick={goChooser}
           >
             Back
           </Button>

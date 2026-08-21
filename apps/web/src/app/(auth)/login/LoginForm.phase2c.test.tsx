@@ -78,7 +78,7 @@ describe("Login form — Google email + password", () => {
     expect(screen.queryByText(/demo mode/i)).toBeNull();
   });
 
-  it("shows password and Google; hides numeric email OTP entry", async () => {
+  it("shows enabled Google button and hides email OTP", async () => {
     const { default: LoginForm } = await import("@/app/(auth)/login/LoginForm");
     render(
       <ThemeProvider>
@@ -88,9 +88,9 @@ describe("Login form — Google email + password", () => {
     expect(
       screen.getByRole("button", { name: /login with password/i }),
     ).toBeTruthy();
-    expect(
-      screen.getByRole("button", { name: /continue with google/i }),
-    ).toBeTruthy();
+    const google = screen.getByRole("button", { name: /continue with google/i });
+    expect(google).toBeTruthy();
+    expect(google).not.toBeDisabled();
     expect(screen.queryByRole("button", { name: /login with otp/i })).toBeNull();
     expect(screen.queryByRole("button", { name: /send otp/i })).toBeNull();
     expect(screen.getByRole("link", { name: /sign in with mobile/i })).toBeTruthy();
@@ -132,6 +132,18 @@ describe("Login form — Google email + password", () => {
       remember_me: false,
     });
     expect(requestOtpMock).not.toHaveBeenCalled();
+  });
+
+  it("keeps Continue with Google enabled (always clickable)", async () => {
+    const { default: LoginForm } = await import("@/app/(auth)/login/LoginForm");
+    render(
+      <ThemeProvider>
+        <LoginForm />
+      </ThemeProvider>,
+    );
+    expect(
+      screen.getByRole("button", { name: /continue with google/i }),
+    ).not.toBeDisabled();
   });
 
   it("starts Google OAuth via existing enterprise oauthBegin", async () => {

@@ -188,8 +188,16 @@ export const enterpriseAuthApi = {
       { method: "POST", body: JSON.stringify(body) },
     ),
 
-  requestOtp: (identifier: string) =>
-    enterpriseRequest<{
+  /** Mobile/SMS OTP only — email numeric OTP is disabled (Google for email). */
+  requestOtp: (identifier: string) => {
+    if (String(identifier || "").includes("@")) {
+      return Promise.reject(
+        new Error(
+          "Email OTP is no longer supported. Sign in with Google or password.",
+        ),
+      );
+    }
+    return enterpriseRequest<{
       challenge_id: string;
       channel?: "email" | "mobile";
       mobile?: string;
@@ -202,7 +210,8 @@ export const enterpriseAuthApi = {
     }>("/auth/enterprise/otp/request", {
       method: "POST",
       body: JSON.stringify({ identifier }),
-    }),
+    });
+  },
 
   verifyOtp: (body: {
     challenge_id: string;
@@ -285,8 +294,16 @@ export const enterpriseAuthApi = {
       body: JSON.stringify({ password }),
     }),
 
-  resendOtp: (identifier: string) =>
-    enterpriseRequest<{
+  /** Mobile/SMS OTP resend only — email numeric OTP is disabled. */
+  resendOtp: (identifier: string) => {
+    if (String(identifier || "").includes("@")) {
+      return Promise.reject(
+        new Error(
+          "Email OTP is no longer supported. Sign in with Google or password.",
+        ),
+      );
+    }
+    return enterpriseRequest<{
       challenge_id: string;
       channel?: "email" | "mobile";
       mobile?: string;
@@ -297,7 +314,8 @@ export const enterpriseAuthApi = {
     }>("/auth/otp/resend", {
       method: "POST",
       body: JSON.stringify({ identifier }),
-    }),
+    });
+  },
 
   getProfile: (token?: string | null) =>
     enterpriseRequest<Record<string, unknown>>("/auth/me", {}, { token }),

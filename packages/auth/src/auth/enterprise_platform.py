@@ -111,7 +111,7 @@ class EnterpriseAuthPlatform:
         self.auth = auth
         self.oauth = oauth or build_oauth_registry()
         self.email = email or build_email_provider()
-        self.otp = otp or OtpService(build_sms_provider(), email=self.email)
+        self.otp = otp or OtpService(build_sms_provider())
         self.devices = devices or DeviceRegistry(auth.persistence)
         self.mfa = mfa or build_mfa_gateway(
             persistence=auth.persistence, users=auth.users, jwt=auth.jwt
@@ -155,8 +155,8 @@ class EnterpriseAuthPlatform:
                 "microsoft_oauth": True,
                 "facebook_oauth": True,
                 "mobile_otp": True,
-                "email_otp": True,
-                "unified_otp": True,
+                "email_otp": False,
+                "unified_otp": False,
                 "magic_link": True,
                 "request_access": True,
                 "email_verification": True,
@@ -1107,11 +1107,10 @@ class EnterpriseAuthPlatform:
 
     # --- OTP -------------------------------------------------------------
     #
-    # Phase 2B: one public login-OTP flow (identifier = email OR mobile).
-    # Mobile OTP may still auto-provision ``@phone.dspai.local`` users
-    # (preserved for compatibility). Email OTP never auto-creates accounts
-    # and only delivers to verified emails. Automatic phone↔email merging is
-    # intentionally deferred to Phase 2F.
+    # Mobile/SMS OTP only. Numeric email OTP is removed — email sign-in is
+    # Google OAuth (plus password for provisioned accounts). Mobile OTP may
+    # still auto-provision ``@phone.dspai.local`` users. Phone↔email linking
+    # remains deferred to Phase 2F.
 
     def request_login_otp(
         self,
@@ -1119,21 +1118,13 @@ class EnterpriseAuthPlatform:
         *,
         ip_hint: str | None = None,
     ) -> dict[str, Any]:
-        """Unified OTP request: ``identifier`` is a verified email or India mobile."""
+        """OTP request for India mobile only (email OTP disabled)."""
         self._rate_check(f"otp:{ip_hint or identifier}", limit=10, window_sec=3600)
         otp_flag = (os.environ.get("DSP_AUTH_PROVIDER_OTP") or "auto").strip().lower()
         if otp_flag in {"disabled", "coming_soon", "off", "false", "0"}:
             raise AuthenticationError("OTP intentionally disabled — Coming Soon.")
-        channel, destination = classify_otp_identifier(identifier)
-        if channel == "mobile":
-            return self.otp.request_otp(destination, ip_hint=ip_hint)
-        # Email: opaque success whether or not the address is eligible.
-        user = self._get_by_email(destination)
-        meta = dict(user.metadata or {}) if user else {}
-        eligible = bool(user) and bool(meta.get("email_verified"))
-        return self.otp.request_email_otp(
-            destination, ip_hint=ip_hint, deliver=eligible
-        )
+        _channel, destination = classify_otp_identifier(identifier)
+        return self.otp.request_otp(destination, ip_hint=ip_hint)
 
     def request_mobile_otp(self, mobile: str, *, ip_hint: str | None = None) -> dict[str, Any]:
         """Backward-compatible mobile-only entry point."""
@@ -1156,31 +1147,20 @@ class EnterpriseAuthPlatform:
         ip_hint: str | None = None,
         user_agent_hint: str | None = None,
     ) -> dict[str, Any]:
-        """Unified OTP verify — issues the normal enterprise session."""
+        """Mobile OTP verify — issues the normal enterprise session."""
         result = self.otp.verify_otp_result(
             challenge_id=challenge_id, code=code, ip_hint=ip_hint
         )
-        if result.channel == "mobile":
-            return self._complete_mobile_otp_login(
-                mobile=result.destination,
-                remember_me=remember_me,
-                name=name,
-                ip_hint=ip_hint,
-                user_agent_hint=user_agent_hint,
+        if result.channel != "mobile":
+            raise AuthenticationError(
+                "Email OTP is no longer supported. Sign in with Google or password."
             )
-        user = self._get_by_email(result.destination)
-        if user is None:
-            raise AuthenticationError("Invalid or expired OTP challenge.")
-        meta = dict(user.metadata or {})
-        if not meta.get("email_verified"):
-            raise AuthenticationError("Invalid or expired OTP challenge.")
-        return self._issue_session(
-            user,
+        return self._complete_mobile_otp_login(
+            mobile=result.destination,
             remember_me=remember_me,
-            provider=AuthProvider.EMAIL.value,
+            name=name,
             ip_hint=ip_hint,
             user_agent_hint=user_agent_hint,
-            device_label="email-otp",
         )
 
     def verify_mobile_otp(

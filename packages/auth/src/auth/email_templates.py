@@ -16,7 +16,6 @@ __all__ = [
     "render_email_verification_email",
     "render_password_reset_email",
     "render_invitation_email",
-    "render_email_otp_email",
 ]
 
 _BRAND = "DSP AI Indicator"
@@ -149,40 +148,6 @@ def render_password_reset_email(
         body_html=html_body,
         cta_url=link_url,
         cta_label="Reset password",
-    )
-    return subject, text, html
-
-
-def render_email_otp_email(*, code: str, expires_minutes: int) -> tuple[str, str, str]:
-    """Render a 6-digit email OTP message.
-
-    The plaintext body includes an ``OTP=`` marker for console/dev adapters
-    (same convention as ``TOKEN=``). Production SMTP delivers the body to the
-    mailbox only — callers must never put the OTP in API responses or logs.
-    """
-    subject = f"Your {_BRAND} sign-in code"
-    text = (
-        f"Your {_BRAND} sign-in code\n\n"
-        f"Use this one-time code to sign in. It expires in {expires_minutes} minutes "
-        "and can only be used once.\n\n"
-        f"{code}\n\n"
-        f"OTP={code}\n\n"
-        "If you did not request this, you can safely ignore this email."
-    )
-    html_body = (
-        f"<p>Use this one-time code to sign in to {_html.escape(_BRAND)}. "
-        f"It expires in <strong>{expires_minutes} minutes</strong> and can only be used once.</p>"
-        f'<p style="font-size:28px;letter-spacing:0.25em;font-weight:700;color:#f9fafb;">'
-        f"{_html.escape(code)}</p>"
-        "<p>If you did not request this, you can safely ignore this email.</p>"
-    )
-    # CTA is informational (no click target required); reuse wrap with mailto noop.
-    html = _wrap_html(
-        preheader=f"Your sign-in code ({expires_minutes} min)",
-        heading="Your sign-in code",
-        body_html=html_body,
-        cta_url="#",
-        cta_label="Sign-in code above",
     )
     return subject, text, html
 

@@ -1,6 +1,10 @@
-"""Login OTP service — mobile SMS and email, 6-digit, hashed, single-use.
+"""Login OTP service — mobile SMS only, 6-digit, hashed, single-use.
 
-Security policy (shared across channels):
+Email numeric OTP has been removed; email sign-in is Google OAuth (and
+password for provisioned accounts). Transactional email (reset, invite,
+magic link) stays on :mod:`auth.email_delivery`.
+
+Security policy:
 - 6-digit cryptographically secure codes
 - Store only salted SHA-256 hashes (never plaintext)
 - 5-minute expiry, 30s resend cooldown, 5 attempts, hourly send caps
@@ -21,8 +25,6 @@ from datetime import datetime, timedelta, timezone
 from threading import Lock
 from typing import Any, NamedTuple
 
-from auth.email_delivery import EmailProviderPort, build_email_provider
-from auth.email_templates import render_email_otp_email
 from auth.enterprise_models import OtpChallenge
 from auth.exceptions import AuthenticationError, ValidationError
 from auth.sms import SmsProviderPort, build_sms_provider
@@ -38,12 +40,16 @@ __all__ = [
 ]
 
 _INDIA_MOBILE_RE = re.compile(r"^(?:\+91|91|0)?([6-9]\d{9})$")
-_EMAIL_RE = re.compile(r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
 _OTP_TTL = timedelta(minutes=5)
 _RESEND_COOLDOWN = timedelta(seconds=30)
 _MAX_ATTEMPTS = 5
 _MAX_SENDS_PER_HOUR = 5
 _MAX_VERIFY_FAILURES_IP = 20
+
+_EMAIL_OTP_DISABLED = (
+    "Email OTP is no longer supported. Sign in with Google or password, "
+    "or use mobile OTP."
+)
 
 
 class OtpVerifyResult(NamedTuple):
@@ -69,15 +75,15 @@ def try_normalize_india_mobile(mobile: str) -> str | None:
 
 
 def classify_otp_identifier(identifier: str) -> tuple[str, str]:
-    """Return ``(channel, normalized_destination)`` for email or India mobile."""
+    """Return ``(channel, normalized_destination)`` for India mobile only.
+
+    Email identifiers are rejected — numeric email OTP is disabled.
+    """
     raw = (identifier or "").strip()
     if not raw:
         raise ValidationError("identifier is required")
     if "@" in raw:
-        mail = raw.lower()
-        if not _EMAIL_RE.match(mail):
-            raise ValidationError("Invalid email address.")
-        return "email", mail
+        raise ValidationError(_EMAIL_OTP_DISABLED)
     return "mobile", normalize_india_mobile(raw)
 
 
@@ -101,10 +107,12 @@ class OtpService:
     def __init__(
         self,
         sms: SmsProviderPort | None = None,
-        email: EmailProviderPort | None = None,
+        email: Any = None,
     ) -> None:
+        # ``email`` is accepted for call-site compatibility but ignored —
+        # numeric email OTP has been removed.
+        _ = email
         self._sms = sms or build_sms_provider()
-        self._email = email or build_email_provider()
         self._challenges: dict[str, OtpChallenge] = {}
         self._by_destination: dict[str, str] = {}
         self._send_log: list[tuple[str, datetime]] = []
@@ -115,12 +123,6 @@ class OtpService:
         return {
             "provider": self._sms.provider_name(),
             "available": self._sms.is_available(),
-        }
-
-    def email_status(self) -> dict[str, Any]:
-        return {
-            "provider": self._email.provider_name(),
-            "available": self._email.is_available(),
         }
 
     def request_otp(
@@ -154,72 +156,6 @@ class OtpService:
             public["sms"].pop("debug_code", None)
         return public
 
-    @staticmethod
-    def _opaque_email_otp_public() -> dict[str, Any]:
-        """Fixed public envelope — identical for known, unknown, and delivery failure."""
-        return {
-            "ok": True,
-            "detail": "If an account exists, a one-time code was sent.",
-        }
-
-    def request_email_otp(
-        self,
-        email: str,
-        *,
-        ip_hint: str | None = None,
-        now: datetime | None = None,
-        deliver: bool = True,
-    ) -> dict[str, Any]:
-        """Create an email OTP challenge.
-
-        When ``deliver`` is False (unknown / unverified address), a real
-        challenge row is still created with an unguessable hash so timing and
-        response shape stay uniform without sending mail or revealing existence.
-
-        Public responses never encode delivery success, provider availability,
-        or whether the address is registered (anti-enumeration).
-        """
-        ts = now or datetime.now(tz=timezone.utc)
-        mail = (email or "").strip().lower()
-        if not _EMAIL_RE.match(mail):
-            raise ValidationError("Invalid email address.")
-        challenge, code = self._create_challenge(
-            channel="email",
-            destination=mail,
-            ip_hint=ip_hint,
-            ts=ts,
-            deliver=deliver,
-        )
-        public = challenge.to_public_dict()
-        public["email"] = self._opaque_email_otp_public()
-
-        if not deliver:
-            return public
-
-        subject, text_body, html_body = render_email_otp_email(
-            code=code, expires_minutes=int(_OTP_TTL.total_seconds() // 60)
-        )
-        try:
-            delivery = self._email.send(
-                to=mail,
-                subject=subject,
-                body=text_body,
-                html_body=html_body,
-                purpose="login_otp",
-            )
-        except Exception:  # noqa: BLE001 — never leak delivery faults on the public path
-            # Do not log OTP, body, or recipient — purpose only.
-            logger.warning("Email OTP delivery failed for purpose=login_otp")
-            return public
-
-        if not delivery.ok:
-            # Generic operational signal only — no OTP, body, recipient, or API change.
-            logger.warning(
-                "Email OTP delivery unsuccessful for purpose=login_otp provider=%s",
-                delivery.provider,
-            )
-        return public
-
     def verify_otp(
         self,
         *,
@@ -228,7 +164,7 @@ class OtpService:
         ip_hint: str | None = None,
         now: datetime | None = None,
     ) -> str:
-        """Verify OTP; return destination (normalized mobile or email)."""
+        """Verify OTP; return destination (normalized mobile)."""
         return self.verify_otp_result(
             challenge_id=challenge_id, code=code, ip_hint=ip_hint, now=now
         ).destination
@@ -248,6 +184,10 @@ class OtpService:
             challenge = self._challenges.get(challenge_id)
             if challenge is None:
                 raise AuthenticationError("Invalid or expired OTP challenge.")
+            if challenge.channel != "mobile":
+                raise AuthenticationError(
+                    "Email OTP is no longer supported. Sign in with Google or password."
+                )
             if challenge.consumed:
                 raise AuthenticationError("OTP already used.")
             expires = datetime.fromisoformat(challenge.expires_at)

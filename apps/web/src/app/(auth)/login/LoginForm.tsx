@@ -219,23 +219,17 @@ export default function LoginForm() {
               <span className="h-px flex-1 bg-[var(--border)]" aria-hidden />
             </div>
 
-            {googleProvider ? (
-              <ProviderButton
-                provider="GOOGLE"
-                disabled={pending}
-                onClick={() => void onGoogle()}
-              />
-            ) : (
-              <Button
-                type="button"
-                variant="secondary"
-                className="w-full"
-                disabled
-                title="Google sign-in is not configured on this deployment."
-              >
-                Continue with Google
-              </Button>
-            )}
+            <ProviderButton
+              provider="GOOGLE"
+              disabled={pending}
+              onClick={() => void onGoogle()}
+            />
+            {!googleProvider ? (
+              <p className="text-center text-xs text-[var(--muted)]">
+                If Google is not configured on the API, you will see an error
+                after clicking Continue with Google.
+              </p>
+            ) : null}
 
             <p className="text-center text-sm text-[var(--muted)]">
               Prefer mobile OTP?{" "}

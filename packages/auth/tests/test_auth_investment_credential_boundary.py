@@ -22,6 +22,7 @@ from auth.enterprise_platform import (
     EnterpriseAuthPlatform,
     reset_enterprise_auth_platform_for_tests,
 )
+from auth.exceptions import ValidationError
 from auth.service import AuthService, reset_auth_service_for_tests
 from data_engine.exceptions import ConnectorConfigurationError
 from data_engine.market_quote.adapters import build_default_quote_adapter_from_env
@@ -160,12 +161,19 @@ def test_b_password_otp_email_auth_init_without_upstox(
     )
     assert session["user"]["email"] == "boundary@example.com"
 
-    result = ent.request_login_otp("boundary@example.com")
-    assert result.get("challenge_id")
-    assert result.get("channel") == "email"
+    with pytest.raises(ValidationError, match="Email OTP is no longer supported"):
+        ent.request_login_otp("boundary@example.com")
+
+    mobile_req = ent.request_login_otp("+919876543210")
+    assert mobile_req.get("channel") == "mobile"
+    assert mobile_req.get("challenge_id")
 
     discovery = ent.provider_status()
     assert "providers" in discovery
+    features = ent.schema()["features"]
+    assert features["email_otp"] is False
+    assert features["mobile_otp"] is True
+    assert features["google_oauth"] is True
 
     reset_enterprise_auth_platform_for_tests(None)
     reset_auth_service_for_tests(None)

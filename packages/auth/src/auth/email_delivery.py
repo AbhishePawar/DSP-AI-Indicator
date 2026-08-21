@@ -1,14 +1,25 @@
-"""Email delivery port — Console adapter for local; production SMTP adapter."""
+"""Email delivery port — Console, Resend, and SMTP adapters.
+
+Credential boundary:
+  - Resend auth email uses ``DSP_RESEND_API_KEY`` (never ``DSP_SMTP_PASSWORD``).
+  - SMTP remains available via ``DSP_SMTP_*`` when explicitly configured.
+  - Never reads ``DSP_UPSTOX_*`` / ``DSP_INVESTMENT_*``.
+"""
 
 from __future__ import annotations
 
+import json
 import logging
 import os
 import smtplib
 import ssl
+import urllib.error
+import urllib.request
 from dataclasses import dataclass
 from email.message import EmailMessage
 from typing import Any, Protocol, runtime_checkable
+
+from auth.credential_boundary import RESEND_API_KEY_ENV, RESEND_FROM_ADDRESS_ENV
 
 logger = logging.getLogger(__name__)
 
@@ -17,9 +28,12 @@ __all__ = [
     "EmailDeliveryResult",
     "EmailProviderPort",
     "NullEmailAdapter",
+    "ResendEmailAdapter",
     "SmtpEmailAdapter",
     "build_email_provider",
 ]
+
+_RESEND_API_URL = "https://api.resend.com/emails"
 
 
 @dataclass(frozen=True, slots=True)
@@ -206,11 +220,112 @@ class SmtpEmailAdapter:
         client.send_message(message)
 
 
+class ResendEmailAdapter:
+    """Production Resend HTTP adapter — uses ``DSP_RESEND_API_KEY``, not SMTP."""
+
+    def __init__(
+        self,
+        *,
+        api_key: str,
+        from_address: str = "",
+        from_name: str = "DSP AI Indicator",
+        timeout: float = 20.0,
+    ) -> None:
+        self._api_key = (api_key or "").strip()
+        self._from_address = (from_address or "").strip()
+        self._from_name = from_name
+        self._timeout = timeout
+
+    def provider_name(self) -> str:
+        return "resend"
+
+    def is_available(self) -> bool:
+        return bool(self._api_key and self._from_address)
+
+    def send(
+        self,
+        *,
+        to: str,
+        subject: str,
+        body: str,
+        purpose: str = "transactional",
+        html_body: str | None = None,
+    ) -> EmailDeliveryResult:
+        if not self._api_key:
+            return EmailDeliveryResult(
+                ok=False,
+                provider=self.provider_name(),
+                detail=f"{RESEND_API_KEY_ENV} is not configured.",
+            )
+        if not self._from_address:
+            return EmailDeliveryResult(
+                ok=False,
+                provider=self.provider_name(),
+                detail=f"{RESEND_FROM_ADDRESS_ENV} is not configured.",
+            )
+        payload: dict[str, Any] = {
+            "from": f"{self._from_name} <{self._from_address}>",
+            "to": [to],
+            "subject": subject,
+            "text": body,
+        }
+        if html_body:
+            payload["html"] = html_body
+        data = json.dumps(payload).encode("utf-8")
+        req = urllib.request.Request(
+            _RESEND_API_URL,
+            data=data,
+            method="POST",
+            headers={
+                "Authorization": f"Bearer {self._api_key}",
+                "Content-Type": "application/json",
+                "Accept": "application/json",
+            },
+        )
+        try:
+            with urllib.request.urlopen(req, timeout=self._timeout) as resp:  # noqa: S310
+                _ = resp.read()
+            return EmailDeliveryResult(
+                ok=True,
+                provider=self.provider_name(),
+                detail=f"Resend email queued to {to} ({purpose}).",
+            )
+        except urllib.error.HTTPError as exc:
+            logger.warning("Resend send failed for purpose=%s: HTTP %s", purpose, exc.code)
+            return EmailDeliveryResult(
+                ok=False,
+                provider=self.provider_name(),
+                detail=f"Resend send failed: HTTP {exc.code}",
+            )
+        except (urllib.error.URLError, TimeoutError, OSError) as exc:
+            logger.warning("Resend send failed for purpose=%s: %s", purpose, exc)
+            return EmailDeliveryResult(
+                ok=False,
+                provider=self.provider_name(),
+                detail=f"Resend send failed: {exc}",
+            )
+
+
+def _build_resend_adapter() -> ResendEmailAdapter:
+    return ResendEmailAdapter(
+        api_key=os.environ.get(RESEND_API_KEY_ENV, ""),
+        from_address=os.environ.get(RESEND_FROM_ADDRESS_ENV, ""),
+        from_name=os.environ.get("DSP_RESEND_FROM_NAME", "DSP AI Indicator"),
+    )
+
+
 def build_email_provider(name: str | None = None) -> EmailProviderPort:
-    """Env-driven email factory. Defaults to Console in non-production, Null in production."""
+    """Env-driven email factory.
+
+    Selection order when ``DSP_EMAIL_PROVIDER`` is unset:
+      1. Resend when ``DSP_RESEND_API_KEY`` is set (SMTP password not required)
+      2. SMTP when ``DSP_SMTP_*`` is complete
+      3. Null in production/staging, Console otherwise
+    """
     preferred = (name or os.environ.get("DSP_EMAIL_PROVIDER") or "").strip().lower()
     env = (os.environ.get("DSP_ENVIRONMENT") or "development").strip().lower()
 
+    resend = _build_resend_adapter()
     smtp = SmtpEmailAdapter(
         host=os.environ.get("DSP_SMTP_HOST", ""),
         port=int(os.environ.get("DSP_SMTP_PORT", "587") or "587"),
@@ -222,6 +337,9 @@ def build_email_provider(name: str | None = None) -> EmailProviderPort:
         use_ssl=(os.environ.get("DSP_SMTP_USE_SSL", "false").strip().lower() in {"1", "true", "yes"}),
     )
 
+    if preferred == "resend":
+        # Key present ⇒ Resend mode (SMTP password never required).
+        return resend if os.environ.get(RESEND_API_KEY_ENV, "").strip() else NullEmailAdapter()
     if preferred == "smtp":
         return smtp if smtp.is_available() else NullEmailAdapter()
     if preferred == "null":
@@ -229,6 +347,9 @@ def build_email_provider(name: str | None = None) -> EmailProviderPort:
     if preferred == "console":
         return ConsoleEmailAdapter()
 
+    # Auto: Resend key selects Resend mode without requiring SMTP credentials.
+    if os.environ.get(RESEND_API_KEY_ENV, "").strip():
+        return resend
     if smtp.is_available():
         return smtp
     if env in {"production", "prod", "staging"}:

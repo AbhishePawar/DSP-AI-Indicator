@@ -177,8 +177,10 @@ class MfaGateway:
     ) -> None:
         self._totp = totp or NullTotpAdapter()
         self._webauthn = webauthn or NullWebAuthnAdapter()
+        from auth.credential_boundary import resolve_auth_jwt_secret
+
         self._jwt = jwt or JwtService(
-            os.environ.get("DSP_AUTH_JWT_SECRET") or "dsp-auth-dev-secret",
+            resolve_auth_jwt_secret(),
             issuer="dsp-auth-mfa",
         )
         self._enabled = mfa_flag_enabled() if enabled is None else enabled

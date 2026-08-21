@@ -66,8 +66,9 @@ def _active_key() -> bytes:
     configured = (os.environ.get("DSP_MFA_SECRET_KEY") or "").strip()
     if configured:
         return configured.encode("ascii")
-    jwt_secret = os.environ.get("DSP_AUTH_JWT_SECRET") or "dsp-auth-dev-secret"
-    return _derive_key(jwt_secret)
+    from auth.credential_boundary import resolve_auth_jwt_secret
+
+    return _derive_key(resolve_auth_jwt_secret())
 
 
 def _previous_keys() -> list[bytes]:

@@ -338,7 +338,10 @@ class PlatformHealthService:
             return HealthCheckResult(
                 name="investment_data_provider",
                 status=CheckStatus.FAIL,
-                message=f"{type(exc).__name__}: {exc}",
+                message=(
+                    f"investment_capability: {type(exc).__name__}: {exc} "
+                    "(does not block auth/API readiness)"
+                ),
             )
         detail = ", ".join(f"{k}={v}" for k, v in sorted(selected.items()))
         return HealthCheckResult(

@@ -15,6 +15,7 @@ from dataclasses import dataclass
 from threading import Lock
 from typing import Any
 
+from auth.credential_boundary import GOOGLE_CLIENT_ID_ENV, GOOGLE_CLIENT_SECRET_ENV
 from auth.enterprise_models import AuthProvider, ProviderUiStatus
 from auth.exceptions import AuthenticationError, ValidationError
 from auth.oidc import OidcVerificationUnavailable, verify_id_token
@@ -390,8 +391,8 @@ def build_oauth_registry() -> OAuthProviderRegistry:
     adapters = {
         AuthProvider.GOOGLE.value: OAuthProviderAdapter(
             provider=AuthProvider.GOOGLE,
-            client_id=os.environ.get("DSP_GOOGLE_CLIENT_ID", ""),
-            client_secret=os.environ.get("DSP_GOOGLE_CLIENT_SECRET", ""),
+            client_id=os.environ.get(GOOGLE_CLIENT_ID_ENV, ""),
+            client_secret=os.environ.get(GOOGLE_CLIENT_SECRET_ENV, ""),
             authorize_url="https://accounts.google.com/o/oauth2/v2/auth",
             token_url="https://oauth2.googleapis.com/token",
             userinfo_url="https://openidconnect.googleapis.com/v1/userinfo",

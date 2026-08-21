@@ -137,16 +137,18 @@ def create_app(
         {"1", "true", "yes"}
     ):
         from security_platform import SecurityBundle, SecuritySettings
+        from auth.credential_boundary import (
+            AUTH_JWT_SECRET_ENV,
+            auth_jwt_secret_is_default,
+            resolve_auth_jwt_secret,
+        )
 
-        jwt_secret = os.environ.get("DSP_JWT_SECRET", "dev-only-change-me")
+        # Auth-domain JWT only — never DSP_UPSTOX_* / investment credentials.
+        jwt_secret = resolve_auth_jwt_secret()
         is_prod = os.environ.get("DSP_ENVIRONMENT", "").lower() == "production"
-        if is_prod and jwt_secret in {
-            "dev-only-change-me",
-            "dsp-auth-dev-secret",
-            "",
-        }:
+        if is_prod and auth_jwt_secret_is_default(jwt_secret):
             raise RuntimeError(
-                "DSP_JWT_SECRET must be set to a non-default value in production"
+                f"{AUTH_JWT_SECRET_ENV} must be set to a non-default value in production"
             )
         security = SecurityBundle.create(
             SecuritySettings(

@@ -41,6 +41,7 @@ def platform() -> DSPPlatform:
 def _strip_investment_credentials(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setenv("DSP_ENVIRONMENT", "production")
     monkeypatch.setenv("DSP_JWT_SECRET", "unit-test-production-secret-not-default")
+    monkeypatch.setenv("DSP_AUTH_JWT_SECRET", "unit-test-production-secret-not-default")
     # Isolate investment-decoupling from Postgres/region runtime gates.
     monkeypatch.setenv("DSP_INFRA_OFFLINE", "1")
     monkeypatch.setattr(
@@ -151,6 +152,7 @@ def test_d_valid_upstox_configuration_still_works(
 
     monkeypatch.setenv("DSP_ENVIRONMENT", "production")
     monkeypatch.setenv("DSP_JWT_SECRET", "unit-test-production-secret-not-default")
+    monkeypatch.setenv("DSP_AUTH_JWT_SECRET", "unit-test-production-secret-not-default")
     monkeypatch.setenv("DSP_INFRA_OFFLINE", "1")
     monkeypatch.setattr(
         "api_platform.api.durable_product_stores.require_durable_product_database",

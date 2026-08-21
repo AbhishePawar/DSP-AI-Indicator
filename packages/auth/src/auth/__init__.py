@@ -23,7 +23,21 @@ from auth.exceptions import (
     ValidationError,
 )
 from auth.devices import DeviceRegistry
-from auth.email_delivery import ConsoleEmailAdapter, SmtpEmailAdapter, build_email_provider
+from auth.credential_boundary import (
+    AUTH_JWT_SECRET_ENV,
+    AUTH_MAGIC_LINK_ENV,
+    GOOGLE_CLIENT_ID_ENV,
+    GOOGLE_CLIENT_SECRET_ENV,
+    RESEND_API_KEY_ENV,
+    RESEND_FROM_ADDRESS_ENV,
+    resolve_auth_jwt_secret,
+)
+from auth.email_delivery import (
+    ConsoleEmailAdapter,
+    ResendEmailAdapter,
+    SmtpEmailAdapter,
+    build_email_provider,
+)
 from auth.hashing import hash_password, needs_rehash, verify_password
 from auth.jwt import JwtService
 from auth.mfa import MfaGateway, NullTotpAdapter, NullWebAuthnAdapter, build_mfa_gateway
@@ -59,11 +73,17 @@ from auth.sms import (
 from auth.users import UserStore
 
 __all__ = [
+    "AUTH_JWT_SECRET_ENV",
+    "AUTH_MAGIC_LINK_ENV",
     "AUTH_SCHEMA_VERSION",
     "AUTH_SERVICE_VERSION",
     "BUILTIN_ROLES",
+    "GOOGLE_CLIENT_ID_ENV",
+    "GOOGLE_CLIENT_SECRET_ENV",
     "PERMISSIONS",
     "PRODUCT_ROLES",
+    "RESEND_API_KEY_ENV",
+    "RESEND_FROM_ADDRESS_ENV",
     "ROLE_PERMISSIONS",
     "AuditLogger",
     "AuthError",
@@ -92,6 +112,7 @@ __all__ = [
     "NullWebAuthnAdapter",
     "OtpService",
     "RefreshTokenReuseError",
+    "ResendEmailAdapter",
     "SmtpEmailAdapter",
     "TotpAdapter",
     "TwilioSmsAdapter",
@@ -118,6 +139,7 @@ __all__ = [
     "needs_rehash",
     "normalize_india_mobile",
     "password_strength",
+    "resolve_auth_jwt_secret",
     "reset_auth_service_for_tests",
     "reset_enterprise_auth_platform_for_tests",
     "reset_role_registry_for_tests",

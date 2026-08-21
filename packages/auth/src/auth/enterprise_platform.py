@@ -12,6 +12,7 @@ from typing import Any
 
 from auth.audit import AuditLogger
 from auth.devices import DeviceRegistry
+from auth.credential_boundary import AUTH_MAGIC_LINK_ENV
 from auth.email_delivery import EmailProviderPort, build_email_provider
 from auth.email_templates import (
     render_email_verification_email,
@@ -203,7 +204,7 @@ class EnterpriseAuthPlatform:
                 "message": None,
             }
         )
-        magic_enabled = (os.environ.get("DSP_AUTH_MAGIC_LINK") or "false").strip().lower() in {
+        magic_enabled = (os.environ.get(AUTH_MAGIC_LINK_ENV) or "false").strip().lower() in {
             "1",
             "true",
             "yes",

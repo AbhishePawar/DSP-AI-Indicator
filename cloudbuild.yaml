@@ -53,7 +53,7 @@ steps:
       - --region=$_REGION
       - --platform=managed
       - --port=8000
-      - --set-env-vars=DSP_ENVIRONMENT=production,DSP_REGION=ap-south-1,DSP_INVESTMENT_DATA_PROVIDER=upstox,DSP_AUTH_MAGIC_LINK=true,DSP_RESEND_FROM_ADDRESS=noreply@dspaindicator.com
+      - --set-env-vars=DSP_ENVIRONMENT=production,DSP_REGION=ap-south-1,DSP_INVESTMENT_DATA_PROVIDER=upstox,DSP_AUTH_MAGIC_LINK=true,DSP_RESEND_FROM_ADDRESS=noreply@dspaindicator.com,DSP_CORS_ORIGINS=https://dsp-ai-indicator-web-6uxsluxowq-el.a.run.app
       # Auth secrets for production login (JWT + Resend). Mount Google OAuth after
       # creating Secret Manager entries dsp-google-client-id / dsp-google-client-secret:
       #   gcloud run services update dsp-ai-indicator --region=asia-south1 \

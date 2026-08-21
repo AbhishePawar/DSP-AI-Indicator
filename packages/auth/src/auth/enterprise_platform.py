@@ -1685,7 +1685,7 @@ class EnterpriseAuthPlatform:
             created_at=now,
             allow_update=True,
         )
-        link_url = f"{self._frontend_url()}/accept-invite?token={invite_token}"
+        link_url = f"{self._frontend_url()}/invite?token={invite_token}"
         subject, text_body, html_body = render_invitation_email(
             link_url=link_url,
             token=invite_token,

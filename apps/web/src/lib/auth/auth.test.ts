@@ -1,7 +1,7 @@
 /**
  * @vitest-environment jsdom
  */
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 
 import {
   isProtectedRoute,
@@ -108,7 +108,12 @@ describe("routeGuards", () => {
 });
 
 describe("sessionStore", () => {
+  afterEach(() => {
+    vi.unstubAllEnvs();
+  });
+
   it("creates session from login payload", () => {
+    vi.stubEnv("NEXT_PUBLIC_COOKIE_AUTH", "false");
     const session = sessionFromLoginPayload(
       {
         access_token: "token",
@@ -128,6 +133,7 @@ describe("sessionStore", () => {
   });
 
   it("creates session from RBAC login", () => {
+    vi.stubEnv("NEXT_PUBLIC_COOKIE_AUTH", "false");
     const session = sessionFromRbacLogin(
       {
         user: {
@@ -167,6 +173,7 @@ describe("sessionStore", () => {
   });
 
   it("detects expired sessions", () => {
+    vi.stubEnv("NEXT_PUBLIC_COOKIE_AUTH", "false");
     const session = sessionFromLoginPayload(
       {
         access_token: "token",

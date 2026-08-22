@@ -16,6 +16,30 @@ const LEGACY_STORAGE_KEY = "dsp.auth.session.v2";
 /** Sentinel — real JWTs stay HttpOnly; SPA must not persist secrets. */
 export const COOKIE_TOKEN_PLACEHOLDER = "__cookie__";
 
+/** Thrown when cookie-mode browser login cannot confirm HttpOnly cookies. */
+export const COOKIE_SESSION_UNAVAILABLE =
+  "Cookie session was not established. Sign in again.";
+
+export class CookieSessionUnavailableError extends Error {
+  constructor(message = COOKIE_SESSION_UNAVAILABLE) {
+    super(message);
+    this.name = "CookieSessionUnavailableError";
+  }
+}
+
+function cookieAuthConfirmed(result: {
+  csrf_token?: string;
+  cookie_auth?: boolean;
+}): boolean {
+  return Boolean(result.cookie_auth) || Boolean(result.csrf_token);
+}
+
+function looksLikeJwt(value: string | null | undefined): boolean {
+  if (!value || value === COOKIE_TOKEN_PLACEHOLDER) return false;
+  const parts = value.split(".");
+  return parts.length === 3 && parts[0]!.startsWith("eyJ");
+}
+
 const SESSION_TTL_MS = 8 * 60 * 60 * 1000;
 const REMEMBER_TTL_MS = 30 * 24 * 60 * 60 * 1000;
 
@@ -88,6 +112,9 @@ export function sessionFromLoginPayload(
   payload: LoginPayload & { refresh_token?: string; session_id?: string },
   rememberMe: boolean,
 ): Session {
+  if (cookieAuthPreferred()) {
+    throw new CookieSessionUnavailableError();
+  }
   const issuedAt = new Date().toISOString();
   const username = payload.username ?? payload.subject;
   const accessToken = payload.access_token;
@@ -118,9 +145,11 @@ export function sessionFromRbacLogin(
   const issuedAt = new Date().toISOString();
   const { user, tokens, session } = result;
   const roles = user.roles?.length ? user.roles : ["read_only"];
+  if (cookieAuthPreferred() && !cookieAuthConfirmed(result)) {
+    throw new CookieSessionUnavailableError();
+  }
   const useCookies =
-    cookieAuthPreferred() &&
-    (Boolean(result.cookie_auth) || Boolean(result.csrf_token));
+    cookieAuthPreferred() && cookieAuthConfirmed(result);
   if (result.csrf_token) {
     persistCsrfToken(result.csrf_token, rememberMe);
   }
@@ -222,10 +251,40 @@ export function readStoredSession(): Session | null {
 }
 
 export function persistSession(session: Session): void {
+  if (cookieAuthPreferred()) {
+    const isCookie =
+      session.authMethod === "cookie_rbac" ||
+      session.accessToken === COOKIE_TOKEN_PLACEHOLDER;
+    if (
+      !isCookie ||
+      looksLikeJwt(session.accessToken) ||
+      looksLikeJwt(session.refreshToken)
+    ) {
+      clearLegacyTokenStorage();
+      throw new CookieSessionUnavailableError();
+    }
+    // Never write JWTs / refresh tokens to Web Storage.
+    clearLegacyTokenStorage();
+    persistCookieMeta({
+      subject: session.subject,
+      username: session.username,
+      displayName: session.displayName,
+      email: session.email,
+      role: session.role,
+      roles: session.roles,
+      permissions: session.permissions,
+      authMethod: "cookie_rbac",
+      sessionId: session.sessionId,
+      issuedAt: session.issuedAt,
+      expiresAt: session.expiresAt,
+      rememberMe: session.rememberMe,
+      cookieAuth: true,
+    });
+    return;
+  }
   const isCookie =
-    cookieAuthPreferred() &&
-    (session.authMethod === "cookie_rbac" ||
-      session.accessToken === COOKIE_TOKEN_PLACEHOLDER);
+    session.authMethod === "cookie_rbac" ||
+    session.accessToken === COOKIE_TOKEN_PLACEHOLDER;
   if (isCookie) {
     // Never write JWTs / refresh tokens to Web Storage.
     clearLegacyTokenStorage();

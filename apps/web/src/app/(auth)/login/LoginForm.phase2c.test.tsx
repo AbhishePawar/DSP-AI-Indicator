@@ -1,7 +1,7 @@
 /**
  * @vitest-environment jsdom
  *
- * Public login — username/password, mobile OTP, username/mobile OTP, Google.
+ * Public login — username/password, mobile OTP, username OTP, Google.
  */
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
@@ -78,7 +78,7 @@ describe("Login form — public methods", () => {
     expect(screen.queryByText(/demo mode/i)).toBeNull();
   });
 
-  it("shows username/password, mobile OTP, username/mobile OTP, and Google", async () => {
+  it("shows username/password, mobile OTP, username OTP, and Google", async () => {
     const { default: LoginForm } = await import("@/app/(auth)/login/LoginForm");
     render(
       <ThemeProvider>
@@ -92,7 +92,7 @@ describe("Login form — public methods", () => {
       screen.getByRole("button", { name: /mobile number and otp/i }),
     ).toBeTruthy();
     expect(
-      screen.getByRole("button", { name: /username or mobile otp/i }),
+      screen.getByRole("button", { name: /username and otp/i }),
     ).toBeTruthy();
     const google = screen.getByRole("button", { name: /continue with google/i });
     expect(google).toBeTruthy();
@@ -161,7 +161,7 @@ describe("Login form — public methods", () => {
     expect(requestOtpMock.mock.calls[0][0]).toBe("+919826912345");
   });
 
-  it("sends OTP for username or mobile identifier", async () => {
+  it("sends OTP for username login", async () => {
     requestOtpMock.mockResolvedValue({
       ok: true,
       result: { challenge_id: "ch-2", channel: "mobile", expires_at: "t" },
@@ -172,8 +172,8 @@ describe("Login form — public methods", () => {
         <LoginForm />
       </ThemeProvider>,
     );
-    fireEvent.click(screen.getByRole("button", { name: /username or mobile otp/i }));
-    fireEvent.change(screen.getByLabelText(/username or mobile number/i), {
+    fireEvent.click(screen.getByRole("button", { name: /username and otp/i }));
+    fireEvent.change(document.getElementById("login-otp-identifier")!, {
       target: { value: "abhishek" },
     });
     fireEvent.click(screen.getByRole("button", { name: /send otp/i }));

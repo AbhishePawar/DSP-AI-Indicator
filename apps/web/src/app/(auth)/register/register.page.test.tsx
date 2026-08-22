@@ -1,7 +1,7 @@
 /**
  * @vitest-environment jsdom
  *
- * Public /register — Create account + Continue with Google only.
+ * Public /register — details form + Continue with Google.
  */
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
@@ -49,15 +49,26 @@ describe("Register page", () => {
     oauthBeginMock.mockReset();
   });
 
-  it("shows only Create account and Continue with Google", async () => {
+  it("shows the public registration form and Google, with no Request Access UI", async () => {
     const { default: RegisterPage } = await import("@/app/(auth)/register/page");
     render(
       <ThemeProvider>
         <RegisterPage />
       </ThemeProvider>,
     );
-    expect(screen.getByRole("button", { name: /^create account$/i })).toBeTruthy();
+    expect(
+      screen.getByRole("heading", {
+        name: /create your dsp ai indicator account/i,
+      }),
+    ).toBeTruthy();
+    expect(document.getElementById("reg-name")).toBeTruthy();
+    expect(document.getElementById("reg-mobile")).toBeTruthy();
+    expect(document.getElementById("reg-username")).toBeTruthy();
+    expect(document.getElementById("reg-email")).toBeTruthy();
+    expect(document.getElementById("reg-password")).toBeTruthy();
+    expect(document.getElementById("reg-confirm")).toBeTruthy();
     expect(screen.getByRole("button", { name: /continue with google/i })).toBeTruthy();
+    expect(screen.getByRole("link", { name: /sign in/i })).toBeTruthy();
     expect(screen.queryByRole("link", { name: /request access/i })).toBeNull();
     expect(screen.queryByText(/enterprise onboarding/i)).toBeNull();
     expect(screen.queryByText(/username \(optional\)/i)).toBeNull();
@@ -71,7 +82,6 @@ describe("Register page", () => {
         <RegisterPage />
       </ThemeProvider>,
     );
-    fireEvent.click(screen.getByRole("button", { name: /^create account$/i }));
     expect(document.getElementById("reg-name")).toBeTruthy();
     expect(document.getElementById("reg-mobile")).toBeTruthy();
     expect(document.getElementById("reg-username")).toBeTruthy();
@@ -111,7 +121,6 @@ describe("Register page", () => {
         <RegisterPage />
       </ThemeProvider>,
     );
-    fireEvent.click(screen.getByRole("button", { name: /^create account$/i }));
     fireEvent.change(document.getElementById("reg-name")!, {
       target: { value: "Abhishek" },
     });

@@ -41,7 +41,7 @@ type Step = "chooser" | "password" | "mobile-otp" | "identifier-otp";
 type OtpPhase = "request" | "verify";
 
 /**
- * Public login: username+password, mobile OTP, username/mobile OTP, Google.
+ * Public login: username+password, mobile OTP, username OTP, Google.
  * Uses existing Enterprise/RBAC endpoints only (no demo auth).
  */
 export default function LoginForm() {
@@ -174,7 +174,7 @@ export default function LoginForm() {
     setError(null);
     const id = normalizeLoginIdentifier(otpIdentifier);
     if (!id || !isPlausibleLoginIdentifier(otpIdentifier) || id.includes("@")) {
-      setError("Enter a valid username or India mobile number.");
+      setError("Enter a valid username.");
       return;
     }
     setPending(true);
@@ -320,7 +320,7 @@ export default function LoginForm() {
                 setStep("identifier-otp");
               }}
             >
-              Username or mobile OTP
+              Username and OTP
             </Button>
 
             <div
@@ -434,12 +434,12 @@ export default function LoginForm() {
   }
 
   const otpTitle =
-    step === "mobile-otp" ? "Mobile number and OTP" : "Username or mobile OTP";
+    step === "mobile-otp" ? "Mobile number and OTP" : "Username and OTP";
   const otpDescription =
     otpPhase === "request"
       ? step === "mobile-otp"
         ? "We will send a one-time code to your verified mobile number."
-        : "Enter your username or mobile number. The code is sent to the verified mobile on the account."
+        : "Enter your username. The code is sent only to the verified mobile on the account."
       : "Enter the one-time code to sign in.";
 
   return (
@@ -469,7 +469,7 @@ export default function LoginForm() {
                 </FormField>
               ) : (
                 <FormField
-                  label="Username or Mobile Number"
+                  label="Username"
                   htmlFor="login-otp-identifier"
                   required
                 >
@@ -478,7 +478,7 @@ export default function LoginForm() {
                     value={otpIdentifier}
                     onChange={(e) => setOtpIdentifier(e.target.value)}
                     autoComplete="username"
-                    placeholder="Username or mobile number"
+                    placeholder="Username"
                     required
                     disabled={pending}
                   />

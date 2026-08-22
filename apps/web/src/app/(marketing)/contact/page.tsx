@@ -74,15 +74,15 @@ export default function ContactPage() {
             <div>
               <dt className="font-medium text-[var(--fg)]">Platform access</dt>
               <dd className="mt-1 text-[var(--muted)]">
-                Existing provisioned users can{" "}
+                Existing users can{" "}
                 <Link className="text-[var(--accent)] underline" href="/login">
                   sign in
                 </Link>
-                . New desks should{" "}
-                <Link className="text-[var(--accent)] underline" href="/signup">
-                  prepare an access request
-                </Link>{" "}
-                and contact their programme administrator.
+                . New users can{" "}
+                <Link className="text-[var(--accent)] underline" href="/register">
+                  create an account
+                </Link>
+                .
               </dd>
             </div>
             <div>

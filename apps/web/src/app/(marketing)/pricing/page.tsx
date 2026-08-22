@@ -132,8 +132,8 @@ export default function MarketingPricingPage() {
           Sign in
         </Link>
         {" · "}
-        <Link className="text-[var(--accent)] underline" href="/signup">
-          Request access
+        <Link className="text-[var(--accent)] underline" href="/register">
+          Create account
         </Link>
       </p>
     </Section>

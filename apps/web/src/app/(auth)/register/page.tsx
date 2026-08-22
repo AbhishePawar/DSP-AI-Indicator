@@ -26,7 +26,6 @@ import {
 import { enterpriseAuthApi } from "@/lib/api/enterpriseAuth";
 import { useAuthProviders } from "@/lib/auth/useAuthProviders";
 
-type Mode = "chooser" | "create";
 type CreateStep = "details" | "otp";
 
 export default function RegisterPage() {
@@ -39,7 +38,6 @@ export default function RegisterPage() {
     [oauthAvailable],
   );
 
-  const [mode, setMode] = useState<Mode>("chooser");
   const [step, setStep] = useState<CreateStep>("details");
   const [error, setError] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
@@ -113,7 +111,7 @@ export default function RegisterPage() {
       return;
     }
     if (!isValidEmail(email)) {
-      setError("Enter a valid email or Gmail address.");
+      setError("Enter a valid Gmail address.");
       return;
     }
     if (password !== confirm) {
@@ -192,63 +190,10 @@ export default function RegisterPage() {
     );
   }
 
-  if (mode === "chooser") {
-    return (
-      <AuthShell>
-        <AuthCard
-          title="Create account"
-          description="Create an account with your details, or continue with Google."
-        >
-          <Stack gap={4}>
-            {error ? (
-              <ValidationMessage tone="error">{error}</ValidationMessage>
-            ) : null}
-            <Button
-              type="button"
-              className="w-full"
-              onClick={() => {
-                setError(null);
-                setMode("create");
-                setStep("details");
-              }}
-            >
-              Create account
-            </Button>
-            <div
-              className="flex items-center gap-3 text-xs uppercase tracking-wide text-[var(--muted)]"
-              role="separator"
-            >
-              <span className="h-px flex-1 bg-[var(--border)]" aria-hidden />
-              OR
-              <span className="h-px flex-1 bg-[var(--border)]" aria-hidden />
-            </div>
-            <ProviderButton
-              provider="GOOGLE"
-              disabled={pending}
-              onClick={() => void onGoogle()}
-            />
-            {!googleProvider ? (
-              <p className="text-center text-xs text-[var(--muted)]">
-                If Google is not configured on the API, you will see an error
-                after clicking Continue with Google.
-              </p>
-            ) : null}
-            <p className="text-center text-sm text-[var(--muted)]">
-              Already have an account?{" "}
-              <Link href="/login" className="text-[var(--accent)] underline">
-                Sign in
-              </Link>
-            </p>
-          </Stack>
-        </AuthCard>
-      </AuthShell>
-    );
-  }
-
   return (
     <AuthShell>
       <AuthCard
-        title="Create account"
+        title="Create your DSP AI Indicator account"
         description={
           step === "details"
             ? "Enter your details. We will send an OTP to verify your mobile number."
@@ -303,7 +248,7 @@ export default function RegisterPage() {
                   disabled={pending}
                 />
               </FormField>
-              <FormField label="Email / Gmail" htmlFor="reg-email" required>
+              <FormField label="Gmail" htmlFor="reg-email" required>
                 <Input
                   id="reg-email"
                   type="email"
@@ -379,17 +324,35 @@ export default function RegisterPage() {
               </Button>
             </form>
           )}
-          <Button
-            type="button"
-            variant="ghost"
-            className="w-full"
-            onClick={() => {
-              setError(null);
-              setMode("chooser");
-            }}
-          >
-            Back
-          </Button>
+          {step === "details" ? (
+            <>
+              <div
+                className="flex items-center gap-3 text-xs uppercase tracking-wide text-[var(--muted)]"
+                role="separator"
+              >
+                <span className="h-px flex-1 bg-[var(--border)]" aria-hidden />
+                OR
+                <span className="h-px flex-1 bg-[var(--border)]" aria-hidden />
+              </div>
+              <ProviderButton
+                provider="GOOGLE"
+                disabled={pending}
+                onClick={() => void onGoogle()}
+              />
+              {!googleProvider ? (
+                <p className="text-center text-xs text-[var(--muted)]">
+                  If Google is not configured on the API, you will see an error
+                  after clicking Continue with Google.
+                </p>
+              ) : null}
+              <p className="text-center text-sm text-[var(--muted)]">
+                Already have an account?{" "}
+                <Link href="/login" className="text-[var(--accent)] underline">
+                  Sign in
+                </Link>
+              </p>
+            </>
+          ) : null}
         </Stack>
       </AuthCard>
     </AuthShell>

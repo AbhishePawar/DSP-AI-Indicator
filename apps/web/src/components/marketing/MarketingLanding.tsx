@@ -64,10 +64,10 @@ export function MarketingLanding() {
               Sign in
             </Link>
             <Link
-              href="/#trust"
+              href="/register"
               className="inline-flex min-h-11 items-center rounded-[var(--radius-sm)] border border-[var(--border)] bg-[var(--surface)] px-5 py-2.5 text-sm text-[var(--fg)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent)]"
             >
-              Explore trust framework
+              Create account
             </Link>
           </div>
         </div>
@@ -309,8 +309,8 @@ export function MarketingLanding() {
       <Section
         id="auth"
         eyebrow="Access"
-        title="Sign in or request access"
-        lead="Provisioned users can sign in. New desks prepare an access request for their administrator — accounts are not self-registered."
+        title="Sign in or create an account"
+        lead="Create a DSP AI Indicator account with your name, mobile, username, and Gmail — or continue with Google. Existing users can sign in."
       >
         <div className="flex flex-wrap gap-3">
           <Link
@@ -320,10 +320,10 @@ export function MarketingLanding() {
             Sign in
           </Link>
           <Link
-            href="/signup"
+            href="/register"
             className="inline-flex min-h-11 items-center rounded-[var(--radius-sm)] border border-[var(--border)] px-5 py-2.5 text-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent)]"
           >
-            Request access
+            Create account
           </Link>
           <Link
             href="/contact"

@@ -54,7 +54,7 @@ describe("public login journey", () => {
       screen.getByRole("button", { name: /mobile number and otp/i }),
     ).toBeTruthy();
     expect(
-      screen.getByRole("button", { name: /username or mobile otp/i }),
+      screen.getByRole("button", { name: /username and otp/i }),
     ).toBeTruthy();
     expect(
       screen.getByRole("button", { name: /continue with google/i }),

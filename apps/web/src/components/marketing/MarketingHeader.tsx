@@ -102,10 +102,10 @@ export function MarketingHeader() {
             {mode === "system" ? "System" : resolved === "dark" ? "Dark" : "Light"}
           </button>
           <Link
-            href="/signup"
+            href="/register"
             className="hidden min-h-11 items-center rounded-[var(--radius-sm)] border border-[var(--border)] bg-[var(--surface)] px-3 text-sm text-[var(--fg)] sm:inline-flex focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent)]"
           >
-            Request access
+            Create account
           </Link>
           <Link
             href="/login"
@@ -148,11 +148,11 @@ export function MarketingHeader() {
             ))}
             <li>
               <Link
-                href="/signup"
+                href="/register"
                 className="flex min-h-11 items-center text-sm text-[var(--fg)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent)]"
                 onClick={() => setOpen(false)}
               >
-                Request access
+                Create account
               </Link>
             </li>
             <li>

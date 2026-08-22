@@ -226,9 +226,20 @@ def test_email_registration_still_works(platform: EnterpriseAuthPlatform) -> Non
 
 
 def test_mobile_otp_login_still_works(platform: EnterpriseAuthPlatform) -> None:
-    req = platform.request_login_otp("+919876501177")
+    mobile = "+919876501177"
+    req = platform.register_mobile_request(mobile)
     code = (req.get("sms") or {}).get("debug_code")
-    session = platform.verify_login_otp(challenge_id=req["challenge_id"], code=code)
+    platform.register_mobile_complete(
+        challenge_id=req["challenge_id"],
+        code=code,
+        password="StrongPass1!",
+        confirm_password="StrongPass1!",
+    )
+    login_req = platform.request_login_otp(mobile)
+    login_code = (login_req.get("sms") or {}).get("debug_code")
+    session = platform.verify_login_otp(
+        challenge_id=login_req["challenge_id"], code=login_code
+    )
     assert session["provider"] == "PHONE"
     assert session["tokens"]["access_token"]
 

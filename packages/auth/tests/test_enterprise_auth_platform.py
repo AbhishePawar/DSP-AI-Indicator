@@ -100,6 +100,14 @@ def test_registration_verify_and_login() -> None:
 
 def test_otp_flow_with_dev_sms() -> None:
     platform = _platform()
+    start = platform.register_mobile_request("+919876543210")
+    debug = (start.get("sms") or {}).get("debug_code")
+    platform.register_mobile_complete(
+        challenge_id=start["challenge_id"],
+        code=debug,
+        password="StrongPass1!",
+        confirm_password="StrongPass1!",
+    )
     challenge = platform.request_mobile_otp("+919876543210")
     assert challenge["challenge_id"]
     debug = (challenge.get("sms") or {}).get("debug_code")
@@ -114,6 +122,14 @@ def test_otp_flow_with_dev_sms() -> None:
 
 def test_otp_rate_limit_and_bruteforce() -> None:
     platform = _platform()
+    start = platform.register_mobile_request("+919811122233")
+    debug = (start.get("sms") or {}).get("debug_code")
+    platform.register_mobile_complete(
+        challenge_id=start["challenge_id"],
+        code=debug,
+        password="StrongPass1!",
+        confirm_password="StrongPass1!",
+    )
     first = platform.request_mobile_otp("+919811122233")
     code = (first.get("sms") or {}).get("debug_code")
     # Wrong codes until lock

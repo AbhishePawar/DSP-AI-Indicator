@@ -7,6 +7,7 @@ export {
   mapAuthError,
   normalizeIndiaMobileInput,
   normalizeLoginIdentifier,
+  suggestedUsernameFromMobile,
   type PasswordStrength,
 } from "./authValidation";
 export { ProviderButton, type ProviderButtonProps } from "./ProviderButton";

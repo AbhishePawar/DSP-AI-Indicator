@@ -1,8 +1,7 @@
 /**
  * @vitest-environment jsdom
  *
- * EPIC-F011 — Login journey (auth public surface).
- * Chooser → password / Google (email OTP removed; mobile OTP on /mobile-login).
+ * Public login journey — password, OTP methods, Google, forgot password.
  */
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";
@@ -40,8 +39,8 @@ vi.mock("@/lib/auth/useAuthProviders", () => ({
 
 afterEach(() => cleanup());
 
-describe("EPIC-F011 login journey", () => {
-  it("shows password and Google; no email OTP chooser", async () => {
+describe("public login journey", () => {
+  it("shows the four intended login methods and no demo auth", async () => {
     const { default: LoginForm } = await import("@/app/(auth)/login/LoginForm");
     render(
       <ThemeProvider>
@@ -49,30 +48,32 @@ describe("EPIC-F011 login journey", () => {
       </ThemeProvider>,
     );
     expect(
-      screen.getByRole("button", { name: /login with password/i }),
+      screen.getByRole("button", { name: /username and password/i }),
     ).toBeTruthy();
-    expect(screen.queryByRole("button", { name: /login with otp/i })).toBeNull();
+    expect(
+      screen.getByRole("button", { name: /mobile number and otp/i }),
+    ).toBeTruthy();
+    expect(
+      screen.getByRole("button", { name: /username or mobile otp/i }),
+    ).toBeTruthy();
     expect(
       screen.getByRole("button", { name: /continue with google/i }),
     ).toBeTruthy();
-    expect(screen.getByText(/how would you like to login/i)).toBeTruthy();
-    expect(screen.getByRole("link", { name: /sign in with mobile/i })).toBeTruthy();
+    expect(screen.queryByText(/demo mode/i)).toBeNull();
+    expect(screen.queryByRole("link", { name: /request access/i })).toBeNull();
   });
 
-  it("opens password step with username or mobile identifier", async () => {
+  it("opens username/password with forgot password", async () => {
     const { default: LoginForm } = await import("@/app/(auth)/login/LoginForm");
     render(
       <ThemeProvider>
         <LoginForm />
       </ThemeProvider>,
     );
-    fireEvent.click(screen.getByRole("button", { name: /login with password/i }));
-    expect(screen.getByLabelText(/username or mobile number/i)).toBeTruthy();
-    expect(
-      screen.getByText(/sign in with your username or verified mobile number/i),
-    ).toBeTruthy();
+    fireEvent.click(screen.getByRole("button", { name: /username and password/i }));
+    expect(document.getElementById("login-username")).toBeTruthy();
     expect(document.getElementById("login-password")).toBeTruthy();
-    expect(screen.getByRole("button", { name: /^login$/i })).toBeTruthy();
+    expect(screen.getByRole("button", { name: /^sign in$/i })).toBeTruthy();
     expect(screen.getByRole("link", { name: /forgot password/i })).toBeTruthy();
   });
 });

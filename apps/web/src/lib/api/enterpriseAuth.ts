@@ -165,6 +165,7 @@ export const enterpriseAuthApi = {
     confirm_password: string;
     name?: string;
     username?: string;
+    email?: string;
   }) =>
     enterpriseRequest<Record<string, unknown>>(
       "/auth/enterprise/register/mobile/complete",
@@ -181,16 +182,38 @@ export const enterpriseAuthApi = {
       { method: "POST", body: JSON.stringify(body) },
     ),
 
-  forgotPassword: (email: string) =>
-    enterpriseRequest<Record<string, unknown>>(
-      "/auth/enterprise/password/forgot",
-      { method: "POST", body: JSON.stringify({ email }) },
-    ),
+  forgotPassword: (identifier: string) =>
+    enterpriseRequest<{
+      ok?: boolean;
+      message?: string;
+      challenge_id?: string;
+      expires_at?: string;
+      reset_token?: string;
+      sms?: { provider: string; debug_code?: string };
+    }>("/auth/enterprise/password/forgot", {
+      method: "POST",
+      body: JSON.stringify(
+        identifier.includes("@")
+          ? { email: identifier }
+          : { identifier },
+      ),
+    }),
 
   resetPassword: (token: string, new_password: string) =>
     enterpriseRequest<Record<string, unknown>>(
       "/auth/enterprise/password/reset",
       { method: "POST", body: JSON.stringify({ token, new_password }) },
+    ),
+
+  resetPasswordOtp: (body: {
+    challenge_id: string;
+    code: string;
+    new_password: string;
+    confirm_password: string;
+  }) =>
+    enterpriseRequest<Record<string, unknown>>(
+      "/auth/enterprise/password/reset/otp",
+      { method: "POST", body: JSON.stringify(body) },
     ),
 
   verifyEmail: (token: string) =>

@@ -148,6 +148,13 @@ def test_otp_india_flow() -> None:
     assert normalize_india_mobile("9876543210") == "+919876543210"
     with pytest.raises(ValidationError):
         normalize_india_mobile("12345")
+    start = platform.register_mobile_request("+919876543210")
+    platform.register_mobile_complete(
+        challenge_id=start["challenge_id"],
+        code=start["sms"]["debug_code"],
+        password="StrongPass1!",
+        confirm_password="StrongPass1!",
+    )
     req = platform.request_mobile_otp("+919876543210")
     code = req["sms"]["debug_code"]
     result = platform.verify_mobile_otp(

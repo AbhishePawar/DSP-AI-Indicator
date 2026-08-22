@@ -22,6 +22,12 @@ export function normalizeIndiaMobileInput(value: string): string | null {
   return `+91${match[1]}`;
 }
 
+/** 10-digit local number used as an editable username suggestion. */
+export function suggestedUsernameFromMobile(value: string): string {
+  const normalized = normalizeIndiaMobileInput(value);
+  return normalized ? normalized.slice(-10) : "";
+}
+
 /**
  * Normalize a unified OTP/password identifier for API submission.
  * Emails lowercased; India mobiles normalized to +91XXXXXXXXXX; else trimmed.

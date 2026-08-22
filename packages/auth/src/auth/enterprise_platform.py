@@ -46,13 +46,13 @@ from auth.oauth_providers import (
 )
 from auth.otp import (
     OtpService,
-    classify_otp_identifier,
+    normalize_india_mobile,
     try_normalize_india_mobile,
 )
 from auth.service import AuthService, get_auth_service
 from auth.single_use_tokens import SingleUseTokenError, SingleUseTokenService
 from auth.sms import build_sms_provider
-from auth.validation import assert_username
+from auth.validation import assert_email, assert_username
 
 __all__ = [
     "EnterpriseAuthPlatform",
@@ -170,7 +170,9 @@ class EnterpriseAuthPlatform:
                 "email_verification": True,
                 "username_register": True,
                 "mobile_register": True,
+                "combined_register": True,
                 "password_reset": True,
+                "password_reset_otp": True,
                 "remember_me": True,
                 "login_history": True,
                 "device_tracking": True,
@@ -379,6 +381,51 @@ class EnterpriseAuthPlatform:
                 continue
             matches.append(user)
         return matches
+
+    def _verified_mobile_of(self, user: AuthUser) -> str | None:
+        meta = dict(user.metadata or {})
+        if not bool(meta.get("phone_verified")):
+            return None
+        stored = str(meta.get("mobile") or "").strip()
+        return try_normalize_india_mobile(stored)
+
+    def _resolve_verified_otp_user(self, identifier: str) -> AuthUser | None:
+        """Resolve username or mobile to a unique account with verified mobile.
+
+        Email identifiers are ignored (email OTP is disabled). Unknown,
+        unverified, or ambiguous identifiers return None — callers must not
+        distinguish those cases in the public response.
+        """
+        ident = (identifier or "").strip()
+        if not ident or "@" in ident:
+            return None
+        candidates: dict[str, AuthUser] = {}
+        mobile = try_normalize_india_mobile(ident)
+        if mobile is not None:
+            for user in self._find_verified_mobile_users(mobile):
+                candidates[user.user_id] = user
+        try:
+            by_name = self.auth.users.get_by_username(ident)
+        except ValidationError:
+            by_name = None
+        if by_name is not None and self._verified_mobile_of(by_name):
+            candidates[by_name.user_id] = by_name
+        if len(candidates) != 1:
+            return None
+        return next(iter(candidates.values()))
+
+    def _public_login_otp(self, payload: dict[str, Any]) -> dict[str, Any]:
+        """Never expose the stored mobile (or any destination) on login/reset OTP."""
+        out = dict(payload)
+        out.pop("mobile", None)
+        out.pop("destination", None)
+        out.pop("email_hint", None)
+        return out
+
+    def _opaque_login_otp(self, identifier: str, *, ip_hint: str | None) -> dict[str, Any]:
+        return self._public_login_otp(
+            self.otp.issue_undelivered_challenge(opaque_key=identifier, ip_hint=ip_hint)
+        )
 
     def _get_by_provider_subject(self, provider: str, subject: str) -> AuthUser | None:
         for user in self.auth.users.list_users():
@@ -727,9 +774,14 @@ class EnterpriseAuthPlatform:
     def register_mobile_request(
         self, mobile: str, *, ip_hint: str | None = None
     ) -> dict[str, Any]:
-        """Start mobile registration via the existing mobile OTP pipeline."""
+        """Start mobile registration via the existing mobile OTP pipeline.
+
+        Registration OTP is sent to the number the requester entered (they are
+        proving possession). Login OTP must never do this for a username.
+        """
         self._rate_check(f"register-mobile:{ip_hint or mobile}", limit=10, window_sec=3600)
-        return self.request_login_otp(mobile, ip_hint=ip_hint)
+        normalized = normalize_india_mobile(mobile)
+        return self.otp.request_otp(normalized, ip_hint=ip_hint)
 
     def register_mobile_complete(
         self,
@@ -740,15 +792,15 @@ class EnterpriseAuthPlatform:
         confirm_password: str,
         name: str | None = None,
         username: str | None = None,
+        email: str | None = None,
         ip_hint: str | None = None,
     ) -> dict[str, Any]:
         """Finish mobile registration after OTP proof; set a chosen password.
 
-        Reuses :meth:`OtpService.verify_otp_result`. Creates a phone identity
-        with the existing ``@phone.dspai.local`` synthetic mailbox pattern when
-        no account exists for the mobile. If an account already owns the
-        verified mobile, updates the password (OTP proves possession) without
-        revealing a distinct error for “already registered”.
+        Combined public registration (username + mobile + email + password) is
+        selected by supplying ``email``. That path requires username and name,
+        stores the real email, and rejects duplicates. The email-less path
+        keeps the previous mobile-only behaviour for existing clients.
         """
         self._rate_check(f"register-mobile-complete:{ip_hint or challenge_id}", limit=10, window_sec=600)
         if password != confirm_password:
@@ -763,6 +815,17 @@ class EnterpriseAuthPlatform:
         if verified.channel != "mobile":
             raise AuthenticationError("invalid credentials")
         mobile = verified.destination
+
+        combined_email = (email or "").strip()
+        if combined_email:
+            return self._register_combined_after_otp(
+                mobile=mobile,
+                password=password,
+                name=name,
+                username=username,
+                email=combined_email,
+                ip_hint=ip_hint,
+            )
 
         chosen_username: str | None = None
         if username and username.strip():
@@ -871,6 +934,78 @@ class EnterpriseAuthPlatform:
             "user": enterprise_user_public_dict(user),
             "verification_required": False,
             "message": "Account created. You can sign in with your mobile number and password.",
+        }
+
+    def _register_combined_after_otp(
+        self,
+        *,
+        mobile: str,
+        password: str,
+        name: str | None,
+        username: str | None,
+        email: str,
+        ip_hint: str | None,
+    ) -> dict[str, Any]:
+        display = (name or "").strip()
+        if not display:
+            raise ValidationError("name is required")
+        if not (username or "").strip():
+            raise ValidationError("username is required")
+        uname = assert_username(username.strip())
+        mail = assert_email(email)
+        if _is_synthetic_mailbox(mail):
+            raise ValidationError("invalid email")
+
+        if self._get_by_email(mail) is not None:
+            raise DuplicateUserError("An account with this email or username already exists.")
+        if self.auth.users.get_by_username(uname) is not None:
+            raise DuplicateUserError("An account with this username already exists.")
+        if self._find_verified_mobile_users(mobile) or self._get_by_mobile(mobile):
+            raise DuplicateUserError("Unable to complete registration.")
+
+        try:
+            created = self.auth.users.create(
+                username=uname,
+                email=mail,
+                password=password,
+                display_name=display,
+                roles=["read_only"],
+            )
+        except DuplicateUserError as exc:
+            raise DuplicateUserError(
+                "An account with this email or username already exists."
+            ) from exc
+
+        user = self._persist_meta(
+            created,
+            {
+                "provider": AuthProvider.USERNAME.value,
+                "mobile": mobile,
+                "phone_verified": True,
+                "email_verified": False,
+                "requires_email_verification": False,
+                "synthetic_email": False,
+                "linked_providers": [
+                    {
+                        "provider": AuthProvider.PHONE.value,
+                        "provider_subject": mobile,
+                        "email": None,
+                        "linked_at": utc_now().isoformat(),
+                    }
+                ],
+            },
+        )
+        self.audit.record(
+            "register.combined",
+            user_id=user.user_id,
+            ip_hint=ip_hint,
+            detail="created",
+        )
+        return {
+            "ok": True,
+            "user": enterprise_user_public_dict(user),
+            "verification_required": False,
+            "message": "Account created. You can sign in with your username, mobile OTP, or password.",
         }
 
     def _register_failed_login(self, user: AuthUser, *, ip_hint: str | None, provider: str) -> None:
@@ -1027,6 +1162,67 @@ class EnterpriseAuthPlatform:
         user = self.auth.users.get(str(record.user_id or ""))
         if user is None:
             raise ValidationError("User not found.")
+        return self._finalize_password_reset(user, new_password)
+
+    def request_password_reset_otp(
+        self, identifier: str, *, ip_hint: str | None = None
+    ) -> dict[str, Any]:
+        """Primary public recovery: OTP to the account's verified mobile.
+
+        Always returns the same shape. Never echoes the stored mobile. Never
+        sends to a mobile supplied by the requester when recovering by username.
+        """
+        self._rate_check(f"reset-otp:{ip_hint or identifier}", limit=5, window_sec=3600)
+        ident = (identifier or "").strip()
+        out: dict[str, Any] = {
+            "ok": True,
+            "message": "If an account exists, a verification code was sent.",
+        }
+        if "@" in ident:
+            # Email is stored but is not a recovery destination in this flow.
+            opaque = self._opaque_login_otp(ident, ip_hint=ip_hint)
+            out["challenge_id"] = opaque.get("challenge_id")
+            out["expires_at"] = opaque.get("expires_at")
+            return out
+        user = self._resolve_verified_otp_user(ident)
+        stored = self._verified_mobile_of(user) if user is not None else None
+        if user is None or stored is None:
+            opaque = self._opaque_login_otp(ident, ip_hint=ip_hint)
+            out["challenge_id"] = opaque.get("challenge_id")
+            out["expires_at"] = opaque.get("expires_at")
+            return out
+        sent = self._public_login_otp(self.otp.request_otp(stored, ip_hint=ip_hint))
+        out["challenge_id"] = sent.get("challenge_id")
+        out["expires_at"] = sent.get("expires_at")
+        if sent.get("sms"):
+            out["sms"] = sent["sms"]
+        return out
+
+    def confirm_password_reset_otp(
+        self,
+        *,
+        challenge_id: str,
+        code: str,
+        new_password: str,
+        confirm_password: str,
+        ip_hint: str | None = None,
+    ) -> dict[str, Any]:
+        if new_password != confirm_password:
+            raise ValidationError("password confirmation does not match")
+        strength = password_strength(new_password)
+        if strength["score"] < 4:
+            raise ValidationError("password is too weak")
+        verified = self.otp.verify_otp_result(
+            challenge_id=challenge_id, code=code, ip_hint=ip_hint
+        )
+        if verified.channel != "mobile":
+            raise AuthenticationError("invalid credentials")
+        matches = self._find_verified_mobile_users(verified.destination)
+        if len(matches) != 1:
+            raise AuthenticationError("invalid credentials")
+        return self._finalize_password_reset(matches[0], new_password)
+
+    def _finalize_password_reset(self, user: AuthUser, new_password: str) -> dict[str, Any]:
         updated = AuthUser(
             user_id=user.user_id,
             username=user.username,
@@ -1041,10 +1237,8 @@ class EnterpriseAuthPlatform:
             metadata=user.metadata,
         )
         self.auth.users.save(updated)
-        # Any other outstanding reset links for this user are now stale.
         self.tokens.revoke_all_for_user(purpose="password_reset", user_id=user.user_id)
         self.audit.record("password.reset", user_id=user.user_id)
-        # Revoke sessions
         revoked_count = 0
         for session in self.auth.sessions.list_sessions(user_id=user.user_id):
             try:
@@ -1341,13 +1535,27 @@ class EnterpriseAuthPlatform:
         *,
         ip_hint: str | None = None,
     ) -> dict[str, Any]:
-        """OTP request for India mobile only (email OTP disabled)."""
+        """OTP request for username or verified India mobile.
+
+        Username OTP is always sent to the account's stored verified mobile —
+        never to a mobile supplied alongside the username. Unknown, unverified,
+        or ambiguous identifiers return an opaque challenge (no SMS).
+        """
         self._rate_check(f"otp:{ip_hint or identifier}", limit=10, window_sec=3600)
         otp_flag = (os.environ.get("DSP_AUTH_PROVIDER_OTP") or "auto").strip().lower()
         if otp_flag in {"disabled", "coming_soon", "off", "false", "0"}:
             raise AuthenticationError("OTP intentionally disabled — Coming Soon.")
-        _channel, destination = classify_otp_identifier(identifier)
-        return self.otp.request_otp(destination, ip_hint=ip_hint)
+        ident = (identifier or "").strip()
+        if "@" in ident:
+            raise ValidationError(
+                "Email OTP is no longer supported. Sign in with Google or password, "
+                "or use mobile OTP."
+            )
+        user = self._resolve_verified_otp_user(ident)
+        stored = self._verified_mobile_of(user) if user is not None else None
+        if user is None or stored is None:
+            return self._opaque_login_otp(ident, ip_hint=ip_hint)
+        return self._public_login_otp(self.otp.request_otp(stored, ip_hint=ip_hint))
 
     def request_mobile_otp(self, mobile: str, *, ip_hint: str | None = None) -> dict[str, Any]:
         """Backward-compatible mobile-only entry point."""
@@ -1415,45 +1623,11 @@ class EnterpriseAuthPlatform:
         ip_hint: str | None,
         user_agent_hint: str | None,
     ) -> dict[str, Any]:
-        user = self._get_by_mobile(mobile)
-        if user is None:
-            # Auto-create phone user (Phase 2F will address linking to email
-            # identities; do not merge here).
-            uname = f"m{mobile[-10:]}"
-            email = f"{uname}@phone.dspai.local"
-            try:
-                created = self.auth.users.create(
-                    username=uname,
-                    email=email,
-                    password=secrets.token_urlsafe(24),
-                    display_name=name or f"Mobile {mobile[-4:]}",
-                    roles=["read_only"],
-                )
-            except DuplicateUserError:
-                created = self.auth.users.get_by_username(uname)
-                if created is None:
-                    raise
-            user = self._persist_meta(
-                created,
-                {
-                    "provider": AuthProvider.PHONE.value,
-                    "mobile": mobile,
-                    "phone_verified": True,
-                    "email_verified": False,
-                    "requires_email_verification": False,
-                    "synthetic_email": True,
-                    "linked_providers": [
-                        {
-                            "provider": AuthProvider.PHONE.value,
-                            "provider_subject": mobile,
-                            "email": None,
-                            "linked_at": utc_now().isoformat(),
-                        }
-                    ],
-                },
-            )
-        else:
-            user = self._persist_meta(user, {"phone_verified": True, "mobile": mobile})
+        _ = name  # retained for call-site compatibility; new accounts are created via /register
+        matches = self._find_verified_mobile_users(mobile)
+        if len(matches) != 1:
+            raise AuthenticationError("invalid credentials")
+        user = matches[0]
         return self._issue_session(
             user,
             remember_me=remember_me,

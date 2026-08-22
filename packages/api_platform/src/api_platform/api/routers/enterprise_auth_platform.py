@@ -162,6 +162,7 @@ class RegisterMobileCompleteRequest(BaseModel):
     confirm_password: str = Field(..., min_length=8, max_length=256)
     name: str | None = Field(None, max_length=128)
     username: str | None = Field(None, max_length=64)
+    email: str | None = Field(None, max_length=256)
 
 
 class LoginPasswordRequest(BaseModel):
@@ -174,12 +175,26 @@ class LoginPasswordRequest(BaseModel):
 
 
 class PasswordResetRequest(BaseModel):
-    email: str = Field(..., min_length=3, max_length=256)
+    identifier: str | None = Field(None, min_length=1, max_length=256)
+    email: str | None = Field(None, min_length=3, max_length=256)
+
+    @model_validator(mode="after")
+    def _require_target(self) -> PasswordResetRequest:
+        if not (self.identifier or self.email):
+            raise ValueError("identifier or email is required")
+        return self
 
 
 class PasswordResetConfirm(BaseModel):
     token: str = Field(..., min_length=8, max_length=256)
     new_password: str = Field(..., min_length=8, max_length=256)
+
+
+class PasswordResetOtpConfirm(BaseModel):
+    challenge_id: str = Field(..., min_length=8, max_length=128)
+    code: str = Field(..., min_length=4, max_length=8)
+    new_password: str = Field(..., min_length=8, max_length=256)
+    confirm_password: str = Field(..., min_length=8, max_length=256)
 
 
 class ChangePasswordRequest(BaseModel):
@@ -366,6 +381,7 @@ def enterprise_register_mobile_complete(
             confirm_password=body.confirm_password,
             name=body.name,
             username=body.username,
+            email=body.email,
             ip_hint=meta["ip_hint"],
         )
         return JSONResponse({"ok": True, "result": result, "message": None})
@@ -403,7 +419,14 @@ def enterprise_login(body: LoginPasswordRequest, request: Request) -> JSONRespon
 def enterprise_forgot(body: PasswordResetRequest, request: Request) -> JSONResponse:
     try:
         meta = _client_meta(request)
-        result = _platform().request_password_reset(body.email, ip_hint=meta["ip_hint"])
+        if body.identifier:
+            result = _platform().request_password_reset_otp(
+                body.identifier, ip_hint=meta["ip_hint"]
+            )
+        else:
+            result = _platform().request_password_reset(
+                body.email or "", ip_hint=meta["ip_hint"]
+            )
         return JSONResponse({"ok": True, "result": result})
     except Exception as exc:  # noqa: BLE001
         return _err(exc)
@@ -413,6 +436,22 @@ def enterprise_forgot(body: PasswordResetRequest, request: Request) -> JSONRespo
 def enterprise_reset(body: PasswordResetConfirm) -> JSONResponse:
     try:
         result = _platform().confirm_password_reset(body.token, body.new_password)
+        return JSONResponse({"ok": True, "result": result})
+    except Exception as exc:  # noqa: BLE001
+        return _err(exc)
+
+
+@router.post("/auth/enterprise/password/reset/otp")
+def enterprise_reset_otp(body: PasswordResetOtpConfirm, request: Request) -> JSONResponse:
+    try:
+        meta = _client_meta(request)
+        result = _platform().confirm_password_reset_otp(
+            challenge_id=body.challenge_id,
+            code=body.code.strip(),
+            new_password=body.new_password,
+            confirm_password=body.confirm_password,
+            ip_hint=meta["ip_hint"],
+        )
         return JSONResponse({"ok": True, "result": result})
     except Exception as exc:  # noqa: BLE001
         return _err(exc)

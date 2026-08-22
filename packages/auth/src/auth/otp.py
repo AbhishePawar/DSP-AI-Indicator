@@ -156,6 +156,37 @@ class OtpService:
             public["sms"].pop("debug_code", None)
         return public
 
+    def issue_undelivered_challenge(
+        self,
+        *,
+        opaque_key: str,
+        ip_hint: str | None = None,
+        now: datetime | None = None,
+    ) -> dict[str, Any]:
+        """Return a login-shaped OTP challenge without sending SMS.
+
+        Used when the identifier does not resolve to a verified mobile so the
+        public response cannot be used to enumerate accounts.
+        """
+        ts = now or datetime.now(tz=timezone.utc)
+        digest = hashlib.sha256(f"otp-opaque:{opaque_key.strip().lower()}".encode("utf-8")).hexdigest()
+        destination = f"opaque-{digest[:24]}"
+        challenge, _code = self._create_challenge(
+            channel="mobile",
+            destination=destination,
+            ip_hint=ip_hint,
+            ts=ts,
+            deliver=False,
+        )
+        public = challenge.to_public_dict()
+        public.pop("mobile", None)
+        public.pop("destination", None)
+        public["sms"] = {
+            "provider": self._sms.provider_name(),
+            "ok": True,
+        }
+        return public
+
     def verify_otp(
         self,
         *,

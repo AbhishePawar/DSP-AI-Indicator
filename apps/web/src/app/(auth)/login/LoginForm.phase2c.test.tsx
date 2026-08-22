@@ -1,7 +1,7 @@
 /**
  * @vitest-environment jsdom
  *
- * Client login chooser — password + Google (no email OTP / demo auth).
+ * Public login — username/password, mobile OTP, username/mobile OTP, Google.
  */
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
@@ -60,7 +60,7 @@ vi.mock("@/lib/auth/finishEnterpriseSession", () => ({
 
 afterEach(() => cleanup());
 
-describe("Login form — Google email + password", () => {
+describe("Login form — public methods", () => {
   beforeEach(() => {
     loginMock.mockReset();
     requestOtpMock.mockReset();
@@ -78,7 +78,7 @@ describe("Login form — Google email + password", () => {
     expect(screen.queryByText(/demo mode/i)).toBeNull();
   });
 
-  it("shows enabled Google button and hides email OTP", async () => {
+  it("shows username/password, mobile OTP, username/mobile OTP, and Google", async () => {
     const { default: LoginForm } = await import("@/app/(auth)/login/LoginForm");
     render(
       <ThemeProvider>
@@ -86,17 +86,23 @@ describe("Login form — Google email + password", () => {
       </ThemeProvider>,
     );
     expect(
-      screen.getByRole("button", { name: /login with password/i }),
+      screen.getByRole("button", { name: /username and password/i }),
+    ).toBeTruthy();
+    expect(
+      screen.getByRole("button", { name: /mobile number and otp/i }),
+    ).toBeTruthy();
+    expect(
+      screen.getByRole("button", { name: /username or mobile otp/i }),
     ).toBeTruthy();
     const google = screen.getByRole("button", { name: /continue with google/i });
     expect(google).toBeTruthy();
     expect(google).not.toBeDisabled();
-    expect(screen.queryByRole("button", { name: /login with otp/i })).toBeNull();
-    expect(screen.queryByRole("button", { name: /send otp/i })).toBeNull();
-    expect(screen.getByRole("link", { name: /sign in with mobile/i })).toBeTruthy();
+    expect(screen.getByRole("link", { name: /create account/i })).toBeTruthy();
+    expect(screen.queryByRole("link", { name: /request access/i })).toBeNull();
+    expect(screen.queryByText(/demo mode/i)).toBeNull();
   });
 
-  it("submits enterprise password login with normalized identifier", async () => {
+  it("submits username + password", async () => {
     loginMock.mockResolvedValue({
       ok: true,
       result: {
@@ -117,37 +123,28 @@ describe("Login form — Google email + password", () => {
         <LoginForm />
       </ThemeProvider>,
     );
-    fireEvent.click(screen.getByRole("button", { name: /login with password/i }));
-    fireEvent.change(screen.getByLabelText(/username or mobile number/i), {
-      target: { value: "Ada@Example.com" },
+    fireEvent.click(screen.getByRole("button", { name: /username and password/i }));
+    fireEvent.change(document.getElementById("login-username")!, {
+      target: { value: "ada" },
     });
     fireEvent.change(document.getElementById("login-password")!, {
       target: { value: "StrongPass1!" },
     });
-    fireEvent.click(screen.getByRole("button", { name: /^login$/i }));
+    expect(screen.getByRole("link", { name: /forgot password/i })).toBeTruthy();
+    fireEvent.click(screen.getByRole("button", { name: /^sign in$/i }));
     await waitFor(() => expect(loginMock).toHaveBeenCalled());
     expect(loginMock.mock.calls[0][0]).toEqual({
-      identifier: "ada@example.com",
+      identifier: "ada",
       password: "StrongPass1!",
       remember_me: false,
     });
     expect(requestOtpMock).not.toHaveBeenCalled();
   });
 
-  it("submits verified mobile number as password identifier", async () => {
-    loginMock.mockResolvedValue({
+  it("sends OTP for mobile number login", async () => {
+    requestOtpMock.mockResolvedValue({
       ok: true,
-      result: {
-        tokens: { access_token: "tok", refresh_token: "r", token_type: "bearer" },
-        user: {
-          user_id: "u2",
-          username: "mobilepw",
-          email: "mobilepw@example.com",
-          display_name: "Mobile",
-          roles: ["read_only"],
-        },
-        session: { session_id: "s2" },
-      },
+      result: { challenge_id: "ch-1", channel: "mobile", expires_at: "t" },
     });
     const { default: LoginForm } = await import("@/app/(auth)/login/LoginForm");
     render(
@@ -155,23 +152,33 @@ describe("Login form — Google email + password", () => {
         <LoginForm />
       </ThemeProvider>,
     );
-    fireEvent.click(screen.getByRole("button", { name: /login with password/i }));
-    expect(
-      screen.getByText(/sign in with your username or verified mobile number/i),
-    ).toBeTruthy();
+    fireEvent.click(screen.getByRole("button", { name: /mobile number and otp/i }));
+    fireEvent.change(screen.getByLabelText(/mobile number/i), {
+      target: { value: "9826912345" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: /send otp/i }));
+    await waitFor(() => expect(requestOtpMock).toHaveBeenCalled());
+    expect(requestOtpMock.mock.calls[0][0]).toBe("+919826912345");
+  });
+
+  it("sends OTP for username or mobile identifier", async () => {
+    requestOtpMock.mockResolvedValue({
+      ok: true,
+      result: { challenge_id: "ch-2", channel: "mobile", expires_at: "t" },
+    });
+    const { default: LoginForm } = await import("@/app/(auth)/login/LoginForm");
+    render(
+      <ThemeProvider>
+        <LoginForm />
+      </ThemeProvider>,
+    );
+    fireEvent.click(screen.getByRole("button", { name: /username or mobile otp/i }));
     fireEvent.change(screen.getByLabelText(/username or mobile number/i), {
-      target: { value: "9876543210" },
+      target: { value: "abhishek" },
     });
-    fireEvent.change(document.getElementById("login-password")!, {
-      target: { value: "StrongPass1!" },
-    });
-    fireEvent.click(screen.getByRole("button", { name: /^login$/i }));
-    await waitFor(() => expect(loginMock).toHaveBeenCalled());
-    expect(loginMock.mock.calls[0][0]).toEqual({
-      identifier: "+919876543210",
-      password: "StrongPass1!",
-      remember_me: false,
-    });
+    fireEvent.click(screen.getByRole("button", { name: /send otp/i }));
+    await waitFor(() => expect(requestOtpMock).toHaveBeenCalled());
+    expect(requestOtpMock.mock.calls[0][0]).toBe("abhishek");
   });
 
   it("keeps Continue with Google enabled (always clickable)", async () => {

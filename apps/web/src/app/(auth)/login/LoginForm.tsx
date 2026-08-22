@@ -8,9 +8,11 @@ import {
   AuthCard,
   AuthShell,
   MfaChallenge,
+  OtpInput,
   ProviderButton,
   isPlausibleLoginIdentifier,
   mapAuthError,
+  normalizeIndiaMobileInput,
   normalizeLoginIdentifier,
 } from "@/components/auth";
 import {
@@ -35,13 +37,11 @@ import type { MfaChallengeInfo } from "@/lib/auth/types";
 import { useAuthProviders } from "@/lib/auth/useAuthProviders";
 import { env } from "@/lib/env";
 
-type Step = "chooser" | "password";
+type Step = "chooser" | "password" | "mobile-otp" | "identifier-otp";
+type OtpPhase = "request" | "verify";
 
 /**
- * DSP client login:
- * chooser → Password | Continue with Google.
- * Email sign-in is Google OAuth only (no numeric email OTP on this page).
- * Mobile OTP remains on /mobile-login.
+ * Public login: username+password, mobile OTP, username/mobile OTP, Google.
  * Uses existing Enterprise/RBAC endpoints only (no demo auth).
  */
 export default function LoginForm() {
@@ -51,8 +51,14 @@ export default function LoginForm() {
   const { oauthAvailable } = useAuthProviders();
 
   const [step, setStep] = useState<Step>("chooser");
-  const [identifier, setIdentifier] = useState("");
+  const [otpPhase, setOtpPhase] = useState<OtpPhase>("request");
+  const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
+  const [mobile, setMobile] = useState("");
+  const [otpIdentifier, setOtpIdentifier] = useState("");
+  const [otpCode, setOtpCode] = useState("");
+  const [challengeId, setChallengeId] = useState<string | null>(null);
+  const [devOtpHint, setDevOtpHint] = useState<string | null>(null);
   const [rememberMe, setRememberMe] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [fieldError, setFieldError] = useState<string | null>(null);
@@ -93,6 +99,10 @@ export default function LoginForm() {
   function goChooser() {
     setError(null);
     setFieldError(null);
+    setOtpPhase("request");
+    setChallengeId(null);
+    setOtpCode("");
+    setDevOtpHint(null);
     setStep("chooser");
   }
 
@@ -100,13 +110,13 @@ export default function LoginForm() {
     event.preventDefault();
     setError(null);
     setFieldError(null);
-    const id = normalizeLoginIdentifier(identifier);
+    const id = username.trim();
     if (!id || !password) {
-      setFieldError("Username or mobile number and password are required.");
+      setFieldError("Username and password are required.");
       return;
     }
-    if (!isPlausibleLoginIdentifier(identifier)) {
-      setFieldError("Enter a valid username or verified India mobile number.");
+    if (!isPlausibleLoginIdentifier(id) || id.includes("@")) {
+      setFieldError("Enter a valid username.");
       return;
     }
     setPending(true);
@@ -114,6 +124,86 @@ export default function LoginForm() {
       const envelope = await enterpriseAuthApi.login({
         identifier: id,
         password,
+        remember_me: rememberMe,
+      });
+      if (!envelope.ok || !envelope.result?.tokens?.access_token) {
+        throw new Error(envelope.error || "Login failed");
+      }
+      finishEnterpriseLogin(envelope.result);
+    } catch (err) {
+      setError(mapAuthError(err));
+    } finally {
+      setPending(false);
+    }
+  }
+
+  async function requestOtp(identifier: string) {
+    setError(null);
+    setDevOtpHint(null);
+    const envelope = await enterpriseAuthApi.requestOtp(identifier);
+    if (!envelope.result?.challenge_id) {
+      throw new Error(envelope.error || "OTP request failed");
+    }
+    setChallengeId(envelope.result.challenge_id);
+    const debug = envelope.result.sms?.debug_code;
+    if (debug) setDevOtpHint(debug);
+    setOtpCode("");
+    setOtpPhase("verify");
+  }
+
+  async function onMobileOtpRequest(event: FormEvent) {
+    event.preventDefault();
+    setError(null);
+    const normalized = normalizeIndiaMobileInput(mobile);
+    if (!normalized) {
+      setError("Enter a valid India mobile number.");
+      return;
+    }
+    setPending(true);
+    try {
+      await requestOtp(normalized);
+    } catch (err) {
+      setError(mapAuthError(err));
+    } finally {
+      setPending(false);
+    }
+  }
+
+  async function onIdentifierOtpRequest(event: FormEvent) {
+    event.preventDefault();
+    setError(null);
+    const id = normalizeLoginIdentifier(otpIdentifier);
+    if (!id || !isPlausibleLoginIdentifier(otpIdentifier) || id.includes("@")) {
+      setError("Enter a valid username or India mobile number.");
+      return;
+    }
+    setPending(true);
+    try {
+      await requestOtp(id);
+    } catch (err) {
+      setError(mapAuthError(err));
+    } finally {
+      setPending(false);
+    }
+  }
+
+  async function onOtpVerify(event: FormEvent) {
+    event.preventDefault();
+    setError(null);
+    if (!challengeId) {
+      setError("Request an OTP first.");
+      return;
+    }
+    const code = otpCode.replace(/\D/g, "");
+    if (code.length !== 6) {
+      setError("Enter the 6-digit code.");
+      return;
+    }
+    setPending(true);
+    try {
+      const envelope = await enterpriseAuthApi.verifyOtp({
+        challenge_id: challengeId,
+        code,
         remember_me: rememberMe,
       });
       if (!envelope.ok || !envelope.result?.tokens?.access_token) {
@@ -178,10 +268,7 @@ export default function LoginForm() {
   if (step === "chooser") {
     return (
       <AuthShell>
-        <AuthCard
-          title={env.appName}
-          description="How would you like to login?"
-        >
+        <AuthCard title={env.appName} description="How would you like to login?">
           <Stack gap={4}>
             {expired ? (
               <Alert variant="warning" title="Session expired">
@@ -207,7 +294,33 @@ export default function LoginForm() {
                 setStep("password");
               }}
             >
-              Login with Password
+              Username and password
+            </Button>
+            <Button
+              type="button"
+              variant="secondary"
+              className="w-full"
+              disabled={pending}
+              onClick={() => {
+                setError(null);
+                setOtpPhase("request");
+                setStep("mobile-otp");
+              }}
+            >
+              Mobile number and OTP
+            </Button>
+            <Button
+              type="button"
+              variant="secondary"
+              className="w-full"
+              disabled={pending}
+              onClick={() => {
+                setError(null);
+                setOtpPhase("request");
+                setStep("identifier-otp");
+              }}
+            >
+              Username or mobile OTP
             </Button>
 
             <div
@@ -232,22 +345,12 @@ export default function LoginForm() {
             ) : null}
 
             <p className="text-center text-sm text-[var(--muted)]">
-              Prefer mobile OTP?{" "}
-              <Link
-                href="/mobile-login"
-                className="text-[var(--accent)] underline-offset-2 hover:underline"
-              >
-                Sign in with mobile
-              </Link>
-            </p>
-
-            <p className="text-center text-sm text-[var(--muted)]">
               Don&apos;t have an account?{" "}
               <Link
-                href="/signup"
+                href="/register"
                 className="text-[var(--accent)] underline-offset-2 hover:underline"
               >
-                Request access
+                Create account
               </Link>
             </p>
           </Stack>
@@ -256,43 +359,152 @@ export default function LoginForm() {
     );
   }
 
+  if (step === "password") {
+    return (
+      <AuthShell>
+        <AuthCard
+          title="Sign in"
+          description="Sign in with your username and password."
+        >
+          <Stack gap={4}>
+            <form className="space-y-4" onSubmit={onPasswordSubmit} noValidate>
+              <FormField label="Username" htmlFor="login-username" required>
+                <Input
+                  id="login-username"
+                  value={username}
+                  onChange={(e) => setUsername(e.target.value)}
+                  autoComplete="username"
+                  placeholder="Username"
+                  required
+                  aria-required="true"
+                  disabled={pending}
+                />
+              </FormField>
+              <FormField label="Password" htmlFor="login-password" required>
+                <PasswordInput
+                  id="login-password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  autoComplete="current-password"
+                  required
+                  aria-required="true"
+                  disabled={pending}
+                />
+              </FormField>
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <label className="flex items-center gap-2 text-sm text-[var(--muted)]">
+                  <Checkbox
+                    checked={rememberMe}
+                    onCheckedChange={(v) => setRememberMe(v === true)}
+                    aria-label="Remember me on this device"
+                    disabled={pending}
+                  />
+                  Remember me
+                </label>
+                <Link
+                  href="/forgot-password"
+                  className="text-sm text-[var(--accent)] underline-offset-2 hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent)]"
+                >
+                  Forgot password?
+                </Link>
+              </div>
+              {fieldError ? (
+                <ValidationMessage tone="error">{fieldError}</ValidationMessage>
+              ) : null}
+              {error ? (
+                <ValidationMessage tone="error">{error}</ValidationMessage>
+              ) : null}
+              <Button type="submit" disabled={pending} className="w-full">
+                {pending ? "Signing in…" : "Sign in"}
+              </Button>
+            </form>
+            <Button
+              type="button"
+              variant="ghost"
+              className="w-full"
+              disabled={pending}
+              onClick={goChooser}
+            >
+              Back
+            </Button>
+          </Stack>
+        </AuthCard>
+      </AuthShell>
+    );
+  }
+
+  const otpTitle =
+    step === "mobile-otp" ? "Mobile number and OTP" : "Username or mobile OTP";
+  const otpDescription =
+    otpPhase === "request"
+      ? step === "mobile-otp"
+        ? "We will send a one-time code to your verified mobile number."
+        : "Enter your username or mobile number. The code is sent to the verified mobile on the account."
+      : "Enter the one-time code to sign in.";
+
   return (
     <AuthShell>
-      <AuthCard
-        title="Login with Password"
-        description="Sign in with your username or verified mobile number."
-      >
+      <AuthCard title={otpTitle} description={otpDescription}>
         <Stack gap={4}>
-          <form className="space-y-4" onSubmit={onPasswordSubmit} noValidate>
-            <FormField
-              label="Username or Mobile Number"
-              htmlFor="login-identifier"
-              required
-              hint="Enter your username or verified mobile number"
+          {otpPhase === "request" ? (
+            <form
+              className="space-y-4"
+              onSubmit={
+                step === "mobile-otp" ? onMobileOtpRequest : onIdentifierOtpRequest
+              }
+              noValidate
             >
-              <Input
-                id="login-identifier"
-                value={identifier}
-                onChange={(e) => setIdentifier(e.target.value)}
-                autoComplete="username"
-                placeholder="Username / Mobile Number"
-                required
-                aria-required="true"
+              {step === "mobile-otp" ? (
+                <FormField label="Mobile number" htmlFor="login-mobile" required>
+                  <Input
+                    id="login-mobile"
+                    value={mobile}
+                    onChange={(e) => setMobile(e.target.value)}
+                    inputMode="tel"
+                    autoComplete="tel"
+                    placeholder="9826912345"
+                    required
+                    disabled={pending}
+                  />
+                </FormField>
+              ) : (
+                <FormField
+                  label="Username or Mobile Number"
+                  htmlFor="login-otp-identifier"
+                  required
+                >
+                  <Input
+                    id="login-otp-identifier"
+                    value={otpIdentifier}
+                    onChange={(e) => setOtpIdentifier(e.target.value)}
+                    autoComplete="username"
+                    placeholder="Username or mobile number"
+                    required
+                    disabled={pending}
+                  />
+                </FormField>
+              )}
+              {error ? (
+                <ValidationMessage tone="error">{error}</ValidationMessage>
+              ) : null}
+              <Button type="submit" disabled={pending} className="w-full">
+                {pending ? "Sending…" : "Send OTP"}
+              </Button>
+            </form>
+          ) : (
+            <form className="space-y-4" onSubmit={onOtpVerify} noValidate>
+              {devOtpHint ? (
+                <Alert variant="info" title="Development OTP">
+                  Code: {devOtpHint}
+                </Alert>
+              ) : null}
+              <OtpInput
+                label="OTP"
+                value={otpCode}
+                onChange={setOtpCode}
                 disabled={pending}
+                autoFocus
               />
-            </FormField>
-            <FormField label="Password" htmlFor="login-password" required>
-              <PasswordInput
-                id="login-password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                autoComplete="current-password"
-                required
-                aria-required="true"
-                disabled={pending}
-              />
-            </FormField>
-            <div className="flex flex-wrap items-center justify-between gap-2">
               <label className="flex items-center gap-2 text-sm text-[var(--muted)]">
                 <Checkbox
                   checked={rememberMe}
@@ -302,23 +514,29 @@ export default function LoginForm() {
                 />
                 Remember me
               </label>
-              <Link
-                href="/forgot-password"
-                className="text-sm text-[var(--accent)] underline-offset-2 hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent)]"
+              {error ? (
+                <ValidationMessage tone="error">{error}</ValidationMessage>
+              ) : null}
+              <Button type="submit" disabled={pending} className="w-full">
+                {pending ? "Signing in…" : "Sign in"}
+              </Button>
+              <Button
+                type="button"
+                variant="ghost"
+                className="w-full"
+                disabled={pending}
+                onClick={() => {
+                  setError(null);
+                  setOtpPhase("request");
+                  setChallengeId(null);
+                  setOtpCode("");
+                  setDevOtpHint(null);
+                }}
               >
-                Forgot password?
-              </Link>
-            </div>
-            {fieldError ? (
-              <ValidationMessage tone="error">{fieldError}</ValidationMessage>
-            ) : null}
-            {error ? (
-              <ValidationMessage tone="error">{error}</ValidationMessage>
-            ) : null}
-            <Button type="submit" disabled={pending} className="w-full">
-              {pending ? "Signing in…" : "Login"}
-            </Button>
-          </form>
+                Use a different identifier
+              </Button>
+            </form>
+          )}
           <Button
             type="button"
             variant="ghost"

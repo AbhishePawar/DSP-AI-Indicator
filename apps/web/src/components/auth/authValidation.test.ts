@@ -7,6 +7,7 @@ import {
   mapAuthError,
   normalizeIndiaMobileInput,
   normalizeLoginIdentifier,
+  suggestedUsernameFromMobile,
 } from "./authValidation";
 
 describe("authValidation", () => {
@@ -33,6 +34,12 @@ describe("authValidation", () => {
     expect(normalizeLoginIdentifier("Ada@Example.COM")).toBe("ada@example.com");
     expect(normalizeLoginIdentifier("9876543210")).toBe("+919876543210");
     expect(normalizeLoginIdentifier("  Analyst_1 ")).toBe("Analyst_1");
+  });
+
+  it("suggests an editable username from the mobile number", () => {
+    expect(suggestedUsernameFromMobile("9826912345")).toBe("9826912345");
+    expect(suggestedUsernameFromMobile("+91 98269 12345")).toBe("9826912345");
+    expect(suggestedUsernameFromMobile("bad")).toBe("");
   });
 
   it("scores password strength", () => {

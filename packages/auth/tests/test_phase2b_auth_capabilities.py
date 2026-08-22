@@ -252,21 +252,38 @@ def test_email_otp_request_rejected(platform: EnterpriseAuthPlatform) -> None:
         platform.request_login_otp("otpmail@example.com")
 
 
+def _provision_verified_phone(
+    platform: EnterpriseAuthPlatform, mobile: str, *, username: str | None = None
+) -> None:
+    req = platform.register_mobile_request(mobile)
+    code = (req.get("sms") or {}).get("debug_code")
+    assert code
+    platform.register_mobile_complete(
+        challenge_id=req["challenge_id"],
+        code=code,
+        password="StrongPass1!",
+        confirm_password="StrongPass1!",
+        username=username,
+    )
+
+
 def test_mobile_otp_still_works_via_unified_api(platform: EnterpriseAuthPlatform) -> None:
+    _provision_verified_phone(platform, "+919876543210")
     req = platform.request_login_otp("+919876543210")
     assert req["channel"] == "mobile"
+    assert "mobile" not in req
     code = (req.get("sms") or {}).get("debug_code")
     assert code
     session = platform.verify_login_otp(challenge_id=req["challenge_id"], code=code)
     assert session["provider"] == "PHONE"
     assert session["tokens"]["access_token"]
-    # Synthetic phone identity preserved; public email is redacted.
     assert session["user"].get("phoneVerified") is True
     assert "@phone.dspai.local" not in str(session["user"].get("email") or "")
     assert session["user"].get("email") in ("", None)
 
 
 def test_mobile_otp_expires(platform: EnterpriseAuthPlatform) -> None:
+    _provision_verified_phone(platform, "+919812345678")
     req = platform.request_login_otp("+919812345678")
     code = (req.get("sms") or {}).get("debug_code")
     assert code
@@ -278,6 +295,7 @@ def test_mobile_otp_expires(platform: EnterpriseAuthPlatform) -> None:
 
 
 def test_mobile_otp_cannot_be_reused(platform: EnterpriseAuthPlatform) -> None:
+    _provision_verified_phone(platform, "+919823456789")
     req = platform.request_login_otp("+919823456789")
     code = (req.get("sms") or {}).get("debug_code")
     assert code
@@ -287,6 +305,7 @@ def test_mobile_otp_cannot_be_reused(platform: EnterpriseAuthPlatform) -> None:
 
 
 def test_mobile_otp_attempt_limit(platform: EnterpriseAuthPlatform) -> None:
+    _provision_verified_phone(platform, "+919834567890")
     req = platform.request_login_otp("+919834567890")
     code = (req.get("sms") or {}).get("debug_code")
     assert code
@@ -298,21 +317,24 @@ def test_mobile_otp_attempt_limit(platform: EnterpriseAuthPlatform) -> None:
 
 
 def test_mobile_otp_resend_cooldown(platform: EnterpriseAuthPlatform) -> None:
+    _provision_verified_phone(platform, "+919845678901")
     platform.request_login_otp("+919845678901")
     with pytest.raises(AuthenticationError, match="Resend available"):
         platform.request_login_otp("+919845678901")
 
 
 def test_unknown_mobile_otp_still_opaque_and_provisions(platform: EnterpriseAuthPlatform) -> None:
-    # Existing mobile OTP behavior: challenge is issued; verify may provision.
-    # Existence is not disclosed via a distinct error on request.
     req = platform.request_login_otp("+919911122233")
     assert req["challenge_id"]
     assert req["channel"] == "mobile"
-    assert "challenge_id" in req
+    assert "mobile" not in req
+    assert not (req.get("sms") or {}).get("debug_code")
+    with pytest.raises(AuthenticationError, match="Invalid OTP"):
+        platform.verify_login_otp(challenge_id=req["challenge_id"], code="123456")
 
 
 def test_otp_session_is_enterprise_jwt(platform: EnterpriseAuthPlatform) -> None:
+    _provision_verified_phone(platform, "+919856789012")
     req = platform.request_login_otp("+919856789012")
     code = (req.get("sms") or {}).get("debug_code")
     assert code

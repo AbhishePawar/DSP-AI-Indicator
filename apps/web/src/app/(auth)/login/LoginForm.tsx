@@ -14,6 +14,7 @@ import {
   mapAuthError,
   normalizeIndiaMobileInput,
   normalizeLoginIdentifier,
+  oauthRedirectUri,
 } from "@/components/auth";
 import {
   Alert,
@@ -221,7 +222,7 @@ export default function LoginForm() {
     setPending(true);
     setError(null);
     try {
-      const redirectUri = `${window.location.origin}/oauth/callback`;
+      const redirectUri = oauthRedirectUri(window.location.origin);
       const envelope = await enterpriseAuthApi.oauthBegin("GOOGLE", redirectUri);
       const result = envelope.result;
       if (!result?.available || !result.authorization_url) {

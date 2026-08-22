@@ -50,6 +50,20 @@ def test_begin_login_includes_nonce_when_oidc_configured() -> None:
     assert len(query["nonce"][0]) > 10
 
 
+def test_google_begin_login_uses_canonical_production_redirect() -> None:
+    adapter = _google_adapter()
+    redirect = "https://dspaiindicator.com/oauth/callback"
+    begin = adapter.begin_login(redirect_uri=redirect)
+    assert begin["authorization_url"].startswith(
+        "https://accounts.google.com/o/oauth2/v2/auth?"
+    )
+    query = parse_qs(urlparse(begin["authorization_url"]).query)
+    assert query["redirect_uri"] == [redirect]
+    assert query["redirect_uri"][0] != "https://dspaindicator.com/oauth/callback"
+    assert query["redirect_uri"][0] != "https://www.dspaindicator.com/oauth/callback"
+    assert "dspaindicator.com" not in query["redirect_uri"][0]
+
+
 def test_complete_login_cross_checks_id_token_subject(monkeypatch) -> None:
     adapter = _google_adapter()
     begin = adapter.begin_login(redirect_uri="http://localhost/callback")

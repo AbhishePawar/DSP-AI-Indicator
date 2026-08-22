@@ -1,12 +1,15 @@
 export { AuthCard, AuthShell } from "./AuthShell";
 export { PasswordStrengthMeter } from "./PasswordStrength";
 export {
+  CANONICAL_PRODUCTION_ORIGIN,
   evaluatePasswordStrength,
   isPlausibleLoginIdentifier,
   isValidEmail,
   mapAuthError,
   normalizeIndiaMobileInput,
   normalizeLoginIdentifier,
+  OAUTH_CALLBACK_PATH,
+  oauthRedirectUri,
   suggestedUsernameFromMobile,
   type PasswordStrength,
 } from "./authValidation";

@@ -59,6 +59,13 @@ describe("routeGuards", () => {
     expect(isAuthPublicPath("/logout")).toBe(true);
   });
 
+  it("keeps Google OAuth callback on the public auth surface", () => {
+    expect(isAuthPublicPath("/oauth/callback")).toBe(true);
+    expect(isAuthPublicPath("/register")).toBe(true);
+    expect(isAuthPublicPath("/login")).toBe(true);
+    expect(isAuthPublicPath("/forgot-password")).toBe(true);
+  });
+
   it("exposes P9.1 marketing public paths", () => {
     expect(isMarketingPath("/")).toBe(true);
     expect(isMarketingPath("/about")).toBe(true);

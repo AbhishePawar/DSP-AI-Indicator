@@ -78,6 +78,12 @@ describe("authValidation", () => {
     expect(oauthRedirectUri(CANONICAL_PRODUCTION_ORIGIN)).not.toContain(
       "www.dspaindicator.com",
     );
+    expect(oauthRedirectUri(CANONICAL_PRODUCTION_ORIGIN)).toBe(
+      `${CANONICAL_PRODUCTION_ORIGIN}${OAUTH_CALLBACK_PATH}`,
+    );
+    expect(oauthRedirectUri(CANONICAL_PRODUCTION_ORIGIN)).not.toBe(
+      "https://www.dspaiindicator.com/oauth/callback",
+    );
   });
 });
 

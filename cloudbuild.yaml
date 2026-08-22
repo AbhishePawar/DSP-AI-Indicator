@@ -53,7 +53,7 @@ steps:
       - --region=$_REGION
       - --platform=managed
       - --port=8000
-      - --set-env-vars=DSP_ENVIRONMENT=production,DSP_REGION=ap-south-1,DSP_INVESTMENT_DATA_PROVIDER=upstox,DSP_AUTH_MAGIC_LINK=true,DSP_RESEND_FROM_ADDRESS=noreply@dspaindicator.com,DSP_CORS_ORIGINS=https://dsp-ai-indicator-web-6uxsluxowq-el.a.run.app
+      - --set-env-vars=DSP_ENVIRONMENT=production,DSP_REGION=ap-south-1,DSP_INVESTMENT_DATA_PROVIDER=upstox,DSP_AUTH_MAGIC_LINK=true,DSP_RESEND_FROM_ADDRESS=noreply@dspaindicator.com,DSP_CORS_ORIGINS=https://dsp-ai-indicator-web-6uxsluxowq-el.a.run.app,https://dspaindicator.com,https://www.dspaindicator.com
       # Keep every production auth secret required by the backend on every revision.
       # --set-secrets replaces the secret-env configuration, so Google OAuth must be
       # included here rather than mounted only by a one-off post-deploy command.

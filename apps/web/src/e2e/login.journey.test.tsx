@@ -59,7 +59,7 @@ describe("EPIC-F011 login journey", () => {
     expect(screen.getByRole("link", { name: /sign in with mobile/i })).toBeTruthy();
   });
 
-  it("opens password step with username/email/mobile identifier", async () => {
+  it("opens password step with username or mobile identifier", async () => {
     const { default: LoginForm } = await import("@/app/(auth)/login/LoginForm");
     render(
       <ThemeProvider>
@@ -67,7 +67,10 @@ describe("EPIC-F011 login journey", () => {
       </ThemeProvider>,
     );
     fireEvent.click(screen.getByRole("button", { name: /login with password/i }));
-    expect(screen.getByLabelText(/identifier/i)).toBeTruthy();
+    expect(screen.getByLabelText(/username or mobile number/i)).toBeTruthy();
+    expect(
+      screen.getByText(/sign in with your username or verified mobile number/i),
+    ).toBeTruthy();
     expect(document.getElementById("login-password")).toBeTruthy();
     expect(screen.getByRole("button", { name: /^login$/i })).toBeTruthy();
     expect(screen.getByRole("link", { name: /forgot password/i })).toBeTruthy();

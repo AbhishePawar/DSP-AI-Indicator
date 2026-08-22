@@ -26,8 +26,13 @@ describe("authValidation", () => {
     expect(isPlausibleLoginIdentifier("analyst")).toBe(true);
     expect(isPlausibleLoginIdentifier("a@b.co")).toBe(true);
     expect(isPlausibleLoginIdentifier("9876543210")).toBe(true);
+    expect(isPlausibleLoginIdentifier("+919876543210")).toBe(true);
+    expect(isPlausibleLoginIdentifier("91 98765 43210")).toBe(true);
     expect(isPlausibleLoginIdentifier("no")).toBe(false);
+    expect(isPlausibleLoginIdentifier("12")).toBe(false);
     expect(normalizeLoginIdentifier("Ada@Example.COM")).toBe("ada@example.com");
+    expect(normalizeLoginIdentifier("9876543210")).toBe("+919876543210");
+    expect(normalizeLoginIdentifier("  Analyst_1 ")).toBe("Analyst_1");
   });
 
   it("scores password strength", () => {

@@ -136,6 +136,41 @@ export const enterpriseAuthApi = {
       body: JSON.stringify(body),
     }),
 
+  registerUsername: (body: {
+    username: string;
+    password: string;
+    confirm_password: string;
+    name?: string;
+  }) =>
+    enterpriseRequest<Record<string, unknown>>(
+      "/auth/enterprise/register/username",
+      { method: "POST", body: JSON.stringify(body) },
+    ),
+
+  registerMobileRequest: (identifier: string) =>
+    enterpriseRequest<{
+      challenge_id: string;
+      channel?: "email" | "mobile";
+      expires_at: string;
+      sms?: { provider: string; debug_code?: string; detail?: string };
+    }>("/auth/enterprise/register/mobile/request", {
+      method: "POST",
+      body: JSON.stringify({ identifier }),
+    }),
+
+  registerMobileComplete: (body: {
+    challenge_id: string;
+    code: string;
+    password: string;
+    confirm_password: string;
+    name?: string;
+    username?: string;
+  }) =>
+    enterpriseRequest<Record<string, unknown>>(
+      "/auth/enterprise/register/mobile/complete",
+      { method: "POST", body: JSON.stringify(body) },
+    ),
+
   login: (body: {
     identifier: string;
     password: string;

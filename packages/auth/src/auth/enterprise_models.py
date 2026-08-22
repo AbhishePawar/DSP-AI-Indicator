@@ -229,12 +229,14 @@ def enterprise_user_public_dict(user: Any) -> dict[str, Any]:
         base = dict(user)
         meta = _thaw(dict(base.get("metadata") or {}))
         roles = list(base.get("roles") or meta.get("roles") or [])
+        raw_email = str(base.get("email") or "")
+        public_email = "" if _public_email_is_synthetic(raw_email, meta) else raw_email
         return {
             "id": base.get("user_id") or base.get("id"),
             "user_id": base.get("user_id") or base.get("id"),
             "name": base.get("display_name") or base.get("name") or "",
             "username": base.get("username") or "",
-            "email": base.get("email") or "",
+            "email": public_email,
             "mobile": meta.get("mobile") or base.get("mobile"),
             "provider": meta.get("provider") or AuthProvider.USERNAME.value,
             "avatar": meta.get("avatar"),
@@ -252,12 +254,14 @@ def enterprise_user_public_dict(user: Any) -> dict[str, Any]:
             "metadata": meta,
         }
     roles = list(getattr(user, "roles", ()) or ())
+    raw_email = str(getattr(user, "email", "") or "")
+    public_email = "" if _public_email_is_synthetic(raw_email, meta) else raw_email
     return {
         "id": user.user_id,
         "user_id": user.user_id,
         "name": user.display_name,
         "username": user.username,
-        "email": user.email,
+        "email": public_email,
         "mobile": meta.get("mobile"),
         "provider": meta.get("provider") or AuthProvider.USERNAME.value,
         "avatar": meta.get("avatar"),
@@ -275,3 +279,12 @@ def enterprise_user_public_dict(user: Any) -> dict[str, Any]:
         "metadata": dict(meta),
         "asOf": utc_now().isoformat(),
     }
+
+
+def _public_email_is_synthetic(email: str, meta: Mapping[str, Any]) -> bool:
+    if bool(meta.get("synthetic_email")):
+        return True
+    lowered = (email or "").strip().lower()
+    return lowered.endswith("@phone.dspai.local") or lowered.endswith(
+        "@username.dspai.local"
+    )

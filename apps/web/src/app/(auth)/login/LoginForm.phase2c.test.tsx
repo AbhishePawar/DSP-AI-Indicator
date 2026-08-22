@@ -118,7 +118,7 @@ describe("Login form — Google email + password", () => {
       </ThemeProvider>,
     );
     fireEvent.click(screen.getByRole("button", { name: /login with password/i }));
-    fireEvent.change(screen.getByLabelText(/identifier/i), {
+    fireEvent.change(screen.getByLabelText(/username or mobile number/i), {
       target: { value: "Ada@Example.com" },
     });
     fireEvent.change(document.getElementById("login-password")!, {
@@ -132,6 +132,46 @@ describe("Login form — Google email + password", () => {
       remember_me: false,
     });
     expect(requestOtpMock).not.toHaveBeenCalled();
+  });
+
+  it("submits verified mobile number as password identifier", async () => {
+    loginMock.mockResolvedValue({
+      ok: true,
+      result: {
+        tokens: { access_token: "tok", refresh_token: "r", token_type: "bearer" },
+        user: {
+          user_id: "u2",
+          username: "mobilepw",
+          email: "mobilepw@example.com",
+          display_name: "Mobile",
+          roles: ["read_only"],
+        },
+        session: { session_id: "s2" },
+      },
+    });
+    const { default: LoginForm } = await import("@/app/(auth)/login/LoginForm");
+    render(
+      <ThemeProvider>
+        <LoginForm />
+      </ThemeProvider>,
+    );
+    fireEvent.click(screen.getByRole("button", { name: /login with password/i }));
+    expect(
+      screen.getByText(/sign in with your username or verified mobile number/i),
+    ).toBeTruthy();
+    fireEvent.change(screen.getByLabelText(/username or mobile number/i), {
+      target: { value: "9876543210" },
+    });
+    fireEvent.change(document.getElementById("login-password")!, {
+      target: { value: "StrongPass1!" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: /^login$/i }));
+    await waitFor(() => expect(loginMock).toHaveBeenCalled());
+    expect(loginMock.mock.calls[0][0]).toEqual({
+      identifier: "+919876543210",
+      password: "StrongPass1!",
+      remember_me: false,
+    });
   });
 
   it("keeps Continue with Google enabled (always clickable)", async () => {

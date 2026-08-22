@@ -102,11 +102,11 @@ export default function LoginForm() {
     setFieldError(null);
     const id = normalizeLoginIdentifier(identifier);
     if (!id || !password) {
-      setFieldError("Username / email / mobile and password are required.");
+      setFieldError("Username or mobile number and password are required.");
       return;
     }
     if (!isPlausibleLoginIdentifier(identifier)) {
-      setFieldError("Enter a valid username, email, or India mobile number.");
+      setFieldError("Enter a valid username or verified India mobile number.");
       return;
     }
     setPending(true);
@@ -260,22 +260,22 @@ export default function LoginForm() {
     <AuthShell>
       <AuthCard
         title="Login with Password"
-        description="Sign in with your username, email, or verified mobile number."
+        description="Sign in with your username or verified mobile number."
       >
         <Stack gap={4}>
           <form className="space-y-4" onSubmit={onPasswordSubmit} noValidate>
             <FormField
-              label="Identifier"
+              label="Username or Mobile Number"
               htmlFor="login-identifier"
               required
-              hint="Username, email, or India mobile"
+              hint="Enter your username or verified mobile number"
             >
               <Input
                 id="login-identifier"
                 value={identifier}
                 onChange={(e) => setIdentifier(e.target.value)}
                 autoComplete="username"
-                placeholder="Username / Email / Mobile"
+                placeholder="Username / Mobile Number"
                 required
                 aria-required="true"
                 disabled={pending}

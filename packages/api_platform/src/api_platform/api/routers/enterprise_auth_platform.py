@@ -148,6 +148,22 @@ class RegisterRequest(BaseModel):
     username: str | None = Field(None, max_length=64)
 
 
+class RegisterUsernameRequest(BaseModel):
+    username: str = Field(..., min_length=3, max_length=64)
+    password: str = Field(..., min_length=8, max_length=256)
+    confirm_password: str = Field(..., min_length=8, max_length=256)
+    name: str | None = Field(None, max_length=128)
+
+
+class RegisterMobileCompleteRequest(BaseModel):
+    challenge_id: str = Field(..., min_length=8, max_length=128)
+    code: str = Field(..., min_length=4, max_length=8)
+    password: str = Field(..., min_length=8, max_length=256)
+    confirm_password: str = Field(..., min_length=8, max_length=256)
+    name: str | None = Field(None, max_length=128)
+    username: str | None = Field(None, max_length=64)
+
+
 class LoginPasswordRequest(BaseModel):
     identifier: str = Field(..., min_length=1, max_length=256)
     password: str = Field(..., min_length=1, max_length=256)
@@ -299,6 +315,56 @@ def enterprise_register(body: RegisterRequest, request: Request) -> JSONResponse
             email=body.email,
             password=body.password,
             confirm_password=body.confirm_password,
+            username=body.username,
+            ip_hint=meta["ip_hint"],
+        )
+        return JSONResponse({"ok": True, "result": result, "message": None})
+    except Exception as exc:  # noqa: BLE001
+        return _err(exc)
+
+
+@router.post("/auth/enterprise/register/username")
+def enterprise_register_username(
+    body: RegisterUsernameRequest, request: Request
+) -> JSONResponse:
+    try:
+        meta = _client_meta(request)
+        result = _platform().register_username(
+            username=body.username,
+            password=body.password,
+            confirm_password=body.confirm_password,
+            name=body.name,
+            ip_hint=meta["ip_hint"],
+        )
+        return JSONResponse({"ok": True, "result": result, "message": None})
+    except Exception as exc:  # noqa: BLE001
+        return _err(exc)
+
+
+@router.post("/auth/enterprise/register/mobile/request")
+def enterprise_register_mobile_request(body: OtpRequest, request: Request) -> JSONResponse:
+    try:
+        meta = _client_meta(request)
+        result = _platform().register_mobile_request(
+            body.resolved_identifier(), ip_hint=meta["ip_hint"]
+        )
+        return JSONResponse({"ok": True, "result": result})
+    except Exception as exc:  # noqa: BLE001
+        return _err(exc)
+
+
+@router.post("/auth/enterprise/register/mobile/complete")
+def enterprise_register_mobile_complete(
+    body: RegisterMobileCompleteRequest, request: Request
+) -> JSONResponse:
+    try:
+        meta = _client_meta(request)
+        result = _platform().register_mobile_complete(
+            challenge_id=body.challenge_id,
+            code=body.code.strip(),
+            password=body.password,
+            confirm_password=body.confirm_password,
+            name=body.name,
             username=body.username,
             ip_hint=meta["ip_hint"],
         )

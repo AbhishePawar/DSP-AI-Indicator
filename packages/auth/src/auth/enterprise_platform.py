@@ -52,6 +52,7 @@ from auth.otp import (
 from auth.service import AuthService, get_auth_service
 from auth.single_use_tokens import SingleUseTokenError, SingleUseTokenService
 from auth.sms import build_sms_provider
+from auth.validation import assert_username
 
 __all__ = [
     "EnterpriseAuthPlatform",
@@ -63,6 +64,13 @@ __all__ = [
 _EMAIL_RE = re.compile(r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
 _ACCESS_PREFIX = "auth-access-"
 _HISTORY_PREFIX = "auth-login-hist-"
+_PHONE_EMAIL_SUFFIX = "@phone.dspai.local"
+_USERNAME_EMAIL_SUFFIX = "@username.dspai.local"
+
+
+def _is_synthetic_mailbox(email: str | None) -> bool:
+    mail = (email or "").strip().lower()
+    return mail.endswith(_PHONE_EMAIL_SUFFIX) or mail.endswith(_USERNAME_EMAIL_SUFFIX)
 
 
 def password_strength(password: str) -> dict[str, Any]:
@@ -160,6 +168,8 @@ class EnterpriseAuthPlatform:
                 "magic_link": True,
                 "request_access": True,
                 "email_verification": True,
+                "username_register": True,
+                "mobile_register": True,
                 "password_reset": True,
                 "remember_me": True,
                 "login_history": True,
@@ -662,6 +672,207 @@ class EnterpriseAuthPlatform:
         self.audit.record("email.verified", user_id=user.user_id)
         return {"ok": True, "user": enterprise_user_public_dict(activated)}
 
+    def register_username(
+        self,
+        *,
+        username: str,
+        password: str,
+        confirm_password: str,
+        name: str | None = None,
+        ip_hint: str | None = None,
+    ) -> dict[str, Any]:
+        """Create an active account with username + password (no email required).
+
+        Persists a synthetic ``@username.dspai.local`` mailbox to satisfy
+        UserStore's email field — never treated as a deliverable address.
+        """
+        self._rate_check(f"register-username:{ip_hint or 'na'}", limit=10, window_sec=3600)
+        uname = assert_username(username)
+        if password != confirm_password:
+            raise ValidationError("password confirmation does not match")
+        strength = password_strength(password)
+        if strength["score"] < 4:
+            raise ValidationError("password is too weak")
+        display = (name or uname).strip() or uname
+        synthetic_email = f"{uname.lower()}{_USERNAME_EMAIL_SUFFIX}"
+        try:
+            user = self.auth.users.create(
+                username=uname,
+                email=synthetic_email,
+                password=password,
+                display_name=display,
+                roles=["read_only"],
+            )
+        except DuplicateUserError:
+            raise DuplicateUserError("An account with this username already exists.") from None
+        user = self._persist_meta(
+            user,
+            {
+                "provider": AuthProvider.USERNAME.value,
+                "email_verified": False,
+                "phone_verified": False,
+                "requires_email_verification": False,
+                "synthetic_email": True,
+                "linked_providers": [],
+            },
+        )
+        self.audit.record("register.username", user_id=user.user_id, ip_hint=ip_hint)
+        return {
+            "ok": True,
+            "user": enterprise_user_public_dict(user),
+            "verification_required": False,
+            "message": "Account created. You can sign in with your username and password.",
+        }
+
+    def register_mobile_request(
+        self, mobile: str, *, ip_hint: str | None = None
+    ) -> dict[str, Any]:
+        """Start mobile registration via the existing mobile OTP pipeline."""
+        self._rate_check(f"register-mobile:{ip_hint or mobile}", limit=10, window_sec=3600)
+        return self.request_login_otp(mobile, ip_hint=ip_hint)
+
+    def register_mobile_complete(
+        self,
+        *,
+        challenge_id: str,
+        code: str,
+        password: str,
+        confirm_password: str,
+        name: str | None = None,
+        username: str | None = None,
+        ip_hint: str | None = None,
+    ) -> dict[str, Any]:
+        """Finish mobile registration after OTP proof; set a chosen password.
+
+        Reuses :meth:`OtpService.verify_otp_result`. Creates a phone identity
+        with the existing ``@phone.dspai.local`` synthetic mailbox pattern when
+        no account exists for the mobile. If an account already owns the
+        verified mobile, updates the password (OTP proves possession) without
+        revealing a distinct error for “already registered”.
+        """
+        self._rate_check(f"register-mobile-complete:{ip_hint or challenge_id}", limit=10, window_sec=600)
+        if password != confirm_password:
+            raise ValidationError("password confirmation does not match")
+        strength = password_strength(password)
+        if strength["score"] < 4:
+            raise ValidationError("password is too weak")
+
+        verified = self.otp.verify_otp_result(
+            challenge_id=challenge_id, code=code, ip_hint=ip_hint
+        )
+        if verified.channel != "mobile":
+            raise AuthenticationError("invalid credentials")
+        mobile = verified.destination
+
+        chosen_username: str | None = None
+        if username and username.strip():
+            chosen_username = assert_username(username.strip())
+
+        existing = self._get_by_mobile(mobile)
+        if existing is not None:
+            updated = AuthUser(
+                user_id=existing.user_id,
+                username=existing.username,
+                email=existing.email,
+                display_name=existing.display_name,
+                password_hash=hash_password(password),
+                status="active" if existing.status != "locked" else existing.status,
+                created_at=existing.created_at,
+                updated_at=utc_now().isoformat(),
+                last_login=existing.last_login,
+                roles=existing.roles,
+                metadata=existing.metadata,
+            )
+            updated = self._persist_meta(
+                updated,
+                {
+                    "mobile": mobile,
+                    "phone_verified": True,
+                    "synthetic_email": _is_synthetic_mailbox(updated.email),
+                    "requires_email_verification": False,
+                    "provider": AuthProvider.PHONE.value,
+                },
+            )
+            self.audit.record(
+                "register.mobile.complete",
+                user_id=updated.user_id,
+                ip_hint=ip_hint,
+                detail="existing",
+            )
+            return {
+                "ok": True,
+                "user": enterprise_user_public_dict(updated),
+                "verification_required": False,
+                "message": "Account ready. You can sign in with your mobile number and password.",
+            }
+
+        uname = chosen_username or f"m{mobile[-10:]}"
+        synthetic_email = f"m{mobile[-10:]}{_PHONE_EMAIL_SUFFIX}"
+        display = (name or f"Mobile {mobile[-4:]}").strip()
+        try:
+            created = self.auth.users.create(
+                username=uname,
+                email=synthetic_email,
+                password=password,
+                display_name=display,
+                roles=["read_only"],
+            )
+        except DuplicateUserError as exc:
+            # Username taken (user-chosen) — safe to surface as username conflict.
+            if chosen_username:
+                raise DuplicateUserError("An account with this username already exists.") from exc
+            # Default phone username/email collision — recover by mobile email lookup.
+            collided = self._get_by_email(synthetic_email)
+            if collided is None:
+                raise DuplicateUserError("Unable to complete registration.") from exc
+            created = AuthUser(
+                user_id=collided.user_id,
+                username=collided.username,
+                email=collided.email,
+                display_name=collided.display_name,
+                password_hash=hash_password(password),
+                status="active",
+                created_at=collided.created_at,
+                updated_at=utc_now().isoformat(),
+                last_login=collided.last_login,
+                roles=collided.roles,
+                metadata=collided.metadata,
+            )
+            created = self.auth.users.save(created)
+
+        user = self._persist_meta(
+            created,
+            {
+                "provider": AuthProvider.PHONE.value,
+                "mobile": mobile,
+                "phone_verified": True,
+                "email_verified": False,
+                "requires_email_verification": False,
+                "synthetic_email": True,
+                "linked_providers": [
+                    {
+                        "provider": AuthProvider.PHONE.value,
+                        "provider_subject": mobile,
+                        "email": None,
+                        "linked_at": utc_now().isoformat(),
+                    }
+                ],
+            },
+        )
+
+        self.audit.record(
+            "register.mobile.complete",
+            user_id=user.user_id,
+            ip_hint=ip_hint,
+            detail="created",
+        )
+        return {
+            "ok": True,
+            "user": enterprise_user_public_dict(user),
+            "verification_required": False,
+            "message": "Account created. You can sign in with your mobile number and password.",
+        }
+
     def _register_failed_login(self, user: AuthUser, *, ip_hint: str | None, provider: str) -> None:
         meta = dict(user.metadata or {})
         fails = int(meta.get("failed_login_count") or 0) + 1
@@ -706,6 +917,13 @@ class EnterpriseAuthPlatform:
         user_agent_hint: str | None = None,
         device_label: str | None = None,
     ) -> dict[str, Any]:
+        """Resolve ``identifier`` then verify password.
+
+        Resolution order (fail closed on ambiguity / unverified mobile):
+        1. email (``@`` present)
+        2. username
+        3. verified India mobile only (``phone_verified`` + matching ``mobile``)
+        """
         self._rate_check(f"login:{ip_hint or identifier}", limit=20, window_sec=300)
         ident = identifier.strip()
         user = None
@@ -774,6 +992,11 @@ class EnterpriseAuthPlatform:
             "message": "If an account exists, a reset token was issued.",
         }
         if user is None:
+            return out
+        # Never promise / send email reset for synthetic phone/username mailboxes.
+        if _is_synthetic_mailbox(user.email) or bool(
+            dict(user.metadata or {}).get("synthetic_email")
+        ):
             return out
         token = self.tokens.issue(
             purpose="password_reset",
@@ -1218,6 +1441,7 @@ class EnterpriseAuthPlatform:
                     "phone_verified": True,
                     "email_verified": False,
                     "requires_email_verification": False,
+                    "synthetic_email": True,
                     "linked_providers": [
                         {
                             "provider": AuthProvider.PHONE.value,

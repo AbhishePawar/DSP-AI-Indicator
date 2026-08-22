@@ -195,6 +195,52 @@ def test_password_ambiguous_mobile_fails_safe(platform: EnterpriseAuthPlatform) 
         platform.login_password(identifier=mobile, password="StrongPass1!")
 
 
+def test_password_mobile_remember_me(platform: EnterpriseAuthPlatform) -> None:
+    user = _register_verified(
+        platform, email="remmob@example.com", username="remmob", password="StrongPass1!"
+    )
+    assert user
+    _attach_verified_mobile(platform, user, "+919811122233")
+    session = platform.login_password(
+        identifier="+919811122233",
+        password="StrongPass1!",
+        remember_me=True,
+    )
+    assert session["tokens"]["access_token"]
+    assert session["tokens"]["refresh_token"]
+    # remember_me extends refresh TTL; session metadata records the flag.
+    sess = platform.auth.sessions.get(session["session"]["session_id"])
+    assert sess is not None
+    assert dict(sess.metadata or {}).get("remember_me") is True
+
+
+def test_password_disabled_user_rejected(platform: EnterpriseAuthPlatform) -> None:
+    user = _register_verified(
+        platform, email="disabled@example.com", username="disabledu", password="StrongPass1!"
+    )
+    assert user
+    user = _attach_verified_mobile(platform, user, "+919822233344")
+    platform.auth.users.save(
+        AuthUser(
+            user_id=user.user_id,
+            username=user.username,
+            email=user.email,
+            display_name=user.display_name,
+            password_hash=user.password_hash,
+            status="disabled",
+            created_at=user.created_at,
+            updated_at=utc_now().isoformat(),
+            last_login=user.last_login,
+            roles=user.roles,
+            metadata=user.metadata,
+        )
+    )
+    with pytest.raises(AuthenticationError, match="disabled"):
+        platform.login_password(identifier="disabledu", password="StrongPass1!")
+    with pytest.raises(AuthenticationError, match="disabled"):
+        platform.login_password(identifier="+919822233344", password="StrongPass1!")
+
+
 # --- Parts B/C: email OTP removed; mobile OTP retained --------------------
 
 
@@ -214,8 +260,10 @@ def test_mobile_otp_still_works_via_unified_api(platform: EnterpriseAuthPlatform
     session = platform.verify_login_otp(challenge_id=req["challenge_id"], code=code)
     assert session["provider"] == "PHONE"
     assert session["tokens"]["access_token"]
-    # Synthetic phone identity preserved (Phase 2F linking deferred).
-    assert "@phone.dspai.local" in session["user"]["email"]
+    # Synthetic phone identity preserved; public email is redacted.
+    assert session["user"].get("phoneVerified") is True
+    assert "@phone.dspai.local" not in str(session["user"].get("email") or "")
+    assert session["user"].get("email") in ("", None)
 
 
 def test_mobile_otp_expires(platform: EnterpriseAuthPlatform) -> None:

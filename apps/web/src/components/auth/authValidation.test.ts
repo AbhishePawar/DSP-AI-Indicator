@@ -1,12 +1,15 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  CANONICAL_PRODUCTION_ORIGIN,
   evaluatePasswordStrength,
   isPlausibleLoginIdentifier,
   isValidEmail,
   mapAuthError,
   normalizeIndiaMobileInput,
   normalizeLoginIdentifier,
+  OAUTH_CALLBACK_PATH,
+  oauthRedirectUri,
   suggestedUsernameFromMobile,
 } from "./authValidation";
 
@@ -56,6 +59,24 @@ describe("authValidation", () => {
     );
     expect(mapAuthError(new Error("POST /api/v1/auth/rbac/login failed"))).not.toMatch(
       /\/api\//i,
+    );
+  });
+
+  it("builds the Google OAuth callback from the canonical production origin", () => {
+    expect(oauthRedirectUri(CANONICAL_PRODUCTION_ORIGIN)).toBe(
+      "https://dspaiindicator.com/oauth/callback",
+    );
+    expect(oauthRedirectUri(`${CANONICAL_PRODUCTION_ORIGIN}/`)).toBe(
+      "https://dspaiindicator.com/oauth/callback",
+    );
+    expect(oauthRedirectUri("http://localhost:3000")).toBe(
+      `http://localhost:3000${OAUTH_CALLBACK_PATH}`,
+    );
+    expect(oauthRedirectUri(CANONICAL_PRODUCTION_ORIGIN)).not.toContain(
+      "https://dspaindicator.com",
+    );
+    expect(oauthRedirectUri(CANONICAL_PRODUCTION_ORIGIN)).not.toContain(
+      "www.dspaindicator.com",
     );
   });
 });

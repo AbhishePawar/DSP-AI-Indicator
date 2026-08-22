@@ -6,6 +6,16 @@ export type PasswordStrength = {
   hints: string[];
 };
 
+/** Browser OAuth callback path used by Google begin/complete. */
+export const OAUTH_CALLBACK_PATH = "/oauth/callback";
+
+/** Canonical public website origin for production auth. */
+export const CANONICAL_PRODUCTION_ORIGIN = "https://dspaiindicator.com";
+
+export function oauthRedirectUri(origin: string): string {
+  return `${String(origin || "").replace(/\/$/, "")}${OAUTH_CALLBACK_PATH}`;
+}
+
 export function isValidEmail(value: string): boolean {
   const v = value.trim();
   if (!v || v.length > 254) return false;

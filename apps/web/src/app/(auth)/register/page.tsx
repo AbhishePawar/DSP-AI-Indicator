@@ -12,6 +12,7 @@ import {
   isValidEmail,
   mapAuthError,
   normalizeIndiaMobileInput,
+  oauthRedirectUri,
   suggestedUsernameFromMobile,
 } from "@/components/auth";
 import {
@@ -66,7 +67,7 @@ export default function RegisterPage() {
     setPending(true);
     setError(null);
     try {
-      const redirectUri = `${window.location.origin}/oauth/callback`;
+      const redirectUri = oauthRedirectUri(window.location.origin);
       const envelope = await enterpriseAuthApi.oauthBegin("GOOGLE", redirectUri);
       const result = envelope.result;
       if (!result?.available || !result.authorization_url) {

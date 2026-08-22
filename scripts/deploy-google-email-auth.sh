@@ -40,4 +40,4 @@ fi
 echo "Backend providers:"
 curl -sS "https://dsp-ai-indicator-6uxsluxowq-el.a.run.app/api/v1/auth/enterprise/providers"
 echo
-echo "Frontend login: https://dsp-ai-indicator-web-6uxsluxowq-el.a.run.app/login"
+echo "Frontend login: https://dspaiindicator.com/login"

@@ -53,12 +53,15 @@ steps:
       - --region=$_REGION
       - --platform=managed
       - --port=8000
-      - --set-env-vars=DSP_ENVIRONMENT=production,DSP_REGION=ap-south-1,DSP_INVESTMENT_DATA_PROVIDER=upstox,DSP_AUTH_MAGIC_LINK=true,DSP_RESEND_FROM_ADDRESS=noreply@dspaindicator.com,DSP_CORS_ORIGINS=https://dsp-ai-indicator-web-6uxsluxowq-el.a.run.app,https://dspaindicator.com,https://www.dspaindicator.com
-      # Keep every production auth secret required by the backend on every revision.
-      # --set-secrets replaces the secret-env configuration, so Google OAuth must be
-      # included here rather than mounted only by a one-off post-deploy command.
+      # ^|^ delimiter: DSP_CORS_ORIGINS contains commas; do not use @ (email has @).
+      # --update-env-vars / --update-secrets merge with the live service so
+      # DSP_GOOGLE_CLIENT_ID / DSP_GOOGLE_CLIENT_SECRET already mounted are kept.
+      # Do not add MSG91 secrets here — they are not in Secret Manager yet.
+      - --update-env-vars=^|^DSP_ENVIRONMENT=production|DSP_REGION=ap-south-1|DSP_INVESTMENT_DATA_PROVIDER=upstox|DSP_AUTH_MAGIC_LINK=true|DSP_RESEND_FROM_ADDRESS=noreply@dspaiindicator.com|DSP_FRONTEND_URL=https://dspaiindicator.com|DSP_CORS_ORIGINS=https://dspaiindicator.com,https://dsp-ai-indicator-web-6uxsluxowq-el.a.run.app
+      # Auth secrets for production login (JWT + Resend). Google OAuth is already
+      # mounted on the service; --update-secrets must not replace that list.
       # Do not mount Upstox credentials here — auth/API boot must not require investment tokens.
-      - --set-secrets=DSP_DATABASE_URL=dsp-database-url:latest,DSP_AUTH_JWT_SECRET=dsp-auth-jwt-secret:latest,DSP_RESEND_API_KEY=dsp-resend-api-key:latest,DSP_GOOGLE_CLIENT_ID=dsp-google-client-id:latest,DSP_GOOGLE_CLIENT_SECRET=dsp-google-client-secret:latest
+      - --update-secrets=DSP_DATABASE_URL=dsp-database-url:latest,DSP_AUTH_JWT_SECRET=dsp-auth-jwt-secret:latest,DSP_RESEND_API_KEY=dsp-resend-api-key:latest
       - --add-cloudsql-instances=project-34de429e-3c43-4ae7-b75:asia-south1:dsp-postgres
       - --quiet
 

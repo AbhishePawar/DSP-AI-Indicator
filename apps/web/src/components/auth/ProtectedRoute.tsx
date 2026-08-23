@@ -14,7 +14,7 @@ export function AuthGuard({ children }: { children: ReactNode }) {
   const { status, session } = useAuth();
 
   useEffect(() => {
-    if (status === "loading" || status === "refreshing") return;
+    if (status === "restoring" || status === "loading" || status === "refreshing") return;
     if (status === "expired" && requiresAuth(pathname)) {
       router.replace(loginRedirectUrl(pathname, true));
       return;
@@ -24,7 +24,7 @@ export function AuthGuard({ children }: { children: ReactNode }) {
     }
   }, [status, session, pathname, router]);
 
-  if (status === "loading" || status === "refreshing") {
+  if (status === "restoring" || status === "loading" || status === "refreshing") {
     return (
       <div className="space-y-3 p-6" aria-busy="true" aria-label="Loading authentication">
         <Skeleton className="h-8 w-48" />

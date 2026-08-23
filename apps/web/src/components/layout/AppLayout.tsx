@@ -48,7 +48,7 @@ export function AppLayout({ children }: { children: ReactNode }) {
   useRouteTransitionTiming();
 
   useEffect(() => {
-    if (status === "loading" || status === "refreshing") return;
+    if (status === "restoring" || status === "loading" || status === "refreshing") return;
 
     if (isAuthPublicPath(pathname)) {
       if (session && pathname === "/login") {
@@ -105,12 +105,16 @@ export function AppLayout({ children }: { children: ReactNode }) {
     };
   }, [drawerOpen, setDrawerOpen]);
 
-  if (status === "loading" || status === "refreshing") {
+  if (status === "restoring" || status === "loading" || status === "refreshing") {
     return (
       <div className="grid min-h-screen place-items-center bg-[var(--bg)]">
         <LoadingLayout
           label={
-            status === "refreshing" ? "Refreshing session…" : "Loading session…"
+            status === "restoring"
+              ? "Restoring session…"
+              : status === "refreshing"
+                ? "Refreshing session…"
+                : "Loading session…"
           }
         />
       </div>

@@ -58,7 +58,7 @@ const AuthContext = createContext<AuthContextValue | null>(null);
 const EXPIRY_CHECK_MS = 60_000;
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [status, setStatus] = useState<AuthenticationStatus>("loading");
+  const [status, setStatus] = useState<AuthenticationStatus>("restoring");
   const [session, setSessionState] = useState<Session | null>(null);
   const setAuthStore = useAuthStore((s) => s.setAuth);
   const resetAuthStore = useAuthStore((s) => s.reset);
@@ -109,8 +109,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
     if (isSessionExpired(stored)) {
       clearStoredSession();
-      setStatus("expired");
-      syncStore("expired", null);
+      setStatus("unauthenticated");
+      resetAuthStore();
       return;
     }
     setSessionState(stored);

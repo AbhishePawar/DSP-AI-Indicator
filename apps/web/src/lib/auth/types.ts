@@ -1,6 +1,7 @@
 /** Strongly typed authentication models — frontend session only. */
 
 export type AuthenticationStatus =
+  | "restoring"
   | "loading"
   | "authenticated"
   | "unauthenticated"
@@ -82,6 +83,8 @@ export function userFromSession(session: Session): User {
 
 export function sessionStatusLabel(status: AuthenticationStatus): string {
   switch (status) {
+    case "restoring":
+      return "Restoring session";
     case "loading":
       return "Loading";
     case "authenticated":

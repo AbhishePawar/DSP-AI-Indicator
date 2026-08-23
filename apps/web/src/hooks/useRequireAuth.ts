@@ -12,7 +12,7 @@ export function useRequireAuth(): ReturnType<typeof useAuth> {
   const router = useRouter();
 
   useEffect(() => {
-    if (auth.status === "loading" || auth.status === "refreshing") return;
+    if (auth.status === "restoring" || auth.status === "loading" || auth.status === "refreshing") return;
     if (!auth.session && requiresAuth(pathname)) {
       const target =
         auth.status === "expired"

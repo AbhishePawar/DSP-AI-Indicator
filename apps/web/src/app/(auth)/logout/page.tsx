@@ -16,6 +16,7 @@ export default function LogoutPage() {
   const [done, setDone] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  const restoring = status === "restoring";
   const signedIn = status === "authenticated" && Boolean(session);
 
   async function confirmLogout() {
@@ -38,7 +39,12 @@ export default function LogoutPage() {
         description="End your research session on this device. Local session data for your subject is cleared after confirmation."
       >
         <Stack gap={4}>
-          {done || !signedIn ? (
+          {restoring ? (
+            <SuccessState
+              title="Restoring session"
+              description="Checking your current authenticated session. Please wait…"
+            />
+          ) : done || !signedIn ? (
             <SuccessState
               title={done ? "Signed out" : "No active session"}
               description={

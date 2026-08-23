@@ -108,7 +108,7 @@ export function PersistenceProvider({ children }: { children: ReactNode }) {
   );
 
   useEffect(() => {
-    if (status === "loading" || status === "refreshing") return;
+    if (status === "restoring" || status === "loading" || status === "refreshing") return;
 
     if (!subject || status !== "authenticated") {
       setBundle(null);

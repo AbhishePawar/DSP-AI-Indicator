@@ -8,6 +8,7 @@ import {
   ChevronDown,
   ChevronRight,
   Shield,
+  FileText,
   Settings,
   User,
   type LucideIcon,
@@ -36,10 +37,18 @@ const ICONS: Record<ShellNavIconId, LucideIcon> = {
   analysis: Building2,
   portfolio: Briefcase,
   research: BookOpen,
+  reports: FileText,
   admin: Shield,
   settings: Settings,
   profile: User,
 };
+
+const PRIMARY_IDS = new Set([
+  "dashboard",
+  "analysis",
+  "portfolio",
+  "institutional-reports",
+]);
 
 function NavLink({
   item,
@@ -175,6 +184,44 @@ export function Sidebar({
     return groupShellNav(filtered);
   }, [permissions, roles]);
 
+  const primaryItems = useMemo(() => {
+    const items: ShellNavItem[] = [];
+    for (const group of groups) {
+      for (const item of group.items) {
+        if (PRIMARY_IDS.has(item.id)) {
+          items.push(item);
+        }
+        if (item.children) {
+          for (const child of item.children) {
+            if (PRIMARY_IDS.has(child.id)) {
+              items.push(child);
+            }
+          }
+        }
+      }
+    }
+    return items;
+  }, [groups]);
+
+  const moreItems = useMemo(() => {
+    const items: ShellNavItem[] = [];
+    for (const group of groups) {
+      for (const item of group.items) {
+        if (!PRIMARY_IDS.has(item.id)) {
+          items.push(item);
+        }
+        if (item.children) {
+          for (const child of item.children) {
+            if (!PRIMARY_IDS.has(child.id)) {
+              items.push(child);
+            }
+          }
+        }
+      }
+    }
+    return items;
+  }, [groups]);
+
   function onNavKeyDown(event: KeyboardEvent<HTMLElement>) {
     const root = event.currentTarget;
     const links = Array.from(
@@ -243,20 +290,31 @@ export function Sidebar({
         className="!w-full flex-1 border-0 bg-transparent"
         onKeyDown={onNavKeyDown}
       >
-        {groups.map((group) => (
+        <SidebarGroup
+          label="Primary"
+          collapsed={collapsed && !mobile}
+        >
+          <NavTree
+            items={primaryItems}
+            collapsed={collapsed}
+            mobile={mobile}
+            onNavigate={onNavigate}
+          />
+        </SidebarGroup>
+
+        {moreItems.length > 0 && (
           <SidebarGroup
-            key={group.section}
-            label={group.label}
+            label="More"
             collapsed={collapsed && !mobile}
           >
             <NavTree
-              items={group.items}
+              items={moreItems}
               collapsed={collapsed}
               mobile={mobile}
               onNavigate={onNavigate}
             />
           </SidebarGroup>
-        ))}
+        )}
       </DsSidebar>
     </aside>
   );

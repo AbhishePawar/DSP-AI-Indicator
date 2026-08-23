@@ -106,12 +106,11 @@ function wrap(ui: React.ReactNode) {
 
 describe("EPIC-F004 dashboard registry", () => {
   it("registers institutional widget set with coherent defaults", () => {
-    expect(DEFAULT_WIDGET_ORDER.length).toBe(DASHBOARD_WIDGETS.length);
+    expect(DEFAULT_WIDGET_ORDER.length).toBe(DASHBOARD_WIDGETS.length - 1);
     expect(DEFAULT_WIDGET_ORDER).toEqual(
       expect.arrayContaining([
         "welcome",
         "attention_brief",
-        "quick_actions",
         "market_overview",
         "platform_health",
         "research_reports",

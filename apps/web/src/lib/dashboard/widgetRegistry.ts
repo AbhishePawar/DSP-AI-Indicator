@@ -310,7 +310,6 @@ export const DASHBOARD_WIDGETS: readonly DashboardWidgetMeta[] = [
 export const DEFAULT_WIDGET_ORDER: DashboardWidgetId[] = [
   "welcome",
   "attention_brief",
-  "quick_actions",
   "research_command_center",
   "market_overview",
   "company_search",

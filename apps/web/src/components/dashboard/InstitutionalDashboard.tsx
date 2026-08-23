@@ -63,11 +63,6 @@ const LazyQuickCompanySearch = lazy(() =>
     default: m.CompanySearchWidget,
   })),
 );
-const LazyGlobalSearch = lazy(() =>
-  import("./widgets/SearchWidgets").then((m) => ({
-    default: m.GlobalSearchEntryWidget,
-  })),
-);
 const LazyRecentSearches = lazy(() =>
   import("./widgets/SearchHistoryWidgets").then((m) => ({
     default: m.RecentSearchesWidget,
@@ -244,8 +239,6 @@ function renderWidget(id: DashboardWidgetId): ReactNode {
       return withSuspense(LazyApiStatus, "API Status");
     case "documentation":
       return withSuspense(LazyDocumentation, "Documentation");
-    case "global_search":
-      return withSuspense(LazyGlobalSearch, "Search");
     case "recent_searches":
       return withSuspense(LazyRecentSearches, "Recent Searches");
     case "saved_searches":
@@ -272,7 +265,10 @@ export function InstitutionalDashboard() {
   const setCommandOpen = useUiStore((s) => s.setCommandPaletteOpen);
 
   const visibleIds = useMemo(
-    () => widgetOrder.filter((id) => !hiddenWidgets.includes(id)),
+    () =>
+      widgetOrder.filter(
+        (id) => !hiddenWidgets.includes(id) && id !== "global_search",
+      ),
     [widgetOrder, hiddenWidgets],
   );
 

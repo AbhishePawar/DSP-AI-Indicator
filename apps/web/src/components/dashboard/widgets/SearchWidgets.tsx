@@ -5,7 +5,6 @@ import { useState, type FormEvent, type KeyboardEvent } from "react";
 
 import { Button, SearchBox } from "@/components/ds";
 import { useDashboardPrefsStore } from "@/lib/dashboard";
-import { useUiStore } from "@/lib/shell";
 import { DashboardWidgetShell } from "../DashboardWidgetShell";
 
 export function CompanySearchWidget() {
@@ -72,21 +71,37 @@ export function CompanySearchWidget() {
   );
 }
 
-export function GlobalSearchEntryWidget() {
-  const setOpen = useUiStore((s) => s.setCommandPaletteOpen);
+export function CanonicalCompanySearch() {
+  const router = useRouter();
+  const [query, setQuery] = useState("");
+  const recordSearch = useDashboardPrefsStore((s) => s.recordSearch);
+
+  function submit(symbolRaw: string) {
+    const symbol = symbolRaw.trim().toUpperCase();
+    if (!symbol) return;
+    recordSearch(symbol);
+    router.push(`/analysis?symbol=${encodeURIComponent(symbol)}`);
+  }
+
+  function onKeyDown(event: KeyboardEvent<HTMLInputElement>) {
+    if (event.key === "Enter") {
+      event.preventDefault();
+      submit(query);
+    }
+  }
+
   return (
-    <DashboardWidgetShell
-      title="Global Search"
-      description="Route search via command palette (Ctrl+K)"
-    >
-      <Button
-        className="w-full justify-start"
-        variant="secondary"
-        onClick={() => setOpen(true)}
-        aria-label="Open global search and command palette"
-      >
-        Search pages… Ctrl+K
+    <form onSubmit={(e) => { e.preventDefault(); submit(query); }} className="w-full space-y-3">
+      <SearchBox
+        value={query}
+        onChange={(e) => setQuery(e.target.value)}
+        onKeyDown={onKeyDown}
+        aria-label="Search a company or stock"
+        placeholder="Search a company or stock — e.g. TCS, Infosys, HDFC Bank"
+      />
+      <Button type="submit" className="w-full" disabled={!query.trim()}>
+        Research
       </Button>
-    </DashboardWidgetShell>
+    </form>
   );
 }

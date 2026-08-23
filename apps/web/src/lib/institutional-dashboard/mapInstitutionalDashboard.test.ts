@@ -299,7 +299,7 @@ describe("institutional nav", () => {
 
   it("breadcrumbs institutional without treating path as ticker", () => {
     const crumbs = breadcrumbsFor("/research/institutional");
-    expect(crumbs.some((c) => c.label === "Institutional")).toBe(true);
+    expect(crumbs.some((c) => c.label === "Research Reports")).toBe(true);
     expect(crumbs.some((c) => c.label === "INSTITUTIONAL")).toBe(false);
   });
 });

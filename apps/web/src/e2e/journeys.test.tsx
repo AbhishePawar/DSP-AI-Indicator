@@ -144,7 +144,7 @@ describe("EPIC-F011 navigation & routing journey", () => {
   it("builds breadcrumbs for nested research routes", () => {
     expect(
       breadcrumbsForPath("/research/institutional").map((c) => c.label),
-    ).toEqual(["Home", "Research Workspace", "Institutional"]);
+    ).toEqual(["Home", "Research Workspace", "Research Reports"]);
   });
 
   it("keeps command-palette searchable routes non-empty", () => {

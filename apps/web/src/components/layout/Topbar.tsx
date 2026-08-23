@@ -172,11 +172,6 @@ export function Topbar({
                   onSelect: () => router.push("/settings"),
                 },
                 {
-                  id: "sessions",
-                  label: "Sessions",
-                  onSelect: () => router.push("/profile"),
-                },
-                {
                   id: "logout",
                   label: "Logout",
                   destructive: true,

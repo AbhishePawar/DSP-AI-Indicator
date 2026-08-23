@@ -43,7 +43,8 @@ export type ShellNavIconId =
   | "research"
   | "admin"
   | "settings"
-  | "profile";
+  | "profile"
+  | "reports";
 
 /**
  * RC3-003 — Primary shell journey:
@@ -162,6 +163,15 @@ export const SHELL_NAV: readonly ShellNavItem[] = [
       anyOfPermissions: ["read_research"],
       anyOfRoles: ["portfolio_manager", "administrator"],
     },
+  },
+  {
+    id: "institutional-reports",
+    href: "/research/institutional",
+    label: "Reports",
+    description: "Publication and export surface for institutional reports",
+    section: "research",
+    icon: "reports",
+    access: { anyOfPermissions: ["read_research"] },
   },
   {
     id: "admin",

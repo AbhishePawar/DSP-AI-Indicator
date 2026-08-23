@@ -229,7 +229,23 @@ def refresh(body: RefreshRequest, request: Request) -> JSONResponse:
 @router.post("/auth/logout")
 def logout(request: Request) -> JSONResponse:
     """Invalidate cookie session (EPIC-016)."""
-    from security_platform import clear_auth_cookies, cookie_auth_enabled
+    from security_platform import (
+        REFRESH_COOKIE,
+        SESSION_COOKIE,
+        clear_auth_cookies,
+        cookie_auth_enabled,
+    )
+
+    security = getattr(request.app.state, "security", None)
+    if security is not None:
+        identity = getattr(security, "identity", None)
+        if identity is not None:
+            refresh_token = request.cookies.get(REFRESH_COOKIE)
+            if refresh_token:
+                try:
+                    identity.logout(refresh_token=refresh_token)
+                except Exception:  # noqa: BLE001
+                    pass
 
     response = JSONResponse(
         content={

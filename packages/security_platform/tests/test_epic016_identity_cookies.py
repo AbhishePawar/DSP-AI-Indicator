@@ -178,3 +178,172 @@ def test_api_login_sets_cookies_when_enabled() -> None:
                 os.environ.pop(k, None)
             else:
                 os.environ[k] = v
+
+
+def test_logout_revokes_refresh_token_and_clears_cookies() -> None:
+    keys = (
+        "DSP_COOKIE_AUTH",
+        "DSP_ENABLE_SECURITY",
+        "DSP_JWT_SECRET",
+        "DSP_COOKIE_SECURE",
+        "DSP_CSRF_ENABLED",
+    )
+    prior = {k: os.environ.get(k) for k in keys}
+    try:
+        os.environ["DSP_COOKIE_AUTH"] = "true"
+        os.environ["DSP_COOKIE_SECURE"] = "false"
+        os.environ["DSP_CSRF_ENABLED"] = "true"
+        os.environ.pop("DSP_ENABLE_SECURITY", None)
+
+        from api_platform.api.app import create_app
+        from security_platform import Role, SecurityBundle, SecuritySettings
+
+        bundle = SecurityBundle.create(
+            SecuritySettings(jwt_secret="unit-test-secret-epic016"),
+            seed_admin=False,
+        )
+        bundle.identity.provision(
+            username="logoutuser",
+            role=Role.RESEARCHER,
+            password="StrongPass12",
+        )
+        app = create_app(security=bundle, enable_security=False)
+        client = TestClient(app)
+
+        login_resp = client.post(
+            "/api/v1/auth/login",
+            json={"username": "logoutuser", "password": "StrongPass12"},
+        )
+        assert login_resp.status_code == 200
+        assert ACCESS_COOKIE in login_resp.cookies
+        assert CSRF_COOKIE in login_resp.cookies
+        refresh_token = login_resp.json()["payload"]["refresh_token"]
+
+        logout_resp = client.post(
+            "/api/v1/auth/logout",
+            cookies={
+                ACCESS_COOKIE: login_resp.cookies[ACCESS_COOKIE],
+                CSRF_COOKIE: login_resp.cookies[CSRF_COOKIE],
+            },
+            headers={CSRF_HEADER: login_resp.cookies[CSRF_COOKIE]},
+        )
+        assert logout_resp.status_code == 200
+        assert logout_resp.json()["payload"]["logged_out"] is True
+
+        assert ACCESS_COOKIE not in logout_resp.cookies
+        assert REFRESH_COOKIE not in logout_resp.cookies
+
+        refresh_resp = client.post(
+            "/auth/refresh",
+            json={"refresh_token": refresh_token},
+        )
+        assert refresh_resp.status_code == 401
+    finally:
+        for k, v in prior.items():
+            if v is None:
+                os.environ.pop(k, None)
+            else:
+                os.environ[k] = v
+
+
+def test_logout_without_dsp_session_revokes_via_refresh_token() -> None:
+    keys = (
+        "DSP_COOKIE_AUTH",
+        "DSP_ENABLE_SECURITY",
+        "DSP_JWT_SECRET",
+        "DSP_COOKIE_SECURE",
+        "DSP_CSRF_ENABLED",
+    )
+    prior = {k: os.environ.get(k) for k in keys}
+    try:
+        os.environ["DSP_COOKIE_AUTH"] = "true"
+        os.environ["DSP_COOKIE_SECURE"] = "false"
+        os.environ["DSP_CSRF_ENABLED"] = "true"
+        os.environ.pop("DSP_ENABLE_SECURITY", None)
+
+        from api_platform.api.app import create_app
+        from security_platform import Role, SecurityBundle, SecuritySettings
+
+        bundle = SecurityBundle.create(
+            SecuritySettings(jwt_secret="unit-test-secret-epic016"),
+            seed_admin=False,
+        )
+        bundle.identity.provision(
+            username="partialcookieuser",
+            role=Role.RESEARCHER,
+            password="StrongPass12",
+        )
+        app = create_app(security=bundle, enable_security=False)
+        client = TestClient(app)
+
+        login_resp = client.post(
+            "/api/v1/auth/login",
+            json={"username": "partialcookieuser", "password": "StrongPass12"},
+        )
+        assert login_resp.status_code == 200
+        assert ACCESS_COOKIE in login_resp.cookies
+        assert CSRF_COOKIE in login_resp.cookies
+        refresh_token = login_resp.json()["payload"]["refresh_token"]
+
+        logout_resp = client.post(
+            "/api/v1/auth/logout",
+            cookies={
+                ACCESS_COOKIE: login_resp.cookies[ACCESS_COOKIE],
+                CSRF_COOKIE: login_resp.cookies[CSRF_COOKIE],
+            },
+            headers={CSRF_HEADER: login_resp.cookies[CSRF_COOKIE]},
+        )
+        assert logout_resp.status_code == 200
+        assert logout_resp.json()["payload"]["logged_out"] is True
+
+        refresh_resp = client.post(
+            "/auth/refresh",
+            json={"refresh_token": refresh_token},
+        )
+        assert refresh_resp.status_code == 401
+    finally:
+        for k, v in prior.items():
+            if v is None:
+                os.environ.pop(k, None)
+            else:
+                os.environ[k] = v
+
+
+def test_logout_without_any_cookies_returns_401() -> None:
+    keys = (
+        "DSP_COOKIE_AUTH",
+        "DSP_ENABLE_SECURITY",
+        "DSP_JWT_SECRET",
+        "DSP_COOKIE_SECURE",
+        "DSP_CSRF_ENABLED",
+    )
+    prior = {k: os.environ.get(k) for k in keys}
+    try:
+        os.environ["DSP_COOKIE_AUTH"] = "true"
+        os.environ["DSP_COOKIE_SECURE"] = "false"
+        os.environ["DSP_CSRF_ENABLED"] = "true"
+        os.environ.pop("DSP_ENABLE_SECURITY", None)
+
+        from api_platform.api.app import create_app
+        from security_platform import Role, SecurityBundle, SecuritySettings
+
+        bundle = SecurityBundle.create(
+            SecuritySettings(jwt_secret="unit-test-secret-epic016"),
+            seed_admin=False,
+        )
+        bundle.identity.provision(
+            username="nosesuser",
+            role=Role.RESEARCHER,
+            password="StrongPass12",
+        )
+        app = create_app(security=bundle, enable_security=False)
+        client = TestClient(app)
+
+        logout_resp = client.post("/api/v1/auth/logout")
+        assert logout_resp.status_code == 401
+    finally:
+        for k, v in prior.items():
+            if v is None:
+                os.environ.pop(k, None)
+            else:
+                os.environ[k] = v

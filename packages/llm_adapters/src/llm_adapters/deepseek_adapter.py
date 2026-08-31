@@ -1,9 +1,8 @@
-"""Google Gemini adapter — generateContent REST API.
+"""DeepSeek adapter — OpenAI-compatible Chat Completions API.
 
-Uses ``generativelanguage.googleapis.com/v1beta/models/{model}:generateContent``
-with the ``x-goog-api-key`` header. No vendor SDK (httpx only). Returns
-a provider-neutral ``LanguageModelResult``; raw provider output never
-leaves this module.
+DeepSeek exposes ``https://api.deepseek.com/v1/chat/completions`` with
+the same request/response shape as OpenAI. We use httpx (no vendor SDK)
+to keep the dependency surface consistent with the other adapters.
 """
 
 from __future__ import annotations
@@ -19,53 +18,46 @@ from copilot.enums import LanguageModelStatus
 from copilot.models import LanguageModelRequest, LanguageModelResult
 from llm_adapters.config import LLMPlatformConfig
 
-_PROVENANCE = ("llm_adapters.gemini", "dsp.llm.gemini.v1")
-_BASE_URL = "https://generativelanguage.googleapis.com/v1beta/models"
+_PROVENANCE = ("llm_adapters.deepseek", "dsp.llm.deepseek.v1")
+_BASE_URL = "https://api.deepseek.com"
 
 
-class GeminiAdapter:
-    """Google Gemini chat adapter implementing the provider-neutral port."""
+class DeepSeekAdapter:
+    """DeepSeek chat adapter implementing the provider-neutral port."""
 
-    provider_id = "gemini"
+    provider_id = "deepseek"
 
     def __init__(self, config: LLMPlatformConfig) -> None:
         self._config = config
-        self.model_label = config.gemini_model
+        self.model_label = config.deepseek_model
 
     def is_configured(self) -> bool:
-        return bool(self._config.gemini_api_key)
+        return bool(self._config.deepseek_api_key)
 
     def invoke(self, request: LanguageModelRequest) -> LanguageModelResult:
         if not self.is_configured():
-            return self._unavailable("GEMINI_API_KEY not configured")
+            return self._unavailable("DEEPSEEK_API_KEY not configured")
 
         if not request.prompt_parts:
             return self._failed("empty prompt parts")
 
         system_content, *user_parts = request.prompt_parts
-        user_text = "\n\n".join(user_parts)
-        url = f"{_BASE_URL}/{self.model_label}:generateContent"
-        payload: dict[str, Any] = {
-            "contents": [
-                {
-                    "role": "user",
-                    "parts": [{"text": user_text}],
-                }
+        payload = {
+            "model": self.model_label,
+            "messages": [
+                {"role": "system", "content": system_content},
+                {"role": "user", "content": "\n\n".join(user_parts)},
             ],
-            "generationConfig": {"temperature": 0.2},
+            "temperature": 0.2,
+            "stream": False,
         }
-        if system_content:
-            payload["systemInstruction"] = {
-                "role": "system",
-                "parts": [{"text": system_content}],
-            }
 
         try:
             with httpx.Client(timeout=self._config.request_timeout_seconds) as client:
                 response = client.post(
-                    url,
+                    f"{_BASE_URL}/v1/chat/completions",
                     headers={
-                        "x-goog-api-key": self._config.gemini_api_key or "",
+                        "Authorization": f"Bearer {self._config.deepseek_api_key}",
                         "Content-Type": "application/json",
                     },
                     json=payload,
@@ -79,7 +71,7 @@ class GeminiAdapter:
 
         text = self._extract_text(data)
         if not text:
-            return self._failed("empty Gemini response")
+            return self._failed("empty DeepSeek response")
 
         return LanguageModelResult(
             result_id=str(uuid.uuid4()),
@@ -95,25 +87,22 @@ class GeminiAdapter:
         if not request.prompt_parts:
             return
         system_content, *user_parts = request.prompt_parts
-        user_text = "\n\n".join(user_parts)
-        url = f"{_BASE_URL}/{self.model_label}:streamGenerateContent"
-        payload: dict[str, Any] = {
-            "contents": [{"role": "user", "parts": [{"text": user_text}]}],
-            "generationConfig": {"temperature": 0.2},
+        payload = {
+            "model": self.model_label,
+            "stream": True,
+            "messages": [
+                {"role": "system", "content": system_content},
+                {"role": "user", "content": "\n\n".join(user_parts)},
+            ],
+            "temperature": 0.2,
         }
-        if system_content:
-            payload["systemInstruction"] = {
-                "role": "system",
-                "parts": [{"text": system_content}],
-            }
         try:
             with httpx.Client(timeout=self._config.request_timeout_seconds) as client:
                 with client.stream(
                     "POST",
-                    url,
-                    params={"alt": "sse"},
+                    f"{_BASE_URL}/v1/chat/completions",
                     headers={
-                        "x-goog-api-key": self._config.gemini_api_key or "",
+                        "Authorization": f"Bearer {self._config.deepseek_api_key}",
                         "Content-Type": "application/json",
                     },
                     json=payload,
@@ -123,31 +112,29 @@ class GeminiAdapter:
                         if not line or not line.startswith("data: "):
                             continue
                         chunk_raw = line[6:].strip()
-                        if not chunk_raw or chunk_raw == "[DONE]":
-                            continue
+                        if chunk_raw == "[DONE]":
+                            break
                         try:
                             chunk = json.loads(chunk_raw)
                         except json.JSONDecodeError:
                             continue
-                        text = self._extract_text(chunk)
-                        if text:
-                            yield text
+                        delta = (
+                            chunk.get("choices", [{}])[0]
+                            .get("delta", {})
+                            .get("content")
+                        )
+                        if delta:
+                            yield str(delta)
         except httpx.HTTPError:
             return
 
     def _extract_text(self, data: dict[str, Any]) -> str | None:
-        candidates = data.get("candidates") or []
-        if not candidates:
+        choices = data.get("choices") or []
+        if not choices:
             return None
-        content = candidates[0].get("content") or {}
-        parts = content.get("parts") or []
-        chunks: list[str] = []
-        for part in parts:
-            text = part.get("text")
-            if text:
-                chunks.append(str(text))
-        joined = "".join(chunks).strip()
-        return joined or None
+        message = choices[0].get("message") or {}
+        content = message.get("content")
+        return str(content).strip() if content else None
 
     def _unavailable(self, reason: str) -> LanguageModelResult:
         return LanguageModelResult(

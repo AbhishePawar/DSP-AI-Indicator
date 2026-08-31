@@ -6,7 +6,7 @@ import os
 from dataclasses import dataclass
 from typing import Literal
 
-ProviderName = Literal["deterministic", "openai", "anthropic", "gemini"]
+ProviderName = Literal["deterministic", "openai", "anthropic", "gemini", "deepseek"]
 
 _PROVENANCE = ("llm_adapters.config", "dsp.llm.config.v1")
 
@@ -19,9 +19,11 @@ class LLMPlatformConfig:
     openai_api_key: str | None
     anthropic_api_key: str | None
     gemini_api_key: str | None
+    deepseek_api_key: str | None
     openai_model: str
     anthropic_model: str
     gemini_model: str
+    deepseek_model: str
     request_timeout_seconds: float
     max_retries: int
 
@@ -35,6 +37,8 @@ class LLMPlatformConfig:
             return bool(self.anthropic_api_key)
         if self.default_provider == "gemini":
             return bool(self.gemini_api_key)
+        if self.default_provider == "deepseek":
+            return bool(self.deepseek_api_key)
         return False
 
 
@@ -51,7 +55,7 @@ def load_llm_config() -> LLMPlatformConfig:
     default_raw = (
         _read_env("DEFAULT_AI_PROVIDER", "DSP_AI_DEFAULT_PROVIDER") or "deterministic"
     ).lower()
-    allowed = {"deterministic", "openai", "anthropic", "gemini"}
+    allowed = {"deterministic", "openai", "anthropic", "gemini", "deepseek"}
     default_provider: ProviderName = (
         default_raw if default_raw in allowed else "deterministic"
     )
@@ -61,11 +65,14 @@ def load_llm_config() -> LLMPlatformConfig:
         openai_api_key=_read_env("OPENAI_API_KEY", "DSP_AI_OPENAI_API_KEY"),
         anthropic_api_key=_read_env("ANTHROPIC_API_KEY", "DSP_AI_ANTHROPIC_API_KEY"),
         gemini_api_key=_read_env("GEMINI_API_KEY", "DSP_AI_GEMINI_API_KEY"),
+        deepseek_api_key=_read_env("DEEPSEEK_API_KEY", "DSP_AI_DEEPSEEK_API_KEY"),
         openai_model=_read_env("OPENAI_MODEL", "DSP_AI_OPENAI_MODEL") or "gpt-4o-mini",
         anthropic_model=_read_env("ANTHROPIC_MODEL", "DSP_AI_ANTHROPIC_MODEL")
         or "claude-3-5-sonnet-20241022",
         gemini_model=_read_env("GEMINI_MODEL", "DSP_AI_GEMINI_MODEL")
         or "gemini-1.5-flash",
+        deepseek_model=_read_env("DEEPSEEK_MODEL", "DSP_AI_DEEPSEEK_MODEL")
+        or "deepseek-chat",
         request_timeout_seconds=float(
             _read_env("DSP_AI_LLM_TIMEOUT_SECONDS") or "30"
         ),

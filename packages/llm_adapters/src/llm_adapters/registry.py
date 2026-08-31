@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from llm_adapters.anthropic_adapter import AnthropicAdapter
 from llm_adapters.config import LLMPlatformConfig, ProviderName, load_llm_config
+from llm_adapters.deepseek_adapter import DeepSeekAdapter
 from llm_adapters.gemini_adapter import GeminiAdapter
 from llm_adapters.interfaces import ProviderAdapter
 from llm_adapters.openai_adapter import OpenAIAdapter
@@ -18,6 +19,7 @@ class ProviderRegistry:
             "openai": OpenAIAdapter(self._config),
             "anthropic": AnthropicAdapter(self._config),
             "gemini": GeminiAdapter(self._config),
+            "deepseek": DeepSeekAdapter(self._config),
         }
 
     @property

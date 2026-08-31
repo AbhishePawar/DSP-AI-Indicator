@@ -70,9 +70,11 @@ def test_service_uses_deterministic_when_no_api_keys(monkeypatch) -> None:
         openai_api_key=None,
         anthropic_api_key=None,
         gemini_api_key=None,
+        deepseek_api_key=None,
         openai_model="gpt-4o-mini",
         anthropic_model="claude",
         gemini_model="gemini",
+        deepseek_model="deepseek-chat",
         request_timeout_seconds=5.0,
         max_retries=0,
     )
@@ -90,4 +92,4 @@ def test_service_uses_deterministic_when_no_api_keys(monkeypatch) -> None:
 def test_registry_lists_providers() -> None:
     registry = ProviderRegistry()
     providers = registry.list_providers()
-    assert {p["id"] for p in providers} == {"openai", "anthropic", "gemini"}
+    assert {p["id"] for p in providers} == {"openai", "anthropic", "gemini", "deepseek"}

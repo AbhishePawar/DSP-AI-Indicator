@@ -184,7 +184,7 @@ def _spec_financial_quality() -> ToolSpec:
         name="dsp.financial_quality",
         version="1.0.0",
         description="Authoritative financial-quality signals derived from authenticated statements.",
-        provenance=f"{_COMMON_PROVENANCE}.financial",
+        provenance=f"{_COMMON_PROVENANCE}.analyze_company (composition)",
         input_schema=(ToolInputField("symbol", "string", True, "Ticker symbol"),),
         output_schema=(
             ToolOutputField("metrics", "object", True, "Named financial-quality metrics"),
@@ -198,7 +198,7 @@ def _spec_valuation() -> ToolSpec:
         name="dsp.valuation",
         version="1.0.0",
         description="Authoritative valuation result: intrinsic value per share and current market price.",
-        provenance=f"{_COMMON_PROVENANCE}.valuation",
+        provenance=f"{_COMMON_PROVENANCE}.analyze_company.valuation_summary",
         input_schema=(ToolInputField("symbol", "string", True, "Ticker symbol"),),
         output_schema=(
             ToolOutputField("intrinsic_value_per_share", "number", True, "Authoritative intrinsic value"),
@@ -213,7 +213,7 @@ def _spec_margin_of_safety() -> ToolSpec:
         name="dsp.margin_of_safety",
         version="1.0.0",
         description="Authoritative margin of safety derived from intrinsic value vs. current price.",
-        provenance=f"{_COMMON_PROVENANCE}.valuation",
+        provenance=f"{_COMMON_PROVENANCE}.analyze_company.margin_of_safety",
         input_schema=(ToolInputField("symbol", "string", True, "Ticker symbol"),),
         output_schema=(
             ToolOutputField("margin_of_safety", "number", True, "Decimal (0.2 = 20%)"),
@@ -227,7 +227,7 @@ def _spec_economic_moat() -> ToolSpec:
         name="dsp.economic_moat",
         version="1.0.0",
         description="Authoritative economic moat assessment (Wide / Narrow / None).",
-        provenance=f"{_COMMON_PROVENANCE}.economic_moat",
+        provenance=f"{_COMMON_PROVENANCE}.analyze_company.economic_moat",
         input_schema=(ToolInputField("symbol", "string", True, "Ticker symbol"),),
         output_schema=(
             ToolOutputField("moat", "string", True, "Wide / Narrow / None"),
@@ -241,7 +241,7 @@ def _spec_management_quality() -> ToolSpec:
         name="dsp.management_quality",
         version="1.0.0",
         description="Authoritative management-quality assessment.",
-        provenance=f"{_COMMON_PROVENANCE}.management_quality",
+        provenance=f"{_COMMON_PROVENANCE}.analyze_company.management_quality",
         input_schema=(ToolInputField("symbol", "string", True, "Ticker symbol"),),
         output_schema=(
             ToolOutputField("quality", "string", True, "Strong / Average / Weak"),
@@ -255,7 +255,7 @@ def _spec_financial_strength() -> ToolSpec:
         name="dsp.financial_strength",
         version="1.0.0",
         description="Authoritative financial-strength assessment (balance sheet health).",
-        provenance=f"{_COMMON_PROVENANCE}.financial_strength",
+        provenance=f"{_COMMON_PROVENANCE}.analyze_company.financial_strength",
         input_schema=(ToolInputField("symbol", "string", True, "Ticker symbol"),),
         output_schema=(
             ToolOutputField("strength", "string", True, "Strong / Average / Weak"),
@@ -269,7 +269,7 @@ def _spec_earnings_quality() -> ToolSpec:
         name="dsp.earnings_quality",
         version="1.0.0",
         description="Authoritative earnings-quality signals (accruals, cash conversion, stability).",
-        provenance=f"{_COMMON_PROVENANCE}.earnings_quality",
+        provenance=f"{_COMMON_PROVENANCE}.analyze_company.earnings_quality",
         input_schema=(ToolInputField("symbol", "string", True, "Ticker symbol"),),
         output_schema=(
             ToolOutputField("quality", "string", True, "High / Average / Low"),
@@ -283,7 +283,7 @@ def _spec_growth_quality() -> ToolSpec:
         name="dsp.growth_quality",
         version="1.0.0",
         description="Authoritative growth-quality signals (sustainability + consistency).",
-        provenance=f"{_COMMON_PROVENANCE}.growth_quality",
+        provenance=f"{_COMMON_PROVENANCE}.analyze_company.growth_quality",
         input_schema=(ToolInputField("symbol", "string", True, "Ticker symbol"),),
         output_schema=(
             ToolOutputField("growth", "string", True, "Strong / Average / Weak"),
@@ -297,7 +297,7 @@ def _spec_business_quality() -> ToolSpec:
         name="dsp.business_quality",
         version="1.0.0",
         description="Authoritative aggregated business-quality label and score.",
-        provenance=f"{_COMMON_PROVENANCE}.business_quality_aggregator",
+        provenance=f"{_COMMON_PROVENANCE}.analyze_company.business_quality",
         input_schema=(ToolInputField("symbol", "string", True, "Ticker symbol"),),
         output_schema=(
             ToolOutputField("label", "string", True, "Great / Good / Average / Weak / Poor"),
@@ -311,7 +311,7 @@ def _spec_risk() -> ToolSpec:
         name="dsp.risk",
         version="1.0.0",
         description="Authoritative qualitative + quantitative risk signals.",
-        provenance=f"{_COMMON_PROVENANCE}.risk",
+        provenance=f"{_COMMON_PROVENANCE}.analyze_company.risk",
         input_schema=(ToolInputField("symbol", "string", True, "Ticker symbol"),),
         output_schema=(
             ToolOutputField("risks", "array", True, "List of named risk items"),
@@ -325,7 +325,7 @@ def _spec_quantitative_risk() -> ToolSpec:
         name="dsp.quantitative_risk",
         version="1.0.0",
         description="Authoritative quantitative risk metrics (volatility, drawdown, beta).",
-        provenance=f"{_COMMON_PROVENANCE}.quantitative_risk",
+        provenance=f"{_COMMON_PROVENANCE}.analyze_company.quantitative_risk",
         input_schema=(ToolInputField("symbol", "string", True, "Ticker symbol"),),
         output_schema=(
             ToolOutputField("volatility", "number", False, "Annualized volatility"),
@@ -340,7 +340,7 @@ def _spec_technical_signals() -> ToolSpec:
         name="dsp.technical_signals",
         version="1.0.0",
         description="Authoritative technical indicators/signals (trend, momentum, mean-reversion).",
-        provenance=f"{_COMMON_PROVENANCE}.industry",
+        provenance=f"{_COMMON_PROVENANCE}.analyze_company.technical_signals (industry package)",
         input_schema=(ToolInputField("symbol", "string", True, "Ticker symbol"),),
         output_schema=(
             ToolOutputField("signals", "array", True, "Named signal items"),
@@ -354,7 +354,7 @@ def _spec_investment_recommendation() -> ToolSpec:
         name="dsp.investment_recommendation",
         version="1.0.0",
         description="Authoritative investment recommendation derived from frozen DSP engines.",
-        provenance=f"{_COMMON_PROVENANCE}.investment_recommendation",
+        provenance=f"{_COMMON_PROVENANCE}.analyze_company.recommendation",
         input_schema=(ToolInputField("symbol", "string", True, "Ticker symbol"),),
         output_schema=(
             ToolOutputField("decision", "string", True, "Buy / Hold / Sell"),
@@ -369,7 +369,7 @@ def _spec_deterministic_committee() -> ToolSpec:
         name="dsp.deterministic_committee",
         version="1.0.0",
         description="Deterministic investment-committee vote over already-computed engine signals.",
-        provenance=f"{_COMMON_PROVENANCE}.ai_committee",
+        provenance=f"{_COMMON_PROVENANCE}.institutional_committee",
         input_schema=(ToolInputField("symbol", "string", True, "Ticker symbol"),),
         output_schema=(
             ToolOutputField("decision", "string", True, "BUY / HOLD / SELL"),
@@ -399,7 +399,7 @@ def _spec_comparison() -> ToolSpec:
         name="dsp.comparison",
         version="1.0.0",
         description="Authoritative side-by-side comparison of two symbols (qualitative, evidence-linked).",
-        provenance=f"{_COMMON_PROVENANCE}.comparison",
+        provenance=f"{_COMMON_PROVENANCE}.compare_companies (composition-fed)",
         input_schema=(
             ToolInputField("symbol_a", "string", True, "First ticker"),
             ToolInputField("symbol_b", "string", True, "Second ticker"),

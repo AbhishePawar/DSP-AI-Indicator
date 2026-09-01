@@ -55,6 +55,17 @@ from llm_adapters.routing import (
     decide_routing,
 )
 from llm_adapters.service import CopilotCompleteService, CopilotCompleteResult
+from llm_adapters.tools import (
+    DEFAULT_TOOL_NAMES,
+    DSPToolBackend,
+    ToolInputField,
+    ToolOutputField,
+    ToolRegistry,
+    ToolResult,
+    ToolSpec,
+    ToolStatus,
+    assert_no_tool_leakage,
+)
 
 __version__ = "0.1.0"
 
@@ -65,6 +76,8 @@ __all__ = [
     "CopilotCompleteService",
     "DEFAULT_CATALOG",
     "DEFAULT_TIERS",
+    "DEFAULT_TOOL_NAMES",
+    "DSPToolBackend",
     "ErrorCategory",
     "EvaluationRequest",
     "EvaluationResult",
@@ -85,8 +98,15 @@ __all__ = [
     "ScoredEvaluation",
     "TierConfig",
     "TokenUsage",
+    "ToolInputField",
+    "ToolOutputField",
+    "ToolRegistry",
+    "ToolResult",
+    "ToolSpec",
+    "ToolStatus",
     "__version__",
     "assert_no_private_leakage",
+    "assert_no_tool_leakage",
     "build_benchmark_table",
     "build_default_registry",
     "calculate_cost_score",
@@ -97,7 +117,7 @@ __all__ = [
     "evaluate_gate",
     "get_model_info",
     "get_tier_config",
-    "list_identities",
+    "list_identories",
     "load_llm_config",
     "run_case_against_model",
     "run_with_escalation",

@@ -72,12 +72,16 @@ class QualityEvaluation:
     buffett_reasoning: float | None = None
     moat_business_quality: float | None = None
     management: float | None = None
+    financial_strength: float | None = None
+    earnings_quality: float | None = None
+    growth_quality: float | None = None
     risk: float | None = None
     evidence_correctness: float | None = None
     hallucination: float | None = None
     unsupported_claims: float | None = None
     structured_output: float | None = None
     consistency: float | None = None
+    business_quality: float | None = None
 
     def component_values(self) -> tuple[float, ...]:
         """Return non-None components as a tuple (deterministic order)."""
@@ -90,12 +94,16 @@ class QualityEvaluation:
                 self.buffett_reasoning,
                 self.moat_business_quality,
                 self.management,
+                self.financial_strength,
+                self.earnings_quality,
+                self.growth_quality,
                 self.risk,
                 self.evidence_correctness,
                 self.hallucination,
                 self.unsupported_claims,
                 self.structured_output,
                 self.consistency,
+                self.business_quality,
             )
             if v is not None
         )

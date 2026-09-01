@@ -44,6 +44,8 @@ PATH_PERMISSIONS: dict[str, Permission] = {
     "/api/v1/research/export": Permission.VIEW_REPORTS,
     "/research/report": Permission.VIEW_REPORTS,
     "/api/v1/research/report": Permission.VIEW_REPORTS,
+    "/research/company": Permission.ANALYZE_COMPANY,
+    "/api/v1/research/company": Permission.ANALYZE_COMPANY,
 }
 
 

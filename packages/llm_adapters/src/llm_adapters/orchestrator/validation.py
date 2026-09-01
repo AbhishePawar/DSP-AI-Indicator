@@ -1,7 +1,19 @@
-"""Validation pipeline for AI research output.
+"""Validation pipeline for AI research output (OLD tool-loop path).
 
 AI response → schema → required sections → evidence refs → unsupported
 claims → privacy → pack construction. Critical failures fail closed.
+
+PATH SPLIT (do not silently merge):
+    OLD PATH (this module):
+        DecisionPack / tool catalog → validate_research_output
+        → PublicDecisionPack
+    NEW PATH:
+        compose_intelligence ResearchPackage →
+        dsp_platform.research_validation (canonical validator)
+
+This module remains the authority for the unused tool-loop orchestrator.
+It is not the financial/valuation authority for compose_intelligence
+research reports.
 """
 
 from __future__ import annotations

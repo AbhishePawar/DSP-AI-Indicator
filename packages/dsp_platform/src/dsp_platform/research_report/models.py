@@ -86,7 +86,7 @@ PUBLIC_TOP_LEVEL_KEYS = frozenset(
     }
 )
 
-# Documented for STEP 4F — not executed here.
+# Implemented by dsp_platform.research_validation (STEP 4F).
 FUTURE_VALIDATION_CHECKS: tuple[str, ...] = (
     "dsp_intrinsic_value_equality",
     "dsp_margin_of_safety_equality",

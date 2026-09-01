@@ -203,3 +203,53 @@ class TestLlmAdaptersArchitecture:
             assert "def parse_openai_tool_calls" not in src, label
             assert "OpenAICompatibleToolCalling" in src, label
         assert declarations_as_openai_tools is not parse_openai_tool_calls
+
+    def test_orchestrator_cannot_import_dsp_engines(self) -> None:
+        """Research orchestrator must use ToolCallBoundary, not DSP engines."""
+        orchestrator_dir = _SRC / "orchestrator"
+        assert orchestrator_dir.is_dir()
+        forbidden = _FORBIDDEN | {
+            "economic_moat",
+            "management_quality",
+            "financial_strength",
+            "earnings_quality",
+            "growth_quality",
+            "business_quality",
+            "ai_committee",
+            "industry",
+            "httpx",
+            "openai",
+            "anthropic",
+            "google",
+            "dsp",
+        }
+        violations: list[str] = []
+        for path in orchestrator_dir.rglob("*.py"):
+            text = path.read_text(encoding="utf-8")
+            imported = _imported_top_levels(text)
+            bad = imported & forbidden
+            if bad:
+                violations.append(f"{path.name}: {sorted(bad)}")
+            assert "from api_platform" not in text
+            for line in text.splitlines():
+                stripped = line.strip()
+                if stripped.startswith("import") or stripped.startswith("from"):
+                    assert "DSPPlatformToolAdapter" not in stripped
+        assert not violations, violations
+
+    def test_orchestrator_is_not_wired_to_analyse_router(self) -> None:
+        from pathlib import Path as _Root
+
+        api_composition = (
+            _Root(__file__).resolve().parents[3]
+            / "packages"
+            / "api_platform"
+            / "src"
+            / "api_platform"
+            / "api"
+            / "routers"
+            / "composition.py"
+        )
+        text = api_composition.read_text(encoding="utf-8")
+        assert "ResearchOrchestrator" not in text
+        assert "llm_adapters.orchestrator" not in text

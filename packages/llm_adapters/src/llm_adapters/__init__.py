@@ -54,6 +54,17 @@ from llm_adapters.routing import (
     RoutingDecision,
     decide_routing,
 )
+from llm_adapters.orchestrator import (
+    AICompletion,
+    AIProvider,
+    AIResearchOutput,
+    AdapterBackedAIProvider,
+    OrchestratorResult,
+    OrchestratorStatus,
+    ResearchOrchestrator,
+    ResearchSpecification,
+    UserResearchRequest,
+)
 from llm_adapters.service import CopilotCompleteService, CopilotCompleteResult
 from llm_adapters.tools import (
     AUTHENTICATION_REQUIRED,
@@ -91,6 +102,10 @@ __version__ = "0.1.0"
 
 __all__ = [
     "AUTHENTICATION_REQUIRED",
+    "AICompletion",
+    "AIProvider",
+    "AIResearchOutput",
+    "AdapterBackedAIProvider",
     "AnthropicToolCalling",
     "BenchmarkRow",
     "ComplexitySignal",
@@ -115,10 +130,14 @@ __all__ = [
     "ModelPricing",
     "ModelTier",
     "OpenAICompatibleToolCalling",
+    "OrchestratorResult",
+    "OrchestratorStatus",
     "PrivateInternalResult",
     "ProviderRegistry",
     "PublicDecisionPack",
     "QualityEvaluation",
+    "ResearchOrchestrator",
+    "ResearchSpecification",
     "RoutingDecision",
     "ScoredEvaluation",
     "TierConfig",
@@ -138,6 +157,7 @@ __all__ = [
     "ToolSpec",
     "ToolStatus",
     "UNAVAILABLE",
+    "UserResearchRequest",
     "WIRED",
     "__version__",
     "assert_no_private_leakage",

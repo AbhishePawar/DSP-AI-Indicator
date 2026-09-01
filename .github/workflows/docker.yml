@@ -31,6 +31,12 @@ jobs:
 
       - name: Compose config validation (base + prod + P7 production)
         run: |
+          set -euo pipefail
+          trap 'rm -f .env .env.production' EXIT
+          test -f .env.example
+          test -f .env.production.example
+          cp .env.example .env
+          cp .env.production.example .env.production
           docker compose -f docker/docker-compose.yml config
           docker compose -f docker/docker-compose.yml -f docker/docker-compose.prod.yml config
           docker compose -f docker/docker-compose.production.yml config

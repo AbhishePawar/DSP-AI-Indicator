@@ -26,6 +26,17 @@ from llm_adapters.tools.health import (
     is_composition_backed,
     is_flat_backed,
 )
+from llm_adapters.tools.protocol import (
+    AnthropicToolCalling,
+    GeminiToolCalling,
+    OpenAICompatibleToolCalling,
+    ToolCall,
+    ToolCallBoundary,
+    ToolCallError,
+    ToolCallOutcome,
+    ToolCallStatus,
+    ToolDeclaration,
+)
 from llm_adapters.tools.registry import (
     DEFAULT_TOOL_NAMES,
     ToolRegistry,
@@ -33,9 +44,18 @@ from llm_adapters.tools.registry import (
 
 __all__ = [
     "AUTHENTICATION_REQUIRED",
+    "AnthropicToolCalling",
     "DEFAULT_TOOL_NAMES",
     "DSPPlatformToolAdapter",
     "DSPToolBackend",
+    "GeminiToolCalling",
+    "OpenAICompatibleToolCalling",
+    "ToolCall",
+    "ToolCallBoundary",
+    "ToolCallError",
+    "ToolCallOutcome",
+    "ToolCallStatus",
+    "ToolDeclaration",
     "ToolHealthReport",
     "ToolHealthState",
     "ToolInputField",

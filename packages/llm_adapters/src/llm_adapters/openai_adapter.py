@@ -12,12 +12,18 @@ import httpx
 from copilot.enums import LanguageModelStatus, UserIntentType
 from copilot.models import LanguageModelRequest, LanguageModelResult
 from llm_adapters.config import LLMPlatformConfig
+from llm_adapters.tools.protocol.openai_compatible import OpenAICompatibleToolCalling
 
 _PROVENANCE = ("llm_adapters.openai", "dsp.llm.openai.v1")
 
 
-class OpenAIAdapter:
-    """OpenAI Chat Completions adapter implementing LanguageModelPort."""
+class OpenAIAdapter(OpenAICompatibleToolCalling):
+    """OpenAI Chat Completions adapter implementing LanguageModelPort.
+
+    Function-calling wire format is inherited from
+    ``OpenAICompatibleToolCalling`` (shared with DeepSeek). ``invoke``
+    does not send tools and is not wired to ``/api/v1/analyse``.
+    """
 
     provider_id = "openai"
 

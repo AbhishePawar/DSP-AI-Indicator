@@ -18,13 +18,18 @@ import httpx
 from copilot.enums import LanguageModelStatus
 from copilot.models import LanguageModelRequest, LanguageModelResult
 from llm_adapters.config import LLMPlatformConfig
+from llm_adapters.tools.protocol.gemini import GeminiToolCalling
 
 _PROVENANCE = ("llm_adapters.gemini", "dsp.llm.gemini.v1")
 _BASE_URL = "https://generativelanguage.googleapis.com/v1beta/models"
 
 
-class GeminiAdapter:
-    """Google Gemini chat adapter implementing the provider-neutral port."""
+class GeminiAdapter(GeminiToolCalling):
+    """Google Gemini chat adapter implementing the provider-neutral port.
+
+    Function-calling wire format is inherited from ``GeminiToolCalling``.
+    ``invoke`` does not send tools and is not wired to ``/api/v1/analyse``.
+    """
 
     provider_id = "gemini"
 

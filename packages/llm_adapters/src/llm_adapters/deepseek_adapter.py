@@ -17,13 +17,19 @@ import httpx
 from copilot.enums import LanguageModelStatus
 from copilot.models import LanguageModelRequest, LanguageModelResult
 from llm_adapters.config import LLMPlatformConfig
+from llm_adapters.tools.protocol.openai_compatible import OpenAICompatibleToolCalling
 
 _PROVENANCE = ("llm_adapters.deepseek", "dsp.llm.deepseek.v1")
 _BASE_URL = "https://api.deepseek.com"
 
 
-class DeepSeekAdapter:
-    """DeepSeek chat adapter implementing the provider-neutral port."""
+class DeepSeekAdapter(OpenAICompatibleToolCalling):
+    """DeepSeek chat adapter implementing the provider-neutral port.
+
+    Function-calling wire format is inherited from
+    ``OpenAICompatibleToolCalling`` (shared with OpenAI). ``invoke``
+    does not send tools and is not wired to ``/api/v1/analyse``.
+    """
 
     provider_id = "deepseek"
 

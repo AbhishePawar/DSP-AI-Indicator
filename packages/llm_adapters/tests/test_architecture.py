@@ -117,3 +117,89 @@ class TestLlmAdaptersArchitecture:
                         raise AssertionError(
                             f"{path.name} imports DSP engine module {module!r} at: {stripped!r}"
                         )
+
+    def test_protocol_adapters_cannot_import_dsp_engines(self) -> None:
+        """Provider protocol adapters must stay isolated from DSP engines."""
+        protocol_dir = _SRC / "tools" / "protocol"
+        assert protocol_dir.is_dir()
+        forbidden = _FORBIDDEN | {
+            "economic_moat",
+            "ai_committee",
+            "industry",
+            "dsp",
+            "httpx",
+            "openai",
+            "anthropic",
+            "google",
+            "google.generativeai",
+        }
+        violations: list[str] = []
+        for path in protocol_dir.rglob("*.py"):
+            imported = _imported_top_levels(path.read_text(encoding="utf-8"))
+            bad = imported & forbidden
+            if bad:
+                violations.append(f"{path.name}: {sorted(bad)}")
+        assert not violations, violations
+
+    def test_protocol_adapters_do_not_import_platform_adapter(self) -> None:
+        """Protocol adapters talk to ToolRegistry only, never the platform adapter."""
+        protocol_dir = _SRC / "tools" / "protocol"
+        offenders: list[str] = []
+        for path in protocol_dir.rglob("*.py"):
+            text = path.read_text(encoding="utf-8")
+            for line in text.splitlines():
+                stripped = line.strip()
+                if stripped.startswith("#"):
+                    continue
+                if "DSPPlatformToolAdapter" in stripped and (
+                    stripped.startswith("import") or stripped.startswith("from")
+                ):
+                    offenders.append(f"{path.name}: {stripped}")
+        assert not offenders, offenders
+
+    def test_provider_adapters_do_not_import_dsp_engines(self) -> None:
+        """OpenAI, DeepSeek, Gemini, Anthropic adapters must not import engines."""
+        adapter_files = (
+            "openai_adapter.py",
+            "deepseek_adapter.py",
+            "gemini_adapter.py",
+            "anthropic_adapter.py",
+        )
+        violations: list[str] = []
+        for name in adapter_files:
+            path = _SRC / name
+            imported = _imported_top_levels(path.read_text(encoding="utf-8"))
+            bad = imported & (_FORBIDDEN | {"economic_moat", "dsp"})
+            if bad:
+                violations.append(f"{name}: {sorted(bad)}")
+        assert not violations, violations
+
+    def test_openai_and_deepseek_share_compatible_protocol_layer(self) -> None:
+        """DeepSeek and OpenAI must share one function-calling implementation."""
+        from llm_adapters.anthropic_adapter import AnthropicAdapter
+        from llm_adapters.deepseek_adapter import DeepSeekAdapter
+        from llm_adapters.gemini_adapter import GeminiAdapter
+        from llm_adapters.openai_adapter import OpenAIAdapter
+        from llm_adapters.tools.protocol.openai_compatible import (
+            OpenAICompatibleToolCalling,
+            declarations_as_openai_tools,
+            parse_openai_tool_calls,
+        )
+
+        assert issubclass(OpenAIAdapter, OpenAICompatibleToolCalling)
+        assert issubclass(DeepSeekAdapter, OpenAICompatibleToolCalling)
+        assert not issubclass(GeminiAdapter, OpenAICompatibleToolCalling)
+        assert not issubclass(AnthropicAdapter, OpenAICompatibleToolCalling)
+        assert OpenAIAdapter.parse_tool_calls is OpenAICompatibleToolCalling.parse_tool_calls
+        assert DeepSeekAdapter.parse_tool_calls is OpenAICompatibleToolCalling.parse_tool_calls
+        assert OpenAIAdapter.parse_tool_calls is DeepSeekAdapter.parse_tool_calls
+        assert OpenAIAdapter.tool_declarations is DeepSeekAdapter.tool_declarations
+        assert OpenAIAdapter.format_tool_results is DeepSeekAdapter.format_tool_results
+
+        openai_src = (_SRC / "openai_adapter.py").read_text(encoding="utf-8")
+        deepseek_src = (_SRC / "deepseek_adapter.py").read_text(encoding="utf-8")
+        for src, label in ((openai_src, "openai_adapter"), (deepseek_src, "deepseek_adapter")):
+            assert "def declarations_as_openai_tools" not in src, label
+            assert "def parse_openai_tool_calls" not in src, label
+            assert "OpenAICompatibleToolCalling" in src, label
+        assert declarations_as_openai_tools is not parse_openai_tool_calls

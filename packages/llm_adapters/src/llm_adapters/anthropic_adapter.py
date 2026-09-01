@@ -19,14 +19,19 @@ import httpx
 from copilot.enums import LanguageModelStatus
 from copilot.models import LanguageModelRequest, LanguageModelResult
 from llm_adapters.config import LLMPlatformConfig
+from llm_adapters.tools.protocol.anthropic import AnthropicToolCalling
 
 _PROVENANCE = ("llm_adapters.anthropic", "dsp.llm.anthropic.v1")
 _BASE_URL = "https://api.anthropic.com/v1/messages"
 _ANTHROPIC_VERSION = "2023-06-01"
 
 
-class AnthropicAdapter:
-    """Anthropic Messages adapter implementing the provider-neutral port."""
+class AnthropicAdapter(AnthropicToolCalling):
+    """Anthropic Messages adapter implementing the provider-neutral port.
+
+    Tool-use wire format is inherited from ``AnthropicToolCalling``.
+    ``invoke`` does not send tools and is not wired to ``/api/v1/analyse``.
+    """
 
     provider_id = "anthropic"
 

@@ -9,15 +9,20 @@ from __future__ import annotations
 
 from llm_adapters.tools.protocol.anthropic import (
     AnthropicToolCalling,
+    anthropic_payload_contains_tool_use,
     declarations_as_anthropic_tools,
     format_anthropic_tool_results,
     parse_anthropic_tool_use,
 )
-from llm_adapters.tools.protocol.dispatcher import ToolCallBoundary, safe_provider_payload
+from llm_adapters.tools.protocol.dispatcher import (
+    ToolCallBoundary,
+    safe_provider_payload,
+)
 from llm_adapters.tools.protocol.gemini import (
     GeminiToolCalling,
     declarations_as_gemini_functions,
     format_gemini_function_responses,
+    gemini_payload_contains_function_calls,
     gemini_tools_payload,
     parse_gemini_function_calls,
 )
@@ -39,6 +44,7 @@ from llm_adapters.tools.protocol.openai_compatible import (
     OpenAICompatibleToolCalling,
     declarations_as_openai_tools,
     format_openai_tool_messages,
+    openai_payload_contains_tool_calls,
     parse_openai_tool_calls,
 )
 from llm_adapters.tools.protocol.privacy import (
@@ -60,6 +66,7 @@ __all__ = [
     "ToolCallStatus",
     "ToolDeclaration",
     "allowed_names_from_manifest",
+    "anthropic_payload_contains_tool_use",
     "assert_browser_pack_private_free",
     "assert_provider_envelope_private_free",
     "declarations_as_anthropic_tools",
@@ -69,7 +76,9 @@ __all__ = [
     "format_anthropic_tool_results",
     "format_gemini_function_responses",
     "format_openai_tool_messages",
+    "gemini_payload_contains_function_calls",
     "gemini_tools_payload",
+    "openai_payload_contains_tool_calls",
     "parse_anthropic_tool_use",
     "parse_gemini_function_calls",
     "parse_openai_tool_calls",

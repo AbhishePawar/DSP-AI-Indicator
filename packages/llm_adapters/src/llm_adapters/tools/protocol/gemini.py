@@ -7,9 +7,13 @@ underscore form because Gemini forbids dots in function names.
 
 from __future__ import annotations
 
-from typing import Any, Mapping, Sequence
+from collections.abc import Mapping, Sequence
+from typing import Any
 
-from llm_adapters.tools.protocol.dispatcher import ToolCallBoundary, safe_provider_payload
+from llm_adapters.tools.protocol.dispatcher import (
+    ToolCallBoundary,
+    safe_provider_payload,
+)
 from llm_adapters.tools.protocol.models import (
     ToolCall,
     ToolCallError,
@@ -78,7 +82,11 @@ def _malformed(call_id: str, tool_name: str, message: str) -> ToolCallOutcome:
         status=ToolCallStatus.MALFORMED,
         result=None,
         error=ToolCallError(kind=ToolCallStatus.MALFORMED, message=message),
-        audit={"call_id": cid, "tool_name": tool_name or "unknown", "status": "malformed"},
+        audit={
+            "call_id": cid,
+            "tool_name": tool_name or "unknown",
+            "status": "malformed",
+        },
     )
 
 
@@ -95,7 +103,11 @@ def _extract_function_calls(payload: Any) -> tuple[list[Any] | None, str | None]
         return [payload], None
     parts = payload.get("parts")
     if isinstance(parts, list):
-        calls = [p.get("functionCall") for p in parts if isinstance(p, Mapping) and "functionCall" in p]
+        calls = [
+            p.get("functionCall")
+            for p in parts
+            if isinstance(p, Mapping) and "functionCall" in p
+        ]
         return calls, None
     content = payload.get("content")
     if isinstance(content, Mapping) and isinstance(content.get("parts"), list):
@@ -109,7 +121,11 @@ def _extract_function_calls(payload: Any) -> tuple[list[Any] | None, str | None]
     if isinstance(candidates, list) and candidates:
         first = candidates[0]
         if isinstance(first, Mapping):
-            inner = first.get("content") if isinstance(first.get("content"), Mapping) else first
+            inner = (
+                first.get("content")
+                if isinstance(first.get("content"), Mapping)
+                else first
+            )
             if isinstance(inner, Mapping) and isinstance(inner.get("parts"), list):
                 calls = [
                     p.get("functionCall")
@@ -120,6 +136,14 @@ def _extract_function_calls(payload: Any) -> tuple[list[Any] | None, str | None]
     return None, "no functionCall found in payload"
 
 
+def gemini_payload_contains_function_calls(payload: Any) -> bool:
+    """True when a Gemini payload contains at least one functionCall."""
+    extracted, _ = _extract_function_calls(payload)
+    if not extracted:
+        return False
+    return any(isinstance(item, Mapping) for item in extracted)
+
+
 def parse_gemini_function_calls(
     payload: Any,
     *,
@@ -128,18 +152,34 @@ def parse_gemini_function_calls(
     allowed = frozenset(allowed_internal)
     extracted, extract_error = _extract_function_calls(payload)
     if extracted is None:
-        return [_malformed("malformed", "unknown", extract_error or "malformed functionCall payload")]
+        return [
+            _malformed(
+                "malformed",
+                "unknown",
+                extract_error or "malformed functionCall payload",
+            )
+        ]
     parsed: list[ToolCall | ToolCallOutcome] = []
     for index, item in enumerate(extracted):
         if not isinstance(item, Mapping):
-            parsed.append(_malformed(f"gemini-{index}", "unknown", "functionCall is not an object"))
+            parsed.append(
+                _malformed(
+                    f"gemini-{index}", "unknown", "functionCall is not an object"
+                )
+            )
             continue
         provider_name = item.get("name")
         if not isinstance(provider_name, str) or not provider_name:
-            parsed.append(_malformed(f"gemini-{index}", "unknown", "functionCall missing name"))
+            parsed.append(
+                _malformed(f"gemini-{index}", "unknown", "functionCall missing name")
+            )
             continue
         raw_id = item.get("id")
-        call_id = raw_id if isinstance(raw_id, str) and raw_id else f"gemini-{index}-{provider_name}"
+        call_id = (
+            raw_id
+            if isinstance(raw_id, str) and raw_id
+            else f"gemini-{index}-{provider_name}"
+        )
         internal = resolve_internal_name(provider_name, allowed_internal=allowed)
         if internal is None:
             parsed.append(
@@ -152,7 +192,11 @@ def parse_gemini_function_calls(
                         kind=ToolCallStatus.UNKNOWN_TOOL,
                         message="unknown or unapproved tool",
                     ),
-                    audit={"call_id": call_id, "tool_name": provider_name, "status": "unknown_tool"},
+                    audit={
+                        "call_id": call_id,
+                        "tool_name": provider_name,
+                        "status": "unknown_tool",
+                    },
                 )
             )
             continue
@@ -160,7 +204,9 @@ def parse_gemini_function_calls(
         if args is None:
             args = {}
         if not isinstance(args, Mapping):
-            parsed.append(_malformed(call_id, internal, "functionCall args must be an object"))
+            parsed.append(
+                _malformed(call_id, internal, "functionCall args must be an object")
+            )
             continue
         parsed.append(ToolCall(call_id=call_id, name=internal, arguments=dict(args)))
     return parsed
@@ -175,9 +221,11 @@ def format_gemini_function_responses(
         parts.append(
             {
                 "functionResponse": {
-                    "name": to_provider_name(outcome.tool_name)
-                    if outcome.tool_name.startswith("dsp.")
-                    else outcome.tool_name.replace(".", "_"),
+                    "name": (
+                        to_provider_name(outcome.tool_name)
+                        if outcome.tool_name.startswith("dsp.")
+                        else outcome.tool_name.replace(".", "_")
+                    ),
                     "response": payload,
                 }
             }
@@ -188,8 +236,13 @@ def format_gemini_function_responses(
 class GeminiToolCalling:
     """Mixin for GeminiAdapter — Gemini wire format stays in this adapter."""
 
-    def tool_declarations(self, manifest: Sequence[Mapping[str, Any]]) -> dict[str, Any]:
+    def tool_declarations(
+        self, manifest: Sequence[Mapping[str, Any]]
+    ) -> dict[str, Any]:
         return gemini_tools_payload(manifest)
+
+    def payload_contains_tool_calls(self, payload: Any) -> bool:
+        return gemini_payload_contains_function_calls(payload)
 
     def parse_tool_calls(
         self,
@@ -225,6 +278,7 @@ __all__ = [
     "GeminiToolCalling",
     "declarations_as_gemini_functions",
     "format_gemini_function_responses",
+    "gemini_payload_contains_function_calls",
     "gemini_tools_payload",
     "parse_gemini_function_calls",
 ]

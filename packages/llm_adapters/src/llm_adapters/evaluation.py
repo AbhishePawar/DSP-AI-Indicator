@@ -8,9 +8,10 @@ results carry cost + quality components; quality is left unfilled
 
 from __future__ import annotations
 
+from collections.abc import Mapping
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Any, Mapping
+from typing import Any
 
 from llm_adapters.model_catalog import ModelInfo, get_model_info
 
@@ -25,13 +26,20 @@ class ErrorCategory(str, Enum):
     NONE = "none"
     TIMEOUT = "timeout"
     PROVIDER_UNAVAILABLE = "provider_unavailable"
+    PROVIDER_FAILED = "provider_failed"
     RATE_LIMIT = "rate_limit"
     SCHEMA_FAILURE = "schema_failure"
     MALFORMED_OUTPUT = "malformed_output"
+    INVALID_AI_OUTPUT = "invalid_ai_output"
     MISSING_EVIDENCE = "missing_evidence"
     UNSUPPORTED_CLAIM = "unsupported_claim"
     CITATION_FAILURE = "citation_failure"
     TOOL_FAILURE = "tool_failure"
+    INVALID_TOOL_CALL = "invalid_tool_call"
+    TOOL_UNAVAILABLE = "tool_unavailable"
+    VALIDATION_FAILED = "validation_failed"
+    LOOP_LIMIT_EXCEEDED = "loop_limit_exceeded"
+    PRIVACY_VIOLATION = "privacy_violation"
     UNKNOWN = "unknown"
 
 

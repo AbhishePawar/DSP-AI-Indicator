@@ -17,7 +17,10 @@ import httpx
 from copilot.enums import LanguageModelStatus
 from copilot.models import LanguageModelRequest, LanguageModelResult
 from llm_adapters.config import LLMPlatformConfig
-from llm_adapters.tools.protocol.openai_compatible import OpenAICompatibleToolCalling
+from llm_adapters.tools.protocol.openai_compatible import (
+    OpenAICompatibleToolCalling,
+    openai_payload_contains_tool_calls,
+)
 
 _PROVENANCE = ("llm_adapters.deepseek", "dsp.llm.deepseek.v1")
 _BASE_URL = "https://api.deepseek.com"
@@ -41,14 +44,34 @@ class DeepSeekAdapter(OpenAICompatibleToolCalling):
         return bool(self._config.deepseek_api_key)
 
     def invoke(self, request: LanguageModelRequest) -> LanguageModelResult:
+        result, _ = self._chat(request, tools=None, allow_tool_only=False)
+        return result
+
+    def invoke_research(
+        self,
+        request: LanguageModelRequest,
+        *,
+        tools: Any = None,
+        tool_result_messages: Any = None,
+    ) -> tuple[LanguageModelResult, dict[str, Any] | None]:
+        del tool_result_messages
+        return self._chat(request, tools=tools, allow_tool_only=True)
+
+    def _chat(
+        self,
+        request: LanguageModelRequest,
+        *,
+        tools: Any,
+        allow_tool_only: bool,
+    ) -> tuple[LanguageModelResult, dict[str, Any] | None]:
         if not self.is_configured():
-            return self._unavailable("DEEPSEEK_API_KEY not configured")
+            return self._unavailable("DEEPSEEK_API_KEY not configured"), None
 
         if not request.prompt_parts:
-            return self._failed("empty prompt parts")
+            return self._failed("empty prompt parts"), None
 
         system_content, *user_parts = request.prompt_parts
-        payload = {
+        payload: dict[str, Any] = {
             "model": self.model_label,
             "messages": [
                 {"role": "system", "content": system_content},
@@ -57,6 +80,8 @@ class DeepSeekAdapter(OpenAICompatibleToolCalling):
             "temperature": 0.2,
             "stream": False,
         }
+        if tools:
+            payload["tools"] = tools
 
         try:
             with httpx.Client(timeout=self._config.request_timeout_seconds) as client:
@@ -71,20 +96,26 @@ class DeepSeekAdapter(OpenAICompatibleToolCalling):
                 response.raise_for_status()
                 data = response.json()
         except httpx.HTTPError as exc:
-            return self._failed(f"http_error: {exc.__class__.__name__}")
+            return self._failed(f"http_error: {exc.__class__.__name__}"), None
         except (ValueError, KeyError) as exc:
-            return self._failed(f"malformed_response: {exc.__class__.__name__}")
+            return self._failed(f"malformed_response: {exc.__class__.__name__}"), None
 
+        if not isinstance(data, dict):
+            return self._failed("malformed_response: TypeError"), None
         text = self._extract_text(data)
-        if not text:
-            return self._failed("empty DeepSeek response")
-
-        return LanguageModelResult(
-            result_id=str(uuid.uuid4()),
-            status=LanguageModelStatus.COMPLETE,
-            provenance=_PROVENANCE,
-            narrative_text=text,
-            model_label=self.model_label,
+        has_tools = openai_payload_contains_tool_calls(data)
+        if not text and not (allow_tool_only and has_tools):
+            return self._failed("empty DeepSeek response"), data
+        return (
+            LanguageModelResult(
+                result_id=str(uuid.uuid4()),
+                status=LanguageModelStatus.COMPLETE,
+                provenance=_PROVENANCE,
+                narrative_text=text,
+                structured_sections=() if text else ("tool_call",),
+                model_label=self.model_label,
+            ),
+            data,
         )
 
     def stream_invoke(self, request: LanguageModelRequest) -> Iterator[str]:

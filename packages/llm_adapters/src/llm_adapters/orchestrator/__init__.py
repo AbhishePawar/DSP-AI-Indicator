@@ -2,15 +2,20 @@
 
 from __future__ import annotations
 
+from llm_adapters.orchestrator.loop import (
+    DEFAULT_TOOL_LOOP_LIMITS,
+    ToolLoopLimits,
+    ToolLoopRun,
+)
 from llm_adapters.orchestrator.orchestrator import (
     OrchestratorResult,
     OrchestratorStatus,
     ResearchOrchestrator,
 )
 from llm_adapters.orchestrator.provider import (
+    AdapterBackedAIProvider,
     AICompletion,
     AIProvider,
-    AdapterBackedAIProvider,
 )
 from llm_adapters.orchestrator.research_prompt import (
     PRIVATE_PROMPT_CANARY,
@@ -37,6 +42,7 @@ __all__ = [
     "AIResearchOutput",
     "AdapterBackedAIProvider",
     "COMPLEX_TOOLS",
+    "DEFAULT_TOOL_LOOP_LIMITS",
     "OrchestratorResult",
     "OrchestratorStatus",
     "PRIVATE_PROMPT_CANARY",
@@ -44,6 +50,8 @@ __all__ = [
     "ResearchSpecification",
     "SIMPLE_TOOLS",
     "SPEC_VERSION",
+    "ToolLoopLimits",
+    "ToolLoopRun",
     "UserResearchRequest",
     "ValidationFailure",
     "ValidationSuccess",

@@ -10,14 +10,14 @@ from typing import Any
 
 from llm_adapters.model_tiers import ModelTier
 from llm_adapters.orchestrator import (
+    PRIVATE_PROMPT_CANARY,
     AICompletion,
     OrchestratorStatus,
-    PRIVATE_PROMPT_CANARY,
     ResearchOrchestrator,
     UserResearchRequest,
 )
 from llm_adapters.orchestrator.research_prompt import build_research_prompt
-from llm_adapters.orchestrator.specification import ResearchSpecification, SIMPLE_TOOLS
+from llm_adapters.orchestrator.specification import SIMPLE_TOOLS, ResearchSpecification
 from llm_adapters.privacy_boundary import assert_no_private_leakage
 from llm_adapters.quality_gate import GateOutcome
 from llm_adapters.routing import ComplexitySignal
@@ -26,12 +26,23 @@ from llm_adapters.tools.protocol.models import ToolCall
 
 
 class StubBackend:
-    def __init__(self, *, raise_on: str | None = None, empty_rec: bool = False) -> None:
+    def __init__(
+        self,
+        *,
+        raise_on: str | None = None,
+        empty_rec: bool = False,
+        none_on: str | None = None,
+    ) -> None:
         self._raise_on = raise_on
         self._empty_rec = empty_rec
+        self._none_on = none_on
 
     def get_authenticated_financial_statements(self, symbol, *, exchange=None):
-        return {"periods": ["2024"], "currency": "INR", "source": "dsp.financial_statements"}
+        return {
+            "periods": ["2024"],
+            "currency": "INR",
+            "source": "dsp.financial_statements",
+        }
 
     def financial_statement_health(self):
         return {"ok": True}
@@ -46,7 +57,11 @@ class StubBackend:
         return {}
 
     def build_research_object(self, symbol, **kwargs):
-        return {"lineage_id": "lin-1", "evidence_refs": ["r1"], "summary": {"headline": "OK"}}
+        return {
+            "lineage_id": "lin-1",
+            "evidence_refs": ["r1"],
+            "summary": {"headline": "OK"},
+        }
 
     def get_research_snapshot(self, snapshot_id):
         return {}
@@ -73,6 +88,10 @@ class StubBackend:
         return {"moat": "Wide", "score": 0.8}
 
     def get_management_quality(self, *, symbol):
+        if self._raise_on == "management":
+            raise RuntimeError("management failed")
+        if self._none_on == "management":
+            return None
         return {"quality": "Strong", "score": 0.85}
 
     def get_financial_strength(self, *, symbol):
@@ -121,6 +140,8 @@ class ScriptedProvider:
         self.model_label = model_label
         self._script = list(script or ["json"])
         self.calls = 0
+        self.last_prior_tool_results: tuple[dict[str, Any], ...] = ()
+        self.last_tool_manifest: tuple[Any, ...] = ()
 
     def complete(
         self,
@@ -128,9 +149,13 @@ class ScriptedProvider:
         prompt_parts: tuple[str, ...],
         evidence_catalog: tuple[dict[str, Any], ...],
         prior_tool_results: tuple[dict[str, Any], ...] = (),
+        tool_manifest: tuple[Any, ...] = (),
+        prior_outcomes: tuple[Any, ...] = (),
     ) -> AICompletion:
-        del prior_tool_results
+        del prior_outcomes
         self.calls += 1
+        self.last_prior_tool_results = prior_tool_results
+        self.last_tool_manifest = tool_manifest
         assert PRIVATE_PROMPT_CANARY in prompt_parts[0]
         step = self._script.pop(0) if self._script else "json"
         if step == "fail":
@@ -139,12 +164,18 @@ class ScriptedProvider:
             return self._done("unavailable", None)
         if step == "malformed":
             return self._done("complete", "this is not structured research")
+        if step == "invalid_schema":
+            payload = json.loads(_happy_json(evidence_catalog))
+            del payload["recommendation"]
+            return self._done("complete", json.dumps(payload))
         if step == "missing_evidence":
             return self._done("complete", _json_missing_evidence(evidence_catalog))
         if step == "unsupported":
             return self._done("complete", _json_unsupported(evidence_catalog))
         if step == "override":
-            return self._done("complete", _happy_json(evidence_catalog, recommendation="Sell"))
+            return self._done(
+                "complete", _happy_json(evidence_catalog, recommendation="Sell")
+            )
         if step == "prompt_leak":
             payload = json.loads(_happy_json(evidence_catalog))
             payload["decision_brief"] = f"see {PRIVATE_PROMPT_CANARY}"
@@ -158,6 +189,18 @@ class ScriptedProvider:
                 status="complete",
                 text=None,
                 requested_calls=(step,),
+                provider_id=self.provider_id,
+                model_label=self.model_label,
+            )
+        if (
+            isinstance(step, (tuple, list))
+            and step
+            and all(isinstance(item, ToolCall) for item in step)
+        ):
+            return AICompletion(
+                status="complete",
+                text=None,
+                requested_calls=tuple(step),
                 provider_id=self.provider_id,
                 model_label=self.model_label,
             )
@@ -181,14 +224,18 @@ def _ids(catalog: tuple[dict[str, Any], ...]) -> dict[str, str]:
     }
 
 
-def _section(catalog: tuple[dict[str, Any], ...], tool: str, summary: str) -> dict[str, Any]:
+def _section(
+    catalog: tuple[dict[str, Any], ...], tool: str, summary: str
+) -> dict[str, Any]:
     ids = _ids(catalog)
     if tool not in ids:
         return {"summary": "Data unavailable.", "evidence_ids": [], "unavailable": True}
     return {"summary": summary, "evidence_ids": [ids[tool]], "unavailable": False}
 
 
-def _evidence(catalog: tuple[dict[str, Any], ...], tool: str, claim: str) -> dict[str, str] | None:
+def _evidence(
+    catalog: tuple[dict[str, Any], ...], tool: str, claim: str
+) -> dict[str, str] | None:
     ids = _ids(catalog)
     if tool not in ids:
         return None
@@ -219,7 +266,11 @@ def _happy_json(
         "financial_strength": _section(catalog, "dsp.financial_strength", "Strong."),
         "earnings_quality": _section(catalog, "dsp.earnings_quality", "High."),
         "growth_quality": _section(catalog, "dsp.growth_quality", "Strong growth."),
-        "industry": {"summary": "IT services.", "evidence_ids": [], "unavailable": False},
+        "industry": {
+            "summary": "IT services.",
+            "evidence_ids": [],
+            "unavailable": False,
+        },
         "risk": _section(catalog, "dsp.risk", "FX risk is listed."),
         "buffett_analysis": _section(
             catalog, "dsp.economic_moat", "Durable advantage with margin of safety."
@@ -258,17 +309,22 @@ def _orchestrator(
     backend: StubBackend | None = None,
     cheap: ScriptedProvider | None = None,
     premium: ScriptedProvider | None = None,
+    loop_limits: Any = None,
 ) -> ResearchOrchestrator:
     cheap = cheap or ScriptedProvider("deepseek", "deepseek-chat", script or ["json"])
     premium = premium or ScriptedProvider(
         "anthropic", "claude-3-5-sonnet-20241022", premium_script or ["json"]
     )
+    kwargs: dict[str, Any] = {}
+    if loop_limits is not None:
+        kwargs["loop_limits"] = loop_limits
     return ResearchOrchestrator(
         backend=backend or StubBackend(),
         providers={
             ModelTier.COST_EFFICIENT: cheap,
             ModelTier.PREMIUM: premium,
         },
+        **kwargs,
     )
 
 
@@ -333,7 +389,9 @@ def test_escalation_from_cost_efficient_failure() -> None:
 
 def test_provider_failure_fail_closed() -> None:
     cheap = ScriptedProvider("deepseek", "deepseek-chat", ["fail"])
-    premium = ScriptedProvider("anthropic", "claude-3-5-sonnet-20241022", ["unavailable"])
+    premium = ScriptedProvider(
+        "anthropic", "claude-3-5-sonnet-20241022", ["unavailable"]
+    )
     result = _orchestrator(cheap=cheap, premium=premium).run(_request())
     assert result.status is OrchestratorStatus.FAILED_CLOSED
     assert result.gate.outcome is GateOutcome.FAILED_CLOSED
@@ -343,7 +401,9 @@ def test_provider_failure_fail_closed() -> None:
 
 
 def test_tool_failure_fail_closed() -> None:
-    result = _orchestrator(backend=StubBackend(raise_on="recommendation")).run(_request())
+    result = _orchestrator(backend=StubBackend(raise_on="recommendation")).run(
+        _request()
+    )
     assert result.status is OrchestratorStatus.FAILED_CLOSED
     assert result.public.recommendation == "Unable to complete."
 
@@ -357,14 +417,18 @@ def test_malformed_ai_output_fail_closed() -> None:
 
 def test_missing_evidence_fail_closed() -> None:
     cheap = ScriptedProvider("deepseek", "deepseek-chat", ["missing_evidence"])
-    premium = ScriptedProvider("anthropic", "claude-3-5-sonnet-20241022", ["missing_evidence"])
+    premium = ScriptedProvider(
+        "anthropic", "claude-3-5-sonnet-20241022", ["missing_evidence"]
+    )
     result = _orchestrator(cheap=cheap, premium=premium).run(_request())
     assert result.status is OrchestratorStatus.FAILED_CLOSED
 
 
 def test_unsupported_claim_fail_closed() -> None:
     cheap = ScriptedProvider("deepseek", "deepseek-chat", ["unsupported"])
-    premium = ScriptedProvider("anthropic", "claude-3-5-sonnet-20241022", ["unsupported"])
+    premium = ScriptedProvider(
+        "anthropic", "claude-3-5-sonnet-20241022", ["unsupported"]
+    )
     result = _orchestrator(cheap=cheap, premium=premium).run(_request())
     assert result.status is OrchestratorStatus.FAILED_CLOSED
 
@@ -389,7 +453,9 @@ def test_privacy_leakage_rejected() -> None:
 
 def test_prompt_leakage_rejected() -> None:
     cheap = ScriptedProvider("deepseek", "deepseek-chat", ["prompt_leak"])
-    premium = ScriptedProvider("anthropic", "claude-3-5-sonnet-20241022", ["prompt_leak"])
+    premium = ScriptedProvider(
+        "anthropic", "claude-3-5-sonnet-20241022", ["prompt_leak"]
+    )
     result = _orchestrator(cheap=cheap, premium=premium).run(_request())
     assert result.status is OrchestratorStatus.FAILED_CLOSED
     assert PRIVATE_PROMPT_CANARY not in json.dumps(result.public.to_dict())
@@ -480,10 +546,14 @@ def test_unknown_ai_tool_does_not_fabricate() -> None:
         arguments={"symbol": "INFY"},
     )
     cheap = ScriptedProvider("deepseek", "deepseek-chat", [extra, "json"])
-    result = _orchestrator(cheap=cheap).run(_request())
+    premium = ScriptedProvider(
+        "anthropic", "claude-3-5-sonnet-20241022", [extra, "json"]
+    )
+    result = _orchestrator(cheap=cheap, premium=premium).run(_request())
     statuses = {row["tool_name"]: row["status"] for row in result.private.tool_calls}
     assert statuses["dsp.not_a_tool"] == "unknown_tool"
-    assert result.status is OrchestratorStatus.ACCEPTED
+    assert result.status is OrchestratorStatus.FAILED_CLOSED
+    assert result.public.recommendation == "Unable to complete."
 
 
 def test_spec_uses_only_public_manifest_tools() -> None:

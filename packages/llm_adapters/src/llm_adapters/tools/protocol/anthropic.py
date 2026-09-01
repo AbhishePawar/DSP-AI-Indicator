@@ -8,9 +8,13 @@ the follow-up user message.
 from __future__ import annotations
 
 import json
-from typing import Any, Mapping, Sequence
+from collections.abc import Mapping, Sequence
+from typing import Any
 
-from llm_adapters.tools.protocol.dispatcher import ToolCallBoundary, safe_provider_payload
+from llm_adapters.tools.protocol.dispatcher import (
+    ToolCallBoundary,
+    safe_provider_payload,
+)
 from llm_adapters.tools.protocol.models import (
     ToolCall,
     ToolCallError,
@@ -75,7 +79,11 @@ def _malformed(call_id: str, tool_name: str, message: str) -> ToolCallOutcome:
         status=ToolCallStatus.MALFORMED,
         result=None,
         error=ToolCallError(kind=ToolCallStatus.MALFORMED, message=message),
-        audit={"call_id": cid, "tool_name": tool_name or "unknown", "status": "malformed"},
+        audit={
+            "call_id": cid,
+            "tool_name": tool_name or "unknown",
+            "status": "malformed",
+        },
     )
 
 
@@ -94,6 +102,17 @@ def _extract_tool_use_blocks(payload: Any) -> tuple[list[Any] | None, str | None
     return None, "no tool_use found in payload"
 
 
+def anthropic_payload_contains_tool_use(payload: Any) -> bool:
+    """True when an Anthropic payload contains at least one tool_use block."""
+    extracted, _ = _extract_tool_use_blocks(payload)
+    if not extracted:
+        return False
+    return any(
+        isinstance(item, Mapping) and item.get("type") == "tool_use"
+        for item in extracted
+    )
+
+
 def parse_anthropic_tool_use(
     payload: Any,
     *,
@@ -102,12 +121,20 @@ def parse_anthropic_tool_use(
     allowed = frozenset(allowed_internal)
     extracted, extract_error = _extract_tool_use_blocks(payload)
     if extracted is None:
-        return [_malformed("malformed", "unknown", extract_error or "malformed tool_use payload")]
+        return [
+            _malformed(
+                "malformed", "unknown", extract_error or "malformed tool_use payload"
+            )
+        ]
     parsed: list[ToolCall | ToolCallOutcome] = []
     skipped_non_tool = 0
     for index, item in enumerate(extracted):
         if not isinstance(item, Mapping):
-            parsed.append(_malformed(f"malformed-{index}", "unknown", "content block is not an object"))
+            parsed.append(
+                _malformed(
+                    f"malformed-{index}", "unknown", "content block is not an object"
+                )
+            )
             continue
         block_type = item.get("type")
         if block_type == "text":
@@ -116,7 +143,11 @@ def parse_anthropic_tool_use(
         if block_type is not None and block_type != "tool_use":
             parsed.append(
                 _malformed(
-                    item.get("id") if isinstance(item.get("id"), str) else f"malformed-{index}",
+                    (
+                        item.get("id")
+                        if isinstance(item.get("id"), str)
+                        else f"malformed-{index}"
+                    ),
                     "unknown",
                     "content block is not tool_use",
                 )
@@ -127,7 +158,9 @@ def parse_anthropic_tool_use(
             continue
         call_id = item.get("id")
         if not isinstance(call_id, str) or not call_id:
-            parsed.append(_malformed(f"malformed-{index}", "unknown", "tool_use missing id"))
+            parsed.append(
+                _malformed(f"malformed-{index}", "unknown", "tool_use missing id")
+            )
             continue
         provider_name = item.get("name")
         if not isinstance(provider_name, str) or not provider_name:
@@ -145,7 +178,11 @@ def parse_anthropic_tool_use(
                         kind=ToolCallStatus.UNKNOWN_TOOL,
                         message="unknown or unapproved tool",
                     ),
-                    audit={"call_id": call_id, "tool_name": provider_name, "status": "unknown_tool"},
+                    audit={
+                        "call_id": call_id,
+                        "tool_name": provider_name,
+                        "status": "unknown_tool",
+                    },
                 )
             )
             continue
@@ -156,12 +193,18 @@ def parse_anthropic_tool_use(
             try:
                 raw_input = json.loads(raw_input)
             except json.JSONDecodeError:
-                parsed.append(_malformed(call_id, internal, "tool_use input is not valid JSON"))
+                parsed.append(
+                    _malformed(call_id, internal, "tool_use input is not valid JSON")
+                )
                 continue
         if not isinstance(raw_input, Mapping):
-            parsed.append(_malformed(call_id, internal, "tool_use input must be an object"))
+            parsed.append(
+                _malformed(call_id, internal, "tool_use input must be an object")
+            )
             continue
-        parsed.append(ToolCall(call_id=call_id, name=internal, arguments=dict(raw_input)))
+        parsed.append(
+            ToolCall(call_id=call_id, name=internal, arguments=dict(raw_input))
+        )
     if not parsed and skipped_non_tool:
         return [_malformed("malformed", "unknown", "no tool_use found in payload")]
     return parsed
@@ -188,8 +231,13 @@ def format_anthropic_tool_results(
 class AnthropicToolCalling:
     """Mixin for AnthropicAdapter — Anthropic tool-use format stays here."""
 
-    def tool_declarations(self, manifest: Sequence[Mapping[str, Any]]) -> list[dict[str, Any]]:
+    def tool_declarations(
+        self, manifest: Sequence[Mapping[str, Any]]
+    ) -> list[dict[str, Any]]:
         return declarations_as_anthropic_tools(manifest)
+
+    def payload_contains_tool_calls(self, payload: Any) -> bool:
+        return anthropic_payload_contains_tool_use(payload)
 
     def parse_tool_calls(
         self,
@@ -223,6 +271,7 @@ class AnthropicToolCalling:
 
 __all__ = [
     "AnthropicToolCalling",
+    "anthropic_payload_contains_tool_use",
     "declarations_as_anthropic_tools",
     "format_anthropic_tool_results",
     "parse_anthropic_tool_use",

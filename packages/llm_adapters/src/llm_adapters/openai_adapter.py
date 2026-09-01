@@ -12,7 +12,10 @@ import httpx
 from copilot.enums import LanguageModelStatus, UserIntentType
 from copilot.models import LanguageModelRequest, LanguageModelResult
 from llm_adapters.config import LLMPlatformConfig
-from llm_adapters.tools.protocol.openai_compatible import OpenAICompatibleToolCalling
+from llm_adapters.tools.protocol.openai_compatible import (
+    OpenAICompatibleToolCalling,
+    openai_payload_contains_tool_calls,
+)
 
 _PROVENANCE = ("llm_adapters.openai", "dsp.llm.openai.v1")
 
@@ -35,11 +38,31 @@ class OpenAIAdapter(OpenAICompatibleToolCalling):
         return bool(self._config.openai_api_key)
 
     def invoke(self, request: LanguageModelRequest) -> LanguageModelResult:
+        result, _ = self._chat(request, tools=None, allow_tool_only=False)
+        return result
+
+    def invoke_research(
+        self,
+        request: LanguageModelRequest,
+        *,
+        tools: Any = None,
+        tool_result_messages: Any = None,
+    ) -> tuple[LanguageModelResult, dict[str, Any] | None]:
+        del tool_result_messages
+        return self._chat(request, tools=tools, allow_tool_only=True)
+
+    def _chat(
+        self,
+        request: LanguageModelRequest,
+        *,
+        tools: Any,
+        allow_tool_only: bool,
+    ) -> tuple[LanguageModelResult, dict[str, Any] | None]:
         if not self.is_configured():
-            return self._unavailable("OPENAI_API_KEY not configured")
+            return self._unavailable("OPENAI_API_KEY not configured"), None
 
         prompt = "\n\n".join(request.prompt_parts)
-        payload = {
+        payload: dict[str, Any] = {
             "model": self.model_label,
             "messages": [
                 {"role": "system", "content": prompt.split("\n\n")[0]},
@@ -47,6 +70,8 @@ class OpenAIAdapter(OpenAICompatibleToolCalling):
             ],
             "temperature": 0.2,
         }
+        if tools:
+            payload["tools"] = tools
 
         try:
             with httpx.Client(timeout=self._config.request_timeout_seconds) as client:
@@ -61,18 +86,24 @@ class OpenAIAdapter(OpenAICompatibleToolCalling):
                 response.raise_for_status()
                 data = response.json()
         except Exception as exc:
-            return self._failed(str(exc))
+            return self._failed(str(exc)), None
 
+        if not isinstance(data, dict):
+            return self._failed("malformed OpenAI response"), None
         text = self._extract_text(data)
-        if not text:
-            return self._failed("empty OpenAI response")
-
-        return LanguageModelResult(
-            result_id=str(uuid.uuid4()),
-            status=LanguageModelStatus.COMPLETE,
-            provenance=_PROVENANCE,
-            narrative_text=text,
-            model_label=self.model_label,
+        has_tools = openai_payload_contains_tool_calls(data)
+        if not text and not (allow_tool_only and has_tools):
+            return self._failed("empty OpenAI response"), data
+        return (
+            LanguageModelResult(
+                result_id=str(uuid.uuid4()),
+                status=LanguageModelStatus.COMPLETE,
+                provenance=_PROVENANCE,
+                narrative_text=text,
+                structured_sections=() if text else ("tool_call",),
+                model_label=self.model_label,
+            ),
+            data,
         )
 
     def stream_invoke(self, request: LanguageModelRequest) -> Iterator[str]:
@@ -113,9 +144,7 @@ class OpenAIAdapter(OpenAICompatibleToolCalling):
                     except json.JSONDecodeError:
                         continue
                     delta = (
-                        chunk.get("choices", [{}])[0]
-                        .get("delta", {})
-                        .get("content")
+                        chunk.get("choices", [{}])[0].get("delta", {}).get("content")
                     )
                     if delta:
                         yield str(delta)

@@ -8,9 +8,10 @@ Provider HTTP stays in adapters. DSP engines stay behind ToolCallBoundary.
 
 from __future__ import annotations
 
+from collections.abc import Mapping
 from dataclasses import dataclass
 from enum import Enum
-from typing import Any, Mapping
+from typing import Any
 
 from llm_adapters.evaluation import (
     ErrorCategory,
@@ -20,13 +21,19 @@ from llm_adapters.evaluation import (
     TokenUsage,
 )
 from llm_adapters.model_catalog import ModelInfo, get_model_info
-from llm_adapters.model_tiers import DEFAULT_TIERS, ModelTier, TierConfig, get_tier_config
-from llm_adapters.orchestrator.evidence import (
-    evidence_catalog,
-    gather_specified_tools,
+from llm_adapters.model_tiers import (
+    DEFAULT_TIERS,
+    ModelTier,
+    TierConfig,
+    get_tier_config,
+)
+from llm_adapters.orchestrator.evidence import gather_specified_tools
+from llm_adapters.orchestrator.loop import (
+    DEFAULT_TOOL_LOOP_LIMITS,
+    ToolLoopLimits,
+    run_trusted_tool_loop,
 )
 from llm_adapters.orchestrator.provider import AICompletion, AIProvider
-from llm_adapters.orchestrator.research_prompt import build_research_prompt
 from llm_adapters.orchestrator.specification import (
     ResearchSpecification,
     UserResearchRequest,
@@ -45,11 +52,10 @@ from llm_adapters.privacy_boundary import (
 from llm_adapters.quality_gate import GateOutcome, GateVerdict, run_with_escalation
 from llm_adapters.routing import RoutingDecision, decide_routing
 from llm_adapters.tools.contract import DSPToolBackend
-from llm_adapters.tools.protocol.dispatcher import ToolCallBoundary, safe_provider_payload
+from llm_adapters.tools.protocol.dispatcher import ToolCallBoundary
 from llm_adapters.tools.protocol.models import ToolCallOutcome
 from llm_adapters.tools.registry import ToolRegistry
 
-_MAX_TOOL_ROUNDS = 3
 _PROVENANCE = "dsp.research.orchestrator.v1"
 
 
@@ -93,11 +99,15 @@ class ResearchOrchestrator:
         providers: Mapping[ModelTier, AIProvider],
         registry: ToolRegistry | None = None,
         tier_registry: Mapping[ModelTier, TierConfig] | None = None,
+        loop_limits: ToolLoopLimits | None = None,
     ) -> None:
         self._registry = registry or ToolRegistry.default()
         self._boundary = ToolCallBoundary(self._registry, backend)
         self._providers = dict(providers)
-        self._tier_registry = dict(tier_registry) if tier_registry is not None else dict(DEFAULT_TIERS)
+        self._tier_registry = (
+            dict(tier_registry) if tier_registry is not None else dict(DEFAULT_TIERS)
+        )
+        self._loop_limits = loop_limits or DEFAULT_TOOL_LOOP_LIMITS
         self._memory = _AttemptMemory()
 
     def run(self, request: UserResearchRequest) -> OrchestratorResult:
@@ -136,46 +146,36 @@ class ResearchOrchestrator:
                 ErrorCategory.PROVIDER_UNAVAILABLE,
                 structured=False,
             )
-        outcomes = list(self._memory.outcomes)
-        catalog = evidence_catalog(tuple(outcomes))
-        prompt = build_research_prompt(
-            spec,
-            evidence_catalog=catalog,
-            tool_manifest=self._boundary.public_manifest(),
+        loop = run_trusted_tool_loop(
+            provider=provider,
+            spec=spec,
+            boundary=self._boundary,
+            initial_outcomes=self._memory.outcomes,
+            limits=self._loop_limits,
         )
-        completion = provider.complete(
-            prompt_parts=prompt,
-            evidence_catalog=catalog,
-        )
-        rounds = 0
-        while completion.requested_calls and rounds < _MAX_TOOL_ROUNDS:
-            executed = self._boundary.execute_many(completion.requested_calls)
-            outcomes.extend(executed)
-            catalog = evidence_catalog(tuple(outcomes))
-            prompt = build_research_prompt(
-                spec,
-                evidence_catalog=catalog,
-                tool_manifest=self._boundary.public_manifest(),
-            )
-            tool_payloads = tuple(safe_provider_payload(item) for item in executed)
-            completion = provider.complete(
-                prompt_parts=prompt,
-                evidence_catalog=catalog,
-                prior_tool_results=tool_payloads,
-            )
-            rounds += 1
-
+        completion = loop.completion
         self._memory.completion = completion
-        self._memory.prompt = prompt
-        self._memory.outcomes = tuple(outcomes)
-        self._memory.catalog = catalog
+        self._memory.prompt = loop.prompt
+        self._memory.outcomes = loop.outcomes
+        self._memory.catalog = loop.catalog
         self._memory.identity = f"{provider.provider_id}:{provider.model_label}"
+
+        if loop.error_category is not ErrorCategory.NONE:
+            return self._eval(
+                identity,
+                spec.spec_id,
+                EvaluationStatus.FAILED,
+                loop.error_category,
+                structured=False,
+                latency_ms=completion.latency_ms,
+                usage=TokenUsage(completion.input_tokens, completion.output_tokens),
+            )
 
         if completion.status != "complete" or not completion.text:
             category = (
                 ErrorCategory.PROVIDER_UNAVAILABLE
                 if completion.status == "unavailable"
-                else ErrorCategory.UNKNOWN
+                else ErrorCategory.PROVIDER_FAILED
             )
             return self._eval(
                 identity,
@@ -189,8 +189,8 @@ class ResearchOrchestrator:
 
         validated = validate_research_output(
             completion.text,
-            outcomes=tuple(outcomes),
-            catalog=catalog,
+            outcomes=loop.outcomes,
+            catalog=loop.catalog,
         )
         self._memory.validation = validated
         if isinstance(validated, ValidationFailure):
@@ -228,9 +228,10 @@ class ResearchOrchestrator:
     ) -> OrchestratorResult:
         completion = self._memory.completion
         prompt_text = "\n\n".join(self._memory.prompt)
-        identity = self._memory.identity or get_tier_config(
-            verdict.tier, self._tier_registry
-        ).model_identity
+        identity = (
+            self._memory.identity
+            or get_tier_config(verdict.tier, self._tier_registry).model_identity
+        )
         provider_id, _, model = identity.partition(":")
         tool_calls = tuple(
             {"call_id": o.call_id, "tool_name": o.tool_name, "status": o.status.value}
@@ -247,7 +248,10 @@ class ResearchOrchestrator:
         ):
             public = self._memory.validation.pack
             status = OrchestratorStatus.ACCEPTED
-            internal_validation = {"outcome": verdict.outcome.value, "reason": verdict.reason}
+            internal_validation = {
+                "outcome": verdict.outcome.value,
+                "reason": verdict.reason,
+            }
         else:
             public = failed_closed_pack()
             status = OrchestratorStatus.FAILED_CLOSED
@@ -263,7 +267,9 @@ class ResearchOrchestrator:
             routing_tier=routing.routing_tier.value,
             routing_reasons=routing.routing_reasons,
             confidence_requirement=routing.confidence_requirement,
-            estimated_cost_usd=accepted.estimated_cost_usd if accepted is not None else 0.0,
+            estimated_cost_usd=(
+                accepted.estimated_cost_usd if accepted is not None else 0.0
+            ),
             input_tokens=usage_in,
             output_tokens=usage_out,
             latency_ms=latency,

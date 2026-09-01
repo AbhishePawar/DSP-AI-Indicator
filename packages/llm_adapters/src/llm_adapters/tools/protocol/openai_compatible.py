@@ -9,9 +9,13 @@ names and engines are not referenced except via the public manifest.
 from __future__ import annotations
 
 import json
-from typing import Any, Mapping, Sequence
+from collections.abc import Mapping, Sequence
+from typing import Any
 
-from llm_adapters.tools.protocol.dispatcher import ToolCallBoundary, safe_provider_payload
+from llm_adapters.tools.protocol.dispatcher import (
+    ToolCallBoundary,
+    safe_provider_payload,
+)
 from llm_adapters.tools.protocol.models import (
     ToolCall,
     ToolCallError,
@@ -113,7 +117,11 @@ def _extract_tool_call_dicts(payload: Any) -> tuple[list[Any] | None, str | None
     if isinstance(choices, list) and choices:
         first = choices[0]
         if isinstance(first, Mapping):
-            inner = first.get("message") if isinstance(first.get("message"), Mapping) else first
+            inner = (
+                first.get("message")
+                if isinstance(first.get("message"), Mapping)
+                else first
+            )
             if isinstance(inner, Mapping) and "tool_calls" in inner:
                 calls = inner.get("tool_calls")
                 if not isinstance(calls, list):
@@ -124,6 +132,12 @@ def _extract_tool_call_dicts(payload: Any) -> tuple[list[Any] | None, str | None
     return None, "no tool_calls found in payload"
 
 
+def openai_payload_contains_tool_calls(payload: Any) -> bool:
+    """True when an OpenAI-compatible payload actually requested tools."""
+    extracted, _ = _extract_tool_call_dicts(payload)
+    return bool(extracted)
+
+
 def _malformed(call_id: str, tool_name: str, message: str) -> ToolCallOutcome:
     cid = call_id or "malformed"
     return ToolCallOutcome(
@@ -132,7 +146,11 @@ def _malformed(call_id: str, tool_name: str, message: str) -> ToolCallOutcome:
         status=ToolCallStatus.MALFORMED,
         result=None,
         error=ToolCallError(kind=ToolCallStatus.MALFORMED, message=message),
-        audit={"call_id": cid, "tool_name": tool_name or "unknown", "status": "malformed"},
+        audit={
+            "call_id": cid,
+            "tool_name": tool_name or "unknown",
+            "status": "malformed",
+        },
     )
 
 
@@ -145,11 +163,19 @@ def parse_openai_tool_calls(
     allowed = frozenset(allowed_internal)
     extracted, extract_error = _extract_tool_call_dicts(payload)
     if extracted is None:
-        return [_malformed("malformed", "unknown", extract_error or "malformed tool-call payload")]
+        return [
+            _malformed(
+                "malformed", "unknown", extract_error or "malformed tool-call payload"
+            )
+        ]
     parsed: list[ToolCall | ToolCallOutcome] = []
     for index, item in enumerate(extracted):
         if not isinstance(item, Mapping):
-            parsed.append(_malformed(f"malformed-{index}", "unknown", "tool call is not an object"))
+            parsed.append(
+                _malformed(
+                    f"malformed-{index}", "unknown", "tool call is not an object"
+                )
+            )
             continue
         call_id = item.get("id")
         if not isinstance(call_id, str) or not call_id:
@@ -159,11 +185,15 @@ def parse_openai_tool_calls(
             continue
         function = item.get("function")
         if not isinstance(function, Mapping):
-            parsed.append(_malformed(call_id, "unknown", "tool call missing function object"))
+            parsed.append(
+                _malformed(call_id, "unknown", "tool call missing function object")
+            )
             continue
         provider_name = function.get("name")
         if not isinstance(provider_name, str) or not provider_name:
-            parsed.append(_malformed(call_id, "unknown", "tool call missing function name"))
+            parsed.append(
+                _malformed(call_id, "unknown", "tool call missing function name")
+            )
             continue
         internal = resolve_internal_name(provider_name, allowed_internal=allowed)
         if internal is None:
@@ -187,7 +217,9 @@ def parse_openai_tool_calls(
             continue
         arguments, arg_error = _coerce_arguments(function.get("arguments"))
         if arguments is None:
-            parsed.append(_malformed(call_id, internal, arg_error or "malformed arguments"))
+            parsed.append(
+                _malformed(call_id, internal, arg_error or "malformed arguments")
+            )
             continue
         parsed.append(ToolCall(call_id=call_id, name=internal, arguments=arguments))
     return parsed
@@ -217,8 +249,13 @@ class OpenAICompatibleToolCalling:
     adapters without duplicating protocol logic.
     """
 
-    def tool_declarations(self, manifest: Sequence[Mapping[str, Any]]) -> list[dict[str, Any]]:
+    def tool_declarations(
+        self, manifest: Sequence[Mapping[str, Any]]
+    ) -> list[dict[str, Any]]:
         return declarations_as_openai_tools(manifest)
+
+    def payload_contains_tool_calls(self, payload: Any) -> bool:
+        return openai_payload_contains_tool_calls(payload)
 
     def parse_tool_calls(
         self,
@@ -254,5 +291,6 @@ __all__ = [
     "OpenAICompatibleToolCalling",
     "declarations_as_openai_tools",
     "format_openai_tool_messages",
+    "openai_payload_contains_tool_calls",
     "parse_openai_tool_calls",
 ]

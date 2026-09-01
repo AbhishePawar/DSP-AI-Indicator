@@ -18,7 +18,10 @@ import httpx
 from copilot.enums import LanguageModelStatus
 from copilot.models import LanguageModelRequest, LanguageModelResult
 from llm_adapters.config import LLMPlatformConfig
-from llm_adapters.tools.protocol.gemini import GeminiToolCalling
+from llm_adapters.tools.protocol.gemini import (
+    GeminiToolCalling,
+    gemini_payload_contains_function_calls,
+)
 
 _PROVENANCE = ("llm_adapters.gemini", "dsp.llm.gemini.v1")
 _BASE_URL = "https://generativelanguage.googleapis.com/v1beta/models"
@@ -41,11 +44,31 @@ class GeminiAdapter(GeminiToolCalling):
         return bool(self._config.gemini_api_key)
 
     def invoke(self, request: LanguageModelRequest) -> LanguageModelResult:
+        result, _ = self._generate(request, tools=None, allow_tool_only=False)
+        return result
+
+    def invoke_research(
+        self,
+        request: LanguageModelRequest,
+        *,
+        tools: Any = None,
+        tool_result_messages: Any = None,
+    ) -> tuple[LanguageModelResult, dict[str, Any] | None]:
+        del tool_result_messages
+        return self._generate(request, tools=tools, allow_tool_only=True)
+
+    def _generate(
+        self,
+        request: LanguageModelRequest,
+        *,
+        tools: Any,
+        allow_tool_only: bool,
+    ) -> tuple[LanguageModelResult, dict[str, Any] | None]:
         if not self.is_configured():
-            return self._unavailable("GEMINI_API_KEY not configured")
+            return self._unavailable("GEMINI_API_KEY not configured"), None
 
         if not request.prompt_parts:
-            return self._failed("empty prompt parts")
+            return self._failed("empty prompt parts"), None
 
         system_content, *user_parts = request.prompt_parts
         user_text = "\n\n".join(user_parts)
@@ -64,6 +87,8 @@ class GeminiAdapter(GeminiToolCalling):
                 "role": "system",
                 "parts": [{"text": system_content}],
             }
+        if tools:
+            payload["tools"] = [tools] if isinstance(tools, dict) else tools
 
         try:
             with httpx.Client(timeout=self._config.request_timeout_seconds) as client:
@@ -78,20 +103,26 @@ class GeminiAdapter(GeminiToolCalling):
                 response.raise_for_status()
                 data = response.json()
         except httpx.HTTPError as exc:
-            return self._failed(f"http_error: {exc.__class__.__name__}")
+            return self._failed(f"http_error: {exc.__class__.__name__}"), None
         except (ValueError, KeyError) as exc:
-            return self._failed(f"malformed_response: {exc.__class__.__name__}")
+            return self._failed(f"malformed_response: {exc.__class__.__name__}"), None
 
+        if not isinstance(data, dict):
+            return self._failed("malformed_response: TypeError"), None
         text = self._extract_text(data)
-        if not text:
-            return self._failed("empty Gemini response")
-
-        return LanguageModelResult(
-            result_id=str(uuid.uuid4()),
-            status=LanguageModelStatus.COMPLETE,
-            provenance=_PROVENANCE,
-            narrative_text=text,
-            model_label=self.model_label,
+        has_tools = gemini_payload_contains_function_calls(data)
+        if not text and not (allow_tool_only and has_tools):
+            return self._failed("empty Gemini response"), data
+        return (
+            LanguageModelResult(
+                result_id=str(uuid.uuid4()),
+                status=LanguageModelStatus.COMPLETE,
+                provenance=_PROVENANCE,
+                narrative_text=text,
+                structured_sections=() if text else ("tool_call",),
+                model_label=self.model_label,
+            ),
+            data,
         )
 
     def stream_invoke(self, request: LanguageModelRequest) -> Iterator[str]:

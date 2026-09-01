@@ -8,26 +8,30 @@ from __future__ import annotations
 
 import json
 import re
+from collections.abc import Mapping
 from dataclasses import dataclass
 from enum import Enum
-from typing import Any, Mapping
+from typing import Any
 
 from pydantic import ValidationError
 
 from llm_adapters.evaluation import ErrorCategory
+from llm_adapters.orchestrator.evidence import ok_payload, outcomes_by_tool
 from llm_adapters.orchestrator.research_prompt import PRIVATE_PROMPT_CANARY
 from llm_adapters.orchestrator.schema import (
-    AIResearchOutput,
     EVIDENCE_REQUIRED_SECTIONS,
     REQUIRED_SECTIONS,
+    AIResearchOutput,
 )
-from llm_adapters.orchestrator.evidence import ok_payload, outcomes_by_tool
 from llm_adapters.privacy_boundary import (
     PublicDecisionPack,
     assert_no_private_leakage,
 )
 from llm_adapters.tools.protocol.models import ToolCallOutcome, ToolCallStatus
-from llm_adapters.tools.protocol.privacy import ProtocolPrivacyError, assert_provider_envelope_private_free
+from llm_adapters.tools.protocol.privacy import (
+    ProtocolPrivacyError,
+    assert_provider_envelope_private_free,
+)
 
 
 class ValidationFailureKind(str, Enum):
@@ -127,11 +131,13 @@ def parse_structured_output(raw: str | None) -> AIResearchOutput | ValidationFai
         return ValidationFailure(
             kind=ValidationFailureKind.MALFORMED_OUTPUT,
             message="AI output failed schema validation",
-            error_category=ErrorCategory.SCHEMA_FAILURE,
+            error_category=ErrorCategory.INVALID_AI_OUTPUT,
         )
 
 
-def _fail(kind: ValidationFailureKind, message: str, category: ErrorCategory) -> ValidationFailure:
+def _fail(
+    kind: ValidationFailureKind, message: str, category: ErrorCategory
+) -> ValidationFailure:
     return ValidationFailure(kind=kind, message=message, error_category=category)
 
 
@@ -151,7 +157,7 @@ def validate_research_output(
         return _fail(
             ValidationFailureKind.MISSING_SECTION,
             "required research sections missing",
-            ErrorCategory.SCHEMA_FAILURE,
+            ErrorCategory.VALIDATION_FAILED,
         )
 
     catalog_ids = {str(item["id"]) for item in catalog}
@@ -202,14 +208,14 @@ def validate_research_output(
         return _fail(
             ValidationFailureKind.TOOL_UNAVAILABLE,
             "investment recommendation unavailable",
-            ErrorCategory.TOOL_FAILURE,
+            ErrorCategory.TOOL_UNAVAILABLE,
         )
     dsp_decision = str(rec_payload.get("decision") or "").strip()
     if not dsp_decision:
         return _fail(
             ValidationFailureKind.TOOL_UNAVAILABLE,
             "investment recommendation missing decision",
-            ErrorCategory.TOOL_FAILURE,
+            ErrorCategory.TOOL_UNAVAILABLE,
         )
     if output.recommendation.strip().lower() != dsp_decision.lower():
         return _fail(
@@ -243,7 +249,11 @@ def validate_research_output(
                 known.add(_format_number(mos["margin_of_safety"]))
             if rec_payload.get("confidence") is not None:
                 known.add(_format_number(rec_payload["confidence"]))
-            invented = {n for n in summary_numbers if n not in known and not _is_trivial_number(n)}
+            invented = {
+                n
+                for n in summary_numbers
+                if n not in known and not _is_trivial_number(n)
+            }
             # Allow the canonical IV to appear; reject unrelated invented figures.
             if invented and _format_number(iv) not in summary_numbers:
                 return _fail(
@@ -264,14 +274,14 @@ def validate_research_output(
         return _fail(
             ValidationFailureKind.PRIVACY,
             "public pack failed privacy validation",
-            ErrorCategory.UNKNOWN,
+            ErrorCategory.PRIVACY_VIOLATION,
         )
     dumped = json.dumps(pack.to_dict())
     if PRIVATE_PROMPT_CANARY in dumped:
         return _fail(
             ValidationFailureKind.PRIVACY,
             "private prompt leaked into public pack",
-            ErrorCategory.UNKNOWN,
+            ErrorCategory.PRIVACY_VIOLATION,
         )
     return ValidationSuccess(output=output, pack=pack)
 
@@ -323,19 +333,21 @@ def _build_public_pack(
 def _privacy_scan(output: AIResearchOutput) -> ValidationFailure | None:
     blob = output.model_dump()
     try:
-        assert_provider_envelope_private_free({"result": blob, "tool_name": "orchestrator"})
+        assert_provider_envelope_private_free(
+            {"result": blob, "tool_name": "orchestrator"}
+        )
     except (ProtocolPrivacyError, ValueError):
         return _fail(
             ValidationFailureKind.PRIVACY,
             "AI output failed privacy validation",
-            ErrorCategory.UNKNOWN,
+            ErrorCategory.PRIVACY_VIOLATION,
         )
     text = json.dumps(blob)
     if PRIVATE_PROMPT_CANARY in text:
         return _fail(
             ValidationFailureKind.PRIVACY,
             "private prompt echoed in AI output",
-            ErrorCategory.UNKNOWN,
+            ErrorCategory.PRIVACY_VIOLATION,
         )
     lowered = text.lower()
     for token in ("api_key", "chain_of_thought", "routing_reasons", "internal_prompt"):
@@ -343,7 +355,7 @@ def _privacy_scan(output: AIResearchOutput) -> ValidationFailure | None:
             return _fail(
                 ValidationFailureKind.PRIVACY,
                 "private field echoed in AI output",
-                ErrorCategory.UNKNOWN,
+                ErrorCategory.PRIVACY_VIOLATION,
             )
     return None
 

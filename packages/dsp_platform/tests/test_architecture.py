@@ -25,6 +25,14 @@ _FORBIDDEN = frozenset(
         "security_platform",
     ]
 )
+# ASI-003 additive allowlist — freeze one already-shipping P1-01 composition edge.
+# Pair is (posix path relative to dsp_platform src, forbidden top-level package).
+# "fundamental" stays forbidden in every other dsp_platform module.
+_FORBIDDEN_IMPORT_ALLOWLIST: frozenset[tuple[str, str]] = frozenset(
+    {
+        ("composition/authenticated_valuation.py", "fundamental"),
+    }
+)
 _EXPECTED_VERSION = "2.0.0"
 _EXPECTED_DEPS = [
     "comparison",
@@ -83,10 +91,25 @@ class TestDspPlatformArchitecture:
     def test_no_forbidden_imports(self) -> None:
         violations: list[str] = []
         for path in _SRC.rglob("*.py"):
-            bad = _imported_top_levels(_read(path)) & _FORBIDDEN
+            rel = path.relative_to(_SRC).as_posix()
+            imported = _imported_top_levels(_read(path))
+            bad = {
+                name
+                for name in (imported & _FORBIDDEN)
+                if (rel, name) not in _FORBIDDEN_IMPORT_ALLOWLIST
+            }
             if bad:
-                violations.append(f"{path.relative_to(_SRC)}: {sorted(bad)}")
+                violations.append(f"{rel}: {sorted(bad)}")
         assert violations == [], violations
+
+    def test_authenticated_valuation_fundamental_allowlist_is_narrow(self) -> None:
+        """P1-01 may import fundamental.FinancialSnapshot in exactly one file."""
+        rel = "composition/authenticated_valuation.py"
+        path = _SRC / Path(*rel.split("/"))
+        imported = _imported_top_levels(_read(path))
+        assert frozenset({(rel, "fundamental")}) == _FORBIDDEN_IMPORT_ALLOWLIST
+        assert "fundamental" in imported
+        assert (imported & _FORBIDDEN) - {"fundamental"} == frozenset()
 
     def test_declared_dependencies(self) -> None:
         import tomllib

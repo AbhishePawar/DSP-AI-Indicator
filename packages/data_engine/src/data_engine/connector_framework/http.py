@@ -15,7 +15,10 @@ adapter that uses this client.
 from __future__ import annotations
 
 import json
+import os
 from collections.abc import Mapping
+from functools import lru_cache
+from pathlib import Path
 from typing import Any, Protocol
 from urllib.error import HTTPError
 from urllib.parse import urlencode
@@ -23,7 +26,54 @@ from urllib.request import Request, urlopen
 
 from data_engine.exceptions import ProviderRequestError
 
-__all__ = ["JsonHttpClient", "UrllibJsonHttpClient"]
+__all__ = ["JsonHttpClient", "UrllibJsonHttpClient", "application_user_agent"]
+
+# Matches production_platform.resolve_application_version (env → VERSION → 1.0.0).
+# data_engine cannot import production_platform (architecture allowlist).
+_DEFAULT_APPLICATION_VERSION = "1.0.0"
+
+
+def _normalize_version(raw: str | None) -> str | None:
+    if raw is None:
+        return None
+    value = raw.strip()
+    if not value:
+        return None
+    if value.lower().startswith("v") and len(value) > 1 and value[1].isdigit():
+        value = value[1:]
+    return value
+
+
+@lru_cache(maxsize=1)
+def _read_version_file() -> str | None:
+    here = Path(__file__).resolve()
+    for parent in here.parents:
+        candidate = parent / "VERSION"
+        if candidate.is_file():
+            try:
+                text = candidate.read_text(encoding="utf-8").splitlines()
+            except OSError:
+                return None
+            if not text:
+                return None
+            return _normalize_version(text[0])
+    return None
+
+
+def _resolve_application_version() -> str:
+    for key in ("DSP_APP_VERSION", "DSP_SERVICE_VERSION"):
+        found = _normalize_version(os.environ.get(key))
+        if found:
+            return found
+    file_version = _read_version_file()
+    if file_version:
+        return file_version
+    return _DEFAULT_APPLICATION_VERSION
+
+
+def application_user_agent() -> str:
+    """Honest product User-Agent — not a browser or Python-urllib signature."""
+    return f"DSP-AI-Indicator/{_resolve_application_version()}"
 
 
 class JsonHttpClient(Protocol):
@@ -85,7 +135,13 @@ class UrllibJsonHttpClient:
         headers: Mapping[str, str] | None = None,
     ) -> Any:
         full_url = url if not params else f"{url}?{urlencode(params)}"
-        merged_headers = {**self._default_headers, **(headers or {})}
+        # Implicit DSP UA is lowest priority so default_headers and caller
+        # headers keep the existing override contract (e.g. SEC User-Agent).
+        merged_headers = {
+            "User-Agent": application_user_agent(),
+            **self._default_headers,
+            **(headers or {}),
+        }
         request = Request(full_url, headers=merged_headers, method="GET")
         try:
             with urlopen(request, timeout=self._timeout_seconds) as response:

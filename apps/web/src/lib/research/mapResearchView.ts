@@ -35,6 +35,10 @@ import {
   mapValuationTransparency,
   type ValuationTransparencyView,
 } from "@/lib/valuation-transparency";
+import {
+  mapCanonicalMoatDimensions,
+  type CanonicalMoatDimensionView,
+} from "@/lib/research/canonicalMoatDimensions";
 
 export type StageSectionView = {
   stage: string;
@@ -85,6 +89,11 @@ export type ResearchView = IntelligenceView & {
   valuationTransparency: ValuationTransparencyView;
   /** Composition Risk stage — structural aggregation of existing engines only. */
   risk: CompanyRiskPayload | null;
+  /**
+   * Frozen six-row Economic Moat dimensions from the public DSP contract.
+   * Copied when present; never derived from overall moat or client X/10 math.
+   */
+  canonicalMoatDimensions: CanonicalMoatDimensionView[];
 };
 
 function stageOrEmpty(
@@ -108,6 +117,11 @@ function money(value: unknown): string {
     });
   }
   return "Unavailable";
+}
+
+function readEconomicMoatDimensionsField(payload: unknown): unknown {
+  if (!payload || typeof payload !== "object") return null;
+  return (payload as Record<string, unknown>).economic_moat_dimensions ?? null;
 }
 
 function toSection(
@@ -285,6 +299,9 @@ export function mapResearchView(
     recommendationStage,
     committee,
     risk: (response.payload?.risk as CompanyRiskPayload | null | undefined) ?? null,
+    canonicalMoatDimensions: mapCanonicalMoatDimensions(
+      readEconomicMoatDimensionsField(response.payload),
+    ).dimensions,
   };
   const withBuffett = {
     ...draft,

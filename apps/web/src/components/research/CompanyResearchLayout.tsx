@@ -8,6 +8,7 @@ import { MetricsPanel } from "@/components/intelligence/EvidencePanels";
 import { PipelineTimeline } from "@/components/intelligence/PipelineTimeline";
 import { Card, CardBody, CardHeader } from "@/components/ui/Card";
 import type { ResearchView } from "@/lib/research/mapResearchView";
+import { CanonicalMoatDimensionsSection } from "./CanonicalMoatDimensionsSection";
 import { CompanyHeader } from "./CompanyHeader";
 import { MetricGrid, ResearchSection } from "./ResearchSection";
 import { ResearchSidebar } from "./ResearchSidebar";
@@ -89,6 +90,11 @@ export function CompanyResearchLayout({ view }: { view: ResearchView }) {
             ]}
           />
         </ResearchSection>
+
+        <CanonicalMoatDimensionsSection
+          dimensions={view.canonicalMoatDimensions}
+          overallMoat={view.moat}
+        />
 
         <ResearchSection
           id="business-quality"

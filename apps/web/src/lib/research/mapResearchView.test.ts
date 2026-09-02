@@ -137,6 +137,22 @@ describe("mapResearchView", () => {
     expect(view.committee.finalRecommendation).toBe("BUY");
     expect(view.committee.supportingReasons.length).toBeGreaterThan(0);
     expect(view.stages).toHaveLength(10);
+    expect(view.canonicalMoatDimensions).toHaveLength(6);
+    expect(view.canonicalMoatDimensions.map((d) => d.identifier)).toEqual([
+      "brand",
+      "network_effects",
+      "switching_costs",
+      "cost_advantage",
+      "intangible_assets",
+      "efficient_scale",
+    ]);
+    expect(
+      view.canonicalMoatDimensions.every((d) => d.displayRating === "N/A"),
+    ).toBe(true);
+    expect(view.moat.label).toBe("Wide");
+    expect(view.canonicalMoatDimensions[0]?.displayRating).not.toBe(
+      view.moat.score,
+    );
   });
 
   it("RC3-001 — does not alias Management/Moat into Business Quality metrics", () => {
@@ -157,6 +173,40 @@ describe("mapResearchView", () => {
     );
     expect(byLabel["Franchise Durability"]).not.toBe(view.moat.label);
     expect(byLabel["Industry Structure"]).not.toBe(view.moat.decision);
+  });
+
+  it("copies DSP presentation_rating_10 when economic_moat_dimensions is supplied", () => {
+    const response = sampleResponse();
+    response.payload.economic_moat_dimensions = [
+      {
+        identifier: "brand",
+        presentation_rating_10: "7.6/10",
+        presentation_rating_status: "assessed",
+        canonical_score_100: 76,
+        engine_status: "assessed",
+      },
+    ];
+    const view = mapResearchView(
+      response,
+      SAMPLE_ANALYSE_REQUEST,
+      "2026-07-27T00:00:00.000Z",
+    );
+    expect(view.canonicalMoatDimensions[0]?.displayRating).toBe("7.6/10");
+    expect(view.canonicalMoatDimensions[1]?.displayRating).toBe("N/A");
+    expect(view.moat.label).toBe("Wide");
+  });
+
+  it("does not fill missing dimensions from the overall economic_moat stage", () => {
+    const view = mapResearchView(
+      sampleResponse(),
+      SAMPLE_ANALYSE_REQUEST,
+      "2026-07-27T00:00:00.000Z",
+    );
+    expect(view.moat.label).toBe("Wide");
+    expect(view.moat.score).not.toBe("N/A");
+    expect(
+      view.canonicalMoatDimensions.every((d) => d.displayRating === "N/A"),
+    ).toBe(true);
   });
 });
 

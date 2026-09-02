@@ -243,13 +243,16 @@ class UpstoxInstrumentResolver:
                 retrieved_at=retrieved_at,
             )
 
-        params = {
-            "query": query,
-            "exchanges": "NSE,BSE",
-            "segments": "EQ",
-            "page_number": "1",
-            "records": "30",
-        }
+        # Match the Upstox search contract proven from Cloud Run: query + exchanges
+        # only. Extra keys (segments/page_number/records) and always-on NSE,BSE
+        # are not part of that request. When the caller supplies NSE or BSE,
+        # send that exchange exactly (TCS/NSE → exchanges=NSE).
+        preferred = str(request.preferred_exchange or "").strip().upper() or None
+        params = {"query": query}
+        if preferred in {"NSE", "BSE"}:
+            params["exchanges"] = preferred
+        else:
+            params["exchanges"] = "NSE,BSE"
         started = time.perf_counter()
         try:
             payload = self._client().get_json(
@@ -307,7 +310,6 @@ class UpstoxInstrumentResolver:
         ]
         pool = exact if exact else []
 
-        preferred = str(request.preferred_exchange or "").strip().upper() or None
         if preferred:
             pool = [c for c in pool if c.exchange == preferred]
 

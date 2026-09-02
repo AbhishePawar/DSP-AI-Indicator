@@ -185,6 +185,36 @@ def test_tcs_preferred_exchange_resolves_uniquely() -> None:
     assert result.identity.isin == "INE467B01029"
 
 
+def test_preferred_nse_search_matches_known_good_query_contract() -> None:
+    """TCS/NSE must hit Upstox as query=TCS&exchanges=NSE — no extra keys."""
+    http = _FakeSearchHttp(
+        {"TCS": {"status": "success", "data": _FIXTURES["TCS"]}}
+    )
+    resolver = UpstoxInstrumentResolver(access_token="tok", http_client=http)
+    result = resolver.resolve(
+        UpstoxResolveRequest(symbol="TCS", preferred_exchange="NSE")
+    )
+    assert result.status == "RESOLVED"
+    assert len(http.calls) == 1
+    assert http.calls[0]["params"] == {"query": "TCS", "exchanges": "NSE"}
+    assert "Authorization" in http.calls[0]["headers"]
+    assert http.calls[0]["headers"]["Accept"] == "application/json"
+
+
+def test_unqualified_search_does_not_send_undocumented_paging_keys() -> None:
+    http = _FakeSearchHttp(
+        {"TCS": {"status": "success", "data": _FIXTURES["TCS"]}}
+    )
+    resolver = UpstoxInstrumentResolver(access_token="tok", http_client=http)
+    result = resolver.resolve("TCS")
+    assert result.status == "AMBIGUOUS"
+    params = http.calls[0]["params"]
+    assert params == {"query": "TCS", "exchanges": "NSE,BSE"}
+    assert "segments" not in params
+    assert "page_number" not in params
+    assert "records" not in params
+
+
 def test_unknown_symbol_not_found() -> None:
     http = _FakeSearchHttp({"ZZZZZZ": {"status": "success", "data": []}})
     resolver = UpstoxInstrumentResolver(access_token="tok", http_client=http)

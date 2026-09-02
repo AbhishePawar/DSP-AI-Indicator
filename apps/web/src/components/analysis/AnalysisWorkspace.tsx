@@ -108,7 +108,7 @@ function AnalysisWorkspaceBody({
 }) {
   return (
     <div className="relative pb-20">
-      <div className="sticky top-14 z-20 mb-4 space-y-2 border-b border-[var(--border)] bg-[var(--surface)]/95 p-3 backdrop-blur motion-reduce:backdrop-blur-none md:hidden">
+      <div className="sticky top-14 z-20 mb-4 space-y-2 border-b border-[var(--border)] bg-[var(--surface)]/95 p-3 backdrop-blur motion-reduce:backdrop-blur-none lg:hidden">
         <p className="text-xs text-[var(--muted)]">
           {presentFieldLabel("recommendation")}
         </p>
@@ -147,15 +147,15 @@ function AnalysisWorkspaceBody({
       <div className="flex gap-8">
         <AnalysisToc />
         <div className="min-w-0 flex-1 space-y-2">
-          <div className="grid gap-4 lg:grid-cols-2">
+          <div className="grid gap-4 grid-cols-1 md:grid-cols-2">
             <ResearchCoverageCard coverage={view.coverage} />
             <ResearchFreshnessCard freshness={view.freshness} />
           </div>
-          <div className="grid gap-4 lg:grid-cols-2">
+          <div className="grid gap-4 grid-cols-1 md:grid-cols-2">
             <ConfidenceMatrix matrix={view.confidenceMatrix} />
             <ResearchTimeline timeline={view.researchTimeline} />
           </div>
-          <div className="grid gap-4 lg:grid-cols-2">
+          <div className="grid gap-4 grid-cols-1 md:grid-cols-2">
             <MethodologyCard methodology={view.methodologyPanel} />
             <TransparencyPanel panel={view.transparencyPanel} />
           </div>

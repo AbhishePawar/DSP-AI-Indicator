@@ -2,7 +2,6 @@
 
 import { memo } from "react";
 
-import { Card, CardBody, CardHeader } from "@/components/ui/Card";
 import type { MethodologyPanelView, TransparencyPanelView } from "@/lib/analysis/types";
 import { TraceLink } from "@/components/analysis/TraceLink";
 
@@ -12,22 +11,26 @@ export const MethodologyCard = memo(function MethodologyCard({
   methodology: MethodologyPanelView;
 }) {
   return (
-    <Card id="methodology_panel">
-      <CardHeader
-        title="Methodology Panel"
-        description="Versions that produced this research presentation"
-      />
-      <CardBody className="space-y-3 text-sm">
-        <Field label="Research methodology" text={methodology.researchMethodology} />
-        <Field label="Analysis version" text={methodology.analysisVersion} />
-        <Field label="Calculation version" text={methodology.calculationVersion} />
-        <Field label="Presentation version" text={methodology.presentationVersion} />
-        <Field label="Compliance version" text={methodology.complianceVersion} />
-        <p className="text-xs text-[var(--muted)]">
-          Linked from <TraceLink href="#decision_trace">Decision Trace</TraceLink>
+    <section id="methodology_panel" className="space-y-4">
+      <div className="border-b border-[var(--border)] pb-3">
+        <h3 className="font-[family-name:var(--font-display)] text-base tracking-tight text-[var(--fg)]">
+          Methodology Panel
+        </h3>
+        <p className="mt-0.5 text-xs text-[var(--muted)]">
+          Versions that produced this research presentation
         </p>
-      </CardBody>
-    </Card>
+      </div>
+      <div className="divide-y divide-[var(--border)] text-sm">
+        <FieldRow label="Research methodology" text={methodology.researchMethodology} />
+        <FieldRow label="Analysis version" text={methodology.analysisVersion} />
+        <FieldRow label="Calculation version" text={methodology.calculationVersion} />
+        <FieldRow label="Presentation version" text={methodology.presentationVersion} />
+        <FieldRow label="Compliance version" text={methodology.complianceVersion} />
+      </div>
+      <p className="text-xs text-[var(--muted)]">
+        Linked from <TraceLink href="#decision_trace">Decision Trace</TraceLink>
+      </p>
+    </section>
   );
 });
 
@@ -37,12 +40,16 @@ export const TransparencyPanel = memo(function TransparencyPanel({
   panel: TransparencyPanelView;
 }) {
   return (
-    <Card id="transparency_panel">
-      <CardHeader
-        title="Transparency Panel"
-        description="Known unknowns, estimates, AI-generated sections, and external sources"
-      />
-      <CardBody className="grid gap-4 sm:grid-cols-2 text-sm">
+    <section id="transparency_panel" className="space-y-4">
+      <div className="border-b border-[var(--border)] pb-3">
+        <h3 className="font-[family-name:var(--font-display)] text-base tracking-tight text-[var(--fg)]">
+          Transparency Panel
+        </h3>
+        <p className="mt-0.5 text-xs text-[var(--muted)]">
+          Known unknowns, estimates, AI-generated sections, and external sources
+        </p>
+      </div>
+      <div className="grid gap-5 sm:grid-cols-2 text-sm">
         <List label="Known unknowns" items={panel.knownUnknowns} />
         <List label="Unavailable data" items={panel.unavailableData} />
         <List label="Estimated fields" items={panel.estimatedFields} />
@@ -50,16 +57,16 @@ export const TransparencyPanel = memo(function TransparencyPanel({
         <div className="sm:col-span-2">
           <List label="External sources" items={panel.externalSources} />
         </div>
-      </CardBody>
-    </Card>
+      </div>
+    </section>
   );
 });
 
-function Field({ label, text }: { label: string; text: string }) {
+function FieldRow({ label, text }: { label: string; text: string }) {
   return (
-    <div>
-      <p className="text-xs font-medium uppercase tracking-wide text-[var(--muted)]">{label}</p>
-      <p className="mt-1">{text}</p>
+    <div className="flex items-baseline justify-between gap-4 py-2 first:pt-0 last:pb-0">
+      <p className="text-xs text-[var(--muted)] shrink-0">{label}</p>
+      <p className="text-sm font-medium text-[var(--fg)] text-right">{text}</p>
     </div>
   );
 }
@@ -67,12 +74,19 @@ function Field({ label, text }: { label: string; text: string }) {
 function List({ label, items }: { label: string; items: string[] }) {
   return (
     <div>
-      <p className="text-xs font-medium uppercase tracking-wide text-[var(--muted)]">{label}</p>
-      <ul className="mt-1 list-disc pl-5 text-[var(--muted)]">
-        {items.map((i) => (
-          <li key={i}>{i}</li>
-        ))}
-      </ul>
+      <p className="text-xs font-semibold uppercase tracking-widest text-[var(--muted)] mb-2">{label}</p>
+      {items.length > 0 ? (
+        <ul className="space-y-1">
+          {items.map((i) => (
+            <li key={i} className="flex gap-2 text-sm text-[var(--muted)]">
+              <span className="mt-1.5 inline-block h-1 w-1 rounded-full bg-[var(--border)] shrink-0" aria-hidden />
+              {i}
+            </li>
+          ))}
+        </ul>
+      ) : (
+        <p className="text-sm text-[var(--muted)]">None</p>
+      )}
     </div>
   );
 }

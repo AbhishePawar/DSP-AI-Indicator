@@ -1,11 +1,10 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import { MarketDataCard } from "@/components/market/MarketDataCard";
 import type { ResearchView } from "@/lib/research/mapResearchView";
 import { Badge } from "@/components/ui/Badge";
-import { Card, CardBody } from "@/components/ui/Card";
 import { AddToPortfolioButton } from "@/components/portfolio/AddToPortfolioButton";
 import { COMPANY_CATALOGUE } from "@/lib/companies/catalogue";
 import { formatPct } from "@/lib/intelligence/mapResponse";
@@ -19,6 +18,15 @@ export function CompanyHeader({ view }: { view: ResearchView }) {
     (c) => c.ticker.toUpperCase() === view.ticker.toUpperCase(),
   );
 
+  const [analysedAtLabel, setAnalysedAtLabel] = useState<string>("—");
+  useEffect(() => {
+    if (view.analysedAt) {
+      setAnalysedAtLabel(new Date(view.analysedAt).toLocaleString());
+    } else {
+      setAnalysedAtLabel("—");
+    }
+  }, [view.analysedAt]);
+
   useEffect(() => {
     if (recorded.current === view.ticker) return;
     recorded.current = view.ticker;
@@ -26,65 +34,91 @@ export function CompanyHeader({ view }: { view: ResearchView }) {
   }, [view.ticker, view.company, recordResearchOpened]);
 
   return (
-    <div className="space-y-4">
-      <Card>
-        <CardBody className="flex flex-wrap items-start justify-between gap-4">
-          <div>
-            <div className="flex flex-wrap items-center gap-2">
-              <p className="text-xs uppercase tracking-wider text-[var(--muted)]">
-                Company Research
-              </p>
+    <div className="space-y-6">
+      {/* Company identity block — no card, let whitespace do the work */}
+      <div className="border-b border-[var(--border)] pb-6">
+        <div className="flex flex-col gap-6 sm:flex-row sm:flex-wrap sm:items-start sm:justify-between">
+          {/* Left: identity */}
+          <div className="min-w-0">
+            <div className="flex flex-wrap items-center gap-2 mb-2">
+              <span className="text-xs font-semibold uppercase tracking-widest text-[var(--muted)]">
+                Equity Research
+              </span>
+              <span className="text-[var(--border)] select-none" aria-hidden>·</span>
               <DeterministicAnalysisLabel />
             </div>
-          <h1 className="mt-1 font-[family-name:var(--font-display)] text-3xl tracking-tight">
-            {view.company}
-          </h1>
-          <p className="mt-1 font-mono text-sm text-[var(--muted)]">
-            {view.ticker} · {view.exchange}
-          </p>
-          <div className="mt-3">
-            <AddToPortfolioButton
-              company={view.company}
-              ticker={view.ticker}
-              sector={catalogueEntry?.sector ?? "Unknown"}
-              recommendation={view.recommendation}
-              researchAvailable={view.ok}
-              size="md"
-            />
-          </div>
-        </div>
-        <div className="grid gap-2 text-right sm:grid-cols-2">
-          <div>
-            <p className="text-xs text-[var(--muted)]">Recommendation</p>
-            <p className="font-[family-name:var(--font-display)] text-xl">
-              {view.recommendation}
+
+            {/* Company name — strongest visual element */}
+            <h1 className="font-[family-name:var(--font-display)] text-3xl sm:text-4xl tracking-tight leading-tight text-[var(--fg)]">
+              {view.company}
+            </h1>
+
+            {/* Ticker / exchange — subdued, monospace */}
+            <p className="mt-2 flex flex-wrap items-center gap-1.5">
+              <span className="font-mono text-[10px] font-semibold uppercase tracking-widest text-[var(--muted)]">
+                {view.ticker}
+              </span>
+              {view.exchange ? (
+                <span className="text-[var(--border)] select-none" aria-hidden>·</span>
+              ) : null}
+              {view.exchange ? (
+                <span className="font-mono text-xs text-[var(--muted)]">{view.exchange}</span>
+              ) : null}
             </p>
-          </div>
-          <div>
-            <p className="text-xs text-[var(--muted)]">Overall Rating</p>
-            <p className="font-[family-name:var(--font-display)] text-xl">
-              {view.businessQualityLabel}
+
+            {/* Analysis timestamp */}
+            <p className="mt-1 text-xs text-[var(--muted)]">
+              Analysis as of{" "}
+              <span className="font-mono">{analysedAtLabel}</span>
             </p>
+
+            {/* Primary action */}
+            <div className="mt-5">
+              <AddToPortfolioButton
+                company={view.company}
+                ticker={view.ticker}
+                sector={catalogueEntry?.sector ?? "Unknown"}
+                recommendation={view.recommendation}
+                researchAvailable={view.ok}
+                size="md"
+              />
+            </div>
           </div>
-          <div className="sm:col-span-2">
-            <p className="text-xs text-[var(--muted)]">Last Analysis</p>
-            <p className="font-mono text-sm">
-              {view.analysedAt
-                ? new Date(view.analysedAt).toLocaleString()
-                : "—"}
-            </p>
-            <div className="mt-2 flex flex-wrap justify-end gap-2">
+
+          {/* Right: key signals — restrained, no excessive boxes */}
+          <div className="flex flex-row flex-wrap gap-6 sm:flex-col sm:gap-5 sm:text-right sm:shrink-0 sm:min-w-[160px]">
+            {/* Recommendation */}
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-widest text-[var(--muted)] mb-1">
+                Recommendation
+              </p>
+              <p className="font-[family-name:var(--font-display)] text-xl sm:text-2xl tracking-tight text-[var(--fg)]">
+                {view.recommendation}
+              </p>
+            </div>
+
+            {/* Business quality */}
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-widest text-[var(--muted)] mb-1">
+                Business Quality
+              </p>
+              <p className="font-[family-name:var(--font-display)] text-lg sm:text-xl tracking-tight text-[var(--fg)]">
+                {view.businessQualityLabel}
+              </p>
+            </div>
+
+            {/* Status badges */}
+            <div className="flex flex-wrap sm:justify-end gap-1.5">
               <Badge tone={view.ok ? "success" : "danger"}>
                 {view.ok ? "Pipeline OK" : "Issues"}
               </Badge>
               <Badge tone="neutral">
-                Confidence {formatPct(view.recommendationConfidence)}
+                {formatPct(view.recommendationConfidence)} confidence
               </Badge>
             </div>
           </div>
         </div>
-      </CardBody>
-    </Card>
+      </div>
 
       <MarketDataCard ticker={view.ticker} />
     </div>

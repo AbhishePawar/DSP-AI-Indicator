@@ -1,7 +1,6 @@
 import type { ReactNode } from "react";
 
 import { TraceLink } from "@/components/analysis/TraceLink";
-import { Card, CardBody, CardHeader } from "@/components/ui/Card";
 import type { EvidenceView } from "@/lib/analysis/types";
 
 export function EvidencePanel({
@@ -17,16 +16,13 @@ export function EvidencePanel({
       : evidence.supportingMetrics;
 
   return (
-    <Card className={compact ? "mt-2 border-dashed" : "mt-4 border-dashed"}>
-      <CardHeader
-        title="Evidence"
-        description={
-          compact
-            ? "Traceability"
-            : "Traceability — supporting and contradicting evidence kept separate"
-        }
-      />
-      <CardBody className={`space-y-3 text-sm ${compact ? "py-3" : ""}`}>
+    <div className={compact ? "mt-3 border-t border-[var(--border)] pt-3" : "mt-5 border-t border-[var(--border)] pt-4"}>
+      {/* Evidence section heading */}
+      <p className="mb-3 text-[10px] font-semibold uppercase tracking-widest text-[var(--muted)]">
+        {compact ? "Traceability" : "Traceability — supporting and contradicting evidence kept separate"}
+      </p>
+
+      <div className="space-y-3 text-sm">
         <Block label="Primary evidence">
           <ListOrEmpty items={evidence.primaryEvidence} empty="None listed" />
         </Block>
@@ -73,8 +69,8 @@ export function EvidencePanel({
           {" · "}
           <TraceLink href="#methodology_panel">Methodology</TraceLink>
         </p>
-      </CardBody>
-    </Card>
+      </div>
+    </div>
   );
 }
 
@@ -83,7 +79,7 @@ function ListOrEmpty({ items, empty }: { items: string[]; empty: string }) {
     return <span className="text-[var(--muted)]">{empty}</span>;
   }
   return (
-    <ul className="list-disc pl-5">
+    <ul className="list-disc pl-5 space-y-0.5">
       {items.map((m) => (
         <li key={m}>{m}</li>
       ))}
@@ -93,11 +89,11 @@ function ListOrEmpty({ items, empty }: { items: string[]; empty: string }) {
 
 function Block({ label, children }: { label: string; children: ReactNode }) {
   return (
-    <div>
-      <p className="text-xs font-medium uppercase tracking-wide text-[var(--muted)]">
+    <div className="pl-3 border-l-2 border-[var(--border)]">
+      <p className="text-[10px] font-semibold uppercase tracking-widest text-[var(--muted)]">
         {label}
       </p>
-      <div className="mt-1">{children}</div>
+      <div className="mt-1 leading-relaxed text-[var(--fg)]">{children}</div>
     </div>
   );
 }

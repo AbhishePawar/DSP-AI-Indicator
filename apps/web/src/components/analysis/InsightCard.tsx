@@ -2,14 +2,14 @@ import type { ReactNode } from "react";
 
 export function SectionDivider({ label }: { label?: string }) {
   return (
-    <div className="my-6 flex items-center gap-3" role="separator" aria-label={label}>
-      <div className="h-px flex-1 bg-[var(--border)]" />
+    <div className="pt-2 pb-1" role="separator" aria-label={label}>
       {label ? (
-        <span className="text-xs uppercase tracking-wide text-[var(--muted)]">
+        <p className="text-[10px] font-semibold uppercase tracking-widest text-[var(--muted)]">
           {label}
-        </span>
-      ) : null}
-      <div className="h-px flex-1 bg-[var(--border)]" />
+        </p>
+      ) : (
+        <div className="h-px bg-[var(--border)]" />
+      )}
     </div>
   );
 }
@@ -26,19 +26,23 @@ export function InsightCard({
   children: ReactNode;
 }) {
   return (
-    <div className="space-y-4">
-      <div>
-        <h2 className="font-[family-name:var(--font-display)] text-2xl tracking-tight">
+    <div className="space-y-6">
+      {/* Section heading + editorial intro — matches ResearchSection/AnalysisSectionShell hierarchy */}
+      <div className="space-y-3">
+        <h2 className="font-[family-name:var(--font-display)] text-lg sm:text-xl tracking-tight text-[var(--fg)]">
           {title}
         </h2>
-        <p className="mt-2 rounded-md border border-[var(--border)] bg-[var(--accent-soft)]/40 px-3 py-2 text-sm">
-          <span className="font-medium">What you should know — </span>
+        <p className="border-l-2 border-[var(--border)] pl-3 text-sm leading-relaxed text-[var(--muted)]">
+          <span className="font-medium text-[var(--fg)]">What you should know — </span>
           {intro}
         </p>
       </div>
+
       {children}
-      <p className="rounded-md border border-[var(--border)] bg-[var(--surface-2)] px-3 py-2 text-sm">
-        <span className="font-medium">What investors should monitor — </span>
+
+      {/* Editorial outro */}
+      <p className="border-t border-[var(--border)] pt-4 text-sm leading-relaxed text-[var(--muted)]">
+        <span className="font-medium text-[var(--fg)]">What investors should monitor — </span>
         {outro}
       </p>
     </div>

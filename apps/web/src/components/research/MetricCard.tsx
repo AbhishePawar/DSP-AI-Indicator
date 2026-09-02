@@ -1,9 +1,13 @@
 import type { ReactNode } from "react";
 
 import { Badge } from "@/components/ui/Badge";
-import { Card, CardBody, CardHeader } from "@/components/ui/Card";
 
-/** Canonical metric card — Title / Rating / Value / Explanation / Why / Takeaway. */
+/**
+ * Canonical metric card — Title / Rating / Value / Explanation / Why / Takeaway.
+ *
+ * Refined to use the ResearchSection institutional pattern:
+ * Fraunces heading + bottom-border rule, no floating card container.
+ */
 
 export type MetricCardProps = {
   title: string;
@@ -27,37 +31,50 @@ export function MetricCard({
   footer,
 }: MetricCardProps) {
   return (
-    <Card>
-      <CardHeader
-        title={title}
-        action={<Badge tone={ratingTone}>{rating}</Badge>}
-      />
-      <CardBody className="space-y-3 text-sm">
-        <p>
-          <span className="text-[var(--muted)]">Actual value</span>
-          <br />
-          <span className="font-medium">{actualValue}</span>
+    <section className="space-y-3">
+      {/* Heading row — document style matching ResearchSection */}
+      <div className="flex items-start justify-between gap-3 border-b border-[var(--border)] pb-3">
+        <h3 className="font-[family-name:var(--font-display)] text-base tracking-tight text-[var(--fg)] leading-snug">
+          {title}
+        </h3>
+        <Badge tone={ratingTone} className="shrink-0 mt-0.5">
+          {rating}
+        </Badge>
+      </div>
+
+      {/* Actual value — prominent */}
+      <div className="border-b border-[var(--border)] pb-3">
+        <p className="text-xs uppercase tracking-wider text-[var(--muted)] mb-0.5">
+          Actual value
         </p>
+        <p className="text-lg font-medium text-[var(--fg)] tabular-nums">
+          {actualValue}
+        </p>
+      </div>
+
+      {/* Explanatory content — compact */}
+      <div className="space-y-2.5 text-sm">
         <div>
-          <p className="text-xs font-medium uppercase tracking-wide text-[var(--muted)]">
+          <p className="text-xs font-medium uppercase tracking-wide text-[var(--muted)] mb-0.5">
             What this means
           </p>
-          <p className="mt-1">{plainEnglishExplanation}</p>
+          <p className="text-[var(--fg)] leading-relaxed">{plainEnglishExplanation}</p>
         </div>
         <div>
-          <p className="text-xs font-medium uppercase tracking-wide text-[var(--muted)]">
+          <p className="text-xs font-medium uppercase tracking-wide text-[var(--muted)] mb-0.5">
             Why it matters
           </p>
-          <p className="mt-1">{whyItMatters}</p>
+          <p className="text-[var(--fg)] leading-relaxed">{whyItMatters}</p>
         </div>
         <div>
-          <p className="text-xs font-medium uppercase tracking-wide text-[var(--muted)]">
+          <p className="text-xs font-medium uppercase tracking-wide text-[var(--muted)] mb-0.5">
             Investor takeaway
           </p>
-          <p className="mt-1">{investorTakeaway}</p>
+          <p className="text-[var(--fg)] leading-relaxed">{investorTakeaway}</p>
         </div>
-        {footer}
-      </CardBody>
-    </Card>
+      </div>
+
+      {footer ? <div className="pt-1">{footer}</div> : null}
+    </section>
   );
 }

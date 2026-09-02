@@ -2,17 +2,22 @@
 
 import { useEffect, useState } from "react";
 
+/**
+ * Navigation links through the research report.
+ * Ordered to match the canonical reading flow of an institutional equity report,
+ * with Economic Moat retained from the canonical six-moat implementation.
+ */
 const LINKS = [
-  { id: "overview", label: "Overview" },
-  { id: "valuation", label: "Valuation" },
-  { id: "economic-moat", label: "Economic Moat" },
+  { id: "overview", label: "Executive Summary" },
   { id: "business-quality", label: "Business Quality" },
   { id: "financial-strength", label: "Financial Strength" },
   { id: "management", label: "Management" },
   { id: "earnings", label: "Earnings" },
   { id: "growth", label: "Growth" },
-  { id: "committee", label: "Committee" },
-  { id: "pipeline", label: "Pipeline" },
+  { id: "economic-moat", label: "Economic Moat" },
+  { id: "valuation", label: "Valuation" },
+  { id: "committee", label: "Investment Committee" },
+  { id: "pipeline", label: "AI Analyst View" },
 ] as const;
 
 export function ResearchSidebar() {
@@ -37,32 +42,65 @@ export function ResearchSidebar() {
 
   return (
     <nav
-      className="sticky top-20 hidden w-44 shrink-0 lg:block"
+      className="sticky top-20 hidden max-h-[calc(100vh-6rem)] w-52 shrink-0 overflow-y-auto lg:block"
       aria-label="Research sections"
     >
-      <p className="mb-2 text-xs font-medium uppercase tracking-wider text-[var(--muted)]">
-        Jump to
+      {/* Report navigation header */}
+      <p className="mb-3 text-xs font-semibold uppercase tracking-widest text-[var(--muted)]">
+        Contents
       </p>
-      <ul className="space-y-0.5">
-        {LINKS.map((link) => {
+
+      <ol className="space-y-0">
+        {LINKS.map((link, index) => {
           const isActive = active === link.id;
           return (
             <li key={link.id}>
               <a
                 href={`#${link.id}`}
-                className={`block rounded-md px-2.5 py-1.5 text-sm transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] ${
+                className={[
+                  "group flex items-center gap-2.5 py-1.5 pr-2 text-sm transition-colors duration-[var(--motion-fast)]",
+                  "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] rounded-sm",
                   isActive
-                    ? "bg-[var(--accent-soft)] text-[var(--accent)]"
-                    : "text-[var(--muted)] hover:bg-[var(--surface-2)] hover:text-[var(--fg)]"
-                }`}
+                    ? "text-[var(--fg)] font-medium"
+                    : "text-[var(--muted)] hover:text-[var(--fg)]",
+                ].join(" ")}
                 aria-current={isActive ? "location" : undefined}
               >
-                {link.label}
+                {/* Active indicator — left rule */}
+                <span
+                  className={[
+                    "inline-block w-0.5 h-4 rounded-full shrink-0 transition-colors duration-[var(--motion-fast)]",
+                    isActive
+                      ? "bg-[var(--accent)]"
+                      : "bg-transparent group-hover:bg-[var(--border)]",
+                  ].join(" ")}
+                  aria-hidden
+                />
+                {/* Section number */}
+                <span
+                  className={[
+                    "font-mono text-xs shrink-0 w-5 text-right",
+                    isActive ? "text-[var(--accent)]" : "text-[var(--border)]",
+                  ].join(" ")}
+                  aria-hidden
+                >
+                  {String(index + 1).padStart(2, "0")}
+                </span>
+                <span className="truncate leading-snug">{link.label}</span>
               </a>
             </li>
           );
         })}
-      </ul>
+      </ol>
+
+      {/* Subtle bottom rule */}
+      <div className="mt-4 border-t border-[var(--border)] pt-3">
+        <p className="text-xs text-[var(--muted)] leading-relaxed">
+          DSP AI Indicator
+          <br />
+          Institutional Research
+        </p>
+      </div>
     </nav>
   );
 }

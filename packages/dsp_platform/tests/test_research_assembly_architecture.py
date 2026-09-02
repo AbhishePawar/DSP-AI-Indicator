@@ -110,9 +110,29 @@ class TestResearchAssemblyArchitecture:
         assert violations == [], violations
 
     def test_assembler_does_not_import_test_fixture(self) -> None:
-        text = (_SRC / "assembler.py").read_text(encoding="utf-8")
-        assert "research_assembly.testing" not in text
-        assert "build_test_only_ai_output_fixture" not in text
+        for name in ("assembler.py", "ai_port.py"):
+            text = (_SRC / name).read_text(encoding="utf-8")
+            assert "research_assembly.testing" not in text
+            assert "build_test_only_ai_output_fixture" not in text
+
+    def test_ai_port_is_provider_neutral(self) -> None:
+        path = _SRC / "ai_port.py"
+        source = path.read_text(encoding="utf-8")
+        imported = _imported_top_levels(source)
+        assert "llm_adapters" not in imported
+        assert "openai" not in imported
+        assert "os" not in imported
+        assert "copilot" not in imported
+        assert "httpx" not in imported
+        text = _non_comment_source(path)
+        assert "CanonicalResearchAiPort" in text
+        assert "resolve_canonical_ai_execution_access" in text
+        assert "invoke_canonical_research_ai_port" in text
+        assert "CanonicalAIDraft" in text
+        for snippet in _FORBIDDEN_SNIPPETS:
+            assert snippet not in text, snippet
+        for snippet in _FORMULA_SNIPPETS:
+            assert snippet not in text, snippet
 
     def test_assembler_is_orchestration_only(self) -> None:
         text = _non_comment_source(_SRC / "assembler.py")

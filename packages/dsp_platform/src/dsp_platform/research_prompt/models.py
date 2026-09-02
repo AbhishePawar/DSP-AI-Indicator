@@ -22,7 +22,7 @@ class PrivateResearchPromptError(TypeError):
     """Raised when prompt generation is given a non-ResearchPackage source."""
 
 
-@dataclass(frozen=True, slots=True)
+@dataclass(frozen=True, slots=True, repr=False)
 class PrivateResearchPrompt:
     """Immutable private methodology prompt for a future AI provider.
 
@@ -48,3 +48,6 @@ class PrivateResearchPrompt:
             "data_block": self.data_block,
             "text": self.text,
         }
+
+    def __repr__(self) -> str:
+        return "PrivateResearchPrompt(<redacted>)"

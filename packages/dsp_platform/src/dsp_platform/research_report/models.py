@@ -34,6 +34,7 @@ __all__ = [
     "FinancialsPublic",
     "IdentityPublic",
     "IndustryPublic",
+    "MoatDimensionPublic",
     "PublicMetric",
     "PublicResearchReport",
     "PublicResearchReportError",
@@ -231,6 +232,38 @@ class QualityFactorPublic:
             "rating": self.rating,
             "narrative": self.narrative.to_public_dict(),
             "evidence_refs": [e.to_public_dict() for e in self.evidence_refs],
+            "limitations": list(self.limitations),
+        }
+
+
+@dataclass(frozen=True, slots=True)
+class MoatDimensionPublic:
+    """One canonical Economic Moat dimension. DSP owns scores and X/10."""
+
+    identifier: str
+    name: str
+    canonical_score_100: float | None
+    presentation_rating_10: str | None
+    presentation_rating_status: str
+    engine_status: str
+    evidence_refs: tuple[EvidenceRefPublic, ...]
+    narrative: AiNarrative
+    durability: AiNarrative
+    threats: AiNarrative
+    limitations: tuple[str, ...]
+
+    def to_public_dict(self) -> dict[str, Any]:
+        return {
+            "identifier": self.identifier,
+            "name": self.name,
+            "canonical_score_100": self.canonical_score_100,
+            "presentation_rating_10": self.presentation_rating_10,
+            "presentation_rating_status": self.presentation_rating_status,
+            "engine_status": self.engine_status,
+            "evidence_refs": [e.to_public_dict() for e in self.evidence_refs],
+            "narrative": self.narrative.to_public_dict(),
+            "durability": self.durability.to_public_dict(),
+            "threats": self.threats.to_public_dict(),
             "limitations": list(self.limitations),
         }
 

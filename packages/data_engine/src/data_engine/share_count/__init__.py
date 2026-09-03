@@ -2,6 +2,15 @@
 
 from __future__ import annotations
 
+from data_engine.share_count.acceptance import (
+    ACCEPTANCE_PROVIDER_ID,
+    ACCEPTANCE_PROVIDER_NAME,
+    ADMISSIBLE_SOURCE_TIERS,
+    FORBIDDEN_SOURCE_TIERS,
+    ShareCountAcceptanceError,
+    ShareCountEvidenceClaim,
+    accept_current_outstanding_claims,
+)
 from data_engine.share_count.adapters import (
     InMemoryShareCountAdapter,
     NullShareCountAdapter,
@@ -24,9 +33,15 @@ from data_engine.share_count.validation import (
 )
 
 __all__ = [
+    "ACCEPTANCE_PROVIDER_ID",
+    "ACCEPTANCE_PROVIDER_NAME",
+    "ADMISSIBLE_SOURCE_TIERS",
+    "FORBIDDEN_SOURCE_TIERS",
     "InMemoryShareCountAdapter",
     "NullShareCountAdapter",
+    "ShareCountAcceptanceError",
     "ShareCountBasis",
+    "ShareCountEvidenceClaim",
     "ShareCountField",
     "ShareCountPort",
     "ShareCountProvenance",
@@ -35,6 +50,7 @@ __all__ = [
     "ShareCountServiceMetrics",
     "ShareCountSnapshot",
     "ShareCountUnit",
+    "accept_current_outstanding_claims",
     "assert_share_count_identity",
     "build_default_share_count_adapter_from_env",
     "build_share_count_from_mapping",

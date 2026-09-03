@@ -304,7 +304,9 @@ from data_engine.services import (
 from data_engine.share_count import (
     InMemoryShareCountAdapter,
     NullShareCountAdapter,
+    ShareCountAcceptanceError,
     ShareCountBasis,
+    ShareCountEvidenceClaim,
     ShareCountField,
     ShareCountPort,
     ShareCountProvenance,
@@ -313,6 +315,7 @@ from data_engine.share_count import (
     ShareCountServiceMetrics,
     ShareCountSnapshot,
     ShareCountUnit,
+    accept_current_outstanding_claims,
     assert_share_count_identity,
     build_default_share_count_adapter_from_env,
     build_share_count_from_mapping,
@@ -336,6 +339,7 @@ from data_engine.transcripts import (
 
 __all__ = [
     'ACTION_TYPES',
+    'accept_current_outstanding_claims',
     'AlphaVantageNewsAdapter',
     'assert_share_count_identity',
     'AlternativeDataNormalizer',
@@ -537,7 +541,9 @@ __all__ = [
     'SECTION_ORDER',
     'SENTIMENT_LABELS',
     'SERIES_KINDS',
+    'ShareCountAcceptanceError',
     'ShareCountBasis',
+    'ShareCountEvidenceClaim',
     'ShareCountField',
     'ShareCountPort',
     'ShareCountProvenance',

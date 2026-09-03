@@ -38,7 +38,7 @@ export function PreferenceManager() {
         title="User Preferences"
         description={
           status === "authenticated"
-            ? "Synced to your account in this browser"
+            ? "Synced to your DSP account. Cloud copy uses application persistence only — not DSP calculations."
             : "Sign in to persist preferences"
         }
       />

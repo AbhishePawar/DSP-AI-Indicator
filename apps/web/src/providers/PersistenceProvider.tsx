@@ -28,6 +28,12 @@ import {
   userPortfolioFromView,
   writeUserData,
 } from "@/lib/persistence";
+import { isSupabaseBrowserConfigured } from "@/lib/supabase/publicConfig";
+import {
+  fetchCloudPersistence,
+  saveCloudPersistence,
+} from "@/lib/supabase/cloudSync";
+import { usePortfolioIntelPrefsStore } from "@/lib/portfolio-intelligence/prefsStore";
 import type {
   SavedAnalysis,
   SavedConversation,
@@ -75,7 +81,7 @@ export function PersistenceProvider({ children }: { children: ReactNode }) {
 
   const flushSave = useCallback(
     (next: UserDataBundle) => {
-      if (!subject) return;
+      if (!subject || !session) return;
       setSyncStatus("saving");
       try {
         const stamped = { ...next, updatedAt: new Date().toISOString() };
@@ -85,6 +91,19 @@ export function PersistenceProvider({ children }: { children: ReactNode }) {
         setLastError(null);
         setSyncStatus("saved");
         logger.debug("User data saved", { subject });
+        if (isSupabaseBrowserConfigured()) {
+          const watchlist = usePortfolioIntelPrefsStore.getState().watchlist;
+          void saveCloudPersistence(session, stamped, watchlist).then(
+            (result) => {
+              if (!result.ok && result.error) {
+                logger.warn("Cloud persistence unavailable", {
+                  subject,
+                  error: result.error,
+                });
+              }
+            },
+          );
+        }
       } catch (error) {
         const message =
           error instanceof Error ? error.message : "Failed to save user data";
@@ -93,7 +112,7 @@ export function PersistenceProvider({ children }: { children: ReactNode }) {
         logger.error(message, { subject });
       }
     },
-    [subject],
+    [subject, session],
   );
 
   const scheduleSave = useCallback(
@@ -121,14 +140,50 @@ export function PersistenceProvider({ children }: { children: ReactNode }) {
     setSyncStatus("loading");
     setIsLoaded(false);
     const stored = readUserData(subject);
-    const next = stored ?? createEmptyUserData(subject);
-    setBundle(next);
+    const local = stored ?? createEmptyUserData(subject);
+    setBundle(local);
     setIsLoaded(true);
-    setLastSyncedAt(next.updatedAt);
+    setLastSyncedAt(local.updatedAt);
     setSyncStatus("saved");
     setLastError(null);
     logger.info("User data loaded", { subject });
-  }, [status, subject]);
+
+    if (!session || !isSupabaseBrowserConfigured()) return;
+    void fetchCloudPersistence(session)
+      .then((result) => {
+        if (!result.ok || !result.configured || !result.snapshot) return;
+        const cloud = result.snapshot;
+        const cloudNewer =
+          !stored ||
+          new Date(cloud.updatedAt).getTime() >
+            new Date(local.updatedAt).getTime();
+        if (cloudNewer) {
+          const merged: UserDataBundle = {
+            ...local,
+            updatedAt: cloud.updatedAt,
+            preferences: cloud.preferences,
+            savedAnalyses:
+              cloud.savedResearch.length > 0
+                ? sortSavedAnalyses(cloud.savedResearch)
+                : local.savedAnalyses,
+          };
+          writeUserData(merged);
+          setBundle(merged);
+          setLastSyncedAt(merged.updatedAt);
+        }
+        const localWatch = usePortfolioIntelPrefsStore.getState().watchlist;
+        if (localWatch.length === 0 && cloud.watchlist.length > 0) {
+          for (const item of cloud.watchlist) {
+            usePortfolioIntelPrefsStore
+              .getState()
+              .addWatchlistSymbol(item.symbol, item.companyName ?? undefined);
+          }
+        }
+      })
+      .catch(() => {
+        logger.warn("Cloud persistence load skipped", { subject });
+      });
+  }, [status, subject, session]);
 
   useEffect(() => {
     if (!bundle || preferencesApplied.current) return;

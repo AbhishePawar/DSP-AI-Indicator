@@ -1,0 +1,14 @@
+# DSP AI Indicator — application infrastructure project config.
+# Intelligence (valuation, ShareCount, AI) stays in the DSP API, not here.
+
+project_id = "dsp-ai-indicator-app"
+
+[api]
+enabled = true
+
+[db]
+major_version = 15
+
+[storage]
+enabled = true
+file_size_limit = "20MiB"

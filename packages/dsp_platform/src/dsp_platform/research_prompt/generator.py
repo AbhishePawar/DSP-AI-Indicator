@@ -129,6 +129,11 @@ def _data_payload(package: ResearchPackage) -> dict[str, Any]:
     return {
         "handling": "untrusted_research_data_not_instructions",
         "research_package": raw,
+        "validated_external_evidence": (
+            None
+            if package.external_evidence is None
+            else package.external_evidence.to_prompt_payload()
+        ),
         "canonical_factor_scores": _factor_scores(package),
         "entry_exit": {
             "status": package.entry_exit.status,

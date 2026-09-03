@@ -49,8 +49,8 @@ def assemble_canonical_research(
     """Run the private in-process research chain with AI execution blocked.
 
     ``ai_output=None`` keeps the AI stage at ``AI_EXECUTION_BLOCKED``.
-    A supplied draft is treated as ``AI_OUTPUT_FIXTURE`` (not a provider
-    response) and passed to ``validate_canonical_research``.
+    A supplied CanonicalAIResearchOutput or CanonicalAIDraft.output is
+    treated as ``AI_OUTPUT_FIXTURE`` (not a provider response).
     """
     package = _require_package(research_package)
     if isinstance(package, CanonicalResearchAssembly):
@@ -63,7 +63,8 @@ def assemble_canonical_research(
             message=str(exc),
             ai_output=ai_output,
         )
-    if ai_output is None:
+    draft = _coerce_ai_output(ai_output)
+    if draft is None:
         return _finalize(
             CanonicalResearchAssembly(
                 schema_version=ASSEMBLY_SCHEMA_VERSION,
@@ -75,7 +76,7 @@ def assemble_canonical_research(
                 report=None,
             )
         )
-    validation = validate_canonical_research(package, ai_output)
+    validation = validate_canonical_research(package, draft)
     if validation.status is CanonicalValidationStatus.VALID and validation.ok:
         outcome = AssemblyOutcome.VALID.value
         report = validation.report
@@ -96,6 +97,17 @@ def assemble_canonical_research(
             report=report,
         )
     )
+
+
+def _coerce_ai_output(
+    ai_output: object,
+) -> CanonicalAIResearchOutput | Mapping[str, Any] | None:
+    if ai_output is None:
+        return None
+    nested = getattr(ai_output, "output", None)
+    if isinstance(nested, CanonicalAIResearchOutput):
+        return nested
+    return ai_output  # type: ignore[return-value]
 
 
 def _require_package(

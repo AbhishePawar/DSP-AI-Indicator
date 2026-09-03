@@ -22,6 +22,7 @@ MoS, ratios, Buffett scores, or BUY/SELL/HOLD.
 from __future__ import annotations
 
 from collections.abc import Mapping
+from dataclasses import replace
 from typing import Any
 
 from dsp_platform.composition.adapters import pipeline_result_public_dict
@@ -33,6 +34,15 @@ from dsp_platform.composition.models import (
     StageStatus,
 )
 from dsp_platform.composition.versions import COMPOSITION_PIPELINE_VERSION
+from dsp_platform.external_evidence.models import (
+    ExternalEvidenceValidationError,
+    ValidatedExternalEvidencePackage,
+)
+from dsp_platform.external_evidence.validation import (
+    assert_identities_compatible,
+    normalize_identity_token,
+    validate_external_evidence_identity,
+)
 from dsp_platform.research_package.models import (
     ENTRY_EXIT_NOT_IMPLEMENTED_MESSAGE,
     RESEARCH_PACKAGE_SCHEMA_VERSION,
@@ -45,7 +55,7 @@ from dsp_platform.research_package.models import (
     strip_private_fields,
 )
 
-__all__ = ["build_research_package"]
+__all__ = ["attach_validated_external_evidence", "build_research_package"]
 
 _STAGE_ATTR = {
     "financial": "financial_analysis",
@@ -227,6 +237,66 @@ def build_research_package(
         errors=tuple(result.errors),
         pipeline_ok=bool(result.ok),
     )
+
+
+def attach_validated_external_evidence(
+    package: ResearchPackage,
+    evidence: ValidatedExternalEvidencePackage,
+) -> ResearchPackage:
+    """Return a new ResearchPackage with validated external evidence attached.
+
+    Existing compose_intelligence callers are unchanged: ``build_research_package``
+    still defaults ``external_evidence`` to None. This helper does not run
+    engines, search, or AI.
+    """
+    if not isinstance(package, ResearchPackage):
+        raise ResearchPackageSourceError(
+            "attach_validated_external_evidence requires a ResearchPackage"
+        )
+    if not isinstance(evidence, ValidatedExternalEvidencePackage):
+        raise ExternalEvidenceValidationError(
+            "external evidence must be a ValidatedExternalEvidencePackage"
+        )
+    if dict(evidence.canonical_calculation_inputs()):
+        raise ExternalEvidenceValidationError(
+            "external evidence cannot supply DSP calculation inputs"
+        )
+    package_symbol, package_exchange = _package_identity_tokens(package)
+    validate_external_evidence_identity(evidence.subject)
+    if normalize_identity_token(evidence.subject.symbol) != package_symbol:
+        raise ExternalEvidenceValidationError(
+            "identity mismatch: evidence subject symbol "
+            f"{evidence.subject.symbol!r} != ResearchPackage ticker "
+            f"{package_symbol!r}"
+        )
+    evidence_exchange = normalize_identity_token(evidence.subject.exchange) or None
+    if package_exchange and evidence_exchange and package_exchange != evidence_exchange:
+        raise ExternalEvidenceValidationError(
+            "identity mismatch: exchange disagreement "
+            f"({package_exchange!r} vs {evidence_exchange!r}); "
+            "NSE/BSE are not converted"
+        )
+    for record in evidence.records:
+        assert_identities_compatible(evidence.subject, record.identity)
+    return replace(package, external_evidence=evidence)
+
+
+def _package_identity_tokens(package: ResearchPackage) -> tuple[str, str | None]:
+    payload = package.identity.payload
+    if not isinstance(payload, Mapping):
+        raise ExternalEvidenceValidationError(
+            "cannot attach external evidence: ResearchPackage identity "
+            "is unavailable"
+        )
+    ticker = normalize_identity_token(str(payload.get("ticker") or ""))
+    if not ticker:
+        raise ExternalEvidenceValidationError(
+            "cannot attach external evidence: ResearchPackage ticker "
+            "is unavailable"
+        )
+    exchange_raw = payload.get("exchange")
+    exchange = normalize_identity_token(str(exchange_raw or "")) or None
+    return ticker, exchange
 
 
 def _require_pipeline_result(pipeline_result: object) -> PipelineResult:

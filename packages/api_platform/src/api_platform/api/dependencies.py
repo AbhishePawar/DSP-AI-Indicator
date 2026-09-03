@@ -7,7 +7,7 @@ from dataclasses import dataclass, field
 from threading import Lock
 from typing import Any, Callable
 
-from fastapi import HTTPException, Request
+from fastapi import Depends, HTTPException, Request
 
 from api_platform.api.exceptions import ApiNotFoundError
 from dsp_platform import (
@@ -19,11 +19,19 @@ from dsp_platform import (
 
 try:
     from llm_adapters import CopilotCompleteService, build_default_registry
+    from llm_adapters.activation_evidence import ActivationEvidence
+    from llm_adapters.activation_guard import evaluate_activation
 except ImportError:  # pragma: no cover - optional during partial installs
     CopilotCompleteService = None  # type: ignore[misc, assignment]
     build_default_registry = None  # type: ignore[misc, assignment]
+    ActivationEvidence = None  # type: ignore[misc, assignment]
+    evaluate_activation = None  # type: ignore[misc, assignment]
+
+# Public copilot/research HTTP copy — no verdict.reasons leak to clients.
+AI_PRODUCTION_BLOCKED_DETAIL = "Production AI execution is blocked."
 
 __all__ = [
+    "AI_PRODUCTION_BLOCKED_DETAIL",
     "ApiState",
     "ReportStore",
     "DatabaseReportStore",
@@ -36,6 +44,7 @@ __all__ = [
     "resolve_platform_environment",
     "resolve_access_token",
     "require_authenticated_actor",
+    "require_live_ai_activation",
     "require_admin_access",
     "build_report_store",
 ]
@@ -188,6 +197,9 @@ class ApiState:
     api_version: str = "v1"
     copilot_service: Any = field(default=None)
     language_model: Any | None = None
+    # Private activation evidence for evaluate_activation. None = missing
+    # evidence = BLOCKED. Never serialize to clients.
+    activation_evidence: Any | None = None
     # EPIC-011A — optional production infra (duck-typed)
     infrastructure: Any | None = None
     production: Any | None = None
@@ -331,6 +343,35 @@ def require_authenticated_actor(request: Request) -> dict[str, Any]:
             detail="authentication required",
             headers={"WWW-Authenticate": "Bearer"},
         ) from exc
+
+
+def require_live_ai_activation(
+    request: Request,
+    _actor: dict[str, Any] = Depends(require_authenticated_actor),  # noqa: B008
+) -> Any:
+    """Fail-closed production AI gate for live LLM HTTP routes.
+
+    Auth runs first. Then the canonical ``evaluate_activation`` guard.
+    Missing evidence, missing guard, or a BLOCKED verdict all raise 503
+    and must not proceed to a provider adapter.
+    """
+    del _actor
+    if evaluate_activation is None or ActivationEvidence is None:
+        raise HTTPException(
+            status_code=503,
+            detail=AI_PRODUCTION_BLOCKED_DETAIL,
+        )
+    state = get_api_state(request)
+    evidence = state.activation_evidence
+    if evidence is None:
+        evidence = ActivationEvidence.missing()
+    verdict = evaluate_activation(evidence)
+    if not verdict.is_ready():
+        raise HTTPException(
+            status_code=503,
+            detail=AI_PRODUCTION_BLOCKED_DETAIL,
+        )
+    return verdict
 
 
 def require_admin_access(request: Request) -> dict[str, Any]:

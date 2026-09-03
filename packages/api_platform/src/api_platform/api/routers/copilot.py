@@ -15,7 +15,11 @@ from api_platform.api.copilot_schemas import (
     CopilotProviderInfo,
 )
 from api_platform.api.copilot_v2_schemas import CopilotV2Request
-from api_platform.api.dependencies import ApiState, get_api_state
+from api_platform.api.dependencies import (
+    ApiState,
+    get_api_state,
+    require_live_ai_activation,
+)
 from api_platform.api.exceptions import ApiValidationError
 from api_platform.api.schemas import ApiResponse, CopilotChatRequest
 
@@ -195,9 +199,11 @@ def copilot_history_delete(
 @router.post("/copilot/complete", response_model=CopilotCompleteResponse)
 def copilot_complete(
     body: CopilotCompleteRequest,
-    state: ApiState = Depends(get_api_state),
+    state: ApiState = Depends(get_api_state),  # noqa: B008
+    _activation: Any = Depends(require_live_ai_activation),  # noqa: B008
 ) -> CopilotCompleteResponse:
-    """Complete a copilot answer via backend LLM with deterministic fallback."""
+    """Complete a copilot answer via backend LLM after production activation."""
+    del _activation
     if state.copilot_service is None:
         raise ApiValidationError("Copilot service is not configured")
     result = state.copilot_service.complete(
@@ -223,9 +229,11 @@ def copilot_complete(
 @router.post("/copilot/stream")
 def copilot_stream(
     body: CopilotCompleteRequest,
-    state: ApiState = Depends(get_api_state),
+    state: ApiState = Depends(get_api_state),  # noqa: B008
+    _activation: Any = Depends(require_live_ai_activation),  # noqa: B008
 ) -> StreamingResponse:
-    """Stream copilot answer deltas via Server-Sent Events."""
+    """Stream copilot answer deltas via Server-Sent Events after activation."""
+    del _activation
     if state.copilot_service is None:
         raise ApiValidationError("Copilot service is not configured")
 

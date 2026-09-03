@@ -99,3 +99,10 @@ class TestApiPlatformArchitecture:
         missing = [name for name in mod.__all__ if not hasattr(mod, name)]
         assert missing == [], missing
         assert hasattr(mod, "create_app")
+
+    def test_copilot_live_routes_require_activation_guard(self) -> None:
+        router = _read(_SRC / "api" / "routers" / "copilot.py")
+        deps = _read(_SRC / "api" / "dependencies.py")
+        assert "require_live_ai_activation" in router
+        assert "evaluate_activation(" in deps
+        assert "evaluate_activation(" not in router

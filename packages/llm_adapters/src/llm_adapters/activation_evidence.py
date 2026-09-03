@@ -111,6 +111,47 @@ class ActivationEvidence:
     structured_output_required: bool = True
     notes: Mapping[str, str] = field(default_factory=dict)
 
+    @classmethod
+    def missing(cls) -> ActivationEvidence:
+        """Fail-closed bundle when production has not supplied evidence.
+
+        ``evaluate_activation`` must treat this as BLOCKED. This is not a
+        second gate — it is the empty input the existing guard already
+        rejects.
+        """
+        return cls(
+            benchmark=BenchmarkEvidence.empty(),
+            successful_evaluations=(),
+            configuration=ConfigurationEvidence(
+                default_provider="",
+                cost_efficient_model="",
+                premium_model="",
+                available_providers=(),
+                pricing_known_for_all_tiers=False,
+                routing_tier_count=0,
+                all_provider_keys_configured=False,
+            ),
+            tools=ToolEvidence(
+                available_tools=(),
+                minimum_tool_count=1,
+                all_tools_healthy=False,
+            ),
+            privacy=PrivacyEvidence(
+                private_fields_enumerated=False,
+                public_pack_present=False,
+                leakage_guard_active=False,
+                benchmark_report_audited=False,
+            ),
+            fail_closed=FailClosedEvidence(
+                quality_gate_present=False,
+                no_fabrication_guarantee=False,
+                deterministic_fallback_present=False,
+                escalation_present=False,
+            ),
+            required_quality_threshold=60.0,
+            structured_output_required=True,
+        )
+
 
 __all__ = [
     "ActivationEvidence",

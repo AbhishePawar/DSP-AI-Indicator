@@ -112,7 +112,7 @@ def test_history_list_get_delete(client: TestClient) -> None:
     assert missing.status_code == 404
 
 
-def test_complete_and_stream_still_work(client: TestClient) -> None:
+def test_complete_and_stream_fail_closed_without_activation(client: TestClient) -> None:
     body = {
         "question_id": "why_buy",
         "request": {"ticker": "AAPL", "company": "Apple", "exchange": "NASDAQ"},
@@ -129,7 +129,6 @@ def test_complete_and_stream_still_work(client: TestClient) -> None:
         },
     }
     complete = client.post("/api/v1/copilot/complete", json=body)
-    assert complete.status_code == 200
+    assert complete.status_code == 401
     stream = client.post("/api/v1/copilot/stream", json=body)
-    assert stream.status_code == 200
-    assert "data:" in stream.text
+    assert stream.status_code == 401

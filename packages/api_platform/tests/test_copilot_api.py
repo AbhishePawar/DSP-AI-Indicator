@@ -1,10 +1,12 @@
-"""Copilot API tests — EPIC-012."""
+"""Copilot API tests — EPIC-012 + production AI activation boundary."""
 
 from __future__ import annotations
 
+from auth_test_helpers import bearer_headers, register_user
 from fastapi.testclient import TestClient
 
 from api_platform.api.app import create_app
+from api_platform.api.dependencies import AI_PRODUCTION_BLOCKED_DETAIL
 from dsp_platform import PlatformBuilder, PlatformConfiguration
 
 
@@ -32,33 +34,46 @@ def _sample_body() -> dict:
     }
 
 
-def test_copilot_complete_deterministic_fallback() -> None:
+def _client() -> TestClient:
     platform = (
         PlatformBuilder()
         .with_configuration(PlatformConfiguration(require_analysis_service=False))
         .auto_ready(True)
         .build()
     )
-    client = TestClient(create_app(platform=platform))
+    return TestClient(create_app(platform=platform))
+
+
+def _auth_headers(client: TestClient) -> dict[str, str]:
+    register_user(client, user_id="copilot-api-user", username="copilotapi")
+    return bearer_headers(client, username="copilotapi")
+
+
+def test_copilot_complete_unauthenticated_401() -> None:
+    client = _client()
     response = client.post("/api/v1/copilot/complete", json=_sample_body())
-    assert response.status_code == 200
-    data = response.json()
-    assert data["provider_id"] == "deterministic"
-    assert "Buy" in data["content"]
+    assert response.status_code == 401
 
 
-def test_copilot_stream_returns_sse() -> None:
-    platform = (
-        PlatformBuilder()
-        .with_configuration(PlatformConfiguration(require_analysis_service=False))
-        .auto_ready(True)
-        .build()
+def test_copilot_complete_blocked_without_activation() -> None:
+    client = _client()
+    headers = _auth_headers(client)
+    response = client.post(
+        "/api/v1/copilot/complete", headers=headers, json=_sample_body()
     )
-    client = TestClient(create_app(platform=platform))
-    response = client.post("/api/v1/copilot/stream", json=_sample_body())
-    assert response.status_code == 200
-    assert "text/event-stream" in response.headers.get("content-type", "")
-    assert "data:" in response.text
+    assert response.status_code == 503
+    assert response.json()["detail"] == AI_PRODUCTION_BLOCKED_DETAIL
+
+
+def test_copilot_stream_blocked_without_activation() -> None:
+    client = _client()
+    headers = _auth_headers(client)
+    response = client.post(
+        "/api/v1/copilot/stream", headers=headers, json=_sample_body()
+    )
+    assert response.status_code == 503
+    assert "text/event-stream" not in response.headers.get("content-type", "")
+    assert response.json()["detail"] == AI_PRODUCTION_BLOCKED_DETAIL
 
 
 def test_copilot_providers_discovery() -> None:
@@ -73,4 +88,9 @@ def test_copilot_providers_discovery() -> None:
     assert response.status_code == 200
     data = response.json()
     assert data["active_provider"] == "deterministic"
-    assert len(data["providers"]) == 3
+    assert {p["id"] for p in data["providers"]} == {
+        "openai",
+        "anthropic",
+        "gemini",
+        "deepseek",
+    }

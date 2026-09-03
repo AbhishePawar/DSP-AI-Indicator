@@ -7,13 +7,19 @@ providers, then maps it into ``fundamental.FinancialSnapshot`` for
 
 from __future__ import annotations
 
+from collections.abc import Callable
 from dataclasses import dataclass
 from datetime import date
-from typing import Any, Callable
+from typing import Any
 
 from contracts.domain.fundamental_statement import FundamentalStatement
 from contracts.domain.instrument import Instrument
 from contracts.enums import AssetClass, StatementPeriodType
+from data_engine.connector_framework.production_profile import (
+    assert_production_investment_connectors_configured,
+    is_production_environment,
+)
+from data_engine.exceptions import InvalidProviderDataError
 from data_engine.financial_statement.models import (
     AuthenticatedFinancialStatements,
     AuthenticatedStatementPeriod,
@@ -25,6 +31,25 @@ from data_engine.financial_statement.service import (
 )
 from data_engine.market_quote.models import AuthenticatedMarketQuote, QuoteField
 from data_engine.market_quote.service import MarketQuoteService
+from data_engine.share_count.models import (
+    ShareCountBasis,
+    ShareCountSnapshot,
+    ShareCountUnit,
+)
+from data_engine.share_count.service import ShareCountService
+from data_engine.share_count.validation import assert_share_count_identity
+from dsp_platform.composition.financial_integrity import (
+    FinancialIntegrityError,
+    assert_balance_sheet_integrity,
+    assert_cash_flow_integrity,
+    assert_duplicate_periods,
+    assert_eps_share_integrity,
+    assert_profitability_sanity,
+    assert_share_count_integrity,
+    assert_statement_basis,
+    assert_unit_homogeneous,
+    normalize_periods_to_actual,
+)
 from financial import (
     BalanceSheet,
     CashFlowStatement,
@@ -39,23 +64,6 @@ from financial.metadata import StatementMetadata
 from fundamental import FinancialSnapshot
 from investment_recommendation import ValuationSignals
 from valuation import MarketSnapshot, ValuationAssessment, ValuationConfidence
-
-from data_engine.connector_framework.production_profile import (
-    assert_production_investment_connectors_configured,
-    is_production_environment,
-)
-from dsp_platform.composition.financial_integrity import (
-    FinancialIntegrityError,
-    assert_balance_sheet_integrity,
-    assert_cash_flow_integrity,
-    assert_duplicate_periods,
-    assert_eps_share_integrity,
-    assert_profitability_sanity,
-    assert_share_count_integrity,
-    assert_statement_basis,
-    assert_unit_homogeneous,
-    normalize_periods_to_actual,
-)
 
 __all__ = [
     "AuthenticatedValuationBundle",
@@ -102,6 +110,7 @@ class AuthenticatedValuationBundle:
     reporting_currency: str
     statement_provenance: dict[str, Any]
     quote_provenance: dict[str, Any]
+    share_count_provenance: dict[str, Any]
     period_kind: str
     statement_basis: str
     unit_scale: str
@@ -129,6 +138,7 @@ class AuthenticatedValuationBundle:
             "cash_and_equivalents": latest.cash_and_equivalents,
             "statement_provenance": dict(self.statement_provenance),
             "quote_provenance": dict(self.quote_provenance),
+            "share_count_provenance": dict(self.share_count_provenance),
             "authenticated": True,
         }
 
@@ -212,13 +222,17 @@ def _validate_currency_set(
     return reporting
 
 
-def _resolve_shares(
-    quote: AuthenticatedMarketQuote,
-    latest: AuthenticatedStatementPeriod,
-) -> float:
-    """Require authenticated quote shares — never invent from NI/EPS."""
-    _ = latest  # EPS integrity checked separately against quote shares
-    shares = _qf(quote.shares_outstanding)
+def _resolve_shares(snapshot: ShareCountSnapshot) -> float:
+    """Require ShareCountSnapshot current_outstanding — never invent or substitute."""
+    if snapshot.basis != ShareCountBasis.CURRENT_OUTSTANDING:
+        raise AuthenticatedValuationError(
+            f"{DATA_UNAVAILABLE} (authenticated shares outstanding unavailable)"
+        )
+    if snapshot.unit != ShareCountUnit.SHARES:
+        raise AuthenticatedValuationError(
+            f"{DATA_UNAVAILABLE} (authenticated shares outstanding unavailable)"
+        )
+    shares = snapshot.shares_value()
     if shares is not None and shares > 0:
         return float(shares)
     raise AuthenticatedValuationError(
@@ -247,13 +261,9 @@ def _to_fundamental_statement(
             f"{DATA_UNAVAILABLE} (invalid period type {period.period_type!r})"
         )
     if period.fiscal_year < 1900 or period.fiscal_year > 2200:
-        raise AuthenticatedValuationError(
-            f"{DATA_UNAVAILABLE} (invalid fiscal period)"
-        )
+        raise AuthenticatedValuationError(f"{DATA_UNAVAILABLE} (invalid fiscal period)")
     if not isinstance(period.period_end, date):
-        raise AuthenticatedValuationError(
-            f"{DATA_UNAVAILABLE} (invalid period_end)"
-        )
+        raise AuthenticatedValuationError(f"{DATA_UNAVAILABLE} (invalid period_end)")
     extras: list[tuple[str, float]] = []
     for name in ("ebit", "ebitda", "free_cash_flow", "long_term_debt"):
         value = _sf(getattr(period, name))
@@ -297,9 +307,7 @@ def to_financial_statements(
     try:
         period_type = PeriodType(bundle.period_kind)
     except ValueError as exc:
-        raise AuthenticatedValuationError(
-            f"{DATA_UNAVAILABLE} (period kind)"
-        ) from exc
+        raise AuthenticatedValuationError(f"{DATA_UNAVAILABLE} (period kind)") from exc
     currency = CurrencyRef.parse(latest.currency)
     shares = bundle.shares_outstanding
     fcf = None
@@ -382,21 +390,29 @@ def load_authenticated_valuation_bundle(
     currency: str = "USD",
     statement_service: FinancialStatementService | None = None,
     quote_service: MarketQuoteService | None = None,
-    get_statements: Callable[[str], AuthenticatedFinancialStatements | None]
-    | None = None,
+    share_count_service: ShareCountService | None = None,
+    get_statements: (
+        Callable[[str], AuthenticatedFinancialStatements | None] | None
+    ) = None,
     get_quote: Callable[[str], AuthenticatedMarketQuote | None] | None = None,
+    get_share_count: Callable[[str], ShareCountSnapshot | None] | None = None,
 ) -> AuthenticatedValuationBundle:
-    """Fetch + validate authenticated statements and quote for ``ticker``.
+    """Fetch + validate authenticated statements, quote, and share count.
 
     Raises:
         AuthenticatedValuationError: when data is missing, mismatched, or unsafe.
     """
     symbol = str(ticker or "").strip().upper()
     if not symbol:
-        raise AuthenticatedValuationError(
-            f"{DATA_UNAVAILABLE} (ticker required)"
-        )
+        raise AuthenticatedValuationError(f"{DATA_UNAVAILABLE} (ticker required)")
 
+    quote = _fetch_quote(
+        symbol,
+        exchange=exchange,
+        currency=currency,
+        quote_service=quote_service,
+        get_quote=get_quote,
+    )
     statements = _fetch_statements(
         symbol,
         exchange=exchange,
@@ -404,12 +420,13 @@ def load_authenticated_valuation_bundle(
         statement_service=statement_service,
         get_statements=get_statements,
     )
-    quote = _fetch_quote(
+    share_count = _fetch_share_count(
         symbol,
         exchange=exchange,
         currency=currency,
-        quote_service=quote_service,
-        get_quote=get_quote,
+        isin=statements.identity.isin,
+        share_count_service=share_count_service,
+        get_share_count=get_share_count,
     )
 
     _reject_null_provider(statements.provenance.provider_id, connector="statements")
@@ -427,6 +444,15 @@ def load_authenticated_valuation_bundle(
             f"{DATA_UNAVAILABLE} (quote identity mismatch: "
             f"requested {symbol}, got {quote_symbol or 'unknown'})"
         )
+    try:
+        assert_share_count_identity(
+            share_count,
+            symbol=symbol,
+            exchange=exchange or quote.exchange or statements.identity.exchange,
+            isin=statements.identity.isin,
+        )
+    except InvalidProviderDataError as exc:
+        raise AuthenticatedValuationError(f"{DATA_UNAVAILABLE} ({exc})") from exc
 
     selected = _select_homogeneous_periods(statements.periods)
     try:
@@ -443,8 +469,8 @@ def load_authenticated_valuation_bundle(
 
     reporting_currency = _validate_currency_set(selected, quote.currency)
     price = _resolve_price(quote)
+    shares = _resolve_shares(share_count)
 
-    quote_shares = _qf(quote.shares_outstanding)
     derived_shares = None
     latest_period = selected[0]
     net_income = _sf(latest_period.net_income)
@@ -453,14 +479,9 @@ def load_authenticated_valuation_bundle(
         derived_shares = float(abs(net_income / eps))
     try:
         assert_share_count_integrity(
-            quote_shares=quote_shares,
+            quote_shares=shares,
             derived_shares=derived_shares,
         )
-    except FinancialIntegrityError as exc:
-        raise AuthenticatedValuationError(str(exc)) from exc
-
-    shares = _resolve_shares(quote, latest_period)
-    try:
         assert_eps_share_integrity(latest_period, shares)
     except FinancialIntegrityError as exc:
         raise AuthenticatedValuationError(str(exc)) from exc
@@ -468,12 +489,12 @@ def load_authenticated_valuation_bundle(
     market_cap = _qf(quote.market_cap)
     if market_cap is None or market_cap <= 0:
         market_cap = price * shares
-    elif quote_shares is not None and quote_shares > 0:
+    else:
         # Reject market_cap that implies a materially different share count.
         implied_shares = float(market_cap) / price
         try:
             assert_share_count_integrity(
-                quote_shares=quote_shares,
+                quote_shares=shares,
                 derived_shares=implied_shares,
                 tolerance=0.25,
             )
@@ -485,6 +506,7 @@ def load_authenticated_valuation_bundle(
         asset_class=AssetClass.EQUITY,
         currency=reporting_currency,
         exchange=exchange or statements.identity.exchange or quote.exchange,
+        isin=statements.identity.isin or share_count.isin,
     )
     fund_statements = tuple(
         _to_fundamental_statement(period, instrument) for period in selected
@@ -513,6 +535,7 @@ def load_authenticated_valuation_bundle(
         reporting_currency=reporting_currency,
         statement_provenance=statements.provenance.to_dict(),
         quote_provenance=quote.provenance.to_dict(),
+        share_count_provenance=share_count.provenance.to_dict(),
         period_kind=selected[0].period_type,
         statement_basis=statement_basis,
         unit_scale="actual",
@@ -526,8 +549,7 @@ def _fetch_statements(
     exchange: str | None,
     currency: str,
     statement_service: FinancialStatementService | None,
-    get_statements: Callable[[str], AuthenticatedFinancialStatements | None]
-    | None,
+    get_statements: Callable[[str], AuthenticatedFinancialStatements | None] | None,
 ) -> AuthenticatedFinancialStatements:
     if get_statements is not None:
         bundle = get_statements(symbol)
@@ -553,9 +575,7 @@ def _fetch_statements(
             StatementQuery(instrument=instrument, limit=8, include_restated=False)
         )
     if bundle is None:
-        raise AuthenticatedValuationError(
-            f"{DATA_UNAVAILABLE} (financial statements)"
-        )
+        raise AuthenticatedValuationError(f"{DATA_UNAVAILABLE} (financial statements)")
     if not bundle.has_any_period():
         raise AuthenticatedValuationError(
             f"{DATA_UNAVAILABLE} (financial statements empty)"
@@ -593,14 +613,51 @@ def _fetch_quote(
         )
         quote = service.get_quote(instrument)
     if quote is None:
-        raise AuthenticatedValuationError(
-            f"{DATA_UNAVAILABLE} (market quote)"
-        )
+        raise AuthenticatedValuationError(f"{DATA_UNAVAILABLE} (market quote)")
     if not quote.has_any_price():
-        raise AuthenticatedValuationError(
-            f"{DATA_UNAVAILABLE} (market price)"
-        )
+        raise AuthenticatedValuationError(f"{DATA_UNAVAILABLE} (market price)")
     return quote
+
+
+def _fetch_share_count(
+    symbol: str,
+    *,
+    exchange: str | None,
+    currency: str,
+    isin: str | None,
+    share_count_service: ShareCountService | None,
+    get_share_count: Callable[[str], ShareCountSnapshot | None] | None,
+) -> ShareCountSnapshot:
+    unavailable = AuthenticatedValuationError(
+        f"{DATA_UNAVAILABLE} (authenticated shares outstanding unavailable)"
+    )
+    if get_share_count is not None:
+        snapshot = get_share_count(symbol)
+    else:
+        service = share_count_service
+        if service is None:
+            from dsp_platform.share_counts import _service
+
+            service = _service()
+        health = service.health()
+        if not health.authenticated:
+            raise unavailable
+        pid = str(health.provider_id or "").strip().lower()
+        if not pid or pid.startswith("null") or pid == "null":
+            raise unavailable
+        if any(tok in pid for tok in ("demo", "sample", "seed", "fake", "fixture")):
+            raise unavailable
+        instrument = Instrument(
+            symbol=symbol,
+            asset_class=AssetClass.EQUITY,
+            currency=currency,
+            exchange=exchange,
+            isin=isin,
+        )
+        snapshot = service.get_share_count(instrument)
+    if snapshot is None:
+        raise unavailable
+    return snapshot
 
 
 def production_requires_authenticated_bundle() -> bool:

@@ -15,8 +15,11 @@ from data_engine import (
     FinancialStatementProvenance,
     InMemoryAuthenticatedQuoteAdapter,
     InMemoryAuthenticatedStatementAdapter,
+    InMemoryShareCountAdapter,
     MarketQuoteProvenance,
+    ShareCountProvenance,
     build_quote_from_mapping,
+    build_share_count_from_mapping,
     build_statements_from_mapping,
 )
 
@@ -27,6 +30,7 @@ __all__ = [
     "seed_p109_memory_adapters",
     "build_p109_quote",
     "build_p109_statements",
+    "build_p109_share_count",
 ]
 
 P109_FIXTURE_TICKER = "DSPFIX"
@@ -164,9 +168,29 @@ def build_p109_statements(*, symbol: str = P109_FIXTURE_TICKER):
     )
 
 
+def build_p109_share_count(*, symbol: str = P109_FIXTURE_TICKER):
+    """TEST-ONLY synthetic ShareCountSnapshot. Not a real provider or company."""
+    return build_share_count_from_mapping(
+        symbol=symbol,
+        payload={
+            "exchange": "NYSE",
+            "shares": 100_000_000.0,
+        },
+        provenance=ShareCountProvenance(
+            provider_id="memory_authenticated_share_count",
+            provider_name="P1-09 CI Fixture Share Count",
+            source_type="licensed_vendor",
+            retrieved_at=_FIXED_RETRIEVED,
+            auth_mode="api_key",
+            metadata={"evidence_class": P109_EVIDENCE_CLASS, "p109": "1"},
+        ),
+    )
+
+
 def seed_p109_memory_adapters(
     quote_adapter: Any,
     statement_adapter: Any,
+    share_count_adapter: Any = None,
     *,
     symbol: str = P109_FIXTURE_TICKER,
 ) -> bool:
@@ -179,5 +203,8 @@ def seed_p109_memory_adapters(
         seeded = True
     if isinstance(statement_adapter, InMemoryAuthenticatedStatementAdapter):
         statement_adapter.put(build_p109_statements(symbol=symbol))
+        seeded = True
+    if isinstance(share_count_adapter, InMemoryShareCountAdapter):
+        share_count_adapter.put(build_p109_share_count(symbol=symbol))
         seeded = True
     return seeded

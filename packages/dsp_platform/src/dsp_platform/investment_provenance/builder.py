@@ -2,8 +2,9 @@
 
 from __future__ import annotations
 
+from collections.abc import Mapping
 from datetime import UTC, datetime
-from typing import Any, Mapping
+from typing import Any
 from uuid import uuid4
 
 from dsp_platform.investment_provenance.fingerprint import canonical_fingerprint
@@ -34,6 +35,7 @@ def source_evidence_from_trace(trace: Mapping[str, Any] | None) -> dict[str, Any
         }
     stmt = dict(trace.get("statement_provenance") or {})
     quote = dict(trace.get("quote_provenance") or {})
+    share_count = dict(trace.get("share_count_provenance") or {})
     authenticated = bool(trace.get("authenticated"))
     return redact_secrets(
         {
@@ -62,8 +64,19 @@ def source_evidence_from_trace(trace: Mapping[str, Any] | None) -> dict[str, Any
             ),
             "quote_source_type": quote.get("source_type") or quote.get("kind"),
             "quote_retrieved_at": quote.get("retrieved_at") or quote.get("as_of"),
+            "share_count_provider": (
+                share_count.get("provider_id")
+                or share_count.get("provider_name")
+                or share_count.get("provider")
+                or share_count.get("source")
+            ),
+            "share_count_source_type": share_count.get("source_type")
+            or share_count.get("kind"),
+            "share_count_retrieved_at": share_count.get("retrieved_at")
+            or share_count.get("as_of"),
             "statement_provenance": stmt,
             "quote_provenance": quote,
+            "share_count_provenance": share_count,
         }
     )
 
@@ -91,9 +104,7 @@ def build_investment_provenance(
     aid = analysis_id or new_analysis_id()
     meta = dict(public_payload.get("metadata") or {})
     stage_summaries = list(public_payload.get("stage_summaries") or [])
-    by_stage = {
-        str(s.get("stage")): s for s in stage_summaries if isinstance(s, dict)
-    }
+    by_stage = {str(s.get("stage")): s for s in stage_summaries if isinstance(s, dict)}
     valuation_stage = by_stage.get("valuation") or {}
     rec_summary = dict(public_payload.get("recommendation_summary") or {})
     committee_summary = dict(public_payload.get("committee_summary") or {})
@@ -133,9 +144,9 @@ def build_investment_provenance(
         "market_price": source.get("current_market_price"),
         "margin_of_safety": mos,
         "recommendation_linked": rec_summary.get("decision"),
-        "reason": None
-        if val_available
-        else "valuation stage unavailable or incomplete",
+        "reason": (
+            None if val_available else "valuation stage unavailable or incomplete"
+        ),
     }
 
     conclusion = {
@@ -169,6 +180,7 @@ def build_investment_provenance(
                     "shares_outstanding",
                     "statement_provenance",
                     "quote_provenance",
+                    "share_count_provenance",
                 )
                 if auth_trace
             }
@@ -186,6 +198,7 @@ def build_investment_provenance(
                     "shares_outstanding",
                     "statement_provider",
                     "quote_provider",
+                    "share_count_provider",
                 )
             },
         }

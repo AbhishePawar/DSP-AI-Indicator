@@ -2,11 +2,18 @@
 
 from __future__ import annotations
 
-from datetime import date
+from datetime import UTC, date, datetime
 from types import SimpleNamespace
 
 import pytest
 
+from data_engine import (
+    ShareCountBasis,
+    ShareCountField,
+    ShareCountProvenance,
+    ShareCountSnapshot,
+    ShareCountUnit,
+)
 from data_engine.evidence_classes import (
     NEVER_CLEARS_G2,
     PUBLIC_FILING,
@@ -58,26 +65,32 @@ def test_annual_periods_preferred_over_quarterly() -> None:
     assert selected == (a,)
 
 
+def _test_share_count(*, shares: float | None) -> ShareCountSnapshot:
+    """TEST-ONLY synthetic snapshot — not a real provider or company value."""
+    return ShareCountSnapshot(
+        symbol="TEST",
+        shares=(
+            ShareCountField.missing()
+            if shares is None
+            else ShareCountField.of(shares)
+        ),
+        basis=ShareCountBasis.CURRENT_OUTSTANDING,
+        unit=ShareCountUnit.SHARES,
+        provenance=ShareCountProvenance(
+            provider_id="memory_authenticated_share_count",
+            provider_name="TEST-ONLY synthetic share count fixture",
+            source_type="licensed_vendor",
+            retrieved_at=datetime(2024, 6, 15, 12, 0, tzinfo=UTC),
+            auth_mode="api_key",
+            metadata={"evidence_class": "test_fixture"},
+        ),
+    )
+
+
 def test_shares_not_derived_from_ni_eps() -> None:
-    quote = SimpleNamespace(
-        shares_outstanding=SimpleNamespace(available=False, value=None)
-    )
-    latest = SimpleNamespace(
-        net_income=SimpleNamespace(available=True, value=1_000_000.0),
-        eps_basic=SimpleNamespace(available=True, value=2.0),
-        eps_diluted=SimpleNamespace(available=True, value=2.0),
-    )
     with pytest.raises(AuthenticatedValuationError, match="shares outstanding"):
-        _resolve_shares(quote, latest)  # type: ignore[arg-type]
+        _resolve_shares(_test_share_count(shares=None))
 
 
-def test_shares_from_authenticated_quote() -> None:
-    quote = SimpleNamespace(
-        shares_outstanding=SimpleNamespace(available=True, value=50_000_000.0)
-    )
-    latest = SimpleNamespace(
-        net_income=SimpleNamespace(available=True, value=1.0),
-        eps_basic=SimpleNamespace(available=True, value=1.0),
-        eps_diluted=SimpleNamespace(available=True, value=1.0),
-    )
-    assert _resolve_shares(quote, latest) == 50_000_000.0  # type: ignore[arg-type]
+def test_shares_from_share_count_snapshot_not_quote() -> None:
+    assert _resolve_shares(_test_share_count(shares=50_000_000.0)) == 50_000_000.0

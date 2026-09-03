@@ -22,7 +22,9 @@ from data_engine import (
     FinancialStatementService,
     InMemoryAuthenticatedQuoteAdapter,
     MarketQuoteService,
+    ShareCountProvenance,
     build_quote_from_mapping,
+    build_share_count_from_mapping,
     build_statements_from_mapping,
 )
 from data_engine.financial_statement.models import (
@@ -45,6 +47,10 @@ from dsp_platform.financial_statements import (
     reset_financial_statement_service_for_tests,
 )
 from dsp_platform.market_quotes import reset_market_quote_service_for_tests
+from dsp_platform.share_counts import (
+    install_memory_share_count_for_tests,
+    reset_share_count_service_for_tests,
+)
 
 TICKER = "TCS"
 EXCHANGE = "NSE"
@@ -192,9 +198,24 @@ def auth_services(monkeypatch):
     quote.put(_seed_quote())
     reset_financial_statement_service_for_tests(FinancialStatementService(stmt))
     reset_market_quote_service_for_tests(MarketQuoteService(quote))
+    install_memory_share_count_for_tests(
+        build_share_count_from_mapping(
+            symbol=TICKER,
+            payload={"exchange": EXCHANGE, "shares": 100.0},
+            provenance=ShareCountProvenance(
+                provider_id="memory_authenticated_share_count",
+                provider_name="TEST-ONLY synthetic share count fixture",
+                source_type="licensed_vendor",
+                retrieved_at=utc_now(),
+                auth_mode="api_key",
+                metadata={"evidence_class": "test_fixture"},
+            ),
+        )
+    )
     yield stmt
     reset_financial_statement_service_for_tests(None)
     reset_market_quote_service_for_tests(None)
+    reset_share_count_service_for_tests(None)
 
 
 @pytest.fixture
@@ -206,9 +227,24 @@ def production_auth_services(monkeypatch):
     quote.put(_seed_quote())
     reset_financial_statement_service_for_tests(FinancialStatementService(stmt))
     reset_market_quote_service_for_tests(MarketQuoteService(quote))
+    install_memory_share_count_for_tests(
+        build_share_count_from_mapping(
+            symbol=TICKER,
+            payload={"exchange": EXCHANGE, "shares": 100.0},
+            provenance=ShareCountProvenance(
+                provider_id="memory_authenticated_share_count",
+                provider_name="TEST-ONLY synthetic share count fixture",
+                source_type="licensed_vendor",
+                retrieved_at=utc_now(),
+                auth_mode="api_key",
+                metadata={"evidence_class": "test_fixture"},
+            ),
+        )
+    )
     yield stmt
     reset_financial_statement_service_for_tests(None)
     reset_market_quote_service_for_tests(None)
+    reset_share_count_service_for_tests(None)
 
 
 @pytest.fixture
@@ -219,9 +255,24 @@ def failing_auth_services(monkeypatch):
     # No quote seeded — authenticated path cannot build a bundle.
     reset_financial_statement_service_for_tests(FinancialStatementService(stmt))
     reset_market_quote_service_for_tests(MarketQuoteService(quote))
+    install_memory_share_count_for_tests(
+        build_share_count_from_mapping(
+            symbol=TICKER,
+            payload={"exchange": EXCHANGE, "shares": 100.0},
+            provenance=ShareCountProvenance(
+                provider_id="memory_authenticated_share_count",
+                provider_name="TEST-ONLY synthetic share count fixture",
+                source_type="licensed_vendor",
+                retrieved_at=utc_now(),
+                auth_mode="api_key",
+                metadata={"evidence_class": "test_fixture"},
+            ),
+        )
+    )
     yield stmt
     reset_financial_statement_service_for_tests(None)
     reset_market_quote_service_for_tests(None)
+    reset_share_count_service_for_tests(None)
 
 
 def _platform_client() -> TestClient:

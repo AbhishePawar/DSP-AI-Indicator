@@ -14,7 +14,9 @@ from data_engine import (
     InMemoryAuthenticatedStatementAdapter,
     MarketQuoteProvenance,
     MarketQuoteService,
+    ShareCountProvenance,
     build_quote_from_mapping,
+    build_share_count_from_mapping,
     build_statements_from_mapping,
 )
 from dsp_platform import (
@@ -39,6 +41,10 @@ from dsp_platform.research_package import (
     ResearchPackageSourceError,
     build_research_package,
     contains_private_fields,
+)
+from dsp_platform.share_counts import (
+    install_memory_share_count_for_tests,
+    reset_share_count_service_for_tests,
 )
 from financial import (
     BalanceSheet,
@@ -437,9 +443,24 @@ def seeded_reliance_services():
     quote_adapter.put(_seed_quote())
     reset_financial_statement_service_for_tests(FinancialStatementService(stmt_adapter))
     reset_market_quote_service_for_tests(MarketQuoteService(quote_adapter))
+    install_memory_share_count_for_tests(
+        build_share_count_from_mapping(
+            symbol=TICKER,
+            payload={"exchange": "NSE", "shares": 100.0},
+            provenance=ShareCountProvenance(
+                provider_id="memory_authenticated_share_count",
+                provider_name="TEST-ONLY synthetic share count fixture",
+                source_type="licensed_vendor",
+                retrieved_at=FIXED_RETRIEVED,
+                auth_mode="api_key",
+                metadata={"evidence_class": "test_fixture"},
+            ),
+        )
+    )
     yield
     reset_financial_statement_service_for_tests(None)
     reset_market_quote_service_for_tests(None)
+    reset_share_count_service_for_tests(None)
 
 
 def test_authenticated_iv_mos_recommendation_match_composition(

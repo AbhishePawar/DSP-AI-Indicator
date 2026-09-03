@@ -2,25 +2,31 @@
 
 from __future__ import annotations
 
+from auth_test_helpers import bearer_headers, register_user
+from fastapi.testclient import TestClient
+
+from api_platform import create_app
 from data_engine import (
     FinancialStatementService,
     InMemoryAuthenticatedQuoteAdapter,
     InMemoryAuthenticatedStatementAdapter,
+    InMemoryShareCountAdapter,
     MarketQuoteService,
+    ShareCountService,
 )
-from fastapi.testclient import TestClient
-
-from api_platform import create_app
-from auth_test_helpers import bearer_headers, register_user
 from dsp_platform import PlatformBuilder, PlatformConfiguration
-from dsp_platform.financial_statements import reset_financial_statement_service_for_tests
+from dsp_platform.financial_statements import (
+    reset_financial_statement_service_for_tests,
+)
 from dsp_platform.market_quotes import reset_market_quote_service_for_tests
 from dsp_platform.p109_e2e_fixture import (
     P109_EVIDENCE_CLASS,
     P109_FIXTURE_TICKER,
     build_p109_quote,
+    build_p109_share_count,
     build_p109_statements,
 )
+from dsp_platform.share_counts import reset_share_count_service_for_tests
 
 
 def test_analyse_payload_exposes_server_valuation() -> None:
@@ -28,10 +34,13 @@ def test_analyse_payload_exposes_server_valuation() -> None:
     stmt_adapter = InMemoryAuthenticatedStatementAdapter(api_key="ux-fixture-key")
     quote_adapter.put(build_p109_quote())
     stmt_adapter.put(build_p109_statements())
+    share_adapter = InMemoryShareCountAdapter(api_key="ux-fixture-key")
+    share_adapter.put(build_p109_share_count())
     reset_market_quote_service_for_tests(MarketQuoteService(quote_adapter))
     reset_financial_statement_service_for_tests(
         FinancialStatementService(stmt_adapter)
     )
+    reset_share_count_service_for_tests(ShareCountService(share_adapter))
     try:
         platform = (
             PlatformBuilder()
@@ -86,6 +95,7 @@ def test_analyse_payload_exposes_server_valuation() -> None:
     finally:
         reset_market_quote_service_for_tests(None)
         reset_financial_statement_service_for_tests(None)
+        reset_share_count_service_for_tests(None)
 
 
 def test_research_archive_get_requires_auth() -> None:

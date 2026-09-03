@@ -13,18 +13,22 @@ import json
 from pathlib import Path
 
 import pytest
+from auth_test_helpers import bearer_headers, register_user
 from fastapi.testclient import TestClient
 
 from api_platform import create_app
-from auth_test_helpers import bearer_headers, register_user
 from data_engine import (
     FinancialStatementService,
     InMemoryAuthenticatedQuoteAdapter,
     InMemoryAuthenticatedStatementAdapter,
+    InMemoryShareCountAdapter,
     MarketQuoteService,
+    ShareCountService,
 )
 from dsp_platform import PlatformBuilder, PlatformConfiguration
-from dsp_platform.financial_statements import reset_financial_statement_service_for_tests
+from dsp_platform.financial_statements import (
+    reset_financial_statement_service_for_tests,
+)
 from dsp_platform.investment_provenance import (
     RELEASE_IDENTITY,
     DatabaseInvestmentProvenanceStore,
@@ -35,8 +39,10 @@ from dsp_platform.p109_e2e_fixture import (
     P109_EVIDENCE_CLASS,
     P109_FIXTURE_TICKER,
     build_p109_quote,
+    build_p109_share_count,
     build_p109_statements,
 )
+from dsp_platform.share_counts import reset_share_count_service_for_tests
 from production_platform import InMemoryDatabasePort
 
 ROOT = Path(__file__).resolve().parents[3]
@@ -58,10 +64,13 @@ def seeded_client(db: InMemoryDatabasePort, monkeypatch: pytest.MonkeyPatch):
     stmt_adapter = InMemoryAuthenticatedStatementAdapter(api_key="p109-fixture-key")
     quote_adapter.put(build_p109_quote())
     stmt_adapter.put(build_p109_statements())
+    share_adapter = InMemoryShareCountAdapter(api_key="p109-fixture-key")
+    share_adapter.put(build_p109_share_count())
     reset_market_quote_service_for_tests(MarketQuoteService(quote_adapter))
     reset_financial_statement_service_for_tests(
         FinancialStatementService(stmt_adapter)
     )
+    reset_share_count_service_for_tests(ShareCountService(share_adapter))
 
     platform = (
         PlatformBuilder()
@@ -76,6 +85,7 @@ def seeded_client(db: InMemoryDatabasePort, monkeypatch: pytest.MonkeyPatch):
     yield client
     reset_market_quote_service_for_tests(None)
     reset_financial_statement_service_for_tests(None)
+    reset_share_count_service_for_tests(None)
     reset_investment_provenance_store_for_tests(None)
 
 

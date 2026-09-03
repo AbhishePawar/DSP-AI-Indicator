@@ -15,7 +15,9 @@ from data_engine import (
     MarketQuoteService,
     NullAuthenticatedQuoteAdapter,
     NullAuthenticatedStatementAdapter,
+    ShareCountProvenance,
     build_quote_from_mapping,
+    build_share_count_from_mapping,
     build_statements_from_mapping,
 )
 from dsp_platform import (
@@ -26,8 +28,14 @@ from dsp_platform import (
     load_authenticated_valuation_bundle,
 )
 from dsp_platform.composition.authenticated_valuation import signals_from_assessment
-from dsp_platform.financial_statements import reset_financial_statement_service_for_tests
+from dsp_platform.financial_statements import (
+    reset_financial_statement_service_for_tests,
+)
 from dsp_platform.market_quotes import reset_market_quote_service_for_tests
+from dsp_platform.share_counts import (
+    install_memory_share_count_for_tests,
+    reset_share_count_service_for_tests,
+)
 from financial import (
     BalanceSheet,
     CashFlowStatement,
@@ -42,7 +50,6 @@ from financial import (
 from financial.metadata import StatementMetadata
 from investment_recommendation import ValuationSignals
 from valuation import ValuationEngine
-
 
 TICKER = "TEST"
 FIXED_RETRIEVED = datetime(2024, 6, 15, 12, 0, 0, tzinfo=UTC)
@@ -177,6 +184,26 @@ def _seed_quote(
     )
 
 
+def _seed_share_count(
+    symbol: str = TICKER, *, shares: float = 100.0, exchange: str = "NYSE"
+):
+    """TEST-ONLY synthetic ShareCountSnapshot. Not a real provider value."""
+    snap = build_share_count_from_mapping(
+        symbol=symbol,
+        payload={"exchange": exchange, "shares": shares},
+        provenance=ShareCountProvenance(
+            provider_id="memory_authenticated_share_count",
+            provider_name="TEST-ONLY synthetic share count fixture",
+            source_type="licensed_vendor",
+            retrieved_at=FIXED_RETRIEVED,
+            auth_mode="api_key",
+            metadata={"evidence_class": "test_fixture"},
+        ),
+    )
+    install_memory_share_count_for_tests(snap)
+    return snap
+
+
 @pytest.fixture
 def seeded_services():
     stmt_adapter = InMemoryAuthenticatedStatementAdapter(api_key="test-key")
@@ -187,9 +214,11 @@ def seeded_services():
     quote_service = MarketQuoteService(quote_adapter)
     reset_financial_statement_service_for_tests(stmt_service)
     reset_market_quote_service_for_tests(quote_service)
+    _seed_share_count()
     yield stmt_service, quote_service
     reset_financial_statement_service_for_tests(None)
     reset_market_quote_service_for_tests(None)
+    reset_share_count_service_for_tests(None)
 
 
 def test_load_bundle_positive(seeded_services) -> None:
@@ -202,6 +231,11 @@ def test_load_bundle_positive(seeded_services) -> None:
     assert bundle.financial_snapshot.latest.total_equity == pytest.approx(1000.0)
     assert bundle.statement_provenance["provider_id"]
     assert bundle.quote_provenance["provider_id"]
+    assert bundle.share_count_provenance["provider_id"]
+    assert (
+        bundle.share_count_provenance["provider_id"]
+        != bundle.quote_provenance["provider_id"]
+    )
 
 
 def test_valuation_engine_iv_and_mos_deterministic(seeded_services) -> None:
@@ -296,6 +330,7 @@ def test_missing_financial_statements_fail_closed() -> None:
     finally:
         reset_financial_statement_service_for_tests(None)
         reset_market_quote_service_for_tests(None)
+        reset_share_count_service_for_tests(None)
 
 
 def test_missing_market_price_fail_closed() -> None:
@@ -311,6 +346,7 @@ def test_missing_market_price_fail_closed() -> None:
     finally:
         reset_financial_statement_service_for_tests(None)
         reset_market_quote_service_for_tests(None)
+        reset_share_count_service_for_tests(None)
 
 
 def test_wrong_ticker_fail_closed(seeded_services) -> None:
@@ -339,6 +375,7 @@ def test_null_provider_rejected() -> None:
     finally:
         reset_financial_statement_service_for_tests(None)
         reset_market_quote_service_for_tests(None)
+        reset_share_count_service_for_tests(None)
 
 
 def test_production_pipeline_fails_without_authenticated_data(
@@ -365,6 +402,7 @@ def test_production_pipeline_fails_without_authenticated_data(
     finally:
         reset_financial_statement_service_for_tests(None)
         reset_market_quote_service_for_tests(None)
+        reset_share_count_service_for_tests(None)
 
 
 def test_unauthenticated_memory_adapter_rejected() -> None:
@@ -381,6 +419,7 @@ def test_unauthenticated_memory_adapter_rejected() -> None:
     finally:
         reset_financial_statement_service_for_tests(None)
         reset_market_quote_service_for_tests(None)
+        reset_share_count_service_for_tests(None)
 
 
 def test_invalid_period_rejected() -> None:

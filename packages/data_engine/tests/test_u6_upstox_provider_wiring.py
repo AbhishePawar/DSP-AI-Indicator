@@ -9,7 +9,9 @@ import pytest
 
 from contracts.domain.instrument import Instrument
 from contracts.enums import AssetClass
-from data_engine.connector_framework.production_profile import ConnectorConfigurationError
+from data_engine.connector_framework.production_profile import (
+    ConnectorConfigurationError,
+)
 from data_engine.financial_statement.adapters import (
     NullAuthenticatedStatementAdapter,
     build_default_statement_adapter_from_env,
@@ -29,6 +31,8 @@ from data_engine.market_quote.adapters import (
 )
 from data_engine.market_quote.models import MarketQuoteProvenance
 from data_engine.market_quote.service import MarketQuoteService
+from data_engine.share_count.adapters import build_share_count_from_mapping
+from data_engine.share_count.models import ShareCountProvenance
 from data_engine.upstox_investment import UpstoxQuoteAdapter, UpstoxStatementAdapter
 from dsp_platform import (
     CompositionRequest,
@@ -36,9 +40,14 @@ from dsp_platform import (
     load_authenticated_valuation_bundle,
 )
 from dsp_platform.composition.authenticated_valuation import AuthenticatedValuationError
-from dsp_platform.financial_statements import reset_financial_statement_service_for_tests
+from dsp_platform.financial_statements import (
+    reset_financial_statement_service_for_tests,
+)
 from dsp_platform.market_quotes import reset_market_quote_service_for_tests
-
+from dsp_platform.share_counts import (
+    install_memory_share_count_for_tests,
+    reset_share_count_service_for_tests,
+)
 
 FIXED = datetime(2024, 6, 15, 12, 0, tzinfo=UTC)
 
@@ -464,10 +473,31 @@ def test_client_price_cannot_override_upstox_quote() -> None:
 
     reset_market_quote_service_for_tests(MarketQuoteService(_QuoteWithShares()))
     reset_financial_statement_service_for_tests(FinancialStatementService(_StmtPort()))
+    install_memory_share_count_for_tests(
+        build_share_count_from_mapping(
+            symbol="TCS",
+            payload={
+                "exchange": base_quote.exchange,
+                "shares": 250.0,
+            },
+            provenance=ShareCountProvenance(
+                provider_id="memory_authenticated_share_count",
+                provider_name="TEST-ONLY synthetic share count fixture",
+                source_type="licensed_vendor",
+                retrieved_at=FIXED,
+                auth_mode="api_key",
+                metadata={"evidence_class": "test_fixture"},
+            ),
+        )
+    )
     try:
         bundle = load_authenticated_valuation_bundle("TCS", currency="INR")
         assert bundle.current_market_price == pytest.approx(3500.25)
         assert bundle.quote_provenance["provider_id"] == "upstox_market_quote"
+        assert bundle.share_count_provenance["provider_id"] == (
+            "memory_authenticated_share_count"
+        )
+        assert bundle.shares_outstanding == pytest.approx(250.0)
         assert float(bundle.financial_snapshot.latest.revenue) == pytest.approx(150000.0)
         request = CompositionRequest(
             financial_statements=client_fs,
@@ -482,6 +512,7 @@ def test_client_price_cannot_override_upstox_quote() -> None:
     finally:
         reset_market_quote_service_for_tests(None)
         reset_financial_statement_service_for_tests(None)
+        reset_share_count_service_for_tests(None)
 
 
 def test_upstox_quote_without_shares_fails_closed_honestly() -> None:
@@ -499,6 +530,7 @@ def test_upstox_quote_without_shares_fails_closed_honestly() -> None:
     finally:
         reset_market_quote_service_for_tests(None)
         reset_financial_statement_service_for_tests(None)
+        reset_share_count_service_for_tests(None)
 
 
 def test_token_not_in_public_quote_or_statements() -> None:

@@ -25,20 +25,32 @@ from data_engine import (
     InMemoryAuthenticatedQuoteAdapter,
     MarketQuoteService,
     build_quote_from_mapping,
+    build_share_count_from_mapping,
     build_statements_from_mapping,
-)
-from data_engine.financial_statement.service import (
-    FinancialStatementPort,
-    StatementProviderHealth,
 )
 from data_engine.financial_statement.models import (
     FinancialStatementProvenance,
     utc_now,
 )
+from data_engine.financial_statement.service import (
+    FinancialStatementPort,
+    StatementProviderHealth,
+)
 from data_engine.market_quote.models import MarketQuoteProvenance
-from dsp_platform import CompositionRequest, PlatformOrchestrator, build_composition_request
-from dsp_platform.financial_statements import reset_financial_statement_service_for_tests
+from data_engine.share_count.models import ShareCountProvenance
+from dsp_platform import (
+    CompositionRequest,
+    PlatformOrchestrator,
+    build_composition_request,
+)
+from dsp_platform.financial_statements import (
+    reset_financial_statement_service_for_tests,
+)
 from dsp_platform.market_quotes import reset_market_quote_service_for_tests
+from dsp_platform.share_counts import (
+    install_memory_share_count_for_tests,
+    reset_share_count_service_for_tests,
+)
 
 TICKER = "TCS"
 REQUIRED_EXCHANGE = "NSE"
@@ -179,9 +191,24 @@ def gated_services(monkeypatch):
     quote_adapter.put(_seed_quote())
     reset_financial_statement_service_for_tests(FinancialStatementService(stmt_adapter))
     reset_market_quote_service_for_tests(MarketQuoteService(quote_adapter))
+    install_memory_share_count_for_tests(
+        build_share_count_from_mapping(
+            symbol=TICKER,
+            payload={"exchange": REQUIRED_EXCHANGE, "shares": 100.0},
+            provenance=ShareCountProvenance(
+                provider_id="memory_authenticated_share_count",
+                provider_name="TEST-ONLY synthetic share count fixture",
+                source_type="licensed_vendor",
+                retrieved_at=utc_now(),
+                auth_mode="api_key",
+                metadata={"evidence_class": "test_fixture"},
+            ),
+        )
+    )
     yield stmt_adapter
     reset_financial_statement_service_for_tests(None)
     reset_market_quote_service_for_tests(None)
+    reset_share_count_service_for_tests(None)
 
 
 def test_build_composition_request_threads_exchange():

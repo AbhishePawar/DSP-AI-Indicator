@@ -1,9 +1,6 @@
 # Python
 __pycache__/
 *.py[cod]
-# Keep recovered connector bytecode backup trackable for RC1 unblock
-!.bytecode_backup/
-!.bytecode_backup/**/*.pyc
 *$py.class
 *.so
 .Python

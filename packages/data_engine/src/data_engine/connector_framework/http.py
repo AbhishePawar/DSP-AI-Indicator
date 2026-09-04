@@ -86,6 +86,8 @@ class UrllibJsonHttpClient:
     ) -> Any:
         full_url = url if not params else f"{url}?{urlencode(params)}"
         merged_headers = {**self._default_headers, **(headers or {})}
+        if not any(str(key).lower() == "user-agent" for key in merged_headers):
+            merged_headers["User-Agent"] = "dsp-ai-indicator"
         request = Request(full_url, headers=merged_headers, method="GET")
         try:
             with urlopen(request, timeout=self._timeout_seconds) as response:

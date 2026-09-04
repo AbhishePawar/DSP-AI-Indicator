@@ -54,7 +54,9 @@ export default defineConfig({
     ? undefined
     : {
         // Prefer production standalone server — avoids Next dev bundling test-only deps.
-        command: "npm run build && node .next/standalone/server.js",
+        // Copy static/public beside server.js (same as docker/frontend/Dockerfile).
+        command:
+          "npm run build && node ./scripts/prepare-standalone-static.mjs && node .next/standalone/server.js",
         url: baseURL,
         reuseExistingServer: !process.env.CI,
         timeout: 300_000,

@@ -1,5 +1,9 @@
+import path from "node:path";
+import { fileURLToPath } from "node:url";
 import type { NextConfig } from "next";
 import bundleAnalyzer from "@next/bundle-analyzer";
+
+const appRoot = path.dirname(fileURLToPath(import.meta.url));
 
 /**
  * Web 2.0.0-rc.1 — security headers (EPS-003 / EPIC-019A).
@@ -19,6 +23,12 @@ const nextConfig: NextConfig = {
   compress: true,
   productionBrowserSourceMaps: false,
   output: "standalone",
+  // Pin tracing to this app. A leftover empty repo-root package-lock.json
+  // otherwise makes Next infer the workspace root as the repository root,
+  // emitting .next/standalone/apps/web/server.js instead of
+  // .next/standalone/server.js (the path Playwright and the frontend
+  // Dockerfile both use).
+  outputFileTracingRoot: appRoot,
   // P7.3 — tree-shake heavy UI kits without changing product behaviour
   experimental: {
     optimizePackageImports: ["lucide-react"],

@@ -26,7 +26,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Run Trivy (fs)
-        uses: aquasecurity/trivy-action@0.28.0
+        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
         with:
           scan-type: fs
           scan-ref: .
@@ -35,7 +35,7 @@ jobs:
           output: trivy-fs.sarif
           exit-code: "0"
       - name: Trivy JSON
-        uses: aquasecurity/trivy-action@0.28.0
+        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
         with:
           scan-type: fs
           scan-ref: .
@@ -92,7 +92,7 @@ jobs:
           fi
       - name: Trivy image scan
         if: env.SKIP != '1'
-        uses: aquasecurity/trivy-action@0.28.0
+        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
         with:
           scan-type: image
           image-ref: dsp-api:devsecops
@@ -211,11 +211,13 @@ jobs:
         env:
           NEXT_PUBLIC_API_BASE_URL: http://127.0.0.1:8000/api/v1
         run: npm run build
+      # Frontend-only smoke. P1-09 needs the API on :8000 and is hard-gated by
+      # .github/workflows/p109-critical-investment-e2e.yml (starts uvicorn).
       - name: Browser smoke
         env:
           CI: "true"
           PLAYWRIGHT_BASE_URL: http://127.0.0.1:3000
-        run: npx playwright test e2e/browser --project=chromium --project=firefox --project=webkit
+        run: npx playwright test e2e/browser/smoke.spec.ts e2e/browser/company-workspace.smoke.spec.ts --project=chromium --project=firefox --project=webkit
       - name: Visual regression
         env:
           CI: "true"

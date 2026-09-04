@@ -60,8 +60,11 @@ steps:
       - --update-env-vars=^|^DSP_ENVIRONMENT=production|DSP_REGION=ap-south-1|DSP_INVESTMENT_DATA_PROVIDER=upstox|DSP_AUTH_MAGIC_LINK=true|DSP_RESEND_FROM_ADDRESS=noreply@dspaiindicator.com|DSP_FRONTEND_URL=https://dspaiindicator.com|DSP_CORS_ORIGINS=https://dspaiindicator.com,https://dsp-ai-indicator-web-6uxsluxowq-el.a.run.app
       # Auth secrets for production login (JWT + Resend). Google OAuth is already
       # mounted on the service; --update-secrets must not replace that list.
-      # Do not mount Upstox credentials here — auth/API boot must not require investment tokens.
-      - --update-secrets=DSP_DATABASE_URL=dsp-database-url:latest,DSP_AUTH_JWT_SECRET=dsp-auth-jwt-secret:latest,DSP_RESEND_API_KEY=dsp-resend-api-key:latest
+      # Upstox analytics token is required for market quotes. API boot still does
+      # not require this token (fail-closed on investment paths only).
+      # GEMINI_API_KEY is credential injection only (Secret Manager version 1).
+      # Presence of this env mapping does not enable production AI or /analyse Gemini.
+      - --update-secrets=DSP_DATABASE_URL=dsp-database-url:latest,DSP_AUTH_JWT_SECRET=dsp-auth-jwt-secret:latest,DSP_RESEND_API_KEY=dsp-resend-api-key:latest,DSP_UPSTOX_ANALYTICS_TOKEN=dsp-upstox-analytics-token:latest,GEMINI_API_KEY=dsp-gemini-api-key:1
       - --add-cloudsql-instances=project-34de429e-3c43-4ae7-b75:asia-south1:dsp-postgres
       - --quiet
 

@@ -78,9 +78,16 @@ class RetrievedPrimarySourceDocument:
     publication_date: date | None = None
     as_of: date | None = None
     handling: str = DOCUMENT_RETRIEVAL_HANDLING
+    requested_locator: str = ""
+    final_locator: str = ""
+    hostname: str = ""
+    source_name: str = ""
+    retrieval_status: str = "retrieved"
 
     def to_dict(self) -> dict[str, Any]:
         """Public metadata only — never dumps document text or secrets."""
+        requested = self.requested_locator or self.locator
+        final = self.final_locator or self.locator
         return {
             "schema_version": DOCUMENT_RETRIEVAL_SCHEMA_VERSION,
             "handling": self.handling,
@@ -88,6 +95,11 @@ class RetrievedPrimarySourceDocument:
             "may_influence_calculation": False,
             "identity": self.identity.to_dict(),
             "locator": self.locator,
+            "requested_locator": requested,
+            "final_locator": final,
+            "hostname": self.hostname,
+            "source_name": self.source_name,
+            "retrieval_status": self.retrieval_status,
             "document_type": self.document_type.value,
             "source_type": self.source_type.value,
             "source_tier": self.source_tier.value,

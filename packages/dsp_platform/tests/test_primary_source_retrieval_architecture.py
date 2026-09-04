@@ -167,12 +167,14 @@ class TestPrimarySourceRetrievalArchitecture:
         assert "primary_source_retrieval" not in evidence
         for name in (
             "composition.py",
+            "analysis.py",
             "research.py",
             "research_company.py",
             "copilot.py",
         ):
             text = (_API_ROUTERS / name).read_text(encoding="utf-8")
             assert "primary_source_retrieval" not in text
+            assert "controlled_document_retrieval" not in text
 
     def test_no_env_fallback_to_local_corpus(self) -> None:
         for path in _SRC.rglob("*.py"):
@@ -202,13 +204,20 @@ class TestPrimarySourceRetrievalArchitecture:
 
     def test_frontend_does_not_import_retrieval(self) -> None:
         offenders: list[str] = []
+        skip_parts = {"node_modules", ".next", "dist", "coverage", ".vite"}
         for root in _FRONTEND_HINTS:
             if not root.exists():
                 continue
             for path in root.rglob("*"):
+                if skip_parts.intersection(path.parts):
+                    continue
                 if path.suffix.lower() not in {".py", ".ts", ".tsx", ".js"}:
+                    continue
+                if not path.is_file():
                     continue
                 text = path.read_text(encoding="utf-8", errors="ignore")
                 if "primary_source_retrieval" in text:
+                    offenders.append(path.as_posix())
+                if "controlled_document_retrieval" in text:
                     offenders.append(path.as_posix())
         assert offenders == []

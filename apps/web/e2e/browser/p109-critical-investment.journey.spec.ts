@@ -13,9 +13,13 @@ const API_BASE =
 const TICKER = process.env.DSP_P109_TICKER ?? "DSPFIX";
 const ADMIN_ID = process.env.DSP_P109_LOGIN ?? "admin";
 const ADMIN_PASSWORD =
-  process.env.DSP_SEED_ADMIN_PASSWORD ??
-  process.env.DSP_P109_PASSWORD ??
-  "Admin@123";
+  process.env.DSP_SEED_ADMIN_PASSWORD ?? process.env.DSP_P109_PASSWORD;
+
+if (!ADMIN_PASSWORD) {
+  throw new Error(
+    "P1-09 requires DSP_SEED_ADMIN_PASSWORD or DSP_P109_PASSWORD for fixture login",
+  );
+}
 
 const EVIDENCE_CLASS = "test_fixture";
 
@@ -101,9 +105,15 @@ test.describe("P1-09 critical investment journey", () => {
     });
 
     await page.goto("/login", { waitUntil: "domcontentloaded" });
-    await page.locator("#login-identifier").fill(ADMIN_ID);
-    await page.locator("#login-password").fill(ADMIN_PASSWORD);
-    await page.getByRole("button", { name: /sign in/i }).click();
+
+    // Follow the current accessible login contract: choose the password
+    // method first, then use the labelled username/password fields.
+    await page
+      .getByRole("button", { name: /username and password/i })
+      .click();
+    await page.getByLabel("Username", { exact: true }).fill(ADMIN_ID);
+    await page.getByLabel("Password", { exact: true }).fill(ADMIN_PASSWORD);
+    await page.getByRole("button", { name: /^sign in$/i }).click();
     await page.waitForURL(/\/(analysis|dashboard)/, { timeout: 60_000 });
 
     await page.goto(`/analysis?symbol=${TICKER}`, {
@@ -304,4 +314,3 @@ test.describe("P1-09 critical investment journey", () => {
     );
   });
 });
-

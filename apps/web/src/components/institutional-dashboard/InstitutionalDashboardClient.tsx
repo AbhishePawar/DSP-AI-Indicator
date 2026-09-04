@@ -25,6 +25,7 @@ import {
 import { api } from "@/lib/api/client";
 import { ApiClientError } from "@/lib/api/types";
 import { useAuth } from "@/lib/auth/AuthProvider";
+import { COMPANY_CATALOGUE } from "@/lib/companies/catalogue";
 import { loadAuthenticatedAnalyseRequest } from "@/lib/research/buildAnalyseRequest";
 import { irdSurfaceTrust } from "@/lib/trust/surfaceTrust";
 
@@ -46,10 +47,19 @@ export function InstitutionalDashboardClient({
         );
       }
       const opts = { token: session?.accessToken };
+      const match = COMPANY_CATALOGUE.find(
+        (c) => c.ticker.toUpperCase() === symbol,
+      );
       // P0-01 — authenticated statements only; never clone demo ACM financials.
       const request = await loadAuthenticatedAnalyseRequest(symbol, {
+        exchange: match?.exchange,
+        company: match?.name,
         loadStatements: () =>
-          api.financialStatements(symbol, { ...opts, limit: 1 }),
+          api.financialStatements(symbol, {
+            ...opts,
+            limit: 1,
+            exchange: match?.exchange,
+          }),
       });
       const [response, dataResp] = await Promise.all([
         api.analyse(request, opts),

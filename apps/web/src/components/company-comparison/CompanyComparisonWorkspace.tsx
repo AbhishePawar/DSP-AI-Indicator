@@ -300,7 +300,11 @@ export function CompanyComparisonWorkspace() {
               company: cat?.name,
               exchange: cat?.exchange,
               loadStatements: () =>
-                api.financialStatements(symbol, { token, limit: 1 }),
+                api.financialStatements(symbol, {
+                  token,
+                  limit: 1,
+                  exchange: cat?.exchange,
+                }),
             });
             const response = await api.analyse(body, { token });
             const at = new Date().toISOString();

@@ -219,8 +219,13 @@ export function ResearchWorkspace() {
         exchange: match?.exchange,
         company: match?.name,
         loadStatements: () =>
-          api.financialStatements(sym, { token, limit: 1 }),
-        loadQuote: () => api.marketQuote(sym, { token }),
+          api.financialStatements(sym, {
+            token,
+            limit: 1,
+            exchange: match?.exchange,
+          }),
+        loadQuote: () =>
+          api.marketQuote(sym, { token, exchange: match?.exchange }),
       });
       const response = await api.analyse(body, { token });
       return {

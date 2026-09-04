@@ -312,7 +312,11 @@ export function InstitutionalReportsWorkspace() {
         exchange: match?.exchange,
         company: match?.name,
         loadStatements: () =>
-          api.financialStatements(symbol, { token, limit: 1 }),
+          api.financialStatements(symbol, {
+            token,
+            limit: 1,
+            exchange: match?.exchange,
+          }),
       });
       const response = await api.analyse(body, { token });
       return { body, response };
@@ -371,8 +375,9 @@ export function InstitutionalReportsWorkspace() {
   }, [symbol, token]);
 
   const marketQuery = useQuery({
-    queryKey: ["institutional-reports", "market", symbol],
-    queryFn: () => api.marketQuote(symbol, { token }),
+    queryKey: ["institutional-reports", "market", symbol, catalogue?.exchange],
+    queryFn: () =>
+      api.marketQuote(symbol, { token, exchange: catalogue?.exchange }),
     enabled: Boolean(token && symbol),
     retry: false,
     staleTime: 60_000,

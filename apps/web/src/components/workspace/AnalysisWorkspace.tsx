@@ -195,7 +195,11 @@ export function AnalysisWorkspace() {
         exchange: exchange || match?.exchange,
         company: company || match?.name,
         loadStatements: () =>
-          api.financialStatements(ticker, { token, limit: 1 }),
+          api.financialStatements(ticker, {
+            token,
+            limit: 1,
+            exchange: exchange || match?.exchange,
+          }),
       });
       setLastRequest(request);
       analysisTiming.start();

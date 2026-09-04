@@ -18,6 +18,11 @@ describe("company catalogue", () => {
     expect(results[0]?.ticker).toBe("AAPL");
   });
 
+  it("resolves TCS to NSE without inventing a venue", () => {
+    const tcs = COMPANY_CATALOGUE.find((c) => c.ticker === "TCS");
+    expect(tcs?.exchange).toBe("NSE");
+  });
+
   it("searchCatalogue filters by ticker", () => {
     const results = searchCatalogue("NVDA");
     expect(results.length).toBe(1);

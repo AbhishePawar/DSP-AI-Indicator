@@ -42,6 +42,28 @@ class TestCloudBuildDeployWiring:
         # No FMP wiring in Cloud Run production path.
         assert "FMP" not in text
 
+    def test_injects_gemini_api_key_from_secret_manager_version_1(self) -> None:
+        text = _CLOUDBUILD.read_text(encoding="utf-8")
+        secrets = [
+            line.strip()
+            for line in text.splitlines()
+            if "--update-secrets=" in line and not line.lstrip().startswith("#")
+        ]
+        env = [
+            line.strip()
+            for line in text.splitlines()
+            if "--update-env-vars=" in line and not line.lstrip().startswith("#")
+        ]
+        assert len(secrets) == 1
+        secret_arg = secrets[0]
+        assert "GEMINI_API_KEY=dsp-gemini-api-key:1" in secret_arg
+        assert "dsp-gemini-api-key:latest" not in secret_arg
+        deploy_runtime = "\n".join(secrets + env)
+        assert "DEFAULT_AI_PROVIDER" not in deploy_runtime
+        assert "DSP_AI_DEFAULT_PROVIDER" not in deploy_runtime
+        assert "AI_ENABLED" not in deploy_runtime
+        assert "activation_ready" not in deploy_runtime
+
 
 class TestDockerfilePsycopgContract:
     def test_runtime_verifies_psycopg_before_api_import(self) -> None:

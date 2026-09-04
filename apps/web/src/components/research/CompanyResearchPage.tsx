@@ -12,6 +12,7 @@ import { ApiClientError } from "@/lib/api/types";
 import { useAuth } from "@/lib/auth/AuthProvider";
 import { logger } from "@/lib/observability/logger";
 import type { AnalyseRequest } from "@/lib/api/compositionTypes";
+import { COMPANY_CATALOGUE } from "@/lib/companies/catalogue";
 import { loadAuthenticatedAnalyseRequest } from "@/lib/research/buildAnalyseRequest";
 import { mapResearchView } from "@/lib/research/mapResearchView";
 import {
@@ -52,10 +53,23 @@ export function CompanyResearchPage({ ticker }: { ticker: string }) {
 
       // P0-01 — authenticated statements only; never clone demo ACM financials.
       // P0-02 — market price from authenticated quote (same as flagship workspace).
+      const match = COMPANY_CATALOGUE.find(
+        (c) => c.ticker.toUpperCase() === normalized,
+      );
       const request = await loadAuthenticatedAnalyseRequest(normalized, {
+        exchange: match?.exchange,
+        company: match?.name,
         loadStatements: () =>
-          api.financialStatements(normalized, { token, limit: 1 }),
-        loadQuote: () => api.marketQuote(normalized, { token }),
+          api.financialStatements(normalized, {
+            token,
+            limit: 1,
+            exchange: match?.exchange,
+          }),
+        loadQuote: () =>
+          api.marketQuote(normalized, {
+            token,
+            exchange: match?.exchange,
+          }),
       });
       const response = await api.analyse(request, { token });
       const analysedAt = new Date().toISOString();

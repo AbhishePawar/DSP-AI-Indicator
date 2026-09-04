@@ -7,11 +7,12 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
 const push = vi.fn();
 const replace = vi.fn();
+const navigationState = { search: "symbol=AAPL" };
 
 vi.mock("next/navigation", () => ({
   usePathname: () => "/analysis",
   useRouter: () => ({ push, replace }),
-  useSearchParams: () => new URLSearchParams("symbol=AAPL"),
+  useSearchParams: () => new URLSearchParams(navigationState.search),
 }));
 
 vi.mock("@/lib/auth/AuthProvider", () => ({
@@ -355,6 +356,7 @@ describe("EPIC-F005 company analysis lib", () => {
 describe("EPIC-F005 workspace UI", () => {
   beforeEach(() => {
     cleanup();
+    navigationState.search = "symbol=AAPL";
     acknowledgeResearchDisclaimer();
     analyseMock.mockReset();
     marketQuoteMock.mockReset();
@@ -423,6 +425,58 @@ describe("EPIC-F005 workspace UI", () => {
     expect(
       await screen.findByRole("heading", { name: /Executive Summary/i }),
     ).toBeTruthy();
+  });
+
+  it("propagates catalogue NSE onto TCS statements, quote, and analyse", async () => {
+    navigationState.search = "symbol=TCS";
+    const { CompanyAnalysisWorkspace } = await import(
+      "@/components/company-analysis/CompanyAnalysisWorkspace"
+    );
+    wrap(<CompanyAnalysisWorkspace />);
+    await waitFor(() => {
+      expect(financialStatementsMock).toHaveBeenCalled();
+      expect(analyseMock).toHaveBeenCalled();
+    });
+    const statementOpts = financialStatementsMock.mock.calls.map(
+      (call) => call[1] as { exchange?: string; limit?: number },
+    );
+    expect(statementOpts.length).toBeGreaterThan(0);
+    expect(statementOpts.every((opts) => opts.exchange === "NSE")).toBe(true);
+    const quoteOpts = marketQuoteMock.mock.calls.map(
+      (call) => call[1] as { exchange?: string },
+    );
+    expect(quoteOpts.length).toBeGreaterThan(0);
+    expect(quoteOpts.every((opts) => opts.exchange === "NSE")).toBe(true);
+    const body = analyseMock.mock.calls[0]?.[0] as { exchange?: string | null };
+    expect(body.exchange).toBe("NSE");
+  });
+
+  it("does not invent exchange when the ticker is not in the catalogue", async () => {
+    navigationState.search = "symbol=ZZZZNOTINCAT";
+    const { CompanyAnalysisWorkspace } = await import(
+      "@/components/company-analysis/CompanyAnalysisWorkspace"
+    );
+    wrap(<CompanyAnalysisWorkspace />);
+    await waitFor(() => {
+      expect(financialStatementsMock).toHaveBeenCalled();
+      expect(analyseMock).toHaveBeenCalled();
+    });
+    const statementOpts = financialStatementsMock.mock.calls.map(
+      (call) => call[1] as { exchange?: string },
+    );
+    expect(
+      statementOpts.every(
+        (opts) => opts.exchange == null || opts.exchange === "",
+      ),
+    ).toBe(true);
+    const quoteOpts = marketQuoteMock.mock.calls.map(
+      (call) => call[1] as { exchange?: string },
+    );
+    expect(
+      quoteOpts.every((opts) => opts.exchange == null || opts.exchange === ""),
+    ).toBe(true);
+    const body = analyseMock.mock.calls[0]?.[0] as { exchange?: string | null };
+    expect(body.exchange == null || body.exchange === "").toBe(true);
   });
 
   it("does not call analyse when authenticated statements are unavailable", async () => {

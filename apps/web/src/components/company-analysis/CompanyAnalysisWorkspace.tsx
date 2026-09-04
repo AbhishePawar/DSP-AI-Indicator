@@ -266,9 +266,17 @@ export function CompanyAnalysisWorkspace() {
         exchange: match?.exchange,
         company: match?.name,
         loadStatements: () =>
-          api.financialStatements(requestedSymbol, { token, limit: 1 }),
+          api.financialStatements(requestedSymbol, {
+            token,
+            limit: 1,
+            exchange: match?.exchange,
+          }),
         // P0-02 — market price only from authenticated quote (never client IV).
-        loadQuote: () => api.marketQuote(requestedSymbol, { token }),
+        loadQuote: () =>
+          api.marketQuote(requestedSymbol, {
+            token,
+            exchange: match?.exchange,
+          }),
       });
       const response = await api.analyse(body, { token });
       return { body, response, generation, requestedSymbol };
@@ -345,8 +353,9 @@ export function CompanyAnalysisWorkspace() {
   }, [symbol, token]);
 
   const marketQuery = useQuery({
-    queryKey: ["company-analysis", "market", symbol],
-    queryFn: () => api.marketQuote(symbol, { token }),
+    queryKey: ["company-analysis", "market", symbol, catalogue?.exchange],
+    queryFn: () =>
+      api.marketQuote(symbol, { token, exchange: catalogue?.exchange }),
     enabled: Boolean(token && symbol),
     retry: false,
     staleTime: 60_000,
@@ -354,8 +363,18 @@ export function CompanyAnalysisWorkspace() {
 
   // EPIC-D002 — header enrichment only (Market Cap/52wk/ROE); independent of /analyse.
   const financialStatementsQuery = useQuery({
-    queryKey: ["company-analysis", "financial-statements", symbol],
-    queryFn: () => api.financialStatements(symbol, { token, limit: 1 }),
+    queryKey: [
+      "company-analysis",
+      "financial-statements",
+      symbol,
+      catalogue?.exchange,
+    ],
+    queryFn: () =>
+      api.financialStatements(symbol, {
+        token,
+        limit: 1,
+        exchange: catalogue?.exchange,
+      }),
     enabled: Boolean(token && symbol),
     retry: false,
     staleTime: 60_000,

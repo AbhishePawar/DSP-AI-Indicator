@@ -38,6 +38,10 @@ import { SavedAnalysesPanel } from "@/components/persistence/SavedAnalysesPanel"
 import { useAuth } from "@/lib/auth/AuthProvider";
 import { COMPANY_CATALOGUE } from "@/lib/companies/catalogue";
 import {
+  fetchSelectedExchange,
+  isIndianListingVenue,
+} from "@/lib/companies/listingSelection";
+import {
   emptyIntelligenceView,
   formatPct,
   mapAnalyseResponse,
@@ -80,8 +84,8 @@ export function AnalysisWorkspace() {
   useEffect(() => {
     const match = resolveCompany(ticker);
     if (match) {
-      setExchange(match.exchange);
       setCompany(match.name);
+      setExchange(isIndianListingVenue(match.exchange) ? "" : match.exchange);
     }
   }, [ticker]);
 
@@ -191,14 +195,20 @@ export function AnalysisWorkspace() {
     const match = resolveCompany(ticker);
     try {
       // P0-01 — authenticated statements only; never clone demo ACM financials.
+      const selected = await fetchSelectedExchange({
+        symbol: ticker,
+        token,
+        catalogueExchange: match?.exchange,
+        explicitExchange: exchange.trim() || undefined,
+      });
       const request = await loadAuthenticatedAnalyseRequest(ticker, {
-        exchange: exchange || match?.exchange,
+        exchange: selected,
         company: company || match?.name,
         loadStatements: () =>
           api.financialStatements(ticker, {
             token,
             limit: 1,
-            exchange: exchange || match?.exchange,
+            exchange: selected,
           }),
       });
       setLastRequest(request);
@@ -224,8 +234,8 @@ export function AnalysisWorkspace() {
     const match = resolveCompany(nextTicker);
     setTicker(nextTicker);
     if (match) {
-      setExchange(match.exchange);
       setCompany(match.name);
+      setExchange(isIndianListingVenue(match.exchange) ? "" : match.exchange);
     }
   }
 

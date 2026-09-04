@@ -336,3 +336,20 @@ def test_live_upstox_u1_resolution_optional() -> None:
             assert result.identity.isin
             assert result.identity.provider_instrument_id
             assert result.identity.exchange == "NSE"
+
+
+def test_tcs_without_preferred_exchange_remains_ambiguous() -> None:
+    result = _resolver_for("TCS").resolve("TCS")
+    assert result.status == "AMBIGUOUS"
+    assert result.identity is None
+
+
+def test_tcs_preferred_exchange_bse_resolves_uniquely() -> None:
+    result = _resolver_for("TCS").resolve(
+        UpstoxResolveRequest(symbol="TCS", preferred_exchange="BSE")
+    )
+    assert result.status == "RESOLVED"
+    assert result.identity is not None
+    assert result.identity.exchange == "BSE"
+    assert result.identity.isin == "INE467B01029"
+    assert result.identity.provider_instrument_id.startswith("BSE_EQ|")

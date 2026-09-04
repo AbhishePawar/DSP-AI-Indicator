@@ -24,6 +24,7 @@ import {
   marketQuoteFromAuthenticated,
   seedQuoteForTicker,
 } from "@/lib/market/quoteService";
+import { quoteCurrencyForExchange } from "@/lib/companies/listingSelection";
 import { getDemoPortfolio } from "@/lib/portfolio/data";
 import {
   buildPortfolioAnalytics,
@@ -39,6 +40,14 @@ describe("market quote service", () => {
 
   afterEach(() => {
     vi.useRealTimers();
+  });
+
+  it("seed quote currency is INR for NSE and BSE, USD for NASDAQ", () => {
+    expect(seedQuoteForTicker("TCS").currency).toBe("INR");
+    expect(seedQuoteForTicker("AAPL").currency).toBe("USD");
+    expect(quoteCurrencyForExchange("BSE")).toBe("INR");
+    expect(quoteCurrencyForExchange("NSE")).toBe("INR");
+    expect(quoteCurrencyForExchange("NASDAQ")).toBe("USD");
   });
 
   it("demo seed is offline-only and never labeled live (P0-03)", () => {

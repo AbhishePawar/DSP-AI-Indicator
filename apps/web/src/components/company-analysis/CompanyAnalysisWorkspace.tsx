@@ -32,6 +32,12 @@ import {
 import { useAuth } from "@/lib/auth/AuthProvider";
 import { pushRecentAnalysis } from "@/lib/analysis/recentAnalyses";
 import { COMPANY_CATALOGUE } from "@/lib/companies/catalogue";
+import {
+  exchangeScopedQueryKey,
+  listingQueryKey,
+  selectedExchangeFromListing,
+  shouldFetchIndianListing,
+} from "@/lib/companies/listingSelection";
 import { useDashboardPrefsStore } from "@/lib/dashboard";
 import { useCollapsePanelsBelowLg } from "@/lib/a11y";
 import { loadAuthenticatedAnalyseRequest } from "@/lib/research/buildAnalyseRequest";
@@ -228,6 +234,20 @@ export function CompanyAnalysisWorkspace() {
   useCollapsePanelsBelowLg(setLeftOpen, setRightOpen);
 
   const catalogue = useMemo(() => resolveCatalogue(symbol), [symbol]);
+  const fetchListing = shouldFetchIndianListing(catalogue?.exchange);
+  const listingQuery = useQuery({
+    queryKey: listingQueryKey(symbol),
+    queryFn: () => api.selectIndianListing(symbol, { token }),
+    enabled: Boolean(symbol) && fetchListing,
+    retry: false,
+    staleTime: 60_000,
+  });
+  const listingReady =
+    !fetchListing || listingQuery.isFetched || listingQuery.isError;
+  const selectedExchange = selectedExchangeFromListing({
+    catalogueExchange: catalogue?.exchange,
+    listing: listingQuery.data,
+  });
 
   useEffect(() => {
     const next = (searchParams.get("symbol") || "").trim().toUpperCase();
@@ -263,19 +283,19 @@ export function CompanyAnalysisWorkspace() {
       const match = resolveCatalogue(requestedSymbol);
       // P0-01 — authenticated statements only; never clone demo ACM financials.
       const body = await loadAuthenticatedAnalyseRequest(requestedSymbol, {
-        exchange: match?.exchange,
+        exchange: selectedExchange,
         company: match?.name,
         loadStatements: () =>
           api.financialStatements(requestedSymbol, {
             token,
             limit: 1,
-            exchange: match?.exchange,
+            exchange: selectedExchange,
           }),
         // P0-02 — market price only from authenticated quote (never client IV).
         loadQuote: () =>
           api.marketQuote(requestedSymbol, {
             token,
-            exchange: match?.exchange,
+            exchange: selectedExchange,
           }),
       });
       const response = await api.analyse(body, { token });
@@ -346,36 +366,36 @@ export function CompanyAnalysisWorkspace() {
   // Auto-run only when the user (or deep link) provides an explicit symbol.
   useEffect(() => {
     if (!symbol) return;
+    if (!listingReady) return;
     runWithDisclaimer(() => {
       analyseMutation.mutate();
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps -- intentional symbol-driven refresh
-  }, [symbol, token]);
+  }, [symbol, token, listingReady, selectedExchange]);
 
   const marketQuery = useQuery({
-    queryKey: ["company-analysis", "market", symbol, catalogue?.exchange],
+    queryKey: exchangeScopedQueryKey(["company-analysis", "market"], symbol, selectedExchange),
     queryFn: () =>
-      api.marketQuote(symbol, { token, exchange: catalogue?.exchange }),
-    enabled: Boolean(token && symbol),
+      api.marketQuote(symbol, { token, exchange: selectedExchange }),
+    enabled: Boolean(token && symbol && listingReady),
     retry: false,
     staleTime: 60_000,
   });
 
   // EPIC-D002 — header enrichment only (Market Cap/52wk/ROE); independent of /analyse.
   const financialStatementsQuery = useQuery({
-    queryKey: [
-      "company-analysis",
-      "financial-statements",
+    queryKey: exchangeScopedQueryKey(
+      ["company-analysis", "financial-statements"],
       symbol,
-      catalogue?.exchange,
-    ],
+      selectedExchange,
+    ),
     queryFn: () =>
       api.financialStatements(symbol, {
         token,
         limit: 1,
-        exchange: catalogue?.exchange,
+        exchange: selectedExchange,
       }),
-    enabled: Boolean(token && symbol),
+    enabled: Boolean(token && symbol && listingReady),
     retry: false,
     staleTime: 60_000,
   });

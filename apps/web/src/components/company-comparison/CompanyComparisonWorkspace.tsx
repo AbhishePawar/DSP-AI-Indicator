@@ -24,6 +24,7 @@ import { api } from "@/lib/api/client";
 import { ApiClientError } from "@/lib/api/types";
 import { useAuth } from "@/lib/auth/AuthProvider";
 import { COMPANY_CATALOGUE } from "@/lib/companies/catalogue";
+import { fetchSelectedExchange } from "@/lib/companies/listingSelection";
 import {
   COMPARISON_SECTIONS,
   DATA_UNAVAILABLE,
@@ -296,14 +297,19 @@ export function CompanyComparisonWorkspace() {
           const cat = resolveCatalogue(symbol);
           try {
             // P0-01 — authenticated statements only; never clone demo ACM financials.
+            const selected = await fetchSelectedExchange({
+              symbol,
+              token,
+              catalogueExchange: cat?.exchange,
+            });
             const body = await loadAuthenticatedAnalyseRequest(symbol, {
               company: cat?.name,
-              exchange: cat?.exchange,
+              exchange: selected,
               loadStatements: () =>
                 api.financialStatements(symbol, {
                   token,
                   limit: 1,
-                  exchange: cat?.exchange,
+                  exchange: selected,
                 }),
             });
             const response = await api.analyse(body, { token });

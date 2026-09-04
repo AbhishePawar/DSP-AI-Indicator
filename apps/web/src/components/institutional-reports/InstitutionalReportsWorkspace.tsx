@@ -25,6 +25,13 @@ import { pushRecentAnalysis } from "@/lib/analysis/recentAnalyses";
 import { useAuth } from "@/lib/auth/AuthProvider";
 import { useCollapsePanelsBelowLg } from "@/lib/a11y";
 import { COMPANY_CATALOGUE } from "@/lib/companies/catalogue";
+import {
+  exchangeScopedQueryKey,
+  fetchSelectedExchange,
+  listingQueryKey,
+  selectedExchangeFromListing,
+  shouldFetchIndianListing,
+} from "@/lib/companies/listingSelection";
 import { useDashboardPrefsStore } from "@/lib/dashboard";
 import {
   REPORT_SECTIONS,
@@ -266,6 +273,20 @@ export function InstitutionalReportsWorkspace() {
   useCollapsePanelsBelowLg(setLeftOpen, setRightOpen);
 
   const catalogue = useMemo(() => resolveCatalogue(symbol), [symbol]);
+  const fetchListing = shouldFetchIndianListing(catalogue?.exchange);
+  const listingQuery = useQuery({
+    queryKey: listingQueryKey(symbol),
+    queryFn: () => api.selectIndianListing(symbol, { token }),
+    enabled: Boolean(symbol) && fetchListing,
+    retry: false,
+    staleTime: 60_000,
+  });
+  const listingReady =
+    !fetchListing || listingQuery.isFetched || listingQuery.isError;
+  const selectedExchange = selectedExchangeFromListing({
+    catalogueExchange: catalogue?.exchange,
+    listing: listingQuery.data,
+  });
   const readingLayout = reportMode === "print" || reportMode === "pdf";
 
   useEffect(() => {
@@ -308,14 +329,19 @@ export function InstitutionalReportsWorkspace() {
     mutationFn: async () => {
       const match = resolveCatalogue(symbol);
       // P0-01 — authenticated statements only; never clone demo ACM financials.
+      const selected = await fetchSelectedExchange({
+        symbol,
+        token,
+        catalogueExchange: match?.exchange,
+      });
       const body = await loadAuthenticatedAnalyseRequest(symbol, {
-        exchange: match?.exchange,
+        exchange: selected,
         company: match?.name,
         loadStatements: () =>
           api.financialStatements(symbol, {
             token,
             limit: 1,
-            exchange: match?.exchange,
+            exchange: selected,
           }),
       });
       const response = await api.analyse(body, { token });
@@ -368,17 +394,22 @@ export function InstitutionalReportsWorkspace() {
   // Auto-run only when the user (or deep link) provides an explicit symbol.
   useEffect(() => {
     if (!symbol) return;
+    if (!listingReady) return;
     runWithDisclaimer(() => {
       analyseMutation.mutate();
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps -- intentional symbol-driven refresh
-  }, [symbol, token]);
+  }, [symbol, token, listingReady, selectedExchange]);
 
   const marketQuery = useQuery({
-    queryKey: ["institutional-reports", "market", symbol, catalogue?.exchange],
+    queryKey: exchangeScopedQueryKey(
+      ["institutional-reports", "market"],
+      symbol,
+      selectedExchange,
+    ),
     queryFn: () =>
-      api.marketQuote(symbol, { token, exchange: catalogue?.exchange }),
-    enabled: Boolean(token && symbol),
+      api.marketQuote(symbol, { token, exchange: selectedExchange }),
+    enabled: Boolean(token && symbol && listingReady),
     retry: false,
     staleTime: 60_000,
   });

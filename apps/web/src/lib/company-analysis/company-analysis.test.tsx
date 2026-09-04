@@ -66,6 +66,7 @@ const financialStatementsMock = vi.fn();
 const corporateActionsMock = vi.fn();
 const copilotCompleteMock = vi.fn();
 const compareMock = vi.fn();
+const selectIndianListingMock = vi.fn();
 
 vi.mock("@/lib/api/client", () => ({
   api: {
@@ -75,6 +76,7 @@ vi.mock("@/lib/api/client", () => ({
     corporateActions: (...args: unknown[]) => corporateActionsMock(...args),
     copilotComplete: (...args: unknown[]) => copilotCompleteMock(...args),
     compare: (...args: unknown[]) => compareMock(...args),
+    selectIndianListing: (...args: unknown[]) => selectIndianListingMock(...args),
   },
 }));
 
@@ -364,6 +366,7 @@ describe("EPIC-F005 workspace UI", () => {
     corporateActionsMock.mockReset();
     copilotCompleteMock.mockReset();
     compareMock.mockReset();
+    selectIndianListingMock.mockReset();
     analyseMock.mockResolvedValue(sampleResponse);
     marketQuoteMock.mockResolvedValue({
       ok: true,
@@ -389,6 +392,12 @@ describe("EPIC-F005 workspace UI", () => {
       ],
     });
     corporateActionsMock.mockResolvedValue({ ok: true, available: false });
+    selectIndianListingMock.mockResolvedValue({
+      ok: true,
+      available: false,
+      status: "NOT_FOUND",
+      exchange: null,
+    });
     useWorkspacePrefsStore.setState({
       activeSection: "summary",
       leftOpen: true,
@@ -427,13 +436,21 @@ describe("EPIC-F005 workspace UI", () => {
     ).toBeTruthy();
   });
 
-  it("propagates catalogue NSE onto TCS statements, quote, and analyse", async () => {
+  it("propagates selected BSE onto TCS statements, quote, and analyse", async () => {
     navigationState.search = "symbol=TCS";
+    selectIndianListingMock.mockResolvedValue({
+      ok: true,
+      status: "SELECTED",
+      symbol: "TCS",
+      exchange: "BSE",
+      isin: "INE467B01029",
+    });
     const { CompanyAnalysisWorkspace } = await import(
       "@/components/company-analysis/CompanyAnalysisWorkspace"
     );
     wrap(<CompanyAnalysisWorkspace />);
     await waitFor(() => {
+      expect(selectIndianListingMock).toHaveBeenCalled();
       expect(financialStatementsMock).toHaveBeenCalled();
       expect(analyseMock).toHaveBeenCalled();
     });
@@ -441,14 +458,14 @@ describe("EPIC-F005 workspace UI", () => {
       (call) => call[1] as { exchange?: string; limit?: number },
     );
     expect(statementOpts.length).toBeGreaterThan(0);
-    expect(statementOpts.every((opts) => opts.exchange === "NSE")).toBe(true);
+    expect(statementOpts.every((opts) => opts.exchange === "BSE")).toBe(true);
     const quoteOpts = marketQuoteMock.mock.calls.map(
       (call) => call[1] as { exchange?: string },
     );
     expect(quoteOpts.length).toBeGreaterThan(0);
-    expect(quoteOpts.every((opts) => opts.exchange === "NSE")).toBe(true);
+    expect(quoteOpts.every((opts) => opts.exchange === "BSE")).toBe(true);
     const body = analyseMock.mock.calls[0]?.[0] as { exchange?: string | null };
-    expect(body.exchange).toBe("NSE");
+    expect(body.exchange).toBe("BSE");
   });
 
   it("does not invent exchange when the ticker is not in the catalogue", async () => {

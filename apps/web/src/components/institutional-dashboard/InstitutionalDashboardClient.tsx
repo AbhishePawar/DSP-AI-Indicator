@@ -26,6 +26,7 @@ import { api } from "@/lib/api/client";
 import { ApiClientError } from "@/lib/api/types";
 import { useAuth } from "@/lib/auth/AuthProvider";
 import { COMPANY_CATALOGUE } from "@/lib/companies/catalogue";
+import { fetchSelectedExchange } from "@/lib/companies/listingSelection";
 import { loadAuthenticatedAnalyseRequest } from "@/lib/research/buildAnalyseRequest";
 import { irdSurfaceTrust } from "@/lib/trust/surfaceTrust";
 
@@ -51,14 +52,19 @@ export function InstitutionalDashboardClient({
         (c) => c.ticker.toUpperCase() === symbol,
       );
       // P0-01 — authenticated statements only; never clone demo ACM financials.
+      const selected = await fetchSelectedExchange({
+        symbol,
+        token: opts.token,
+        catalogueExchange: match?.exchange,
+      });
       const request = await loadAuthenticatedAnalyseRequest(symbol, {
-        exchange: match?.exchange,
+        exchange: selected,
         company: match?.name,
         loadStatements: () =>
           api.financialStatements(symbol, {
             ...opts,
             limit: 1,
-            exchange: match?.exchange,
+            exchange: selected,
           }),
       });
       const [response, dataResp] = await Promise.all([

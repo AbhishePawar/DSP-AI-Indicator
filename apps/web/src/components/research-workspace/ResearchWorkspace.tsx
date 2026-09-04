@@ -20,6 +20,7 @@ import { useAuth } from "@/lib/auth/AuthProvider";
 import { researchWorkspaceSurfaceTrust } from "@/lib/trust/surfaceTrust";
 import { pushRecentAnalysis } from "@/lib/analysis/recentAnalyses";
 import { COMPANY_CATALOGUE } from "@/lib/companies/catalogue";
+import { fetchSelectedExchange } from "@/lib/companies/listingSelection";
 import { loadArchivedSession } from "@/lib/copilot/sessionArchive";
 import {
   RESEARCH_SECTIONS,
@@ -215,17 +216,22 @@ export function ResearchWorkspace() {
       }
       const match = COMPANY_CATALOGUE.find((c) => c.ticker === sym);
       // P0-01 — authenticated statements only; never clone demo ACM financials.
+      const selected = await fetchSelectedExchange({
+        symbol: sym,
+        token,
+        catalogueExchange: match?.exchange,
+      });
       const body = await loadAuthenticatedAnalyseRequest(sym, {
-        exchange: match?.exchange,
+        exchange: selected,
         company: match?.name,
         loadStatements: () =>
           api.financialStatements(sym, {
             token,
             limit: 1,
-            exchange: match?.exchange,
+            exchange: selected,
           }),
         loadQuote: () =>
-          api.marketQuote(sym, { token, exchange: match?.exchange }),
+          api.marketQuote(sym, { token, exchange: selected }),
       });
       const response = await api.analyse(body, { token });
       return {

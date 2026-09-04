@@ -13,6 +13,7 @@ import { useAuth } from "@/lib/auth/AuthProvider";
 import { logger } from "@/lib/observability/logger";
 import type { AnalyseRequest } from "@/lib/api/compositionTypes";
 import { COMPANY_CATALOGUE } from "@/lib/companies/catalogue";
+import { fetchSelectedExchange } from "@/lib/companies/listingSelection";
 import { loadAuthenticatedAnalyseRequest } from "@/lib/research/buildAnalyseRequest";
 import { mapResearchView } from "@/lib/research/mapResearchView";
 import {
@@ -56,19 +57,24 @@ export function CompanyResearchPage({ ticker }: { ticker: string }) {
       const match = COMPANY_CATALOGUE.find(
         (c) => c.ticker.toUpperCase() === normalized,
       );
+      const selected = await fetchSelectedExchange({
+        symbol: normalized,
+        token,
+        catalogueExchange: match?.exchange,
+      });
       const request = await loadAuthenticatedAnalyseRequest(normalized, {
-        exchange: match?.exchange,
+        exchange: selected,
         company: match?.name,
         loadStatements: () =>
           api.financialStatements(normalized, {
             token,
             limit: 1,
-            exchange: match?.exchange,
+            exchange: selected,
           }),
         loadQuote: () =>
           api.marketQuote(normalized, {
             token,
-            exchange: match?.exchange,
+            exchange: selected,
           }),
       });
       const response = await api.analyse(request, { token });

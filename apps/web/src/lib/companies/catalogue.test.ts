@@ -23,6 +23,15 @@ describe("company catalogue", () => {
     expect(tcs?.exchange).toBe("NSE");
   });
 
+  it("static catalogue is not BSE-first listing inventory", () => {
+    expect(COMPANY_CATALOGUE.filter((c) => c.exchange === "BSE")).toHaveLength(0);
+    expect(
+      COMPANY_CATALOGUE.filter((c) => c.exchange === "NASDAQ").map((c) => c.ticker),
+    ).toEqual(
+      expect.arrayContaining(["AAPL", "MSFT", "GOOGL", "AMZN", "META", "NVDA", "TSLA"]),
+    );
+  });
+
   it("searchCatalogue filters by ticker", () => {
     const results = searchCatalogue("NVDA");
     expect(results.length).toBe(1);

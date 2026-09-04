@@ -85,11 +85,77 @@ def financial_statements(
 def resolve_company(
     symbol: str = Query(..., min_length=1, max_length=32),
     exchange: str | None = Query(None, max_length=32),
+    select_listing: bool = Query(
+        False,
+        description=(
+            "When true, run BSE-first/NSE-fallback before identity resolve. "
+            "Default false preserves ticker-only U1 AMBIGUOUS behavior."
+        ),
+    ),
     state: ApiState = Depends(get_api_state),
 ) -> JSONResponse:
     """Resolve company identifiers via authenticated statement provider."""
+    selected_exchange = exchange
+    listing_payload = None
+    if select_listing:
+        try:
+            listing_payload = state.platform.select_indian_listing(
+                symbol, explicit_exchange=exchange
+            )
+        except Exception as exc:  # noqa: BLE001
+            return JSONResponse(
+                status_code=503,
+                content={
+                    "ok": False,
+                    "available": False,
+                    "symbol": symbol.strip().upper(),
+                    "status": "UNAVAILABLE",
+                    "error": str(exc),
+                    "message": "Data unavailable.",
+                },
+            )
+        listing_status = str(listing_payload.get("status") or "")
+        if listing_status == "UNAVAILABLE":
+            return JSONResponse(
+                status_code=503,
+                content={
+                    "ok": False,
+                    "available": False,
+                    "symbol": listing_payload.get("symbol") or symbol.strip().upper(),
+                    "status": listing_status,
+                    "exchange": listing_payload.get("exchange"),
+                    "isin": listing_payload.get("isin"),
+                    "detail": listing_payload.get("detail"),
+                    "identity": None,
+                    "message": "Data unavailable.",
+                },
+            )
+        if listing_status == "SELECTED":
+            raw_exchange = listing_payload.get("exchange")
+            selected_exchange = (
+                str(raw_exchange).strip().upper()
+                if isinstance(raw_exchange, str) and raw_exchange.strip()
+                else None
+            )
+        elif listing_status in {"NOT_FOUND", "AMBIGUOUS"}:
+            return JSONResponse(
+                {
+                    "ok": True,
+                    "available": False,
+                    "symbol": listing_payload.get("symbol") or symbol.strip().upper(),
+                    "status": listing_status,
+                    "exchange": listing_payload.get("exchange"),
+                    "isin": listing_payload.get("isin"),
+                    "detail": listing_payload.get("detail"),
+                    "identity": None,
+                    "message": "Data unavailable.",
+                }
+            )
+        # NOT_APPLICABLE: do not remap US/other venues; keep caller exchange.
     try:
-        identity = state.platform.resolve_company_identity(symbol, exchange=exchange)
+        identity = state.platform.resolve_company_identity(
+            symbol, exchange=selected_exchange
+        )
     except Exception as exc:  # noqa: BLE001
         return JSONResponse(
             status_code=503,
@@ -101,25 +167,35 @@ def resolve_company(
                 "message": "Data unavailable.",
             },
         )
-    if identity is None:
-        return JSONResponse(
-            {
-                "ok": True,
-                "available": False,
-                "symbol": symbol.strip().upper(),
-                "identity": None,
-                "message": "Data unavailable.",
-            }
-        )
-    return JSONResponse(
-        {
-            "ok": True,
-            "available": True,
-            "symbol": identity.get("symbol"),
-            "identity": identity,
-            "message": None,
+    listing_fields = {}
+    if listing_payload is not None:
+        listing_fields = {
+            "status": str(listing_payload.get("status") or ""),
+            "exchange": selected_exchange
+            if selected_exchange is not None
+            else listing_payload.get("exchange"),
+            "isin": listing_payload.get("isin"),
+            "detail": listing_payload.get("detail"),
         }
-    )
+    if identity is None:
+        body = {
+            "ok": True,
+            "available": False,
+            "symbol": symbol.strip().upper(),
+            "identity": None,
+            "message": "Data unavailable.",
+        }
+        body.update(listing_fields)
+        return JSONResponse(body)
+    body = {
+        "ok": True,
+        "available": True,
+        "symbol": identity.get("symbol"),
+        "identity": identity,
+        "message": None,
+    }
+    body.update(listing_fields)
+    return JSONResponse(body)
 
 
 @router.get("/fundamentals/health")

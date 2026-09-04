@@ -595,6 +595,29 @@ export const api = {
       options,
     ),
 
+  /** Opt-in Indian listing selection via existing /fundamentals/resolve. */
+  selectIndianListing: (
+    symbol: string,
+    options?: RequestOptions & { exchange?: string | null },
+  ) => {
+    const params = new URLSearchParams({
+      symbol: symbol.trim().toUpperCase(),
+      select_listing: "true",
+    });
+    if (options?.exchange) params.set("exchange", options.exchange);
+    return request<{
+      ok: boolean;
+      available?: boolean;
+      status?: string | null;
+      symbol?: string;
+      exchange?: string | null;
+      isin?: string | null;
+      detail?: string | null;
+      identity?: { exchange?: string | null } | null;
+      message?: string | null;
+    }>(`/fundamentals/resolve?${params.toString()}`, { method: "GET" }, options);
+  },
+
   /** Authenticated financial statements (EPIC-D002) — never invents missing fields. */
   financialStatements: (
     symbol: string,

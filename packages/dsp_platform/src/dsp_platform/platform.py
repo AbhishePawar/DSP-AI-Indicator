@@ -963,6 +963,30 @@ class DSPPlatform:
 
         return resolve_company_identity(symbol, exchange=exchange, currency=currency)
 
+    def select_indian_listing(
+        self,
+        symbol: str,
+        *,
+        explicit_exchange: str | None = None,
+        candidates: object | None = None,
+    ) -> dict[str, object]:
+        from collections.abc import Sequence
+
+        from dsp_platform.listing_service import select_listing_for_symbol
+
+        listing_candidates = (
+            candidates
+            if isinstance(candidates, Sequence)
+            and not isinstance(candidates, (str, bytes))
+            else None
+        )
+        result = select_listing_for_symbol(
+            symbol,
+            explicit_exchange=explicit_exchange,
+            candidates=listing_candidates,
+        )
+        return result.to_public_dict()
+
     def financial_statement_health(self) -> dict[str, object]:
         from dsp_platform.financial_statements import financial_statement_health
 

@@ -7,6 +7,7 @@
 
 import { api } from "@/lib/api/client";
 import { COMPANY_CATALOGUE } from "@/lib/companies/catalogue";
+import { quoteCurrencyForExchange } from "@/lib/companies/listingSelection";
 import type { MarketQuotePayload } from "@/lib/institutional-dashboard/mapInstitutionalDashboard";
 import { writeCachedQuote } from "./cache";
 import type { MarketQuote } from "./types";
@@ -51,7 +52,7 @@ export function seedQuoteForTicker(ticker: string): MarketQuote {
   const now = new Date().toISOString();
   return {
     ticker: normalized,
-    currency: catalogue?.exchange === "NSE" ? "INR" : "USD",
+    currency: quoteCurrencyForExchange(catalogue?.exchange),
     currentPrice,
     previousClose,
     dailyChange,

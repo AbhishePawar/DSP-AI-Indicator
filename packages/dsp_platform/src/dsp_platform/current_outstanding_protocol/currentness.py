@@ -31,6 +31,7 @@ SHARE_CHANGING_ACTION_TYPES = frozenset(
     {
         "stock_split",
         "split",
+        "reverse_split",
         "bonus",
         "bonus_issue",
         "rights",
@@ -42,9 +43,23 @@ SHARE_CHANGING_ACTION_TYPES = frozenset(
         "demerger",
         "conversion",
         "share_capital_change",
+        "treasury",
+        "treasury_share_change",
+        "buyback_extinguishment",
+        "allotment",
+        "acquisition_share_swap",
+        "cancellation",
     }
 )
-_KNOWN_NON_CHANGING = frozenset({"dividend", "symbol_change"})
+_KNOWN_NON_CHANGING = frozenset(
+    {
+        "dividend",
+        "symbol_change",
+        "board_announcement",
+        "non_capital_disclosure",
+        "acquisition_cash",
+    }
+)
 _ADMISSIBLE_CA_TIERS = frozenset({"TIER_1_PRIMARY", "TIER_2_SECONDARY"})
 
 
@@ -156,6 +171,14 @@ def evaluate_option_b_currentness(
             reason="retrieved_at must be timezone-aware and is not as_of",
         )
     horizon = retrieved_at.date()
+    if share_count_as_of > horizon:
+        return OptionBCurrentnessVerdict(
+            proven=False,
+            reason=(
+                "share-count as_of is after retrieved_at; "
+                "future observations are unproven"
+            ),
+        )
     if evidence is None:
         return OptionBCurrentnessVerdict(
             proven=False,
@@ -201,6 +224,11 @@ def evaluate_option_b_currentness(
             proven=False,
             reason="complete_through must be a date, not retrieved_at",
         )
+    if evidence.complete_through < evidence.share_count_as_of:
+        return OptionBCurrentnessVerdict(
+            proven=False,
+            reason="complete_through is before share-count as_of",
+        )
     if evidence.complete_through < horizon:
         return OptionBCurrentnessVerdict(
             proven=False,
@@ -210,7 +238,9 @@ def evaluate_option_b_currentness(
             ),
         )
     for event in evidence.events:
-        verdict = _event_blocks_currentness(event, share_count_as_of=share_count_as_of)
+        verdict = _event_blocks_currentness(
+            event, share_count_as_of=share_count_as_of, horizon=horizon
+        )
         if verdict is not None:
             return verdict
     return OptionBCurrentnessVerdict(
@@ -223,6 +253,7 @@ def _event_blocks_currentness(
     event: ShareChangingCorporateAction,
     *,
     share_count_as_of: date,
+    horizon: date,
 ) -> OptionBCurrentnessVerdict | None:
     action_type = str(event.action_type or "").strip().lower()
     if not action_type:
@@ -251,6 +282,9 @@ def _event_blocks_currentness(
             reason="share-changing corporate action is missing effective_date",
             later_share_changing_event=event,
         )
+    if event.effective_date > horizon:
+        # Announced or scheduled, not yet effective at the lookup horizon.
+        return None
     if event.effective_date <= share_count_as_of:
         return None
     if event.already_reflected_in_share_count is True:

@@ -117,12 +117,22 @@ def _candidate(**overrides: object) -> UntrustedShareCountAiCandidate:
 
 class TestTcsIdentityQueries:
     def test_queries_include_name_ticker_exchange_isin_and_mic(self) -> None:
-        queries = "\n".join(share_count_web_research_queries(TCS_IDENTITY))
+        queries = "\n".join(
+            share_count_web_research_queries(
+                TCS_IDENTITY, issuer_official_host="tcs.com"
+            )
+        )
         assert "TCS" in queries
         assert "Tata Consultancy Services" in queries
         assert "NSE" in queries
         assert "INE467B01029" in queries
         assert "XNSE" in queries
+        assert '"INE467B01029"' in queries
+        assert "site:nseindia.com" in queries
+        assert "site:tcs.com" in queries
+        assert "site:bseindia.com" in queries
+        assert "site:sebi.gov.in" in queries
+        assert "corporate action" in queries
 
 
 class TestIdentityRejection:

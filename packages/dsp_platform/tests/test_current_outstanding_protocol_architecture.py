@@ -134,6 +134,8 @@ class TestCurrentOutstandingProtocolArchitecture:
             "queries.py",
             "web_research.py",
             "gated_discovery.py",
+            "ledger.py",
+            "currentness.py",
         ):
             text = (_SRC / name).read_text(encoding="utf-8")
             assert "ShareCountSnapshot(" not in text

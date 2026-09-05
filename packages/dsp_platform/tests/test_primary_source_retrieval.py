@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import replace
-from datetime import UTC, datetime
+from datetime import UTC, date, datetime
 from pathlib import Path
 
 import pytest
@@ -354,6 +354,41 @@ class TestExtractionNegatives:
             )
             is None
         )
+
+    def test_outstanding_question_heading_does_not_block_dated_sentence(self) -> None:
+        text = _document_text(
+            body=(
+                "How many shares are outstanding? "
+                "As of June 30, 2026, issued and outstanding shares were 100 shares."
+            ),
+            as_of=None,
+        )
+        document = _retrieval(text).retrieve(_request())
+        record = extract_candidate_evidence(
+            document,
+            fact_id="current_outstanding",
+            requested_identity=FIXTURE_IDENTITY,
+        )
+        assert record is not None
+        assert record.as_of == date(2026, 6, 30)
+        assert record.numeric_value == pytest.approx(100.0)
+
+    def test_as_of_in_outstanding_sentence_is_used_when_header_missing(self) -> None:
+        text = _document_text(
+            body="As of June 30, 2026, issued and outstanding shares were 100 shares.",
+            as_of=None,
+        )
+        document = _retrieval(text).retrieve(_request())
+        assert document.as_of is None
+        record = extract_candidate_evidence(
+            document,
+            fact_id="current_outstanding",
+            requested_identity=FIXTURE_IDENTITY,
+        )
+        assert record is not None
+        assert record.as_of == date(2026, 6, 30)
+        assert record.numeric_value == pytest.approx(100.0)
+        assert "issued and outstanding" in record.evidence_reference.lower()
 
     def test_identity_mismatch_fails_closed(self) -> None:
         other = ExternalEvidenceIdentity(

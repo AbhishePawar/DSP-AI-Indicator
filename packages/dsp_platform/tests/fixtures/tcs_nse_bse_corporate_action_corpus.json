@@ -1,0 +1,317 @@
+{
+  "identity": {
+    "symbol": "TCS",
+    "exchange": "NSE",
+    "isin": "INE467B01029",
+    "mic": "XNSE",
+    "company_name": "Tata Consultancy Services Limited",
+    "bse_scrip": "532540"
+  },
+  "requested_start": "2026-06-30",
+  "requested_end": "2026-09-05",
+  "pagination": {
+    "nse_corporate_actions": "none_single_json_array",
+    "nse_announcements": "none_single_json_array",
+    "bse_announcements": "pageno_exhausted_page1_lt_50"
+  },
+  "pagination_exhausted": true,
+  "date_range_explicit": true,
+  "filters": {
+    "index": "equities",
+    "symbol": "TCS",
+    "isin": "INE467B01029"
+  },
+  "source_url": "https://www.nseindia.com/api/corporates-corporateActions?index=equities&symbol=TCS&from_date=30-06-2026&to_date=05-09-2026",
+  "announcements_source_url": "https://www.nseindia.com/api/corporate-announcements?index=equities&symbol=TCS&from_date=30-06-2026&to_date=05-09-2026",
+  "bse_source_url": "https://api.bseindia.com/BseIndiaAPI/api/AnnSubCategoryGetData/w?pageno=1&strCat=-1&strPrevDate=20260630&strScrip=532540&strSearch=P&strToDate=20260905&strType=C&subcategory=",
+  "all_equities_count": 798,
+  "all_equities_tcs_count": 1,
+  "bse_announcement_count": 35,
+  "corporate_actions": [
+    {
+      "bcEndDate": "-",
+      "bcStartDate": "-",
+      "caBroadcastDate": "None",
+      "comp": "Tata Consultancy Services Limited",
+      "exDate": "15-Jul-2026",
+      "faceVal": "1",
+      "ind": "-",
+      "isin": "INE467B01029",
+      "ndEndDate": "-",
+      "ndStartDate": "-",
+      "recDate": "15-Jul-2026",
+      "series": "EQ",
+      "subject": "Interim Dividend - Rs 12 Per Share",
+      "symbol": "TCS"
+    }
+  ],
+  "announcements": [
+    {
+      "an_dt": "05-Sep-2026 15:24:27",
+      "desc": "General Updates",
+      "attchmntText": "Press Release titled  TCS  HyperVault to establish large-scale AI data center campus in Telangana  being issued by HyperVault AI Data Center Limited, a subsidiary of the Company.",
+      "isin": "INE467B01029",
+      "symbol": "TCS",
+      "seq_id": "106771191"
+    },
+    {
+      "an_dt": "03-Sep-2026 11:30:13",
+      "desc": "Updates",
+      "attchmntText": "Tata Consultancy Services Limited has informed the Exchange regarding 'Press Release - TCS to harmonise Metro's IT application landscape and support scalable growth'.",
+      "isin": "INE467B01029",
+      "symbol": "TCS",
+      "seq_id": "106767489"
+    },
+    {
+      "an_dt": "26-Aug-2026 15:38:08",
+      "desc": "Analysts/Institutional Investor Meet/Con. Call Updates",
+      "attchmntText": "Tata Consultancy Services Limited has informed the Exchange about Schedule of meet",
+      "isin": "INE467B01029",
+      "symbol": "TCS",
+      "seq_id": "106757366"
+    },
+    {
+      "an_dt": "24-Aug-2026 16:58:28",
+      "desc": "Bagging/Receiving of orders/contracts",
+      "attchmntText": "Tata Consultancy Services Limited has informed the Exchange about Bagging/Receiving of orders/contracts",
+      "isin": "INE467B01029",
+      "symbol": "TCS",
+      "seq_id": "106754356"
+    },
+    {
+      "an_dt": "24-Aug-2026 16:57:29",
+      "desc": "Press Release",
+      "attchmntText": "Tata Consultancy Services Limited has informed the Exchange regarding a press release dated August 24, 2026, titled \"TCS and Porsche AG Partner to Accelerate the Future of AI-Powered Mobility\".",
+      "isin": "INE467B01029",
+      "symbol": "TCS",
+      "seq_id": "106754353"
+    },
+    {
+      "an_dt": "24-Aug-2026 16:55:49",
+      "desc": "Acquisition",
+      "attchmntText": "Tata Consultancy Services Limited has informed the Exchange about Acquisition",
+      "isin": "INE467B01029",
+      "symbol": "TCS",
+      "seq_id": "106754350",
+      "filing_excerpt": "7. Consideration - whether cash consideration or share swap or any other form and details of the same Cash consideration. 6. Indicative time period for completion of the acquisition The acquisition is expected to be completed within 3-4 months."
+    },
+    {
+      "an_dt": "17-Aug-2026 11:30:08",
+      "desc": "Updates",
+      "attchmntText": "Tata Consultancy Services Limited has informed the Exchange regarding 'Press Release - TCS launches Agentic AI platform to transform drug development'.",
+      "isin": "INE467B01029",
+      "symbol": "TCS",
+      "seq_id": "106746570"
+    },
+    {
+      "an_dt": "14-Aug-2026 20:05:32",
+      "desc": "Updates",
+      "attchmntText": "Tata Consultancy Services Limited has informed the Exchange regarding 'Pursuant to Regulation 30 read with Schedule III Part A Para A of the Securities and Exchange Board of India (Listing Obligations and Disclosure Requirements) Regulation",
+      "isin": "INE467B01029",
+      "symbol": "TCS",
+      "seq_id": "106745500",
+      "filing_excerpt": "communication sent to the identified shareholders pursuant to SEBI Master Circular no. HO/38/13(4)2026-MIRSD-POD/1/4298/2026 dated February 6,2026."
+    },
+    {
+      "an_dt": "13-Aug-2026 11:30:10",
+      "desc": "Updates",
+      "attchmntText": "Tata Consultancy Services Limited has informed the Exchange regarding 'Press Release - TCS and Vodafone join forces to drive AI-led digital transformation for UK enterprises'.",
+      "isin": "INE467B01029",
+      "symbol": "TCS",
+      "seq_id": "106740953"
+    },
+    {
+      "an_dt": "12-Aug-2026 15:25:59",
+      "desc": "News Verification",
+      "attchmntText": "The Exchange has sought clarification from Tata Consultancy Services Limited with respect to recent news item captioned N Chandrasekaran may step down as Tata Sons chairman ahead of AGM.  The response from the Company is attached.",
+      "isin": "INE467B01029",
+      "symbol": "TCS",
+      "seq_id": "106738946"
+    },
+    {
+      "an_dt": "12-Aug-2026 11:42:06",
+      "desc": "News Verification",
+      "attchmntText": "The Exchange has sought clarification from Tata Consultancy Services Limited with respect to recent news item captioned N Chandrasekaran may step down as Tata Sons chairman ahead of AGM.  The response from the Company is awaited.",
+      "isin": "INE467B01029",
+      "symbol": "TCS",
+      "seq_id": "106738477"
+    },
+    {
+      "an_dt": "11-Aug-2026 19:11:21",
+      "desc": "Copy of Newspaper Publication",
+      "attchmntText": "Tata Consultancy Services Limited has informed the Exchange about Copy of Newspaper Publication",
+      "isin": "INE467B01029",
+      "symbol": "TCS",
+      "seq_id": "106737586"
+    },
+    {
+      "an_dt": "11-Aug-2026 11:36:09",
+      "desc": "Updates",
+      "attchmntText": "Tata Consultancy Services Limited has informed the Exchange regarding 'Press Release - TCS and Google Cloud launch Gemini Experience Center in Mexico to help drive AI adoption'.",
+      "isin": "INE467B01029",
+      "symbol": "TCS",
+      "seq_id": "106736162"
+    },
+    {
+      "an_dt": "10-Aug-2026 16:06:41",
+      "desc": "General Updates",
+      "attchmntText": "Tata Consultancy Services Limited has informed the Exchange about General Updates",
+      "isin": "INE467B01029",
+      "symbol": "TCS",
+      "seq_id": "106734573",
+      "filing_excerpt": "This is to inform you that Company has received threat-intelligence alerts alleging possible exposure of certain employee information."
+    },
+    {
+      "an_dt": "04-Aug-2026 18:47:18",
+      "desc": "Analysts/Institutional Investor Meet/Con. Call Updates",
+      "attchmntText": "Tata Consultancy Services Limited has informed the Exchange about Schedule of meet",
+      "isin": "INE467B01029",
+      "symbol": "TCS",
+      "seq_id": "106724791"
+    },
+    {
+      "an_dt": "03-Aug-2026 17:46:43",
+      "desc": "Copy of Newspaper Publication",
+      "attchmntText": "Tata Consultancy Services Limited has informed the Exchange about Copy of Newspaper Publication",
+      "isin": "INE467B01029",
+      "symbol": "TCS",
+      "seq_id": "106722348"
+    },
+    {
+      "an_dt": "27-Jul-2026 15:05:32",
+      "desc": "Analysts/Institutional Investor Meet/Con. Call Updates",
+      "attchmntText": "Tata Consultancy Services Limited has informed the Exchange about Schedule of meet",
+      "isin": "INE467B01029",
+      "symbol": "TCS",
+      "seq_id": "106711829"
+    },
+    {
+      "an_dt": "22-Jul-2026 16:33:09",
+      "desc": "Updates",
+      "attchmntText": "Tata Consultancy Services Limited has informed the Exchange regarding 'Press Release - TCS study reveals Physical AI is now mainstream as manufacturers scale AI implementation'.",
+      "isin": "INE467B01029",
+      "symbol": "TCS",
+      "seq_id": "106706625"
+    },
+    {
+      "an_dt": "16-Jul-2026 11:30:08",
+      "desc": "Updates",
+      "attchmntText": "Tata Consultancy Services Limited has informed the Exchange regarding 'Press Release - TCS and Google Cloud launch Gemini Experience Center in Kolkata'.",
+      "isin": "INE467B01029",
+      "symbol": "TCS",
+      "seq_id": "106699790"
+    },
+    {
+      "an_dt": "15-Jul-2026 19:37:13",
+      "desc": "Analysts/Institutional Investor Meet/Con. Call Updates",
+      "attchmntText": "Tata Consultancy Services Limited has informed the Exchange about Transcript",
+      "isin": "INE467B01029",
+      "symbol": "TCS",
+      "seq_id": "106699212"
+    },
+    {
+      "an_dt": "15-Jul-2026 11:30:12",
+      "desc": "Updates",
+      "attchmntText": "Tata Consultancy Services Limited has informed the Exchange regarding 'Press Release - TCS Launches Industrial AI Solutions Lab in Bengaluru Powered by NVIDIA'.",
+      "isin": "INE467B01029",
+      "symbol": "TCS",
+      "seq_id": "106698208"
+    },
+    {
+      "an_dt": "14-Jul-2026 14:24:37",
+      "desc": "Updates",
+      "attchmntText": "Tata Consultancy Services Limited has informed the Exchange regarding 'TCS named India s most valuable IT Services brand;7 out of 10 Indians use technology built by TCS every day'.",
+      "isin": "INE467B01029",
+      "symbol": "TCS",
+      "seq_id": "106696979"
+    },
+    {
+      "an_dt": "14-Jul-2026 11:30:30",
+      "desc": "Updates",
+      "attchmntText": "Tata Consultancy Services Limited has informed the Exchange regarding 'TCS Becomes Technology and Innovation Partner to New York s New Terminal One at JFK Airport'.",
+      "isin": "INE467B01029",
+      "symbol": "TCS",
+      "seq_id": "106696698"
+    },
+    {
+      "an_dt": "13-Jul-2026 11:30:11",
+      "desc": "Updates",
+      "attchmntText": "Tata Consultancy Services Limited has informed the Exchange regarding 'Press Release - TCS and ABB sign multi-million, multi-year deal to transform global network operations with AI'.",
+      "isin": "INE467B01029",
+      "symbol": "TCS",
+      "seq_id": "106695270"
+    },
+    {
+      "an_dt": "12-Jul-2026 16:34:24",
+      "desc": "Change in Management",
+      "attchmntText": "Tata Consultancy Services Limited has informed the Exchange about change in Management",
+      "isin": "INE467B01029",
+      "symbol": "TCS",
+      "seq_id": "106695036"
+    },
+    {
+      "an_dt": "11-Jul-2026 15:24:00",
+      "desc": "Copy of Newspaper Publication",
+      "attchmntText": "Tata Consultancy Services Limited has informed the Exchange about Copy of Newspaper Publication",
+      "isin": "INE467B01029",
+      "symbol": "TCS",
+      "seq_id": "106694779"
+    },
+    {
+      "an_dt": "10-Jul-2026 18:53:25",
+      "desc": "Copy of Newspaper Publication",
+      "attchmntText": "Tata Consultancy Services Limited has informed the Exchange about Copy of Newspaper Publication",
+      "isin": "INE467B01029",
+      "symbol": "TCS",
+      "seq_id": "106694050"
+    },
+    {
+      "an_dt": "09-Jul-2026 22:27:13",
+      "desc": "Analysts/Institutional Investor Meet/Con. Call Updates",
+      "attchmntText": "Tata Consultancy Services Limited has informed the Exchange about Link of Recording",
+      "isin": "INE467B01029",
+      "symbol": "TCS",
+      "seq_id": "106692731"
+    },
+    {
+      "an_dt": "09-Jul-2026 15:57:25",
+      "desc": "General Updates",
+      "attchmntText": "Tata Consultancy Services Limited has informed the Exchange about Date of Payment of Dividend.",
+      "isin": "INE467B01029",
+      "symbol": "TCS",
+      "seq_id": "106692067"
+    },
+    {
+      "an_dt": "09-Jul-2026 15:56:06",
+      "desc": "Press Release",
+      "attchmntText": "Tata Consultancy Services Limited has informed the Exchange regarding a press release dated July 9, 2026, titled \"TCS begins FY27 with continued growth; wins multiple AI transformation deals\".",
+      "isin": "INE467B01029",
+      "symbol": "TCS",
+      "seq_id": "106692063"
+    },
+    {
+      "an_dt": "09-Jul-2026 15:54:18",
+      "desc": "Dividend",
+      "attchmntText": "Tata Consultancy Services Limited has informed the Exchange that Board of Directors at its meeting held on July 9, 2026, declared Interim Dividend of Rs. 12 per equity share.",
+      "isin": "INE467B01029",
+      "symbol": "TCS",
+      "seq_id": "106692059"
+    },
+    {
+      "an_dt": "09-Jul-2026 15:52:21",
+      "desc": "Outcome of Board Meeting",
+      "attchmntText": "Tata Consultancy Services Limited has submitted to the Exchange, the financial results for the period ended Jun 30, 2026.",
+      "isin": "INE467B01029",
+      "symbol": "TCS",
+      "seq_id": "106692052"
+    },
+    {
+      "an_dt": "06-Jul-2026 18:43:22",
+      "desc": "Copy of Newspaper Publication",
+      "attchmntText": "Tata Consultancy Services Limited has informed the Exchange about Copy of Newspaper Publication",
+      "isin": "INE467B01029",
+      "symbol": "TCS",
+      "seq_id": "106687950"
+    }
+  ]
+}

@@ -1,0 +1,16 @@
+RETRIEVED T1 EXCERPT — Stage 1E fixture from https://www.tcs.com/investor-relations/investor-faqs
+Issuer-Symbol: TCS
+Issuer-Exchange: NSE
+Issuer-ISIN: INE467B01029
+Issuer-Name: Tata Consultancy Services
+Document-Type: investor_relations
+Publication-Date: 2026-06-30
+Fact-As-Of: 2026-06-30
+Source-URL: https://www.tcs.com/investor-relations/investor-faqs
+
+Tata Consultancy Services Limited
+National Stock Exchange (NSE: TCS)
+Bombay Stock Exchange (BSE: 532540)
+TCS’ ISIN code is INE467B01029
+04. How many shares are outstanding?
+As of June 30, 2026, TCS had 3,618,087,518 shares outstanding.

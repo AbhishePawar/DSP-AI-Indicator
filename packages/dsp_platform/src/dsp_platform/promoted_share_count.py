@@ -85,6 +85,14 @@ _FORBIDDEN_SHARE_KEYS = frozenset(
         "diluted_weighted_average_shares",
         "market_cap_implied_shares",
         "implied_shares",
+        "issued",
+        "issued_shares",
+        "authorized",
+        "authorized_shares",
+        "treasury",
+        "treasury_shares",
+        "diluted",
+        "diluted_shares",
     }
 )
 
@@ -417,11 +425,24 @@ class DurablePromotedShareCountAdapter(ShareCountPort):
         return record.snapshot
 
     def _assert_identity(self, instrument: Instrument, record: _PromotedRecord) -> None:
+        requested_exchange = _norm(instrument.exchange)
+        requested_mic = _EXCHANGE_TO_MIC.get(requested_exchange, "")
+        equivalent_listing = bool(
+            requested_mic and _mics_equivalent(requested_mic, record.mic)
+        )
+        if requested_mic and not equivalent_listing:
+            raise ShareCountResolutionError(
+                SHARES_OUTSTANDING_IDENTITY_MISMATCH,
+                f"MIC {requested_mic} does not match snapshot {record.mic}",
+            )
+        # Same ISIN on NSE/BSE is one equity (XNSE ≡ XBOM). Venue strings
+        # NSE vs BSE must not override that MIC contract.
+        exchange_for_assert = None if equivalent_listing else instrument.exchange
         try:
             assert_share_count_identity(
                 record.snapshot,
                 symbol=instrument.symbol,
-                exchange=instrument.exchange,
+                exchange=exchange_for_assert,
                 isin=instrument.isin,
             )
         except Exception as exc:
@@ -429,13 +450,6 @@ class DurablePromotedShareCountAdapter(ShareCountPort):
                 SHARES_OUTSTANDING_IDENTITY_MISMATCH,
                 str(exc),
             ) from exc
-        requested_exchange = _norm(instrument.exchange)
-        requested_mic = _EXCHANGE_TO_MIC.get(requested_exchange, "")
-        if requested_mic and not _mics_equivalent(requested_mic, record.mic):
-            raise ShareCountResolutionError(
-                SHARES_OUTSTANDING_IDENTITY_MISMATCH,
-                f"MIC {requested_mic} does not match snapshot {record.mic}",
-            )
 
     def _assert_currentness(self, record: _PromotedRecord) -> None:
         retrieved_at = self._now()

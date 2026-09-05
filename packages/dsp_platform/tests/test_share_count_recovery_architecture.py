@@ -1,4 +1,4 @@
-"""Architecture: recovered ShareCountPort stays off the analyse path."""
+"""Architecture: ShareCountPort overlay is allowed; research protocol is not."""
 
 from __future__ import annotations
 
@@ -48,11 +48,17 @@ class TestShareCountRecoveryBoundaries:
             assert "canonical_research_ai_runtime" not in text
             assert "controlled_document_retrieval" not in text
             assert "GeminiAdapter" not in text
+        assert "resolve_authoritative_share_count" in auth
+        assert "_resolve_shares" in auth
+        assert "promoted_share_count" not in pipeline
+        assert "current_outstanding_protocol" not in pipeline
 
     def test_share_count_facade_does_not_auto_run_protocol(self) -> None:
         text = _SHARE_COUNTS.read_text(encoding="utf-8")
         assert "current_outstanding_protocol" not in text
         assert "canonical_research_ai_runtime" not in text
+        assert "DurablePromotedShareCountAdapter" in text
+        assert "GeminiAdapter" not in text
 
     def test_valuation_engine_does_not_import_share_count_port(self) -> None:
         for path in _VALUATION_SRC.rglob("*.py"):

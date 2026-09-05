@@ -1,8 +1,8 @@
 """Authenticated share-count façade for DSPPlatform.
 
 Thin wrapper over ``data_engine.share_count``. No scoring or valuation.
-No live vendor is selected — the env factory returns Null until a
-governance-approved provider is explicitly connected.
+No live vendor and no runtime Gemini. Production uses durable promoted
+snapshots when the env factory would otherwise return Null.
 """
 
 from __future__ import annotations
@@ -10,18 +10,26 @@ from __future__ import annotations
 from threading import Lock
 from typing import Any
 
+from contracts.domain.instrument import Instrument
 from data_engine import (
     InMemoryShareCountAdapter,
+    NullShareCountAdapter,
     ShareCountService,
     ShareCountSnapshot,
     build_default_share_count_adapter_from_env,
+)
+from dsp_platform.promoted_share_count import (
+    DurablePromotedShareCountAdapter,
+    ShareCountResolutionError,
 )
 
 __all__ = [
     "install_memory_share_count_for_tests",
     "reset_share_count_service_for_tests",
+    "resolve_authoritative_share_count",
     "share_count_health",
     "share_count_metrics",
+    "ShareCountResolutionError",
 ]
 
 _LOCK = Lock()
@@ -46,6 +54,8 @@ def _service() -> ShareCountService:
                     adapter.put(build_p109_share_count())
             except Exception:  # noqa: BLE001
                 pass
+            if isinstance(adapter, NullShareCountAdapter):
+                adapter = DurablePromotedShareCountAdapter()
             _SERVICE = ShareCountService(adapter)
         return _SERVICE
 
@@ -70,6 +80,17 @@ def install_memory_share_count_for_tests(
     service = ShareCountService(adapter)
     reset_share_count_service_for_tests(service)
     return service
+
+
+def resolve_authoritative_share_count(
+    instrument: Instrument,
+) -> ShareCountSnapshot | None:
+    """Return a validated current-outstanding snapshot, or ``None``.
+
+    Raises ``ShareCountResolutionError`` for identity / freshness / conflict
+    failures so valuation can fail closed with a diagnostic code.
+    """
+    return _service().get_share_count(instrument)
 
 
 def share_count_health() -> dict[str, Any]:

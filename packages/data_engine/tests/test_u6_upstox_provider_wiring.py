@@ -36,8 +36,11 @@ from dsp_platform import (
     load_authenticated_valuation_bundle,
 )
 from dsp_platform.composition.authenticated_valuation import AuthenticatedValuationError
+from data_engine.share_count.adapters import NullShareCountAdapter
+from data_engine.share_count.service import ShareCountService
 from dsp_platform.financial_statements import reset_financial_statement_service_for_tests
 from dsp_platform.market_quotes import reset_market_quote_service_for_tests
+from dsp_platform.share_counts import reset_share_count_service_for_tests
 
 
 FIXED = datetime(2024, 6, 15, 12, 0, tzinfo=UTC)
@@ -493,12 +496,14 @@ def test_upstox_quote_without_shares_fails_closed_honestly() -> None:
     reset_financial_statement_service_for_tests(
         FinancialStatementService(stmt_adapter)
     )
+    reset_share_count_service_for_tests(ShareCountService(NullShareCountAdapter()))
     try:
         with pytest.raises(AuthenticatedValuationError, match="shares"):
             load_authenticated_valuation_bundle("TCS", currency="INR")
     finally:
         reset_market_quote_service_for_tests(None)
         reset_financial_statement_service_for_tests(None)
+        reset_share_count_service_for_tests(None)
 
 
 def test_token_not_in_public_quote_or_statements() -> None:

@@ -1,0 +1,36 @@
+{
+  "schema_version": "dsp.promoted_share_count.v1",
+  "identity": {
+    "symbol": "TCS",
+    "exchange": "NSE",
+    "mic": "XNSE",
+    "isin": "INE467B01029",
+    "company_name": "Tata Consultancy Services Limited"
+  },
+  "shares_outstanding": "3618087518",
+  "basis": "current_outstanding",
+  "unit": "shares",
+  "as_of": "2026-06-30",
+  "effective_date": "2026-06-30",
+  "complete_through": "2026-09-05",
+  "source_tier": "TIER_1_PRIMARY",
+  "corporate_action_adjusted": true,
+  "source": {
+    "provider_id": "promoted_t1_share_count",
+    "provider_name": "Promoted T1 share-count snapshot",
+    "source_type": "primary_filing",
+    "source_url": "https://www.tcs.com/investor-relations/investor-faqs",
+    "evidence_reference": "As of June 30, 2026, TCS had 3,618,087,518 shares outstanding."
+  },
+  "corporate_action_events": [
+    {
+      "action_type": "dividend",
+      "effective_date": "2026-07-15",
+      "changes_outstanding_shares": false,
+      "description": "Interim Dividend - Rs 12 Per Share"
+    }
+  ],
+  "integrity": {
+    "sha256": "d554046950f038b59feab960736cc63a4c30525f70ccee6fbe65092e262f2e72"
+  }
+}

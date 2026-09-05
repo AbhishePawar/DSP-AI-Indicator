@@ -100,4 +100,14 @@ describe("P0-01 buildAnalyseRequestForTicker", () => {
     expect(req.financial_statements.period.period_end).toBe("2025-09-27");
     expect(req.valuation_signals).toBeUndefined();
   });
+
+  it("preserves catalogue TCS/NSE exchange on the analyse body", async () => {
+    const req = await loadAuthenticatedAnalyseRequest("TCS", {
+      company: "TCS",
+      exchange: "NSE",
+      loadStatements: async () => AUTH_STATEMENTS,
+    });
+    expect(req.ticker).toBe("TCS");
+    expect(req.exchange).toBe("NSE");
+  });
 });

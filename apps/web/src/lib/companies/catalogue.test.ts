@@ -23,6 +23,13 @@ describe("company catalogue", () => {
     expect(tcs?.exchange).toBe("NSE");
   });
 
+  it("searchCatalogue TCS selects the NSE listing", () => {
+    const results = searchCatalogue("TCS");
+    expect(results.length).toBeGreaterThan(0);
+    expect(results[0]?.ticker).toBe("TCS");
+    expect(results[0]?.exchange).toBe("NSE");
+  });
+
   it("searchCatalogue filters by ticker", () => {
     const results = searchCatalogue("NVDA");
     expect(results.length).toBe(1);

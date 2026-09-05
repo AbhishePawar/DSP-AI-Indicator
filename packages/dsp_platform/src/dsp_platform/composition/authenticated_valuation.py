@@ -7,7 +7,7 @@ providers, then maps it into ``fundamental.FinancialSnapshot`` for
 
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from datetime import date
 from typing import Any, Callable
 
@@ -224,6 +224,73 @@ def _resolve_shares(
     raise AuthenticatedValuationError(
         f"{DATA_UNAVAILABLE} (authenticated shares outstanding unavailable)"
     )
+
+
+def _quote_isin(quote: AuthenticatedMarketQuote) -> str | None:
+    raw = (quote.provenance.metadata or {}).get("isin")
+    isin = str(raw or "").strip().upper()
+    return isin or None
+
+
+def _attach_authoritative_share_count(
+    quote: AuthenticatedMarketQuote,
+    statements: AuthenticatedFinancialStatements,
+    *,
+    symbol: str,
+    exchange: str | None,
+    currency: str,
+) -> AuthenticatedMarketQuote:
+    """Overlay a validated ShareCountSnapshot when quote shares are missing.
+
+    Does not bypass ``_resolve_shares``. Does not invent a count. Runtime
+    Gemini / web research are not used here.
+    """
+    existing = _qf(quote.shares_outstanding)
+    if existing is not None and existing > 0:
+        return quote
+
+    from data_engine import ShareCountBasis, ShareCountUnit
+    from dsp_platform.share_counts import (
+        ShareCountResolutionError,
+        resolve_authoritative_share_count,
+    )
+
+    isin = (
+        str(statements.identity.isin or "").strip().upper()
+        or _quote_isin(quote)
+        or None
+    )
+    resolved_exchange = (
+        (exchange or "").strip().upper()
+        or str(statements.identity.exchange or "").strip().upper()
+        or str(quote.exchange or "").strip().upper()
+        or None
+    )
+    instrument = Instrument(
+        symbol=symbol,
+        asset_class=AssetClass.EQUITY,
+        currency=currency,
+        exchange=resolved_exchange,
+        isin=isin,
+        name=statements.identity.company_name,
+    )
+    try:
+        snapshot = resolve_authoritative_share_count(instrument)
+    except ShareCountResolutionError as exc:
+        raise AuthenticatedValuationError(
+            f"{DATA_UNAVAILABLE} ({exc.code})"
+        ) from exc
+
+    if snapshot is None:
+        return quote
+    if snapshot.basis is not ShareCountBasis.CURRENT_OUTSTANDING:
+        return quote
+    if snapshot.unit is not ShareCountUnit.SHARES:
+        return quote
+    shares = snapshot.shares_value()
+    if shares is None or shares <= 0:
+        return quote
+    return replace(quote, shares_outstanding=QuoteField.of(shares))
 
 
 def _resolve_price(quote: AuthenticatedMarketQuote) -> float:
@@ -443,6 +510,13 @@ def load_authenticated_valuation_bundle(
 
     reporting_currency = _validate_currency_set(selected, quote.currency)
     price = _resolve_price(quote)
+    quote = _attach_authoritative_share_count(
+        quote,
+        statements,
+        symbol=symbol,
+        exchange=exchange,
+        currency=reporting_currency,
+    )
 
     quote_shares = _qf(quote.shares_outstanding)
     derived_shares = None

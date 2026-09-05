@@ -45,3 +45,6 @@ dependencies = [
 
 [tool.setuptools.packages.find]
 where = ["src"]
+
+[tool.setuptools.package-data]
+dsp_platform = ["promoted_share_counts/*.json"]

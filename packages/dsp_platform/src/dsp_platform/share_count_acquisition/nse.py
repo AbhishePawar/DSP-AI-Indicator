@@ -9,6 +9,8 @@ from __future__ import annotations
 from collections.abc import Mapping
 from typing import Any
 
+from urllib.parse import quote
+
 from dsp_platform.share_count_acquisition.http import JsonHttpPort
 from dsp_platform.share_count_acquisition.models import (
     ExchangeAcquisitionRequest,
@@ -30,28 +32,44 @@ def acquire_nse_disclosures(
     identity = request.identity.normalized()
     if not identity.symbol or not identity.isin:
         return _empty(request, exhausted=False, reason="identity requires symbol and ISIN")
+    ticker = quote(identity.symbol, safe="")
     start = nse_date(request.start)
     end = nse_date(request.end)
     ca_url = (
-        f"{_CA}?index=equities&symbol={identity.symbol}"
+        f"{_CA}?index=equities&symbol={ticker}"
         f"&from_date={start}&to_date={end}"
     )
     ann_url = (
-        f"{_ANN}?index=equities&symbol={identity.symbol}"
+        f"{_ANN}?index=equities&symbol={ticker}"
         f"&from_date={start}&to_date={end}"
     )
     ca_raw = http.get_json(ca_url, referer=_REFERER)
     ann_raw = http.get_json(ann_url, referer=_REFERER)
     actions, ca_truncated, ca_ok = _records(ca_raw)
     anns, ann_truncated, ann_ok = _records(ann_raw)
-    truncated = ca_truncated or ann_truncated
+    truncated = ca_truncated or ann_truncated or _rate_limited(http)
     exhausted = ca_ok and ann_ok and not truncated
     matched_actions = tuple(
-        item for item in actions if _identity_ok(item, identity.symbol, identity.isin)
+        item
+        for item in actions
+        if _identity_ok(
+            item,
+            identity.symbol,
+            identity.isin,
+            equivalent_isins=request.equivalent_isins,
+        )
     )
     matched_anns = tuple(
-        item for item in anns if _identity_ok(item, identity.symbol, identity.isin)
+        item
+        for item in anns
+        if _identity_ok(
+            item,
+            identity.symbol,
+            identity.isin,
+            equivalent_isins=request.equivalent_isins,
+        )
     )
+    traces = _traces(http)
     return ExchangeAcquisitionResult(
         identity=identity,
         source_id="nse_public_api_connector",
@@ -72,6 +90,9 @@ def acquire_nse_disclosures(
             f"{request.end.isoformat()}"
         ),
         pages_fetched=2,
+        http_status=_last_status(traces),
+        rate_limited=_rate_limited(http),
+        fetch_traces=traces,
     )
 
 
@@ -123,11 +144,40 @@ def _records(
     return (), False, False
 
 
-def _identity_ok(item: Mapping[str, Any], symbol: str, isin: str) -> bool:
-    got_symbol = str(item.get("symbol") or item.get("sm_name") or "").strip().upper()
+def _identity_ok(
+    item: Mapping[str, Any],
+    symbol: str,
+    isin: str,
+    *,
+    equivalent_isins: tuple[str, ...] = (),
+) -> bool:
+    got_symbol = str(item.get("symbol") or "").strip().upper()
     got_isin = str(item.get("isin") or item.get("sm_isin") or "").strip().upper()
-    if got_isin and got_isin != isin:
+    accepted = {isin, *(str(item).strip().upper() for item in equivalent_isins)}
+    accepted.discard("")
+    if got_isin and got_isin not in accepted:
         return False
     if got_symbol and got_symbol == symbol:
         return True
-    return bool(got_isin) and got_isin == isin
+    return bool(got_isin) and got_isin in accepted
+
+
+def _traces(http: JsonHttpPort) -> tuple[dict[str, Any], ...]:
+    public = getattr(http, "public_traces", None)
+    if callable(public):
+        rows = public()
+        if isinstance(rows, tuple):
+            return rows
+    return ()
+
+
+def _rate_limited(http: JsonHttpPort) -> bool:
+    return any(bool(row.get("rate_limited")) for row in _traces(http) if isinstance(row, dict))
+
+
+def _last_status(traces: tuple[dict[str, Any], ...]) -> int | None:
+    for row in reversed(traces):
+        status = row.get("status")
+        if isinstance(status, int):
+            return status
+    return None

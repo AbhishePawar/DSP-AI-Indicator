@@ -95,16 +95,9 @@ def refresh_from_acquired_evidence(
             )
         evidence = attestation.evidence
         if bse_bundle is not None and not bse_bundle.pagination_exhausted:
-            from dsp_platform.share_count_refresh import CoverageState, ShareCountRefreshResult
-
-            return ShareCountRefreshResult(
-                state=CoverageState.REFRESH_PENDING,
-                reason="BSE pagination was not exhausted; Option B completeness unproven",
-                shares_outstanding=(
-                    observation.shares_outstanding if observation is not None else None
-                ),
-                as_of=as_of,
-            )
+            # BSE is a cross-check, not outstanding authority. Incomplete BSE
+            # must not silently count as completeness; omit it from attestation.
+            bse_bundle = None
     return refresh_share_count(
         ShareCountRefreshRequest(
             identity=identity,

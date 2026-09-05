@@ -42,6 +42,7 @@ class ExchangeAcquisitionRequest:
     end: date
     retrieved_at: datetime
     scrip_code: str | None = None
+    equivalent_isins: tuple[str, ...] = ()
 
 
 @dataclass(frozen=True, slots=True)
@@ -61,6 +62,9 @@ class ExchangeAcquisitionResult:
     source_url: str
     evidence_reference: str
     pages_fetched: int
+    http_status: int | None = None
+    rate_limited: bool = False
+    fetch_traces: tuple[dict[str, Any], ...] = ()
 
 
 def nse_date(value: date) -> str:

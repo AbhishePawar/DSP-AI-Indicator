@@ -71,6 +71,10 @@ def acquire_bse_disclosures(
         if page == _MAX_PAGES:
             truncated = True
     first_url = _URL.format(page=1, start=start, scrip=scrip, end=end)
+    traces = _traces(http)
+    pages_fetched = 0 if not pages and truncated else (
+        (len(pages) // _PAGE_SIZE) + (1 if len(pages) % _PAGE_SIZE else 0) or 1
+    )
     return ExchangeAcquisitionResult(
         identity=identity,
         source_id="bse_public_api_connector",
@@ -82,16 +86,19 @@ def acquire_bse_disclosures(
         pagination_exhausted=not truncated,
         date_range_explicit=True,
         truncated=truncated,
-        page_count=max(1, (len(pages) + _PAGE_SIZE - 1) // _PAGE_SIZE) if pages else 1,
+        page_count=pages_fetched,
         record_count=len(pages),
         source_url=first_url,
         evidence_reference=(
             f"BSE AnnSubCategoryGetData scrip={scrip} ISIN={identity.isin} "
             f"from {request.start.isoformat()} to {request.end.isoformat()}"
         ),
-        pages_fetched=len({1}) if not pages else (len(pages) // _PAGE_SIZE) + (
-            1 if len(pages) % _PAGE_SIZE else 0
+        pages_fetched=pages_fetched,
+        http_status=_last_status(traces),
+        rate_limited=any(
+            bool(row.get("rate_limited")) for row in traces if isinstance(row, dict)
         ),
+        fetch_traces=traces,
     )
 
 
@@ -105,6 +112,23 @@ def _identity_ok(item: Mapping[str, Any], scrip: str, isin: str) -> bool:
     if got_scrip and got_scrip != scrip:
         return False
     return True
+
+
+def _traces(http: JsonHttpPort) -> tuple[dict[str, Any], ...]:
+    public = getattr(http, "public_traces", None)
+    if callable(public):
+        rows = public()
+        if isinstance(rows, tuple):
+            return rows
+    return ()
+
+
+def _last_status(traces: tuple[dict[str, Any], ...]) -> int | None:
+    for row in reversed(traces):
+        status = row.get("status")
+        if isinstance(status, int):
+            return status
+    return None
 
 
 def _table(raw: Mapping[str, Any] | list[Any] | None) -> list[Mapping[str, Any]]:

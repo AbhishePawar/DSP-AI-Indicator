@@ -40,21 +40,6 @@ def extract_outstanding_observation(
 ) -> ShareCountObservation | None:
     """Parse an explicit outstanding statement. Rejects float/WAS/authorized."""
     identity = source.identity.normalized()
-    lowered = document_text.lower()
-    if any(
-        token in lowered
-        for token in (
-            "float shares",
-            "free float",
-            "free-float",
-            "weighted average",
-            "weighted-average",
-            "authorized shares",
-            "market cap",
-            "market capitalization",
-        )
-    ):
-        return None
     subject = ExternalEvidenceIdentity(
         symbol=identity.symbol,
         exchange=identity.exchange,

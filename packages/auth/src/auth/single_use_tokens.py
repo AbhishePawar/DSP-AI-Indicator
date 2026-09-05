@@ -28,14 +28,11 @@ Design notes
 * **Constant-time comparisons.** Purpose and user/organization binding
   checks use :func:`hmac.compare_digest` rather than ``==`` so a timing
   side channel cannot leak how much of a value matched.
-* **Atomic consumption.** ``consume()`` deletes the persisted record
-  before validating it, and serializes concurrent attempts for the same
-  token hash behind a per-hash lock — so two concurrent requests racing
-  to redeem the same token cannot both succeed (single-process
-  deployments, which is this platform's current persistence topology,
-  are fully covered; the design leaves room for an atomic
-  compare-and-delete primitive at the storage layer later without any
-  caller-visible change).
+* **Atomic consumption.** ``consume()`` uses A008 ``atomic_consume_unexpired``
+  (Postgres ``UPDATE … WHERE consumed_at IS NULL RETURNING``) so two Cloud
+  Run instances cannot both redeem the same token. Tokens that fail
+  validation after consume are burned, matching the previous delete-first
+  semantics.
 * **Key rotation ready.** The digest is namespaced by a ``key_version``
   and, when ``DSP_TOKEN_HASH_SECRET`` is configured, computed with HMAC
   under that secret. Rotating the secret/version simply means older
@@ -55,7 +52,6 @@ import os
 import secrets
 from dataclasses import dataclass
 from datetime import datetime, timedelta, timezone
-from threading import Lock
 from typing import Any, Mapping, Protocol, runtime_checkable
 
 __all__ = [
@@ -90,6 +86,19 @@ class _PersistencePort(Protocol):
         created_at: str,
         allow_update: bool,
     ) -> Any: ...
+
+    def atomic_consume_unexpired(
+        self,
+        kind: str,
+        entity_id: str,
+        *,
+        now_iso: str,
+        consumed_at: str,
+        consumed_field: tuple[str, ...] = ("payload", "consumed_at"),
+        expires_field: tuple[str, ...] = ("payload", "expires_at"),
+        attempts_field: tuple[str, ...] | None = None,
+        max_attempts: int | None = None,
+    ) -> dict[str, Any] | None: ...
 
     def get(self, kind: str, entity_id: str) -> dict[str, Any] | None: ...
 
@@ -132,8 +141,6 @@ class SingleUseTokenService:
             "DSP_TOKEN_HASH_SECRET", ""
         )
         self._key_version = key_version
-        self._locks: dict[str, Lock] = {}
-        self._locks_guard = Lock()
 
     # --- internal ----------------------------------------------------
 
@@ -145,18 +152,6 @@ class SingleUseTokenService:
 
     def _entity_id(self, purpose: str, token: str) -> str:
         return f"{_TOKEN_PREFIX}{purpose}-{self._key_version}-{self._digest(token)}"
-
-    def _lock_for(self, entity_id: str) -> Lock:
-        with self._locks_guard:
-            lock = self._locks.get(entity_id)
-            if lock is None:
-                lock = Lock()
-                self._locks[entity_id] = lock
-            return lock
-
-    def _forget_lock(self, entity_id: str) -> None:
-        with self._locks_guard:
-            self._locks.pop(entity_id, None)
 
     def _log(self, event_type: str, **kwargs: Any) -> None:
         if self._audit is not None:
@@ -202,6 +197,7 @@ class SingleUseTokenService:
                 "data": dict(data or {}),
                 "created_at": now.isoformat(),
                 "expires_at": expires_at,
+                "consumed_at": None,
                 "key_version": self._key_version,
             },
             refs=refs,
@@ -222,7 +218,10 @@ class SingleUseTokenService:
         row = self._persistence.get("metadata", self._entity_id(purpose, token))
         if row is None:
             return None
-        return self._to_record(dict(row.get("payload") or {}))
+        payload = dict(row.get("payload") or {})
+        if payload.get("consumed_at"):
+            return None
+        return self._to_record(payload)
 
     def consume(
         self,
@@ -239,17 +238,19 @@ class SingleUseTokenService:
 
         Validates purpose, expiry, and (when provided) user/organization
         binding using constant-time comparisons. The persisted record is
-        deleted unconditionally as the very first step — a token that
-        fails validation is burned, not left available for further replay
+        consumed atomically as the first step — a token that fails
+        validation is burned, not left available for further replay
         attempts.
         """
         entity_id = self._entity_id(purpose, token)
-        lock = self._lock_for(entity_id)
-        with lock:
-            row = self._persistence.get("metadata", entity_id)
-            if row is not None:
-                self._persistence.delete("metadata", entity_id)
-        self._forget_lock(entity_id)
+        now_iso = datetime.now(tz=timezone.utc).isoformat()
+        stored = self._persistence.atomic_consume_unexpired(
+            "metadata",
+            entity_id,
+            now_iso=now_iso,
+            consumed_at=now_iso,
+        )
+        row = stored
 
         if row is None:
             self._log(
@@ -318,13 +319,16 @@ class SingleUseTokenService:
     def revoke(self, *, purpose: str, token: str) -> bool:
         """Explicitly invalidate a pending token before it is ever redeemed."""
         entity_id = self._entity_id(purpose, token)
-        lock = self._lock_for(entity_id)
-        with lock:
-            existed = self._persistence.delete("metadata", entity_id)
-        self._forget_lock(entity_id)
+        now_iso = datetime.now(tz=timezone.utc).isoformat()
+        existed = self._persistence.atomic_consume_unexpired(
+            "metadata",
+            entity_id,
+            now_iso=now_iso,
+            consumed_at=now_iso,
+        )
         if existed:
             self._log("single_use_token.revoked", detail=purpose)
-        return existed
+        return existed is not None
 
     def revoke_all_for_user(self, *, purpose: str, user_id: str) -> int:
         """Invalidate every pending token of a given purpose for a user.

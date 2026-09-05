@@ -27,10 +27,12 @@ import secrets
 import struct
 import time
 import urllib.parse
+from datetime import datetime, timezone
 from typing import Any
 
 from auth.exceptions import AuthenticationError, ValidationError
 from auth.mfa_pending import MfaPendingStore
+from auth.models import utc_now
 from auth.secret_box import decrypt_secret, encrypt_secret, is_encrypted
 
 __all__ = [
@@ -49,6 +51,8 @@ _DRIFT_WINDOW = 1  # accept one step before/after for clock drift
 _PENDING_TTL_SECONDS = 600  # 10 minutes to confirm enrollment
 _RECOVERY_CODE_COUNT = 10
 _ENTITY_PREFIX = "auth-mfa-totp-"
+_RECOVERY_PREFIX = "auth-mfa-recovery-"
+_RECOVERY_HMAC = b"dsp.mfa.recovery.v1"
 
 
 def generate_totp_secret(length: int = 20) -> str:
@@ -160,6 +164,15 @@ def _verify_secret_token(token: str, token_hash: str) -> bool:
     return hmac.compare_digest(candidate, digest)
 
 
+def _recovery_entity_id(user_id: str, token_hash: str) -> str:
+    from auth.credential_boundary import resolve_auth_jwt_secret
+
+    key = resolve_auth_jwt_secret().encode("utf-8")
+    material = _RECOVERY_HMAC + b":" + f"{user_id}:{token_hash}".encode("utf-8")
+    digest = hmac.new(key, material, hashlib.sha256).hexdigest()
+    return f"{_RECOVERY_PREFIX}{digest}"
+
+
 class TotpAdapter:
     """Production TOTP MFA method — persists via the shared metadata store.
 
@@ -229,7 +242,17 @@ class TotpAdapter:
             ],
             "recovery_codes_generated_at": time.time(),
         }
+        previous = [
+            str(c.get("hash") or "")
+            for c in (self._load(user_id) or {}).get("recovery_codes") or []
+        ]
         self._save(user_id, record)
+        self._claim_totp_step(user_id, counter)
+        self._replace_recovery_entities(
+            user_id,
+            [c["hash"] for c in record["recovery_codes"]],
+            previous=previous,
+        )
         return {"ok": True, "method": "totp", "recovery_codes": recovery_codes}
 
     def begin_challenge(self, user_id: str) -> dict[str, Any]:
@@ -251,17 +274,30 @@ class TotpAdapter:
         matched, counter = verify_totp(secret, code)
         if not matched:
             return False
-        if counter == int(record.get("last_used_counter") or -1):
+        old = int(record.get("last_used_counter") or -1)
+        if counter == old:
             return False  # replay of an already-consumed step
-        record["last_used_counter"] = counter
-        self._save(user_id, record)
+        claimed = self._claim_totp_step(user_id, counter)
+        if not claimed:
+            return False
+        self._persistence.atomic_merge_payload(
+            "metadata",
+            f"{_ENTITY_PREFIX}{user_id}",
+            fields={"last_used_counter": counter},
+            updated_at=utc_now().isoformat(),
+        )
         return True
 
     # -- Admin / self-service extensions (beyond the Protocol) --------
 
     def disable(self, user_id: str) -> None:
+        record = self._load(user_id)
+        hashes = [str(c.get("hash") or "") for c in (record or {}).get("recovery_codes") or []]
         self._persistence.delete("metadata", f"{_ENTITY_PREFIX}{user_id}")
         self._pending_store.delete_totp_pending(user_id)
+        for token_hash in hashes:
+            if token_hash:
+                self._persistence.delete("metadata", _recovery_entity_id(user_id, token_hash))
 
     def recovery_codes_remaining(self, user_id: str) -> int:
         record = self._load(user_id)
@@ -292,12 +328,21 @@ class TotpAdapter:
         record = self._load(user_id)
         if record is None or not record.get("enabled"):
             raise ValidationError("TOTP MFA is not enabled for this account.")
+        previous = [
+            str(c.get("hash") or "")
+            for c in (self._load(user_id) or {}).get("recovery_codes") or []
+        ]
         codes = generate_recovery_codes()
         record["recovery_codes"] = [
             {"hash": _hash_secret_token(c), "used": False} for c in codes
         ]
         record["recovery_codes_generated_at"] = time.time()
         self._save(user_id, record)
+        self._replace_recovery_entities(
+            user_id,
+            [c["hash"] for c in record["recovery_codes"]],
+            previous=previous,
+        )
         return codes
 
     # -- internal -------------------------------------------------------
@@ -309,12 +354,74 @@ class TotpAdapter:
         for entry in codes:
             if entry.get("used"):
                 continue
-            if _verify_secret_token(recovery_code, str(entry.get("hash") or "")):
-                entry["used"] = True
-                record["recovery_codes"] = codes
-                self._save(user_id, record)
-                return True
+            token_hash = str(entry.get("hash") or "")
+            if not _verify_secret_token(recovery_code, token_hash):
+                continue
+            consumed = self._persistence.atomic_consume_unexpired(
+                "metadata",
+                _recovery_entity_id(user_id, token_hash),
+                now_iso=utc_now().isoformat(),
+                consumed_at=utc_now().isoformat(),
+            )
+            if consumed is None:
+                return False
+            entry["used"] = True
+            record["recovery_codes"] = codes
+            self._save(user_id, record)
+            return True
         return False
+
+    def _claim_totp_step(self, user_id: str, counter: int) -> bool:
+        entity_id = f"auth-mfa-totp-step-{user_id}-{int(counter)}"
+        now = utc_now().isoformat()
+        expires = datetime(2099, 1, 1, tzinfo=timezone.utc).isoformat()
+        self._persistence.atomic_put_if_absent(
+            kind="metadata",
+            entity_id=entity_id,
+            payload={
+                "auth_entity": "mfa_totp_step",
+                "user_id": user_id,
+                "counter": int(counter),
+                "expires_at": expires,
+                "consumed_at": None,
+            },
+            refs={"auth_entity": "mfa_totp_step", "user_id": user_id},
+            created_at=now,
+        )
+        consumed = self._persistence.atomic_consume_unexpired(
+            "metadata",
+            entity_id,
+            now_iso=now,
+            consumed_at=now,
+        )
+        return consumed is not None
+
+    def _replace_recovery_entities(
+        self,
+        user_id: str,
+        hashes: list[str],
+        *,
+        previous: list[str] | None = None,
+    ) -> None:
+        for token_hash in previous or []:
+            if token_hash and token_hash not in hashes:
+                self._persistence.delete("metadata", _recovery_entity_id(user_id, token_hash))
+        expires = datetime(2099, 1, 1, tzinfo=timezone.utc).isoformat()
+        now = utc_now().isoformat()
+        for token_hash in hashes:
+            self._persistence.put(
+                kind="metadata",
+                entity_id=_recovery_entity_id(user_id, token_hash),
+                payload={
+                    "auth_entity": "mfa_recovery",
+                    "user_id": user_id,
+                    "expires_at": expires,
+                    "consumed_at": None,
+                },
+                refs={"auth_entity": "mfa_recovery", "user_id": user_id},
+                created_at=now,
+                allow_update=True,
+            )
 
     def _load(self, user_id: str) -> dict[str, Any] | None:
         row = self._persistence.get("metadata", f"{_ENTITY_PREFIX}{user_id}")

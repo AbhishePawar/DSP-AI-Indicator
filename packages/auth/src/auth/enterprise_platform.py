@@ -7,7 +7,6 @@ import re
 import secrets
 import uuid
 from datetime import datetime, timedelta, timezone
-from threading import Lock
 from typing import Any
 
 from auth.audit import AuditLogger
@@ -37,6 +36,7 @@ from auth.exceptions import (
     ValidationError,
 )
 from auth.hashing import hash_password, needs_rehash, verify_password
+from auth.lockout import AuthLockoutStore
 from auth.mfa import MfaGateway, build_mfa_gateway
 from auth.models import AuthUser, freeze_mapping, utc_now
 from auth.oauth_providers import (
@@ -50,6 +50,7 @@ from auth.otp import (
     normalize_india_mobile,
     try_normalize_india_mobile,
 )
+from auth.rate_limit import AuthRateLimiter
 from auth.service import AuthService, get_auth_service
 from auth.single_use_tokens import SingleUseTokenError, SingleUseTokenService
 from auth.sms import build_sms_provider
@@ -138,8 +139,8 @@ class EnterpriseAuthPlatform:
         # shared AuthService singleton — land in this platform's audit
         # trail with zero duplicate logic or storage.
         self.auth.authentication.audit = self.audit
-        self._rate: dict[str, list[datetime]] = {}
-        self._lock = Lock()
+        self._rate_limiter = AuthRateLimiter(auth.persistence)
+        self._lockout = AuthLockoutStore(auth.persistence)
         self._lockout_threshold = int(os.environ.get("DSP_AUTH_LOCKOUT_THRESHOLD") or "5")
         self._lockout_seconds = int(os.environ.get("DSP_AUTH_LOCKOUT_SECONDS") or "900")
         self.ensure_product_roles()
@@ -327,14 +328,7 @@ class EnterpriseAuthPlatform:
     # --- helpers ---------------------------------------------------------
 
     def _rate_check(self, key: str, *, limit: int, window_sec: int = 60) -> None:
-        now = datetime.now(tz=timezone.utc)
-        with self._lock:
-            bucket = [t for t in self._rate.get(key, []) if (now - t).total_seconds() < window_sec]
-            if len(bucket) >= limit:
-                self._rate[key] = bucket
-                raise AuthenticationError("Rate limit exceeded. Try again later.")
-            bucket.append(now)
-            self._rate[key] = bucket
+        self._rate_limiter.check(key, limit=limit, window_sec=window_sec)
 
     def _frontend_url(self) -> str:
         return (os.environ.get("DSP_FRONTEND_URL") or "http://localhost:3000").rstrip("/")
@@ -504,7 +498,9 @@ class EnterpriseAuthPlatform:
         device_label: str | None = None,
         created_at: str | None = None,
     ) -> dict[str, Any]:
-        if user.status == "locked":
+        if user.status == "locked" or self._lockout.is_locked(
+            user.user_id, threshold=self._lockout_threshold
+        ):
             raise AuthenticationError("Account is locked. Contact an administrator.")
         if user.status != "active":
             raise AuthenticationError("Account is disabled.")
@@ -568,6 +564,7 @@ class EnterpriseAuthPlatform:
             user_id=user.user_id,
             device_trusted=self.devices.is_record_trusted(device),
         )
+        self._lockout.reset(user.user_id)
         cleared_meta = dict(user.metadata or {})
         cleared_meta["failed_login_count"] = 0
         cleared_meta.pop("locked_until", None)
@@ -1010,30 +1007,11 @@ class EnterpriseAuthPlatform:
         }
 
     def _register_failed_login(self, user: AuthUser, *, ip_hint: str | None, provider: str) -> None:
-        meta = dict(user.metadata or {})
-        fails = int(meta.get("failed_login_count") or 0) + 1
-        meta["failed_login_count"] = fails
-        status = user.status
-        if fails >= self._lockout_threshold:
-            until = (
-                datetime.now(tz=timezone.utc) + timedelta(seconds=self._lockout_seconds)
-            ).isoformat()
-            meta["locked_until"] = until
-            status = "locked"
-        updated = AuthUser(
-            user_id=user.user_id,
-            username=user.username,
-            email=user.email,
-            display_name=user.display_name,
-            password_hash=user.password_hash,
-            status=status,
-            created_at=user.created_at,
-            updated_at=utc_now().isoformat(),
-            last_login=user.last_login,
-            roles=user.roles,
-            metadata=freeze_mapping(meta),
+        self._lockout.record_failure(
+            user,
+            threshold=self._lockout_threshold,
+            lockout_seconds=self._lockout_seconds,
         )
-        self.auth.users.save(updated)
         self._record_login(
             user_id=user.user_id,
             provider=provider,
@@ -2480,6 +2458,7 @@ class EnterpriseAuthPlatform:
         meta = dict(user.metadata or {})
         meta["failed_login_count"] = 0
         meta.pop("locked_until", None)
+        self._lockout.reset(user_id)
         updated = AuthUser(
             user_id=user.user_id,
             username=user.username,

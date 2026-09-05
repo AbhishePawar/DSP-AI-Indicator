@@ -26,7 +26,7 @@ from cryptography.hazmat.primitives.asymmetric.padding import PKCS1v15  # noqa: 
 from auth import AuthService, RoleRegistry, reset_auth_service_for_tests, reset_role_registry_for_tests
 from auth.enterprise_models import AuthProvider
 from auth.enterprise_platform import EnterpriseAuthPlatform
-from auth.exceptions import AuthenticationError, ValidationError
+from auth.exceptions import AuthenticationError, OAuthChallengeError, ValidationError
 from auth.oauth_providers import OAuthProviderAdapter, build_oauth_registry
 from auth.otp import OtpService
 from auth.sms import DevSmsAdapter
@@ -37,6 +37,17 @@ from persistence import (
     reset_persistence_service_for_tests,
     reset_repository_registry_for_tests,
 )
+
+
+@pytest.fixture(autouse=True)
+def _isolated_a008() -> None:
+    store = InMemoryStorageProvider()
+    registry = RepositoryRegistry(storage=store)
+    reset_repository_registry_for_tests(registry)
+    reset_persistence_service_for_tests(PersistenceService(registry))
+    yield
+    reset_persistence_service_for_tests(None)
+    reset_repository_registry_for_tests(None)
 
 
 def _b64url(raw: bytes) -> str:
@@ -258,10 +269,11 @@ def test_replay_attack_state_can_only_be_used_once(monkeypatch) -> None:
     adapter.complete_login(
         code="auth-code", state=begin["state"], redirect_uri="https://app.dspai.local/callback"
     )
-    with pytest.raises(AuthenticationError, match="Invalid or expired OAuth state"):
+    with pytest.raises(OAuthChallengeError) as replayed:
         adapter.complete_login(
             code="auth-code-2", state=begin["state"], redirect_uri="https://app.dspai.local/callback"
         )
+    assert replayed.value.reason == "replayed"
 
 
 # --------------------------------------------------------------------- #

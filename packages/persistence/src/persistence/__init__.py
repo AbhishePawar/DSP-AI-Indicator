@@ -20,8 +20,10 @@ from persistence.models import (
     freeze_mapping,
     utc_now,
 )
+from persistence.postgres_storage import PostgresStorageProvider, build_postgres_storage
 from persistence.registry import (
     RepositoryRegistry,
+    build_default_storage,
     get_repository_registry,
     reset_repository_registry_for_tests,
 )
@@ -57,11 +59,14 @@ __all__ = [
     "PersistenceError",
     "PersistenceService",
     "PersistenceSnapshot",
+    "PostgresStorageProvider",
     "RepositoryRegistry",
     "SnapshotError",
     "TransactionError",
     "TransactionManager",
     "ValidationError",
+    "build_default_storage",
+    "build_postgres_storage",
     "canonical_dumps",
     "content_hash",
     "entity_from_dict",

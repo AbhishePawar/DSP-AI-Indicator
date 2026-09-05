@@ -4,8 +4,7 @@ from __future__ import annotations
 
 import uuid
 from datetime import datetime, timedelta, timezone
-from threading import Lock
-from typing import Any
+from typing import Any, Mapping
 
 from auth.exceptions import RefreshTokenReuseError, SessionError
 from auth.models import AuthSession, freeze_mapping, utc_now
@@ -18,24 +17,25 @@ _SESSION_PREFIX = "auth-session-"
 class SessionManager:
     def __init__(self, persistence_service: Any) -> None:
         self._persistence = persistence_service
-        # Per-session locks guarding refresh-token rotation so two concurrent
-        # refresh attempts for the same session cannot both observe the same
-        # "current" refresh_token_id and both succeed (see rotate_refresh_token).
-        # Mirrors the per-key lock pattern in auth.single_use_tokens.
-        self._locks: dict[str, Lock] = {}
-        self._locks_guard = Lock()
 
-    def _lock_for(self, session_id: str) -> Lock:
-        with self._locks_guard:
-            lock = self._locks.get(session_id)
-            if lock is None:
-                lock = Lock()
-                self._locks[session_id] = lock
-            return lock
+    def _entity_id(self, session_id: str) -> str:
+        return f"{_SESSION_PREFIX}{session_id}"
 
-    def _forget_lock(self, session_id: str) -> None:
-        with self._locks_guard:
-            self._locks.pop(session_id, None)
+    def _from_payload(self, payload: Mapping[str, Any]) -> AuthSession:
+        return AuthSession(
+            session_id=str(payload.get("session_id") or ""),
+            user_id=str(payload.get("user_id") or ""),
+            created_at=str(payload.get("created_at") or ""),
+            expires_at=str(payload.get("expires_at") or ""),
+            revoked=bool(payload.get("revoked")),
+            refresh_token_id=payload.get("refresh_token_id"),
+            metadata=freeze_mapping(dict(payload.get("metadata") or {})),
+            refresh_token_hash=payload.get("refresh_token_hash"),
+            refresh_rotated_at=payload.get("refresh_rotated_at"),
+        )
+
+    def _from_row(self, row: Mapping[str, Any]) -> AuthSession:
+        return self._from_payload(row.get("payload") or {})
 
     def create(
         self,
@@ -63,7 +63,7 @@ class SessionManager:
         )
         self._persistence.put(
             kind="metadata",
-            entity_id=f"{_SESSION_PREFIX}{sid}",
+            entity_id=self._entity_id(sid),
             payload=session.to_dict(),
             refs={"auth_entity": "session", "user_id": user_id},
             created_at=created,
@@ -72,21 +72,10 @@ class SessionManager:
         return session
 
     def get(self, session_id: str) -> AuthSession | None:
-        row = self._persistence.get("metadata", f"{_SESSION_PREFIX}{session_id}")
+        row = self._persistence.get("metadata", self._entity_id(session_id))
         if row is None:
             return None
-        payload = row.get("payload") or {}
-        return AuthSession(
-            session_id=str(payload.get("session_id") or ""),
-            user_id=str(payload.get("user_id") or ""),
-            created_at=str(payload.get("created_at") or ""),
-            expires_at=str(payload.get("expires_at") or ""),
-            revoked=bool(payload.get("revoked")),
-            refresh_token_id=payload.get("refresh_token_id"),
-            metadata=freeze_mapping(dict(payload.get("metadata") or {})),
-            refresh_token_hash=payload.get("refresh_token_hash"),
-            refresh_rotated_at=payload.get("refresh_rotated_at"),
-        )
+        return self._from_row(row)
 
     def require_active(
         self, session_id: str, *, now: datetime | None = None
@@ -103,22 +92,20 @@ class SessionManager:
         return session
 
     def revoke(self, session_id: str, *, updated_at: str | None = None) -> AuthSession:
+        now = updated_at or utc_now().isoformat()
+        stored = self._persistence.atomic_merge_payload(
+            "metadata",
+            self._entity_id(session_id),
+            fields={"revoked": True},
+            updated_at=now,
+            match={"revoked": False},
+        )
+        if stored is not None:
+            return self._from_row(stored)
         session = self.get(session_id)
         if session is None:
             raise SessionError("session not found")
-        revoked = AuthSession(
-            session_id=session.session_id,
-            user_id=session.user_id,
-            created_at=session.created_at,
-            expires_at=session.expires_at,
-            revoked=True,
-            refresh_token_id=session.refresh_token_id,
-            metadata=session.metadata,
-            refresh_token_hash=session.refresh_token_hash,
-            refresh_rotated_at=session.refresh_rotated_at,
-        )
-        self._write(revoked, updated_at=updated_at)
-        return revoked
+        return session
 
     def attach_refresh_material(
         self,
@@ -136,22 +123,17 @@ class SessionManager:
         reuse check is performed here — that only applies to *rotation* of
         an already-active token via :meth:`rotate_refresh_token`.
         """
-        session = self.get(session_id)
-        if session is None:
-            raise SessionError("session not found")
-        updated = AuthSession(
-            session_id=session.session_id,
-            user_id=session.user_id,
-            created_at=session.created_at,
-            expires_at=session.expires_at,
-            revoked=session.revoked,
-            refresh_token_id=token_id,
-            metadata=session.metadata,
-            refresh_token_hash=token_hash,
-            refresh_rotated_at=session.refresh_rotated_at,
+        now = updated_at or utc_now().isoformat()
+        stored = self._persistence.atomic_merge_payload(
+            "metadata",
+            self._entity_id(session_id),
+            fields={"refresh_token_id": token_id, "refresh_token_hash": token_hash},
+            updated_at=now,
+            match={"revoked": False},
         )
-        self._write(updated, updated_at=updated_at)
-        return updated
+        if stored is None:
+            raise SessionError("session not found")
+        return self._from_row(stored)
 
     def rotate_refresh_token(
         self,
@@ -168,8 +150,8 @@ class SessionManager:
         This is the single choke point for OAuth 2.0 BCP refresh-token
         rotation: the caller must present the token id/hash it believes is
         currently active, and the swap only takes effect if that matches
-        what is actually stored — under a per-session lock so two
-        concurrent callers can never both win the swap.
+        what is actually stored — via A008 ``atomic_merge_payload`` so two
+        Cloud Run instances cannot both win the swap.
 
         Raises :class:`RefreshTokenReuseError` (and revokes the session,
         i.e. the entire refresh-token family) when the expected identity
@@ -178,58 +160,44 @@ class SessionManager:
         second concurrent request lost the race after the first already
         rotated it.
         """
-        lock = self._lock_for(session_id)
-        try:
-            with lock:
-                session = self.get(session_id)
-                if session is None:
-                    raise SessionError("session not found")
-                if session.revoked:
-                    raise SessionError("session revoked")
-                mismatch = (
-                    expected_token_id is not None
-                    and session.refresh_token_id != expected_token_id
-                ) or (
-                    expected_token_hash is not None
-                    and session.refresh_token_hash is not None
-                    and session.refresh_token_hash != expected_token_hash
-                )
-                if mismatch:
-                    revoked = AuthSession(
-                        session_id=session.session_id,
-                        user_id=session.user_id,
-                        created_at=session.created_at,
-                        expires_at=session.expires_at,
-                        revoked=True,
-                        refresh_token_id=session.refresh_token_id,
-                        metadata=session.metadata,
-                        refresh_token_hash=session.refresh_token_hash,
-                        refresh_rotated_at=session.refresh_rotated_at,
-                    )
-                    self._write(revoked, updated_at=updated_at)
-                    raise RefreshTokenReuseError(
-                        "Refresh token reuse detected; session revoked."
-                    )
-                rotated = AuthSession(
-                    session_id=session.session_id,
-                    user_id=session.user_id,
-                    created_at=session.created_at,
-                    expires_at=session.expires_at,
-                    revoked=False,
-                    refresh_token_id=new_token_id,
-                    metadata=session.metadata,
-                    refresh_token_hash=new_token_hash,
-                    refresh_rotated_at=updated_at or utc_now().isoformat(),
-                )
-                self._write(rotated, updated_at=updated_at)
-                return rotated
-        finally:
-            self._forget_lock(session_id)
+        now = updated_at or utc_now().isoformat()
+        entity_id = self._entity_id(session_id)
+        match: dict[str, Any] = {"revoked": False}
+        if expected_token_id is not None:
+            match["refresh_token_id"] = expected_token_id
+        if expected_token_hash is not None:
+            match["refresh_token_hash"] = expected_token_hash
+        stored = self._persistence.atomic_merge_payload(
+            "metadata",
+            entity_id,
+            fields={
+                "refresh_token_id": new_token_id,
+                "refresh_token_hash": new_token_hash,
+                "refresh_rotated_at": now,
+            },
+            updated_at=now,
+            match=match,
+        )
+        if stored is not None:
+            return self._from_row(stored)
+        session = self.get(session_id)
+        if session is None:
+            raise SessionError("session not found")
+        if session.revoked:
+            raise SessionError("session revoked")
+        self._persistence.atomic_merge_payload(
+            "metadata",
+            entity_id,
+            fields={"revoked": True},
+            updated_at=now,
+            match={"revoked": False},
+        )
+        raise RefreshTokenReuseError("Refresh token reuse detected; session revoked.")
 
     def _write(self, session: AuthSession, *, updated_at: str | None = None) -> None:
         self._persistence.put(
             kind="metadata",
-            entity_id=f"{_SESSION_PREFIX}{session.session_id}",
+            entity_id=self._entity_id(session.session_id),
             payload=session.to_dict(),
             refs={"auth_entity": "session", "user_id": session.user_id},
             created_at=updated_at or utc_now().isoformat(),

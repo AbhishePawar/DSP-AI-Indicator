@@ -12,6 +12,7 @@ for existing deployments while making the feature complete once opted in.
 from __future__ import annotations
 
 import os
+import uuid
 from dataclasses import dataclass
 from typing import Any, Protocol, runtime_checkable
 
@@ -174,6 +175,7 @@ class MfaGateway:
         webauthn: WebAuthnPort | None = None,
         jwt: JwtService | None = None,
         enabled: bool | None = None,
+        persistence: Any | None = None,
     ) -> None:
         self._totp = totp or NullTotpAdapter()
         self._webauthn = webauthn or NullWebAuthnAdapter()
@@ -184,6 +186,11 @@ class MfaGateway:
             issuer="dsp-auth-mfa",
         )
         self._enabled = mfa_flag_enabled() if enabled is None else enabled
+        self._pending_store = None
+        if persistence is not None:
+            from auth.mfa_pending import MfaPendingStore
+
+            self._pending_store = MfaPendingStore(persistence)
 
     def enabled(self) -> bool:
         return self._enabled
@@ -222,15 +229,22 @@ class MfaGateway:
     def issue_mfa_token(self, user_id: str) -> str:
         """Short-lived, signed token identifying the pending step-up subject.
 
-        Replaces a predictable ``f"mfa-pending:{user_id}"`` placeholder with
-        a verifiable, time-boxed HMAC token via the existing
-        :class:`auth.jwt.JwtService` (no new signing primitive introduced).
+        The JWT is HMAC-signed with the shared auth secret so any Cloud Run
+        instance can verify it. When A008 persistence is wired, a ``jti``
+        row makes the challenge single-use across instances.
         """
-        return self._jwt.issue(
+        jti = str(uuid.uuid4())
+        token = self._jwt.issue(
             subject=user_id,
             expires_in=_MFA_TOKEN_TTL_SECONDS,
             token_use=_MFA_TOKEN_USE,
+            token_id=jti,
         )
+        if self._pending_store is not None:
+            self._pending_store.put_stepup(
+                jti=jti, user_id=user_id, ttl_seconds=_MFA_TOKEN_TTL_SECONDS
+            )
+        return token
 
     def resolve_mfa_token(self, mfa_token: str) -> str:
         """Return the ``user_id`` bound to a valid, unexpired ``mfa_token``."""
@@ -245,7 +259,28 @@ class MfaGateway:
         subject = str(payload.get("sub") or "")
         if not subject:
             raise AuthenticationError("Invalid MFA challenge token.")
+        jti = str(payload.get("jti") or "")
+        if self._pending_store is not None:
+            if not jti:
+                raise AuthenticationError("Invalid or expired MFA challenge.")
+            record = self._pending_store.get_stepup(jti)
+            if record is None or record.user_id != subject:
+                raise AuthenticationError("Invalid or expired MFA challenge.")
         return subject
+
+    def consume_mfa_token(self, mfa_token: str) -> None:
+        """Atomically consume a step-up token after successful factor verify."""
+        from auth.exceptions import AuthenticationError, InvalidTokenError
+
+        if self._pending_store is None:
+            return
+        try:
+            payload = self._jwt.decode(mfa_token)
+        except InvalidTokenError as exc:
+            raise AuthenticationError("Invalid or expired MFA challenge.") from exc
+        jti = str(payload.get("jti") or "")
+        if not jti or self._pending_store.consume_stepup(jti) is None:
+            raise AuthenticationError("Invalid or expired MFA challenge.")
 
     def evaluate(
         self,
@@ -287,4 +322,4 @@ def build_mfa_gateway(
 
     totp = TotpAdapter(persistence)
     webauthn = WebAuthnAdapter(persistence, users) if users is not None else NullWebAuthnAdapter()
-    return MfaGateway(totp=totp, webauthn=webauthn, jwt=jwt)
+    return MfaGateway(totp=totp, webauthn=webauthn, jwt=jwt, persistence=persistence)

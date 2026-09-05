@@ -195,11 +195,11 @@ def test_login_complete_issues_session_and_sets_cookies(
         allow_update=True,
     )
     state = "api-auth-state-1"
-    env.mfa.webauthn._pending[state] = {  # noqa: SLF001
+    env.mfa.webauthn.seed_pending(state, {  # noqa: SLF001
         "kind": "authentication",
         "challenge": _b64url_decode(_AUTH_CHALLENGE_B64URL),
         "created_at": time.time(),
-    }
+    })
     resp = client.post(
         "/api/v1/auth/passkey/login/complete",
         json={"state": state, "credential": _AUTH_CREDENTIAL},
@@ -218,11 +218,11 @@ def test_login_complete_unknown_credential_returns_401(
     client: TestClient, env: EnterpriseAuthPlatform
 ) -> None:
     state = "api-auth-state-2"
-    env.mfa.webauthn._pending[state] = {  # noqa: SLF001
+    env.mfa.webauthn.seed_pending(state, {  # noqa: SLF001
         "kind": "authentication",
         "challenge": _b64url_decode(_AUTH_CHALLENGE_B64URL),
         "created_at": time.time(),
-    }
+    })
     resp = client.post(
         "/api/v1/auth/passkey/login/complete",
         json={"state": state, "credential": _AUTH_CREDENTIAL},

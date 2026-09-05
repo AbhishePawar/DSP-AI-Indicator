@@ -11,6 +11,24 @@ from auth.enterprise_models import AuthProvider
 from auth.exceptions import AuthenticationError
 from auth.oauth_providers import OAuthProviderAdapter
 from auth.oidc import OidcVerificationUnavailable
+from persistence import (
+    InMemoryStorageProvider,
+    PersistenceService,
+    RepositoryRegistry,
+    reset_persistence_service_for_tests,
+    reset_repository_registry_for_tests,
+)
+
+
+@pytest.fixture(autouse=True)
+def _isolated_a008() -> None:
+    store = InMemoryStorageProvider()
+    registry = RepositoryRegistry(storage=store)
+    reset_repository_registry_for_tests(registry)
+    reset_persistence_service_for_tests(PersistenceService(registry))
+    yield
+    reset_persistence_service_for_tests(None)
+    reset_repository_registry_for_tests(None)
 
 
 class _FakeResponse:

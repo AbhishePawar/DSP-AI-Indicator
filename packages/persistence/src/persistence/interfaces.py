@@ -14,7 +14,7 @@ __all__ = [
 
 
 class StorageProviderPort(Protocol):
-    """Storage abstraction — InMemory default; Postgres/SQLite/etc. later."""
+    """Storage abstraction — InMemory in development; Postgres in production."""
 
     provider_id: str
 
@@ -31,6 +31,67 @@ class StorageProviderPort(Protocol):
     def snapshot_state(self) -> dict[str, dict[str, Mapping[str, Any]]]: ...
 
     def restore_state(self, state: Mapping[str, Mapping[str, Mapping[str, Any]]]) -> None: ...
+
+    def atomic_consume_unexpired(
+        self,
+        collection: str,
+        key: str,
+        *,
+        now_iso: str,
+        consumed_at: str,
+        consumed_field: tuple[str, ...] = ("payload", "consumed_at"),
+        expires_field: tuple[str, ...] = ("payload", "expires_at"),
+        attempts_field: tuple[str, ...] | None = None,
+        max_attempts: int | None = None,
+    ) -> Mapping[str, Any] | None:
+        """Atomically mark ``consumed_field`` if unset and not expired.
+
+        Returns the stored document after a successful consume, or ``None``
+        when the row is missing, already consumed, or expired. Must be
+        implemented with a single compare-and-set (not get-then-put).
+        When ``attempts_field`` and ``max_attempts`` are set, consume also
+        requires the integer counter to be strictly below ``max_attempts``.
+        """
+        ...
+
+    def atomic_increment_unexpired(
+        self,
+        collection: str,
+        key: str,
+        *,
+        now_iso: str,
+        counter_field: tuple[str, ...] = ("payload", "attempts"),
+        max_value: int = 5,
+        consumed_field: tuple[str, ...] = ("payload", "consumed_at"),
+        expires_field: tuple[str, ...] = ("payload", "expires_at"),
+    ) -> Mapping[str, Any] | None:
+        """Atomically increment ``counter_field`` when unconsumed, unexpired, and below max."""
+        ...
+
+    def atomic_put_if_absent(
+        self, collection: str, key: str, value: Mapping[str, Any]
+    ) -> Mapping[str, Any]:
+        """Insert ``value`` when ``key`` is absent; return the stored document either way.
+
+        Must be a single compare-and-set insert, not get-then-put.
+        """
+        ...
+
+    def atomic_merge_payload(
+        self,
+        collection: str,
+        key: str,
+        *,
+        fields: Mapping[str, Any],
+        updated_at: str,
+        match: Mapping[str, Any] | None = None,
+    ) -> Mapping[str, Any] | None:
+        """Merge ``fields`` into ``payload.payload`` without replacing sibling keys.
+
+        Returns the stored document after a successful merge, or ``None`` when
+        the row is missing or ``match`` predicates fail. Must not be get-then-put.
+        """
+        ...
 
 
 class EntityRepositoryPort(Protocol):

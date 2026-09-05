@@ -8,6 +8,7 @@ from persistence import (
     PERSISTENCE_SCHEMA_VERSION,
     DuplicateIdError,
     InMemoryStorageProvider,
+    PersistenceError,
     PersistenceService,
     RepositoryRegistry,
     SnapshotError,
@@ -16,9 +17,11 @@ from persistence import (
     canonical_dumps,
     content_hash,
     get_persistence_service,
+    get_repository_registry,
     reset_persistence_service_for_tests,
     reset_repository_registry_for_tests,
 )
+from persistence.registry import build_default_storage
 
 FIXED = "2026-07-28T12:00:00+00:00"
 
@@ -208,3 +211,172 @@ def test_determinism_of_put() -> None:
     listed = svc.list_entities("metadata")
     assert listed[0]["payload"] == {"x": 1, "y": 2}
     assert canonical_dumps(a["payload"]) == canonical_dumps({"y": 2, "x": 1})
+
+
+def test_atomic_consume_unexpired_once() -> None:
+    svc = get_persistence_service()
+    svc.put(
+        kind="metadata",
+        entity_id="consume-1",
+        payload={"expires_at": "2099-01-01T00:00:00+00:00", "consumed_at": None},
+        created_at=FIXED,
+    )
+    first = svc.atomic_consume_unexpired(
+        "metadata",
+        "consume-1",
+        now_iso="2026-07-28T12:00:00+00:00",
+        consumed_at="2026-07-28T12:00:01+00:00",
+    )
+    assert first is not None
+    assert first["payload"]["consumed_at"] == "2026-07-28T12:00:01+00:00"
+    second = svc.atomic_consume_unexpired(
+        "metadata",
+        "consume-1",
+        now_iso="2026-07-28T12:00:02+00:00",
+        consumed_at="2026-07-28T12:00:02+00:00",
+    )
+    assert second is None
+
+
+def test_atomic_increment_unexpired_caps_and_skips_consumed() -> None:
+    svc = get_persistence_service()
+    svc.put(
+        kind="metadata",
+        entity_id="inc-1",
+        payload={"expires_at": "2099-01-01T00:00:00+00:00", "consumed_at": None, "attempts": 0},
+        created_at=FIXED,
+    )
+    first = svc.atomic_increment_unexpired(
+        "metadata",
+        "inc-1",
+        now_iso="2026-07-28T12:00:00+00:00",
+        max_value=2,
+    )
+    assert first is not None
+    assert first["payload"]["attempts"] == 1
+    second = svc.atomic_increment_unexpired(
+        "metadata",
+        "inc-1",
+        now_iso="2026-07-28T12:00:01+00:00",
+        max_value=2,
+    )
+    assert second is not None
+    assert second["payload"]["attempts"] == 2
+    third = svc.atomic_increment_unexpired(
+        "metadata",
+        "inc-1",
+        now_iso="2026-07-28T12:00:02+00:00",
+        max_value=2,
+    )
+    assert third is None
+    consumed = svc.atomic_consume_unexpired(
+        "metadata",
+        "inc-1",
+        now_iso="2026-07-28T12:00:03+00:00",
+        consumed_at="2026-07-28T12:00:03+00:00",
+        attempts_field=("payload", "attempts"),
+        max_attempts=2,
+    )
+    assert consumed is None
+
+
+def test_atomic_put_if_absent_returns_winner() -> None:
+    svc = get_persistence_service()
+    first = svc.atomic_put_if_absent(
+        kind="metadata",
+        entity_id="absent-1",
+        payload={"device_id": "a"},
+        created_at=FIXED,
+    )
+    second = svc.atomic_put_if_absent(
+        kind="metadata",
+        entity_id="absent-1",
+        payload={"device_id": "b"},
+        created_at=FIXED,
+    )
+    assert first["payload"]["device_id"] == "a"
+    assert second["payload"]["device_id"] == "a"
+    assert svc.get("metadata", "absent-1")["payload"]["device_id"] == "a"
+
+
+def test_atomic_merge_payload_preserves_sibling_fields() -> None:
+    svc = get_persistence_service()
+    svc.put(
+        kind="metadata",
+        entity_id="merge-1",
+        payload={"trusted": True, "revoked": False, "last_seen_at": "t0"},
+        created_at=FIXED,
+    )
+    merged = svc.atomic_merge_payload(
+        "metadata",
+        "merge-1",
+        fields={"last_seen_at": "t1", "ip_hint": "1.2.3.4"},
+        updated_at="2026-07-28T12:00:01+00:00",
+        match={"revoked": False},
+    )
+    assert merged is not None
+    assert merged["payload"]["trusted"] is True
+    assert merged["payload"]["revoked"] is False
+    assert merged["payload"]["last_seen_at"] == "t1"
+    assert merged["payload"]["ip_hint"] == "1.2.3.4"
+    skipped = svc.atomic_merge_payload(
+        "metadata",
+        "merge-1",
+        fields={"revoked": True},
+        updated_at="2026-07-28T12:00:02+00:00",
+        match={"user_id": "other"},
+    )
+    assert skipped is None
+    still = svc.get("metadata", "merge-1")
+    assert still is not None
+    assert still["payload"]["revoked"] is False
+
+
+def test_atomic_consume_rejects_expired_and_missing() -> None:
+    svc = get_persistence_service()
+    svc.put(
+        kind="metadata",
+        entity_id="consume-expired",
+        payload={"expires_at": "2000-01-01T00:00:00+00:00", "consumed_at": None},
+        created_at=FIXED,
+    )
+    assert (
+        svc.atomic_consume_unexpired(
+            "metadata",
+            "consume-expired",
+            now_iso="2026-07-28T12:00:00+00:00",
+            consumed_at="2026-07-28T12:00:00+00:00",
+        )
+        is None
+    )
+    assert (
+        svc.atomic_consume_unexpired(
+            "metadata",
+            "missing",
+            now_iso="2026-07-28T12:00:00+00:00",
+            consumed_at="2026-07-28T12:00:00+00:00",
+        )
+        is None
+    )
+
+
+def test_production_missing_database_url_fail_closed(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setenv("DSP_ENVIRONMENT", "production")
+    monkeypatch.delenv("DSP_DATABASE_URL", raising=False)
+    monkeypatch.delenv("DATABASE_URL", raising=False)
+    reset_repository_registry_for_tests(None)
+    reset_persistence_service_for_tests(None)
+    with pytest.raises(PersistenceError, match="DSP_DATABASE_URL"):
+        build_default_storage()
+    with pytest.raises(PersistenceError, match="DSP_DATABASE_URL"):
+        get_repository_registry()
+    with pytest.raises(PersistenceError, match="DSP_DATABASE_URL"):
+        get_persistence_service()
+
+
+def test_development_storage_is_in_memory(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setenv("DSP_ENVIRONMENT", "development")
+    reset_repository_registry_for_tests(None)
+    reset_persistence_service_for_tests(None)
+    storage = build_default_storage()
+    assert storage.provider_id == "in_memory"

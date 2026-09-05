@@ -18,7 +18,7 @@ import pytest
 from auth import AuthService, RoleRegistry, reset_auth_service_for_tests, reset_role_registry_for_tests
 from auth.enterprise_models import AuthProvider
 from auth.enterprise_platform import EnterpriseAuthPlatform
-from auth.exceptions import AuthenticationError, ValidationError
+from auth.exceptions import AuthenticationError, OAuthChallengeError, ValidationError
 from auth.oauth_providers import OAuthProfile, OAuthProviderAdapter, build_oauth_registry
 from auth.otp import OtpService
 from auth.sms import DevSmsAdapter
@@ -29,6 +29,17 @@ from persistence import (
     reset_persistence_service_for_tests,
     reset_repository_registry_for_tests,
 )
+
+
+@pytest.fixture(autouse=True)
+def _isolated_a008() -> None:
+    store = InMemoryStorageProvider()
+    registry = RepositoryRegistry(storage=store)
+    reset_repository_registry_for_tests(registry)
+    reset_persistence_service_for_tests(PersistenceService(registry))
+    yield
+    reset_persistence_service_for_tests(None)
+    reset_repository_registry_for_tests(None)
 
 
 class _FakeResponse:
@@ -266,15 +277,17 @@ def test_complete_login_rejects_invalid_state_replay(monkeypatch) -> None:
     adapter.complete_login(
         code="auth-code", state=begin["state"], redirect_uri="https://app.dspai.local/callback"
     )
-    with pytest.raises(AuthenticationError, match="Invalid or expired OAuth state"):
+    with pytest.raises(OAuthChallengeError) as replayed:
         adapter.complete_login(
             code="auth-code-2", state=begin["state"], redirect_uri="https://app.dspai.local/callback"
         )
+    assert replayed.value.reason == "replayed"
 
-    with pytest.raises(AuthenticationError, match="Invalid or expired OAuth state"):
+    with pytest.raises(OAuthChallengeError) as unknown:
         adapter.complete_login(
             code="auth-code-3", state="never-issued-state", redirect_uri="https://app.dspai.local/callback"
         )
+    assert unknown.value.reason == "unknown"
 
 
 def test_complete_login_surfaces_userinfo_failure(monkeypatch) -> None:

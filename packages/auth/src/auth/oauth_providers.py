@@ -12,12 +12,12 @@ import urllib.error
 import urllib.parse
 import urllib.request
 from dataclasses import dataclass
-from threading import Lock
 from typing import Any
 
 from auth.credential_boundary import GOOGLE_CLIENT_ID_ENV, GOOGLE_CLIENT_SECRET_ENV
 from auth.enterprise_models import AuthProvider, ProviderUiStatus
 from auth.exceptions import AuthenticationError, ValidationError
+from auth.oauth_challenges import OAuthChallengeStore
 from auth.oidc import OidcVerificationUnavailable, verify_id_token
 
 logger = logging.getLogger(__name__)
@@ -76,6 +76,7 @@ class OAuthProviderAdapter:
         flag_env: str,
         oidc_jwks_uri: str | None = None,
         oidc_issuers: tuple[str, ...] = (),
+        challenge_store: OAuthChallengeStore | None = None,
     ) -> None:
         self.provider = provider
         self.client_id = client_id.strip()
@@ -87,8 +88,12 @@ class OAuthProviderAdapter:
         self.flag_env = flag_env
         self.oidc_jwks_uri = oidc_jwks_uri
         self.oidc_issuers = oidc_issuers
-        self._states: dict[str, dict[str, Any]] = {}
-        self._lock = Lock()
+        self._challenge_store = challenge_store
+
+    def _store(self) -> OAuthChallengeStore:
+        if self._challenge_store is None:
+            self._challenge_store = OAuthChallengeStore()
+        return self._challenge_store
 
     def provider_name(self) -> str:
         return self.provider.value
@@ -143,12 +148,13 @@ class OAuthProviderAdapter:
         st = state or secrets.token_urlsafe(24)
         verifier, challenge = _pkce_pair()
         nonce = secrets.token_urlsafe(24) if self.oidc_jwks_uri else None
-        with self._lock:
-            self._states[st] = {
-                "redirect_uri": redirect_uri,
-                "code_verifier": verifier,
-                "nonce": nonce,
-            }
+        self._store().put(
+            provider=self.provider_name(),
+            state=st,
+            redirect_uri=redirect_uri,
+            verifier=verifier,
+            nonce=nonce,
+        )
         params = {
             "client_id": self.client_id,
             "redirect_uri": redirect_uri,
@@ -184,13 +190,14 @@ class OAuthProviderAdapter:
             raise AuthenticationError(
                 f"{self.provider_name()} OAuth unavailable — credentials not configured."
             )
-        with self._lock:
-            meta = self._states.pop(state or "", None)
-        if meta is None:
-            raise AuthenticationError("Invalid or expired OAuth state.")
-        expected_redirect = str(meta.get("redirect_uri") or redirect_uri)
-        verifier = str(meta.get("code_verifier") or "")
-        nonce = meta.get("nonce")
+        challenge = self._store().consume(
+            provider=self.provider_name(),
+            state=state or "",
+            redirect_uri=redirect_uri,
+        )
+        expected_redirect = challenge.redirect_uri or redirect_uri
+        verifier = challenge.verifier
+        nonce = challenge.nonce
         token_payload = self._exchange_code(code, expected_redirect, verifier)
         access = str(token_payload.get("access_token") or "")
         if not access:
@@ -388,6 +395,7 @@ class OAuthProviderRegistry:
 
 def build_oauth_registry() -> OAuthProviderRegistry:
     tenant = os.environ.get("DSP_MICROSOFT_TENANT_ID", "common").strip() or "common"
+    challenges = OAuthChallengeStore()
     adapters = {
         AuthProvider.GOOGLE.value: OAuthProviderAdapter(
             provider=AuthProvider.GOOGLE,
@@ -400,6 +408,7 @@ def build_oauth_registry() -> OAuthProviderRegistry:
             flag_env="DSP_AUTH_PROVIDER_GOOGLE",
             oidc_jwks_uri="https://www.googleapis.com/oauth2/v3/certs",
             oidc_issuers=("https://accounts.google.com", "accounts.google.com"),
+            challenge_store=challenges,
         ),
         AuthProvider.MICROSOFT.value: OAuthProviderAdapter(
             provider=AuthProvider.MICROSOFT,
@@ -415,6 +424,7 @@ def build_oauth_registry() -> OAuthProviderRegistry:
                 f"https://login.microsoftonline.com/{tenant}/v2.0",
                 "https://login.microsoftonline.com/*/v2.0",
             ),
+            challenge_store=challenges,
         ),
         AuthProvider.FACEBOOK.value: OAuthProviderAdapter(
             provider=AuthProvider.FACEBOOK,
@@ -435,6 +445,7 @@ def build_oauth_registry() -> OAuthProviderRegistry:
             userinfo_url="https://graph.facebook.com/me",
             scopes=("email", "public_profile"),
             flag_env="DSP_AUTH_PROVIDER_FACEBOOK",
+            challenge_store=challenges,
         ),
     }
     return OAuthProviderRegistry(adapters)

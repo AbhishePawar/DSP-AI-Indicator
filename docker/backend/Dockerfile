@@ -60,7 +60,8 @@ RUN sed -i 's/\r$//' /app/scripts/start-api.sh && \
     chown -R dsp:dsp /app
 
 # Fail the image if promoted share-count snapshots were not installed.
-RUN python -c "from pathlib import Path; import dsp_platform.promoted_share_count as m; d=Path(m.__file__).resolve().parent/'promoted_share_counts'; files=sorted(p.name for p in d.glob('*.json')); assert files, 'promoted share-count snapshots not packaged'; print('PROMOTED SNAPSHOTS:', ', '.join(files))"
+# Do not use assert: PYTHONOPTIMIZE=1 strips asserts and would ship an empty dir.
+RUN python -c "from pathlib import Path; import dsp_platform.promoted_share_count as m; d=Path(m.__file__).resolve().parent/'promoted_share_counts'; files=sorted(p.name for p in d.glob('*.json')); print('PROMOTED SNAPSHOTS:', ', '.join(files) or '<none>'); raise SystemExit('promoted share-count snapshots not packaged') if 'INE467B01029_XNSE.json' not in files else None"
 
 USER dsp
 EXPOSE 8000

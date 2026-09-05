@@ -105,14 +105,14 @@ class TestExchangeEventClassification:
         kind, changes = classify_exchange_event(
             "Acquisition consideration is share swap of issuer equity shares"
         )
-        assert kind == "acquisition_share_swap"
+        assert kind == "acquisition_share_consideration"
         assert changes is True
 
     def test_unclassified_acquisition_without_consideration(self) -> None:
         kind, changes = classify_exchange_event(
             "Tata Consultancy Services Limited has informed the Exchange about Acquisition"
         )
-        assert kind == "acquisition_unclassified"
+        assert kind == "acquisition_unresolved"
         assert changes is None
 
     def test_buyback_extinguishment_changes_outstanding(self) -> None:

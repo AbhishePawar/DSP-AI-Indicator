@@ -7,6 +7,7 @@ corpora, not this connector id.
 
 from __future__ import annotations
 
+import hashlib
 import json
 from collections.abc import Mapping
 from dataclasses import dataclass
@@ -25,9 +26,10 @@ from urllib.request import (
 
 from dsp_platform.controlled_document_retrieval.ssrf import assert_public_https_locator
 from dsp_platform.external_evidence import ExternalEvidenceValidationError
-from dsp_platform.share_count_acquisition.policy import EXCHANGE_JSON_HOSTS
+from dsp_platform.share_count_acquisition.policy import EXCHANGE_DOCUMENT_HOSTS
 
 __all__ = [
+    "MAX_DOCUMENT_BYTES",
     "MAX_JSON_BYTES",
     "REQUEST_TIMEOUT_SECONDS",
     "AllowlistedLiveJsonHttp",
@@ -36,6 +38,7 @@ __all__ = [
 
 REQUEST_TIMEOUT_SECONDS = 20.0
 MAX_JSON_BYTES = 1_048_576
+MAX_DOCUMENT_BYTES = 8_000_000
 _BROWSER_UA = (
     "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
     "(KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36"
@@ -88,7 +91,7 @@ class AllowlistedLiveJsonHttp:
     def __init__(
         self,
         *,
-        allowed_hosts: frozenset[str] = EXCHANGE_JSON_HOSTS,
+        allowed_hosts: frozenset[str] = EXCHANGE_DOCUMENT_HOSTS,
         timeout_seconds: float = REQUEST_TIMEOUT_SECONDS,
         max_bytes: int = MAX_JSON_BYTES,
     ) -> None:
@@ -140,6 +143,24 @@ class AllowlistedLiveJsonHttp:
             return parsed
         return None
 
+    def get_bytes(
+        self,
+        url: str,
+        *,
+        referer: str | None = None,
+        accept: str = "*/*",
+        max_bytes: int | None = None,
+    ) -> dict[str, Any]:
+        """Fetch raw bytes. Body is never written to traces."""
+        return self._get_raw(
+            url,
+            accept=accept,
+            referer=referer,
+            parse_json=False,
+            keep_body=True,
+            max_bytes=max_bytes,
+        )
+
     def _get_raw(
         self,
         url: str,
@@ -147,6 +168,8 @@ class AllowlistedLiveJsonHttp:
         accept: str = "application/json, text/plain, */*",
         referer: str | None = None,
         parse_json: bool = True,
+        keep_body: bool = False,
+        max_bytes: int | None = None,
     ) -> dict[str, Any]:
         retrieved_at = datetime.now(tz=UTC).isoformat()
         try:
@@ -171,13 +194,14 @@ class AllowlistedLiveJsonHttp:
                 )
             headers["Referer"] = referer
         req = Request(url, headers=headers, method="GET")
+        cap = int(max_bytes) if max_bytes is not None else self._max_bytes
         try:
             with self._opener.open(req, timeout=self._timeout_seconds) as resp:
-                raw = resp.read(self._max_bytes + 1)
+                raw = resp.read(cap + 1)
                 status = int(getattr(resp, "status", 200))
                 ctype = str(resp.headers.get("Content-Type", "") or "")
         except HTTPError as exc:
-            body = exc.read(self._max_bytes) if exc.fp is not None else b""
+            body = exc.read(cap) if exc.fp is not None else b""
             return self._finish(
                 url,
                 retrieved_at,
@@ -186,11 +210,21 @@ class AllowlistedLiveJsonHttp:
                 body,
                 parse_json=parse_json,
                 error=f"HTTP {exc.code}",
+                keep_body=keep_body,
+                max_bytes=cap,
             )
         except (URLError, TimeoutError, ExternalEvidenceValidationError) as exc:
             return self._trace_error(url, retrieved_at, str(exc), status=None)
         return self._finish(
-            url, retrieved_at, status, ctype, raw, parse_json=parse_json, error=None
+            url,
+            retrieved_at,
+            status,
+            ctype,
+            raw,
+            parse_json=parse_json,
+            error=None,
+            keep_body=keep_body,
+            max_bytes=cap,
         )
 
     def _finish(
@@ -203,15 +237,25 @@ class AllowlistedLiveJsonHttp:
         *,
         parse_json: bool,
         error: str | None,
+        keep_body: bool = False,
+        max_bytes: int | None = None,
     ) -> dict[str, Any]:
-        truncated = len(raw) > self._max_bytes
-        if truncated:
-            raw = raw[: self._max_bytes]
-        text = raw.decode("utf-8", errors="replace")
-        html_shell = _looks_like_html(text, ctype)
+        cap = self._max_bytes if max_bytes is None else int(max_bytes)
+        truncated = len(raw) > cap
+        stored = raw[:cap] if truncated else raw
+        text = stored.decode("utf-8", errors="replace") if parse_json or not keep_body else ""
+        if keep_body and not parse_json:
+            sniff = stored[:200]
+            html_shell = _looks_like_html(
+                sniff.decode("utf-8", errors="replace"), ctype
+            )
+        else:
+            html_shell = _looks_like_html(text, ctype)
         rate_limited = status == 429
         parsed: Any = None
         parse_error = error
+        if truncated:
+            parse_error = parse_error or "response exceeds size limit"
         if parse_json and not truncated and not html_shell and 200 <= status < 300:
             lowered = ctype.casefold()
             if lowered and "json" not in lowered and "javascript" not in lowered:
@@ -228,25 +272,33 @@ class AllowlistedLiveJsonHttp:
             and not rate_limited
             and (not parse_json or isinstance(parsed, (dict, list)))
         )
+        digest = hashlib.sha256(stored).hexdigest() if keep_body and not truncated else None
         trace = FetchTrace(
             url=url.split("?")[0],
             retrieved_at=retrieved_at,
             status=status,
             ok=ok,
             content_type=ctype.split(";")[0].strip(),
-            body_chars=len(raw),
+            body_chars=len(stored),
             rate_limited=rate_limited,
             truncated=truncated,
             html_shell=html_shell,
             error=parse_error,
         )
         self.traces.append(trace)
-        return {
+        payload: dict[str, Any] = {
             "ok": ok,
             "json": parsed if ok else None,
             "status": status,
             "content_type": ctype,
+            "retrieved_at": retrieved_at,
+            "truncated": truncated,
         }
+        if keep_body:
+            payload["body"] = stored if ok else None
+            payload["sha256"] = digest
+            payload["content_length"] = len(stored)
+        return payload
 
     def _trace_error(
         self, url: str, retrieved_at: str, error: str, *, status: int | None
@@ -264,7 +316,17 @@ class AllowlistedLiveJsonHttp:
             error=error,
         )
         self.traces.append(trace)
-        return {"ok": False, "json": None, "status": status, "content_type": ""}
+        return {
+            "ok": False,
+            "json": None,
+            "status": status,
+            "content_type": "",
+            "retrieved_at": retrieved_at,
+            "body": None,
+            "sha256": None,
+            "content_length": 0,
+            "truncated": False,
+        }
 
 
 def _looks_like_html(text: str, ctype: str) -> bool:

@@ -7,6 +7,7 @@ exhausted date range is OPTION_B_UNPROVEN.
 
 from __future__ import annotations
 
+import re
 from dataclasses import dataclass
 from datetime import date, datetime
 from typing import Any, Mapping
@@ -123,6 +124,62 @@ _NON_CAPITAL_TOKENS = (
     "threat-intelligence",
     "identified shareholders",
     "hypervault",
+    "depositories and participants",
+    "certificate under sebi",
+    "regulation 74",
+    "reg 74",
+    "reg. 74",
+    "regulation 76",
+    "shareholding pattern",
+    "investor complaints",
+    "reconciliation of share capital audit",
+    "compliance certificate",
+    "trading window",
+    "code of conduct",
+    "shareholders meeting",
+    "annual general meeting",
+    "postal ballot",
+    "scrutinizer",
+    "srutinizer",
+    "change in director",
+    "takeover regulation",
+)
+_SEBI_CONSIDERATION_PROMPT = re.compile(
+    r"whether\s+cash\s+consideration\s+or\s+share\s+swap\s+or\s+any\s+other\s+form"
+    r"(?:\s+and\s+details\s+of\s+the\s+same)?",
+    re.IGNORECASE,
+)
+_CASH_CONSIDERATION = re.compile(
+    r"\bcash\s+consideration\b|"
+    r"\bconsideration\s+is\s+cash\b|"
+    r"\bnature of consideration\s+cash\b|"
+    r"\bconsideration\s*[:\-]\s*cash\b|"
+    r"\bentirely\s+in\s+cash\b|"
+    r"\bfor\s+cash\s+consideration\b|"
+    r"\bpaid\s+in\s+cash\b|"
+    r"\bcash[- ]only\b",
+    re.IGNORECASE,
+)
+_COMPLETED_ACQUISITION = re.compile(
+    r"\b(?:has\s+completed|completed\s+the|completes)\s+(?:the\s+)?acquisition\b",
+    re.IGNORECASE,
+)
+_SHARE_CONSIDERATION = re.compile(
+    r"\bshare\s+swap\b|"
+    r"\bshare\s+consideration\b|"
+    r"\bstock\s+consideration\b|"
+    r"\bissue\s+of\s+(?:equity\s+)?shares\s+(?:as|of)\s+consideration\b|"
+    r"\ballotment\s+of\s+equity\s+shares\s+of\s+the\s+(?:company|acquirer)\b|"
+    r"\bconsideration\s+in\s+the\s+form\s+of\s+(?:equity\s+)?shares\b|"
+    r"\bnew\s+shares\s+(?:will\s+be\s+)?issued\b",
+    re.IGNORECASE,
+)
+_MIXED_CONSIDERATION = re.compile(
+    r"\bcash\s+(?:and|&)\s+(?:share|stock)\b|"
+    r"\bpartly\s+cash\b|"
+    r"\bcombination\s+of\s+cash\s+and\b|"
+    r"\bcash\s+and\s+share\s+consideration\b",
+    re.IGNORECASE,
 )
 
 
@@ -158,6 +215,7 @@ class ExchangeCompletenessCorpus:
     evidence_reference: str
     corporate_actions: tuple[Mapping[str, Any], ...]
     announcements: tuple[Mapping[str, Any], ...] = ()
+    equivalent_isins: tuple[str, ...] = ()
 
 
 @dataclass(frozen=True, slots=True)
@@ -173,19 +231,14 @@ def classify_exchange_event(blob: str) -> tuple[str, bool | None]:
     text = " ".join(str(blob or "").casefold().split())
     if not text:
         return ("unclassified", None)
+    if (
+        "takeover regulation" in text
+        or "regulation 31(4)" in text
+        or "regulation 31 (4)" in text
+    ):
+        return ("non_capital_disclosure", False)
     if "acquisition" in text:
-        cash = "cash consideration" in text
-        swap = "share swap" in text and "cash consideration" not in text
-        completed = "completed within" not in text and "completion of the acquisition is subject" not in text
-        if cash and not swap:
-            return ("acquisition_cash", False)
-        if swap:
-            return ("acquisition_share_swap", True)
-        if "acquisition" in text and "cash consideration" not in text:
-            return ("acquisition_unclassified", None)
-        if completed:
-            return ("acquisition_unclassified", None)
-        return ("acquisition_cash", False)
+        return _classify_acquisition(text)
     if any(token in text for token in _CHANGING_TOKENS):
         if "buy back" in text or "buyback" in text:
             if "extinguish" in text or "cancellation" in text:
@@ -278,12 +331,20 @@ def attest_option_b_from_exchange_corpus(
         )
     wanted_symbol = normalize_identity_token(corpus.identity.symbol)
     wanted_isin = normalize_identity_token(corpus.identity.isin)
+    equivalent = tuple(
+        normalize_identity_token(item) for item in corpus.equivalent_isins if item
+    )
     ledger: list[CorporateActionRecord] = []
     events: list[ShareChangingCorporateAction] = []
     for raw in corpus.corporate_actions:
         if not isinstance(raw, Mapping):
             return _unproven("corporate-action record is not an object")
-        if not _identity_matches(raw, wanted_symbol=wanted_symbol, wanted_isin=wanted_isin):
+        if not _identity_matches(
+            raw,
+            wanted_symbol=wanted_symbol,
+            wanted_isin=wanted_isin,
+            equivalent_isins=equivalent,
+        ):
             return _unproven("corporate-action identity does not match the requested instrument")
         subject = str(raw.get("subject") or raw.get("desc") or "")
         event_type, changes = classify_exchange_event(subject)
@@ -323,11 +384,24 @@ def attest_option_b_from_exchange_corpus(
     for raw in corpus.announcements:
         if not isinstance(raw, Mapping):
             return _unproven("announcement record is not an object")
-        if not _identity_matches(raw, wanted_symbol=wanted_symbol, wanted_isin=wanted_isin):
+        if not _identity_matches(
+            raw,
+            wanted_symbol=wanted_symbol,
+            wanted_isin=wanted_isin,
+            equivalent_isins=equivalent,
+        ):
             return _unproven("announcement identity does not match the requested instrument")
         blob = " ".join(
             str(raw.get(key) or "")
-            for key in ("desc", "attchmntText", "NEWSSUB", "MORE", "filing_excerpt", "subject")
+            for key in (
+                "desc",
+                "attchmntText",
+                "NEWSSUB",
+                "MORE",
+                "filing_excerpt",
+                "subject",
+                "attachment_text",
+            )
         )
         event_type, changes = classify_exchange_event(blob)
         if changes is None:
@@ -368,11 +442,28 @@ def _unproven(reason: str) -> OptionBCompletenessAttestation:
     return OptionBCompletenessAttestation(proven=False, reason=reason, evidence=None)
 
 
+def _classify_acquisition(text: str) -> tuple[str, bool | None]:
+    stripped = " ".join(_SEBI_CONSIDERATION_PROMPT.sub(" ", text).split())
+    mixed = bool(_MIXED_CONSIDERATION.search(stripped))
+    cash = bool(_CASH_CONSIDERATION.search(stripped))
+    share = bool(_SHARE_CONSIDERATION.search(stripped))
+    if mixed or (cash and share):
+        return ("acquisition_mixed_consideration", True)
+    if cash:
+        return ("acquisition_cash", False)
+    if share:
+        return ("acquisition_share_consideration", True)
+    if _COMPLETED_ACQUISITION.search(stripped) and "is subject" not in stripped:
+        return ("acquisition_completion", False)
+    return ("acquisition_unresolved", None)
+
+
 def _identity_matches(
     raw: Mapping[str, Any],
     *,
     wanted_symbol: str,
     wanted_isin: str,
+    equivalent_isins: tuple[str, ...] = (),
 ) -> bool:
     symbol = normalize_identity_token(
         raw.get("symbol") or raw.get("bm_symbol") or raw.get("SecurityId")
@@ -380,9 +471,11 @@ def _identity_matches(
     isin = normalize_identity_token(
         raw.get("isin") or raw.get("sm_isin") or raw.get("ISIN")
     )
+    accepted = {wanted_isin, *(item for item in equivalent_isins if item)}
+    accepted.discard("")
     if symbol and symbol != wanted_symbol:
         return False
-    if isin and wanted_isin and isin != wanted_isin:
+    if isin and wanted_isin and isin not in accepted:
         return False
     return True
 

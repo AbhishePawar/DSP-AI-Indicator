@@ -28,7 +28,7 @@ from dsp_platform.primary_source_retrieval.models import (
     RetrievedPrimarySourceDocument,
 )
 
-__all__ = ["extract_candidate_evidence"]
+__all__ = ["extract_candidate_evidence", "extract_paid_up_equity_shares"]
 
 _OUTSTANDING_PHRASES = (
     "issued and outstanding",
@@ -37,6 +37,58 @@ _OUTSTANDING_PHRASES = (
     "outstanding share capital",
     "current outstanding shares",
     "current shares outstanding",
+    "equity shares outstanding",
+    "equity shares currently outstanding",
+    "total number of equity shares outstanding",
+    "total equity shares currently outstanding",
+)
+_SHARE_COUNT = re.compile(
+    r"(?P<value>\d{1,3}(?:,\d{2})+,\d{3}|\d{1,3}(?:,\d{3})+|\d+)"
+    r"(?:\.(?P<frac>\d+))?"
+    r"(?:\s*\([^)]{0,80}\))?"
+    r"\s+(?:equity\s+)?shares\b",
+    re.IGNORECASE,
+)
+_OUTSTANDING_ANCHORED = re.compile(
+    r"(?:issued and outstanding|equity shares currently outstanding|"
+    r"equity shares outstanding|shares outstanding|outstanding shares|"
+    r"total equity shares currently outstanding|"
+    r"total number of equity shares outstanding)"
+    r"(?:[^0-9]{0,48})?"
+    r"(?P<value>\d{1,3}(?:,\d{2})+,\d{3}|\d{1,3}(?:,\d{3})+|\d{4,})",
+    re.IGNORECASE,
+)
+_PAID_UP_CAPITAL = re.compile(
+    r"paid[- ]up equity share capital[^.]{0,160}?"
+    r"(?:rs\.?|inr|₹)\s*(?P<amount>[\d,]+(?:\.\d+)?)"
+    r"(?:\s*(?P<scale>crore|crores|lakh|lakhs|million))?",
+    re.IGNORECASE,
+)
+_FACE_VALUE = re.compile(
+    r"face value[^.]{0,80}?(?:of\s+)?(?:rs\.?|inr|₹)\s*(?P<fv>[\d]+(?:\.\d+)?)",
+    re.IGNORECASE,
+)
+_DERIVATION_REQUIRED = (
+    "issued",
+    "fully paid",
+)
+_DERIVATION_FORBIDDEN = (
+    "weighted average",
+    "weighted-average",
+    "free-float",
+    "free float",
+    "authorized share",
+    "authorised share",
+    "authorized capital",
+    "authorised capital",
+    "partly paid",
+    "partly-paid",
+    "treasury",
+    "preference share",
+    "multiple class",
+    "different face value",
+    "market cap",
+    "market capitalization",
 )
 _ALWAYS_FORBIDDEN = (
     "weighted average",
@@ -72,10 +124,6 @@ _SCALE_OR_MONEY = (
     "usd",
     "eur",
 )
-_SHARE_COUNT = re.compile(
-    r"(?P<value>\d{1,3}(?:,\d{3})+|\d+)(?:\.(?P<frac>\d+))?\s+shares\b",
-    re.IGNORECASE,
-)
 _SENTENCE_SPLIT = re.compile(r"(?<=[.!?])\s+")
 _MONTHS = {
     "january": 1,
@@ -92,11 +140,11 @@ _MONTHS = {
     "december": 12,
 }
 _AS_OF_MDY = re.compile(
-    r"\bas of\s+(?P<month>[A-Za-z]+)\s+(?P<day>\d{1,2}),\s+(?P<year>\d{4})\b",
+    r"\bas (?:of|at|on)\s+(?P<month>[A-Za-z]+)\s+(?P<day>\d{1,2}),\s+(?P<year>\d{4})\b",
     re.IGNORECASE,
 )
 _AS_OF_DMY = re.compile(
-    r"\bas of\s+(?P<day>\d{1,2})\s+(?P<month>[A-Za-z]+)\s+(?P<year>\d{4})\b",
+    r"\bas (?:of|at|on)\s+(?P<day>\d{1,2})\s+(?P<month>[A-Za-z]+)\s+(?P<year>\d{4})\b",
     re.IGNORECASE,
 )
 _AS_OF_ISO = re.compile(
@@ -126,7 +174,7 @@ def extract_candidate_evidence(
 def _extract_current_outstanding(
     document: RetrievedPrimarySourceDocument,
 ) -> ExternalEvidenceRecord | None:
-    sentences = _sentences(document.text)
+    sentences = _candidate_windows(document.text)
     values: list[Decimal] = []
     excerpts: list[str] = []
     as_of_dates: list[date] = []
@@ -135,33 +183,33 @@ def _extract_current_outstanding(
         if not any(phrase in lowered for phrase in _OUTSTANDING_PHRASES):
             continue
         if _is_forbidden_claim(lowered):
-            return None
+            continue
         if any(tok in lowered for tok in _SCALE_OR_MONEY):
-            return None
+            continue
         if "%" in sentence or "$" in sentence:
-            return None
-        match = _SHARE_COUNT.search(sentence)
+            continue
+        match = _OUTSTANDING_ANCHORED.search(sentence) or _SHARE_COUNT.search(sentence)
         if match is None:
             continue
         try:
             raw = match.group("value").replace(",", "")
-            frac = match.group("frac")
-            dec = Decimal(raw if frac is None else f"{raw}.{frac}")
+            frac = match.groupdict().get("frac")
+            dec = Decimal(raw if not frac else f"{raw}.{frac}")
         except (InvalidOperation, ValueError, TypeError):
-            return None
+            continue
         if not dec.is_finite() or dec <= 0:
-            return None
+            continue
         as_of = document.as_of or _as_of_from_sentence(sentence)
         if as_of is None:
-            return None
-        try:
-            excerpt = bound_evidence_excerpt(sentence.strip())
-        except ExternalEvidenceValidationError:
-            return None
+            continue
+        excerpt = _bounded_excerpt(sentence)
+        if excerpt is None:
+            continue
         values.append(dec)
         excerpts.append(excerpt)
         as_of_dates.append(as_of)
-    if len(values) != 1:
+    unique = set(values)
+    if len(unique) != 1:
         return None
     return ExternalEvidenceRecord(
         fact_id="current_outstanding",
@@ -226,9 +274,116 @@ def _is_forbidden_claim(lowered: str) -> bool:
     return not any(phrase in lowered for phrase in _OUTSTANDING_PHRASES)
 
 
+def _bounded_excerpt(sentence: str) -> str | None:
+    text = " ".join(str(sentence or "").split())
+    if not text:
+        return None
+    try:
+        return bound_evidence_excerpt(text)
+    except ExternalEvidenceValidationError:
+        return None
+
+
+def _candidate_windows(text: str) -> list[str]:
+    windows = _sentences(str(text or "").replace("\n", " "))
+    lines = [line.strip() for line in str(text or "").splitlines() if line.strip()]
+    for index in range(len(lines)):
+        windows.append(" ".join(lines[index : index + 3]))
+    return windows
+
+
 def _sentences(text: str) -> list[str]:
     blob = str(text or "").strip()
     if not blob:
         return []
     parts = _SENTENCE_SPLIT.split(blob)
     return [part.strip() for part in parts if part.strip()]
+
+
+def extract_paid_up_equity_shares(
+    document: RetrievedPrimarySourceDocument,
+) -> ExternalEvidenceRecord | None:
+    """Derive outstanding equity shares from paid-up capital / face value.
+
+    Requires issued-and-fully-paid proof. Does not silently invent a count.
+    """
+    blob = str(document.text or "").strip()
+    if not blob:
+        return None
+    lowered = blob.casefold()
+    if any(token in lowered for token in _DERIVATION_FORBIDDEN):
+        return None
+    if not all(token in lowered for token in _DERIVATION_REQUIRED):
+        return None
+    capital_hits = list(_PAID_UP_CAPITAL.finditer(blob))
+    face_hits = list(_FACE_VALUE.finditer(blob))
+    if len(capital_hits) != 1 or len(face_hits) != 1:
+        return None
+    amount = _parse_decimal(capital_hits[0].group("amount"))
+    face = _parse_decimal(face_hits[0].group("fv"))
+    if amount is None or face is None or amount <= 0 or face <= 0:
+        return None
+    scale = (capital_hits[0].group("scale") or "").casefold()
+    rupees = _scale_to_rupees(amount, scale)
+    shares, remainder = divmod(rupees, face)
+    if remainder != 0:
+        return None
+    if shares <= 0 or not shares.is_finite():
+        return None
+    as_of = document.as_of or _as_of_from_sentence(blob)
+    if as_of is None:
+        for sentence in _sentences(blob):
+            as_of = _as_of_from_sentence(sentence)
+            if as_of is not None:
+                break
+    if as_of is None:
+        return None
+    excerpt = (
+        f"Derived outstanding equity shares = paid-up equity share capital "
+        f"/ face value = {rupees} / {face} = {int(shares)} issued and fully paid "
+        f"equity shares as of {as_of.isoformat()}."
+    )
+    try:
+        bounded = bound_evidence_excerpt(excerpt)
+    except ExternalEvidenceValidationError:
+        return None
+    return ExternalEvidenceRecord(
+        fact_id="current_outstanding",
+        identity=document.identity,
+        evidence_kind=EvidenceKind.NUMERICAL,
+        numeric_value=float(shares),
+        unit="shares",
+        as_of=as_of,
+        publication_date=document.publication_date,
+        source_url=document.locator,
+        source_type=document.source_type
+        if isinstance(document.source_type, SourceType)
+        else SourceType.FILING,
+        source_tier=document.source_tier
+        if isinstance(document.source_tier, SourceTier)
+        else SourceTier.TIER_1_PRIMARY,
+        evidence_reference=bounded,
+        retrieved_at=document.retrieved_at,
+        evidence_quality=EvidenceQuality.UNKNOWN,
+        validation_status=EvidenceValidationStatus.CANDIDATE,
+        may_influence_calculation=False,
+        claimed_dsp_field=None,
+        text_value=None,
+    )
+
+
+def _parse_decimal(raw: str | None) -> Decimal | None:
+    try:
+        return Decimal(str(raw or "").replace(",", ""))
+    except (InvalidOperation, ValueError, TypeError):
+        return None
+
+
+def _scale_to_rupees(amount: Decimal, scale: str) -> Decimal:
+    if scale in {"crore", "crores"}:
+        return amount * Decimal("10000000")
+    if scale in {"lakh", "lakhs"}:
+        return amount * Decimal("100000")
+    if scale == "million":
+        return amount * Decimal("1000000")
+    return amount

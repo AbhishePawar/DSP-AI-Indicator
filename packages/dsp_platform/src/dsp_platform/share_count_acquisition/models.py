@@ -62,6 +62,7 @@ class ExchangeAcquisitionResult:
     source_url: str
     evidence_reference: str
     pages_fetched: int
+    equivalent_isins: tuple[str, ...] = ()
     http_status: int | None = None
     rate_limited: bool = False
     fetch_traces: tuple[dict[str, Any], ...] = ()

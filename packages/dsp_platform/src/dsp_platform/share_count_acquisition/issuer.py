@@ -11,7 +11,10 @@ from dsp_platform.external_evidence.models import (
     SourceTier,
     SourceType,
 )
-from dsp_platform.primary_source_retrieval.extraction import extract_candidate_evidence
+from dsp_platform.primary_source_retrieval.extraction import (
+    extract_candidate_evidence,
+    extract_paid_up_equity_shares,
+)
 from dsp_platform.primary_source_retrieval.models import (
     PrimarySourceDocumentType,
     RetrievedPrimarySourceDocument,
@@ -61,6 +64,8 @@ def extract_outstanding_observation(
     record = extract_candidate_evidence(
         document, fact_id="current_outstanding", requested_identity=subject
     )
+    if record is None:
+        record = extract_paid_up_equity_shares(document)
     if record is None or record.numeric_value is None or record.as_of is None:
         return None
     excerpt = str(record.evidence_reference or record.text_value or "")

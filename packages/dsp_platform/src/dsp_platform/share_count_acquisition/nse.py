@@ -93,6 +93,7 @@ def acquire_nse_disclosures(
         http_status=_last_status(traces),
         rate_limited=_rate_limited(http),
         fetch_traces=traces,
+        equivalent_isins=request.equivalent_isins,
     )
 
 
@@ -153,13 +154,16 @@ def _identity_ok(
 ) -> bool:
     got_symbol = str(item.get("symbol") or "").strip().upper()
     got_isin = str(item.get("isin") or item.get("sm_isin") or "").strip().upper()
-    accepted = {isin, *(str(item).strip().upper() for item in equivalent_isins)}
+    accepted = {
+        isin,
+        *(str(alias).strip().upper() for alias in equivalent_isins),
+    }
     accepted.discard("")
+    if got_symbol and got_symbol != symbol:
+        return False
     if got_isin and got_isin not in accepted:
         return False
-    if got_symbol and got_symbol == symbol:
-        return True
-    return bool(got_isin) and got_isin in accepted
+    return bool(got_symbol) or bool(got_isin)
 
 
 def _traces(http: JsonHttpPort) -> tuple[dict[str, Any], ...]:

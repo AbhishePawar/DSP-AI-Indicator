@@ -34,13 +34,13 @@ def main(argv: list[str] | None = None) -> int:
     acquire.add_argument("--isin", required=True)
     acquire.add_argument("--mic", required=True)
     acquire.add_argument("--horizon", default="")
-    acquire.add_argument("--out", default="artifacts/stage_1l")
+    acquire.add_argument("--out", default="artifacts/stage_1m")
     acquire.add_argument("--dry-run", action="store_true")
     acquire.add_argument("--no-issuer", action="store_true")
 
     universe = sub.add_parser("acquire-universe", help="Acquire catalog instruments")
     universe.add_argument("--horizon", default="")
-    universe.add_argument("--out", default="artifacts/stage_1l")
+    universe.add_argument("--out", default="artifacts/stage_1m")
     universe.add_argument("--no-issuer", action="store_true")
 
     promote = sub.add_parser("promote", help="Human-promote a VALIDATED candidate")
@@ -48,7 +48,7 @@ def main(argv: list[str] | None = None) -> int:
     promote.add_argument("--promoter", required=True)
     promote.add_argument("--human-approved", action="store_true")
     promote.add_argument("--destination", default=str(DEFAULT_PROMOTED_SHARE_COUNT_DIR))
-    promote.add_argument("--history", default="artifacts/stage_1l/promotion_history")
+    promote.add_argument("--history", default="artifacts/stage_1m/promotion_history")
     promote.add_argument("--horizon", default="")
 
     sources = sub.add_parser("sources", help="Print source selection policy")

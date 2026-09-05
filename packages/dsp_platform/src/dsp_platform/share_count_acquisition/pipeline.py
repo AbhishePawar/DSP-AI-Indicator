@@ -50,6 +50,7 @@ def attest_exchange_bundle(
         evidence_reference=bundle.evidence_reference,
         corporate_actions=bundle.corporate_actions,
         announcements=bundle.announcements,
+        equivalent_isins=bundle.equivalent_isins,
     )
     return attest_option_b_from_exchange_corpus(corpus)
 

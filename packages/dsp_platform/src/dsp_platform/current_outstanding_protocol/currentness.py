@@ -48,6 +48,8 @@ SHARE_CHANGING_ACTION_TYPES = frozenset(
         "buyback_extinguishment",
         "allotment",
         "acquisition_share_swap",
+        "acquisition_share_consideration",
+        "acquisition_mixed_consideration",
         "cancellation",
     }
 )
@@ -58,6 +60,7 @@ _KNOWN_NON_CHANGING = frozenset(
         "board_announcement",
         "non_capital_disclosure",
         "acquisition_cash",
+        "acquisition_completion",
     }
 )
 _ADMISSIBLE_CA_TIERS = frozenset({"TIER_1_PRIMARY", "TIER_2_SECONDARY"})

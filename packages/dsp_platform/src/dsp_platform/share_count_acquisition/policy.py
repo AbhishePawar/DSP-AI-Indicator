@@ -14,6 +14,8 @@ from dsp_platform.share_count_source_authorization import (
 )
 
 __all__ = [
+    "EXCHANGE_ARCHIVE_HOSTS",
+    "EXCHANGE_DOCUMENT_HOSTS",
     "EXCHANGE_JSON_HOSTS",
     "ConnectorAvailability",
     "SourcePolicyRecord",
@@ -38,6 +40,8 @@ EXCHANGE_JSON_HOSTS = frozenset(
         "api.bseindia.com",
     }
 )
+EXCHANGE_ARCHIVE_HOSTS = frozenset({"nsearchives.nseindia.com"})
+EXCHANGE_DOCUMENT_HOSTS = EXCHANGE_JSON_HOSTS | EXCHANGE_ARCHIVE_HOSTS
 
 _IMPLEMENTED = frozenset(
     {

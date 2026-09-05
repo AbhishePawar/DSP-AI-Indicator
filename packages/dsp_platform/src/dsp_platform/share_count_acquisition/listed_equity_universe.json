@@ -16,7 +16,11 @@
       "isin": "INE009A01021",
       "issuer": "Infosys Limited",
       "bse_scrip": "500209",
-      "ir_urls": ["https://www.infosys.com/investors/shares/share-details.html"]
+      "ir_urls": [
+        "https://www.infosys.com/investors/shares/share-details.html",
+        "https://www.infosys.com/investors/reports-filings.html",
+        "https://www.infosys.com/investors/reports-filings/quarterly-results.html"
+      ]
     },
     {
       "symbol": "RELIANCE",
@@ -26,7 +30,8 @@
       "issuer": "Reliance Industries Limited",
       "bse_scrip": "500325",
       "ir_urls": [
-        "https://www.ril.com/investors/shareholders-information/shareholding-pattern"
+        "https://www.ril.com/investors/shareholders-information/shareholding-pattern",
+        "https://www.ril.com/investors"
       ]
     },
     {
@@ -36,7 +41,10 @@
       "isin": "INE040A01034",
       "issuer": "HDFC Bank Limited",
       "bse_scrip": "500180",
-      "ir_urls": ["https://www.hdfcbank.com/personal/about-us/investor-relations"],
+      "ir_urls": [
+        "https://www.hdfcbank.com/personal/about-us/investor-relations",
+        "https://www.hdfcbank.com/personal/about-us/investor-relations/financial-disclosures"
+      ],
       "predecessor_isins": ["INE040A01018"]
     },
     {
@@ -46,7 +54,10 @@
       "isin": "INE090A01021",
       "issuer": "ICICI Bank Limited",
       "bse_scrip": "532174",
-      "ir_urls": ["https://www.icicibank.com/about-us/invest-relations"],
+      "ir_urls": [
+        "https://www.icicibank.com/about-us/invest-relations",
+        "https://www.icicibank.com/about-us/annual-reports"
+      ],
       "predecessor_isins": ["INE090A01013"]
     }
   ]

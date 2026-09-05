@@ -64,7 +64,14 @@ def acquire_bse_disclosures(
             truncated = True
             break
         pages.extend(
-            item for item in items if _identity_ok(item, scrip, identity.isin)
+            item
+            for item in items
+            if _identity_ok(
+                item,
+                scrip,
+                identity.isin,
+                equivalent_isins=request.equivalent_isins,
+            )
         )
         if len(items) < _PAGE_SIZE:
             break
@@ -99,15 +106,24 @@ def acquire_bse_disclosures(
             bool(row.get("rate_limited")) for row in traces if isinstance(row, dict)
         ),
         fetch_traces=traces,
+        equivalent_isins=request.equivalent_isins,
     )
 
 
-def _identity_ok(item: Mapping[str, Any], scrip: str, isin: str) -> bool:
+def _identity_ok(
+    item: Mapping[str, Any],
+    scrip: str,
+    isin: str,
+    *,
+    equivalent_isins: tuple[str, ...] = (),
+) -> bool:
     got_isin = str(item.get("ISIN") or item.get("isin") or "").strip().upper()
     got_scrip = str(
         item.get("SCRIP_CD") or item.get("scrip_cd") or item.get("scrip_code") or ""
     ).strip()
-    if got_isin and got_isin != isin:
+    accepted = {isin, *(str(value).strip().upper() for value in equivalent_isins)}
+    accepted.discard("")
+    if got_isin and got_isin not in accepted:
         return False
     if got_scrip and got_scrip != scrip:
         return False

@@ -15,6 +15,9 @@ from dsp_platform.share_count_acquisition.issuer import (
     IssuerEvidenceSource,
     extract_outstanding_observation,
 )
+from dsp_platform.share_count_acquisition.issuer_documents import (
+    fetch_issuer_documents_outstanding,
+)
 from dsp_platform.share_count_acquisition.universe import ListedEquityInstrument
 from dsp_platform.share_count_refresh import ShareCountObservation
 
@@ -26,8 +29,9 @@ def fetch_issuer_outstanding(
     *,
     retrieved_at,
     retrieval: ControlledHttpsDocumentRetrieval | None = None,
+    document_http=None,
 ) -> ShareCountObservation | None:
-    """Fetch configured IR locators only. Host must match the instrument allowlist."""
+    """Fetch configured IR locators, then official documents on the same hosts."""
     identity = instrument.identity.normalized()
     client = retrieval or ControlledHttpsDocumentRetrieval(
         tier_1_hosts=instrument.ir_hosts,
@@ -68,4 +72,10 @@ def fetch_issuer_outstanding(
         )
         if observation is not None:
             return observation
-    return None
+    if document_http is None:
+        return None
+    return fetch_issuer_documents_outstanding(
+        instrument,
+        http=document_http,
+        retrieved_at=retrieved_at,
+    )

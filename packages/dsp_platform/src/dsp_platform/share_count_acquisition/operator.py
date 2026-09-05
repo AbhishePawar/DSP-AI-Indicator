@@ -11,10 +11,14 @@ from typing import Any
 
 from dsp_platform.promoted_share_count import DEFAULT_PROMOTED_SHARE_COUNT_DIR
 from dsp_platform.share_count_acquisition.artifacts import write_artifact
+from dsp_platform.share_count_acquisition.attachments import enrich_unresolved_announcements
 from dsp_platform.share_count_acquisition.bse import acquire_bse_disclosures
 from dsp_platform.share_count_acquisition.http import JsonHttpPort
 from dsp_platform.share_count_acquisition.issuer_fetch import fetch_issuer_outstanding
-from dsp_platform.share_count_acquisition.live_http import AllowlistedLiveJsonHttp
+from dsp_platform.share_count_acquisition.live_http import (
+    MAX_DOCUMENT_BYTES,
+    AllowlistedLiveJsonHttp,
+)
 from dsp_platform.share_count_acquisition.models import ExchangeAcquisitionRequest
 from dsp_platform.share_count_acquisition.nse import acquire_nse_disclosures
 from dsp_platform.share_count_acquisition.pipeline import refresh_from_acquired_evidence
@@ -106,15 +110,28 @@ def acquire_listed_equity(
         end=horizon.date(),
         retrieved_at=horizon,
         scrip_code=instrument.bse_scrip,
-        equivalent_isins=instrument.predecessor_isins,
+        equivalent_isins=instrument.equivalent_isins(horizon.date()),
     )
     nse_bundle = acquire_nse_disclosures(request, client)
+    if hasattr(client, "get_bytes"):
+        nse_bundle = enrich_unresolved_announcements(nse_bundle, http=client)
     bse_client = AllowlistedLiveJsonHttp() if http is None else client
     bse_bundle = acquire_bse_disclosures(request, bse_client)
     observation = None
     observation_source = "promoted_snapshot_artifact" if snapshot is not None else "t1_issuer_disclosure"
     if fetch_issuer:
-        observation = fetch_issuer_outstanding(instrument, retrieved_at=horizon)
+        document_http = None
+        if hasattr(client, "get_bytes"):
+            document_http = AllowlistedLiveJsonHttp(
+                allowed_hosts=instrument.ir_hosts,
+                timeout_seconds=20.0,
+                max_bytes=MAX_DOCUMENT_BYTES,
+            )
+        observation = fetch_issuer_outstanding(
+            instrument,
+            retrieved_at=horizon,
+            document_http=document_http,
+        )
         if observation is not None:
             observation_source = "t1_issuer_disclosure"
             as_of = observation.as_of
@@ -327,6 +344,19 @@ def _artifact_payload(
                 str(item.get("desc") or item.get("subject") or "")
                 for item in nse_bundle.announcements[:40]
                 if isinstance(item, Mapping)
+            ],
+            "nse_attachment_provenance": [
+                {
+                    "url": item.get("attachment_url"),
+                    "identifier": item.get("seq_id") or item.get("NEWSID"),
+                    "retrieved_at": item.get("attachment_retrieved_at"),
+                    "http_status": item.get("attachment_http_status"),
+                    "content_type": item.get("attachment_content_type"),
+                    "content_length": item.get("attachment_content_length"),
+                    "sha256": item.get("attachment_sha256"),
+                }
+                for item in nse_bundle.announcements
+                if isinstance(item, Mapping) and item.get("attachment_url")
             ],
         },
         "option_b": {

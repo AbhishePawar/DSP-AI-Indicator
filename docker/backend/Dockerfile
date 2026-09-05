@@ -51,9 +51,16 @@ COPY pyproject.toml README.md ./
 COPY packages ./packages
 COPY scripts/start-api.sh /app/scripts/start-api.sh
 
-RUN chmod +x /app/scripts/start-api.sh && \
+# Windows source uploads (core.autocrlf=true) can copy CRLF into the image.
+# A CRLF shebang makes the kernel look for "/bin/sh\r" and Cloud Run reports
+# "failed to load /app/scripts/start-api.sh: no such file or directory".
+RUN sed -i 's/\r$//' /app/scripts/start-api.sh && \
+    chmod +x /app/scripts/start-api.sh && \
     useradd --create-home --shell /bin/bash dsp && \
     chown -R dsp:dsp /app
+
+# Fail the image if promoted share-count snapshots were not installed.
+RUN python -c "from pathlib import Path; import dsp_platform.promoted_share_count as m; d=Path(m.__file__).resolve().parent/'promoted_share_counts'; files=sorted(p.name for p in d.glob('*.json')); assert files, 'promoted share-count snapshots not packaged'; print('PROMOTED SNAPSHOTS:', ', '.join(files))"
 
 USER dsp
 EXPOSE 8000
@@ -61,4 +68,4 @@ EXPOSE 8000
 HEALTHCHECK --interval=30s --timeout=5s --start-period=25s --retries=3 \
   CMD curl -fsS http://127.0.0.1:8000/health/ready || exit 1
 
-CMD ["/app/scripts/start-api.sh"]
+CMD ["/bin/sh", "/app/scripts/start-api.sh"]

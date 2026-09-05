@@ -1713,6 +1713,7 @@ class EnterpriseAuthPlatform:
                 detail="recovery_code" if recovery_code else "totp",
             )
             raise AuthenticationError("Invalid or expired authenticator code.")
+        self.mfa.consume_mfa_token(mfa_token)
         self.audit.record(
             "mfa.verify.success",
             user_id=user_id,

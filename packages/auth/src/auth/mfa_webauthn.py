@@ -33,10 +33,10 @@ import base64
 import os
 import secrets
 import time
-from threading import Lock
 from typing import Any
 
 from auth.exceptions import AuthenticationError, ValidationError
+from auth.mfa_pending import MfaPendingStore
 
 __all__ = ["WebAuthnAdapter", "webauthn_library_available"]
 
@@ -81,8 +81,7 @@ class WebAuthnAdapter:
         self._origin = origin or os.environ.get(
             "DSP_WEBAUTHN_ORIGIN", "http://localhost:3000"
         )
-        self._pending: dict[str, dict[str, Any]] = {}
-        self._lock = Lock()
+        self._pending_store = MfaPendingStore(persistence)
 
     def is_available(self) -> bool:
         return webauthn_library_available()
@@ -129,14 +128,13 @@ class WebAuthnAdapter:
             ],
         )
         state = secrets.token_urlsafe(24)
-        with self._lock:
-            self._prune()
-            self._pending[state] = {
-                "kind": "registration",
-                "user_id": user_id,
-                "challenge": options.challenge,
-                "created_at": time.time(),
-            }
+        self._pending_store.put_webauthn_pending(
+            state,
+            kind="registration",
+            challenge=options.challenge,
+            ttl_seconds=_CHALLENGE_TTL_SECONDS,
+            user_id=user_id,
+        )
         payload: dict[str, Any] = _json(options_to_json(options))
         payload["state"] = state
         return payload
@@ -148,16 +146,13 @@ class WebAuthnAdapter:
 
         state = str(credential.get("state") or "")
         response = credential.get("credential") or credential.get("response") or credential
-        with self._lock:
-            pending = self._pending.pop(state, None)
-        if pending is None or pending.get("kind") != "registration" or pending.get("user_id") != user_id:
+        pending = self._pending_store.consume_webauthn_pending(state)
+        if pending is None or pending.kind != "registration" or pending.user_id != user_id:
             raise AuthenticationError("Invalid or expired registration challenge.")
-        if time.time() - float(pending.get("created_at") or 0) > _CHALLENGE_TTL_SECONDS:
-            raise AuthenticationError("Registration challenge expired.")
         try:
             verification = verify_registration_response(
                 credential=response,
-                expected_challenge=pending["challenge"],
+                expected_challenge=pending.challenge,
                 expected_rp_id=self._rp_id,
                 expected_origin=self._origin,
                 require_user_verification=False,
@@ -224,13 +219,12 @@ class WebAuthnAdapter:
             user_verification=UserVerificationRequirement.PREFERRED,
         )
         state = secrets.token_urlsafe(24)
-        with self._lock:
-            self._prune()
-            self._pending[state] = {
-                "kind": "authentication",
-                "challenge": options.challenge,
-                "created_at": time.time(),
-            }
+        self._pending_store.put_webauthn_pending(
+            state,
+            kind="authentication",
+            challenge=options.challenge,
+            ttl_seconds=_CHALLENGE_TTL_SECONDS,
+        )
         payload: dict[str, Any] = _json(options_to_json(options))
         payload["state"] = state
         return payload
@@ -249,12 +243,9 @@ class WebAuthnAdapter:
 
         state = str(assertion.get("state") or "")
         response = assertion.get("credential") or assertion.get("response") or assertion
-        with self._lock:
-            pending = self._pending.pop(state, None)
-        if pending is None or pending.get("kind") != "authentication":
+        pending = self._pending_store.consume_webauthn_pending(state)
+        if pending is None or pending.kind != "authentication":
             raise AuthenticationError("Invalid or expired authentication challenge.")
-        if time.time() - float(pending.get("created_at") or 0) > _CHALLENGE_TTL_SECONDS:
-            raise AuthenticationError("Authentication challenge expired.")
 
         raw_id = response.get("rawId") or response.get("id")
         if not raw_id:
@@ -274,7 +265,7 @@ class WebAuthnAdapter:
         try:
             verification = verify_authentication_response(
                 credential=response,
-                expected_challenge=pending["challenge"],
+                expected_challenge=pending.challenge,
                 expected_rp_id=self._rp_id,
                 expected_origin=self._origin,
                 credential_public_key=_b64url_decode(record["public_key"]),
@@ -315,13 +306,25 @@ class WebAuthnAdapter:
 
     # -- internal ---------------------------------------------------------
 
-    def _prune(self) -> None:
-        now = time.time()
-        stale = [
-            k for k, v in self._pending.items() if now - float(v.get("created_at") or 0) > _CHALLENGE_TTL_SECONDS
-        ]
-        for k in stale:
-            self._pending.pop(k, None)
+    def seed_pending(self, state: str, record: dict[str, Any]) -> None:
+        """Test helper: persist a deterministic WebAuthn ceremony challenge."""
+        created = record.get("created_at")
+        created_dt = None
+        if isinstance(created, (int, float)):
+            from datetime import datetime, timezone
+
+            created_dt = datetime.fromtimestamp(float(created), tz=timezone.utc)
+        challenge = record["challenge"]
+        if isinstance(challenge, str):
+            challenge = _b64url_decode(challenge)
+        self._pending_store.put_webauthn_pending(
+            state,
+            kind=str(record.get("kind") or ""),
+            challenge=bytes(challenge),
+            ttl_seconds=_CHALLENGE_TTL_SECONDS,
+            user_id=record.get("user_id"),
+            created_at=created_dt,
+        )
 
     def _load_credentials(self, user_id: str) -> list[dict[str, Any]]:
         row = self._persistence.get("metadata", f"{_CRED_PREFIX}{user_id}")

@@ -27,11 +27,10 @@ import secrets
 import struct
 import time
 import urllib.parse
-from dataclasses import dataclass
-from threading import Lock
 from typing import Any
 
 from auth.exceptions import AuthenticationError, ValidationError
+from auth.mfa_pending import MfaPendingStore
 from auth.secret_box import decrypt_secret, encrypt_secret, is_encrypted
 
 __all__ = [
@@ -161,12 +160,6 @@ def _verify_secret_token(token: str, token_hash: str) -> bool:
     return hmac.compare_digest(candidate, digest)
 
 
-@dataclass(frozen=True, slots=True)
-class _PendingEnrollment:
-    secret: str
-    created_at: float
-
-
 class TotpAdapter:
     """Production TOTP MFA method — persists via the shared metadata store.
 
@@ -179,8 +172,7 @@ class TotpAdapter:
     def __init__(self, persistence: Any, *, issuer: str = "DSP AI Indicator") -> None:
         self._persistence = persistence
         self._issuer = issuer
-        self._pending: dict[str, _PendingEnrollment] = {}
-        self._lock = Lock()
+        self._pending_store = MfaPendingStore(persistence)
 
     # -- MfaMethodPort ------------------------------------------------
 
@@ -196,8 +188,9 @@ class TotpAdapter:
 
     def begin_enroll(self, user_id: str, *, account_name: str | None = None) -> dict[str, Any]:
         secret = generate_totp_secret()
-        with self._lock:
-            self._pending[user_id] = _PendingEnrollment(secret=secret, created_at=time.time())
+        self._pending_store.put_totp_pending(
+            user_id, secret=secret, ttl_seconds=_PENDING_TTL_SECONDS
+        )
         uri = build_otpauth_uri(secret, issuer=self._issuer, account_name=account_name or user_id)
         return {
             "method": "totp",
@@ -212,19 +205,17 @@ class TotpAdapter:
 
     def confirm_enroll(self, user_id: str, payload: dict[str, Any]) -> dict[str, Any]:
         code = str(payload.get("code") or "").strip()
-        with self._lock:
-            pending = self._pending.get(user_id)
+        pending = self._pending_store.get_totp_pending(user_id)
         if pending is None:
             raise ValidationError("No pending TOTP enrollment. Start enrollment again.")
-        if time.time() - pending.created_at > _PENDING_TTL_SECONDS:
-            with self._lock:
-                self._pending.pop(user_id, None)
-            raise ValidationError("TOTP enrollment expired. Start enrollment again.")
         matched, counter = verify_totp(pending.secret, code)
         if not matched:
             raise AuthenticationError("Invalid authenticator code.")
+        consumed = self._pending_store.consume_totp_pending(user_id)
+        if consumed is None:
+            raise ValidationError("No pending TOTP enrollment. Start enrollment again.")
         recovery_codes = generate_recovery_codes()
-        encrypted_secret = encrypt_secret(pending.secret)
+        encrypted_secret = encrypt_secret(consumed.secret)
         record = {
             "auth_entity": "mfa_totp",
             "user_id": user_id,
@@ -239,8 +230,6 @@ class TotpAdapter:
             "recovery_codes_generated_at": time.time(),
         }
         self._save(user_id, record)
-        with self._lock:
-            self._pending.pop(user_id, None)
         return {"ok": True, "method": "totp", "recovery_codes": recovery_codes}
 
     def begin_challenge(self, user_id: str) -> dict[str, Any]:
@@ -272,8 +261,7 @@ class TotpAdapter:
 
     def disable(self, user_id: str) -> None:
         self._persistence.delete("metadata", f"{_ENTITY_PREFIX}{user_id}")
-        with self._lock:
-            self._pending.pop(user_id, None)
+        self._pending_store.delete_totp_pending(user_id)
 
     def recovery_codes_remaining(self, user_id: str) -> int:
         record = self._load(user_id)

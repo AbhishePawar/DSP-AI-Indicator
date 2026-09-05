@@ -97,12 +97,12 @@ def test_registration_completes_with_real_attestation() -> None:
         persistence, users, rp_id="localhost", rp_name="Test RP", origin="http://localhost:5000"
     )
     state = "reg-state-1"
-    adapter._pending[state] = {  # noqa: SLF001 — seeding a deterministic ceremony for the test
+    adapter.seed_pending(state, {  # noqa: SLF001 — seeding a deterministic ceremony for the test
         "kind": "registration",
         "user_id": "user-1",
         "challenge": _b64url_decode(_REG_CHALLENGE_B64URL),
         "created_at": time.time(),
-    }
+    })
     result = adapter.complete_registration("user-1", {"state": state, "credential": _REG_CREDENTIAL})
     assert result["ok"] is True
     assert result["credential_id"] == _REG_CREDENTIAL["id"]
@@ -152,11 +152,11 @@ def test_discoverable_authentication_completes_and_rotates_sign_count() -> None:
         allow_update=True,
     )
     state = "auth-state-1"
-    adapter._pending[state] = {  # noqa: SLF001
+    adapter.seed_pending(state, {  # noqa: SLF001
         "kind": "authentication",
         "challenge": _b64url_decode(_AUTH_CHALLENGE_B64URL),
         "created_at": time.time(),
-    }
+    })
     resolved = adapter.complete_discoverable_authentication(
         {"state": state, "credential": _AUTH_CREDENTIAL}
     )
@@ -171,11 +171,11 @@ def test_unknown_credential_is_rejected() -> None:
     users = _FakeUsers()
     adapter = WebAuthnAdapter(persistence, users, rp_id="localhost", origin="http://localhost:5000")
     state = "auth-state-2"
-    adapter._pending[state] = {  # noqa: SLF001
+    adapter.seed_pending(state, {  # noqa: SLF001
         "kind": "authentication",
         "challenge": _b64url_decode(_AUTH_CHALLENGE_B64URL),
         "created_at": time.time(),
-    }
+    })
     with pytest.raises(Exception):
         adapter.complete_discoverable_authentication({"state": state, "credential": _AUTH_CREDENTIAL})
 

@@ -24,6 +24,10 @@ api = [
     # Production profiles require a live PostgreSQL adapter; the API image is
     # installed from this extra, so the driver must ship with it.
     "psycopg[binary]>=3.1",
+    # Stage 0I OAuth PKCE uses AES-256-GCM via cryptography. Nested
+    # packages/auth extras are not installed by docker/backend/Dockerfile
+    # (`pip install ".[api]"`), so this extra must carry the dependency.
+    "cryptography>=42.0",
 ]
 dev = [
     "black>=24.0.0",

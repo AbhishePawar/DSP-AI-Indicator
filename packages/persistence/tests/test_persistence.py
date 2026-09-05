@@ -8,6 +8,7 @@ from persistence import (
     PERSISTENCE_SCHEMA_VERSION,
     DuplicateIdError,
     InMemoryStorageProvider,
+    PersistenceError,
     PersistenceService,
     RepositoryRegistry,
     SnapshotError,
@@ -16,9 +17,11 @@ from persistence import (
     canonical_dumps,
     content_hash,
     get_persistence_service,
+    get_repository_registry,
     reset_persistence_service_for_tests,
     reset_repository_registry_for_tests,
 )
+from persistence.registry import build_default_storage
 
 FIXED = "2026-07-28T12:00:00+00:00"
 
@@ -208,3 +211,78 @@ def test_determinism_of_put() -> None:
     listed = svc.list_entities("metadata")
     assert listed[0]["payload"] == {"x": 1, "y": 2}
     assert canonical_dumps(a["payload"]) == canonical_dumps({"y": 2, "x": 1})
+
+
+def test_atomic_consume_unexpired_once() -> None:
+    svc = get_persistence_service()
+    svc.put(
+        kind="metadata",
+        entity_id="consume-1",
+        payload={"expires_at": "2099-01-01T00:00:00+00:00", "consumed_at": None},
+        created_at=FIXED,
+    )
+    first = svc.atomic_consume_unexpired(
+        "metadata",
+        "consume-1",
+        now_iso="2026-07-28T12:00:00+00:00",
+        consumed_at="2026-07-28T12:00:01+00:00",
+    )
+    assert first is not None
+    assert first["payload"]["consumed_at"] == "2026-07-28T12:00:01+00:00"
+    second = svc.atomic_consume_unexpired(
+        "metadata",
+        "consume-1",
+        now_iso="2026-07-28T12:00:02+00:00",
+        consumed_at="2026-07-28T12:00:02+00:00",
+    )
+    assert second is None
+
+
+def test_atomic_consume_rejects_expired_and_missing() -> None:
+    svc = get_persistence_service()
+    svc.put(
+        kind="metadata",
+        entity_id="consume-expired",
+        payload={"expires_at": "2000-01-01T00:00:00+00:00", "consumed_at": None},
+        created_at=FIXED,
+    )
+    assert (
+        svc.atomic_consume_unexpired(
+            "metadata",
+            "consume-expired",
+            now_iso="2026-07-28T12:00:00+00:00",
+            consumed_at="2026-07-28T12:00:00+00:00",
+        )
+        is None
+    )
+    assert (
+        svc.atomic_consume_unexpired(
+            "metadata",
+            "missing",
+            now_iso="2026-07-28T12:00:00+00:00",
+            consumed_at="2026-07-28T12:00:00+00:00",
+        )
+        is None
+    )
+
+
+def test_production_missing_database_url_fail_closed(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setenv("DSP_ENVIRONMENT", "production")
+    monkeypatch.delenv("DSP_DATABASE_URL", raising=False)
+    monkeypatch.delenv("DATABASE_URL", raising=False)
+    reset_repository_registry_for_tests(None)
+    reset_persistence_service_for_tests(None)
+    with pytest.raises(PersistenceError, match="DSP_DATABASE_URL"):
+        build_default_storage()
+    with pytest.raises(PersistenceError, match="DSP_DATABASE_URL"):
+        get_repository_registry()
+    with pytest.raises(PersistenceError, match="DSP_DATABASE_URL"):
+        get_persistence_service()
+
+
+def test_development_storage_is_in_memory(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setenv("DSP_ENVIRONMENT", "development")
+    reset_repository_registry_for_tests(None)
+    reset_persistence_service_for_tests(None)
+    storage = build_default_storage()
+    assert storage.provider_id == "in_memory"

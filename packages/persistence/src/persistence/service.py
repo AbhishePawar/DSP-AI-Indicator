@@ -96,6 +96,29 @@ class PersistenceService:
     def delete(self, kind: str, entity_id: str) -> bool:
         return self.registry.repository(kind).delete(entity_id)
 
+    def atomic_consume_unexpired(
+        self,
+        kind: str,
+        entity_id: str,
+        *,
+        now_iso: str,
+        consumed_at: str,
+        consumed_field: tuple[str, ...] = ("payload", "consumed_at"),
+        expires_field: tuple[str, ...] = ("payload", "expires_at"),
+    ) -> dict[str, Any] | None:
+        """Atomically consume an unexpired entity via the storage provider."""
+        from persistence.repositories import kind_collection
+
+        stored = self.registry.storage.atomic_consume_unexpired(
+            kind_collection(kind),
+            entity_id,
+            now_iso=now_iso,
+            consumed_at=consumed_at,
+            consumed_field=consumed_field,
+            expires_field=expires_field,
+        )
+        return dict(stored) if stored is not None else None
+
     def list_ids(self, kind: str) -> list[str]:
         return list(self.registry.repository(kind).list_ids())
 

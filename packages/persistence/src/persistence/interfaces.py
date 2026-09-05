@@ -14,7 +14,7 @@ __all__ = [
 
 
 class StorageProviderPort(Protocol):
-    """Storage abstraction — InMemory default; Postgres/SQLite/etc. later."""
+    """Storage abstraction — InMemory in development; Postgres in production."""
 
     provider_id: str
 
@@ -31,6 +31,24 @@ class StorageProviderPort(Protocol):
     def snapshot_state(self) -> dict[str, dict[str, Mapping[str, Any]]]: ...
 
     def restore_state(self, state: Mapping[str, Mapping[str, Mapping[str, Any]]]) -> None: ...
+
+    def atomic_consume_unexpired(
+        self,
+        collection: str,
+        key: str,
+        *,
+        now_iso: str,
+        consumed_at: str,
+        consumed_field: tuple[str, ...] = ("payload", "consumed_at"),
+        expires_field: tuple[str, ...] = ("payload", "expires_at"),
+    ) -> Mapping[str, Any] | None:
+        """Atomically mark ``consumed_field`` if unset and not expired.
+
+        Returns the stored document after a successful consume, or ``None``
+        when the row is missing, already consumed, or expired. Must be
+        implemented with a single compare-and-set (not get-then-put).
+        """
+        ...
 
 
 class EntityRepositoryPort(Protocol):

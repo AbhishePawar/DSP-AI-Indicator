@@ -33,6 +33,7 @@ from auth.exceptions import (
     AuthenticationError,
     AuthorizationError,
     DuplicateUserError,
+    OAuthChallengeError,
     ValidationError,
 )
 from auth.hashing import hash_password, needs_rehash, verify_password
@@ -1297,6 +1298,12 @@ class EnterpriseAuthPlatform:
         """
         return f"oauth.{provider.strip().lower()}.{action}"
 
+    @staticmethod
+    def _oauth_failure_detail(provider: str, exc: BaseException) -> str:
+        if isinstance(exc, OAuthChallengeError):
+            return f"{provider.strip().upper()}:{exc.reason}"
+        return str(exc)[:300]
+
     def oauth_begin(self, provider: str, *, redirect_uri: str, state: str | None = None) -> dict[str, Any]:
         return self.oauth.begin(provider, redirect_uri=redirect_uri, state=state)
 
@@ -1326,7 +1333,7 @@ class EnterpriseAuthPlatform:
                 self._oauth_event(provider, "failure"),
                 ip_hint=ip_hint,
                 user_agent_hint=user_agent_hint,
-                detail=str(exc)[:300],
+                detail=self._oauth_failure_detail(provider, exc),
             )
             raise
         try:
@@ -1341,7 +1348,7 @@ class EnterpriseAuthPlatform:
                 self._oauth_event(provider, "failure"),
                 ip_hint=ip_hint,
                 user_agent_hint=user_agent_hint,
-                detail=str(exc)[:300],
+                detail=self._oauth_failure_detail(provider, exc),
             )
             raise
 
@@ -1425,7 +1432,7 @@ class EnterpriseAuthPlatform:
                 self._oauth_event(provider, "failure"),
                 user_id=user.user_id,
                 ip_hint=ip_hint,
-                detail=str(exc)[:300],
+                detail=self._oauth_failure_detail(provider, exc),
             )
             raise
         updated = self._attach_provider_link(user, profile)

@@ -105,6 +105,8 @@ class PersistenceService:
         consumed_at: str,
         consumed_field: tuple[str, ...] = ("payload", "consumed_at"),
         expires_field: tuple[str, ...] = ("payload", "expires_at"),
+        attempts_field: tuple[str, ...] | None = None,
+        max_attempts: int | None = None,
     ) -> dict[str, Any] | None:
         """Atomically consume an unexpired entity via the storage provider."""
         from persistence.repositories import kind_collection
@@ -114,6 +116,32 @@ class PersistenceService:
             entity_id,
             now_iso=now_iso,
             consumed_at=consumed_at,
+            consumed_field=consumed_field,
+            expires_field=expires_field,
+            attempts_field=attempts_field,
+            max_attempts=max_attempts,
+        )
+        return dict(stored) if stored is not None else None
+
+    def atomic_increment_unexpired(
+        self,
+        kind: str,
+        entity_id: str,
+        *,
+        now_iso: str,
+        counter_field: tuple[str, ...] = ("payload", "attempts"),
+        max_value: int = 5,
+        consumed_field: tuple[str, ...] = ("payload", "consumed_at"),
+        expires_field: tuple[str, ...] = ("payload", "expires_at"),
+    ) -> dict[str, Any] | None:
+        from persistence.repositories import kind_collection
+
+        stored = self.registry.storage.atomic_increment_unexpired(
+            kind_collection(kind),
+            entity_id,
+            now_iso=now_iso,
+            counter_field=counter_field,
+            max_value=max_value,
             consumed_field=consumed_field,
             expires_field=expires_field,
         )

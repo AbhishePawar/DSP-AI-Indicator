@@ -78,6 +78,8 @@ class InMemoryStorageProvider:
         consumed_at: str,
         consumed_field: tuple[str, ...] = ("payload", "consumed_at"),
         expires_field: tuple[str, ...] = ("payload", "expires_at"),
+        attempts_field: tuple[str, ...] | None = None,
+        max_attempts: int | None = None,
     ) -> Mapping[str, Any] | None:
         with self._lock:
             bucket = self._data.get(collection)
@@ -89,9 +91,42 @@ class InMemoryStorageProvider:
             expires_raw = _nested_get(row, expires_field)
             if not _is_unexpired(expires_raw, now_iso):
                 return None
+            if attempts_field is not None and max_attempts is not None:
+                if _as_int(_nested_get(row, attempts_field)) >= max_attempts:
+                    return None
             _nested_set(row, consumed_field, consumed_at)
             if isinstance(row, dict):
                 row["updated_at"] = consumed_at
+            bucket[key] = to_plain_jsonable(row)
+            return deepcopy(bucket[key])
+
+    def atomic_increment_unexpired(
+        self,
+        collection: str,
+        key: str,
+        *,
+        now_iso: str,
+        counter_field: tuple[str, ...] = ("payload", "attempts"),
+        max_value: int = 5,
+        consumed_field: tuple[str, ...] = ("payload", "consumed_at"),
+        expires_field: tuple[str, ...] = ("payload", "expires_at"),
+    ) -> Mapping[str, Any] | None:
+        with self._lock:
+            bucket = self._data.get(collection)
+            if not bucket or key not in bucket:
+                return None
+            row = bucket[key]
+            if _nested_get(row, consumed_field) not in (None, ""):
+                return None
+            expires_raw = _nested_get(row, expires_field)
+            if not _is_unexpired(expires_raw, now_iso):
+                return None
+            current = _as_int(_nested_get(row, counter_field))
+            if current >= max_value:
+                return None
+            _nested_set(row, counter_field, current + 1)
+            if isinstance(row, dict):
+                row["updated_at"] = now_iso
             bucket[key] = to_plain_jsonable(row)
             return deepcopy(bucket[key])
 
@@ -114,6 +149,13 @@ def _nested_set(row: dict[str, Any], path: tuple[str, ...], value: Any) -> None:
             cursor[part] = nxt
         cursor = nxt
     cursor[path[-1]] = value
+
+
+def _as_int(value: Any) -> int:
+    try:
+        return int(value or 0)
+    except (TypeError, ValueError):
+        return 0
 
 
 def _is_unexpired(expires_raw: Any, now_iso: str) -> bool:

@@ -10,6 +10,8 @@ Security policy:
 - 5-minute expiry, 30s resend cooldown, 5 attempts, hourly send caps
 - IP-scoped verify-failure rate limiting when ``ip_hint`` is supplied
 - Public responses never include the OTP
+- Authoritative challenge/attempt/send-window state is A008-backed so Cloud
+  Run instances share one store (Postgres in production)
 """
 
 from __future__ import annotations
@@ -20,13 +22,12 @@ import logging
 import re
 import secrets
 import uuid
-from dataclasses import replace
 from datetime import datetime, timedelta, timezone
-from threading import Lock
 from typing import Any, NamedTuple
 
 from auth.enterprise_models import OtpChallenge
 from auth.exceptions import AuthenticationError, ValidationError
+from auth.otp_challenges import OtpChallengeStore, default_otp_store
 from auth.sms import SmsProviderPort, build_sms_provider
 
 logger = logging.getLogger(__name__)
@@ -103,21 +104,31 @@ def _verify_code(code: str, code_hash: str) -> bool:
     return hmac.compare_digest(candidate, digest)
 
 
+def _parse_dt(value: str | None) -> datetime | None:
+    if not value:
+        return None
+    try:
+        parsed = datetime.fromisoformat(str(value).replace("Z", "+00:00"))
+    except ValueError:
+        return None
+    if parsed.tzinfo is None:
+        parsed = parsed.replace(tzinfo=timezone.utc)
+    return parsed
+
+
 class OtpService:
     def __init__(
         self,
         sms: SmsProviderPort | None = None,
         email: Any = None,
+        *,
+        store: OtpChallengeStore | None = None,
     ) -> None:
         # ``email`` is accepted for call-site compatibility but ignored —
         # numeric email OTP has been removed.
         _ = email
         self._sms = sms or build_sms_provider()
-        self._challenges: dict[str, OtpChallenge] = {}
-        self._by_destination: dict[str, str] = {}
-        self._send_log: list[tuple[str, datetime]] = []
-        self._ip_failures: list[tuple[str, datetime]] = []
-        self._lock = Lock()
+        self._store = store if store is not None else default_otp_store()
 
     def sms_status(self) -> dict[str, Any]:
         return {
@@ -210,39 +221,49 @@ class OtpService:
     ) -> OtpVerifyResult:
         """Verify OTP; return channel + destination on success."""
         ts = now or datetime.now(tz=timezone.utc)
-        with self._lock:
-            self._prune(ts)
-            challenge = self._challenges.get(challenge_id)
-            if challenge is None:
-                raise AuthenticationError("Invalid or expired OTP challenge.")
-            if challenge.channel != "mobile":
-                raise AuthenticationError(
-                    "Email OTP is no longer supported. Sign in with Google or password."
-                )
-            if challenge.consumed:
+        now_iso = ts.isoformat()
+        record = self._store.get_challenge(challenge_id, now=ts)
+        if record is None:
+            raise AuthenticationError("Invalid or expired OTP challenge.")
+        challenge = record.challenge
+        if challenge.channel != "mobile":
+            raise AuthenticationError(
+                "Email OTP is no longer supported. Sign in with Google or password."
+            )
+        if challenge.consumed:
+            raise AuthenticationError("OTP already used.")
+        expires = _parse_dt(challenge.expires_at)
+        if expires is None or ts > expires:
+            raise AuthenticationError("OTP expired.")
+        if challenge.attempts >= _MAX_ATTEMPTS:
+            self._record_ip_failure(ip_hint, ts)
+            raise AuthenticationError("Too many invalid OTP attempts.")
+        if not _verify_code((code or "").strip(), challenge.code_hash):
+            updated = self._store.increment_attempts(
+                challenge_id, now_iso=now_iso, max_attempts=_MAX_ATTEMPTS
+            )
+            self._record_ip_failure(ip_hint, ts)
+            if updated is None:
+                again = self._store.get_challenge(challenge_id, now=ts)
+                if again is not None and again.challenge.consumed:
+                    raise AuthenticationError("OTP already used.")
+                if again is not None and again.challenge.attempts >= _MAX_ATTEMPTS:
+                    raise AuthenticationError("Too many invalid OTP attempts.")
+            raise AuthenticationError("Invalid OTP code.")
+        consumed = self._store.consume_success(
+            challenge_id, now_iso=now_iso, max_attempts=_MAX_ATTEMPTS
+        )
+        if consumed is None:
+            again = self._store.get_challenge(challenge_id, now=ts)
+            if again is not None and again.challenge.consumed:
                 raise AuthenticationError("OTP already used.")
-            expires = datetime.fromisoformat(challenge.expires_at)
-            if expires.tzinfo is None:
-                expires = expires.replace(tzinfo=timezone.utc)
-            if ts > expires:
-                raise AuthenticationError("OTP expired.")
-            if challenge.attempts >= _MAX_ATTEMPTS:
-                if ip_hint:
-                    self._ip_failures.append((ip_hint, ts))
+            if again is not None and again.challenge.attempts >= _MAX_ATTEMPTS:
                 raise AuthenticationError("Too many invalid OTP attempts.")
-            if not _verify_code((code or "").strip(), challenge.code_hash):
-                updated = replace(challenge, attempts=challenge.attempts + 1)
-                self._challenges[challenge_id] = updated
-                if ip_hint:
-                    self._ip_failures.append((ip_hint, ts))
-                raise AuthenticationError("Invalid OTP code.")
-            self._challenges[challenge_id] = replace(
-                challenge, consumed=True, attempts=challenge.attempts + 1
-            )
-            return OtpVerifyResult(
-                channel=challenge.channel,
-                destination=challenge.resolved_destination(),
-            )
+            raise AuthenticationError("Invalid or expired OTP challenge.")
+        return OtpVerifyResult(
+            channel=consumed.challenge.channel,
+            destination=consumed.challenge.resolved_destination(),
+        )
 
     def _create_challenge(
         self,
@@ -253,72 +274,82 @@ class OtpService:
         ts: datetime,
         deliver: bool,
     ) -> tuple[OtpChallenge, str]:
-        with self._lock:
-            self._prune(ts)
-            hour_ago = ts - timedelta(hours=1)
-            sends = sum(1 for d, t in self._send_log if d == destination and t >= hour_ago)
-            if sends >= _MAX_SENDS_PER_HOUR:
-                raise AuthenticationError("OTP rate limit exceeded. Try again later.")
-            if ip_hint:
-                ip_fails = sum(1 for ip, t in self._ip_failures if ip == ip_hint and t >= hour_ago)
-                if ip_fails >= _MAX_VERIFY_FAILURES_IP:
-                    raise AuthenticationError("Too many failed attempts. Try again later.")
+        hour_ago = ts - timedelta(hours=1)
+        if ip_hint:
+            failures = [
+                t
+                for t in (_parse_dt(raw) for raw in self._store.get_ip_failures(ip_hint))
+                if t is not None and t >= hour_ago
+            ]
+            if len(failures) >= _MAX_VERIFY_FAILURES_IP:
+                raise AuthenticationError("Too many failed attempts. Try again later.")
 
-            existing_id = self._by_destination.get(destination)
+        dest_row = self._store.get_destination(destination)
+        send_times: list[datetime] = []
+        if dest_row:
+            send_times = [
+                t
+                for t in (_parse_dt(raw) for raw in (dest_row.get("send_times") or []))
+                if t is not None and t >= hour_ago
+            ]
+            if len(send_times) >= _MAX_SENDS_PER_HOUR:
+                raise AuthenticationError("OTP rate limit exceeded. Try again later.")
+            existing_id = str(dest_row.get("challenge_id") or "")
             if existing_id:
-                existing = self._challenges.get(existing_id)
-                if existing and existing.resend_available_at:
-                    resend_at = datetime.fromisoformat(existing.resend_available_at)
-                    if resend_at.tzinfo is None:
-                        resend_at = resend_at.replace(tzinfo=timezone.utc)
-                    if ts < resend_at and not existing.consumed:
+                existing = self._store.get_challenge(existing_id, now=ts)
+                if existing and existing.challenge.resend_available_at:
+                    resend_at = _parse_dt(existing.challenge.resend_available_at)
+                    if (
+                        resend_at is not None
+                        and ts < resend_at
+                        and not existing.challenge.consumed
+                    ):
                         raise AuthenticationError(
-                            f"Resend available after {existing.resend_available_at}."
+                            f"Resend available after {existing.challenge.resend_available_at}."
                         )
 
-            if deliver:
-                code = f"{secrets.randbelow(1_000_000):06d}"
-            else:
-                # Unguessable stand-in so response shape matches without a usable OTP.
-                code = secrets.token_hex(16)
-            salt = secrets.token_hex(8)
-            challenge_id = str(uuid.uuid4())
-            expires = ts + _OTP_TTL
-            resend_at = ts + _RESEND_COOLDOWN
-            challenge = OtpChallenge(
-                challenge_id=challenge_id,
-                mobile=destination if channel == "mobile" else "",
-                code_hash=_hash_code(code, salt=salt),
-                expires_at=expires.isoformat(),
-                created_at=ts.isoformat(),
-                attempts=0,
-                consumed=False,
-                resend_available_at=resend_at.isoformat(),
-                channel=channel,
-                destination=destination,
-            )
-            self._challenges[challenge_id] = challenge
-            self._by_destination[destination] = challenge_id
-            self._send_log.append((destination, ts))
-            return challenge, code if deliver else ""
+        if deliver:
+            code = f"{secrets.randbelow(1_000_000):06d}"
+        else:
+            # Unguessable stand-in so response shape matches without a usable OTP.
+            code = secrets.token_hex(16)
+        salt = secrets.token_hex(8)
+        challenge_id = str(uuid.uuid4())
+        expires = ts + _OTP_TTL
+        resend_at = ts + _RESEND_COOLDOWN
+        challenge = OtpChallenge(
+            challenge_id=challenge_id,
+            mobile=destination if channel == "mobile" else "",
+            code_hash=_hash_code(code, salt=salt),
+            expires_at=expires.isoformat(),
+            created_at=ts.isoformat(),
+            attempts=0,
+            consumed=False,
+            resend_available_at=resend_at.isoformat(),
+            channel=channel,
+            destination=destination,
+        )
+        self._store.put_challenge(challenge)
+        send_iso = [t.isoformat() for t in send_times] + [ts.isoformat()]
+        self._store.put_destination(
+            destination,
+            challenge_id=challenge_id,
+            send_times=send_iso,
+            resend_available_at=challenge.resend_available_at,
+            created_at=challenge.created_at,
+        )
+        return challenge, code if deliver else ""
 
-    def _prune(self, now: datetime) -> None:
-        # Keep consumed challenges until well after expiry so reuse attempts
-        # surface "OTP already used" instead of looking like a missing challenge.
-        stale_ids = []
-        for cid, ch in self._challenges.items():
-            expires = datetime.fromisoformat(ch.expires_at)
-            if expires.tzinfo is None:
-                expires = expires.replace(tzinfo=timezone.utc)
-            if now > expires + timedelta(hours=1):
-                stale_ids.append(cid)
-        for cid in stale_ids:
-            ch = self._challenges.pop(cid, None)
-            if ch is None:
-                continue
-            dest = ch.resolved_destination()
-            if self._by_destination.get(dest) == cid:
-                self._by_destination.pop(dest, None)
-        cutoff = now - timedelta(hours=2)
-        self._send_log = [(d, t) for d, t in self._send_log if t >= cutoff]
-        self._ip_failures = [(ip, t) for ip, t in self._ip_failures if t >= cutoff]
+    def _record_ip_failure(self, ip_hint: str | None, ts: datetime) -> None:
+        if not ip_hint:
+            return
+        cutoff = ts - timedelta(hours=2)
+        previous = [
+            raw
+            for raw in self._store.get_ip_failures(ip_hint)
+            if (parsed := _parse_dt(raw)) is not None and parsed >= cutoff
+        ]
+        previous.append(ts.isoformat())
+        self._store.put_ip_failures(
+            ip_hint, failures=previous, created_at=ts.isoformat()
+        )

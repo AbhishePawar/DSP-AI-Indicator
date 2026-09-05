@@ -41,13 +41,31 @@ class StorageProviderPort(Protocol):
         consumed_at: str,
         consumed_field: tuple[str, ...] = ("payload", "consumed_at"),
         expires_field: tuple[str, ...] = ("payload", "expires_at"),
+        attempts_field: tuple[str, ...] | None = None,
+        max_attempts: int | None = None,
     ) -> Mapping[str, Any] | None:
         """Atomically mark ``consumed_field`` if unset and not expired.
 
         Returns the stored document after a successful consume, or ``None``
         when the row is missing, already consumed, or expired. Must be
         implemented with a single compare-and-set (not get-then-put).
+        When ``attempts_field`` and ``max_attempts`` are set, consume also
+        requires the integer counter to be strictly below ``max_attempts``.
         """
+        ...
+
+    def atomic_increment_unexpired(
+        self,
+        collection: str,
+        key: str,
+        *,
+        now_iso: str,
+        counter_field: tuple[str, ...] = ("payload", "attempts"),
+        max_value: int = 5,
+        consumed_field: tuple[str, ...] = ("payload", "consumed_at"),
+        expires_field: tuple[str, ...] = ("payload", "expires_at"),
+    ) -> Mapping[str, Any] | None:
+        """Atomically increment ``counter_field`` when unconsumed, unexpired, and below max."""
         ...
 
 

@@ -177,9 +177,26 @@ class PostgresStorageProvider:
         consumed_at: str,
         consumed_field: tuple[str, ...] = ("payload", "consumed_at"),
         expires_field: tuple[str, ...] = ("payload", "expires_at"),
+        attempts_field: tuple[str, ...] | None = None,
+        max_attempts: int | None = None,
     ) -> Mapping[str, Any] | None:
         consumed_path = _jsonb_path(consumed_field)
         expires_path = _jsonb_path(expires_field)
+        extra_attempts = ""
+        params: list[Any] = [
+            consumed_at,
+            consumed_at,
+            consumed_at,
+            collection,
+            key,
+            now_iso,
+        ]
+        if attempts_field is not None and max_attempts is not None:
+            attempts_path = _jsonb_path(attempts_field)
+            extra_attempts = (
+                f" AND COALESCE((payload #>> '{attempts_path}')::int, 0) < %s "
+            )
+            params.append(max_attempts)
         sql = (
             f"UPDATE {_TABLE} SET "
             "payload = jsonb_set("
@@ -191,19 +208,51 @@ class PostgresStorageProvider:
             f"AND payload #>> '{consumed_path}' IS NULL "
             f"AND payload #>> '{expires_path}' IS NOT NULL "
             f"AND (payload #>> '{expires_path}')::timestamptz > %s::timestamptz "
+            f"{extra_attempts}"
+            "RETURNING payload"
+        )
+        with self._connect() as conn, conn.cursor() as cur:
+            cur.execute(sql, tuple(params))
+            found = cur.fetchone()
+            conn.commit()
+        if found is None:
+            return None
+        payload = found[0]
+        return deepcopy(payload) if isinstance(payload, dict) else None
+
+    def atomic_increment_unexpired(
+        self,
+        collection: str,
+        key: str,
+        *,
+        now_iso: str,
+        counter_field: tuple[str, ...] = ("payload", "attempts"),
+        max_value: int = 5,
+        consumed_field: tuple[str, ...] = ("payload", "consumed_at"),
+        expires_field: tuple[str, ...] = ("payload", "expires_at"),
+    ) -> Mapping[str, Any] | None:
+        consumed_path = _jsonb_path(consumed_field)
+        expires_path = _jsonb_path(expires_field)
+        counter_path = _jsonb_path(counter_field)
+        sql = (
+            f"UPDATE {_TABLE} SET "
+            "payload = jsonb_set("
+            f"jsonb_set(payload, '{counter_path}', "
+            f"to_jsonb(COALESCE((payload #>> '{counter_path}')::int, 0) + 1), true), "
+            "'{updated_at}', to_jsonb(%s::text), true"
+            "), "
+            "updated_at = %s::timestamptz "
+            f"WHERE collection = %s AND entity_id = %s "
+            f"AND payload #>> '{consumed_path}' IS NULL "
+            f"AND payload #>> '{expires_path}' IS NOT NULL "
+            f"AND (payload #>> '{expires_path}')::timestamptz > %s::timestamptz "
+            f"AND COALESCE((payload #>> '{counter_path}')::int, 0) < %s "
             "RETURNING payload"
         )
         with self._connect() as conn, conn.cursor() as cur:
             cur.execute(
                 sql,
-                (
-                    consumed_at,
-                    consumed_at,
-                    consumed_at,
-                    collection,
-                    key,
-                    now_iso,
-                ),
+                (now_iso, now_iso, collection, key, now_iso, max_value),
             )
             found = cur.fetchone()
             conn.commit()

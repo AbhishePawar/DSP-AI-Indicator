@@ -238,6 +238,48 @@ def test_atomic_consume_unexpired_once() -> None:
     assert second is None
 
 
+def test_atomic_increment_unexpired_caps_and_skips_consumed() -> None:
+    svc = get_persistence_service()
+    svc.put(
+        kind="metadata",
+        entity_id="inc-1",
+        payload={"expires_at": "2099-01-01T00:00:00+00:00", "consumed_at": None, "attempts": 0},
+        created_at=FIXED,
+    )
+    first = svc.atomic_increment_unexpired(
+        "metadata",
+        "inc-1",
+        now_iso="2026-07-28T12:00:00+00:00",
+        max_value=2,
+    )
+    assert first is not None
+    assert first["payload"]["attempts"] == 1
+    second = svc.atomic_increment_unexpired(
+        "metadata",
+        "inc-1",
+        now_iso="2026-07-28T12:00:01+00:00",
+        max_value=2,
+    )
+    assert second is not None
+    assert second["payload"]["attempts"] == 2
+    third = svc.atomic_increment_unexpired(
+        "metadata",
+        "inc-1",
+        now_iso="2026-07-28T12:00:02+00:00",
+        max_value=2,
+    )
+    assert third is None
+    consumed = svc.atomic_consume_unexpired(
+        "metadata",
+        "inc-1",
+        now_iso="2026-07-28T12:00:03+00:00",
+        consumed_at="2026-07-28T12:00:03+00:00",
+        attempts_field=("payload", "attempts"),
+        max_attempts=2,
+    )
+    assert consumed is None
+
+
 def test_atomic_consume_rejects_expired_and_missing() -> None:
     svc = get_persistence_service()
     svc.put(

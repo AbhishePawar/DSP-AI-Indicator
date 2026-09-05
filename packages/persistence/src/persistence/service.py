@@ -147,6 +147,70 @@ class PersistenceService:
         )
         return dict(stored) if stored is not None else None
 
+    def atomic_put_if_absent(
+        self,
+        *,
+        kind: str,
+        entity_id: str,
+        payload: Mapping[str, Any] | None = None,
+        refs: Mapping[str, Any] | None = None,
+        provenance: Mapping[str, Any] | None = None,
+        created_at: str | None = None,
+    ) -> dict[str, Any]:
+        """Insert an entity if ``entity_id`` is absent; return the stored document."""
+        if kind not in ENTITY_KINDS:
+            raise ValidationError(f"invalid kind {kind!r}")
+        created = created_at or utc_now().isoformat()
+        entity = PersistedEntity(
+            entity_id=entity_id,
+            kind=kind,
+            created_at=created,
+            updated_at=created,
+            version=1,
+            payload=freeze_mapping(to_plain_jsonable(dict(payload or {}))),
+            refs=freeze_mapping(to_plain_jsonable(dict(refs or {}))),
+            provenance=freeze_mapping(
+                to_plain_jsonable(
+                    {
+                        "source": "persistence",
+                        "service_version": PERSISTENCE_SERVICE_VERSION,
+                        "research_mutated": False,
+                        **dict(provenance or {}),
+                    }
+                )
+            ),
+        )
+        validate_entity(entity)
+        from persistence.repositories import kind_collection
+
+        stored = self.registry.storage.atomic_put_if_absent(
+            kind_collection(kind),
+            entity_id,
+            entity_to_dict(entity),
+        )
+        return dict(stored)
+
+    def atomic_merge_payload(
+        self,
+        kind: str,
+        entity_id: str,
+        *,
+        fields: Mapping[str, Any],
+        updated_at: str,
+        match: Mapping[str, Any] | None = None,
+    ) -> dict[str, Any] | None:
+        """Merge fields into the entity payload without clobbering sibling keys."""
+        from persistence.repositories import kind_collection
+
+        stored = self.registry.storage.atomic_merge_payload(
+            kind_collection(kind),
+            entity_id,
+            fields=fields,
+            updated_at=updated_at,
+            match=match,
+        )
+        return dict(stored) if stored is not None else None
+
     def list_ids(self, kind: str) -> list[str]:
         return list(self.registry.repository(kind).list_ids())
 

@@ -68,6 +68,31 @@ class StorageProviderPort(Protocol):
         """Atomically increment ``counter_field`` when unconsumed, unexpired, and below max."""
         ...
 
+    def atomic_put_if_absent(
+        self, collection: str, key: str, value: Mapping[str, Any]
+    ) -> Mapping[str, Any]:
+        """Insert ``value`` when ``key`` is absent; return the stored document either way.
+
+        Must be a single compare-and-set insert, not get-then-put.
+        """
+        ...
+
+    def atomic_merge_payload(
+        self,
+        collection: str,
+        key: str,
+        *,
+        fields: Mapping[str, Any],
+        updated_at: str,
+        match: Mapping[str, Any] | None = None,
+    ) -> Mapping[str, Any] | None:
+        """Merge ``fields`` into ``payload.payload`` without replacing sibling keys.
+
+        Returns the stored document after a successful merge, or ``None`` when
+        the row is missing or ``match`` predicates fail. Must not be get-then-put.
+        """
+        ...
+
 
 class EntityRepositoryPort(Protocol):
     def put(self, entity: PersistedEntity) -> PersistedEntity: ...

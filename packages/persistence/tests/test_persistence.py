@@ -280,6 +280,58 @@ def test_atomic_increment_unexpired_caps_and_skips_consumed() -> None:
     assert consumed is None
 
 
+def test_atomic_put_if_absent_returns_winner() -> None:
+    svc = get_persistence_service()
+    first = svc.atomic_put_if_absent(
+        kind="metadata",
+        entity_id="absent-1",
+        payload={"device_id": "a"},
+        created_at=FIXED,
+    )
+    second = svc.atomic_put_if_absent(
+        kind="metadata",
+        entity_id="absent-1",
+        payload={"device_id": "b"},
+        created_at=FIXED,
+    )
+    assert first["payload"]["device_id"] == "a"
+    assert second["payload"]["device_id"] == "a"
+    assert svc.get("metadata", "absent-1")["payload"]["device_id"] == "a"
+
+
+def test_atomic_merge_payload_preserves_sibling_fields() -> None:
+    svc = get_persistence_service()
+    svc.put(
+        kind="metadata",
+        entity_id="merge-1",
+        payload={"trusted": True, "revoked": False, "last_seen_at": "t0"},
+        created_at=FIXED,
+    )
+    merged = svc.atomic_merge_payload(
+        "metadata",
+        "merge-1",
+        fields={"last_seen_at": "t1", "ip_hint": "1.2.3.4"},
+        updated_at="2026-07-28T12:00:01+00:00",
+        match={"revoked": False},
+    )
+    assert merged is not None
+    assert merged["payload"]["trusted"] is True
+    assert merged["payload"]["revoked"] is False
+    assert merged["payload"]["last_seen_at"] == "t1"
+    assert merged["payload"]["ip_hint"] == "1.2.3.4"
+    skipped = svc.atomic_merge_payload(
+        "metadata",
+        "merge-1",
+        fields={"revoked": True},
+        updated_at="2026-07-28T12:00:02+00:00",
+        match={"user_id": "other"},
+    )
+    assert skipped is None
+    still = svc.get("metadata", "merge-1")
+    assert still is not None
+    assert still["payload"]["revoked"] is False
+
+
 def test_atomic_consume_rejects_expired_and_missing() -> None:
     svc = get_persistence_service()
     svc.put(

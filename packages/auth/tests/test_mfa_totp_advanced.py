@@ -274,9 +274,10 @@ def test_trusted_device_expires_after_ttl(monkeypatch: pytest.MonkeyPatch) -> No
     # Simulate the trust window having elapsed by back-dating trusted_until.
     from datetime import UTC, datetime, timedelta
 
-    with devices._lock:  # noqa: SLF001 — test-only introspection of internal state
-        record = devices._devices[device.device_id]  # noqa: SLF001
-        record.trusted_until = (datetime.now(tz=UTC) - timedelta(days=1)).isoformat()
+    record = devices.get(device.device_id)
+    assert record is not None
+    record.trusted_until = (datetime.now(tz=UTC) - timedelta(days=1)).isoformat()
+    devices._store.put_device(record.to_store_payload())  # noqa: SLF001
 
     assert devices.is_trusted("u1", ip_hint="1.2.3.4", user_agent_hint="pytest-agent") is False
     assert devices.is_record_trusted(record) is False

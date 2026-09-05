@@ -130,6 +130,56 @@ class InMemoryStorageProvider:
             bucket[key] = to_plain_jsonable(row)
             return deepcopy(bucket[key])
 
+    def atomic_put_if_absent(
+        self, collection: str, key: str, value: Mapping[str, Any]
+    ) -> Mapping[str, Any]:
+        with self._lock:
+            bucket = self._data.setdefault(collection, {})
+            if key in bucket:
+                return deepcopy(bucket[key])
+            bucket[key] = to_plain_jsonable(dict(value))
+            return deepcopy(bucket[key])
+
+    def atomic_merge_payload(
+        self,
+        collection: str,
+        key: str,
+        *,
+        fields: Mapping[str, Any],
+        updated_at: str,
+        match: Mapping[str, Any] | None = None,
+    ) -> Mapping[str, Any] | None:
+        with self._lock:
+            bucket = self._data.get(collection)
+            if not bucket or key not in bucket:
+                return None
+            row = bucket[key]
+            inner = row.get("payload")
+            if not isinstance(inner, dict):
+                inner = {}
+            if not _payload_matches(inner, match):
+                return None
+            inner = dict(inner)
+            inner.update(to_plain_jsonable(dict(fields)))
+            row["payload"] = inner
+            row["updated_at"] = updated_at
+            bucket[key] = to_plain_jsonable(row)
+            return deepcopy(bucket[key])
+
+
+def _payload_matches(inner: Mapping[str, Any], match: Mapping[str, Any] | None) -> bool:
+    if not match:
+        return True
+    for field, expected in match.items():
+        actual = inner.get(field)
+        if field == "revoked" and expected is False:
+            if actual in (True, "true", "True"):
+                return False
+            continue
+        if actual != expected:
+            return False
+    return True
+
 
 def _nested_get(row: Mapping[str, Any], path: tuple[str, ...]) -> Any:
     cursor: Any = row

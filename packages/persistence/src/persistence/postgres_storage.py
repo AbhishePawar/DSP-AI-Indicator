@@ -261,6 +261,82 @@ class PostgresStorageProvider:
         payload = found[0]
         return deepcopy(payload) if isinstance(payload, dict) else None
 
+    def atomic_put_if_absent(
+        self, collection: str, key: str, value: Mapping[str, Any]
+    ) -> Mapping[str, Any]:
+        row = to_plain_jsonable(dict(value))
+        created = str(row.get("created_at") or _utc_now())
+        updated = str(row.get("updated_at") or created)
+        Json = self._psycopg.types.json.Json
+        with self._connect() as conn, conn.cursor() as cur:
+            cur.execute(
+                f"INSERT INTO {_TABLE} (collection, entity_id, payload, created_at, updated_at) "
+                "VALUES (%s, %s, %s, %s::timestamptz, %s::timestamptz) "
+                "ON CONFLICT (collection, entity_id) DO NOTHING "
+                "RETURNING payload",
+                (collection, key, Json(row), created, updated),
+            )
+            found = cur.fetchone()
+            if found is None:
+                cur.execute(
+                    f"SELECT payload FROM {_TABLE} WHERE collection = %s AND entity_id = %s",
+                    (collection, key),
+                )
+                found = cur.fetchone()
+            conn.commit()
+        if found is None:
+            from persistence.exceptions import PersistenceError
+
+            raise PersistenceError("A008 atomic insert returned no document")
+        payload = found[0]
+        return deepcopy(payload) if isinstance(payload, dict) else dict(row)
+
+    def atomic_merge_payload(
+        self,
+        collection: str,
+        key: str,
+        *,
+        fields: Mapping[str, Any],
+        updated_at: str,
+        match: Mapping[str, Any] | None = None,
+    ) -> Mapping[str, Any] | None:
+        Json = self._psycopg.types.json.Json
+        predicates = ""
+        params: list[Any] = [
+            Json(to_plain_jsonable(dict(fields))),
+            updated_at,
+            updated_at,
+            collection,
+            key,
+        ]
+        for field, expected in dict(match or {}).items():
+            path = _jsonb_path(("payload", str(field)))
+            if field == "revoked" and expected is False:
+                predicates += f" AND (payload #>> '{path}') IS DISTINCT FROM 'true' "
+                continue
+            predicates += f" AND payload #>> '{path}' = %s "
+            params.append("" if expected is None else str(expected))
+        sql = (
+            f"UPDATE {_TABLE} SET "
+            "payload = jsonb_set("
+            "jsonb_set(payload, '{payload}', "
+            "COALESCE(payload->'payload', '{}'::jsonb) || %s::jsonb, true), "
+            "'{updated_at}', to_jsonb(%s::text), true"
+            "), "
+            "updated_at = %s::timestamptz "
+            f"WHERE collection = %s AND entity_id = %s"
+            f"{predicates} "
+            "RETURNING payload"
+        )
+        with self._connect() as conn, conn.cursor() as cur:
+            cur.execute(sql, tuple(params))
+            found = cur.fetchone()
+            conn.commit()
+        if found is None:
+            return None
+        payload = found[0]
+        return deepcopy(payload) if isinstance(payload, dict) else None
+
 
 def build_postgres_storage(
     dsn: str | None,

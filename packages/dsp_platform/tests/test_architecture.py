@@ -66,6 +66,7 @@ _EXPECTED_DEPS = [
     "persistence",
     "auth",
     "admin",
+    "llm_adapters",
 ]
 
 

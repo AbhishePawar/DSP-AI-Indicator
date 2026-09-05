@@ -2,7 +2,10 @@
 
 from __future__ import annotations
 
-from dsp_platform.research_package.builder import build_research_package
+from dsp_platform.research_package.builder import (
+    attach_validated_external_evidence,
+    build_research_package,
+)
 from dsp_platform.research_package.models import (
     ENTRY_EXIT_NOT_IMPLEMENTED_MESSAGE,
     PRIVATE_FIELD_NAMES,
@@ -26,6 +29,7 @@ __all__ = [
     "ResearchPackage",
     "ResearchPackageSourceError",
     "SectionStatus",
+    "attach_validated_external_evidence",
     "build_research_package",
     "contains_private_fields",
     "freeze_mapping",

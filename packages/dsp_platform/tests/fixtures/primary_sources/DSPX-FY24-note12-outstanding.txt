@@ -1,0 +1,13 @@
+SYNTHETIC PRIMARY FILING — NOT A LIVE DOCUMENT. NOT PRODUCTION DATA.
+Issuer-Symbol: DSPX
+Issuer-Exchange: TESTEX
+Issuer-ISIN: DSPX00000001
+Issuer-Name: DSP Test Synthetic Co
+Document-Type: annual_report
+Publication-Date: 2024-04-15
+Fact-As-Of: 2024-03-31
+Source-URL: https://fixtures.dsp.test/filings/DSPX-FY24-note12-outstanding
+
+Note 12 Share capital
+This exhibit is a controlled test fixture.
+As of 31 March 2024, issued and outstanding shares were 100 shares.

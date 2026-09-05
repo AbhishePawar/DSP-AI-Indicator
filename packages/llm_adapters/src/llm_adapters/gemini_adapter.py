@@ -18,6 +18,11 @@ import httpx
 from copilot.enums import LanguageModelStatus
 from copilot.models import LanguageModelRequest, LanguageModelResult
 from llm_adapters.config import LLMPlatformConfig
+from llm_adapters.gemini_grounding import (
+    GroundedWebResearchResult,
+    google_search_tool_for_model,
+    parse_grounded_web_research,
+)
 from llm_adapters.tools.protocol.gemini import (
     GeminiToolCalling,
     gemini_payload_contains_function_calls,
@@ -57,12 +62,51 @@ class GeminiAdapter(GeminiToolCalling):
         del tool_result_messages
         return self._generate(request, tools=tools, allow_tool_only=True)
 
+    def invoke_web_research(
+        self,
+        request: LanguageModelRequest,
+    ) -> tuple[LanguageModelResult, GroundedWebResearchResult]:
+        """generateContent with official Google Search grounding.
+
+        Copilot ``invoke`` is unchanged and still does not send tools.
+        This path is not wired to ``/api/v1/analyse``.
+        """
+        tool = google_search_tool_for_model(self.model_label)
+        result, raw = self._generate(
+            request,
+            tools=tool,
+            allow_tool_only=False,
+            response_json=True,
+        )
+        status = "complete"
+        if result.status is LanguageModelStatus.PROVIDER_UNAVAILABLE:
+            status = "unavailable"
+        elif result.status is not LanguageModelStatus.COMPLETE:
+            status = "failed"
+        grounded = parse_grounded_web_research(
+            raw if isinstance(raw, dict) else {},
+            narrative_text=result.narrative_text,
+            status=status,
+            limitations=result.limitations,
+        )
+        if grounded.malformed and result.status is LanguageModelStatus.COMPLETE:
+            failed = self._failed("malformed_response: JSON")
+            grounded = parse_grounded_web_research(
+                raw if isinstance(raw, dict) else {},
+                narrative_text=result.narrative_text,
+                status="malformed",
+                limitations=failed.limitations,
+            )
+            return failed, grounded
+        return result, grounded
+
     def _generate(
         self,
         request: LanguageModelRequest,
         *,
         tools: Any,
         allow_tool_only: bool,
+        response_json: bool = False,
     ) -> tuple[LanguageModelResult, dict[str, Any] | None]:
         if not self.is_configured():
             return self._unavailable("GEMINI_API_KEY not configured"), None
@@ -73,6 +117,9 @@ class GeminiAdapter(GeminiToolCalling):
         system_content, *user_parts = request.prompt_parts
         user_text = "\n\n".join(user_parts)
         url = f"{_BASE_URL}/{self.model_label}:generateContent"
+        generation_config: dict[str, Any] = {"temperature": 0.2}
+        if response_json:
+            generation_config["responseMimeType"] = "application/json"
         payload: dict[str, Any] = {
             "contents": [
                 {
@@ -80,7 +127,7 @@ class GeminiAdapter(GeminiToolCalling):
                     "parts": [{"text": user_text}],
                 }
             ],
-            "generationConfig": {"temperature": 0.2},
+            "generationConfig": generation_config,
         }
         if system_content:
             payload["systemInstruction"] = {
@@ -143,8 +190,9 @@ class GeminiAdapter(GeminiToolCalling):
                 "parts": [{"text": system_content}],
             }
         try:
-            with httpx.Client(timeout=self._config.request_timeout_seconds) as client:
-                with client.stream(
+            with (
+                httpx.Client(timeout=self._config.request_timeout_seconds) as client,
+                client.stream(
                     "POST",
                     url,
                     params={"alt": "sse"},
@@ -153,21 +201,22 @@ class GeminiAdapter(GeminiToolCalling):
                         "Content-Type": "application/json",
                     },
                     json=payload,
-                ) as response:
-                    response.raise_for_status()
-                    for line in response.iter_lines():
-                        if not line or not line.startswith("data: "):
-                            continue
-                        chunk_raw = line[6:].strip()
-                        if not chunk_raw or chunk_raw == "[DONE]":
-                            continue
-                        try:
-                            chunk = json.loads(chunk_raw)
-                        except json.JSONDecodeError:
-                            continue
-                        text = self._extract_text(chunk)
-                        if text:
-                            yield text
+                ) as response,
+            ):
+                response.raise_for_status()
+                for line in response.iter_lines():
+                    if not line or not line.startswith("data: "):
+                        continue
+                    chunk_raw = line[6:].strip()
+                    if not chunk_raw or chunk_raw == "[DONE]":
+                        continue
+                    try:
+                        chunk = json.loads(chunk_raw)
+                    except json.JSONDecodeError:
+                        continue
+                    text = self._extract_text(chunk)
+                    if text:
+                        yield text
         except httpx.HTTPError:
             return
 

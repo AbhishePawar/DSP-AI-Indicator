@@ -40,6 +40,7 @@ dependencies = [
     "persistence",
     "auth",
     "admin",
+    "llm_adapters",
 ]
 
 [tool.setuptools.packages.find]

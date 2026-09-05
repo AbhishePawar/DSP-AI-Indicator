@@ -12,6 +12,8 @@ from enum import Enum, StrEnum
 from types import MappingProxyType
 from typing import Any
 
+from dsp_platform.external_evidence.models import ValidatedExternalEvidencePackage
+
 __all__ = [
     "ENTRY_EXIT_NOT_IMPLEMENTED_MESSAGE",
     "PRIVATE_FIELD_NAMES",
@@ -195,6 +197,7 @@ class ResearchPackage:
     limitations: tuple[str, ...]
     errors: tuple[str, ...]
     pipeline_ok: bool
+    external_evidence: ValidatedExternalEvidencePackage | None = None
 
     def to_dict(self) -> dict[str, Any]:
         return {
@@ -221,4 +224,9 @@ class ResearchPackage:
             "limitations": list(self.limitations),
             "errors": list(self.errors),
             "pipeline_ok": self.pipeline_ok,
+            "external_evidence": (
+                None
+                if self.external_evidence is None
+                else self.external_evidence.to_prompt_payload()
+            ),
         }

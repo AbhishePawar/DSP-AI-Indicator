@@ -163,6 +163,8 @@ class TestLlmAdaptersArchitecture:
             "openai_adapter.py",
             "deepseek_adapter.py",
             "gemini_adapter.py",
+            "gemini_grounding.py",
+            "gemini_web_research.py",
             "anthropic_adapter.py",
         )
         violations: list[str] = []

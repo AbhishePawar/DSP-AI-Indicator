@@ -22,6 +22,16 @@ from llm_adapters.evaluation import (
     QualityEvaluation,
     TokenUsage,
 )
+from llm_adapters.gemini_adapter import GeminiAdapter
+from llm_adapters.gemini_grounding import (
+    GOOGLE_SEARCH_TOOL,
+    GroundedCitation,
+    GroundedWebResearchResult,
+    google_search_tool_for_model,
+    parse_grounded_web_research,
+    untrusted_extraction_from_grounded_web_research,
+)
+from llm_adapters.gemini_web_research import ActivationGatedGeminiWebResearch
 from llm_adapters.model_catalog import (
     DEFAULT_CATALOG,
     ModelCapabilities,
@@ -36,6 +46,17 @@ from llm_adapters.model_tiers import (
     ModelTier,
     TierConfig,
     get_tier_config,
+)
+from llm_adapters.orchestrator import (
+    AdapterBackedAIProvider,
+    AICompletion,
+    AIProvider,
+    AIResearchOutput,
+    OrchestratorResult,
+    OrchestratorStatus,
+    ResearchOrchestrator,
+    ResearchSpecification,
+    UserResearchRequest,
 )
 from llm_adapters.privacy_boundary import (
     PrivateInternalResult,
@@ -54,22 +75,13 @@ from llm_adapters.routing import (
     RoutingDecision,
     decide_routing,
 )
-from llm_adapters.orchestrator import (
-    AICompletion,
-    AIProvider,
-    AIResearchOutput,
-    AdapterBackedAIProvider,
-    OrchestratorResult,
-    OrchestratorStatus,
-    ResearchOrchestrator,
-    ResearchSpecification,
-    UserResearchRequest,
-)
-from llm_adapters.service import CopilotCompleteService, CopilotCompleteResult
+from llm_adapters.service import CopilotCompleteResult, CopilotCompleteService
 from llm_adapters.tools import (
     AUTHENTICATION_REQUIRED,
-    AnthropicToolCalling,
     DEFAULT_TOOL_NAMES,
+    UNAVAILABLE,
+    WIRED,
+    AnthropicToolCalling,
     DSPPlatformToolAdapter,
     DSPToolBackend,
     GeminiToolCalling,
@@ -88,8 +100,6 @@ from llm_adapters.tools import (
     ToolResult,
     ToolSpec,
     ToolStatus,
-    UNAVAILABLE,
-    WIRED,
     assert_no_tool_leakage,
     check_tool_health,
     is_comparison_backed,
@@ -105,6 +115,7 @@ __all__ = [
     "AICompletion",
     "AIProvider",
     "AIResearchOutput",
+    "ActivationGatedGeminiWebResearch",
     "AdapterBackedAIProvider",
     "AnthropicToolCalling",
     "BenchmarkRow",
@@ -120,9 +131,13 @@ __all__ = [
     "EvaluationRequest",
     "EvaluationResult",
     "EvaluationStatus",
+    "GOOGLE_SEARCH_TOOL",
+    "GeminiAdapter",
     "GeminiToolCalling",
     "GateOutcome",
     "GateVerdict",
+    "GroundedCitation",
+    "GroundedWebResearchResult",
     "LLMPlatformConfig",
     "ModelCapabilities",
     "ModelInfo",
@@ -173,13 +188,16 @@ __all__ = [
     "evaluate_gate",
     "get_model_info",
     "get_tier_config",
+    "google_search_tool_for_model",
     "is_comparison_backed",
     "is_composition_backed",
     "is_flat_backed",
     "list_identities",
     "load_llm_config",
+    "parse_grounded_web_research",
     "reset_pack_cache",
     "run_case_against_model",
     "run_with_escalation",
     "score_evaluations",
+    "untrusted_extraction_from_grounded_web_research",
 ]

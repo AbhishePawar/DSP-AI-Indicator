@@ -12,7 +12,7 @@ from dataclasses import dataclass, replace
 
 from contracts.domain.instrument import Instrument
 from data_engine.cache import CachePort, InMemoryCache
-from data_engine.exceptions import ProviderRequestError
+from data_engine.exceptions import DataValidationError, NormalizationError, ProviderRequestError
 from data_engine.market_quote.service import (
     CircuitBreaker,
     CircuitOpenError,
@@ -66,7 +66,7 @@ class ShareCountService:
         self._provider = provider
         self._cache = cache or InMemoryCache()
         self._cache_ttl = cache_ttl_seconds
-        self._breaker = circuit_breaker or CircuitBreaker()
+        self._breaker = circuit_breaker or CircuitBreaker(name="share count")
         self._retry = retry or RetryPolicy()
         self._timeout = timeout_seconds
         self.metrics = ShareCountServiceMetrics()
@@ -74,6 +74,20 @@ class ShareCountService:
     @property
     def provider_id(self) -> str:
         return self._provider.provider_id
+
+    def _note_protected_exception(self, exc: BaseException) -> None:
+        counted = self._breaker.record_if_provider_failure(exc)
+        if counted:
+            return
+        _LOG.info(
+            "circuit_breaker_not_counted",
+            extra={
+                "breaker_domain": self._breaker.name,
+                "failure_class": "data_validation",
+                "breaker_counted": False,
+                "reason": getattr(exc, "code", type(exc).__name__),
+            },
+        )
 
     def get_share_count(self, instrument: Instrument) -> ShareCountSnapshot | None:
         self.metrics.requests += 1
@@ -92,8 +106,8 @@ class ShareCountService:
             started = time.monotonic()
             try:
                 snapshot = self._provider.get_share_count(instrument)
-            except Exception:
-                self._breaker.record_failure()
+            except Exception as exc:
+                self._note_protected_exception(exc)
                 raise
             elapsed = time.monotonic() - started
             if elapsed > self._timeout:
@@ -104,9 +118,9 @@ class ShareCountService:
                 return None
             try:
                 validate_share_count_snapshot(snapshot)
-            except Exception:
+            except Exception as exc:
                 self.metrics.rejected_invalid += 1
-                self._breaker.record_failure()
+                self._note_protected_exception(exc)
                 _LOG.warning(
                     "share_count_rejected_invalid",
                     extra={"symbol": symbol, "provider": self.provider_id},
@@ -119,6 +133,8 @@ class ShareCountService:
             snapshot = self._retry.run(_call)
         except CircuitOpenError:
             self.metrics.failures += 1
+            raise
+        except (DataValidationError, NormalizationError):
             raise
         except Exception as exc:
             self.metrics.failures += 1

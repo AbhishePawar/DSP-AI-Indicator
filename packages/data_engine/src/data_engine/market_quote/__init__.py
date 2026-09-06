@@ -25,6 +25,7 @@ from data_engine.market_quote.service import (
     QuoteProviderHealth,
     RateLimiter,
     RetryPolicy,
+    is_provider_circuit_failure,
 )
 from data_engine.market_quote.validation import validate_authenticated_quote
 
@@ -48,4 +49,5 @@ __all__ = [
     "build_quote_from_mapping",
     "utc_now",
     "validate_authenticated_quote",
+    "is_provider_circuit_failure",
 ]

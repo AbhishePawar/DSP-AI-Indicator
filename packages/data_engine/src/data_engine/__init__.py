@@ -48,11 +48,13 @@ from data_engine.cache import CachePort, InMemoryCache
 from data_engine.config import DataEngineConfig
 from data_engine.exceptions import (
     DataEngineError,
+    DataValidationError,
     InvalidProviderDataError,
     MissingFieldError,
     NormalizationError,
     ProviderRequestError,
     TransformationError,
+    UnsupportedInstrumentError,
 )
 from data_engine.market_quote import (
     AuthenticatedMarketQuote,
@@ -72,6 +74,7 @@ from data_engine.market_quote import (
     RetryPolicy,
     build_default_quote_adapter_from_env,
     build_quote_from_mapping,
+    is_provider_circuit_failure,
     utc_now,
     validate_authenticated_quote,
 )
@@ -395,6 +398,7 @@ __all__ = [
     'DataOrchestratorMetrics',
     'DataOrchestratorRequest',
     'DataSectionStatus',
+    'DataValidationError',
     'DefaultEconomicNormalizer',
     'DefaultFundamentalNormalizer',
     'DefaultMarketDataNormalizer',
@@ -575,6 +579,7 @@ __all__ = [
     'UnifiedCompanyIdentity',
     'UnifiedDataBundle',
     'UnifiedHealthReport',
+    'UnsupportedInstrumentError',
     'UrllibJsonHttpClient',
     'ValidationPipeline',
     'ValidationStage',
@@ -616,6 +621,7 @@ __all__ = [
     'build_transcripts_bundle_from_mapping',
     'build_yahoo_finance_adapter',
     'build_yahoo_finance_fundamentals_adapter',
+    'is_provider_circuit_failure',
     'normalize_reporting_currency',
     'register_fred',
     'register_yahoo_finance',

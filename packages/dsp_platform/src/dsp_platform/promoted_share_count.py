@@ -19,6 +19,7 @@ from typing import Any
 
 from contracts.domain.instrument import Instrument
 from data_engine import (
+    DataValidationError,
     ShareCountBasis,
     ShareCountField,
     ShareCountPort,
@@ -97,8 +98,11 @@ _FORBIDDEN_SHARE_KEYS = frozenset(
 )
 
 
-class ShareCountResolutionError(Exception):
-    """Fail-closed share-count lookup with a stable diagnostic code."""
+class ShareCountResolutionError(DataValidationError):
+    """Fail-closed share-count lookup with a stable diagnostic code.
+
+    Deterministic data/currentness rejection — never a provider outage.
+    """
 
     def __init__(self, code: str, detail: str = "") -> None:
         self.code = str(code)

@@ -15,7 +15,7 @@ from typing import Any
 
 from contracts.domain.instrument import Instrument
 from data_engine.cache import CachePort, InMemoryCache
-from data_engine.exceptions import ProviderRequestError
+from data_engine.exceptions import DataValidationError, NormalizationError, ProviderRequestError
 from data_engine.financial_statement.models import (
     AuthenticatedFinancialStatements,
     CompanyIdentity,
@@ -133,7 +133,7 @@ class FinancialStatementService:
         self._cache = cache or InMemoryCache()
         self._cache_ttl = cache_ttl_seconds
         self._rate = rate_limiter
-        self._breaker = circuit_breaker or CircuitBreaker()
+        self._breaker = circuit_breaker or CircuitBreaker(name="financial statements")
         self._retry = retry or RetryPolicy()
         self._timeout = timeout_seconds
         self.metrics = FinancialStatementServiceMetrics()
@@ -141,6 +141,20 @@ class FinancialStatementService:
     @property
     def provider_id(self) -> str:
         return self._provider.provider_id
+
+    def _note_protected_exception(self, exc: BaseException) -> None:
+        counted = self._breaker.record_if_provider_failure(exc)
+        if counted:
+            return
+        _LOG.info(
+            "circuit_breaker_not_counted",
+            extra={
+                "breaker_domain": self._breaker.name,
+                "failure_class": "data_validation",
+                "breaker_counted": False,
+                "reason": getattr(exc, "code", type(exc).__name__),
+            },
+        )
 
     def resolve_company(self, instrument: Instrument) -> CompanyIdentity | None:
         return self._provider.resolve_company(instrument)
@@ -175,8 +189,8 @@ class FinancialStatementService:
             started = time.monotonic()
             try:
                 bundle = self._provider.get_statements(query)
-            except Exception:
-                self._breaker.record_failure()
+            except Exception as exc:
+                self._note_protected_exception(exc)
                 raise
             elapsed = time.monotonic() - started
             if elapsed > self._timeout:
@@ -187,9 +201,9 @@ class FinancialStatementService:
                 return None
             try:
                 validate_authenticated_statements(bundle)
-            except Exception:
+            except Exception as exc:
                 self.metrics.rejected_invalid += 1
-                self._breaker.record_failure()
+                self._note_protected_exception(exc)
                 _LOG.warning(
                     "financial_statement_rejected_invalid",
                     extra={"symbol": symbol, "provider": self.provider_id},
@@ -204,8 +218,14 @@ class FinancialStatementService:
             self.metrics.failures += 1
             _LOG.error(
                 "financial_statement_circuit_open",
-                extra={"symbol": symbol, "provider": self.provider_id},
+                extra={
+                    "symbol": symbol,
+                    "provider": self.provider_id,
+                    "breaker_domain": self._breaker.name,
+                },
             )
+            raise
+        except (DataValidationError, NormalizationError):
             raise
         except Exception as exc:
             self.metrics.failures += 1

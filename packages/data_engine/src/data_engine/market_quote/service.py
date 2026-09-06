@@ -14,7 +14,12 @@ from typing import Any, Generic, TypeVar
 
 from contracts.domain.instrument import Instrument
 from data_engine.cache import CachePort, InMemoryCache
-from data_engine.exceptions import DataEngineError, ProviderRequestError
+from data_engine.exceptions import (
+    DataEngineError,
+    DataValidationError,
+    NormalizationError,
+    ProviderRequestError,
+)
 from data_engine.market_quote.models import AuthenticatedMarketQuote
 from data_engine.market_quote.validation import validate_authenticated_quote
 
@@ -27,6 +32,7 @@ __all__ = [
     "RateLimiter",
     "RetryPolicy",
     "QuoteProviderHealth",
+    "is_provider_circuit_failure",
 ]
 
 _LOG = logging.getLogger("data_engine.market_quote")
@@ -34,7 +40,23 @@ T = TypeVar("T")
 
 
 class CircuitOpenError(DataEngineError):
-    """Raised when the quote provider circuit breaker is open."""
+    """Raised when a named provider circuit breaker is open."""
+
+    def __init__(self, message: str | None = None, *, domain: str = "circuit") -> None:
+        self.domain = domain
+        super().__init__(message or f"{domain} circuit breaker open")
+
+
+def is_provider_circuit_failure(exc: BaseException) -> bool:
+    """True when ``exc`` is a provider/transport fault that may open a breaker.
+
+    Deterministic domain/data validation must not poison provider circuits.
+    """
+    if isinstance(exc, CircuitOpenError):
+        return False
+    if isinstance(exc, (DataValidationError, NormalizationError)):
+        return False
+    return True
 
 
 class MarketQuotePort(ABC):
@@ -110,10 +132,11 @@ class RateLimiter:
 
 @dataclass
 class CircuitBreaker:
-    """Failure-threshold circuit breaker."""
+    """Failure-threshold circuit breaker for one protected service domain."""
 
     failure_threshold: int = 5
     recovery_timeout_seconds: float = 30.0
+    name: str = "circuit"
     _failures: int = 0
     _opened_at: float | None = None
     _lock: threading.Lock = field(default_factory=threading.Lock, repr=False)
@@ -126,7 +149,10 @@ class CircuitBreaker:
                 self._opened_at = None
                 self._failures = 0
                 return
-            raise CircuitOpenError("market quote circuit breaker open")
+            raise CircuitOpenError(
+                f"{self.name} circuit breaker open",
+                domain=self.name,
+            )
 
     def record_success(self) -> None:
         with self._lock:
@@ -138,6 +164,18 @@ class CircuitBreaker:
             self._failures += 1
             if self._failures >= self.failure_threshold:
                 self._opened_at = time.monotonic()
+
+    def record_if_provider_failure(self, exc: BaseException) -> bool:
+        """Count provider/transport faults only. Return True if counted."""
+        if not is_provider_circuit_failure(exc):
+            return False
+        self.record_failure()
+        return True
+
+    @property
+    def failure_count(self) -> int:
+        with self._lock:
+            return self._failures
 
     @property
     def is_open(self) -> bool:
@@ -158,6 +196,10 @@ class RetryPolicy:
             try:
                 return fn()
             except CircuitOpenError:
+                raise
+            except DataValidationError:
+                raise
+            except NormalizationError:
                 raise
             except Exception as exc:  # noqa: BLE001 — bounded retry surface
                 last = exc
@@ -206,7 +248,7 @@ class MarketQuoteService:
         self._cache = cache or InMemoryCache()
         self._cache_ttl = cache_ttl_seconds
         self._rate = rate_limiter
-        self._breaker = circuit_breaker or CircuitBreaker()
+        self._breaker = circuit_breaker or CircuitBreaker(name="market quote")
         self._retry = retry or RetryPolicy()
         self._timeout = timeout_seconds
         self.metrics = MarketQuoteServiceMetrics()
@@ -214,6 +256,20 @@ class MarketQuoteService:
     @property
     def provider_id(self) -> str:
         return self._provider.provider_id
+
+    def _note_protected_exception(self, exc: BaseException) -> None:
+        counted = self._breaker.record_if_provider_failure(exc)
+        if counted:
+            return
+        _LOG.info(
+            "circuit_breaker_not_counted",
+            extra={
+                "breaker_domain": self._breaker.name,
+                "failure_class": "data_validation",
+                "breaker_counted": False,
+                "reason": getattr(exc, "code", type(exc).__name__),
+            },
+        )
 
     def get_quote(self, instrument: Instrument) -> AuthenticatedMarketQuote | None:
         self.metrics.requests += 1
@@ -236,8 +292,8 @@ class MarketQuoteService:
             started = time.monotonic()
             try:
                 quote = self._provider.get_quote(instrument)
-            except Exception:
-                self._breaker.record_failure()
+            except Exception as exc:
+                self._note_protected_exception(exc)
                 raise
             elapsed = time.monotonic() - started
             if elapsed > self._timeout:
@@ -248,9 +304,9 @@ class MarketQuoteService:
                 return None
             try:
                 validate_authenticated_quote(quote)
-            except Exception:
+            except Exception as exc:
                 self.metrics.rejected_invalid += 1
-                self._breaker.record_failure()
+                self._note_protected_exception(exc)
                 _LOG.warning(
                     "market_quote_rejected_invalid",
                     extra={"symbol": symbol, "provider": self.provider_id},
@@ -265,8 +321,14 @@ class MarketQuoteService:
             self.metrics.failures += 1
             _LOG.error(
                 "market_quote_circuit_open",
-                extra={"symbol": symbol, "provider": self.provider_id},
+                extra={
+                    "symbol": symbol,
+                    "provider": self.provider_id,
+                    "breaker_domain": self._breaker.name,
+                },
             )
+            raise
+        except (DataValidationError, NormalizationError):
             raise
         except Exception as exc:
             self.metrics.failures += 1

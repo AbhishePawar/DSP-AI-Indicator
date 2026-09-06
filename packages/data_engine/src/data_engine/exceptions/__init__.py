@@ -41,11 +41,13 @@ from core.exceptions import DSPAIError
 __all__ = [
     "ConnectorConfigurationError",
     "DataEngineError",
+    "DataValidationError",
     "InvalidProviderDataError",
     "MissingFieldError",
     "NormalizationError",
     "ProviderRequestError",
     "TransformationError",
+    "UnsupportedInstrumentError",
 ]
 
 
@@ -101,3 +103,15 @@ class ProviderRequestError(DataEngineError):
     normalization is attempted — there is no provider data to evaluate
     yet, only a failed attempt to retrieve it.
     """
+
+
+class DataValidationError(DataEngineError):
+    """Deterministic domain/data rejection.
+
+    Fail closed to the caller. Must not be counted as a provider-circuit
+    failure and must not be retried as a transient outage.
+    """
+
+
+class UnsupportedInstrumentError(DataValidationError):
+    """Provider cannot serve this instrument; not a transport outage."""

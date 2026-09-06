@@ -207,8 +207,11 @@ describe("EPIC-F004 foundation version", () => {
 });
 
 describe("SIMPLE-2 dashboard mounting", () => {
-  beforeEach(() => {
+  beforeEach(async () => {
     cleanup();
+    const { api } = await import("@/lib/api/client");
+    vi.mocked(api.health).mockClear();
+    vi.mocked(api.version).mockClear();
   });
 
   it("keeps the widget registry recoverable without mounting it on /dashboard", async () => {

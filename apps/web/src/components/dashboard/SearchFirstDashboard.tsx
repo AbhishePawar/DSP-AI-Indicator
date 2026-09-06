@@ -9,7 +9,6 @@ import {
   type RecentAnalysisEntry,
 } from "@/lib/analysis/recentAnalyses";
 import { searchCatalogue } from "@/lib/companies/catalogue";
-import { DashboardGrid } from "./DashboardGrid";
 
 export function SearchFirstDashboard() {
   const router = useRouter();
@@ -26,13 +25,13 @@ export function SearchFirstDashboard() {
   }
 
   return (
-    <div className="px-4 py-16 sm:py-24">
+    <div className="px-4 py-16 sm:py-20">
       <div className="mx-auto flex max-w-2xl flex-col items-center">
         <h1 className="text-center font-[family-name:var(--font-display)] text-3xl font-semibold tracking-tight sm:text-4xl">
-          DSP AI INDICATOR
+          What company would you like to research?
         </h1>
         <p className="mt-3 text-center text-lg text-[var(--muted)]">
-          What would you like to research?
+          Search by company name or ticker, then run one DSP analysis.
         </p>
 
         <div className="mt-8 w-full space-y-3">
@@ -142,7 +141,6 @@ export function SearchFirstDashboard() {
           </p>
         )}
       </div>
-      <DashboardGrid />
     </div>
   );
 }

@@ -4,13 +4,15 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 
 import { Badge, Button, SearchBox } from "@/components/ds";
-import { ANALYSIS_SECTIONS, useWorkspacePrefsStore } from "@/lib/company-analysis";
+import { useWorkspacePrefsStore } from "@/lib/company-analysis";
+import { visibleAnalysisSections } from "@/lib/company-analysis/sections";
 import {
   loadRecentAnalyses,
   type RecentAnalysisEntry,
 } from "@/lib/analysis/recentAnalyses";
 import { useDashboardPrefsStore } from "@/lib/dashboard";
-import { COMPANY_CATALOGUE, searchCatalogue } from "@/lib/companies/catalogue";
+import { searchCatalogue } from "@/lib/companies/catalogue";
+import { ordinaryClientShellEnabled } from "@/lib/shell/ordinaryClient";
 import { cn } from "@/lib/utils";
 
 export function WorkspaceLeftNav({
@@ -98,64 +100,10 @@ export function WorkspaceLeftNav({
 
       <nav aria-label="Analysis sections">
         <p className="mb-2 text-xs font-medium uppercase tracking-wide text-[var(--muted)]">
-          Workspace
+          Report
         </p>
         <ul className="space-y-0.5">
-          {ANALYSIS_SECTIONS.filter((s) =>
-            [
-              "summary",
-              "valuation",
-              "quality",
-              "management",
-              "moat",
-              "risk",
-              "financial",
-              "ownership",
-              "peers",
-              "ai",
-              "copilot",
-              "explainability",
-              "evidence",
-              "timeline",
-              "documents",
-              "news",
-              "export",
-              "settings",
-            ].includes(s.id),
-          ).map((section) => (
-            <li key={section.id}>
-              <button
-                type="button"
-                onClick={() => setActiveSection(section.id)}
-                aria-current={activeSection === section.id ? "page" : undefined}
-                className={cn(
-                  "flex w-full items-center justify-between rounded-[var(--radius-md)] px-2 py-2 text-left text-sm transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]",
-                  activeSection === section.id
-                    ? "bg-[var(--accent-soft)] text-[var(--accent)]"
-                    : "text-[var(--muted)] hover:bg-[var(--surface-2)] hover:text-[var(--fg)]",
-                )}
-              >
-                <span>{section.label}</span>
-                <kbd className="font-mono text-[10px] opacity-70">
-                  {section.shortcut}
-                </kbd>
-              </button>
-            </li>
-          ))}
-        </ul>
-        <p className="mb-2 mt-4 text-xs font-medium uppercase tracking-wide text-[var(--muted)]">
-          Deep dive
-        </p>
-        <ul className="space-y-0.5">
-          {ANALYSIS_SECTIONS.filter((s) =>
-            [
-              "ratings",
-              "valuationTransparency",
-              "research",
-              "buffett",
-              "compliance",
-            ].includes(s.id),
-          ).map((section) => (
+          {visibleAnalysisSections().map((section) => (
             <li key={section.id}>
               <button
                 type="button"
@@ -244,17 +192,16 @@ export function WorkspaceLeftNav({
         )}
       </div>
 
-      <div className="mt-auto border-t border-[var(--border)] pt-3">
-        <Link
-          href="/research/institutional"
-          className="text-xs text-[var(--accent)] hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
-        >
-          Open institutional research dashboard
-        </Link>
-        <p className="mt-2 text-[10px] text-[var(--muted)]">
-          Catalogue size: {COMPANY_CATALOGUE.length} (local directory only)
-        </p>
-      </div>
+      {ordinaryClientShellEnabled() ? null : (
+        <div className="mt-auto border-t border-[var(--border)] pt-3">
+          <Link
+            href="/research/institutional"
+            className="text-xs text-[var(--accent)] hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
+          >
+            Open institutional research dashboard
+          </Link>
+        </div>
+      )}
     </div>
   );
 }

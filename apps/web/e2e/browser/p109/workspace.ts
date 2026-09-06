@@ -134,7 +134,7 @@ export async function waitForAnalyseSuccess(
   }
 
   await expect(
-    page.getByRole("heading", { name: /Executive Summary|Summary/i }).first(),
+    page.getByRole("heading", { name: /Executive Summary|DSP Assessment|Summary/i }).first(),
     "[P1-09 ANALYSIS] executive summary must be visible",
   ).toBeVisible({ timeout: 30_000 });
 
@@ -207,7 +207,7 @@ export async function assertEvidenceVisible(
   await openAnalysisSection(
     page,
     /Supporting Evidence/i,
-    /Research objects/i,
+    /Why this conclusion\?|Research objects/i,
   );
   await expect(page.getByText("Analysis ID", { exact: true })).toBeVisible();
   await expect(analysisMain(page)).toContainText(analysisId);

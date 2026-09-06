@@ -24,9 +24,10 @@ import { api } from "@/lib/api/client";
 import type { AnalyseRequest, AnalyseResponse } from "@/lib/api/compositionTypes";
 import { ApiClientError } from "@/lib/api/types";
 import {
-  ANALYSIS_SECTIONS,
   isAnalysisSectionId,
+  isVisibleAnalysisSectionId,
   useWorkspacePrefsStore,
+  visibleAnalysisSections,
   type AnalysisSectionId,
 } from "@/lib/company-analysis";
 import { useAuth } from "@/lib/auth/AuthProvider";
@@ -45,6 +46,7 @@ import { cn } from "@/lib/utils";
 import { WorkspaceLeftNav } from "./WorkspaceLeftNav";
 import { WorkspaceRightPanel } from "./WorkspaceRightPanel";
 import { WorkspaceToolbar } from "./WorkspaceChrome";
+import { ShareResearchPanel } from "@/components/share-research/ShareResearchPanel";
 import {
   ExportSection,
   SummarySection,
@@ -226,6 +228,12 @@ export function CompanyAnalysisWorkspace() {
     useResearchDisclaimerGate();
 
   useCollapsePanelsBelowLg(setLeftOpen, setRightOpen);
+
+  useEffect(() => {
+    if (!isVisibleAnalysisSectionId(activeSection)) {
+      setActiveSection("summary");
+    }
+  }, [activeSection, setActiveSection]);
 
   const catalogue = useMemo(() => resolveCatalogue(symbol), [symbol]);
 
@@ -411,7 +419,7 @@ export function CompanyAnalysisWorkspace() {
         event.preventDefault();
         toggleRight();
       } else if (/^[0-9a-z]$/i.test(event.key)) {
-        const section = ANALYSIS_SECTIONS.find(
+        const section = visibleAnalysisSections().find(
           (s) => s.shortcut.toLowerCase() === event.key.toLowerCase(),
         );
         if (section) {
@@ -465,6 +473,9 @@ export function CompanyAnalysisWorkspace() {
           tabIndex={-1}
           aria-label="Main analysis area"
         >
+          {symbol ? (
+            <ShareResearchPanel ticker={symbol} exchange={catalogue?.exchange || "NSE"} />
+          ) : null}
           {analyseMutation.isPending && !view ? <WorkspaceSkeleton /> : null}
 
           {analyseMutation.isError && !view ? (

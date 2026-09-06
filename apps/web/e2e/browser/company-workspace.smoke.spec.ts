@@ -39,7 +39,7 @@ test("tabs through every Company Workspace section without crashing", async ({
 
   const sectionButtons = nav.getByRole("button");
   const count = await sectionButtons.count();
-  expect(count).toBeGreaterThanOrEqual(14);
+  expect(count).toBeGreaterThanOrEqual(8);
 
   const main = page.getByRole("region", { name: "Main analysis area" });
 

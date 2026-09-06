@@ -24,6 +24,46 @@ export type RequestOptions = {
   signal?: AbortSignal;
 };
 
+export type ShareResearchClientResult = {
+  status: string;
+  company: string;
+  ticker: string;
+  isin: string;
+  exchange: string;
+  mic: string;
+  outstanding_shares: number | string | null;
+  as_of: string | null;
+  current_through: string | null;
+  last_verified_at: string;
+  confidence: string;
+  identity_check: string;
+  corporate_action_check: string;
+  cross_check: string;
+  valuation_eligible: boolean;
+  gemini_invoked: boolean;
+  reason: string;
+  unresolved_issues: string[];
+  stored_vs_fresh: {
+    stored: string | null;
+    fresh: string | null;
+    result: string;
+  };
+  evidence: Array<{
+    url: string;
+    label: string;
+    accepted: boolean;
+    reason: string;
+  }>;
+  corporate_actions: Array<{
+    action_type: string;
+    description: string;
+    effective_date: string | null;
+    changes_outstanding_shares: boolean | null;
+  }>;
+  research_history: Array<Record<string, unknown>>;
+  research_method: string;
+};
+
 /** RC1 M6 — one dashboard widget section from GET /dashboards/{role}. */
 export type DashboardWidgetSection = {
   available?: boolean;
@@ -348,6 +388,27 @@ export const api = {
   analyse: (body: AnalyseRequest, options?: RequestOptions) =>
     request<AnalyseResponse>(
       "/analyse",
+      { method: "POST", body: JSON.stringify(body) },
+      options,
+    ),
+
+  shareResearch: (
+    body: {
+      ticker: string;
+      exchange?: string;
+      company?: string;
+      isin?: string;
+      force_refresh?: boolean;
+    },
+    options?: RequestOptions,
+  ) =>
+    request<{
+      ok: boolean;
+      api_version: string;
+      result: ShareResearchClientResult;
+      limitations: string[];
+    }>(
+      "/share-research",
       { method: "POST", body: JSON.stringify(body) },
       options,
     ),

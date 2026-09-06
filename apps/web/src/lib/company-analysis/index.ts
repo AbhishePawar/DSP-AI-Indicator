@@ -4,6 +4,8 @@ export {
   ANALYSIS_SECTIONS,
   asAnalysisSectionId,
   isAnalysisSectionId,
+  isVisibleAnalysisSectionId,
+  visibleAnalysisSections,
   type AnalysisSectionId,
   type AnalysisSectionMeta,
 } from "./sections";

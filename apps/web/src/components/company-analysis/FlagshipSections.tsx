@@ -12,6 +12,7 @@ import { ExplainableRatingItem } from "./ExplainableRatingItem";
 import { formatPct } from "@/lib/intelligence/mapResponse";
 import type { RiskCategoryPayload } from "@/lib/api/compositionTypes";
 import type { ResearchView } from "@/lib/research/mapResearchView";
+import { ordinaryClientShellEnabled } from "@/lib/shell/ordinaryClient";
 import {
   FieldRow,
   firstStageMetric,
@@ -349,18 +350,23 @@ export function ExplainabilitySection({ view }: { view: ResearchView }) {
 }
 
 export function EvidenceSection({ view }: { view: ResearchView }) {
+  const ordinary = ordinaryClientShellEnabled();
   return (
     <div className="space-y-4">
       <SectionCard
-        title="Research objects"
-        description="Mapped analyse metadata — no fabricated filings or documents"
+        title="Why this conclusion?"
+        description="Provenance from analyse — no fabricated filings or documents"
       >
         <dl>
           <FieldRow label="Analysis ID" value={view.analysisId} />
           <FieldRow label="Audit reference" value={view.auditReference} />
-          <FieldRow label="Correlation ID" value={view.correlationId} />
-          <FieldRow label="Pipeline version" value={view.pipelineVersion} />
-          <FieldRow label="Platform version" value={view.platformVersion} />
+          {ordinary ? null : (
+            <>
+              <FieldRow label="Correlation ID" value={view.correlationId} />
+              <FieldRow label="Pipeline version" value={view.pipelineVersion} />
+              <FieldRow label="Platform version" value={view.platformVersion} />
+            </>
+          )}
           <FieldRow
             label="Recommendation stage"
             value={view.recommendationStage.status}

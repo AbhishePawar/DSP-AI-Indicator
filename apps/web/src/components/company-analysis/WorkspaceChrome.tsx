@@ -12,6 +12,7 @@ import type {
   MarketQuotePayload,
 } from "@/lib/institutional-dashboard/mapInstitutionalDashboard";
 import type { ResearchView } from "@/lib/research/mapResearchView";
+import { ordinaryClientShellEnabled } from "@/lib/shell/ordinaryClient";
 import { FieldRow, SectionCard } from "./WorkspacePrimitives";
 
 function money(value: number | null | undefined): string | null {
@@ -82,9 +83,7 @@ export function CompanyHeaderBar({
       ? "Not loaded"
       : view.ok
         ? "Covered"
-        : view.failedStage
-          ? `Partial · failed ${view.failedStage}`
-          : "Incomplete";
+        : "Incomplete";
   const researchConfidence =
     view?.recommendationConfidence != null
       ? formatPct(view.recommendationConfidence)
@@ -92,12 +91,14 @@ export function CompanyHeaderBar({
         ? formatPct(view.committeeConfidence)
         : null;
   const sharePath = `/analysis?symbol=${encodeURIComponent(symbol)}`;
+  const ordinary = ordinaryClientShellEnabled();
 
   const quoteFields =
     marketQuote?.available && marketQuote.authenticated
       ? marketQuote.fields
       : null;
   const latestRatios =
+    !ordinary &&
     financialStatements?.available &&
     financialStatements.authenticated &&
     financialStatements.periods?.length
@@ -107,13 +108,19 @@ export function CompanyHeaderBar({
   return (
     <SectionCard
       title={company}
-      description="Company identity from analyse request + local catalogue metadata"
+      description={
+        ordinary
+          ? [symbol, exchange].filter(Boolean).join(" · ")
+          : "Company identity from analyse request + local catalogue metadata"
+      }
       action={
         <div className="flex flex-wrap items-center gap-2">
           <Badge variant="accent">{symbol}</Badge>
-          <Badge variant="outline" className="font-mono text-[10px]">
-            v{env.foundationVersion}
-          </Badge>
+          {ordinary ? null : (
+            <Badge variant="outline" className="font-mono text-[10px]">
+              v{env.foundationVersion}
+            </Badge>
+          )}
           <Button
             size="sm"
             variant="secondary"
@@ -124,14 +131,16 @@ export function CompanyHeaderBar({
           >
             {isPinned ? "Watchlisted" : "Watchlist"}
           </Button>
-          <Link
-            href={`/analysis/compare?symbols=${encodeURIComponent(symbol)}`}
-            className="inline-flex"
-          >
-            <Button size="sm" variant="ghost">
-              Compare
-            </Button>
-          </Link>
+          {ordinary ? null : (
+            <Link
+              href={`/analysis/compare?symbols=${encodeURIComponent(symbol)}`}
+              className="inline-flex"
+            >
+              <Button size="sm" variant="ghost">
+                Compare
+              </Button>
+            </Link>
+          )}
           <Button
             size="sm"
             variant="ghost"
@@ -157,39 +166,51 @@ export function CompanyHeaderBar({
         <FieldRow label="Company" value={company} />
         <FieldRow label="Ticker" value={symbol} />
         <FieldRow label="Exchange" value={exchange} />
-        <FieldRow label="Sector" value={catalogue?.sector} />
-        <FieldRow label="Industry" value={catalogue?.industry} />
-        <FieldRow label="Coverage" value={coverage} />
-        <FieldRow label="Research timestamp" value={lastUpdated} />
-        <FieldRow label="Confidence" value={researchConfidence} />
-        <FieldRow label="Market status" value={marketStatus} />
+        {ordinary ? null : (
+          <>
+            <FieldRow label="Sector" value={catalogue?.sector} />
+            <FieldRow label="Industry" value={catalogue?.industry} />
+            <FieldRow label="Coverage" value={coverage} />
+          </>
+        )}
+        <FieldRow label="Research date" value={lastUpdated} />
+        {ordinary ? null : (
+          <>
+            <FieldRow label="Confidence" value={researchConfidence} />
+            <FieldRow label="Market status" value={marketStatus} />
+          </>
+        )}
+        <FieldRow label="Current price" value={money(quoteFields?.current_price)} />
       </dl>
-      <p className="mb-2 mt-4 text-xs font-medium uppercase tracking-wide text-[var(--muted)]">
-        Live market snapshot — EPIC-D001/D002 authenticated feeds only
-      </p>
-      <dl className="grid gap-x-6 sm:grid-cols-2 lg:grid-cols-3">
-        <FieldRow label="Current Price" value={money(quoteFields?.current_price)} />
-        <FieldRow
-          label="Daily Change"
-          value={dailyChange(
-            quoteFields?.current_price,
-            quoteFields?.previous_close,
-          )}
-        />
-        <FieldRow
-          label="Market Cap"
-          value={compact(quoteFields?.market_cap) ?? catalogue?.marketCap}
-        />
-        <FieldRow label="52 Week High" value={money(quoteFields?.week_52_high)} />
-        <FieldRow label="52 Week Low" value={money(quoteFields?.week_52_low)} />
-        <FieldRow
-          label="Dividend Yield"
-          value={pct(quoteFields?.dividend_yield)}
-        />
-        <FieldRow label="P/E" value={null} />
-        <FieldRow label="P/B" value={null} />
-        <FieldRow label="ROE" value={pct(latestRatios?.roe)} />
-      </dl>
+      {ordinary ? null : (
+        <>
+          <p className="mb-2 mt-4 text-xs font-medium uppercase tracking-wide text-[var(--muted)]">
+            Live market snapshot — EPIC-D001/D002 authenticated feeds only
+          </p>
+          <dl className="grid gap-x-6 sm:grid-cols-2 lg:grid-cols-3">
+            <FieldRow
+              label="Daily Change"
+              value={dailyChange(
+                quoteFields?.current_price,
+                quoteFields?.previous_close,
+              )}
+            />
+            <FieldRow
+              label="Market Cap"
+              value={compact(quoteFields?.market_cap)}
+            />
+            <FieldRow label="52 Week High" value={money(quoteFields?.week_52_high)} />
+            <FieldRow label="52 Week Low" value={money(quoteFields?.week_52_low)} />
+            <FieldRow
+              label="Dividend Yield"
+              value={pct(quoteFields?.dividend_yield)}
+            />
+            <FieldRow label="P/E" value={null} />
+            <FieldRow label="P/B" value={null} />
+            <FieldRow label="ROE" value={pct(latestRatios?.roe)} />
+          </dl>
+        </>
+      )}
     </SectionCard>
   );
 }

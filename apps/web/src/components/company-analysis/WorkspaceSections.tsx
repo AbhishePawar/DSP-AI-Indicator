@@ -22,6 +22,7 @@ import { formatPct } from "@/lib/intelligence/mapResponse";
 import type { ResearchView } from "@/lib/research/mapResearchView";
 import { mapReportTransparency } from "@/lib/report-transparency";
 import type { CompanyEntry } from "@/lib/companies/catalogue";
+import { ordinaryClientShellEnabled } from "@/lib/shell/ordinaryClient";
 import {
   FieldRow,
   firstStageMetric,
@@ -67,6 +68,7 @@ export function SummarySection({
   marketQuote?: import("@/lib/institutional-dashboard/mapInstitutionalDashboard").MarketQuotePayload | null;
   financialStatements?: import("@/lib/institutional-dashboard/mapInstitutionalDashboard").FinancialStatementsPayload | null;
 }) {
+  const ordinary = ordinaryClientShellEnabled();
   return (
     <div className="space-y-4">
       <CompanyHeaderBar
@@ -78,12 +80,12 @@ export function SummarySection({
         financialStatements={financialStatements}
       />
       <SectionCard
-        title="Executive Summary"
-        description="Institutional summary from /api/v1/analyse — Research Mode · research before recommendation"
+        title="DSP Assessment"
+        description="Overall assessment from /api/v1/analyse — Research Mode · research before recommendation"
       >
         <dl>
           <FieldRow
-            label="Institutional summary"
+            label="DSP conclusion"
             value={view.committeeDecision || view.recommendation}
           />
           <FieldRow label="Recommendation" value={view.recommendation} />
@@ -91,7 +93,7 @@ export function SummarySection({
             label="Confidence"
             value={formatPct(view.recommendationConfidence)}
           />
-          <FieldRow label="Research timestamp" value={view.analysedAt} />
+          <FieldRow label="Research date" value={view.analysedAt} />
           <FieldRow
             label="Business quality"
             value={view.businessQualityLabel}
@@ -102,24 +104,28 @@ export function SummarySection({
           />
         </dl>
       </SectionCard>
-      <TrustLadderCard view={view} />
+      {ordinary ? null : <TrustLadderCard view={view} />}
       <ListBlock title="Key positives" items={view.strengths} />
       <ListBlock title="Key risks" items={view.risks} />
-      <AnalystNotesCard symbol={view.ticker} />
-      <ReportInformationCard
-        transparency={mapReportTransparency(view, { marketStatus })}
-      />
-      <SectionCard title="Market Information">
-        <dl>
-          <FieldRow label="Market status" value={marketStatus} />
-          <FieldRow
-            label="Current price (request/signals)"
-            value={view.valuation.currentPrice}
-          />
-          <FieldRow label="Platform" value={view.platformVersion} />
-          <FieldRow label="Pipeline" value={view.pipelineVersion} />
-        </dl>
-      </SectionCard>
+      {ordinary ? null : <AnalystNotesCard symbol={view.ticker} />}
+      {ordinary ? null : (
+        <ReportInformationCard
+          transparency={mapReportTransparency(view, { marketStatus })}
+        />
+      )}
+      {ordinary ? null : (
+        <SectionCard title="Market Information">
+          <dl>
+            <FieldRow label="Market status" value={marketStatus} />
+            <FieldRow
+              label="Current price (request/signals)"
+              value={view.valuation.currentPrice}
+            />
+            <FieldRow label="Platform" value={view.platformVersion} />
+            <FieldRow label="Pipeline" value={view.pipelineVersion} />
+          </dl>
+        </SectionCard>
+      )}
     </div>
   );
 }

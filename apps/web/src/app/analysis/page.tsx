@@ -19,8 +19,8 @@ export default function AnalysisRoute() {
   return (
     <div className="space-y-4">
       <PageHeader
-        title="Company Analysis Workspace"
-        description="Institutional research interface over certified /api/v1/analyse outputs. No client-side scoring or valuation math."
+        title="Analysis"
+        description="Search a company and receive one structured DSP report. No client-side scoring or valuation math."
       />
       <Suspense fallback={<WorkspaceSkeleton />}>
         <CompanyAnalysisWorkspace />

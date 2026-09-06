@@ -8,7 +8,9 @@ import {
   ANALYSIS_SECTIONS,
   useWorkspacePrefsStore,
 } from "@/lib/company-analysis";
+import { visibleAnalysisSections } from "@/lib/company-analysis/sections";
 import type { ResearchView } from "@/lib/research/mapResearchView";
+import { ordinaryClientShellEnabled } from "@/lib/shell/ordinaryClient";
 
 export function WorkspaceRightPanel({
   view,
@@ -113,31 +115,36 @@ export function WorkspaceRightPanel({
         </div>
       </div>
 
-      <div>
-        <p className="mb-2 text-xs font-medium uppercase tracking-wide text-[var(--muted)]">
-          Related reports
-        </p>
-        {view?.correlationId ? (
-          <p className="text-xs text-[var(--muted)]">
-            Correlation: {view.correlationId}
+      {ordinaryClientShellEnabled() ? null : (
+        <div>
+          <p className="mb-2 text-xs font-medium uppercase tracking-wide text-[var(--muted)]">
+            Related reports
           </p>
-        ) : (
-          <p className="text-xs text-[var(--muted)]">Data unavailable.</p>
-        )}
-        <Link
-          href="/research/institutional"
-          className="mt-2 inline-block text-sm text-[var(--accent)] hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
-        >
-          Open Research Reports
-        </Link>
-      </div>
+          {view?.correlationId ? (
+            <p className="text-xs text-[var(--muted)]">
+              Correlation: {view.correlationId}
+            </p>
+          ) : (
+            <p className="text-xs text-[var(--muted)]">Data unavailable.</p>
+          )}
+          <Link
+            href="/research/institutional"
+            className="mt-2 inline-block text-sm text-[var(--accent)] hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
+          >
+            Open Research Reports
+          </Link>
+        </div>
+      )}
 
       <div>
         <p className="mb-2 text-xs font-medium uppercase tracking-wide text-[var(--muted)]">
           Quick navigation
         </p>
         <ul className="space-y-1">
-          {ANALYSIS_SECTIONS.map((s) => (
+          {(ordinaryClientShellEnabled()
+            ? visibleAnalysisSections()
+            : ANALYSIS_SECTIONS
+          ).map((s) => (
             <li key={s.id}>
               <button
                 type="button"
@@ -151,28 +158,30 @@ export function WorkspaceRightPanel({
         </ul>
       </div>
 
-      <div>
-        <p className="mb-2 text-xs font-medium uppercase tracking-wide text-[var(--muted)]">
-          Context actions
-        </p>
-        <div className="flex flex-col gap-2">
-          <Link href={`/research/${encodeURIComponent(sym)}`}>
-            <Button size="sm" variant="secondary" className="w-full justify-start">
-              Research workspace
-            </Button>
-          </Link>
-          <Link href="/research/institutional">
-            <Button size="sm" variant="secondary" className="w-full justify-start">
-              Institutional dashboard
-            </Button>
-          </Link>
-          <Link href="/copilot">
-            <Button size="sm" variant="secondary" className="w-full justify-start">
-              Open Copilot
-            </Button>
-          </Link>
+      {ordinaryClientShellEnabled() ? null : (
+        <div>
+          <p className="mb-2 text-xs font-medium uppercase tracking-wide text-[var(--muted)]">
+            Context actions
+          </p>
+          <div className="flex flex-col gap-2">
+            <Link href={`/research/${encodeURIComponent(sym)}`}>
+              <Button size="sm" variant="secondary" className="w-full justify-start">
+                Research workspace
+              </Button>
+            </Link>
+            <Link href="/research/institutional">
+              <Button size="sm" variant="secondary" className="w-full justify-start">
+                Institutional dashboard
+              </Button>
+            </Link>
+            <Link href="/copilot">
+              <Button size="sm" variant="secondary" className="w-full justify-start">
+                Open Copilot
+              </Button>
+            </Link>
+          </div>
         </div>
-      </div>
+      )}
     </div>
   );
 }

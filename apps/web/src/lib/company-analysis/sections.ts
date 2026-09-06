@@ -199,10 +199,30 @@ export const ANALYSIS_SECTIONS: readonly AnalysisSectionMeta[] = [
   },
 ] as const;
 
+import {
+  isOrdinaryAnalysisSectionId,
+  ordinaryClientShellEnabled,
+  ORDINARY_ANALYSIS_SECTION_IDS,
+} from "@/lib/shell/ordinaryClient";
+
 export function isAnalysisSectionId(value: string): boolean {
   return ANALYSIS_SECTIONS.some((s) => s.id === value);
 }
 
 export function asAnalysisSectionId(value: string): AnalysisSectionId {
   return isAnalysisSectionId(value) ? (value as AnalysisSectionId) : "summary";
+}
+
+/** Ordinary-client visible sections in recommended report order. */
+export function visibleAnalysisSections(): readonly AnalysisSectionMeta[] {
+  if (!ordinaryClientShellEnabled()) return ANALYSIS_SECTIONS;
+  const byId = new Map(ANALYSIS_SECTIONS.map((s) => [s.id, s]));
+  return ORDINARY_ANALYSIS_SECTION_IDS.map((id) => byId.get(id)).filter(
+    (s): s is AnalysisSectionMeta => s != null,
+  );
+}
+
+export function isVisibleAnalysisSectionId(value: string): boolean {
+  if (!ordinaryClientShellEnabled()) return isAnalysisSectionId(value);
+  return isOrdinaryAnalysisSectionId(value);
 }

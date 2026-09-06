@@ -4,6 +4,8 @@ export {
   LANDING_PAGE_OPTIONS,
   SETTINGS_SECTIONS,
   isSettingsSectionId,
+  visibleLandingPageOptions,
+  visibleSettingsSections,
   type ContrastPreference,
   type DensityPreference,
   type FontSizePreference,

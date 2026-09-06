@@ -2,6 +2,12 @@
  * EPIC-F009 — Settings section registry.
  */
 
+import {
+  ordinaryClientShellEnabled,
+  ORDINARY_LANDING_HREFS,
+  ORDINARY_SETTINGS_SECTION_IDS,
+} from "@/lib/shell/ordinaryClient";
+
 export type SettingsSectionId =
   | "profile"
   | "appearance"
@@ -72,6 +78,23 @@ export const SETTINGS_SECTIONS: readonly SettingsSectionMeta[] = [
 
 export function isSettingsSectionId(value: string): value is SettingsSectionId {
   return SETTINGS_SECTIONS.some((s) => s.id === value);
+}
+
+export function visibleSettingsSections(): readonly SettingsSectionMeta[] {
+  if (!ordinaryClientShellEnabled()) return SETTINGS_SECTIONS;
+  return SETTINGS_SECTIONS.filter((s) =>
+    (ORDINARY_SETTINGS_SECTION_IDS as readonly string[]).includes(s.id),
+  );
+}
+
+export function visibleLandingPageOptions(): readonly {
+  href: string;
+  label: string;
+}[] {
+  if (!ordinaryClientShellEnabled()) return LANDING_PAGE_OPTIONS;
+  return LANDING_PAGE_OPTIONS.filter((page) =>
+    (ORDINARY_LANDING_HREFS as readonly string[]).includes(page.href),
+  );
 }
 
 export const LANDING_PAGE_OPTIONS = [

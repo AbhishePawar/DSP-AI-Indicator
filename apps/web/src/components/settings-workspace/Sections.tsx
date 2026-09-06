@@ -31,7 +31,7 @@ import {
   API_CONTRACT_TARGET,
 } from "@/foundation";
 import {
-  LANDING_PAGE_OPTIONS,
+  visibleLandingPageOptions,
   useSettingsPrefsStore,
   type ContrastPreference,
   type DensityPreference,
@@ -291,7 +291,7 @@ export function DashboardSection() {
           }}
           aria-label="Default landing page"
         >
-          {LANDING_PAGE_OPTIONS.map((page) => (
+          {visibleLandingPageOptions().map((page) => (
             <option key={page.href} value={page.href}>
               {page.label}
             </option>
@@ -444,7 +444,7 @@ export function WorkspaceSection() {
           }}
           aria-label="Default workspace"
         >
-          {LANDING_PAGE_OPTIONS.map((page) => (
+          {visibleLandingPageOptions().map((page) => (
             <option key={page.href} value={page.href}>
               {page.label}
             </option>

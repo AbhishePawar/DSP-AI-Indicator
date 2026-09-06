@@ -5,7 +5,7 @@ import { useState } from "react";
 
 import { Button, Input } from "@/components/ds";
 import {
-  SETTINGS_SECTIONS,
+  visibleSettingsSections,
   useSettingsPrefsStore,
 } from "@/lib/settings";
 
@@ -94,7 +94,7 @@ export function SettingsRightPanel() {
           Quick actions
         </p>
         <div className="flex flex-col gap-1">
-          {SETTINGS_SECTIONS.slice(0, 4).map((section) => (
+          {visibleSettingsSections().slice(0, 4).map((section) => (
             <Button
               key={section.id}
               size="sm"

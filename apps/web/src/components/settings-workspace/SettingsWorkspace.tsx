@@ -10,9 +10,9 @@ import { useRouter, useSearchParams } from "next/navigation";
 
 import { Button } from "@/components/ds";
 import {
-  SETTINGS_SECTIONS,
   isSettingsSectionId,
   useSettingsPrefsStore,
+  visibleSettingsSections,
 } from "@/lib/settings";
 import { useCollapsePanelsBelowLg } from "@/lib/a11y";
 import { cn } from "@/lib/utils";
@@ -86,10 +86,21 @@ export function SettingsWorkspace() {
 
   useEffect(() => {
     const section = searchParams.get("section");
-    if (section && isSettingsSectionId(section)) {
+    if (
+      section &&
+      isSettingsSectionId(section) &&
+      visibleSettingsSections().some((s) => s.id === section)
+    ) {
       setActiveSection(section);
     }
   }, [searchParams, setActiveSection]);
+
+  useEffect(() => {
+    const visible = visibleSettingsSections();
+    if (!visible.some((s) => s.id === activeSection)) {
+      setActiveSection("appearance");
+    }
+  }, [activeSection, setActiveSection]);
 
   useEffect(() => {
     const params = new URLSearchParams();
@@ -115,7 +126,7 @@ export function SettingsWorkspace() {
         e.preventDefault();
         toggleRight();
       } else if (/^[1-8]$/.test(e.key)) {
-        const section = SETTINGS_SECTIONS.find((s) => s.shortcut === e.key);
+        const section = visibleSettingsSections().find((s) => s.shortcut === e.key);
         if (section) {
           e.preventDefault();
           setActiveSection(section.id);

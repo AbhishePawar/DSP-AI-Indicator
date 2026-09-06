@@ -12,17 +12,26 @@ import { CommandPalette, type CommandPaletteItem } from "@/components/ds";
 import { useAuth } from "@/lib/auth/AuthProvider";
 import { filterResearchQuickActions } from "@/lib/research-canvas";
 import { searchableRoutes, useUiStore } from "@/lib/shell";
+import {
+  isPaletteHiddenPath,
+  ordinaryClientShellEnabled,
+} from "@/lib/shell/ordinaryClient";
 
 function isAllowedPath(
   path: string,
   allowed: ReadonlySet<string>,
 ): boolean {
+  if (ordinaryClientShellEnabled() && isPaletteHiddenPath(path)) {
+    return false;
+  }
   if (allowed.has(path)) return true;
-  // Favourites/recents may be nested under allowed shells (e.g. /research/…).
   for (const base of allowed) {
     if (path === base || path.startsWith(`${base}/`)) return true;
   }
-  if (path.startsWith("/docs") || path.startsWith("/documentation")) {
+  if (
+    !ordinaryClientShellEnabled() &&
+    (path.startsWith("/docs") || path.startsWith("/documentation"))
+  ) {
     return true;
   }
   return false;
@@ -78,14 +87,24 @@ export function ShellCommandPalette() {
       });
     }
 
-    // EPIC-014/015 — Research OS quick actions (RBAC + feature-flag filtered)
-    for (const action of filterResearchQuickActions(permissions, roles)) {
+    // EPIC-014/015 — Research OS quick actions (hidden for ordinary clients)
+    if (!ordinaryClientShellEnabled()) {
+      for (const action of filterResearchQuickActions(permissions, roles)) {
+        list.push({
+          id: action.id,
+          label: action.label,
+          keywords: action.keywords,
+          group: "Quick Actions",
+          onSelect: () => router.push(action.href),
+        });
+      }
+    } else {
       list.push({
-        id: action.id,
-        label: action.label,
-        keywords: action.keywords,
+        id: "qa-open-company",
+        label: "Open Company Analysis",
+        keywords: "company analysis open ticker research",
         group: "Quick Actions",
-        onSelect: () => router.push(action.href),
+        onSelect: () => router.push("/analysis"),
       });
     }
 
@@ -119,7 +138,7 @@ export function ShellCommandPalette() {
       onOpenChange={setOpen}
       items={items}
       enableShortcut
-      placeholder="Search pages and navigate…"
+      placeholder="Search…"
       emptyMessage="No matching routes."
       title="Quick navigation"
     />

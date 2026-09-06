@@ -4,6 +4,13 @@
  */
 
 import { featureFlags } from "@/lib/featureFlags";
+import {
+  OPERATOR_SHELL_ITEM_IDS,
+  ORDINARY_SHELL_ITEM_IDS,
+  isOperatorUser,
+  isPaletteHiddenPath,
+  ordinaryClientShellEnabled,
+} from "@/lib/shell/ordinaryClient";
 
 export type NavPermissionRule = {
   /** Any of these permissions grants access. Empty = authenticated users. */
@@ -314,7 +321,7 @@ export const AUX_ROUTES: readonly RouteMeta[] = [
     id: "documentation",
     path: "/documentation",
     title: "Documentation",
-    searchable: true,
+    searchable: !featureFlags.ordinaryClientShell,
     group: "Help",
   },
   {
@@ -335,14 +342,14 @@ export const AUX_ROUTES: readonly RouteMeta[] = [
     id: "portal-meta",
     path: "/portal",
     title: "Customer Portal",
-    searchable: featureFlags.enterprisePortal,
+    searchable: false,
     group: "Ops",
   },
   {
     id: "ops-meta",
     path: "/ops",
     title: "Operations",
-    searchable: featureFlags.enterpriseOps,
+    searchable: false,
     group: "Ops",
   },
   {
@@ -377,7 +384,7 @@ export const AUX_ROUTES: readonly RouteMeta[] = [
     id: "docs",
     path: "/docs",
     title: "Docs",
-    searchable: true,
+    searchable: !featureFlags.ordinaryClientShell,
     group: "Help",
   },
   {
@@ -458,11 +465,38 @@ export function canAccessNavItem(
   return false;
 }
 
+function applyOrdinaryClientNav(
+  items: ShellNavItem[],
+  permissions: readonly string[],
+  roles: readonly string[],
+): ShellNavItem[] {
+  if (!ordinaryClientShellEnabled()) return items;
+  const operator = isOperatorUser(permissions, roles);
+  return items
+    .flatMap((item) => {
+      if (ORDINARY_SHELL_ITEM_IDS.has(item.id)) {
+        const children = item.children?.filter((child) =>
+          ORDINARY_SHELL_ITEM_IDS.has(child.id),
+        );
+        return [
+          {
+            ...item,
+            children: children?.length ? children : undefined,
+          },
+        ];
+      }
+      if (operator && OPERATOR_SHELL_ITEM_IDS.has(item.id)) {
+        return [{ ...item, children: undefined }];
+      }
+      return [];
+    });
+}
+
 export function filterShellNav(
   permissions: readonly string[],
   roles: readonly string[],
 ): ShellNavItem[] {
-  return SHELL_NAV.map((item) => {
+  const filtered = SHELL_NAV.map((item) => {
     if (!canAccessNavItem(item, permissions, roles)) return null;
     // EPS-002 — feature-flagged enterprise surfaces
     if (item.id === "portal" && !featureFlags.enterprisePortal) return null;
@@ -486,6 +520,7 @@ export function filterShellNav(
     });
     return children ? { ...item, children } : item;
   }).filter((item): item is ShellNavItem => item !== null);
+  return applyOrdinaryClientNav(filtered, permissions, roles);
 }
 
 export function groupShellNav(
@@ -613,7 +648,10 @@ export function searchableRoutes(
   return ROUTE_REGISTRY.filter((r) => {
     if (r.searchable === false) return false;
     if (r.path === "/dashboard") return false;
-    if (r.group === "Help") return true;
+    if (isPaletteHiddenPath(r.path)) return false;
+    if (r.group === "Help") {
+      return !ordinaryClientShellEnabled();
+    }
     return allowedPaths.has(r.path);
   });
 }

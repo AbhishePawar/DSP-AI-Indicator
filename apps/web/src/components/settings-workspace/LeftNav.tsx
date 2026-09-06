@@ -2,7 +2,7 @@
 
 import { Button } from "@/components/ds";
 import {
-  SETTINGS_SECTIONS,
+  visibleSettingsSections,
   useSettingsPrefsStore,
 } from "@/lib/settings";
 import { cn } from "@/lib/utils";
@@ -30,7 +30,7 @@ export function SettingsLeftNav() {
           Sections
         </p>
         <ul className="space-y-0.5">
-          {SETTINGS_SECTIONS.map((section) => (
+          {visibleSettingsSections().map((section) => (
             <li key={section.id}>
               <button
                 type="button"

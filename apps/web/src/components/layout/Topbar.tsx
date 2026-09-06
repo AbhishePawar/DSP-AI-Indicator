@@ -23,6 +23,7 @@ import { useAuth } from "@/lib/auth/AuthProvider";
 import { sessionStatusLabel } from "@/lib/auth/types";
 import { env } from "@/lib/env";
 import { useUiStore } from "@/lib/shell";
+import { showOperationalChrome } from "@/lib/shell/ordinaryClient";
 import { Breadcrumbs } from "./Breadcrumbs";
 
 export function Topbar({
@@ -133,16 +134,20 @@ export function Topbar({
             density="header"
             className="hidden max-w-[16rem] lg:flex"
           />
-          <Badge variant="accent" className="hidden font-mono text-[10px] sm:inline-flex">
-            v{env.foundationVersion}
-          </Badge>
-          <Badge
-            variant="outline"
-            className="hidden font-mono text-[10px] md:inline-flex"
-            aria-label={`Environment ${envLabel}`}
-          >
-            {envLabel}
-          </Badge>
+          {showOperationalChrome() ? (
+            <>
+              <Badge variant="accent" className="hidden font-mono text-[10px] sm:inline-flex">
+                v{env.foundationVersion}
+              </Badge>
+              <Badge
+                variant="outline"
+                className="hidden font-mono text-[10px] md:inline-flex"
+                aria-label={`Environment ${envLabel}`}
+              >
+                {envLabel}
+              </Badge>
+            </>
+          ) : null}
           {session && user ? (
             <span className="hidden text-xs text-[var(--muted)] 2xl:inline">
               {sessionStatusLabel(status)}

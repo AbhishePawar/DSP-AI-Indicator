@@ -46,6 +46,8 @@ export type FeatureFlags = {
   productionOps: boolean;
   /** RC1 Milestone 11 — Super Admin Control Center (presentation only) */
   controlCenter: boolean;
+  /** SIMPLE-2 — ordinary client presentation profile (hide ≠ delete) */
+  ordinaryClientShell: boolean;
 };
 
 export const featureFlags: FeatureFlags = {
@@ -78,6 +80,7 @@ export const featureFlags: FeatureFlags = {
   saasPlatform: envBool("NEXT_PUBLIC_SAAS_PLATFORM", true),
   productionOps: envBool("NEXT_PUBLIC_PRODUCTION_OPS", true),
   controlCenter: envBool("NEXT_PUBLIC_CONTROL_CENTER", true),
+  ordinaryClientShell: envBool("NEXT_PUBLIC_ORDINARY_CLIENT_SHELL", true),
 };
 
 export function allowActionLabels(flags: FeatureFlags = featureFlags): boolean {

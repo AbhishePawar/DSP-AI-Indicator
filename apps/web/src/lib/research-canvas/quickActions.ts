@@ -4,6 +4,7 @@
  */
 
 import { featureFlags } from "@/lib/featureFlags";
+import { ordinaryClientShellEnabled } from "@/lib/shell/ordinaryClient";
 import {
   canAccessNavItem,
   SHELL_NAV,
@@ -106,7 +107,10 @@ export function filterResearchQuickActions(
   permissions: readonly string[],
   roles: readonly string[],
 ): ResearchQuickAction[] {
-  return RESEARCH_QUICK_ACTIONS.filter((action) => {
+    if (ordinaryClientShellEnabled()) {
+      return RESEARCH_QUICK_ACTIONS.filter((action) => action.id === "qa-open-company");
+    }
+    return RESEARCH_QUICK_ACTIONS.filter((action) => {
     if (action.requiresFlag === "researchCanvas" && !featureFlags.researchCanvas) {
       return false;
     }

@@ -19,3 +19,9 @@ export {
 } from "./navigationRegistry";
 
 export { useUiStore, type NavHistoryEntry } from "./uiStore";
+export {
+  isOperatorUser,
+  isPaletteHiddenPath,
+  ordinaryClientShellEnabled,
+  showOperationalChrome,
+} from "./ordinaryClient";

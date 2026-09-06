@@ -1,9 +1,13 @@
 /** Primary navigation map — L1.1 + optional Advisor (V2.0 demo gate).
  * EPIC-F003: institutional shell uses `@/lib/shell` SHELL_NAV;
  * this module remains for legacy surfaces and breadcrumb fallbacks.
+ *
+ * SIMPLE-2: getPrimaryNav() is the ordinary-client visible list.
+ * PRIMARY_NAV retains the full recoverability map (hide ≠ delete).
  */
 
 import { isAdvisorDemoEnabled } from "@/lib/advisor/isAdvisorDemoEnabled";
+import { ordinaryClientShellEnabled } from "@/lib/shell/ordinaryClient";
 import { breadcrumbsForPath } from "@/lib/shell/navigationRegistry";
 
 export type NavItem = {
@@ -70,17 +74,38 @@ const CORE_NAV: readonly NavItem[] = [
   },
 ] as const;
 
+const ORDINARY_NAV: readonly NavItem[] = [
+  {
+    href: "/dashboard",
+    label: "Dashboard",
+    description: "Search a company to begin DSP analysis",
+  },
+  {
+    href: "/analysis",
+    label: "Analysis",
+    description: "Company analysis via the backend API",
+  },
+  {
+    href: "/settings",
+    label: "Settings",
+    description: "Appearance and account preferences",
+  },
+] as const;
+
 const ADVISOR_NAV: NavItem = {
   href: "/advisor",
   label: "Advisor",
   description: "Advisor platform foundation (demo)",
 };
 
-/** Full static list for type consumers; prefer getPrimaryNav() for UI. */
+/** Full static list for recoverability; prefer getPrimaryNav() for UI. */
 export const PRIMARY_NAV: readonly NavItem[] = CORE_NAV;
 
-/** Navigation visible in the shell — Advisor only when demo mode enabled. */
+/** Navigation visible in the shell — ordinary client unless the profile is off. */
 export function getPrimaryNav(): NavItem[] {
+  if (ordinaryClientShellEnabled()) {
+    return [...ORDINARY_NAV];
+  }
   if (!isAdvisorDemoEnabled()) return [...CORE_NAV];
   const insertAt = CORE_NAV.findIndex((n) => n.href === "/settings");
   const next = [...CORE_NAV];

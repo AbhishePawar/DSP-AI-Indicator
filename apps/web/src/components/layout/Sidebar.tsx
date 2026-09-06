@@ -43,12 +43,7 @@ const ICONS: Record<ShellNavIconId, LucideIcon> = {
   profile: User,
 };
 
-const PRIMARY_IDS = new Set([
-  "dashboard",
-  "analysis",
-  "portfolio",
-  "institutional-reports",
-]);
+const PRIMARY_IDS = new Set(["dashboard", "analysis"]);
 
 function NavLink({
   item,

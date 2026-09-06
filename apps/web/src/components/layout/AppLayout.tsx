@@ -2,9 +2,9 @@
 
 import { useEffect, useRef, type ReactNode } from "react";
 import { usePathname, useRouter } from "next/navigation";
+import dynamic from "next/dynamic";
 
 import { FeedbackProvider } from "@/components/beta/FeedbackContext";
-import { BetaShellWidgets } from "@/components/beta/BetaShellWidgets";
 import { ClosedBetaGate } from "@/components/beta/ClosedBetaGate";
 import { LoadingLayout } from "@/components/layout/ContentArea";
 import { useRouteTransitionTiming } from "@/hooks/usePerformanceTiming";
@@ -16,11 +16,21 @@ import {
   requiresAuth,
 } from "@/lib/auth/routeGuards";
 import { useUiStore } from "@/lib/shell";
+import { showOperationalChrome } from "@/lib/shell/ordinaryClient";
 import { ContentArea } from "./ContentArea";
 import { ShellCommandPalette } from "./ShellCommandPalette";
 import { Sidebar } from "./Sidebar";
-import { StatusBar } from "./StatusBar";
 import { Topbar } from "./Topbar";
+
+const StatusBar = dynamic(
+  () => import("./StatusBar").then((m) => ({ default: m.StatusBar })),
+);
+
+const BetaShellWidgets = dynamic(() =>
+  import("@/components/beta/BetaShellWidgets").then((m) => ({
+    default: m.BetaShellWidgets,
+  })),
+);
 
 function focusableSelector() {
   return [
@@ -162,7 +172,7 @@ export function AppLayout({ children }: { children: ReactNode }) {
                 <ClosedBetaGate>{children}</ClosedBetaGate>
               </ContentArea>
             </main>
-            <StatusBar />
+            {showOperationalChrome() ? <StatusBar /> : null}
           </div>
         </div>
 
@@ -191,7 +201,7 @@ export function AppLayout({ children }: { children: ReactNode }) {
         ) : null}
 
         <ShellCommandPalette />
-        <BetaShellWidgets />
+        {showOperationalChrome() ? <BetaShellWidgets /> : null}
       </div>
     </FeedbackProvider>
   );

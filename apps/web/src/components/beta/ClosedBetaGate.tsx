@@ -9,6 +9,7 @@ import { betaApi } from "@/lib/beta/betaApi";
 import { featureFlags } from "@/lib/featureFlags";
 import { env } from "@/lib/env";
 import { BetaBanner } from "@/components/beta/BetaBanner";
+import { ordinaryClientShellEnabled } from "@/lib/shell/ordinaryClient";
 
 /**
  * P5.1/P5.2 — Invitation-only gate when closed beta mode is enabled.
@@ -78,7 +79,9 @@ export function ClosedBetaGate({ children }: { children: ReactNode }) {
 
   return (
     <>
-      <BetaBanner text={bannerText} expiryAt={expiryAt} />
+      {ordinaryClientShellEnabled() && !featureFlags.closedBeta ? null : (
+        <BetaBanner text={bannerText} expiryAt={expiryAt} />
+      )}
       {checking ? (
         <EmptyState
           title="Checking beta access…"

@@ -205,3 +205,25 @@ describe("EPIC-F004 foundation version", () => {
     expect(FRONTEND_FOUNDATION_VERSION).toBe("2.0.0-rc.1");
   });
 });
+
+describe("SIMPLE-2 dashboard mounting", () => {
+  beforeEach(() => {
+    cleanup();
+  });
+
+  it("keeps the widget registry recoverable without mounting it on /dashboard", async () => {
+    expect(DASHBOARD_WIDGETS.length).toBeGreaterThan(5);
+    const { api } = await import("@/lib/api/client");
+    const page = await import("@/app/dashboard/page");
+    wrap(<page.default />);
+    expect(
+      screen.getByRole("heading", {
+        name: /What company would you like to research\?/i,
+      }),
+    ).toBeTruthy();
+    expect(screen.queryByLabelText("Dashboard widgets")).toBeNull();
+    expect(screen.queryByRole("heading", { name: "Executive Dashboard" })).toBeNull();
+    expect(api.health).not.toHaveBeenCalled();
+    expect(api.version).not.toHaveBeenCalled();
+  });
+});

@@ -147,8 +147,14 @@ describe("EPIC-F011 navigation & routing journey", () => {
     ).toEqual(["Home", "Research Workspace", "Research Reports"]);
   });
 
-  it("keeps command-palette searchable routes non-empty", () => {
-    expect(searchableRoutes().length).toBeGreaterThan(5);
+  it("keeps command-palette searchable routes limited to the ordinary client", () => {
+    const paths = searchableRoutes(["read_research"], ["research_analyst"]).map(
+      (r) => r.path,
+    );
+    expect(paths).toContain("/analysis");
+    expect(paths).toContain("/settings");
+    expect(paths).not.toContain("/intelligence");
+    expect(paths).not.toContain("/portfolio");
   });
 });
 

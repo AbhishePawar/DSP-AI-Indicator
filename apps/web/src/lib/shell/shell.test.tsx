@@ -52,6 +52,9 @@ describe("EPIC-F003 navigation registry", () => {
     const visible = filterShellNav(["read_research"], ["research_analyst"]);
     expect(visible.some((i) => i.id === "admin")).toBe(false);
     expect(visible.some((i) => i.id === "analysis")).toBe(true);
+    expect(visible.map((i) => i.id).sort()).toEqual(
+      ["analysis", "dashboard", "settings"].sort(),
+    );
   });
 
   it("shows admin for manage_users", () => {
@@ -92,19 +95,19 @@ describe("EPIC-F003 navigation registry", () => {
       ["read_research"],
       ["research_analyst"],
     ).map((r) => r.path);
-    expect(analyst).toEqual(
-      expect.arrayContaining([
-        "/analysis",
-        "/portfolio",
-        "/research",
-        "/research/institutional",
-        "/research/canvas",
-      ]),
-    );
+    expect(analyst).toEqual(expect.arrayContaining(["/analysis", "/settings"]));
+    expect(analyst).not.toContain("/portfolio");
+    expect(analyst).not.toContain("/research");
+    expect(analyst).not.toContain("/research/institutional");
+    expect(analyst).not.toContain("/research/canvas");
     expect(analyst).not.toContain("/copilot");
     expect(analyst).not.toContain("/advisor");
     expect(analyst).not.toContain("/launch");
     expect(analyst).not.toContain("/screening");
+    expect(analyst).not.toContain("/intelligence");
+    expect(analyst).not.toContain("/companies");
+    expect(analyst).not.toContain("/ops");
+    expect(analyst).not.toContain("/diagnostics");
     expect(analyst).not.toContain("/admin");
 
     const admin = searchableRoutes(
@@ -112,6 +115,8 @@ describe("EPIC-F003 navigation registry", () => {
       ["administrator"],
     ).map((r) => r.path);
     expect(admin).toContain("/admin");
+    expect(admin).not.toContain("/ops");
+    expect(admin).not.toContain("/diagnostics");
   });
 
   it("detects active paths", () => {

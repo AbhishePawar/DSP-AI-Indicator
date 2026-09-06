@@ -17,6 +17,7 @@ vi.mock("@/lib/a11y", () => ({
 import {
   CANVAS_TABS,
   NOTEBOOK_KINDS,
+  RESEARCH_QUICK_ACTIONS,
   asCanvasTabId,
   composeResearchTimeline,
   filterResearchQuickActions,
@@ -92,12 +93,8 @@ describe("EPIC-014 Research Canvas", () => {
     expect(hits.some((h) => h.group === "Notes")).toBe(true);
   });
 
-  it("RBAC-filters quick actions and surfaces canvas in shell nav", () => {
-    const actions = filterResearchQuickActions(
-      ["read_research"],
-      ["research_analyst"],
-    );
-    expect(actions.map((a) => a.id)).toEqual(
+  it("keeps canvas quick actions recoverable but hidden from ordinary palette", () => {
+    expect(RESEARCH_QUICK_ACTIONS.map((a) => a.id)).toEqual(
       expect.arrayContaining([
         "qa-open-company",
         "qa-canvas",
@@ -105,20 +102,20 @@ describe("EPIC-014 Research Canvas", () => {
         "qa-notes",
       ]),
     );
+    const actions = filterResearchQuickActions(
+      ["read_research"],
+      ["research_analyst"],
+    );
+    expect(actions.map((a) => a.id)).toEqual(["qa-open-company"]);
 
     const visible = filterShellNav(["read_research"], ["research_analyst"]);
-    const research = visible.find((n) => n.id === "research");
-    expect(
-      research?.children?.some((c) => c.href === "/research/canvas"),
-    ).toBe(featureFlags.researchCanvas);
+    expect(visible.find((n) => n.id === "research")).toBeUndefined();
 
     const routes = searchableRoutes(
       ["read_research"],
       ["research_analyst"],
     ).map((r) => r.path);
-    if (featureFlags.researchCanvas) {
-      expect(routes).toContain("/research/canvas");
-    }
+    expect(routes).not.toContain("/research/canvas");
   });
 
   it("renders canvas shell with navigator and notebook regions", () => {

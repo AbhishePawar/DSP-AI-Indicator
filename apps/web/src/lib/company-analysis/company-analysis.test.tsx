@@ -423,7 +423,7 @@ describe("EPIC-F005 workspace UI", () => {
     expect(body.current_market_price).toBe(190.5);
     expect(marketQuoteMock).toHaveBeenCalled();
     expect(
-      await screen.findByRole("heading", { name: /Executive Summary/i }),
+      await screen.findByRole("heading", { name: /DSP Assessment/i }),
     ).toBeTruthy();
   });
 
@@ -449,6 +449,8 @@ describe("EPIC-F005 workspace UI", () => {
     expect(quoteOpts.every((opts) => opts.exchange === "NSE")).toBe(true);
     const body = analyseMock.mock.calls[0]?.[0] as { exchange?: string | null };
     expect(body.exchange).toBe("NSE");
+    expect(screen.queryByText("Large Cap")).toBeNull();
+    expect(screen.queryByText("0.46")).toBeNull();
   });
 
   it("does not invent exchange when the ticker is not in the catalogue", async () => {
@@ -546,21 +548,30 @@ describe("EPIC-F005 workspace UI", () => {
     );
     wrap(<CompanyAnalysisWorkspace />);
     await waitFor(() => expect(analyseMock).toHaveBeenCalled());
-    await screen.findByRole("heading", { name: /Executive Summary/i });
+    await screen.findByRole("heading", { name: /DSP Assessment/i });
 
-    // Documents is a lazy, net-new section — its component (and therefore its
-    // corporateActions query) must not mount while Overview is active.
+    // Documents is a hidden ordinary-client section — it must not mount
+    // while Overview is active, and must not appear in ordinary left nav.
     expect(corporateActionsMock).not.toHaveBeenCalled();
 
     const sectionsNav = await screen.findByRole("navigation", {
       name: "Analysis sections",
     });
-    const documentsNavButton = within(sectionsNav).getByRole("button", {
-      name: /Documents/i,
+    expect(
+      within(sectionsNav).queryByRole("button", { name: /Documents/i }),
+    ).toBeNull();
+    expect(
+      within(sectionsNav).queryByRole("button", { name: /AI Copilot/i }),
+    ).toBeNull();
+    const buffettNavButton = within(sectionsNav).getByRole("button", {
+      name: /Buffett Indicator/i,
     });
-    documentsNavButton.click();
+    buffettNavButton.click();
+    expect(
+      await screen.findByRole("heading", { name: /Buffett Indicator/i }),
+    ).toBeTruthy();
 
-    await waitFor(() => expect(corporateActionsMock).toHaveBeenCalled());
+    expect(corporateActionsMock).not.toHaveBeenCalled();
   });
 });
 

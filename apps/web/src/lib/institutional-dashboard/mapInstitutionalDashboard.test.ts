@@ -291,10 +291,10 @@ describe("mapInstitutionalDashboard", () => {
 });
 
 describe("institutional nav", () => {
-  it("registers institutional dashboard route", () => {
+  it("keeps institutional dashboard recoverable but hidden from ordinary primary nav", () => {
     expect(
       getPrimaryNav().some((n) => n.href === "/research/institutional"),
-    ).toBe(true);
+    ).toBe(false);
   });
 
   it("breadcrumbs institutional without treating path as ticker", () => {

@@ -16,10 +16,12 @@ describe("buildInfo", () => {
     expect(info.buildTimestamp).toBeTruthy();
   });
 
-  it("lists enabled modules from navigation", () => {
+  it("lists enabled modules from ordinary-client navigation", () => {
     const modules = getEnabledModules();
     expect(modules.some((m) => m.route === "/dashboard")).toBe(true);
-    expect(modules.some((m) => m.route === "/copilot")).toBe(true);
+    expect(modules.some((m) => m.route === "/analysis")).toBe(true);
+    expect(modules.some((m) => m.route === "/settings")).toBe(true);
+    expect(modules.some((m) => m.route === "/copilot")).toBe(false);
     modules.forEach((mod) => expect(mod.status).toBe("enabled"));
   });
 

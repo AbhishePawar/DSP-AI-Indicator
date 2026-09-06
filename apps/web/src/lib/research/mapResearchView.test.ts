@@ -211,8 +211,8 @@ describe("mapResearchView", () => {
 });
 
 describe("research routing breadcrumbs", () => {
-  it("includes Research in primary nav", () => {
-    expect(getPrimaryNav().some((n) => n.href === "/research")).toBe(true);
+  it("keeps Research recoverable but hidden from ordinary primary nav", () => {
+    expect(getPrimaryNav().some((n) => n.href === "/research")).toBe(false);
   });
 
   it("builds ticker crumbs for /research/[ticker]", () => {

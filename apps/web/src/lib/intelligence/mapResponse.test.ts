@@ -7,7 +7,7 @@ import {
   mapAnalyseResponse,
 } from "@/lib/intelligence/mapResponse";
 import { SAMPLE_ANALYSE_REQUEST } from "@/lib/intelligence/sampleRequest";
-import { breadcrumbsFor, getPrimaryNav } from "@/lib/navigation";
+import { breadcrumbsFor, getPrimaryNav, PRIMARY_NAV } from "@/lib/navigation";
 
 describe("mapAnalyseResponse", () => {
   it("maps API payload fields without inventing scores", () => {
@@ -98,9 +98,10 @@ describe("sample request", () => {
 });
 
 describe("navigation routing", () => {
-  it("includes Intelligence in primary nav", () => {
+  it("hides Intelligence from ordinary primary nav and keeps recoverability", () => {
     const nav = getPrimaryNav();
-    expect(nav.some((n) => n.href === "/intelligence")).toBe(true);
+    expect(nav.some((n) => n.href === "/intelligence")).toBe(false);
+    expect(PRIMARY_NAV.some((n) => n.href === "/intelligence")).toBe(true);
   });
 
   it("builds breadcrumbs for /intelligence", () => {
@@ -108,12 +109,17 @@ describe("navigation routing", () => {
     expect(crumbs.at(-1)?.label).toBe("Intelligence");
   });
 
-  it("includes terminal nav items", () => {
+  it("hides secondary products from ordinary primary nav", () => {
     const nav = getPrimaryNav();
-    expect(nav.some((n) => n.href === "/companies")).toBe(true);
-    expect(nav.some((n) => n.href === "/screening")).toBe(true);
-    expect(nav.some((n) => n.href === "/research")).toBe(true);
-    expect(nav.some((n) => n.href === "/documentation")).toBe(true);
+    expect(nav.map((n) => n.href)).toEqual([
+      "/dashboard",
+      "/analysis",
+      "/settings",
+    ]);
+    expect(PRIMARY_NAV.some((n) => n.href === "/companies")).toBe(true);
+    expect(PRIMARY_NAV.some((n) => n.href === "/screening")).toBe(true);
+    expect(PRIMARY_NAV.some((n) => n.href === "/research")).toBe(true);
+    expect(PRIMARY_NAV.some((n) => n.href === "/documentation")).toBe(true);
   });
 
   it("builds breadcrumbs for /diagnostics", () => {

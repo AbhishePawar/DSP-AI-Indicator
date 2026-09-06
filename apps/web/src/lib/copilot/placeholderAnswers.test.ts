@@ -114,8 +114,8 @@ describe("copilot conversation helpers", () => {
 });
 
 describe("copilot navigation", () => {
-  it("includes Copilot in primary nav", () => {
-    expect(getPrimaryNav().some((n) => n.href === "/copilot")).toBe(true);
+  it("keeps Copilot recoverable but hidden from ordinary primary nav", () => {
+    expect(getPrimaryNav().some((n) => n.href === "/copilot")).toBe(false);
   });
 
   it("builds breadcrumbs for /copilot", () => {

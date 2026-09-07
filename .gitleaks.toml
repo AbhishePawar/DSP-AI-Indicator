@@ -1,0 +1,36 @@
+# SIMPLE-10 — Gitleaks allowlist for proven false positives.
+# Scanner remains enforced (Security workflow Secret scan job, no continue-on-error).
+# Do not add live Secret Manager / Gemini / JWT production credentials here.
+
+title = "DSP AI Indicator"
+
+[extend]
+useDefault = true
+
+[allowlist]
+description = """
+SIMPLE-10 forensic (2026-09-07): GitHub Security run 34113235055 failed
+because gitleaks-action@v2 on schedule scans full git history (fetch-depth 0).
+All 18 findings were RuleID generic-api-key. None were live cloud credentials.
+Classifications: CI fixture api_key sentinels; ISIN_MIC locators; sessionStorage
+key names; WebAuthn protocol test vectors; Python kwarg secret=secret; unit-test
+JWT/password sentinels; a 41-char JWT-shaped Supabase test stub (file removed);
+documentation hashing prose. Production Gemini/JWT secrets remain in Secret Manager.
+"""
+regexes = [
+  '''p109-fixture-key''',
+  '''p110-fixture-key''',
+  '''phase2b-secret''',
+  '''unit-test-secret(?:-epic016)?''',
+  '''dsp\.recentAnalyses\.v1''',
+  '''INE[A-Z0-9]{9,12}_X[A-Z]{3}''',
+  '''secret=secret''',
+  '''NewStrongPass9''',
+]
+paths = [
+  '''(^|/)supabase\.test\.ts$''',
+  '''(^|/)test_mfa_webauthn\.py$''',
+  '''(^|/)test_passkey_api\.py$''',
+  '''(^|/)test_passkey_platform\.py$''',
+  '''(^|/)docs/security/ENTERPRISE_AUTH_PLATFORM\.md$''',
+]

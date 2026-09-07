@@ -227,13 +227,18 @@ def create_app(
         application.add_middleware(SecurityMiddleware, bundle=security)
     application.add_middleware(
         CORSMiddleware,
-        allow_origins=os.environ.get(
-            "DSP_CORS_ORIGINS",
-            "http://localhost:3000,http://127.0.0.1:3000",
-        ).split(","),
+        allow_origins=[
+            origin.strip()
+            for origin in os.environ.get(
+                "DSP_CORS_ORIGINS",
+                "http://localhost:3000,http://127.0.0.1:3000",
+            ).split(",")
+            if origin.strip()
+        ],
         allow_credentials=True,
         allow_methods=["*"],
         allow_headers=["*"],
+        expose_headers=["X-Request-Id", "X-API-Version", "X-Response-Time-Ms"],
     )
 
     _register_exception_handlers(application)

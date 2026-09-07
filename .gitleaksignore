@@ -1,0 +1,21 @@
+# SIMPLE-10 — fingerprints from local gitleaks v8.28.0 full-history scan
+# matching GitHub Security run 34113235055 (schedule, main@f3f821f).
+# These are generic-api-key false positives (see .gitleaks.toml). Not live secrets.
+49c151f85f8527989258dfe173eec5a4a40d87d1:packages/dsp_platform/tests/test_stage_1k_share_count_acquisition.py:generic-api-key:482
+c6250428af37196023f179f9954541aca755b169:packages/dsp_platform/src/dsp_platform/share_counts.py:generic-api-key:45
+4266f69bc863def1b249aac5ca06831b028eb45a:packages/auth/src/auth/mfa_totp.py:generic-api-key:192
+16c407e82b15db9ed6ee27488cfa9e483aad6ea3:apps/web/src/lib/supabase/supabase.test.ts:generic-api-key:51
+d37b66e8882a200b8fde7d348f088cecb43bcb6e:packages/api_platform/tests/test_p109_critical_investment_journey.py:generic-api-key:67
+d37b66e8882a200b8fde7d348f088cecb43bcb6e:packages/api_platform/tests/test_p110_authenticity_hard_fail.py:generic-api-key:102
+d37b66e8882a200b8fde7d348f088cecb43bcb6e:packages/dsp_platform/src/dsp_platform/share_counts.py:generic-api-key:45
+6790bf260f2e95704845632ee3917b96a42129ad:packages/auth/tests/test_phase2b_auth_capabilities.py:generic-api-key:350
+d8d3beb6d82b9292a0fb1c24cc107c99a10b68ed:packages/api_platform/tests/test_p109_critical_investment_journey.py:generic-api-key:57
+d8d3beb6d82b9292a0fb1c24cc107c99a10b68ed:packages/api_platform/tests/test_p109_critical_investment_journey.py:generic-api-key:58
+378766f5bf829510c657fe2bc293a04c29093cf0:packages/api_platform/tests/test_p110_authenticity_hard_fail.py:generic-api-key:92
+378766f5bf829510c657fe2bc293a04c29093cf0:packages/api_platform/tests/test_p110_authenticity_hard_fail.py:generic-api-key:93
+39affb2396496deeb7170b952bd5453a3c1a248c:packages/auth/tests/test_mfa_webauthn.py:generic-api-key:77
+39affb2396496deeb7170b952bd5453a3c1a248c:packages/api_platform/tests/test_passkey_api.py:generic-api-key:45
+39affb2396496deeb7170b952bd5453a3c1a248c:packages/auth/tests/test_passkey_platform.py:generic-api-key:70
+bb9ec09bcd6fb681251f3ed29968eaad9616c65e:docs/security/ENTERPRISE_AUTH_PLATFORM.md:generic-api-key:715
+1f1e28ba7911634fe9bc3ed906c2b02b6c0a5e56:apps/web/src/lib/analysis/recentAnalyses.ts:generic-api-key:11
+e39fc8eb3aca63986e37976d9277f0223e1d570b:packages/security_platform/tests/test_identity.py:generic-api-key:119

@@ -9,6 +9,8 @@ leaves this module.
 from __future__ import annotations
 
 import json
+import logging
+import time
 import uuid
 from collections.abc import Iterator
 from typing import Any
@@ -30,6 +32,16 @@ from llm_adapters.tools.protocol.gemini import (
 
 _PROVENANCE = ("llm_adapters.gemini", "dsp.llm.gemini.v1")
 _BASE_URL = "https://generativelanguage.googleapis.com/v1beta/models"
+_LOG = logging.getLogger("dsp.llm.gemini")
+
+
+def _response_bytes(response: object) -> int:
+    content = getattr(response, "content", None)
+    if isinstance(content, (bytes, bytearray)):
+        return len(content)
+    if isinstance(content, str):
+        return len(content.encode("utf-8"))
+    return -1
 
 
 def _google_error_status(response: object) -> str:
@@ -164,6 +176,12 @@ class GeminiAdapter(GeminiToolCalling):
         if tools:
             payload["tools"] = [tools] if isinstance(tools, dict) else tools
 
+        _LOG.info(
+            "gemini_http stage=request model=%s timeout_s=%s",
+            self.model_label,
+            self._config.request_timeout_seconds,
+        )
+        started = time.perf_counter()
         try:
             with httpx.Client(timeout=self._config.request_timeout_seconds) as client:
                 response = client.post(
@@ -174,12 +192,29 @@ class GeminiAdapter(GeminiToolCalling):
                     },
                     json=payload,
                 )
+                latency_ms = int((time.perf_counter() - started) * 1000)
+                _LOG.info(
+                    "gemini_http stage=response model=%s status=%s latency_ms=%s "
+                    "response_bytes=%s",
+                    self.model_label,
+                    response.status_code,
+                    latency_ms,
+                    _response_bytes(response),
+                )
                 response.raise_for_status()
                 data = response.json()
         except httpx.HTTPError as exc:
             detail = exc.__class__.__name__
             response = getattr(exc, "response", None)
             code = getattr(response, "status_code", None)
+            _LOG.info(
+                "gemini_http stage=error model=%s status=%s latency_ms=%s "
+                "exception_class=%s",
+                self.model_label,
+                code if isinstance(code, int) else 0,
+                int((time.perf_counter() - started) * 1000),
+                type(exc).__name__,
+            )
             if isinstance(code, int):
                 detail = f"{detail}:{code}"
                 error_status = _google_error_status(response)

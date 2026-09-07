@@ -125,6 +125,12 @@ class ShareResearchEngine:
             return ShareResearchResult(
                 record=record, history=history, gemini_invoked=False
             )
+        _LOG.info(
+            "share_research stage=gemini_start isin=%s ticker=%s adapter=%s",
+            identity.isin,
+            identity.symbol,
+            type(self._gemini).__name__,
+        )
         try:
             gemini = self._gemini.research(
                 identity=identity,

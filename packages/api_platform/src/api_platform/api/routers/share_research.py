@@ -2,6 +2,9 @@
 
 from __future__ import annotations
 
+import hashlib
+import logging
+import time
 from typing import Any
 
 from fastapi import APIRouter, Depends, Request
@@ -18,9 +21,29 @@ from dsp_platform.share_research import (
 )
 
 router = APIRouter(tags=["share-research"])
+_LOG = logging.getLogger("dsp.api.share_research")
 
 _Actor = dict[str, Any]
 _ENGINE: ShareResearchEngine | None = None
+
+
+def redacted_auth_trace(authorization: str) -> tuple[str, int]:
+    """Scheme + material length only. Never returns the token."""
+    raw = authorization or ""
+    if not raw.strip():
+        return "none", 0
+    scheme, sep, rest = raw.partition(" ")
+    if not sep:
+        return "unknown", 0
+    return (scheme.strip() or "unknown"), len(rest)
+
+
+def actor_ref(user_id: str) -> str:
+    """Redacted actor identifier. Never the raw user id."""
+    uid = (user_id or "").strip()
+    if not uid:
+        return "none"
+    return hashlib.sha256(uid.encode("utf-8")).hexdigest()[:12]
 
 
 def get_share_research_engine() -> ShareResearchEngine:
@@ -46,17 +69,45 @@ def share_research(
     _actor: _Actor = Depends(require_authenticated_actor),  # noqa: B008
 ) -> ShareResearchHttpResponse:
     """Research current outstanding shares. Thin client — no valuation here."""
-    del request
-    result = research_shares(
-        ShareResearchRequest(
-            ticker=body.ticker,
-            exchange=body.exchange,
-            company=body.company,
-            isin=body.isin,
-            force_refresh=body.force_refresh,
-        ),
-        engine=get_share_research_engine(),
+    request_id = str(getattr(request.state, "request_id", "") or "")
+    scheme, material_len = redacted_auth_trace(
+        request.headers.get("authorization") or ""
     )
+    user = _actor.get("user") if isinstance(_actor.get("user"), dict) else {}
+    role = str((user or {}).get("role") or "").strip() or "unknown"
+    _LOG.info(
+        "share_research_http stage=start request_id=%s ticker=%s exchange=%s "
+        "auth_scheme=%s auth_material_len=%s actor_ref=%s actor_role=%s origin=%s",
+        request_id,
+        body.ticker,
+        body.exchange,
+        scheme,
+        material_len,
+        actor_ref(str(_actor.get("user_id") or "")),
+        role,
+        request.headers.get("origin") or "",
+    )
+    started = time.perf_counter()
+    try:
+        result = research_shares(
+            ShareResearchRequest(
+                ticker=body.ticker,
+                exchange=body.exchange,
+                company=body.company,
+                isin=body.isin,
+                force_refresh=body.force_refresh,
+            ),
+            engine=get_share_research_engine(),
+        )
+    except Exception as exc:
+        _LOG.info(
+            "share_research_http stage=error request_id=%s exception_class=%s "
+            "latency_ms=%s",
+            request_id,
+            type(exc).__name__,
+            int((time.perf_counter() - started) * 1000),
+        )
+        raise
     payload = result.to_client_dict()
     limitations = [
         "Gemini research remains untrusted until DSP validation.",
@@ -64,6 +115,14 @@ def share_research(
     ]
     if payload.get("unresolved_issues"):
         limitations.extend(str(item) for item in payload["unresolved_issues"][:5])
+    _LOG.info(
+        "share_research_http stage=complete request_id=%s status=%s "
+        "gemini_invoked=%s latency_ms=%s",
+        request_id,
+        payload.get("status"),
+        payload.get("gemini_invoked"),
+        int((time.perf_counter() - started) * 1000),
+    )
     return ShareResearchHttpResponse(
         ok=payload.get("status") == "CURRENT",
         result=payload,

@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import logging
 import time
 import uuid
 from collections.abc import Mapping
@@ -21,6 +22,8 @@ __all__ = [
     "ShareResearchGeminiPort",
     "ShareResearchGeminiResult",
 ]
+
+_LOG = logging.getLogger("dsp.share_research.gemini")
 
 
 class ShareResearchGeminiError(Exception):
@@ -109,7 +112,17 @@ class GeminiShareResearchAdapter:
 
             adapter = GeminiAdapter(load_llm_config())
         if not adapter.is_configured():
+            _LOG.info(
+                "share_research_gemini stage=unavailable model=%s isin=%s key_present=0",
+                getattr(adapter, "model_label", ""),
+                identity.isin,
+            )
             raise ShareResearchGeminiError("unavailable", "GEMINI_API_KEY not configured")
+        _LOG.info(
+            "share_research_gemini stage=invoke model=%s isin=%s key_present=1",
+            getattr(adapter, "model_label", ""),
+            identity.isin,
+        )
         request = LanguageModelRequest(
             request_id=str(uuid.uuid4()),
             intent_class=UserIntentType.TRACE_EVIDENCE,
@@ -120,6 +133,14 @@ class GeminiShareResearchAdapter:
         started = time.perf_counter()
         result, grounded = adapter.invoke_web_research(request)
         duration_ms = int((time.perf_counter() - started) * 1000)
+        _LOG.info(
+            "share_research_gemini stage=adapter_result model=%s isin=%s "
+            "status=%s latency_ms=%s",
+            getattr(adapter, "model_label", ""),
+            identity.isin,
+            getattr(result.status, "name", str(result.status)),
+            duration_ms,
+        )
         if result.status is LanguageModelStatus.PROVIDER_UNAVAILABLE:
             raise ShareResearchGeminiError("unavailable", "Gemini provider unavailable")
         limitations = " ".join(result.limitations or ())

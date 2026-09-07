@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import logging
 from typing import Any
 from unittest.mock import MagicMock, patch
 
@@ -228,7 +229,9 @@ class TestGeminiWebResearchAdapter:
         assert result.status is LanguageModelStatus.PROVIDER_UNAVAILABLE
         assert grounded.citations == ()
 
-    def test_http_status_is_copied_without_response_body(self) -> None:
+    def test_http_status_is_copied_without_response_body(
+        self, caplog: Any
+    ) -> None:
         adapter = GeminiAdapter(_config())
         response = MagicMock()
         response.status_code = 404
@@ -240,6 +243,7 @@ class TestGeminiWebResearchAdapter:
             request=MagicMock(),
             response=response,
         )
+        caplog.set_level(logging.INFO, logger="dsp.llm.gemini")
         with patch("llm_adapters.gemini_adapter.httpx.Client") as cls:
             cls.return_value.__enter__.return_value.post.return_value = response
             result, grounded = adapter.invoke_web_research(_request())
@@ -247,3 +251,7 @@ class TestGeminiWebResearchAdapter:
         assert result.limitations == ("http_error: HTTPStatusError:404:NOT_FOUND",)
         assert "secret-should-not-leak" not in str(result.limitations)
         assert grounded.citations == ()
+        assert "secret-should-not-leak" not in caplog.text
+        assert "test-gemini" not in caplog.text
+        assert "x-goog-api-key" not in caplog.text.lower()
+        assert "stage=error" in caplog.text

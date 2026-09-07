@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from datetime import UTC, datetime
 from pathlib import Path
+import logging
 
 import pytest
 from fastapi.testclient import TestClient
@@ -132,3 +133,32 @@ class TestShareResearchApi:
         )
         allowed = (response.headers.get("access-control-allow-headers") or "").lower()
         assert "authorization" in allowed or allowed == "*"
+
+    def test_redacted_auth_trace_never_returns_material(self) -> None:
+        from api_platform.api.routers.share_research import redacted_auth_trace
+
+        scheme, length = redacted_auth_trace("Bearer not-a-real-token")
+        assert scheme == "Bearer"
+        assert length == len("not-a-real-token")
+        assert "not-a-real-token" not in scheme
+
+    def test_authenticated_logs_omit_bearer_material(
+        self,
+        client: TestClient,
+        auth_headers: dict[str, str],
+        caplog: pytest.LogCaptureFixture,
+    ) -> None:
+        caplog.set_level(logging.INFO, logger="dsp.api.share_research")
+        response = client.post(
+            "/api/v1/share-research",
+            headers={**auth_headers, "X-Request-Id": "sr-trace-1"},
+            json={"ticker": "TCS", "exchange": "NSE"},
+        )
+        assert response.status_code == 200
+        joined = caplog.text
+        assert "stage=start" in joined
+        assert "stage=complete" in joined
+        token = (auth_headers.get("Authorization") or "").partition(" ")[2]
+        assert token
+        assert token not in joined
+        assert "Authorization" not in joined

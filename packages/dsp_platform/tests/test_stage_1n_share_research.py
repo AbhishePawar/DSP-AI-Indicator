@@ -430,6 +430,8 @@ class TestGeminiFailures:
             ("timeout", ShareResearchStatus.REFRESH_REQUIRED),
             ("rate_limited", ShareResearchStatus.REFRESH_REQUIRED),
             ("http_5xx", ShareResearchStatus.REFRESH_REQUIRED),
+            ("http_4xx", ShareResearchStatus.REFRESH_REQUIRED),
+            ("empty", ShareResearchStatus.REFRESH_REQUIRED),
             ("unavailable", ShareResearchStatus.REFRESH_REQUIRED),
             ("malformed", ShareResearchStatus.INVALID),
         ],

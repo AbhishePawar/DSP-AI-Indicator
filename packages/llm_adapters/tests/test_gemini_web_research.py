@@ -132,7 +132,7 @@ class TestGeminiWebResearchAdapter:
         assert system.startswith("DSP CALCULATES")
         assert "Find current outstanding shares." in user
         assert payload["tools"] == [GOOGLE_SEARCH_TOOL]
-        assert payload["generationConfig"]["responseMimeType"] == "application/json"
+        assert "responseMimeType" not in payload["generationConfig"]
         assert result.status is LanguageModelStatus.COMPLETE
         assert grounded.citations[0].uri == "https://www.screener.in/company/TCS/"
 
@@ -255,3 +255,69 @@ class TestGeminiWebResearchAdapter:
         assert "test-gemini" not in caplog.text
         assert "x-goog-api-key" not in caplog.text.lower()
         assert "stage=error" in caplog.text
+
+    def test_http_400_structured_output_with_search_is_provider_failure(
+        self, caplog: Any
+    ) -> None:
+        adapter = GeminiAdapter(_config(model="gemini-2.5-flash"))
+        response = MagicMock()
+        response.status_code = 400
+        response.json.return_value = {
+            "error": {
+                "status": "INVALID_ARGUMENT",
+                "message": (
+                    "Tool use with a response mime type: application/json "
+                    "is unsupported"
+                ),
+            }
+        }
+        response.raise_for_status.side_effect = httpx.HTTPStatusError(
+            "bad request",
+            request=MagicMock(),
+            response=response,
+        )
+        caplog.set_level(logging.WARNING, logger="dsp.llm.gemini")
+        with patch("llm_adapters.gemini_adapter.httpx.Client") as cls:
+            cls.return_value.__enter__.return_value.post.return_value = response
+            result, grounded = adapter.invoke_web_research(_request())
+        assert result.status is LanguageModelStatus.FAILED
+        assert result.limitations == (
+            "http_error: HTTPStatusError:400:INVALID_ARGUMENT:STRUCTURED_OUTPUT_WITH_TOOLS",
+        )
+        assert "application/json is unsupported" not in str(result.limitations)
+        assert "application/json is unsupported" not in caplog.text
+        assert "test-gemini" not in caplog.text
+        assert grounded.status == "failed"
+
+    def test_tool_only_web_research_is_empty_failure(self) -> None:
+        adapter = GeminiAdapter(_config(model="gemini-2.5-flash"))
+        body = {
+            "candidates": [
+                {
+                    "content": {
+                        "parts": [{"functionCall": {"name": "googleSearch", "args": {}}}]
+                    }
+                }
+            ]
+        }
+        with patch("llm_adapters.gemini_adapter.httpx.Client") as cls:
+            cls.return_value.__enter__.return_value.post.return_value = _mock_response(
+                body
+            )
+            result, grounded = adapter.invoke_web_research(_request())
+        assert result.status is LanguageModelStatus.FAILED
+        assert "empty Gemini response" in result.limitations
+        assert grounded.citations == ()
+
+    def test_fenced_json_web_research_is_complete(self) -> None:
+        adapter = GeminiAdapter(_config(model="gemini-2.5-flash"))
+        fenced = "```json\n" + json.dumps({"web_claims": [_claim()]}) + "\n```"
+        with patch("llm_adapters.gemini_adapter.httpx.Client") as cls:
+            cls.return_value.__enter__.return_value.post.return_value = _mock_response(
+                _grounded_body(text=fenced)
+            )
+            result, grounded = adapter.invoke_web_research(_request())
+        assert result.status is LanguageModelStatus.COMPLETE
+        assert grounded.malformed is False
+        assert grounded.structured is not None
+

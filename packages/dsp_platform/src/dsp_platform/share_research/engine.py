@@ -140,7 +140,14 @@ class ShareResearchEngine:
             )
         except ShareResearchGeminiError as exc:
             status = ShareResearchStatus.UNKNOWN
-            if exc.kind in {"timeout", "rate_limited", "http_5xx", "unavailable"}:
+            if exc.kind in {
+                "timeout",
+                "rate_limited",
+                "http_5xx",
+                "http_4xx",
+                "unavailable",
+                "empty",
+            }:
                 status = ShareResearchStatus.REFRESH_REQUIRED
             if exc.kind == "malformed":
                 status = ShareResearchStatus.INVALID
@@ -156,7 +163,7 @@ class ShareResearchEngine:
                     gemini_duration_ms=None,
                 )
             )
-            _LOG.info(
+            _LOG.warning(
                 "share_research gemini_error kind=%s isin=%s status=%s",
                 exc.kind,
                 identity.isin,

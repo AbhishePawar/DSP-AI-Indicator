@@ -67,6 +67,12 @@ def _google_error_status(response: object) -> str:
             return f"{status}:API_KEY"
         if "not found" in message or "not supported for generatecontent" in message:
             return f"{status}:MODEL_UNAVAILABLE"
+        if (
+            "mime type" in message
+            or "controlled generation" in message
+            or "google_search tool" in message
+        ):
+            return f"{status}:STRUCTURED_OUTPUT_WITH_TOOLS"
         return status
     return ""
 
@@ -111,11 +117,13 @@ class GeminiAdapter(GeminiToolCalling):
         This path is not wired to ``/api/v1/analyse``.
         """
         tool = google_search_tool_for_model(self.model_label)
+        # gemini-2.5-flash rejects googleSearch + responseMimeType=application/json
+        # with HTTP 400 INVALID_ARGUMENT. JSON is required by the prompt instead.
         result, raw = self._generate(
             request,
             tools=tool,
             allow_tool_only=False,
-            response_json=True,
+            response_json=False,
         )
         status = "complete"
         if result.status is LanguageModelStatus.PROVIDER_UNAVAILABLE:
@@ -176,10 +184,12 @@ class GeminiAdapter(GeminiToolCalling):
         if tools:
             payload["tools"] = [tools] if isinstance(tools, dict) else tools
 
-        _LOG.info(
-            "gemini_http stage=request model=%s timeout_s=%s",
+        _LOG.warning(
+            "gemini_http stage=request model=%s timeout_s=%s json_mime=%s tools=%s",
             self.model_label,
             self._config.request_timeout_seconds,
+            int(response_json),
+            int(bool(tools)),
         )
         started = time.perf_counter()
         try:
@@ -193,7 +203,7 @@ class GeminiAdapter(GeminiToolCalling):
                     json=payload,
                 )
                 latency_ms = int((time.perf_counter() - started) * 1000)
-                _LOG.info(
+                _LOG.warning(
                     "gemini_http stage=response model=%s status=%s latency_ms=%s "
                     "response_bytes=%s",
                     self.model_label,
@@ -207,7 +217,7 @@ class GeminiAdapter(GeminiToolCalling):
             detail = exc.__class__.__name__
             response = getattr(exc, "response", None)
             code = getattr(response, "status_code", None)
-            _LOG.info(
+            _LOG.warning(
                 "gemini_http stage=error model=%s status=%s latency_ms=%s "
                 "exception_class=%s",
                 self.model_label,

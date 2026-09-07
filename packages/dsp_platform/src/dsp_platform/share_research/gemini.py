@@ -2,11 +2,10 @@
 
 from __future__ import annotations
 
-import json
 import logging
 import time
 import uuid
-from collections.abc import Mapping
+from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
 from typing import Any, Protocol
 
@@ -21,7 +20,40 @@ __all__ = [
     "ShareResearchGeminiError",
     "ShareResearchGeminiPort",
     "ShareResearchGeminiResult",
+    "classify_share_research_gemini_failure",
 ]
+
+_PROVIDER_HTTP_5XX = ("500", "502", "503", "504")
+
+
+def classify_share_research_gemini_failure(
+    status: LanguageModelStatus,
+    limitations: Sequence[str] | str,
+) -> str | None:
+    """Map adapter status/limitations to ShareResearchGeminiError.kind.
+
+    ``None`` means COMPLETE — the caller must parse narrative JSON next.
+    HTTP 4xx is a provider fault, not a malformed research payload.
+    """
+    blob = limitations if isinstance(limitations, str) else " ".join(limitations)
+    if status is LanguageModelStatus.PROVIDER_UNAVAILABLE:
+        return "unavailable"
+    if "429" in blob:
+        return "rate_limited"
+    if "Timeout" in blob or "timeout" in blob.casefold():
+        return "timeout"
+    if any(code in blob for code in _PROVIDER_HTTP_5XX):
+        return "http_5xx"
+    if "MODEL_UNAVAILABLE" in blob or "API_KEY" in blob:
+        return "unavailable"
+    if "http_error" in blob:
+        return "http_4xx"
+    if "empty Gemini" in blob:
+        return "empty"
+    if status is not LanguageModelStatus.COMPLETE:
+        return "malformed"
+    return None
+
 
 _LOG = logging.getLogger("dsp.share_research.gemini")
 
@@ -112,13 +144,13 @@ class GeminiShareResearchAdapter:
 
             adapter = GeminiAdapter(load_llm_config())
         if not adapter.is_configured():
-            _LOG.info(
+            _LOG.warning(
                 "share_research_gemini stage=unavailable model=%s isin=%s key_present=0",
                 getattr(adapter, "model_label", ""),
                 identity.isin,
             )
             raise ShareResearchGeminiError("unavailable", "GEMINI_API_KEY not configured")
-        _LOG.info(
+        _LOG.warning(
             "share_research_gemini stage=invoke model=%s isin=%s key_present=1",
             getattr(adapter, "model_label", ""),
             identity.isin,
@@ -133,7 +165,7 @@ class GeminiShareResearchAdapter:
         started = time.perf_counter()
         result, grounded = adapter.invoke_web_research(request)
         duration_ms = int((time.perf_counter() - started) * 1000)
-        _LOG.info(
+        _LOG.warning(
             "share_research_gemini stage=adapter_result model=%s isin=%s "
             "status=%s latency_ms=%s",
             getattr(adapter, "model_label", ""),
@@ -141,26 +173,29 @@ class GeminiShareResearchAdapter:
             getattr(result.status, "name", str(result.status)),
             duration_ms,
         )
-        if result.status is LanguageModelStatus.PROVIDER_UNAVAILABLE:
+        kind = classify_share_research_gemini_failure(
+            result.status, result.limitations or ()
+        )
+        if kind == "unavailable":
             raise ShareResearchGeminiError("unavailable", "Gemini provider unavailable")
-        limitations = " ".join(result.limitations or ())
-        if "429" in limitations:
+        if kind == "rate_limited":
             raise ShareResearchGeminiError("rate_limited", "Gemini HTTP 429")
-        if "Timeout" in limitations or "timeout" in limitations.casefold():
+        if kind == "timeout":
             raise ShareResearchGeminiError("timeout", "Gemini timeout")
-        if any(code in limitations for code in ("500", "502", "503", "504")):
+        if kind == "http_5xx":
             raise ShareResearchGeminiError("http_5xx", "Gemini HTTP 5xx")
-        if "MODEL_UNAVAILABLE" in limitations or "API_KEY" in limitations:
-            raise ShareResearchGeminiError("unavailable", "Gemini provider rejected the request")
-        if result.status is not LanguageModelStatus.COMPLETE:
+        if kind == "http_4xx":
+            raise ShareResearchGeminiError("http_4xx", "Gemini HTTP 4xx")
+        if kind == "empty":
+            raise ShareResearchGeminiError("empty", "Gemini response was empty")
+        if kind == "malformed":
             raise ShareResearchGeminiError("malformed", "Gemini research did not complete")
-        text = result.narrative_text or ""
-        try:
-            payload = json.loads(text)
-        except json.JSONDecodeError as exc:
-            raise ShareResearchGeminiError("malformed", "Gemini JSON is malformed") from exc
-        if not isinstance(payload, dict):
-            raise ShareResearchGeminiError("malformed", "Gemini JSON is not an object")
+        from llm_adapters.gemini_grounding import parse_json_object
+
+        payload_map = parse_json_object(result.narrative_text)
+        if payload_map is None:
+            raise ShareResearchGeminiError("malformed", "Gemini JSON is malformed")
+        payload = dict(payload_map)
         reference = str(getattr(grounded, "model_label", "") or adapter.model_label)
         return ShareResearchGeminiResult(
             payload=payload,

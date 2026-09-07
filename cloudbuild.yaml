@@ -53,6 +53,8 @@ steps:
       - --region=$_REGION
       - --platform=managed
       - --port=8000
+      - --memory=1Gi
+      - --timeout=300
       # ^|^ delimiter: DSP_CORS_ORIGINS contains commas; do not use @ (email has @).
       # --update-env-vars / --update-secrets merge with the live service so
       # DSP_GOOGLE_CLIENT_ID / DSP_GOOGLE_CLIENT_SECRET already mounted are kept.

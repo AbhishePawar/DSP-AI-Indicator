@@ -162,3 +162,35 @@ class TestShareResearchApi:
         assert token
         assert token not in joined
         assert "Authorization" not in joined
+
+    def test_engine_crash_returns_cors_json_without_internals(
+        self,
+        client: TestClient,
+        auth_headers: dict[str, str],
+        monkeypatch: pytest.MonkeyPatch,
+    ) -> None:
+        def boom(*_args: object, **_kwargs: object) -> None:
+            raise ModuleNotFoundError("llm_adapters.tools")
+
+        monkeypatch.setattr(
+            "api_platform.api.routers.share_research.research_shares",
+            boom,
+        )
+        response = client.post(
+            "/api/v1/share-research",
+            headers={
+                **auth_headers,
+                "Origin": "http://localhost:3000",
+            },
+            json={"ticker": "TCS", "exchange": "NSE"},
+        )
+        assert response.status_code == 500
+        assert (
+            response.headers.get("access-control-allow-origin")
+            == "http://localhost:3000"
+        )
+        body = response.json()
+        dumped = str(body).lower()
+        assert "llm_adapters" not in dumped
+        assert "traceback" not in dumped
+        assert body.get("detail") == "Share research could not be completed"

@@ -71,6 +71,21 @@ def test_cloudbuild_uses_canonical_production_domain_and_cors_delimiter() -> Non
     assert "DSP_GOOGLE_CLIENT_SECRET" in text
 
 
+def test_dockerignore_keeps_llm_adapter_tools_package() -> None:
+    text = (REPO_ROOT / ".dockerignore").read_text(encoding="utf-8")
+    lines = [
+        line.strip()
+        for line in text.splitlines()
+        if line.strip() and not line.strip().startswith("#")
+    ]
+    assert "tools" not in lines
+    assert "/tools" in lines
+    dockerfile = (REPO_ROOT / "docker" / "backend" / "Dockerfile").read_text(
+        encoding="utf-8"
+    )
+    assert "llm_adapters.tools.protocol.gemini" in dockerfile
+
+
 @pytest.fixture()
 def cors_client(monkeypatch: pytest.MonkeyPatch) -> TestClient:
     monkeypatch.setenv("DSP_ENVIRONMENT", "development")

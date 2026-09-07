@@ -27,7 +27,9 @@ artifacts
 .bytecode_backup
 docs
 deploy
-tools
+# Root-only: a bare `tools` pattern also dropped llm_adapters/tools from the
+# API image and share-research crashed with ModuleNotFoundError.
+/tools
 release
 tmp
 temp

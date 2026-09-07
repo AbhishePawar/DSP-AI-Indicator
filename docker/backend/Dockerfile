@@ -62,6 +62,9 @@ RUN sed -i 's/\r$//' /app/scripts/start-api.sh && \
 # Fail the image if promoted share-count snapshots were not installed.
 # Do not use assert: PYTHONOPTIMIZE=1 strips asserts and would ship an empty dir.
 RUN python -c "from pathlib import Path; import sys, dsp_platform.promoted_share_count as m; d=Path(m.__file__).resolve().parent/'promoted_share_counts'; files=sorted(p.name for p in d.glob('*.json')); print('PROMOTED SNAPSHOTS:', ', '.join(files) or '<none>'); sys.exit(0 if 'INE467B01029_XNSE.json' in files else 'promoted share-count snapshots not packaged')"
+# Share-research imports GeminiAdapter lazily. Prove the tools package survived
+# Docker context (a root `tools` dockerignore previously stripped it).
+RUN python -c "from llm_adapters.gemini_adapter import GeminiAdapter; from llm_adapters.tools.protocol.gemini import GeminiToolCalling; print('GEMINI ADAPTER IMPORT OK')"
 
 USER dsp
 EXPOSE 8000

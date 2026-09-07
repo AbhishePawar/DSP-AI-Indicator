@@ -7,7 +7,7 @@ import logging
 import time
 from typing import Any
 
-from fastapi import APIRouter, Depends, Request
+from fastapi import APIRouter, Depends, HTTPException, Request
 
 from api_platform.api.dependencies import require_authenticated_actor
 from api_platform.api.share_research_schemas import (
@@ -107,7 +107,10 @@ def share_research(
             type(exc).__name__,
             int((time.perf_counter() - started) * 1000),
         )
-        raise
+        raise HTTPException(
+            status_code=500,
+            detail="Share research could not be completed",
+        ) from exc
     payload = result.to_client_dict()
     limitations = [
         "Gemini research remains untrusted until DSP validation.",

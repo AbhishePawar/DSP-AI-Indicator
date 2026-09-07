@@ -30,7 +30,28 @@ export type CookieAuthMeta = {
 export function cookieAuthPreferred(): boolean {
   const flag = process.env.NEXT_PUBLIC_COOKIE_AUTH;
   if (flag === "false" || flag === "0") return false;
+  // HttpOnly API cookies are first-party only. The production SPA on
+  // dspaiindicator.com calls Cloud Run on another site; SameSite=Lax
+  // cookies never attach, so cookie-only mode would discard the JWT and
+  // leave /share-research unauthenticated. Keep Bearer on cross-origin APIs.
+  if (typeof window !== "undefined" && !apiUsesFirstPartyCookies()) {
+    return false;
+  }
   return true;
+}
+
+function resolveApiBaseUrl(): string {
+  const fromEnv = (process.env.NEXT_PUBLIC_API_BASE_URL || "").replace(/\/$/, "");
+  return fromEnv || env.apiBaseUrl;
+}
+
+function apiUsesFirstPartyCookies(): boolean {
+  try {
+    const api = new URL(resolveApiBaseUrl(), window.location.href);
+    return api.origin === window.location.origin;
+  } catch {
+    return true;
+  }
 }
 
 export function readCsrfToken(): string | null {

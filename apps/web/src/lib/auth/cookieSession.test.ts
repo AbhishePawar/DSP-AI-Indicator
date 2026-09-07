@@ -57,6 +57,10 @@ function rbacResult(extra: { csrf_token?: string; cookie_auth?: boolean } = {}) 
   } as never;
 }
 
+function stubSameOriginApi() {
+  vi.stubEnv("NEXT_PUBLIC_API_BASE_URL", `${window.location.origin}/api/v1`);
+}
+
 describe("cookieSession", () => {
   beforeEach(() => {
     clearStoredSession();
@@ -64,8 +68,27 @@ describe("cookieSession", () => {
     clearCookieMeta();
   });
 
-  it("defaults cookie auth preferred", () => {
+  afterEach(() => {
+    vi.unstubAllEnvs();
+  });
+
+  it("defaults cookie auth preferred on same-origin API", () => {
+    stubSameOriginApi();
     expect(cookieAuthPreferred()).toBe(true);
+  });
+
+  it("uses Bearer when the API host is cross-origin", () => {
+    vi.stubEnv(
+      "NEXT_PUBLIC_API_BASE_URL",
+      "https://dsp-ai-indicator-6uxsluxowq-el.a.run.app/api/v1",
+    );
+    expect(cookieAuthPreferred()).toBe(false);
+    const session = sessionFromRbacLogin(
+      rbacResult({ csrf_token: "csrf-abc", cookie_auth: true }),
+      false,
+    );
+    expect(session.accessToken).toBe("secret-access");
+    expect(session.authMethod).toBe("rbac_jwt");
   });
 
   it("persists CSRF and meta without JWTs", () => {
@@ -92,6 +115,7 @@ describe("cookieSession", () => {
   });
 
   it("sessionFromRbacLogin uses cookie placeholder when csrf present", () => {
+    stubSameOriginApi();
     const session = sessionFromRbacLogin(
       {
         user: {
@@ -135,6 +159,7 @@ describe("cookieSession", () => {
   });
 
   it("uses cookie mode when only csrf_token is present", () => {
+    stubSameOriginApi();
     const session = sessionFromRbacLogin(rbacResult({ csrf_token: "csrf-only" }), false);
     expect(session.accessToken).toBe(COOKIE_TOKEN_PLACEHOLDER);
     expect(session.refreshToken).toBeNull();
@@ -145,6 +170,10 @@ describe("cookieSession", () => {
 });
 
 describe("cookie-preferred JWT Web Storage restriction", () => {
+  beforeEach(() => {
+    vi.stubEnv("NEXT_PUBLIC_API_BASE_URL", `${window.location.origin}/api/v1`);
+  });
+
   afterEach(() => {
     vi.unstubAllEnvs();
     clearStoredSession();

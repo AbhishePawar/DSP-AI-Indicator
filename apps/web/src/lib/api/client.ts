@@ -289,23 +289,24 @@ async function request<T>(
     headers.set("Authorization", `Bearer ${token}`);
   }
 
-  const url = `${env.apiBaseUrl}${path.startsWith("/") ? path : `/${path}`}`;
+    const url = `${env.apiBaseUrl}${path.startsWith("/") ? path : `/${path}`}`;
 
   let response: Response;
   try {
-    const cookieMode =
-      process.env.NEXT_PUBLIC_COOKIE_AUTH !== "false" &&
-      process.env.NEXT_PUBLIC_COOKIE_AUTH !== "0";
-    let csrf: Record<string, string> = {};
-    if (cookieMode && typeof window !== "undefined") {
+    let cookieMode = false;
+    if (typeof window !== "undefined") {
       try {
-        const { csrfHeaders } = await import("@/lib/auth/cookieSession");
-        csrf = csrfHeaders();
+        const { cookieAuthPreferred, csrfHeaders } = await import(
+          "@/lib/auth/cookieSession"
+        );
+        cookieMode = cookieAuthPreferred();
+        if (cookieMode) {
+          for (const [k, v] of Object.entries(csrfHeaders())) {
+            if (!headers.has(k)) headers.set(k, v);
+          }
+        }
       } catch {
-        csrf = {};
-      }
-      for (const [k, v] of Object.entries(csrf)) {
-        if (!headers.has(k)) headers.set(k, v);
+        cookieMode = false;
       }
     }
     response = await fetch(url, {

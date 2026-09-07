@@ -211,18 +211,9 @@ def create_app(
     application.state.infrastructure = boot.infrastructure
     application.state.production = boot.production
 
-    application.add_middleware(
-        CORSMiddleware,
-        allow_origins=os.environ.get(
-            "DSP_CORS_ORIGINS",
-            "http://localhost:3000,http://127.0.0.1:3000",
-        ).split(","),
-        allow_credentials=True,
-        allow_methods=["*"],
-        allow_headers=["*"],
-    )
-
-    # Security middleware runs outermost when configured (added last in Starlette).
+    # Security middleware is added after request/csrf hooks. CORS is added
+    # last so it is outermost: browser preflight and error responses must
+    # still carry Access-Control-* or the SPA reports "API unavailable".
     application.add_middleware(
         RequestContextMiddleware, api_version=api_version
     )
@@ -234,6 +225,16 @@ def create_app(
         from security_platform import SecurityMiddleware
 
         application.add_middleware(SecurityMiddleware, bundle=security)
+    application.add_middleware(
+        CORSMiddleware,
+        allow_origins=os.environ.get(
+            "DSP_CORS_ORIGINS",
+            "http://localhost:3000,http://127.0.0.1:3000",
+        ).split(","),
+        allow_credentials=True,
+        allow_methods=["*"],
+        allow_headers=["*"],
+    )
 
     _register_exception_handlers(application)
     _register_routers(application)

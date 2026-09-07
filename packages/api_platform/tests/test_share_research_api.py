@@ -122,7 +122,13 @@ class TestShareResearchApi:
             headers={
                 "Origin": "http://localhost:3000",
                 "Access-Control-Request-Method": "POST",
-                "Access-Control-Request-Headers": "authorization,content-type",
+                "Access-Control-Request-Headers": "authorization,content-type,x-csrf-token",
             },
         )
         assert response.status_code in {200, 204}
+        assert (
+            response.headers.get("access-control-allow-origin")
+            == "http://localhost:3000"
+        )
+        allowed = (response.headers.get("access-control-allow-headers") or "").lower()
+        assert "authorization" in allowed or allowed == "*"

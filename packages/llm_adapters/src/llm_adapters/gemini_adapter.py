@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import json
 import logging
+import sys
 import time
 import uuid
 from collections.abc import Iterator
@@ -33,6 +34,75 @@ from llm_adapters.tools.protocol.gemini import (
 _PROVENANCE = ("llm_adapters.gemini", "dsp.llm.gemini.v1")
 _BASE_URL = "https://generativelanguage.googleapis.com/v1beta/models"
 _LOG = logging.getLogger("dsp.llm.gemini")
+
+
+def _request_contract(*, response_json: bool, tools: Any) -> str:
+    if response_json and tools:
+        return "structured_output_with_tools"
+    if tools:
+        return "standard_web_research"
+    return "text_generation"
+
+
+def _emit_gemini_http(
+    *,
+    stage: str,
+    model: str,
+    status_code: int,
+    latency_ms: int,
+    response_bytes: int,
+    exception_class: str,
+    request_contract: str,
+    correlation_id: str,
+    tool_count: int,
+    json_mime: int,
+    api_key_present: int,
+    provider_code: str = "",
+) -> None:
+    """WARNING JSON line. Never includes credentials, bodies, or prompts."""
+    fields = {
+        "event": "gemini_http",
+        "stage": stage,
+        "model": model,
+        "status_code": int(status_code),
+        "latency_ms": int(latency_ms),
+        "response_bytes": int(response_bytes),
+        "exception_class": exception_class,
+        "request_contract": request_contract,
+        "correlation_id": correlation_id,
+        "tool_count": int(tool_count),
+        "json_mime": int(json_mime),
+        "api_key_present": int(api_key_present),
+        "provider_code": provider_code,
+    }
+    payload = {
+        "level": "WARNING",
+        "message": "gemini_http",
+        "service": "dsp-llm-gemini",
+        "correlation_id": correlation_id,
+        "fields": fields,
+    }
+    line = json.dumps(payload, separators=(",", ":"), sort_keys=True)
+    sys.stdout.write(line + "\n")
+    sys.stdout.flush()
+    _LOG.warning(
+        "gemini_http event=gemini_http stage=%s model=%s status_code=%s "
+        "latency_ms=%s response_bytes=%s exception_class=%s request_contract=%s "
+        "correlation_id=%s tool_count=%s json_mime=%s api_key_present=%s "
+        "provider_code=%s",
+        stage,
+        model,
+        fields["status_code"],
+        fields["latency_ms"],
+        fields["response_bytes"],
+        exception_class,
+        request_contract,
+        correlation_id,
+        fields["tool_count"],
+        fields["json_mime"],
+        fields["api_key_present"],
+        provider_code,
+    )
 
 
 def _response_bytes(response: object) -> int:
@@ -184,12 +254,21 @@ class GeminiAdapter(GeminiToolCalling):
         if tools:
             payload["tools"] = [tools] if isinstance(tools, dict) else tools
 
-        _LOG.warning(
-            "gemini_http stage=request model=%s timeout_s=%s json_mime=%s tools=%s",
-            self.model_label,
-            self._config.request_timeout_seconds,
-            int(response_json),
-            int(bool(tools)),
+        contract = _request_contract(response_json=response_json, tools=tools)
+        tool_count = 1 if tools else 0
+        correlation_id = str(request.request_id or "")
+        _emit_gemini_http(
+            stage="request",
+            model=self.model_label,
+            status_code=0,
+            latency_ms=0,
+            response_bytes=-1,
+            exception_class="",
+            request_contract=contract,
+            correlation_id=correlation_id,
+            tool_count=tool_count,
+            json_mime=int(response_json),
+            api_key_present=int(self.is_configured()),
         )
         started = time.perf_counter()
         try:
@@ -203,13 +282,18 @@ class GeminiAdapter(GeminiToolCalling):
                     json=payload,
                 )
                 latency_ms = int((time.perf_counter() - started) * 1000)
-                _LOG.warning(
-                    "gemini_http stage=response model=%s status=%s latency_ms=%s "
-                    "response_bytes=%s",
-                    self.model_label,
-                    response.status_code,
-                    latency_ms,
-                    _response_bytes(response),
+                _emit_gemini_http(
+                    stage="response",
+                    model=self.model_label,
+                    status_code=int(response.status_code),
+                    latency_ms=latency_ms,
+                    response_bytes=_response_bytes(response),
+                    exception_class="",
+                    request_contract=contract,
+                    correlation_id=correlation_id,
+                    tool_count=tool_count,
+                    json_mime=int(response_json),
+                    api_key_present=int(self.is_configured()),
                 )
                 response.raise_for_status()
                 data = response.json()
@@ -217,21 +301,41 @@ class GeminiAdapter(GeminiToolCalling):
             detail = exc.__class__.__name__
             response = getattr(exc, "response", None)
             code = getattr(response, "status_code", None)
-            _LOG.warning(
-                "gemini_http stage=error model=%s status=%s latency_ms=%s "
-                "exception_class=%s",
-                self.model_label,
-                code if isinstance(code, int) else 0,
-                int((time.perf_counter() - started) * 1000),
-                type(exc).__name__,
+            status_code = code if isinstance(code, int) else 0
+            provider_code = _google_error_status(response) if response is not None else ""
+            _emit_gemini_http(
+                stage="error",
+                model=self.model_label,
+                status_code=status_code,
+                latency_ms=int((time.perf_counter() - started) * 1000),
+                response_bytes=_response_bytes(response) if response is not None else -1,
+                exception_class=type(exc).__name__,
+                request_contract=contract,
+                correlation_id=correlation_id,
+                tool_count=tool_count,
+                json_mime=int(response_json),
+                api_key_present=int(self.is_configured()),
+                provider_code=provider_code,
             )
             if isinstance(code, int):
                 detail = f"{detail}:{code}"
-                error_status = _google_error_status(response)
-                if error_status:
-                    detail = f"{detail}:{error_status}"
+                if provider_code:
+                    detail = f"{detail}:{provider_code}"
             return self._failed(f"http_error: {detail}"), None
         except (ValueError, KeyError) as exc:
+            _emit_gemini_http(
+                stage="error",
+                model=self.model_label,
+                status_code=0,
+                latency_ms=int((time.perf_counter() - started) * 1000),
+                response_bytes=-1,
+                exception_class=type(exc).__name__,
+                request_contract=contract,
+                correlation_id=correlation_id,
+                tool_count=tool_count,
+                json_mime=int(response_json),
+                api_key_present=int(self.is_configured()),
+            )
             return self._failed(f"malformed_response: {exc.__class__.__name__}"), None
 
         if not isinstance(data, dict):
@@ -239,6 +343,8 @@ class GeminiAdapter(GeminiToolCalling):
         text = self._extract_text(data)
         has_tools = gemini_payload_contains_function_calls(data)
         if not text and not (allow_tool_only and has_tools):
+            if has_tools:
+                return self._failed("tool_only Gemini response"), data
             return self._failed("empty Gemini response"), data
         return (
             LanguageModelResult(

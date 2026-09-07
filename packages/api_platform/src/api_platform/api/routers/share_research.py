@@ -96,6 +96,7 @@ def share_research(
                 company=body.company,
                 isin=body.isin,
                 force_refresh=body.force_refresh,
+                correlation_id=request_id,
             ),
             engine=get_share_research_engine(),
         )

@@ -137,6 +137,7 @@ class ShareResearchEngine:
                 stored=stored.to_dict() if stored is not None else None,
                 horizon_iso=horizon.isoformat(),
                 user_prompt=_user_prompt(identity, stored, horizon),
+                correlation_id=str(request.correlation_id or ""),
             )
         except ShareResearchGeminiError as exc:
             status = ShareResearchStatus.UNKNOWN
@@ -145,8 +146,14 @@ class ShareResearchEngine:
                 "rate_limited",
                 "http_5xx",
                 "http_4xx",
+                "http_400",
+                "http_401",
+                "http_403",
+                "http_404",
                 "unavailable",
                 "empty",
+                "tool_only",
+                "transport",
             }:
                 status = ShareResearchStatus.REFRESH_REQUIRED
             if exc.kind == "malformed":
@@ -164,8 +171,11 @@ class ShareResearchEngine:
                 )
             )
             _LOG.warning(
-                "share_research gemini_error kind=%s isin=%s status=%s",
+                "share_research gemini_error kind=%s status_code=%s provider_code=%s "
+                "isin=%s status=%s",
                 exc.kind,
+                int(getattr(exc, "status_code", 0) or 0),
+                str(getattr(exc, "provider_code", "") or ""),
                 identity.isin,
                 status,
             )

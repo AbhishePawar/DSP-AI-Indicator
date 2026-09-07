@@ -18,6 +18,7 @@ from dsp_platform.share_research.gemini import (
     GeminiShareResearchAdapter,
     ShareResearchGeminiError,
     classify_share_research_gemini_failure,
+    classify_share_research_gemini_failure_detail,
 )
 from dsp_platform.share_research.models import (
     ShareResearchCheck,
@@ -173,6 +174,18 @@ class TestToolOnlyResult:
             )
         assert exc.value.kind == "empty"
 
+    def test_tool_only_is_not_malformed(self) -> None:
+        with pytest.raises(ShareResearchGeminiError) as exc:
+            _research(
+                _adapter(
+                    _result(
+                        status=LanguageModelStatus.FAILED,
+                        limitations=("tool_only Gemini response",),
+                    )
+                )
+            )
+        assert exc.value.kind == "tool_only"
+
     def test_engine_maps_empty_to_refresh_required(self, tmp_path: Path) -> None:
         result = _engine(
             tmp_path, FixedShareResearchGemini(kind="empty", message="empty")
@@ -227,6 +240,37 @@ class TestProviderHttpError:
                 )
             )
         assert exc.value.kind == "http_4xx"
+        assert exc.value.status_code == 400
+        assert "STRUCTURED_OUTPUT_WITH_TOOLS" in exc.value.provider_code
+
+    def test_http_401_403_404_429_5xx_timeout_transport_are_not_malformed(self) -> None:
+        cases = (
+            (
+                "http_error: HTTPStatusError:401:UNAUTHENTICATED:API_KEY",
+                "http_401",
+                401,
+            ),
+            (
+                "http_error: HTTPStatusError:403:PERMISSION_DENIED",
+                "http_403",
+                403,
+            ),
+            ("http_error: HTTPStatusError:404:NOT_FOUND", "http_404", 404),
+            ("http_error: HTTPStatusError:429:RESOURCE_EXHAUSTED", "rate_limited", 429),
+            ("http_error: HTTPStatusError:503:UNAVAILABLE", "http_5xx", 503),
+            ("http_error: ReadTimeout", "timeout", 0),
+            ("http_error: ConnectError", "transport", 0),
+            ("tool_only Gemini response", "tool_only", 0),
+            ("empty Gemini response", "empty", 0),
+        )
+        for limitations, kind, code in cases:
+            detail = classify_share_research_gemini_failure_detail(
+                LanguageModelStatus.FAILED, (limitations,)
+            )
+            assert detail is not None
+            assert detail.kind == kind, limitations
+            assert detail.status_code == code, limitations
+            assert kind != "malformed"
 
     def test_engine_maps_http_4xx_to_refresh_required(self, tmp_path: Path) -> None:
         result = _engine(

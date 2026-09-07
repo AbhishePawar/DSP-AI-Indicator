@@ -230,7 +230,7 @@ class TestGeminiWebResearchAdapter:
         assert grounded.citations == ()
 
     def test_http_status_is_copied_without_response_body(
-        self, caplog: Any
+        self, caplog: Any, capsys: Any
     ) -> None:
         adapter = GeminiAdapter(_config())
         response = MagicMock()
@@ -247,14 +247,20 @@ class TestGeminiWebResearchAdapter:
         with patch("llm_adapters.gemini_adapter.httpx.Client") as cls:
             cls.return_value.__enter__.return_value.post.return_value = response
             result, grounded = adapter.invoke_web_research(_request())
+        captured = capsys.readouterr()
         assert result.status is LanguageModelStatus.FAILED
         assert result.limitations == ("http_error: HTTPStatusError:404:NOT_FOUND",)
         assert "secret-should-not-leak" not in str(result.limitations)
         assert grounded.citations == ()
         assert "secret-should-not-leak" not in caplog.text
+        assert "secret-should-not-leak" not in captured.out
         assert "test-gemini" not in caplog.text
+        assert "test-gemini" not in captured.out
         assert "x-goog-api-key" not in caplog.text.lower()
         assert "stage=error" in caplog.text
+        assert "status_code=404" in caplog.text
+        assert '"status_code":404' in captured.out
+        assert '"event":"gemini_http"' in captured.out
 
     def test_http_400_structured_output_with_search_is_provider_failure(
         self, caplog: Any
@@ -289,7 +295,7 @@ class TestGeminiWebResearchAdapter:
         assert "test-gemini" not in caplog.text
         assert grounded.status == "failed"
 
-    def test_tool_only_web_research_is_empty_failure(self) -> None:
+    def test_tool_only_web_research_is_tool_only_failure(self) -> None:
         adapter = GeminiAdapter(_config(model="gemini-2.5-flash"))
         body = {
             "candidates": [
@@ -306,7 +312,7 @@ class TestGeminiWebResearchAdapter:
             )
             result, grounded = adapter.invoke_web_research(_request())
         assert result.status is LanguageModelStatus.FAILED
-        assert "empty Gemini response" in result.limitations
+        assert "tool_only Gemini response" in result.limitations
         assert grounded.citations == ()
 
     def test_fenced_json_web_research_is_complete(self) -> None:
@@ -320,4 +326,66 @@ class TestGeminiWebResearchAdapter:
         assert result.status is LanguageModelStatus.COMPLETE
         assert grounded.malformed is False
         assert grounded.structured is not None
+
+    def test_invoke_text_generation_has_no_search_tool(self) -> None:
+        adapter = GeminiAdapter(_config(model="gemini-2.5-flash"))
+        captured: dict[str, Any] = {}
+
+        def fake_post(*args: Any, **kwargs: Any) -> MagicMock:
+            captured["json"] = kwargs.get("json")
+            return _mock_response(
+                {"candidates": [{"content": {"parts": [{"text": "ok"}]}}]}
+            )
+
+        with patch("llm_adapters.gemini_adapter.httpx.Client") as cls:
+            cls.return_value.__enter__.return_value.post.side_effect = fake_post
+            result = adapter.invoke(_request("Reply with OK."))
+        payload = captured["json"]
+        assert "tools" not in payload
+        assert "responseMimeType" not in payload["generationConfig"]
+        assert result.status is LanguageModelStatus.COMPLETE
+
+    def test_http_403_is_failed_with_status(self, capsys: Any) -> None:
+        adapter = GeminiAdapter(_config(model="gemini-2.5-flash"))
+        response = MagicMock()
+        response.status_code = 403
+        response.json.return_value = {
+            "error": {"status": "PERMISSION_DENIED", "message": "secret-should-not-leak"}
+        }
+        response.raise_for_status.side_effect = httpx.HTTPStatusError(
+            "forbidden",
+            request=MagicMock(),
+            response=response,
+        )
+        with patch("llm_adapters.gemini_adapter.httpx.Client") as cls:
+            cls.return_value.__enter__.return_value.post.return_value = response
+            result, grounded = adapter.invoke_web_research(_request())
+        out = capsys.readouterr().out
+        assert result.limitations == (
+            "http_error: HTTPStatusError:403:PERMISSION_DENIED",
+        )
+        assert '"status_code":403' in out
+        assert "secret-should-not-leak" not in out
+
+    def test_timeout_is_http_error_timeout(self) -> None:
+        adapter = GeminiAdapter(_config())
+        with patch("llm_adapters.gemini_adapter.httpx.Client") as cls:
+            cls.return_value.__enter__.return_value.post.side_effect = (
+                httpx.ReadTimeout("timed out")
+            )
+            result, grounded = adapter.invoke_web_research(_request())
+        assert result.status is LanguageModelStatus.FAILED
+        assert "ReadTimeout" in result.limitations[0]
+        assert grounded.status == "failed"
+
+    def test_transport_connect_error(self) -> None:
+        adapter = GeminiAdapter(_config())
+        with patch("llm_adapters.gemini_adapter.httpx.Client") as cls:
+            cls.return_value.__enter__.return_value.post.side_effect = httpx.ConnectError(
+                "connection failed"
+            )
+            result, grounded = adapter.invoke_web_research(_request())
+        assert result.status is LanguageModelStatus.FAILED
+        assert "ConnectError" in result.limitations[0]
+        assert "HTTPStatusError" not in result.limitations[0]
 

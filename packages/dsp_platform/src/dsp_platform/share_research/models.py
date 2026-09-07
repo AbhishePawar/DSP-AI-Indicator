@@ -185,6 +185,7 @@ class ShareResearchRequest:
     mic: str | None = None
     lookup_horizon: datetime | None = None
     force_refresh: bool = False
+    correlation_id: str = ""
 
 
 @dataclass(frozen=True, slots=True)

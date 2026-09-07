@@ -32,6 +32,33 @@ _PROVENANCE = ("llm_adapters.gemini", "dsp.llm.gemini.v1")
 _BASE_URL = "https://generativelanguage.googleapis.com/v1beta/models"
 
 
+def _google_error_status(response: object) -> str:
+    """Copy Google error.status only. Never returns bodies or credentials."""
+    json_fn = getattr(response, "json", None)
+    if not callable(json_fn):
+        return ""
+    try:
+        payload = json_fn()
+    except (ValueError, TypeError, json.JSONDecodeError):
+        return ""
+    if not isinstance(payload, dict):
+        return ""
+    error = payload.get("error")
+    if not isinstance(error, dict):
+        return ""
+    status = str(error.get("status") or "").strip()
+    if status and all(ch.isalnum() or ch == "_" for ch in status):
+        message = str(error.get("message") or "").casefold()
+        if "aiza" in message:
+            return status
+        if "api key" in message:
+            return f"{status}:API_KEY"
+        if "not found" in message or "not supported for generatecontent" in message:
+            return f"{status}:MODEL_UNAVAILABLE"
+        return status
+    return ""
+
+
 class GeminiAdapter(GeminiToolCalling):
     """Google Gemini chat adapter implementing the provider-neutral port.
 
@@ -150,7 +177,15 @@ class GeminiAdapter(GeminiToolCalling):
                 response.raise_for_status()
                 data = response.json()
         except httpx.HTTPError as exc:
-            return self._failed(f"http_error: {exc.__class__.__name__}"), None
+            detail = exc.__class__.__name__
+            response = getattr(exc, "response", None)
+            code = getattr(response, "status_code", None)
+            if isinstance(code, int):
+                detail = f"{detail}:{code}"
+                error_status = _google_error_status(response)
+                if error_status:
+                    detail = f"{detail}:{error_status}"
+            return self._failed(f"http_error: {detail}"), None
         except (ValueError, KeyError) as exc:
             return self._failed(f"malformed_response: {exc.__class__.__name__}"), None
 

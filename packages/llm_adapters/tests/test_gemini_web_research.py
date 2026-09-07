@@ -6,6 +6,8 @@ import json
 from typing import Any
 from unittest.mock import MagicMock, patch
 
+import httpx
+
 from copilot.enums import LanguageModelStatus, UserIntentType
 from copilot.models import LanguageModelRequest
 from llm_adapters.activation_evidence import ActivationEvidence
@@ -224,4 +226,24 @@ class TestGeminiWebResearchAdapter:
             result, grounded = adapter.invoke_web_research(_request())
         cls.assert_not_called()
         assert result.status is LanguageModelStatus.PROVIDER_UNAVAILABLE
+        assert grounded.citations == ()
+
+    def test_http_status_is_copied_without_response_body(self) -> None:
+        adapter = GeminiAdapter(_config())
+        response = MagicMock()
+        response.status_code = 404
+        response.json.return_value = {
+            "error": {"status": "NOT_FOUND", "message": "secret-should-not-leak"}
+        }
+        response.raise_for_status.side_effect = httpx.HTTPStatusError(
+            "not found",
+            request=MagicMock(),
+            response=response,
+        )
+        with patch("llm_adapters.gemini_adapter.httpx.Client") as cls:
+            cls.return_value.__enter__.return_value.post.return_value = response
+            result, grounded = adapter.invoke_web_research(_request())
+        assert result.status is LanguageModelStatus.FAILED
+        assert result.limitations == ("http_error: HTTPStatusError:404:NOT_FOUND",)
+        assert "secret-should-not-leak" not in str(result.limitations)
         assert grounded.citations == ()

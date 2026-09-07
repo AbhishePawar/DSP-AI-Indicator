@@ -243,7 +243,8 @@ def _attach_authoritative_share_count(
     """Overlay a validated ShareCountSnapshot when quote shares are missing.
 
     Does not bypass ``_resolve_shares``. Does not invent a count. Runtime
-    Gemini / web research are not used here.
+    Gemini prose is not used here. A DSP-validated CURRENT share-research
+    record may overlay after promoted lookup fails closed.
     """
     existing = _qf(quote.shares_outstanding)
     if existing is not None and existing > 0:
@@ -274,15 +275,33 @@ def _attach_authoritative_share_count(
         isin=isin,
         name=statements.identity.company_name,
     )
+    lookup_error: ShareCountResolutionError | None = None
     try:
         snapshot = resolve_authoritative_share_count(instrument)
     except ShareCountResolutionError as exc:
-        raise AuthenticatedValuationError(
-            f"{DATA_UNAVAILABLE} ({exc.code})"
-        ) from exc
+        from dsp_platform.promoted_share_count import (
+            SHARES_OUTSTANDING_IDENTITY_MISMATCH,
+        )
+
+        if exc.code == SHARES_OUTSTANDING_IDENTITY_MISMATCH:
+            raise AuthenticatedValuationError(
+                f"{DATA_UNAVAILABLE} ({exc.code})"
+            ) from exc
+        lookup_error = exc
+        snapshot = None
 
     if snapshot is None:
-        return quote
+        from dsp_platform.share_research.overlay import (
+            current_share_research_snapshot,
+        )
+
+        snapshot = current_share_research_snapshot(instrument)
+        if snapshot is None and lookup_error is not None:
+            raise AuthenticatedValuationError(
+                f"{DATA_UNAVAILABLE} ({lookup_error.code})"
+            ) from lookup_error
+        if snapshot is None:
+            return quote
     if snapshot.basis is not ShareCountBasis.CURRENT_OUTSTANDING:
         return quote
     if snapshot.unit is not ShareCountUnit.SHARES:

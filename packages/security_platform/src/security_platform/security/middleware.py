@@ -58,12 +58,20 @@ def _permission_for_path(path: str) -> Permission | None:
 
 
 def _is_institutional_auth_zone(path: str) -> bool:
-    """Institutional RBAC/admin uses the ``auth`` package JWT — not security_platform."""
+    """Institutional RBAC/admin/enterprise uses the ``auth`` package JWT — not security_platform.
+
+    ``/auth/enterprise/*`` login, providers, and admin routes are owned by
+    ``EnterpriseAuthPlatform`` (Bearer + ``require_admin`` on admin paths).
+    Blocking them here makes ordinary-client sign-in impossible when
+    ``DSP_ENABLE_SECURITY=true``.
+    """
     return (
         path.startswith("/admin")
         or path.startswith("/api/v1/admin")
         or path.startswith("/auth/rbac")
         or path.startswith("/api/v1/auth/rbac")
+        or path.startswith("/auth/enterprise")
+        or path.startswith("/api/v1/auth/enterprise")
         or path.startswith("/enterprise")
         or path.startswith("/api/v1/enterprise")
         or path.startswith("/beta")
@@ -91,6 +99,11 @@ class SecurityMiddleware(BaseHTTPMiddleware):
     ) -> Response:
         path = request.url.path
         settings = self._bundle.settings
+
+        # CORS preflight has no Authorization; blocking OPTIONS makes the
+        # browser report a network failure instead of an honest API result.
+        if request.method == "OPTIONS":
+            return await call_next(request)
 
         auth_header = _authorization_from_request(request)
 

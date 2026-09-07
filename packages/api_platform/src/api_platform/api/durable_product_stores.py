@@ -51,6 +51,11 @@ def configure_durable_product_stores(database: Any | None) -> ReportStore:
             prov.configure_investment_provenance_store(None)
         except Exception:  # noqa: BLE001
             pass
+        try:
+            share_research = importlib.import_module("dsp_platform.share_research.store")
+            share_research.configure_share_research_store(None)
+        except Exception:  # noqa: BLE001
+            pass
         return build_report_store(None)
 
     try:
@@ -84,5 +89,16 @@ def configure_durable_product_stores(database: Any | None) -> ReportStore:
         prov.configure_investment_provenance_store(database)
     except Exception:  # noqa: BLE001
         pass
+
+    # Share-research CURRENT overlay + history must survive Cloud Run restarts.
+    try:
+        share_research = importlib.import_module("dsp_platform.share_research.store")
+        share_research.configure_share_research_store(database)
+    except Exception as exc:  # noqa: BLE001
+        env = (os.environ.get("DSP_ENVIRONMENT") or "").lower()
+        if env == "production":
+            raise RuntimeError(
+                "share-research durable store failed to configure"
+            ) from exc
 
     return build_report_store(database)

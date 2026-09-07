@@ -297,6 +297,28 @@ def resolve_access_token(request: Request) -> str | None:
     return None
 
 
+def _actor_from_security_context(request: Request) -> dict[str, Any] | None:
+    """Honor SecurityMiddleware's already-validated principal (iss=dsp-security)."""
+    ctx = getattr(request.state, "security", None)
+    if ctx is None or not getattr(ctx, "authenticated", False):
+        return None
+    principal = getattr(ctx, "principal", None)
+    uid = str(getattr(principal, "subject", "") or "").strip()
+    if not uid:
+        return None
+    role = getattr(principal, "role", None)
+    role_value = getattr(role, "value", None) or str(role or "client")
+    return {
+        "user_id": uid,
+        "user": {
+            "user_id": uid,
+            "username": getattr(principal, "username", None),
+            "roles": [role_value],
+            "auth_method": getattr(principal, "auth_method", "jwt"),
+        },
+    }
+
+
 def require_authenticated_actor(request: Request) -> dict[str, Any]:
     """P0-05 — resolve actor solely from server-validated JWT/session.
 
@@ -326,6 +348,12 @@ def require_authenticated_actor(request: Request) -> dict[str, Any]:
     except HTTPException:
         raise
     except Exception as exc:  # noqa: BLE001
+        # Dual-issuer seam: SecurityMiddleware may already have validated a
+        # security_platform JWT (iss=dsp-security). Do not require a second
+        # enterprise (iss=dsp-auth) decode when that context is authenticated.
+        bridged = _actor_from_security_context(request)
+        if bridged is not None:
+            return bridged
         raise HTTPException(
             status_code=401,
             detail="authentication required",

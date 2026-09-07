@@ -34,6 +34,8 @@ _AUTH_EXEMPT = (
     "/api/v1/auth/login",
     "/auth/rbac/login",
     "/api/v1/auth/rbac/login",
+    "/auth/enterprise/login",
+    "/api/v1/auth/enterprise/login",
     "/auth/refresh",
     "/api/v1/auth/refresh",
     "/auth/rbac/refresh",

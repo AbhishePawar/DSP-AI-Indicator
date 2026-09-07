@@ -195,6 +195,49 @@ class TestApiIntegration:
         assert authed.status_code != 401
         assert authed.status_code != 403
 
+    def test_enterprise_login_surface_not_blocked_when_security_on(self) -> None:
+        """Ordinary-client LoginForm posts /auth/enterprise/login unsigned."""
+        platform = (
+            PlatformBuilder()
+            .with_configuration(
+                PlatformConfiguration(require_analysis_service=False)
+            )
+            .build()
+        )
+        bundle = SecurityBundle.create(
+            SecuritySettings(jwt_secret="api-test-secret", require_auth=True)
+        )
+        client = TestClient(create_app(platform=platform, security=bundle))
+        providers = client.get("/api/v1/auth/enterprise/providers")
+        assert providers.status_code != 401
+        login = client.post(
+            "/api/v1/auth/enterprise/login",
+            json={"identifier": "admin", "password": "not-the-password"},
+        )
+        assert login.status_code != 401 or login.json().get("error") != "AuthenticationError"
+
+    def test_cors_preflight_not_blocked_when_security_on(self) -> None:
+        """Browser POST preflight must not 401 before CORS can answer."""
+        platform = (
+            PlatformBuilder()
+            .with_configuration(
+                PlatformConfiguration(require_analysis_service=False)
+            )
+            .build()
+        )
+        bundle = SecurityBundle.create(
+            SecuritySettings(jwt_secret="api-test-secret", require_auth=True)
+        )
+        client = TestClient(create_app(platform=platform, security=bundle))
+        preflight = client.options(
+            "/api/v1/share-research",
+            headers={
+                "Origin": "http://localhost:3010",
+                "Access-Control-Request-Method": "POST",
+            },
+        )
+        assert preflight.status_code != 401
+
     def test_health_remains_public(self) -> None:
         platform = (
             PlatformBuilder()

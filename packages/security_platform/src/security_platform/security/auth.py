@@ -471,6 +471,9 @@ class AuthenticationManager:
                 try:
                     return self.authenticate_jwt(token)
                 except Exception:
+                    # Three-segment tokens are JWTs — do not parse them as API keys.
+                    if token.count(".") == 2 and self._oauth2 is not None:
+                        return self.authenticate_oauth2(token)
                     try:
                         return self.authenticate_api_key_bearer(token)
                     except Exception:

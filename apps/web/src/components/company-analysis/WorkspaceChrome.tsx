@@ -59,6 +59,9 @@ export function CompanyHeaderBar({
   lastUpdated,
   marketQuote,
   financialStatements,
+  urlSymbol,
+  urlExchange,
+  urlIsin,
 }: {
   view: ResearchView | null;
   catalogue: CompanyEntry | undefined;
@@ -68,10 +71,15 @@ export function CompanyHeaderBar({
   marketQuote?: MarketQuotePayload | null;
   /** EPIC-D002 authenticated financial statements — latest period ratios only. */
   financialStatements?: FinancialStatementsPayload | null;
+  /** Security Master identity from the analysis URL — never overwritten by catalogue. */
+  urlSymbol?: string;
+  urlExchange?: string;
+  urlIsin?: string;
 }) {
+  const symbol = urlSymbol || view?.ticker || "—";
+  const exchange = urlExchange || view?.exchange || "Data unavailable.";
+  const isin = urlIsin || "";
   const company = view?.company || catalogue?.name || "Data unavailable.";
-  const symbol = view?.ticker || catalogue?.ticker || "—";
-  const exchange = view?.exchange || catalogue?.exchange || "Data unavailable.";
   const pinCompany = useDashboardPrefsStore((s) => s.pinCompany);
   const unpinCompany = useDashboardPrefsStore((s) => s.unpinCompany);
   const pinnedCompanies = useDashboardPrefsStore((s) => s.pinnedCompanies);
@@ -90,7 +98,13 @@ export function CompanyHeaderBar({
       : view?.committeeConfidence != null
         ? formatPct(view.committeeConfidence)
         : null;
-  const sharePath = `/analysis?symbol=${encodeURIComponent(symbol)}`;
+  const shareParams = new URLSearchParams();
+  if (symbol && symbol !== "—") shareParams.set("symbol", symbol);
+  if (urlExchange || view?.exchange) {
+    shareParams.set("exchange", urlExchange || view?.exchange || "");
+  }
+  if (isin) shareParams.set("isin", isin);
+  const sharePath = `/analysis?${shareParams.toString()}`;
   const ordinary = ordinaryClientShellEnabled();
 
   const quoteFields =
@@ -110,8 +124,8 @@ export function CompanyHeaderBar({
       title={company}
       description={
         ordinary
-          ? [symbol, exchange].filter(Boolean).join(" · ")
-          : "Company identity from analyse request + local catalogue metadata"
+          ? [symbol, exchange, isin].filter(Boolean).join(" · ")
+          : "Company identity from the selected Security Master listing"
       }
       action={
         <div className="flex flex-wrap items-center gap-2">
@@ -166,6 +180,7 @@ export function CompanyHeaderBar({
         <FieldRow label="Company" value={company} />
         <FieldRow label="Ticker" value={symbol} />
         <FieldRow label="Exchange" value={exchange} />
+        {isin ? <FieldRow label="ISIN" value={isin} /> : null}
         {ordinary ? null : (
           <>
             <FieldRow label="Sector" value={catalogue?.sector} />

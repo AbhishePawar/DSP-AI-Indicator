@@ -61,12 +61,18 @@ export function SummarySection({
   marketStatus,
   marketQuote,
   financialStatements,
+  urlSymbol,
+  urlExchange,
+  urlIsin,
 }: {
   view: ResearchView;
   catalogue: CompanyEntry | undefined;
   marketStatus: string;
   marketQuote?: import("@/lib/institutional-dashboard/mapInstitutionalDashboard").MarketQuotePayload | null;
   financialStatements?: import("@/lib/institutional-dashboard/mapInstitutionalDashboard").FinancialStatementsPayload | null;
+  urlSymbol?: string;
+  urlExchange?: string;
+  urlIsin?: string;
 }) {
   const ordinary = ordinaryClientShellEnabled();
   return (
@@ -78,6 +84,9 @@ export function SummarySection({
         lastUpdated={view.analysedAt}
         marketQuote={marketQuote}
         financialStatements={financialStatements}
+        urlSymbol={urlSymbol}
+        urlExchange={urlExchange}
+        urlIsin={urlIsin}
       />
       <SectionCard
         title="DSP Assessment"
@@ -591,9 +600,9 @@ export function QualitySection({ view }: { view: ResearchView }) {
       </SectionCard>
       <StageSectionCard title="Business Quality Aggregator" section={bq} />
       <p className="text-xs text-[var(--muted)]">
-        Earnings Quality, Growth Quality, and Financial Strength are separate
-        stages — open their dedicated sections. They are not Business Quality
-        substitutes.
+        Earnings Quality, Growth Quality, and Financial Strength remain separate
+        DSP stages. Ordinary clients see Growth and Earnings under Financial
+        Performance. They are not Business Quality substitutes.
       </p>
     </div>
   );
@@ -908,9 +917,11 @@ export function ExportSection({
           <Button variant="secondary" onClick={() => window.print()}>
             Print
           </Button>
-          <Link href="/research/institutional">
-            <Button variant="ghost">Research report</Button>
-          </Link>
+          {ordinaryClientShellEnabled() ? null : (
+            <Link href="/research/institutional">
+              <Button variant="ghost">Research report</Button>
+            </Link>
+          )}
         </div>
         <p className="mt-3 break-all font-mono text-xs text-[var(--muted)]">
           {shareUrl}

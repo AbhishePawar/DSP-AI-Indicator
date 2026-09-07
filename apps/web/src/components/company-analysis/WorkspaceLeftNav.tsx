@@ -11,7 +11,7 @@ import {
   type RecentAnalysisEntry,
 } from "@/lib/analysis/recentAnalyses";
 import { useDashboardPrefsStore } from "@/lib/dashboard";
-import { searchCatalogue } from "@/lib/companies/catalogue";
+import { useSecurityMasterSearch } from "@/lib/securities/useSecurityMasterSearch";
 import { ordinaryClientShellEnabled } from "@/lib/shell/ordinaryClient";
 import { cn } from "@/lib/utils";
 
@@ -26,7 +26,10 @@ export function WorkspaceLeftNav({
   symbol: string;
   query: string;
   onQueryChange: (value: string) => void;
-  onSelectSymbol: (symbol: string) => void;
+  onSelectSymbol: (
+    symbol: string,
+    meta?: { exchange?: string; isin?: string },
+  ) => void;
   onAnalyze: () => void;
   analyzing: boolean;
 }) {
@@ -42,7 +45,7 @@ export function WorkspaceLeftNav({
     setRecent(loadRecentAnalyses());
   }, [symbol, analyzing]);
 
-  const matches = searchCatalogue(query).slice(0, 8);
+  const search = useSecurityMasterSearch(query);
 
   return (
     <div className="flex h-full flex-col gap-4 overflow-y-auto p-3">
@@ -56,7 +59,16 @@ export function WorkspaceLeftNav({
           onKeyDown={(e) => {
             if (e.key === "Enter") {
               e.preventDefault();
-              onAnalyze();
+              if (
+                search.resolution === "EXACT" &&
+                search.candidates.length === 1
+              ) {
+                const hit = search.candidates[0];
+                onSelectSymbol(hit.trading_symbol, {
+                  exchange: hit.exchange,
+                  isin: hit.isin ?? undefined,
+                });
+              }
             }
           }}
           placeholder="Symbol or name"
@@ -77,23 +89,41 @@ export function WorkspaceLeftNav({
         </div>
         {query.trim() ? (
           <ul className="mt-2 space-y-1" aria-label="Search results">
-            {matches.map((c) => (
-              <li key={c.ticker}>
-                <button
-                  type="button"
-                  className="w-full rounded-[var(--radius-md)] px-2 py-1.5 text-left text-sm hover:bg-[var(--surface-2)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
-                  onClick={() => onSelectSymbol(c.ticker)}
-                >
-                  <span className="font-medium">{c.ticker}</span>
-                  <span className="ml-2 text-[var(--muted)]">{c.name}</span>
-                </button>
-              </li>
-            ))}
-            {!matches.length ? (
+            {search.loading ? (
+              <li className="px-2 text-xs text-[var(--muted)]">Searching…</li>
+            ) : !search.available ? (
               <li className="px-2 text-xs text-[var(--muted)]">
-                No catalogue match — Analyze still runs against the API.
+                {search.message || "Data unavailable."}
               </li>
-            ) : null}
+            ) : (
+              <>
+                {search.candidates.map((c) => (
+                  <li key={c.listing_id}>
+                    <button
+                      type="button"
+                      className="w-full rounded-[var(--radius-md)] px-2 py-1.5 text-left text-sm hover:bg-[var(--surface-2)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
+                      onClick={() =>
+                        onSelectSymbol(c.trading_symbol, {
+                          exchange: c.exchange,
+                          isin: c.isin ?? undefined,
+                        })
+                      }
+                    >
+                      <span className="font-medium">{c.trading_symbol}</span>
+                      <span className="ml-2 text-[var(--muted)]">
+                        {c.company_name} · {c.exchange}
+                      </span>
+                    </button>
+                  </li>
+                ))}
+                {!search.candidates.length ? (
+                  <li className="px-2 text-xs text-[var(--muted)]">
+                    {search.message ||
+                      "No exact security in the official universe."}
+                  </li>
+                ) : null}
+              </>
+            )}
           </ul>
         ) : null}
       </div>

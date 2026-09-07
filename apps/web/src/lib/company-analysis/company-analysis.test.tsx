@@ -75,6 +75,22 @@ vi.mock("@/lib/api/client", () => ({
     corporateActions: (...args: unknown[]) => corporateActionsMock(...args),
     copilotComplete: (...args: unknown[]) => copilotCompleteMock(...args),
     compare: (...args: unknown[]) => compareMock(...args),
+    searchSecurities: vi.fn(async () => ({
+      ok: false,
+      available: false,
+      query: "",
+      resolution: "UNAVAILABLE",
+      message: "Data unavailable.",
+      candidates: [],
+    })),
+    resolveSecurity: vi.fn(async () => ({
+      ok: false,
+      available: false,
+      query: "",
+      resolution: "UNAVAILABLE",
+      message: "Data unavailable.",
+      candidates: [],
+    })),
   },
 }));
 
@@ -427,8 +443,8 @@ describe("EPIC-F005 workspace UI", () => {
     ).toBeTruthy();
   });
 
-  it("propagates catalogue NSE onto TCS statements, quote, and analyse", async () => {
-    navigationState.search = "symbol=TCS";
+    it("propagates URL exchange NSE onto TCS statements, quote, and analyse", async () => {
+    navigationState.search = "symbol=TCS&exchange=NSE";
     const { CompanyAnalysisWorkspace } = await import(
       "@/components/company-analysis/CompanyAnalysisWorkspace"
     );
@@ -451,6 +467,30 @@ describe("EPIC-F005 workspace UI", () => {
     expect(body.exchange).toBe("NSE");
     expect(screen.queryByText("Large Cap")).toBeNull();
     expect(screen.queryByText("0.46")).toBeNull();
+  });
+
+  it("keeps Security Master BSE identity and does not inject catalogue NSE", async () => {
+    navigationState.search = "symbol=TCS&exchange=BSE&isin=INE467B01029";
+    const { CompanyAnalysisWorkspace } = await import(
+      "@/components/company-analysis/CompanyAnalysisWorkspace"
+    );
+    wrap(<CompanyAnalysisWorkspace />);
+    await waitFor(() => {
+      expect(financialStatementsMock).toHaveBeenCalled();
+      expect(analyseMock).toHaveBeenCalled();
+    });
+    const statementOpts = financialStatementsMock.mock.calls.map(
+      (call) => call[1] as { exchange?: string },
+    );
+    expect(statementOpts.every((opts) => opts.exchange === "BSE")).toBe(true);
+    const quoteOpts = marketQuoteMock.mock.calls.map(
+      (call) => call[1] as { exchange?: string },
+    );
+    expect(quoteOpts.every((opts) => opts.exchange === "BSE")).toBe(true);
+    const body = analyseMock.mock.calls[0]?.[0] as { exchange?: string | null };
+    expect(body.exchange).toBe("BSE");
+    expect(await screen.findByText("INE467B01029")).toBeTruthy();
+    expect(screen.getByText("BSE")).toBeTruthy();
   });
 
   it("does not invent exchange when the ticker is not in the catalogue", async () => {

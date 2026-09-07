@@ -1,7 +1,8 @@
-"""Listed-equity identity catalog for acquisition. Lookup is ISIN + MIC.
+"""Listed-equity identity catalog for share-count acquisition fixtures.
 
-Catalog rows live in listed_equity_universe.json (data, not ticker branches).
-Unknown identities fail closed.
+This five-row JSON is NOT the production Security Master and NOT the DSP
+supported universe. TCS/INFY/RELIANCE/HDFCBANK/ICICIBANK are test fixtures
+with IR URLs. Official listed-security identity lives in security_master.
 """
 
 from __future__ import annotations

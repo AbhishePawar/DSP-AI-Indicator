@@ -16,7 +16,7 @@ import {
   type ComponentType,
 } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 import { Button, ErrorState } from "@/components/ds";
 import { useResearchDisclaimerGate } from "@/components/legal/useResearchDisclaimerGate";
@@ -24,7 +24,6 @@ import { api } from "@/lib/api/client";
 import type { AnalyseRequest, AnalyseResponse } from "@/lib/api/compositionTypes";
 import { ApiClientError } from "@/lib/api/types";
 import {
-  isAnalysisSectionId,
   isVisibleAnalysisSectionId,
   useWorkspacePrefsStore,
   visibleAnalysisSections,
@@ -41,6 +40,7 @@ import {
   type ResearchView,
 } from "@/lib/research/mapResearchView";
 import { saveResearchSession } from "@/lib/research/sessionStore";
+import { showOperationalChrome } from "@/lib/shell/ordinaryClient";
 import { useNotifications } from "@/providers/NotificationProvider";
 import { cn } from "@/lib/utils";
 import { WorkspaceLeftNav } from "./WorkspaceLeftNav";
@@ -200,10 +200,14 @@ export function CompanyAnalysisWorkspace() {
   const searchParams = useSearchParams();
   const { session } = useAuth();
   const token = session?.accessToken;
+  const queryClient = useQueryClient();
+  const operatorChrome = showOperationalChrome();
   const { success, error: notifyError } = useNotifications();
 
   // RC3-003 — no silent default company; require explicit symbol selection.
   const urlSymbol = (searchParams.get("symbol") || "").trim().toUpperCase();
+  const urlExchange = (searchParams.get("exchange") || "").trim().toUpperCase();
+  const urlIsin = (searchParams.get("isin") || "").trim().toUpperCase();
   const [symbol, setSymbol] = useState(urlSymbol);
   const [query, setQuery] = useState(urlSymbol);
   const [view, setView] = useState<ResearchView | null>(null);
@@ -214,6 +218,8 @@ export function CompanyAnalysisWorkspace() {
     useState<AnalyseResponse | null>(null);
   /** Monotonic generation — drop stale analyse responses after symbol change. */
   const analyseGeneration = useRef(0);
+  /** One auto-run per symbol+session; Strict Mode remounts still share this tick. */
+  const autoRunKeyRef = useRef("");
 
   const activeSection = useWorkspacePrefsStore((s) => s.activeSection);
   const setActiveSection = useWorkspacePrefsStore((s) => s.setActiveSection);
@@ -253,13 +259,19 @@ export function CompanyAnalysisWorkspace() {
   }, [searchParams]);
 
   const selectSymbol = useCallback(
-    (next: string) => {
+    (next: string, meta?: { exchange?: string; isin?: string }) => {
       const normalized = next.trim().toUpperCase();
       if (!normalized) return;
       setSymbol(normalized);
       setQuery(normalized);
       recordSearch(normalized);
-      router.replace(`/analysis?symbol=${encodeURIComponent(normalized)}`);
+      const params = new URLSearchParams();
+      params.set("symbol", normalized);
+      const exchange = (meta?.exchange || "").trim().toUpperCase();
+      const isin = (meta?.isin || "").trim().toUpperCase();
+      if (exchange) params.set("exchange", exchange);
+      if (isin) params.set("isin", isin);
+      router.replace(`/analysis?${params.toString()}`);
     },
     [recordSearch, router],
   );
@@ -268,22 +280,43 @@ export function CompanyAnalysisWorkspace() {
     mutationFn: async () => {
       const generation = ++analyseGeneration.current;
       const requestedSymbol = symbol;
+      const requestedExchange = urlExchange || null;
       const match = resolveCatalogue(requestedSymbol);
       // P0-01 — authenticated statements only; never clone demo ACM financials.
       const body = await loadAuthenticatedAnalyseRequest(requestedSymbol, {
-        exchange: match?.exchange,
+        exchange: requestedExchange,
         company: match?.name,
         loadStatements: () =>
-          api.financialStatements(requestedSymbol, {
-            token,
-            limit: 1,
-            exchange: match?.exchange,
+          queryClient.fetchQuery({
+            queryKey: [
+              "company-analysis",
+              "financial-statements",
+              requestedSymbol,
+              requestedExchange,
+            ],
+            queryFn: () =>
+              api.financialStatements(requestedSymbol, {
+                token,
+                limit: 1,
+                exchange: requestedExchange ?? undefined,
+              }),
+            staleTime: 60_000,
           }),
         // P0-02 — market price only from authenticated quote (never client IV).
         loadQuote: () =>
-          api.marketQuote(requestedSymbol, {
-            token,
-            exchange: match?.exchange,
+          queryClient.fetchQuery({
+            queryKey: [
+              "company-analysis",
+              "market",
+              requestedSymbol,
+              requestedExchange,
+            ],
+            queryFn: () =>
+              api.marketQuote(requestedSymbol, {
+                token,
+                exchange: requestedExchange ?? undefined,
+              }),
+            staleTime: 60_000,
           }),
       });
       const response = await api.analyse(body, { token });
@@ -339,31 +372,13 @@ export function CompanyAnalysisWorkspace() {
     },
   });
 
-  const runAnalyse = useCallback(() => {
-    const normalized = (query.trim() || symbol).toUpperCase();
-    if (!normalized) return;
-    if (normalized !== symbol) {
-      selectSymbol(normalized);
-      return;
-    }
-    runWithDisclaimer(() => {
-      analyseMutation.mutate();
-    });
-  }, [analyseMutation, query, runWithDisclaimer, selectSymbol, symbol]);
-
-  // Auto-run only when the user (or deep link) provides an explicit symbol.
-  useEffect(() => {
-    if (!symbol) return;
-    runWithDisclaimer(() => {
-      analyseMutation.mutate();
-    });
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- intentional symbol-driven refresh
-  }, [symbol, token]);
-
   const marketQuery = useQuery({
-    queryKey: ["company-analysis", "market", symbol, catalogue?.exchange],
+    queryKey: ["company-analysis", "market", symbol, urlExchange, urlIsin],
     queryFn: () =>
-      api.marketQuote(symbol, { token, exchange: catalogue?.exchange }),
+      api.marketQuote(symbol, {
+        token,
+        exchange: urlExchange || undefined,
+      }),
     enabled: Boolean(token && symbol),
     retry: false,
     staleTime: 60_000,
@@ -375,13 +390,14 @@ export function CompanyAnalysisWorkspace() {
       "company-analysis",
       "financial-statements",
       symbol,
-      catalogue?.exchange,
+      urlExchange,
+      urlIsin,
     ],
     queryFn: () =>
       api.financialStatements(symbol, {
         token,
         limit: 1,
-        exchange: catalogue?.exchange,
+        exchange: urlExchange || undefined,
       }),
     enabled: Boolean(token && symbol),
     retry: false,
@@ -397,6 +413,39 @@ export function CompanyAnalysisWorkspace() {
         : marketQuery.data
           ? "Quote loaded"
           : "Data unavailable.";
+
+  const runAnalyse = useCallback(() => {
+    const normalized = (query.trim() || symbol).toUpperCase();
+    if (!normalized) return;
+    if (normalized !== symbol) {
+      selectSymbol(normalized);
+      return;
+    }
+    runWithDisclaimer(() => {
+      analyseMutation.mutate();
+    });
+  }, [analyseMutation, query, runWithDisclaimer, selectSymbol, symbol]);
+
+  // Auto-run after header quote/statements settle so analyse reuses the same
+  // React Query cache (no parallel duplicate GETs on first paint).
+  useEffect(() => {
+    if (!symbol) return;
+    if (token) {
+      if (!financialStatementsQuery.isFetched || !marketQuery.isFetched) return;
+    }
+    const runKey = `${symbol}|${token ? "auth" : "anon"}`;
+    if (autoRunKeyRef.current === runKey) return;
+    autoRunKeyRef.current = runKey;
+    runWithDisclaimer(() => {
+      analyseMutation.mutate();
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- symbol/token/cache-ready refresh
+  }, [
+    symbol,
+    token,
+    financialStatementsQuery.isFetched,
+    marketQuery.isFetched,
+  ]);
 
   useEffect(() => {
     function onKeyDown(event: KeyboardEvent) {
@@ -432,8 +481,8 @@ export function CompanyAnalysisWorkspace() {
     return () => window.removeEventListener("keydown", onKeyDown);
   }, [runAnalyse, setActiveSection, toggleLeft, toggleRight]);
 
-  const section: AnalysisSectionId = isAnalysisSectionId(activeSection)
-    ? activeSection
+  const section: AnalysisSectionId = isVisibleAnalysisSectionId(activeSection)
+    ? (activeSection as AnalysisSectionId)
     : "summary";
 
   return (
@@ -474,7 +523,10 @@ export function CompanyAnalysisWorkspace() {
           aria-label="Main analysis area"
         >
           {symbol ? (
-            <ShareResearchPanel ticker={symbol} exchange={catalogue?.exchange || "NSE"} />
+            <ShareResearchPanel
+              ticker={symbol}
+              exchange={urlExchange || undefined}
+            />
           ) : null}
           {analyseMutation.isPending && !view ? <WorkspaceSkeleton /> : null}
 
@@ -494,7 +546,7 @@ export function CompanyAnalysisWorkspace() {
             <WorkspaceEmpty
               description={
                 symbol
-                  ? "Run analysis to load backend research outputs for this symbol."
+                  ? `Selected listing: ${symbol}${urlExchange ? ` · ${urlExchange}` : ""}${urlIsin ? ` · ${urlIsin}` : ""}. Run analysis to load backend research outputs for this identity.`
                   : "Select a ticker to begin company analysis. No company is pre-selected."
               }
               action={
@@ -521,6 +573,9 @@ export function CompanyAnalysisWorkspace() {
                   marketStatus={marketStatus}
                   marketQuote={marketQuery.data ?? null}
                   financialStatements={financialStatementsQuery.data ?? null}
+                  urlSymbol={urlSymbol}
+                  urlExchange={urlExchange}
+                  urlIsin={urlIsin}
                 />
               ) : null}
               {section === "valuation" ? (
@@ -541,7 +596,7 @@ export function CompanyAnalysisWorkspace() {
               {section === "financial" ? (
                 <LazyViewSection Section={FinancialSection} view={view} />
               ) : null}
-              {section === "ai" ? (
+              {operatorChrome && section === "ai" ? (
                 <LazyViewSection Section={AiSection} view={view} />
               ) : null}
               {section === "explainability" ? (
@@ -550,7 +605,7 @@ export function CompanyAnalysisWorkspace() {
               {section === "evidence" ? (
                 <LazyViewSection Section={EvidenceSection} view={view} />
               ) : null}
-              {section === "timeline" ? (
+              {operatorChrome && section === "timeline" ? (
                 <LazyViewSection Section={TimelineSection} view={view} />
               ) : null}
               {section === "export" ? (
@@ -560,7 +615,7 @@ export function CompanyAnalysisWorkspace() {
                   analyseResponse={lastAnalyseResponse}
                 />
               ) : null}
-              {section === "ratings" ? (
+              {operatorChrome && section === "ratings" ? (
                 <Suspense fallback={<SectionFallback />}>
                   <InstitutionalRatingsSection
                     ratings={view.ratings}
@@ -569,14 +624,14 @@ export function CompanyAnalysisWorkspace() {
                   />
                 </Suspense>
               ) : null}
-              {section === "valuationTransparency" ? (
+              {operatorChrome && section === "valuationTransparency" ? (
                 <Suspense fallback={<SectionFallback />}>
                   <ValuationTransparencySection
                     transparency={view.valuationTransparency}
                   />
                 </Suspense>
               ) : null}
-              {section === "research" ? (
+              {operatorChrome && section === "research" ? (
                 <LazyViewSection Section={ResearchSection} view={view} />
               ) : null}
               {section === "buffett" ? (
@@ -584,25 +639,25 @@ export function CompanyAnalysisWorkspace() {
                   <BuffettIndicatorSection report={view.buffett} />
                 </Suspense>
               ) : null}
-              {section === "compliance" ? (
+              {operatorChrome && section === "compliance" ? (
                 <LazyViewSection Section={ComplianceSection} view={view} />
               ) : null}
-              {section === "ownership" ? (
+              {operatorChrome && section === "ownership" ? (
                 <LazyViewSection Section={OwnershipSection} view={view} />
               ) : null}
-              {section === "peers" ? (
+              {operatorChrome && section === "peers" ? (
                 <LazyViewSection Section={PeersSection} view={view} />
               ) : null}
-              {section === "documents" ? (
+              {operatorChrome && section === "documents" ? (
                 <LazyViewSection Section={DocumentsSection} view={view} />
               ) : null}
-              {section === "news" ? (
+              {operatorChrome && section === "news" ? (
                 <LazyViewSection Section={NewsSection} view={view} />
               ) : null}
-              {section === "settings" ? (
+              {operatorChrome && section === "settings" ? (
                 <LazyViewSection Section={SettingsSection} view={view} />
               ) : null}
-              {section === "copilot" ? (
+              {operatorChrome && section === "copilot" ? (
                 <Suspense fallback={<SectionFallback />}>
                   <AiCopilotSection
                     view={view}

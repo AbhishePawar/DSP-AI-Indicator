@@ -9,6 +9,26 @@ vi.mock("next/navigation", () => ({
   useRouter: () => ({ push, replace: vi.fn() }),
 }));
 
+vi.mock("@/lib/auth/AuthProvider", () => ({
+  useAuth: () => ({
+    status: "authenticated",
+    session: { accessToken: "tok" },
+  }),
+}));
+
+vi.mock("@/lib/api/client", () => ({
+  api: {
+    searchSecurities: vi.fn(async () => ({
+      ok: true,
+      available: true,
+      query: "",
+      resolution: "UNKNOWN",
+      message: "",
+      candidates: [],
+    })),
+  },
+}));
+
 import { SearchFirstDashboard } from "@/components/dashboard/SearchFirstDashboard";
 
 describe("SIMPLE-2 SearchFirstDashboard", () => {

@@ -12,7 +12,7 @@ import { useAuth } from "@/lib/auth/AuthProvider";
 
 export function ShareResearchPanel({
   ticker,
-  exchange = "NSE",
+  exchange,
 }: {
   ticker: string;
   exchange?: string;

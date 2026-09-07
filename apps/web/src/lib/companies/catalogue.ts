@@ -1,4 +1,8 @@
-/** Company catalogue — local static data for the directory. No API dependency. */
+/** UI fixture catalogue — not the production security universe.
+
+Ordinary-client search uses the official Security Master. This list remains
+for screening/demo fixtures and existing unit tests only.
+*/
 
 export type CompanyEntry = {
   name: string;

@@ -24,6 +24,47 @@ export type RequestOptions = {
   signal?: AbortSignal;
 };
 
+export type SecuritySearchCandidate = {
+  listing_id: string;
+  issuer_id?: string;
+  company_name: string;
+  legal_name?: string;
+  trading_symbol: string;
+  exchange: string;
+  mic: string;
+  isin?: string | null;
+  exchange_security_code?: string | null;
+  series?: string | null;
+  security_type: string;
+  listing_status: string;
+  eligibility_status: string;
+  dsp_eligible: boolean;
+  identity_ok: boolean;
+  match_kind?: string;
+};
+
+export type SecuritySearchResponse = {
+  ok: boolean;
+  api_version?: string;
+  query: string;
+  resolution: string;
+  available: boolean;
+  message: string;
+  snapshot_id?: string | null;
+  source_date?: string | null;
+  retrieved_at?: string | null;
+  candidates: SecuritySearchCandidate[];
+};
+
+export type SecurityUniverseResponse = {
+  ok: boolean;
+  api_version?: string;
+  available: boolean;
+  message: string;
+  snapshot?: Record<string, unknown> | null;
+  history?: Array<Record<string, unknown>>;
+};
+
 export type ShareResearchClientResult = {
   status: string;
   company: string;
@@ -411,6 +452,48 @@ export const api = {
     }>(
       "/share-research",
       { method: "POST", body: JSON.stringify(body) },
+      options,
+    ),
+
+  searchSecurities: (
+    params: { q: string; limit?: number },
+    options?: RequestOptions,
+  ) => {
+    const query = new URLSearchParams();
+    query.set("q", params.q);
+    if (params.limit != null) query.set("limit", String(params.limit));
+    return request<SecuritySearchResponse>(
+      `/securities/search?${query.toString()}`,
+      { method: "GET" },
+      options,
+    );
+  },
+
+  resolveSecurity: (
+    params: {
+      listing_id?: string;
+      isin?: string;
+      exchange?: string;
+      symbol?: string;
+    },
+    options?: RequestOptions,
+  ) => {
+    const query = new URLSearchParams();
+    if (params.listing_id) query.set("listing_id", params.listing_id);
+    if (params.isin) query.set("isin", params.isin);
+    if (params.exchange) query.set("exchange", params.exchange);
+    if (params.symbol) query.set("symbol", params.symbol);
+    return request<SecuritySearchResponse>(
+      `/securities/resolve?${query.toString()}`,
+      { method: "GET" },
+      options,
+    );
+  },
+
+  securityUniverse: (options?: RequestOptions) =>
+    request<SecurityUniverseResponse>(
+      "/securities/universe",
+      { method: "GET" },
       options,
     ),
 

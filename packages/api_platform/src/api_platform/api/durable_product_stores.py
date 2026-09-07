@@ -56,6 +56,11 @@ def configure_durable_product_stores(database: Any | None) -> ReportStore:
             share_research.configure_share_research_store(None)
         except Exception:  # noqa: BLE001
             pass
+        try:
+            security_master = importlib.import_module("dsp_platform.security_master.store")
+            security_master.configure_security_master_store(None)
+        except Exception:  # noqa: BLE001
+            pass
         return build_report_store(None)
 
     try:
@@ -99,6 +104,16 @@ def configure_durable_product_stores(database: Any | None) -> ReportStore:
         if env == "production":
             raise RuntimeError(
                 "share-research durable store failed to configure"
+            ) from exc
+
+    try:
+        security_master = importlib.import_module("dsp_platform.security_master.store")
+        security_master.configure_security_master_store(database)
+    except Exception as exc:  # noqa: BLE001
+        env = (os.environ.get("DSP_ENVIRONMENT") or "").lower()
+        if env == "production":
+            raise RuntimeError(
+                "security-master durable store failed to configure"
             ) from exc
 
     return build_report_store(database)

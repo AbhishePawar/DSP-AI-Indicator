@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useState } from "react";
 
 import { Button, SearchBox } from "@/components/ds";
 import { useRouter } from "next/navigation";
@@ -8,20 +8,24 @@ import {
   loadRecentAnalyses,
   type RecentAnalysisEntry,
 } from "@/lib/analysis/recentAnalyses";
-import { searchCatalogue } from "@/lib/companies/catalogue";
+import {
+  analysisHref,
+  useSecurityMasterSearch,
+} from "@/lib/securities/useSecurityMasterSearch";
 
 export function SearchFirstDashboard() {
   const router = useRouter();
   const [query, setQuery] = useState("");
   const [recent] = useState<RecentAnalysisEntry[]>(loadRecentAnalyses);
+  const search = useSecurityMasterSearch(query);
 
   const showResults = query.trim().length > 0;
-  const matched = useMemo(() => searchCatalogue(query), [query]);
 
-  function submit(symbol: string) {
-    const trimmed = symbol.trim().toUpperCase();
-    if (!trimmed) return;
-    router.push(`/analysis?symbol=${encodeURIComponent(trimmed)}`);
+  function submitSelected() {
+    if (search.resolution === "EXACT" && search.candidates.length === 1) {
+      router.push(analysisHref(search.candidates[0]));
+      return;
+    }
   }
 
   return (
@@ -31,7 +35,8 @@ export function SearchFirstDashboard() {
           What company would you like to research?
         </h1>
         <p className="mt-3 text-center text-lg text-[var(--muted)]">
-          Search by company name or ticker, then run one DSP analysis.
+          Search by company name, ticker, ISIN, or security code, then select
+          the exact security.
         </p>
 
         <div className="mt-8 w-full space-y-3">
@@ -40,20 +45,25 @@ export function SearchFirstDashboard() {
             onChange={(e) => {
               setQuery(e.target.value);
             }}
-            placeholder="Search a company or stock — e.g. TCS, Infosys, HDFC Bank"
+            placeholder="Search a company or stock — e.g. ticker, name, or ISIN"
             aria-label="Search a company or stock"
             onKeyDown={(event) => {
               if (event.key === "Enter") {
                 event.preventDefault();
-                submit(query);
+                submitSelected();
               }
             }}
           />
           <Button
             type="button"
             className="w-full"
-            onClick={() => submit(query)}
-            disabled={!query.trim()}
+            onClick={submitSelected}
+            disabled={
+              !query.trim() ||
+              search.loading ||
+              search.resolution !== "EXACT" ||
+              search.candidates.length !== 1
+            }
           >
             Research
           </Button>
@@ -64,35 +74,52 @@ export function SearchFirstDashboard() {
             <p className="mb-2 text-xs font-medium uppercase tracking-wide text-[var(--muted)]">
               Results
             </p>
-            {matched.length === 0 ? (
+            {search.loading ? (
+              <p className="text-sm text-[var(--muted)]">Searching…</p>
+            ) : !search.available ? (
               <p className="text-sm text-[var(--muted)]">
-                No companies match your search. Try a different name or ticker.
+                {search.message || "Data unavailable."}
+              </p>
+            ) : search.candidates.length === 0 ? (
+              <p className="text-sm text-[var(--muted)]">
+                {search.message ||
+                  "No exact security in the official universe."}
               </p>
             ) : (
-              <ul className="space-y-1">
-                {matched.slice(0, 8).map((company) => (
-                  <li key={company.ticker}>
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      className="w-full justify-start"
-                      onClick={() => submit(company.ticker)}
-                    >
-                      <span className="flex flex-col items-start gap-0.5 text-left">
-                        <span className="font-medium">
-                          {company.name}{" "}
-                          <span className="font-mono text-xs text-[var(--muted)]">
-                            {company.ticker}
+              <>
+                {search.resolution === "AMBIGUOUS" ||
+                search.resolution === "DUAL_LISTING_CANDIDATES" ? (
+                  <p className="mb-2 text-sm text-[var(--muted)]">
+                    {search.message}
+                  </p>
+                ) : null}
+                <ul className="space-y-1">
+                  {search.candidates.map((company) => (
+                    <li key={company.listing_id}>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        className="w-full justify-start"
+                        onClick={() => router.push(analysisHref(company))}
+                      >
+                        <span className="flex flex-col items-start gap-0.5 text-left">
+                          <span className="font-medium">
+                            {company.company_name}{" "}
+                            <span className="font-mono text-xs text-[var(--muted)]">
+                              {company.trading_symbol}
+                            </span>
+                          </span>
+                          <span className="text-xs text-[var(--muted)]">
+                            {company.exchange} · {company.mic}
+                            {company.isin ? ` · ${company.isin}` : ""}
+                            {` · ${company.security_type}`}
                           </span>
                         </span>
-                        <span className="text-xs text-[var(--muted)]">
-                          {company.exchange} · {company.sector}
-                        </span>
-                      </span>
-                    </Button>
-                  </li>
-                ))}
-              </ul>
+                      </Button>
+                    </li>
+                  ))}
+                </ul>
+              </>
             )}
           </div>
         )}

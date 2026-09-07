@@ -24,7 +24,9 @@ artifacts/
 .bytecode_backup/
 docs/
 deploy/
-tools/
+# Root-only. A bare `tools/` pattern also omitted llm_adapters/tools from
+# Cloud Build source, so GeminiAdapter could not be imported in production.
+/tools/
 release/
 tmp/
 temp/

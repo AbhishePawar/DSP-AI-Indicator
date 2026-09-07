@@ -84,6 +84,14 @@ def test_dockerignore_keeps_llm_adapter_tools_package() -> None:
         encoding="utf-8"
     )
     assert "llm_adapters.tools.protocol.gemini" in dockerfile
+    gcloudignore = (REPO_ROOT / ".gcloudignore").read_text(encoding="utf-8")
+    gcloud_lines = [
+        line.strip()
+        for line in gcloudignore.splitlines()
+        if line.strip() and not line.strip().startswith("#")
+    ]
+    assert "tools/" not in gcloud_lines
+    assert "/tools/" in gcloud_lines
 
 
 @pytest.fixture()

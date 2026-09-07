@@ -57,7 +57,7 @@ steps:
       # --update-env-vars / --update-secrets merge with the live service so
       # DSP_GOOGLE_CLIENT_ID / DSP_GOOGLE_CLIENT_SECRET already mounted are kept.
       # Do not add MSG91 secrets here — they are not in Secret Manager yet.
-      - --update-env-vars=^|^DSP_ENVIRONMENT=production|DSP_REGION=ap-south-1|DSP_INVESTMENT_DATA_PROVIDER=upstox|DSP_AUTH_MAGIC_LINK=true|DSP_RESEND_FROM_ADDRESS=noreply@dspaiindicator.com|DSP_FRONTEND_URL=https://dspaiindicator.com|DSP_CORS_ORIGINS=https://dspaiindicator.com,https://dsp-ai-indicator-web-6uxsluxowq-el.a.run.app
+      - --update-env-vars=^|^DSP_ENVIRONMENT=production|DSP_REGION=ap-south-1|DSP_INVESTMENT_DATA_PROVIDER=upstox|DSP_AUTH_MAGIC_LINK=true|DSP_RESEND_FROM_ADDRESS=noreply@dspaiindicator.com|DSP_FRONTEND_URL=https://dspaiindicator.com|DSP_CORS_ORIGINS=https://dspaiindicator.com,https://dsp-ai-indicator-web-6uxsluxowq-el.a.run.app|DSP_AI_GEMINI_MODEL=gemini-2.5-flash|DSP_AI_LLM_TIMEOUT_SECONDS=120
       # Auth secrets for production login (JWT + Resend). Google OAuth is already
       # mounted on the service; --update-secrets must not replace that list.
       # Upstox analytics token is required for market quotes. API boot still does

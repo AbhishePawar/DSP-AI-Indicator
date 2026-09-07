@@ -405,6 +405,23 @@ class TestShareResearchEngine:
         assert "INE467B01029" not in blob
         assert "3618087518" not in blob
 
+    def test_master_policy_forbids_investment_outputs(self) -> None:
+        from dsp_platform.share_research.policy import SHARE_RESEARCH_MASTER_POLICY
+
+        policy = SHARE_RESEARCH_MASTER_POLICY
+        for token in (
+            "BUY",
+            "SELL",
+            "intrinsic value",
+            "margin of safety",
+            "DCF",
+            "investment recommendation",
+            "ISIN",
+            "primary",
+            "corporate action",
+        ):
+            assert token in policy
+
 
 class TestGeminiFailures:
     @pytest.mark.parametrize(

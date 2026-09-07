@@ -33,6 +33,11 @@ _FORBIDDEN_CLAIM = (
     "market cap",
     "implied shares",
     "diluted shares",
+    "intrinsic value",
+    "margin of safety",
+    "discounted cash",
+    "investment recommendation",
+    "buy/sell",
 )
 _EQUIVALENT_MIC = frozenset({"XNSE", "XBOM"})
 

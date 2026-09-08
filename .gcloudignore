@@ -1,22 +1,36 @@
-# Cloud Build upload exclusions. Keep the source tarball small and
-# avoid shipping local forensic leftovers into the build context.
+# Cloud Build source exclusions. Do not rely on #!include — Windows
+# gcloud packing previously uploaded 457 MiB of local leftovers.
 
-#!include:.gitignore
-
+.git/
 .bytecode_backup/
 DSP-AI-Indicator/
 artifacts/
 body.txt
 .cursor/
 .venv/
+venv/
 .mypy_cache/
 .pytest_cache/
 .ruff_cache/
 .tmp-browser-cert/
+.cache/
+.coverage
+htmlcov/
+dsp_ai_indicator.egg-info/
+__pycache__/
+*.pyc
 node_modules/
+**/node_modules/
 apps/web/node_modules/
 apps/web/.next/
-dsp_ai_indicator.egg-info/
+apps/web/test-results/
+apps/web/playwright-report/
+apps/web/coverage/
+.idea/
+.vscode/
+*.log
+tmp/
+temp/
 
 # Unrelated local auth experiments — never part of SIMPLE-WEB-04.
 apps/web/src/components/auth/DemoModeBanner.tsx

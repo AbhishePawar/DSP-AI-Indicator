@@ -37,14 +37,7 @@ export type ShellNavItem = {
 };
 
 export type ShellNavIconId =
-  | "dashboard"
-  | "analysis"
-  | "portfolio"
-  | "research"
-  | "admin"
-  | "settings"
-  | "profile"
-  | "reports";
+  | "dashboard" |"analysis" |"portfolio" |"research" |"admin" |"settings" |"profile" |"reports";
 
 /**
  * RC3-003 — Primary shell journey:
@@ -146,6 +139,16 @@ export const SHELL_NAV: readonly ShellNavItem[] = [
         label: "Research Intelligence",
         description:
           "Research performance, calibration, and outcome validation (measurement only)",
+        section: "research",
+        icon: "research",
+        access: { anyOfPermissions: ["read_research"] },
+      },
+      {
+        id: "research-history",
+        href: "/research/history",
+        label: "Analysis History",
+        description:
+          "All saved company analyses — reopen or delete entries",
         section: "research",
         icon: "research",
         access: { anyOfPermissions: ["read_research"] },
@@ -574,8 +577,7 @@ export function breadcrumbsForPath(pathname: string): BreadcrumbCrumb[] {
   crumbs.push({ href: match.path, label: match.title });
 
   if (
-    match.path === "/research" &&
-    pathname.startsWith("/research/") &&
+    match.path === "/research" && pathname.startsWith("/research/") &&
     !pathname.startsWith("/research/institutional") &&
     !pathname.startsWith("/research/intelligence") &&
     !pathname.startsWith("/research/canvas")

@@ -237,6 +237,41 @@ class TestLlmAdaptersArchitecture:
                     assert "DSPPlatformToolAdapter" not in stripped
         assert not violations, violations
 
+    def test_research_agents_live_in_provider_packages(self) -> None:
+        """Live research ports are provider packages, not a stage folder.
+
+        ``llm_adapters.simple14i`` may exist only as a forensic re-export
+        facade. Implementations belong under gemini / openai / anthropic /
+        deep_search. Copilot chat adapters stay at *_adapter.py.
+        """
+        for provider in ("gemini", "openai", "anthropic", "deep_search"):
+            path = _SRC / provider / "research_agent.py"
+            assert path.is_file(), f"missing {path}"
+        composition = (_SRC / "research" / "composition.py").read_text(
+            encoding="utf-8"
+        )
+        assert "from llm_adapters.gemini.research_agent import" in composition
+        assert "from llm_adapters.openai.research_agent import" in composition
+        assert "from llm_adapters.anthropic.research_agent import" in composition
+        assert "from llm_adapters.deep_search.research_agent import" in composition
+        assert "llm_adapters.simple14i" not in composition
+        gemini_impl = (_SRC / "gemini" / "research_agent.py").read_text(
+            encoding="utf-8"
+        )
+        assert "generativelanguage.googleapis.com" in gemini_impl
+        simple14i = _SRC / "simple14i"
+        if simple14i.is_dir():
+            forbidden_impl = (
+                "generativelanguage.googleapis.com",
+                "api.openai.com",
+                "api.anthropic.com",
+                "generateContent",
+            )
+            for path in simple14i.glob("*.py"):
+                text = path.read_text(encoding="utf-8")
+                for token in forbidden_impl:
+                    assert token not in text, f"{path.name} still implements {token}"
+
     def test_orchestrator_is_not_wired_to_analyse_router(self) -> None:
         from pathlib import Path as _Root
 

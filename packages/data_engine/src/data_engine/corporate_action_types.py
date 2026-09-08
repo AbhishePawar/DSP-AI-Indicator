@@ -1,4 +1,4 @@
-"""Corporate-action classification (SIMPLE-14G).
+"""Corporate-action classification (SIMPLE-14G / SIMPLE-14H).
 
 Evidence-driven. Independent of any market-data vendor. Acquisition is
 listed but is NOT automatically a share-count-changing event.
@@ -8,7 +8,12 @@ from __future__ import annotations
 
 from enum import StrEnum
 
-__all__ = ["CorporateActionType", "SHARE_COUNT_CHANGING_TYPES"]
+__all__ = [
+    "AcquisitionConsideration",
+    "CorporateActionType",
+    "SHARE_COUNT_CHANGING_TYPES",
+    "classify_acquisition_consideration",
+]
 
 
 class CorporateActionType(StrEnum):
@@ -30,6 +35,13 @@ class CorporateActionType(StrEnum):
     SCHEME = "scheme"
     ACQUISITION = "acquisition"
     SHARE_SWAP = "share_swap"
+
+
+class AcquisitionConsideration(StrEnum):
+    CASH = "cash"
+    SHARE = "share"
+    MIXED = "mixed"
+    UNKNOWN = "unknown"
 
 
 # Acquisition is omitted: it must not automatically change share count.
@@ -54,3 +66,14 @@ SHARE_COUNT_CHANGING_TYPES = frozenset(
         CorporateActionType.SHARE_SWAP,
     }
 )
+
+
+def classify_acquisition_consideration(raw: str | None) -> AcquisitionConsideration:
+    key = str(raw or "").strip().lower()
+    if key in {"cash", "all-cash", "all_cash"}:
+        return AcquisitionConsideration.CASH
+    if key in {"share", "stock", "scrip", "all-stock", "all_stock"}:
+        return AcquisitionConsideration.SHARE
+    if key in {"mixed", "cash_and_share", "cash+stock"}:
+        return AcquisitionConsideration.MIXED
+    return AcquisitionConsideration.UNKNOWN

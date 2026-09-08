@@ -39,6 +39,7 @@ export type FinancialStatementsInput = {
 export type AnalyseRequest = {
   ticker: string;
   exchange?: string | null;
+  isin?: string | null;
   company?: string;
   financial_statements: FinancialStatementsInput;
   valuation_signals?: ValuationSignalsInput | null;

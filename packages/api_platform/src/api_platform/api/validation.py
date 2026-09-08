@@ -11,6 +11,7 @@ __all__ = ["validate_analyse_request"]
 
 _TICKER_RE = re.compile(r"^[A-Za-z0-9.\-]{1,32}$")
 _EXCHANGE_RE = re.compile(r"^[A-Za-z0-9_\-]{1,32}$")
+_ISIN_RE = re.compile(r"^IN[A-Z0-9]{10}$")
 
 # P1-05 — client-controlled Buffett / investment-quality conclusions are never
 # authoritative. Reject when smuggled into statement maps or metadata.
@@ -64,6 +65,13 @@ def validate_analyse_request(body: AnalyseRequest) -> list[str]:
             errors.append("exchange must be non-empty when provided")
         elif not _EXCHANGE_RE.match(exchange):
             errors.append("exchange has unsupported format")
+
+    if body.isin is not None:
+        isin = body.isin.strip().upper()
+        if not isin:
+            errors.append("isin must be non-empty when provided")
+        elif not _ISIN_RE.match(isin):
+            errors.append("isin has unsupported format")
 
     # P0-02 — clients may supply market price only. Investment conclusions
     # (IV / MoS / premium-discount) are rejected at the HTTP boundary.

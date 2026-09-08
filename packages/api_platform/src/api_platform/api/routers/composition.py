@@ -69,6 +69,7 @@ def analyse(
             ticker=body.ticker,
             company=body.company,
             exchange=body.exchange,
+            isin=body.isin,
             current_market_price=body.current_market_price,
             financial_statements=(
                 body.financial_statements.model_dump()

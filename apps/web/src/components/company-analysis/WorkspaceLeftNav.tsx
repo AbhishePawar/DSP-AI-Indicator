@@ -9,8 +9,10 @@ import {
   loadRecentAnalyses,
   type RecentAnalysisEntry,
 } from "@/lib/analysis/recentAnalyses";
+import { api } from "@/lib/api/client";
+import { useAuth } from "@/lib/auth/AuthProvider";
 import { useDashboardPrefsStore } from "@/lib/dashboard";
-import { COMPANY_CATALOGUE, searchCatalogue } from "@/lib/companies/catalogue";
+import type { SecurityListingView } from "@/lib/securities/identity";
 import { cn } from "@/lib/utils";
 
 export function WorkspaceLeftNav({
@@ -20,14 +22,18 @@ export function WorkspaceLeftNav({
   onSelectSymbol,
   onAnalyze,
   analyzing,
+  identityLabel,
 }: {
   symbol: string;
   query: string;
   onQueryChange: (value: string) => void;
-  onSelectSymbol: (symbol: string) => void;
+  onSelectSymbol: (next: SecurityListingView | string) => void;
   onAnalyze: () => void;
   analyzing: boolean;
+  identityLabel?: string | null;
 }) {
+  const { session } = useAuth();
+  const token = session?.accessToken;
   const activeSection = useWorkspacePrefsStore((s) => s.activeSection);
   const setActiveSection = useWorkspacePrefsStore((s) => s.setActiveSection);
   const pinned = useDashboardPrefsStore((s) => s.pinnedCompanies);
@@ -35,12 +41,39 @@ export function WorkspaceLeftNav({
   const pinCompany = useDashboardPrefsStore((s) => s.pinCompany);
   const isPinned = useDashboardPrefsStore((s) => s.isPinned);
   const [recent, setRecent] = useState<RecentAnalysisEntry[]>([]);
+  const [matches, setMatches] = useState<SecurityListingView[]>([]);
+  const [searchStatus, setSearchStatus] = useState<string | null>(null);
 
   useEffect(() => {
     setRecent(loadRecentAnalyses());
   }, [symbol, analyzing]);
 
-  const matches = searchCatalogue(query).slice(0, 8);
+  useEffect(() => {
+    const q = query.trim();
+    if (!q) {
+      setMatches([]);
+      setSearchStatus(null);
+      return;
+    }
+    if (!token) {
+      setMatches([]);
+      setSearchStatus("Sign in required for Security Master search.");
+      return;
+    }
+    const handle = window.setTimeout(() => {
+      void api
+        .searchSecurities(q, { token, limit: 8 })
+        .then((payload) => {
+          setMatches(payload.results ?? []);
+          setSearchStatus(payload.status === "MATCHES" ? null : payload.status);
+        })
+        .catch(() => {
+          setMatches([]);
+          setSearchStatus("UNKNOWN");
+        });
+    }, 200);
+    return () => window.clearTimeout(handle);
+  }, [query, token]);
 
   return (
     <div className="flex h-full flex-col gap-4 overflow-y-auto p-3">
@@ -60,6 +93,11 @@ export function WorkspaceLeftNav({
           placeholder="Symbol or name"
           aria-label="Company search"
         />
+        {identityLabel ? (
+          <p className="mt-2 font-mono text-[11px] text-[var(--muted)]">
+            {identityLabel}
+          </p>
+        ) : null}
         <div className="mt-2 flex flex-wrap gap-2">
           <Button className="min-h-11" onClick={onAnalyze} disabled={analyzing}>
             {analyzing ? "Analyzing…" : "Analyze"}
@@ -76,20 +114,22 @@ export function WorkspaceLeftNav({
         {query.trim() ? (
           <ul className="mt-2 space-y-1" aria-label="Search results">
             {matches.map((c) => (
-              <li key={c.ticker}>
+              <li key={c.listing_id || `${c.isin}.${c.mic}`}>
                 <button
                   type="button"
                   className="w-full rounded-[var(--radius-md)] px-2 py-1.5 text-left text-sm hover:bg-[var(--surface-2)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
-                  onClick={() => onSelectSymbol(c.ticker)}
+                  onClick={() => onSelectSymbol(c)}
                 >
                   <span className="font-medium">{c.ticker}</span>
-                  <span className="ml-2 text-[var(--muted)]">{c.name}</span>
+                  <span className="ml-2 text-[var(--muted)]">
+                    {c.company_name} · {c.exchange} · {c.isin} · {c.mic}
+                  </span>
                 </button>
               </li>
             ))}
             {!matches.length ? (
               <li className="px-2 text-xs text-[var(--muted)]">
-                No catalogue match — Analyze still runs against the API.
+                {searchStatus || "UNKNOWN"}
               </li>
             ) : null}
           </ul>
@@ -252,7 +292,7 @@ export function WorkspaceLeftNav({
           Open institutional research dashboard
         </Link>
         <p className="mt-2 text-[10px] text-[var(--muted)]">
-          Catalogue size: {COMPANY_CATALOGUE.length} (local directory only)
+          Identity from official Security Master (ISIN + MIC)
         </p>
       </div>
     </div>

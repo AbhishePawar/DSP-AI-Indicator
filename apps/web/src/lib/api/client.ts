@@ -572,6 +572,40 @@ export const api = {
       options,
     ),
 
+  /** Official Security Master search — ISIN + MIC identity, never ticker-only. */
+  searchSecurities: (
+    query: string,
+    options?: RequestOptions & { exchange?: string | null; limit?: number },
+  ) => {
+    const params = new URLSearchParams({ q: query.trim() });
+    if (options?.exchange) params.set("exchange", options.exchange);
+    if (options?.limit != null) params.set("limit", String(options.limit));
+    return request<import("@/lib/securities/identity").SecuritySearchResponse>(
+      `/securities/search?${params.toString()}`,
+      { method: "GET" },
+      options,
+    );
+  },
+
+  resolveSecurity: (
+    query: string,
+    options?: RequestOptions & {
+      exchange?: string | null;
+      isin?: string | null;
+      mic?: string | null;
+    },
+  ) => {
+    const params = new URLSearchParams({ q: query.trim() });
+    if (options?.exchange) params.set("exchange", options.exchange);
+    if (options?.isin) params.set("isin", options.isin);
+    if (options?.mic) params.set("mic", options.mic);
+    return request<import("@/lib/securities/identity").SecurityResolveResponse>(
+      `/securities/resolve?${params.toString()}`,
+      { method: "GET" },
+      options,
+    );
+  },
+
   /** Authenticated market quote (EPIC-D001) — never invents missing fields. */
   marketQuote: (
     symbol: string,

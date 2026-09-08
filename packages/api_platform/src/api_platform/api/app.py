@@ -72,6 +72,7 @@ from api_platform.api.routers import (
     research_workspace,
     saas,
     ops,
+    securities,
     transcripts,
     workflow,
 )
@@ -290,6 +291,7 @@ def _register_routers(application: FastAPI) -> None:
         institutional_workflow.router,
         investment_policy.router,
         persistence.router,
+        securities.router,
     ]
     for router in versioned:
         application.include_router(router)

@@ -26,6 +26,8 @@ RUN python -m pip show psycopg psycopg-binary && \
 
 # Fail the image build if api_platform cannot be imported after install
 RUN python -c "import api_platform; from api_platform.api.app import app; print('API IMPORT OK:', api_platform.__file__); print('APP OK:', app.title)"
+# Security Master CSVs must ship with the installed data_engine package.
+RUN python -c "from data_engine.security_master.catalog import load_default_catalog; c=load_default_catalog(); assert len(c)>2000, len(c); print('SECURITY MASTER OK:', len(c))"
 
 # --- Runtime ---
 FROM python:3.12-slim AS runtime

@@ -31,8 +31,13 @@ import {
 } from "@/lib/company-analysis";
 import { useAuth } from "@/lib/auth/AuthProvider";
 import { pushRecentAnalysis } from "@/lib/analysis/recentAnalyses";
-import { COMPANY_CATALOGUE } from "@/lib/companies/catalogue";
 import { useDashboardPrefsStore } from "@/lib/dashboard";
+import {
+  analysisPath,
+  hasExactListingIdentity,
+  identityFromSearchParams,
+  type SecurityListingView,
+} from "@/lib/securities/identity";
 import { useCollapsePanelsBelowLg } from "@/lib/a11y";
 import { loadAuthenticatedAnalyseRequest } from "@/lib/research/buildAnalyseRequest";
 import {
@@ -135,10 +140,22 @@ const AiCopilotSection = lazy(() =>
   })),
 );
 
-function resolveCatalogue(ticker: string) {
-  return COMPANY_CATALOGUE.find(
-    (c) => c.ticker.toUpperCase() === ticker.trim().toUpperCase(),
-  );
+function listingFromIdentity(identity: {
+  ticker: string;
+  exchange: string;
+  isin: string;
+  mic: string;
+}): SecurityListingView | null {
+  if (!identity.ticker) return null;
+  return {
+    ticker: identity.ticker,
+    company_name: identity.ticker,
+    exchange: identity.exchange,
+    isin: identity.isin,
+    mic: identity.mic,
+    security_type: "equity",
+    eligibility: true,
+  };
 }
 
 function describeAnalyseError(error: unknown): string {
@@ -200,10 +217,18 @@ export function CompanyAnalysisWorkspace() {
   const token = session?.accessToken;
   const { success, error: notifyError } = useNotifications();
 
-  // RC3-003 — no silent default company; require explicit symbol selection.
-  const urlSymbol = (searchParams.get("symbol") || "").trim().toUpperCase();
+  // RC3-003 — no silent default company; require explicit Security Master identity.
+  const urlIdentity = identityFromSearchParams(searchParams);
+  const urlSymbol = urlIdentity.ticker;
+  const urlExchange = urlIdentity.exchange;
+  const urlIsin = urlIdentity.isin;
+  const urlMic = urlIdentity.mic;
   const [symbol, setSymbol] = useState(urlSymbol);
   const [query, setQuery] = useState(urlSymbol);
+  const [identityError, setIdentityError] = useState<string | null>(null);
+  const [listing, setListing] = useState<SecurityListingView | null>(() =>
+    listingFromIdentity(urlIdentity),
+  );
   const [view, setView] = useState<ResearchView | null>(null);
   const [analysedAt, setAnalysedAt] = useState<string | null>(null);
   const [lastAnalyseRequest, setLastAnalyseRequest] =
@@ -227,31 +252,80 @@ export function CompanyAnalysisWorkspace() {
 
   useCollapsePanelsBelowLg(setLeftOpen, setRightOpen);
 
-  const catalogue = useMemo(() => resolveCatalogue(symbol), [symbol]);
+  const catalogue = useMemo(() => {
+    if (!listing?.ticker && !symbol) return undefined;
+    return {
+      name: listing?.company_name || symbol,
+      ticker: listing?.ticker || symbol,
+      exchange: listing?.exchange || urlExchange || "",
+      sector: "",
+      industry: "",
+      marketCap: "",
+      marketCapBucket: "large" as const,
+      researchAvailable: true,
+      featured: false,
+      screening: {
+        roe: 0,
+        roce: 0,
+        debtToEquity: 0,
+        revenueGrowth: 0,
+        profitGrowth: 0,
+        dividend: false,
+        style: "blend" as const,
+        quality: "medium" as const,
+      },
+    };
+  }, [listing, symbol, urlExchange]);
 
   useEffect(() => {
-    const next = (searchParams.get("symbol") || "").trim().toUpperCase();
     setSymbol((prev) => {
-      if (prev === next) return prev;
-      // Clear prior company research only when the ticker actually changes.
+      if (prev === urlSymbol) return prev;
       analyseGeneration.current += 1;
       setView(null);
       setLastAnalyseRequest(null);
       setLastAnalyseResponse(null);
       setAnalysedAt(null);
+      setIdentityError(null);
+      return urlSymbol;
+    });
+    setQuery(urlSymbol);
+    setListing((prev) => {
+      const next = listingFromIdentity({
+        ticker: urlSymbol,
+        exchange: urlExchange,
+        isin: urlIsin,
+        mic: urlMic,
+      });
+      if (
+        prev?.ticker === next?.ticker &&
+        prev?.exchange === next?.exchange &&
+        prev?.isin === next?.isin &&
+        prev?.mic === next?.mic
+      ) {
+        return prev;
+      }
       return next;
     });
-    setQuery(next);
-  }, [searchParams]);
+  }, [urlSymbol, urlExchange, urlIsin, urlMic]);
 
   const selectSymbol = useCallback(
-    (next: string) => {
-      const normalized = next.trim().toUpperCase();
-      if (!normalized) return;
-      setSymbol(normalized);
-      setQuery(normalized);
-      recordSearch(normalized);
-      router.replace(`/analysis?symbol=${encodeURIComponent(normalized)}`);
+    (next: SecurityListingView | string) => {
+      if (typeof next === "string") {
+        const normalized = next.trim().toUpperCase();
+        if (!normalized) return;
+        setSymbol(normalized);
+        setQuery(normalized);
+        recordSearch(normalized);
+        router.replace(`/analysis?symbol=${encodeURIComponent(normalized)}`);
+        return;
+      }
+      if (!next.ticker) return;
+      setSymbol(next.ticker);
+      setQuery(next.ticker);
+      setListing(next);
+      setIdentityError(null);
+      recordSearch(next.ticker);
+      router.replace(analysisPath(next));
     },
     [recordSearch, router],
   );
@@ -260,15 +334,22 @@ export function CompanyAnalysisWorkspace() {
     mutationFn: async () => {
       const generation = ++analyseGeneration.current;
       const requestedSymbol = symbol;
-      const match = resolveCatalogue(requestedSymbol);
-      // P0-01 — authenticated statements only; never clone demo ACM financials.
+      const exchange = listing?.exchange || urlExchange || null;
+      const isin = listing?.isin || urlIsin || null;
+      if (!exchange) {
+        throw new Error("AMBIGUOUS");
+      }
       const body = await loadAuthenticatedAnalyseRequest(requestedSymbol, {
-        exchange: match?.exchange,
-        company: match?.name,
+        exchange,
+        isin,
+        company: listing?.company_name,
         loadStatements: () =>
-          api.financialStatements(requestedSymbol, { token, limit: 1 }),
-        // P0-02 — market price only from authenticated quote (never client IV).
-        loadQuote: () => api.marketQuote(requestedSymbol, { token }),
+          api.financialStatements(requestedSymbol, {
+            token,
+            limit: 1,
+            exchange,
+          }),
+        loadQuote: () => api.marketQuote(requestedSymbol, { token, exchange }),
       });
       const response = await api.analyse(body, { token });
       return { body, response, generation, requestedSymbol };
@@ -326,37 +407,80 @@ export function CompanyAnalysisWorkspace() {
   const runAnalyse = useCallback(() => {
     const normalized = (query.trim() || symbol).toUpperCase();
     if (!normalized) return;
+    const exchange = listing?.exchange || urlExchange;
+    if (!exchange) {
+      if (!token) {
+        setIdentityError("Sign in required for Security Master search.");
+        return;
+      }
+      void api
+        .resolveSecurity(normalized, { token })
+        .then((payload) => {
+          if (payload.status === "RESOLVED" && payload.identity) {
+            selectSymbol(payload.identity);
+            return;
+          }
+          setIdentityError(payload.status || "UNKNOWN");
+        })
+        .catch(() => setIdentityError("UNKNOWN"));
+      return;
+    }
     if (normalized !== symbol) {
-      selectSymbol(normalized);
+      selectSymbol({
+        ticker: normalized,
+        company_name: listing?.company_name || normalized,
+        exchange,
+        isin: listing?.isin || urlIsin,
+        mic: listing?.mic || urlMic,
+        security_type: "equity",
+        eligibility: true,
+      });
       return;
     }
     runWithDisclaimer(() => {
       analyseMutation.mutate();
     });
-  }, [analyseMutation, query, runWithDisclaimer, selectSymbol, symbol]);
+  }, [
+    analyseMutation,
+    listing,
+    query,
+    runWithDisclaimer,
+    selectSymbol,
+    symbol,
+    token,
+    urlExchange,
+    urlIsin,
+    urlMic,
+  ]);
 
-  // Auto-run only when the user (or deep link) provides an explicit symbol.
+  // Auto-run only when the URL already has an exact listing (no silent NSE/BSE pick).
   useEffect(() => {
-    if (!symbol) return;
+    if (!symbol || !token) return;
+    if (!hasExactListingIdentity(urlIdentity) && !urlExchange) return;
     runWithDisclaimer(() => {
       analyseMutation.mutate();
     });
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- intentional symbol-driven refresh
-  }, [symbol, token]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- intentional identity-driven refresh
+  }, [symbol, urlExchange, urlIsin, urlMic, token]);
 
   const marketQuery = useQuery({
-    queryKey: ["company-analysis", "market", symbol],
-    queryFn: () => api.marketQuote(symbol, { token }),
-    enabled: Boolean(token && symbol),
+    queryKey: ["company-analysis", "market", symbol, urlExchange],
+    queryFn: () =>
+      api.marketQuote(symbol, { token, exchange: urlExchange || listing?.exchange }),
+    enabled: Boolean(token && symbol && (urlExchange || listing?.exchange)),
     retry: false,
     staleTime: 60_000,
   });
 
-  // EPIC-D002 — header enrichment only (Market Cap/52wk/ROE); independent of /analyse.
   const financialStatementsQuery = useQuery({
-    queryKey: ["company-analysis", "financial-statements", symbol],
-    queryFn: () => api.financialStatements(symbol, { token, limit: 1 }),
-    enabled: Boolean(token && symbol),
+    queryKey: ["company-analysis", "financial-statements", symbol, urlExchange],
+    queryFn: () =>
+      api.financialStatements(symbol, {
+        token,
+        limit: 1,
+        exchange: urlExchange || listing?.exchange,
+      }),
+    enabled: Boolean(token && symbol && (urlExchange || listing?.exchange)),
     retry: false,
     staleTime: 60_000,
   });
@@ -436,6 +560,13 @@ export function CompanyAnalysisWorkspace() {
             onSelectSymbol={selectSymbol}
             onAnalyze={runAnalyse}
             analyzing={analyseMutation.isPending}
+            identityLabel={
+              listing?.isin && listing.mic
+                ? `${listing.ticker} · ${listing.exchange} · ${listing.isin} · ${listing.mic}`
+                : urlIsin && urlMic
+                  ? `${symbol} · ${urlExchange} · ${urlIsin} · ${urlMic}`
+                  : identityError
+            }
           />
         </aside>
 
@@ -463,9 +594,11 @@ export function CompanyAnalysisWorkspace() {
           {!analyseMutation.isPending && !analyseMutation.isError && !view ? (
             <WorkspaceEmpty
               description={
-                symbol
-                  ? "Run analysis to load backend research outputs for this symbol."
-                  : "Select a ticker to begin company analysis. No company is pre-selected."
+                identityError
+                  ? identityError
+                  : symbol
+                    ? "Run analysis to load backend research outputs for this symbol."
+                    : "Select a ticker to begin company analysis. No company is pre-selected."
               }
               action={
                 symbol ? (

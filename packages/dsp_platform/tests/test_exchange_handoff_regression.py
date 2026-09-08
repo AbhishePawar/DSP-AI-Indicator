@@ -186,9 +186,10 @@ def gated_services(monkeypatch):
 
 def test_build_composition_request_threads_exchange():
     """The public adapter now carries ``exchange`` onto CompositionRequest."""
-    req = build_composition_request(ticker="tcs", exchange="nse")
+    req = build_composition_request(ticker="tcs", exchange="nse", isin="INE467B01029")
     assert isinstance(req, CompositionRequest)
     assert req.exchange == "NSE"
+    assert req.isin == "INE467B01029"
 
 
 def test_exchange_threaded_makes_financial_stage_succeed(gated_services):

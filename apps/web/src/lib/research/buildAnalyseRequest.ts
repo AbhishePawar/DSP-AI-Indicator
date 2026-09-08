@@ -33,6 +33,7 @@ export type AuthenticatedStatementsSource = {
 
 export type AnalyseRequestOverrides = {
   exchange?: string | null;
+  isin?: string | null;
   company?: string;
   financial_statements: FinancialStatementsInput;
   valuation_signals?: ValuationSignalsInput | null;
@@ -122,6 +123,9 @@ export function buildAnalyseRequestForTicker(
     company: overrides.company,
     financial_statements: statements,
   };
+  if (overrides.isin) {
+    request.isin = overrides.isin;
+  }
   if (overrides.valuation_signals !== undefined) {
     request.valuation_signals = overrides.valuation_signals;
   }
@@ -167,6 +171,7 @@ export async function loadAuthenticatedAnalyseRequest(
   ticker: string,
   options: {
     exchange?: string | null;
+    isin?: string | null;
     company?: string;
     loadStatements: () => Promise<AuthenticatedStatementsSource>;
     loadQuote?: () => Promise<AuthenticatedQuoteSource | null | undefined>;
@@ -203,6 +208,7 @@ export async function loadAuthenticatedAnalyseRequest(
 
   return buildAnalyseRequestForTicker(ticker, {
     exchange: options.exchange,
+    isin: options.isin,
     company: options.company,
     financial_statements: statements,
     current_market_price: currentMarketPrice,

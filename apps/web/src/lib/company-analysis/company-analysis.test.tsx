@@ -11,7 +11,10 @@ const replace = vi.fn();
 vi.mock("next/navigation", () => ({
   usePathname: () => "/analysis",
   useRouter: () => ({ push, replace }),
-  useSearchParams: () => new URLSearchParams("symbol=AAPL"),
+  useSearchParams: () =>
+    new URLSearchParams(
+      "symbol=INFY&exchange=NSE&isin=INE009A01021&mic=XNSE",
+    ),
 }));
 
 vi.mock("@/lib/auth/AuthProvider", () => ({
@@ -65,6 +68,8 @@ const financialStatementsMock = vi.fn();
 const corporateActionsMock = vi.fn();
 const copilotCompleteMock = vi.fn();
 const compareMock = vi.fn();
+const searchSecuritiesMock = vi.fn();
+const resolveSecurityMock = vi.fn();
 
 vi.mock("@/lib/api/client", () => ({
   api: {
@@ -74,6 +79,8 @@ vi.mock("@/lib/api/client", () => ({
     corporateActions: (...args: unknown[]) => corporateActionsMock(...args),
     copilotComplete: (...args: unknown[]) => copilotCompleteMock(...args),
     compare: (...args: unknown[]) => compareMock(...args),
+    searchSecurities: (...args: unknown[]) => searchSecuritiesMock(...args),
+    resolveSecurity: (...args: unknown[]) => resolveSecurityMock(...args),
   },
 }));
 
@@ -362,6 +369,39 @@ describe("EPIC-F005 workspace UI", () => {
     corporateActionsMock.mockReset();
     copilotCompleteMock.mockReset();
     compareMock.mockReset();
+    searchSecuritiesMock.mockReset();
+    resolveSecurityMock.mockReset();
+    searchSecuritiesMock.mockResolvedValue({
+      ok: true,
+      status: "MATCHES",
+      query: "INFY",
+      results: [
+        {
+          company_name: "Infosys Limited",
+          ticker: "INFY",
+          isin: "INE009A01021",
+          exchange: "NSE",
+          mic: "XNSE",
+          security_type: "equity",
+          eligibility: true,
+        },
+      ],
+    });
+    resolveSecurityMock.mockResolvedValue({
+      ok: true,
+      status: "RESOLVED",
+      query: "INFY",
+      identity: {
+        company_name: "Infosys Limited",
+        ticker: "INFY",
+        isin: "INE009A01021",
+        exchange: "NSE",
+        mic: "XNSE",
+        security_type: "equity",
+        eligibility: true,
+      },
+      candidates: [],
+    });
     analyseMock.mockResolvedValue(sampleResponse);
     marketQuoteMock.mockResolvedValue({
       ok: true,
@@ -414,7 +454,9 @@ describe("EPIC-F005 workspace UI", () => {
       valuation_signals?: unknown;
       current_market_price?: number;
     };
-    expect(body.ticker).toBe("AAPL");
+    expect(body.ticker).toBe("INFY");
+    expect(body.exchange).toBe("NSE");
+    expect(body.isin).toBe("INE009A01021");
     expect(body.financial_statements.income_statement?.revenue).toBe(391_035);
     expect(body.financial_statements.income_statement?.revenue).not.toBe(1000);
     expect(body.valuation_signals).toBeUndefined();

@@ -32,6 +32,7 @@ from api_platform.api.routers import (
     research_workspace,
     saas,
     ops,
+    securities,
     workflow,
 )
 
@@ -69,5 +70,6 @@ __all__ = [
     "research_workspace",
     "saas",
     "ops",
+    "securities",
     "workflow",
 ]

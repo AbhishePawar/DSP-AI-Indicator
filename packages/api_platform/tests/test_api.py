@@ -150,6 +150,8 @@ class TestVersionAndOpenAPI:
         assert "/auth/login" in paths
         assert "/analyze/company" in paths
         assert "/analyse" in paths
+        assert "/securities/search" in paths
+        assert "/securities/resolve" in paths
         assert "/validate" in paths
         assert "/version" in paths
         assert "/capabilities" in paths

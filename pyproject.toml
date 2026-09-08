@@ -88,6 +88,9 @@ where = [
     "packages/enterprise/src",
 ]
 
+[tool.setuptools.package-data]
+data_engine = ["security_master/data/*.csv"]
+
 [tool.pytest.ini_options]
 testpaths = ["packages", "tests"]
 pythonpath = [

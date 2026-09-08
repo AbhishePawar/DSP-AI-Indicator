@@ -1,0 +1,24 @@
+# Cloud Build upload exclusions. Keep the source tarball small and
+# avoid shipping local forensic leftovers into the build context.
+
+#!include:.gitignore
+
+.bytecode_backup/
+DSP-AI-Indicator/
+artifacts/
+body.txt
+.cursor/
+.venv/
+.mypy_cache/
+.pytest_cache/
+.ruff_cache/
+.tmp-browser-cert/
+node_modules/
+apps/web/node_modules/
+apps/web/.next/
+dsp_ai_indicator.egg-info/
+
+# Unrelated local auth experiments — never part of SIMPLE-WEB-04.
+apps/web/src/components/auth/DemoModeBanner.tsx
+apps/web/src/lib/auth/demoAuth.ts
+apps/web/src/lib/auth/demoAuth.test.ts

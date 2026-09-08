@@ -32,6 +32,7 @@ def build_composition_request(
     ticker: str = "",
     company: str = "",
     exchange: str | None = None,
+    isin: str | None = None,
     current_market_price: float | None = None,
     financial_statements: Mapping[str, Any] | None = None,
     valuation_signals: Mapping[str, Any] | None = None,
@@ -74,6 +75,7 @@ def build_composition_request(
             ) from exc
 
     exchange_norm = str(exchange).strip().upper() if exchange else None
+    isin_norm = str(isin).strip().upper() if isin else None
     return CompositionRequest(
         financial_statements=statements_obj,
         current_market_price=current_market_price,
@@ -81,6 +83,7 @@ def build_composition_request(
         company=str(company or ""),
         ticker=str(ticker or "").strip().upper(),
         exchange=exchange_norm or None,
+        isin=isin_norm or None,
         stop_on_stage_failure=bool(stop_on_stage_failure),
     )
 

@@ -963,6 +963,31 @@ class DSPPlatform:
 
         return resolve_company_identity(symbol, exchange=exchange, currency=currency)
 
+    def search_securities(
+        self,
+        query: str,
+        *,
+        exchange: str | None = None,
+        limit: int = 25,
+    ) -> dict[str, object]:
+        from dsp_platform.security_master import search_securities
+
+        return search_securities(query, exchange=exchange, limit=limit)
+
+    def resolve_security_identity(
+        self,
+        query: str,
+        *,
+        exchange: str | None = None,
+        isin: str | None = None,
+        mic: str | None = None,
+    ) -> dict[str, object]:
+        from dsp_platform.security_master import resolve_security_identity
+
+        return resolve_security_identity(
+            query, exchange=exchange, isin=isin, mic=mic
+        )
+
     def financial_statement_health(self) -> dict[str, object]:
         from dsp_platform.financial_statements import financial_statement_health
 

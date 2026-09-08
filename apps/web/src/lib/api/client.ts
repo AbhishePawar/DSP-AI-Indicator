@@ -24,6 +24,39 @@ export type RequestOptions = {
   signal?: AbortSignal;
 };
 
+/** Official Security Master search hit — identity only, no valuation. */
+export type SecuritySearchCandidate = {
+  listing_id: string;
+  issuer_id?: string;
+  company_name: string;
+  legal_name?: string;
+  trading_symbol: string;
+  exchange: string;
+  mic: string;
+  isin?: string | null;
+  exchange_security_code?: string | null;
+  series?: string | null;
+  security_type: string;
+  listing_status: string;
+  eligibility_status: string;
+  dsp_eligible: boolean;
+  identity_ok: boolean;
+  match_kind?: string;
+};
+
+export type SecuritySearchResponse = {
+  ok: boolean;
+  api_version?: string;
+  query: string;
+  resolution: string;
+  available: boolean;
+  message: string;
+  snapshot_id?: string | null;
+  source_date?: string | null;
+  retrieved_at?: string | null;
+  candidates: SecuritySearchCandidate[];
+};
+
 /** RC1 M6 — one dashboard widget section from GET /dashboards/{role}. */
 export type DashboardWidgetSection = {
   available?: boolean;
@@ -337,6 +370,20 @@ export const api = {
 
   capabilities: (options?: RequestOptions) =>
     request<CapabilitiesResponse>("/capabilities", { method: "GET" }, options),
+
+  searchSecurities: (
+    params: { q: string; limit?: number },
+    options?: RequestOptions,
+  ) => {
+    const query = new URLSearchParams();
+    query.set("q", params.q);
+    if (params.limit != null) query.set("limit", String(params.limit));
+    return request<SecuritySearchResponse>(
+      `/securities/search?${query.toString()}`,
+      { method: "GET" },
+      options,
+    );
+  },
 
   validateAnalyse: (body: AnalyseRequest, options?: RequestOptions) =>
     request<ValidateResponse>(

@@ -153,6 +153,11 @@ function exchangeFromSearch(searchParams: { get: (key: string) => string | null 
   return value || undefined;
 }
 
+function isinFromSearch(searchParams: { get: (key: string) => string | null }) {
+  const value = (searchParams.get("isin") || "").trim().toUpperCase();
+  return value || undefined;
+}
+
 function describeAnalyseError(error: unknown): string {
   if (error instanceof ApiClientError) {
     if (error.status === 401) {
@@ -215,6 +220,7 @@ export function CompanyAnalysisWorkspace() {
   // RC3-003 — no silent default company; require explicit symbol selection.
   const urlSymbol = (searchParams.get("symbol") || "").trim().toUpperCase();
   const urlExchange = exchangeFromSearch(searchParams);
+  const urlIsin = isinFromSearch(searchParams);
   const [symbol, setSymbol] = useState(urlSymbol);
   const [query, setQuery] = useState(urlSymbol);
   const [view, setView] = useState<ResearchView | null>(null);
@@ -267,9 +273,10 @@ export function CompanyAnalysisWorkspace() {
       recordSearch(normalized);
       const params = new URLSearchParams({ symbol: normalized });
       if (urlExchange) params.set("exchange", urlExchange);
+      if (urlIsin) params.set("isin", urlIsin);
       router.replace(`/analysis?${params.toString()}`);
     },
-    [recordSearch, router, urlExchange],
+    [recordSearch, router, urlExchange, urlIsin],
   );
 
   const analyseMutation = useMutation({
@@ -322,6 +329,7 @@ export function CompanyAnalysisWorkspace() {
         exchange: body.exchange || "—",
         recommendation: mapped.recommendation,
         analysedAt: at,
+        isin: urlIsin,
       });
       const serverIv = (
         response.payload as {

@@ -136,7 +136,7 @@ export function Topbar({
                 },
                 {
                   id: "logout",
-                  label: "Logout",
+                  label: ordinary ? "Sign out" : "Logout",
                   destructive: true,
                   onSelect: () => {
                     router.push("/logout");

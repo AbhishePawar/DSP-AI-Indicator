@@ -4,6 +4,8 @@ import Link from "next/link";
 
 import { Badge, Button } from "@/components/ds";
 import { env } from "@/lib/env";
+import { useAuth } from "@/lib/auth/AuthProvider";
+import { resolveShellAudience } from "@/lib/shell";
 import type { CompanyEntry } from "@/lib/companies/catalogue";
 import { useDashboardPrefsStore } from "@/lib/dashboard";
 import { formatPct } from "@/lib/intelligence/mapResponse";
@@ -68,6 +70,10 @@ export function CompanyHeaderBar({
   /** EPIC-D002 authenticated financial statements — latest period ratios only. */
   financialStatements?: FinancialStatementsPayload | null;
 }) {
+  const { session, user } = useAuth();
+  const permissions = session?.permissions ?? user?.permissions ?? [];
+  const roles = session?.roles ?? user?.roles ?? [];
+  const ordinary = resolveShellAudience(permissions, roles) === "ordinary";
   const company = view?.company || catalogue?.name || "Data unavailable.";
   const symbol = view?.ticker || catalogue?.ticker || "—";
   const exchange = view?.exchange || catalogue?.exchange || "Data unavailable.";
@@ -111,9 +117,11 @@ export function CompanyHeaderBar({
       action={
         <div className="flex flex-wrap items-center gap-2">
           <Badge variant="accent">{symbol}</Badge>
-          <Badge variant="outline" className="font-mono text-[10px]">
-            v{env.foundationVersion}
-          </Badge>
+          {ordinary ? null : (
+            <Badge variant="outline" className="font-mono text-[10px]">
+              v{env.foundationVersion}
+            </Badge>
+          )}
           <Button
             size="sm"
             variant="secondary"

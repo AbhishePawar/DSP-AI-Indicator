@@ -6,6 +6,7 @@ export type RecentAnalysisEntry = {
   exchange: string;
   recommendation: string;
   analysedAt: string;
+  isin?: string;
 };
 
 const STORAGE_KEY = "dsp.recentAnalyses.v1";

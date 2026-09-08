@@ -65,6 +65,14 @@ vi.mock("@/lib/api/client", () => ({
       providers: [{ id: "mock", label: "Mock" }],
     })),
     getReport: vi.fn(),
+    searchSecurities: vi.fn(async () => ({
+      ok: false,
+      query: "",
+      resolution: "UNAVAILABLE",
+      available: false,
+      message: "Company search is temporarily unavailable.",
+      candidates: [],
+    })),
   },
 }));
 
@@ -180,6 +188,8 @@ describe("EPIC-F004 dashboard UI", () => {
     expect(screen.getByText("What would you like to research?")).toBeTruthy();
     expect(screen.getByLabelText("Search a company or stock")).toBeTruthy();
     expect(screen.getByRole("button", { name: "Research" })).toBeTruthy();
+    expect(screen.getByRole("button", { name: "Research" })).toBeDisabled();
+    expect(screen.getByText("Start typing a company or stock.")).toBeTruthy();
     expect(screen.queryByText("Executive Dashboard")).toBeNull();
     expect(screen.queryByLabelText("Dashboard widgets")).toBeNull();
   });

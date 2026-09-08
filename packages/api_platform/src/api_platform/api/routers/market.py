@@ -40,18 +40,24 @@ def market_quote(
         )
 
     if payload is None:
-        return JSONResponse(
-            {
-                "ok": True,
-                "available": False,
-                "authenticated": False,
-                "symbol": symbol.strip().upper(),
-                "exchange": exchange,
-                "fields": None,
-                "provenance": None,
-                "message": "Data unavailable.",
-            }
+        from data_engine.investment_data_provider import (
+            INVESTMENT_DATA_UNAVAILABLE,
+            investment_data_is_unavailable,
         )
+
+        body: dict[str, Any] = {
+            "ok": True,
+            "available": False,
+            "authenticated": False,
+            "symbol": symbol.strip().upper(),
+            "exchange": exchange,
+            "fields": None,
+            "provenance": None,
+            "message": "Data unavailable.",
+        }
+        if investment_data_is_unavailable():
+            body["capability"] = INVESTMENT_DATA_UNAVAILABLE
+        return JSONResponse(body)
 
     return JSONResponse(
         {
@@ -71,7 +77,23 @@ def market_quote(
 @router.get("/market/health")
 def market_health(state: ApiState = Depends(get_api_state)) -> dict[str, Any]:
     """Authenticated market quote provider health."""
-    return {
-        "ok": True,
-        "provider": state.platform.market_quote_health(),
-    }
+    try:
+        provider = state.platform.market_quote_health()
+    except Exception as exc:  # noqa: BLE001 — capability must not 500
+        return {
+            "ok": False,
+            "available": False,
+            "capability": "INVESTMENT_DATA_UNAVAILABLE",
+            "provider": {"healthy": False, "authenticated": False, "detail": str(exc)},
+        }
+    from data_engine.investment_data_provider import (
+        INVESTMENT_DATA_UNAVAILABLE,
+        investment_data_is_unavailable,
+    )
+
+    payload: dict[str, Any] = {"ok": True, "provider": provider}
+    if investment_data_is_unavailable():
+        payload["ok"] = False
+        payload["available"] = False
+        payload["capability"] = INVESTMENT_DATA_UNAVAILABLE
+    return payload

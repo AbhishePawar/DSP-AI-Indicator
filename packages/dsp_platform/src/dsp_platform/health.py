@@ -343,6 +343,12 @@ class PlatformHealthService:
                     "(does not block auth/API readiness)"
                 ),
             )
+        if "INVESTMENT_DATA_UNAVAILABLE" in selected.values():
+            return HealthCheckResult(
+                name="investment_data_provider",
+                status=CheckStatus.PASS,
+                message="INVESTMENT_DATA_UNAVAILABLE (no approved investment feed)",
+            )
         detail = ", ".join(f"{k}={v}" for k, v in sorted(selected.items()))
         return HealthCheckResult(
             name="investment_data_provider",

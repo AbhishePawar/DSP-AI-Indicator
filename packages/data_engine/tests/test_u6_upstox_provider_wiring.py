@@ -132,6 +132,24 @@ def test_invalid_provider_rejected(monkeypatch: pytest.MonkeyPatch) -> None:
         resolve_investment_data_provider()
 
 
+def test_unavailable_provider_is_honest_null(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setenv("DSP_ENVIRONMENT", "production")
+    monkeypatch.setenv("DSP_INVESTMENT_DATA_PROVIDER", "unavailable")
+    monkeypatch.setenv("DSP_FMP_API_KEY", "fmp-must-not-activate")
+    monkeypatch.setenv("DSP_UPSTOX_ANALYTICS_TOKEN", "upstox-must-not-activate")
+    quote = build_default_quote_adapter_from_env()
+    stmt = build_default_statement_adapter_from_env()
+    assert isinstance(quote, NullAuthenticatedQuoteAdapter)
+    assert isinstance(stmt, NullAuthenticatedStatementAdapter)
+    from data_engine.connector_framework.production_profile import (
+        assert_production_investment_connectors_configured,
+    )
+
+    selected = assert_production_investment_connectors_configured()
+    assert selected["market_quote"] == "INVESTMENT_DATA_UNAVAILABLE"
+    assert selected["financial_statement"] == "INVESTMENT_DATA_UNAVAILABLE"
+
+
 class _UpstoxAuthHttp:
     """Deterministic U1+U2+U4 HTTP for TCS → instrument_key → quote + statements."""
 

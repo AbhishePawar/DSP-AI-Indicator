@@ -534,6 +534,10 @@ def build_default_historical_adapter_from_env() -> HistoricalSeriesPort:
         memory_adapter_allowed,
         require_authenticated_http_adapter,
     )
+    from data_engine.investment_data_provider import investment_data_is_unavailable
+
+    if investment_data_is_unavailable():
+        return NullAuthenticatedHistoricalAdapter()
 
     api_key = os.environ.get("DSP_HISTORICAL_SERIES_API_KEY", "").strip()
     base_url = os.environ.get("DSP_HISTORICAL_SERIES_BASE_URL", "").strip()

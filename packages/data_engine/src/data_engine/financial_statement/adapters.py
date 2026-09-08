@@ -478,6 +478,7 @@ def build_default_statement_adapter_from_env() -> FinancialStatementPort:
     cannot silently become the production provider.
 
     Routes:
+    - ``DSP_INVESTMENT_DATA_PROVIDER=unavailable`` → no feed (honest Null)
     - ``DSP_INVESTMENT_DATA_PROVIDER=upstox`` → Upstox U4 only (no FMP fallback)
     - ``DSP_INVESTMENT_DATA_PROVIDER=fmp`` → FMP only
     - unset / ``auto`` (first match wins):
@@ -499,6 +500,9 @@ def build_default_statement_adapter_from_env() -> FinancialStatementPort:
     )
 
     provider = resolve_investment_data_provider()
+
+    if provider == "unavailable":
+        return NullAuthenticatedStatementAdapter()
 
     if provider == "upstox":
         from data_engine.upstox_investment import UpstoxStatementAdapter

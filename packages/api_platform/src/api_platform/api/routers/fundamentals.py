@@ -50,19 +50,25 @@ def financial_statements(
         )
 
     if payload is None:
-        return JSONResponse(
-            {
-                "ok": True,
-                "available": False,
-                "authenticated": False,
-                "symbol": symbol.strip().upper(),
-                "exchange": exchange,
-                "periods": None,
-                "identity": None,
-                "provenance": None,
-                "message": "Data unavailable.",
-            }
+        from data_engine.investment_data_provider import (
+            INVESTMENT_DATA_UNAVAILABLE,
+            investment_data_is_unavailable,
         )
+
+        body: dict[str, Any] = {
+            "ok": True,
+            "available": False,
+            "authenticated": False,
+            "symbol": symbol.strip().upper(),
+            "exchange": exchange,
+            "periods": None,
+            "identity": None,
+            "provenance": None,
+            "message": "Data unavailable.",
+        }
+        if investment_data_is_unavailable():
+            body["capability"] = INVESTMENT_DATA_UNAVAILABLE
+        return JSONResponse(body)
 
     return JSONResponse(
         {
@@ -125,7 +131,23 @@ def resolve_company(
 @router.get("/fundamentals/health")
 def fundamentals_health(state: ApiState = Depends(get_api_state)) -> dict[str, Any]:
     """Authenticated financial statement provider health."""
-    return {
-        "ok": True,
-        "provider": state.platform.financial_statement_health(),
-    }
+    try:
+        provider = state.platform.financial_statement_health()
+    except Exception as exc:  # noqa: BLE001 — capability must not 500
+        return {
+            "ok": False,
+            "available": False,
+            "capability": "INVESTMENT_DATA_UNAVAILABLE",
+            "provider": {"healthy": False, "authenticated": False, "detail": str(exc)},
+        }
+    from data_engine.investment_data_provider import (
+        INVESTMENT_DATA_UNAVAILABLE,
+        investment_data_is_unavailable,
+    )
+
+    payload: dict[str, Any] = {"ok": True, "provider": provider}
+    if investment_data_is_unavailable():
+        payload["ok"] = False
+        payload["available"] = False
+        payload["capability"] = INVESTMENT_DATA_UNAVAILABLE
+    return payload

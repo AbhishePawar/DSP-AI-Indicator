@@ -93,6 +93,8 @@ def require_authenticated_http_adapter(
     from data_engine.upstox_investment import resolve_upstox_analytics_token
 
     provider = resolve_investment_data_provider(environ)
+    if provider == "unavailable":
+        return
     if provider == "upstox":
         if resolve_upstox_analytics_token(environ):
             return
@@ -159,6 +161,18 @@ def assert_production_investment_connectors_configured() -> dict[str, str]:
     """
     if not is_production_environment():
         return {}
+
+    from data_engine.investment_data_provider import (
+        INVESTMENT_DATA_UNAVAILABLE,
+        investment_data_is_unavailable,
+    )
+
+    if investment_data_is_unavailable():
+        return {
+            "selection": "unavailable",
+            "market_quote": INVESTMENT_DATA_UNAVAILABLE,
+            "financial_statement": INVESTMENT_DATA_UNAVAILABLE,
+        }
 
     from data_engine.financial_statement.adapters import (
         build_default_statement_adapter_from_env,

@@ -483,6 +483,10 @@ describe("EPIC-F005 workspace UI", () => {
       expect(financialStatementsMock).toHaveBeenCalled();
     });
     expect(analyseMock).not.toHaveBeenCalled();
+    expect(
+      await screen.findByText("Investment data is currently unavailable."),
+    ).toBeTruthy();
+    expect(screen.getByText(/Security identified successfully/)).toBeTruthy();
   });
 
   it("blocks analyse until research disclaimer is acknowledged", async () => {

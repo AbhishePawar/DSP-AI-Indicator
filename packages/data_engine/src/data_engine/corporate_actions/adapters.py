@@ -463,6 +463,10 @@ def build_default_corporate_action_adapter_from_env() -> CorporateActionPort:
         memory_adapter_allowed,
         require_authenticated_http_adapter,
     )
+    from data_engine.investment_data_provider import investment_data_is_unavailable
+
+    if investment_data_is_unavailable():
+        return NullAuthenticatedCorporateActionAdapter()
 
     api_key = os.environ.get("DSP_CORPORATE_ACTIONS_API_KEY", "").strip()
     base_url = os.environ.get("DSP_CORPORATE_ACTIONS_BASE_URL", "").strip()

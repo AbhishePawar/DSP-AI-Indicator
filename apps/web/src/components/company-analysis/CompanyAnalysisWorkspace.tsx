@@ -182,6 +182,9 @@ function describeAnalyseError(error: unknown): string {
     if (msg.includes("timeout") || msg.includes("network")) {
       return "Network timeout or connectivity failure — Data unavailable. Retry when online.";
     }
+    if (error.message === "Data unavailable.") {
+      return "Security identified successfully. Investment data is currently unavailable. No valuation was calculated.";
+    }
     return error.message;
   }
   return "Data unavailable.";
@@ -581,7 +584,7 @@ export function CompanyAnalysisWorkspace() {
 
           {analyseMutation.isError && !view ? (
             <ErrorState
-              title="Analysis failed"
+              title="Investment data is currently unavailable."
               description={describeAnalyseError(analyseMutation.error)}
               action={
                 <Button size="sm" variant="secondary" onClick={runAnalyse}>
@@ -593,12 +596,19 @@ export function CompanyAnalysisWorkspace() {
 
           {!analyseMutation.isPending && !analyseMutation.isError && !view ? (
             <WorkspaceEmpty
+              title={
+                hasExactListingIdentity(urlIdentity)
+                  ? "Investment data is currently unavailable."
+                  : "Data unavailable."
+              }
               description={
                 identityError
                   ? identityError
-                  : symbol
-                    ? "Run analysis to load backend research outputs for this symbol."
-                    : "Select a ticker to begin company analysis. No company is pre-selected."
+                  : hasExactListingIdentity(urlIdentity)
+                    ? "Security identified successfully. No valuation was calculated."
+                    : symbol
+                      ? "Run analysis to load backend research outputs for this symbol."
+                      : "Select a ticker to begin company analysis. No company is pre-selected."
               }
               action={
                 symbol ? (

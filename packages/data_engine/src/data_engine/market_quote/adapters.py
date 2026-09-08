@@ -216,6 +216,7 @@ def build_default_quote_adapter_from_env() -> MarketQuotePort:
     cannot silently become the production provider.
 
     Routes:
+    - ``DSP_INVESTMENT_DATA_PROVIDER=unavailable`` → no feed (honest Null)
     - ``DSP_INVESTMENT_DATA_PROVIDER=upstox`` → Upstox U2 only (no FMP fallback)
     - ``DSP_INVESTMENT_DATA_PROVIDER=fmp`` → FMP only
     - unset / ``auto`` (first match wins):
@@ -237,6 +238,9 @@ def build_default_quote_adapter_from_env() -> MarketQuotePort:
     )
 
     provider = resolve_investment_data_provider()
+
+    if provider == "unavailable":
+        return NullAuthenticatedQuoteAdapter()
 
     if provider == "upstox":
         from data_engine.upstox_investment import UpstoxQuoteAdapter

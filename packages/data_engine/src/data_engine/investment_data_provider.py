@@ -5,6 +5,7 @@ Mirrors the FMP env-factory path used by ``/analyse`` via
 ``build_default_statement_adapter_from_env``.
 
 ``DSP_INVESTMENT_DATA_PROVIDER``:
+  - ``unavailable`` / ``none`` / ``off`` — no investment feed; fail closed honestly
   - ``upstox`` — Upstox U2 quote + U4 statements only (no FMP/Yahoo/memory fallback)
   - ``fmp`` — FMP only (explicit)
   - unset / ``auto`` — existing ConfiguredHttp → FMP → memory → null route
@@ -24,15 +25,18 @@ from data_engine.connector_framework.production_profile import (
 
 __all__ = [
     "DSP_INVESTMENT_DATA_PROVIDER_ENV",
+    "INVESTMENT_DATA_UNAVAILABLE",
     "InvestmentDataProvider",
+    "investment_data_is_unavailable",
     "resolve_investment_data_provider",
     "require_upstox_analytics_token",
 ]
 
 DSP_INVESTMENT_DATA_PROVIDER_ENV = "DSP_INVESTMENT_DATA_PROVIDER"
+INVESTMENT_DATA_UNAVAILABLE = "INVESTMENT_DATA_UNAVAILABLE"
 
 # Normalized selection values
-InvestmentDataProvider = str  # "auto" | "upstox" | "fmp"
+InvestmentDataProvider = str  # "auto" | "upstox" | "fmp" | "unavailable"
 
 
 def resolve_investment_data_provider(
@@ -43,12 +47,21 @@ def resolve_investment_data_provider(
     raw = str(env_map.get(DSP_INVESTMENT_DATA_PROVIDER_ENV) or "").strip().lower()
     if not raw or raw in {"auto", "default"}:
         return "auto"
+    if raw in {"unavailable", "none", "off"}:
+        return "unavailable"
     if raw in {"upstox", "fmp"}:
         return raw
     raise ConnectorConfigurationError(
         f"P1-03: invalid {DSP_INVESTMENT_DATA_PROVIDER_ENV}={raw!r}; "
-        "allowed values: upstox, fmp, auto (or unset)"
+        "allowed values: unavailable, upstox, fmp, auto (or unset)"
     )
+
+
+def investment_data_is_unavailable(
+    environ: Mapping[str, str] | None = None,
+) -> bool:
+    """True when production has no approved investment feed (honest absence)."""
+    return resolve_investment_data_provider(environ) == "unavailable"
 
 
 def require_upstox_analytics_token(

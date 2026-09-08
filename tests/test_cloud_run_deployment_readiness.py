@@ -25,13 +25,14 @@ class TestStartApiPortBinding:
 
 
 class TestCloudBuildDeployWiring:
-    def test_sets_production_upstox_database_and_region(self) -> None:
+    def test_sets_production_database_region_and_unavailable_investment_feed(self) -> None:
         text = _CLOUDBUILD.read_text(encoding="utf-8")
         assert "DSP_ENVIRONMENT=production" in text
         assert "DSP_REGION=ap-south-1" in text
-        assert "DSP_INVESTMENT_DATA_PROVIDER=upstox" in text
+        assert "DSP_INVESTMENT_DATA_PROVIDER=unavailable" in text
+        assert "DSP_INVESTMENT_DATA_PROVIDER=upstox" not in text
         assert "DSP_DATABASE_URL=dsp-database-url:latest" in text
-        assert "DSP_UPSTOX_ANALYTICS_TOKEN=dsp-upstox-analytics-token:latest" in text
+        assert "DSP_UPSTOX_ANALYTICS_TOKEN" not in text
         assert (
             "--add-cloudsql-instances="
             "project-34de429e-3c43-4ae7-b75:asia-south1:dsp-postgres"
@@ -39,8 +40,8 @@ class TestCloudBuildDeployWiring:
         assert "--port=8000" in text
         assert "--region=$_REGION" in text
         assert "_REGION: asia-south1" in text
-        # No FMP wiring in Cloud Run production path.
-        assert "FMP" not in text
+        assert "DSP_FMP" not in text
+        assert "yfinance" not in text
 
 
 class TestDockerfilePsycopgContract:

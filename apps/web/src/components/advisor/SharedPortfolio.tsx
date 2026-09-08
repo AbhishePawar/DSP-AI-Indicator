@@ -1,12 +1,6 @@
 "use client";
 
-import {
-  memo,
-  useMemo,
-  useState,
-  useSyncExternalStore,
-  type ReactNode,
-} from "react";
+import { memo, useMemo, useSyncExternalStore, type ReactNode,  } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 

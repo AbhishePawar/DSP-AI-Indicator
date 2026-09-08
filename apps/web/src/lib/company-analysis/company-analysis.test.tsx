@@ -89,6 +89,12 @@ import { buildDemoAnalyseRequest } from "@/lib/research/buildAnalyseRequest";
 import { FRONTEND_FOUNDATION_VERSION } from "@/foundation";
 import { acknowledgeResearchDisclaimer } from "@/lib/legal";
 import type { AnalyseResponse } from "@/lib/api/compositionTypes";
+import { CompanyAnalysisWorkspace } from '../../components/company-analysis/CompanyAnalysisWorkspace';
+import { ValuationSection } from '../../components/analysis/ValuationSection';
+import { RiskSection } from '../../components/company-analysis/FlagshipSections';
+
+
+
 
 const sampleResponse: AnalyseResponse = {
   ok: true,

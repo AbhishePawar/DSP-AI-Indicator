@@ -1,0 +1,1 @@
+-- This file is intentionally empty (placeholder replaced by 20260903171000_admin_panel_module.sql)

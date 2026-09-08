@@ -10,6 +10,8 @@ import { Suspense } from "react";
 
 import { WorkspaceSkeleton } from "@/components/research-workspace/Primitives";
 import { PageHeader } from "@/components/layout/PageHeader";
+import { ResearchWorkspace } from '../../components/research-workspace/ResearchWorkspace';
+
 
 const ResearchWorkspace = dynamic(
   () =>

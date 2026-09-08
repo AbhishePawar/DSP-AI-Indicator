@@ -1,0 +1,20 @@
+{
+    "name": "dsp-ai-indicator",
+    "version": "2.0.0-rc.1",
+    "private": true,
+    "description": "DSP AI Indicator monorepo root",
+    "scripts": {
+        "dev": "npm run dev --workspace=apps/web --",
+        "build": "npm run build --workspace=apps/web",
+        "start": "npm run start --workspace=apps/web",
+        "lint": "npm run lint --workspace=apps/web",
+        "test": "npm run test --workspace=apps/web"
+    },
+    "workspaces": [
+        "apps/web"
+    ],
+    "dependencies": {
+        "@playwright/test": "^1.62.1",
+        "react": "^19.2.8"
+    }
+}

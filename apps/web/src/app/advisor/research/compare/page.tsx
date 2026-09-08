@@ -3,6 +3,8 @@
 import dynamic from "next/dynamic";
 
 import { Skeleton } from "@/components/ui/Skeleton";
+import { CompareWorkspace } from '../../../../components/advisor/AdvisorResearch';
+
 
 const CompareWorkspace = dynamic(
   () => import("@/components/advisor/AdvisorResearch").then((m) => m.CompareWorkspace),

@@ -21,6 +21,10 @@ import {
 import { useUiStore } from "@/lib/shell/uiStore";
 import { breadcrumbsFor } from "@/lib/navigation";
 import { FRONTEND_FOUNDATION_VERSION } from "@/foundation";
+import { LoadingLayout, EmptyLayout, ErrorLayout, PageContainer } from '../../components/layout/ContentArea';
+import { Breadcrumbs } from '../../components/layout/Breadcrumbs';
+
+
 
 describe("EPIC-F003 navigation registry", () => {
   it("includes institutional shell destinations", () => {

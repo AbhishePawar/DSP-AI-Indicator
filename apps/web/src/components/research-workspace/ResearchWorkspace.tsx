@@ -50,6 +50,12 @@ import {
   ViewerSection,
 } from "./Sections";
 import { SectionCard, WorkspaceEmpty, WorkspaceSkeleton } from "./Primitives";
+import { InstitutionalRatingsSection } from '../company-analysis/InstitutionalRatingsSection';
+import { ValuationTransparencySection } from '../company-analysis/ValuationTransparencySection';
+import { BuffettIndicatorSection } from '../company-analysis/BuffettIndicatorSection';
+
+
+
 
 /** RC3-004 — code-split heavy company-analysis overlays. */
 const BuffettIndicatorSection = lazy(() =>

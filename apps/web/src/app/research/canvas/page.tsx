@@ -12,6 +12,8 @@ import { PageHeader } from "@/components/layout/PageHeader";
 import { WorkspaceSkeleton } from "@/components/research-canvas";
 import { featureFlags } from "@/lib/featureFlags";
 import { EmptyState } from "@/components/ds";
+import { ResearchCanvasWorkspace } from '../../../components/research-canvas/ResearchCanvasWorkspace';
+
 
 const ResearchCanvasWorkspace = dynamic(
   () =>

@@ -4,6 +4,8 @@ import { Suspense, lazy } from "react";
 
 import { Skeleton } from "@/components/ds";
 import { PageHeader } from "@/components/layout/PageHeader";
+import { ControlCenter } from '../../components/control-center/ControlCenter';
+
 
 const ControlCenter = lazy(() =>
   import("@/components/control-center").then((m) => ({

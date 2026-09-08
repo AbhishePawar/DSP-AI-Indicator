@@ -11,6 +11,8 @@ import { Suspense } from "react";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 import { WorkspaceSkeleton } from "@/components/portfolio-intelligence/Primitives";
 import { PageHeader } from "@/components/layout/PageHeader";
+import { PortfolioIntelligenceWorkspace } from '../../components/portfolio-intelligence/PortfolioIntelligenceWorkspace';
+
 
 const PortfolioIntelligenceWorkspace = dynamic(
   () =>

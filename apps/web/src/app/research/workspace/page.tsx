@@ -4,6 +4,8 @@ import { Suspense, lazy } from "react";
 
 import { Skeleton } from "@/components/ds";
 import { PageHeader } from "@/components/layout/PageHeader";
+import { InstitutionalResearchWorkspace } from '../../../components/institutional-research-workspace/InstitutionalResearchWorkspace';
+
 
 const InstitutionalResearchWorkspace = lazy(() =>
   import("@/components/institutional-research-workspace").then((m) => ({

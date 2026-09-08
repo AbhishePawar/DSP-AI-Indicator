@@ -170,6 +170,14 @@ vi.mock("@/lib/portfolio/PortfolioProvider", () => ({
 import { useAdminConsolePrefsStore } from "@/lib/admin-console";
 import { useSettingsPrefsStore } from "@/lib/settings";
 import { useResearchWorkspacePrefsStore } from "@/lib/research-workspace";
+import { AdminConsole } from '../components/admin-console/AdminConsole';
+import { SettingsWorkspace } from '../components/settings-workspace/SettingsWorkspace';
+import { DiffSection } from '../components/research-workspace/Sections';
+import { SummarySection } from '../components/company-analysis/WorkspaceSections';
+
+
+
+
 
 function wrap(ui: ReactElement) {
   const client = new QueryClient({

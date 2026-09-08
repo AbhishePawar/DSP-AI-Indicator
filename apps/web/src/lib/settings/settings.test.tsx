@@ -98,6 +98,10 @@ import {
   useSettingsPrefsStore,
 } from "@/lib/settings";
 import { FRONTEND_FOUNDATION_VERSION } from "@/foundation";
+import { SettingsWorkspace } from '../../components/settings-workspace/SettingsWorkspace';
+import { AppearanceSection, ProfileSection, SecuritySection, AboutSection } from '../../components/settings-workspace/Sections';
+
+
 
 function wrap(ui: ReactElement) {
   const client = new QueryClient({

@@ -54,6 +54,16 @@ import {
   WorkspaceEmpty,
   WorkspaceSkeleton,
 } from "./WorkspacePrimitives";
+import { Section } from '../ds/index';
+import { InstitutionalRatingsSection } from './InstitutionalRatingsSection';
+import { ValuationTransparencySection } from './ValuationTransparencySection';
+import { BuffettIndicatorSection } from './BuffettIndicatorSection';
+import { AiCopilotSection } from './sections/AiCopilotSection';
+
+
+
+
+
 
 const ValuationSection = lazy(() =>
   import("./WorkspaceSections").then((m) => ({ default: m.ValuationSection })),

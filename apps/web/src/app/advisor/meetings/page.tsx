@@ -3,6 +3,8 @@
 import dynamic from "next/dynamic";
 
 import { Skeleton } from "@/components/ui/Skeleton";
+import { MeetingsWorkspace } from '../../../components/advisor/AdvisorWorkspace';
+
 
 const MeetingsWorkspace = dynamic(
   () =>

@@ -1,3 +1,4 @@
+import React from 'react';
 /**
  * EPIC-010 / GA-003 — Performance automation (code-splitting / lazy / skeletons).
  * Quality-only source contracts — no UX redesign, no engine changes.

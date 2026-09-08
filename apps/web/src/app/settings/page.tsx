@@ -10,6 +10,8 @@ import { Suspense } from "react";
 
 import { WorkspaceSkeleton } from "@/components/settings-workspace/Primitives";
 import { PageHeader } from "@/components/layout/PageHeader";
+import { SettingsWorkspace } from '../../components/settings-workspace/SettingsWorkspace';
+
 
 const SettingsWorkspace = dynamic(
   () =>

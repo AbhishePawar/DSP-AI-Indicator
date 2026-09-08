@@ -4,6 +4,8 @@ import { Suspense, lazy } from "react";
 
 import { Skeleton } from "@/components/ds";
 import { PageHeader } from "@/components/layout/PageHeader";
+import { SaasPlatform } from '../../components/saas-platform/SaasPlatform';
+
 
 const SaasPlatform = lazy(() =>
   import("@/components/saas-platform").then((m) => ({

@@ -4,7 +4,7 @@ import Link from "next/link";
 
 import { MarketDataCard } from "@/components/market/MarketDataCard";
 import { DeterministicAnalysisLabel } from "@/components/market/MarketStatusIndicator";
-import { Button } from "@/components/ui/Button";
+
 import { Card, CardBody, CardHeader } from "@/components/ui/Card";
 import { formatPct, formatScore } from "@/lib/intelligence/mapResponse";
 import type { IntelligenceView } from "@/lib/intelligence/mapResponse";

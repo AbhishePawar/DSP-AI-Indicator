@@ -17,6 +17,12 @@ import {
 import { FRONTEND_FOUNDATION_VERSION } from "@/foundation";
 import { breakpoints } from "@/components/ds/utilities/responsive";
 import { ThemeProvider } from "@/providers/ThemeProvider";
+import { AppLayout } from '../../components/layout/AppLayout';
+import { Topbar } from '../../components/layout/Topbar';
+import { PageHeader } from '../../components/PageHeader';
+
+
+
 
 vi.mock("next/navigation", () => ({
   usePathname: () => "/dashboard",

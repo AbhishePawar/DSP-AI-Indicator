@@ -113,6 +113,10 @@ import {
 import { FRONTEND_FOUNDATION_VERSION } from "@/foundation";
 import { acknowledgeResearchDisclaimer } from "@/lib/legal";
 import type { AnalyseResponse } from "@/lib/api/compositionTypes";
+import { ResearchWorkspace } from '../../components/research-workspace/ResearchWorkspace';
+import { DiffSection } from '../../components/research-workspace/Sections';
+
+
 
 const sampleResponse: AnalyseResponse = {
   ok: true,

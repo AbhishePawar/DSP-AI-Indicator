@@ -7,6 +7,8 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 
 import { ThemeProvider } from "@/providers/ThemeProvider";
+import LoginForm from './LoginForm';
+
 
 const loginMock = vi.fn();
 const requestOtpMock = vi.fn();

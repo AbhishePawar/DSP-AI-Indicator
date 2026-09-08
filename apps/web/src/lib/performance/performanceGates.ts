@@ -1,3 +1,4 @@
+import React from 'react';
 /**
  * EPIC-010 / GA-003 — Performance automation catalogue (thin-client UI only).
  */

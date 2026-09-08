@@ -1,10 +1,6 @@
 import Link from "next/link";
 
-import {
-  COMMERCIAL_PRICING_DISCLOSURE,
-  PRODUCT_EDITIONS,
-  SUPPORT_CONTACT,
-} from "@/lib/commercial";
+import { COMMERCIAL_PRICING_DISCLOSURE, PRODUCT_EDITIONS,  } from "@/lib/commercial";
 import { env } from "@/lib/env";
 
 import {

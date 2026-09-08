@@ -82,6 +82,12 @@ import { mapResearchView } from "@/lib/research/mapResearchView";
 import { buildDemoAnalyseRequest } from "@/lib/research/buildAnalyseRequest";
 import { acknowledgeResearchDisclaimer } from "@/lib/legal";
 import type { AnalyseResponse } from "@/lib/api/compositionTypes";
+import { InstitutionalReportsWorkspace } from '../../components/institutional-reports/InstitutionalReportsWorkspace';
+import { BusinessQualityModule, RiskModule, ValuationModule, AiCommitteeModule } from '../../components/institutional-reports/ReportModules';
+import { CoverSection, ExplainabilityModule, AuditModule } from '../../components/institutional-reports/Sections';
+
+
+
 
 const sampleResponse: AnalyseResponse = {
   ok: true,

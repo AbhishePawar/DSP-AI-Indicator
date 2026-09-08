@@ -7,6 +7,8 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 
 import { ThemeProvider } from "@/providers/ThemeProvider";
+import LoginForm from '../app/(auth)/login/LoginForm';
+
 
 vi.mock("next/navigation", () => ({
   usePathname: () => "/login",

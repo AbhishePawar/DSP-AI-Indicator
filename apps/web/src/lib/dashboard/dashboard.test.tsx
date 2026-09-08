@@ -94,6 +94,12 @@ import {
   useDashboardPrefsStore,
 } from "@/lib/dashboard";
 import { FRONTEND_FOUNDATION_VERSION } from "@/foundation";
+import { InstitutionalDashboard } from '../../components/dashboard/InstitutionalDashboard';
+import { PortfolioSummaryWidget } from '../../components/dashboard/widgets/ResearchPortfolioWidgets';
+import { PlatformHealthWidget } from '../../components/dashboard/widgets/SystemAiWidgets';
+
+
+
 
 function wrap(ui: React.ReactNode) {
   const client = new QueryClient({

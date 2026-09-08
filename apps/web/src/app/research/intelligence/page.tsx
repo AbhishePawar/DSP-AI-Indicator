@@ -12,6 +12,8 @@ import { PageHeader } from "@/components/layout/PageHeader";
 import { WorkspaceSkeleton } from "@/components/research-intelligence";
 import { featureFlags } from "@/lib/featureFlags";
 import { EmptyState } from "@/components/ds";
+import { ResearchIntelligenceWorkspace } from '../../../components/research-intelligence/ResearchIntelligenceWorkspace';
+
 
 const ResearchIntelligenceWorkspace = dynamic(
   () =>

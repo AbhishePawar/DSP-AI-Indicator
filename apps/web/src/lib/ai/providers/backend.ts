@@ -1,9 +1,5 @@
 import { api } from "@/lib/api/client";
-import type {
-  CopilotCompleteRequestBody,
-  CopilotCompleteResponseBody,
-  CopilotStreamChunkBody,
-} from "@/lib/api/copilotTypes";
+import type { CopilotCompleteRequestBody,  } from "@/lib/api/copilotTypes";
 import type { AIRequest, AIResponse } from "@/lib/ai";
 import type {
   AIProvider,

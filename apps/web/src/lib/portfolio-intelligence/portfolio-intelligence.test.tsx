@@ -142,6 +142,10 @@ import {
   usePortfolioIntelPrefsStore,
 } from "@/lib/portfolio-intelligence";
 import { FRONTEND_FOUNDATION_VERSION } from "@/foundation";
+import { PortfolioIntelligenceWorkspace } from '../../components/portfolio-intelligence/PortfolioIntelligenceWorkspace';
+import { HoldingsSection } from '../../components/portfolio-intelligence/Sections';
+
+
 
 function wrap(ui: React.ReactNode) {
   const client = new QueryClient({

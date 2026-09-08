@@ -84,6 +84,10 @@ import {
   useAdminConsolePrefsStore,
 } from "@/lib/admin-console";
 import { FRONTEND_FOUNDATION_VERSION } from "@/foundation";
+import { AdminConsole } from '../../components/admin-console/AdminConsole';
+import { IdentitySection, AuditSection, PlatformSection, MetricsSection } from '../../components/admin-console/Sections';
+
+
 
 function wrap(ui: ReactElement) {
   const client = new QueryClient({

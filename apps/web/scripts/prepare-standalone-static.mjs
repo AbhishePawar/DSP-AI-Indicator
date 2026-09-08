@@ -19,6 +19,16 @@ const staticDest = path.join(standalone, ".next", "static");
 const publicSrc = path.join(root, "public");
 const publicDest = path.join(standalone, "public");
 
+// `next build` with output: "standalone" can materialize a ~29-file Next stub at
+// apps/web/node_modules/next. That directory shadows the real package (root
+// node_modules/next) so a second webpack compile and `node …/server.js` both
+// fail (missing ../shared/lib/utils and ./cpu-profile).
+const nestedNext = path.join(root, "node_modules", "next");
+const nestedNextMarker = path.join(nestedNext, "dist", "shared", "lib", "utils.js");
+if (fs.existsSync(nestedNext) && !fs.existsSync(nestedNextMarker)) {
+  fs.rmSync(nestedNext, { recursive: true, force: true });
+}
+
 if (!fs.existsSync(serverJs)) {
   console.error(`Missing ${serverJs}`);
   process.exit(1);

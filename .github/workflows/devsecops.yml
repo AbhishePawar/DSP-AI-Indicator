@@ -20,6 +20,22 @@ permissions:
   actions: read
 
 jobs:
+  no-vercel-hosting:
+    name: No Vercel hosting dependency
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Scan git tree
+        run: python scripts/ops/assert_no_vercel_hosting.py
+      - name: Playwright / Cloud Run contract
+        run: |
+          python -m pip install --upgrade pip
+          pip install pytest
+          pytest tests/test_no_vercel_hosting.py -q --tb=short -p no:cov
+
   trivy-fs:
     name: Trivy filesystem scan
     runs-on: ubuntu-latest

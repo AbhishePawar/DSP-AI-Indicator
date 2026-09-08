@@ -25,13 +25,24 @@ class TestStartApiPortBinding:
 
 
 class TestCloudBuildDeployWiring:
-    def test_sets_production_upstox_database_and_region(self) -> None:
+    def test_sets_production_database_region_and_no_upstox(self) -> None:
         text = _CLOUDBUILD.read_text(encoding="utf-8")
         assert "DSP_ENVIRONMENT=production" in text
         assert "DSP_REGION=ap-south-1" in text
-        assert "DSP_INVESTMENT_DATA_PROVIDER=upstox" in text
+        assert "DSP_INVESTMENT_DATA_PROVIDER=none" in text
+        assert "DSP_INVESTMENT_DATA_PROVIDER=upstox" not in text
         assert "DSP_DATABASE_URL=dsp-database-url:latest" in text
-        assert "DSP_UPSTOX_ANALYTICS_TOKEN=dsp-upstox-analytics-token:latest" in text
+        assert "--remove-secrets=DSP_UPSTOX_ANALYTICS_TOKEN" in text
+        assert "dsp-upstox-analytics-token" not in text
+        update_secrets = [
+            line.strip()
+            for line in text.splitlines()
+            if line.strip().startswith("- --update-secrets=")
+        ]
+        assert update_secrets, "Cloud Build must declare --update-secrets"
+        assert all(
+            "DSP_UPSTOX_ANALYTICS_TOKEN=" not in line for line in update_secrets
+        )
         assert (
             "--add-cloudsql-instances="
             "project-34de429e-3c43-4ae7-b75:asia-south1:dsp-postgres"

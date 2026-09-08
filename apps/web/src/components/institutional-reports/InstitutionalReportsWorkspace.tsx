@@ -35,6 +35,7 @@ import {
   type ReportSectionId,
 } from "@/lib/institutional-reports";
 import { loadAuthenticatedAnalyseRequest } from "@/lib/research/buildAnalyseRequest";
+import { formatAnalyseUnavailableMessage } from "@/lib/research/unavailableCopy";
 import {
   mapResearchView,
   type ResearchView,
@@ -109,7 +110,7 @@ function describeAnalyseError(error: unknown): string {
     if (error.status >= 500) {
       return `API unavailable (${error.status}) — ${error.message}. Data unavailable.`;
     }
-    return error.message || "Data unavailable.";
+    return formatAnalyseUnavailableMessage(error.message) || "Data unavailable.";
   }
   if (error instanceof Error) {
     const msg = error.message.toLowerCase();

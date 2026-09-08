@@ -22,7 +22,7 @@ __all__ = [
 ]
 
 # Canonical period kinds aligned with contracts.StatementPeriodType + restated flag.
-StatementPeriodKind = str  # "annual" | "quarterly" | "ttm"
+StatementPeriodKind = str  # "annual" | "quarterly" | "ttm" | "ytd"
 
 
 @dataclass(frozen=True, slots=True)

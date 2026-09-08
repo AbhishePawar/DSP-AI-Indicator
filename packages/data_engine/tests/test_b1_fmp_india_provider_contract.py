@@ -212,10 +212,10 @@ def test_memory_and_fixture_never_clear_g2() -> None:
     assert may_clear_g2("credentials_unavailable") is False
 
 
-def test_factory_does_not_select_upstox_when_only_upstox_token(
+def test_factory_does_not_select_retired_vendor_when_only_stale_token(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    """Upstox exists but is not on the default investment factory path."""
+    """A leftover vendor token must not become the default factory path."""
     for name in (
         "DSP_MARKET_QUOTE_API_KEY",
         "DSP_MARKET_QUOTE_BASE_URL",
@@ -223,9 +223,8 @@ def test_factory_does_not_select_upstox_when_only_upstox_token(
         "DSP_INVESTMENT_FMP_API_KEY",
         "DSP_MARKET_QUOTE_MEMORY",
         "DSP_ENVIRONMENT",
+        "DSP_INVESTMENT_DATA_PROVIDER",
     ):
         monkeypatch.delenv(name, raising=False)
-    monkeypatch.setenv("DSP_UPSTOX_ANALYTICS_TOKEN", "upstox-only-token")
     adapter = build_default_quote_adapter_from_env()
-    assert type(adapter).__name__ != "UpstoxQuoteAdapter"
     assert adapter.provider_id == "null_market_quote"

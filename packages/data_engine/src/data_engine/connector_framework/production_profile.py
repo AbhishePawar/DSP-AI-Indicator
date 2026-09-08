@@ -88,28 +88,19 @@ def require_authenticated_http_adapter(
     from data_engine.fmp_investment import resolve_fmp_api_key
     from data_engine.investment_data_provider import (
         DSP_INVESTMENT_DATA_PROVIDER_ENV,
-        resolve_investment_data_provider,
+        is_no_data_provider,
     )
-    from data_engine.upstox_investment import resolve_upstox_analytics_token
 
-    provider = resolve_investment_data_provider(environ)
-    if provider == "upstox":
-        if resolve_upstox_analytics_token(environ):
-            return
-        raise ConnectorConfigurationError(
-            f"P1-03: production requires authenticated {connector} provider; "
-            f"{DSP_INVESTMENT_DATA_PROVIDER_ENV}=upstox but "
-            "DSP_UPSTOX_ANALYTICS_TOKEN is absent. "
-            "Null/demo/seed/FMP fallback is not permitted when Upstox is selected."
-        )
+    if is_no_data_provider(environ):
+        return
     if resolve_fmp_api_key(environ):
         return
     raise ConnectorConfigurationError(
         f"P1-03: production requires authenticated {connector} provider; "
         f"set {api_key_env} and {base_url_env}, "
-        "or DSP_FMP_API_KEY / DSP_INVESTMENT_FMP_API_KEY (single-key FMP route), "
-        f"or {DSP_INVESTMENT_DATA_PROVIDER_ENV}=upstox with DSP_UPSTOX_ANALYTICS_TOKEN. "
-        "Null/demo/seed adapters are not permitted on the production path."
+        "or DSP_FMP_API_KEY / DSP_INVESTMENT_FMP_API_KEY (explicit FMP route), "
+        f"or {DSP_INVESTMENT_DATA_PROVIDER_ENV}=none for no-data fail-closed. "
+        "Null/demo/seed adapters are not a silent fallback on auto."
     )
 
 
@@ -165,12 +156,16 @@ def assert_production_investment_connectors_configured() -> dict[str, str]:
     )
     from data_engine.market_quote.adapters import build_default_quote_adapter_from_env
 
+    from data_engine.investment_data_provider import is_no_data_provider
+
     quote = build_default_quote_adapter_from_env()
     statements = build_default_statement_adapter_from_env()
     selected = {
         "market_quote": type(quote).__name__,
         "financial_statement": type(statements).__name__,
     }
+    if is_no_data_provider():
+        return selected
     for name, cls_name in selected.items():
         if adapter_is_production_unsafe_name(cls_name):
             raise ConnectorConfigurationError(

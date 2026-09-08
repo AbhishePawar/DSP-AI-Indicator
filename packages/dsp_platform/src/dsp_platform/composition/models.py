@@ -47,7 +47,7 @@ class CompositionRequest:
     company: str = ""
     ticker: str = ""
     # Public request field threaded to the authenticated provider so the
-    # Upstox U1 resolver can disambiguate dual-listed NSE/BSE equities.
+    # exchange must be declared by the caller or Security Master — never guessed.
     exchange: str | None = None
     stop_on_stage_failure: bool = False
 

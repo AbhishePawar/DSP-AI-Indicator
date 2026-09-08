@@ -2,7 +2,7 @@
 
 Historical note: an earlier revision refused ``create_app`` when production
 investment connectors were unavailable. That coupled client authentication to
-Upstox/FMP boot. Validation now lives in adapter factories / investment paths.
+investment-provider boot. Validation now lives in adapter factories / investment paths.
 """
 
 from __future__ import annotations
@@ -36,8 +36,6 @@ def _clear_investment_env(monkeypatch: pytest.MonkeyPatch) -> None:
     )
     for key in (
         "DSP_INVESTMENT_DATA_PROVIDER",
-        "DSP_UPSTOX_ANALYTICS_TOKEN",
-        "DSP_UPSTOX_ACCESS_TOKEN",
         "DSP_FMP_API_KEY",
         "DSP_INVESTMENT_FMP_API_KEY",
         "DSP_MARKET_QUOTE_API_KEY",

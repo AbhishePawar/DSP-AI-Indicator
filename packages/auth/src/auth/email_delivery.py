@@ -3,7 +3,7 @@
 Credential boundary:
   - Resend auth email uses ``DSP_RESEND_API_KEY`` (never ``DSP_SMTP_PASSWORD``).
   - SMTP remains available via ``DSP_SMTP_*`` when explicitly configured.
-  - Never reads ``DSP_UPSTOX_*`` / ``DSP_INVESTMENT_*``.
+  - Never reads investment-provider secrets (``DSP_FMP_*`` / ``DSP_INVESTMENT_*``).
 """
 
 from __future__ import annotations

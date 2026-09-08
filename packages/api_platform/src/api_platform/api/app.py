@@ -144,7 +144,7 @@ def create_app(
             resolve_auth_jwt_secret,
         )
 
-        # Auth-domain JWT only — never DSP_UPSTOX_* / investment credentials.
+        # Auth-domain JWT only — never investment/vendor credentials.
         jwt_secret = resolve_auth_jwt_secret()
         is_prod = os.environ.get("DSP_ENVIRONMENT", "").lower() == "production"
         if is_prod and auth_jwt_secret_is_default(jwt_secret):
@@ -161,7 +161,7 @@ def create_app(
         )
 
     # P1-03 investment connector validation is intentionally NOT run here.
-    # Client authentication must boot independently of Upstox/FMP availability.
+    # Client authentication must boot independently of market-data availability.
     # Fail-closed investment checks remain in adapter factories and investment
     # use paths (see data_engine.connector_framework.production_profile and
     # build_default_*_adapter_from_env). Do not reintroduce an eager assert

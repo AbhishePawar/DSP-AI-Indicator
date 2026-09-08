@@ -1,8 +1,7 @@
 """Financial derivation policy: REPORTED / CALCULATED / UNAVAILABLE.
 
-Uses U4-shaped TCS/INR statement figures from the Upstox fundamentals
-fixtures (not live market guesses): revenue 150000, net income 30000,
-total equity 120000.
+Uses fixture INR annual figures (not live market guesses): revenue 150000,
+net income 30000, total equity 120000.
 """
 
 from __future__ import annotations
@@ -42,7 +41,7 @@ from financial.period import FinancialPeriod
 _FY23 = date(2023, 3, 31)
 _FY24 = date(2024, 3, 31)
 
-# U4-shaped authenticated INR annual figures (test_u4_upstox_fundamentals).
+# Fixture authenticated INR annual figures.
 _TCS_NI = 30_000.0
 _TCS_REVENUE = 150_000.0
 _TCS_EQUITY_END = 120_000.0

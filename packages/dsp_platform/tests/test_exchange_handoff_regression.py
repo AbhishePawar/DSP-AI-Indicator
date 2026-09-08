@@ -1,11 +1,11 @@
 """Regression: public ``exchange`` must reach the authenticated statement
-provider (Upstox U1 resolver ``preferred_exchange``).
+provider (Security Master / caller-declared listing).
 
 Before the fix, ``AnalyseRequest.exchange`` was dropped at
 ``build_composition_request`` / ``CompositionRequest`` / the pipeline preloader,
 so ``load_authenticated_valuation_bundle`` always queried with
-``exchange=None``. For a provider that requires the exchange to disambiguate
-(Upstox dual-listed NSE/BSE), that yields no statements and the ``financial``
+``exchange=None``. For a dual-listed security that requires the exchange to
+disambiguate NSE/BSE, that yields no statements and the ``financial``
 stage fails closed with ``Data unavailable. (financial statements)``.
 
 These tests use an exchange-gated statement provider to prove:

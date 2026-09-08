@@ -90,7 +90,8 @@ def validate_analyse_request(body: AnalyseRequest) -> list[str]:
 
     if ticker_only_auth_path:
         # Production path: server loads authenticated statements + quote
-        # (Upstox P1-01). Client FS / price are not required at the boundary.
+        # from the configured provider, or fail-closes with Data unavailable.
+        # Client FS / price are not required at the boundary.
         return errors
 
     # CLIENT-FS PATH — preserve historical validation when FS is supplied.

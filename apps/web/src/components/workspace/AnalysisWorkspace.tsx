@@ -46,6 +46,7 @@ import {
   ANALYSE_DATA_UNAVAILABLE,
   loadAuthenticatedAnalyseRequest,
 } from "@/lib/research/buildAnalyseRequest";
+import { formatAnalyseUnavailableMessage } from "@/lib/research/unavailableCopy";
 import { saveResearchSession } from "@/lib/research/sessionStore";
 import { useNotifications } from "@/providers/NotificationProvider";
 import { usePersistence } from "@/providers/PersistenceProvider";
@@ -175,7 +176,7 @@ export function AnalysisWorkspace() {
 
   const apiError =
     analyseMutation.error instanceof ApiClientError
-      ? analyseMutation.error.message
+      ? formatAnalyseUnavailableMessage(analyseMutation.error.message)
       : analyseMutation.error
         ? "Analyse failed"
         : null;

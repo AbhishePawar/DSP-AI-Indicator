@@ -7,7 +7,7 @@ Proves the production smoke-test body::
 is accepted past Pydantic / analyse validation, reaches
 ``compose_intelligence`` with ``financial_statements=None`` and
 ``exchange="NSE"``, and that authenticated statements/quote (not client FS)
-drive the canonical pipeline. Does not redesign Upstox adapters.
+drive the canonical pipeline. Provider adapters stay behind the factory.
 """
 
 from __future__ import annotations

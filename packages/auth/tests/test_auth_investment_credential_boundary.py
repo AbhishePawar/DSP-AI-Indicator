@@ -1,6 +1,6 @@
 """Strict auth vs investment credential boundary (A–G).
 
-Proves DSP user authentication never depends on Upstox/investment credentials,
+Proves DSP user authentication never depends on investment-provider credentials,
 and Resend auth email does not require SMTP password.
 """
 
@@ -30,12 +30,8 @@ from dsp_platform import DSPPlatform, PlatformBuilder, PlatformConfiguration
 
 _AUTH_JWT = "unit-test-auth-jwt-secret-not-default"
 _RESEND_KEY = "re_test_boundary_key_not_real"
-_UPSTOX_TOKEN = "phase-boundary-upstox-token-not-real"
-
 _FORBIDDEN_AUTH_ENV_READS = (
-    "DSP_UPSTOX_ANALYTICS_TOKEN",
-    "DSP_UPSTOX_CLIENT_SECRET",
-    "DSP_UPSTOX_ACCESS_TOKEN",
+    "DSP_FMP_API_KEY",
     "DSP_INVESTMENT_DATA_PROVIDER",
     "DSP_INVESTMENT_FMP_API_KEY",
 )
@@ -54,9 +50,6 @@ def platform() -> DSPPlatform:
 def _strip_investment(monkeypatch: pytest.MonkeyPatch) -> None:
     for key in (
         "DSP_INVESTMENT_DATA_PROVIDER",
-        "DSP_UPSTOX_ANALYTICS_TOKEN",
-        "DSP_UPSTOX_CLIENT_SECRET",
-        "DSP_UPSTOX_ACCESS_TOKEN",
         "DSP_FMP_API_KEY",
         "DSP_INVESTMENT_FMP_API_KEY",
         "DSP_MARKET_QUOTE_API_KEY",
@@ -90,13 +83,13 @@ def _auth_boot_env(monkeypatch: pytest.MonkeyPatch) -> None:
 # --- A -------------------------------------------------------------------
 
 
-def test_a_auth_boot_with_resend_without_upstox(
+def test_a_auth_boot_with_resend_without_market_data_provider(
     monkeypatch: pytest.MonkeyPatch, platform: DSPPlatform
 ) -> None:
     from api_platform import create_app
 
     _auth_boot_env(monkeypatch)
-    monkeypatch.setenv("DSP_INVESTMENT_DATA_PROVIDER", "upstox")
+    monkeypatch.setenv("DSP_INVESTMENT_DATA_PROVIDER", "none")
     app = create_app(platform=platform, enable_security=False)
     assert app.title
 
@@ -104,7 +97,7 @@ def test_a_auth_boot_with_resend_without_upstox(
 # --- B -------------------------------------------------------------------
 
 
-def test_b_password_otp_email_auth_init_without_upstox(
+def test_b_password_otp_email_auth_init_without_market_data_provider(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     from auth import (
@@ -126,8 +119,7 @@ def test_b_password_otp_email_auth_init_without_upstox(
     _auth_boot_env(monkeypatch)
     monkeypatch.setenv("DSP_ENVIRONMENT", "development")
     monkeypatch.setenv("DSP_PASSWORD_HASHER", "pbkdf2")
-    monkeypatch.setenv("DSP_INVESTMENT_DATA_PROVIDER", "upstox")
-    monkeypatch.delenv("DSP_UPSTOX_ANALYTICS_TOKEN", raising=False)
+    monkeypatch.setenv("DSP_INVESTMENT_DATA_PROVIDER", "none")
 
     store = InMemoryStorageProvider()
     registry = RepositoryRegistry(storage=store)
@@ -185,12 +177,12 @@ def test_b_password_otp_email_auth_init_without_upstox(
 # --- C -------------------------------------------------------------------
 
 
-def test_c_missing_upstox_still_fail_closed_for_investment(
+def test_c_missing_provider_still_fail_closed_for_investment(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     _auth_boot_env(monkeypatch)
-    monkeypatch.setenv("DSP_INVESTMENT_DATA_PROVIDER", "upstox")
-    with pytest.raises(ConnectorConfigurationError, match="DSP_UPSTOX_ANALYTICS_TOKEN"):
+    monkeypatch.delenv("DSP_INVESTMENT_DATA_PROVIDER", raising=False)
+    with pytest.raises(ConnectorConfigurationError, match="P1-03"):
         build_default_quote_adapter_from_env()
 
 
@@ -203,7 +195,7 @@ def test_d_health_ready_while_investment_limitation_visible(
     from api_platform import create_app
 
     _auth_boot_env(monkeypatch)
-    monkeypatch.setenv("DSP_INVESTMENT_DATA_PROVIDER", "upstox")
+    monkeypatch.delenv("DSP_INVESTMENT_DATA_PROVIDER", raising=False)
     client = TestClient(create_app(platform=platform, enable_security=False))
     ready = client.get("/api/v1/health/ready")
     assert ready.status_code == 200
@@ -214,7 +206,6 @@ def test_d_health_ready_while_investment_limitation_visible(
     investment = checks["investment_data_provider"]
     assert investment["status"] == "fail"
     assert "investment_capability" in investment["message"]
-    assert "DSP_UPSTOX_ANALYTICS_TOKEN" in investment["message"]
     assert "does not block auth" in investment["message"]
 
 
@@ -262,7 +253,7 @@ def test_e_resend_mode_does_not_require_smtp_password(
 # --- F -------------------------------------------------------------------
 
 
-def test_f_auth_tests_and_sources_do_not_init_upstox_investment() -> None:
+def test_f_auth_tests_and_sources_do_not_init_investment_adapters() -> None:
     auth_src = Path(__file__).resolve().parents[1] / "src" / "auth"
     offenders: list[str] = []
     for path in auth_src.rglob("*.py"):
@@ -296,12 +287,11 @@ def test_f_auth_tests_and_sources_do_not_init_upstox_investment() -> None:
     assert offenders == []
 
 
-def test_f_upstox_still_selected_when_token_present(
+def test_f_none_provider_selects_null_when_explicit(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    """G-adjacent: investment path intact with proper Upstox credentials."""
+    """Investment path fail-closes to Null when no provider is configured."""
     monkeypatch.setenv("DSP_ENVIRONMENT", "production")
-    monkeypatch.setenv("DSP_INVESTMENT_DATA_PROVIDER", "upstox")
-    monkeypatch.setenv("DSP_UPSTOX_ANALYTICS_TOKEN", _UPSTOX_TOKEN)
+    monkeypatch.setenv("DSP_INVESTMENT_DATA_PROVIDER", "none")
     quote = build_default_quote_adapter_from_env()
-    assert type(quote).__name__ == "UpstoxQuoteAdapter"
+    assert type(quote).__name__ == "NullAuthenticatedQuoteAdapter"

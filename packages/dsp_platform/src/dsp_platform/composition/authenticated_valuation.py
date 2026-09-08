@@ -227,12 +227,16 @@ def _resolve_shares(
 
 
 def _resolve_price(quote: AuthenticatedMarketQuote) -> float:
+    """CURRENT price only — previous close must never become current."""
     price = _qf(quote.current_price)
-    if price is None:
-        price = _qf(quote.previous_close)
     if price is None or price <= 0:
+        if _qf(quote.previous_close) is not None:
+            raise AuthenticatedValuationError(
+                f"{DATA_UNAVAILABLE} "
+                "(previous close cannot be used as current market price)"
+            )
         raise AuthenticatedValuationError(
-            f"{DATA_UNAVAILABLE} (authenticated market price unavailable)"
+            f"{DATA_UNAVAILABLE} (authenticated current market price unavailable)"
         )
     return float(price)
 
@@ -247,13 +251,9 @@ def _to_fundamental_statement(
             f"{DATA_UNAVAILABLE} (invalid period type {period.period_type!r})"
         )
     if period.fiscal_year < 1900 or period.fiscal_year > 2200:
-        raise AuthenticatedValuationError(
-            f"{DATA_UNAVAILABLE} (invalid fiscal period)"
-        )
+        raise AuthenticatedValuationError(f"{DATA_UNAVAILABLE} (invalid fiscal period)")
     if not isinstance(period.period_end, date):
-        raise AuthenticatedValuationError(
-            f"{DATA_UNAVAILABLE} (invalid period_end)"
-        )
+        raise AuthenticatedValuationError(f"{DATA_UNAVAILABLE} (invalid period_end)")
     extras: list[tuple[str, float]] = []
     for name in ("ebit", "ebitda", "free_cash_flow", "long_term_debt"):
         value = _sf(getattr(period, name))
@@ -297,9 +297,7 @@ def to_financial_statements(
     try:
         period_type = PeriodType(bundle.period_kind)
     except ValueError as exc:
-        raise AuthenticatedValuationError(
-            f"{DATA_UNAVAILABLE} (period kind)"
-        ) from exc
+        raise AuthenticatedValuationError(f"{DATA_UNAVAILABLE} (period kind)") from exc
     currency = CurrencyRef.parse(latest.currency)
     shares = bundle.shares_outstanding
     fcf = None
@@ -382,8 +380,9 @@ def load_authenticated_valuation_bundle(
     currency: str = "USD",
     statement_service: FinancialStatementService | None = None,
     quote_service: MarketQuoteService | None = None,
-    get_statements: Callable[[str], AuthenticatedFinancialStatements | None]
-    | None = None,
+    get_statements: (
+        Callable[[str], AuthenticatedFinancialStatements | None] | None
+    ) = None,
     get_quote: Callable[[str], AuthenticatedMarketQuote | None] | None = None,
 ) -> AuthenticatedValuationBundle:
     """Fetch + validate authenticated statements and quote for ``ticker``.
@@ -393,9 +392,24 @@ def load_authenticated_valuation_bundle(
     """
     symbol = str(ticker or "").strip().upper()
     if not symbol:
+        raise AuthenticatedValuationError(f"{DATA_UNAVAILABLE} (ticker required)")
+
+    from data_engine.security_identity import IdentityStatus, resolve_security_identity
+
+    identity = resolve_security_identity(ticker=symbol, exchange=exchange)
+    if identity.status is IdentityStatus.REJECTED:
         raise AuthenticatedValuationError(
-            f"{DATA_UNAVAILABLE} (ticker required)"
+            f"{DATA_UNAVAILABLE} (identity rejected: {identity.detail})"
         )
+    if identity.status is IdentityStatus.AMBIGUOUS:
+        raise AuthenticatedValuationError(
+            f"{DATA_UNAVAILABLE} (ambiguous security identity: {identity.detail})"
+        )
+    if identity.status is IdentityStatus.UNSUPPORTED:
+        raise AuthenticatedValuationError(
+            f"{DATA_UNAVAILABLE} (unsupported security: {identity.detail})"
+        )
+    exchange = identity.exchange or exchange
 
     statements = _fetch_statements(
         symbol,
@@ -526,8 +540,7 @@ def _fetch_statements(
     exchange: str | None,
     currency: str,
     statement_service: FinancialStatementService | None,
-    get_statements: Callable[[str], AuthenticatedFinancialStatements | None]
-    | None,
+    get_statements: Callable[[str], AuthenticatedFinancialStatements | None] | None,
 ) -> AuthenticatedFinancialStatements:
     if get_statements is not None:
         bundle = get_statements(symbol)
@@ -553,9 +566,7 @@ def _fetch_statements(
             StatementQuery(instrument=instrument, limit=8, include_restated=False)
         )
     if bundle is None:
-        raise AuthenticatedValuationError(
-            f"{DATA_UNAVAILABLE} (financial statements)"
-        )
+        raise AuthenticatedValuationError(f"{DATA_UNAVAILABLE} (financial statements)")
     if not bundle.has_any_period():
         raise AuthenticatedValuationError(
             f"{DATA_UNAVAILABLE} (financial statements empty)"
@@ -593,13 +604,14 @@ def _fetch_quote(
         )
         quote = service.get_quote(instrument)
     if quote is None:
-        raise AuthenticatedValuationError(
-            f"{DATA_UNAVAILABLE} (market quote)"
-        )
-    if not quote.has_any_price():
-        raise AuthenticatedValuationError(
-            f"{DATA_UNAVAILABLE} (market price)"
-        )
+        raise AuthenticatedValuationError(f"{DATA_UNAVAILABLE} (market quote)")
+    if not quote.current_price.available or quote.current_price.value is None:
+        if quote.previous_close.available and quote.previous_close.value is not None:
+            raise AuthenticatedValuationError(
+                f"{DATA_UNAVAILABLE} "
+                "(previous close cannot be used as current market price)"
+            )
+        raise AuthenticatedValuationError(f"{DATA_UNAVAILABLE} (current market price)")
     return quote
 
 
@@ -612,8 +624,8 @@ def production_investment_connectors() -> dict[str, str]:
     """Adapter class names the P1-03 production gate selects for this bundle.
 
     Empty outside production. Constructed offline — no provider I/O — so
-    readiness probes can assert the authenticated quote/statement connectors
-    without contacting Upstox. Raises when production would select an unsafe
-    (Null/memory/demo) adapter.
+    readiness probes can report quote/statement connector class names.
+    When ``DSP_INVESTMENT_DATA_PROVIDER=none``, Null adapters are an explicit
+    no-data configuration (valuation still fail-closed).
     """
     return assert_production_investment_connectors_configured()

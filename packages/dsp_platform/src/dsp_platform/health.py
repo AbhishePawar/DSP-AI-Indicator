@@ -48,7 +48,7 @@ class PlatformHealthReport:
     Attributes:
         ready: ``True`` when every *blocking* non-skipped check passed.
             ``investment_data_provider`` may fail without clearing readiness so
-            auth/API boot is independent of Upstox/FMP credentials (P1-03 still
+            auth/API boot is independent of market-data credentials (P1-03 still
             fail-closes on investment use paths).
         status: Overall status (``pass`` if ready else ``fail``).
         checks: Individual check results.
@@ -114,13 +114,10 @@ class PlatformHealthService:
             self._check_provider_registry(),
             composition,
             self._check_investment_data_provider(),
-            self._check_wiring(
-                canonical_ready=composition.status is CheckStatus.PASS
-            ),
+            self._check_wiring(canonical_ready=composition.status is CheckStatus.PASS),
         ]
         blocking_failed = any(
-            c.status is CheckStatus.FAIL
-            and c.name not in _NON_BLOCKING_READY_CHECKS
+            c.status is CheckStatus.FAIL and c.name not in _NON_BLOCKING_READY_CHECKS
             for c in checks
         )
         # Surface any failure (including investment) in overall status while
@@ -333,6 +330,8 @@ class PlatformHealthService:
                 message="non-production environment",
             )
         try:
+            from data_engine.investment_data_provider import is_no_data_provider
+
             selected = production_investment_connectors()
         except Exception as exc:  # noqa: BLE001 — fail closed, never fabricate
             return HealthCheckResult(
@@ -344,6 +343,15 @@ class PlatformHealthService:
                 ),
             )
         detail = ", ".join(f"{k}={v}" for k, v in sorted(selected.items()))
+        if is_no_data_provider():
+            return HealthCheckResult(
+                name="investment_data_provider",
+                status=CheckStatus.PASS,
+                message=(
+                    "investment_capability=UNAVAILABLE "
+                    f"(no market-data provider; {detail})"
+                ),
+            )
         return HealthCheckResult(
             name="investment_data_provider",
             status=CheckStatus.PASS,

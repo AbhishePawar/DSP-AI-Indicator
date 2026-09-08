@@ -14,7 +14,7 @@ from data_engine.financial_statement.models import (
 
 __all__ = ["validate_authenticated_statements"]
 
-_ALLOWED_PERIOD_TYPES = frozenset({"annual", "quarterly", "ttm"})
+_ALLOWED_PERIOD_TYPES = frozenset({"annual", "quarterly", "ttm", "ytd"})
 _DISALLOWED_SOURCE = frozenset(
     {"", "example", "dummy", "placeholder", "fabricated", "estimated"}
 )
@@ -71,7 +71,7 @@ def _validate_period(period: AuthenticatedStatementPeriod, index: int) -> None:
     prefix = f"periods[{index}]"
     if period.period_type not in _ALLOWED_PERIOD_TYPES:
         raise InvalidProviderDataError(
-            f"{prefix}.period_type must be annual|quarterly|ttm, "
+            f"{prefix}.period_type must be annual|quarterly|ttm|ytd, "
             f"got {period.period_type!r}"
         )
     currency = (period.reporting_currency or "").strip().upper()

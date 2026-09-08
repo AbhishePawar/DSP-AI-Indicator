@@ -73,9 +73,9 @@ class AnalyseRequest(BaseModel):
     ticker: str = Field(min_length=1, max_length=32)
     exchange: str | None = Field(default=None, max_length=32)
     company: str = Field(default="", max_length=256)
-    # Optional: production ticker/exchange path loads authenticated Upstox
-    # statements server-side (P1-01). Client FS remains accepted for tests /
-    # Research Mode but is never authoritative over the auth bundle.
+    # Optional: production ticker/exchange path loads authenticated
+    # statements server-side (P1-01) from the configured provider, or
+    # fail-closes with Data unavailable. when no provider is configured.
     financial_statements: FinancialStatementsDTO | None = None
     valuation_signals: ValuationSignalsDTO | None = None
     current_market_price: float | None = None

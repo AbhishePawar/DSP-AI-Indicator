@@ -109,7 +109,7 @@ def test_url_and_query_construction_unchanged(monkeypatch: pytest.MonkeyPatch) -
     captured = _capture_urlopen(monkeypatch)
     client = UrllibJsonHttpClient(timeout_seconds=15.0)
     client.get_json(
-        "https://api.upstox.com/v2/instruments/search",
+        "https://market-data.example.invalid/v2/instruments/search",
         params={
             "query": "TCS",
             "exchanges": "NSE,BSE",
@@ -125,7 +125,7 @@ def test_url_and_query_construction_unchanged(monkeypatch: pytest.MonkeyPatch) -
 
     request = captured[0]
     assert request.full_url == (
-        "https://api.upstox.com/v2/instruments/search"
+        "https://market-data.example.invalid/v2/instruments/search"
         "?query=TCS&exchanges=NSE%2CBSE&segments=EQ&page_number=1&records=30"
     )
     assert request.get_method() == "GET"

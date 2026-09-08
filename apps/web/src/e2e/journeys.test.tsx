@@ -111,7 +111,8 @@ describe("EPIC-F011 authentication & RBAC journey", () => {
   it("filters admin navigation without elevated permissions", () => {
     const analyst = filterShellNav(["read_research"], ["research_analyst"]);
     expect(analyst.some((i) => i.id === "admin")).toBe(false);
-    expect(analyst.some((i) => i.id === "analysis")).toBe(true);
+    expect(analyst.some((i) => i.id === "analysis")).toBe(false);
+    expect(analyst.map((i) => i.id)).toEqual(["research-home", "settings"]);
 
     const admin = filterShellNav(["manage_users"], ["administrator"]);
     expect(admin.some((i) => i.id === "admin")).toBe(true);
@@ -147,8 +148,14 @@ describe("EPIC-F011 navigation & routing journey", () => {
     ).toEqual(["Home", "Research Workspace", "Research Reports"]);
   });
 
-  it("keeps command-palette searchable routes non-empty", () => {
-    expect(searchableRoutes().length).toBeGreaterThan(5);
+  it("keeps command-palette searchable routes non-empty for operators", () => {
+    expect(
+      searchableRoutes(["ops.view", "read_research"], ["portfolio_manager"])
+        .length,
+    ).toBeGreaterThan(5);
+    expect(searchableRoutes(["read_research"], ["research_analyst"]).length).toBeGreaterThan(
+      0,
+    );
   });
 });
 

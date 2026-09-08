@@ -148,6 +148,11 @@ function resolveCatalogue(ticker: string) {
   );
 }
 
+function exchangeFromSearch(searchParams: { get: (key: string) => string | null }) {
+  const value = (searchParams.get("exchange") || "").trim().toUpperCase();
+  return value || undefined;
+}
+
 function describeAnalyseError(error: unknown): string {
   if (error instanceof ApiClientError) {
     if (error.status === 401) {
@@ -209,6 +214,7 @@ export function CompanyAnalysisWorkspace() {
 
   // RC3-003 — no silent default company; require explicit symbol selection.
   const urlSymbol = (searchParams.get("symbol") || "").trim().toUpperCase();
+  const urlExchange = exchangeFromSearch(searchParams);
   const [symbol, setSymbol] = useState(urlSymbol);
   const [query, setQuery] = useState(urlSymbol);
   const [view, setView] = useState<ResearchView | null>(null);
@@ -235,6 +241,7 @@ export function CompanyAnalysisWorkspace() {
   useCollapsePanelsBelowLg(setLeftOpen, setRightOpen);
 
   const catalogue = useMemo(() => resolveCatalogue(symbol), [symbol]);
+  const listingExchange = urlExchange || catalogue?.exchange;
 
   useEffect(() => {
     const next = (searchParams.get("symbol") || "").trim().toUpperCase();
@@ -258,9 +265,11 @@ export function CompanyAnalysisWorkspace() {
       setSymbol(normalized);
       setQuery(normalized);
       recordSearch(normalized);
-      router.replace(`/analysis?symbol=${encodeURIComponent(normalized)}`);
+      const params = new URLSearchParams({ symbol: normalized });
+      if (urlExchange) params.set("exchange", urlExchange);
+      router.replace(`/analysis?${params.toString()}`);
     },
-    [recordSearch, router],
+    [recordSearch, router, urlExchange],
   );
 
   const analyseMutation = useMutation({
@@ -268,21 +277,22 @@ export function CompanyAnalysisWorkspace() {
       const generation = ++analyseGeneration.current;
       const requestedSymbol = symbol;
       const match = resolveCatalogue(requestedSymbol);
+      const exchange = urlExchange || match?.exchange;
       // P0-01 — authenticated statements only; never clone demo ACM financials.
       const body = await loadAuthenticatedAnalyseRequest(requestedSymbol, {
-        exchange: match?.exchange,
+        exchange,
         company: match?.name,
         loadStatements: () =>
           api.financialStatements(requestedSymbol, {
             token,
             limit: 1,
-            exchange: match?.exchange,
+            exchange,
           }),
         // P0-02 — market price only from authenticated quote (never client IV).
         loadQuote: () =>
           api.marketQuote(requestedSymbol, {
             token,
-            exchange: match?.exchange,
+            exchange,
           }),
       });
       const response = await api.analyse(body, { token });
@@ -357,12 +367,12 @@ export function CompanyAnalysisWorkspace() {
       analyseMutation.mutate();
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps -- intentional symbol-driven refresh
-  }, [symbol, token]);
+  }, [symbol, token, urlExchange]);
 
   const marketQuery = useQuery({
-    queryKey: ["company-analysis", "market", symbol, catalogue?.exchange],
+    queryKey: ["company-analysis", "market", symbol, listingExchange],
     queryFn: () =>
-      api.marketQuote(symbol, { token, exchange: catalogue?.exchange }),
+      api.marketQuote(symbol, { token, exchange: listingExchange }),
     enabled: Boolean(token && symbol),
     retry: false,
     staleTime: 60_000,
@@ -374,13 +384,13 @@ export function CompanyAnalysisWorkspace() {
       "company-analysis",
       "financial-statements",
       symbol,
-      catalogue?.exchange,
+      listingExchange,
     ],
     queryFn: () =>
       api.financialStatements(symbol, {
         token,
         limit: 1,
-        exchange: catalogue?.exchange,
+        exchange: listingExchange,
       }),
     enabled: Boolean(token && symbol),
     retry: false,

@@ -16,6 +16,7 @@ import {
   requiresAuth,
 } from "@/lib/auth/routeGuards";
 import { useUiStore } from "@/lib/shell";
+import { resolveShellAudience } from "@/lib/shell/navigationRegistry";
 import { ContentArea } from "./ContentArea";
 import { ShellCommandPalette } from "./ShellCommandPalette";
 import { Sidebar } from "./Sidebar";
@@ -36,7 +37,7 @@ function focusableSelector() {
 export function AppLayout({ children }: { children: ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
-  const { session, status } = useAuth();
+  const { session, status, user } = useAuth();
 
   const sidebarCollapsed = useUiStore((s) => s.sidebarCollapsed);
   const toggleSidebarCollapsed = useUiStore((s) => s.toggleSidebarCollapsed);
@@ -44,6 +45,9 @@ export function AppLayout({ children }: { children: ReactNode }) {
   const setDrawerOpen = useUiStore((s) => s.setMobileDrawerOpen);
   const drawerRef = useRef<HTMLDivElement | null>(null);
   const previousFocusRef = useRef<HTMLElement | null>(null);
+  const permissions = session?.permissions ?? user?.permissions ?? [];
+  const roles = session?.roles ?? user?.roles ?? [];
+  const ordinary = resolveShellAudience(permissions, roles) === "ordinary";
 
   useRouteTransitionTiming();
 
@@ -147,7 +151,7 @@ export function AppLayout({ children }: { children: ReactNode }) {
         <div className="pointer-events-none fixed inset-0 -z-10 bg-[radial-gradient(ellipse_at_top,_var(--glow)_0%,_transparent_55%)]" />
         <div className="flex min-h-screen">
           <Sidebar collapsed={sidebarCollapsed} />
-          <div className="flex min-w-0 flex-1 flex-col">
+          <div className="flex min-h-screen min-w-0 flex-1 flex-col">
             <Topbar
               onMenuClick={() => setDrawerOpen(true)}
               onToggleCollapse={toggleSidebarCollapsed}
@@ -155,7 +159,7 @@ export function AppLayout({ children }: { children: ReactNode }) {
             />
             <main
               id="main-content"
-              className="flex-1 overflow-auto scroll-smooth motion-reduce:scroll-auto"
+              className="flex-1 scroll-smooth motion-reduce:scroll-auto"
               tabIndex={-1}
             >
               <ContentArea>
@@ -190,8 +194,8 @@ export function AppLayout({ children }: { children: ReactNode }) {
           </div>
         ) : null}
 
-        <ShellCommandPalette />
-        <BetaShellWidgets />
+        {ordinary ? null : <ShellCommandPalette />}
+        {ordinary ? null : <BetaShellWidgets />}
       </div>
     </FeedbackProvider>
   );

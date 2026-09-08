@@ -94,6 +94,7 @@ import {
   useDashboardPrefsStore,
 } from "@/lib/dashboard";
 import { FRONTEND_FOUNDATION_VERSION } from "@/foundation";
+import { SearchFirstDashboard } from "@/components/dashboard/SearchFirstDashboard";
 import { InstitutionalDashboard } from '../../components/dashboard/InstitutionalDashboard';
 import { PortfolioSummaryWidget } from '../../components/dashboard/widgets/ResearchPortfolioWidgets';
 import { PlatformHealthWidget } from '../../components/dashboard/widgets/SystemAiWidgets';
@@ -169,6 +170,18 @@ describe("EPIC-F004 dashboard UI", () => {
       recentSearches: [],
       savedSearches: [],
     });
+  });
+
+  it("ordinary dashboard is search-first research, not executive chrome", () => {
+    wrap(<SearchFirstDashboard />);
+    expect(
+      screen.getByRole("heading", { name: "DSP AI INDICATOR" }),
+    ).toBeTruthy();
+    expect(screen.getByText("What would you like to research?")).toBeTruthy();
+    expect(screen.getByLabelText("Search a company or stock")).toBeTruthy();
+    expect(screen.getByRole("button", { name: "Research" })).toBeTruthy();
+    expect(screen.queryByText("Executive Dashboard")).toBeNull();
+    expect(screen.queryByLabelText("Dashboard widgets")).toBeNull();
   });
 
   it("renders dashboard layout and welcome", async () => {

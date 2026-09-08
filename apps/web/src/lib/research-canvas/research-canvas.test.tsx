@@ -106,15 +106,18 @@ describe("EPIC-014 Research Canvas", () => {
       ]),
     );
 
-    const visible = filterShellNav(["read_research"], ["research_analyst"]);
+    const visible = filterShellNav(
+      ["read_research", "ops.view"],
+      ["portfolio_manager"],
+    );
     const research = visible.find((n) => n.id === "research");
     expect(
       research?.children?.some((c) => c.href === "/research/canvas"),
     ).toBe(featureFlags.researchCanvas);
 
     const routes = searchableRoutes(
-      ["read_research"],
-      ["research_analyst"],
+      ["read_research", "ops.view"],
+      ["portfolio_manager"],
     ).map((r) => r.path);
     if (featureFlags.researchCanvas) {
       expect(routes).toContain("/research/canvas");

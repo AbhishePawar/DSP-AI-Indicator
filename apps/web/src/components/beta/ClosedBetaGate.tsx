@@ -9,6 +9,7 @@ import { betaApi } from "@/lib/beta/betaApi";
 import { featureFlags } from "@/lib/featureFlags";
 import { env } from "@/lib/env";
 import { BetaBanner } from "@/components/beta/BetaBanner";
+import { resolveShellAudience } from "@/lib/shell";
 
 /**
  * P5.1/P5.2 — Invitation-only gate when closed beta mode is enabled.
@@ -29,6 +30,11 @@ export function ClosedBetaGate({ children }: { children: ReactNode }) {
     featureFlags.betaInvitationOnly &&
     env.environment === "production";
 
+  const roles = user?.roles || session?.roles || [];
+  const permissions = user?.permissions || session?.permissions || [];
+  const showBetaBanner =
+    resolveShellAudience(permissions, roles) !== "ordinary";
+
   useEffect(() => {
     if (!featureFlags.closedBeta) {
       setAllowed(true);
@@ -37,7 +43,6 @@ export function ClosedBetaGate({ children }: { children: ReactNode }) {
     }
     if (status === "loading") return;
 
-    const roles = user?.roles || session?.roles || [];
     const isAdmin = roles.includes("administrator");
     const identity =
       user?.email || user?.username || session?.email || session?.username || null;
@@ -78,7 +83,9 @@ export function ClosedBetaGate({ children }: { children: ReactNode }) {
 
   return (
     <>
-      <BetaBanner text={bannerText} expiryAt={expiryAt} />
+      {showBetaBanner ? (
+        <BetaBanner text={bannerText} expiryAt={expiryAt} />
+      ) : null}
       {checking ? (
         <EmptyState
           title="Checking beta access…"

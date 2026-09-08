@@ -16,6 +16,7 @@ import {
   filterShellNav,
   groupShellNav,
   isActivePath,
+  resolveShellAudience,
   searchableRoutes,
 } from "@/lib/shell/navigationRegistry";
 import { useUiStore } from "@/lib/shell/uiStore";
@@ -55,7 +56,19 @@ describe("EPIC-F003 navigation registry", () => {
   it("filters admin without permissions", () => {
     const visible = filterShellNav(["read_research"], ["research_analyst"]);
     expect(visible.some((i) => i.id === "admin")).toBe(false);
-    expect(visible.some((i) => i.id === "analysis")).toBe(true);
+    expect(visible.some((i) => i.id === "analysis")).toBe(false);
+    expect(visible.map((i) => i.id)).toEqual(["research-home", "settings"]);
+  });
+
+  it("keeps institutional nav for operators and administrators", () => {
+    const operator = filterShellNav(["ops.view", "read_research"], [
+      "portfolio_manager",
+    ]);
+    expect(operator.some((i) => i.id === "analysis")).toBe(true);
+    expect(operator.some((i) => i.id === "admin")).toBe(false);
+
+    const admin = filterShellNav(["manage_users"], ["administrator"]);
+    expect(admin.some((i) => i.id === "admin")).toBe(true);
   });
 
   it("shows admin for manage_users", () => {
@@ -72,13 +85,9 @@ describe("EPIC-F003 navigation registry", () => {
     ).toBe(true);
   });
 
-  it("groups sections in order", () => {
+  it("groups ordinary nav as research then account", () => {
     const groups = groupShellNav(filterShellNav([], []));
-    expect(groups.map((g) => g.section)).toEqual([
-      "overview",
-      "research",
-      "account",
-    ]);
+    expect(groups.map((g) => g.section)).toEqual(["research", "account"]);
   });
 
   it("builds breadcrumbs for nested and ticker routes", () => {
@@ -92,24 +101,32 @@ describe("EPIC-F003 navigation registry", () => {
   });
 
   it("RBAC-filters searchable routes and hides unfinished AUX", () => {
-    const analyst = searchableRoutes(
+    const ordinary = searchableRoutes(
       ["read_research"],
       ["research_analyst"],
     ).map((r) => r.path);
-    expect(analyst).toEqual(
+    expect(ordinary).not.toContain("/analysis");
+    expect(ordinary).not.toContain("/research/canvas");
+    expect(ordinary).not.toContain("/admin");
+    expect(ordinary).toContain("/settings");
+
+    const operator = searchableRoutes(
+      ["ops.view", "read_research"],
+      ["portfolio_manager"],
+    ).map((r) => r.path);
+    expect(operator).toEqual(
       expect.arrayContaining([
         "/analysis",
         "/portfolio",
         "/research",
         "/research/institutional",
-        "/research/canvas",
       ]),
     );
-    expect(analyst).not.toContain("/copilot");
-    expect(analyst).not.toContain("/advisor");
-    expect(analyst).not.toContain("/launch");
-    expect(analyst).not.toContain("/screening");
-    expect(analyst).not.toContain("/admin");
+    expect(operator).not.toContain("/copilot");
+    expect(operator).not.toContain("/advisor");
+    expect(operator).not.toContain("/launch");
+    expect(operator).not.toContain("/screening");
+    expect(operator).not.toContain("/admin");
 
     const admin = searchableRoutes(
       ["manage_users", "read_research"],
@@ -121,6 +138,19 @@ describe("EPIC-F003 navigation registry", () => {
   it("detects active paths", () => {
     expect(isActivePath("/research/acm", "/research")).toBe(true);
     expect(isActivePath("/dashboard", "/analysis")).toBe(false);
+  });
+
+  it("classifies shell audience without deleting institutional routes", () => {
+    expect(resolveShellAudience(["read_research"], ["research_analyst"])).toBe(
+      "ordinary",
+    );
+    expect(resolveShellAudience(["ops.view"], ["portfolio_manager"])).toBe(
+      "operator",
+    );
+    expect(resolveShellAudience(["manage_users"], ["administrator"])).toBe(
+      "administrator",
+    );
+    expect(SHELL_NAV.some((i) => i.id === "analysis")).toBe(true);
   });
 });
 
@@ -151,10 +181,7 @@ describe("EPIC-F003 uiStore", () => {
 });
 
 describe("EPIC-F003 layout primitives", () => {
-  it("renders loading / empty / error layouts", async () => {
-    const { LoadingLayout, EmptyLayout, ErrorLayout, PageContainer } =
-      await import("@/components/layout/ContentArea");
-
+  it("renders loading / empty / error layouts", () => {
     const { rerender } = render(<LoadingLayout label="Loading shell…" />);
     expect(screen.getByLabelText("Loading shell…")).toBeTruthy();
 

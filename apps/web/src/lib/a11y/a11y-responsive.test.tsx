@@ -5,7 +5,7 @@
  * Quality-only: no product feature coverage.
  */
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { cleanup, fireEvent, render, screen } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen, within } from "@testing-library/react";
 import type { ReactElement, ReactNode } from "react";
 import { useState } from "react";
 
@@ -17,6 +17,7 @@ import {
 import { FRONTEND_FOUNDATION_VERSION } from "@/foundation";
 import { breakpoints } from "@/components/ds/utilities/responsive";
 import { ThemeProvider } from "@/providers/ThemeProvider";
+import { useUiStore } from "@/lib/shell/uiStore";
 import { AppLayout } from '../../components/layout/AppLayout';
 import { Topbar } from '../../components/layout/Topbar';
 import { PageHeader } from '../../components/PageHeader';
@@ -167,11 +168,9 @@ describe("EPIC-F010 shell accessibility", () => {
     mockMatchMedia(false);
   });
 
-  it("provides mobile drawer Escape close and dialog landmark", async () => {
-    const { useUiStore } = await import("@/lib/shell/uiStore");
+  it("provides mobile drawer Escape close and dialog landmark", () => {
     useUiStore.setState({ mobileDrawerOpen: false, sidebarCollapsed: false });
 
-    const { AppLayout } = await import("@/components/layout/AppLayout");
     wrap(
       <AppLayout>
         <div>Page</div>
@@ -179,12 +178,17 @@ describe("EPIC-F010 shell accessibility", () => {
     );
 
     fireEvent.click(screen.getByLabelText("Open navigation menu"));
-    expect(screen.getByRole("dialog", { name: "Navigation" })).toBeTruthy();
+    const dialog = screen.getByRole("dialog", { name: "Navigation" });
+    expect(dialog).toBeTruthy();
+    expect(within(dialog).queryByText("Enterprise Dashboards")).toBeNull();
+    expect(within(dialog).queryByText("Research Canvas")).toBeNull();
+    expect(within(dialog).getByRole("link", { name: "Research" })).toBeTruthy();
+    expect(within(dialog).getByRole("link", { name: "Settings" })).toBeTruthy();
     fireEvent.keyDown(window, { key: "Escape" });
     expect(useUiStore.getState().mobileDrawerOpen).toBe(false);
   });
 
-  it("exposes mobile command palette control", async () => {
+  it("keeps ordinary header free of command palette and policy chrome", async () => {
     const { Topbar } = await import("@/components/layout/Topbar");
     wrap(
       <Topbar
@@ -193,9 +197,13 @@ describe("EPIC-F010 shell accessibility", () => {
         sidebarCollapsed={false}
       />,
     );
+    expect(screen.queryByLabelText("Open search and command palette")).toBeNull();
+    expect(screen.queryByText("Privacy Policy")).toBeNull();
+    expect(screen.queryByText("PROD")).toBeNull();
+    expect(screen.getByRole("banner", { name: "Application header" })).toBeTruthy();
     expect(
-      screen.getAllByLabelText("Open search and command palette").length,
-    ).toBeGreaterThan(0);
+      screen.getByRole("button", { name: /Theme /i }),
+    ).toBeTruthy();
   });
 
   it("keeps page titles as h1 without nested banner header", async () => {

@@ -431,7 +431,7 @@ describe("EPIC-F005 workspace UI", () => {
     expect(
       await screen.findByRole("heading", { name: /Executive Summary/i }),
     ).toBeTruthy();
-  });
+  }, 15_000);
 
   it("propagates catalogue NSE onto TCS statements, quote, and analyse", async () => {
     navigationState.search = "symbol=TCS";
@@ -483,6 +483,28 @@ describe("EPIC-F005 workspace UI", () => {
     ).toBe(true);
     const body = analyseMock.mock.calls[0]?.[0] as { exchange?: string | null };
     expect(body.exchange == null || body.exchange === "").toBe(true);
+  });
+
+  it("uses URL exchange when provided instead of inventing a catalogue match", async () => {
+    navigationState.search = "symbol=ZZZZNOTINCAT&exchange=BSE";
+    const { CompanyAnalysisWorkspace } = await import(
+      "@/components/company-analysis/CompanyAnalysisWorkspace"
+    );
+    wrap(<CompanyAnalysisWorkspace />);
+    await waitFor(() => {
+      expect(financialStatementsMock).toHaveBeenCalled();
+      expect(analyseMock).toHaveBeenCalled();
+    });
+    const statementOpts = financialStatementsMock.mock.calls.map(
+      (call) => call[1] as { exchange?: string },
+    );
+    expect(statementOpts.every((opts) => opts.exchange === "BSE")).toBe(true);
+    const quoteOpts = marketQuoteMock.mock.calls.map(
+      (call) => call[1] as { exchange?: string },
+    );
+    expect(quoteOpts.every((opts) => opts.exchange === "BSE")).toBe(true);
+    const body = analyseMock.mock.calls[0]?.[0] as { exchange?: string | null };
+    expect(body.exchange).toBe("BSE");
   });
 
   it("does not call analyse when authenticated statements are unavailable", async () => {

@@ -27,6 +27,7 @@ import {
   filterShellNav,
   groupShellNav,
   isActivePath,
+  resolveShellAudience,
   type ShellNavIconId,
   type ShellNavItem,
 } from "@/lib/shell";
@@ -178,6 +179,7 @@ export function Sidebar({
   const { session, user } = useAuth();
   const permissions = session?.permissions ?? user?.permissions ?? [];
   const roles = session?.roles ?? user?.roles ?? [];
+  const ordinary = resolveShellAudience(permissions, roles) === "ordinary";
 
   const groups = useMemo(() => {
     const filtered = filterShellNav(permissions, roles);
@@ -247,7 +249,7 @@ export function Sidebar({
   }
 
   return (
-    <aside
+    <div
       className={cn(
         "shrink-0 transition-[width] duration-200 motion-reduce:transition-none",
         mobile
@@ -257,7 +259,6 @@ export function Sidebar({
               collapsed ? "md:w-[4.5rem]" : "md:w-60",
             ),
       )}
-      aria-label="Primary"
       data-collapsed={collapsed && !mobile ? "true" : undefined}
     >
       <div
@@ -279,7 +280,7 @@ export function Sidebar({
           >
             {collapsed && !mobile ? "DSP" : env.appName}
           </p>
-          {!(collapsed && !mobile) ? (
+          {!(collapsed && !mobile) && !ordinary ? (
             <p className="mt-0.5 text-xs text-[var(--muted)]">{env.tagline}</p>
           ) : null}
         </Link>
@@ -288,21 +289,22 @@ export function Sidebar({
       <DsSidebar
         collapsed={collapsed && !mobile}
         className="!w-full flex-1 border-0 bg-transparent"
+        aria-label={ordinary ? "Research" : "Primary"}
         onKeyDown={onNavKeyDown}
       >
         <SidebarGroup
-          label="Primary"
+          label={ordinary ? undefined : "Primary"}
           collapsed={collapsed && !mobile}
         >
           <NavTree
-            items={primaryItems}
+            items={ordinary ? groups.flatMap((g) => g.items) : primaryItems}
             collapsed={collapsed}
             mobile={mobile}
             onNavigate={onNavigate}
           />
         </SidebarGroup>
 
-        {moreItems.length > 0 && (
+        {!ordinary && moreItems.length > 0 ? (
           <SidebarGroup
             label="More"
             collapsed={collapsed && !mobile}
@@ -314,8 +316,8 @@ export function Sidebar({
               onNavigate={onNavigate}
             />
           </SidebarGroup>
-        )}
+        ) : null}
       </DsSidebar>
-    </aside>
+    </div>
   );
 }

@@ -12,10 +12,34 @@ const options: { mode: ThemeMode; label: string; Icon: typeof Sun }[] = [
 
 export type ThemeSwitcherProps = {
   className?: string;
+  /** Single cycling control for compact headers. Theme engine unchanged. */
+  compact?: boolean;
 };
 
-export function ThemeSwitcher({ className }: ThemeSwitcherProps) {
+const CYCLE: ThemeMode[] = ["light", "dark", "system"];
+
+export function ThemeSwitcher({ className, compact = false }: ThemeSwitcherProps) {
   const { mode, setMode } = useTheme();
+
+  if (compact) {
+    const current = options.find((o) => o.mode === mode) ?? options[0];
+    const next = CYCLE[(CYCLE.indexOf(mode) + 1) % CYCLE.length]!;
+    const Icon = current.Icon;
+    return (
+      <button
+        type="button"
+        aria-label={`Theme ${current.label}. Click to switch to ${next}.`}
+        title={`Theme: ${current.label}`}
+        onClick={() => setMode(next)}
+        className={cn(
+          "inline-flex min-h-9 min-w-9 items-center justify-center rounded-[var(--radius-md)] text-[var(--muted)] transition hover:bg-[var(--surface-2)] hover:text-[var(--fg)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]",
+          className,
+        )}
+      >
+        <Icon className="size-4" aria-hidden />
+      </button>
+    );
+  }
 
   return (
     <div

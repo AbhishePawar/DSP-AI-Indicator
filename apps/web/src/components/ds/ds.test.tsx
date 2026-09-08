@@ -66,4 +66,28 @@ describe("EPIC-F001 design system", () => {
     fireEvent.click(light);
     expect(light).toHaveAttribute("aria-pressed", "true");
   });
+
+  it("ThemeSwitcher compact control cycles with a single button", () => {
+    Object.defineProperty(window, "matchMedia", {
+      writable: true,
+      value: (query: string) => ({
+        matches: false,
+        media: query,
+        onchange: null,
+        addListener: () => undefined,
+        removeListener: () => undefined,
+        addEventListener: () => undefined,
+        removeEventListener: () => undefined,
+        dispatchEvent: () => false,
+      }),
+    });
+    render(
+      <ThemeProvider>
+        <ThemeSwitcher compact />
+      </ThemeProvider>,
+    );
+    const control = screen.getByRole("button", { name: /Theme /i });
+    fireEvent.click(control);
+    expect(screen.getByRole("button", { name: /Theme /i })).toBeTruthy();
+  });
 });

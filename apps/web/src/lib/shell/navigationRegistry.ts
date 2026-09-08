@@ -273,6 +273,61 @@ export const SHELL_NAV: readonly ShellNavItem[] = [
   },
 ] as const;
 
+/** Ordinary investor/client visible nav. Institutional items stay on SHELL_NAV. */
+export const ORDINARY_SHELL_NAV: readonly ShellNavItem[] = [
+  {
+    id: "research-home",
+    href: "/dashboard",
+    label: "Research",
+    description: "Search a company or stock and run DSP analysis",
+    section: "research",
+    icon: "research",
+  },
+  {
+    id: "settings",
+    href: "/settings",
+    label: "Settings",
+    description: "Preferences and configuration",
+    section: "account",
+    icon: "settings",
+  },
+];
+
+export type ShellAudience = "ordinary" | "operator" | "administrator";
+
+const ADMIN_ROLES = new Set(["administrator", "owner"]);
+const ADMIN_PERMISSIONS = new Set([
+  "manage_users",
+  "manage_roles",
+  "configure_platform",
+  "view_audit",
+  "admin.view",
+  "admin.manage",
+]);
+const OPERATOR_ROLES = new Set(["portfolio_manager"]);
+const OPERATOR_PERMISSIONS = new Set(["ops.view"]);
+
+export function resolveShellAudience(
+  permissions: readonly string[] = [],
+  roles: readonly string[] = [],
+): ShellAudience {
+  const perms = new Set(permissions.map((p) => p.toLowerCase()));
+  const roleSet = new Set(roles.map((r) => r.toLowerCase()));
+  if (
+    [...roleSet].some((r) => ADMIN_ROLES.has(r)) ||
+    [...perms].some((p) => ADMIN_PERMISSIONS.has(p))
+  ) {
+    return "administrator";
+  }
+  if (
+    [...roleSet].some((r) => OPERATOR_ROLES.has(r)) ||
+    [...perms].some((p) => OPERATOR_PERMISSIONS.has(p))
+  ) {
+    return "operator";
+  }
+  return "ordinary";
+}
+
 export const SECTION_LABELS: Record<ShellNavItem["section"], string> = {
   overview: "Overview",
   research: "Research",
@@ -465,6 +520,10 @@ export function filterShellNav(
   permissions: readonly string[],
   roles: readonly string[],
 ): ShellNavItem[] {
+  const audience = resolveShellAudience(permissions, roles);
+  if (audience === "ordinary") {
+    return ORDINARY_SHELL_NAV.map((item) => ({ ...item }));
+  }
   return SHELL_NAV.map((item) => {
     if (!canAccessNavItem(item, permissions, roles)) return null;
     // EPS-002 — feature-flagged enterprise surfaces

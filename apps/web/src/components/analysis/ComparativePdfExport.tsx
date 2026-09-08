@@ -269,7 +269,7 @@ function buildPeerMetrics(views: AnalysisWorkspaceView[]): PeerMetricRow[] {
     },
     {
       label: "Business Quality",
-      values: views.map((v) => getVal(v.dashboard.businessQuality)),
+      values: views.map((v) => getVal(v.dashboard.businessScore)),
     },
     {
       label: "Confidence",
@@ -400,7 +400,7 @@ export function ComparativePdfExport({ entries, generatedAt }: Props) {
                     {getVal(v.dashboard.researchConclusion)}
                   </p>
                   <p className="cpdf-signal-quality">
-                    {getVal(v.dashboard.businessQuality)}
+                    {getVal(v.dashboard.businessScore)}
                   </p>
                   <p className="cpdf-signal-confidence">
                     Confidence: {getVal(v.dashboard.researchConfidence)}

@@ -3,9 +3,6 @@
 import dynamic from "next/dynamic";
 
 import { Skeleton } from "@/components/ui/Skeleton";
-import { SharedResearchWorkspace } from '../../../../components/advisor/SharedResearch';
-
-
 const SharedResearchWorkspace = dynamic(
   () =>
     import("@/components/advisor/SharedResearch").then(

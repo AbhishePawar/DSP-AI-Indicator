@@ -3,9 +3,6 @@
 import dynamic from "next/dynamic";
 
 import { Skeleton } from "@/components/ui/Skeleton";
-import { PortfolioTemplatesWorkspace } from '../../../../components/advisor/ModelPortfolioManager';
-
-
 const PortfolioTemplatesWorkspace = dynamic(
   () =>
     import("@/components/advisor/ModelPortfolioManager").then(

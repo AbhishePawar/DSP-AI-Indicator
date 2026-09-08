@@ -160,7 +160,7 @@ export function AnalysisPageLayout({
         {/* ── 4. Valuation ──────────────────────────────────────── */}
         <section id="valuation" aria-labelledby="valuation-heading">
           <AnalysisSectionShell id="valuation-inner" title="Valuation">
-            <ValuationSection view={view} />
+            <ValuationSection valuation={view.valuation} />
           </AnalysisSectionShell>
         </section>
 

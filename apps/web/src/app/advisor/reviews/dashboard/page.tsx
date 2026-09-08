@@ -3,9 +3,6 @@
 import dynamic from "next/dynamic";
 
 import { Skeleton } from "@/components/ui/Skeleton";
-import { WorkflowDashboardWorkspace } from '../../../../components/advisor/ClientReview';
-
-
 const WorkflowDashboardWorkspace = dynamic(
   () =>
     import("@/components/advisor/ClientReview").then((m) => m.WorkflowDashboardWorkspace),

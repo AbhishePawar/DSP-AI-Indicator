@@ -7,7 +7,7 @@ import { Trash2, ExternalLink, Clock, TrendingUp, AlertCircle } from "lucide-rea
 import { PageHeader } from "@/components/layout/PageHeader";
 import { Button } from "@/components/ui/Button";
 import { Card, CardBody } from "@/components/ui/Card";
-import { Spinner } from "@/components/ui/Spinner";
+import { Spinner } from "@/components/ds";
 import { Alert } from "@/components/ui/Alert";
 import { useAuth } from "@/lib/auth/AuthProvider";
 import {
@@ -186,7 +186,7 @@ export default function ResearchHistoryPage() {
           title="Research History"
           description="All saved company analyses — reopen or delete entries."
         />
-        <Alert variant="info">Sign in to view your research history.</Alert>
+        <Alert tone="info">Sign in to view your research history.</Alert>
       </div>
     );
   }
@@ -203,7 +203,7 @@ export default function ResearchHistoryPage() {
           <Spinner size="lg" />
         </div>
       ) : error ? (
-        <Alert variant="error">
+        <Alert tone="danger">
           <div className="flex items-center gap-2">
             <AlertCircle className="size-4 shrink-0" aria-hidden />
             <span>{error}</span>

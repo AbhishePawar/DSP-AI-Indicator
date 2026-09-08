@@ -3,9 +3,6 @@
 import dynamic from "next/dynamic";
 
 import { Skeleton } from "@/components/ui/Skeleton";
-import { TeamReviewProgressPage } from '../../../../../components/advisor/SharedTeamReview';
-
-
 const TeamReviewProgressPage = dynamic(
   () =>
     import("@/components/advisor/SharedTeamReview").then(

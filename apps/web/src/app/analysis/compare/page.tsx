@@ -12,9 +12,6 @@ import { PageHeader } from "@/components/layout/PageHeader";
 import { WorkspaceSkeleton } from "@/components/company-comparison";
 import { EmptyState } from "@/components/ds";
 import { featureFlags } from "@/lib/featureFlags";
-import { CompanyComparisonWorkspace } from '../../../components/company-comparison/CompanyComparisonWorkspace';
-
-
 const CompanyComparisonWorkspace = dynamic(
   () =>
     import("@/components/company-comparison").then((m) => ({

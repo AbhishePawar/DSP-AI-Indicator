@@ -62,7 +62,7 @@ function Sparkline({ ticker, trend }: { ticker: string; trend: "up" | "down" | "
   const max = Math.max(...pts);
   const range = max - min || 1;
   const w = 80;
-  let h = 28;
+  const h = 28;
   const xs = pts.map((_, i) => (i / (pts.length - 1)) * w);
   const ys = pts.map((p) => h - ((p - min) / range) * h);
   const d = xs.map((x, i) => `${i === 0 ? "M" : "L"}${x.toFixed(1)},${ys[i].toFixed(1)}`).join(" ");

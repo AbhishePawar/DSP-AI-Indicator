@@ -9,9 +9,6 @@ import dynamic from "next/dynamic";
 import { Suspense } from "react";
 
 import { Skeleton } from "@/components/ds";
-import { InstitutionalReportsWorkspace } from '../../../components/institutional-reports/InstitutionalReportsWorkspace';
-
-
 function ReportsFallback() {
   return (
     <div

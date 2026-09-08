@@ -3,9 +3,6 @@
 import dynamic from "next/dynamic";
 
 import { Skeleton } from "@/components/ui/Skeleton";
-import { PresentationExportWorkspace } from '../../../../components/advisor/AdvisorPresentation';
-
-
 const PresentationExportWorkspace = dynamic(
   () =>
     import("@/components/advisor/AdvisorPresentation").then(

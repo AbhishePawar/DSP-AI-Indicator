@@ -8,9 +8,6 @@
 import dynamic from "next/dynamic";
 
 import { Skeleton } from "@/components/ds";
-import { InstitutionalDashboardClient } from '../../../../components/institutional-dashboard/InstitutionalDashboardClient';
-
-
 const InstitutionalDashboardClient = dynamic(
   () =>
     import(

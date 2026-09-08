@@ -9,9 +9,6 @@ import { Suspense } from "react";
 
 import { PageHeader } from "@/components/layout/PageHeader";
 import { featureFlags } from "@/lib/featureFlags";
-import { EnterprisePortal } from '../../components/enterprise-portal/EnterprisePortal';
-
-
 const EnterprisePortal = dynamic(
   () =>
     import("@/components/enterprise-portal").then((m) => ({

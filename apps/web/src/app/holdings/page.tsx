@@ -67,7 +67,7 @@ function simulatedCurrentPrice(ticker: string, buyPrice: number): number {
 function Sparkline({ data, positive }: { data: number[]; positive: boolean }) {
   if (!data.length) return null;
   const w = 80;
-  let h = 28;
+  const h = 28;
   const min = Math.min(...data);
   const max = Math.max(...data);
   const range = max - min || 1;

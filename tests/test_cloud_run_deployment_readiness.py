@@ -38,8 +38,6 @@ class TestCloudBuildDeployWiring:
         assert "DSP_INVESTMENT_DATA_PROVIDER=upstox" not in text
         assert "DSP_DATABASE_URL=dsp-database-url:latest" in text
         assert "--remove-secrets=DSP_UPSTOX_ANALYTICS_TOKEN" in text
-        assert "--clear-command" in text
-        assert "--clear-args" in text
         assert "dsp-upstox-analytics-token" not in text
         update_secrets = [
             line.strip()

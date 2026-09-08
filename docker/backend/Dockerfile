@@ -51,7 +51,9 @@ COPY pyproject.toml README.md ./
 COPY packages ./packages
 COPY scripts/start-api.sh /app/scripts/start-api.sh
 
-RUN chmod +x /app/scripts/start-api.sh && \
+# Strip CRLF so Cloud Build source uploaded from Windows still execs under /bin/sh.
+RUN sed -i 's/\r$//' /app/scripts/start-api.sh && \
+    chmod +x /app/scripts/start-api.sh && \
     useradd --create-home --shell /bin/bash dsp && \
     chown -R dsp:dsp /app
 

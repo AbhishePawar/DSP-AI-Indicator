@@ -11,6 +11,11 @@ _DOCKERFILE = _REPO / "docker" / "backend" / "Dockerfile"
 
 
 class TestStartApiPortBinding:
+    def test_unix_lf_line_endings(self) -> None:
+        raw = _START_API.read_bytes()
+        assert b"\r\n" not in raw
+        assert raw.startswith(b"#!/bin/sh\n")
+
     def test_honors_cloud_run_port(self) -> None:
         text = _START_API.read_text(encoding="utf-8")
         assert 'PORT="${PORT:-${DSP_API_PORT:-8000}}"' in text
@@ -33,6 +38,8 @@ class TestCloudBuildDeployWiring:
         assert "DSP_INVESTMENT_DATA_PROVIDER=upstox" not in text
         assert "DSP_DATABASE_URL=dsp-database-url:latest" in text
         assert "--remove-secrets=DSP_UPSTOX_ANALYTICS_TOKEN" in text
+        assert "--clear-command" in text
+        assert "--clear-args" in text
         assert "dsp-upstox-analytics-token" not in text
         update_secrets = [
             line.strip()
@@ -40,9 +47,7 @@ class TestCloudBuildDeployWiring:
             if line.strip().startswith("- --update-secrets=")
         ]
         assert update_secrets, "Cloud Build must declare --update-secrets"
-        assert all(
-            "DSP_UPSTOX_ANALYTICS_TOKEN=" not in line for line in update_secrets
-        )
+        assert all("DSP_UPSTOX_ANALYTICS_TOKEN=" not in line for line in update_secrets)
         assert (
             "--add-cloudsql-instances="
             "project-34de429e-3c43-4ae7-b75:asia-south1:dsp-postgres"
@@ -77,6 +82,10 @@ class TestCloudBuildDeployWiring:
 
 
 class TestDockerfilePsycopgContract:
+    def test_strips_crlf_from_start_api_script(self) -> None:
+        text = _DOCKERFILE.read_text(encoding="utf-8")
+        assert "sed -i 's/\\r$//' /app/scripts/start-api.sh" in text
+
     def test_runtime_verifies_psycopg_before_api_import(self) -> None:
         text = _DOCKERFILE.read_text(encoding="utf-8")
         builder_idx = text.index("BUILDER PSYCOPG OK")

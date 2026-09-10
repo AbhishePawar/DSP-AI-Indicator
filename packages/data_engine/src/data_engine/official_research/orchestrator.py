@@ -188,20 +188,27 @@ class ResearchOrchestrator:
                 extra_urls=request.candidate_urls,
                 extra_document_text=sanitized,
                 fields=request.fields,
+                fetch_registered_ir=request.mode == "LIVE",
             )
             acquired_fields = acquired.fields
             attacked_extra = acquired.capital_events
             unresolved_acq = list(acquired.issues)
             for failure in acquired.failures:
                 unresolved_acq.append(f"{failure.url}: {failure.reason}")
-            if acquired.documents and not request.document_url:
+            if acquired.selected_url and not request.document_url:
+                acquired_url = acquired.selected_url
+            elif acquired.documents and not request.document_url:
                 acquired_url = acquired.documents[0].url
             if acquired.sanitized_text:
                 sanitized = acquired.sanitized_text
         else:
             attacked_extra = ()
             unresolved_acq = []
-        if sanitized and not document_identity_matches(sanitized, isin=listing.isin):
+        if sanitized and not document_identity_matches(
+            sanitized,
+            isin=listing.isin,
+            company_name=listing.company_name,
+        ):
             unresolved_acq.append(
                 "document identity mismatch; ignoring document text"
             )

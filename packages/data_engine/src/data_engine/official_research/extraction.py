@@ -105,7 +105,7 @@ _MILLION = re.compile(r"(₹|rs\.?|inr).{0,12}million|\bin million\b", re.I)
 _THOUSAND = re.compile(r"(₹|rs\.?|inr).{0,12}thousand|\bin thousand\b", re.I)
 _ACTUAL = re.compile(r"unit:\s*actual|\bin actual\b|\bin rupees \(actual\)", re.I)
 _YEAR_ENDED = re.compile(
-    r"year ended\s+(\d{1,2}\s+\w+\s+\d{4}|\d{4}-\d{2}-\d{2}|\d{1,2}[-/]\w{3}[-/]\d{4})",
+    r"year ended\s+(\d{1,2}(?:st|nd|rd|th)?\s+\w+,?\s+\d{4}|\w+\s+\d{1,2},?\s+\d{4}|\d{4}-\d{2}-\d{2}|\d{1,2}[-/]\w{3}[-/]\d{4})",
     re.I,
 )
 _QUARTER_ENDED = re.compile(r"quarter ended|three months ended|quarterly results", re.I)
@@ -149,12 +149,47 @@ class DocumentContext:
 _ISIN_TOKEN = re.compile(r"\bINE[A-Z0-9]{9}\b", re.I)
 
 
-def document_identity_matches(text: str, *, isin: str) -> bool:
+def document_identity_matches(
+    text: str,
+    *,
+    isin: str,
+    company_name: str | None = None,
+    other_issuers: tuple[str, ...] = (),
+) -> bool:
     """If the document names ISINs, one of them must be this listing."""
     found = {item.upper() for item in _ISIN_TOKEN.findall(text or "")}
-    if not found:
-        return True
-    return isin.strip().upper() in found
+    if found and isin.strip().upper() not in found:
+        return False
+    if company_name and other_issuers:
+        from data_engine.official_research.company_sources import issuer_names_compatible
+
+        hay = str(text or "")[:16000]
+        ours = issuer_names_compatible(company_name, hay)
+        for other in other_issuers:
+            if issuer_names_compatible(other, hay) and not ours:
+                return False
+    return True
+
+
+_MIXED_BASIS_PHRASE = re.compile(
+    r"consolidated\s+and\s+standalone|standalone\s+and\s+consolidated",
+    re.I,
+)
+
+
+def nearest_statement_basis(text: str, position: int) -> str | None:
+    """Nearest preceding standalone/consolidated token, ignoring mixed phrases."""
+    prefix = _MIXED_BASIS_PHRASE.sub(" ", str(text or "")[:position])
+    lowered = prefix.lower()
+    cons = lowered.rfind("consolidated")
+    stand = lowered.rfind("standalone")
+    if cons < 0 and stand < 0:
+        return None
+    if cons > stand:
+        return "consolidated"
+    if stand > cons:
+        return "standalone"
+    return None
 
 
 def _parse_date(raw: str) -> date | None:
@@ -185,18 +220,23 @@ def parse_document_context(text: str) -> DocumentContext:
     issues: list[str] = []
     lowered = text.lower()
     currency = "INR" if re.search(r"₹|inr\b|rs\.?", lowered) else None
+    scales: list[tuple[Decimal, str]] = []
+    if _CRORE.search(text):
+        scales.append((Decimal("10000000"), "crore"))
+    if _LAKH.search(text):
+        scales.append((Decimal("100000"), "lakh"))
+    if _MILLION.search(text):
+        scales.append((Decimal("1000000"), "million"))
+    if _THOUSAND.search(text):
+        scales.append((Decimal("1000"), "thousand"))
+    if _ACTUAL.search(text):
+        scales.append((Decimal("1"), "actual"))
     multiplier: Decimal | None = None
     unit_scale = None
-    if _CRORE.search(text):
-        multiplier, unit_scale = Decimal("10000000"), "crore"
-    elif _LAKH.search(text):
-        multiplier, unit_scale = Decimal("100000"), "lakh"
-    elif _MILLION.search(text):
-        multiplier, unit_scale = Decimal("1000000"), "million"
-    elif _THOUSAND.search(text):
-        multiplier, unit_scale = Decimal("1000"), "thousand"
-    elif _ACTUAL.search(text):
-        multiplier, unit_scale = Decimal("1"), "actual"
+    if len(scales) == 1:
+        multiplier, unit_scale = scales[0]
+    elif len(scales) > 1:
+        issues.append("multiple unit scales present")
     has_consolidated = "consolidated" in lowered
     has_standalone = "standalone" in lowered
     basis = None
@@ -209,15 +249,17 @@ def parse_document_context(text: str) -> DocumentContext:
         issues.append("consolidated and standalone both present")
     period_type = None
     period_end = None
-    if _QUARTER_ENDED.search(text):
-        period_type = "quarter"
-        issues.append("quarterly document cannot satisfy annual DSP fields")
     year = _YEAR_ENDED.search(text)
     if year is not None:
         period_type = "FY"
         period_end = _parse_date(year.group(1).replace(" ", "-")) or _parse_flexible_day(
             year.group(1)
         )
+        if _QUARTER_ENDED.search(text):
+            issues.append("document also mentions quarterly periods; annual year-ended used")
+    elif _QUARTER_ENDED.search(text):
+        period_type = "quarter"
+        issues.append("quarterly document cannot satisfy annual DSP fields")
     as_of = _document_as_of(text)
     if period_end is None:
         period_end = as_of
@@ -235,10 +277,10 @@ def parse_document_context(text: str) -> DocumentContext:
 
 
 def _parse_flexible_day(raw: str) -> date | None:
-    text = " ".join(raw.strip().split())
+    text = re.sub(r"(\d+)(st|nd|rd|th)\b", r"\1", " ".join(raw.strip().split()), flags=re.I)
     from datetime import datetime
 
-    for fmt in ("%d %B %Y", "%d %b %Y", "%d-%B-%Y", "%d-%b-%Y"):
+    for fmt in ("%d %B %Y", "%d %b %Y", "%d-%B-%Y", "%d-%b-%Y", "%B %d, %Y", "%b %d, %Y"):
         try:
             return datetime.strptime(text, fmt).date()
         except ValueError:
@@ -307,30 +349,21 @@ def extract_labeled_field(text: str, field: str) -> ExtractedField | None:
             rf"{re.escape(label)}\s*[:=\s]\s*([-+]?\d[\d,]*(?:\.\d+)?)",
             re.I,
         )
-        match = pattern.search(text)
-        if match is None:
-            continue
-        semantic = semantic_field_status(
-            requested_field=requested, document_label=label
-        )
-        raw = match.group(1).replace(",", "")
-        if semantic != "VERIFIED":
-            return ExtractedField(
-                field=requested,
-                value="",
-                as_of=as_of,
-                locator=label,
-                semantic_status="UNKNOWN",
-                currency=context.currency,
-                raw_value=raw,
-                raw_unit=context.unit_scale,
-                period_end=context.period_end,
-                period_type=context.period_type,
-                statement_basis=context.statement_basis,
-                restated=context.restated,
+        for match in pattern.finditer(text):
+            local_basis = context.statement_basis
+            if context.statement_basis is None and (
+                "consolidated" in text.lower() and "standalone" in text.lower()
+            ):
+                local_basis = nearest_statement_basis(text, match.start())
+                if local_basis is None:
+                    continue
+                if local_basis != "consolidated":
+                    continue
+            semantic = semantic_field_status(
+                requested_field=requested, document_label=label
             )
-        if requested != "shares_outstanding":
-            if context.unit_multiplier is None:
+            raw = match.group(1).replace(",", "")
+            if semantic != "VERIFIED":
                 return ExtractedField(
                     field=requested,
                     value="",
@@ -339,40 +372,56 @@ def extract_labeled_field(text: str, field: str) -> ExtractedField | None:
                     semantic_status="UNKNOWN",
                     currency=context.currency,
                     raw_value=raw,
-                    raw_unit=None,
+                    raw_unit=context.unit_scale,
                     period_end=context.period_end,
                     period_type=context.period_type,
-                    statement_basis=context.statement_basis,
+                    statement_basis=local_basis,
                     restated=context.restated,
                 )
-            try:
-                normalized = Decimal(raw) * context.unit_multiplier
-            except (InvalidOperation, ValueError):
-                return None
-            value = format(normalized, "f")
-        else:
-            try:
-                if Decimal(raw) <= 0:
+            if requested != "shares_outstanding":
+                if context.unit_multiplier is None:
+                    return ExtractedField(
+                        field=requested,
+                        value="",
+                        as_of=as_of,
+                        locator=label,
+                        semantic_status="UNKNOWN",
+                        currency=context.currency,
+                        raw_value=raw,
+                        raw_unit=None,
+                        period_end=context.period_end,
+                        period_type=context.period_type,
+                        statement_basis=local_basis,
+                        restated=context.restated,
+                    )
+                try:
+                    normalized = Decimal(raw) * context.unit_multiplier
+                except (InvalidOperation, ValueError):
                     return None
-            except (InvalidOperation, ValueError):
-                return None
-            value = raw
-        return ExtractedField(
-            field=requested,
-            value=value,
-            as_of=as_of,
-            locator=label,
-            semantic_status="VERIFIED",
-            currency=context.currency if requested != "shares_outstanding" else None,
-            raw_value=raw,
-            raw_unit=context.unit_scale,
-            unit_scale="actual" if requested != "shares_outstanding" else "shares",
-            period_start=context.period_start,
-            period_end=context.period_end,
-            period_type=context.period_type,
-            statement_basis=context.statement_basis,
-            restated=context.restated,
-        )
+                value = format(normalized, "f")
+            else:
+                try:
+                    if Decimal(raw) <= 0:
+                        return None
+                except (InvalidOperation, ValueError):
+                    return None
+                value = raw
+            return ExtractedField(
+                field=requested,
+                value=value,
+                as_of=as_of,
+                locator=label,
+                semantic_status="VERIFIED",
+                currency=context.currency if requested != "shares_outstanding" else None,
+                raw_value=raw,
+                raw_unit=context.unit_scale,
+                unit_scale="actual" if requested != "shares_outstanding" else "shares",
+                period_start=context.period_start,
+                period_end=context.period_end,
+                period_type=context.period_type,
+                statement_basis=local_basis,
+                restated=context.restated,
+            )
     if requested == "ebit" and re.search(r"operating profit\s*[:=]", text, re.I):
         return ExtractedField(
             field="ebit",

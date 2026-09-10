@@ -1,1 +1,8 @@
-isin,official_domain,notes
+isin,company_name,official_domain,investor_relations_url,financial_results_url,annual_reports_url,source_verified_at,verification_method,status,mic,ticker_aliases
+INE009A01021,Infosys Limited,infosys.com,https://www.infosys.com/investors.html,,https://www.infosys.com/investors/reports-filings/annual-report.html,2026-09-10,issuer_ir_page,ACTIVE,XNSE,INFY
+INE467B01029,Tata Consultancy Services Limited,tcs.com,https://www.tcs.com/investor-relations,,,2026-09-10,issuer_ir_page,ACTIVE,XNSE,TCS
+INE075A01022,Wipro Limited,wipro.com,https://www.wipro.com/investors/,https://www.wipro.com/investors/,https://www.wipro.com/investors/annual-reports/,2026-09-10,issuer_annual_reports_page,ACTIVE,XNSE,WIPRO
+INE040A01034,HDFC Bank Limited,hdfc.bank.in,https://www.hdfc.bank.in/,,,2026-09-10,issuer_homepage_redirect,ACTIVE,XNSE,HDFCBANK
+INE002A01018,Reliance Industries Limited,ril.com,,,,2026-09-10,issuer_homepage,DOMAIN_ONLY,XNSE,RELIANCE
+INE021A01026,Asian Paints Limited,asianpaints.com,https://www.asianpaints.com/more/investors.html,,,2026-09-10,issuer_ir_page,ACTIVE,XNSE,ASIANPAINT
+INE030A01027,Hindustan Unilever Limited,hul.co.in,https://www.hul.co.in/investors/,,,2026-09-10,issuer_ir_page,ACTIVE,XNSE,HINDUNILVR

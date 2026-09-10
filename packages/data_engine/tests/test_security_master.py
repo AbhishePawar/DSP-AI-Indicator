@@ -161,6 +161,29 @@ def test_unknown_ticker() -> None:
     assert search.results == ()
 
 
+def test_ticker_prefix_is_not_ambiguous_identity() -> None:
+    """P1-05 — resolve('ACM') must not inherit ACMESOLAR / GACM listings.
+
+    Search may still surface prefix/name suggestions. Identity is exact ticker
+    (or ISIN+MIC). Dual-listed exact tickers remain AMBIGUOUS without exchange.
+    """
+    from data_engine.security_master.catalog import load_default_catalog
+
+    service = SecurityMasterService(load_default_catalog())
+    acm = service.resolve("ACM")
+    assert acm.status == "UNKNOWN"
+    assert acm.identity is None
+    search = service.search("ACM")
+    assert search.status == "MATCHES"
+    assert {item.ticker for item in search.results} >= {"ACMESOLAR"}
+    solar = service.resolve("ACMESOLAR")
+    assert solar.status == "RESOLVED"
+    assert solar.identity is not None
+    assert solar.identity.ticker == "ACMESOLAR"
+    infy = service.resolve("INFY")
+    assert infy.status == "AMBIGUOUS"
+
+
 def test_unsupported_warrant() -> None:
     service = _service()
     result = service.resolve("FAKEWARR", exchange="NSE")

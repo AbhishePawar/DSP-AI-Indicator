@@ -240,6 +240,13 @@ class SecurityMasterService:
             matches = tuple(item for item in matches if item.isin == isin_norm)
         if mic_norm:
             matches = tuple(item for item in matches if item.mic == mic_norm)
+        # Resolve identity by exact ticker (or ISIN). Prefix / company-name
+        # substring hits are search suggestions, not an AMBIGUOUS listing.
+        # Otherwise "ACM" collides with ACMESOLAR / GACM and blocks client
+        # statements for a ticker that is not in the official catalog.
+        matches = self._exact_identity_matches(
+            normalized, matches, isin_norm=isin_norm
+        )
 
         if not matches:
             return SecurityResolveResult(
@@ -324,6 +331,25 @@ class SecurityMasterService:
             if item.listing_id == listing_id:
                 return item
         return None
+
+    def _exact_identity_matches(
+        self,
+        query: str,
+        matches: tuple[SecurityListing, ...],
+        *,
+        isin_norm: str | None,
+    ) -> tuple[SecurityListing, ...]:
+        """Keep exact ticker/ISIN identity; leave spaced company names alone."""
+        if isin_norm or not matches:
+            return matches
+        text = str(query or "").strip()
+        if not text or " " in text:
+            return matches
+        needle = text.upper().replace(" ", "")
+        exact_ticker = tuple(item for item in matches if item.ticker.upper() == needle)
+        if exact_ticker:
+            return exact_ticker
+        return tuple(item for item in matches if item.isin.upper() == needle)
 
     def _match(
         self, query: str, *, exchange: str | None

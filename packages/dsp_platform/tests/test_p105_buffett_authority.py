@@ -118,6 +118,22 @@ def test_determinism_buffett_authority() -> None:
     assert a == b
 
 
+def test_official_listing_does_not_accept_client_buffett_bundle() -> None:
+    """14M — resolved NSE identity cannot be filled by client statements/scores."""
+    request = CompositionRequest(
+        financial_statements=_statements(),
+        current_market_price=70.0,
+        company="Acme Solar Holdings Limited",
+        ticker="ACMESOLAR",
+    )
+    result = PlatformOrchestrator(platform_version="0.7.1").execute(request)
+    public = pipeline_result_public_dict(result)
+    authority = public["buffett_authority"]
+    assert authority["client_overrides_accepted"] is False
+    assert authority["overall_score"] is None
+    assert authority["buffett_reviewer"] is None
+
+
 def test_unavailable_valuation_factor_is_honest_when_price_only() -> None:
     """Without authenticated IV, valuation stage may degrade — not fabricate IV score."""
     request = CompositionRequest(

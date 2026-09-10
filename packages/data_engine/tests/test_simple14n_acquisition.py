@@ -346,14 +346,15 @@ def test_missing_unit_unknown() -> None:
     assert extracted.semantic_status == "UNKNOWN"
 
 
-def test_multiple_unit_scales_are_unknown() -> None:
+def test_multiple_unit_scales_use_nearest_field_unit() -> None:
     text = (
         "figures in ₹ crore\nin million\nas_of: 2026-03-31\n"
         "consolidated\nnet income: 2"
     )
     extracted = extract_labeled_field(text, "net_income")
     assert extracted is not None
-    assert extracted.semantic_status == "UNKNOWN"
+    assert extracted.semantic_status == "VERIFIED"
+    assert extracted.raw_unit == "million"
     text = "figures in ₹ crore\nas_of: 2026-03-31\nconsolidated\nnet income: 2"
     extracted = extract_labeled_field(text, "net_income")
     assert extracted is not None

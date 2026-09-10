@@ -29,13 +29,16 @@ from data_engine.security_master.models import SecurityListing
 
 __all__ = [
     "NSE_ANNOUNCEMENTS_URL",
+    "NSE_ANNUAL_REPORTS_URL",
     "NSE_FINANCIAL_RESULTS_URL",
     "NSE_QUOTE_EQUITY_URL",
     "NSE_SHAREHOLDING_URL",
     "NseAnnouncementDocument",
     "NsePrimaryBundle",
     "NsePrimaryEvidenceService",
+    "parse_announcement_capital_events",
     "parse_announcement_documents",
+    "parse_annual_report_documents",
     "parse_financial_results",
     "parse_quote_equity_shares",
     "parse_shareholding_shares",
@@ -44,6 +47,7 @@ __all__ = [
 NSE_QUOTE_EQUITY_URL = "https://www.nseindia.com/api/quote-equity"
 NSE_FINANCIAL_RESULTS_URL = "https://www.nseindia.com/api/corporates-financial-results"
 NSE_ANNOUNCEMENTS_URL = "https://www.nseindia.com/api/corporate-announcements"
+NSE_ANNUAL_REPORTS_URL = "https://www.nseindia.com/api/annual-reports"
 NSE_SHAREHOLDING_URL = "https://www.nseindia.com/api/corporate-shareholding-pattern"
 
 _QUOTE_LAST_PRICE_KEYS = frozenset(
@@ -112,6 +116,7 @@ class NseAnnouncementDocument:
     url: str
     as_of: date | None
     kind: str
+    source: str = "nse_announcement"
 
 
 @dataclass(frozen=True, slots=True)
@@ -388,6 +393,10 @@ def parse_financial_results(
         annual_rows.append(row)
     if not annual_rows:
         return {}, None, None, "no annual NSE financial result row"
+    annual_rows.sort(
+        key=lambda item: str(item.get("toDate") or item.get("to_date") or ""),
+        reverse=True,
+    )
     row = annual_rows[0]
     basis = _statement_basis(row)
     if basis is None:
@@ -536,8 +545,85 @@ def parse_announcement_documents(payload: Any) -> tuple[NseAnnouncementDocument,
         ):
             kind = "corporate_action"
         found.append(
-            NseAnnouncementDocument(title=title, url=url, as_of=as_of, kind=kind)
+            NseAnnouncementDocument(
+                title=title,
+                url=url,
+                as_of=as_of,
+                kind=kind,
+                source="nse_announcement",
+            )
         )
+    return tuple(found)
+
+
+def parse_annual_report_documents(payload: Any) -> tuple[NseAnnouncementDocument, ...]:
+    """Official NSE annual-reports archive. fromYr/toYr are the FY labels."""
+    rows: list[dict[str, Any]] = []
+    if isinstance(payload, list):
+        rows = [item for item in payload if isinstance(item, dict)]
+    elif isinstance(payload, dict):
+        maybe = payload.get("data") or payload.get("dataList")
+        if isinstance(maybe, list):
+            rows = [item for item in maybe if isinstance(item, dict)]
+    found: list[NseAnnouncementDocument] = []
+    for row in rows:
+        url = str(row.get("fileName") or row.get("file_name") or "").strip()
+        if not url.lower().startswith("http"):
+            continue
+        company = str(row.get("companyName") or row.get("company") or "").strip()
+        from_y = str(row.get("fromYr") or "").strip()
+        to_y = str(row.get("toYr") or "").strip()
+        submission = str(row.get("submission_type") or "").strip()
+        title = " ".join(
+            part
+            for part in (
+                company,
+                "Integrated Annual Report",
+                f"{from_y}-{to_y}" if from_y or to_y else "",
+                submission,
+            )
+            if part
+        )
+        found.append(
+            NseAnnouncementDocument(
+                title=title,
+                url=url,
+                as_of=None,
+                kind="annual_report",
+                source="nse_annual_reports",
+            )
+        )
+    return tuple(found)
+
+
+def parse_announcement_capital_events(payload: Any) -> tuple[CapitalEvent, ...]:
+    """Date each CA from the announcement row. Undated titles do not stale shares."""
+    rows: list[dict[str, Any]] = []
+    if isinstance(payload, list):
+        rows = [item for item in payload if isinstance(item, dict)]
+    elif isinstance(payload, dict):
+        maybe = payload.get("data") or payload.get("announcements")
+        if isinstance(maybe, list):
+            rows = [item for item in maybe if isinstance(item, dict)]
+    found: list[CapitalEvent] = []
+    seen: set[tuple[str, date]] = set()
+    for row in rows:
+        as_of = parse_nse_calendar_date(
+            str(row.get("an_dt") or row.get("date") or "")
+        )
+        if as_of is None:
+            continue
+        blob = " ".join(
+            str(row.get(key) or "")
+            for key in ("desc", "subject", "headline", "attchmntText")
+        )
+        for event in attack_corporate_actions(blob, event_date=as_of):
+            key = (event.event_type, event.event_date)
+            if key in seen:
+                continue
+            seen.add(key)
+            found.append(event)
+    found.sort(key=lambda item: (item.event_date, item.event_type))
     return tuple(found)
 
 
@@ -618,18 +704,39 @@ class NsePrimaryEvidenceService:
         except LookupError as exc:
             issues.append(str(exc))
 
+        ar_url = f"{NSE_ANNUAL_REPORTS_URL}?index=equities&symbol={symbol}"
+        urls["annual_reports"] = ar_url
+        annual_documents: tuple[NseAnnouncementDocument, ...] = ()
+        try:
+            ar_payload = _json_loads(
+                self._transport.get_bytes(ar_url, referer=NSE_ALL_REPORTS)
+            )
+            annual_documents = parse_annual_report_documents(ar_payload)
+            if not annual_documents:
+                issues.append("NSE annual-reports archive returned no PDF rows")
+        except LookupError as exc:
+            issues.append(str(exc))
+
         ann_url = f"{NSE_ANNOUNCEMENTS_URL}?index=equities&symbol={symbol}"
         urls["announcements"] = ann_url
         try:
             ann_payload = _json_loads(
                 self._transport.get_bytes(ann_url, referer=NSE_ALL_REPORTS)
             )
-            events = attack_corporate_actions(_announcement_text(ann_payload))
+            events = parse_announcement_capital_events(ann_payload)
             announcement_documents = parse_announcement_documents(ann_payload)
+            existing = {item.url for item in announcement_documents}
+            merged = list(announcement_documents)
+            for item in annual_documents:
+                if item.url not in existing:
+                    merged.append(item)
+            announcement_documents = tuple(merged)
             announcement_payload = ann_payload
             announcements_searched = True
         except LookupError as exc:
             issues.append(str(exc))
+            if annual_documents:
+                announcement_documents = annual_documents
 
         return NsePrimaryBundle(
             fields=fields,

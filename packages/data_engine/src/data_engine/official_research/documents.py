@@ -19,6 +19,7 @@ __all__ = [
     "DocumentRecord",
     "DocumentStore",
     "RetrievalFailure",
+    "classify_retrieval_reason",
     "redirect_is_approved",
     "retrieve_official_document",
 ]
@@ -72,6 +73,44 @@ class DocumentStore:
 
     def versions(self) -> tuple[DocumentRecord, ...]:
         return tuple(self._versions)
+
+    def get_by_hash(self, document_hash: str) -> DocumentRecord | None:
+        digest = str(document_hash or "").strip()
+        if not digest:
+            return None
+        for record in reversed(self._versions):
+            if record.document_hash == digest:
+                return record
+        return None
+
+
+def classify_retrieval_reason(reason: str, http_status: int | None = None) -> str:
+    lowered = str(reason or "").lower()
+    if http_status == 403 or "http 403" in lowered:
+        return "403"
+    if http_status == 404 or "http 404" in lowered:
+        return "404"
+    if http_status == 429 or "http 429" in lowered:
+        return "429"
+    if http_status is not None and http_status >= 500:
+        return "5xx"
+    if "unapproved redirect" in lowered:
+        return "redirect_rejection"
+    if "ssl" in lowered or "tls" in lowered or "certificate" in lowered:
+        return "tls_failure"
+    if "getaddrinfo" in lowered or "nameresolution" in lowered or "dns" in lowered:
+        return "dns_failure"
+    if "timed out" in lowered or "timeout" in lowered:
+        return "timeout"
+    if "empty document" in lowered:
+        return "empty_document"
+    if "html instead of pdf" in lowered:
+        return "html_instead_of_pdf"
+    if "invalid pdf" in lowered:
+        return "invalid_pdf"
+    if "no text layer" in lowered:
+        return "pdf_parse_failure"
+    return "other"
 
 
 def _store_key(isin: str, mic: str, url: str) -> str:

@@ -55,7 +55,7 @@ def latest_completed_indian_fy(today: date | None = None) -> int:
 
 def normalize_financial_year(text: str) -> int | None:
     """Map FY2026 / 2025-26 / year ended 31 March 2026 to the March year-end year."""
-    raw = str(text or "")
+    raw = re.sub(r"[_]+", " ", str(text or ""))
     fy = _FY_LABEL.search(raw)
     if fy is not None:
         start = int(fy.group(1))
@@ -80,6 +80,14 @@ def normalize_financial_year(text: str) -> int | None:
     if fy is None and ranged is not None:
         start = int(ranged.group(1))
         end = int(ranged.group(2))
+        if end < 100:
+            end = (start // 100) * 100 + end
+        if end in {start, start + 1}:
+            return end
+    spaced = re.search(r"\b(20\d{2})\s+(20\d{2}|\d{2})\b", raw)
+    if spaced is not None:
+        start = int(spaced.group(1))
+        end = int(spaced.group(2))
         if end < 100:
             end = (start // 100) * 100 + end
         if end in {start, start + 1}:
@@ -132,6 +140,7 @@ def rank_annual_candidates(
     ranked.sort(
         key=lambda item: (
             0 if item.financial_year == wanted else 1,
+            0 if item.source == "nse_annual_reports" else 1,
             0 if item.prefers_consolidated == (statement_basis == "consolidated") else 1,
             -item.score,
             item.title.lower(),
@@ -170,7 +179,7 @@ def _from_announcement(item: NseAnnouncementDocument) -> AnnualDocumentCandidate
     return _from_label(
         item.url,
         item.title,
-        source="nse_announcement",
+        source=getattr(item, "source", None) or "nse_announcement",
         kind=item.kind,
         as_of=item.as_of,
     )

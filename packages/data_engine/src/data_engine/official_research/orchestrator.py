@@ -15,6 +15,7 @@ from data_engine.official_research.currentness import (
     is_current,
     market_cap_status,
 )
+from data_engine.official_research.documents import DocumentStore
 from data_engine.official_research.extraction import (
     attack_corporate_actions,
     document_identity_matches,
@@ -104,6 +105,7 @@ class ResearchOrchestrator:
         self._policy = policy or SourcePolicy()
         self._judge = judge or EvidenceJudge(self._policy)
         self._cache = cache or EvidenceCache()
+        self._document_store = DocumentStore()
         self._gemini = gemini
         self._chatgpt = chatgpt
         self._deep_search = deep_search
@@ -186,9 +188,13 @@ class ResearchOrchestrator:
                     None if primary is None else primary.announcement_payload
                 ),
                 extra_urls=request.candidate_urls,
+                extra_announcements=(
+                    () if primary is None else primary.announcement_documents
+                ),
                 extra_document_text=sanitized,
                 fields=request.fields,
                 fetch_registered_ir=request.mode == "LIVE",
+                store=self._document_store,
             )
             acquired_fields = acquired.fields
             attacked_extra = acquired.capital_events
@@ -502,9 +508,10 @@ class ResearchOrchestrator:
                 ) or primary.source_urls.get("quote_equity")
             else:
                 document_url = primary.source_urls.get("financial_results")
-        unknown_semantics = (
-            extracted is not None and extracted.semantic_status == "UNKNOWN"
-        )
+        unknown_semantics = extracted is not None and extracted.semantic_status in {
+            "UNKNOWN",
+            "CONFLICT",
+        }
         usable = (
             extracted is not None
             and extracted.semantic_status == "VERIFIED"
@@ -555,15 +562,20 @@ class ResearchOrchestrator:
         searched_ca = bool(document_text) or bool(
             primary is not None and primary.announcements_searched
         )
-        if corporate_actions and as_of is not None:
+        if field != "shares_outstanding":
+            ca_status = "PASS" if searched_ca or as_of is not None else "UNKNOWN"
+        elif corporate_actions and as_of is not None:
             later_events = [
                 event
                 for event in corporate_actions
-                if event.capital_changing and event.event_date > as_of
+                if event.capital_changing
+                and event.event_date != date.max
+                and event.event_date > as_of
             ]
             ca_status = "REFRESH_REQUIRED" if later_events else "PASS"
         elif corporate_actions:
-            ca_status = "REFRESH_REQUIRED"
+            dated = [event for event in corporate_actions if event.event_date != date.max]
+            ca_status = "REFRESH_REQUIRED" if dated else "UNKNOWN"
         elif searched_ca:
             ca_status = "PASS"
         if (

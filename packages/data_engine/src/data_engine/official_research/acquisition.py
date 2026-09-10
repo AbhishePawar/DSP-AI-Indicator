@@ -70,6 +70,7 @@ def acquire_primary_documents(
     transport: NseHttpTransport,
     announcement_payload: object | None = None,
     extra_urls: tuple[str, ...] = (),
+    extra_announcements: tuple[NseAnnouncementDocument, ...] = (),
     registry: CompanySourceRegistry | None = None,
     policy: SourcePolicy | None = None,
     extra_document_text: str = "",
@@ -96,7 +97,9 @@ def acquire_primary_documents(
         )
 
     docs: list[NseAnnouncementDocument] = []
-    if announcement_payload is not None:
+    if extra_announcements:
+        docs = list(extra_announcements)
+    elif announcement_payload is not None:
         docs = list(parse_announcement_documents(announcement_payload))
 
     ir_started = perf_counter()
@@ -176,6 +179,18 @@ def acquire_primary_documents(
         download_s += perf_counter() - dl
         if isinstance(result, RetrievalFailure):
             failures.append(result)
+            continue
+        if not result.payload:
+            failures.append(
+                RetrievalFailure(url=candidate.url, reason="empty document")
+            )
+            continue
+        stripped = result.payload.lstrip()
+        pdf_url = candidate.url.lower().split("?", 1)[0].endswith(".pdf")
+        if pdf_url and stripped.startswith(b"<"):
+            failures.append(
+                RetrievalFailure(url=candidate.url, reason="HTML instead of PDF")
+            )
             continue
         records.append(result)
         ex = perf_counter()

@@ -20,6 +20,8 @@ __all__ = [
     "attack_corporate_actions",
     "extract_labeled_field",
     "extract_shares_outstanding",
+    "nearest_statement_basis",
+    "nearest_unit_scale",
     "parse_document_context",
     "share_label_is_outstanding",
     "document_identity_matches",
@@ -54,6 +56,33 @@ _AS_OF = re.compile(
 )
 
 # Exact labels only. Operating profit is not EBIT; PPE purchase is not capex.
+_PL_HEAD = re.compile(
+    r"statement of profit\s*(?:and|&)\s*loss|statement of financial performance|"
+    r"income statement|statement of comprehensive income|profit and loss account",
+    re.I,
+)
+_BS_HEAD = re.compile(
+    r"balance sheet|statement of financial position",
+    re.I,
+)
+_CF_HEAD = re.compile(
+    r"statement of cash flows|cash flow statement|statement of cash flow",
+    re.I,
+)
+_FIELD_STATEMENT_HEAD: dict[str, re.Pattern[str]] = {
+    "revenue": _PL_HEAD,
+    "operating_profit": _PL_HEAD,
+    "ebit": _PL_HEAD,
+    "net_income": _PL_HEAD,
+    "equity": _BS_HEAD,
+    "cash": _BS_HEAD,
+    "debt": _BS_HEAD,
+    "total_assets": _BS_HEAD,
+    "total_liabilities": _BS_HEAD,
+    "cfo": _CF_HEAD,
+    "capex": _CF_HEAD,
+}
+
 _FIELD_LABELS: dict[str, tuple[str, ...]] = {
     "revenue": ("revenue from operations", "revenue", "total revenue"),
     "operating_profit": ("operating profit",),
@@ -192,6 +221,31 @@ def nearest_statement_basis(text: str, position: int) -> str | None:
     return None
 
 
+_UNIT_NEAR: tuple[tuple[re.Pattern[str], Decimal, str], ...] = (
+    (_CRORE, Decimal("10000000"), "crore"),
+    (_LAKH, Decimal("100000"), "lakh"),
+    (_MILLION, Decimal("1000000"), "million"),
+    (_THOUSAND, Decimal("1000"), "thousand"),
+    (_ACTUAL, Decimal("1"), "actual"),
+)
+
+
+def nearest_unit_scale(
+    text: str, position: int, *, window: int = 2500
+) -> tuple[Decimal, str] | None:
+    """Nearest explicit unit before a field. Mixed document units are allowed per field."""
+    start = max(0, int(position) - window)
+    prefix = str(text or "")[start:position]
+    best_at = -1
+    found: tuple[Decimal, str] | None = None
+    for pattern, multiplier, scale in _UNIT_NEAR:
+        for match in pattern.finditer(prefix):
+            if match.start() >= best_at:
+                best_at = match.start()
+                found = (multiplier, scale)
+    return found
+
+
 def _parse_date(raw: str) -> date | None:
     text = raw.strip()
     try:
@@ -263,13 +317,16 @@ def parse_document_context(text: str) -> DocumentContext:
     as_of = _document_as_of(text)
     if period_end is None:
         period_end = as_of
+    period_start = None
+    if period_end is not None and period_end.month == 3 and period_end.day == 31:
+        period_start = date(period_end.year - 1, 4, 1)
     return DocumentContext(
         currency=currency,
         unit_scale=unit_scale,
         unit_multiplier=multiplier,
         statement_basis=basis,
         period_type=period_type,
-        period_start=None,
+        period_start=period_start,
         period_end=period_end,
         restated=bool(_RESTATED.search(text)),
         issues=tuple(issues),
@@ -308,7 +365,7 @@ def attack_corporate_actions(
     seen: set[str] = set()
     dated = event_date or _document_as_of(text)
     if dated is None:
-        dated = date.max
+        return ()
     for event_type, pattern in _CA_PATTERNS:
         if event_type not in CAPITAL_EVENT_TYPES:
             continue
@@ -318,6 +375,31 @@ def attack_corporate_actions(
             seen.add(event_type)
             found.append(CapitalEvent(event_type, dated))
     return tuple(found)
+
+
+_STATEMENT_WINDOW = 80000
+_LONG_DOCUMENT_CHARS = 8000
+
+
+def _last_heading_start(text: str, heading: re.Pattern[str]) -> int:
+    last = -1
+    for found in heading.finditer(text):
+        last = found.start()
+    return last
+
+
+def _match_in_statement_window(
+    text: str, heading: re.Pattern[str], match_start: int, *, window: int = _STATEMENT_WINDOW
+) -> bool:
+    """Accept a labeled number only after the nearest preceding statement heading."""
+    last = -1
+    for found in heading.finditer(text):
+        if found.start() >= match_start:
+            break
+        last = found.start()
+    if last < 0:
+        return False
+    return match_start - last <= window
 
 
 def extract_labeled_field(text: str, field: str) -> ExtractedField | None:
@@ -342,6 +424,31 @@ def extract_labeled_field(text: str, field: str) -> ExtractedField | None:
         " ".join(labels)
     ):
         return None
+    unlabeled_unit: ExtractedField | None = None
+    verified_hits: list[ExtractedField] = []
+    require_heading = len(text) > _LONG_DOCUMENT_CHARS and requested != "shares_outstanding"
+    lowered = text.lower()
+    mixed_basis = context.statement_basis is None and (
+        "consolidated" in lowered and "standalone" in lowered
+    )
+    search_text = text
+    search_offset = 0
+    heading = _FIELD_STATEMENT_HEAD.get(requested) if require_heading else None
+    if heading is not None:
+        last = _last_heading_start(text, heading)
+        if last < 0:
+            if requested == "ebit" and re.search(r"operating profit\s*[:=]", text, re.I):
+                return ExtractedField(
+                    field="ebit",
+                    value="",
+                    as_of=as_of,
+                    locator="operating profit",
+                    semantic_status="UNKNOWN",
+                    statement_basis=context.statement_basis,
+                )
+            return None
+        search_offset = last
+        search_text = text[last : last + _STATEMENT_WINDOW]
     for label in labels:
         if requested == "shares_outstanding" and not share_label_is_outstanding(label):
             continue
@@ -349,12 +456,20 @@ def extract_labeled_field(text: str, field: str) -> ExtractedField | None:
             rf"{re.escape(label)}\s*[:=\s]\s*([-+]?\d[\d,]*(?:\.\d+)?)",
             re.I,
         )
-        for match in pattern.finditer(text):
+        pair_pattern = re.compile(
+            rf"{re.escape(label)}\s*[:=\s]\s*([-+]?\d[\d,]*(?:\.\d+)?)\s+([-+]?\d[\d,]*(?:\.\d+)?)",
+            re.I,
+        )
+        iterators = (
+            pair_pattern.finditer(search_text)
+            if require_heading
+            else pattern.finditer(search_text)
+        )
+        for match in iterators:
+            position = match.start() + search_offset
             local_basis = context.statement_basis
-            if context.statement_basis is None and (
-                "consolidated" in text.lower() and "standalone" in text.lower()
-            ):
-                local_basis = nearest_statement_basis(text, match.start())
+            if mixed_basis:
+                local_basis = nearest_statement_basis(text, position)
                 if local_basis is None:
                     continue
                 if local_basis != "consolidated":
@@ -379,8 +494,12 @@ def extract_labeled_field(text: str, field: str) -> ExtractedField | None:
                     restated=context.restated,
                 )
             if requested != "shares_outstanding":
-                if context.unit_multiplier is None:
-                    return ExtractedField(
+                if context.unit_multiplier is not None and context.unit_scale is not None:
+                    local_unit = (context.unit_multiplier, context.unit_scale)
+                else:
+                    local_unit = nearest_unit_scale(text, position)
+                if local_unit is None:
+                    unlabeled_unit = ExtractedField(
                         field=requested,
                         value="",
                         as_of=as_of,
@@ -394,11 +513,13 @@ def extract_labeled_field(text: str, field: str) -> ExtractedField | None:
                         statement_basis=local_basis,
                         restated=context.restated,
                     )
+                    continue
                 try:
-                    normalized = Decimal(raw) * context.unit_multiplier
+                    normalized = Decimal(raw) * local_unit[0]
                 except (InvalidOperation, ValueError):
                     return None
                 value = format(normalized, "f")
+                raw_unit = local_unit[1]
             else:
                 try:
                     if Decimal(raw) <= 0:
@@ -406,22 +527,49 @@ def extract_labeled_field(text: str, field: str) -> ExtractedField | None:
                 except (InvalidOperation, ValueError):
                     return None
                 value = raw
+                raw_unit = "shares"
+            verified_hits.append(
+                ExtractedField(
+                    field=requested,
+                    value=value,
+                    as_of=as_of,
+                    locator=label,
+                    semantic_status="VERIFIED",
+                    currency=context.currency if requested != "shares_outstanding" else None,
+                    raw_value=raw,
+                    raw_unit=raw_unit,
+                    unit_scale="actual" if requested != "shares_outstanding" else "shares",
+                    period_start=context.period_start,
+                    period_end=context.period_end,
+                    period_type=context.period_type,
+                    statement_basis=local_basis,
+                    restated=context.restated,
+                )
+            )
+            if not require_heading:
+                return verified_hits[0]
+    if require_heading and verified_hits:
+        distinct = {item.value for item in verified_hits}
+        if len(distinct) > 1:
+            first = verified_hits[0]
             return ExtractedField(
                 field=requested,
-                value=value,
+                value="",
                 as_of=as_of,
-                locator=label,
-                semantic_status="VERIFIED",
-                currency=context.currency if requested != "shares_outstanding" else None,
-                raw_value=raw,
-                raw_unit=context.unit_scale,
-                unit_scale="actual" if requested != "shares_outstanding" else "shares",
-                period_start=context.period_start,
-                period_end=context.period_end,
+                locator=first.locator,
+                semantic_status="CONFLICT",
+                currency=first.currency,
+                raw_value=first.raw_value,
+                raw_unit=first.raw_unit,
+                period_start=first.period_start,
+                period_end=first.period_end,
                 period_type=context.period_type,
-                statement_basis=local_basis,
+                statement_basis=first.statement_basis,
                 restated=context.restated,
             )
+        return verified_hits[0]
+    if unlabeled_unit is not None:
+        return unlabeled_unit
     if requested == "ebit" and re.search(r"operating profit\s*[:=]", text, re.I):
         return ExtractedField(
             field="ebit",

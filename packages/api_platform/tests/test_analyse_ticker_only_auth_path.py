@@ -378,9 +378,9 @@ class TestProductionFailClosed:
 
 
 class TestClientFsPathPreserved:
-    """CLIENT-FS PATH — price / income still required when FS is supplied."""
+    """CLIENT-FS PATH — income still required; client CMP is not required."""
 
-    def test_client_fs_still_requires_market_price(self) -> None:
+    def test_client_fs_does_not_require_client_market_price(self) -> None:
         body = AnalyseRequest.model_validate(
             {
                 "ticker": "ACM",
@@ -394,7 +394,7 @@ class TestClientFsPathPreserved:
             }
         )
         errors = validate_analyse_request(body)
-        assert any("current_market_price" in e for e in errors)
+        assert not any("current_market_price" in e for e in errors)
 
     def test_ticker_only_still_rejects_client_intrinsic_value(self) -> None:
         body = AnalyseRequest.model_validate(

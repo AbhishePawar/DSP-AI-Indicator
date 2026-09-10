@@ -101,7 +101,10 @@ def validate_analyse_request(body: AnalyseRequest) -> list[str]:
         # (Upstox P1-01). Client FS / price are not required at the boundary.
         return errors
 
-    # CLIENT-FS PATH — preserve historical validation when FS is supplied.
+    # CLIENT-FS PATH — statements may be attached after an authenticated GET.
+    # Market price is never required from the client (P1-01 / SIMPLE-14M):
+    # official EOD / fixture quote is server-resolved. Client CMP is ignored
+    # as authoritative. Missing server price fails closed in the pipeline.
     if fs is None:
         errors.append("financial_statements is required when ticker is absent")
         return errors
@@ -111,16 +114,6 @@ def validate_analyse_request(body: AnalyseRequest) -> list[str]:
         errors.append("financial_statements.period.period_type is required")
     if not period.period_end.strip():
         errors.append("financial_statements.period.period_end is required")
-
-    has_price = body.current_market_price is not None or (
-        body.valuation_signals is not None
-        and body.valuation_signals.current_market_price is not None
-    )
-    if not has_price:
-        errors.append(
-            "missing valuation data: provide current_market_price "
-            "(client investment conclusions are not accepted)"
-        )
 
     income = fs.income_statement or {}
     if not income:

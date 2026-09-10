@@ -77,6 +77,10 @@ jobs:
       DSP_ENABLE_SECURITY: "false"
       PYTHONUNBUFFERED: "1"
       NEXT_PUBLIC_API_BASE_URL: http://127.0.0.1:8000/api/v1
+      # Split-origin CI (web:3000 → API:8000): SameSite=Lax cookies are not sent
+      # on cross-origin fetch. Production sits behind Caddy (same origin).
+      # Documented Bearer fallback — not a production cookie-auth change.
+      NEXT_PUBLIC_COOKIE_AUTH: "false"
       PLAYWRIGHT_BASE_URL: http://127.0.0.1:3000
       PLAYWRIGHT_API_BASE_URL: http://127.0.0.1:8000/api/v1
       PLAYWRIGHT_SKIP_WEBSERVER: "1"
@@ -177,7 +181,7 @@ jobs:
       - name: P1-09 Playwright critical journey
         id: playwright
         working-directory: apps/web
-        run: npx playwright test e2e/browser/p109-critical-investment.journey.spec.ts --project=chromium
+        run: npx playwright test e2e/browser/p109-critical-investment.journey.spec.ts --project=chromium --workers=1 --retries=0
 
       - name: Upload Playwright artifacts
         if: always()

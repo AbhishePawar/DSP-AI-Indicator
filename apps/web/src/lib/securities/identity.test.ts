@@ -50,4 +50,15 @@ describe("security identity helpers", () => {
       mic: "XNSE",
     });
   });
+
+  it("P1-09 fixture workspace URL includes ticker and exchange", () => {
+    expect(analysisPath({ ticker: "DSPFIX", exchange: "NYSE" })).toBe(
+      "/analysis?symbol=DSPFIX&exchange=NYSE",
+    );
+    const tickerOnly = identityFromSearchParams(
+      new URLSearchParams("symbol=DSPFIX"),
+    );
+    expect(tickerOnly.exchange).toBe("");
+    expect(hasExactListingIdentity(tickerOnly)).toBe(false);
+  });
 });

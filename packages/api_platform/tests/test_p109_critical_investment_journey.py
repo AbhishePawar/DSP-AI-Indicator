@@ -139,6 +139,38 @@ def _analyse_from_authenticated(client: TestClient, headers: dict[str, str]) -> 
     return resp.json()
 
 
+def _frontend_analyse_body(client: TestClient, headers: dict[str, str]) -> dict:
+    """Thin-client POST body: identity + authenticated statements, no client CMP/IV/MoS."""
+    ticker = P109_FIXTURE_TICKER
+    stmts = client.get(
+        f"/api/v1/fundamentals/statements?symbol={ticker}&limit=1",
+        headers=headers,
+    )
+    assert stmts.status_code == 200, stmts.text
+    s = stmts.json()
+    latest = s["periods"][0]
+    return {
+        "ticker": ticker,
+        "exchange": "NYSE",
+        "company": "DSP Fixture Corp",
+        "financial_statements": {
+            "period": {
+                "period_type": latest["period_type"],
+                "period_end": latest["period_end"],
+                "fiscal_year": latest.get("fiscal_year"),
+                "currency": latest.get("reporting_currency") or "USD",
+            },
+            "income_statement": dict(latest.get("income_statement") or {}),
+            "balance_sheet": dict(latest.get("balance_sheet") or {}),
+            "cash_flow": dict(latest.get("cash_flow") or {}),
+            "statement_metadata": {
+                "source": "authenticated_fundamentals",
+                "evidence_class": P109_EVIDENCE_CLASS,
+            },
+        },
+    }
+
+
 def test_p109_critical_investment_journey_hard_gate(seeded_client: TestClient) -> None:
     client = seeded_client
 
@@ -334,6 +366,31 @@ def test_p109_critical_investment_journey_hard_gate(seeded_client: TestClient) -
     _write_evidence(evidence)
     assert evidence["evidence_class"] == "test_fixture"
     assert evidence["evidence_class"] != "real_live_authenticated_provider"
+
+
+def test_p109_frontend_analyse_body_does_not_require_client_price(
+    seeded_client: TestClient,
+) -> None:
+    """Thin-client contract: statements from GET, no client CMP/IV/MoS."""
+    client = seeded_client
+    register_user(
+        client,
+        user_id="p109-frontend",
+        username="p109frontend",
+        roles=["administrator"],
+    )
+    headers = bearer_headers(client, username="p109frontend")
+    body = _frontend_analyse_body(client, headers)
+    assert "current_market_price" not in body
+    assert "valuation_signals" not in body
+    resp = client.post("/api/v1/analyse", headers=headers, json=body)
+    assert resp.status_code == 200, resp.text
+    payload = resp.json()
+    assert payload["ok"] is True, payload.get("errors")
+    assert payload["analysis_id"]
+    source = (payload.get("payload") or {}).get("source_evidence") or {}
+    assert source.get("evidence_class") == P109_EVIDENCE_CLASS
+    assert source.get("g2_claim") is False
 
 
 def test_p109_fixture_refused_in_production_env(monkeypatch: pytest.MonkeyPatch) -> None:

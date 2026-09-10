@@ -127,14 +127,14 @@ class TestValidate:
         assert body["valid"] is True
         assert body["errors"] == []
 
-    def test_validate_missing_valuation(self, client: TestClient) -> None:
+    def test_validate_statements_without_client_price(self, client: TestClient) -> None:
         payload = _analyse_body()
         payload.pop("current_market_price")
         response = client.post("/api/v1/validate", json=payload)
         assert response.status_code == 200
         body = response.json()
-        assert body["valid"] is False
-        assert any("valuation" in e or "current_market_price" in e for e in body["errors"])
+        assert body["valid"] is True
+        assert body["errors"] == []
 
     def test_validate_rejects_client_intrinsic_value(self, client: TestClient) -> None:
         payload = _analyse_body(
@@ -175,8 +175,7 @@ class TestAnalyse:
         assert "X-Request-Id" in response.headers
 
     def test_analyse_validation_error(self, client: TestClient) -> None:
-        payload = _analyse_body()
-        payload.pop("current_market_price")
+        payload = _analyse_body(ticker="BAD TICKER!")
         response = client.post("/api/v1/analyse", json=payload)
         assert response.status_code == 422
         body = response.json()
@@ -184,10 +183,16 @@ class TestAnalyse:
         assert body["error_code"] == "VALIDATION_ERROR"
         assert body["correlation_id"]
         assert body["timestamp"]
-        assert any(
-            "valuation" in e or "current_market_price" in e
-            for e in body["validation_errors"]
-        )
+        assert any("ticker" in e for e in body["validation_errors"])
+
+    def test_analyse_statements_without_client_price(self, client: TestClient) -> None:
+        payload = _analyse_body()
+        payload.pop("current_market_price")
+        response = client.post("/api/v1/analyse", json=payload)
+        assert response.status_code != 422
+        assert response.status_code == 200
+        body = response.json()
+        assert "ok" in body
 
     def test_analyse_rejects_forged_client_iv(self, client: TestClient) -> None:
         """P0-02 — forged client IV must fail closed at the HTTP boundary."""

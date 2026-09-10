@@ -69,6 +69,10 @@ def source_evidence_from_trace(trace: Mapping[str, Any] | None) -> dict[str, Any
             "valuation_status": trace.get("valuation_status"),
             "identity_status": trace.get("identity_status"),
             "mode": trace.get("mode"),
+            "evidence_class": trace.get("evidence_class")
+            or (quote.get("metadata") or {}).get("evidence_class")
+            or (stmt.get("metadata") or {}).get("evidence_class"),
+            "g2_claim": bool(trace.get("g2_claim")),
             "statement_provenance": stmt,
             "quote_provenance": quote,
         }

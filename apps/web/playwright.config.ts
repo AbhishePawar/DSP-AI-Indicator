@@ -3,15 +3,20 @@ import { defineConfig, devices } from "@playwright/test";
 /**
  * EPIC-019A — Visual regression + multi-browser smoke.
  * Baselines under e2e/visual/__screenshots__.
+ *
+ * P1-09 starts API + Next itself and sets PLAYWRIGHT_SKIP_WEBSERVER=1.
+ * That gate must not retry, must not spawn a second webServer/build, and
+ * must retain traces on the first failure.
  */
 const baseURL = process.env.PLAYWRIGHT_BASE_URL ?? "http://127.0.0.1:3000";
+const p109Standalone = process.env.PLAYWRIGHT_SKIP_WEBSERVER === "1";
 
 export default defineConfig({
   testDir: "./e2e",
-  fullyParallel: true,
+  fullyParallel: !p109Standalone,
   forbidOnly: !!process.env.CI,
-  retries: process.env.CI ? 1 : 0,
-  workers: process.env.CI ? 2 : undefined,
+  retries: p109Standalone ? 0 : process.env.CI ? 1 : 0,
+  workers: p109Standalone ? 1 : process.env.CI ? 2 : undefined,
   reporter: [
     ["list"],
     ["html", { open: "never", outputFolder: "playwright-report" }],
@@ -25,8 +30,9 @@ export default defineConfig({
   },
   use: {
     baseURL,
-    trace: "on-first-retry",
+    trace: p109Standalone ? "retain-on-failure" : "on-first-retry",
     screenshot: "only-on-failure",
+    video: p109Standalone ? "retain-on-failure" : "off",
   },
   projects: [
     {

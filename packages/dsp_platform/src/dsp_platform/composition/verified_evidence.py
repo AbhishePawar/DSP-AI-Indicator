@@ -34,6 +34,7 @@ from dsp_platform.composition.authenticated_valuation import (
     DATA_UNAVAILABLE,
     AuthenticatedValuationBundle,
     AuthenticatedValuationError,
+    load_authenticated_valuation_bundle,
     snapshot_from_statement,
     to_financial_statements,
 )
@@ -111,6 +112,35 @@ def preload_verified_evidence(ctx: ExecutionContext) -> None:
     isin = str(getattr(ctx.request, "isin", None) or "").strip() or None
     mic = str(getattr(ctx.request, "mic", None) or "").strip() or None
     exchange = str(getattr(ctx.request, "exchange", None) or "").strip() or None
+
+    # P1-09 CI fixture only — DSPFIX memory quote/statements, never G2 / never LIVE NSE.
+    if not production:
+        from dsp_platform.p109_e2e_fixture import (
+            P109_EVIDENCE_CLASS,
+            P109_FIXTURE_TICKER,
+        )
+
+        if ticker.upper() == P109_FIXTURE_TICKER:
+            try:
+                bundle = load_authenticated_valuation_bundle(
+                    ticker, exchange=exchange or "NYSE"
+                )
+            except AuthenticatedValuationError:
+                bundle = None
+            if bundle is not None:
+                ctx.results[_AUTH_BUNDLE_KEY] = bundle
+                try:
+                    ctx.results[_AUTH_STATEMENTS_KEY] = to_financial_statements(bundle)
+                except AuthenticatedValuationError as exc:
+                    ctx.results[_AUTH_ERROR_KEY] = str(exc) or DATA_UNAVAILABLE
+                    ctx.results.pop(_AUTH_BUNDLE_KEY, None)
+                    return
+                trace = bundle.to_trace_dict()
+                trace["evidence_class"] = P109_EVIDENCE_CLASS
+                trace["g2_claim"] = False
+                ctx.results["authenticated_valuation_trace"] = trace
+                return
+
     query = ticker or company or isin or ""
     if not query:
         ctx.results[_AUTH_ERROR_KEY] = f"{DATA_UNAVAILABLE} (identity required)"

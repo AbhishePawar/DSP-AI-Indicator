@@ -67,6 +67,10 @@ class DocumentStore:
         previous = self._by_url.get(key)
         if previous is not None and previous.document_hash == record.document_hash:
             return previous
+        same_hash = self.get_by_hash(record.document_hash)
+        if same_hash is not None:
+            self._by_url[key] = same_hash
+            return same_hash
         self._versions.append(record)
         self._by_url[key] = record
         return record

@@ -41,9 +41,13 @@ from data_engine.official_research.nse_primary import (
     NseAnnouncementDocument,
     parse_announcement_documents,
 )
-from data_engine.official_research.pdf_text import document_text_from_payload
+from data_engine.official_research.pdf_text import document_text_from_payload, split_marked_pages
 from data_engine.official_research.prompt_guard import sanitize_document_text
 from data_engine.official_research.source_policy import SourcePolicy
+from data_engine.official_research.statement_tables import (
+    extract_field_from_statements,
+    reconstruct_statement_pages,
+)
 from data_engine.security_master.models import SecurityListing
 
 __all__ = ["PrimaryAcquisitionResult", "acquire_primary_documents"]
@@ -280,6 +284,22 @@ def acquire_primary_documents(
     if selected_record is None and fetch_registered_ir and not extra_document_text:
         issues.append("no qualifying annual official document")
 
+    statement_pages = ()
+    if (
+        selected_record is not None
+        and selected_record.payload.lstrip().startswith(b"%PDF")
+        and combined
+    ):
+        rec_started = perf_counter()
+        statement_pages = reconstruct_statement_pages(
+            selected_record.payload,
+            page_texts=split_marked_pages(combined),
+        )
+        timings["table_reconstruction"] = perf_counter() - rec_started
+        timings["statement_pages"] = float(len(statement_pages))
+    else:
+        timings["table_reconstruction"] = 0.0
+
     fin_started = perf_counter()
     extracted_fields: dict[str, ExtractedField] = {}
     wanted = fields or (
@@ -297,10 +317,31 @@ def acquire_primary_documents(
         "shares_outstanding",
     )
     share_started = 0.0
+    kinds_present = {page.statement_type for page in statement_pages}
+    field_kind = {
+        "revenue": "pl",
+        "operating_profit": "pl",
+        "ebit": "pl",
+        "net_income": "pl",
+        "equity": "bs",
+        "cash": "bs",
+        "debt": "bs",
+        "total_assets": "bs",
+        "total_liabilities": "bs",
+        "cfo": "cf",
+        "capex": "cf",
+    }
     for name in wanted:
-        if not combined:
+        if not combined and not statement_pages:
             continue
         mark = perf_counter()
+        if name != "shares_outstanding" and statement_pages:
+            reconstructed = extract_field_from_statements(statement_pages, name)
+            if reconstructed is not None:
+                extracted_fields[name] = reconstructed
+                continue
+            if field_kind.get(name) in kinds_present:
+                continue
         item = (
             extract_shares_outstanding(combined)
             if name == "shares_outstanding"

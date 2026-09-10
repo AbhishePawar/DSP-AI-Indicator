@@ -126,11 +126,14 @@ _SHARE_REJECT_LABELS = (
     "paid-up capital",
     "paid up capital",
     "face value",
+    "weighted average",
+    "listed quantity",
+    "listed capital",
 )
 
 _CRORE = re.compile(r"(₹|rs\.?|inr).{0,12}(crore|crs)\b|\bin crore\b|\bin crs\b", re.I)
 _LAKH = re.compile(r"(₹|rs\.?|inr).{0,12}(lakh|lac)s?\b|\bin lakh", re.I)
-_MILLION = re.compile(r"(₹|rs\.?|inr).{0,12}million|\bin million\b", re.I)
+_MILLION = re.compile(r"(₹|rs\.?|inr).{0,12}millions?|\bin millions?\b", re.I)
 _THOUSAND = re.compile(r"(₹|rs\.?|inr).{0,12}thousand|\bin thousand\b", re.I)
 _ACTUAL = re.compile(r"unit:\s*actual|\bin actual\b|\bin rupees \(actual\)", re.I)
 _YEAR_ENDED = re.compile(
@@ -352,6 +355,10 @@ def share_label_is_outstanding(label: str) -> bool:
         return False
     if "capital" in lowered and "share" in lowered and "outstanding" not in lowered:
         return False
+    if "weighted average" in lowered:
+        return False
+    if "listed quantity" in lowered or "listed shares" in lowered:
+        return False
     return True
 
 
@@ -375,6 +382,20 @@ def attack_corporate_actions(
             seen.add(event_type)
             found.append(CapitalEvent(event_type, dated))
     return tuple(found)
+
+
+def nearest_page_marker(text: str, position: int) -> str | None:
+    matches = list(re.finditer(r"\[\[PAGE (\d+)\]\]", str(text or "")[: max(0, position)]))
+    if not matches:
+        return None
+    return matches[-1].group(1)
+
+
+def _locator_with_page(text: str, position: int, label: str) -> str:
+    page = nearest_page_marker(text, position)
+    if page is None:
+        return label
+    return f"page={page};row={label}"
 
 
 _STATEMENT_WINDOW = 80000
@@ -410,6 +431,8 @@ def extract_labeled_field(text: str, field: str) -> ExtractedField | None:
         return None
     context = parse_document_context(text)
     as_of = context.period_end or _document_as_of(text)
+    if requested == "shares_outstanding":
+        as_of = _document_as_of(text) or as_of
     if requested != "shares_outstanding" and context.period_type == "quarter":
         return ExtractedField(
             field=requested,
@@ -478,12 +501,13 @@ def extract_labeled_field(text: str, field: str) -> ExtractedField | None:
                 requested_field=requested, document_label=label
             )
             raw = match.group(1).replace(",", "")
+            locator = _locator_with_page(text, position, label)
             if semantic != "VERIFIED":
                 return ExtractedField(
                     field=requested,
                     value="",
                     as_of=as_of,
-                    locator=label,
+                    locator=locator,
                     semantic_status="UNKNOWN",
                     currency=context.currency,
                     raw_value=raw,
@@ -503,7 +527,7 @@ def extract_labeled_field(text: str, field: str) -> ExtractedField | None:
                         field=requested,
                         value="",
                         as_of=as_of,
-                        locator=label,
+                        locator=locator,
                         semantic_status="UNKNOWN",
                         currency=context.currency,
                         raw_value=raw,
@@ -533,7 +557,7 @@ def extract_labeled_field(text: str, field: str) -> ExtractedField | None:
                     field=requested,
                     value=value,
                     as_of=as_of,
-                    locator=label,
+                    locator=locator,
                     semantic_status="VERIFIED",
                     currency=context.currency if requested != "shares_outstanding" else None,
                     raw_value=raw,

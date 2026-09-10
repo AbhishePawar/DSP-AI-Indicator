@@ -45,7 +45,8 @@ def semantic_field_status(
     if label in forbidden or label.replace(" ", "_") in forbidden:
         return "UNKNOWN"
     if requested == "ebit" and "ebit" not in label:
-        return "UNKNOWN"
+        if label not in {"earnings before interest and tax", "earnings before interest and taxes"}:
+            return "UNKNOWN"
     if requested == "debt" and "lease" in label and "borrow" not in label:
         return "UNKNOWN"
     if requested == "capex" and label in forbidden:

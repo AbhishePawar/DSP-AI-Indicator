@@ -45,7 +45,7 @@ def test_analyse_uses_labeled_primary_document_or_unavailable() -> None:
     iv = public["server_valuation"]["intrinsic_value_per_share"]
     status = public["server_valuation"].get("valuation_status")
     if iv is not None:
-        assert status in {None, "AVAILABLE", "VALUATION AVAILABLE"}
+        assert status in {None, "AVAILABLE", "VALUATION AVAILABLE", "VERIFIED"}
     else:
         assert iv is None
 

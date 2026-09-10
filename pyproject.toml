@@ -141,6 +141,9 @@ pythonpath = [
 ]
 addopts = "-v --tb=short --import-mode=importlib"
 filterwarnings = ["ignore::DeprecationWarning"]
+markers = [
+    "network: live official-exchange HTTP (skippable if the venue is unreachable)",
+]
 
 [tool.black]
 line-length = 88

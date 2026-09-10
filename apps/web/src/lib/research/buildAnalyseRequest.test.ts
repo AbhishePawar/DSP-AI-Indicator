@@ -77,17 +77,23 @@ describe("P0-01 buildAnalyseRequestForTicker", () => {
     expect(demo.valuation_signals?.intrinsic_value_per_share).toBe(100);
   });
 
-  it("loadAuthenticatedAnalyseRequest fails closed when unavailable", async () => {
-    await expect(
-      loadAuthenticatedAnalyseRequest("MSFT", {
-        loadStatements: async () => ({
-          available: false,
-          authenticated: false,
-          periods: null,
-          message: "Data unavailable.",
-        }),
+  it("loadAuthenticatedAnalyseRequest sends identity without fabricating statements", async () => {
+    const req = await loadAuthenticatedAnalyseRequest("INFY", {
+      exchange: "NSE",
+      isin: "INE009A01021",
+      mic: "XNSE",
+      loadStatements: async () => ({
+        available: false,
+        authenticated: false,
+        periods: null,
+        message: "Data unavailable.",
       }),
-    ).rejects.toThrow(ANALYSE_DATA_UNAVAILABLE);
+    });
+    expect(req.ticker).toBe("INFY");
+    expect(req.isin).toBe("INE009A01021");
+    expect(req.mic).toBe("XNSE");
+    expect(req.financial_statements).toBeUndefined();
+    expect(req.current_market_price).toBeUndefined();
   });
 
   it("loadAuthenticatedAnalyseRequest maps authenticated periods", async () => {

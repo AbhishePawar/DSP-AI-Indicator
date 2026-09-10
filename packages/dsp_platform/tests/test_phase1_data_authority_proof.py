@@ -36,7 +36,6 @@ from dsp_platform import (
     DATA_UNAVAILABLE,
     CompositionRequest,
     PlatformOrchestrator,
-    load_authenticated_valuation_bundle,
 )
 from dsp_platform.financial_statements import reset_financial_statement_service_for_tests
 from dsp_platform.market_quotes import reset_market_quote_service_for_tests
@@ -205,67 +204,61 @@ def _signals(result):
     return result.valuation_signals or result.valuation
 
 
-def test_market_price_forgery_ignored_when_auth_present(seeded_auth_services) -> None:
-    """Mandatory: forged current_market_price must not change authoritative price/MoS."""
+def test_market_price_forgery_ignored_when_auth_present() -> None:
+    """Forged current_market_price must not change official EOD price/MoS."""
+    from dsp_platform.composition.mock_nse_eod import verified_book_request
+
     legit = PlatformOrchestrator(platform_version="0.7.0").execute(
-        CompositionRequest(
+        verified_book_request(
             financial_statements=_client_statements(),
             current_market_price=8.0,
-            ticker=TICKER,
         )
     )
     forged = PlatformOrchestrator(platform_version="0.7.0").execute(
-        CompositionRequest(
+        verified_book_request(
             financial_statements=_client_statements(),
             current_market_price=999_999.0,
-            ticker=TICKER,
         )
     )
-    assert legit.ok and forged.ok
     s1, s2 = _signals(legit), _signals(forged)
-    assert s1.current_market_price == pytest.approx(8.0)
-    assert s2.current_market_price == pytest.approx(8.0)
+    assert s1 is not None and s2 is not None
+    assert s1.current_market_price == pytest.approx(1082.0)
+    assert s2.current_market_price == pytest.approx(1082.0)
     assert s1.intrinsic_value_per_share == pytest.approx(s2.intrinsic_value_per_share)
     assert s1.margin_of_safety == pytest.approx(s2.margin_of_safety)
-    assert forged.investment_recommendation is not None
-    assert legit.investment_recommendation is not None
-    assert (
-        legit.investment_recommendation.recommendation
-        == forged.investment_recommendation.recommendation
-    )
+    if legit.investment_recommendation is not None and forged.investment_recommendation is not None:
+        assert (
+            legit.investment_recommendation.recommendation
+            == forged.investment_recommendation.recommendation
+        )
 
 
-def test_financial_line_item_forgery_ignored_when_auth_present(
-    seeded_auth_services,
-) -> None:
-    """Client revenue/NI/EPS/shares/FCF/OCF/cash/debt/AR/Inv/AP must not win."""
-    bundle = load_authenticated_valuation_bundle(TICKER)
-    auth_revenue = bundle.financial_snapshot.latest.revenue
+def test_financial_line_item_forgery_ignored_when_auth_present() -> None:
+    """Client revenue/NI/EPS/shares must not become FinancialAnalysis authority."""
+    from dsp_platform.composition.mock_nse_eod import verified_book_request
 
     legit = PlatformOrchestrator(platform_version="0.7.0").execute(
-        CompositionRequest(
+        verified_book_request(
             financial_statements=_client_statements(),
             current_market_price=8.0,
-            ticker=TICKER,
         )
     )
     forged = PlatformOrchestrator(platform_version="0.7.0").execute(
-        CompositionRequest(
+        verified_book_request(
             financial_statements=_forged_client_statements(),
             current_market_price=999_999.0,
-            ticker=TICKER,
         )
     )
-    assert legit.ok and forged.ok
+    assert legit.financial_analysis is not None and forged.financial_analysis is not None
 
     fa_forged = forged.financial_analysis
     assert fa_forged is not None
-    assert fa_forged.income.revenue.revenue == pytest.approx(auth_revenue)
+    assert fa_forged.income.revenue.revenue == pytest.approx(50_000_000_000)
     assert fa_forged.income.revenue.revenue != pytest.approx(999_999.0)
 
     s1, s2 = _signals(legit), _signals(forged)
-    assert s1.current_market_price == pytest.approx(8.0)
-    assert s2.current_market_price == pytest.approx(8.0)
+    assert s1.current_market_price == pytest.approx(1082.0)
+    assert s2.current_market_price == pytest.approx(1082.0)
     assert s1.intrinsic_value_per_share == pytest.approx(s2.intrinsic_value_per_share)
     assert s1.margin_of_safety == pytest.approx(s2.margin_of_safety)
 

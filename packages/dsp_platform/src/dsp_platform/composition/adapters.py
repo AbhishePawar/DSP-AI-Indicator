@@ -33,6 +33,7 @@ def build_composition_request(
     company: str = "",
     exchange: str | None = None,
     isin: str | None = None,
+    mic: str | None = None,
     current_market_price: float | None = None,
     financial_statements: Mapping[str, Any] | None = None,
     valuation_signals: Mapping[str, Any] | None = None,
@@ -76,6 +77,7 @@ def build_composition_request(
 
     exchange_norm = str(exchange).strip().upper() if exchange else None
     isin_norm = str(isin).strip().upper() if isin else None
+    mic_norm = str(mic).strip().upper() if mic else None
     return CompositionRequest(
         financial_statements=statements_obj,
         current_market_price=current_market_price,
@@ -84,6 +86,7 @@ def build_composition_request(
         ticker=str(ticker or "").strip().upper(),
         exchange=exchange_norm or None,
         isin=isin_norm or None,
+        mic=mic_norm or None,
         stop_on_stage_failure=bool(stop_on_stage_failure),
     )
 
@@ -166,26 +169,58 @@ def pipeline_result_public_dict(result: PipelineResult) -> dict[str, Any]:
     base["source_evidence"] = source_evidence_from_trace(
         result.authenticated_valuation_trace
     )
-    # Server-computed valuation display fields (never from client request).
     signals = result.valuation_signals
+    trace = result.authenticated_valuation_trace or {}
+    price_kind = trace.get("price_kind")
     if signals is not None:
+        iv = _opt_float(getattr(signals, "intrinsic_value_per_share", None))
+        status = trace.get("valuation_status")
+        if iv is None:
+            status = status or "UNAVAILABLE"
         base["server_valuation"] = {
             "authority": "server",
-            "intrinsic_value_per_share": _opt_float(
-                getattr(signals, "intrinsic_value_per_share", None)
-            ),
+            "intrinsic_value_per_share": iv,
             "current_market_price": _opt_float(
                 getattr(signals, "current_market_price", None)
             ),
             "confidence": _opt_float(getattr(signals, "confidence", None)),
+            "price_kind": price_kind,
+            "price_as_of": trace.get("price_as_of"),
+            "valuation_status": status,
+            "valuation_detail": trace.get("valuation_detail"),
         }
     else:
+        listed_price = _opt_float(trace.get("current_market_price"))
         base["server_valuation"] = {
             "authority": "server",
             "intrinsic_value_per_share": None,
-            "current_market_price": None,
+            "current_market_price": listed_price,
             "confidence": None,
+            "price_kind": price_kind,
+            "price_as_of": trace.get("price_as_of"),
+            "valuation_status": trace.get("valuation_status") or "UNAVAILABLE",
+            "valuation_detail": trace.get("valuation_detail") or "VALUATION UNAVAILABLE",
         }
+    dataset = None
+    if isinstance(trace, dict):
+        dataset = trace.get("verified_dataset")
+    base["verified_dataset"] = dataset
+    base["dsp_analysis"] = {
+        "identity": {
+            "isin": trace.get("isin"),
+            "mic": trace.get("mic"),
+            "ticker": trace.get("ticker"),
+            "company_name": trace.get("company_name"),
+        }
+        if trace.get("isin") or trace.get("ticker")
+        else None,
+        "data_status": trace.get("identity_status"),
+        "valuation": trace.get("valuation_status") or "UNAVAILABLE",
+        "buffett_indicator": "UNAVAILABLE",
+        "unresolved_issues": list(trace.get("unresolved") or []),
+        "price_kind": price_kind,
+        "mode": trace.get("mode"),
+    }
     base["risk"] = (
         result.risk.to_dict() if hasattr(result.risk, "to_dict") else None
     )

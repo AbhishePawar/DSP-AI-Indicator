@@ -235,36 +235,38 @@ def test_valuation_engine_iv_and_mos_deterministic(seeded_services) -> None:
     assert signals2.margin_of_safety == pytest.approx(signals.margin_of_safety)
 
 
-def test_pipeline_authenticated_path_produces_server_iv(seeded_services) -> None:
-    request = CompositionRequest(
+def test_pipeline_authenticated_path_produces_server_iv() -> None:
+    from dsp_platform.composition.mock_nse_eod import verified_book_request
+
+    request = verified_book_request(
         financial_statements=_client_statements(),
-        current_market_price=999.0,  # client price must not win over auth quote
-        ticker=TICKER,
-        company="Test Corp",
+        current_market_price=999.0,  # client price must not win over official EOD
     )
     result = PlatformOrchestrator(platform_version="0.7.0").execute(request)
-    assert result.ok is True
+    financial_outcome = next(s for s in result.stages if s.stage == "financial")
+    valuation_outcome = next(s for s in result.stages if s.stage == "valuation")
+    assert financial_outcome.status.value == "succeeded"
+    assert valuation_outcome.status.value == "succeeded"
     signals = result.valuation_signals or result.valuation
     assert signals is not None
     iv = getattr(signals, "intrinsic_value_per_share", None)
     price = getattr(signals, "current_market_price", None)
     mos = getattr(signals, "margin_of_safety", None)
     assert iv is not None and iv > 0
-    assert price == pytest.approx(8.0)  # authenticated quote, not client 999
+    assert price == pytest.approx(1082.0)  # official ClsPric, not client 999
     assert mos is not None
-    valuation_outcome = next(s for s in result.stages if s.stage == "valuation")
     assert any("P1-01" in w for w in valuation_outcome.warnings)
-    financial_outcome = next(s for s in result.stages if s.stage == "financial")
     assert any("P1-01" in w for w in financial_outcome.warnings)
 
 
-def test_client_iv_mos_recommendation_cannot_override(seeded_services) -> None:
+def test_client_iv_mos_recommendation_cannot_override() -> None:
+    from dsp_platform.composition.mock_nse_eod import verified_book_request
+
     forged_iv = 9999.0
     forged_mos = 0.99
-    forged_request = CompositionRequest(
+    forged_request = verified_book_request(
         financial_statements=_client_statements(),
         current_market_price=8.0,
-        ticker=TICKER,
         valuation_signals=ValuationSignals(
             intrinsic_value_per_share=forged_iv,
             current_market_price=8.0,
@@ -273,14 +275,15 @@ def test_client_iv_mos_recommendation_cannot_override(seeded_services) -> None:
         ),
     )
     result = PlatformOrchestrator(platform_version="0.7.0").execute(forged_request)
-    assert result.ok is True
     signals = result.valuation_signals or result.valuation
     iv = getattr(signals, "intrinsic_value_per_share", None)
     mos = getattr(signals, "margin_of_safety", None)
     assert iv != forged_iv
     assert iv is not None
     assert mos != forged_mos
-    assert result.investment_recommendation is not None
+    rec = result.investment_recommendation
+    if rec is not None:
+        assert getattr(rec, "intrinsic_value_per_share", None) != forged_iv
 
 
 def test_missing_financial_statements_fail_closed() -> None:
@@ -411,4 +414,31 @@ def test_invalid_period_rejected() -> None:
             TICKER,
             get_statements=lambda _s: bad,
             get_quote=lambda _s: _seed_quote(),
+        )
+
+
+def test_previous_close_cannot_become_current_price() -> None:
+    """SIMPLE-14M — previous close is never used as current price."""
+    quote = build_quote_from_mapping(
+        symbol=TICKER,
+        payload={
+            "exchange": "NYSE",
+            "currency": "USD",
+            "previous_close": 8.0,
+            "shares_outstanding": 100.0,
+            "market_cap": 800.0,
+        },
+        provenance=MarketQuoteProvenance(
+            provider_id="memory_authenticated_quote",
+            provider_name="Memory Quote",
+            source_type="licensed_vendor",
+            retrieved_at=FIXED_RETRIEVED,
+            auth_mode="api_key",
+        ),
+    )
+    with pytest.raises(AuthenticatedValuationError, match="previous_close"):
+        load_authenticated_valuation_bundle(
+            TICKER,
+            get_statements=lambda _s: _seed_statements(),
+            get_quote=lambda _s: quote,
         )

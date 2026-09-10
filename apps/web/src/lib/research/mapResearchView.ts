@@ -158,15 +158,23 @@ export function mapResearchView(
         intrinsic_value_per_share?: number | null;
         current_market_price?: number | null;
         confidence?: number | null;
+        price_kind?: string | null;
+        price_as_of?: string | null;
+        valuation_status?: string | null;
+        valuation_detail?: string | null;
       } | null;
       source_evidence?: {
         current_market_price?: number | null;
+        price_kind?: string | null;
       } | null;
     }
   ).server_valuation;
   const sourceEvidence = (
     response.payload as {
-      source_evidence?: { current_market_price?: number | null } | null;
+      source_evidence?: {
+        current_market_price?: number | null;
+        price_kind?: string | null;
+      } | null;
     }
   ).source_evidence;
 
@@ -261,18 +269,27 @@ export function mapResearchView(
       currentPrice: money(
         serverValuation?.current_market_price ??
           sourceEvidence?.current_market_price ??
-          request.current_market_price ??
           null,
       ),
       marginOfSafety: formatPct(base.marginOfSafety),
       method: display(
-        valuationStage?.label ?? valuationStage?.decision,
+        serverValuation?.valuation_status === "REFRESH_REQUIRED"
+          ? "REFRESH REQUIRED"
+          : serverValuation?.valuation_status === "UNAVAILABLE"
+            ? "VALUATION UNAVAILABLE"
+            : serverValuation?.valuation_status === "VERIFIED"
+              ? "VALUATION AVAILABLE"
+          : serverValuation?.price_kind === "EOD"
+            ? `EOD ${serverValuation.price_as_of ?? ""}`.trim()
+            : (valuationStage?.label ?? valuationStage?.decision),
         "API valuation stage",
       ),
       confidence: formatPct(
-        serverValuation?.confidence ??
-          valuationStage?.confidence ??
-          null,
+        serverValuation?.intrinsic_value_per_share == null
+          ? null
+          : (serverValuation?.confidence ??
+            valuationStage?.confidence ??
+            null),
       ),
     },
     financial,

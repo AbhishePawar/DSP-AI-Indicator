@@ -62,6 +62,13 @@ def source_evidence_from_trace(trace: Mapping[str, Any] | None) -> dict[str, Any
             ),
             "quote_source_type": quote.get("source_type") or quote.get("kind"),
             "quote_retrieved_at": quote.get("retrieved_at") or quote.get("as_of"),
+            "isin": trace.get("isin"),
+            "mic": trace.get("mic"),
+            "price_kind": trace.get("price_kind") or quote.get("price_kind"),
+            "price_as_of": trace.get("price_as_of") or quote.get("as_of"),
+            "valuation_status": trace.get("valuation_status"),
+            "identity_status": trace.get("identity_status"),
+            "mode": trace.get("mode"),
             "statement_provenance": stmt,
             "quote_provenance": quote,
         }

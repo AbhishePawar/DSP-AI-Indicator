@@ -40,8 +40,10 @@ export type AnalyseRequest = {
   ticker: string;
   exchange?: string | null;
   isin?: string | null;
+  mic?: string | null;
   company?: string;
-  financial_statements: FinancialStatementsInput;
+  financial_statements?: FinancialStatementsInput;
+
   valuation_signals?: ValuationSignalsInput | null;
   current_market_price?: number | null;
   stop_on_stage_failure?: boolean;

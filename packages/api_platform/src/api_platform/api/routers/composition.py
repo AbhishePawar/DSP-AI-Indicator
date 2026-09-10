@@ -70,6 +70,7 @@ def analyse(
             company=body.company,
             exchange=body.exchange,
             isin=body.isin,
+            mic=getattr(body, "mic", None),
             current_market_price=body.current_market_price,
             financial_statements=(
                 body.financial_statements.model_dump()

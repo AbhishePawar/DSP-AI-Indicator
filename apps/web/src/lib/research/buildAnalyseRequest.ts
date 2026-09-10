@@ -34,8 +34,9 @@ export type AuthenticatedStatementsSource = {
 export type AnalyseRequestOverrides = {
   exchange?: string | null;
   isin?: string | null;
+  mic?: string | null;
   company?: string;
-  financial_statements: FinancialStatementsInput;
+  financial_statements?: FinancialStatementsInput;
   valuation_signals?: ValuationSignalsInput | null;
   current_market_price?: number | null;
 };
@@ -60,6 +61,9 @@ export function isDemoStatementContamination(
     return false;
   }
   const sample = SAMPLE_ANALYSE_REQUEST.financial_statements;
+  if (sample == null) {
+    return false;
+  }
   return (
     statements.income_statement?.revenue === sample.income_statement?.revenue &&
     statements.income_statement?.net_income ===
@@ -110,10 +114,10 @@ export function buildAnalyseRequestForTicker(
 ): AnalyseRequest {
   const normalized = normalizeTicker(ticker);
   const statements = overrides.financial_statements;
-  if (!statements?.period?.period_type || !statements.period.period_end) {
+  if (statements && isDemoStatementContamination(normalized, statements)) {
     throw new Error(ANALYSE_DATA_UNAVAILABLE);
   }
-  if (isDemoStatementContamination(normalized, statements)) {
+  if (statements && (!statements.period?.period_type || !statements.period.period_end)) {
     throw new Error(ANALYSE_DATA_UNAVAILABLE);
   }
 
@@ -121,10 +125,15 @@ export function buildAnalyseRequestForTicker(
     ticker: normalized,
     exchange: overrides.exchange ?? null,
     company: overrides.company,
-    financial_statements: statements,
   };
+  if (statements) {
+    request.financial_statements = statements;
+  }
   if (overrides.isin) {
     request.isin = overrides.isin;
+  }
+  if (overrides.mic) {
+    request.mic = overrides.mic;
   }
   if (overrides.valuation_signals !== undefined) {
     request.valuation_signals = overrides.valuation_signals;
@@ -163,54 +172,35 @@ export type AuthenticatedQuoteSource = {
 };
 
 /**
- * Load a production AnalyseRequest from authenticated statements (+ optional quote).
- * Fails closed with {@link ANALYSE_DATA_UNAVAILABLE} when statements are absent.
- * Market price is taken only from an authenticated quote when provided (P0-02).
+ * Load a production AnalyseRequest from identity + optional statements.
+ * Official NSE EOD and evidence judgment run server-side. Client statements
+ * are never required when ISIN + MIC are present. Quote price is not copied
+ * onto the request as current market price.
  */
 export async function loadAuthenticatedAnalyseRequest(
   ticker: string,
   options: {
     exchange?: string | null;
     isin?: string | null;
+    mic?: string | null;
     company?: string;
     loadStatements: () => Promise<AuthenticatedStatementsSource>;
     loadQuote?: () => Promise<AuthenticatedQuoteSource | null | undefined>;
   },
 ): Promise<AnalyseRequest> {
-  let payload: AuthenticatedStatementsSource;
+  let statements: FinancialStatementsInput | undefined;
   try {
-    payload = await options.loadStatements();
+    const payload = await options.loadStatements();
+    statements = financialStatementsInputFromAuthenticated(payload) ?? undefined;
   } catch {
-    throw new Error(ANALYSE_DATA_UNAVAILABLE);
-  }
-  const statements = financialStatementsInputFromAuthenticated(payload);
-  if (!statements) {
-    throw new Error(ANALYSE_DATA_UNAVAILABLE);
-  }
-
-  let currentMarketPrice: number | undefined;
-  if (options.loadQuote) {
-    try {
-      const quote = await options.loadQuote();
-      const price = quote?.fields?.current_price;
-      if (
-        quote?.available &&
-        quote.authenticated &&
-        typeof price === "number" &&
-        Number.isFinite(price)
-      ) {
-        currentMarketPrice = price;
-      }
-    } catch {
-      // Quote optional for builder; HTTP validation may still require a price.
-    }
+    statements = undefined;
   }
 
   return buildAnalyseRequestForTicker(ticker, {
     exchange: options.exchange,
     isin: options.isin,
+    mic: options.mic,
     company: options.company,
     financial_statements: statements,
-    current_market_price: currentMarketPrice,
   });
 }

@@ -198,5 +198,7 @@ def test_default_catalog_contains_official_nse_universe() -> None:
     )
     assert infy_nse.isin == "INE009A01021"
     assert infy_nse.company_name == "Infosys Limited"
+    assert catalog.get("INE009A01021", "XNSE") == infy_nse
+    assert catalog.get("INE009A01021", "XBOM") is not None
     assert catalog.authority.source_type == "official_exchange_master"
     assert "vendor instrument" in catalog.authority.detail.lower()

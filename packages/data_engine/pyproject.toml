@@ -17,4 +17,7 @@ dependencies = [
 where = ["src"]
 
 [tool.setuptools.package-data]
-data_engine = ["security_master/data/*.csv"]
+data_engine = [
+    "security_master/data/*.csv",
+    "official_research/data/*.csv",
+]

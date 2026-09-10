@@ -51,7 +51,19 @@ class CompositionRequest:
     exchange: str | None = None
     # Security Master ISIN (optional). Does not replace exchange disambiguation.
     isin: str | None = None
+    # Venue MIC when known (XNSE / XBOM). Ticker remains an alias.
+    mic: str | None = None
     stop_on_stage_failure: bool = False
+    research_mode: str | None = None
+    document_text: str | None = None
+    document_url: str | None = None
+    research_fields: tuple[str, ...] | None = None
+    capital_events: tuple = ()
+    extra_evidence: tuple = ()
+    nse_eod: object | None = None
+    nse_primary: object | None = None
+    security_master: object | None = None
+    candidate_urls: tuple[str, ...] = ()
 
 
 @dataclass(frozen=True, slots=True)

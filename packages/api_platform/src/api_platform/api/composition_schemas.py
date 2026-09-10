@@ -73,6 +73,7 @@ class AnalyseRequest(BaseModel):
     ticker: str = Field(min_length=1, max_length=32)
     exchange: str | None = Field(default=None, max_length=32)
     isin: str | None = Field(default=None, max_length=16)
+    mic: str | None = Field(default=None, max_length=8)
     company: str = Field(default="", max_length=256)
     # Optional: production ticker/exchange path loads authenticated Upstox
     # statements server-side (P1-01). Client FS remains accepted for tests /

@@ -133,10 +133,16 @@ class SecurityMasterCatalog:
         unique: dict[str, SecurityListing] = {}
         for listing in listings:
             unique[listing.listing_id] = listing
+        self._by_id = unique
         self._listings = tuple(
             sorted(unique.values(), key=lambda item: (item.ticker, item.mic))
         )
         self.authority = authority or default_authority()
+
+    def get(self, isin: str, mic: str) -> SecurityListing | None:
+        """Resolve a listing by authoritative ISIN + MIC. Never ticker-only."""
+        key = f"{str(isin or '').strip().upper()}.{str(mic or '').strip().upper()}"
+        return self._by_id.get(key)
 
     @classmethod
     def from_listings(

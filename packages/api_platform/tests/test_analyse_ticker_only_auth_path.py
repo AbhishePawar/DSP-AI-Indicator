@@ -12,6 +12,8 @@ drive the canonical pipeline. Does not redesign Upstox adapters.
 
 from __future__ import annotations
 
+import json
+
 import pytest
 from fastapi.testclient import TestClient
 
@@ -295,30 +297,36 @@ class TestRouterCompositionHandoff:
 
 
 class TestAuthenticatedServerSideData:
-    """C — ticker-only reaches auth preload; statements/quote populate pipeline."""
+    """C — ticker-only without verified financials cannot invent IV."""
 
-    def test_ticker_only_composition_uses_authenticated_bundle(
-        self, auth_services
-    ) -> None:
+    def test_ticker_only_composition_does_not_invent_iv(self, auth_services) -> None:
         request = build_composition_request(
-            ticker=TICKER, company="Tata Consultancy Services", exchange=EXCHANGE
+            ticker=TICKER,
+            company="Tata Consultancy Services",
+            exchange=EXCHANGE,
+            isin="INE467B01029",
+            mic="XNSE",
         )
         assert request.financial_statements is None
         assert request.exchange == EXCHANGE
         result = PlatformOrchestrator(platform_version="test").execute(request)
-        assert result.ok is True
-        assert result.financial_analysis is not None
-        assert (result.valuation_signals or result.valuation) is not None
-        assert EXCHANGE in auth_services.exchanges_seen
+        signals = result.valuation_signals or result.valuation
+        iv = getattr(signals, "intrinsic_value_per_share", None) if signals else None
+        assert iv is None
+        trace = result.authenticated_valuation_trace or {}
+        blob = json.dumps(trace, default=str).lower()
+        assert "upstox" not in blob
+        assert "financialmodelingprep" not in blob
+        assert "yfinance" not in blob
+        assert EXCHANGE not in getattr(auth_services, "exchanges_seen", [])
 
 
 class TestAuthAuthorityOverClientFs:
-    """D — authenticated statements remain authoritative when client FS exists."""
+    """D — client FS cannot become production valuation authority."""
 
-    def test_auth_bundle_preferred_over_client_statements(
+    def test_client_statements_cannot_authorise_production_valuation(
         self, production_auth_services
     ) -> None:
-        # Client FS with a deliberately different revenue fingerprint.
         client_fs = {
             "period": {
                 "period_type": "annual",
@@ -327,7 +335,7 @@ class TestAuthAuthorityOverClientFs:
                 "currency": "USD",
             },
             "income_statement": {
-                "revenue": 1.0,  # not the auth seed (500.0)
+                "revenue": 1.0,
                 "net_income": 1.0,
                 "weighted_shares": 100.0,
                 "eps": 0.01,
@@ -344,20 +352,15 @@ class TestAuthAuthorityOverClientFs:
         request = build_composition_request(
             ticker=TICKER,
             exchange=EXCHANGE,
+            isin="INE467B01029",
+            mic="XNSE",
             financial_statements=client_fs,
             current_market_price=1.0,
         )
         result = PlatformOrchestrator(platform_version="test").execute(request)
-        assert result.ok is True
-        assert result.financial_analysis is not None
-        financial_outcome = next(
-            (o for o in result.stages if o.stage == "financial"),
-            None,
-        )
-        assert financial_outcome is not None
-        warnings = list(financial_outcome.warnings or ())
-        assert any("authenticated server statements" in w for w in warnings)
-        assert EXCHANGE in production_auth_services.exchanges_seen
+        assert result.ok is False
+        assert result.investment_recommendation is None
+        assert not production_auth_services.exchanges_seen
 
 
 class TestProductionFailClosed:

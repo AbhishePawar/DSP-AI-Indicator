@@ -8,7 +8,7 @@ providers, then maps it into ``fundamental.FinancialSnapshot`` for
 from __future__ import annotations
 
 from dataclasses import dataclass
-from datetime import date
+from datetime import date, datetime
 from typing import Any, Callable
 
 from contracts.domain.fundamental_statement import FundamentalStatement
@@ -64,6 +64,7 @@ __all__ = [
     "load_authenticated_valuation_bundle",
     "production_investment_connectors",
     "signals_from_assessment",
+    "snapshot_from_statement",
     "to_financial_statements",
 ]
 
@@ -106,6 +107,12 @@ class AuthenticatedValuationBundle:
     statement_basis: str
     unit_scale: str
     company_name: str | None = None
+    isin: str | None = None
+    mic: str | None = None
+    price_kind: str | None = None
+    price_as_of: date | None = None
+    price_retrieved_at: datetime | None = None
+    valuation_methods: tuple[str, ...] | None = None
 
     def to_trace_dict(self) -> dict[str, Any]:
         latest = self.financial_snapshot.latest
@@ -130,6 +137,16 @@ class AuthenticatedValuationBundle:
             "statement_provenance": dict(self.statement_provenance),
             "quote_provenance": dict(self.quote_provenance),
             "authenticated": True,
+            "isin": self.isin,
+            "mic": self.mic,
+            "price_kind": self.price_kind,
+            "price_as_of": None if self.price_as_of is None else self.price_as_of.isoformat(),
+            "price_retrieved_at": (
+                None
+                if self.price_retrieved_at is None
+                else self.price_retrieved_at.isoformat()
+            ),
+            "valuation_methods": list(self.valuation_methods or ()),
         }
 
 
@@ -227,12 +244,12 @@ def _resolve_shares(
 
 
 def _resolve_price(quote: AuthenticatedMarketQuote) -> float:
+    """Labeled current/EOD price only. Previous close is never current."""
     price = _qf(quote.current_price)
-    if price is None:
-        price = _qf(quote.previous_close)
     if price is None or price <= 0:
         raise AuthenticatedValuationError(
-            f"{DATA_UNAVAILABLE} (authenticated market price unavailable)"
+            f"{DATA_UNAVAILABLE} (authenticated current/EOD market price unavailable; "
+            "previous_close cannot be used as current)"
         )
     return float(price)
 
@@ -272,7 +289,7 @@ def _to_fundamental_statement(
         revenue=_sf(period.revenue),
         cost_of_revenue=_sf(period.cost_of_revenue),
         gross_profit=_sf(period.gross_profit),
-        operating_income=_sf(period.operating_income) or _sf(period.ebit),
+        operating_income=_sf(period.operating_income),
         net_income=_sf(period.net_income),
         eps_basic=_sf(period.eps_basic),
         eps_diluted=_sf(period.eps_diluted),
@@ -347,6 +364,14 @@ def to_financial_statements(
         ),
         statement_metadata=StatementMetadata(unit_scale=UnitScale.ACTUAL),
     )
+
+
+def snapshot_from_statement(
+    instrument: Instrument,
+    statement: FundamentalStatement,
+) -> FinancialSnapshot:
+    """Wrap one verified statement. No line-item invention."""
+    return FinancialSnapshot(instrument=instrument, statements=(statement,))
 
 
 def signals_from_assessment(

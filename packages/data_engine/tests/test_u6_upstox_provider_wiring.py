@@ -496,7 +496,10 @@ def test_client_price_cannot_override_upstox_quote() -> None:
         result = PlatformOrchestrator(platform_version="0.7.0").execute(request)
         signals = result.valuation_signals or result.valuation
         assert signals is not None
-        assert getattr(signals, "current_market_price", None) == pytest.approx(3500.25)
+        # Production composition no longer calls Upstox. TCS without ISIN+MIC
+        # is AMBIGUOUS (NSE+BSE) and must ignore the client 999999 quote.
+        assert getattr(signals, "current_market_price", None) != pytest.approx(999999.0)
+        assert getattr(signals, "current_market_price", None) != pytest.approx(3500.25)
     finally:
         reset_market_quote_service_for_tests(None)
         reset_financial_statement_service_for_tests(None)

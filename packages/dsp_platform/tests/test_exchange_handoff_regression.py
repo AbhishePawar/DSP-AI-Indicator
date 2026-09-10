@@ -1,19 +1,7 @@
-"""Regression: public ``exchange`` must reach the authenticated statement
-provider (Upstox U1 resolver ``preferred_exchange``).
+"""SIMPLE-14M — exchange/ISIN/MIC identity is judged by Security Master.
 
-Before the fix, ``AnalyseRequest.exchange`` was dropped at
-``build_composition_request`` / ``CompositionRequest`` / the pipeline preloader,
-so ``load_authenticated_valuation_bundle`` always queried with
-``exchange=None``. For a provider that requires the exchange to disambiguate
-(Upstox dual-listed NSE/BSE), that yields no statements and the ``financial``
-stage fails closed with ``Data unavailable. (financial statements)``.
-
-These tests use an exchange-gated statement provider to prove:
-  * FIX  — with ``exchange`` threaded, the provider receives it and the full
-    pipeline (financial → valuation → domains → recommendation → committee)
-    succeeds.
-  * BUG  — without an exchange, the provider is queried with ``None`` and the
-    financial stage fails closed (reproducing the production symptom).
+Commercial statement adapters are not queried from /analyse. Exchange still
+disambiguates dual-listed names through the official identity path.
 """
 
 from __future__ import annotations
@@ -192,35 +180,28 @@ def test_build_composition_request_threads_exchange():
     assert req.isin == "INE467B01029"
 
 
-def test_exchange_threaded_makes_financial_stage_succeed(gated_services):
-    """FIX: with exchange threaded, the full canonical pipeline succeeds."""
+def test_exchange_threaded_does_not_query_vendor(gated_services):
+    """SIMPLE-14M — exchange/ISIN/MIC identify the security; vendors are unused."""
     stmt_adapter = gated_services
-    request = CompositionRequest(ticker=TICKER, exchange=REQUIRED_EXCHANGE)
+    request = CompositionRequest(
+        ticker=TICKER,
+        exchange=REQUIRED_EXCHANGE,
+        isin="INE467B01029",
+        mic="XNSE",
+        research_mode="MOCK",
+    )
     result = PlatformOrchestrator(platform_version="test").execute(request)
-
-    # Provider was queried WITH the exchange (the dropped-handoff is fixed).
-    assert REQUIRED_EXCHANGE in stmt_adapter.exchanges_seen
-    assert None not in stmt_adapter.exchanges_seen
-
-    assert result.ok is True
-    assert result.metadata.failed_stage is None
-    assert result.financial_analysis is not None
-    assert (result.valuation_signals or result.valuation) is not None
-    assert result.economic_moat is not None
-    assert result.financial_strength is not None
-    assert result.business_quality is not None
-    assert result.investment_recommendation is not None
-    assert result.investment_committee is not None
+    assert stmt_adapter.exchanges_seen == []
+    signals = result.valuation_signals or result.valuation
+    iv = getattr(signals, "intrinsic_value_per_share", None) if signals else None
+    assert iv is None
+    assert result.investment_recommendation is None
 
 
-def test_missing_exchange_reproduces_financial_failure(gated_services):
-    """BUG repro: no exchange → provider queried with None → fail closed."""
+def test_missing_identity_does_not_query_vendor(gated_services):
+    """Ticker-only without MIC/ISIN must not call commercial statement adapters."""
     stmt_adapter = gated_services
-    request = CompositionRequest(ticker=TICKER, exchange=None)
+    request = CompositionRequest(ticker=TICKER, exchange=None, research_mode="MOCK")
     result = PlatformOrchestrator(platform_version="test").execute(request)
-
-    assert None in stmt_adapter.exchanges_seen
-    assert result.ok is False
-    assert result.metadata.failed_stage == "financial"
-    assert any("Data unavailable" in e for e in result.errors)
+    assert stmt_adapter.exchanges_seen == []
     assert result.investment_recommendation is None

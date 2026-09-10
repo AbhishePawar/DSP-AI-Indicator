@@ -345,6 +345,7 @@ export function CompanyAnalysisWorkspace() {
       const body = await loadAuthenticatedAnalyseRequest(requestedSymbol, {
         exchange,
         isin,
+        mic: listing?.mic || urlMic || null,
         company: listing?.company_name,
         loadStatements: () =>
           api.financialStatements(requestedSymbol, {

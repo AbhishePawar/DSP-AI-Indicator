@@ -392,7 +392,7 @@ def test_document_characteristics_are_generic() -> None:
     assert chars.url == _PRIMARY
     assert chars.content_hash == "abc"
     assert chars.retrieved_at == _RETRIEVED
-    assert select_extraction_strategy(payload=b"%PDF-1.4\n", text="") == "unavailable"
+    assert select_extraction_strategy(payload=b"%PDF-1.4\n", text="") == "ocr_required"
     assert select_extraction_strategy(payload=b"%PDF-1.4\n", text=_STATEMENT) in {
         "native_pdf_text",
         "table",

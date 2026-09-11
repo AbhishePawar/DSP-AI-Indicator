@@ -10,7 +10,10 @@ _INJECTION = re.compile(
     r"(ignore (all )?(previous|prior) instructions|you are now|system prompt|"
     r"override (the )?policy|execute (this )?code|change evidence status|"
     r"set status to verified|write production|change provider|"
-    r"set provider|ignore previous)",
+    r"set provider|ignore previous|override authority|change source policy|"
+    r"rewrite verification rules|ignore the evidence judge|"
+    r"rewrite (the )?dcf formula|change assumption bounds|override (the )?wacc|"
+    r"set intrinsic value|rewrite calculation formulas|change (the )?weights)",
     re.IGNORECASE,
 )
 

@@ -165,33 +165,51 @@ def preload_verified_evidence(ctx: ExecutionContext) -> None:
     events: tuple[CapitalEvent, ...] = tuple(
         getattr(ctx.request, "capital_events", ()) or ()
     )
-    research = orch.research(
-        ResearchRequest(
-            ticker=ticker or None,
-            company=company or None,
-            isin=isin,
-            mic=mic,
-            exchange=exchange,
-            fields=fields,
-            mode=mode,  # type: ignore[arg-type]
-            document_url=document_url,
-            candidate_urls=tuple(getattr(ctx.request, "candidate_urls", ()) or ()),
-        ),
+    request = ResearchRequest(
+        ticker=ticker or None,
+        company=company or None,
+        isin=isin,
+        mic=mic,
+        exchange=exchange,
+        fields=fields,
+        mode=mode,  # type: ignore[arg-type]
+        document_url=document_url,
+        candidate_urls=tuple(getattr(ctx.request, "candidate_urls", ()) or ()),
+    )
+    e2e = orch.analyse(
+        request,
         corporate_actions=events,
         document_text=document_text,
     )
-    judge = EvidenceJudge()
     extra = tuple(getattr(ctx.request, "extra_evidence", ()) or ())
-    dataset = judge.build_verified_dataset(
-        research, extra=extra, production=production, capital_events=events
-    )
+    dataset = e2e.dataset
+    if extra:
+        judge = EvidenceJudge()
+        research = orch._to_research_result(e2e, request)
+        dataset = judge.build_verified_dataset(
+            research, extra=extra, production=production, capital_events=events
+        )
+    if dataset is None:
+        ctx.results[_AUTH_ERROR_KEY] = (
+            e2e.detail or f"{DATA_UNAVAILABLE} (identity {e2e.identity_status})"
+        )
+        ctx.results["authenticated_valuation_trace"] = {
+            "official_research": e2e.to_public_dict(),
+            "identity_status": e2e.identity_status,
+            "ticker": ticker,
+            "isin": isin,
+            "mic": mic,
+            "unresolved": list(e2e.unresolved),
+            "mode": mode,
+        }
+        return
     gate = dsp_gate(dataset)
     analysis = analysis_from_dataset(dataset, gate=gate)
     ctx.results[VERIFIED_DATASET_KEY] = dataset
     ctx.results[DSP_ANALYSIS_KEY] = analysis
-    ctx.results["authenticated_valuation_trace"] = _trace_from_dataset(
-        dataset, gate.blocked_reason
-    )
+    trace = _trace_from_dataset(dataset, gate.blocked_reason)
+    trace["official_research"] = e2e.to_public_dict()
+    ctx.results["authenticated_valuation_trace"] = trace
 
     if dataset.identity_status not in {"VERIFIED"}:
         ctx.results[_AUTH_ERROR_KEY] = (
@@ -243,6 +261,10 @@ def dataset_to_bundle(
     if dataset.shares_status != "VERIFIED" or shares is None or shares.shares <= 0:
         raise AuthenticatedValuationError(
             f"{DATA_UNAVAILABLE} (verified shares outstanding unavailable)"
+        )
+    if shares.semantic_type != "TOTAL_OUTSTANDING":
+        raise AuthenticatedValuationError(
+            f"{DATA_UNAVAILABLE} (share_semantic={shares.semantic_type} is not TOTAL_OUTSTANDING)"
         )
     financials = dataset.financials
     if financials is None or financials.period_end is None:

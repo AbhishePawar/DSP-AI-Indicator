@@ -89,6 +89,10 @@ export function ManagementSection({ view }: { view: ResearchView }) {
           />
           <FieldRow label="Confidence" value={m.confidence} />
           <FieldRow label="Stage status" value={m.status} />
+          <FieldRow
+            label="DSP management assessment"
+            value={view.officialResearch.coreDsp?.managementRating || "UNKNOWN"}
+          />
         </dl>
       </SectionCard>
       <StageSectionCard title="Management stage detail" section={m} />
@@ -147,6 +151,10 @@ export function MoatSection({ view }: { view: ResearchView }) {
           />
           <FieldRow label="Score" value={moat.score} />
           <FieldRow label="Confidence" value={moat.confidence} />
+          <FieldRow
+            label="DSP moat assessment"
+            value={view.officialResearch.coreDsp?.moatRating || "UNKNOWN"}
+          />
         </dl>
       </SectionCard>
       <StageSectionCard title="Moat stage detail" section={moat} />
@@ -214,6 +222,15 @@ export function RiskSection({ view }: { view: ResearchView }) {
             label="Overall Risk Level"
             value={riskLevelLabel(risk?.overall_risk_level)}
           />
+          <FieldRow
+            label="DSP ordinal risk"
+            value={
+              view.officialResearch.coreDsp?.riskLevel
+                ? riskLevelLabel(view.officialResearch.coreDsp.riskLevel)
+                : "UNKNOWN"
+            }
+          />
+          <FieldRow label="Numeric risk score" value="Not defined by methodology" />
         </dl>
         {risk?.limitations?.length ? (
           <ul className="mt-3 list-disc space-y-1 pl-4 text-xs text-[var(--muted)]">

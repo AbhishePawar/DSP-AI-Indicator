@@ -12,9 +12,12 @@ import json
 from dataclasses import dataclass
 from typing import Any
 
-from data_engine.official_research.models import ResearchClaim
+from data_engine.official_research.models import ResearchClaim, ResearchRequest, ResearchResult
 from data_engine.official_research.nse_mcp import BHAVCOPY_MCP_URL, CMMKT_MCP_URL, NseMcpTool
 from data_engine.official_research.nse_mcp_evidence import tool_result_to_evidence
+from data_engine.official_research.research_failures import classify_openai_failure
+from data_engine.official_research.research_plan import ResearchPlan
+from data_engine.official_research.tool_policy import nse_mcp_allowed_tool_names
 from data_engine.security_master.models import SecurityListing
 
 __all__ = [
@@ -31,24 +34,28 @@ _SERVER_URLS = {
 }
 
 
-def nse_remote_mcp_tools() -> tuple[dict[str, Any], ...]:
-    """Responses API remote-MCP tool list. Tool names are discovered by OpenAI."""
-    return (
-        {
-            "type": "mcp",
-            "server_label": "nse_bhavcopy",
-            "server_url": BHAVCOPY_MCP_URL,
-            "require_approval": "never",
-            "server_description": "Official NSE Bhavcopy MCP (EOD/historical). Educational use only.",
-        },
-        {
-            "type": "mcp",
-            "server_label": "nse_cmmkt",
-            "server_url": CMMKT_MCP_URL,
-            "require_approval": "never",
-            "server_description": "Official NSE CM Market MCP (delayed/live). Educational use only.",
-        },
-    )
+def nse_remote_mcp_tools(
+    allowed_tools: tuple[str, ...] | None = None,
+) -> tuple[dict[str, Any], ...]:
+    """Responses API remote-MCP tool list. Optional allow-list from the research plan."""
+    bhavcopy: dict[str, Any] = {
+        "type": "mcp",
+        "server_label": "nse_bhavcopy",
+        "server_url": BHAVCOPY_MCP_URL,
+        "require_approval": "never",
+        "server_description": "Official NSE Bhavcopy MCP (EOD/historical). Educational use only.",
+    }
+    cmmkt: dict[str, Any] = {
+        "type": "mcp",
+        "server_label": "nse_cmmkt",
+        "server_url": CMMKT_MCP_URL,
+        "require_approval": "never",
+        "server_description": "Official NSE CM Market MCP (delayed/live). Educational use only.",
+    }
+    if allowed_tools:
+        bhavcopy["allowed_tools"] = list(allowed_tools)
+        cmmkt["allowed_tools"] = list(allowed_tools)
+    return (bhavcopy, cmmkt)
 
 
 def research_prompt(*, company: str, ticker: str, isin: str, mic: str) -> str:
@@ -78,6 +85,8 @@ class OpenAINseMcpAgent:
     client: Any
     enabled: bool = False
     role: str = "openai_nse_mcp"
+    provider: str = "openai"
+    model_label: str = ""
 
     def available(self) -> bool:
         return bool(self.enabled and self.client is not None and self.client.is_configured())
@@ -140,6 +149,98 @@ class OpenAINseMcpAgent:
             output_text=result.output_text,
             usage=result.usage,
             error=result.error,
+        )
+
+    def research(
+        self,
+        request: ResearchRequest,
+        plan: ResearchPlan,
+        context,
+    ) -> ResearchResult:
+        """OpenAI researches via Responses + MCP. Narrative is never VERIFIED."""
+        listing = getattr(context, "listing", None)
+        if not self.available():
+            return ResearchResult(
+                identity_status="UNKNOWN",
+                isin=request.isin,
+                mic=request.mic,
+                company=request.company,
+                ticker=request.ticker,
+                evidence=(),
+                price=None,
+                claims=(),
+                unresolved=("OPENAI_UNAVAILABLE",),
+                mode=request.mode,
+                status="UNAVAILABLE",
+                provider=self.provider,
+                model_label=self.model_label or getattr(self.client, "model_label", None),
+                failures=("OPENAI_UNAVAILABLE",),
+                research_agents=0,
+            )
+        allowed = nse_mcp_allowed_tool_names(plan)
+        model = self.model_label or getattr(self.client, "model_label", None) or context.preferred_model
+        payload = {
+            "model": model,
+            "input": research_prompt(
+                company=listing.company_name if listing else (request.company or ""),
+                ticker=listing.ticker if listing else (request.ticker or ""),
+                isin=listing.isin if listing else (request.isin or ""),
+                mic=listing.mic if listing else (request.mic or ""),
+            ),
+            "max_output_tokens": 600,
+            "tools": list(nse_remote_mcp_tools(allowed)),
+        }
+        result = self.client.invoke(payload)
+        if result.status in {"unavailable", "timeout", "rate_limited", "failed"}:
+            code = classify_openai_failure(result.status or result.error or "unavailable")
+            return ResearchResult(
+                identity_status="UNKNOWN",
+                isin=request.isin,
+                mic=request.mic,
+                company=request.company,
+                ticker=request.ticker,
+                evidence=(),
+                price=None,
+                claims=(),
+                unresolved=(code,),
+                mode=request.mode,
+                status="UNAVAILABLE",
+                provider=self.provider,
+                model_label=model,
+                failures=(code,),
+                research_trace={"usage": result.usage},
+            )
+        evidence = ()
+        if listing is not None:
+            evidence = evidence_from_mcp_calls(listing, result.mcp_calls)
+        claim = ResearchClaim(
+            field="research_narrative",
+            value=None,
+            source_url=None,
+            document_locator="openai-responses-narrative",
+            agent=self.role,
+            notes=(result.output_text or "")[:1000],
+            verification_status="REJECT",
+        )
+        return ResearchResult(
+            identity_status="UNKNOWN",
+            isin=request.isin,
+            mic=request.mic,
+            company=request.company,
+            ticker=request.ticker,
+            evidence=evidence,
+            price=None,
+            claims=(claim,),
+            unresolved=(),
+            mode=request.mode,
+            status="RAW",
+            provider=self.provider,
+            model_label=model,
+            evidence_ids=tuple(item.evidence_id for item in evidence),
+            research_trace={"usage": result.usage},
+            limitations=("narrative is not evidence",),
+            provenance="openai_responses_mcp_raw",
+            research_agents=1,
         )
 
 

@@ -149,6 +149,7 @@ export function WorkspaceLeftNav({
               "management",
               "moat",
               "risk",
+              "advancedCheck",
               "financial",
               "ownership",
               "peers",

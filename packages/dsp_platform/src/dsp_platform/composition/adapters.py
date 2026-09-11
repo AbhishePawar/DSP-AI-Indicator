@@ -221,6 +221,9 @@ def pipeline_result_public_dict(result: PipelineResult) -> dict[str, Any]:
         "price_kind": price_kind,
         "mode": trace.get("mode"),
     }
+    official = trace.get("official_research") if isinstance(trace, dict) else None
+    if isinstance(official, dict):
+        base["official_research"] = official
     base["risk"] = (
         result.risk.to_dict() if hasattr(result.risk, "to_dict") else None
     )

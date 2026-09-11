@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from datetime import date
 from decimal import Decimal
+from typing import Any
 
 from data_engine.official_research.acquisition import acquire_primary_documents
 from data_engine.official_research.agents import ResearchAgent, agent_outcome
@@ -47,16 +48,32 @@ from data_engine.official_research.semantics import (
     cannot_derive_shares,
     semantic_field_status,
 )
-from data_engine.official_research.research_plan import build_research_plan
+from data_engine.official_research.research_plan import (
+    build_research_plan,
+    expand_requested_fields,
+)
 from data_engine.official_research.source_policy import SourcePolicy
 from data_engine.security_master.models import SecurityListing
 from data_engine.security_master.service import SecurityMasterService
 
-__all__ = ["FINANCIAL_FIELDS", "PRICE_FIELDS", "ResearchOrchestrator"]
+__all__ = [
+    "FINANCIAL_FIELDS",
+    "PRICE_FIELDS",
+    "ResearchOrchestrator",
+    "requests_price_evidence",
+]
 
 PRICE_FIELDS = frozenset(
     {"price", "eod_close", "official_closing_price", "cls_pric", "ClsPric"}
 )
+
+
+def requests_price_evidence(fields: tuple[str, ...]) -> bool:
+    """True when the request asks for price, including the PRICE group."""
+    expanded, _groups = expand_requested_fields(fields)
+    return any(name in PRICE_FIELDS for name in (*fields, *expanded))
+
+
 FINANCIAL_FIELDS = (
     "shares_outstanding",
     "equity",
@@ -82,6 +99,18 @@ def _select_nse_row(
     eq = [row for row in matched if row.scty_srs == "EQ"]
     pool = eq or matched
     return pool[0]
+
+
+def _primary_source_url(bundle: NsePrimaryBundle, extracted: Any) -> str | None:
+    locator = str(getattr(extracted, "locator", "") or "").lower()
+    field = str(getattr(extracted, "field", "") or "")
+    if field == "shares_outstanding":
+        if "issued" in locator:
+            return bundle.source_urls.get("quote_equity")
+        return bundle.source_urls.get("shareholding") or bundle.source_urls.get(
+            "quote_equity"
+        )
+    return bundle.source_urls.get("financial_results")
 
 
 class ResearchOrchestrator:
@@ -112,6 +141,93 @@ class ResearchOrchestrator:
         self._deep_search = deep_search
         self._claude = claude
         self._production = production
+        self._compat_price: tuple[EvidenceItem | None, PriceSnapshot | None, str | None] = (
+            None,
+            None,
+            None,
+        )
+
+    def analyse(
+        self,
+        request: ResearchRequest,
+        *,
+        corporate_actions: tuple[CapitalEvent, ...] = (),
+        later_filings: tuple[date, ...] = (),
+        document_text: str | None = None,
+        nse_bundle: NseEodBundle | None = None,
+        retrieve_fn: Any | None = None,
+    ):
+        """Canonical E2E pipeline. NSE EOD is a candidate supplier, not a second research path."""
+        from data_engine.official_research.end_to_end import analyse_user_query
+
+        _ = later_filings
+        extra: dict[str, tuple[EvidenceItem, ...]] = {}
+        self._compat_price = (None, None, None)
+        resolved = self._master.resolve(
+            request.isin or request.ticker or request.company or "",
+            exchange=request.exchange,
+            isin=request.isin,
+            mic=request.mic,
+        )
+        if (
+            resolved.status == "RESOLVED"
+            and resolved.identity is not None
+            and requests_price_evidence(request.fields)
+        ):
+            item, snapshot, issue = self._price_evidence(
+                resolved.identity,
+                request.mode,
+                nse_bundle=nse_bundle,
+            )
+            self._compat_price = (item, snapshot, issue)
+            if item is not None:
+                extra["eod_close"] = (item,)
+        events = tuple(corporate_actions)
+        ca_checked_through = None
+        if resolved.status == "RESOLVED" and resolved.identity is not None:
+            primary = self._primary_bundle(resolved.identity, request.mode)
+            if primary is not None:
+                from data_engine.official_research.field_acquisition import (
+                    normalize_extracted_field,
+                )
+
+                now = utc_now()
+                events = events + tuple(primary.capital_events)
+                if primary.announcements_searched:
+                    ca_checked_through = now.date()
+                for name, extracted in primary.fields.items():
+                    url = _primary_source_url(primary, extracted)
+                    extra[name] = extra.get(name, ()) + (
+                        normalize_extracted_field(
+                            resolved.identity,
+                            extracted,
+                            source_url=url,
+                            source_type="regulator",
+                            source="NSE",
+                            retrieved_at=now,
+                            document_date=extracted.as_of,
+                            document_text="",
+                            mode=request.mode,
+                            agent="official_nse_primary",
+                        ),
+                    )
+        return analyse_user_query(
+            request.ticker or request.company or request.isin or "",
+            exchange=request.exchange,
+            isin=request.isin,
+            mic=request.mic,
+            master=self._master,
+            mode=request.mode,
+            production=self._production,
+            document_text=document_text,
+            document_url=request.document_url,
+            candidates=extra,
+            capital_events=events,
+            judge=self._judge,
+            fields=request.fields,
+            retrieve_fn=retrieve_fn,
+            ca_checked_through=ca_checked_through,
+        )
 
     def research(
         self,
@@ -121,204 +237,132 @@ class ResearchOrchestrator:
         later_filings: tuple[date, ...] = (),
         document_text: str | None = None,
         nse_bundle: NseEodBundle | None = None,
+        retrieve_fn: Any | None = None,
     ) -> ResearchResult:
-        if request.mode == "MOCK" and self._production:
-            return ResearchResult(
-                identity_status="UNAVAILABLE",
-                isin=request.isin,
-                mic=request.mic,
-                company=request.company,
-                ticker=request.ticker,
-                evidence=(),
-                price=None,
-                claims=(),
-                unresolved=("MOCK evidence cannot enter production",),
-                mode=request.mode,
-            )
-        resolved = self._master.resolve(
-            request.isin or request.ticker or request.company or "",
-            exchange=request.exchange,
-            isin=request.isin,
-            mic=request.mic,
+        """Compatibility façade over ``analyse`` — returns ResearchResult."""
+        e2e = self.analyse(
+            request,
+            corporate_actions=corporate_actions,
+            later_filings=later_filings,
+            document_text=document_text,
+            nse_bundle=nse_bundle,
+            retrieve_fn=retrieve_fn,
         )
-        if resolved.status == "AMBIGUOUS":
-            return ResearchResult(
-                identity_status="UNKNOWN",
-                isin=request.isin,
-                mic=request.mic,
-                company=request.company,
-                ticker=request.ticker,
-                evidence=(),
-                price=None,
-                claims=(),
-                unresolved=("identity ambiguous — ISIN+MIC required",),
-                mode=request.mode,
-                agent_outcomes=self._agent_map(),
-            )
-        if resolved.status != "RESOLVED" or resolved.identity is None:
-            status: FailureStatus = (
-                "UNKNOWN"
-                if resolved.status in {"UNKNOWN", "REJECTED"}
-                else "UNAVAILABLE"
-            )
-            if resolved.status == "UNSUPPORTED":
-                status = "UNAVAILABLE"
-            return ResearchResult(
-                identity_status=status,
-                isin=request.isin,
-                mic=request.mic,
-                company=request.company,
-                ticker=request.ticker,
-                evidence=(),
-                price=None,
-                claims=(),
-                unresolved=(f"identity {resolved.status}",),
-                mode=request.mode,
-                agent_outcomes=self._agent_map(),
-            )
-        listing = resolved.identity
-        started = utc_now()
-        plan = build_research_plan(listing, request)
-        sanitized = sanitize_document_text(document_text or "")
-        primary = self._primary_bundle(listing, request.mode)
-        acquired_fields: dict[str, object] = {}
-        acquired_url: str | None = None
-        if self._nse_eod is not None:
-            acquired = acquire_primary_documents(
-                listing,
-                transport=self._nse_eod.transport,
-                announcement_payload=(
-                    None if primary is None else primary.announcement_payload
-                ),
-                extra_urls=request.candidate_urls,
-                extra_announcements=(
-                    () if primary is None else primary.announcement_documents
-                ),
-                extra_document_text=sanitized,
-                fields=request.fields,
-                fetch_registered_ir=request.mode == "LIVE",
-                store=self._document_store,
-            )
-            acquired_fields = acquired.fields
-            attacked_extra = acquired.capital_events
-            unresolved_acq = list(acquired.issues)
-            for failure in acquired.failures:
-                unresolved_acq.append(f"{failure.url}: {failure.reason}")
-            if acquired.selected_url and not request.document_url:
-                acquired_url = acquired.selected_url
-            elif acquired.documents and not request.document_url:
-                acquired_url = acquired.documents[0].url
-            if acquired.sanitized_text:
-                sanitized = acquired.sanitized_text
+        return self._to_research_result(
+            e2e,
+            request,
+            document_text=document_text,
+            corporate_actions=corporate_actions,
+            later_filings=later_filings,
+        )
+
+    def _to_research_result(
+        self,
+        e2e: Any,
+        request: ResearchRequest,
+        *,
+        document_text: str | None = None,
+        corporate_actions: tuple[CapitalEvent, ...] = (),
+        later_filings: tuple[date, ...] = (),
+    ) -> ResearchResult:
+        identity: FailureStatus
+        if e2e.status in {"AMBIGUOUS"} or e2e.identity_status == "AMBIGUOUS":
+            identity = "UNKNOWN"
+        elif e2e.status in {"UNSUPPORTED", "UNAVAILABLE"}:
+            identity = "UNAVAILABLE"
+        elif e2e.status == "REJECTED" or e2e.identity_status == "REJECTED":
+            identity = "UNKNOWN"
+        elif e2e.identity_status == "VERIFIED":
+            identity = "VERIFIED"
+        elif e2e.identity_status in {"UNKNOWN", "UNAVAILABLE"}:
+            identity = e2e.identity_status  # type: ignore[assignment]
         else:
-            attacked_extra = ()
-            unresolved_acq = []
-        if sanitized and not document_identity_matches(
-            sanitized,
-            isin=listing.isin,
-            company_name=listing.company_name,
-        ):
-            unresolved_acq.append(
-                "document identity mismatch; ignoring document text"
-            )
-            sanitized = ""
-            acquired_fields = {}
-        attacked = corporate_actions + attack_corporate_actions(sanitized)
-        if primary is not None:
-            attacked = attacked + primary.capital_events
-        attacked = attacked + attacked_extra
-        claims: list[ResearchClaim] = []
-        for agent in (self._gemini, self._chatgpt, self._deep_search, self._claude):
-            if agent is None:
-                continue
-            if not agent.available():
-                continue
+            identity = "UNKNOWN"
+        blocked = e2e.status == "UNAVAILABLE" or (
+            self._production and request.mode == "MOCK"
+        )
+        overlay_item, overlay_price, overlay_issue = self._compat_price
+        acquisition = e2e.acquisition
+        items: list[EvidenceItem] = [] if acquisition is None else list(acquisition.evidence)
+        if not blocked and overlay_item is not None:
+            items = [item for item in items if item.field != "eod_close"]
+            items.insert(0, overlay_item)
+        listing = e2e.listing
+        if listing is not None and not blocked:
+            present = {item.field for item in items}
             for field in request.fields:
-                claims.append(
-                    agent.run(
-                        identity=listing.listing_id,
-                        field=field,
-                        document_text=sanitized,
+                if field in PRICE_FIELDS:
+                    continue
+                if document_text:
+                    items = [item for item in items if item.field != field]
+                    items.append(
+                        self._non_price_field(
+                            listing,
+                            field,
+                            request.mode,
+                            document_text=document_text,
+                            document_url=request.document_url,
+                            corporate_actions=corporate_actions,
+                            later_filings=later_filings,
+                        )
                     )
-                )
-        evidence: list[EvidenceItem] = []
-        price: PriceSnapshot | None = None
-        unresolved: list[str] = list(unresolved_acq)
-        if primary is not None:
-            unresolved.extend(primary.issues)
-            if not primary.last_price_ignored:
-                unresolved.append(
-                    "quote-equity lastPrice must not enter price evidence"
-                )
-        wants_price = any(field in PRICE_FIELDS for field in request.fields)
-        if wants_price:
-            item, snapshot, issue = self._price_evidence(
-                listing,
-                request.mode,
-                nse_bundle=nse_bundle,
+                    present.add(field)
+                elif field not in present:
+                    items.append(
+                        self._non_price_field(
+                            listing,
+                            field,
+                            request.mode,
+                            document_text="",
+                            document_url=request.document_url,
+                            corporate_actions=corporate_actions,
+                            later_filings=later_filings,
+                        )
+                    )
+                    present.add(field)
+        unresolved: list[str] = []
+        if overlay_issue:
+            unresolved.append(overlay_issue)
+        if acquisition is None or identity != "VERIFIED":
+            unresolved.extend(
+                str(item)
+                for item in e2e.unresolved
+                if item and str(item) not in unresolved
             )
-            if item is not None:
-                evidence.append(item)
-            if snapshot is not None:
-                price = snapshot
-            if issue:
-                unresolved.append(issue)
-        for field in request.fields:
-            if field in PRICE_FIELDS:
-                continue
-            if cannot_derive_shares("eps") and field == "shares_outstanding":
-                pass
-            item = self._non_price_field(
-                listing,
-                field,
-                request.mode,
-                document_text=sanitized,
-                document_url=request.document_url,
-                corporate_actions=attacked,
-                later_filings=later_filings,
-                primary=primary,
-                overlay_fields=acquired_fields,
-                overlay_url=acquired_url,
-            )
-            evidence.append(item)
-        verified_fields = tuple(
-            item.field for item in evidence if item.status == "VERIFIED"
-        )
-        unknown_fields = tuple(
-            item.field for item in evidence if item.status == "UNKNOWN"
-        )
-        conflicts = tuple(
-            item.field for item in evidence if item.status == "CONFLICT"
-        )
-        refresh_required = tuple(
-            item.field for item in evidence if item.status == "REFRESH_REQUIRED"
-        )
-        sources_consulted = tuple(
-            dict.fromkeys(
-                item.source_url or item.source
-                for item in evidence
-                if item.source_url or item.source
-            )
-        )
+        if identity == "UNKNOWN" and (
+            e2e.status == "AMBIGUOUS" or e2e.identity_status == "AMBIGUOUS"
+        ):
+            if not any("ambiguous" in item.lower() for item in unresolved):
+                unresolved.append("identity ambiguous — ISIN+MIC required")
+        price = None if blocked else overlay_price
+        if price is None and not blocked and e2e.dataset is not None:
+            price = e2e.dataset.price
+        evidence = tuple(items)
         return ResearchResult(
-            identity_status="VERIFIED",
-            isin=listing.isin,
-            mic=listing.mic,
-            company=listing.company_name,
-            ticker=listing.ticker,
-            evidence=tuple(evidence),
+            identity_status=identity,
+            isin=None if listing is None else listing.isin,
+            mic=None if listing is None else listing.mic,
+            company=None if listing is None else listing.company_name,
+            ticker=None if listing is None else listing.ticker,
+            evidence=evidence,
             price=price,
-            claims=tuple(claims),
+            claims=(),
             unresolved=tuple(unresolved),
             mode=request.mode,
             agent_outcomes=self._agent_map(),
-            plan=plan,
-            verified_fields=verified_fields,
-            unknown_fields=unknown_fields,
-            conflicts=conflicts,
-            refresh_required=refresh_required,
-            sources_consulted=sources_consulted,
-            research_started_at=started,
+            plan=e2e.plan,
+            verified_fields=() if acquisition is None else acquisition.verified_fields,
+            unknown_fields=() if acquisition is None else acquisition.unknown_fields,
+            conflicts=() if acquisition is None else acquisition.conflicts,
+            refresh_required=() if acquisition is None else acquisition.refresh_required,
+            sources_consulted=tuple(
+                dict.fromkeys(
+                    item.source_url or item.source
+                    for item in evidence
+                    if item.source_url or item.source
+                )
+            ),
+            research_started_at=utc_now(),
             research_finished_at=utc_now(),
         )
 

@@ -62,6 +62,7 @@ FailureStatus = Literal[
     "CONFLICT",
     "UNKNOWN",
     "UNAVAILABLE",
+    "REJECTED",
 ]
 FAILURE_STATUSES: frozenset[str] = frozenset(
     {
@@ -70,6 +71,7 @@ FAILURE_STATUSES: frozenset[str] = frozenset(
         "CONFLICT",
         "UNKNOWN",
         "UNAVAILABLE",
+        "REJECTED",
     }
 )
 
@@ -238,6 +240,11 @@ class EvidenceItem:
     raw_unit: str | None = None
     restated: bool = False
     document_hash: str | None = None
+    identity_class: str | None = None
+    conflict_class: str | None = None
+    semantic_kind: str | None = None
+    authority_tier: str | None = None
+    freshness_label: str | None = None
 
     def to_public_dict(self) -> dict[str, Any]:
         return {
@@ -285,6 +292,11 @@ class EvidenceItem:
             "raw_unit": self.raw_unit,
             "restated": self.restated,
             "document_hash": self.document_hash,
+            "identity_class": self.identity_class,
+            "conflict_class": self.conflict_class,
+            "semantic_kind": self.semantic_kind,
+            "authority_tier": self.authority_tier,
+            "freshness_label": self.freshness_label,
         }
 
 
@@ -324,6 +336,10 @@ class ResearchClaim:
     document_locator: str | None
     agent: str
     notes: str | None = None
+    evidence_ids: tuple[str, ...] = ()
+    as_of: date | None = None
+    retrieved_at: datetime | None = None
+    verification_status: str | None = None
 
 
 @dataclass(frozen=True, slots=True)
@@ -348,6 +364,14 @@ class ResearchResult:
     failures: tuple[str, ...] = ()
     research_started_at: datetime | None = None
     research_finished_at: datetime | None = None
+    status: str | None = None
+    provider: str | None = None
+    model_label: str | None = None
+    evidence_ids: tuple[str, ...] = ()
+    research_trace: object | None = None
+    limitations: tuple[str, ...] = ()
+    provenance: str | None = None
+    research_agents: int = 0
 
     def evidence_for(self, field: str) -> tuple[EvidenceItem, ...]:
         return tuple(item for item in self.evidence if item.field == field)
@@ -369,6 +393,8 @@ class ResearchResult:
                     "document_locator": claim.document_locator,
                     "agent": claim.agent,
                     "notes": claim.notes,
+                    "evidence_ids": list(claim.evidence_ids),
+                    "verification_status": claim.verification_status,
                 }
                 for claim in self.claims
             ],
@@ -381,4 +407,21 @@ class ResearchResult:
             "refresh_required": list(self.refresh_required),
             "sources_consulted": list(self.sources_consulted),
             "failures": list(self.failures),
+            "research_started_at": (
+                None
+                if self.research_started_at is None
+                else self.research_started_at.isoformat()
+            ),
+            "research_finished_at": (
+                None
+                if self.research_finished_at is None
+                else self.research_finished_at.isoformat()
+            ),
+            "status": self.status,
+            "provider": self.provider,
+            "model_label": self.model_label,
+            "evidence_ids": list(self.evidence_ids),
+            "limitations": list(self.limitations),
+            "provenance": self.provenance,
+            "research_agents": self.research_agents,
         }

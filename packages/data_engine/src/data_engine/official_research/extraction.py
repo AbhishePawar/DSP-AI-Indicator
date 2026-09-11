@@ -17,6 +17,7 @@ from data_engine.official_research.semantics import (
 __all__ = [
     "DocumentContext",
     "ExtractedField",
+    "CanonicalPeriod",
     "attack_corporate_actions",
     "extract_labeled_field",
     "extract_shares_outstanding",
@@ -25,9 +26,18 @@ __all__ = [
     "parse_document_context",
     "share_label_is_outstanding",
     "classify_share_semantic_type",
+    "canonical_share_semantic_type",
     "classify_capital_effect",
+    "classify_share_count_impact",
+    "classify_share_count_effect_status",
     "classify_acquisition_consideration",
+    "VALUATION_SHARE_SEMANTIC",
+    "CANONICAL_SHARE_SEMANTICS",
+    "canonicalize_period",
     "document_identity_matches",
+    "normalize_numeric_to_actual",
+    "periods_comparable",
+    "price_semantic_kind",
 ]
 
 
@@ -189,6 +199,147 @@ class DocumentContext:
     period_end: date | None
     restated: bool
     issues: tuple[str, ...]
+
+
+@dataclass(frozen=True, slots=True)
+class CanonicalPeriod:
+    code: str
+    period_type: str
+    period_end: date | None
+
+
+_UNIT_TO_ACTUAL: dict[str, Decimal] = {
+    "actual": Decimal("1"),
+    "rupee": Decimal("1"),
+    "rupees": Decimal("1"),
+    "inr": Decimal("1"),
+    "share": Decimal("1"),
+    "shares": Decimal("1"),
+    "thousand": Decimal("1000"),
+    "thousands": Decimal("1000"),
+    "lakh": Decimal("100000"),
+    "lakhs": Decimal("100000"),
+    "lac": Decimal("100000"),
+    "lacs": Decimal("100000"),
+    "million": Decimal("1000000"),
+    "millions": Decimal("1000000"),
+    "crore": Decimal("10000000"),
+    "crores": Decimal("10000000"),
+    "crs": Decimal("10000000"),
+    "cr": Decimal("10000000"),
+}
+
+_FY_YEAR = re.compile(
+    r"^(?:fy\s*)?(\d{4})(?:\s*[-/]\s*(\d{2}|\d{4}))?$",
+    re.I,
+)
+_YEAR_ENDED_PERIOD = re.compile(
+    r"year ended\s+(?:march\s+)?(?:31|31st)?\s*,?\s*(?:march\s+)?(\d{4})",
+    re.I,
+)
+_QUARTER_PERIOD = re.compile(r"\bq([1-4])\s*(?:fy)?\s*(\d{4})\b|\bquarter\b|\bttm\b|\bytd\b", re.I)
+
+
+def normalize_numeric_to_actual(
+    value: str | None, unit: str | None
+) -> Decimal | None:
+    """Convert labeled units to absolute amounts. Unknown units are never guessed."""
+    if value is None or str(value).strip() == "":
+        return None
+    raw = str(value).strip().replace(",", "").replace("₹", "").replace("rs.", "")
+    raw = raw.replace("INR", "").strip()
+    try:
+        amount = Decimal(raw)
+    except (InvalidOperation, ValueError):
+        return None
+    scale = str(unit or "").strip().lower()
+    if not scale:
+        return None
+    multiplier = _UNIT_TO_ACTUAL.get(scale)
+    if multiplier is None:
+        return None
+    return amount * multiplier
+
+
+def canonicalize_period(text: str | None, *, as_of: date | None = None) -> CanonicalPeriod | None:
+    """Normalize FY / year-ended labels. Do not collapse FY, quarter, TTM, or YTD."""
+    raw = str(text or "").strip()
+    if not raw and as_of is None:
+        return None
+    lowered = raw.lower()
+    if "ttm" in lowered or "trailing twelve" in lowered:
+        return CanonicalPeriod(code="TTM", period_type="TTM", period_end=as_of)
+    if re.search(r"\bytd\b|year to date|year-to-date", lowered):
+        return CanonicalPeriod(code="YTD", period_type="YTD", period_end=as_of)
+    quarter = re.search(r"\bq([1-4])\s*(?:fy)?\s*(\d{4})\b", lowered)
+    if quarter:
+        year = int(quarter.group(2))
+        return CanonicalPeriod(
+            code=f"Q{quarter.group(1)}FY{year}",
+            period_type="QUARTER",
+            period_end=as_of,
+        )
+    if _QUARTER_PERIOD.search(lowered) and "year ended" not in lowered:
+        return CanonicalPeriod(code=raw or "QUARTER", period_type="QUARTER", period_end=as_of)
+    ended = _YEAR_ENDED_PERIOD.search(lowered)
+    if ended:
+        year = int(ended.group(1))
+        return CanonicalPeriod(
+            code=f"FY{year}",
+            period_type="FY",
+            period_end=date(year, 3, 31),
+        )
+    fy = _FY_YEAR.match(re.sub(r"\s+", "", lowered))
+    if fy:
+        start = int(fy.group(1))
+        end_raw = fy.group(2)
+        if end_raw is None:
+            year = start
+        elif len(end_raw) == 2:
+            year = (start // 100) * 100 + int(end_raw)
+            if year < start:
+                year += 100
+        else:
+            year = int(end_raw)
+        return CanonicalPeriod(
+            code=f"FY{year}",
+            period_type="FY",
+            period_end=date(year, 3, 31),
+        )
+    if as_of is not None and as_of.month == 3 and as_of.day == 31:
+        return CanonicalPeriod(code=f"FY{as_of.year}", period_type="FY", period_end=as_of)
+    if as_of is not None:
+        return CanonicalPeriod(code=as_of.isoformat(), period_type="UNKNOWN", period_end=as_of)
+    return None
+
+
+def periods_comparable(left: CanonicalPeriod | None, right: CanonicalPeriod | None) -> bool:
+    if left is None or right is None:
+        return False
+    if left.period_type != right.period_type:
+        return False
+    if left.period_type in {"FY", "QUARTER", "TTM", "YTD"}:
+        return left.code == right.code
+    return left.period_end == right.period_end and left.period_end is not None
+
+
+def price_semantic_kind(*, field: str, raw_price_field: str | None, source_type: str | None) -> str:
+    raw = str(raw_price_field or "").strip()
+    lowered = raw.lower()
+    token = str(field or "").strip().lower()
+    if token in {"eod_close"} or raw in {"ClsPric", "cls_pric"} or lowered == "eod":
+        return "EOD"
+    if raw in {"PrvsClsgPric", "prvs_clsg_pric"} or "previous" in lowered:
+        return "PREVIOUS_CLOSE"
+    if token == "last_price" and ("delay" in lowered or source_type == "secondary"):
+        return "DELAYED"
+    if token == "last_price" or "realtime" in lowered or lowered == "current":
+        return "CURRENT"
+    if "historical" in lowered or token == "historical_close":
+        return "HISTORICAL_CLOSE"
+    if token in {"price", "last_price"}:
+        return "UNKNOWN"
+    return "UNKNOWN"
 
 
 _ISIN_TOKEN = re.compile(r"\bINE[A-Z0-9]{9}\b", re.I)
@@ -361,6 +512,37 @@ def _parse_flexible_day(raw: str) -> date | None:
     return _parse_date(text)
 
 
+VALUATION_SHARE_SEMANTIC = "TOTAL_OUTSTANDING"
+CANONICAL_SHARE_SEMANTICS: frozenset[str] = frozenset(
+    {
+        "TOTAL_OUTSTANDING",
+        "ISSUED",
+        "PAID_UP",
+        "LISTED",
+        "FREE_FLOAT",
+        "PROMOTER",
+        "WEIGHTED_AVERAGE_EPS",
+        "POTENTIAL_DILUTED",
+        "AUTHORIZED",
+        "UNKNOWN",
+    }
+)
+_SHARE_SEMANTIC_CANONICAL = {
+    "TOTAL_OUTSTANDING": "TOTAL_OUTSTANDING",
+    "ISSUED": "ISSUED",
+    "PAID_UP": "PAID_UP",
+    "LISTED": "LISTED",
+    "FREE_FLOAT": "FREE_FLOAT",
+    "PROMOTER": "PROMOTER",
+    "WEIGHTED_AVERAGE": "WEIGHTED_AVERAGE_EPS",
+    "DILUTED_EPS_DENOMINATOR": "WEIGHTED_AVERAGE_EPS",
+    "WEIGHTED_AVERAGE_EPS": "WEIGHTED_AVERAGE_EPS",
+    "TRANCHE": "POTENTIAL_DILUTED",
+    "POTENTIAL_DILUTED": "POTENTIAL_DILUTED",
+    "AUTHORIZED": "AUTHORIZED",
+}
+
+
 def classify_share_semantic_type(label: str) -> str:
     """Generic share-label semantics. Not an issuer table."""
     lowered = re.sub(r"\s+", " ", str(label or "").strip().lower())
@@ -376,6 +558,7 @@ def classify_share_semantic_type(label: str) -> str:
         "potential equity" in lowered
         or "dilutive potential" in lowered
         or "effect of potential" in lowered
+        or "potential diluted" in lowered
     ):
         return "TRANCHE"
     if "listed quantity" in lowered or "listed shares" in lowered or "listed capital" in lowered:
@@ -392,11 +575,26 @@ def classify_share_semantic_type(label: str) -> str:
         return "PAID_UP"
     if "issued" in lowered and "outstanding" not in lowered:
         return "ISSUED"
+    compact = re.sub(r"[^a-z0-9]+", "", lowered)
+    if compact in {"totalnoofshares", "totalnumberofshares", "total_shares"}:
+        if "promoter" not in lowered and "float" not in lowered:
+            return "TOTAL_OUTSTANDING"
     if share_label_is_outstanding(lowered) and "outstanding" in lowered:
         return "TOTAL_OUTSTANDING"
     if "outstanding" in lowered:
         return "OTHER"
     return "UNKNOWN"
+
+
+def canonical_share_semantic_type(label: str) -> str:
+    """Valuation-facing share class. Only TOTAL_OUTSTANDING may feed market cap."""
+    token = str(label or "").strip()
+    if token in _SHARE_SEMANTIC_CANONICAL:
+        return _SHARE_SEMANTIC_CANONICAL[token]
+    if token in CANONICAL_SHARE_SEMANTICS:
+        return token
+    raw = classify_share_semantic_type(label)
+    return _SHARE_SEMANTIC_CANONICAL.get(raw, "UNKNOWN")
 
 
 def classify_capital_effect(event_type: str) -> str:
@@ -420,6 +618,51 @@ def classify_capital_effect(event_type: str) -> str:
     if kind in {"merger", "demerger", "scheme", "share_swap", "acquisition"}:
         return "UNKNOWN"
     return "UNKNOWN"
+
+
+def classify_share_count_impact(
+    event_type: str,
+    *,
+    acquisition_consideration: str | None = None,
+) -> str:
+    """Explicit share-count impact. Acquisition is not assumed to issue shares."""
+    kind = str(event_type or "").strip().lower()
+    if kind == "acquisition":
+        consider = str(acquisition_consideration or "UNKNOWN").strip().upper()
+        if consider == "CASH":
+            return "NO_SHARE_COUNT_CHANGE"
+        if consider in {"SHARE_SWAP", "MIXED"}:
+            return "POTENTIAL_CHANGE"
+        return "UNKNOWN"
+    effect = classify_capital_effect(kind)
+    if effect == "INCREASE":
+        return "SHARE_COUNT_INCREASE"
+    if effect == "DECREASE":
+        return "SHARE_COUNT_DECREASE"
+    if kind in {"merger", "demerger", "scheme", "share_swap"}:
+        return "POTENTIAL_CHANGE"
+    if not kind:
+        return "NOT_APPLICABLE"
+    return "UNKNOWN"
+
+
+def classify_share_count_effect_status(
+    event_type: str,
+    *,
+    acquisition_consideration: str | None = None,
+) -> str:
+    """SIMPLE-22 vocabulary over the existing CA impact classifier."""
+    impact = classify_share_count_impact(
+        event_type, acquisition_consideration=acquisition_consideration
+    )
+    return {
+        "NO_SHARE_COUNT_CHANGE": "NO_SHARE_COUNT_EFFECT",
+        "SHARE_COUNT_INCREASE": "INCREASES_OUTSTANDING",
+        "SHARE_COUNT_DECREASE": "DECREASES_OUTSTANDING",
+        "POTENTIAL_CHANGE": "POTENTIALLY_CHANGES_OUTSTANDING",
+        "NOT_APPLICABLE": "NO_SHARE_COUNT_EFFECT",
+        "UNKNOWN": "UNKNOWN",
+    }.get(impact, "UNKNOWN")
 
 
 def classify_acquisition_consideration(text: str) -> str:

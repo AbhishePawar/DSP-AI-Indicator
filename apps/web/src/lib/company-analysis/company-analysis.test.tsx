@@ -285,6 +285,7 @@ describe("EPIC-F005 company analysis lib", () => {
         "management",
         "moat",
         "risk",
+        "advancedCheck",
         "financial",
         "ai",
         "explainability",

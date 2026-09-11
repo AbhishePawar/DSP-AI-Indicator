@@ -54,6 +54,9 @@ class ShareCountSnapshot:
     document_hash: str | None = None
     corporate_actions_checked: tuple[str, ...] = ()
     semantic_type: str | None = None
+    integrity_hash: str | None = None
+    evidence_ids: tuple[str, ...] = ()
+    ca_checked_through: date | None = None
 
 
 @dataclass(frozen=True, slots=True)
@@ -168,6 +171,13 @@ class VerifiedDataset:
                 "corporate_actions_checked": list(self.shares.corporate_actions_checked),
                 "semantic_type": self.shares.semantic_type,
                 "status": self.shares.status,
+                "integrity_hash": self.shares.integrity_hash,
+                "evidence_ids": list(self.shares.evidence_ids),
+                "ca_checked_through": (
+                    None
+                    if self.shares.ca_checked_through is None
+                    else self.shares.ca_checked_through.isoformat()
+                ),
             }
         financials = None
         if self.financials is not None:

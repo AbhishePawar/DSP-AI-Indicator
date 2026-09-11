@@ -14,6 +14,7 @@ from data_engine.official_research.models import (
     FailureStatus,
     ResearchAgentRole,
     ResearchClaim,
+    ResearchResult,
 )
 from data_engine.official_research.prompt_guard import sanitize_document_text
 
@@ -26,6 +27,7 @@ __all__ = [
     "ROLE_CAPABILITY",
     "ResearchAgent",
     "UnavailableAgent",
+    "UnavailableResearchPort",
     "agent_outcome",
 ]
 
@@ -184,6 +186,38 @@ class ClaudeReviewAgent:
             document_locator="review-only",
             agent=self.role,
             notes="INDEPENDENT REVIEW proposal only; DSP remains the judge",
+        )
+
+
+@dataclass(frozen=True, slots=True)
+class UnavailableResearchPort:
+    """Interface-compatible Gemini/Claude stub. Never fabricates evidence."""
+
+    provider: str
+    model_label: str = ""
+
+    def available(self) -> bool:
+        return False
+
+    def research(self, request, plan, context) -> ResearchResult:
+        _ = plan, context
+        return ResearchResult(
+            identity_status="UNKNOWN",
+            isin=request.isin,
+            mic=request.mic,
+            company=request.company,
+            ticker=request.ticker,
+            evidence=(),
+            price=None,
+            claims=(),
+            unresolved=("UNAVAILABLE",),
+            mode=request.mode,
+            status="UNAVAILABLE",
+            provider=self.provider,
+            model_label=self.model_label,
+            failures=("OPENAI_UNAVAILABLE",) if self.provider == "openai" else (),
+            research_agents=0,
+            limitations=("provider not qualified in this forensic",),
         )
 
 

@@ -85,6 +85,62 @@ export type ResearchView = IntelligenceView & {
   valuationTransparency: ValuationTransparencyView;
   /** Composition Risk stage — structural aggregation of existing engines only. */
   risk: CompanyRiskPayload | null;
+  /** SIMPLE-19A — additive official-research completeness. Display only. */
+  officialResearch: {
+    analysisState: string;
+    fullAnalysis: boolean;
+    identityStatus: string | null;
+    detail: string | null;
+    overallScoreStatus: string;
+    coreDsp: {
+      status: string;
+      overallScoreStatus: string;
+      businessQualityRating: string;
+      moatRating: string;
+      managementRating: string;
+      riskLevel: string;
+    } | null;
+    advancedCheck: {
+      name: string;
+      uiName: string;
+      status: string;
+      detail: string;
+      hardFailStatus: string;
+      replacesCoreDsp: boolean;
+      altersDcf: boolean;
+      findings: Array<{
+        finding: string;
+        dimension: string;
+        evidence: string;
+        dataClass: string;
+        verificationStatus: string;
+        severity: string;
+      }>;
+      thesisBreakers: Array<{
+        id: string;
+        dimension: string;
+        description: string;
+        severity: string;
+        verificationStatus: string;
+        trigger: string;
+        monitoringMetric: string;
+      }>;
+      thesis: {
+        status: string;
+        confidence: string;
+        positiveFactors: string[];
+        negativeFactors: string[];
+        keyAssumptions: string[];
+      };
+      asymmetry: {
+        upside: string;
+        downside: string;
+        probability: string;
+        detail: string;
+      };
+    } | null;
+    thesisStatus: string | null;
+  };
 };
 
 function stageOrEmpty(
@@ -302,6 +358,146 @@ export function mapResearchView(
     recommendationStage,
     committee,
     risk: (response.payload?.risk as CompanyRiskPayload | null | undefined) ?? null,
+    officialResearch: (() => {
+      const official = (
+        response.payload as {
+          official_research?: {
+            analysis_state?: string;
+            full_analysis?: boolean;
+            identity_status?: string;
+            detail?: string;
+            core_dsp?: {
+              status?: string;
+              overall_score_status?: string;
+              overall_business_quality?: string | null;
+              business_quality?: { rating?: string | null };
+              moat?: { rating?: string | null };
+              management?: { rating?: string | null };
+              risk?: { overall_risk_level?: string | null };
+            } | null;
+            advanced_check?: {
+              name?: string;
+              ui_name?: string;
+              status?: string;
+              detail?: string;
+              hard_fail_status?: string;
+              replaces_core_dsp?: boolean;
+              alters_dcf?: boolean;
+              findings?: Array<{
+                finding?: string;
+                dimension?: string;
+                evidence?: string;
+                data_class?: string;
+                verification_status?: string;
+                severity?: string;
+              }>;
+              thesis_breakers?: Array<{
+                id?: string;
+                dimension?: string;
+                description?: string;
+                severity?: string;
+                verification_status?: string;
+                trigger?: string;
+                monitoring_metric?: string;
+              }>;
+              thesis?: {
+                status?: string;
+                confidence?: string;
+                positive_factors?: string[];
+                negative_factors?: string[];
+                key_assumptions?: string[];
+              };
+              asymmetry?: {
+                upside?: string;
+                downside?: string;
+                probability?: string;
+                detail?: string;
+              };
+            } | null;
+            thesis?: { status?: string };
+            result_contract?: { overall_score?: string };
+          } | null;
+        }
+      ).official_research;
+      const state = official?.analysis_state;
+      const core = official?.core_dsp ?? null;
+      const adv = official?.advanced_check ?? null;
+      const overallScoreStatus =
+        core?.overall_score_status ||
+        official?.result_contract?.overall_score ||
+        "NOT_CURRENTLY_DEFINED";
+      return {
+        analysisState: state
+          ? state === "FULL_ANALYSIS"
+            ? "FULL ANALYSIS"
+            : state === "PARTIAL_DATA"
+              ? "PARTIAL ANALYSIS"
+              : state.replaceAll("_", " ")
+          : "PARTIAL ANALYSIS",
+        fullAnalysis: official?.full_analysis === true,
+        identityStatus: official?.identity_status ?? null,
+        detail: official?.detail ?? null,
+        overallScoreStatus,
+        coreDsp: core
+          ? {
+              status: core.status || "UNKNOWN",
+              overallScoreStatus,
+              businessQualityRating:
+                core.overall_business_quality ||
+                core.business_quality?.rating ||
+                "UNKNOWN",
+              moatRating: core.moat?.rating || "UNKNOWN",
+              managementRating: core.management?.rating || "UNKNOWN",
+              riskLevel: core.risk?.overall_risk_level || "UNKNOWN",
+            }
+          : null,
+        advancedCheck: adv
+          ? {
+              name: adv.name || "ADVANCED_FAILURE_ASYMMETRY",
+              uiName: adv.ui_name || "Advanced Investment Check",
+              status: adv.status || "UNKNOWN",
+              detail: adv.detail || "Data unavailable.",
+              hardFailStatus: adv.hard_fail_status || "REVIEW_REQUIRED",
+              replacesCoreDsp: adv.replaces_core_dsp === true,
+              altersDcf: adv.alters_dcf === true,
+              findings: (adv.findings || []).map((item) => ({
+                finding: item.finding || "Data unavailable.",
+                dimension: item.dimension || "UNKNOWN",
+                evidence: item.evidence || "Data unavailable.",
+                dataClass: item.data_class || "UNVERIFIED",
+                verificationStatus: item.verification_status || "UNKNOWN",
+                severity: item.severity || "MEDIUM",
+              })),
+              thesisBreakers: (adv.thesis_breakers || []).map((item) => ({
+                id: item.id || "unknown",
+                dimension: item.dimension || "UNKNOWN",
+                description: item.description || "Data unavailable.",
+                severity: item.severity || "MEDIUM",
+                verificationStatus: item.verification_status || "UNKNOWN",
+                trigger: item.trigger || "Data unavailable.",
+                monitoringMetric:
+                  item.monitoring_metric || "descriptive only — no monitor built",
+              })),
+              thesis: {
+                status: adv.thesis?.status || official?.thesis?.status || "UNKNOWN",
+                confidence: adv.thesis?.confidence || "none",
+                positiveFactors: adv.thesis?.positive_factors || [],
+                negativeFactors: adv.thesis?.negative_factors || [],
+                keyAssumptions: adv.thesis?.key_assumptions || [],
+              },
+              asymmetry: {
+                upside: adv.asymmetry?.upside || "UNKNOWN",
+                downside: adv.asymmetry?.downside || "UNKNOWN",
+                probability: adv.asymmetry?.probability || "UNKNOWN",
+                detail:
+                  adv.asymmetry?.detail ||
+                  "probabilities are not defined by existing methodology",
+              },
+            }
+          : null,
+        thesisStatus: adv?.thesis?.status || official?.thesis?.status || null,
+      };
+    })(),
   };
   const withBuffett = {
     ...draft,

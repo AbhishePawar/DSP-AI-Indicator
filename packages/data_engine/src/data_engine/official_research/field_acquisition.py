@@ -19,6 +19,7 @@ from typing import Any
 from data_engine.official_research.company_sources import resolve_company_sources
 from data_engine.official_research.currentness import (
     CapitalEvent,
+    corporate_action_horizon_status,
     currentness_label,
 )
 from data_engine.official_research.documents import (
@@ -31,12 +32,14 @@ from data_engine.official_research.dsp_gate import dsp_gate
 from data_engine.official_research.extraction import (
     ExtractedField,
     attack_corporate_actions,
-    classify_share_semantic_type,
+    canonical_share_semantic_type,
     document_identity_matches,
     extract_labeled_field,
     parse_document_context,
 )
-from data_engine.official_research.forensic_artifacts import is_promotable_artifact
+from data_engine.official_research.nse_primary import (
+    extract_nse_api_field,
+)
 from data_engine.official_research.judge import EvidenceJudge
 from data_engine.official_research.models import (
     EvidenceItem,
@@ -49,6 +52,7 @@ from data_engine.official_research.models import (
 )
 from data_engine.official_research.nse_mcp import NSE_MCP_COMMERCIAL_STATUS
 from data_engine.official_research.pdf_text import document_text_from_payload
+from data_engine.official_research.prompt_guard import sanitize_document_text
 from data_engine.official_research.research_failures import (
     ResearchFailure,
     map_retrieval_to_failure_code,
@@ -62,7 +66,6 @@ from data_engine.official_research.research_plan import (
 from data_engine.official_research.source_policy import (
     SourcePolicy,
     classify_source_url,
-    record_source_clash,
     source_authority_rank,
 )
 from data_engine.official_research.verified_dataset import VerifiedDataset
@@ -155,6 +158,8 @@ def acquire_planned_fields(
     judge: EvidenceJudge | None = None,
     policy: SourcePolicy | None = None,
     retrieve_fn: RetrieveFn | None = None,
+    research_horizon: date | None = None,
+    ca_checked_through: date | None = None,
 ) -> PlannedAcquisitionResult:
     """Run the generic loop for every planned field. Never invent a missing value."""
     started = perf_counter()
@@ -203,7 +208,7 @@ def acquire_planned_fields(
     timings["discover"] = perf_counter() - t
 
     supplied_docs = tuple(documents or ())
-    text = document_text or ""
+    text = sanitize_document_text(document_text or "")
     chars: list[Any] = []
     strategy = None
     t = perf_counter()
@@ -275,10 +280,12 @@ def acquire_planned_fields(
             production=production,
             mode=request.mode,
             timings=timings,
+            research_horizon=research_horizon,
+            ca_checked_through=ca_checked_through,
         )
-        outcomes.append(outcome)
-        if outcome.evidence is not None:
-            ledger.append(outcome.evidence)
+        outcomes.append(_with_stub(listing, outcome, request.mode))
+        if outcomes[-1].evidence is not None:
+            ledger.append(outcomes[-1].evidence)
 
     verified = tuple(item.field for item in outcomes if item.status == "VERIFIED")
     unknown = tuple(item.field for item in outcomes if item.status == "UNKNOWN")
@@ -339,7 +346,7 @@ def normalize_extracted_field(
     semantic_check = "PASS" if semantic in {"PASS", "VERIFIED"} else "FAIL"
     share_type = None
     if extracted.field == "shares_outstanding":
-        share_type = classify_share_semantic_type(extracted.locator or "")
+        share_type = canonical_share_semantic_type(extracted.locator or "")
         if share_type != VALUATION_SHARE_SEMANTIC:
             semantic_check = "FAIL"
     unit = extracted.raw_unit or extracted.unit_scale
@@ -388,6 +395,7 @@ def normalize_extracted_field(
         document_hash=document_hash,
         period=None if as_of is None else as_of.isoformat(),
         current_through=as_of,
+        semantic_kind=share_type,
     )
 
 
@@ -408,6 +416,7 @@ def _discover_sources(listing: SecurityListing, sources) -> tuple[str, ...]:
         sources.financial_results_url,
         sources.nse_announcements_url,
         sources.nse_financial_results_url,
+        sources.nse_shareholding_url,
     ):
         if url and url not in urls:
             urls.append(url)
@@ -431,6 +440,8 @@ def _acquire_one_field(
     production: bool,
     mode: str,
     timings: dict[str, float],
+    research_horizon: date | None = None,
+    ca_checked_through: date | None = None,
 ) -> FieldAcquisitionOutcome:
     failures: list[ResearchFailure] = []
     tried: list[str] = []
@@ -472,13 +483,19 @@ def _acquire_one_field(
                 code = map_retrieval_to_failure_code(payload.reason, payload.http_status)
                 failures.append(ResearchFailure(code, payload.reason, field=field))
                 continue
-            body = document_text_from_payload(payload.payload, content_type=payload.content_type)
+            body = sanitize_document_text(
+                document_text_from_payload(payload.payload, content_type=payload.content_type)
+            )
             if not body:
                 failures.append(
                     ResearchFailure("EXTRACTION_FAILURE", "no usable text layer", field=field)
                 )
                 continue
             extracted = extract_labeled_field(body, field)
+            if extracted is None or not extracted.value:
+                extracted = extract_nse_api_field(
+                    url, body, listing=listing, field=field
+                )
             if extracted is None or not extracted.value:
                 failures.append(
                     ResearchFailure("EXTRACTION_FAILURE", "label not found", field=field)
@@ -502,7 +519,8 @@ def _acquire_one_field(
 
     t = perf_counter()
     if not raw_items and document_text:
-        extracted = extract_labeled_field(document_text, field)
+        text = sanitize_document_text(document_text)
+        extracted = extract_labeled_field(text, field)
         timings["extract"] += perf_counter() - t
         t = perf_counter()
         if extracted is None or not extracted.value:
@@ -514,7 +532,7 @@ def _acquire_one_field(
                 )
             )
         else:
-            context = parse_document_context(document_text)
+            context = parse_document_context(text)
             if field in _FINANCIAL_CONTEXT_FIELDS:
                 if context.unit_scale is None and extracted.raw_unit is None:
                     failures.append(ResearchFailure("UNIT_UNKNOWN", "units unknown", field=field))
@@ -560,7 +578,7 @@ def _acquire_one_field(
                     source=source_type,
                     retrieved_at=utc_now(),
                     document_hash=documents[0].document_hash if documents else None,
-                    document_text=document_text,
+                    document_text=text,
                     mode=mode,
                 )
             )
@@ -583,50 +601,47 @@ def _acquire_one_field(
         )
 
     t = perf_counter()
-    primaries = [
-        item
-        for item in raw_items
-        if policy.may_verify(item.source_url, source_type=item.source_type)
-    ]
-    research = [
-        item
-        for item in raw_items
-        if policy.may_cross_check(item.source_url, source_type=item.source_type)
-    ]
-    clash = None
-    if len({item.value for item in primaries}) > 1:
+    decision = judge.reconcile_candidates(
+        tuple(raw_items),
+        field=field,
+        listing=listing,
+        capital_events=capital_events,
+        production=production,
+    )
+    timings["reconcile"] += perf_counter() - t
+    clash = decision.cross_check
+    if decision.status == "CONFLICT":
         failures.append(
             ResearchFailure(
                 "RECONCILIATION_CONFLICT",
-                "two primary values differ; refusing silent pick",
+                decision.reason or "two primary values differ; refusing silent pick",
                 field=field,
             )
         )
-        timings["reconcile"] += perf_counter() - t
-        sample = primaries[0]
+        sample = decision.chosen or raw_items[0]
         return FieldAcquisitionOutcome(
             field=field,
             status="CONFLICT",
             stage_reached="reconcile",
-            evidence=replace(sample, stage="RECONCILED", status="CONFLICT"),
+            evidence=sample if sample.stage == "RECONCILED" else replace(sample, stage="RECONCILED", status="CONFLICT"),
             sources_tried=tuple(tried),
             failures=tuple(failures),
             currentness="CONFLICT",
             semantic_type=_share_type(sample) if field == "shares_outstanding" else None,
         )
-    chosen = primaries[0] if primaries else None
-    if chosen is None and research:
+    primaries = [
+        item
+        for item in (decision.retained or raw_items)
+        if policy.may_verify(item.source_url, source_type=item.source_type)
+    ]
+    research = [
+        item
+        for item in (decision.retained or raw_items)
+        if policy.may_cross_check(item.source_url, source_type=item.source_type)
+    ]
+    chosen = decision.chosen
+    if chosen is None and research and not primaries:
         chosen = research[0]
-    if chosen is not None and research and primaries:
-        weaker = research[0]
-        clash = record_source_clash(
-            field=field,
-            primary_url=chosen.source_url or "",
-            primary_value=str(chosen.value),
-            research_url=weaker.source_url or "",
-            research_value=str(weaker.value),
-        )
-    timings["reconcile"] += perf_counter() - t
     if chosen is None:
         failures.append(
             ResearchFailure("MISSING_REQUIRED_DATA", "no primary or cross-check candidate", field=field)
@@ -643,8 +658,10 @@ def _acquire_one_field(
 
     t = perf_counter()
     if field == "shares_outstanding":
-        share_type = classify_share_semantic_type(chosen.evidence_locator or "")
-        if share_type != VALUATION_SHARE_SEMANTIC and share_type != "UNKNOWN":
+        share_type = canonical_share_semantic_type(
+            chosen.semantic_kind or chosen.evidence_locator or ""
+        )
+        if share_type != VALUATION_SHARE_SEMANTIC:
             failures.append(
                 ResearchFailure(
                     "SEMANTIC_FAILURE",
@@ -663,17 +680,33 @@ def _acquire_one_field(
                 currentness="UNKNOWN",
                 semantic_type=share_type,
             )
-        ca_status = _share_ca_status(chosen, capital_events)
-        chosen = replace(chosen, corporate_action_status=ca_status)
+        ca_status = _share_ca_status(
+            chosen,
+            capital_events,
+            research_horizon=research_horizon,
+            ca_checked_through=ca_checked_through,
+        )
+        chosen = replace(
+            chosen,
+            corporate_action_status=ca_status,
+            semantic_kind=share_type,
+        )
     if chosen.identity_status != "PASS":
         failures.append(ResearchFailure("IDENTITY_FAILURE", "document identity failed", field=field))
     if chosen.freshness_status == "FAIL":
         failures.append(ResearchFailure("FRESHNESS_FAILURE", "evidence is stale", field=field))
+    if field == "shares_outstanding":
+        if chosen.document_date is None and chosen.as_of is not None:
+            chosen = replace(chosen, document_date=chosen.as_of)
+        if chosen.current_through is None and chosen.as_of is not None:
+            chosen = replace(chosen, current_through=chosen.as_of)
     promoted = judge.promote(chosen, production=production)
+    if promoted.value is not None and promoted.last_verified_at is None:
+        promoted = replace(promoted, last_verified_at=utc_now())
     if promoted.status == "VERIFIED":
         promoted = replace(
             promoted,
-            last_verified_at=utc_now(),
+            last_verified_at=promoted.last_verified_at or utc_now(),
             current_through=promoted.current_through or promoted.as_of,
         )
     label = currentness_label(
@@ -707,6 +740,57 @@ def _acquire_one_field(
     )
 
 
+def _unknown_evidence(
+    listing: SecurityListing,
+    field: str,
+    mode: str,
+    *,
+    status: str = "UNKNOWN",
+) -> EvidenceItem:
+    """Every attempted field keeps a typed UNKNOWN row. Never invent a value."""
+    return EvidenceItem(
+        evidence_id=new_evidence_id(),
+        company=listing.company_name,
+        ticker=listing.ticker,
+        isin=listing.isin,
+        mic=listing.mic,
+        field=field,
+        value=None,
+        as_of=None,
+        retrieved_at=utc_now(),
+        source="NONE",
+        source_type="none",
+        source_url=None,
+        document_date=None,
+        evidence_locator=None,
+        currency=None,
+        unit=None,
+        statement_basis=None,
+        agent="official_research",
+        identity_status="UNKNOWN",
+        semantic_status="UNKNOWN",
+        freshness_status="UNKNOWN",
+        corporate_action_status="UNKNOWN",
+        confidence=None,
+        stage="RAW",
+        status=status,  # type: ignore[arg-type]
+        mode=mode,  # type: ignore[arg-type]
+    )
+
+
+def _with_stub(
+    listing: SecurityListing,
+    outcome: FieldAcquisitionOutcome,
+    mode: str,
+) -> FieldAcquisitionOutcome:
+    if outcome.evidence is not None:
+        return outcome
+    return replace(
+        outcome,
+        evidence=_unknown_evidence(listing, outcome.field, mode, status=outcome.status),
+    )
+
+
 def _order_candidates(field: str, items: Sequence[EvidenceItem]) -> tuple[EvidenceItem, ...]:
     def key(item: EvidenceItem) -> tuple[int, int]:
         kind = classify_source_url(item.source_url, source_type=item.source_type)
@@ -732,16 +816,37 @@ def _source_type_for_url(url: str | None) -> str:
 
 
 def _share_type(item: EvidenceItem) -> str:
-    return classify_share_semantic_type(item.evidence_locator or "")
+    return canonical_share_semantic_type(item.semantic_kind or item.evidence_locator or "")
 
 
 def _share_ca_status(
-    item: EvidenceItem, events: tuple[CapitalEvent, ...]
+    item: EvidenceItem,
+    events: tuple[CapitalEvent, ...],
+    *,
+    research_horizon: date | None = None,
+    ca_checked_through: date | None = None,
 ) -> FailureStatus:
-    """Calendar passage is not a capital change. Only later capital-changing events stale the count."""
+    """Calendar passage is not a capital change. Horizon must be explicitly covered."""
     if item.as_of is None:
         return "UNKNOWN"
-    horizon = item.retrieved_at.date()
+    horizon = research_horizon or item.retrieved_at.date()
+    checked = ca_checked_through
+    if checked is None and events:
+        dated = [
+            event.event_date
+            for event in events
+            if event.event_date != date.max
+        ]
+        if dated:
+            checked = max(dated)
+    if research_horizon is not None or ca_checked_through is not None:
+        ca_horizon = corporate_action_horizon_status(
+            as_of=item.as_of,
+            checked_through=checked,
+            research_horizon=horizon,
+        )
+        if ca_horizon != "CURRENT":
+            return "REFRESH_REQUIRED"
     for event in events:
         if (
             event.capital_changing

@@ -11,13 +11,18 @@ from urllib.parse import urlparse
 
 __all__ = [
     "APPROVED_RESEARCH_HOST_SUFFIXES",
+    "AUTHORITY_TIERS",
     "FIELD_AUTHORITY_CHAIN",
+    "FIELD_POLICY_MATRIX",
     "PRIMARY_HOST_SUFFIXES",
     "SECONDARY_HOST_SUFFIXES",
+    "FieldPolicy",
     "SourceClass",
     "SourcePolicy",
+    "authority_tier_for",
     "classify_source_url",
     "field_authority_chain",
+    "field_policy",
     "record_source_clash",
     "source_authority_rank",
 ]
@@ -160,19 +165,230 @@ def field_authority_chain(field: str) -> tuple[str, ...]:
 _FIELD_GROUP = {
     "eod_close": "price",
     "last_price": "price",
+    "price": "price",
     "revenue": "financials",
     "operating_profit": "financials",
     "ebit": "financials",
+    "ebitda": "financials",
     "net_income": "financials",
     "equity": "financials",
     "cash": "financials",
     "cfo": "financials",
+    "fcf": "financials",
     "capex": "financials",
     "debt": "financials",
     "total_assets": "financials",
     "total_liabilities": "financials",
     "shares_outstanding": "shares",
+    "market_cap": "price",
+    "enterprise_value": "price",
 }
+
+AUTHORITY_TIERS: tuple[str, ...] = (
+    "TIER_1A",
+    "TIER_1B",
+    "TIER_1C",
+    "TIER_2",
+    "TIER_3",
+    "UNKNOWN",
+)
+
+_AI_AGENTS = frozenset(
+    {
+        "gemini_find",
+        "chatgpt_verify",
+        "claude_review",
+        "deep_search_attack",
+        "openai_nse_mcp",
+        "openai",
+    }
+)
+_AI_SOURCE_TYPES = frozenset({"llm", "agent_claim"})
+_SUPPORTED_EQUITY_TYPES = frozenset({"equity", "bank_equity", "ordinary_equity"})
+
+
+@dataclass(frozen=True, slots=True)
+class FieldPolicy:
+    """Field-specific authority and verification requirements. Not a second policy engine."""
+
+    field: str
+    authority_chain: tuple[str, ...]
+    freshness_class: str
+    semantic_kinds: tuple[str, ...]
+    as_of_required: bool
+    period_required: bool
+    unit_required: bool
+    currency_required: bool
+    statement_basis_required: bool
+    corporate_action_required: bool
+    calculation_dependency: tuple[str, ...]
+    allowed_security_types: tuple[str, ...]
+    derived: bool = False
+
+
+def _financial_policy(field: str) -> FieldPolicy:
+    return FieldPolicy(
+        field=field,
+        authority_chain=FIELD_AUTHORITY_CHAIN["financials"],
+        freshness_class="latest_audited_period",
+        semantic_kinds=("CONSOLIDATED", "STANDALONE"),
+        as_of_required=True,
+        period_required=True,
+        unit_required=True,
+        currency_required=True,
+        statement_basis_required=True,
+        corporate_action_required=False,
+        calculation_dependency=(),
+        allowed_security_types=tuple(sorted(_SUPPORTED_EQUITY_TYPES)),
+    )
+
+
+FIELD_POLICY_MATRIX: dict[str, FieldPolicy] = {
+    "eod_close": FieldPolicy(
+        field="eod_close",
+        authority_chain=FIELD_AUTHORITY_CHAIN["price"],
+        freshness_class="session_or_latest_eod",
+        semantic_kinds=("EOD",),
+        as_of_required=True,
+        period_required=False,
+        unit_required=False,
+        currency_required=True,
+        statement_basis_required=False,
+        corporate_action_required=True,
+        calculation_dependency=(),
+        allowed_security_types=tuple(sorted(_SUPPORTED_EQUITY_TYPES)),
+    ),
+    "last_price": FieldPolicy(
+        field="last_price",
+        authority_chain=FIELD_AUTHORITY_CHAIN["price"],
+        freshness_class="current_research_window",
+        semantic_kinds=("CURRENT", "DELAYED"),
+        as_of_required=True,
+        period_required=False,
+        unit_required=False,
+        currency_required=True,
+        statement_basis_required=False,
+        corporate_action_required=True,
+        calculation_dependency=(),
+        allowed_security_types=tuple(sorted(_SUPPORTED_EQUITY_TYPES)),
+    ),
+    "price": FieldPolicy(
+        field="price",
+        authority_chain=FIELD_AUTHORITY_CHAIN["price"],
+        freshness_class="session_or_latest_eod",
+        semantic_kinds=("EOD", "CURRENT", "DELAYED"),
+        as_of_required=True,
+        period_required=False,
+        unit_required=False,
+        currency_required=True,
+        statement_basis_required=False,
+        corporate_action_required=True,
+        calculation_dependency=(),
+        allowed_security_types=tuple(sorted(_SUPPORTED_EQUITY_TYPES)),
+    ),
+    "revenue": _financial_policy("revenue"),
+    "ebit": _financial_policy("ebit"),
+    "ebitda": _financial_policy("ebitda"),
+    "net_income": _financial_policy("net_income"),
+    "cfo": _financial_policy("cfo"),
+    "cash": _financial_policy("cash"),
+    "debt": _financial_policy("debt"),
+    "equity": _financial_policy("equity"),
+    "operating_profit": _financial_policy("operating_profit"),
+    "capex": _financial_policy("capex"),
+    "fcf": FieldPolicy(
+        field="fcf",
+        authority_chain=FIELD_AUTHORITY_CHAIN["financials"],
+        freshness_class="latest_audited_period",
+        semantic_kinds=("CONSOLIDATED", "STANDALONE"),
+        as_of_required=True,
+        period_required=True,
+        unit_required=True,
+        currency_required=True,
+        statement_basis_required=True,
+        corporate_action_required=False,
+        calculation_dependency=("cfo", "capex"),
+        allowed_security_types=tuple(sorted(_SUPPORTED_EQUITY_TYPES)),
+        derived=True,
+    ),
+    "shares_outstanding": FieldPolicy(
+        field="shares_outstanding",
+        authority_chain=FIELD_AUTHORITY_CHAIN["shares"],
+        freshness_class="latest_count_plus_ca_review",
+        semantic_kinds=("TOTAL_OUTSTANDING",),
+        as_of_required=True,
+        period_required=False,
+        unit_required=False,
+        currency_required=False,
+        statement_basis_required=False,
+        corporate_action_required=True,
+        calculation_dependency=(),
+        allowed_security_types=tuple(sorted(_SUPPORTED_EQUITY_TYPES)),
+    ),
+    "market_cap": FieldPolicy(
+        field="market_cap",
+        authority_chain=FIELD_AUTHORITY_CHAIN["price"],
+        freshness_class="session_or_latest_eod",
+        semantic_kinds=("MARKET_CAP",),
+        as_of_required=True,
+        period_required=False,
+        unit_required=True,
+        currency_required=True,
+        statement_basis_required=False,
+        corporate_action_required=True,
+        calculation_dependency=("eod_close", "shares_outstanding"),
+        allowed_security_types=tuple(sorted(_SUPPORTED_EQUITY_TYPES)),
+        derived=True,
+    ),
+    "enterprise_value": FieldPolicy(
+        field="enterprise_value",
+        authority_chain=FIELD_AUTHORITY_CHAIN["price"],
+        freshness_class="session_or_latest_eod",
+        semantic_kinds=("ENTERPRISE_VALUE",),
+        as_of_required=True,
+        period_required=False,
+        unit_required=True,
+        currency_required=True,
+        statement_basis_required=False,
+        corporate_action_required=True,
+        calculation_dependency=("eod_close", "shares_outstanding", "debt", "cash"),
+        allowed_security_types=tuple(sorted(_SUPPORTED_EQUITY_TYPES)),
+        derived=True,
+    ),
+}
+
+
+def field_policy(field: str) -> FieldPolicy:
+    if field in FIELD_POLICY_MATRIX:
+        return FIELD_POLICY_MATRIX[field]
+    group = _FIELD_GROUP.get(field, "financials")
+    if group == "price":
+        return FIELD_POLICY_MATRIX["eod_close"]
+    if group == "shares":
+        return FIELD_POLICY_MATRIX["shares_outstanding"]
+    return _financial_policy(field)
+
+
+def authority_tier_for(
+    url: str | None,
+    *,
+    source_type: str | None = None,
+    agent: str | None = None,
+) -> str:
+    """TIER_1A regulator/exchange → 1B issuer → 1C Screener → 2 secondary → 3 AI."""
+    kind = str(source_type or "")
+    if kind in _AI_SOURCE_TYPES or str(agent or "") in _AI_AGENTS:
+        return "TIER_3"
+    classified = classify_source_url(url, source_type=source_type)
+    if classified == "approved_research":
+        return "TIER_1C"
+    if classified == "secondary":
+        return "TIER_2"
+    if classified == "primary":
+        if kind == "company_ir":
+            return "TIER_1B"
+        return "TIER_1A"
+    return "UNKNOWN"
 
 _CLASS_ORDER: tuple[str, ...] = (
     "primary",

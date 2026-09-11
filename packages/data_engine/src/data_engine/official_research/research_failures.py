@@ -9,6 +9,7 @@ __all__ = [
     "ResearchFailure",
     "is_transport_failure",
     "map_retrieval_to_failure_code",
+    "classify_openai_failure",
 ]
 
 TRANSPORT_FAILURE_CODES: frozenset[str] = frozenset(
@@ -22,6 +23,11 @@ TRANSPORT_FAILURE_CODES: frozenset[str] = frozenset(
         "MCP_PROTOCOL_ERROR",
         "MCP_RATE_LIMITED",
         "MCP_AUTH_REQUIRED",
+        "OPENAI_UNAVAILABLE",
+        "OPENAI_TIMEOUT",
+        "OPENAI_RATE_LIMITED",
+        "NSE_UNAVAILABLE",
+        "NSE_TIMEOUT",
     }
 )
 
@@ -60,6 +66,10 @@ DOMAIN_FAILURE_CODES: frozenset[str] = frozenset(
         "RECONCILIATION_CONFLICT",
         "UNSUPPORTED_SECURITY",
         "MISSING_REQUIRED_DATA",
+        "MCP_TOOL_ERROR",
+        "EVIDENCE_MISSING",
+        "EVIDENCE_CONFLICT",
+        "NORMALIZATION_FAILURE",
     }
 )
 
@@ -90,6 +100,16 @@ def map_retrieval_to_failure_code(reason: str, http_status: int | None = None) -
     if "empty document" in lowered or "invalid pdf" in lowered or "no text layer" in lowered:
         return "EXTRACTION_FAILURE"
     return "SOURCE_UNAVAILABLE"
+
+
+def classify_openai_failure(status: str, http_status: int | None = None) -> str:
+    """OpenAI transport errors. Domain/data failures must not use these codes."""
+    text = str(status or "").strip().lower()
+    if http_status == 429 or "rate" in text:
+        return "OPENAI_RATE_LIMITED"
+    if "timeout" in text:
+        return "OPENAI_TIMEOUT"
+    return "OPENAI_UNAVAILABLE"
 
 
 class ResearchFailure(Exception):

@@ -42,6 +42,7 @@ __all__ = [
     "parse_financial_results",
     "parse_quote_equity_shares",
     "parse_shareholding_shares",
+    "extract_nse_api_field",
 ]
 
 NSE_QUOTE_EQUITY_URL = "https://www.nseindia.com/api/quote-equity"
@@ -90,6 +91,8 @@ _PARTICULAR_LABELS: dict[str, tuple[str, ...]] = {
     "operating_profit": ("operatingprofit", "operating profit"),
     "cash": ("cashandcashequivalents", "cash and cash equivalents"),
     "debt": ("borrowings", "total borrowings"),
+    "total_assets": ("totalassets", "total assets"),
+    "total_liabilities": ("totalliabilities", "total liabilities"),
 }
 
 _FORBIDDEN_EQUITY_LABELS = frozenset(
@@ -173,8 +176,16 @@ def _is_annual(period_text: str) -> bool | None:
 
 
 def _statement_basis(blob: Any) -> str | None:
+    if isinstance(blob, dict):
+        explicit = str(
+            blob.get("resultType") or blob.get("consolidated") or ""
+        ).strip().lower()
+        if explicit == "consolidated":
+            return "consolidated"
+        if explicit in {"standalone", "non-consolidated", "nonconsolidated"}:
+            return "standalone"
     text = json.dumps(blob).lower() if not isinstance(blob, str) else blob.lower()
-    has_consolidated = "consolidated" in text
+    has_consolidated = "consolidated" in text and "non-consolidated" not in text
     has_standalone = "standalone" in text
     if has_consolidated and not has_standalone:
         return "consolidated"
@@ -344,7 +355,16 @@ def parse_shareholding_shares(payload: Any, *, ticker: str) -> ExtractedField | 
     if not dated:
         return None
     dated.sort(key=lambda item: item.as_of or date.min, reverse=True)
-    return dated[0]
+    latest = dated[0]
+    return ExtractedField(
+        field=latest.field,
+        value=latest.value,
+        as_of=latest.as_of,
+        locator=latest.locator,
+        semantic_status=latest.semantic_status,
+        unit_scale="actual",
+        period_end=latest.as_of,
+    )
 
 
 def parse_financial_results(
@@ -444,6 +464,12 @@ def parse_financial_results(
                 as_of=as_of,
                 locator=label,
                 semantic_status="VERIFIED",
+                currency="INR",
+                raw_value=str(raw_value),
+                unit_scale="actual",
+                period_type="FY",
+                period_end=as_of,
+                statement_basis=basis,
             )
             break
     if not fields:
@@ -454,6 +480,44 @@ def parse_financial_results(
             "no explicitly labeled annual financial particulars",
         )
     return fields, basis, unit_scale, None
+
+
+def extract_nse_api_field(
+    url: str,
+    payload: Any,
+    *,
+    listing: SecurityListing,
+    field: str,
+) -> ExtractedField | None:
+    """Parse an already-retrieved NSE JSON body for one planned field."""
+    if isinstance(payload, (bytes, bytearray)):
+        try:
+            payload = _json_loads(bytes(payload))
+        except LookupError:
+            return None
+    if isinstance(payload, str):
+        try:
+            payload = json.loads(payload)
+        except json.JSONDecodeError:
+            return None
+    lowered = str(url or "").lower()
+    if "corporates-financial-results" in lowered or "/financial-results" in lowered:
+        fields, _basis, _unit, _issue = parse_financial_results(
+            payload, ticker=listing.ticker
+        )
+        return fields.get(field)
+    if "shareholding" in lowered:
+        if field != "shares_outstanding":
+            return None
+        return parse_shareholding_shares(payload, ticker=listing.ticker)
+    if "quote-equity" in lowered:
+        if field != "shares_outstanding":
+            return None
+        extracted, _ignored, _issue = parse_quote_equity_shares(
+            payload, isin=listing.isin, ticker=listing.ticker
+        )
+        return extracted
+    return None
 
 
 def _period_end_from_range(raw: str) -> date | None:

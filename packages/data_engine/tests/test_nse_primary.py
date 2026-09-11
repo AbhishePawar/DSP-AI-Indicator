@@ -73,6 +73,9 @@ def test_financial_results_require_annual_consolidated_unit() -> None:
     assert "net_income" in fields
     assert fields["net_income"].as_of == date(2026, 3, 31)
     assert fields["net_income"].value == "267330000000"
+    assert fields["net_income"].statement_basis == "consolidated"
+    assert fields["net_income"].unit_scale == "actual"
+    assert fields["net_income"].currency == "INR"
 
 
 def test_operating_profit_is_not_ebit() -> None:

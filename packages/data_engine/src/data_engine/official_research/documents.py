@@ -327,7 +327,7 @@ def select_extraction_strategy(
     body = str(text or "").strip()
     if raw.lstrip().startswith(b"%PDF"):
         if not body:
-            return "unavailable"
+            return "ocr_required"
         if "revenue from operations" in body.lower() or "\t" in body:
             return "table"
         return "native_pdf_text"

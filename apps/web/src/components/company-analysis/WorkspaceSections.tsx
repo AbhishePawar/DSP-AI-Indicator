@@ -93,6 +93,33 @@ export function SummarySection({
           />
           <FieldRow label="Research timestamp" value={view.analysedAt} />
           <FieldRow
+            label="Analysis completeness"
+            value={
+              view.officialResearch.fullAnalysis
+                ? "FULL ANALYSIS"
+                : view.officialResearch.analysisState
+            }
+          />
+          <FieldRow
+            label="Research status"
+            value={view.officialResearch.detail || view.officialResearch.identityStatus || "—"}
+          />
+          <FieldRow
+            label="Overall DSP score"
+            value={view.officialResearch.overallScoreStatus}
+          />
+          <FieldRow
+            label="Thesis status"
+            value={view.officialResearch.thesisStatus || "UNKNOWN"}
+          />
+          <FieldRow
+            label="What could break the thesis"
+            value={
+              view.officialResearch.advancedCheck?.thesisBreakers[0]?.description ||
+              "Data unavailable."
+            }
+          />
+          <FieldRow
             label="Business quality"
             value={view.businessQualityLabel}
           />
@@ -581,6 +608,14 @@ export function QualitySection({ view }: { view: ResearchView }) {
           />
           <FieldRow label="Confidence" value={bq.confidence} />
           <FieldRow label="Stage status" value={bq.status} />
+          <FieldRow
+            label="DSP business quality"
+            value={view.officialResearch.coreDsp?.businessQualityRating || "UNKNOWN"}
+          />
+          <FieldRow
+            label="Overall DSP score"
+            value={view.officialResearch.overallScoreStatus}
+          />
         </dl>
       </SectionCard>
       <StageSectionCard title="Business Quality Aggregator" section={bq} />
@@ -1005,6 +1040,84 @@ export function ExportSection({
             export downloaded.
           </p>
         ) : null}
+      </SectionCard>
+    </div>
+  );
+}
+
+function dataClassLabel(value: string): string {
+  if (value === "VERIFIED_FACT") return "Evidence";
+  if (value === "AI_INTERPRETATION") return "Interpretation";
+  if (value === "DSP_ASSESSMENT") return "DSP Assessment";
+  if (value === "RESEARCH_CLAIM") return "Research claim";
+  return value;
+}
+
+export function AdvancedCheckSection({ view }: { view: ResearchView }) {
+  const check = view.officialResearch.advancedCheck;
+  if (!check) {
+    return (
+      <WorkspaceEmpty description="Advanced Investment Check has not been returned for this analysis." />
+    );
+  }
+  return (
+    <div className="space-y-4">
+      <SectionCard
+        title="Advanced Investment Check"
+        description="Separate from core DSP. Asks how the investment could permanently go wrong. AI may attack the thesis; EvidenceJudge gates facts; DSP remains responsible for numbers."
+      >
+        <dl>
+          <FieldRow label="Status" value={check.status} />
+          <FieldRow label="Hard-fail status" value={check.hardFailStatus} />
+          <FieldRow label="Thesis" value={check.thesis.status} />
+          <FieldRow label="Thesis confidence" value={check.thesis.confidence} />
+          <FieldRow label="Upside" value={check.asymmetry.upside} />
+          <FieldRow label="Downside" value={check.asymmetry.downside} />
+          <FieldRow label="Probability" value={check.asymmetry.probability} />
+          <FieldRow
+            label="Replaces core DSP"
+            value={check.replacesCoreDsp ? "Yes" : "No"}
+          />
+          <FieldRow
+            label="Alters DCF"
+            value={check.altersDcf ? "Yes" : "No"}
+          />
+        </dl>
+        <p className="mt-3 text-sm text-[var(--muted)]">{check.detail}</p>
+      </SectionCard>
+      <ListBlock title="What is good?" items={check.thesis.positiveFactors} />
+      <ListBlock title="What is bad?" items={check.thesis.negativeFactors} />
+      <SectionCard title="What could break the thesis?">
+        {check.thesisBreakers.length === 0 ? (
+          <p className="text-sm text-[var(--muted)]">Data unavailable.</p>
+        ) : (
+          <ul className="list-disc space-y-2 pl-4 text-sm">
+            {check.thesisBreakers.map((item) => (
+              <li key={item.id}>
+                <strong>{item.dimension}</strong> — {item.description} (
+                {item.severity}, {item.verificationStatus})
+              </li>
+            ))}
+          </ul>
+        )}
+      </SectionCard>
+      <SectionCard title="Evidence vs interpretation vs DSP assessment">
+        {check.findings.length === 0 ? (
+          <p className="text-sm text-[var(--muted)]">Data unavailable.</p>
+        ) : (
+          <ul className="space-y-3 text-sm">
+            {check.findings.map((item, index) => (
+              <li key={`${item.dimension}-${index}`}>
+                <p>
+                  <strong>{dataClassLabel(item.dataClass)}</strong> ·{" "}
+                  {item.dimension} · {item.verificationStatus}
+                </p>
+                <p>{item.finding}</p>
+                <p className="text-[var(--muted)]">Why: {item.evidence}</p>
+              </li>
+            ))}
+          </ul>
+        )}
       </SectionCard>
     </div>
   );

@@ -87,6 +87,11 @@ const MoatSection = lazy(() =>
 const RiskSection = lazy(() =>
   import("./FlagshipSections").then((m) => ({ default: m.RiskSection })),
 );
+const AdvancedCheckSection = lazy(() =>
+  import("./WorkspaceSections").then((m) => ({
+    default: m.AdvancedCheckSection,
+  })),
+);
 const FinancialSection = lazy(() =>
   import("./FlagshipSections").then((m) => ({ default: m.FinancialSection })),
 );
@@ -181,6 +186,12 @@ function describeAnalyseError(error: unknown): string {
     const msg = error.message.toLowerCase();
     if (msg.includes("timeout") || msg.includes("network")) {
       return "Network timeout or connectivity failure — Data unavailable. Retry when online.";
+    }
+    if (error.message === "AMBIGUOUS") {
+      return "IDENTITY_AMBIGUOUS — select ISIN + exchange/MIC. The platform never guesses a listing.";
+    }
+    if (error.message === "UNSUPPORTED") {
+      return "UNSUPPORTED_SECURITY — this instrument is outside ordinary-equity analysis.";
     }
     if (error.message === "Data unavailable.") {
       return "Security identified successfully. Investment data is currently unavailable. No valuation was calculated.";
@@ -651,6 +662,9 @@ export function CompanyAnalysisWorkspace() {
               ) : null}
               {section === "risk" ? (
                 <LazyViewSection Section={RiskSection} view={view} />
+              ) : null}
+              {section === "advancedCheck" ? (
+                <LazyViewSection Section={AdvancedCheckSection} view={view} />
               ) : null}
               {section === "financial" ? (
                 <LazyViewSection Section={FinancialSection} view={view} />

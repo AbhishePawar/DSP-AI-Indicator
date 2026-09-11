@@ -22,7 +22,15 @@ __all__ = [
 ]
 
 DSP_BLOCKED_STATUSES: frozenset[str] = frozenset(
-    {"RAW", "RECONCILED", "CONFLICT", "UNKNOWN", "UNAVAILABLE", "REFRESH_REQUIRED"}
+    {
+        "RAW",
+        "RECONCILED",
+        "CONFLICT",
+        "UNKNOWN",
+        "UNAVAILABLE",
+        "REFRESH_REQUIRED",
+        "REJECTED",
+    }
 )
 
 _ASSUMPTION_NAMES = (

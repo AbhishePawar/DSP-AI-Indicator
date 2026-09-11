@@ -10,6 +10,7 @@ export type AnalysisSectionId =
   | "management"
   | "moat"
   | "risk"
+  | "advancedCheck"
   | "financial"
   | "ai"
   | "explainability"
@@ -77,6 +78,13 @@ export const ANALYSIS_SECTIONS: readonly AnalysisSectionMeta[] = [
     label: "Risk",
     description: "Risk notes and financial strength stage",
     shortcut: "6",
+    lazy: true,
+  },
+  {
+    id: "advancedCheck",
+    label: "Advanced Investment Check",
+    description: "How the investment could permanently go wrong — separate from core DSP",
+    shortcut: "I",
     lazy: true,
   },
   {

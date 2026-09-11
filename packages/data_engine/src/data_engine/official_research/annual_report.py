@@ -140,9 +140,9 @@ def rank_annual_candidates(
     ranked.sort(
         key=lambda item: (
             0 if item.financial_year == wanted else 1,
+            -item.score,
             0 if item.source == "nse_annual_reports" else 1,
             0 if item.prefers_consolidated == (statement_basis == "consolidated") else 1,
-            -item.score,
             item.title.lower(),
         )
     )

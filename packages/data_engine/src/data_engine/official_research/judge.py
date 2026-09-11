@@ -83,6 +83,10 @@ class EvidenceJudge:
             return self._copy(item, status="UNKNOWN")
         if item.source_type in {"llm", "agent_claim"}:
             return self._copy(item, status="UNAVAILABLE")
+        if item.agent == "openai_nse_mcp":
+            return self._copy(item, status="UNAVAILABLE")
+        if production and self._nse_mcp_commercial_blocked(item):
+            return self._copy(item, status="UNAVAILABLE")
         if item.field == "shares_outstanding" and item.as_of is None:
             return self._copy(item, status="UNKNOWN")
         if not self._policy.may_verify(item.source_url, source_type=item.source_type):
@@ -92,6 +96,7 @@ class EvidenceJudge:
             "chatgpt_verify",
             "deep_search_attack",
             "claude_review",
+            "openai_nse_mcp",
         } and item.source_type not in {"exchange_eod", "company_ir", "regulator"}:
             return self._copy(item, status="UNAVAILABLE")
         return self._copy(item, stage="VERIFIED", status="VERIFIED")
@@ -275,6 +280,8 @@ class EvidenceJudge:
                         corporate_action_status="REFRESH_REQUIRED",
                         status="REFRESH_REQUIRED",
                         evidence_id=item.evidence_id,
+                        source_url=item.source_url,
+                        corporate_actions_checked=("buyback", "bonus", "split", "esop", "rights"),
                     )
                 return ShareCountSnapshot(
                     shares=value,
@@ -285,6 +292,8 @@ class EvidenceJudge:
                     corporate_action_status="REFRESH_REQUIRED",
                     status="REFRESH_REQUIRED",
                     evidence_id=item.evidence_id,
+                    source_url=item.source_url,
+                    corporate_actions_checked=("buyback", "bonus", "split", "esop", "rights"),
                 )
         for item in verified_rows:
             if item.field != "shares_outstanding":
@@ -305,6 +314,8 @@ class EvidenceJudge:
                 ),
                 status="VERIFIED",
                 evidence_id=item.evidence_id,
+                source_url=item.source_url,
+                corporate_actions_checked=("buyback", "bonus", "split", "esop", "rights"),
             )
         return None
 
@@ -450,6 +461,11 @@ class EvidenceJudge:
         )
 
     @staticmethod
+    def _nse_mcp_commercial_blocked(item: EvidenceItem) -> bool:
+        url = (item.source_url or "").lower()
+        return "mcp.nseindia.in" in url or item.agent == "official_nse_mcp"
+
+    @staticmethod
     def _copy(
         item: EvidenceItem,
         *,
@@ -490,4 +506,5 @@ class EvidenceJudge:
             raw_value=item.raw_value,
             raw_unit=item.raw_unit,
             restated=item.restated,
+            document_hash=item.document_hash,
         )

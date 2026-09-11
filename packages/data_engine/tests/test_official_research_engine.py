@@ -320,6 +320,9 @@ def test_source_policy_blocks_yahoo_and_fmp() -> None:
     assert policy.is_discovery_only("https://finance.yahoo.com/quote/INFY")
     assert policy.classify("https://financialmodelingprep.com/api") == "forbidden"
     assert not policy.may_verify("https://finance.yahoo.com/quote/INFY")
+    assert policy.classify("https://www.screener.in/company/WIPRO/") == "approved_research"
+    assert policy.may_cross_check("https://www.screener.in/company/WIPRO/")
+    assert not policy.may_verify("https://www.screener.in/company/WIPRO/")
 
 
 def test_raw_cannot_skip_to_verified() -> None:

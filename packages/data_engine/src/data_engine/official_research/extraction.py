@@ -24,6 +24,9 @@ __all__ = [
     "nearest_unit_scale",
     "parse_document_context",
     "share_label_is_outstanding",
+    "classify_share_semantic_type",
+    "classify_capital_effect",
+    "classify_acquisition_consideration",
     "document_identity_matches",
 ]
 
@@ -41,13 +44,20 @@ _CA_PATTERNS: tuple[tuple[str, re.Pattern[str]], ...] = (
     ("convertibles", re.compile(r"\bconvertible (bond|debenture|preference)\b", re.I)),
     (
         "cancellation",
-        re.compile(r"\bshare cancellation\b|\bcancellation of shares\b", re.I),
+        re.compile(
+            r"\bshare cancellation\b|\bcancellation of shares\b|"
+            r"\bextinguish(?:ment|ed)? of shares\b|\bshares extinguished\b",
+            re.I,
+        ),
     ),
+    ("extinguishment", re.compile(r"\bextinguish(?:ment|ed)\b", re.I)),
     ("capital_reduction", re.compile(r"\bcapital reduction\b", re.I)),
     ("merger", re.compile(r"\bmerger\b", re.I)),
     ("demerger", re.compile(r"\bdemerger\b", re.I)),
     ("scheme", re.compile(r"\bscheme of (arrangement|amalgamation)\b", re.I)),
     ("share_swap", re.compile(r"\bshare swap\b", re.I)),
+    ("acquisition", re.compile(r"\bacquisition\b|\bshare consideration\b", re.I)),
+    ("new_issue", re.compile(r"\bnew issue of (equity )?shares\b|\bfresh issue of equity\b", re.I)),
 )
 
 _AS_OF = re.compile(
@@ -100,6 +110,7 @@ _FIELD_LABELS: dict[str, tuple[str, ...]] = {
         "cash from operations",
         "net cash from operating activities",
         "net cash generated from operating activities",
+        "net cash flows from operating activities",
         "cash flow from operating activities",
     ),
     "capex": ("capex", "capital expenditure"),
@@ -129,6 +140,8 @@ _SHARE_REJECT_LABELS = (
     "weighted average",
     "listed quantity",
     "listed capital",
+    "potential equity",
+    "dilutive potential",
 )
 
 _CRORE = re.compile(r"(₹|rs\.?|inr).{0,12}(crore|crs)\b|\bin crore\b|\bin crs\b", re.I)
@@ -348,6 +361,100 @@ def _parse_flexible_day(raw: str) -> date | None:
     return _parse_date(text)
 
 
+def classify_share_semantic_type(label: str) -> str:
+    """Generic share-label semantics. Not an issuer table."""
+    lowered = re.sub(r"\s+", " ", str(label or "").strip().lower())
+    if not lowered:
+        return "UNKNOWN"
+    if "weighted average" in lowered:
+        return "WEIGHTED_AVERAGE"
+    if "dilut" in lowered and (
+        "eps" in lowered or "earnings per" in lowered or "denominator" in lowered
+    ):
+        return "DILUTED_EPS_DENOMINATOR"
+    if (
+        "potential equity" in lowered
+        or "dilutive potential" in lowered
+        or "effect of potential" in lowered
+    ):
+        return "TRANCHE"
+    if "listed quantity" in lowered or "listed shares" in lowered or "listed capital" in lowered:
+        return "LISTED"
+    if "free float" in lowered or "freefloat" in lowered:
+        return "FREE_FLOAT"
+    if "promoter holding" in lowered or "promoter shareholding" in lowered:
+        return "PROMOTER"
+    if "authorised" in lowered or "authorized" in lowered:
+        return "AUTHORIZED"
+    if "treasury" in lowered:
+        return "TREASURY"
+    if ("paid-up" in lowered or "paid up" in lowered) and "capital" in lowered:
+        return "PAID_UP"
+    if "issued" in lowered and "outstanding" not in lowered:
+        return "ISSUED"
+    if share_label_is_outstanding(lowered) and "outstanding" in lowered:
+        return "TOTAL_OUTSTANDING"
+    if "outstanding" in lowered:
+        return "OTHER"
+    return "UNKNOWN"
+
+
+def classify_capital_effect(event_type: str) -> str:
+    """Share-count effect of a CA type. Acquisition is UNKNOWN, not assumed."""
+    kind = str(event_type or "").strip().lower()
+    if kind in {"buyback", "cancellation", "extinguishment", "capital_reduction"}:
+        return "DECREASE"
+    if kind in {
+        "bonus",
+        "split",
+        "rights",
+        "qip",
+        "fpo",
+        "preferential_issue",
+        "esop",
+        "warrants",
+        "convertibles",
+        "new_issue",
+    }:
+        return "INCREASE"
+    if kind in {"merger", "demerger", "scheme", "share_swap", "acquisition"}:
+        return "UNKNOWN"
+    return "UNKNOWN"
+
+
+def classify_acquisition_consideration(text: str) -> str:
+    """Acquisition does not imply a share-count change. Classify consideration only."""
+    lowered = re.sub(r"\s+", " ", str(text or "").strip().lower())
+    if not lowered:
+        return "UNKNOWN"
+    cash = bool(
+        re.search(
+            r"\bcash (consideration|deal|acquisition)\b|"
+            r"\bconsideration.{0,60}\bcash\b|"
+            r"\bpaid (entirely |wholly |fully )?in cash\b|"
+            r"\bcash acquisition\b",
+            lowered,
+        )
+    )
+    swap = bool(
+        re.search(
+            r"\bshare swap\b|"
+            r"\bshare consideration\b|"
+            r"\bconsideration.{0,60}\b(shares|equity)\b|"
+            r"\bexchange of shares\b|"
+            r"\bstock (as )?consideration\b",
+            lowered,
+        )
+    )
+    if cash and swap:
+        return "MIXED"
+    if cash:
+        return "CASH"
+    if swap:
+        return "SHARE_SWAP"
+    return "UNKNOWN"
+
+
 def share_label_is_outstanding(label: str) -> bool:
     """Reject authorized / free-float / rupee capital as outstanding shares."""
     lowered = label.strip().lower()
@@ -356,6 +463,10 @@ def share_label_is_outstanding(label: str) -> bool:
     if "capital" in lowered and "share" in lowered and "outstanding" not in lowered:
         return False
     if "weighted average" in lowered:
+        return False
+    if "potential equity" in lowered or "dilutive potential" in lowered:
+        return False
+    if "effect of potential" in lowered:
         return False
     if "listed quantity" in lowered or "listed shares" in lowered:
         return False
@@ -380,7 +491,17 @@ def attack_corporate_actions(
             continue
         if pattern.search(text):
             seen.add(event_type)
-            found.append(CapitalEvent(event_type, dated))
+            changing = classify_capital_effect(event_type) in {"INCREASE", "DECREASE"}
+            if event_type == "share_swap":
+                changing = True
+            elif event_type == "acquisition":
+                consideration = classify_acquisition_consideration(text)
+                changing = consideration in {"SHARE_SWAP", "MIXED"}
+            elif event_type in {"merger", "demerger", "scheme"}:
+                changing = False
+            found.append(
+                CapitalEvent(event_type, dated, capital_changing=changing)
+            )
     return tuple(found)
 
 
@@ -490,6 +611,10 @@ def extract_labeled_field(text: str, field: str) -> ExtractedField | None:
         )
         for match in iterators:
             position = match.start() + search_offset
+            if requested == "shares_outstanding":
+                nearby = search_text[max(0, match.start() - 80) : match.end() + 40]
+                if not share_label_is_outstanding(nearby):
+                    continue
             local_basis = context.statement_basis
             if mixed_basis:
                 local_basis = nearest_statement_basis(text, position)

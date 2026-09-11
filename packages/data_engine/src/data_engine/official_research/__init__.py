@@ -23,7 +23,23 @@ from data_engine.official_research.currentness import (
     market_cap_status,
 )
 from data_engine.official_research.dsp_gate import dsp_gate
-from data_engine.official_research.extraction import attack_corporate_actions
+from data_engine.official_research.documents import (
+    DocumentCandidate,
+    DocumentStore,
+    document_version_relation,
+)
+from data_engine.official_research.extraction import (
+    attack_corporate_actions,
+    classify_capital_effect,
+    classify_share_semantic_type,
+)
+from data_engine.official_research.field_acquisition import acquire_planned_fields
+from data_engine.official_research.provider_router import route_research_roles
+from data_engine.official_research.research_loop import run_research_loop
+from data_engine.official_research.research_plan import (
+    build_research_plan,
+    plan_report_block,
+)
 from data_engine.official_research.judge import EvidenceJudge
 from data_engine.official_research.matching import match_udiff_row
 from data_engine.official_research.models import (
@@ -115,11 +131,16 @@ __all__ = [
     "UnavailableAgent",
     "VerifiedDataset",
     "agent_outcome",
+    "acquire_planned_fields",
     "attack_corporate_actions",
+    "build_research_plan",
     "cache_key",
     "cannot_derive_shares",
+    "classify_capital_effect",
+    "classify_share_semantic_type",
     "classify_source_url",
     "discover_udiff_final",
+    "document_version_relation",
     "dsp_gate",
     "eod_close_snapshot",
     "is_current",
@@ -133,10 +154,15 @@ __all__ = [
     "parse_quote_equity_shares",
     "parse_shareholding_shares",
     "parse_udiff_csv",
+    "plan_report_block",
+    "route_research_roles",
+    "run_research_loop",
     "sanitize_document_text",
     "semantic_field_status",
     "unzip_udiff",
     "utc_now",
     "validate_price_snapshot",
     "valuation_gate",
+    "DocumentCandidate",
+    "DocumentStore",
 ]

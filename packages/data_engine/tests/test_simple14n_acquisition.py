@@ -151,6 +151,7 @@ def test_approved_source_classified() -> None:
 
 def test_unapproved_and_secondary_sources() -> None:
     assert classify_source_url("https://finance.yahoo.com/quote/INFY") == "secondary"
+    assert classify_source_url("https://www.screener.in/company/TCS/") == "approved_research"
     assert classify_source_url("https://financialmodelingprep.com/x") == "forbidden"
     yahoo = retrieve_official_document(
         "https://finance.yahoo.com/quote/INFY",
@@ -160,6 +161,14 @@ def test_unapproved_and_secondary_sources() -> None:
         source_type="company_ir",
     )
     assert isinstance(yahoo, RetrievalFailure)
+    screener = retrieve_official_document(
+        "https://www.screener.in/company/WIPRO/",
+        transport=_CaptureHttp(),
+        isin="INE075A01022",
+        mic="XNSE",
+        source_type="company_ir",
+    )
+    assert isinstance(screener, RetrievalFailure)
     fmp = retrieve_official_document(
         "https://financialmodelingprep.com/api",
         transport=_CaptureHttp(),

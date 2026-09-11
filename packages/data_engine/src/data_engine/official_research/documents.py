@@ -3,8 +3,9 @@
 from __future__ import annotations
 
 import hashlib
+import re
 from dataclasses import dataclass
-from datetime import datetime
+from datetime import date, datetime
 from http.cookiejar import CookieJar
 from urllib.error import HTTPError, URLError
 from urllib.parse import urljoin
@@ -16,18 +17,58 @@ from data_engine.official_research.nse_eod import NseHttpTransport, NsePublicHtt
 from data_engine.official_research.source_policy import SourcePolicy, classify_source_url
 
 __all__ = [
+    "DocumentCandidate",
+    "DocumentCharacteristics",
     "DocumentRecord",
     "DocumentStore",
     "RetrievalFailure",
     "classify_retrieval_reason",
+    "document_version_relation",
+    "identify_document_characteristics",
     "redirect_is_approved",
     "retrieve_official_document",
+    "select_extraction_strategy",
 ]
 
 _UA = (
     "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
     "(KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36"
 )
+
+
+@dataclass(frozen=True, slots=True)
+class DocumentCandidate:
+    """Generic discovered document. Trust comes from host/identity, not URL words."""
+
+    url: str
+    host: str
+    source_type: str
+    document_type: str
+    company: str
+    isin: str
+    period: str | None
+    basis: str | None
+    publication_date: date | None
+    retrieved_at: datetime | None
+    document_hash: str | None
+    status: str
+
+
+def document_version_relation(
+    *,
+    url_a: str,
+    hash_a: str,
+    url_b: str,
+    hash_b: str,
+) -> str:
+    """URL + SHA256 versioning. Never silently replace an older payload."""
+    if url_a == url_b and hash_a == hash_b:
+        return "reuse"
+    if url_a != url_b and hash_a == hash_b:
+        return "alias"
+    if url_a == url_b and hash_a != hash_b:
+        return "new_version"
+    return "distinct"
 
 
 @dataclass(frozen=True, slots=True)
@@ -199,6 +240,11 @@ def retrieve_official_document(
         return RetrievalFailure(url=url, reason="forbidden source")
     if host_kind == "secondary":
         return RetrievalFailure(url=url, reason="secondary source cannot be retrieved as truth")
+    if host_kind == "approved_research":
+        return RetrievalFailure(
+            url=url,
+            reason="approved research cannot be retrieved as primary truth",
+        )
     if host_kind != "primary":
         allowed = registry is not None and registry.allows(isin, url)
         if not allowed:
@@ -250,3 +296,136 @@ def retrieve_official_document(
     if store is not None:
         return store.put(record)
     return record
+
+
+@dataclass(frozen=True, slots=True)
+class DocumentCharacteristics:
+    url: str
+    content_hash: str | None
+    retrieved_at: datetime | None
+    document_type: str | None
+    reporting_period: str | None
+    document_date: date | None
+    statement_basis: str | None
+    audit_status: str | None
+    currency: str | None
+    units: str | None
+    extraction_strategy: str
+    evidence_locator: str | None = None
+
+
+def select_extraction_strategy(
+    *,
+    payload: bytes | None = None,
+    text: str | None = None,
+    has_coordinate_spans: bool = False,
+) -> str:
+    """Choose a generic extractor from document characteristics, never an issuer parser."""
+    if has_coordinate_spans:
+        return "coordinate"
+    raw = payload or b""
+    body = str(text or "").strip()
+    if raw.lstrip().startswith(b"%PDF"):
+        if not body:
+            return "unavailable"
+        if "revenue from operations" in body.lower() or "\t" in body:
+            return "table"
+        return "native_pdf_text"
+    if not body:
+        return "unavailable"
+    if "|" in body or "\t" in body:
+        return "table"
+    return "plain_text"
+
+
+def identify_document_characteristics(
+    *,
+    url: str,
+    payload: bytes | None = None,
+    text: str | None = None,
+    retrieved_at: datetime | None = None,
+    content_hash: str | None = None,
+    document_date: date | str | None = None,
+    has_coordinate_spans: bool = False,
+) -> DocumentCharacteristics:
+    """Generic document identity. Unknown attributes stay UNKNOWN, never guessed."""
+    from data_engine.official_research.extraction import parse_document_context
+    from data_engine.official_research.pdf_text import document_text_from_payload
+
+    body = text
+    if body is None and payload:
+        body = document_text_from_payload(payload) or ""
+    body = body or ""
+    digest = content_hash
+    if digest is None and payload:
+        digest = hashlib.sha256(payload).hexdigest()
+    context = parse_document_context(body) if body else None
+    lowered = body.lower()
+    document_type = _document_type(lowered)
+    audit_status = _audit_status(lowered)
+    parsed_date = _coerce_document_date(document_date)
+    if parsed_date is None and context is not None:
+        parsed_date = context.period_end
+    period = None
+    if context is not None and context.period_end is not None:
+        period = context.period_end.isoformat()
+    elif context is not None and context.period_type:
+        period = None if context.period_type == "unknown" else context.period_type
+    basis = context.statement_basis if context is not None else None
+    currency = context.currency if context is not None else None
+    units = context.unit_scale if context is not None else None
+    strategy = select_extraction_strategy(
+        payload=payload, text=body, has_coordinate_spans=has_coordinate_spans
+    )
+    return DocumentCharacteristics(
+        url=url,
+        content_hash=digest,
+        retrieved_at=retrieved_at,
+        document_type=document_type,
+        reporting_period=period,
+        document_date=parsed_date,
+        statement_basis=basis,
+        audit_status=audit_status,
+        currency=currency,
+        units=units,
+        extraction_strategy=strategy,
+        evidence_locator=url,
+    )
+
+
+def _document_type(lowered: str) -> str | None:
+    if not lowered:
+        return None
+    if "annual report" in lowered or "integrated report" in lowered:
+        return "annual_report"
+    if "financial statement" in lowered or "statement of profit" in lowered:
+        return "financial_statements"
+    if "shareholding" in lowered:
+        return "shareholding"
+    return None
+
+
+def _audit_status(lowered: str) -> str | None:
+    if not lowered:
+        return None
+    unaudited = "unaudited" in lowered
+    audited = bool(re.search(r"\baudited\b", lowered)) and not unaudited
+    if audited and unaudited:
+        return None
+    if audited:
+        return "audited"
+    if unaudited:
+        return "unaudited"
+    return None
+
+
+def _coerce_document_date(value: date | str | None) -> date | None:
+    if value is None or value == "":
+        return None
+    if isinstance(value, date):
+        return value
+    text = str(value).strip()[:10]
+    try:
+        return date.fromisoformat(text)
+    except ValueError:
+        return None

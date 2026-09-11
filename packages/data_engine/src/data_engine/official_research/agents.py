@@ -22,10 +22,20 @@ __all__ = [
     "ClaudeReviewAgent",
     "DeepSearchAttackAgent",
     "GeminiFindAgent",
+    "RESEARCH_CAPABILITIES",
+    "ROLE_CAPABILITY",
     "ResearchAgent",
     "UnavailableAgent",
     "agent_outcome",
 ]
+
+RESEARCH_CAPABILITIES: tuple[str, ...] = ("FIND", "VERIFY", "ATTACK", "REVIEW")
+ROLE_CAPABILITY: dict[str, str] = {
+    "gemini_find": "FIND",
+    "chatgpt_verify": "VERIFY",
+    "deep_search_attack": "ATTACK",
+    "claude_review": "REVIEW",
+}
 
 
 class ResearchAgent(Protocol):

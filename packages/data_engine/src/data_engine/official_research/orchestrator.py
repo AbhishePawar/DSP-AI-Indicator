@@ -47,6 +47,7 @@ from data_engine.official_research.semantics import (
     cannot_derive_shares,
     semantic_field_status,
 )
+from data_engine.official_research.research_plan import build_research_plan
 from data_engine.official_research.source_policy import SourcePolicy
 from data_engine.security_master.models import SecurityListing
 from data_engine.security_master.service import SecurityMasterService
@@ -135,7 +136,7 @@ class ResearchOrchestrator:
                 mode=request.mode,
             )
         resolved = self._master.resolve(
-            request.ticker or request.company or request.isin or "",
+            request.isin or request.ticker or request.company or "",
             exchange=request.exchange,
             isin=request.isin,
             mic=request.mic,
@@ -176,6 +177,8 @@ class ResearchOrchestrator:
                 agent_outcomes=self._agent_map(),
             )
         listing = resolved.identity
+        started = utc_now()
+        plan = build_research_plan(listing, request)
         sanitized = sanitize_document_text(document_text or "")
         primary = self._primary_bundle(listing, request.mode)
         acquired_fields: dict[str, object] = {}
@@ -278,6 +281,25 @@ class ResearchOrchestrator:
                 overlay_url=acquired_url,
             )
             evidence.append(item)
+        verified_fields = tuple(
+            item.field for item in evidence if item.status == "VERIFIED"
+        )
+        unknown_fields = tuple(
+            item.field for item in evidence if item.status == "UNKNOWN"
+        )
+        conflicts = tuple(
+            item.field for item in evidence if item.status == "CONFLICT"
+        )
+        refresh_required = tuple(
+            item.field for item in evidence if item.status == "REFRESH_REQUIRED"
+        )
+        sources_consulted = tuple(
+            dict.fromkeys(
+                item.source_url or item.source
+                for item in evidence
+                if item.source_url or item.source
+            )
+        )
         return ResearchResult(
             identity_status="VERIFIED",
             isin=listing.isin,
@@ -290,6 +312,14 @@ class ResearchOrchestrator:
             unresolved=tuple(unresolved),
             mode=request.mode,
             agent_outcomes=self._agent_map(),
+            plan=plan,
+            verified_fields=verified_fields,
+            unknown_fields=unknown_fields,
+            conflicts=conflicts,
+            refresh_required=refresh_required,
+            sources_consulted=sources_consulted,
+            research_started_at=started,
+            research_finished_at=utc_now(),
         )
 
     def _agent_map(self) -> dict[str, FailureStatus]:

@@ -50,6 +50,10 @@ class ShareCountSnapshot:
     corporate_action_status: FailureStatus
     status: FailureStatus
     evidence_id: str | None = None
+    source_url: str | None = None
+    document_hash: str | None = None
+    corporate_actions_checked: tuple[str, ...] = ()
+    semantic_type: str | None = None
 
 
 @dataclass(frozen=True, slots=True)
@@ -158,7 +162,11 @@ class VerifiedDataset:
                 "shares_current_through": self.shares.current_through.isoformat(),
                 "shares_last_verified_at": self.shares.last_verified_at.isoformat(),
                 "source": self.shares.source,
+                "source_url": self.shares.source_url,
+                "document_hash": self.shares.document_hash,
                 "corporate_action_status": self.shares.corporate_action_status,
+                "corporate_actions_checked": list(self.shares.corporate_actions_checked),
+                "semantic_type": self.shares.semantic_type,
                 "status": self.shares.status,
             }
         financials = None

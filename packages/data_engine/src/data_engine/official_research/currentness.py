@@ -11,6 +11,7 @@ __all__ = [
     "CapitalEvent",
     "EvidenceCache",
     "cache_key",
+    "currentness_label",
     "is_current",
     "market_cap_status",
 ]
@@ -53,6 +54,52 @@ def is_current(
         ):
             return False
     return True
+
+
+def currentness_label(
+    *,
+    field: str,
+    as_of: date | None,
+    retrieved_at: datetime,
+    current_through: date | None = None,
+    freshness_status: str | None = None,
+    corporate_action_status: str | None = None,
+    later_filings: tuple[date, ...] = (),
+    corporate_actions: tuple[CapitalEvent, ...] = (),
+    valuation_date: date | None = None,
+) -> str:
+    """retrieved_at is not as_of. Annual fields may stay CURRENT after retrieval."""
+    if corporate_action_status == "CONFLICT":
+        return "CONFLICT"
+    if as_of is None:
+        return "UNKNOWN"
+    if freshness_status == "FAIL" or corporate_action_status in {
+        "FAIL",
+        "REFRESH_REQUIRED",
+    }:
+        return "STALE"
+    if field == "shares_outstanding":
+        return "CURRENT"
+    if field == "eod_close":
+        if not is_current(
+            as_of=as_of,
+            current_through=current_through or as_of,
+            retrieved_at=retrieved_at,
+            later_filings=later_filings,
+            corporate_actions=corporate_actions,
+            valuation_date=valuation_date,
+        ):
+            return "STALE"
+        return "CURRENT"
+    if freshness_status == "PASS":
+        return "CURRENT"
+    if freshness_status == "UNKNOWN":
+        return "UNKNOWN"
+    return "CURRENT" if as_of is not None else "UNKNOWN"
+
+
+def field_needs_ca_currentness(field: str) -> bool:
+    return field in {"shares_outstanding", "eod_close"}
 
 
 def market_cap_status(

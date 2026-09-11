@@ -81,6 +81,8 @@ ResearchAgentRole = Literal[
     "dsp_judge",
     "official_nse_eod",
     "official_bse_eod",
+    "official_nse_mcp",
+    "openai_nse_mcp",
 ]
 AGENT_ROLES: frozenset[str] = frozenset(
     {
@@ -91,6 +93,8 @@ AGENT_ROLES: frozenset[str] = frozenset(
         "dsp_judge",
         "official_nse_eod",
         "official_bse_eod",
+        "official_nse_mcp",
+        "openai_nse_mcp",
     }
 )
 
@@ -112,11 +116,14 @@ CAPITAL_EVENT_TYPES: frozenset[str] = frozenset(
         "warrants",
         "convertibles",
         "cancellation",
+        "extinguishment",
         "capital_reduction",
         "merger",
         "demerger",
         "scheme",
         "share_swap",
+        "acquisition",
+        "new_issue",
     }
 )
 
@@ -230,6 +237,7 @@ class EvidenceItem:
     raw_value: str | None = None
     raw_unit: str | None = None
     restated: bool = False
+    document_hash: str | None = None
 
     def to_public_dict(self) -> dict[str, Any]:
         return {
@@ -276,6 +284,7 @@ class EvidenceItem:
             "raw_value": self.raw_value,
             "raw_unit": self.raw_unit,
             "restated": self.restated,
+            "document_hash": self.document_hash,
         }
 
 
@@ -298,6 +307,11 @@ class ResearchRequest:
     mode: ResearchMode = "LIVE"
     document_url: str | None = None
     candidate_urls: tuple[str, ...] = ()
+    request_id: str = ""
+    security_type: str | None = None
+    market: str | None = None
+    research_horizon: date | None = None
+    purpose: str = "research_report"
 
 
 @dataclass(frozen=True, slots=True)
@@ -325,6 +339,15 @@ class ResearchResult:
     unresolved: tuple[str, ...]
     mode: ResearchMode
     agent_outcomes: dict[str, FailureStatus] = field(default_factory=dict)
+    plan: object | None = None
+    verified_fields: tuple[str, ...] = ()
+    unknown_fields: tuple[str, ...] = ()
+    conflicts: tuple[str, ...] = ()
+    refresh_required: tuple[str, ...] = ()
+    sources_consulted: tuple[str, ...] = ()
+    failures: tuple[str, ...] = ()
+    research_started_at: datetime | None = None
+    research_finished_at: datetime | None = None
 
     def evidence_for(self, field: str) -> tuple[EvidenceItem, ...]:
         return tuple(item for item in self.evidence if item.field == field)
@@ -352,4 +375,10 @@ class ResearchResult:
             "unresolved": list(self.unresolved),
             "mode": self.mode,
             "agent_outcomes": dict(self.agent_outcomes),
+            "verified_fields": list(self.verified_fields),
+            "unknown_fields": list(self.unknown_fields),
+            "conflicts": list(self.conflicts),
+            "refresh_required": list(self.refresh_required),
+            "sources_consulted": list(self.sources_consulted),
+            "failures": list(self.failures),
         }

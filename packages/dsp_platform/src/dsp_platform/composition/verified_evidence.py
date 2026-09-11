@@ -55,6 +55,18 @@ _AUTH_ERROR_KEY = "authenticated_valuation_error"
 _AUTH_STATEMENTS_KEY = "authenticated_financial_statements"
 
 
+def _auth_unavailable(detail: str | None) -> str:
+    """Keep the P1-10 canonical marker while preserving the research diagnostic."""
+    text = str(detail or "").strip()
+    if not text:
+        return DATA_UNAVAILABLE
+    if DATA_UNAVAILABLE in text:
+        return text
+    if text.startswith("("):
+        return f"{DATA_UNAVAILABLE} {text}"
+    return f"{DATA_UNAVAILABLE} ({text})"
+
+
 class _UnavailableNseHttp:
     """Test/default transport that does not contact NSE or any vendor."""
 
@@ -101,10 +113,14 @@ def preload_verified_evidence(ctx: ExecutionContext) -> None:
     production = is_production_environment()
     mode = _research_mode(ctx.request, production=production)
     if production and mode == "MOCK":
-        ctx.results[_AUTH_ERROR_KEY] = "MOCK evidence cannot enter production"
+        ctx.results[_AUTH_ERROR_KEY] = _auth_unavailable(
+            "MOCK evidence cannot enter production"
+        )
         return
     if production and getattr(ctx.request, "nse_eod", None) is not None:
-        ctx.results[_AUTH_ERROR_KEY] = "injected NSE transport cannot enter production"
+        ctx.results[_AUTH_ERROR_KEY] = _auth_unavailable(
+            "injected NSE transport cannot enter production"
+        )
         return
 
     ticker = str(ctx.request.ticker or "").strip()
@@ -132,7 +148,7 @@ def preload_verified_evidence(ctx: ExecutionContext) -> None:
                 try:
                     ctx.results[_AUTH_STATEMENTS_KEY] = to_financial_statements(bundle)
                 except AuthenticatedValuationError as exc:
-                    ctx.results[_AUTH_ERROR_KEY] = str(exc) or DATA_UNAVAILABLE
+                    ctx.results[_AUTH_ERROR_KEY] = _auth_unavailable(str(exc))
                     ctx.results.pop(_AUTH_BUNDLE_KEY, None)
                     return
                 trace = bundle.to_trace_dict()
@@ -143,7 +159,7 @@ def preload_verified_evidence(ctx: ExecutionContext) -> None:
 
     query = ticker or company or isin or ""
     if not query:
-        ctx.results[_AUTH_ERROR_KEY] = f"{DATA_UNAVAILABLE} (identity required)"
+        ctx.results[_AUTH_ERROR_KEY] = _auth_unavailable("identity required")
         return
 
     master = getattr(ctx.request, "security_master", None) or SecurityMasterService(
@@ -190,8 +206,8 @@ def preload_verified_evidence(ctx: ExecutionContext) -> None:
             research, extra=extra, production=production, capital_events=events
         )
     if dataset is None:
-        ctx.results[_AUTH_ERROR_KEY] = (
-            e2e.detail or f"{DATA_UNAVAILABLE} (identity {e2e.identity_status})"
+        ctx.results[_AUTH_ERROR_KEY] = _auth_unavailable(
+            e2e.detail or f"identity {e2e.identity_status}"
         )
         ctx.results["authenticated_valuation_trace"] = {
             "official_research": e2e.to_public_dict(),
@@ -212,12 +228,12 @@ def preload_verified_evidence(ctx: ExecutionContext) -> None:
     ctx.results["authenticated_valuation_trace"] = trace
 
     if dataset.identity_status not in {"VERIFIED"}:
-        ctx.results[_AUTH_ERROR_KEY] = (
-            f"{DATA_UNAVAILABLE} (identity {dataset.identity_status})"
+        ctx.results[_AUTH_ERROR_KEY] = _auth_unavailable(
+            f"identity {dataset.identity_status}"
         )
         return
     if not gate.allowed:
-        ctx.results[_AUTH_ERROR_KEY] = (
+        ctx.results[_AUTH_ERROR_KEY] = _auth_unavailable(
             gate.blocked_reason
             or dataset.valuation_gate.detail
             or "VALUATION UNAVAILABLE"
@@ -226,13 +242,13 @@ def preload_verified_evidence(ctx: ExecutionContext) -> None:
     try:
         bundle = dataset_to_bundle(dataset, method_names=gate.allowed_methods)
     except AuthenticatedValuationError as exc:
-        ctx.results[_AUTH_ERROR_KEY] = str(exc) or DATA_UNAVAILABLE
+        ctx.results[_AUTH_ERROR_KEY] = _auth_unavailable(str(exc))
         return
     ctx.results[_AUTH_BUNDLE_KEY] = bundle
     try:
         ctx.results[_AUTH_STATEMENTS_KEY] = to_financial_statements(bundle)
     except AuthenticatedValuationError as exc:
-        ctx.results[_AUTH_ERROR_KEY] = str(exc) or DATA_UNAVAILABLE
+        ctx.results[_AUTH_ERROR_KEY] = _auth_unavailable(str(exc))
         ctx.results.pop(_AUTH_BUNDLE_KEY, None)
 
 
@@ -246,7 +262,9 @@ def dataset_to_bundle(
     if dataset.identity is None or dataset.identity_status != "VERIFIED":
         raise AuthenticatedValuationError(f"{DATA_UNAVAILABLE} (identity not VERIFIED)")
     if dataset.mode == "MOCK" and is_production_environment():
-        raise AuthenticatedValuationError("MOCK evidence cannot enter production")
+        raise AuthenticatedValuationError(
+            _auth_unavailable("MOCK evidence cannot enter production")
+        )
     identity = dataset.identity
     price = dataset.price
     if dataset.price_status != "VERIFIED" or price is None:

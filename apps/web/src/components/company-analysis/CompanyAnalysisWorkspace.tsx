@@ -35,25 +35,18 @@ import { COMPANY_CATALOGUE } from "@/lib/companies/catalogue";
 import { useDashboardPrefsStore } from "@/lib/dashboard";
 import { useCollapsePanelsBelowLg } from "@/lib/a11y";
 import { loadAuthenticatedAnalyseRequest } from "@/lib/research/buildAnalyseRequest";
-import {
-  mapResearchView,
-  type ResearchView,
-} from "@/lib/research/mapResearchView";
+import { mapResearchView, type ResearchView } from "@/lib/research/mapResearchView";
 import { saveResearchSession } from "@/lib/research/sessionStore";
 import { useNotifications } from "@/providers/NotificationProvider";
 import { cn } from "@/lib/utils";
 import { WorkspaceLeftNav } from "./WorkspaceLeftNav";
 import { WorkspaceRightPanel } from "./WorkspaceRightPanel";
 import { WorkspaceToolbar } from "./WorkspaceChrome";
-import {
-  ExportSection,
-  SummarySection,
-} from "./WorkspaceSections";
+import { ExportSection, SummarySection } from "./WorkspaceSections";
+import { InvestmentSnapshot, SnapshotSignals } from "./InvestmentSnapshot";
+import { ResearchProgressTracker } from "./ResearchProgressTracker";
 import { mapReportTransparency } from "@/lib/report-transparency";
-import {
-  WorkspaceEmpty,
-  WorkspaceSkeleton,
-} from "./WorkspacePrimitives";
+import { WorkspaceEmpty, WorkspaceSkeleton } from "./WorkspacePrimitives";
 
 const ValuationSection = lazy(() =>
   import("./WorkspaceSections").then((m) => ({ default: m.ValuationSection })),
@@ -206,8 +199,9 @@ export function CompanyAnalysisWorkspace() {
   const [query, setQuery] = useState(urlSymbol);
   const [view, setView] = useState<ResearchView | null>(null);
   const [analysedAt, setAnalysedAt] = useState<string | null>(null);
-  const [lastAnalyseRequest, setLastAnalyseRequest] =
-    useState<AnalyseRequest | null>(null);
+  const [lastAnalyseRequest, setLastAnalyseRequest] = useState<AnalyseRequest | null>(
+    null,
+  );
   const [lastAnalyseResponse, setLastAnalyseResponse] =
     useState<AnalyseResponse | null>(null);
   /** Monotonic generation — drop stale analyse responses after symbol change. */
@@ -222,8 +216,7 @@ export function CompanyAnalysisWorkspace() {
   const setLeftOpen = useWorkspacePrefsStore((s) => s.setLeftOpen);
   const setRightOpen = useWorkspacePrefsStore((s) => s.setRightOpen);
   const recordSearch = useDashboardPrefsStore((s) => s.recordSearch);
-  const { runWithDisclaimer, gate: disclaimerGate } =
-    useResearchDisclaimerGate();
+  const { runWithDisclaimer, gate: disclaimerGate } = useResearchDisclaimerGate();
 
   useCollapsePanelsBelowLg(setLeftOpen, setRightOpen);
 
@@ -325,8 +318,7 @@ export function CompanyAnalysisWorkspace() {
       }
     },
     onError: (err) => {
-      const message =
-        err instanceof ApiClientError ? err.message : "Analyse failed";
+      const message = err instanceof ApiClientError ? err.message : "Analyse failed";
       notifyError(message, "Analyse failed");
     },
   });
@@ -354,8 +346,7 @@ export function CompanyAnalysisWorkspace() {
 
   const marketQuery = useQuery({
     queryKey: ["company-analysis", "market", symbol, catalogue?.exchange],
-    queryFn: () =>
-      api.marketQuote(symbol, { token, exchange: catalogue?.exchange }),
+    queryFn: () => api.marketQuote(symbol, { token, exchange: catalogue?.exchange }),
     enabled: Boolean(token && symbol),
     retry: false,
     staleTime: 60_000,
@@ -363,12 +354,7 @@ export function CompanyAnalysisWorkspace() {
 
   // EPIC-D002 — header enrichment only (Market Cap/52wk/ROE); independent of /analyse.
   const financialStatementsQuery = useQuery({
-    queryKey: [
-      "company-analysis",
-      "financial-statements",
-      symbol,
-      catalogue?.exchange,
-    ],
+    queryKey: ["company-analysis", "financial-statements", symbol, catalogue?.exchange],
     queryFn: () =>
       api.financialStatements(symbol, {
         token,
@@ -504,13 +490,23 @@ export function CompanyAnalysisWorkspace() {
                 </p>
               ) : null}
               {section === "summary" ? (
-                <SummarySection
-                  view={view}
-                  catalogue={catalogue}
-                  marketStatus={marketStatus}
-                  marketQuote={marketQuery.data ?? null}
-                  financialStatements={financialStatementsQuery.data ?? null}
-                />
+                <div className="space-y-4">
+                  <ResearchProgressTracker
+                    view={view}
+                    analysing={analyseMutation.isPending}
+                  />
+                  <InvestmentSnapshot view={view} />
+                  <div className="grid gap-4 xl:grid-cols-[minmax(0,1.4fr)_minmax(18rem,0.6fr)]">
+                    <SummarySection
+                      view={view}
+                      catalogue={catalogue}
+                      marketStatus={marketStatus}
+                      marketQuote={marketQuery.data ?? null}
+                      financialStatements={financialStatementsQuery.data ?? null}
+                    />
+                    <SnapshotSignals view={view} />
+                  </div>
+                </div>
               ) : null}
               {section === "valuation" ? (
                 <LazyViewSection Section={ValuationSection} view={view} />
@@ -601,8 +597,8 @@ export function CompanyAnalysisWorkspace() {
                 </Suspense>
               ) : null}
               <p className="text-[10px] text-[var(--muted)]">
-                Last updated: {analysedAt ?? view.analysedAt ?? "Data unavailable."}{" "}
-                · Research tools — not investment advice
+                Last updated: {analysedAt ?? view.analysedAt ?? "Data unavailable."} ·
+                Research tools — not investment advice
               </p>
             </div>
           ) : null}

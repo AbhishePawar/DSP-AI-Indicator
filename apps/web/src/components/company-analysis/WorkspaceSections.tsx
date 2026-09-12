@@ -54,6 +54,73 @@ function ListBlock({
   );
 }
 
+function SnapshotValue({ value }: { value: string | null | undefined }) {
+  const unavailable = !value || value === "Unavailable" || value === "—";
+  return (
+    <span className={unavailable ? "text-[var(--muted)]" : "text-[var(--fg)]"}>
+      {unavailable ? "Not yet available" : value}
+    </span>
+  );
+}
+
+function SnapshotRow({ label, value }: { label: string; value: string | null | undefined }) {
+  return (
+    <div className="flex items-baseline justify-between gap-4 border-b border-[var(--border)] py-3 last:border-b-0">
+      <dt className="text-sm text-[var(--muted)]">{label}</dt>
+      <dd className="text-right text-sm font-medium"><SnapshotValue value={value} /></dd>
+    </div>
+  );
+}
+
+function InvestmentSnapshot({ view }: { view: ResearchView }) {
+  const strengths = view.strengths;
+  const risks = view.risks;
+  const explanation = view.committee.supportingReasons;
+
+  return (
+    <section
+      aria-labelledby="investment-snapshot-title"
+      className="overflow-hidden rounded-[var(--radius-md)] border border-[var(--border)] bg-[var(--surface)]"
+    >
+      <div className="border-b border-[var(--border)] px-4 py-5 sm:px-6">
+        <p className="text-xs font-medium uppercase tracking-[0.18em] text-[var(--muted)]">DSP investment view</p>
+        <div className="mt-3 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+          <h2 id="investment-snapshot-title" className="font-[family-name:var(--font-display)] text-2xl font-medium tracking-tight text-[var(--fg)] sm:text-3xl">
+            <SnapshotValue value={view.recommendation} />
+          </h2>
+          <p className="text-sm text-[var(--muted)]">Confidence: <SnapshotValue value={formatPct(view.recommendationConfidence)} /></p>
+        </div>
+      </div>
+      <div className="grid gap-0 border-b border-[var(--border)] px-4 sm:grid-cols-2 sm:gap-x-8 sm:px-6 lg:grid-cols-5">
+        <dl><SnapshotRow label="Business quality" value={view.businessQualityLabel} /></dl>
+        <dl><SnapshotRow label="Moat" value={view.moat.label} /></dl>
+        <dl><SnapshotRow label="Management" value={view.management.label} /></dl>
+        <dl><SnapshotRow label="Risk" value={view.risk?.overall_risk_level ?? null} /></dl>
+        <dl><SnapshotRow label="Valuation" value={view.valuation.marginOfSafety} /></dl>
+      </div>
+      <div className="grid gap-6 px-4 py-5 sm:px-6 lg:grid-cols-[1fr_1fr]">
+        <details>
+          <summary className="cursor-pointer text-sm font-medium text-[var(--fg)]">Why?</summary>
+          <div className="mt-3">
+            {explanation.length ? <ListBlock title="DSP supporting view" items={explanation} /> : <p className="text-sm text-[var(--muted)]">DSP explanation not yet available.</p>}
+          </div>
+        </details>
+        <details>
+          <summary className="cursor-pointer text-sm font-medium text-[var(--fg)]">Key risks</summary>
+          <div className="mt-3">
+            {risks.length ? <ListBlock title="DSP risk findings" items={risks} /> : <p className="text-sm text-[var(--muted)]">Risk findings not yet available.</p>}
+          </div>
+        </details>
+      </div>
+      <div className="flex flex-wrap items-center justify-between gap-3 border-t border-[var(--border)] px-4 py-3 text-xs text-[var(--muted)] sm:px-6">
+        <span>Current price: <SnapshotValue value={view.valuation.currentPrice} /></span>
+        <span>Intrinsic value: <SnapshotValue value={view.valuation.intrinsicValue} /></span>
+        <span>Evidence reference: <SnapshotValue value={view.auditReference || view.analysisId} /></span>
+      </div>
+    </section>
+  );
+}
+
 export function SummarySection({
   view,
   catalogue,
@@ -77,6 +144,7 @@ export function SummarySection({
         marketQuote={marketQuote}
         financialStatements={financialStatements}
       />
+      <InvestmentSnapshot view={view} />
       <SectionCard
         title="Executive Summary"
         description="Institutional summary from /api/v1/analyse — Research Mode · research before recommendation"

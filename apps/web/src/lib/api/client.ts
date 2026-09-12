@@ -232,6 +232,20 @@ export function setApiAuthFailureHandler(
   authFailureHandler = handler;
 }
 
+export type SecuritySearchResult = {
+  symbol?: string | null;
+  ticker?: string | null;
+  company_name?: string | null;
+  name?: string | null;
+  isin?: string | null;
+  exchange?: string | null;
+  mic?: string | null;
+};
+
+export type SecuritySearchResponse =
+  | SecuritySearchResult[]
+  | { results?: SecuritySearchResult[]; securities?: SecuritySearchResult[]; data?: SecuritySearchResult[]; payload?: SecuritySearchResult[] };
+
 async function request<T>(
   path: string,
   init: RequestInit = {},
@@ -337,6 +351,15 @@ export const api = {
 
   capabilities: (options?: RequestOptions) =>
     request<CapabilitiesResponse>("/capabilities", { method: "GET" }, options),
+
+  searchSecurities: (query: string, options?: RequestOptions) => {
+    const params = new URLSearchParams({ q: query.trim() });
+    return request<SecuritySearchResponse>(
+      `/securities/search?${params.toString()}`,
+      { method: "GET" },
+      options,
+    );
+  },
 
   validateAnalyse: (body: AnalyseRequest, options?: RequestOptions) =>
     request<ValidateResponse>(

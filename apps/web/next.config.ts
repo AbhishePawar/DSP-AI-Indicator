@@ -5,6 +5,17 @@ import bundleAnalyzer from "@next/bundle-analyzer";
 
 const appRoot = path.dirname(fileURLToPath(import.meta.url));
 
+/** Existing Cloud Run DSP API (`cloudbuild-frontend.yaml` `_API_BASE_URL`). */
+const EXISTING_DSP_API_BASE =
+  "https://dsp-ai-indicator-6uxsluxowq-el.a.run.app/api/v1";
+
+function apiProxyBase(): string {
+  return (
+    process.env.DSP_API_PROXY_BASE_URL?.replace(/\/$/, "") ||
+    EXISTING_DSP_API_BASE
+  );
+}
+
 /**
  * Web 2.0.0-rc.1 — security headers (EPS-003 / EPIC-019A).
  * CSP is issued per-request from src/middleware.ts (nonce; no static
@@ -32,6 +43,16 @@ const nextConfig: NextConfig = {
   // P7.3 — tree-shake heavy UI kits without changing product behaviour
   experimental: {
     optimizePackageImports: ["lucide-react"],
+  },
+  // Browser `/api/v1/*` is same-origin. Next forwards to Cloud Run so Vercel
+  // Preview never needs a temporary origin on DSP_CORS_ORIGINS.
+  async rewrites() {
+    return [
+      {
+        source: "/api/v1/:path*",
+        destination: `${apiProxyBase()}/:path*`,
+      },
+    ];
   },
   headers: async () => [
     {

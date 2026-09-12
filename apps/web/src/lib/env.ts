@@ -1,9 +1,20 @@
 /** Environment configuration — no secrets in client beyond public API URL. */
 
+function resolveApiBaseUrl(): string {
+  const explicit = process.env.NEXT_PUBLIC_API_BASE_URL?.replace(/\/$/, "");
+  if (explicit) {
+    return explicit;
+  }
+  // Vercel injects NEXT_PUBLIC_VERCEL_ENV for preview/production builds.
+  // Same-origin `/api/v1` is rewritten to Cloud Run (see next.config.ts).
+  if (process.env.NEXT_PUBLIC_VERCEL_ENV) {
+    return "/api/v1";
+  }
+  return "http://127.0.0.1:8000/api/v1";
+}
+
 export const env = {
-  apiBaseUrl:
-    process.env.NEXT_PUBLIC_API_BASE_URL?.replace(/\/$/, "") ||
-    "http://127.0.0.1:8000/api/v1",
+  apiBaseUrl: resolveApiBaseUrl(),
   appName: process.env.NEXT_PUBLIC_APP_NAME || "DSP AI Indicator",
   tagline: "Complex Analysis. Simple Decisions.",
   /** EPS-003 Version 2.0 Release Candidate — feature freeze. */

@@ -59,7 +59,14 @@ export function CompanySearchHero() {
 
   function selectResult(result: SecuritySearchResult) {
     const symbol = resultSymbol(result);
-    if (symbol) router.push(`/analysis?symbol=${encodeURIComponent(symbol)}`);
+    if (!symbol) return;
+
+    const params = new URLSearchParams({ symbol });
+    const company = result.company_name ?? result.name;
+    if (company) params.set("company", company);
+    if (result.exchange) params.set("exchange", result.exchange);
+    if (result.isin) params.set("isin", result.isin);
+    router.push(`/analysis?${params.toString()}`);
   }
 
   function submit(event: FormEvent<HTMLFormElement>) {

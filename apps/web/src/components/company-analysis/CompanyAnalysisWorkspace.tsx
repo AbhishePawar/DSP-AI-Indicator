@@ -46,6 +46,11 @@ import { WorkspaceLeftNav } from "./WorkspaceLeftNav";
 import { WorkspaceRightPanel } from "./WorkspaceRightPanel";
 import { WorkspaceToolbar } from "./WorkspaceChrome";
 import {
+  CompanyIdentity,
+  CompanyIdentityUnavailable,
+  type CompanyIdentityData,
+} from "./CompanyIdentity";
+import {
   ExportSection,
   SummarySection,
 } from "./WorkspaceSections";
@@ -202,6 +207,9 @@ export function CompanyAnalysisWorkspace() {
 
   // RC3-003 — no silent default company; require explicit symbol selection.
   const urlSymbol = (searchParams.get("symbol") || "").trim().toUpperCase();
+  const urlCompany = searchParams.get("company");
+  const urlExchange = searchParams.get("exchange");
+  const urlIsin = searchParams.get("isin");
   const [symbol, setSymbol] = useState(urlSymbol);
   const [query, setQuery] = useState(urlSymbol);
   const [view, setView] = useState<ResearchView | null>(null);
@@ -428,9 +436,25 @@ export function CompanyAnalysisWorkspace() {
     ? activeSection
     : "summary";
 
+  const identity: CompanyIdentityData = {
+    symbol,
+    company: view?.company ?? urlCompany,
+    exchange: view?.exchange ?? urlExchange ?? catalogue?.exchange,
+    isin: urlIsin,
+  };
+
   return (
     <div className="flex min-h-[70vh] flex-col rounded-[var(--radius-md)] border border-[var(--border)] bg-[var(--bg)]">
       {disclaimerGate}
+      {symbol ? (
+        <CompanyIdentity
+          identity={identity}
+          catalogue={catalogue}
+          status={analyseMutation.isPending ? "researching" : analyseMutation.isError ? "unavailable" : view ? "ready" : "researching"}
+        />
+      ) : (
+        <CompanyIdentityUnavailable />
+      )}
       <WorkspaceToolbar
         onAnalyze={runAnalyse}
         analyzing={analyseMutation.isPending}
@@ -465,7 +489,17 @@ export function CompanyAnalysisWorkspace() {
           tabIndex={-1}
           aria-label="Main analysis area"
         >
-          {analyseMutation.isPending && !view ? <WorkspaceSkeleton /> : null}
+          {analyseMutation.isPending && !view ? (
+            <div className="mb-4 rounded-[var(--radius-md)] border border-[var(--border)] bg-[var(--surface)] px-4 py-5" role="status" aria-live="polite">
+              <p className="font-[family-name:var(--font-display)] text-lg font-medium text-[var(--fg)]">
+                Researching {symbol}…
+              </p>
+              <p className="mt-1 text-sm text-[var(--muted)]">
+                Preparing your DSP analysis from the available backend data.
+              </p>
+              <div className="mt-4"><WorkspaceSkeleton /></div>
+            </div>
+          ) : null}
 
           {analyseMutation.isError && !view ? (
             <ErrorState

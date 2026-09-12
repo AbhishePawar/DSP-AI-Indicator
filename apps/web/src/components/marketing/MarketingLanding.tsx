@@ -1,9 +1,10 @@
+"use client";
+
 import Link from "next/link";
 
 import {
   COMMERCIAL_PRICING_DISCLOSURE,
   PRODUCT_EDITIONS,
-  SUPPORT_CONTACT,
 } from "@/lib/commercial";
 import { env } from "@/lib/env";
 
@@ -15,6 +16,7 @@ import {
   WORKFLOW_STEPS,
 } from "./content";
 import { Section } from "./Section";
+import { CompanySearchHero } from "./CompanySearchHero";
 
 function formatPrice(edition: (typeof PRODUCT_EDITIONS)[number]): string {
   if (edition.monthlyPriceUsd === null) return "Contact for access";
@@ -27,9 +29,9 @@ function formatPrice(edition: (typeof PRODUCT_EDITIONS)[number]): string {
 export function MarketingLanding() {
   return (
     <>
-      {/* Hero — one composition: brand, headline, sentence, CTAs, full-bleed wash */}
+      {/* Hero — search-first: brand, search input, and research entry point */}
       <section
-        className="relative isolate min-h-[min(92vh,52rem)] overflow-hidden"
+        className="relative isolate overflow-hidden"
         aria-labelledby="hero-brand"
       >
         <div
@@ -42,32 +44,44 @@ export function MarketingLanding() {
             `,
           }}
         />
-        <div className="mx-auto flex max-w-[72rem] flex-col justify-end px-4 pb-16 pt-20 sm:px-6 sm:pb-24 sm:pt-28">
+        <div className="mx-auto flex max-w-[72rem] flex-col px-4 py-16 sm:px-6 sm:py-24">
           <h1
             id="hero-brand"
             className="mkt-reveal font-[family-name:var(--font-display)] text-5xl font-medium tracking-tight text-[var(--fg)] sm:text-6xl md:text-7xl"
           >
             {env.appName}
           </h1>
-          <p className="mkt-reveal mkt-reveal-delay mt-6 max-w-[28ch] font-[family-name:var(--font-display)] text-2xl font-medium tracking-tight text-[var(--fg)] sm:text-3xl">
-            {env.tagline}
+          <p className="mkt-reveal mkt-reveal-delay mt-6 max-w-[36ch] font-[family-name:var(--font-display)] text-2xl font-medium tracking-tight text-[var(--fg)] sm:text-3xl">
+            Research any company
           </p>
-          <p className="mkt-fade mt-4 max-w-[42ch] text-base leading-relaxed text-[var(--muted)] sm:text-lg">
-            Institutional investment research with evidence, explainability, and
-            governed AI — calm enough for serious work.
+          <p className="mkt-fade mt-3 max-w-[52ch] text-sm leading-relaxed text-[var(--muted)] sm:text-base">
+            Institutional investment research with evidence, explainability, and governed AI — calm enough for serious work.
           </p>
-          <div className="mkt-fade mt-10 flex flex-wrap gap-3">
+
+          {/* Search input — primary action */}
+          <div className="mkt-fade mt-10">
+            <CompanySearchHero />
+          </div>
+
+          {/* Secondary auth CTAs */}
+          <div className="mkt-fade mt-8 flex flex-wrap gap-2">
+            <span className="inline-flex text-xs text-[var(--muted)]">
+              Or{" "}
+            </span>
             <Link
               href="/login"
-              className="inline-flex min-h-11 items-center rounded-[var(--radius-sm)] bg-[var(--accent)] px-5 py-2.5 text-sm font-medium text-[var(--accent-fg)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent)]"
+              className="inline-flex text-xs text-[var(--accent)] underline hover:text-[var(--fg)] transition-colors"
             >
-              Sign in
+              sign in
             </Link>
+            <span className="inline-flex text-xs text-[var(--muted)]">
+              /
+            </span>
             <Link
               href="/register"
-              className="inline-flex min-h-11 items-center rounded-[var(--radius-sm)] border border-[var(--border)] bg-[var(--surface)] px-5 py-2.5 text-sm text-[var(--fg)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent)]"
+              className="inline-flex text-xs text-[var(--accent)] underline hover:text-[var(--fg)] transition-colors"
             >
-              Create account
+              create account
             </Link>
           </div>
         </div>

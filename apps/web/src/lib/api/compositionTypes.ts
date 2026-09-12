@@ -110,6 +110,8 @@ export type PipelinePayload = {
     ok?: boolean;
     failed_stage?: string | null;
   };
+  /** Server-owned source lineage. Display only; never promote or reinterpret fields. */
+  source_evidence?: Record<string, unknown> | null;
   trace?: Array<{
     stage: string;
     status: string;

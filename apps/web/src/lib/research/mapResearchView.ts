@@ -94,6 +94,8 @@ export type ResearchView = IntelligenceView & {
    * Copied when present; never derived from overall moat or client X/10 math.
    */
   canonicalMoatDimensions: CanonicalMoatDimensionView[];
+  /** Server-owned source evidence copied without interpretation. */
+  sourceEvidence: Record<string, unknown> | null;
 };
 
 function stageOrEmpty(
@@ -299,6 +301,7 @@ export function mapResearchView(
     recommendationStage,
     committee,
     risk: (response.payload?.risk as CompanyRiskPayload | null | undefined) ?? null,
+    sourceEvidence: response.payload?.source_evidence ?? null,
     canonicalMoatDimensions: mapCanonicalMoatDimensions(
       readEconomicMoatDimensionsField(response.payload),
     ).dimensions,

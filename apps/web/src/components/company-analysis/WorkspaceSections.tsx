@@ -121,6 +121,71 @@ function InvestmentSnapshot({ view }: { view: ResearchView }) {
   );
 }
 
+function evidenceValue(value: unknown): string | null {
+  if (value === null || value === undefined || value === "") return null;
+  if (typeof value === "string" || typeof value === "number" || typeof value === "boolean") {
+    return String(value);
+  }
+  return null;
+}
+
+function EvidenceDetail({ view }: { view: ResearchView }) {
+  const evidence = view.sourceEvidence;
+  const entries = evidence
+    ? Object.entries(evidence).filter(([, value]) => evidenceValue(value) !== null)
+    : [];
+  const status = evidenceValue(evidence?.status);
+  const sourceUrl = evidenceValue(evidence?.source_url ?? evidence?.statement_source_url ?? evidence?.quote_source_url);
+  const hasEvidence = entries.length > 0;
+
+  return (
+    <SectionCard
+      title="Evidence"
+      description="Server-owned source evidence behind the displayed research view. Values are shown as returned; missing fields remain unavailable."
+    >
+      {!hasEvidence ? (
+        <WorkspaceEmpty description="Evidence is not yet available for this analysis." />
+      ) : (
+        <div className="flex flex-col gap-4">
+          <div className="flex flex-wrap items-center justify-between gap-3 rounded-[var(--radius-md)] border border-[var(--border)] bg-[var(--surface-muted)] px-3 py-3">
+            <div>
+              <p className="text-xs font-medium uppercase tracking-[0.16em] text-[var(--muted)]">Evidence status</p>
+              <p className="mt-1 text-sm font-medium text-[var(--fg)]">{status ?? "Unknown"}</p>
+            </div>
+            <span className="text-xs text-[var(--muted)]">Evidence count: {view.evidenceCounts.total ?? "Unavailable"}</span>
+          </div>
+          <details>
+            <summary className="cursor-pointer text-sm font-medium text-[var(--fg)]">View source details</summary>
+            <dl className="mt-3 divide-y divide-[var(--border)] rounded-[var(--radius-md)] border border-[var(--border)]">
+              {entries.map(([key, value]) => (
+                <div key={key} className="grid gap-1 px-3 py-3 sm:grid-cols-[minmax(9rem,0.7fr)_1fr] sm:gap-4">
+                  <dt className="text-xs font-medium uppercase tracking-wide text-[var(--muted)]">{key.replaceAll("_", " ")}</dt>
+                  <dd className="break-words text-sm text-[var(--fg)]">{evidenceValue(value)}</dd>
+                </div>
+              ))}
+            </dl>
+          </details>
+          {sourceUrl ? (
+            <a className="text-sm font-medium text-[var(--accent)] underline-offset-4 hover:underline" href={sourceUrl} target="_blank" rel="noreferrer">
+              Open source
+            </a>
+          ) : (
+            <p className="text-xs text-[var(--muted)]">Source link not provided by the backend.</p>
+          )}
+          <details>
+            <summary className="cursor-pointer text-sm font-medium text-[var(--fg)]">Show technical provenance</summary>
+            <div className="mt-3 text-sm text-[var(--muted)]">
+              <p>Analysis reference: {view.auditReference ?? "Unavailable"}</p>
+              <p>Correlation ID: {view.correlationId ?? "Unavailable"}</p>
+              <p>Pipeline: {view.pipelineVersion ?? "Unavailable"}</p>
+            </div>
+          </details>
+        </div>
+      )}
+    </SectionCard>
+  );
+}
+
 export function SummarySection({
   view,
   catalogue,
@@ -145,6 +210,7 @@ export function SummarySection({
         financialStatements={financialStatements}
       />
       <InvestmentSnapshot view={view} />
+      <EvidenceDetail view={view} />
       <SectionCard
         title="Executive Summary"
         description="Institutional summary from /api/v1/analyse — Research Mode · research before recommendation"

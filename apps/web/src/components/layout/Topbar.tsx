@@ -4,7 +4,7 @@
  * EPIC-F003 — Sticky application header.
  */
 
-import { Bell, Search } from "lucide-react";
+import { Bell } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 
@@ -14,7 +14,6 @@ import {
   Badge,
   Button,
   Header,
-  Input,
   ThemeSwitcher,
   UserMenu,
 } from "@/components/ds";
@@ -84,41 +83,17 @@ export function Topbar({
           </div>
         </div>
       }
-      center={
-        <button
-          type="button"
-          onClick={() => setCommandPaletteOpen(true)}
-          className="flex min-h-11 w-full max-w-md items-center gap-2 rounded-[var(--radius-md)] border border-[var(--border)] bg-[var(--surface-2)] px-3 py-1.5 text-left text-sm text-[var(--muted)] transition hover:border-[var(--accent)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] motion-reduce:transition-none"
-          aria-label="Open search and command palette"
-        >
-          <Search className="size-4 shrink-0" aria-hidden />
-          <span className="flex-1 truncate">Search pages…</span>
-          <kbd className="hidden rounded border border-[var(--border)] px-1.5 py-0.5 font-mono text-[10px] sm:inline">
-            Ctrl+K
-          </kbd>
-        </button>
-      }
       right={
         <div className="flex shrink-0 items-center gap-1.5 sm:gap-2">
           <Button
             variant="ghost"
             size="sm"
-            className="md:hidden"
+            className="min-h-11"
             onClick={() => setCommandPaletteOpen(true)}
-            aria-label="Open search and command palette"
+            aria-label="Open command palette"
           >
-            <Search className="size-4" aria-hidden />
+            Commands
           </Button>
-          <div className="relative hidden w-40 xl:block">
-            <Input
-              readOnly
-              placeholder="Search…"
-              aria-label="Global search (opens command palette)"
-              className="h-8 cursor-pointer text-xs"
-              onFocus={() => setCommandPaletteOpen(true)}
-              onClick={() => setCommandPaletteOpen(true)}
-            />
-          </div>
           <Button
             variant="ghost"
             size="sm"

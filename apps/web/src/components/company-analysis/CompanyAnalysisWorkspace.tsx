@@ -47,6 +47,7 @@ import {
 import { saveResearchSession } from "@/lib/research/sessionStore";
 import { useNotifications } from "@/providers/NotificationProvider";
 import { cn } from "@/lib/utils";
+import { CompanyResearchBar } from "@/components/securities/CompanyResearchBar";
 import { WorkspaceLeftNav } from "./WorkspaceLeftNav";
 import { WorkspaceRightPanel } from "./WorkspaceRightPanel";
 import { WorkspaceToolbar } from "./WorkspaceChrome";
@@ -570,8 +571,6 @@ export function CompanyAnalysisWorkspace() {
         >
           <WorkspaceLeftNav
             symbol={symbol}
-            query={query}
-            onQueryChange={setQuery}
             onSelectSymbol={selectSymbol}
             onAnalyze={runAnalyse}
             analyzing={analyseMutation.isPending}
@@ -592,6 +591,14 @@ export function CompanyAnalysisWorkspace() {
           tabIndex={-1}
           aria-label="Main analysis area"
         >
+          <CompanyResearchBar
+            variant={symbol ? "compact" : "hero"}
+            query={query}
+            onQueryChange={setQuery}
+            onSelect={selectSymbol}
+            className="mb-4"
+          />
+
           {analyseMutation.isPending && !view ? <WorkspaceSkeleton /> : null}
 
           {analyseMutation.isError && !view ? (
@@ -620,7 +627,7 @@ export function CompanyAnalysisWorkspace() {
                     ? "Security identified successfully. No valuation was calculated."
                     : symbol
                       ? "Run analysis to load backend research outputs for this symbol."
-                      : "Select a ticker to begin company analysis. No company is pre-selected."
+                      : "Search a company or ticker above, then select the official listing. No company is pre-selected."
               }
               action={
                 symbol ? (

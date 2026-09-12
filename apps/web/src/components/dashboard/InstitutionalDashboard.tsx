@@ -14,6 +14,7 @@ import {
   type ReactNode,
 } from "react";
 
+import { CompanyResearchBar } from "@/components/securities/CompanyResearchBar";
 import { Alert, Button } from "@/components/ds";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { SurfaceTrustChrome } from "@/components/trust/SurfaceTrustChrome";
@@ -272,7 +273,13 @@ export function InstitutionalDashboard() {
   const setCommandOpen = useUiStore((s) => s.setCommandPaletteOpen);
 
   const visibleIds = useMemo(
-    () => widgetOrder.filter((id) => !hiddenWidgets.includes(id)),
+    () =>
+      widgetOrder.filter(
+        (id) =>
+          !hiddenWidgets.includes(id) &&
+          id !== "company_search" &&
+          id !== "global_search",
+      ),
     [widgetOrder, hiddenWidgets],
   );
 
@@ -302,6 +309,8 @@ export function InstitutionalDashboard() {
           </div>
         }
       />
+
+      <CompanyResearchBar variant="hero" />
 
       <Alert variant="info" title="Research Mode">
         This dashboard helps you decide what to investigate next. It does not

@@ -188,7 +188,7 @@ describe("EPIC-F010 shell accessibility", () => {
       />,
     );
     expect(
-      screen.getAllByLabelText("Open search and command palette").length,
+      screen.getAllByLabelText("Open command palette").length,
     ).toBeGreaterThan(0);
   });
 

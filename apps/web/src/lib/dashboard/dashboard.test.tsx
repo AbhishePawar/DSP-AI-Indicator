@@ -177,6 +177,12 @@ describe("EPIC-F004 dashboard UI", () => {
     expect(screen.getByLabelText("Dashboard widgets")).toBeTruthy();
     expect(screen.getByLabelText("Executive questions")).toBeTruthy();
     expect(await screen.findByText(/Welcome, Ada Analyst/i)).toBeTruthy();
+    expect(
+      screen.getByRole("heading", { name: "Company Research" }),
+    ).toBeTruthy();
+    expect(screen.getByLabelText("Company search")).toBeTruthy();
+    expect(screen.queryByText("Quick Company Search")).toBeNull();
+    expect(screen.queryByText("Search pages… Ctrl+K")).toBeNull();
   });
 
   it("shows empty states without inventing portfolio metrics", async () => {

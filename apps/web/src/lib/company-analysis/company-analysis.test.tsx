@@ -444,6 +444,8 @@ describe("EPIC-F005 workspace UI", () => {
     wrap(<CompanyAnalysisWorkspace />);
     expect(screen.getByLabelText("Company navigation")).toBeTruthy();
     expect(screen.getByLabelText("Main analysis area")).toBeTruthy();
+    expect(screen.getByLabelText("Company search")).toBeTruthy();
+    expect(screen.getByText("Company Research")).toBeTruthy();
     expect(screen.getByLabelText("Context panel")).toBeTruthy();
     await waitFor(() => {
       expect(financialStatementsMock).toHaveBeenCalled();

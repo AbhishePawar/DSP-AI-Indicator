@@ -359,6 +359,9 @@ export const DEFAULT_HIDDEN_WIDGETS: DashboardWidgetId[] = [
   "compliance_summary",
   "workflow_summary",
   "background_jobs",
+  /** Duplicate of the canonical Company Research bar in main content. */
+  "company_search",
+  "global_search",
 ];
 
 export function widgetMeta(id: DashboardWidgetId): DashboardWidgetMeta {

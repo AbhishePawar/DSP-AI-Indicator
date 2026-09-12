@@ -16,15 +16,7 @@ export type ScreeningFilters = {
 };
 
 export type ScreeningPreset =
-  | "high-quality"
-  | "low-debt"
-  | "large-cap"
-  | "technology"
-  | "financial-services"
-  | "consumer"
-  | "dividend"
-  | "growth"
-  | "value";
+  | "high-quality" |"low-debt" |"large-cap" |"technology" |"financial-services" |"consumer" |"dividend" |"growth" |"value";
 
 export const DEFAULT_SCREENING_FILTERS: ScreeningFilters = {
   query: "",

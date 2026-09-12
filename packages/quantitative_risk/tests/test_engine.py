@@ -209,6 +209,5 @@ class TestEngineValidation:
         conc = next(
             m for m in result.metrics if m.metric_type is MetricType.CONCENTRATION
         )
-        assert "portfolio:dsp.portfolio.demo" in conc.provenance
-        assert conc.method_id.endswith(".v1")
+        assert "portfolio:dsp.portfolio.demo" in conc.provenance assert conc.method_id.endswith(".v1")
         assert conc.unit == "weight_fraction"

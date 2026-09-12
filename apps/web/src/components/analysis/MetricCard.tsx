@@ -83,8 +83,7 @@ export function MetricCard({ metric }: { metric: MetricView }) {
             <p>
               <span className="font-medium">Where it came from — </span>
               {metric.available
-                ? "Mapped from analyze envelope / calculated presentation fields."
-                : "Unavailable in the current envelope — not invented client-side."}
+                ? "Mapped from analyze envelope / calculated presentation fields." :"Unavailable in the current envelope — not invented client-side."}
             </p>
             <p>
               <span className="font-medium">How calculated — </span>
@@ -94,8 +93,7 @@ export function MetricCard({ metric }: { metric: MetricView }) {
             <p>
               <span className="font-medium">Confidence — </span>
               {metric.available
-                ? "Tied to source category badges above."
-                : "Insufficient Evidence"}
+                ? "Tied to source category badges above." :"Insufficient Evidence"}
             </p>
             <p>
               <span className="font-medium">Evidence — </span>

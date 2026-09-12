@@ -39,11 +39,8 @@ export function Topbar({
   const setCommandPaletteOpen = useUiStore((s) => s.setCommandPaletteOpen);
   const initials = (user?.displayName || "U").slice(0, 2).toUpperCase();
   const envLabel =
-    env.environment === "production"
-      ? "PROD"
-      : env.environment === "test"
-        ? "TEST"
-        : "DEV";
+    env.environment === "production" ?"PROD"
+      : env.environment === "test" ?"TEST" :"DEV";
 
   return (
     <Header

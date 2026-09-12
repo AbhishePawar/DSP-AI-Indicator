@@ -46,11 +46,8 @@ export function ResearchSection({
             section ? (
               <Badge
                 tone={
-                  section.status === "succeeded"
-                    ? "success"
-                    : section.status === "failed"
-                      ? "danger"
-                      : "neutral"
+                  section.status === "succeeded" ?"success"
+                    : section.status === "failed" ?"danger" :"neutral"
                 }
               >
                 {section.status}

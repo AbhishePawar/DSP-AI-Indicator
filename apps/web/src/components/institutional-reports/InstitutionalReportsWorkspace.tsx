@@ -52,6 +52,8 @@ import {
 } from "./Sections";
 import { WorkspaceEmpty, WorkspaceSkeleton } from "./Primitives";
 import { Section } from '../ds/index';
+import { ValuationModule, BusinessQualityModule, ManagementModule, MoatModule, RiskModule, AiCommitteeModule } from './ReportModules';
+import { ExplainabilityModule, EvidenceModule, TimelineModule } from './Sections';
 
 
 
@@ -394,8 +396,7 @@ export function InstitutionalReportsWorkspace() {
       : marketQuery.isError
         ? "Data unavailable."
         : marketQuery.data
-          ? "Quote loaded"
-          : "Data unavailable.";
+          ? "Quote loaded" :"Data unavailable.";
 
   useEffect(() => {
     function onKeyDown(event: KeyboardEvent) {

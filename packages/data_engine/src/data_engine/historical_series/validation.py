@@ -106,8 +106,7 @@ def validate_authenticated_historical_bundle(
         raise InvalidProviderDataError("start_date after end_date")
     if not bundle.has_any_observation():
         raise InvalidProviderDataError(
-            "authenticated historical bundle must include observations "
-            "(use None from adapter when unavailable)"
+            "authenticated historical bundle must include observations " "(use None from adapter when unavailable)"
         )
 
     if bundle.series_kind == "ohlcv":

@@ -34,10 +34,8 @@ function severityTone(s: string): "danger" | "warning" | "neutral" | "accent" {
 
 export function IssueStatusBadge({ status }: { status: IssueStatus }) {
   const tone =
-    status === "resolved"
-      ? ("success" as const)
-      : status === "open" || status === "in_progress"
-        ? ("warning" as const)
+    status === "resolved" ? ("success" as const)
+      : status === "open"|| status === "in_progress" ? ("warning" as const)
         : ("neutral" as const);
   return <Badge tone={tone}>{status.replace(/_/g, " ")}</Badge>;
 }

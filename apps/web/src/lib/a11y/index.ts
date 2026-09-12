@@ -6,10 +6,17 @@
  * Tests import runAxe from `@/lib/a11y/runAxe` directly.
  */
 
-export {
+import {
   CRITICAL_ROUTES,
   RESPONSIVE_VIEWPORTS,
   useCollapsePanelsBelowLg,
 } from "./responsiveWorkspace";
 
-export { A11Y_AUTOMATION_SCOPE } from "./scope";
+import { A11Y_AUTOMATION_SCOPE } from "./scope";
+
+export {
+  CRITICAL_ROUTES,
+  RESPONSIVE_VIEWPORTS,
+  useCollapsePanelsBelowLg,
+  A11Y_AUTOMATION_SCOPE,
+};

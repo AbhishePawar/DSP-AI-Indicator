@@ -122,9 +122,7 @@ export function buildLaunchReadiness(): LaunchReadinessView {
     overallScore,
     riskLevel,
     recommendation:
-      riskLevel === "low" || riskLevel === "medium"
-        ? "GO PUBLIC — Web 1.0.0 stable; monitor known issues on /launch."
-        : "Hold public traffic until elevated gates are remediated.",
+      riskLevel === "low" || riskLevel === "medium" ?"GO PUBLIC — Web 1.0.0 stable; monitor known issues on /launch." :"Hold public traffic until elevated gates are remediated.",
     gates,
     remainingIssues: [
       "Wire Lighthouse CI budgets in release pipeline (sampling available in-app)",

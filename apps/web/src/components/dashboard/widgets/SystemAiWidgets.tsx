@@ -82,8 +82,7 @@ export function PlatformHealthWidget() {
                 : market.isError
                   ? "Data unavailable."
                   : market.data?.ok
-                    ? "OK"
-                    : "Unavailable"}
+                    ? "OK" :"Unavailable"}
             </li>
             <li>
               Data bundle:{" "}
@@ -92,8 +91,7 @@ export function PlatformHealthWidget() {
                 : data.isError
                   ? "Data unavailable."
                   : data.data?.ok
-                    ? "OK"
-                    : "Unavailable"}
+                    ? "OK" :"Unavailable"}
             </li>
           </ul>
         </div>
@@ -127,11 +125,8 @@ export function ApiStatusWidget() {
 
   const ready = health.data?.ready;
   const envLabel =
-    env.environment === "production"
-      ? "PROD"
-      : env.environment === "test"
-        ? "TEST"
-        : "DEV";
+    env.environment === "production" ?"PROD"
+      : env.environment === "test" ?"TEST" :"DEV";
 
   return (
     <DashboardWidgetShell
@@ -158,8 +153,7 @@ export function ApiStatusWidget() {
               {ready === undefined
                 ? "Checking…"
                 : ready
-                  ? "Connected"
-                  : "Unavailable"}
+                  ? "Connected" :"Unavailable"}
             </dd>
           </div>
           <div className="flex justify-between gap-3">
@@ -194,8 +188,7 @@ export function ApiStatusWidget() {
                 : capabilities.data
                   ? "Loaded"
                   : capabilities.isLoading
-                    ? "Loading…"
-                    : "Data unavailable."}
+                    ? "Loading…" :"Data unavailable."}
             </dd>
           </div>
         </dl>

@@ -343,9 +343,7 @@ class ConversationEngine:
             if context.user_turn is not None:
                 if context.user_turn.session_id != context.session.session_id:
                     msg = (
-                        "identity mismatch: user_turn session_id "
-                        f"{context.user_turn.session_id!r} vs session "
-                        f"{context.session.session_id!r}"
+                        "identity mismatch: user_turn session_id " f"{context.user_turn.session_id!r} vs session " f"{context.session.session_id!r}"
                     )
                     raise CopilotError(msg)
             if context.conversation_context is not None:
@@ -356,9 +354,7 @@ class ConversationEngine:
                     and context.conversation_context.as_of != context.metadata.as_of
                 ):
                     msg = (
-                        "identity mismatch: ConversationContext as_of "
-                        f"{context.conversation_context.as_of!r} vs metadata "
-                        f"{context.metadata.as_of!r}"
+                        "identity mismatch: ConversationContext as_of " f"{context.conversation_context.as_of!r} vs metadata " f"{context.metadata.as_of!r}"
                     )
                     raise CopilotError(msg)
 

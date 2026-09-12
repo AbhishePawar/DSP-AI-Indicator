@@ -170,8 +170,7 @@ def test_https_required_for_upstox_base_url() -> None:
 
 
 def test_redact_secret_and_error_path() -> None:
-    secret = "super-secret-upstox-token"
-    assert "***REDACTED***" in redact_secret(f"Bearer {secret} leaked", secret)
+    secret = "super-secret-upstox-token" assert"***REDACTED***" in redact_secret(f"Bearer {secret} leaked", secret)
     client = UpstoxConnectivityClient(access_token=secret)
     err = client._safe_error(RuntimeError(f"boom {secret}"))
     assert secret not in str(err)

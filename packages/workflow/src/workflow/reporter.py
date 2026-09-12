@@ -154,16 +154,12 @@ class WorkflowReporter:
         if context.engine_result is not None and context.report is not None:
             if context.engine_result.workflow_id != context.report.workflow_id:
                 msg = (
-                    "engine/report identity mismatch: EngineResult "
-                    f"{context.engine_result.workflow_id!r} does not match "
-                    f"report {context.report.workflow_id!r}"
+                    "engine/report identity mismatch: EngineResult " f"{context.engine_result.workflow_id!r} does not match " f"report {context.report.workflow_id!r}"
                 )
                 raise WorkflowError(msg)
             if context.engine_result.report.workflow_id != context.report.workflow_id:
                 msg = (
-                    "engine/report identity mismatch: engine.report "
-                    f"{context.engine_result.report.workflow_id!r} vs "
-                    f"{context.report.workflow_id!r}"
+                    "engine/report identity mismatch: engine.report " f"{context.engine_result.report.workflow_id!r} vs " f"{context.report.workflow_id!r}"
                 )
                 raise WorkflowError(msg)
 
@@ -231,8 +227,7 @@ class WorkflowReporter:
                     *source.limitations,
                     *summary.limitation_notes,
                     *ctx.limitations,
-                    "WorkflowReport presentation only — "
-                    "no orchestration performed by reporter.",
+                    "WorkflowReport presentation only — " "no orchestration performed by reporter.",
                 )
             )
         )

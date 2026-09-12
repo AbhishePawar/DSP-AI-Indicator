@@ -77,13 +77,7 @@ class PostgresStorageProvider:
         with self._connect() as conn, conn.cursor() as cur:
             cur.execute(
                 f"CREATE TABLE IF NOT EXISTS {_TABLE} ("
-                "collection TEXT NOT NULL, "
-                "entity_id TEXT NOT NULL, "
-                "payload JSONB NOT NULL, "
-                "created_at TIMESTAMPTZ NOT NULL, "
-                "updated_at TIMESTAMPTZ NOT NULL, "
-                "PRIMARY KEY (collection, entity_id)"
-                ")"
+                "collection TEXT NOT NULL, " "entity_id TEXT NOT NULL, " "payload JSONB NOT NULL, " "created_at TIMESTAMPTZ NOT NULL, " "updated_at TIMESTAMPTZ NOT NULL, " "PRIMARY KEY (collection, entity_id)" ")"
             )
             conn.commit()
 
@@ -95,9 +89,7 @@ class PostgresStorageProvider:
         with self._connect() as conn, conn.cursor() as cur:
             cur.execute(
                 f"INSERT INTO {_TABLE} (collection, entity_id, payload, created_at, updated_at) "
-                "VALUES (%s, %s, %s, %s::timestamptz, %s::timestamptz) "
-                "ON CONFLICT (collection, entity_id) DO UPDATE SET "
-                "payload = EXCLUDED.payload, updated_at = EXCLUDED.updated_at",
+                "VALUES (%s, %s, %s, %s::timestamptz, %s::timestamptz) " "ON CONFLICT (collection, entity_id) DO UPDATE SET " "payload = EXCLUDED.payload, updated_at = EXCLUDED.updated_at",
                 (collection, key, Json(row), created, updated),
             )
             conn.commit()
@@ -162,8 +154,7 @@ class PostgresStorageProvider:
                     updated = str(row.get("updated_at") or created)
                     cur.execute(
                         f"INSERT INTO {_TABLE} "
-                        "(collection, entity_id, payload, created_at, updated_at) "
-                        "VALUES (%s, %s, %s, %s::timestamptz, %s::timestamptz)",
+                        "(collection, entity_id, payload, created_at, updated_at) " "VALUES (%s, %s, %s, %s::timestamptz, %s::timestamptz)",
                         (str(collection), str(entity_id), Json(row), created, updated),
                     )
             conn.commit()
@@ -199,17 +190,10 @@ class PostgresStorageProvider:
             params.append(max_attempts)
         sql = (
             f"UPDATE {_TABLE} SET "
-            "payload = jsonb_set("
-            f"jsonb_set(payload, '{consumed_path}', to_jsonb(%s::text), true), "
-            "'{updated_at}', to_jsonb(%s::text), true"
-            "), "
-            "updated_at = %s::timestamptz "
-            f"WHERE collection = %s AND entity_id = %s "
-            f"AND payload #>> '{consumed_path}' IS NULL "
+            "payload = jsonb_set(" f"jsonb_set(payload, '{consumed_path}', to_jsonb(%s::text), true), "
+            "'{updated_at}', to_jsonb(%s::text), true" "), " "updated_at = %s::timestamptz " f"WHERE collection = %s AND entity_id = %s " f"AND payload #>> '{consumed_path}' IS NULL "
             f"AND payload #>> '{expires_path}' IS NOT NULL "
-            f"AND (payload #>> '{expires_path}')::timestamptz > %s::timestamptz "
-            f"{extra_attempts}"
-            "RETURNING payload"
+            f"AND (payload #>> '{expires_path}')::timestamptz > %s::timestamptz " f"{extra_attempts}" "RETURNING payload"
         )
         with self._connect() as conn, conn.cursor() as cur:
             cur.execute(sql, tuple(params))
@@ -236,18 +220,12 @@ class PostgresStorageProvider:
         counter_path = _jsonb_path(counter_field)
         sql = (
             f"UPDATE {_TABLE} SET "
-            "payload = jsonb_set("
-            f"jsonb_set(payload, '{counter_path}', "
+            "payload = jsonb_set(" f"jsonb_set(payload, '{counter_path}', "
             f"to_jsonb(COALESCE((payload #>> '{counter_path}')::int, 0) + 1), true), "
-            "'{updated_at}', to_jsonb(%s::text), true"
-            "), "
-            "updated_at = %s::timestamptz "
-            f"WHERE collection = %s AND entity_id = %s "
-            f"AND payload #>> '{consumed_path}' IS NULL "
+            "'{updated_at}', to_jsonb(%s::text), true" "), " "updated_at = %s::timestamptz " f"WHERE collection = %s AND entity_id = %s " f"AND payload #>> '{consumed_path}' IS NULL "
             f"AND payload #>> '{expires_path}' IS NOT NULL "
             f"AND (payload #>> '{expires_path}')::timestamptz > %s::timestamptz "
-            f"AND COALESCE((payload #>> '{counter_path}')::int, 0) < %s "
-            "RETURNING payload"
+            f"AND COALESCE((payload #>> '{counter_path}')::int, 0) < %s " "RETURNING payload"
         )
         with self._connect() as conn, conn.cursor() as cur:
             cur.execute(
@@ -271,9 +249,7 @@ class PostgresStorageProvider:
         with self._connect() as conn, conn.cursor() as cur:
             cur.execute(
                 f"INSERT INTO {_TABLE} (collection, entity_id, payload, created_at, updated_at) "
-                "VALUES (%s, %s, %s, %s::timestamptz, %s::timestamptz) "
-                "ON CONFLICT (collection, entity_id) DO NOTHING "
-                "RETURNING payload",
+                "VALUES (%s, %s, %s, %s::timestamptz, %s::timestamptz) " "ON CONFLICT (collection, entity_id) DO NOTHING " "RETURNING payload",
                 (collection, key, Json(row), created, updated),
             )
             found = cur.fetchone()
@@ -318,15 +294,9 @@ class PostgresStorageProvider:
             params.append("" if expected is None else str(expected))
         sql = (
             f"UPDATE {_TABLE} SET "
-            "payload = jsonb_set("
-            "jsonb_set(payload, '{payload}', "
+            "payload = jsonb_set(" "jsonb_set(payload, '{payload}', "
             "COALESCE(payload->'payload', '{}'::jsonb) || %s::jsonb, true), "
-            "'{updated_at}', to_jsonb(%s::text), true"
-            "), "
-            "updated_at = %s::timestamptz "
-            f"WHERE collection = %s AND entity_id = %s"
-            f"{predicates} "
-            "RETURNING payload"
+            "'{updated_at}', to_jsonb(%s::text), true" "), " "updated_at = %s::timestamptz " f"WHERE collection = %s AND entity_id = %s" f"{predicates} " "RETURNING payload"
         )
         with self._connect() as conn, conn.cursor() as cur:
             cur.execute(sql, tuple(params))

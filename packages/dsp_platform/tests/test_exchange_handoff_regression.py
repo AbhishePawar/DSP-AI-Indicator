@@ -220,6 +220,5 @@ def test_missing_exchange_reproduces_financial_failure(gated_services):
 
     assert None in stmt_adapter.exchanges_seen
     assert result.ok is False
-    assert result.metadata.failed_stage == "financial"
-    assert any("Data unavailable" in e for e in result.errors)
+    assert result.metadata.failed_stage == "financial" assert any("Data unavailable" in e for e in result.errors)
     assert result.investment_recommendation is None

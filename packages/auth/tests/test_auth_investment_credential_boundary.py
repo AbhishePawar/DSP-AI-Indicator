@@ -299,8 +299,7 @@ def test_f_auth_tests_and_sources_do_not_init_upstox_investment() -> None:
 def test_f_upstox_still_selected_when_token_present(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    """G-adjacent: investment path intact with proper Upstox credentials."""
-    monkeypatch.setenv("DSP_ENVIRONMENT", "production")
+    """G-adjacent: investment path intact with proper Upstox credentials.""" monkeypatch.setenv("DSP_ENVIRONMENT", "production")
     monkeypatch.setenv("DSP_INVESTMENT_DATA_PROVIDER", "upstox")
     monkeypatch.setenv("DSP_UPSTOX_ANALYTICS_TOKEN", _UPSTOX_TOKEN)
     quote = build_default_quote_adapter_from_env()

@@ -111,8 +111,7 @@ class TestCoherenceInvariants:
                     is GuidanceStance.STAND_ASIDE
                 )
                 rationale = pack.assurance.investor_guidance.rationale.lower()
-                assert "invest immediately" not in rationale
-                assert "accumulate" not in rationale
+                assert "invest immediately" not in rationale assert"accumulate" not in rationale
 
     def test_no_high_with_thin_evidence(self, instrument: Instrument) -> None:
         for pack in _packs(instrument):

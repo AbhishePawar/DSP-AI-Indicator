@@ -67,8 +67,7 @@ class ToolDeclaration:
         if not isinstance(output_schema, Sequence) or isinstance(output_schema, (str, bytes)):
             raise ValueError("manifest entry missing output_schema")
         # Refuse provenance / internals if a caller tries to smuggle them.
-        if "provenance" in entry or "validation_status" in entry:
-            raise ValueError("manifest entry must not include provenance")
+        if "provenance" in entry or "validation_status" in entry: raise ValueError("manifest entry must not include provenance")
         return cls(
             name=name,
             version=version,

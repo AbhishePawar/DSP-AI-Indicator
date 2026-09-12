@@ -9,10 +9,7 @@ export const DATA_UNAVAILABLE = "Data unavailable.";
 export const UNABLE_TO_CALCULATE = "Unable to calculate.";
 
 export type TrustLadderLayerId =
-  | "facts"
-  | "analysis"
-  | "inference"
-  | "recommendation";
+  | "facts" |"analysis" |"inference" |"recommendation";
 
 export type TrustLadderLayer = {
   id: TrustLadderLayerId;
@@ -33,12 +30,7 @@ export type EvidenceCompleteness = {
 
 export type SurfaceTrustSummary = {
   surface:
-    | "dashboard"
-    | "portfolio"
-    | "research_workspace"
-    | "ird"
-    | "company_analysis"
-    | "institutional_reports";
+    | "dashboard" |"portfolio" |"research_workspace" |"ird" |"company_analysis" |"institutional_reports";
   layers: TrustLadderLayer[];
   evidence: EvidenceCompleteness;
   confidenceDisplay: string;
@@ -164,8 +156,7 @@ export function portfolioSurfaceTrust(input: {
       presence: analysisPresent
         ? "available"
         : input.researchTotal > 0
-          ? "partial"
-          : "unavailable",
+          ? "partial" :"unavailable",
     },
     {
       id: "inference",
@@ -189,8 +180,7 @@ export function portfolioSurfaceTrust(input: {
     evidence: buildEvidenceCompleteness(present, 3),
     confidenceDisplay: input.confidenceDisplay?.trim() || DATA_UNAVAILABLE,
     confidenceLevel: input.confidenceDisplay?.trim()
-      ? "moderate"
-      : "unavailable",
+      ? "moderate" :"unavailable",
     contradictoryEvidence: (input.opposingNotes ?? []).filter(Boolean),
     auditTrail: [
       `Audit: portfolio surface · holdings=${input.holdingsCount} · coverage=${input.researchCovered}/${input.researchTotal}`,
@@ -228,8 +218,7 @@ export function researchWorkspaceSurfaceTrust(input: {
       presence: factsPresent
         ? "available"
         : hasTicker
-          ? "partial"
-          : "unavailable",
+          ? "partial" :"unavailable",
     },
     {
       id: "analysis",
@@ -260,8 +249,7 @@ export function researchWorkspaceSurfaceTrust(input: {
     evidence: buildEvidenceCompleteness(present, 3),
     confidenceDisplay: input.confidenceDisplay?.trim() || DATA_UNAVAILABLE,
     confidenceLevel: input.confidenceDisplay?.trim()
-      ? "moderate"
-      : "insufficient_evidence",
+      ? "moderate" :"insufficient_evidence",
     contradictoryEvidence: (input.opposingNotes ?? []).filter(Boolean),
     auditTrail: [
       `Audit: research workspace · ticker=${input.ticker ?? "none"} · at=${input.analysedAt ?? DATA_UNAVAILABLE}`,
@@ -327,8 +315,7 @@ export function irdSurfaceTrust(input: {
     ),
     confidenceDisplay: input.confidenceDisplay?.trim() || DATA_UNAVAILABLE,
     confidenceLevel: input.confidenceDisplay?.trim()
-      ? "moderate"
-      : "insufficient_evidence",
+      ? "moderate" :"insufficient_evidence",
     contradictoryEvidence: (input.opposingNotes ?? []).filter(Boolean),
     auditTrail: [
       `Audit: IRD · ticker=${input.ticker ?? "none"} · loaded=${input.loaded} · ts=${input.reportTimestamp ?? DATA_UNAVAILABLE}`,

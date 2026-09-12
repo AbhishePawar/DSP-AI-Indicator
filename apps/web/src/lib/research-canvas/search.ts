@@ -13,14 +13,7 @@ export type CanvasSearchHit = {
   id: string;
   label: string;
   group:
-    | "Companies"
-    | "Research"
-    | "Notes"
-    | "Reports"
-    | "Comparisons"
-    | "Timeline"
-    | "Committee"
-    | "Tabs";
+    | "Companies" |"Research" |"Notes" |"Reports" |"Comparisons" |"Timeline" |"Committee" |"Tabs";
   href: string;
   detail?: string;
 };

@@ -65,8 +65,7 @@ def validate_business_quality_input(source: Any) -> BusinessQualityValidation:
     )
     if not result.ok:
         raise BusinessQualityValidationError(
-            "Missing required Business Quality evidence: "
-            + (", ".join(result.missing_inputs) or "unknown")
+            "Missing required Business Quality evidence: " + (", ".join(result.missing_inputs) or "unknown")
         )
 
     warnings: list[str] = []

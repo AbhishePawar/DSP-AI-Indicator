@@ -4,6 +4,9 @@ import dynamic from "next/dynamic";
 import { use } from "react";
 
 import { Skeleton } from "@/components/ui/Skeleton";
+import { ClientDetailWorkspace } from '../../../../components/advisor/AdvisorWorkspace';
+
+
 const ClientDetailWorkspace = dynamic(
   () =>
     import("@/components/advisor/AdvisorWorkspace").then((m) => m.ClientDetailWorkspace),

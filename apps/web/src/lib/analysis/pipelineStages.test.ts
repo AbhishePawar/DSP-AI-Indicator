@@ -12,7 +12,7 @@ import {
 
 describe("pipeline stages", () => {
   it("defines the terminal pipeline order", () => {
-    expect(PIPELINE_STAGE_DEFS.map((s) => s.label)).toEqual([
+    expect(PIPELINE_STAGE_DEFS?.map((s) => s?.label))?.toEqual([
       "Financial Analysis",
       "Valuation",
       "Economic Moat",
@@ -39,9 +39,9 @@ describe("pipeline stages", () => {
         error: "missing",
       },
     ]);
-    expect(stages[0]?.status).toBe("Completed");
-    expect(stages[1]?.status).toBe("Failed");
-    expect(stages[2]?.status).toBe("Pending");
+    expect(stages?.[0]?.status)?.toBe("Completed");
+    expect(stages?.[1]?.status)?.toBe("Failed");
+    expect(stages?.[2]?.status)?.toBe("Pending");
   });
 });
 
@@ -62,9 +62,9 @@ describe("recent analyses session store", () => {
       recommendation: "Hold",
       analysedAt: "2026-07-27T01:00:00.000Z",
     });
-    expect(next).toHaveLength(1);
-    expect(next[0]?.recommendation).toBe("Hold");
-    expect(loadRecentAnalyses()).toHaveLength(1);
+    expect(next)?.toHaveLength(1);
+    expect(next?.[0]?.recommendation)?.toBe("Hold");
+    expect(loadRecentAnalyses())?.toHaveLength(1);
     clearRecentAnalyses();
   });
 });

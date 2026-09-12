@@ -77,22 +77,6 @@ const LIB_ALLOWLIST = new Set([
   "ops",
   "control-center",
   "trust",
-  // Presentation modules present on main but previously omitted from this gate.
-  "business-education",
-  "company-comparison",
-  "institutional-reports",
-  "legal",
-  "performance",
-  "research-canvas",
-  "research-intelligence",
-  // SIMPLE-14I-A / rocket-update — new presentation-only lib dirs.
-  "account-settings",
-  "alerts",
-  "analytics",
-  "onboarding",
-  "rateLimit",
-  "supabase",
-  "watchlists",
 ]);
 
 const CALC_SMELL_RE =

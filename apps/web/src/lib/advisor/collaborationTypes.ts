@@ -5,16 +5,7 @@
 export type CollaborationWorkspaceKind = "my" | "shared";
 
 export type CollaborationNavId =
-  | "overview"
-  | "dashboard"
-  | "my_work"
-  | "shared_research"
-  | "shared_reviews"
-  | "shared_portfolios"
-  | "discussions"
-  | "assignments"
-  | "activity"
-  | "validation";
+  | "overview" |"dashboard" |"my_work" |"shared_research" |"shared_reviews" |"shared_portfolios" |"discussions" |"assignments" |"activity" |"validation";
 
 export type CollaborationPanelId = "sidebar" | "main" | "context";
 

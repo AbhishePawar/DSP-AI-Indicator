@@ -17,27 +17,27 @@ const repoRoot = join(__dirname, "..", "..", "..", "..");
 
 describe("P7.0 production infrastructure", () => {
   it("aligns production versions", () => {
-    expect(FRONTEND_FOUNDATION_VERSION).toBe("2.0.0-rc.1");
-    expect(FRONTEND_FOUNDATION_EPIC).toBe("EPS-003");
-    expect(FRONTEND_FOUNDATION_STATUS).toBe("release-candidate");
-    expect(BACKEND_PLATFORM_TARGET).toBe("dsp_platform@2.0.0");
-    expect(API_CONTRACT_TARGET).toBe("v1.0.0");
+    expect(FRONTEND_FOUNDATION_VERSION)?.toBe("2.0.0-rc.1");
+    expect(FRONTEND_FOUNDATION_EPIC)?.toBe("EPS-003");
+    expect(FRONTEND_FOUNDATION_STATUS)?.toBe("release-candidate");
+    expect(BACKEND_PLATFORM_TARGET)?.toBe("dsp_platform@2.0.0");
+    expect(API_CONTRACT_TARGET)?.toBe("v1.0.0");
   });
 
   it("ships Caddy HTTPS/HSTS and production compose", () => {
     const caddy = readFileSync(join(repoRoot, "docker", "Caddyfile"), "utf8");
-    expect(caddy).toMatch(/Strict-Transport-Security/);
-    expect(caddy).toMatch(/reverse_proxy api:8000/);
-    expect(caddy).toMatch(/encode gzip/);
+    expect(caddy)?.toMatch(/Strict-Transport-Security/);
+    expect(caddy)?.toMatch(/reverse_proxy api:8000/);
+    expect(caddy)?.toMatch(/encode gzip/);
 
     const compose = readFileSync(
       join(repoRoot, "docker", "docker-compose.production.yml"),
       "utf8",
     );
-    expect(compose).toMatch(/caddy:/);
-    expect(compose).toMatch(/postgres:/);
-    expect(compose).toMatch(/prometheus:/);
-    expect(compose).toMatch(/dsp-api:.*1\.7\.2|DSP_IMAGE_TAG:-1\.7\.2/);
+    expect(compose)?.toMatch(/caddy:/);
+    expect(compose)?.toMatch(/postgres:/);
+    expect(compose)?.toMatch(/prometheus:/);
+    expect(compose)?.toMatch(/dsp-api:.*1\.7\.2|DSP_IMAGE_TAG:-1\.7\.2/);
   });
 
   it("documents P7 deployment and certification", () => {
@@ -49,8 +49,8 @@ describe("P7.0 production infrastructure", () => {
       join(repoRoot, "docs", "P7_PRODUCTION_CERTIFICATION.md"),
       "utf8",
     );
-    expect(deploy).toMatch(/Let's Encrypt|Caddy|HTTPS/i);
-    expect(cert).toMatch(/GO WITH CONDITIONS|GO \/ NO-GO|Production Readiness/i);
+    expect(deploy)?.toMatch(/Let's Encrypt|Caddy|HTTPS/i);
+    expect(cert)?.toMatch(/GO WITH CONDITIONS|GO \/ NO-GO|Production Readiness/i);
   });
 
   it("exposes deploy/backup/rollback scripts", () => {
@@ -61,7 +61,7 @@ describe("P7.0 production infrastructure", () => {
       "restore_database.sh",
     ]) {
       const body = readFileSync(join(repoRoot, "scripts", name), "utf8");
-      expect(body.length).toBeGreaterThan(80);
+      expect(body?.length)?.toBeGreaterThan(80);
     }
   });
 });

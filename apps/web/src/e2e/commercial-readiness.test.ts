@@ -25,42 +25,42 @@ const repoRoot = join(__dirname, "..", "..", "..", "..");
 
 describe("P6.1 commercial readiness", () => {
   it("aligns versions and epic", () => {
-    expect(FRONTEND_FOUNDATION_VERSION).toBe("2.0.0-rc.1");
-    expect(FRONTEND_FOUNDATION_EPIC).toBe("EPS-003");
-    expect(FRONTEND_FOUNDATION_STATUS).toBe("release-candidate");
-    expect(BACKEND_PLATFORM_TARGET).toBe("dsp_platform@2.0.0");
-    expect(API_CONTRACT_TARGET).toBe("v1.0.0");
-    expect(env.frontendVersion).toBe("2.0.0-rc.1");
-    expect(manifest.appVersion).toBe("2.0.0-rc.1");
-    expect(manifest.foundationEpic).toBe("EPS-003");
-    expect(manifest.channel).toBe("rc");
+    expect(FRONTEND_FOUNDATION_VERSION)?.toBe("2.0.0-rc.1");
+    expect(FRONTEND_FOUNDATION_EPIC)?.toBe("EPS-003");
+    expect(FRONTEND_FOUNDATION_STATUS)?.toBe("release-candidate");
+    expect(BACKEND_PLATFORM_TARGET)?.toBe("dsp_platform@2.0.0");
+    expect(API_CONTRACT_TARGET)?.toBe("v1.0.0");
+    expect(env.frontendVersion)?.toBe("2.0.0-rc.1");
+    expect(manifest?.appVersion)?.toBe("2.0.0-rc.1");
+    expect(manifest?.foundationEpic)?.toBe("EPS-003");
+    expect(manifest?.channel)?.toBe("rc");
   });
 
   it("exposes product editions and support contacts", () => {
-    expect(PRODUCT_EDITIONS.map((e) => e.id)).toEqual([
+    expect(PRODUCT_EDITIONS?.map((e) => e?.id))?.toEqual([
       "research",
       "professional",
       "enterprise",
     ]);
-    expect(SUPPORT_CONTACT.email).toMatch(/support@/);
-    expect(SUPPORT_CONTACT.salesEmail).toMatch(/sales@/);
-    expect(SAMPLE_ANALYSIS_SYMBOL).toBe("AAPL");
+    expect(SUPPORT_CONTACT?.email)?.toMatch(/support@/);
+    expect(SUPPORT_CONTACT?.salesEmail)?.toMatch(/sales@/);
+    expect(SAMPLE_ANALYSIS_SYMBOL)?.toBe("AAPL");
   });
 
   it("keeps commercial onboarding tutorial steps", () => {
-    expect(TUTORIAL_STEPS.length).toBeGreaterThanOrEqual(5);
-    expect(TUTORIAL_STEPS[0]?.id).toBe("welcome");
-    expect(TUTORIAL_STEPS.some((s) => s.id === "support")).toBe(true);
-    expect(TUTORIAL_STEPS[0]?.body).toMatch(/Research Mode/i);
+    expect(TUTORIAL_STEPS?.length)?.toBeGreaterThanOrEqual(5);
+    expect(TUTORIAL_STEPS?.[0]?.id)?.toBe("welcome");
+    expect(TUTORIAL_STEPS?.some((s) => s?.id === "support"))?.toBe(true);
+    expect(TUTORIAL_STEPS?.[0]?.body)?.toMatch(/Research Mode/i);
   });
 
   it("documents commercial readiness programme", () => {
     const path = join(repoRoot, "docs", "P6_1_COMMERCIAL_READINESS.md");
     const body = readFileSync(path, "utf8");
-    expect(body).toMatch(/READY WITH MINOR CONDITIONS/);
-    expect(body).toMatch(/Product packaging/i);
-    expect(body).toMatch(/Operational runbooks/i);
-    expect(body).toMatch(/\*\*PASS\*\*/);
+    expect(body)?.toMatch(/READY WITH MINOR CONDITIONS/);
+    expect(body)?.toMatch(/Product packaging/i);
+    expect(body)?.toMatch(/Operational runbooks/i);
+    expect(body)?.toMatch(/\*\*PASS\*\*/);
   });
 
   it("keeps commercial documentation artifacts", () => {
@@ -74,7 +74,7 @@ describe("P6.1 commercial readiness", () => {
       ["docs", "media-kit", "README.md"],
     ]) {
       const path = join(repoRoot, ...rel);
-      expect(readFileSync(path, "utf8").length).toBeGreaterThan(100);
+      expect(readFileSync(path, "utf8")?.length)?.toBeGreaterThan(100);
     }
   });
 });

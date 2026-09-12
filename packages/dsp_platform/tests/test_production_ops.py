@@ -52,8 +52,7 @@ def test_dependencies_and_observability() -> None:
     deps = run_production_ops("dependencies", platform=platform)
     assert deps["ok"] is True
     names = {c["name"] for c in deps["result"]["components"]}
-    assert "platform" in names
-    assert "database" in names
+    assert "platform"in names assert"database" in names
     obs = run_production_ops("observability", platform=platform)
     assert obs["ok"] is True
     assert obs["result"]["structured_logging"]["format"] == "json"

@@ -1,7 +1,6 @@
 """Concrete Yahoo Finance fundamentals adapter.
 
-This is the platform's first real ``FundamentalsDataPort`` integration.
-It is the only class that knows Yahoo Finance's quoteSummary modules,
+This is the platform's first real ``FundamentalsDataPort`` integration. It is the only class that knows Yahoo Finance's quoteSummary modules,
 field labels, and nested ``{raw, fmt}`` value shape. Everything
 downstream (``DefaultFundamentalNormalizer``, ``FundamentalsDataService``,
 the Fundamental Engine) only ever sees ``contracts.FundamentalStatement``.
@@ -215,8 +214,7 @@ class YahooFinanceFundamentalsAdapter(BaseAdapter, FundamentalsDataPort):
                 raise
             except Exception as exc:
                 msg = (
-                    f"failed to normalize yahoo_finance_fundamentals data "
-                    f"for '{instrument.symbol}': {exc}"
+                    f"failed to normalize yahoo_finance_fundamentals data " f"for '{instrument.symbol}': {exc}"
                 )
                 raise TransformationError(msg) from exc
 

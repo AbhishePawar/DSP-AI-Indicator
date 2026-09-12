@@ -221,13 +221,11 @@ def _postgres_port():
 @pytest.mark.skipif(
     _postgres_port() is None,
     reason=(
-        "P1-08 real PostgreSQL restore evidence unavailable on this host "
-        "(no DSP_DATABASE_URL / psycopg / reachable Postgres)"
+        "P1-08 real PostgreSQL restore evidence unavailable on this host " "(no DSP_DATABASE_URL / psycopg / reachable Postgres)"
     ),
 )
 def test_postgres_logical_restore_drill(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
-    """Real PostgreSQL evidence path — skipped when Postgres is not available."""
-    monkeypatch.setenv(RESTORE_CONFIRM_ENV, "YES")
+    """Real PostgreSQL evidence path — skipped when Postgres is not available.""" monkeypatch.setenv(RESTORE_CONFIRM_ENV,"YES")
     db = _postgres_port()
     assert db is not None
 

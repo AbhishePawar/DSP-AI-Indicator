@@ -644,9 +644,7 @@ function MyWorkBody() {
       <CardHeader
         title="Open tasks"
         description={
-          session.selectedWorkspace === "my"
-            ? "Personal demo tasks and follow-ups"
-            : "Shared view of demo assignments (session)"
+          session.selectedWorkspace === "my" ?"Personal demo tasks and follow-ups" :"Shared view of demo assignments (session)"
         }
       />
       <CardBody>

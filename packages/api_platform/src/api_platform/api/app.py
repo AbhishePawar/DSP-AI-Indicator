@@ -84,8 +84,7 @@ API_VERSION = "v1"
 API_TITLE = "DSP AI Indicator API Platform"
 API_DESCRIPTION = (
     "HTTP surface over ``dsp_platform``. Contains no business logic — "
-    "routes validate requests and delegate to DSPPlatform public methods. "
-    "EPIC-002 exposes composition via POST /api/v1/analyse."
+    "routes validate requests and delegate to DSPPlatform public methods. " "EPIC-002 exposes composition via POST /api/v1/analyse."
 )
 
 

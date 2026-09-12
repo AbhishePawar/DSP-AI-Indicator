@@ -12,15 +12,15 @@ export function AdvisorSidebar() {
       aria-label="Advisor sections"
       className="flex flex-wrap gap-1 rounded-lg border border-[var(--border)] bg-[var(--surface)] p-2 sm:flex-col sm:w-48 sm:shrink-0"
     >
-      {ADVISOR_SECTIONS.map((section) => {
+      {ADVISOR_SECTIONS?.map((section) => {
         const active =
-          section.href === "/advisor"
+          section?.href === "/advisor"
             ? pathname === "/advisor"
-            : pathname === section.href || pathname.startsWith(`${section.href}/`);
+            : pathname === section?.href || pathname?.startsWith(`${section?.href}/`);
         return (
           <Link
-            key={section.id}
-            href={section.href}
+            key={section?.id}
+            href={section?.href}
             aria-current={active ? "page" : undefined}
             className={`min-h-11 rounded-md px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] ${
               active
@@ -28,7 +28,7 @@ export function AdvisorSidebar() {
                 : "text-[var(--muted)] hover:bg-[var(--surface-2)] hover:text-[var(--fg)]"
             }`}
           >
-            {section.label}
+            {section?.label}
           </Link>
         );
       })}

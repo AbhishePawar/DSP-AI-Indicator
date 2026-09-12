@@ -69,8 +69,6 @@ def require_upstox_analytics_token(
     if is_production_environment(environ):  # type: ignore[arg-type]
         raise ConnectorConfigurationError(
             f"P1-03: production requires authenticated {connector} provider; "
-            f"{DSP_INVESTMENT_DATA_PROVIDER_ENV}=upstox but "
-            "DSP_UPSTOX_ANALYTICS_TOKEN is absent. "
-            "Null/demo/seed/FMP fallback is not permitted when Upstox is selected."
+            f"{DSP_INVESTMENT_DATA_PROVIDER_ENV}=upstox but " "DSP_UPSTOX_ANALYTICS_TOKEN is absent. " "Null/demo/seed/FMP fallback is not permitted when Upstox is selected."
         )
     return ""

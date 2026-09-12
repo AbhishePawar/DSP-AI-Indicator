@@ -111,8 +111,7 @@ class TestResearchAssemblyArchitecture:
 
     def test_assembler_does_not_import_test_fixture(self) -> None:
         text = (_SRC / "assembler.py").read_text(encoding="utf-8")
-        assert "research_assembly.testing" not in text
-        assert "build_test_only_ai_output_fixture" not in text
+        assert "research_assembly.testing"not in text assert"build_test_only_ai_output_fixture" not in text
 
     def test_assembler_is_orchestration_only(self) -> None:
         text = _non_comment_source(_SRC / "assembler.py")
@@ -136,19 +135,12 @@ class TestResearchAssemblyArchitecture:
     def test_not_wired_to_analyse_http(self) -> None:
         routers = (
             _REPO
-            / "packages"
-            / "api_platform"
-            / "src"
-            / "api_platform"
-            / "api"
-            / "routers"
+            / "packages" /"api_platform" /"src" /"api_platform" /"api" /"routers"
         )
         for name in ("composition.py", "research.py", "copilot.py"):
             path = routers / name
             text = path.read_text(encoding="utf-8")
-            assert "assemble_canonical_research" not in text
-            assert "CanonicalResearchAssembly" not in text
-            assert "dsp_platform.research_assembly" not in text
+            assert "assemble_canonical_research"not in text assert"CanonicalResearchAssembly"not in text assert"dsp_platform.research_assembly" not in text
 
     def test_not_imported_by_llm_adapters(self) -> None:
         adapters_src = _REPO / "packages" / "llm_adapters" / "src" / "llm_adapters"

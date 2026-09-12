@@ -187,19 +187,14 @@ class TestAssemblerNoSynthesis:
     def test_no_mapper_import(self) -> None:
         source = (
             Path(__file__).resolve().parents[1]
-            / "src"
-            / "recommendation"
-            / "assembler.py"
+            / "src" /"recommendation" /"assembler.py"
         ).read_text(encoding="utf-8")
-        assert "RecommendationMapper" not in source
-        assert "mapper" not in source
+        assert "RecommendationMapper"not in source assert"mapper" not in source
 
     def test_no_scoring_ops(self) -> None:
         path = (
             Path(__file__).resolve().parents[1]
-            / "src"
-            / "recommendation"
-            / "assembler.py"
+            / "src" /"recommendation" /"assembler.py"
         )
         tree = ast.parse(path.read_text(encoding="utf-8"))
         forbidden = {"RecommendationOption", "RecommendationScore", "Decimal"}

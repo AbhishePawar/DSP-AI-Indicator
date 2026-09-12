@@ -80,9 +80,7 @@ class DiscountedCashFlowResult:
 
 _METHODOLOGY = (
     "DCF Intelligence (FCFF): CAPM WACC; explicit FCFF forecast "
-    "FCFF=EBIT(1−t)+D&A−CapEx−ΔNWC; Gordon and/or Exit Multiple terminal; "
-    "EV=ΣPV(FCFF)+PV(TV); Equity=EV−Debt−Minority+Cash+Investments; "
-    "MoS research posture from (intrinsic−market)/intrinsic."
+    "FCFF=EBIT(1−t)+D&A−CapEx−ΔNWC; Gordon and/or Exit Multiple terminal; " "EV=ΣPV(FCFF)+PV(TV); Equity=EV−Debt−Minority+Cash+Investments; " "MoS research posture from (intrinsic−market)/intrinsic."
 )
 
 _LIMITATIONS = (

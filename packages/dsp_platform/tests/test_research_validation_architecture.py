@@ -128,19 +128,12 @@ class TestResearchValidationArchitecture:
     def test_not_wired_to_analyse_or_research_http(self) -> None:
         routers = (
             _REPO
-            / "packages"
-            / "api_platform"
-            / "src"
-            / "api_platform"
-            / "api"
-            / "routers"
+            / "packages" /"api_platform" /"src" /"api_platform" /"api" /"routers"
         )
         for name in ("composition.py", "research.py", "copilot.py"):
             path = routers / name
             text = path.read_text(encoding="utf-8")
-            assert "validate_canonical_research" not in text
-            assert "CanonicalAIResearchOutput" not in text
-            assert "dsp_platform.research_validation" not in text
+            assert "validate_canonical_research"not in text assert"CanonicalAIResearchOutput"not in text assert"dsp_platform.research_validation" not in text
 
     def test_not_imported_by_llm_adapters_as_authority(self) -> None:
         adapters_src = _REPO / "packages" / "llm_adapters" / "src" / "llm_adapters"
@@ -155,17 +148,10 @@ class TestResearchValidationArchitecture:
     def test_old_tool_loop_validator_not_deleted(self) -> None:
         path = (
             _REPO
-            / "packages"
-            / "llm_adapters"
-            / "src"
-            / "llm_adapters"
-            / "orchestrator"
-            / "validation.py"
+            / "packages" /"llm_adapters" /"src" /"llm_adapters" /"orchestrator" /"validation.py"
         )
         text = path.read_text(encoding="utf-8")
-        assert "def validate_research_output(" in text
-        assert "ToolCallOutcome" in text
-        assert "DecisionPack" in text or "tool catalog" in text.lower()
+        assert "def validate_research_output("in text assert"ToolCallOutcome"in text assert"DecisionPack" in text or "tool catalog" in text.lower()
 
     def test_frontend_untouched(self) -> None:
         web = _REPO / "apps" / "web"

@@ -6,13 +6,13 @@ export const dynamic = "force-dynamic";
 
 export async function GET() {
   const info = getBuildInfo();
-  return NextResponse.json({
+  return NextResponse?.json({
     status: "alive",
     ready: true,
-    application_version: info.applicationVersion,
-    frontend_version: info.frontendVersion,
-    environment: info.environment,
-    build_timestamp: info.buildTimestamp,
-    api_base_url: info.apiBaseUrl,
+    application_version: info?.applicationVersion,
+    frontend_version: info?.frontendVersion,
+    environment: info?.environment,
+    build_timestamp: info?.buildTimestamp,
+    api_base_url: info?.apiBaseUrl,
   });
 }

@@ -381,8 +381,7 @@ def _metrics_summary(deps: ProductionOpsDeps | None = None) -> dict[str, Any]:
                 "ops_alias": "/ops/metrics",
                 "sample_series_count": len(lines),
                 "note": (
-                    "Full exposition at GET /metrics (Prometheus). "
-                    "Ops alias returns this summary + text."
+                    "Full exposition at GET /metrics (Prometheus). " "Ops alias returns this summary + text."
                 ),
                 "prometheus_text_preview": "\n".join(lines[:40]),
             }

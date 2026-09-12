@@ -127,20 +127,12 @@ class TestResearchReportArchitecture:
     def test_not_wired_to_analyse_or_research_http(self) -> None:
         routers = (
             _REPO
-            / "packages"
-            / "api_platform"
-            / "src"
-            / "api_platform"
-            / "api"
-            / "routers"
+            / "packages" /"api_platform" /"src" /"api_platform" /"api" /"routers"
         )
         for name in ("composition.py", "research.py", "copilot.py"):
             path = routers / name
             text = path.read_text(encoding="utf-8")
-            assert "PublicResearchReport" not in text
-            assert "build_public_research_report" not in text
-            assert "dsp_platform.research_report" not in text
-            assert "dsp.public_research_report" not in text
+            assert "PublicResearchReport"not in text assert"build_public_research_report"not in text assert"dsp_platform.research_report"not in text assert"dsp.public_research_report" not in text
 
     def test_not_imported_by_llm_adapters(self) -> None:
         adapters_src = _REPO / "packages" / "llm_adapters" / "src" / "llm_adapters"
@@ -149,8 +141,7 @@ class TestResearchReportArchitecture:
             text = path.read_text(encoding="utf-8")
             if (
                 "dsp_platform.research_report" in text
-                or "build_public_research_report" in text
-                or "PublicResearchReport" in text
+                or "build_public_research_report"in text or"PublicResearchReport" in text
             ):
                 offenders.append(path.as_posix())
         assert offenders == []

@@ -39,12 +39,7 @@ __all__ = ["DdmEngine", "DDM_VERSION"]
 
 _METHODOLOGY = (
     "Dividend Discount Model (research only). "
-    "Zero-growth: IV = DPS / r. "
-    "Gordon: IV = DPS₁ / (r − g). "
-    "Two-stage: Σ PV(D_t) + PV(Gordon terminal). "
-    "Multi-stage: user growth schedule then Gordon terminal. "
-    "Assumes dividends are the sole cash claim; growth and payout are "
-    "assumptions. Not investment advice."
+    "Zero-growth: IV = DPS / r. " "Gordon: IV = DPS₁ / (r − g). " "Two-stage: Σ PV(D_t) + PV(Gordon terminal). " "Multi-stage: user growth schedule then Gordon terminal. " "Assumes dividends are the sole cash claim; growth and payout are " "assumptions. Not investment advice."
 )
 
 _LIMITATIONS = (

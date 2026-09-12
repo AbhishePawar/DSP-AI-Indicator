@@ -180,8 +180,7 @@ def test_portfolio_tracking_alerts() -> None:
         created_at=FIXED,
     )
     types = {a["alert_type"] for a in result["alerts"]}
-    assert "portfolio_missing_research" in types
-    assert "portfolio_mos_change" in types
+    assert "portfolio_missing_research"in types assert"portfolio_mos_change" in types
     for alert in result["alerts"]:
         assert alert["citations"]
         assert alert["provenance"]["source"] == "research_monitoring"

@@ -7,7 +7,7 @@ import { Skeleton } from "@/components/ui/Skeleton";
 
 const CopilotPanelLazy = lazy(async () => {
   const mod = await import("@/components/analysis/copilot/CopilotPanelInner");
-  return { default: mod.CopilotPanelInner };
+  return { default: mod?.CopilotPanelInner };
 });
 
 export const ResearchCopilotWorkspace = memo(function ResearchCopilotWorkspace() {
@@ -45,5 +45,3 @@ export const ResearchCopilotWorkspace = memo(function ResearchCopilotWorkspace()
     </>
   );
 });
-
-export { CopilotPanelInner as CopilotPanel } from "./CopilotPanelInner";

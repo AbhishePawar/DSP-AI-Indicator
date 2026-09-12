@@ -71,16 +71,10 @@ def research_mode_templates(*, version: str = "2026.1") -> DisclosureTemplateCat
     as_of = format_ist()
     body_research = (
         "This platform operates in Research Mode by default. Outputs are educational "
-        "investment research and decision-support materials. They are not Buy, Sell, "
-        "or Hold recommendations under SEBI Research Analyst / Investment Adviser "
-        "regulations unless SEBI Mode is explicitly activated under a separate legal epic.\n\n"
-        f"Presentation timezone: Asia/Kolkata (IST). Currency presentation: INR (₹).\n"
-        f"Disclosure version: {version}. Generated: {as_of}."
+        "investment research and decision-support materials. They are not Buy, Sell, " "or Hold recommendations under SEBI Research Analyst / Investment Adviser " "regulations unless SEBI Mode is explicitly activated under a separate legal epic.\n\n" f"Presentation timezone: Asia/Kolkata (IST). Currency presentation: INR (₹).\n" f"Disclosure version: {version}. Generated: {as_of}."
     )
     body_data = (
-        "Personal data is processed under the Digital Personal Data Protection Act, 2023 "
-        "for specified purposes with versioned consent. You may request export or erasure "
-        "subject to legal retention overrides (including CERT-In audit retention)."
+        "Personal data is processed under the Digital Personal Data Protection Act, 2023 " "for specified purposes with versioned consent. You may request export or erasure " "subject to legal retention overrides (including CERT-In audit retention)."
     )
     body_ai = (
         "AI language features explain engine outputs; they do not override deterministic "
@@ -133,8 +127,7 @@ class InMemoryDisclosurePort:
                 disclosure_id="sebi_mode_gated",
                 title="SEBI Mode not activated",
                 body=(
-                    "SEBI Mode remains gated pending registration and legal activation. "
-                    "Research Mode disclosures continue to apply."
+                    "SEBI Mode remains gated pending registration and legal activation. " "Research Mode disclosures continue to apply."
                 ),
                 audience="retail",
                 mandatory=True,

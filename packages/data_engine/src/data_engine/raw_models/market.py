@@ -23,8 +23,7 @@ class RawMarketBar:
 
     Every value field is intentionally loosely typed (``Any``) because
     raw provider data has not yet been coerced, validated, or checked
-    for structural integrity — that is the Normalizer's and Validation
-    Pipeline's job, not this model's. A ``RawMarketBar`` only asserts
+    for structural integrity — that is the Normalizer's and Validation Pipeline's job, not this model's. A ``RawMarketBar`` only asserts
     that *some* value was reported for each attribute; it makes no
     claim about that value's type, range, or plausibility.
 
@@ -56,8 +55,7 @@ class RawMarketBar:
     extra: Mapping[str, Any] = field(default_factory=dict)
 
     def __post_init__(self) -> None:
-        """Wrap ``extra`` in a read-only view without validating its content."""
-        object.__setattr__(self, "extra", MappingProxyType(dict(self.extra)))
+        """Wrap ``extra`` in a read-only view without validating its content.""" object.__setattr__(self,"extra", MappingProxyType(dict(self.extra)))
 
 
 @dataclass(frozen=True, slots=True)
@@ -81,5 +79,4 @@ class RawMarketSeries:
     bars: tuple[RawMarketBar, ...]
 
     def __post_init__(self) -> None:
-        """Freeze ``bars`` into a tuple without validating its content."""
-        object.__setattr__(self, "bars", tuple(self.bars))
+        """Freeze ``bars`` into a tuple without validating its content.""" object.__setattr__(self,"bars", tuple(self.bars))

@@ -41,8 +41,7 @@ def validate_authenticated_filings(bundle: AuthenticatedFilings) -> None:
         )
     if not bundle.filings:
         raise InvalidProviderDataError(
-            "authenticated filings bundle must include at least one filing "
-            "(use None from adapter when unavailable)"
+            "authenticated filings bundle must include at least one filing " "(use None from adapter when unavailable)"
         )
     for i, filing in enumerate(bundle.filings):
         _validate_filing(filing, i)

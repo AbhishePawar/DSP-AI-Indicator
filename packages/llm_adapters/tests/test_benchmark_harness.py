@@ -80,8 +80,7 @@ def test_evaluator_perfect_match_scores_high() -> None:
     frozen = {"intrinsic_value_per_share": "180", "margin_of_safety": "12.0%"}
     narrative = (
         "The intrinsic value per share is 180 (frozen) with a margin of "
-        "safety of 12.0%. The current price is below intrinsic value "
-        "[evidence:r1]."
+        "safety of 12.0%. The current price is below intrinsic value " "[evidence:r1]."
     )
     v = evaluate_narrative(narrative, frozen)
     assert v.quality.factual_accuracy == 1.0
@@ -218,8 +217,7 @@ def test_report_summary_present() -> None:
     config = _no_key_config()
     runs = run_benchmark(config, cases=BENCHMARK_CASES[:1], models=BENCHMARK_MODELS[:1])
     report = build_report(runs)
-    assert "summary" in report
-    assert "rows" in report
+    assert "summary" in report assert"rows" in report
     for key in ("total_runs", "accepted", "failed_closed", "escalated"):
         assert key in report["summary"]
 

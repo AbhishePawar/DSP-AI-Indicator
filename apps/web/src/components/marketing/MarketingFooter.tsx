@@ -101,16 +101,16 @@ export function MarketingFooter() {
               </Link>
             </li>
             <li>
-              {SUPPORT_CONTACT.channelsPublished ? (
+              {SUPPORT_CONTACT?.channelsPublished ? (
                 <a
                   className="rounded-sm hover:text-[var(--accent)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
-                  href={`mailto:${SUPPORT_CONTACT.salesEmail}`}
+                  href={`mailto:${SUPPORT_CONTACT?.salesEmail}`}
                 >
-                  {SUPPORT_CONTACT.salesEmail}
+                  {SUPPORT_CONTACT?.salesEmail}
                 </a>
               ) : (
                 <span className="text-[var(--muted)]">
-                  {SUPPORT_CONTACT.unpublishedNote}
+                  {SUPPORT_CONTACT?.unpublishedNote}
                 </span>
               )}
             </li>
@@ -118,7 +118,7 @@ export function MarketingFooter() {
         </div>
       </div>
       <div className="border-t border-[var(--border)] px-4 py-4 text-center text-xs text-[var(--muted)] sm:px-6">
-        © {new Date().getFullYear()} {env.appName}. Research Mode by default.
+        © {new Date()?.getFullYear()} {env.appName}. Research Mode by default.
         Not a brokerage order router.
       </div>
     </footer>

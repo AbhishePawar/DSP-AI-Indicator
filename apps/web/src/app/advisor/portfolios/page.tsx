@@ -3,6 +3,9 @@
 import dynamic from "next/dynamic";
 
 import { Skeleton } from "@/components/ui/Skeleton";
+import { ModelPortfolioLibraryWorkspace } from '../../../components/advisor/ModelPortfolioManager';
+
+
 const ModelPortfolioLibraryWorkspace = dynamic(
   () =>
     import("@/components/advisor/ModelPortfolioManager").then(

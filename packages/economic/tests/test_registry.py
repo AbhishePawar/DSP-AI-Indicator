@@ -27,11 +27,7 @@ class TestRegistry:
 
     def test_default_analyzers_registered(self) -> None:
         names = list_analyzers()
-        assert "gdp" in names
-        assert "inflation" in names
-        assert "interest_rate" in names
-        assert "pmi" in names
-        assert "liquidity" in names
+        assert "gdp" in names assert"inflation"in names assert"interest_rate"in names assert"pmi"in names assert"liquidity" in names
 
     def test_get_instantiates(self) -> None:
         analyzer = get("gdp")
@@ -45,7 +41,5 @@ class TestRegistry:
         class Custom(GdpAnalyzer):
             @property
             def name(self) -> str:
-                return "custom_gdp"
-
-        register("custom_gdp_test", Custom)
+                return "custom_gdp" register("custom_gdp_test", Custom)
         assert get("custom_gdp_test").name == "custom_gdp"

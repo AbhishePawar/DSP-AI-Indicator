@@ -38,8 +38,7 @@ def make_statement(
     Every monetary default is chosen so every metric in this sprint
     (ROE, ROCE, operating margin, debt-to-equity, free cash flow) is
     computable out of the box; individual fields can be overridden
-    (including set to ``None``) to exercise "insufficient data" paths.
-    """
+    (including set to ``None``) to exercise "insufficient data" paths. """
     instrument = Instrument(
         symbol=symbol, asset_class=AssetClass.EQUITY, currency="USD"
     )

@@ -10,12 +10,13 @@ import http from "k6/http";
 import { check, sleep } from "k6";
 import { Rate, Trend } from "k6/metrics";
 
+const __ENV = {}; // Declare __ENV as a global variable to resolve the undeclared variable error
 const failRate = new Rate("dsp_health_fail_rate");
 const latency = new Trend("dsp_health_latency_ms");
 
-const BASE = __ENV.BASE_URL || "http://127.0.0.1:8000";
-const VUS = Number(__ENV.VUS || 50);
-const DURATION = __ENV.DURATION || "30s";
+const BASE = (typeof __ENV !== "undefined" && __ENV?.BASE_URL) ? __ENV?.BASE_URL : "http://127.0.0.1:8000";
+const VUS = Number((typeof __ENV !== "undefined" && __ENV?.VUS) ? __ENV?.VUS : 50);
+const DURATION = (typeof __ENV !== "undefined" && __ENV?.DURATION) ? __ENV?.DURATION : "30s";
 
 export const options = {
   vus: VUS,
@@ -29,12 +30,12 @@ export const options = {
 
 export default function () {
   const paths = ["/health/live", "/health/ready", "/metrics"];
-  const path = paths[Math.floor(Math.random() * paths.length)];
-  const res = http.get(`${BASE}${path}`, { tags: { path } });
+  const path = paths?.[Math.floor(Math.random() * paths?.length)];
+  const res = http?.get(`${BASE}${path}`, { tags: { path } });
   const ok = check(res, {
-    "status is 200 or 503": (r) => r.status === 200 || r.status === 503,
+    "status is 200 or 503": (r) => r?.status === 200 || r?.status === 503,
   });
-  failRate.add(!ok);
-  latency.add(res.timings.duration);
+  failRate?.add(!ok);
+  latency?.add(res?.timings?.duration);
   sleep(0.1);
 }

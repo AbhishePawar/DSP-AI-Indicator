@@ -144,8 +144,7 @@ class ResearchSynthesizer:
             if monitoring.portfolio_id != portfolio.portfolio_id:
                 msg = (
                     "foreign ownership: monitoring portfolio_id "
-                    f"{monitoring.portfolio_id!r} does not match "
-                    f"{portfolio.portfolio_id!r}"
+                    f"{monitoring.portfolio_id!r} does not match " f"{portfolio.portfolio_id!r}"
                 )
                 raise ResearchError(msg)
 
@@ -153,8 +152,7 @@ class ResearchSynthesizer:
             if context.report.research_id != profile.identity.research_id:
                 msg = (
                     "foreign ownership: report research_id "
-                    f"{context.report.research_id!r} does not match "
-                    f"{profile.identity.research_id!r}"
+                    f"{context.report.research_id!r} does not match " f"{profile.identity.research_id!r}"
                 )
                 raise ResearchError(msg)
 
@@ -264,8 +262,7 @@ class ResearchSynthesizer:
                 f"{c.dimension}: {c.status.value}" for c in coverage
             ),
             limitation_notes=(
-                "Qualitative synthesis only — no valuation, risk calculation, "
-                "or recommendations.",
+                "Qualitative synthesis only — no valuation, risk calculation, " "or recommendations.",
             ),
         )
 
@@ -313,8 +310,7 @@ class ResearchSynthesizer:
             risk_refs=risk_refs,
             integrated_risk_refs=integrated_risk_refs,
             limitations=(
-                "ResearchReport snapshot after synthesis — immutable; "
-                "later events require a new report.",
+                "ResearchReport snapshot after synthesis — immutable; " "later events require a new report.",
             ),
         )
 
@@ -539,8 +535,7 @@ class ResearchSynthesizer:
             ResearchInsight(
                 insight_id=f"{research_id}.insight.evidence_basis",
                 text=(
-                    "Evidence supports further investigation of knowledge "
-                    "coverage across cited subsystems."
+                    "Evidence supports further investigation of knowledge " "coverage across cited subsystems."
                 ),
                 observation_ids=(evidence_obs.observation_id,),
                 evidence_refs=evidence_refs,
@@ -560,8 +555,7 @@ class ResearchSynthesizer:
                     ResearchInsight(
                         insight_id=f"{research_id}.insight.coverage_gaps",
                         text=(
-                            "Evidence indicates coverage gaps that need "
-                            "investigation before research can be considered complete."
+                            "Evidence indicates coverage gaps that need " "investigation before research can be considered complete."
                         ),
                         observation_ids=gap_obs_ids,
                         evidence_refs=evidence_refs,
@@ -575,8 +569,7 @@ class ResearchSynthesizer:
                 ResearchInsight(
                     insight_id=f"{research_id}.insight.structural_conflicts",
                     text=(
-                        "Evidence indicates structural citation conflicts that "
-                        "require validation by analysts."
+                        "Evidence indicates structural citation conflicts that " "require validation by analysts."
                     ),
                     observation_ids=(evidence_obs.observation_id,),
                     evidence_refs=evidence_refs,
@@ -625,8 +618,7 @@ class ResearchSynthesizer:
                     if conflict.severity is ResearchConflictSeverity.LOW
                     else ResearchPriorityLevel.HIGH,
                     text=(
-                        "Needs investigation to reconcile a descriptive "
-                        "citation conflict."
+                        "Needs investigation to reconcile a descriptive " "citation conflict."
                     ),
                     conflict_ids=(conflict.conflict_id,),
                     observation_ids=(observations[0].observation_id,),
@@ -638,8 +630,7 @@ class ResearchSynthesizer:
                     priority_id=f"{research_id}.priority.validate_coverage",
                     level=ResearchPriorityLevel.LOW,
                     text=(
-                        "Needs investigation to validate cited coverage even "
-                        "where citations appear present."
+                        "Needs investigation to validate cited coverage even " "where citations appear present."
                     ),
                     insight_ids=(insights[0].insight_id,),
                     observation_ids=(observations[0].observation_id,),

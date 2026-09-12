@@ -259,8 +259,7 @@ def test_buffett_methodology_is_existing_pipeline_stages() -> None:
 def test_buffett_overall_and_recommendation_scores_are_distinct() -> None:
     _request, _result, package, report = _compose()
     dumped = report.to_public_dict()
-    assert "overall_score" not in dumped
-    assert "overall_score" not in dumped["buffett_analysis"]
+    assert "overall_score" not in dumped assert"overall_score" not in dumped["buffett_analysis"]
     assert "overall_score" not in dumped["recommendation"]
     buffett = report.buffett_analysis.buffett_overall_score_100
     rec = report.recommendation.recommendation_score_100
@@ -308,12 +307,7 @@ def test_research_package_is_not_the_public_dto() -> None:
     package_dump = package.to_dict()
     assert dumped != package_dump
     assert dumped["schema_version"] != RESEARCH_PACKAGE_SCHEMA_VERSION
-    assert "pipeline_ok" not in dumped
-    assert "errors" not in dumped
-    assert "buffett_authority" not in dumped
-    assert "investment_committee" not in dumped
-    assert "research_package" not in dumped
-    assert not hasattr(PublicResearchReport, "from_dict")
+    assert "pipeline_ok"not in dumped assert"errors"not in dumped assert"buffett_authority"not in dumped assert"investment_committee"not in dumped assert"research_package"not in dumped assert not hasattr(PublicResearchReport,"from_dict")
     assert not hasattr(PublicResearchReport, "from_json")
 
 

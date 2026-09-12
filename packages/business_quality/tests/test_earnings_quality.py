@@ -222,10 +222,7 @@ class TestEarningsQuality:
         result = EarningsQualityEngine().analyze(fa)
         assert result.metadata.engine_version == EARNINGS_QUALITY_VERSION
         names = {a.name for a in result.assessments}
-        assert "revenue_quality" in names
-        assert "accrual_quality" in names
-        assert "margin_stability" in names
-        assert "free_cash_flow_support" in names
+        assert "revenue_quality" in names assert"accrual_quality"in names assert"margin_stability"in names assert"free_cash_flow_support" in names
         assert result.explainability
         assert result.evidence
         payload = result.to_dict()
@@ -482,7 +479,6 @@ class TestPackageVersion:
     def test_version(self) -> None:
         import business_quality as bq
 
-        assert bq.__version__ == "0.7.0"
-        assert hasattr(bq, "EarningsQualityAnalysis")
+        assert bq.__version__ == "0.7.0" assert hasattr(bq,"EarningsQualityAnalysis")
         assert hasattr(bq, "analyze_earnings_quality") is False
         assert hasattr(bq.BusinessQualityEngine, "analyze_earnings_quality")

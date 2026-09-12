@@ -200,8 +200,7 @@ export function HoldingsSection({
                   <TableCell>
                     <Badge variant={h.researchAvailable ? "accent" : "outline"}>
                       {h.researchAvailable
-                        ? "Session flag: linked"
-                        : "Not linked"}
+                        ? "Session flag: linked" :"Not linked"}
                     </Badge>
                   </TableCell>
                   <TableCell>
@@ -405,8 +404,7 @@ export function MonitoringSection({
         <WorkspaceEmpty
           description={
             featureFlags.showResearchAlerts
-              ? "Data unavailable. Alert feed API not wired."
-              : "Data unavailable. Research alerts remain gated by feature flags."
+              ? "Data unavailable. Alert feed API not wired." :"Data unavailable. Research alerts remain gated by feature flags."
           }
         />
       </SectionCard>

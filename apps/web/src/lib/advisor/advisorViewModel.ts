@@ -106,9 +106,7 @@ export function buildClientDashboard(clientId: string): ClientDashboardView | nu
     portfolioHealth: client.portfolioHealthLabel,
     meetingStatus: upcoming
       ? `Upcoming · ${upcoming.title}`
-      : client.reviewStatus === "overdue"
-        ? "No upcoming meeting · review overdue"
-        : "No upcoming meeting",
+      : client.reviewStatus === "overdue" ?"No upcoming meeting · review overdue" :"No upcoming meeting",
     outstandingTasks,
     recentResearch,
     riskLevel: client.riskProfile,

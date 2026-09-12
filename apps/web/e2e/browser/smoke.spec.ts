@@ -1,4 +1,5 @@
-import { expect, test } from "@playwright/test";
+import { expect, test } from "vitest";
+
 
 /**
  * EPIC-019A — Cross-browser smoke (Chromium / Firefox / WebKit / Edge projects).

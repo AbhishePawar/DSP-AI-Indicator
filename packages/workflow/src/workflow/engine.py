@@ -91,8 +91,7 @@ class StepFacadeResult:
         if self.status is WorkflowStepState.FAILED:
             if self.failure_class is None or not (self.failure_message or "").strip():
                 msg = (
-                    "missing provenance: FAILED façade result requires "
-                    "failure_class and failure_message"
+                    "missing provenance: FAILED façade result requires " "failure_class and failure_message"
                 )
                 raise WorkflowError(msg)
             if self.failure_class not in FailureClass:
@@ -218,8 +217,7 @@ class WorkflowEngine:
             raise WorkflowError(msg)
         if profile.workflow_id != report.workflow_id:
             msg = (
-                "engine/report identity mismatch: "
-                f"profile {profile.workflow_id!r} vs report {report.workflow_id!r}"
+                "engine/report identity mismatch: " f"profile {profile.workflow_id!r} vs report {report.workflow_id!r}"
             )
             raise WorkflowError(msg)
         if (
@@ -227,9 +225,7 @@ class WorkflowEngine:
             and context.profile.workflow_id != context.assembly.profile.workflow_id
         ):
             msg = (
-                "engine/report identity mismatch: context profile "
-                f"{context.profile.workflow_id!r} vs assembly "
-                f"{context.assembly.profile.workflow_id!r}"
+                "engine/report identity mismatch: context profile " f"{context.profile.workflow_id!r} vs assembly " f"{context.assembly.profile.workflow_id!r}"
             )
             raise WorkflowError(msg)
         if not profile.steps:
@@ -243,8 +239,7 @@ class WorkflowEngine:
             raise WorkflowError(msg)
         if profile.state not in {WorkflowState.PENDING, WorkflowState.READY}:
             msg = (
-                f"illegal state transitions: engine start requires pending/ready, "
-                f"got {profile.state.value!r}"
+                f"illegal state transitions: engine start requires pending/ready, " f"got {profile.state.value!r}"
             )
             raise WorkflowError(msg)
         for step in profile.steps:
@@ -687,8 +682,7 @@ class WorkflowEngine:
             quantitative_risk_refs=profile.quantitative_risk_refs,
             recommendation_refs=profile.recommendation_refs,
             limitations=(
-                "WorkflowReport populated by Workflow Engine — "
-                "Reporter (H1.3) may refine presentation.",
+                "WorkflowReport populated by Workflow Engine — " "Reporter (H1.3) may refine presentation.",
                 *summary.limitation_notes,
                 *report.limitations,
             ),

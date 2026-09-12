@@ -18,13 +18,13 @@ export default function CompaniesPage() {
   const stats = getCatalogueStats();
   const featured = getFeaturedCompanies();
   const results = useMemo(() => searchCatalogue(query), [query]);
-  const isSearching = query.trim().length > 0;
+  const isSearching = query?.trim()?.length > 0;
 
   return (
     <div className="space-y-8">
       <PageHeader
         title="Company Directory"
-        description={`Browse companies and open detailed investment research. ${stats.total} companies available.`}
+        description={`Browse companies and open detailed investment research. ${stats?.total} companies available.`}
       />
 
       <CompanySearch value={query} onChange={setQuery} />

@@ -104,8 +104,7 @@ class ResearchReporter:
             if context.base_report.research_id != profile.identity.research_id:
                 msg = (
                     "foreign ownership: report research_id "
-                    f"{context.base_report.research_id!r} does not match "
-                    f"{profile.identity.research_id!r}"
+                    f"{context.base_report.research_id!r} does not match " f"{profile.identity.research_id!r}"
                 )
                 raise ResearchError(msg)
 
@@ -141,8 +140,7 @@ class ResearchReporter:
         ):
             msg = (
                 "foreign ownership: monitoring portfolio_id "
-                f"{profile.monitoring_ref.portfolio_id!r} does not match "
-                f"{profile.portfolio_ref.portfolio_id!r}"
+                f"{profile.monitoring_ref.portfolio_id!r} does not match " f"{profile.portfolio_ref.portfolio_id!r}"
             )
             raise ResearchError(msg)
 
@@ -394,8 +392,7 @@ class ResearchReporter:
         for cov in coverage:
             if cov.dimension in seen:
                 msg = (
-                    f"duplicate report sections: coverage dimension "
-                    f"{cov.dimension!r}"
+                    f"duplicate report sections: coverage dimension " f"{cov.dimension!r}"
                 )
                 raise ResearchError(msg)
             seen.add(cov.dimension)
@@ -405,8 +402,7 @@ class ResearchReporter:
         for priority in agenda.priorities:
             if priority.priority_id in seen:
                 msg = (
-                    f"duplicate report sections: priority "
-                    f"{priority.priority_id!r}"
+                    f"duplicate report sections: priority " f"{priority.priority_id!r}"
                 )
                 raise ResearchError(msg)
             seen.add(priority.priority_id)

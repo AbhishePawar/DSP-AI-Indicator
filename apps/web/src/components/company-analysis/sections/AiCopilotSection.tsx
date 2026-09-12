@@ -162,9 +162,7 @@ export function AiCopilotSection({
             <div
               key={m.id}
               className={
-                m.role === "user"
-                  ? "ml-auto max-w-[85%] rounded-[var(--radius-md)] bg-[var(--accent-soft)] px-3 py-2 text-sm text-[var(--accent)]"
-                  : "max-w-[85%] rounded-[var(--radius-md)] border border-[var(--border)] px-3 py-2 text-sm"
+                m.role === "user" ?"ml-auto max-w-[85%] rounded-[var(--radius-md)] bg-[var(--accent-soft)] px-3 py-2 text-sm text-[var(--accent)]" :"max-w-[85%] rounded-[var(--radius-md)] border border-[var(--border)] px-3 py-2 text-sm"
               }
             >
               <p>{m.text}</p>

@@ -205,8 +205,7 @@ class UpstoxInstrumentResolver:
                 status="REJECTED",
                 query=normalize_user_symbol(request.symbol),
                 detail=(
-                    "client-supplied ISIN / instrument_key / provider are not "
-                    "authoritative; server resolver required"
+                    "client-supplied ISIN / instrument_key / provider are not " "authoritative; server resolver required"
                 ),
                 retrieved_at=retrieved_at,
             )
@@ -222,8 +221,7 @@ class UpstoxInstrumentResolver:
 
         if not self.configured():
             detail = (
-                "production fail-closed: Upstox analytics token absent — "
-                "no fixture company substitution"
+                "production fail-closed: Upstox analytics token absent — " "no fixture company substitution"
                 if is_production_environment()
                 else f"provider unavailable: {UPSTOX_ANALYTICS_TOKEN_ENV} absent"
             )

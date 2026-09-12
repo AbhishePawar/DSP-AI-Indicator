@@ -26,7 +26,7 @@ export default function LogoutPage() {
       await logout();
       setDone(true);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Sign-out failed");
+      setError(err instanceof Error ? err?.message : "Sign-out failed");
     } finally {
       setPending(false);
     }
@@ -88,7 +88,7 @@ export default function LogoutPage() {
                 <Button
                   variant="secondary"
                   disabled={pending}
-                  onClick={() => router.back()}
+                  onClick={() => router?.back()}
                 >
                   Cancel
                 </Button>

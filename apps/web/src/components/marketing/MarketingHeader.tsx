@@ -24,7 +24,7 @@ export function MarketingHeader() {
       panel
         ? Array.from(
             panel.querySelectorAll<HTMLElement>(
-              'a[href], button:not([disabled]), [tabindex]:not([tabindex="-1"])',
+              'a[href], button:not([disabled]), [tabindex]:not([tabIndex="-1"])',
             ),
           )
         : [];

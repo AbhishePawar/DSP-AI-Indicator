@@ -9,12 +9,7 @@ export const LEGAL_EFFECTIVE_DATE = "2026-07-28" as const;
 export type LegalSection = { heading: string; body: string[] };
 
 export type LegalDocumentId =
-  | "privacy"
-  | "terms"
-  | "disclaimer"
-  | "risk"
-  | "cookies"
-  | "data-usage";
+  | "privacy" |"terms" |"disclaimer" |"risk" |"cookies" |"data-usage";
 
 export const LEGAL_ROUTES = {
   privacy: "/docs/privacy",

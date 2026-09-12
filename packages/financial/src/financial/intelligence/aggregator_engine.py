@@ -297,14 +297,12 @@ class FinancialAggregatorEngine:
         )
         if cash.quality_flags:
             observations.append(
-                "Cash-flow quality flags: "
-                + ", ".join(f.value for f in cash.quality_flags[:5])
+                "Cash-flow quality flags: " +", ".join(f.value for f in cash.quality_flags[:5])
                 + "."
             )
         if ratios.quality_flags:
             observations.append(
-                "Ratio quality flags: "
-                + ", ".join(f.value for f in ratios.quality_flags[:5])
+                "Ratio quality flags: " +", ".join(f.value for f in ratios.quality_flags[:5])
                 + "."
             )
 
@@ -402,8 +400,7 @@ class FinancialAggregatorEngine:
                 result=None,
                 confidence=summary.confidence_summary,
                 interpretation=(
-                    "Aggregated flags: "
-                    + (", ".join(f.value for f in flags) if flags else "none")
+                    "Aggregated flags: " + (", ".join(f.value for f in flags) if flags else "none")
                 ),
                 limitations=(
                     "Aggregator does not invent new metrics; flags are "

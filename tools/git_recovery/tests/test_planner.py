@@ -27,11 +27,7 @@ def test_build_plan_summary() -> None:
 def test_render_contains_safety_and_groups() -> None:
     plan = build_plan(SAMPLE, branch="feature/x")
     md = render_plan_markdown(plan)
-    assert "# Git Recovery Plan" in md
-    assert "Never `git add -A`" in md
-    assert "Estimated Risk" in md
-    assert "Suggested Commit Message" in md
-    assert ".gitignore" in md
+    assert "# Git Recovery Plan" in md assert"Never `git add -A`"in md assert"Estimated Risk"in md assert"Suggested Commit Message"in md assert".gitignore" in md
 
 
 def test_write_plan(tmp_path: Path) -> None:

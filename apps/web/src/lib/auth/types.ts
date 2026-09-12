@@ -1,12 +1,7 @@
 /** Strongly typed authentication models — frontend session only. */
 
 export type AuthenticationStatus =
-  | "restoring"
-  | "loading"
-  | "authenticated"
-  | "unauthenticated"
-  | "expired"
-  | "refreshing";
+  | "restoring" |"loading" |"authenticated" |"unauthenticated" |"expired" |"refreshing";
 
 export type User = {
   subject: string;

@@ -44,6 +44,5 @@ def validate_authenticated_esg_score(bundle: AuthenticatedEsgScore) -> None:
         for name in ("environmental_score", "social_score", "governance_score", "total_score")
     ):
         raise InvalidProviderDataError(
-            "authenticated esg score must include at least one available score "
-            "(use None from adapter when unavailable)"
+            "authenticated esg score must include at least one available score " "(use None from adapter when unavailable)"
         )

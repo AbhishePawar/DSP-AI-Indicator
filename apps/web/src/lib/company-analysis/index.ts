@@ -1,18 +1,10 @@
 /** EPIC-F005 — Company Analysis Workspace exports. */
 
-export {
-  ANALYSIS_SECTIONS,
-  asAnalysisSectionId,
-  isAnalysisSectionId,
-  type AnalysisSectionId,
-  type AnalysisSectionMeta,
-} from "./sections";
+export type { AnalysisSectionId, AnalysisSectionMeta } from "./sections";
+export { ANALYSIS_SECTIONS, asAnalysisSectionId, isAnalysisSectionId } from "./sections";
 
-export {
-  useWorkspacePrefsStore,
-  type WorkspaceNote,
-  type WorkspaceTag,
-} from "./workspacePrefsStore";
+export type { WorkspaceNote, WorkspaceTag } from "./workspacePrefsStore";
+export { useWorkspacePrefsStore } from "./workspacePrefsStore";
 
 export {
   downloadBase64,

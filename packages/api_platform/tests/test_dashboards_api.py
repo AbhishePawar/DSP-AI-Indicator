@@ -59,5 +59,4 @@ def test_research_with_symbols_query(client: TestClient) -> None:
     response = client.get("/api/v1/dashboards/research?symbols=AAPL,MSFT")
     assert response.status_code == 200
     widgets = response.json()["result"]["widgets"]
-    assert "recent_news" in widgets
-    assert "watchlist" in widgets
+    assert "recent_news"in widgets assert"watchlist" in widgets

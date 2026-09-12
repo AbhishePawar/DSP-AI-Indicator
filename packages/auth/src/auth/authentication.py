@@ -77,8 +77,7 @@ class AuthenticationService:
         refresh_jti: str | None = None,
     ) -> dict[str, Any]:
         user = self.users.get_by_username(username)
-        if user is None or user.status != "active":
-            raise AuthenticationError("invalid credentials")
+        if user is None or user.status != "active": raise AuthenticationError("invalid credentials")
         if not verify_password(password, user.password_hash):
             raise AuthenticationError("invalid credentials")
         created = created_at or utc_now().isoformat()
@@ -175,8 +174,7 @@ class AuthenticationService:
             raise InvalidTokenError(str(exc)) from exc
 
         user = self.users.get(session.user_id)
-        if user is None or user.status != "active":
-            raise AuthenticationError("user unavailable")
+        if user is None or user.status != "active": raise AuthenticationError("user unavailable")
 
         created = created_at or utc_now().isoformat()
         new_refresh_jti = str(uuid.uuid4())

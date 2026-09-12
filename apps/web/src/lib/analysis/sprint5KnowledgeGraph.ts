@@ -470,25 +470,18 @@ export function buildKnowledgeGraph(view: GraphSeed): KnowledgeGraphView {
         nodeType: "evidence",
         confidence:
           ev.group === "unavailable" || ev.confidence.includes("Insufficient")
-            ? "insufficient_evidence"
-            : "low",
+            ? "insufficient_evidence" :"low",
         evidenceCount: 1,
         dataCategory: ev.group,
         lastUpdated: ev.timestamp,
         sourceCategory:
           ev.group === "verified_fact"
             ? "verified_financial_statement"
-            : ev.group === "calculated"
-              ? "calculated_metric"
-              : ev.group === "estimated"
-                ? "estimated_value"
-                : ev.group === "ai_interpretation"
-                  ? "ai_interpretation"
-                  : ev.group === "external_consensus"
-                    ? "external_consensus"
-                    : ev.group === "user_input"
-                      ? "user_input"
-                      : "unavailable",
+            : ev.group === "calculated" ?"calculated_metric"
+              : ev.group === "estimated" ?"estimated_value"
+                : ev.group === "ai_interpretation" ?"ai_interpretation"
+                  : ev.group === "external_consensus" ?"external_consensus"
+                    : ev.group === "user_input" ?"user_input" :"unavailable",
         description: ev.detail,
         evidence: [ev.methodology, ev.source],
         supportingMetrics: [],
@@ -603,9 +596,7 @@ export function buildKnowledgeGraph(view: GraphSeed): KnowledgeGraphView {
         confidence:
           rn.status === "complete"
             ? "moderate"
-            : rn.status === "partial"
-              ? "low"
-              : "insufficient_evidence",
+            : rn.status === "partial" ?"low" :"insufficient_evidence",
         evidenceCount: rn.details.length,
         dataCategory: rn.status === "unavailable" ? "unavailable" : "calculated",
         lastUpdated: updated,

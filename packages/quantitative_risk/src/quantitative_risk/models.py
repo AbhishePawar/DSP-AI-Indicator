@@ -423,8 +423,7 @@ class QuantitativeRiskReport:
             if self.monitoring_ref.portfolio_id != self.portfolio_ref.portfolio_id:
                 msg = (
                     "foreign ownership: monitoring portfolio_id "
-                    f"{self.monitoring_ref.portfolio_id!r} does not match "
-                    f"{self.portfolio_ref.portfolio_id!r}"
+                    f"{self.monitoring_ref.portfolio_id!r} does not match " f"{self.portfolio_ref.portfolio_id!r}"
                 )
                 raise QuantitativeRiskError(msg)
         limitations = tuple(n.strip() for n in self.limitations if n.strip())
@@ -482,8 +481,7 @@ class QuantitativeRiskProfile:
             if self.monitoring_ref.portfolio_id != self.portfolio_ref.portfolio_id:
                 msg = (
                     "foreign ownership: monitoring portfolio_id "
-                    f"{self.monitoring_ref.portfolio_id!r} does not match "
-                    f"{self.portfolio_ref.portfolio_id!r}"
+                    f"{self.monitoring_ref.portfolio_id!r} does not match " f"{self.portfolio_ref.portfolio_id!r}"
                 )
                 raise QuantitativeRiskError(msg)
 

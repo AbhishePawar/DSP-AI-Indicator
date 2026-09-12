@@ -129,9 +129,7 @@ class PortfolioHolding:
             raise ValidationError(msg)
         if self.decision_pack_ref.instrument_symbol != symbol:
             msg = (
-                f"decision_pack_ref.instrument_symbol "
-                f"{self.decision_pack_ref.instrument_symbol!r} must match "
-                f"holding {symbol!r}"
+                f"decision_pack_ref.instrument_symbol " f"{self.decision_pack_ref.instrument_symbol!r} must match " f"holding {symbol!r}"
             )
             raise ValidationError(msg)
         weight = _require_weight(self.weight, field="weight")
@@ -141,17 +139,14 @@ class PortfolioHolding:
         if self.evidence_bundle_ref is not None:
             if self.evidence_bundle_ref.instrument_key != symbol:
                 msg = (
-                    f"evidence_bundle_ref.instrument_key "
-                    f"{self.evidence_bundle_ref.instrument_key!r} must match "
-                    f"holding {symbol!r}"
+                    f"evidence_bundle_ref.instrument_key " f"{self.evidence_bundle_ref.instrument_key!r} must match " f"holding {symbol!r}"
                 )
                 raise ValidationError(msg)
         if self.comparison_report_ref is not None:
             included = self.comparison_report_ref.included_symbols
             if included and symbol not in included:
                 msg = (
-                    f"comparison_report_ref.included_symbols must include "
-                    f"holding {symbol!r} when provided"
+                    f"comparison_report_ref.included_symbols must include " f"holding {symbol!r} when provided"
                 )
                 raise ValidationError(msg)
         notes = tuple(n.strip() for n in self.notes if n.strip())
@@ -573,8 +568,7 @@ class Portfolio:
             if snap.portfolio_id != self.identity.portfolio_id:
                 msg = (
                     f"snapshot {snap.snapshot_id!r} portfolio_id "
-                    f"{snap.portfolio_id!r} does not match aggregate "
-                    f"{self.identity.portfolio_id!r} (cyclic/foreign ownership)"
+                    f"{snap.portfolio_id!r} does not match aggregate " f"{self.identity.portfolio_id!r} (cyclic/foreign ownership)"
                 )
                 raise PortfolioError(msg)
         cash = _require_weight(self.cash_weight, field="cash_weight")

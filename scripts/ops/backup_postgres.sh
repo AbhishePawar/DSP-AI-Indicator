@@ -4,8 +4,7 @@
 set -euo pipefail
 
 BACKUP_DIR="${DSP_BACKUP_DIR:-./backups}"
-STAMP="$(date -u +%Y%m%dT%H%M%SZ)"
-mkdir -p "${BACKUP_DIR}"
+STAMP="$(date -u +%Y%m%dT%H%M%SZ)" mkdir -p"${BACKUP_DIR}"
 OUT="${BACKUP_DIR}/dsp_pg_${STAMP}.sql.gz"
 
 if [[ -z "${DSP_DATABASE_URL:-}" && -z "${PGDATABASE:-}" ]]; then

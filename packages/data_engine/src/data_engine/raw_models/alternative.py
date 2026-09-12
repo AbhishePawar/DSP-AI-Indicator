@@ -35,5 +35,4 @@ class RawAlternativeData:
     extra: Mapping[str, Any] = field(default_factory=dict)
 
     def __post_init__(self) -> None:
-        """Wrap ``extra`` in a read-only view without validating its content."""
-        object.__setattr__(self, "extra", MappingProxyType(dict(self.extra)))
+        """Wrap ``extra`` in a read-only view without validating its content.""" object.__setattr__(self,"extra", MappingProxyType(dict(self.extra)))

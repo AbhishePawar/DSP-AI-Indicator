@@ -324,8 +324,7 @@ def test_all_requirements_satisfied_ready() -> None:
     assert verdict.failed == ()
     assert len(verdict.passed) == 10
     # Recommended models are populated when ready.
-    assert "deepseek:deepseek-chat" in verdict.recommended_models
-    assert "anthropic:claude-3-5-sonnet-20241022" in verdict.recommended_models
+    assert "deepseek:deepseek-chat" in verdict.recommended_models assert"anthropic:claude-3-5-sonnet-20241022" in verdict.recommended_models
 
 
 def test_multiple_accepted_runs_below_threshold_blocks() -> None:
@@ -376,10 +375,7 @@ def test_verdict_public_state_carries_no_reasons() -> None:
     public = verdict.public_state()
     assert public == "ai_production_ready"
     # Public state is a single string — no reasons, no model names, no scores.
-    assert "deepseek" not in public
-    assert "anthropic" not in public
-    assert "ok:" not in public
-    assert "FAIL:" not in public
+    assert "deepseek" not in public assert"anthropic"not in public assert"ok:"not in public assert"FAIL:" not in public
 
 
 def test_blocked_verdict_public_state_only_says_blocked() -> None:
@@ -387,9 +383,7 @@ def test_blocked_verdict_public_state_only_says_blocked() -> None:
     evidence = _good_evidence(successful_evaluations=(bad,))
     verdict = evaluate_activation(evidence)
     public = verdict.public_state()
-    assert public == "ai_production_blocked"
-    assert "deepseek" not in public
-    assert "pricing" not in public.lower()
+    assert public == "ai_production_blocked" assert"deepseek"not in public assert"pricing" not in public.lower()
 
 
 def test_verdict_object_cannot_be_dict_serialized_to_client_shape() -> None:
@@ -411,9 +405,7 @@ def test_verdict_object_cannot_be_dict_serialized_to_client_shape() -> None:
         "recommendation", "valuation", "analysis", "risks",
         "evidence_citations", "confidence", "limitations", "schema_version",
     }
-    assert "reasons" not in public_fields
-    assert "recommended_models" not in public_fields
-    assert "state" not in public_fields
+    assert "reasons" not in public_fields assert"recommended_models"not in public_fields assert"state" not in public_fields
 
 
 def test_private_to_public_path_isolated_from_guard() -> None:

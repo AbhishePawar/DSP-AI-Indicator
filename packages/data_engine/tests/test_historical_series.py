@@ -273,5 +273,4 @@ class TestRegistry:
         reg = HistoricalSeriesProviderRegistry()
         adapter = NullAuthenticatedHistoricalAdapter()
         reg.register(adapter, default=True)
-        assert reg.get().provider_id == "null_historical_series"
-        assert "null_historical_series" in reg.list_ids()
+        assert reg.get().provider_id == "null_historical_series" assert"null_historical_series" in reg.list_ids()

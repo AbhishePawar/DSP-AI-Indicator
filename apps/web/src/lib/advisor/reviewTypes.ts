@@ -8,30 +8,15 @@ export type ReviewStatus = "upcoming" | "in_progress" | "completed" | "archived"
 
 export type ReviewChecklistItemId =
   | "client_information"
-  | "research_updated"
-  | "portfolio_reviewed"
-  | "risk_discussion"
-  | "action_items"
-  | "presentation_ready"
-  | "meeting_complete";
+  | "research_updated" |"portfolio_reviewed" |"risk_discussion" |"action_items" |"presentation_ready" |"meeting_complete";
 
 export type ReviewTemplateId =
-  | "tpl-initial-consultation"
-  | "tpl-quarterly"
-  | "tpl-half-year"
-  | "tpl-annual"
-  | "tpl-special"
-  | "tpl-custom";
+  | "tpl-initial-consultation" |"tpl-quarterly" |"tpl-half-year" |"tpl-annual" |"tpl-special" |"tpl-custom";
 
 export type ReviewActionStatus = "open" | "waiting" | "completed" | "deferred";
 
 export type ReviewTimelineKind =
-  | "previous_review"
-  | "current_review"
-  | "upcoming_review"
-  | "meeting"
-  | "research"
-  | "portfolio_change";
+  | "previous_review" |"current_review" |"upcoming_review" |"meeting" |"research" |"portfolio_change";
 
 export type ReviewChecklistItem = {
   id: ReviewChecklistItemId;

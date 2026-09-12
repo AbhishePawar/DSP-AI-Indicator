@@ -1,10 +1,10 @@
 "use client";
 
-import { Monitor, Moon, Sun } from "lucide-react";
+import { Monitor, Moon, Sun, type LucideIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useTheme, type ThemeMode } from "@/providers/ThemeProvider";
 
-const options: { mode: ThemeMode; label: string; Icon: typeof Sun }[] = [
+const options: { mode: ThemeMode; label: string; Icon: LucideIcon }[] = [
   { mode: "light", label: "Light", Icon: Sun },
   { mode: "dark", label: "Dark", Icon: Moon },
   { mode: "system", label: "System", Icon: Monitor },
@@ -26,7 +26,7 @@ export function ThemeSwitcher({ className }: ThemeSwitcherProps) {
         className,
       )}
     >
-      {options.map(({ mode: option, label, Icon }) => {
+      {options.map(({ mode: option, label, Icon: OptionIcon }) => {
         const active = mode === option;
         return (
           <button
@@ -43,7 +43,7 @@ export function ThemeSwitcher({ className }: ThemeSwitcherProps) {
                 : "text-[var(--muted)] hover:bg-[var(--surface-2)] hover:text-[var(--fg)]",
             )}
           >
-            <Icon className="size-4" aria-hidden />
+            <OptionIcon className="size-4" aria-hidden />
             <span className="sr-only">{label}</span>
           </button>
         );

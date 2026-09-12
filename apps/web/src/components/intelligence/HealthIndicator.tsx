@@ -22,8 +22,7 @@ export function HealthIndicator({
     : loading
       ? "neutral"
       : ready
-        ? "success"
-        : "warning";
+        ? "success" :"warning";
 
   return (
     <div
@@ -38,8 +37,7 @@ export function HealthIndicator({
           : loading
             ? "Checking…"
             : ready
-              ? "API ready"
-              : status || "Not ready"}
+              ? "API ready" : status ||"Not ready"}
       </Badge>
       {platformVersion ? (
         <span className="text-[var(--muted)]">Platform {platformVersion}</span>

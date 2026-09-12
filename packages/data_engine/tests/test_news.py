@@ -292,10 +292,8 @@ class TestBuildDefaultRegistryFromEnv:
         monkeypatch.setenv("DSP_NEWS_YAHOO_ENABLED", "1")
         registry = build_default_news_registry_from_env()
         ids = registry.ordered_ids()
-        assert "fmp_news" in ids
-        assert "yahoo_finance_news" in ids
-        assert ids[-1] == "null_news"
-        assert ids.index("fmp_news") < ids.index("yahoo_finance_news")
+        assert "fmp_news" in ids assert"yahoo_finance_news" in ids
+        assert ids[-1] == "null_news" assert ids.index("fmp_news") < ids.index("yahoo_finance_news")
 
 
 class TestNewsServiceResilience:

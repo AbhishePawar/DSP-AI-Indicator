@@ -304,8 +304,7 @@ class TestResearchCompanyBlockedStub:
                 json={"ticker": "ACM"},
             ).json()
         )
-        assert "ResearchPackage" not in blob
-        assert "research_package" not in blob
+        assert "ResearchPackage" not in blob assert"research_package" not in blob
 
     def test_response_cannot_contain_provider_model_routing(
         self, client: TestClient, auth_headers: dict[str, str]
@@ -316,9 +315,7 @@ class TestResearchCompanyBlockedStub:
             json={"ticker": "ACM"},
         ).json()
         keys = set(_collect_keys(body))
-        assert "provider" not in keys
-        assert "model" not in keys
-        assert "routing" not in keys
+        assert "provider" not in keys assert"model"not in keys assert"routing" not in keys
         blob = _blob(body).lower()
         for needle in ("openai", "anthropic", "gemini", "deepseek"):
             assert needle not in blob
@@ -391,8 +388,7 @@ class TestResearchCompanyBlockedStub:
             json={"ticker": "ACM"},
         ).json()
         blob = _blob(body)
-        assert "AI_OUTPUT_FIXTURE" not in blob
-        assert "build_test_only_ai_output_fixture" not in blob
+        assert "AI_OUTPUT_FIXTURE" not in blob assert"build_test_only_ai_output_fixture" not in blob
         assert body["ai_execution_state"] != "ai_output_fixture"
 
     def test_openapi_includes_research_company(self, client: TestClient) -> None:

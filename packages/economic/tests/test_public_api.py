@@ -25,5 +25,4 @@ class TestPublicApi:
             assert hasattr(economic, name)
 
     def test_analyzers_not_in_top_level_all(self) -> None:
-        assert "GdpAnalyzer" not in economic.__all__
-        assert "Analyzer" not in economic.__all__
+        assert "GdpAnalyzer" not in economic.__all__ assert"Analyzer" not in economic.__all__

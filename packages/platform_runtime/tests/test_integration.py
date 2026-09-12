@@ -51,8 +51,7 @@ class TestEnterpriseComposition:
         disclosures = platform.compliance.disclosures.list_active(mode="research")
         assert disclosures
         export = platform.compliance.exports.export_subject("usr_admin")
-        assert export.timezone == "Asia/Kolkata"
-        assert "INR" == export.currency
+        assert export.timezone == "Asia/Kolkata" assert"INR" == export.currency
 
     def test_no_sebi_mode_by_default(self) -> None:
         platform = EnterprisePlatform.create_offline()

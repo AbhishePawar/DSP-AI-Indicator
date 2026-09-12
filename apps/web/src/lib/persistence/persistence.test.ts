@@ -20,7 +20,7 @@ describe("persistence storage", () => {
 
   it("writes and reads user-scoped bundles", () => {
     const bundle = createEmptyUserData("user-1");
-    bundle.savedAnalyses.push({
+    bundle?.savedAnalyses?.push({
       id: "saved-1",
       ticker: "AAPL",
       company: "Apple",
@@ -31,24 +31,24 @@ describe("persistence storage", () => {
     });
     writeUserData(bundle);
     const loaded = readUserData("user-1");
-    expect(loaded?.savedAnalyses).toHaveLength(1);
-    expect(loaded?.savedAnalyses[0]?.ticker).toBe("AAPL");
+    expect(loaded?.savedAnalyses)?.toHaveLength(1);
+    expect(loaded?.savedAnalyses?.[0]?.ticker)?.toBe("AAPL");
   });
 
   it("maps portfolio view to user portfolio and back", () => {
     const view = getEmptyPortfolio();
     const userPortfolio = userPortfolioFromView(view);
     const restored = portfolioViewFromUserPortfolio(userPortfolio);
-    expect(restored.holdings).toEqual(view.holdings);
-    expect(restored.activities.length).toBeGreaterThan(0);
+    expect(restored?.holdings)?.toEqual(view?.holdings);
+    expect(restored?.activities?.length)?.toBeGreaterThan(0);
   });
 
   it("stores copilot metadata without assistant responses", () => {
     const conversation = createConversation("Test");
     const saved = toSavedConversation(conversation);
-    expect(saved.questionHistory).toEqual([]);
-    expect(saved.referencedTicker).toBeNull();
-    expect(saved.title).toBe("Test");
+    expect(saved?.questionHistory)?.toEqual([]);
+    expect(saved?.referencedTicker)?.toBeNull();
+    expect(saved?.title)?.toBe("Test");
   });
 
   it("sorts saved analyses by savedAt desc", () => {
@@ -72,6 +72,6 @@ describe("persistence storage", () => {
         savedAt: "2026-01-03",
       },
     ]);
-    expect(sorted[0]?.ticker).toBe("B");
+    expect(sorted?.[0]?.ticker)?.toBe("B");
   });
 });

@@ -21,34 +21,34 @@ const repoRoot = join(__dirname, "..", "..", "..", "..");
 
 describe("Closed beta programme (living channel)", () => {
   it("aligns versions and epic", () => {
-    expect(FRONTEND_FOUNDATION_VERSION).toBe("2.0.0-rc.1");
-    expect(FRONTEND_FOUNDATION_EPIC).toBe("EPS-003");
-    expect(FRONTEND_FOUNDATION_STATUS).toBe("release-candidate");
-    expect(BACKEND_PLATFORM_TARGET).toBe("dsp_platform@2.0.0");
-    expect(API_CONTRACT_TARGET).toBe("v1.0.0");
-    expect(env.frontendVersion).toBe("2.0.0-rc.1");
-    expect(manifest.foundationEpic).toBe("EPS-003");
-    expect(manifest.channel).toBe("rc");
+    expect(FRONTEND_FOUNDATION_VERSION)?.toBe("2.0.0-rc.1");
+    expect(FRONTEND_FOUNDATION_EPIC)?.toBe("EPS-003");
+    expect(FRONTEND_FOUNDATION_STATUS)?.toBe("release-candidate");
+    expect(BACKEND_PLATFORM_TARGET)?.toBe("dsp_platform@2.0.0");
+    expect(API_CONTRACT_TARGET)?.toBe("v1.0.0");
+    expect(env.frontendVersion)?.toBe("2.0.0-rc.1");
+    expect(manifest?.foundationEpic)?.toBe("EPS-003");
+    expect(manifest?.channel)?.toBe("rc");
   });
 
   it("exposes closed beta feature flags and issue workflow", () => {
-    expect("closedBeta" in featureFlags).toBe(true);
-    expect(ISSUE_STATUSES).toEqual([
+    expect("closedBeta" in featureFlags)?.toBe(true);
+    expect(ISSUE_STATUSES)?.toEqual([
       "new",
       "triaged",
       "in_progress",
       "resolved",
       "closed",
     ]);
-    expect(BETA_SUCCESS_CRITERIA.criticalBugsMax).toBe(0);
-    expect(BETA_SUCCESS_CRITERIA.averageFeedbackMin).toBe(4.0);
+    expect(BETA_SUCCESS_CRITERIA?.criticalBugsMax)?.toBe(0);
+    expect(BETA_SUCCESS_CRITERIA?.averageFeedbackMin)?.toBe(4.0);
   });
 
   it("documents P5.2 stabilisation programme", () => {
     const path = join(repoRoot, "docs", "P5_2_BETA_STABILISATION.md");
     const body = readFileSync(path, "utf8");
-    expect(body).toMatch(/READY WITH MINOR CONDITIONS/);
-    expect(body).toMatch(/Issue resolution/);
-    expect(body).toMatch(/Release Candidate/);
+    expect(body)?.toMatch(/READY WITH MINOR CONDITIONS/);
+    expect(body)?.toMatch(/Issue resolution/);
+    expect(body)?.toMatch(/Release Candidate/);
   });
 });

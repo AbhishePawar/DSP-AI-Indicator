@@ -3,11 +3,7 @@
 import type { AllocationSegment, PortfolioHolding } from "./model";
 
 export type RecommendationBucket =
-  | "Strong Buy"
-  | "Buy"
-  | "Hold"
-  | "Sell"
-  | "Strong Sell";
+  | "Strong Buy" |"Buy" |"Hold" |"Sell" |"Strong Sell";
 
 export type RecommendationDistribution = Record<RecommendationBucket, number>;
 

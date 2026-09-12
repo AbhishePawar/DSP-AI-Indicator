@@ -420,8 +420,7 @@ class PortfolioAnalyzer:
                     label="Single-sector exposure",
                     code="single_sector_exposure",
                     notes=(
-                        "Sector allocation not declared; "
-                        "inferred from holding count.",
+                        "Sector allocation not declared; " "inferred from holding count.",
                     ),
                 )
             if n_holdings <= 4:
@@ -430,8 +429,7 @@ class PortfolioAnalyzer:
                     label="Limited sector exposure",
                     code="limited_sector_exposure",
                     notes=(
-                        "Sector allocation not declared; "
-                        "inferred from holding count.",
+                        "Sector allocation not declared; " "inferred from holding count.",
                     ),
                 )
             return PortfolioDescriptor(
@@ -439,8 +437,7 @@ class PortfolioAnalyzer:
                 label="Broad sector exposure",
                 code="broad_sector_exposure",
                 notes=(
-                    "Sector allocation not declared; "
-                    "inferred from holding count.",
+                    "Sector allocation not declared; " "inferred from holding count.",
                 ),
             )
         if len(sectors) == 1:
@@ -554,8 +551,7 @@ class PortfolioAnalyzer:
                         code=f"constraint_requires_attention_{constraint.id}",
                         notes=(
                             f"Constraint {constraint.id} declared; inputs "
-                            f"needed for descriptive review are incomplete. "
-                            f"Not evaluated mathematically.",
+                            f"needed for descriptive review are incomplete. " f"Not evaluated mathematically.",
                         ),
                     )
                 )
@@ -586,8 +582,7 @@ class PortfolioAnalyzer:
         for constraint in context.portfolio.constraints:
             notes.append(
                 f"Constraint {constraint.id} ({constraint.kind.value}) "
-                f"target={constraint.target!r} limit={constraint.limit} — "
-                f"Constraint not evaluated."
+                f"target={constraint.target!r} limit={constraint.limit} — " f"Constraint not evaluated."
             )
             holdings = context.portfolio.holdings
             if constraint.kind.value == "max_position_weight" and any(
@@ -712,8 +707,7 @@ class PortfolioAnalyzer:
                 f"Cash position: {cash.label}.",
             ),
             limitation_notes=(
-                "Qualitative analysis only — no scoring, ranking, optimization, "
-                "risk metrics, or trade recommendations.",
+                "Qualitative analysis only — no scoring, ranking, optimization, " "risk metrics, or trade recommendations.",
                 "Constraints are not evaluated mathematically in C4.3.",
             ),
         )

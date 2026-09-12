@@ -17,10 +17,7 @@ __all__ = [
 ]
 
 EARNINGS_QUALITY_DISCLAIMER = (
-    "Earnings Quality Intelligence evaluates the durability and cash support "
-    "of reported earnings using FinancialAnalysis outputs only. It is not "
-    "investment advice, a forecast, or a valuation. Missing financial "
-    "evidence reduces coverage and confidence."
+    "Earnings Quality Intelligence evaluates the durability and cash support " "of reported earnings using FinancialAnalysis outputs only. It is not " "investment advice, a forecast, or a valuation. Missing financial " "evidence reduces coverage and confidence."
 )
 
 

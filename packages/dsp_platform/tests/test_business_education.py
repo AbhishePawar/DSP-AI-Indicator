@@ -235,5 +235,4 @@ def test_provenance_retained_on_claims():
     report = build_business_education_report(_payload())
     for sec in report["sections"]:
         for c in sec["claims"]:
-            assert "kind" in c
-            assert "source" in c or c["kind"] == "UNAVAILABLE"
+            assert "kind"in c assert"source" in c or c["kind"] == "UNAVAILABLE"

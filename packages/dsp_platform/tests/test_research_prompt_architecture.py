@@ -107,26 +107,15 @@ class TestResearchPromptArchitecture:
     def test_not_wired_to_http_or_orchestrator(self) -> None:
         routers = (
             _REPO
-            / "packages"
-            / "api_platform"
-            / "src"
-            / "api_platform"
-            / "api"
-            / "routers"
+            / "packages" /"api_platform" /"src" /"api_platform" /"api" /"routers"
         )
         for name in ("composition.py", "research.py", "copilot.py"):
             text = (routers / name).read_text(encoding="utf-8")
-            assert "build_private_research_prompt" not in text
-            assert "PrivateResearchPrompt" not in text
+            assert "build_private_research_prompt"not in text assert"PrivateResearchPrompt" not in text
         orch = (
             _REPO
-            / "packages"
-            / "llm_adapters"
-            / "src"
-            / "llm_adapters"
-            / "orchestrator"
+            / "packages" /"llm_adapters" /"src" /"llm_adapters" /"orchestrator"
         )
         for path in orch.rglob("*.py"):
             text = path.read_text(encoding="utf-8")
-            assert "build_private_research_prompt" not in text
-            assert "dsp_platform.research_prompt" not in text
+            assert "build_private_research_prompt"not in text assert"dsp_platform.research_prompt" not in text

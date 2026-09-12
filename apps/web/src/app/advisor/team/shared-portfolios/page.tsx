@@ -3,6 +3,9 @@
 import dynamic from "next/dynamic";
 
 import { Skeleton } from "@/components/ui/Skeleton";
+import { SharedPortfolioWorkspace } from '../../../../components/advisor/SharedPortfolio';
+
+
 const SharedPortfolioWorkspace = dynamic(
   () =>
     import("@/components/advisor/SharedPortfolio").then(

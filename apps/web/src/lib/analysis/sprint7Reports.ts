@@ -6,38 +6,10 @@ import { presentFieldLabel } from "@/lib/terminology";
 import { RESEARCH_DISCLAIMER } from "@/lib/product";
 
 export type ReportTemplateId =
-  | "executive_summary"
-  | "full_research"
-  | "business_quality"
-  | "financial_strength"
-  | "valuation"
-  | "risk"
-  | "management"
-  | "competitive_advantage"
-  | "decision_trace"
-  | "evidence"
-  | "knowledge_graph_snapshot";
+  | "executive_summary" |"full_research" |"business_quality" |"financial_strength" |"valuation" |"risk" |"management" |"competitive_advantage" |"decision_trace" |"evidence" |"knowledge_graph_snapshot";
 
 export type ReportSectionId =
-  | "cover"
-  | "company_overview"
-  | "executive_summary"
-  | "research_conclusion"
-  | "business_analysis"
-  | "financial_analysis"
-  | "growth"
-  | "risk"
-  | "management"
-  | "competitive_advantage"
-  | "market_intelligence"
-  | "decision_trace"
-  | "evidence_summary"
-  | "confidence_summary"
-  | "research_limitations"
-  | "methodology"
-  | "disclosures"
-  | "assumptions"
-  | "knowledge_graph";
+  | "cover" |"company_overview" |"executive_summary" |"research_conclusion" |"business_analysis" |"financial_analysis" |"growth" |"risk" |"management" |"competitive_advantage" |"market_intelligence" |"decision_trace" |"evidence_summary" |"confidence_summary" |"research_limitations" |"methodology" |"disclosures" |"assumptions" |"knowledge_graph";
 
 export type ExportFormatId = "pdf" | "docx" | "markdown" | "html" | "json" | "csv";
 
@@ -544,8 +516,7 @@ export function buildReport(
           heading: "Market Intelligence",
           paragraphs: [
             view.marketIntelligence.available
-              ? "Market intelligence fields present."
-              : "External market consensus is Unavailable — providers not connected. DSP Research remains primary.",
+              ? "Market intelligence fields present." :"External market consensus is Unavailable — providers not connected. DSP Research remains primary.",
             view.marketIntelligence.researchCoverageNote.value ?? "",
             view.marketIntelligence.dataAvailability.value ?? "",
           ].filter(Boolean),
@@ -576,8 +547,7 @@ export function buildReport(
           paragraphs: [
             "Evidence is grouped by category. Supporting and contradicting items stay separate.",
             trimEvidence
-              ? "Detail list condensed by customization — evidence references remain mandatory."
-              : "",
+              ? "Detail list condensed by customization — evidence references remain mandatory." :"",
           ].filter(Boolean),
           bullets: (trimEvidence
             ? view.evidenceExplorer.items.slice(0, 3)

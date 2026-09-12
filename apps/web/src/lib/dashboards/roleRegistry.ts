@@ -1,11 +1,7 @@
 /** RC1 Milestone 6 — role dashboard registry (presentation only). */
 
 export type EnterpriseDashboardRole =
-  | "research"
-  | "portfolio-manager"
-  | "wealth-advisor"
-  | "family-office"
-  | "executive";
+  | "research" |"portfolio-manager" |"wealth-advisor" |"family-office" |"executive";
 
 export type RoleDashboardMeta = {
   role: EnterpriseDashboardRole;

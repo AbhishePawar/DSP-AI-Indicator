@@ -14,8 +14,8 @@ const repoRoot = join(__dirname, "..", "..", "..", "..");
 
 describe("P8.0 release engineering", () => {
   it("aligns foundation to EPS-003 / 2.0.0-rc.1", () => {
-    expect(FRONTEND_FOUNDATION_VERSION).toBe("2.0.0-rc.1");
-    expect(FRONTEND_FOUNDATION_EPIC).toBe("EPS-003");
+    expect(FRONTEND_FOUNDATION_VERSION)?.toBe("2.0.0-rc.1");
+    expect(FRONTEND_FOUNDATION_EPIC)?.toBe("EPS-003");
   });
 
   it("ships audit and engineering docs", () => {
@@ -28,7 +28,7 @@ describe("P8.0 release engineering", () => {
       "ENGINEERING_STATUS.md",
     ]) {
       const body = readFileSync(join(repoRoot, "docs", name), "utf8");
-      expect(body.length).toBeGreaterThan(200);
+      expect(body?.length)?.toBeGreaterThan(200);
     }
   });
 
@@ -40,7 +40,7 @@ describe("P8.0 release engineering", () => {
       [".github", "workflows", "release-engineering.yml"],
       [".github", "workflows", "security.yml"],
     ]) {
-      expect(readFileSync(join(repoRoot, ...rel), "utf8").length).toBeGreaterThan(80);
+      expect(readFileSync(join(repoRoot, ...rel), "utf8")?.length)?.toBeGreaterThan(80);
     }
   });
 });

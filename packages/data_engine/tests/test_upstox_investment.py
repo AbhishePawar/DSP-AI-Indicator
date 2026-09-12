@@ -149,8 +149,7 @@ def test_quote_adapter_maps_authenticated_upstox_quote() -> None:
     assert quote.exchange == "NSE"
     assert quote.current_price.value == 1010.5
     assert quote.provenance.provider_id == "upstox_market_quote"
-    assert quote.provenance.auth_mode == "bearer_token"
-    assert any("Authorization" in call[2] for call in client.calls)
+    assert quote.provenance.auth_mode == "bearer_token" assert any("Authorization" in call[2] for call in client.calls)
 
 
 def test_statement_adapter_maps_authenticated_upstox_statements() -> None:

@@ -47,8 +47,7 @@ class TestDisclosures:
     def test_research_mode_templates_ist_inr(self) -> None:
         catalog = research_mode_templates()
         assert catalog.timezone == "Asia/Kolkata"
-        assert catalog.currency == "INR"
-        assert any("Research Mode" in d.title for d in catalog.disclosures)
+        assert catalog.currency == "INR" assert any("Research Mode" in d.title for d in catalog.disclosures)
         assert "IST" in format_ist(datetime(2026, 7, 28, 12, 0, tzinfo=UTC))
         assert format_inr(123456.5).startswith("₹")
 

@@ -324,18 +324,11 @@ class TestSensitivityScenarios:
     def test_scenarios(self) -> None:
         r = RelativeEngine().analyze(_base())
         kinds = {s.kind.name for s in r.scenarios}
-        assert "bear" in kinds
-        assert "base" in kinds
-        assert "bull" in kinds
-        assert any("stress" in s.kind.name for s in r.scenarios)
+        assert "bear" in kinds assert"base"in kinds assert"bull"in kinds assert any("stress" in s.kind.name for s in r.scenarios)
 
     def test_sensitivity(self) -> None:
         r = RelativeEngine().analyze(_base())
-        assert "industry_multiple" in r.sensitivity.grids
-        assert "peer_multiple" in r.sensitivity.grids
-        assert "growth_rate" in r.sensitivity.grids
-        assert "margin" in r.sensitivity.grids
-        assert "enterprise_value" in r.sensitivity.grids
+        assert "industry_multiple" in r.sensitivity.grids assert"peer_multiple"in r.sensitivity.grids assert"growth_rate"in r.sensitivity.grids assert"margin"in r.sensitivity.grids assert"enterprise_value" in r.sensitivity.grids
         assert r.sensitivity.notes is not None or r.sensitivity.grids
 
 

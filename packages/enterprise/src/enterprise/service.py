@@ -126,8 +126,7 @@ class EnterpriseService:
         self, org_id: str, user_id: str, permission: str
     ) -> OrgMember:
         member = self.get_member(org_id, user_id)
-        if member is None or member.status != "active":
-            raise ForbiddenError("not a member of organization")
+        if member is None or member.status != "active": raise ForbiddenError("not a member of organization")
         assert_permission(permission)
         if not has_permission(member.permissions, permission):
             raise ForbiddenError(f"missing permission {permission}")
@@ -832,8 +831,7 @@ class EnterpriseService:
         return [a.to_dict() for a in rows]
 
     def mutate_audit_forbidden(self, event_id: str) -> None:
-        """Audit records are immutable — any mutation attempt raises."""
-        raise ForbiddenError("audit records are immutable")
+        """Audit records are immutable — any mutation attempt raises.""" raise ForbiddenError("audit records are immutable")
 
     # ---------------------------------------------------------------- api keys
     def create_api_key(
@@ -958,8 +956,7 @@ class EnterpriseService:
         self, key_id: str, raw_secret: str, *, required_scope: str | None = None
     ) -> dict[str, Any]:
         record = self.store.api_keys.get(key_id)
-        if record is None or record.status != "active":
-            raise ForbiddenError("invalid api key")
+        if record is None or record.status != "active": raise ForbiddenError("invalid api key")
         if not hmac.compare_digest(record.secret_hash, _hash_secret(raw_secret)):
             raise ForbiddenError("invalid api key")
         if record.expires_at:

@@ -44,10 +44,7 @@ def _deploy_env_vars(text: str) -> dict[str, str]:
 
 def test_cloudbuild_uses_canonical_production_domain_and_cors_delimiter() -> None:
     text = (REPO_ROOT / "cloudbuild.yaml").read_text(encoding="utf-8")
-    assert "dspaindicator.com" not in text
-    assert "www.dspaindicator.com" not in text
-    assert "--set-env-vars=" not in text
-    assert "--set-secrets=" not in text
+    assert "dspaindicator.com"not in text assert"www.dspaindicator.com"not in text assert"--set-env-vars="not in text assert"--set-secrets=" not in text
     env = _deploy_env_vars(text)
     assert env["DSP_RESEND_FROM_ADDRESS"] == "noreply@dspaiindicator.com"
     assert env["DSP_FRONTEND_URL"] == CANONICAL_ORIGIN
@@ -66,9 +63,7 @@ def test_cloudbuild_uses_canonical_production_domain_and_cors_delimiter() -> Non
         "DSP_RESEND_API_KEY",
     ):
         assert name in secret_arg
-    assert "DSP_MSG91" not in text
-    assert "DSP_GOOGLE_CLIENT_ID" in text
-    assert "DSP_GOOGLE_CLIENT_SECRET" in text
+    assert "DSP_MSG91" not in text assert"DSP_GOOGLE_CLIENT_ID"in text assert"DSP_GOOGLE_CLIENT_SECRET" in text
 
 
 @pytest.fixture()

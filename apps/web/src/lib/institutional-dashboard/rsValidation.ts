@@ -41,8 +41,7 @@ export function validateResearchStandards(
       standard: "RS-002",
       ok: Boolean(view.market.source),
       detail: view.market.hasAuthenticatedMarketData
-        ? "Authenticated market data present"
-        : "Market panel present; feed unavailable (honest)",
+        ? "Authenticated market data present" :"Market panel present; feed unavailable (honest)",
     },
     {
       standard: "RS-003",

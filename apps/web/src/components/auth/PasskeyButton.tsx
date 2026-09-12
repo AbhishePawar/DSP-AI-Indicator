@@ -44,8 +44,7 @@ export function PasskeyButton({
 
   const available = serverAvailable && browserOk;
   const reason = !browserOk
-    ? "Passkeys are not supported in this browser."
-    : serverMessage || "Passkey sign-in is not yet enabled on this deployment.";
+    ? "Passkeys are not supported in this browser." : serverMessage ||"Passkey sign-in is not yet enabled on this deployment.";
 
   return (
     <Button
@@ -65,8 +64,7 @@ export function PasskeyButton({
         {pending
           ? "Waiting for passkey…"
           : available
-            ? "Continue with Passkey"
-            : "Passkey — Coming Soon"}
+            ? "Continue with Passkey" :"Passkey — Coming Soon"}
       </span>
     </Button>
   );

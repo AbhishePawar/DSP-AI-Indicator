@@ -3,14 +3,7 @@
  */
 
 export type SettingsSectionId =
-  | "profile"
-  | "appearance"
-  | "dashboard"
-  | "workspace"
-  | "notifications"
-  | "security"
-  | "accessibility"
-  | "about";
+  | "profile" |"appearance" |"dashboard" |"workspace" |"notifications" |"security" |"accessibility" |"about";
 
 export type SettingsSectionMeta = {
   id: SettingsSectionId;

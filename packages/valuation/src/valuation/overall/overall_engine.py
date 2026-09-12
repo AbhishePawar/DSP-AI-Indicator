@@ -47,10 +47,7 @@ __all__ = ["OverallEngine", "OVERALL_VERSION"]
 
 _METHODOLOGY = (
     "Overall Valuation Aggregator (research only): assemble completed "
-    "method results and Consensus Engine output into a single research "
-    "view — intrinsic value, margin of safety, confidence, agreement, "
-    "scenarios, and sensitivity. Does not re-run DCF / Relative / etc. "
-    "Research labels are educational, not investment recommendations."
+    "method results and Consensus Engine output into a single research " "view — intrinsic value, margin of safety, confidence, agreement, " "scenarios, and sensitivity. Does not re-run DCF / Relative / etc. " "Research labels are educational, not investment recommendations."
 )
 
 _LIMITATIONS = (
@@ -199,8 +196,7 @@ class OverallEngine:
             name="overall_valuation_score",
             value=score,
             formula=(
-                "0–100 blend of valuation strength, confidence, agreement, "
-                "data quality, scenario & sensitivity stability"
+                "0–100 blend of valuation strength, confidence, agreement, " "data quality, scenario & sensitivity stability"
             ),
             inputs={
                 "agreement_pct": consistency.agreement_pct,
@@ -504,8 +500,7 @@ class OverallEngine:
             status = "included"
             warns: list[str] = list(std.validation_warnings)
             if method in outliers:
-                status = "outlier"
-                warns.append("flagged as consensus outlier")
+                status = "outlier" warns.append("flagged as consensus outlier")
             if not std.validation_ok:
                 status = "validation_warning"
             w = weight_map.get(method, 0.0)

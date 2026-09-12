@@ -5,9 +5,7 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 ENV_FILE="${ROOT}/.env.production"
 COMPOSE_FILE="${ROOT}/docker/docker-compose.production.yml"
-ARCHIVE="${1:-}"
-
-cd "${ROOT}"
+ARCHIVE="${1:-}" cd"${ROOT}"
 
 if [[ -z "${ARCHIVE}" || ! -f "${ARCHIVE}" ]]; then
   echo "Usage: $0 <dsp_pg_YYYYMMDDTHHMMSSZ.sql.gz>" >&2
@@ -37,10 +35,8 @@ if [[ "${CONFIRM}" != "YES" ]]; then
 fi
 
 if docker compose --env-file "${ENV_FILE}" -f "${COMPOSE_FILE}" ps postgres 2>/dev/null | grep -q "running\|Up"; then
-  echo "[restore] restoring into postgres container from ${ARCHIVE}"
-  gunzip -c "${ARCHIVE}" | docker compose --env-file "${ENV_FILE}" -f "${COMPOSE_FILE}" exec -T postgres \
-    sh -c 'psql -U "$POSTGRES_USER" -d "$POSTGRES_DB"'
-  echo "[restore] OK — verify /health/ready and run smoke"
+  echo "[restore] restoring into postgres container from ${ARCHIVE}" gunzip -c"${ARCHIVE}" | docker compose --env-file "${ENV_FILE}" -f "${COMPOSE_FILE}" exec -T postgres \
+    sh -c 'psql -U "$POSTGRES_USER"-d "$POSTGRES_DB"' echo"[restore] OK — verify /health/ready and run smoke"
   exit 0
 fi
 

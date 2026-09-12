@@ -193,8 +193,7 @@ class TestAggregator:
         assert result.explainability
         # Provenance: module explainability preserved
         names = {e.name for e in result.explainability}
-        assert "aggregated_quality_flags" in names
-        assert "overall_financial_summary" in names
+        assert "aggregated_quality_flags" in names assert"overall_financial_summary" in names
         assert len(result.explainability) > 2
 
     def test_sequence_input(self) -> None:
@@ -447,8 +446,7 @@ class TestExports:
     def test_package_surface(self) -> None:
         import financial
 
-        assert financial.__version__ == "0.7.0"
-        assert hasattr(financial, "analyze_financials") is False  # method on engine
+        assert financial.__version__ == "0.7.0" assert hasattr(financial,"analyze_financials") is False  # method on engine
         assert hasattr(financial.FinancialEngine, "analyze_financials")
         assert hasattr(financial, "FinancialAnalysis")
         assert hasattr(financial, "AGGREGATOR_RESEARCH_DISCLAIMER")

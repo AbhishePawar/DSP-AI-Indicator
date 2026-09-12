@@ -870,15 +870,11 @@ def _handle_chat(
 def _buffett_wrap(answer: str, *, unavailable: bool) -> str:
     if unavailable or answer.strip() == UNAVAILABLE_MESSAGE:
         return (
-            "Plain-language view: there is not enough authenticated research output "
-            f"to explain this like Buffett yet. {UNAVAILABLE_MESSAGE}"
+            "Plain-language view: there is not enough authenticated research output " f"to explain this like Buffett yet. {UNAVAILABLE_MESSAGE}"
         )
     return (
         "Plain-language (Buffett-style) explanation of existing platform outputs — "
-        "no new numbers:\n\n"
-        f"{answer}\n\n"
-        "Rule: never invent intrinsic value, margins, or scores. "
-        "If a figure is missing above, treat it as unavailable."
+        "no new numbers:\n\n" f"{answer}\n\n" "Rule: never invent intrinsic value, margins, or scores. " "If a figure is missing above, treat it as unavailable."
     )
 
 

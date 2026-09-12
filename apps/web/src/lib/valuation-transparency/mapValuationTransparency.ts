@@ -114,8 +114,7 @@ function mapMethods(
       missingInputs: available ? orUnavailable(missingFromStage) : "Unavailable",
       assumptionsUsed: "Unavailable",
       sourceField: available
-        ? "valuation.method + valuation_signals / stage_summaries.valuation"
-        : "stage_summaries.valuation (sub-method not exposed)",
+        ? "valuation.method + valuation_signals / stage_summaries.valuation" :"stage_summaries.valuation (sub-method not exposed)",
     };
   });
 }

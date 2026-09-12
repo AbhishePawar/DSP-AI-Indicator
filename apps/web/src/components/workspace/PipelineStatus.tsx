@@ -37,11 +37,8 @@ export function PipelineStatus({ stages }: { stages: PipelineStageView[] }) {
                 className={`mt-1 h-3 w-3 shrink-0 rounded-full ${
                   stage.status === "Completed"
                     ? "bg-[var(--accent)]"
-                    : stage.status === "Running"
-                      ? "bg-[var(--accent)] shadow-[0_0_0_3px_var(--accent-soft)]"
-                      : stage.status === "Failed"
-                        ? "bg-[var(--danger-fg)]"
-                        : "bg-[var(--border)]"
+                    : stage.status === "Running" ?"bg-[var(--accent)] shadow-[0_0_0_3px_var(--accent-soft)]"
+                      : stage.status === "Failed" ?"bg-[var(--danger-fg)]" :"bg-[var(--border)]"
                 }`}
                 aria-hidden
               />

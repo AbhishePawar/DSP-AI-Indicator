@@ -9,6 +9,7 @@ import { Suspense, lazy, useEffect, useState } from "react";
 
 import { fetchOpsDashboard } from "@/lib/enterprise/enterpriseClient";
 import type { OpsDashboard } from "@/lib/enterprise/types";
+import { ProductionOpsPanel } from './ProductionOpsPanel';
 
 
 const ProductionOpsPanel = lazy(() =>

@@ -41,10 +41,7 @@ __all__ = ["RelativeEngine", "RELATIVE_VERSION"]
 
 _METHODOLOGY = (
     "Relative Valuation Suite (research only): compare company multiples "
-    "(P/E, Forward P/E, PEG, P/B, P/TBV, P/S, P/CF, P/FCF, EV/Sales, EV/EBIT, "
-    "EV/EBITDA, Dividend Yield) to injected industry / sector / peer / "
-    "historical benchmarks. Fair value = fair multiple × company driver. "
-    "Not investment advice. Independent of market-data APIs."
+    "(P/E, Forward P/E, PEG, P/B, P/TBV, P/S, P/CF, P/FCF, EV/Sales, EV/EBIT, " "EV/EBITDA, Dividend Yield) to injected industry / sector / peer / " "historical benchmarks. Fair value = fair multiple × company driver. " "Not investment advice. Independent of market-data APIs."
 )
 
 _LIMITATIONS = (
@@ -446,8 +443,7 @@ class RelativeEngine:
         # P1-04 — never substitute market price for an unresolved implied IV.
         if implied is None:
             raise ValuationError(
-                "relative valuation unavailable: implied price could not be "
-                "derived from the fair multiple (missing required fundamentals)"
+                "relative valuation unavailable: implied price could not be " "derived from the fair multiple (missing required fundamentals)"
             )
 
         ivps = float(implied)

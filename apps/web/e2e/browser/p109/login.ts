@@ -1,4 +1,5 @@
-import { expect, type Page } from "@playwright/test";
+import { expect } from "@playwright/test";
+import type { Page } from "playwright";
 
 /**
  * Current login UI contract (LoginForm + login.journey unit test):

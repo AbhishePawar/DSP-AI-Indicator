@@ -6,19 +6,12 @@
 import type { WinnerMatrixDimensionId } from "./types";
 
 export type WeightingProfileId =
-  | "equal"
-  | "quality"
-  | "value"
-  | "growth"
-  | "conservative"
-  | "buffett";
+  | "equal" |"quality" |"value" |"growth" |"conservative" |"buffett";
 
 /** Dimensions that may receive visual emphasis under a profile. */
 export type EmphasisDimensionId =
   | WinnerMatrixDimensionId
-  | "researchConfidence"
-  | "evidenceStrength"
-  | "overallPosition";
+  | "researchConfidence" |"evidenceStrength" |"overallPosition";
 
 export type WeightingProfile = {
   id: WeightingProfileId;

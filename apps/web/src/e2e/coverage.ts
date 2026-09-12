@@ -4,21 +4,7 @@
  */
 
 export type E2EJourneyId =
-  | "auth_rbac"
-  | "dashboard"
-  | "company_analysis"
-  | "portfolio"
-  | "research"
-  | "admin"
-  | "settings"
-  | "navigation_routing"
-  | "api_integration"
-  | "error_handling"
-  | "loading_empty"
-  | "responsive_regression"
-  | "accessibility_regression"
-  | "cross_browser"
-  | "performance_smoke";
+  | "auth_rbac" |"dashboard" |"company_analysis" |"portfolio" |"research" |"admin" |"settings" |"navigation_routing" |"api_integration" |"error_handling" |"loading_empty" |"responsive_regression" |"accessibility_regression" |"cross_browser" |"performance_smoke";
 
 export type E2EJourneyMeta = {
   id: E2EJourneyId;

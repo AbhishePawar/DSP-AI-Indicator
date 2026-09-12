@@ -12,10 +12,7 @@ import {
 import type { PortfolioWorkspaceView } from "@/lib/portfolio/portfolioWorkspace";
 
 export type PortfolioReportKind =
-  | "portfolio_report"
-  | "allocation_report"
-  | "risk_report"
-  | "watchlist_report";
+  | "portfolio_report" |"allocation_report" |"risk_report" |"watchlist_report";
 
 function citations(view: PortfolioWorkspaceView): ReportBlock["citation"] {
   return {

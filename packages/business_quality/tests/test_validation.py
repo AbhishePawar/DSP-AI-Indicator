@@ -45,8 +45,7 @@ class TestValidation:
             raise_on_missing=False,
         )
         assert not bad.ok
-        assert "a" in bad.invalid_inputs
-        assert "b" in bad.invalid_inputs
+        assert "a" in bad.invalid_inputs assert"b" in bad.invalid_inputs
 
         with pytest.raises(BusinessQualityValidationError, match="Invalid"):
             validate_required_inputs(

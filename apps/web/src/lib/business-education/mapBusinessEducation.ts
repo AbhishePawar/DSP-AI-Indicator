@@ -120,12 +120,7 @@ function section(
 
 type DraftView = Omit<
   ResearchView,
-  | "buffett"
-  | "businessEducation"
-  | "ratings"
-  | "transparency"
-  | "explainability"
-  | "valuationTransparency"
+  | "buffett" |"businessEducation" |"ratings" |"transparency" |"explainability" |"valuationTransparency"
 >;
 
 export function mapBusinessEducation(view: DraftView): BusinessEducationReportView {
@@ -313,8 +308,7 @@ export function mapBusinessEducation(view: DraftView): BusinessEducationReportVi
     return {
       risk: evidenced ? riskSeeds[i]! : placeholders[i]!,
       whyItMatters: evidenced
-        ? "Material to long-term business durability and capital outcomes."
-        : "Educational monitoring lens when specific warnings are sparse.",
+        ? "Material to long-term business durability and capital outcomes." :"Educational monitoring lens when specific warnings are sparse.",
       potentialTrigger:
         "Adverse change in the related stage label, score, or warning.",
       metricToMonitor: monitors[i]!,

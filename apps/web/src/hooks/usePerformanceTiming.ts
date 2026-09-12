@@ -4,10 +4,11 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { usePathname } from "next/navigation";
 
 import { logger } from "@/lib/observability/logger";
-import { recordTiming } from "@/lib/observability/timingStore";
+import { recordTiming, getRecentTimings } from "@/lib/observability/timingStore";
+import type { TimingRecord } from "@/lib/observability/timingStore";
 
-export { getRecentTimings } from "@/lib/observability/timingStore";
-export type { TimingRecord } from "@/lib/observability/timingStore";
+export { getRecentTimings };
+export type { TimingRecord };
 
 /** Measure a named operation (e.g. analysis execution). */
 export function usePerformanceTiming(label: string) {

@@ -46,15 +46,12 @@ def test_certify_p8_requires_ga_identity() -> None:
     )
     out = proc.stdout + proc.stderr
     assert proc.returncode != 0, out
-    assert "CERTIFICATION_P8 FAIL" in out
-    assert "GA_DECISION FAIL" in out
+    assert "CERTIFICATION_P8 FAIL" in out assert"GA_DECISION FAIL" in out
 
 
 def test_release_freeze_document() -> None:
     text = (ROOT / "docs" / "RELEASE_FREEZE.md").read_text(encoding="utf-8")
-    assert "Frozen modules" in text
-    assert "Emergency fix" in text
-    assert "v2.0.0" in text
+    assert "Frozen modules"in text assert"Emergency fix"in text assert"v2.0.0" in text
 
 
 def test_production_manifest_is_rc_not_ga() -> None:

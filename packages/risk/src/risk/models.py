@@ -343,8 +343,7 @@ class RiskProfile:
             if self.monitoring_ref.portfolio_id != self.portfolio_ref.portfolio_id:
                 msg = (
                     "foreign Monitoring ownership: monitoring portfolio_id "
-                    f"{self.monitoring_ref.portfolio_id!r} does not match "
-                    f"{self.portfolio_ref.portfolio_id!r}"
+                    f"{self.monitoring_ref.portfolio_id!r} does not match " f"{self.portfolio_ref.portfolio_id!r}"
                 )
                 raise RiskError(msg)
 
@@ -359,16 +358,13 @@ class RiskProfile:
             if assessment.risk_id != self.identity.risk_id:
                 msg = (
                     f"foreign ownership: assessment {assessment.assessment_id!r} "
-                    f"risk_id {assessment.risk_id!r} does not match "
-                    f"{self.identity.risk_id!r}"
+                    f"risk_id {assessment.risk_id!r} does not match " f"{self.identity.risk_id!r}"
                 )
                 raise RiskError(msg)
             if assessment.portfolio_id != self.portfolio_ref.portfolio_id:
                 msg = (
                     f"foreign Portfolio ownership: assessment "
-                    f"{assessment.assessment_id!r} portfolio_id "
-                    f"{assessment.portfolio_id!r} does not match "
-                    f"{self.portfolio_ref.portfolio_id!r}"
+                    f"{assessment.assessment_id!r} portfolio_id " f"{assessment.portfolio_id!r} does not match " f"{self.portfolio_ref.portfolio_id!r}"
                 )
                 raise RiskError(msg)
 
@@ -409,8 +405,7 @@ class RiskProfile:
                 raise RiskError(msg)
             if ref.digest in seen_comp:
                 msg = (
-                    f"broken references: duplicate ComparisonReport "
-                    f"{ref.digest!r}"
+                    f"broken references: duplicate ComparisonReport " f"{ref.digest!r}"
                 )
                 raise RiskError(msg)
             seen_comp.add(ref.digest)

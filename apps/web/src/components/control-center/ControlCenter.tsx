@@ -24,17 +24,7 @@ const LazyJsonPanel = lazy(() =>
 );
 
 type Tab =
-  | "overview"
-  | "registry"
-  | "branding"
-  | "flags"
-  | "ai"
-  | "valuation"
-  | "rules"
-  | "security"
-  | "history"
-  | "monitoring"
-  | "audit";
+  | "overview" |"registry" |"branding" |"flags" |"ai" |"valuation" |"rules" |"security" |"history" |"monitoring" |"audit";
 
 const TABS: { id: Tab; label: string }[] = [
   { id: "overview", label: "Overview" },

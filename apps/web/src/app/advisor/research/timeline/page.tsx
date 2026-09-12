@@ -3,6 +3,9 @@
 import dynamic from "next/dynamic";
 
 import { Skeleton } from "@/components/ui/Skeleton";
+import { AdvisorResearchTimelineWorkspace } from '../../../../components/advisor/AdvisorResearch';
+
+
 const AdvisorResearchTimelineWorkspace = dynamic(
   () =>
     import("@/components/advisor/AdvisorResearch").then(

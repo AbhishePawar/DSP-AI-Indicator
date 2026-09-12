@@ -14,7 +14,7 @@ describe("screening filters", () => {
   it("returns all companies for default filters", () => {
     expect(
       applyScreeningFilters(COMPANY_CATALOGUE, DEFAULT_SCREENING_FILTERS),
-    ).toHaveLength(COMPANY_CATALOGUE.length);
+    )?.toHaveLength(COMPANY_CATALOGUE?.length);
   });
 
   it("filters by search query", () => {
@@ -22,8 +22,8 @@ describe("screening filters", () => {
       ...DEFAULT_SCREENING_FILTERS,
       query: "msft",
     });
-    expect(results).toHaveLength(1);
-    expect(results[0]?.ticker).toBe("MSFT");
+    expect(results)?.toHaveLength(1);
+    expect(results?.[0]?.ticker)?.toBe("MSFT");
   });
 
   it("filters by numeric thresholds", () => {
@@ -32,8 +32,8 @@ describe("screening filters", () => {
       minRoe: "40",
       maxDebtToEquity: "0.3",
     });
-    expect(results.some((company) => company.ticker === "NVDA")).toBe(true);
-    expect(results.some((company) => company.ticker === "AAPL")).toBe(false);
+    expect(results?.some((company) => company?.ticker === "NVDA"))?.toBe(true);
+    expect(results?.some((company) => company?.ticker === "AAPL"))?.toBe(false);
   });
 
   it("filters by sector and exchange", () => {
@@ -42,7 +42,7 @@ describe("screening filters", () => {
       sector: "Financials",
       exchange: "NSE",
     });
-    expect(results.map((company) => company.ticker)).toEqual([
+    expect(results?.map((company) => company?.ticker))?.toEqual([
       "HDFCBANK",
       "ICICIBANK",
     ]);
@@ -50,8 +50,8 @@ describe("screening filters", () => {
 
   it("applies growth preset", () => {
     const preset = applyScreeningPreset("growth");
-    expect(preset.minRevenueGrowth).toBe("12");
-    expect(preset.style).toBe("growth");
+    expect(preset?.minRevenueGrowth)?.toBe("12");
+    expect(preset?.style)?.toBe("growth");
   });
 
   it("counts applied filters", () => {
@@ -62,11 +62,11 @@ describe("screening filters", () => {
         sector: "Technology",
         dividend: "yes",
       }),
-    ).toBe(3);
+    )?.toBe(3);
   });
 
   it("collects unique sectors and exchanges", () => {
-    expect(getUniqueSectors(COMPANY_CATALOGUE)).toContain("Technology");
-    expect(getUniqueExchanges(COMPANY_CATALOGUE)).toEqual(["NASDAQ", "NSE"]);
+    expect(getUniqueSectors(COMPANY_CATALOGUE))?.toContain("Technology");
+    expect(getUniqueExchanges(COMPANY_CATALOGUE))?.toEqual(["NASDAQ", "NSE"]);
   });
 });

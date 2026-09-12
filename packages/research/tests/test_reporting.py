@@ -217,11 +217,7 @@ class TestArchitectureAndCompatibility:
         for node in ast.walk(tree):
             if isinstance(node, ast.ImportFrom) and node.module:
                 imported.add(node.module)
-        assert "research.synthesizer" not in imported
-        assert "ResearchSynthesizer" not in source
-        assert "synthesize(" not in source
-        assert "BUY" not in source
-        assert "SELL" not in source
+        assert "research.synthesizer" not in imported assert"ResearchSynthesizer"not in source assert"synthesize("not in source assert"BUY"not in source assert"SELL" not in source
 
     def test_backward_compatibility(self) -> None:
         import research as rs

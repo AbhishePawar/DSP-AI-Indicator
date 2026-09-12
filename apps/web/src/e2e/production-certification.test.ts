@@ -19,14 +19,14 @@ const repoRoot = join(__dirname, "..", "..", "..", "..");
 
 describe("Living production/version certification", () => {
   it("aligns frontend 2.0.0 with backend target 2.0.0", () => {
-    expect(FRONTEND_FOUNDATION_VERSION).toBe("2.0.0-rc.1");
-    expect(FRONTEND_FOUNDATION_EPIC).toBe("EPS-003");
-    expect(FRONTEND_FOUNDATION_STATUS).toBe("release-candidate");
-    expect(BACKEND_PLATFORM_TARGET).toBe("dsp_platform@2.0.0");
-    expect(API_CONTRACT_TARGET).toBe("v1.0.0");
-    expect(env.frontendVersion).toBe("2.0.0-rc.1");
-    expect(manifest.appVersion).toBe("2.0.0-rc.1");
-    expect(manifest.backend).toBe("dsp_platform@2.0.0");
+    expect(FRONTEND_FOUNDATION_VERSION)?.toBe("2.0.0-rc.1");
+    expect(FRONTEND_FOUNDATION_EPIC)?.toBe("EPS-003");
+    expect(FRONTEND_FOUNDATION_STATUS)?.toBe("release-candidate");
+    expect(BACKEND_PLATFORM_TARGET)?.toBe("dsp_platform@2.0.0");
+    expect(API_CONTRACT_TARGET)?.toBe("v1.0.0");
+    expect(env.frontendVersion)?.toBe("2.0.0-rc.1");
+    expect(manifest?.appVersion)?.toBe("2.0.0-rc.1");
+    expect(manifest?.backend)?.toBe("dsp_platform@2.0.0");
   });
 
   it("keeps P7 certification and release-engineering docs", () => {
@@ -40,7 +40,7 @@ describe("Living production/version certification", () => {
       ["scripts", "ops", "certify_p7_2.py"],
     ]) {
       const path = join(repoRoot, ...rel);
-      expect(readFileSync(path, "utf8").length).toBeGreaterThan(100);
+      expect(readFileSync(path, "utf8")?.length)?.toBeGreaterThan(100);
     }
   });
 });

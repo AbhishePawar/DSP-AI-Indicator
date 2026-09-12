@@ -11,17 +11,14 @@ name: dsp-production
 x-logging: &default-logging
   driver: json-file
   options:
-    max-size: "20m"
-    max-file: "5"
+    max-size: "20m" max-file:"5"
 
 services:
   proxy:
     image: caddy:2.8-alpine
     restart: unless-stopped
     ports:
-      - "80:80"
-      - "443:443"
-      - "443:443/udp"
+      - "80:80" -"443:443" -"443:443/udp"
     environment:
       DSP_PUBLIC_DOMAIN: ${DSP_PUBLIC_DOMAIN:-localhost}
       DSP_API_DOMAIN: ${DSP_API_DOMAIN:-api.localhost}
@@ -59,10 +56,7 @@ services:
       DSP_ENVIRONMENT: production
       DSP_APP_VERSION: ${DSP_APP_VERSION:-2.0.0}
       DSP_PLATFORM_VERSION: ${DSP_PLATFORM_VERSION:-2.0.0}
-      DSP_ENABLE_SECURITY: "true"
-      DSP_REQUIRE_ADMIN_AUTH: "true"
-      DSP_RATE_LIMIT_ENABLED: "true"
-      DSP_HSTS_ENABLED: "true"
+      DSP_ENABLE_SECURITY: "true" DSP_REQUIRE_ADMIN_AUTH:"true" DSP_RATE_LIMIT_ENABLED:"true" DSP_HSTS_ENABLED:"true"
       DSP_INDIA_TIMEZONE: Asia/Kolkata
       DSP_INDIA_CURRENCY: INR
       DSP_REGION: ${DSP_REGION:-ap-south-1}

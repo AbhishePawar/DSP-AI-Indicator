@@ -164,13 +164,9 @@ class TestReporterNoSideEffects:
     def test_reporter_forbids_generation(self) -> None:
         source = (
             Path(__file__).resolve().parents[1]
-            / "src"
-            / "copilot"
-            / "reporter.py"
+            / "src" /"copilot" /"reporter.py"
         ).read_text(encoding="utf-8")
-        assert "ExplanationEngine().explain" not in source
-        assert "LanguageModelPort" not in source
-        assert "openai" not in source.lower()
+        assert "ExplanationEngine().explain"not in source assert"LanguageModelPort"not in source assert"openai" not in source.lower()
         assert "ConversationEngine().run" not in source
 
     def test_no_upstream_imports(self) -> None:

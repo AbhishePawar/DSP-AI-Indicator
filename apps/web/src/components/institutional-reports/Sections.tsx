@@ -42,8 +42,7 @@ export function CoverSection({
     view.ok && view.stages.length > 0
       ? `${view.stages.filter((s) => s.status === "succeeded").length}/${view.stages.length} stages succeeded`
       : view.ok
-        ? "Analyse succeeded — stage detail Data unavailable."
-        : "Incomplete / failed";
+        ? "Analyse succeeded — stage detail Data unavailable." :"Incomplete / failed";
 
   return (
     <div className="space-y-4 report-module" data-report-module="cover">

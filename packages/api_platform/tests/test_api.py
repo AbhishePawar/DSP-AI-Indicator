@@ -145,18 +145,7 @@ class TestVersionAndOpenAPI:
         data = response.json()
         assert data["info"]["version"] == "0.3.0"
         paths = data["paths"]
-        assert "/health" in paths
-        assert "/platform" in paths
-        assert "/auth/login" in paths
-        assert "/analyze/company" in paths
-        assert "/analyse" in paths
-        assert "/validate" in paths
-        assert "/version" in paths
-        assert "/capabilities" in paths
-        assert "/compare" in paths
-        assert "/workflow/run" in paths
-        assert "/copilot/chat" in paths
-        assert "/report/{report_id}" in paths
+        assert "/health"in paths assert"/platform"in paths assert"/auth/login"in paths assert"/analyze/company"in paths assert"/analyse"in paths assert"/validate"in paths assert"/version"in paths assert"/capabilities"in paths assert"/compare"in paths assert"/workflow/run"in paths assert"/copilot/chat"in paths assert"/report/{report_id}" in paths
 
     def test_swagger_docs(self, client: TestClient) -> None:
         response = client.get("/docs")

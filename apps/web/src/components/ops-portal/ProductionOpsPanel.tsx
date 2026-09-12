@@ -163,8 +163,7 @@ export function ProductionOpsPanel() {
         <h2 className="mb-2 text-base font-semibold">Backup</h2>
         <p className="text-sm" role="status">
           {backup.available
-            ? "Backup provider available."
-            : String(backup.message || "Data unavailable.")}
+            ? "Backup provider available." : String(backup.message ||"Data unavailable.")}
         </p>
         <p className="mt-1 text-xs text-[var(--dsp-text-muted)]">
           {String(backup.note || "")}

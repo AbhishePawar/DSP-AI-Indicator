@@ -1,6 +1,6 @@
 /** @deprecated import from GlobalErrorBoundary — kept for layout compatibility. */
 export {
-  ErrorBoundary,
   GlobalErrorBoundary,
+  GlobalErrorBoundary as ErrorBoundary,
   SectionErrorBoundary,
-} from "@/components/reliability/GlobalErrorBoundary";
+} from "@/components/reliability/GlobalErrorBoundary/index";

@@ -40,12 +40,10 @@ def build_test_only_ai_output_fixture(
     evidence_ids = tuple(item.id for item in report.evidence)
     kwargs: dict = {
         "executive_summary": (
-            "DSP evidence describes business quality and valuation without "
-            "replacing canonical calculations."
+            "DSP evidence describes business quality and valuation without " "replacing canonical calculations."
         ),
         "valuation_narrative": (
-            "The DSP intrinsic value and margin of safety are explained from "
-            "supplied evidence only."
+            "The DSP intrinsic value and margin of safety are explained from " "supplied evidence only."
         ),
         "business_quality_narrative": (
             "Business quality interpretation follows the canonical DSP score."

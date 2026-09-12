@@ -5,28 +5,15 @@ import { env } from "@/lib/env";
 export const APP_VERSION = env.frontendVersion;
 
 export type FeedbackCategory =
-  | "bug_report"
-  | "feature_request"
-  | "research_issue"
-  | "ux_feedback"
-  | "performance_issue"
-  | "accessibility_issue"
-  | "general_suggestion"
-  | "general_comments";
+  | "bug_report" |"feature_request" |"research_issue" |"ux_feedback" |"performance_issue" |"accessibility_issue" |"general_suggestion" |"general_comments";
 
 export type FeedbackSeverity = "critical" | "high" | "medium" | "low";
 
 /** P5.1 issue workflow */
 export type IssueStatus =
-  | "new"
-  | "triaged"
-  | "in_progress"
-  | "resolved"
-  | "closed"
+  | "new" |"triaged" |"in_progress" |"resolved" |"closed"
   /** legacy local values still readable */
-  | "open"
-  | "deferred"
-  | "duplicate";
+  | "open" |"deferred" |"duplicate";
 
 export type IssuePriority = "p0" | "p1" | "p2" | "p3";
 
@@ -224,13 +211,9 @@ export function submitFeedback(input: {
 
 export function createIssueFromFeedback(fb: FeedbackRecord): IssueRecord {
   const priority: IssuePriority =
-    fb.severity === "critical"
-      ? "p0"
-      : fb.severity === "high"
-        ? "p1"
-        : fb.severity === "medium"
-          ? "p2"
-          : "p3";
+    fb.severity === "critical" ?"p0"
+      : fb.severity === "high" ?"p1"
+        : fb.severity === "medium" ?"p2" :"p3";
   const issue: IssueRecord = {
     id: uid("iss"),
     feedbackId: fb.id,
@@ -438,8 +421,7 @@ export function buildReleaseCandidate(): ReleaseCandidateView {
         i.status === "open") &&
       (i.severity === "critical" || i.severity === "high"),
   )
-    ? "At risk"
-    : "Stable (Sprint 9 gates)";
+    ? "At risk" :"Stable (Sprint 9 gates)";
   const performanceStatus = "Stable (Sprint 9 sampling)";
   const securityStatus = "Pass — CSP enforced (Web 1.0.0)";
   const regressionStatus = "GREEN — 1551 passed (last known)";

@@ -265,8 +265,7 @@ def test_username_otp_login_sends_to_stored_mobile(
 def test_username_otp_unknown_is_opaque(platform: EnterpriseAuthPlatform) -> None:
     req = platform.request_login_otp("nobodyhere")
     assert req["challenge_id"]
-    assert "mobile" not in req
-    assert not (req.get("sms") or {}).get("debug_code")
+    assert "mobile"not in req assert not (req.get("sms") or {}).get("debug_code")
     with pytest.raises(AuthenticationError):
         platform.verify_login_otp(challenge_id=req["challenge_id"], code="123456")
 

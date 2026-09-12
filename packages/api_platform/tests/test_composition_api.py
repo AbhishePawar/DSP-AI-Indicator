@@ -233,8 +233,5 @@ class TestOpenAPIComposition:
     def test_openapi_includes_composition_routes(self, client: TestClient) -> None:
         data = client.get("/openapi.json").json()
         paths = data["paths"]
-        assert "/api/v1/analyse" in paths or "/analyse" in paths
-        assert "/api/v1/validate" in paths or "/validate" in paths
-        assert "/api/v1/version" in paths or "/version" in paths
-        assert "/api/v1/capabilities" in paths or "/capabilities" in paths
+        assert "/api/v1/analyse"in paths or "/analyse" in paths assert"/api/v1/validate"in paths or "/validate" in paths assert"/api/v1/version"in paths or "/version" in paths assert"/api/v1/capabilities" in paths or "/capabilities" in paths
         assert data["info"]["version"] == "0.3.0"

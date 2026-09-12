@@ -39,9 +39,7 @@ export function DrawerContent({
       <DialogPrimitive.Content
         className={cn(
           "fixed top-0 z-50 flex h-full w-full max-w-sm flex-col border-[var(--border)] bg-[var(--surface)] text-[var(--fg)] shadow-[var(--shadow-md)] outline-none",
-          side === "left"
-            ? "left-0 border-r"
-            : "right-0 border-l",
+          side === "left" ?"left-0 border-r" :"right-0 border-l",
           className,
         )}
         {...props}

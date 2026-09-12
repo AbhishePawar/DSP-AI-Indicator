@@ -364,8 +364,7 @@ export function buildOverallTeamStatus() {
       healthy === health.length
         ? "Healthy"
         : healthy >= health.length - 1
-          ? "Healthy with watches"
-          : "Needs attention",
+          ? "Healthy with watches" :"Needs attention",
     detail: `${healthy}/${health.length} workspaces healthy · overall completion ${metrics.overallCompletionPct}%`,
     completionPct: metrics.overallCompletionPct,
   };

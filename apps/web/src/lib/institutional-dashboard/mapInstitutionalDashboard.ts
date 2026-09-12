@@ -1139,8 +1139,7 @@ export function mapInstitutionalDashboard(args: {
     dataSources: availableField(
       [
         financialStatements?.available && financialStatements.authenticated
-          ? "Authenticated financial statements"
-          : "User-submitted financial statements",
+          ? "Authenticated financial statements" :"User-submitted financial statements",
         "Composition pipeline stage summaries",
         ...(market.hasAuthenticatedMarketData
           ? ["Authenticated market data"]

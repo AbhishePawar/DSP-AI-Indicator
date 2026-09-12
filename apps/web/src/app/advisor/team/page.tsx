@@ -3,6 +3,9 @@
 import dynamic from "next/dynamic";
 
 import { Skeleton } from "@/components/ui/Skeleton";
+import { TeamWorkspace } from '../../../components/advisor/TeamCollaboration';
+
+
 const TeamWorkspace = dynamic(
   () =>
     import("@/components/advisor/TeamCollaboration").then((m) => m.TeamWorkspace),

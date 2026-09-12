@@ -20,8 +20,7 @@ class FinancialSnapshotBuilder:
     Ordering, instrument consistency, and uniqueness are enforced via
     ``data_engine.builders.FundamentalStatementsBuilder`` (contracts
     layer), then handed to ``fundamental.models.FinancialSnapshot``
-    which applies the engine's own structural validation. No ratios or
-    growth figures are computed here — the Fundamental Engine's
+    which applies the engine's own structural validation. No ratios or growth figures are computed here — the Fundamental Engine's
     analyzers derive margins, ROE, growth, etc. from the snapshot.
     """
 

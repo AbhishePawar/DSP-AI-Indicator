@@ -122,19 +122,12 @@ class TestResearchPackageArchitecture:
     def test_not_wired_to_analyse_or_research_http(self) -> None:
         routers = (
             _REPO
-            / "packages"
-            / "api_platform"
-            / "src"
-            / "api_platform"
-            / "api"
-            / "routers"
+            / "packages" /"api_platform" /"src" /"api_platform" /"api" /"routers"
         )
         for name in ("composition.py", "research.py", "copilot.py"):
             path = routers / name
             text = path.read_text(encoding="utf-8")
-            assert "ResearchPackage" not in text
-            assert "build_research_package" not in text
-            assert "research_package" not in text
+            assert "ResearchPackage"not in text assert"build_research_package"not in text assert"research_package" not in text
 
     def test_not_imported_by_llm_adapters(self) -> None:
         adapters_src = _REPO / "packages" / "llm_adapters" / "src" / "llm_adapters"

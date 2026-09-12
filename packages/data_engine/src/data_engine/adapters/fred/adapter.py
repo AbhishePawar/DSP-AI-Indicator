@@ -1,7 +1,6 @@
 """Concrete FRED macroeconomic adapter.
 
-This is the platform's first real ``EconomicDataPort`` integration. It
-is the only class that knows FRED's observations API URL shape, missing
+This is the platform's first real ``EconomicDataPort`` integration. It is the only class that knows FRED's observations API URL shape, missing
 value sentinel (``"."``), and series-id catalog. Everything downstream
 (``DefaultEconomicNormalizer``, ``EconomicDataService``, the Economic
 Engine) only ever sees ``contracts.EconomicSeries``.

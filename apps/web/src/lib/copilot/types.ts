@@ -3,15 +3,7 @@
 export type CopilotRole = "user" | "assistant" | "system";
 
 export type ResearchCitationId =
-  | "Valuation"
-  | "Economic Moat"
-  | "Management Quality"
-  | "Financial Strength"
-  | "Earnings Quality"
-  | "Growth Quality"
-  | "Investment Committee"
-  | "Recommendation"
-  | "Overview";
+  | "Valuation" |"Economic Moat" |"Management Quality" |"Financial Strength" |"Earnings Quality" |"Growth Quality" |"Investment Committee" |"Recommendation" |"Overview";
 
 export type CopilotSourceRef = {
   engine?: string;
@@ -45,44 +37,11 @@ export type CopilotConversation = {
 };
 
 export type CopilotIntent =
-  | "explain_valuation"
-  | "explain_recommendation"
-  | "explain_moat"
-  | "explain_management"
-  | "summarise_strengths"
-  | "summarise_weaknesses"
-  | "explain_committee"
-  | "explain_financial_strength"
-  | "explain_earnings_quality"
-  | "explain_growth_quality"
-  | "explain_margin_of_safety"
-  | "compare_companies"
-  | "explain_risk"
-  | "analyze_portfolio"
-  | "document_qa"
-  | "investment_memo"
-  | "buffett"
-  | "unknown";
+  | "explain_valuation" |"explain_recommendation" |"explain_moat" |"explain_management" |"summarise_strengths" |"summarise_weaknesses" |"explain_committee" |"explain_financial_strength" |"explain_earnings_quality" |"explain_growth_quality" |"explain_margin_of_safety" |"compare_companies" |"explain_risk" |"analyze_portfolio" |"document_qa" |"investment_memo" |"buffett" |"unknown";
 
 /** Legacy suggested question ids mapped onto CopilotIntent. */
 export type SuggestedQuestionId =
-  | "why_buy"
-  | "explain_valuation"
-  | "explain_moat"
-  | "summarise_strengths"
-  | "summarise_risks"
-  | "explain_committee"
-  | "explain_management"
-  | "explain_financial_strength"
-  | "explain_earnings_quality"
-  | "explain_growth_quality"
-  | "explain_margin_of_safety"
-  | "compare_companies"
-  | "explain_risk"
-  | "analyze_portfolio"
-  | "document_qa"
-  | "investment_memo"
-  | "buffett";
+  | "why_buy" |"explain_valuation" |"explain_moat" |"summarise_strengths" |"summarise_risks" |"explain_committee" |"explain_management" |"explain_financial_strength" |"explain_earnings_quality" |"explain_growth_quality" |"explain_margin_of_safety" |"compare_companies" |"explain_risk" |"analyze_portfolio" |"document_qa" |"investment_memo" |"buffett";
 
 export type SuggestedQuestion = {
   id: SuggestedQuestionId;

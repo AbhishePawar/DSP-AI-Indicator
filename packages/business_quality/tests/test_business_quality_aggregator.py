@@ -513,8 +513,7 @@ class TestPackage:
     def test_exports(self) -> None:
         import business_quality as bq
 
-        assert bq.__version__ == "0.7.0"
-        assert BUSINESS_QUALITY_VERSION.startswith("0.7.0")
+        assert bq.__version__ == "0.7.0" assert BUSINESS_QUALITY_VERSION.startswith("0.7.0")
         assert hasattr(bq, "BusinessQualityAggregator")
         assert hasattr(bq, "BusinessQualityReport")
         assert bq.BUSINESS_QUALITY_AGGREGATOR_VERSION.startswith("0.7.0")

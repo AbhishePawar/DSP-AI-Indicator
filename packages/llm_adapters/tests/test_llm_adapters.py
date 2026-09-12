@@ -85,8 +85,7 @@ def test_service_uses_deterministic_when_no_api_keys(monkeypatch) -> None:
         request=_sample_request(),
         response=_sample_response(),
     )
-    assert result.provider_id == "deterministic"
-    assert "Buy" in result.content
+    assert result.provider_id == "deterministic" assert"Buy" in result.content
 
 
 def test_registry_lists_providers() -> None:

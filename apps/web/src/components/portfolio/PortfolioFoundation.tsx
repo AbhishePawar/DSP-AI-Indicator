@@ -30,15 +30,15 @@ export function PortfolioFoundation() {
       ) : (
         <>
           <PortfolioStatus
-            totalHoldings={view.summary.totalHoldings}
-            sectorCount={view.summary.sectorCount}
-            researchCoverage={view.summary.researchCoverage}
-            portfolioStatus={view.summary.portfolioStatus}
+            totalHoldings={view?.summary?.totalHoldings}
+            sectorCount={view?.summary?.sectorCount}
+            researchCoverage={view?.summary?.researchCoverage}
+            portfolioStatus={view?.summary?.portfolioStatus}
           />
 
-          <PortfolioMarketSummary holdings={view.holdings} />
+          <PortfolioMarketSummary holdings={view?.holdings} />
 
-          <PortfolioAnalytics holdings={view.holdings} />
+          <PortfolioAnalytics holdings={view?.holdings} />
 
           <section aria-label="Allocation overview" className="space-y-3">
             <h2 className="font-[family-name:var(--font-display)] text-xl tracking-tight">
@@ -47,23 +47,23 @@ export function PortfolioFoundation() {
             <div className="grid gap-4 lg:grid-cols-3">
               <AllocationCard
                 title="By Sector"
-                segments={view.allocations.bySector}
+                segments={view?.allocations?.bySector}
               />
               <AllocationCard
                 title="By Market Cap"
-                segments={view.allocations.byMarketCap}
+                segments={view?.allocations?.byMarketCap}
               />
               <AllocationCard
                 title="By Geography"
-                segments={view.allocations.byGeography}
+                segments={view?.allocations?.byGeography}
               />
             </div>
           </section>
 
-          <HoldingsTable holdings={view.holdings} />
+          <HoldingsTable holdings={view?.holdings} />
 
           <div className="grid gap-4 lg:grid-cols-2">
-            <ActivityTimeline activities={view.activities} />
+            <ActivityTimeline activities={view?.activities} />
             <div className="space-y-4">
               <PortfolioSync />
               <PortfolioActions />

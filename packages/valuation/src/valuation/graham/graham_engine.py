@@ -40,10 +40,7 @@ __all__ = ["GrahamEngine", "GRAHAM_VERSION"]
 
 _METHODOLOGY = (
     "Benjamin Graham intrinsic-value heuristic (research only). "
-    "Original: IV = EPS × (8.5 + 2G) where G is expected growth in percent. "
-    "Modern: IV = EPS × (8.5 + 2G) × (Y_ref / Y_aaa). "
-    "Assumptions: constant growth G, AAA yield adjustment (modern), "
-    "no explicit balance-sheet or cash-flow model. Not investment advice."
+    "Original: IV = EPS × (8.5 + 2G) where G is expected growth in percent. " "Modern: IV = EPS × (8.5 + 2G) × (Y_ref / Y_aaa). " "Assumptions: constant growth G, AAA yield adjustment (modern), " "no explicit balance-sheet or cash-flow model. Not investment advice."
 )
 
 _LIMITATIONS = (

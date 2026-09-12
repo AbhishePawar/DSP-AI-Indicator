@@ -156,8 +156,7 @@ class PortfolioAssembler:
                 orphans = tuple(s for s in included if s not in holding_set)
                 if orphans:
                     msg = (
-                        f"orphan ComparisonReport reference symbols "
-                        f"{list(orphans)!r}: not present in holdings"
+                        f"orphan ComparisonReport reference symbols " f"{list(orphans)!r}: not present in holdings"
                     )
                     raise PortfolioError(msg)
             # empty included_symbols => portfolio-level citation (allowed)
@@ -166,8 +165,7 @@ class PortfolioAssembler:
             if snap.portfolio_id != context.identity.portfolio_id:
                 msg = (
                     f"foreign ownership: snapshot {snap.snapshot_id!r} "
-                    f"belongs to {snap.portfolio_id!r}, not "
-                    f"{context.identity.portfolio_id!r}"
+                    f"belongs to {snap.portfolio_id!r}, not " f"{context.identity.portfolio_id!r}"
                 )
                 raise PortfolioError(msg)
 

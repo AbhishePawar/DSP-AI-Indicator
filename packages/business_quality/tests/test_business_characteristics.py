@@ -295,10 +295,7 @@ class TestBusinessCharacteristics:
         assert bc.overall_rating in Rating
         bq = engine.analyze(fa)
         assert bq.score is not None
-        assert "EQ=" in bq.summary.headline
-        assert "CA=" in bq.summary.headline
-        assert "BC=" in bq.summary.headline
-        assert BUSINESS_QUALITY_VERSION.startswith("0.7.0")
+        assert "EQ=" in bq.summary.headline assert"CA="in bq.summary.headline assert"BC="in bq.summary.headline assert BUSINESS_QUALITY_VERSION.startswith("0.7.0")
         assert "business_characteristics_intelligence" in bq.metadata.modules_composed
         assert len(bq.score.assessments) >= 20
         assert "CP=" in bq.summary.headline
@@ -522,8 +519,7 @@ class TestPackage:
     def test_exports(self) -> None:
         import business_quality as bq
 
-        assert bq.__version__ == "0.7.0"
-        assert hasattr(bq, "BusinessCharacteristicsAnalysis")
+        assert bq.__version__ == "0.7.0" assert hasattr(bq,"BusinessCharacteristicsAnalysis")
         assert hasattr(bq, "BusinessCharacteristicsFlag")
         assert hasattr(bq.BusinessQualityEngine, "analyze_business_characteristics")
         assert bq.BUSINESS_CHARACTERISTICS_VERSION.startswith("0.4.0")

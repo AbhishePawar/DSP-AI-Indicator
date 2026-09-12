@@ -6,13 +6,11 @@ export function modeForQuestion(
   questionId: SuggestedQuestionId | "freeform",
 ): string | undefined {
   switch (questionId) {
-    case "explain_valuation":
-    case "explain_margin_of_safety":
+    case "explain_valuation": case"explain_margin_of_safety":
       return "valuation";
     case "explain_committee":
       return "committee";
-    case "explain_risk":
-    case "summarise_risks":
+    case "explain_risk": case"summarise_risks":
       return "risk";
     case "analyze_portfolio":
       return "portfolio";

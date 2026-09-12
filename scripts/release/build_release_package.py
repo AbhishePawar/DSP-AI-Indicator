@@ -73,8 +73,7 @@ def main() -> int:
 - [ ] SBOM + checksums attached under `release/`
 
 **API contract:** `{API}` (behaviour frozen)
-"""
-    _write(RELEASE / "RELEASE_CHECKLIST.md", checklist)
+""" _write(RELEASE /"RELEASE_CHECKLIST.md", checklist)
 
     build_manifest = {
         "generatedAt": datetime.now(timezone.utc).isoformat(),
@@ -131,9 +130,7 @@ def main() -> int:
             },
         ],
         "dependencies_note": (
-            "Full transitive SBOM should be generated in CI with "
-            "cyclonedx-bom / syft when available. This file is the "
-            "release-channel bill of materials anchor for P8.0."
+            "Full transitive SBOM should be generated in CI with " "cyclonedx-bom / syft when available. This file is the " "release-channel bill of materials anchor for P8.0."
         ),
         "root_pyproject_present": "name" in root_py or "[project]" in root_py,
     }

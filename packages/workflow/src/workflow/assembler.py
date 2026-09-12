@@ -295,8 +295,7 @@ class WorkflowAssembler:
                 raise WorkflowError(msg)
             if transition.transition_id in seen:
                 msg = (
-                    f"broken transitions: duplicate transition id "
-                    f"{transition.transition_id!r}"
+                    f"broken transitions: duplicate transition id " f"{transition.transition_id!r}"
                 )
                 raise WorkflowError(msg)
             seen.add(transition.transition_id)
@@ -313,9 +312,7 @@ class WorkflowAssembler:
                 and transition.to_state is WorkflowState.PENDING
             ):
                 msg = (
-                    f"illegal initial states: transition "
-                    f"{transition.transition_id!r} cannot seed from terminal/"
-                    f"running back to pending"
+                    f"illegal initial states: transition " f"{transition.transition_id!r} cannot seed from terminal/" f"running back to pending"
                 )
                 raise WorkflowError(msg)
             if transition.step_id is not None and transition.step_id not in step_ids:

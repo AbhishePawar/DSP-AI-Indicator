@@ -47,6 +47,4 @@ def test_production_artifacts_exist() -> None:
 
 def test_caddyfile_security_headers() -> None:
     text = (ROOT / "docker" / "Caddyfile").read_text(encoding="utf-8")
-    assert "Strict-Transport-Security" in text
-    assert "X-Content-Type-Options" in text
-    assert "reverse_proxy api:8000" in text
+    assert "Strict-Transport-Security"in text assert"X-Content-Type-Options"in text assert"reverse_proxy api:8000" in text

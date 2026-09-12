@@ -147,9 +147,7 @@ def evaluate_capital_allocation(
             reference="capital_allocation.assessments",
             summary="Reuses BQ capital allocation assessments",
             reasoning=(
-                "Buffett and Munger emphasize rational capital allocation. "
-                "We reuse Business Quality capital-allocation scores rather than "
-                "recomputing cash-flow math."
+                "Buffett and Munger emphasize rational capital allocation. " "We reuse Business Quality capital-allocation scores rather than " "recomputing cash-flow math."
             ),
             confidence=conf.value,
             metrics=[
@@ -174,9 +172,7 @@ def evaluate_capital_allocation(
         confidence=conf,
         evidence=evidence,
         reasoning=(
-            "Capital allocation scored from BQ discipline/reinvestment/buyback "
-            "proxies plus ROIC — prioritizing high returns on capital and "
-            "reinvestment rationality."
+            "Capital allocation scored from BQ discipline/reinvestment/buyback " "proxies plus ROIC — prioritizing high returns on capital and " "reinvestment rationality."
         ),
         positives=positives,
         negatives=negatives,
@@ -239,8 +235,7 @@ def evaluate_shareholder_orientation(
             summary="Owner orientation via buyback/dividend/cash generation proxies",
             reasoning=(
                 "Shareholder orientation emphasizes long-term owner returns. "
-                "Without proxy statements, we use distribution and cash-generation "
-                "proxies with explicit communication/incentive limits."
+                "Without proxy statements, we use distribution and cash-generation " "proxies with explicit communication/incentive limits."
             ),
             confidence=conf.value,
             metrics=[
@@ -264,8 +259,7 @@ def evaluate_shareholder_orientation(
         confidence=conf,
         evidence=evidence,
         reasoning=(
-            "Shareholder orientation scored from distribution quality and cash "
-            "generation proxies emphasizing long-term owner alignment."
+            "Shareholder orientation scored from distribution quality and cash " "generation proxies emphasizing long-term owner alignment."
         ),
         positives=positives,
         negatives=negatives,
@@ -323,9 +317,7 @@ def evaluate_governance(
             reference="ratios.leverage / BusinessQuality characteristics",
             summary="Weak governance hygiene proxies only",
             reasoning=(
-                "True governance requires board, ownership, and audit evidence. "
-                "Absent those inputs, only conservative financial-hygiene proxies "
-                "are used and confidence/score are capped."
+                "True governance requires board, ownership, and audit evidence. " "Absent those inputs, only conservative financial-hygiene proxies " "are used and confidence/score are capped."
             ),
             confidence=conf.value,
             metrics=[
@@ -347,8 +339,7 @@ def evaluate_governance(
         confidence=conf,
         evidence=evidence,
         reasoning=(
-            "Governance scored conservatively from financial-hygiene proxies; "
-            "board/ownership/audit evidence is explicitly out of scope for Phase 1."
+            "Governance scored conservatively from financial-hygiene proxies; " "board/ownership/audit evidence is explicitly out of scope for Phase 1."
         ),
         positives=[],
         negatives=["Governance evidence incomplete without board/ownership data"],
@@ -406,8 +397,7 @@ def evaluate_financial_discipline(
             reference="balance_sheet.leverage / cash_flow / BQ efficiency",
             summary="Debt conservatism, cash generation, working-capital proxies",
             reasoning=(
-                "Buffett prefers managers who finance conservatively and generate "
-                "cash. Leverage restraint and cash conversion are primary proxies."
+                "Buffett prefers managers who finance conservatively and generate " "cash. Leverage restraint and cash conversion are primary proxies."
             ),
             confidence=conf.value,
             metrics=[
@@ -427,8 +417,7 @@ def evaluate_financial_discipline(
         confidence=conf,
         evidence=evidence,
         reasoning=(
-            "Financial discipline scored from leverage conservatism and cash/"
-            "working-capital efficiency proxies."
+            "Financial discipline scored from leverage conservatism and cash/" "working-capital efficiency proxies."
         ),
         positives=positives,
         negatives=negatives,
@@ -480,8 +469,7 @@ def evaluate_execution_quality(
             reference="competitive_position / earnings_quality",
             summary="Revenue/margin/earnings consistency as execution proxies",
             reasoning=(
-                "Execution quality is evidenced by consistent operating results. "
-                "Guidance reliability is deferred until a guidance evidence source exists."
+                "Execution quality is evidenced by consistent operating results. " "Guidance reliability is deferred until a guidance evidence source exists."
             ),
             confidence=conf.value,
             metrics=[
@@ -504,8 +492,7 @@ def evaluate_execution_quality(
         confidence=conf,
         evidence=evidence,
         reasoning=(
-            "Execution quality scored from revenue, margin, and earnings "
-            "consistency proxies; guidance reliability explicitly deferred."
+            "Execution quality scored from revenue, margin, and earnings " "consistency proxies; guidance reliability explicitly deferred."
         ),
         positives=positives,
         negatives=negatives,
@@ -555,9 +542,7 @@ def evaluate_integrity_transparency(
             reference="earnings_quality",
             summary="Accounting quality via earnings-quality and exceptional-item proxies",
             reasoning=(
-                "Honest reporting is central to Buffett/Munger management assessment. "
-                "Earnings quality, accrual/FCF support, and exceptional items are "
-                "used; restatement/regulatory feeds are future extensions."
+                "Honest reporting is central to Buffett/Munger management assessment. " "Earnings quality, accrual/FCF support, and exceptional items are " "used; restatement/regulatory feeds are future extensions."
             ),
             confidence=conf.value,
             metrics=[
@@ -580,8 +565,7 @@ def evaluate_integrity_transparency(
         confidence=conf,
         evidence=evidence,
         reasoning=(
-            "Integrity & transparency scored from earnings-quality and "
-            "exceptional-item proxies with explicit restatement/regulatory limits."
+            "Integrity & transparency scored from earnings-quality and " "exceptional-item proxies with explicit restatement/regulatory limits."
         ),
         positives=positives,
         negatives=negatives,

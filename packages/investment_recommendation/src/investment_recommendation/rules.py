@@ -119,8 +119,7 @@ def apply_decision_rules(
         _add(
             "margin_of_safety_unavailable",
             "margin_of_safety",
-            "Margin of safety unavailable — no authoritative valuation-based "
-            "action (quality alone cannot justify Buy/Hold/Sell).",
+            "Margin of safety unavailable — no authoritative valuation-based " "action (quality alone cannot justify Buy/Hold/Sell).",
             score_delta=0.0,
             cap=InvestmentRecommendationAction.UNAVAILABLE,
             engines=("valuation",),
@@ -136,8 +135,7 @@ def apply_decision_rules(
         _add(
             "materially_above_intrinsic_value",
             "margin_of_safety",
-            "Price is materially above conservative intrinsic value; "
-            "Buy/Strong Buy capped at Hold unless other rules do not lift the cap.",
+            "Price is materially above conservative intrinsic value; " "Buy/Strong Buy capped at Hold unless other rules do not lift the cap.",
             score_delta=-8.0,
             cap=InvestmentRecommendationAction.HOLD,
             engines=("valuation",),
@@ -165,8 +163,7 @@ def apply_decision_rules(
         _add(
             "excellent_business_undervalued",
             "quality_valuation",
-            "Excellent business quality with a deep margin of safety — "
-            "Buffett-aligned entry posture.",
+            "Excellent business quality with a deep margin of safety — " "Buffett-aligned entry posture.",
             score_delta=6.0,
             engines=("business_quality_aggregator", "valuation"),
             metrics=[f"quality={quality}", f"mos={mos_ratio}"],
@@ -181,8 +178,7 @@ def apply_decision_rules(
         _add(
             "excellent_business_overvalued",
             "quality_valuation",
-            "Excellent business but overvalued — quality alone does not justify "
-            "aggressive buying without MoS.",
+            "Excellent business but overvalued — quality alone does not justify " "aggressive buying without MoS.",
             score_delta=-4.0,
             cap=InvestmentRecommendationAction.HOLD,
             engines=("business_quality_aggregator", "valuation"),
@@ -229,8 +225,7 @@ def apply_decision_rules(
         _add(
             "wide_moat_poor_capital_allocation",
             "conflict",
-            "Wide/strong moat with weak management/capital allocation can destroy "
-            "franchise value over time.",
+            "Wide/strong moat with weak management/capital allocation can destroy " "franchise value over time.",
             score_delta=-5.0,
             engines=("economic_moat", "management_quality"),
             metrics=[f"moat={moat}", f"management={management}"],
@@ -256,8 +251,7 @@ def apply_decision_rules(
         _add(
             "strong_quality_weak_earnings_quality",
             "conflict",
-            "Composite quality elevated while earnings quality is weak — "
-            "scrutinise cash-backed earnings.",
+            "Composite quality elevated while earnings quality is weak — " "scrutinise cash-backed earnings.",
             score_delta=-3.0,
             engines=("earnings_quality", "business_quality_aggregator"),
             metrics=[f"earnings={earnings}", f"quality={quality}"],

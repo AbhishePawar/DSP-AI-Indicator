@@ -245,8 +245,7 @@ def validate_payload(
         and body.valuation_signals.current_market_price is not None
     ):
         warnings.append(
-            "price-only valuation path may run when ValuationEngine inputs "
-            "are unavailable; client IV/MoS conclusions are never accepted"
+            "price-only valuation path may run when ValuationEngine inputs " "are unavailable; client IV/MoS conclusions are never accepted"
         )
     return ValidateResponse(
         ok=len(errors) == 0,
@@ -320,8 +319,7 @@ def _persist_investment_provenance(
     production = (os.environ.get("DSP_ENVIRONMENT") or "").lower() == "production"
     if production and type(store).__name__ == "InMemoryInvestmentProvenanceStore":
         raise CompositionApiError(
-            "investment provenance persistence failed — "
-            "auditable conclusion not claimed",
+            "investment provenance persistence failed — " "auditable conclusion not claimed",
             error_code="AUDIT_PERSISTENCE_FAILED",
             status_code=503,
             validation_errors=[
@@ -334,8 +332,7 @@ def _persist_investment_provenance(
     except InvestmentProvenanceError as exc:
         if production:
             raise CompositionApiError(
-                "investment provenance persistence failed — "
-                "auditable conclusion not claimed",
+                "investment provenance persistence failed — " "auditable conclusion not claimed",
                 error_code="AUDIT_PERSISTENCE_FAILED",
                 status_code=503,
                 validation_errors=[str(exc)],
@@ -350,8 +347,7 @@ def _persist_investment_provenance(
     except Exception as exc:  # noqa: BLE001
         if production:
             raise CompositionApiError(
-                "investment provenance persistence failed — "
-                "auditable conclusion not claimed",
+                "investment provenance persistence failed — " "auditable conclusion not claimed",
                 error_code="AUDIT_PERSISTENCE_FAILED",
                 status_code=503,
                 validation_errors=[str(exc)],

@@ -133,8 +133,7 @@ class ReportingContext:
             and self.profile is None
         ):
             msg = (
-                "missing graph identity: KnowledgeGraphReport, EngineResult, "
-                "or GraphProfile required"
+                "missing graph identity: KnowledgeGraphReport, EngineResult, " "or GraphProfile required"
             )
             raise KnowledgeGraphError(msg)
         if self.summary_sections is not None:
@@ -191,25 +190,19 @@ class KnowledgeGraphReporter:
         if context.engine_result is not None and context.report is not None:
             if context.engine_result.graph_id != context.report.graph_id:
                 msg = (
-                    "engine/report identity mismatch: EngineResult "
-                    f"{context.engine_result.graph_id!r} does not match "
-                    f"report {context.report.graph_id!r}"
+                    "engine/report identity mismatch: EngineResult " f"{context.engine_result.graph_id!r} does not match " f"report {context.report.graph_id!r}"
                 )
                 raise KnowledgeGraphError(msg)
             if context.engine_result.report.graph_id != context.report.graph_id:
                 msg = (
-                    "reporter/report mismatch: engine.report "
-                    f"{context.engine_result.report.graph_id!r} vs "
-                    f"{context.report.graph_id!r}"
+                    "reporter/report mismatch: engine.report " f"{context.engine_result.report.graph_id!r} vs " f"{context.report.graph_id!r}"
                 )
                 raise KnowledgeGraphError(msg)
 
         if context.profile is not None:
             if context.profile.graph_id != source.graph_id:
                 msg = (
-                    "reporter/report mismatch: profile "
-                    f"{context.profile.graph_id!r} vs report "
-                    f"{source.graph_id!r}"
+                    "reporter/report mismatch: profile " f"{context.profile.graph_id!r} vs report " f"{source.graph_id!r}"
                 )
                 raise KnowledgeGraphError(msg)
 
@@ -279,8 +272,7 @@ class KnowledgeGraphReporter:
                     *source.limitations,
                     *summary.limitation_notes,
                     *ctx.limitations,
-                    "KnowledgeGraphReport presentation only — "
-                    "no topology construction performed by reporter.",
+                    "KnowledgeGraphReport presentation only — " "no topology construction performed by reporter.",
                 )
             )
         )
@@ -350,8 +342,7 @@ class KnowledgeGraphReporter:
         if isinstance(context, GraphProfile):
             return ReportingContext(profile=context)
         msg = (
-            "ReportingContext, KnowledgeGraphReport, EngineResult, "
-            "or GraphProfile required"
+            "ReportingContext, KnowledgeGraphReport, EngineResult, " "or GraphProfile required"
         )
         raise KnowledgeGraphError(msg)
 

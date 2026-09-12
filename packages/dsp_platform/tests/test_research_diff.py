@@ -82,8 +82,7 @@ def test_snapshot_comparison_detects_change() -> None:
     assert result.change_summary["identical_content"] is False
     assert result.change_summary["fields_changed"] >= 1
     rec = next(s for s in result.sections if s.name == "recommendation")
-    assert rec.status == "changed"
-    assert any("margin_of_safety" in f.path for f in rec.field_diffs)
+    assert rec.status == "changed" assert any("margin_of_safety" in f.path for f in rec.field_diffs)
 
 
 def test_schema_and_version_comparison() -> None:

@@ -39,12 +39,7 @@ __all__ = ["ResidualIncomeEngine", "RESIDUAL_INCOME_VERSION", "verify_clean_surp
 
 _METHODOLOGY = (
     "Multi-stage Residual Income Valuation (clean-surplus): "
-    "Stage 1 Explicit: NI_t = ROE_t×BV_{t−1}; Div_t = payout×NI_t; "
-    "BV_t = BV_{t−1}+NI_t−Div_t (auto-projected); "
-    "RI_t = NI_t − r×BV_{t−1}; "
-    "Stage 2 Continuing RI: RI_{n+1}/(r−g); "
-    "Stage 3 Terminal PV: CV/(1+r)^n; "
-    "IV = BV_0 + Σ PV(RI_t) + PV(CV). Research / educational only."
+    "Stage 1 Explicit: NI_t = ROE_t×BV_{t−1}; Div_t = payout×NI_t; " "BV_t = BV_{t−1}+NI_t−Div_t (auto-projected); " "RI_t = NI_t − r×BV_{t−1}; " "Stage 2 Continuing RI: RI_{n+1}/(r−g); " "Stage 3 Terminal PV: CV/(1+r)^n; " "IV = BV_0 + Σ PV(RI_t) + PV(CV). Research / educational only."
 )
 
 _LIMITATIONS = (

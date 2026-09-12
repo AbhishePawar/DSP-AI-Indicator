@@ -66,15 +66,13 @@ def validate_evidence_bundles_for_comparison(
         if meta.methodology_id != methodology_id:
             msg = (
                 f"evidence methodology mismatch for {key}: "
-                f"bundle {meta.methodology_id!r} vs comparison "
-                f"{methodology_id!r}"
+                f"bundle {meta.methodology_id!r} vs comparison " f"{methodology_id!r}"
             )
             raise ComparisonError(msg)
         if meta.methodology_version != methodology_version:
             msg = (
                 f"evidence methodology version mismatch for {key}: "
-                f"bundle {meta.methodology_version!r} vs comparison "
-                f"{methodology_version!r}"
+                f"bundle {meta.methodology_version!r} vs comparison " f"{methodology_version!r}"
             )
             raise ComparisonError(msg)
         if not isinstance(bundle.status, EvidenceBundleStatus):
@@ -89,15 +87,13 @@ def validate_evidence_bundles_for_comparison(
         if ref is not None:
             if ref.instrument_key != key:
                 msg = (
-                    f"DecisionPack evidence_bundle_ref instrument mismatch "
-                    f"for {key}"
+                    f"DecisionPack evidence_bundle_ref instrument mismatch " f"for {key}"
                 )
                 raise ComparisonError(msg)
             if ref.digest != bundle.digest:
                 msg = (
                     f"evidence bundle digest mismatch for {key}: "
-                    f"pack cites {ref.digest!r}, bundle digest is "
-                    f"{bundle.digest!r}"
+                    f"pack cites {ref.digest!r}, bundle digest is " f"{bundle.digest!r}"
                 )
                 raise ComparisonError(msg)
             if ref.methodology_id != meta.methodology_id:
@@ -175,11 +171,7 @@ def build_evidence_backed_observations(
                 code="industry_evidence_bundle_cited",
                 text=(
                     f"{symbol}: Industry Evidence Bundle "
-                    f"{bundle.metadata.bundle_id} "
-                    f"(status={bundle.status.value}) is cited for this "
-                    f"comparison under methodology "
-                    f"{bundle.metadata.methodology_id}@"
-                    f"{bundle.metadata.methodology_version}."
+                    f"{bundle.metadata.bundle_id} " f"(status={bundle.status.value}) is cited for this " f"comparison under methodology " f"{bundle.metadata.methodology_id}@" f"{bundle.metadata.methodology_version}."
                 ),
                 subjects=(symbol,),
                 evidence_refs=(bundle.metadata.bundle_id, bundle.digest),
@@ -215,8 +207,7 @@ def build_evidence_backed_observations(
                         code="industry_evidence_availability",
                         text=(
                             f"{symbol} evidence {entry.evidence_id} "
-                            f"availability is recorded as {avail} in the "
-                            f"cited Industry Evidence Bundle."
+                            f"availability is recorded as {avail} in the " f"cited Industry Evidence Bundle."
                         ),
                         subjects=(symbol,),
                         evidence_refs=(entry.evidence_id,),
@@ -274,8 +265,7 @@ def build_evidence_limitations(
                 code="industry_evidence_not_supplied",
                 message=(
                     "No Industry Evidence Bundle was supplied for this "
-                    "comparison. C2.5 DecisionPack-only qualitative notes "
-                    "apply; industry evidence citations are absent."
+                    "comparison. C2.5 DecisionPack-only qualitative notes " "apply; industry evidence citations are absent."
                 ),
             ),
         )

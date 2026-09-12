@@ -263,8 +263,7 @@ class LocalSsoAdapter:
             "redirect_uri": redirect_uri,
             "state": st,
             "authorization_url": (
-                f"{self._oidc.discovery().authorization_endpoint}"
-                f"?response_type=code&redirect_uri={redirect_uri}&state={st}"
+                f"{self._oidc.discovery().authorization_endpoint}" f"?response_type=code&redirect_uri={redirect_uri}&state={st}"
             ),
         }
 

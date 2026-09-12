@@ -69,10 +69,7 @@ def build_research_prompt(
     catalog_text = "\n".join(catalog_lines) if catalog_lines else "(no tool evidence)"
     user = (
         f"Symbol: {spec.symbol}\n"
-        f"Question: {spec.question}\n"
-        f"Approved tools: {allowed}\n"
-        f"Evidence catalog:\n{catalog_text}\n"
-        "Respond with JSON only."
+        f"Question: {spec.question}\n" f"Approved tools: {allowed}\n" f"Evidence catalog:\n{catalog_text}\n" "Respond with JSON only."
     )
     return (_PRIVATE_SYSTEM, user)
 

@@ -1,6 +1,4 @@
-"""Intermediate, strictly-typed records used between Normalize and Validate.
-
-A "normalized record" sits between a raw model and a ``contracts``
+"""Intermediate, strictly-typed records used between Normalize and Validate. A"normalized record" sits between a raw model and a ``contracts``
 object: its fields have already been coerced to their target Python
 types (unlike a raw model, where every field is ``Any``), but it has
 not yet passed semantic validation (duplicate/sort/OHLC/volume checks)

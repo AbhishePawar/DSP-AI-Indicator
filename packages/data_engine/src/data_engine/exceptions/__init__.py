@@ -27,12 +27,9 @@ granularity they need:
 ``ProviderRequestError`` was added in Sprint 2.4 alongside the first
 concrete adapter (Yahoo Finance). It is a sibling of
 ``NormalizationError``, not a subclass: ``NormalizationError`` means
-"a response was received but its data is bad"; ``ProviderRequestError``
-means "no usable response was received at all" (a network error, a
+"a response was received but its data is bad"; ``ProviderRequestError`` means"no usable response was received at all" (a network error, a
 timeout, a non-2xx status, or a response body that isn't even valid
-JSON). Keeping them separate lets a caller distinguish "the provider is
-unreachable/broken" from "the provider answered but sent bad data."
-"""
+JSON). Keeping them separate lets a caller distinguish "the provider is unreachable/broken" from "the provider answered but sent bad data." """
 
 from __future__ import annotations
 

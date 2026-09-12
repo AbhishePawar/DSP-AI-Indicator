@@ -373,16 +373,13 @@ class MetricsRegistry:
         """Classify operational counters from path — no business logic."""
         self.observe_latency_ms(elapsed_ms)
         lower = path.lower()
-        if "/analyse" in lower or "/analyze" in lower:
-            self.inc("dsp_analysis_requests_total")
+        if "/analyse" in lower or "/analyze" in lower: self.inc("dsp_analysis_requests_total")
             self.set_gauge("dsp_analysis_duration_ms_last", round(elapsed_ms, 2))
             if status_code >= 400:
                 self.inc("dsp_analysis_failures_total")
-        if "/research" in lower:
-            self.inc("dsp_research_requests_total")
+        if "/research"in lower: self.inc("dsp_research_requests_total")
             self.set_gauge("dsp_research_duration_ms_last", round(elapsed_ms, 2))
-        if "/export" in lower:
-            self.inc("dsp_export_requests_total")
+        if "/export"in lower: self.inc("dsp_export_requests_total")
             self.set_gauge("dsp_export_duration_ms_last", round(elapsed_ms, 2))
         if status_code == 401:
             self.inc("dsp_auth_failures_total")

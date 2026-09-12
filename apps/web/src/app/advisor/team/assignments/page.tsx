@@ -3,6 +3,9 @@
 import dynamic from "next/dynamic";
 
 import { Skeleton } from "@/components/ui/Skeleton";
+import { AssignmentsSection } from '../../../../components/advisor/TeamCollaboration';
+
+
 const AssignmentsSection = dynamic(
   () =>
     import("@/components/advisor/TeamCollaboration").then(

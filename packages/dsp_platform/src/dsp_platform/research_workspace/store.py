@@ -95,8 +95,7 @@ class ResearchWorkspaceStore:
         with self._lock:
             fid = folder_id or _id("folder")
             parent = parent_id or "folder-root"
-            if parent != "folder-root" and parent not in self._folders:
-                raise ValueError(f"parent folder not found: {parent}")
+            if parent != "folder-root"and parent not in self._folders: raise ValueError(f"parent folder not found: {parent}")
             row = {
                 "folder_id": fid,
                 "name": name.strip() or "Untitled",
@@ -114,8 +113,7 @@ class ResearchWorkspaceStore:
             row = self._folders.get(folder_id)
             if row is None:
                 raise ValueError("folder not found")
-            if folder_id == "folder-root":
-                raise ValueError("cannot rename root folder")
+            if folder_id == "folder-root": raise ValueError("cannot rename root folder")
             row["name"] = name.strip() or row["name"]
             row["updated_at"] = _now()
             return deepcopy(row)
@@ -125,13 +123,11 @@ class ResearchWorkspaceStore:
             row = self._folders.get(folder_id)
             if row is None:
                 raise ValueError("folder not found")
-            if folder_id == "folder-root":
-                raise ValueError("cannot move root folder")
+            if folder_id == "folder-root": raise ValueError("cannot move root folder")
             parent = parent_id or "folder-root"
             if parent == folder_id:
                 raise ValueError("cannot move folder into itself")
-            if parent != "folder-root" and parent not in self._folders:
-                raise ValueError("parent folder not found")
+            if parent != "folder-root"and parent not in self._folders: raise ValueError("parent folder not found")
             row["parent_id"] = parent
             row["updated_at"] = _now()
             return deepcopy(row)
@@ -141,16 +137,14 @@ class ResearchWorkspaceStore:
             row = self._folders.get(folder_id)
             if row is None:
                 raise ValueError("folder not found")
-            if folder_id == "folder-root":
-                raise ValueError("cannot archive root folder")
+            if folder_id == "folder-root": raise ValueError("cannot archive root folder")
             row["archived"] = archived
             row["updated_at"] = _now()
             return deepcopy(row)
 
     def delete_folder(self, folder_id: str) -> bool:
         with self._lock:
-            if folder_id == "folder-root":
-                raise ValueError("cannot delete root folder")
+            if folder_id == "folder-root": raise ValueError("cannot delete root folder")
             if folder_id not in self._folders:
                 return False
             # orphan notes → root

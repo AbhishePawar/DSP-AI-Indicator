@@ -73,8 +73,7 @@ class StubBackend:
         return {"metrics": {"roe": 0.18}, "as_of": "2026-09-01T00:00:00Z"}
 
     def get_valuation(self, *, symbol):
-        if self._raise_on == "valuation":
-            raise RuntimeError("valuation failed")
+        if self._raise_on == "valuation": raise RuntimeError("valuation failed")
         return {
             "intrinsic_value_per_share": 180.0,
             "current_market_price": 150.0,
@@ -88,8 +87,7 @@ class StubBackend:
         return {"moat": "Wide", "score": 0.8}
 
     def get_management_quality(self, *, symbol):
-        if self._raise_on == "management":
-            raise RuntimeError("management failed")
+        if self._raise_on == "management": raise RuntimeError("management failed")
         if self._none_on == "management":
             return None
         return {"quality": "Strong", "score": 0.85}
@@ -116,8 +114,7 @@ class StubBackend:
         return {"signals": [{"name": "trend"}], "direction": "BULLISH"}
 
     def get_investment_recommendation(self, *, symbol):
-        if self._raise_on == "recommendation":
-            raise RuntimeError("recommendation failed")
+        if self._raise_on == "recommendation": raise RuntimeError("recommendation failed")
         if self._empty_rec:
             return None
         return {"decision": "Buy", "confidence": 0.8, "margin_of_safety": 0.2}
@@ -373,8 +370,7 @@ def test_premium_routing() -> None:
     assert result.private.routing_tier == ModelTier.PREMIUM.value
     assert "material_risk" in result.private.routing_reasons
     dumped = json.dumps(result.public.to_dict())
-    assert "material_risk" not in dumped
-    assert "premium" not in dumped
+    assert "material_risk" not in dumped assert"premium" not in dumped
 
 
 def test_escalation_from_cost_efficient_failure() -> None:
@@ -447,8 +443,7 @@ def test_privacy_leakage_rejected() -> None:
     result = _orchestrator(cheap=cheap, premium=premium).run(_request())
     assert result.status is OrchestratorStatus.FAILED_CLOSED
     dumped = json.dumps(result.public.to_dict())
-    assert "routing_reasons" not in dumped
-    assert "chain_of_thought" not in dumped
+    assert "routing_reasons" not in dumped assert"chain_of_thought" not in dumped
 
 
 def test_prompt_leakage_rejected() -> None:
@@ -469,18 +464,12 @@ def test_raw_response_and_prompt_stay_private_on_success() -> None:
     assert PRIVATE_PROMPT_CANARY not in dumped
     assert PRIVATE_PROMPT_CANARY in result.private.internal_prompt
     assert result.private.raw_ai_response
-    assert "raw_ai_response" not in public
-    assert "internal_prompt" not in public
-    assert "provider" not in public
-    assert "model" not in public
-    assert "input_tokens" not in public
-    assert "tool_calls" not in public
+    assert "raw_ai_response" not in public assert"internal_prompt"not in public assert"provider"not in public assert"model"not in public assert"input_tokens"not in public assert"tool_calls" not in public
 
 
 def test_fail_closed_does_not_fabricate_decision() -> None:
     result = _orchestrator(script=["fail"], premium_script=["fail"]).run(_request())
-    assert result.public.recommendation == "Unable to complete."
-    assert "Buy" not in result.public.analysis
+    assert result.public.recommendation == "Unable to complete." assert"Buy" not in result.public.analysis
     assert result.public.limitations == ("research_failed_closed",)
 
 
@@ -506,10 +495,7 @@ def test_provider_neutrality_same_public_pack() -> None:
         packs.append(result.public)
         dumped = json.dumps(result.public.to_dict()).lower()
         assert provider_id not in dumped
-        assert "gpt-4o" not in dumped
-        assert "claude" not in dumped
-        assert "gemini" not in dumped
-        assert "deepseek" not in dumped
+        assert "gpt-4o" not in dumped assert"claude"not in dumped assert"gemini"not in dumped assert"deepseek" not in dumped
     assert packs[0] == packs[1] == packs[2] == packs[3]
 
 
@@ -583,8 +569,7 @@ def test_adapter_backed_provider_has_no_http_in_orchestrator() -> None:
     from llm_adapters.orchestrator.provider import AdapterBackedAIProvider
 
     source = inspect.getsource(AdapterBackedAIProvider)
-    assert "httpx" not in source
-    assert "api.openai.com" not in source
+    assert "httpx" not in source assert"api.openai.com" not in source
 
 
 def test_production_ai_remains_blocked() -> None:

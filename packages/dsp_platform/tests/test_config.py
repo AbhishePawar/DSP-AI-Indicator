@@ -26,8 +26,7 @@ class TestConfig:
     def test_secrets_repr_redacts(self) -> None:
         secrets = PlatformSecrets(fred_api_key="super-secret")
         text = repr(secrets)
-        assert "super-secret" not in text
-        assert "set" in text
+        assert "super-secret" not in text assert"set" in text
 
     def test_empty_provider_id_raises(self) -> None:
         with pytest.raises(PlatformError, match="market_provider_id"):

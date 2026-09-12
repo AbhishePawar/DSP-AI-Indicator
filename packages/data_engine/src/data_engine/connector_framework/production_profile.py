@@ -98,18 +98,13 @@ def require_authenticated_http_adapter(
             return
         raise ConnectorConfigurationError(
             f"P1-03: production requires authenticated {connector} provider; "
-            f"{DSP_INVESTMENT_DATA_PROVIDER_ENV}=upstox but "
-            "DSP_UPSTOX_ANALYTICS_TOKEN is absent. "
-            "Null/demo/seed/FMP fallback is not permitted when Upstox is selected."
+            f"{DSP_INVESTMENT_DATA_PROVIDER_ENV}=upstox but " "DSP_UPSTOX_ANALYTICS_TOKEN is absent. " "Null/demo/seed/FMP fallback is not permitted when Upstox is selected."
         )
     if resolve_fmp_api_key(environ):
         return
     raise ConnectorConfigurationError(
         f"P1-03: production requires authenticated {connector} provider; "
-        f"set {api_key_env} and {base_url_env}, "
-        "or DSP_FMP_API_KEY / DSP_INVESTMENT_FMP_API_KEY (single-key FMP route), "
-        f"or {DSP_INVESTMENT_DATA_PROVIDER_ENV}=upstox with DSP_UPSTOX_ANALYTICS_TOKEN. "
-        "Null/demo/seed adapters are not permitted on the production path."
+        f"set {api_key_env} and {base_url_env}, " "or DSP_FMP_API_KEY / DSP_INVESTMENT_FMP_API_KEY (single-key FMP route), " f"or {DSP_INVESTMENT_DATA_PROVIDER_ENV}=upstox with DSP_UPSTOX_ANALYTICS_TOKEN. " "Null/demo/seed adapters are not permitted on the production path."
     )
 
 
@@ -132,8 +127,7 @@ def finalize_provider_registry(
         if not real_ids:
             raise ConnectorConfigurationError(
                 f"P1-03: production {connector} registry has no real provider "
-                "configured; refusing silent Null/memory fallback. "
-                "Configure vendor credentials or explicit enable flags."
+                "configured; refusing silent Null/memory fallback. " "Configure vendor credentials or explicit enable flags."
             )
         # Production: never register Null as a silent last resort.
         return registry

@@ -8,8 +8,7 @@ siblings). :class:`FailoverGroup` adds the next layer up: given several
 by priority, it tries them in order and returns the first success,
 auditing every attempt along the way. Only when every provider in the
 group has failed or reported unavailable does the group itself report
-unavailable — this is what "automatic failover" and "provider
-priorities" mean operationally in this framework.
+unavailable — this is what "automatic failover" and "provider priorities" mean operationally in this framework.
 
 Generic over the per-provider service type, its query type, and its
 result type, so it is implemented once and reused identically by News,
@@ -88,8 +87,7 @@ class FailoverGroup(Generic[TService, TQuery, TResult]):
         Returns ``None`` (never raises) once every provider has either
         raised, timed out, tripped its circuit breaker, or reported
         unavailable — callers should treat that exactly like a single
-        provider reporting "Data unavailable.".
-        """
+        provider reporting "Data unavailable.". """
         attempted: list[str] = []
         for service in self._services:
             provider_id = getattr(service, "provider_id")

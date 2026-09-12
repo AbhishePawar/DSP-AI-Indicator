@@ -58,20 +58,10 @@ export type WorkspaceStore = {
 };
 
 export type WorkspaceFilterId =
-  | "all"
-  | "favorites"
-  | "recent"
-  | "archived"
-  | "high_confidence"
-  | "low_confidence"
-  | "generated_reports";
+  | "all" |"favorites" |"recent" |"archived" |"high_confidence" |"low_confidence" |"generated_reports";
 
 export type WorkspaceSortId =
-  | "newest"
-  | "oldest"
-  | "alphabetical"
-  | "confidence"
-  | "recently_modified";
+  | "newest" |"oldest" |"alphabetical" |"confidence" |"recently_modified";
 
 export type CompareDiff = {
   field: string;

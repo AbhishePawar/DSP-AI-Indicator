@@ -77,13 +77,11 @@ def build_recommended_interpretation(analysis: BusinessQualityAnalysis) -> str:
     rating = analysis.overall_rating
     if rating is OverallRating.EXCELLENT:
         return (
-            "Business quality indicators are excellent across composed modules; "
-            "interpret as high structural quality within available financial evidence."
+            "Business quality indicators are excellent across composed modules; " "interpret as high structural quality within available financial evidence."
         )
     if rating is OverallRating.STRONG:
         return (
-            "Business quality indicators are strong; minor module weaknesses may "
-            "exist but overall composition is favorable."
+            "Business quality indicators are strong; minor module weaknesses may " "exist but overall composition is favorable."
         )
     if rating is OverallRating.GOOD:
         return (
@@ -92,13 +90,11 @@ def build_recommended_interpretation(analysis: BusinessQualityAnalysis) -> str:
         )
     if rating is OverallRating.AVERAGE:
         return (
-            "Business quality indicators are average; treat as mixed evidence and "
-            "inspect module-level flags before drawing conclusions."
+            "Business quality indicators are average; treat as mixed evidence and " "inspect module-level flags before drawing conclusions."
         )
     if rating is OverallRating.WEAK:
         return (
-            "Business quality indicators are weak; prioritize critical and warning "
-            "signals in the module breakdown."
+            "Business quality indicators are weak; prioritize critical and warning " "signals in the module breakdown."
         )
     if rating is OverallRating.POOR:
         return (

@@ -271,8 +271,7 @@ class UpstoxFundamentalsClient:
                 status="REJECTED",
                 query=query,
                 detail=(
-                    "client-supplied isin / instrument_key / provider / currency / "
-                    "statements are not authoritative"
+                    "client-supplied isin / instrument_key / provider / currency / " "statements are not authoritative"
                 ),
                 retrieved_at=retrieved_at,
             )
@@ -310,8 +309,7 @@ class UpstoxFundamentalsClient:
 
         if not self.configured():
             detail = (
-                "production fail-closed: Upstox analytics token absent — "
-                "no fixture fundamentals substitution"
+                "production fail-closed: Upstox analytics token absent — " "no fixture fundamentals substitution"
                 if is_production_environment()
                 else f"provider unavailable: {UPSTOX_ANALYTICS_TOKEN_ENV} absent"
             )
@@ -345,8 +343,7 @@ class UpstoxFundamentalsClient:
                 status="AMBIGUOUS",
                 query=resolve.query,
                 detail=(
-                    "instrument identity ambiguous; supply preferred_exchange "
-                    "(NSE or BSE) — no silent exchange selection"
+                    "instrument identity ambiguous; supply preferred_exchange " "(NSE or BSE) — no silent exchange selection"
                 ),
                 retrieved_at=retrieved_at,
                 latency_ms=latency(),
@@ -520,8 +517,7 @@ class UpstoxFundamentalsClient:
                 "upstox_time_period": upstox_time,
                 "units_in": unit_scale or "",
                 "note": (
-                    "full_statement is annual-only per Upstox docs; "
-                    "quarterly uses category history only"
+                    "full_statement is annual-only per Upstox docs; " "quarterly uses category history only"
                 ),
             },
         )

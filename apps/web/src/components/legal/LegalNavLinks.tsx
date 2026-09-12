@@ -21,9 +21,7 @@ export function LegalNavLinks({
   density?: "footer" | "header";
 }) {
   const textClass =
-    density === "header"
-      ? "text-[11px] text-[var(--muted)] hover:text-[var(--fg)]"
-      : "text-[10px] text-[var(--muted)] underline-offset-2 hover:underline hover:text-[var(--fg)]";
+    density === "header" ?"text-[11px] text-[var(--muted)] hover:text-[var(--fg)]" :"text-[10px] text-[var(--muted)] underline-offset-2 hover:underline hover:text-[var(--fg)]";
 
   return (
     <nav

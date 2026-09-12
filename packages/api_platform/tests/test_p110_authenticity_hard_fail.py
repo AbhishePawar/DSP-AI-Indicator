@@ -242,8 +242,7 @@ class TestProductionConnectorAuthenticity:
 
         Auth/core API may start without investment credentials; factories still
         refuse Null/memory selection in production (authenticity preserved).
-        """
-        monkeypatch.setenv("DSP_ENVIRONMENT", "production")
+        """ monkeypatch.setenv("DSP_ENVIRONMENT", "production")
         monkeypatch.setenv("DSP_JWT_SECRET", "unit-test-production-secret-not-default")
         monkeypatch.setenv("DSP_INFRA_OFFLINE", "1")
         monkeypatch.setattr(
@@ -639,8 +638,7 @@ class TestReleaseIdentityAndEvidence:
         authority = (body.get("payload") or {}).get("buffett_authority") or {}
         hard_fail(
             authority.get("client_overrides_accepted") is False
-            or "overall_score" in authority
-            or "overall_status" in authority,
+            or "overall_score"in authority or"overall_status" in authority,
             CLIENT_BUFFETT_OVERRIDE_DETECTED,
             f"buffett_authority={authority}",
         )

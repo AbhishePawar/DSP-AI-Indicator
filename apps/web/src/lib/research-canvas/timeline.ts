@@ -10,15 +10,7 @@ import type { NotebookEntry } from "./notebookStore";
 import type { SavedResearchSession } from "./notebookStore";
 
 export type TimelineEventKind =
-  | "analysis"
-  | "report"
-  | "notebook"
-  | "comparison"
-  | "session"
-  | "ri"
-  | "committee"
-  | "evidence"
-  | "unavailable";
+  | "analysis" |"report" |"notebook" |"comparison" |"session" |"ri" |"committee" |"evidence" |"unavailable";
 
 export type TimelineEvent = {
   id: string;

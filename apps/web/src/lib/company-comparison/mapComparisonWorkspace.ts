@@ -433,7 +433,6 @@ export function mapIntelligenceOverlay(
         : COVERAGE_UNAVAILABLE,
     source:
       dash || cal || timeline
-        ? "research_intelligence"
-        : "unavailable",
+        ? "research_intelligence" :"unavailable",
   };
 }

@@ -168,9 +168,7 @@ class TestEvidenceAndDissent:
         )
         result = RecommendationMapper.map(report)
         claims = {item.claim for item in result.supporting_evidence}
-        assert "technical evidence" in claims
-        assert "fundamental evidence" in claims
-        assert "economic evidence" not in claims
+        assert "technical evidence" in claims assert"fundamental evidence"in claims assert"economic evidence" not in claims
 
     def test_dissenting_views_capture_minority(
         self, instrument: Instrument
@@ -207,8 +205,7 @@ class TestRationaleAndDecisionMapper:
             member_decisions=(Decision.HOLD, Decision.HOLD),
         )
         result = RecommendationMapper.map(report)
-        assert "Committee decides hold" in result.rationale
-        assert "votes=" in result.rationale
+        assert "Committee decides hold" in result.rationale assert"votes=" in result.rationale
 
     def test_map_decision_standalone(self, instrument: Instrument) -> None:
         decision = InvestmentDecision(

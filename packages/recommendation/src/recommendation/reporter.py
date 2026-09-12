@@ -146,9 +146,7 @@ class RecommendationReporter:
                 != context.report.recommendation_id
             ):
                 msg = (
-                    "duplicate recommendation ids: EngineResult "
-                    f"{context.engine_result.recommendation_id!r} does not match "
-                    f"report {context.report.recommendation_id!r}"
+                    "duplicate recommendation ids: EngineResult " f"{context.engine_result.recommendation_id!r} does not match " f"report {context.report.recommendation_id!r}"
                 )
                 raise RecommendationError(msg)
 
@@ -214,8 +212,7 @@ class RecommendationReporter:
                     *source.limitations,
                     *summary.limitation_notes,
                     *ctx.limitations,
-                    "RecommendationReport presentation only — "
-                    "no synthesis performed by reporter.",
+                    "RecommendationReport presentation only — " "no synthesis performed by reporter.",
                 )
             )
         )

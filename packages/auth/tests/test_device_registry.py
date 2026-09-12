@@ -156,8 +156,7 @@ def test_logs_do_not_include_ip_or_user_agent(caplog: pytest.LogCaptureFixture) 
         user_agent_hint="SecretAgent/1.0",
     )
     text = caplog.text
-    assert "203.0.113.9" not in text
-    assert "SecretAgent/1.0" not in text
+    assert "203.0.113.9" not in text assert"SecretAgent/1.0" not in text
 
 
 def test_payload_has_no_plaintext_device_secret() -> None:
@@ -166,8 +165,7 @@ def test_payload_has_no_plaintext_device_secret() -> None:
     device = devices.register(user_id="u-sec", ip_hint="10.10.10.10", user_agent_hint="ua")
     payload = store.get_device(device.device_id)
     assert payload is not None
-    assert "otp" not in payload
-    assert "secret" not in payload
+    assert "otp" not in payload assert"secret" not in payload
     assert payload["fingerprint_hash"] != "10.10.10.10|ua"
     assert len(str(payload["fingerprint_hash"])) == 32
 
@@ -176,9 +174,7 @@ def test_production_default_store_uses_process_a008(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     class _FakePostgres(InMemoryStorageProvider):
-        provider_id = "postgres"
-
-    monkeypatch.setenv("DSP_ENVIRONMENT", "production")
+        provider_id = "postgres" monkeypatch.setenv("DSP_ENVIRONMENT", "production")
     monkeypatch.setenv("DSP_DATABASE_URL", "postgresql://dsp:secret@localhost/dsp")
     from persistence.registry import reset_repository_registry_for_tests
     from persistence.service import reset_persistence_service_for_tests

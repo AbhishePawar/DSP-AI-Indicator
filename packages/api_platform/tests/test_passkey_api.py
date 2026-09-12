@@ -6,8 +6,7 @@
 `EnterpriseAuthPlatform.webauthn_*` methods already covered in depth in
 `packages/auth/tests/test_passkey_platform.py` — these tests verify
 routing, request/response shape, auth-header handling, cookie
-attachment on login, and the 501 "not enabled" contract.
-"""
+attachment on login, and the 501 "not enabled" contract. """
 
 from __future__ import annotations
 

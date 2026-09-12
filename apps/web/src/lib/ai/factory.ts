@@ -3,7 +3,11 @@ import type { ProviderRegistry } from "./registry";
 import type { AIProvider, AIProviderId } from "./types";
 
 export class ProviderFactory {
-  constructor(private readonly registry: ProviderRegistry) {}
+  private readonly registry: ProviderRegistry;
+
+  constructor(registry: ProviderRegistry) {
+    this.registry = registry;
+  }
 
   create(id: AIProviderId): AIProvider {
     const existing = this.registry.get(id);

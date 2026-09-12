@@ -59,8 +59,7 @@ class StubBackend:
         self._raise_on = raise_on
 
     def get_authenticated_financial_statements(self, symbol, *, exchange=None):
-        if self._raise_on == "statements":
-            raise RuntimeError("data unavailable")
+        if self._raise_on == "statements": raise RuntimeError("data unavailable")
         if self._statements is None:
             return None
         return dict(self._statements)
@@ -90,8 +89,7 @@ class StubBackend:
         return {"metrics": {"roe": 0.18}, "as_of": "2026-09-01T00:00:00Z"}
 
     def get_valuation(self, *, symbol):
-        if self._raise_on == "valuation":
-            raise RuntimeError("valuation failed")
+        if self._raise_on == "valuation": raise RuntimeError("valuation failed")
         return dict(self._valuation)
 
     def get_margin_of_safety(self, *, symbol):
@@ -190,9 +188,7 @@ def test_declarations_cover_exactly_the_public_manifest() -> None:
     assert anthropic_names == expected_provider
     for entry in openai_tools:
         dumped = json.dumps(entry)
-        assert "provenance" not in dumped
-        assert "dsp_platform" not in dumped
-        assert "api_key" not in dumped
+        assert "provenance" not in dumped assert"dsp_platform"not in dumped assert"api_key" not in dumped
 
 
 def test_boundary_declarations_match_public_manifest() -> None:
@@ -217,8 +213,7 @@ def test_valid_internal_call_returns_ok() -> None:
     assert outcome.result.result["intrinsic_value_per_share"] == 180.0
     payload = outcome.provider_payload()
     assert payload["status"] == "ok"
-    assert "audit" not in payload
-    assert "provider" not in payload
+    assert "audit"not in payload assert"provider" not in payload
 
 
 def test_unknown_tool_fails_closed() -> None:
@@ -320,8 +315,7 @@ def test_openai_roundtrip_success() -> None:
     assert messages[0]["tool_call_id"] == "call_val"
     body = json.loads(messages[0]["content"])
     assert body["status"] == "ok"
-    assert "routing_reasons" not in body
-    assert "input_tokens" not in body
+    assert "routing_reasons"not in body assert"input_tokens" not in body
 
 
 def test_openai_malformed_json_arguments() -> None:

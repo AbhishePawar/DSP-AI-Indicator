@@ -11,9 +11,9 @@ export {
   OAUTH_CALLBACK_PATH,
   oauthRedirectUri,
   suggestedUsernameFromMobile,
-  type PasswordStrength,
+  PasswordStrength,
 } from "./authValidation";
-export { ProviderButton, type ProviderButtonProps } from "./ProviderButton";
+export { ProviderButton, ProviderButtonProps } from "./ProviderButton";
 export {
   EmailLinkIcon,
   FacebookIcon,
@@ -23,7 +23,7 @@ export {
   PasskeyIcon,
   ProviderIcon,
 } from "./ProviderIcons";
-export { OtpInput, type OtpInputProps } from "./OtpInput";
+export { OtpInput, OtpInputProps } from "./OtpInput";
 export { ResendCountdown } from "./ResendCountdown";
-export { PasskeyButton, type PasskeyButtonProps } from "./PasskeyButton";
-export { MfaChallenge, type MfaChallengeProps } from "./MfaChallenge";
+export { PasskeyButton, PasskeyButtonProps } from "./PasskeyButton";
+export { MfaChallenge, MfaChallengeProps } from "./MfaChallenge";

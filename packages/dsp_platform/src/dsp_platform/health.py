@@ -179,9 +179,7 @@ class PlatformHealthService:
             status=CheckStatus.PASS,
             message=(
                 f"fundamentals={features.include_fundamentals}, "
-                f"economic={features.include_economic}, "
-                f"valuation={features.include_valuation}, "
-                f"allow_partial={features.allow_partial}"
+                f"economic={features.include_economic}, " f"valuation={features.include_valuation}, " f"allow_partial={features.allow_partial}"
             ),
         )
 
@@ -365,8 +363,7 @@ class PlatformHealthService:
                     name="dependency_wiring",
                     status=CheckStatus.SKIP,
                     message=(
-                        "legacy analysis service not wired; canonical "
-                        "composition pipeline serves analysis"
+                        "legacy analysis service not wired; canonical " "composition pipeline serves analysis"
                     ),
                 )
             return HealthCheckResult(

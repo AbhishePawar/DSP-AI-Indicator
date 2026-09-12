@@ -22,8 +22,7 @@ export function EvidencePanel({
         title="Evidence"
         description={
           compact
-            ? "Traceability"
-            : "Traceability — supporting and contradicting evidence kept separate"
+            ? "Traceability" :"Traceability — supporting and contradicting evidence kept separate"
         }
       />
       <CardBody className={`space-y-3 text-sm ${compact ? "py-3" : ""}`}>

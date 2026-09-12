@@ -42,8 +42,7 @@ def build_example_archetypes() -> tuple[InvestmentCharacteristics, ...]:
             name="Stable Regulated Cash Flow",
             version="1.0.0",
             description=(
-                "Regulated or contracted cash flows with high asset intensity "
-                "and income-oriented valuation philosophy."
+                "Regulated or contracted cash flows with high asset intensity " "and income-oriented valuation philosophy."
             ),
             capital_intensity=CapitalIntensity.HIGH,
             cash_flow_profile=CashFlowProfile.STABLE,
@@ -76,8 +75,7 @@ def build_example_archetypes() -> tuple[InvestmentCharacteristics, ...]:
             name="Pricing Power Franchise",
             version="1.0.0",
             description=(
-                "Brand or franchise economics with strong pricing power, "
-                "high returns on capital, and moderate capital needs."
+                "Brand or franchise economics with strong pricing power, " "high returns on capital, and moderate capital needs."
             ),
             capital_intensity=CapitalIntensity.LOW,
             cash_flow_profile=CashFlowProfile.STABLE,
@@ -107,8 +105,7 @@ def build_example_archetypes() -> tuple[InvestmentCharacteristics, ...]:
             name="Asset Heavy Cyclical",
             version="1.0.0",
             description=(
-                "High asset intensity with cyclical earnings and commodity-like "
-                "or utilization-driven economics."
+                "High asset intensity with cyclical earnings and commodity-like " "or utilization-driven economics."
             ),
             capital_intensity=CapitalIntensity.HIGH,
             cash_flow_profile=CashFlowProfile.CYCLICAL,
@@ -135,8 +132,7 @@ def build_example_archetypes() -> tuple[InvestmentCharacteristics, ...]:
             name="Capital Light Compounder",
             version="1.0.0",
             description=(
-                "Low capital intensity businesses that can compound via "
-                "reinvestment at attractive incremental returns."
+                "Low capital intensity businesses that can compound via " "reinvestment at attractive incremental returns."
             ),
             capital_intensity=CapitalIntensity.LOW,
             cash_flow_profile=CashFlowProfile.STABLE,

@@ -22,10 +22,10 @@ import {
 
 export function ResearchCommandCenterWidget() {
   const { holdings } = usePortfolio();
-  const watchlist = usePortfolioIntelPrefsStore((s) => s.watchlist);
-  const notes = useResearchNotebookStore((s) => s.entries);
-  const savedComparisons = useComparisonPrefsStore((s) => s.saved);
-  const recent = useMemo(() => loadRecentAnalyses().slice(0, 5), []);
+  const watchlist = usePortfolioIntelPrefsStore((s) => s?.watchlist);
+  const notes = useResearchNotebookStore((s) => s?.entries);
+  const savedComparisons = useComparisonPrefsStore((s) => s?.saved);
+  const recent = useMemo(() => loadRecentAnalyses()?.slice(0, 5), []);
 
   return (
     <DashboardWidgetShell
@@ -37,7 +37,7 @@ export function ResearchCommandCenterWidget() {
         <section>
           <h3 className="text-sm font-medium">Open Research</h3>
           <div className="mt-2 flex flex-wrap gap-2">
-            {featureFlags.researchCanvas ? (
+            {featureFlags?.researchCanvas ? (
               <Link href="/research/canvas">
                 <Button size="sm" variant="secondary">
                   Research Canvas
@@ -55,17 +55,17 @@ export function ResearchCommandCenterWidget() {
               </Button>
             </Link>
           </div>
-          {recent.length === 0 ? (
+          {recent?.length === 0 ? (
             <p className="mt-2 text-xs text-[var(--muted)]">Data unavailable.</p>
           ) : (
             <ul className="mt-2 space-y-1 text-sm">
-              {recent.map((r) => (
-                <li key={`${r.ticker}-${r.analysedAt}`}>
+              {recent?.map((r) => (
+                <li key={`${r?.ticker}-${r?.analysedAt}`}>
                   <Link
-                    href={`/analysis?symbol=${encodeURIComponent(r.ticker)}`}
+                    href={`/analysis?symbol=${encodeURIComponent(r?.ticker)}`}
                     className="text-[var(--accent)] hover:underline"
                   >
-                    {r.ticker}
+                    {r?.ticker}
                   </Link>
                 </li>
               ))}
@@ -76,8 +76,8 @@ export function ResearchCommandCenterWidget() {
         <section>
           <h3 className="text-sm font-medium">Portfolio Status</h3>
           <p className="mt-2 text-sm text-[var(--muted)]">
-            Holdings: {holdings.length || "Data unavailable."} · Watchlist:{" "}
-            {watchlist.length || "Data unavailable."}
+            Holdings: {holdings?.length || "Data unavailable."} · Watchlist:{" "}
+            {watchlist?.length || "Data unavailable."}
           </p>
           <Link href="/portfolio" className="mt-2 inline-block">
             <Button size="sm" variant="secondary">
@@ -89,15 +89,15 @@ export function ResearchCommandCenterWidget() {
         <section>
           <h3 className="text-sm font-medium">Coverage</h3>
           <p className="mt-2 text-sm text-[var(--muted)]">
-            {holdings.length
-              ? `${holdings.filter((h) => h.researchAvailable).length}/${holdings.length} research-available (session)`
+            {holdings?.length
+              ? `${holdings?.filter((h) => h?.researchAvailable)?.length}/${holdings?.length} research-available (session)`
               : "Data unavailable."}
           </p>
         </section>
 
         <section>
           <h3 className="text-sm font-medium">Recent Comparisons</h3>
-          {savedComparisons.length === 0 ? (
+          {savedComparisons?.length === 0 ? (
             <WidgetUnavailable
               description="Data unavailable. Save a comparison in Company Comparison."
               href="/analysis/compare"
@@ -105,13 +105,13 @@ export function ResearchCommandCenterWidget() {
             />
           ) : (
             <ul className="mt-2 space-y-1 text-sm">
-              {savedComparisons.slice(0, 4).map((c) => (
-                <li key={c.id}>
+              {savedComparisons?.slice(0, 4)?.map((c) => (
+                <li key={c?.id}>
                   <Link
-                    href={`/analysis/compare?symbols=${encodeURIComponent(c.symbols.join(","))}`}
+                    href={`/analysis/compare?symbols=${encodeURIComponent(c?.symbols?.join(","))}`}
                     className="text-[var(--accent)] hover:underline"
                   >
-                    {c.title}
+                    {c?.title}
                   </Link>
                 </li>
               ))}
@@ -121,7 +121,7 @@ export function ResearchCommandCenterWidget() {
 
         <section>
           <h3 className="text-sm font-medium">Research Intelligence</h3>
-          {featureFlags.researchIntelligence ? (
+          {featureFlags?.researchIntelligence ? (
             <Link href="/research/intelligence" className="mt-2 inline-block">
               <Button size="sm" variant="secondary">
                 Open RI
@@ -149,18 +149,18 @@ export function ResearchCommandCenterWidget() {
 
         <section>
           <h3 className="text-sm font-medium">Saved Notes</h3>
-          {notes.length === 0 ? (
+          {notes?.length === 0 ? (
             <p className="mt-2 text-sm text-[var(--muted)]">Data unavailable.</p>
           ) : (
             <ul className="mt-2 space-y-1 text-sm">
-              {notes.slice(0, 4).map((n) => (
-                <li key={n.id} className="truncate">
-                  {n.kind}: {n.text}
+              {notes?.slice(0, 4)?.map((n) => (
+                <li key={n?.id} className="truncate">
+                  {n?.kind}: {n?.text}
                 </li>
               ))}
             </ul>
           )}
-          {featureFlags.researchCanvas ? (
+          {featureFlags?.researchCanvas ? (
             <Link
               href="/research/canvas?tab=notes"
               className="mt-2 inline-block"
@@ -174,20 +174,20 @@ export function ResearchCommandCenterWidget() {
 
         <section>
           <h3 className="text-sm font-medium">Watchlist Activity</h3>
-          {watchlist.length === 0 ? (
+          {watchlist?.length === 0 ? (
             <p className="mt-2 text-sm text-[var(--muted)]">Data unavailable.</p>
           ) : (
             <ul className="mt-2 space-y-1 text-sm">
-              {watchlist.slice(0, 6).map((w) => (
-                <li key={w.symbol}>
+              {watchlist?.slice(0, 6)?.map((w) => (
+                <li key={w?.symbol}>
                   <Link
-                    href={`/analysis?symbol=${encodeURIComponent(w.symbol)}`}
+                    href={`/analysis?symbol=${encodeURIComponent(w?.symbol)}`}
                     className="font-mono text-[var(--accent)] hover:underline"
                   >
-                    {w.symbol}
+                    {w?.symbol}
                   </Link>
                   <span className="ml-2 text-xs text-[var(--muted)]">
-                    {new Date(w.addedAt).toLocaleDateString()}
+                    {new Date(w.addedAt)?.toLocaleDateString()}
                   </span>
                 </li>
               ))}

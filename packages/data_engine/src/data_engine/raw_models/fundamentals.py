@@ -41,5 +41,4 @@ class RawFundamentalData:
     line_items: Mapping[str, Any] = field(default_factory=dict)
 
     def __post_init__(self) -> None:
-        """Wrap ``line_items`` in a read-only view without validating content."""
-        object.__setattr__(self, "line_items", MappingProxyType(dict(self.line_items)))
+        """Wrap ``line_items`` in a read-only view without validating content.""" object.__setattr__(self,"line_items", MappingProxyType(dict(self.line_items)))

@@ -126,8 +126,7 @@ class TestReporterHappyPath:
         assert result.concentrations
         assert result.volatilities
         assert result.drawdowns
-        assert "overview" in result.summary_sections
-        assert any("presentation only" in note for note in result.report.limitations)
+        assert "overview" in result.summary_sections assert any("presentation only" in note for note in result.report.limitations)
 
     def test_report_from_quantitative_risk_report(self) -> None:
         engine_result = _engine_result()
@@ -213,9 +212,7 @@ class TestReporterNoCalculation:
     def test_reporter_source_has_no_math_ops(self) -> None:
         path = (
             Path(__file__).resolve().parents[1]
-            / "src"
-            / "quantitative_risk"
-            / "reporter.py"
+            / "src" /"quantitative_risk" /"reporter.py"
         )
         tree = ast.parse(path.read_text(encoding="utf-8"))
         forbidden_names = {
@@ -239,10 +236,6 @@ class TestReporterNoCalculation:
         assert HistoricalReturnsPort is not None
         source = (
             Path(__file__).resolve().parents[1]
-            / "src"
-            / "quantitative_risk"
-            / "reporter.py"
+            / "src" /"quantitative_risk" /"reporter.py"
         ).read_text(encoding="utf-8")
-        assert "MarketDataPort" not in source
-        assert "HistoricalReturnsPort" not in source
-        assert "BenchmarkDataPort" not in source
+        assert "MarketDataPort"not in source assert"HistoricalReturnsPort"not in source assert"BenchmarkDataPort" not in source

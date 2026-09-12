@@ -12,8 +12,7 @@ export function MetricCell({
   emphasize?: boolean;
 }) {
   const display =
-    Array.isArray(field.value) && field.presence === "available"
-      ? field.value.join(" · ")
+    Array.isArray(field.value) && field.presence === "available" ? field.value.join(" · ")
       : field.display;
 
   const muted =

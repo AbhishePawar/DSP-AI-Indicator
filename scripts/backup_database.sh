@@ -4,9 +4,7 @@ set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 ENV_FILE="${ROOT}/.env.production"
-COMPOSE_FILE="${ROOT}/docker/docker-compose.production.yml"
-
-cd "${ROOT}"
+COMPOSE_FILE="${ROOT}/docker/docker-compose.production.yml" cd"${ROOT}"
 
 if [[ -f "${ENV_FILE}" ]]; then
   set -a
@@ -22,8 +20,7 @@ export DSP_BACKUP_DIR="${BACKUP_DIR}"
 # Prefer dump from running postgres container when available
 if docker compose --env-file "${ENV_FILE}" -f "${COMPOSE_FILE}" ps postgres 2>/dev/null | grep -q "running\|Up"; then
   STAMP="$(date -u +%Y%m%dT%H%M%SZ)"
-  OUT="${BACKUP_DIR}/dsp_pg_${STAMP}.sql.gz"
-  echo "[backup] dumping via postgres container → ${OUT}"
+  OUT="${BACKUP_DIR}/dsp_pg_${STAMP}.sql.gz" echo"[backup] dumping via postgres container → ${OUT}"
   docker compose --env-file "${ENV_FILE}" -f "${COMPOSE_FILE}" exec -T postgres \
     sh -c 'pg_dump -U "$POSTGRES_USER" -d "$POSTGRES_DB" --no-owner' | gzip -c > "${OUT}"
   BYTES="$(wc -c < "${OUT}" | tr -d ' ')"

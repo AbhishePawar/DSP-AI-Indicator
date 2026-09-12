@@ -153,15 +153,13 @@ export function ResearchAlertsWidget() {
       title="Research Monitoring Alerts"
       description={
         enabled
-          ? "Alert presentation enabled — feed API not exposed in client"
-          : "Alert surfaces gated by research alert feature flag"
+          ? "Alert presentation enabled — feed API not exposed in client" :"Alert surfaces gated by research alert feature flag"
       }
     >
       <WidgetUnavailable
         description={
           enabled
-            ? "Data unavailable. No monitoring-alerts API is wired in the thin client."
-            : "Data unavailable. Research alerts remain off until product flags unlock them."
+            ? "Data unavailable. No monitoring-alerts API is wired in the thin client." :"Data unavailable. Research alerts remain off until product flags unlock them."
         }
         href="/research"
         actionLabel="Open Research"

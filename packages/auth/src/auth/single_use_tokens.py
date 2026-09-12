@@ -1,6 +1,4 @@
-"""Shared single-use authentication token service.
-
-Every "one-time link" flow in the platform — email verification, password
+"""Shared single-use authentication token service. Every"one-time link" flow in the platform — email verification, password
 reset, email magic-link sign-in, enterprise invitation acceptance, and any
 future one-time authentication feature — needs the exact same primitive:
 issue an opaque secret, bind it to a purpose (and optionally a user /

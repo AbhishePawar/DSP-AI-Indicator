@@ -9,22 +9,11 @@
 import type { ResearchView } from "@/lib/research/mapResearchView";
 
 export type HonestUnavailable =
-  | "Data unavailable."
-  | "Unable to calculate."
-  | "Coverage unavailable."
-  | "Analysis pending."
-  | "Analysis unavailable."
-  | "Unavailable";
+  | "Data unavailable." |"Unable to calculate." |"Coverage unavailable." |"Analysis pending." |"Analysis unavailable." |"Unavailable";
 
 /** Future-proof subject kinds for the comparison engine. */
 export type ComparisonSubjectKind =
-  | "company"
-  | "portfolio"
-  | "etf"
-  | "mutual_fund"
-  | "sector"
-  | "industry"
-  | "watchlist";
+  | "company" |"portfolio" |"etf" |"mutual_fund" |"sector" |"industry" |"watchlist";
 
 export type ComparisonSubjectRef = {
   kind: ComparisonSubjectKind;
@@ -35,11 +24,7 @@ export type ComparisonSubjectRef = {
 };
 
 export type ComparisonSlotStatus =
-  | "idle"
-  | "loading"
-  | "ready"
-  | "error"
-  | "unavailable";
+  | "idle" |"loading" |"ready" |"error" |"unavailable";
 
 export type ComparisonCompanySlot = {
   symbol: string;
@@ -70,19 +55,7 @@ export type CompanyIntelligenceOverlay = {
 export type Medal = "gold" | "silver" | "bronze" | null;
 
 export type WinnerMatrixDimensionId =
-  | "businessQuality"
-  | "management"
-  | "moat"
-  | "risk"
-  | "valuation"
-  | "capitalAllocation"
-  | "cashFlow"
-  | "roce"
-  | "margins"
-  | "growth"
-  | "financialStrength"
-  | "confidence"
-  | "overall";
+  | "businessQuality" |"management" |"moat" |"risk" |"valuation" |"capitalAllocation" |"cashFlow" |"roce" |"margins" |"growth" |"financialStrength" |"confidence" |"overall";
 
 export type WinnerMatrixCell = {
   symbol: string;
@@ -109,16 +82,7 @@ export type TradeOffItem = {
 };
 
 export type BuffettPreferenceDimensionId =
-  | "understandability"
-  | "moat"
-  | "management"
-  | "capitalAllocation"
-  | "roce"
-  | "debt"
-  | "cash"
-  | "reinvestment"
-  | "marginOfSafety"
-  | "durability";
+  | "understandability" |"moat" |"management" |"capitalAllocation" |"roce" |"debt" |"cash" |"reinvestment" |"marginOfSafety" |"durability";
 
 export type BuffettAlignment = "aligned" | "partial" | "not_aligned" | "unavailable";
 
@@ -204,16 +168,7 @@ export type ExecutiveSummaryView = {
 
 /** EPIC-012/013A — Executive Comparison Scorecard row. */
 export type ExecutiveScorecardRowId =
-  | "overall"
-  | "businessQuality"
-  | "management"
-  | "moat"
-  | "risk"
-  | "valuation"
-  | "financial"
-  | "researchConfidence"
-  | "evidenceStrength"
-  | "overallPosition";
+  | "overall" |"businessQuality" |"management" |"moat" |"risk" |"valuation" |"financial" |"researchConfidence" |"evidenceStrength" |"overallPosition";
 
 export type ExecutiveScorecardCell = {
   symbol: string;
@@ -231,10 +186,7 @@ export type ExecutiveScorecardRow = {
 };
 
 export type EvidenceStrengthLevel =
-  | "Strong"
-  | "Moderate"
-  | "Limited"
-  | "Data unavailable.";
+  | "Strong" |"Moderate" |"Limited" |"Data unavailable.";
 
 export type EvidenceStrengthMeter = {
   symbol: string;

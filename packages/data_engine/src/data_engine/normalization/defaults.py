@@ -528,9 +528,7 @@ def _is_missing_observation_value(value: Any) -> bool:
 
 
 class DefaultEconomicNormalizer(EconomicDataNormalizer):
-    """Generic, provider-agnostic ``EconomicDataNormalizer``.
-
-    Skips provider missing-value sentinels (e.g. FRED's ``"."``), coerces
+    """Generic, provider-agnostic ``EconomicDataNormalizer``. Skips provider missing-value sentinels (e.g. FRED's ``"."``), coerces
     dates and numerics, sorts chronologically ascending, and constructs
     a validated ``contracts.EconomicSeries``. Adapters only need to
     populate ``RawEconomicSeries`` correctly.

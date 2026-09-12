@@ -197,8 +197,7 @@ def test_client_instrument_key_forgery_rejected() -> None:
             client_instrument_key="NSE_EQ|FORGED",
         )
     )
-    assert result.status == "REJECTED"
-    assert "not authoritative" in result.detail
+    assert result.status == "REJECTED" assert"not authoritative" in result.detail
 
 
 def test_client_candles_rejected() -> None:
@@ -223,8 +222,7 @@ def test_date_range_validation() -> None:
             to_date=date(2024, 1, 1),
         )
     )
-    assert result.status == "REJECTED"
-    assert "from_date after to_date" in result.detail
+    assert result.status == "REJECTED" assert"from_date after to_date" in result.detail
 
 
 def test_invalid_interval_rejected() -> None:
@@ -237,8 +235,7 @@ def test_invalid_interval_rejected() -> None:
             interval="1minute",
         )
     )
-    assert result.status == "REJECTED"
-    assert "unsupported interval" in result.detail
+    assert result.status == "REJECTED" assert"unsupported interval" in result.detail
 
 
 def test_chronological_ordering() -> None:
@@ -290,8 +287,7 @@ def test_malformed_response() -> None:
     result = client.get_history(
         UpstoxHistoricalCandleRequest(symbol="INFY", from_date=_FROM, to_date=_TO)
     )
-    assert result.status == "UNAVAILABLE"
-    assert "malformed" in result.detail
+    assert result.status == "UNAVAILABLE" assert"malformed" in result.detail
 
 
 def test_missing_ohlc_field_skips_candle() -> None:
@@ -347,8 +343,7 @@ def test_missing_credential(monkeypatch: pytest.MonkeyPatch) -> None:
     result = client.get_history(
         UpstoxHistoricalCandleRequest(symbol="INFY", from_date=_FROM, to_date=_TO)
     )
-    assert result.status == "UNAVAILABLE"
-    assert "absent" in result.detail.lower()
+    assert result.status == "UNAVAILABLE" assert"absent" in result.detail.lower()
 
 
 def test_production_fail_closed(monkeypatch: pytest.MonkeyPatch) -> None:
@@ -358,8 +353,7 @@ def test_production_fail_closed(monkeypatch: pytest.MonkeyPatch) -> None:
     result = client.get_history(
         UpstoxHistoricalCandleRequest(symbol="INFY", from_date=_FROM, to_date=_TO)
     )
-    assert result.status == "UNAVAILABLE"
-    assert "fail-closed" in result.detail.lower()
+    assert result.status == "UNAVAILABLE" assert"fail-closed" in result.detail.lower()
 
 
 def test_token_not_in_public_dict() -> None:
@@ -368,8 +362,7 @@ def test_token_not_in_public_dict() -> None:
         UpstoxHistoricalCandleRequest(symbol="INFY", from_date=_FROM, to_date=_TO)
     )
     blob = str(result.to_public_dict())
-    assert "super-secret-u3-token" not in blob
-    assert "Bearer" not in blob
+    assert "super-secret-u3-token" not in blob assert"Bearer" not in blob
 
 
 def test_bounded_chunking_for_multi_year_daily() -> None:

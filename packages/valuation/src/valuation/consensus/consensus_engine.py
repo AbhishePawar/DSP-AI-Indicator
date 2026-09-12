@@ -45,10 +45,7 @@ __all__ = ["ConsensusEngine", "CONSENSUS_VERSION"]
 
 _METHODOLOGY = (
     "Cross-Method Validation & Consensus (research only): normalize "
-    "standardized ValuationResult / V2 payloads across methods, score "
-    "applicability, detect outliers, and form weighted consensus. "
-    "Does not invoke valuation engines. Does not enable Overall Valuation. "
-    "Not investment advice."
+    "standardized ValuationResult / V2 payloads across methods, score " "applicability, detect outliers, and form weighted consensus. " "Does not invoke valuation engines. Does not enable Overall Valuation. " "Not investment advice."
 )
 
 _LIMITATIONS = (
@@ -135,8 +132,7 @@ class ConsensusEngine:
                     included_in_consensus=m.method in weights_map,
                     is_outlier=m.method in outlier_methods,
                     explanation=(
-                        "Rescue equal weight among methods with valid IV — "
-                        "unavailable methods excluded (P1-04)"
+                        "Rescue equal weight among methods with valid IV — " "unavailable methods excluded (P1-04)"
                         if m.method in weights_map
                         else "Excluded — unavailable / null intrinsic value (P1-04)"
                     ),
@@ -479,9 +475,7 @@ class ConsensusEngine:
             elif mode is WeightingMode.AUTOMATIC:
                 raw[m.method] = max(0.0, m.confidence_score) * applicability[m.method]
                 explanations[m.method] = (
-                    f"Automatic = confidence×applicability "
-                    f"({m.confidence_score:.3f}×{applicability[m.method]:.3f}); "
-                    f"{app_explain[m.method]}"
+                    f"Automatic = confidence×applicability " f"({m.confidence_score:.3f}×{applicability[m.method]:.3f}); " f"{app_explain[m.method]}"
                 )
             else:
                 raise ConsensusValidationError(f"unknown weighting mode: {mode!r}")

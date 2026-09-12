@@ -5,9 +5,7 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 COMPOSE_FILE="${ROOT}/docker/docker-compose.production.yml"
 ENV_FILE="${ROOT}/.env.production"
-PREV_TAG_FILE="${ROOT}/.dsp_production_previous_tags"
-
-cd "${ROOT}"
+PREV_TAG_FILE="${ROOT}/.dsp_production_previous_tags" cd"${ROOT}"
 
 if [[ ! -f "${ENV_FILE}" ]]; then
   echo "[rollback] Missing ${ENV_FILE}" >&2
@@ -33,8 +31,7 @@ if [[ -z "${TARGET_API}" || -z "${TARGET_WEB}" ]]; then
 fi
 
 if [[ -z "${TARGET_API}" || -z "${TARGET_WEB}" ]]; then
-  echo "[rollback] Usage: $0 <api_tag> <web_tag>" >&2
-  echo "[rollback] Or set DSP_PREVIOUS_IMAGE_TAG / DSP_PREVIOUS_IMAGE_TAG_WEB" >&2
+  echo "[rollback] Usage: $0 <api_tag> <web_tag>">&2 echo"[rollback] Or set DSP_PREVIOUS_IMAGE_TAG / DSP_PREVIOUS_IMAGE_TAG_WEB" >&2
   exit 1
 fi
 

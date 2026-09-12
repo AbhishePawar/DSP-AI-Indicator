@@ -112,8 +112,7 @@ class ResearchAssembler:
             ):
                 msg = (
                     "foreign ownership: monitoring portfolio_id "
-                    f"{context.monitoring_ref.portfolio_id!r} does not match "
-                    f"{context.portfolio_ref.portfolio_id!r}"
+                    f"{context.monitoring_ref.portfolio_id!r} does not match " f"{context.portfolio_ref.portfolio_id!r}"
                 )
                 raise ResearchError(msg)
 
@@ -188,8 +187,7 @@ class ResearchAssembler:
                 raise ResearchError(msg)
             if ref.risk_id in seen_integrated:
                 msg = (
-                    f"duplicate references: IntegratedRiskReference "
-                    f"{ref.risk_id!r}"
+                    f"duplicate references: IntegratedRiskReference " f"{ref.risk_id!r}"
                 )
                 raise ResearchError(msg)
             seen_integrated.add(ref.risk_id)
@@ -266,8 +264,7 @@ class ResearchAssembler:
             risk_refs=context.risk_refs,
             integrated_risk_refs=context.integrated_risk_refs,
             limitations=(
-                "Assembled structure only — no insights, conflicts, gaps, "
-                "or priorities.",
+                "Assembled structure only — no insights, conflicts, gaps, " "or priorities.",
             ),
         )
 
@@ -288,9 +285,7 @@ class ResearchAssembler:
         for ctx in contexts:
             if ctx.identity.research_id in seen_ids:
                 msg = (
-                    f"duplicate citations: research_id "
-                    f"{ctx.identity.research_id!r} appears more than once "
-                    f"in assemble_many"
+                    f"duplicate citations: research_id " f"{ctx.identity.research_id!r} appears more than once " f"in assemble_many"
                 )
                 raise ResearchError(msg)
             seen_ids.add(ctx.identity.research_id)

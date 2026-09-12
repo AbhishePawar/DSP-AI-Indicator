@@ -3,6 +3,9 @@
 import dynamic from "next/dynamic";
 
 import { Skeleton } from "@/components/ui/Skeleton";
+import { ClientReviewWorkspace } from '../../../components/advisor/ClientReview';
+
+
 const ClientReviewWorkspace = dynamic(
   () => import("@/components/advisor/ClientReview").then((m) => m.ClientReviewWorkspace),
   { loading: () => <Skeleton className="h-64 w-full" />, ssr: false },

@@ -56,8 +56,7 @@ def build_analysis_service(config: PlatformConfig) -> InvestmentAnalysisService:
                 and config.environment is not Environment.TEST
             ):
                 msg = (
-                    "fred_api_key is required when enable_economic is "
-                    "True outside Environment.TEST"
+                    "fred_api_key is required when enable_economic is " "True outside Environment.TEST"
                 )
                 raise PlatformError(msg)
             register_fred(

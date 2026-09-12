@@ -4,20 +4,7 @@
  */
 
 export type CanvasTabId =
-  | "overview"
-  | "financials"
-  | "valuation"
-  | "bq"
-  | "management"
-  | "moat"
-  | "risk"
-  | "researchIntelligence"
-  | "comparison"
-  | "timeline"
-  | "committee"
-  | "explainability"
-  | "evidence"
-  | "notes";
+  | "overview" |"financials" |"valuation" |"bq" |"management" |"moat" |"risk" |"researchIntelligence" |"comparison" |"timeline" |"committee" |"explainability" |"evidence" |"notes";
 
 export type CanvasTabMeta = {
   id: CanvasTabId;

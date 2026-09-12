@@ -50,8 +50,7 @@ def _all_pass() -> dict[str, str]:
 
 def test_g2_missing_evidence_blocked(gate) -> None:
     status, reason = gate.classify_g2_artifact_status(None)
-    assert status == "BLOCKED"
-    assert "missing" in reason.lower() or "BLOCKED" in reason
+    assert status == "BLOCKED" assert"missing" in reason.lower() or "BLOCKED" in reason
 
 
 def test_g2_credentials_unavailable_blocked(gate) -> None:
@@ -62,8 +61,7 @@ def test_g2_credentials_unavailable_blocked(gate) -> None:
             "evidence_class": "credentials_unavailable",
         }
     )
-    assert status == "BLOCKED"
-    assert "credentials_unavailable" in reason
+    assert status == "BLOCKED" assert"credentials_unavailable" in reason
 
 
 def test_g2_fixture_evidence_blocked(gate) -> None:
@@ -89,8 +87,7 @@ def test_g2_fake_seed_memory_offline_mock_blocked(gate, evidence_class: str) -> 
             "evidence_class": evidence_class,
         }
     )
-    assert status == "BLOCKED"
-    assert evidence_class in reason or "BLOCKED" in reason
+    assert status == "BLOCKED" assert evidence_class in reason or"BLOCKED" in reason
 
 
 def test_g2_real_live_without_cleared_blocked(gate) -> None:
@@ -118,8 +115,7 @@ def test_g2_genuine_clearance_contract_pass(gate) -> None:
             "steps": {"quote": {"retrieved_at": "2026-08-09T00:00:00+00:00"}},
         }
     )
-    assert status == "PASS"
-    assert "CLEARED" in reason
+    assert status == "PASS" assert"CLEARED" in reason
 
 
 def test_g2_cleared_without_live_shape_blocked(gate) -> None:
@@ -130,8 +126,7 @@ def test_g2_cleared_without_live_shape_blocked(gate) -> None:
             "evidence_class": "real_live_authenticated_provider",
         }
     )
-    assert status == "BLOCKED"
-    assert "live drill shape" in reason
+    assert status == "BLOCKED" assert"live drill shape" in reason
 
 
 def test_g2_pending_live_class_blocked(gate) -> None:
@@ -162,40 +157,22 @@ def test_g2_public_web_never_clears(gate) -> None:
 
 def test_release_workflow_requires_g2_reusable() -> None:
     text = RELEASE_WF.read_text(encoding="utf-8")
-    assert "g2-live-vendor" in text
-    assert "uses: ./.github/workflows/g2-live-vendor-evidence.yml" in text
-    assert "secrets: inherit" in text
-    assert "needs: [p109-api, p110-authenticity, g11-postgres, g2-live-vendor]" in text
-    assert "g2_live_vendor_evidence.json" in text
-    assert "rc1-hard-gate" in text
-    assert "needs: [rc1-hard-gate]" in text
+    assert "g2-live-vendor"in text assert"uses: ./.github/workflows/g2-live-vendor-evidence.yml"in text assert"secrets: inherit"in text assert"needs: [p109-api, p110-authenticity, g11-postgres, g2-live-vendor]"in text assert"g2_live_vendor_evidence.json"in text assert"rc1-hard-gate"in text assert"needs: [rc1-hard-gate]" in text
     # Must not inject repo-level vendor secrets into P1-11 (artifact is authority).
     assert "DSP_FMP_API_KEY: ${{ secrets.DSP_FMP_API_KEY }}" not in text
     # Protected environment belongs to the reusable G2 workflow, not P1-11.
     rc1_section = text.split("rc1-hard-gate:")[1].split("publish:")[0]
-    assert "environment: live-data-evidence" not in rc1_section
-    assert "DSP_MARKET_QUOTE_API_KEY" not in rc1_section
+    assert "environment: live-data-evidence"not in rc1_section assert"DSP_MARKET_QUOTE_API_KEY" not in rc1_section
 
 
 def test_g2_workflow_uses_live_data_evidence_environment() -> None:
     text = G2_WF.read_text(encoding="utf-8")
-    assert "environment: live-data-evidence" in text
-    assert "workflow_call:" in text
-    assert "workflow_dispatch:" in text
-    assert "Assert G2 clearance contract" in text
-    assert "g2_status" in text
-    assert "real_live_authenticated_provider" in text
-    assert "CLEARED" in text
-    assert "g2_live_vendor_evidence_drill.py" in text
-    assert "g2_provider_configuration_diagnostic.py" in text
-    assert "pull_request:" not in text
+    assert "environment: live-data-evidence"in text assert"workflow_call:"in text assert"workflow_dispatch:"in text assert"Assert G2 clearance contract"in text assert"g2_status"in text assert"real_live_authenticated_provider"in text assert"CLEARED"in text assert"g2_live_vendor_evidence_drill.py"in text assert"g2_provider_configuration_diagnostic.py"in text assert"pull_request:" not in text
 
 
 def test_release_p111_consumes_g2_artifact_path() -> None:
     text = RELEASE_WF.read_text(encoding="utf-8")
-    assert "Normalize evidence paths" in text
-    assert "Require G2 clearance artifact before evaluate" in text
-    assert "rc1_hard_release_gate.py --evaluate" in text
+    assert "Normalize evidence paths"in text assert"Require G2 clearance artifact before evaluate"in text assert"rc1_hard_release_gate.py --evaluate" in text
     # Artifact handoff from reusable G2 job.
     assert "download-artifact@v4" in text
     assert "g2_live_vendor_evidence.json" in text
@@ -301,5 +278,4 @@ def test_collect_live_statuses_unit_fixture_marker_never_pass(
 
 def test_release_discards_checked_in_g2_artifact() -> None:
     text = RELEASE_WF.read_text(encoding="utf-8")
-    assert "Discard checked-in G2 artifact before download" in text
-    assert "rm -f artifacts/g2_live_vendor_evidence.json" in text
+    assert "Discard checked-in G2 artifact before download"in text assert"rm -f artifacts/g2_live_vendor_evidence.json" in text

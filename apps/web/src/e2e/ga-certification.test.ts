@@ -17,12 +17,12 @@ const repoRoot = join(__dirname, "..", "..", "..", "..");
 
 describe("P8.0 GA certification", () => {
   it("aligns foundation to Version 2.0 RC (2.0.0-rc.1)", () => {
-    expect(FRONTEND_FOUNDATION_VERSION).toBe("2.0.0-rc.1");
-    expect(FRONTEND_FOUNDATION_EPIC).toBe("EPS-003");
-    expect(BACKEND_PLATFORM_TARGET).toBe("dsp_platform@2.0.0");
-    expect(API_CONTRACT_TARGET).toBe("v1.0.0");
-    expect(manifest.appVersion).toBe("2.0.0-rc.1");
-    expect(manifest.channel).toBe("rc");
+    expect(FRONTEND_FOUNDATION_VERSION)?.toBe("2.0.0-rc.1");
+    expect(FRONTEND_FOUNDATION_EPIC)?.toBe("EPS-003");
+    expect(BACKEND_PLATFORM_TARGET)?.toBe("dsp_platform@2.0.0");
+    expect(API_CONTRACT_TARGET)?.toBe("v1.0.0");
+    expect(manifest?.appVersion)?.toBe("2.0.0-rc.1");
+    expect(manifest?.channel)?.toBe("rc");
   });
 
   it("ships GA governance docs", () => {
@@ -33,14 +33,14 @@ describe("P8.0 GA certification", () => {
       "P8_GENERAL_AVAILABILITY.md",
     ]) {
       const body = readFileSync(join(repoRoot, "docs", name), "utf8");
-      expect(body.length).toBeGreaterThan(200);
+      expect(body?.length)?.toBeGreaterThan(200);
     }
   });
 
   it("ships certify_p8 and freeze markers", () => {
-    expect(existsSync(join(repoRoot, "scripts", "ops", "certify_p8.py"))).toBe(true);
+    expect(existsSync(join(repoRoot, "scripts", "ops", "certify_p8.py")))?.toBe(true);
     const freeze = readFileSync(join(repoRoot, "docs", "RELEASE_FREEZE.md"), "utf8");
-    expect(freeze).toContain("Frozen modules");
-    expect(freeze).toContain("Emergency fix");
+    expect(freeze)?.toContain("Frozen modules");
+    expect(freeze)?.toContain("Emergency fix");
   });
 });

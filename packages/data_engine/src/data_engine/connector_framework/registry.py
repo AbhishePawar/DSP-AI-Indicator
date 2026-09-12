@@ -1,6 +1,4 @@
-"""Generic, priority-aware provider registry.
-
-Extends the existing "named lookup with one default" pattern (e.g.
+"""Generic, priority-aware provider registry. Extends the existing"named lookup with one default" pattern (e.g.
 ``CorporateActionProviderRegistry``) with two capabilities every new
 connector domain needs: **provider priority** (which provider is tried
 first) and **enable/disable** (temporarily remove a misbehaving

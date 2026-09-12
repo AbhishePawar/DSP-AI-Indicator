@@ -449,8 +449,7 @@ class DSPPlatform:
         as_decision_pack: bool = True,
         evidence_bundle_ref: EvidenceBundleReference | None = None,
     ) -> PlatformResult:
-        """Orchestrate single-company analysis via frozen public APIs."""
-        self._require_capability("analyze_company")
+        """Orchestrate single-company analysis via frozen public APIs.""" self._require_capability("analyze_company")
         try:
             payload: Any
             if as_decision_pack:
@@ -484,8 +483,7 @@ class DSPPlatform:
         :data:`_COMPARISON_CACHE_TTL_SECONDS` — using the existing
         ``data_engine.cache.InMemoryCache`` port, keyed by the compared
         symbols and eligibility options. No new cache mechanism is introduced.
-        """
-        self._require_capability("compare_companies")
+        """ self._require_capability("compare_companies")
         cache_key = None
         if engine is None and not evidence_bundles:
             cache_key = self._comparison_cache_key(packs, eligibility_options)
@@ -498,8 +496,7 @@ class DSPPlatform:
                     "compare_companies",
                     cached,
                     limitations=(
-                        "comparison served from short-TTL cache "
-                        f"(<= {int(_COMPARISON_CACHE_TTL_SECONDS)}s old)",
+                        "comparison served from short-TTL cache " f"(<= {int(_COMPARISON_CACHE_TTL_SECONDS)}s old)",
                     ),
                 )
 
@@ -553,8 +550,7 @@ class DSPPlatform:
         """Orchestrate workflow execution via frozen WorkflowEngine API.
 
         ``context`` must be a workflow ``EngineContext`` (with faÃ§ade port).
-        """
-        self._require_capability("run_workflow")
+        """ self._require_capability("run_workflow")
         try:
             from workflow import WorkflowEngine, WorkflowError
 
@@ -578,8 +574,7 @@ class DSPPlatform:
             )
 
     def build_knowledge_graph(self, context: Any) -> PlatformResult:
-        """Orchestrate Knowledge Graph synthesis via frozen public APIs."""
-        self._require_capability("build_knowledge_graph")
+        """Orchestrate Knowledge Graph synthesis via frozen public APIs.""" self._require_capability("build_knowledge_graph")
         try:
             from knowledge_graph import (
                 KnowledgeGraphAssembler,
@@ -625,8 +620,7 @@ class DSPPlatform:
         language_model: Any | None = None,
         metadata: Any | None = None,
     ) -> PlatformResult:
-        """Orchestrate Conversation â†’ Explanation â†’ Reporter via frozen APIs."""
-        self._require_capability("ask_copilot")
+        """Orchestrate Conversation â†’ Explanation â†’ Reporter via frozen APIs.""" self._require_capability("ask_copilot")
         try:
             from copilot import (
                 ConversationEngine,
@@ -678,8 +672,7 @@ class DSPPlatform:
         Does not mutate ``report``. ``format_name`` is descriptive metadata
         for channel adapters (REST / UI / CLI); no serialization engine lives
         in the domain platform core.
-        """
-        self._require_capability("export_report")
+        """ self._require_capability("export_report")
         if report is None:
             return self._err_result(
                 "export_report",
@@ -713,8 +706,7 @@ class DSPPlatform:
             return self._err_result(
                 "compose_intelligence",
                 PlatformError(
-                    "compose_intelligence requires CompositionRequest, "
-                    f"got {type(request).__name__}"
+                    "compose_intelligence requires CompositionRequest, " f"got {type(request).__name__}"
                 ),
             )
         try:
@@ -1927,8 +1919,7 @@ class DSPPlatform:
         )
 
     def health_check(self) -> PlatformResult:
-        """Offline health / readiness probe via frozen health service APIs."""
-        self._require_capability("health_check")
+        """Offline health / readiness probe via frozen health service APIs.""" self._require_capability("health_check")
         try:
             from dsp_platform.health import PlatformHealthService
 

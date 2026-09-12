@@ -192,14 +192,9 @@ class TestEngineBoundaries:
     def test_no_mapper_or_upstream_engines(self) -> None:
         source = (
             Path(__file__).resolve().parents[1]
-            / "src"
-            / "recommendation"
-            / "engine.py"
+            / "src" /"recommendation" /"engine.py"
         ).read_text(encoding="utf-8")
-        assert "RecommendationMapper" not in source
-        assert "from quantitative_risk" not in source
-        assert "import quantitative_risk" not in source
-        assert "ResearchSynthesizer" not in source
+        assert "RecommendationMapper"not in source assert"from quantitative_risk"not in source assert"import quantitative_risk"not in source assert"ResearchSynthesizer" not in source
         tree = ast.parse(source)
         forbidden = {"optimize", "monte_carlo", "forecast"}
         found: set[str] = set()

@@ -480,20 +480,15 @@ export function CompanyComparisonWorkspace() {
   };
 
   const reviewClass =
-    reviewMode === "presentation" || reviewMode === "fullscreen"
-      ? "text-base md:text-lg"
-      : reviewMode === "print"
-        ? "print:bg-white"
-        : reviewMode === "evidence_first" || reviewMode === "committee"
-          ? ""
-          : "";
+    reviewMode === "presentation" || reviewMode === "fullscreen" ?"text-base md:text-lg"
+      : reviewMode === "print" ?"print:bg-white"
+        : reviewMode === "evidence_first"|| reviewMode === "committee" ?"" :"";
 
   const preferredSection =
     reviewMode === "evidence_first" &&
     (activeSection === "summary" || activeSection === "scorecard")
       ? "contradictory"
-      : reviewMode === "committee" && activeSection === "summary"
-        ? "committeeMemo"
+      : reviewMode === "committee"&& activeSection === "summary" ?"committeeMemo"
         : activeSection;
 
   useEffect(() => {

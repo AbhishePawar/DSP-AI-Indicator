@@ -70,8 +70,7 @@ export function buffettActionFromExistingDecision(decision: string): BuffettActi
   const d = decision.toLowerCase().replace(/[\s-]+/g, "_");
   if (
     d.includes("strong_buy") ||
-    d === "buy" ||
-    d.includes("accumulate") ||
+    d === "buy"|| d.includes("accumulate") ||
     d.includes("strong buy")
   ) {
     return "BUY";
@@ -258,8 +257,7 @@ export function mapBuffettReport(
       "Competition / regulation / technology disruption narratives are not fabricated when absent from stage warnings.",
     ],
     view.risks.length || view.weaknesses.length
-      ? "Risks listed above are taken from existing stage warnings and weakness fields only."
-      : "Long-term risk detail unavailable beyond empty stage warning lists.",
+      ? "Risks listed above are taken from existing stage warnings and weakness fields only." :"Long-term risk detail unavailable beyond empty stage warning lists.",
     ["stage_summaries.warnings", "weaknesses"],
   );
 
@@ -293,9 +291,7 @@ export function mapBuffettReport(
       "Low Debt",
       !isUnavailable(metricValue(strength, "Debt")) || stageAvailable(strength)
         ? stageAvailable(strength)
-          ? "met"
-          : "unavailable"
-        : "unavailable",
+          ? "met" :"unavailable" :"unavailable",
       `Evidence: financial_strength Debt field=${metricValue(strength, "Debt")} (no client debt recalculation)`,
     ),
     matrixItem(
@@ -306,16 +302,14 @@ export function mapBuffettReport(
     matrixItem(
       "Positive Free Cash Flow",
       !isUnavailable(metricValue(strength, "Cash Flow"))
-        ? "met"
-        : "unavailable",
+        ? "met" :"unavailable",
       `Evidence: financial_strength Cash Flow field=${metricValue(strength, "Cash Flow")} (no client FCF recalculation)`,
     ),
     matrixItem(
       "Attractive Valuation",
       !isUnavailable(valuation.intrinsicValue) ||
         !isUnavailable(valuation.currentPrice)
-        ? "met"
-        : "unavailable",
+        ? "met" :"unavailable",
       `Evidence: price=${valuation.currentPrice}, IV=${valuation.intrinsicValue}`,
     ),
     matrixItem(

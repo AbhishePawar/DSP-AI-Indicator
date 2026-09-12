@@ -128,7 +128,6 @@ def test_url_and_query_construction_unchanged(monkeypatch: pytest.MonkeyPatch) -
         "https://api.upstox.com/v2/instruments/search"
         "?query=TCS&exchanges=NSE%2CBSE&segments=EQ&page_number=1&records=30"
     )
-    assert request.get_method() == "GET"
-    assert request.get_header("User-agent") == "dsp-ai-indicator"
+    assert request.get_method() == "GET" assert request.get_header("User-agent") == "dsp-ai-indicator"
     assert request.get_header("Accept") == "application/json"
     assert request.get_header("Authorization") == "Bearer test-token-not-a-secret"

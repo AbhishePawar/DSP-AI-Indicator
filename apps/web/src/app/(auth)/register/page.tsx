@@ -196,9 +196,7 @@ export default function RegisterPage() {
       <AuthCard
         title="Create your DSP AI Indicator account"
         description={
-          step === "details"
-            ? "Enter your details. We will send an OTP to verify your mobile number."
-            : "Enter the OTP sent to your mobile number to finish creating the account."
+          step === "details" ?"Enter your details. We will send an OTP to verify your mobile number." :"Enter the OTP sent to your mobile number to finish creating the account."
         }
       >
         <Stack gap={4}>

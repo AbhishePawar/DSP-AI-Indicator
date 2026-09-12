@@ -3,15 +3,7 @@
  */
 
 export type AdminSectionId =
-  | "overview"
-  | "identity"
-  | "audit"
-  | "platform"
-  | "metrics"
-  | "workflow"
-  | "research"
-  | "export"
-  | "beta";
+  | "overview" |"identity" |"audit" |"platform" |"metrics" |"workflow" |"research" |"export" |"beta";
 
 export type AdminSectionMeta = {
   id: AdminSectionId;

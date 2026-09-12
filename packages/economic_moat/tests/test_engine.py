@@ -59,8 +59,7 @@ def test_validate_rejects_missing_inputs() -> None:
     engine = EconomicEngine()
     summary = engine.validate(None, None)
     assert summary.ok is False
-    assert "FinancialAnalysis" in summary.missing_inputs
-    assert "BusinessQualityAnalysis" in summary.missing_inputs
+    assert "FinancialAnalysis" in summary.missing_inputs assert"BusinessQualityAnalysis" in summary.missing_inputs
 
 
 def test_network_and_efficient_scale_are_confidence_capped(

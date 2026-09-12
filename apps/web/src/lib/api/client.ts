@@ -285,8 +285,7 @@ async function request<T>(
         ok: false,
         error: aborted ? "TIMEOUT" : "NETWORK_ERROR",
         detail: aborted
-          ? "Request timed out or was cancelled"
-          : "Unable to reach the API service",
+          ? "Request timed out or was cancelled" :"Unable to reach the API service",
         api_version: "v1",
         status_code: aborted ? 408 : 0,
       },
@@ -439,7 +438,7 @@ export const api = {
       headers.set("Authorization", `Bearer ${options.token}`);
     }
     const url = `${env.apiBaseUrl}/copilot/stream`;
-    const response = await fetch(url, {
+    let response = await fetch(url, {
       method: "POST",
       headers,
       body: JSON.stringify(body),
@@ -1565,11 +1564,7 @@ export const api = {
 
   enterpriseDashboard: (
     role:
-      | "research"
-      | "portfolio-manager"
-      | "wealth-advisor"
-      | "family-office"
-      | "executive",
+      | "research" |"portfolio-manager" |"wealth-advisor" |"family-office" |"executive",
     params?: {
       portfolio_id?: string;
       symbols?: string;

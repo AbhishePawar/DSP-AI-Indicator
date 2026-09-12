@@ -1,4 +1,4 @@
-export {
+import {
   ReleaseCandidateDashboard,
   ReleaseCandidateDashboardWorkspace,
   IssueResolutionCard,
@@ -6,3 +6,12 @@ export {
   VersionManifestCard,
   ReleaseSummaryCard,
 } from "./ReleaseCandidateDashboard";
+
+export {
+  ReleaseCandidateDashboard,
+  ReleaseCandidateDashboardWorkspace,
+  IssueResolutionCard,
+  QualityTrendCard,
+  VersionManifestCard,
+  ReleaseSummaryCard,
+};

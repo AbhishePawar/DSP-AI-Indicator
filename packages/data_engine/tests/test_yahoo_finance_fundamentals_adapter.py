@@ -193,9 +193,7 @@ class TestSuccessfulRetrieval:
         assert client.last_url.endswith("/AAPL")
         assert client.last_params is not None
         modules = client.last_params["modules"]
-        assert "incomeStatementHistory" in modules
-        assert "balanceSheetHistory" in modules
-        assert "cashflowStatementHistory" in modules
+        assert "incomeStatementHistory"in modules assert"balanceSheetHistory"in modules assert"cashflowStatementHistory" in modules
 
     def test_limit_returns_most_recent_only(self, instrument: Instrument) -> None:
         adapter = YahooFinanceFundamentalsAdapter(

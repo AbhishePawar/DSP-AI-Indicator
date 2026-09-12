@@ -22,9 +22,7 @@ export function PortfolioHealth({ health }: { health: PortfolioHealthAnalytics }
               tone={
                 label.includes("Incomplete") || label === "Concentrated"
                   ? "warning"
-                  : label === "Empty"
-                    ? "neutral"
-                    : "success"
+                  : label === "Empty" ?"neutral" :"success"
               }
             >
               {label}

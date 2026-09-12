@@ -76,9 +76,7 @@ def format_metric_value(value: float, unit: MetricUnit) -> str:
 
 @dataclass(frozen=True, slots=True)
 class FinancialSnapshot:
-    """One instrument's as-reported financial statements, most-recent-first.
-
-    This is the Fundamental Engine's counterpart to
+    """One instrument's as-reported financial statements, most-recent-first. This is the Fundamental Engine's counterpart to
     ``contracts.PriceSeries``: a validated, ordered bundle of
     ``contracts.FundamentalStatement`` periods for a single instrument,
     matching the ordering already documented by
@@ -111,9 +109,7 @@ class FinancialSnapshot:
         for statement in statements:
             if statement.instrument != self.instrument:
                 msg = (
-                    "all statements must belong to the snapshot's "
-                    f"instrument ({self.instrument.symbol}), found "
-                    f"{statement.instrument.symbol}"
+                    "all statements must belong to the snapshot's " f"instrument ({self.instrument.symbol}), found " f"{statement.instrument.symbol}"
                 )
                 raise ValidationError(msg)
 

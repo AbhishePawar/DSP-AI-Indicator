@@ -40,8 +40,7 @@ def coerce_aggregation_source(
         for item in source:
             if not isinstance(item, FinancialStatements):
                 _reject(
-                    "Invalid aggregation inputs: history items must be "
-                    "FinancialStatements"
+                    "Invalid aggregation inputs: history items must be " "FinancialStatements"
                 )
         stmts = list(source)
         # Treat bare sequences as history wrappers (ordered snapshots)

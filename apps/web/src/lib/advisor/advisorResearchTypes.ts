@@ -11,29 +11,15 @@ export type ResearchTimelineId = string;
 export type BookmarkId = string;
 
 export type ResearchCollectionTheme =
-  | "growth"
-  | "value"
-  | "dividend"
-  | "small_cap"
-  | "large_cap"
-  | "high_quality"
-  | "custom";
+  | "growth" |"value" |"dividend" |"small_cap" |"large_cap" |"high_quality" |"custom";
 
 export type CollectionLifecycle = "active" | "archived";
 
 export type ResearchNoteKind =
-  | "pinned"
-  | "private"
-  | "client"
-  | "meeting"
-  | "finding";
+  | "pinned" |"private" |"client" |"meeting" |"finding";
 
 export type TimelineKind =
-  | "analysis_created"
-  | "research_updated"
-  | "report_generated"
-  | "collection_modified"
-  | "favorite";
+  | "analysis_created" |"research_updated" |"report_generated" |"collection_modified" |"favorite";
 
 export type BookmarkKind = "favorite" | "recent" | "pinned" | "collection" | "tag";
 
@@ -96,15 +82,7 @@ export type AdvisorResearchBookmark = {
 };
 
 export type CompareDimension =
-  | "businessQuality"
-  | "financialStrength"
-  | "valuation"
-  | "growth"
-  | "risk"
-  | "management"
-  | "moat"
-  | "confidence"
-  | "evidenceCoverage";
+  | "businessQuality" |"financialStrength" |"valuation" |"growth" |"risk" |"management" |"moat" |"confidence" |"evidenceCoverage";
 
 export const COMPARE_DIMENSIONS: { id: CompareDimension; label: string }[] = [
   { id: "businessQuality", label: "Business Quality" },

@@ -83,8 +83,7 @@ class ProviderAuditPort(Protocol):
         detail: str | None = None,
         metadata: Mapping[str, Any] | None = None,
     ) -> None:
-        """Record one audit event. Must never raise — audit failures must
-        not break the request they are observing."""
+        """Record one audit event. Must never raise — audit failures must not break the request they are observing."""
         ...
 
 

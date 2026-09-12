@@ -10,9 +10,7 @@ from tools.git_recovery.git_ops import FORBIDDEN_ADD_ARGS, GitOps, GitSafetyErro
 
 
 def test_forbidden_add_args_constant() -> None:
-    assert "-A" in FORBIDDEN_ADD_ARGS
-    assert "--all" in FORBIDDEN_ADD_ARGS
-    assert "." in FORBIDDEN_ADD_ARGS
+    assert "-A" in FORBIDDEN_ADD_ARGS assert"--all"in FORBIDDEN_ADD_ARGS assert"." in FORBIDDEN_ADD_ARGS
 
 
 def test_blocks_git_add_all(tmp_path: Path) -> None:

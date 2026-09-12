@@ -44,8 +44,7 @@ class TestRuntimeValidation:
             strict=True,
         )
         assert report.ok is False
-        assert "DSP_DATABASE_URL" in report.missing_required
-        assert "DSP_REGION" in report.missing_required
+        assert "DSP_DATABASE_URL" in report.missing_required assert"DSP_REGION" in report.missing_required
         with pytest.raises(StartupError):
             report.raise_if_invalid()
 
@@ -60,8 +59,7 @@ class TestRuntimeValidation:
             strict=True,
         )
         # Config validates; DB connectivity checked later at build time.
-        assert "DSP_DATABASE_URL" not in report.missing_required
-        assert "DSP_REGION" not in report.missing_required
+        assert "DSP_DATABASE_URL" not in report.missing_required assert"DSP_REGION" not in report.missing_required
 
     def test_build_offline_force(self) -> None:
         infra = build_runtime_infrastructure(
@@ -92,8 +90,7 @@ class TestProductionBundleFromEnvironment:
         assert bundle.liveness().live is True
         assert bundle.readiness().ready is True
         names = {c.name for c in bundle.readiness().checks}
-        assert "database" in names
-        assert "redis_stack" in names or "redis" in names
+        assert "database" in names assert"redis_stack" in names or "redis" in names
 
     def test_default_service_version_aligned(self) -> None:
         cfg = ProductionConfiguration(environment=Environment.TEST)

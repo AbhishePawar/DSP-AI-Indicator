@@ -41,16 +41,7 @@ class TestImportBoundaries:
             "core",
         ):
             assert name in FORBIDDEN_APPLICATION_PACKAGES
-        assert "valuation" in PLATFORM_PACKAGES
-        assert "decision_intelligence" in PLATFORM_PACKAGES
-        assert "universe" in PLATFORM_PACKAGES
-        assert "industry" in PLATFORM_PACKAGES
-        assert "workflow" in PLATFORM_PACKAGES
-        assert "workflow" in FORBIDDEN_APPLICATION_PACKAGES
-        assert "knowledge_graph" in PLATFORM_PACKAGES
-        assert "knowledge_graph" in FORBIDDEN_APPLICATION_PACKAGES
-        assert "copilot" in PLATFORM_PACKAGES
-        assert "copilot" in FORBIDDEN_APPLICATION_PACKAGES
+        assert "valuation" in PLATFORM_PACKAGES assert"decision_intelligence"in PLATFORM_PACKAGES assert"universe"in PLATFORM_PACKAGES assert"industry"in PLATFORM_PACKAGES assert"workflow"in PLATFORM_PACKAGES assert"workflow"in FORBIDDEN_APPLICATION_PACKAGES assert"knowledge_graph"in PLATFORM_PACKAGES assert"knowledge_graph"in FORBIDDEN_APPLICATION_PACKAGES assert"copilot"in PLATFORM_PACKAGES assert"copilot" in FORBIDDEN_APPLICATION_PACKAGES
         for name in (
             "financial",
             "business_quality",
@@ -77,8 +68,7 @@ class TestImportBoundaries:
             )
         source = (_SAMPLES / "compliant_app.py").read_text(encoding="utf-8")
         imported = assert_application_imports(source, path="compliant_app.py")
-        assert "dsp_platform" in imported
-        assert "contracts" in imported
+        assert "dsp_platform"in imported assert"contracts" in imported
 
     def test_violating_sample_app(self) -> None:
         source = (_SAMPLES / "violating_app.py").read_text(encoding="utf-8")
@@ -91,8 +81,7 @@ class TestImportBoundaries:
             assert_application_imports(source)
 
     def test_scan_detects_from_import(self) -> None:
-        source = "from data_engine.services import MarketDataService\n"
-        assert "data_engine" in scan_module_imports(source)
+        source = "from data_engine.services import MarketDataService\n" assert"data_engine" in scan_module_imports(source)
 
     def test_stdlib_and_third_party_ignored(self) -> None:
         source = "import os\nfrom datetime import date\nimport numpy\n"

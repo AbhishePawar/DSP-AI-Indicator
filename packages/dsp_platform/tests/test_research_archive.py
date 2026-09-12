@@ -198,8 +198,7 @@ def test_report_and_export_kinds() -> None:
         "export_metadata", export, snapshot_id="snap-e", archived_at=FIXED
     )
     assert r.kind == "institutional_report"
-    assert e.kind == "export_metadata"
-    assert e.subject_ids.get("export_id") == "exp-1"
+    assert e.kind == "export_metadata" assert e.subject_ids.get("export_id") == "exp-1"
 
 
 def test_retention_hook_advisory() -> None:

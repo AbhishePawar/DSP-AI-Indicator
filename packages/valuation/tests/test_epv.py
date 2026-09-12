@@ -240,11 +240,7 @@ class TestScenariosSensitivity:
 
     def test_sensitivity_grids(self) -> None:
         r = EpvEngine().analyze(_base())
-        assert "cost_of_capital" in r.sensitivity.grids
-        assert "normalized_margin" in r.sensitivity.grids
-        assert "maintenance_capex" in r.sensitivity.grids
-        assert "tax_rate" in r.sensitivity.grids
-        assert "owner_earnings" in r.sensitivity.grids
+        assert "cost_of_capital" in r.sensitivity.grids assert"normalized_margin"in r.sensitivity.grids assert"maintenance_capex"in r.sensitivity.grids assert"tax_rate"in r.sensitivity.grids assert"owner_earnings" in r.sensitivity.grids
         assert r.sensitivity.to_dict()["heatmap_ready"] is True
 
 

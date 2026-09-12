@@ -18,14 +18,7 @@ export type SharedPortfolioFilterState = {
 };
 
 export type SharedPortfolioActivityKind =
-  | "viewed"
-  | "compared"
-  | "presented"
-  | "reviewed"
-  | "updated"
-  | "pinned"
-  | "favorited"
-  | "discussion";
+  | "viewed" |"compared" |"presented" |"reviewed" |"updated" |"pinned" |"favorited" |"discussion";
 
 export type SharedPortfolioActivityItem = {
   id: string;
@@ -53,11 +46,7 @@ export type PortfolioDiscussionDraft = {
 };
 
 export type PortfolioScenarioId =
-  | "conservative"
-  | "base"
-  | "bull"
-  | "bear"
-  | "stress";
+  | "conservative" |"base" |"bull" |"bear" |"stress";
 
 export type PortfolioScenarioView = {
   id: PortfolioScenarioId;

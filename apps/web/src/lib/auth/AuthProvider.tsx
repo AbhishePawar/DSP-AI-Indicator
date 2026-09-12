@@ -221,7 +221,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         if (!result.ok || !result.payload?.access_token) {
           throw new Error(result.errors?.[0] || "Login failed");
         }
-        const next = sessionFromLoginPayload(
+        let next = sessionFromLoginPayload(
           result.payload,
           Boolean(credentials.rememberMe),
         );

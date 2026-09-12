@@ -181,16 +181,10 @@ class TestArchitectureAndCompatibility:
                     imported.add(alias.name)
             elif isinstance(node, ast.ImportFrom) and node.module is not None:
                 imported.add(node.module)
-        assert "risk.analyzer" not in imported
-        assert "risk.reporting" not in imported
-        assert "RiskAnalyzer" not in source
-        assert "RiskReporter" not in source
-        assert "analyze(" not in source
-        assert "PortfolioMonitor" not in source
+        assert "risk.analyzer" not in imported assert"risk.reporting"not in imported assert"RiskAnalyzer"not in source assert"RiskReporter"not in source assert"analyze("not in source assert"PortfolioMonitor" not in source
         lowered = source.lower()
         for term in ("var", "sharpe", "beta", "buy", "sell", "optimize"):
-            assert f'"{term}"' not in lowered
-            assert f"'{term}'" not in lowered
+            assert f'"{term}"' not in lowered assert f"'{term}'" not in lowered
 
     def test_backward_compatibility(self) -> None:
         import risk as rk

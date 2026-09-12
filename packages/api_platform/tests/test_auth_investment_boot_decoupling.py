@@ -205,29 +205,11 @@ def _auth_source_roots() -> list[Path]:
     return [
         repo / "packages" / "auth" / "src" / "auth",
         repo
-        / "packages"
-        / "api_platform"
-        / "src"
-        / "api_platform"
-        / "api"
-        / "routers"
-        / "auth.py",
+        / "packages" /"api_platform" /"src" /"api_platform" /"api" /"routers" /"auth.py",
         repo
-        / "packages"
-        / "api_platform"
-        / "src"
-        / "api_platform"
-        / "api"
-        / "routers"
-        / "institutional_auth.py",
+        / "packages" /"api_platform" /"src" /"api_platform" /"api" /"routers" /"institutional_auth.py",
         repo
-        / "packages"
-        / "api_platform"
-        / "src"
-        / "api_platform"
-        / "api"
-        / "routers"
-        / "enterprise_auth_platform.py",
+        / "packages" /"api_platform" /"src" /"api_platform" /"api" /"routers" /"enterprise_auth_platform.py",
         repo / "packages" / "dsp_platform" / "src" / "dsp_platform" / "auth_facade.py",
     ]
 

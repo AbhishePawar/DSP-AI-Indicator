@@ -141,8 +141,7 @@ export function buildFreshness(
       view.conclusion.evidence.lastUpdated ??
       null,
     dataCurrency: view.apiOk
-      ? "Envelope received — many line items may still be Unavailable"
-      : "No successful envelope yet",
+      ? "Envelope received — many line items may still be Unavailable" :"No successful envelope yet",
     analysisVersion: "web-0.6.0 / L1.2 Sprint 8 Saved Analysis",
     methodologyVersion: "presentation-map v8 (L1.2 Sprint 8)",
     researchMode: isResearchOnly() ? "Research Mode (active)" : "Mixed / SEBI flags",

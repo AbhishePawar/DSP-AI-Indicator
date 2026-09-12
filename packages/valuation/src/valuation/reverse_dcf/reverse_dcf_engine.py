@@ -26,10 +26,7 @@ __all__ = ["ReverseDcfEngine", "REVERSE_DCF_VERSION"]
 
 _METHODOLOGY = (
     "Reverse DCF: binary-search the revenue CAGR such that a Gordon FCFF "
-    "model reproduces the enterprise value implied by market price. "
-    "FCFF_t ≈ NOPAT_t × (1 − reinvestment); "
-    "TV = FCFF_n(1+g_t)/(WACC−g_t); EV = Σ PV(FCFF) + PV(TV). "
-    "Research Mode only — not a recommendation."
+    "model reproduces the enterprise value implied by market price. " "FCFF_t ≈ NOPAT_t × (1 − reinvestment); " "TV = FCFF_n(1+g_t)/(WACC−g_t); EV = Σ PV(FCFF) + PV(TV). " "Research Mode only — not a recommendation."
 )
 
 _LIMITATIONS = (

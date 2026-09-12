@@ -17,8 +17,7 @@ def make_price_series(
 ) -> PriceSeries:
     """Build a daily ``PriceSeries`` whose closes are exactly ``closes``.
 
-    Each bar's open/high/low are derived from the close so every bar
-    passes ``PriceBar``'s OHLC structural validation, and volume is a
+    Each bar's open/high/low are derived from the close so every bar passes ``PriceBar``'s OHLC structural validation, and volume is a
     fixed placeholder since no test in this package depends on it.
     """
     instrument = Instrument(

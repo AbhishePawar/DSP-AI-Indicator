@@ -3,9 +3,7 @@ import fs from "node:fs";
 
 /**
  * Company Analysis Workspace contracts (WorkspaceLeftNav + ANALYSIS_SECTIONS):
- *   nav "Analysis sections"
- *   region "Main analysis area"
- *   search aria-label "Company search"
+ *   nav "Analysis sections" *   region"Main analysis area" *   search aria-label"Company search"
  *   Analyze button
  *   section buttons include shortcut kbd, so names are "Valuation 2", "Buffett Indicator B", …
  *

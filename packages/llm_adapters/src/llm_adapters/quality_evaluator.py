@@ -40,8 +40,7 @@ _EXPECTED_NUMERIC_FIELDS = (
 class EvaluatorVerdict:
     """Per-narrative scoring verdict.
 
-    All numeric components are 0.0-1.0; None means "could not verify".
-    """
+    All numeric components are 0.0-1.0; None means "could not verify". """
 
     quality: QualityEvaluation
     hallucination_count: int

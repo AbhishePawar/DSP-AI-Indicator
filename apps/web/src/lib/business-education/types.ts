@@ -1,11 +1,7 @@
 /** Educational Business & Buffett Analysis — presentation types only. */
 
 export type ClaimKind =
-  | "FACT"
-  | "CALCULATED_METRIC"
-  | "INTERPRETATION"
-  | "MANAGEMENT_CLAIM"
-  | "UNAVAILABLE";
+  | "FACT" |"CALCULATED_METRIC" |"INTERPRETATION" |"MANAGEMENT_CLAIM" |"UNAVAILABLE";
 
 export type BusinessEducationClaim = {
   text: string;

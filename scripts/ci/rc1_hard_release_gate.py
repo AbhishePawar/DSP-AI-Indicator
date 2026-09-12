@@ -87,15 +87,13 @@ def classify_g2_artifact_status(
     if evidence_class in REFUSED_G2_EVIDENCE_CLASSES:
         return (
             "BLOCKED",
-            f"G2 BLOCKED — evidence_class={evidence_class} "
-            "(not real_live_authenticated_provider)",
+            f"G2 BLOCKED — evidence_class={evidence_class} " "(not real_live_authenticated_provider)",
         )
     for token in REFUSED_G2_CLASS_TOKENS:
         if token in lowered and evidence_class != "real_live_authenticated_provider":
             return (
                 "BLOCKED",
-                f"G2 BLOCKED — evidence_class={evidence_class} "
-                f"(refused token={token})",
+                f"G2 BLOCKED — evidence_class={evidence_class} " f"(refused token={token})",
             )
 
     steps = evidence.get("steps") if isinstance(evidence.get("steps"), dict) else {}
@@ -126,14 +124,12 @@ def classify_g2_artifact_status(
     ):
         return (
             "BLOCKED",
-            "G2 BLOCKED — CLEARED claim missing live drill shape "
-            "(adapters/retrieved_at/authenticated)",
+            "G2 BLOCKED — CLEARED claim missing live drill shape " "(adapters/retrieved_at/authenticated)",
         )
 
     return (
         "BLOCKED",
-        "G2 BLOCKED — clearance contract failed "
-        f"(ok={ok!r}, g2_status={g2_status!r}, evidence_class={evidence_class!r})",
+        "G2 BLOCKED — clearance contract failed " f"(ok={ok!r}, g2_status={g2_status!r}, evidence_class={evidence_class!r})",
     )
 
 
@@ -410,8 +406,7 @@ def collect_live_statuses(
 
 
 def run_critical_command(command: list[str], *, cwd: Path | None = None) -> int:
-    """Run a critical command; never soft-fail / swallow non-zero."""
-    print(f"CRITICAL_CMD: {' '.join(command)}", file=sys.stderr)
+    """Run a critical command; never soft-fail / swallow non-zero.""" print(f"CRITICAL_CMD: {' '.join(command)}", file=sys.stderr)
     completed = subprocess.run(command, cwd=str(cwd or ROOT), check=False)
     if completed.returncode != 0:
         print(
@@ -427,8 +422,7 @@ def write_evidence(decision: GateDecision) -> Path:
     payload = decision.to_dict()
     payload["required_identity"] = dict(REQUIRED_IDENTITY)
     payload["note"] = (
-        "G2 BLOCKED without real_live_authenticated_provider evidence ⇒ RC1 NO-GO. "
-        "test_fixture must never clear G2."
+        "G2 BLOCKED without real_live_authenticated_provider evidence ⇒ RC1 NO-GO. " "test_fixture must never clear G2."
     )
     EVIDENCE_PATH.write_text(
         json.dumps(payload, indent=2, sort_keys=True) + "\n",
@@ -441,8 +435,7 @@ def write_evidence(decision: GateDecision) -> Path:
 def parse_inject(values: list[str]) -> dict[str, str]:
     out: dict[str, str] = {gid: "PASS" for gid in GATE_IDS}
     for raw in values:
-        if "=" not in raw:
-            raise ValueError(f"inject must be GATE=STATUS, got {raw!r}")
+        if "=" not in raw: raise ValueError(f"inject must be GATE=STATUS, got {raw!r}")
         key, value = raw.split("=", 1)
         key = key.strip().upper()
         value = value.strip().upper()
@@ -554,8 +547,7 @@ def main(argv: list[str] | None = None) -> int:
         print("RC1 HARD GATE PASS — release_allowed=true", file=sys.stderr)
     else:
         print(
-            "RC1 HARD GATE NO-GO — release_allowed=false — "
-            f"blocking={','.join(decision.blocking)}",
+            "RC1 HARD GATE NO-GO — release_allowed=false — " f"blocking={','.join(decision.blocking)}",
             file=sys.stderr,
         )
         if "G2" in decision.blocking:

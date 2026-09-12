@@ -124,8 +124,7 @@ class ConfigurationRegistry:
             if target is None:
                 raise ValueError("version not found")
             module_id = str(target.get("module_id") or "")
-            if module_id == "*":
-                raise ValueError("cannot rollback seed version")
+            if module_id == "*": raise ValueError("cannot rollback seed version")
             old_value = target.get("old_value")
             if old_value is None:
                 raise ValueError("no prior value to restore")

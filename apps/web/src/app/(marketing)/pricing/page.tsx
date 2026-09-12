@@ -98,8 +98,7 @@ export default function MarketingPricingPage() {
                   const label =
                     typeof value === "boolean"
                       ? value
-                        ? "Planned"
-                        : "Not in edition"
+                        ? "Planned" :"Not in edition"
                       : String(value);
                   return (
                     <td key={edition.id} className="px-2 py-2 text-[var(--muted)]">

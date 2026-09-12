@@ -108,8 +108,7 @@ class TestMetricPresentation:
 class TestDisclaimer:
     def test_research_disclaimer_avoids_tip_language(self) -> None:
         text = default_research_disclaimer().text.lower()
-        assert "buy, sell, or hold" in text
-        assert "research" in text
+        assert "buy, sell, or hold" in text assert"research" in text
 
 
 class TestArchitectureBoundaries:

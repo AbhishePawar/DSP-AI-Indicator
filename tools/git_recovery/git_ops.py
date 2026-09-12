@@ -35,8 +35,7 @@ class GitOps:
         self.dry_run = dry_run
 
     def run(self, args: list[str], *, check: bool = False) -> GitResult:
-        if not args or args[0] != "git":
-            raise GitSafetyError(f"Only git commands allowed, got: {args!r}")
+        if not args or args[0] != "git": raise GitSafetyError(f"Only git commands allowed, got: {args!r}")
         self._assert_safe(args)
         if self.dry_run and args[1] in {"add", "commit", "push"}:
             return GitResult(args=args, returncode=0, stdout="[dry-run] skipped", stderr="")
@@ -135,8 +134,7 @@ class GitOps:
 
     def push_current_branch(self, remote: str = "origin") -> GitResult:
         branch = self.current_branch()
-        if not branch or branch == "HEAD":
-            raise GitSafetyError("Detached HEAD — refusing push")
+        if not branch or branch == "HEAD": raise GitSafetyError("Detached HEAD — refusing push")
         # Explicit refspec; never --force
         return self.run(["git", "push", remote, f"HEAD:refs/heads/{branch}"], check=True)
 

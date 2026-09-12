@@ -32,8 +32,7 @@ def test_health_live() -> None:
     assert response.status_code == 200
     data = response.json()
     assert data["status"] == "alive"
-    assert "lifecycle" in data
-    assert "application_version" in data
+    assert "lifecycle"in data assert"application_version" in data
 
 
 def test_health_ready_includes_components() -> None:
@@ -44,13 +43,11 @@ def test_health_ready_includes_components() -> None:
     assert data["ready"] is True
     assert "platform_status" in data
     assert data["platform_status"] in {"ready", "degraded"}
-    assert "components" in data
-    assert "application" in data["components"]
+    assert "components"in data assert"application" in data["components"]
     assert "api" in data["components"]
     assert "research_service" in data["components"]
     assert "overall" in data["components"]
-    assert "resources" in data
-    assert "llm" in data
+    assert "resources"in data assert"llm" in data
     assert data["llm"]["blocking"] is False
 
 
@@ -71,10 +68,7 @@ def test_metrics_prometheus_ops_counters() -> None:
     response = client.get("/metrics")
     assert response.status_code == 200
     text = response.text
-    assert "dsp_http_requests_total" in text
-    assert "dsp_api_latency_ms_last" in text
-    assert "dsp_build_info" in text
-    assert "dsp_system_restarts_total" in text
+    assert "dsp_http_requests_total" in text assert"dsp_api_latency_ms_last"in text assert"dsp_build_info"in text assert"dsp_system_restarts_total" in text
 
 
 def test_redaction_never_logs_secrets() -> None:
@@ -131,5 +125,4 @@ def test_versioned_health_aliases() -> None:
 def test_metrics_note_path_analysis() -> None:
     metrics_registry.note_path("/api/v1/analyse", status_code=200, elapsed_ms=12.5)
     text = metrics_registry.render_prometheus()
-    assert "dsp_analysis_requests_total" in text
-    assert "dsp_analysis_duration_ms_last" in text
+    assert "dsp_analysis_requests_total" in text assert"dsp_analysis_duration_ms_last" in text

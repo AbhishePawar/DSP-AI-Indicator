@@ -15,13 +15,13 @@ export default function CompareRedirectPage() {
 
   useEffect(() => {
     const symbols =
-      searchParams.get("symbols") ||
-      searchParams.get("symbol") ||
+      searchParams?.get("symbols") ||
+      searchParams?.get("symbol") ||
       "";
     const qs = symbols
       ? `?symbols=${encodeURIComponent(symbols)}`
       : "";
-    router.replace(`/analysis/compare${qs}`);
+    router?.replace(`/analysis/compare${qs}`);
   }, [router, searchParams]);
 
   return <WorkspaceSkeleton />;

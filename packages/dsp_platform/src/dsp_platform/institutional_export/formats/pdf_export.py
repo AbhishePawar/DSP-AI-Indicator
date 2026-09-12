@@ -10,7 +10,7 @@ __all__ = ["export_pdf_bytes"]
 
 def _pdf_escape(text: str) -> str:
     return (
-        text.replace("\\", "\\\\")
+        text.replace("\", "\\\")
         .replace("(", "\\(")
         .replace(")", "\\)")
         .replace("\r", " ")
@@ -51,8 +51,7 @@ def export_pdf_bytes(report: InstitutionalResearchReport) -> bytes:
         b"/Contents 4 0 R /Resources<< /Font<< /F1 5 0 R >> >> >>endobj\n"
     )
     objects.append(
-        b"4 0 obj<< /Length "
-        + str(len(stream)).encode("ascii")
+        b"4 0 obj<< /Length " + str(len(stream)).encode("ascii")
         + b" >>stream\n"
         + stream
         + b"\nendstream\nendobj\n"

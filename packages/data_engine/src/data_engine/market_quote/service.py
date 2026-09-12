@@ -49,8 +49,7 @@ class MarketQuotePort(ABC):
         """
 
     @abstractmethod
-    def health(self) -> "QuoteProviderHealth":
-        """Provider health for readiness probes."""
+    def health(self) -> "QuoteProviderHealth": """Provider health for readiness probes."""
 
     @property
     @abstractmethod

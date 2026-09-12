@@ -5,12 +5,10 @@ export {
   DEFAULT_HIDDEN_WIDGETS,
   DEFAULT_WIDGET_ORDER,
   widgetMeta,
-  type DashboardWidgetId,
-  type DashboardWidgetMeta,
 } from "./widgetRegistry";
 
-export {
-  useDashboardPrefsStore,
-  type PinnedCompany,
-  type SearchEntry,
-} from "./dashboardPrefsStore";
+export type { DashboardWidgetId, DashboardWidgetMeta } from "./widgetRegistry";
+
+export { useDashboardPrefsStore } from "./dashboardPrefsStore";
+
+export type { PinnedCompany, SearchEntry } from "./dashboardPrefsStore";

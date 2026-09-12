@@ -51,8 +51,7 @@ export function FieldRow({
     value === undefined ||
     value === "" ||
     value === "Unavailable" ||
-    value === "—"
-      ? "Data unavailable."
+    value === "—" ?"Data unavailable."
       : value;
   return (
     <div className="flex justify-between gap-4 border-b border-[var(--border)] py-2 text-sm last:border-0">

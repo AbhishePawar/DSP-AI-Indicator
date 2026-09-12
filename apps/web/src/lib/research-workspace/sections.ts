@@ -3,16 +3,7 @@
  */
 
 export type ResearchSectionId =
-  | "library"
-  | "viewer"
-  | "ratings"
-  | "valuationTransparency"
-  | "archive"
-  | "diff"
-  | "ai"
-  | "buffett"
-  | "compliance"
-  | "export";
+  | "library" |"viewer" |"ratings" |"valuationTransparency" |"archive" |"diff" |"ai" |"buffett" |"compliance" |"export";
 
 export type ResearchSectionMeta = {
   id: ResearchSectionId;

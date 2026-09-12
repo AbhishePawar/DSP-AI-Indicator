@@ -130,8 +130,7 @@ class EvidenceValidator:
             and bundle.knowledge_graph_ref.digest not in digests
         ):
             msg = (
-                "broken KnowledgeGraph references: KG digest missing from "
-                "ContextBundle.digest_ids"
+                "broken KnowledgeGraph references: KG digest missing from " "ContextBundle.digest_ids"
             )
             raise CopilotError(msg)
 
@@ -281,8 +280,7 @@ class ExplanationEngine:
 
         if used_fallback:
             warnings.append(
-                "deterministic fallback used — LanguageModelPort unavailable "
-                "or non-complete."
+                "deterministic fallback used — LanguageModelPort unavailable " "or non-complete."
             )
 
         confidence = self._confidence(len(allowed))

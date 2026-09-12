@@ -1,4 +1,4 @@
-export {
+export type {
   AdvisorOverviewCard,
   ClientCard,
   ClientProfileCard,
@@ -8,9 +8,9 @@ export {
   ModelPortfolioCard,
   AdvisorQuickActions,
 } from "./AdvisorCards";
-export { AdvisorSidebar } from "./AdvisorSidebar";
-export { AdvisorDemoGate } from "./AdvisorDemoGate";
-export {
+export type { AdvisorSidebar } from "./AdvisorSidebar";
+export type { AdvisorDemoGate } from "./AdvisorDemoGate";
+export type {
   ClientDirectory,
   ClientSearch,
   ClientFilters,
@@ -24,7 +24,7 @@ export {
   PortfolioHealthCard,
   ClientDashboardCards,
 } from "./ClientManagement";
-export {
+export type {
   AdvisorWorkspace,
   AdvisorShell,
   ClientsWorkspace,
@@ -33,7 +33,7 @@ export {
   MeetingsWorkspace,
   TasksWorkspace,
 } from "./AdvisorWorkspace";
-export {
+export type {
   ResearchLibraryWorkspace,
   ResearchCollectionWorkspace,
   CompareWorkspace,
@@ -48,9 +48,9 @@ export {
   AdvisorResearchTimelineWorkspace,
   AdvisorResearchBookmarksWorkspace,
 } from "./AdvisorResearch";
-export { ResearchCollectionSidebar } from "./ResearchCollectionSidebar";
-export { PortfolioSidebar } from "./PortfolioSidebar";
-export {
+export type { ResearchCollectionSidebar } from "./ResearchCollectionSidebar";
+export type { PortfolioSidebar } from "./PortfolioSidebar";
+export type {
   ModelPortfolioLibrary,
   ModelPortfolioLibraryWorkspace,
   ModelPortfolioWorkspace,
@@ -66,8 +66,8 @@ export {
   PortfolioNotesWorkspace,
   PortfolioTemplatesWorkspace,
 } from "./ModelPortfolioManager";
-export { PresentationSidebar } from "./PresentationSidebar";
-export {
+export type { PresentationSidebar } from "./PresentationSidebar";
+export type {
   PresentationWorkspace,
   PresentationBuilder,
   PresentationBuilderWorkspace,
@@ -82,8 +82,8 @@ export {
   PresentationTemplatesWorkspace,
   PresentationExportWorkspace,
 } from "./AdvisorPresentation";
-export { ReviewSidebar } from "./ReviewSidebar";
-export {
+export type { ReviewSidebar } from "./ReviewSidebar";
+export type {
   ClientReviewWorkspace,
   ActiveReviewWorkspace,
   WorkflowDashboardWorkspace,

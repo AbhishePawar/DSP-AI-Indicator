@@ -57,8 +57,7 @@ class MarginOfSafety:
             raise ContractValidationError(msg)
         if self.intrinsic_value is not None and self.intrinsic_value < 0:
             msg = (
-                f"intrinsic_value must be non-negative, "
-                f"got {self.intrinsic_value}"
+                f"intrinsic_value must be non-negative, " f"got {self.intrinsic_value}"
             )
             raise ContractValidationError(msg)
         if self.market_value is not None and self.market_value < 0:

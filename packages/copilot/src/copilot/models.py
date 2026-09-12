@@ -364,8 +364,7 @@ class Explanation:
             and not evidence_refs
         ):
             msg = (
-                "broken references: Explanation requires evidence_refs "
-                "unless clarification or refusal"
+                "broken references: Explanation requires evidence_refs " "unless clarification or refusal"
             )
             raise CopilotError(msg)
         limitations = tuple(n.strip() for n in self.limitations if n.strip())
@@ -486,8 +485,7 @@ class LanguageModelResult:
             and not structured_sections
         ):
             msg = (
-                "LanguageModelResult COMPLETE requires narrative_text "
-                "or structured_sections"
+                "LanguageModelResult COMPLETE requires narrative_text " "or structured_sections"
             )
             raise CopilotError(msg)
         object.__setattr__(self, "result_id", result_id)
@@ -544,8 +542,7 @@ class CopilotResponse:
                 != self.knowledge_graph_ref.id
             ):
                 msg = (
-                    "broken references: ContextBundle KnowledgeGraphReference "
-                    "does not match CopilotResponse"
+                    "broken references: ContextBundle KnowledgeGraphReference " "does not match CopilotResponse"
                 )
                 raise CopilotError(msg)
         _reject_duplicate_report_refs(

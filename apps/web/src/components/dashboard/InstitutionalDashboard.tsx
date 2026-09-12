@@ -155,7 +155,7 @@ const LazyResearchCommandCenter = lazy(() =>
 );
 
 function withSuspense(
-  Comp: ComponentType,
+  Comp: ComponentType<object>,
   title: string,
 ): ReactNode {
   return (

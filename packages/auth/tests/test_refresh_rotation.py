@@ -179,8 +179,7 @@ def test_parallel_refresh_requests_only_one_wins(auth_service: AuthService) -> N
     Only one may succeed; the loser is treated as reuse (its token was
     rotated away by the winner microseconds earlier) and the whole session
     is revoked — including the winner's brand-new tokens. This is the
-    intentionally strict, spec-compliant interpretation of "concurrent
-    refresh protection": the system never allows two token pairs to be
+    intentionally strict, spec-compliant interpretation of "concurrent refresh protection": the system never allows two token pairs to be
     minted from a single refresh token, under any timing.
     """
     auth_service.create_user(
@@ -262,8 +261,7 @@ def test_refresh_audit_trail_issued_and_rotated(platform: EnterpriseAuthPlatform
 
     events = platform.audit.list_events(user_id=user_id)
     types = [e["event_type"] for e in events]
-    assert "refresh.issued" in types
-    assert "refresh.rotated" in types
+    assert "refresh.issued"in types assert"refresh.rotated" in types
 
 
 def test_refresh_reuse_audit_trail(platform: EnterpriseAuthPlatform) -> None:
@@ -277,9 +275,7 @@ def test_refresh_reuse_audit_trail(platform: EnterpriseAuthPlatform) -> None:
 
     events = platform.audit.list_events(user_id=user_id)
     types = [e["event_type"] for e in events]
-    assert "refresh.reused" in types
-    assert "refresh.revoked" in types
-    assert "session.revoked" in types
+    assert "refresh.reused"in types assert"refresh.revoked"in types assert"session.revoked" in types
 
 
 def test_admin_revoke_sessions_emits_session_revoked_audit(

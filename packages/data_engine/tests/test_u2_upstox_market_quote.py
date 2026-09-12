@@ -188,8 +188,7 @@ def test_production_fail_closed(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setenv("DSP_ENVIRONMENT", "production")
     client = UpstoxMarketQuoteClient(access_token="")
     result = client.get_quote("INFY")
-    assert result.status == "UNAVAILABLE"
-    assert "fail-closed" in result.detail.lower()
+    assert result.status == "UNAVAILABLE" assert"fail-closed" in result.detail.lower()
 
 
 @pytest.mark.parametrize(
@@ -264,8 +263,7 @@ def test_missing_price_unavailable() -> None:
     }
     client = _client_for(search_rows=[_INFY], symbol="INFY", quote_payload=payload)
     result = client.get_quote("INFY")
-    assert result.status == "UNAVAILABLE"
-    assert "price" in result.detail.lower()
+    assert result.status == "UNAVAILABLE" assert"price" in result.detail.lower()
 
 
 def test_adapter_uses_u1_no_silent_nse_on_ambiguous() -> None:

@@ -257,5 +257,4 @@ class TestRegistry:
         reg = FinancialStatementProviderRegistry()
         adapter = NullAuthenticatedStatementAdapter()
         reg.register(adapter, default=True)
-        assert reg.get().provider_id == "null_financial_statement"
-        assert "null_financial_statement" in reg.list_ids()
+        assert reg.get().provider_id == "null_financial_statement" assert"null_financial_statement" in reg.list_ids()

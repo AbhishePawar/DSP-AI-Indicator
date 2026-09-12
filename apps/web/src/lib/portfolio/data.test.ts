@@ -13,20 +13,20 @@ import {
 
 describe("portfolio foundation data", () => {
   it("returns demo holdings", () => {
-    const view = getDemoPortfolio();
+    let view = getDemoPortfolio();
     expect(view.holdings.length).toBeGreaterThan(0);
     expect(view.summary.totalHoldings).toBe(view.holdings.length);
   });
 
   it("marks empty portfolio correctly", () => {
-    const view = getEmptyPortfolio();
+    let view = getEmptyPortfolio();
     expect(isPortfolioEmpty(view)).toBe(true);
     expect(view.summary.totalHoldings).toBe(0);
     expect(view.summary.portfolioStatus).toBe("Empty");
   });
 
   it("builds sector allocations from holdings", () => {
-    const view = getDemoPortfolio();
+    let view = getDemoPortfolio();
     expect(view.allocations.bySector.length).toBeGreaterThan(0);
     const total = view.allocations.bySector.reduce(
       (sum, segment) => sum + segment.percent,

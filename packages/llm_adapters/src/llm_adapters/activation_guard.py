@@ -40,8 +40,7 @@ class ActivationCondition(str, Enum):
     """The 10 explicit gate conditions.
 
     Names are stable so the operator can grep for "benchmark_required",
-    "quality_threshold_required", etc. in logs.
-    """
+    "quality_threshold_required", etc. in logs. """
 
     BENCHMARK_REQUIRED = "benchmark_required"
     SUCCESSFUL_MODEL_REQUIRED = "successful_model_required"

@@ -51,5 +51,4 @@ class RawEconomicSeries:
     unit: Any = None
 
     def __post_init__(self) -> None:
-        """Freeze ``points`` into a tuple without validating its content."""
-        object.__setattr__(self, "points", tuple(self.points))
+        """Freeze ``points`` into a tuple without validating its content.""" object.__setattr__(self,"points", tuple(self.points))

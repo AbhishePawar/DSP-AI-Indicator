@@ -53,8 +53,7 @@ def _reset() -> None:
 
 def test_password_hashing_never_plaintext() -> None:
     h = hash_password("Secret123!", salt="aabbccddeeff0011")
-    assert "Secret123!" not in h
-    assert h.startswith("pbkdf2$")
+    assert "Secret123!"not in h assert h.startswith("pbkdf2$")
     assert verify_password("Secret123!", h)
     assert not verify_password("wrong", h)
     # deterministic with fixed salt

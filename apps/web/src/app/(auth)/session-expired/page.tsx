@@ -10,7 +10,7 @@ import { WorkspaceLoading } from "@/components/loading/WorkspaceLoading";
 
 function SessionExpiredContent() {
   const searchParams = useSearchParams();
-  const next = searchParams.get("next");
+  const next = searchParams?.get("next");
   const loginHref = next
     ? `/login?expired=1&next=${encodeURIComponent(next)}`
     : "/login?expired=1";

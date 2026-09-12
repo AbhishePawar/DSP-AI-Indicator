@@ -43,8 +43,7 @@ def validate_authenticated_news_feed(bundle: AuthenticatedNewsFeed) -> None:
         )
     if not bundle.articles:
         raise InvalidProviderDataError(
-            "authenticated news feed must include at least one article "
-            "(use None from adapter when unavailable)"
+            "authenticated news feed must include at least one article " "(use None from adapter when unavailable)"
         )
     for i, article in enumerate(bundle.articles):
         _validate_article(article, i)

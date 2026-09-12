@@ -60,8 +60,7 @@ async function adminRequest<T>(
         ok: false,
         error: aborted ? "TIMEOUT" : "NETWORK_ERROR",
         detail: aborted
-          ? "Request timed out or was cancelled"
-          : "Unable to reach the API service",
+          ? "Request timed out or was cancelled" :"Unable to reach the API service",
         api_version: "v1",
         status_code: aborted ? 408 : 0,
       },

@@ -11,11 +11,15 @@ export {
   groupShellNav,
   isActivePath,
   searchableRoutes,
-  type BreadcrumbCrumb,
-  type NavPermissionRule,
-  type RouteMeta,
-  type ShellNavIconId,
-  type ShellNavItem,
 } from "./navigationRegistry";
 
-export { useUiStore, type NavHistoryEntry } from "./uiStore";
+export type {
+  BreadcrumbCrumb,
+  NavPermissionRule,
+  RouteMeta,
+  ShellNavIconId,
+  ShellNavItem,
+} from "./navigationRegistry";
+
+export { useUiStore } from "./uiStore";
+export type { NavHistoryEntry } from "./uiStore";

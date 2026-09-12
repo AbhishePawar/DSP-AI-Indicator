@@ -59,8 +59,7 @@ def validate_authenticated_ownership(bundle: AuthenticatedOwnership) -> None:
         _check_field(name, getattr(bundle, name))
     if not bundle.stakes:
         raise InvalidProviderDataError(
-            "authenticated ownership must include at least one stake "
-            "(use None from adapter when unavailable)"
+            "authenticated ownership must include at least one stake " "(use None from adapter when unavailable)"
         )
     for i, stake in enumerate(bundle.stakes):
         _validate_stake(stake, i)

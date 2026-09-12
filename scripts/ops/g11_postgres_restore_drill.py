@@ -483,8 +483,7 @@ def main() -> int:
                 "psql",
                 dsn,
                 "-tAc",
-                "SELECT count(*) FROM information_schema.tables "
-                "WHERE table_schema='public';",
+                "SELECT count(*) FROM information_schema.tables " "WHERE table_schema='public';",
             ],
             check=False,
             capture_output=True,

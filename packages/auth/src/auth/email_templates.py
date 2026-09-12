@@ -77,16 +77,11 @@ def render_magic_link_email(*, link_url: str, token: str, expires_minutes: int) 
     subject = f"Your {_BRAND} sign-in link"
     text = (
         f"Sign in to {_BRAND}\n\n"
-        f"Click the link below to sign in. It expires in {expires_minutes} minutes "
-        "and can only be used once.\n\n"
-        f"{link_url}\n\n"
-        f"TOKEN={token}\n\n"
-        "If you did not request this, you can safely ignore this email."
+        f"Click the link below to sign in. It expires in {expires_minutes} minutes " "and can only be used once.\n\n" f"{link_url}\n\n" f"TOKEN={token}\n\n" "If you did not request this, you can safely ignore this email."
     )
     html_body = (
         f"<p>Click the button below to sign in to {_html.escape(_BRAND)}. "
-        f"This link expires in <strong>{expires_minutes} minutes</strong> and can only be used once.</p>"
-        "<p>If you did not request this, you can safely ignore this email.</p>"
+        f"This link expires in <strong>{expires_minutes} minutes</strong> and can only be used once.</p>" "<p>If you did not request this, you can safely ignore this email.</p>"
     )
     html = _wrap_html(
         preheader=f"Your secure sign-in link ({expires_minutes} min)",
@@ -104,15 +99,11 @@ def render_email_verification_email(
     subject = f"Verify your {_BRAND} email address"
     text = (
         f"Welcome to {_BRAND}\n\n"
-        f"Please verify your email address. This link expires in {expires_hours} hours.\n\n"
-        f"{link_url}\n\n"
-        f"TOKEN={token}\n\n"
-        "If you did not create this account, you can safely ignore this email."
+        f"Please verify your email address. This link expires in {expires_hours} hours.\n\n" f"{link_url}\n\n" f"TOKEN={token}\n\n" "If you did not create this account, you can safely ignore this email."
     )
     html_body = (
         f"<p>Welcome to {_html.escape(_BRAND)}. Please confirm your email address to activate "
-        f"your account. This link expires in <strong>{expires_hours} hours</strong>.</p>"
-        "<p>If you did not create this account, you can safely ignore this email.</p>"
+        f"your account. This link expires in <strong>{expires_hours} hours</strong>.</p>" "<p>If you did not create this account, you can safely ignore this email.</p>"
     )
     html = _wrap_html(
         preheader="Confirm your email address to activate your account",
@@ -130,17 +121,11 @@ def render_password_reset_email(
     subject = f"Reset your {_BRAND} password"
     text = (
         f"Reset your {_BRAND} password\n\n"
-        f"This link expires in {expires_minutes} minutes and can only be used once.\n\n"
-        f"{link_url}\n\n"
-        f"TOKEN={token}\n\n"
-        "If you did not request a password reset, you can safely ignore this email — "
-        "your password will not be changed."
+        f"This link expires in {expires_minutes} minutes and can only be used once.\n\n" f"{link_url}\n\n" f"TOKEN={token}\n\n" "If you did not request a password reset, you can safely ignore this email — " "your password will not be changed."
     )
     html_body = (
         f"<p>We received a request to reset your {_html.escape(_BRAND)} password. "
-        f"This link expires in <strong>{expires_minutes} minutes</strong> and can only be used once.</p>"
-        "<p>If you did not request a password reset, you can safely ignore this email — "
-        "your password will not be changed.</p>"
+        f"This link expires in <strong>{expires_minutes} minutes</strong> and can only be used once.</p>" "<p>If you did not request a password reset, you can safely ignore this email — " "your password will not be changed.</p>"
     )
     html = _wrap_html(
         preheader="Reset your password — link expires shortly",
@@ -159,14 +144,11 @@ def render_invitation_email(
     subject = f"You're invited to {_BRAND}"
     text = (
         f"You've been invited{org_line} on {_BRAND} as {role}.\n\n"
-        f"This invitation expires in {expires_hours} hours.\n\n"
-        f"{link_url}\n\n"
-        f"TOKEN={token}\n"
+        f"This invitation expires in {expires_hours} hours.\n\n" f"{link_url}\n\n" f"TOKEN={token}\n"
     )
     html_body = (
         f"<p>You've been invited{_html.escape(org_line)} on {_html.escape(_BRAND)} "
-        f"with the role <strong>{_html.escape(role)}</strong>.</p>"
-        f"<p>This invitation expires in <strong>{expires_hours} hours</strong>.</p>"
+        f"with the role <strong>{_html.escape(role)}</strong>.</p>" f"<p>This invitation expires in <strong>{expires_hours} hours</strong>.</p>"
     )
     html = _wrap_html(
         preheader=f"You've been invited{org_line}",

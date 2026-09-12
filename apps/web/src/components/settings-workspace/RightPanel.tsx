@@ -10,10 +10,10 @@ import {
 } from "@/lib/settings";
 
 export function SettingsRightPanel() {
-  const notes = useSettingsPrefsStore((s) => s.notes);
-  const addNote = useSettingsPrefsStore((s) => s.addNote);
-  const removeNote = useSettingsPrefsStore((s) => s.removeNote);
-  const setActiveSection = useSettingsPrefsStore((s) => s.setActiveSection);
+  const notes = useSettingsPrefsStore((s) => s?.notes);
+  const addNote = useSettingsPrefsStore((s) => s?.addNote);
+  const removeNote = useSettingsPrefsStore((s) => s?.removeNote);
+  const setActiveSection = useSettingsPrefsStore((s) => s?.setActiveSection);
   const [noteText, setNoteText] = useState("");
 
   return (
@@ -25,14 +25,14 @@ export function SettingsRightPanel() {
         <form
           className="space-y-2"
           onSubmit={(e) => {
-            e.preventDefault();
+            e?.preventDefault();
             addNote(noteText);
             setNoteText("");
           }}
         >
           <Input
             value={noteText}
-            onChange={(e) => setNoteText(e.target.value)}
+            onChange={(e) => setNoteText(e?.target?.value)}
             placeholder="Local note"
             aria-label="Add settings note"
           />
@@ -40,20 +40,20 @@ export function SettingsRightPanel() {
             Add note
           </Button>
         </form>
-        {notes.length === 0 ? (
+        {notes?.length === 0 ? (
           <p className="mt-2 text-xs text-[var(--muted)]">Data unavailable.</p>
         ) : (
           <ul className="mt-2 space-y-2">
-            {notes.map((n) => (
+            {notes?.map((n) => (
               <li
-                key={n.id}
+                key={n?.id}
                 className="rounded-[var(--radius-md)] border border-[var(--border)] p-2 text-xs"
               >
-                <p>{n.text}</p>
+                <p>{n?.text}</p>
                 <button
                   type="button"
                   className="mt-1 text-[var(--accent)] hover:underline"
-                  onClick={() => removeNote(n.id)}
+                  onClick={() => removeNote(n?.id)}
                 >
                   Remove
                 </button>
@@ -94,15 +94,15 @@ export function SettingsRightPanel() {
           Quick actions
         </p>
         <div className="flex flex-col gap-1">
-          {SETTINGS_SECTIONS.slice(0, 4).map((section) => (
+          {SETTINGS_SECTIONS?.slice(0, 4)?.map((section) => (
             <Button
-              key={section.id}
+              key={section?.id}
               size="sm"
               variant="ghost"
               className="justify-start"
-              onClick={() => setActiveSection(section.id)}
+              onClick={() => setActiveSection(section?.id)}
             >
-              {section.label}
+              {section?.label}
             </Button>
           ))}
         </div>

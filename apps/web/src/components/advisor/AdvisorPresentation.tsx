@@ -380,9 +380,7 @@ export function PresentationPreview({
   const width =
     mode === "tablet"
       ? "max-w-2xl"
-      : mode === "print" || mode === "present"
-        ? "max-w-3xl"
-        : "max-w-4xl";
+      : mode === "print"|| mode === "present" ?"max-w-3xl" :"max-w-4xl";
   return (
     <div
       className={`mx-auto rounded-lg border border-[var(--border)] bg-[var(--surface)] p-4 sm:p-6 ${width} ${

@@ -274,8 +274,7 @@ class ResearchPriority:
         )
         if not (gap_ids or conflict_ids or insight_ids or observation_ids):
             msg = (
-                "broken references: priority requires gap, conflict, "
-                "insight, or observation provenance"
+                "broken references: priority requires gap, conflict, " "insight, or observation provenance"
             )
             raise ResearchError(msg)
         notes = tuple(n.strip() for n in self.notes if n.strip())
@@ -451,8 +450,7 @@ class ResearchProfile:
             if self.monitoring_ref.portfolio_id != self.portfolio_ref.portfolio_id:
                 msg = (
                     "foreign ownership: monitoring portfolio_id "
-                    f"{self.monitoring_ref.portfolio_id!r} does not match "
-                    f"{self.portfolio_ref.portfolio_id!r}"
+                    f"{self.monitoring_ref.portfolio_id!r} does not match " f"{self.portfolio_ref.portfolio_id!r}"
                 )
                 raise ResearchError(msg)
 
@@ -679,8 +677,7 @@ def _unique_comparison_refs(
     for ref in items:
         if ref.digest in seen:
             msg = (
-                f"broken references: duplicate ComparisonReference "
-                f"{ref.digest!r}"
+                f"broken references: duplicate ComparisonReference " f"{ref.digest!r}"
             )
             raise ResearchError(msg)
         seen.add(ref.digest)
@@ -707,8 +704,7 @@ def _unique_integrated_risk_refs(
     for ref in items:
         if ref.risk_id in seen:
             msg = (
-                f"broken references: duplicate IntegratedRiskReference "
-                f"{ref.risk_id!r}"
+                f"broken references: duplicate IntegratedRiskReference " f"{ref.risk_id!r}"
             )
             raise ResearchError(msg)
         seen.add(ref.risk_id)

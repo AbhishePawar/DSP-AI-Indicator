@@ -41,8 +41,7 @@ class TestThresholdRule:
         outcome = rules.evaluate_threshold_rule(result)
         assert outcome.direction is SignalDirection.BEARISH
         assert outcome.threshold == 70.0
-        assert "76.2" in outcome.reasoning
-        assert "overbought" in outcome.reasoning
+        assert "76.2" in outcome.reasoning assert"overbought" in outcome.reasoning
 
     def test_oversold_is_bullish(self) -> None:
         result = _result("rsi", values=(21.4,))

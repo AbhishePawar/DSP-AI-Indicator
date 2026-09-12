@@ -169,16 +169,14 @@ class UpstoxMarketQuoteClient:
                 status="REJECTED",
                 query=str(request.symbol or "").strip().upper(),
                 detail=(
-                    "client-supplied price / instrument_key / isin / provider / "
-                    "currency are not authoritative"
+                    "client-supplied price / instrument_key / isin / provider / " "currency are not authoritative"
                 ),
                 retrieved_at=retrieved_at,
             )
 
         if not self.configured():
             detail = (
-                "production fail-closed: Upstox analytics token absent — "
-                "no fixture quote substitution"
+                "production fail-closed: Upstox analytics token absent — " "no fixture quote substitution"
                 if is_production_environment()
                 else f"provider unavailable: {UPSTOX_ANALYTICS_TOKEN_ENV} absent"
             )
@@ -203,8 +201,7 @@ class UpstoxMarketQuoteClient:
                 status="AMBIGUOUS",
                 query=resolve.query,
                 detail=(
-                    "instrument identity ambiguous; supply preferred_exchange "
-                    "(NSE or BSE) — no silent exchange selection"
+                    "instrument identity ambiguous; supply preferred_exchange " "(NSE or BSE) — no silent exchange selection"
                 ),
                 retrieved_at=retrieved_at,
                 latency_ms=round((time.perf_counter() - started) * 1000.0, 2),

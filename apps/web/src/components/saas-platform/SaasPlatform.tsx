@@ -28,14 +28,7 @@ const LazyPlanMatrix = lazy(() =>
 );
 
 type Tab =
-  | "dashboard"
-  | "organizations"
-  | "plans"
-  | "subscription"
-  | "billing"
-  | "license"
-  | "usage"
-  | "settings";
+  | "dashboard" |"organizations" |"plans" |"subscription" |"billing" |"license" |"usage" |"settings";
 
 export function SaasPlatform() {
   const { session, user } = useAuth();

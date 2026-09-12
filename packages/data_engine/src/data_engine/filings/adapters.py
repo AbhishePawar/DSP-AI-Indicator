@@ -155,9 +155,7 @@ class SecEdgarFilingsAdapter(FilingsProviderPort):
     """SEC EDGAR ``submissions`` feed — US-listed companies only."""
 
     user_agent: str
-    """SEC's fair-access policy requires a descriptive User-Agent, e.g.
-    ``"DSP AI Indicator research@example.com"``. Acts as this adapter's
-    credential — treated as ``authenticated`` once non-empty."""
+    """SEC's fair-access policy requires a descriptive User-Agent, e.g. ``"DSP AI Indicator research@example.com"``. Acts as this adapter's credential — treated as ``authenticated`` once non-empty."""
     tickers_url: str = "https://www.sec.gov/files/company_tickers.json"
     submissions_base_url: str = "https://data.sec.gov/submissions"
     archives_base_url: str = "https://www.sec.gov/Archives/edgar/data"

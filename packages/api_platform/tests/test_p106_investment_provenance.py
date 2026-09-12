@@ -140,9 +140,7 @@ class TestP106Positive:
             "degraded",
             "unavailable",
         }
-        assert "valuation" in prov
-        assert "buffett" in prov
-        assert "conclusion" in prov
+        assert "valuation" in prov assert"buffett"in prov assert"conclusion" in prov
         assert prov["input_fingerprint"]
         assert prov["result_fingerprint"]
         assert prov.get("owner_user_id") == "p106-pos-owner"
@@ -171,8 +169,7 @@ class TestP106Positive:
         record = store_b.get(analysis_id, actor_user_id="p106-mw-owner")
         assert record is not None
         assert record.analysis_id == analysis_id
-        assert record.ticker == "ACM"
-        assert record.conclusion.get("recommendation") is not None or record.buffett
+        assert record.ticker == "ACM" assert record.conclusion.get("recommendation") is not None or record.buffett
 
     def test_restart_survives(self, db: InMemoryDatabasePort) -> None:
         platform = (

@@ -108,8 +108,7 @@ export function ValuationModule({ view }: { view: ResearchView }) {
               >
                 <span className="font-medium">{m.methodName}</span>
                 <span className="text-[var(--muted)]">
-                  {m.intrinsicValue === "Unavailable"
-                    ? "Data unavailable."
+                  {m.intrinsicValue === "Unavailable" ?"Data unavailable."
                     : m.intrinsicValue}
                 </span>
                 <Badge variant="outline">{m.status}</Badge>

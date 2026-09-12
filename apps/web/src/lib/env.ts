@@ -14,8 +14,5 @@ export const env = {
   marketRefreshMs: Number(process.env.NEXT_PUBLIC_MARKET_REFRESH_MS ?? 60_000),
   aiProviderId:
     (process.env.NEXT_PUBLIC_AI_PROVIDER as
-      | "mock"
-      | "deterministic"
-      | "backend"
-      | undefined) ?? "deterministic",
+      | "mock" |"deterministic" |"backend" | undefined) ??"deterministic",
 } as const;

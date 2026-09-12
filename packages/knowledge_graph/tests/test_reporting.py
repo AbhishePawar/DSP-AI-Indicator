@@ -109,8 +109,7 @@ class TestReporterHappyPath:
         assert result.lineage_statistics.total == len(engine_result.lineages)
         assert result.validation_status.status == "valid"
         assert result.referenced_reports
-        assert "nodes" in result.summary_sections
-        assert any("presentation only" in n for n in result.report.limitations)
+        assert "nodes" in result.summary_sections assert any("presentation only" in n for n in result.report.limitations)
         assert result.metadata.method_id is not None
 
     def test_from_report(self) -> None:
@@ -204,22 +203,16 @@ class TestReporterNoTopology:
     def test_reporter_forbids_construction_side_effects(self) -> None:
         source = (
             Path(__file__).resolve().parents[1]
-            / "src"
-            / "knowledge_graph"
-            / "reporter.py"
+            / "src" /"knowledge_graph" /"reporter.py"
         ).read_text(encoding="utf-8")
-        assert "KnowledgeGraphEngine().synthesize" not in source
-        assert "KnowledgeGraphAssembler().assemble" not in source
-        assert "neo4j" not in source.lower()
+        assert "KnowledgeGraphEngine().synthesize"not in source assert"KnowledgeGraphAssembler().assemble"not in source assert"neo4j" not in source.lower()
         assert "networkx" not in source.lower()
         assert "embedding" not in source.lower()
 
     def test_reporter_forbids_upstream_imports(self) -> None:
         path = (
             Path(__file__).resolve().parents[1]
-            / "src"
-            / "knowledge_graph"
-            / "reporter.py"
+            / "src" /"knowledge_graph" /"reporter.py"
         )
         tree = ast.parse(path.read_text(encoding="utf-8"))
         names: set[str] = set()

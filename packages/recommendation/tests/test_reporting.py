@@ -74,8 +74,7 @@ class TestReporterHappyPath:
         assert result.rationales
         assert result.citation_sections
         assert result.metadata.option_count == 2
-        assert "preferred" in result.summary_sections
-        assert any("presentation only" in n for n in result.report.limitations)
+        assert "preferred" in result.summary_sections assert any("presentation only" in n for n in result.report.limitations)
 
     def test_from_report(self) -> None:
         engine_result = _engine_result()
@@ -141,13 +140,9 @@ class TestReporterNoSynthesis:
     def test_no_engine_execution_imports(self) -> None:
         source = (
             Path(__file__).resolve().parents[1]
-            / "src"
-            / "recommendation"
-            / "reporter.py"
+            / "src" /"recommendation" /"reporter.py"
         ).read_text(encoding="utf-8")
-        assert "RecommendationEngine" not in source
-        assert "SignalPosture" not in source
-        assert "quantize" not in source
+        assert "RecommendationEngine"not in source assert"SignalPosture"not in source assert"quantize" not in source
         tree = ast.parse(source)
         forbidden = {"synthesize", "baseline", "optimize"}
         found: set[str] = set()

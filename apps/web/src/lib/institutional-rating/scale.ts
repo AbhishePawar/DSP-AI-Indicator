@@ -27,7 +27,7 @@ export function parseExistingScoreTo100(scoreText: string): number | null {
 }
 
 export function letterGradeFromExistingScore(scoreText: string): string {
-  const n = parseExistingScoreTo100(scoreText);
+  let n = parseExistingScoreTo100(scoreText);
   if (n == null) {
     if (isUnavailableDisplay(scoreText)) return "Unavailable";
     return scoreText;
@@ -43,7 +43,7 @@ export function letterGradeFromExistingScore(scoreText: string): string {
 
 /** Existing 0–100 (or 0–1) score → display "/10" with one decimal. */
 export function scoreOutOf10FromExisting(scoreText: string): string {
-  const n = parseExistingScoreTo100(scoreText);
+  let n = parseExistingScoreTo100(scoreText);
   if (n == null) return "Unavailable";
   return `${(n / 10).toFixed(1)}/10`;
 }
@@ -51,7 +51,7 @@ export function scoreOutOf10FromExisting(scoreText: string): string {
 export function confidenceDisplay(confidenceText: string): string {
   if (isUnavailableDisplay(confidenceText)) return "Unavailable";
   if (confidenceText.includes("%")) return confidenceText;
-  const n = Number(confidenceText.replace(/%/g, "").trim());
+  let n = Number(confidenceText.replace(/%/g, "").trim());
   if (!Number.isFinite(n)) return confidenceText;
   if (n >= 0 && n <= 1) return `${Math.round(n * 100)}%`;
   if (n > 1 && n <= 100) return `${Math.round(n)}%`;
@@ -102,7 +102,7 @@ export function averageScoreOutOf10(scores: string[]): string {
     .map((s) => {
       if (isUnavailableDisplay(s)) return null;
       const m = s.replace("/10", "").trim();
-      const n = Number(m);
+      let n = Number(m);
       return Number.isFinite(n) ? n : null;
     })
     .filter((n): n is number => n != null);

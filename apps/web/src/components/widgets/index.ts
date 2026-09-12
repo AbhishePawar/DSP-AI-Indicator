@@ -1,7 +1,7 @@
-export { QuickActionsWidget } from "./QuickActionsWidget";
-export { PlatformHealthWidget } from "./PlatformHealthWidget";
-export { PlatformInfoWidget } from "./PlatformInfoWidget";
-export { RecentReportsWidget } from "./RecentReportsWidget";
-export { RecentActivityWidget } from "./RecentActivityWidget";
-export { AiCopilotCardWidget } from "./AiCopilotCardWidget";
-export { FavoritesWidget } from "./FavoritesWidget";
+export { default as QuickActionsWidget } from "./QuickActionsWidget";
+export { default as PlatformHealthWidget } from "./PlatformHealthWidget";
+export { default as PlatformInfoWidget } from "./PlatformInfoWidget";
+export { default as RecentReportsWidget } from "./RecentReportsWidget";
+export { default as RecentActivityWidget } from "./RecentActivityWidget";
+export { default as AiCopilotCardWidget } from "./AiCopilotCardWidget";
+export { default as FavoritesWidget } from "./FavoritesWidget";

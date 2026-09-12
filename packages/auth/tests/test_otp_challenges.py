@@ -210,9 +210,7 @@ def test_production_default_store_uses_process_a008(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     class _FakePostgres(InMemoryStorageProvider):
-        provider_id = "postgres"
-
-    monkeypatch.setenv("DSP_ENVIRONMENT", "production")
+        provider_id = "postgres" monkeypatch.setenv("DSP_ENVIRONMENT", "production")
     monkeypatch.setenv("DSP_DATABASE_URL", "postgresql://dsp:secret@localhost/dsp")
     from persistence.registry import reset_repository_registry_for_tests
     from persistence.service import reset_persistence_service_for_tests

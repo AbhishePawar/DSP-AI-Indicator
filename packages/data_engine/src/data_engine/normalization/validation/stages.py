@@ -47,8 +47,7 @@ class RequiredFieldValidationStage(ValidationStage[T]):
     Use this to enforce that a field was reported *at all*, before
     attempting any coercion. Compare with
     :class:`MissingValueValidationStage`, which also catches
-    provider-specific "missing" sentinels beyond plain ``None``.
-    """
+    provider-specific "missing" sentinels beyond plain ``None``. """
 
     def __init__(self, *, field_names: Sequence[str]) -> None:
         """Initialize the stage.
@@ -186,9 +185,7 @@ class SortingVerificationStage(ValidationStage[T]):
         for index in range(1, len(keys)):
             if keys[index] <= keys[index - 1]:
                 msg = (
-                    f"items are not sorted in strictly ascending order: "
-                    f"key at index {index} ({keys[index]!r}) does not "
-                    f"come after key at index {index - 1} ({keys[index - 1]!r})"
+                    f"items are not sorted in strictly ascending order: " f"key at index {index} ({keys[index]!r}) does not " f"come after key at index {index - 1} ({keys[index - 1]!r})"
                 )
                 raise InvalidProviderDataError(msg)
 

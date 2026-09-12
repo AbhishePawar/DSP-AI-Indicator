@@ -44,11 +44,8 @@ export function ReleaseStatusCard({ view }: { view: LaunchDashboardView }) {
           Recommendation:{" "}
           <Badge
             tone={
-              view.recommendation === "GO PUBLIC"
-                ? "success"
-                : view.recommendation === "HOLD"
-                  ? "danger"
-                  : "warning"
+              view.recommendation === "GO PUBLIC" ?"success"
+                : view.recommendation === "HOLD" ?"danger" :"warning"
             }
           >
             {view.recommendation}
@@ -97,9 +94,7 @@ export function KnownIssuesCard({ issues }: { issues: KnownIssue[] }) {
             <div className="flex flex-wrap items-center gap-2">
               <Badge
                 tone={
-                  issue.severity === "critical" || issue.severity === "high"
-                    ? "warning"
-                    : "neutral"
+                  issue.severity === "critical" || issue.severity === "high" ?"warning" :"neutral"
                 }
               >
                 {issue.severity}

@@ -82,8 +82,7 @@ def validate_authenticated_corporate_actions(
         )
     if not bundle.events:
         raise InvalidProviderDataError(
-            "authenticated corporate actions must include at least one event "
-            "(use None from adapter when unavailable)"
+            "authenticated corporate actions must include at least one event " "(use None from adapter when unavailable)"
         )
     for i, event in enumerate(bundle.events):
         _validate_event(event, i)

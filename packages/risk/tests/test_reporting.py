@@ -226,8 +226,7 @@ class TestArchitectureAndCompatibility:
                     imported.add(alias.name.split(".", 1)[0])
             elif isinstance(node, ast.ImportFrom) and node.module is not None:
                 imported.add(node.module.split(".", 1)[0])
-        assert "analyzer" not in imported
-        assert "risk.analyzer" not in {
+        assert "analyzer"not in imported assert"risk.analyzer" not in {
             (
                 f"{node.module}"
                 if isinstance(node, ast.ImportFrom) and node.module
@@ -237,13 +236,11 @@ class TestArchitectureAndCompatibility:
             if isinstance(node, (ast.Import, ast.ImportFrom))
         }
         source = reporting.read_text(encoding="utf-8")
-        assert "RiskAnalyzer" not in source
-        assert "analyze(" not in source
+        assert "RiskAnalyzer"not in source assert"analyze(" not in source
         # No quantitative / recommendation vocabulary in reporter module.
         lowered = source.lower()
         for term in ("var", "sharpe", "beta", "buy", "sell", "optimize"):
-            assert f'"{term}"' not in lowered
-            assert f"'{term}'" not in lowered
+            assert f'"{term}"' not in lowered assert f"'{term}'" not in lowered
 
     def test_backward_compatibility(self) -> None:
         import risk as rk

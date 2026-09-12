@@ -189,11 +189,8 @@ export function EvidenceStrengthSection({
                 <p className="font-medium">{symbol}</p>
                 <Badge
                   variant={
-                    e.level === "Strong"
-                      ? "accent"
-                      : e.level === "Moderate"
-                        ? "default"
-                        : "outline"
+                    e.level === "Strong" ?"accent"
+                      : e.level === "Moderate" ?"default" :"outline"
                   }
                 >
                   {e.level}
@@ -547,8 +544,7 @@ export function ComparisonHistorySection() {
       {filtered.length === 0 ? (
         <p className="mt-3 text-sm text-[var(--muted)]">
           {entries.length === 0
-            ? "No history yet — run a comparison to append an immutable snapshot."
-            : "No history matches this filter."}
+            ? "No history yet — run a comparison to append an immutable snapshot." :"No history matches this filter."}
         </p>
       ) : (
         <ol className="mt-3 space-y-2">

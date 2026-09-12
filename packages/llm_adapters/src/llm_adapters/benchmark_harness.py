@@ -82,9 +82,7 @@ def _build_prompt(spec: ResearchSpec) -> tuple[str, ...]:
     """Provider-neutral prompt: system rules + user context + question."""
     system = (
         "You are a research assistant for an investment terminal. "
-        "Use ONLY the supplied DSP evidence. Never invent numbers. "
-        "If information is missing, say it is unavailable. "
-        "Every factual claim must reference the supplied evidence."
+        "Use ONLY the supplied DSP evidence. Never invent numbers. " "If information is missing, say it is unavailable. " "Every factual claim must reference the supplied evidence."
     )
     evidence_lines = [f"  {k}: {v}" for k, v in spec.evidence.items()]
     evidence_block = "Evidence:\n" + "\n".join(evidence_lines)

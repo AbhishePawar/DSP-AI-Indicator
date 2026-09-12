@@ -43,8 +43,7 @@ def test_metrics_prometheus() -> None:
     client.get("/health")
     response = client.get("/metrics")
     assert response.status_code == 200
-    assert "dsp_http_requests_total" in response.text
-    assert "dsp_build_info" in response.text
+    assert "dsp_http_requests_total" in response.text assert"dsp_build_info" in response.text
 
 
 def test_versioned_health_aliases() -> None:

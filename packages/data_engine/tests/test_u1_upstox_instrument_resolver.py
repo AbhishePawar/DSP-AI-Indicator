@@ -155,8 +155,7 @@ def test_resolve_unique_equity(symbol: str, expected_isin: str) -> None:
     assert result.identity.trading_symbol == symbol
     assert result.identity.isin == expected_isin
     assert result.identity.exchange == "NSE"
-    assert result.identity.provider == "upstox"
-    assert result.identity.provider_instrument_id.startswith("NSE_EQ|")
+    assert result.identity.provider == "upstox" assert result.identity.provider_instrument_id.startswith("NSE_EQ|")
     assert result.instrument is not None
     assert result.instrument.symbol == symbol
     assert result.instrument.isin == expected_isin
@@ -230,8 +229,7 @@ def test_wrong_exchange_segment_mismatch_skipped() -> None:
         {
             "segment": "NSE_EQ",
             "name": "Bad Label",
-            "exchange": "BSE",  # mismatch with NSE_EQ segment
-            "isin": "INE000A01001",
+            "exchange": "BSE",  # mismatch with NSE_EQ segment "isin": "INE000A01001",
             "instrument_type": "EQ",
             "instrument_key": "NSE_EQ|INE000A01001",
             "trading_symbol": "BADX",
@@ -272,8 +270,7 @@ def test_missing_credential_unavailable(
     monkeypatch.delenv("DSP_UPSTOX_ACCESS_TOKEN", raising=False)
     resolver = UpstoxInstrumentResolver(access_token="")
     result = resolver.resolve("TCS")
-    assert result.status == "UNAVAILABLE"
-    assert "absent" in result.detail.lower() or "unavailable" in result.detail.lower()
+    assert result.status == "UNAVAILABLE" assert"absent" in result.detail.lower() or "unavailable" in result.detail.lower()
 
 
 def test_production_missing_credential_fail_closed(
@@ -282,8 +279,7 @@ def test_production_missing_credential_fail_closed(
     monkeypatch.setenv("DSP_ENVIRONMENT", "production")
     resolver = UpstoxInstrumentResolver(access_token="")
     result = resolver.resolve("TCS")
-    assert result.status == "UNAVAILABLE"
-    assert "fail-closed" in result.detail.lower()
+    assert result.status == "UNAVAILABLE" assert"fail-closed" in result.detail.lower()
     assert "fixture" in result.detail.lower()
 
 

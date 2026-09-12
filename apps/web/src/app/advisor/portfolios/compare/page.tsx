@@ -3,6 +3,9 @@
 import dynamic from "next/dynamic";
 
 import { Skeleton } from "@/components/ui/Skeleton";
+import { ScenarioComparisonWorkspace } from '../../../../components/advisor/ModelPortfolioManager';
+
+
 const ScenarioComparisonWorkspace = dynamic(
   () =>
     import("@/components/advisor/ModelPortfolioManager").then(

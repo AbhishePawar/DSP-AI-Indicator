@@ -111,9 +111,7 @@ class RiskIntegrator:
             if assessment is not None and report.assessment_id is not None:
                 if report.assessment_id != assessment.assessment_id:
                     msg = (
-                        "broken references: report assessment_id "
-                        f"{report.assessment_id!r} does not match "
-                        f"{assessment.assessment_id!r}"
+                        "broken references: report assessment_id " f"{report.assessment_id!r} does not match " f"{assessment.assessment_id!r}"
                     )
                     raise RiskError(msg)
 
@@ -287,8 +285,7 @@ class RiskIntegrator:
             ):
                 msg = (
                     "foreign ownership: monitoring portfolio_id "
-                    f"{profile.monitoring_ref.portfolio_id!r} does not match "
-                    f"{profile.portfolio_ref.portfolio_id!r}"
+                    f"{profile.monitoring_ref.portfolio_id!r} does not match " f"{profile.portfolio_ref.portfolio_id!r}"
                 )
                 raise RiskError(msg)
 
@@ -298,15 +295,13 @@ class RiskIntegrator:
         if assessment.risk_id != profile.identity.risk_id:
             msg = (
                 f"foreign ownership: assessment risk_id "
-                f"{assessment.risk_id!r} does not match "
-                f"{profile.identity.risk_id!r}"
+                f"{assessment.risk_id!r} does not match " f"{profile.identity.risk_id!r}"
             )
             raise RiskError(msg)
         if assessment.portfolio_id != profile.portfolio_ref.portfolio_id:
             msg = (
                 f"foreign ownership: assessment portfolio_id "
-                f"{assessment.portfolio_id!r} does not match "
-                f"{profile.portfolio_ref.portfolio_id!r}"
+                f"{assessment.portfolio_id!r} does not match " f"{profile.portfolio_ref.portfolio_id!r}"
             )
             raise RiskError(msg)
 
@@ -316,15 +311,13 @@ class RiskIntegrator:
         if report.risk_id != profile.identity.risk_id:
             msg = (
                 f"foreign ownership: report risk_id "
-                f"{report.risk_id!r} does not match "
-                f"{profile.identity.risk_id!r}"
+                f"{report.risk_id!r} does not match " f"{profile.identity.risk_id!r}"
             )
             raise RiskError(msg)
         if report.portfolio_id != profile.portfolio_ref.portfolio_id:
             msg = (
                 f"foreign ownership: report portfolio_id "
-                f"{report.portfolio_id!r} does not match "
-                f"{profile.portfolio_ref.portfolio_id!r}"
+                f"{report.portfolio_id!r} does not match " f"{profile.portfolio_ref.portfolio_id!r}"
             )
             raise RiskError(msg)
 

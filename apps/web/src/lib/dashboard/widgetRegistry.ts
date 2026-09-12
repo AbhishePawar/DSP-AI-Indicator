@@ -3,38 +3,7 @@
  */
 
 export type DashboardWidgetId =
-  | "welcome"
-  | "attention_brief"
-  | "quick_actions"
-  | "market_overview"
-  | "portfolio_summary"
-  | "watchlist_summary"
-  | "valuation_summary"
-  | "business_quality_summary"
-  | "risk_summary"
-  | "research_activity"
-  | "research_reports"
-  | "committee_activity"
-  | "notifications"
-  | "tasks"
-  | "company_search"
-  | "recent_companies"
-  | "pinned_companies"
-  | "recent_research"
-  | "archive_snapshots"
-  | "research_diff"
-  | "research_alerts"
-  | "portfolio_activity"
-  | "compliance_summary"
-  | "workflow_summary"
-  | "copilot_activity"
-  | "platform_health"
-  | "background_jobs"
-  | "api_status"
-  | "documentation"
-  | "global_search"
-  | "recent_searches"
-  | "saved_searches"
+  | "welcome" |"attention_brief" |"quick_actions" |"market_overview" |"portfolio_summary" |"watchlist_summary" |"valuation_summary" |"business_quality_summary" |"risk_summary" |"research_activity" |"research_reports" |"committee_activity" |"notifications" |"tasks" |"company_search" |"recent_companies" |"pinned_companies" |"recent_research" |"archive_snapshots" |"research_diff" |"research_alerts" |"portfolio_activity" |"compliance_summary" |"workflow_summary" |"copilot_activity" |"platform_health" |"background_jobs" |"api_status" |"documentation" |"global_search" |"recent_searches" |"saved_searches"
   /** EPIC-014 — Research Command Center */
   | "research_command_center";
 
@@ -42,15 +11,7 @@ export type DashboardWidgetMeta = {
   id: DashboardWidgetId;
   title: string;
   section:
-    | "personal"
-    | "attention"
-    | "company"
-    | "portfolio"
-    | "research"
-    | "insight"
-    | "ai"
-    | "system"
-    | "search";
+    | "personal" |"attention" |"company" |"portfolio" |"research" |"insight" |"ai" |"system" |"search";
   /** Grid span hint */
   span: 1 | 2;
   description: string;

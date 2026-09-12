@@ -3,6 +3,9 @@
 import dynamic from "next/dynamic";
 
 import { Skeleton } from "@/components/ui/Skeleton";
+import { MyWorkSection } from '../../../../components/advisor/TeamCollaboration';
+
+
 const MyWorkSection = dynamic(
   () =>
     import("@/components/advisor/TeamCollaboration").then((m) => m.MyWorkSection),

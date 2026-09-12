@@ -8,12 +8,7 @@ import type {
 import type { ThemeMode } from "@/providers/ThemeProvider";
 
 export type SyncStatus =
-  | "idle"
-  | "loading"
-  | "saving"
-  | "saved"
-  | "error"
-  | "conflict";
+  | "idle" |"loading" |"saving" |"saved" |"error" |"conflict";
 
 export type UserPortfolio = {
   id: string;

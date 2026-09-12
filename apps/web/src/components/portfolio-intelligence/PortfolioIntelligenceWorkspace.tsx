@@ -416,9 +416,10 @@ export function PortfolioIntelligenceWorkspace() {
   }, [section]);
 
   function wrapLazy<P extends object>(Comp: ComponentType<P>, props: P) {
+    const C = Comp as ComponentType<P>;
     return (
       <Suspense fallback={<SectionFallback />}>
-        <Comp {...props} />
+        <C {...props} />
       </Suspense>
     );
   }

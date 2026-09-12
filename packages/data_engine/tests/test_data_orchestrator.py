@@ -98,10 +98,7 @@ class TestOrchestrator:
         )
         bundle = orch.get_bundle(DataOrchestratorRequest(symbol="AAPL"))
         assert bundle.retrieval.partial is True
-        assert "market_quote" in bundle.retrieval.sections_ok
-        assert "historical_series" in bundle.retrieval.sections_ok
-        assert "financial_statements" in bundle.retrieval.sections_error
-        assert "corporate_actions" in bundle.retrieval.sections_unavailable
+        assert "market_quote" in bundle.retrieval.sections_ok assert"historical_series"in bundle.retrieval.sections_ok assert"financial_statements"in bundle.retrieval.sections_error assert"corporate_actions" in bundle.retrieval.sections_unavailable
         assert bundle.financial_statements.status.message == UNAVAILABLE_MESSAGE
         assert orch.metrics.partial_responses == 1
 
@@ -170,9 +167,7 @@ class TestOrchestrator:
         )
         assert calls["mq"] == 1
         assert calls["fs"] == 1
-        assert bundle.corporate_actions.status.status == "unavailable"
-        assert "market_quote" in bundle.retrieval.sections_requested
-        assert "corporate_actions" not in bundle.retrieval.sections_requested
+        assert bundle.corporate_actions.status.status == "unavailable" assert"market_quote"in bundle.retrieval.sections_requested assert"corporate_actions" not in bundle.retrieval.sections_requested
 
     def test_health_aggregation(self) -> None:
         orch = DataOrchestrator(

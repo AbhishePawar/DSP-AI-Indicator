@@ -105,8 +105,7 @@ class RiskAnalyzer:
             if context.portfolio.portfolio_id != profile.portfolio_ref.portfolio_id:
                 msg = (
                     "foreign ownership: portfolio "
-                    f"{context.portfolio.portfolio_id!r} does not match "
-                    f"{profile.portfolio_ref.portfolio_id!r}"
+                    f"{context.portfolio.portfolio_id!r} does not match " f"{profile.portfolio_ref.portfolio_id!r}"
                 )
                 raise RiskError(msg)
 
@@ -115,8 +114,7 @@ class RiskAnalyzer:
             if monitoring.portfolio_id != profile.portfolio_ref.portfolio_id:
                 msg = (
                     "foreign ownership: monitoring portfolio_id "
-                    f"{monitoring.portfolio_id!r} does not match "
-                    f"{profile.portfolio_ref.portfolio_id!r}"
+                    f"{monitoring.portfolio_id!r} does not match " f"{profile.portfolio_ref.portfolio_id!r}"
                 )
                 raise RiskError(msg)
 
@@ -635,8 +633,7 @@ class RiskAnalyzer:
         warnings: list[str] = []
         if context.portfolio is None:
             warnings.append(
-                "Optional Portfolio not supplied — structure postures use "
-                "DecisionPack citation counts only."
+                "Optional Portfolio not supplied — structure postures use " "DecisionPack citation counts only."
             )
         if cash_weight is None:
             warnings.append("Cash posture unknown — cash_weight not supplied.")

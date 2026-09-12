@@ -101,8 +101,7 @@ def _non_comment_source(path: Path) -> str:
 class TestResearchCompanyHttpArchitecture:
     def test_http_layer_may_import_public_report_contract(self) -> None:
         text = _SCHEMAS.read_text(encoding="utf-8")
-        assert "dsp_platform.research_report" in text
-        assert "PublicResearchReport" in text
+        assert "dsp_platform.research_report"in text assert"PublicResearchReport" in text
         imported = _imported_top_levels(text)
         assert "dsp_platform" in imported
 
@@ -135,21 +134,12 @@ class TestResearchCompanyHttpArchitecture:
 
     def test_does_not_modify_analyse_route(self) -> None:
         text = _COMPOSITION.read_text(encoding="utf-8")
-        assert "research_company" not in text
-        assert "ResearchCompanyRequest" not in text
-        assert "assemble_canonical_research" not in text
-        assert "compose_intelligence" in text
-        assert '@router.post("/analyse"' in text
+        assert "research_company"not in text assert"ResearchCompanyRequest"not in text assert"assemble_canonical_research"not in text assert"compose_intelligence"in text assert '@router.post("/analyse"' in text
 
     def test_does_not_modify_legacy_research_or_analyze_company(self) -> None:
         research = _RESEARCH.read_text(encoding="utf-8")
         analysis = _ANALYSIS.read_text(encoding="utf-8")
-        assert "/research/company" not in research
-        assert "ResearchCompanyRequest" not in research
-        assert "ResearchCompanyRequest" not in analysis
-        assert "analyze_company" in analysis
-        assert "/research/object" in research
-        assert "/research/report" in research
+        assert "/research/company"not in research assert"ResearchCompanyRequest"not in research assert"ResearchCompanyRequest"not in analysis assert"analyze_company"in analysis assert"/research/object"in research assert"/research/report" in research
 
     def test_permissions_reuse_analyze_company(self) -> None:
         from security_platform.security.middleware import PATH_PERMISSIONS
@@ -172,6 +162,4 @@ class TestResearchCompanyHttpArchitecture:
     def test_does_not_create_a_second_calculation_engine(self) -> None:
         for path in _HTTP_FILES:
             text = _non_comment_source(path)
-            assert "class " not in text or "Engine" not in text
-            assert "def calculate" not in text
-            assert "intrinsic_value =" not in text
+            assert "class " not in text or "Engine" not in text assert"def calculate"not in text assert"intrinsic_value =" not in text

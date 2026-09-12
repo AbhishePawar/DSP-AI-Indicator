@@ -37,8 +37,7 @@ class TestProviderFactory:
         adapter = factory.create("fake_vendor", {"api_key": "secret"})
 
         assert isinstance(adapter, FakeAdapter)
-        assert adapter.api_key == "secret"
-        assert factory.is_registered("fake_vendor") is True
+        assert adapter.api_key == "secret" assert factory.is_registered("fake_vendor") is True
 
     def test_create_without_config_passes_empty_mapping(self) -> None:
         factory = ProviderFactory()

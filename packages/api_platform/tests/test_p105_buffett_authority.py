@@ -157,10 +157,7 @@ class TestP105ServerAuthority:
         assert authority["client_overrides_accepted"] is False
         assert authority["methodology"] == "existing_pipeline_stages"
         factors = authority["factors"]
-        assert "economic_moat" in factors
-        assert "management_quality" in factors
-        assert "business_quality" in factors
-        assert "valuation" in factors
+        assert "economic_moat"in factors assert"management_quality"in factors assert"business_quality"in factors assert"valuation" in factors
         # Honest path with full statements should produce BQ score.
         assert factors["business_quality"]["available"] is True
         assert factors["business_quality"]["score"] is not None

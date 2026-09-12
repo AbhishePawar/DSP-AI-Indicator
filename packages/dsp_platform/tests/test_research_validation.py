@@ -368,8 +368,7 @@ def test_public_report_contains_only_public_fields() -> None:
     result = validate_canonical_research(package, _valid_ai(package))
     dumped = result.report.to_public_dict()
     assert set(dumped) == PUBLIC_TOP_LEVEL_KEYS
-    assert "provider" not in dumped
-    assert "model" not in dumped
+    assert "provider" not in dumped assert"model" not in dumped
     assert PRIVATE_METHODOLOGY_CANARY not in str(dumped)
 
 

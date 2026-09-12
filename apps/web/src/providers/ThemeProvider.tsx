@@ -27,8 +27,7 @@ function resolveMode(mode: ThemeMode): ResolvedTheme {
   if (mode === "light" || mode === "dark") return mode;
   if (typeof window === "undefined") return "light";
   return window.matchMedia("(prefers-color-scheme: dark)").matches
-    ? "dark"
-    : "light";
+    ? "dark" :"light";
 }
 
 function applyResolved(resolved: ResolvedTheme) {

@@ -128,8 +128,7 @@ def test_replay_rejected(monkeypatch: pytest.MonkeyPatch) -> None:
         adapter.complete_login(
             code="auth-code-2", state=begin["state"], redirect_uri="http://localhost/callback"
         )
-    assert excinfo.value.reason == "replayed"
-    assert "Invalid or expired OAuth state" not in str(excinfo.value)
+    assert excinfo.value.reason == "replayed" assert"Invalid or expired OAuth state" not in str(excinfo.value)
 
 
 def test_unknown_state_rejected(monkeypatch: pytest.MonkeyPatch) -> None:
@@ -236,8 +235,7 @@ def test_pkce_verifier_not_in_begin_payload_url_or_logs(
     assert known_verifier not in blob
     assert "code_verifier" not in blob
     query = parse_qs(urlparse(begin["authorization_url"]).query)
-    assert "code_verifier" not in query
-    assert query.get("code_challenge") == ["fixed-challenge"]
+    assert "code_verifier"not in query assert query.get("code_challenge") == ["fixed-challenge"]
     entity_id = f"auth-oauth-google-{challenge_id_for_state(begin['state'])}"
     row = persistence.get("metadata", entity_id)
     assert row is not None
@@ -314,9 +312,7 @@ def test_production_auth_uses_postgres_backed_a008(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     class _FakePostgres(InMemoryStorageProvider):
-        provider_id = "postgres"
-
-    monkeypatch.setenv("DSP_ENVIRONMENT", "production")
+        provider_id = "postgres" monkeypatch.setenv("DSP_ENVIRONMENT", "production")
     monkeypatch.setenv("DSP_DATABASE_URL", "postgresql://dsp:secret@localhost/dsp")
     monkeypatch.setenv("DSP_AUTH_JWT_SECRET", "unit-test-production-secret-not-default")
     reset_repository_registry_for_tests(None)

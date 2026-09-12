@@ -342,8 +342,7 @@ class CopilotReporter:
         if inp.session_id and result.explanation.explanation_id:
             if inp.session_id not in result.explanation.explanation_id:
                 msg = (
-                    "identity mismatch: ExplanationInput session_id "
-                    f"{inp.session_id!r} not reflected in explanation_id"
+                    "identity mismatch: ExplanationInput session_id " f"{inp.session_id!r} not reflected in explanation_id"
                 )
                 raise CopilotError(msg)
 

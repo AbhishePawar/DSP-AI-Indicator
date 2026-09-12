@@ -284,13 +284,11 @@ def test_no_calculations_duplicated_in_adapter() -> None:
 
 
 def test_technical_signals_provenance_finding() -> None:
-    """The technical engine is the ``industry`` package; the canonical
-    read happens through the composition pipeline."""
+    """The technical engine is the ``industry`` package; the canonical read happens through the composition pipeline."""
     spec = ToolRegistry.default().get_spec("dsp.technical_signals")
     assert spec is not None
     # Must reference the composition pipeline AND the underlying engine.
-    assert "analyze_company" in spec.provenance
-    assert "industry" in spec.provenance
+    assert "analyze_company" in spec.provenance assert"industry" in spec.provenance
 
 
 def test_missing_backend_method_fails_closed() -> None:

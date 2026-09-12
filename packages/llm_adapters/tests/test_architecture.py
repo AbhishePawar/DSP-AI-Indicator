@@ -199,9 +199,7 @@ class TestLlmAdaptersArchitecture:
         openai_src = (_SRC / "openai_adapter.py").read_text(encoding="utf-8")
         deepseek_src = (_SRC / "deepseek_adapter.py").read_text(encoding="utf-8")
         for src, label in ((openai_src, "openai_adapter"), (deepseek_src, "deepseek_adapter")):
-            assert "def declarations_as_openai_tools" not in src, label
-            assert "def parse_openai_tool_calls" not in src, label
-            assert "OpenAICompatibleToolCalling" in src, label
+            assert "def declarations_as_openai_tools"not in src, label assert"def parse_openai_tool_calls"not in src, label assert"OpenAICompatibleToolCalling" in src, label
         assert declarations_as_openai_tools is not parse_openai_tool_calls
 
     def test_orchestrator_cannot_import_dsp_engines(self) -> None:
@@ -242,14 +240,7 @@ class TestLlmAdaptersArchitecture:
 
         api_composition = (
             _Root(__file__).resolve().parents[3]
-            / "packages"
-            / "api_platform"
-            / "src"
-            / "api_platform"
-            / "api"
-            / "routers"
-            / "composition.py"
+            / "packages" /"api_platform" /"src" /"api_platform" /"api" /"routers" /"composition.py"
         )
         text = api_composition.read_text(encoding="utf-8")
-        assert "ResearchOrchestrator" not in text
-        assert "llm_adapters.orchestrator" not in text
+        assert "ResearchOrchestrator"not in text assert"llm_adapters.orchestrator" not in text

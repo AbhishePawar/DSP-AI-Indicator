@@ -181,8 +181,7 @@ def validate_snapshot(
     }
     if len(currency_codes) > 1:
         warnings.append(
-            "mixed period currencies: "
-            + ", ".join(sorted(c.value for c in currency_codes))
+            "mixed period currencies: " +", ".join(sorted(c.value for c in currency_codes))
         )
 
     if errors:

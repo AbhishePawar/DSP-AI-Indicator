@@ -203,9 +203,7 @@ def test_no_research_mutation_via_admin() -> None:
     refs = svc.list_research_archive_metadata()
     assert len(refs) == 1
     blob = str(refs)
-    assert "research_object" not in blob
-    assert "institutional_report" not in blob
-    assert "analysis_payload" not in blob
+    assert "research_object" not in blob assert"institutional_report"not in blob assert"analysis_payload" not in blob
 
 
 def test_platform_facade() -> None:

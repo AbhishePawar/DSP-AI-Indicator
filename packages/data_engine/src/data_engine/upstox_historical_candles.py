@@ -256,8 +256,7 @@ class UpstoxHistoricalCandleClient:
                 status="REJECTED",
                 query=query,
                 detail=(
-                    "client-supplied instrument_key / isin / provider / exchange / "
-                    "currency / candles are not authoritative"
+                    "client-supplied instrument_key / isin / provider / exchange / " "currency / candles are not authoritative"
                 ),
                 retrieved_at=retrieved_at,
                 from_date=request.from_date,
@@ -300,8 +299,7 @@ class UpstoxHistoricalCandleClient:
 
         if not self.configured():
             detail = (
-                "production fail-closed: Upstox analytics token absent — "
-                "no fixture history substitution"
+                "production fail-closed: Upstox analytics token absent — " "no fixture history substitution"
                 if is_production_environment()
                 else f"provider unavailable: {UPSTOX_ANALYTICS_TOKEN_ENV} absent"
             )
@@ -340,8 +338,7 @@ class UpstoxHistoricalCandleClient:
             return UpstoxHistoricalCandleResult(
                 status="AMBIGUOUS",
                 detail=(
-                    "instrument identity ambiguous; supply preferred_exchange "
-                    "(NSE or BSE) — no silent exchange selection"
+                    "instrument identity ambiguous; supply preferred_exchange " "(NSE or BSE) — no silent exchange selection"
                 ),
                 **common,
             )

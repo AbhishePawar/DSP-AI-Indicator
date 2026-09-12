@@ -16,10 +16,10 @@ const repoRoot = join(__dirname, "..", "..", "..", "..");
 
 describe("P8.0 performance engineering", () => {
   it("aligns foundation to EPS-003 / 2.0.0-rc.1", () => {
-    expect(FRONTEND_FOUNDATION_VERSION).toBe("2.0.0-rc.1");
-    expect(FRONTEND_FOUNDATION_EPIC).toBe("EPS-003");
-    expect(BACKEND_PLATFORM_TARGET).toBe("dsp_platform@2.0.0");
-    expect(API_CONTRACT_TARGET).toBe("v1.0.0");
+    expect(FRONTEND_FOUNDATION_VERSION)?.toBe("2.0.0-rc.1");
+    expect(FRONTEND_FOUNDATION_EPIC)?.toBe("EPS-003");
+    expect(BACKEND_PLATFORM_TARGET)?.toBe("dsp_platform@2.0.0");
+    expect(API_CONTRACT_TARGET)?.toBe("v1.0.0");
   });
 
   it("ships performance docs and artifacts", () => {
@@ -30,14 +30,14 @@ describe("P8.0 performance engineering", () => {
       "P7_3_PERFORMANCE_REPORT.md",
     ]) {
       const body = readFileSync(join(repoRoot, "docs", name), "utf8");
-      expect(body.length).toBeGreaterThan(200);
+      expect(body?.length)?.toBeGreaterThan(200);
     }
     for (const name of [
       "api_benchmark.json",
       "load_test_results.json",
       "memory_snapshot.json",
     ]) {
-      expect(existsSync(join(repoRoot, "docs", "perf", name))).toBe(true);
+      expect(existsSync(join(repoRoot, "docs", "perf", name)))?.toBe(true);
     }
   });
 
@@ -48,7 +48,7 @@ describe("P8.0 performance engineering", () => {
       ["scripts", "perf", "memory_snapshot.py"],
       ["scripts", "ops", "certify_p7_3.py"],
     ]) {
-      expect(readFileSync(join(repoRoot, ...rel), "utf8").length).toBeGreaterThan(80);
+      expect(readFileSync(join(repoRoot, ...rel), "utf8")?.length)?.toBeGreaterThan(80);
     }
   });
 });

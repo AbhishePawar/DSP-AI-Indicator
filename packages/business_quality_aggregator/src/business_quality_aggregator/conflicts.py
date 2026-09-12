@@ -85,8 +85,7 @@ def resolve_conflicts(
     if moat is not None and strength is not None and moat >= _STRONG and strength < _WEAK:
         _add(
             "strong_moat_weak_balance_sheet",
-            "Strong economic moat with a weak balance sheet reduces durability "
-            "of the franchise; leverage or liquidity stress can erase moat value.",
+            "Strong economic moat with a weak balance sheet reduces durability " "of the franchise; leverage or liquidity stress can erase moat value.",
             _PENALTY_STD,
             (
                 AggregatorComponent.ECONOMIC_MOAT.value,
@@ -103,8 +102,7 @@ def resolve_conflicts(
     ):
         _add(
             "excellent_management_weak_earnings_quality",
-            "Owner-oriented management is undermined when earnings quality is weak; "
-            "reported results may not be cash-backed or sustainable.",
+            "Owner-oriented management is undermined when earnings quality is weak; " "reported results may not be cash-backed or sustainable.",
             _PENALTY_STD,
             (
                 AggregatorComponent.MANAGEMENT_QUALITY.value,
@@ -121,8 +119,7 @@ def resolve_conflicts(
     ):
         _add(
             "strong_growth_poor_cash_generation",
-            "Strong growth with poor cash generation is not Buffett-aligned; "
-            "growth without cash conversion is treated as a quality conflict.",
+            "Strong growth with poor cash generation is not Buffett-aligned; " "growth without cash conversion is treated as a quality conflict.",
             _PENALTY_STD,
             (
                 AggregatorComponent.GROWTH_QUALITY.value,
@@ -139,8 +136,7 @@ def resolve_conflicts(
     ):
         _add(
             "high_profitability_weak_capital_allocation",
-            "High profitability with weak capital allocation wastes compounding "
-            "potential; returns may not be reinvested owner-intelligently.",
+            "High profitability with weak capital allocation wastes compounding " "potential; returns may not be reinvested owner-intelligently.",
             _PENALTY_MILD,
             (
                 AggregatorComponent.FINANCIAL_STRENGTH.value,
@@ -161,8 +157,7 @@ def resolve_conflicts(
         # Low leverage / strong overall FS but weak liquidity
         _add(
             "strong_strength_weak_liquidity",
-            "Overall financial strength with weak liquidity creates near-term "
-            "fragility despite low leverage optics.",
+            "Overall financial strength with weak liquidity creates near-term " "fragility despite low leverage optics.",
             _PENALTY_MILD,
             (AggregatorComponent.FINANCIAL_STRENGTH.value,),
             [
@@ -179,8 +174,7 @@ def resolve_conflicts(
     ):
         _add(
             "outstanding_growth_deteriorating_margins",
-            "Outstanding growth with deteriorating or unstable margins signals "
-            "low-quality expansion; not rewarded as durable compounding.",
+            "Outstanding growth with deteriorating or unstable margins signals " "low-quality expansion; not rewarded as durable compounding.",
             _PENALTY_STD,
             (
                 AggregatorComponent.GROWTH_QUALITY.value,

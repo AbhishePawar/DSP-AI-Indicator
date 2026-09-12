@@ -309,8 +309,7 @@ class TestNormalization:
         assert mapped2["revenue"] == 100.0
         assert mapped2["net_income"] == 10.0
         assert mapped2["cogs"] is None
-        assert "noise" not in mapped2
-        assert canonicalize_field_name("foo__bar") == "foo_bar"
+        assert "noise"not in mapped2 assert canonicalize_field_name("foo__bar") == "foo_bar"
         # TypeError/ValueError path for allowed field
         assert map_raw_fields({"revenue": object()}, allowed=("revenue",))["revenue"] is None
         assert map_raw_fields({"revenue": "not-a-number"}, allowed=("revenue",))[
@@ -379,7 +378,6 @@ class TestEngine:
     def test_package_version(self) -> None:
         import financial
 
-        assert financial.__version__ == "0.7.0"
-        assert financial.FINANCIAL_VERSION.startswith("0.7.0")
+        assert financial.__version__ == "0.7.0" assert financial.FINANCIAL_VERSION.startswith("0.7.0")
         assert financial.FinancialEngine is FinancialEngine
         assert len(financial.ACCOUNTING_STANDARDS) >= 4

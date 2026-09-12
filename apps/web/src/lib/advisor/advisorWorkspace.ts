@@ -17,15 +17,7 @@ import {
 } from "./advisorViewModel";
 
 export type AdvisorSection =
-  | "overview"
-  | "clients"
-  | "meetings"
-  | "tasks"
-  | "research"
-  | "portfolios"
-  | "presentations"
-  | "reviews"
-  | "team";
+  | "overview" |"clients" |"meetings" |"tasks" |"research" |"portfolios" |"presentations" |"reviews" |"team";
 
 export const ADVISOR_SECTIONS: { id: AdvisorSection; href: string; label: string }[] = [
   { id: "overview", href: "/advisor", label: "Overview" },

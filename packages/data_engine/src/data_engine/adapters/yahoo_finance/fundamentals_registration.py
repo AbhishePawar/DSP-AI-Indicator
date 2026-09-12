@@ -36,8 +36,7 @@ YAHOO_FINANCE_FUNDAMENTALS_METADATA = ProviderMetadata(
     name="Yahoo Finance Fundamentals",
     version="1.0.0",
     description=(
-        "As-reported annual/quarterly financial statements and key "
-        "statistics via Yahoo Finance's quoteSummary API."
+        "As-reported annual/quarterly financial statements and key " "statistics via Yahoo Finance's quoteSummary API."
     ),
     homepage="https://finance.yahoo.com",
     capabilities=ProviderCapabilities.from_flags(fundamentals=True),

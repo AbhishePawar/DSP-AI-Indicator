@@ -386,40 +386,13 @@ export type TransparencyPanelView = {
 
 /** Sprint 5 — Knowledge Graph */
 export type KnowledgeGraphTab =
-  | "business"
-  | "financial"
-  | "growth"
-  | "risk"
-  | "management"
-  | "valuation"
-  | "research";
+  | "business" |"financial" |"growth" |"risk" |"management" |"valuation" |"research";
 
 export type KgNodeType =
-  | "company"
-  | "industry"
-  | "sector"
-  | "metric"
-  | "financial_statement"
-  | "business_quality"
-  | "growth_driver"
-  | "risk"
-  | "management"
-  | "competitive_advantage"
-  | "valuation"
-  | "research_conclusion"
-  | "evidence"
-  | "assumption"
-  | "methodology"
-  | "external_consensus";
+  | "company" |"industry" |"sector" |"metric" |"financial_statement" |"business_quality" |"growth_driver" |"risk" |"management" |"competitive_advantage" |"valuation" |"research_conclusion" |"evidence" |"assumption" |"methodology" |"external_consensus";
 
 export type KgEdgeType =
-  | "supports"
-  | "influences"
-  | "depends_on"
-  | "derived_from"
-  | "conflicts_with"
-  | "related_to"
-  | "explains";
+  | "supports" |"influences" |"depends_on" |"derived_from" |"conflicts_with" |"related_to" |"explains";
 
 export type KnowledgeGraphNode = {
   id: string;

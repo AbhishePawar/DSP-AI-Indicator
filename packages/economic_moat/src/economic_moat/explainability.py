@@ -20,11 +20,7 @@ __all__ = [
 ]
 
 ECONOMIC_MOAT_RESEARCH_DISCLAIMER = (
-    "Economic Moat Intelligence provides research-only, evidence-backed "
-    "assessments of competitive advantage durability. It is not investment "
-    "advice, a buy/sell recommendation, or a guarantee of future returns. "
-    "Scores are rule-based proxies derived from FinancialAnalysis and "
-    "BusinessQualityAnalysis; opaque or unverifiable claims are avoided."
+    "Economic Moat Intelligence provides research-only, evidence-backed " "assessments of competitive advantage durability. It is not investment " "advice, a buy/sell recommendation, or a guarantee of future returns. " "Scores are rule-based proxies derived from FinancialAnalysis and " "BusinessQualityAnalysis; opaque or unverifiable claims are avoided."
 )
 
 
@@ -57,10 +53,7 @@ def build_summary(
     )
     return (
         f"Overall economic moat rating is {rating.value} "
-        f"(score {score_txt}) based on six Buffett-aligned dimensions."
-        f"{strong_txt}{weak_txt} "
-        "Interpretation emphasizes durability and capital efficiency over "
-        "short-term sentiment."
+        f"(score {score_txt}) based on six Buffett-aligned dimensions." f"{strong_txt}{weak_txt} " "Interpretation emphasizes durability and capital efficiency over " "short-term sentiment."
     )
 
 
@@ -73,20 +66,16 @@ def build_recommendation(rating: MoatRating, confidence: EconomicConfidence) -> 
         )
     mapping = {
         MoatRating.WIDE: (
-            "Evidence is consistent with a wide, durable competitive advantage. "
-            "Prioritize verifying longevity of pricing power and capital returns."
+            "Evidence is consistent with a wide, durable competitive advantage. " "Prioritize verifying longevity of pricing power and capital returns."
         ),
         MoatRating.STRONG: (
-            "Evidence supports a strong moat hypothesis. Stress-test switching "
-            "costs and cost advantages across cycles."
+            "Evidence supports a strong moat hypothesis. Stress-test switching " "costs and cost advantages across cycles."
         ),
         MoatRating.NARROW: (
-            "Evidence suggests a narrow moat. Focus on whether advantages are "
-            "eroding or expanding over multi-year horizons."
+            "Evidence suggests a narrow moat. Focus on whether advantages are " "eroding or expanding over multi-year horizons."
         ),
         MoatRating.WEAK: (
-            "Evidence points to a weak moat. Competitive position may be "
-            "contestable; demand higher margin of safety in research."
+            "Evidence points to a weak moat. Competitive position may be " "contestable; demand higher margin of safety in research."
         ),
         MoatRating.NO_MOAT: (
             "Evidence does not support a meaningful economic moat. "
@@ -111,8 +100,7 @@ def build_moat_explainability(
         "FinancialAnalysis and BusinessQualityAnalysis are accepted public inputs.",
         "Dimension scores are deterministic functions of documented proxies.",
         f"Framework version: {metadata.framework_version}.",
-        "Buffett alignment: durability, predictability, competitive advantage, "
-        "capital efficiency — not short-term market sentiment.",
+        "Buffett alignment: durability, predictability, competitive advantage, " "capital efficiency — not short-term market sentiment.",
     )
     limitations = (
         "No peer comparisons, industry HHI, brand surveys, or patent registries.",

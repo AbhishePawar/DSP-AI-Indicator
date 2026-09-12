@@ -109,8 +109,7 @@ class RiskAssembler:
             ):
                 msg = (
                     "foreign Monitoring ownership: monitoring portfolio_id "
-                    f"{context.monitoring_ref.portfolio_id!r} does not match "
-                    f"{context.portfolio_ref.portfolio_id!r}"
+                    f"{context.monitoring_ref.portfolio_id!r} does not match " f"{context.portfolio_ref.portfolio_id!r}"
                 )
                 raise RiskError(msg)
 
@@ -200,8 +199,7 @@ class RiskAssembler:
             evidence_bundle_refs=context.evidence_bundle_refs,
             comparison_report_refs=context.comparison_report_refs,
             limitations=(
-                "Assembled structure only — no observations, descriptors, "
-                "or assessments.",
+                "Assembled structure only — no observations, descriptors, " "or assessments.",
             ),
         )
 

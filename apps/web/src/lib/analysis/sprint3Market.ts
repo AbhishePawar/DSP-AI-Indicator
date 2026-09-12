@@ -93,8 +93,7 @@ export function buildStreetComparison(args: {
     const dspValue =
       dim.id === "research_confidence"
         ? args.dspConfidence
-        : dim.id === "valuation"
-          ? presentFieldLabel("target_price") + " (see Valuation section)"
+        : dim.id === "valuation" ? presentFieldLabel("target_price") + " (see Valuation section)"
           : args.dspConclusion
             ? `DSP View context: ${args.dspConclusion}`
             : null;

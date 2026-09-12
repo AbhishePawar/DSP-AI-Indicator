@@ -174,8 +174,7 @@ def test_deepseek_does_not_leak_key_in_error() -> None:
         cls.return_value.__enter__.return_value.post.side_effect = httpx.ConnectError("x")
         result = adapter.invoke(_request())
     flat = " ".join(result.limitations)
-    assert "test-deepseek" not in flat
-    assert "DEEPSEEK_API_KEY" not in flat
+    assert "test-deepseek"not in flat assert"DEEPSEEK_API_KEY" not in flat
 
 
 # ---- Gemini --------------------------------------------------------------

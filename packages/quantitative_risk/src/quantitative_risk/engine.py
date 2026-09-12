@@ -120,8 +120,7 @@ class EngineContext:
             if self.monitoring_ref.portfolio_id != self.portfolio_ref.portfolio_id:
                 msg = (
                     "foreign ownership: monitoring portfolio_id "
-                    f"{self.monitoring_ref.portfolio_id!r} does not match "
-                    f"{self.portfolio_ref.portfolio_id!r}"
+                    f"{self.monitoring_ref.portfolio_id!r} does not match " f"{self.portfolio_ref.portfolio_id!r}"
                 )
                 raise QuantitativeRiskError(msg)
 
@@ -262,8 +261,7 @@ class QuantitativeRiskEngine:
             exposure_count=len(exposures),
             scenario_count=0,
             limitation_notes=(
-                "Initial E2.2 catalog only: concentration, exposure, "
-                "realized volatility, maximum drawdown.",
+                "Initial E2.2 catalog only: concentration, exposure, " "realized volatility, maximum drawdown.",
                 "Benchmark series validated but not used in baseline metrics.",
                 *tuple(warnings),
             ),
@@ -426,8 +424,7 @@ class QuantitativeRiskEngine:
             exposures.append(
                 RiskExposure(
                     exposure_id=(
-                        f"dsp.qrisk.exposure.instrument."
-                        f"{portfolio_id}.{point.instrument_id}"
+                        f"dsp.qrisk.exposure.instrument." f"{portfolio_id}.{point.instrument_id}"
                     ),
                     dimension="instrument",
                     weight=weight,
@@ -440,9 +437,7 @@ class QuantitativeRiskEngine:
                 exposures.append(
                     RiskExposure(
                         exposure_id=(
-                            f"dsp.qrisk.exposure.sector."
-                            f"{portfolio_id}.{point.instrument_id}."
-                            f"{point.sector.lower().replace(' ', '_')}"
+                            f"dsp.qrisk.exposure.sector." f"{portfolio_id}.{point.instrument_id}." f"{point.sector.lower().replace(' ', '_')}"
                         ),
                         dimension="sector",
                         weight=weight,

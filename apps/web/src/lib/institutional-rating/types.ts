@@ -4,23 +4,10 @@
  */
 
 export type InstitutionalGrade =
-  | "A+"
-  | "A"
-  | "B+"
-  | "B"
-  | "C"
-  | "D"
-  | "F"
-  | "Unavailable";
+  | "A+" |"A" |"B+" |"B" |"C" |"D" |"F" |"Unavailable";
 
 export type InvestmentAction =
-  | "BUY"
-  | "ACCUMULATE"
-  | "WATCH"
-  | "HOLD"
-  | "REDUCE"
-  | "AVOID"
-  | "Unavailable";
+  | "BUY" |"ACCUMULATE" |"WATCH" |"HOLD" |"REDUCE" |"AVOID" |"Unavailable";
 
 export type RatingDimension = {
   label: string;

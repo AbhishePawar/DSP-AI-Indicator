@@ -18,26 +18,26 @@ import { featureFlags } from "@/lib/featureFlags";
 
 describe("EPIC-015 Portfolio Intelligence 2.0", () => {
   it("registers v2 sections", () => {
-    const ids = PORTFOLIO_SECTIONS.map((s) => s.id);
-    expect(ids).toEqual(
-      expect.arrayContaining([
+    const ids = PORTFOLIO_SECTIONS?.map((s) => s?.id);
+    expect(ids)?.toEqual(
+      expect?.arrayContaining([
         "scenarios",
         "drift",
         "timeline",
         "integrations",
       ]),
     );
-    expect(isPortfolioSectionId("scenarios")).toBe(true);
+    expect(isPortfolioSectionId("scenarios"))?.toBe(true);
   });
 
   it("shows honest unavailable for scenarios and drift", () => {
     render(<ScenariosSection intel={null} />);
-    expect(screen.getAllByText(/Analysis unavailable|Data unavailable/i).length).toBeGreaterThan(
+    expect(screen?.getAllByText(/Analysis unavailable|Data unavailable/i)?.length)?.toBeGreaterThan(
       0,
     );
 
     render(<DriftSection intel={null} holdings={[]} />);
-    expect(screen.getAllByText(/Data unavailable/i).length).toBeGreaterThan(0);
+    expect(screen?.getAllByText(/Data unavailable/i)?.length)?.toBeGreaterThan(0);
   });
 
   it("never recommends transactions in integrations copy", () => {
@@ -55,15 +55,15 @@ describe("EPIC-015 Portfolio Intelligence 2.0", () => {
         ]}
       />,
     );
-    expect(screen.getByText(/never recommends transactions/i)).toBeTruthy();
-    expect(screen.queryByText(/BUY|SELL|place order/i)).toBeNull();
+    expect(screen?.getByText(/never recommends transactions/i))?.toBeTruthy();
+    expect(screen?.queryByText(/BUY|SELL|place order/i))?.toBeNull();
   });
 
   it("overview extras stay honest about missing value fields", () => {
-    if (!featureFlags.portfolioIntelligenceV2) return;
+    if (!featureFlags?.portfolioIntelligenceV2) return;
     render(<OverviewV2Extras holdings={[]} intel={null} />);
     expect(
-      screen.getByText(/No portfolio market-value API/i),
-    ).toBeTruthy();
+      screen?.getByText(/No portfolio market-value API/i),
+    )?.toBeTruthy();
   });
 });

@@ -187,9 +187,7 @@ def evaluate_revenue_growth(
             reference="income.revenue / BQ stability & scalability",
             summary="Revenue CAGR/stability with organic-growth proxies",
             reasoning=(
-                "Buffett prefers durable organic growth over boom/bust spikes. "
-                "We score CAGR quality, consistency, scalability, and soften for "
-                "high goodwill intensity."
+                "Buffett prefers durable organic growth over boom/bust spikes. " "We score CAGR quality, consistency, scalability, and soften for " "high goodwill intensity."
             ),
             confidence=conf.value,
             metrics=metrics,
@@ -304,9 +302,7 @@ def evaluate_earnings_growth(
             reference="earnings_quality / competitive_position / cash_flow / eps_cagr",
             summary="Earnings/cash growth consistency, EPS CAGR, and cash support",
             reasoning=(
-                "Quality earnings growth is cash-backed and persistent. We reuse "
-                "BQ consistency/persistence and cash-support assessments, and score "
-                "first-class annual-fiscal EPS CAGR when evidence allows."
+                "Quality earnings growth is cash-backed and persistent. We reuse " "BQ consistency/persistence and cash-support assessments, and score " "first-class annual-fiscal EPS CAGR when evidence allows."
             ),
             confidence=conf.value,
             metrics=metrics,
@@ -323,8 +319,7 @@ def evaluate_earnings_growth(
         confidence=conf,
         evidence=evidence,
         reasoning=(
-            "Earnings growth quality scored from persistence, consistency, and "
-            "cash-backed growth proxies."
+            "Earnings growth quality scored from persistence, consistency, and " "cash-backed growth proxies."
         ),
         positives=positives,
         negatives=negatives,
@@ -407,8 +402,7 @@ def evaluate_reinvestment(
         confidence=conf,
         evidence=evidence,
         reasoning=(
-            "Reinvestment capability scored from ROIC, capital efficiency, and "
-            "reinvestment-discipline proxies."
+            "Reinvestment capability scored from ROIC, capital efficiency, and " "reinvestment-discipline proxies."
         ),
         positives=positives,
         negatives=negatives,
@@ -474,8 +468,7 @@ def evaluate_capital_support(
             reference="cash_flow.financing / BQ capital_allocation",
             summary="Internal vs debt-funded growth and allocation discipline",
             reasoning=(
-                "Quality growth is funded by internal cash, not chronic dilution "
-                "or reckless leverage. We reward FCF funding and debt discipline."
+                "Quality growth is funded by internal cash, not chronic dilution " "or reckless leverage. We reward FCF funding and debt discipline."
             ),
             confidence=conf.value,
             metrics=metrics,
@@ -489,8 +482,7 @@ def evaluate_capital_support(
         confidence=conf,
         evidence=evidence,
         reasoning=(
-            "Capital allocation support scored from internal funding capacity and "
-            "BQ deployment/flexibility proxies."
+            "Capital allocation support scored from internal funding capacity and " "BQ deployment/flexibility proxies."
         ),
         positives=positives,
         negatives=negatives,
@@ -554,8 +546,7 @@ def evaluate_sustainability(
             reference="margins / scalability / cash generation",
             summary="Margin preservation, scalability, cash-backed growth",
             reasoning=(
-                "Sustainable growth preserves margins and remains cash-backed. "
-                "We combine defensibility, scalability, and cash generation."
+                "Sustainable growth preserves margins and remains cash-backed. " "We combine defensibility, scalability, and cash generation."
             ),
             confidence=conf.value,
             metrics=metrics,
@@ -569,8 +560,7 @@ def evaluate_sustainability(
         confidence=conf,
         evidence=evidence,
         reasoning=(
-            "Growth sustainability scored from margin preservation, scalability, "
-            "and cash-backed growth proxies."
+            "Growth sustainability scored from margin preservation, scalability, " "and cash-backed growth proxies."
         ),
         positives=positives,
         negatives=negatives,
@@ -645,9 +635,7 @@ def evaluate_growth_risk(
             reference="stability / resilience / goodwill intensity",
             summary="Growth volatility and execution-risk proxies",
             reasoning=(
-                "Growth risk rises with volatility, cyclicality, and acquisition "
-                "intensity. Score is inverted so higher = safer growth profile, "
-                "with confidence capped without concentration data."
+                "Growth risk rises with volatility, cyclicality, and acquisition " "intensity. Score is inverted so higher = safer growth profile, " "with confidence capped without concentration data."
             ),
             confidence=conf.value,
             metrics=metrics,

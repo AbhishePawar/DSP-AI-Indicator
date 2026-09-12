@@ -36,11 +36,8 @@ export function WelcomeWidget() {
       ? meQuery.data.result.last_login
       : null;
   const envLabel =
-    env.environment === "production"
-      ? "PROD"
-      : env.environment === "test"
-        ? "TEST"
-        : "DEV";
+    env.environment === "production" ?"PROD"
+      : env.environment === "test" ?"TEST" :"DEV";
 
   return (
     <DashboardWidgetShell

@@ -65,13 +65,10 @@ class UserRepositoryPort(Protocol):
 
 @runtime_checkable
 class RefreshTokenStorePort(Protocol):
-    """Opaque refresh-token persistence."""
-
-    def save(self, record: "RefreshTokenRecord") -> None:
+    """Opaque refresh-token persistence.""" def save(self, record:"RefreshTokenRecord") -> None:
         """Persist a refresh token record."""
 
-    def get(self, token_hash: str) -> "RefreshTokenRecord | None":
-        """Lookup by hash of the opaque token."""
+    def get(self, token_hash: str) -> "RefreshTokenRecord | None": """Lookup by hash of the opaque token."""
 
     def revoke(self, token_hash: str) -> None:
         """Revoke one token."""
@@ -82,13 +79,10 @@ class RefreshTokenStorePort(Protocol):
 
 @runtime_checkable
 class SessionTrackerPort(Protocol):
-    """Server-side session metadata tracking."""
-
-    def create(self, record: "SessionRecord") -> None:
+    """Server-side session metadata tracking.""" def create(self, record:"SessionRecord") -> None:
         """Create a session."""
 
-    def get(self, session_id: str) -> "SessionRecord | None":
-        """Fetch session metadata."""
+    def get(self, session_id: str) -> "SessionRecord | None": """Fetch session metadata."""
 
     def touch(self, session_id: str) -> None:
         """Update last-seen."""
@@ -113,9 +107,7 @@ class AuditStorePort(Protocol):
 
 @runtime_checkable
 class ConsentRecordPort(Protocol):
-    """DPDP consent record store — architecture + minimal implementation."""
-
-    def record(self, consent: "ConsentRecord") -> None:
+    """DPDP consent record store — architecture + minimal implementation.""" def record(self, consent:"ConsentRecord") -> None:
         """Store a consent decision."""
 
     def list_for_subject(self, subject_id: str) -> Sequence["ConsentRecord"]:
@@ -155,15 +147,10 @@ class WebAuthnPort(Protocol):
 
 @runtime_checkable
 class OrganisationStorePort(Protocol):
-    """Organisation + membership — architecture foundation."""
-
-    def upsert_org(self, org: "Organisation") -> Organisation:
+    """Organisation + membership — architecture foundation.""" def upsert_org(self, org:"Organisation") -> Organisation:
         """Create or update an organisation."""
 
-    def get_org(self, org_id: str) -> "Organisation | None":
-        """Fetch organisation."""
-
-    def set_membership(self, membership: "OrgMembership") -> None:
+    def get_org(self, org_id: str) -> "Organisation | None": """Fetch organisation.""" def set_membership(self, membership:"OrgMembership") -> None:
         """Bind a user to an org role."""
 
     def memberships_for_user(self, user_id: str) -> Sequence["OrgMembership"]:

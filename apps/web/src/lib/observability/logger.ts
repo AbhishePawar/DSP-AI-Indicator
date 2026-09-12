@@ -14,13 +14,7 @@ export type LogEntry = {
 };
 
 export type ClientErrorSource =
-  | "global-error-boundary"
-  | "section-error-boundary"
-  | "route-error"
-  | "global-route-error"
-  | "api"
-  | "research"
-  | "unknown";
+  | "global-error-boundary" |"section-error-boundary" |"route-error" |"global-route-error" |"api" |"research" |"unknown";
 
 export type ClientErrorEntry = {
   id: string;

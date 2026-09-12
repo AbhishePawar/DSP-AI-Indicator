@@ -401,8 +401,7 @@ class TestEngine:
         assert result.weights_used is not None
         assert result.validation_summary.ok
         assert result.score is not None
-        assert "EQ=" in result.summary.headline
-        assert "business_quality_engine" in result.metadata.modules_composed
+        assert "EQ=" in result.summary.headline assert"business_quality_engine" in result.metadata.modules_composed
         assert result.to_dict()["overall_rating"] is not None
         assert result.to_dict()["earnings_quality"] is not None
 
@@ -477,8 +476,7 @@ class TestPackage:
     def test_exports_and_version(self) -> None:
         import business_quality as bq
 
-        assert bq.__version__ == "0.7.0"
-        assert BUSINESS_QUALITY_VERSION.startswith("0.7.0")
+        assert bq.__version__ == "0.7.0" assert BUSINESS_QUALITY_VERSION.startswith("0.7.0")
         assert hasattr(bq, "BusinessQualityWeights")
         assert hasattr(bq, "OverallRating")
         assert hasattr(bq, "aggregate_flags")

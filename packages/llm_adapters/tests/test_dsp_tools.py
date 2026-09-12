@@ -68,8 +68,7 @@ class StubBackend:
         self._raise_on = raise_on
 
     def get_authenticated_financial_statements(self, symbol: str, *, exchange: str | None = None):
-        if self._raise_on == "statements":
-            raise RuntimeError("data unavailable")
+        if self._raise_on == "statements": raise RuntimeError("data unavailable")
         if self._statements is None:
             return None
         return dict(self._statements, _symbol=symbol)
@@ -87,8 +86,7 @@ class StubBackend:
         return {"answer": "ok"}
 
     def build_research_object(self, symbol, **kwargs):
-        if self._raise_on == "research":
-            raise RuntimeError("research failed")
+        if self._raise_on == "research": raise RuntimeError("research failed")
         return dict(self._research, _symbol=symbol)
 
     def get_research_snapshot(self, snapshot_id):
@@ -220,8 +218,7 @@ def test_tool_results_carry_evidence_refs() -> None:
     backend = StubBackend()
     result = registry.dispatch("dsp.research_object", {"symbol": "AAPL"}, backend)
     assert result.status is ToolStatus.OK
-    assert "r1" in result.evidence_refs
-    assert "r2" in result.evidence_refs
+    assert "r1" in result.evidence_refs assert"r2" in result.evidence_refs
 
 
 # --- invalid input ---------------------------------------------------------
@@ -330,13 +327,7 @@ def test_public_manifest_has_no_provenance() -> None:
     manifest = registry.public_manifest()
     assert len(manifest) == len(registry.names())
     for entry in manifest:
-        assert "name" in entry
-        assert "version" in entry
-        assert "description" in entry
-        assert "input_schema" in entry
-        assert "output_schema" in entry
-        assert "provenance" not in entry
-        assert "validation_status" not in entry
+        assert "name" in entry assert"version"in entry assert"description"in entry assert"input_schema"in entry assert"output_schema"in entry assert"provenance"not in entry assert"validation_status" not in entry
 
 
 # --- AI cannot bypass canonical DSP engines ------------------------------

@@ -267,8 +267,7 @@ def test_privacy_boundary() -> None:
     public = result.to_public().to_dict()
     assert_no_private_leakage(public)
     dumped = json.dumps(public)
-    assert "routing_tier" not in dumped
-    assert "internal_prompt" not in dumped
+    assert "routing_tier" not in dumped assert"internal_prompt" not in dumped
     assert result.private.chain_of_thought == ""
 
 
@@ -334,8 +333,7 @@ def test_public_manifest_contains_only_approved_tools() -> None:
     assert names == set(DEFAULT_TOOL_NAMES)
     assert manifest_names == set(DEFAULT_TOOL_NAMES)
     for entry in registry.public_manifest():
-        assert "provenance" not in entry
-        assert "validation_status" not in entry
+        assert "provenance" not in entry assert"validation_status" not in entry
 
 
 def test_all_seventeen_existing_tools_remain_available() -> None:
@@ -374,9 +372,7 @@ def test_activation_guard_remains_fail_closed() -> None:
 
 def test_adapter_backed_provider_has_no_http() -> None:
     source = inspect.getsource(AdapterProvider)
-    assert "httpx" not in source
-    assert "api.openai.com" not in source
-    assert "api.anthropic.com" not in source
+    assert "httpx" not in source assert"api.openai.com"not in source assert"api.anthropic.com" not in source
 
 
 class _ScriptedResearchAdapter(OpenAICompatibleToolCalling):
@@ -547,5 +543,4 @@ def test_openai_invoke_research_attaches_manifest_tools() -> None:
     names = {item["function"]["name"] for item in posted}
     assert names == {name.replace(".", "_") for name in DEFAULT_TOOL_NAMES}
     src = Path(inspect.getsourcefile(OpenAIAdapter) or "").read_text(encoding="utf-8")
-    assert "dsp.financial_statements" not in src
-    assert "DEFAULT_TOOL_NAMES" not in src
+    assert "dsp.financial_statements"not in src assert"DEFAULT_TOOL_NAMES" not in src

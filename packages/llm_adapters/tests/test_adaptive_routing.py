@@ -381,8 +381,7 @@ def test_private_result_exposes_only_public_to_client() -> None:
     # Client call: must return only public.
     client_view = private.to_public().to_dict()
     assert_no_private_leakage(client_view)
-    assert "openai" not in client_view
-    assert "PRIVATE" not in str(client_view)
+    assert "openai" not in client_view assert"PRIVATE" not in str(client_view)
 
 
 def test_assert_no_private_leakage_catches_violations() -> None:

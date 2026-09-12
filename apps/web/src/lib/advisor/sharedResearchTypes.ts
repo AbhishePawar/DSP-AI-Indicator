@@ -19,13 +19,7 @@ export type SharedResearchFilterState = {
 };
 
 export type SharedResearchActivityKind =
-  | "opened"
-  | "compared"
-  | "presented"
-  | "bookmarked"
-  | "collection_add"
-  | "pinned"
-  | "favorited";
+  | "opened" |"compared" |"presented" |"bookmarked" |"collection_add" |"pinned" |"favorited";
 
 export type SharedResearchActivityItem = {
   id: string;

@@ -239,22 +239,16 @@ class TestNoExplanationOrLLM:
     def test_conversation_module_forbids_llm(self) -> None:
         source = (
             Path(__file__).resolve().parents[1]
-            / "src"
-            / "copilot"
-            / "conversation.py"
+            / "src" /"copilot" /"conversation.py"
         ).read_text(encoding="utf-8")
         assert "openai" not in source.lower()
         assert "anthropic" not in source.lower()
-        assert "LanguageModelResult" not in source
-        assert "Explanation(" not in source  # no Explanation generation
-        assert "ExplanationInput" in source
+        assert "LanguageModelResult"not in source assert"Explanation("not in source  # no Explanation generation assert"ExplanationInput" in source
 
     def test_no_upstream_imports(self) -> None:
         path = (
             Path(__file__).resolve().parents[1]
-            / "src"
-            / "copilot"
-            / "conversation.py"
+            / "src" /"copilot" /"conversation.py"
         )
         tree = ast.parse(path.read_text(encoding="utf-8"))
         names: set[str] = set()

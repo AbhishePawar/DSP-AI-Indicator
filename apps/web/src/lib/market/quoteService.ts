@@ -33,7 +33,7 @@ export function seedQuoteForTicker(ticker: string): MarketQuote {
   const catalogue = COMPANY_CATALOGUE.find(
     (c) => c.ticker.toUpperCase() === normalized,
   );
-  const hash = hashTicker(normalized);
+  let hash = hashTicker(normalized);
   const base = 40 + (hash % 460);
   const previousClose = Number((base * 0.985).toFixed(2));
   const currentPrice = Number((base * (1 + ((hash % 7) - 3) / 1000)).toFixed(2));

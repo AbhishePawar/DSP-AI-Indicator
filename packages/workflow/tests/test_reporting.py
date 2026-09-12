@@ -158,8 +158,7 @@ class TestReporterHappyPath:
         assert result.audit is not None
         assert result.step_results
         assert result.referenced_outcomes
-        assert "executions" in result.summary_sections
-        assert any("presentation only" in n for n in result.report.limitations)
+        assert "executions" in result.summary_sections assert any("presentation only" in n for n in result.report.limitations)
 
     def test_from_report(self) -> None:
         engine_result = _engine_result()
@@ -271,10 +270,7 @@ class TestReporterNoOrchestration:
         source = (
             Path(__file__).resolve().parents[1] / "src" / "workflow" / "reporter.py"
         ).read_text(encoding="utf-8")
-        assert "WorkflowEngine" not in source
-        assert "SubsystemFacadePort" not in source
-        assert "time.sleep" not in source
-        assert "quantize" not in source
+        assert "WorkflowEngine"not in source assert"SubsystemFacadePort"not in source assert"time.sleep"not in source assert"quantize" not in source
 
     def test_reporter_forbids_upstream_imports(self) -> None:
         path = (

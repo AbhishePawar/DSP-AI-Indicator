@@ -120,8 +120,7 @@ class RecommendationAssembler:
             raise RecommendationError(msg)
         if not context.quantitative_risk_refs:
             msg = (
-                "missing Quantitative Risk reference: at least one "
-                "QuantitativeRiskReference required"
+                "missing Quantitative Risk reference: at least one " "QuantitativeRiskReference required"
             )
             raise RecommendationError(msg)
 
@@ -142,8 +141,7 @@ class RecommendationAssembler:
                 raise RecommendationError(msg)
             if ref.digest in seen_decision_digest:
                 msg = (
-                    f"duplicate report references: DecisionReference digest "
-                    f"{ref.digest!r}"
+                    f"duplicate report references: DecisionReference digest " f"{ref.digest!r}"
                 )
                 raise RecommendationError(msg)
             seen_decision_symbol.add(ref.instrument_symbol)
@@ -182,8 +180,7 @@ class RecommendationAssembler:
                 raise RecommendationError(msg)
             if ref.research_id in seen_research:
                 msg = (
-                    f"duplicate report references: ResearchReference "
-                    f"{ref.research_id!r}"
+                    f"duplicate report references: ResearchReference " f"{ref.research_id!r}"
                 )
                 raise RecommendationError(msg)
             seen_research.add(ref.research_id)
@@ -195,8 +192,7 @@ class RecommendationAssembler:
                 raise RecommendationError(msg)
             if ref.quantitative_risk_id in seen_quant:
                 msg = (
-                    "duplicate report references: QuantitativeRiskReference "
-                    f"{ref.quantitative_risk_id!r}"
+                    "duplicate report references: QuantitativeRiskReference " f"{ref.quantitative_risk_id!r}"
                 )
                 raise RecommendationError(msg)
             seen_quant.add(ref.quantitative_risk_id)

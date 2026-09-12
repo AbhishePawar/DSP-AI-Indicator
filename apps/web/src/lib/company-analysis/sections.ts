@@ -4,29 +4,7 @@
  */
 
 export type AnalysisSectionId =
-  | "summary"
-  | "valuation"
-  | "quality"
-  | "management"
-  | "moat"
-  | "risk"
-  | "financial"
-  | "ai"
-  | "explainability"
-  | "evidence"
-  | "timeline"
-  | "export"
-  | "ratings"
-  | "valuationTransparency"
-  | "research"
-  | "buffett"
-  | "compliance"
-  | "ownership"
-  | "peers"
-  | "documents"
-  | "news"
-  | "copilot"
-  | "settings";
+  | "summary" |"valuation" |"quality" |"management" |"moat" |"risk" |"financial" |"ai" |"explainability" |"evidence" |"timeline" |"export" |"ratings" |"valuationTransparency" |"research" |"buffett" |"compliance" |"ownership" |"peers" |"documents" |"news" |"copilot" |"settings";
 
 export type AnalysisSectionMeta = {
   id: AnalysisSectionId;

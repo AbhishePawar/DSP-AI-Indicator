@@ -225,5 +225,4 @@ class TestRegistry:
         reg = CorporateActionProviderRegistry()
         adapter = NullAuthenticatedCorporateActionAdapter()
         reg.register(adapter, default=True)
-        assert reg.get().provider_id == "null_corporate_actions"
-        assert "null_corporate_actions" in reg.list_ids()
+        assert reg.get().provider_id == "null_corporate_actions" assert"null_corporate_actions" in reg.list_ids()

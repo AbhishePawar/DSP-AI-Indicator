@@ -35,28 +35,12 @@ PRODUCT_STATE_TABLES: tuple[str, ...] = (
 
 _SNAPSHOT_DDL = (
     "CREATE TABLE IF NOT EXISTS {table} ("
-    "snapshot_key TEXT PRIMARY KEY, "
-    "payload TEXT NOT NULL, "
-    "updated_at TEXT NOT NULL"
-    ")"
+    "snapshot_key TEXT PRIMARY KEY, " "payload TEXT NOT NULL, " "updated_at TEXT NOT NULL" ")"
 )
 
 _AUDIT_DDL = (
     "CREATE TABLE IF NOT EXISTS enterprise_audit_log ("
-    "event_id TEXT PRIMARY KEY, "
-    "org_id TEXT, "
-    "actor_user_id TEXT, "
-    "action TEXT NOT NULL, "
-    "resource_type TEXT NOT NULL, "
-    "resource_id TEXT, "
-    "created_at TEXT NOT NULL, "
-    "before_state TEXT, "
-    "after_state TEXT, "
-    "ip_address TEXT, "
-    "correlation_id TEXT, "
-    "metadata TEXT, "
-    "immutable INTEGER NOT NULL"
-    ")"
+    "event_id TEXT PRIMARY KEY, " "org_id TEXT, " "actor_user_id TEXT, " "action TEXT NOT NULL, " "resource_type TEXT NOT NULL, " "resource_id TEXT, " "created_at TEXT NOT NULL, " "before_state TEXT, " "after_state TEXT, " "ip_address TEXT, " "correlation_id TEXT, " "metadata TEXT, " "immutable INTEGER NOT NULL" ")"
 )
 
 
@@ -99,10 +83,7 @@ class LogicalProductStateBackupAdapter:
             "last_backup_at": snaps[0]["created_at"] if snaps else None,
             "message": "Logical product-state backup ready.",
             "note": (
-                "Archives are JSON+sha256 under DSP_BACKUP_DIR. "
-                "Restore requires DSP_BACKUP_RESTORE_CONFIRM=YES. "
-                "For physical PostgreSQL dumps use ShellPgDumpBackupAdapter / "
-                "scripts/ops/backup_postgres.sh."
+                "Archives are JSON+sha256 under DSP_BACKUP_DIR. " "Restore requires DSP_BACKUP_RESTORE_CONFIRM=YES. " "For physical PostgreSQL dumps use ShellPgDumpBackupAdapter / " "scripts/ops/backup_postgres.sh."
             ),
         }
 
@@ -174,8 +155,7 @@ class LogicalProductStateBackupAdapter:
                 "ok": False,
                 "available": self.is_available(),
                 "message": (
-                    f"Restore refused: set {RESTORE_CONFIRM_ENV}=YES "
-                    "(trusted operator control only)."
+                    f"Restore refused: set {RESTORE_CONFIRM_ENV}=YES " "(trusted operator control only)."
                 ),
             }
         path = self._resolve_snapshot_path(snapshot_id)

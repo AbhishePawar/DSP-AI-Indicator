@@ -7,8 +7,7 @@ import {
 
 /**
  * EPIC-019A — CSP with per-request nonce.
- * Removes script-src 'unsafe-inline' / 'unsafe-eval' in production.
- * Dev retains 'unsafe-eval' for Next HMR (documented in CSP_REVIEW.md).
+ * Removes script-src 'unsafe-inline' / 'unsafe-eval' in production. * Dev retains'unsafe-eval' for Next HMR (documented in CSP_REVIEW.md).
  *
  * Production www host is permanently redirected to the hardcoded apex origin
  * before auth pages run, so Google OAuth always uses

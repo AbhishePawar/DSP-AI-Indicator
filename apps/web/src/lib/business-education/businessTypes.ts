@@ -1,16 +1,7 @@
 /** Business-type metric selection (presentation) — mirrors platform presets. */
 
 export type BusinessType =
-  | "bank"
-  | "nbfc"
-  | "insurance"
-  | "asset_manager"
-  | "exchange"
-  | "it_saas"
-  | "consumer"
-  | "manufacturing"
-  | "infrastructure"
-  | "general";
+  | "bank" |"nbfc" |"insurance" |"asset_manager" |"exchange" |"it_saas" |"consumer" |"manufacturing" |"infrastructure" |"general";
 
 const METRIC_PRESETS: Record<BusinessType, string[]> = {
   bank: [

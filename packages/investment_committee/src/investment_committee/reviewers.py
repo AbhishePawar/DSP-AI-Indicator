@@ -99,8 +99,7 @@ def _buffett(signals: CommitteeSignals) -> ReviewerOpinion:
                 reference="moat_mgmt_mos",
                 summary="Buffett lens: moat, management, MoS, durability",
                 reasoning=(
-                    "Scores durable franchise quality and insists on a MoS buffer; "
-                    "does not reward growth without capital discipline."
+                    "Scores durable franchise quality and insists on a MoS buffer; " "does not reward growth without capital discipline."
                 ),
                 confidence=conf,
                 metrics=[
@@ -154,8 +153,7 @@ def _value(signals: CommitteeSignals) -> ReviewerOpinion:
                 reference="intrinsic_value_mos",
                 summary="Value lens: IV discount and downside protection",
                 reasoning=(
-                    "Prioritises intrinsic-value discount and balance-sheet support; "
-                    "penalises value traps with weak earnings quality."
+                    "Prioritises intrinsic-value discount and balance-sheet support; " "penalises value traps with weak earnings quality."
                 ),
                 confidence=conf,
                 metrics=[
@@ -207,8 +205,7 @@ def _quality(signals: CommitteeSignals) -> ReviewerOpinion:
                 reference="fs_eq_bq",
                 summary="Quality lens: FS, earnings quality, business quality",
                 reasoning=(
-                    "Emphasises cash-backed earnings and balance-sheet resilience "
-                    "as prerequisites for compounding."
+                    "Emphasises cash-backed earnings and balance-sheet resilience " "as prerequisites for compounding."
                 ),
                 confidence=conf,
                 metrics=[
@@ -256,8 +253,7 @@ def _growth(signals: CommitteeSignals) -> ReviewerOpinion:
                 reference="growth_reinvestment",
                 summary="Growth lens: growth quality, reinvestment, scalability",
                 reasoning=(
-                    "Favours capital-efficient growth but discounts leverage-funded "
-                    "expansion when financial strength is weak."
+                    "Favours capital-efficient growth but discounts leverage-funded " "expansion when financial strength is weak."
                 ),
                 confidence=conf,
                 metrics=[

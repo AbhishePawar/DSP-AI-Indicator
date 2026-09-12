@@ -145,8 +145,7 @@ class TestPlatformBuilderAndInfo:
         assert isinstance(info, PlatformMetadata)
         assert info.version == "1.0.0"
         assert info.status is PlatformStatus.READY
-        assert "analyze_company" in info.capabilities
-        assert "analysis_service" in info.registered_services
+        assert "analyze_company" in info.capabilities assert"analysis_service" in info.registered_services
 
     def test_analyze_company_envelope(self, instrument: Instrument) -> None:
         expected = _recommendation(instrument)

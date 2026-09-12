@@ -295,8 +295,7 @@ export function ResearchSection({ view }: { view: ResearchView }) {
               view.provenancePersisted === null
                 ? "Data unavailable."
                 : view.provenancePersisted
-                  ? "Yes"
-                  : "No"
+                  ? "Yes" :"No"
             }
           />
           <FieldRow label="Correlation ID" value={view.correlationId} />
@@ -372,8 +371,7 @@ export function ResearchSection({ view }: { view: ResearchView }) {
                 view.provenancePersisted === true
                   ? "Persisted"
                   : view.provenancePersisted === false
-                    ? "Not persisted"
-                    : "Data unavailable."
+                    ? "Not persisted" :"Data unavailable."
               }
             />
             <FieldRow
@@ -975,8 +973,7 @@ export function ExportSection({
           >
             {institutionalExportMutation.isPending &&
             institutionalExportMutation.variables === "docx"
-              ? "Exporting…"
-              : "Export Word (.docx)"}
+              ? "Exporting…" :"Export Word (.docx)"}
           </Button>
           <Button
             variant="secondary"
@@ -984,9 +981,7 @@ export function ExportSection({
             onClick={() => institutionalExportMutation.mutate("pptx")}
           >
             {institutionalExportMutation.isPending &&
-            institutionalExportMutation.variables === "pptx"
-              ? "Exporting…"
-              : "Export PowerPoint (.pptx)"}
+            institutionalExportMutation.variables === "pptx" ?"Exporting…" :"Export PowerPoint (.pptx)"}
           </Button>
         </div>
         {!analyseResponse ? (

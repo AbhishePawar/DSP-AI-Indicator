@@ -122,8 +122,7 @@ class TwilioSmsAdapter:
 
             body = (
                 f"Body={urllib.parse.quote(f'DSP AI Indicator OTP: {code} ({purpose})')}&"
-                f"From={urllib.parse.quote(self._from)}&"
-                f"To={urllib.parse.quote(mobile)}"
+                f"From={urllib.parse.quote(self._from)}&" f"To={urllib.parse.quote(mobile)}"
             )
 
             url = f"https://api.twilio.com/2010-04-01/Accounts/{self._sid}/Messages.json"
@@ -132,8 +131,7 @@ class TwilioSmsAdapter:
                 data=body.encode("utf-8"),
                 method="POST",
                 headers={
-                    "Authorization": "Basic "
-                    + base64.b64encode(f"{self._sid}:{self._token}".encode()).decode(),
+                    "Authorization": "Basic " + base64.b64encode(f"{self._sid}:{self._token}".encode()).decode(),
                     "Content-Type": "application/x-www-form-urlencoded",
                 },
             )
@@ -293,8 +291,7 @@ class FirebaseSmsAdapter:
             ok=False,
             provider=self.provider_name(),
             detail=(
-                "Firebase SMS OTP requires client SDK / Identity Toolkit session. "
-                "Use Twilio, MSG91, or Dev adapter for server-side OTP delivery."
+                "Firebase SMS OTP requires client SDK / Identity Toolkit session. " "Use Twilio, MSG91, or Dev adapter for server-side OTP delivery."
             ),
         )
 

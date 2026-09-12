@@ -86,15 +86,7 @@ export type RebalanceSuggestion = {
 };
 
 export type ScenarioId =
-  | "bull"
-  | "base"
-  | "bear"
-  | "market_crash"
-  | "rate_rise"
-  | "recession"
-  | "commodity_spike"
-  | "ai_boom"
-  | "renewable_boom";
+  | "bull" |"base" |"bear" |"market_crash" |"rate_rise" |"recession" |"commodity_spike" |"ai_boom" |"renewable_boom";
 
 export type ScenarioRow = {
   id: ScenarioId;
@@ -765,11 +757,8 @@ function finalizePortfolio(args: {
       cyclicalVsDefensive: groupWeights(
         holdings,
         (h) =>
-          h.cyclicality === "cyclical"
-            ? "Cyclical"
-            : h.cyclicality === "defensive"
-              ? "Defensive"
-              : "Blend/Unavailable",
+          h.cyclicality === "cyclical" ?"Cyclical"
+            : h.cyclicality === "defensive" ?"Defensive" :"Blend/Unavailable",
         total,
       ),
     },

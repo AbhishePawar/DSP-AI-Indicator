@@ -45,8 +45,7 @@ $ExcludeFilePatterns = @(
 
 function Write-Banner {
     param([string]$Message)
-    Write-Host ""
-    Write-Host ("=== {0} ===" -f $Message) -ForegroundColor Cyan
+    Write-Host "" Write-Host ("=== {0} ===" -f $Message) -ForegroundColor Cyan
 }
 
 function Test-ExcludedPath {
@@ -134,8 +133,7 @@ function Add-Line {
     [void]$List.Add($Text)
 }
 
-Write-Banner "DSP Enterprise Audit Package Generator v1.0.0"
-Write-Host ("RepoRoot : {0}" -f $RepoRoot)
+Write-Banner "DSP Enterprise Audit Package Generator v1.0.0" Write-Host ("RepoRoot : {0}" -f $RepoRoot)
 Write-Host ("Package  : {0}" -f $PkgRoot)
 
 Write-Banner "Preparing package directories"
@@ -313,11 +311,7 @@ if (-not $gitBranch) { $gitBranch = "unavailable" }
 if (-not $gitShort) { $gitShort = "unavailable" }
 
 $inv = New-Object System.Collections.Generic.List[string]
-Add-Line $inv "# Package Inventory"
-Add-Line $inv ""
-Add-Line $inv "| Field | Value |"
-Add-Line $inv "|---|---|"
-Add-Line $inv ("| Generated (UTC) | {0} |" -f $GeneratedAt)
+Add-Line $inv "# Package Inventory" Add-Line $inv"" Add-Line $inv"| Field | Value |" Add-Line $inv"|---|---|" Add-Line $inv ("| Generated (UTC) | {0} |" -f $GeneratedAt)
 Add-Line $inv ("| Product VERSION | {0} |" -f $versionText)
 Add-Line $inv ("| Git branch | {0} |" -f $gitBranch)
 Add-Line $inv ("| Git SHA | {0} |" -f $gitSha)
@@ -326,31 +320,24 @@ Add-Line $inv ("| Web source files | {0} |" -f $webCount)
 Add-Line $inv ("| Packages mirrored | {0} |" -f $pkgNames.Count)
 Add-Line $inv ("| Package source files | {0} |" -f $pkgFileCount)
 Add-Line $inv ("| Workflows | {0} |" -f $wfCount)
-Add-Line $inv ""
-Add-Line $inv "## Packages"
-Add-Line $inv ""
+Add-Line $inv "" Add-Line $inv"## Packages" Add-Line $inv""
 foreach ($pn in $pkgNames) {
     Add-Line $inv ("- {0}{1}{0}" -f $Tick, $pn)
 }
 Set-Content -LiteralPath (Join-Path $PkgRoot "manifests\PACKAGE_INVENTORY.md") -Value ($inv -join [Environment]::NewLine) -Encoding UTF8
 
 $dep = New-Object System.Collections.Generic.List[string]
-Add-Line $dep "# Dependency Summary"
-Add-Line $dep ""
-Add-Line $dep ("Generated: {0}" -f $GeneratedAt)
+Add-Line $dep "# Dependency Summary" Add-Line $dep"" Add-Line $dep ("Generated: {0}" -f $GeneratedAt)
 Add-Line $dep ""
 $webPkgJson = Join-Path $PkgRoot "configs\web\package.json"
 if (Test-Path $webPkgJson) {
     try {
         $pj = Get-Content -LiteralPath $webPkgJson -Raw | ConvertFrom-Json
-        Add-Line $dep "## Web package"
-        Add-Line $dep ""
-        Add-Line $dep ("- name: {0}{1}{0}" -f $Tick, $pj.name)
+        Add-Line $dep "## Web package" Add-Line $dep"" Add-Line $dep ("- name: {0}{1}{0}" -f $Tick, $pj.name)
         Add-Line $dep ("- version: {0}{1}{0}" -f $Tick, $pj.version)
         Add-Line $dep ("- dependencies: {0}" -f $pj.dependencies.PSObject.Properties.Count)
         Add-Line $dep ("- devDependencies: {0}" -f $pj.devDependencies.PSObject.Properties.Count)
-        Add-Line $dep ""
-        Add-Line $dep "### Runtime dependencies"
+        Add-Line $dep "" Add-Line $dep"### Runtime dependencies"
         $pj.dependencies.PSObject.Properties | Sort-Object Name | ForEach-Object {
             Add-Line $dep ("- {0}{1}{0}: {2}" -f $Tick, $_.Name, $_.Value)
         }
@@ -358,38 +345,26 @@ if (Test-Path $webPkgJson) {
         Add-Line $dep "_Failed to parse web package.json_"
     }
 }
-Add-Line $dep ""
-Add-Line $dep "## Python"
-Add-Line $dep ""
-Add-Line $dep ("- Root: {0}configs/root/pyproject.toml{0}" -f $Tick)
+Add-Line $dep "" Add-Line $dep"## Python" Add-Line $dep"" Add-Line $dep ("- Root: {0}configs/root/pyproject.toml{0}" -f $Tick)
 Add-Line $dep ("- Per-package: {0}source/packages/*/pyproject.toml{0} ({1} packages)" -f $Tick, $pkgNames.Count)
 Set-Content -LiteralPath (Join-Path $PkgRoot "manifests\DEPENDENCY_SUMMARY.md") -Value ($dep -join [Environment]::NewLine) -Encoding UTF8
 
 $tree = New-Object System.Collections.Generic.List[string]
 Add-Line $tree "# Source Tree (top-level)"
-Add-Line $tree ""
-Add-Line $tree "## source/web"
-Get-ChildItem (Join-Path $PkgRoot "source\web") -ErrorAction SilentlyContinue | ForEach-Object {
+Add-Line $tree "" Add-Line $tree"## source/web" Get-ChildItem (Join-Path $PkgRoot"source\web") -ErrorAction SilentlyContinue | ForEach-Object {
     Add-Line $tree ("- {0}" -f $_.Name)
 }
-Add-Line $tree ""
-Add-Line $tree "## source/packages"
+Add-Line $tree "" Add-Line $tree"## source/packages"
 $pkgNames | Sort-Object | ForEach-Object { Add-Line $tree ("- {0}" -f $_) }
 Set-Content -LiteralPath (Join-Path $PkgRoot "manifests\SOURCE_TREE.txt") -Value ($tree -join [Environment]::NewLine) -Encoding UTF8
 
 $meta = New-Object System.Collections.Generic.List[string]
-Add-Line $meta "# Generation Metadata"
-Add-Line $meta ""
-Add-Line $meta "- generator: tools/audit-package/generate-audit-package.ps1"
-Add-Line $meta "- generator_version: 1.0.0"
-Add-Line $meta ("- generated_utc: {0}" -f $GeneratedAt)
+Add-Line $meta "# Generation Metadata" Add-Line $meta"" Add-Line $meta"- generator: tools/audit-package/generate-audit-package.ps1" Add-Line $meta"- generator_version: 1.0.0" Add-Line $meta ("- generated_utc: {0}" -f $GeneratedAt)
 Add-Line $meta ("- repo_root: {0}" -f $RepoRoot)
 Add-Line $meta ("- product_version: {0}" -f $versionText)
 Add-Line $meta ("- git_branch: {0}" -f $gitBranch)
 Add-Line $meta ("- git_sha: {0}" -f $gitSha)
-Add-Line $meta "- commercial_ga: REJECTED"
-Add-Line $meta "- pilot_posture: GO (closed-beta / institutional pilot)"
-Set-Content -LiteralPath (Join-Path $PkgRoot "manifests\GENERATION_META.md") -Value ($meta -join [Environment]::NewLine) -Encoding UTF8
+Add-Line $meta "- commercial_ga: REJECTED" Add-Line $meta"- pilot_posture: GO (closed-beta / institutional pilot)" Set-Content -LiteralPath (Join-Path $PkgRoot"manifests\GENERATION_META.md") -Value ($meta -join [Environment]::NewLine) -Encoding UTF8
 
 Write-Banner "Validating exclusions"
 $violations = New-Object System.Collections.Generic.List[string]
@@ -438,8 +413,7 @@ Write-Host ("  WF     : {0}" -f (Format-Size $wfBytes))
 $zipList = New-Object System.Collections.Generic.List[object]
 if (-not $SkipZip) {
     Write-Banner "Creating ZIP archives"
-    $archDir = Join-Path $PkgRoot "archives"
-    Get-ChildItem -LiteralPath $archDir -Filter "*.zip" -ErrorAction SilentlyContinue | Remove-Item -Force
+    $archDir = Join-Path $PkgRoot "archives" Get-ChildItem -LiteralPath $archDir -Filter"*.zip" -ErrorAction SilentlyContinue | Remove-Item -Force
 
     $totalMB = [math]::Round($totalBytes / 1MB, 2)
     $zipJobs = [ordered]@{
@@ -513,35 +487,15 @@ $validationText = if ($validationPass) { "PASS" } else { ("FAIL ({0} paths)" -f 
 $fence = $Tick + $Tick + $Tick
 $rpt = New-Object System.Collections.Generic.List[string]
 
-Add-Line $rpt "# AUDIT_PACKAGE_REPORT"
-Add-Line $rpt ""
-Add-Line $rpt "| Field | Value |"
-Add-Line $rpt "|---|---|"
-Add-Line $rpt ("| Generator | {0}tools/audit-package/generate-audit-package.ps1{0} v1.0.0 |" -f $Tick)
+Add-Line $rpt "# AUDIT_PACKAGE_REPORT" Add-Line $rpt"" Add-Line $rpt"| Field | Value |" Add-Line $rpt"|---|---|" Add-Line $rpt ("| Generator | {0}tools/audit-package/generate-audit-package.ps1{0} v1.0.0 |" -f $Tick)
 Add-Line $rpt ("| Generated (UTC) | {0} |" -f $GeneratedAt)
 Add-Line $rpt ("| Product VERSION | **{0}** |" -f $versionText)
 Add-Line $rpt ("| Git | {0}{1}{0} @ {0}{2}{0} ({0}{3}{0}) |" -f $Tick, $gitBranch, $gitShort, $gitSha)
 Add-Line $rpt ("| Package path | {0}tools/audit-package/{1}/{0} |" -f $Tick, $PkgName)
-Add-Line $rpt "| Pilot posture | **GO** (closed-beta / institutional pilot) |"
-Add-Line $rpt "| Commercial GA | **REJECTED** |"
-Add-Line $rpt ""
-Add-Line $rpt "---"
-Add-Line $rpt ""
-Add-Line $rpt "## 1. Executive Summary"
-Add-Line $rpt ""
-Add-Line $rpt ("This report documents a reproducible **Enterprise Audit Package** for DSP AI Indicator Version **{0}**. The package assembles narrative audit guides, authoritative documentation (including GA certification), thin-client web source, backend/research packages, build configs, and CI workflows with generated artefacts excluded." -f $versionText)
-Add-Line $rpt ""
-Add-Line $rpt ("**Release honesty (authoritative):** Closed-beta / institutional pilot is **GO** (PASS WITH CONDITIONS). Unrestricted **Commercial GA is REJECTED** per {0}docs/releases/GA_CERTIFICATION_REPORT.md{0} and {0}RELEASE_BOARD.md{0}. Limitations are not hidden." -f $Tick)
-Add-Line $rpt ""
-Add-Line $rpt ("**Architecture:** Thin client - browser presentation only; analytics / valuation / recommendation / AI reasoning owned by backend {0}/api/v1{0} and {0}packages/*{0}." -f $Tick)
-Add-Line $rpt ""
-Add-Line $rpt "---"
-Add-Line $rpt ""
-Add-Line $rpt "## 2. Files Included (summary)"
-Add-Line $rpt ""
-Add-Line $rpt "| Area | Count / notes |"
-Add-Line $rpt "|---|---|"
-Add-Line $rpt ("| Narrative guides | {0} |" -f $guideNames.Count)
+Add-Line $rpt "| Pilot posture | **GO** (closed-beta / institutional pilot) |" Add-Line $rpt"| Commercial GA | **REJECTED** |" Add-Line $rpt"" Add-Line $rpt"---" Add-Line $rpt"" Add-Line $rpt"## 1. Executive Summary" Add-Line $rpt"" Add-Line $rpt ("This report documents a reproducible **Enterprise Audit Package** for DSP AI Indicator Version **{0}**. The package assembles narrative audit guides, authoritative documentation (including GA certification), thin-client web source, backend/research packages, build configs, and CI workflows with generated artefacts excluded." -f $versionText)
+Add-Line $rpt "" Add-Line $rpt ("**Release honesty (authoritative):** Closed-beta / institutional pilot is **GO** (PASS WITH CONDITIONS). Unrestricted **Commercial GA is REJECTED** per {0}docs/releases/GA_CERTIFICATION_REPORT.md{0} and {0}RELEASE_BOARD.md{0}. Limitations are not hidden." -f $Tick)
+Add-Line $rpt "" Add-Line $rpt ("**Architecture:** Thin client - browser presentation only; analytics / valuation / recommendation / AI reasoning owned by backend {0}/api/v1{0} and {0}packages/*{0}." -f $Tick)
+Add-Line $rpt "" Add-Line $rpt"---" Add-Line $rpt"" Add-Line $rpt"## 2. Files Included (summary)" Add-Line $rpt"" Add-Line $rpt"| Area | Count / notes |" Add-Line $rpt"|---|---|" Add-Line $rpt ("| Narrative guides | {0} |" -f $guideNames.Count)
 Add-Line $rpt ("| docs/project (key) | {0} files |" -f $projCopied)
 Add-Line $rpt ("| docs/design | {0} files |" -f $docTreeCounts["design"])
 Add-Line $rpt ("| docs/governance | {0} files |" -f $docTreeCounts["governance"])
@@ -552,25 +506,9 @@ Add-Line $rpt ("| source/web | {0} files (+ public {1}) |" -f $webCount, $pubCou
 Add-Line $rpt ("| source/packages | {0} packages / {1} files |" -f $pkgNames.Count, $pkgFileCount)
 Add-Line $rpt ("| workflows | {0} files |" -f $wfCount)
 Add-Line $rpt ("| Total package files | {0} |" -f $fileCount)
-Add-Line $rpt ""
-Add-Line $rpt "Root docs copied when present: README, CONTRIBUTING, LICENSE, CHANGELOG."
-Add-Line $rpt ""
-Add-Line $rpt "---"
-Add-Line $rpt ""
-Add-Line $rpt "## 3. Files Excluded"
-Add-Line $rpt ""
-Add-Line $rpt "Mandatory exclusions enforced by generator filters:"
-Add-Line $rpt ""
-Add-Line $rpt ("{0}node_modules{0}, {0}.next{0}, {0}.git{0}, {0}coverage{0}, {0}dist{0}, {0}build{0}, {0}out{0}, {0}.cache{0}, {0}.turbo{0}, {0}playwright-report{0}, {0}test-results{0}, {0}logs{0}, {0}tmp{0}, IDE folders, virtualenvs, {0}__pycache__{0}, {0}*.egg-info{0}, {0}*.log{0}, {0}*.tsbuildinfo{0}, {0}*.pyc{0}, and similar generated artefacts." -f $Tick)
-Add-Line $rpt ""
-Add-Line $rpt ("Secrets ({0}.env{0} family) are not copied; only {0}.env.example{0} / {0}.env.production.example{0} when present." -f $Tick)
-Add-Line $rpt ""
-Add-Line $rpt "---"
-Add-Line $rpt ""
-Add-Line $rpt "## 4. Generated Documents"
-Add-Line $rpt ""
-Add-Line $rpt "| Document | Role |"
-Add-Line $rpt "|---|---|"
+Add-Line $rpt "" Add-Line $rpt"Root docs copied when present: README, CONTRIBUTING, LICENSE, CHANGELOG." Add-Line $rpt"" Add-Line $rpt"---" Add-Line $rpt"" Add-Line $rpt"## 3. Files Excluded" Add-Line $rpt"" Add-Line $rpt"Mandatory exclusions enforced by generator filters:" Add-Line $rpt"" Add-Line $rpt ("{0}node_modules{0}, {0}.next{0}, {0}.git{0}, {0}coverage{0}, {0}dist{0}, {0}build{0}, {0}out{0}, {0}.cache{0}, {0}.turbo{0}, {0}playwright-report{0}, {0}test-results{0}, {0}logs{0}, {0}tmp{0}, IDE folders, virtualenvs, {0}__pycache__{0}, {0}*.egg-info{0}, {0}*.log{0}, {0}*.tsbuildinfo{0}, {0}*.pyc{0}, and similar generated artefacts." -f $Tick)
+Add-Line $rpt "" Add-Line $rpt ("Secrets ({0}.env{0} family) are not copied; only {0}.env.example{0} / {0}.env.production.example{0} when present." -f $Tick)
+Add-Line $rpt "" Add-Line $rpt"---" Add-Line $rpt"" Add-Line $rpt"## 4. Generated Documents" Add-Line $rpt"" Add-Line $rpt"| Document | Role |" Add-Line $rpt"|---|---|"
 $docRoles = @(
     @{ N = "00_START_HERE.md"; R = "Orientation" },
     @{ N = "01_PROJECT_OVERVIEW.md"; R = "Product overview" },
@@ -588,39 +526,19 @@ $docRoles = @(
 foreach ($dr in $docRoles) {
     Add-Line $rpt ("| {0}{1}{0} | {2} |" -f $Tick, $dr.N, $dr.R)
 }
-Add-Line $rpt ""
-Add-Line $rpt "---"
-Add-Line $rpt ""
-Add-Line $rpt "## 5. Validation"
-Add-Line $rpt ""
-Add-Line $rpt "| Check | Result |"
-Add-Line $rpt "|---|---|"
-Add-Line $rpt ("| Exclusion validation | {0} |" -f $validationText)
+Add-Line $rpt "" Add-Line $rpt"---" Add-Line $rpt"" Add-Line $rpt"## 5. Validation" Add-Line $rpt"" Add-Line $rpt"| Check | Result |" Add-Line $rpt"|---|---|" Add-Line $rpt ("| Exclusion validation | {0} |" -f $validationText)
 Add-Line $rpt ("| guides | {0} |" -f ($(if ($presenceGuides) { "PASS" } else { "FAIL" })))
 Add-Line $rpt ("| docs | {0} |" -f ($(if ($presenceDocs) { "PASS" } else { "FAIL" })))
 Add-Line $rpt ("| source | {0} |" -f ($(if ($presenceSource) { "PASS" } else { "FAIL" })))
 Add-Line $rpt ("| configs | {0} |" -f ($(if ($presenceConfigs) { "PASS" } else { "FAIL" })))
 Add-Line $rpt ("| workflows | {0} |" -f ($(if ($presenceWorkflows) { "PASS" } else { "FAIL" })))
-Add-Line $rpt ""
-Add-Line $rpt "---"
-Add-Line $rpt ""
-Add-Line $rpt "## 6. Package Size"
-Add-Line $rpt ""
-Add-Line $rpt "| Component | Size |"
-Add-Line $rpt "|---|---|"
-Add-Line $rpt ("| Total | {0} |" -f (Format-Size $totalBytes))
+Add-Line $rpt "" Add-Line $rpt"---" Add-Line $rpt"" Add-Line $rpt"## 6. Package Size" Add-Line $rpt"" Add-Line $rpt"| Component | Size |" Add-Line $rpt"|---|---|" Add-Line $rpt ("| Total | {0} |" -f (Format-Size $totalBytes))
 Add-Line $rpt ("| source/ | {0} |" -f (Format-Size $sourceBytes))
 Add-Line $rpt ("| docs/ | {0} |" -f (Format-Size $docsBytes))
 Add-Line $rpt ("| configs/ | {0} |" -f (Format-Size $configBytes))
 Add-Line $rpt ("| workflows/ | {0} |" -f (Format-Size $wfBytes))
 Add-Line $rpt ("| Split threshold | {0} MB |" -f $SizeLimitMB)
-Add-Line $rpt ""
-Add-Line $rpt "---"
-Add-Line $rpt ""
-Add-Line $rpt "## 7. ZIP Archives"
-Add-Line $rpt ""
-Add-Line $rpt "| Archive | Size |"
-Add-Line $rpt "|---|---|"
+Add-Line $rpt "" Add-Line $rpt"---" Add-Line $rpt"" Add-Line $rpt"## 7. ZIP Archives" Add-Line $rpt"" Add-Line $rpt"| Archive | Size |" Add-Line $rpt"|---|---|"
 if ($zipList.Count -gt 0) {
     foreach ($z in $zipList) {
         Add-Line $rpt ("| {0}{1}{0} | {2} |" -f $Tick, $z.Name, (Format-Size $z.Bytes))
@@ -628,28 +546,13 @@ if ($zipList.Count -gt 0) {
 } else {
     Add-Line $rpt "| _(skipped)_ | - |"
 }
-Add-Line $rpt ""
-Add-Line $rpt ("Archives are written under {0}{1}/archives/{0} and are gitignored by default (regenerate for upload)." -f $Tick, $PkgName)
-Add-Line $rpt ""
-Add-Line $rpt "---"
-Add-Line $rpt ""
-Add-Line $rpt "## 8. Recommendations"
-Add-Line $rpt ""
-Add-Line $rpt ("1. Distribute ZIPs from {0}archives/{0} to external auditors / AI review tools." -f $Tick)
-Add-Line $rpt "2. Cite GA Certification Report when discussing Commercial GA - do not soften **REJECTED**."
-Add-Line $rpt "3. Re-run this generator after any release-board or VERSION change."
-Add-Line $rpt ("4. Keep {0}source/{0} and ZIPs out of git if they bloat the monorepo; commit scripts + guides + this report." -f $Tick)
-Add-Line $rpt "5. For Commercial GA re-evaluation, require GA-C1...GA-C7 evidence - not package regeneration alone."
-Add-Line $rpt ""
-Add-Line $rpt "---"
-Add-Line $rpt ""
-Add-Line $rpt "## 9. Regeneration"
-Add-Line $rpt ""
-Add-Line $rpt ($fence + "powershell")
+Add-Line $rpt "" Add-Line $rpt ("Archives are written under {0}{1}/archives/{0} and are gitignored by default (regenerate for upload)." -f $Tick, $PkgName)
+Add-Line $rpt "" Add-Line $rpt"---" Add-Line $rpt"" Add-Line $rpt"## 8. Recommendations" Add-Line $rpt"" Add-Line $rpt ("1. Distribute ZIPs from {0}archives/{0} to external auditors / AI review tools." -f $Tick)
+Add-Line $rpt "2. Cite GA Certification Report when discussing Commercial GA - do not soften **REJECTED**." Add-Line $rpt"3. Re-run this generator after any release-board or VERSION change." Add-Line $rpt ("4. Keep {0}source/{0} and ZIPs out of git if they bloat the monorepo; commit scripts + guides + this report." -f $Tick)
+Add-Line $rpt "5. For Commercial GA re-evaluation, require GA-C1...GA-C7 evidence - not package regeneration alone." Add-Line $rpt"" Add-Line $rpt"---" Add-Line $rpt"" Add-Line $rpt"## 9. Regeneration" Add-Line $rpt"" Add-Line $rpt ($fence +"powershell")
 Add-Line $rpt "powershell -NoProfile -ExecutionPolicy Bypass -File tools/audit-package/generate-audit-package.ps1"
 Add-Line $rpt $fence
-Add-Line $rpt ""
-Add-Line $rpt ($fence + "bash")
+Add-Line $rpt "" Add-Line $rpt ($fence +"bash")
 Add-Line $rpt "bash tools/audit-package/generate-audit-package.sh"
 Add-Line $rpt $fence
 
@@ -658,15 +561,13 @@ Set-Content -LiteralPath $reportPath -Value ($rpt -join [Environment]::NewLine) 
 Copy-Item -LiteralPath $reportPath -Destination (Join-Path $PkgRoot "reports\AUDIT_PACKAGE_REPORT.md") -Force
 
 # Refresh allFiles count after zips (optional stats already captured pre-zip for total without double-count chaos)
-Write-Banner "Statistics"
-Write-Host ("VERSION          : {0}" -f $versionText)
+Write-Banner "Statistics" Write-Host ("VERSION          : {0}" -f $versionText)
 Write-Host ("Files (pre-zip)  : {0}" -f $fileCount)
 Write-Host ("Total size       : {0}" -f (Format-Size $totalBytes))
 Write-Host ("ZIP archives     : {0}" -f $zipList.Count)
 Write-Host ("Validation       : {0}" -f ($(if ($validationPass) { "PASS" } else { "FAIL" })))
 Write-Host ("Report           : {0}" -f $reportPath)
-Write-Host ""
-Write-Host "Done." -ForegroundColor Green
+Write-Host "" Write-Host"Done." -ForegroundColor Green
 
 if (-not $validationPass) { exit 2 }
 exit 0

@@ -720,8 +720,7 @@ export function RebalancingSection({
             label="Concentration Alerts"
             value={
               intel?.topHoldings.length
-                ? "Inspect top holdings list in Risk"
-                : "Data unavailable."
+                ? "Inspect top holdings list in Risk" :"Data unavailable."
             }
           />
           <FieldRow label="Risk Alerts" value="Data unavailable. No alerts API." />

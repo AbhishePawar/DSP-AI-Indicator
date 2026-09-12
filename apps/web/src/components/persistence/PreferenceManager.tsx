@@ -37,9 +37,7 @@ export function PreferenceManager() {
       <CardHeader
         title="User Preferences"
         description={
-          status === "authenticated"
-            ? "Synced to your account in this browser"
-            : "Sign in to persist preferences"
+          status === "authenticated" ?"Synced to your account in this browser" :"Sign in to persist preferences"
         }
       />
       <CardBody className="space-y-4">

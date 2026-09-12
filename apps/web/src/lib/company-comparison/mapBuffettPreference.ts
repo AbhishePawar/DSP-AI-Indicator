@@ -2,8 +2,7 @@
  * Buffett-style Preference Analysis — presentation alignment only.
  *
  * CRITICAL wording:
- * Always: "According to the Buffett-inspired framework implemented by DSP AI Indicator..."
- * Never: "Buffett would buy."
+ * Always: "According to the Buffett-inspired framework implemented by DSP AI Indicator..." * Never:"Buffett would buy."
  */
 
 import type { ResearchView } from "@/lib/research/mapResearchView";
@@ -80,7 +79,7 @@ const DIMENSIONS: DimSpec[] = [
     id: "understandability",
     label: "Understandability / Circle of Competence",
     cell: (v) => {
-      const alignment = stateToAlignment(
+      let alignment = stateToAlignment(
         matrixState(v, "circle") ?? matrixState(v, "competence"),
       );
       const sub = v.buffett.circleOfCompetence;
@@ -89,8 +88,7 @@ const DIMENSIONS: DimSpec[] = [
           alignment !== "unavailable"
             ? alignment
             : isUnavailableDisplay(sub.verdict)
-              ? "unavailable"
-              : "partial",
+              ? "unavailable" :"partial",
         reason: `${BUFFETT_FRAMEWORK_PREFIX}, understandability is assessed from the existing Circle of Competence synthesis: ${sub.verdict}.`,
         evidence: matrixEvidence(v, "circle") !== DATA_UNAVAILABLE
           ? matrixEvidence(v, "circle")
@@ -103,7 +101,7 @@ const DIMENSIONS: DimSpec[] = [
     id: "moat",
     label: "Economic Moat",
     cell: (v) => {
-      const alignment =
+      let alignment =
         stateToAlignment(matrixState(v, "moat")) !== "unavailable"
           ? stateToAlignment(matrixState(v, "moat"))
           : gradeToAlignment(scorecardGrade(v, "moat"));
@@ -119,7 +117,7 @@ const DIMENSIONS: DimSpec[] = [
     id: "management",
     label: "Management Quality",
     cell: (v) => {
-      const alignment =
+      let alignment =
         stateToAlignment(matrixState(v, "management")) !== "unavailable"
           ? stateToAlignment(matrixState(v, "management"))
           : gradeToAlignment(scorecardGrade(v, "management"));
@@ -138,7 +136,7 @@ const DIMENSIONS: DimSpec[] = [
     label: "Capital Allocation",
     cell: (v) => {
       const mod = v.ratings.modules.capitalAllocation;
-      const alignment = isUnavailableDisplay(mod.scoreOutOf10)
+      let alignment = isUnavailableDisplay(mod.scoreOutOf10)
         ? stateToAlignment(matrixState(v, "capital"))
         : gradeToAlignment(mod.grade);
       return {
@@ -164,9 +162,8 @@ const DIMENSIONS: DimSpec[] = [
     label: "Debt / Leverage Discipline",
     cell: (v) => {
       const fortress = v.buffett.financialFortress;
-      const alignment = isUnavailableDisplay(fortress.verdict)
-        ? "unavailable"
-        : gradeToAlignment(scorecardGrade(v, "financial") !== DATA_UNAVAILABLE
+      let alignment = isUnavailableDisplay(fortress.verdict)
+        ? "unavailable" : gradeToAlignment(scorecardGrade(v,"financial") !== DATA_UNAVAILABLE
             ? scorecardGrade(v, "financial")
             : v.financialStrength.score);
       return {

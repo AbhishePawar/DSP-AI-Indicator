@@ -205,8 +205,7 @@ export function buildEvidenceExplorer(args: {
         title: "DSP View / research posture",
         group: "ai_interpretation",
         source: args.conclusionLabel
-          ? "Mapped from analyze envelope action/posture"
-          : "Unavailable",
+          ? "Mapped from analyze envelope action/posture" :"Unavailable",
         timestamp: ts,
         confidence: args.conclusionLabel ? "Low to Moderate" : "Insufficient Evidence",
         methodology: "Research Mode remaps engine tokens for display; no client LLM",
@@ -388,8 +387,7 @@ export function buildReasoningFlow(args: {
         label: "Research Conclusion",
         status: args.hasConclusion ? (args.hasRationale ? "complete" : "partial") : "unavailable",
         summary: args.hasConclusion
-          ? "DSP View mapped from envelope"
-          : "No conclusion until Analyze succeeds",
+          ? "DSP View mapped from envelope" :"No conclusion until Analyze succeeds",
         details: [
           "Decision Trace + Evidence Explorer explain this step",
           "Confidence Breakdown labels overall research confidence",

@@ -191,8 +191,7 @@ def build_pair_observations(
                 code="agreement_differential",
                 text=(
                     f"Committee agreement is stronger for {stronger} "
-                    f"({lq if left_stronger else rq} vs "
-                    f"{rq if left_stronger else lq})."
+                    f"({lq if left_stronger else rq} vs " f"{rq if left_stronger else lq})."
                 ),
                 dimension=ComparisonDimension.DECISION_ROBUSTNESS,
                 subjects=(a, b),
@@ -222,8 +221,7 @@ def build_pair_observations(
                     code="fragility_contrast",
                     text=(
                         f"Primary fragilities differ: {a} cites "
-                        f"“{left.primary_fragility}”; {b} cites "
-                        f"“{right.primary_fragility}”."
+                        f"“{left.primary_fragility}”; {b} cites " f"“{right.primary_fragility}”."
                     ),
                     dimension=ComparisonDimension.RISK,
                     subjects=(a, b),
@@ -244,8 +242,7 @@ def build_decision_context(
                 code="decision_snapshot",
                 text=(
                     f"{summary.instrument.symbol}: action={summary.action.value}, "
-                    f"conviction={summary.conviction:.2f}, "
-                    f"guidance={summary.guidance.value}."
+                    f"conviction={summary.conviction:.2f}, " f"guidance={summary.guidance.value}."
                 ),
                 subjects=(summary.instrument.symbol,),
                 evidence_refs=("recommendation", "investor_guidance"),
@@ -344,9 +341,7 @@ def build_dimension_results(
                         ComparisonObservation(
                             code="dimension_no_pack_signal",
                             text=(
-                                f"No Decision Pack signal mapped to the "
-                                f"{dimension.value} dimension in this run; "
-                                f"treat as a research gap, not an absence of risk."
+                                f"No Decision Pack signal mapped to the " f"{dimension.value} dimension in this run; " f"treat as a research gap, not an absence of risk."
                             ),
                             dimension=dimension,
                         ),
@@ -379,8 +374,7 @@ def build_limitations(
             ComparisonLimitation(
                 code="degraded_scope",
                 message=(
-                    "Comparison scope was reduced because some instruments "
-                    "failed peer eligibility or methodology alignment."
+                    "Comparison scope was reduced because some instruments " "failed peer eligibility or methodology alignment."
                 ),
                 subjects=excluded,
             )

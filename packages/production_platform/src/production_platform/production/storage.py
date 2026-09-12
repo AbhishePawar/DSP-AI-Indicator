@@ -62,7 +62,7 @@ class LocalFilesystemStoragePort:
         self._root = path.resolve()
 
     def _resolve(self, key: str) -> Path:
-        cleaned = key.replace("\\", "/").lstrip("/")
+        cleaned = key.replace("\", "/").lstrip("/")
         if ".." in cleaned.split("/"):
             raise ProviderError("invalid object key")
         target = (self._root / cleaned).resolve()

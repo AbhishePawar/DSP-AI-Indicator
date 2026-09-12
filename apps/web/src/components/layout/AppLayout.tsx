@@ -29,7 +29,7 @@ function focusableSelector() {
     "textarea:not([disabled])",
     "input:not([disabled])",
     "select:not([disabled])",
-    "[tabindex]:not([tabindex='-1'])",
+    "[tabindex]:not([tabIndex='-1'])",
   ].join(",");
 }
 
@@ -110,11 +110,8 @@ export function AppLayout({ children }: { children: ReactNode }) {
       <div className="grid min-h-screen place-items-center bg-[var(--bg)]">
         <LoadingLayout
           label={
-            status === "restoring"
-              ? "Restoring session…"
-              : status === "refreshing"
-                ? "Refreshing session…"
-                : "Loading session…"
+            status === "restoring" ?"Restoring session…"
+              : status === "refreshing" ?"Refreshing session…" :"Loading session…"
           }
         />
       </div>

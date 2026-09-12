@@ -8,7 +8,7 @@ import { ENTERPRISE_DASHBOARD_ROLES } from "@/lib/dashboards/roleRegistry";
 import { featureFlags } from "@/lib/featureFlags";
 
 export default function EnterpriseDashboardsIndexPage() {
-  if (!featureFlags.enterpriseDashboards) {
+  if (!featureFlags?.enterpriseDashboards) {
     return (
       <div className="p-6">
         <PageHeader title="Enterprise Dashboards" description="Feature disabled." />
@@ -30,14 +30,14 @@ export default function EnterpriseDashboardsIndexPage() {
         }
       />
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-        {ENTERPRISE_DASHBOARD_ROLES.map((role) => (
-          <Card key={role.role}>
+        {ENTERPRISE_DASHBOARD_ROLES?.map((role) => (
+          <Card key={role?.role}>
             <CardHeader>
-              <CardTitle className="text-base">{role.title}</CardTitle>
+              <CardTitle className="text-base">{role?.title}</CardTitle>
             </CardHeader>
             <CardContent className="space-y-3">
-              <p className="text-sm text-[var(--muted)]">{role.description}</p>
-              <Link href={role.href}>
+              <p className="text-sm text-[var(--muted)]">{role?.description}</p>
+              <Link href={role?.href}>
                 <Button size="sm">Open</Button>
               </Link>
             </CardContent>

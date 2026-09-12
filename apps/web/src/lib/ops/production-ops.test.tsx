@@ -6,9 +6,9 @@ import { cleanup, render, screen, waitFor } from "@testing-library/react";
 
 import { ProductionOpsPanel } from "@/components/ops-portal/ProductionOpsPanel";
 
-vi.mock("@/lib/api/client", () => ({
+vi?.mock("@/lib/api/client", () => ({
   api: {
-    opsDashboard: vi.fn(async () => ({
+    opsDashboard: vi?.fn(async () => ({
       ok: true,
       result: {
         version: {
@@ -59,15 +59,15 @@ describe("ProductionOpsPanel", () => {
   it("renders production ops health and version", async () => {
     render(<ProductionOpsPanel />);
     await waitFor(() => {
-      expect(screen.getByTestId("production-ops-panel")).toBeTruthy();
+      expect(screen?.getByTestId("production-ops-panel"))?.toBeTruthy();
     });
-    expect(screen.getByTestId("production-ops-panel").textContent).toMatch(
+    expect(screen?.getByTestId("production-ops-panel")?.textContent)?.toMatch(
       /1\.0\.0/,
     );
-    expect(screen.getByTestId("production-ops-panel").textContent).toMatch(
+    expect(screen?.getByTestId("production-ops-panel")?.textContent)?.toMatch(
       /Backup provider unavailable/i,
     );
-    expect(screen.getByTestId("production-ops-panel").textContent).toMatch(
+    expect(screen?.getByTestId("production-ops-panel")?.textContent)?.toMatch(
       /platform/,
     );
   });

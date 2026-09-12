@@ -76,8 +76,7 @@ const SelectContent = React.forwardRef<
         "bg-[var(--surface)] text-[var(--fg)]",
         "shadow-[var(--elevation-1,0_4px_12px_rgba(0,0,0,0.12))]",
         "data-[state=open]:animate-in data-[state=closed]:animate-out",
-        position === "popper" &&
-          "data-[side=bottom]:translate-y-1 data-[side=top]:-translate-y-1",
+        position === "popper"&& "data-[side=bottom]:translate-y-1 data-[side=top]:-translate-y-1",
         className,
       )}
       position={position}
@@ -87,8 +86,7 @@ const SelectContent = React.forwardRef<
       <SelectPrimitive.Viewport
         className={cn(
           "p-1",
-          position === "popper" &&
-            "h-[var(--radix-select-trigger-height)] w-full min-w-[var(--radix-select-trigger-width)]",
+          position === "popper"&& "h-[var(--radix-select-trigger-height)] w-full min-w-[var(--radix-select-trigger-width)]",
         )}
       >
         {children}

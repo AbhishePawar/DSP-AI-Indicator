@@ -5,30 +5,10 @@ import { CONFIDENCE_LABELS, type ConfidenceLevel } from "@/lib/trust/labels";
 import { presentFieldLabel } from "@/lib/terminology";
 
 export type CopilotAction =
-  | "explain_metric"
-  | "explain_section"
-  | "summarize_company"
-  | "show_supporting_evidence"
-  | "show_contradicting_evidence"
-  | "explain_confidence"
-  | "explain_assumptions"
-  | "explain_methodology"
-  | "navigate_related"
-  | "highlight_missing"
-  | "summarize_risks"
-  | "summarize_growth"
-  | "summarize_valuation"
-  | "compare"
-  | "show_timeline"
-  | "show_graph"
-  | "free_text";
+  | "explain_metric" |"explain_section" |"summarize_company" |"show_supporting_evidence" |"show_contradicting_evidence" |"explain_confidence" |"explain_assumptions" |"explain_methodology" |"navigate_related" |"highlight_missing" |"summarize_risks" |"summarize_growth" |"summarize_valuation" |"compare" |"show_timeline" |"show_graph" |"free_text";
 
 export type CopilotCitationKind =
-  | "decision_trace"
-  | "evidence"
-  | "knowledge_graph"
-  | "methodology"
-  | "confidence";
+  | "decision_trace" |"evidence" |"knowledge_graph" |"methodology" |"confidence";
 
 export type CopilotCitation = {
   id: string;
@@ -679,8 +659,7 @@ export function buildCopilotAnswer(
     case "compare": {
       return base({
         shortAnswer: view.analystConsensus.available
-          ? "Street consensus is available — see DSP vs Street."
-          : "Street / External Consensus is Unavailable. DSP Research remains the primary source — no fabricated Street opinion.",
+          ? "Street consensus is available — see DSP vs Street." :"Street / External Consensus is Unavailable. DSP Research remains the primary source — no fabricated Street opinion.",
         detailedExplanation: view.streetComparison
           .slice(0, 4)
           .map((r) => `${r.dimension}: ${r.reasonForDifference}`)

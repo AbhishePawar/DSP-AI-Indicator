@@ -432,8 +432,7 @@ class TestEngine:
         )
         assert result.explainability
         payload = result.to_dict()
-        assert "revenue_trends" in payload
-        assert FINANCIAL_VERSION.startswith("0.7.0")
+        assert "revenue_trends" in payload assert FINANCIAL_VERSION.startswith("0.7.0")
 
     def test_facade_and_snapshot(self) -> None:
         engine = FinancialEngine()
@@ -511,11 +510,9 @@ class TestEngine:
         engine = TrendEngine()
         result = engine.analyze(_history(1.0, 1.08, 1.16, 1.25))
         names_cf = {t.name for t in result.cash_flow_trends}
-        assert "operating_cash_flow" in names_cf
-        assert "free_cash_flow" in names_cf
+        assert "operating_cash_flow" in names_cf assert"free_cash_flow" in names_cf
         names_r = {t.name for t in result.ratio_trends}
-        assert "current_ratio" in names_r
-        assert "capital_allocation_score" in names_r
+        assert "current_ratio" in names_r assert"capital_allocation_score" in names_r
         assert result.trend_summary.insights is not None
 
     def test_min_two_periods(self) -> None:
@@ -589,7 +586,6 @@ class TestIntegrationExports:
     def test_package_exports(self) -> None:
         import financial
 
-        assert financial.__version__ == "0.7.0"
-        assert hasattr(financial, "TrendEngine")
+        assert financial.__version__ == "0.7.0" assert hasattr(financial,"TrendEngine")
         assert hasattr(financial, "TREND_RESEARCH_DISCLAIMER")
         assert hasattr(financial, "validate_trend_history")

@@ -9,15 +9,7 @@ import { create } from "zustand";
 import { persist } from "zustand/middleware";
 
 export type NotebookEntryKind =
-  | "note"
-  | "thesis"
-  | "question"
-  | "watch"
-  | "observation"
-  | "risk"
-  | "catalyst"
-  | "conclusion"
-  | "action";
+  | "note" |"thesis" |"question" |"watch" |"observation" |"risk" |"catalyst" |"conclusion" |"action";
 
 export type NotebookEntry = {
   id: string;

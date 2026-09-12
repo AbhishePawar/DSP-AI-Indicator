@@ -3,25 +3,12 @@
  */
 
 export type MpCategory =
-  | "growth"
-  | "balanced"
-  | "income"
-  | "value"
-  | "quality"
-  | "small_cap"
-  | "large_cap"
-  | "custom";
+  | "growth" |"balanced" |"income" |"value" |"quality" |"small_cap" |"large_cap" |"custom";
 
 export type MpRiskLevel = "conservative" | "moderate" | "growth" | "aggressive";
 
 export type MpTemplateId =
-  | "tpl-aggressive-growth"
-  | "tpl-balanced-growth"
-  | "tpl-conservative-income"
-  | "tpl-quality-compounders"
-  | "tpl-dividend-focus"
-  | "tpl-value-opportunities"
-  | "tpl-custom";
+  | "tpl-aggressive-growth" |"tpl-balanced-growth" |"tpl-conservative-income" |"tpl-quality-compounders" |"tpl-dividend-focus" |"tpl-value-opportunities" |"tpl-custom";
 
 export type MpHolding = {
   envelopeId: string;

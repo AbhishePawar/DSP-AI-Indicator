@@ -124,8 +124,7 @@ class KnowledgeGraphEngine:
             raise KnowledgeGraphError(msg)
         if profile.graph_id != report.graph_id:
             msg = (
-                "engine/report identity mismatch: "
-                f"profile {profile.graph_id!r} vs report {report.graph_id!r}"
+                "engine/report identity mismatch: " f"profile {profile.graph_id!r} vs report {report.graph_id!r}"
             )
             raise KnowledgeGraphError(msg)
         if (
@@ -133,9 +132,7 @@ class KnowledgeGraphEngine:
             and context.profile.graph_id != context.assembly.profile.graph_id
         ):
             msg = (
-                "engine/report identity mismatch: context profile "
-                f"{context.profile.graph_id!r} vs assembly "
-                f"{context.assembly.profile.graph_id!r}"
+                "engine/report identity mismatch: context profile " f"{context.profile.graph_id!r} vs assembly " f"{context.assembly.profile.graph_id!r}"
             )
             raise KnowledgeGraphError(msg)
         if not profile.recommendation_refs:
@@ -267,8 +264,7 @@ class KnowledgeGraphEngine:
             recommendation_refs=profile.recommendation_refs,
             workflow_refs=profile.workflow_refs,
             limitations=(
-                "KnowledgeGraphReport populated by Knowledge Graph Engine — "
-                "Reporter (I1.3) may refine presentation.",
+                "KnowledgeGraphReport populated by Knowledge Graph Engine — " "Reporter (I1.3) may refine presentation.",
                 *summary.limitation_notes,
                 *base_report.limitations,
             ),

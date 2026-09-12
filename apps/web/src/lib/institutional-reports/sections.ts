@@ -4,19 +4,7 @@
  */
 
 export type ReportSectionId =
-  | "cover"
-  | "summary"
-  | "valuation"
-  | "quality"
-  | "management"
-  | "moat"
-  | "risk"
-  | "ai"
-  | "explainability"
-  | "evidence"
-  | "timeline"
-  | "export"
-  | "audit";
+  | "cover" |"summary" |"valuation" |"quality" |"management" |"moat" |"risk" |"ai" |"explainability" |"evidence" |"timeline" |"export" |"audit";
 
 export type ReportSectionMeta = {
   id: ReportSectionId;

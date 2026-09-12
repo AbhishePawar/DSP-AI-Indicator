@@ -27,9 +27,10 @@ export {
 export {
   stateArchitecture,
   uiStoreDefaults,
-  type UiStoreState,
 } from "./state/architecture";
-export { apiStrategy, resolveListState, type ApiUxState } from "./api/strategy";
+export type { UiStoreState } from "./state/architecture";
+export { apiStrategy, resolveListState } from "./api/strategy";
+export type { ApiUxState } from "./api/strategy";
 export {
   emptyStrategy,
   errorStrategy,

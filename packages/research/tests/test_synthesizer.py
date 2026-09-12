@@ -164,9 +164,7 @@ class TestArchitectureAndCompatibility:
     def test_architecture_boundaries(self) -> None:
         path = (
             Path(__file__).resolve().parents[1]
-            / "src"
-            / "research"
-            / "synthesizer.py"
+            / "src" /"research" /"synthesizer.py"
         )
         source = path.read_text(encoding="utf-8")
         tree = ast.parse(source)
@@ -174,13 +172,7 @@ class TestArchitectureAndCompatibility:
         for node in ast.walk(tree):
             if isinstance(node, ast.ImportFrom) and node.module:
                 imported.add(node.module.split(".", 1)[0])
-        assert "portfolio" not in imported
-        assert "risk" not in imported
-        assert "industry" not in imported
-        assert "ResearchReporter" not in source
-        assert "BUY" not in source
-        assert "SELL" not in source
-        assert "sharpe" not in source.lower()
+        assert "portfolio"not in imported assert"risk"not in imported assert"industry"not in imported assert"ResearchReporter"not in source assert"BUY"not in source assert"SELL"not in source assert"sharpe" not in source.lower()
         assert "re-analyz" in source.lower() or "reinterpretation" in source.lower()
 
     def test_backward_compatibility(self) -> None:

@@ -124,11 +124,8 @@ export function BuffettIndicatorSection({
                       <span>{item.criterion}</span>
                       <Badge
                         variant={
-                          item.state === "met"
-                            ? "accent"
-                            : item.state === "not_met"
-                              ? "danger"
-                              : "outline"
+                          item.state === "met" ?"accent"
+                            : item.state === "not_met" ?"danger" :"outline"
                         }
                       >
                         {item.state === "met" ? "✓" : "·"} {matrixLabel(item.state)}

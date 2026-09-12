@@ -282,8 +282,7 @@ def test_financial_line_item_forgery_ignored_when_auth_present(
 def test_production_rejects_client_only_financials(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    """Production: rich client payload without auth providers → fail closed."""
-    monkeypatch.setenv("DSP_ENVIRONMENT", "production")
+    """Production: rich client payload without auth providers → fail closed.""" monkeypatch.setenv("DSP_ENVIRONMENT", "production")
     reset_financial_statement_service_for_tests(
         FinancialStatementService(InMemoryAuthenticatedStatementAdapter(api_key="k"))
     )

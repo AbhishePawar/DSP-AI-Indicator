@@ -1,11 +1,7 @@
 /** Live market data types — presentation only; never mixed with analysis scores. */
 
 export type MarketDataStatus =
-  | "idle"
-  | "loading"
-  | "success"
-  | "stale"
-  | "error";
+  | "idle" |"loading" |"success" |"stale" |"error";
 
 export type MarketQuoteSource = "live" | "cached" | "offline";
 

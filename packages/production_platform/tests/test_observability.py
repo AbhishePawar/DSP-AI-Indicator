@@ -62,10 +62,7 @@ class TestMetricsPrometheus:
         metrics.gauge("queue_depth", 2)
         metrics.timing("latency_ms", 12.5)
         text = render_prometheus(metrics)
-        assert "dsp_up 1" in text
-        assert "http_requests" in text
-        assert "queue_depth" in text
-        assert "TYPE" in text
+        assert "dsp_up 1" in text assert"http_requests"in text assert"queue_depth"in text assert"TYPE" in text
 
     def test_optional_prometheus_client(self) -> None:
         # May be None when package absent — must not raise.

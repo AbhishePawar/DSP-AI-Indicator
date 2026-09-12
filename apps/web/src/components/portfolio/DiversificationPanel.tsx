@@ -32,8 +32,7 @@ export function DiversificationPanel({
           <PortfolioCard
             label="Largest Sector"
             value={
-              diversification.largestSector === "—"
-                ? "—"
+              diversification.largestSector === "—" ?"—"
                 : `${diversification.largestSector} (${diversification.largestSectorPercent}%)`
             }
           />

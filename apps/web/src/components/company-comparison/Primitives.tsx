@@ -135,13 +135,9 @@ export function HeatCell({
   display: string;
 }) {
   const bg =
-    intensity === "high"
-      ? "bg-[var(--accent)]/25"
-      : intensity === "medium"
-        ? "bg-[var(--accent)]/12"
-        : intensity === "low"
-          ? "bg-[var(--muted)]/20"
-          : "bg-transparent";
+    intensity === "high" ?"bg-[var(--accent)]/25"
+      : intensity === "medium" ?"bg-[var(--accent)]/12"
+        : intensity === "low" ?"bg-[var(--muted)]/20" :"bg-transparent";
   return (
     <div
       className={cn(

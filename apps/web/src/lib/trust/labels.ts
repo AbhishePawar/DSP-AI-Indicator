@@ -2,30 +2,14 @@
 
 export type SourceKind =
   | "verified_financial_statement"
-  | "authenticated_market_data"
-  | "calculated_metric"
-  | "estimated_value"
-  | "ai_interpretation"
-  | "external_consensus"
-  | "user_input"
-  | "unavailable";
+  | "authenticated_market_data" |"calculated_metric" |"estimated_value" |"ai_interpretation" |"external_consensus" |"user_input" |"unavailable";
 
 export type ValueCategory =
   | "verified_fact"
-  | "calculated"
-  | "estimated"
-  | "ai_interpretation"
-  | "external_consensus"
-  | "user_input"
-  | "unknown"
-  | "unavailable";
+  | "calculated" |"estimated" |"ai_interpretation" |"external_consensus" |"user_input" |"unknown" |"unavailable";
 
 export type ConfidenceLevel =
-  | "very_high"
-  | "high"
-  | "moderate"
-  | "low"
-  | "insufficient_evidence";
+  | "very_high" |"high" |"moderate" |"low" |"insufficient_evidence";
 
 export const SOURCE_LABELS: Record<SourceKind, string> = {
   verified_financial_statement: "Verified Financial Statement",

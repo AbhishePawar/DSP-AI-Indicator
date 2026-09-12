@@ -101,18 +101,15 @@ def test_json_export_preserves_unavailable() -> None:
         == "Data unavailable."
     )
     text = base64.b64decode(artifact.content_base64).decode("utf-8")
-    assert "Data unavailable." in text
-    assert "190.5" in text
+    assert "Data unavailable."in text assert"190.5" in text
 
 
 def test_csv_export() -> None:
     artifact = export_institutional_report(
         _report(), format="csv", export_id=FIXED_EXP, exported_at=FIXED_TS
     )
-    text = artifact.content_text or ""
-    assert text.startswith("section,rs_id,field,value,")
-    assert "Data unavailable." in text
-    assert "current_price" in text
+    text = artifact.content_text or "" assert text.startswith("section,rs_id,field,value,")
+    assert "Data unavailable."in text assert"current_price" in text
 
 
 def test_xlsx_export_is_zip() -> None:
@@ -125,8 +122,7 @@ def test_xlsx_export_is_zip() -> None:
         names = set(zf.namelist())
         assert "xl/worksheets/sheet1.xml" in names
         sheet = zf.read("xl/worksheets/sheet1.xml").decode("utf-8")
-        assert "Data unavailable." in sheet
-        assert "current_price" in sheet
+        assert "Data unavailable."in sheet assert"current_price" in sheet
 
 
 def test_pdf_export() -> None:
@@ -170,10 +166,7 @@ def test_pptx_export_is_zip() -> None:
     assert raw[:2] == b"PK"
     with zipfile.ZipFile(BytesIO(raw)) as zf:
         names = set(zf.namelist())
-        assert "ppt/presentation.xml" in names
-        assert "ppt/slideMasters/slideMaster1.xml" in names
-        assert "ppt/slideLayouts/slideLayout1.xml" in names
-        assert "ppt/theme/theme1.xml" in names
+        assert "ppt/presentation.xml" in names assert"ppt/slideMasters/slideMaster1.xml"in names assert"ppt/slideLayouts/slideLayout1.xml"in names assert"ppt/theme/theme1.xml" in names
         slide_names = sorted(n for n in names if n.startswith("ppt/slides/slide"))
         assert len(slide_names) >= 2
         blob = "".join(
@@ -181,8 +174,7 @@ def test_pptx_export_is_zip() -> None:
             for n in names
             if n.startswith("ppt/slides/slide") and n.endswith(".xml")
         )
-        assert "Data unavailable." in blob
-        assert "190.5" in blob
+        assert "Data unavailable." in blob assert"190.5" in blob
 
 
 def test_determinism() -> None:

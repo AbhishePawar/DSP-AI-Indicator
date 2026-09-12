@@ -554,13 +554,11 @@ def _guidance(
             AssuranceLevel.MODERATE,
         }:
             rationale = (
-                "Committee is aligned on HOLD; stand aside until a "
-                "directional majority forms."
+                "Committee is aligned on HOLD; stand aside until a " "directional majority forms."
             )
         elif agreement is AgreementQuality.CONFLICT or level is AssuranceLevel.LOW:
             rationale = (
-                "Committee outcome is unresolved or low-assurance; "
-                "do not add exposure on this deliberation alone."
+                "Committee outcome is unresolved or low-assurance; " "do not add exposure on this deliberation alone."
             )
         else:
             rationale = (
@@ -575,8 +573,7 @@ def _guidance(
         return InvestorGuidance(
             stance=GuidanceStance.STAND_ASIDE,
             rationale=(
-                "Assurance is low or the committee outcome is unresolved; "
-                "do not add exposure on this deliberation alone."
+                "Assurance is low or the committee outcome is unresolved; " "do not add exposure on this deliberation alone."
             ),
         )
 
@@ -585,8 +582,7 @@ def _guidance(
         return InvestorGuidance(
             stance=GuidanceStance.WAIT_FOR_CONFIRMATION,
             rationale=(
-                "Valuation supports the directional call but Margin of Safety "
-                "is unavailable; wait for confirmation before acting."
+                "Valuation supports the directional call but Margin of Safety " "is unavailable; wait for confirmation before acting."
             ),
         )
 
@@ -595,8 +591,7 @@ def _guidance(
             return InvestorGuidance(
                 stance=GuidanceStance.WATCH_VALUATION,
                 rationale=(
-                    "Decision depends on a concentrated valuation thesis; "
-                    "watch MoS before committing fully."
+                    "Decision depends on a concentrated valuation thesis; " "watch MoS before committing fully."
                 ),
             )
         return InvestorGuidance(
@@ -613,9 +608,7 @@ def _guidance(
                 return InvestorGuidance(
                     stance=GuidanceStance.REVIEW_AFTER_EARNINGS,
                     rationale=(
-                        "Moderate assurance on a SELL with fundamental "
-                        "involvement; reduce only after confirming the next "
-                        "fundamental update — do not add long exposure."
+                        "Moderate assurance on a SELL with fundamental " "involvement; reduce only after confirming the next " "fundamental update — do not add long exposure."
                     ),
                 )
             return InvestorGuidance(
@@ -629,23 +622,20 @@ def _guidance(
             return InvestorGuidance(
                 stance=GuidanceStance.ACCUMULATE_GRADUALLY,
                 rationale=(
-                    "Moderate assurance supports gradual accumulation; "
-                    "revisit after fresh fundamental confirmation."
+                    "Moderate assurance supports gradual accumulation; " "revisit after fresh fundamental confirmation."
                 ),
             )
         if economic_led:
             return InvestorGuidance(
                 stance=GuidanceStance.MONITOR_MACRO_CHANGE,
                 rationale=(
-                    "Macro support is material; monitor regime change closely "
-                    "while sizing cautiously."
+                    "Macro support is material; monitor regime change closely " "while sizing cautiously."
                 ),
             )
         return InvestorGuidance(
             stance=GuidanceStance.ACCUMULATE_GRADUALLY,
             rationale=(
-                "Moderate assurance supports staged engagement rather than "
-                "an immediate full commitment."
+                "Moderate assurance supports staged engagement rather than " "an immediate full commitment."
             ),
         )
 
@@ -655,8 +645,7 @@ def _guidance(
             return InvestorGuidance(
                 stance=GuidanceStance.WAIT_FOR_CONFIRMATION,
                 rationale=(
-                    "Assurance is high but hard dissent remains on a SELL; "
-                    "confirm before accelerating risk reduction."
+                    "Assurance is high but hard dissent remains on a SELL; " "confirm before accelerating risk reduction."
                 ),
             )
         return InvestorGuidance(
@@ -669,23 +658,20 @@ def _guidance(
         return InvestorGuidance(
             stance=GuidanceStance.INVEST_IMMEDIATELY,
             rationale=(
-                "High assurance with available MoS and broad support; "
-                "the deliberation structure supports prompt engagement."
+                "High assurance with available MoS and broad support; " "the deliberation structure supports prompt engagement."
             ),
         )
     if sell_like:
         return InvestorGuidance(
             stance=GuidanceStance.INVEST_IMMEDIATELY,
             rationale=(
-                "High assurance on SELL; the deliberation structure supports "
-                "prompt risk reduction."
+                "High assurance on SELL; the deliberation structure supports " "prompt risk reduction."
             ),
         )
     return InvestorGuidance(
         stance=GuidanceStance.ACCUMULATE_GRADUALLY,
         rationale=(
-            "High assurance overall; staged engagement remains prudent "
-            "given residual soft dissent or mixed drivers."
+            "High assurance overall; staged engagement remains prudent " "given residual soft dissent or mixed drivers."
         ),
     )
 

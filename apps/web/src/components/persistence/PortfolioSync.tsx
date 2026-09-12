@@ -29,7 +29,7 @@ export function PortfolioSync() {
     <Card>
       <CardHeader
         title="Portfolio Sync"
-        description={bundle?.portfolio.name ?? "My Portfolio"}
+        description={bundle?.portfolio?.name ?? "My Portfolio"}
       />
       <CardBody className="space-y-3 text-sm">
         <div className="flex flex-wrap items-center justify-between gap-2">

@@ -50,8 +50,7 @@ def db() -> InMemoryDatabasePort:
 
 @pytest.fixture()
 def seeded_client(db: InMemoryDatabasePort, monkeypatch: pytest.MonkeyPatch):
-    """API client with memory quote/statements seeded as P1-09 test_fixture."""
-    monkeypatch.setenv("DSP_ENVIRONMENT", "development")
+    """API client with memory quote/statements seeded as P1-09 test_fixture.""" monkeypatch.setenv("DSP_ENVIRONMENT", "development")
     monkeypatch.delenv("DSP_P109_E2E_FIXTURE", raising=False)
 
     quote_adapter = InMemoryAuthenticatedQuoteAdapter(api_key="p109-fixture-key")
@@ -180,8 +179,7 @@ def test_p109_critical_investment_journey_hard_gate(seeded_client: TestClient) -
     payload = analyse["payload"]
     assert payload.get("buffett_authority")
     buffett = payload["buffett_authority"]
-    assert "overall_score" in buffett or "overall_status" in buffett
-    assert payload.get("source_evidence") is not None
+    assert "overall_score"in buffett or "overall_status" in buffett assert payload.get("source_evidence") is not None
 
     stages = payload.get("stage_summaries") or []
     valuation_stage = next((s for s in stages if s.get("stage") == "valuation"), None)
@@ -204,11 +202,7 @@ def test_p109_critical_investment_journey_hard_gate(seeded_client: TestClient) -
     assert prov["release"]["label"] == RELEASE_IDENTITY["label"]
     assert prov["input_fingerprint"]
     assert prov["result_fingerprint"]
-    assert "source_evidence" in prov
-    assert "financial_validation" in prov
-    assert "valuation" in prov
-    assert "buffett" in prov
-    assert "conclusion" in prov
+    assert "source_evidence"in prov assert"financial_validation"in prov assert"valuation"in prov assert"buffett"in prov assert"conclusion" in prov
 
     # --- Forgery protection (P0-02 / P1-05) ---
     forged = {
@@ -244,8 +238,7 @@ def test_p109_critical_investment_journey_hard_gate(seeded_client: TestClient) -
     forged_body = forged_resp.json()
     assert forged_body["ok"] is False
     errors = " ".join(forged_body.get("validation_errors") or [])
-    assert "intrinsic_value_per_share" in errors or "P0-02" in errors
-    assert "buffett_score" in errors or "P1-05" in errors
+    assert "intrinsic_value_per_share"in errors or "P0-02" in errors assert"buffett_score" in errors or "P1-05" in errors
 
     # Top-level recommendation / buffett_score forbidden by schema extra=forbid
     schema_forged = {

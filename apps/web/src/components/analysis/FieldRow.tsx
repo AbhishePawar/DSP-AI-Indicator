@@ -12,8 +12,7 @@ export function FieldRow({
   emphasize?: boolean;
 }) {
   const display =
-    field.presence === "unavailable" || field.value == null
-      ? "Unavailable"
+    field.presence === "unavailable" || field.value == null ?"Unavailable"
       : Array.isArray(field.value)
         ? field.value.join(" · ")
         : String(field.value);

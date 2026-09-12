@@ -179,8 +179,7 @@ class UpstoxConnectivityClient:
         if not self.configured():
             if is_production_environment():
                 detail = (
-                    "production fail-closed: Upstox analytics token absent — "
-                    "no fixture substitution"
+                    "production fail-closed: Upstox analytics token absent — " "no fixture substitution"
                 )
             else:
                 detail = "Upstox analytics token absent — provider unavailable"

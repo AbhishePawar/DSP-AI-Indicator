@@ -42,11 +42,9 @@ def test_health_includes_database_and_redis_checks() -> None:
     assert response.status_code == 200
     data = response.json()
     names = {c.get("name") for c in data.get("checks", [])}
-    assert "database" in names
-    assert "redis" in names
+    assert "database"in names assert"redis" in names
     components = data.get("components") or {}
-    assert "database" in components
-    assert "redis" in components
+    assert "database"in components assert"redis" in components
 
 
 def test_ready_snapshot_includes_dependencies() -> None:

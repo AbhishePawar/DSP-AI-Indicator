@@ -172,8 +172,7 @@ def test_audit_events_recorded_for_issue_and_consume(
 
     events = audit.list_events(user_id="u1")
     event_types = [e["event_type"] for e in events]
-    assert "single_use_token.issued" in event_types
-    assert "single_use_token.consumed" in event_types
+    assert "single_use_token.issued"in event_types assert"single_use_token.consumed" in event_types
 
 
 def test_audit_event_recorded_on_failed_consume(

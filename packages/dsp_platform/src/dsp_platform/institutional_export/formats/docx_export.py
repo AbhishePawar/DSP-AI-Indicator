@@ -22,32 +22,28 @@ from dsp_platform.institutional_report.models import (
 __all__ = ["export_docx_bytes"]
 
 _CONTENT_TYPES = (
-    '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
-    '<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">'
+    '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>' '<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">'
     '<Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/>'
     '<Default Extension="xml" ContentType="application/xml"/>'
     '<Override PartName="/word/document.xml" '
-    'ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml"/>'
-    "</Types>"
+    'ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml"/>' "</Types>"
 )
 
 _ROOT_RELS = (
-    '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
-    '<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">'
+    '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>' '<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">'
     '<Relationship Id="rId1" '
     'Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" '
-    'Target="word/document.xml"/>'
-    "</Relationships>"
+    'Target="word/document.xml"/>' "</Relationships>"
 )
 
 
 def _run(text: str, *, bold: bool = False) -> str:
-    r_pr = "<w:rPr><w:b/></w:rPr>" if bold else ""
+    r_pr = "&lt;w:rPr&gt;&lt;w:b/&gt;&lt;/w:rPr&gt;" if bold else ""
     return f'<w:r>{r_pr}<w:t xml:space="preserve">{escape(text)}</w:t></w:r>'
 
 
 def _paragraph(text: str, *, bold: bool = False, heading: bool = False) -> str:
-    p_pr = "<w:pPr><w:spacing w:before=\"120\" w:after=\"60\"/></w:pPr>" if heading else ""
+    p_pr = "&lt;w:pPr&gt;&lt;w:spacing w:before=\"120\" w:after=\"60\"/&gt;&lt;/w:pPr&gt;" if heading else ""
     return f"<w:p>{p_pr}{_run(text, bold=bold)}</w:p>"
 
 
@@ -88,14 +84,12 @@ def export_docx_bytes(report: InstitutionalResearchReport) -> bytes:
                 body_parts.append(_paragraph(line))
 
     body_parts.append(
-        '<w:sectPr><w:pgSz w:w="12240" w:h="15840"/>'
-        '<w:pgMar w:top="1440" w:right="1440" w:bottom="1440" w:left="1440"/></w:sectPr>'
+        '&lt;w:sectPr&gt;&lt;w:pgSz w:w="12240" w:h="15840"/&gt;' '&lt;w:pgMar w:top="1440" w:right="1440" w:bottom="1440" w:left="1440"/&gt;&lt;/w:sectPr&gt;'
     )
 
     document_xml = (
-        '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
-        '<w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main">'
-        "<w:body>" + "".join(body_parts) + "</w:body>"
+        '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>' '<w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main">'
+        "&lt;w:body&gt;" + "".join(body_parts) + "&lt;/w:body&gt;"
         "</w:document>"
     )
 

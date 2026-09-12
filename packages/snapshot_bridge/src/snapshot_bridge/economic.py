@@ -104,8 +104,7 @@ class EconomicSnapshotBuilder:
         resolved_as_of = as_of or latest_as_of(list(indexed.values()))
         if resolved_as_of is None:
             msg = (
-                "as_of is required when no economic series with "
-                "observations are provided"
+                "as_of is required when no economic series with " "observations are provided"
             )
             raise SnapshotBridgeError(msg)
 

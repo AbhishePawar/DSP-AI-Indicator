@@ -140,8 +140,7 @@ class YahooFinanceAdapter(BaseAdapter, MarketDataPort):
         """
         if frequency is not BarFrequency.DAILY:
             msg = (
-                f"YahooFinanceAdapter only supports BarFrequency.DAILY, "
-                f"got {frequency!r}"
+                f"YahooFinanceAdapter only supports BarFrequency.DAILY, " f"got {frequency!r}"
             )
             raise DataEngineError(msg)
 
@@ -246,8 +245,7 @@ class YahooFinanceAdapter(BaseAdapter, MarketDataPort):
             close = _at(closes, index)
 
             if open_ is None and high is None and low is None and close is None:
-                # Yahoo Finance's convention for "no trading session at
-                # this timestamp" (e.g. an exchange holiday) rather than
+                # Yahoo Finance's convention for "no trading session at # this timestamp" (e.g. an exchange holiday) rather than
                 # a genuine data-quality problem — skip, don't fail.
                 continue
 

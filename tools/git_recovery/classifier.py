@@ -273,7 +273,7 @@ _GROUP_META: dict[str, dict] = {
 
 def is_ignored_path(path: str) -> bool:
     """Return True for paths that must never be staged by recovery."""
-    p = path.replace("\\", "/").lower()
+    p = path.replace("\", "/").lower()
     markers = (
         "node_modules/",
         "/.next/",
@@ -306,7 +306,7 @@ def is_ignored_path(path: str) -> bool:
 
 def classify_path(path: str) -> str:
     """Map a single path to a group key."""
-    p = path.replace("\\", "/")
+    p = path.replace("\", "/")
 
     if is_ignored_path(p):
         return "ignored"

@@ -32,10 +32,7 @@ from dsp_platform.business_education.models import (
 )
 
 DISCLAIMER = (
-    "Business & Buffett Analysis is an educational business-understanding layer. "
-    "It does not calculate intrinsic value, margin of safety, Buffett scores, "
-    "or investment recommendations. Quantitative valuation remains authoritative "
-    "in the valuation and Buffett Indicator engines. Research Mode — not investment advice."
+    "Business & Buffett Analysis is an educational business-understanding layer. " "It does not calculate intrinsic value, margin of safety, Buffett scores, " "or investment recommendations. Quantitative valuation remains authoritative " "in the valuation and Buffett Indicator engines. Research Mode — not investment advice."
 )
 
 _DEMO_MARKERS = frozenset(
@@ -248,8 +245,7 @@ def build_business_education_report(
                     warnings.append(t)
         label = _text(s.get("label"))
         status = str(s.get("status") or "").lower()
-        if status == "failed" and label:
-            warnings.append(f"Stage {s.get('stage')}: {label}")
+        if status == "failed"and label: warnings.append(f"Stage {s.get('stage')}: {label}")
 
     # --- 1. The Business, Simply ---
     biz_claims = [
@@ -272,8 +268,7 @@ def build_business_education_report(
             available=_stage_available(financial),
         ),
         claim(
-            "Detailed product/service catalogue and customer segments are not exposed "
-            "on the analysis payload — not invented. Use filings for full business description.",
+            "Detailed product/service catalogue and customer segments are not exposed " "on the analysis payload — not invented. Use filings for full business description.",
             kind=ClaimKind.INTERPRETATION,
             source="educational_layer",
             available=True,
@@ -386,8 +381,7 @@ def build_business_education_report(
         )
     weak_claims.append(
         claim(
-            "What could make the thesis wrong: deterioration in moat, financial strength, "
-            "earnings quality, or growth stages versus current labels — monitored via those engines.",
+            "What could make the thesis wrong: deterioration in moat, financial strength, " "earnings quality, or growth stages versus current labels — monitored via those engines.",
             kind=ClaimKind.INTERPRETATION,
             source="educational_layer",
         )
@@ -563,8 +557,7 @@ def build_business_education_report(
                     else "Evidence unavailable from stage summary."
                 ),
                 "uncertainty": (
-                    "Stage confidence: "
-                    + (_text(stage.get("confidence")) or UNAVAILABLE_MESSAGE)
+                    "Stage confidence: " + (_text(stage.get("confidence")) or UNAVAILABLE_MESSAGE)
                 ),
                 "source": f"stage:{src}",
             }
@@ -572,8 +565,7 @@ def build_business_education_report(
     section_checklist = _section(
         "the_buffett_checklist",
         summary=(
-            "Educational checklist mapped from existing stages. "
-            "Does not replace the Buffett Indicator engine and does not compute a Buffett score."
+            "Educational checklist mapped from existing stages. " "Does not replace the Buffett Indicator engine and does not compute a Buffett score."
         ),
         claims=[
             claim(
@@ -607,8 +599,7 @@ def build_business_education_report(
             available=bool(_metric_from_stage(management, "Capital Allocation")),
         ),
         claim(
-            "Promoter ownership, buybacks, dividends, and related-party detail are not "
-            "invented when absent from the analysis payload.",
+            "Promoter ownership, buybacks, dividends, and related-party detail are not " "invented when absent from the analysis payload.",
             kind=ClaimKind.INTERPRETATION,
             source="educational_layer",
         ),

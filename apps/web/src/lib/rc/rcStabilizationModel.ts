@@ -321,8 +321,7 @@ export function buildRcDashboard(): RcDashboardView {
       (i.status === "open" || i.status === "in_progress") &&
       (i.severity === "critical" || i.severity === "high"),
   )
-    ? "At risk"
-    : "Pass — keyboard, SR, contrast, reduced motion verified";
+    ? "At risk" :"Pass — keyboard, SR, contrast, reduced motion verified";
 
   const performanceStatus =
     remainingHigh > 0 &&
@@ -332,8 +331,7 @@ export function buildRcDashboard(): RcDashboardView {
         (i.status === "open" || i.status === "in_progress") &&
         i.severity === "high",
     )
-      ? "Warn — open high perf issues"
-      : "Pass — windowed lists, lazy Copilot, route polish";
+      ? "Warn — open high perf issues" :"Pass — windowed lists, lazy Copilot, route polish";
 
   const securityStatus = "Pass — CSP enforced at Web 1.0.0; no secrets in client";
   const regressionStatus = REGRESSION_SUMMARY;

@@ -192,15 +192,9 @@ class TestArchitectureAndCompatibility:
 
         source = (
             Path(__file__).resolve().parents[1]
-            / "src"
-            / "research"
-            / "assembler.py"
+            / "src" /"research" /"assembler.py"
         ).read_text(encoding="utf-8")
-        assert "ResearchInsight(" not in source
-        assert "ResearchConflict(" not in source
-        assert "ResearchGap(" not in source
-        assert "ResearchPriority(" not in source
-        assert "Synthesizer" not in source or "deferred to ResearchSynthesizer" in source
+        assert "ResearchInsight("not in source assert"ResearchConflict("not in source assert"ResearchGap("not in source assert"ResearchPriority("not in source assert"Synthesizer" not in source or "deferred to ResearchSynthesizer" in source
 
     def test_backward_compatibility(self) -> None:
         import research as rs

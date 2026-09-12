@@ -132,8 +132,7 @@ def test_ai_execution_blocked_without_fixture() -> None:
     assert assembly.private_prompt is not None
     dumped = assembly.to_public_dict()
     assert set(dumped) == PUBLIC_ASSEMBLY_KEYS
-    assert "private_prompt" not in dumped
-    assert "canary" not in dumped
+    assert "private_prompt" not in dumped assert"canary" not in dumped
     assert assembly.private_prompt.canary == PRIVATE_METHODOLOGY_CANARY
     assert PRIVATE_METHODOLOGY_CANARY not in str(dumped)
     assert assembly.private_prompt.text not in str(dumped)
@@ -178,9 +177,7 @@ def test_positive_fixture_produces_public_report() -> None:
     dumped = assembly.to_public_dict()
     assert dumped["report"] is not None
     assert set(dumped["report"]) == PUBLIC_TOP_LEVEL_KEYS
-    assert "provider" not in dumped
-    assert "model" not in dumped
-    assert "private_prompt" not in dumped
+    assert "provider"not in dumped assert"model"not in dumped assert"private_prompt" not in dumped
     assert PRIVATE_METHODOLOGY_CANARY not in str(dumped)
     assert "openai" not in str(dumped).lower()
 

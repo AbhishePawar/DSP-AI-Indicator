@@ -4,25 +4,9 @@
  */
 
 export type PortfolioSectionId =
-  | "summary"
-  | "allocation"
-  | "performance"
-  | "quality"
-  | "valuation"
-  | "risk"
-  | "research"
-  | "watchlist"
-  | "opportunities"
-  | "rebalancing"
-  | "explainability"
-  | "export"
-  | "holdings"
-  | "compliance"
+  | "summary" |"allocation" |"performance" |"quality" |"valuation" |"risk" |"research" |"watchlist" |"opportunities" |"rebalancing" |"explainability" |"export" |"holdings" |"compliance"
   /** EPIC-015 — Portfolio Intelligence 2.0 */
-  | "scenarios"
-  | "drift"
-  | "timeline"
-  | "integrations";
+  | "scenarios" |"drift" |"timeline" |"integrations";
 
 export type PortfolioSectionMeta = {
   id: PortfolioSectionId;

@@ -18,19 +18,16 @@ export function StatusBar() {
   const { syncStatus, lastSyncedAt } = usePersistence();
   const healthQuery = useQuery({
     queryKey: ["terminal", "health"],
-    queryFn: () => api.health({ token: session?.accessToken }),
+    queryFn: () => api?.health({ token: session?.accessToken }),
     retry: 1,
     staleTime: 30_000,
   });
 
-  const ready = healthQuery.data?.ready;
-  const platformVersion = healthQuery.data?.platform_version;
+  const ready = healthQuery?.data?.ready;
+  const platformVersion = healthQuery?.data?.platform_version;
   const envLabel =
-    env.environment === "production"
-      ? "PROD"
-      : env.environment === "test"
-        ? "TEST"
-        : "DEV";
+    env.environment === "production" ?"PROD"
+      : env.environment === "test" ?"TEST" :"DEV";
 
   return (
     <footer
@@ -47,8 +44,7 @@ export function StatusBar() {
           {ready === undefined
             ? "Checking…"
             : ready
-              ? "API Connected"
-              : "API Unavailable"}
+              ? "API Connected" :"API Unavailable"}
         </span>
         <Badge variant="outline" className="font-mono text-[10px]">
           FE v{env.frontendVersion}
@@ -72,12 +68,12 @@ export function StatusBar() {
         </span>
         <LegalNavLinks density="footer" />
         <Link
-          href={LEGAL_ROUTES.docsIndex}
+          href={LEGAL_ROUTES?.docsIndex}
           className="text-[10px] underline-offset-2 hover:underline hover:text-[var(--fg)]"
         >
           Docs
         </Link>
-        <span>© {new Date().getFullYear()} DSP AI Indicator</span>
+        <span>© {new Date()?.getFullYear()} DSP AI Indicator</span>
       </div>
     </footer>
   );

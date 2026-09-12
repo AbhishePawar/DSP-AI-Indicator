@@ -59,8 +59,7 @@ def _evidence(
 class TestModels:
     def test_immutable_and_semver(self) -> None:
         m = _metric("DSP.Metric.ROE")
-        assert m.id == "dsp.metric.roe"
-        assert EvidenceVersion("1.2.3").value == "1.2.3"
+        assert m.id == "dsp.metric.roe" assert EvidenceVersion("1.2.3").value == "1.2.3"
         with pytest.raises(ValidationError, match="semantic version"):
             IndustryMetricDefinition(
                 id="dsp.metric.x",

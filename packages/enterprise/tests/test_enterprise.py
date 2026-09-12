@@ -81,8 +81,7 @@ def test_audit_immutability_and_api_key_scopes(svc: EnterpriseService) -> None:
         scopes=["org.view", "usage.view"],
         actor_user_id="u-sec",
     )
-    assert "secret" in key
-    assert "secret_hash" not in key
+    assert "secret" in key assert"secret_hash" not in key
     secret = key["secret"]
 
     listed = svc.list_api_keys(org["org_id"], actor_user_id="u-sec")

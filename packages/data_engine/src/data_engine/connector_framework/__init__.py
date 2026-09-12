@@ -1,8 +1,7 @@
 """Data Connector Framework — shared cross-domain building blocks.
 
 This package is the composition substrate for every new authenticated
-data-provider domain that follows the "News / Filings / Ownership /
-Insider Trading / ESG / Transcript" shape: a ``Port`` ABC per domain,
+data-provider domain that follows the "News / Filings / Ownership / Insider Trading / ESG / Transcript" shape: a ``Port`` ABC per domain,
 Null/InMemory/HTTP adapters, and a domain ``Service`` wrapping a single
 provider with cache + rate-limit + retry + circuit-breaker + timeout —
 exactly the pattern already established by ``market_quote`` /

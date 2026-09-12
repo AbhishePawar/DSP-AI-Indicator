@@ -36,8 +36,7 @@ def validate_authenticated_transcripts(bundle: AuthenticatedTranscripts) -> None
         )
     if not bundle.transcripts:
         raise InvalidProviderDataError(
-            "authenticated transcripts bundle must include at least one transcript "
-            "(use None from adapter when unavailable)"
+            "authenticated transcripts bundle must include at least one transcript " "(use None from adapter when unavailable)"
         )
     for i, transcript in enumerate(bundle.transcripts):
         _validate_transcript(transcript, i)

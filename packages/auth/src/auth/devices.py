@@ -272,8 +272,7 @@ class DeviceRegistry:
         """Mark ``device_id`` trusted (remembered for MFA step-up) or not.
 
         Trust always expires — ``ttl_days`` (default
-        ``DSP_AUTH_TRUSTED_DEVICE_DAYS``, 30) bounds how long "remember this
-        device" can skip MFA before re-verification is required again.
+        ``DSP_AUTH_TRUSTED_DEVICE_DAYS``, 30) bounds how long "remember this device" can skip MFA before re-verification is required again.
         """
         if trusted:
             days = ttl_days if ttl_days and ttl_days > 0 else _trusted_device_ttl_days()

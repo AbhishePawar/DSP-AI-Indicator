@@ -477,8 +477,7 @@ def test_missing_units_fail_closed() -> None:
     del income["data"]["units_in"]
     client = _client(search_rows=[_INFY], symbol="INFY", income=income)
     result = client.get_fundamentals(UpstoxFundamentalsRequest(symbol="INFY"))
-    assert result.status == "UNAVAILABLE"
-    assert "units" in result.detail.lower() or "currency" in result.detail.lower()
+    assert result.status == "UNAVAILABLE" assert"units" in result.detail.lower() or "currency" in result.detail.lower()
 
 
 def test_total_expenses_not_mapped_as_cogs() -> None:
@@ -525,8 +524,7 @@ def test_missing_credential(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.delenv("DSP_UPSTOX_ANALYTICS_TOKEN", raising=False)
     client = UpstoxFundamentalsClient(access_token="")
     result = client.get_fundamentals(UpstoxFundamentalsRequest(symbol="INFY"))
-    assert result.status == "UNAVAILABLE"
-    assert "absent" in result.detail.lower()
+    assert result.status == "UNAVAILABLE" assert"absent" in result.detail.lower()
 
 
 @pytest.mark.parametrize("code,fragment", [(401, "401"), (403, "403"), (404, "404"), (429, "429")])
@@ -595,16 +593,14 @@ def test_production_fail_closed(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.delenv("DSP_UPSTOX_ANALYTICS_TOKEN", raising=False)
     client = UpstoxFundamentalsClient(access_token="")
     result = client.get_fundamentals(UpstoxFundamentalsRequest(symbol="INFY"))
-    assert result.status == "UNAVAILABLE"
-    assert "fail-closed" in result.detail.lower()
+    assert result.status == "UNAVAILABLE" assert"fail-closed" in result.detail.lower()
 
 
 def test_token_not_leaked() -> None:
     client = _client(search_rows=[_INFY], symbol="INFY", token="super-secret-u4-token")
     result = client.get_fundamentals(UpstoxFundamentalsRequest(symbol="INFY"))
     blob = str(result.to_public_dict())
-    assert "super-secret-u4-token" not in blob
-    assert "Bearer" not in blob
+    assert "super-secret-u4-token" not in blob assert"Bearer" not in blob
 
 
 def test_coverage_matrix_present() -> None:

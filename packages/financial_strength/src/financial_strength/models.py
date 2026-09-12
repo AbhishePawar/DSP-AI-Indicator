@@ -74,8 +74,7 @@ class FinancialStrengthScore:
                 f"score.value must be in [{self.scale_min}, {self.scale_max}]"
             )
         object.__setattr__(self, "value", value)
-        if status == "not_assessed":
-            object.__setattr__(self, "status", "assessed")
+        if status == "not_assessed": object.__setattr__(self,"status", "assessed")
 
     def to_dict(self) -> dict[str, Any]:
         return {

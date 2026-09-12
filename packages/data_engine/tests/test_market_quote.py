@@ -153,5 +153,4 @@ class TestRegistry:
         reg = MarketQuoteProviderRegistry()
         adapter = NullAuthenticatedQuoteAdapter()
         reg.register(adapter, default=True)
-        assert reg.get().provider_id == "null_market_quote"
-        assert "null_market_quote" in reg.list_ids()
+        assert reg.get().provider_id == "null_market_quote" assert"null_market_quote" in reg.list_ids()

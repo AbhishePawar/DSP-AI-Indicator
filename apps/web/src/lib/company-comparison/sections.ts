@@ -1,35 +1,7 @@
 /** EPIC-012/013/013A — Comparison workspace section registry. */
 
 export type ComparisonSectionId =
-  | "summary"
-  | "scorecard"
-  | "winnerMatrix"
-  | "tradeOffs"
-  | "valuation"
-  | "businessQuality"
-  | "management"
-  | "moat"
-  | "risk"
-  | "financial"
-  | "evidence"
-  | "evidenceStrength"
-  | "contradictory"
-  | "whyNot"
-  | "explainability"
-  | "intelligence"
-  | "buffett"
-  | "heatmap"
-  | "scenarios"
-  | "portfolioFit"
-  | "sectorContext"
-  | "sensitivity"
-  | "committeeMemo"
-  | "decisionWorkspace"
-  | "history"
-  | "weighting"
-  | "personal"
-  | "export"
-  | "architecture";
+  | "summary" |"scorecard" |"winnerMatrix" |"tradeOffs" |"valuation" |"businessQuality" |"management" |"moat" |"risk" |"financial" |"evidence" |"evidenceStrength" |"contradictory" |"whyNot" |"explainability" |"intelligence" |"buffett" |"heatmap" |"scenarios" |"portfolioFit" |"sectorContext" |"sensitivity" |"committeeMemo" |"decisionWorkspace" |"history" |"weighting" |"personal" |"export" |"architecture";
 
 export type ComparisonSectionDef = {
   id: ComparisonSectionId;

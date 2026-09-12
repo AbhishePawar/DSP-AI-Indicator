@@ -44,8 +44,7 @@ def validate_earnings_quality_input(source: Any) -> BusinessQualityValidation:
     missing_attrs = [a for a in required_attrs if not hasattr(source, a)]
     if missing_attrs:
         raise BusinessQualityValidationError(
-            "Missing FinancialAnalysis: object lacks "
-            + ", ".join(missing_attrs)
+            "Missing FinancialAnalysis: object lacks " +", ".join(missing_attrs)
         )
 
     income = source.income

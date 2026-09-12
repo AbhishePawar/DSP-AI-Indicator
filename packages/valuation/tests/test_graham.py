@@ -147,10 +147,7 @@ class TestScenariosSensitivity:
         r = GrahamEngine().analyze(
             _base(required_return=0.10, formula=GrahamFormula.MODERN)
         )
-        assert "growth_rate" in r.sensitivity.grids
-        assert "bond_yield" in r.sensitivity.grids
-        assert "eps" in r.sensitivity.grids
-        assert "required_return" in r.sensitivity.grids
+        assert "growth_rate" in r.sensitivity.grids assert"bond_yield"in r.sensitivity.grids assert"eps"in r.sensitivity.grids assert"required_return" in r.sensitivity.grids
 
     def test_scenario_bad_yield(self) -> None:
         with pytest.raises(ValuationError):

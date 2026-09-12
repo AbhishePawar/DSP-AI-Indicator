@@ -3,12 +3,7 @@
  */
 
 export type AssignmentColumnId =
-  | "unassigned"
-  | "assigned"
-  | "in_progress"
-  | "ready"
-  | "completed"
-  | "deferred";
+  | "unassigned" |"assigned" |"in_progress" |"ready" |"completed" |"deferred";
 
 export type AssignmentPriority = "p0" | "p1" | "p2" | "p3";
 
@@ -27,14 +22,7 @@ export type TeamReviewFilterState = {
 };
 
 export type TeamReviewActivityKind =
-  | "assignment"
-  | "status_change"
-  | "review_opened"
-  | "review_completed"
-  | "presentation_generated"
-  | "research_viewed"
-  | "portfolio_reviewed"
-  | "discussion";
+  | "assignment" |"status_change" |"review_opened" |"review_completed" |"presentation_generated" |"research_viewed" |"portfolio_reviewed" |"discussion";
 
 export type TeamReviewActivityItem = {
   id: string;

@@ -32,8 +32,7 @@ class TestPublicApi:
     def test_version(self) -> None:
         import valuation
 
-        assert valuation.__version__ == "0.12.0"
-        assert valuation.VALUATION_CORE_VERSION.startswith("0.5.0")
+        assert valuation.__version__ == "0.12.0" assert valuation.VALUATION_CORE_VERSION.startswith("0.5.0")
         assert valuation.ValuationResult is not None
         assert valuation.ConfidenceEngine is not None
         assert valuation.EPV_VERSION.startswith("0.6.0")

@@ -62,11 +62,8 @@ export function MarketDataCard({
           <MarketQuoteGrid quote={quote} />
         ) : (
           <p className="text-sm text-[var(--muted)]">
-            {status === "error"
-              ? "Data unavailable."
-              : status === "loading"
-                ? "Loading market data…"
-                : "Data unavailable."}
+            {status === "error" ?"Data unavailable."
+              : status === "loading" ?"Loading market data…" :"Data unavailable."}
           </p>
         )}
       </CardBody>

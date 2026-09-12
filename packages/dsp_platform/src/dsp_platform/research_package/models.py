@@ -30,8 +30,7 @@ RESEARCH_PACKAGE_SCHEMA_VERSION = "dsp.research_package.v1"
 SOURCE_PIPELINE_COMPOSE_INTELLIGENCE = "compose_intelligence"
 
 ENTRY_EXIT_NOT_IMPLEMENTED_MESSAGE = (
-    "No canonical DSP entry/exit engine is present. "
-    "entry_price, entry_zone, exit_price, and target_price are not implemented."
+    "No canonical DSP entry/exit engine is present. " "entry_price, entry_zone, exit_price, and target_price are not implemented."
 )
 
 # Fields that must never appear on a ResearchPackage (AI/provider internals).

@@ -14,31 +14,31 @@ import { breadcrumbsForPath, useUiStore } from "@/lib/shell";
 export function Breadcrumbs() {
   const pathname = usePathname();
   const crumbs = breadcrumbsForPath(pathname);
-  const recordRecentPage = useUiStore((s) => s.recordRecentPage);
+  const recordRecentPage = useUiStore((s) => s?.recordRecentPage);
 
   useEffect(() => {
-    const current = crumbs[crumbs.length - 1];
+    const current = crumbs?.[crumbs?.length - 1];
     if (current) {
-      recordRecentPage(pathname, current.label);
+      recordRecentPage(pathname, current?.label);
     }
   }, [pathname, recordRecentPage]); // eslint-disable-line react-hooks/exhaustive-deps -- record on path change only
 
   return (
     <Breadcrumb className="text-xs">
-      {crumbs.map((crumb, i) => {
-        const last = i === crumbs.length - 1;
+      {crumbs?.map((crumb, i) => {
+        const last = i === crumbs?.length - 1;
         return (
-          <span key={`${crumb.href}-${i}`} className="contents">
+          <span key={`${crumb?.href}-${i}`} className="contents">
             {i > 0 ? <BreadcrumbSeparator /> : null}
             {last ? (
-              <BreadcrumbItem current>{crumb.label}</BreadcrumbItem>
+              <BreadcrumbItem current>{crumb?.label}</BreadcrumbItem>
             ) : (
               <li className="inline-flex items-center">
                 <Link
-                  href={crumb.href}
+                  href={crumb?.href}
                   className="rounded-sm text-[var(--muted)] transition hover:text-[var(--fg)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
                 >
-                  {crumb.label}
+                  {crumb?.label}
                 </Link>
               </li>
             )}

@@ -16,10 +16,10 @@ const repoRoot = join(__dirname, "..", "..", "..", "..");
 
 describe("P8.0 operations engineering", () => {
   it("aligns foundation to EPS-003 / 2.0.0-rc.1", () => {
-    expect(FRONTEND_FOUNDATION_VERSION).toBe("2.0.0-rc.1");
-    expect(FRONTEND_FOUNDATION_EPIC).toBe("EPS-003");
-    expect(BACKEND_PLATFORM_TARGET).toBe("dsp_platform@2.0.0");
-    expect(API_CONTRACT_TARGET).toBe("v1.0.0");
+    expect(FRONTEND_FOUNDATION_VERSION)?.toBe("2.0.0-rc.1");
+    expect(FRONTEND_FOUNDATION_EPIC)?.toBe("EPS-003");
+    expect(BACKEND_PLATFORM_TARGET)?.toBe("dsp_platform@2.0.0");
+    expect(API_CONTRACT_TARGET)?.toBe("v1.0.0");
   });
 
   it("ships operations docs", () => {
@@ -34,26 +34,26 @@ describe("P8.0 operations engineering", () => {
       "P7_4_OPERATIONS_REPORT.md",
     ]) {
       const body = readFileSync(join(repoRoot, "docs", name), "utf8");
-      expect(body.length).toBeGreaterThan(200);
+      expect(body?.length)?.toBeGreaterThan(200);
     }
   });
 
   it("ships monitoring and alerting configs", () => {
-    expect(existsSync(join(repoRoot, "docker", "prometheus", "alerts.yml"))).toBe(
+    expect(existsSync(join(repoRoot, "docker", "prometheus", "alerts.yml")))?.toBe(
       true,
     );
-    expect(existsSync(join(repoRoot, "docker", "alertmanager.yml"))).toBe(true);
+    expect(existsSync(join(repoRoot, "docker", "alertmanager.yml")))?.toBe(true);
     expect(
       existsSync(
         join(repoRoot, "docker", "grafana", "dashboards", "dsp-operations.json"),
       ),
-    ).toBe(true);
+    )?.toBe(true);
     const alerts = readFileSync(
       join(repoRoot, "docker", "prometheus", "alerts.yml"),
       "utf8",
     );
-    expect(alerts).toContain("DspApiUnavailable");
-    expect(alerts).toContain("DspDatabaseUnavailable");
+    expect(alerts)?.toContain("DspApiUnavailable");
+    expect(alerts)?.toContain("DspDatabaseUnavailable");
   });
 
   it("ships certify_p7_4 and recovery validation", () => {
@@ -62,7 +62,7 @@ describe("P8.0 operations engineering", () => {
       ["scripts", "ops", "validate_recovery.py"],
       ["scripts", "ops", "backup_postgres_incremental.sh"],
     ]) {
-      expect(readFileSync(join(repoRoot, ...rel), "utf8").length).toBeGreaterThan(80);
+      expect(readFileSync(join(repoRoot, ...rel), "utf8")?.length)?.toBeGreaterThan(80);
     }
   });
 });

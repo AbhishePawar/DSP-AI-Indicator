@@ -17,13 +17,5 @@ export * from "./weightingProfiles";
 export * from "./decisionWorkflow";
 export * from "./exportComparison";
 export * from "./futureArchitecture";
-export {
-  useComparisonPrefsStore,
-  type PersonalNote,
-  type WatchItem,
-} from "./comparisonPrefsStore";
-export {
-  useComparisonHistoryStore,
-  describeHistoryChanges,
-  isHistoryEntryImmutable,
-} from "./comparisonHistoryStore";
+export * from "./comparisonPrefsStore";
+export * from "./comparisonHistoryStore";

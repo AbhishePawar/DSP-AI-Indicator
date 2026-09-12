@@ -420,8 +420,7 @@ export function mapInstitutionalRatings(
     id: "buffett_indicator",
     title: "Buffett Indicator",
     scoreOutOf10: scoreOutOf10FromExisting(
-      buffett.overallRating === "Unavailable"
-        ? "Unavailable"
+      buffett.overallRating === "Unavailable" ?"Unavailable"
         : // Convert letter overall back via scorecard business quality if needed
           view.businessQuality.score,
     ),
@@ -581,9 +580,7 @@ export function mapInstitutionalRatings(
     valuationQuality: view.valuation.method,
     riskLevel:
       riskAssessment.weaknesses[0] &&
-      riskAssessment.weaknesses[0] !== "Data unavailable."
-        ? "See Risk Assessment evidence"
-        : "Unavailable",
+      riskAssessment.weaknesses[0] !== "Data unavailable." ?"See Risk Assessment evidence" :"Unavailable",
     expectedLongTermQuality: "Unavailable",
     recommendation,
     recommendationReasoning: `Mapped from existing decision "${actionSource}". Overall grade ${overallGrade} averages available module letter bands only.`,

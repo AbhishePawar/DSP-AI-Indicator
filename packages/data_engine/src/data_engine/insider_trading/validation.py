@@ -53,8 +53,7 @@ def validate_authenticated_insider_activity(bundle: AuthenticatedInsiderActivity
         )
     if not bundle.transactions:
         raise InvalidProviderDataError(
-            "authenticated insider activity must include at least one transaction "
-            "(use None from adapter when unavailable)"
+            "authenticated insider activity must include at least one transaction " "(use None from adapter when unavailable)"
         )
     for i, txn in enumerate(bundle.transactions):
         _validate_transaction(txn, i)

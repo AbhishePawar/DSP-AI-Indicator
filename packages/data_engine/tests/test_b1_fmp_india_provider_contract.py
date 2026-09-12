@@ -160,9 +160,7 @@ def test_fmp_does_not_map_ar_inventory_ap_even_when_vendor_sends_them() -> None:
     # Weighted shares from income not mapped either (quote shares used later).
     assert not hasattr(period, "weighted_shares")
     public_bs = period.to_public_dict()["balance_sheet"]
-    assert "accounts_receivable" not in public_bs
-    assert "inventory" not in public_bs
-    assert "accounts_payable" not in public_bs
+    assert "accounts_receivable"not in public_bs assert"inventory"not in public_bs assert"accounts_payable" not in public_bs
 
 
 def test_fmp_unknown_period_label_not_silently_annual() -> None:
@@ -179,8 +177,7 @@ def test_fmp_unknown_period_label_not_silently_annual() -> None:
                 {
                     "date": "2024-03-31",
                     "calendarYear": "2024",
-                    "period": "H1",  # unknown — must skip, not invent annual
-                    "reportedCurrency": "INR",
+                    "period": "H1",  # unknown — must skip, not invent annual "reportedCurrency": "INR",
                     "revenue": 1,
                     "netIncome": 1,
                     "eps": 1,

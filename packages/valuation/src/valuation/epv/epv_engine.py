@@ -43,13 +43,7 @@ __all__ = ["EpvEngine", "EPV_VERSION"]
 
 _METHODOLOGY = (
     "Earnings Power Value (zero growth): "
-    "Normalize EBIT (strip one-offs / distortions); "
-    "Tax-Adjusted EBIT = EBIT_n × (1 − t); "
-    "Owner Earnings = Tax-Adjusted EBIT + Depreciation − Maintenance CapEx "
-    "− Working Capital Adjustment; "
-    "Enterprise EPV = Owner Earnings / Cost of Capital; "
-    "Equity = Enterprise EPV + Cash − Debt − Minority Interest + Investments; "
-    "IV/share = Equity / Shares. Research / educational only."
+    "Normalize EBIT (strip one-offs / distortions); " "Tax-Adjusted EBIT = EBIT_n × (1 − t); " "Owner Earnings = Tax-Adjusted EBIT + Depreciation − Maintenance CapEx " "− Working Capital Adjustment; " "Enterprise EPV = Owner Earnings / Cost of Capital; " "Equity = Enterprise EPV + Cash − Debt − Minority Interest + Investments; " "IV/share = Equity / Shares. Research / educational only."
 )
 
 _LIMITATIONS = (
@@ -587,8 +581,7 @@ class EpvEngine:
         return ConfidenceEngine().score(
             {
                 "accounting_quality": accounting_quality,
-                "forecast_reliability": earnings_stability,  # proxy: stability
-                "data_completeness": data_completeness,
+                "forecast_reliability": earnings_stability,  # proxy: stability "data_completeness": data_completeness,
                 "business_stability": business_stability,
                 "capital_allocation": capital_allocation,
                 "model_assumptions": margin_stability,

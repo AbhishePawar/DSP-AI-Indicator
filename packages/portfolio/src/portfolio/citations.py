@@ -103,16 +103,14 @@ class PortfolioCitationAssembler:
         for snap in portfolio.snapshots:
             if snap.portfolio_id != portfolio.identity.portfolio_id:
                 msg = (
-                    f"mismatched portfolio ownership: snapshot "
-                    f"{snap.snapshot_id!r}"
+                    f"mismatched portfolio ownership: snapshot " f"{snap.snapshot_id!r}"
                 )
                 raise PortfolioError(msg)
 
         if context.base_report is not None:
             if context.base_report.portfolio_id != portfolio.identity.portfolio_id:
                 msg = (
-                    "mismatched portfolio ownership: base_report "
-                    f"{context.base_report.portfolio_id!r}"
+                    "mismatched portfolio ownership: base_report " f"{context.base_report.portfolio_id!r}"
                 )
                 raise PortfolioError(msg)
 
@@ -170,8 +168,7 @@ class PortfolioCitationAssembler:
             self._reject_broken_evidence(ref)
             if ref.instrument_key != holding.instrument_symbol:
                 msg = (
-                    f"broken bundle references: EvidenceBundle "
-                    f"{ref.bundle_id!r} instrument mismatch"
+                    f"broken bundle references: EvidenceBundle " f"{ref.bundle_id!r} instrument mismatch"
                 )
                 raise PortfolioError(msg)
             if ref.bundle_id in seen_evidence_ids:
@@ -191,8 +188,7 @@ class PortfolioCitationAssembler:
             self._reject_broken_comparison(ref)
             if ref.digest in seen_comp:
                 msg = (
-                    f"duplicate citation ids: ComparisonReport "
-                    f"{ref.digest!r}"
+                    f"duplicate citation ids: ComparisonReport " f"{ref.digest!r}"
                 )
                 raise PortfolioError(msg)
             seen_comp.add(ref.digest)
@@ -216,9 +212,7 @@ class PortfolioCitationAssembler:
                 ref.included_symbols
             ):
                 msg = (
-                    f"broken bundle references: ComparisonReport "
-                    f"{ref.digest!r} does not include "
-                    f"{holding.instrument_symbol!r}"
+                    f"broken bundle references: ComparisonReport " f"{ref.digest!r} does not include " f"{holding.instrument_symbol!r}"
                 )
                 raise PortfolioError(msg)
 
@@ -277,8 +271,7 @@ class PortfolioCitationAssembler:
             raise PortfolioError(msg)
         if not ref.bundle_id or not ref.digest or len(ref.digest) < 8:
             msg = (
-                f"broken bundle references: EvidenceBundle "
-                f"{getattr(ref, 'bundle_id', None)!r}"
+                f"broken bundle references: EvidenceBundle " f"{getattr(ref, 'bundle_id', None)!r}"
             )
             raise PortfolioError(msg)
         if not ref.methodology_id or not ref.methodology_version:
@@ -310,8 +303,7 @@ class PortfolioCitationAssembler:
             existing = by_symbol.get(ref.instrument_symbol)
             if existing is not None and existing.digest != ref.digest:
                 msg = (
-                    f"duplicate citation ids: conflicting DecisionPack digests "
-                    f"for {ref.instrument_symbol!r}"
+                    f"duplicate citation ids: conflicting DecisionPack digests " f"for {ref.instrument_symbol!r}"
                 )
                 raise PortfolioError(msg)
             by_symbol[ref.instrument_symbol] = ref
@@ -364,8 +356,7 @@ class PortfolioCitationAssembler:
                     or existing.included_symbols != ref.included_symbols
                 ):
                     msg = (
-                        f"duplicate citation ids: conflicting ComparisonReport "
-                        f"{ref.digest!r}"
+                        f"duplicate citation ids: conflicting ComparisonReport " f"{ref.digest!r}"
                     )
                     raise PortfolioError(msg)
             by_digest[ref.digest] = ref
@@ -538,8 +529,7 @@ class PortfolioCitationAssembler:
             evidence_bundle_refs=evidence,
             comparison_report_refs=comparison,
             limitations=(
-                "Citation aggregation only — no interpretation, comparison, "
-                "or recommendations.",
+                "Citation aggregation only — no interpretation, comparison, " "or recommendations.",
             ),
             citation_summary=citation_summary,
             coverage_summary=coverage,

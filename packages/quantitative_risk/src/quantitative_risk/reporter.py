@@ -146,9 +146,7 @@ class QuantitativeRiskReporter:
                 != context.report.quantitative_risk_id
             ):
                 msg = (
-                    "broken references: EngineResult quantitative_risk_id "
-                    f"{context.engine_result.quantitative_risk_id!r} does not "
-                    f"match report {context.report.quantitative_risk_id!r}"
+                    "broken references: EngineResult quantitative_risk_id " f"{context.engine_result.quantitative_risk_id!r} does not " f"match report {context.report.quantitative_risk_id!r}"
                 )
                 raise QuantitativeRiskError(msg)
             if (
@@ -164,9 +162,7 @@ class QuantitativeRiskReporter:
         if source.monitoring_ref is not None:
             if source.monitoring_ref.portfolio_id != source.portfolio_ref.portfolio_id:
                 msg = (
-                    "broken references: monitoring portfolio_id "
-                    f"{source.monitoring_ref.portfolio_id!r} does not match "
-                    f"{source.portfolio_ref.portfolio_id!r}"
+                    "broken references: monitoring portfolio_id " f"{source.monitoring_ref.portfolio_id!r} does not match " f"{source.portfolio_ref.portfolio_id!r}"
                 )
                 raise QuantitativeRiskError(msg)
 
@@ -209,8 +205,7 @@ class QuantitativeRiskReporter:
                     *source.limitations,
                     *summary.limitation_notes,
                     *ctx.limitations,
-                    "QuantitativeRiskReport presentation only — "
-                    "no calculation performed by reporter.",
+                    "QuantitativeRiskReport presentation only — " "no calculation performed by reporter.",
                 )
             )
         )

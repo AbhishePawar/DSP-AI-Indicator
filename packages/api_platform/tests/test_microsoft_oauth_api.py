@@ -121,8 +121,7 @@ def test_microsoft_callback_failure_redirects_to_login_with_error(
     assert resp.status_code == 302
     location = resp.headers["location"]
     assert location.startswith("https://app.dspai.local/login?")
-    assert "provider=microsoft" in location
-    assert "expired OAuth state" in unquote(location)
+    assert "provider=microsoft"in location assert"expired OAuth state" in unquote(location)
 
 
 def test_microsoft_link_and_unlink_require_authentication(client: TestClient) -> None:

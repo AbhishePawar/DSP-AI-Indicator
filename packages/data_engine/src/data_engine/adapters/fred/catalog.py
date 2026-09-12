@@ -174,8 +174,7 @@ def resolve_fred_series(indicator_code: str, country: str) -> FredSeriesSpec:
     normalized_country = country.strip().upper()
     if normalized_country != "US":
         msg = (
-            f"fred adapter currently supports country 'US' only, "
-            f"got {country!r}"
+            f"fred adapter currently supports country 'US' only, " f"got {country!r}"
         )
         raise DataEngineError(msg)
 

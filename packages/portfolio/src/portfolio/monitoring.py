@@ -111,22 +111,18 @@ class PortfolioMonitor:
                 == context.previous_snapshot.snapshot_id
             ):
                 msg = (
-                    "duplicate snapshot ids: current and previous are "
-                    f"{context.current_snapshot.snapshot_id!r}"
+                    "duplicate snapshot ids: current and previous are " f"{context.current_snapshot.snapshot_id!r}"
                 )
                 raise PortfolioError(msg)
             if context.previous_snapshot.as_of > context.current_snapshot.as_of:
                 msg = (
-                    "non-sequential timeline: previous as_of "
-                    f"{context.previous_snapshot.as_of!r} is after current "
-                    f"{context.current_snapshot.as_of!r}"
+                    "non-sequential timeline: previous as_of " f"{context.previous_snapshot.as_of!r} is after current " f"{context.current_snapshot.as_of!r}"
                 )
                 raise PortfolioError(msg)
 
         if context.base_report is not None and context.base_report.portfolio_id != pid:
             msg = (
-                "invalid ownership: base_report "
-                f"{context.base_report.portfolio_id!r}"
+                "invalid ownership: base_report " f"{context.base_report.portfolio_id!r}"
             )
             raise PortfolioError(msg)
 

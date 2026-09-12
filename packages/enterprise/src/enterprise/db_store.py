@@ -183,9 +183,7 @@ class DatabaseEnterpriseStore(InMemoryEnterpriseStore):
                 else None
             )
             cols = (
-                "event_id, org_id, actor_user_id, action, resource_type, resource_id, "
-                "created_at, before_state, after_state, ip_address, correlation_id, "
-                "metadata, immutable"
+                "event_id, org_id, actor_user_id, action, resource_type, resource_id, " "created_at, before_state, after_state, ip_address, correlation_id, " "metadata, immutable"
             )
             vals = ", ".join(
                 [

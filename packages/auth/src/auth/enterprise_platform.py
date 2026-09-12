@@ -502,8 +502,7 @@ class EnterpriseAuthPlatform:
             user.user_id, threshold=self._lockout_threshold
         ):
             raise AuthenticationError("Account is locked. Contact an administrator.")
-        if user.status != "active":
-            raise AuthenticationError("Account is disabled.")
+        if user.status != "active": raise AuthenticationError("Account is disabled.")
         meta = dict(user.metadata or {})
         locked_until = meta.get("locked_until")
         if locked_until:
@@ -730,8 +729,7 @@ class EnterpriseAuthPlatform:
 
         Persists a synthetic ``@username.dspai.local`` mailbox to satisfy
         UserStore's email field — never treated as a deliverable address.
-        """
-        self._rate_check(f"register-username:{ip_hint or 'na'}", limit=10, window_sec=3600)
+        """ self._rate_check(f"register-username:{ip_hint or 'na'}", limit=10, window_sec=3600)
         uname = assert_username(username)
         if password != confirm_password:
             raise ValidationError("password confirmation does not match")
@@ -776,8 +774,7 @@ class EnterpriseAuthPlatform:
 
         Registration OTP is sent to the number the requester entered (they are
         proving possession). Login OTP must never do this for a username.
-        """
-        self._rate_check(f"register-mobile:{ip_hint or mobile}", limit=10, window_sec=3600)
+        """ self._rate_check(f"register-mobile:{ip_hint or mobile}", limit=10, window_sec=3600)
         normalized = normalize_india_mobile(mobile)
         return self.otp.request_otp(normalized, ip_hint=ip_hint)
 
@@ -799,8 +796,7 @@ class EnterpriseAuthPlatform:
         selected by supplying ``email``. That path requires username and name,
         stores the real email, and rejects duplicates. The email-less path
         keeps the previous mobile-only behaviour for existing clients.
-        """
-        self._rate_check(f"register-mobile-complete:{ip_hint or challenge_id}", limit=10, window_sec=600)
+        """ self._rate_check(f"register-mobile-complete:{ip_hint or challenge_id}", limit=10, window_sec=600)
         if password != confirm_password:
             raise ValidationError("password confirmation does not match")
         strength = password_strength(password)
@@ -810,8 +806,7 @@ class EnterpriseAuthPlatform:
         verified = self.otp.verify_otp_result(
             challenge_id=challenge_id, code=code, ip_hint=ip_hint
         )
-        if verified.channel != "mobile":
-            raise AuthenticationError("invalid credentials")
+        if verified.channel != "mobile": raise AuthenticationError("invalid credentials")
         mobile = verified.destination
 
         combined_email = (email or "").strip()
@@ -1037,8 +1032,7 @@ class EnterpriseAuthPlatform:
         1. email (``@`` present)
         2. username
         3. verified India mobile only (``phone_verified`` + matching ``mobile``)
-        """
-        self._rate_check(f"login:{ip_hint or identifier}", limit=20, window_sec=300)
+        """ self._rate_check(f"login:{ip_hint or identifier}", limit=20, window_sec=300)
         ident = identifier.strip()
         user = None
         provider = AuthProvider.USERNAME.value
@@ -1150,8 +1144,7 @@ class EnterpriseAuthPlatform:
 
         Always returns the same shape. Never echoes the stored mobile. Never
         sends to a mobile supplied by the requester when recovering by username.
-        """
-        self._rate_check(f"reset-otp:{ip_hint or identifier}", limit=5, window_sec=3600)
+        """ self._rate_check(f"reset-otp:{ip_hint or identifier}", limit=5, window_sec=3600)
         ident = (identifier or "").strip()
         out: dict[str, Any] = {
             "ok": True,
@@ -1194,8 +1187,7 @@ class EnterpriseAuthPlatform:
         verified = self.otp.verify_otp_result(
             challenge_id=challenge_id, code=code, ip_hint=ip_hint
         )
-        if verified.channel != "mobile":
-            raise AuthenticationError("invalid credentials")
+        if verified.channel != "mobile": raise AuthenticationError("invalid credentials")
         matches = self._find_verified_mobile_users(verified.destination)
         if len(matches) != 1:
             raise AuthenticationError("invalid credentials")
@@ -1525,16 +1517,14 @@ class EnterpriseAuthPlatform:
         Username OTP is always sent to the account's stored verified mobile —
         never to a mobile supplied alongside the username. Unknown, unverified,
         or ambiguous identifiers return an opaque challenge (no SMS).
-        """
-        self._rate_check(f"otp:{ip_hint or identifier}", limit=10, window_sec=3600)
+        """ self._rate_check(f"otp:{ip_hint or identifier}", limit=10, window_sec=3600)
         otp_flag = (os.environ.get("DSP_AUTH_PROVIDER_OTP") or "auto").strip().lower()
         if otp_flag in {"disabled", "coming_soon", "off", "false", "0"}:
             raise AuthenticationError("OTP intentionally disabled — Coming Soon.")
         ident = (identifier or "").strip()
         if "@" in ident:
             raise ValidationError(
-                "Email OTP is no longer supported. Sign in with Google or password, "
-                "or use mobile OTP."
+                "Email OTP is no longer supported. Sign in with Google or password, " "or use mobile OTP."
             )
         user = self._resolve_verified_otp_user(ident)
         stored = self._verified_mobile_of(user) if user is not None else None
@@ -2384,8 +2374,7 @@ class EnterpriseAuthPlatform:
         user = self.auth.users.get(user_id)
         if user is None:
             raise ValidationError("user not found")
-        if "super_admin" in user.roles:
-            raise AuthorizationError("Super Admin accounts cannot be self-deleted.")
+        if "super_admin"in user.roles: raise AuthorizationError("Super Admin accounts cannot be self-deleted.")
         updated = self.admin_set_status(user_id, active=False)
         self.devices.revoke_all(user_id)
         return {"ok": True, "user": updated, "message": "Account disabled and sessions revoked."}

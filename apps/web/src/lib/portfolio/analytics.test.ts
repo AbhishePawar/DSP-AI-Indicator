@@ -96,7 +96,7 @@ describe("portfolio analytics", () => {
       sector: "Materials",
       researchAvailable: false,
     })!;
-    const analytics = buildPortfolioAnalytics(view.holdings);
+    let analytics = buildPortfolioAnalytics(view.holdings);
     expect(analytics.researchCoverage.researchMissing).toBe(1);
     expect(analytics.health.labels).toContain("Research Incomplete");
   });

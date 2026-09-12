@@ -6,8 +6,7 @@ and `POST /auth/mfa/recovery-codes/regenerate` are thin router wrappers over
 in depth at the `auth` package level in
 `packages/auth/tests/test_mfa_totp.py` and `test_mfa_totp_advanced.py`) —
 these tests verify routing, request/response shape, forced re-authentication,
-and the 501 "not enabled" contract.
-"""
+and the 501 "not enabled" contract. """
 
 from __future__ import annotations
 

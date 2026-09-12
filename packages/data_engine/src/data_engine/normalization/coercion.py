@@ -3,8 +3,7 @@
 These helpers turn a loosely-typed raw value (``Any``) into a strict
 Python type, raising a :mod:`data_engine.exceptions` normalization
 error with a provider-attributed message on failure. They contain no
-provider-specific logic — every provider's raw values funnel through
-the same functions once they have been placed into a raw model's named
+provider-specific logic — every provider's raw values funnel through the same functions once they have been placed into a raw model's named
 fields.
 """
 

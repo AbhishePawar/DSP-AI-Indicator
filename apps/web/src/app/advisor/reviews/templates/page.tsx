@@ -3,6 +3,9 @@
 import dynamic from "next/dynamic";
 
 import { Skeleton } from "@/components/ui/Skeleton";
+import { ReviewTemplatesWorkspace } from '../../../../components/advisor/ClientReview';
+
+
 const ReviewTemplatesWorkspace = dynamic(
   () =>
     import("@/components/advisor/ClientReview").then((m) => m.ReviewTemplatesWorkspace),

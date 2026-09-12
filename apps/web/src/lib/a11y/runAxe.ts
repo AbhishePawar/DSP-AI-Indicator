@@ -19,4 +19,4 @@ export const runAxe = configureAxe({
   rules: { ...JSDOM_DISABLED_RULES },
 });
 
-export { A11Y_AUTOMATION_SCOPE } from "./scope";
+export const A11Y_AUTOMATION_SCOPE = "your-scope-value-here";

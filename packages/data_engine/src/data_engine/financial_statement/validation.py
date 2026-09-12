@@ -116,8 +116,7 @@ def validate_authenticated_statements(
         )
     if not bundle.periods:
         raise InvalidProviderDataError(
-            "authenticated statements must include at least one period "
-            "(use None from adapter when unavailable)"
+            "authenticated statements must include at least one period " "(use None from adapter when unavailable)"
         )
     for i, period in enumerate(bundle.periods):
         _validate_period(period, i)

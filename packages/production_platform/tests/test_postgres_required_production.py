@@ -46,8 +46,7 @@ class TestPsycopgInstallPath:
         )
         api_extra = pyproject["project"]["optional-dependencies"]["api"]
         assert any(dep.startswith("psycopg") for dep in api_extra), (
-            "root [api] extra must ship psycopg; the production API image is "
-            "built with pip install '.[api]'"
+            "root [api] extra must ship psycopg; the production API image is " "built with pip install '.[api]'"
         )
 
     def test_backend_image_installs_api_extra(self) -> None:
@@ -84,9 +83,7 @@ class TestPsycopgInstallPath:
         with pytest.raises(ProviderError) as excinfo:
             pg_mod._load_psycopg()
         message = str(excinfo.value)
-        assert "No module named 'psycopg'" in message
-        assert "psycopg import failed" in message
-        assert "production-platform[postgres]" not in message
+        assert "No module named 'psycopg'" in message assert"psycopg import failed"in message assert"production-platform[postgres]" not in message
 
 
 class TestProductionFailsExplicitly:
@@ -169,8 +166,7 @@ class TestRedaction:
         out = redact_dsn_secrets(
             "connection to postgresql://dsp:secret-pass@/dsp failed"
         )
-        assert "secret-pass" not in out
-        assert "dsp:***@" in out
+        assert "secret-pass" not in out assert"dsp:***@" in out
 
     def test_keyword_password_redacted(self) -> None:
         assert "secret-pass" not in redact_dsn_secrets("password=secret-pass host=x")

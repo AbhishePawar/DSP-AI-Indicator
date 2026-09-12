@@ -142,8 +142,7 @@ def test_provider_messages_never_include_audit_or_secrets() -> None:
     messages = format_openai_tool_messages((outcome,))
     content = messages[0]["content"]
     body = json.loads(content)
-    assert "audit" not in body
-    assert "audit" not in messages[0]
+    assert "audit" not in body assert"audit" not in messages[0]
     flat = json.dumps(messages)
     for token in _FORBIDDEN_SUBSTRINGS:
         assert token.lower() not in flat.lower()
@@ -156,9 +155,7 @@ def test_audit_record_omits_argument_values_and_secrets() -> None:
     audit = dict(outcome.audit)
     assert audit["argument_keys"] == ("symbol",)
     assert "AAPL" not in json.dumps(audit)
-    assert "api_key" not in audit
-    assert "provider" not in audit
-    assert "cost" not in audit
+    assert "api_key"not in audit assert"provider"not in audit assert"cost" not in audit
 
 
 def test_private_internal_result_still_strips_tool_calls_from_browser() -> None:
@@ -267,6 +264,4 @@ def test_error_reason_strips_credential_shaped_text() -> None:
     )
     assert outcome.status is ToolCallStatus.TOOL_FAILED
     dumped = json.dumps(outcome.provider_payload())
-    assert "sk-live" not in dumped
-    assert "OPENAI_API_KEY" not in dumped
-    assert "api_key" not in dumped.lower()
+    assert "sk-live" not in dumped assert"OPENAI_API_KEY"not in dumped assert"api_key" not in dumped.lower()

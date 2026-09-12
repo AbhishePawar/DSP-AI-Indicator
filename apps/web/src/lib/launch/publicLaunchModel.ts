@@ -236,8 +236,7 @@ export function buildLaunchDashboard(): LaunchDashboardView {
   const deploymentStatus: LaunchDashboardView["deploymentStatus"] = allGatesPass
     ? "LIVE"
     : critical > 0
-      ? "HOLD"
-      : "SOAK";
+      ? "HOLD" :"SOAK";
 
   let recommendation: LaunchDashboardView["recommendation"] = "GO PUBLIC";
   let rationale =
@@ -302,8 +301,7 @@ export function buildPostLaunchReport(): PostLaunchReportView {
     title: "DSP Platform Web 1.0.0 — Post Launch Review",
     releasedAt: RELEASE_TIME_ISO,
     outcome:
-      dash.recommendation === "GO PUBLIC"
-        ? "Stable public release approved. Soak complete; quality gates PASS."
+      dash.recommendation === "GO PUBLIC" ?"Stable public release approved. Soak complete; quality gates PASS."
         : `Release posture: ${dash.recommendation} — ${dash.rationale}`,
     knownIssues: dash.knownIssues,
     lessonsLearned: [

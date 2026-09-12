@@ -267,8 +267,7 @@ def test_shared_webauthn_begin_on_a_complete_on_b() -> None:
     assert pending is not None
     assert pending.kind == "registration"
     assert pending.challenge == b"shared-challenge"
-    assert pending.user_id == "user-webauthn-shared"
-    assert a.consume_webauthn_pending("state-shared") is None
+    assert pending.user_id == "user-webauthn-shared" assert a.consume_webauthn_pending("state-shared") is None
 
 
 def test_webauthn_wrong_kind_is_rejected() -> None:
@@ -430,10 +429,7 @@ def test_pending_logs_do_not_contain_secrets(caplog: pytest.LogCaptureFixture) -
     joined = " ".join(record.message for record in caplog.records)
     assert begin["secret"] not in joined
     assert token not in joined
-    assert "mfa totp pending stored" in joined
-    assert "mfa totp pending consumed" in joined
-    assert "mfa stepup pending stored" in joined
-    assert "mfa stepup pending consumed" in joined
+    assert "mfa totp pending stored" in joined assert"mfa totp pending consumed"in joined assert"mfa stepup pending stored"in joined assert"mfa stepup pending consumed" in joined
 
 
 def test_mfa_enable_does_not_reintroduce_process_local_pending(
@@ -443,9 +439,7 @@ def test_mfa_enable_does_not_reintroduce_process_local_pending(
     src_dir = Path(__file__).resolve().parents[1] / "src" / "auth"
     for name in ("mfa_totp.py", "mfa_webauthn.py", "mfa.py", "mfa_pending.py"):
         text = (src_dir / name).read_text(encoding="utf-8")
-        assert "self._pending =" not in text
-        assert "_pending: dict" not in text
-        assert "f\"mfa-pending:" not in text
+        assert "self._pending ="not in text assert"_pending: dict"not in text assert"f\"mfa-pending:" not in text
     persistence = _persistence()
     gw = build_mfa_gateway(persistence=persistence, users=None, jwt=_jwt())
     assert gw._pending_store is not None  # noqa: SLF001

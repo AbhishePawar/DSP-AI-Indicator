@@ -199,8 +199,7 @@ def auth_services(monkeypatch):
 
 @pytest.fixture
 def production_auth_services(monkeypatch):
-    """Production fail-closed semantics with a working auth bundle."""
-    monkeypatch.setenv("DSP_ENVIRONMENT", "production")
+    """Production fail-closed semantics with a working auth bundle.""" monkeypatch.setenv("DSP_ENVIRONMENT", "production")
     stmt = _ExchangeGatedStatementAdapter(revenue=500.0)
     quote = InMemoryAuthenticatedQuoteAdapter(api_key="test-key")
     quote.put(_seed_quote())
@@ -250,13 +249,11 @@ class TestTickerOnlyHttpContract:
         client = _platform_client()
         response = client.post("/api/v1/analyse", json=_TICKER_ONLY_BODY)
         text = response.text
-        assert "body.financial_statements: Field required" not in text
-        assert "financial_statements: Field required" not in text
+        assert "body.financial_statements: Field required" not in text assert"financial_statements: Field required" not in text
         # Must get past request validation into composition.
         validation_errors = response.json().get("validation_errors", [])
         assert response.status_code != 422 or (
-            "Field required" not in text
-            and "financial_statements" not in str(validation_errors)
+            "Field required" not in text and"financial_statements" not in str(validation_errors)
         )
         assert response.status_code == 200
         payload = response.json()
@@ -369,9 +366,7 @@ class TestProductionFailClosed:
         assert result.ok is False
         assert result.metadata.failed_stage == "financial"
         errors = " ".join(result.errors or []).lower()
-        assert "data unavailable" in errors or "unavailable" in errors
-        assert "yahoo" not in errors
-        assert "fred" not in errors
+        assert "data unavailable"in errors or "unavailable" in errors assert"yahoo"not in errors assert"fred" not in errors
 
 
 class TestClientFsPathPreserved:

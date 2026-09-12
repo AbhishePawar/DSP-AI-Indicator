@@ -14,5 +14,5 @@ export {
   detectBusinessType,
   economicsFocus,
   preferredMetrics,
-  type BusinessType,
 } from "./businessTypes";
+export type { BusinessType } from "./businessTypes";

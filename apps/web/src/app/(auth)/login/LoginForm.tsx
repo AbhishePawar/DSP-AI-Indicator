@@ -438,10 +438,7 @@ export default function LoginForm() {
     step === "mobile-otp" ? "Mobile number and OTP" : "Username and OTP";
   const otpDescription =
     otpPhase === "request"
-      ? step === "mobile-otp"
-        ? "We will send a one-time code to your verified mobile number."
-        : "Enter your username. The code is sent only to the verified mobile on the account."
-      : "Enter the one-time code to sign in.";
+      ? step === "mobile-otp" ?"We will send a one-time code to your verified mobile number." :"Enter your username. The code is sent only to the verified mobile on the account." :"Enter the one-time code to sign in.";
 
   return (
     <AuthShell>

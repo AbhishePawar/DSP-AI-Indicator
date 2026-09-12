@@ -24,8 +24,7 @@ __all__ = ["export_pptx_bytes"]
 _MAX_BULLETS_PER_SLIDE = 14
 
 _CONTENT_TYPES_TEMPLATE = (
-    '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
-    '<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">'
+    '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>' '<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">'
     '<Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/>'
     '<Default Extension="xml" ContentType="application/xml"/>'
     '<Override PartName="/ppt/presentation.xml" '
@@ -35,120 +34,81 @@ _CONTENT_TYPES_TEMPLATE = (
     '<Override PartName="/ppt/slideLayouts/slideLayout1.xml" '
     'ContentType="application/vnd.openxmlformats-officedocument.presentationml.slideLayout+xml"/>'
     '<Override PartName="/ppt/theme/theme1.xml" '
-    'ContentType="application/vnd.openxmlformats-officedocument.theme+xml"/>'
-    "{slide_overrides}"
-    "</Types>"
+    'ContentType="application/vnd.openxmlformats-officedocument.theme+xml"/>' "{slide_overrides}" "</Types>"
 )
 
 _ROOT_RELS = (
-    '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
-    '<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">'
+    '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>' '<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">'
     '<Relationship Id="rId1" '
     'Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" '
-    'Target="ppt/presentation.xml"/>'
-    "</Relationships>"
+    'Target="ppt/presentation.xml"/>' "</Relationships>"
 )
 
 _THEME_XML = (
-    '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
-    '<a:theme xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main" name="DSP Institutional">'
+    '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>' '<a:theme xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main" name="DSP Institutional">'
     "<a:themeElements>"
     '<a:clrScheme name="DSP">'
-    '<a:dk1><a:sysClr val="windowText" lastClr="000000"/></a:dk1>'
-    '<a:lt1><a:sysClr val="window" lastClr="FFFFFF"/></a:lt1>'
-    '<a:dk2><a:srgbClr val="0B1F3A"/></a:dk2>'
-    '<a:lt2><a:srgbClr val="E9EEF5"/></a:lt2>'
-    '<a:accent1><a:srgbClr val="1F5C8B"/></a:accent1>'
-    '<a:accent2><a:srgbClr val="2E8B57"/></a:accent2>'
-    '<a:accent3><a:srgbClr val="B8860B"/></a:accent3>'
-    '<a:accent4><a:srgbClr val="8B1A1A"/></a:accent4>'
-    '<a:accent5><a:srgbClr val="4B4B4B"/></a:accent5>'
-    '<a:accent6><a:srgbClr val="6B4C9A"/></a:accent6>'
-    '<a:hlink><a:srgbClr val="1F5C8B"/></a:hlink>'
-    '<a:folHlink><a:srgbClr val="6B4C9A"/></a:folHlink>'
-    "</a:clrScheme>"
+    '&lt;a:dk1&gt;&lt;a:sysClr val="windowText" lastClr="000000"/&gt;&lt;/a:dk1&gt;'
+    '&lt;a:lt1&gt;&lt;a:sysClr val="window" lastClr="FFFFFF"/&gt;&lt;/a:lt1&gt;'
+    '&lt;a:dk2&gt;&lt;a:srgbClr val="0B1F3A"/&gt;&lt;/a:dk2&gt;'
+    '&lt;a:lt2&gt;&lt;a:srgbClr val="E9EEF5"/&gt;&lt;/a:lt2&gt;'
+    '&lt;a:accent1&gt;&lt;a:srgbClr val="1F5C8B"/&gt;&lt;/a:accent1&gt;'
+    '&lt;a:accent2&gt;&lt;a:srgbClr val="2E8B57"/&gt;&lt;/a:accent2&gt;'
+    '&lt;a:accent3&gt;&lt;a:srgbClr val="B8860B"/&gt;&lt;/a:accent3&gt;'
+    '&lt;a:accent4&gt;&lt;a:srgbClr val="8B1A1A"/&gt;&lt;/a:accent4&gt;'
+    '&lt;a:accent5&gt;&lt;a:srgbClr val="4B4B4B"/&gt;&lt;/a:accent5&gt;'
+    '&lt;a:accent6&gt;&lt;a:srgbClr val="6B4C9A"/&gt;&lt;/a:accent6&gt;'
+    '&lt;a:hlink&gt;&lt;a:srgbClr val="1F5C8B"/&gt;&lt;/a:hlink&gt;'
+    '&lt;a:folHlink&gt;&lt;a:srgbClr val="6B4C9A"/&gt;&lt;/a:folHlink&gt;' "</a:clrScheme>"
     '<a:fontScheme name="DSP">'
-    '<a:majorFont><a:latin typeface="Calibri"/></a:majorFont>'
-    '<a:minorFont><a:latin typeface="Calibri"/></a:minorFont>'
-    "</a:fontScheme>"
-    '<a:fmtScheme name="DSP">'
-    "<a:fillStyleLst>"
-    '<a:solidFill><a:schemeClr val="phClr"/></a:solidFill>'
-    '<a:solidFill><a:schemeClr val="phClr"/></a:solidFill>'
-    '<a:solidFill><a:schemeClr val="phClr"/></a:solidFill>'
-    "</a:fillStyleLst>"
-    "<a:lnStyleLst>"
-    '<a:ln><a:solidFill><a:schemeClr val="phClr"/></a:solidFill></a:ln>'
-    '<a:ln><a:solidFill><a:schemeClr val="phClr"/></a:solidFill></a:ln>'
-    '<a:ln><a:solidFill><a:schemeClr val="phClr"/></a:solidFill></a:ln>'
-    "</a:lnStyleLst>"
-    "<a:effectStyleLst>"
-    "<a:effectStyle><a:effectLst/></a:effectStyle>"
-    "<a:effectStyle><a:effectLst/></a:effectStyle>"
-    "<a:effectStyle><a:effectLst/></a:effectStyle>"
-    "</a:effectStyleLst>"
-    "<a:bgFillStyleLst>"
-    '<a:solidFill><a:schemeClr val="phClr"/></a:solidFill>'
-    '<a:solidFill><a:schemeClr val="phClr"/></a:solidFill>'
-    '<a:solidFill><a:schemeClr val="phClr"/></a:solidFill>'
-    "</a:bgFillStyleLst>"
-    "</a:fmtScheme>"
-    "</a:themeElements>"
-    "</a:theme>"
+    '&lt;a:majorFont&gt;&lt;a:latin typeface="Calibri"/&gt;&lt;/a:majorFont&gt;'
+    '&lt;a:minorFont&gt;&lt;a:latin typeface="Calibri"/&gt;&lt;/a:minorFont&gt;' "</a:fontScheme>"
+    '<a:fmtScheme name="DSP">' "<a:fillStyleLst>"
+    '&lt;a:solidFill&gt;&lt;a:schemeClr val="phClr"/&gt;&lt;/a:solidFill&gt;'
+    '&lt;a:solidFill&gt;&lt;a:schemeClr val="phClr"/&gt;&lt;/a:solidFill&gt;'
+    '&lt;a:solidFill&gt;&lt;a:schemeClr val="phClr"/&gt;&lt;/a:solidFill&gt;' "</a:fillStyleLst>" "<a:lnStyleLst>"
+    '&lt;a:ln&gt;&lt;a:solidFill&gt;&lt;a:schemeClr val="phClr"/&gt;&lt;/a:solidFill&gt;&lt;/a:ln&gt;'
+    '&lt;a:ln&gt;&lt;a:solidFill&gt;&lt;a:schemeClr val="phClr"/&gt;&lt;/a:solidFill&gt;&lt;/a:ln&gt;'
+    '&lt;a:ln&gt;&lt;a:solidFill&gt;&lt;a:schemeClr val="phClr"/&gt;&lt;/a:solidFill&gt;&lt;/a:ln&gt;' "</a:lnStyleLst>" "&lt;a:effectStyleLst&gt;" "&lt;a:effectStyle&gt;&lt;a:effectLst/&gt;&lt;/a:effectStyle&gt;" "&lt;a:effectStyle&gt;&lt;a:effectLst/&gt;&lt;/a:effectStyle&gt;" "&lt;a:effectStyle&gt;&lt;a:effectLst/&gt;&lt;/a:effectStyle&gt;" "&lt;/a:effectStyleLst&gt;" "<a:bgFillStyleLst>"
+    '&lt;a:solidFill&gt;&lt;a:schemeClr val="phClr"/&gt;&lt;/a:solidFill&gt;'
+    '&lt;a:solidFill&gt;&lt;a:schemeClr val="phClr"/&gt;&lt;/a:solidFill&gt;'
+    '&lt;a:solidFill&gt;&lt;a:schemeClr val="phClr"/&gt;&lt;/a:solidFill&gt;' "</a:bgFillStyleLst>" "</a:fmtScheme>" "</a:themeElements>" "</a:theme>"
 )
 
 _SLIDE_LAYOUT_XML = (
-    '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
-    '<p:sldLayout xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main" '
+    '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>' '<p:sldLayout xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main" '
     'xmlns:p="http://schemas.openxmlformats.org/presentationml/2006/main" '
-    'type="title" preserve="1">'
-    "<p:cSld><p:spTree>"
-    "<p:nvGrpSpPr><p:cNvPr id=\"1\" name=\"\"/><p:cNvGrpSpPr/><p:nvPr/></p:nvGrpSpPr>"
-    "<p:grpSpPr/>"
-    "</p:spTree></p:cSld>"
-    "<p:clrMapOvr><a:overrideClrMapping bg1=\"lt1\" tx1=\"dk1\" bg2=\"lt2\" tx2=\"dk2\" "
+    'type="title"preserve="1">' "&lt;p:cSld&gt;&lt;p:spTree&gt;" "&lt;p:nvGrpSpPr&gt;&lt;p:cNvPr id=\"1\" name=\"\"/&gt;&lt;p:cNvGrpSpPr/&gt;&lt;p:nvPr/&gt;&lt;/p:nvGrpSpPr&gt;" "&lt;p:grpSpPr/&gt;" "&lt;/p:spTree&gt;&lt;/p:cSld&gt;" "<p:clrMapOvr><a:overrideClrMapping bg1=\"lt1\" tx1=\"dk1\" bg2=\"lt2\" tx2=\"dk2\" "
     'accent1="accent1" accent2="accent2" accent3="accent3" accent4="accent4" '
-    'accent5="accent5" accent6="accent6" hlink="hlink" folHlink="folHlink"/></p:clrMapOvr>'
-    "</p:sldLayout>"
+    'accent5="accent5"accent6="accent6" hlink="hlink" folHlink="folHlink"/></p:clrMapOvr>' "</p:sldLayout>"
 )
 
 _SLIDE_LAYOUT_RELS = (
-    '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
-    '<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">'
+    '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>' '<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">'
     '<Relationship Id="rId1" '
     'Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/slideMaster" '
-    'Target="../slideMasters/slideMaster1.xml"/>'
-    "</Relationships>"
+    'Target="../slideMasters/slideMaster1.xml"/>' "</Relationships>"
 )
 
 _SLIDE_MASTER_XML = (
-    '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
-    '<p:sldMaster xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main" '
+    '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>' '<p:sldMaster xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main" '
     'xmlns:p="http://schemas.openxmlformats.org/presentationml/2006/main">'
-    "<p:cSld><p:spTree>"
-    "<p:nvGrpSpPr><p:cNvPr id=\"1\" name=\"\"/><p:cNvGrpSpPr/><p:nvPr/></p:nvGrpSpPr>"
-    "<p:grpSpPr/>"
-    "</p:spTree></p:cSld>"
-    "<p:clrMap bg1=\"lt1\" tx1=\"dk1\" bg2=\"lt2\" tx2=\"dk2\" accent1=\"accent1\" "
+    "&lt;p:cSld&gt;&lt;p:spTree&gt;" "&lt;p:nvGrpSpPr&gt;&lt;p:cNvPr id=\"1\" name=\"\"/&gt;&lt;p:cNvGrpSpPr/&gt;&lt;p:nvPr/&gt;&lt;/p:nvGrpSpPr&gt;" "&lt;p:grpSpPr/&gt;" "&lt;/p:spTree&gt;&lt;/p:cSld&gt;" "<p:clrMap bg1=\"lt1\" tx1=\"dk1\" bg2=\"lt2\" tx2=\"dk2\" accent1=\"accent1\" "
     'accent2="accent2" accent3="accent3" accent4="accent4" accent5="accent5" '
-    'accent6="accent6" hlink="hlink" folHlink="folHlink"/>'
-    "<p:sldLayoutIdLst>"
+    'accent6="accent6"hlink="hlink" folHlink="folHlink"/>' "<p:sldLayoutIdLst>"
     '<p:sldLayoutId id="2147483649" r:id="rId1" '
     'xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"/>'
-    "</p:sldLayoutIdLst>"
-    "</p:sldMaster>"
+    "</p:sldLayoutIdLst>" "</p:sldMaster>"
 )
 
 _SLIDE_MASTER_RELS = (
-    '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
-    '<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">'
+    '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>' '<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">'
     '<Relationship Id="rId1" '
     'Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/slideLayout" '
     'Target="../slideLayouts/slideLayout1.xml"/>'
     '<Relationship Id="rId2" '
     'Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/theme" '
-    'Target="../theme/theme1.xml"/>'
-    "</Relationships>"
+    'Target="../theme/theme1.xml"/>' "</Relationships>"
 )
 
 
@@ -163,12 +123,9 @@ def _text_box(
     )
     return (
         f'<p:sp><p:nvSpPr><p:cNvPr id="{shape_id}" name="TextBox {shape_id}"/>'
-        "<p:cNvSpPr txBox=\"1\"/><p:nvPr/></p:nvSpPr>"
-        "<p:spPr>"
+        "<p:cNvSpPr txBox=\"1\"/><p:nvPr/></p:nvSpPr>" "<p:spPr>"
         f'<a:xfrm><a:off x="{x}" y="{y}"/><a:ext cx="{cx}" cy="{cy}"/></a:xfrm>'
-        '<a:prstGeom prst="rect"><a:avLst/></a:prstGeom>'
-        "</p:spPr>"
-        f"<p:txBody><a:bodyPr wrap=\"square\"/><a:lstStyle/>{runs}</p:txBody>"
+        '&lt;a:prstGeom prst="rect"&gt;&lt;a:avLst/&gt;&lt;/a:prstGeom&gt;' "</p:spPr>" f"<p:txBody><a:bodyPr wrap=\"square\"/><a:lstStyle/>{runs}</p:txBody>"
         "</p:sp>"
     )
 
@@ -178,25 +135,18 @@ def _slide_xml(title: str, bullets: list[str]) -> str:
     if bullets:
         shapes.append(_text_box(3, 457200, 1200150, 8229600, 5200650, bullets))
     return (
-        '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
-        '<p:sld xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main" '
+        '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>' '<p:sld xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main" '
         'xmlns:p="http://schemas.openxmlformats.org/presentationml/2006/main">'
-        "<p:cSld><p:spTree>"
-        "<p:nvGrpSpPr><p:cNvPr id=\"1\" name=\"\"/><p:cNvGrpSpPr/><p:nvPr/></p:nvGrpSpPr>"
-        "<p:grpSpPr/>"
-        + "".join(shapes)
-        + "</p:spTree></p:cSld>"
-        "</p:sld>"
+        "<p:cSld><p:spTree>" "&lt;p:nvGrpSpPr&gt;&lt;p:cNvPr id=\"1\" name=\"\"/&gt;&lt;p:cNvGrpSpPr/&gt;&lt;p:nvPr/&gt;&lt;/p:nvGrpSpPr&gt;" "<p:grpSpPr/>" +"".join(shapes)
+        + "</p:spTree></p:cSld>" "</p:sld>"
     )
 
 
 _SLIDE_RELS = (
-    '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
-    '<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">'
+    '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>' '<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">'
     '<Relationship Id="rId1" '
     'Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/slideLayout" '
-    'Target="../slideLayouts/slideLayout1.xml"/>'
-    "</Relationships>"
+    'Target="../slideLayouts/slideLayout1.xml"/>' "</Relationships>"
 )
 
 
@@ -261,20 +211,16 @@ def export_pptx_bytes(report: InstitutionalResearchReport) -> bytes:
         f'<p:sldId id="{256 + i}" r:id="rId{i + 2}"/>' for i in range(len(slides))
     )
     presentation_xml = (
-        '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
-        '<p:presentation xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main" '
+        '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>' '<p:presentation xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main" '
         'xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships" '
         'xmlns:p="http://schemas.openxmlformats.org/presentationml/2006/main">'
-        '<p:sldMasterIdLst><p:sldMasterId id="2147483648" r:id="rId1"/></p:sldMasterIdLst>'
-        f"<p:sldIdLst>{sld_id_entries}</p:sldIdLst>"
+        '&lt;p:sldMasterIdLst&gt;&lt;p:sldMasterId id="2147483648"r:id="rId1"/&gt;&lt;/p:sldMasterIdLst&gt;' f"<p:sldIdLst>{sld_id_entries}</p:sldIdLst>"
         '<p:sldSz cx="9144000" cy="6858000"/>'
-        '<p:notesSz cx="6858000" cy="9144000"/>'
-        "</p:presentation>"
+        '<p:notesSz cx="6858000"cy="9144000"/>' "</p:presentation>"
     )
 
     presentation_rels_entries = [
-        '<Relationship Id="rId1" '
-        'Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/slideMaster" '
+        '<Relationship Id="rId1" ' 'Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/slideMaster" '
         'Target="slideMasters/slideMaster1.xml"/>'
     ]
     for i in range(1, len(slides) + 1):
@@ -289,8 +235,7 @@ def export_pptx_bytes(report: InstitutionalResearchReport) -> bytes:
         'Target="theme/theme1.xml"/>'
     )
     presentation_rels = (
-        '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
-        '<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">'
+        '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>' '<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">'
         + "".join(presentation_rels_entries)
         + "</Relationships>"
     )

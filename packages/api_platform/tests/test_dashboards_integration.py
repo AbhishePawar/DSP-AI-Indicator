@@ -42,8 +42,7 @@ def test_executive_includes_system_health_or_unavailable(client: TestClient) -> 
     response = client.get("/api/v1/dashboards/executive")
     assert response.status_code == 200
     widgets = response.json()["result"]["widgets"]
-    assert "system_health" in widgets
-    assert "platform_kpis" in widgets
+    assert "system_health"in widgets assert"platform_kpis" in widgets
     # Health probe may pass or honestly mark unavailable — never invent KPIs
     assert widgets["system_health"]["message"] in (None, "Data unavailable.")
 

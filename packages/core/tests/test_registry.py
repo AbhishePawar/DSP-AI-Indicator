@@ -51,9 +51,7 @@ class TestRegistry:
     def test_contains(self) -> None:
         registry: Registry[int] = Registry(kind="item")
         registry.register("alpha", 1)
-        assert "alpha" in registry
-        assert "ALPHA" in registry
-        assert "missing" not in registry
+        assert "alpha"in registry assert"ALPHA"in registry assert"missing" not in registry
 
     def test_len(self) -> None:
         registry: Registry[int] = Registry(kind="item")

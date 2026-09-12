@@ -153,8 +153,7 @@ class ShellPgDumpBackupAdapter:
                 "ok": False,
                 "available": self.is_available(),
                 "message": (
-                    f"Restore refused: set {RESTORE_CONFIRM_ENV}=YES "
-                    "(trusted operator control only)."
+                    f"Restore refused: set {RESTORE_CONFIRM_ENV}=YES " "(trusted operator control only)."
                 ),
             }
         if not self.is_available():

@@ -50,10 +50,7 @@ class TestBuildAndRegister:
 
     def test_supported_codes_include_core_set(self) -> None:
         codes = supported_indicator_codes()
-        assert "GDP" in codes
-        assert "CPI" in codes
-        assert "PMI" in codes
-        assert "M2" in codes
+        assert "GDP" in codes assert"CPI"in codes assert"PMI"in codes assert"M2" in codes
 
 
 class TestEconomicServiceThroughRegistry:

@@ -91,10 +91,7 @@ class DatabaseReportStore(ReportStore):
     def _ensure_schema(self) -> None:
         self._db.execute(
             f"CREATE TABLE IF NOT EXISTS {self._TABLE} ("
-            "snapshot_key TEXT PRIMARY KEY, "
-            "payload TEXT NOT NULL, "
-            "updated_at TEXT NOT NULL"
-            ")"
+            "snapshot_key TEXT PRIMARY KEY, " "payload TEXT NOT NULL, " "updated_at TEXT NOT NULL" ")"
         )
 
     def _hydrate(self) -> None:

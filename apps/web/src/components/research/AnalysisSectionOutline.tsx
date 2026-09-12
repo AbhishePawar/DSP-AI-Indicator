@@ -11,9 +11,9 @@ export function AnalysisSectionOutline() {
       />
       <CardBody>
         <ol className="list-decimal space-y-1 pl-5 text-sm text-[var(--muted)]">
-          {ANALYSIS_PAGE_ORDER.map((section) => (
-            <li key={section.id}>
-              <span className="text-[var(--fg)]">{section.title}</span>
+          {ANALYSIS_PAGE_ORDER?.map((section) => (
+            <li key={section?.id}>
+              <span className="text-[var(--fg)]">{section?.title}</span>
             </li>
           ))}
         </ol>

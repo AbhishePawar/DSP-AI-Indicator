@@ -3,10 +3,6 @@ import { defineConfig, devices } from "@playwright/test";
 /**
  * EPIC-019A — Visual regression + multi-browser smoke.
  * Baselines under e2e/visual/__screenshots__.
- *
- * SIMPLE-14I-A: tests run against the local/CI standalone server
- * (default http://127.0.0.1:3000). Do not point PLAYWRIGHT_BASE_URL
- * at an external preview host.
  */
 const baseURL = process.env.PLAYWRIGHT_BASE_URL ?? "http://127.0.0.1:3000";
 
@@ -59,12 +55,8 @@ export default defineConfig({
     : {
         // Prefer production standalone server — avoids Next dev bundling test-only deps.
         // Copy static/public beside server.js (same as docker/frontend/Dockerfile).
-        // CI already ran `npm run build`. A second webpack compile then resolves a
-        // 29-file Next standalone stub at apps/web/node_modules/next instead of the
-        // real package, and webServer exits before any smoke test runs.
-        command: process.env.CI
-          ? "node ./scripts/prepare-standalone-static.mjs && node .next/standalone/server.js"
-          : "npm run build && node ./scripts/prepare-standalone-static.mjs && node .next/standalone/server.js",
+        command:
+          "npm run build && node ./scripts/prepare-standalone-static.mjs && node .next/standalone/server.js",
         url: baseURL,
         reuseExistingServer: !process.env.CI,
         timeout: 300_000,

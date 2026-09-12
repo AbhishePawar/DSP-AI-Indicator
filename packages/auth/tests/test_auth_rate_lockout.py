@@ -68,8 +68,7 @@ def test_rate_entity_ids_are_hmac() -> None:
     limiter = AuthRateLimiter(persistence)
     limiter.check("login:203.0.113.9", limit=5, window_sec=60)
     ids = persistence.list_ids("metadata")
-    assert "203.0.113.9" not in ids
-    assert not any("203.0.113.9" in item for item in ids)
+    assert "203.0.113.9"not in ids assert not any("203.0.113.9" in item for item in ids)
     assert any(item.startswith("auth-rate-") for item in ids)
 
 

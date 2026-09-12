@@ -126,11 +126,9 @@ function mapColumnToReviewStatus(column: AssignmentColumnId): ReviewStatus | nul
   switch (column) {
     case "completed":
       return "completed";
-    case "in_progress":
-    case "ready":
+    case "in_progress": case"ready":
       return "in_progress";
-    case "unassigned":
-    case "assigned":
+    case "unassigned": case"assigned":
       return "upcoming";
     case "deferred":
       return "archived";
@@ -320,13 +318,10 @@ export function buildReviewProgress(review: ClientReview) {
   const meetingReady = review.checklist.find((c) => c.id === "meeting_complete")?.done
     ? "Ready"
     : review.checklist.find((c) => c.id === "presentation_ready")?.done
-      ? "Nearly ready"
-      : "Not ready";
+      ? "Nearly ready" :"Not ready";
   const presentationReady = review.presentationId
     ? review.checklist.find((c) => c.id === "presentation_ready")?.done
-      ? "Pack linked · checklist ready"
-      : "Pack linked · checklist pending"
-    : "No presentation linked";
+      ? "Pack linked · checklist ready" :"Pack linked · checklist pending" :"No presentation linked";
   const researchCurrency =
     review.envelopeIds.length > 0
       ? `${review.envelopeIds.length} envelopes linked (demo freshness via viewedAt)`

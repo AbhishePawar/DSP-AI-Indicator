@@ -14,7 +14,7 @@ afterEach(() => {
 
 describe("ValidationBanner", () => {
   it("shows validation errors and retry", () => {
-    const onRetry = vi.fn();
+    const onRetry = vi?.fn();
     render(
       React.createElement(ValidationBanner, {
         apiError: "Request failed",
@@ -22,10 +22,10 @@ describe("ValidationBanner", () => {
         onRetry,
       }),
     );
-    expect(screen.getByRole("alert")).toHaveTextContent("Request failed");
-    expect(screen.getByText(/corr-1/)).toBeTruthy();
-    screen.getByRole("button", { name: /retry/i }).click();
-    expect(onRetry).toHaveBeenCalledOnce();
+    expect(screen?.getByRole("alert"))?.toHaveTextContent("Request failed");
+    expect(screen?.getByText(/corr-1/))?.toBeTruthy();
+    screen?.getByRole("button", { name: /retry/i })?.click();
+    expect(onRetry)?.toHaveBeenCalledOnce();
   });
 
   it("shows success validation state", () => {
@@ -36,7 +36,7 @@ describe("ValidationBanner", () => {
         warnings: ["exchange not provided"],
       }),
     );
-    expect(screen.getByRole("alert")).toHaveTextContent("Validation passed");
+    expect(screen?.getByRole("alert"))?.toHaveTextContent("Validation passed");
   });
 });
 
@@ -54,9 +54,9 @@ describe("PipelineTimeline", () => {
         ],
       }),
     );
-    expect(screen.getByLabelText("Pipeline stages")).toBeTruthy();
-    expect(screen.getByText("financial")).toBeTruthy();
-    expect(screen.getByText("succeeded")).toBeTruthy();
+    expect(screen?.getByLabelText("Pipeline stages"))?.toBeTruthy();
+    expect(screen?.getByText("financial"))?.toBeTruthy();
+    expect(screen?.getByText("succeeded"))?.toBeTruthy();
   });
 });
 
@@ -70,6 +70,6 @@ describe("HealthIndicator", () => {
         pipelineVersion: "1.0.0-epic-001",
       }),
     );
-    expect(screen.getByLabelText("API health")).toHaveTextContent("API ready");
+    expect(screen?.getByLabelText("API health"))?.toHaveTextContent("API ready");
   });
 });

@@ -435,9 +435,7 @@ export function WorkspaceSidebar({
       <button
         type="button"
         className={`flex min-h-11 w-full items-center rounded-md border px-3 text-left text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] ${
-          folderId === "all"
-            ? "border-[var(--accent)] bg-[var(--accent-soft)]"
-            : "border-[var(--border)]"
+          folderId === "all" ?"border-[var(--accent)] bg-[var(--accent-soft)]" :"border-[var(--border)]"
         }`}
         onClick={() => onSelectFolder("all")}
       >

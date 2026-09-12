@@ -44,9 +44,7 @@ class TestEvaluateHigherIsBetter:
     def test_above_strong_is_bullish(self) -> None:
         outcome = self._run(0.20)
         assert outcome.direction is SignalDirection.BULLISH
-        assert outcome.observation == "Strong Profitability"
-        assert "18.0%" not in outcome.reasoning  # sanity: not fabricating text
-        assert "20.0%" in outcome.reasoning
+        assert outcome.observation == "Strong Profitability" assert"18.0%"not in outcome.reasoning  # sanity: not fabricating text assert"20.0%" in outcome.reasoning
 
     def test_below_weak_is_bearish(self) -> None:
         outcome = self._run(0.02)

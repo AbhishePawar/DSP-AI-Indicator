@@ -147,8 +147,7 @@ class WebAuthnAdapter:
         state = str(credential.get("state") or "")
         response = credential.get("credential") or credential.get("response") or credential
         pending = self._pending_store.consume_webauthn_pending(state)
-        if pending is None or pending.kind != "registration" or pending.user_id != user_id:
-            raise AuthenticationError("Invalid or expired registration challenge.")
+        if pending is None or pending.kind != "registration" or pending.user_id != user_id: raise AuthenticationError("Invalid or expired registration challenge.")
         try:
             verification = verify_registration_response(
                 credential=response,
@@ -244,8 +243,7 @@ class WebAuthnAdapter:
         state = str(assertion.get("state") or "")
         response = assertion.get("credential") or assertion.get("response") or assertion
         pending = self._pending_store.consume_webauthn_pending(state)
-        if pending is None or pending.kind != "authentication":
-            raise AuthenticationError("Invalid or expired authentication challenge.")
+        if pending is None or pending.kind != "authentication": raise AuthenticationError("Invalid or expired authentication challenge.")
 
         raw_id = response.get("rawId") or response.get("id")
         if not raw_id:

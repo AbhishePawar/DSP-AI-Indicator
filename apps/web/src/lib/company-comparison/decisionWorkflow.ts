@@ -6,16 +6,7 @@
 import type { ComparisonSectionId } from "./sections";
 
 export type DecisionWorkflowStepId =
-  | "comparison"
-  | "winner"
-  | "tradeOffs"
-  | "contradictory"
-  | "buffett"
-  | "intelligence"
-  | "notes"
-  | "thesis"
-  | "decisionMemo"
-  | "export";
+  | "comparison" |"winner" |"tradeOffs" |"contradictory" |"buffett" |"intelligence" |"notes" |"thesis" |"decisionMemo" |"export";
 
 export type DecisionWorkflowStep = {
   id: DecisionWorkflowStepId;
@@ -112,12 +103,7 @@ export const INSTITUTIONAL_UX_QUESTIONS: readonly string[] = [
 ] as const;
 
 export type ReviewModeId =
-  | "standard"
-  | "presentation"
-  | "committee"
-  | "print"
-  | "fullscreen"
-  | "evidence_first";
+  | "standard" |"presentation" |"committee" |"print" |"fullscreen" |"evidence_first";
 
 export type ReviewModeDef = {
   id: ReviewModeId;

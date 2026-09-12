@@ -4,30 +4,14 @@
 
 export type PresentationId = string;
 export type PresentationSectionId =
-  | "executive_summary"
-  | "investment_objectives"
-  | "client_profile"
-  | "research_summary"
-  | "model_portfolio"
-  | "portfolio_allocation"
-  | "top_opportunities"
-  | "risk_review"
-  | "research_timeline"
-  | "advisor_notes"
-  | "disclosures";
+  | "executive_summary" |"investment_objectives" |"client_profile" |"research_summary" |"model_portfolio" |"portfolio_allocation" |"top_opportunities" |"risk_review" |"research_timeline" |"advisor_notes" |"disclosures";
 
 export type PresentationLifecycle = "active" | "archived";
 
 export type PreviewMode = "desktop" | "tablet" | "print" | "present";
 
 export type PresentationTemplateId =
-  | "tpl-initial-consultation"
-  | "tpl-quarterly-review"
-  | "tpl-annual-review"
-  | "tpl-investment-proposal"
-  | "tpl-portfolio-update"
-  | "tpl-market-commentary"
-  | "tpl-custom";
+  | "tpl-initial-consultation" |"tpl-quarterly-review" |"tpl-annual-review" |"tpl-investment-proposal" |"tpl-portfolio-update" |"tpl-market-commentary" |"tpl-custom";
 
 export type PresentationSectionDef = {
   id: PresentationSectionId;

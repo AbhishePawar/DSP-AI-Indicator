@@ -395,9 +395,7 @@ class IncomeStatementEngine:
                         len(annual_points), has_value=True
                     ),
                     interpretation=(
-                        f"Revenue CAGR over "
-                        f"{annual_points[-1][0] - annual_points[0][0]} "
-                        f"fiscal years is {cagr * 100:.2f}%."
+                        f"Revenue CAGR over " f"{annual_points[-1][0] - annual_points[0][0]} " f"fiscal years is {cagr * 100:.2f}%."
                     ),
                     limitations=(
                         "Annual statements only; quarterly histories do not "

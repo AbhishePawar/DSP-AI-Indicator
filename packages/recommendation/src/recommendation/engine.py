@@ -207,8 +207,7 @@ class RecommendationEngine:
             calculation_timestamp=timestamp,
             confidence_level=confidence,
             notes=(
-                "Confidence reflects evidence agreement, conflict severity, "
-                "coverage completeness, and consistency — not market prediction.",
+                "Confidence reflects evidence agreement, conflict severity, " "coverage completeness, and consistency — not market prediction.",
             ),
         )
 
@@ -276,8 +275,7 @@ class RecommendationEngine:
             rationale_count=len(rationales),
             score_count=len(scores),
             limitation_notes=(
-                "Baseline rule synthesis only — no primary analysis, "
-                "optimization, or market forecasting.",
+                "Baseline rule synthesis only — no primary analysis, " "optimization, or market forecasting.",
                 f"Method: {METHOD_BASELINE}",
                 *tuple(warnings),
             ),
@@ -346,8 +344,7 @@ class RecommendationEngine:
             result = self.synthesize(item)
             if result.recommendation_id in seen:
                 msg = (
-                    "duplicate identities: recommendation_id "
-                    f"{result.recommendation_id!r}"
+                    "duplicate identities: recommendation_id " f"{result.recommendation_id!r}"
                 )
                 raise RecommendationError(msg)
             seen.add(result.recommendation_id)
@@ -393,8 +390,7 @@ class RecommendationEngine:
                     conflict_id=f"dsp.recommendation.conflict.qual_vs_quant.{recommendation_id}",
                     title="Qualitative support vs quantitative risk",
                     description=(
-                        "Positive / supportive qualitative posture conflicts with "
-                        "cautionary or adverse quantitative risk citation posture."
+                        "Positive / supportive qualitative posture conflicts with " "cautionary or adverse quantitative risk citation posture."
                     ),
                     severity=ConflictSeverity.HIGH,
                     option_refs=(
@@ -414,8 +410,7 @@ class RecommendationEngine:
                     conflict_id=f"dsp.recommendation.conflict.valuation_vs_fit.{recommendation_id}",
                     title="Strong valuation vs weak portfolio fit",
                     description=(
-                        "Supportive valuation / decision posture conflicts with "
-                        "cautionary or adverse portfolio-fit posture."
+                        "Supportive valuation / decision posture conflicts with " "cautionary or adverse portfolio-fit posture."
                     ),
                     severity=ConflictSeverity.MEDIUM,
                     option_refs=(
@@ -432,8 +427,7 @@ class RecommendationEngine:
                     conflict_id=f"dsp.recommendation.conflict.insufficient.{recommendation_id}",
                     title="Insufficient evidence",
                     description=(
-                        "Multiple signal postures remain UNKNOWN; directional "
-                        "recommendation evidence is incomplete."
+                        "Multiple signal postures remain UNKNOWN; directional " "recommendation evidence is incomplete."
                     ),
                     severity=ConflictSeverity.HIGH,
                     option_refs=(
@@ -539,10 +533,7 @@ class RecommendationEngine:
         conflict_titles = ", ".join(c.title for c in conflicts) or "none"
         return (
             f"Preferred posture {option_type.value} selected by baseline rules. "
-            f"Qualitative={qualitative.value}; quantitative={quantitative.value}; "
-            f"valuation={valuation.value}; portfolio_fit={portfolio_fit.value}. "
-            f"Declared conflicts: {conflict_titles}. "
-            "All claims cite assembled upstream report references only."
+            f"Qualitative={qualitative.value}; quantitative={quantitative.value}; " f"valuation={valuation.value}; portfolio_fit={portfolio_fit.value}. " f"Declared conflicts: {conflict_titles}. " "All claims cite assembled upstream report references only."
         )
 
     def _validate_outputs(

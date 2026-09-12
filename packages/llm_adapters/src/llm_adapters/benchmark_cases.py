@@ -56,8 +56,7 @@ _CASE_01 = ResearchSpec(
     research_case_id="DSP-BMK-01-simple-interpretation",
     research_spec_version="v1",
     question=(
-        "Based on the supplied DSP evidence, summarise the company's "
-        "current investment posture in plain language."
+        "Based on the supplied DSP evidence, summarise the company's " "current investment posture in plain language."
     ),
     evidence={
         "recommendation": "Hold",
@@ -82,8 +81,7 @@ _CASE_02 = ResearchSpec(
     research_case_id="DSP-BMK-02-simple-comparison",
     research_spec_version="v1",
     question=(
-        "Compare the two companies on quality, valuation, and risk. "
-        "Which is more attractive today and why?"
+        "Compare the two companies on quality, valuation, and risk. " "Which is more attractive today and why?"
     ),
     evidence={
         "company_a": {
@@ -116,8 +114,7 @@ _CASE_03 = ResearchSpec(
     research_case_id="DSP-BMK-03-routine-valuation",
     research_spec_version="v1",
     question=(
-        "Interpret this DCF valuation. Is the current price below or "
-        "above intrinsic value, and what is the margin of safety?"
+        "Interpret this DCF valuation. Is the current price below or " "above intrinsic value, and what is the margin of safety?"
     ),
     evidence={
         "method": "Two-stage DCF (10y explicit + terminal)",
@@ -139,8 +136,7 @@ _CASE_04 = ResearchSpec(
     research_case_id="DSP-BMK-04-valuation-conflict",
     research_spec_version="v1",
     question=(
-        "DCF and Graham-Number valuations disagree. Reconcile them and "
-        "state which one you would weight more for this company."
+        "DCF and Graham-Number valuations disagree. Reconcile them and " "state which one you would weight more for this company."
     ),
     evidence={
         "dcf_intrinsic_value": "210",
@@ -163,8 +159,7 @@ _CASE_05 = ResearchSpec(
     research_case_id="DSP-BMK-05-conflicting-evidence",
     research_spec_version="v1",
     question=(
-        "Two evidence sources disagree on business quality. Resolve the "
-        "conflict using the provided DSP criteria."
+        "Two evidence sources disagree on business quality. Resolve the " "conflict using the provided DSP criteria."
     ),
     evidence={
         "source_a": {"business_quality": "Great", "score": 0.84},
@@ -184,8 +179,7 @@ _CASE_06 = ResearchSpec(
     research_case_id="DSP-BMK-06-missing-history",
     research_spec_version="v1",
     question=(
-        "Only two years of financial history is available. State what is "
-        "knowable and what cannot be determined with confidence."
+        "Only two years of financial history is available. State what is " "knowable and what cannot be determined with confidence."
     ),
     evidence={
         "available_years": 2,
@@ -204,8 +198,7 @@ _CASE_07 = ResearchSpec(
     research_case_id="DSP-BMK-07-difficult-buffett-bq",
     research_spec_version="v1",
     question=(
-        "Apply the Buffett-style business quality test to this company "
-        "given inconsistent evidence."
+        "Apply the Buffett-style business quality test to this company " "given inconsistent evidence."
     ),
     evidence={
         "moat": "unclear",

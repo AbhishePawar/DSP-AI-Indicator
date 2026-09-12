@@ -61,8 +61,7 @@ class FundamentalStatementsBuilder:
         for statement in ordered:
             if statement.instrument != instrument:
                 msg = (
-                    "all statements must belong to instrument "
-                    f"'{instrument.symbol}', found '{statement.instrument.symbol}'"
+                    "all statements must belong to instrument " f"'{instrument.symbol}', found '{statement.instrument.symbol}'"
                 )
                 raise InvalidProviderDataError(msg)
             if statement.period_end in seen:

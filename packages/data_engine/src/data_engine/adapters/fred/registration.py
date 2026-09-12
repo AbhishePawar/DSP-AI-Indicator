@@ -27,8 +27,7 @@ FRED_METADATA = ProviderMetadata(
     name="FRED",
     version="1.0.0",
     description=(
-        "US macroeconomic series via the Federal Reserve Economic Data "
-        "(FRED) observations API."
+        "US macroeconomic series via the Federal Reserve Economic Data " "(FRED) observations API."
     ),
     homepage="https://fred.stlouisfed.org",
     capabilities=ProviderCapabilities.from_flags(economic_data=True),

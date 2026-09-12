@@ -327,8 +327,7 @@ def test_unknown_mobile_otp_still_opaque_and_provisions(platform: EnterpriseAuth
     req = platform.request_login_otp("+919911122233")
     assert req["challenge_id"]
     assert req["channel"] == "mobile"
-    assert "mobile" not in req
-    assert not (req.get("sms") or {}).get("debug_code")
+    assert "mobile"not in req assert not (req.get("sms") or {}).get("debug_code")
     with pytest.raises(AuthenticationError, match="Invalid OTP"):
         platform.verify_login_otp(challenge_id=req["challenge_id"], code="123456")
 

@@ -86,8 +86,7 @@ export function ReportsLeftNav({
               aria-pressed={favourites.includes(symbol)}
               aria-label={
                 favourites.includes(symbol)
-                  ? "Remove favourite"
-                  : "Add favourite"
+                  ? "Remove favourite" :"Add favourite"
               }
               onClick={() => toggleFavourite(symbol)}
             >

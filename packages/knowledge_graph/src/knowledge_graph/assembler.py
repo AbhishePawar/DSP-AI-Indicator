@@ -129,8 +129,7 @@ class KnowledgeGraphAssembler:
 
         if not context.recommendation_refs:
             msg = (
-                "missing Recommendation anchor: at least one "
-                "RecommendationReference required"
+                "missing Recommendation anchor: at least one " "RecommendationReference required"
             )
             raise KnowledgeGraphError(msg)
         if not context.workflow_refs:
@@ -186,8 +185,7 @@ class KnowledgeGraphAssembler:
             lineage_count=0,
             limitation_notes=(
                 "Assembly skeleton only — empty nodes / edges / relationships / "
-                "evidence links / lineage. Knowledge Graph Engine (I1.2) "
-                "populates graph structure.",
+                "evidence links / lineage. Knowledge Graph Engine (I1.2) " "populates graph structure.",
                 *context.notes,
             ),
         )

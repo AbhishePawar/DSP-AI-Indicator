@@ -42,10 +42,7 @@ __all__ = ["AssetBasedEngine", "ASSET_BASED_VERSION"]
 
 _METHODOLOGY = (
     "Asset-based valuation (research only): Book Value, Tangible Book, "
-    "NAV, Adjusted NAV, Liquidation, Conservative Liquidation, Replacement Cost. "
-    "Equity claim = Assets − Liabilities − Minority Interest − Preferred. "
-    "Haircuts and fair-value overlays are research assumptions. "
-    "Not investment advice."
+    "NAV, Adjusted NAV, Liquidation, Conservative Liquidation, Replacement Cost. " "Equity claim = Assets − Liabilities − Minority Interest − Preferred. " "Haircuts and fair-value overlays are research assumptions. " "Not investment advice."
 )
 
 _LIMITATIONS = (
@@ -767,8 +764,7 @@ class AssetBasedEngine:
         return ConfidenceEngine().score(
             {
                 "accounting_quality": accounting,
-                "forecast_reliability": adj_reliability,  # adjustment reliability
-                "data_completeness": completeness,
+                "forecast_reliability": adj_reliability,  # adjustment reliability "data_completeness": completeness,
                 "business_stability": bs_quality,
                 "capital_allocation": verification,
                 "model_assumptions": adj_reliability,

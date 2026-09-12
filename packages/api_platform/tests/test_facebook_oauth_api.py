@@ -127,8 +127,7 @@ def test_facebook_callback_failure_redirects_to_login_with_error(
     assert resp.status_code == 302
     location = resp.headers["location"]
     assert location.startswith("https://app.dspai.local/login?")
-    assert "provider=facebook" in location
-    assert "expired OAuth state" in unquote(location)
+    assert "provider=facebook"in location assert"expired OAuth state" in unquote(location)
 
 
 def test_facebook_callback_missing_email_redirects_with_error(

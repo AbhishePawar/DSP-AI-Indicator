@@ -20,10 +20,7 @@ if [[ -z "${DSP_DATABASE_URL:-}" ]]; then
 fi
 
 STAMP="$(date -u +%Y%m%dT%H%M%SZ)"
-OUT="${DSP_BACKUP_DIR}/${DSP_BACKUP_PREFIX}_${STAMP}.sql.gz"
-mkdir -p "${DSP_BACKUP_DIR}"
-
-echo "[incr] dumping to ${OUT}"
+OUT="${DSP_BACKUP_DIR}/${DSP_BACKUP_PREFIX}_${STAMP}.sql.gz" mkdir -p"${DSP_BACKUP_DIR}" echo"[incr] dumping to ${OUT}"
 # shellcheck disable=SC2086
 pg_dump "${DSP_DATABASE_URL}" | gzip -c > "${OUT}"
 BYTES="$(wc -c < "${OUT}" | tr -d ' ')"

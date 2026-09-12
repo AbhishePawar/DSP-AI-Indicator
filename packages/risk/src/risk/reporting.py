@@ -87,15 +87,13 @@ class RiskReporter:
             if assessment.risk_id != profile.identity.risk_id:
                 msg = (
                     f"foreign ownership: assessment risk_id "
-                    f"{assessment.risk_id!r} does not match "
-                    f"{profile.identity.risk_id!r}"
+                    f"{assessment.risk_id!r} does not match " f"{profile.identity.risk_id!r}"
                 )
                 raise RiskError(msg)
             if assessment.portfolio_id != profile.portfolio_ref.portfolio_id:
                 msg = (
                     f"foreign ownership: assessment portfolio_id "
-                    f"{assessment.portfolio_id!r} does not match "
-                    f"{profile.portfolio_ref.portfolio_id!r}"
+                    f"{assessment.portfolio_id!r} does not match " f"{profile.portfolio_ref.portfolio_id!r}"
                 )
                 raise RiskError(msg)
 
@@ -247,8 +245,7 @@ class RiskReporter:
         for desc in descriptors:
             if desc.dimension in seen:
                 msg = (
-                    f"duplicate report sections: descriptor dimension "
-                    f"{desc.dimension!r}"
+                    f"duplicate report sections: descriptor dimension " f"{desc.dimension!r}"
                 )
                 raise RiskError(msg)
             seen.add(desc.dimension)

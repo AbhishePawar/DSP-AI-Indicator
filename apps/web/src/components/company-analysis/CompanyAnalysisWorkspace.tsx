@@ -55,6 +55,10 @@ import {
   WorkspaceSkeleton,
 } from "./WorkspacePrimitives";
 import { Section } from '../ds/index';
+import { InstitutionalRatingsSection } from './InstitutionalRatingsSection';
+import { ValuationTransparencySection } from './ValuationTransparencySection';
+import { BuffettIndicatorSection } from './BuffettIndicatorSection';
+import { AiCopilotSection } from './sections/AiCopilotSection';
 
 
 
@@ -393,8 +397,7 @@ export function CompanyAnalysisWorkspace() {
       : marketQuery.isError
         ? "Data unavailable."
         : marketQuery.data
-          ? "Quote loaded"
-          : "Data unavailable.";
+          ? "Quote loaded" :"Data unavailable.";
 
   useEffect(() => {
     function onKeyDown(event: KeyboardEvent) {

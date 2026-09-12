@@ -126,8 +126,7 @@ def validate_runtime_environment(
             continue
         if key == "DSP_REGION":
             region = (env_map.get("DSP_REGION") or "").strip()
-            if not region or region == "local":
-                missing.append("DSP_REGION")
+            if not region or region == "local": missing.append("DSP_REGION")
             continue
         if not (env_map.get(key) or "").strip():
             missing.append(key)

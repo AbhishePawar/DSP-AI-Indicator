@@ -148,8 +148,7 @@ class TestValidation:
                 current_liabilities=-1.0,
             )
         )
-        assert "negative cash" in result.warnings
-        assert "negative current_liabilities" in result.warnings
+        assert "negative cash" in result.warnings assert"negative current_liabilities" in result.warnings
 
     def test_with_statements_ok(self) -> None:
         stmt = _stmt(_bs())

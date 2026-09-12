@@ -3,6 +3,9 @@
 import dynamic from "next/dynamic";
 
 import { Skeleton } from "@/components/ui/Skeleton";
+import { SharedResearchLibraryPage } from '../../../../../components/advisor/SharedResearch';
+
+
 const SharedResearchLibraryPage = dynamic(
   () =>
     import("@/components/advisor/SharedResearch").then(

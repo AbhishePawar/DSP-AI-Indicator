@@ -1,3 +1,5 @@
+"use client";
+
 /**
  * DSP Design System (EPIC-F001) — shadcn-style primitives mapped to PR1.2 tokens.
  * Pure reusable UI. No business logic. No API calls.

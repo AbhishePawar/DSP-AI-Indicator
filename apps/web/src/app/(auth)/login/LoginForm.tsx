@@ -69,7 +69,7 @@ export default function LoginForm() {
       );
       window.location.assign(result.authorization_url);
     } catch (err) {
-      setError(mapAuthError(err));
+      setError(`Google sign-in failed: ${mapAuthError(err)}`);
     } finally {
       setPending(false);
     }

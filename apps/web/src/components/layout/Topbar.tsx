@@ -60,8 +60,8 @@ export function Topbar({
             </Button>
             <Button
               variant="ghost"
-              size="icon"
-              className="hidden md:inline-flex"
+              size="sm"
+              className="hidden size-9 px-0 md:inline-flex"
               onClick={onToggleCollapse}
               aria-label={sidebarCollapsed ? "Expand sidebar" : "Collapse sidebar"}
               title={sidebarCollapsed ? "Expand sidebar" : "Collapse sidebar"}

@@ -5,6 +5,7 @@ import Link from "next/link";
 import { FormEvent, useMemo, useState } from "react";
 
 import { env } from "@/lib/env";
+import { ANALYSIS_INTENTS } from "@/lib/analysis/intents";
 
 const researchExamples = [
   { ticker: "TCS", name: "Tata Consultancy Services", market: "NSE · TCS" },
@@ -24,6 +25,11 @@ export function MarketingLanding() {
   const [query, setQuery] = useState("");
   const [selected, setSelected] = useState<(typeof researchExamples)[number] | null>(null);
   const [mobileOpen, setMobileOpen] = useState(false);
+
+  function runDspIndicatorAnalysis() {
+    const company = selected ?? researchExamples[0];
+    window.location.href = `/analysis?symbol=${encodeURIComponent(company.ticker)}&intent=${ANALYSIS_INTENTS.dspIndicator}`;
+  }
 
   const matches = useMemo(() => {
     const normalized = query.trim().toLowerCase();
@@ -124,6 +130,10 @@ export function MarketingLanding() {
               <div className="mt-10">
                 <div className="flex items-center justify-between gap-4"><p className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--muted)]">Suggested research</p><span className="text-xs text-[var(--muted)]">Start with a company</span></div>
                 <div className="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">{researchExamples.map((company) => <button key={company.ticker} type="button" onClick={() => { setQuery(company.ticker); setSelected(company); }} className="dsp-interactive rounded-xl border border-[var(--border)] bg-[var(--surface)] px-4 py-3 text-left hover:bg-[var(--surface-2)]"><span className="block text-sm font-medium">{company.ticker}</span><span className="mt-1 block truncate text-xs text-[var(--muted)]">{company.name}</span></button>)}</div>
+                <button type="button" onClick={runDspIndicatorAnalysis} className="dsp-interactive mt-3 flex w-full items-center justify-between gap-4 rounded-xl border border-[var(--accent)] bg-[var(--accent-soft)] px-4 py-4 text-left hover:bg-[var(--surface-2)]">
+                  <span><span className="block text-sm font-semibold text-[var(--fg)]">DSP Indicator Analysis</span><span className="mt-1 block text-xs leading-5 text-[var(--muted)]">Evaluate a company using DSP&apos;s Buffett-style investment analysis framework.</span></span>
+                  <ArrowRight className="size-4 shrink-0 text-[var(--accent)]" />
+                </button>
               </div>
 
               <div className="mt-10 border-t border-[var(--border)] pt-6"><p className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--muted)]">Research prompts</p><div className="mt-3 flex flex-wrap gap-2">{prompts.map((prompt) => <button key={prompt} type="button" onClick={() => setQuery(prompt.replace(/^\w+ /, ""))} className="rounded-full border border-[var(--border)] px-3 py-2 text-xs text-[var(--muted)] hover:border-[var(--accent)] hover:text-[var(--fg)]">{prompt}</button>)}</div></div>

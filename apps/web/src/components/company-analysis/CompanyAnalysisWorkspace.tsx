@@ -31,6 +31,7 @@ import {
 } from "@/lib/company-analysis";
 import { useAuth } from "@/lib/auth/AuthProvider";
 import { pushRecentAnalysis } from "@/lib/analysis/recentAnalyses";
+import { ANALYSIS_INTENTS, parseAnalysisIntent } from "@/lib/analysis/intents";
 import { COMPANY_CATALOGUE } from "@/lib/companies/catalogue";
 import { useDashboardPrefsStore } from "@/lib/dashboard";
 import { useCollapsePanelsBelowLg } from "@/lib/a11y";
@@ -224,6 +225,8 @@ export function CompanyAnalysisWorkspace() {
 
   useEffect(() => {
     const next = (searchParams.get("symbol") || "").trim().toUpperCase();
+    const intent = parseAnalysisIntent(searchParams.get("intent"));
+    setActiveSection(intent === ANALYSIS_INTENTS.dspIndicator ? "buffett" : "summary");
     setSymbol((prev) => {
       if (prev === next) return prev;
       // Clear prior company research only when the ticker actually changes.
@@ -235,7 +238,7 @@ export function CompanyAnalysisWorkspace() {
       return next;
     });
     setQuery(next);
-  }, [searchParams]);
+  }, [searchParams, setActiveSection]);
 
   const selectSymbol = useCallback(
     (next: string) => {

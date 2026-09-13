@@ -9,8 +9,15 @@ import {
   type RecentAnalysisEntry,
 } from "@/lib/analysis/recentAnalyses";
 import { searchCatalogue } from "@/lib/companies/catalogue";
-import { DashboardGrid } from "./DashboardGrid";
 
+/**
+ * Canonical public research landing surface.
+ *
+ * The former dashboard widget grid is intentionally not rendered here.
+ * /dashboard is now the same search-first research experience used to enter
+ * the DSP Indicator workflow. Legacy executive/admin dashboard surfaces remain
+ * reachable only through their dedicated routes.
+ */
 export function SearchFirstDashboard() {
   const router = useRouter();
   const [query, setQuery] = useState("");
@@ -22,25 +29,31 @@ export function SearchFirstDashboard() {
   function submit(symbol: string) {
     const trimmed = symbol.trim().toUpperCase();
     if (!trimmed) return;
-    router.push(`/analysis?symbol=${encodeURIComponent(trimmed)}`);
+    router.push(
+      `/analysis?symbol=${encodeURIComponent(trimmed)}&intent=dsp_indicator`,
+    );
   }
 
   return (
-    <div className="px-4 py-16 sm:py-24">
-      <div className="mx-auto flex max-w-2xl flex-col items-center">
-        <h1 className="text-center font-[family-name:var(--font-display)] text-3xl font-semibold tracking-tight sm:text-4xl">
-          DSP AI INDICATOR
-        </h1>
-        <p className="mt-3 text-center text-lg text-[var(--muted)]">
-          What would you like to research?
-        </p>
+    <main className="min-h-[calc(100vh-7rem)] px-4 py-16 sm:py-24">
+      <div className="mx-auto flex max-w-3xl flex-col items-center">
+        <div className="text-center">
+          <p className="text-xs font-medium uppercase tracking-[0.2em] text-[var(--muted)]">
+            DSP Indicator Analysis
+          </p>
+          <h1 className="mt-3 font-[family-name:var(--font-display)] text-4xl font-semibold tracking-tight sm:text-6xl">
+            Research any company.
+          </h1>
+          <p className="mx-auto mt-4 max-w-2xl text-lg text-[var(--muted)] sm:text-xl">
+            Evidence first. AI research. DSP judgment. Simple investment
+            decisions.
+          </p>
+        </div>
 
-        <div className="mt-8 w-full space-y-3">
+        <div className="mt-10 w-full max-w-2xl space-y-3">
           <SearchBox
             value={query}
-            onChange={(e) => {
-              setQuery(e.target.value);
-            }}
+            onChange={(e) => setQuery(e.target.value)}
             placeholder="Search a company or stock — e.g. TCS, Infosys, HDFC Bank"
             aria-label="Search a company or stock"
             onKeyDown={(event) => {
@@ -56,14 +69,14 @@ export function SearchFirstDashboard() {
             onClick={() => submit(query)}
             disabled={!query.trim()}
           >
-            Research
+            Start DSP Indicator Research
           </Button>
         </div>
 
         {showResults && (
-          <div className="mt-4 w-full">
+          <div className="mt-5 w-full max-w-2xl">
             <p className="mb-2 text-xs font-medium uppercase tracking-wide text-[var(--muted)]">
-              Results
+              Companies
             </p>
             {matched.length === 0 ? (
               <p className="text-sm text-[var(--muted)]">
@@ -98,8 +111,8 @@ export function SearchFirstDashboard() {
           </div>
         )}
 
-        {recent.length > 0 && !showResults && (
-          <div className="mt-12 w-full">
+        {!showResults && recent.length > 0 && (
+          <div className="mt-12 w-full max-w-2xl">
             <p className="mb-2 text-xs font-medium uppercase tracking-wide text-[var(--muted)]">
               Recent research
             </p>
@@ -110,11 +123,7 @@ export function SearchFirstDashboard() {
                     type="button"
                     variant="ghost"
                     className="w-full justify-start"
-                    onClick={() =>
-                      router.push(
-                        `/analysis?symbol=${encodeURIComponent(entry.ticker)}`,
-                      )
-                    }
+                    onClick={() => submit(entry.ticker)}
                   >
                     <span className="flex flex-col items-start gap-0.5 text-left">
                       <span className="font-medium">
@@ -136,13 +145,12 @@ export function SearchFirstDashboard() {
           </div>
         )}
 
-        {recent.length === 0 && !showResults && (
+        {!showResults && recent.length === 0 && (
           <p className="mt-12 text-sm text-[var(--muted)]">
-            No recent research yet. Search for a company above to get started.
+            Search a company above to begin evidence-first DSP research.
           </p>
         )}
       </div>
-      <DashboardGrid />
-    </div>
+    </main>
   );
 }

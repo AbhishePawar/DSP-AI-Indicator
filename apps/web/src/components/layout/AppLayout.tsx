@@ -7,6 +7,7 @@ import { FeedbackProvider } from "@/components/beta/FeedbackContext";
 import { BetaShellWidgets } from "@/components/beta/BetaShellWidgets";
 import { ClosedBetaGate } from "@/components/beta/ClosedBetaGate";
 import { LoadingLayout } from "@/components/layout/ContentArea";
+import { ResearchShell } from "@/components/layout/ResearchShell";
 import { useRouteTransitionTiming } from "@/hooks/usePerformanceTiming";
 import { useAuth } from "@/lib/auth/AuthProvider";
 import {
@@ -48,7 +49,8 @@ export function AppLayout({ children }: { children: ReactNode }) {
   useRouteTransitionTiming();
 
   useEffect(() => {
-    if (status === "restoring" || status === "loading" || status === "refreshing") return;
+    if (status === "restoring" || status === "loading" || status === "refreshing")
+      return;
 
     if (isAuthPublicPath(pathname)) {
       if (session && pathname === "/login") {
@@ -70,9 +72,7 @@ export function AppLayout({ children }: { children: ReactNode }) {
     if (!drawerOpen) return;
 
     previousFocusRef.current =
-      document.activeElement instanceof HTMLElement
-        ? document.activeElement
-        : null;
+      document.activeElement instanceof HTMLElement ? document.activeElement : null;
 
     const dialog = drawerRef.current;
     const nodes = dialog
@@ -119,6 +119,12 @@ export function AppLayout({ children }: { children: ReactNode }) {
         />
       </div>
     );
+  }
+
+  const isResearchRoute = pathname === "/dashboard" || pathname === "/analysis";
+
+  if (isResearchRoute) {
+    return <ResearchShell>{children}</ResearchShell>;
   }
 
   if (isMarketingPath(pathname) || isAuthPublicPath(pathname)) {

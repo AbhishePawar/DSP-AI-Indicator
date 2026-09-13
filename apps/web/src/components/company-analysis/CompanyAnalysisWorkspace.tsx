@@ -245,7 +245,9 @@ export function CompanyAnalysisWorkspace() {
       setSymbol(normalized);
       setQuery(normalized);
       recordSearch(normalized);
-      router.replace(`/analysis?symbol=${encodeURIComponent(normalized)}`);
+      router.replace(
+        `/analysis?symbol=${encodeURIComponent(normalized)}&intent=dsp_indicator`,
+      );
     },
     [recordSearch, router],
   );

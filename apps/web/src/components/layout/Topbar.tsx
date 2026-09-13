@@ -4,7 +4,7 @@
  * EPIC-F003 — Sticky application header.
  */
 
-import { Bell, Search } from "lucide-react";
+import { Bell, ChevronLeft, ChevronRight, Search } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 
@@ -14,11 +14,9 @@ import {
   Badge,
   Button,
   Header,
-  Input,
   ThemeSwitcher,
   UserMenu,
 } from "@/components/ds";
-import { LegalNavLinks } from "@/components/legal/LegalNavLinks";
 import { useAuth } from "@/lib/auth/AuthProvider";
 import { sessionStatusLabel } from "@/lib/auth/types";
 import { env } from "@/lib/env";
@@ -62,14 +60,18 @@ export function Topbar({
             </Button>
             <Button
               variant="ghost"
-              className="hidden min-h-11 md:inline-flex"
+              size="icon"
+              className="hidden md:inline-flex"
               onClick={onToggleCollapse}
-              aria-label={
-                sidebarCollapsed ? "Expand sidebar" : "Collapse sidebar"
-              }
+              aria-label={sidebarCollapsed ? "Expand sidebar" : "Collapse sidebar"}
+              title={sidebarCollapsed ? "Expand sidebar" : "Collapse sidebar"}
               aria-pressed={sidebarCollapsed}
             >
-              {sidebarCollapsed ? "Expand" : "Collapse"}
+              {sidebarCollapsed ? (
+                <ChevronRight data-icon="inline-start" aria-hidden />
+              ) : (
+                <ChevronLeft data-icon="inline-start" aria-hidden />
+              )}
             </Button>
             <Link
               href="/dashboard"
@@ -93,9 +95,6 @@ export function Topbar({
         >
           <Search className="size-4 shrink-0" aria-hidden />
           <span className="flex-1 truncate">Search pages…</span>
-          <kbd className="hidden rounded border border-[var(--border)] px-1.5 py-0.5 font-mono text-[10px] sm:inline">
-            Ctrl+K
-          </kbd>
         </button>
       }
       right={
@@ -109,16 +108,6 @@ export function Topbar({
           >
             <Search className="size-4" aria-hidden />
           </Button>
-          <div className="relative hidden w-40 xl:block">
-            <Input
-              readOnly
-              placeholder="Search…"
-              aria-label="Global search (opens command palette)"
-              className="h-8 cursor-pointer text-xs"
-              onFocus={() => setCommandPaletteOpen(true)}
-              onClick={() => setCommandPaletteOpen(true)}
-            />
-          </div>
           <Button
             variant="ghost"
             size="sm"
@@ -129,11 +118,10 @@ export function Topbar({
           >
             <Bell className="size-4" aria-hidden />
           </Button>
-          <LegalNavLinks
-            density="header"
-            className="hidden max-w-[16rem] lg:flex"
-          />
-          <Badge variant="accent" className="hidden font-mono text-[10px] sm:inline-flex">
+          <Badge
+            variant="accent"
+            className="hidden font-mono text-[10px] sm:inline-flex"
+          >
             v{env.foundationVersion}
           </Badge>
           <Badge
@@ -155,9 +143,7 @@ export function Topbar({
               email={user.email || undefined}
               avatar={
                 <Avatar className="size-7">
-                  <AvatarFallback className="text-[10px]">
-                    {initials}
-                  </AvatarFallback>
+                  <AvatarFallback className="text-[10px]">{initials}</AvatarFallback>
                 </Avatar>
               }
               items={[

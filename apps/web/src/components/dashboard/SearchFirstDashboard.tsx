@@ -9,8 +9,6 @@ import {
   type RecentAnalysisEntry,
 } from "@/lib/analysis/recentAnalyses";
 import { searchCatalogue } from "@/lib/companies/catalogue";
-import { DashboardGrid } from "./DashboardGrid";
-
 export function SearchFirstDashboard() {
   const router = useRouter();
   const [query, setQuery] = useState("");
@@ -22,7 +20,7 @@ export function SearchFirstDashboard() {
   function submit(symbol: string) {
     const trimmed = symbol.trim().toUpperCase();
     if (!trimmed) return;
-    router.push(`/analysis?symbol=${encodeURIComponent(trimmed)}`);
+    router.push(`/analysis?symbol=${encodeURIComponent(trimmed)}&intent=dsp_indicator`);
   }
 
   return (
@@ -112,7 +110,7 @@ export function SearchFirstDashboard() {
                     className="w-full justify-start"
                     onClick={() =>
                       router.push(
-                        `/analysis?symbol=${encodeURIComponent(entry.ticker)}`,
+                        `/analysis?symbol=${encodeURIComponent(entry.ticker)}&intent=dsp_indicator`,
                       )
                     }
                   >
@@ -142,7 +140,6 @@ export function SearchFirstDashboard() {
           </p>
         )}
       </div>
-      <DashboardGrid />
     </div>
   );
 }

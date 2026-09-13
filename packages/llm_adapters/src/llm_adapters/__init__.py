@@ -49,6 +49,14 @@ from llm_adapters.quality_gate import (
     run_with_escalation,
 )
 from llm_adapters.registry import ProviderRegistry, build_default_registry
+from llm_adapters.research_team import (
+    AgentOutcome,
+    ResearchAgentStatus,
+    ResearchIdentity,
+    ResearchRole,
+    ResearchTeamCoordinator,
+    build_research_team_metadata,
+)
 from llm_adapters.routing import (
     ComplexitySignal,
     RoutingDecision,
@@ -106,6 +114,7 @@ __all__ = [
     "AIProvider",
     "AIResearchOutput",
     "AdapterBackedAIProvider",
+    "AgentOutcome",
     "AnthropicToolCalling",
     "BenchmarkRow",
     "ComplexitySignal",
@@ -136,6 +145,10 @@ __all__ = [
     "ProviderRegistry",
     "PublicDecisionPack",
     "QualityEvaluation",
+    "ResearchAgentStatus",
+    "ResearchIdentity",
+    "ResearchRole",
+    "ResearchTeamCoordinator",
     "ResearchOrchestrator",
     "ResearchSpecification",
     "RoutingDecision",
@@ -164,6 +177,7 @@ __all__ = [
     "assert_no_tool_leakage",
     "build_benchmark_table",
     "build_default_registry",
+    "build_research_team_metadata",
     "calculate_cost_score",
     "calculate_estimated_cost",
     "calculate_overall_score",

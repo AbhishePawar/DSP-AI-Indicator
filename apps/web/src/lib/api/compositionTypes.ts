@@ -94,10 +94,43 @@ export type CompanyRiskPayload = {
   limitations?: string[];
 };
 
+export type ResearchTeamAgent = {
+  role: string;
+  provider: string;
+  status: string;
+  configured: boolean;
+  evidence_count: number;
+  verified_count: number;
+  limitations: string[];
+  audit_reference: string;
+};
+
+export type ResearchTeamPayload = {
+  version: string;
+  status: string;
+  identity: {
+    company: string | null;
+    ticker: string | null;
+    exchange: string | null;
+    isin: string | null;
+    mic: string | null;
+    status: string;
+  };
+  agents: ResearchTeamAgent[];
+  evidence: {
+    candidate_count: number;
+    verified_count: number;
+    rejected_count: number;
+  };
+  limitations: string[];
+  authority: string;
+};
+
 export type PipelinePayload = {
   ok: boolean;
   /** Structural risk aggregation stage (financial_strength + economic_moat only). */
   risk?: CompanyRiskPayload | null;
+  research_team?: ResearchTeamPayload;
   metadata?: {
     pipeline_version?: string;
     platform_version?: string;

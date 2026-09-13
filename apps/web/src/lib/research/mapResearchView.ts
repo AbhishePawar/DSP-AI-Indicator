@@ -15,10 +15,7 @@ import {
   mapAnalyseResponse,
   type IntelligenceView,
 } from "@/lib/intelligence/mapResponse";
-import {
-  mapBuffettReport,
-  type BuffettReportView,
-} from "@/lib/buffett-indicator";
+import { mapBuffettReport, type BuffettReportView } from "@/lib/buffett-indicator";
 import {
   mapInstitutionalRatings,
   type InstitutionalRatingFramework,
@@ -94,12 +91,17 @@ export type ResearchView = IntelligenceView & {
    * Copied when present; never derived from overall moat or client X/10 math.
    */
   canonicalMoatDimensions: CanonicalMoatDimensionView[];
+  researchTeam: ResearchTeamView | null;
 };
 
-function stageOrEmpty(
-  stages: StageSummary[],
-  name: string,
-): StageSummary | undefined {
+export type ResearchTeamView = {
+  status: string;
+  identityStatus: string;
+  limitations: string[];
+  agents: Array<{ role: string; status: string; configured: boolean }>;
+};
+
+function stageOrEmpty(stages: StageSummary[], name: string): StageSummary | undefined {
   return stages.find((s) => s.stage === name);
 }
 
@@ -202,10 +204,12 @@ export function mapResearchView(
     "Governance",
     "Shareholder Alignment",
   ]);
-  const financialStrength = toSection(
-    stageOrEmpty(stages, "financial_strength"),
-    ["Score", "Debt", "Liquidity", "Cash Flow"],
-  );
+  const financialStrength = toSection(stageOrEmpty(stages, "financial_strength"), [
+    "Score",
+    "Debt",
+    "Liquidity",
+    "Cash Flow",
+  ]);
   // Coverage as 4th metric via confidence when present
   financialStrength.metrics.push({
     label: "Coverage",
@@ -252,16 +256,18 @@ export function mapResearchView(
     stageOrEmpty(stages, "investment_recommendation"),
     ["Score", "Label", "Decision", "Confidence"],
   );
-  const committeeBase = toSection(
-    stageOrEmpty(stages, "investment_committee"),
-    ["Score", "Label", "Decision", "Confidence"],
-  );
+  const committeeBase = toSection(stageOrEmpty(stages, "investment_committee"), [
+    "Score",
+    "Label",
+    "Decision",
+    "Confidence",
+  ]);
 
   const committee = {
-      ...committeeBase,
-      supportingReasons: base.strengths,
-      opposingReasons: [...base.weaknesses, ...base.risks],
-      finalRecommendation: base.recommendation,
+    ...committeeBase,
+    supportingReasons: base.strengths,
+    opposingReasons: [...base.weaknesses, ...base.risks],
+    finalRecommendation: base.recommendation,
   };
 
   const draft = {
@@ -284,9 +290,7 @@ export function mapResearchView(
         "API valuation stage",
       ),
       confidence: formatPct(
-        serverValuation?.confidence ??
-          valuationStage?.confidence ??
-          null,
+        serverValuation?.confidence ?? valuationStage?.confidence ?? null,
       ),
     },
     financial,
@@ -302,6 +306,18 @@ export function mapResearchView(
     canonicalMoatDimensions: mapCanonicalMoatDimensions(
       readEconomicMoatDimensionsField(response.payload),
     ).dimensions,
+    researchTeam: response.payload.research_team
+      ? {
+          status: response.payload.research_team.status,
+          identityStatus: response.payload.research_team.identity.status,
+          limitations: response.payload.research_team.limitations,
+          agents: response.payload.research_team.agents.map((agent) => ({
+            role: agent.role,
+            status: agent.status,
+            configured: agent.configured,
+          })),
+        }
+      : null,
   };
   const withBuffett = {
     ...draft,

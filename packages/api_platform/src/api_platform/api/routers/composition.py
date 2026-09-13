@@ -31,6 +31,7 @@ from dsp_platform.investment_provenance import (
     get_investment_provenance_store,
     new_analysis_id,
 )
+from llm_adapters import build_research_team_metadata
 
 router = APIRouter(tags=["composition"])
 
@@ -103,6 +104,12 @@ def analyse(
         )
 
     public_payload = map_pipeline_payload(pipeline)
+    if isinstance(public_payload, dict):
+        public_payload["research_team"] = build_research_team_metadata(
+            ticker=body.ticker,
+            company=body.company,
+            exchange=body.exchange,
+        )
     response = map_platform_result(
         platform_result,
         api_version=state.api_version,

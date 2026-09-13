@@ -6,9 +6,11 @@ import { WorkspaceLoading } from "@/components/loading/WorkspaceLoading";
 
 import LoginForm from "./LoginForm";
 
+export const dynamic = "force-dynamic";
+
 export const metadata: Metadata = {
   title: "Sign in",
-  description: "Login with password or Google",
+  description: "Sign in securely with Google",
 };
 
 export default function LoginPage() {

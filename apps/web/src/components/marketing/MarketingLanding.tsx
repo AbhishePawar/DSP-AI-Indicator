@@ -1,338 +1,137 @@
-import Link from "next/link";
+"use client";
 
-import {
-  COMMERCIAL_PRICING_DISCLOSURE,
-  PRODUCT_EDITIONS,
-  SUPPORT_CONTACT,
-} from "@/lib/commercial";
+import { ArrowRight, ChevronRight, Menu, Plus, Search, X } from "lucide-react";
+import Link from "next/link";
+import { FormEvent, useMemo, useState } from "react";
+
 import { env } from "@/lib/env";
 
-import {
-  ABOUT_PARAGRAPHS,
-  FAQ_ITEMS,
-  FEATURES,
-  TRUST_PILLARS,
-  WORKFLOW_STEPS,
-} from "./content";
-import { Section } from "./Section";
+const researchExamples = [
+  { ticker: "TCS", name: "Tata Consultancy Services", market: "NSE · TCS" },
+  { ticker: "HDFC Bank", name: "HDFC Bank Limited", market: "NSE · HDFCBANK" },
+  { ticker: "INFY", name: "Infosys Limited", market: "NSE · INFY" },
+  { ticker: "RELIANCE", name: "Reliance Industries", market: "NSE · RELIANCE" },
+];
 
-function formatPrice(edition: (typeof PRODUCT_EDITIONS)[number]): string {
-  if (edition.monthlyPriceUsd === null) return "Contact for access";
-  if (edition.monthlyPriceUsd === 0) {
-    return "Illustrative · not available for purchase";
-  }
-  return `Illustrative · $${edition.monthlyPriceUsd}/mo · not available for purchase`;
-}
+const prompts = [
+  "Analyze TCS",
+  "Check valuation",
+  "Find investment risks",
+  "Review latest results",
+];
 
 export function MarketingLanding() {
+  const [query, setQuery] = useState("");
+  const [selected, setSelected] = useState<(typeof researchExamples)[number] | null>(null);
+  const [mobileOpen, setMobileOpen] = useState(false);
+
+  const matches = useMemo(() => {
+    const normalized = query.trim().toLowerCase();
+    if (!normalized) return [];
+    return researchExamples.filter((company) =>
+      `${company.ticker} ${company.name} ${company.market}`.toLowerCase().includes(normalized),
+    );
+  }, [query]);
+
+  function submitResearch(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    const company = selected ?? matches[0];
+    if (company) {
+      window.location.href = `/analysis?symbol=${encodeURIComponent(company.ticker)}`;
+    } else if (query.trim()) {
+      window.location.href = `/search?q=${encodeURIComponent(query.trim())}`;
+    }
+  }
+
   return (
-    <>
-      {/* Hero — one composition: brand, headline, sentence, CTAs, full-bleed wash */}
-      <section
-        className="relative isolate min-h-[min(92vh,52rem)] overflow-hidden"
-        aria-labelledby="hero-brand"
-      >
-        <div
-          className="mkt-hero-wash pointer-events-none absolute inset-0 -z-10"
-          aria-hidden="true"
-          style={{
-            background: `
-              radial-gradient(ellipse 90% 70% at 70% 20%, var(--glow), transparent 55%),
-              linear-gradient(165deg, var(--bg) 0%, var(--surface-2) 48%, var(--bg) 100%)
-            `,
-          }}
-        />
-        <div className="mx-auto flex max-w-[72rem] flex-col justify-end px-4 pb-16 pt-20 sm:px-6 sm:pb-24 sm:pt-28">
-          <h1
-            id="hero-brand"
-            className="mkt-reveal font-[family-name:var(--font-display)] text-5xl font-medium tracking-tight text-[var(--fg)] sm:text-6xl md:text-7xl"
-          >
-            {env.appName}
-          </h1>
-          <p className="mkt-reveal mkt-reveal-delay mt-6 max-w-[28ch] font-[family-name:var(--font-display)] text-2xl font-medium tracking-tight text-[var(--fg)] sm:text-3xl">
-            {env.tagline}
-          </p>
-          <p className="mkt-fade mt-4 max-w-[42ch] text-base leading-relaxed text-[var(--muted)] sm:text-lg">
-            Institutional investment research with evidence, explainability, and
-            governed AI — calm enough for serious work.
-          </p>
-          <div className="mkt-fade mt-10 flex flex-wrap gap-3">
-            <Link
-              href="/login"
-              className="inline-flex min-h-11 items-center rounded-[var(--radius-sm)] bg-[var(--accent)] px-5 py-2.5 text-sm font-medium text-[var(--accent-fg)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent)]"
-            >
-              Sign in
+    <main className="min-h-screen bg-[var(--bg)] text-[var(--fg)]">
+      <div className="flex min-h-screen">
+        <aside className="hidden w-[320px] shrink-0 flex-col border-r border-[var(--border)] bg-[var(--surface)] px-5 py-6 lg:flex">
+          <div className="flex items-start justify-between">
+            <Link href="/" className="group" aria-label={`${env.appName} home`}>
+              <span className="block font-[family-name:var(--font-display)] text-2xl font-semibold tracking-[-0.04em]">DSP</span>
+              <span className="mt-1 block text-[10px] font-medium uppercase tracking-[0.22em] text-[var(--muted)]">AI Research</span>
             </Link>
-            <Link
-              href="/register"
-              className="inline-flex min-h-11 items-center rounded-[var(--radius-sm)] border border-[var(--border)] bg-[var(--surface)] px-5 py-2.5 text-sm text-[var(--fg)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent)]"
-            >
-              Create account
-            </Link>
+            <button className="dsp-interactive rounded-lg border border-transparent p-2 text-[var(--muted)] hover:border-[var(--border)] hover:bg-[var(--surface-2)]" aria-label="Collapse sidebar" type="button">
+              <ChevronRight className="size-4" />
+            </button>
           </div>
-        </div>
-      </section>
 
-      <Section
-        id="features"
-        eyebrow="Capabilities"
-        title="Research tools without tip-app noise"
-        lead="Six capabilities that keep analysis inspectable — from workspace to governance."
-      >
-        <ul className="grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
-          {FEATURES.map((feature) => (
-            <li key={feature.title} className="max-w-[40ch]">
-              <h3 className="font-[family-name:var(--font-display)] text-xl font-medium tracking-tight">
-                {feature.title}
-              </h3>
-              <p className="mt-2 text-sm leading-relaxed text-[var(--muted)]">
-                {feature.body}
-              </p>
-            </li>
-          ))}
-        </ul>
-      </Section>
+          <button type="button" onClick={() => { setQuery(""); setSelected(null); }} className="dsp-interactive mt-10 flex min-h-12 items-center gap-3 rounded-xl border border-[var(--border)] bg-[var(--bg)] px-4 text-left text-sm font-medium hover:bg-[var(--surface-2)]">
+            <Plus className="size-4" />
+            Start New Research
+          </button>
 
-      <Section
-        id="philosophy"
-        eyebrow="Research philosophy"
-        title="Evidence before opinion"
-        lead="DSP treats research as an institutional discipline: truth, evidence, and confidence stay distinct. AI interprets — it does not invent certainty."
-      >
-        <ul className="grid gap-6 md:grid-cols-3">
-          {[
-            {
-              t: "Ontology-backed language",
-              d: "REP-002 meanings keep quality, risk, valuation, and decisions from collapsing into slogans.",
-            },
-            {
-              t: "Thin client",
-              d: "Browsers present frozen API outcomes. Valuation and recommendation reasoning stay server-side.",
-            },
-            {
-              t: "Long-horizon calm",
-              d: "The interface prefers clarity over urgency — suitable for desks that measure in years.",
-            },
-          ].map((item) => (
-            <li
-              key={item.t}
-              className="border-l-2 border-[var(--accent)] pl-4"
-            >
-              <h3 className="font-[family-name:var(--font-display)] text-lg font-medium">
-                {item.t}
-              </h3>
-              <p className="mt-2 text-sm leading-relaxed text-[var(--muted)]">
-                {item.d}
-              </p>
-            </li>
-          ))}
-        </ul>
-      </Section>
+          <div className="mt-9">
+            <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[var(--muted)]">Today</p>
+            <nav className="mt-3 flex flex-col gap-1" aria-label="Recent research">
+              {researchExamples.slice(0, 3).map((company, index) => (
+                <button key={company.ticker} type="button" onClick={() => { setQuery(company.ticker); setSelected(company); }} className={`dsp-interactive flex items-center rounded-lg px-3 py-2.5 text-left text-sm ${index === 0 ? "bg-[var(--surface-2)] text-[var(--fg)]" : "text-[var(--muted)] hover:bg-[var(--surface-2)] hover:text-[var(--fg)]"}`}>
+                  <span className="truncate">{company.name}</span>
+                </button>
+              ))}
+            </nav>
+          </div>
 
-      <Section
-        id="trust"
-        eyebrow="Trust framework"
-        title="Trust is the product feature"
-        lead="Every visible insight should be traceable, explainable, consistent, actionable, and honest."
-      >
-        <ul className="grid gap-8 sm:grid-cols-2">
-          {TRUST_PILLARS.map((pillar) => (
-            <li key={pillar.title}>
-              <h3 className="font-[family-name:var(--font-display)] text-xl font-medium tracking-tight">
-                {pillar.title}
-              </h3>
-              <p className="mt-2 max-w-[48ch] text-sm leading-relaxed text-[var(--muted)]">
-                {pillar.body}
-              </p>
-            </li>
-          ))}
-        </ul>
-      </Section>
-
-      <Section
-        id="ai-committee"
-        eyebrow="AI Committee"
-        title="Governed interpretation, not opaque tips"
-        lead="The AI Committee is the institutional construct for reviewing AI-mediated research language — with explainability, traceability, and human oversight."
-      >
-        <div className="grid gap-8 lg:grid-cols-2">
-          <p className="max-w-[56ch] text-sm leading-relaxed text-[var(--muted)]">
-            Raw data, calculated metrics, AI interpretation, and street opinion
-            remain separated in presentation. Committee outcomes are reviewable;
-            they do not silently become brokerage instructions.
-          </p>
-          <ul className="space-y-3 text-sm text-[var(--fg)]">
-            <li className="flex gap-2">
-              <span className="text-[var(--accent)]" aria-hidden="true">
-                —
-              </span>
-              Explicit confidence and disclosure
-            </li>
-            <li className="flex gap-2">
-              <span className="text-[var(--accent)]" aria-hidden="true">
-                —
-              </span>
-              Challenge paths for contradictory evidence
-            </li>
-            <li className="flex gap-2">
-              <span className="text-[var(--accent)]" aria-hidden="true">
-                —
-              </span>
-              Human oversight when stakes or uncertainty rise
-            </li>
-          </ul>
-        </div>
-      </Section>
-
-      <Section
-        id="valuation"
-        eyebrow="Valuation engine"
-        title="Value with range and humility"
-        lead="Valuation vocabulary covers intrinsic value, margins of safety, scenarios, and valuation confidence — presented with assumptions, not theatre."
-      >
-        <p className="max-w-[60ch] text-sm leading-relaxed text-[var(--muted)]">
-          The marketing surface explains the capability. Computation stays in
-          backend engines. Users see transparent ranges, method context, and
-          confidence labels aligned to the Institutional Design System and
-          Research Mode.
-        </p>
-      </Section>
-
-      <Section
-        id="business-quality"
-        eyebrow="Business quality"
-        title="Durability beyond the ticker tape"
-        lead="Quality analysis examines competitive position, pricing power, capital allocation, and deterioration signals — independent of short-term price moves."
-      >
-        <p className="max-w-[60ch] text-sm leading-relaxed text-[var(--muted)]">
-          Management quality and economic moat concepts remain first-class
-          research meanings, referenced without collapsing into a single vanity
-          score.
-        </p>
-      </Section>
-
-      <Section
-        id="workflow"
-        eyebrow="Research workflow"
-        title="From evidence to revisable conclusions"
-        lead="A calm four-stage path that matches how institutional research should move."
-      >
-        <ol className="grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
-          {WORKFLOW_STEPS.map((item) => (
-            <li key={item.step}>
-              <p className="text-xs font-medium text-[var(--accent)]">
-                {item.step}
-              </p>
-              <h3 className="mt-2 font-[family-name:var(--font-display)] text-lg font-medium">
-                {item.title}
-              </h3>
-              <p className="mt-2 text-sm leading-relaxed text-[var(--muted)]">
-                {item.body}
-              </p>
-            </li>
-          ))}
-        </ol>
-      </Section>
-
-      <Section
-        id="pricing"
-        eyebrow="Pricing"
-        title="Editions for desks of every scale"
-        lead="Illustrative edition packaging for planning only — not available for public purchase on this release."
-      >
-        <p
-          role="note"
-          className="mb-6 rounded-[var(--radius-md)] border border-[var(--border)] bg-[var(--surface-2)] px-4 py-3 text-sm text-[var(--muted)]"
-        >
-          {COMMERCIAL_PRICING_DISCLOSURE}
-        </p>
-        <ul className="grid gap-6 lg:grid-cols-3">
-          {PRODUCT_EDITIONS.map((edition) => (
-            <li
-              key={edition.id}
-              className="rounded-[var(--radius-md)] border border-[var(--border)] bg-[var(--surface)] p-6"
-            >
-              <h3 className="font-[family-name:var(--font-display)] text-xl font-medium">
-                {edition.name}
-              </h3>
-              <p className="mt-1 text-sm text-[var(--muted)]">{edition.tagline}</p>
-              <p className="mt-4 font-[family-name:var(--font-display)] text-2xl font-medium">
-                {formatPrice(edition)}
-              </p>
-              <p className="mt-2 text-sm text-[var(--muted)]">{edition.audience}</p>
-            </li>
-          ))}
-        </ul>
-        <p className="mt-6 text-sm">
-          <Link className="text-[var(--accent)] underline" href="/pricing">
-            View full pricing and feature matrix
-          </Link>
-        </p>
-      </Section>
-
-      <Section
-        id="faq"
-        eyebrow="FAQ"
-        title="Clear answers before you sign in"
-        lead="Common questions about advice boundaries, architecture, and access."
-      >
-        <dl className="mx-auto max-w-3xl space-y-6">
-          {FAQ_ITEMS.map((item) => (
-            <div key={item.q}>
-              <dt className="font-[family-name:var(--font-display)] text-lg font-medium">
-                {item.q}
-              </dt>
-              <dd className="mt-2 text-sm leading-relaxed text-[var(--muted)]">
-                {item.a}
-              </dd>
+          <div className="mt-auto flex flex-col gap-4">
+            <div className="rounded-xl border border-[var(--border)] bg-[var(--bg)] p-4">
+              <div className="flex items-center justify-between text-sm">
+                <span className="font-medium">Research workspace</span>
+                <span className="text-[var(--muted)]">Ready</span>
+              </div>
+              <p className="mt-2 text-xs leading-relaxed text-[var(--muted)]">Evidence-first analysis for Indian listed companies.</p>
             </div>
-          ))}
-        </dl>
-        <p className="mt-8 text-sm">
-          <Link className="text-[var(--accent)] underline" href="/faq">
-            Open full FAQ
-          </Link>
-        </p>
-      </Section>
+            <button type="button" className="dsp-interactive flex items-center gap-3 rounded-xl border border-[var(--border)] bg-[var(--surface)] px-3 py-3 text-left hover:bg-[var(--surface-2)]">
+              <span className="flex size-9 items-center justify-center rounded-full bg-[var(--accent-soft)] text-sm font-semibold text-[var(--accent)]">AP</span>
+              <span className="min-w-0 flex-1"><span className="block truncate text-sm font-medium">Research account</span><span className="block truncate text-xs text-[var(--muted)]">Sign in to save work</span></span>
+              <ChevronRight className="size-4 text-[var(--muted)]" />
+            </button>
+          </div>
+        </aside>
 
-      <Section
-        id="about-preview"
-        eyebrow="About"
-        title="A quiet research desk for serious work"
-        lead={ABOUT_PARAGRAPHS[0]}
-      >
-        <Link className="text-sm text-[var(--accent)] underline" href="/about">
-          Read about DSP
-        </Link>
-      </Section>
+        <div className="flex min-w-0 flex-1 flex-col">
+          <header className="flex items-center justify-between border-b border-[var(--border)] bg-[var(--bg)] px-5 py-4 lg:hidden">
+            <Link href="/" className="font-[family-name:var(--font-display)] text-xl font-semibold tracking-[-0.04em]">DSP</Link>
+            <button type="button" className="rounded-lg border border-[var(--border)] p-2" aria-label={mobileOpen ? "Close menu" : "Open menu"} onClick={() => setMobileOpen((value) => !value)}>
+              {mobileOpen ? <X className="size-5" /> : <Menu className="size-5" />}
+            </button>
+          </header>
+          {mobileOpen ? <div className="border-b border-[var(--border)] bg-[var(--surface)] px-5 py-4 lg:hidden"><button type="button" onClick={() => { setMobileOpen(false); setQuery(""); setSelected(null); }} className="flex min-h-11 items-center gap-3 text-sm font-medium"><Plus className="size-4" /> Start New Research</button></div> : null}
 
-      <Section
-        id="auth"
-        eyebrow="Access"
-        title="Sign in or create an account"
-        lead="Create a DSP AI Indicator account with your name, mobile, username, and Gmail — or continue with Google. Existing users can sign in."
-      >
-        <div className="flex flex-wrap gap-3">
-          <Link
-            href="/login"
-            className="inline-flex min-h-11 items-center rounded-[var(--radius-sm)] bg-[var(--accent)] px-5 py-2.5 text-sm font-medium text-[var(--accent-fg)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent)]"
-          >
-            Sign in
-          </Link>
-          <Link
-            href="/register"
-            className="inline-flex min-h-11 items-center rounded-[var(--radius-sm)] border border-[var(--border)] px-5 py-2.5 text-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent)]"
-          >
-            Create account
-          </Link>
-          <Link
-            href="/contact"
-            className="inline-flex min-h-11 items-center px-2 text-sm text-[var(--muted)] underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent)]"
-          >
-            Contact
-          </Link>
+          <section className="flex flex-1 flex-col px-5 py-12 sm:px-8 lg:px-16 lg:py-16">
+            <div className="mx-auto flex w-full max-w-[860px] flex-1 flex-col justify-center">
+              <div className="mb-10 text-center">
+                <p className="text-xs font-semibold uppercase tracking-[0.22em] text-[var(--accent)]">DSP AI Research</p>
+                <h1 className="mt-4 text-balance font-[family-name:var(--font-display)] text-4xl font-semibold tracking-[-0.04em] sm:text-5xl">Research any Indian company</h1>
+                <p className="mx-auto mt-4 max-w-[48ch] text-pretty text-sm leading-6 text-[var(--muted)] sm:text-base">DSP investigates the evidence, validates the data, and builds the investment case.</p>
+              </div>
+
+              <form onSubmit={submitResearch} className="relative rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-4 shadow-[var(--shadow-sm)] sm:p-5">
+                <label htmlFor="company-research" className="sr-only">Search company, ticker or ISIN</label>
+                <div className="flex items-start gap-3">
+                  <Search className="mt-1.5 size-5 shrink-0 text-[var(--muted)]" />
+                  <input id="company-research" value={query} onChange={(event) => { setQuery(event.target.value); setSelected(null); }} placeholder="Search company, ticker or ISIN" autoComplete="off" className="min-w-0 flex-1 bg-transparent text-lg text-[var(--fg)] outline-none placeholder:text-[var(--muted)]" aria-describedby="research-help" />
+                </div>
+                <div className="mt-8 flex items-center justify-between gap-3">
+                  <p id="research-help" className="text-xs text-[var(--muted)]">Choose a security to confirm its identity before research begins.</p>
+                  <button type="submit" disabled={!query.trim()} className="dsp-interactive inline-flex min-h-11 shrink-0 items-center gap-2 rounded-xl bg-[var(--accent)] px-4 text-sm font-semibold text-[var(--accent-fg)] disabled:cursor-not-allowed disabled:opacity-45">Research <ArrowRight className="size-4" /></button>
+                </div>
+                {query.trim() ? <div className="absolute inset-x-4 top-[4.8rem] z-10 overflow-hidden rounded-xl border border-[var(--border)] bg-[var(--surface)] shadow-[var(--shadow-md)] sm:inset-x-5" role="listbox" aria-label="Company suggestions">
+                  {matches.length ? matches.map((company) => <button key={company.ticker} type="button" role="option" aria-selected={selected?.ticker === company.ticker} onClick={() => { setSelected(company); setQuery(company.ticker); }} className="flex w-full items-center justify-between gap-4 border-b border-[var(--border)] px-4 py-3 text-left last:border-b-0 hover:bg-[var(--surface-2)]"><span><span className="block text-sm font-medium">{company.name}</span><span className="mt-1 block text-xs text-[var(--muted)]">{company.market}</span></span><ChevronRight className="size-4 text-[var(--muted)]" /></button>) : <div className="px-4 py-4 text-sm text-[var(--muted)]">No matching listed company found. Try a name, ticker or ISIN.</div>}
+                </div> : null}
+              </form>
+
+              <div className="mt-10">
+                <div className="flex items-center justify-between gap-4"><p className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--muted)]">Suggested research</p><span className="text-xs text-[var(--muted)]">Start with a company</span></div>
+                <div className="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">{researchExamples.map((company) => <button key={company.ticker} type="button" onClick={() => { setQuery(company.ticker); setSelected(company); }} className="dsp-interactive rounded-xl border border-[var(--border)] bg-[var(--surface)] px-4 py-3 text-left hover:bg-[var(--surface-2)]"><span className="block text-sm font-medium">{company.ticker}</span><span className="mt-1 block truncate text-xs text-[var(--muted)]">{company.name}</span></button>)}</div>
+              </div>
+
+              <div className="mt-10 border-t border-[var(--border)] pt-6"><p className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--muted)]">Research prompts</p><div className="mt-3 flex flex-wrap gap-2">{prompts.map((prompt) => <button key={prompt} type="button" onClick={() => setQuery(prompt.replace(/^\w+ /, ""))} className="rounded-full border border-[var(--border)] px-3 py-2 text-xs text-[var(--muted)] hover:border-[var(--accent)] hover:text-[var(--fg)]">{prompt}</button>)}</div></div>
+            </div>
+            <footer className="mt-12 flex flex-wrap items-center justify-center gap-x-3 gap-y-2 text-center text-xs text-[var(--muted)]"><span>{env.appName} · Evidence before opinion</span><span aria-hidden="true">·</span><Link href="/docs/disclaimer" className="hover:text-[var(--fg)]">Research disclaimer</Link><span aria-hidden="true">·</span><Link href="/docs/privacy" className="hover:text-[var(--fg)]">Privacy</Link></footer>
+          </section>
         </div>
-      </Section>
-    </>
+      </div>
+    </main>
   );
 }

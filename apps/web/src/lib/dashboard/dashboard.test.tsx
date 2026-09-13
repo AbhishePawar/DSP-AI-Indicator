@@ -2,12 +2,14 @@
  * @vitest-environment jsdom
  */
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { cleanup, render, screen, within } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+
+const dashboardPush = vi.fn();
 
 vi.mock("next/navigation", () => ({
   usePathname: () => "/dashboard",
-  useRouter: () => ({ push: vi.fn(), replace: vi.fn() }),
+  useRouter: () => ({ push: dashboardPush, replace: vi.fn() }),
 }));
 
 vi.mock("@/lib/auth/AuthProvider", () => ({
@@ -99,9 +101,7 @@ function wrap(ui: React.ReactNode) {
   const client = new QueryClient({
     defaultOptions: { queries: { retry: false } },
   });
-  return render(
-    <QueryClientProvider client={client}>{ui}</QueryClientProvider>,
-  );
+  return render(<QueryClientProvider client={client}>{ui}</QueryClientProvider>);
 }
 
 describe("EPIC-F004 dashboard registry", () => {
@@ -136,67 +136,41 @@ describe("EPIC-F004 dashboard registry", () => {
       savedSearches: [],
     });
     // Toggle a default-visible widget off (background_jobs is already in DEFAULT_HIDDEN).
-    expect(useDashboardPrefsStore.getState().isWidgetVisible("welcome")).toBe(
-      true,
-    );
+    expect(useDashboardPrefsStore.getState().isWidgetVisible("welcome")).toBe(true);
     useDashboardPrefsStore.getState().toggleWidgetVisible("welcome");
-    expect(useDashboardPrefsStore.getState().isWidgetVisible("welcome")).toBe(
-      false,
-    );
+    expect(useDashboardPrefsStore.getState().isWidgetVisible("welcome")).toBe(false);
     useDashboardPrefsStore.getState().pinCompany("aapl", "Apple");
     expect(useDashboardPrefsStore.getState().isPinned("AAPL")).toBe(true);
     useDashboardPrefsStore.getState().recordSearch("MSFT");
-    expect(useDashboardPrefsStore.getState().recentSearches[0]?.query).toBe(
-      "MSFT",
-    );
+    expect(useDashboardPrefsStore.getState().recentSearches[0]?.query).toBe("MSFT");
   });
 });
 
-describe("EPIC-F004 dashboard UI", () => {
-  beforeEach(() => {
-    cleanup();
-    useDashboardPrefsStore.setState({
-      widgetOrder: [...DEFAULT_WIDGET_ORDER],
-      // RC3-003 — align test state with production defaults (empty executive widgets hidden).
-      hiddenWidgets: [...DEFAULT_HIDDEN_WIDGETS],
-      pinnedCompanies: [],
-      recentSearches: [],
-      savedSearches: [],
-    });
+describe("canonical public dashboard", () => {
+  beforeEach(() => cleanup());
+
+  it("renders SearchFirstDashboard without legacy executive surfaces", async () => {
+    const { SearchFirstDashboard } =
+      await import("@/components/dashboard/SearchFirstDashboard");
+    wrap(<SearchFirstDashboard />);
+    expect(screen.getByRole("heading", { name: "Research any company." })).toBeTruthy();
+    expect(screen.getByRole("searchbox", { name: /search a company/i })).toBeTruthy();
+    expect(screen.queryByText("Executive Dashboard")).toBeNull();
+    expect(screen.queryByText("Trust Ladder")).toBeNull();
+    expect(screen.queryByLabelText("Dashboard widgets")).toBeNull();
   });
 
-  it("renders dashboard layout and welcome", async () => {
-    const { InstitutionalDashboard } = await import(
-      "@/components/dashboard/InstitutionalDashboard"
+  it("routes a company search into the canonical DSP analysis intent", async () => {
+    dashboardPush.mockClear();
+    const { SearchFirstDashboard } =
+      await import("@/components/dashboard/SearchFirstDashboard");
+    wrap(<SearchFirstDashboard />);
+    const search = screen.getByRole("searchbox", { name: /search a company/i });
+    fireEvent.change(search, { target: { value: "TCS" } });
+    fireEvent.keyDown(search, { key: "Enter", code: "Enter" });
+    expect(dashboardPush).toHaveBeenCalledWith(
+      "/analysis?symbol=TCS&intent=dsp_indicator",
     );
-    wrap(<InstitutionalDashboard />);
-    expect(
-      screen.getByRole("heading", { name: "Executive Dashboard" }),
-    ).toBeTruthy();
-    expect(screen.getByLabelText("Dashboard widgets")).toBeTruthy();
-    expect(screen.getByLabelText("Executive questions")).toBeTruthy();
-    expect(await screen.findByText(/Welcome, Ada Analyst/i)).toBeTruthy();
-  });
-
-  it("shows empty states without inventing portfolio metrics", async () => {
-    const { PortfolioSummaryWidget } = await import(
-      "@/components/dashboard/widgets/ResearchPortfolioWidgets"
-    );
-    wrap(<PortfolioSummaryWidget />);
-    const heading = screen.getByRole("heading", { name: "Portfolio Snapshot" });
-    const card = heading.closest('[class*="rounded"]') ?? heading.parentElement!;
-    expect(within(card as HTMLElement).getAllByText("Data unavailable.").length).toBeGreaterThan(0);
-    expect(
-      within(card as HTMLElement).getByRole("link", { name: /Open Portfolio/i }),
-    ).toBeTruthy();
-  });
-
-  it("loads platform health from API", async () => {
-    const { PlatformHealthWidget } = await import(
-      "@/components/dashboard/widgets/SystemAiWidgets"
-    );
-    wrap(<PlatformHealthWidget />);
-    expect(await screen.findByText(/ready=true/i)).toBeTruthy();
   });
 });
 

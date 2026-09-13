@@ -5,22 +5,31 @@ import type { ResearchView } from "@/lib/research/mapResearchView";
 import { cn } from "@/lib/utils";
 
 const stages = [
-  ["financial", "Financials"],
-  ["business_quality_aggregator", "Quality"],
-  ["economic_moat", "Moat"],
-  ["valuation", "Valuation"],
-  ["investment_committee", "Committee"],
+  ["identity", "Security identity", "Company and exchange confirmed"],
+  ["evidence", "Finding evidence", "Collecting verified research inputs"],
+  ["financial", "Financial performance", "Profitability, cash generation and balance sheet"],
+  ["business_quality_aggregator", "Business quality", "Durability, reinvestment and operating discipline"],
+  ["economic_moat", "Economic moat", "Competitive position and long-term advantages"],
+  ["valuation", "Valuation", "Intrinsic value and margin of safety"],
+  ["risk", "Risks", "Financial, business and valuation risks"],
+  ["investment_committee", "DSP judgment", "Forming the investment view"],
 ] as const;
 
 export function ResearchProgressTracker({
   view,
   analysing = false,
+  ticker,
 }: {
   view?: ResearchView | null;
   analysing?: boolean;
+  ticker?: string;
 }) {
   const returnedStages = new Set(view?.stages.map((stage) => stage.stage) ?? []);
-  const completeCount = stages.filter(([stage]) => returnedStages.has(stage)).length;
+  const knownStages = new Set(["financial", "business_quality_aggregator", "economic_moat", "valuation", "investment_committee"]);
+  const completeCount = stages.filter(([stage]) => stage === "identity" ? Boolean(ticker) : knownStages.has(stage) && returnedStages.has(stage)).length;
+  const activeIndex = analysing
+    ? Math.min(completeCount, stages.length - 1)
+    : completeCount;
   return (
     <section
       aria-label="Research progression"
@@ -29,49 +38,46 @@ export function ResearchProgressTracker({
       <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
         <div>
           <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[var(--muted)]">
-            Research progression
+            {ticker ? `Researching ${ticker}` : "Research progression"}
           </p>
           <p className="mt-1 text-sm">
             {analysing
-              ? "Refreshing certified research stages…"
+              ? "DSP is building an evidence-backed investment view."
               : view
-                ? `${completeCount} of ${stages.length} headline stages returned`
+                ? `${completeCount} of ${stages.length} methodology stages represented`
                 : "Awaiting an explicit company selection"}
           </p>
         </div>
         <Badge variant={analysing ? "outline" : view?.ok ? "accent" : "outline"}>
-          {analysing ? "In progress" : view?.ok ? "Returned" : "Pending"}
+          {analysing ? "Researching" : view?.ok ? "Complete" : "Pending"}
         </Badge>
       </div>
-      <ol className="grid gap-2 sm:grid-cols-5">
-        {stages.map(([stage, label], index) => {
-          const returned = returnedStages.has(stage);
+      <ol className="flex flex-col gap-3" aria-live="polite">
+        {stages.map(([stage, label, description], index) => {
+          const returned = stage === "identity" ? Boolean(ticker) : knownStages.has(stage) && returnedStages.has(stage);
+          const active = analysing && index === activeIndex;
           return (
-            <li key={stage} className="flex items-center gap-2 text-xs sm:block">
+            <li key={stage} className="flex gap-3 text-sm">
               <span
                 className={cn(
-                  "flex size-6 shrink-0 items-center justify-center rounded-full border text-[10px] font-semibold",
+                  "mt-0.5 flex size-6 shrink-0 items-center justify-center rounded-full border text-[10px] font-semibold",
                   returned
                     ? "border-[var(--accent)] bg-[var(--accent-soft)] text-[var(--accent)]"
-                    : "border-[var(--border)] text-[var(--muted)]",
+                    : active
+                      ? "border-[var(--accent)] text-[var(--accent)]"
+                      : "border-[var(--border)] text-[var(--muted)]",
                 )}
+                aria-hidden="true"
               >
-                {returned ? "✓" : index + 1}
+                {returned ? "✓" : active ? "●" : index + 1}
               </span>
-              <span
-                className={cn(
-                  "font-medium",
-                  returned ? "text-[var(--fg)]" : "text-[var(--muted)]",
-                )}
-              >
-                {label}
+              <span className="min-w-0">
+                <span className={cn("block font-medium", returned || active ? "text-[var(--fg)]" : "text-[var(--muted)]")}>
+                  {label}
+                  {active ? <span className="ml-2 text-xs font-normal text-[var(--accent)]">In progress</span> : null}
+                </span>
+                <span className="mt-0.5 block text-xs leading-5 text-[var(--muted)]">{description}</span>
               </span>
-              {index < stages.length - 1 ? (
-                <span
-                  className="hidden h-px bg-[var(--border)] sm:mt-3 sm:block"
-                  aria-hidden="true"
-                />
-              ) : null}
             </li>
           );
         })}

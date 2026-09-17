@@ -72,7 +72,7 @@ jobs:
       DSP_MARKET_QUOTE_MEMORY: "1"
       DSP_FINANCIAL_STATEMENT_MEMORY: "1"
       DSP_P109_E2E_FIXTURE: "1"
-      DSP_SEED_ADMIN_PASSWORD: Admin@123
+      DSP_SEED_ADMIN_PASSWORD: ${{ secrets.DSP_SEED_ADMIN_PASSWORD }}
       DSP_COOKIE_AUTH: "true"
       DSP_ENABLE_SECURITY: "false"
       PYTHONUNBUFFERED: "1"
@@ -114,6 +114,8 @@ jobs:
 
       - name: Build web
         working-directory: apps/web
+        env:
+          NEXT_PUBLIC_API_BASE_URL: http://127.0.0.1:8000/api/v1
         run: npm run build
 
       - name: Start API (fixture mode)

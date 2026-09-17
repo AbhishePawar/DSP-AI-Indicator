@@ -40,7 +40,21 @@ export async function fillPasswordCredentials(
 }
 
 export async function submitPasswordLogin(page: Page): Promise<void> {
+  const loginResponsePromise = page.waitForResponse((response) => {
+    return (
+      response.request().method() === "POST" &&
+      /login|signin|session|auth/i.test(response.url())
+    );
+  });
+
   await page.getByRole("button", { name: /^sign in$/i }).click();
+
+  const loginResponse = await loginResponsePromise;
+  if (!loginResponse.ok()) {
+    throw new Error(
+      `[P1-09 LOGIN] authentication failed: ${loginResponse.status()} ${loginResponse.url()}`,
+    );
+  }
 }
 
 /**

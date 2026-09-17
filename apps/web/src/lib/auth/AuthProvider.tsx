@@ -6,6 +6,7 @@ import {
   useContext,
   useEffect,
   useMemo,
+  useRef,
   useState,
   type ReactNode,
 } from "react";
@@ -61,6 +62,11 @@ const EXPIRY_CHECK_MS = 60_000;
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [status, setStatus] = useState<AuthenticationStatus>("restoring");
   const [session, setSessionState] = useState<Session | null>(null);
+  const statusRef = useRef<AuthenticationStatus>("restoring");
+  const setStatusSafe = useCallback((nextStatus: AuthenticationStatus) => {
+    statusRef.current = nextStatus;
+    setStatus(nextStatus);
+  }, []);
   const setAuthStore = useAuthStore((s) => s.setAuth);
   const resetAuthStore = useAuthStore((s) => s.reset);
 
@@ -81,7 +87,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (!next) {
         clearStoredSession();
         const st = nextStatus ?? "unauthenticated";
-        setStatus(st);
+        setStatusSafe(st);
         if (st === "unauthenticated") resetAuthStore();
         else syncStore(st, null);
         return;
@@ -89,7 +95,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (isSessionExpired(next)) {
         clearStoredSession();
         setSessionState(null);
-        setStatus("expired");
+        setStatusSafe("expired");
         syncStore("expired", null);
         return;
       }
@@ -98,7 +104,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setStatus(st);
       syncStore(st, next);
     },
-    [resetAuthStore, syncStore],
+    [resetAuthStore, setStatusSafe, syncStore],
   );
 
   useEffect(() => {
@@ -107,25 +113,26 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const restore = async () => {
       if (cookieAuthPreferred()) {
         const probe = await probeCookieSession();
-        if (cancelled) return;
+        if (cancelled || statusRef.current !== "restoring") return;
         if (!probe?.authenticated || !probe.cookie_auth) {
           clearStoredSession();
-          setStatus("unauthenticated");
+          setStatusSafe("unauthenticated");
           resetAuthStore();
           return;
         }
       }
 
       const stored = readStoredSession();
+      if (cancelled || statusRef.current !== "restoring") return;
       if (!stored || isSessionExpired(stored)) {
         clearStoredSession();
-        setStatus("unauthenticated");
+        setStatusSafe("unauthenticated");
         resetAuthStore();
         return;
       }
-      if (cancelled) return;
+      if (cancelled || statusRef.current !== "restoring") return;
       setSessionState(stored);
-      setStatus("authenticated");
+      setStatusSafe("authenticated");
       syncStore("authenticated", stored);
     };
 
@@ -133,7 +140,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return () => {
       cancelled = true;
     };
-  }, [resetAuthStore, syncStore]);
+  }, [resetAuthStore, setStatusSafe, syncStore]);
 
   useEffect(() => {
     if (!session?.expiresAt || status !== "authenticated") return;

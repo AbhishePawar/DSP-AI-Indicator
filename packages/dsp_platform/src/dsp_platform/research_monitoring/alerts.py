@@ -9,7 +9,7 @@ from uuid import uuid4
 from dsp_platform.research_monitoring.models import (
     UNAVAILABLE_MESSAGE,
     MonitoringAlert,
-    freeze_mapping,
+    freeze_mapping_or_empty,
 )
 
 __all__ = [
@@ -32,14 +32,14 @@ IMPORTANT_SECTIONS = frozenset(
 
 def severity_from_diff(diff: Mapping[str, Any]) -> str:
     """Deterministic severity from structural diff metadata — not a score."""
-    summary = (
-        diff.get("change_summary")
-        if isinstance(diff.get("change_summary"), Mapping)
-        else {}
+    summary_value = diff.get("change_summary")
+    summary: Mapping[str, Any] = (
+        summary_value if isinstance(summary_value, Mapping) else {}
     )
     if summary.get("identical_content"):
         return "info"
-    sections = diff.get("sections") if isinstance(diff.get("sections"), list) else []
+    sections_value = diff.get("sections")
+    sections: list[Any] = sections_value if isinstance(sections_value, list) else []
     changed_names = {
         str(s.get("name"))
         for s in sections
@@ -60,7 +60,8 @@ def _citations_from_diff(
     diff: Mapping[str, Any], subject: str
 ) -> tuple[dict[str, Any], ...]:
     citations: list[dict[str, Any]] = []
-    sections = diff.get("sections") if isinstance(diff.get("sections"), list) else []
+    sections_value = diff.get("sections")
+    sections: list[Any] = sections_value if isinstance(sections_value, list) else []
     for section in sections:
         if not isinstance(section, Mapping):
             continue
@@ -107,10 +108,9 @@ def alerts_from_diff(
     current_snapshot_id: str | None,
     alert_id: str | None = None,
 ) -> MonitoringAlert | None:
-    summary = (
-        diff.get("change_summary")
-        if isinstance(diff.get("change_summary"), Mapping)
-        else {}
+    summary_value = diff.get("change_summary")
+    summary: Mapping[str, Any] = (
+        summary_value if isinstance(summary_value, Mapping) else {}
     )
     if summary.get("identical_content"):
         return None
@@ -140,12 +140,12 @@ def alerts_from_diff(
         subject_kind=subject_kind,
         alert_type="research_change",
         message=message,
-        citations=tuple(freeze_mapping(c) or {} for c in citations),
+        citations=tuple(freeze_mapping_or_empty(c) or {} for c in citations),
         diff_id=str(diff.get("diff_id")) if diff.get("diff_id") else None,
         baseline_snapshot_id=baseline_snapshot_id,
         current_snapshot_id=current_snapshot_id,
-        change_summary=freeze_mapping(dict(summary)) or freeze_mapping({}),
-        provenance=freeze_mapping(
+        change_summary=freeze_mapping_or_empty(dict(summary)) or freeze_mapping_or_empty({}),
+        provenance=freeze_mapping_or_empty(
             {
                 "source": "research_monitoring",
                 "via": "research_diff",
@@ -153,7 +153,7 @@ def alerts_from_diff(
                 "right_snapshot_id": diff.get("right_snapshot_id"),
             }
         )
-        or freeze_mapping({}),
+        or freeze_mapping_or_empty({}),
     )
 
 
@@ -181,7 +181,7 @@ def alerts_from_portfolio_intelligence(
                 alert_type="portfolio_context_missing",
                 message=UNAVAILABLE_MESSAGE,
                 citations=(
-                    freeze_mapping(
+                    freeze_mapping_or_empty(
                         {
                             "source_kind": "portfolio_intelligence",
                             "section": "result",
@@ -192,10 +192,10 @@ def alerts_from_portfolio_intelligence(
                     )
                     or {},
                 ),
-                provenance=freeze_mapping(
+                provenance=freeze_mapping_or_empty(
                     {"source": "research_monitoring", "via": "portfolio_intelligence"}
                 )
-                or freeze_mapping({}),
+                or freeze_mapping_or_empty({}),
             )
         )
         return tuple(alerts)
@@ -223,7 +223,7 @@ def alerts_from_portfolio_intelligence(
                 alert_type="portfolio_missing_research",
                 message=f"Holding {sym} research became unavailable.",
                 citations=(
-                    freeze_mapping(
+                    freeze_mapping_or_empty(
                         {
                             "symbol": sym,
                             "source_kind": "portfolio_intelligence",
@@ -235,11 +235,11 @@ def alerts_from_portfolio_intelligence(
                     )
                     or {},
                 ),
-                change_summary=freeze_mapping(
+                change_summary=freeze_mapping_or_empty(
                     {"symbol": sym, "status": "became_missing"}
                 )
-                or freeze_mapping({}),
-                provenance=freeze_mapping(
+                or freeze_mapping_or_empty({}),
+                provenance=freeze_mapping_or_empty(
                     {
                         "source": "research_monitoring",
                         "via": "portfolio_intelligence",
@@ -247,7 +247,7 @@ def alerts_from_portfolio_intelligence(
                         "current_result_id": current.get("result_id"),
                     }
                 )
-                or freeze_mapping({}),
+                or freeze_mapping_or_empty({}),
             )
         )
     for sym in recovered:
@@ -260,7 +260,7 @@ def alerts_from_portfolio_intelligence(
                 alert_type="portfolio_research_recovered",
                 message=f"Holding {sym} research is linked again.",
                 citations=(
-                    freeze_mapping(
+                    freeze_mapping_or_empty(
                         {
                             "symbol": sym,
                             "source_kind": "portfolio_intelligence",
@@ -272,9 +272,9 @@ def alerts_from_portfolio_intelligence(
                     )
                     or {},
                 ),
-                change_summary=freeze_mapping({"symbol": sym, "status": "recovered"})
-                or freeze_mapping({}),
-                provenance=freeze_mapping(
+                change_summary=freeze_mapping_or_empty({"symbol": sym, "status": "recovered"})
+                or freeze_mapping_or_empty({}),
+                provenance=freeze_mapping_or_empty(
                     {
                         "source": "research_monitoring",
                         "via": "portfolio_intelligence",
@@ -282,7 +282,7 @@ def alerts_from_portfolio_intelligence(
                         "current_result_id": current.get("result_id"),
                     }
                 )
-                or freeze_mapping({}),
+                or freeze_mapping_or_empty({}),
             )
         )
 
@@ -315,7 +315,7 @@ def alerts_from_portfolio_intelligence(
                 alert_type="portfolio_mos_change",
                 message=f"Linked margin_of_safety changed for {sym}.",
                 citations=(
-                    freeze_mapping(
+                    freeze_mapping_or_empty(
                         {
                             "symbol": sym,
                             "source_kind": "portfolio_intelligence",
@@ -329,17 +329,17 @@ def alerts_from_portfolio_intelligence(
                     )
                     or {},
                 ),
-                change_summary=freeze_mapping(
+                change_summary=freeze_mapping_or_empty(
                     {"symbol": sym, "left": left, "right": right}
                 )
-                or freeze_mapping({}),
-                provenance=freeze_mapping(
+                or freeze_mapping_or_empty({}),
+                provenance=freeze_mapping_or_empty(
                     {
                         "source": "research_monitoring",
                         "via": "portfolio_intelligence",
                     }
                 )
-                or freeze_mapping({}),
+                or freeze_mapping_or_empty({}),
             )
         )
     return tuple(alerts)

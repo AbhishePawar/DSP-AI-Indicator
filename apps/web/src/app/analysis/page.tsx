@@ -9,9 +9,13 @@
  * in production builds (critical journey could not mount).
  */
 
+import dynamic from "next/dynamic";
 import { Suspense } from "react";
 
-import { CompanyAnalysisWorkspace } from "@/components/company-analysis";
+const CompanyAnalysisWorkspace = dynamic(
+  () => import("@/components/company-analysis").then((mod) => mod.CompanyAnalysisWorkspace),
+  { loading: () => <WorkspaceSkeleton /> },
+);
 import { WorkspaceSkeleton } from "@/components/company-analysis/WorkspacePrimitives";
 import { PageHeader } from "@/components/layout/PageHeader";
 

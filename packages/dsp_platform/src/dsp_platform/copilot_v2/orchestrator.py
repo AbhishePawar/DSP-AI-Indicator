@@ -206,7 +206,7 @@ def _dispatch(
         "chat": _handle_chat,
     }
     handler = handlers.get(intent, _handle_chat)
-    answer, sources, unavailable, payload = cast(Any, handler)( 
+    answer, sources, unavailable, payload = cast(Any, handler)(
         platform,
         message=message,
         symbols=symbols,

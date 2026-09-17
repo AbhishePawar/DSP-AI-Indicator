@@ -5,7 +5,10 @@ from __future__ import annotations
 from collections.abc import Mapping
 from typing import Any
 
-from dsp_platform.institutional_committee.models import AgentReview, freeze_mapping_or_empty
+from dsp_platform.institutional_committee.models import (
+    AgentReview,
+    freeze_mapping_or_empty,
+)
 
 __all__ = ["build_consensus", "build_minority_opinions", "build_committee_summary"]
 

@@ -15,7 +15,6 @@ from dsp_platform.institutional_committee.models import (
     UNAVAILABLE_MESSAGE,
     AgentReview,
     CommitteeContext,
-    freeze_mapping,
 )
 
 __all__ = [
@@ -118,15 +117,13 @@ def _base_review(
         findings=tuple(findings),
         focus_sections=focus_sections,
         citations=tuple(cites),
-        provenance=dict(
-            {
-                "source": "institutional_committee",
-                "agent_id": agent_id,
-                "via": "committee_context",
-                "providers_called": False,
-                "engines_called": False,
-            }
-        ),
+        provenance={
+            "source": "institutional_committee",
+            "agent_id": agent_id,
+            "via": "committee_context",
+            "providers_called": False,
+            "engines_called": False,
+        },
     )
 
 

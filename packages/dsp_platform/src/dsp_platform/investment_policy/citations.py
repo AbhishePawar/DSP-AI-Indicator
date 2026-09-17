@@ -5,7 +5,10 @@ from __future__ import annotations
 from collections.abc import Mapping
 from typing import Any
 
-from dsp_platform.investment_policy.models import UNAVAILABLE_MESSAGE, freeze_mapping_or_empty
+from dsp_platform.investment_policy.models import (
+    UNAVAILABLE_MESSAGE,
+    freeze_mapping_or_empty,
+)
 
 __all__ = ["build_policy_citations", "citation"]
 

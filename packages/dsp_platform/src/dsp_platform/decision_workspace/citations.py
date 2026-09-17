@@ -5,7 +5,10 @@ from __future__ import annotations
 from collections.abc import Mapping
 from typing import Any
 
-from dsp_platform.decision_workspace.models import UNAVAILABLE_MESSAGE, freeze_mapping_or_empty
+from dsp_platform.decision_workspace.models import (
+    UNAVAILABLE_MESSAGE,
+    freeze_mapping_or_empty,
+)
 
 __all__ = [
     "build_workspace_citations",

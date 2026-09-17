@@ -29,7 +29,7 @@ jobs:
       DSP_ENVIRONMENT: development
       DSP_INFRA_OFFLINE: "0"
       PYTHONUNBUFFERED: "1"
-      DSP_SEED_ADMIN_PASSWORD: Admin@123
+      DSP_SEED_ADMIN_PASSWORD: ${{ secrets.DSP_SEED_ADMIN_PASSWORD }}
 
     steps:
       - name: Checkout

@@ -37,7 +37,7 @@ describe("P7.0 production infrastructure", () => {
     expect(compose).toMatch(/caddy:/);
     expect(compose).toMatch(/postgres:/);
     expect(compose).toMatch(/prometheus:/);
-    expect(compose).toMatch(/dsp-api:.*1\.7\.2|DSP_IMAGE_TAG:-1\.7\.2/);
+    expect(compose).toMatch(/dsp-api:.*2\.0\.0|DSP_IMAGE_TAG:-2\.0\.0/);
   });
 
   it("documents P7 deployment and certification", () => {

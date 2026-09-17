@@ -33,6 +33,7 @@ import {
   persistEnterpriseSession,
 } from "@/lib/auth/finishEnterpriseSession";
 import { isAuthPublicPath, normalizePath } from "@/lib/auth/routeGuards";
+import { sessionFromRbacLogin } from "@/lib/auth/sessionStore";
 import type { MfaChallengeInfo } from "@/lib/auth/types";
 import { useAuthProviders } from "@/lib/auth/useAuthProviders";
 import { env } from "@/lib/env";
@@ -47,7 +48,7 @@ type OtpPhase = "request" | "verify";
 export default function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { status, session } = useAuth();
+  const { status, session, setSession } = useAuth();
   const { oauthAvailable } = useAuthProviders();
 
   const [step, setStep] = useState<Step>("chooser");
@@ -86,6 +87,7 @@ export default function LoginForm() {
   const finishEnterpriseLogin = useCallback(
     (result: Parameters<typeof persistEnterpriseSession>[0]) => {
       persistEnterpriseSession(result, rememberMe);
+      setSession(sessionFromRbacLogin(result, rememberMe));
       const challenge = extractMfaChallenge(result);
       if (challenge) {
         setMfaChallenge(challenge);
@@ -93,7 +95,7 @@ export default function LoginForm() {
       }
       navigateAfterLogin(nextPath);
     },
-    [nextPath, rememberMe],
+    [nextPath, rememberMe, setSession],
   );
 
   function goChooser() {

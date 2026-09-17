@@ -167,7 +167,9 @@ def evaluate_rule(
                 severity=rule.severity,
                 message=UNAVAILABLE_MESSAGE,
                 citations=cites,
-                evidence=freeze_mapping_or_empty({"section": section, "available": False})
+                evidence=freeze_mapping_or_empty(
+                    {"section": section, "available": False}
+                )
                 or freeze_mapping_or_empty({}),
             )
         available = _section_available(artifacts.research_object, section)
@@ -189,7 +191,9 @@ def evaluate_rule(
                 severity=rule.severity,
                 message=f"Section {section} available.",
                 citations=cites,
-                evidence=freeze_mapping_or_empty({"section": section, "available": True})
+                evidence=freeze_mapping_or_empty(
+                    {"section": section, "available": True}
+                )
                 or freeze_mapping_or_empty({}),
             )
         return RuleResult(
@@ -223,7 +227,8 @@ def evaluate_rule(
                 severity=rule.severity,
                 message="Institutional report present.",
                 citations=cites,
-                evidence=freeze_mapping_or_empty({"present": True}) or freeze_mapping_or_empty({}),
+                evidence=freeze_mapping_or_empty({"present": True})
+                or freeze_mapping_or_empty({}),
             )
         return RuleResult(
             rule_id=rule.rule_id,
@@ -232,7 +237,8 @@ def evaluate_rule(
             severity=rule.severity,
             message=UNAVAILABLE_MESSAGE,
             citations=cites,
-            evidence=freeze_mapping_or_empty({"present": False}) or freeze_mapping_or_empty({}),
+            evidence=freeze_mapping_or_empty({"present": False})
+            or freeze_mapping_or_empty({}),
         )
 
     if kind in {"require_committee_stance", "forbid_committee_stance"}:
@@ -286,7 +292,9 @@ def evaluate_rule(
                 severity=rule.severity,
                 message=f"Committee stance {stance!r} complies.",
                 citations=cites,
-                evidence=freeze_mapping_or_empty({"stance": stance, "params": list(allowed_set)})
+                evidence=freeze_mapping_or_empty(
+                    {"stance": stance, "params": list(allowed_set)}
+                )
                 or freeze_mapping_or_empty({}),
             )
         return RuleResult(
@@ -296,7 +304,9 @@ def evaluate_rule(
             severity=rule.severity,
             message=f"Committee stance {stance!r} does not comply.",
             citations=cites,
-            evidence=freeze_mapping_or_empty({"stance": stance, "params": list(allowed_set)})
+            evidence=freeze_mapping_or_empty(
+                {"stance": stance, "params": list(allowed_set)}
+            )
             or freeze_mapping_or_empty({}),
         )
 
@@ -346,7 +356,8 @@ def evaluate_rule(
                 severity=rule.severity,
                 message="No missing research links.",
                 citations=cites,
-                evidence=freeze_mapping_or_empty({"missing_symbols": []}) or freeze_mapping_or_empty({}),
+                evidence=freeze_mapping_or_empty({"missing_symbols": []})
+                or freeze_mapping_or_empty({}),
             )
         return RuleResult(
             rule_id=rule.rule_id,
@@ -408,7 +419,8 @@ def evaluate_rule(
                 severity=rule.severity,
                 message="No forbidden alert severities.",
                 citations=cites,
-                evidence=freeze_mapping_or_empty({"hit_count": 0}) or freeze_mapping_or_empty({}),
+                evidence=freeze_mapping_or_empty({"hit_count": 0})
+                or freeze_mapping_or_empty({}),
             )
         return RuleResult(
             rule_id=rule.rule_id,
@@ -444,7 +456,8 @@ def evaluate_rule(
                 severity=rule.severity,
                 message=UNAVAILABLE_MESSAGE,
                 citations=cites,
-                evidence=freeze_mapping_or_empty({"diff_count": 0}) or freeze_mapping_or_empty({}),
+                evidence=freeze_mapping_or_empty({"diff_count": 0})
+                or freeze_mapping_or_empty({}),
             )
         non_identical = []
         for d in artifacts.diffs:
@@ -482,7 +495,8 @@ def evaluate_rule(
                 severity=rule.severity,
                 message="All supplied diffs report identical_content.",
                 citations=cites,
-                evidence=freeze_mapping_or_empty({"non_identical": []}) or freeze_mapping_or_empty({}),
+                evidence=freeze_mapping_or_empty({"non_identical": []})
+                or freeze_mapping_or_empty({}),
             )
         return RuleResult(
             rule_id=rule.rule_id,
@@ -510,5 +524,6 @@ def evaluate_rule(
                 rule_id=rule.rule_id,
             ),
         ),
-        evidence=freeze_mapping_or_empty({"unsupported_kind": kind}) or freeze_mapping_or_empty({}),
+        evidence=freeze_mapping_or_empty({"unsupported_kind": kind})
+        or freeze_mapping_or_empty({}),
     )

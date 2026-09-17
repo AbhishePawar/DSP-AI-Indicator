@@ -31,7 +31,8 @@ def default_institutional_policy() -> InvestmentPolicy:
             kind="require_source_present",
             severity="violation",
             description="Research Object must be supplied.",
-            params=freeze_mapping_or_empty({"source": "research_object"}) or freeze_mapping_or_empty({}),
+            params=freeze_mapping_or_empty({"source": "research_object"})
+            or freeze_mapping_or_empty({}),
         ),
         PolicyRule(
             rule_id="REQ-MOS-AVAILABLE",
@@ -54,7 +55,8 @@ def default_institutional_policy() -> InvestmentPolicy:
             kind="require_section_available",
             severity="warning",
             description="risk section should be available.",
-            params=freeze_mapping_or_empty({"section": "risk"}) or freeze_mapping_or_empty({}),
+            params=freeze_mapping_or_empty({"section": "risk"})
+            or freeze_mapping_or_empty({}),
         ),
         PolicyRule(
             rule_id="REQ-REPORT-PRESENT",
@@ -68,7 +70,8 @@ def default_institutional_policy() -> InvestmentPolicy:
             kind="forbid_committee_stance",
             severity="violation",
             description="Committee consensus must not be unavailable.",
-            params=freeze_mapping_or_empty({"stances": ["unavailable"]}) or freeze_mapping_or_empty({}),
+            params=freeze_mapping_or_empty({"stances": ["unavailable"]})
+            or freeze_mapping_or_empty({}),
         ),
         PolicyRule(
             rule_id="FORBID-MISSING-RESEARCH",
@@ -186,5 +189,6 @@ def load_investment_policy(
         version=str(data.get("version") or "1.0.0"),
         rules=rules_sorted,
         exceptions=excs_sorted,
-        metadata=freeze_mapping_or_empty(dict(data.get("metadata") or {})) or freeze_mapping_or_empty({}),
+        metadata=freeze_mapping_or_empty(dict(data.get("metadata") or {}))
+        or freeze_mapping_or_empty({}),
     )

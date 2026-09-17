@@ -306,7 +306,9 @@ def _handle_company(
             if isinstance(bundle, dict):
                 sources.append(source_ref("data_connector", "unified_data_bundle"))
                 identity_raw = bundle.get("identity")
-                identity: dict[str, Any] = identity_raw if isinstance(identity_raw, dict) else {}
+                identity: dict[str, Any] = (
+                    identity_raw if isinstance(identity_raw, dict) else {}
+                )
                 return (
                     "\n".join(
                         [

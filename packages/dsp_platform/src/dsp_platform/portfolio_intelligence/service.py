@@ -129,13 +129,19 @@ class PortfolioIntelligenceService:
             linked_holdings=linked_portfolio,
             portfolio_summary=freeze_mapping_or_empty(summaries["portfolio_summary"])
             or freeze_mapping_or_empty({}),
-            diversification_summary=freeze_mapping_or_empty(summaries["diversification_summary"])
+            diversification_summary=freeze_mapping_or_empty(
+                summaries["diversification_summary"]
+            )
             or freeze_mapping_or_empty({}),
             sector_allocation=freeze_mapping_or_empty(summaries["sector_allocation"])
             or freeze_mapping_or_empty({}),
-            position_concentration=freeze_mapping_or_empty(summaries["position_concentration"])
+            position_concentration=freeze_mapping_or_empty(
+                summaries["position_concentration"]
+            )
             or freeze_mapping_or_empty({}),
-            portfolio_risk_summary=freeze_mapping_or_empty(summaries["portfolio_risk_summary"])
+            portfolio_risk_summary=freeze_mapping_or_empty(
+                summaries["portfolio_risk_summary"]
+            )
             or freeze_mapping_or_empty({}),
             margin_of_safety_summary=freeze_mapping_or_empty(
                 summaries["margin_of_safety_summary"]
@@ -150,9 +156,11 @@ class PortfolioIntelligenceService:
                 for m in summaries["missing_research"]
             ),
             citations=tuple(
-                freeze_mapping_or_empty(dict(c)) or freeze_mapping_or_empty({}) for c in citations
+                freeze_mapping_or_empty(dict(c)) or freeze_mapping_or_empty({})
+                for c in citations
             ),
-            provenance=freeze_mapping_or_empty(provenance) or freeze_mapping_or_empty({}),
+            provenance=freeze_mapping_or_empty(provenance)
+            or freeze_mapping_or_empty({}),
             audit=freeze_mapping_or_empty(audit) or freeze_mapping_or_empty({}),
             limitations=limitations,
         )

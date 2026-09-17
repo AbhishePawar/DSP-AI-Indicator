@@ -116,13 +116,15 @@ class CommitteeOrchestrator:
             service_version=COMMITTEE_SERVICE_VERSION,
             created_at=created,
             subject=ctx.subject,
-            context=freeze_mapping_or_empty(ctx.to_dict()) or freeze_mapping_or_empty({}),
+            context=freeze_mapping_or_empty(ctx.to_dict())
+            or freeze_mapping_or_empty({}),
             reviews=reviews,
             consensus=consensus,
             minority_opinions=minority,
             committee_summary=summary,
             citations=citations,
-            provenance=freeze_mapping_or_empty(provenance) or freeze_mapping_or_empty({}),
+            provenance=freeze_mapping_or_empty(provenance)
+            or freeze_mapping_or_empty({}),
             audit=freeze_mapping_or_empty(audit) or freeze_mapping_or_empty({}),
             limitations=limitations,
         )

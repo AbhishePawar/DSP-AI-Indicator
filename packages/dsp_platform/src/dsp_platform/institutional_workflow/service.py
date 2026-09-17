@@ -119,7 +119,8 @@ def _wrap_result(
         service_version=WORKFLOW_SERVICE_VERSION,
         created_at=created,
         action=action,
-        workflow=freeze_mapping_or_empty(workflow.to_dict()) or freeze_mapping_or_empty({}),
+        workflow=freeze_mapping_or_empty(workflow.to_dict())
+        or freeze_mapping_or_empty({}),
         citations=citations,
         provenance=freeze_mapping_or_empty(provenance) or freeze_mapping_or_empty({}),
         audit=freeze_mapping_or_empty(audit) or freeze_mapping_or_empty({}),
@@ -194,7 +195,8 @@ class WorkflowService:
             approvals=(),
             decision_history=(),
             audit_trail=audit,
-            metadata=freeze_mapping_or_empty(dict(metadata or {})) or freeze_mapping_or_empty({}),
+            metadata=freeze_mapping_or_empty(dict(metadata or {}))
+            or freeze_mapping_or_empty({}),
         )
         get_workflow_registry().put(workflow)
         return _wrap_result(

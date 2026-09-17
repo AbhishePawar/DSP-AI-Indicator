@@ -97,7 +97,8 @@ def workspace_result_from_dict(data: Mapping[str, Any]) -> WorkspaceResult:
         citations=citations,
         provenance=freeze_mapping_or_empty(dict(data.get("provenance") or {}))
         or freeze_mapping_or_empty({}),
-        audit=freeze_mapping_or_empty(dict(data.get("audit") or {})) or freeze_mapping_or_empty({}),
+        audit=freeze_mapping_or_empty(dict(data.get("audit") or {}))
+        or freeze_mapping_or_empty({}),
         limitations=(
             tuple(limitations) if isinstance(limitations, (list, tuple)) else ()
         ),

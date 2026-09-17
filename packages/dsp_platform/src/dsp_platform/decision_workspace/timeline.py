@@ -48,7 +48,9 @@ def build_research_timeline(
                 source_kind="research_object",
                 available=True,
                 ref_id=rid,
-                metadata=freeze_mapping_or_empty({"symbol": research_object.get("symbol")})
+                metadata=freeze_mapping_or_empty(
+                    {"symbol": research_object.get("symbol")}
+                )
                 or freeze_mapping_or_empty({}),
             )
         )

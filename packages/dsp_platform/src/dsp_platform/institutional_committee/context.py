@@ -151,11 +151,19 @@ def distribute_committee_context(
             if isinstance(research_object, Mapping)
             else None
         ),
-        report=freeze_mapping_or_empty(dict(report)) if isinstance(report, Mapping) else None,
-        snapshots=tuple(
-            freeze_mapping_or_empty(dict(s)) or freeze_mapping_or_empty({}) for s in snap_list
+        report=(
+            freeze_mapping_or_empty(dict(report))
+            if isinstance(report, Mapping)
+            else None
         ),
-        diffs=tuple(freeze_mapping_or_empty(dict(d)) or freeze_mapping_or_empty({}) for d in diff_list),
+        snapshots=tuple(
+            freeze_mapping_or_empty(dict(s)) or freeze_mapping_or_empty({})
+            for s in snap_list
+        ),
+        diffs=tuple(
+            freeze_mapping_or_empty(dict(d)) or freeze_mapping_or_empty({})
+            for d in diff_list
+        ),
         copilot_response=(
             freeze_mapping_or_empty(dict(copilot_response))
             if isinstance(copilot_response, Mapping)
@@ -172,8 +180,12 @@ def distribute_committee_context(
             else None
         ),
         workspace=(
-            freeze_mapping_or_empty(dict(workspace)) if isinstance(workspace, Mapping) else None
+            freeze_mapping_or_empty(dict(workspace))
+            if isinstance(workspace, Mapping)
+            else None
         ),
-        section_index=freeze_mapping_or_empty(section_index) or freeze_mapping_or_empty({}),
-        source_flags=freeze_mapping_or_empty(source_flags) or freeze_mapping_or_empty({}),
+        section_index=freeze_mapping_or_empty(section_index)
+        or freeze_mapping_or_empty({}),
+        source_flags=freeze_mapping_or_empty(source_flags)
+        or freeze_mapping_or_empty({}),
     )

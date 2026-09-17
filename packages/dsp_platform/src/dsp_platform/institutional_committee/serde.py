@@ -82,7 +82,9 @@ def committee_report_from_dict(data: Mapping[str, Any]) -> CommitteeReport:
         reviews=tuple(reviews),
         consensus=freeze_mapping_or_empty(mapping_field(data, "consensus")),
         minority_opinions=minority,
-        committee_summary=freeze_mapping_or_empty(mapping_field(data, "committee_summary")),
+        committee_summary=freeze_mapping_or_empty(
+            mapping_field(data, "committee_summary")
+        ),
         citations=citations,
         provenance=freeze_mapping_or_empty(mapping_field(data, "provenance")),
         audit=freeze_mapping_or_empty(mapping_field(data, "audit")),

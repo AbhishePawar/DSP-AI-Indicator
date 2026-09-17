@@ -69,9 +69,15 @@ def research_diff_from_dict(data: Mapping[str, Any]) -> ResearchDiffResult:
         left_snapshot_id=str(data.get("left_snapshot_id") or ""),
         right_snapshot_id=str(data.get("right_snapshot_id") or ""),
         kind=str(data.get("kind") or ""),
-        archive_comparison=freeze_mapping_or_empty(dict(data.get("archive_comparison") or {})),
-        schema_comparison=freeze_mapping_or_empty(dict(data.get("schema_comparison") or {})),
-        version_comparison=freeze_mapping_or_empty(dict(data.get("version_comparison") or {})),
+        archive_comparison=freeze_mapping_or_empty(
+            dict(data.get("archive_comparison") or {})
+        ),
+        schema_comparison=freeze_mapping_or_empty(
+            dict(data.get("schema_comparison") or {})
+        ),
+        version_comparison=freeze_mapping_or_empty(
+            dict(data.get("version_comparison") or {})
+        ),
         sections=sections,
         change_summary=freeze_mapping_or_empty(dict(data.get("change_summary") or {})),
         provenance=freeze_mapping_or_empty(dict(data.get("provenance") or {})),

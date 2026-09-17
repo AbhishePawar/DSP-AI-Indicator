@@ -96,14 +96,16 @@ class ResearchCopilotService:
             service_version=COPILOT_SERVICE_VERSION,
             created_at=created,
             conversation_id=cid,
-            question=freeze_mapping_or_empty(processed.to_dict()) or freeze_mapping_or_empty({}),
+            question=freeze_mapping_or_empty(processed.to_dict())
+            or freeze_mapping_or_empty({}),
             answer=answer,
             citations=citations,
             unavailable=unavailable,
             prompt=freeze_mapping_or_empty(prompt) or freeze_mapping_or_empty({}),
             context_refs=freeze_mapping_or_empty(dict(context.source_refs))
             or freeze_mapping_or_empty({}),
-            provenance=freeze_mapping_or_empty(provenance) or freeze_mapping_or_empty({}),
+            provenance=freeze_mapping_or_empty(provenance)
+            or freeze_mapping_or_empty({}),
             audit=freeze_mapping_or_empty(audit) or freeze_mapping_or_empty({}),
             limitations=limitations,
         )

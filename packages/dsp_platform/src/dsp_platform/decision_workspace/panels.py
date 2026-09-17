@@ -33,7 +33,8 @@ def _unavailable_panel(name: str, source_kind: str) -> WorkspacePanel:
         available=False,
         status="unavailable",
         source_kind=source_kind,
-        summary=freeze_mapping_or_empty({"available": False}) or freeze_mapping_or_empty({}),
+        summary=freeze_mapping_or_empty({"available": False})
+        or freeze_mapping_or_empty({}),
         citations=(
             citation(
                 source_kind=source_kind,
@@ -135,7 +136,9 @@ def build_timeline_panel(
         available=available,
         status="ok" if available else "unavailable",
         source_kind="decision_workspace",
-        summary=freeze_mapping_or_empty({"event_count": len(events), "available": available})
+        summary=freeze_mapping_or_empty(
+            {"event_count": len(events), "available": available}
+        )
         or freeze_mapping_or_empty({}),
         citations=(
             citation(
@@ -213,7 +216,8 @@ def build_report_history_panel(
         available=True,
         status="ok",
         source_kind="institutional_report",
-        summary=freeze_mapping_or_empty({"count": len(history)}) or freeze_mapping_or_empty({}),
+        summary=freeze_mapping_or_empty({"count": len(history)})
+        or freeze_mapping_or_empty({}),
         citations=(
             citation(
                 source_kind="institutional_report",
@@ -255,7 +259,8 @@ def build_snapshot_history_panel(
         available=True,
         status="ok",
         source_kind="research_archive",
-        summary=freeze_mapping_or_empty({"count": len(history)}) or freeze_mapping_or_empty({}),
+        summary=freeze_mapping_or_empty({"count": len(history)})
+        or freeze_mapping_or_empty({}),
         citations=(
             citation(
                 source_kind="research_archive",
@@ -298,7 +303,8 @@ def build_diff_history_panel(
         available=True,
         status="ok",
         source_kind="research_diff",
-        summary=freeze_mapping_or_empty({"count": len(history)}) or freeze_mapping_or_empty({}),
+        summary=freeze_mapping_or_empty({"count": len(history)})
+        or freeze_mapping_or_empty({}),
         citations=(
             citation(
                 source_kind="research_diff",
@@ -389,9 +395,7 @@ def build_monitoring_panel(
     if monitoring_result is None:
         return _unavailable_panel("monitoring", "research_monitoring")
     audit_value = monitoring_result.get("audit")
-    audit: Mapping[str, Any] = (
-        audit_value if isinstance(audit_value, Mapping) else {}
-    )
+    audit: Mapping[str, Any] = audit_value if isinstance(audit_value, Mapping) else {}
     return WorkspacePanel(
         name="monitoring",
         available=True,

@@ -183,14 +183,16 @@ class ComplianceChecker:
             service_version=POLICY_SERVICE_VERSION,
             created_at=created,
             subject=subject_norm,
-            policy=freeze_mapping_or_empty(loaded.to_dict()) or freeze_mapping_or_empty({}),
+            policy=freeze_mapping_or_empty(loaded.to_dict())
+            or freeze_mapping_or_empty({}),
             rule_results=rule_results,
             summary=summary,
             violations=violations,
             warnings=warnings,
             audit_trail=audit_trail,
             citations=citations,
-            provenance=freeze_mapping_or_empty(provenance) or freeze_mapping_or_empty({}),
+            provenance=freeze_mapping_or_empty(provenance)
+            or freeze_mapping_or_empty({}),
             audit=freeze_mapping_or_empty(audit) or freeze_mapping_or_empty({}),
             limitations=limitations,
         )

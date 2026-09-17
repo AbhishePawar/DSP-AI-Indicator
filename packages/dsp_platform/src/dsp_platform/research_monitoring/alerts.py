@@ -144,7 +144,8 @@ def alerts_from_diff(
         diff_id=str(diff.get("diff_id")) if diff.get("diff_id") else None,
         baseline_snapshot_id=baseline_snapshot_id,
         current_snapshot_id=current_snapshot_id,
-        change_summary=freeze_mapping_or_empty(dict(summary)) or freeze_mapping_or_empty({}),
+        change_summary=freeze_mapping_or_empty(dict(summary))
+        or freeze_mapping_or_empty({}),
         provenance=freeze_mapping_or_empty(
             {
                 "source": "research_monitoring",
@@ -272,7 +273,9 @@ def alerts_from_portfolio_intelligence(
                     )
                     or {},
                 ),
-                change_summary=freeze_mapping_or_empty({"symbol": sym, "status": "recovered"})
+                change_summary=freeze_mapping_or_empty(
+                    {"symbol": sym, "status": "recovered"}
+                )
                 or freeze_mapping_or_empty({}),
                 provenance=freeze_mapping_or_empty(
                     {

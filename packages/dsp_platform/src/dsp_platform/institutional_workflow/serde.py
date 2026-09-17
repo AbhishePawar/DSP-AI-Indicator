@@ -42,11 +42,13 @@ def workflow_result_from_dict(data: Mapping[str, Any]) -> WorkflowResult:
         service_version=str(data.get("service_version") or WORKFLOW_SERVICE_VERSION),
         created_at=str(data.get("created_at") or ""),
         action=str(data.get("action") or ""),
-        workflow=freeze_mapping_or_empty(dict(data.get("workflow") or {})) or freeze_mapping_or_empty({}),
+        workflow=freeze_mapping_or_empty(dict(data.get("workflow") or {}))
+        or freeze_mapping_or_empty({}),
         citations=citations,
         provenance=freeze_mapping_or_empty(dict(data.get("provenance") or {}))
         or freeze_mapping_or_empty({}),
-        audit=freeze_mapping_or_empty(dict(data.get("audit") or {})) or freeze_mapping_or_empty({}),
+        audit=freeze_mapping_or_empty(dict(data.get("audit") or {}))
+        or freeze_mapping_or_empty({}),
         limitations=(
             tuple(limitations) if isinstance(limitations, (list, tuple)) else ()
         ),

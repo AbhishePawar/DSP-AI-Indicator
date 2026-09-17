@@ -622,9 +622,7 @@ def _checkout(enterprise: Any, body: dict[str, Any]) -> dict[str, Any]:
             "detail": "Billing provider unavailable.",
         }
     if not billing.is_available():
-        return dict(
-            billing.create_checkout_session(org_id, plan=body.get("plan_id"))
-        )
+        return dict(billing.create_checkout_session(org_id, plan=body.get("plan_id")))
     return dict(billing.create_checkout_session(org_id, plan=body.get("plan_id")))
 
 

@@ -190,7 +190,8 @@ class DecisionWorkspaceService:
             panels=tuple(panels),
             timeline=timeline,
             citations=citations,
-            provenance=freeze_mapping_or_empty(provenance) or freeze_mapping_or_empty({}),
+            provenance=freeze_mapping_or_empty(provenance)
+            or freeze_mapping_or_empty({}),
             audit=freeze_mapping_or_empty(audit) or freeze_mapping_or_empty({}),
             limitations=limitations,
         )

@@ -86,15 +86,23 @@ def portfolio_intelligence_from_dict(
         linked_holdings=tuple(linked),
         portfolio_summary=freeze_mapping_or_empty(mapping_field("portfolio_summary"))
         or freeze_mapping_or_empty({}),
-        diversification_summary=freeze_mapping_or_empty(mapping_field("diversification_summary"))
+        diversification_summary=freeze_mapping_or_empty(
+            mapping_field("diversification_summary")
+        )
         or freeze_mapping_or_empty({}),
         sector_allocation=freeze_mapping_or_empty(mapping_field("sector_allocation"))
         or freeze_mapping_or_empty({}),
-        position_concentration=freeze_mapping_or_empty(mapping_field("position_concentration"))
+        position_concentration=freeze_mapping_or_empty(
+            mapping_field("position_concentration")
+        )
         or freeze_mapping_or_empty({}),
-        portfolio_risk_summary=freeze_mapping_or_empty(mapping_field("portfolio_risk_summary"))
+        portfolio_risk_summary=freeze_mapping_or_empty(
+            mapping_field("portfolio_risk_summary")
+        )
         or freeze_mapping_or_empty({}),
-        margin_of_safety_summary=freeze_mapping_or_empty(mapping_field("margin_of_safety_summary"))
+        margin_of_safety_summary=freeze_mapping_or_empty(
+            mapping_field("margin_of_safety_summary")
+        )
         or freeze_mapping_or_empty({}),
         quality_summary=freeze_mapping_or_empty(mapping_field("quality_summary"))
         or freeze_mapping_or_empty({}),
@@ -112,7 +120,8 @@ def portfolio_intelligence_from_dict(
         ),
         provenance=freeze_mapping_or_empty(dict(data.get("provenance") or {}))
         or freeze_mapping_or_empty({}),
-        audit=freeze_mapping_or_empty(dict(data.get("audit") or {})) or freeze_mapping_or_empty({}),
+        audit=freeze_mapping_or_empty(dict(data.get("audit") or {}))
+        or freeze_mapping_or_empty({}),
         limitations=(
             tuple(limitations) if isinstance(limitations, (list, tuple)) else ()
         ),

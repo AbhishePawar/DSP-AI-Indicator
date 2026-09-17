@@ -70,8 +70,12 @@ def monitoring_result_from_dict(data: Mapping[str, Any]) -> MonitoringEvaluateRe
                     diff_id=row.get("diff_id"),
                     baseline_snapshot_id=row.get("baseline_snapshot_id"),
                     current_snapshot_id=row.get("current_snapshot_id"),
-                    change_summary=freeze_mapping_or_empty(dict(row.get("change_summary") or {})),
-                    provenance=freeze_mapping_or_empty(dict(row.get("provenance") or {})),
+                    change_summary=freeze_mapping_or_empty(
+                        dict(row.get("change_summary") or {})
+                    ),
+                    provenance=freeze_mapping_or_empty(
+                        dict(row.get("provenance") or {})
+                    ),
                 )
             )
     limitations = data.get("limitations") or ()

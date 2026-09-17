@@ -273,7 +273,9 @@ def review_devils_advocate(ctx: CommitteeContext) -> AgentReview:
     # Conflicts from diffs
     for diff in ctx.diffs:
         summary_raw = diff.get("change_summary")
-        summary: Mapping[str, Any] = summary_raw if isinstance(summary_raw, Mapping) else {}
+        summary: Mapping[str, Any] = (
+            summary_raw if isinstance(summary_raw, Mapping) else {}
+        )
         if summary.get("identical_content") is False:
             caution = True
             did = str(diff.get("diff_id") or "diff")

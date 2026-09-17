@@ -282,10 +282,12 @@ class ResearchMonitoringService:
             service_version=MONITORING_SERVICE_VERSION,
             created_at=created,
             watchlist=freeze_mapping_or_empty(watchlist) or freeze_mapping_or_empty({}),
-            portfolios=freeze_mapping_or_empty(portfolios) or freeze_mapping_or_empty({}),
+            portfolios=freeze_mapping_or_empty(portfolios)
+            or freeze_mapping_or_empty({}),
             tracks=tracks_sorted,
             alerts=alerts_sorted,
-            provenance=freeze_mapping_or_empty(provenance) or freeze_mapping_or_empty({}),
+            provenance=freeze_mapping_or_empty(provenance)
+            or freeze_mapping_or_empty({}),
             audit=freeze_mapping_or_empty(audit) or freeze_mapping_or_empty({}),
             limitations=limitations,
         )

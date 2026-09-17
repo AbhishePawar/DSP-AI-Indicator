@@ -384,7 +384,11 @@ class InstitutionalReportGenerator:
                 "as_of",
             ),
             "source_metadata": ro_audit,
-            "trust_chain": dict(trust_chain) if isinstance(trust_chain, dict) else UNAVAILABLE_MESSAGE,
+            "trust_chain": (
+                dict(trust_chain)
+                if isinstance(trust_chain, dict)
+                else UNAVAILABLE_MESSAGE
+            ),
             "result_fingerprint": field_or_unavailable(
                 ro_audit,
                 "result_fingerprint",

@@ -60,7 +60,10 @@ def _section_from_data_bundle(
     section = bundle.get(bundle_key)
     if not isinstance(section, Mapping):
         return ResearchSection.unavailable(name, source="data_bundle")
-    status = section.get("status") if isinstance(section.get("status"), Mapping) else {}
+    status_value = section.get("status")
+    status: Mapping[str, Any] = (
+        status_value if isinstance(status_value, Mapping) else {}
+    )
     available = bool(status.get("available"))
     payload = section.get("payload")
     provenance = section.get("provenance")

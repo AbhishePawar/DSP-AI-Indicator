@@ -8,7 +8,7 @@ from typing import Any
 from dsp_platform.decision_workspace.models import (
     UNAVAILABLE_MESSAGE,
     TimelineEvent,
-    freeze_mapping,
+    freeze_mapping_or_empty,
 )
 
 __all__ = ["build_research_timeline"]
@@ -48,8 +48,8 @@ def build_research_timeline(
                 source_kind="research_object",
                 available=True,
                 ref_id=rid,
-                metadata=freeze_mapping({"symbol": research_object.get("symbol")})
-                or freeze_mapping({}),
+                metadata=freeze_mapping_or_empty({"symbol": research_object.get("symbol")})
+                or freeze_mapping_or_empty({}),
             )
         )
 
@@ -67,7 +67,7 @@ def build_research_timeline(
                 source_kind="institutional_report",
                 available=True,
                 ref_id=rid,
-                metadata=freeze_mapping({}) or freeze_mapping({}),
+                metadata=freeze_mapping_or_empty({}) or freeze_mapping_or_empty({}),
             )
         )
 
@@ -75,8 +75,9 @@ def build_research_timeline(
         if not isinstance(snap, Mapping):
             continue
         sid = str(snap.get("snapshot_id") or f"snapshot-{idx}")
-        version = (
-            snap.get("version") if isinstance(snap.get("version"), Mapping) else {}
+        version_value = snap.get("version")
+        version: Mapping[str, Any] = (
+            version_value if isinstance(version_value, Mapping) else {}
         )
         archived = _ts(
             snap.get("archived_at") or version.get("created_at"),
@@ -91,13 +92,13 @@ def build_research_timeline(
                 source_kind="research_archive",
                 available=True,
                 ref_id=sid,
-                metadata=freeze_mapping(
+                metadata=freeze_mapping_or_empty(
                     {
                         "kind": snap.get("kind"),
                         "lineage_id": version.get("lineage_id"),
                     }
                 )
-                or freeze_mapping({}),
+                or freeze_mapping_or_empty({}),
             )
         )
 
@@ -105,10 +106,9 @@ def build_research_timeline(
         if not isinstance(diff, Mapping):
             continue
         did = str(diff.get("diff_id") or f"diff-{idx}")
-        summary = (
-            diff.get("change_summary")
-            if isinstance(diff.get("change_summary"), Mapping)
-            else {}
+        summary_value = diff.get("change_summary")
+        summary: Mapping[str, Any] = (
+            summary_value if isinstance(summary_value, Mapping) else {}
         )
         events.append(
             TimelineEvent(
@@ -119,10 +119,10 @@ def build_research_timeline(
                 source_kind="research_diff",
                 available=True,
                 ref_id=did,
-                metadata=freeze_mapping(
+                metadata=freeze_mapping_or_empty(
                     {"identical_content": summary.get("identical_content")}
                 )
-                or freeze_mapping({}),
+                or freeze_mapping_or_empty({}),
             )
         )
 
@@ -137,10 +137,10 @@ def build_research_timeline(
                 source_kind="research_monitoring",
                 available=True,
                 ref_id=mid,
-                metadata=freeze_mapping(
+                metadata=freeze_mapping_or_empty(
                     {"alert_count": len(monitoring_result.get("alerts") or [])}
                 )
-                or freeze_mapping({}),
+                or freeze_mapping_or_empty({}),
             )
         )
 
@@ -154,7 +154,7 @@ def build_research_timeline(
                 source_kind="decision_workspace",
                 available=False,
                 message=UNAVAILABLE_MESSAGE,
-                metadata=freeze_mapping({}) or freeze_mapping({}),
+                metadata=freeze_mapping_or_empty({}) or freeze_mapping_or_empty({}),
             )
         )
 

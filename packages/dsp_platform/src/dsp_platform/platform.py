@@ -6,7 +6,7 @@ logic, financial calculations, persistence, REST, or authentication.
 
 from __future__ import annotations
 
-from collections.abc import Callable
+from collections.abc import Callable, Mapping
 from dataclasses import dataclass
 from datetime import UTC, date, datetime
 from typing import Any, cast
@@ -1725,7 +1725,7 @@ class DSPPlatform:
         workflow_id: str | None = None,
         template_id: str | None = None,
         artifact_refs: dict[str, object] | None = None,
-        reviewers: list[dict[str, object]] | None = None,
+        reviewers: list[Mapping[str, Any]] | None = None,
         to_stage: str | None = None,
         actor_id: str | None = None,
         author_id: str | None = None,
@@ -1789,7 +1789,7 @@ class DSPPlatform:
         *,
         subject: str,
         policy: dict[str, object] | None = None,
-        exceptions: list[dict[str, object]] | None = None,
+        exceptions: list[Mapping[str, Any]] | None = None,
         research_object: dict[str, object] | None = None,
         report: dict[str, object] | None = None,
         snapshots: dict[str, object] | list[object] | None = None,

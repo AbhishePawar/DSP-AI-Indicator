@@ -46,7 +46,7 @@ def p109_fixture_enabled(environ: dict[str, str] | None = None) -> bool:
     }
 
 
-def build_p109_quote(*, symbol: str = P109_FIXTURE_TICKER):
+def build_p109_quote(*, symbol: str = P109_FIXTURE_TICKER) -> Any:
     return build_quote_from_mapping(
         symbol=symbol,
         payload={
@@ -72,7 +72,7 @@ def build_p109_quote(*, symbol: str = P109_FIXTURE_TICKER):
     )
 
 
-def build_p109_statements(*, symbol: str = P109_FIXTURE_TICKER):
+def build_p109_statements(*, symbol: str = P109_FIXTURE_TICKER) -> Any:
     return build_statements_from_mapping(
         symbol=symbol,
         payload={

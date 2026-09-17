@@ -118,7 +118,7 @@ def _base_review(
         findings=tuple(findings),
         focus_sections=focus_sections,
         citations=tuple(cites),
-        provenance=freeze_mapping(
+        provenance=dict(
             {
                 "source": "institutional_committee",
                 "agent_id": agent_id,
@@ -126,8 +126,7 @@ def _base_review(
                 "providers_called": False,
                 "engines_called": False,
             }
-        )
-        or freeze_mapping({}),
+        ),
     )
 
 
@@ -276,11 +275,8 @@ def review_devils_advocate(ctx: CommitteeContext) -> AgentReview:
 
     # Conflicts from diffs
     for diff in ctx.diffs:
-        summary = (
-            diff.get("change_summary")
-            if isinstance(diff.get("change_summary"), Mapping)
-            else {}
-        )
+        summary_raw = diff.get("change_summary")
+        summary: Mapping[str, Any] = summary_raw if isinstance(summary_raw, Mapping) else {}
         if summary.get("identical_content") is False:
             caution = True
             did = str(diff.get("diff_id") or "diff")

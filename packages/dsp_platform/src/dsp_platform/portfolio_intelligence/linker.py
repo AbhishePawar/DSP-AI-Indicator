@@ -133,7 +133,7 @@ def _index_by_symbol(
                 "metadata" in value or "identity" in value or "version" in value
             ):
                 sym = str(key).strip().upper()
-                out[sym] = to_plain_jsonable(value)  # type: ignore[assignment]
+                out[sym] = to_plain_jsonable(value)
             elif key in prefer_keys:
                 # single document keyed oddly — ignore
                 continue
@@ -141,7 +141,7 @@ def _index_by_symbol(
         if not out and ("metadata" in items or "identity" in items):
             sym = _symbol_from_doc(items)
             if sym:
-                out[sym] = to_plain_jsonable(items)  # type: ignore[assignment]
+                out[sym] = to_plain_jsonable(items)
         return out
     if isinstance(items, list):
         for value in items:
@@ -149,7 +149,7 @@ def _index_by_symbol(
                 continue
             sym = _symbol_from_doc(value)
             if sym:
-                out[sym] = to_plain_jsonable(value)  # type: ignore[assignment]
+                out[sym] = to_plain_jsonable(value)
     return out
 
 
@@ -163,10 +163,10 @@ def _index_snapshots(
         for key, value in items.items():
             if isinstance(value, Mapping) and "snapshot_id" in value:
                 sym = str(value.get("ticker") or key).strip().upper()
-                out[sym] = to_plain_jsonable(value)  # type: ignore[assignment]
+                out[sym] = to_plain_jsonable(value)
             elif isinstance(value, Mapping):
                 # symbol → snapshot
-                out[str(key).strip().upper()] = to_plain_jsonable(value)  # type: ignore[assignment]
+                out[str(key).strip().upper()] = to_plain_jsonable(value)
         return out
     if isinstance(items, list):
         for value in items:
@@ -178,7 +178,7 @@ def _index_snapshots(
                 if isinstance(payload, dict):
                     sym = _symbol_from_doc(payload) or ""
             if sym:
-                out[sym] = to_plain_jsonable(value)  # type: ignore[assignment]
+                out[sym] = to_plain_jsonable(value)
     return out
 
 

@@ -82,9 +82,8 @@ def infer_ticker(kind: str, payload: Mapping[str, Any]) -> str | None:
 def extract_subject_ids(kind: str, payload: Mapping[str, Any]) -> dict[str, Any]:
     """Pass-through identifiers already present on R001/R002/R003 payloads."""
     ids: dict[str, Any] = {"kind": kind}
-    meta = (
-        payload.get("metadata") if isinstance(payload.get("metadata"), Mapping) else {}
-    )
+    metadata = payload.get("metadata")
+    meta: Mapping[str, Any] = metadata if isinstance(metadata, Mapping) else {}
     if kind == "research_object":
         ids["research_object_id"] = meta.get("research_object_id")
         ids["correlation_id"] = meta.get("correlation_id")

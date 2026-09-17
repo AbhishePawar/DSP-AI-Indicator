@@ -10,7 +10,7 @@ from dsp_platform.institutional_committee.models import (
     COMMITTEE_SERVICE_VERSION,
     AgentReview,
     CommitteeReport,
-    freeze_mapping,
+    freeze_mapping_or_empty,
 )
 from dsp_platform.institutional_committee.validation import (
     InstitutionalCommitteeValidationError,
@@ -32,12 +32,16 @@ def committee_report_from_dict(data: Mapping[str, Any]) -> CommitteeReport:
     if not isinstance(data, Mapping):
         raise InstitutionalCommitteeValidationError("report must be a mapping")
 
+    def mapping_field(source: Mapping[str, Any], name: str) -> Mapping[str, Any]:
+        value = source.get(name)
+        return value if isinstance(value, Mapping) else {}
+
     reviews: list[AgentReview] = []
     for row in data.get("reviews") or []:
         if not isinstance(row, Mapping):
             continue
         citations = tuple(
-            freeze_mapping(dict(c)) or freeze_mapping({})
+            freeze_mapping_or_empty(dict(c)) or freeze_mapping_or_empty({})
             for c in (row.get("citations") or [])
             if isinstance(c, Mapping)
         )
@@ -53,18 +57,17 @@ def committee_report_from_dict(data: Mapping[str, Any]) -> CommitteeReport:
                 findings=tuple(findings) if isinstance(findings, (list, tuple)) else (),
                 focus_sections=tuple(focus) if isinstance(focus, (list, tuple)) else (),
                 citations=citations,
-                provenance=freeze_mapping(dict(row.get("provenance") or {}))
-                or freeze_mapping({}),
+                provenance=freeze_mapping_or_empty(mapping_field(row, "provenance")),
             )
         )
 
     minority = tuple(
-        freeze_mapping(dict(m)) or freeze_mapping({})
+        freeze_mapping_or_empty(dict(m)) or freeze_mapping_or_empty({})
         for m in (data.get("minority_opinions") or [])
         if isinstance(m, Mapping)
     )
     citations = tuple(
-        freeze_mapping(dict(c)) or freeze_mapping({})
+        freeze_mapping_or_empty(dict(c)) or freeze_mapping_or_empty({})
         for c in (data.get("citations") or [])
         if isinstance(c, Mapping)
     )
@@ -75,17 +78,14 @@ def committee_report_from_dict(data: Mapping[str, Any]) -> CommitteeReport:
         service_version=str(data.get("service_version") or COMMITTEE_SERVICE_VERSION),
         created_at=str(data.get("created_at") or ""),
         subject=str(data.get("subject") or ""),
-        context=freeze_mapping(dict(data.get("context") or {})) or freeze_mapping({}),
+        context=freeze_mapping_or_empty(mapping_field(data, "context")),
         reviews=tuple(reviews),
-        consensus=freeze_mapping(dict(data.get("consensus") or {}))
-        or freeze_mapping({}),
+        consensus=freeze_mapping_or_empty(mapping_field(data, "consensus")),
         minority_opinions=minority,
-        committee_summary=freeze_mapping(dict(data.get("committee_summary") or {}))
-        or freeze_mapping({}),
+        committee_summary=freeze_mapping_or_empty(mapping_field(data, "committee_summary")),
         citations=citations,
-        provenance=freeze_mapping(dict(data.get("provenance") or {}))
-        or freeze_mapping({}),
-        audit=freeze_mapping(dict(data.get("audit") or {})) or freeze_mapping({}),
+        provenance=freeze_mapping_or_empty(mapping_field(data, "provenance")),
+        audit=freeze_mapping_or_empty(mapping_field(data, "audit")),
         limitations=(
             tuple(limitations) if isinstance(limitations, (list, tuple)) else ()
         ),

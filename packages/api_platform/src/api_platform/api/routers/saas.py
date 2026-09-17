@@ -10,7 +10,7 @@ from __future__ import annotations
 
 from typing import Any
 
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException, Query, Request
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -19,6 +19,7 @@ from api_platform.api.dependencies import (
     get_api_state,
     require_authenticated_actor,
 )
+from dsp_platform.saas_platform import handle_razorpay_webhook
 
 router = APIRouter(tags=["saas"])
 
@@ -454,4 +455,37 @@ def checkout(
     auth: dict[str, Any] = Depends(require_authenticated_actor),
 ) -> JSONResponse:
     payload = _with_actor(auth, body.model_dump(exclude_none=True))
+    payload.pop("amount", None)
+    payload.pop("amount_paise", None)
+    payload.pop("currency", None)
     return _dispatch(state, "checkout", payload)
+
+
+@router.post("/saas/checkout/verify")
+def checkout_verify(
+    body: SaasPayload,
+    state: ApiState = Depends(get_api_state),
+    auth: dict[str, Any] = Depends(require_authenticated_actor),
+) -> JSONResponse:
+    payload = _with_actor(auth, body.model_dump(exclude_none=True))
+    return _dispatch(state, "checkout_verify", payload)
+
+
+@router.post("/saas/webhooks/razorpay")
+async def razorpay_webhook(request: Request) -> JSONResponse:
+    """Unauthenticated Razorpay webhook — HMAC of the raw body is the authenticator."""
+    raw = await request.body()
+    signature = request.headers.get("x-razorpay-signature")
+    outcome = handle_razorpay_webhook(raw, signature)
+    if not outcome.get("verified"):
+        return JSONResponse(
+            status_code=400,
+            content={
+                "ok": False,
+                "verified": False,
+                "message": outcome.get("message") or "Invalid webhook signature.",
+            },
+        )
+    if outcome.get("ok") is False:
+        return JSONResponse(status_code=400, content=outcome)
+    return JSONResponse(status_code=200, content=outcome)

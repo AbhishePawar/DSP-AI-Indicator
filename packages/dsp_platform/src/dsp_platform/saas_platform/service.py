@@ -6,7 +6,10 @@ billing ports). Never duplicates authentication, organizations, or payments.
 
 from __future__ import annotations
 
+import json
+import logging
 from typing import Any, Mapping
+from uuid import uuid4
 
 from dsp_platform.saas_platform.plans import (
     PLAN_IDS,
@@ -16,6 +19,7 @@ from dsp_platform.saas_platform.plans import (
     get_plan,
     plan_feature_flags,
     plan_limits,
+    resolve_plan_checkout_price,
 )
 from dsp_platform.saas_platform.store import (
     default_trial_ends,
@@ -25,6 +29,16 @@ from dsp_platform.saas_platform.store import (
 UNAVAILABLE_MESSAGE = "Data unavailable."
 SAAS_SCHEMA_VERSION = "1.0.0"
 SAAS_SERVICE_VERSION = "0.1.0"
+_LOG = logging.getLogger(__name__)
+_RAZORPAY_ENTITLEMENT_EVENTS = frozenset({"payment.captured", "order.paid"})
+_RAZORPAY_LIFECYCLE_EVENTS = frozenset(
+    {
+        "payment.authorized",
+        "payment.captured",
+        "payment.failed",
+        "order.paid",
+    }
+)
 
 DEFAULT_ORG_PREFERENCES = {
     "timezone": "UTC",
@@ -67,6 +81,9 @@ def saas_platform_schema() -> dict[str, Any]:
             "/saas/plans",
             "/saas/team",
             "/saas/settings",
+            "/saas/checkout",
+            "/saas/checkout/verify",
+            "/saas/webhooks/razorpay",
         ],
         "rules": [
             "orchestration_only",
@@ -87,7 +104,7 @@ def saas_platform_schema() -> dict[str, Any]:
             "copilot_v2",
             "feature_flags",
         ],
-        "billing_note": "Payment gateway interfaces only until a provider is available.",
+        "billing_note": "Razorpay checkout is live only when DSP_BILLING_PROVIDER=razorpay and credentials plus webhook secret are configured. Null/Stripe/Paddle remain unavailable.",
     }
 
 
@@ -186,7 +203,8 @@ def run_saas_platform(
         "list_invoices": lambda: enterprise.list_invoices(
             str(body.get("org_id") or ""), actor_user_id=_actor(body)
         ),
-        "checkout": lambda: _checkout(enterprise, body),
+        "checkout": lambda: _checkout(enterprise, overlay, body),
+        "checkout_verify": lambda: _checkout_verify(enterprise, overlay, body),
         "upsert_coupon": lambda: {"coupon": overlay.upsert_coupon(body)},
         "get_coupon": lambda: {
             "coupon": overlay.get_coupon(str(body.get("code") or ""))
@@ -564,7 +582,9 @@ def _get_subscription(
     enterprise: Any, overlay: Any, body: dict[str, Any]
 ) -> dict[str, Any]:
     org_id = str(body.get("org_id") or "")
-    enterprise.require_permission(org_id, _actor(body), "org.view")
+    actor = str(body.get("actor_user_id") or body.get("user_id") or "").strip()
+    if actor:
+        enterprise.require_permission(org_id, actor, "org.view")
     sub = overlay.get_subscription(org_id)
     if sub is None:
         return {
@@ -607,10 +627,11 @@ def _upsert_billing_profile(
     }
 
 
-def _checkout(enterprise: Any, body: dict[str, Any]) -> dict[str, Any]:
-    """Never fake payments — delegate to BillingPort checkout if present."""
+def _checkout(enterprise: Any, overlay: Any, body: dict[str, Any]) -> dict[str, Any]:
+    """Create a provider order. Amount/currency are resolved server-side only."""
     org_id = str(body.get("org_id") or "")
-    enterprise.require_permission(org_id, _actor(body), "billing.view")
+    plan_id = str(body.get("plan_id") or "").strip().lower()
+    actor = str(body.get("actor_user_id") or body.get("user_id") or "").strip()
     billing = getattr(enterprise, "billing", None)
     if billing is None or not hasattr(billing, "create_checkout_session"):
         return {
@@ -620,10 +641,448 @@ def _checkout(enterprise: Any, body: dict[str, Any]) -> dict[str, Any]:
             "detail": "Billing provider unavailable.",
         }
     if not billing.is_available():
-        return billing.create_checkout_session(
-            org_id, plan=body.get("plan_id")
+        if actor:
+            enterprise.require_permission(org_id, actor, "billing.view")
+        return billing.create_checkout_session(org_id, plan=plan_id or None)
+    if not actor:
+        raise ValueError("actor_user_id required")
+    enterprise.require_permission(org_id, actor, "billing.view")
+
+    price = resolve_plan_checkout_price(plan_id)
+    if price is None:
+        return {
+            "ok": False,
+            "available": False,
+            "checkout_enabled": False,
+            "message": "Unable to calculate.",
+            "detail": "Plan is not available for purchase.",
+        }
+
+    receipt = f"dsp_{uuid4().hex[:24]}"
+    notes = {
+        "org_id": org_id,
+        "plan_id": plan_id,
+        "actor_user_id": actor,
+    }
+    created = billing.create_checkout_session(
+        org_id,
+        plan=plan_id,
+        amount_paise=price["amount_paise"],
+        currency=price["currency"],
+        receipt=receipt,
+        notes=notes,
+    )
+    order_id = str(created.get("order_id") or "").strip()
+    if not created.get("ok") or not order_id:
+        created.pop("key_secret", None)
+        created.pop("webhook_secret", None)
+        return created
+    overlay.record_checkout_intent(
+        {
+            "order_id": order_id,
+            "org_id": org_id,
+            "plan_id": plan_id,
+            "amount_paise": price["amount_paise"],
+            "currency": price["currency"],
+            "actor_user_id": actor,
+            "receipt": receipt,
+            "status": "created",
+        }
+    )
+    return {
+        "ok": True,
+        "available": True,
+        "provider": created.get("provider") or billing.provider_name(),
+        "key_id": created.get("key_id"),
+        "order_id": order_id,
+        "amount": price["amount_paise"],
+        "currency": price["currency"],
+        "plan_id": plan_id,
+    }
+
+
+def _checkout_verify(
+    enterprise: Any, overlay: Any, body: dict[str, Any]
+) -> dict[str, Any]:
+    """Verify Checkout HMAC, then entitle only if the payment is captured."""
+    actor = _actor(body)
+    order_id = str(body.get("razorpay_order_id") or "").strip()
+    payment_id = str(body.get("razorpay_payment_id") or "").strip()
+    signature = str(body.get("razorpay_signature") or "").strip()
+    billing = getattr(enterprise, "billing", None)
+    if billing is None or not hasattr(billing, "verify_checkout_signature"):
+        return {
+            "ok": False,
+            "verified": False,
+            "message": "Billing provider unavailable.",
+        }
+    if not billing.is_available():
+        return billing.verify_checkout_signature(
+            order_id=order_id, payment_id=payment_id, signature=signature
         )
-    return billing.create_checkout_session(org_id, plan=body.get("plan_id"))
+    check = billing.verify_checkout_signature(
+        order_id=order_id, payment_id=payment_id, signature=signature
+    )
+    if not check.get("verified"):
+        return {
+            "ok": False,
+            "verified": False,
+            "entitled": False,
+            "message": check.get("message") or "Invalid payment signature.",
+        }
+    intent = overlay.get_checkout_intent(order_id)
+    if intent is None:
+        return {
+            "ok": False,
+            "verified": True,
+            "entitled": False,
+            "message": UNAVAILABLE_MESSAGE,
+            "detail": "checkout intent not found",
+        }
+    intent_org = str(intent.get("org_id") or "")
+    claimed_org = str(body.get("org_id") or "").strip()
+    if claimed_org and claimed_org != intent_org:
+        return {
+            "ok": False,
+            "verified": True,
+            "entitled": False,
+            "message": UNAVAILABLE_MESSAGE,
+            "detail": "organization mismatch",
+        }
+    enterprise.require_permission(intent_org, actor, "billing.view")
+    payment_entity: dict[str, Any] = {}
+    if hasattr(billing, "fetch_payment"):
+        fetched = billing.fetch_payment(payment_id)
+        if not isinstance(fetched, dict) or not fetched.get("ok"):
+            return {
+                "ok": False,
+                "verified": True,
+                "entitled": False,
+                "message": UNAVAILABLE_MESSAGE,
+                "detail": "payment unavailable",
+            }
+        inner = fetched.get("payment")
+        if isinstance(inner, dict):
+            payment_entity = inner
+    paid_order = str(payment_entity.get("order_id") or "").strip()
+    if not paid_order or paid_order != order_id:
+        return {
+            "ok": False,
+            "verified": True,
+            "entitled": False,
+            "message": UNAVAILABLE_MESSAGE,
+            "detail": "order mismatch",
+        }
+    status = str(payment_entity.get("status") or "").strip().lower()
+    if status != "captured":
+        return {
+            "ok": True,
+            "verified": True,
+            "entitled": False,
+            "pending": True,
+            "status": status or "pending",
+            "message": "Payment not captured yet.",
+        }
+    mismatch = _amount_mismatch(intent, payment_entity)
+    if mismatch is not None:
+        return mismatch
+    applied = _apply_paid_entitlement(
+        enterprise,
+        overlay,
+        order_id=order_id,
+        payment_id=payment_id,
+        source_event="checkout.verify",
+    )
+    applied["ok"] = True
+    applied["verified"] = True
+    return applied
+
+
+def _payment_entity(event: dict[str, Any]) -> dict[str, Any]:
+    payload = event.get("payload") if isinstance(event.get("payload"), dict) else {}
+    payment = payload.get("payment") if isinstance(payload, dict) else None
+    if isinstance(payment, dict):
+        entity = payment.get("entity")
+        if isinstance(entity, dict):
+            return entity
+        if payment.get("id"):
+            return payment
+    return {}
+
+
+def _order_entity(event: dict[str, Any]) -> dict[str, Any]:
+    payload = event.get("payload") if isinstance(event.get("payload"), dict) else {}
+    order = payload.get("order") if isinstance(payload, dict) else None
+    if isinstance(order, dict):
+        entity = order.get("entity")
+        if isinstance(entity, dict):
+            return entity
+        if order.get("id"):
+            return order
+    return {}
+
+
+def _amount_mismatch(
+    intent: dict[str, Any], entity: Mapping[str, Any]
+) -> dict[str, Any] | None:
+    rejected = {
+        "ok": False,
+        "verified": True,
+        "entitled": False,
+        "message": "Unable to calculate.",
+        "detail": "Payment amount mismatch.",
+    }
+    if "amount" not in entity or "currency" not in entity:
+        return rejected
+    try:
+        paid = int(entity.get("amount") or 0)
+    except (TypeError, ValueError):
+        return rejected
+    expected = int(intent.get("amount_paise") or 0)
+    currency = str(entity.get("currency") or "").strip().upper()
+    expected_ccy = str(intent.get("currency") or "").strip().upper()
+    if paid != expected or not currency or not expected_ccy or currency != expected_ccy:
+        return rejected
+    return None
+
+
+def _apply_paid_entitlement(
+    enterprise: Any,
+    overlay: Any,
+    *,
+    order_id: str,
+    payment_id: str,
+    source_event: str,
+) -> dict[str, Any]:
+    intent = overlay.get_checkout_intent(order_id)
+    if overlay.has_processed_payment(payment_id):
+        return {
+            "entitled": True,
+            "duplicate": True,
+            "org_id": (intent or {}).get("org_id"),
+            "plan_id": (intent or {}).get("plan_id"),
+            "payment_id": payment_id,
+            "order_id": order_id,
+        }
+    if intent is None:
+        return {
+            "entitled": False,
+            "message": UNAVAILABLE_MESSAGE,
+            "detail": "checkout intent not found",
+        }
+    if str(intent.get("status") or "") == "entitled":
+        overlay.mark_payment_processed(
+            payment_id, order_id=order_id, org_id=str(intent.get("org_id") or "")
+        )
+        return {
+            "entitled": True,
+            "duplicate": True,
+            "org_id": intent.get("org_id"),
+            "plan_id": intent.get("plan_id"),
+            "payment_id": payment_id,
+            "order_id": order_id,
+        }
+    org_id = str(intent.get("org_id") or "")
+    plan_id = str(intent.get("plan_id") or "").strip().lower()
+    plan = get_plan(plan_id) or {}
+    tier = PLAN_TO_LICENSE_TIER.get(plan_id)
+    if not org_id or not tier:
+        return {
+            "entitled": False,
+            "message": UNAVAILABLE_MESSAGE,
+            "detail": "plan or organization unavailable",
+        }
+    if not overlay.claim_payment(payment_id, order_id=order_id, org_id=org_id):
+        return {
+            "entitled": True,
+            "duplicate": True,
+            "org_id": org_id,
+            "plan_id": plan_id,
+            "payment_id": payment_id,
+            "order_id": order_id,
+        }
+    seats = int(plan.get("seat_limit") or 1)
+    overlay.upsert_subscription(
+        org_id,
+        {
+            "plan_id": plan_id,
+            "status": "active",
+            "coupon_code": None,
+        },
+    )
+    license_row = enterprise.apply_paid_license(
+        org_id,
+        tier=str(tier),
+        seats=seats,
+        usage_limits=plan_limits(plan_id),
+        metadata={
+            "source": "razorpay",
+            "provider": "razorpay",
+            "order_id": order_id,
+            "payment_id": payment_id,
+            "event": source_event,
+        },
+    )
+    org = enterprise.get_organization(org_id)
+    owner = str((org or {}).get("owner_user_id") or "")
+    if owner:
+        try:
+            enterprise.update_organization(
+                org_id, actor_user_id=owner, seat_limit=seats
+            )
+        except Exception:  # noqa: BLE001 — license already applied
+            pass
+    overlay.update_checkout_intent(
+        order_id, {"status": "entitled", "payment_id": payment_id}
+    )
+    overlay.mark_payment_processed(payment_id, order_id=order_id, org_id=org_id)
+    return {
+        "entitled": True,
+        "duplicate": False,
+        "org_id": org_id,
+        "plan_id": plan_id,
+        "payment_id": payment_id,
+        "order_id": order_id,
+        "license": license_row,
+    }
+
+
+def _handle_razorpay_event(
+    enterprise: Any, overlay: Any, event: dict[str, Any]
+) -> dict[str, Any]:
+    event_name = str(event.get("event") or "").strip()
+    payment = _payment_entity(event)
+    order = _order_entity(event)
+    order_id = str(
+        payment.get("order_id") or order.get("id") or ""
+    ).strip()
+    payment_id = str(payment.get("id") or "").strip()
+
+    if event_name not in _RAZORPAY_LIFECYCLE_EVENTS:
+        return {"handled": False, "ignored": True, "reason": "event not implemented"}
+
+    if event_name == "payment.authorized":
+        if order_id:
+            overlay.update_checkout_intent(
+                order_id, {"status": "authorized", "payment_id": payment_id or None}
+            )
+        return {"handled": True, "entitled": False, "status": "authorized"}
+
+    if event_name == "payment.failed":
+        if order_id:
+            overlay.update_checkout_intent(
+                order_id,
+                {
+                    "status": "failed",
+                    "payment_id": payment_id or None,
+                    "failure_reason": str(payment.get("error_description") or "failed"),
+                },
+            )
+        return {"handled": True, "entitled": False, "status": "failed"}
+
+    if event_name not in _RAZORPAY_ENTITLEMENT_EVENTS:
+        return {"handled": True, "entitled": False}
+
+    if not order_id:
+        return {
+            "handled": True,
+            "entitled": False,
+            "message": UNAVAILABLE_MESSAGE,
+            "detail": "order_id missing",
+        }
+    intent = overlay.get_checkout_intent(order_id)
+    if intent is None:
+        return {
+            "handled": True,
+            "entitled": False,
+            "message": UNAVAILABLE_MESSAGE,
+            "detail": "checkout intent not found",
+        }
+    entity_for_amount = payment or order
+    mismatch = _amount_mismatch(intent, entity_for_amount)
+    if mismatch is not None:
+        overlay.update_checkout_intent(
+            order_id, {"status": "amount_mismatch", "payment_id": payment_id or None}
+        )
+        return mismatch
+    if not payment_id:
+        payment_id = f"order:{order_id}"
+    applied = _apply_paid_entitlement(
+        enterprise,
+        overlay,
+        order_id=order_id,
+        payment_id=payment_id,
+        source_event=event_name,
+    )
+    applied["handled"] = True
+    return applied
+
+
+def handle_razorpay_webhook(
+    raw_body: bytes,
+    signature: str | None,
+    *,
+    enterprise: Any | None = None,
+    overlay: Any | None = None,
+) -> dict[str, Any]:
+    """Verify Razorpay webhook HMAC and apply entitlements idempotently."""
+    enterprise = enterprise or _enterprise()
+    overlay = overlay or get_saas_overlay_store()
+    billing = getattr(enterprise, "billing", None)
+    if billing is None or not hasattr(billing, "verify_webhook"):
+        return {
+            "ok": False,
+            "verified": False,
+            "message": "Billing provider unavailable.",
+        }
+    verification = billing.verify_webhook(raw_body, signature=signature)
+    if not verification.get("verified"):
+        return {
+            "ok": False,
+            "verified": False,
+            "message": verification.get("message") or "Invalid webhook signature.",
+        }
+    try:
+        event = json.loads(raw_body.decode("utf-8"))
+    except (UnicodeDecodeError, json.JSONDecodeError, AttributeError):
+        return {
+            "ok": False,
+            "verified": True,
+            "message": UNAVAILABLE_MESSAGE,
+            "detail": "invalid webhook payload",
+        }
+    if not isinstance(event, dict):
+        return {
+            "ok": False,
+            "verified": True,
+            "message": UNAVAILABLE_MESSAGE,
+            "detail": "invalid webhook payload",
+        }
+    event_id = str(event.get("id") or "").strip()
+    event_name = str(event.get("event") or "").strip()
+    if event_id and not overlay.claim_billing_event(event_id, event_name):
+        _LOG.info("razorpay webhook duplicate event=%s", event_name)
+        return {
+            "ok": True,
+            "verified": True,
+            "duplicate": True,
+            "event": event_name,
+            "entitled": False,
+        }
+    result = _handle_razorpay_event(enterprise, overlay, event)
+    _LOG.info(
+        "razorpay webhook event=%s entitled=%s duplicate=%s",
+        event_name,
+        bool(result.get("entitled")),
+        bool(result.get("duplicate")),
+    )
+    return {
+        **result,
+        "ok": True,
+        "verified": True,
+        "duplicate": bool(result.get("duplicate")),
+        "event": event_name,
+    }
 
 
 def _assign_license(
@@ -738,8 +1197,8 @@ def _admin_dashboard(
     enterprise: Any, overlay: Any, body: dict[str, Any]
 ) -> dict[str, Any]:
     """Member-scoped SaaS dashboard — never leaks foreign org state (P1-07)."""
-    actor = _actor(body)
-    orgs = enterprise.list_organizations(user_id=actor)
+    actor = str(body.get("actor_user_id") or body.get("user_id") or "").strip()
+    orgs = enterprise.list_organizations(user_id=actor) if actor else []
     member_org_ids = {o["org_id"] for o in orgs}
     overview = {
         "organizations": len(orgs),

@@ -6,6 +6,7 @@ Limits are enforced via feature flags + license usage_limits on assign.
 
 from __future__ import annotations
 
+import os
 from types import MappingProxyType
 from typing import Any, Mapping
 
@@ -17,6 +18,7 @@ __all__ = [
     "get_plan",
     "plan_feature_flags",
     "plan_limits",
+    "resolve_plan_checkout_price",
 ]
 
 PLAN_IDS = ("starter", "professional", "enterprise", "custom")
@@ -165,6 +167,40 @@ SAAS_PLANS: tuple[dict[str, Any], ...] = (
         "price_display": "Custom contract — billing provider interface only",
     },
 )
+
+
+def resolve_plan_checkout_price(plan_id: str) -> dict[str, Any] | None:
+    """Server-side checkout amount. Never reads a client-supplied price.
+
+    Amounts come from ``DSP_RAZORPAY_PLAN_PRICES_PAISE`` (e.g.
+    ``starter=49900,professional=149900``). Unpriced or ``custom`` plans are
+    not purchasable — returns None (Unable to calculate).
+    """
+    pid = (plan_id or "").strip().lower()
+    if pid not in PLAN_IDS or pid == "custom":
+        return None
+    currency = (os.environ.get("DSP_RAZORPAY_CURRENCY") or "INR").strip().upper()
+    if not currency:
+        currency = "INR"
+    raw = (os.environ.get("DSP_RAZORPAY_PLAN_PRICES_PAISE") or "").strip()
+    prices: dict[str, int] = {}
+    if raw:
+        for part in raw.split(","):
+            chunk = part.strip()
+            if "=" not in chunk:
+                continue
+            key, value = chunk.split("=", 1)
+            key = key.strip().lower()
+            try:
+                amount = int(value.strip())
+            except ValueError:
+                continue
+            if amount > 0:
+                prices[key] = amount
+    amount = prices.get(pid)
+    if amount is None:
+        return None
+    return {"plan_id": pid, "amount_paise": amount, "currency": currency}
 
 
 def get_plan(plan_id: str) -> dict[str, Any] | None:

@@ -39,6 +39,11 @@ _AUTH_EXEMPT = (
     "/auth/rbac/refresh",
     "/api/v1/auth/rbac/refresh",
 )
+# Razorpay server-to-server webhooks cannot send JWT or CSRF tokens.
+_WEBHOOK_EXEMPT = (
+    "/saas/webhooks/razorpay",
+    "/api/v1/saas/webhooks/razorpay",
+)
 
 
 class CsrfMiddleware(BaseHTTPMiddleware):
@@ -67,6 +72,8 @@ class CsrfMiddleware(BaseHTTPMiddleware):
         if any(path == p or path.startswith(p + "/") for p in _PUBLIC_PREFIXES):
             return await call_next(request)
         if path in _AUTH_EXEMPT:
+            return await call_next(request)
+        if path in _WEBHOOK_EXEMPT:
             return await call_next(request)
         # Only enforce when browser cookie session is the auth transport.
         # Explicit Bearer Authorization (API clients / legacy tests) skips CSRF.

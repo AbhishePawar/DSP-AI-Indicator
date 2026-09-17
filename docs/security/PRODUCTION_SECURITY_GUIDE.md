@@ -22,7 +22,10 @@ Commercial GA security foundation for DSP AI Indicator. Architecture freeze pres
 | `DSP_RATE_LIMIT_ENABLED` | API rate limiting | `true` |
 | `DSP_CORS_ORIGINS` | Explicit allow-list | required |
 | `DSP_DATABASE_URL` | Durable enterprise + identity | Postgres URL |
-| `DSP_BILLING_PROVIDER` | `null` / `stripe` / `razorpay` / `paddle` | chosen vendor |
+| `DSP_BILLING_PROVIDER` | `null` / `stripe` / `razorpay` / `paddle` | `razorpay` when live India billing is configured |
+| `DSP_RAZORPAY_KEY_ID` | Razorpay key id (public; also returned by checkout API) | required for Razorpay |
+| `DSP_RAZORPAY_KEY_SECRET` | Razorpay key secret (API only) | required for Razorpay |
+| `DSP_RAZORPAY_WEBHOOK_SECRET` | Webhook HMAC secret (API only) | required for Razorpay |
 | `NEXT_PUBLIC_COOKIE_AUTH` | Web prefers cookie mode | `true` |
 
 ## Cookie session (production)
@@ -66,7 +69,7 @@ Ports (no vendor wiring required for GA architecture close):
 
 ## Billing
 
-See [BILLING_ARCHITECTURE.md](./BILLING_ARCHITECTURE.md). Adapters always return **Billing provider unavailable.** until live credentials + webhook verification are configured.
+See [BILLING_ARCHITECTURE.md](./BILLING_ARCHITECTURE.md). Null/Stripe/Paddle remain **Billing provider unavailable.** Razorpay is available only with all three secrets plus real Order API + HMAC verification on our FastAPI host (`POST /api/v1/saas/webhooks/razorpay`).
 
 ## Audit
 
@@ -75,7 +78,8 @@ See [AUDIT_ARCHITECTURE.md](./AUDIT_ARCHITECTURE.md). Append-only enterprise aud
 ## Residual risks (honest)
 
 - Live IdP (Okta/Azure AD/Google) not wired
-- Live Stripe/Razorpay/Paddle checkout/webhooks not executed
+- Live Stripe/Paddle checkout/webhooks not executed
+- Razorpay live path is self-hosted FastAPI only (no Vercel). See `docs/security/RAZORPAY_INTEGRATION.md`. Razorpay Dashboard webhook should NOT be configured until the endpoint has been deployed to our own HTTPS server and externally tested.
 - Multi-replica rate limits need Redis edge configuration
 - Web CSP still allows unsafe-inline/eval for Next.js bundling
 - Enterprise route actor binding via `X-User-Id` still needs JWT-subject hardening in a follow-up

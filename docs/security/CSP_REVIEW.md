@@ -30,6 +30,7 @@ Production script CSP no longer uses `'unsafe-inline'` or `'unsafe-eval'`. Per-r
 1. **`style-src 'unsafe-inline'`** — required for current Next App Router + `next-themes` appearance applicator without redesigning style injection. Tracked residual (AUD-013 partial closure).
 2. **Dev `'unsafe-eval'`** — Next.js HMR only; must not ship in production builds (`NODE_ENV=production`).
 3. **`connect-src https:`** — allows HTTPS API hosts; tighten to explicit origins at deploy time (ops).
+4. **Razorpay Checkout** — `script-src` / `frame-src` allow `checkout.razorpay.com` and `api.razorpay.com` so the authenticated SaaS checkout iframe can load. Secrets stay on FastAPI; the browser only receives `key_id` + `order_id`.
 
 ## Verification
 

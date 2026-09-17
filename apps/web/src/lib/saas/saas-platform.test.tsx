@@ -66,6 +66,8 @@ vi.mock("@/lib/api/client", () => ({
     saasListOrganizations: (...args: unknown[]) =>
       saasListOrganizations(...args),
     saasPlans: vi.fn(async () => ({ ok: true, result: { plans: [] } })),
+    saasCheckout: vi.fn(),
+    saasCheckoutVerify: vi.fn(),
   },
 }));
 

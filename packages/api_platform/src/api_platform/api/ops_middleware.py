@@ -78,6 +78,8 @@ class RateLimitHookMiddleware(BaseHTTPMiddleware):
             "/api/v1/health/live",
             "/api/v1/health/ready",
             "/api/v1/metrics",
+            "/saas/webhooks/razorpay",
+            "/api/v1/saas/webhooks/razorpay",
         }
     )
 

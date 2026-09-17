@@ -19,8 +19,8 @@ export function middleware(request: NextRequest) {
   const isDev = process.env.NODE_ENV === "development";
 
   const scriptSrc = isDev
-    ? `script-src 'self' 'nonce-${nonce}' 'strict-dynamic' 'unsafe-eval'`
-    : `script-src 'self' 'nonce-${nonce}' 'strict-dynamic'`;
+    ? `script-src 'self' 'nonce-${nonce}' 'strict-dynamic' 'unsafe-eval' https://checkout.razorpay.com`
+    : `script-src 'self' 'nonce-${nonce}' 'strict-dynamic' https://checkout.razorpay.com`;
 
   // style-src 'unsafe-inline' retained — Next.js / CSS-in-JS / next-themes
   // require it without a full style-nonce migration (see CSP_REVIEW.md).
@@ -28,9 +28,10 @@ export function middleware(request: NextRequest) {
     "default-src 'self'",
     scriptSrc,
     "style-src 'self' 'unsafe-inline'",
-    "img-src 'self' data: blob:",
+    "img-src 'self' data: blob: https://*.razorpay.com https://razorpay.com",
     "font-src 'self' data:",
     "connect-src 'self' http://127.0.0.1:8000 http://localhost:8000 https:",
+    "frame-src https://api.razorpay.com https://checkout.razorpay.com",
     "object-src 'none'",
     "frame-ancestors 'none'",
     "base-uri 'self'",

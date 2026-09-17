@@ -584,6 +584,61 @@ class EnterpriseService:
         )
         return lic.to_dict()
 
+    def apply_paid_license(
+        self,
+        org_id: str,
+        *,
+        tier: str,
+        seats: int,
+        usage_limits: dict[str, Any] | None = None,
+        expires_at: str | None = None,
+        metadata: dict[str, Any] | None = None,
+        license_id: str | None = None,
+    ) -> dict[str, Any]:
+        """Apply a license after verified billing — not a public HTTP bypass.
+
+        Used only from the SaaS orchestrator after Razorpay signature
+        verification. Audits ``actor_user_id='system'``. Reuses the same
+        ``License`` model as :meth:`assign_license`.
+        """
+        org = self.store.organizations.get(org_id)
+        if org is None:
+            raise NotFoundError("organization not found")
+        if tier not in LICENSE_TIERS:
+            raise ValidationError("invalid license tier")
+        if seats < 1:
+            raise ValidationError("seats must be >= 1")
+        now = utc_now().isoformat()
+        payment_meta = dict(metadata or {})
+        payment_meta.setdefault("source", "razorpay")
+        lic = License(
+            license_id=(license_id or f"lic_{uuid.uuid4().hex[:12]}").strip(),
+            org_id=org_id,
+            tier=tier,
+            status="active",
+            seats=seats,
+            created_at=now,
+            expires_at=expires_at,
+            usage_limits=freeze_mapping(usage_limits),
+            metadata=freeze_mapping(payment_meta),
+        )
+        self.store.licenses[org_id] = lic
+        self._audit(
+            org_id=org_id,
+            actor_user_id="system",
+            action="license.assign",
+            resource_type="license",
+            resource_id=lic.license_id,
+            metadata={
+                "tier": tier,
+                "seats": seats,
+                "source": "razorpay",
+                "order_id": payment_meta.get("order_id"),
+                "payment_id": payment_meta.get("payment_id"),
+            },
+        )
+        return lic.to_dict()
+
     def get_license(self, org_id: str, *, actor_user_id: str) -> dict[str, Any]:
         self.require_permission(org_id, actor_user_id, "license.view")
         lic = self.store.licenses.get(org_id)

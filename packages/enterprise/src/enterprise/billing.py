@@ -68,6 +68,16 @@ class BillingPort(Protocol):
 
     def payment_status(self, org_id: str) -> dict[str, Any]: ...
 
+    def create_checkout_session(
+        self, org_id: str, *, plan: str | None = None, **kwargs: Any
+    ) -> dict[str, Any]: ...
+
+    def verify_webhook(self, payload: bytes, *, signature: str | None = None) -> dict[str, Any]: ...
+
+    def verify_checkout_signature(
+        self, *, order_id: str, payment_id: str, signature: str
+    ) -> dict[str, Any]: ...
+
 
 class NullBillingAdapter:
     """Default adapter — honest unavailable. No checkout, no simulated charges."""
@@ -95,8 +105,10 @@ class NullBillingAdapter:
             "invoices": [],
         }
 
-    def create_checkout_session(self, org_id: str, *, plan: str | None = None) -> dict[str, Any]:
-        _ = plan
+    def create_checkout_session(
+        self, org_id: str, *, plan: str | None = None, **kwargs: Any
+    ) -> dict[str, Any]:
+        _ = plan, kwargs
         return {
             "ok": False,
             "org_id": org_id,
@@ -108,6 +120,19 @@ class NullBillingAdapter:
 
     def verify_webhook(self, payload: bytes, *, signature: str | None = None) -> dict[str, Any]:
         _ = payload, signature
+        return {
+            "ok": False,
+            "provider": self.provider_name(),
+            "verified": False,
+            "message": UNAVAILABLE_MESSAGES.get(
+                "billing_provider", "Billing provider unavailable."
+            ),
+        }
+
+    def verify_checkout_signature(
+        self, *, order_id: str, payment_id: str, signature: str
+    ) -> dict[str, Any]:
+        _ = order_id, payment_id, signature
         return {
             "ok": False,
             "provider": self.provider_name(),

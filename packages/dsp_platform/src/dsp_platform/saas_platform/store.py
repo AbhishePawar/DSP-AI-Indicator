@@ -39,6 +39,12 @@ class SaasOverlayStore:
         self._coupons: dict[str, dict[str, Any]] = {}
         # license_key -> record (enterprise license keys for activation)
         self._license_keys: dict[str, dict[str, Any]] = {}
+        # razorpay_order_id -> checkout intent (amount locked server-side)
+        self._checkout_intents: dict[str, dict[str, Any]] = {}
+        # razorpay event id -> processed marker (webhook idempotency)
+        self._billing_events: dict[str, dict[str, Any]] = {}
+        # razorpay payment id -> processed marker (entitlement idempotency)
+        self._processed_payments: dict[str, dict[str, Any]] = {}
 
     def upsert_subscription(self, org_id: str, payload: dict[str, Any]) -> dict[str, Any]:
         with self._lock:
@@ -172,6 +178,143 @@ class SaasOverlayStore:
             if org_id:
                 rows = [r for r in rows if r.get("org_id") == org_id]
             return rows
+
+    def record_checkout_intent(self, payload: dict[str, Any]) -> dict[str, Any]:
+        order_id = str(payload.get("order_id") or "").strip()
+        if not order_id:
+            raise ValueError("order_id required")
+        with self._lock:
+            row = {
+                "order_id": order_id,
+                "org_id": str(payload.get("org_id") or ""),
+                "plan_id": str(payload.get("plan_id") or ""),
+                "amount_paise": int(payload.get("amount_paise") or 0),
+                "currency": str(payload.get("currency") or "INR").upper(),
+                "actor_user_id": payload.get("actor_user_id"),
+                "receipt": payload.get("receipt"),
+                "status": str(payload.get("status") or "created"),
+                "payment_id": payload.get("payment_id"),
+                "created_at": _now(),
+                "updated_at": _now(),
+            }
+            self._checkout_intents[order_id] = row
+            return deepcopy(row)
+
+    def get_checkout_intent(self, order_id: str) -> dict[str, Any] | None:
+        with self._lock:
+            row = self._checkout_intents.get(str(order_id or "").strip())
+            return deepcopy(row) if row else None
+
+    def update_checkout_intent(
+        self, order_id: str, payload: dict[str, Any]
+    ) -> dict[str, Any] | None:
+        key = str(order_id or "").strip()
+        with self._lock:
+            row = self._checkout_intents.get(key)
+            if row is None:
+                return None
+            row = dict(row)
+            for field in ("status", "payment_id", "failure_reason"):
+                if field in payload:
+                    row[field] = payload[field]
+            row["updated_at"] = _now()
+            self._checkout_intents[key] = row
+            return deepcopy(row)
+
+    def has_processed_billing_event(self, event_id: str) -> bool:
+        eid = str(event_id or "").strip()
+        if not eid:
+            return False
+        with self._lock:
+            return eid in self._billing_events
+
+    def claim_billing_event(
+        self, event_id: str, event_name: str | None = None
+    ) -> bool:
+        """Persist-and-claim a provider event id. True if this caller owns it."""
+        eid = str(event_id or "").strip()
+        if not eid:
+            return True
+        with self._lock:
+            if eid in self._billing_events:
+                return False
+            now = _now()
+            self._billing_events[eid] = {
+                "event_id": eid,
+                "event": event_name,
+                "created_at": now,
+                "updated_at": now,
+            }
+            return True
+
+    def mark_billing_event_processed(
+        self, event_id: str, event_name: str | None = None
+    ) -> dict[str, Any]:
+        eid = str(event_id or "").strip()
+        if not eid:
+            raise ValueError("event_id required")
+        with self._lock:
+            row = self._billing_events.get(eid) or {
+                "event_id": eid,
+                "created_at": _now(),
+            }
+            row["event"] = event_name or row.get("event")
+            row["updated_at"] = _now()
+            self._billing_events[eid] = row
+            return deepcopy(row)
+
+    def has_processed_payment(self, payment_id: str) -> bool:
+        pid = str(payment_id or "").strip()
+        if not pid:
+            return False
+        with self._lock:
+            return pid in self._processed_payments
+
+    def claim_payment(
+        self,
+        payment_id: str,
+        *,
+        order_id: str | None = None,
+        org_id: str | None = None,
+    ) -> bool:
+        """Persist-and-claim a provider payment id. True if this caller owns it."""
+        pid = str(payment_id or "").strip()
+        if not pid:
+            return False
+        with self._lock:
+            if pid in self._processed_payments:
+                return False
+            now = _now()
+            row: dict[str, Any] = {
+                "payment_id": pid,
+                "created_at": now,
+                "updated_at": now,
+            }
+            if order_id:
+                row["order_id"] = order_id
+            if org_id:
+                row["org_id"] = org_id
+            self._processed_payments[pid] = row
+            return True
+
+    def mark_payment_processed(
+        self, payment_id: str, *, order_id: str | None = None, org_id: str | None = None
+    ) -> dict[str, Any]:
+        pid = str(payment_id or "").strip()
+        if not pid:
+            raise ValueError("payment_id required")
+        with self._lock:
+            row = self._processed_payments.get(pid) or {
+                "payment_id": pid,
+                "created_at": _now(),
+            }
+            if order_id:
+                row["order_id"] = order_id
+            if org_id:
+                row["org_id"] = org_id
+            row["updated_at"] = _now()
+            self._processed_payments[pid] = row
+            return deepcopy(row)
 
 
 _STORE: SaasOverlayStore | None = None

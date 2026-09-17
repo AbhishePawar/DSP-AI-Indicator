@@ -11,6 +11,7 @@
 | Postgres password | `POSTGRES_PASSWORD` / embedded in `DSP_DATABASE_URL` | Postgres + API |
 | Grafana admin | `GRAFANA_ADMIN_PASSWORD` | Grafana |
 | LLM keys (optional) | `OPENAI_API_KEY`, etc. | API only |
+| Razorpay (optional) | `DSP_RAZORPAY_KEY_ID`, `DSP_RAZORPAY_KEY_SECRET`, `DSP_RAZORPAY_WEBHOOK_SECRET` | API only — webhook is `POST /api/v1/saas/webhooks/razorpay` on this host. Do not register that URL in the Razorpay Dashboard until the API is on our HTTPS origin and externally tested. |
 | Object storage | provider-specific | API |
 
 ## Injection patterns
@@ -22,7 +23,7 @@
 
 ### Kubernetes
 
-1. **External Secrets Operator** → sync from AWS Secrets Manager / GCP Secret Manager / Azure Key Vault into `Secret` objects.
+1. **External Secrets Operator** → sync from the operator's secret store (file, Docker secrets, AWS/Azure/GCP if already in use) into `Secret` objects. **GCP Secret Manager is not required for Razorpay.** Independent VPS deployments may inject via gitignored `.env` / Docker `env_file`.
 2. **Sealed Secrets** / SOPS for GitOps.
 3. Mount as envFrom or volume; never put values in ConfigMaps.
 

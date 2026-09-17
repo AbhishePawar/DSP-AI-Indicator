@@ -14,6 +14,7 @@ import { PageHeader } from "@/components/layout/PageHeader";
 import { SurfaceTrustChrome } from "@/components/trust/SurfaceTrustChrome";
 import { api } from "@/lib/api/client";
 import { useAuth } from "@/lib/auth/AuthProvider";
+import { openRazorpayCheckout } from "@/lib/billing/razorpayCheckout";
 import { featureFlags } from "@/lib/featureFlags";
 import { dashboardSurfaceTrust } from "@/lib/trust/surfaceTrust";
 
@@ -173,8 +174,57 @@ export function SaasPlatform() {
       );
     },
     onSuccess: (res) => {
+      const result = res.result || {};
+      const keyId = result.key_id as string | undefined;
+      const orderId = result.order_id as string | undefined;
+      const amount = Number(result.amount);
+      const currency = String(result.currency || "INR");
+      if (result.ok && keyId && orderId && Number.isFinite(amount)) {
+        void openRazorpayCheckout({
+          keyId,
+          orderId,
+          amount,
+          currency,
+          onSuccess: (payload) => {
+            void api
+              .saasCheckoutVerify(
+                {
+                  org_id: selectedOrgId,
+                  razorpay_order_id: payload.razorpay_order_id,
+                  razorpay_payment_id: payload.razorpay_payment_id,
+                  razorpay_signature: payload.razorpay_signature,
+                },
+                opts,
+              )
+              .then((verified) => {
+                const inner = verified.result || {};
+                if (inner.entitled) {
+                  setStatusMsg("Payment captured. License updated.");
+                  void qc.invalidateQueries({
+                    queryKey: ["saas-sub", selectedOrgId],
+                  });
+                  void qc.invalidateQueries({ queryKey: ["saas-license"] });
+                  return;
+                }
+                setStatusMsg(
+                  (inner.message as string | undefined) ||
+                    "Payment submitted. Waiting for confirmation.",
+                );
+              })
+              .catch(() => {
+                setStatusMsg("Payment verification unavailable.");
+              });
+          },
+          onDismiss: () => {
+            setStatusMsg("Checkout cancelled.");
+          },
+        }).catch(() => {
+          setStatusMsg("Razorpay Checkout unavailable.");
+        });
+        return;
+      }
       const msg =
-        (res.result?.message as string | undefined) ||
+        (result.message as string | undefined) ||
         res.message ||
         "Billing provider unavailable.";
       setStatusMsg(msg);

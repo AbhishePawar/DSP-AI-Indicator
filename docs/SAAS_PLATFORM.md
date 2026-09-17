@@ -64,7 +64,7 @@ Plans: **Starter · Professional · Enterprise · Custom**
 ## 6. Billing
 
 - Billing profile (tax / GST / VAT / currency) stored in overlay
-- Invoices / payment history / checkout → BillingPort adapters (Stripe/Razorpay/Paddle stubs remain unavailable)
+- Invoices / payment history / checkout → BillingPort. Razorpay creates Orders on our FastAPI server and applies licenses only after verified `payment.captured` / `order.paid`. Stripe/Paddle stubs remain unavailable.
 - Coupon codes = discount metadata only until a provider is live
 
 ## 7. Usage & audit

@@ -1299,6 +1299,13 @@ export const api = {
       options,
     ),
 
+  saasCheckoutVerify: (body: Record<string, unknown>, options?: RequestOptions) =>
+    request<SaasEnvelope>(
+      "/saas/checkout/verify",
+      { method: "POST", body: JSON.stringify(body) },
+      options,
+    ),
+
   /**
    * RC1 Milestone 8 — Institutional Research Workspace (orchestration only).
    * Notes/folders/bookmarks/templates/search — no client research math.

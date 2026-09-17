@@ -43,23 +43,37 @@ export async function submitPasswordLogin(page: Page): Promise<void> {
   const loginResponsePromise = page.waitForResponse((response) => {
     return (
       response.request().method() === "POST" &&
-      /login|signin|session|auth/i.test(response.url())
+      new URL(response.url()).pathname.endsWith("/auth/enterprise/login")
     );
   });
 
-  await page.getByRole("button", { name: /^sign in$/i }).click();
+  await page.getByTestId("login-submit").click();
 
   const loginResponse = await loginResponsePromise;
+  const responseText = await loginResponse.text().catch(() => "<unavailable>");
   if (!loginResponse.ok()) {
+    const alertText = await page
+      .getByRole("alert")
+      .first()
+      .textContent()
+      .catch(() => null);
     throw new Error(
-      `[P1-09 LOGIN] authentication failed: ${loginResponse.status()} ${loginResponse.url()}`,
+      [
+        "[P1-09 LOGIN] authentication request failed",
+        `HTTP status: ${loginResponse.status()}`,
+        `response URL: ${loginResponse.url()}`,
+        `response body: ${responseText || "<empty>"}`,
+        alertText ? `visible alert: ${alertText.trim()}` : null,
+      ]
+        .filter(Boolean)
+        .join(" | "),
     );
   }
 }
 
 /**
  * Authenticated chrome: Topbar replaces "Sign in" with UserMenu
- * (`button[aria-haspopup="menu"]` + menuitem Logout).
+ * (`data-testid="account-menu"` + menuitem Logout).
  */
 export async function assertAuthenticatedSession(page: Page): Promise<void> {
   await expect(
@@ -67,7 +81,7 @@ export async function assertAuthenticatedSession(page: Page): Promise<void> {
     "[P1-09 LOGIN] must leave /login after sign-in",
   ).not.toHaveURL(/\/login(\?|$)/, { timeout: 60_000 });
 
-  const accountMenu = page.locator("button[aria-haspopup='menu']");
+  const accountMenu = page.getByTestId("account-menu");
   await expect(
     accountMenu,
     "[P1-09 LOGIN] authenticated account menu must appear",

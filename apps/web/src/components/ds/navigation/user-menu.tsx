@@ -52,6 +52,7 @@ export function UserMenu({
       <button
         type="button"
         id={id}
+        data-testid="account-menu"
         aria-haspopup="menu"
         aria-expanded={open}
         aria-controls={open ? menuId : undefined}

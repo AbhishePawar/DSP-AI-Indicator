@@ -416,7 +416,12 @@ export default function LoginForm() {
               {error ? (
                 <ValidationMessage tone="error">{error}</ValidationMessage>
               ) : null}
-              <Button type="submit" disabled={pending} className="w-full">
+              <Button
+                type="submit"
+                data-testid="login-submit"
+                disabled={pending}
+                className="w-full"
+              >
                 {pending ? "Signing in…" : "Sign in"}
               </Button>
             </form>

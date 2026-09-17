@@ -45,7 +45,9 @@ class TranscriptProviderPort(ABC):
     """Port for authenticated earnings call transcript retrieval."""
 
     @abstractmethod
-    def get_transcripts(self, query: TranscriptQuery) -> AuthenticatedTranscripts | None:
+    def get_transcripts(
+        self, query: TranscriptQuery
+    ) -> AuthenticatedTranscripts | None:
         """Return authenticated transcripts, or ``None`` when unavailable."""
 
     @abstractmethod
@@ -105,7 +107,9 @@ class TranscriptService:
     def provider_id(self) -> str:
         return self._provider.provider_id
 
-    def get_transcripts(self, query: TranscriptQuery) -> AuthenticatedTranscripts | None:
+    def get_transcripts(
+        self, query: TranscriptQuery
+    ) -> AuthenticatedTranscripts | None:
         self.metrics.requests += 1
         symbol = query.instrument.symbol.strip().upper()
         cache_key = f"transcripts:{self.provider_id}:{symbol}:{query.year}:{query.quarter}:{query.limit}"
@@ -114,9 +118,12 @@ class TranscriptService:
             self.metrics.cache_hits += 1
             self.metrics.successes += 1
             _LOG.info(
-                "transcripts_cache_hit", extra={"symbol": symbol, "provider": self.provider_id}
+                "transcripts_cache_hit",
+                extra={"symbol": symbol, "provider": self.provider_id},
             )
-            return replace(cached, provenance=replace(cached.provenance, cache_hit=True))
+            return replace(
+                cached, provenance=replace(cached.provenance, cache_hit=True)
+            )
 
         def _call() -> AuthenticatedTranscripts | None:
             self._breaker.before_call()
@@ -153,21 +160,27 @@ class TranscriptService:
         except CircuitOpenError:
             self.metrics.failures += 1
             _LOG.error(
-                "transcripts_circuit_open", extra={"symbol": symbol, "provider": self.provider_id}
+                "transcripts_circuit_open",
+                extra={"symbol": symbol, "provider": self.provider_id},
             )
             raise
         except Exception as exc:
             self.metrics.failures += 1
             _LOG.exception(
                 "transcripts_failure",
-                extra={"symbol": symbol, "provider": self.provider_id, "error": str(exc)},
+                extra={
+                    "symbol": symbol,
+                    "provider": self.provider_id,
+                    "error": str(exc),
+                },
             )
             raise
 
         if bundle is None:
             self.metrics.unavailable += 1
             _LOG.info(
-                "transcripts_unavailable", extra={"symbol": symbol, "provider": self.provider_id}
+                "transcripts_unavailable",
+                extra={"symbol": symbol, "provider": self.provider_id},
             )
             return None
 

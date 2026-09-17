@@ -84,9 +84,7 @@ def build_test_only_ai_output_fixture(
         if report.valuation.current_price.value is not None:
             kwargs["current_price"] = report.valuation.current_price.value
         if report.valuation.intrinsic_value_per_share.value is not None:
-            kwargs["intrinsic_value"] = (
-                report.valuation.intrinsic_value_per_share.value
-            )
+            kwargs["intrinsic_value"] = report.valuation.intrinsic_value_per_share.value
         if report.valuation.margin_of_safety.value is not None:
             kwargs["margin_of_safety"] = report.valuation.margin_of_safety.value
         if report.valuation.valuation_range.low is not None:

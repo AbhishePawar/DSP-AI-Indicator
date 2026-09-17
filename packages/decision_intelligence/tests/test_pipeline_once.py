@@ -19,7 +19,7 @@ from contracts import (
     Recommendation,
     RecommendationAction,
 )
-from dsp_platform import AnalysisRequest, DSPPlatform, DecisionPack
+from dsp_platform import AnalysisRequest, DecisionPack, DSPPlatform
 from recommendation import RecommendationMapper
 
 FIXED_NOW = datetime(2024, 6, 15, 12, 0, 0, tzinfo=UTC)
@@ -60,9 +60,7 @@ def _report(instrument: Instrument) -> CommitteeReport:
         instrument=instrument,
         opinions=(op,),
         votes=(
-            MemberVote(
-                source="technical", recommendation=Decision.BUY, opinion=op
-            ),
+            MemberVote(source="technical", recommendation=Decision.BUY, opinion=op),
         ),
         decision=InvestmentDecision(
             instrument=instrument,

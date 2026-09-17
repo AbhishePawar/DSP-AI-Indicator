@@ -3,8 +3,8 @@
 from __future__ import annotations
 
 from dsp_platform.enterprise_dashboards.service import (
-    UNAVAILABLE_MESSAGE,
     DASHBOARD_ROLES,
+    UNAVAILABLE_MESSAGE,
     enterprise_dashboard_schema,
     get_enterprise_dashboard,
 )

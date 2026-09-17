@@ -54,9 +54,7 @@ def map_platform_result(
         pipeline_meta = getattr(payload_obj, "metadata", None)
     return AnalyseResponse(
         ok=bool(getattr(platform_result, "ok", False)),
-        capability=str(
-            getattr(platform_result, "capability", "compose_intelligence")
-        ),
+        capability=str(getattr(platform_result, "capability", "compose_intelligence")),
         payload=public_payload,
         limitations=list(getattr(platform_result, "limitations", ()) or ()),
         errors=list(getattr(platform_result, "errors", ()) or ()),

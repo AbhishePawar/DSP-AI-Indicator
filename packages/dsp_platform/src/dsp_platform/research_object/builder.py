@@ -7,16 +7,17 @@ request signals. Never calculates, scores, values, or invents fields.
 from __future__ import annotations
 
 import uuid
+from collections.abc import Mapping
 from types import MappingProxyType
-from typing import Any, Mapping
+from typing import Any
 
 from dsp_platform.research_object.models import (
     RESEARCH_OBJECT_SCHEMA_VERSION,
+    UNAVAILABLE_MESSAGE,
     ResearchMetadata,
     ResearchObject,
     ResearchSection,
     ResearchVersion,
-    UNAVAILABLE_MESSAGE,
     freeze_mapping,
     utc_now,
 )
@@ -70,9 +71,11 @@ def _section_from_data_bundle(
             status=str(status.get("status") or "unavailable"),
             source="data_bundle",
             payload=None,
-            provenance=freeze_mapping(dict(provenance))
-            if isinstance(provenance, Mapping)
-            else None,
+            provenance=(
+                freeze_mapping(dict(provenance))
+                if isinstance(provenance, Mapping)
+                else None
+            ),
             message=status.get("message") or UNAVAILABLE_MESSAGE,
             retrieved_at=status.get("retrieved_at"),
         )
@@ -203,7 +206,10 @@ class ResearchObjectBuilder:
             raw_id = self._data_bundle.get("identity")
             if isinstance(raw_id, Mapping) and raw_id.get("symbol"):
                 identity_payload = dict(raw_id)
-                identity_prov = {"source_type": "data_bundle", "resolved_by": raw_id.get("resolved_by")}
+                identity_prov = {
+                    "source_type": "data_bundle",
+                    "resolved_by": raw_id.get("resolved_by"),
+                }
         if identity_payload is None:
             identity_payload = {
                 "symbol": self._symbol,
@@ -215,7 +221,11 @@ class ResearchObjectBuilder:
 
         identity = ResearchSection.from_payload(
             "identity",
-            source="data_bundle" if identity_prov and identity_prov.get("source_type") == "data_bundle" else "request",
+            source=(
+                "data_bundle"
+                if identity_prov and identity_prov.get("source_type") == "data_bundle"
+                else "request"
+            ),
             payload=identity_payload,
             provenance=identity_prov,
             retrieved_at=created_at,
@@ -306,7 +316,9 @@ class ResearchObjectBuilder:
                 provenance={"source_type": "analysis_pipeline"},
             )
 
-        recommendation = ResearchSection.unavailable("recommendation", source="analysis")
+        recommendation = ResearchSection.unavailable(
+            "recommendation", source="analysis"
+        )
         if isinstance(self._analysis, Mapping):
             rec = self._analysis.get("recommendation_summary")
             if isinstance(rec, Mapping) and rec:
@@ -318,7 +330,9 @@ class ResearchObjectBuilder:
                 )
 
         # Explainability: stage_summaries pass-through (already produced)
-        explainability = ResearchSection.unavailable("explainability", source="analysis")
+        explainability = ResearchSection.unavailable(
+            "explainability", source="analysis"
+        )
         if isinstance(self._analysis, Mapping):
             summaries = self._analysis.get("stage_summaries")
             if isinstance(summaries, list) and summaries:
@@ -414,11 +428,7 @@ class ResearchObjectBuilder:
             correlation_id=self._correlation_id or meta_block.get("correlation_id"),
             ticker=self._symbol,
             company=self._company
-            or (
-                identity_payload.get("company_name")
-                if identity_payload
-                else None
-            ),
+            or (identity_payload.get("company_name") if identity_payload else None),
             exchange=self._exchange
             or (identity_payload.get("exchange") if identity_payload else None),
             report_version=pipeline_version,

@@ -30,12 +30,12 @@ import hmac
 import logging
 import os
 from dataclasses import dataclass
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from typing import Any
 
-from persistence.exceptions import DuplicateIdError
 from auth.credential_boundary import resolve_auth_jwt_secret
 from auth.exceptions import AuthenticationError, OAuthChallengeError
+from persistence.exceptions import DuplicateIdError
 
 __all__ = [
     "OAUTH_CHALLENGE_TTL",
@@ -125,12 +125,12 @@ def _parse_dt(value: Any) -> datetime | None:
     except ValueError:
         return None
     if parsed.tzinfo is None:
-        parsed = parsed.replace(tzinfo=timezone.utc)
+        parsed = parsed.replace(tzinfo=UTC)
     return parsed
 
 
 def _now() -> datetime:
-    return datetime.now(tz=timezone.utc)
+    return datetime.now(tz=UTC)
 
 
 def _entity_id(provider: str, challenge_id: str) -> str:
@@ -188,7 +188,10 @@ class OAuthChallengeStore:
                     "expires_at": expires.isoformat(),
                     "consumed_at": None,
                 },
-                refs={"auth_entity": "oauth_challenge", "provider": provider.strip().upper()},
+                refs={
+                    "auth_entity": "oauth_challenge",
+                    "provider": provider.strip().upper(),
+                },
                 created_at=created_iso,
                 allow_update=False,
             )
@@ -199,7 +202,9 @@ class OAuthChallengeStore:
         logger.info("oauth challenge stored provider=%s", provider.strip().upper())
         return challenge_id
 
-    def consume(self, *, provider: str, state: str, redirect_uri: str) -> OAuthChallenge:
+    def consume(
+        self, *, provider: str, state: str, redirect_uri: str
+    ) -> OAuthChallenge:
         _ = redirect_uri
         if not state:
             raise OAuthChallengeError("unknown")

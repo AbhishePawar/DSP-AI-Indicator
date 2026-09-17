@@ -190,9 +190,7 @@ class RedisSessionPort:
             if ttl_seconds is None:
                 self._client.set(self._k(session_id), raw)
             else:
-                self._client.setex(
-                    self._k(session_id), int(max(1, ttl_seconds)), raw
-                )
+                self._client.setex(self._k(session_id), int(max(1, ttl_seconds)), raw)
         except Exception as exc:  # noqa: BLE001
             raise ProviderError(f"redis session set failed: {exc}") from exc
 

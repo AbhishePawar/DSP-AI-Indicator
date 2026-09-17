@@ -38,8 +38,6 @@ def validate_monitoring_result(result: MonitoringEvaluateResult) -> None:
             )
         for citation in alert.citations:
             if not citation.get("path") or not citation.get("section"):
-                raise ResearchMonitoringValidationError(
-                    "citation missing path/section"
-                )
+                raise ResearchMonitoringValidationError("citation missing path/section")
     if result.provenance is None or result.audit is None:
         raise ResearchMonitoringValidationError("missing provenance/audit")

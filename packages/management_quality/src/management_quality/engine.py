@@ -4,7 +4,6 @@ from __future__ import annotations
 
 from business_quality import BusinessQualityAnalysis
 from financial import FinancialAnalysis
-
 from management_quality.exceptions import ManagementQualityValidationError
 from management_quality.explainability import (
     MANAGEMENT_QUALITY_RESEARCH_DISCLAIMER,
@@ -15,8 +14,8 @@ from management_quality.explainability import (
     build_summary,
 )
 from management_quality.metadata import (
-    MANAGEMENT_QUALITY_VERSION,
     FRAMEWORK_VERSION,
+    MANAGEMENT_QUALITY_VERSION,
     ManagementMetadata,
 )
 from management_quality.models import (

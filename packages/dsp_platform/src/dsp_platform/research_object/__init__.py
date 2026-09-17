@@ -10,11 +10,11 @@ from dsp_platform.research_object.builder import (
 from dsp_platform.research_object.models import (
     RESEARCH_OBJECT_SCHEMA_VERSION,
     RS_SECTION_ORDER,
+    UNAVAILABLE_MESSAGE,
     ResearchMetadata,
     ResearchObject,
     ResearchSection,
     ResearchVersion,
-    UNAVAILABLE_MESSAGE,
     freeze_mapping,
     utc_now,
 )

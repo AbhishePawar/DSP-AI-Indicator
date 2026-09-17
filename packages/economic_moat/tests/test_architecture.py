@@ -89,7 +89,7 @@ class TestEconomicMoatArchitecture:
     def test_public_api_stable(self) -> None:
         import economic_moat as mod
 
-        assert getattr(mod, "__version__") == _EXPECTED_VERSION
+        assert mod.__version__ == _EXPECTED_VERSION
         assert hasattr(mod, "__all__")
         missing = [name for name in mod.__all__ if not hasattr(mod, name)]
         assert missing == [], missing

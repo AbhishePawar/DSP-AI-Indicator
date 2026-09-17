@@ -26,9 +26,7 @@ from llm_adapters.model_catalog import (
     get_model_info,
 )
 from llm_adapters.model_tiers import (
-    DEFAULT_TIERS,
     ModelTier,
-    TierConfig,
 )
 from llm_adapters.privacy_boundary import (
     PrivateInternalResult,
@@ -44,7 +42,6 @@ from llm_adapters.routing import (
     ComplexitySignal,
     decide_routing,
 )
-
 
 # ---- helpers --------------------------------------------------------------
 
@@ -220,14 +217,10 @@ def test_run_with_escalation_premium_on_cheap_failure() -> None:
             )
         return _result(
             "anthropic:claude-3-5-sonnet-20241022",
-            quality=QualityEvaluation(
-                factual_accuracy=0.95, valuation_reasoning=0.9
-            ),
+            quality=QualityEvaluation(factual_accuracy=0.95, valuation_reasoning=0.9),
         )
 
-    verdict, accepted = run_with_escalation(
-        decision=decision, run_at_tier=run_at_tier
-    )
+    verdict, accepted = run_with_escalation(decision=decision, run_at_tier=run_at_tier)
     assert verdict.outcome is GateOutcome.ACCEPTED
     assert accepted is not None
     assert verdict.tier is ModelTier.PREMIUM
@@ -243,9 +236,7 @@ def test_run_with_escalation_fail_closed() -> None:
             quality=QualityEvaluation(factual_accuracy=0.1),
         )
 
-    verdict, accepted = run_with_escalation(
-        decision=decision, run_at_tier=run_at_tier
-    )
+    verdict, accepted = run_with_escalation(decision=decision, run_at_tier=run_at_tier)
     assert verdict.outcome is GateOutcome.FAILED_CLOSED
     assert accepted is None  # NO FABRICATION
 

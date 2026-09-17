@@ -6,9 +6,10 @@ import json
 import os
 import urllib.error
 import urllib.request
+from collections.abc import Mapping
 from dataclasses import dataclass, field
 from threading import Lock
-from typing import Any, Mapping
+from typing import Any
 from urllib.parse import urlencode
 
 from contracts.domain.instrument import Instrument
@@ -267,9 +268,7 @@ def build_default_quote_adapter_from_env() -> MarketQuotePort:
     fmp_key = resolve_fmp_api_key()
     if fmp_key:
         return FinancialModelingPrepQuoteAdapter(api_key=fmp_key)
-    if memory_adapter_allowed(
-        "DSP_MARKET_QUOTE_MEMORY", connector="market_quote"
-    ):
+    if memory_adapter_allowed("DSP_MARKET_QUOTE_MEMORY", connector="market_quote"):
         return InMemoryAuthenticatedQuoteAdapter(api_key=api_key or "dev-memory-key")
     require_authenticated_http_adapter(
         connector="market_quote",

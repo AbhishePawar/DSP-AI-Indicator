@@ -34,9 +34,7 @@ def mean_present(values: list[float | None]) -> float | None:
 def _score_100(value_01: float | None) -> FinancialStrengthScore:
     if value_01 is None:
         return FinancialStrengthScore(value=None, status="insufficient_data")
-    return FinancialStrengthScore(
-        value=clip_score(value_01 * 100.0), status="assessed"
-    )
+    return FinancialStrengthScore(value=clip_score(value_01 * 100.0), status="assessed")
 
 
 def _confidence(
@@ -100,7 +98,9 @@ def _component(
     )
 
 
-def _map_ratio(value: float | None, *, good: float, bad: float, invert: bool = False) -> float | None:
+def _map_ratio(
+    value: float | None, *, good: float, bad: float, invert: bool = False
+) -> float | None:
     """Map a ratio into 0–1 between bad and good endpoints."""
     if value is None:
         return None
@@ -132,9 +132,7 @@ def evaluate_balance_sheet(
     dta = safe_getattr(
         financial_analysis, "balance_sheet", "leverage", "debt_to_assets"
     )
-    net_debt = safe_getattr(
-        financial_analysis, "balance_sheet", "leverage", "net_debt"
-    )
+    net_debt = safe_getattr(financial_analysis, "balance_sheet", "leverage", "net_debt")
     equity_ratio = safe_getattr(
         financial_analysis, "balance_sheet", "leverage", "equity_ratio"
     )
@@ -152,7 +150,9 @@ def evaluate_balance_sheet(
             soft += float(goodwill_pct)
         if intangible_pct is not None:
             soft += float(intangible_pct)
-        tangible_proxy = max(0.0, min(1.0, float(equity_ratio) * (1.0 - min(0.5, soft))))
+        tangible_proxy = max(
+            0.0, min(1.0, float(equity_ratio) * (1.0 - min(0.5, soft)))
+        )
 
     dte_score = _map_ratio(dte, good=0.3, bad=2.0, invert=True)
     dta_score = _map_ratio(dta, good=0.2, bad=0.7, invert=True)
@@ -166,14 +166,18 @@ def evaluate_balance_sheet(
         elif dta_score is not None:
             net_debt_score = dta_score
 
-    value = mean_present([dte_score, dta_score, equity_score, tangible_proxy, net_debt_score])
+    value = mean_present(
+        [dte_score, dta_score, equity_score, tangible_proxy, net_debt_score]
+    )
     conf = _confidence(
         [dte, dta, equity_ratio, goodwill_pct, intangible_pct, net_debt],
         basis="balance_sheet_strength_proxies",
     )
     # Debt maturity profile unavailable — soft confidence cap note
     if conf.value > 0.75:
-        conf = FinancialStrengthConfidence(value=0.75, basis=conf.basis + "_no_maturity")
+        conf = FinancialStrengthConfidence(
+            value=0.75, basis=conf.basis + "_no_maturity"
+        )
 
     positives: list[str] = []
     negatives: list[str] = []
@@ -362,13 +366,27 @@ def evaluate_cash_flow(
         # leave None rather than invent revenue
         pass
 
-    ocf_s = 0.8 if ocf is not None and float(ocf) > 0 else (0.25 if ocf is not None else None)
-    fcf_s = 0.8 if fcf is not None and float(fcf) > 0 else (0.25 if fcf is not None else None)
+    ocf_s = (
+        0.8
+        if ocf is not None and float(ocf) > 0
+        else (0.25 if ocf is not None else None)
+    )
+    fcf_s = (
+        0.8
+        if fcf is not None and float(fcf) > 0
+        else (0.25 if fcf is not None else None)
+    )
     # cash_conversion = FCF/OCF (not earnings conversion)
-    conv_s = None if conversion is None else max(0.0, min(1.0, float(conversion) if float(conversion) <= 1.5 else 1.0))
+    conv_s = (
+        None
+        if conversion is None
+        else max(0.0, min(1.0, float(conversion) if float(conversion) <= 1.5 else 1.0))
+    )
     ocf_ni_s = None
     if ocf_to_earn is not None:
-        ocf_ni_s = max(0.0, min(1.0, float(ocf_to_earn) if float(ocf_to_earn) <= 1.5 else 1.0))
+        ocf_ni_s = max(
+            0.0, min(1.0, float(ocf_to_earn) if float(ocf_to_earn) <= 1.5 else 1.0)
+        )
         if float(ocf_to_earn) < 0:
             ocf_ni_s = 0.15
     fcf_m_s = _map_ratio(fcf_margin, good=0.12, bad=0.0)
@@ -581,7 +599,17 @@ def evaluate_profitability_stability(
     roe_s = _map_ratio(roe, good=0.18, bad=0.05)
     roic_s = _map_ratio(roic, good=0.15, bad=0.05)
     value = mean_present(
-        [gm_s, om_s, nm_s, roe_s, roic_s, margin_stab, earn_cons, margin_def, profit_pers]
+        [
+            gm_s,
+            om_s,
+            nm_s,
+            roe_s,
+            roic_s,
+            margin_stab,
+            earn_cons,
+            margin_def,
+            profit_pers,
+        ]
     )
     conf = _confidence(
         [gm, om, nm, roe, roic, margin_stab, earn_cons, margin_def, profit_pers],
@@ -618,7 +646,9 @@ def evaluate_profitability_stability(
             ),
             confidence=conf.value,
             metrics=metrics,
-            limitations=["ROE can be distorted by leverage; ROIC preferred when present"],
+            limitations=[
+                "ROE can be distorted by leverage; ROIC preferred when present"
+            ],
         )
     ]
     return _component(
@@ -658,9 +688,7 @@ def evaluate_resilience(
         safe_getattr(business_quality_analysis, "business_characteristics"),
         "cash_generation",
     )
-    health = safe_getattr(
-        financial_analysis, "overall_summary", "health_label"
-    )
+    health = safe_getattr(financial_analysis, "overall_summary", "health_label")
     health_s = None
     if isinstance(health, str):
         mapping = {
@@ -672,7 +700,7 @@ def evaluate_resilience(
             "cash_flow_concern": 0.30,
         }
         # overall_summary.health_label may be simpler strings
-        health_s = mapping.get(health.lower(), None)
+        health_s = mapping.get(health.lower())
         if health_s is None:
             if "healthy" in health.lower() or "excellent" in health.lower():
                 health_s = 0.8
@@ -699,9 +727,7 @@ def evaluate_resilience(
         positives.append("Strong financial-resilience assessment")
     if dte is not None and float(dte) > 1.5:
         negatives.append("Leverage reduces downturn resilience")
-    risks = (
-        "Downturn / stress-test history limited without multi-cycle series",
-    )
+    risks = ("Downturn / stress-test history limited without multi-cycle series",)
     metrics = [
         f"cash_ratio={cash_ratio}",
         f"debt_to_equity={dte}",

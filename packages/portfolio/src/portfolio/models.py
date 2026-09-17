@@ -9,7 +9,6 @@ from dataclasses import dataclass
 
 from core.exceptions import ValidationError
 from industry import EvidenceBundleReference
-
 from portfolio.enums import (
     PortfolioChangeType,
     PortfolioConstraintKind,
@@ -200,9 +199,7 @@ class PortfolioAllocation:
     notes: tuple[str, ...] = ()
 
     def __post_init__(self) -> None:
-        instruments = _unique_weight_pairs(
-            self.by_instrument, field="by_instrument"
-        )
+        instruments = _unique_weight_pairs(self.by_instrument, field="by_instrument")
         sectors = _unique_weight_pairs(self.by_sector, field="by_sector")
         cash = _require_weight(self.cash_weight, field="cash_weight")
         notes = tuple(n.strip() for n in self.notes if n.strip())
@@ -526,8 +523,7 @@ class PortfolioReport:
             key = (ref.instrument_key, ref.digest)
             if key in seen_ev:
                 msg = (
-                    f"duplicate EvidenceBundle reference for "
-                    f"{ref.instrument_key!r}"
+                    f"duplicate EvidenceBundle reference for " f"{ref.instrument_key!r}"
                 )
                 raise ValidationError(msg)
             seen_ev.add(key)

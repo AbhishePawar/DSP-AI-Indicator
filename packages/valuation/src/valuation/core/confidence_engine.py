@@ -2,8 +2,8 @@
 
 from __future__ import annotations
 
+from collections.abc import Mapping
 from dataclasses import dataclass
-from typing import Mapping
 
 from valuation.core.interfaces import ConfidenceProvider
 from valuation.core.result_models import ConfidenceLevel

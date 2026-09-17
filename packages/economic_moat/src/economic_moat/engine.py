@@ -3,8 +3,6 @@
 from __future__ import annotations
 
 from business_quality import BusinessQualityAnalysis
-from financial import FinancialAnalysis
-
 from economic_moat.exceptions import EconomicMoatValidationError
 from economic_moat.explainability import (
     ECONOMIC_MOAT_RESEARCH_DISCLAIMER,
@@ -34,6 +32,7 @@ from economic_moat.scoring import (
     weighted_mean,
 )
 from economic_moat.validation import validate_framework_inputs
+from financial import FinancialAnalysis
 
 __all__ = ["EconomicEngine"]
 

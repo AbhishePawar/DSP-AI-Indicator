@@ -6,9 +6,10 @@ logic, financial calculations, persistence, REST, or authentication.
 
 from __future__ import annotations
 
+from collections.abc import Callable
 from dataclasses import dataclass
 from datetime import UTC, date, datetime
-from typing import Any, Callable
+from typing import Any
 
 from comparison import ComparisonResult, QualitativeComparisonEngine
 from contracts import (
@@ -64,9 +65,7 @@ class PlatformMetadata:
 
     def __post_init__(self) -> None:
         object.__setattr__(self, "capabilities", tuple(self.capabilities))
-        object.__setattr__(
-            self, "registered_services", tuple(self.registered_services)
-        )
+        object.__setattr__(self, "registered_services", tuple(self.registered_services))
         object.__setattr__(
             self,
             "notes",
@@ -174,10 +173,7 @@ class PlatformBuilder:
         """Construct an immutable-facing ``DSPPlatform`` orchestration root."""
         configuration = self._configuration or PlatformConfiguration()
         features = self._features or configuration.features
-        if (
-            configuration.require_analysis_service
-            and self._analysis_service is None
-        ):
+        if configuration.require_analysis_service and self._analysis_service is None:
             msg = "analysis_service is required when require_analysis_service=True"
             raise PlatformConfigurationError(msg)
 
@@ -233,14 +229,13 @@ class DSPPlatform:
         self._analysis = analysis_service
         self._registry = registry or ServiceRegistry()
         self._lifecycle = lifecycle or PlatformLifecycle(
-            status=PlatformStatus.READY
-            if analysis_service is not None
-            else PlatformStatus.CREATED
+            status=(
+                PlatformStatus.READY
+                if analysis_service is not None
+                else PlatformStatus.CREATED
+            )
         )
-        if (
-            analysis_service is not None
-            and not self._registry.has("analysis_service")
-        ):
+        if analysis_service is not None and not self._registry.has("analysis_service"):
             self._registry.register(
                 "analysis_service",
                 analysis_service,
@@ -349,9 +344,7 @@ class DSPPlatform:
                 else include_valuation
             ),
             allow_partial=(
-                self._features.allow_partial
-                if allow_partial is None
-                else allow_partial
+                self._features.allow_partial if allow_partial is None else allow_partial
             ),
             market_provider=market_provider,
             fundamentals_provider=fundamentals_provider,
@@ -526,7 +519,9 @@ class DSPPlatform:
         """Build a deterministic cache key, or ``None`` when uncacheable."""
         try:
             symbols = tuple(sorted(p.recommendation.instrument.symbol for p in packs))
-        except Exception:  # noqa: BLE001 — malformed packs fail the real call, not caching
+        except (
+            Exception
+        ):  # noqa: BLE001 — malformed packs fail the real call, not caching
             return None
         options = eligibility_options or EligibilityOptions()
         return (symbols, options.allow_related, options.allow_limited)
@@ -584,7 +579,6 @@ class DSPPlatform:
             from knowledge_graph import (
                 KnowledgeGraphAssembler,
                 KnowledgeGraphEngine,
-                KnowledgeGraphError,
             )
 
             if hasattr(context, "recommendation_refs") and hasattr(
@@ -721,9 +715,7 @@ class DSPPlatform:
             if self._lifecycle.status == PlatformStatus.CREATED:
                 self._lifecycle.begin_initialize()
                 self._lifecycle.mark_ready(note="compose_intelligence")
-            orchestrator = PlatformOrchestrator(
-                platform_version=_PLATFORM_VERSION
-            )
+            orchestrator = PlatformOrchestrator(platform_version=_PLATFORM_VERSION)
             pipeline_result = orchestrator.execute(request)
             return PlatformResult(
                 ok=pipeline_result.ok,
@@ -738,7 +730,9 @@ class DSPPlatform:
 
     def research_intelligence_schema(self) -> dict[str, object]:
         """Research Intelligence schema descriptor (EPIC-011B)."""
-        from dsp_platform.research_intelligence_facade import research_intelligence_schema
+        from dsp_platform.research_intelligence_facade import (
+            research_intelligence_schema,
+        )
 
         return research_intelligence_schema()
 
@@ -1942,9 +1936,7 @@ class DSPPlatform:
             limitations: list[str] = []
             if self._lifecycle.status is PlatformStatus.DEGRADED:
                 limitations.append("lifecycle=degraded")
-            failed = [
-                c.name for c in report.checks if c.status.value == "fail"
-            ]
+            failed = [c.name for c in report.checks if c.status.value == "fail"]
             if failed:
                 # Includes non-blocking investment failures for ops visibility.
                 limitations.append(f"failed_checks={failed}")
@@ -1976,23 +1968,19 @@ class DSPPlatform:
             # answer info/health but not orchestration paths.
             if capability in {"get_platform_info"}:
                 return
-            if (
-                capability == "health_check"
-                and self._lifecycle.status
-                in {
-                    PlatformStatus.CREATED,
-                    PlatformStatus.READY,
-                    PlatformStatus.DEGRADED,
-                    PlatformStatus.INITIALIZING,
-                }
-            ):
+            if capability == "health_check" and self._lifecycle.status in {
+                PlatformStatus.CREATED,
+                PlatformStatus.READY,
+                PlatformStatus.DEGRADED,
+                PlatformStatus.INITIALIZING,
+            }:
                 return
             raise
 
     def _resolve_service(
         self,
         name: str,
-        factory: "type[Any] | Callable[[], Any]",
+        factory: type[Any] | Callable[[], Any],
         *,
         capability: str,
     ) -> Any:
@@ -2054,9 +2042,7 @@ class DSPPlatform:
 
         return get_auth_user(user_id)
 
-    def set_auth_user_roles(
-        self, user_id: str, roles: list[str]
-    ) -> dict[str, object]:
+    def set_auth_user_roles(self, user_id: str, roles: list[str]) -> dict[str, object]:
         """Assign roles to an institutional user."""
         from dsp_platform.auth_facade import set_auth_user_roles
 
@@ -2155,9 +2141,7 @@ class DSPPlatform:
 
         return admin_create_user(**kwargs)
 
-    def admin_set_user_roles(
-        self, user_id: str, roles: list[str]
-    ) -> dict[str, object]:
+    def admin_set_user_roles(self, user_id: str, roles: list[str]) -> dict[str, object]:
         from dsp_platform.admin_facade import admin_set_user_roles
 
         return admin_set_user_roles(user_id, roles)
@@ -2201,16 +2185,12 @@ class DSPPlatform:
 
         return admin_list_research_archive_metadata()
 
-    def admin_activity_timeline(
-        self, *, limit: int = 100
-    ) -> list[dict[str, object]]:
+    def admin_activity_timeline(self, *, limit: int = 100) -> list[dict[str, object]]:
         from dsp_platform.admin_facade import admin_activity_timeline
 
         return admin_activity_timeline(limit=limit)
 
-    def admin_search(
-        self, query: str, *, scope: str = "audit"
-    ) -> dict[str, object]:
+    def admin_search(self, query: str, *, scope: str = "audit") -> dict[str, object]:
         from dsp_platform.admin_facade import admin_search
 
         return admin_search(query, scope=scope)
@@ -2246,6 +2226,7 @@ class DSPPlatform:
         from dsp_platform.admin_facade import admin_system_metrics
 
         return admin_system_metrics()
+
     def _metadata(self) -> PlatformMetadata:
         return PlatformMetadata(
             name=self._configuration.platform_name,
@@ -2253,9 +2234,7 @@ class DSPPlatform:
             status=self._lifecycle.status,
             environment=self._configuration.environment.value,
             capabilities=self._configuration.enabled_capabilities,
-            registered_services=tuple(
-                d.name for d in self._registry.list_services()
-            ),
+            registered_services=tuple(d.name for d in self._registry.list_services()),
             generated_at=datetime.now(tz=UTC),
             notes=self._lifecycle.notes,
         )

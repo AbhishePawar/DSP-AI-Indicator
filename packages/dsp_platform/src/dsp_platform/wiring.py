@@ -41,9 +41,7 @@ def build_analysis_service(config: PlatformConfig) -> InvestmentAnalysisService:
         timeout = config.timeouts.request_seconds
 
         if config.providers.enable_market:
-            register_yahoo_finance(
-                factory, registry, {"timeout_seconds": timeout}
-            )
+            register_yahoo_finance(factory, registry, {"timeout_seconds": timeout})
         if config.providers.enable_fundamentals:
             register_yahoo_finance_fundamentals(
                 factory, registry, {"timeout_seconds": timeout}

@@ -23,7 +23,10 @@ class IndustryTaxonomy:
         if identity.id in self._identities:
             msg = f"duplicate industry identity: {identity.id!r}"
             raise IndustryError(msg)
-        if identity.parent_id is not None and identity.parent_id not in self._identities:
+        if (
+            identity.parent_id is not None
+            and identity.parent_id not in self._identities
+        ):
             msg = (
                 f"unknown parent_id {identity.parent_id!r} for identity "
                 f"{identity.id!r}"
@@ -60,9 +63,7 @@ class IndustryTaxonomy:
 
     def children(self, industry_id: str) -> tuple[IndustryIdentity, ...]:
         parent = self.get(industry_id)
-        kids = [
-            i for i in self._identities.values() if i.parent_id == parent.id
-        ]
+        kids = [i for i in self._identities.values() if i.parent_id == parent.id]
         return tuple(sorted(kids, key=lambda i: i.id))
 
     def parent(self, industry_id: str) -> IndustryIdentity | None:

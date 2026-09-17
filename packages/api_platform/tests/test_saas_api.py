@@ -3,10 +3,10 @@
 from __future__ import annotations
 
 import pytest
+from auth_test_helpers import bearer_headers, register_user
 from fastapi.testclient import TestClient
 
 from api_platform import create_app
-from auth_test_helpers import bearer_headers, register_user
 from dsp_platform import DSPPlatform, PlatformBuilder, PlatformConfiguration
 from dsp_platform.saas_platform import reset_saas_overlay_store_for_tests
 from enterprise import EnterpriseService, reset_enterprise_service_for_tests
@@ -62,9 +62,7 @@ def test_org_lifecycle(client: TestClient) -> None:
 
     listed = client.get("/api/v1/saas/organizations", headers=headers)
     assert listed.status_code == 200
-    assert any(
-        o["org_id"] == org_id for o in listed.json()["result"]["organizations"]
-    )
+    assert any(o["org_id"] == org_id for o in listed.json()["result"]["organizations"])
 
     settings = client.put(
         f"/api/v1/saas/organization/{org_id}/settings",
@@ -142,7 +140,11 @@ def test_checkout_unavailable(client: TestClient) -> None:
     assert body.get("ok") is True
     result = body.get("result") or {}
     # Checkout remains provider-unavailable (no fabricated payments).
-    assert result.get("available") is False or result.get("payments_executed") is False or (
-        "unavailable" in str(result).lower()
-        or "unavailable" in str(body.get("message") or "").lower()
+    assert (
+        result.get("available") is False
+        or result.get("payments_executed") is False
+        or (
+            "unavailable" in str(result).lower()
+            or "unavailable" in str(body.get("message") or "").lower()
+        )
     )

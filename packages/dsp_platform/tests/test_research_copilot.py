@@ -4,22 +4,22 @@ from __future__ import annotations
 
 import pytest
 
+from dsp_platform.institutional_report import (
+    generate_institutional_report,
+    institutional_report_to_dict,
+)
 from dsp_platform.research_copilot import (
     COPILOT_SCHEMA_VERSION,
     UNAVAILABLE_MESSAGE,
+    ConversationStore,
     ask_research_copilot,
     build_prompt,
     build_research_context,
     copilot_response_from_dict,
     process_question,
     reset_conversation_store_for_tests,
-    ConversationStore,
 )
 from dsp_platform.research_object import build_research_object, research_object_to_dict
-from dsp_platform.institutional_report import (
-    generate_institutional_report,
-    institutional_report_to_dict,
-)
 
 FIXED = "2026-07-28T12:00:00+00:00"
 
@@ -96,9 +96,7 @@ def test_context_builder() -> None:
     report = institutional_report_to_dict(
         generate_institutional_report(ro, report_id="rpt-c1", generated_at=FIXED)
     )
-    ctx = build_research_context(
-        research_object=ro, report=report, assembled_at=FIXED
-    )
+    ctx = build_research_context(research_object=ro, report=report, assembled_at=FIXED)
     assert ctx.research_object is not None
     assert ctx.report is not None
     assert ctx.source_refs["research_object_id"] == "ro-copilot-1"

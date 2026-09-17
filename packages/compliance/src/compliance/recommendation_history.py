@@ -13,9 +13,9 @@ __all__ = ["RecommendationHistoryEntry", "RecommendationHistoryPort"]
 class RecommendationHistoryEntry:
     """Historical recommendation / research assessment row.
 
-Research Mode stores educational assessments. SEBI-regulated tip rows remain
-gated behind SEBI Mode activation (separate legal epic).
-"""
+    Research Mode stores educational assessments. SEBI-regulated tip rows remain
+    gated behind SEBI Mode activation (separate legal epic).
+    """
 
     entry_id: str
     symbol: str
@@ -30,4 +30,6 @@ gated behind SEBI Mode activation (separate legal epic).
 class RecommendationHistoryPort(Protocol):
     def append(self, entry: RecommendationHistoryEntry) -> None: ...
 
-    def list_for_symbol(self, symbol: str) -> tuple[RecommendationHistoryEntry, ...]: ...
+    def list_for_symbol(
+        self, symbol: str
+    ) -> tuple[RecommendationHistoryEntry, ...]: ...

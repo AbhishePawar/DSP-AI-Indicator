@@ -96,8 +96,7 @@ class EvidenceJudge:
 
     def has_verified_primary(self, evidence: tuple[SourceEvidence, ...]) -> bool:
         return any(
-            item.status is EvidenceStatus.VERIFIED
-            for item in self.verify_all(evidence)
+            item.status is EvidenceStatus.VERIFIED for item in self.verify_all(evidence)
         )
 
 

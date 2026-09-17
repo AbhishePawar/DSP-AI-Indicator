@@ -50,7 +50,9 @@ class TestSMA:
             SMA(3).compute([])
 
     def test_function_shorthand_matches_class(self, simple_prices: np.ndarray) -> None:
-        np.testing.assert_array_equal(sma(simple_prices, 3), SMA(3).compute(simple_prices))
+        np.testing.assert_array_equal(
+            sma(simple_prices, 3), SMA(3).compute(simple_prices)
+        )
 
     def test_accepts_python_list(self) -> None:
         result = sma([10.0, 20.0, 30.0, 40.0], period=2)
@@ -86,7 +88,9 @@ class TestEMA:
         assert len(result) == len(sample_prices)
 
     def test_function_shorthand_matches_class(self, simple_prices: np.ndarray) -> None:
-        np.testing.assert_array_equal(ema(simple_prices, 3), EMA(3).compute(simple_prices))
+        np.testing.assert_array_equal(
+            ema(simple_prices, 3), EMA(3).compute(simple_prices)
+        )
 
     def test_invalid_period_raises(self) -> None:
         with pytest.raises(ValidationError):
@@ -124,7 +128,9 @@ class TestWMA:
         assert len(result) == len(sample_prices)
 
     def test_function_shorthand_matches_class(self, simple_prices: np.ndarray) -> None:
-        np.testing.assert_array_equal(wma(simple_prices, 3), WMA(3).compute(simple_prices))
+        np.testing.assert_array_equal(
+            wma(simple_prices, 3), WMA(3).compute(simple_prices)
+        )
 
     def test_constant_prices(self, constant_prices: np.ndarray) -> None:
         result = WMA(3).compute(constant_prices)

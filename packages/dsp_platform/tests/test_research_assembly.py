@@ -154,8 +154,7 @@ def test_positive_fixture_produces_public_report() -> None:
         dsp.valuation.intrinsic_value_per_share.value
     )
     assert (
-        report.valuation.margin_of_safety.value
-        == dsp.valuation.margin_of_safety.value
+        report.valuation.margin_of_safety.value == dsp.valuation.margin_of_safety.value
     )
     assert report.valuation.current_price.value == dsp.valuation.current_price.value
     assert report.recommendation.action == dsp.recommendation.action

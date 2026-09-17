@@ -28,7 +28,9 @@ class TestEnterpriseComposition:
         rows = platform.compliance.consents.list_for_subject("usr_admin")
         assert any(r.purpose_id == "research_analytics" and r.granted for r in rows)
         # Same store visible via identity bridge list
-        bridged = platform.security.identity._consents.list_for_subject("usr_admin")  # noqa: SLF001
+        bridged = platform.security.identity._consents.list_for_subject(
+            "usr_admin"
+        )  # noqa: SLF001
         assert any(r.purpose == "research_analytics" for r in bridged)
 
     def test_infra_security_session_and_obs_metrics(self) -> None:
@@ -52,7 +54,7 @@ class TestEnterpriseComposition:
         assert disclosures
         export = platform.compliance.exports.export_subject("usr_admin")
         assert export.timezone == "Asia/Kolkata"
-        assert "INR" == export.currency
+        assert export.currency == "INR"
 
     def test_no_sebi_mode_by_default(self) -> None:
         platform = EnterprisePlatform.create_offline()

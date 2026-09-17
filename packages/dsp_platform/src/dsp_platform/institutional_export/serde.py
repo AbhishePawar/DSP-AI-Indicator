@@ -2,7 +2,8 @@
 
 from __future__ import annotations
 
-from typing import Any, Mapping
+from collections.abc import Mapping
+from typing import Any
 
 from dsp_platform.institutional_export.models import (
     EXPORT_SCHEMA_VERSION,
@@ -40,15 +41,9 @@ def export_artifact_from_dict(data: Mapping[str, Any]) -> ExportArtifact:
         version_raw = {}
 
     version = ExportVersion(
-        schema_version=str(
-            version_raw.get("schema_version") or EXPORT_SCHEMA_VERSION
-        ),
-        exporter_version=str(
-            version_raw.get("exporter_version") or EXPORTER_VERSION
-        ),
-        report_schema_version=str(
-            version_raw.get("report_schema_version") or ""
-        ),
+        schema_version=str(version_raw.get("schema_version") or EXPORT_SCHEMA_VERSION),
+        exporter_version=str(version_raw.get("exporter_version") or EXPORTER_VERSION),
+        report_schema_version=str(version_raw.get("report_schema_version") or ""),
     )
 
     provenance = meta_raw.get("provenance") or {}
@@ -71,9 +66,11 @@ def export_artifact_from_dict(data: Mapping[str, Any]) -> ExportArtifact:
         research_mode=meta_raw.get("research_mode"),
         correlation_id=meta_raw.get("correlation_id"),
         ticker=meta_raw.get("ticker"),
-        provenance=freeze_mapping(dict(provenance))
-        if isinstance(provenance, Mapping)
-        else freeze_mapping({}),
+        provenance=(
+            freeze_mapping(dict(provenance))
+            if isinstance(provenance, Mapping)
+            else freeze_mapping({})
+        ),
     )
 
     structured = data.get("structured_json")
@@ -83,9 +80,11 @@ def export_artifact_from_dict(data: Mapping[str, Any]) -> ExportArtifact:
         content_base64=str(data.get("content_base64") or ""),
         content_sha256=str(data.get("content_sha256") or ""),
         content_text=data.get("content_text"),
-        structured_json=freeze_mapping(dict(structured))
-        if isinstance(structured, Mapping)
-        else None,
+        structured_json=(
+            freeze_mapping(dict(structured))
+            if isinstance(structured, Mapping)
+            else None
+        ),
     )
     validate_export_artifact(artifact)
     return artifact

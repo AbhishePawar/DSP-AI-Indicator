@@ -5,7 +5,7 @@ Pure orchestration over F2.2–F2.6 engines — no duplicated financial math.
 
 from __future__ import annotations
 
-from typing import Sequence
+from collections.abc import Sequence
 
 from financial.intelligence.aggregator_explainability import (
     AGGREGATOR_RESEARCH_DISCLAIMER,
@@ -56,9 +56,11 @@ class FinancialAggregatorEngine:
 
     def analyze(
         self,
-        source: FinancialStatements
-        | FinancialStatementsHistory
-        | Sequence[FinancialStatements],
+        source: (
+            FinancialStatements
+            | FinancialStatementsHistory
+            | Sequence[FinancialStatements]
+        ),
     ) -> FinancialAnalysis:
         """Run full financial statement aggregation."""
         stmts, meta = coerce_aggregation_source(source)
@@ -67,18 +69,10 @@ class FinancialAggregatorEngine:
         primary = stmts[-1]
         history = stmts[:-1] if len(stmts) > 1 else None
 
-        income = self._income.analyze(
-            primary, history=history if history else None
-        )
-        balance = self._balance.analyze(
-            primary, history=history if history else None
-        )
-        cash = self._cash.analyze(
-            primary, history=history if history else None
-        )
-        ratios = self._ratio.analyze(
-            primary, history=history if history else None
-        )
+        income = self._income.analyze(primary, history=history if history else None)
+        balance = self._balance.analyze(primary, history=history if history else None)
+        cash = self._cash.analyze(primary, history=history if history else None)
+        ratios = self._ratio.analyze(primary, history=history if history else None)
 
         trends: TrendAnalysis | None = None
         if len(stmts) >= 2:
@@ -289,9 +283,7 @@ class FinancialAggregatorEngine:
 
         if trends is not None and trends.trend_summary.insights:
             observations.extend(trends.trend_summary.insights)
-        observations.append(
-            f"Revenue trend class: {income.revenue.trend_class.value}."
-        )
+        observations.append(f"Revenue trend class: {income.revenue.trend_class.value}.")
         observations.append(
             f"Balance liquidity trend: {balance.trend_summary.liquidity.value}."
         )

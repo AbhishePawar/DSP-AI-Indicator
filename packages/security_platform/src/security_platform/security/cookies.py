@@ -61,13 +61,17 @@ def _samesite() -> str:
 
 def _access_max_age(remember_me: bool) -> int:
     if remember_me:
-        return int(os.environ.get("DSP_COOKIE_ACCESS_MAX_AGE_REMEMBER", str(30 * 24 * 3600)))
+        return int(
+            os.environ.get("DSP_COOKIE_ACCESS_MAX_AGE_REMEMBER", str(30 * 24 * 3600))
+        )
     return int(os.environ.get("DSP_COOKIE_ACCESS_MAX_AGE", "3600"))
 
 
 def _refresh_max_age(remember_me: bool) -> int:
     if remember_me:
-        return int(os.environ.get("DSP_COOKIE_REFRESH_MAX_AGE_REMEMBER", str(30 * 24 * 3600)))
+        return int(
+            os.environ.get("DSP_COOKIE_REFRESH_MAX_AGE_REMEMBER", str(30 * 24 * 3600))
+        )
     return int(os.environ.get("DSP_COOKIE_REFRESH_MAX_AGE", str(7 * 24 * 3600)))
 
 
@@ -150,7 +154,9 @@ def read_refresh_token(request: Request) -> str | None:
 
 
 def csrf_token_from_request(request: Request) -> str | None:
-    header = request.headers.get(CSRF_HEADER) or request.headers.get(CSRF_HEADER.lower())
+    header = request.headers.get(CSRF_HEADER) or request.headers.get(
+        CSRF_HEADER.lower()
+    )
     if header:
         return header.strip()
     return request.cookies.get(CSRF_COOKIE)
@@ -166,4 +172,6 @@ def validate_csrf(request: Request) -> bool:
 
 
 def csrf_hmac(secret: str, session_id: str) -> str:
-    return hmac.new(secret.encode("utf-8"), session_id.encode("utf-8"), sha256).hexdigest()
+    return hmac.new(
+        secret.encode("utf-8"), session_id.encode("utf-8"), sha256
+    ).hexdigest()

@@ -138,9 +138,7 @@ class ReportingContext:
             msg = "ExplanationInput is required"
             raise CopilotError(msg)
         if self.summary_sections is not None:
-            object.__setattr__(
-                self, "summary_sections", tuple(self.summary_sections)
-            )
+            object.__setattr__(self, "summary_sections", tuple(self.summary_sections))
         object.__setattr__(
             self,
             "limitations",
@@ -170,9 +168,7 @@ class ReportingResult:
     def __post_init__(self) -> None:
         object.__setattr__(self, "key_reasons", tuple(self.key_reasons))
         object.__setattr__(self, "risks", tuple(self.risks))
-        object.__setattr__(
-            self, "supporting_evidence", tuple(self.supporting_evidence)
-        )
+        object.__setattr__(self, "supporting_evidence", tuple(self.supporting_evidence))
         object.__setattr__(self, "citations", tuple(self.citations))
         object.__setattr__(self, "provenance", tuple(self.provenance))
         object.__setattr__(self, "summary_sections", tuple(self.summary_sections))
@@ -195,7 +191,9 @@ class ReportFormatter:
         if result is None or result.explanation is None:
             msg = "missing explanation"
             raise CopilotError(msg)
-        reasons = tuple(dict.fromkeys(r.strip() for r in result.key_reasons if r.strip()))
+        reasons = tuple(
+            dict.fromkeys(r.strip() for r in result.key_reasons if r.strip())
+        )
         risks = tuple(dict.fromkeys(r.strip() for r in result.risks if r.strip()))
         evidence = tuple(
             dict.fromkeys(e.strip() for e in result.supporting_evidence if e.strip())
@@ -367,8 +365,7 @@ class CopilotReporter:
 
         # Factual explanations (non-refusal/clarify) should carry citations.
         if (
-            result.status
-            not in (ExplanationStatus.REFUSED, ExplanationStatus.CLARIFY)
+            result.status not in (ExplanationStatus.REFUSED, ExplanationStatus.CLARIFY)
             and not citations
             and result.status is not ExplanationStatus.EMPTY
         ):

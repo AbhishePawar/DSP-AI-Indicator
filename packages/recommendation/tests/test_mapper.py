@@ -172,9 +172,7 @@ class TestEvidenceAndDissent:
         assert "fundamental evidence" in claims
         assert "economic evidence" not in claims
 
-    def test_dissenting_views_capture_minority(
-        self, instrument: Instrument
-    ) -> None:
+    def test_dissenting_views_capture_minority(self, instrument: Instrument) -> None:
         report = _report(
             instrument,
             decision=Decision.BUY,
@@ -184,9 +182,7 @@ class TestEvidenceAndDissent:
         assert len(result.dissenting_views) == 1
         assert result.dissenting_views[0].startswith("economic: sell")
 
-    def test_neutral_puts_all_opinions_in_dissent(
-        self, instrument: Instrument
-    ) -> None:
+    def test_neutral_puts_all_opinions_in_dissent(self, instrument: Instrument) -> None:
         report = _report(
             instrument,
             decision=Decision.NEUTRAL,
@@ -198,9 +194,7 @@ class TestEvidenceAndDissent:
 
 
 class TestRationaleAndDecisionMapper:
-    def test_rationale_includes_voting_summary(
-        self, instrument: Instrument
-    ) -> None:
+    def test_rationale_includes_voting_summary(self, instrument: Instrument) -> None:
         report = _report(
             instrument,
             decision=Decision.HOLD,
@@ -244,9 +238,10 @@ class TestRationaleAndDecisionMapper:
     def test_propagates_mos_from_valuation_opinion(
         self, instrument: Instrument
     ) -> None:
+        from datetime import date
+
         from contracts.domain.margin_of_safety import MarginOfSafety
         from contracts.domain.valuation_summary import ValuationSummary
-        from datetime import date
 
         mos = MarginOfSafety(
             ratio=0.30,

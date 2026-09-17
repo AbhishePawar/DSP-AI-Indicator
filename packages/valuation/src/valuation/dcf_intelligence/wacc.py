@@ -3,8 +3,8 @@
 from __future__ import annotations
 
 from valuation.dcf_intelligence.assumptions import (
-    CapmInputs,
     CapitalStructure,
+    CapmInputs,
     CostOfDebtInputs,
 )
 from valuation.dcf_intelligence.explain import ExplainedValue
@@ -53,10 +53,7 @@ class WaccResult:
 
 
 def _weights(structure: CapitalStructure) -> tuple[float, float]:
-    if (
-        structure.equity_weight is not None
-        and structure.debt_weight is not None
-    ):
+    if structure.equity_weight is not None and structure.debt_weight is not None:
         return float(structure.equity_weight), float(structure.debt_weight)
     eq = float(structure.equity_market_value)  # type: ignore[arg-type]
     deb = float(structure.debt_market_value)  # type: ignore[arg-type]

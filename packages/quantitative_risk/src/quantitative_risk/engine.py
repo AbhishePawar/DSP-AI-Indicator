@@ -452,9 +452,7 @@ class QuantitativeRiskEngine:
                     )
                 )
 
-        max_weight = quantize_metric(
-            quantize_weight(max(w.weight for w in weights))
-        )
+        max_weight = quantize_metric(quantize_weight(max(w.weight for w in weights)))
         metric = RiskMetric(
             metric_id=f"dsp.qrisk.metric.exposure.max_weight.{portfolio_id}",
             metric_name="Maximum single-name exposure weight",
@@ -479,9 +477,7 @@ class QuantitativeRiskEngine:
     ) -> tuple[RiskMetric, RiskVolatility]:
         values = tuple(quantize_return(p.value) for p in returns)
         realized = self._sample_stdev(values)
-        annualized = quantize_metric(
-            realized * ANNUALIZATION_FACTOR_DAILY.sqrt()
-        )
+        annualized = quantize_metric(realized * ANNUALIZATION_FACTOR_DAILY.sqrt())
         metric = RiskMetric(
             metric_id=f"dsp.qrisk.metric.volatility.realized.{portfolio_id}",
             metric_name="Annualized realized volatility (daily)",

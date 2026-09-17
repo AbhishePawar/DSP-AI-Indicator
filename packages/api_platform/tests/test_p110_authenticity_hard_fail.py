@@ -12,10 +12,10 @@ import json
 from pathlib import Path
 
 import pytest
+from auth_test_helpers import bearer_headers, register_user
 from fastapi.testclient import TestClient
 
 from api_platform import create_app
-from auth_test_helpers import bearer_headers, register_user
 from data_engine import (
     FinancialStatementService,
     InMemoryAuthenticatedQuoteAdapter,
@@ -35,7 +35,9 @@ from data_engine.market_quote.adapters import (
     build_default_quote_adapter_from_env,
 )
 from dsp_platform import PlatformBuilder, PlatformConfiguration
-from dsp_platform.financial_statements import reset_financial_statement_service_for_tests
+from dsp_platform.financial_statements import (
+    reset_financial_statement_service_for_tests,
+)
 from dsp_platform.investment_provenance import (
     RELEASE_IDENTITY,
     DatabaseInvestmentProvenanceStore,
@@ -94,9 +96,7 @@ def client(db: InMemoryDatabasePort, monkeypatch: pytest.MonkeyPatch):
     quote_adapter.put(build_p109_quote())
     stmt_adapter.put(build_p109_statements())
     reset_market_quote_service_for_tests(MarketQuoteService(quote_adapter))
-    reset_financial_statement_service_for_tests(
-        FinancialStatementService(stmt_adapter)
-    )
+    reset_financial_statement_service_for_tests(FinancialStatementService(stmt_adapter))
 
     platform = (
         PlatformBuilder()
@@ -473,9 +473,7 @@ class TestProvenanceAuthenticity:
 
 
 class TestHonestUnavailable:
-    def test_missing_symbol_does_not_fabricate_values(
-        self, client: TestClient
-    ) -> None:
+    def test_missing_symbol_does_not_fabricate_values(self, client: TestClient) -> None:
         register_user(
             client,
             user_id="p110-miss",
@@ -529,13 +527,10 @@ class TestHonestUnavailable:
                 "suspicious fabricated conclusion in unavailable path",
             )
             stages = payload.get("stage_summaries") or []
-            valuation = next(
-                (s for s in stages if s.get("stage") == "valuation"), None
-            )
+            valuation = next((s for s in stages if s.get("stage") == "valuation"), None)
             if valuation is not None:
                 hard_fail(
-                    valuation.get("status")
-                    in {"succeeded", "degraded", "unavailable"},
+                    valuation.get("status") in {"succeeded", "degraded", "unavailable"},
                     DATA_UNAVAILABLE_NOT_HONESTLY_HANDLED,
                     f"valuation status={valuation.get('status')}",
                 )

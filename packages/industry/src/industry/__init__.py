@@ -32,10 +32,10 @@ from industry.enums import (
     IdentityLifecycle,
     MappingStatus,
     MergeSource,
+    MethodologyLifecycle,
     MetricAvailability,
     MetricImportance,
     MetricUnit,
-    MethodologyLifecycle,
     MissingEvidencePolicy,
     PeerEligibilityStatus,
     PeerUse,
@@ -126,12 +126,12 @@ from industry.exceptions import IndustryError
 from industry.instrument_resolution import resolve_methodology_for_instrument
 from industry.mapping_registry import ClassificationMappingRegistry
 from industry.methodology import (
+    SYSTEM_DEFAULT_DIMENSIONS,
+    SYSTEM_DEFAULT_VALUATION,
     AssembledMethodology,
     IndustryMethodology,
     MetricApplicability,
     PeerEligibilityPolicyRef,
-    SYSTEM_DEFAULT_DIMENSIONS,
-    SYSTEM_DEFAULT_VALUATION,
     ValuationProfile,
     assemble_methodology,
 )

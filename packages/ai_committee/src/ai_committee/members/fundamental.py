@@ -2,13 +2,12 @@
 
 from __future__ import annotations
 
-from contracts.enums import EngineSource, SignalDirection
-
 from ai_committee.enums import Decision
 from ai_committee.exceptions import CommitteeError
 from ai_committee.members.base import CommitteeMember
 from ai_committee.models import CommitteeInput, Opinion
 from ai_committee.voting import collapse_signals
+from contracts.enums import EngineSource, SignalDirection
 
 __all__ = ["FundamentalMember"]
 
@@ -61,9 +60,7 @@ class FundamentalMember(CommitteeMember):
             source=self.name,
             recommendation=recommendation,
             confidence=None,
-            reasoning=_fundamental_reasoning(
-                recommendation, analysis.signals
-            ),
+            reasoning=_fundamental_reasoning(recommendation, analysis.signals),
             evidence=analysis.evidence,
             engine=self.source_engine,
         )
@@ -74,15 +71,9 @@ def _fundamental_reasoning(
     signals: tuple,
 ) -> str:
     """Build a deterministic rationale for the fundamental opinion."""
-    bullish = sum(
-        1 for s in signals if s.direction is SignalDirection.BULLISH
-    )
-    bearish = sum(
-        1 for s in signals if s.direction is SignalDirection.BEARISH
-    )
-    neutral = sum(
-        1 for s in signals if s.direction is SignalDirection.NEUTRAL
-    )
+    bullish = sum(1 for s in signals if s.direction is SignalDirection.BULLISH)
+    bearish = sum(1 for s in signals if s.direction is SignalDirection.BEARISH)
+    neutral = sum(1 for s in signals if s.direction is SignalDirection.NEUTRAL)
     total = len(signals)
     return (
         f"Fundamental member recommends {recommendation.value} "

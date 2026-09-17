@@ -20,7 +20,10 @@ _TOPIC_KEYWORDS: tuple[tuple[str, tuple[str, ...]], ...] = (
     ("risk", ("risk", "risks", "threat")),
     ("scenarios", ("scenario", "bull", "bear", "base case", "cagr")),
     ("recommendation", ("recommendation", "recommend", "rating", "stance")),
-    ("financial_statements", ("financial", "statement", "income", "balance", "cash flow", "roe")),
+    (
+        "financial_statements",
+        ("financial", "statement", "income", "balance", "cash flow", "roe"),
+    ),
     ("corporate_actions", ("corporate action", "dividend", "split", "buyback")),
     ("historical", ("historical", "history", "time series", "trend")),
     ("explainability", ("explain", "why", "how calculated", "formula", "inputs")),

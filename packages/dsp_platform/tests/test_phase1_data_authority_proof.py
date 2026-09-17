@@ -38,7 +38,9 @@ from dsp_platform import (
     PlatformOrchestrator,
     load_authenticated_valuation_bundle,
 )
-from dsp_platform.financial_statements import reset_financial_statement_service_for_tests
+from dsp_platform.financial_statements import (
+    reset_financial_statement_service_for_tests,
+)
 from dsp_platform.market_quotes import reset_market_quote_service_for_tests
 from financial import (
     BalanceSheet,

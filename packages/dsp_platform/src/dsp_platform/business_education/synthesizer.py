@@ -8,7 +8,8 @@ Never writes valuation_signals or Buffett scores.
 from __future__ import annotations
 
 import re
-from typing import Any, Mapping
+from collections.abc import Mapping
+from typing import Any
 
 from dsp_platform.business_education.business_types import (
     detect_business_type,
@@ -165,7 +166,9 @@ def _sanitize_conclusion(text: str) -> str:
     """Strip prohibited investment-verdict phrases from educational conclusion."""
     out = text
     for token in sorted(PROHIBITED_VERDICT_TOKENS, key=len, reverse=True):
-        out = re.sub(re.escape(token), "[educational summary]", out, flags=re.IGNORECASE)
+        out = re.sub(
+            re.escape(token), "[educational summary]", out, flags=re.IGNORECASE
+        )
     return out
 
 
@@ -254,20 +257,30 @@ def build_business_education_report(
     # --- 1. The Business, Simply ---
     biz_claims = [
         claim(
-            f"{company_name} ({ticker}) on {exch}."
-            if company_name != UNAVAILABLE_MESSAGE
-            else UNAVAILABLE_MESSAGE,
-            kind=ClaimKind.FACT if company_name != UNAVAILABLE_MESSAGE else ClaimKind.UNAVAILABLE,
+            (
+                f"{company_name} ({ticker}) on {exch}."
+                if company_name != UNAVAILABLE_MESSAGE
+                else UNAVAILABLE_MESSAGE
+            ),
+            kind=(
+                ClaimKind.FACT
+                if company_name != UNAVAILABLE_MESSAGE
+                else ClaimKind.UNAVAILABLE
+            ),
             source="request_identity",
             available=company_name != UNAVAILABLE_MESSAGE,
         ),
         claim(
-            f"Financial stage summary: {_text(financial.get('label'))}."
-            if _text(financial.get("label"))
-            else UNAVAILABLE_MESSAGE,
-            kind=ClaimKind.INTERPRETATION
-            if _stage_available(financial)
-            else ClaimKind.UNAVAILABLE,
+            (
+                f"Financial stage summary: {_text(financial.get('label'))}."
+                if _text(financial.get("label"))
+                else UNAVAILABLE_MESSAGE
+            ),
+            kind=(
+                ClaimKind.INTERPRETATION
+                if _stage_available(financial)
+                else ClaimKind.UNAVAILABLE
+            ),
             source="stage:financial",
             available=_stage_available(financial),
         ),
@@ -422,7 +435,11 @@ def build_business_education_report(
         val = _metric_from_stage(stage, label)
         fh_claims.append(
             claim(
-                f"{label}: {val}" if val and not demo_contaminated else UNAVAILABLE_MESSAGE,
+                (
+                    f"{label}: {val}"
+                    if val and not demo_contaminated
+                    else UNAVAILABLE_MESSAGE
+                ),
                 kind=(
                     ClaimKind.CALCULATED_METRIC
                     if val and not demo_contaminated
@@ -460,10 +477,16 @@ def build_business_education_report(
             )
     fh_claims.append(
         claim(
-            f"Financial strength label: {_text(strength.get('label'))}."
-            if _stage_available(strength)
-            else UNAVAILABLE_MESSAGE,
-            kind=ClaimKind.INTERPRETATION if _stage_available(strength) else ClaimKind.UNAVAILABLE,
+            (
+                f"Financial strength label: {_text(strength.get('label'))}."
+                if _stage_available(strength)
+                else UNAVAILABLE_MESSAGE
+            ),
+            kind=(
+                ClaimKind.INTERPRETATION
+                if _stage_available(strength)
+                else ClaimKind.UNAVAILABLE
+            ),
             source="stage:financial_strength",
             available=_stage_available(strength),
         )
@@ -477,7 +500,10 @@ def build_business_education_report(
             for c in fh_claims
             if c.get("available") or c.get("kind") == ClaimKind.UNAVAILABLE.value
         ][:16],
-        extras={"availability_policy": "no_fabrication", "demo_contaminated": demo_contaminated},
+        extras={
+            "availability_policy": "no_fabrication",
+            "demo_contaminated": demo_contaminated,
+        },
     )
 
     # --- 6. Key risks (top 3) ---
@@ -485,7 +511,8 @@ def build_business_education_report(
     risk_candidates = warnings[:3]
     if not risk_candidates and _stage_available(risk_stage):
         risk_candidates = [
-            _text(risk_stage.get("label")) or "Company risk stage indicates attention required"
+            _text(risk_stage.get("label"))
+            or "Company risk stage indicates attention required"
         ]
     while len(risk_candidates) < 3:
         placeholders = [
@@ -513,8 +540,14 @@ def build_business_education_report(
                     "Adverse change in the related stage label, score, or warning."
                 ),
                 "metric_to_monitor": monitors[i],
-                "kind": ClaimKind.FACT.value if evidenced else ClaimKind.INTERPRETATION.value,
-                "source": "stage_summaries.warnings" if evidenced else "educational_layer",
+                "kind": (
+                    ClaimKind.FACT.value
+                    if evidenced
+                    else ClaimKind.INTERPRETATION.value
+                ),
+                "source": (
+                    "stage_summaries.warnings" if evidenced else "educational_layer"
+                ),
             }
         )
     section_risks = _section(
@@ -578,7 +611,11 @@ def build_business_education_report(
         claims=[
             claim(
                 f"{item['id']}. {item['title']}: {item['strength_or_weakness']}",
-                kind=ClaimKind.INTERPRETATION if item["evidence"] != UNAVAILABLE_MESSAGE else ClaimKind.UNAVAILABLE,
+                kind=(
+                    ClaimKind.INTERPRETATION
+                    if item["evidence"] != UNAVAILABLE_MESSAGE
+                    else ClaimKind.UNAVAILABLE
+                ),
                 source=item["source"],
                 available=item["evidence"] != UNAVAILABLE_MESSAGE,
             )
@@ -591,18 +628,26 @@ def build_business_education_report(
     # --- 8. Management ---
     mgmt_claims = [
         claim(
-            f"Management label: {_text(management.get('label'))}."
-            if _stage_available(management)
-            else UNAVAILABLE_MESSAGE,
-            kind=ClaimKind.INTERPRETATION if _stage_available(management) else ClaimKind.UNAVAILABLE,
+            (
+                f"Management label: {_text(management.get('label'))}."
+                if _stage_available(management)
+                else UNAVAILABLE_MESSAGE
+            ),
+            kind=(
+                ClaimKind.INTERPRETATION
+                if _stage_available(management)
+                else ClaimKind.UNAVAILABLE
+            ),
             source="stage:management_quality",
             available=_stage_available(management),
         ),
         claim(
             f"Capital allocation field: {_metric_from_stage(management, 'Capital Allocation') or UNAVAILABLE_MESSAGE}",
-            kind=ClaimKind.CALCULATED_METRIC
-            if _metric_from_stage(management, "Capital Allocation")
-            else ClaimKind.UNAVAILABLE,
+            kind=(
+                ClaimKind.CALCULATED_METRIC
+                if _metric_from_stage(management, "Capital Allocation")
+                else ClaimKind.UNAVAILABLE
+            ),
             source="stage:management_quality",
             available=bool(_metric_from_stage(management, "Capital Allocation")),
         ),
@@ -707,7 +752,9 @@ def build_business_education_report(
     # Hard assert no prohibited tokens remain as verdict language
     lowered = conclusion_text.lower()
     for token in PROHIBITED_VERDICT_TOKENS:
-        if token in lowered and token not in {"hold"}:  # hold may appear in 'shareholder' etc. — check word boundaries
+        if token in lowered and token not in {
+            "hold"
+        }:  # hold may appear in 'shareholder' etc. — check word boundaries
             pass
     # Word-boundary scrub for verdict tokens
     for token in ("buy", "sell", "hold", "strong buy", "strong sell"):
@@ -724,7 +771,11 @@ def build_business_education_report(
         "educational_conclusion",
         summary=conclusion_text,
         claims=[
-            claim(conclusion_text, kind=ClaimKind.INTERPRETATION, source="educational_layer")
+            claim(
+                conclusion_text,
+                kind=ClaimKind.INTERPRETATION,
+                source="educational_layer",
+            )
         ],
         bullets=conclusion_parts,
         extras={"investment_verdict": None, "prohibited_language_stripped": True},

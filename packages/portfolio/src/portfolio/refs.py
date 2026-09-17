@@ -66,9 +66,7 @@ class ComparisonReportReference:
             if self.methodology_id is None
             else _normalize_id(self.methodology_id, field="methodology_id")
         )
-        symbols = tuple(
-            s.strip().upper() for s in self.included_symbols if s.strip()
-        )
+        symbols = tuple(s.strip().upper() for s in self.included_symbols if s.strip())
         if len(set(symbols)) != len(symbols):
             msg = "comparison report reference has duplicate included_symbols"
             raise ValidationError(msg)

@@ -69,9 +69,11 @@ def financial_statements(
             "ok": True,
             "available": True,
             "authenticated": True,
-            "symbol": payload.get("identity", {}).get("symbol")
-            if isinstance(payload.get("identity"), dict)
-            else symbol.strip().upper(),
+            "symbol": (
+                payload.get("identity", {}).get("symbol")
+                if isinstance(payload.get("identity"), dict)
+                else symbol.strip().upper()
+            ),
             "identity": payload.get("identity"),
             "reporting_currency": payload.get("reporting_currency"),
             "periods": payload.get("periods"),

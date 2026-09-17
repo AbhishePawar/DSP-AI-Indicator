@@ -8,7 +8,8 @@ from __future__ import annotations
 
 import math
 import statistics
-from typing import Any, Sequence
+from collections.abc import Sequence
+from typing import Any
 
 from financial.cash_flow import CashFlowStatement
 from financial.intelligence.cashflow_explainability import (
@@ -92,7 +93,9 @@ def _confidence(n: int, *, has_value: bool) -> str:
     return "low"
 
 
-def _trend_from_delta(delta: float | None, *, improve_when_up: bool = True) -> TrendDirection:
+def _trend_from_delta(
+    delta: float | None, *, improve_when_up: bool = True
+) -> TrendDirection:
     if delta is None:
         return TrendDirection.STABLE
     if abs(delta) < 0.02:
@@ -117,11 +120,13 @@ class CashFlowEngine:
 
     def analyze(
         self,
-        source: CashFlowStatement
-        | FinancialStatements
-        | FinancialSnapshot
-        | dict
-        | Sequence[CashFlowStatement | FinancialStatements],
+        source: (
+            CashFlowStatement
+            | FinancialStatements
+            | FinancialSnapshot
+            | dict
+            | Sequence[CashFlowStatement | FinancialStatements]
+        ),
         *,
         history: Sequence[CashFlowStatement | FinancialStatements] | None = None,
     ) -> CashFlowAnalysis:
@@ -137,9 +142,7 @@ class CashFlowEngine:
 
         primary = flows[-1]
         primary_stmt = stmts[-1]
-        validation = validate_cashflow_for_analysis(
-            primary, statements=primary_stmt
-        )
+        validation = validate_cashflow_for_analysis(primary, statements=primary_stmt)
         revenue = meta.get("revenue")
         if revenue is None and primary_stmt is not None:
             revenue = primary_stmt.income_statement.revenue
@@ -152,7 +155,9 @@ class CashFlowEngine:
         investing = self._investing(primary, operating, explanations)
         financing = self._financing(primary, operating, explanations)
         fcf = self._fcf(flows, revenue, net_income, explanations)
-        quality = self._quality(primary, operating, investing, financing, fcf, explanations)
+        quality = self._quality(
+            primary, operating, investing, financing, fcf, explanations
+        )
         flags = self._flags(operating, investing, financing, fcf, quality)
         trends = self._trends(flows, operating, financing, fcf)
         metadata = CashFlowAnalysisMetadata(
@@ -188,9 +193,7 @@ class CashFlowEngine:
         growth = _growth(ocf, prior.operating_cash_flow if prior else None)
 
         ocf_series = [
-            f.operating_cash_flow
-            for f in flows
-            if f.operating_cash_flow is not None
+            f.operating_cash_flow for f in flows if f.operating_cash_flow is not None
         ]
         stability = _stability(ocf_series) if len(ocf_series) >= 2 else None
 
@@ -521,7 +524,11 @@ class CashFlowEngine:
 
         # Sustainability composites
         cash_sust = None
-        parts = [p for p in (op_q, fcf.fcf_stability, operating.cash_flow_stability) if p is not None]
+        parts = [
+            p
+            for p in (op_q, fcf.fcf_stability, operating.cash_flow_stability)
+            if p is not None
+        ]
         if parts:
             cash_sust = sum(parts) / len(parts)
 
@@ -530,7 +537,9 @@ class CashFlowEngine:
             if abs(cf.dividends_paid) == 0:
                 div_sust = 1.0
             else:
-                div_sust = _clip01(_safe_div(fcf.free_cash_flow, abs(cf.dividends_paid)))
+                div_sust = _clip01(
+                    _safe_div(fcf.free_cash_flow, abs(cf.dividends_paid))
+                )
 
         bb_sust = None
         if fcf.free_cash_flow is not None and cf.share_buybacks is not None:
@@ -687,7 +696,11 @@ class CashFlowEngine:
         alloc_delta = None
         if cur_alloc is not None and prior_alloc is not None:
             alloc_delta = cur_alloc - prior_alloc
-        elif cur_shareholder > 0 and prior_shareholder == 0 and (fcf.free_cash_flow or 0) > 0:
+        elif (
+            cur_shareholder > 0
+            and prior_shareholder == 0
+            and (fcf.free_cash_flow or 0) > 0
+        ):
             alloc_delta = 0.05
         alloc_trend = _trend_from_delta(alloc_delta)
 

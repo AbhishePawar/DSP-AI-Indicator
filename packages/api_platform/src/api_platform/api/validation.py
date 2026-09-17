@@ -138,13 +138,9 @@ def _forbidden_client_keys(mapping: Any, path: str) -> list[str]:
             normalized = str(key).strip().lower()
             child = f"{path}.{key}"
             if normalized in _FORBIDDEN_BUFFETT_CLIENT_KEYS:
-                hits.append(
-                    f"client-supplied {child} is not accepted (P1-05)"
-                )
+                hits.append(f"client-supplied {child} is not accepted (P1-05)")
             elif normalized in _FORBIDDEN_PROVENANCE_CLIENT_KEYS:
-                hits.append(
-                    f"client-supplied {child} is not accepted (P1-06)"
-                )
+                hits.append(f"client-supplied {child} is not accepted (P1-06)")
             else:
                 hits.extend(_forbidden_client_keys(value, child))
     elif isinstance(mapping, list):

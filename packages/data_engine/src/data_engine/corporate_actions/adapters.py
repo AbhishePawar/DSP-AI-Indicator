@@ -9,10 +9,11 @@ import json
 import os
 import urllib.error
 import urllib.request
+from collections.abc import Mapping
 from dataclasses import dataclass, field
 from datetime import date, datetime
 from threading import Lock
-from typing import Any, Mapping
+from typing import Any
 from urllib.parse import urlencode
 
 from contracts.domain.instrument import Instrument
@@ -146,9 +147,7 @@ def build_actions_from_mapping(
         identity = CorporateActionCompanyIdentity(
             symbol=str(identity_raw.get("symbol") or symbol).strip().upper(),
             exchange=(
-                str(identity_raw["exchange"])
-                if identity_raw.get("exchange")
-                else None
+                str(identity_raw["exchange"]) if identity_raw.get("exchange") else None
             ),
             company_name=(
                 str(identity_raw["company_name"])
@@ -230,9 +229,7 @@ class InMemoryAuthenticatedCorporateActionAdapter(CorporateActionPort):
     api_key: str | None = None
     _provider_id: str = "memory_authenticated_corporate_actions"
     _bundles: dict[str, AuthenticatedCorporateActions] = field(default_factory=dict)
-    _identities: dict[str, CorporateActionCompanyIdentity] = field(
-        default_factory=dict
-    )
+    _identities: dict[str, CorporateActionCompanyIdentity] = field(default_factory=dict)
     _lock: Lock = field(default_factory=Lock, repr=False)
 
     @property
@@ -467,9 +464,7 @@ def build_default_corporate_action_adapter_from_env() -> CorporateActionPort:
     api_key = os.environ.get("DSP_CORPORATE_ACTIONS_API_KEY", "").strip()
     base_url = os.environ.get("DSP_CORPORATE_ACTIONS_BASE_URL", "").strip()
     if api_key and base_url:
-        return ConfiguredHttpCorporateActionAdapter(
-            base_url=base_url, api_key=api_key
-        )
+        return ConfiguredHttpCorporateActionAdapter(base_url=base_url, api_key=api_key)
     if memory_adapter_allowed(
         "DSP_CORPORATE_ACTIONS_MEMORY", connector="corporate_actions"
     ):

@@ -215,9 +215,7 @@ class TriggeredRule:
         object.__setattr__(self, "group", self.group.strip())
         object.__setattr__(self, "description", self.description.strip())
         object.__setattr__(self, "engines", tuple(self.engines))
-        object.__setattr__(
-            self, "supporting_metrics", tuple(self.supporting_metrics)
-        )
+        object.__setattr__(self, "supporting_metrics", tuple(self.supporting_metrics))
         if not self.rule_id:
             raise InvestmentRecommendationValidationError("rule.rule_id is required")
         if not math.isfinite(self.score_delta):

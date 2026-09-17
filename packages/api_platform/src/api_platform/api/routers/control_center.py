@@ -123,9 +123,7 @@ def configuration_history(
     limit: int = Query(50, ge=1, le=500),
     state: ApiState = Depends(get_api_state),
 ) -> JSONResponse:
-    return _dispatch(
-        state, "history", {"module_id": module_id, "limit": limit}
-    )
+    return _dispatch(state, "history", {"module_id": module_id, "limit": limit})
 
 
 @router.post("/admin/rollback")

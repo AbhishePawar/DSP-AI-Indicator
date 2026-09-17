@@ -193,9 +193,9 @@ class TestP105ServerAuthority:
         a = client.post("/api/v1/analyse", json=body).json()["payload"][
             "buffett_authority"
         ]
-        b = client.post("/api/v1/analyse", json=copy.deepcopy(body)).json()[
-            "payload"
-        ]["buffett_authority"]
+        b = client.post("/api/v1/analyse", json=copy.deepcopy(body)).json()["payload"][
+            "buffett_authority"
+        ]
         assert a == b
 
     def test_missing_income_fails_validation(self, client: TestClient) -> None:

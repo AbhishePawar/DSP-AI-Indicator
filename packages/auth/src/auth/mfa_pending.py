@@ -17,7 +17,7 @@ import hashlib
 import hmac
 import logging
 from dataclasses import dataclass
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from typing import Any
 
 from auth.credential_boundary import resolve_auth_jwt_secret
@@ -37,7 +37,7 @@ _KEEP_AFTER_EXPIRY = timedelta(hours=1)
 
 
 def _now() -> datetime:
-    return datetime.now(tz=timezone.utc)
+    return datetime.now(tz=UTC)
 
 
 def _parse_dt(value: Any) -> datetime | None:
@@ -48,7 +48,7 @@ def _parse_dt(value: Any) -> datetime | None:
     except ValueError:
         return None
     if parsed.tzinfo is None:
-        parsed = parsed.replace(tzinfo=timezone.utc)
+        parsed = parsed.replace(tzinfo=UTC)
     return parsed
 
 
@@ -105,9 +105,7 @@ class MfaPendingStore:
     def __init__(self, persistence_service: Any) -> None:
         self._persistence = persistence_service
 
-    def put_totp_pending(
-        self, user_id: str, *, secret: str, ttl_seconds: int
-    ) -> None:
+    def put_totp_pending(self, user_id: str, *, secret: str, ttl_seconds: int) -> None:
         now = _now()
         expires = now + timedelta(seconds=int(ttl_seconds))
         self._persistence.put(
@@ -127,7 +125,9 @@ class MfaPendingStore:
         )
         logger.info("mfa totp pending stored")
 
-    def get_totp_pending(self, user_id: str, *, now: datetime | None = None) -> TotpPendingRecord | None:
+    def get_totp_pending(
+        self, user_id: str, *, now: datetime | None = None
+    ) -> TotpPendingRecord | None:
         ts = now or _now()
         row = self._persistence.get(_ENTITY_KIND, _totp_entity_id(user_id))
         if row is None:
@@ -253,7 +253,9 @@ class MfaPendingStore:
         )
         logger.info("mfa stepup pending stored")
 
-    def get_stepup(self, jti: str, *, now: datetime | None = None) -> StepupPendingRecord | None:
+    def get_stepup(
+        self, jti: str, *, now: datetime | None = None
+    ) -> StepupPendingRecord | None:
         ts = now or _now()
         row = self._persistence.get(_ENTITY_KIND, _stepup_entity_id(jti))
         if row is None:
@@ -269,7 +271,9 @@ class MfaPendingStore:
             return None
         return StepupPendingRecord(user_id=user_id, jti=jti)
 
-    def consume_stepup(self, jti: str, *, now: datetime | None = None) -> StepupPendingRecord | None:
+    def consume_stepup(
+        self, jti: str, *, now: datetime | None = None
+    ) -> StepupPendingRecord | None:
         ts = now or _now()
         stored = self._persistence.atomic_consume_unexpired(
             _ENTITY_KIND,

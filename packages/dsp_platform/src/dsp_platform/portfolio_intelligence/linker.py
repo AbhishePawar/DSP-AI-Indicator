@@ -2,7 +2,8 @@
 
 from __future__ import annotations
 
-from typing import Any, Mapping
+from collections.abc import Mapping
+from typing import Any
 
 from dsp_platform.portfolio_intelligence.models import UNAVAILABLE_MESSAGE
 from dsp_platform.research_archive.hashing import to_plain_jsonable
@@ -96,7 +97,11 @@ def link_research_map(
         snap = snap_map.get(sym)
         # If snapshot holds research_object payload and RO missing, expose payload
         ro = ro_map.get(sym)
-        if ro is None and isinstance(snap, dict) and snap.get("kind") == "research_object":
+        if (
+            ro is None
+            and isinstance(snap, dict)
+            and snap.get("kind") == "research_object"
+        ):
             payload = snap.get("payload")
             if isinstance(payload, dict):
                 ro = payload
@@ -109,9 +114,7 @@ def link_research_map(
             payload = snap.get("payload")
             if isinstance(payload, dict):
                 report = payload
-        out[sym] = ResearchBundle(
-            sym, research_object=ro, report=report, snapshot=snap
-        )
+        out[sym] = ResearchBundle(sym, research_object=ro, report=report, snapshot=snap)
     return out
 
 

@@ -2,7 +2,8 @@
 
 from __future__ import annotations
 
-from typing import Any, Mapping
+from collections.abc import Mapping
+from typing import Any
 
 from workspace.exceptions import (
     DuplicateNameError,
@@ -71,7 +72,9 @@ def assert_unique_name(existing: set[str], name: str, *, entity: str) -> str:
     return cleaned
 
 
-def normalize_companies(companies: list[str] | tuple[str, ...] | None) -> tuple[str, ...]:
+def normalize_companies(
+    companies: list[str] | tuple[str, ...] | None,
+) -> tuple[str, ...]:
     seen: set[str] = set()
     out: list[str] = []
     for raw in companies or []:

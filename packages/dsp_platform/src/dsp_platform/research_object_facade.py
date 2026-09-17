@@ -2,12 +2,12 @@
 
 from __future__ import annotations
 
-from typing import Any, Mapping
+from collections.abc import Mapping
+from typing import Any
 
 from dsp_platform.research_object import (
     RESEARCH_OBJECT_SCHEMA_VERSION,
     build_research_object,
-    research_object_from_dict,
     research_object_to_dict,
 )
 

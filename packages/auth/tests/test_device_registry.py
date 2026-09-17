@@ -39,7 +39,9 @@ def test_shared_store_cross_process_register_and_lookup() -> None:
     store = _shared_store()
     a = DeviceRegistry(store=store)
     b = DeviceRegistry(store=store)
-    created = a.register(user_id="u-cross", ip_hint="2.2.2.2", user_agent_hint="agent-b")
+    created = a.register(
+        user_id="u-cross", ip_hint="2.2.2.2", user_agent_hint="agent-b"
+    )
     found = b.get(created.device_id)
     assert found is not None
     assert found.user_id == "u-cross"
@@ -48,7 +50,9 @@ def test_shared_store_cross_process_register_and_lookup() -> None:
 
 def test_register_and_retrieve() -> None:
     devices = DeviceRegistry()
-    device = devices.register(user_id="u1", ip_hint="10.0.0.1", user_agent_hint="pytest")
+    device = devices.register(
+        user_id="u1", ip_hint="10.0.0.1", user_agent_hint="pytest"
+    )
     got = devices.get(device.device_id)
     assert got is not None
     assert got.user_id == "u1"
@@ -78,22 +82,31 @@ def test_cross_process_trust_and_revoke() -> None:
 
 def test_expired_trust_rejected() -> None:
     devices = DeviceRegistry()
-    device = devices.register(user_id="u-exp", ip_hint="4.4.4.4", user_agent_hint="agent")
+    device = devices.register(
+        user_id="u-exp", ip_hint="4.4.4.4", user_agent_hint="agent"
+    )
     devices.set_trusted(device.device_id, user_id="u-exp", trusted=True)
     record = devices.get(device.device_id)
     assert record is not None
     record.trusted_until = (datetime.now(tz=UTC) - timedelta(days=1)).isoformat()
     devices._store.put_device(record.to_store_payload())  # noqa: SLF001
-    assert devices.is_trusted("u-exp", ip_hint="4.4.4.4", user_agent_hint="agent") is False
+    assert (
+        devices.is_trusted("u-exp", ip_hint="4.4.4.4", user_agent_hint="agent") is False
+    )
 
 
 def test_user_isolation() -> None:
     store = _shared_store()
     devices = DeviceRegistry(store=store)
-    device = devices.register(user_id="owner", ip_hint="5.5.5.5", user_agent_hint="agent")
+    device = devices.register(
+        user_id="owner", ip_hint="5.5.5.5", user_agent_hint="agent"
+    )
     devices.set_trusted(device.device_id, user_id="owner", trusted=True)
     other = DeviceRegistry(store=store)
-    assert other.is_trusted("intruder", ip_hint="5.5.5.5", user_agent_hint="agent") is False
+    assert (
+        other.is_trusted("intruder", ip_hint="5.5.5.5", user_agent_hint="agent")
+        is False
+    )
     with pytest.raises(KeyError, match="device not found"):
         other.set_trusted(device.device_id, user_id="intruder", trusted=True)
     with pytest.raises(KeyError, match="device not found"):
@@ -140,7 +153,9 @@ def test_revoke_all_propagates_across_processes() -> None:
 def test_fingerprint_entity_id_is_hmac_not_raw_user() -> None:
     store = _shared_store()
     devices = DeviceRegistry(store=store)
-    devices.register(user_id="user-visible-id", ip_hint="9.9.9.9", user_agent_hint="agent")
+    devices.register(
+        user_id="user-visible-id", ip_hint="9.9.9.9", user_agent_hint="agent"
+    )
     ids = store._persistence.list_ids("metadata")  # noqa: SLF001
     assert any(item.startswith("auth-device-fp-") for item in ids)
     joined = " ".join(ids)
@@ -163,7 +178,9 @@ def test_logs_do_not_include_ip_or_user_agent(caplog: pytest.LogCaptureFixture) 
 def test_payload_has_no_plaintext_device_secret() -> None:
     store = _shared_store()
     devices = DeviceRegistry(store=store)
-    device = devices.register(user_id="u-sec", ip_hint="10.10.10.10", user_agent_hint="ua")
+    device = devices.register(
+        user_id="u-sec", ip_hint="10.10.10.10", user_agent_hint="ua"
+    )
     payload = store.get_device(device.device_id)
     assert payload is not None
     assert "otp" not in payload
@@ -197,7 +214,9 @@ def test_production_default_store_uses_process_a008(
         reset_persistence_service_for_tests(None)
 
 
-def test_production_missing_database_fail_closed(monkeypatch: pytest.MonkeyPatch) -> None:
+def test_production_missing_database_fail_closed(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
     monkeypatch.setenv("DSP_ENVIRONMENT", "production")
     monkeypatch.delenv("DSP_DATABASE_URL", raising=False)
     monkeypatch.delenv("DATABASE_URL", raising=False)

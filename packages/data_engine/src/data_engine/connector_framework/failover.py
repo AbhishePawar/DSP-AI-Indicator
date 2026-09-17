@@ -75,7 +75,7 @@ class FailoverGroup(Generic[TService, TQuery, TResult]):
 
     @property
     def provider_ids(self) -> tuple[str, ...]:
-        return tuple(getattr(s, "provider_id") for s in self._services)
+        return tuple(s.provider_id for s in self._services)
 
     def is_empty(self) -> bool:
         return not self._services
@@ -92,7 +92,7 @@ class FailoverGroup(Generic[TService, TQuery, TResult]):
         """
         attempted: list[str] = []
         for service in self._services:
-            provider_id = getattr(service, "provider_id")
+            provider_id = service.provider_id
             attempted.append(provider_id)
             self._audit.record(
                 "attempt",
@@ -184,4 +184,4 @@ class FailoverGroup(Generic[TService, TQuery, TResult]):
 
     def health(self) -> tuple[ProviderHealth, ...]:
         """Health of every provider in the group, in priority order."""
-        return tuple(getattr(s, "health")() for s in self._services)
+        return tuple(s.health() for s in self._services)

@@ -34,7 +34,9 @@ _GROUP: FailoverGroup[NewsService, NewsQuery, Any] | None = None
 _SERVICES: tuple[NewsService, ...] = ()
 
 
-def _build_group() -> tuple[FailoverGroup[NewsService, NewsQuery, Any], tuple[NewsService, ...]]:
+def _build_group() -> (
+    tuple[FailoverGroup[NewsService, NewsQuery, Any], tuple[NewsService, ...]]
+):
     registry = build_default_news_registry_from_env()
     services = tuple(NewsService(provider) for provider in registry.ordered())
     group: FailoverGroup[NewsService, NewsQuery, Any] = FailoverGroup(

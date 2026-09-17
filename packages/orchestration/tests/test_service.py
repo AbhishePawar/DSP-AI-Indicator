@@ -246,9 +246,7 @@ def _price_series(instrument: Instrument) -> PriceSeries:
         close=100.5,
         volume=1_000.0,
     )
-    return PriceSeries(
-        instrument=instrument, frequency=BarFrequency.DAILY, bars=(bar,)
-    )
+    return PriceSeries(instrument=instrument, frequency=BarFrequency.DAILY, bars=(bar,))
 
 
 class _FakeMarket:
@@ -468,9 +466,7 @@ class TestHappyPath:
                 end=date(2024, 6, 1),
             )
         )
-        claims = " ".join(
-            e.claim for e in recommendation.supporting_evidence
-        )
+        claims = " ".join(e.claim for e in recommendation.supporting_evidence)
         assert "intrinsic" in claims.lower() or "25%" in claims or "Trading" in claims
 
     def test_deterministic(self, instrument: Instrument) -> None:
@@ -508,9 +504,7 @@ class TestMissingEconomics:
     def test_partial_economic_failure_skips_member(
         self, instrument: Instrument
     ) -> None:
-        service = _service(
-            instrument, eco_error=SnapshotBridgeError("no series")
-        )
+        service = _service(instrument, eco_error=SnapshotBridgeError("no series"))
         report = service.analyze(
             AnalysisRequest(
                 instrument=instrument,
@@ -542,9 +536,7 @@ class TestMissingFundamentals:
         }
 
     def test_partial_failure_skips_member(self, instrument: Instrument) -> None:
-        service = _service(
-            instrument, fund_error=DataEngineError("fundamentals down")
-        )
+        service = _service(instrument, fund_error=DataEngineError("fundamentals down"))
         report = service.analyze(
             AnalysisRequest(
                 instrument=instrument,
@@ -557,9 +549,7 @@ class TestMissingFundamentals:
         assert "valuation" not in {vote.source for vote in report.votes}
 
     def test_strict_mode_raises(self, instrument: Instrument) -> None:
-        service = _service(
-            instrument, fund_error=DataEngineError("fundamentals down")
-        )
+        service = _service(instrument, fund_error=DataEngineError("fundamentals down"))
         with pytest.raises(OrchestrationError, match="financial snapshot"):
             service.analyze(
                 AnalysisRequest(
@@ -589,9 +579,7 @@ class TestMissingValuation:
         }
 
     def test_partial_failure_skips_member(self, instrument: Instrument) -> None:
-        service = _service(
-            instrument, val_error=OrchestrationError("valuation boom")
-        )
+        service = _service(instrument, val_error=OrchestrationError("valuation boom"))
         # val_error on engine after successful snapshot fetch
         report = service.analyze(
             AnalysisRequest(
@@ -607,9 +595,7 @@ class TestMissingValuation:
 
 class TestProviderFailures:
     def test_market_failure_raises(self, instrument: Instrument) -> None:
-        service = _service(
-            instrument, market_error=DataEngineError("yahoo down")
-        )
+        service = _service(instrument, market_error=DataEngineError("yahoo down"))
         with pytest.raises(OrchestrationError, match="technical"):
             service.analyze(
                 AnalysisRequest(
@@ -622,9 +608,7 @@ class TestProviderFailures:
     def test_does_not_leak_provider_exception_type(
         self, instrument: Instrument
     ) -> None:
-        service = _service(
-            instrument, market_error=DataEngineError("yahoo down")
-        )
+        service = _service(instrument, market_error=DataEngineError("yahoo down"))
         with pytest.raises(OrchestrationError) as exc_info:
             service.analyze(
                 AnalysisRequest(
@@ -668,9 +652,7 @@ class TestMarginOfSafetyWiring:
         assert market is not None
         assert market.market_cap == pytest.approx(800.0)
 
-    def test_recommendation_propagates_mos(
-        self, instrument: Instrument
-    ) -> None:
+    def test_recommendation_propagates_mos(self, instrument: Instrument) -> None:
         service = _service(instrument)
         recommendation = service.analyze_recommendation(
             AnalysisRequest(
@@ -683,6 +665,4 @@ class TestMarginOfSafetyWiring:
         assert recommendation.margin_of_safety.available is True
         assert recommendation.margin_of_safety.ratio == pytest.approx(0.25)
         assert recommendation.valuation_summary is not None
-        assert recommendation.valuation_summary.intrinsic_mid == pytest.approx(
-            1000.0
-        )
+        assert recommendation.valuation_summary.intrinsic_mid == pytest.approx(1000.0)

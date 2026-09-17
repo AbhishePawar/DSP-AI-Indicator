@@ -19,9 +19,7 @@ class TestMultiStockAnalysis:
     def test_empty_universe_success(self) -> None:
         universe = InvestmentUniverse(name="empty")
         result = MultiStockAnalysisService(RecordingAnalyzer()).analyze(
-            MultiStockAnalysisRequest(
-                universe=universe, start=START, end=END
-            )
+            MultiStockAnalysisRequest(universe=universe, start=START, end=END)
         )
         assert result.status is BatchStatus.SUCCESS
         assert result.outcomes == ()
@@ -33,9 +31,7 @@ class TestMultiStockAnalysis:
         )
         analyzer = RecordingAnalyzer()
         result = MultiStockAnalysisService(analyzer).analyze(
-            MultiStockAnalysisRequest(
-                universe=universe, start=START, end=END
-            )
+            MultiStockAnalysisRequest(universe=universe, start=START, end=END)
         )
         assert result.status is BatchStatus.SUCCESS
         assert len(result.packs) == 1
@@ -49,9 +45,7 @@ class TestMultiStockAnalysis:
             universe.add(make_instrument(symbol))
         analyzer = RecordingAnalyzer()
         result = MultiStockAnalysisService(analyzer).analyze(
-            MultiStockAnalysisRequest(
-                universe=universe, start=START, end=END
-            )
+            MultiStockAnalysisRequest(universe=universe, start=START, end=END)
         )
         assert result.status is BatchStatus.SUCCESS
         assert [o.instrument.symbol for o in result.outcomes] == [
@@ -138,9 +132,7 @@ class TestMultiStockAnalysis:
 
         universe = InvestmentUniverse.from_instruments([instrument], name="k")
         result = MultiStockAnalysisService(FixedAnalyzer()).analyze(
-            MultiStockAnalysisRequest(
-                universe=universe, start=START, end=END
-            )
+            MultiStockAnalysisRequest(universe=universe, start=START, end=END)
         )
         got = result.packs[0]
         assert got.recommendation.action is pack.recommendation.action
@@ -158,9 +150,7 @@ class TestMultiStockAnalysis:
             [make_instrument("AA"), make_instrument("BB")], name="d"
         )
         service = MultiStockAnalysisService(RecordingAnalyzer())
-        request = MultiStockAnalysisRequest(
-            universe=universe, start=START, end=END
-        )
+        request = MultiStockAnalysisRequest(universe=universe, start=START, end=END)
         first = service.analyze(request)
         second = MultiStockAnalysisService(RecordingAnalyzer()).analyze(request)
         assert [o.instrument.symbol for o in first.outcomes] == [

@@ -3,10 +3,10 @@
 from __future__ import annotations
 
 import os
+from collections.abc import Mapping
 from dataclasses import dataclass, field
 from enum import StrEnum
 from threading import Lock
-from typing import Mapping
 
 from production_platform.production.exceptions import ConfigurationError
 from production_platform.production.interfaces import SecretsPort
@@ -51,7 +51,9 @@ class DatabaseSettings:
         if self.pool_size < 1:
             raise ConfigurationError("database.pool_size must be >= 1")
         if self.connect_timeout_seconds < 0:
-            raise ConfigurationError("database.connect_timeout_seconds must be non-negative")
+            raise ConfigurationError(
+                "database.connect_timeout_seconds must be non-negative"
+            )
 
 
 @dataclass(frozen=True, slots=True)
@@ -65,7 +67,9 @@ class RedisSettings:
 
     def __post_init__(self) -> None:
         if self.connect_timeout_seconds < 0:
-            raise ConfigurationError("redis.connect_timeout_seconds must be non-negative")
+            raise ConfigurationError(
+                "redis.connect_timeout_seconds must be non-negative"
+            )
 
 
 @dataclass(frozen=True, slots=True)
@@ -285,7 +289,9 @@ def load_configuration_from_environ(
 ) -> ProductionConfiguration:
     """Load typed configuration from environment variables."""
     env = environ if environ is not None else os.environ
-    profile = (env.get("DSP_ENVIRONMENT") or env.get("ENVIRONMENT") or "development").lower()
+    profile = (
+        env.get("DSP_ENVIRONMENT") or env.get("ENVIRONMENT") or "development"
+    ).lower()
     try:
         environment = Environment(profile)
     except ValueError as exc:
@@ -303,12 +309,17 @@ def load_configuration_from_environ(
         environment=environment,
         service_name=env.get("DSP_SERVICE_NAME", "dsp-ai-indicator"),
         service_version=service_version,
-        region=env.get("DSP_REGION", "local" if environment is not Environment.PRODUCTION else "ap-south-1"),
+        region=env.get(
+            "DSP_REGION",
+            "local" if environment is not Environment.PRODUCTION else "ap-south-1",
+        ),
         log_level=env.get("DSP_LOG_LEVEL", "INFO"),
         metrics_enabled=_bool(env.get("DSP_METRICS_ENABLED"), default=True),
         tracing_enabled=_bool(env.get("DSP_TRACING_ENABLED"), default=True),
         cache_default_ttl_seconds=float(env.get("DSP_CACHE_TTL_SECONDS", "300")),
-        settings={k[4:].lower(): v for k, v in env.items() if k.startswith("DSP_SETTING_")},
+        settings={
+            k[4:].lower(): v for k, v in env.items() if k.startswith("DSP_SETTING_")
+        },
         database=DatabaseSettings(
             url=env.get("DSP_DATABASE_URL") or env.get("DATABASE_URL"),
             pool_size=int(env.get("DSP_DATABASE_POOL_SIZE", "5")),
@@ -337,7 +348,9 @@ def load_configuration_from_environ(
             timezone=env.get("DSP_INDIA_TIMEZONE", "Asia/Kolkata"),
             currency=env.get("DSP_INDIA_CURRENCY", "INR"),
             data_residency_region=env.get("DSP_INDIA_DATA_RESIDENCY", "in"),
-            cert_in_log_retention_days=int(env.get("DSP_CERT_IN_LOG_RETENTION_DAYS", "180")),
+            cert_in_log_retention_days=int(
+                env.get("DSP_CERT_IN_LOG_RETENTION_DAYS", "180")
+            ),
             dpdp_residency_required=_bool(env.get("DSP_DPDP_RESIDENCY"), default=True),
             enable_market_calendar=_bool(env.get("DSP_MARKET_CALENDAR"), default=True),
         ),

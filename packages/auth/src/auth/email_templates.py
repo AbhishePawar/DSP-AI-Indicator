@@ -21,7 +21,9 @@ __all__ = [
 _BRAND = "DSP AI Indicator"
 
 
-def _wrap_html(*, preheader: str, heading: str, body_html: str, cta_url: str, cta_label: str) -> str:
+def _wrap_html(
+    *, preheader: str, heading: str, body_html: str, cta_url: str, cta_label: str
+) -> str:
     return f"""\
 <!DOCTYPE html>
 <html lang="en">
@@ -73,7 +75,9 @@ def _wrap_html(*, preheader: str, heading: str, body_html: str, cta_url: str, ct
 """
 
 
-def render_magic_link_email(*, link_url: str, token: str, expires_minutes: int) -> tuple[str, str, str]:
+def render_magic_link_email(
+    *, link_url: str, token: str, expires_minutes: int
+) -> tuple[str, str, str]:
     subject = f"Your {_BRAND} sign-in link"
     text = (
         f"Sign in to {_BRAND}\n\n"

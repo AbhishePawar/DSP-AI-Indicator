@@ -7,7 +7,8 @@ No forecasting, valuation, market data, or provider I/O.
 from __future__ import annotations
 
 import math
-from typing import Any, Sequence
+from collections.abc import Sequence
+from typing import Any
 
 from financial.balance_sheet import BalanceSheet
 from financial.intelligence.balance_explainability import (
@@ -115,7 +116,9 @@ def _confidence(n: int, *, has_value: bool) -> str:
     return "low"
 
 
-def _trend_from_delta(delta: float | None, *, improve_when_up: bool = True) -> TrendDirection:
+def _trend_from_delta(
+    delta: float | None, *, improve_when_up: bool = True
+) -> TrendDirection:
     if delta is None:
         return TrendDirection.STABLE
     thr = 0.02
@@ -132,11 +135,13 @@ class BalanceSheetEngine:
 
     def analyze(
         self,
-        source: BalanceSheet
-        | FinancialStatements
-        | FinancialSnapshot
-        | dict
-        | Sequence[BalanceSheet | FinancialStatements],
+        source: (
+            BalanceSheet
+            | FinancialStatements
+            | FinancialSnapshot
+            | dict
+            | Sequence[BalanceSheet | FinancialStatements]
+        ),
         *,
         history: Sequence[BalanceSheet | FinancialStatements] | None = None,
         allow_negative_equity: bool = False,
@@ -238,9 +243,15 @@ class BalanceSheetEngine:
                 and prev_cl is not None
             ):
                 prev_wc = prev_ca - prev_cl
-                delta = _safe_div(working_capital - prev_wc, abs(prev_wc) if prev_wc != 0 else None)
+                delta = _safe_div(
+                    working_capital - prev_wc, abs(prev_wc) if prev_wc != 0 else None
+                )
                 if delta is None and prev_wc == 0:
-                    delta = 0.0 if working_capital == 0 else (1.0 if working_capital > 0 else -1.0)
+                    delta = (
+                        0.0
+                        if working_capital == 0
+                        else (1.0 if working_capital > 0 else -1.0)
+                    )
                 wc_trend = _trend_from_delta(delta, improve_when_up=True)
                 out.append(
                     build_explanation(
@@ -269,13 +280,21 @@ class BalanceSheetEngine:
                 "quick_ratio",
                 "(current_assets - inventory) / current_liabilities",
                 quick_ratio,
-                {"current_assets": ca, "inventory": bs.inventory, "current_liabilities": cl},
+                {
+                    "current_assets": ca,
+                    "inventory": bs.inventory,
+                    "current_liabilities": cl,
+                },
             ),
             (
                 "cash_ratio",
                 "(cash + short_term_investments) / current_liabilities",
                 cash_ratio,
-                {"cash": cash, "short_term_investments": bs.short_term_investments, "current_liabilities": cl},
+                {
+                    "cash": cash,
+                    "short_term_investments": bs.short_term_investments,
+                    "current_liabilities": cl,
+                },
             ),
             (
                 "working_capital",
@@ -334,11 +353,36 @@ class BalanceSheetEngine:
             summary = "insufficient_data"
 
         for name, formula, result, inputs in (
-            ("debt_to_equity", "total_debt / equity", dte, {"debt": debt, "equity": equity}),
-            ("debt_to_assets", "total_debt / total_assets", dta, {"debt": debt, "total_assets": assets}),
-            ("equity_ratio", "equity / total_assets", equity_ratio, {"equity": equity, "total_assets": assets}),
-            ("net_debt", "total_debt - cash", net_debt, {"debt": debt, "cash": bs.cash}),
-            ("net_debt_to_equity", "net_debt / equity", ndte, {"net_debt": net_debt, "equity": equity}),
+            (
+                "debt_to_equity",
+                "total_debt / equity",
+                dte,
+                {"debt": debt, "equity": equity},
+            ),
+            (
+                "debt_to_assets",
+                "total_debt / total_assets",
+                dta,
+                {"debt": debt, "total_assets": assets},
+            ),
+            (
+                "equity_ratio",
+                "equity / total_assets",
+                equity_ratio,
+                {"equity": equity, "total_assets": assets},
+            ),
+            (
+                "net_debt",
+                "total_debt - cash",
+                net_debt,
+                {"debt": debt, "cash": bs.cash},
+            ),
+            (
+                "net_debt_to_equity",
+                "net_debt / equity",
+                ndte,
+                {"net_debt": net_debt, "equity": equity},
+            ),
         ):
             out.append(
                 build_explanation(
@@ -366,9 +410,7 @@ class BalanceSheetEngine:
             capital_structure_summary=summary,
         )
 
-    def _assets(
-        self, bs: BalanceSheet, out: list[MetricExplanation]
-    ) -> AssetMetrics:
+    def _assets(self, bs: BalanceSheet, out: list[MetricExplanation]) -> AssetMetrics:
         ta = bs.total_assets
         ca = _current_assets(bs)
         ca_comp = _safe_div(ca, ta)
@@ -389,13 +431,48 @@ class BalanceSheetEngine:
             quality = _clip01(0.5 + 0.5 * ca_comp)
 
         for name, formula, result, inputs in (
-            ("current_asset_composition", "current_assets / total_assets", ca_comp, {"current_assets": ca, "total_assets": ta}),
-            ("cash_concentration", "cash / total_assets", cash_c, {"cash": bs.cash, "total_assets": ta}),
-            ("inventory_concentration", "inventory / total_assets", inv_c, {"inventory": bs.inventory, "total_assets": ta}),
-            ("receivable_concentration", "accounts_receivable / total_assets", ar_c, {"accounts_receivable": bs.accounts_receivable, "total_assets": ta}),
-            ("goodwill_pct", "goodwill / total_assets", gw, {"goodwill": bs.goodwill, "total_assets": ta}),
-            ("intangible_asset_pct", "intangibles / total_assets", intang, {"intangibles": bs.intangibles, "total_assets": ta}),
-            ("asset_quality_score", "clip(1 - (goodwill+intangibles)/assets, 0, 1)", quality, {"goodwill_pct": gw, "intangible_pct": intang}),
+            (
+                "current_asset_composition",
+                "current_assets / total_assets",
+                ca_comp,
+                {"current_assets": ca, "total_assets": ta},
+            ),
+            (
+                "cash_concentration",
+                "cash / total_assets",
+                cash_c,
+                {"cash": bs.cash, "total_assets": ta},
+            ),
+            (
+                "inventory_concentration",
+                "inventory / total_assets",
+                inv_c,
+                {"inventory": bs.inventory, "total_assets": ta},
+            ),
+            (
+                "receivable_concentration",
+                "accounts_receivable / total_assets",
+                ar_c,
+                {"accounts_receivable": bs.accounts_receivable, "total_assets": ta},
+            ),
+            (
+                "goodwill_pct",
+                "goodwill / total_assets",
+                gw,
+                {"goodwill": bs.goodwill, "total_assets": ta},
+            ),
+            (
+                "intangible_asset_pct",
+                "intangibles / total_assets",
+                intang,
+                {"intangibles": bs.intangibles, "total_assets": ta},
+            ),
+            (
+                "asset_quality_score",
+                "clip(1 - (goodwill+intangibles)/assets, 0, 1)",
+                quality,
+                {"goodwill_pct": gw, "intangible_pct": intang},
+            ),
         ):
             out.append(
                 build_explanation(
@@ -437,11 +514,39 @@ class BalanceSheetEngine:
         deferred_exp = _safe_div(bs.deferred_tax, tl)
 
         for name, formula, result, inputs in (
-            ("current_liability_mix", "current_liabilities / total_liabilities", cl_mix, {"current_liabilities": bs.current_liabilities, "total_liabilities": tl}),
-            ("long_term_liability_mix", "1 - current_liability_mix", lt_mix, {"current_liability_mix": cl_mix}),
-            ("debt_structure", "long_term_debt / total_debt", debt_structure, {"long_term_debt": bs.long_term_debt, "total_debt": debt}),
-            ("lease_liability_exposure", "lease_liabilities / total_liabilities", lease_exp, {"lease_liabilities": bs.lease_liabilities, "total_liabilities": tl}),
-            ("deferred_tax_exposure", "deferred_tax / total_liabilities", deferred_exp, {"deferred_tax": bs.deferred_tax, "total_liabilities": tl}),
+            (
+                "current_liability_mix",
+                "current_liabilities / total_liabilities",
+                cl_mix,
+                {
+                    "current_liabilities": bs.current_liabilities,
+                    "total_liabilities": tl,
+                },
+            ),
+            (
+                "long_term_liability_mix",
+                "1 - current_liability_mix",
+                lt_mix,
+                {"current_liability_mix": cl_mix},
+            ),
+            (
+                "debt_structure",
+                "long_term_debt / total_debt",
+                debt_structure,
+                {"long_term_debt": bs.long_term_debt, "total_debt": debt},
+            ),
+            (
+                "lease_liability_exposure",
+                "lease_liabilities / total_liabilities",
+                lease_exp,
+                {"lease_liabilities": bs.lease_liabilities, "total_liabilities": tl},
+            ),
+            (
+                "deferred_tax_exposure",
+                "deferred_tax / total_liabilities",
+                deferred_exp,
+                {"deferred_tax": bs.deferred_tax, "total_liabilities": tl},
+            ),
         ):
             out.append(
                 build_explanation(
@@ -498,12 +603,49 @@ class BalanceSheetEngine:
                 capital_quality = _clip01(eq_ratio * max(0.0, tang_share))
 
         for name, formula, result, inputs in (
-            ("book_value", "total_equity (or equity)", book, {"total_equity": bs.total_equity, "equity": bs.equity}),
-            ("tangible_book_value", "book_value - goodwill - intangibles", tangible, {"book_value": book, "goodwill": bs.goodwill, "intangibles": bs.intangibles}),
-            ("retained_earnings_ratio", "retained_earnings / book_value", re_ratio, {"retained_earnings": bs.retained_earnings, "book_value": book}),
-            ("treasury_share_impact", "|treasury_shares| / book_value", treasury_impact, {"treasury_shares": bs.treasury_shares, "book_value": book}),
-            ("equity_growth", "(equity_t - equity_t-1) / |equity_t-1|", equity_growth, {"current": book, "prior": _equity(balances[-2]) if len(balances) >= 2 else None}),
-            ("capital_quality", "clip(equity_ratio × tangible_share)", capital_quality, {"equity_ratio": eq_ratio, "tangible_share": tang_share}),
+            (
+                "book_value",
+                "total_equity (or equity)",
+                book,
+                {"total_equity": bs.total_equity, "equity": bs.equity},
+            ),
+            (
+                "tangible_book_value",
+                "book_value - goodwill - intangibles",
+                tangible,
+                {
+                    "book_value": book,
+                    "goodwill": bs.goodwill,
+                    "intangibles": bs.intangibles,
+                },
+            ),
+            (
+                "retained_earnings_ratio",
+                "retained_earnings / book_value",
+                re_ratio,
+                {"retained_earnings": bs.retained_earnings, "book_value": book},
+            ),
+            (
+                "treasury_share_impact",
+                "|treasury_shares| / book_value",
+                treasury_impact,
+                {"treasury_shares": bs.treasury_shares, "book_value": book},
+            ),
+            (
+                "equity_growth",
+                "(equity_t - equity_t-1) / |equity_t-1|",
+                equity_growth,
+                {
+                    "current": book,
+                    "prior": _equity(balances[-2]) if len(balances) >= 2 else None,
+                },
+            ),
+            (
+                "capital_quality",
+                "clip(equity_ratio × tangible_share)",
+                capital_quality,
+                {"equity_ratio": eq_ratio, "tangible_share": tang_share},
+            ),
         ):
             out.append(
                 build_explanation(
@@ -549,7 +691,9 @@ class BalanceSheetEngine:
             inv_eff = _clip01(1.0 - assets.inventory_concentration)
         recv_dep = assets.receivable_concentration
         # Liquidity buffer: cash ratio clipped
-        buffer = _clip01(liquidity.cash_ratio) if liquidity.cash_ratio is not None else None
+        buffer = (
+            _clip01(liquidity.cash_ratio) if liquidity.cash_ratio is not None else None
+        )
         # Short-term solvency: current ratio scaled (2.0 → 1.0)
         solvency = None
         if liquidity.current_ratio is not None:
@@ -558,7 +702,11 @@ class BalanceSheetEngine:
         liq_q = solvency
         cap_q = equity.capital_quality
         asset_q = assets.asset_quality_score
-        debt_burden = _clip01(leverage.debt_to_assets) if leverage.debt_to_assets is not None else None
+        debt_burden = (
+            _clip01(leverage.debt_to_assets)
+            if leverage.debt_to_assets is not None
+            else None
+        )
         # Flexibility: high equity, low net debt/equity, strong liquidity
         flex = None
         parts = [p for p in (solvency, cap_q, asset_q) if p is not None]
@@ -602,7 +750,9 @@ class BalanceSheetEngine:
                 if owc is not None and prev_owc is not None:
                     owc_change = owc - prev_owc
                     owc_change_rate = period_change_rate(owc, prev_owc)
-                ar_g = period_change_rate(bs.accounts_receivable, prev.accounts_receivable)
+                ar_g = period_change_rate(
+                    bs.accounts_receivable, prev.accounts_receivable
+                )
                 inv_g = period_change_rate(bs.inventory, prev.inventory)
                 ap_g = period_change_rate(bs.accounts_payable, prev.accounts_payable)
                 rev_g = period_change_rate(
@@ -721,9 +871,8 @@ class BalanceSheetEngine:
             flags.append(BalanceQualityFlag.HIGH_INTANGIBLE_ASSETS)
 
         if (
-            (liquidity.working_capital is not None and liquidity.working_capital < 0)
-            or (cr is not None and cr < _WEAK_CURRENT)
-        ):
+            liquidity.working_capital is not None and liquidity.working_capital < 0
+        ) or (cr is not None and cr < _WEAK_CURRENT):
             flags.append(BalanceQualityFlag.WORKING_CAPITAL_PRESSURE)
 
         if leverage.equity_ratio is not None:
@@ -786,7 +935,9 @@ class BalanceSheetEngine:
             prev_soft = (prev_gw or 0.0) + (prev_int or 0.0)
         cur_soft = None
         if assets.goodwill_pct is not None or assets.intangible_asset_pct is not None:
-            cur_soft = (assets.goodwill_pct or 0.0) + (assets.intangible_asset_pct or 0.0)
+            cur_soft = (assets.goodwill_pct or 0.0) + (
+                assets.intangible_asset_pct or 0.0
+            )
         soft_delta = None
         if cur_soft is not None and prev_soft is not None:
             soft_delta = cur_soft - prev_soft

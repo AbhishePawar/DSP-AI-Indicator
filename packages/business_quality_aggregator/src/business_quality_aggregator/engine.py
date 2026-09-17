@@ -6,13 +6,6 @@ Distinct from F3.7 ``business_quality.BusinessQualityAggregator``.
 from __future__ import annotations
 
 from business_quality import BusinessQualityAnalysis
-from earnings_quality import EarningsQualityAnalysis, EarningsQualityEngine
-from economic_moat import EconomicAnalysis, EconomicEngine
-from financial import FinancialAnalysis
-from financial_strength import FinancialStrengthAnalysis, FinancialStrengthEngine
-from growth_quality import GrowthQualityAnalysis, GrowthQualityEngine
-from management_quality import ManagementAnalysis, ManagementEngine
-
 from business_quality_aggregator.adapters import extract_component_result
 from business_quality_aggregator.conflicts import resolve_conflicts
 from business_quality_aggregator.exceptions import (
@@ -47,6 +40,12 @@ from business_quality_aggregator.scoring import (
     weighted_mean,
 )
 from business_quality_aggregator.validation import validate_framework_inputs
+from earnings_quality import EarningsQualityAnalysis, EarningsQualityEngine
+from economic_moat import EconomicAnalysis, EconomicEngine
+from financial import FinancialAnalysis
+from financial_strength import FinancialStrengthAnalysis, FinancialStrengthEngine
+from growth_quality import GrowthQualityAnalysis, GrowthQualityEngine
+from management_quality import ManagementAnalysis, ManagementEngine
 
 __all__ = ["BusinessQualityAggregatorEngine"]
 
@@ -115,9 +114,7 @@ class BusinessQualityAggregatorEngine:
             metadata=effective_metadata,
         )
         if not validation.ok:
-            raise BusinessQualityAggregatorValidationError(
-                "; ".join(validation.errors)
-            )
+            raise BusinessQualityAggregatorValidationError("; ".join(validation.errors))
 
         components = (
             extract_component_result(

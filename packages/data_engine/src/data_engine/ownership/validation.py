@@ -2,13 +2,13 @@
 
 from __future__ import annotations
 
+from data_engine.connector_framework.models import ConnectorField
 from data_engine.exceptions import InvalidProviderDataError
 from data_engine.ownership.models import (
     OWNERSHIP_HOLDER_TYPES,
     AuthenticatedOwnership,
     OwnershipStake,
 )
-from data_engine.connector_framework.models import ConnectorField
 
 __all__ = ["validate_authenticated_ownership"]
 
@@ -19,9 +19,13 @@ _DISALLOWED_SOURCE = frozenset(
 
 def _check_field(name: str, f: ConnectorField) -> None:
     if f.available and f.value is None:
-        raise InvalidProviderDataError(f"ownership field '{name}' marked available with null value")
+        raise InvalidProviderDataError(
+            f"ownership field '{name}' marked available with null value"
+        )
     if not f.available and f.value is not None:
-        raise InvalidProviderDataError(f"ownership field '{name}' has value but marked unavailable")
+        raise InvalidProviderDataError(
+            f"ownership field '{name}' has value but marked unavailable"
+        )
 
 
 def _validate_stake(stake: OwnershipStake, index: int) -> None:
@@ -44,9 +48,13 @@ def validate_authenticated_ownership(bundle: AuthenticatedOwnership) -> None:
     if not bundle.identity.symbol or not str(bundle.identity.symbol).strip():
         raise InvalidProviderDataError("ownership bundle missing identity.symbol")
     if not bundle.provenance.provider_id.strip():
-        raise InvalidProviderDataError("ownership bundle missing provider_id provenance")
+        raise InvalidProviderDataError(
+            "ownership bundle missing provider_id provenance"
+        )
     if not bundle.provenance.provider_name.strip():
-        raise InvalidProviderDataError("ownership bundle missing provider_name provenance")
+        raise InvalidProviderDataError(
+            "ownership bundle missing provider_name provenance"
+        )
     if bundle.provenance.source_type.strip().lower() in _DISALLOWED_SOURCE:
         raise InvalidProviderDataError(
             f"disallowed provenance source_type={bundle.provenance.source_type!r}"

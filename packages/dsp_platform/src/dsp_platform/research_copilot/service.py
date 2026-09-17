@@ -6,7 +6,8 @@ Explains R001/R002/R004/R005 outputs only — never calculates or fabricates.
 from __future__ import annotations
 
 import uuid
-from typing import Any, Mapping
+from collections.abc import Mapping
+from typing import Any
 
 from dsp_platform.research_copilot.answer import build_grounded_answer
 from dsp_platform.research_copilot.context import build_research_context

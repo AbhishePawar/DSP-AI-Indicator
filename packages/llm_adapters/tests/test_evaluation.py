@@ -35,7 +35,6 @@ from llm_adapters.model_catalog import (
     list_identities,
 )
 
-
 # --- pricing + identity ----------------------------------------------------
 
 
@@ -79,7 +78,9 @@ def test_pricing_is_configuration_not_hardcoded() -> None:
         limits=DEFAULT_CATALOG["openai:gpt-4o-mini"].limits,
         pricing=custom_pricing,
     )
-    cost = calculate_estimated_cost(TokenUsage(input_tokens=1_000_000, output_tokens=500_000), info.pricing)
+    cost = calculate_estimated_cost(
+        TokenUsage(input_tokens=1_000_000, output_tokens=500_000), info.pricing
+    )
     assert cost == pytest.approx(20.0)  # 10*1 + 20*0.5
 
 
@@ -89,11 +90,17 @@ def test_pricing_is_configuration_not_hardcoded() -> None:
 def test_calculate_estimated_cost_basic() -> None:
     pricing = ModelPricing(input_usd_per_1m=0.15, output_usd_per_1m=0.60)
     # 1M input + 0 output = $0.15
-    assert calculate_estimated_cost(TokenUsage(1_000_000, 0), pricing) == pytest.approx(0.15)
+    assert calculate_estimated_cost(TokenUsage(1_000_000, 0), pricing) == pytest.approx(
+        0.15
+    )
     # 0 input + 1M output = $0.60
-    assert calculate_estimated_cost(TokenUsage(0, 1_000_000), pricing) == pytest.approx(0.60)
+    assert calculate_estimated_cost(TokenUsage(0, 1_000_000), pricing) == pytest.approx(
+        0.60
+    )
     # 100k in + 100k out = 0.015 + 0.06 = 0.075
-    assert calculate_estimated_cost(TokenUsage(100_000, 100_000), pricing) == pytest.approx(0.075)
+    assert calculate_estimated_cost(
+        TokenUsage(100_000, 100_000), pricing
+    ) == pytest.approx(0.075)
 
 
 def test_calculate_estimated_cost_zero_tokens() -> None:
@@ -149,21 +156,29 @@ def _result(model_id: str, cost: float, quality: QualityEvaluation) -> Evaluatio
 
 def test_calculate_cost_score_cheapest_is_100() -> None:
     r1 = _result("openai:gpt-4o-mini", 0.01, QualityEvaluation(factual_accuracy=0.5))
-    r2 = _result("anthropic:claude-3-5-sonnet-20241022", 0.10, QualityEvaluation(factual_accuracy=0.5))
+    r2 = _result(
+        "anthropic:claude-3-5-sonnet-20241022",
+        0.10,
+        QualityEvaluation(factual_accuracy=0.5),
+    )
     assert calculate_cost_score([r1, r2], r1) == pytest.approx(100.0)
     assert calculate_cost_score([r1, r2], r2) == pytest.approx(0.0)
 
 
 def test_calculate_cost_score_equal_costs_is_100() -> None:
     r1 = _result("openai:gpt-4o-mini", 0.05, QualityEvaluation(factual_accuracy=0.5))
-    r2 = _result("gemini:gemini-1.5-flash", 0.05, QualityEvaluation(factual_accuracy=0.5))
+    r2 = _result(
+        "gemini:gemini-1.5-flash", 0.05, QualityEvaluation(factual_accuracy=0.5)
+    )
     assert calculate_cost_score([r1, r2], r1) == 100.0
     assert calculate_cost_score([r1, r2], r2) == 100.0
 
 
 def test_calculate_cost_score_zero_target_is_zero() -> None:
     r1 = _result("openai:gpt-4o-mini", 0.0, QualityEvaluation(factual_accuracy=0.5))
-    r2 = _result("gemini:gemini-1.5-flash", 0.05, QualityEvaluation(factual_accuracy=0.5))
+    r2 = _result(
+        "gemini:gemini-1.5-flash", 0.05, QualityEvaluation(factual_accuracy=0.5)
+    )
     assert calculate_cost_score([r1, r2], r1) == 0.0
 
 
@@ -186,7 +201,9 @@ def test_calculate_overall_score_rejects_out_of_range() -> None:
 
 def test_score_evaluations_sorts_descending() -> None:
     # Cheap+low-quality vs expensive+high-quality vs mid
-    r1 = _result("gemini:gemini-1.5-flash", 0.001, QualityEvaluation(factual_accuracy=0.3))
+    r1 = _result(
+        "gemini:gemini-1.5-flash", 0.001, QualityEvaluation(factual_accuracy=0.3)
+    )
     r2 = _result(
         "anthropic:claude-3-5-sonnet-20241022",
         0.10,

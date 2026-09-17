@@ -46,7 +46,9 @@ class TestResolveMarketSnapshot:
             end=date(2024, 6, 1),
             market_cap=123.0,
         )
-        market = resolve_market_snapshot(request, _snapshot(instrument, market_cap=999.0))
+        market = resolve_market_snapshot(
+            request, _snapshot(instrument, market_cap=999.0)
+        )
         assert market is not None
         assert market.market_cap == pytest.approx(123.0)
 
@@ -56,7 +58,9 @@ class TestResolveMarketSnapshot:
             start=date(2024, 1, 1),
             end=date(2024, 6, 1),
         )
-        market = resolve_market_snapshot(request, _snapshot(instrument, market_cap=456.0))
+        market = resolve_market_snapshot(
+            request, _snapshot(instrument, market_cap=456.0)
+        )
         assert market is not None
         assert market.market_cap == pytest.approx(456.0)
 

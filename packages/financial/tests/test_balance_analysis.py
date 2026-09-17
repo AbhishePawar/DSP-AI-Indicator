@@ -85,7 +85,9 @@ def _bs(**kwargs) -> BalanceSheet:
     return BalanceSheet(**data)
 
 
-def _stmt(bs: BalanceSheet, period: FinancialPeriod | None = None) -> FinancialStatements:
+def _stmt(
+    bs: BalanceSheet, period: FinancialPeriod | None = None
+) -> FinancialStatements:
     return FinancialStatements(
         period=period or _period(),
         balance_sheet=bs,
@@ -107,21 +109,31 @@ class TestValidation:
 
     def test_negative_assets(self) -> None:
         with pytest.raises(BalanceAnalysisError, match="Negative Total Assets"):
-            validate_balance_for_analysis(BalanceSheet(total_assets=-1.0, total_liabilities=0.0, total_equity=-1.0))
+            validate_balance_for_analysis(
+                BalanceSheet(
+                    total_assets=-1.0, total_liabilities=0.0, total_equity=-1.0
+                )
+            )
 
     def test_zero_assets(self) -> None:
         with pytest.raises(BalanceAnalysisError, match="Impossible ratios"):
-            validate_balance_for_analysis(BalanceSheet(total_assets=0.0, total_liabilities=0.0, total_equity=0.0))
+            validate_balance_for_analysis(
+                BalanceSheet(total_assets=0.0, total_liabilities=0.0, total_equity=0.0)
+            )
 
     def test_negative_equity(self) -> None:
         with pytest.raises(BalanceAnalysisError, match="Negative Equity"):
             validate_balance_for_analysis(
-                BalanceSheet(total_assets=100.0, total_liabilities=150.0, total_equity=-50.0)
+                BalanceSheet(
+                    total_assets=100.0, total_liabilities=150.0, total_equity=-50.0
+                )
             )
 
     def test_allow_negative_equity(self) -> None:
         result = validate_balance_for_analysis(
-            BalanceSheet(total_assets=100.0, total_liabilities=150.0, total_equity=-50.0),
+            BalanceSheet(
+                total_assets=100.0, total_liabilities=150.0, total_equity=-50.0
+            ),
             allow_negative_equity=True,
         )
         assert result.ok
@@ -129,7 +141,9 @@ class TestValidation:
     def test_accounting_equation_fail(self) -> None:
         with pytest.raises(BalanceAnalysisError, match="Assets"):
             validate_balance_for_analysis(
-                BalanceSheet(total_assets=100.0, total_liabilities=10.0, total_equity=10.0)
+                BalanceSheet(
+                    total_assets=100.0, total_liabilities=10.0, total_equity=10.0
+                )
             )
 
     def test_nan_inf(self) -> None:
@@ -187,11 +201,21 @@ class TestCoerce:
         b, s, meta = coerce_balance_series(_stmt(_bs()))
         assert meta["period_end"] == "2024-12-31"
         snap = _snap(
-            (_bs(total_assets=900.0, total_liabilities=400.0, total_equity=500.0, equity=500.0), _period(end=date(2023, 12, 31), fy=2023)),
+            (
+                _bs(
+                    total_assets=900.0,
+                    total_liabilities=400.0,
+                    total_equity=500.0,
+                    equity=500.0,
+                ),
+                _period(end=date(2023, 12, 31), fy=2023),
+            ),
             (_bs(), _period(end=date(2024, 12, 31), fy=2024)),
         )
         # reverse order
-        snap2 = FinancialSnapshot(company=snap.company, statements=(snap.statements[1], snap.statements[0]))
+        snap2 = FinancialSnapshot(
+            company=snap.company, statements=(snap.statements[1], snap.statements[0])
+        )
         balances, _, meta = coerce_balance_series(snap2)
         assert balances[0].total_assets == 900.0
         assert meta["ticker"] == "ACM"
@@ -212,8 +236,15 @@ class TestCoerce:
 
     def test_dicts(self) -> None:
         assert coerce_balance_series(_bs().to_dict())[0][0].total_assets == 1000.0
-        assert coerce_balance_series(_stmt(_bs()).to_dict())[0][0].total_assets == 1000.0
-        assert coerce_balance_series(_snap((_bs(), _period())).to_dict())[0][0].total_assets == 1000.0
+        assert (
+            coerce_balance_series(_stmt(_bs()).to_dict())[0][0].total_assets == 1000.0
+        )
+        assert (
+            coerce_balance_series(_snap((_bs(), _period())).to_dict())[0][
+                0
+            ].total_assets
+            == 1000.0
+        )
 
     def test_bad_dict(self) -> None:
         with pytest.raises(BalanceAnalysisError, match="Unsupported"):
@@ -502,8 +533,12 @@ class TestHelpers:
         assert _clip01(-0.2) == 0.0
         assert _trend_from_delta(None) is TrendDirection.STABLE
         assert _trend_from_delta(0.01) is TrendDirection.STABLE
-        assert _trend_from_delta(0.05, improve_when_up=False) is TrendDirection.WEAKENING
-        assert _trend_from_delta(-0.05, improve_when_up=False) is TrendDirection.IMPROVING
+        assert (
+            _trend_from_delta(0.05, improve_when_up=False) is TrendDirection.WEAKENING
+        )
+        assert (
+            _trend_from_delta(-0.05, improve_when_up=False) is TrendDirection.IMPROVING
+        )
 
     def test_wc_pressure_via_current_ratio_only(self) -> None:
         """Cash alone composes current assets → WC pressure when CR < 1."""
@@ -533,7 +568,9 @@ class TestEngineFacade:
         # income still works
         from financial.income_statement import IncomeStatement
 
-        inc = engine.analyze_income_statement(IncomeStatement(revenue=100.0, net_income=10.0))
+        inc = engine.analyze_income_statement(
+            IncomeStatement(revenue=100.0, net_income=10.0)
+        )
         assert inc.margins.net_margin == pytest.approx(0.1)
 
     def test_performance(self) -> None:

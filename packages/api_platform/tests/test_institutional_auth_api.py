@@ -2,11 +2,18 @@
 
 from __future__ import annotations
 
+from datetime import UTC, datetime
+
 import pytest
 from fastapi.testclient import TestClient
 
 from api_platform.api.app import create_app
-from auth import AuthService, RoleRegistry, reset_auth_service_for_tests, reset_role_registry_for_tests
+from auth import (
+    AuthService,
+    RoleRegistry,
+    reset_auth_service_for_tests,
+    reset_role_registry_for_tests,
+)
 from persistence import (
     InMemoryStorageProvider,
     PersistenceService,
@@ -15,10 +22,7 @@ from persistence import (
     reset_repository_registry_for_tests,
 )
 
-from datetime import UTC, datetime
-
 FIXED = datetime.now(UTC).replace(microsecond=0).isoformat()
-
 
 
 @pytest.fixture()

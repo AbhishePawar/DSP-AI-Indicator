@@ -3,10 +3,10 @@
 from __future__ import annotations
 
 import pytest
+from auth_test_helpers import admin_headers
 from fastapi.testclient import TestClient
 
 from api_platform import create_app
-from auth_test_helpers import admin_headers
 from dsp_platform import DSPPlatform, PlatformBuilder, PlatformConfiguration
 
 

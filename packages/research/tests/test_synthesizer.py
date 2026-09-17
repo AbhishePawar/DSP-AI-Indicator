@@ -19,9 +19,9 @@ from research import (
     ResearchError,
     ResearchIdentity,
     ResearchPriorityLevel,
-    ResearchSynthesizer,
     ResearchSynthesisContext,
     ResearchSynthesisStatus,
+    ResearchSynthesizer,
     RiskReference,
 )
 
@@ -52,17 +52,13 @@ def _assembled(*, full: bool = False, evidence_only: bool = False):
             identity=_identity(),
             evidence_refs=(_evidence(),),
             decision_refs=(
-                DecisionReference(
-                    instrument_symbol="AAA", digest="abcdef0123456789"
-                ),
+                DecisionReference(instrument_symbol="AAA", digest="abcdef0123456789"),
             ),
             comparison_refs=(ComparisonReference(digest="abcdef0123456789"),),
             portfolio_ref=PortfolioReference(portfolio_id="dsp.portfolio.demo"),
             monitoring_ref=MonitoringReference(portfolio_id="dsp.portfolio.demo"),
             risk_refs=(RiskReference(risk_id="dsp.risk.demo"),),
-            integrated_risk_refs=(
-                IntegratedRiskReference(risk_id="dsp.risk.demo"),
-            ),
+            integrated_risk_refs=(IntegratedRiskReference(risk_id="dsp.risk.demo"),),
             as_of="2026-07-21",
         )
     else:
@@ -70,9 +66,7 @@ def _assembled(*, full: bool = False, evidence_only: bool = False):
             identity=_identity(),
             evidence_refs=(_evidence(),),
             decision_refs=(
-                DecisionReference(
-                    instrument_symbol="AAA", digest="abcdef0123456789"
-                ),
+                DecisionReference(instrument_symbol="AAA", digest="abcdef0123456789"),
             ),
             portfolio_ref=PortfolioReference(portfolio_id="dsp.portfolio.demo"),
             as_of="2026-07-21",
@@ -94,7 +88,9 @@ class TestSynthesis:
             assert insight.observation_ids
 
     def test_gaps_and_conflicts(self) -> None:
-        result = ResearchSynthesizer().synthesize(_assembled(evidence_only=True).profile)
+        result = ResearchSynthesizer().synthesize(
+            _assembled(evidence_only=True).profile
+        )
         assert result.gaps
         assert result.conflicts
         assert result.status is ResearchSynthesisStatus.PARTIAL
@@ -113,7 +109,10 @@ class TestSynthesis:
         )
         levels = {p.level for p in result.agenda.priorities}
         assert levels <= set(ResearchPriorityLevel)
-        assert ResearchPriorityLevel.CRITICAL in levels or ResearchPriorityLevel.HIGH in levels
+        assert (
+            ResearchPriorityLevel.CRITICAL in levels
+            or ResearchPriorityLevel.HIGH in levels
+        )
 
     def test_immutability(self) -> None:
         result = ResearchSynthesizer().synthesize(_assembled().profile)
@@ -163,10 +162,7 @@ class TestValidation:
 class TestArchitectureAndCompatibility:
     def test_architecture_boundaries(self) -> None:
         path = (
-            Path(__file__).resolve().parents[1]
-            / "src"
-            / "research"
-            / "synthesizer.py"
+            Path(__file__).resolve().parents[1] / "src" / "research" / "synthesizer.py"
         )
         source = path.read_text(encoding="utf-8")
         tree = ast.parse(source)

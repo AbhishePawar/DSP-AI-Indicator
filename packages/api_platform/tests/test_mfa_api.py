@@ -17,7 +17,12 @@ import pytest
 from fastapi.testclient import TestClient
 
 from api_platform.api.app import create_app
-from auth import AuthService, RoleRegistry, reset_auth_service_for_tests, reset_role_registry_for_tests
+from auth import (
+    AuthService,
+    RoleRegistry,
+    reset_auth_service_for_tests,
+    reset_role_registry_for_tests,
+)
 from auth.enterprise_platform import (
     EnterpriseAuthPlatform,
     reset_enterprise_auth_platform_for_tests,
@@ -77,7 +82,9 @@ def _make_user(env: EnterpriseAuthPlatform, suffix: str = "1") -> tuple[str, str
         username=f"mfaapiuser{suffix}",
     )
     env.verify_email(reg["verification_token"])
-    login = env.login_password(identifier=f"mfaapiuser{suffix}", password="StrongPass1!")
+    login = env.login_password(
+        identifier=f"mfaapiuser{suffix}", password="StrongPass1!"
+    )
     return str(reg["user"]["user_id"]), str(login["tokens"]["access_token"])
 
 
@@ -87,16 +94,23 @@ def _enroll_via_api(client: TestClient, token: str) -> dict:
     assert begin.status_code == 200, begin.text
     secret = begin.json()["result"]["secret"]
     code = totp_at(secret)
-    enable = client.post("/api/v1/auth/mfa/enable", json={"code": code}, headers=headers)
+    enable = client.post(
+        "/api/v1/auth/mfa/enable", json={"code": code}, headers=headers
+    )
     assert enable.status_code == 200, enable.text
-    return {"secret": secret, "recovery_codes": enable.json()["result"]["recovery_codes"]}
+    return {
+        "secret": secret,
+        "recovery_codes": enable.json()["result"]["recovery_codes"],
+    }
 
 
 def test_enroll_requires_authentication(client: TestClient) -> None:
     assert client.post("/api/v1/auth/mfa/enroll").status_code == 400
 
 
-def test_enroll_returns_secret_and_qr(client: TestClient, env: EnterpriseAuthPlatform) -> None:
+def test_enroll_returns_secret_and_qr(
+    client: TestClient, env: EnterpriseAuthPlatform
+) -> None:
     _, token = _make_user(env)
     resp = client.post(
         "/api/v1/auth/mfa/enroll", headers={"Authorization": f"Bearer {token}"}
@@ -116,15 +130,21 @@ def test_enable_activates_mfa_and_returns_recovery_codes(
     assert env.mfa.totp.is_enrolled(user_id) is True
 
 
-def test_enable_rejects_invalid_code(client: TestClient, env: EnterpriseAuthPlatform) -> None:
+def test_enable_rejects_invalid_code(
+    client: TestClient, env: EnterpriseAuthPlatform
+) -> None:
     _, token = _make_user(env)
     headers = {"Authorization": f"Bearer {token}"}
     client.post("/api/v1/auth/mfa/enroll", headers=headers)
-    resp = client.post("/api/v1/auth/mfa/enable", json={"code": "000000"}, headers=headers)
+    resp = client.post(
+        "/api/v1/auth/mfa/enable", json={"code": "000000"}, headers=headers
+    )
     assert resp.status_code == 401
 
 
-def test_login_then_verify_step_up_flow(client: TestClient, env: EnterpriseAuthPlatform) -> None:
+def test_login_then_verify_step_up_flow(
+    client: TestClient, env: EnterpriseAuthPlatform
+) -> None:
     user_id, token = _make_user(env, "2")
     enrolled = _enroll_via_api(client, token)
 
@@ -158,7 +178,9 @@ def test_login_then_verify_step_up_flow(client: TestClient, env: EnterpriseAuthP
     assert events
 
 
-def test_verify_rejects_invalid_code(client: TestClient, env: EnterpriseAuthPlatform) -> None:
+def test_verify_rejects_invalid_code(
+    client: TestClient, env: EnterpriseAuthPlatform
+) -> None:
     user_id, token = _make_user(env, "3")
     _enroll_via_api(client, token)
     login_resp = client.post(
@@ -176,14 +198,22 @@ def test_verify_rejects_invalid_code(client: TestClient, env: EnterpriseAuthPlat
     assert env.audit.list_events(user_id=user_id, event_type="mfa.verify.failure")
 
 
-def test_disable_requires_current_password(client: TestClient, env: EnterpriseAuthPlatform) -> None:
+def test_disable_requires_current_password(
+    client: TestClient, env: EnterpriseAuthPlatform
+) -> None:
     _, token = _make_user(env, "4")
     _enroll_via_api(client, token)
-    resp = client.post("/api/v1/auth/mfa/disable", json={}, headers={"Authorization": f"Bearer {token}"})
+    resp = client.post(
+        "/api/v1/auth/mfa/disable",
+        json={},
+        headers={"Authorization": f"Bearer {token}"},
+    )
     assert resp.status_code == 422  # Pydantic — current_password is mandatory
 
 
-def test_disable_rejects_wrong_password(client: TestClient, env: EnterpriseAuthPlatform) -> None:
+def test_disable_rejects_wrong_password(
+    client: TestClient, env: EnterpriseAuthPlatform
+) -> None:
     _, token = _make_user(env, "5")
     _enroll_via_api(client, token)
     resp = client.post(
@@ -194,7 +224,9 @@ def test_disable_rejects_wrong_password(client: TestClient, env: EnterpriseAuthP
     assert resp.status_code == 401
 
 
-def test_disable_succeeds_with_correct_password(client: TestClient, env: EnterpriseAuthPlatform) -> None:
+def test_disable_succeeds_with_correct_password(
+    client: TestClient, env: EnterpriseAuthPlatform
+) -> None:
     user_id, token = _make_user(env, "6")
     _enroll_via_api(client, token)
     resp = client.post(
@@ -207,7 +239,9 @@ def test_disable_succeeds_with_correct_password(client: TestClient, env: Enterpr
     assert env.audit.list_events(user_id=user_id, event_type="mfa.disable")
 
 
-def test_recovery_codes_status_endpoint(client: TestClient, env: EnterpriseAuthPlatform) -> None:
+def test_recovery_codes_status_endpoint(
+    client: TestClient, env: EnterpriseAuthPlatform
+) -> None:
     _, token = _make_user(env, "7")
     _enroll_via_api(client, token)
     resp = client.get(
@@ -234,7 +268,9 @@ def test_recovery_codes_regenerate_requires_password(
     assert resp.status_code == 422
 
 
-def test_recovery_codes_regenerate_success(client: TestClient, env: EnterpriseAuthPlatform) -> None:
+def test_recovery_codes_regenerate_success(
+    client: TestClient, env: EnterpriseAuthPlatform
+) -> None:
     user_id, token = _make_user(env, "9")
     enrolled = _enroll_via_api(client, token)
     resp = client.post(
@@ -261,7 +297,9 @@ def test_mfa_routes_report_501_when_disabled(monkeypatch: pytest.MonkeyPatch) ->
     reset_role_registry_for_tests(RoleRegistry())
     auth = AuthService(ps, jwt_secret="test-secret")
     reset_auth_service_for_tests(auth)
-    platform = EnterpriseAuthPlatform(auth, oauth=OAuthProviderRegistry({}), otp=OtpService(DevSmsAdapter()))
+    platform = EnterpriseAuthPlatform(
+        auth, oauth=OAuthProviderRegistry({}), otp=OtpService(DevSmsAdapter())
+    )
     reset_enterprise_auth_platform_for_tests(platform)
     try:
         _, token = _make_user(platform)
@@ -272,7 +310,8 @@ def test_mfa_routes_report_501_when_disabled(monkeypatch: pytest.MonkeyPatch) ->
             )
             assert resp.status_code == 501
             resp2 = c.get(
-                "/api/v1/auth/mfa/recovery-codes", headers={"Authorization": f"Bearer {token}"}
+                "/api/v1/auth/mfa/recovery-codes",
+                headers={"Authorization": f"Bearer {token}"},
             )
             assert resp2.status_code == 501
     finally:

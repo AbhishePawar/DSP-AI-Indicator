@@ -91,16 +91,15 @@ def validate_relative_inputs(inputs: RelativeInputs) -> ValidationSummary:
                 _finite(v, f"{scope_name}.{attr}", errors)
                 if v <= 0 and inputs.method is not RelativeMultiple.DIVIDEND_YIELD:
                     errors.append(f"impossible multiple {scope_name}.{attr}={v}")
-                if (
-                    inputs.method is RelativeMultiple.DIVIDEND_YIELD
-                    and v < 0
-                ):
+                if inputs.method is RelativeMultiple.DIVIDEND_YIELD and v < 0:
                     errors.append(f"impossible yield {scope_name}.{attr}={v}")
 
     shared = ValidationEngine().summarize(
         {
             "shares_outstanding": inputs.shares_outstanding,
-            "revenue": inputs.revenue if inputs.revenue and inputs.revenue > 0 else None,
+            "revenue": (
+                inputs.revenue if inputs.revenue and inputs.revenue > 0 else None
+            ),
         }
     )
     errors.extend(shared.errors)

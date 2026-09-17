@@ -57,9 +57,7 @@ def _ctx(
             portfolio_ref=PortfolioReference(portfolio_id="dsp.portfolio.demo"),
             monitoring_ref=MonitoringReference(portfolio_id="dsp.portfolio.demo"),
             risk_refs=(RiskReference(risk_id="dsp.risk.demo"),),
-            integrated_risk_refs=(
-                IntegratedRiskReference(risk_id="dsp.risk.demo"),
-            ),
+            integrated_risk_refs=(IntegratedRiskReference(risk_id="dsp.risk.demo"),),
             as_of="2026-07-21",
         )
     return ResearchAssemblyContext(
@@ -128,23 +126,21 @@ class TestValidation:
                 ResearchAssemblyContext(
                     identity=_identity(),
                     evidence_refs=(),
-                    portfolio_ref=PortfolioReference(
-                        portfolio_id="dsp.portfolio.demo"
-                    ),
+                    portfolio_ref=PortfolioReference(portfolio_id="dsp.portfolio.demo"),
                 )
             )
 
     def test_missing_identity_name(self) -> None:
         with pytest.raises(Exception):
             ResearchAssemblyContext(
-                identity=ResearchIdentity(research_id="dsp.research.x", research_name=" "),
+                identity=ResearchIdentity(
+                    research_id="dsp.research.x", research_name=" "
+                ),
                 evidence_refs=(_evidence(),),
             )
 
     def test_duplicate_decision_refs(self) -> None:
-        pack = DecisionReference(
-            instrument_symbol="AAA", digest="abcdef0123456789"
-        )
+        pack = DecisionReference(instrument_symbol="AAA", digest="abcdef0123456789")
         with pytest.raises(ResearchError, match="duplicate"):
             ResearchAssembler().assemble(
                 ResearchAssemblyContext(
@@ -160,9 +156,7 @@ class TestValidation:
                 ResearchAssemblyContext(
                     identity=_identity(),
                     evidence_refs=(_evidence(),),
-                    portfolio_ref=PortfolioReference(
-                        portfolio_id="dsp.portfolio.demo"
-                    ),
+                    portfolio_ref=PortfolioReference(portfolio_id="dsp.portfolio.demo"),
                     monitoring_ref=MonitoringReference(
                         portfolio_id="dsp.portfolio.other"
                     ),
@@ -191,16 +185,15 @@ class TestArchitectureAndCompatibility:
         from pathlib import Path
 
         source = (
-            Path(__file__).resolve().parents[1]
-            / "src"
-            / "research"
-            / "assembler.py"
+            Path(__file__).resolve().parents[1] / "src" / "research" / "assembler.py"
         ).read_text(encoding="utf-8")
         assert "ResearchInsight(" not in source
         assert "ResearchConflict(" not in source
         assert "ResearchGap(" not in source
         assert "ResearchPriority(" not in source
-        assert "Synthesizer" not in source or "deferred to ResearchSynthesizer" in source
+        assert (
+            "Synthesizer" not in source or "deferred to ResearchSynthesizer" in source
+        )
 
     def test_backward_compatibility(self) -> None:
         import research as rs

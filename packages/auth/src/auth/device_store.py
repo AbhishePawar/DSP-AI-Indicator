@@ -60,7 +60,11 @@ def resolve_device_persistence(persistence: Any | None = None) -> Any:
         from persistence import get_persistence_service
 
         return get_persistence_service()
-    from persistence import InMemoryStorageProvider, PersistenceService, RepositoryRegistry
+    from persistence import (
+        InMemoryStorageProvider,
+        PersistenceService,
+        RepositoryRegistry,
+    )
 
     return PersistenceService(RepositoryRegistry(storage=InMemoryStorageProvider()))
 
@@ -96,10 +100,16 @@ class DeviceStore:
         return payload or None
 
     def delete_device(self, device_id: str) -> bool:
-        return bool(self._persistence.delete(_ENTITY_KIND, _device_entity_id(device_id)))
+        return bool(
+            self._persistence.delete(_ENTITY_KIND, _device_entity_id(device_id))
+        )
 
-    def get_fingerprint_device_id(self, user_id: str, fingerprint_hash: str) -> str | None:
-        row = self._persistence.get(_ENTITY_KIND, _fp_entity_id(user_id, fingerprint_hash))
+    def get_fingerprint_device_id(
+        self, user_id: str, fingerprint_hash: str
+    ) -> str | None:
+        row = self._persistence.get(
+            _ENTITY_KIND, _fp_entity_id(user_id, fingerprint_hash)
+        )
         if row is None:
             return None
         payload = dict(row.get("payload") or {})

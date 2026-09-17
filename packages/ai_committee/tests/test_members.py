@@ -4,12 +4,11 @@ from __future__ import annotations
 
 import pytest
 
-from contracts.enums import EngineSource, SignalDirection
-
 from ai_committee.enums import Decision
 from ai_committee.exceptions import CommitteeError
 from ai_committee.members import FundamentalMember, TechnicalMember
 from ai_committee.models import CommitteeInput
+from contracts.enums import EngineSource, SignalDirection
 
 
 class TestTechnicalMember:
@@ -49,9 +48,7 @@ class TestTechnicalMember:
         opinion = TechnicalMember().analyze(context)
         assert opinion.recommendation is Decision.HOLD
 
-    def test_missing_technical_raises(
-        self, instrument, fundamental_factory
-    ) -> None:
+    def test_missing_technical_raises(self, instrument, fundamental_factory) -> None:
         context = CommitteeInput(
             instrument=instrument,
             technical=None,
@@ -66,9 +63,7 @@ class TestTechnicalMember:
         from contracts.domain.instrument import Instrument
         from contracts.enums import AssetClass
 
-        other = Instrument(
-            symbol="MSFT", asset_class=AssetClass.EQUITY, currency="USD"
-        )
+        other = Instrument(symbol="MSFT", asset_class=AssetClass.EQUITY, currency="USD")
         context = CommitteeInput(
             instrument=instrument,
             technical=technical_factory(
@@ -102,9 +97,7 @@ class TestFundamentalMember:
         assert opinion.recommendation is Decision.SELL
         assert opinion.source == "fundamental"
 
-    def test_missing_fundamental_raises(
-        self, instrument, technical_factory
-    ) -> None:
+    def test_missing_fundamental_raises(self, instrument, technical_factory) -> None:
         context = CommitteeInput(
             instrument=instrument,
             technical=technical_factory((SignalDirection.BULLISH,)),
@@ -119,9 +112,7 @@ class TestFundamentalMember:
         from contracts.domain.instrument import Instrument
         from contracts.enums import AssetClass
 
-        other = Instrument(
-            symbol="MSFT", asset_class=AssetClass.EQUITY, currency="USD"
-        )
+        other = Instrument(symbol="MSFT", asset_class=AssetClass.EQUITY, currency="USD")
         context = CommitteeInput(
             instrument=instrument,
             technical=technical_factory((SignalDirection.BULLISH,)),

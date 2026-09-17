@@ -10,7 +10,6 @@ from __future__ import annotations
 from dataclasses import dataclass
 
 from core.exceptions import ValidationError
-
 from knowledge_graph.enums import AssemblyStatus
 from knowledge_graph.exceptions import KnowledgeGraphError
 from knowledge_graph.models import (
@@ -66,9 +65,7 @@ class AssemblyContext:
         if self.metadata is None:
             msg = "metadata is required"
             raise ValidationError(msg)
-        object.__setattr__(
-            self, "recommendation_refs", tuple(self.recommendation_refs)
-        )
+        object.__setattr__(self, "recommendation_refs", tuple(self.recommendation_refs))
         object.__setattr__(self, "workflow_refs", tuple(self.workflow_refs))
         object.__setattr__(self, "analysis_refs", tuple(self.analysis_refs))
         object.__setattr__(self, "decision_refs", tuple(self.decision_refs))
@@ -134,9 +131,7 @@ class KnowledgeGraphAssembler:
             )
             raise KnowledgeGraphError(msg)
         if not context.workflow_refs:
-            msg = (
-                "missing Workflow anchor: at least one WorkflowReference required"
-            )
+            msg = "missing Workflow anchor: at least one WorkflowReference required"
             raise KnowledgeGraphError(msg)
 
         self._validate_ref_group("recommendation_refs", context.recommendation_refs)
@@ -240,9 +235,7 @@ class KnowledgeGraphAssembler:
             ),
         )
 
-        status = (
-            AssemblyStatus.PARTIAL if warnings else AssemblyStatus.COMPLETE
-        )
+        status = AssemblyStatus.PARTIAL if warnings else AssemblyStatus.COMPLETE
         return AssemblyResult(
             profile=profile,
             report=report,
@@ -254,9 +247,7 @@ class KnowledgeGraphAssembler:
         self, contexts: tuple[AssemblyContext, ...]
     ) -> tuple[AssemblyResult, ...]:
         """Assemble many contexts; reject duplicate graph identities."""
-        assert_unique_graph_ids(
-            tuple(ctx.identity.graph_id for ctx in contexts)
-        )
+        assert_unique_graph_ids(tuple(ctx.identity.graph_id for ctx in contexts))
         return tuple(self.assemble(context) for context in contexts)
 
     def _validate_ref_group(self, name: str, refs: tuple[object, ...]) -> None:

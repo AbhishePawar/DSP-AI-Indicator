@@ -51,9 +51,7 @@ def build_summary(
         else ""
     )
     weak_txt = (
-        f" Weakest dimension: {weakest.dimension.value}."
-        if weakest is not None
-        else ""
+        f" Weakest dimension: {weakest.dimension.value}." if weakest is not None else ""
     )
     return (
         f"Overall earnings quality rating is {rating.value} "
@@ -152,5 +150,7 @@ def analysis_confidence(
     )
 
 
-def explain_from_analysis(analysis: EarningsQualityAnalysis) -> EarningsQualityExplainability:
+def explain_from_analysis(
+    analysis: EarningsQualityAnalysis,
+) -> EarningsQualityExplainability:
     return analysis.explainability

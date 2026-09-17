@@ -251,8 +251,7 @@ def test_buffett_methodology_is_existing_pipeline_stages() -> None:
     assert report.buffett_analysis.methodology == BUFFETT_METHODOLOGY
     assert report.buffett_analysis.methodology == "existing_pipeline_stages"
     assert (
-        package.buffett_authority.payload["methodology"]
-        == "existing_pipeline_stages"
+        package.buffett_authority.payload["methodology"] == "existing_pipeline_stages"
     )
 
 
@@ -264,9 +263,7 @@ def test_buffett_overall_and_recommendation_scores_are_distinct() -> None:
     assert "overall_score" not in dumped["recommendation"]
     buffett = report.buffett_analysis.buffett_overall_score_100
     rec = report.recommendation.recommendation_score_100
-    assert buffett == pytest.approx(
-        package.buffett_authority.payload["overall_score"]
-    )
+    assert buffett == pytest.approx(package.buffett_authority.payload["overall_score"])
     assert rec == pytest.approx(
         package.investment_recommendation.payload["overall_investment_score"]
     )

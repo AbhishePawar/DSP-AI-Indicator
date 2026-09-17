@@ -117,9 +117,7 @@ def build_factors(
     for c in contributions:
         if c.score.value is None:
             continue
-        drivers.append(
-            f"{c.component.value}={c.score.value:.1f} (w={c.weight:.2f})"
-        )
+        drivers.append(f"{c.component.value}={c.score.value:.1f} (w={c.weight:.2f})")
         if c.score.value >= 70:
             positives.append(f"Strong {c.component.value} contribution")
         elif c.score.value < 45:

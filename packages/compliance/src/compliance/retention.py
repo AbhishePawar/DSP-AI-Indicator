@@ -5,12 +5,13 @@ from __future__ import annotations
 import hashlib
 import json
 import uuid
-from dataclasses import dataclass, field
+from collections.abc import Sequence
+from dataclasses import dataclass
 from datetime import UTC, datetime, timedelta
 from threading import Lock
-from typing import Any, Protocol, Sequence, runtime_checkable
+from typing import Protocol, runtime_checkable
 
-from compliance.audit import AuditEvent, AuditPort
+from compliance.audit import AuditEvent
 
 __all__ = [
     "AuditRetentionPolicy",
@@ -64,7 +65,9 @@ class AuditRetentionPort(Protocol):
     def list_references(self, *, limit: int = 100) -> Sequence[ImmutableAuditReference]:
         """List recent immutable references."""
 
-    def is_expired(self, reference: ImmutableAuditReference, *, now: datetime | None = None) -> bool:
+    def is_expired(
+        self, reference: ImmutableAuditReference, *, now: datetime | None = None
+    ) -> bool:
         """Return True when retention window has elapsed."""
 
 
@@ -81,9 +84,7 @@ class InMemoryAuditPort:
 
     def list_for_resource(self, resource_ref: str) -> tuple[AuditEvent, ...]:
         with self._lock:
-            return tuple(
-                e for e in self._events if e.resource_ref == resource_ref
-            )
+            return tuple(e for e in self._events if e.resource_ref == resource_ref)
 
     def list_all(self, *, limit: int = 100) -> tuple[AuditEvent, ...]:
         with self._lock:
@@ -130,7 +131,9 @@ class InMemoryAuditRetentionPort:
         with self._lock:
             return self._refs.get(reference_id)
 
-    def list_references(self, *, limit: int = 100) -> tuple[ImmutableAuditReference, ...]:
+    def list_references(
+        self, *, limit: int = 100
+    ) -> tuple[ImmutableAuditReference, ...]:
         with self._lock:
             items = list(self._refs.values())
         return tuple(items[-max(1, limit) :])

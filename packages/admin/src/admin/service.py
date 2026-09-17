@@ -174,7 +174,12 @@ class AdminService:
             from admin.exceptions import ValidationError
 
             raise ValidationError(f"unknown search scope {scope!r}")
-        return {"scope": scope_l, "query": query, "count": len(records), "results": records}
+        return {
+            "scope": scope_l,
+            "query": query,
+            "count": len(records),
+            "results": records,
+        }
 
     def export_audit(self, **filters: Any) -> dict[str, Any]:
         rows = self.list_audit_records(**filters)

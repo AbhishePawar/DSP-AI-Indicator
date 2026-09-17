@@ -57,12 +57,8 @@ def _evidence() -> Evidence:
 class TestCommitteeContexts:
     def test_technical_and_fundamental(self, instrument: Instrument) -> None:
         signal = _signal(instrument)
-        tech = TechnicalContext(
-            instrument=instrument, signals=(signal,), evidence=()
-        )
-        fund = FundamentalContext(
-            instrument=instrument, signals=(signal,), evidence=()
-        )
+        tech = TechnicalContext(instrument=instrument, signals=(signal,), evidence=())
+        fund = FundamentalContext(instrument=instrument, signals=(signal,), evidence=())
         assert tech.signals == (signal,)
         assert fund.instrument is instrument
 

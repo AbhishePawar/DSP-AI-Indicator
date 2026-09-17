@@ -12,6 +12,19 @@ from security_platform.security.identity.india import (
     NullPanVerificationPort,
     NullScimProvisioningPort,
 )
+from security_platform.security.identity.oauth import (
+    DeviceSessionPort,
+    EmailVerificationPort,
+    InMemoryDeviceSessionStore,
+    LocalOidcClientAdapter,
+    LocalSsoAdapter,
+    NullOAuth2AuthorizationServer,
+    NullSsoProvider,
+    OAuth2AuthorizationPort,
+    PasswordResetPort,
+    SsoProviderPort,
+    SsoSession,
+)
 from security_platform.security.identity.password import (
     Argon2PasswordHasher,
     PasswordPolicy,
@@ -26,7 +39,6 @@ from security_platform.security.identity.ports import (
     DigiLockerIdentityPort,
     EnterpriseKycPort,
     MfaPort,
-    WebAuthnPort,
     OidcClientPort,
     Organisation,
     OrganisationStorePort,
@@ -39,6 +51,7 @@ from security_platform.security.identity.ports import (
     SessionRecord,
     SessionTrackerPort,
     UserRepositoryPort,
+    WebAuthnPort,
 )
 from security_platform.security.identity.repository import (
     IDENTITY_MIGRATIONS_SQL,
@@ -51,19 +64,6 @@ from security_platform.security.identity.service import (
     InMemoryAuditStore,
     InMemoryConsentStore,
     LockoutPolicy,
-)
-from security_platform.security.identity.oauth import (
-    DeviceSessionPort,
-    EmailVerificationPort,
-    InMemoryDeviceSessionStore,
-    LocalOidcClientAdapter,
-    LocalSsoAdapter,
-    NullOAuth2AuthorizationServer,
-    NullSsoProvider,
-    OAuth2AuthorizationPort,
-    PasswordResetPort,
-    SsoProviderPort,
-    SsoSession,
 )
 from security_platform.security.identity.tokens import (
     InMemoryRefreshTokenStore,

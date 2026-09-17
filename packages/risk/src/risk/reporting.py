@@ -150,13 +150,9 @@ class RiskReporter:
             else assessment.observations
         )
         descriptors = (
-            ctx.descriptors
-            if ctx.descriptors is not None
-            else assessment.descriptors
+            ctx.descriptors if ctx.descriptors is not None else assessment.descriptors
         )
-        coverage = (
-            ctx.coverage if ctx.coverage is not None else assessment.coverage
-        )
+        coverage = ctx.coverage if ctx.coverage is not None else assessment.coverage
 
         # Re-validate resolved sections for duplicate keys.
         self._reject_duplicate_observation_codes(observations)

@@ -206,9 +206,7 @@ class TestEdgeCases:
 
     def test_sensitivity_skips_invalid_wacc(self) -> None:
         # terminal growth close to wacc → some deltas invalid
-        result = ReverseDcfEngine().analyze(
-            _inputs(wacc=0.025, terminal_growth=0.02)
-        )
+        result = ReverseDcfEngine().analyze(_inputs(wacc=0.025, terminal_growth=0.02))
         assert len(result.sensitivity.wacc) == 3
 
     def test_explainability_rejects_empty(self) -> None:

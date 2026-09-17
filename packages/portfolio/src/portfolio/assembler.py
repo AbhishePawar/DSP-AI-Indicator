@@ -10,7 +10,6 @@ from dataclasses import dataclass
 
 from core.exceptions import ValidationError
 from industry import EvidenceBundleReference
-
 from portfolio.enums import PortfolioAssemblyStatus
 from portfolio.exceptions import PortfolioError
 from portfolio.models import (
@@ -70,7 +69,9 @@ class PortfolioAssemblyContext:
             raise ValidationError(msg)
         as_of = None if self.as_of is None else self.as_of.strip() or None
         object.__setattr__(self, "holdings", holdings)
-        object.__setattr__(self, "evidence_bundle_refs", tuple(self.evidence_bundle_refs))
+        object.__setattr__(
+            self, "evidence_bundle_refs", tuple(self.evidence_bundle_refs)
+        )
         object.__setattr__(
             self, "comparison_report_refs", tuple(self.comparison_report_refs)
         )
@@ -219,9 +220,7 @@ class PortfolioAssembler:
             evidence = evidence_by_symbol.get(sym)
             if evidence is None:
                 missing_evidence.append(sym)
-                warnings.append(
-                    f"Optional EvidenceBundle reference missing for {sym}."
-                )
+                warnings.append(f"Optional EvidenceBundle reference missing for {sym}.")
             comparison = comparison_for_symbol.get(sym)
             if (
                 context.comparison_report_refs
@@ -247,9 +246,7 @@ class PortfolioAssembler:
         snapshots = list(context.snapshots)
         if context.as_of is not None:
             snap_comparison = (
-                portfolio_level_comparisons[0]
-                if portfolio_level_comparisons
-                else None
+                portfolio_level_comparisons[0] if portfolio_level_comparisons else None
             )
             snapshots.append(
                 PortfolioSnapshot(
@@ -262,9 +259,7 @@ class PortfolioAssembler:
                     holdings=tuple(holdings),
                     cash_weight=context.cash_weight,
                     comparison_report_ref=snap_comparison,
-                    notes=(
-                        "C4.2 assembler snapshot — construction only.",
-                    ),
+                    notes=("C4.2 assembler snapshot — construction only.",),
                 )
             )
         elif portfolio_level_comparisons:

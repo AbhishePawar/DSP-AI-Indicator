@@ -2,6 +2,10 @@
 
 from __future__ import annotations
 
+from dsp_platform.saas_platform.db_store import (
+    DatabaseSaasOverlayStore,
+    build_saas_overlay_store,
+)
 from dsp_platform.saas_platform.plans import (
     PLAN_IDS,
     PLAN_TO_LICENSE_TIER,
@@ -15,10 +19,6 @@ from dsp_platform.saas_platform.service import (
     UNAVAILABLE_MESSAGE,
     run_saas_platform,
     saas_platform_schema,
-)
-from dsp_platform.saas_platform.db_store import (
-    DatabaseSaasOverlayStore,
-    build_saas_overlay_store,
 )
 from dsp_platform.saas_platform.store import (
     SaasOverlayStore,

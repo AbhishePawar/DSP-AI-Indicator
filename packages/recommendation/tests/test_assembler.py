@@ -6,8 +6,8 @@ import ast
 from pathlib import Path
 
 import pytest
-from core.exceptions import ValidationError
 
+from core.exceptions import ValidationError
 from recommendation import (
     AssemblyContext,
     AssemblyStatus,
@@ -46,11 +46,7 @@ def _ctx(
     kwargs: dict = {
         "identity": _identity(recommendation_id),
         "decision_refs": (
-            (
-                DecisionReference(
-                    instrument_symbol="AAA", digest="abcdef0123456789"
-                ),
-            )
+            (DecisionReference(instrument_symbol="AAA", digest="abcdef0123456789"),)
             if decision_refs is None
             else decision_refs
         ),
@@ -77,9 +73,7 @@ def _ctx(
         "as_of": as_of,
     }
     if include_portfolio:
-        kwargs["portfolio_ref"] = PortfolioReference(
-            portfolio_id="dsp.portfolio.demo"
-        )
+        kwargs["portfolio_ref"] = PortfolioReference(portfolio_id="dsp.portfolio.demo")
     return AssemblyContext(**kwargs)
 
 

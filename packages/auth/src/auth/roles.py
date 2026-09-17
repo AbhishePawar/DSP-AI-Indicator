@@ -23,9 +23,7 @@ def builtin_roles() -> tuple[RoleDefinition, ...]:
 
 class RoleRegistry:
     def __init__(self) -> None:
-        self._roles: dict[str, RoleDefinition] = {
-            r.role_id: r for r in builtin_roles()
-        }
+        self._roles: dict[str, RoleDefinition] = {r.role_id: r for r in builtin_roles()}
 
     def list_roles(self) -> list[dict[str, object]]:
         return [self._roles[k].to_dict() for k in sorted(self._roles.keys())]
@@ -49,9 +47,7 @@ class RoleRegistry:
         rid = str(role_id).strip().lower()
         if not rid:
             raise ValidationError("role_id is required")
-        perms = tuple(
-            assert_permission(p) for p in sorted(set(permissions or []))
-        )
+        perms = tuple(assert_permission(p) for p in sorted(set(permissions or [])))
         if rid in self._roles and not self._roles[rid].configurable:
             raise ValidationError(f"role {rid!r} is not configurable")
         existing = self._roles.get(rid)

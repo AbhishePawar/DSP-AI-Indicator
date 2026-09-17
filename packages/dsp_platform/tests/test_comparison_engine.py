@@ -4,18 +4,23 @@ from __future__ import annotations
 
 from datetime import UTC, datetime
 
-from ai_committee import CommitteeReport, Decision, InvestmentDecision, MemberVote, Opinion
+from ai_committee import (
+    CommitteeReport,
+    Decision,
+    InvestmentDecision,
+    MemberVote,
+    Opinion,
+)
 from comparison import ComparisonStatus, QualitativeComparisonEngine
 from contracts import AssetClass, EngineSource, Evidence, Instrument
 from decision_intelligence import DecisionIntelligenceService, DecisionPack
-from industry import EligibilityOptions
-from recommendation import RecommendationMapper
-
 from dsp_platform import (
     DSPPlatform,
     PlatformConfiguration,
     build_default_comparison_engine,
 )
+from industry import EligibilityOptions
+from recommendation import RecommendationMapper
 
 FIXED_NOW = datetime(2024, 6, 15, 12, 0, 0, tzinfo=UTC)
 
@@ -74,9 +79,7 @@ def make_pack(symbol: str, *, decision: Decision = Decision.BUY) -> DecisionPack
 def test_build_default_comparison_engine_is_seeded_and_working() -> None:
     engine = build_default_comparison_engine()
     assert isinstance(engine, QualitativeComparisonEngine)
-    result = engine.compare_packs(
-        (make_pack("HDFCBANK"), make_pack("ICICIBANK"))
-    )
+    result = engine.compare_packs((make_pack("HDFCBANK"), make_pack("ICICIBANK")))
     assert result.status is ComparisonStatus.COMPLETE
     assert result.report.included_symbols == ("HDFCBANK", "ICICIBANK")
 
@@ -91,9 +94,7 @@ def _platform() -> DSPPlatform:
 
 def test_compare_companies_resolves_default_engine_when_not_supplied() -> None:
     platform = _platform()
-    result = platform.compare_companies(
-        (make_pack("HDFCBANK"), make_pack("ICICIBANK"))
-    )
+    result = platform.compare_companies((make_pack("HDFCBANK"), make_pack("ICICIBANK")))
     assert result.ok is True
     assert result.capability == "compare_companies"
     assert result.payload.status is ComparisonStatus.COMPLETE

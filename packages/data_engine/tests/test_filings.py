@@ -5,9 +5,9 @@ from __future__ import annotations
 from datetime import UTC, date, datetime
 
 import pytest
+
 from contracts.domain.instrument import Instrument
 from contracts.enums import AssetClass
-
 from data_engine import (
     BseFilingsAdapter,
     ConnectorProvenance,
@@ -50,7 +50,10 @@ class _FakeJsonClient:
 
 class TestNullAndInMemory:
     def test_null_always_unavailable(self) -> None:
-        assert NullFilingsAdapter().get_filings(FilingsQuery(instrument=_instrument())) is None
+        assert (
+            NullFilingsAdapter().get_filings(FilingsQuery(instrument=_instrument()))
+            is None
+        )
 
     def test_in_memory_requires_key(self) -> None:
         with pytest.raises(ProviderRequestError):
@@ -122,7 +125,9 @@ class TestSecEdgarFilingsAdapter:
             adapter.get_filings(FilingsQuery(instrument=_instrument()))
 
     def test_resolves_cik_and_maps_filings(self) -> None:
-        tickers_payload = {"0": {"cik_str": 320193, "ticker": "AAPL", "title": "Apple Inc"}}
+        tickers_payload = {
+            "0": {"cik_str": 320193, "ticker": "AAPL", "title": "Apple Inc"}
+        }
         submissions_payload = {
             "filings": {
                 "recent": {
@@ -135,7 +140,9 @@ class TestSecEdgarFilingsAdapter:
             }
         }
         client = _FakeJsonClient(sequence=[tickers_payload, submissions_payload])
-        adapter = SecEdgarFilingsAdapter(user_agent="Test test@example.com", http_client=client)
+        adapter = SecEdgarFilingsAdapter(
+            user_agent="Test test@example.com", http_client=client
+        )
         bundle = adapter.get_filings(FilingsQuery(instrument=_instrument()))
         assert bundle is not None
         assert bundle.filings[0].filing_type in {"10-K", "8-K"}
@@ -143,7 +150,9 @@ class TestSecEdgarFilingsAdapter:
 
     def test_unknown_ticker_returns_none(self) -> None:
         client = _FakeJsonClient({"0": {"cik_str": 1, "ticker": "MSFT"}})
-        adapter = SecEdgarFilingsAdapter(user_agent="Test test@example.com", http_client=client)
+        adapter = SecEdgarFilingsAdapter(
+            user_agent="Test test@example.com", http_client=client
+        )
         assert adapter.get_filings(FilingsQuery(instrument=_instrument("ZZZZ"))) is None
 
 
@@ -170,7 +179,9 @@ class TestFinancialModelingPrepFilingsAdapter:
 class TestNseAndBseFilings:
     def test_nse_disabled_raises(self) -> None:
         with pytest.raises(ProviderRequestError):
-            NseFilingsAdapter(enabled=False).get_filings(FilingsQuery(instrument=_instrument()))
+            NseFilingsAdapter(enabled=False).get_filings(
+                FilingsQuery(instrument=_instrument())
+            )
 
     def test_nse_maps_announcements(self) -> None:
         client = _FakeJsonClient(
@@ -189,7 +200,10 @@ class TestNseAndBseFilings:
 
     def test_bse_requires_numeric_scrip_code_by_default(self) -> None:
         adapter = BseFilingsAdapter(enabled=True)
-        assert adapter.get_filings(FilingsQuery(instrument=_instrument("RELIANCE"))) is None
+        assert (
+            adapter.get_filings(FilingsQuery(instrument=_instrument("RELIANCE")))
+            is None
+        )
 
     def test_bse_maps_table_payload(self) -> None:
         client = _FakeJsonClient(
@@ -213,7 +227,16 @@ class TestNseAndBseFilings:
 class TestScreenerFilingsAdapter:
     def test_maps_annual_reports_with_year_fallback(self) -> None:
         client = _FakeJsonClient(
-            {"documents": {"annual_reports": [{"title": "Financial Year 2023", "link": "https://screener.in/ar.pdf"}]}}
+            {
+                "documents": {
+                    "annual_reports": [
+                        {
+                            "title": "Financial Year 2023",
+                            "link": "https://screener.in/ar.pdf",
+                        }
+                    ]
+                }
+            }
         )
         adapter = ScreenerFilingsAdapter(enabled=True, http_client=client)
         bundle = adapter.get_filings(FilingsQuery(instrument=_instrument("RELIANCE")))
@@ -224,11 +247,19 @@ class TestScreenerFilingsAdapter:
 class TestRegistryAndEnv:
     def test_registry_ordering(self) -> None:
         registry = FilingsProviderRegistry()
-        registry.register(NullFilingsAdapter(), provider_id="null_filings", priority=1000)
-        registry.register(FinancialModelingPrepFilingsAdapter(api_key="k"), provider_id="fmp_filings", priority=10)
+        registry.register(
+            NullFilingsAdapter(), provider_id="null_filings", priority=1000
+        )
+        registry.register(
+            FinancialModelingPrepFilingsAdapter(api_key="k"),
+            provider_id="fmp_filings",
+            priority=10,
+        )
         assert registry.ordered_ids() == ("fmp_filings", "null_filings")
 
-    def test_default_registry_falls_back_to_null(self, monkeypatch: pytest.MonkeyPatch) -> None:
+    def test_default_registry_falls_back_to_null(
+        self, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
         for key in (
             "DSP_FILINGS_SEC_EDGAR_USER_AGENT",
             "DSP_FILINGS_FMP_API_KEY",

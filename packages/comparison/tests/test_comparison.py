@@ -6,12 +6,20 @@ from dataclasses import replace
 from datetime import UTC, datetime
 
 import pytest
+
 from ai_committee import (
     CommitteeReport,
     Decision,
     InvestmentDecision,
     MemberVote,
     Opinion,
+)
+from comparison import (
+    ComparisonError,
+    ComparisonObservation,
+    ComparisonStatus,
+    QualitativeComparisonEngine,
+    compare_universe_result,
 )
 from contracts import (
     AssetClass,
@@ -26,13 +34,12 @@ from decision_intelligence import (
     DecisionPack,
 )
 from industry import (
-    EligibilityOptions,
     IndustryMethodologyRegistry,
+    IndustryTaxonomy,
     InstrumentIndustryRegistry,
     InvestmentCharacteristicsRegistry,
     PeerEligibilityEvaluator,
     PeerEligibilityPolicyRegistry,
-    IndustryTaxonomy,
     seed_peer_eligibility_context,
 )
 from recommendation import RecommendationMapper
@@ -41,14 +48,6 @@ from universe import (
     MultiStockAnalysisRequest,
     MultiStockAnalysisService,
     summarize_decision_pack,
-)
-
-from comparison import (
-    ComparisonError,
-    ComparisonObservation,
-    ComparisonStatus,
-    QualitativeComparisonEngine,
-    compare_universe_result,
 )
 
 FIXED_NOW = datetime(2024, 6, 15, 12, 0, 0, tzinfo=UTC)
@@ -124,9 +123,7 @@ def _engine() -> QualitativeComparisonEngine:
         methodologies=methods,
         policies=policies,
     )
-    return QualitativeComparisonEngine(
-        evaluator=evaluator, methodologies=methods
-    )
+    return QualitativeComparisonEngine(evaluator=evaluator, methodologies=methods)
 
 
 def _with_mos(pack: DecisionPack, ratio: float) -> DecisionPack:
@@ -160,7 +157,9 @@ class TestTwoCompanyComparison:
         assert report.methodology_id == "dsp.methodology.commercial_banking"
         assert report.limitations
         assert report.pair_observations
-        assert any("margin of safety" in o.text.lower() for o in report.pair_observations)
+        assert any(
+            "margin of safety" in o.text.lower() for o in report.pair_observations
+        )
         assert any("assurance" in o.text.lower() for o in report.pair_observations)
         # No forbidden ranking language
         blob = " ".join(o.text.lower() for o in report.pair_observations)
@@ -239,9 +238,7 @@ class TestGroupAndValuation:
             methodologies=methods,
             policies=policies,
         )
-        engine = QualitativeComparisonEngine(
-            evaluator=evaluator, methodologies=methods
-        )
+        engine = QualitativeComparisonEngine(evaluator=evaluator, methodologies=methods)
         packs = tuple(
             make_pack(_instrument(s))
             for s in ("HDFCBANK", "ICICIBANK", "BANK01", "BANK02", "BANK03")
@@ -273,25 +270,19 @@ class TestGroupAndValuation:
         )
         result = engine.compare_packs((a, b))
         assert result.status is ComparisonStatus.COMPLETE
+        assert any(lim.code == "missing_valuation" for lim in result.report.limitations)
         assert any(
-            lim.code == "missing_valuation" for lim in result.report.limitations
-        )
-        assert any(
-            o.code == "valuation_unavailable"
-            for o in result.report.valuation_context
+            o.code == "valuation_unavailable" for o in result.report.valuation_context
         )
 
     def test_different_robustness(self) -> None:
         engine = _engine()
         a = _with_assurance(make_pack(_instrument("NTPC")), AssuranceLevel.HIGH)
-        b = _with_assurance(
-            make_pack(_instrument("POWERGRID")), AssuranceLevel.LOW
-        )
+        b = _with_assurance(make_pack(_instrument("POWERGRID")), AssuranceLevel.LOW)
         result = engine.compare_packs((a, b))
         assert result.status is ComparisonStatus.COMPLETE
         assert any(
-            o.code == "assurance_differential"
-            for o in result.report.pair_observations
+            o.code == "assurance_differential" for o in result.report.pair_observations
         )
 
 

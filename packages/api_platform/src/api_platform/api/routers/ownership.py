@@ -62,14 +62,18 @@ def ownership(
             "ok": True,
             "available": True,
             "authenticated": True,
-            "symbol": identity.get("symbol")
-            if isinstance(identity, dict)
-            else symbol.strip().upper(),
+            "symbol": (
+                identity.get("symbol")
+                if isinstance(identity, dict)
+                else symbol.strip().upper()
+            ),
             "identity": identity,
             "as_of": payload.get("as_of"),
             "stakes": payload.get("stakes"),
             "promoter_holding_percent": payload.get("promoter_holding_percent"),
-            "institutional_holding_percent": payload.get("institutional_holding_percent"),
+            "institutional_holding_percent": payload.get(
+                "institutional_holding_percent"
+            ),
             "public_holding_percent": payload.get("public_holding_percent"),
             "provenance": payload.get("provenance"),
             "attempted_provider_ids": payload.get("attempted_provider_ids"),

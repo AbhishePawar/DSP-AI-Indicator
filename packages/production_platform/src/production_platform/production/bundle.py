@@ -121,7 +121,9 @@ class ProductionBundle:
         flags = FeatureFlagManager(feature_flags)
 
         if obs is not None:
-            log_port = ensure_logging_port(logging if logging is not None else obs.logging)
+            log_port = ensure_logging_port(
+                logging if logging is not None else obs.logging
+            )
             metrics_port = ensure_metrics_port(
                 metrics if metrics is not None else obs.metrics
             )

@@ -89,7 +89,7 @@ class TestFinancialStrengthArchitecture:
     def test_public_api_stable(self) -> None:
         import financial_strength as mod
 
-        assert getattr(mod, "__version__") == _EXPECTED_VERSION
+        assert mod.__version__ == _EXPECTED_VERSION
         missing = [name for name in mod.__all__ if not hasattr(mod, name)]
         assert missing == [], missing
         assert hasattr(mod, "FinancialStrengthEngine")

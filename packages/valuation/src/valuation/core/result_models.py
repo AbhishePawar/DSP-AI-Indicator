@@ -2,8 +2,9 @@
 
 from __future__ import annotations
 
+from collections.abc import Mapping
 from dataclasses import asdict, dataclass, field
-from typing import Any, Mapping, Sequence
+from typing import Any
 
 from valuation.core.metadata import RESEARCH_DISCLAIMER, VALUATION_CORE_VERSION
 from valuation.core.quality_flags import QualityFlag

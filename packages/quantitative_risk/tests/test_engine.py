@@ -188,14 +188,10 @@ class TestEngineValidation:
 
     def test_foreign_monitoring(self) -> None:
         with pytest.raises(QuantitativeRiskError, match="foreign ownership"):
-            _context(
-                monitoring=MonitoringReference(portfolio_id="dsp.portfolio.other")
-            )
+            _context(monitoring=MonitoringReference(portfolio_id="dsp.portfolio.other"))
 
     def test_negative_weight_rejected(self) -> None:
-        bad = (
-            WeightPoint(instrument_id="aaa", weight=Decimal("-0.1")),
-        )
+        bad = (WeightPoint(instrument_id="aaa", weight=Decimal("-0.1")),)
         with pytest.raises(QuantitativeRiskError, match="invalid Decimal"):
             QuantitativeRiskEngine().calculate(_context(weights=bad))
 

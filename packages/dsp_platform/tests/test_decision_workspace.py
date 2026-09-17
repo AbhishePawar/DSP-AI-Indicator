@@ -176,7 +176,9 @@ def test_determinism_and_serde() -> None:
         subject="META",
         research_object=_ro("META"),
         report={"report_id": "r-d", "generated_at": FIXED},
-        snapshots=[{"snapshot_id": "s-d", "archived_at": FIXED, "kind": "research_object"}],
+        snapshots=[
+            {"snapshot_id": "s-d", "archived_at": FIXED, "kind": "research_object"}
+        ],
         workspace_id="ws-det",
         created_at=FIXED,
     )

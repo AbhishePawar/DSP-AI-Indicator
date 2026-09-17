@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import Any, Mapping
+from typing import Any
 
 from dsp_platform.investment_policy.models import PolicyException, PolicyRule
 

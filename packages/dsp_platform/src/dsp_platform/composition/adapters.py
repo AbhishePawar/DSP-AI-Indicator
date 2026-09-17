@@ -6,14 +6,14 @@ No scoring or recommendation logic lives here.
 
 from __future__ import annotations
 
-from typing import Any, Mapping
-
-from financial import FinancialStatements
-from investment_recommendation import ValuationSignals
+from collections.abc import Mapping
+from typing import Any
 
 from dsp_platform.composition.models import CompositionRequest, PipelineResult
 from dsp_platform.composition.pipeline import EXECUTION_ORDER, PipelineStage
 from dsp_platform.composition.versions import COMPOSITION_PIPELINE_VERSION
+from financial import FinancialStatements
+from investment_recommendation import ValuationSignals
 
 __all__ = [
     "build_composition_request",
@@ -48,9 +48,7 @@ def build_composition_request(
         try:
             statements_obj = FinancialStatements.from_dict(dict(financial_statements))
         except Exception as exc:  # noqa: BLE001 — map to public input error
-            raise CompositionInputError(
-                f"invalid financial_statements: {exc}"
-            ) from exc
+            raise CompositionInputError(f"invalid financial_statements: {exc}") from exc
 
     signals_obj: ValuationSignals | None = None
     if valuation_signals is not None:
@@ -69,9 +67,7 @@ def build_composition_request(
         except CompositionInputError:
             raise
         except Exception as exc:  # noqa: BLE001
-            raise CompositionInputError(
-                f"invalid valuation_signals: {exc}"
-            ) from exc
+            raise CompositionInputError(f"invalid valuation_signals: {exc}") from exc
 
     exchange_norm = str(exchange).strip().upper() if exchange else None
     return CompositionRequest(
@@ -183,9 +179,7 @@ def pipeline_result_public_dict(result: PipelineResult) -> dict[str, Any]:
             "current_market_price": None,
             "confidence": None,
         }
-    base["risk"] = (
-        result.risk.to_dict() if hasattr(result.risk, "to_dict") else None
-    )
+    base["risk"] = result.risk.to_dict() if hasattr(result.risk, "to_dict") else None
     return base
 
 
@@ -391,7 +385,7 @@ def _opt_float(value: object) -> float | None:
     if isinstance(value, dict):
         return _opt_float(value.get("value"))
     if hasattr(value, "value") and not isinstance(value, (str, bytes, int, float)):
-        return _opt_float(getattr(value, "value"))
+        return _opt_float(value.value)
     try:
         return float(value)  # type: ignore[arg-type]
     except (TypeError, ValueError):

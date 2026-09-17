@@ -10,7 +10,6 @@ from __future__ import annotations
 from dataclasses import dataclass
 
 from industry import EvidenceBundleReference
-
 from portfolio.enums import PortfolioAnalysisStatus
 from portfolio.exceptions import PortfolioError
 from portfolio.models import (
@@ -52,15 +51,9 @@ class PortfolioAnalysisContext:
         if self.portfolio is None:
             msg = "portfolio is required"
             raise PortfolioError(msg)
-        snap = (
-            None
-            if self.snapshot_id is None
-            else self.snapshot_id.strip() or None
-        )
+        snap = None if self.snapshot_id is None else self.snapshot_id.strip() or None
         object.__setattr__(self, "snapshot_id", snap)
-        object.__setattr__(
-            self, "decision_pack_refs", tuple(self.decision_pack_refs)
-        )
+        object.__setattr__(self, "decision_pack_refs", tuple(self.decision_pack_refs))
         object.__setattr__(
             self, "evidence_bundle_refs", tuple(self.evidence_bundle_refs)
         )
@@ -240,9 +233,7 @@ class PortfolioAnalyzer:
             mapping[ref.instrument_key] = ref
         return mapping
 
-    def _merged_comparison_symbols(
-        self, context: PortfolioAnalysisContext
-    ) -> set[str]:
+    def _merged_comparison_symbols(self, context: PortfolioAnalysisContext) -> set[str]:
         covered: set[str] = set()
         portfolio_level = False
         for holding in context.portfolio.holdings:
@@ -295,9 +286,7 @@ class PortfolioAnalyzer:
 
         notes: list[str] = []
         if missing_evidence:
-            notes.append(
-                f"Evidence gaps for {len(missing_evidence)} holding(s)."
-            )
+            notes.append(f"Evidence gaps for {len(missing_evidence)} holding(s).")
         if missing_comparison:
             notes.append(
                 f"Comparison citation gaps for "
@@ -363,9 +352,7 @@ class PortfolioAnalyzer:
                     "Descriptive label from holding count / declared weights only.",
                 ),
             )
-        if n <= 5 or (
-            max_w is not None and max_w >= _MODERATE_CONCENTRATION_WEIGHT
-        ):
+        if n <= 5 or (max_w is not None and max_w >= _MODERATE_CONCENTRATION_WEIGHT):
             return PortfolioDescriptor(
                 dimension="concentration",
                 label="Moderately concentrated",
@@ -378,9 +365,7 @@ class PortfolioAnalyzer:
             dimension="concentration",
             label="Broadly diversified",
             code="broadly_diversified",
-            notes=(
-                "Descriptive label from holding count / declared weights only.",
-            ),
+            notes=("Descriptive label from holding count / declared weights only.",),
         )
 
     def _cash_descriptor(self, cash_weight: float | None) -> PortfolioDescriptor:
@@ -389,9 +374,7 @@ class PortfolioAnalyzer:
                 dimension="cash_position",
                 label="Fully invested",
                 code="fully_invested",
-                notes=(
-                    "Cash weight absent or below moderate-reserve threshold.",
-                ),
+                notes=("Cash weight absent or below moderate-reserve threshold.",),
             )
         if cash_weight < _HIGH_CASH:
             return PortfolioDescriptor(
@@ -439,8 +422,7 @@ class PortfolioAnalyzer:
                 label="Broad sector exposure",
                 code="broad_sector_exposure",
                 notes=(
-                    "Sector allocation not declared; "
-                    "inferred from holding count.",
+                    "Sector allocation not declared; " "inferred from holding count.",
                 ),
             )
         if len(sectors) == 1:
@@ -499,9 +481,7 @@ class PortfolioAnalyzer:
                 label="All holdings contain DecisionPacks",
                 code="all_holdings_contain_decision_packs",
                 notes=(
-                    ()
-                    if holdings
-                    else ("Empty portfolio — no missing DecisionPacks.",)
+                    () if holdings else ("Empty portfolio — no missing DecisionPacks.",)
                 ),
             )
         return PortfolioDescriptor(
@@ -542,9 +522,7 @@ class PortfolioAnalyzer:
                     missing_weights = any(h.weight is None for h in holdings)
             snap = self._resolve_snapshot(context)
             missing_sectors = needs_sectors and (
-                snap is None
-                or snap.allocation is None
-                or not snap.allocation.by_sector
+                snap is None or snap.allocation is None or not snap.allocation.by_sector
             )
             if missing_weights or missing_sectors:
                 out.append(
@@ -579,8 +557,7 @@ class PortfolioAnalyzer:
         notes: list[str] = []
         if not context.portfolio.constraints:
             notes.append(
-                "No portfolio constraints declared — "
-                "constraint gaps not applicable."
+                "No portfolio constraints declared — " "constraint gaps not applicable."
             )
             return tuple(notes)
         for constraint in context.portfolio.constraints:
@@ -788,9 +765,7 @@ class PortfolioAnalyzer:
                 + ", ".join(coverage.missing_comparison_symbols)
             )
         if context.portfolio.constraints:
-            warnings.append(
-                "Declared constraints were not evaluated mathematically."
-            )
+            warnings.append("Declared constraints were not evaluated mathematically.")
         return tuple(warnings)
 
     def _reject_duplicate_observations(

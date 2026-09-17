@@ -8,12 +8,11 @@ strict/production profiles without leaking secrets.
 from __future__ import annotations
 
 import os
+from collections.abc import Mapping
 from dataclasses import dataclass
-from typing import Mapping
 
 from production_platform.production.configuration import (
     Environment,
-    ProductionConfiguration,
     load_configuration_from_environ,
 )
 from production_platform.production.exceptions import (

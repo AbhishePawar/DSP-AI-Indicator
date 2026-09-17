@@ -52,8 +52,7 @@ def test_overvalued_cannot_strong_buy(domain_bundle, overvalued_signals) -> None
         InvestmentRecommendationAction.ACCUMULATE,
     }
     assert any(
-        r.rule_id == "materially_above_intrinsic_value"
-        for r in result.triggered_rules
+        r.rule_id == "materially_above_intrinsic_value" for r in result.triggered_rules
     )
 
 
@@ -69,8 +68,6 @@ def test_explain_and_validate(domain_bundle, undervalued_signals) -> None:
 
 
 def test_valuation_signals_from_price() -> None:
-    sig = ValuationSignals(
-        intrinsic_value_per_share=100.0, current_market_price=80.0
-    )
+    sig = ValuationSignals(intrinsic_value_per_share=100.0, current_market_price=80.0)
     assert sig.margin_of_safety == pytest.approx(0.20)
     assert sig.premium_discount == pytest.approx(-0.20)

@@ -5,25 +5,6 @@ from __future__ import annotations
 from auth.audit import AuditLogger
 from auth.authentication import AuthenticationService
 from auth.authorization import AuthorizationService
-from auth.enterprise_models import AuthProvider, PRODUCT_ROLES
-from auth.enterprise_platform import (
-    EnterpriseAuthPlatform,
-    get_enterprise_auth_platform,
-    password_strength,
-    reset_enterprise_auth_platform_for_tests,
-)
-from auth.exceptions import (
-    AuthError,
-    AuthenticationError,
-    AuthorizationError,
-    DuplicateUserError,
-    InvalidTokenError,
-    OAuthChallengeError,
-    RefreshTokenReuseError,
-    SessionError,
-    ValidationError,
-)
-from auth.devices import DeviceRegistry
 from auth.credential_boundary import (
     AUTH_JWT_SECRET_ENV,
     AUTH_MAGIC_LINK_ENV,
@@ -33,11 +14,30 @@ from auth.credential_boundary import (
     RESEND_FROM_ADDRESS_ENV,
     resolve_auth_jwt_secret,
 )
+from auth.devices import DeviceRegistry
 from auth.email_delivery import (
     ConsoleEmailAdapter,
     ResendEmailAdapter,
     SmtpEmailAdapter,
     build_email_provider,
+)
+from auth.enterprise_models import PRODUCT_ROLES, AuthProvider
+from auth.enterprise_platform import (
+    EnterpriseAuthPlatform,
+    get_enterprise_auth_platform,
+    password_strength,
+    reset_enterprise_auth_platform_for_tests,
+)
+from auth.exceptions import (
+    AuthenticationError,
+    AuthError,
+    AuthorizationError,
+    DuplicateUserError,
+    InvalidTokenError,
+    OAuthChallengeError,
+    RefreshTokenReuseError,
+    SessionError,
+    ValidationError,
 )
 from auth.hashing import hash_password, needs_rehash, verify_password
 from auth.jwt import JwtService
@@ -55,9 +55,19 @@ from auth.models import (
     AuthUser,
     RoleDefinition,
 )
-from auth.otp import OtpService, classify_otp_identifier, normalize_india_mobile, try_normalize_india_mobile
+from auth.otp import (
+    OtpService,
+    classify_otp_identifier,
+    normalize_india_mobile,
+    try_normalize_india_mobile,
+)
 from auth.permissions import assert_permission, list_permissions
-from auth.roles import RoleRegistry, builtin_roles, get_role_registry, reset_role_registry_for_tests
+from auth.roles import (
+    RoleRegistry,
+    builtin_roles,
+    get_role_registry,
+    reset_role_registry_for_tests,
+)
 from auth.serde import session_to_dict, token_pair_to_dict, user_to_dict
 from auth.service import AuthService, get_auth_service, reset_auth_service_for_tests
 from auth.sessions import SessionManager

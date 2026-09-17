@@ -8,7 +8,8 @@ is impossible.
 
 from __future__ import annotations
 
-from typing import Any, Mapping, Sequence
+from collections.abc import Mapping, Sequence
+from typing import Any
 
 from llm_adapters.orchestrator.specification import ResearchSpecification
 
@@ -59,7 +60,9 @@ def build_research_prompt(
     tool_manifest: Sequence[Mapping[str, Any]],
 ) -> tuple[str, ...]:
     """Build private prompt parts. First part is never public."""
-    allowed = ", ".join(sorted(e.get("name", "") for e in tool_manifest if e.get("name")))
+    allowed = ", ".join(
+        sorted(e.get("name", "") for e in tool_manifest if e.get("name"))
+    )
     catalog_lines = []
     for item in evidence_catalog:
         catalog_lines.append(

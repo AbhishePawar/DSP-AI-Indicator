@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 
 import pytest
 
@@ -31,8 +31,8 @@ from persistence import (
     reset_repository_registry_for_tests,
 )
 
-FIXED = datetime.now(timezone.utc).replace(microsecond=0).isoformat()
-FIXED2 = (datetime.now(timezone.utc) + timedelta(hours=1)).replace(microsecond=0).isoformat()
+FIXED = datetime.now(UTC).replace(microsecond=0).isoformat()
+FIXED2 = (datetime.now(UTC) + timedelta(hours=1)).replace(microsecond=0).isoformat()
 
 
 @pytest.fixture(autouse=True)

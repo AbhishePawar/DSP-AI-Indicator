@@ -17,7 +17,12 @@ import pytest
 from fastapi.testclient import TestClient
 
 from api_platform.api.app import create_app
-from auth import AuthService, RoleRegistry, reset_auth_service_for_tests, reset_role_registry_for_tests
+from auth import (
+    AuthService,
+    RoleRegistry,
+    reset_auth_service_for_tests,
+    reset_role_registry_for_tests,
+)
 from auth.enterprise_platform import (
     EnterpriseAuthPlatform,
     reset_enterprise_auth_platform_for_tests,
@@ -39,7 +44,9 @@ def env(monkeypatch: pytest.MonkeyPatch) -> EnterpriseAuthPlatform:
     monkeypatch.setenv("DSP_ENVIRONMENT", "development")
     monkeypatch.setenv("DSP_FACEBOOK_CLIENT_ID", "fb-client")
     monkeypatch.setenv("DSP_FACEBOOK_CLIENT_SECRET", "fb-secret")
-    monkeypatch.setenv("DSP_FACEBOOK_REDIRECT_URI", "https://app.dspai.local/auth/facebook/callback")
+    monkeypatch.setenv(
+        "DSP_FACEBOOK_REDIRECT_URI", "https://app.dspai.local/auth/facebook/callback"
+    )
     monkeypatch.setenv("DSP_AUTH_PROVIDER_FACEBOOK", "auto")
     monkeypatch.setenv("DSP_FRONTEND_URL", "https://app.dspai.local")
     monkeypatch.setenv("DSP_COOKIE_AUTH", "true")
@@ -69,7 +76,9 @@ def client(env: EnterpriseAuthPlatform) -> TestClient:
         yield c
 
 
-def _fb_profile(subject: str = "fb-oid-9", email: str = "user@example.com") -> OAuthProfile:
+def _fb_profile(
+    subject: str = "fb-oid-9", email: str = "user@example.com"
+) -> OAuthProfile:
     return OAuthProfile(
         provider="FACEBOOK",
         subject=subject,
@@ -177,7 +186,9 @@ def test_facebook_link_binds_identity_and_unlink_removes_it(
     monkeypatch.setattr(
         env.oauth,
         "complete",
-        lambda provider, **kwargs: _fb_profile(subject="fb-owner-oid", email="owner@example.com"),
+        lambda provider, **kwargs: _fb_profile(
+            subject="fb-owner-oid", email="owner@example.com"
+        ),
     )
     resp = client.post(
         "/api/v1/auth/facebook/link",
@@ -187,7 +198,10 @@ def test_facebook_link_binds_identity_and_unlink_removes_it(
     assert resp.status_code == 200, resp.text
     body = resp.json()
     assert body["ok"] is True
-    assert any(lnk["provider"] == "FACEBOOK" for lnk in body["result"]["user"]["linkedProviders"])
+    assert any(
+        lnk["provider"] == "FACEBOOK"
+        for lnk in body["result"]["user"]["linkedProviders"]
+    )
 
     unlink = client.post(
         "/api/v1/auth/facebook/unlink",
@@ -195,7 +209,8 @@ def test_facebook_link_binds_identity_and_unlink_removes_it(
     )
     assert unlink.status_code == 200
     assert not any(
-        lnk["provider"] == "FACEBOOK" for lnk in unlink.json()["result"]["linkedProviders"]
+        lnk["provider"] == "FACEBOOK"
+        for lnk in unlink.json()["result"]["linkedProviders"]
     )
 
 
@@ -206,7 +221,9 @@ def test_facebook_link_rejects_identity_owned_by_different_user(
     monkeypatch.setattr(
         env.oauth,
         "complete",
-        lambda provider, **kwargs: _fb_profile(subject="shared-fb-id", email="first@example.com"),
+        lambda provider, **kwargs: _fb_profile(
+            subject="shared-fb-id", email="first@example.com"
+        ),
     )
     client.get("/api/v1/auth/facebook/callback", params={"code": "c1"})
 
@@ -217,7 +234,9 @@ def test_facebook_link_rejects_identity_owned_by_different_user(
         confirm_password="StrongPass12!",
     )
     env.verify_email(reg["verification_token"])
-    login = env.login_password(identifier="second@example.com", password="StrongPass12!")
+    login = env.login_password(
+        identifier="second@example.com", password="StrongPass12!"
+    )
     token = login["tokens"]["access_token"]
 
     resp = client.post(

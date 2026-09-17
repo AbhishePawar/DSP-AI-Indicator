@@ -43,9 +43,7 @@ class FinancialSnapshotBuilder:
             SnapshotBridgeError: If statements fail structural validation.
         """
         try:
-            ordered = FundamentalStatementsBuilder.build(
-                instrument, tuple(statements)
-            )
+            ordered = FundamentalStatementsBuilder.build(instrument, tuple(statements))
             return FinancialSnapshot(instrument=instrument, statements=ordered)
         except (ValidationError, DataEngineError) as exc:
             msg = f"failed to build FinancialSnapshot: {exc}"

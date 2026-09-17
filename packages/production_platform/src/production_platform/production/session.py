@@ -30,7 +30,11 @@ class InMemorySessionPort:
             return dict(payload)
 
     def set(
-        self, session_id: str, payload: dict[str, Any], *, ttl_seconds: float | None = None
+        self,
+        session_id: str,
+        payload: dict[str, Any],
+        *,
+        ttl_seconds: float | None = None,
     ) -> None:
         expires = None
         if ttl_seconds is not None:

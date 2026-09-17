@@ -37,10 +37,12 @@ from orchestration.committee_mapping import (
 from valuation import (
     IntrinsicValueEstimate,
     ValuationAssessment,
-    ValuationConfidence as EngineValConfidence,
     ValuationEvidence,
     ValuationMethod,
     ValuationRange,
+)
+from valuation import (
+    ValuationConfidence as EngineValConfidence,
 )
 
 FIXED_NOW = datetime(2024, 6, 15, 12, 0, 0, tzinfo=UTC)
@@ -192,9 +194,7 @@ class TestCommitteeMapping:
         assert ctx.reasoning == "Growth is strong."
         assert ctx.evidence == (evidence,)
 
-    def test_valuation_mapping_preserves_mos(
-        self, instrument: Instrument
-    ) -> None:
+    def test_valuation_mapping_preserves_mos(self, instrument: Instrument) -> None:
         mos = MarginOfSafety(
             ratio=0.25,
             intrinsic_value=1000.0,

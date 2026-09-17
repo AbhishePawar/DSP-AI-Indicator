@@ -22,7 +22,6 @@ from data_engine.providers import ProviderRegistry
 __all__ = ["EconomicDataService", "FundamentalsDataService", "MarketDataService"]
 
 
-
 class MarketDataService:
     """Coordinates cache and provider lookups to satisfy price-series requests.
 
@@ -169,9 +168,7 @@ class FundamentalsDataService:
         statements = adapter.get_fundamental_statements(
             request.instrument, request.period_type, limit=request.limit
         )
-        assembled = FundamentalStatementsBuilder.build(
-            request.instrument, statements
-        )
+        assembled = FundamentalStatementsBuilder.build(request.instrument, statements)
         self._cache.set(cache_key, assembled, ttl_seconds=self._cache_ttl_seconds)
         return assembled
 
@@ -233,9 +230,7 @@ class EconomicDataService:
             msg = f"Provider '{provider_name}' does not support economic data"
             raise DataEngineError(msg)
 
-        series = adapter.get_economic_series(
-            request.indicator_code, request.country
-        )
+        series = adapter.get_economic_series(request.indicator_code, request.country)
         assembled = EconomicSeriesBuilder.build(
             series,
             expected_country=request.country,

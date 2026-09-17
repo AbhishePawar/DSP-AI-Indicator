@@ -46,9 +46,9 @@ from knowledge_graph.reporter import (
     CategoryCount,
     CollectionStatistics,
     KnowledgeGraphReporter,
-    ReportMetadata,
     ReportingContext,
     ReportingResult,
+    ReportMetadata,
     ValidationStatusView,
 )
 from knowledge_graph.validation import (

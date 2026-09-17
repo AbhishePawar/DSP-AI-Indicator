@@ -5,6 +5,7 @@ from __future__ import annotations
 from datetime import UTC, datetime
 
 import pytest
+from auth_test_helpers import admin_headers, bearer_headers, register_user
 from fastapi.testclient import TestClient
 
 from admin import AdminService, reset_admin_service_for_tests
@@ -15,7 +16,6 @@ from auth import (
     reset_auth_service_for_tests,
     reset_role_registry_for_tests,
 )
-from auth_test_helpers import admin_headers, bearer_headers, register_user
 from persistence import (
     InMemoryStorageProvider,
     PersistenceService,

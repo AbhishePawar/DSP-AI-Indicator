@@ -7,10 +7,12 @@ Does **not** enable Overall Valuation.
 
 from __future__ import annotations
 
+from collections.abc import Mapping, Sequence
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Any, Mapping, Sequence
+from typing import Any
 
+from valuation.consensus.consensus_explainability import ConsensusExplainedValue
 from valuation.core.confidence_engine import ConfidenceDetail
 from valuation.core.metadata import RESEARCH_DISCLAIMER, VALUATION_CORE_VERSION
 from valuation.core.quality_flags import QualityFlag
@@ -21,7 +23,6 @@ from valuation.core.result_models import (
     ValuationMetadata,
     ValuationResult,
 )
-from valuation.consensus.consensus_explainability import ConsensusExplainedValue
 from valuation.exceptions import ValuationError
 
 __all__ = [
@@ -328,16 +329,12 @@ def normalize_method_input(
             methodology=item.methodology,
             version=item.version,
             currency=item.currency,
-            explainability_notes=tuple(
-                e.notes for e in item.explainability if e.notes
-            ),
+            explainability_notes=tuple(e.notes for e in item.explainability if e.notes),
             source="valuation_result",
         )
 
     if not isinstance(item, Mapping):
-        raise ConsensusValidationError(
-            f"unsupported method input type: {type(item)!r}"
-        )
+        raise ConsensusValidationError(f"unsupported method input type: {type(item)!r}")
 
     method = str(item.get("method") or item.get("model_name") or "").strip()
     if not method:

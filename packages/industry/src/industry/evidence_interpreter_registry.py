@@ -28,9 +28,7 @@ class IndustryEvidenceInterpreterRegistry:
         self._meta_by_key: dict[tuple[str, str], IndustryEvidenceInterpreter] = {}
         self._interpreters: dict[str, EvidenceInterpreter] = {}
 
-    def register(
-        self, interpreter: EvidenceInterpreter
-    ) -> IndustryEvidenceInterpreter:
+    def register(self, interpreter: EvidenceInterpreter) -> IndustryEvidenceInterpreter:
         if not isinstance(interpreter, EvidenceInterpreter):
             msg = "interpreter must implement EvidenceInterpreter protocol"
             raise IndustryError(msg)
@@ -50,9 +48,7 @@ class IndustryEvidenceInterpreterRegistry:
         self._interpreters[meta.id] = interpreter
         return meta
 
-    def get(
-        self, interpreter_id: str, *, version: str
-    ) -> IndustryEvidenceInterpreter:
+    def get(self, interpreter_id: str, *, version: str) -> IndustryEvidenceInterpreter:
         key = (interpreter_id.strip().lower(), parse_semver(version).raw)
         try:
             return self._meta_by_key[key]

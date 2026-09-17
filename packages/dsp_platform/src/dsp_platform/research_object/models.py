@@ -6,10 +6,11 @@ No calculations, scoring, valuation, or AI reasoning.
 
 from __future__ import annotations
 
+from collections.abc import Mapping
 from dataclasses import dataclass, field
 from datetime import UTC, datetime
 from types import MappingProxyType
-from typing import Any, Mapping
+from typing import Any
 
 __all__ = [
     "RESEARCH_OBJECT_SCHEMA_VERSION",
@@ -93,9 +94,9 @@ class ResearchSection:
             "status": self.status,
             "source": self.source,
             "payload": _plain(self.payload) if self.payload is not None else None,
-            "provenance": _plain(self.provenance)
-            if self.provenance is not None
-            else None,
+            "provenance": (
+                _plain(self.provenance) if self.provenance is not None else None
+            ),
             "message": self.message,
             "retrieved_at": self.retrieved_at,
         }
@@ -257,10 +258,10 @@ class ResearchObject:
             "explainability": self.explainability.to_dict(),
             "audit": self.audit.to_dict(),
             "provenance": _plain(self.provenance),
-            "data_retrieval": _plain(self.data_retrieval)
-            if self.data_retrieval is not None
-            else None,
-            "data_health": _plain(self.data_health)
-            if self.data_health is not None
-            else None,
+            "data_retrieval": (
+                _plain(self.data_retrieval) if self.data_retrieval is not None else None
+            ),
+            "data_health": (
+                _plain(self.data_health) if self.data_health is not None else None
+            ),
         }

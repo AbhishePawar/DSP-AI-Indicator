@@ -12,7 +12,7 @@ from collections import Counter
 from dataclasses import dataclass, replace
 from typing import Any
 
-from knowledge_graph.engine import EngineResult, METHOD_TOPOLOGY
+from knowledge_graph.engine import METHOD_TOPOLOGY, EngineResult
 from knowledge_graph.enums import ReportingStatus
 from knowledge_graph.exceptions import KnowledgeGraphError
 from knowledge_graph.models import (
@@ -127,20 +127,14 @@ class ReportingContext:
     limitations: tuple[str, ...] = ()
 
     def __post_init__(self) -> None:
-        if (
-            self.report is None
-            and self.engine_result is None
-            and self.profile is None
-        ):
+        if self.report is None and self.engine_result is None and self.profile is None:
             msg = (
                 "missing graph identity: KnowledgeGraphReport, EngineResult, "
                 "or GraphProfile required"
             )
             raise KnowledgeGraphError(msg)
         if self.summary_sections is not None:
-            object.__setattr__(
-                self, "summary_sections", tuple(self.summary_sections)
-            )
+            object.__setattr__(self, "summary_sections", tuple(self.summary_sections))
         object.__setattr__(
             self,
             "limitations",
@@ -168,9 +162,7 @@ class ReportingResult:
     warnings: tuple[str, ...] = ()
 
     def __post_init__(self) -> None:
-        object.__setattr__(
-            self, "referenced_reports", tuple(self.referenced_reports)
-        )
+        object.__setattr__(self, "referenced_reports", tuple(self.referenced_reports))
         object.__setattr__(self, "summary_sections", tuple(self.summary_sections))
         object.__setattr__(self, "warnings", tuple(self.warnings))
 
@@ -249,12 +241,8 @@ class KnowledgeGraphReporter:
 
         node_statistics = self._node_statistics(source.nodes)
         edge_statistics = self._edge_statistics(source.edges)
-        relationship_statistics = self._relationship_statistics(
-            source.relationships
-        )
-        evidence_link_statistics = self._evidence_link_statistics(
-            source.evidence_links
-        )
+        relationship_statistics = self._relationship_statistics(source.relationships)
+        evidence_link_statistics = self._evidence_link_statistics(source.evidence_links)
         lineage_statistics = self._lineage_statistics(source.lineages)
         referenced_reports = self._collect_referenced_reports(source)
         method_id = self._extract_method_id(source)
@@ -300,9 +288,7 @@ class KnowledgeGraphReporter:
             method_id=method_id,
         )
 
-        status = (
-            ReportingStatus.PARTIAL if warnings else ReportingStatus.COMPLETE
-        )
+        status = ReportingStatus.PARTIAL if warnings else ReportingStatus.COMPLETE
         if not source.nodes and not source.edges:
             status = ReportingStatus.EMPTY
 
@@ -397,18 +383,14 @@ class KnowledgeGraphReporter:
             limitations=profile.notes,
         )
 
-    def _node_statistics(
-        self, nodes: tuple[GraphNode, ...]
-    ) -> CollectionStatistics:
+    def _node_statistics(self, nodes: tuple[GraphNode, ...]) -> CollectionStatistics:
         return self._category_statistics(
             section_key="nodes",
             title="Node statistics",
             values=tuple(n.category.value for n in nodes),
         )
 
-    def _edge_statistics(
-        self, edges: tuple[GraphEdge, ...]
-    ) -> CollectionStatistics:
+    def _edge_statistics(self, edges: tuple[GraphEdge, ...]) -> CollectionStatistics:
         return self._category_statistics(
             section_key="edges",
             title="Edge statistics",
@@ -451,8 +433,7 @@ class KnowledgeGraphReporter:
     ) -> CollectionStatistics:
         counts = Counter(values)
         by_category = tuple(
-            CategoryCount(category=key, count=counts[key])
-            for key in sorted(counts)
+            CategoryCount(category=key, count=counts[key]) for key in sorted(counts)
         )
         return CollectionStatistics(
             section_key=section_key,
@@ -510,9 +491,7 @@ class KnowledgeGraphReporter:
             not source.nodes and not source.edges
         )
         provenance_complete = self._provenance_complete(source)
-        anchors_present = bool(
-            source.recommendation_refs and source.workflow_refs
-        )
+        anchors_present = bool(source.recommendation_refs and source.workflow_refs)
         if not method_id_present:
             notes.append("method_id absent from provenance / limitations.")
         if not provenance_complete:

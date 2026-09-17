@@ -6,9 +6,9 @@ import ast
 from pathlib import Path
 
 import pytest
+
 from industry import EvidenceBundleReference, EvidenceBundleStatus
 from portfolio import DecisionPackReference
-
 from risk import (
     PortfolioReference,
     RiskAnalyzer,
@@ -37,23 +37,27 @@ def _pack(symbol: str) -> DecisionPackReference:
 
 
 def _assembled_profile() -> RiskProfile:
-    return RiskAssembler().assemble(
-        RiskAssemblyContext(
-            identity=RiskIdentity(risk_id="dsp.risk.demo", risk_name="Demo"),
-            portfolio_ref=PortfolioReference(portfolio_id="dsp.portfolio.demo"),
-            decision_pack_refs=(_pack("AAA"), _pack("BBB")),
-            evidence_bundle_refs=(
-                EvidenceBundleReference(
-                    bundle_id="dsp.evidence_bundle.aaa",
-                    instrument_key="AAA",
-                    methodology_id="dsp.methodology.commercial_banking",
-                    methodology_version="1.0.0",
-                    digest="abcdef0123456789deadbeef",
-                    status=EvidenceBundleStatus.INCOMPLETE,
+    return (
+        RiskAssembler()
+        .assemble(
+            RiskAssemblyContext(
+                identity=RiskIdentity(risk_id="dsp.risk.demo", risk_name="Demo"),
+                portfolio_ref=PortfolioReference(portfolio_id="dsp.portfolio.demo"),
+                decision_pack_refs=(_pack("AAA"), _pack("BBB")),
+                evidence_bundle_refs=(
+                    EvidenceBundleReference(
+                        bundle_id="dsp.evidence_bundle.aaa",
+                        instrument_key="AAA",
+                        methodology_id="dsp.methodology.commercial_banking",
+                        methodology_version="1.0.0",
+                        digest="abcdef0123456789deadbeef",
+                        status=EvidenceBundleStatus.INCOMPLETE,
+                    ),
                 ),
-            ),
+            )
         )
-    ).profile
+        .profile
+    )
 
 
 def _analyzed() -> tuple[RiskProfile, RiskAssessment, RiskReport]:
@@ -219,8 +223,7 @@ class TestArchitectureAndCompatibility:
         )
         assert integrated.status is RiskIntegrationStatus.COMPLETE
         assert (
-            integrated.context.report.assessment_id
-            == analysis.assessment.assessment_id
+            integrated.context.report.assessment_id == analysis.assessment.assessment_id
         )
 
     def test_platform_exports(self) -> None:

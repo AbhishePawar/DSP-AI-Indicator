@@ -18,7 +18,6 @@ from contracts import (
     EngineSource,
     Evidence,
     Instrument,
-    RecommendationAction,
 )
 from decision_intelligence import DecisionIntelligenceService, DecisionPack
 from recommendation import RecommendationMapper
@@ -82,9 +81,7 @@ def make_pack(
     for source, member in zip(sources, decisions, strict=True):
         op = _opinion(source, member)
         opinions.append(op)
-        votes.append(
-            MemberVote(source=source, recommendation=member, opinion=op)
-        )
+        votes.append(MemberVote(source=source, recommendation=member, opinion=op))
     report = CommitteeReport(
         instrument=instrument,
         opinions=tuple(opinions),

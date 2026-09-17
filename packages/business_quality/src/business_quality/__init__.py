@@ -63,19 +63,6 @@ from business_quality.business_quality_validation import (
     validate_module_outputs,
     validate_weights,
 )
-from business_quality.models import (
-    AggregatedFlag,
-    AggregatedFlags,
-    BusinessQualityAnalysis,
-    BusinessQualityFlag,
-    BusinessQualityScore,
-    BusinessQualitySummary,
-    BusinessQualityWeights,
-    DEFAULT_BUSINESS_QUALITY_WEIGHTS,
-    FlagSeverity,
-    OverallAssessment,
-    OverallRating,
-)
 from business_quality.capital_allocation_engine import (
     CAPITAL_ALLOCATION_VERSION,
     CapitalAllocationEngine,
@@ -136,6 +123,19 @@ from business_quality.metadata import (
     BUSINESS_QUALITY_VERSION,
     FRAMEWORK_VERSION,
     BusinessQualityMetadata,
+)
+from business_quality.models import (
+    DEFAULT_BUSINESS_QUALITY_WEIGHTS,
+    AggregatedFlag,
+    AggregatedFlags,
+    BusinessQualityAnalysis,
+    BusinessQualityFlag,
+    BusinessQualityScore,
+    BusinessQualitySummary,
+    BusinessQualityWeights,
+    FlagSeverity,
+    OverallAssessment,
+    OverallRating,
 )
 from business_quality.scoring import (
     Assessment,

@@ -15,11 +15,11 @@ from auth import (
     AuthService,
     DuplicateUserError,
     EnterpriseAuthPlatform,
+    RoleRegistry,
     ValidationError,
     reset_auth_service_for_tests,
     reset_enterprise_auth_platform_for_tests,
     reset_role_registry_for_tests,
-    RoleRegistry,
 )
 from auth.email_delivery import ConsoleEmailAdapter
 from auth.oauth_providers import OAuthProviderRegistry
@@ -40,8 +40,12 @@ class _CapturingEmailAdapter(ConsoleEmailAdapter):
         self.messages: list[dict[str, str]] = []
 
     def send(self, *, to, subject, body, purpose="transactional", html_body=None):
-        self.messages.append({"to": to, "subject": subject, "body": body, "purpose": purpose})
-        return super().send(to=to, subject=subject, body=body, purpose=purpose, html_body=html_body)
+        self.messages.append(
+            {"to": to, "subject": subject, "body": body, "purpose": purpose}
+        )
+        return super().send(
+            to=to, subject=subject, body=body, purpose=purpose, html_body=html_body
+        )
 
 
 @pytest.fixture
@@ -82,7 +86,9 @@ def _platform() -> EnterpriseAuthPlatform:
     return get_enterprise_auth_platform()
 
 
-def test_email_verification_is_single_use_and_emailed(email_adapter: _CapturingEmailAdapter) -> None:
+def test_email_verification_is_single_use_and_emailed(
+    email_adapter: _CapturingEmailAdapter,
+) -> None:
     platform = _platform()
     reg = platform.register_email(
         name="Alice",
@@ -91,7 +97,10 @@ def test_email_verification_is_single_use_and_emailed(email_adapter: _CapturingE
         confirm_password="StrongPass12!",
     )
     token = reg["verification_token"]
-    assert any(m["purpose"] == "email_verify" and m["to"] == "alice@example.com" for m in email_adapter.messages)
+    assert any(
+        m["purpose"] == "email_verify" and m["to"] == "alice@example.com"
+        for m in email_adapter.messages
+    )
 
     result = platform.verify_email(token)
     assert result["ok"] is True
@@ -134,11 +143,16 @@ def test_password_reset_is_single_use_and_revokes_other_pending_tokens(
     assert len(events) == 1
 
 
-def test_magic_link_is_single_use_and_provisions_user(email_adapter: _CapturingEmailAdapter) -> None:
+def test_magic_link_is_single_use_and_provisions_user(
+    email_adapter: _CapturingEmailAdapter,
+) -> None:
     platform = _platform()
     req = platform.request_magic_link("newuser@example.com")
     token = req["magic_token"]
-    assert any(m["purpose"] == "magic_link" and m["to"] == "newuser@example.com" for m in email_adapter.messages)
+    assert any(
+        m["purpose"] == "magic_link" and m["to"] == "newuser@example.com"
+        for m in email_adapter.messages
+    )
 
     session = platform.consume_magic_link(token)
     assert session["user"]["email"] == "newuser@example.com"
@@ -147,7 +161,9 @@ def test_magic_link_is_single_use_and_provisions_user(email_adapter: _CapturingE
         platform.consume_magic_link(token)
 
 
-def test_invitation_is_single_use_and_has_expiry(email_adapter: _CapturingEmailAdapter) -> None:
+def test_invitation_is_single_use_and_has_expiry(
+    email_adapter: _CapturingEmailAdapter,
+) -> None:
     platform = _platform()
     submitted = platform.submit_access_request(
         name="Carol", email="carol@corp.example", organization="Corp", reason="Research"
@@ -156,7 +172,9 @@ def test_invitation_is_single_use_and_has_expiry(email_adapter: _CapturingEmailA
     admin = platform._get_by_email("admin@dspai.local")
     assert admin is not None
 
-    decided = platform.decide_access_request(request_id, approve=True, actor_user_id=admin.user_id)
+    decided = platform.decide_access_request(
+        request_id, approve=True, actor_user_id=admin.user_id
+    )
     token = decided["invitation_token"]
     assert any(m["purpose"] == "invitation" for m in email_adapter.messages)
 
@@ -178,7 +196,6 @@ def test_invitation_is_single_use_and_has_expiry(email_adapter: _CapturingEmailA
 
 
 def test_invitation_expiry_enforced() -> None:
-    from datetime import timedelta
 
     platform = _platform()
     submitted = platform.submit_access_request(
@@ -187,7 +204,9 @@ def test_invitation_expiry_enforced() -> None:
     request_id = submitted["request"]["request_id"]
     admin = platform._get_by_email("admin@dspai.local")
     assert admin is not None
-    decided = platform.decide_access_request(request_id, approve=True, actor_user_id=admin.user_id)
+    decided = platform.decide_access_request(
+        request_id, approve=True, actor_user_id=admin.user_id
+    )
     token = decided["invitation_token"]
 
     # Simulate expiry by revoking (equivalent effect: token no longer redeemable).
@@ -208,10 +227,16 @@ def test_duplicate_account_detected_before_second_accept_is_impossible() -> None
     request_id = submitted["request"]["request_id"]
     admin = platform._get_by_email("admin@dspai.local")
     assert admin is not None
-    decided = platform.decide_access_request(request_id, approve=True, actor_user_id=admin.user_id)
+    decided = platform.decide_access_request(
+        request_id, approve=True, actor_user_id=admin.user_id
+    )
     token = decided["invitation_token"]
-    platform.accept_invitation(token=token, password="StrongPass12!", confirm_password="StrongPass12!")
+    platform.accept_invitation(
+        token=token, password="StrongPass12!", confirm_password="StrongPass12!"
+    )
 
     with pytest.raises(ValidationError) as excinfo:
-        platform.accept_invitation(token=token, password="StrongPass12!", confirm_password="StrongPass12!")
+        platform.accept_invitation(
+            token=token, password="StrongPass12!", confirm_password="StrongPass12!"
+        )
     assert not isinstance(excinfo.value, DuplicateUserError)

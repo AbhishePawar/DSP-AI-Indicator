@@ -6,8 +6,6 @@ or persistence.
 
 from __future__ import annotations
 
-from core.exceptions import ValidationError
-
 from copilot.enums import (
     ConversationRole,
     ConversationState,
@@ -18,6 +16,7 @@ from copilot.enums import (
     UserIntentType,
 )
 from copilot.exceptions import CopilotError
+from core.exceptions import ValidationError
 
 __all__ = [
     "ALLOWED_CONVERSATION_TRANSITIONS",
@@ -47,9 +46,7 @@ CONVERSATION_ROLES: frozenset[ConversationRole] = frozenset(ConversationRole)
 USER_INTENT_TYPES: frozenset[UserIntentType] = frozenset(UserIntentType)
 EXPLANATION_TYPES: frozenset[ExplanationType] = frozenset(ExplanationType)
 RESPONSE_STATUSES: frozenset[ResponseStatus] = frozenset(ResponseStatus)
-LANGUAGE_MODEL_STATUSES: frozenset[LanguageModelStatus] = frozenset(
-    LanguageModelStatus
-)
+LANGUAGE_MODEL_STATUSES: frozenset[LanguageModelStatus] = frozenset(LanguageModelStatus)
 
 ALLOWED_CONVERSATION_TRANSITIONS: dict[
     ConversationState, frozenset[ConversationState]
@@ -106,9 +103,7 @@ def assert_legal_conversation_transition(
     assert_conversation_state(target)
     allowed = ALLOWED_CONVERSATION_TRANSITIONS.get(source, frozenset())
     if target not in allowed:
-        msg = (
-            f"illegal conversation transitions: {source.value!r} -> {target.value!r}"
-        )
+        msg = f"illegal conversation transitions: {source.value!r} -> {target.value!r}"
         raise CopilotError(msg)
 
 

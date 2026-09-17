@@ -50,7 +50,9 @@ def _group() -> FailoverGroup[InsiderTradingService, InsiderTradingQuery, Any]:
     with _LOCK:
         if _GROUP is None:
             registry = build_default_insider_trading_registry_from_env()
-            _SERVICES = tuple(InsiderTradingService(provider) for provider in registry.ordered())
+            _SERVICES = tuple(
+                InsiderTradingService(provider) for provider in registry.ordered()
+            )
             _GROUP = _make_group(_SERVICES)
         return _GROUP
 

@@ -8,7 +8,8 @@ from __future__ import annotations
 
 import math
 import statistics
-from typing import Any, Sequence
+from collections.abc import Sequence
+from typing import Any
 
 from financial.income_statement import IncomeStatement
 from financial.intelligence.income_explainability import (
@@ -113,11 +114,13 @@ class IncomeStatementEngine:
 
     def analyze(
         self,
-        source: IncomeStatement
-        | FinancialStatements
-        | FinancialSnapshot
-        | dict
-        | Sequence[IncomeStatement | FinancialStatements],
+        source: (
+            IncomeStatement
+            | FinancialStatements
+            | FinancialSnapshot
+            | dict
+            | Sequence[IncomeStatement | FinancialStatements]
+        ),
         *,
         history: Sequence[IncomeStatement | FinancialStatements] | None = None,
     ) -> IncomeStatementAnalysis:
@@ -182,7 +185,11 @@ class IncomeStatementEngine:
         rev = income.revenue
         # Operating margin prefers EBIT; falls back to revenue - opex when both set
         operating = income.ebit
-        if operating is None and income.operating_expenses is not None and rev is not None:
+        if (
+            operating is None
+            and income.operating_expenses is not None
+            and rev is not None
+        ):
             operating = rev - income.operating_expenses
 
         pairs = (
@@ -204,7 +211,9 @@ class IncomeStatementEngine:
                     inputs={"numerator": numer, "revenue": rev},
                     intermediates={"ratio": result},
                     result=result,
-                    confidence=_confidence_from_history(1, has_value=result is not None),
+                    confidence=_confidence_from_history(
+                        1, has_value=result is not None
+                    ),
                     interpretation=self._margin_interp(name, result),
                     limitations="Undefined when revenue is missing or zero.",
                 )
@@ -229,7 +238,11 @@ class IncomeStatementEngine:
             ("cogs_pct", "cogs / revenue", income.cogs),
             ("rd_pct", "rd / revenue", income.rd),
             ("sga_pct", "sga / revenue", income.sga),
-            ("operating_expense_pct", "operating_expenses / revenue", income.operating_expenses),
+            (
+                "operating_expense_pct",
+                "operating_expenses / revenue",
+                income.operating_expenses,
+            ),
             ("interest_pct", "interest_expense / revenue", income.interest_expense),
             ("tax_pct", "tax / revenue", income.tax),
             ("other_income_pct", "other_income / revenue", income.other_income),
@@ -245,7 +258,9 @@ class IncomeStatementEngine:
                     inputs={"numerator": numer, "revenue": rev},
                     intermediates={"ratio": result},
                     result=result,
-                    confidence=_confidence_from_history(1, has_value=result is not None),
+                    confidence=_confidence_from_history(
+                        1, has_value=result is not None
+                    ),
                     interpretation=(
                         f"{name} unavailable."
                         if result is None
@@ -313,7 +328,10 @@ class IncomeStatementEngine:
                 s = stmts[i]
                 if s is None:
                     continue
-                if cur_p.period_type is PeriodType.ANNUAL and s.period.period_type is PeriodType.ANNUAL:
+                if (
+                    cur_p.period_type is PeriodType.ANNUAL
+                    and s.period.period_type is PeriodType.ANNUAL
+                ):
                     if cur_p.fiscal_year and s.period.fiscal_year:
                         if cur_p.fiscal_year - s.period.fiscal_year == 1:
                             yoy = _growth(rev, incomes[i].revenue)
@@ -451,6 +469,7 @@ class IncomeStatementEngine:
         out: list[MetricExplanation],
     ) -> ProfitabilityMetrics:
         primary = incomes[-1]
+
         # Quality: margin level clipped to [0, 1] contribution
         def _q(m: float | None) -> float | None:
             if m is None:
@@ -458,7 +477,11 @@ class IncomeStatementEngine:
             return max(0.0, min(1.0, m))
 
         gpq = _q(margins.gross_margin)
-        opq = _q(margins.operating_margin if margins.operating_margin is not None else margins.ebit_margin)
+        opq = _q(
+            margins.operating_margin
+            if margins.operating_margin is not None
+            else margins.ebit_margin
+        )
         niq = _q(margins.net_margin)
 
         net_margins: list[float] = []
@@ -490,9 +513,11 @@ class IncomeStatementEngine:
                     interpretation=(
                         "Net margin expanded."
                         if delta >= _MARGIN_EXPAND
-                        else "Net margin compressed."
-                        if delta <= -_MARGIN_EXPAND
-                        else "Net margin roughly stable."
+                        else (
+                            "Net margin compressed."
+                            if delta <= -_MARGIN_EXPAND
+                            else "Net margin roughly stable."
+                        )
                     ),
                     limitations="Requires two periods with computable net margins.",
                 )
@@ -643,9 +668,7 @@ class IncomeStatementEngine:
 
         net_m = [
             m
-            for m in (
-                _safe_div(i.net_income, i.revenue) for i in incomes
-            )
+            for m in (_safe_div(i.net_income, i.revenue) for i in incomes)
             if m is not None
         ]
         margin_consistency = _stability(net_m) if len(net_m) >= 2 else None
@@ -712,7 +735,9 @@ class IncomeStatementEngine:
                 },
                 intermediates={"tax_burden": tax_burden},
                 result=tax_burden,
-                confidence=_confidence_from_history(1, has_value=tax_burden is not None),
+                confidence=_confidence_from_history(
+                    1, has_value=tax_burden is not None
+                ),
                 interpretation=(
                     "Tax burden unavailable."
                     if tax_burden is None
@@ -771,7 +796,10 @@ class IncomeStatementEngine:
         ):
             flags.append(QualityFlag.HIGH_OPERATING_LEVERAGE)
 
-        if consistency.tax_burden is not None and consistency.tax_burden >= _HIGH_TAX_BURDEN:
+        if (
+            consistency.tax_burden is not None
+            and consistency.tax_burden >= _HIGH_TAX_BURDEN
+        ):
             flags.append(QualityFlag.HIGH_TAX_BURDEN)
         if (
             consistency.interest_burden is not None
@@ -782,9 +810,15 @@ class IncomeStatementEngine:
         # Earnings quality
         strong = (
             (margins.net_margin is not None and margins.net_margin > 0)
-            and (consistency.other_income_dependence is None or consistency.other_income_dependence < 0.1)
+            and (
+                consistency.other_income_dependence is None
+                or consistency.other_income_dependence < 0.1
+            )
             and not consistency.one_time_items_detected
-            and (consistency.earnings_stability is None or consistency.earnings_stability >= 0.5)
+            and (
+                consistency.earnings_stability is None
+                or consistency.earnings_stability >= 0.5
+            )
         )
         weak = (
             consistency.one_time_items_detected

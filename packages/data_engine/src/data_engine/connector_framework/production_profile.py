@@ -8,7 +8,8 @@ environment is not production.
 from __future__ import annotations
 
 import os
-from typing import Any, Callable, TypeVar
+from collections.abc import Callable
+from typing import Any, TypeVar
 
 from data_engine.connector_framework.registry import PriorityProviderRegistry
 from data_engine.exceptions import ConnectorConfigurationError

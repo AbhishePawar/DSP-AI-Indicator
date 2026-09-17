@@ -2,7 +2,8 @@
 
 from __future__ import annotations
 
-from typing import Any, Mapping
+from collections.abc import Mapping
+from typing import Any
 
 from auth.models import AuthSession, AuthTokenPair, AuthUser
 
@@ -13,7 +14,9 @@ __all__ = [
 ]
 
 
-def user_to_dict(user: AuthUser | Mapping[str, Any], *, include_hash: bool = False) -> dict[str, Any]:
+def user_to_dict(
+    user: AuthUser | Mapping[str, Any], *, include_hash: bool = False
+) -> dict[str, Any]:
     if isinstance(user, AuthUser):
         return user.to_dict(include_hash=include_hash)
     row = dict(user)

@@ -22,6 +22,7 @@ from api_platform.api.routers import (
     investment_policy,
     market,
     meta,
+    ops,
     persistence,
     platform,
     portfolio_intelligence,
@@ -32,7 +33,6 @@ from api_platform.api.routers import (
     research_monitoring,
     research_workspace,
     saas,
-    ops,
     workflow,
 )
 

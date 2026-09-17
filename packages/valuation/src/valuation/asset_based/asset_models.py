@@ -9,10 +9,12 @@ References
 
 from __future__ import annotations
 
+from collections.abc import Mapping
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Any, Mapping
+from typing import Any
 
+from valuation.asset_based.asset_explainability import AssetExplainedValue
 from valuation.core.confidence_engine import ConfidenceDetail
 from valuation.core.metadata import RESEARCH_DISCLAIMER, VALUATION_CORE_VERSION
 from valuation.core.quality_flags import QualityFlag
@@ -23,7 +25,6 @@ from valuation.core.result_models import (
     ValuationMetadata,
     ValuationResult,
 )
-from valuation.asset_based.asset_explainability import AssetExplainedValue
 
 __all__ = [
     "ASSET_BASED_VERSION",

@@ -8,8 +8,8 @@ from management_quality.exceptions import (
     ManagementQualityValidationError,
 )
 from management_quality.metadata import (
-    MANAGEMENT_QUALITY_VERSION,
     FRAMEWORK_VERSION,
+    MANAGEMENT_QUALITY_VERSION,
     ManagementMetadata,
 )
 from management_quality.models import (

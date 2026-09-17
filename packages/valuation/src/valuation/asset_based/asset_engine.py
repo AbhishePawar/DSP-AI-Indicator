@@ -9,9 +9,10 @@ Integrates Valuation Core without modifying Core or other valuation methods.
 from __future__ import annotations
 
 import time
+from collections.abc import Mapping
 from dataclasses import replace
 from datetime import UTC, datetime
-from typing import Any, Mapping
+from typing import Any
 
 from valuation.asset_based.asset_explainability import explain_many, explain_step
 from valuation.asset_based.asset_models import (
@@ -242,8 +243,7 @@ class AssetBasedEngine:
             )
         recovered += inputs.hidden_assets + inputs.off_balance_sheet_assets
         liab = (
-            self._operating_liabilities(inputs)
-            + inputs.off_balance_sheet_liabilities
+            self._operating_liabilities(inputs) + inputs.off_balance_sheet_liabilities
         )
         equity = self._common_equity(recovered - liab, inputs)
         return equity, rates, tuple(adjustments)
@@ -351,7 +351,9 @@ class AssetBasedEngine:
 
         # Replacement cost of operating assets − liabilities − claims
         if inputs.replacement_cost is not None:
-            repl_assets = inputs.replacement_cost + inputs.cash + inputs.cash_equivalents
+            repl_assets = (
+                inputs.replacement_cost + inputs.cash + inputs.cash_equivalents
+            )
         else:
             repl_assets = (
                 inputs.cash
@@ -596,9 +598,7 @@ class AssetBasedEngine:
             p_delta = float(ctx.get("property_delta", 0.0))
             adj = replace(
                 inputs,
-                haircut_schedule=self._scale_haircuts(
-                    inputs.haircut_schedule, h_delta
-                ),
+                haircut_schedule=self._scale_haircuts(inputs.haircut_schedule, h_delta),
                 real_estate_appreciation=inputs.real_estate_appreciation
                 + (inputs.ppe + inputs.investment_property) * p_delta,
                 method=(
@@ -640,7 +640,9 @@ class AssetBasedEngine:
             SensitivityAxis("inventory_discounts", (inv - 0.1, inv, inv + 0.1)),
             SensitivityAxis("receivable_recovery", (recv - 0.1, recv, recv + 0.1)),
             SensitivityAxis("debt_adjustments", (debt - 50.0, debt, debt + 50.0)),
-            SensitivityAxis("hidden_asset_value", (hidden - 50.0, hidden, hidden + 50.0)),
+            SensitivityAxis(
+                "hidden_asset_value", (hidden - 50.0, hidden, hidden + 50.0)
+            ),
         )
 
         def evaluator(ctx: Mapping[str, Any]) -> float | None:
@@ -649,8 +651,13 @@ class AssetBasedEngine:
             if "asset_haircuts" in ctx and ctx["asset_haircuts"] != ppe_h:
                 rate = max(0.0, min(1.0, float(ctx["asset_haircuts"])))
                 sched = replace(sched, ppe=rate, investment_property=rate)
-                adj = replace(adj, haircut_schedule=sched, method=AssetMethod.LIQUIDATION)
-            if "property_appreciation" in ctx and ctx["property_appreciation"] != prop_appr:
+                adj = replace(
+                    adj, haircut_schedule=sched, method=AssetMethod.LIQUIDATION
+                )
+            if (
+                "property_appreciation" in ctx
+                and ctx["property_appreciation"] != prop_appr
+            ):
                 adj = replace(
                     adj,
                     real_estate_appreciation=float(ctx["property_appreciation"]),
@@ -759,10 +766,15 @@ class AssetBasedEngine:
             completeness += 0.1
         completeness = min(1.0, completeness)
 
-        adj_reliability = 0.7 if inputs.method in {
-            AssetMethod.BOOK_VALUE,
-            AssetMethod.TANGIBLE_BOOK,
-        } else 0.55
+        adj_reliability = (
+            0.7
+            if inputs.method
+            in {
+                AssetMethod.BOOK_VALUE,
+                AssetMethod.TANGIBLE_BOOK,
+            }
+            else 0.55
+        )
 
         return ConfidenceEngine().score(
             {
@@ -808,18 +820,18 @@ class AssetBasedEngine:
 
         if inputs.hidden_assets > 0 or inputs.off_balance_sheet_assets > 0:
             flags.append(AssetQualityFlag.HIDDEN_ASSETS)
-        if (
-            inputs.real_estate_appreciation > 0
-            or (
-                inputs.fv_investment_property is not None
-                and inputs.fv_investment_property > inputs.investment_property
-            )
+        if inputs.real_estate_appreciation > 0 or (
+            inputs.fv_investment_property is not None
+            and inputs.fv_investment_property > inputs.investment_property
         ):
             flags.append(AssetQualityFlag.REAL_ESTATE_UPSIDE)
         if book < 0:
             flags.append(AssetQualityFlag.NEGATIVE_EQUITY)
 
-        if quality is AssetQuality.WEAK and AssetQualityFlag.WEAK_ASSET_COVERAGE not in flags:
+        if (
+            quality is AssetQuality.WEAK
+            and AssetQualityFlag.WEAK_ASSET_COVERAGE not in flags
+        ):
             flags.append(AssetQualityFlag.WEAK_ASSET_COVERAGE)
 
         return tuple(flags), tuple(core)

@@ -28,17 +28,16 @@ from contracts.domain.instrument import Instrument
 from contracts.domain.price_series import PriceSeries
 from contracts.domain.signal import Signal
 from contracts.enums import BarFrequency, StatementPeriodType
-
-from data_engine.market_quote.service import MarketQuotePort as MarketQuotePort
-from data_engine.financial_statement.service import (
-    FinancialStatementPort as FinancialStatementPort,
-)
 from data_engine.corporate_actions.service import (
     CorporateActionPort as CorporateActionPort,
+)
+from data_engine.financial_statement.service import (
+    FinancialStatementPort as FinancialStatementPort,
 )
 from data_engine.historical_series.service import (
     HistoricalSeriesPort as HistoricalSeriesPort,
 )
+from data_engine.market_quote.service import MarketQuotePort as MarketQuotePort
 
 __all__ = [
     "AlternativeDataPort",

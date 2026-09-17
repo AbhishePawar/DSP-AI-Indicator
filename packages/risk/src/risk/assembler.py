@@ -11,7 +11,6 @@ from dataclasses import dataclass
 from core.exceptions import ValidationError
 from industry import EvidenceBundleReference
 from portfolio import ComparisonReportReference, DecisionPackReference
-
 from risk.enums import RiskAssemblyStatus
 from risk.exceptions import RiskError
 from risk.models import (
@@ -50,9 +49,7 @@ class RiskAssemblyContext:
         if self.portfolio_ref is None:
             msg = "portfolio_ref is required"
             raise ValidationError(msg)
-        object.__setattr__(
-            self, "decision_pack_refs", tuple(self.decision_pack_refs)
-        )
+        object.__setattr__(self, "decision_pack_refs", tuple(self.decision_pack_refs))
         object.__setattr__(
             self, "evidence_bundle_refs", tuple(self.evidence_bundle_refs)
         )

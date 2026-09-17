@@ -3,10 +3,10 @@
 from __future__ import annotations
 
 import pytest
+from auth_test_helpers import admin_headers, bearer_headers, register_user
 from fastapi.testclient import TestClient
 
 from api_platform.api.app import create_app
-from auth_test_helpers import admin_headers, bearer_headers, register_user
 from enterprise import EnterpriseService, reset_enterprise_service_for_tests
 
 

@@ -8,15 +8,18 @@ from __future__ import annotations
 
 import statistics
 import time
+from collections.abc import Mapping, Sequence
 from datetime import UTC, datetime
-from typing import Any, Mapping, Sequence
+from typing import Any
 
 from valuation.consensus.consensus_models import (
     ConsensusResult,
     MethodWeightDetail,
-    SensitivitySummary as ConsensusSensitivitySummary,
     StandardizedMethodResult,
     normalize_method_input,
+)
+from valuation.consensus.consensus_models import (
+    SensitivitySummary as ConsensusSensitivitySummary,
 )
 from valuation.core.confidence_engine import ConfidenceEngine
 from valuation.core.metadata import RESEARCH_DISCLAIMER, VALUATION_CORE_VERSION
@@ -120,7 +123,9 @@ class OverallEngine:
                 val_hi = max(val_hi, max(ivps_vals))
 
         range_pct = ((val_hi - val_lo) / abs(ivps)) if ivps else 0.0
-        confidence = self._confidence(view, validation.warnings, sensitivity, method_rows)
+        confidence = self._confidence(
+            view, validation.warnings, sensitivity, method_rows
+        )
         score = self._overall_score(
             mos=mos,
             confidence=confidence,
@@ -173,11 +178,7 @@ class OverallEngine:
             intermediates={"classification": mos_class.value},
             confidence=conf_level,
             notes="Research classification only — not a recommendation",
-            warnings=(
-                ("Price is zero — MoS limited",)
-                if price == 0
-                else ()
-            ),
+            warnings=(("Price is zero — MoS limited",) if price == 0 else ()),
         )
         pd_exp = explain_step(
             name="premium_discount",
@@ -337,18 +338,24 @@ class OverallEngine:
                 "source": "ValuationResult",
                 "iv": c.intrinsic_value,
                 "ivps": c.intrinsic_value_per_share,
-                "consensus_display": c.intrinsic_value_per_share
-                if c.intrinsic_value_per_share is not None
-                else c.intrinsic_value,
+                "consensus_display": (
+                    c.intrinsic_value_per_share
+                    if c.intrinsic_value_per_share is not None
+                    else c.intrinsic_value
+                ),
                 "consensus_confidence": c.confidence_level,
                 "confidence_score": c.confidence_score,
                 "confidence_interval": self._ci_from_scenarios(c.scenario_results, c),
-                "lower_range": c.intrinsic_value_per_share
-                if c.intrinsic_value_per_share is not None
-                else (c.intrinsic_value or 0.0),
-                "upper_range": c.intrinsic_value_per_share
-                if c.intrinsic_value_per_share is not None
-                else (c.intrinsic_value or 0.0),
+                "lower_range": (
+                    c.intrinsic_value_per_share
+                    if c.intrinsic_value_per_share is not None
+                    else (c.intrinsic_value or 0.0)
+                ),
+                "upper_range": (
+                    c.intrinsic_value_per_share
+                    if c.intrinsic_value_per_share is not None
+                    else (c.intrinsic_value or 0.0)
+                ),
                 "consistency": 50.0,
                 "method_weights": (),
                 "method_rankings": (),
@@ -379,9 +386,11 @@ class OverallEngine:
                 "source": "v2_payload",
                 "iv": float(iv) if iv is not None else None,
                 "ivps": float(ivps) if ivps is not None else None,
-                "consensus_display": float(ivps)
-                if ivps is not None
-                else (float(iv) if iv is not None else None),
+                "consensus_display": (
+                    float(ivps)
+                    if ivps is not None
+                    else (float(iv) if iv is not None else None)
+                ),
                 "consensus_confidence": conf,
                 "confidence_score": float(score),
                 "confidence_interval": interval,
@@ -419,9 +428,7 @@ class OverallEngine:
         return float(base) * 0.9, float(base) * 1.1
 
     # ------------------------------------------------------------------- MoS
-    def _mos_class(
-        self, mos: float | None, thr: MosThresholds
-    ) -> MosClassification:
+    def _mos_class(self, mos: float | None, thr: MosThresholds) -> MosClassification:
         if mos is None:
             # Missing MoS is unavailable — never invent fairly_valued (CV-001/005).
             return MosClassification.UNAVAILABLE
@@ -476,7 +483,9 @@ class OverallEngine:
         std_methods: tuple[StandardizedMethodResult, ...] = tuple(
             view.get("standardized") or ()
         )
-        by_name: dict[str, StandardizedMethodResult] = {m.method: m for m in std_methods}
+        by_name: dict[str, StandardizedMethodResult] = {
+            m.method: m for m in std_methods
+        }
 
         for raw in inputs.methods:
             try:
@@ -487,7 +496,7 @@ class OverallEngine:
 
         if by_name and not any(weight_map.get(m, 0.0) > 0 for m in by_name):
             eq = 1.0 / len(by_name)
-            weight_map = {m: eq for m in by_name}
+            weight_map = dict.fromkeys(by_name, eq)
         else:
             for m in by_name:
                 weight_map.setdefault(m, 0.0)
@@ -499,7 +508,11 @@ class OverallEngine:
             if ivps is not None and consensus_ivps != 0:
                 agreement = max(
                     0.0,
-                    min(100.0, 100.0 * (1.0 - abs(ivps - consensus_ivps) / abs(consensus_ivps))),
+                    min(
+                        100.0,
+                        100.0
+                        * (1.0 - abs(ivps - consensus_ivps) / abs(consensus_ivps)),
+                    ),
                 )
             status = "included"
             warns: list[str] = list(std.validation_warnings)
@@ -528,14 +541,13 @@ class OverallEngine:
         rankings = tuple(view.get("method_rankings") or ())
         if not rankings:
             rankings = tuple(
-                r.method
-                for r in sorted(rows, key=lambda x: (-x.weight, x.method))
+                r.method for r in sorted(rows, key=lambda x: (-x.weight, x.method))
             )
 
         if weight_details:
-            weights_out: tuple[MethodWeightDetail, ...] | tuple[tuple[str, float], ...] = (
-                weight_details
-            )
+            weights_out: (
+                tuple[MethodWeightDetail, ...] | tuple[tuple[str, float], ...]
+            ) = weight_details
         else:
             weights_out = tuple((r.method, r.weight) for r in rows)
 
@@ -608,7 +620,9 @@ class OverallEngine:
         )
 
     def _scenario_stability(self, scenarios: ScenarioSummary) -> float:
-        vals = [v for v in (scenarios.bear, scenarios.base, scenarios.bull) if v is not None]
+        vals = [
+            v for v in (scenarios.bear, scenarios.base, scenarios.bull) if v is not None
+        ]
         if len(vals) < 2:
             return 0.5
         mid = statistics.median(vals)

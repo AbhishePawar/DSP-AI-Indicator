@@ -6,10 +6,10 @@ from datetime import UTC, datetime
 from uuid import uuid4
 
 import pytest
+from auth_test_helpers import bearer_headers, register_user
 from fastapi.testclient import TestClient
 
 from api_platform import create_app
-from auth_test_helpers import bearer_headers, register_user
 from data_engine import DataOrchestrator
 from dsp_platform import DSPPlatform, PlatformBuilder, PlatformConfiguration
 from dsp_platform.data_orchestrator import reset_data_orchestrator_for_tests
@@ -43,6 +43,7 @@ def client(platform: DSPPlatform) -> TestClient:
     app_client = TestClient(create_app(platform=platform))
     reset_investment_provenance_store_for_tests(InMemoryInvestmentProvenanceStore())
     return app_client
+
 
 @pytest.fixture
 def auth_headers(client: TestClient) -> dict[str, str]:
@@ -88,7 +89,9 @@ def _mock_orch() -> DataOrchestrator:
     )
 
 
-def test_research_object_schema(client: TestClient, auth_headers: dict[str, str]) -> None:
+def test_research_object_schema(
+    client: TestClient, auth_headers: dict[str, str]
+) -> None:
     response = client.get("/api/v1/research/object/schema")
     assert response.status_code == 200
     body = response.json()
@@ -97,7 +100,9 @@ def test_research_object_schema(client: TestClient, auth_headers: dict[str, str]
     assert body["schema"]["immutable"] is True
 
 
-def test_research_object_build_with_fetch(client: TestClient, auth_headers: dict[str, str]) -> None:
+def test_research_object_build_with_fetch(
+    client: TestClient, auth_headers: dict[str, str]
+) -> None:
     reset_data_orchestrator_for_tests(_mock_orch())
     aid = str(uuid4())
     now = datetime.now(tz=UTC).isoformat()
@@ -118,7 +123,10 @@ def test_research_object_build_with_fetch(client: TestClient, auth_headers: dict
                 "margin_of_safety": 0.2,
                 "reason": None,
             },
-            buffett={"overall_status": "unavailable", "recommendation": "Research Mode"},
+            buffett={
+                "overall_status": "unavailable",
+                "recommendation": "Research Mode",
+            },
             conclusion={
                 "recommendation": "Research Mode",
                 "recommendation_label": "Research Mode",
@@ -159,7 +167,9 @@ def test_research_object_build_with_fetch(client: TestClient, auth_headers: dict
     assert ro["version"]["schema_version"] == "1.0.0"
 
 
-def test_research_object_without_fetch(client: TestClient, auth_headers: dict[str, str]) -> None:
+def test_research_object_without_fetch(
+    client: TestClient, auth_headers: dict[str, str]
+) -> None:
     response = client.post(
         "/api/v1/research/object",
         headers=auth_headers,

@@ -18,7 +18,9 @@ __all__ = [
     "try_build_postgres",
 ]
 
-_URI_CREDENTIALS = re.compile(r"(?i)(?P<scheme>[a-z0-9+.\-]+://)(?P<user>[^:/?#@\s]+):[^@\s]*@")
+_URI_CREDENTIALS = re.compile(
+    r"(?i)(?P<scheme>[a-z0-9+.\-]+://)(?P<user>[^:/?#@\s]+):[^@\s]*@"
+)
 _KEYWORD_PASSWORD = re.compile(r"(?i)\bpassword\s*=\s*(?:'[^']*'|\"[^\"]*\"|\S+)")
 
 
@@ -67,7 +69,9 @@ class _PostgresTransaction:
 class PostgresDatabasePort:
     """DatabasePort backed by psycopg (v3) connection factory."""
 
-    def __init__(self, dsn: str, *, connect_timeout: float = 5.0, application_name: str = "dsp") -> None:
+    def __init__(
+        self, dsn: str, *, connect_timeout: float = 5.0, application_name: str = "dsp"
+    ) -> None:
         if not dsn.strip():
             raise ConfigurationError("postgres DSN must not be empty")
         self._dsn = dsn
@@ -95,10 +99,9 @@ class PostgresDatabasePort:
 
     def ping(self) -> bool:
         try:
-            with self._connect() as conn:
-                with conn.cursor() as cur:
-                    cur.execute("SELECT 1")
-                    cur.fetchone()
+            with self._connect() as conn, conn.cursor() as cur:
+                cur.execute("SELECT 1")
+                cur.fetchone()
             return True
         except ProviderError:
             return False

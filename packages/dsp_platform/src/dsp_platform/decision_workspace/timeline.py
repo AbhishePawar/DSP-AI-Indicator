@@ -2,7 +2,8 @@
 
 from __future__ import annotations
 
-from typing import Any, Mapping
+from collections.abc import Mapping
+from typing import Any
 
 from dsp_platform.decision_workspace.models import (
     UNAVAILABLE_MESSAGE,
@@ -47,9 +48,7 @@ def build_research_timeline(
                 source_kind="research_object",
                 available=True,
                 ref_id=rid,
-                metadata=freeze_mapping(
-                    {"symbol": research_object.get("symbol")}
-                )
+                metadata=freeze_mapping({"symbol": research_object.get("symbol")})
                 or freeze_mapping({}),
             )
         )
@@ -139,11 +138,7 @@ def build_research_timeline(
                 available=True,
                 ref_id=mid,
                 metadata=freeze_mapping(
-                    {
-                        "alert_count": len(
-                            monitoring_result.get("alerts") or []
-                        )
-                    }
+                    {"alert_count": len(monitoring_result.get("alerts") or [])}
                 )
                 or freeze_mapping({}),
             )

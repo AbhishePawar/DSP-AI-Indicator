@@ -8,7 +8,6 @@ from __future__ import annotations
 from dataclasses import dataclass
 
 from core.exceptions import ValidationError
-
 from industry.enums import (
     ComparisonDimension,
     EvidenceCategory,
@@ -166,9 +165,7 @@ class IndustryEvidenceDefinition:
         industries = _unique_ids(
             self.supported_industry_ids, field="supported_industry_ids"
         )
-        guidance = tuple(
-            g.strip() for g in self.interpretation_guidance if g.strip()
-        )
+        guidance = tuple(g.strip() for g in self.interpretation_guidance if g.strip())
         for g in guidance:
             _assert_no_forbidden_language(g, field="interpretation_guidance")
         providers = tuple(self.provider_requirements)

@@ -2,8 +2,6 @@
 
 from __future__ import annotations
 
-import os
-
 import pytest
 
 from auth import (
@@ -11,12 +9,11 @@ from auth import (
     AuthService,
     DuplicateUserError,
     EnterpriseAuthPlatform,
+    RoleRegistry,
     ValidationError,
-    get_auth_service,
     reset_auth_service_for_tests,
     reset_enterprise_auth_platform_for_tests,
     reset_role_registry_for_tests,
-    RoleRegistry,
 )
 from auth.oauth_providers import OAuthProfile, OAuthProviderRegistry
 from auth.otp import OtpService
@@ -73,7 +70,9 @@ def test_admin_seed_only_when_missing() -> None:
     assert any(u.get("email") == "admin@dspai.local" for u in admins)
     # Second construction must not duplicate
     platform.ensure_dev_admin_seed()
-    again = [u for u in platform.admin_list_users() if u.get("email") == "admin@dspai.local"]
+    again = [
+        u for u in platform.admin_list_users() if u.get("email") == "admin@dspai.local"
+    ]
     assert len(again) == 1
 
 
@@ -93,7 +92,9 @@ def test_registration_verify_and_login() -> None:
         platform.login_password(identifier="ada", password="StrongPass1!")
     platform.verify_email(token)
     # Activate may leave status active — login by username and email
-    session = platform.login_password(identifier="ada@example.com", password="StrongPass1!")
+    session = platform.login_password(
+        identifier="ada@example.com", password="StrongPass1!"
+    )
     assert session["tokens"]["access_token"]
     assert session["user"]["email"] == "ada@example.com"
 
@@ -135,7 +136,9 @@ def test_otp_rate_limit_and_bruteforce() -> None:
     # Wrong codes until lock
     for _ in range(5):
         with pytest.raises(AuthenticationError):
-            platform.verify_mobile_otp(challenge_id=first["challenge_id"], code="000000")
+            platform.verify_mobile_otp(
+                challenge_id=first["challenge_id"], code="000000"
+            )
     with pytest.raises(AuthenticationError):
         platform.verify_mobile_otp(challenge_id=first["challenge_id"], code=code)
 
@@ -164,7 +167,11 @@ def test_account_linking_by_email() -> None:
     links = result["user"].get("linkedProviders") or []
     assert any(l.get("provider") == "GOOGLE" for l in links)
     # No duplicate user
-    emails = [u["email"] for u in platform.admin_list_users() if u["email"] == "link@example.com"]
+    emails = [
+        u["email"]
+        for u in platform.admin_list_users()
+        if u["email"] == "link@example.com"
+    ]
     assert len(emails) == 1
 
 
@@ -184,7 +191,9 @@ def test_request_access_admin_invite_flow() -> None:
         reason="Research access",
     )
     request_id = submitted["request"]["request_id"]
-    admin = next(u for u in platform.admin_list_users() if "administrator" in u["roles"])
+    admin = next(
+        u for u in platform.admin_list_users() if "administrator" in u["roles"]
+    )
     decided = platform.decide_access_request(
         request_id,
         approve=True,

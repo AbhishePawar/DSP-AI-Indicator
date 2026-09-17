@@ -38,7 +38,13 @@ def filter_records(
         blob = json.dumps(row, sort_keys=True, default=str).casefold()
         if q and q not in blob:
             continue
-        if sub and str(payload.get("subject") or row.get("refs", {}).get("subject") or "").casefold() != sub:
+        if (
+            sub
+            and str(
+                payload.get("subject") or row.get("refs", {}).get("subject") or ""
+            ).casefold()
+            != sub
+        ):
             if sub not in blob:
                 continue
         if wid:
@@ -51,7 +57,10 @@ def filter_records(
                 continue
         if et:
             cand = str(
-                payload.get("event_type") or payload.get("type") or payload.get("action") or ""
+                payload.get("event_type")
+                or payload.get("type")
+                or payload.get("action")
+                or ""
             ).casefold()
             if cand != et and et not in blob:
                 continue
@@ -161,7 +170,10 @@ class AuditViewer:
                 }
             )
         events.sort(
-            key=lambda e: (str(e.get("created_at") or ""), str(e.get("entity_id") or "")),
+            key=lambda e: (
+                str(e.get("created_at") or ""),
+                str(e.get("entity_id") or ""),
+            ),
             reverse=True,
         )
         return events[: max(0, int(limit))]

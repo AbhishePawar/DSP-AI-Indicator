@@ -38,9 +38,7 @@ def test_analyze_is_deterministic(domain_analyses) -> None:
     assert a.to_dict() == b.to_dict()
 
 
-def test_analyze_from_inputs(
-    financial_analysis, business_quality_analysis
-) -> None:
+def test_analyze_from_inputs(financial_analysis, business_quality_analysis) -> None:
     result = BusinessQualityAggregatorEngine().analyze_from_inputs(
         financial_analysis, business_quality_analysis
     )
@@ -62,4 +60,6 @@ def test_explain_and_validate(domain_analyses) -> None:
 def test_explainability_includes_weights_and_availability(domain_analyses) -> None:
     result = BusinessQualityAggregatorEngine().analyze(**domain_analyses)
     assert result.explainability.engine_weights["economic_moat"] == pytest.approx(0.25)
-    assert any("economic_moat:available" in x for x in result.explainability.data_availability)
+    assert any(
+        "economic_moat:available" in x for x in result.explainability.data_availability
+    )

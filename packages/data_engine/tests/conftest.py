@@ -27,9 +27,7 @@ def sample_price_series(instrument: Instrument) -> PriceSeries:
         close=100.5,
         volume=1_000.0,
     )
-    return PriceSeries(
-        instrument=instrument, frequency=BarFrequency.DAILY, bars=(bar,)
-    )
+    return PriceSeries(instrument=instrument, frequency=BarFrequency.DAILY, bars=(bar,))
 
 
 @pytest.fixture

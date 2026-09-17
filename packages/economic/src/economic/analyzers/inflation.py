@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 from contracts.enums import SignalDirection
-
 from economic.analyzers.base import Analyzer
 from economic.models import EconomicSignal, EconomicSnapshot
 
@@ -32,9 +31,7 @@ class InflationAnalyzer(Analyzer):
                     name="inflation",
                     direction=SignalDirection.NEUTRAL,
                     observation="Inflation Unavailable",
-                    reasoning=(
-                        "CPI inflation was not reported in the snapshot."
-                    ),
+                    reasoning=("CPI inflation was not reported in the snapshot."),
                     value=None,
                 ),
             )

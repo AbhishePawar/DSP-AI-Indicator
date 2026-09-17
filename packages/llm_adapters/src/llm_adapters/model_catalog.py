@@ -7,8 +7,8 @@ list prices; these are ESTIMATES, not invoices.
 
 from __future__ import annotations
 
-from dataclasses import dataclass, field
-from typing import Mapping
+from collections.abc import Mapping
+from dataclasses import dataclass
 
 
 @dataclass(frozen=True, slots=True)
@@ -103,7 +103,9 @@ DEFAULT_CATALOG: Mapping[str, ModelInfo] = {
 }
 
 
-def get_model_info(identity: str, catalog: Mapping[str, ModelInfo] | None = None) -> ModelInfo:
+def get_model_info(
+    identity: str, catalog: Mapping[str, ModelInfo] | None = None
+) -> ModelInfo:
     """Resolve ``provider:model`` to its ModelInfo, else raise KeyError."""
     src = catalog if catalog is not None else DEFAULT_CATALOG
     if identity not in src:

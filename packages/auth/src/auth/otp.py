@@ -22,7 +22,7 @@ import logging
 import re
 import secrets
 import uuid
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from typing import Any, NamedTuple
 
 from auth.enterprise_models import OtpChallenge
@@ -89,7 +89,7 @@ def classify_otp_identifier(identifier: str) -> tuple[str, str]:
 
 
 def _hash_code(code: str, *, salt: str) -> str:
-    digest = hashlib.sha256(f"{salt}:{code}".encode("utf-8")).hexdigest()
+    digest = hashlib.sha256(f"{salt}:{code}".encode()).hexdigest()
     return f"sha256${salt}${digest}"
 
 
@@ -100,7 +100,7 @@ def _verify_code(code: str, code_hash: str) -> bool:
         return False
     if scheme != "sha256":
         return False
-    candidate = hashlib.sha256(f"{salt}:{code}".encode("utf-8")).hexdigest()
+    candidate = hashlib.sha256(f"{salt}:{code}".encode()).hexdigest()
     return hmac.compare_digest(candidate, digest)
 
 
@@ -112,7 +112,7 @@ def _parse_dt(value: str | None) -> datetime | None:
     except ValueError:
         return None
     if parsed.tzinfo is None:
-        parsed = parsed.replace(tzinfo=timezone.utc)
+        parsed = parsed.replace(tzinfo=UTC)
     return parsed
 
 
@@ -143,7 +143,7 @@ class OtpService:
         ip_hint: str | None = None,
         now: datetime | None = None,
     ) -> dict[str, Any]:
-        ts = now or datetime.now(tz=timezone.utc)
+        ts = now or datetime.now(tz=UTC)
         normalized = normalize_india_mobile(mobile)
         challenge, code = self._create_challenge(
             channel="mobile",
@@ -179,8 +179,10 @@ class OtpService:
         Used when the identifier does not resolve to a verified mobile so the
         public response cannot be used to enumerate accounts.
         """
-        ts = now or datetime.now(tz=timezone.utc)
-        digest = hashlib.sha256(f"otp-opaque:{opaque_key.strip().lower()}".encode("utf-8")).hexdigest()
+        ts = now or datetime.now(tz=UTC)
+        digest = hashlib.sha256(
+            f"otp-opaque:{opaque_key.strip().lower()}".encode()
+        ).hexdigest()
         destination = f"opaque-{digest[:24]}"
         challenge, _code = self._create_challenge(
             channel="mobile",
@@ -220,7 +222,7 @@ class OtpService:
         now: datetime | None = None,
     ) -> OtpVerifyResult:
         """Verify OTP; return channel + destination on success."""
-        ts = now or datetime.now(tz=timezone.utc)
+        ts = now or datetime.now(tz=UTC)
         now_iso = ts.isoformat()
         record = self._store.get_challenge(challenge_id, now=ts)
         if record is None:
@@ -278,7 +280,9 @@ class OtpService:
         if ip_hint:
             failures = [
                 t
-                for t in (_parse_dt(raw) for raw in self._store.get_ip_failures(ip_hint))
+                for t in (
+                    _parse_dt(raw) for raw in self._store.get_ip_failures(ip_hint)
+                )
                 if t is not None and t >= hour_ago
             ]
             if len(failures) >= _MAX_VERIFY_FAILURES_IP:

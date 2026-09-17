@@ -2,7 +2,8 @@
 
 from __future__ import annotations
 
-from typing import Any, Mapping
+from collections.abc import Mapping
+from typing import Any
 
 from auth.authentication import AuthenticationService
 from auth.authorization import AuthorizationService
@@ -40,9 +41,7 @@ class AuthService:
         self.users = UserStore(persistence_service)
         self.sessions = SessionManager(persistence_service)
         self.jwt = JwtService(jwt_secret)
-        self.authentication = AuthenticationService(
-            self.users, self.sessions, self.jwt
-        )
+        self.authentication = AuthenticationService(self.users, self.sessions, self.jwt)
         self.authorization = AuthorizationService(self.roles)
 
     def schema(self) -> dict[str, Any]:
@@ -109,9 +108,7 @@ class AuthService:
         name: str | None = None,
         permissions: list[str] | None = None,
     ) -> dict[str, Any]:
-        return self.roles.upsert(
-            role_id, name=name, permissions=permissions
-        ).to_dict()
+        return self.roles.upsert(role_id, name=name, permissions=permissions).to_dict()
 
     def list_permissions(self) -> list[str]:
         return list(PERMISSIONS)
@@ -130,15 +127,15 @@ class AuthService:
             access_token, **kwargs
         ).to_dict()
 
-    def evaluate_permission(
-        self, user_id: str, permission: str
-    ) -> dict[str, Any]:
+    def evaluate_permission(self, user_id: str, permission: str) -> dict[str, Any]:
         user = self.users.get(user_id)
         if user is None:
             raise ValidationError("user not found")
         return self.authorization.evaluate(user, permission)
 
-    def require_permission(self, user: AuthUser | Mapping[str, Any], permission: str) -> None:
+    def require_permission(
+        self, user: AuthUser | Mapping[str, Any], permission: str
+    ) -> None:
         if isinstance(user, AuthUser):
             self.authorization.require_permission(user, permission)
             return
@@ -152,9 +149,7 @@ class AuthService:
         self, access_token: str, permission: str, *, now: Any = None
     ) -> dict[str, Any]:
         """Validate access token and require permission — for platform service guards."""
-        user = self.authentication.current_user_from_access_token(
-            access_token, now=now
-        )
+        user = self.authentication.current_user_from_access_token(access_token, now=now)
         self.authorization.require_permission(user, permission)
         return user.to_dict()
 

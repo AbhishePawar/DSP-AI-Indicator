@@ -10,7 +10,6 @@ from dataclasses import dataclass
 from typing import Protocol, runtime_checkable
 
 from core.exceptions import ValidationError
-
 from industry.enums import EvidenceAvailability, EvidenceLifecycle
 from industry.models import _normalize_id
 from industry.semver import require_semver
@@ -113,9 +112,7 @@ class EvidenceResolutionContext:
         methodology_version = (
             None
             if self.methodology_version is None
-            else require_semver(
-                self.methodology_version, field="methodology_version"
-            )
+            else require_semver(self.methodology_version, field="methodology_version")
         )
         as_of = None if self.as_of is None else self.as_of.strip() or None
         extras = tuple(
@@ -149,9 +146,7 @@ class EvidenceProviderResult:
         provider_id = _normalize_id(self.provider_id, field="provider_id")
         notes = tuple(n.strip() for n in self.notes if n.strip())
         error_message = (
-            None
-            if self.error_message is None
-            else self.error_message.strip() or None
+            None if self.error_message is None else self.error_message.strip() or None
         )
         unit = None if self.unit is None else self.unit.strip() or None
         as_of = None if self.as_of is None else self.as_of.strip() or None
@@ -186,9 +181,7 @@ class EvidenceProvider(Protocol):
     def provider_metadata(self) -> IndustryEvidenceProvider:
         """Return immutable provider identity and capabilities."""
 
-    def supports(
-        self, evidence_id: str, context: EvidenceResolutionContext
-    ) -> bool:
+    def supports(self, evidence_id: str, context: EvidenceResolutionContext) -> bool:
         """Return whether this provider may attempt resolution."""
 
     def availability(

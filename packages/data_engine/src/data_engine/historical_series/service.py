@@ -47,7 +47,9 @@ class HistoricalSeriesQuery:
     """Read-only date-range query for authenticated historical series."""
 
     instrument: Instrument
-    series_kind: str  # ohlcv | market_cap | volume | enterprise_value | fundamentals | ratios
+    series_kind: (
+        str  # ohlcv | market_cap | volume | enterprise_value | fundamentals | ratios
+    )
     frequency: str | None = "daily"  # daily|weekly|monthly (ohlcv); ignored otherwise
     start_date: date | None = None
     end_date: date | None = None

@@ -10,6 +10,7 @@ dependency rules that govern this package.
 """
 
 from contracts.domain import (
+    MARKET_CAPITALIZATION_KEY,
     EconomicContext,
     EconomicDataPoint,
     EconomicSeries,
@@ -18,7 +19,6 @@ from contracts.domain import (
     FundamentalContext,
     FundamentalStatement,
     Instrument,
-    MARKET_CAPITALIZATION_KEY,
     MarginOfSafety,
     PriceBar,
     PriceSeries,

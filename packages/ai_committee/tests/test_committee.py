@@ -6,9 +6,6 @@ from datetime import UTC, datetime
 
 import pytest
 
-from contracts.enums import SignalDirection
-from contracts import AnalyticalStance, ValuationConfidence
-
 from ai_committee.committee import InvestmentCommittee
 from ai_committee.enums import Decision
 from ai_committee.exceptions import CommitteeError
@@ -16,9 +13,10 @@ from ai_committee.members import (
     EconomicMember,
     FundamentalMember,
     TechnicalMember,
-    ValuationMember,
 )
 from ai_committee.models import CommitteeReport
+from contracts import AnalyticalStance, ValuationConfidence
+from contracts.enums import SignalDirection
 
 FIXED_NOW = datetime(2024, 6, 15, 12, 0, 0, tzinfo=UTC)
 
@@ -280,13 +278,9 @@ class TestThreeMemberVoting:
         ).deliberate(context)
         assert forward.decision.decision is Decision.BUY
         assert reverse.decision.decision is Decision.BUY
-        assert set(forward.members_participated) == set(
-            reverse.members_participated
-        )
+        assert set(forward.members_participated) == set(reverse.members_participated)
 
-    def test_report_includes_all_opinions_and_evidence(
-        self, context_factory
-    ) -> None:
+    def test_report_includes_all_opinions_and_evidence(self, context_factory) -> None:
         report = _three_member_committee().deliberate(
             context_factory(
                 technical_dirs=(
@@ -314,9 +308,7 @@ class TestThreeMemberVoting:
         committee = _three_member_committee()
         with pytest.raises(CommitteeError, match="economic"):
             committee.deliberate(
-                context_factory(
-                    include_economic=False, include_valuation=False
-                )
+                context_factory(include_economic=False, include_valuation=False)
             )
 
 
@@ -342,8 +334,7 @@ class TestFourMemberVoting:
         )
         assert "valuation" in report.explanation
         assert any(
-            e.source_engine.value == "valuation_engine"
-            for e in report.evidence_used
+            e.source_engine.value == "valuation_engine" for e in report.evidence_used
         )
 
     def test_valuation_buy_swings_plurality(self, context_factory) -> None:
@@ -372,9 +363,7 @@ class TestFourMemberVoting:
             )
         )
         assert report.decision.decision is Decision.BUY
-        valuation_vote = next(
-            v for v in report.votes if v.source == "valuation"
-        )
+        valuation_vote = next(v for v in report.votes if v.source == "valuation")
         assert valuation_vote.recommendation is Decision.HOLD
 
     def test_missing_valuation_raises_when_member_registered(

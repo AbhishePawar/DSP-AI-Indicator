@@ -25,12 +25,11 @@ from __future__ import annotations
 
 import os
 import re
+from collections.abc import Callable, Mapping
 from dataclasses import dataclass, field
 from datetime import date, datetime
 from threading import Lock
-from typing import Any, Callable, Mapping
 
-from contracts.domain.instrument import Instrument
 from data_engine.connector_framework.http import JsonHttpClient, UrllibJsonHttpClient
 from data_engine.connector_framework.models import (
     ConnectorCompanyIdentity,
@@ -129,7 +128,9 @@ class InMemoryFilingsAdapter(FilingsProviderPort):
 
     def get_filings(self, query: FilingsQuery) -> AuthenticatedFilings | None:
         if not self.api_key:
-            raise ProviderRequestError("memory filings adapter requires api_key (authentication)")
+            raise ProviderRequestError(
+                "memory filings adapter requires api_key (authentication)"
+            )
         with self._lock:
             bundle = self._bundles.get(query.instrument.symbol.strip().upper())
         if bundle is None:
@@ -138,7 +139,9 @@ class InMemoryFilingsAdapter(FilingsProviderPort):
         if not filings:
             return None
         return AuthenticatedFilings(
-            identity=bundle.identity, filings=tuple(filings), provenance=bundle.provenance
+            identity=bundle.identity,
+            filings=tuple(filings),
+            provenance=bundle.provenance,
         )
 
     def health(self) -> ProviderHealth:
@@ -146,7 +149,11 @@ class InMemoryFilingsAdapter(FilingsProviderPort):
             provider_id=self.provider_id,
             healthy=True,
             authenticated=bool(self.api_key),
-            detail="seeded in-memory authenticated filings" if self.api_key else "missing api_key",
+            detail=(
+                "seeded in-memory authenticated filings"
+                if self.api_key
+                else "missing api_key"
+            ),
         )
 
 
@@ -172,7 +179,9 @@ class SecEdgarFilingsAdapter(FilingsProviderPort):
         return self._provider_id
 
     def _client(self) -> JsonHttpClient:
-        return self.http_client or UrllibJsonHttpClient(timeout_seconds=self.timeout_seconds)
+        return self.http_client or UrllibJsonHttpClient(
+            timeout_seconds=self.timeout_seconds
+        )
 
     def _headers(self) -> dict[str, str]:
         return {"User-Agent": self.user_agent, "Accept": "application/json"}
@@ -180,7 +189,9 @@ class SecEdgarFilingsAdapter(FilingsProviderPort):
     def _resolve_cik(self, symbol: str) -> str | None:
         with self._lock:
             if not self._cik_map:
-                payload = self._client().get_json(self.tickers_url, headers=self._headers())
+                payload = self._client().get_json(
+                    self.tickers_url, headers=self._headers()
+                )
                 if isinstance(payload, Mapping):
                     for entry in payload.values():
                         if not isinstance(entry, Mapping):
@@ -193,7 +204,9 @@ class SecEdgarFilingsAdapter(FilingsProviderPort):
 
     def get_filings(self, query: FilingsQuery) -> AuthenticatedFilings | None:
         if not self.user_agent.strip():
-            raise ProviderRequestError("SEC EDGAR adapter requires a descriptive User-Agent")
+            raise ProviderRequestError(
+                "SEC EDGAR adapter requires a descriptive User-Agent"
+            )
         symbol = query.instrument.symbol.strip().upper()
         cik = self._resolve_cik(symbol)
         if cik is None:
@@ -203,7 +216,11 @@ class SecEdgarFilingsAdapter(FilingsProviderPort):
         )
         if not isinstance(payload, Mapping):
             return None
-        recent = payload.get("filings", {}).get("recent") if isinstance(payload.get("filings"), Mapping) else None
+        recent = (
+            payload.get("filings", {}).get("recent")
+            if isinstance(payload.get("filings"), Mapping)
+            else None
+        )
         if not isinstance(recent, Mapping):
             return None
         forms = recent.get("form") or []
@@ -226,8 +243,14 @@ class SecEdgarFilingsAdapter(FilingsProviderPort):
                 filed_at = date.fromisoformat(str(filed_raw)[:10])
             except ValueError:
                 continue
-            accession = str(accessions[i]) if i < len(accessions) and accessions[i] else None
-            primary_doc = str(primary_docs[i]) if i < len(primary_docs) and primary_docs[i] else None
+            accession = (
+                str(accessions[i]) if i < len(accessions) and accessions[i] else None
+            )
+            primary_doc = (
+                str(primary_docs[i])
+                if i < len(primary_docs) and primary_docs[i]
+                else None
+            )
             url = self.archives_base_url + f"/{cik_int}"
             if accession and primary_doc:
                 url += f"/{accession.replace('-', '')}/{primary_doc}"
@@ -240,7 +263,8 @@ class SecEdgarFilingsAdapter(FilingsProviderPort):
                     period_of_report = None
             filings.append(
                 Filing(
-                    filing_id=accession or f"{symbol}-{form_str}-{filed_at.isoformat()}",
+                    filing_id=accession
+                    or f"{symbol}-{form_str}-{filed_at.isoformat()}",
                     filing_type=filing_type,
                     title=f"{form_str} filed {filed_at.isoformat()}",
                     url=url,
@@ -262,7 +286,9 @@ class SecEdgarFilingsAdapter(FilingsProviderPort):
             auth_mode="none",
             metadata={"cik": cik},
         )
-        return build_filings_bundle_from_mapping(symbol=symbol, filings=filings, provenance=provenance)
+        return build_filings_bundle_from_mapping(
+            symbol=symbol, filings=filings, provenance=provenance
+        )
 
     def health(self) -> ProviderHealth:
         ok = bool(self.user_agent.strip())
@@ -270,7 +296,11 @@ class SecEdgarFilingsAdapter(FilingsProviderPort):
             provider_id=self.provider_id,
             healthy=ok,
             authenticated=ok,
-            detail="configured" if ok else "missing User-Agent (required by SEC fair-access policy)",
+            detail=(
+                "configured"
+                if ok
+                else "missing User-Agent (required by SEC fair-access policy)"
+            ),
         )
 
 
@@ -287,15 +317,22 @@ class FinancialModelingPrepFilingsAdapter(FilingsProviderPort):
         return self._provider_id
 
     def _client(self) -> JsonHttpClient:
-        return self.http_client or UrllibJsonHttpClient(timeout_seconds=self.timeout_seconds)
+        return self.http_client or UrllibJsonHttpClient(
+            timeout_seconds=self.timeout_seconds
+        )
 
     def get_filings(self, query: FilingsQuery) -> AuthenticatedFilings | None:
         if not self.api_key.strip():
-            raise ProviderRequestError("financial modeling prep filings adapter requires api_key")
+            raise ProviderRequestError(
+                "financial modeling prep filings adapter requires api_key"
+            )
         symbol = query.instrument.symbol.strip().upper()
         payload = self._client().get_json(
             f"{self.base_url}/{symbol}",
-            params={"limit": str(max(1, min(query.limit, 250))), "apikey": self.api_key},
+            params={
+                "limit": str(max(1, min(query.limit, 250))),
+                "apikey": self.api_key,
+            },
         )
         if not isinstance(payload, list) or not payload:
             return None
@@ -337,12 +374,16 @@ class FinancialModelingPrepFilingsAdapter(FilingsProviderPort):
             auth_mode="api_key",
             metadata={"base_url": self.base_url},
         )
-        return build_filings_bundle_from_mapping(symbol=symbol, filings=filings, provenance=provenance)
+        return build_filings_bundle_from_mapping(
+            symbol=symbol, filings=filings, provenance=provenance
+        )
 
     def health(self) -> ProviderHealth:
         ok = bool(self.api_key.strip())
         return ProviderHealth(
-            provider_id=self.provider_id, healthy=ok, authenticated=ok,
+            provider_id=self.provider_id,
+            healthy=ok,
+            authenticated=ok,
             detail="configured" if ok else "missing api_key",
         )
 
@@ -402,7 +443,9 @@ class NseFilingsAdapter(FilingsProviderPort):
             if not isinstance(item, Mapping):
                 continue
             desc = str(item.get("desc") or item.get("subject") or "").strip()
-            attachment = str(item.get("attchmntFile") or item.get("attachment") or "").strip()
+            attachment = str(
+                item.get("attchmntFile") or item.get("attachment") or ""
+            ).strip()
             date_raw = str(item.get("an_dt") or item.get("date") or "").strip()
             filed_at = _parse_indian_date(date_raw) if date_raw else None
             if not desc or not attachment or filed_at is None:
@@ -428,14 +471,20 @@ class NseFilingsAdapter(FilingsProviderPort):
             auth_mode="none",
             metadata={"base_url": self.base_url},
         )
-        return build_filings_bundle_from_mapping(symbol=symbol, filings=filings, provenance=provenance)
+        return build_filings_bundle_from_mapping(
+            symbol=symbol, filings=filings, provenance=provenance
+        )
 
     def health(self) -> ProviderHealth:
         return ProviderHealth(
             provider_id=self.provider_id,
             healthy=self.enabled,
             authenticated=False,
-            detail="enabled" if self.enabled else "disabled (set DSP_FILINGS_NSE_ENABLED=1)",
+            detail=(
+                "enabled"
+                if self.enabled
+                else "disabled (set DSP_FILINGS_NSE_ENABLED=1)"
+            ),
         )
 
 
@@ -482,7 +531,12 @@ class BseFilingsAdapter(FilingsProviderPort):
             return None
         payload = self._client().get_json(
             self.base_url,
-            params={"strCat": "-1", "strScrip": scrip_code, "strSearch": "P", "strType": "C"},
+            params={
+                "strCat": "-1",
+                "strScrip": scrip_code,
+                "strSearch": "P",
+                "strType": "C",
+            },
         )
         if not isinstance(payload, Mapping):
             return None
@@ -526,14 +580,20 @@ class BseFilingsAdapter(FilingsProviderPort):
             auth_mode="none",
             metadata={"base_url": self.base_url, "scrip_code": scrip_code},
         )
-        return build_filings_bundle_from_mapping(symbol=symbol, filings=filings, provenance=provenance)
+        return build_filings_bundle_from_mapping(
+            symbol=symbol, filings=filings, provenance=provenance
+        )
 
     def health(self) -> ProviderHealth:
         return ProviderHealth(
             provider_id=self.provider_id,
             healthy=self.enabled,
             authenticated=False,
-            detail="enabled" if self.enabled else "disabled (set DSP_FILINGS_BSE_ENABLED=1)",
+            detail=(
+                "enabled"
+                if self.enabled
+                else "disabled (set DSP_FILINGS_BSE_ENABLED=1)"
+            ),
         )
 
 
@@ -560,7 +620,9 @@ class ScreenerFilingsAdapter(FilingsProviderPort):
         return self._provider_id
 
     def _client(self) -> JsonHttpClient:
-        return self.http_client or UrllibJsonHttpClient(timeout_seconds=self.timeout_seconds)
+        return self.http_client or UrllibJsonHttpClient(
+            timeout_seconds=self.timeout_seconds
+        )
 
     def get_filings(self, query: FilingsQuery) -> AuthenticatedFilings | None:
         if not self.enabled:
@@ -617,18 +679,26 @@ class ScreenerFilingsAdapter(FilingsProviderPort):
             auth_mode="none",
             metadata={"base_url": self.base_url},
         )
-        return build_filings_bundle_from_mapping(symbol=symbol, filings=filings, provenance=provenance)
+        return build_filings_bundle_from_mapping(
+            symbol=symbol, filings=filings, provenance=provenance
+        )
 
     def health(self) -> ProviderHealth:
         return ProviderHealth(
             provider_id=self.provider_id,
             healthy=self.enabled,
             authenticated=False,
-            detail="enabled" if self.enabled else "disabled (set DSP_FILINGS_SCREENER_ENABLED=1)",
+            detail=(
+                "enabled"
+                if self.enabled
+                else "disabled (set DSP_FILINGS_SCREENER_ENABLED=1)"
+            ),
         )
 
 
-def build_default_filings_registry_from_env() -> PriorityProviderRegistry[FilingsProviderPort]:
+def build_default_filings_registry_from_env() -> (
+    PriorityProviderRegistry[FilingsProviderPort]
+):
     from data_engine.connector_framework.production_profile import (
         finalize_provider_registry,
         memory_adapter_allowed,
@@ -639,7 +709,9 @@ def build_default_filings_registry_from_env() -> PriorityProviderRegistry[Filing
     sec_ua = os.environ.get("DSP_FILINGS_SEC_EDGAR_USER_AGENT", "").strip()
     if sec_ua:
         registry.register(
-            SecEdgarFilingsAdapter(user_agent=sec_ua), provider_id="sec_edgar_filings", priority=10
+            SecEdgarFilingsAdapter(user_agent=sec_ua),
+            provider_id="sec_edgar_filings",
+            priority=10,
         )
 
     fmp_key = os.environ.get("DSP_FILINGS_FMP_API_KEY", "").strip()
@@ -660,9 +732,15 @@ def build_default_filings_registry_from_env() -> PriorityProviderRegistry[Filing
             BseFilingsAdapter(enabled=True), provider_id="bse_filings", priority=40
         )
 
-    if os.environ.get("DSP_FILINGS_SCREENER_ENABLED", "").lower() in {"1", "true", "yes"}:
+    if os.environ.get("DSP_FILINGS_SCREENER_ENABLED", "").lower() in {
+        "1",
+        "true",
+        "yes",
+    }:
         registry.register(
-            ScreenerFilingsAdapter(enabled=True), provider_id="screener_filings", priority=50
+            ScreenerFilingsAdapter(enabled=True),
+            provider_id="screener_filings",
+            priority=50,
         )
 
     if memory_adapter_allowed("DSP_FILINGS_MEMORY", connector="filings"):

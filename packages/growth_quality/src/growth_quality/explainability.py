@@ -51,9 +51,7 @@ def build_summary(
         else ""
     )
     weak_txt = (
-        f" Weakest dimension: {weakest.dimension.value}."
-        if weakest is not None
-        else ""
+        f" Weakest dimension: {weakest.dimension.value}." if weakest is not None else ""
     )
     return (
         f"Overall growth quality rating is {rating.value} "
@@ -144,9 +142,7 @@ def analysis_confidence(
 ) -> GrowthQualityConfidence:
     values = [c.confidence.value for c in components if c.score.value is not None]
     if not values:
-        return GrowthQualityConfidence(
-            value=0.0, basis="insufficient_component_scores"
-        )
+        return GrowthQualityConfidence(value=0.0, basis="insufficient_component_scores")
     return GrowthQualityConfidence(
         value=round(sum(values) / len(values), 4),
         basis="mean_component_confidence",

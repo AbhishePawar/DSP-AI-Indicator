@@ -153,7 +153,9 @@ class FinancialDerivationEngine:
             formula=spec.formula,
             inputs=compatible.refs,
             calculation_version=self.version,
-            unit_scale="ratio" if spec.output_kind == "ratio" else compatible.unit_scale,
+            unit_scale=(
+                "ratio" if spec.output_kind == "ratio" else compatible.unit_scale
+            ),
             currency=compatible.currency,
             accounting_basis=compatible.accounting_basis,
             period_type=compatible.period_type,

@@ -60,9 +60,9 @@ class Filing:
             "title": self.title,
             "url": self.url,
             "filed_at": self.filed_at.isoformat(),
-            "period_of_report": self.period_of_report.isoformat()
-            if self.period_of_report
-            else None,
+            "period_of_report": (
+                self.period_of_report.isoformat() if self.period_of_report else None
+            ),
             "accession_number": self.accession_number,
             "source": self.source,
             "metadata": dict(self.metadata),

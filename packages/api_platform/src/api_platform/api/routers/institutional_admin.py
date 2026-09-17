@@ -18,6 +18,7 @@ router = APIRouter(
     dependencies=[Depends(require_admin_access)],
 )
 
+
 class CreateUserRequest(BaseModel):
     username: str = Field(..., min_length=3, max_length=64)
     email: str = Field(..., min_length=3, max_length=256)
@@ -73,9 +74,7 @@ def list_users(state: ApiState = Depends(get_api_state)) -> dict[str, Any]:
 
 
 @router.get("/admin/users/{user_id}")
-def get_user(
-    user_id: str, state: ApiState = Depends(get_api_state)
-) -> JSONResponse:
+def get_user(user_id: str, state: ApiState = Depends(get_api_state)) -> JSONResponse:
     result = state.platform.admin_get_user(user_id)
     if result is None:
         return _err(ValueError("not found"), status=404)

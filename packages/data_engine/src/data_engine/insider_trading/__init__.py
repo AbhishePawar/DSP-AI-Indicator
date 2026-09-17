@@ -25,7 +25,9 @@ from data_engine.insider_trading.service import (
     InsiderTradingService,
     InsiderTradingServiceMetrics,
 )
-from data_engine.insider_trading.validation import validate_authenticated_insider_activity
+from data_engine.insider_trading.validation import (
+    validate_authenticated_insider_activity,
+)
 
 __all__ = [
     "INSIDER_TRANSACTION_TYPES",

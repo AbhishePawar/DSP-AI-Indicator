@@ -4,6 +4,11 @@ from __future__ import annotations
 
 import pytest
 
+from llm_adapters.privacy_boundary import (
+    PrivateInternalResult,
+    PublicDecisionPack,
+    assert_no_private_leakage,
+)
 from llm_adapters.tools import (
     DEFAULT_TOOL_NAMES,
     DSPToolBackend,
@@ -14,12 +19,6 @@ from llm_adapters.tools import (
     assert_no_tool_leakage,
 )
 from llm_adapters.tools.contract import ToolInputField, ToolOutputField
-from llm_adapters.privacy_boundary import (
-    PrivateInternalResult,
-    PublicDecisionPack,
-    assert_no_private_leakage,
-)
-
 
 # --- stub backend ---------------------------------------------------------
 
@@ -67,7 +66,9 @@ class StubBackend:
             self._statements = statements
         self._raise_on = raise_on
 
-    def get_authenticated_financial_statements(self, symbol: str, *, exchange: str | None = None):
+    def get_authenticated_financial_statements(
+        self, symbol: str, *, exchange: str | None = None
+    ):
         if self._raise_on == "statements":
             raise RuntimeError("data unavailable")
         if self._statements is None:
@@ -156,13 +157,22 @@ def test_registry_contains_only_approved_tools() -> None:
     assert set(registry.names()) == set(DEFAULT_TOOL_NAMES)
     # The brief required all 17 categories.
     expected = {
-        "dsp.financial_statements", "dsp.financial_quality",
-        "dsp.valuation", "dsp.margin_of_safety", "dsp.economic_moat",
-        "dsp.management_quality", "dsp.financial_strength",
-        "dsp.earnings_quality", "dsp.growth_quality",
-        "dsp.business_quality", "dsp.risk", "dsp.quantitative_risk",
-        "dsp.technical_signals", "dsp.investment_recommendation",
-        "dsp.deterministic_committee", "dsp.research_object",
+        "dsp.financial_statements",
+        "dsp.financial_quality",
+        "dsp.valuation",
+        "dsp.margin_of_safety",
+        "dsp.economic_moat",
+        "dsp.management_quality",
+        "dsp.financial_strength",
+        "dsp.earnings_quality",
+        "dsp.growth_quality",
+        "dsp.business_quality",
+        "dsp.risk",
+        "dsp.quantitative_risk",
+        "dsp.technical_signals",
+        "dsp.investment_recommendation",
+        "dsp.deterministic_committee",
+        "dsp.research_object",
         "dsp.comparison",
     }
     assert expected.issubset(set(registry.names()))
@@ -296,9 +306,15 @@ def test_tool_result_never_carries_private_fields() -> None:
         assert_no_tool_leakage(result.result)
         assert_no_tool_leakage(result.calculation_metadata)
         for ev in result.evidence_refs:
-            assert not any(priv in ev for priv in (
-                "provider", "model", "internal_prompt", "raw_ai_response",
-            ))
+            assert not any(
+                priv in ev
+                for priv in (
+                    "provider",
+                    "model",
+                    "internal_prompt",
+                    "raw_ai_response",
+                )
+            )
 
 
 def _minimal_input_for(spec: ToolSpec) -> dict:
@@ -401,9 +417,7 @@ def test_tool_results_do_not_affect_public_decision_pack_boundary() -> None:
         model_score=85.0,
         routing_criteria=(),
         internal_prompt="PRIVATE",
-        tool_calls=(
-            {"name": "dsp.valuation", "input": {"symbol": "AAPL"}},
-        ),
+        tool_calls=({"name": "dsp.valuation", "input": {"symbol": "AAPL"}},),
         tool_results=(
             {"name": "dsp.valuation", "result": {"intrinsic_value_per_share": 180.0}},
         ),
@@ -416,9 +430,16 @@ def test_tool_results_do_not_affect_public_decision_pack_boundary() -> None:
     # / chain-of-thought must not leak.
     flat = str(out).lower()
     for forbidden in (
-        "deepseek", "PRIVATE", "raw_ai", "chain_of_thought",
-        "internal_prompt", "input_tokens", "output_tokens",
-        "estimated_cost", "model_score", "routing_tier",
+        "deepseek",
+        "PRIVATE",
+        "raw_ai",
+        "chain_of_thought",
+        "internal_prompt",
+        "input_tokens",
+        "output_tokens",
+        "estimated_cost",
+        "model_score",
+        "routing_tier",
     ):
         assert forbidden.lower() not in flat
     # The evidence citation referencing the tool is fine.

@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import uuid
 from collections import defaultdict
-from typing import Any, Mapping
+from typing import Any
 
 from dsp_platform.research_intelligence.calibration import build_calibration_report
 from dsp_platform.research_intelligence.models import (
@@ -45,18 +45,14 @@ def build_performance_dashboard(
     rec_acc = overall
 
     iv_errors = [
-        abs(float(o.iv_gap_at_horizon))
-        for o in outs
-        if o.iv_gap_at_horizon is not None
+        abs(float(o.iv_gap_at_horizon)) for o in outs if o.iv_gap_at_horizon is not None
     ]
     iv_error: Any = (
         sum(iv_errors) / len(iv_errors) if iv_errors else UNAVAILABLE_MESSAGE
     )
 
     mos_vals = [
-        float(s.margin_of_safety)
-        for s in snaps
-        if s.margin_of_safety is not None
+        float(s.margin_of_safety) for s in snaps if s.margin_of_safety is not None
     ]
     avg_mos: Any = sum(mos_vals) / len(mos_vals) if mos_vals else UNAVAILABLE_MESSAGE
 
@@ -123,9 +119,7 @@ def build_performance_dashboard(
         ),
         "symbols": sorted({s.symbol for s in snaps if s.symbol}),
         "sectors": sorted(by_sector.keys()),
-        "coverage_ratio": (
-            len(measured) / len(outs) if outs else 0.0
-        ),
+        "coverage_ratio": (len(measured) / len(outs) if outs else 0.0),
     }
 
     # Trend: group measured outcomes by snapshot timestamp month prefix

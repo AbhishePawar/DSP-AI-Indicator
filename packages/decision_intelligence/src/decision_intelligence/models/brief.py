@@ -130,9 +130,7 @@ class DecisionBrief:
         object.__setattr__(self, "headline", headline)
         object.__setattr__(self, "executive_summary", summary)
         object.__setattr__(self, "attribution", tuple(self.attribution))
-        object.__setattr__(
-            self, "evidence_highlights", tuple(self.evidence_highlights)
-        )
+        object.__setattr__(self, "evidence_highlights", tuple(self.evidence_highlights))
         object.__setattr__(self, "key_assumptions", tuple(self.key_assumptions))
         object.__setattr__(self, "invalidators", tuple(self.invalidators))
         object.__setattr__(

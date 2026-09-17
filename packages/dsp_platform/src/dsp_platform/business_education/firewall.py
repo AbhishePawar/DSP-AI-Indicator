@@ -3,7 +3,8 @@
 from __future__ import annotations
 
 import copy
-from typing import Any, Mapping
+from collections.abc import Mapping
+from typing import Any
 
 # Fields the educational synthesizer must never write or alter on inputs.
 PROTECTED_INPUT_KEYS: frozenset[str] = frozenset(

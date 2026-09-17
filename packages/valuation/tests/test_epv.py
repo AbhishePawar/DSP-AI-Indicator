@@ -138,9 +138,7 @@ class TestNormalization:
         assert r2.normalized_ebit.value == pytest.approx(100.0)
 
     def test_manual_margin_and_average(self) -> None:
-        r = EpvEngine().analyze(
-            _base(normalized_operating_margin=0.12)
-        )
+        r = EpvEngine().analyze(_base(normalized_operating_margin=0.12))
         assert r.normalized_ebit.value == pytest.approx(120.0)
         r2 = EpvEngine().analyze(_base(average_ebit=95.0))
         assert r2.normalized_ebit.value == pytest.approx(95.0)
@@ -343,7 +341,7 @@ class TestExplainabilityIntegration:
         assert vr.model_name == "epv"
         assert vr.to_dict()["methodology"]
         # package alias
-        from valuation import to_epv_valuation_result, to_epv_v2_aggregate_payload
+        from valuation import to_epv_v2_aggregate_payload, to_epv_valuation_result
 
         assert to_epv_valuation_result(result).model_name == "epv"
         payload = to_v2_aggregate_payload(result)
@@ -356,9 +354,7 @@ class TestExplainabilityIntegration:
 class TestEdgeCases:
     def test_scenario_bad_wacc(self) -> None:
         with pytest.raises(ValuationError):
-            EpvEngine().analyze(
-                _base(cost_of_capital=0.01, bear_wacc_delta=-0.02)
-            )
+            EpvEngine().analyze(_base(cost_of_capital=0.01, bear_wacc_delta=-0.02))
 
     def test_unknown_normalization_method(self) -> None:
         inputs = _base()
@@ -376,9 +372,7 @@ class TestEdgeCases:
 
     def test_manual_margin_requires_revenue(self) -> None:
         with pytest.raises(ValuationError, match="revenue"):
-            EpvEngine().analyze(
-                _base(revenue=0.0, normalized_operating_margin=0.1)
-            )
+            EpvEngine().analyze(_base(revenue=0.0, normalized_operating_margin=0.1))
 
     def test_historical_average_missing_raises(self) -> None:
         with pytest.raises(ValuationError):

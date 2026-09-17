@@ -5,8 +5,6 @@ Covers the 10 mandatory conditions + privacy separation + fail-closed.
 
 from __future__ import annotations
 
-import pytest
-
 from llm_adapters.activation_evidence import (
     ActivationEvidence,
     BenchmarkEvidence,
@@ -27,7 +25,6 @@ from llm_adapters.privacy_boundary import (
     PublicDecisionPack,
     assert_no_private_leakage,
 )
-
 
 # --- helpers --------------------------------------------------------------
 
@@ -133,7 +130,9 @@ def _good_evidence(**overrides) -> ActivationEvidence:
     """Build a fully-passing evidence bundle; overrides let tests mutate one field."""
     base = ActivationEvidence(
         benchmark=overrides.get("benchmark", _good_benchmark()),
-        successful_evaluations=overrides.get("successful_evaluations", (_good_evaluation(),)),
+        successful_evaluations=overrides.get(
+            "successful_evaluations", (_good_evaluation(),)
+        ),
         configuration=overrides.get("configuration", _good_config()),
         tools=overrides.get("tools", _good_tools()),
         privacy=overrides.get("privacy", _good_privacy()),
@@ -347,7 +346,9 @@ def test_blocked_does_not_silently_pass_with_partial_evidence() -> None:
         benchmark=_good_benchmark(),
         successful_evaluations=(),  # missing
         configuration=_good_config(),
-        tools=ToolEvidence(available_tools=(), minimum_tool_count=2, all_tools_healthy=False),
+        tools=ToolEvidence(
+            available_tools=(), minimum_tool_count=2, all_tools_healthy=False
+        ),
         privacy=PrivacyEvidence(
             private_fields_enumerated=False,
             public_pack_present=False,
@@ -408,8 +409,14 @@ def test_verdict_object_cannot_be_dict_serialized_to_client_shape() -> None:
     assert verdict.recommended_models
     # PublicDecisionPack has no slot for any of these.
     public_fields = {
-        "recommendation", "valuation", "analysis", "risks",
-        "evidence_citations", "confidence", "limitations", "schema_version",
+        "recommendation",
+        "valuation",
+        "analysis",
+        "risks",
+        "evidence_citations",
+        "confidence",
+        "limitations",
+        "schema_version",
     }
     assert "reasons" not in public_fields
     assert "recommended_models" not in public_fields
@@ -469,7 +476,9 @@ def test_all_ten_conditions_recorded_on_full_evidence() -> None:
 def test_recommended_models_deduped_and_ordered() -> None:
     """If accepted evals include the same model as a tier default, no dup."""
     e1 = _good_evaluation(model_identity="deepseek:deepseek-chat", quality_score=90.0)
-    e2 = _good_evaluation(model_identity="anthropic:claude-3-5-sonnet-20241022", quality_score=95.0)
+    e2 = _good_evaluation(
+        model_identity="anthropic:claude-3-5-sonnet-20241022", quality_score=95.0
+    )
     evidence = _good_evidence(successful_evaluations=(e1, e2))
     verdict = evaluate_activation(evidence)
     # Order: cost_efficient, premium, best-scoring (deduped)

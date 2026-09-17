@@ -123,12 +123,14 @@ def test_template_and_search(platform: DSPPlatform) -> None:
         "apply_template",
         payload=_p(template_id="checklist", company="INFY", title="INFY checklist"),
     )
-    assert "Checklist" in templated["result"]["note"]["title"] or "checklist" in templated[
-        "result"
-    ]["note"]["title"].lower()
-    assert UNAVAILABLE_MESSAGE in templated["result"]["note"]["body"] or "- [ ]" in templated[
-        "result"
-    ]["note"]["body"]
+    assert (
+        "Checklist" in templated["result"]["note"]["title"]
+        or "checklist" in templated["result"]["note"]["title"].lower()
+    )
+    assert (
+        UNAVAILABLE_MESSAGE in templated["result"]["note"]["body"]
+        or "- [ ]" in templated["result"]["note"]["body"]
+    )
     found = platform.run_research_workspace("search", payload=_p(query="INFY"))
     assert found["result"]["notes"]
 

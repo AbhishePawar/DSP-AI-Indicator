@@ -164,7 +164,9 @@ class JWTManager:
             expires_at=exp,
             token_id=str(payload["jti"]) if payload.get("jti") else None,
             username=str(payload["username"]) if payload.get("username") else None,
-            extra=payload.get("extra") if isinstance(payload.get("extra"), dict) else None,
+            extra=(
+                payload.get("extra") if isinstance(payload.get("extra"), dict) else None
+            ),
         )
 
     def _encode(self, payload: dict[str, Any]) -> str:

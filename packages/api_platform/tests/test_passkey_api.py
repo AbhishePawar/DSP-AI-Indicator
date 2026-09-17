@@ -15,12 +15,19 @@ import time
 
 import pytest
 
-webauthn_lib = pytest.importorskip("webauthn", reason="optional 'webauthn' package not installed")
+webauthn_lib = pytest.importorskip(
+    "webauthn", reason="optional 'webauthn' package not installed"
+)
 
 from fastapi.testclient import TestClient  # noqa: E402
 
 from api_platform.api.app import create_app  # noqa: E402
-from auth import AuthService, RoleRegistry, reset_auth_service_for_tests, reset_role_registry_for_tests  # noqa: E402
+from auth import (  # noqa: E402
+    AuthService,
+    RoleRegistry,
+    reset_auth_service_for_tests,
+    reset_role_registry_for_tests,
+)
 from auth.enterprise_platform import (  # noqa: E402
     EnterpriseAuthPlatform,
     reset_enterprise_auth_platform_for_tests,
@@ -49,12 +56,8 @@ _AUTH_CREDENTIAL = {
     "type": "public-key",
     "clientExtensionResults": {},
 }
-_AUTH_CHALLENGE_B64URL = (
-    "xi30GPGAFYRxVDpY1sM10DaLzVQG66nv-_7RUazH0vI2YvG8LYgDEnvN5fZZNVuvEDuMi9te3VLqb42N0fkLGA"
-)
-_AUTH_PUBLIC_KEY_B64URL = (
-    "pQECAyYgASFYIIeDTe-gN8A-zQclHoRnGFWN8ehM1b7yAsa8I8KIvmplIlgg4nFGT5px8o6gpPZZhO01wdy9crDSA_Ngtkx0vGpvPHI"
-)
+_AUTH_CHALLENGE_B64URL = "xi30GPGAFYRxVDpY1sM10DaLzVQG66nv-_7RUazH0vI2YvG8LYgDEnvN5fZZNVuvEDuMi9te3VLqb42N0fkLGA"
+_AUTH_PUBLIC_KEY_B64URL = "pQECAyYgASFYIIeDTe-gN8A-zQclHoRnGFWN8ehM1b7yAsa8I8KIvmplIlgg4nFGT5px8o6gpPZZhO01wdy9crDSA_Ngtkx0vGpvPHI"
 
 
 @pytest.fixture()
@@ -104,7 +107,9 @@ def _make_user(env: EnterpriseAuthPlatform, suffix: str = "1") -> tuple[str, str
         username=f"passkeyuser{suffix}",
     )
     env.verify_email(reg["verification_token"])
-    login = env.login_password(identifier=f"passkeyuser{suffix}", password="StrongPass1!")
+    login = env.login_password(
+        identifier=f"passkeyuser{suffix}", password="StrongPass1!"
+    )
     return str(reg["user"]["user_id"]), str(login["tokens"]["access_token"])
 
 
@@ -113,10 +118,13 @@ def test_register_begin_requires_authentication(client: TestClient) -> None:
     assert resp.status_code == 400
 
 
-def test_register_begin_returns_ceremony_options(client: TestClient, env: EnterpriseAuthPlatform) -> None:
+def test_register_begin_returns_ceremony_options(
+    client: TestClient, env: EnterpriseAuthPlatform
+) -> None:
     _, token = _make_user(env)
     resp = client.post(
-        "/api/v1/auth/passkey/register/begin", headers={"Authorization": f"Bearer {token}"}
+        "/api/v1/auth/passkey/register/begin",
+        headers={"Authorization": f"Bearer {token}"},
     )
     assert resp.status_code == 200, resp.text
     body = resp.json()
@@ -125,7 +133,9 @@ def test_register_begin_returns_ceremony_options(client: TestClient, env: Enterp
     assert body["result"]["authenticatorSelection"]["residentKey"] == "required"
 
 
-def test_register_begin_reports_501_when_mfa_disabled(monkeypatch: pytest.MonkeyPatch) -> None:
+def test_register_begin_reports_501_when_mfa_disabled(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
     monkeypatch.setenv("DSP_ENVIRONMENT", "development")
     monkeypatch.setenv("DSP_PASSWORD_HASHER", "pbkdf2")
     monkeypatch.setenv("DSP_AUTH_MFA", "false")
@@ -137,14 +147,17 @@ def test_register_begin_reports_501_when_mfa_disabled(monkeypatch: pytest.Monkey
     reset_role_registry_for_tests(RoleRegistry())
     auth = AuthService(ps, jwt_secret="test-secret")
     reset_auth_service_for_tests(auth)
-    platform = EnterpriseAuthPlatform(auth, oauth=OAuthProviderRegistry({}), otp=OtpService(DevSmsAdapter()))
+    platform = EnterpriseAuthPlatform(
+        auth, oauth=OAuthProviderRegistry({}), otp=OtpService(DevSmsAdapter())
+    )
     reset_enterprise_auth_platform_for_tests(platform)
     try:
         _, token = _make_user(platform)
         app = create_app(enable_security=False)
         with TestClient(app, follow_redirects=False) as c:
             resp = c.post(
-                "/api/v1/auth/passkey/register/begin", headers={"Authorization": f"Bearer {token}"}
+                "/api/v1/auth/passkey/register/begin",
+                headers={"Authorization": f"Bearer {token}"},
             )
             assert resp.status_code == 501
             body = resp.json()
@@ -158,7 +171,9 @@ def test_register_begin_reports_501_when_mfa_disabled(monkeypatch: pytest.Monkey
         reset_repository_registry_for_tests(None)
 
 
-def test_login_begin_returns_discoverable_options_without_auth(client: TestClient) -> None:
+def test_login_begin_returns_discoverable_options_without_auth(
+    client: TestClient,
+) -> None:
     resp = client.post("/api/v1/auth/passkey/login/begin", json={})
     assert resp.status_code == 200, resp.text
     body = resp.json()
@@ -189,17 +204,24 @@ def test_login_complete_issues_session_and_sets_cookies(
     env.auth.persistence.put(
         kind="metadata",
         entity_id=f"auth-webauthn-cred-index-{cred_id}",
-        payload={"auth_entity": "webauthn_cred_index", "user_id": user_id, "credential_id": cred_id},
+        payload={
+            "auth_entity": "webauthn_cred_index",
+            "user_id": user_id,
+            "credential_id": cred_id,
+        },
         refs={"auth_entity": "webauthn_cred_index"},
         created_at=None,
         allow_update=True,
     )
     state = "api-auth-state-1"
-    env.mfa.webauthn.seed_pending(state, {  # noqa: SLF001
-        "kind": "authentication",
-        "challenge": _b64url_decode(_AUTH_CHALLENGE_B64URL),
-        "created_at": time.time(),
-    })
+    env.mfa.webauthn.seed_pending(
+        state,
+        {  # noqa: SLF001
+            "kind": "authentication",
+            "challenge": _b64url_decode(_AUTH_CHALLENGE_B64URL),
+            "created_at": time.time(),
+        },
+    )
     resp = client.post(
         "/api/v1/auth/passkey/login/complete",
         json={"state": state, "credential": _AUTH_CREDENTIAL},
@@ -218,11 +240,14 @@ def test_login_complete_unknown_credential_returns_401(
     client: TestClient, env: EnterpriseAuthPlatform
 ) -> None:
     state = "api-auth-state-2"
-    env.mfa.webauthn.seed_pending(state, {  # noqa: SLF001
-        "kind": "authentication",
-        "challenge": _b64url_decode(_AUTH_CHALLENGE_B64URL),
-        "created_at": time.time(),
-    })
+    env.mfa.webauthn.seed_pending(
+        state,
+        {  # noqa: SLF001
+            "kind": "authentication",
+            "challenge": _b64url_decode(_AUTH_CHALLENGE_B64URL),
+            "created_at": time.time(),
+        },
+    )
     resp = client.post(
         "/api/v1/auth/passkey/login/complete",
         json={"state": state, "credential": _AUTH_CREDENTIAL},
@@ -236,7 +261,9 @@ def test_list_and_delete_require_authentication(client: TestClient) -> None:
     assert client.delete("/api/v1/auth/passkey/some-cred-id").status_code == 400
 
 
-def test_list_and_delete_credential_lifecycle(client: TestClient, env: EnterpriseAuthPlatform) -> None:
+def test_list_and_delete_credential_lifecycle(
+    client: TestClient, env: EnterpriseAuthPlatform
+) -> None:
     user_id, token = _make_user(env)
     env.mfa.webauthn._save_credentials(  # noqa: SLF001
         user_id,
@@ -277,7 +304,8 @@ def test_delete_nonexistent_credential_returns_error(
 ) -> None:
     _, token = _make_user(env)
     resp = client.delete(
-        "/api/v1/auth/passkey/does-not-exist", headers={"Authorization": f"Bearer {token}"}
+        "/api/v1/auth/passkey/does-not-exist",
+        headers={"Authorization": f"Bearer {token}"},
     )
     # Generic error-mapping bumps "credential"-related messages to 401.
     assert resp.status_code == 401

@@ -10,7 +10,7 @@ from datetime import UTC, datetime, timedelta
 from threading import Lock
 from typing import Any
 
-from security_platform.security.exceptions import AuthenticationError, TokenError
+from security_platform.security.exceptions import AuthenticationError
 from security_platform.security.identity.ports import (
     RefreshTokenRecord,
     RefreshTokenStorePort,
@@ -18,7 +18,6 @@ from security_platform.security.identity.ports import (
     SessionTrackerPort,
 )
 from security_platform.security.jwt import JWTManager
-from security_platform.security.roles import Role
 from security_platform.security.users import UserRecord
 
 __all__ = [

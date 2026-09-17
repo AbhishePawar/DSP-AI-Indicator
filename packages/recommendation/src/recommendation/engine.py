@@ -132,14 +132,10 @@ class RecommendationEngine:
             and context.profile.recommendation_id
             != context.assembly.profile.recommendation_id
         ):
-            msg = (
-                "broken references: profile recommendation_id does not match assembly"
-            )
+            msg = "broken references: profile recommendation_id does not match assembly"
             raise RecommendationError(msg)
 
-    def synthesize(
-        self, context: EngineContext | AssemblyResult
-    ) -> EngineResult:
+    def synthesize(self, context: EngineContext | AssemblyResult) -> EngineResult:
         """Run baseline rule synthesis and emit an updated recommendation report."""
         ctx = (
             EngineContext(assembly=context)
@@ -321,7 +317,9 @@ class RecommendationEngine:
             ),
         )
 
-        status = EngineStatus.PARTIAL if warnings or conflicts else EngineStatus.COMPLETE
+        status = (
+            EngineStatus.PARTIAL if warnings or conflicts else EngineStatus.COMPLETE
+        )
         return EngineResult(
             recommendation_id=rid,
             status=status,
@@ -384,10 +382,10 @@ class RecommendationEngine:
         conflicts: list[RecommendationConflict] = []
         report_refs = tuple(sorted(citations))
 
-        if (
-            qualitative is SignalPosture.SUPPORTIVE
-            and quantitative in {SignalPosture.ADVERSE, SignalPosture.CAUTIONARY}
-        ):
+        if qualitative is SignalPosture.SUPPORTIVE and quantitative in {
+            SignalPosture.ADVERSE,
+            SignalPosture.CAUTIONARY,
+        }:
             conflicts.append(
                 RecommendationConflict(
                     conflict_id=f"dsp.recommendation.conflict.qual_vs_quant.{recommendation_id}",
@@ -405,10 +403,10 @@ class RecommendationEngine:
                 )
             )
 
-        if (
-            valuation is SignalPosture.SUPPORTIVE
-            and portfolio_fit in {SignalPosture.ADVERSE, SignalPosture.CAUTIONARY}
-        ):
+        if valuation is SignalPosture.SUPPORTIVE and portfolio_fit in {
+            SignalPosture.ADVERSE,
+            SignalPosture.CAUTIONARY,
+        }:
             conflicts.append(
                 RecommendationConflict(
                     conflict_id=f"dsp.recommendation.conflict.valuation_vs_fit.{recommendation_id}",
@@ -457,8 +455,7 @@ class RecommendationEngine:
         unknown_count: int,
     ) -> tuple[RecommendationType, RecommendationType]:
         if unknown_count >= 2 or any(
-            c.severity is ConflictSeverity.HIGH
-            and "insufficient" in c.conflict_id
+            c.severity is ConflictSeverity.HIGH and "insufficient" in c.conflict_id
             for c in conflicts
         ):
             return (
@@ -571,9 +568,7 @@ class RecommendationEngine:
                 raise RecommendationError(msg)
             option_ids.add(option.option_id)
             if not option.supporting_report_refs:
-                msg = (
-                    f"recommendation without citations: option {option.option_id!r}"
-                )
+                msg = f"recommendation without citations: option {option.option_id!r}"
                 raise RecommendationError(msg)
             if not option.supporting_rationale_refs:
                 msg = f"missing rationale: option {option.option_id!r}"
@@ -609,7 +604,9 @@ class RecommendationEngine:
         for conflict in conflicts:
             for oid in conflict.option_refs:
                 if oid not in option_ids:
-                    msg = f"orphan conflicts: conflict references missing option {oid!r}"
+                    msg = (
+                        f"orphan conflicts: conflict references missing option {oid!r}"
+                    )
                     raise RecommendationError(msg)
             for key in conflict.report_refs:
                 if key not in citations:

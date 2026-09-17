@@ -19,7 +19,6 @@ from production_platform.production.correlation import (
     get_correlation_id,
     new_request_id,
 )
-from production_platform.production.health import HealthManager
 from production_platform.production.interfaces import (
     AuditEventPort,
     HealthPort,
@@ -27,16 +26,26 @@ from production_platform.production.interfaces import (
     MetricsPort,
     TracingPort,
 )
-from production_platform.production.json_logging import FanoutLoggingPort, JsonLoggingPort
-from production_platform.production.logging import InMemoryLoggingPort, ensure_logging_port
-from production_platform.production.metrics import InMemoryMetricsPort, ensure_metrics_port
+from production_platform.production.json_logging import (
+    FanoutLoggingPort,
+    JsonLoggingPort,
+)
+from production_platform.production.logging import (
+    InMemoryLoggingPort,
+    ensure_logging_port,
+)
+from production_platform.production.metrics import (
+    ensure_metrics_port,
+)
+from production_platform.production.otel_tracing import try_build_otel_tracing
 from production_platform.production.prometheus_metrics import (
     PrometheusTextRenderer,
     render_prometheus,
     try_build_prometheus_client_metrics,
 )
-from production_platform.production.otel_tracing import try_build_otel_tracing
-from production_platform.production.tracing import InMemoryTracingPort, ensure_tracing_port
+from production_platform.production.tracing import (
+    ensure_tracing_port,
+)
 
 __all__ = ["ObservabilityBundle", "ObservabilitySettings"]
 
@@ -94,7 +103,9 @@ class ObservabilityBundle:
         elif cfg.json_logging:
             json_log = JsonLoggingPort(
                 service_name=cfg.service_name,
-                stream=__import__("io").StringIO(),  # capture without noisy stdout in tests
+                stream=__import__(
+                    "io"
+                ).StringIO(),  # capture without noisy stdout in tests
                 capture=True,
             )
             log_port = FanoutLoggingPort(memory_log, json_log)

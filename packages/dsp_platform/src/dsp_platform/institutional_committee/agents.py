@@ -6,7 +6,8 @@ scoring, or fabricated conclusions.
 
 from __future__ import annotations
 
-from typing import Any, Callable, Mapping
+from collections.abc import Callable, Mapping
+from typing import Any
 
 from dsp_platform.institutional_committee.citations import citation
 from dsp_platform.institutional_committee.context import section_available
@@ -44,7 +45,11 @@ def _section_citations(
 ) -> list[Mapping[str, Any]]:
     cites: list[Mapping[str, Any]] = []
     for name in sections:
-        row = ctx.section_index.get(name) if isinstance(ctx.section_index, Mapping) else None
+        row = (
+            ctx.section_index.get(name)
+            if isinstance(ctx.section_index, Mapping)
+            else None
+        )
         available = isinstance(row, Mapping) and bool(row.get("available"))
         cites.append(
             citation(
@@ -297,7 +302,8 @@ def review_devils_advocate(ctx: CommitteeContext) -> AgentReview:
         active = [
             a
             for a in alerts
-            if isinstance(a, Mapping) and a.get("severity") in {"watch", "important", "unavailable"}
+            if isinstance(a, Mapping)
+            and a.get("severity") in {"watch", "important", "unavailable"}
         ]
         if active:
             caution = True

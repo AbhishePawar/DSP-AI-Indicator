@@ -53,9 +53,10 @@ def validate_research_object(obj: ResearchObject) -> None:
         raise ResearchObjectValidationError(
             f"unsupported schema_version {obj.version.schema_version!r}"
         )
-    if not obj.metadata.research_object_id or not str(
-        obj.metadata.research_object_id
-    ).strip():
+    if (
+        not obj.metadata.research_object_id
+        or not str(obj.metadata.research_object_id).strip()
+    ):
         raise ResearchObjectValidationError("missing research_object_id")
     if not obj.metadata.created_at:
         raise ResearchObjectValidationError("missing created_at")
@@ -65,9 +66,13 @@ def validate_research_object(obj: ResearchObject) -> None:
     # Identity must always exist as a section; symbol preferred when available
     _validate_section(obj.identity, "identity")
     if obj.identity.available and obj.identity.payload is not None:
-        symbol = obj.identity.payload.get("symbol") or obj.identity.payload.get("ticker")
+        symbol = obj.identity.payload.get("symbol") or obj.identity.payload.get(
+            "ticker"
+        )
         if not symbol:
-            raise ResearchObjectValidationError("identity payload missing symbol/ticker")
+            raise ResearchObjectValidationError(
+                "identity payload missing symbol/ticker"
+            )
 
     for name in _CONTENT_SECTIONS:
         _validate_section(obj.section(name), name)

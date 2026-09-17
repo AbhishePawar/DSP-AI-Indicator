@@ -274,30 +274,28 @@ class DefaultMarketDataNormalizer(MarketDataNormalizer):
                 do not self-describe their sampling frequency.
         """
         self._frequency = frequency
-        self._pipeline = (
-            TransformationPipeline[RawMarketBar, NormalizedBar, PriceBar](
-                coerce=_coerce_bar,
-                construct=_construct_bar,
-                raw_validation=ValidationPipeline(
-                    [
-                        RequiredFieldValidationStage(
-                            field_names=("timestamp", "open", "high", "low", "close")
-                        ),
-                        MissingValueValidationStage(
-                            field_names=("open", "high", "low", "close")
-                        ),
-                    ]
-                ),
-                normalized_validation=ValidationPipeline(
-                    [
-                        TimestampValidationStage(),
-                        DuplicateDetectionStage(key=lambda bar: bar.timestamp),
-                        SortingVerificationStage(key=lambda bar: bar.timestamp),
-                        OHLCConsistencyStage(),
-                        VolumeValidationStage(),
-                    ]
-                ),
-            )
+        self._pipeline = TransformationPipeline[RawMarketBar, NormalizedBar, PriceBar](
+            coerce=_coerce_bar,
+            construct=_construct_bar,
+            raw_validation=ValidationPipeline(
+                [
+                    RequiredFieldValidationStage(
+                        field_names=("timestamp", "open", "high", "low", "close")
+                    ),
+                    MissingValueValidationStage(
+                        field_names=("open", "high", "low", "close")
+                    ),
+                ]
+            ),
+            normalized_validation=ValidationPipeline(
+                [
+                    TimestampValidationStage(),
+                    DuplicateDetectionStage(key=lambda bar: bar.timestamp),
+                    SortingVerificationStage(key=lambda bar: bar.timestamp),
+                    OHLCConsistencyStage(),
+                    VolumeValidationStage(),
+                ]
+            ),
         )
 
     def normalize(self, raw: RawMarketSeries, instrument: Instrument) -> PriceSeries:
@@ -322,9 +320,7 @@ class DefaultMarketDataNormalizer(MarketDataNormalizer):
         return PriceSeries(instrument=instrument, frequency=self._frequency, bars=bars)
 
 
-def _lookup_line_item(
-    line_items: dict[str, Any], aliases: tuple[str, ...]
-) -> Any:
+def _lookup_line_item(line_items: dict[str, Any], aliases: tuple[str, ...]) -> Any:
     """Return the first present raw value among ``aliases``, else ``None``."""
     for alias in aliases:
         if alias in line_items and line_items[alias] is not None:
@@ -332,9 +328,7 @@ def _lookup_line_item(
     return None
 
 
-def _coerce_period_type(
-    value: Any, *, provider_id: str
-) -> StatementPeriodType:
+def _coerce_period_type(value: Any, *, provider_id: str) -> StatementPeriodType:
     """Map a raw period-type label onto ``StatementPeriodType``."""
     if isinstance(value, StatementPeriodType):
         return value
@@ -511,8 +505,7 @@ def _coerce_frequency(value: Any, *, provider_id: str) -> EconomicFrequency:
     mapped = _FREQUENCY_ALIASES.get(key)
     if mapped is None:
         msg = (
-            f"provider '{provider_id}' returned an unsupported "
-            f"frequency: {value!r}"
+            f"provider '{provider_id}' returned an unsupported " f"frequency: {value!r}"
         )
         raise InvalidProviderDataError(msg)
     return mapped
@@ -559,9 +552,7 @@ class DefaultEconomicNormalizer(EconomicDataNormalizer):
             )
             raise MissingFieldError(msg)
         if raw.country is None or str(raw.country).strip() == "":
-            msg = (
-                f"provider '{raw.provider_id}' is missing required field 'country'"
-            )
+            msg = f"provider '{raw.provider_id}' is missing required field 'country'"
             raise MissingFieldError(msg)
 
         frequency = _coerce_frequency(raw.frequency, provider_id=raw.provider_id)
@@ -635,9 +626,7 @@ class DefaultEconomicNormalizer(EconomicDataNormalizer):
         )
 
         points = tuple(
-            EconomicDataPoint(
-                observation_date=item.observation_date, value=item.value
-            )
+            EconomicDataPoint(observation_date=item.observation_date, value=item.value)
             for item in ordered
         )
         try:
@@ -652,4 +641,3 @@ class DefaultEconomicNormalizer(EconomicDataNormalizer):
         except ContractValidationError as exc:
             msg = f"constructed EconomicSeries failed contracts validation: {exc}"
             raise InvalidProviderDataError(msg) from exc
-

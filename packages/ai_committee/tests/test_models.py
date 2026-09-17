@@ -6,10 +6,6 @@ from datetime import UTC, datetime
 
 import pytest
 
-from contracts.domain.instrument import Instrument
-from contracts.enums import AssetClass, EngineSource
-from core.exceptions import ValidationError
-
 from ai_committee.enums import Decision
 from ai_committee.models import (
     CommitteeReport,
@@ -17,15 +13,16 @@ from ai_committee.models import (
     MemberVote,
     Opinion,
 )
+from contracts.domain.instrument import Instrument
+from contracts.enums import AssetClass, EngineSource
+from core.exceptions import ValidationError
 
 FIXED_NOW = datetime(2024, 6, 15, 12, 0, 0, tzinfo=UTC)
 
 
 @pytest.fixture
 def instrument() -> Instrument:
-    return Instrument(
-        symbol="AAPL", asset_class=AssetClass.EQUITY, currency="USD"
-    )
+    return Instrument(symbol="AAPL", asset_class=AssetClass.EQUITY, currency="USD")
 
 
 def _opinion(
@@ -203,9 +200,7 @@ class TestCommitteeReport:
             )
 
     def test_instrument_mismatch_raises(self, instrument: Instrument) -> None:
-        other = Instrument(
-            symbol="MSFT", asset_class=AssetClass.EQUITY, currency="USD"
-        )
+        other = Instrument(symbol="MSFT", asset_class=AssetClass.EQUITY, currency="USD")
         opinion = _opinion()
         vote = MemberVote(
             source="technical",

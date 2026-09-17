@@ -13,11 +13,11 @@ Covers both layers that share one ``AuthenticationService``/``SessionManager``:
 from __future__ import annotations
 
 import threading
+from datetime import UTC
 
 import pytest
 
 from auth import (
-    AuthenticationError,
     AuthService,
     InvalidTokenError,
     RefreshTokenReuseError,
@@ -66,7 +66,9 @@ def platform(
     reset_enterprise_auth_platform_for_tests(None)
 
 
-def _register_and_login(plat: EnterpriseAuthPlatform, *, email: str = "trader@example.com"):
+def _register_and_login(
+    plat: EnterpriseAuthPlatform, *, email: str = "trader@example.com"
+):
     reg = plat.register_email(
         name="Trader",
         email=email,
@@ -101,7 +103,10 @@ def test_refresh_rotates_both_tokens(auth_service: AuthService) -> None:
 
 def test_rotated_away_token_cannot_be_reused(auth_service: AuthService) -> None:
     auth_service.create_user(
-        username="analyst1", email="a1@example.com", password="Secret123!", user_id="u-1"
+        username="analyst1",
+        email="a1@example.com",
+        password="Secret123!",
+        user_id="u-1",
     )
     login = auth_service.login(username="analyst1", password="Secret123!")
     old_refresh = login["tokens"]["refresh_token"]
@@ -119,10 +124,15 @@ def test_rotated_away_token_cannot_be_reused(auth_service: AuthService) -> None:
         auth_service.refresh(refresh_token=new_refresh)
 
 
-def test_family_wide_revocation_kills_every_lineage_member(auth_service: AuthService) -> None:
+def test_family_wide_revocation_kills_every_lineage_member(
+    auth_service: AuthService,
+) -> None:
     """Reuse of ANY prior token in the chain kills the entire lineage, not just its child."""
     auth_service.create_user(
-        username="analyst1", email="a1@example.com", password="Secret123!", user_id="u-1"
+        username="analyst1",
+        email="a1@example.com",
+        password="Secret123!",
+        user_id="u-1",
     )
     login = auth_service.login(username="analyst1", password="Secret123!")
     v1 = login["tokens"]["refresh_token"]
@@ -141,20 +151,28 @@ def test_family_wide_revocation_kills_every_lineage_member(auth_service: AuthSer
 
 
 def test_expired_refresh_token_rejected(auth_service: AuthService) -> None:
-    from datetime import datetime, timedelta, timezone
+    from datetime import datetime, timedelta
 
     auth_service.create_user(
-        username="analyst1", email="a1@example.com", password="Secret123!", user_id="u-1"
+        username="analyst1",
+        email="a1@example.com",
+        password="Secret123!",
+        user_id="u-1",
     )
     login = auth_service.login(username="analyst1", password="Secret123!")
-    far_future = datetime.now(tz=timezone.utc) + timedelta(days=30)
+    far_future = datetime.now(tz=UTC) + timedelta(days=30)
     with pytest.raises(InvalidTokenError):
-        auth_service.refresh(refresh_token=login["tokens"]["refresh_token"], now=far_future)
+        auth_service.refresh(
+            refresh_token=login["tokens"]["refresh_token"], now=far_future
+        )
 
 
 def test_revoked_session_refresh_rejected(auth_service: AuthService) -> None:
     auth_service.create_user(
-        username="analyst1", email="a1@example.com", password="Secret123!", user_id="u-1"
+        username="analyst1",
+        email="a1@example.com",
+        password="Secret123!",
+        user_id="u-1",
     )
     login = auth_service.login(username="analyst1", password="Secret123!")
     auth_service.logout(session_id=login["session"]["session_id"])
@@ -164,7 +182,10 @@ def test_revoked_session_refresh_rejected(auth_service: AuthService) -> None:
 
 def test_malformed_or_wrong_token_use_rejected(auth_service: AuthService) -> None:
     auth_service.create_user(
-        username="analyst1", email="a1@example.com", password="Secret123!", user_id="u-1"
+        username="analyst1",
+        email="a1@example.com",
+        password="Secret123!",
+        user_id="u-1",
     )
     login = auth_service.login(username="analyst1", password="Secret123!")
     with pytest.raises(InvalidTokenError):
@@ -184,7 +205,10 @@ def test_parallel_refresh_requests_only_one_wins(auth_service: AuthService) -> N
     minted from a single refresh token, under any timing.
     """
     auth_service.create_user(
-        username="analyst1", email="a1@example.com", password="Secret123!", user_id="u-1"
+        username="analyst1",
+        email="a1@example.com",
+        password="Secret123!",
+        user_id="u-1",
     )
     login = auth_service.login(username="analyst1", password="Secret123!")
     token = login["tokens"]["refresh_token"]
@@ -222,7 +246,10 @@ def test_session_specific_revocation_does_not_affect_other_sessions(
     auth_service: AuthService,
 ) -> None:
     auth_service.create_user(
-        username="analyst1", email="a1@example.com", password="Secret123!", user_id="u-1"
+        username="analyst1",
+        email="a1@example.com",
+        password="Secret123!",
+        user_id="u-1",
     )
     session_a = auth_service.login(
         username="analyst1", password="Secret123!", session_id="sess-a"
@@ -237,8 +264,12 @@ def test_session_specific_revocation_does_not_affect_other_sessions(
         auth_service.refresh(refresh_token=session_a["tokens"]["refresh_token"])
 
     # Session B is untouched and rotates normally.
-    refreshed_b = auth_service.refresh(refresh_token=session_b["tokens"]["refresh_token"])
-    assert refreshed_b["tokens"]["refresh_token"] != session_b["tokens"]["refresh_token"]
+    refreshed_b = auth_service.refresh(
+        refresh_token=session_b["tokens"]["refresh_token"]
+    )
+    assert (
+        refreshed_b["tokens"]["refresh_token"] != session_b["tokens"]["refresh_token"]
+    )
 
 
 # --------------------------------------------------------------------------
@@ -255,7 +286,9 @@ def test_refresh_session_wrapper_matches_bare_authservice(
     assert out["session"]["session_id"] == login["session"]["session_id"]
 
 
-def test_refresh_audit_trail_issued_and_rotated(platform: EnterpriseAuthPlatform) -> None:
+def test_refresh_audit_trail_issued_and_rotated(
+    platform: EnterpriseAuthPlatform,
+) -> None:
     login = _register_and_login(platform)
     user_id = login["user"]["user_id"]
     platform.refresh_session(refresh_token=login["tokens"]["refresh_token"])
@@ -297,7 +330,9 @@ def test_admin_revoke_sessions_emits_session_revoked_audit(
         platform.refresh_session(refresh_token=login["tokens"]["refresh_token"])
 
 
-def test_password_reset_revokes_sessions_with_audit(platform: EnterpriseAuthPlatform) -> None:
+def test_password_reset_revokes_sessions_with_audit(
+    platform: EnterpriseAuthPlatform,
+) -> None:
     login = _register_and_login(platform)
     user_id = login["user"]["user_id"]
 

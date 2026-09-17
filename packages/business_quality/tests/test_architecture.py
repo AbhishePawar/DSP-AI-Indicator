@@ -10,7 +10,45 @@ from pathlib import Path
 
 _SRC = Path(__file__).resolve().parents[1] / "src" / "business_quality"
 _PKG_ROOT = Path(__file__).resolve().parents[1]
-_FORBIDDEN = frozenset(['ai_committee', 'api_platform', 'business_quality_aggregator', 'comparison', 'compliance', 'contracts', 'copilot', 'data_engine', 'data_ingestion', 'decision_intelligence', 'dsp', 'dsp_platform', 'earnings_quality', 'economic', 'economic_moat', 'financial_strength', 'fundamental', 'growth_quality', 'industry', 'investment_committee', 'investment_recommendation', 'knowledge_graph', 'management_quality', 'orchestration', 'portfolio', 'production_platform', 'quantitative_risk', 'recommendation', 'research', 'risk', 'security_platform', 'snapshot_bridge', 'universe', 'valuation', 'workflow'])
+_FORBIDDEN = frozenset(
+    [
+        "ai_committee",
+        "api_platform",
+        "business_quality_aggregator",
+        "comparison",
+        "compliance",
+        "contracts",
+        "copilot",
+        "data_engine",
+        "data_ingestion",
+        "decision_intelligence",
+        "dsp",
+        "dsp_platform",
+        "earnings_quality",
+        "economic",
+        "economic_moat",
+        "financial_strength",
+        "fundamental",
+        "growth_quality",
+        "industry",
+        "investment_committee",
+        "investment_recommendation",
+        "knowledge_graph",
+        "management_quality",
+        "orchestration",
+        "portfolio",
+        "production_platform",
+        "quantitative_risk",
+        "recommendation",
+        "research",
+        "risk",
+        "security_platform",
+        "snapshot_bridge",
+        "universe",
+        "valuation",
+        "workflow",
+    ]
+)
 _EXPECTED_VERSION = "0.7.0"
 
 
@@ -45,12 +83,12 @@ class TestBusinessQualityArchitecture:
         import tomllib
 
         data = tomllib.loads((_PKG_ROOT / "pyproject.toml").read_text(encoding="utf-8"))
-        assert data["project"]["dependencies"] == ['core', 'financial']
+        assert data["project"]["dependencies"] == ["core", "financial"]
 
     def test_public_api_stable(self) -> None:
         import business_quality as mod
 
-        assert getattr(mod, "__version__") == _EXPECTED_VERSION
+        assert mod.__version__ == _EXPECTED_VERSION
         assert hasattr(mod, "__all__")
         missing = [name for name in mod.__all__ if not hasattr(mod, name)]
         assert missing == [], missing

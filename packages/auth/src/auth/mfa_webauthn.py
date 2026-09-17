@@ -33,6 +33,7 @@ import base64
 import os
 import secrets
 import time
+from datetime import UTC
 from typing import Any
 
 from auth.exceptions import AuthenticationError, ValidationError
@@ -77,7 +78,9 @@ class WebAuthnAdapter:
         self._persistence = persistence
         self._users = users
         self._rp_id = rp_id or os.environ.get("DSP_WEBAUTHN_RP_ID", "localhost")
-        self._rp_name = rp_name or os.environ.get("DSP_WEBAUTHN_RP_NAME", "DSP AI Indicator")
+        self._rp_name = rp_name or os.environ.get(
+            "DSP_WEBAUTHN_RP_NAME", "DSP AI Indicator"
+        )
         self._origin = origin or os.environ.get(
             "DSP_WEBAUTHN_ORIGIN", "http://localhost:3000"
         )
@@ -139,15 +142,23 @@ class WebAuthnAdapter:
         payload["state"] = state
         return payload
 
-    def complete_registration(self, user_id: str, credential: dict[str, Any]) -> dict[str, Any]:
+    def complete_registration(
+        self, user_id: str, credential: dict[str, Any]
+    ) -> dict[str, Any]:
         if not self.is_available():
             raise NotImplementedError("WebAuthn library not installed.")
         from webauthn import verify_registration_response
 
         state = str(credential.get("state") or "")
-        response = credential.get("credential") or credential.get("response") or credential
+        response = (
+            credential.get("credential") or credential.get("response") or credential
+        )
         pending = self._pending_store.consume_webauthn_pending(state)
-        if pending is None or pending.kind != "registration" or pending.user_id != user_id:
+        if (
+            pending is None
+            or pending.kind != "registration"
+            or pending.user_id != user_id
+        ):
             raise AuthenticationError("Invalid or expired registration challenge.")
         try:
             verification = verify_registration_response(
@@ -157,7 +168,9 @@ class WebAuthnAdapter:
                 expected_origin=self._origin,
                 require_user_verification=False,
             )
-        except Exception as exc:  # noqa: BLE001 — library raises its own exception hierarchy
+        except (
+            Exception
+        ) as exc:  # noqa: BLE001 — library raises its own exception hierarchy
             raise AuthenticationError(f"Passkey registration failed: {exc}") from exc
 
         cred_id_b64 = _b64url_encode(verification.credential_id)
@@ -165,9 +178,13 @@ class WebAuthnAdapter:
             "credential_id": cred_id_b64,
             "public_key": _b64url_encode(verification.credential_public_key),
             "sign_count": int(verification.sign_count),
-            "device_type": str(getattr(verification, "credential_device_type", "") or ""),
+            "device_type": str(
+                getattr(verification, "credential_device_type", "") or ""
+            ),
             "backed_up": bool(getattr(verification, "credential_backed_up", False)),
-            "transports": list((response.get("response") or {}).get("transports") or []),
+            "transports": list(
+                (response.get("response") or {}).get("transports") or []
+            ),
             "label": str(credential.get("label") or "Passkey"),
             "created_at": time.time(),
         }
@@ -177,7 +194,11 @@ class WebAuthnAdapter:
         self._persistence.put(
             kind="metadata",
             entity_id=f"{_INDEX_PREFIX}{cred_id_b64}",
-            payload={"auth_entity": "webauthn_cred_index", "user_id": user_id, "credential_id": cred_id_b64},
+            payload={
+                "auth_entity": "webauthn_cred_index",
+                "user_id": user_id,
+                "credential_id": cred_id_b64,
+            },
             refs={"auth_entity": "webauthn_cred_index"},
             created_at=None,
             allow_update=True,
@@ -191,7 +212,9 @@ class WebAuthnAdapter:
 
     # -- authentication (discoverable / usernameless login) -------------
 
-    def begin_discoverable_authentication(self, identifier: str | None = None) -> dict[str, Any]:
+    def begin_discoverable_authentication(
+        self, identifier: str | None = None
+    ) -> dict[str, Any]:
         if not self.is_available():
             raise NotImplementedError("WebAuthn library not installed.")
         from webauthn import generate_authentication_options, options_to_json
@@ -202,7 +225,11 @@ class WebAuthnAdapter:
 
         allow: list[Any] = []
         if identifier:
-            user = self._users.get_by_username(identifier) if "@" not in identifier else None
+            user = (
+                self._users.get_by_username(identifier)
+                if "@" not in identifier
+                else None
+            )
             if user is None:
                 for candidate in self._users.list_users():
                     if candidate.email.casefold() == identifier.strip().casefold():
@@ -235,7 +262,9 @@ class WebAuthnAdapter:
         identifier = user.email if user else None
         return self.begin_discoverable_authentication(identifier)
 
-    def complete_discoverable_authentication(self, assertion: dict[str, Any]) -> dict[str, Any]:
+    def complete_discoverable_authentication(
+        self, assertion: dict[str, Any]
+    ) -> dict[str, Any]:
         """Verify assertion and resolve the account — returns ``{user_id, ...}``."""
         if not self.is_available():
             raise NotImplementedError("WebAuthn library not installed.")
@@ -292,7 +321,8 @@ class WebAuthnAdapter:
 
     def list_credentials(self, user_id: str) -> list[dict[str, Any]]:
         return [
-            {k: v for k, v in c.items() if k != "public_key"} for c in self._load_credentials(user_id)
+            {k: v for k, v in c.items() if k != "public_key"}
+            for c in self._load_credentials(user_id)
         ]
 
     def remove_credential(self, user_id: str, credential_id: str) -> bool:
@@ -311,9 +341,9 @@ class WebAuthnAdapter:
         created = record.get("created_at")
         created_dt = None
         if isinstance(created, (int, float)):
-            from datetime import datetime, timezone
+            from datetime import datetime
 
-            created_dt = datetime.fromtimestamp(float(created), tz=timezone.utc)
+            created_dt = datetime.fromtimestamp(float(created), tz=UTC)
         challenge = record["challenge"]
         if isinstance(challenge, str):
             challenge = _b64url_decode(challenge)
@@ -332,11 +362,17 @@ class WebAuthnAdapter:
             return []
         return list((row.get("payload") or {}).get("credentials") or [])
 
-    def _save_credentials(self, user_id: str, credentials: list[dict[str, Any]]) -> None:
+    def _save_credentials(
+        self, user_id: str, credentials: list[dict[str, Any]]
+    ) -> None:
         self._persistence.put(
             kind="metadata",
             entity_id=f"{_CRED_PREFIX}{user_id}",
-            payload={"auth_entity": "webauthn_creds", "user_id": user_id, "credentials": credentials},
+            payload={
+                "auth_entity": "webauthn_creds",
+                "user_id": user_id,
+                "credentials": credentials,
+            },
             refs={"auth_entity": "webauthn_creds", "user_id": user_id},
             created_at=None,
             allow_update=True,

@@ -2,12 +2,15 @@
 
 from __future__ import annotations
 
-from typing import Any, Mapping
-
 from persistence.exceptions import DuplicateIdError, NotFoundError, SnapshotError
 from persistence.interfaces import StorageProviderPort
 from persistence.models import PersistedEntity, PersistenceSnapshot
-from persistence.serde import entity_from_dict, entity_to_dict, snapshot_from_dict, snapshot_to_dict
+from persistence.serde import (
+    entity_from_dict,
+    entity_to_dict,
+    snapshot_from_dict,
+    snapshot_to_dict,
+)
 from persistence.validation import validate_entity, validate_snapshot
 
 __all__ = [
@@ -29,7 +32,9 @@ class EntityRepository:
         self.kind = kind
         self.collection = kind_collection(kind)
 
-    def put(self, entity: PersistedEntity, *, allow_update: bool = True) -> PersistedEntity:
+    def put(
+        self, entity: PersistedEntity, *, allow_update: bool = True
+    ) -> PersistedEntity:
         validate_entity(entity)
         if entity.kind != self.kind:
             raise ValueError(f"entity kind {entity.kind!r} != repository {self.kind!r}")
@@ -85,7 +90,9 @@ class SnapshotRepository:
             raise SnapshotError(
                 f"snapshot {snapshot.snapshot_id!r} already exists and is immutable"
             )
-        self._storage.put(self.collection, snapshot.snapshot_id, snapshot_to_dict(snapshot))
+        self._storage.put(
+            self.collection, snapshot.snapshot_id, snapshot_to_dict(snapshot)
+        )
         return snapshot
 
     def get(self, snapshot_id: str) -> PersistenceSnapshot | None:

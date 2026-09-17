@@ -78,7 +78,7 @@ def _build_graph() -> dict[str, set[str]]:
 
 def _find_cycles(graph: dict[str, set[str]]) -> list[list[str]]:
     white, gray, black = 0, 1, 2
-    color = {n: white for n in graph}
+    color = dict.fromkeys(graph, white)
     stack: list[str] = []
     cycles: list[list[str]] = []
 

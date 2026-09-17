@@ -86,9 +86,7 @@ class InMemoryWorkspaceStore:
 
     def list_workspaces(self) -> tuple[Workspace, ...]:
         with self._lock:
-            return tuple(
-                self._workspaces[k] for k in sorted(self._workspaces.keys())
-            )
+            return tuple(self._workspaces[k] for k in sorted(self._workspaces.keys()))
 
     def delete_workspace(self, workspace_id: str) -> None:
         with self._lock:
@@ -144,9 +142,7 @@ class InMemoryWorkspaceStore:
         with self._lock:
             return self._watchlists.get(watchlist_id)
 
-    def list_watchlists(
-        self, workspace_id: str | None = None
-    ) -> tuple[Watchlist, ...]:
+    def list_watchlists(self, workspace_id: str | None = None) -> tuple[Watchlist, ...]:
         with self._lock:
             rows = list(self._watchlists.values())
             if workspace_id:

@@ -8,7 +8,7 @@ The authoritative counter is an A008 lockout entity incremented atomically.
 from __future__ import annotations
 
 import logging
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from typing import Any
 
 from auth.exceptions import AuthenticationError
@@ -24,7 +24,7 @@ _USER_PREFIX = "auth-user-"
 
 
 def _now() -> datetime:
-    return datetime.now(tz=timezone.utc)
+    return datetime.now(tz=UTC)
 
 
 class AuthLockoutStore:

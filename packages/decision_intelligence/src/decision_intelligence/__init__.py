@@ -10,9 +10,9 @@ from __future__ import annotations
 from decision_intelligence.exceptions import DecisionIntelligenceError
 from decision_intelligence.models import (
     AgreementQuality,
+    AssumptionRiskLevel,
     AssuranceAssessment,
     AssuranceLevel,
-    AssumptionRiskLevel,
     ConfidenceDriver,
     DecisionBrief,
     DecisionPack,

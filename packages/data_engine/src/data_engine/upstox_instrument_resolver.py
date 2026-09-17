@@ -143,19 +143,23 @@ class UpstoxResolveResult:
             "retrieved_at": self.retrieved_at.isoformat(),
             "latency_ms": self.latency_ms,
             "http_status": self.http_status,
-            "identity": None if self.identity is None else self.identity.to_public_dict(),
+            "identity": (
+                None if self.identity is None else self.identity.to_public_dict()
+            ),
             "candidates": [c.to_public_dict() for c in self.candidates],
-            "instrument": None
-            if self.instrument is None
-            else {
-                "symbol": self.instrument.symbol,
-                "name": self.instrument.name,
-                "exchange": self.instrument.exchange,
-                "isin": self.instrument.isin,
-                "currency": self.instrument.currency,
-                "country": self.instrument.country,
-                "asset_class": self.instrument.asset_class.value,
-            },
+            "instrument": (
+                None
+                if self.instrument is None
+                else {
+                    "symbol": self.instrument.symbol,
+                    "name": self.instrument.name,
+                    "exchange": self.instrument.exchange,
+                    "isin": self.instrument.isin,
+                    "currency": self.instrument.currency,
+                    "country": self.instrument.country,
+                    "asset_class": self.instrument.asset_class.value,
+                }
+            ),
         }
 
 
@@ -369,9 +373,11 @@ def _candidates_from_rows(
             continue
         if itype not in _EQUITY_TYPES:
             continue
-        trading = str(
-            row.get("trading_symbol") or row.get("tradingsymbol") or ""
-        ).strip().upper()
+        trading = (
+            str(row.get("trading_symbol") or row.get("tradingsymbol") or "")
+            .strip()
+            .upper()
+        )
         if not trading:
             continue
         isin = str(row.get("isin") or "").strip().upper()

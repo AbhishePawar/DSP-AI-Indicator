@@ -2,9 +2,10 @@
 
 from __future__ import annotations
 
+from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
 from enum import Enum
-from typing import Any, Mapping, Sequence
+from typing import Any
 
 from business_quality_aggregator.exceptions import (
     BusinessQualityAggregatorValidationError,
@@ -130,12 +131,8 @@ def validate_weights(
         )
     return BusinessQualityAggregatorWeights(
         economic_moat=float(payload[AggregatorComponent.ECONOMIC_MOAT.value]),
-        management_quality=float(
-            payload[AggregatorComponent.MANAGEMENT_QUALITY.value]
-        ),
-        financial_strength=float(
-            payload[AggregatorComponent.FINANCIAL_STRENGTH.value]
-        ),
+        management_quality=float(payload[AggregatorComponent.MANAGEMENT_QUALITY.value]),
+        financial_strength=float(payload[AggregatorComponent.FINANCIAL_STRENGTH.value]),
         earnings_quality=float(payload[AggregatorComponent.EARNINGS_QUALITY.value]),
         growth_quality=float(payload[AggregatorComponent.GROWTH_QUALITY.value]),
     )

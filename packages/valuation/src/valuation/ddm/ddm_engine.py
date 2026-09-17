@@ -7,9 +7,10 @@ Integrates Valuation Core without modifying Core or other valuation methods.
 from __future__ import annotations
 
 import time
+from collections.abc import Mapping
 from dataclasses import replace
 from datetime import UTC, datetime
-from typing import Any, Mapping
+from typing import Any
 
 from valuation.core.confidence_engine import ConfidenceEngine
 from valuation.core.metadata import RESEARCH_DISCLAIMER, VALUATION_CORE_VERSION
@@ -237,9 +238,7 @@ class DdmEngine:
             n = inputs.forecast_years
             terminal_value_pv = terminal_value / ((1.0 + r) ** n)
             ivps = pv_explicit + terminal_value_pv
-            formula = (
-                "IV = Σ PV(D_t) + PV(D_{n+1}/(r−g_terminal))"
-            )
+            formula = "IV = Σ PV(D_t) + PV(D_{n+1}/(r−g_terminal))"
         else:
             raise ValuationError(f"unknown DDM method: {method!r}")
 
@@ -462,7 +461,9 @@ class DdmEngine:
             SensitivityAxis("dividend_growth", (g - 0.01, g, g + 0.01)),
             SensitivityAxis("cost_of_equity", (r - 0.01, r, r + 0.01)),
             SensitivityAxis("terminal_growth", (tg - 0.005, tg, tg + 0.005)),
-            SensitivityAxis("payout_ratio", (max(0.0, payout - 0.1), payout, min(1.0, payout + 0.1))),
+            SensitivityAxis(
+                "payout_ratio", (max(0.0, payout - 0.1), payout, min(1.0, payout + 0.1))
+            ),
             SensitivityAxis("roe", (roe - 0.02, roe, roe + 0.02)),
         )
 
@@ -505,7 +506,10 @@ class DdmEngine:
             try:
                 if adj.cost_of_equity <= 0:
                     raise ValuationError("r <= 0")
-                if adj.method is DdmMethod.GORDON and adj.expected_dividend_growth >= adj.cost_of_equity:
+                if (
+                    adj.method is DdmMethod.GORDON
+                    and adj.expected_dividend_growth >= adj.cost_of_equity
+                ):
                     raise ValuationError("g >= r")
                 if adj.method in {DdmMethod.TWO_STAGE, DdmMethod.MULTI_STAGE}:
                     if adj.terminal_growth >= adj.cost_of_equity:

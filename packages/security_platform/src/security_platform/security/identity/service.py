@@ -209,7 +209,9 @@ class IdentityService:
 
         if user.password_hash:
             if not password:
-                self._emit("login_failed", user.user_id, False, detail="password_required")
+                self._emit(
+                    "login_failed", user.user_id, False, detail="password_required"
+                )
                 raise AuthenticationError("password required")
             if not self._hasher.verify(password, user.password_hash):
                 self._register_failure(user)
@@ -258,7 +260,9 @@ class IdentityService:
         self._emit("token_refresh", user.user_id, True)
         return pair
 
-    def logout(self, refresh_token: str | None = None, *, user_id: str | None = None) -> None:
+    def logout(
+        self, refresh_token: str | None = None, *, user_id: str | None = None
+    ) -> None:
         if refresh_token:
             self._tokens.revoke_refresh(refresh_token)
         if user_id:

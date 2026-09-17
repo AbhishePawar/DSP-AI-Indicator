@@ -214,7 +214,9 @@ class MoatComponentScore:
         object.__setattr__(self, "risks", tuple(self.risks))
         object.__setattr__(self, "reasoning", self.reasoning.strip())
         if not math.isfinite(self.weight) or self.weight < 0:
-            raise EconomicMoatValidationError("component.weight must be finite and >= 0")
+            raise EconomicMoatValidationError(
+                "component.weight must be finite and >= 0"
+            )
 
     def to_dict(self) -> dict[str, Any]:
         return {
@@ -263,7 +265,9 @@ class EconomicAnalysis:
         object.__setattr__(self, "input_references", tuple(self.input_references))
         object.__setattr__(self, "summary", self.summary.strip())
         object.__setattr__(self, "recommendation", self.recommendation.strip())
-        object.__setattr__(self, "research_disclaimer", self.research_disclaimer.strip())
+        object.__setattr__(
+            self, "research_disclaimer", self.research_disclaimer.strip()
+        )
 
     @property
     def overall_moat_score(self) -> float | None:

@@ -7,7 +7,7 @@ Integrates with existing RBAC without modifying security_platform:
 
 from __future__ import annotations
 
-from typing import Callable
+from collections.abc import Callable
 
 from workspace.exceptions import WorkspacePermissionError
 from workspace.models import MEMBER_ROLES, Member, Workspace

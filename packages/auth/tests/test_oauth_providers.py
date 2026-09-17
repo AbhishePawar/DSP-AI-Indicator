@@ -38,7 +38,7 @@ class _FakeResponse:
     def read(self) -> bytes:
         return self._body
 
-    def __enter__(self) -> "_FakeResponse":
+    def __enter__(self) -> _FakeResponse:
         return self
 
     def __exit__(self, *exc: object) -> None:
@@ -97,7 +97,11 @@ def test_complete_login_cross_checks_id_token_subject(monkeypatch) -> None:
     )
     monkeypatch.setattr(
         "auth.oauth_providers.verify_id_token",
-        lambda token, **kwargs: {"sub": "google-sub-1", "email": "user@example.com", "nonce": nonce},
+        lambda token, **kwargs: {
+            "sub": "google-sub-1",
+            "email": "user@example.com",
+            "nonce": nonce,
+        },
     )
     monkeypatch.setattr(
         "urllib.request.urlopen",
@@ -148,7 +152,9 @@ def test_complete_login_rejects_id_token_subject_mismatch(monkeypatch) -> None:
 
     with pytest.raises(AuthenticationError, match="does not match"):
         adapter.complete_login(
-            code="auth-code", state=begin["state"], redirect_uri="http://localhost/callback"
+            code="auth-code",
+            state=begin["state"],
+            redirect_uri="http://localhost/callback",
         )
 
 
@@ -172,7 +178,9 @@ def test_complete_login_rejects_when_id_token_fails_hard_check(monkeypatch) -> N
 
     with pytest.raises(AuthenticationError, match="id_token rejected"):
         adapter.complete_login(
-            code="auth-code", state=begin["state"], redirect_uri="http://localhost/callback"
+            code="auth-code",
+            state=begin["state"],
+            redirect_uri="http://localhost/callback",
         )
 
 
@@ -233,7 +241,9 @@ def test_complete_login_without_id_token_is_unaffected(monkeypatch) -> None:
     )
     monkeypatch.setattr(
         "urllib.request.urlopen",
-        lambda req, timeout=20: _FakeResponse({"id": "fb-1", "email": "user@example.com"}),
+        lambda req, timeout=20: _FakeResponse(
+            {"id": "fb-1", "email": "user@example.com"}
+        ),
     )
 
     profile = adapter.complete_login(

@@ -176,9 +176,7 @@ class PortfolioMonitor:
             return (
                 PortfolioChange(
                     change_type=PortfolioChangeType.SNAPSHOT_RECORDED,
-                    description=(
-                        f"Initial snapshot {current.snapshot_id} recorded."
-                    ),
+                    description=(f"Initial snapshot {current.snapshot_id} recorded."),
                     to_snapshot_id=current.snapshot_id,
                 ),
             )
@@ -205,9 +203,7 @@ class PortfolioMonitor:
             snapshot_count=len(timeline.entries),
             change_count=len(changes),
             status=status,
-            notes=(
-                "Monitoring records history only — no risk, returns, or trades.",
-            ),
+            notes=("Monitoring records history only — no risk, returns, or trades.",),
         )
         warnings: list[str] = []
         if status is PortfolioMonitoringStatus.EMPTY:
@@ -235,9 +231,7 @@ class PortfolioMonitor:
             return PortfolioMonitoringContext(portfolio=context)
         return context
 
-    def _ordered_snapshots(
-        self, portfolio: Portfolio
-    ) -> tuple[PortfolioSnapshot, ...]:
+    def _ordered_snapshots(self, portfolio: Portfolio) -> tuple[PortfolioSnapshot, ...]:
         return tuple(
             sorted(
                 portfolio.snapshots,
@@ -245,9 +239,7 @@ class PortfolioMonitor:
             )
         )
 
-    def _build_timeline(
-        self, context: PortfolioMonitoringContext
-    ) -> PortfolioTimeline:
+    def _build_timeline(self, context: PortfolioMonitoringContext) -> PortfolioTimeline:
         entries = list(self._ordered_snapshots(context.portfolio))
         # Include explicit current/previous if not already on the aggregate.
         for snap in (context.previous_snapshot, context.current_snapshot):
@@ -366,9 +358,7 @@ class PortfolioMonitor:
                 changes.append(
                     PortfolioChange(
                         change_type=PortfolioChangeType.DECISION_COVERAGE_CHANGED,
-                        description=(
-                            f"Decision coverage changed for {sym}."
-                        ),
+                        description=(f"Decision coverage changed for {sym}."),
                         subjects=(sym,),
                         from_snapshot_id=from_id,
                         to_snapshot_id=to_id,
@@ -378,9 +368,7 @@ class PortfolioMonitor:
                 changes.append(
                     PortfolioChange(
                         change_type=PortfolioChangeType.EVIDENCE_COVERAGE_CHANGED,
-                        description=(
-                            f"Evidence coverage changed for {sym}."
-                        ),
+                        description=(f"Evidence coverage changed for {sym}."),
                         subjects=(sym,),
                         from_snapshot_id=from_id,
                         to_snapshot_id=to_id,
@@ -437,9 +425,7 @@ class PortfolioMonitor:
         ref = holding.decision_pack_ref
         return (ref.instrument_symbol, ref.digest)
 
-    def _evidence_key(
-        self, holding: PortfolioHolding
-    ) -> tuple[str, str, str] | None:
+    def _evidence_key(self, holding: PortfolioHolding) -> tuple[str, str, str] | None:
         ref = holding.evidence_bundle_ref
         if ref is None:
             return None
@@ -449,9 +435,7 @@ class PortfolioMonitor:
         self, constraints: tuple[PortfolioConstraint, ...]
     ) -> tuple[tuple[str, str, str, float], ...]:
         return tuple(
-            sorted(
-                (c.id, c.kind.value, c.target, float(c.limit)) for c in constraints
-            )
+            sorted((c.id, c.kind.value, c.target, float(c.limit)) for c in constraints)
         )
 
     def _build_report(
@@ -471,17 +455,13 @@ class PortfolioMonitor:
                 summary=base.summary,
                 observations=base.observations,
                 snapshot_id=(
-                    base.snapshot_id
-                    if current is None
-                    else current.snapshot_id
+                    base.snapshot_id if current is None else current.snapshot_id
                 ),
                 decision_pack_refs=base.decision_pack_refs,
                 evidence_bundle_refs=base.evidence_bundle_refs,
                 comparison_report_refs=base.comparison_report_refs,
                 limitations=base.limitations
-                + (
-                    "Monitoring enrichment applied — history only.",
-                ),
+                + ("Monitoring enrichment applied — history only.",),
                 citation_summary=base.citation_summary,
                 coverage_summary=base.coverage_summary,
                 citation_gaps=base.citation_gaps,
@@ -499,9 +479,7 @@ class PortfolioMonitor:
             portfolio_id=context.portfolio.identity.portfolio_id,
             summary=PortfolioSummary(
                 holding_count=holding_count,
-                cash_weight=(
-                    None if current is None else current.cash_weight
-                ),
+                cash_weight=(None if current is None else current.cash_weight),
                 limitation_notes=(
                     "Monitoring report — history only; no investment evaluation.",
                 ),

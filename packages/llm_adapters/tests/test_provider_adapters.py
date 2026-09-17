@@ -12,7 +12,6 @@ from typing import Any
 from unittest.mock import MagicMock, patch
 
 import httpx
-import pytest
 
 from copilot.enums import LanguageModelStatus, UserIntentType
 from copilot.models import LanguageModelRequest
@@ -26,7 +25,6 @@ from llm_adapters.privacy_boundary import (
     PublicDecisionPack,
     assert_no_private_leakage,
 )
-
 
 # ---- shared config + request ---------------------------------------------
 
@@ -57,7 +55,9 @@ def _request() -> LanguageModelRequest:
     )
 
 
-def _mock_response(json_body: dict[str, Any] | None = None, status: int = 200) -> MagicMock:
+def _mock_response(
+    json_body: dict[str, Any] | None = None, status: int = 200
+) -> MagicMock:
     resp = MagicMock()
     resp.status_code = status
     resp.raise_for_status = MagicMock()
@@ -91,7 +91,9 @@ def test_openai_missing_credentials() -> None:
 def test_openai_timeout_normalized() -> None:
     adapter = OpenAIAdapter(_config())
     with patch("llm_adapters.openai_adapter.httpx.Client") as cls:
-        cls.return_value.__enter__.return_value.post.side_effect = httpx.TimeoutException("boom")
+        cls.return_value.__enter__.return_value.post.side_effect = (
+            httpx.TimeoutException("boom")
+        )
         result = adapter.invoke(_request())
     assert result.status is LanguageModelStatus.FAILED
     assert result.limitations  # some non-empty failure reason
@@ -100,10 +102,14 @@ def test_openai_timeout_normalized() -> None:
 def test_openai_auth_failure_normalized() -> None:
     adapter = OpenAIAdapter(_config())
     err = httpx.HTTPStatusError(
-        "401", request=MagicMock(), response=MagicMock(status_code=401, text="unauthorized")
+        "401",
+        request=MagicMock(),
+        response=MagicMock(status_code=401, text="unauthorized"),
     )
     with patch("llm_adapters.openai_adapter.httpx.Client") as cls:
-        cls.return_value.__enter__.return_value.post.return_value.raise_for_status.side_effect = err
+        cls.return_value.__enter__.return_value.post.return_value.raise_for_status.side_effect = (
+            err
+        )
         result = adapter.invoke(_request())
     assert result.status is LanguageModelStatus.FAILED
 
@@ -144,7 +150,9 @@ def test_deepseek_rate_limit() -> None:
         "429", request=MagicMock(), response=MagicMock(status_code=429, text="rate")
     )
     with patch("llm_adapters.deepseek_adapter.httpx.Client") as cls:
-        cls.return_value.__enter__.return_value.post.return_value.raise_for_status.side_effect = err
+        cls.return_value.__enter__.return_value.post.return_value.raise_for_status.side_effect = (
+            err
+        )
         result = adapter.invoke(_request())
     assert result.status is LanguageModelStatus.FAILED
 
@@ -152,7 +160,9 @@ def test_deepseek_rate_limit() -> None:
 def test_deepseek_timeout() -> None:
     adapter = DeepSeekAdapter(_config())
     with patch("llm_adapters.deepseek_adapter.httpx.Client") as cls:
-        cls.return_value.__enter__.return_value.post.side_effect = httpx.TimeoutException("slow")
+        cls.return_value.__enter__.return_value.post.side_effect = (
+            httpx.TimeoutException("slow")
+        )
         result = adapter.invoke(_request())
     assert result.status is LanguageModelStatus.FAILED
 
@@ -171,7 +181,9 @@ def test_deepseek_malformed_json() -> None:
 def test_deepseek_does_not_leak_key_in_error() -> None:
     adapter = DeepSeekAdapter(_config())
     with patch("llm_adapters.deepseek_adapter.httpx.Client") as cls:
-        cls.return_value.__enter__.return_value.post.side_effect = httpx.ConnectError("x")
+        cls.return_value.__enter__.return_value.post.side_effect = httpx.ConnectError(
+            "x"
+        )
         result = adapter.invoke(_request())
     flat = " ".join(result.limitations)
     assert "test-deepseek" not in flat
@@ -183,11 +195,7 @@ def test_deepseek_does_not_leak_key_in_error() -> None:
 
 def test_gemini_success() -> None:
     adapter = GeminiAdapter(_config())
-    body = {
-        "candidates": [
-            {"content": {"parts": [{"text": "Gemini explanation."}]}}
-        ]
-    }
+    body = {"candidates": [{"content": {"parts": [{"text": "Gemini explanation."}]}}]}
     with patch("llm_adapters.gemini_adapter.httpx.Client") as cls:
         cls.return_value.__enter__.return_value.post.return_value = _mock_response(body)
         result = adapter.invoke(_request())
@@ -205,7 +213,9 @@ def test_gemini_missing_credentials() -> None:
 def test_gemini_malformed_response_empty_candidates() -> None:
     adapter = GeminiAdapter(_config())
     with patch("llm_adapters.gemini_adapter.httpx.Client") as cls:
-        cls.return_value.__enter__.return_value.post.return_value = _mock_response({"candidates": []})
+        cls.return_value.__enter__.return_value.post.return_value = _mock_response(
+            {"candidates": []}
+        )
         result = adapter.invoke(_request())
     assert result.status is LanguageModelStatus.FAILED
 
@@ -213,7 +223,9 @@ def test_gemini_malformed_response_empty_candidates() -> None:
 def test_gemini_timeout() -> None:
     adapter = GeminiAdapter(_config())
     with patch("llm_adapters.gemini_adapter.httpx.Client") as cls:
-        cls.return_value.__enter__.return_value.post.side_effect = httpx.TimeoutException("t")
+        cls.return_value.__enter__.return_value.post.side_effect = (
+            httpx.TimeoutException("t")
+        )
         result = adapter.invoke(_request())
     assert result.status is LanguageModelStatus.FAILED
 
@@ -244,7 +256,9 @@ def test_anthropic_auth_failure() -> None:
         "401", request=MagicMock(), response=MagicMock(status_code=401, text="bad key")
     )
     with patch("llm_adapters.anthropic_adapter.httpx.Client") as cls:
-        cls.return_value.__enter__.return_value.post.return_value.raise_for_status.side_effect = err
+        cls.return_value.__enter__.return_value.post.return_value.raise_for_status.side_effect = (
+            err
+        )
         result = adapter.invoke(_request())
     assert result.status is LanguageModelStatus.FAILED
 
@@ -252,7 +266,9 @@ def test_anthropic_auth_failure() -> None:
 def test_anthropic_malformed_response() -> None:
     adapter = AnthropicAdapter(_config())
     with patch("llm_adapters.anthropic_adapter.httpx.Client") as cls:
-        cls.return_value.__enter__.return_value.post.return_value = _mock_response({"content": []})
+        cls.return_value.__enter__.return_value.post.return_value = _mock_response(
+            {"content": []}
+        )
         result = adapter.invoke(_request())
     assert result.status is LanguageModelStatus.FAILED
 
@@ -260,7 +276,9 @@ def test_anthropic_malformed_response() -> None:
 def test_anthropic_timeout() -> None:
     adapter = AnthropicAdapter(_config())
     with patch("llm_adapters.anthropic_adapter.httpx.Client") as cls:
-        cls.return_value.__enter__.return_value.post.side_effect = httpx.TimeoutException("t")
+        cls.return_value.__enter__.return_value.post.side_effect = (
+            httpx.TimeoutException("t")
+        )
         result = adapter.invoke(_request())
     assert result.status is LanguageModelStatus.FAILED
 
@@ -346,17 +364,31 @@ def test_adapters_return_free_text_not_structured() -> None:
     is preserved (tuple remains empty for free-text responses).
     """
     for adapter, patch_path, body in (
-        (OpenAIAdapter(_config()), "llm_adapters.openai_adapter",
-         {"choices": [{"message": {"content": "ok"}}]}),
-        (DeepSeekAdapter(_config()), "llm_adapters.deepseek_adapter",
-         {"choices": [{"message": {"content": "ok"}}]}),
-        (GeminiAdapter(_config()), "llm_adapters.gemini_adapter",
-         {"candidates": [{"content": {"parts": [{"text": "ok"}]}}]}),
-        (AnthropicAdapter(_config()), "llm_adapters.anthropic_adapter",
-         {"content": [{"type": "text", "text": "ok"}]}),
+        (
+            OpenAIAdapter(_config()),
+            "llm_adapters.openai_adapter",
+            {"choices": [{"message": {"content": "ok"}}]},
+        ),
+        (
+            DeepSeekAdapter(_config()),
+            "llm_adapters.deepseek_adapter",
+            {"choices": [{"message": {"content": "ok"}}]},
+        ),
+        (
+            GeminiAdapter(_config()),
+            "llm_adapters.gemini_adapter",
+            {"candidates": [{"content": {"parts": [{"text": "ok"}]}}]},
+        ),
+        (
+            AnthropicAdapter(_config()),
+            "llm_adapters.anthropic_adapter",
+            {"content": [{"type": "text", "text": "ok"}]},
+        ),
     ):
         with patch(f"{patch_path}.httpx.Client") as cls:
-            cls.return_value.__enter__.return_value.post.return_value = _mock_response(body)
+            cls.return_value.__enter__.return_value.post.return_value = _mock_response(
+                body
+            )
             result = adapter.invoke(_request())
         assert result.status is LanguageModelStatus.COMPLETE
         assert result.structured_sections == ()  # no fabrication

@@ -2,7 +2,8 @@
 
 from __future__ import annotations
 
-from typing import Any, Mapping
+from collections.abc import Mapping
+from typing import Any
 
 import pytest
 
@@ -41,7 +42,12 @@ def _quote_row(*, symbol: str, price: float, key: str) -> dict[str, Any]:
         "status": "success",
         "data": {
             key: {
-                "ohlc": {"open": price - 1, "high": price + 1, "low": price - 2, "close": price - 0.5},
+                "ohlc": {
+                    "open": price - 1,
+                    "high": price + 1,
+                    "low": price - 2,
+                    "close": price - 0.5,
+                },
                 "timestamp": "2026-08-09T10:00:00+05:30",
                 "symbol": symbol,
                 "last_price": price,
@@ -53,7 +59,14 @@ def _quote_row(*, symbol: str, price: float, key: str) -> dict[str, Any]:
 
 
 class _FakeHttp:
-    def __init__(self, *, search: Mapping[str, Any], quotes: Mapping[str, Any] | None = None, error_on: str | None = None, error: Exception | None = None) -> None:
+    def __init__(
+        self,
+        *,
+        search: Mapping[str, Any],
+        quotes: Mapping[str, Any] | None = None,
+        error_on: str | None = None,
+        error: Exception | None = None,
+    ) -> None:
         self.search = dict(search)
         self.quotes = dict(quotes or {})
         self.error_on = error_on
@@ -61,12 +74,11 @@ class _FakeHttp:
         self.calls: list[dict[str, Any]] = []
 
     def get_json(self, url: str, *, params=None, headers=None):
-        self.calls.append({"url": url, "params": dict(params or {}), "headers": dict(headers or {})})
+        self.calls.append(
+            {"url": url, "params": dict(params or {}), "headers": dict(headers or {})}
+        )
         assert headers and str(headers.get("Authorization", "")).startswith("Bearer ")
-        if self.error is not None and (
-            self.error_on is None
-            or self.error_on in url
-        ):
+        if self.error is not None and (self.error_on is None or self.error_on in url):
             raise self.error
         if "instruments/search" in url:
             q = str((params or {}).get("query") or "").upper()
@@ -81,8 +93,18 @@ class _FakeHttp:
 
 
 _INFY = _eq(symbol="INFY", name="Infosys Limited", exchange="NSE", isin="INE009A01021")
-_TCS_NSE = _eq(symbol="TCS", name="Tata Consultancy Services Limited", exchange="NSE", isin="INE467B01029")
-_TCS_BSE = _eq(symbol="TCS", name="Tata Consultancy Services Limited", exchange="BSE", isin="INE467B01029")
+_TCS_NSE = _eq(
+    symbol="TCS",
+    name="Tata Consultancy Services Limited",
+    exchange="NSE",
+    isin="INE467B01029",
+)
+_TCS_BSE = _eq(
+    symbol="TCS",
+    name="Tata Consultancy Services Limited",
+    exchange="BSE",
+    isin="INE467B01029",
+)
 
 
 def _client_for(
@@ -153,7 +175,9 @@ def test_tcs_preferred_nse_quotes() -> None:
     assert result.quote is not None
     assert float(result.quote.current_price.value) == pytest.approx(4200.0)
     assert any(
-        c["params"].get("instrument_key") == key for c in http.calls if UPSTOX_MARKET_QUOTE_ENDPOINT in c["url"]
+        c["params"].get("instrument_key") == key
+        for c in http.calls
+        if UPSTOX_MARKET_QUOTE_ENDPOINT in c["url"]
     )
 
 
@@ -170,9 +194,7 @@ def test_client_instrument_key_rejected() -> None:
 
 def test_client_price_rejected() -> None:
     client = _client_for(search_rows=[_INFY], symbol="INFY")
-    result = client.get_quote(
-        UpstoxMarketQuoteRequest(symbol="INFY", client_price=1.0)
-    )
+    result = client.get_quote(UpstoxMarketQuoteRequest(symbol="INFY", client_price=1.0))
     assert result.status == "REJECTED"
 
 
@@ -211,13 +233,17 @@ def test_http_errors(code: int, fragment: str) -> None:
             f"HTTP {fragment} for 'https://api.upstox.com/v2/{UPSTOX_MARKET_QUOTE_ENDPOINT}'"
         ),
     )
-    client = UpstoxMarketQuoteClient(access_token=secret, http_client=http, max_attempts=2)
+    client = UpstoxMarketQuoteClient(
+        access_token=secret, http_client=http, max_attempts=2
+    )
     result = client.get_quote("INFY")
     assert result.status == "UNAVAILABLE"
     assert result.http_status == code
     assert secret not in result.detail
     if code == 429:
-        assert sum(1 for c in http.calls if UPSTOX_MARKET_QUOTE_ENDPOINT in c["url"]) == 2
+        assert (
+            sum(1 for c in http.calls if UPSTOX_MARKET_QUOTE_ENDPOINT in c["url"]) == 2
+        )
 
 
 def test_timeout_unavailable() -> None:

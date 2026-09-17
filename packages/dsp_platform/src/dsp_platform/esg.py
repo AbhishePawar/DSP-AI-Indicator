@@ -32,7 +32,9 @@ _GROUP: FailoverGroup[EsgService, EsgQuery, Any] | None = None
 _SERVICES: tuple[EsgService, ...] = ()
 
 
-def _make_group(services: tuple[EsgService, ...]) -> FailoverGroup[EsgService, EsgQuery, Any]:
+def _make_group(
+    services: tuple[EsgService, ...],
+) -> FailoverGroup[EsgService, EsgQuery, Any]:
     return FailoverGroup(
         services,
         call=lambda service, query: service.get_esg_score(query),

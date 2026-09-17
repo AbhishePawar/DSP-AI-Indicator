@@ -35,9 +35,7 @@ def validate_consensus_inputs(inputs: ConsensusInputs) -> ValidationSummary:
 
     _finite(inputs.trim_fraction, "trim_fraction", errors)
     if inputs.trim_fraction < 0 or inputs.trim_fraction >= 0.5:
-        errors.append(
-            f"trim_fraction must be in [0, 0.5), got {inputs.trim_fraction}"
-        )
+        errors.append(f"trim_fraction must be in [0, 0.5), got {inputs.trim_fraction}")
 
     thr = inputs.outlier_thresholds
     for name, val in (

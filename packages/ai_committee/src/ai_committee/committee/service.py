@@ -113,9 +113,7 @@ class InvestmentCommittee:
             msg = "cannot deliberate with an empty member roster"
             raise CommitteeError(msg)
 
-        opinions = tuple(
-            member.analyze(context) for member in self._members
-        )
+        opinions = tuple(member.analyze(context) for member in self._members)
         votes = tuple(
             MemberVote(
                 source=opinion.source,
@@ -152,22 +150,13 @@ def _decision_rationale(
     opinions: tuple[Opinion, ...],
 ) -> str:
     """Build a short rationale for the aggregated decision."""
-    tally = ", ".join(
-        f"{o.source}={o.recommendation.value}" for o in opinions
-    )
+    tally = ", ".join(f"{o.source}={o.recommendation.value}" for o in opinions)
     if overall is Decision.NEUTRAL:
-        return (
-            f"Members conflict ({tally}); overall decision is "
-            f"{overall.value}."
-        )
+        return f"Members conflict ({tally}); overall decision is " f"{overall.value}."
     if len({o.recommendation for o in opinions}) == 1:
-        return (
-            f"Members agree ({tally}); overall decision is "
-            f"{overall.value}."
-        )
+        return f"Members agree ({tally}); overall decision is " f"{overall.value}."
     return (
-        f"Members partially align ({tally}); overall decision is "
-        f"{overall.value}."
+        f"Members partially align ({tally}); overall decision is " f"{overall.value}."
     )
 
 

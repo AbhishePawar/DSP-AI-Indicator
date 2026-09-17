@@ -2,9 +2,11 @@
 
 from __future__ import annotations
 
-from typing import Any, Mapping
+from collections.abc import Mapping
+from typing import Any
 
 import pytest
+
 from contracts.domain.instrument import AssetClass, Instrument
 from data_engine.financial_statement.adapters import (
     build_default_statement_adapter_from_env,
@@ -152,9 +154,7 @@ def test_fmp_statements_merge_income_balance_cash() -> None:
     adapter = FinancialModelingPrepStatementAdapter(
         api_key="test-key", http_client=http
     )
-    statements = adapter.get_statements(
-        StatementQuery(instrument=_equity(), limit=4)
-    )
+    statements = adapter.get_statements(StatementQuery(instrument=_equity(), limit=4))
     assert statements is not None
     assert statements.identity.symbol == "AAPL"
     assert statements.identity.company_name == "Apple Inc."

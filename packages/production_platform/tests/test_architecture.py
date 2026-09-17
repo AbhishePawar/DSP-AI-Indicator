@@ -10,7 +10,39 @@ from pathlib import Path
 
 _SRC = Path(__file__).resolve().parents[1] / "src" / "production_platform"
 _PKG_ROOT = Path(__file__).resolve().parents[1]
-_FORBIDDEN = frozenset(['ai_committee', 'api_platform', 'business_quality', 'comparison', 'compliance', 'contracts', 'copilot', 'data_engine', 'data_ingestion', 'decision_intelligence', 'dsp', 'dsp_platform', 'economic', 'economic_moat', 'financial', 'fundamental', 'industry', 'knowledge_graph', 'orchestration', 'portfolio', 'quantitative_risk', 'recommendation', 'research', 'risk', 'security_platform', 'snapshot_bridge', 'universe', 'valuation', 'workflow'])
+_FORBIDDEN = frozenset(
+    [
+        "ai_committee",
+        "api_platform",
+        "business_quality",
+        "comparison",
+        "compliance",
+        "contracts",
+        "copilot",
+        "data_engine",
+        "data_ingestion",
+        "decision_intelligence",
+        "dsp",
+        "dsp_platform",
+        "economic",
+        "economic_moat",
+        "financial",
+        "fundamental",
+        "industry",
+        "knowledge_graph",
+        "orchestration",
+        "portfolio",
+        "quantitative_risk",
+        "recommendation",
+        "research",
+        "risk",
+        "security_platform",
+        "snapshot_bridge",
+        "universe",
+        "valuation",
+        "workflow",
+    ]
+)
 _EXPECTED_VERSION = "0.3.0"
 
 
@@ -45,12 +77,12 @@ class TestProductionPlatformArchitecture:
         import tomllib
 
         data = tomllib.loads((_PKG_ROOT / "pyproject.toml").read_text(encoding="utf-8"))
-        assert data["project"]["dependencies"] == ['core']
+        assert data["project"]["dependencies"] == ["core"]
 
     def test_public_api_stable(self) -> None:
         import production_platform as mod
 
-        assert getattr(mod, "__version__") == _EXPECTED_VERSION
+        assert mod.__version__ == _EXPECTED_VERSION
         assert hasattr(mod, "__all__")
         missing = [name for name in mod.__all__ if not hasattr(mod, name)]
         assert missing == [], missing

@@ -58,9 +58,7 @@ def build_linked_holdings(
         if sector == UNAVAILABLE_MESSAGE:
             sector = extract_field(doc, "executive_summary", "sector")
         industry = extract_field(doc, "identity", "industry")
-        mos = extract_field(
-            doc, "margin_of_safety", "margin_of_safety"
-        )
+        mos = extract_field(doc, "margin_of_safety", "margin_of_safety")
         if mos == UNAVAILABLE_MESSAGE:
             mos = extract_field(doc, "recommendation", "margin_of_safety")
         linked.append(
@@ -157,7 +155,9 @@ def build_summaries(
                     if h.business_quality_available and isinstance(doc, dict)
                     else None
                 ),
-                "message": None if h.business_quality_available else UNAVAILABLE_MESSAGE,
+                "message": (
+                    None if h.business_quality_available else UNAVAILABLE_MESSAGE
+                ),
             }
         )
         risk_rows.append(
@@ -174,11 +174,7 @@ def build_summaries(
         )
 
     unique_sectors = sorted(
-        {
-            str(h.sector)
-            for h in linked
-            if h.sector not in (None, UNAVAILABLE_MESSAGE)
-        }
+        {str(h.sector) for h in linked if h.sector not in (None, UNAVAILABLE_MESSAGE)}
     )
 
     watch_symbols = watchlist.symbols if watchlist else ()

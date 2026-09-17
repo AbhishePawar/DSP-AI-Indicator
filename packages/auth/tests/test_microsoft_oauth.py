@@ -23,7 +23,12 @@ from cryptography.hazmat.primitives import hashes  # noqa: E402
 from cryptography.hazmat.primitives.asymmetric import rsa  # noqa: E402
 from cryptography.hazmat.primitives.asymmetric.padding import PKCS1v15  # noqa: E402
 
-from auth import AuthService, RoleRegistry, reset_auth_service_for_tests, reset_role_registry_for_tests
+from auth import (
+    AuthService,
+    RoleRegistry,
+    reset_auth_service_for_tests,
+    reset_role_registry_for_tests,
+)
 from auth.enterprise_models import AuthProvider
 from auth.enterprise_platform import EnterpriseAuthPlatform
 from auth.exceptions import AuthenticationError, OAuthChallengeError, ValidationError
@@ -62,7 +67,9 @@ def _int_to_b64url(value: int) -> str:
 class _KeyPair:
     def __init__(self, kid: str = "ms-test-kid") -> None:
         self.kid = kid
-        self.private_key = rsa.generate_private_key(public_exponent=65537, key_size=2048)
+        self.private_key = rsa.generate_private_key(
+            public_exponent=65537, key_size=2048
+        )
         self.public_key = self.private_key.public_key()
 
     def jwks(self) -> dict:
@@ -96,7 +103,7 @@ class _FakeResponse:
     def read(self) -> bytes:
         return self._body
 
-    def __enter__(self) -> "_FakeResponse":
+    def __enter__(self) -> _FakeResponse:
         return self
 
     def __exit__(self, *exc: object) -> None:
@@ -166,7 +173,9 @@ def test_begin_login_multi_tenant_default_uses_common() -> None:
     assert "/common/oauth2/v2.0/authorize" in begin["authorization_url"]
 
 
-def test_registry_builds_multi_tenant_wildcard_issuer(monkeypatch: pytest.MonkeyPatch) -> None:
+def test_registry_builds_multi_tenant_wildcard_issuer(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
     monkeypatch.delenv("DSP_MICROSOFT_TENANT_ID", raising=False)
     registry = build_oauth_registry()
     adapter = registry.require("MICROSOFT")
@@ -201,7 +210,11 @@ def test_complete_login_cross_checks_oid_against_graph_profile(monkeypatch) -> N
     )
     monkeypatch.setattr(
         "auth.oauth_providers.verify_id_token",
-        lambda token, **kwargs: {"oid": "graph-oid-1", "sub": "graph-oid-1", "nonce": nonce},
+        lambda token, **kwargs: {
+            "oid": "graph-oid-1",
+            "sub": "graph-oid-1",
+            "nonce": nonce,
+        },
     )
     monkeypatch.setattr(
         "urllib.request.urlopen",
@@ -215,7 +228,9 @@ def test_complete_login_cross_checks_oid_against_graph_profile(monkeypatch) -> N
     )
 
     profile = adapter.complete_login(
-        code="auth-code", state=begin["state"], redirect_uri="https://app.dspai.local/callback"
+        code="auth-code",
+        state=begin["state"],
+        redirect_uri="https://app.dspai.local/callback",
     )
     assert profile.subject == "graph-oid-1"
     assert profile.email == "user@contoso.com"
@@ -247,7 +262,9 @@ def test_complete_login_rejects_oid_mismatch(monkeypatch) -> None:
 
     with pytest.raises(AuthenticationError, match="does not match"):
         adapter.complete_login(
-            code="auth-code", state=begin["state"], redirect_uri="https://app.dspai.local/callback"
+            code="auth-code",
+            state=begin["state"],
+            redirect_uri="https://app.dspai.local/callback",
         )
 
 
@@ -263,15 +280,21 @@ def test_replay_attack_state_can_only_be_used_once(monkeypatch) -> None:
     )
     monkeypatch.setattr(
         "urllib.request.urlopen",
-        lambda req, timeout=20: _FakeResponse({"id": "graph-oid-1", "mail": "user@contoso.com"}),
+        lambda req, timeout=20: _FakeResponse(
+            {"id": "graph-oid-1", "mail": "user@contoso.com"}
+        ),
     )
 
     adapter.complete_login(
-        code="auth-code", state=begin["state"], redirect_uri="https://app.dspai.local/callback"
+        code="auth-code",
+        state=begin["state"],
+        redirect_uri="https://app.dspai.local/callback",
     )
     with pytest.raises(OAuthChallengeError) as replayed:
         adapter.complete_login(
-            code="auth-code-2", state=begin["state"], redirect_uri="https://app.dspai.local/callback"
+            code="auth-code-2",
+            state=begin["state"],
+            redirect_uri="https://app.dspai.local/callback",
         )
     assert replayed.value.reason == "replayed"
 
@@ -290,14 +313,19 @@ def _clear_jwks_cache():
     oidc._JWKS_CACHE.clear()
 
 
-def _wire_real_jwks(monkeypatch, adapter: OAuthProviderAdapter, kp: _KeyPair, id_token: str) -> None:
+def _wire_real_jwks(
+    monkeypatch, adapter: OAuthProviderAdapter, kp: _KeyPair, id_token: str
+) -> None:
     from auth import oidc
 
     monkeypatch.setattr(oidc, "_fetch_jwks", lambda uri: kp.jwks())
     monkeypatch.setattr(
         adapter,
         "_exchange_code",
-        lambda code, redirect_uri, verifier: {"access_token": "at-1", "id_token": id_token},
+        lambda code, redirect_uri, verifier: {
+            "access_token": "at-1",
+            "id_token": id_token,
+        },
     )
     monkeypatch.setattr(
         "urllib.request.urlopen",
@@ -316,7 +344,9 @@ def test_complete_login_accepts_valid_signed_id_token(monkeypatch) -> None:
     _wire_real_jwks(monkeypatch, adapter, kp, token)
 
     profile = adapter.complete_login(
-        code="auth-code", state=begin["state"], redirect_uri="https://app.dspai.local/callback"
+        code="auth-code",
+        state=begin["state"],
+        redirect_uri="https://app.dspai.local/callback",
     )
     assert profile.subject == "ms-oid-1"
 
@@ -328,13 +358,17 @@ def test_complete_login_rejects_invalid_tenant_issuer(monkeypatch) -> None:
     nonce = parse_qs(urlparse(begin["authorization_url"]).query)["nonce"][0]
     kp = _KeyPair()
     token = kp.sign_token(
-        _base_ms_claims(nonce=nonce, iss="https://login.microsoftonline.com/other-tenant/v3.0")
+        _base_ms_claims(
+            nonce=nonce, iss="https://login.microsoftonline.com/other-tenant/v3.0"
+        )
     )
     _wire_real_jwks(monkeypatch, adapter, kp, token)
 
     with pytest.raises(AuthenticationError, match="id_token rejected"):
         adapter.complete_login(
-            code="auth-code", state=begin["state"], redirect_uri="https://app.dspai.local/callback"
+            code="auth-code",
+            state=begin["state"],
+            redirect_uri="https://app.dspai.local/callback",
         )
 
 
@@ -349,7 +383,9 @@ def test_complete_login_rejects_invalid_signature(monkeypatch) -> None:
 
     with pytest.raises(AuthenticationError, match="id_token rejected"):
         adapter.complete_login(
-            code="auth-code", state=begin["state"], redirect_uri="https://app.dspai.local/callback"
+            code="auth-code",
+            state=begin["state"],
+            redirect_uri="https://app.dspai.local/callback",
         )
 
 
@@ -363,7 +399,9 @@ def test_complete_login_rejects_expired_id_token(monkeypatch) -> None:
 
     with pytest.raises(AuthenticationError, match="id_token rejected"):
         adapter.complete_login(
-            code="auth-code", state=begin["state"], redirect_uri="https://app.dspai.local/callback"
+            code="auth-code",
+            state=begin["state"],
+            redirect_uri="https://app.dspai.local/callback",
         )
 
 
@@ -377,7 +415,9 @@ def test_complete_login_rejects_nonce_replay(monkeypatch) -> None:
 
     with pytest.raises(AuthenticationError, match="id_token rejected"):
         adapter.complete_login(
-            code="auth-code", state=begin["state"], redirect_uri="https://app.dspai.local/callback"
+            code="auth-code",
+            state=begin["state"],
+            redirect_uri="https://app.dspai.local/callback",
         )
 
 
@@ -418,7 +458,9 @@ def _ms_profile(subject: str = "ms-oid-1", email: str = "user@contoso.com"):
     )
 
 
-def test_oauth_callback_auto_provisions_new_user(platform: EnterpriseAuthPlatform) -> None:
+def test_oauth_callback_auto_provisions_new_user(
+    platform: EnterpriseAuthPlatform,
+) -> None:
     result = platform._login_from_oauth_profile(_ms_profile())
     assert result["tokens"]["access_token"]
     assert result["tokens"]["refresh_token"]
@@ -427,7 +469,9 @@ def test_oauth_callback_auto_provisions_new_user(platform: EnterpriseAuthPlatfor
     assert user.email == "user@contoso.com"
 
 
-def test_oauth_callback_links_to_existing_verified_email(platform: EnterpriseAuthPlatform) -> None:
+def test_oauth_callback_links_to_existing_verified_email(
+    platform: EnterpriseAuthPlatform,
+) -> None:
     reg = platform.register_email(
         name="Contoso User",
         email="user@contoso.com",
@@ -443,7 +487,9 @@ def test_oauth_callback_links_to_existing_verified_email(platform: EnterpriseAut
     links = user.metadata.get("linked_providers") or []
     assert any(lnk["provider"] == "MICROSOFT" for lnk in links)
     # Must not have created a second, duplicate account.
-    all_users = [u for u in platform.auth.users.list_users() if u.email == "user@contoso.com"]
+    all_users = [
+        u for u in platform.auth.users.list_users() if u.email == "user@contoso.com"
+    ]
     assert len(all_users) == 1
 
 
@@ -463,10 +509,16 @@ def test_link_oauth_provider_binds_to_authenticated_user(
     monkeypatch.setattr(
         platform.oauth,
         "complete",
-        lambda provider, **kwargs: _ms_profile(subject="ms-owner-oid", email="owner@contoso.com"),
+        lambda provider, **kwargs: _ms_profile(
+            subject="ms-owner-oid", email="owner@contoso.com"
+        ),
     )
     result = platform.link_oauth_provider(
-        user.user_id, "MICROSOFT", code="code", state="state", redirect_uri="https://app/callback"
+        user.user_id,
+        "MICROSOFT",
+        code="code",
+        state="state",
+        redirect_uri="https://app/callback",
     )
     assert result["ok"] is True
     assert any(
@@ -475,8 +527,13 @@ def test_link_oauth_provider_binds_to_authenticated_user(
     updated = platform.auth.users.get(user.user_id)
     assert updated is not None
     linked = updated.metadata.get("linked_providers") or []
-    assert any(lnk["provider"] == "MICROSOFT" and lnk["provider_subject"] == "ms-owner-oid" for lnk in linked)
-    events = platform.audit.list_events(user_id=user.user_id, event_type="oauth.microsoft.link")
+    assert any(
+        lnk["provider"] == "MICROSOFT" and lnk["provider_subject"] == "ms-owner-oid"
+        for lnk in linked
+    )
+    events = platform.audit.list_events(
+        user_id=user.user_id, event_type="oauth.microsoft.link"
+    )
     assert events
 
 
@@ -484,7 +541,9 @@ def test_link_oauth_provider_rejects_identity_already_linked_elsewhere(
     platform: EnterpriseAuthPlatform, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     # First user already owns the Microsoft identity.
-    platform._login_from_oauth_profile(_ms_profile(subject="shared-oid", email="first@contoso.com"))
+    platform._login_from_oauth_profile(
+        _ms_profile(subject="shared-oid", email="first@contoso.com")
+    )
 
     reg = platform.register_email(
         name="Second User",
@@ -499,11 +558,17 @@ def test_link_oauth_provider_rejects_identity_already_linked_elsewhere(
     monkeypatch.setattr(
         platform.oauth,
         "complete",
-        lambda provider, **kwargs: _ms_profile(subject="shared-oid", email="first@contoso.com"),
+        lambda provider, **kwargs: _ms_profile(
+            subject="shared-oid", email="first@contoso.com"
+        ),
     )
     with pytest.raises(ValidationError, match="already linked"):
         platform.link_oauth_provider(
-            second.user_id, "MICROSOFT", code="code", state="state", redirect_uri="https://app/callback"
+            second.user_id,
+            "MICROSOFT",
+            code="code",
+            state="state",
+            redirect_uri="https://app/callback",
         )
 
 
@@ -531,15 +596,23 @@ def test_link_oauth_provider_rejects_email_owned_by_different_user(
     monkeypatch.setattr(
         platform.oauth,
         "complete",
-        lambda provider, **kwargs: _ms_profile(subject="new-oid", email="first@contoso.com"),
+        lambda provider, **kwargs: _ms_profile(
+            subject="new-oid", email="first@contoso.com"
+        ),
     )
     with pytest.raises(ValidationError, match="different user"):
         platform.link_oauth_provider(
-            second.user_id, "MICROSOFT", code="code", state="state", redirect_uri="https://app/callback"
+            second.user_id,
+            "MICROSOFT",
+            code="code",
+            state="state",
+            redirect_uri="https://app/callback",
         )
 
 
-def test_unlink_provider_removes_link_and_records_audit(platform: EnterpriseAuthPlatform) -> None:
+def test_unlink_provider_removes_link_and_records_audit(
+    platform: EnterpriseAuthPlatform,
+) -> None:
     result = platform._login_from_oauth_profile(_ms_profile())
     user_id = platform._get_by_provider_subject("MICROSOFT", "ms-oid-1").user_id  # type: ignore[union-attr]
     _ = result
@@ -551,11 +624,15 @@ def test_unlink_provider_removes_link_and_records_audit(platform: EnterpriseAuth
     out = platform.unlink_provider(user_id, "MICROSOFT")
     links = out.get("linkedProviders") or []
     assert not any(lnk["provider"] == "MICROSOFT" for lnk in links)
-    events = platform.audit.list_events(user_id=user_id, event_type="oauth.microsoft.unlink")
+    events = platform.audit.list_events(
+        user_id=user_id, event_type="oauth.microsoft.unlink"
+    )
     assert events
 
 
-def test_logout_revokes_all_sessions_for_oauth_user(platform: EnterpriseAuthPlatform) -> None:
+def test_logout_revokes_all_sessions_for_oauth_user(
+    platform: EnterpriseAuthPlatform,
+) -> None:
     result = platform._login_from_oauth_profile(_ms_profile())
     user_id = platform._get_by_provider_subject("MICROSOFT", "ms-oid-1").user_id  # type: ignore[union-attr]
     assert result["tokens"]["access_token"]

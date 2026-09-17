@@ -15,8 +15,8 @@ from xml.sax.saxutils import escape
 from dsp_platform.institutional_export.mapper import flatten_report
 from dsp_platform.institutional_report.models import (
     REPORT_SECTION_ORDER,
-    InstitutionalResearchReport,
     UNAVAILABLE_MESSAGE,
+    InstitutionalResearchReport,
 )
 
 __all__ = ["export_docx_bytes"]
@@ -47,7 +47,7 @@ def _run(text: str, *, bold: bool = False) -> str:
 
 
 def _paragraph(text: str, *, bold: bool = False, heading: bool = False) -> str:
-    p_pr = "<w:pPr><w:spacing w:before=\"120\" w:after=\"60\"/></w:pPr>" if heading else ""
+    p_pr = '<w:pPr><w:spacing w:before="120" w:after="60"/></w:pPr>' if heading else ""
     return f"<w:p>{p_pr}{_run(text, bold=bold)}</w:p>"
 
 

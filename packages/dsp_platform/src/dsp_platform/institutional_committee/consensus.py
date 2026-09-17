@@ -2,7 +2,8 @@
 
 from __future__ import annotations
 
-from typing import Any, Mapping
+from collections.abc import Mapping
+from typing import Any
 
 from dsp_platform.institutional_committee.models import AgentReview, freeze_mapping
 
@@ -32,7 +33,9 @@ def build_consensus(reviews: tuple[AgentReview, ...]) -> Mapping[str, Any]:
     confidence_rank = {"unavailable": 0, "low": 1, "medium": 2, "high": 3}
     if usable:
         # Committee confidence = minimum among usable agents (conservative, not a score)
-        conf = min(usable, key=lambda r: confidence_rank.get(r.confidence, 0)).confidence
+        conf = min(
+            usable, key=lambda r: confidence_rank.get(r.confidence, 0)
+        ).confidence
     else:
         conf = "unavailable"
 
@@ -92,12 +95,8 @@ def build_committee_summary(
             "agent_count": len(reviews),
             "minority_count": len(minority_opinions),
             "reviews_by_stance": {
-                "supportive": [
-                    r.agent_id for r in reviews if r.stance == "supportive"
-                ],
-                "cautionary": [
-                    r.agent_id for r in reviews if r.stance == "cautionary"
-                ],
+                "supportive": [r.agent_id for r in reviews if r.stance == "supportive"],
+                "cautionary": [r.agent_id for r in reviews if r.stance == "cautionary"],
                 "unavailable": [
                     r.agent_id for r in reviews if r.stance == "unavailable"
                 ],

@@ -10,7 +10,6 @@ from decimal import Decimal
 from typing import Any
 
 from core.exceptions import ValidationError
-
 from recommendation.enums import (
     ConfidenceLevel,
     ConflictSeverity,
@@ -95,8 +94,8 @@ class RecommendationScore:
 
     def __post_init__(self) -> None:
         score_id = _normalize_id(self.score_id, field="score_id")
-        score_type = _non_empty(self.score_type, field="score_type").lower().replace(
-            " ", "_"
+        score_type = (
+            _non_empty(self.score_type, field="score_type").lower().replace(" ", "_")
         )
         value = _require_decimal(self.value, field="value")
         unit = _non_empty(self.unit, field="unit")
@@ -133,7 +132,10 @@ class RecommendationRationale:
         rationale_id = _normalize_id(self.rationale_id, field="rationale_id")
         title = _non_empty(self.title, field="title")
         body = _non_empty(self.body, field="body")
-        refs = tuple(_non_empty(r, field="supporting_report_refs") for r in self.supporting_report_refs)
+        refs = tuple(
+            _non_empty(r, field="supporting_report_refs")
+            for r in self.supporting_report_refs
+        )
         notes = tuple(n.strip() for n in self.notes if n.strip())
         object.__setattr__(self, "rationale_id", rationale_id)
         object.__setattr__(self, "title", title)
@@ -238,9 +240,7 @@ class RecommendationSummary:
             if getattr(self, name) < 0:
                 msg = "counts must be >= 0"
                 raise ValidationError(msg)
-        limitations = tuple(
-            n.strip() for n in self.limitation_notes if n.strip()
-        )
+        limitations = tuple(n.strip() for n in self.limitation_notes if n.strip())
         object.__setattr__(self, "limitation_notes", limitations)
 
 

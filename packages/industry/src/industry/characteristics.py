@@ -5,7 +5,6 @@ from __future__ import annotations
 from dataclasses import dataclass
 
 from core.exceptions import ValidationError
-
 from industry.enums import (
     AssetIntensity,
     CapitalAllocationStyle,
@@ -88,9 +87,7 @@ class InvestmentCharacteristics:
         description = (
             None if self.description is None else self.description.strip() or None
         )
-        notes = tuple(
-            n.strip() for n in self.business_economics_notes if n.strip()
-        )
+        notes = tuple(n.strip() for n in self.business_economics_notes if n.strip())
         object.__setattr__(self, "id", identity_id)
         object.__setattr__(self, "name", name)
         object.__setattr__(self, "version", version)

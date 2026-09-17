@@ -19,16 +19,20 @@ from llm_adapters.tools.protocol import (
     assert_provider_envelope_private_free,
 )
 from llm_adapters.tools.protocol.dispatcher import safe_provider_payload
+from llm_adapters.tools.protocol.openai_compatible import format_openai_tool_messages
 from llm_adapters.tools.protocol.privacy import (
     ProtocolPrivacyError,
     failed_privacy_envelope,
 )
-from llm_adapters.tools.protocol.openai_compatible import format_openai_tool_messages
 
 
 class StubBackend:
     def get_authenticated_financial_statements(self, symbol, *, exchange=None):
-        return {"periods": ["2024"], "currency": "INR", "source": "dsp.financial_statements"}
+        return {
+            "periods": ["2024"],
+            "currency": "INR",
+            "source": "dsp.financial_statements",
+        }
 
     def financial_statement_health(self):
         return {"ok": True}
@@ -186,7 +190,9 @@ def test_private_internal_result_still_strips_tool_calls_from_browser() -> None:
         routing_criteria=("quality",),
         internal_prompt="SECRET PROMPT",
         tool_calls=({"name": "dsp.valuation", "input": {"symbol": "AAPL"}},),
-        tool_results=({"name": "dsp.valuation", "result": {"intrinsic_value_per_share": 180.0}},),
+        tool_results=(
+            {"name": "dsp.valuation", "result": {"intrinsic_value_per_share": 180.0}},
+        ),
         raw_ai_response="RAW PROVIDER MESSAGE",
         chain_of_thought="SECRET COT",
     )
@@ -232,8 +238,8 @@ def test_nested_private_key_fails_closed() -> None:
 
 
 def test_safe_provider_payload_replaces_leaking_outcome() -> None:
-    from llm_adapters.tools.protocol.models import ToolCallError, ToolCallOutcome
     from llm_adapters.tools.contract import ToolResult, ToolStatus
+    from llm_adapters.tools.protocol.models import ToolCallOutcome
 
     leaking = ToolCallOutcome(
         call_id="c1",

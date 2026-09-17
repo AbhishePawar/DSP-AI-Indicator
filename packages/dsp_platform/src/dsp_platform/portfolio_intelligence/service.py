@@ -6,7 +6,8 @@ Summarizes portfolios/watchlists using linked Research Objects only.
 from __future__ import annotations
 
 import uuid
-from typing import Any, Mapping
+from collections.abc import Mapping
+from typing import Any
 
 from dsp_platform.portfolio_intelligence.citations import build_portfolio_citations
 from dsp_platform.portfolio_intelligence.linker import link_research_map
@@ -23,7 +24,9 @@ from dsp_platform.portfolio_intelligence.summaries import (
     build_linked_holdings,
     build_summaries,
 )
-from dsp_platform.portfolio_intelligence.validation import validate_portfolio_intelligence
+from dsp_platform.portfolio_intelligence.validation import (
+    validate_portfolio_intelligence,
+)
 
 __all__ = [
     "PORTFOLIO_SERVICE_VERSION",
@@ -126,19 +129,13 @@ class PortfolioIntelligenceService:
             linked_holdings=linked_portfolio,
             portfolio_summary=freeze_mapping(summaries["portfolio_summary"])
             or freeze_mapping({}),
-            diversification_summary=freeze_mapping(
-                summaries["diversification_summary"]
-            )
+            diversification_summary=freeze_mapping(summaries["diversification_summary"])
             or freeze_mapping({}),
             sector_allocation=freeze_mapping(summaries["sector_allocation"])
             or freeze_mapping({}),
-            position_concentration=freeze_mapping(
-                summaries["position_concentration"]
-            )
+            position_concentration=freeze_mapping(summaries["position_concentration"])
             or freeze_mapping({}),
-            portfolio_risk_summary=freeze_mapping(
-                summaries["portfolio_risk_summary"]
-            )
+            portfolio_risk_summary=freeze_mapping(summaries["portfolio_risk_summary"])
             or freeze_mapping({}),
             margin_of_safety_summary=freeze_mapping(
                 summaries["margin_of_safety_summary"]

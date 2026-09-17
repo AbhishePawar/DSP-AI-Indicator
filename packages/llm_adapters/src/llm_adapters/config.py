@@ -73,8 +73,6 @@ def load_llm_config() -> LLMPlatformConfig:
         or "gemini-1.5-flash",
         deepseek_model=_read_env("DEEPSEEK_MODEL", "DSP_AI_DEEPSEEK_MODEL")
         or "deepseek-chat",
-        request_timeout_seconds=float(
-            _read_env("DSP_AI_LLM_TIMEOUT_SECONDS") or "30"
-        ),
+        request_timeout_seconds=float(_read_env("DSP_AI_LLM_TIMEOUT_SECONDS") or "30"),
         max_retries=int(_read_env("DSP_AI_LLM_MAX_RETRIES") or "2"),
     )

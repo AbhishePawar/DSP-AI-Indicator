@@ -22,9 +22,8 @@ from research import (
     ResearchReporter,
     ResearchReportingContext,
     ResearchReportingStatus,
-    ResearchSummary,
-    ResearchSynthesizer,
     ResearchSynthesisContext,
+    ResearchSynthesizer,
     RiskReference,
 )
 
@@ -50,17 +49,13 @@ def _synthesized(*, full: bool = True):
             identity=_identity(),
             evidence_refs=(_evidence(),),
             decision_refs=(
-                DecisionReference(
-                    instrument_symbol="AAA", digest="abcdef0123456789"
-                ),
+                DecisionReference(instrument_symbol="AAA", digest="abcdef0123456789"),
             ),
             comparison_refs=(ComparisonReference(digest="abcdef0123456789"),),
             portfolio_ref=PortfolioReference(portfolio_id="dsp.portfolio.demo"),
             monitoring_ref=MonitoringReference(portfolio_id="dsp.portfolio.demo"),
             risk_refs=(RiskReference(risk_id="dsp.risk.demo"),),
-            integrated_risk_refs=(
-                IntegratedRiskReference(risk_id="dsp.risk.demo"),
-            ),
+            integrated_risk_refs=(IntegratedRiskReference(risk_id="dsp.risk.demo"),),
             as_of="2026-07-21",
         )
     else:
@@ -201,16 +196,12 @@ class TestValidation:
     def test_duplicate_report_identities(self) -> None:
         synthesized = _synthesized()
         with pytest.raises(ResearchError, match="duplicate report identities"):
-            ResearchReporter().report_many(
-                (synthesized.profile, synthesized.profile)
-            )
+            ResearchReporter().report_many((synthesized.profile, synthesized.profile))
 
 
 class TestArchitectureAndCompatibility:
     def test_architecture_boundaries(self) -> None:
-        path = (
-            Path(__file__).resolve().parents[1] / "src" / "research" / "reporter.py"
-        )
+        path = Path(__file__).resolve().parents[1] / "src" / "research" / "reporter.py"
         source = path.read_text(encoding="utf-8")
         tree = ast.parse(source)
         imported: set[str] = set()

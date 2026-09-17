@@ -5,9 +5,9 @@ from __future__ import annotations
 from datetime import UTC, date, datetime
 
 import pytest
+
 from contracts.domain.instrument import Instrument
 from contracts.enums import AssetClass
-
 from data_engine import (
     BseOwnershipAdapter,
     ConnectorField,
@@ -43,11 +43,18 @@ class _FakeJsonClient:
 
 class TestNullAndInMemory:
     def test_null_always_unavailable(self) -> None:
-        assert NullOwnershipAdapter().get_ownership(OwnershipQuery(instrument=_instrument())) is None
+        assert (
+            NullOwnershipAdapter().get_ownership(
+                OwnershipQuery(instrument=_instrument())
+            )
+            is None
+        )
 
     def test_in_memory_requires_key(self) -> None:
         with pytest.raises(ProviderRequestError):
-            InMemoryOwnershipAdapter().get_ownership(OwnershipQuery(instrument=_instrument()))
+            InMemoryOwnershipAdapter().get_ownership(
+                OwnershipQuery(instrument=_instrument())
+            )
 
     def test_in_memory_put_and_get(self) -> None:
         adapter = InMemoryOwnershipAdapter(api_key="k")
@@ -71,7 +78,9 @@ class TestNullAndInMemory:
             promoter_holding_percent=ConnectorField.of(50.3),
         )
         adapter.put(bundle)
-        result = adapter.get_ownership(OwnershipQuery(instrument=_instrument("RELIANCE")))
+        result = adapter.get_ownership(
+            OwnershipQuery(instrument=_instrument("RELIANCE"))
+        )
         assert result is not None
         assert result.promoter_holding_percent.to_float() == 50.3
 
@@ -123,7 +132,9 @@ class TestValidation:
 class TestYahooFinanceOwnershipAdapter:
     def test_disabled_raises(self) -> None:
         with pytest.raises(ProviderRequestError):
-            YahooFinanceOwnershipAdapter(enabled=False).get_ownership(OwnershipQuery(instrument=_instrument()))
+            YahooFinanceOwnershipAdapter(enabled=False).get_ownership(
+                OwnershipQuery(instrument=_instrument())
+            )
 
     def test_maps_major_holders_breakdown(self) -> None:
         payload = {
@@ -138,7 +149,9 @@ class TestYahooFinanceOwnershipAdapter:
                 ]
             }
         }
-        adapter = YahooFinanceOwnershipAdapter(enabled=True, http_client=_FakeJsonClient(payload))
+        adapter = YahooFinanceOwnershipAdapter(
+            enabled=True, http_client=_FakeJsonClient(payload)
+        )
         bundle = adapter.get_ownership(OwnershipQuery(instrument=_instrument()))
         assert bundle is not None
         assert bundle.institutional_holding_percent.to_float() == pytest.approx(61.0)
@@ -150,7 +163,9 @@ class TestFinancialModelingPrepOwnershipAdapter:
             {"investorName": "Vanguard", "weight": 0.08, "sharesNumber": 1000000},
             {"investorName": "BlackRock", "weight": 0.06, "sharesNumber": 900000},
         ]
-        adapter = FinancialModelingPrepOwnershipAdapter(api_key="k", http_client=_FakeJsonClient(payload))
+        adapter = FinancialModelingPrepOwnershipAdapter(
+            api_key="k", http_client=_FakeJsonClient(payload)
+        )
         bundle = adapter.get_ownership(OwnershipQuery(instrument=_instrument()))
         assert bundle is not None
         assert len(bundle.stakes) == 2
@@ -160,18 +175,29 @@ class TestFinancialModelingPrepOwnershipAdapter:
 class TestNseAndBseOwnership:
     def test_nse_maps_shareholding_categories(self) -> None:
         payload = [
-            {"category": "Promoter & Promoter Group", "percentage": 55.1, "no_of_shares": 100},
+            {
+                "category": "Promoter & Promoter Group",
+                "percentage": 55.1,
+                "no_of_shares": 100,
+            },
             {"category": "Public", "percentage": 44.9, "no_of_shares": 80},
         ]
-        adapter = NseOwnershipAdapter(enabled=True, http_client=_FakeJsonClient(payload))
-        bundle = adapter.get_ownership(OwnershipQuery(instrument=_instrument("RELIANCE")))
+        adapter = NseOwnershipAdapter(
+            enabled=True, http_client=_FakeJsonClient(payload)
+        )
+        bundle = adapter.get_ownership(
+            OwnershipQuery(instrument=_instrument("RELIANCE"))
+        )
         assert bundle is not None
         assert bundle.promoter_holding_percent.to_float() == pytest.approx(55.1)
         assert bundle.public_holding_percent.to_float() == pytest.approx(44.9)
 
     def test_bse_requires_scrip_code(self) -> None:
         adapter = BseOwnershipAdapter(enabled=True)
-        assert adapter.get_ownership(OwnershipQuery(instrument=_instrument("RELIANCE"))) is None
+        assert (
+            adapter.get_ownership(OwnershipQuery(instrument=_instrument("RELIANCE")))
+            is None
+        )
 
 
 class TestScreenerOwnershipAdapter:
@@ -189,8 +215,12 @@ class TestScreenerOwnershipAdapter:
                 ]
             }
         }
-        adapter = ScreenerOwnershipAdapter(enabled=True, http_client=_FakeJsonClient(payload))
-        bundle = adapter.get_ownership(OwnershipQuery(instrument=_instrument("RELIANCE")))
+        adapter = ScreenerOwnershipAdapter(
+            enabled=True, http_client=_FakeJsonClient(payload)
+        )
+        bundle = adapter.get_ownership(
+            OwnershipQuery(instrument=_instrument("RELIANCE"))
+        )
         assert bundle is not None
         assert bundle.as_of == date(2023, 9, 1)
         assert bundle.promoter_holding_percent.to_float() == pytest.approx(50.0)
@@ -200,11 +230,19 @@ class TestScreenerOwnershipAdapter:
 class TestRegistryAndEnv:
     def test_registry_ordering(self) -> None:
         registry = OwnershipProviderRegistry()
-        registry.register(NullOwnershipAdapter(), provider_id="null_ownership", priority=1000)
-        registry.register(ScreenerOwnershipAdapter(enabled=True), provider_id="screener_ownership", priority=10)
+        registry.register(
+            NullOwnershipAdapter(), provider_id="null_ownership", priority=1000
+        )
+        registry.register(
+            ScreenerOwnershipAdapter(enabled=True),
+            provider_id="screener_ownership",
+            priority=10,
+        )
         assert registry.ordered_ids() == ("screener_ownership", "null_ownership")
 
-    def test_default_registry_falls_back_to_null(self, monkeypatch: pytest.MonkeyPatch) -> None:
+    def test_default_registry_falls_back_to_null(
+        self, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
         for key in (
             "DSP_OWNERSHIP_SCREENER_ENABLED",
             "DSP_OWNERSHIP_FMP_API_KEY",

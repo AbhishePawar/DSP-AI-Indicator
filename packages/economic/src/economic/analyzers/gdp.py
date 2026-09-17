@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 from contracts.enums import SignalDirection
-
 from economic.analyzers.base import Analyzer
 from economic.models import EconomicSignal, EconomicSnapshot
 

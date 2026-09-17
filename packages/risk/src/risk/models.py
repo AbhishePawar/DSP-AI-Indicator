@@ -10,7 +10,6 @@ from dataclasses import dataclass
 from core.exceptions import ValidationError
 from industry import EvidenceBundleReference
 from portfolio import ComparisonReportReference, DecisionPackReference
-
 from risk.enums import (
     RiskConstraintKind,
     RiskCoverageKind,
@@ -409,8 +408,7 @@ class RiskProfile:
                 raise RiskError(msg)
             if ref.digest in seen_comp:
                 msg = (
-                    f"broken references: duplicate ComparisonReport "
-                    f"{ref.digest!r}"
+                    f"broken references: duplicate ComparisonReport " f"{ref.digest!r}"
                 )
                 raise RiskError(msg)
             seen_comp.add(ref.digest)

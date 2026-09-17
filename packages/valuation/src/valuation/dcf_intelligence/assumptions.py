@@ -44,9 +44,7 @@ class CapmInputs:
 
     def __post_init__(self) -> None:
         if self.risk_free_rate < -0.05 or self.risk_free_rate > 0.25:
-            raise ValuationError(
-                f"risk_free_rate out of range: {self.risk_free_rate}"
-            )
+            raise ValuationError(f"risk_free_rate out of range: {self.risk_free_rate}")
         if self.beta <= 0 or self.beta > 5:
             raise ValuationError(f"beta out of range: {self.beta}")
         if self.equity_risk_premium <= 0 or self.equity_risk_premium > 0.20:
@@ -64,8 +62,7 @@ class CostOfDebtInputs:
     def __post_init__(self) -> None:
         if self.pre_tax_cost_of_debt < 0 or self.pre_tax_cost_of_debt > 0.40:
             raise ValuationError(
-                "pre_tax_cost_of_debt out of range: "
-                f"{self.pre_tax_cost_of_debt}"
+                "pre_tax_cost_of_debt out of range: " f"{self.pre_tax_cost_of_debt}"
             )
 
 
@@ -84,8 +81,7 @@ class CapitalStructure:
 
     def __post_init__(self) -> None:
         has_values = (
-            self.equity_market_value is not None
-            and self.debt_market_value is not None
+            self.equity_market_value is not None and self.debt_market_value is not None
         )
         has_weights = self.equity_weight is not None and self.debt_weight is not None
         if not has_values and not has_weights:
@@ -105,7 +101,9 @@ class CapitalStructure:
                 raise ValuationError("weights must be non-negative")
             s = self.equity_weight + self.debt_weight
             if abs(s - 1.0) > 1e-6:
-                raise ValuationError(f"equity_weight + debt_weight must equal 1, got {s}")
+                raise ValuationError(
+                    f"equity_weight + debt_weight must equal 1, got {s}"
+                )
 
 
 @dataclass(frozen=True, slots=True)
@@ -129,9 +127,7 @@ class DcfForecastAssumptions:
         if self.base_revenue <= 0:
             raise ValuationError("base_revenue must be positive")
         if self.revenue_growth < -0.5 or self.revenue_growth > 0.5:
-            raise ValuationError(
-                f"revenue_growth out of range: {self.revenue_growth}"
-            )
+            raise ValuationError(f"revenue_growth out of range: {self.revenue_growth}")
         if self.operating_margin <= -0.5 or self.operating_margin > 0.8:
             raise ValuationError(
                 f"operating_margin out of range: {self.operating_margin}"
@@ -146,9 +142,7 @@ class DcfForecastAssumptions:
             if pct < -0.2 or pct > 1.0:
                 raise ValuationError(f"{name} out of range: {pct}")
         if self.forecast_years < 1 or self.forecast_years > 30:
-            raise ValuationError(
-                f"forecast_years out of range: {self.forecast_years}"
-            )
+            raise ValuationError(f"forecast_years out of range: {self.forecast_years}")
 
 
 @dataclass(frozen=True, slots=True)

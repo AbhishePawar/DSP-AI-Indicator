@@ -6,7 +6,6 @@ from typing import Any
 
 from business_quality import BusinessQualityAnalysis
 from financial import FinancialAnalysis
-
 from financial_strength.metadata import FinancialStrengthMetadata
 from financial_strength.models import FinancialStrengthValidationSummary
 

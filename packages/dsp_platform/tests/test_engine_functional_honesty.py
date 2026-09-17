@@ -86,7 +86,10 @@ def test_mos_unavailable_and_score_none_never_hold() -> None:
     assert mos.classification == "unavailable"
     assert mos.margin_of_safety is None
     assert mos.valuation_score is None
-    assert action_from_score(mos.valuation_score) is InvestmentRecommendationAction.UNAVAILABLE
+    assert (
+        action_from_score(mos.valuation_score)
+        is InvestmentRecommendationAction.UNAVAILABLE
+    )
 
 
 def test_revenue_cagr_ignores_quarterly_period_count() -> None:
@@ -101,19 +104,27 @@ def test_revenue_cagr_ignores_quarterly_period_count() -> None:
     stmts = [
         _stmt(
             incomes[0],
-            _period(end=date(2024, 3, 31), period_type=PeriodType.QUARTERLY, fy=2024, fq=1),
+            _period(
+                end=date(2024, 3, 31), period_type=PeriodType.QUARTERLY, fy=2024, fq=1
+            ),
         ),
         _stmt(
             incomes[1],
-            _period(end=date(2024, 6, 30), period_type=PeriodType.QUARTERLY, fy=2024, fq=2),
+            _period(
+                end=date(2024, 6, 30), period_type=PeriodType.QUARTERLY, fy=2024, fq=2
+            ),
         ),
         _stmt(
             incomes[2],
-            _period(end=date(2024, 9, 30), period_type=PeriodType.QUARTERLY, fy=2024, fq=3),
+            _period(
+                end=date(2024, 9, 30), period_type=PeriodType.QUARTERLY, fy=2024, fq=3
+            ),
         ),
         _stmt(
             incomes[3],
-            _period(end=date(2024, 12, 31), period_type=PeriodType.QUARTERLY, fy=2024, fq=4),
+            _period(
+                end=date(2024, 12, 31), period_type=PeriodType.QUARTERLY, fy=2024, fq=4
+            ),
         ),
     ]
     metrics = engine._revenue(incomes, stmts, [])  # noqa: SLF001
@@ -188,7 +199,9 @@ def test_eps_cagr_positive_annual_series() -> None:
 def test_eps_cagr_negative_to_positive_unavailable() -> None:
     engine = IncomeStatementEngine()
     incomes = [
-        IncomeStatement(revenue=100.0, eps=-1.0, diluted_eps=-1.0, weighted_shares=100.0),
+        IncomeStatement(
+            revenue=100.0, eps=-1.0, diluted_eps=-1.0, weighted_shares=100.0
+        ),
         IncomeStatement(revenue=110.0, eps=1.0, diluted_eps=1.0, weighted_shares=100.0),
     ]
     stmts = [

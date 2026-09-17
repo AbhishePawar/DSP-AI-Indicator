@@ -8,7 +8,6 @@ from threading import Lock
 from typing import Any
 
 from security_platform.security.exceptions import SecurityError
-from security_platform.security.identity.ports import UserRepositoryPort
 from security_platform.security.permissions import assert_permission
 from security_platform.security.roles import assert_role
 from security_platform.security.users import UserRecord
@@ -191,9 +190,7 @@ def user_record_to_row(user: UserRecord) -> dict[str, Any]:
 
 def user_record_from_row(row: dict[str, Any]) -> UserRecord:
     extras_raw = str(row.get("extra_permissions") or "")
-    extras = tuple(
-        assert_permission(p) for p in extras_raw.split(",") if p.strip()
-    )
+    extras = tuple(assert_permission(p) for p in extras_raw.split(",") if p.strip())
     locked_raw = str(row.get("locked_until") or "")
     locked_until: datetime | None = None
     if locked_raw:

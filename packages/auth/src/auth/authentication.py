@@ -118,9 +118,13 @@ class AuthenticationService:
             "session": session.to_public_dict(),
         }
 
-    def logout(self, *, session_id: str, updated_at: str | None = None) -> dict[str, Any]:
+    def logout(
+        self, *, session_id: str, updated_at: str | None = None
+    ) -> dict[str, Any]:
         session = self.sessions.revoke(session_id, updated_at=updated_at)
-        self._log("session.revoked", user_id=session.user_id, detail=f"{session_id}:logout")
+        self._log(
+            "session.revoked", user_id=session.user_id, detail=f"{session_id}:logout"
+        )
         return {"ok": True, "session": session.to_public_dict()}
 
     def attach_initial_refresh_token(

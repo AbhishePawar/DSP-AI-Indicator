@@ -2,7 +2,8 @@
 
 from __future__ import annotations
 
-from typing import Any, Mapping
+from collections.abc import Mapping
+from typing import Any
 
 from dsp_platform.research_archive.models import (
     ARCHIVE_SCHEMA_VERSION,
@@ -59,16 +60,22 @@ def archive_snapshot_from_dict(data: Mapping[str, Any]) -> ArchiveSnapshot:
         content_sha256=str(data.get("content_sha256") or ""),
         archived_at=str(data.get("archived_at") or ""),
         ticker=data.get("ticker"),
-        subject_ids=freeze_mapping(dict(subject_ids))
-        if isinstance(subject_ids, Mapping)
-        else freeze_mapping({}),
-        provenance=freeze_mapping(dict(provenance))
-        if isinstance(provenance, Mapping)
-        else freeze_mapping({}),
+        subject_ids=(
+            freeze_mapping(dict(subject_ids))
+            if isinstance(subject_ids, Mapping)
+            else freeze_mapping({})
+        ),
+        provenance=(
+            freeze_mapping(dict(provenance))
+            if isinstance(provenance, Mapping)
+            else freeze_mapping({})
+        ),
         payload=freeze_mapping(dict(payload)) or freeze_mapping({}),
-        retention_hooks=freeze_mapping(dict(retention_hooks))
-        if isinstance(retention_hooks, Mapping)
-        else freeze_mapping({}),
+        retention_hooks=(
+            freeze_mapping(dict(retention_hooks))
+            if isinstance(retention_hooks, Mapping)
+            else freeze_mapping({})
+        ),
     )
     validate_archive_snapshot(snapshot)
     return snapshot

@@ -11,7 +11,6 @@ from decimal import Decimal
 from typing import Any
 
 from core.exceptions import ValidationError
-
 from workflow.enums import (
     BackoffPolicy,
     FailureClass,
@@ -149,8 +148,8 @@ class WorkflowStep:
     def __post_init__(self) -> None:
         step_id = _normalize_id(self.step_id, field="step_id")
         step_name = _non_empty(self.step_name, field="step_name")
-        capability = _non_empty(self.capability, field="capability").lower().replace(
-            " ", "_"
+        capability = (
+            _non_empty(self.capability, field="capability").lower().replace(" ", "_")
         )
         prereqs = tuple(
             _normalize_id(s, field="prerequisite_step_ids")
@@ -229,9 +228,7 @@ class WorkflowExecution:
             msg = "negative retry counts: attempt must be >= 1"
             raise WorkflowError(msg)
         started_at = _non_empty(self.started_at, field="started_at")
-        ended_at = (
-            None if self.ended_at is None else self.ended_at.strip() or None
-        )
+        ended_at = None if self.ended_at is None else self.ended_at.strip() or None
         if not self.provenance:
             msg = "missing provenance: WorkflowExecution requires provenance"
             raise WorkflowError(msg)
@@ -303,9 +300,7 @@ class WorkflowSummary:
             if getattr(self, name) < 0:
                 msg = "counts must be >= 0"
                 raise ValidationError(msg)
-        limitations = tuple(
-            n.strip() for n in self.limitation_notes if n.strip()
-        )
+        limitations = tuple(n.strip() for n in self.limitation_notes if n.strip())
         object.__setattr__(self, "limitation_notes", limitations)
 
 
@@ -382,9 +377,7 @@ class WorkflowReport:
         object.__setattr__(
             self, "quantitative_risk_refs", tuple(self.quantitative_risk_refs)
         )
-        object.__setattr__(
-            self, "recommendation_refs", tuple(self.recommendation_refs)
-        )
+        object.__setattr__(self, "recommendation_refs", tuple(self.recommendation_refs))
         object.__setattr__(self, "limitations", limitations)
 
 
@@ -459,9 +452,7 @@ class WorkflowProfile:
         object.__setattr__(
             self, "quantitative_risk_refs", tuple(self.quantitative_risk_refs)
         )
-        object.__setattr__(
-            self, "recommendation_refs", tuple(self.recommendation_refs)
-        )
+        object.__setattr__(self, "recommendation_refs", tuple(self.recommendation_refs))
         object.__setattr__(self, "notes", notes)
 
     @property

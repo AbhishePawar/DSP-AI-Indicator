@@ -6,10 +6,10 @@ No calculations, scoring, valuation, or AI reasoning.
 
 from __future__ import annotations
 
+from collections.abc import Mapping
 from dataclasses import dataclass, field
 from datetime import UTC, datetime
-from types import MappingProxyType
-from typing import Any, Mapping
+from typing import Any
 
 from dsp_platform.research_object.models import UNAVAILABLE_MESSAGE, freeze_mapping
 
@@ -82,9 +82,9 @@ class ReportSection:
             "status": self.status,
             "source_section": self.source_section,
             "payload": _plain(self.payload) if self.payload is not None else None,
-            "provenance": _plain(self.provenance)
-            if self.provenance is not None
-            else None,
+            "provenance": (
+                _plain(self.provenance) if self.provenance is not None else None
+            ),
             "message": self.message,
             "retrieved_at": self.retrieved_at,
         }
@@ -122,9 +122,7 @@ class ReportSection:
         status: str = "ok",
     ) -> ReportSection:
         if payload is None:
-            return cls.unavailable(
-                name, rs_id=rs_id, source_section=source_section
-            )
+            return cls.unavailable(name, rs_id=rs_id, source_section=source_section)
         return cls(
             name=name,
             rs_id=rs_id,

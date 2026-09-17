@@ -19,9 +19,13 @@ _DISALLOWED_SOURCE = frozenset(
 
 def _check_field(name: str, f: ConnectorField) -> None:
     if f.available and f.value is None:
-        raise InvalidProviderDataError(f"insider field '{name}' marked available with null value")
+        raise InvalidProviderDataError(
+            f"insider field '{name}' marked available with null value"
+        )
     if not f.available and f.value is not None:
-        raise InvalidProviderDataError(f"insider field '{name}' has value but marked unavailable")
+        raise InvalidProviderDataError(
+            f"insider field '{name}' has value but marked unavailable"
+        )
 
 
 def _validate_transaction(txn: InsiderTransaction, index: int) -> None:
@@ -39,14 +43,20 @@ def _validate_transaction(txn: InsiderTransaction, index: int) -> None:
         _check_field(f"{prefix}.{name}", getattr(txn, name))
 
 
-def validate_authenticated_insider_activity(bundle: AuthenticatedInsiderActivity) -> None:
+def validate_authenticated_insider_activity(
+    bundle: AuthenticatedInsiderActivity,
+) -> None:
     """Reject structurally invalid insider bundles. Never invent replacements."""
     if not bundle.identity.symbol or not str(bundle.identity.symbol).strip():
         raise InvalidProviderDataError("insider activity missing identity.symbol")
     if not bundle.provenance.provider_id.strip():
-        raise InvalidProviderDataError("insider activity missing provider_id provenance")
+        raise InvalidProviderDataError(
+            "insider activity missing provider_id provenance"
+        )
     if not bundle.provenance.provider_name.strip():
-        raise InvalidProviderDataError("insider activity missing provider_name provenance")
+        raise InvalidProviderDataError(
+            "insider activity missing provider_name provenance"
+        )
     if bundle.provenance.source_type.strip().lower() in _DISALLOWED_SOURCE:
         raise InvalidProviderDataError(
             f"disallowed provenance source_type={bundle.provenance.source_type!r}"

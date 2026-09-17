@@ -74,9 +74,7 @@ class TestGoldenDecisionPacks:
         )
         assert pack.recommendation.action is RecommendationAction.HOLD
         assert pack.assurance.assurance_level is AssuranceLevel.LOW
-        assert (
-            pack.assurance.investor_guidance.stance is GuidanceStance.STAND_ASIDE
-        )
+        assert pack.assurance.investor_guidance.stance is GuidanceStance.STAND_ASIDE
         assert pack.recommendation.conviction == pytest.approx(0.5)
 
     def test_golden_sell_without_mos(self, instrument: Instrument) -> None:

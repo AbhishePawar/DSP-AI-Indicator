@@ -3,11 +3,11 @@
 from __future__ import annotations
 
 import pytest
+from auth_test_helpers import admin_headers
 from fastapi.testclient import TestClient
 
 from admin.beta_programme import reset_beta_programme_for_tests
 from api_platform.api.app import create_app
-from auth_test_helpers import admin_headers
 
 
 @pytest.fixture()
@@ -97,16 +97,19 @@ def test_feedback_and_issue_workflow(
     assert patched.json()["result"]["status"] == "triaged"
 
 
-def test_analytics_and_dashboard(
-    client: TestClient, headers: dict[str, str]
-) -> None:
+def test_analytics_and_dashboard(client: TestClient, headers: dict[str, str]) -> None:
     client.post(
         "/api/v1/beta/analytics/event",
         json={"kind": "login", "ok": True, "feature": "auth"},
     )
     client.post(
         "/api/v1/beta/analytics/event",
-        json={"kind": "analysis", "ok": True, "duration_ms": 1200, "feature": "analyse"},
+        json={
+            "kind": "analysis",
+            "ok": True,
+            "duration_ms": 1200,
+            "feature": "analyse",
+        },
     )
     client.post(
         "/api/v1/beta/analytics/event",

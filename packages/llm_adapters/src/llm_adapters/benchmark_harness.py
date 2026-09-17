@@ -9,12 +9,13 @@ from __future__ import annotations
 
 import time
 import uuid
-from dataclasses import dataclass, field
-from typing import Any, Callable, Iterable, Mapping, Sequence
+from collections.abc import Mapping, Sequence
+from dataclasses import dataclass
+from typing import Any
 
 from copilot.enums import LanguageModelStatus, UserIntentType
 from copilot.models import LanguageModelRequest
-
+from llm_adapters.anthropic_adapter import AnthropicAdapter
 from llm_adapters.benchmark_cases import (
     BENCHMARK_CASES,
     BenchmarkCase,
@@ -22,9 +23,7 @@ from llm_adapters.benchmark_cases import (
 )
 from llm_adapters.config import LLMPlatformConfig
 from llm_adapters.cost_scoring import (
-    calculate_cost_score,
     calculate_estimated_cost,
-    calculate_overall_score,
     calculate_quality_score,
 )
 from llm_adapters.deepseek_adapter import DeepSeekAdapter
@@ -36,15 +35,11 @@ from llm_adapters.evaluation import (
     TokenUsage,
 )
 from llm_adapters.gemini_adapter import GeminiAdapter
-from llm_adapters.anthropic_adapter import AnthropicAdapter
 from llm_adapters.model_catalog import (
-    DEFAULT_CATALOG,
-    ModelInfo,
     ModelPricing,
     get_model_info,
 )
 from llm_adapters.model_tiers import (
-    DEFAULT_TIERS,
     ModelTier,
     TierConfig,
     get_tier_config,
@@ -58,11 +53,9 @@ from llm_adapters.quality_gate import (
     evaluate_gate,
 )
 from llm_adapters.routing import (
-    ComplexitySignal,
     RoutingDecision,
     decide_routing,
 )
-
 
 # --- model identity catalog for benchmark targets -------------------------
 
@@ -157,9 +150,15 @@ class BenchmarkRun:
             "case": self.research_case_id,
             "tier": self.tier,
             "status": self.status.value,
-            "error": self.error_category.value if self.error_category is not ErrorCategory.NONE else None,
+            "error": (
+                self.error_category.value
+                if self.error_category is not ErrorCategory.NONE
+                else None
+            ),
             "quality_score": round(self.quality_score, 2),
-            "cost_usd": round(self.estimated_cost_usd, 6) if not self.pricing_unknown else None,
+            "cost_usd": (
+                round(self.estimated_cost_usd, 6) if not self.pricing_unknown else None
+            ),
             "gate": self.gate.outcome.value,
             "escalated": self.was_escalated,
         }
@@ -210,17 +209,21 @@ def run_one_case_one_model(
     ev_result = EvaluationResult(
         model=catalog_info,
         research_case_id=case.spec.research_case_id,
-        status=EvaluationStatus.SUCCESS
-        if result.status is LanguageModelStatus.COMPLETE
-        else EvaluationStatus.FAILED,
+        status=(
+            EvaluationStatus.SUCCESS
+            if result.status is LanguageModelStatus.COMPLETE
+            else EvaluationStatus.FAILED
+        ),
         latency_ms=latency_ms,
         usage=usage,
         estimated_cost_usd=cost,
         structured_output_valid=False,  # benchmark uses free text
         quality=quality_verdict.quality,
-        error_category=ErrorCategory.NONE
-        if result.status is LanguageModelStatus.COMPLETE
-        else _classify_error(result),
+        error_category=(
+            ErrorCategory.NONE
+            if result.status is LanguageModelStatus.COMPLETE
+            else _classify_error(result)
+        ),
         error_detail=result.limitations[0] if result.limitations else None,
     )
     gate = evaluate_gate(ev_result, routing, tier_registry)
@@ -283,17 +286,21 @@ def run_one_case_one_model(
     p_ev = EvaluationResult(
         model=premium_info,
         research_case_id=case.spec.research_case_id,
-        status=EvaluationStatus.SUCCESS
-        if p_result.status is LanguageModelStatus.COMPLETE
-        else EvaluationStatus.FAILED,
+        status=(
+            EvaluationStatus.SUCCESS
+            if p_result.status is LanguageModelStatus.COMPLETE
+            else EvaluationStatus.FAILED
+        ),
         latency_ms=p_latency_ms,
         usage=p_usage,
         estimated_cost_usd=p_cost,
         structured_output_valid=False,
         quality=p_quality.quality,
-        error_category=ErrorCategory.NONE
-        if p_result.status is LanguageModelStatus.COMPLETE
-        else _classify_error(p_result),
+        error_category=(
+            ErrorCategory.NONE
+            if p_result.status is LanguageModelStatus.COMPLETE
+            else _classify_error(p_result)
+        ),
         error_detail=p_result.limitations[0] if p_result.limitations else None,
     )
     p_gate = evaluate_gate(p_ev, premium_routing, tier_registry)
@@ -343,9 +350,7 @@ def run_benchmark(
     runs: list[BenchmarkRun] = []
     for case in cases:
         for model_identity in models:
-            t1, t2 = run_one_case_one_model(
-                case, model_identity, config, tier_registry
-            )
+            t1, t2 = run_one_case_one_model(case, model_identity, config, tier_registry)
             if t1 is not None:
                 runs.append(t1)
             if t2 is not None:
@@ -360,8 +365,12 @@ def build_report(runs: Sequence[BenchmarkRun]) -> dict[str, Any]:
     accepted-only cost range (cheapest accepted = 100, most expensive = 0).
     Overall score = 0.5*quality + 0.5*cost_efficiency.
     """
-    accepted: list[BenchmarkRun] = [r for r in runs if r.gate.outcome is GateOutcome.ACCEPTED]
-    failed: list[BenchmarkRun] = [r for r in runs if r.gate.outcome is GateOutcome.FAILED_CLOSED]
+    accepted: list[BenchmarkRun] = [
+        r for r in runs if r.gate.outcome is GateOutcome.ACCEPTED
+    ]
+    failed: list[BenchmarkRun] = [
+        r for r in runs if r.gate.outcome is GateOutcome.FAILED_CLOSED
+    ]
     escalated: list[BenchmarkRun] = [r for r in runs if r.was_escalated]
     accepted_costs = [r.estimated_cost_usd for r in accepted if not r.pricing_unknown]
 

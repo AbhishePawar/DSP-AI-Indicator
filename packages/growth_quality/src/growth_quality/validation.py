@@ -6,7 +6,6 @@ from typing import Any
 
 from business_quality import BusinessQualityAnalysis
 from financial import FinancialAnalysis
-
 from growth_quality.metadata import GrowthQualityMetadata
 from growth_quality.models import GrowthQualityValidationSummary
 

@@ -46,9 +46,7 @@ class TestDefaultFundamentalNormalizer:
     def test_is_fundamental_normalizer(self) -> None:
         assert isinstance(DefaultFundamentalNormalizer(), FundamentalNormalizer)
 
-    def test_maps_canonical_and_alias_fields(
-        self, instrument: Instrument
-    ) -> None:
+    def test_maps_canonical_and_alias_fields(self, instrument: Instrument) -> None:
         normalizer = DefaultFundamentalNormalizer()
         statement = normalizer.normalize(_raw(), instrument)
 
@@ -82,13 +80,9 @@ class TestDefaultFundamentalNormalizer:
             5.0
         )
 
-    def test_missing_optional_fields_remain_none(
-        self, instrument: Instrument
-    ) -> None:
+    def test_missing_optional_fields_remain_none(self, instrument: Instrument) -> None:
         normalizer = DefaultFundamentalNormalizer()
-        statement = normalizer.normalize(
-            _raw(line_items={"revenue": 1.0}), instrument
-        )
+        statement = normalizer.normalize(_raw(line_items={"revenue": 1.0}), instrument)
         assert statement.revenue == pytest.approx(1.0)
         assert statement.net_income is None
         assert statement.total_debt is None
@@ -125,9 +119,7 @@ class TestDefaultFundamentalNormalizer:
         )
         assert statement.currency == "USD"
 
-    def test_deterministic_repeated_normalize(
-        self, instrument: Instrument
-    ) -> None:
+    def test_deterministic_repeated_normalize(self, instrument: Instrument) -> None:
         normalizer = DefaultFundamentalNormalizer()
         raw = _raw()
         assert normalizer.normalize(raw, instrument) == normalizer.normalize(
@@ -160,9 +152,9 @@ class TestFundamentalStatementsBuilder:
             FundamentalStatementsBuilder.build(instrument, ())
 
     def test_allow_empty(self, instrument: Instrument) -> None:
-        assert FundamentalStatementsBuilder.build(
-            instrument, (), allow_empty=True
-        ) == ()
+        assert (
+            FundamentalStatementsBuilder.build(instrument, (), allow_empty=True) == ()
+        )
 
     def test_rejects_duplicate_period_end(self, instrument: Instrument) -> None:
         a = self._statement(instrument, date(2023, 12, 31), 1.0)
@@ -171,9 +163,7 @@ class TestFundamentalStatementsBuilder:
             FundamentalStatementsBuilder.build(instrument, (a, b))
 
     def test_rejects_mismatched_instrument(self, instrument: Instrument) -> None:
-        other = Instrument(
-            symbol="MSFT", asset_class=AssetClass.EQUITY, currency="USD"
-        )
+        other = Instrument(symbol="MSFT", asset_class=AssetClass.EQUITY, currency="USD")
         statement = self._statement(other, date(2023, 12, 31), 1.0)
         with pytest.raises(InvalidProviderDataError, match="instrument"):
             FundamentalStatementsBuilder.build(instrument, (statement,))

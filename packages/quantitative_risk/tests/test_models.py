@@ -5,8 +5,8 @@ from __future__ import annotations
 from decimal import Decimal
 
 import pytest
-from core.exceptions import ValidationError
 
+from core.exceptions import ValidationError
 from quantitative_risk import (
     DrawdownProfile,
     MetricStatus,
@@ -237,9 +237,7 @@ class TestValidation:
             QuantitativeRiskProfile(
                 identity=_identity(),
                 portfolio_ref=_portfolio(),
-                monitoring_ref=MonitoringReference(
-                    portfolio_id="dsp.portfolio.other"
-                ),
+                monitoring_ref=MonitoringReference(portfolio_id="dsp.portfolio.other"),
             )
 
     def test_broken_scenario_result_ref(self) -> None:
@@ -284,9 +282,7 @@ class TestPlatformExport:
         assert platform.QuantitativeRiskIdentity is QuantitativeRiskIdentity
         assert platform.RiskMetric is RiskMetric
         assert platform.MetricType.VOLATILITY.value == "volatility"
-        assert (
-            platform.QuantitativeRiskPortfolioReference is PortfolioReference
-        )
+        assert platform.QuantitativeRiskPortfolioReference is PortfolioReference
         assert platform.QuantitativeRiskEngine is not None
         assert platform.EngineStatus.COMPLETE.value == "complete"
         assert platform.QuantitativeRiskReporter is not None

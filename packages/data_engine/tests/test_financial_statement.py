@@ -7,9 +7,9 @@ from datetime import UTC, date, datetime
 from decimal import Decimal
 
 import pytest
+
 from contracts.domain.instrument import Instrument
 from contracts.enums import AssetClass
-
 from data_engine import (
     CircuitBreaker,
     CircuitOpenError,
@@ -122,9 +122,7 @@ class TestValidation:
     def test_rejects_available_null(self) -> None:
         bundle = _seeded_bundle()
         period = bundle.periods[0]
-        bad_period = replace(
-            period, revenue=StatementField(value=None, available=True)
-        )
+        bad_period = replace(period, revenue=StatementField(value=None, available=True))
         bad = replace(bundle, periods=(bad_period,) + bundle.periods[1:])
         with pytest.raises(InvalidProviderDataError):
             validate_authenticated_statements(bad)

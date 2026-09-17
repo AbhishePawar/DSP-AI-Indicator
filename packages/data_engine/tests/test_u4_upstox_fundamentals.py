@@ -2,7 +2,8 @@
 
 from __future__ import annotations
 
-from typing import Any, Mapping
+from collections.abc import Mapping
+from typing import Any
 
 import pytest
 
@@ -514,9 +515,7 @@ def test_forged_client_isin_rejected() -> None:
 def test_forged_client_instrument_key_rejected() -> None:
     client = _client(search_rows=[_INFY], symbol="INFY")
     result = client.get_fundamentals(
-        UpstoxFundamentalsRequest(
-            symbol="INFY", client_instrument_key="NSE_EQ|FORGED"
-        )
+        UpstoxFundamentalsRequest(symbol="INFY", client_instrument_key="NSE_EQ|FORGED")
     )
     assert result.status == "REJECTED"
 
@@ -529,7 +528,9 @@ def test_missing_credential(monkeypatch: pytest.MonkeyPatch) -> None:
     assert "absent" in result.detail.lower()
 
 
-@pytest.mark.parametrize("code,fragment", [(401, "401"), (403, "403"), (404, "404"), (429, "429")])
+@pytest.mark.parametrize(
+    "code,fragment", [(401, "401"), (403, "403"), (404, "404"), (429, "429")]
+)
 def test_http_errors(code: int, fragment: str) -> None:
     client = _client(
         search_rows=[_INFY],
@@ -583,8 +584,14 @@ def test_empty_response() -> None:
         search_rows=[_INFY],
         symbol="INFY",
         income=empty,
-        balance={"status": "success", "data": {"units_in": "crore", "history": [], "full_statement": []}},
-        cash={"status": "success", "data": {"units_in": "crore", "cash_flow": [], "full_statement": []}},
+        balance={
+            "status": "success",
+            "data": {"units_in": "crore", "history": [], "full_statement": []},
+        },
+        cash={
+            "status": "success",
+            "data": {"units_in": "crore", "cash_flow": [], "full_statement": []},
+        },
     )
     result = client.get_fundamentals(UpstoxFundamentalsRequest(symbol="INFY"))
     assert result.status == "EMPTY"

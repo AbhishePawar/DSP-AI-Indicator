@@ -16,7 +16,7 @@ from __future__ import annotations
 
 import uuid
 from dataclasses import dataclass
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any, Protocol, runtime_checkable
 
 __all__ = [
@@ -100,7 +100,7 @@ class AuditLogger:
         event = AuditEvent(
             event_id=str(uuid.uuid4()),
             event_type=event_type,
-            created_at=datetime.now(tz=timezone.utc).isoformat(),
+            created_at=datetime.now(tz=UTC).isoformat(),
             user_id=user_id,
             organization_id=organization_id,
             ip_hint=ip_hint,

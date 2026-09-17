@@ -42,7 +42,9 @@ class ShellPgDumpBackupAdapter:
         return "shell_pg_dump"
 
     def is_available(self) -> bool:
-        dsn = (os.environ.get("DSP_DATABASE_URL") or os.environ.get("DATABASE_URL") or "").strip()
+        dsn = (
+            os.environ.get("DSP_DATABASE_URL") or os.environ.get("DATABASE_URL") or ""
+        ).strip()
         if not dsn:
             return False
         if shutil.which("pg_dump") is None or shutil.which("gzip") is None:

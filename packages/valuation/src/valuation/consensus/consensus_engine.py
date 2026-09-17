@@ -9,8 +9,9 @@ from __future__ import annotations
 import math
 import statistics
 import time
+from collections.abc import Mapping, Sequence
 from datetime import UTC, datetime
-from typing import Any, Mapping, Sequence
+from typing import Any
 
 from valuation.consensus.consensus_explainability import explain_many, explain_step
 from valuation.consensus.consensus_models import (
@@ -84,8 +85,7 @@ class ConsensusEngine:
             for m in inputs.methods
         )
         applicability = {
-            m.method: self._applicability(m, inputs.company_profile)
-            for m in methods
+            m.method: self._applicability(m, inputs.company_profile) for m in methods
         }
         app_explain = {
             m.method: self._applicability_explanation(m, inputs.company_profile)
@@ -192,7 +192,11 @@ class ConsensusEngine:
         rankings = tuple(
             m
             for m, _ in sorted(
-                ((d.method, d.weight) for d in weight_details if d.included_in_consensus),
+                (
+                    (d.method, d.weight)
+                    for d in weight_details
+                    if d.included_in_consensus
+                ),
                 key=lambda x: (-x[1], x[0]),
             )
         )
@@ -512,9 +516,7 @@ class ConsensusEngine:
             ]
             if not candidates:
                 candidates = [
-                    m.method
-                    for m in methods
-                    if value_map.get(m.method) is not None
+                    m.method for m in methods if value_map.get(m.method) is not None
                 ]
             raw = {k: (1.0 if k in candidates else 0.0) for k in raw}
             total = sum(raw.values())
@@ -614,17 +616,13 @@ class ConsensusEngine:
         return _pct(0.25), _pct(0.75)
 
     # ----------------------------------------------------------------- math
-    def _weighted_mean(
-        self, series: Sequence[tuple[str, float, float]]
-    ) -> float:
+    def _weighted_mean(self, series: Sequence[tuple[str, float, float]]) -> float:
         wsum = sum(w for _, _, w in series)
         if wsum <= 0:
             return statistics.fmean(v for _, v, _ in series)
         return sum(v * w for _, v, w in series) / wsum
 
-    def _weighted_median(
-        self, series: Sequence[tuple[str, float, float]]
-    ) -> float:
+    def _weighted_median(self, series: Sequence[tuple[str, float, float]]) -> float:
         ordered = sorted(series, key=lambda x: x[1])
         wsum = sum(w for _, _, w in ordered)
         if wsum <= 0:
@@ -673,9 +671,7 @@ class ConsensusEngine:
 
         return _at(lo_p), _at(hi_p)
 
-    def _consistency_score(
-        self, series: Sequence[tuple[str, float, float]]
-    ) -> float:
+    def _consistency_score(self, series: Sequence[tuple[str, float, float]]) -> float:
         vals = [v for _, v, _ in series]
         if len(vals) == 1:
             return 100.0
@@ -711,9 +707,7 @@ class ConsensusEngine:
         notes: list[str] = []
         method_notes: dict[str, str] = {}
         if spread >= 0.40:
-            notes.append(
-                f"Large disagreement: range/median spread={spread:.1%}"
-            )
+            notes.append(f"Large disagreement: range/median spread={spread:.1%}")
         for m in methods:
             v = values.get(m.method)
             if v is None:
@@ -744,9 +738,7 @@ class ConsensusEngine:
                     "Reverse/market-implied embeds current price expectations"
                 ),
             }[cat]
-            method_notes[m.method] = (
-                f"{why}. Value vs median: {delta:+.1%}."
-            )
+            method_notes[m.method] = f"{why}. Value vs median: {delta:+.1%}."
             if abs(delta) >= 0.25:
                 notes.append(
                     f"{m.method} ({cat.value}) differs {delta:+.1%} from median"
@@ -901,7 +893,10 @@ class ConsensusEngine:
                 )
                 # Prefer explicit base if present
                 for o in outcomes:
-                    if o.kind.name == "base" and o.intrinsic_value_per_share is not None:
+                    if (
+                        o.kind.name == "base"
+                        and o.intrinsic_value_per_share is not None
+                    ):
                         base_iv = o.intrinsic_value_per_share
                         break
                 shocked = float(base_iv) * (1.0 + shock)
@@ -939,8 +934,7 @@ class ConsensusEngine:
     ):
         if methods:
             method_conf = sum(
-                m.confidence_score * weights_map.get(m.method, 0.0)
-                for m in methods
+                m.confidence_score * weights_map.get(m.method, 0.0) for m in methods
             )
             # Normalize rough 0-8 Core scores to 0-1
             max_c = max(m.confidence_score for m in methods) or 1.0
@@ -1014,7 +1008,10 @@ class ConsensusEngine:
             flags.append(ConsensusQualityFlag.SPECULATIVE_CONSENSUS)
             core.append(QualityFlag.FORECAST_RISK)
 
-        if disagreement.overall_spread_pct >= 0.50 or disagreement.pairwise_max_pct >= 0.60:
+        if (
+            disagreement.overall_spread_pct >= 0.50
+            or disagreement.pairwise_max_pct >= 0.60
+        ):
             flags.append(ConsensusQualityFlag.CONFLICTING_METHODS)
 
         return tuple(dict.fromkeys(flags)), tuple(dict.fromkeys(core))

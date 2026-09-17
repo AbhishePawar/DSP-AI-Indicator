@@ -252,7 +252,12 @@ def apply_decision_rules(
             metrics=[f"quality={quality}", f"mos={mos_ratio}"],
         )
 
-    if earnings is not None and earnings < _WEAK and quality is not None and quality >= _STRONG:
+    if (
+        earnings is not None
+        and earnings < _WEAK
+        and quality is not None
+        and quality >= _STRONG
+    ):
         _add(
             "strong_quality_weak_earnings_quality",
             "conflict",

@@ -9,7 +9,9 @@ import pytest
 
 from contracts.domain.instrument import Instrument
 from contracts.enums import AssetClass
-from data_engine.connector_framework.production_profile import ConnectorConfigurationError
+from data_engine.connector_framework.production_profile import (
+    ConnectorConfigurationError,
+)
 from data_engine.financial_statement.adapters import (
     NullAuthenticatedStatementAdapter,
     build_default_statement_adapter_from_env,
@@ -36,9 +38,10 @@ from dsp_platform import (
     load_authenticated_valuation_bundle,
 )
 from dsp_platform.composition.authenticated_valuation import AuthenticatedValuationError
-from dsp_platform.financial_statements import reset_financial_statement_service_for_tests
+from dsp_platform.financial_statements import (
+    reset_financial_statement_service_for_tests,
+)
 from dsp_platform.market_quotes import reset_market_quote_service_for_tests
-
 
 FIXED = datetime(2024, 6, 15, 12, 0, tzinfo=UTC)
 
@@ -62,7 +65,9 @@ def _clear_provider_env(monkeypatch: pytest.MonkeyPatch) -> None:
         monkeypatch.delenv(key, raising=False)
 
 
-def test_fmp_provider_unchanged_when_fmp_key_set(monkeypatch: pytest.MonkeyPatch) -> None:
+def test_fmp_provider_unchanged_when_fmp_key_set(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
     monkeypatch.setenv("DSP_FMP_API_KEY", "fmp-unit-key")
     quote = build_default_quote_adapter_from_env()
     stmt = build_default_statement_adapter_from_env()
@@ -123,7 +128,9 @@ def test_upstox_no_fmp_fallback_on_explicit_selection(
     monkeypatch.setenv("DSP_MARKET_QUOTE_API_KEY", "http-key")
     monkeypatch.setenv("DSP_MARKET_QUOTE_BASE_URL", "https://vendor.example")
     assert isinstance(build_default_quote_adapter_from_env(), UpstoxQuoteAdapter)
-    assert isinstance(build_default_statement_adapter_from_env(), UpstoxStatementAdapter)
+    assert isinstance(
+        build_default_statement_adapter_from_env(), UpstoxStatementAdapter
+    )
 
 
 def test_invalid_provider_rejected(monkeypatch: pytest.MonkeyPatch) -> None:
@@ -468,7 +475,9 @@ def test_client_price_cannot_override_upstox_quote() -> None:
         bundle = load_authenticated_valuation_bundle("TCS", currency="INR")
         assert bundle.current_market_price == pytest.approx(3500.25)
         assert bundle.quote_provenance["provider_id"] == "upstox_market_quote"
-        assert float(bundle.financial_snapshot.latest.revenue) == pytest.approx(150000.0)
+        assert float(bundle.financial_snapshot.latest.revenue) == pytest.approx(
+            150000.0
+        )
         request = CompositionRequest(
             financial_statements=client_fs,
             current_market_price=999999.0,
@@ -490,9 +499,7 @@ def test_upstox_quote_without_shares_fails_closed_honestly() -> None:
     quote_adapter = UpstoxQuoteAdapter(access_token="tok", http_client=http)
     stmt_adapter = UpstoxStatementAdapter(access_token="tok", http_client=http)
     reset_market_quote_service_for_tests(MarketQuoteService(quote_adapter))
-    reset_financial_statement_service_for_tests(
-        FinancialStatementService(stmt_adapter)
-    )
+    reset_financial_statement_service_for_tests(FinancialStatementService(stmt_adapter))
     try:
         with pytest.raises(AuthenticatedValuationError, match="shares"):
             load_authenticated_valuation_bundle("TCS", currency="INR")

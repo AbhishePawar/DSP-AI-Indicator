@@ -77,9 +77,11 @@ def filings(
             "ok": True,
             "available": True,
             "authenticated": True,
-            "symbol": identity.get("symbol")
-            if isinstance(identity, dict)
-            else symbol.strip().upper(),
+            "symbol": (
+                identity.get("symbol")
+                if isinstance(identity, dict)
+                else symbol.strip().upper()
+            ),
             "identity": identity,
             "filings": payload.get("filings"),
             "provenance": payload.get("provenance"),

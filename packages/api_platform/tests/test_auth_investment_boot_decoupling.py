@@ -21,7 +21,9 @@ from data_engine.connector_framework.production_profile import (
     assert_production_investment_connectors_configured,
 )
 from data_engine.exceptions import ConnectorConfigurationError
-from data_engine.financial_statement.adapters import build_default_statement_adapter_from_env
+from data_engine.financial_statement.adapters import (
+    build_default_statement_adapter_from_env,
+)
 from data_engine.market_quote.adapters import build_default_quote_adapter_from_env
 from dsp_platform import DSPPlatform, PlatformBuilder, PlatformConfiguration
 

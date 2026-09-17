@@ -6,8 +6,9 @@ Limits are enforced via feature flags + license usage_limits on assign.
 
 from __future__ import annotations
 
+from collections.abc import Mapping
 from types import MappingProxyType
-from typing import Any, Mapping
+from typing import Any
 
 __all__ = [
     "PLAN_IDS",
@@ -200,9 +201,7 @@ def plan_feature_flags(plan_id: str) -> Mapping[str, bool]:
 def compare_plans() -> dict[str, Any]:
     """Plan comparison matrix for UI — packaging only, no prices charged."""
     rows: list[dict[str, Any]] = []
-    feature_keys = sorted(
-        {k for p in SAAS_PLANS for k in (p.get("features") or {})}
-    )
+    feature_keys = sorted({k for p in SAAS_PLANS for k in (p.get("features") or {})})
     for plan in SAAS_PLANS:
         feats = plan.get("features") or {}
         rows.append(

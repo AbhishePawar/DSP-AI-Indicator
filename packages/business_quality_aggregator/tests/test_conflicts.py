@@ -8,7 +8,10 @@ from business_quality_aggregator.adapters import (
     component_score_01,
     safe_score_value,
 )
-from business_quality_aggregator.conflicts import CONFLICT_PENALTY_CAP, resolve_conflicts
+from business_quality_aggregator.conflicts import (
+    CONFLICT_PENALTY_CAP,
+    resolve_conflicts,
+)
 
 
 def _scored(value: float | None) -> SimpleNamespace:
@@ -19,7 +22,9 @@ def _scored(value: float | None) -> SimpleNamespace:
     )
 
 
-def _with_components(value: float, components: list[SimpleNamespace]) -> SimpleNamespace:
+def _with_components(
+    value: float, components: list[SimpleNamespace]
+) -> SimpleNamespace:
     return SimpleNamespace(
         score=SimpleNamespace(value=value),
         components=components,

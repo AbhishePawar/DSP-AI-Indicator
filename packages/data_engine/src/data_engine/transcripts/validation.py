@@ -3,7 +3,10 @@
 from __future__ import annotations
 
 from data_engine.exceptions import InvalidProviderDataError
-from data_engine.transcripts.models import AuthenticatedTranscripts, EarningsCallTranscript
+from data_engine.transcripts.models import (
+    AuthenticatedTranscripts,
+    EarningsCallTranscript,
+)
 
 __all__ = ["validate_authenticated_transcripts"]
 
@@ -27,9 +30,13 @@ def validate_authenticated_transcripts(bundle: AuthenticatedTranscripts) -> None
     if not bundle.identity.symbol or not str(bundle.identity.symbol).strip():
         raise InvalidProviderDataError("transcripts bundle missing identity.symbol")
     if not bundle.provenance.provider_id.strip():
-        raise InvalidProviderDataError("transcripts bundle missing provider_id provenance")
+        raise InvalidProviderDataError(
+            "transcripts bundle missing provider_id provenance"
+        )
     if not bundle.provenance.provider_name.strip():
-        raise InvalidProviderDataError("transcripts bundle missing provider_name provenance")
+        raise InvalidProviderDataError(
+            "transcripts bundle missing provider_name provenance"
+        )
     if bundle.provenance.source_type.strip().lower() in _DISALLOWED_SOURCE:
         raise InvalidProviderDataError(
             f"disallowed provenance source_type={bundle.provenance.source_type!r}"

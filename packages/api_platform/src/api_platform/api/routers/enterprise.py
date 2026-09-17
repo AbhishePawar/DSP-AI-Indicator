@@ -326,9 +326,7 @@ def list_roles(
     auth: dict[str, Any] = Depends(require_authenticated_actor),
 ) -> JSONResponse:
     try:
-        result = get_enterprise_service().list_roles(
-            org_id, actor_user_id=_actor(auth)
-        )
+        result = get_enterprise_service().list_roles(org_id, actor_user_id=_actor(auth))
     except Exception as exc:  # noqa: BLE001
         return _err(exc)
     return JSONResponse({"ok": True, "result": result, "message": None})
@@ -381,7 +379,9 @@ def get_license(
         result = get_enterprise_service().get_license(org_id, actor_user_id=actor)
     except Exception as exc:  # noqa: BLE001
         return _err(exc)
-    return JSONResponse({"ok": True, "result": result, "message": result.get("message")})
+    return JSONResponse(
+        {"ok": True, "result": result, "message": result.get("message")}
+    )
 
 
 @router.post("/enterprise/organizations/{org_id}/license")
@@ -443,9 +443,7 @@ def customer_portal(
 ) -> JSONResponse:
     try:
         actor = _actor(auth)
-        result = get_enterprise_service().customer_portal(
-            org_id, actor_user_id=actor
-        )
+        result = get_enterprise_service().customer_portal(org_id, actor_user_id=actor)
     except Exception as exc:  # noqa: BLE001
         return _err(exc)
     return JSONResponse({"ok": True, "result": result, "message": None})
@@ -630,7 +628,9 @@ def usage_snapshot(
         result = get_enterprise_service().usage_snapshot(org_id, actor_user_id=actor)
     except Exception as exc:  # noqa: BLE001
         return _err(exc)
-    return JSONResponse({"ok": True, "result": result, "message": result.get("message")})
+    return JSONResponse(
+        {"ok": True, "result": result, "message": result.get("message")}
+    )
 
 
 @router.get("/enterprise/ops/incident-center")

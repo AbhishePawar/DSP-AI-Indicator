@@ -8,9 +8,8 @@ from threading import Lock
 
 from compliance.recommendation_history import (
     RecommendationHistoryEntry,
-    RecommendationHistoryPort,
 )
-from compliance.research_archive import ArchivedResearch, ResearchArchivePort
+from compliance.research_archive import ArchivedResearch
 
 __all__ = [
     "InMemoryRecommendationHistoryPort",

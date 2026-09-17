@@ -144,9 +144,7 @@ def analyse(
             "yes",
             "on",
         }:
-            capture_payload = (
-                public_payload if isinstance(public_payload, dict) else {}
-            )
+            capture_payload = public_payload if isinstance(public_payload, dict) else {}
             state.platform.capture_research_intelligence_snapshot(
                 capture_payload,
                 ticker=body.ticker,
@@ -400,4 +398,3 @@ def _optional_actor(request: Request) -> dict[str, Any] | None:
         return {"user_id": uid, "user": user}
     except Exception:  # noqa: BLE001
         return None
-

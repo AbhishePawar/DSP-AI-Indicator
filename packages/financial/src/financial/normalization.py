@@ -6,8 +6,9 @@ No market APIs. No NSE/BSE-specific logic.
 
 from __future__ import annotations
 
+from collections.abc import Mapping
 from dataclasses import replace
-from typing import Any, Mapping
+from typing import Any
 
 from financial.balance_sheet import BALANCE_SHEET_FIELDS, BalanceSheet
 from financial.cash_flow import CASH_FLOW_FIELDS, CashFlowStatement
@@ -91,12 +92,7 @@ UNIT_SCALE_FACTORS: Mapping[UnitScale, float] = {
 def canonicalize_field_name(name: str) -> str:
     """Map an alias or noisy name onto a canonical snake_case field."""
     key = (
-        str(name)
-        .strip()
-        .lower()
-        .replace("-", "_")
-        .replace(" ", "_")
-        .replace("/", "_")
+        str(name).strip().lower().replace("-", "_").replace(" ", "_").replace("/", "_")
     )
     while "__" in key:
         key = key.replace("__", "_")
@@ -139,9 +135,7 @@ def scale_values(
     if from_scale is to_scale:
         return dict(values)
     factor = UNIT_SCALE_FACTORS[from_scale] / UNIT_SCALE_FACTORS[to_scale]
-    return {
-        k: (None if v is None else v * factor) for k, v in values.items()
-    }
+    return {k: (None if v is None else v * factor) for k, v in values.items()}
 
 
 def _build_income(raw: Mapping[str, Any]) -> IncomeStatement:

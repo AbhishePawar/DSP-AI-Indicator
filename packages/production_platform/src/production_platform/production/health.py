@@ -2,10 +2,10 @@
 
 from __future__ import annotations
 
+from collections.abc import Callable
 from dataclasses import dataclass
 from datetime import UTC, datetime
 from enum import StrEnum
-from typing import Callable
 
 from production_platform.production.configuration import ConfigurationManager
 from production_platform.production.interfaces import (

@@ -34,7 +34,9 @@ def validate_authenticated_filings(bundle: AuthenticatedFilings) -> None:
     if not bundle.provenance.provider_id.strip():
         raise InvalidProviderDataError("filings bundle missing provider_id provenance")
     if not bundle.provenance.provider_name.strip():
-        raise InvalidProviderDataError("filings bundle missing provider_name provenance")
+        raise InvalidProviderDataError(
+            "filings bundle missing provider_name provenance"
+        )
     if bundle.provenance.source_type.strip().lower() in _DISALLOWED_SOURCE:
         raise InvalidProviderDataError(
             f"disallowed provenance source_type={bundle.provenance.source_type!r}"

@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import pytest
+
 from ai_committee import Decision
 from contracts import Instrument
 from core.exceptions import ValidationError
@@ -77,9 +78,7 @@ class TestEvidenceAwareDecisionPack:
         assert view.evidence.attached is True
         assert view.evidence.reference == summary.reference
 
-    def test_attach_evidence_optional_injection(
-        self, instrument: Instrument
-    ) -> None:
+    def test_attach_evidence_optional_injection(self, instrument: Instrument) -> None:
         pack = build_pack(
             instrument,
             decision=Decision.HOLD,

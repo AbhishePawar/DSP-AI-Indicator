@@ -39,16 +39,12 @@ class TestEngine:
 
     def test_with_margin_of_safety(self, snapshot: FinancialSnapshot) -> None:
         engine = ValuationEngine(clock=lambda: FIXED_NOW)
-        assessment = engine.analyze(
-            snapshot, MarketSnapshot(market_cap=1_000.0)
-        )
+        assessment = engine.analyze(snapshot, MarketSnapshot(market_cap=1_000.0))
         assert assessment.margin_of_safety.available is True
         assert assessment.margin_of_safety.ratio is not None
         assert assessment.summary.margin_of_safety is assessment.margin_of_safety
         assert assessment.summary.intrinsic_mid == assessment.valuation_range.mid
-        assert any(
-            e.reference == "margin_of_safety" for e in assessment.evidence
-        )
+        assert any(e.reference == "margin_of_safety" for e in assessment.evidence)
 
     def test_summary_without_market(self, snapshot: FinancialSnapshot) -> None:
         engine = ValuationEngine(clock=lambda: FIXED_NOW)
@@ -57,9 +53,7 @@ class TestEngine:
         assert assessment.summary.margin_of_safety.available is False
         assert assessment.summary.confidence == assessment.confidence.value
 
-    def test_sparse_inputs_degrade(
-        self, sparse_snapshot: FinancialSnapshot
-    ) -> None:
+    def test_sparse_inputs_degrade(self, sparse_snapshot: FinancialSnapshot) -> None:
         engine = ValuationEngine(clock=lambda: FIXED_NOW)
         assessment = engine.analyze(sparse_snapshot)
         applicable = {e.method for e in assessment.applicable_estimates}
@@ -111,9 +105,7 @@ class TestEngine:
             assumptions=ValuationAssumptions(earnings_multiple=8.0),
             clock=lambda: FIXED_NOW,
         )
-        assessment = engine.analyze(
-            snapshot, method_names=("earnings_multiple",)
-        )
+        assessment = engine.analyze(snapshot, method_names=("earnings_multiple",))
         assert assessment.estimates[0].intrinsic_value == pytest.approx(800.0)
 
     def test_method_failure_wrapped(self, snapshot: FinancialSnapshot) -> None:

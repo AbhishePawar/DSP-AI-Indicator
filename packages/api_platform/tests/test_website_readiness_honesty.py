@@ -2,18 +2,20 @@
 
 from __future__ import annotations
 
+from auth_test_helpers import bearer_headers, register_user
+from fastapi.testclient import TestClient
+
+from api_platform import create_app
 from data_engine import (
     FinancialStatementService,
     InMemoryAuthenticatedQuoteAdapter,
     InMemoryAuthenticatedStatementAdapter,
     MarketQuoteService,
 )
-from fastapi.testclient import TestClient
-
-from api_platform import create_app
-from auth_test_helpers import bearer_headers, register_user
 from dsp_platform import PlatformBuilder, PlatformConfiguration
-from dsp_platform.financial_statements import reset_financial_statement_service_for_tests
+from dsp_platform.financial_statements import (
+    reset_financial_statement_service_for_tests,
+)
 from dsp_platform.market_quotes import reset_market_quote_service_for_tests
 from dsp_platform.p109_e2e_fixture import (
     P109_EVIDENCE_CLASS,
@@ -29,9 +31,7 @@ def test_analyse_payload_exposes_server_valuation() -> None:
     quote_adapter.put(build_p109_quote())
     stmt_adapter.put(build_p109_statements())
     reset_market_quote_service_for_tests(MarketQuoteService(quote_adapter))
-    reset_financial_statement_service_for_tests(
-        FinancialStatementService(stmt_adapter)
-    )
+    reset_financial_statement_service_for_tests(FinancialStatementService(stmt_adapter))
     try:
         platform = (
             PlatformBuilder()

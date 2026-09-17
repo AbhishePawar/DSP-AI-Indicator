@@ -5,9 +5,9 @@ from __future__ import annotations
 import pytest
 
 from dsp_platform.institutional_workflow import (
+    ALLOWED_TRANSITIONS,
     DEFAULT_TEMPLATE_ID,
     WORKFLOW_SCHEMA_VERSION,
-    ALLOWED_TRANSITIONS,
     apply_workflow_action,
     get_workflow_template,
     list_workflow_templates,

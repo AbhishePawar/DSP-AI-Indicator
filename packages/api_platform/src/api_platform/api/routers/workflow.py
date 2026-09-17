@@ -37,9 +37,9 @@ def run_workflow(
         payload={
             "context_ref": body.context_ref,
             "status": getattr(getattr(result.payload, "status", None), "value", None),
-            "result_type": type(result.payload).__name__
-            if result.payload is not None
-            else None,
+            "result_type": (
+                type(result.payload).__name__ if result.payload is not None else None
+            ),
         },
         limitations=limitations,
         errors=list(result.errors),

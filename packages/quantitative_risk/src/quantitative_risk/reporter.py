@@ -89,9 +89,7 @@ class ReportingContext:
             msg = "missing report identity: QuantitativeRiskReport or EngineResult required"
             raise QuantitativeRiskError(msg)
         if self.summary_sections is not None:
-            object.__setattr__(
-                self, "summary_sections", tuple(self.summary_sections)
-            )
+            object.__setattr__(self, "summary_sections", tuple(self.summary_sections))
         object.__setattr__(
             self,
             "limitations",
@@ -155,7 +153,9 @@ class QuantitativeRiskReporter:
                 context.engine_result.report.portfolio_ref.portfolio_id
                 != context.report.portfolio_ref.portfolio_id
             ):
-                msg = "broken references: portfolio_id mismatch between engine and report"
+                msg = (
+                    "broken references: portfolio_id mismatch between engine and report"
+                )
                 raise QuantitativeRiskError(msg)
 
         self._reject_duplicate_metric_ids(source.metrics)
@@ -249,7 +249,9 @@ class QuantitativeRiskReporter:
             section_keys=sections,
         )
 
-        status = self._status(metrics, exposures, concentrations, volatilities, drawdowns)
+        status = self._status(
+            metrics, exposures, concentrations, volatilities, drawdowns
+        )
         if status is ReportingStatus.PARTIAL:
             warnings.append("Report sections are incomplete.")
         if status is ReportingStatus.EMPTY:
@@ -270,9 +272,7 @@ class QuantitativeRiskReporter:
 
     def report_many(
         self,
-        contexts: tuple[
-            ReportingContext | QuantitativeRiskReport | EngineResult, ...
-        ],
+        contexts: tuple[ReportingContext | QuantitativeRiskReport | EngineResult, ...],
     ) -> tuple[ReportingResult, ...]:
         """Present many reports; reject duplicate quantitative_risk identities."""
         seen: set[str] = set()
@@ -414,9 +414,7 @@ class QuantitativeRiskReporter:
                 msg = f"invalid Decimal values: metric {metric.metric_id!r}"
                 raise QuantitativeRiskError(msg)
 
-    def _validate_exposure_contracts(
-        self, exposures: tuple[RiskExposure, ...]
-    ) -> None:
+    def _validate_exposure_contracts(self, exposures: tuple[RiskExposure, ...]) -> None:
         for exposure in exposures:
             if not exposure.method_id or not exposure.method_id.strip():
                 msg = f"missing method_id: exposure {exposure.exposure_id!r}"

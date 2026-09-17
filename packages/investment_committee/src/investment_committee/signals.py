@@ -90,9 +90,7 @@ def build_signals(
     rec = getattr(recommendation, "recommendation", None)
     rec_value = getattr(rec, "value", rec)
     rules = getattr(recommendation, "triggered_rules", ()) or ()
-    rule_ids = tuple(
-        str(getattr(r, "rule_id", r)) for r in rules
-    )
+    rule_ids = tuple(str(getattr(r, "rule_id", r)) for r in rules)
     conflicts = getattr(business_quality, "conflict_adjustments", ()) or ()
 
     val_conf = explained_value(valuation, "confidence")

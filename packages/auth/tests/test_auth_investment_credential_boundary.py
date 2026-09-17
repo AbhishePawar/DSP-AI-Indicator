@@ -239,7 +239,7 @@ def test_e_resend_mode_does_not_require_smtp_password(
         def read(self) -> bytes:
             return b'{"id":"email_test"}'
 
-        def __enter__(self) -> "_Resp":
+        def __enter__(self) -> _Resp:
             return self
 
         def __exit__(self, *args: object) -> None:

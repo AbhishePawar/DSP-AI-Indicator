@@ -35,9 +35,7 @@ def test_default_weights_sum_to_one() -> None:
         (100.0, GrowthQualityRating.EXCEPTIONAL),
     ],
 )
-def test_rating_boundaries(
-    score: float | None, expected: GrowthQualityRating
-) -> None:
+def test_rating_boundaries(score: float | None, expected: GrowthQualityRating) -> None:
     assert growth_rating_from_score(score) is expected
 
 

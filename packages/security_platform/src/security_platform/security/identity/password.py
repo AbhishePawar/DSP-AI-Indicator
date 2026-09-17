@@ -31,7 +31,9 @@ class PasswordPolicy:
         if password is None or not password.strip():
             raise SecurityError("password must not be empty")
         if len(password) < self.min_length:
-            raise SecurityError(f"password must be at least {self.min_length} characters")
+            raise SecurityError(
+                f"password must be at least {self.min_length} characters"
+            )
         if self.require_upper and not any(c.isupper() for c in password):
             raise SecurityError("password must include an uppercase letter")
         if self.require_lower and not any(c.islower() for c in password):
@@ -50,9 +52,7 @@ class ScryptPasswordHasher:
         digest = hashlib.scrypt(
             password.encode("utf-8"), salt=salt, n=2**14, r=8, p=1, dklen=32
         )
-        return (
-            f"{self._PREFIX}{salt.hex()}${digest.hex()}"
-        )
+        return f"{self._PREFIX}{salt.hex()}${digest.hex()}"
 
     def verify(self, password: str, password_hash: str) -> bool:
         if not password_hash.startswith(self._PREFIX):
@@ -92,7 +92,9 @@ class Argon2PasswordHasher:
             return False
 
 
-def build_password_hasher(*, prefer_argon2: bool = True) -> ScryptPasswordHasher | Argon2PasswordHasher:
+def build_password_hasher(
+    *, prefer_argon2: bool = True
+) -> ScryptPasswordHasher | Argon2PasswordHasher:
     """Prefer Argon2 when available; else scrypt reference."""
     if prefer_argon2:
         try:

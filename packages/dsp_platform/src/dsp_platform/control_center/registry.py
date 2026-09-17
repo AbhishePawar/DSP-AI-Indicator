@@ -161,7 +161,9 @@ class ConfigurationRegistry:
     def upsert_rule(self, payload: dict[str, Any], *, author: str) -> dict[str, Any]:
         with self._lock:
             rule_id = str(payload.get("rule_id") or f"rule-{uuid4().hex[:10]}")
-            existing = next((r for r in self._rules if r.get("rule_id") == rule_id), None)
+            existing = next(
+                (r for r in self._rules if r.get("rule_id") == rule_id), None
+            )
             old = deepcopy(existing) if existing else None
             row = {
                 "rule_id": rule_id,
@@ -174,7 +176,9 @@ class ConfigurationRegistry:
                 "updated_by": author,
             }
             if existing:
-                self._rules = [row if r.get("rule_id") == rule_id else r for r in self._rules]
+                self._rules = [
+                    row if r.get("rule_id") == rule_id else r for r in self._rules
+                ]
             else:
                 row["created_at"] = _now()
                 self._rules.append(row)
@@ -197,7 +201,9 @@ class ConfigurationRegistry:
     def delete_rule(self, rule_id: str, *, author: str) -> bool:
         with self._lock:
             before = len(self._rules)
-            removed = next((r for r in self._rules if r.get("rule_id") == rule_id), None)
+            removed = next(
+                (r for r in self._rules if r.get("rule_id") == rule_id), None
+            )
             self._rules = [r for r in self._rules if r.get("rule_id") != rule_id]
             if removed:
                 self._version_counter += 1

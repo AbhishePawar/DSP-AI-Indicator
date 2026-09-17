@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import pytest
+
 from industry import EvidenceBundleReference, EvidenceBundleStatus
 from portfolio import (
     DecisionPackReference,
@@ -11,7 +12,6 @@ from portfolio import (
     PortfolioIdentity,
     PortfolioType,
 )
-
 from risk import (
     PortfolioReference,
     RiskAnalysisContext,
@@ -176,8 +176,12 @@ class TestValidationAndBoundaries:
         with pytest.raises(RiskError, match="duplicate observations"):
             analyzer._reject_duplicates(
                 (
-                    RiskObservation(code="same", text="Constraint posture is acceptable."),
-                    RiskObservation(code="same", text="Liquidity posture is acceptable."),
+                    RiskObservation(
+                        code="same", text="Constraint posture is acceptable."
+                    ),
+                    RiskObservation(
+                        code="same", text="Liquidity posture is acceptable."
+                    ),
                 ),
                 (),
             )

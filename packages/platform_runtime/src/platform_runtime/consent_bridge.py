@@ -6,7 +6,8 @@ through this adapter without duplicating durable storage.
 
 from __future__ import annotations
 
-from typing import Any, Sequence
+from collections.abc import Sequence
+from typing import Any
 
 from compliance import ConsentRecord as ComplianceConsentRecord
 from security_platform import ConsentRecord as SecurityConsentRecord

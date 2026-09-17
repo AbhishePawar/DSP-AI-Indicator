@@ -56,7 +56,9 @@ class OpenTelemetryTracingPort:
         return self._fallback.list_spans()
 
 
-def try_build_otel_tracing(*, tracer_name: str = "dsp-ai-indicator") -> TracingPort | None:
+def try_build_otel_tracing(
+    *, tracer_name: str = "dsp-ai-indicator"
+) -> TracingPort | None:
     try:
         return OpenTelemetryTracingPort(tracer_name=tracer_name)
     except ProviderError:

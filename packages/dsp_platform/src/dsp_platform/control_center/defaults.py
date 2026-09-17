@@ -62,11 +62,27 @@ DEFAULT_REGISTRY: dict[str, dict[str, Any]] = {
     "cms": {
         "pages": {
             "home": {"title": "Home", "body": "Data unavailable.", "published": False},
-            "about": {"title": "About", "body": "Data unavailable.", "published": False},
-            "contact": {"title": "Contact", "body": "Data unavailable.", "published": False},
+            "about": {
+                "title": "About",
+                "body": "Data unavailable.",
+                "published": False,
+            },
+            "contact": {
+                "title": "Contact",
+                "body": "Data unavailable.",
+                "published": False,
+            },
             "faq": {"title": "FAQ", "body": "Data unavailable.", "published": False},
-            "privacy": {"title": "Privacy", "body": "Data unavailable.", "published": False},
-            "terms": {"title": "Terms", "body": "Data unavailable.", "published": False},
+            "privacy": {
+                "title": "Privacy",
+                "body": "Data unavailable.",
+                "published": False,
+            },
+            "terms": {
+                "title": "Terms",
+                "body": "Data unavailable.",
+                "published": False,
+            },
             "disclaimer": {
                 "title": "Disclaimer",
                 "body": "Research Mode — not investment advice.",
@@ -127,7 +143,10 @@ DEFAULT_REGISTRY: dict[str, dict[str, Any]] = {
             "graham": {"enabled": True, "defaults": {}},
             "relative": {"enabled": True, "defaults": {}},
         },
-        "margin_of_safety": {"default_pct": None, "note": "Unable to calculate. without engine inputs"},
+        "margin_of_safety": {
+            "default_pct": None,
+            "note": "Unable to calculate. without engine inputs",
+        },
         "wacc": {"default": None},
         "terminal_growth": {"default": None},
         "risk_free_rate": {"default": None},

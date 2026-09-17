@@ -43,6 +43,8 @@ from data_engine.historical_series.models import (
     HistoricalCompanyIdentity,
     HistoricalField,
     HistoricalProvenance,
+)
+from data_engine.historical_series.models import (
     utc_now as hist_utc_now,
 )
 from data_engine.historical_series.service import (
@@ -165,7 +167,9 @@ class UpstoxHistoricalCandleResult:
             "http_status": self.http_status,
             "candle_count": self.candle_count,
             "chunks_requested": self.chunks_requested,
-            "identity": None if self.identity is None else self.identity.to_public_dict(),
+            "identity": (
+                None if self.identity is None else self.identity.to_public_dict()
+            ),
             "series": None if self.series is None else self.series.to_public_dict(),
             "resolve_status": None if self.resolve is None else self.resolve.status,
         }
@@ -192,7 +196,9 @@ class UpstoxHistoricalCandleClient:
             )
         object.__setattr__(self, "access_token", str(self.access_token or "").strip())
         object.__setattr__(self, "max_attempts", max(1, min(int(self.max_attempts), 3)))
-        object.__setattr__(self, "max_chunks", max(1, min(int(self.max_chunks), _MAX_CHUNKS)))
+        object.__setattr__(
+            self, "max_chunks", max(1, min(int(self.max_chunks), _MAX_CHUNKS))
+        )
         if self.resolver is None:
             object.__setattr__(
                 self,
@@ -280,7 +286,9 @@ class UpstoxHistoricalCandleClient:
                 interval=interval_key,
             )
 
-        if not isinstance(request.from_date, date) or not isinstance(request.to_date, date):
+        if not isinstance(request.from_date, date) or not isinstance(
+            request.to_date, date
+        ):
             return UpstoxHistoricalCandleResult(
                 status="REJECTED",
                 query=query,
@@ -645,7 +653,9 @@ class UpstoxHistoricalSeriesAdapter(HistoricalSeriesPort):
         )
 
     def health(self) -> HistoricalProviderHealth:
-        token = str(self.access_token or resolve_u0_upstox_analytics_token() or "").strip()
+        token = str(
+            self.access_token or resolve_u0_upstox_analytics_token() or ""
+        ).strip()
         ok = bool(token)
         return HistoricalProviderHealth(
             provider_id=self.provider_id,
@@ -752,11 +762,11 @@ def _parse_candle_row(row: Any, *, frequency: str) -> AuthenticatedOhlcvBar | No
     high_f = HistoricalField.of(row[2])
     low_f = HistoricalField.of(row[3])
     close_f = HistoricalField.of(row[4])
-    if not (open_f.available and high_f.available and low_f.available and close_f.available):
+    if not (
+        open_f.available and high_f.available and low_f.available and close_f.available
+    ):
         return None
-    volume_f = (
-        HistoricalField.of(row[5]) if len(row) > 5 else HistoricalField.missing()
-    )
+    volume_f = HistoricalField.of(row[5]) if len(row) > 5 else HistoricalField.missing()
     # open_interest (index 6) — not in AuthenticatedOhlcvBar; equity often 0
     return AuthenticatedOhlcvBar(
         bar_date=bar_date,

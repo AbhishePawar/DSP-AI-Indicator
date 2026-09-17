@@ -5,7 +5,6 @@ from __future__ import annotations
 import pytest
 
 from core.exceptions import DSPAIError
-
 from economic.analyzers import GdpAnalyzer
 from economic.exceptions import EconomicError
 from economic.registry import get, list_analyzers, register

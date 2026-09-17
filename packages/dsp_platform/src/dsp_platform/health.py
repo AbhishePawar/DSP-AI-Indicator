@@ -114,13 +114,10 @@ class PlatformHealthService:
             self._check_provider_registry(),
             composition,
             self._check_investment_data_provider(),
-            self._check_wiring(
-                canonical_ready=composition.status is CheckStatus.PASS
-            ),
+            self._check_wiring(canonical_ready=composition.status is CheckStatus.PASS),
         ]
         blocking_failed = any(
-            c.status is CheckStatus.FAIL
-            and c.name not in _NON_BLOCKING_READY_CHECKS
+            c.status is CheckStatus.FAIL and c.name not in _NON_BLOCKING_READY_CHECKS
             for c in checks
         )
         # Surface any failure (including investment) in overall status while

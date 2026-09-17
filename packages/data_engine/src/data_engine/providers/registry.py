@@ -35,9 +35,7 @@ class ProviderRegistry:
         self._adapters: Registry[BaseAdapter] = Registry(kind="provider")
         self._metadata: dict[str, ProviderMetadata] = {}
 
-    def register(
-        self, adapter: BaseAdapter, metadata: ProviderMetadata
-    ) -> BaseAdapter:
+    def register(self, adapter: BaseAdapter, metadata: ProviderMetadata) -> BaseAdapter:
         """Register a provider adapter with its metadata.
 
         Args:

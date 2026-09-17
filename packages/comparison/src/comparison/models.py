@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
+from comparison.enums import ComparisonStatus
 from core.exceptions import ValidationError
 from decision_intelligence import DecisionPack
 from industry import (
@@ -12,8 +13,6 @@ from industry import (
     EvidenceBundle,
     GroupEligibilityStatus,
 )
-
-from comparison.enums import ComparisonStatus
 
 __all__ = [
     "ComparisonDimensionResult",

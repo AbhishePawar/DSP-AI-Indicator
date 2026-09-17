@@ -3,7 +3,8 @@
 from __future__ import annotations
 
 import uuid
-from typing import Any, Mapping
+from collections.abc import Mapping
+from typing import Any
 
 from persistence.exceptions import ValidationError
 from persistence.models import (
@@ -16,7 +17,12 @@ from persistence.models import (
     utc_now,
 )
 from persistence.registry import get_repository_registry
-from persistence.serde import content_hash, entity_to_dict, snapshot_to_dict, to_plain_jsonable
+from persistence.serde import (
+    content_hash,
+    entity_to_dict,
+    snapshot_to_dict,
+    to_plain_jsonable,
+)
 from persistence.transactions import TransactionManager
 from persistence.validation import validate_entity
 
@@ -215,7 +221,9 @@ class PersistenceService:
         return list(self.registry.repository(kind).list_ids())
 
     def list_entities(self, kind: str) -> list[dict[str, Any]]:
-        return [entity_to_dict(e) for e in self.registry.repository(kind).list_entities()]
+        return [
+            entity_to_dict(e) for e in self.registry.repository(kind).list_entities()
+        ]
 
     def persist_workflow_record(
         self,
@@ -289,15 +297,15 @@ class PersistenceService:
         section = str(cite.get("section") or "")
         if not path or not section:
             raise ValidationError("citation requires path and section")
-        eid = entity_id or f"cite-{content_hash({'path': path, 'section': section})[:16]}"
+        eid = (
+            entity_id or f"cite-{content_hash({'path': path, 'section': section})[:16]}"
+        )
         return self.put(
             kind="citation",
             entity_id=eid,
             payload=cite,
             refs={
-                k: cite[k]
-                for k in ("ref_id", "source_kind", "symbol")
-                if cite.get(k)
+                k: cite[k] for k in ("ref_id", "source_kind", "symbol") if cite.get(k)
             },
             created_at=created_at,
         )

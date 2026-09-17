@@ -4,7 +4,6 @@ from __future__ import annotations
 
 from business_quality import BusinessQualityAnalysis
 from financial import FinancialAnalysis
-
 from growth_quality.exceptions import GrowthQualityValidationError
 from growth_quality.explainability import (
     GROWTH_QUALITY_RESEARCH_DISCLAIMER,
@@ -15,8 +14,8 @@ from growth_quality.explainability import (
     build_summary,
 )
 from growth_quality.metadata import (
-    GROWTH_QUALITY_VERSION,
     FRAMEWORK_VERSION,
+    GROWTH_QUALITY_VERSION,
     GrowthQualityMetadata,
 )
 from growth_quality.models import (

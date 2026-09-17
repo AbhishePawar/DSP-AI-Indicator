@@ -76,9 +76,7 @@ class TestValidation:
             validate_graham_inputs(_base(eps_trailing=-1.0))
 
     def test_allows_negative_eps_when_flagged(self) -> None:
-        s = validate_graham_inputs(
-            _base(eps_trailing=-1.0, allow_negative_eps=True)
-        )
+        s = validate_graham_inputs(_base(eps_trailing=-1.0, allow_negative_eps=True))
         assert s.ok
 
     def test_rejects_impossible_growth(self) -> None:
@@ -108,9 +106,7 @@ class TestValidation:
     def test_warnings_high_growth_zero_eps(self) -> None:
         s = validate_graham_inputs(_base(growth_rate=20, eps_trailing=0.0))
         assert s.warnings
-        s2 = validate_graham_inputs(
-            _base(growth_rate=0.20, growth_as_decimal=True)
-        )
+        s2 = validate_graham_inputs(_base(growth_rate=0.20, growth_as_decimal=True))
         assert any("high growth" in w for w in s2.warnings)
 
     def test_optional_fields_and_price(self) -> None:
@@ -135,7 +131,9 @@ class TestValidation:
 class TestScenariosSensitivity:
     def test_scenarios(self) -> None:
         r = GrahamEngine().analyze(
-            _base(formula=GrahamFormula.MODERN, bear_growth_delta=-2, bull_growth_delta=2)
+            _base(
+                formula=GrahamFormula.MODERN, bear_growth_delta=-2, bull_growth_delta=2
+            )
         )
         kinds = {s.kind.name for s in r.scenarios}
         assert kinds >= {"bear", "base", "bull", "stress_growth"}
@@ -233,7 +231,7 @@ class TestExplainabilityIntegration:
         assert len(result.explainability) >= 5
         vr = to_valuation_result(result)
         assert vr.model_name == "graham"
-        from valuation import to_graham_valuation_result, to_graham_v2_aggregate_payload
+        from valuation import to_graham_v2_aggregate_payload, to_graham_valuation_result
 
         assert to_graham_valuation_result(result).model_name == "graham"
         payload = to_v2_aggregate_payload(result)

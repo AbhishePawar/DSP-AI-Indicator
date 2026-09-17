@@ -53,7 +53,9 @@ class MfaMethodPort(Protocol):
 
     def begin_enroll(self, user_id: str) -> dict[str, Any]: ...
 
-    def confirm_enroll(self, user_id: str, payload: dict[str, Any]) -> dict[str, Any]: ...
+    def confirm_enroll(
+        self, user_id: str, payload: dict[str, Any]
+    ) -> dict[str, Any]: ...
 
     def begin_challenge(self, user_id: str) -> dict[str, Any]: ...
 
@@ -68,11 +70,15 @@ class WebAuthnPort(Protocol):
 
     def begin_registration(self, user_id: str) -> dict[str, Any]: ...
 
-    def complete_registration(self, user_id: str, credential: dict[str, Any]) -> dict[str, Any]: ...
+    def complete_registration(
+        self, user_id: str, credential: dict[str, Any]
+    ) -> dict[str, Any]: ...
 
     def begin_authentication(self, user_id: str) -> dict[str, Any]: ...
 
-    def complete_authentication(self, user_id: str, assertion: dict[str, Any]) -> bool: ...
+    def complete_authentication(
+        self, user_id: str, assertion: dict[str, Any]
+    ) -> bool: ...
 
 
 @dataclass(frozen=True, slots=True)
@@ -134,17 +140,23 @@ class NullWebAuthnAdapter:
     def begin_registration(self, user_id: str) -> dict[str, Any]:
         raise NotImplementedError("WebAuthn not enabled (DSP_AUTH_MFA=false)")
 
-    def complete_registration(self, user_id: str, credential: dict[str, Any]) -> dict[str, Any]:
+    def complete_registration(
+        self, user_id: str, credential: dict[str, Any]
+    ) -> dict[str, Any]:
         raise NotImplementedError("WebAuthn not enabled")
 
     def begin_authentication(self, user_id: str) -> dict[str, Any]:
         raise NotImplementedError("WebAuthn not enabled")
 
-    def begin_discoverable_authentication(self, identifier: str | None = None) -> dict[str, Any]:
+    def begin_discoverable_authentication(
+        self, identifier: str | None = None
+    ) -> dict[str, Any]:
         _ = identifier
         raise NotImplementedError("WebAuthn not enabled")
 
-    def complete_discoverable_authentication(self, assertion: dict[str, Any]) -> dict[str, Any]:
+    def complete_discoverable_authentication(
+        self, assertion: dict[str, Any]
+    ) -> dict[str, Any]:
         _ = assertion
         raise NotImplementedError("WebAuthn not enabled")
 
@@ -221,9 +233,11 @@ class MfaGateway:
                 "/auth/mfa/webauthn/register",
                 "/auth/mfa/webauthn/authenticate",
             ],
-            "message": None
-            if self._enabled
-            else "MFA disabled — enable with DSP_AUTH_MFA=true.",
+            "message": (
+                None
+                if self._enabled
+                else "MFA disabled — enable with DSP_AUTH_MFA=true."
+            ),
         }
 
     def issue_mfa_token(self, user_id: str) -> str:
@@ -321,5 +335,9 @@ def build_mfa_gateway(
     from auth.mfa_webauthn import WebAuthnAdapter
 
     totp = TotpAdapter(persistence)
-    webauthn = WebAuthnAdapter(persistence, users) if users is not None else NullWebAuthnAdapter()
+    webauthn = (
+        WebAuthnAdapter(persistence, users)
+        if users is not None
+        else NullWebAuthnAdapter()
+    )
     return MfaGateway(totp=totp, webauthn=webauthn, jwt=jwt, persistence=persistence)

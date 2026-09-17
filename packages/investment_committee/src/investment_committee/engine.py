@@ -10,10 +10,6 @@ from earnings_quality import EarningsQualityAnalysis
 from economic_moat import EconomicAnalysis
 from financial_strength import FinancialStrengthAnalysis
 from growth_quality import GrowthQualityAnalysis
-from investment_recommendation import InvestmentRecommendation, ValuationSignals
-from management_quality import ManagementAnalysis
-from valuation import OverallValuationResult
-
 from investment_committee.consensus import build_consensus
 from investment_committee.exceptions import InvestmentCommitteeValidationError
 from investment_committee.explainability import (
@@ -36,6 +32,9 @@ from investment_committee.models import (
 from investment_committee.reviewers import evaluate_all_reviewers
 from investment_committee.signals import build_signals
 from investment_committee.validation import validate_framework_inputs
+from investment_recommendation import InvestmentRecommendation, ValuationSignals
+from management_quality import ManagementAnalysis
+from valuation import OverallValuationResult
 
 __all__ = ["InvestmentCommitteeEngine"]
 
@@ -143,13 +142,10 @@ class InvestmentCommitteeEngine:
             research_disclaimer=RESEARCH_DISCLAIMER,
         )
 
-    def explain(
-        self, result: InvestmentCommitteeResult
-    ) -> CommitteeExplainability:
+    def explain(self, result: InvestmentCommitteeResult) -> CommitteeExplainability:
         if not isinstance(result, InvestmentCommitteeResult):
             raise InvestmentCommitteeValidationError(
-                "Accept ONLY InvestmentCommitteeResult, "
-                f"got {type(result).__name__}"
+                "Accept ONLY InvestmentCommitteeResult, " f"got {type(result).__name__}"
             )
         return result.explainability
 

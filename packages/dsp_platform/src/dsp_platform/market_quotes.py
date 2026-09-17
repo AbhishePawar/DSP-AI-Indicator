@@ -33,11 +33,11 @@ def _service() -> MarketQuoteService:
             adapter = build_default_quote_adapter_from_env()
             # P1-09 CI fixture only — never production / never live vendor evidence.
             try:
+                from data_engine import InMemoryAuthenticatedQuoteAdapter
                 from dsp_platform.p109_e2e_fixture import (
                     build_p109_quote,
                     p109_fixture_enabled,
                 )
-                from data_engine import InMemoryAuthenticatedQuoteAdapter
 
                 if p109_fixture_enabled() and isinstance(
                     adapter, InMemoryAuthenticatedQuoteAdapter

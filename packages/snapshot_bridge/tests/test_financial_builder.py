@@ -75,9 +75,7 @@ class TestFinancialSnapshotBuilder:
             FinancialSnapshotBuilder.build(instrument, ())
 
     def test_mismatched_instrument_raises(self, instrument: Instrument) -> None:
-        other = Instrument(
-            symbol="MSFT", asset_class=AssetClass.EQUITY, currency="USD"
-        )
+        other = Instrument(symbol="MSFT", asset_class=AssetClass.EQUITY, currency="USD")
         with pytest.raises(SnapshotBridgeError):
             FinancialSnapshotBuilder.build(
                 instrument, (_statement(other, date(2023, 12, 31)),)

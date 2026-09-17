@@ -93,9 +93,14 @@ def _issuer_matches(token_iss: str, pattern: str) -> bool:
     """
     if "*" not in pattern:
         return token_iss == pattern
-    regex = "^" + "".join(
-        re.escape(part) if part != "*" else "[^/]+" for part in re.split(r"(\*)", pattern)
-    ) + "$"
+    regex = (
+        "^"
+        + "".join(
+            re.escape(part) if part != "*" else "[^/]+"
+            for part in re.split(r"(\*)", pattern)
+        )
+        + "$"
+    )
     return re.match(regex, token_iss) is not None
 
 

@@ -3,8 +3,8 @@
 from __future__ import annotations
 
 import pytest
-from core.exceptions import ValidationError
 
+from core.exceptions import ValidationError
 from industry import (
     ApplicabilityLevel,
     EvidenceApplicabilityRule,
@@ -13,15 +13,14 @@ from industry import (
     IndustryEvidenceApplicabilityRegistry,
     IndustryEvidenceRegistry,
     IndustryMethodologyRegistry,
-    IndustryMetricRegistry,
+    IndustryTaxonomy,
+    InvestmentCharacteristicsRegistry,
     MissingEvidencePolicy,
     RequiredEvidenceSet,
+    register_example_methodologies,
     seed_example_evidence_applicability_context,
     seed_example_evidence_registries,
     seed_example_industry_context,
-    InvestmentCharacteristicsRegistry,
-    IndustryTaxonomy,
-    register_example_methodologies,
 )
 
 
@@ -94,16 +93,12 @@ class TestApplicabilityRegistry:
         banking = apps.lookup_active_for_methodology(
             "dsp.methodology.commercial_banking"
         )
-        assert banking.required_evidence_ids() == (
-            "dsp.evidence.nim_stability",
-        )
+        assert banking.required_evidence_ids() == ("dsp.evidence.nim_stability",)
         assert "dsp.evidence.regulated_cash_flow_visibility" in (
             banking.unsupported_evidence_ids()
         )
         recommended = banking.rules_by_level(ApplicabilityLevel.RECOMMENDED)
-        assert any(
-            r.evidence_id == "dsp.evidence.roe_persistence" for r in recommended
-        )
+        assert any(r.evidence_id == "dsp.evidence.roe_persistence" for r in recommended)
         assert banking.missing_evidence_policy is MissingEvidencePolicy.DEGRADE
         apps.validate()
 
@@ -143,9 +138,7 @@ class TestApplicabilityRegistry:
 
     def test_duplicate_applicability_rejected(self) -> None:
         *_, apps = seed_example_evidence_applicability_context()
-        banking = apps.lookup_active(
-            "dsp.evidence_applicability.commercial_banking"
-        )
+        banking = apps.lookup_active("dsp.evidence_applicability.commercial_banking")
         with pytest.raises(IndustryError, match="duplicate"):
             apps.register(
                 IndustryEvidenceApplicability(

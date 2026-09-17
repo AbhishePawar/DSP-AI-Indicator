@@ -3,8 +3,8 @@
 from __future__ import annotations
 
 import pytest
-from core.exceptions import ValidationError
 
+from core.exceptions import ValidationError
 from industry import (
     ApplicabilityLevel,
     EvidenceAvailability,
@@ -126,9 +126,7 @@ class TestBundleAssembly:
         nim = bundle.entry_for("dsp.evidence.nim_stability")
         assert nim is not None
         assert nim.provider_result is not None
-        assert (
-            nim.provider_result.availability is EvidenceAvailability.AVAILABLE
-        )
+        assert nim.provider_result.availability is EvidenceAvailability.AVAILABLE
         assert nim.is_gap is False
 
     def test_assemble_many_deterministic(self) -> None:

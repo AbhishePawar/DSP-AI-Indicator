@@ -39,19 +39,11 @@ class FeatureFlags:
 
     def allow_action_labels(self) -> bool:
         """True when BUY/SELL/HOLD may appear in UI."""
-        return (
-            self.recommendation_mode
-            and self.sebi_mode
-            and self.show_buy_sell
-        )
+        return self.recommendation_mode and self.sebi_mode and self.show_buy_sell
 
     def allow_official_target_price(self) -> bool:
         """True when official Target Price labeling may appear."""
-        return (
-            self.recommendation_mode
-            and self.sebi_mode
-            and self.show_target_price
-        )
+        return self.recommendation_mode and self.sebi_mode and self.show_target_price
 
     def is_research_only(self) -> bool:
         return self.research_mode and not self.sebi_mode

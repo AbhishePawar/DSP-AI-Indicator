@@ -9,9 +9,14 @@ is the ``DSPPlatformToolAdapter`` (or a test stub).
 
 from __future__ import annotations
 
-from typing import Any, Mapping, Sequence
+from collections.abc import Mapping, Sequence
+from typing import Any
 
-from llm_adapters.tools.contract import DSPToolBackend, ToolResult, assert_no_tool_leakage
+from llm_adapters.tools.contract import (
+    DSPToolBackend,
+    ToolResult,
+    assert_no_tool_leakage,
+)
 from llm_adapters.tools.protocol.models import (
     ToolCall,
     ToolCallError,
@@ -33,7 +38,9 @@ def _sanitize_error_message(raw: str) -> str:
     """Drop exception internals / secret-shaped text from fail-closed reasons."""
     text = " ".join(raw.split())
     lowered = text.lower()
-    if any(token in lowered for token in ("api_key", "bearer ", "sk-", "authorization")):
+    if any(
+        token in lowered for token in ("api_key", "bearer ", "sk-", "authorization")
+    ):
         return "tool call failed"
     if len(text) > 240:
         text = text[:240]
@@ -98,7 +105,9 @@ class ToolCallBoundary:
         self._registered = frozenset(registry.names())
 
     def declarations(self) -> tuple[ToolDeclaration, ...]:
-        return tuple(ToolDeclaration.from_manifest_entry(entry) for entry in self._manifest)
+        return tuple(
+            ToolDeclaration.from_manifest_entry(entry) for entry in self._manifest
+        )
 
     def allowed_names(self) -> frozenset[str]:
         return self._allowed
@@ -215,7 +224,10 @@ class ToolCallBoundary:
                     reason = raw_reason
             if not reason and result.limitations:
                 reason = result.limitations[0]
-            error = ToolCallError(kind=status, message=_sanitize_error_message(reason or "tool call failed"))
+            error = ToolCallError(
+                kind=status,
+                message=_sanitize_error_message(reason or "tool call failed"),
+            )
         outcome = ToolCallOutcome(
             call_id=call_id,
             tool_name=name,

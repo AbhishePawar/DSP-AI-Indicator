@@ -154,7 +154,9 @@ def test_missing_sections_honest() -> None:
     assert report.market_data.available is False
     assert report.valuation.available is False
     assert report.risk.message == "Data unavailable."
-    assert report.header.payload["fields"]["current_market_price"] == "Data unavailable."
+    assert (
+        report.header.payload["fields"]["current_market_price"] == "Data unavailable."
+    )
     assert report.executive_summary.available is True  # identity always present
 
 

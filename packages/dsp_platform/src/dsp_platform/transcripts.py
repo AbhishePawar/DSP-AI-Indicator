@@ -49,7 +49,9 @@ def _group() -> FailoverGroup[TranscriptService, TranscriptQuery, Any]:
     with _LOCK:
         if _GROUP is None:
             registry = build_default_transcript_registry_from_env()
-            _SERVICES = tuple(TranscriptService(provider) for provider in registry.ordered())
+            _SERVICES = tuple(
+                TranscriptService(provider) for provider in registry.ordered()
+            )
             _GROUP = _make_group(_SERVICES)
         return _GROUP
 
@@ -84,7 +86,9 @@ def get_authenticated_transcripts(
         currency=currency,
         exchange=exchange,
     )
-    query = TranscriptQuery(instrument=instrument, year=year, quarter=quarter, limit=limit)
+    query = TranscriptQuery(
+        instrument=instrument, year=year, quarter=quarter, limit=limit
+    )
     outcome = _group().call(query, symbol=instrument.symbol)
     if outcome is None:
         return None

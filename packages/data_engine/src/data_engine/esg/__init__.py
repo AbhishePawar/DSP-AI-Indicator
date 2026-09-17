@@ -12,7 +12,12 @@ from data_engine.esg.adapters import (
 )
 from data_engine.esg.models import CONTROVERSY_LEVELS, AuthenticatedEsgScore
 from data_engine.esg.registry import EsgProviderRegistry
-from data_engine.esg.service import EsgProviderPort, EsgQuery, EsgService, EsgServiceMetrics
+from data_engine.esg.service import (
+    EsgProviderPort,
+    EsgQuery,
+    EsgService,
+    EsgServiceMetrics,
+)
 from data_engine.esg.validation import validate_authenticated_esg_score
 
 __all__ = [

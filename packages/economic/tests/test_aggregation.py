@@ -5,7 +5,6 @@ from __future__ import annotations
 import pytest
 
 from contracts.enums import SignalDirection
-
 from economic.aggregation import aggregate_signals
 from economic.enums import EconomicCondition, Recommendation
 from economic.models import EconomicSignal

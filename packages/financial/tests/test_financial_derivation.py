@@ -70,7 +70,9 @@ def _tcs_statements() -> FinancialStatements:
             gross_profit=_TCS_GP,
             net_income=_TCS_NI,
         ),
-        balance_sheet=BalanceSheet(total_equity=_TCS_EQUITY_END, equity=_TCS_EQUITY_END),
+        balance_sheet=BalanceSheet(
+            total_equity=_TCS_EQUITY_END, equity=_TCS_EQUITY_END
+        ),
         statement_metadata=StatementMetadata(
             unit_scale=UnitScale.ACTUAL,
             currency=CurrencyRef(code=CurrencyCode.INR),
@@ -141,7 +143,9 @@ class TestFinancialDerivationPolicy:
             FORMULA_ROE,
             {
                 "net_income": _reported("net_income", _TCS_NI),
-                "beginning_equity": _reported("beginning_equity", None, period_end=_FY23),
+                "beginning_equity": _reported(
+                    "beginning_equity", None, period_end=_FY23
+                ),
                 "ending_equity": _reported("ending_equity", _TCS_EQUITY_END),
             },
         )

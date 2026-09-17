@@ -50,9 +50,10 @@ import hashlib
 import hmac
 import os
 import secrets
+from collections.abc import Mapping
 from dataclasses import dataclass
-from datetime import datetime, timedelta, timezone
-from typing import Any, Mapping, Protocol, runtime_checkable
+from datetime import UTC, datetime, timedelta
+from typing import Any, Protocol, runtime_checkable
 
 __all__ = [
     "SingleUseTokenError",
@@ -137,8 +138,10 @@ class SingleUseTokenService:
     ) -> None:
         self._persistence = persistence
         self._audit = audit
-        self._secret = secret if secret is not None else os.environ.get(
-            "DSP_TOKEN_HASH_SECRET", ""
+        self._secret = (
+            secret
+            if secret is not None
+            else os.environ.get("DSP_TOKEN_HASH_SECRET", "")
         )
         self._key_version = key_version
 
@@ -147,7 +150,9 @@ class SingleUseTokenService:
     def _digest(self, token: str) -> str:
         data = (token or "").encode("utf-8")
         if self._secret:
-            return hmac.new(self._secret.encode("utf-8"), data, hashlib.sha256).hexdigest()
+            return hmac.new(
+                self._secret.encode("utf-8"), data, hashlib.sha256
+            ).hexdigest()
         return hashlib.sha256(data).hexdigest()
 
     def _entity_id(self, purpose: str, token: str) -> str:
@@ -178,7 +183,7 @@ class SingleUseTokenService:
         if not purpose or not purpose.strip():
             raise ValueError("purpose is required")
         token = secrets.token_urlsafe(32)
-        now = datetime.now(tz=timezone.utc)
+        now = datetime.now(tz=UTC)
         expires_at = (now + ttl).isoformat()
         entity_id = self._entity_id(purpose, token)
         refs: dict[str, Any] = {"auth_entity": f"single_use_token:{purpose}"}
@@ -243,7 +248,7 @@ class SingleUseTokenService:
         attempts.
         """
         entity_id = self._entity_id(purpose, token)
-        now_iso = datetime.now(tz=timezone.utc).isoformat()
+        now_iso = datetime.now(tz=UTC).isoformat()
         stored = self._persistence.atomic_consume_unexpired(
             "metadata",
             entity_id,
@@ -297,7 +302,9 @@ class SingleUseTokenService:
                 raise error_cls(error_message)
 
         if organization_id is not None and record.organization_id is not None:
-            if not hmac.compare_digest(str(record.organization_id), str(organization_id)):
+            if not hmac.compare_digest(
+                str(record.organization_id), str(organization_id)
+            ):
                 self._log(
                     "single_use_token.consume_failed",
                     user_id=record.user_id,
@@ -319,7 +326,7 @@ class SingleUseTokenService:
     def revoke(self, *, purpose: str, token: str) -> bool:
         """Explicitly invalidate a pending token before it is ever redeemed."""
         entity_id = self._entity_id(purpose, token)
-        now_iso = datetime.now(tz=timezone.utc).isoformat()
+        now_iso = datetime.now(tz=UTC).isoformat()
         existed = self._persistence.atomic_consume_unexpired(
             "metadata",
             entity_id,
@@ -366,8 +373,8 @@ class SingleUseTokenService:
             return False
         exp = datetime.fromisoformat(expires_at)
         if exp.tzinfo is None:
-            exp = exp.replace(tzinfo=timezone.utc)
-        return datetime.now(tz=timezone.utc) > exp
+            exp = exp.replace(tzinfo=UTC)
+        return datetime.now(tz=UTC) > exp
 
     @staticmethod
     def _to_record(payload: dict[str, Any]) -> TokenRecord:

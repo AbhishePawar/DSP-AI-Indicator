@@ -40,12 +40,7 @@ class ValuationSignals:
         premium = self.premium_discount
         # IV <= 0 is not a usable intrinsic value for MoS (avoid divide-by-zero /
         # nonsense ratios from non-positive IV).
-        if (
-            mos is None
-            and ivps is not None
-            and price is not None
-            and float(ivps) > 0
-        ):
+        if mos is None and ivps is not None and price is not None and float(ivps) > 0:
             mos = (float(ivps) - float(price)) / float(ivps)
             object.__setattr__(self, "margin_of_safety", mos)
         if (
@@ -64,9 +59,7 @@ class ValuationSignals:
             intrinsic_value_per_share=explained_value(
                 valuation, "overall_intrinsic_value_per_share"
             ),
-            current_market_price=explained_value(
-                valuation, "current_market_price"
-            ),
+            current_market_price=explained_value(valuation, "current_market_price"),
             margin_of_safety=explained_value(valuation, "margin_of_safety"),
             premium_discount=explained_value(valuation, "premium_discount"),
             confidence=explained_value(valuation, "confidence") or 0.0,

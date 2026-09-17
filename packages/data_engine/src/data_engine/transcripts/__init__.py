@@ -9,7 +9,10 @@ from data_engine.transcripts.adapters import (
     build_default_transcript_registry_from_env,
     build_transcripts_bundle_from_mapping,
 )
-from data_engine.transcripts.models import AuthenticatedTranscripts, EarningsCallTranscript
+from data_engine.transcripts.models import (
+    AuthenticatedTranscripts,
+    EarningsCallTranscript,
+)
 from data_engine.transcripts.registry import TranscriptProviderRegistry
 from data_engine.transcripts.service import (
     TranscriptProviderPort,

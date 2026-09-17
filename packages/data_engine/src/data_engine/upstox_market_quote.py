@@ -28,6 +28,8 @@ from data_engine.market_quote.adapters import build_quote_from_mapping
 from data_engine.market_quote.models import (
     AuthenticatedMarketQuote,
     MarketQuoteProvenance,
+)
+from data_engine.market_quote.models import (
     utc_now as quote_utc_now,
 )
 from data_engine.upstox_connectivity import (
@@ -99,7 +101,9 @@ class UpstoxMarketQuoteResult:
             "retrieved_at": self.retrieved_at.isoformat(),
             "latency_ms": self.latency_ms,
             "http_status": self.http_status,
-            "identity": None if self.identity is None else self.identity.to_public_dict(),
+            "identity": (
+                None if self.identity is None else self.identity.to_public_dict()
+            ),
             "quote": None if self.quote is None else self.quote.to_public_dict(),
             # Never expose raw resolve payload secrets; resolve.to_public_dict is safe.
             "resolve_status": None if self.resolve is None else self.resolve.status,
@@ -152,7 +156,9 @@ class UpstoxMarketQuoteClient:
             "Authorization": f"Bearer {self.access_token}",
         }
 
-    def get_quote(self, request: UpstoxMarketQuoteRequest | str) -> UpstoxMarketQuoteResult:
+    def get_quote(
+        self, request: UpstoxMarketQuoteRequest | str
+    ) -> UpstoxMarketQuoteResult:
         retrieved_at = datetime.now(tz=UTC)
         if isinstance(request, str):
             request = UpstoxMarketQuoteRequest(symbol=request)
@@ -400,10 +406,14 @@ def _map_quote_payload(
             metadata={**provenance.metadata, "vendor_timestamp": str(ts)},
         )
 
-    symbol = str(
-        row.get("symbol") or identity.trading_symbol or identity.display_symbol
-    ).strip().upper()
-    return build_quote_from_mapping(symbol=symbol, payload=fields, provenance=provenance)
+    symbol = (
+        str(row.get("symbol") or identity.trading_symbol or identity.display_symbol)
+        .strip()
+        .upper()
+    )
+    return build_quote_from_mapping(
+        symbol=symbol, payload=fields, provenance=provenance
+    )
 
 
 def _parse_as_of(value: Any) -> datetime | None:

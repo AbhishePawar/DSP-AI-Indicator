@@ -43,15 +43,11 @@ def test_analyze_is_deterministic(
     assert a.to_dict() == b.to_dict()
 
 
-def test_explain_and_validate(
-    financial_analysis, business_quality_analysis
-) -> None:
+def test_explain_and_validate(financial_analysis, business_quality_analysis) -> None:
     engine = GrowthQualityEngine()
     analysis = engine.analyze(financial_analysis, business_quality_analysis)
     assert engine.explain(analysis) is analysis.explainability
-    with pytest.raises(
-        GrowthQualityValidationError, match="GrowthQualityAnalysis"
-    ):
+    with pytest.raises(GrowthQualityValidationError, match="GrowthQualityAnalysis"):
         engine.explain(object())  # type: ignore[arg-type]
     assert engine.validate(None, None).ok is False
 

@@ -2,11 +2,37 @@
 
 from __future__ import annotations
 
+from collections.abc import Callable
 from enum import Enum
-from typing import Any, Callable
+from typing import Any
 
 from business_quality import BusinessQualityEngine
 from business_quality_aggregator import BusinessQualityAggregatorEngine
+from dsp_platform.composition.authenticated_valuation import (
+    DATA_UNAVAILABLE,
+    AuthenticatedValuationBundle,
+    AuthenticatedValuationError,
+    load_authenticated_valuation_bundle,
+    production_requires_authenticated_bundle,
+    signals_from_assessment,
+    to_financial_statements,
+)
+from dsp_platform.composition.collectors import (
+    EvidenceCollector,
+    TimingCollector,
+    timed,
+)
+from dsp_platform.composition.context import ExecutionContext
+from dsp_platform.composition.errors import CompositionStageError
+from dsp_platform.composition.models import (
+    ExecutionMetadata,
+    ExecutionTraceEntry,
+    PipelineResult,
+    StageOutcome,
+    StageStatus,
+)
+from dsp_platform.composition.risk_view import build_company_risk_view
+from dsp_platform.composition.versions import COMPOSITION_PIPELINE_VERSION
 from earnings_quality import EarningsQualityEngine
 from economic_moat import EconomicEngine
 from financial import FinancialEngine
@@ -19,28 +45,6 @@ from investment_recommendation import (
 )
 from management_quality import ManagementEngine
 from valuation import ValuationEngine
-
-from dsp_platform.composition.authenticated_valuation import (
-    DATA_UNAVAILABLE,
-    AuthenticatedValuationBundle,
-    AuthenticatedValuationError,
-    load_authenticated_valuation_bundle,
-    production_requires_authenticated_bundle,
-    signals_from_assessment,
-    to_financial_statements,
-)
-from dsp_platform.composition.collectors import EvidenceCollector, TimingCollector, timed
-from dsp_platform.composition.context import ExecutionContext
-from dsp_platform.composition.errors import CompositionStageError
-from dsp_platform.composition.models import (
-    ExecutionMetadata,
-    ExecutionTraceEntry,
-    PipelineResult,
-    StageOutcome,
-    StageStatus,
-)
-from dsp_platform.composition.risk_view import build_company_risk_view
-from dsp_platform.composition.versions import COMPOSITION_PIPELINE_VERSION
 
 __all__ = ["EXECUTION_ORDER", "PipelineStage", "run_execution_pipeline"]
 
@@ -293,9 +297,7 @@ def run_execution_pipeline(
             PipelineStage.INVESTMENT_RECOMMENDATION.value
         ),
         investment_committee=ctx.results.get(PipelineStage.INVESTMENT_COMMITTEE.value),
-        authenticated_valuation_trace=ctx.results.get(
-            "authenticated_valuation_trace"
-        ),
+        authenticated_valuation_trace=ctx.results.get("authenticated_valuation_trace"),
         errors=tuple(ctx.errors),
     )
 
@@ -320,9 +322,7 @@ def _stage_financial(
         ctx.package_versions["business_quality"] = (
             _pkg_version("business_quality") or ""
         )
-        warnings.append(
-            "P1-01: financial stage used authenticated server statements"
-        )
+        warnings.append("P1-01: financial stage used authenticated server statements")
         return fa, warnings, StageStatus.SUCCEEDED
 
     ticker = str(ctx.request.ticker or "").strip()
@@ -389,15 +389,14 @@ def _stage_valuation(
         )
         ctx.results["valuation_signals"] = signals
         ctx.results["authenticated_valuation_trace"] = bundle.to_trace_dict()
-        warnings.append(
-            "P1-01: ValuationEngine used authenticated server data bundle"
-        )
+        warnings.append("P1-01: ValuationEngine used authenticated server data bundle")
         return assessment, warnings, StageStatus.SUCCEEDED
 
     auth_err = ctx.results.get(_AUTH_ERROR_KEY)
-    if production_requires_authenticated_bundle() and str(
-        ctx.request.ticker or ""
-    ).strip():
+    if (
+        production_requires_authenticated_bundle()
+        and str(ctx.request.ticker or "").strip()
+    ):
         raise ValueError(str(auth_err) if auth_err else DATA_UNAVAILABLE)
 
     if ctx.request.financial_snapshot is not None:
@@ -459,7 +458,9 @@ def _stage_domain(
     fa = ctx.results.get(PipelineStage.FINANCIAL.value)
     bq = ctx.results.get("business_quality_analysis")
     if fa is None or bq is None:
-        raise ValueError(f"{key} requires financial_analysis and business_quality_analysis")
+        raise ValueError(
+            f"{key} requires financial_analysis and business_quality_analysis"
+        )
     return analyze(fa, bq), [], StageStatus.SUCCEEDED
 
 

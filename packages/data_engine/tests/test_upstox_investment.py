@@ -47,7 +47,10 @@ class FakeJsonClient:
                 },
             }
         if path.endswith("/profile"):
-            return {"status": "success", "data": {"company_profile": "State Bank of India"}}
+            return {
+                "status": "success",
+                "data": {"company_profile": "State Bank of India"},
+            }
         if path.endswith("/income-statement"):
             return {
                 "status": "success",
@@ -84,7 +87,11 @@ class FakeJsonClient:
                     "type": "consolidated",
                     "units_in": "crore",
                     "history": [
-                        {"total_asset": 1000, "total_liability": 400, "period": "Mar 2026"}
+                        {
+                            "total_asset": 1000,
+                            "total_liability": 400,
+                            "period": "Mar 2026",
+                        }
                     ],
                     "full_statement": [
                         {
@@ -130,7 +137,10 @@ class FakeJsonClient:
 
 
 def test_token_resolution_prefers_analytics_token() -> None:
-    env = {"DSP_UPSTOX_ANALYTICS_TOKEN": "analytics", "DSP_UPSTOX_ACCESS_TOKEN": "oauth"}
+    env = {
+        "DSP_UPSTOX_ANALYTICS_TOKEN": "analytics",
+        "DSP_UPSTOX_ACCESS_TOKEN": "oauth",
+    }
     assert resolve_upstox_analytics_token(env) == "analytics"
 
 
@@ -162,7 +172,9 @@ def test_statement_adapter_maps_authenticated_upstox_statements() -> None:
 
     bundle = adapter.get_statements(
         StatementQuery(
-            instrument=Instrument(symbol="SBIN", asset_class=AssetClass.EQUITY, currency="INR"),
+            instrument=Instrument(
+                symbol="SBIN", asset_class=AssetClass.EQUITY, currency="INR"
+            ),
             limit=1,
         )
     )

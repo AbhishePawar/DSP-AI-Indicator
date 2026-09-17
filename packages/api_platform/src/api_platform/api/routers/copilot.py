@@ -22,7 +22,9 @@ from api_platform.api.schemas import ApiResponse, CopilotChatRequest
 router = APIRouter(tags=["copilot"])
 
 
-def _run_v2(state: ApiState, body: CopilotV2Request, *, default_mode: str | None) -> JSONResponse:
+def _run_v2(
+    state: ApiState, body: CopilotV2Request, *, default_mode: str | None
+) -> JSONResponse:
     message = body.resolved_message()
     if not message:
         return JSONResponse(
@@ -63,7 +65,9 @@ def _run_v2(state: ApiState, body: CopilotV2Request, *, default_mode: str | None
             status_code=503,
             content={"ok": False, "error": str(exc), "message": "Data unavailable."},
         )
-    return JSONResponse({"ok": True, "result": result, "message": result.get("message")})
+    return JSONResponse(
+        {"ok": True, "result": result, "message": result.get("message")}
+    )
 
 
 @router.get("/copilot/schema")

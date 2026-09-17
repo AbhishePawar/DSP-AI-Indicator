@@ -52,7 +52,9 @@ from financial import (
 from financial.metadata import StatementMetadata
 
 
-def _period(*, end: date = date(2024, 12, 31), fy: int | None = 2024) -> FinancialPeriod:
+def _period(
+    *, end: date = date(2024, 12, 31), fy: int | None = 2024
+) -> FinancialPeriod:
     return FinancialPeriod(
         period_type=PeriodType.ANNUAL,
         period_end=end,
@@ -135,8 +137,18 @@ class TestHelpers:
         assert _normalize_turnover(2.0) == 1.0
         assert _ratio_metric(None, "x") is None
         assert _benchmark_score(None) is None
-        assert _benchmark_score(SimpleNamespace(benchmark=SimpleNamespace(value="excellent"))) == 1.0
-        assert _benchmark_score(SimpleNamespace(benchmark=SimpleNamespace(value="unknown"))) is None
+        assert (
+            _benchmark_score(
+                SimpleNamespace(benchmark=SimpleNamespace(value="excellent"))
+            )
+            == 1.0
+        )
+        assert (
+            _benchmark_score(
+                SimpleNamespace(benchmark=SimpleNamespace(value="unknown"))
+            )
+            is None
+        )
 
     def test_dimension_helpers(self) -> None:
         fa = _fa(1.0, 1.1, 1.2)
@@ -155,9 +167,10 @@ class TestHelpers:
         assert _profitability_persistence(income, fa.trends) is not None
         assert _capital_efficiency(ratios, cash) is not None
         assert _competitive_resilience(income, balance, cash) is not None
-        assert _financial_competitive_strength(
-            income, ratios, cash, fa.overall_summary
-        ) is not None
+        assert (
+            _financial_competitive_strength(income, ratios, cash, fa.overall_summary)
+            is not None
+        )
 
         # Pricing expansion branch
         income_exp = SimpleNamespace(
@@ -518,22 +531,18 @@ class TestPackage:
         assert bq.COMPETITIVE_POSITION_VERSION.startswith("0.5.0")
 
     def test_strength_weakness_helpers(self) -> None:
-        from business_quality.engine import _strengths, _weaknesses
-        from business_quality.earnings_quality_models import EarningsQualityFlag
-        from business_quality.capital_allocation_models import CapitalAllocationFlag
         from business_quality.business_characteristics_models import (
             BusinessCharacteristicsFlag,
         )
+        from business_quality.capital_allocation_models import CapitalAllocationFlag
+        from business_quality.earnings_quality_models import EarningsQualityFlag
+        from business_quality.engine import _strengths, _weaknesses
 
-        eq = SimpleNamespace(
-            quality_flags=(EarningsQualityFlag.HIGH_EARNINGS_QUALITY,)
-        )
+        eq = SimpleNamespace(quality_flags=(EarningsQualityFlag.HIGH_EARNINGS_QUALITY,))
         ca = SimpleNamespace(
             quality_flags=(CapitalAllocationFlag.EXCELLENT_CAPITAL_ALLOCATION,)
         )
-        bc = SimpleNamespace(
-            quality_flags=(BusinessCharacteristicsFlag.ASSET_LIGHT,)
-        )
+        bc = SimpleNamespace(quality_flags=(BusinessCharacteristicsFlag.ASSET_LIGHT,))
         cp = SimpleNamespace(
             quality_flags=(
                 CompetitivePositionFlag.STRONG_COMPETITIVE_POSITION,

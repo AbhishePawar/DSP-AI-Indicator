@@ -5,8 +5,8 @@ from __future__ import annotations
 from decimal import Decimal
 
 import pytest
-from core.exceptions import ValidationError
 
+from core.exceptions import ValidationError
 from recommendation import (
     ComparisonReference,
     ConfidenceLevel,
@@ -62,9 +62,7 @@ def _rationale(
 
 
 def _refs() -> dict:
-    decision = DecisionReference(
-        instrument_symbol="AAA", digest="abcdef0123456789"
-    )
+    decision = DecisionReference(instrument_symbol="AAA", digest="abcdef0123456789")
     comparison = ComparisonReference(digest="abcdef0123456789")
     portfolio = PortfolioReference(portfolio_id="dsp.portfolio.demo")
     risk = RiskReference(risk_id="dsp.risk.demo")

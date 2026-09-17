@@ -87,30 +87,22 @@ class TestInvestmentCharacteristics:
         register_example_archetypes(reg)
         assert len(build_example_archetypes()) == 5
         assert len(reg.list_all(status=CharacteristicLifecycle.ACTIVE)) == 5
-        stable = reg.lookup_active(
-            "dsp.characteristics.stable_regulated_cash_flow"
-        )
+        stable = reg.lookup_active("dsp.characteristics.stable_regulated_cash_flow")
         assert stable.defaults.valuation_philosophy is ValuationPhilosophyHint.INCOME
 
 
 class TestIndustryProfileReferences:
     def test_profile_references_characteristics(self) -> None:
         tax = IndustryTaxonomy()
-        tax.register(
-            IndustryIdentity(id="dsp.industry.utilities", name="Utilities")
-        )
+        tax.register(IndustryIdentity(id="dsp.industry.utilities", name="Utilities"))
         chars = InvestmentCharacteristicsRegistry()
-        chars.register(
-            _char("dsp.characteristics.stable_regulated_cash_flow")
-        )
+        chars.register(_char("dsp.characteristics.stable_regulated_cash_flow"))
         profiles = IndustryProfileRegistry(tax, chars)
         profile = profiles.register(
             IndustryProfile(
                 industry_id="dsp.industry.utilities",
                 version="1.0.0",
-                characteristic_ids=(
-                    "dsp.characteristics.stable_regulated_cash_flow",
-                ),
+                characteristic_ids=("dsp.characteristics.stable_regulated_cash_flow",),
             )
         )
         assert profile.characteristic_ids == (

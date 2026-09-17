@@ -199,9 +199,7 @@ class TestReporterHappyPath:
         engine_result = WorkflowEngine().run(
             EngineContext(
                 assembly=assembly,
-                facade=_ScriptedFacade(
-                    {"dsp.workflow.step.analysis": [_success()]}
-                ),
+                facade=_ScriptedFacade({"dsp.workflow.step.analysis": [_success()]}),
                 execution_timestamp="2026-07-21T12:00:00Z",
             )
         )
@@ -277,9 +275,7 @@ class TestReporterNoOrchestration:
         assert "quantize" not in source
 
     def test_reporter_forbids_upstream_imports(self) -> None:
-        path = (
-            Path(__file__).resolve().parents[1] / "src" / "workflow" / "reporter.py"
-        )
+        path = Path(__file__).resolve().parents[1] / "src" / "workflow" / "reporter.py"
         tree = ast.parse(path.read_text(encoding="utf-8"))
         names: set[str] = set()
         for node in ast.walk(tree):

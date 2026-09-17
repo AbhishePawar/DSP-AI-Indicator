@@ -3,8 +3,9 @@
 from __future__ import annotations
 
 import uuid
+from collections.abc import Mapping
 from datetime import UTC, datetime
-from typing import Any, Mapping
+from typing import Any
 
 from dsp_platform.copilot_v2.intent import (
     COPILOT_MODES,
@@ -103,9 +104,7 @@ def run_copilot_v2(
     if portfolio_id:
         context_patch["current_portfolio_id"] = portfolio_id
     if intent == "comparison" and len(resolved_symbols) >= 2:
-        context_patch["previous_comparisons"] = [
-            " vs ".join(resolved_symbols[:2])
-        ]
+        context_patch["previous_comparisons"] = [" vs ".join(resolved_symbols[:2])]
     if analyse_response is not None:
         context_patch["selected_valuation"] = "analyse_payload"
 
@@ -278,7 +277,12 @@ def _handle_company(
         ]
         if isinstance(stages, list) and stages:
             lines.append(f"Stage count (from analyse payload): {len(stages)}")
-        return "\n".join(lines), sources, False, {"analyse_response": dict(analyse_response)}
+        return (
+            "\n".join(lines),
+            sources,
+            False,
+            {"analyse_response": dict(analyse_response)},
+        )
 
     if research_object is not None or report is not None:
         try:
@@ -289,7 +293,9 @@ def _handle_company(
             )
             sources.append(source_ref("research_copilot", "ask_research_copilot"))
             answer = str(grounded.get("answer") or UNAVAILABLE_MESSAGE)
-            unavailable = bool(grounded.get("unavailable")) or answer == UNAVAILABLE_MESSAGE
+            unavailable = (
+                bool(grounded.get("unavailable")) or answer == UNAVAILABLE_MESSAGE
+            )
             return answer, sources, unavailable, {"research_copilot": grounded}
         except Exception:  # noqa: BLE001
             pass
@@ -299,7 +305,11 @@ def _handle_company(
             bundle = platform.get_unified_data_bundle(symbols[0])
             if isinstance(bundle, dict):
                 sources.append(source_ref("data_connector", "unified_data_bundle"))
-                identity = bundle.get("identity") if isinstance(bundle.get("identity"), dict) else {}
+                identity = (
+                    bundle.get("identity")
+                    if isinstance(bundle.get("identity"), dict)
+                    else {}
+                )
                 return (
                     "\n".join(
                         [
@@ -375,7 +385,11 @@ def _handle_committee(
 ) -> tuple[str, list[dict[str, Any]], bool, dict[str, Any] | None]:
     sources: list[dict[str, Any]] = []
     result = committee_result
-    if result is None and (research_object is not None or report is not None or analyse_response is not None):
+    if result is None and (
+        research_object is not None
+        or report is not None
+        or analyse_response is not None
+    ):
         subject = symbols[0] if symbols else "subject"
         try:
             result = platform.run_institutional_committee(
@@ -384,7 +398,9 @@ def _handle_committee(
                 report=dict(report) if report else None,
                 portfolio_intelligence=None,
             )
-            sources.append(source_ref("institutional_committee", "run_institutional_committee"))
+            sources.append(
+                source_ref("institutional_committee", "run_institutional_committee")
+            )
         except Exception:  # noqa: BLE001
             result = None
 
@@ -392,13 +408,17 @@ def _handle_committee(
         embedded = _from_mapping(analyse_response, "committee_summary")
         if isinstance(embedded, dict):
             result = embedded
-            sources.append(source_ref("institutional_committee", "analyse_committee_summary"))
+            sources.append(
+                source_ref("institutional_committee", "analyse_committee_summary")
+            )
 
     if result is None:
         agents = []
         try:
             agents = platform.list_committee_agents()
-            sources.append(source_ref("institutional_committee", "list_committee_agents"))
+            sources.append(
+                source_ref("institutional_committee", "list_committee_agents")
+            )
         except Exception:  # noqa: BLE001
             agents = []
         return (
@@ -415,10 +435,18 @@ def _handle_committee(
             {"agents": agents or None},
         )
 
-    bull = _fmt(_from_mapping(result, "bull_case")) or _fmt(_from_mapping(result, "scenarios", "bull"))
-    base = _fmt(_from_mapping(result, "base_case")) or _fmt(_from_mapping(result, "scenarios", "base"))
-    bear = _fmt(_from_mapping(result, "bear_case")) or _fmt(_from_mapping(result, "scenarios", "bear"))
-    voting = _fmt(_from_mapping(result, "voting")) or _fmt(_from_mapping(result, "decision"))
+    bull = _fmt(_from_mapping(result, "bull_case")) or _fmt(
+        _from_mapping(result, "scenarios", "bull")
+    )
+    base = _fmt(_from_mapping(result, "base_case")) or _fmt(
+        _from_mapping(result, "scenarios", "base")
+    )
+    bear = _fmt(_from_mapping(result, "bear_case")) or _fmt(
+        _from_mapping(result, "scenarios", "bear")
+    )
+    voting = _fmt(_from_mapping(result, "voting")) or _fmt(
+        _from_mapping(result, "decision")
+    )
     confidence = _fmt(_from_mapping(result, "confidence"))
     minority = _fmt(_from_mapping(result, "minority_opinion")) or _fmt(
         _from_mapping(result, "minority")
@@ -434,7 +462,12 @@ def _handle_committee(
         ]
     )
     unavailable = text.count(UNAVAILABLE_MESSAGE) >= 5
-    return text, sources, unavailable, {"committee": dict(result) if isinstance(result, dict) else None}
+    return (
+        text,
+        sources,
+        unavailable,
+        {"committee": dict(result) if isinstance(result, dict) else None},
+    )
 
 
 def _handle_risk(
@@ -459,20 +492,28 @@ def _handle_risk(
     if pi is None and (portfolio is not None or symbols):
         try:
             pi = platform.evaluate_portfolio_intelligence(
-                portfolio=dict(portfolio)
-                if portfolio
-                else {
-                    "portfolio_id": portfolio_id or "copilot",
-                    "holdings": [{"symbol": s} for s in symbols],
-                }
+                portfolio=(
+                    dict(portfolio)
+                    if portfolio
+                    else {
+                        "portfolio_id": portfolio_id or "copilot",
+                        "holdings": [{"symbol": s} for s in symbols],
+                    }
+                )
             )
-            sources.append(source_ref("portfolio_intelligence", "evaluate_portfolio_intelligence"))
+            sources.append(
+                source_ref("portfolio_intelligence", "evaluate_portfolio_intelligence")
+            )
         except Exception:  # noqa: BLE001
             pi = None
 
     risk_summary = risk if isinstance(risk, dict) else None
-    pi_risk = _from_mapping(pi, "portfolio_risk_summary") if isinstance(pi, dict) else None
-    divers = _from_mapping(pi, "diversification_summary") if isinstance(pi, dict) else None
+    pi_risk = (
+        _from_mapping(pi, "portfolio_risk_summary") if isinstance(pi, dict) else None
+    )
+    divers = (
+        _from_mapping(pi, "diversification_summary") if isinstance(pi, dict) else None
+    )
     conc = _from_mapping(pi, "position_concentration") if isinstance(pi, dict) else None
 
     if risk_summary:
@@ -500,20 +541,22 @@ def _handle_risk(
             ),
             _section(
                 "Concentration",
-                _fmt(_from_mapping(conc, "note"))
-                if isinstance(conc, dict)
-                else None,
+                _fmt(_from_mapping(conc, "note")) if isinstance(conc, dict) else None,
             ),
             _section(
                 "Diversification",
-                _fmt(_from_mapping(divers, "note"))
-                if isinstance(divers, dict)
-                else None,
+                (
+                    _fmt(_from_mapping(divers, "note"))
+                    if isinstance(divers, dict)
+                    else None
+                ),
             ),
         ]
     )
     # When only notes exist (PI), still available as explanation of linked research gaps
-    unavailable = "Risk Score" in text and UNAVAILABLE_MESSAGE in text.split("Stress Tests")[0]
+    unavailable = (
+        "Risk Score" in text and UNAVAILABLE_MESSAGE in text.split("Stress Tests")[0]
+    )
     return text, sources, False, {"risk": risk_summary, "portfolio_intelligence": pi}
 
 
@@ -534,20 +577,34 @@ def _handle_portfolio(
         shell = (
             dict(portfolio)
             if portfolio
-            else {
-                "portfolio_id": portfolio_id or "copilot",
-                "holdings": [{"symbol": s} for s in symbols],
-            }
-            if symbols
-            else None
+            else (
+                {
+                    "portfolio_id": portfolio_id or "copilot",
+                    "holdings": [{"symbol": s} for s in symbols],
+                }
+                if symbols
+                else None
+            )
         )
         if shell is None:
-            return UNAVAILABLE_MESSAGE, [source_ref("portfolio_intelligence")], True, None
+            return (
+                UNAVAILABLE_MESSAGE,
+                [source_ref("portfolio_intelligence")],
+                True,
+                None,
+            )
         try:
             pi = platform.evaluate_portfolio_intelligence(portfolio=shell)
-            sources.append(source_ref("portfolio_intelligence", "evaluate_portfolio_intelligence"))
+            sources.append(
+                source_ref("portfolio_intelligence", "evaluate_portfolio_intelligence")
+            )
         except Exception:  # noqa: BLE001
-            return UNAVAILABLE_MESSAGE, [source_ref("portfolio_intelligence")], True, None
+            return (
+                UNAVAILABLE_MESSAGE,
+                [source_ref("portfolio_intelligence")],
+                True,
+                None,
+            )
 
     summary = _from_mapping(pi, "portfolio_summary") or {}
     risk = _from_mapping(pi, "portfolio_risk_summary") or {}
@@ -565,7 +622,12 @@ def _handle_portfolio(
             f"Diversification suggestion: {UNAVAILABLE_MESSAGE if not missing else 'Cover missing research before suggesting allocation changes.'}",
         ]
     )
-    return text, sources, False, {"portfolio_intelligence": dict(pi) if isinstance(pi, dict) else None}
+    return (
+        text,
+        sources,
+        False,
+        {"portfolio_intelligence": dict(pi) if isinstance(pi, dict) else None},
+    )
 
 
 def _handle_comparison(
@@ -586,7 +648,8 @@ def _handle_comparison(
             _from_mapping(comparison_result, "executive_summary")
         )
         return (
-            summary or "Comparison artifact present. Detailed narrative fields unavailable.",
+            summary
+            or "Comparison artifact present. Detailed narrative fields unavailable.",
             sources,
             summary is None,
             {"comparison": dict(comparison_result)},
@@ -597,7 +660,9 @@ def _handle_comparison(
         a = symbols[0] if symbols else "A"
         b = symbols[1] if len(symbols) > 1 else "B"
         mos_a = _fmt(
-            _from_mapping(analyse_response, "recommendation_summary", "margin_of_safety")
+            _from_mapping(
+                analyse_response, "recommendation_summary", "margin_of_safety"
+            )
         )
         mos_b = _fmt(
             _from_mapping(
@@ -656,7 +721,10 @@ def _handle_document(
     if kind in {"auto", "news"}:
         _safe("news", lambda: platform.get_authenticated_news(symbol, limit=5))
     if kind in {"auto", "transcripts", "conference"}:
-        _safe("transcripts", lambda: platform.get_authenticated_transcripts(symbol, limit=3))
+        _safe(
+            "transcripts",
+            lambda: platform.get_authenticated_transcripts(symbol, limit=3),
+        )
 
     if not sources:
         return (
@@ -753,7 +821,10 @@ def _handle_memo(
     text = "\n".join(
         [
             "# Investment Memo",
-            _section("Investment Thesis", company_ans if company_ans != UNAVAILABLE_MESSAGE else None),
+            _section(
+                "Investment Thesis",
+                company_ans if company_ans != UNAVAILABLE_MESSAGE else None,
+            ),
             _section("Strengths", strengths),
             _section("Weaknesses", weaknesses),
             _section("Risks", risk_ans if "Risk Score" in risk_ans else None),
@@ -763,8 +834,15 @@ def _handle_memo(
         ]
     )
     sources = company_src + val_src + risk_src + com_src
-    unavailable = analyse_response is None and research_object is None and report is None
-    return text, sources or [source_ref("export_engine", "memo_assembly")], unavailable, com_payload
+    unavailable = (
+        analyse_response is None and research_object is None and report is None
+    )
+    return (
+        text,
+        sources or [source_ref("export_engine", "memo_assembly")],
+        unavailable,
+        com_payload,
+    )
 
 
 def _handle_scenarios(
@@ -806,10 +884,15 @@ def _handle_buffett(
         research_object=research_object,
         **kwargs,
     )
-    return _buffett_wrap(answer, unavailable=unavailable), [
-        *sources,
-        source_ref("explain_like_buffett"),
-    ], unavailable, payload
+    return (
+        _buffett_wrap(answer, unavailable=unavailable),
+        [
+            *sources,
+            source_ref("explain_like_buffett"),
+        ],
+        unavailable,
+        payload,
+    )
 
 
 def _handle_chat(
@@ -893,7 +976,10 @@ def _suggested_for(intent: str, symbols: list[str]) -> list[dict[str, str]]:
         {"id": "buffett", "label": "Explain like Buffett"},
     ]
     if intent == "portfolio":
-        base.insert(0, {"id": "portfolio_concentration", "label": "Where is concentration risk?"})
+        base.insert(
+            0,
+            {"id": "portfolio_concentration", "label": "Where is concentration risk?"},
+        )
     if intent == "document":
         base.insert(0, {"id": "filings", "label": f"Summarize filings for {sym}"})
     return base

@@ -89,9 +89,7 @@ def _seed_service() -> FinancialStatementService:
 
 
 def test_statements_unavailable_by_default(client: TestClient) -> None:
-    response = client.get(
-        "/api/v1/fundamentals/statements", params={"symbol": "AAPL"}
-    )
+    response = client.get("/api/v1/fundamentals/statements", params={"symbol": "AAPL"})
     assert response.status_code == 200
     body = response.json()
     assert body["available"] is False
@@ -101,9 +99,7 @@ def test_statements_unavailable_by_default(client: TestClient) -> None:
 
 def test_statements_authenticated_payload(client: TestClient) -> None:
     reset_financial_statement_service_for_tests(_seed_service())
-    response = client.get(
-        "/api/v1/fundamentals/statements", params={"symbol": "AAPL"}
-    )
+    response = client.get("/api/v1/fundamentals/statements", params={"symbol": "AAPL"})
     assert response.status_code == 200
     body = response.json()
     assert body["available"] is True

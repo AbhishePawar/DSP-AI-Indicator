@@ -192,7 +192,9 @@ class RiskIntegrator:
         if status is RiskIntegrationStatus.EMPTY:
             warnings.append("No assessment, summary, coverage, or report to integrate.")
         if not reporting_ready:
-            warnings.append("Reporting inputs not ready — assessment or summary missing.")
+            warnings.append(
+                "Reporting inputs not ready — assessment or summary missing."
+            )
 
         return RiskIntegrationResult(
             context=integrated,
@@ -339,9 +341,7 @@ class RiskIntegrator:
                 )
                 raise RiskError(msg)
 
-    def _reject_duplicate_coverage(
-        self, coverage: tuple[RiskCoverage, ...]
-    ) -> None:
+    def _reject_duplicate_coverage(self, coverage: tuple[RiskCoverage, ...]) -> None:
         seen: set[str] = set()
         for cov in coverage:
             key = cov.kind.value

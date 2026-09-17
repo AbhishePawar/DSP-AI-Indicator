@@ -29,8 +29,7 @@ class TestScenarioMatrix:
         assert pack.recommendation.action is RecommendationAction.BUY
         assert pack.assurance.assurance_level is AssuranceLevel.HIGH
         assert (
-            pack.assurance.investor_guidance.stance
-            is GuidanceStance.INVEST_IMMEDIATELY
+            pack.assurance.investor_guidance.stance is GuidanceStance.INVEST_IMMEDIATELY
         )
         assert pack.assurance.key_strengths
         assert pack.brief.invalidators
@@ -63,9 +62,7 @@ class TestScenarioMatrix:
             sources=("technical", "fundamental", "economic"),
         )
         assert pack.recommendation.action is RecommendationAction.HOLD
-        assert (
-            pack.assurance.investor_guidance.stance is GuidanceStance.STAND_ASIDE
-        )
+        assert pack.assurance.investor_guidance.stance is GuidanceStance.STAND_ASIDE
         assert "buy" not in pack.assurance.investor_guidance.rationale.lower()
 
     def test_04_technical_bullish_fundamental_bearish(
@@ -79,9 +76,7 @@ class TestScenarioMatrix:
         )
         assert pack.recommendation.action is RecommendationAction.HOLD
         assert pack.assurance.assurance_level is AssuranceLevel.LOW
-        assert (
-            pack.assurance.investor_guidance.stance is GuidanceStance.STAND_ASIDE
-        )
+        assert pack.assurance.investor_guidance.stance is GuidanceStance.STAND_ASIDE
 
     def test_05_fundamentals_strong_valuation_expensive(
         self, instrument: Instrument
@@ -254,9 +249,7 @@ class TestScenarioMatrix:
         )
         assert pack.recommendation.action is RecommendationAction.HOLD
         assert pack.assurance.assurance_level is AssuranceLevel.LOW
-        assert (
-            pack.assurance.investor_guidance.stance is GuidanceStance.STAND_ASIDE
-        )
+        assert pack.assurance.investor_guidance.stance is GuidanceStance.STAND_ASIDE
 
     def test_14_single_domain_dependence(self, instrument: Instrument) -> None:
         pack = build_pack(

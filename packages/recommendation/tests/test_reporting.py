@@ -37,9 +37,7 @@ def _engine_result():
                 recommendation_name="Demo Recommendation",
             ),
             decision_refs=(
-                DecisionReference(
-                    instrument_symbol="AAA", digest="abcdef0123456789"
-                ),
+                DecisionReference(instrument_symbol="AAA", digest="abcdef0123456789"),
             ),
             comparison_refs=(ComparisonReference(digest="abcdef0123456789"),),
             portfolio_ref=PortfolioReference(portfolio_id="dsp.portfolio.demo"),

@@ -3,7 +3,11 @@
 from __future__ import annotations
 
 from valuation.ddm.ddm_engine import DdmEngine
-from valuation.ddm.ddm_explainability import DdmExplainedValue, explain_many, explain_step
+from valuation.ddm.ddm_explainability import (
+    DdmExplainedValue,
+    explain_many,
+    explain_step,
+)
 from valuation.ddm.ddm_models import (
     DDM_VERSION,
     RESEARCH_DISCLAIMER,

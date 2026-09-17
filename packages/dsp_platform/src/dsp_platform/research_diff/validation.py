@@ -21,18 +21,14 @@ class ResearchDiffValidationError(ValueError):
 
 def _validate_section(section: SectionDiff) -> None:
     if section.status not in DIFF_STATUSES:
-        raise ResearchDiffValidationError(
-            f"invalid section status {section.status!r}"
-        )
+        raise ResearchDiffValidationError(f"invalid section status {section.status!r}")
     for field in section.field_diffs:
         if field.status not in DIFF_STATUSES:
             raise ResearchDiffValidationError(
                 f"invalid field status {field.status!r} at {field.path!r}"
             )
         if field.status == "unchanged":
-            raise ResearchDiffValidationError(
-                "field_diffs must omit unchanged entries"
-            )
+            raise ResearchDiffValidationError("field_diffs must omit unchanged entries")
 
 
 def validate_research_diff(result: ResearchDiffResult) -> None:

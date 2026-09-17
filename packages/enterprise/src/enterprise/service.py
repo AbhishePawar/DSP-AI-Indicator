@@ -180,9 +180,7 @@ class EnterpriseService:
             for rid in BUILTIN_ENTERPRISE_ROLES
         ]
         custom = [
-            v
-            for k, v in self.store.custom_roles.items()
-            if k.startswith(f"{org_id}:")
+            v for k, v in self.store.custom_roles.items() if k.startswith(f"{org_id}:")
         ]
         return builtin + custom
 
@@ -622,9 +620,17 @@ class EnterpriseService:
                 if exp.tzinfo is None:
                     exp = exp.replace(tzinfo=UTC)
                 if exp < utc_now():
-                    return {"valid": False, "reason": "license expired", "tier": lic.tier}
+                    return {
+                        "valid": False,
+                        "reason": "license expired",
+                        "tier": lic.tier,
+                    }
             except ValueError:
-                return {"valid": False, "reason": "invalid expiration", "tier": lic.tier}
+                return {
+                    "valid": False,
+                    "reason": "invalid expiration",
+                    "tier": lic.tier,
+                }
         return {"valid": lic.status == "active", "reason": None, "tier": lic.tier}
 
     # ------------------------------------------------------------------ billing
@@ -648,9 +654,7 @@ class EnterpriseService:
         }
 
     # ------------------------------------------------------------------ portal
-    def customer_portal(
-        self, org_id: str, *, actor_user_id: str
-    ) -> dict[str, Any]:
+    def customer_portal(self, org_id: str, *, actor_user_id: str) -> dict[str, Any]:
         self.require_permission(org_id, actor_user_id, "org.view")
         org = self.get_organization(org_id)
         if org is None:
@@ -664,9 +668,7 @@ class EnterpriseService:
             "organization": org,
             "license": license_info,
             "members": members,
-            "members_message": (
-                None if members else UNAVAILABLE_MESSAGES["members"]
-            ),
+            "members_message": (None if members else UNAVAILABLE_MESSAGES["members"]),
             "usage": usage,
             "billing": billing,
             "api_keys": keys,
@@ -822,9 +824,7 @@ class EnterpriseService:
             correlation_id=correlation_id,
         ).to_dict()
 
-    def list_audit(
-        self, org_id: str, *, actor_user_id: str
-    ) -> list[dict[str, Any]]:
+    def list_audit(self, org_id: str, *, actor_user_id: str) -> list[dict[str, Any]]:
         self.require_permission(org_id, actor_user_id, "audit.view")
         rows = [a for a in self.store.audit if a.org_id == org_id]
         if not rows:
@@ -881,9 +881,7 @@ class EnterpriseService:
             "secret_shown_once": True,
         }
 
-    def list_api_keys(
-        self, org_id: str, *, actor_user_id: str
-    ) -> dict[str, Any]:
+    def list_api_keys(self, org_id: str, *, actor_user_id: str) -> dict[str, Any]:
         self.require_permission(org_id, actor_user_id, "api_keys.view")
         rows = [
             k.to_public_dict()
@@ -991,9 +989,7 @@ class EnterpriseService:
         counters[metric] = counters.get(metric, 0) + amount
         self.store.flush()
 
-    def usage_snapshot(
-        self, org_id: str, *, actor_user_id: str
-    ) -> dict[str, Any]:
+    def usage_snapshot(self, org_id: str, *, actor_user_id: str) -> dict[str, Any]:
         self.require_permission(org_id, actor_user_id, "usage.view")
         counters = self.store.usage_counters.get(org_id)
         if counters is None:

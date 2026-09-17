@@ -8,6 +8,7 @@ additive and optional behind the port.
 from __future__ import annotations
 
 import json
+from collections.abc import Mapping
 from threading import RLock
 from typing import Any, Protocol
 
@@ -71,11 +72,7 @@ class InMemoryResearchSnapshotStore:
     def list_by_symbol(self, symbol: str) -> tuple[ResearchSnapshot, ...]:
         key = str(symbol).strip().upper()
         with self._lock:
-            snaps = [
-                s
-                for s in self._by_id.values()
-                if (s.symbol or "").upper() == key
-            ]
+            snaps = [s for s in self._by_id.values() if (s.symbol or "").upper() == key]
             snaps.sort(key=lambda s: s.timestamp)
             return tuple(snaps)
 

@@ -96,13 +96,19 @@ class HealthPort(Protocol):
 class MetricsPort(Protocol):
     """Metrics collection sink."""
 
-    def incr(self, name: str, value: float = 1.0, *, tags: dict[str, str] | None = None) -> None:
+    def incr(
+        self, name: str, value: float = 1.0, *, tags: dict[str, str] | None = None
+    ) -> None:
         """Increment a counter."""
 
-    def gauge(self, name: str, value: float, *, tags: dict[str, str] | None = None) -> None:
+    def gauge(
+        self, name: str, value: float, *, tags: dict[str, str] | None = None
+    ) -> None:
         """Set a gauge."""
 
-    def timing(self, name: str, ms: float, *, tags: dict[str, str] | None = None) -> None:
+    def timing(
+        self, name: str, ms: float, *, tags: dict[str, str] | None = None
+    ) -> None:
         """Record a timing sample in milliseconds."""
 
 
@@ -308,7 +314,11 @@ class SessionPort(Protocol):
         """Return session payload or None."""
 
     def set(
-        self, session_id: str, payload: dict[str, Any], *, ttl_seconds: float | None = None
+        self,
+        session_id: str,
+        payload: dict[str, Any],
+        *,
+        ttl_seconds: float | None = None,
     ) -> None:
         """Store session payload."""
 

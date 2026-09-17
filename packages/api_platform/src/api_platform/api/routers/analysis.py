@@ -99,16 +99,12 @@ def _serialize_payload(payload: object) -> object:
     if hasattr(payload, "model_dump"):
         return payload.model_dump()  # type: ignore[no-any-return]
     if hasattr(payload, "__dict__"):
-        data = {
-            k: v
-            for k, v in vars(payload).items()
-            if not k.startswith("_")
-        }
+        data = {k: v for k, v in vars(payload).items() if not k.startswith("_")}
         # Best-effort JSON-friendly projection for frozen dataclasses.
         out: dict[str, object] = {}
         for key, value in data.items():
             if hasattr(value, "value"):
-                out[key] = getattr(value, "value")
+                out[key] = value.value
             elif hasattr(value, "symbol"):
                 out[key] = {
                     "symbol": getattr(value, "symbol", None),

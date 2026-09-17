@@ -324,9 +324,7 @@ def evaluate_switching_costs(
         positives.append("Recurring earnings support customer lock-in narrative")
     if resilience is not None and resilience < 0.4:
         negatives.append("Weak resilience reduces switching-cost durability claim")
-    risks = (
-        "Contractual / integration switching costs not directly observable in FA",
-    )
+    risks = ("Contractual / integration switching costs not directly observable in FA",)
     evidence = [
         _evidence(
             source="BusinessQualityAnalysis",

@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import math
 from dataclasses import dataclass
+
 from financial.exceptions import FinancialValidationError
 from financial.models import FinancialSnapshot, FinancialStatements
 from financial.period import PeriodType
@@ -62,9 +63,7 @@ def validate_statements(
 
     if period.fiscal_quarter is not None:
         if period.fiscal_quarter < 1 or period.fiscal_quarter > 4:
-            errors.append(
-                f"fiscal_quarter must be 1–4, got {period.fiscal_quarter}"
-            )
+            errors.append(f"fiscal_quarter must be 1–4, got {period.fiscal_quarter}")
         elif period.period_type is PeriodType.QUARTERLY:
             checks.append("fiscal_quarter in range")
 
@@ -74,9 +73,7 @@ def validate_statements(
     _check_statement_numbers(
         "income_statement", statements.income_statement.values(), errors
     )
-    _check_statement_numbers(
-        "balance_sheet", statements.balance_sheet.values(), errors
-    )
+    _check_statement_numbers("balance_sheet", statements.balance_sheet.values(), errors)
     _check_statement_numbers("cash_flow", statements.cash_flow.values(), errors)
 
     income = statements.income_statement
@@ -111,9 +108,7 @@ def validate_statements(
         else:
             checks.append("accounting equation holds")
     elif assets is not None and (liabilities is None or equity is None):
-        warnings.append(
-            "incomplete balance sheet for accounting-equation check"
-        )
+        warnings.append("incomplete balance sheet for accounting-equation check")
 
     # Soft negative checks on typically non-negative stock items
     for label, val in (
@@ -176,9 +171,7 @@ def validate_snapshot(
         except FinancialValidationError as exc:
             errors.append(str(exc))
 
-    currency_codes = {
-        s.period.currency.code for s in snapshot.statements
-    }
+    currency_codes = {s.period.currency.code for s in snapshot.statements}
     if len(currency_codes) > 1:
         warnings.append(
             "mixed period currencies: "

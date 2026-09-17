@@ -2,10 +2,11 @@
 
 from __future__ import annotations
 
+from collections.abc import Mapping
 from copy import deepcopy
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from threading import RLock
-from typing import Any, Mapping
+from typing import Any
 
 from persistence.serde import to_plain_jsonable
 
@@ -217,7 +218,7 @@ def _is_unexpired(expires_raw: Any, now_iso: str) -> bool:
     except ValueError:
         return False
     if expires.tzinfo is None:
-        expires = expires.replace(tzinfo=timezone.utc)
+        expires = expires.replace(tzinfo=UTC)
     if now.tzinfo is None:
-        now = now.replace(tzinfo=timezone.utc)
+        now = now.replace(tzinfo=UTC)
     return now < expires

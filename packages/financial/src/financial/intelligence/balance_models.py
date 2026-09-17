@@ -59,9 +59,7 @@ class LiquidityMetrics:
             "working_capital": self.working_capital,
             "net_working_capital": self.net_working_capital,
             "working_capital_trend": (
-                self.working_capital_trend.value
-                if self.working_capital_trend
-                else None
+                self.working_capital_trend.value if self.working_capital_trend else None
             ),
         }
 

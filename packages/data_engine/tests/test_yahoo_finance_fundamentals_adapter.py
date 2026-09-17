@@ -6,7 +6,6 @@ All tests inject a fake ``JsonHttpClient`` and never touch the network.
 from __future__ import annotations
 
 from collections.abc import Mapping
-from datetime import date
 from typing import Any
 
 import pytest
@@ -96,8 +95,12 @@ def _quote_summary_payload(
             "returnOnEquity": _raw(1.47),
         }
 
-    income_module = "incomeStatementHistoryQuarterly" if quarterly else "incomeStatementHistory"
-    balance_module = "balanceSheetHistoryQuarterly" if quarterly else "balanceSheetHistory"
+    income_module = (
+        "incomeStatementHistoryQuarterly" if quarterly else "incomeStatementHistory"
+    )
+    balance_module = (
+        "balanceSheetHistoryQuarterly" if quarterly else "balanceSheetHistory"
+    )
     cashflow_module = (
         "cashflowStatementHistoryQuarterly" if quarterly else "cashflowStatementHistory"
     )
@@ -241,15 +244,11 @@ class TestSuccessfulRetrieval:
 
     def test_repeated_calls_are_deterministic(self, instrument: Instrument) -> None:
         payload = _quote_summary_payload()
-        adapter = YahooFinanceFundamentalsAdapter(
-            http_client=_FakeHttpClient(payload)
-        )
+        adapter = YahooFinanceFundamentalsAdapter(http_client=_FakeHttpClient(payload))
         first = adapter.get_fundamental_statements(
             instrument, StatementPeriodType.ANNUAL
         )
-        adapter2 = YahooFinanceFundamentalsAdapter(
-            http_client=_FakeHttpClient(payload)
-        )
+        adapter2 = YahooFinanceFundamentalsAdapter(http_client=_FakeHttpClient(payload))
         second = adapter2.get_fundamental_statements(
             instrument, StatementPeriodType.ANNUAL
         )
@@ -268,9 +267,7 @@ class TestMissingAndOptionalFields:
                     # netIncome intentionally omitted
                 }
             ],
-            balance_rows=[
-                {"endDate": _raw(1_704_067_200), "totalAssets": _raw(200.0)}
-            ],
+            balance_rows=[{"endDate": _raw(1_704_067_200), "totalAssets": _raw(200.0)}],
             cashflow_rows=[],
             key_stats={},
             financial_data={},
@@ -325,26 +322,20 @@ class TestValidationFailures:
         payload = _quote_summary_payload(error={"code": "Not Found"})
         adapter = YahooFinanceFundamentalsAdapter(http_client=_FakeHttpClient(payload))
         with pytest.raises(InvalidProviderDataError, match="reported an error"):
-            adapter.get_fundamental_statements(
-                instrument, StatementPeriodType.ANNUAL
-            )
+            adapter.get_fundamental_statements(instrument, StatementPeriodType.ANNUAL)
 
     def test_empty_result_raises(self, instrument: Instrument) -> None:
         payload = {"quoteSummary": {"result": [], "error": None}}
         adapter = YahooFinanceFundamentalsAdapter(http_client=_FakeHttpClient(payload))
         with pytest.raises(InvalidProviderDataError, match="no quoteSummary result"):
-            adapter.get_fundamental_statements(
-                instrument, StatementPeriodType.ANNUAL
-            )
+            adapter.get_fundamental_statements(instrument, StatementPeriodType.ANNUAL)
 
     def test_unexpected_shape_raises(self, instrument: Instrument) -> None:
         adapter = YahooFinanceFundamentalsAdapter(
             http_client=_FakeHttpClient({"not": "quoteSummary"})
         )
         with pytest.raises(InvalidProviderDataError, match="unexpected payload"):
-            adapter.get_fundamental_statements(
-                instrument, StatementPeriodType.ANNUAL
-            )
+            adapter.get_fundamental_statements(instrument, StatementPeriodType.ANNUAL)
 
     def test_no_usable_statements_raises(self, instrument: Instrument) -> None:
         payload = _quote_summary_payload(
@@ -356,19 +347,13 @@ class TestValidationFailures:
         )
         adapter = YahooFinanceFundamentalsAdapter(http_client=_FakeHttpClient(payload))
         with pytest.raises(InvalidProviderDataError, match="no usable statements"):
-            adapter.get_fundamental_statements(
-                instrument, StatementPeriodType.ANNUAL
-            )
+            adapter.get_fundamental_statements(instrument, StatementPeriodType.ANNUAL)
 
     def test_http_failure_surfaces_provider_request_error(
         self, instrument: Instrument
     ) -> None:
         adapter = YahooFinanceFundamentalsAdapter(
-            http_client=_FakeHttpClient(
-                error=ProviderRequestError("network down")
-            )
+            http_client=_FakeHttpClient(error=ProviderRequestError("network down"))
         )
         with pytest.raises(ProviderRequestError, match="network down"):
-            adapter.get_fundamental_statements(
-                instrument, StatementPeriodType.ANNUAL
-            )
+            adapter.get_fundamental_statements(instrument, StatementPeriodType.ANNUAL)

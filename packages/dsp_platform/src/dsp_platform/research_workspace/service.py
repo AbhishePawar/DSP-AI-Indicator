@@ -2,7 +2,8 @@
 
 from __future__ import annotations
 
-from typing import Any, Mapping
+from collections.abc import Mapping
+from typing import Any
 
 from dsp_platform.research_workspace.store import (
     TEMPLATE_IDS,
@@ -58,6 +59,7 @@ def _require_folder_owner(store: Any, folder_id: str, actor: str) -> dict[str, A
     if not _owned_by(folder, actor):
         raise WorkspaceForbiddenError("forbidden")
     return folder
+
 
 _STATUS_TO_WORKFLOW = {
     "draft": "draft",
@@ -301,11 +303,7 @@ def _resolve_comment_owned(
     if comment is None:
         raise ValueError("comment not found")
     _require_note_owner(store, str(comment.get("note_id") or ""), actor)
-    return {
-        "comment": store.resolve_comment(
-            cid, bool(body.get("resolved", True))
-        )
-    }
+    return {"comment": store.resolve_comment(cid, bool(body.get("resolved", True)))}
 
 
 def _list_comments_owned(
@@ -317,9 +315,7 @@ def _list_comments_owned(
         return {"comments": store.list_comments(note_id)}
     owned_ids = {n["note_id"] for n in store.list_notes() if _owned_by(n, actor)}
     return {
-        "comments": [
-            c for c in store.list_comments() if c.get("note_id") in owned_ids
-        ]
+        "comments": [c for c in store.list_comments() if c.get("note_id") in owned_ids]
     }
 
 
@@ -352,22 +348,14 @@ def _require(row: dict[str, Any] | None) -> dict[str, Any]:
 def _dashboard(
     store: Any, platform: Any, *, actor: str | None = None
 ) -> dict[str, Any]:
-    notes = [
-        n
-        for n in store.list_notes()
-        if actor is None or _owned_by(n, actor)
-    ]
+    notes = [n for n in store.list_notes() if actor is None or _owned_by(n, actor)]
     pending = [n for n in notes if n.get("status") in {"draft", "review"}]
     published = [n for n in notes if n.get("status") == "published"]
     bookmarks = [
-        b
-        for b in store.list_bookmarks()
-        if actor is None or _owned_by(b, actor)
+        b for b in store.list_bookmarks() if actor is None or _owned_by(b, actor)
     ]
     owned_ids = {n.get("note_id") for n in notes}
-    comments = [
-        c for c in store.list_comments() if c.get("note_id") in owned_ids
-    ]
+    comments = [c for c in store.list_comments() if c.get("note_id") in owned_ids]
     open_comments = [c for c in comments if not c.get("resolved")]
     tasks = [
         {

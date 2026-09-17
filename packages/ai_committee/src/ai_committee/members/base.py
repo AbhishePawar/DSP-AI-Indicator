@@ -4,9 +4,8 @@ from __future__ import annotations
 
 from abc import ABC, abstractmethod
 
-from contracts.enums import EngineSource
-
 from ai_committee.models import CommitteeInput, Opinion
+from contracts.enums import EngineSource
 
 __all__ = ["CommitteeMember"]
 

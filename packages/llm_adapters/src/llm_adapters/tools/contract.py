@@ -20,9 +20,10 @@ or chain-of-thought.
 
 from __future__ import annotations
 
-from dataclasses import dataclass, field
+from collections.abc import Mapping
+from dataclasses import dataclass
 from enum import Enum
-from typing import Any, Mapping, Protocol, runtime_checkable
+from typing import Any, Protocol, runtime_checkable
 
 
 class ToolStatus(str, Enum):
@@ -100,11 +101,24 @@ class ToolResult:
 
 _PRIVATE_FIELDS: frozenset[str] = frozenset(
     {
-        "provider", "model", "routing_tier", "routing_reasons",
-        "confidence_requirement", "estimated_cost_usd", "input_tokens",
-        "output_tokens", "latency_ms", "model_score", "routing_criteria",
-        "internal_prompt", "tool_calls", "tool_results", "raw_ai_response",
-        "internal_validation", "chain_of_thought", "api_key",
+        "provider",
+        "model",
+        "routing_tier",
+        "routing_reasons",
+        "confidence_requirement",
+        "estimated_cost_usd",
+        "input_tokens",
+        "output_tokens",
+        "latency_ms",
+        "model_score",
+        "routing_criteria",
+        "internal_prompt",
+        "tool_calls",
+        "tool_results",
+        "raw_ai_response",
+        "internal_validation",
+        "chain_of_thought",
+        "api_key",
     }
 )
 
@@ -133,14 +147,18 @@ class DSPToolBackend(Protocol):
         self, symbol: str, *, exchange: str | None = None, **kwargs: Any
     ) -> Any: ...
     def financial_statement_health(self) -> Mapping[str, Any]: ...
+
     # analysis
     def analyze_company(self, request: Any) -> Any: ...
     def compare_companies(self, packs: Any) -> Any: ...
+
     # committee / copilot (deterministic explainers)
     def ask_research_copilot(self, question: str, **kwargs: Any) -> Any: ...
+
     # research
     def build_research_object(self, symbol: str, **kwargs: Any) -> Any: ...
     def get_research_snapshot(self, snapshot_id: str) -> Any: ...
+
     # copilot 2.0 (orchestration only — not an LLM call)
     def run_copilot_v2(self, **kwargs: Any) -> Any: ...
 

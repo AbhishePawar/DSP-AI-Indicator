@@ -166,8 +166,7 @@ class UnifiedDataBundle:
                 k: self.provider_metadata[k] for k in sorted(self.provider_metadata)
             },
             "provenance": {
-                section: getattr(self, section).provenance
-                for section in SECTION_ORDER
+                section: getattr(self, section).provenance for section in SECTION_ORDER
             },
             "health": self.health.to_dict(),
             "retrieval": self.retrieval.to_dict(),

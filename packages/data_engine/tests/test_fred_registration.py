@@ -64,9 +64,7 @@ class TestEconomicServiceThroughRegistry:
         registry.register(adapter, FRED_METADATA)
         return registry
 
-    def test_service_retrieves_and_caches(
-        self, registry: ProviderRegistry
-    ) -> None:
+    def test_service_retrieves_and_caches(self, registry: ProviderRegistry) -> None:
         service = EconomicDataService(
             providers=registry, cache=InMemoryCache(), default_provider="fred"
         )

@@ -145,9 +145,7 @@ class KnowledgeGraphEngine:
             msg = "broken references: WorkflowReference required"
             raise KnowledgeGraphError(msg)
 
-    def synthesize(
-        self, context: EngineContext | AssemblyResult
-    ) -> EngineResult:
+    def synthesize(self, context: EngineContext | AssemblyResult) -> EngineResult:
         """Build deterministic topology and emit a populated KnowledgeGraphReport."""
         ctx = (
             EngineContext(assembly=context)
@@ -168,9 +166,7 @@ class KnowledgeGraphEngine:
         nodes = self._build_nodes(ref_entries)
         node_by_id = {n.node_id: n for n in nodes}
         recommendation_ids = tuple(
-            n.node_id
-            for n in nodes
-            if n.category is NodeCategory.RECOMMENDATION
+            n.node_id for n in nodes if n.category is NodeCategory.RECOMMENDATION
         )
         workflow_ids = tuple(
             n.node_id for n in nodes if n.category is NodeCategory.WORKFLOW
@@ -274,9 +270,7 @@ class KnowledgeGraphEngine:
             ),
         )
 
-        status = (
-            EngineStatus.PARTIAL if warnings else EngineStatus.COMPLETE
-        )
+        status = EngineStatus.PARTIAL if warnings else EngineStatus.COMPLETE
         return EngineResult(
             graph_id=profile.graph_id,
             status=status,
@@ -296,9 +290,7 @@ class KnowledgeGraphEngine:
     ) -> tuple[EngineResult, ...]:
         """Synthesize many contexts; reject duplicate graph identities."""
         assert_unique_graph_ids(
-            tuple(
-                (c.profile or c.assembly.profile).graph_id for c in contexts
-            )
+            tuple((c.profile or c.assembly.profile).graph_id for c in contexts)
         )
         return tuple(self.synthesize(context) for context in contexts)
 
@@ -462,9 +454,7 @@ class KnowledgeGraphEngine:
                 )
         return tuple(links)
 
-    def _build_lineages(
-        self, nodes: tuple[GraphNode, ...]
-    ) -> tuple[Lineage, ...]:
+    def _build_lineages(self, nodes: tuple[GraphNode, ...]) -> tuple[Lineage, ...]:
         by_cat: dict[NodeCategory, list[str]] = {}
         for node in nodes:
             by_cat.setdefault(node.category, []).append(node.node_id)

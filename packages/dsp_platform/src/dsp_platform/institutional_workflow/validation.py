@@ -35,8 +35,6 @@ def validate_workflow_result(result: WorkflowResult) -> None:
         raise InstitutionalWorkflowValidationError("citations required")
     for c in result.citations:
         if not c.get("path") or not c.get("section"):
-            raise InstitutionalWorkflowValidationError(
-                "citation missing path/section"
-            )
+            raise InstitutionalWorkflowValidationError("citation missing path/section")
     if result.provenance is None or result.audit is None:
         raise InstitutionalWorkflowValidationError("missing provenance/audit")

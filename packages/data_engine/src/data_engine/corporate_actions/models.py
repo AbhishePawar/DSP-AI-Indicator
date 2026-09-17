@@ -144,17 +144,17 @@ class AuthenticatedCorporateAction:
             "action_type": self.action_type,
             "symbol": self.symbol,
             "description": self.description,
-            "effective_date": self.effective_date.isoformat()
-            if self.effective_date
-            else None,
+            "effective_date": (
+                self.effective_date.isoformat() if self.effective_date else None
+            ),
             "ex_date": self.ex_date.isoformat() if self.ex_date else None,
             "record_date": self.record_date.isoformat() if self.record_date else None,
-            "payment_date": self.payment_date.isoformat()
-            if self.payment_date
-            else None,
-            "announcement_date": self.announcement_date.isoformat()
-            if self.announcement_date
-            else None,
+            "payment_date": (
+                self.payment_date.isoformat() if self.payment_date else None
+            ),
+            "announcement_date": (
+                self.announcement_date.isoformat() if self.announcement_date else None
+            ),
             "currency": self.currency,
             "ratio_from": _f(self.ratio_from),
             "ratio_to": _f(self.ratio_to),

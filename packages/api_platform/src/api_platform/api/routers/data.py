@@ -60,9 +60,11 @@ def unified_data_bundle(
     return JSONResponse(
         {
             "ok": True,
-            "symbol": payload.get("identity", {}).get("symbol")
-            if isinstance(payload.get("identity"), dict)
-            else symbol.strip().upper(),
+            "symbol": (
+                payload.get("identity", {}).get("symbol")
+                if isinstance(payload.get("identity"), dict)
+                else symbol.strip().upper()
+            ),
             "bundle": payload,
             "message": None,
         }

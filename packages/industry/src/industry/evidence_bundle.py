@@ -10,7 +10,6 @@ import hashlib
 from dataclasses import dataclass
 
 from core.exceptions import ValidationError
-
 from industry.enums import (
     ApplicabilityLevel,
     EvidenceAvailability,
@@ -213,7 +212,10 @@ class EvidenceBundleSummary:
             if value < 0:
                 msg = f"{field} must be >= 0"
                 raise ValidationError(msg)
-        if self.required_available_count + self.required_missing_count > self.required_count:
+        if (
+            self.required_available_count + self.required_missing_count
+            > self.required_count
+        ):
             msg = "required available/missing counts exceed required_count"
             raise ValidationError(msg)
         notes = tuple(

@@ -18,11 +18,10 @@ conservative:
 from __future__ import annotations
 
 import re
+from collections.abc import Iterable, Mapping
 from dataclasses import dataclass
-from typing import Iterable, Mapping
 
 from llm_adapters.evaluation import QualityEvaluation
-
 
 _NUMERIC_RE = re.compile(r"\b\d+(?:\.\d+)?%?\b")
 _EXPECTED_NUMERIC_FIELDS = (
@@ -77,9 +76,7 @@ def _expected_numeric_field(frozen: Mapping[str, str]) -> tuple[str, ...]:
     return tuple(out)
 
 
-def _count_unsupported_numeric_claims(
-    narrative: str, frozen: Mapping[str, str]
-) -> int:
+def _count_unsupported_numeric_claims(narrative: str, frozen: Mapping[str, str]) -> int:
     """Numbers in the narrative that do not match any frozen value."""
     expected = set(_expected_numeric_field(frozen))
     if not expected:
@@ -108,16 +105,12 @@ def _count_unsupported_numeric_claims(
     return count
 
 
-def _hallucination_count(
-    narrative: str, frozen: Mapping[str, str]
-) -> int:
+def _hallucination_count(narrative: str, frozen: Mapping[str, str]) -> int:
     """Same as unsupported numeric claims — kept distinct for clarity."""
     return _count_unsupported_numeric_claims(narrative, frozen)
 
 
-def _factual_accuracy(
-    narrative: str, frozen: Mapping[str, str]
-) -> float | None:
+def _factual_accuracy(narrative: str, frozen: Mapping[str, str]) -> float | None:
     """1.0 if every frozen value appears in the narrative, else 0.0..1.0."""
     if not frozen:
         return None
@@ -130,11 +123,13 @@ def _factual_accuracy(
     return round(hits / total, 4) if total else None
 
 
-def _valuation_reasoning(
-    narrative: str, frozen: Mapping[str, str]
-) -> float | None:
+def _valuation_reasoning(narrative: str, frozen: Mapping[str, str]) -> float | None:
     """1.0 if frozen intrinsic value AND price are mentioned together."""
-    intrinsic_keys = ("intrinsic_value", "intrinsic_value_per_share", "dcf_intrinsic_value")
+    intrinsic_keys = (
+        "intrinsic_value",
+        "intrinsic_value_per_share",
+        "dcf_intrinsic_value",
+    )
     price_keys = ("current_market_price",)
     intrinsic = next((frozen[k] for k in intrinsic_keys if k in frozen), None)
     price = next((frozen[k] for k in price_keys if k in frozen), None)
@@ -150,9 +145,7 @@ def _valuation_reasoning(
     return score if (has_intrinsic or has_price) else 0.0
 
 
-def _buffett_reasoning(
-    narrative: str, frozen: Mapping[str, str]
-) -> float | None:
+def _buffett_reasoning(narrative: str, frozen: Mapping[str, str]) -> float | None:
     """1.0 if moat AND management AND financial_strength are all acknowledged."""
     keys = ("moat", "management_quality", "financial_strength")
     mentions = sum(
@@ -163,39 +156,29 @@ def _buffett_reasoning(
     return round(mentions / len(keys), 4)
 
 
-def _moat_business_quality(
-    narrative: str, frozen: Mapping[str, str]
-) -> float | None:
+def _moat_business_quality(narrative: str, frozen: Mapping[str, str]) -> float | None:
     return _buffett_reasoning(narrative, frozen)
 
 
-def _management(
-    narrative: str, frozen: Mapping[str, str]
-) -> float | None:
+def _management(narrative: str, frozen: Mapping[str, str]) -> float | None:
     if "management_quality" not in frozen:
         return None
     return 1.0 if _contains_value(narrative, str(frozen["management_quality"])) else 0.0
 
 
-def _financial_strength(
-    narrative: str, frozen: Mapping[str, str]
-) -> float | None:
+def _financial_strength(narrative: str, frozen: Mapping[str, str]) -> float | None:
     if "financial_strength" not in frozen:
         return None
     return 1.0 if _contains_value(narrative, str(frozen["financial_strength"])) else 0.0
 
 
-def _business_quality(
-    narrative: str, frozen: Mapping[str, str]
-) -> float | None:
+def _business_quality(narrative: str, frozen: Mapping[str, str]) -> float | None:
     if "business_quality" not in frozen:
         return None
     return 1.0 if _contains_value(narrative, str(frozen["business_quality"])) else 0.0
 
 
-def _risk(
-    narrative: str, frozen: Mapping[str, str]
-) -> float | None:
+def _risk(narrative: str, frozen: Mapping[str, str]) -> float | None:
     """1.0 if primary risk term is named."""
     for k in ("primary_risk", "risks"):
         if k in frozen and _contains_value(narrative, str(frozen[k])):
@@ -203,9 +186,7 @@ def _risk(
     return None
 
 
-def _evidence_correctness(
-    narrative: str, frozen: Mapping[str, str]
-) -> float | None:
+def _evidence_correctness(narrative: str, frozen: Mapping[str, str]) -> float | None:
     return _factual_accuracy(narrative, frozen)
 
 
@@ -218,9 +199,7 @@ def _structured_output(narrative: str) -> float:
     return 1.0
 
 
-def _consistency(
-    narrative: str, frozen: Mapping[str, str]
-) -> float | None:
+def _consistency(narrative: str, frozen: Mapping[str, str]) -> float | None:
     """Same as factual_accuracy — kept as separate axis per STEP 3A schema."""
     return _factual_accuracy(narrative, frozen)
 
@@ -228,8 +207,14 @@ def _consistency(
 def _financial_reasoning(narrative: str) -> float | None:
     """1.0 if any financial/valuation vocabulary appears."""
     keywords = (
-        "intrinsic", "valuation", "margin of safety", "dcf", "fcf",
-        "business quality", "moat", "recommendation",
+        "intrinsic",
+        "valuation",
+        "margin of safety",
+        "dcf",
+        "fcf",
+        "business quality",
+        "moat",
+        "recommendation",
     )
     n = sum(1 for k in keywords if k in narrative.lower())
     if n == 0:
@@ -249,9 +234,7 @@ def _growth_quality(narrative: str) -> float | None:
     return None
 
 
-def evaluate_narrative(
-    narrative: str, frozen: Mapping[str, str]
-) -> EvaluatorVerdict:
+def evaluate_narrative(narrative: str, frozen: Mapping[str, str]) -> EvaluatorVerdict:
     """Score a single narrative against the case's frozen values."""
     n_lower = narrative.lower()
     hallucinated = _hallucination_count(narrative, frozen)
@@ -259,8 +242,7 @@ def evaluate_narrative(
     # without a citation marker. Tiny fragments don't count.
     sentences = [s.strip() for s in re.split(r"[.!?]+\s+", narrative) if s.strip()]
     unsupported = sum(
-        1 for s in sentences
-        if len(s) > 40 and "[" not in s and "(" not in s
+        1 for s in sentences if len(s) > 40 and "[" not in s and "(" not in s
     )
 
     q = QualityEvaluation(
@@ -276,7 +258,9 @@ def evaluate_narrative(
         risk=_risk(narrative, frozen),
         evidence_correctness=_evidence_correctness(narrative, frozen),
         hallucination=None if hallucinated == 0 else max(0.0, 1.0 - hallucinated * 0.2),
-        unsupported_claims=None if unsupported == 0 else max(0.0, 1.0 - unsupported * 0.1),
+        unsupported_claims=(
+            None if unsupported == 0 else max(0.0, 1.0 - unsupported * 0.1)
+        ),
         structured_output=_structured_output(narrative),
         consistency=_consistency(narrative, frozen),
         business_quality=_business_quality(narrative, frozen),
@@ -294,11 +278,22 @@ def aggregate(verdicts: Iterable[EvaluatorVerdict]) -> QualityEvaluation:
     if not verdicts:
         return QualityEvaluation()
     fields = (
-        "factual_accuracy", "financial_reasoning", "valuation_reasoning",
-        "buffett_reasoning", "moat_business_quality", "management",
-        "financial_strength", "earnings_quality", "growth_quality",
-        "risk", "evidence_correctness", "hallucination", "unsupported_claims",
-        "structured_output", "consistency", "business_quality",
+        "factual_accuracy",
+        "financial_reasoning",
+        "valuation_reasoning",
+        "buffett_reasoning",
+        "moat_business_quality",
+        "management",
+        "financial_strength",
+        "earnings_quality",
+        "growth_quality",
+        "risk",
+        "evidence_correctness",
+        "hallucination",
+        "unsupported_claims",
+        "structured_output",
+        "consistency",
+        "business_quality",
     )
     args: dict[str, float | None] = {}
     for name in fields:

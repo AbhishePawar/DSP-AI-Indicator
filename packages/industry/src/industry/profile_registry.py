@@ -68,8 +68,7 @@ class IndustryProfileRegistry:
         active = [
             p
             for p in self._by_key.values()
-            if p.industry_id == iid
-            and p.status is CharacteristicLifecycle.ACTIVE
+            if p.industry_id == iid and p.status is CharacteristicLifecycle.ACTIVE
         ]
         if not active:
             msg = f"no active industry profile for {iid!r}"

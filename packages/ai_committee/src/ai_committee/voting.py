@@ -17,10 +17,9 @@ from __future__ import annotations
 
 from collections.abc import Sequence
 
+from ai_committee.enums import Decision
 from contracts.domain.signal import Signal
 from contracts.enums import SignalDirection
-
-from ai_committee.enums import Decision
 
 __all__ = [
     "aggregate_recommendations",
@@ -58,12 +57,8 @@ def collapse_signals(signals: Sequence[Signal]) -> Decision:
     Returns:
         A member-level :class:`Decision` (BUY / HOLD / SELL).
     """
-    bullish = sum(
-        1 for s in signals if s.direction is SignalDirection.BULLISH
-    )
-    bearish = sum(
-        1 for s in signals if s.direction is SignalDirection.BEARISH
-    )
+    bullish = sum(1 for s in signals if s.direction is SignalDirection.BULLISH)
+    bearish = sum(1 for s in signals if s.direction is SignalDirection.BEARISH)
     if bullish > bearish:
         return Decision.BUY
     if bearish > bullish:

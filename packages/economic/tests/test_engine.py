@@ -7,7 +7,6 @@ from datetime import UTC, datetime
 import pytest
 
 from contracts.enums import EngineSource
-
 from economic.engine import EconomicEngine
 from economic.enums import EconomicCondition, Recommendation
 from economic.exceptions import EconomicError
@@ -39,8 +38,7 @@ class TestEconomicEngine:
         assert len(assessment.detected_signals) == 5
         assert len(assessment.evidence) == 5
         assert all(
-            e.source_engine is EngineSource.ECONOMIC_ENGINE
-            for e in assessment.evidence
+            e.source_engine is EngineSource.ECONOMIC_ENGINE for e in assessment.evidence
         )
         assert assessment.assessed_at == FIXED_NOW
 

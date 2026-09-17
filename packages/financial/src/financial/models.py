@@ -3,8 +3,9 @@
 from __future__ import annotations
 
 import json
+from collections.abc import Sequence
 from dataclasses import dataclass, field
-from typing import Any, Sequence
+from typing import Any
 
 from financial.balance_sheet import BalanceSheet
 from financial.cash_flow import CashFlowStatement
@@ -76,9 +77,7 @@ class FinancialSnapshot:
     @classmethod
     def from_dict(cls, data: dict[str, Any]) -> FinancialSnapshot:
         stmts_raw = data.get("statements") or ()
-        statements = tuple(
-            FinancialStatements.from_dict(s) for s in stmts_raw
-        )
+        statements = tuple(FinancialStatements.from_dict(s) for s in stmts_raw)
         return cls(
             company=CompanyMetadata.from_dict(data.get("company") or {}),
             statements=statements,

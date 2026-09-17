@@ -54,9 +54,7 @@ def upsert_auth_role(
     name: str | None = None,
     permissions: list[str] | None = None,
 ) -> dict[str, Any]:
-    return get_auth_service().upsert_role(
-        role_id, name=name, permissions=permissions
-    )
+    return get_auth_service().upsert_role(role_id, name=name, permissions=permissions)
 
 
 def list_auth_permissions() -> list[str]:

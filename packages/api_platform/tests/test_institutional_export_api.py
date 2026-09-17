@@ -7,10 +7,10 @@ from datetime import UTC, datetime
 from uuid import uuid4
 
 import pytest
+from auth_test_helpers import bearer_headers, register_user
 from fastapi.testclient import TestClient
 
 from api_platform import create_app
-from auth_test_helpers import bearer_headers, register_user
 from dsp_platform import DSPPlatform, PlatformBuilder, PlatformConfiguration
 from dsp_platform.investment_provenance import (
     RELEASE_IDENTITY,

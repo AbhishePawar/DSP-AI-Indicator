@@ -361,9 +361,7 @@ class TestLegacyAnalyzeCompanyUnchanged:
 
         platform = build_default_platform()
         request = platform.make_request(
-            Instrument(
-                symbol="AAPL", asset_class=AssetClass.EQUITY, currency="USD"
-            ),
+            Instrument(symbol="AAPL", asset_class=AssetClass.EQUITY, currency="USD"),
             date(2024, 1, 1),
             date(2024, 6, 1),
         )

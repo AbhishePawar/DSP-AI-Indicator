@@ -48,9 +48,9 @@ from workflow.refs import (
 )
 from workflow.reporter import (
     ExecutionSection,
-    ReportMetadata,
     ReportingContext,
     ReportingResult,
+    ReportMetadata,
     WorkflowReporter,
 )
 from workflow.validation import (

@@ -94,9 +94,7 @@ def compute_margin_of_safety(
             classification_explained=ExplainedValue(
                 name="mos_classification",
                 value=None,
-                formula=(
-                    "strong_buy≥40%; buy≥20%; hold≥0%; else overvalued"
-                ),
+                formula=("strong_buy≥40%; buy≥20%; hold≥0%; else overvalued"),
                 inputs={"ratio": ratio, "class": classification.value},
                 intermediates={},
                 confidence="high",
@@ -129,9 +127,7 @@ def compute_margin_of_safety(
             classification_explained=ExplainedValue(
                 name="mos_classification",
                 value=None,
-                formula=(
-                    "strong_buy≥40%; buy≥20%; hold≥0%; else overvalued"
-                ),
+                formula=("strong_buy≥40%; buy≥20%; hold≥0%; else overvalued"),
                 inputs={"ratio": ratio, "class": classification.value},
                 intermediates={},
                 confidence="high",

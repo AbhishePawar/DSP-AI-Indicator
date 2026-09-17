@@ -19,7 +19,9 @@ class ScenarioSpec:
 
     __slots__ = ("kind", "overrides")
 
-    def __init__(self, kind: ScenarioKind, overrides: Mapping[str, Any] | None = None) -> None:
+    def __init__(
+        self, kind: ScenarioKind, overrides: Mapping[str, Any] | None = None
+    ) -> None:
         self.kind = kind
         self.overrides = dict(overrides or {})
 
@@ -78,9 +80,7 @@ class ScenarioEngine(ScenarioProvider):
             try:
                 raw = evaluator(merged)
             except Exception as exc:  # noqa: BLE001 — wrap as ScenarioError
-                raise ScenarioError(
-                    f"scenario {spec.kind.name} failed: {exc}"
-                ) from exc
+                raise ScenarioError(f"scenario {spec.kind.name} failed: {exc}") from exc
             outcomes.append(
                 ScenarioOutcome(
                     kind=spec.kind,

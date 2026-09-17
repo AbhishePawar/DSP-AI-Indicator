@@ -77,7 +77,9 @@ def _explanation_input(
 
 
 class _StubLM:
-    def __init__(self, result: LanguageModelResult | None = None, *, fail: bool = False):
+    def __init__(
+        self, result: LanguageModelResult | None = None, *, fail: bool = False
+    ):
         self._result = result
         self._fail = fail
 
@@ -241,10 +243,7 @@ class TestEvidenceValidator:
 class TestExplanationNoSideEffects:
     def test_no_vendor_sdks(self) -> None:
         source = (
-            Path(__file__).resolve().parents[1]
-            / "src"
-            / "copilot"
-            / "explanation.py"
+            Path(__file__).resolve().parents[1] / "src" / "copilot" / "explanation.py"
         ).read_text(encoding="utf-8")
         assert "openai" not in source.lower()
         assert "anthropic" not in source.lower()
@@ -253,10 +252,7 @@ class TestExplanationNoSideEffects:
 
     def test_no_upstream_imports(self) -> None:
         path = (
-            Path(__file__).resolve().parents[1]
-            / "src"
-            / "copilot"
-            / "explanation.py"
+            Path(__file__).resolve().parents[1] / "src" / "copilot" / "explanation.py"
         )
         tree = ast.parse(path.read_text(encoding="utf-8"))
         names: set[str] = set()

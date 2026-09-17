@@ -34,9 +34,7 @@ def test_database_enterprise_store_survives_rehydrate() -> None:
         owner_user_id="owner-1",
     )
     org_id = org["org_id"]
-    svc.assign_license(
-        org_id, tier="enterprise", seats=5, actor_user_id="owner-1"
-    )
+    svc.assign_license(org_id, tier="enterprise", seats=5, actor_user_id="owner-1")
 
     reloaded = EnterpriseService(store=DatabaseEnterpriseStore(db))
     assert reloaded.get_organization(org_id) is not None
@@ -88,9 +86,10 @@ def test_billing_adapters_unavailable() -> None:
         assert adapter.is_available() is False
         status = adapter.payment_status("org_x")
         assert status["available"] is False
-        assert "unavailable" in status["message"].lower() or status[
-            "message"
-        ] == BILLING_PROVIDER_UNAVAILABLE
+        assert (
+            "unavailable" in status["message"].lower()
+            or status["message"] == BILLING_PROVIDER_UNAVAILABLE
+        )
 
 
 def test_inmemory_store_still_for_tests() -> None:

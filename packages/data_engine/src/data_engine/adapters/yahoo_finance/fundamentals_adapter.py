@@ -32,7 +32,10 @@ from data_engine.exceptions import (
     InvalidProviderDataError,
     TransformationError,
 )
-from data_engine.normalization import DefaultFundamentalNormalizer, FundamentalNormalizer
+from data_engine.normalization import (
+    DefaultFundamentalNormalizer,
+    FundamentalNormalizer,
+)
 from data_engine.ports import FundamentalsDataPort
 from data_engine.raw_models import RawFundamentalData
 
@@ -300,7 +303,9 @@ class YahooFinanceFundamentalsAdapter(BaseAdapter, FundamentalsDataPort):
         by_period: dict[str, dict[str, Any]] = {}
         self._merge_history(
             by_period,
-            self._history_rows(result, "incomeStatementHistory", "incomeStatementHistory"),
+            self._history_rows(
+                result, "incomeStatementHistory", "incomeStatementHistory"
+            ),
         )
         self._merge_history(
             by_period,
@@ -347,9 +352,7 @@ class YahooFinanceFundamentalsAdapter(BaseAdapter, FundamentalsDataPort):
                 RawFundamentalData(
                     provider_id=_PROVIDER_ID,
                     symbol=instrument.symbol,
-                    period_end=int(period_key)
-                    if period_key.isdigit()
-                    else period_key,
+                    period_end=int(period_key) if period_key.isdigit() else period_key,
                     period_type=period_type,
                     line_items=enriched,
                 )

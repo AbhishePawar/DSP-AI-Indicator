@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import math
-from typing import Sequence
+from collections.abc import Sequence
 
 from financial.cash_flow import CashFlowStatement
 from financial.exceptions import CashFlowAnalysisError, FinancialValidationError
@@ -51,7 +51,8 @@ def _check_cashflow_hard(cf: CashFlowStatement) -> list[str]:
     if (
         cf.free_cash_flow is not None
         and computed is not None
-        and abs(cf.free_cash_flow - computed) > max(1.0, abs(computed) * 0.5 + abs(cf.operating_cash_flow) * 0.01)
+        and abs(cf.free_cash_flow - computed)
+        > max(1.0, abs(computed) * 0.5 + abs(cf.operating_cash_flow) * 0.01)
         and abs(cf.free_cash_flow - computed) > abs(cf.operating_cash_flow)
     ):
         _reject(
@@ -96,11 +97,13 @@ def validate_cashflow_for_analysis(
 
 
 def coerce_cashflow_series(
-    source: CashFlowStatement
-    | FinancialStatements
-    | FinancialSnapshot
-    | dict
-    | Sequence[CashFlowStatement | FinancialStatements],
+    source: (
+        CashFlowStatement
+        | FinancialStatements
+        | FinancialSnapshot
+        | dict
+        | Sequence[CashFlowStatement | FinancialStatements]
+    ),
 ) -> tuple[
     list[CashFlowStatement],
     list[FinancialStatements | None],
@@ -115,8 +118,7 @@ def coerce_cashflow_series(
         elif "cash_flow" in source or "period" in source:
             source = FinancialStatements.from_dict(source)
         elif any(
-            k in source
-            for k in ("operating_cash_flow", "free_cash_flow", "capex")
+            k in source for k in ("operating_cash_flow", "free_cash_flow", "capex")
         ):
             source = CashFlowStatement.from_dict(source)
         else:

@@ -133,9 +133,7 @@ class VersionViewer:
                     }
                 )
             except Exception:  # noqa: BLE001
-                packages.append(
-                    {"package": name, "version": UNAVAILABLE_MESSAGE}
-                )
+                packages.append({"package": name, "version": UNAVAILABLE_MESSAGE})
         return {"packages": packages}
 
 

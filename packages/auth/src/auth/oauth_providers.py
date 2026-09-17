@@ -134,7 +134,9 @@ class OAuthProviderAdapter:
             "message": messages[status],
         }
 
-    def begin_login(self, *, redirect_uri: str, state: str | None = None) -> dict[str, Any]:
+    def begin_login(
+        self, *, redirect_uri: str, state: str | None = None
+    ) -> dict[str, Any]:
         status = self.ui_status()
         if status != ProviderUiStatus.AVAILABLE.value:
             return {
@@ -185,7 +187,9 @@ class OAuthProviderAdapter:
             "message": None,
         }
 
-    def complete_login(self, *, code: str, state: str | None, redirect_uri: str) -> OAuthProfile:
+    def complete_login(
+        self, *, code: str, state: str | None, redirect_uri: str
+    ) -> OAuthProfile:
         if self.ui_status() != ProviderUiStatus.AVAILABLE.value:
             raise AuthenticationError(
                 f"{self.provider_name()} OAuth unavailable — credentials not configured."
@@ -230,12 +234,18 @@ class OAuthProviderAdapter:
                 nonce=nonce,
             )
         except OidcVerificationUnavailable as exc:
-            logger.debug("%s id_token verification skipped: %s", self.provider_name(), exc)
+            logger.debug(
+                "%s id_token verification skipped: %s", self.provider_name(), exc
+            )
             return None
         except ValueError as exc:
-            raise AuthenticationError(f"{self.provider_name()} id_token rejected: {exc}") from exc
+            raise AuthenticationError(
+                f"{self.provider_name()} id_token rejected: {exc}"
+            ) from exc
 
-    def _exchange_code(self, code: str, redirect_uri: str, code_verifier: str) -> dict[str, Any]:
+    def _exchange_code(
+        self, code: str, redirect_uri: str, code_verifier: str
+    ) -> dict[str, Any]:
         form = {
             "client_id": self.client_id,
             "client_secret": self.client_secret,
@@ -307,13 +317,21 @@ class OAuthProviderAdapter:
                         "Google id_token subject does not match userinfo response."
                     )
                 id_email = id_claims.get("email")
-                if id_email and profile.email and str(id_email).strip().lower() != profile.email:
+                if (
+                    id_email
+                    and profile.email
+                    and str(id_email).strip().lower() != profile.email
+                ):
                     raise AuthenticationError(
                         "Google id_token email does not match userinfo response."
                     )
             return profile
         if self.provider == AuthProvider.MICROSOFT:
-            email = claims.get("mail") or claims.get("userPrincipalName") or claims.get("email")
+            email = (
+                claims.get("mail")
+                or claims.get("userPrincipalName")
+                or claims.get("email")
+            )
             profile = OAuthProfile(
                 provider=self.provider_name(),
                 subject=str(claims.get("id") or claims.get("sub") or ""),
@@ -339,16 +357,20 @@ class OAuthProviderAdapter:
             email = claims.get("email")
             first_name = claims.get("first_name")
             last_name = claims.get("last_name")
-            display_name = claims.get("name") or " ".join(
-                part for part in (first_name, last_name) if part
-            ).strip() or None
+            display_name = (
+                claims.get("name")
+                or " ".join(part for part in (first_name, last_name) if part).strip()
+                or None
+            )
             picture = None
             pic = claims.get("picture")
             if isinstance(pic, dict):
                 picture = (pic.get("data") or {}).get("url")
             subject = str(claims.get("id") or "")
             if not subject:
-                raise AuthenticationError("Facebook profile response did not include a user id.")
+                raise AuthenticationError(
+                    "Facebook profile response did not include a user id."
+                )
             return OAuthProfile(
                 provider=self.provider_name(),
                 subject=subject,
@@ -358,7 +380,9 @@ class OAuthProviderAdapter:
                 avatar=picture,
                 raw_claims=claims,
             )
-        raise AuthenticationError(f"Unsupported OAuth provider {self.provider_name()!r}.")
+        raise AuthenticationError(
+            f"Unsupported OAuth provider {self.provider_name()!r}."
+        )
 
 
 class OAuthProviderRegistry:
@@ -377,8 +401,12 @@ class OAuthProviderRegistry:
     def status(self) -> list[dict[str, Any]]:
         return [a.status() for a in self._adapters.values()]
 
-    def begin(self, provider: str, *, redirect_uri: str, state: str | None = None) -> dict[str, Any]:
-        return self.require(provider).begin_login(redirect_uri=redirect_uri, state=state)
+    def begin(
+        self, provider: str, *, redirect_uri: str, state: str | None = None
+    ) -> dict[str, Any]:
+        return self.require(provider).begin_login(
+            redirect_uri=redirect_uri, state=state
+        )
 
     def complete(
         self,

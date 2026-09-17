@@ -5,8 +5,8 @@ from __future__ import annotations
 from growth_quality.engine import GrowthQualityEngine
 from growth_quality.exceptions import GrowthQualityError, GrowthQualityValidationError
 from growth_quality.metadata import (
-    GROWTH_QUALITY_VERSION,
     FRAMEWORK_VERSION,
+    GROWTH_QUALITY_VERSION,
     GrowthQualityMetadata,
 )
 from growth_quality.models import (

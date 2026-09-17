@@ -64,7 +64,9 @@ def aggregate_estimates(
         msg = "estimates must not be empty"
         raise ValueError(msg)
 
-    applicable = [e for e in estimates if e.applicable and e.intrinsic_value is not None]
+    applicable = [
+        e for e in estimates if e.applicable and e.intrinsic_value is not None
+    ]
     values = [float(e.intrinsic_value) for e in applicable]  # type: ignore[arg-type]
     mid = median_or_none(values)
     low = min(values) if values else None

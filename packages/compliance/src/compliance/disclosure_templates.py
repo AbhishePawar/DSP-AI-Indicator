@@ -4,7 +4,6 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from datetime import UTC, datetime, timedelta, timezone
-from typing import Protocol, runtime_checkable
 
 from compliance.disclaimer_engine import Disclaimer, default_research_disclaimer
 from compliance.disclosures import Disclosure, DisclosurePort

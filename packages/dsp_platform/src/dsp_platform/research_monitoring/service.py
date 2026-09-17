@@ -3,8 +3,10 @@
 from __future__ import annotations
 
 import uuid
-from typing import Any, Mapping
+from collections.abc import Mapping
+from typing import Any
 
+from dsp_platform.research_archive.store import SnapshotNotFoundError
 from dsp_platform.research_diff import diff_research_snapshots, research_diff_to_dict
 from dsp_platform.research_monitoring.alerts import (
     alerts_from_diff,
@@ -13,17 +15,16 @@ from dsp_platform.research_monitoring.alerts import (
 from dsp_platform.research_monitoring.models import (
     MONITORING_SCHEMA_VERSION,
     MONITORING_SERVICE_VERSION,
+    UNAVAILABLE_MESSAGE,
     MonitoringAlert,
     MonitoringEvaluateResult,
     SnapshotTrack,
-    UNAVAILABLE_MESSAGE,
     freeze_mapping,
     utc_now,
 )
 from dsp_platform.research_monitoring.registry import get_monitoring_registry
 from dsp_platform.research_monitoring.serde import monitoring_result_to_dict
 from dsp_platform.research_monitoring.validation import validate_monitoring_result
-from dsp_platform.research_archive.store import SnapshotNotFoundError
 
 __all__ = [
     "MONITORING_SERVICE_VERSION",
@@ -35,7 +36,9 @@ __all__ = [
 class ResearchMonitoringService:
     """Detect changes via R005 diffs + A002 result comparisons — read-only."""
 
-    def register_watchlist(self, symbols: list[str] | tuple[str, ...]) -> tuple[str, ...]:
+    def register_watchlist(
+        self, symbols: list[str] | tuple[str, ...]
+    ) -> tuple[str, ...]:
         return get_monitoring_registry().register_watchlist(symbols)
 
     def register_portfolio(
@@ -272,9 +275,7 @@ class ResearchMonitoringService:
         alerts_sorted = tuple(
             sorted(alerts, key=lambda a: (a.subject, a.alert_type, a.alert_id))
         )
-        tracks_sorted = tuple(
-            sorted(tracks, key=lambda t: (t.subject_kind, t.subject))
-        )
+        tracks_sorted = tuple(sorted(tracks, key=lambda t: (t.subject_kind, t.subject)))
         result = MonitoringEvaluateResult(
             result_id=rid,
             schema_version=MONITORING_SCHEMA_VERSION,

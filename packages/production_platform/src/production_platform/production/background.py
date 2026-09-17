@@ -2,8 +2,9 @@
 
 from __future__ import annotations
 
+from collections.abc import Mapping
 from threading import Lock
-from typing import Any, Mapping
+from typing import Any
 
 from production_platform.production.exceptions import ProductionError
 from production_platform.production.interfaces import BackgroundTaskPort, JobQueuePort

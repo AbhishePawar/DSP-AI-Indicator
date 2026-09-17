@@ -23,12 +23,11 @@ import os
 import urllib.error
 import urllib.request
 import xml.etree.ElementTree as ET
+from collections.abc import Callable, Mapping
 from dataclasses import dataclass, field
 from datetime import UTC, date, datetime
 from threading import Lock
-from typing import Callable, Mapping
 
-from contracts.domain.instrument import Instrument
 from data_engine.connector_framework.http import JsonHttpClient, UrllibJsonHttpClient
 from data_engine.connector_framework.models import (
     ConnectorCompanyIdentity,
@@ -39,9 +38,17 @@ from data_engine.connector_framework.models import (
 )
 from data_engine.connector_framework.registry import PriorityProviderRegistry
 from data_engine.exceptions import ProviderRequestError
-from data_engine.insider_trading.models import AuthenticatedInsiderActivity, InsiderTransaction
-from data_engine.insider_trading.service import InsiderTradingProviderPort, InsiderTradingQuery
-from data_engine.insider_trading.validation import validate_authenticated_insider_activity
+from data_engine.insider_trading.models import (
+    AuthenticatedInsiderActivity,
+    InsiderTransaction,
+)
+from data_engine.insider_trading.service import (
+    InsiderTradingProviderPort,
+    InsiderTradingQuery,
+)
+from data_engine.insider_trading.validation import (
+    validate_authenticated_insider_activity,
+)
 
 __all__ = [
     "BseInsiderTradingAdapter",
@@ -103,7 +110,9 @@ class NullInsiderTradingAdapter(InsiderTradingProviderPort):
     def provider_id(self) -> str:
         return self._provider_id
 
-    def get_insider_activity(self, query: InsiderTradingQuery) -> AuthenticatedInsiderActivity | None:
+    def get_insider_activity(
+        self, query: InsiderTradingQuery
+    ) -> AuthenticatedInsiderActivity | None:
         return None
 
     def health(self) -> ProviderHealth:
@@ -131,7 +140,9 @@ class InMemoryInsiderTradingAdapter(InsiderTradingProviderPort):
         with self._lock:
             self._bundles[bundle.identity.symbol.upper()] = bundle
 
-    def get_insider_activity(self, query: InsiderTradingQuery) -> AuthenticatedInsiderActivity | None:
+    def get_insider_activity(
+        self, query: InsiderTradingQuery
+    ) -> AuthenticatedInsiderActivity | None:
         if not self.api_key:
             raise ProviderRequestError(
                 "memory insider trading adapter requires api_key (authentication)"
@@ -144,7 +155,9 @@ class InMemoryInsiderTradingAdapter(InsiderTradingProviderPort):
         if not transactions:
             return None
         return AuthenticatedInsiderActivity(
-            identity=bundle.identity, transactions=tuple(transactions), provenance=bundle.provenance
+            identity=bundle.identity,
+            transactions=tuple(transactions),
+            provenance=bundle.provenance,
         )
 
     def health(self) -> ProviderHealth:
@@ -152,7 +165,11 @@ class InMemoryInsiderTradingAdapter(InsiderTradingProviderPort):
             provider_id=self.provider_id,
             healthy=True,
             authenticated=bool(self.api_key),
-            detail="seeded in-memory authenticated insider trading" if self.api_key else "missing api_key",
+            detail=(
+                "seeded in-memory authenticated insider trading"
+                if self.api_key
+                else "missing api_key"
+            ),
         )
 
 
@@ -176,7 +193,9 @@ class SecEdgarInsiderTradingAdapter(InsiderTradingProviderPort):
         return self._provider_id
 
     def _client(self) -> JsonHttpClient:
-        return self.http_client or UrllibJsonHttpClient(timeout_seconds=self.timeout_seconds)
+        return self.http_client or UrllibJsonHttpClient(
+            timeout_seconds=self.timeout_seconds
+        )
 
     def _headers(self) -> dict[str, str]:
         return {"User-Agent": self.user_agent, "Accept": "application/json"}
@@ -184,7 +203,9 @@ class SecEdgarInsiderTradingAdapter(InsiderTradingProviderPort):
     def _resolve_cik(self, symbol: str) -> str | None:
         with self._lock:
             if not self._cik_map:
-                payload = self._client().get_json(self.tickers_url, headers=self._headers())
+                payload = self._client().get_json(
+                    self.tickers_url, headers=self._headers()
+                )
                 if isinstance(payload, Mapping):
                     for entry in payload.values():
                         if not isinstance(entry, Mapping):
@@ -197,15 +218,21 @@ class SecEdgarInsiderTradingAdapter(InsiderTradingProviderPort):
 
     def _fetch_xml(self, url: str) -> ET.Element | None:
         request = urllib.request.Request(
-            url, headers={"User-Agent": self.user_agent, "Accept": "application/xml"}, method="GET"
+            url,
+            headers={"User-Agent": self.user_agent, "Accept": "application/xml"},
+            method="GET",
         )
         try:
-            with urllib.request.urlopen(request, timeout=self.timeout_seconds) as response:
+            with urllib.request.urlopen(
+                request, timeout=self.timeout_seconds
+            ) as response:
                 raw = response.read()
         except urllib.error.HTTPError as exc:
             if exc.code == 404:
                 return None
-            raise ProviderRequestError(f"SEC EDGAR Form 4 fetch failed: HTTP {exc.code}") from exc
+            raise ProviderRequestError(
+                f"SEC EDGAR Form 4 fetch failed: HTTP {exc.code}"
+            ) from exc
         except OSError as exc:
             raise ProviderRequestError(f"SEC EDGAR Form 4 fetch failed: {exc}") from exc
         try:
@@ -222,7 +249,10 @@ class SecEdgarInsiderTradingAdapter(InsiderTradingProviderPort):
             text = el.text.strip()
             return text or None
 
-        owner_name = _text(root.find("./reportingOwner/reportingOwnerId/rptOwnerName")) or "Unknown"
+        owner_name = (
+            _text(root.find("./reportingOwner/reportingOwnerId/rptOwnerName"))
+            or "Unknown"
+        )
         relationship = root.find("./reportingOwner/reportingOwnerRelationship")
         role_parts: list[str] = []
         if relationship is not None:
@@ -236,7 +266,9 @@ class SecEdgarInsiderTradingAdapter(InsiderTradingProviderPort):
         role = ", ".join(role_parts) or None
 
         transactions: list[InsiderTransaction] = []
-        for i, txn_el in enumerate(root.findall("./nonDerivativeTable/nonDerivativeTransaction")):
+        for i, txn_el in enumerate(
+            root.findall("./nonDerivativeTable/nonDerivativeTransaction")
+        ):
             code = _text(txn_el.find("./transactionCoding/transactionCode"))
             txn_type = _SEC_TRANSACTION_CODE_MAP.get((code or "").upper(), "other")
             txn_date_raw = _text(txn_el.find("./transactionDate/value"))
@@ -246,13 +278,19 @@ class SecEdgarInsiderTradingAdapter(InsiderTradingProviderPort):
                 txn_date = date.fromisoformat(txn_date_raw[:10])
             except ValueError:
                 continue
-            shares_raw = _text(txn_el.find("./transactionAmounts/transactionShares/value"))
-            price_raw = _text(txn_el.find("./transactionAmounts/transactionPricePerShare/value"))
+            shares_raw = _text(
+                txn_el.find("./transactionAmounts/transactionShares/value")
+            )
+            price_raw = _text(
+                txn_el.find("./transactionAmounts/transactionPricePerShare/value")
+            )
             shares_field = ConnectorField.of(shares_raw)
             price_field = ConnectorField.of(price_raw)
             value_field = ConnectorField.missing()
             if shares_field.available and price_field.available:
-                value_field = ConnectorField.of(float(shares_field.value) * float(price_field.value))
+                value_field = ConnectorField.of(
+                    float(shares_field.value) * float(price_field.value)
+                )
             transactions.append(
                 InsiderTransaction(
                     transaction_id=f"{accession}-{i}",
@@ -274,7 +312,9 @@ class SecEdgarInsiderTradingAdapter(InsiderTradingProviderPort):
         self, query: InsiderTradingQuery
     ) -> AuthenticatedInsiderActivity | None:
         if not self.user_agent.strip():
-            raise ProviderRequestError("SEC EDGAR adapter requires a descriptive User-Agent")
+            raise ProviderRequestError(
+                "SEC EDGAR adapter requires a descriptive User-Agent"
+            )
         symbol = query.instrument.symbol.strip().upper()
         cik = self._resolve_cik(symbol)
         if cik is None:
@@ -300,8 +340,14 @@ class SecEdgarInsiderTradingAdapter(InsiderTradingProviderPort):
         for i, form in enumerate(forms):
             if str(form).strip().upper() not in {"4", "4/A"}:
                 continue
-            accession = str(accessions[i]) if i < len(accessions) and accessions[i] else None
-            primary_doc = str(primary_docs[i]) if i < len(primary_docs) and primary_docs[i] else None
+            accession = (
+                str(accessions[i]) if i < len(accessions) and accessions[i] else None
+            )
+            primary_doc = (
+                str(primary_docs[i])
+                if i < len(primary_docs) and primary_docs[i]
+                else None
+            )
             filed_raw = str(filing_dates[i]) if i < len(filing_dates) else None
             if not accession or not primary_doc or not filed_raw:
                 continue
@@ -319,7 +365,9 @@ class SecEdgarInsiderTradingAdapter(InsiderTradingProviderPort):
             root = self._fetch_xml(url)
             if root is None:
                 continue
-            transactions.extend(self._parse_form4(root, filed_at=filed_at, accession=accession))
+            transactions.extend(
+                self._parse_form4(root, filed_at=filed_at, accession=accession)
+            )
 
         transactions = _apply_query_filters(transactions, query)
         if not transactions:
@@ -332,7 +380,9 @@ class SecEdgarInsiderTradingAdapter(InsiderTradingProviderPort):
             auth_mode="none",
             metadata={"cik": cik},
         )
-        return build_insider_activity_from_mapping(symbol=symbol, transactions=transactions, provenance=provenance)
+        return build_insider_activity_from_mapping(
+            symbol=symbol, transactions=transactions, provenance=provenance
+        )
 
     def health(self) -> ProviderHealth:
         ok = bool(self.user_agent.strip())
@@ -340,7 +390,11 @@ class SecEdgarInsiderTradingAdapter(InsiderTradingProviderPort):
             provider_id=self.provider_id,
             healthy=ok,
             authenticated=ok,
-            detail="configured" if ok else "missing User-Agent (required by SEC fair-access policy)",
+            detail=(
+                "configured"
+                if ok
+                else "missing User-Agent (required by SEC fair-access policy)"
+            ),
         )
 
 
@@ -357,16 +411,21 @@ class FinancialModelingPrepInsiderTradingAdapter(InsiderTradingProviderPort):
         return self._provider_id
 
     def _client(self) -> JsonHttpClient:
-        return self.http_client or UrllibJsonHttpClient(timeout_seconds=self.timeout_seconds)
+        return self.http_client or UrllibJsonHttpClient(
+            timeout_seconds=self.timeout_seconds
+        )
 
     def get_insider_activity(
         self, query: InsiderTradingQuery
     ) -> AuthenticatedInsiderActivity | None:
         if not self.api_key.strip():
-            raise ProviderRequestError("financial modeling prep insider trading adapter requires api_key")
+            raise ProviderRequestError(
+                "financial modeling prep insider trading adapter requires api_key"
+            )
         symbol = query.instrument.symbol.strip().upper()
         payload = self._client().get_json(
-            self.base_url, params={"symbol": symbol, "page": "0", "apikey": self.api_key}
+            self.base_url,
+            params={"symbol": symbol, "page": "0", "apikey": self.api_key},
         )
         if not isinstance(payload, list) or not payload:
             return None
@@ -389,7 +448,9 @@ class FinancialModelingPrepInsiderTradingAdapter(InsiderTradingProviderPort):
             price_field = ConnectorField.of(item.get("price"))
             value_field = ConnectorField.missing()
             if shares_field.available and price_field.available:
-                value_field = ConnectorField.of(float(shares_field.value) * float(price_field.value))
+                value_field = ConnectorField.of(
+                    float(shares_field.value) * float(price_field.value)
+                )
             filed_raw = str(item.get("filingDate") or "").strip()
             filed_at = None
             if filed_raw:
@@ -401,7 +462,11 @@ class FinancialModelingPrepInsiderTradingAdapter(InsiderTradingProviderPort):
                 InsiderTransaction(
                     transaction_id=f"fmp-{symbol}-{i}-{txn_date.isoformat()}",
                     insider_name=name,
-                    role=str(item.get("typeOfOwner")) if item.get("typeOfOwner") else None,
+                    role=(
+                        str(item.get("typeOfOwner"))
+                        if item.get("typeOfOwner")
+                        else None
+                    ),
                     transaction_type=txn_type,
                     shares=shares_field,
                     price=price_field,
@@ -423,12 +488,16 @@ class FinancialModelingPrepInsiderTradingAdapter(InsiderTradingProviderPort):
             auth_mode="api_key",
             metadata={"base_url": self.base_url},
         )
-        return build_insider_activity_from_mapping(symbol=symbol, transactions=transactions, provenance=provenance)
+        return build_insider_activity_from_mapping(
+            symbol=symbol, transactions=transactions, provenance=provenance
+        )
 
     def health(self) -> ProviderHealth:
         ok = bool(self.api_key.strip())
         return ProviderHealth(
-            provider_id=self.provider_id, healthy=ok, authenticated=ok,
+            provider_id=self.provider_id,
+            healthy=ok,
+            authenticated=ok,
             detail="configured" if ok else "missing api_key",
         )
 
@@ -472,7 +541,9 @@ class NseInsiderTradingAdapter(InsiderTradingProviderPort):
         if not self.enabled:
             raise ProviderRequestError("NSE insider trading adapter is not enabled")
         symbol = query.instrument.symbol.strip().upper()
-        payload = self._client().get_json(self.base_url, params={"index": "equities", "symbol": symbol})
+        payload = self._client().get_json(
+            self.base_url, params={"index": "equities", "symbol": symbol}
+        )
         if not isinstance(payload, list) or not payload:
             return None
         transactions: list[InsiderTransaction] = []
@@ -485,14 +556,24 @@ class NseInsiderTradingAdapter(InsiderTradingProviderPort):
             if not name or txn_date is None:
                 continue
             txn_type_raw = str(item.get("tdpTransactionType") or "").strip().lower()
-            txn_type = "buy" if "buy" in txn_type_raw or "acqu" in txn_type_raw else (
-                "sell" if "sell" in txn_type_raw or "disp" in txn_type_raw else "other"
+            txn_type = (
+                "buy"
+                if "buy" in txn_type_raw or "acqu" in txn_type_raw
+                else (
+                    "sell"
+                    if "sell" in txn_type_raw or "disp" in txn_type_raw
+                    else "other"
+                )
             )
             transactions.append(
                 InsiderTransaction(
                     transaction_id=f"nse-{symbol}-{i}-{txn_date.isoformat()}",
                     insider_name=name,
-                    role=str(item.get("personCategory")) if item.get("personCategory") else None,
+                    role=(
+                        str(item.get("personCategory"))
+                        if item.get("personCategory")
+                        else None
+                    ),
                     transaction_type=txn_type,
                     shares=ConnectorField.of(item.get("secAcq")),
                     price=ConnectorField.missing(),
@@ -512,14 +593,20 @@ class NseInsiderTradingAdapter(InsiderTradingProviderPort):
             auth_mode="none",
             metadata={"base_url": self.base_url},
         )
-        return build_insider_activity_from_mapping(symbol=symbol, transactions=transactions, provenance=provenance)
+        return build_insider_activity_from_mapping(
+            symbol=symbol, transactions=transactions, provenance=provenance
+        )
 
     def health(self) -> ProviderHealth:
         return ProviderHealth(
             provider_id=self.provider_id,
             healthy=self.enabled,
             authenticated=False,
-            detail="enabled" if self.enabled else "disabled (set DSP_INSIDER_NSE_ENABLED=1)",
+            detail=(
+                "enabled"
+                if self.enabled
+                else "disabled (set DSP_INSIDER_NSE_ENABLED=1)"
+            ),
         )
 
 
@@ -558,7 +645,9 @@ class BseInsiderTradingAdapter(InsiderTradingProviderPort):
         scrip_code = self._resolve_scrip_code(symbol)
         if scrip_code is None:
             return None
-        payload = self._client().get_json(self.base_url, params={"scripcode": scrip_code, "strType": "SAST"})
+        payload = self._client().get_json(
+            self.base_url, params={"scripcode": scrip_code, "strType": "SAST"}
+        )
         if not isinstance(payload, Mapping):
             return None
         rows = payload.get("Table")
@@ -569,13 +658,23 @@ class BseInsiderTradingAdapter(InsiderTradingProviderPort):
             if not isinstance(item, Mapping):
                 continue
             name = str(item.get("NAME") or "").strip()
-            date_raw = str(item.get("DATEOFTRANSACTION") or item.get("NEWS_DT") or "").strip()
+            date_raw = str(
+                item.get("DATEOFTRANSACTION") or item.get("NEWS_DT") or ""
+            ).strip()
             txn_date = _parse_indian_date(date_raw) if date_raw else None
             if not name or txn_date is None:
                 continue
             txn_type_raw = str(item.get("TRANSACTIONTYPE") or "").strip().lower()
-            txn_type = "buy" if "buy" in txn_type_raw or "acqu" in txn_type_raw else (
-                "sell" if "sale" in txn_type_raw or "sell" in txn_type_raw or "disp" in txn_type_raw else "other"
+            txn_type = (
+                "buy"
+                if "buy" in txn_type_raw or "acqu" in txn_type_raw
+                else (
+                    "sell"
+                    if "sale" in txn_type_raw
+                    or "sell" in txn_type_raw
+                    or "disp" in txn_type_raw
+                    else "other"
+                )
             )
             transactions.append(
                 InsiderTransaction(
@@ -601,14 +700,20 @@ class BseInsiderTradingAdapter(InsiderTradingProviderPort):
             auth_mode="none",
             metadata={"base_url": self.base_url, "scrip_code": scrip_code},
         )
-        return build_insider_activity_from_mapping(symbol=symbol, transactions=transactions, provenance=provenance)
+        return build_insider_activity_from_mapping(
+            symbol=symbol, transactions=transactions, provenance=provenance
+        )
 
     def health(self) -> ProviderHealth:
         return ProviderHealth(
             provider_id=self.provider_id,
             healthy=self.enabled,
             authenticated=False,
-            detail="enabled" if self.enabled else "disabled (set DSP_INSIDER_BSE_ENABLED=1)",
+            detail=(
+                "enabled"
+                if self.enabled
+                else "disabled (set DSP_INSIDER_BSE_ENABLED=1)"
+            ),
         )
 
 
@@ -627,25 +732,35 @@ class YahooFinanceInsiderTradingAdapter(InsiderTradingProviderPort):
         return self._provider_id
 
     def _client(self) -> JsonHttpClient:
-        return self.http_client or UrllibJsonHttpClient(timeout_seconds=self.timeout_seconds)
+        return self.http_client or UrllibJsonHttpClient(
+            timeout_seconds=self.timeout_seconds
+        )
 
     def get_insider_activity(
         self, query: InsiderTradingQuery
     ) -> AuthenticatedInsiderActivity | None:
         if not self.enabled:
-            raise ProviderRequestError("yahoo finance insider trading adapter is not enabled")
+            raise ProviderRequestError(
+                "yahoo finance insider trading adapter is not enabled"
+            )
         symbol = query.instrument.symbol.strip().upper()
         payload = self._client().get_json(
             f"{self.base_url}/{symbol}", params={"modules": "insiderTransactions"}
         )
         if not isinstance(payload, Mapping):
             return None
-        result_list = (payload.get("quoteSummary") or {}).get("result") if isinstance(
-            payload.get("quoteSummary"), Mapping
-        ) else None
+        result_list = (
+            (payload.get("quoteSummary") or {}).get("result")
+            if isinstance(payload.get("quoteSummary"), Mapping)
+            else None
+        )
         if not isinstance(result_list, list) or not result_list:
             return None
-        insider_module = result_list[0].get("insiderTransactions") if isinstance(result_list[0], Mapping) else None
+        insider_module = (
+            result_list[0].get("insiderTransactions")
+            if isinstance(result_list[0], Mapping)
+            else None
+        )
         if not isinstance(insider_module, Mapping):
             return None
         raw_transactions = insider_module.get("transactions")
@@ -658,7 +773,11 @@ class YahooFinanceInsiderTradingAdapter(InsiderTradingProviderPort):
                 continue
             name = str(item.get("filerName") or "").strip()
             start_date_raw = item.get("startDate")
-            ts = start_date_raw.get("raw") if isinstance(start_date_raw, Mapping) else start_date_raw
+            ts = (
+                start_date_raw.get("raw")
+                if isinstance(start_date_raw, Mapping)
+                else start_date_raw
+            )
             if not name or ts is None:
                 continue
             try:
@@ -679,21 +798,31 @@ class YahooFinanceInsiderTradingAdapter(InsiderTradingProviderPort):
             else:
                 txn_type = "other"
             shares_raw = item.get("shares")
-            shares_val = shares_raw.get("raw") if isinstance(shares_raw, Mapping) else shares_raw
+            shares_val = (
+                shares_raw.get("raw") if isinstance(shares_raw, Mapping) else shares_raw
+            )
             value_raw = item.get("value")
-            value_val = value_raw.get("raw") if isinstance(value_raw, Mapping) else value_raw
+            value_val = (
+                value_raw.get("raw") if isinstance(value_raw, Mapping) else value_raw
+            )
             transactions.append(
                 InsiderTransaction(
                     transaction_id=f"yahoo-{symbol}-{i}-{txn_date.isoformat()}",
                     insider_name=name,
-                    role=str(item.get("filerRelation")) if item.get("filerRelation") else None,
+                    role=(
+                        str(item.get("filerRelation"))
+                        if item.get("filerRelation")
+                        else None
+                    ),
                     transaction_type=txn_type,
                     shares=ConnectorField.of(shares_val),
                     price=ConnectorField.missing(),
                     value=ConnectorField.of(value_val),
                     transaction_date=txn_date,
                     source="Yahoo Finance",
-                    metadata={"transaction_text": str(item.get("transactionText") or "")},
+                    metadata={
+                        "transaction_text": str(item.get("transactionText") or "")
+                    },
                 )
             )
         transactions = _apply_query_filters(transactions, query)
@@ -707,24 +836,34 @@ class YahooFinanceInsiderTradingAdapter(InsiderTradingProviderPort):
             auth_mode="none",
             metadata={"base_url": self.base_url},
         )
-        return build_insider_activity_from_mapping(symbol=symbol, transactions=transactions, provenance=provenance)
+        return build_insider_activity_from_mapping(
+            symbol=symbol, transactions=transactions, provenance=provenance
+        )
 
     def health(self) -> ProviderHealth:
         return ProviderHealth(
             provider_id=self.provider_id,
             healthy=self.enabled,
             authenticated=False,
-            detail="enabled" if self.enabled else "disabled (set DSP_INSIDER_YAHOO_ENABLED=1)",
+            detail=(
+                "enabled"
+                if self.enabled
+                else "disabled (set DSP_INSIDER_YAHOO_ENABLED=1)"
+            ),
         )
 
 
-def build_default_insider_trading_registry_from_env() -> PriorityProviderRegistry[InsiderTradingProviderPort]:
+def build_default_insider_trading_registry_from_env() -> (
+    PriorityProviderRegistry[InsiderTradingProviderPort]
+):
     from data_engine.connector_framework.production_profile import (
         finalize_provider_registry,
         memory_adapter_allowed,
     )
 
-    registry: PriorityProviderRegistry[InsiderTradingProviderPort] = PriorityProviderRegistry()
+    registry: PriorityProviderRegistry[InsiderTradingProviderPort] = (
+        PriorityProviderRegistry()
+    )
 
     sec_ua = os.environ.get("DSP_INSIDER_SEC_EDGAR_USER_AGENT", "").strip()
     if sec_ua:
@@ -744,12 +883,16 @@ def build_default_insider_trading_registry_from_env() -> PriorityProviderRegistr
 
     if os.environ.get("DSP_INSIDER_NSE_ENABLED", "").lower() in {"1", "true", "yes"}:
         registry.register(
-            NseInsiderTradingAdapter(enabled=True), provider_id="nse_insider_trading", priority=30
+            NseInsiderTradingAdapter(enabled=True),
+            provider_id="nse_insider_trading",
+            priority=30,
         )
 
     if os.environ.get("DSP_INSIDER_BSE_ENABLED", "").lower() in {"1", "true", "yes"}:
         registry.register(
-            BseInsiderTradingAdapter(enabled=True), provider_id="bse_insider_trading", priority=40
+            BseInsiderTradingAdapter(enabled=True),
+            provider_id="bse_insider_trading",
+            priority=40,
         )
 
     if os.environ.get("DSP_INSIDER_YAHOO_ENABLED", "").lower() in {"1", "true", "yes"}:

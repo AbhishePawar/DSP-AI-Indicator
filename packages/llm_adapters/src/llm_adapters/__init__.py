@@ -37,6 +37,17 @@ from llm_adapters.model_tiers import (
     TierConfig,
     get_tier_config,
 )
+from llm_adapters.orchestrator import (
+    AdapterBackedAIProvider,
+    AICompletion,
+    AIProvider,
+    AIResearchOutput,
+    OrchestratorResult,
+    OrchestratorStatus,
+    ResearchOrchestrator,
+    ResearchSpecification,
+    UserResearchRequest,
+)
 from llm_adapters.privacy_boundary import (
     PrivateInternalResult,
     PublicDecisionPack,
@@ -62,22 +73,13 @@ from llm_adapters.routing import (
     RoutingDecision,
     decide_routing,
 )
-from llm_adapters.orchestrator import (
-    AICompletion,
-    AIProvider,
-    AIResearchOutput,
-    AdapterBackedAIProvider,
-    OrchestratorResult,
-    OrchestratorStatus,
-    ResearchOrchestrator,
-    ResearchSpecification,
-    UserResearchRequest,
-)
-from llm_adapters.service import CopilotCompleteService, CopilotCompleteResult
+from llm_adapters.service import CopilotCompleteResult, CopilotCompleteService
 from llm_adapters.tools import (
     AUTHENTICATION_REQUIRED,
-    AnthropicToolCalling,
     DEFAULT_TOOL_NAMES,
+    UNAVAILABLE,
+    WIRED,
+    AnthropicToolCalling,
     DSPPlatformToolAdapter,
     DSPToolBackend,
     GeminiToolCalling,
@@ -96,8 +98,6 @@ from llm_adapters.tools import (
     ToolResult,
     ToolSpec,
     ToolStatus,
-    UNAVAILABLE,
-    WIRED,
     assert_no_tool_leakage,
     check_tool_health,
     is_comparison_backed,

@@ -9,7 +9,6 @@ import pytest
 from contracts.domain.evidence import Evidence
 from contracts.enums import EngineSource, SignalDirection
 from core.exceptions import ValidationError
-
 from economic.enums import EconomicCondition, Recommendation
 from economic.models import (
     EconomicAssessment,

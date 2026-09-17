@@ -9,7 +9,6 @@ from __future__ import annotations
 from dataclasses import dataclass
 
 from core.exceptions import ValidationError
-
 from industry.enums import (
     ApplicabilityLevel,
     EvidenceLifecycle,
@@ -68,9 +67,7 @@ class EvidenceApplicabilityRule:
         conditions = tuple(c.strip() for c in self.condition_notes if c.strip())
         notes = tuple(n.strip() for n in self.notes if n.strip())
         if self.level is ApplicabilityLevel.CONDITIONAL and not conditions:
-            msg = (
-                f"CONDITIONAL rule for {evidence_id!r} requires condition_notes"
-            )
+            msg = f"CONDITIONAL rule for {evidence_id!r} requires condition_notes"
             raise ValidationError(msg)
         object.__setattr__(self, "evidence_id", evidence_id)
         object.__setattr__(self, "group_id", group_id)
@@ -216,9 +213,7 @@ class IndustryEvidenceApplicability:
 
     def required_evidence_ids(self) -> tuple[str, ...]:
         return tuple(
-            r.evidence_id
-            for r in self.rules
-            if r.level is ApplicabilityLevel.REQUIRED
+            r.evidence_id for r in self.rules if r.level is ApplicabilityLevel.REQUIRED
         )
 
     def unsupported_evidence_ids(self) -> tuple[str, ...]:

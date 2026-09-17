@@ -4,12 +4,11 @@ from __future__ import annotations
 
 import pytest
 
-from contracts import AnalyticalStance, EngineSource, SignalDirection
-
 from ai_committee.enums import Decision
 from ai_committee.exceptions import CommitteeError
 from ai_committee.members import EconomicMember
 from ai_committee.models import CommitteeInput
+from contracts import AnalyticalStance, EngineSource, SignalDirection
 
 
 class TestEconomicMember:

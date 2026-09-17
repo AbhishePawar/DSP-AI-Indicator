@@ -29,7 +29,9 @@ def validate_snapshot_kind(kind: str) -> str:
     return normalized
 
 
-def validate_archive_snapshot(snapshot: ArchiveSnapshot, *, verify_hash: bool = True) -> None:
+def validate_archive_snapshot(
+    snapshot: ArchiveSnapshot, *, verify_hash: bool = True
+) -> None:
     if snapshot.archive_schema_version != ARCHIVE_SCHEMA_VERSION:
         raise ResearchArchiveValidationError(
             f"unsupported archive_schema_version {snapshot.archive_schema_version!r}"

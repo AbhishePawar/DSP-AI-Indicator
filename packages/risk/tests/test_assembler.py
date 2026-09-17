@@ -6,13 +6,13 @@ import json
 from dataclasses import asdict
 
 import pytest
+
 from industry import EvidenceBundleReference, EvidenceBundleStatus
 from portfolio import (
     ComparisonReportReference,
     DecisionPackReference,
     PortfolioMonitoringStatus,
 )
-
 from risk import (
     MonitoringReference,
     PortfolioReference,
@@ -64,9 +64,7 @@ def _ctx(
                 status=EvidenceBundleStatus.INCOMPLETE,
             ),
         ),
-        comparison_report_refs=(
-            ComparisonReportReference(digest="compdigest01"),
-        ),
+        comparison_report_refs=(ComparisonReportReference(digest="compdigest01"),),
     )
 
 
@@ -90,16 +88,18 @@ class TestAssembly:
 
     def test_assemble_many_deterministic(self) -> None:
         assembler = RiskAssembler()
-        a = assembler.assemble_many((_ctx(risk_id="dsp.risk.a"), _ctx(risk_id="dsp.risk.b")))
-        b = assembler.assemble_many((_ctx(risk_id="dsp.risk.a"), _ctx(risk_id="dsp.risk.b")))
+        a = assembler.assemble_many(
+            (_ctx(risk_id="dsp.risk.a"), _ctx(risk_id="dsp.risk.b"))
+        )
+        b = assembler.assemble_many(
+            (_ctx(risk_id="dsp.risk.a"), _ctx(risk_id="dsp.risk.b"))
+        )
         assert a == b
 
 
 class TestValidation:
     def test_duplicate_decision_refs(self) -> None:
-        pack = DecisionPackReference(
-            instrument_symbol="AAA", digest="abcdef0123456789"
-        )
+        pack = DecisionPackReference(instrument_symbol="AAA", digest="abcdef0123456789")
         with pytest.raises(RiskError, match="duplicate"):
             RiskAssembler().assemble(
                 RiskAssemblyContext(

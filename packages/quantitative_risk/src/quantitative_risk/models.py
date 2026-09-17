@@ -10,7 +10,6 @@ from decimal import Decimal
 from typing import Any
 
 from core.exceptions import ValidationError
-
 from quantitative_risk.enums import MetricStatus, MetricType, StressScenarioType
 from quantitative_risk.exceptions import QuantitativeRiskError
 from quantitative_risk.refs import (
@@ -133,8 +132,8 @@ class RiskExposure:
 
     def __post_init__(self) -> None:
         exposure_id = _normalize_id(self.exposure_id, field="exposure_id")
-        dimension = _non_empty(self.dimension, field="dimension").lower().replace(
-            " ", "_"
+        dimension = (
+            _non_empty(self.dimension, field="dimension").lower().replace(" ", "_")
         )
         weight = _require_decimal(self.weight, field="weight")
         label = _non_empty(self.label, field="label")
@@ -249,9 +248,7 @@ class DrawdownProfile:
             raise QuantitativeRiskError(msg)
         max_drawdown = _require_decimal(self.max_drawdown, field="max_drawdown")
         peak = (
-            None
-            if self.peak_timestamp is None
-            else self.peak_timestamp.strip() or None
+            None if self.peak_timestamp is None else self.peak_timestamp.strip() or None
         )
         trough = (
             None
@@ -339,11 +336,11 @@ class RiskDistribution:
     notes: tuple[str, ...] = ()
 
     def __post_init__(self) -> None:
-        distribution_id = _normalize_id(
-            self.distribution_id, field="distribution_id"
-        )
+        distribution_id = _normalize_id(self.distribution_id, field="distribution_id")
         method_id = _normalize_id(self.method_id, field="method_id")
-        labels = tuple(_non_empty(l, field="quantile_labels") for l in self.quantile_labels)
+        labels = tuple(
+            _non_empty(l, field="quantile_labels") for l in self.quantile_labels
+        )
         values = tuple(
             _require_decimal(v, field="quantile_values") for v in self.quantile_values
         )
@@ -374,9 +371,7 @@ class QuantitativeRiskSummary:
             if getattr(self, name) < 0:
                 msg = "counts must be >= 0"
                 raise ValidationError(msg)
-        limitations = tuple(
-            n.strip() for n in self.limitation_notes if n.strip()
-        )
+        limitations = tuple(n.strip() for n in self.limitation_notes if n.strip())
         object.__setattr__(self, "limitation_notes", limitations)
 
 
@@ -405,9 +400,7 @@ class QuantitativeRiskReport:
     limitations: tuple[str, ...] = ()
 
     def __post_init__(self) -> None:
-        qid = _normalize_id(
-            self.quantitative_risk_id, field="quantitative_risk_id"
-        )
+        qid = _normalize_id(self.quantitative_risk_id, field="quantitative_risk_id")
         as_of = _non_empty(self.as_of, field="as_of")
         metrics = _unique_metrics(self.metrics)
         exposures = _unique_exposures(self.exposures)

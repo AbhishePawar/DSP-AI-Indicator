@@ -91,9 +91,7 @@ def get_build_metadata() -> BuildMetadata:
         application_version=app_version,
         api_version=os.environ.get("DSP_API_VERSION", "v1"),
         platform_version=os.environ.get("DSP_PLATFORM_VERSION", app_version),
-        pipeline_version=os.environ.get(
-            "DSP_PIPELINE_VERSION", "1.0.0-epic-001"
-        ),
+        pipeline_version=os.environ.get("DSP_PIPELINE_VERSION", "1.0.0-epic-001"),
         git_sha=os.environ.get("GIT_SHA", os.environ.get("GITHUB_SHA", "unknown")),
         build_timestamp=os.environ.get(
             "BUILD_TIMESTAMP", os.environ.get("DSP_BUILD_TIMESTAMP", "unknown")
@@ -182,9 +180,11 @@ def collect_component_statuses(
         "redis": redis_component,
         "cache": status(
             True,
-            message=str(probes.get("cache_adapter", "Unavailable"))
-            if probes
-            else "Unavailable",
+            message=(
+                str(probes.get("cache_adapter", "Unavailable"))
+                if probes
+                else "Unavailable"
+            ),
             skip=not probes,
         ),
         "storage": status(
@@ -282,9 +282,9 @@ def collect_health_snapshot(state: Any) -> dict[str, Any]:
             "copilot_service": state.copilot_service is not None,
             "api_state": state is not None,
             "infrastructure": infra is not None,
-            "database": bool(infra_probes.get("database", False))
-            if infra_probes
-            else None,
+            "database": (
+                bool(infra_probes.get("database", False)) if infra_probes else None
+            ),
         },
     }
 

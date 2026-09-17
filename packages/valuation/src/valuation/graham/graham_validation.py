@@ -111,9 +111,7 @@ def validate_graham_inputs(inputs: GrahamInputs) -> ValidationSummary:
             warnings.append(f"high growth assumption (percent): {g}")
 
     if inputs.aaa_bond_yield <= 0:
-        errors.append(
-            f"aaa_bond_yield must be > 0, got {inputs.aaa_bond_yield}"
-        )
+        errors.append(f"aaa_bond_yield must be > 0, got {inputs.aaa_bond_yield}")
     else:
         checks.append("aaa_bond_yield > 0")
 
@@ -142,9 +140,7 @@ def validate_graham_inputs(inputs: GrahamInputs) -> ValidationSummary:
         )
 
     if inputs.book_value_per_share is not None and inputs.book_value_per_share < 0:
-        warnings.append(
-            f"negative book_value_per_share: {inputs.book_value_per_share}"
-        )
+        warnings.append(f"negative book_value_per_share: {inputs.book_value_per_share}")
 
     errors = list(dict.fromkeys(errors))
     checks = list(dict.fromkeys(checks))

@@ -71,9 +71,7 @@ def make_statement(
 def make_snapshot(statements: Sequence[FundamentalStatement]) -> FinancialSnapshot:
     """Build a ``FinancialSnapshot`` from statements ordered most-recent-first."""
     statements = tuple(statements)
-    return FinancialSnapshot(
-        instrument=statements[0].instrument, statements=statements
-    )
+    return FinancialSnapshot(instrument=statements[0].instrument, statements=statements)
 
 
 @pytest.fixture

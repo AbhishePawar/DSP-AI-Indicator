@@ -5,10 +5,11 @@ Honest empty states — never fabricate commercial or operational data.
 
 from __future__ import annotations
 
+from collections.abc import Mapping
 from dataclasses import dataclass, field
 from datetime import UTC, datetime
 from types import MappingProxyType
-from typing import Any, Mapping
+from typing import Any
 
 __all__ = [
     "ENTERPRISE_SCHEMA_VERSION",
@@ -260,7 +261,9 @@ class AuditRecord:
             "created_at": self.created_at,
             "metadata": dict(self.metadata),
             "immutable": True,
-            "before": dict(self.before_state) if self.before_state is not None else None,
+            "before": (
+                dict(self.before_state) if self.before_state is not None else None
+            ),
             "after": dict(self.after_state) if self.after_state is not None else None,
             "ip_address": self.ip_address,
             "correlation_id": self.correlation_id,
@@ -354,7 +357,9 @@ class UsageSnapshot:
             "available": True,
             "message": None,
             "dau": self.dau if self.dau is not None else 0,
-            "research_count": self.research_count if self.research_count is not None else 0,
+            "research_count": (
+                self.research_count if self.research_count is not None else 0
+            ),
             "export_count": self.export_count if self.export_count is not None else 0,
             "comparison_count": (
                 self.comparison_count if self.comparison_count is not None else 0
@@ -362,5 +367,7 @@ class UsageSnapshot:
             "api_request_count": (
                 self.api_request_count if self.api_request_count is not None else 0
             ),
-            "storage_bytes": self.storage_bytes if self.storage_bytes is not None else 0,
+            "storage_bytes": (
+                self.storage_bytes if self.storage_bytes is not None else 0
+            ),
         }

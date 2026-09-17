@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 from contracts.enums import SignalDirection
-
 from economic.analyzers import (
     GdpAnalyzer,
     InflationAnalyzer,
@@ -20,28 +19,20 @@ class TestGdpAnalyzer:
         assert GdpAnalyzer().name == "gdp"
 
     def test_strong_is_bullish(self, snapshot_factory) -> None:
-        signal = GdpAnalyzer().analyze(
-            snapshot_factory(gdp_growth=0.04)
-        )[0]
+        signal = GdpAnalyzer().analyze(snapshot_factory(gdp_growth=0.04))[0]
         assert signal.direction is SignalDirection.BULLISH
         assert signal.observation == "Strong GDP Growth"
 
     def test_moderate_is_neutral(self, snapshot_factory) -> None:
-        signal = GdpAnalyzer().analyze(
-            snapshot_factory(gdp_growth=0.02)
-        )[0]
+        signal = GdpAnalyzer().analyze(snapshot_factory(gdp_growth=0.02))[0]
         assert signal.direction is SignalDirection.NEUTRAL
 
     def test_weak_is_bearish(self, snapshot_factory) -> None:
-        signal = GdpAnalyzer().analyze(
-            snapshot_factory(gdp_growth=0.005)
-        )[0]
+        signal = GdpAnalyzer().analyze(snapshot_factory(gdp_growth=0.005))[0]
         assert signal.direction is SignalDirection.BEARISH
 
     def test_missing_is_neutral(self, snapshot_factory) -> None:
-        signal = GdpAnalyzer().analyze(
-            snapshot_factory(gdp_growth=None)
-        )[0]
+        signal = GdpAnalyzer().analyze(snapshot_factory(gdp_growth=None))[0]
         assert signal.direction is SignalDirection.NEUTRAL
 
 
@@ -52,28 +43,20 @@ class TestInflationAnalyzer:
         assert InflationAnalyzer().name == "inflation"
 
     def test_missing_is_neutral(self, snapshot_factory) -> None:
-        signal = InflationAnalyzer().analyze(
-            snapshot_factory(cpi_inflation=None)
-        )[0]
+        signal = InflationAnalyzer().analyze(snapshot_factory(cpi_inflation=None))[0]
         assert signal.direction is SignalDirection.NEUTRAL
 
     def test_low_is_bullish(self, snapshot_factory) -> None:
-        signal = InflationAnalyzer().analyze(
-            snapshot_factory(cpi_inflation=0.015)
-        )[0]
+        signal = InflationAnalyzer().analyze(snapshot_factory(cpi_inflation=0.015))[0]
         assert signal.direction is SignalDirection.BULLISH
         assert signal.observation == "Low Inflation"
 
     def test_moderate_is_neutral(self, snapshot_factory) -> None:
-        signal = InflationAnalyzer().analyze(
-            snapshot_factory(cpi_inflation=0.03)
-        )[0]
+        signal = InflationAnalyzer().analyze(snapshot_factory(cpi_inflation=0.03))[0]
         assert signal.direction is SignalDirection.NEUTRAL
 
     def test_high_is_bearish(self, snapshot_factory) -> None:
-        signal = InflationAnalyzer().analyze(
-            snapshot_factory(cpi_inflation=0.06)
-        )[0]
+        signal = InflationAnalyzer().analyze(snapshot_factory(cpi_inflation=0.06))[0]
         assert signal.direction is SignalDirection.BEARISH
         assert signal.observation == "High Inflation"
 
@@ -178,19 +161,19 @@ class TestLiquidityAnalyzer:
         assert signal.direction is SignalDirection.NEUTRAL
 
     def test_ample(self, snapshot_factory) -> None:
-        signal = LiquidityAnalyzer().analyze(
-            snapshot_factory(liquidity_indicator=0.8)
-        )[0]
+        signal = LiquidityAnalyzer().analyze(snapshot_factory(liquidity_indicator=0.8))[
+            0
+        ]
         assert signal.direction is SignalDirection.BULLISH
 
     def test_adequate(self, snapshot_factory) -> None:
-        signal = LiquidityAnalyzer().analyze(
-            snapshot_factory(liquidity_indicator=0.5)
-        )[0]
+        signal = LiquidityAnalyzer().analyze(snapshot_factory(liquidity_indicator=0.5))[
+            0
+        ]
         assert signal.direction is SignalDirection.NEUTRAL
 
     def test_tight(self, snapshot_factory) -> None:
-        signal = LiquidityAnalyzer().analyze(
-            snapshot_factory(liquidity_indicator=0.2)
-        )[0]
+        signal = LiquidityAnalyzer().analyze(snapshot_factory(liquidity_indicator=0.2))[
+            0
+        ]
         assert signal.direction is SignalDirection.BEARISH

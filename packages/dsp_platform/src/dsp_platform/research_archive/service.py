@@ -6,7 +6,8 @@ Archives existing R001 / R002 / R003 outputs only — never mutates snapshots.
 from __future__ import annotations
 
 import uuid
-from typing import Any, Mapping
+from collections.abc import Mapping
+from typing import Any
 
 from dsp_platform.research_archive.hashing import (
     content_sha256,
@@ -102,11 +103,11 @@ class ResearchArchiveService:
             resolved_lineage = parent.version.lineage_id
         if not resolved_lineage:
             # Prefer stable subject id when present
-            resolved_lineage = (
-                str(subject_ids.get("research_object_id")
-                    or subject_ids.get("report_id")
-                    or subject_ids.get("export_id")
-                    or uuid.uuid4())
+            resolved_lineage = str(
+                subject_ids.get("research_object_id")
+                or subject_ids.get("report_id")
+                or subject_ids.get("export_id")
+                or uuid.uuid4()
             )
 
         snap_id = snapshot_id or str(uuid.uuid4())

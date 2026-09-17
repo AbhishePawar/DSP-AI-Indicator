@@ -10,7 +10,7 @@ from abc import ABC, abstractmethod
 from collections.abc import Callable
 from dataclasses import dataclass, field
 from datetime import UTC, datetime
-from typing import Any, Generic, TypeVar
+from typing import Any, TypeVar
 
 from contracts.domain.instrument import Instrument
 from data_engine.cache import CachePort, InMemoryCache
@@ -49,7 +49,7 @@ class MarketQuotePort(ABC):
         """
 
     @abstractmethod
-    def health(self) -> "QuoteProviderHealth":
+    def health(self) -> QuoteProviderHealth:
         """Provider health for readiness probes."""
 
     @property
@@ -272,7 +272,11 @@ class MarketQuoteService:
             self.metrics.failures += 1
             _LOG.exception(
                 "market_quote_failure",
-                extra={"symbol": symbol, "provider": self.provider_id, "error": str(exc)},
+                extra={
+                    "symbol": symbol,
+                    "provider": self.provider_id,
+                    "error": str(exc),
+                },
             )
             raise
 

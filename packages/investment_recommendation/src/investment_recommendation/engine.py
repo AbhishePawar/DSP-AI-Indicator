@@ -10,9 +10,6 @@ from earnings_quality import EarningsQualityAnalysis
 from economic_moat import EconomicAnalysis
 from financial_strength import FinancialStrengthAnalysis
 from growth_quality import GrowthQualityAnalysis
-from management_quality import ManagementAnalysis
-from valuation import OverallValuationResult
-
 from investment_recommendation.adapters import (
     extract_margin_of_safety,
     make_contribution,
@@ -53,6 +50,8 @@ from investment_recommendation.scoring import (
 )
 from investment_recommendation.validation import validate_framework_inputs
 from investment_recommendation.valuation_signals import ValuationSignals
+from management_quality import ManagementAnalysis
+from valuation import OverallValuationResult
 
 __all__ = ["InvestmentRecommendationEngine"]
 
@@ -127,9 +126,7 @@ class InvestmentRecommendationEngine:
             metadata=effective_metadata,
         )
         if not validation.ok:
-            raise InvestmentRecommendationValidationError(
-                "; ".join(validation.errors)
-            )
+            raise InvestmentRecommendationValidationError("; ".join(validation.errors))
 
         quality = safe_score_value(business_quality)
         moat = safe_score_value(economic_moat)
@@ -138,9 +135,7 @@ class InvestmentRecommendationEngine:
         earnings = safe_score_value(earnings_quality)
         growth = safe_score_value(growth_quality)
         bq_conf = safe_confidence(business_quality)
-        mos = extract_margin_of_safety(
-            valuation, business_quality_confidence=bq_conf
-        )
+        mos = extract_margin_of_safety(valuation, business_quality_confidence=bq_conf)
 
         contributions = (
             make_contribution(
@@ -203,9 +198,7 @@ class InvestmentRecommendationEngine:
             mos=mos,
         )
         overall = rule_result.adjusted_score
-        action = cap_action(
-            action_from_score(overall), rule_result.action_cap
-        )
+        action = cap_action(action_from_score(overall), rule_result.action_cap)
         confidence = analysis_confidence(contributions, mos)
         positives, negatives, risks, drivers = build_factors(
             contributions, rule_result.rules, mos
@@ -244,9 +237,7 @@ class InvestmentRecommendationEngine:
             risks=risks,
             key_drivers=drivers,
             investment_thesis=build_thesis(action, quality, mos),
-            decision_summary=build_summary(
-                action, overall, mos, rule_result.rules
-            ),
+            decision_summary=build_summary(action, overall, mos, rule_result.rules),
             recommendation_text=build_recommendation_text(action, confidence),
             weights_used=effective_weights,
             research_disclaimer=RESEARCH_DISCLAIMER,

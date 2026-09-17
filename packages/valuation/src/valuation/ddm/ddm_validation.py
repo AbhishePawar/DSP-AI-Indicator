@@ -78,9 +78,7 @@ def validate_ddm_inputs(inputs: DdmInputs) -> ValidationSummary:
         errors.append(f"current_dps must be non-negative, got {inputs.current_dps}")
     elif inputs.current_dps == 0:
         # P1-04 — zero dividend is not a valid DDM input; do not fabricate IV=0.
-        errors.append(
-            "current_dps is zero — DDM unavailable (no valid dividend)"
-        )
+        errors.append("current_dps is zero — DDM unavailable (no valid dividend)")
     else:
         checks.append("current_dps > 0")
 
@@ -92,9 +90,7 @@ def validate_ddm_inputs(inputs: DdmInputs) -> ValidationSummary:
         checks.append("shares > 0")
 
     if inputs.cost_of_equity <= 0:
-        errors.append(
-            f"cost_of_equity must be > 0, got {inputs.cost_of_equity}"
-        )
+        errors.append(f"cost_of_equity must be > 0, got {inputs.cost_of_equity}")
     else:
         checks.append("cost_of_equity > 0")
 
@@ -106,23 +102,17 @@ def validate_ddm_inputs(inputs: DdmInputs) -> ValidationSummary:
     elif method is DdmMethod.GORDON:
         g = inputs.expected_dividend_growth
         if g >= r:
-            errors.append(
-                f"growth must be < cost_of_equity ({g} >= {r})"
-            )
+            errors.append(f"growth must be < cost_of_equity ({g} >= {r})")
         else:
             checks.append("gordon: g < r")
     elif method in {DdmMethod.TWO_STAGE, DdmMethod.MULTI_STAGE}:
         if inputs.forecast_years < 1 or inputs.forecast_years > 50:
-            errors.append(
-                f"forecast_years out of range: {inputs.forecast_years}"
-            )
+            errors.append(f"forecast_years out of range: {inputs.forecast_years}")
         else:
             checks.append("forecast_years in [1, 50]")
         tg = inputs.terminal_growth
         if tg >= r:
-            errors.append(
-                f"terminal_growth must be < cost_of_equity ({tg} >= {r})"
-            )
+            errors.append(f"terminal_growth must be < cost_of_equity ({tg} >= {r})")
         else:
             checks.append("terminal_growth < r")
         if method is DdmMethod.MULTI_STAGE and inputs.dividend_growth_schedule:
@@ -164,9 +154,7 @@ def validate_ddm_inputs(inputs: DdmInputs) -> ValidationSummary:
         )
 
     if inputs.expected_dividend_growth > 0.20:
-        warnings.append(
-            f"high growth assumption: {inputs.expected_dividend_growth}"
-        )
+        warnings.append(f"high growth assumption: {inputs.expected_dividend_growth}")
     if inputs.expected_dividend_growth < 0:
         warnings.append(
             f"negative growth assumption: {inputs.expected_dividend_growth}"

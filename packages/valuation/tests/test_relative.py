@@ -82,7 +82,11 @@ class TestEveryMultiple:
     @pytest.mark.parametrize(
         "method,kwargs,check",
         [
-            (RelativeMultiple.PE, {}, lambda r: r.current_multiple.value == pytest.approx(20.0)),
+            (
+                RelativeMultiple.PE,
+                {},
+                lambda r: r.current_multiple.value == pytest.approx(20.0),
+            ),
             (
                 RelativeMultiple.FORWARD_PE,
                 {"industry": _bench(18.0)},
@@ -196,9 +200,7 @@ class TestScopes:
         assert r.fair_multiple.value == pytest.approx(14.0)
 
     def test_mean_when_no_median(self) -> None:
-        r = RelativeEngine().analyze(
-            _base(industry=_bench(median=None, mean=17.0))
-        )
+        r = RelativeEngine().analyze(_base(industry=_bench(median=None, mean=17.0)))
         assert r.fair_multiple.value == pytest.approx(17.0)
 
 
@@ -218,13 +220,18 @@ class TestValidation:
     def test_missing_industry(self) -> None:
         with pytest.raises(ValuationError, match="industry"):
             validate_relative_inputs(
-                _base(industry=BenchmarkMultiples(), benchmark_scope=BenchmarkScope.INDUSTRY)
+                _base(
+                    industry=BenchmarkMultiples(),
+                    benchmark_scope=BenchmarkScope.INDUSTRY,
+                )
             )
 
     def test_missing_sector(self) -> None:
         with pytest.raises(ValuationError, match="sector"):
             validate_relative_inputs(
-                _base(sector=BenchmarkMultiples(), benchmark_scope=BenchmarkScope.SECTOR)
+                _base(
+                    sector=BenchmarkMultiples(), benchmark_scope=BenchmarkScope.SECTOR
+                )
             )
 
     def test_missing_peer(self) -> None:
@@ -338,7 +345,6 @@ class TestSensitivityScenarios:
         assert "enterprise_value" in r.sensitivity.grids
         assert r.sensitivity.notes is not None or r.sensitivity.grids
 
-
     def test_sensitivity_ev_none_cells(self) -> None:
         r = RelativeEngine().analyze(
             _base(method=RelativeMultiple.EV_EBITDA, industry=_bench(10.0))
@@ -378,9 +384,7 @@ class TestConfidenceFlags:
         assert RelativeQualityFlag.OVERVALUED in r.quality_flags
 
     def test_growth_premium(self) -> None:
-        r = RelativeEngine().analyze(
-            _base(industry=_bench(10.0), expected_growth=0.20)
-        )
+        r = RelativeEngine().analyze(_base(industry=_bench(10.0), expected_growth=0.20))
         assert RelativeQualityFlag.GROWTH_PREMIUM in r.quality_flags
 
     def test_weak_peer_flag(self) -> None:
@@ -446,8 +450,8 @@ class TestExplainabilityIntegration:
         vr = to_valuation_result(result)
         assert vr.model_name == "relative"
         from valuation import (
-            to_relative_valuation_result,
             to_relative_v2_aggregate_payload,
+            to_relative_valuation_result,
         )
 
         assert to_relative_valuation_result(result).model_name == "relative"
@@ -487,7 +491,9 @@ class TestProviderAndMaps:
         )
         assert r.fair_multiple.value == pytest.approx(2.5)
         snap = next(
-            s for s in r.multiple_analysis.snapshots if s.multiple is RelativeMultiple.PB
+            s
+            for s in r.multiple_analysis.snapshots
+            if s.multiple is RelativeMultiple.PB
         )
         assert snap.historical_average == pytest.approx(1.8)
 
@@ -617,9 +623,9 @@ class TestEdgeCases:
     def test_driver_per_share_ev_and_none(self) -> None:
         eng = RelativeEngine()
         inputs = _base()
-        assert eng._driver_per_share(inputs, RelativeMultiple.EV_SALES) == pytest.approx(
-            0.1
-        )
+        assert eng._driver_per_share(
+            inputs, RelativeMultiple.EV_SALES
+        ) == pytest.approx(0.1)
         assert eng._driver_per_share(inputs, RelativeMultiple.PEG) == pytest.approx(5.0)
         assert eng._driver_per_share(
             inputs, RelativeMultiple.DIVIDEND_YIELD
@@ -641,7 +647,9 @@ class TestEdgeCases:
         r1 = RelativeEngine().analyze(_base(peer=_bench(count=1)))
         assert RelativeQualityFlag.WEAK_PEER_SET in r1.quality_flags
 
-    def test_sensitivity_handles_valuation_error(self, monkeypatch: pytest.MonkeyPatch) -> None:
+    def test_sensitivity_handles_valuation_error(
+        self, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
         eng = RelativeEngine()
         inputs = _base()
 

@@ -44,9 +44,7 @@ class TestSignal:
         assert signal.strength == 0.65
         assert signal.explanation is explanation
 
-    def test_empty_name_raises(
-        self, instrument: Instrument, utc_now: datetime
-    ) -> None:
+    def test_empty_name_raises(self, instrument: Instrument, utc_now: datetime) -> None:
         with pytest.raises(ContractValidationError, match="name"):
             Signal(
                 instrument=instrument,

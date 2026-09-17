@@ -7,7 +7,8 @@ authoritative.
 
 from __future__ import annotations
 
-from typing import Any, Mapping
+from collections.abc import Mapping
+from typing import Any
 
 from dsp_platform.investment_provenance import (
     InvestmentProvenanceForbidden,
@@ -160,7 +161,11 @@ def bind_analysis_payload_to_provenance(
     base = dict(client_payload or {})
     for key in ("analysis_id", "audit_reference"):
         raw = base.get(key)
-        if raw is not None and str(raw).strip() and str(raw).strip() != record.analysis_id:
+        if (
+            raw is not None
+            and str(raw).strip()
+            and str(raw).strip() != record.analysis_id
+        ):
             raise TrustChainError(
                 "client analysis_id does not match bound provenance",
                 error_code="TRUST_CHAIN_ANALYSIS_ID_MISMATCH",
@@ -207,9 +212,11 @@ def bind_analysis_payload_to_provenance(
         "label": valuation.get("label"),
         "current_market_price": valuation.get("market_price"),
         "margin_of_safety": valuation.get("margin_of_safety"),
-        "intrinsic_value_per_share": None
-        if not valuation.get("available")
-        else valuation.get("intrinsic_value_per_share"),
+        "intrinsic_value_per_share": (
+            None
+            if not valuation.get("available")
+            else valuation.get("intrinsic_value_per_share")
+        ),
         "reason": valuation.get("reason"),
     }
     # Never allow client valuation stage inventing availability when provenance says no.
@@ -248,7 +255,9 @@ def assert_research_object_bound(
     audit = research_object.get("audit")
     payload = None
     if isinstance(audit, Mapping):
-        payload = audit.get("payload") if isinstance(audit.get("payload"), Mapping) else audit
+        payload = (
+            audit.get("payload") if isinstance(audit.get("payload"), Mapping) else audit
+        )
     bound_id = None
     if isinstance(payload, Mapping):
         bound_id = payload.get("analysis_id") or payload.get("audit_reference")

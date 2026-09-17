@@ -7,13 +7,18 @@ providers, then maps it into ``fundamental.FinancialSnapshot`` for
 
 from __future__ import annotations
 
+from collections.abc import Callable
 from dataclasses import dataclass
 from datetime import date
-from typing import Any, Callable
+from typing import Any
 
 from contracts.domain.fundamental_statement import FundamentalStatement
 from contracts.domain.instrument import Instrument
 from contracts.enums import AssetClass, StatementPeriodType
+from data_engine.connector_framework.production_profile import (
+    assert_production_investment_connectors_configured,
+    is_production_environment,
+)
 from data_engine.financial_statement.models import (
     AuthenticatedFinancialStatements,
     AuthenticatedStatementPeriod,
@@ -25,6 +30,18 @@ from data_engine.financial_statement.service import (
 )
 from data_engine.market_quote.models import AuthenticatedMarketQuote, QuoteField
 from data_engine.market_quote.service import MarketQuoteService
+from dsp_platform.composition.financial_integrity import (
+    FinancialIntegrityError,
+    assert_balance_sheet_integrity,
+    assert_cash_flow_integrity,
+    assert_duplicate_periods,
+    assert_eps_share_integrity,
+    assert_profitability_sanity,
+    assert_share_count_integrity,
+    assert_statement_basis,
+    assert_unit_homogeneous,
+    normalize_periods_to_actual,
+)
 from financial import (
     BalanceSheet,
     CashFlowStatement,
@@ -39,23 +56,6 @@ from financial.metadata import StatementMetadata
 from fundamental import FinancialSnapshot
 from investment_recommendation import ValuationSignals
 from valuation import MarketSnapshot, ValuationAssessment, ValuationConfidence
-
-from data_engine.connector_framework.production_profile import (
-    assert_production_investment_connectors_configured,
-    is_production_environment,
-)
-from dsp_platform.composition.financial_integrity import (
-    FinancialIntegrityError,
-    assert_balance_sheet_integrity,
-    assert_cash_flow_integrity,
-    assert_duplicate_periods,
-    assert_eps_share_integrity,
-    assert_profitability_sanity,
-    assert_share_count_integrity,
-    assert_statement_basis,
-    assert_unit_homogeneous,
-    normalize_periods_to_actual,
-)
 
 __all__ = [
     "AuthenticatedValuationBundle",
@@ -247,13 +247,9 @@ def _to_fundamental_statement(
             f"{DATA_UNAVAILABLE} (invalid period type {period.period_type!r})"
         )
     if period.fiscal_year < 1900 or period.fiscal_year > 2200:
-        raise AuthenticatedValuationError(
-            f"{DATA_UNAVAILABLE} (invalid fiscal period)"
-        )
+        raise AuthenticatedValuationError(f"{DATA_UNAVAILABLE} (invalid fiscal period)")
     if not isinstance(period.period_end, date):
-        raise AuthenticatedValuationError(
-            f"{DATA_UNAVAILABLE} (invalid period_end)"
-        )
+        raise AuthenticatedValuationError(f"{DATA_UNAVAILABLE} (invalid period_end)")
     extras: list[tuple[str, float]] = []
     for name in ("ebit", "ebitda", "free_cash_flow", "long_term_debt"):
         value = _sf(getattr(period, name))
@@ -297,9 +293,7 @@ def to_financial_statements(
     try:
         period_type = PeriodType(bundle.period_kind)
     except ValueError as exc:
-        raise AuthenticatedValuationError(
-            f"{DATA_UNAVAILABLE} (period kind)"
-        ) from exc
+        raise AuthenticatedValuationError(f"{DATA_UNAVAILABLE} (period kind)") from exc
     currency = CurrencyRef.parse(latest.currency)
     shares = bundle.shares_outstanding
     fcf = None
@@ -382,8 +376,9 @@ def load_authenticated_valuation_bundle(
     currency: str = "USD",
     statement_service: FinancialStatementService | None = None,
     quote_service: MarketQuoteService | None = None,
-    get_statements: Callable[[str], AuthenticatedFinancialStatements | None]
-    | None = None,
+    get_statements: (
+        Callable[[str], AuthenticatedFinancialStatements | None] | None
+    ) = None,
     get_quote: Callable[[str], AuthenticatedMarketQuote | None] | None = None,
 ) -> AuthenticatedValuationBundle:
     """Fetch + validate authenticated statements and quote for ``ticker``.
@@ -393,9 +388,7 @@ def load_authenticated_valuation_bundle(
     """
     symbol = str(ticker or "").strip().upper()
     if not symbol:
-        raise AuthenticatedValuationError(
-            f"{DATA_UNAVAILABLE} (ticker required)"
-        )
+        raise AuthenticatedValuationError(f"{DATA_UNAVAILABLE} (ticker required)")
 
     statements = _fetch_statements(
         symbol,
@@ -526,8 +519,7 @@ def _fetch_statements(
     exchange: str | None,
     currency: str,
     statement_service: FinancialStatementService | None,
-    get_statements: Callable[[str], AuthenticatedFinancialStatements | None]
-    | None,
+    get_statements: Callable[[str], AuthenticatedFinancialStatements | None] | None,
 ) -> AuthenticatedFinancialStatements:
     if get_statements is not None:
         bundle = get_statements(symbol)
@@ -553,9 +545,7 @@ def _fetch_statements(
             StatementQuery(instrument=instrument, limit=8, include_restated=False)
         )
     if bundle is None:
-        raise AuthenticatedValuationError(
-            f"{DATA_UNAVAILABLE} (financial statements)"
-        )
+        raise AuthenticatedValuationError(f"{DATA_UNAVAILABLE} (financial statements)")
     if not bundle.has_any_period():
         raise AuthenticatedValuationError(
             f"{DATA_UNAVAILABLE} (financial statements empty)"
@@ -593,13 +583,9 @@ def _fetch_quote(
         )
         quote = service.get_quote(instrument)
     if quote is None:
-        raise AuthenticatedValuationError(
-            f"{DATA_UNAVAILABLE} (market quote)"
-        )
+        raise AuthenticatedValuationError(f"{DATA_UNAVAILABLE} (market quote)")
     if not quote.has_any_price():
-        raise AuthenticatedValuationError(
-            f"{DATA_UNAVAILABLE} (market price)"
-        )
+        raise AuthenticatedValuationError(f"{DATA_UNAVAILABLE} (market price)")
     return quote
 
 

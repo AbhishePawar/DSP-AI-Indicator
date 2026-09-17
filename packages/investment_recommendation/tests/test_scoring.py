@@ -12,7 +12,11 @@ from investment_recommendation import (
     action_from_score,
     validate_weights,
 )
-from investment_recommendation.scoring import clip_score, mos_to_valuation_score, weighted_mean
+from investment_recommendation.scoring import (
+    clip_score,
+    mos_to_valuation_score,
+    weighted_mean,
+)
 
 
 def test_default_weights_sum_to_one() -> None:

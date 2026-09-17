@@ -6,12 +6,12 @@ import os
 import re
 import secrets
 import uuid
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from typing import Any
 
 from auth.audit import AuditLogger
-from auth.devices import DeviceRegistry
 from auth.credential_boundary import AUTH_MAGIC_LINK_ENV
+from auth.devices import DeviceRegistry
 from auth.email_delivery import EmailProviderPort, build_email_provider
 from auth.email_templates import (
     render_email_verification_email,
@@ -52,7 +52,7 @@ from auth.otp import (
 )
 from auth.rate_limit import AuthRateLimiter
 from auth.service import AuthService, get_auth_service
-from auth.single_use_tokens import SingleUseTokenError, SingleUseTokenService
+from auth.single_use_tokens import SingleUseTokenService
 from auth.sms import build_sms_provider
 from auth.validation import assert_email, assert_username
 
@@ -130,7 +130,9 @@ class EnterpriseAuthPlatform:
         # Single shared implementation for every one-time-link auth flow
         # (email verification, password reset, magic link, invitations, and
         # any future one-time flow) — see auth.single_use_tokens.
-        self.tokens = tokens or SingleUseTokenService(auth.persistence, audit=self.audit)
+        self.tokens = tokens or SingleUseTokenService(
+            auth.persistence, audit=self.audit
+        )
         # AuthenticationService (A009) is audit-agnostic by design (lower
         # layer, no dependency on this platform's AuditLogger). Wiring it
         # here means refresh-token rotation/reuse events raised from
@@ -141,7 +143,9 @@ class EnterpriseAuthPlatform:
         self.auth.authentication.audit = self.audit
         self._rate_limiter = AuthRateLimiter(auth.persistence)
         self._lockout = AuthLockoutStore(auth.persistence)
-        self._lockout_threshold = int(os.environ.get("DSP_AUTH_LOCKOUT_THRESHOLD") or "5")
+        self._lockout_threshold = int(
+            os.environ.get("DSP_AUTH_LOCKOUT_THRESHOLD") or "5"
+        )
         self._lockout_seconds = int(os.environ.get("DSP_AUTH_LOCKOUT_SECONDS") or "900")
         self.ensure_product_roles()
         self.ensure_dev_admin_seed()
@@ -194,7 +198,9 @@ class EnterpriseAuthPlatform:
         elif not sms.get("available"):
             otp_status = ProviderUiStatus.UNAVAILABLE.value
             otp_available = False
-            otp_message = "Mobile OTP unavailable — SMS provider credentials are not configured."
+            otp_message = (
+                "Mobile OTP unavailable — SMS provider credentials are not configured."
+            )
         else:
             otp_status = ProviderUiStatus.AVAILABLE.value
             otp_available = True
@@ -218,7 +224,9 @@ class EnterpriseAuthPlatform:
                 "message": None,
             }
         )
-        magic_enabled = (os.environ.get(AUTH_MAGIC_LINK_ENV) or "false").strip().lower() in {
+        magic_enabled = (
+            os.environ.get(AUTH_MAGIC_LINK_ENV) or "false"
+        ).strip().lower() in {
             "1",
             "true",
             "yes",
@@ -226,8 +234,17 @@ class EnterpriseAuthPlatform:
         }
         return {
             "providers": providers,
-            "oauth": [p for p in providers if p["provider"] in {"GOOGLE", "MICROSOFT", "FACEBOOK"}],
-            "sms": {**sms, "status": otp_status, "available": otp_available, "message": otp_message},
+            "oauth": [
+                p
+                for p in providers
+                if p["provider"] in {"GOOGLE", "MICROSOFT", "FACEBOOK"}
+            ],
+            "sms": {
+                **sms,
+                "status": otp_status,
+                "available": otp_available,
+                "message": otp_message,
+            },
             "magic_link": {
                 "available": magic_enabled,
                 "status": (
@@ -235,9 +252,11 @@ class EnterpriseAuthPlatform:
                     if magic_enabled
                     else ProviderUiStatus.COMING_SOON.value
                 ),
-                "message": None
-                if magic_enabled
-                else "Magic link intentionally disabled — Coming Soon.",
+                "message": (
+                    None
+                    if magic_enabled
+                    else "Magic link intentionally disabled — Coming Soon."
+                ),
             },
             "mfa": self.mfa.status(),
             # Dedicated, additive discovery block for primary/passwordless
@@ -246,10 +265,14 @@ class EnterpriseAuthPlatform:
             # adapter/credential store backs both entry points — so there is
             # no separate `DSP_AUTH_PASSKEY` flag to keep in sync.
             "passkey": {
-                "available": bool(self.mfa.enabled() and self.mfa.webauthn.is_available()),
-                "message": None
-                if self.mfa.enabled()
-                else "Passkey sign-in disabled — enable with DSP_AUTH_MFA=true.",
+                "available": bool(
+                    self.mfa.enabled() and self.mfa.webauthn.is_available()
+                ),
+                "message": (
+                    None
+                    if self.mfa.enabled()
+                    else "Passkey sign-in disabled — enable with DSP_AUTH_MFA=true."
+                ),
             },
         }
 
@@ -287,7 +310,10 @@ class EnterpriseAuthPlatform:
         if any("super_admin" in u.roles or "administrator" in u.roles for u in users):
             return
         env = (os.environ.get("DSP_ENVIRONMENT") or "development").lower()
-        if env in {"production", "prod"} and os.environ.get("DSP_FORCE_ADMIN_SEED") != "1":
+        if (
+            env in {"production", "prod"}
+            and os.environ.get("DSP_FORCE_ADMIN_SEED") != "1"
+        ):
             return
         password = os.environ.get("DSP_SEED_ADMIN_PASSWORD") or "Admin@123"
         meta = freeze_mapping(
@@ -331,7 +357,9 @@ class EnterpriseAuthPlatform:
         self._rate_limiter.check(key, limit=limit, window_sec=window_sec)
 
     def _frontend_url(self) -> str:
-        return (os.environ.get("DSP_FRONTEND_URL") or "http://localhost:3000").rstrip("/")
+        return (os.environ.get("DSP_FRONTEND_URL") or "http://localhost:3000").rstrip(
+            "/"
+        )
 
     # Every one-time-link flow below (email verification, password reset,
     # magic link, invitation acceptance) issues/redeems its token through
@@ -417,7 +445,9 @@ class EnterpriseAuthPlatform:
         out.pop("email_hint", None)
         return out
 
-    def _opaque_login_otp(self, identifier: str, *, ip_hint: str | None) -> dict[str, Any]:
+    def _opaque_login_otp(
+        self, identifier: str, *, ip_hint: str | None
+    ) -> dict[str, Any]:
         return self._public_login_otp(
             self.otp.issue_undelivered_challenge(opaque_key=identifier, ip_hint=ip_hint)
         )
@@ -510,16 +540,20 @@ class EnterpriseAuthPlatform:
             try:
                 until = datetime.fromisoformat(str(locked_until))
                 if until.tzinfo is None:
-                    until = until.replace(tzinfo=timezone.utc)
-                if datetime.now(tz=timezone.utc) < until:
+                    until = until.replace(tzinfo=UTC)
+                if datetime.now(tz=UTC) < until:
                     raise AuthenticationError("Account is locked. Try again later.")
             except AuthenticationError:
                 raise
             except Exception:  # noqa: BLE001
                 pass
-        if meta.get("provider") == AuthProvider.EMAIL.value and not meta.get("email_verified"):
+        if meta.get("provider") == AuthProvider.EMAIL.value and not meta.get(
+            "email_verified"
+        ):
             if meta.get("requires_email_verification"):
-                raise AuthenticationError("Email not verified. Check your inbox or contact admin.")
+                raise AuthenticationError(
+                    "Email not verified. Check your inbox or contact admin."
+                )
         created = created_at or utc_now().isoformat()
         refresh_ttl = 86400 * 30 if remember_me else 86400 * 7
         access_ttl = 3600 * 8 if remember_me else 3600
@@ -630,7 +664,9 @@ class EnterpriseAuthPlatform:
         if strength["score"] < 4:
             raise ValidationError("password is too weak")
         uname = (username or mail.split("@", 1)[0]).strip().lower()
-        uname = re.sub(r"[^a-z0-9._-]", "", uname)[:64] or f"user_{secrets.token_hex(3)}"
+        uname = (
+            re.sub(r"[^a-z0-9._-]", "", uname)[:64] or f"user_{secrets.token_hex(3)}"
+        )
         try:
             user = self.auth.users.create(
                 username=uname,
@@ -640,7 +676,9 @@ class EnterpriseAuthPlatform:
                 roles=["read_only"],
             )
         except DuplicateUserError:
-            raise DuplicateUserError("An account with this email or username already exists.") from None
+            raise DuplicateUserError(
+                "An account with this email or username already exists."
+            ) from None
         user = self._persist_meta(
             user,
             {
@@ -676,7 +714,13 @@ class EnterpriseAuthPlatform:
         subject, text_body, html_body = render_email_verification_email(
             link_url=link_url, token=token, expires_hours=24
         )
-        self.email.send(to=pending.email, subject=subject, body=text_body, html_body=html_body, purpose="email_verify")
+        self.email.send(
+            to=pending.email,
+            subject=subject,
+            body=text_body,
+            html_body=html_body,
+            purpose="email_verify",
+        )
         out: dict[str, Any] = {
             "user": enterprise_user_public_dict(pending),
             "verification_required": True,
@@ -731,7 +775,9 @@ class EnterpriseAuthPlatform:
         Persists a synthetic ``@username.dspai.local`` mailbox to satisfy
         UserStore's email field — never treated as a deliverable address.
         """
-        self._rate_check(f"register-username:{ip_hint or 'na'}", limit=10, window_sec=3600)
+        self._rate_check(
+            f"register-username:{ip_hint or 'na'}", limit=10, window_sec=3600
+        )
         uname = assert_username(username)
         if password != confirm_password:
             raise ValidationError("password confirmation does not match")
@@ -749,7 +795,9 @@ class EnterpriseAuthPlatform:
                 roles=["read_only"],
             )
         except DuplicateUserError:
-            raise DuplicateUserError("An account with this username already exists.") from None
+            raise DuplicateUserError(
+                "An account with this username already exists."
+            ) from None
         user = self._persist_meta(
             user,
             {
@@ -777,7 +825,9 @@ class EnterpriseAuthPlatform:
         Registration OTP is sent to the number the requester entered (they are
         proving possession). Login OTP must never do this for a username.
         """
-        self._rate_check(f"register-mobile:{ip_hint or mobile}", limit=10, window_sec=3600)
+        self._rate_check(
+            f"register-mobile:{ip_hint or mobile}", limit=10, window_sec=3600
+        )
         normalized = normalize_india_mobile(mobile)
         return self.otp.request_otp(normalized, ip_hint=ip_hint)
 
@@ -800,7 +850,11 @@ class EnterpriseAuthPlatform:
         stores the real email, and rejects duplicates. The email-less path
         keeps the previous mobile-only behaviour for existing clients.
         """
-        self._rate_check(f"register-mobile-complete:{ip_hint or challenge_id}", limit=10, window_sec=600)
+        self._rate_check(
+            f"register-mobile-complete:{ip_hint or challenge_id}",
+            limit=10,
+            window_sec=600,
+        )
         if password != confirm_password:
             raise ValidationError("password confirmation does not match")
         strength = password_strength(password)
@@ -881,7 +935,9 @@ class EnterpriseAuthPlatform:
         except DuplicateUserError as exc:
             # Username taken (user-chosen) — safe to surface as username conflict.
             if chosen_username:
-                raise DuplicateUserError("An account with this username already exists.") from exc
+                raise DuplicateUserError(
+                    "An account with this username already exists."
+                ) from exc
             # Default phone username/email collision — recover by mobile email lookup.
             collided = self._get_by_email(synthetic_email)
             if collided is None:
@@ -955,7 +1011,9 @@ class EnterpriseAuthPlatform:
             raise ValidationError("invalid email")
 
         if self._get_by_email(mail) is not None:
-            raise DuplicateUserError("An account with this email or username already exists.")
+            raise DuplicateUserError(
+                "An account with this email or username already exists."
+            )
         if self.auth.users.get_by_username(uname) is not None:
             raise DuplicateUserError("An account with this username already exists.")
         if self._find_verified_mobile_users(mobile) or self._get_by_mobile(mobile):
@@ -1006,7 +1064,9 @@ class EnterpriseAuthPlatform:
             "message": "Account created. You can sign in with your username, mobile OTP, or password.",
         }
 
-    def _register_failed_login(self, user: AuthUser, *, ip_hint: str | None, provider: str) -> None:
+    def _register_failed_login(
+        self, user: AuthUser, *, ip_hint: str | None, provider: str
+    ) -> None:
         self._lockout.record_failure(
             user,
             threshold=self._lockout_threshold,
@@ -1066,8 +1126,10 @@ class EnterpriseAuthPlatform:
                     provider = AuthProvider.PHONE.value
                 # Unverified or unknown mobile: fall through as invalid
                 # credentials (same message as unknown identifier).
-        if user is None or not user.password_hash or not verify_password(
-            password, user.password_hash
+        if (
+            user is None
+            or not user.password_hash
+            or not verify_password(password, user.password_hash)
         ):
             if user:
                 self._register_failed_login(user, ip_hint=ip_hint, provider=provider)
@@ -1096,7 +1158,9 @@ class EnterpriseAuthPlatform:
             device_label=device_label,
         )
 
-    def request_password_reset(self, email: str, *, ip_hint: str | None = None) -> dict[str, Any]:
+    def request_password_reset(
+        self, email: str, *, ip_hint: str | None = None
+    ) -> dict[str, Any]:
         self._rate_check(f"reset:{ip_hint or email}", limit=5, window_sec=3600)
         mail = email.strip().lower()
         user = self._get_by_email(mail)
@@ -1122,7 +1186,13 @@ class EnterpriseAuthPlatform:
         subject, text_body, html_body = render_password_reset_email(
             link_url=link_url, token=token, expires_minutes=60
         )
-        self.email.send(to=user.email, subject=subject, body=text_body, html_body=html_body, purpose="password_reset")
+        self.email.send(
+            to=user.email,
+            subject=subject,
+            body=text_body,
+            html_body=html_body,
+            purpose="password_reset",
+        )
         env = (os.environ.get("DSP_ENVIRONMENT") or "development").lower()
         if env not in {"production", "prod"}:
             out["reset_token"] = token
@@ -1201,7 +1271,9 @@ class EnterpriseAuthPlatform:
             raise AuthenticationError("invalid credentials")
         return self._finalize_password_reset(matches[0], new_password)
 
-    def _finalize_password_reset(self, user: AuthUser, new_password: str) -> dict[str, Any]:
+    def _finalize_password_reset(
+        self, user: AuthUser, new_password: str
+    ) -> dict[str, Any]:
         updated = AuthUser(
             user_id=user.user_id,
             username=user.username,
@@ -1282,7 +1354,9 @@ class EnterpriseAuthPlatform:
             return f"{provider.strip().upper()}:{exc.reason}"
         return str(exc)[:300]
 
-    def oauth_begin(self, provider: str, *, redirect_uri: str, state: str | None = None) -> dict[str, Any]:
+    def oauth_begin(
+        self, provider: str, *, redirect_uri: str, state: str | None = None
+    ) -> dict[str, Any]:
         return self.oauth.begin(provider, redirect_uri=redirect_uri, state=state)
 
     def oauth_callback(
@@ -1390,11 +1464,17 @@ class EnterpriseAuthPlatform:
         if user is None:
             raise ValidationError("user not found")
         try:
-            profile = self.oauth.complete(provider, code=code, state=state, redirect_uri=redirect_uri)
+            profile = self.oauth.complete(
+                provider, code=code, state=state, redirect_uri=redirect_uri
+            )
             if not profile.email:
-                raise AuthenticationError("OAuth provider did not return an email address.")
+                raise AuthenticationError(
+                    "OAuth provider did not return an email address."
+                )
             if not profile.email_verified:
-                raise AuthenticationError("OAuth email is not verified by the provider.")
+                raise AuthenticationError(
+                    "OAuth email is not verified by the provider."
+                )
             existing = self._get_by_provider_subject(profile.provider, profile.subject)
             if existing is not None and existing.user_id != user.user_id:
                 raise ValidationError(
@@ -1542,15 +1622,21 @@ class EnterpriseAuthPlatform:
             return self._opaque_login_otp(ident, ip_hint=ip_hint)
         return self._public_login_otp(self.otp.request_otp(stored, ip_hint=ip_hint))
 
-    def request_mobile_otp(self, mobile: str, *, ip_hint: str | None = None) -> dict[str, Any]:
+    def request_mobile_otp(
+        self, mobile: str, *, ip_hint: str | None = None
+    ) -> dict[str, Any]:
         """Backward-compatible mobile-only entry point."""
         return self.request_login_otp(mobile, ip_hint=ip_hint)
 
-    def resend_mobile_otp(self, mobile: str, *, ip_hint: str | None = None) -> dict[str, Any]:
+    def resend_mobile_otp(
+        self, mobile: str, *, ip_hint: str | None = None
+    ) -> dict[str, Any]:
         """Resend uses the same request path (enforces 30s cooldown)."""
         return self.request_login_otp(mobile, ip_hint=ip_hint)
 
-    def resend_login_otp(self, identifier: str, *, ip_hint: str | None = None) -> dict[str, Any]:
+    def resend_login_otp(
+        self, identifier: str, *, ip_hint: str | None = None
+    ) -> dict[str, Any]:
         return self.request_login_otp(identifier, ip_hint=ip_hint)
 
     def verify_login_otp(
@@ -1630,14 +1716,18 @@ class EnterpriseAuthPlatform:
                 "MFA is disabled on this deployment. Set DSP_AUTH_MFA=true to enable."
             )
 
-    def mfa_totp_enroll_begin(self, user_id: str, *, ip_hint: str | None = None) -> dict[str, Any]:
+    def mfa_totp_enroll_begin(
+        self, user_id: str, *, ip_hint: str | None = None
+    ) -> dict[str, Any]:
         self._require_mfa_enabled()
         self._rate_check(f"mfa-enroll:{user_id}", limit=5, window_sec=3600)
         user = self.auth.users.get(user_id)
         if user is None:
             raise ValidationError("user not found")
         result = self.mfa.totp.begin_enroll(user_id, account_name=user.email or user.username)  # type: ignore[call-arg]
-        self.audit.record("mfa.enroll.begin", user_id=user_id, ip_hint=ip_hint, detail="totp")
+        self.audit.record(
+            "mfa.enroll.begin", user_id=user_id, ip_hint=ip_hint, detail="totp"
+        )
         return result
 
     def mfa_totp_enroll_confirm(
@@ -1649,10 +1739,15 @@ class EnterpriseAuthPlatform:
             result = self.mfa.totp.confirm_enroll(user_id, {"code": code})
         except Exception as exc:  # noqa: BLE001
             self.audit.record(
-                "mfa.enroll.failure", user_id=user_id, ip_hint=ip_hint, detail=str(exc)[:300]
+                "mfa.enroll.failure",
+                user_id=user_id,
+                ip_hint=ip_hint,
+                detail=str(exc)[:300],
             )
             raise
-        self.audit.record("mfa.enroll.success", user_id=user_id, ip_hint=ip_hint, detail="totp")
+        self.audit.record(
+            "mfa.enroll.success", user_id=user_id, ip_hint=ip_hint, detail="totp"
+        )
         self.audit.record(
             "mfa.enable",
             user_id=user_id,
@@ -1701,7 +1796,10 @@ class EnterpriseAuthPlatform:
         )
         if recovery_code:
             self.audit.record(
-                "mfa.recovery.used", user_id=user_id, ip_hint=ip_hint, user_agent_hint=user_agent_hint
+                "mfa.recovery.used",
+                user_id=user_id,
+                ip_hint=ip_hint,
+                user_agent_hint=user_agent_hint,
             )
         if remember_device and device_id:
             try:
@@ -1720,12 +1818,16 @@ class EnterpriseAuthPlatform:
         user = self.auth.users.get(user_id)
         if user is None:
             raise ValidationError("user not found")
-        if current_password is not None and not verify_password(current_password, user.password_hash):
+        if current_password is not None and not verify_password(
+            current_password, user.password_hash
+        ):
             raise AuthenticationError("invalid credentials")
         totp = getattr(self.mfa, "totp", None)
         if totp is not None and hasattr(totp, "disable"):
             totp.disable(user_id)
-        self.audit.record("mfa.disable", user_id=user_id, ip_hint=ip_hint, detail="totp")
+        self.audit.record(
+            "mfa.disable", user_id=user_id, ip_hint=ip_hint, detail="totp"
+        )
         return {"ok": True}
 
     def mfa_recovery_codes_status(self, user_id: str) -> dict[str, Any]:
@@ -1733,7 +1835,9 @@ class EnterpriseAuthPlatform:
         totp = getattr(self.mfa, "totp", None)
         status = getattr(totp, "recovery_codes_status", None)
         if status is None:
-            raise ValidationError("Recovery codes are not supported by this MFA adapter.")
+            raise ValidationError(
+                "Recovery codes are not supported by this MFA adapter."
+            )
         return status(user_id)
 
     def mfa_recovery_codes_regenerate(
@@ -1748,12 +1852,16 @@ class EnterpriseAuthPlatform:
         user = self.auth.users.get(user_id)
         if user is None:
             raise ValidationError("user not found")
-        if current_password is not None and not verify_password(current_password, user.password_hash):
+        if current_password is not None and not verify_password(
+            current_password, user.password_hash
+        ):
             raise AuthenticationError("invalid credentials")
         totp = getattr(self.mfa, "totp", None)
         regenerate = getattr(totp, "regenerate_recovery_codes", None)
         if regenerate is None:
-            raise ValidationError("Recovery codes are not supported by this MFA adapter.")
+            raise ValidationError(
+                "Recovery codes are not supported by this MFA adapter."
+            )
         codes = regenerate(user_id)
         self.audit.record(
             "mfa.recovery.regenerated",
@@ -1776,14 +1884,19 @@ class EnterpriseAuthPlatform:
     # Both route groups call these exact same platform methods — nothing is
     # duplicated between them, only the URL surface differs.
 
-    def webauthn_register_begin(self, user_id: str, *, ip_hint: str | None = None) -> dict[str, Any]:
+    def webauthn_register_begin(
+        self, user_id: str, *, ip_hint: str | None = None
+    ) -> dict[str, Any]:
         self._require_mfa_enabled()
         self.audit.record("passkey.register.begin", user_id=user_id, ip_hint=ip_hint)
         try:
             return self.mfa.webauthn.begin_registration(user_id)
         except Exception as exc:  # noqa: BLE001
             self.audit.record(
-                "passkey.register.failure", user_id=user_id, ip_hint=ip_hint, detail=str(exc)[:300]
+                "passkey.register.failure",
+                user_id=user_id,
+                ip_hint=ip_hint,
+                detail=str(exc)[:300],
             )
             raise
 
@@ -1795,7 +1908,10 @@ class EnterpriseAuthPlatform:
             result = self.mfa.webauthn.complete_registration(user_id, credential)
         except Exception as exc:  # noqa: BLE001
             self.audit.record(
-                "passkey.register.failure", user_id=user_id, ip_hint=ip_hint, detail=str(exc)[:300]
+                "passkey.register.failure",
+                user_id=user_id,
+                ip_hint=ip_hint,
+                detail=str(exc)[:300],
             )
             raise
         self.audit.record(
@@ -1806,12 +1922,16 @@ class EnterpriseAuthPlatform:
         )
         return result
 
-    def webauthn_authenticate_begin(self, identifier: str | None = None) -> dict[str, Any]:
+    def webauthn_authenticate_begin(
+        self, identifier: str | None = None
+    ) -> dict[str, Any]:
         self._require_mfa_enabled()
         webauthn = self.mfa.webauthn
         begin = getattr(webauthn, "begin_discoverable_authentication", None)
         if begin is None:
-            raise ValidationError("WebAuthn discoverable login not supported by this adapter.")
+            raise ValidationError(
+                "WebAuthn discoverable login not supported by this adapter."
+            )
         return begin(identifier)
 
     def webauthn_authenticate_complete(
@@ -1826,7 +1946,9 @@ class EnterpriseAuthPlatform:
         webauthn = self.mfa.webauthn
         complete = getattr(webauthn, "complete_discoverable_authentication", None)
         if complete is None:
-            raise ValidationError("WebAuthn discoverable login not supported by this adapter.")
+            raise ValidationError(
+                "WebAuthn discoverable login not supported by this adapter."
+            )
         try:
             resolved = complete(assertion)
             user = self.auth.users.get(str(resolved.get("user_id") or ""))
@@ -1876,7 +1998,9 @@ class EnterpriseAuthPlatform:
 
     # --- Magic link ------------------------------------------------------
 
-    def request_magic_link(self, email: str, *, ip_hint: str | None = None) -> dict[str, Any]:
+    def request_magic_link(
+        self, email: str, *, ip_hint: str | None = None
+    ) -> dict[str, Any]:
         self._rate_check(f"magic:{ip_hint or email}", limit=5, window_sec=3600)
         mail = email.strip().lower()
         if not _EMAIL_RE.match(mail):
@@ -1891,7 +2015,13 @@ class EnterpriseAuthPlatform:
         subject, text_body, html_body = render_magic_link_email(
             link_url=link_url, token=token, expires_minutes=15
         )
-        self.email.send(to=mail, subject=subject, body=text_body, html_body=html_body, purpose="magic_link")
+        self.email.send(
+            to=mail,
+            subject=subject,
+            body=text_body,
+            html_body=html_body,
+            purpose="magic_link",
+        )
         out: dict[str, Any] = {
             "ok": True,
             "message": "If the email is eligible, a magic link was issued.",
@@ -1920,7 +2050,9 @@ class EnterpriseAuthPlatform:
         user = self._get_by_email(email)
         if user is None:
             created = self.auth.users.create(
-                username=stable_username_from_email(email, AuthProvider.MAGIC_LINK.value),
+                username=stable_username_from_email(
+                    email, AuthProvider.MAGIC_LINK.value
+                ),
                 email=email,
                 password=secrets.token_urlsafe(24),
                 display_name=email.split("@", 1)[0],
@@ -1964,7 +2096,9 @@ class EnterpriseAuthPlatform:
                 "approved",
                 "invited",
             }:
-                raise DuplicateUserError("An access request for this email is already open.")
+                raise DuplicateUserError(
+                    "An access request for this email is already open."
+                )
         now = utc_now().isoformat()
         req = AccessRequest(
             request_id=str(uuid.uuid4()),
@@ -1988,7 +2122,9 @@ class EnterpriseAuthPlatform:
         )
         return {"ok": True, "request": req.to_dict()}
 
-    def list_access_requests(self, *, status: str | None = None) -> list[dict[str, Any]]:
+    def list_access_requests(
+        self, *, status: str | None = None
+    ) -> list[dict[str, Any]]:
         out: list[dict[str, Any]] = []
         for entity_id in self.auth.persistence.list_ids("metadata"):
             if not str(entity_id).startswith(_ACCESS_PREFIX):
@@ -2078,7 +2214,11 @@ class EnterpriseAuthPlatform:
             expires_hours=invite_ttl_hours,
         )
         self.email.send(
-            to=str(payload["email"]), subject=subject, body=text_body, html_body=html_body, purpose="invitation"
+            to=str(payload["email"]),
+            subject=subject,
+            body=text_body,
+            html_body=html_body,
+            purpose="invitation",
         )
         self.audit.record(
             "invitation.issued",
@@ -2116,10 +2256,14 @@ class EnterpriseAuthPlatform:
         name = str(invite.get("name") or email)
         role = _normalize_role(str(invite.get("role") or "enterprise_client"))
         uname = (username or email.split("@", 1)[0]).strip().lower()
-        uname = re.sub(r"[^a-z0-9._-]", "", uname)[:64] or f"user_{secrets.token_hex(3)}"
+        uname = (
+            re.sub(r"[^a-z0-9._-]", "", uname)[:64] or f"user_{secrets.token_hex(3)}"
+        )
         existing = self._get_by_email(email)
         if existing:
-            raise DuplicateUserError("Account already exists for this email. Sign in instead.")
+            raise DuplicateUserError(
+                "Account already exists for this email. Sign in instead."
+            )
         user = self.auth.users.create(
             username=uname,
             email=email,
@@ -2145,7 +2289,9 @@ class EnterpriseAuthPlatform:
         # Mark request completed
         request_id = invite.get("request_id")
         if request_id:
-            req_row = self.auth.persistence.get("metadata", f"{_ACCESS_PREFIX}{request_id}")
+            req_row = self.auth.persistence.get(
+                "metadata", f"{_ACCESS_PREFIX}{request_id}"
+            )
             if req_row:
                 payload = dict(req_row.get("payload") or {})
                 payload["status"] = "completed"
@@ -2222,17 +2368,23 @@ class EnterpriseAuthPlatform:
         self.auth.users.save(updated)
         return {"ok": True, "user": enterprise_user_public_dict(updated)}
 
-    def admin_assign_roles(self, user_id: str, roles: list[str], *, actor_roles: list[str] | None = None) -> dict[str, Any]:
+    def admin_assign_roles(
+        self, user_id: str, roles: list[str], *, actor_roles: list[str] | None = None
+    ) -> dict[str, Any]:
         mapped = [_normalize_role(r) for r in roles]
         if "super_admin" in mapped and "super_admin" not in (actor_roles or []):
             raise AuthorizationError("Only Super Admin can assign super_admin.")
         target = self.auth.users.get(user_id)
         if target and "super_admin" in target.roles and "super_admin" not in mapped:
             if "super_admin" not in (actor_roles or []):
-                raise AuthorizationError("Only Super Admin can modify Super Admin roles.")
+                raise AuthorizationError(
+                    "Only Super Admin can modify Super Admin roles."
+                )
         return enterprise_user_public_dict(self.auth.users.set_roles(user_id, mapped))
 
-    def login_history(self, user_id: str | None = None, *, limit: int = 100) -> list[dict[str, Any]]:
+    def login_history(
+        self, user_id: str | None = None, *, limit: int = 100
+    ) -> list[dict[str, Any]]:
         out: list[dict[str, Any]] = []
         for entity_id in self.auth.persistence.list_ids("metadata"):
             if not str(entity_id).startswith(_HISTORY_PREFIX):
@@ -2248,9 +2400,11 @@ class EnterpriseAuthPlatform:
         return out[:limit]
 
     def list_active_sessions(self, user_id: str | None = None) -> list[dict[str, Any]]:
-        sessions = self.auth.sessions.list_sessions(user_id=user_id) if hasattr(
-            self.auth.sessions, "list_sessions"
-        ) else []
+        sessions = (
+            self.auth.sessions.list_sessions(user_id=user_id)
+            if hasattr(self.auth.sessions, "list_sessions")
+            else []
+        )
         return [
             s.to_public_dict() if hasattr(s, "to_public_dict") else dict(s)
             for s in sessions
@@ -2360,7 +2514,9 @@ class EnterpriseAuthPlatform:
         meta = dict(user.metadata or {})
         links = list(meta.get("linked_providers") or [])
         target = provider.strip().upper()
-        remaining = [lnk for lnk in links if str(lnk.get("provider") or "").upper() != target]
+        remaining = [
+            lnk for lnk in links if str(lnk.get("provider") or "").upper() != target
+        ]
         has_password = bool(user.password_hash)
         has_phone = bool(meta.get("phone_verified") and meta.get("mobile"))
         auth_methods = len(remaining) + (1 if has_password else 0)
@@ -2373,11 +2529,17 @@ class EnterpriseAuthPlatform:
             meta["phone_verified"] = False
             meta.pop("mobile", None)
         if str(meta.get("provider") or "").upper() == target:
-            meta["provider"] = AuthProvider.EMAIL.value if has_password else (
-                remaining[0]["provider"] if remaining else AuthProvider.EMAIL.value
+            meta["provider"] = (
+                AuthProvider.EMAIL.value
+                if has_password
+                else (
+                    remaining[0]["provider"] if remaining else AuthProvider.EMAIL.value
+                )
             )
         user = self._persist_meta(user, meta)
-        self.audit.record(self._oauth_event(target, "unlink"), user_id=user.user_id, detail=target)
+        self.audit.record(
+            self._oauth_event(target, "unlink"), user_id=user.user_id, detail=target
+        )
         return enterprise_user_public_dict(user)
 
     def delete_account(self, user_id: str) -> dict[str, Any]:
@@ -2388,12 +2550,18 @@ class EnterpriseAuthPlatform:
             raise AuthorizationError("Super Admin accounts cannot be self-deleted.")
         updated = self.admin_set_status(user_id, active=False)
         self.devices.revoke_all(user_id)
-        return {"ok": True, "user": updated, "message": "Account disabled and sessions revoked."}
+        return {
+            "ok": True,
+            "user": updated,
+            "message": "Account disabled and sessions revoked.",
+        }
 
     def list_my_devices(self, user_id: str) -> list[dict[str, Any]]:
         return self.devices.list_for_user(user_id)
 
-    def trust_device(self, user_id: str, device_id: str, *, trusted: bool = True) -> dict[str, Any]:
+    def trust_device(
+        self, user_id: str, device_id: str, *, trusted: bool = True
+    ) -> dict[str, Any]:
         try:
             return self.devices.set_trusted(device_id, user_id=user_id, trusted=trusted)
         except KeyError as exc:
@@ -2406,7 +2574,9 @@ class EnterpriseAuthPlatform:
             raise ValidationError("device not found") from exc
         return {"ok": True, "device_id": device_id}
 
-    def my_login_history(self, user_id: str, *, limit: int = 50) -> list[dict[str, Any]]:
+    def my_login_history(
+        self, user_id: str, *, limit: int = 50
+    ) -> list[dict[str, Any]]:
         return self.login_history(user_id, limit=limit)
 
     def admin_provision_user(
@@ -2426,7 +2596,9 @@ class EnterpriseAuthPlatform:
         if not _EMAIL_RE.match(mail):
             raise ValidationError("invalid email")
         uname = (username or mail.split("@", 1)[0]).strip().lower()
-        uname = re.sub(r"[^a-z0-9._-]", "", uname)[:64] or f"user_{secrets.token_hex(3)}"
+        uname = (
+            re.sub(r"[^a-z0-9._-]", "", uname)[:64] or f"user_{secrets.token_hex(3)}"
+        )
         pwd = password or secrets.token_urlsafe(16) + "Aa1!"
         user = self.auth.users.create(
             username=uname,
@@ -2537,7 +2709,9 @@ class EnterpriseAuthPlatform:
 _PLATFORM: EnterpriseAuthPlatform | None = None
 
 
-def get_enterprise_auth_platform(auth: AuthService | None = None) -> EnterpriseAuthPlatform:
+def get_enterprise_auth_platform(
+    auth: AuthService | None = None,
+) -> EnterpriseAuthPlatform:
     global _PLATFORM
     if _PLATFORM is None:
         _PLATFORM = EnterpriseAuthPlatform(auth or get_auth_service())

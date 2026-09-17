@@ -2,8 +2,8 @@
 
 from __future__ import annotations
 
+from collections.abc import Iterable
 from threading import Lock
-from typing import Iterable
 
 from data_engine.exceptions import DataEngineError
 from data_engine.financial_statement.service import FinancialStatementPort

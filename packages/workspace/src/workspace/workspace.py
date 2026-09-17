@@ -3,11 +3,16 @@
 from __future__ import annotations
 
 import uuid
-from typing import Any, Mapping
+from collections.abc import Mapping
+from typing import Any
 
 from workspace.members import ensure_owner_member
 from workspace.models import Workspace, freeze_mapping, utc_now
-from workspace.validation import assert_non_empty, assert_unique_name, assert_workspace_status
+from workspace.validation import (
+    assert_non_empty,
+    assert_unique_name,
+    assert_workspace_status,
+)
 
 __all__ = ["build_workspace"]
 

@@ -43,16 +43,12 @@ class TestPriceSeries:
     def test_unsorted_bars_raises(self, instrument: Instrument) -> None:
         bars = (_bar(1), _bar(0), _bar(2))
         with pytest.raises(ContractValidationError, match="ascending"):
-            PriceSeries(
-                instrument=instrument, frequency=BarFrequency.DAILY, bars=bars
-            )
+            PriceSeries(instrument=instrument, frequency=BarFrequency.DAILY, bars=bars)
 
     def test_duplicate_timestamps_raises(self, instrument: Instrument) -> None:
         bars = (_bar(0), _bar(0))
         with pytest.raises(ContractValidationError, match="duplicate"):
-            PriceSeries(
-                instrument=instrument, frequency=BarFrequency.DAILY, bars=bars
-            )
+            PriceSeries(instrument=instrument, frequency=BarFrequency.DAILY, bars=bars)
 
     def test_bars_stored_as_tuple(self, instrument: Instrument) -> None:
         bars = [_bar(0), _bar(1)]

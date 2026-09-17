@@ -35,10 +35,22 @@ def _preferred_scheme() -> str:
     if mode in {"pbkdf2", "pbkdf2-sha256"}:
         return "pbkdf2"
     if mode in {"bcrypt"}:
-        return "bcrypt" if _bcrypt_available() else ("argon2id" if _argon2_available() else "pbkdf2")
+        return (
+            "bcrypt"
+            if _bcrypt_available()
+            else ("argon2id" if _argon2_available() else "pbkdf2")
+        )
     if mode in {"argon2", "argon2id"}:
-        return "argon2id" if _argon2_available() else ("bcrypt" if _bcrypt_available() else "pbkdf2")
-    return "argon2id" if _argon2_available() else ("bcrypt" if _bcrypt_available() else "pbkdf2")
+        return (
+            "argon2id"
+            if _argon2_available()
+            else ("bcrypt" if _bcrypt_available() else "pbkdf2")
+        )
+    return (
+        "argon2id"
+        if _argon2_available()
+        else ("bcrypt" if _bcrypt_available() else "pbkdf2")
+    )
 
 
 def hash_password(password: str, *, salt: str | None = None) -> str:

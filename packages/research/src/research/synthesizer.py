@@ -196,9 +196,7 @@ class ResearchSynthesizer:
             if ctx.monitoring_ref is not None
             else profile.monitoring_ref
         )
-        risk_refs = (
-            ctx.risk_refs if ctx.risk_refs is not None else profile.risk_refs
-        )
+        risk_refs = ctx.risk_refs if ctx.risk_refs is not None else profile.risk_refs
         integrated_risk_refs = (
             ctx.integrated_risk_refs
             if ctx.integrated_risk_refs is not None
@@ -250,9 +248,7 @@ class ResearchSynthesizer:
         agenda = ResearchAgenda(
             agenda_id=f"{research_id}.agenda",
             priorities=priorities,
-            notes=(
-                "Investigative agenda only — no portfolio or trading actions.",
-            ),
+            notes=("Investigative agenda only — no portfolio or trading actions.",),
         )
         summary = ResearchSummary(
             observation_count=len(observations),
@@ -260,9 +256,7 @@ class ResearchSynthesizer:
             conflict_count=len(conflicts),
             gap_count=len(gaps),
             agenda_item_count=len(priorities),
-            coverage_notes=tuple(
-                f"{c.dimension}: {c.status.value}" for c in coverage
-            ),
+            coverage_notes=tuple(f"{c.dimension}: {c.status.value}" for c in coverage),
             limitation_notes=(
                 "Qualitative synthesis only — no valuation, risk calculation, "
                 "or recommendations.",
@@ -292,8 +286,7 @@ class ResearchSynthesizer:
             agenda=agenda,
             coverage=coverage,
             summary=summary,
-            notes=profile.notes
-            + ("Synthesized structurally from citations — F1.2.",),
+            notes=profile.notes + ("Synthesized structurally from citations — F1.2.",),
         )
         report = ResearchReport(
             research_id=research_id,
@@ -621,9 +614,11 @@ class ResearchSynthesizer:
             priorities.append(
                 ResearchPriority(
                     priority_id=f"{research_id}.priority.conflict.{conflict.conflict_id.split('.')[-1]}",
-                    level=ResearchPriorityLevel.MEDIUM
-                    if conflict.severity is ResearchConflictSeverity.LOW
-                    else ResearchPriorityLevel.HIGH,
+                    level=(
+                        ResearchPriorityLevel.MEDIUM
+                        if conflict.severity is ResearchConflictSeverity.LOW
+                        else ResearchPriorityLevel.HIGH
+                    ),
                     text=(
                         "Needs investigation to reconcile a descriptive "
                         "citation conflict."
@@ -658,9 +653,7 @@ class ResearchSynthesizer:
     ) -> tuple[ResearchSynthesisStatus, tuple[str, ...]]:
         warnings: list[str] = []
         if not insights and not gaps and not conflicts:
-            return ResearchSynthesisStatus.EMPTY, (
-                "No synthesis artifacts produced.",
-            )
+            return ResearchSynthesisStatus.EMPTY, ("No synthesis artifacts produced.",)
 
         insufficient = tuple(
             c.dimension

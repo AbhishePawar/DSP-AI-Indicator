@@ -38,7 +38,9 @@ class StatementBlockDTO(BaseModel):
 class FinancialPeriodDTO(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
-    period_type: str = Field(description="annual | quarterly | ttm | half_year | custom")
+    period_type: str = Field(
+        description="annual | quarterly | ttm | half_year | custom"
+    )
     period_end: str = Field(description="ISO date YYYY-MM-DD")
     fiscal_year: int | None = None
     fiscal_quarter: int | None = None

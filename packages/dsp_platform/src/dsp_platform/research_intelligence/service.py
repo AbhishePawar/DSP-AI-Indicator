@@ -7,10 +7,13 @@ Never invokes valuation / recommendation engines.
 
 from __future__ import annotations
 
-from typing import Any, Mapping
+from collections.abc import Mapping
+from typing import Any
 
 from dsp_platform.research_intelligence.calibration import build_calibration_report
-from dsp_platform.research_intelligence.capture import build_snapshot_from_analyse_payload
+from dsp_platform.research_intelligence.capture import (
+    build_snapshot_from_analyse_payload,
+)
 from dsp_platform.research_intelligence.dashboard import build_performance_dashboard
 from dsp_platform.research_intelligence.insights import build_insight_bundle
 from dsp_platform.research_intelligence.models import (
@@ -21,7 +24,6 @@ from dsp_platform.research_intelligence.models import (
 )
 from dsp_platform.research_intelligence.outcomes import (
     measure_outcome,
-    measure_outcomes_for_snapshot,
 )
 from dsp_platform.research_intelligence.store import (
     InMemoryResearchSnapshotStore,

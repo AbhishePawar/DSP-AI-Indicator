@@ -45,15 +45,9 @@ def summarize_decision_pack(pack: DecisionPack) -> ComparableDecisionSummary:
     mos = rec.margin_of_safety
     summary = rec.valuation_summary
 
-    supporting = tuple(
-        a.source for a in brief.attribution if a.role == "supporting"
-    )
-    dissenting = tuple(
-        a.source for a in brief.attribution if a.role == "dissenting"
-    )
-    fragility = (
-        assurance.key_fragilities[0] if assurance.key_fragilities else None
-    )
+    supporting = tuple(a.source for a in brief.attribution if a.role == "supporting")
+    dissenting = tuple(a.source for a in brief.attribution if a.role == "dissenting")
+    fragility = assurance.key_fragilities[0] if assurance.key_fragilities else None
 
     if mos is None:
         mos_available = False

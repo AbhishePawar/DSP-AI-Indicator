@@ -95,7 +95,9 @@ class IndiaOperationalProfile:
         return self.settings.currency
 
 
-def build_india_profile(settings: IndiaSettings | None = None) -> IndiaOperationalProfile:
+def build_india_profile(
+    settings: IndiaSettings | None = None,
+) -> IndiaOperationalProfile:
     cfg = settings or IndiaSettings()
     calendar: MarketCalendarPort
     if cfg.enable_market_calendar:

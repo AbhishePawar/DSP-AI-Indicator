@@ -119,9 +119,12 @@ class FilingsService:
             self.metrics.cache_hits += 1
             self.metrics.successes += 1
             _LOG.info(
-                "filings_cache_hit", extra={"symbol": symbol, "provider": self.provider_id}
+                "filings_cache_hit",
+                extra={"symbol": symbol, "provider": self.provider_id},
             )
-            return replace(cached, provenance=replace(cached.provenance, cache_hit=True))
+            return replace(
+                cached, provenance=replace(cached.provenance, cache_hit=True)
+            )
 
         def _call() -> AuthenticatedFilings | None:
             self._breaker.before_call()
@@ -158,21 +161,27 @@ class FilingsService:
         except CircuitOpenError:
             self.metrics.failures += 1
             _LOG.error(
-                "filings_circuit_open", extra={"symbol": symbol, "provider": self.provider_id}
+                "filings_circuit_open",
+                extra={"symbol": symbol, "provider": self.provider_id},
             )
             raise
         except Exception as exc:
             self.metrics.failures += 1
             _LOG.exception(
                 "filings_failure",
-                extra={"symbol": symbol, "provider": self.provider_id, "error": str(exc)},
+                extra={
+                    "symbol": symbol,
+                    "provider": self.provider_id,
+                    "error": str(exc),
+                },
             )
             raise
 
         if bundle is None:
             self.metrics.unavailable += 1
             _LOG.info(
-                "filings_unavailable", extra={"symbol": symbol, "provider": self.provider_id}
+                "filings_unavailable",
+                extra={"symbol": symbol, "provider": self.provider_id},
             )
             return None
 

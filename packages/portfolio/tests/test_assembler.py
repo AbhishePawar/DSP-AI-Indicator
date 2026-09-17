@@ -3,8 +3,8 @@
 from __future__ import annotations
 
 import pytest
-from industry import EvidenceBundleReference, EvidenceBundleStatus
 
+from industry import EvidenceBundleReference, EvidenceBundleStatus
 from portfolio import (
     ComparisonReportReference,
     DecisionPackReference,

@@ -33,7 +33,10 @@ from valuation.core.result_models import (
     ValuationResult,
 )
 from valuation.dcf_intelligence.assumptions import DcfBridgeInputs
-from valuation.dcf_intelligence.equity import compute_equity_bridge, validate_equity_bridge
+from valuation.dcf_intelligence.equity import (
+    compute_equity_bridge,
+    validate_equity_bridge,
+)
 from valuation.ddm import DdmInputs, DdmMethod, validate_ddm_inputs
 from valuation.enums import ValuationConfidence, ValuationMethod
 from valuation.methods.book_value import BookValueMethod
@@ -49,7 +52,6 @@ from valuation.relative import (
     RelativeInputs,
     RelativeMultiple,
 )
-
 
 FIXED = datetime(2024, 6, 15, 12, 0, 0, tzinfo=UTC)
 
@@ -86,11 +88,7 @@ def _snapshot(
 
 def _sens() -> SensitivityMatrix:
     return SensitivityMatrix(
-        grids={
-            "x": (
-                SensitivityCell("x", 1.0, "ivps", 10.0, 0, 0),
-            )
-        },
+        grids={"x": (SensitivityCell("x", 1.0, "ivps", 10.0, 0, 0),)},
         notes="t",
     )
 
@@ -115,9 +113,7 @@ def _vr(
         confidence_level="medium",
         quality_flags=(),
         sensitivity_results=_sens(),
-        scenario_results=(
-            ScenarioOutcome(ScenarioKind.base(), iv, None, ivps),
-        ),
+        scenario_results=(ScenarioOutcome(ScenarioKind.base(), iv, None, ivps),),
         validation_summary=ValidationSummary(ok=True, checks=("ok",), warnings=()),
         explainability=(),
         research_disclaimer="research",
@@ -362,9 +358,7 @@ def test_overall_rejects_zero_ivps() -> None:
         )
     )
     with pytest.raises(OverallValuationError, match="zero"):
-        OverallEngine().analyze(
-            OverallInputs(current_market_price=5.0, consensus=cons)
-        )
+        OverallEngine().analyze(OverallInputs(current_market_price=5.0, consensus=cons))
 
 
 def test_mos_unavailable_when_no_applicable_methods() -> None:

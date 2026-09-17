@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import threading
 from concurrent.futures import ThreadPoolExecutor, as_completed
+from datetime import timedelta
 
 import pytest
 
@@ -13,7 +14,6 @@ from auth.mfa_totp import TotpAdapter, totp_at
 from auth.rate_limit import AuthRateLimiter
 from auth.sessions import SessionManager
 from auth.single_use_tokens import SingleUseTokenError, SingleUseTokenService
-from datetime import timedelta
 from persistence import (
     InMemoryStorageProvider,
     PersistenceService,
@@ -87,7 +87,10 @@ def test_concurrent_rate_increments_cap_exactly() -> None:
             return "limited"
 
     with ThreadPoolExecutor(max_workers=8) as pool:
-        results = [fut.result() for fut in as_completed([pool.submit(attempt) for _ in range(8)])]
+        results = [
+            fut.result()
+            for fut in as_completed([pool.submit(attempt) for _ in range(8)])
+        ]
     assert results.count("ok") == 3
     assert results.count("limited") == 5
 
@@ -155,7 +158,10 @@ def test_concurrent_lockout_increments_reach_threshold_once() -> None:
         return live.record_failure(current, threshold=5, lockout_seconds=900)
 
     with ThreadPoolExecutor(max_workers=6) as pool:
-        counts = [fut.result() for fut in as_completed([pool.submit(attempt) for _ in range(6)])]
+        counts = [
+            fut.result()
+            for fut in as_completed([pool.submit(attempt) for _ in range(6)])
+        ]
     assert max(counts) >= 5
     assert store.is_locked(user.user_id, threshold=5) is True
     locked = users.get(user.user_id)
@@ -212,7 +218,10 @@ def test_cross_instance_concurrent_token_consume_one_success() -> None:
             return "fail"
 
     with ThreadPoolExecutor(max_workers=2) as pool:
-        results = [fut.result() for fut in as_completed([pool.submit(attempt), pool.submit(attempt)])]
+        results = [
+            fut.result()
+            for fut in as_completed([pool.submit(attempt), pool.submit(attempt)])
+        ]
     assert results.count("ok") == 1
     assert results.count("fail") == 1
 
@@ -268,7 +277,9 @@ def test_totp_replay_and_concurrent_same_counter() -> None:
     persistence = _persistence()
     adapter = TotpAdapter(persistence)
     begin = adapter.begin_enroll("user-totp-race")
-    confirmed = adapter.confirm_enroll("user-totp-race", {"code": totp_at(begin["secret"])})
+    confirmed = adapter.confirm_enroll(
+        "user-totp-race", {"code": totp_at(begin["secret"])}
+    )
     assert confirmed["ok"] is True
     later = totp_at(begin["secret"], for_time=__import__("time").time() + 31)
     barrier = threading.Barrier(2)
@@ -279,7 +290,10 @@ def test_totp_replay_and_concurrent_same_counter() -> None:
         return replica.verify_challenge("user-totp-race", {"code": later})
 
     with ThreadPoolExecutor(max_workers=2) as pool:
-        results = [fut.result() for fut in as_completed([pool.submit(attempt), pool.submit(attempt)])]
+        results = [
+            fut.result()
+            for fut in as_completed([pool.submit(attempt), pool.submit(attempt)])
+        ]
     assert results.count(True) == 1
     assert results.count(False) == 1
     assert adapter.verify_challenge("user-totp-race", {"code": later}) is False
@@ -289,7 +303,9 @@ def test_recovery_code_concurrent_consume_one_success() -> None:
     persistence = _persistence()
     adapter = TotpAdapter(persistence)
     begin = adapter.begin_enroll("user-rec-race")
-    confirmed = adapter.confirm_enroll("user-rec-race", {"code": totp_at(begin["secret"])})
+    confirmed = adapter.confirm_enroll(
+        "user-rec-race", {"code": totp_at(begin["secret"])}
+    )
     code = confirmed["recovery_codes"][0]
     barrier = threading.Barrier(2)
 
@@ -299,7 +315,10 @@ def test_recovery_code_concurrent_consume_one_success() -> None:
         return replica.verify_challenge("user-rec-race", {"recovery_code": code})
 
     with ThreadPoolExecutor(max_workers=2) as pool:
-        results = [fut.result() for fut in as_completed([pool.submit(attempt), pool.submit(attempt)])]
+        results = [
+            fut.result()
+            for fut in as_completed([pool.submit(attempt), pool.submit(attempt)])
+        ]
     assert results.count(True) == 1
     assert results.count(False) == 1
     assert adapter.verify_challenge("user-rec-race", {"recovery_code": code}) is False

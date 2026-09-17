@@ -5,10 +5,10 @@ from __future__ import annotations
 import copy
 
 import pytest
+from auth_test_helpers import bearer_headers, register_user
 from fastapi.testclient import TestClient
 
 from api_platform import create_app
-from auth_test_helpers import bearer_headers, register_user
 from dsp_platform import (
     PlatformBuilder,
     PlatformConfiguration,
@@ -40,9 +40,7 @@ def client(db: InMemoryDatabasePort) -> TestClient:
     )
     app_client = TestClient(create_app(platform=platform))
     # Bind shared DatabasePort after app boot (boot may wire a different adapter).
-    reset_investment_provenance_store_for_tests(
-        DatabaseInvestmentProvenanceStore(db)
-    )
+    reset_investment_provenance_store_for_tests(DatabaseInvestmentProvenanceStore(db))
     return app_client
 
 
@@ -111,9 +109,7 @@ class TestP106Positive:
     def test_analyse_creates_durable_provenance(self, client: TestClient) -> None:
         register_user(client, user_id="p106-pos-owner", username="p106pos")
         headers = bearer_headers(client, username="p106pos")
-        response = client.post(
-            "/api/v1/analyse", json=_analyse_body(), headers=headers
-        )
+        response = client.post("/api/v1/analyse", json=_analyse_body(), headers=headers)
         assert response.status_code == 200, response.text
         body = response.json()
         assert body["ok"] is True
@@ -160,9 +156,7 @@ class TestP106Positive:
         )
         register_user(client_a, user_id="p106-mw-owner", username="p106mw")
         headers = bearer_headers(client_a, username="p106mw")
-        resp = client_a.post(
-            "/api/v1/analyse", json=_analyse_body(), headers=headers
-        )
+        resp = client_a.post("/api/v1/analyse", json=_analyse_body(), headers=headers)
         assert resp.status_code == 200
         analysis_id = resp.json()["analysis_id"]
 
@@ -387,9 +381,7 @@ class TestP106QueryAndAuth:
     def test_list_by_ticker(self, client: TestClient) -> None:
         register_user(client, user_id="p106-list-owner", username="p106list")
         headers = bearer_headers(client, username="p106list")
-        a = client.post(
-            "/api/v1/analyse", json=_analyse_body(), headers=headers
-        ).json()
+        a = client.post("/api/v1/analyse", json=_analyse_body(), headers=headers).json()
         b = client.post(
             "/api/v1/analyse",
             json=_analyse_body(ticker="MSFT"),
@@ -428,11 +420,7 @@ class TestP106QueryAndAuth:
             "/api/v1/analyse", json=_analyse_body(), headers=ha
         ).json()
         analysis_id = created["analysis_id"]
-        deny = client.get(
-            f"/api/v1/analyse/provenance/{analysis_id}", headers=hb
-        )
+        deny = client.get(f"/api/v1/analyse/provenance/{analysis_id}", headers=hb)
         assert deny.status_code == 403
-        allow = client.get(
-            f"/api/v1/analyse/provenance/{analysis_id}", headers=ha
-        )
+        allow = client.get(f"/api/v1/analyse/provenance/{analysis_id}", headers=ha)
         assert allow.status_code == 200

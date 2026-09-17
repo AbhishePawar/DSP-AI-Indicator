@@ -10,6 +10,7 @@ from datetime import UTC, date, datetime
 
 import pytest
 
+from ai_committee.models import CommitteeInput
 from contracts import (
     AnalyticalStance,
     EconomicContext,
@@ -29,8 +30,6 @@ from contracts.enums import (
     EngineSource,
     SignalDirection,
 )
-
-from ai_committee.models import CommitteeInput
 
 FIXED_NOW = datetime(2024, 6, 15, 12, 0, 0, tzinfo=UTC)
 
@@ -230,9 +229,7 @@ def technical_factory(instrument: Instrument):
         *,
         for_instrument: Instrument | None = None,
     ) -> TechnicalContext:
-        return make_technical_context(
-            for_instrument or instrument, directions
-        )
+        return make_technical_context(for_instrument or instrument, directions)
 
     return _factory
 
@@ -246,9 +243,7 @@ def fundamental_factory(instrument: Instrument):
         *,
         for_instrument: Instrument | None = None,
     ) -> FundamentalContext:
-        return make_fundamental_context(
-            for_instrument or instrument, directions
-        )
+        return make_fundamental_context(for_instrument or instrument, directions)
 
     return _factory
 
@@ -300,15 +295,9 @@ def context_factory(
 
     def _factory(
         *,
-        technical_dirs: tuple[SignalDirection, ...] = (
-            SignalDirection.BULLISH,
-        ),
-        fundamental_dirs: tuple[SignalDirection, ...] = (
-            SignalDirection.BULLISH,
-        ),
-        economic_recommendation: AnalyticalStance | None = (
-            AnalyticalStance.BUY
-        ),
+        technical_dirs: tuple[SignalDirection, ...] = (SignalDirection.BULLISH,),
+        fundamental_dirs: tuple[SignalDirection, ...] = (SignalDirection.BULLISH,),
+        economic_recommendation: AnalyticalStance | None = (AnalyticalStance.BUY),
         valuation_mos: float | None = 0.25,
         valuation_confidence: ValuationConfidence = ValuationConfidence.HIGH,
         for_instrument: Instrument | None = None,
@@ -328,12 +317,8 @@ def context_factory(
             )
         return CommitteeInput(
             instrument=inst,
-            technical=technical_factory(
-                technical_dirs, for_instrument=inst
-            ),
-            fundamental=fundamental_factory(
-                fundamental_dirs, for_instrument=inst
-            ),
+            technical=technical_factory(technical_dirs, for_instrument=inst),
+            fundamental=fundamental_factory(fundamental_dirs, for_instrument=inst),
             economic=economic,
             valuation=valuation,
         )

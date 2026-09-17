@@ -15,8 +15,8 @@ from xml.sax.saxutils import escape
 from dsp_platform.institutional_export.mapper import flatten_report
 from dsp_platform.institutional_report.models import (
     REPORT_SECTION_ORDER,
-    InstitutionalResearchReport,
     UNAVAILABLE_MESSAGE,
+    InstitutionalResearchReport,
 )
 
 __all__ = ["export_pptx_bytes"]
@@ -103,10 +103,10 @@ _SLIDE_LAYOUT_XML = (
     'xmlns:p="http://schemas.openxmlformats.org/presentationml/2006/main" '
     'type="title" preserve="1">'
     "<p:cSld><p:spTree>"
-    "<p:nvGrpSpPr><p:cNvPr id=\"1\" name=\"\"/><p:cNvGrpSpPr/><p:nvPr/></p:nvGrpSpPr>"
+    '<p:nvGrpSpPr><p:cNvPr id="1" name=""/><p:cNvGrpSpPr/><p:nvPr/></p:nvGrpSpPr>'
     "<p:grpSpPr/>"
     "</p:spTree></p:cSld>"
-    "<p:clrMapOvr><a:overrideClrMapping bg1=\"lt1\" tx1=\"dk1\" bg2=\"lt2\" tx2=\"dk2\" "
+    '<p:clrMapOvr><a:overrideClrMapping bg1="lt1" tx1="dk1" bg2="lt2" tx2="dk2" '
     'accent1="accent1" accent2="accent2" accent3="accent3" accent4="accent4" '
     'accent5="accent5" accent6="accent6" hlink="hlink" folHlink="folHlink"/></p:clrMapOvr>'
     "</p:sldLayout>"
@@ -126,10 +126,10 @@ _SLIDE_MASTER_XML = (
     '<p:sldMaster xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main" '
     'xmlns:p="http://schemas.openxmlformats.org/presentationml/2006/main">'
     "<p:cSld><p:spTree>"
-    "<p:nvGrpSpPr><p:cNvPr id=\"1\" name=\"\"/><p:cNvGrpSpPr/><p:nvPr/></p:nvGrpSpPr>"
+    '<p:nvGrpSpPr><p:cNvPr id="1" name=""/><p:cNvGrpSpPr/><p:nvPr/></p:nvGrpSpPr>'
     "<p:grpSpPr/>"
     "</p:spTree></p:cSld>"
-    "<p:clrMap bg1=\"lt1\" tx1=\"dk1\" bg2=\"lt2\" tx2=\"dk2\" accent1=\"accent1\" "
+    '<p:clrMap bg1="lt1" tx1="dk1" bg2="lt2" tx2="dk2" accent1="accent1" '
     'accent2="accent2" accent3="accent3" accent4="accent4" accent5="accent5" '
     'accent6="accent6" hlink="hlink" folHlink="folHlink"/>'
     "<p:sldLayoutIdLst>"
@@ -153,7 +153,14 @@ _SLIDE_MASTER_RELS = (
 
 
 def _text_box(
-    shape_id: int, x: int, y: int, cx: int, cy: int, paragraphs: list[str], *, bold: bool = False
+    shape_id: int,
+    x: int,
+    y: int,
+    cx: int,
+    cy: int,
+    paragraphs: list[str],
+    *,
+    bold: bool = False,
 ) -> str:
     size = "2800" if bold else "1600"
     runs = "".join(
@@ -163,12 +170,12 @@ def _text_box(
     )
     return (
         f'<p:sp><p:nvSpPr><p:cNvPr id="{shape_id}" name="TextBox {shape_id}"/>'
-        "<p:cNvSpPr txBox=\"1\"/><p:nvPr/></p:nvSpPr>"
+        '<p:cNvSpPr txBox="1"/><p:nvPr/></p:nvSpPr>'
         "<p:spPr>"
         f'<a:xfrm><a:off x="{x}" y="{y}"/><a:ext cx="{cx}" cy="{cy}"/></a:xfrm>'
         '<a:prstGeom prst="rect"><a:avLst/></a:prstGeom>'
         "</p:spPr>"
-        f"<p:txBody><a:bodyPr wrap=\"square\"/><a:lstStyle/>{runs}</p:txBody>"
+        f'<p:txBody><a:bodyPr wrap="square"/><a:lstStyle/>{runs}</p:txBody>'
         "</p:sp>"
     )
 
@@ -182,10 +189,8 @@ def _slide_xml(title: str, bullets: list[str]) -> str:
         '<p:sld xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main" '
         'xmlns:p="http://schemas.openxmlformats.org/presentationml/2006/main">'
         "<p:cSld><p:spTree>"
-        "<p:nvGrpSpPr><p:cNvPr id=\"1\" name=\"\"/><p:cNvGrpSpPr/><p:nvPr/></p:nvGrpSpPr>"
-        "<p:grpSpPr/>"
-        + "".join(shapes)
-        + "</p:spTree></p:cSld>"
+        '<p:nvGrpSpPr><p:cNvPr id="1" name=""/><p:cNvGrpSpPr/><p:nvPr/></p:nvGrpSpPr>'
+        "<p:grpSpPr/>" + "".join(shapes) + "</p:spTree></p:cSld>"
         "</p:sld>"
     )
 

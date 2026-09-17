@@ -97,24 +97,31 @@ class DatabaseEnterpriseStore(InMemoryEnterpriseStore):
             return
         with self._lock:
             self.organizations = {
-                k: _org_from_dict(v) for k, v in (payload.get("organizations") or {}).items()
+                k: _org_from_dict(v)
+                for k, v in (payload.get("organizations") or {}).items()
             }
-            self.teams = {k: _team_from_dict(v) for k, v in (payload.get("teams") or {}).items()}
+            self.teams = {
+                k: _team_from_dict(v) for k, v in (payload.get("teams") or {}).items()
+            }
             self.members = {
-                k: _member_from_dict(v) for k, v in (payload.get("members") or {}).items()
+                k: _member_from_dict(v)
+                for k, v in (payload.get("members") or {}).items()
             }
             self.invitations = {
                 k: _invite_from_dict(v)
                 for k, v in (payload.get("invitations") or {}).items()
             }
             self.licenses = {
-                k: _license_from_dict(v) for k, v in (payload.get("licenses") or {}).items()
+                k: _license_from_dict(v)
+                for k, v in (payload.get("licenses") or {}).items()
             }
             self.api_keys = {
-                k: _api_key_from_dict(v) for k, v in (payload.get("api_keys") or {}).items()
+                k: _api_key_from_dict(v)
+                for k, v in (payload.get("api_keys") or {}).items()
             }
             self.sessions = {
-                k: _session_from_dict(v) for k, v in (payload.get("sessions") or {}).items()
+                k: _session_from_dict(v)
+                for k, v in (payload.get("sessions") or {}).items()
             }
             self.custom_roles = dict(payload.get("custom_roles") or {})
             self.usage_counters = {
@@ -134,7 +141,9 @@ class DatabaseEnterpriseStore(InMemoryEnterpriseStore):
         """Persist working set + append-only audit rows."""
         with self._persist_lock:
             snapshot = {
-                "organizations": {k: v.to_dict() for k, v in self.organizations.items()},
+                "organizations": {
+                    k: v.to_dict() for k, v in self.organizations.items()
+                },
                 "teams": {k: v.to_dict() for k, v in self.teams.items()},
                 "members": {k: v.to_dict() for k, v in self.members.items()},
                 "invitations": {k: v.to_dict() for k, v in self.invitations.items()},
@@ -145,9 +154,7 @@ class DatabaseEnterpriseStore(InMemoryEnterpriseStore):
                 },
                 "sessions": {k: v.to_dict() for k, v in self.sessions.items()},
                 "custom_roles": dict(self.custom_roles),
-                "usage_counters": {
-                    k: dict(v) for k, v in self.usage_counters.items()
-                },
+                "usage_counters": {k: dict(v) for k, v in self.usage_counters.items()},
             }
             # InMemoryDatabasePort DELETE clears the table — rewrite snapshot row.
             self._db.execute("DELETE FROM enterprise_snapshots")

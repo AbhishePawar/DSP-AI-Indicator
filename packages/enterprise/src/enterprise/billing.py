@@ -95,7 +95,9 @@ class NullBillingAdapter:
             "invoices": [],
         }
 
-    def create_checkout_session(self, org_id: str, *, plan: str | None = None) -> dict[str, Any]:
+    def create_checkout_session(
+        self, org_id: str, *, plan: str | None = None
+    ) -> dict[str, Any]:
         _ = plan
         return {
             "ok": False,
@@ -106,7 +108,9 @@ class NullBillingAdapter:
             ),
         }
 
-    def verify_webhook(self, payload: bytes, *, signature: str | None = None) -> dict[str, Any]:
+    def verify_webhook(
+        self, payload: bytes, *, signature: str | None = None
+    ) -> dict[str, Any]:
         _ = payload, signature
         return {
             "ok": False,

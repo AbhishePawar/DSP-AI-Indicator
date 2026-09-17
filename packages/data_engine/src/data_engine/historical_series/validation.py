@@ -98,11 +98,7 @@ def validate_authenticated_historical_bundle(
         raise InvalidProviderDataError(
             f"frequency must be daily|weekly|monthly or null, got {bundle.frequency!r}"
         )
-    if (
-        bundle.start_date
-        and bundle.end_date
-        and bundle.start_date > bundle.end_date
-    ):
+    if bundle.start_date and bundle.end_date and bundle.start_date > bundle.end_date:
         raise InvalidProviderDataError("start_date after end_date")
     if not bundle.has_any_observation():
         raise InvalidProviderDataError(

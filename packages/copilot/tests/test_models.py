@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import pytest
-from core.exceptions import ValidationError
 
 from copilot import (
     ContextBundle,
@@ -33,6 +32,7 @@ from copilot import (
     assert_unique_session_ids,
     assert_unique_turn_ids,
 )
+from core.exceptions import ValidationError
 
 
 def _identity() -> CopilotIdentity:

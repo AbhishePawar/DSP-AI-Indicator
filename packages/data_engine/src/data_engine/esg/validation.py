@@ -15,9 +15,13 @@ _DISALLOWED_SOURCE = frozenset(
 
 def _check_field(name: str, f: ConnectorField) -> None:
     if f.available and f.value is None:
-        raise InvalidProviderDataError(f"esg field '{name}' marked available with null value")
+        raise InvalidProviderDataError(
+            f"esg field '{name}' marked available with null value"
+        )
     if not f.available and f.value is not None:
-        raise InvalidProviderDataError(f"esg field '{name}' has value but marked unavailable")
+        raise InvalidProviderDataError(
+            f"esg field '{name}' has value but marked unavailable"
+        )
 
 
 def validate_authenticated_esg_score(bundle: AuthenticatedEsgScore) -> None:
@@ -32,16 +36,29 @@ def validate_authenticated_esg_score(bundle: AuthenticatedEsgScore) -> None:
         raise InvalidProviderDataError(
             f"disallowed provenance source_type={bundle.provenance.source_type!r}"
         )
-    if bundle.controversy_level is not None and bundle.controversy_level not in CONTROVERSY_LEVELS:
+    if (
+        bundle.controversy_level is not None
+        and bundle.controversy_level not in CONTROVERSY_LEVELS
+    ):
         raise InvalidProviderDataError(
             f"controversy_level must be one of {sorted(CONTROVERSY_LEVELS)} or null, "
             f"got {bundle.controversy_level!r}"
         )
-    for name in ("environmental_score", "social_score", "governance_score", "total_score"):
+    for name in (
+        "environmental_score",
+        "social_score",
+        "governance_score",
+        "total_score",
+    ):
         _check_field(name, getattr(bundle, name))
     if not any(
         getattr(bundle, name).available
-        for name in ("environmental_score", "social_score", "governance_score", "total_score")
+        for name in (
+            "environmental_score",
+            "social_score",
+            "governance_score",
+            "total_score",
+        )
     ):
         raise InvalidProviderDataError(
             "authenticated esg score must include at least one available score "

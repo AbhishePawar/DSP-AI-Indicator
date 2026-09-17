@@ -15,7 +15,7 @@ Does not clear G2. Does not redesign valuation / Buffett / MoS.
 from __future__ import annotations
 
 import os
-from typing import Mapping
+from collections.abc import Mapping
 
 from data_engine.connector_framework.production_profile import (
     ConnectorConfigurationError,

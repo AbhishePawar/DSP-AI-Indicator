@@ -5,10 +5,10 @@ Read-only export artifacts projected from Institutional Report (R002) only.
 
 from __future__ import annotations
 
+from collections.abc import Mapping
 from dataclasses import dataclass, field
 from datetime import UTC, datetime
-from types import MappingProxyType
-from typing import Any, Mapping
+from typing import Any
 
 from dsp_platform.research_object.models import UNAVAILABLE_MESSAGE, freeze_mapping
 
@@ -100,7 +100,9 @@ class ExportArtifact:
     version: ExportVersion
     content_base64: str
     content_sha256: str
-    content_text: str | None = None  # json/csv convenience; never reformats research values
+    content_text: str | None = (
+        None  # json/csv convenience; never reformats research values
+    )
     structured_json: Mapping[str, Any] | None = None  # json format only
 
     def to_dict(self) -> dict[str, Any]:
@@ -117,7 +119,9 @@ class ExportArtifact:
             "content_base64": self.content_base64,
             "content_sha256": self.content_sha256,
             "content_text": self.content_text,
-            "structured_json": _plain(self.structured_json)
-            if self.structured_json is not None
-            else None,
+            "structured_json": (
+                _plain(self.structured_json)
+                if self.structured_json is not None
+                else None
+            ),
         }

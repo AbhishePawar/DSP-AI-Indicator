@@ -83,16 +83,16 @@ class TestKnownExamples:
         assert any(a.name == "hidden_assets" for a in r.adjustments)
 
     def test_liquidation_and_conservative(self) -> None:
-        r = AssetBasedEngine().analyze(
-            _base(method=AssetMethod.LIQUIDATION)
-        )
+        r = AssetBasedEngine().analyze(_base(method=AssetMethod.LIQUIDATION))
         assert r.liquidation_value.value is not None
         assert r.haircuts_applied["goodwill"] == 0.0
         r2 = AssetBasedEngine().analyze(
             _base(method=AssetMethod.CONSERVATIVE_LIQUIDATION)
         )
         assert r2.conservative_liquidation_value.value is not None
-        assert r2.conservative_liquidation_value.value <= r.liquidation_value.value + 1e-9
+        assert (
+            r2.conservative_liquidation_value.value <= r.liquidation_value.value + 1e-9
+        )
 
     def test_replacement_cost(self) -> None:
         r = AssetBasedEngine().analyze(
@@ -284,7 +284,9 @@ class TestQualityConfidence:
         assert AssetQualityFlag.GOODWILL_HEAVY in r_heavy.quality_flags
         assert AssetQualityFlag.HIGH_INTANGIBLE_RISK in r_heavy.quality_flags
 
-    def test_sensitivity_swallows_valuation_error(self, monkeypatch: pytest.MonkeyPatch) -> None:
+    def test_sensitivity_swallows_valuation_error(
+        self, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
         engine = AssetBasedEngine()
         real = AssetBasedEngine._value
         state = {"n": 0}
@@ -359,13 +361,11 @@ class TestExplainabilityIntegration:
     def test_helpers_and_payloads(self) -> None:
         assert explain_step(name="x", value=1.0, formula="x=1").name == "x"
         assert len(explain_many([{"name": "y", "value": 2, "formula": "y=2"}])) == 1
-        result = ValuationEngine().analyze_asset_based(
-            _base(method=AssetMethod.NAV)
-        )
+        result = ValuationEngine().analyze_asset_based(_base(method=AssetMethod.NAV))
         assert len(result.explainability) >= 5
         vr = to_valuation_result(result)
         assert vr.model_name == "asset_based"
-        from valuation import to_asset_valuation_result, to_asset_v2_aggregate_payload
+        from valuation import to_asset_v2_aggregate_payload, to_asset_valuation_result
 
         assert to_asset_valuation_result(result).model_name == "asset_based"
         assert to_v2_aggregate_payload(result)["method"] == "asset_based"
@@ -442,6 +442,8 @@ class TestEdgeCases:
             validate_asset_based_inputs(_base(ppe=float("inf"), total_assets=None))
 
     def test_nav_method(self) -> None:
-        r = AssetBasedEngine().analyze(_base(method=AssetMethod.NAV, fv_investments=100.0))
+        r = AssetBasedEngine().analyze(
+            _base(method=AssetMethod.NAV, fv_investments=100.0)
+        )
         assert r.method_used is AssetMethod.NAV
         assert r.intrinsic_value.value == r.nav.value

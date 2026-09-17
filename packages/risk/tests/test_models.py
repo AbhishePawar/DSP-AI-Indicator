@@ -6,14 +6,12 @@ import json
 from dataclasses import asdict
 
 import pytest
+
 from core.exceptions import ValidationError
-from industry import EvidenceBundleReference, EvidenceBundleStatus
 from portfolio import (
-    ComparisonReportReference,
     DecisionPackReference,
     PortfolioMonitoringStatus,
 )
-
 from risk import (
     MonitoringReference,
     PortfolioReference,
@@ -111,9 +109,7 @@ class TestIdentityAndConstruction:
                         observation_count=1,
                         descriptor_count=1,
                         posture_notes=("Concentration elevated.",),
-                        limitation_notes=(
-                            "Qualitative Risk assessment only.",
-                        ),
+                        limitation_notes=("Qualitative Risk assessment only.",),
                     ),
                 ),
             ),

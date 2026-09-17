@@ -5,9 +5,9 @@ from __future__ import annotations
 from datetime import UTC, date, datetime
 
 import pytest
+
 from contracts.domain.instrument import Instrument
 from contracts.enums import AssetClass
-
 from data_engine import (
     BseInsiderTradingAdapter,
     ConnectorField,
@@ -65,7 +65,10 @@ class _FakeJsonClient:
 class TestNullAndInMemory:
     def test_null_always_unavailable(self) -> None:
         adapter = NullInsiderTradingAdapter()
-        assert adapter.get_insider_activity(InsiderTradingQuery(instrument=_instrument())) is None
+        assert (
+            adapter.get_insider_activity(InsiderTradingQuery(instrument=_instrument()))
+            is None
+        )
 
     def test_in_memory_requires_key(self) -> None:
         with pytest.raises(ProviderRequestError):
@@ -158,7 +161,9 @@ class TestSecEdgarInsiderTradingAdapter:
             }
         }
         client = _FakeJsonClient(sequence=[tickers_payload, submissions_payload])
-        adapter = SecEdgarInsiderTradingAdapter(user_agent="Test test@example.com", http_client=client)
+        adapter = SecEdgarInsiderTradingAdapter(
+            user_agent="Test test@example.com", http_client=client
+        )
 
         form4_xml = b"""<?xml version="1.0"?>
         <ownershipDocument>
@@ -189,8 +194,12 @@ class TestSecEdgarInsiderTradingAdapter:
 
             return ET.fromstring(form4_xml)
 
-        adapter._fetch_xml = _fake_fetch_xml.__get__(adapter, SecEdgarInsiderTradingAdapter)
-        bundle = adapter.get_insider_activity(InsiderTradingQuery(instrument=_instrument()))
+        adapter._fetch_xml = _fake_fetch_xml.__get__(
+            adapter, SecEdgarInsiderTradingAdapter
+        )
+        bundle = adapter.get_insider_activity(
+            InsiderTradingQuery(instrument=_instrument())
+        )
         assert bundle is not None
         assert len(bundle.transactions) == 1
         txn = bundle.transactions[0]
@@ -202,8 +211,15 @@ class TestSecEdgarInsiderTradingAdapter:
 
     def test_unknown_ticker_returns_none(self) -> None:
         client = _FakeJsonClient({"0": {"cik_str": 1, "ticker": "MSFT"}})
-        adapter = SecEdgarInsiderTradingAdapter(user_agent="Test test@example.com", http_client=client)
-        assert adapter.get_insider_activity(InsiderTradingQuery(instrument=_instrument("AAPL"))) is None
+        adapter = SecEdgarInsiderTradingAdapter(
+            user_agent="Test test@example.com", http_client=client
+        )
+        assert (
+            adapter.get_insider_activity(
+                InsiderTradingQuery(instrument=_instrument("AAPL"))
+            )
+            is None
+        )
 
 
 class TestFinancialModelingPrepInsiderTradingAdapter:
@@ -219,8 +235,12 @@ class TestFinancialModelingPrepInsiderTradingAdapter:
                 "typeOfOwner": "officer: CEO",
             }
         ]
-        adapter = FinancialModelingPrepInsiderTradingAdapter(api_key="k", http_client=_FakeJsonClient(payload))
-        bundle = adapter.get_insider_activity(InsiderTradingQuery(instrument=_instrument()))
+        adapter = FinancialModelingPrepInsiderTradingAdapter(
+            api_key="k", http_client=_FakeJsonClient(payload)
+        )
+        bundle = adapter.get_insider_activity(
+            InsiderTradingQuery(instrument=_instrument())
+        )
         assert bundle is not None
         assert bundle.transactions[0].transaction_type == "buy"
         assert bundle.transactions[0].value.to_float() == pytest.approx(500 * 150.25)
@@ -244,15 +264,24 @@ class TestNseAndBseInsiderTrading:
                 "personCategory": "Promoter",
             }
         ]
-        adapter = NseInsiderTradingAdapter(enabled=True, http_client=_FakeJsonClient(payload))
-        bundle = adapter.get_insider_activity(InsiderTradingQuery(instrument=_instrument("RELIANCE")))
+        adapter = NseInsiderTradingAdapter(
+            enabled=True, http_client=_FakeJsonClient(payload)
+        )
+        bundle = adapter.get_insider_activity(
+            InsiderTradingQuery(instrument=_instrument("RELIANCE"))
+        )
         assert bundle is not None
         assert bundle.transactions[0].transaction_type == "buy"
         assert bundle.transactions[0].transaction_date == date(2023, 6, 5)
 
     def test_bse_requires_numeric_scrip_code(self) -> None:
         adapter = BseInsiderTradingAdapter(enabled=True)
-        assert adapter.get_insider_activity(InsiderTradingQuery(instrument=_instrument("RELIANCE"))) is None
+        assert (
+            adapter.get_insider_activity(
+                InsiderTradingQuery(instrument=_instrument("RELIANCE"))
+            )
+            is None
+        )
 
 
 class TestYahooFinanceInsiderTradingAdapter:
@@ -277,8 +306,12 @@ class TestYahooFinanceInsiderTradingAdapter:
                 ]
             }
         }
-        adapter = YahooFinanceInsiderTradingAdapter(enabled=True, http_client=_FakeJsonClient(payload))
-        bundle = adapter.get_insider_activity(InsiderTradingQuery(instrument=_instrument()))
+        adapter = YahooFinanceInsiderTradingAdapter(
+            enabled=True, http_client=_FakeJsonClient(payload)
+        )
+        bundle = adapter.get_insider_activity(
+            InsiderTradingQuery(instrument=_instrument())
+        )
         assert bundle is not None
         assert bundle.transactions[0].transaction_type == "sell"
 
@@ -286,13 +319,21 @@ class TestYahooFinanceInsiderTradingAdapter:
 class TestRegistryAndEnv:
     def test_registry_ordering(self) -> None:
         registry = InsiderTradingProviderRegistry()
-        registry.register(NullInsiderTradingAdapter(), provider_id="null_insider_trading", priority=1000)
         registry.register(
-            NseInsiderTradingAdapter(enabled=True), provider_id="nse_insider_trading", priority=10
+            NullInsiderTradingAdapter(),
+            provider_id="null_insider_trading",
+            priority=1000,
+        )
+        registry.register(
+            NseInsiderTradingAdapter(enabled=True),
+            provider_id="nse_insider_trading",
+            priority=10,
         )
         assert registry.ordered_ids() == ("nse_insider_trading", "null_insider_trading")
 
-    def test_default_registry_falls_back_to_null(self, monkeypatch: pytest.MonkeyPatch) -> None:
+    def test_default_registry_falls_back_to_null(
+        self, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
         for key in (
             "DSP_INSIDER_SEC_EDGAR_USER_AGENT",
             "DSP_INSIDER_FMP_API_KEY",

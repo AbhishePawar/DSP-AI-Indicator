@@ -13,8 +13,8 @@ from decision_intelligence.models.brief import (
 )
 from decision_intelligence.models.enums import (
     AgreementQuality,
-    AssuranceLevel,
     AssumptionRiskLevel,
+    AssuranceLevel,
     DecisionResilience,
     DriverDirection,
     EvidenceConsistency,

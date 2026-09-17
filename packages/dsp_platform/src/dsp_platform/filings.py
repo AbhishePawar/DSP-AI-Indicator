@@ -49,7 +49,9 @@ def _group() -> FailoverGroup[FilingsService, FilingsQuery, Any]:
     with _LOCK:
         if _GROUP is None:
             registry = build_default_filings_registry_from_env()
-            _SERVICES = tuple(FilingsService(provider) for provider in registry.ordered())
+            _SERVICES = tuple(
+                FilingsService(provider) for provider in registry.ordered()
+            )
             _GROUP = _make_group(_SERVICES)
         return _GROUP
 

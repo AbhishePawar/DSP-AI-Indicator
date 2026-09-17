@@ -125,7 +125,10 @@ class TestPeriodCurrencyMetadata:
         other = CurrencyRef.parse("XYZ")
         assert other.code is CurrencyCode.OTHER
         assert other.label == "XYZ"
-        assert CurrencyRef.from_dict({"code": "???","label": "x"}).code is CurrencyCode.OTHER
+        assert (
+            CurrencyRef.from_dict({"code": "???", "label": "x"}).code
+            is CurrencyCode.OTHER
+        )
 
     def test_company_metadata(self) -> None:
         m = CompanyMetadata(
@@ -144,8 +147,14 @@ class TestPeriodCurrencyMetadata:
             {"unit_scale": "billions", "currency": "USD", "notes": "n"}
         )
         assert sm.unit_scale is UnitScale.BILLIONS
-        assert StatementMetadata.from_dict({"unit_scale": "nope"}).unit_scale is UnitScale.ACTUAL
-        assert StatementMetadata.from_dict({"currency": {"code": "JPY"}}).currency.code is CurrencyCode.JPY
+        assert (
+            StatementMetadata.from_dict({"unit_scale": "nope"}).unit_scale
+            is UnitScale.ACTUAL
+        )
+        assert (
+            StatementMetadata.from_dict({"currency": {"code": "JPY"}}).currency.code
+            is CurrencyCode.JPY
+        )
 
 
 class TestStatements:
@@ -165,9 +174,7 @@ class TestStatements:
         assert snap2.company.ticker == "EXM"
         assert len(snap2.statements) == 1
         snap3 = snap.with_statements(
-            (
-                _stmt(period=_period(period_end=date(2023, 12, 31), fiscal_year=2023)),
-            )
+            (_stmt(period=_period(period_end=date(2023, 12, 31), fiscal_year=2023)),)
         )
         assert len(snap3.statements) == 1
 
@@ -181,9 +188,7 @@ class TestValidation:
 
     def test_accounting_equation_fail(self) -> None:
         with pytest.raises(FinancialValidationError, match="accounting equation"):
-            validate_statements(
-                _stmt(balance_sheet=_balanced_bs(total_assets=999.0))
-            )
+            validate_statements(_stmt(balance_sheet=_balanced_bs(total_assets=999.0)))
 
     def test_nan_and_infinite(self) -> None:
         with pytest.raises(FinancialValidationError, match="NaN"):
@@ -223,9 +228,7 @@ class TestValidation:
         with pytest.raises(FinancialValidationError, match="fiscal_quarter"):
             validate_statements(
                 _stmt(
-                    period=_period(
-                        period_type=PeriodType.QUARTERLY, fiscal_quarter=5
-                    )
+                    period=_period(period_type=PeriodType.QUARTERLY, fiscal_quarter=5)
                 )
             )
         with pytest.raises(FinancialValidationError, match="period_length"):
@@ -235,9 +238,7 @@ class TestValidation:
         with pytest.raises(FinancialValidationError, match="weighted_shares"):
             validate_statements(
                 _stmt(
-                    income_statement=IncomeStatement(
-                        revenue=10.0, weighted_shares=-1.0
-                    )
+                    income_statement=IncomeStatement(revenue=10.0, weighted_shares=-1.0)
                 )
             )
         result = validate_statements(
@@ -312,14 +313,20 @@ class TestNormalization:
         assert "noise" not in mapped2
         assert canonicalize_field_name("foo__bar") == "foo_bar"
         # TypeError/ValueError path for allowed field
-        assert map_raw_fields({"revenue": object()}, allowed=("revenue",))["revenue"] is None
-        assert map_raw_fields({"revenue": "not-a-number"}, allowed=("revenue",))[
-            "revenue"
-        ] is None
+        assert (
+            map_raw_fields({"revenue": object()}, allowed=("revenue",))["revenue"]
+            is None
+        )
+        assert (
+            map_raw_fields({"revenue": "not-a-number"}, allowed=("revenue",))["revenue"]
+            is None
+        )
 
     def test_scale_values(self) -> None:
         vals = {"revenue": 2.0, "cogs": None}
-        same = scale_values(vals, from_scale=UnitScale.ACTUAL, to_scale=UnitScale.ACTUAL)
+        same = scale_values(
+            vals, from_scale=UnitScale.ACTUAL, to_scale=UnitScale.ACTUAL
+        )
         assert same["revenue"] == 2.0
         millions = scale_values(
             vals, from_scale=UnitScale.MILLIONS, to_scale=UnitScale.ACTUAL
@@ -330,8 +337,12 @@ class TestNormalization:
         raw = statements_from_raw(
             period=_period(),
             income={"Total Revenue": 5, "cogs": 2},
-            balance={"Cash And Equivalents": 1, "total_assets": 10,
-                     "total_liabilities": 4, "total_equity": 6},
+            balance={
+                "Cash And Equivalents": 1,
+                "total_assets": 10,
+                "total_liabilities": 4,
+                "total_equity": 6,
+            },
             cash_flow={"CFO": 3, "fcf": 1},
             statement_metadata=StatementMetadata(unit_scale=UnitScale.MILLIONS),
         )
@@ -347,7 +358,9 @@ class TestNormalization:
 
     def test_normalize_snapshot(self) -> None:
         snap = _snapshot()
-        out = normalize_snapshot(snap, target_scale=UnitScale.ACTUAL, target_currency="INR")
+        out = normalize_snapshot(
+            snap, target_scale=UnitScale.ACTUAL, target_currency="INR"
+        )
         assert out.company.reporting_currency.code is CurrencyCode.INR
         assert out.statements[0].income_statement.revenue == pytest.approx(
             500_000_000.0

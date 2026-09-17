@@ -119,9 +119,7 @@ class IndustryEvidenceRegistry:
     Does not evaluate, interpret, or produce evidence.
     """
 
-    def __init__(
-        self, metrics: IndustryMetricRegistry | None = None
-    ) -> None:
+    def __init__(self, metrics: IndustryMetricRegistry | None = None) -> None:
         self._metrics = metrics
         self._by_key: dict[tuple[str, str], IndustryEvidenceDefinition] = {}
 
@@ -151,9 +149,7 @@ class IndustryEvidenceRegistry:
             msg = f"unknown industry evidence definition: {key!r}"
             raise IndustryError(msg) from exc
 
-    def lookup(
-        self, evidence_id: str, *, version: str
-    ) -> IndustryEvidenceDefinition:
+    def lookup(self, evidence_id: str, *, version: str) -> IndustryEvidenceDefinition:
         return self.get(evidence_id, version=version)
 
     def lookup_active(self, evidence_id: str) -> IndustryEvidenceDefinition:
@@ -234,10 +230,7 @@ class IndustryEvidenceRegistry:
             raise IndustryError(msg)
         for mid in evidence.related_metric_ids:
             if not self._metrics.contains(mid):
-                msg = (
-                    f"unknown related metric {mid!r} on evidence "
-                    f"{evidence.id!r}"
-                )
+                msg = f"unknown related metric {mid!r} on evidence " f"{evidence.id!r}"
                 raise IndustryError(msg)
 
 

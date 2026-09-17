@@ -33,10 +33,7 @@ class TestDecisionAssurance:
 
         assert assurance.assurance_level is AssuranceLevel.HIGH
         assert assurance.agreement_quality.value == "unanimous"
-        assert (
-            assurance.investor_guidance.stance
-            is GuidanceStance.INVEST_IMMEDIATELY
-        )
+        assert assurance.investor_guidance.stance is GuidanceStance.INVEST_IMMEDIATELY
 
     def test_conflict_is_low_and_stand_aside(self, instrument: Instrument) -> None:
         report = make_report(
@@ -51,13 +48,9 @@ class TestDecisionAssurance:
 
         assert recommendation.action is RecommendationAction.HOLD
         assert assurance.assurance_level is AssuranceLevel.LOW
-        assert (
-            assurance.investor_guidance.stance is GuidanceStance.STAND_ASIDE
-        )
+        assert assurance.investor_guidance.stance is GuidanceStance.STAND_ASIDE
 
-    def test_single_engine_dependence_is_guarded(
-        self, instrument: Instrument
-    ) -> None:
+    def test_single_engine_dependence_is_guarded(self, instrument: Instrument) -> None:
         report = make_report(
             instrument,
             decision=Decision.BUY,

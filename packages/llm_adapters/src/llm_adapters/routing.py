@@ -8,9 +8,9 @@ These outputs are PRIVATE. They never leave the server boundary.
 
 from __future__ import annotations
 
+from collections.abc import Iterable
 from dataclasses import dataclass
 from enum import Enum
-from typing import Iterable
 
 from llm_adapters.model_tiers import ModelTier
 

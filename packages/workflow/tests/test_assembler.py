@@ -322,9 +322,7 @@ class TestAssemblyValidation:
 
 class TestAssemblerArchitecture:
     def test_assembler_forbids_upstream_imports(self) -> None:
-        path = (
-            Path(__file__).resolve().parents[1] / "src" / "workflow" / "assembler.py"
-        )
+        path = Path(__file__).resolve().parents[1] / "src" / "workflow" / "assembler.py"
         tree = ast.parse(path.read_text(encoding="utf-8"))
         names: set[str] = set()
         for node in ast.walk(tree):

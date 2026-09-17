@@ -2,10 +2,14 @@
 
 from __future__ import annotations
 
-from typing import Any, Mapping
+from collections.abc import Mapping
+from typing import Any
 
 from llm_adapters.orchestrator.specification import ResearchSpecification
-from llm_adapters.tools.protocol.dispatcher import ToolCallBoundary, safe_provider_payload
+from llm_adapters.tools.protocol.dispatcher import (
+    ToolCallBoundary,
+    safe_provider_payload,
+)
 from llm_adapters.tools.protocol.models import ToolCall, ToolCallOutcome, ToolCallStatus
 
 

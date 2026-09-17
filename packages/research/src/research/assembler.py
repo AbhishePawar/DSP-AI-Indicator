@@ -9,7 +9,6 @@ from __future__ import annotations
 from dataclasses import dataclass
 
 from core.exceptions import ValidationError
-
 from research.enums import ResearchAssemblyStatus, ResearchCoverageStatus
 from research.exceptions import ResearchError
 from research.models import (
@@ -118,9 +117,7 @@ class ResearchAssembler:
                 raise ResearchError(msg)
 
         if context.monitoring_ref is not None and context.portfolio_ref is None:
-            msg = (
-                "broken references: MonitoringReference requires PortfolioReference"
-            )
+            msg = "broken references: MonitoringReference requires PortfolioReference"
             raise ResearchError(msg)
 
         seen_pack: set[str] = set()
@@ -154,8 +151,7 @@ class ResearchAssembler:
             key = (ref.bundle_id, ref.digest)
             if key in seen_ev_key:
                 msg = (
-                    f"duplicate citations: EvidenceReference for "
-                    f"{ref.bundle_id!r}"
+                    f"duplicate citations: EvidenceReference for " f"{ref.bundle_id!r}"
                 )
                 raise ResearchError(msg)
             seen_ev_id.add(ref.bundle_id)
@@ -188,8 +184,7 @@ class ResearchAssembler:
                 raise ResearchError(msg)
             if ref.risk_id in seen_integrated:
                 msg = (
-                    f"duplicate references: IntegratedRiskReference "
-                    f"{ref.risk_id!r}"
+                    f"duplicate references: IntegratedRiskReference " f"{ref.risk_id!r}"
                 )
                 raise ResearchError(msg)
             seen_integrated.add(ref.risk_id)
@@ -211,9 +206,7 @@ class ResearchAssembler:
             conflict_count=0,
             gap_count=0,
             agenda_item_count=0,
-            coverage_notes=tuple(
-                f"{c.dimension}: {c.status.value}" for c in coverage
-            ),
+            coverage_notes=tuple(f"{c.dimension}: {c.status.value}" for c in coverage),
             limitation_notes=(
                 "Structural ResearchSummary only — no synthesis performed.",
             ),
@@ -243,11 +236,7 @@ class ResearchAssembler:
             notes=context.notes,
         )
 
-        as_of = (
-            context.as_of
-            or context.identity.created_at
-            or "assembled"
-        )
+        as_of = context.as_of or context.identity.created_at or "assembled"
         report = ResearchReport(
             research_id=context.identity.research_id,
             summary=summary,
@@ -364,7 +353,5 @@ class ResearchAssembler:
             if not has_risk:
                 warnings.append("Optional Risk citations absent.")
 
-        warnings.append(
-            "Assembler construction only — synthesis deferred to F1.2."
-        )
+        warnings.append("Assembler construction only — synthesis deferred to F1.2.")
         return status, tuple(warnings)

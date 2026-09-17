@@ -33,13 +33,8 @@ class IndustryEvidenceApplicabilityRegistry:
         self, applicability: IndustryEvidenceApplicability
     ) -> IndustryEvidenceApplicability:
         self._validate_refs(applicability)
-        existing_lineage = self._methodology_lineage.get(
-            applicability.methodology_id
-        )
-        if (
-            existing_lineage is not None
-            and existing_lineage != applicability.id
-        ):
+        existing_lineage = self._methodology_lineage.get(applicability.methodology_id)
+        if existing_lineage is not None and existing_lineage != applicability.id:
             msg = (
                 f"methodology {applicability.methodology_id!r} already bound to "
                 f"applicability {existing_lineage!r}; cannot register "
@@ -97,9 +92,7 @@ class IndustryEvidenceApplicabilityRegistry:
             raise IndustryError(msg)
         return self.lookup_active(aid)
 
-    def contains(
-        self, applicability_id: str, *, version: str | None = None
-    ) -> bool:
+    def contains(self, applicability_id: str, *, version: str | None = None) -> bool:
         aid = applicability_id.strip().lower()
         if version is not None:
             return (aid, parse_semver(version).raw) in self._by_key

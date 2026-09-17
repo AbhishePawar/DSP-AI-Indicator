@@ -10,19 +10,16 @@ Rules:
 
 from __future__ import annotations
 
+from collections.abc import Callable, Iterable, Sequence
 from dataclasses import dataclass
-from typing import Callable, Iterable, Sequence
 
 from llm_adapters.cost_scoring import (
-    calculate_cost_score,
     calculate_quality_score,
 )
 from llm_adapters.evaluation import (
     EvaluationResult,
-    EvaluationStatus,
 )
 from llm_adapters.model_catalog import (
-    DEFAULT_CATALOG,
     ModelInfo,
     ModelPricing,
     get_model_info,
@@ -31,7 +28,6 @@ from llm_adapters.model_tiers import (
     DEFAULT_TIERS,
     ModelTier,
     TierConfig,
-    get_tier_config,
 )
 from llm_adapters.quality_gate import GateOutcome, evaluate_gate
 from llm_adapters.routing import ComplexitySignal, decide_routing
@@ -129,7 +125,11 @@ def build_benchmark_table(
     Unknown pricing rows are EXCLUDED from the cost denominator and
     flagged via ``pricing_missing=True``. They cannot win on benchmark.
     """
-    costed = [r for r in rows if not r.pricing_missing and r.estimated_cost_usd == r.estimated_cost_usd]
+    costed = [
+        r
+        for r in rows
+        if not r.pricing_missing and r.estimated_cost_usd == r.estimated_cost_usd
+    ]
     if not costed:
         return list(rows)
 

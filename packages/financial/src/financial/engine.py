@@ -92,11 +92,13 @@ class FinancialEngine:
 
     def analyze_income_statement(
         self,
-        source: IncomeStatement
-        | FinancialStatements
-        | FinancialSnapshot
-        | dict
-        | Sequence[IncomeStatement | FinancialStatements],
+        source: (
+            IncomeStatement
+            | FinancialStatements
+            | FinancialSnapshot
+            | dict
+            | Sequence[IncomeStatement | FinancialStatements]
+        ),
         *,
         history: Sequence[IncomeStatement | FinancialStatements] | None = None,
     ) -> IncomeStatementAnalysis:
@@ -104,11 +106,13 @@ class FinancialEngine:
 
     def analyze_balance_sheet(
         self,
-        source: BalanceSheet
-        | FinancialStatements
-        | FinancialSnapshot
-        | dict
-        | Sequence[BalanceSheet | FinancialStatements],
+        source: (
+            BalanceSheet
+            | FinancialStatements
+            | FinancialSnapshot
+            | dict
+            | Sequence[BalanceSheet | FinancialStatements]
+        ),
         *,
         history: Sequence[BalanceSheet | FinancialStatements] | None = None,
         allow_negative_equity: bool = False,
@@ -121,11 +125,13 @@ class FinancialEngine:
 
     def analyze_cash_flow(
         self,
-        source: CashFlowStatement
-        | FinancialStatements
-        | FinancialSnapshot
-        | dict
-        | Sequence[CashFlowStatement | FinancialStatements],
+        source: (
+            CashFlowStatement
+            | FinancialStatements
+            | FinancialSnapshot
+            | dict
+            | Sequence[CashFlowStatement | FinancialStatements]
+        ),
         *,
         history: Sequence[CashFlowStatement | FinancialStatements] | None = None,
     ) -> CashFlowAnalysis:
@@ -133,10 +139,12 @@ class FinancialEngine:
 
     def analyze_financial_ratios(
         self,
-        source: FinancialStatements
-        | FinancialSnapshot
-        | dict
-        | Sequence[FinancialStatements],
+        source: (
+            FinancialStatements
+            | FinancialSnapshot
+            | dict
+            | Sequence[FinancialStatements]
+        ),
         *,
         history: Sequence[FinancialStatements] | None = None,
     ) -> FinancialRatioAnalysis:
@@ -144,19 +152,23 @@ class FinancialEngine:
 
     def analyze_trends(
         self,
-        source: FinancialStatementsHistory
-        | FinancialSnapshot
-        | dict
-        | Sequence[FinancialStatements],
+        source: (
+            FinancialStatementsHistory
+            | FinancialSnapshot
+            | dict
+            | Sequence[FinancialStatements]
+        ),
     ) -> TrendAnalysis:
         """Run Trend & Time-Series Intelligence (F2.6)."""
         return self._trend_engine.analyze(source)
 
     def analyze_financials(
         self,
-        source: FinancialStatements
-        | FinancialStatementsHistory
-        | Sequence[FinancialStatements],
+        source: (
+            FinancialStatements
+            | FinancialStatementsHistory
+            | Sequence[FinancialStatements]
+        ),
     ) -> FinancialAnalysis:
         """Primary entry: aggregate F2.2–F2.6 into ``FinancialAnalysis`` (F2.7)."""
         return self._aggregator_engine.analyze(source)

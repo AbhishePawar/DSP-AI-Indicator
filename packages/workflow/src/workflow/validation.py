@@ -9,7 +9,6 @@ from decimal import Decimal
 from typing import Any
 
 from core.exceptions import ValidationError
-
 from workflow.enums import (
     BackoffPolicy,
     FailureClass,
@@ -116,9 +115,7 @@ def assert_legal_workflow_transition(
 ) -> None:
     allowed = ALLOWED_WORKFLOW_TRANSITIONS.get(source, frozenset())
     if target not in allowed:
-        msg = (
-            f"illegal state transitions: workflow {source.value!r} → {target.value!r}"
-        )
+        msg = f"illegal state transitions: workflow {source.value!r} → {target.value!r}"
         raise WorkflowError(msg)
 
 
@@ -127,9 +124,7 @@ def assert_legal_step_transition(
 ) -> None:
     allowed = ALLOWED_STEP_TRANSITIONS.get(source, frozenset())
     if target not in allowed:
-        msg = (
-            f"illegal state transitions: step {source.value!r} → {target.value!r}"
-        )
+        msg = f"illegal state transitions: step {source.value!r} → {target.value!r}"
         raise WorkflowError(msg)
 
 

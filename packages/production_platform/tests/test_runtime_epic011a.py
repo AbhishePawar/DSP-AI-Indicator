@@ -25,9 +25,7 @@ class TestVersioning:
         assert normalize_version("") is None
 
     def test_resolve_prefers_env(self) -> None:
-        assert (
-            resolve_application_version({"DSP_APP_VERSION": "v9.9.9"}) == "9.9.9"
-        )
+        assert resolve_application_version({"DSP_APP_VERSION": "v9.9.9"}) == "9.9.9"
 
 
 class TestRuntimeValidation:

@@ -7,14 +7,14 @@ Never executes valuation engines. Research labels only — not advice.
 
 from __future__ import annotations
 
+from collections.abc import Mapping, Sequence
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Any, Mapping, Sequence
+from typing import Any
 
 from valuation.consensus.consensus_models import (
     ConsensusResult,
     MethodWeightDetail,
-    SensitivitySummary,
 )
 from valuation.core.confidence_engine import ConfidenceDetail
 from valuation.core.metadata import RESEARCH_DISCLAIMER, VALUATION_CORE_VERSION

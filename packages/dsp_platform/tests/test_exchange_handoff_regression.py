@@ -27,17 +27,23 @@ from data_engine import (
     build_quote_from_mapping,
     build_statements_from_mapping,
 )
-from data_engine.financial_statement.service import (
-    FinancialStatementPort,
-    StatementProviderHealth,
-)
 from data_engine.financial_statement.models import (
     FinancialStatementProvenance,
     utc_now,
 )
+from data_engine.financial_statement.service import (
+    FinancialStatementPort,
+    StatementProviderHealth,
+)
 from data_engine.market_quote.models import MarketQuoteProvenance
-from dsp_platform import CompositionRequest, PlatformOrchestrator, build_composition_request
-from dsp_platform.financial_statements import reset_financial_statement_service_for_tests
+from dsp_platform import (
+    CompositionRequest,
+    PlatformOrchestrator,
+    build_composition_request,
+)
+from dsp_platform.financial_statements import (
+    reset_financial_statement_service_for_tests,
+)
 from dsp_platform.market_quotes import reset_market_quote_service_for_tests
 
 TICKER = "TCS"
@@ -152,7 +158,9 @@ class _ExchangeGatedStatementAdapter(FinancialStatementPort):
         return "exchange_gated_statements"
 
     def resolve_company(self, instrument):
-        return self._bundle.identity if instrument.exchange == REQUIRED_EXCHANGE else None
+        return (
+            self._bundle.identity if instrument.exchange == REQUIRED_EXCHANGE else None
+        )
 
     def get_statements(self, query):
         self.exchanges_seen.append(query.instrument.exchange)

@@ -199,7 +199,10 @@ class CommitteeConsensus:
     weighted_rank: float
 
     def __post_init__(self) -> None:
-        if not math.isfinite(self.agreement_score) or not 0.0 <= self.agreement_score <= 1.0:
+        if (
+            not math.isfinite(self.agreement_score)
+            or not 0.0 <= self.agreement_score <= 1.0
+        ):
             raise InvestmentCommitteeValidationError(
                 "agreement_score must be in [0.0, 1.0]"
             )

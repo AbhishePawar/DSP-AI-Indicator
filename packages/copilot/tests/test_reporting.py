@@ -46,24 +46,28 @@ def _kg() -> KnowledgeGraphReference:
 
 
 def _pipeline(*, copilot_id: str = "dsp.copilot.demo"):
-    explanation_input = ConversationEngine().run(
-        ConversationEngineContext(
-            identity=_identity(copilot_id),
-            metadata=_metadata(),
-            knowledge_graph_ref=_kg(),
-            user_text="Navigate graph: how connected are knowledge graph reports?",
-            recommendation_refs=(
-                RecommendationReference(
-                    id="dsp.copilot.ref.rec.1",
-                    report_id="dsp.recommendation.report.1",
-                    version="1.0.0",
-                    digest="bbbbbbbb22222222",
-                    status="complete",
-                    generated_at="2026-07-21T12:00:00Z",
+    explanation_input = (
+        ConversationEngine()
+        .run(
+            ConversationEngineContext(
+                identity=_identity(copilot_id),
+                metadata=_metadata(),
+                knowledge_graph_ref=_kg(),
+                user_text="Navigate graph: how connected are knowledge graph reports?",
+                recommendation_refs=(
+                    RecommendationReference(
+                        id="dsp.copilot.ref.rec.1",
+                        report_id="dsp.recommendation.report.1",
+                        version="1.0.0",
+                        digest="bbbbbbbb22222222",
+                        status="complete",
+                        generated_at="2026-07-21T12:00:00Z",
+                    ),
                 ),
-            ),
+            )
         )
-    ).explanation_input
+        .explanation_input
+    )
     explanation_result = ExplanationEngine().explain(explanation_input)
     return explanation_input, explanation_result
 
@@ -120,14 +124,18 @@ class TestReporterHappyPath:
             result.citations = ()  # type: ignore[misc]
 
     def test_refusal_presentation(self) -> None:
-        explanation_input = ConversationEngine().run(
-            ConversationEngineContext(
-                identity=_identity(),
-                metadata=_metadata(),
-                knowledge_graph_ref=_kg(),
-                user_text="Please buy 100 shares now",
+        explanation_input = (
+            ConversationEngine()
+            .run(
+                ConversationEngineContext(
+                    identity=_identity(),
+                    metadata=_metadata(),
+                    knowledge_graph_ref=_kg(),
+                    user_text="Please buy 100 shares now",
+                )
             )
-        ).explanation_input
+            .explanation_input
+        )
         explanation_result = ExplanationEngine().explain(explanation_input)
         result = CopilotReporter().report(
             ReportingContext(
@@ -163,10 +171,7 @@ class TestReporterValidation:
 class TestReporterNoSideEffects:
     def test_reporter_forbids_generation(self) -> None:
         source = (
-            Path(__file__).resolve().parents[1]
-            / "src"
-            / "copilot"
-            / "reporter.py"
+            Path(__file__).resolve().parents[1] / "src" / "copilot" / "reporter.py"
         ).read_text(encoding="utf-8")
         assert "ExplanationEngine().explain" not in source
         assert "LanguageModelPort" not in source
@@ -174,9 +179,7 @@ class TestReporterNoSideEffects:
         assert "ConversationEngine().run" not in source
 
     def test_no_upstream_imports(self) -> None:
-        path = (
-            Path(__file__).resolve().parents[1] / "src" / "copilot" / "reporter.py"
-        )
+        path = Path(__file__).resolve().parents[1] / "src" / "copilot" / "reporter.py"
         tree = ast.parse(path.read_text(encoding="utf-8"))
         names: set[str] = set()
         for node in ast.walk(tree):

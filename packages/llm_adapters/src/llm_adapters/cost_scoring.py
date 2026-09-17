@@ -10,8 +10,8 @@ averages the non-None components of QualityEvaluation, scaled to 0-100.
 
 from __future__ import annotations
 
+from collections.abc import Iterable, Sequence
 from dataclasses import dataclass
-from typing import Iterable, Sequence
 
 from llm_adapters.evaluation import EvaluationResult, QualityEvaluation
 from llm_adapters.model_catalog import ModelInfo, ModelPricing
@@ -97,7 +97,9 @@ def score_evaluations(results: Iterable[EvaluationResult]) -> list[ScoredEvaluat
         q = calculate_quality_score(r.quality)
         c = calculate_cost_score(materialized, r)
         o = calculate_overall_score(q, c)
-        scored.append(ScoredEvaluation(result=r, quality_score=q, cost_score=c, overall_score=o))
+        scored.append(
+            ScoredEvaluation(result=r, quality_score=q, cost_score=c, overall_score=o)
+        )
     scored.sort(key=lambda s: s.overall_score, reverse=True)
     return scored
 

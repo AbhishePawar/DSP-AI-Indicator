@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 from contracts.domain.instrument import Instrument
-
 from industry.enums import GroupEligibilityStatus, PeerEligibilityStatus
 from industry.exceptions import IndustryError
 from industry.instrument_resolution import resolve_methodology_for_instrument
@@ -44,9 +43,7 @@ class PeerEligibilityEvaluator:
         self._policies = policies
         self._profiles = profiles
 
-    def resolve(
-        self, instrument: Instrument | str
-    ) -> InstrumentMethodologyResolution:
+    def resolve(self, instrument: Instrument | str) -> InstrumentMethodologyResolution:
         return resolve_methodology_for_instrument(
             instrument,
             assignments=self._assignments,
@@ -94,9 +91,7 @@ class PeerEligibilityEvaluator:
                 right_key=right_key,
                 status=status,
                 reasons=tuple(reasons),
-                left_industry_id=(
-                    None if left_res is None else left_res.industry_id
-                ),
+                left_industry_id=(None if left_res is None else left_res.industry_id),
                 right_industry_id=(
                     None if right_res is None else right_res.industry_id
                 ),

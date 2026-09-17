@@ -2,12 +2,11 @@
 
 from __future__ import annotations
 
-from contracts import EngineSource, ValuationConfidence, ValuationContext
-
 from ai_committee.enums import Decision
 from ai_committee.exceptions import CommitteeError
 from ai_committee.members.base import CommitteeMember
 from ai_committee.models import CommitteeInput, Opinion
+from contracts import EngineSource, ValuationConfidence, ValuationContext
 
 __all__ = ["ValuationMember"]
 
@@ -16,9 +15,7 @@ _BUY_MOS = 0.20
 #: Overvalued enough to vote SELL.
 _SELL_MOS = -0.20
 #: Only HIGH/MEDIUM confidence assessments cast directional votes.
-_VOTABLE = frozenset(
-    {ValuationConfidence.HIGH, ValuationConfidence.MEDIUM}
-)
+_VOTABLE = frozenset({ValuationConfidence.HIGH, ValuationConfidence.MEDIUM})
 _CONFIDENCE_SCORE: dict[ValuationConfidence, float | None] = {
     ValuationConfidence.HIGH: 0.85,
     ValuationConfidence.MEDIUM: 0.65,
@@ -96,11 +93,7 @@ def map_valuation_decision(assessment: ValuationContext) -> Decision:
     * otherwise → HOLD
     """
     mos = assessment.margin_of_safety
-    if (
-        not mos.available
-        or mos.ratio is None
-        or assessment.confidence not in _VOTABLE
-    ):
+    if not mos.available or mos.ratio is None or assessment.confidence not in _VOTABLE:
         return Decision.HOLD
     if mos.ratio >= _BUY_MOS:
         return Decision.BUY
@@ -115,11 +108,7 @@ def _valuation_reasoning(
 ) -> str:
     """Preserve assessment reasoning with an explicit member prefix."""
     mos = assessment.margin_of_safety
-    mos_text = (
-        f"{mos.ratio:.2%}"
-        if mos.available and mos.ratio is not None
-        else "n/a"
-    )
+    mos_text = f"{mos.ratio:.2%}" if mos.available and mos.ratio is not None else "n/a"
     mid = assessment.valuation_summary.intrinsic_mid
     mid_text = f"{mid:,.2f}" if mid is not None else "n/a"
     return (

@@ -22,7 +22,7 @@ from auth import (
     reset_role_registry_for_tests,
 )
 from auth.devices import DeviceRegistry
-from auth.mfa_totp import TotpAdapter, totp_at
+from auth.mfa_totp import totp_at
 from auth.oauth_providers import OAuthProviderRegistry
 from auth.otp import OtpService
 from auth.secret_box import decrypt_secret, encrypt_secret, is_encrypted
@@ -63,7 +63,9 @@ def platform(monkeypatch: pytest.MonkeyPatch):
     reset_repository_registry_for_tests(None)
 
 
-def _enroll_user(platform: EnterpriseAuthPlatform, suffix: str = "1") -> tuple[str, str, list[str]]:
+def _enroll_user(
+    platform: EnterpriseAuthPlatform, suffix: str = "1"
+) -> tuple[str, str, list[str]]:
     reg = platform.register_email(
         name=f"MFA User {suffix}",
         email=f"mfa{suffix}@example.com",
@@ -104,7 +106,9 @@ def test_secret_box_rejects_tampered_ciphertext() -> None:
         decrypt_secret(tampered)
 
 
-def test_totp_secret_persisted_encrypted_at_rest(platform: EnterpriseAuthPlatform) -> None:
+def test_totp_secret_persisted_encrypted_at_rest(
+    platform: EnterpriseAuthPlatform,
+) -> None:
     user_id, secret, _ = _enroll_user(platform)
     raw = platform.auth.persistence.get("metadata", f"auth-mfa-totp-{user_id}")
     stored_secret = raw["payload"]["secret"]
@@ -133,29 +137,47 @@ def test_recovery_codes_status_reports_counts(platform: EnterpriseAuthPlatform) 
     assert status["remaining"] == 9
 
 
-def test_recovery_codes_regenerate_invalidates_old_codes(platform: EnterpriseAuthPlatform) -> None:
+def test_recovery_codes_regenerate_invalidates_old_codes(
+    platform: EnterpriseAuthPlatform,
+) -> None:
     user_id, _, old_codes = _enroll_user(platform)
-    result = platform.mfa_recovery_codes_regenerate(user_id, current_password="StrongPass1!")
+    result = platform.mfa_recovery_codes_regenerate(
+        user_id, current_password="StrongPass1!"
+    )
     new_codes = result["recovery_codes"]
     assert len(new_codes) == 10
     assert set(new_codes).isdisjoint(old_codes)
 
     # Old codes no longer work.
-    assert platform.mfa.totp.verify_challenge(user_id, {"recovery_code": old_codes[0]}) is False
+    assert (
+        platform.mfa.totp.verify_challenge(user_id, {"recovery_code": old_codes[0]})
+        is False
+    )
     # New codes do.
-    assert platform.mfa.totp.verify_challenge(user_id, {"recovery_code": new_codes[0]}) is True
+    assert (
+        platform.mfa.totp.verify_challenge(user_id, {"recovery_code": new_codes[0]})
+        is True
+    )
 
-    events = platform.audit.list_events(user_id=user_id, event_type="mfa.recovery.regenerated")
+    events = platform.audit.list_events(
+        user_id=user_id, event_type="mfa.recovery.regenerated"
+    )
     assert events
 
 
-def test_recovery_codes_regenerate_rejects_wrong_password(platform: EnterpriseAuthPlatform) -> None:
+def test_recovery_codes_regenerate_rejects_wrong_password(
+    platform: EnterpriseAuthPlatform,
+) -> None:
     user_id, _, _ = _enroll_user(platform)
     with pytest.raises(AuthenticationError):
-        platform.mfa_recovery_codes_regenerate(user_id, current_password="wrong-password")
+        platform.mfa_recovery_codes_regenerate(
+            user_id, current_password="wrong-password"
+        )
 
 
-def test_recovery_codes_status_requires_enrollment(platform: EnterpriseAuthPlatform) -> None:
+def test_recovery_codes_status_requires_enrollment(
+    platform: EnterpriseAuthPlatform,
+) -> None:
     reg = platform.register_email(
         name="No MFA",
         email="nomfa@example.com",
@@ -180,7 +202,9 @@ def test_totp_accepts_one_step_of_clock_drift(platform: EnterpriseAuthPlatform) 
 def test_totp_rejects_far_future_code(platform: EnterpriseAuthPlatform) -> None:
     user_id, secret, _ = _enroll_user(platform)
     far_future_code = totp_at(secret, for_time=time.time() + 300)  # +10 steps
-    assert platform.mfa.totp.verify_challenge(user_id, {"code": far_future_code}) is False
+    assert (
+        platform.mfa.totp.verify_challenge(user_id, {"code": far_future_code}) is False
+    )
 
 
 # -- Rate limiting / brute force protection --------------------------------
@@ -188,7 +212,7 @@ def test_totp_rejects_far_future_code(platform: EnterpriseAuthPlatform) -> None:
 
 def test_mfa_verify_stepup_is_rate_limited(platform: EnterpriseAuthPlatform) -> None:
     user_id, secret, _ = _enroll_user(platform)
-    login = platform.login_password(identifier=f"mfauser1", password="StrongPass1!")
+    login = platform.login_password(identifier="mfauser1", password="StrongPass1!")
     mfa_token = login["mfa_token"]
     for _ in range(8):
         try:
@@ -218,7 +242,9 @@ def test_mfa_enroll_begin_is_rate_limited(platform: EnterpriseAuthPlatform) -> N
 # -- Audit trail -------------------------------------------------------------
 
 
-def test_mfa_lifecycle_emits_expected_audit_events(platform: EnterpriseAuthPlatform) -> None:
+def test_mfa_lifecycle_emits_expected_audit_events(
+    platform: EnterpriseAuthPlatform,
+) -> None:
     user_id, secret, codes = _enroll_user(platform)
 
     assert platform.audit.list_events(user_id=user_id, event_type="mfa.enroll.begin")
@@ -267,9 +293,14 @@ def test_reenroll_after_disable(platform: EnterpriseAuthPlatform) -> None:
 def test_trusted_device_expires_after_ttl(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setenv("DSP_AUTH_TRUSTED_DEVICE_DAYS", "30")
     devices = DeviceRegistry()
-    device = devices.register(user_id="u1", ip_hint="1.2.3.4", user_agent_hint="pytest-agent")
+    device = devices.register(
+        user_id="u1", ip_hint="1.2.3.4", user_agent_hint="pytest-agent"
+    )
     devices.set_trusted(device.device_id, user_id="u1", trusted=True)
-    assert devices.is_trusted("u1", ip_hint="1.2.3.4", user_agent_hint="pytest-agent") is True
+    assert (
+        devices.is_trusted("u1", ip_hint="1.2.3.4", user_agent_hint="pytest-agent")
+        is True
+    )
 
     # Simulate the trust window having elapsed by back-dating trusted_until.
     from datetime import UTC, datetime, timedelta
@@ -279,20 +310,27 @@ def test_trusted_device_expires_after_ttl(monkeypatch: pytest.MonkeyPatch) -> No
     record.trusted_until = (datetime.now(tz=UTC) - timedelta(days=1)).isoformat()
     devices._store.put_device(record.to_store_payload())  # noqa: SLF001
 
-    assert devices.is_trusted("u1", ip_hint="1.2.3.4", user_agent_hint="pytest-agent") is False
+    assert (
+        devices.is_trusted("u1", ip_hint="1.2.3.4", user_agent_hint="pytest-agent")
+        is False
+    )
     assert devices.is_record_trusted(record) is False
 
 
 def test_trusted_device_set_untrusted_clears_expiry() -> None:
     devices = DeviceRegistry()
-    device = devices.register(user_id="u1", ip_hint="9.9.9.9", user_agent_hint="pytest-agent")
+    device = devices.register(
+        user_id="u1", ip_hint="9.9.9.9", user_agent_hint="pytest-agent"
+    )
     devices.set_trusted(device.device_id, user_id="u1", trusted=True)
     result = devices.set_trusted(device.device_id, user_id="u1", trusted=False)
     assert result["trusted"] is False
     assert result["trusted_until"] is None
 
 
-def test_remembered_device_skips_mfa_on_next_login(platform: EnterpriseAuthPlatform) -> None:
+def test_remembered_device_skips_mfa_on_next_login(
+    platform: EnterpriseAuthPlatform,
+) -> None:
     user_id, secret, _ = _enroll_user(platform)
     login = platform.login_password(
         identifier="mfauser1",

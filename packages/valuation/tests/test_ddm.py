@@ -54,7 +54,11 @@ class TestKnownExamples:
 
     def test_two_stage(self) -> None:
         r = DdmEngine().analyze(
-            _base(method=DdmMethod.TWO_STAGE, forecast_years=3, expected_dividend_growth=0.08)
+            _base(
+                method=DdmMethod.TWO_STAGE,
+                forecast_years=3,
+                expected_dividend_growth=0.08,
+            )
         )
         assert len(r.forecast_dividends) == 3
         assert r.terminal_value.value is not None
@@ -81,7 +85,9 @@ class TestValidation:
 
     def test_rejects_g_ge_r(self) -> None:
         with pytest.raises(ValuationError, match="growth must be"):
-            validate_ddm_inputs(_base(expected_dividend_growth=0.12, cost_of_equity=0.10))
+            validate_ddm_inputs(
+                _base(expected_dividend_growth=0.12, cost_of_equity=0.10)
+            )
 
     def test_rejects_negative_shares(self) -> None:
         with pytest.raises(ValuationError, match="shares"):
@@ -338,7 +344,7 @@ class TestExplainabilityIntegration:
         assert len(result.explainability) >= 5
         vr = to_valuation_result(result)
         assert vr.model_name == "ddm"
-        from valuation import to_ddm_valuation_result, to_ddm_v2_aggregate_payload
+        from valuation import to_ddm_v2_aggregate_payload, to_ddm_valuation_result
 
         assert to_ddm_valuation_result(result).model_name == "ddm"
         assert to_v2_aggregate_payload(result)["method"] == "ddm"
@@ -380,7 +386,11 @@ class TestEdgeCases:
 
     def test_multi_without_schedule_uses_constant(self) -> None:
         r = DdmEngine().analyze(
-            _base(method=DdmMethod.MULTI_STAGE, forecast_years=2, dividend_growth_schedule=())
+            _base(
+                method=DdmMethod.MULTI_STAGE,
+                forecast_years=2,
+                dividend_growth_schedule=(),
+            )
         )
         assert len(r.forecast_dividends) == 2
 

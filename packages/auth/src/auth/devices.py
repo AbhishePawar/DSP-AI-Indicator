@@ -153,7 +153,9 @@ class DeviceRecord:
             ip_hint=payload.get("ip_hint"),
             user_agent_hint=payload.get("user_agent_hint"),
             trusted=_as_bool(payload.get("trusted")),
-            last_seen_at=str(payload.get("last_seen_at") or payload.get("created_at") or ""),
+            last_seen_at=str(
+                payload.get("last_seen_at") or payload.get("created_at") or ""
+            ),
             created_at=str(payload.get("created_at") or ""),
             revoked=_as_bool(payload.get("revoked")),
             trusted_until=None if trusted_until in (None, "") else str(trusted_until),
@@ -163,10 +165,14 @@ class DeviceRecord:
 class DeviceRegistry:
     """A008-backed device inventory shared across Cloud Run instances."""
 
-    def __init__(self, persistence: Any | None = None, *, store: Any | None = None) -> None:
+    def __init__(
+        self, persistence: Any | None = None, *, store: Any | None = None
+    ) -> None:
         from auth.device_store import DeviceStore, default_device_store
 
-        self._store: DeviceStore = store if store is not None else default_device_store(persistence)
+        self._store: DeviceStore = (
+            store if store is not None else default_device_store(persistence)
+        )
         self._lock = Lock()
 
     def get(self, device_id: str) -> DeviceRecord | None:
@@ -230,7 +236,11 @@ class DeviceRegistry:
             )
             if winner_id != device.device_id:
                 winner = self.get(winner_id)
-                if winner is not None and winner.user_id == user_id and not winner.revoked:
+                if (
+                    winner is not None
+                    and winner.user_id == user_id
+                    and not winner.revoked
+                ):
                     self._store.delete_device(device.device_id)
                     patched = self._store.merge_device(
                         winner.device_id,
@@ -256,7 +266,8 @@ class DeviceRegistry:
         rows = [
             record.to_dict()
             for payload in self._store.list_device_payloads_for_user(user_id)
-            if (record := DeviceRecord.from_payload(payload)) is not None and not record.revoked
+            if (record := DeviceRecord.from_payload(payload)) is not None
+            and not record.revoked
         ]
         rows.sort(key=lambda r: str(r.get("last_seen_at") or ""), reverse=True)
         return rows
@@ -330,7 +341,9 @@ class DeviceRegistry:
                 count += 1
         return count
 
-    def is_trusted(self, user_id: str, *, ip_hint: str | None, user_agent_hint: str | None) -> bool:
+    def is_trusted(
+        self, user_id: str, *, ip_hint: str | None, user_agent_hint: str | None
+    ) -> bool:
         fp = fingerprint(ip_hint, user_agent_hint)
         device_id = self._store.get_fingerprint_device_id(user_id, fp)
         if not device_id:

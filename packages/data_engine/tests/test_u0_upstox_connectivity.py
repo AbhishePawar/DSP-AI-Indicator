@@ -2,7 +2,8 @@
 
 from __future__ import annotations
 
-from typing import Any, Mapping
+from collections.abc import Mapping
+from typing import Any
 
 import pytest
 
@@ -183,9 +184,11 @@ def test_token_not_in_exception_from_auth_headers_when_absent() -> None:
         client.authorization_headers()
 
 
-def test_urllib_client_maps_429_without_body_leak(monkeypatch: pytest.MonkeyPatch) -> None:
-    from urllib.error import HTTPError
+def test_urllib_client_maps_429_without_body_leak(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
     from io import BytesIO
+    from urllib.error import HTTPError
 
     def _boom(*args, **kwargs):
         raise HTTPError(

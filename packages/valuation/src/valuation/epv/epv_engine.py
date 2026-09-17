@@ -12,9 +12,10 @@ from __future__ import annotations
 
 import statistics
 import time
+from collections.abc import Mapping
 from dataclasses import replace
 from datetime import UTC, datetime
-from typing import Any, Mapping
+from typing import Any
 
 from valuation.core.confidence_engine import ConfidenceEngine
 from valuation.core.metadata import RESEARCH_DISCLAIMER, VALUATION_CORE_VERSION
@@ -70,9 +71,7 @@ class EpvEngine:
         validation = validate_epv_inputs(inputs)
         base = self._value(inputs)
         if base["enterprise_epv"] is not None and base["enterprise_epv"] < 0:
-            raise ValuationError(
-                f"impossible enterprise EPV: {base['enterprise_epv']}"
-            )
+            raise ValuationError(f"impossible enterprise EPV: {base['enterprise_epv']}")
 
         scenarios = self._scenarios(inputs)
         sensitivity = self._sensitivity(inputs)
@@ -156,9 +155,7 @@ class EpvEngine:
             execution_time_ms=elapsed_ms,
         )
 
-    def _normalize_ebit(
-        self, inputs: EpvInputs
-    ) -> tuple[float, NormalizationDetail]:
+    def _normalize_ebit(self, inputs: EpvInputs) -> tuple[float, NormalizationDetail]:
         method = inputs.normalization_method
         raw = inputs.ebit
 
@@ -181,7 +178,9 @@ class EpvEngine:
             elif inputs.normalized_operating_margin is not None:
                 base_ebit = inputs.revenue * inputs.normalized_operating_margin
             else:
-                raise ValuationError("historical_average requires history or average_ebit")
+                raise ValuationError(
+                    "historical_average requires history or average_ebit"
+                )
         elif method is NormalizationMethod.MEDIAN:
             if inputs.historical_ebit:
                 base_ebit = float(statistics.median(inputs.historical_ebit))
@@ -325,7 +324,10 @@ class EpvEngine:
             name="enterprise_epv",
             value=enterprise,
             formula="Enterprise EPV = NFE / Cost of Capital",
-            inputs={"normalized_free_earnings": nfe, "cost_of_capital": inputs.cost_of_capital},
+            inputs={
+                "normalized_free_earnings": nfe,
+                "cost_of_capital": inputs.cost_of_capital,
+            },
             intermediates={},
             confidence=conf,
         )
@@ -405,7 +407,9 @@ class EpvEngine:
                     "wacc_delta": inputs.bear_wacc_delta,
                 },
             ),
-            ScenarioSpec(ScenarioKind.base(), {"earnings_delta": 0.0, "wacc_delta": 0.0}),
+            ScenarioSpec(
+                ScenarioKind.base(), {"earnings_delta": 0.0, "wacc_delta": 0.0}
+            ),
             ScenarioSpec(
                 ScenarioKind.bull(),
                 {
@@ -537,9 +541,7 @@ class EpvEngine:
             output_name="intrinsic_value_per_share",
         )
 
-    def _confidence(
-        self, inputs: EpvInputs, base: Mapping[str, Any]
-    ):
+    def _confidence(self, inputs: EpvInputs, base: Mapping[str, Any]):
         hist = inputs.historical_ebit
         earnings_stability = 1.0
         if len(hist) >= 2:
@@ -620,7 +622,10 @@ class EpvEngine:
             flags.append(EpvQualityFlag.ACCOUNTING_WARNING)
             core.append(QualityFlag.ACCOUNTING_WARNING)
 
-        if inputs.depreciation > 0 and inputs.maintenance_capex > 1.25 * inputs.depreciation:
+        if (
+            inputs.depreciation > 0
+            and inputs.maintenance_capex > 1.25 * inputs.depreciation
+        ):
             flags.append(EpvQualityFlag.HIGH_MAINTENANCE_CAPEX)
 
         oe = float(base["owner_earnings"])

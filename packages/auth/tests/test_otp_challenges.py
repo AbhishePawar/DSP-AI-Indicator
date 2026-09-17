@@ -5,7 +5,7 @@ from __future__ import annotations
 import logging
 import threading
 from concurrent.futures import ThreadPoolExecutor, as_completed
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 
 import pytest
 
@@ -26,7 +26,9 @@ def _shared_store() -> OtpChallengeStore:
     )
 
 
-def _svc(store: OtpChallengeStore | None = None, sms: DevSmsAdapter | None = None) -> OtpService:
+def _svc(
+    store: OtpChallengeStore | None = None, sms: DevSmsAdapter | None = None
+) -> OtpService:
     return OtpService(sms or DevSmsAdapter(), store=store)
 
 
@@ -58,7 +60,10 @@ def test_correct_otp_succeeds_and_is_single_use() -> None:
     svc = _svc(sms=sms)
     issued = svc.request_otp("+919812345678")
     code = issued["sms"]["debug_code"]
-    assert svc.verify_otp(challenge_id=issued["challenge_id"], code=code) == "+919812345678"
+    assert (
+        svc.verify_otp(challenge_id=issued["challenge_id"], code=code)
+        == "+919812345678"
+    )
     with pytest.raises(AuthenticationError, match="OTP already used"):
         svc.verify_otp(challenge_id=issued["challenge_id"], code=code)
 
@@ -74,7 +79,7 @@ def test_incorrect_otp_fails() -> None:
 def test_expired_otp_fails() -> None:
     sms = DevSmsAdapter()
     svc = _svc(sms=sms)
-    now = datetime(2026, 1, 1, tzinfo=timezone.utc)
+    now = datetime(2026, 1, 1, tzinfo=UTC)
     issued = svc.request_otp("+919800000001", now=now)
     code = issued["sms"]["debug_code"]
     with pytest.raises(AuthenticationError, match="OTP expired"):
@@ -88,7 +93,9 @@ def test_expired_otp_fails() -> None:
 def test_unknown_challenge_fails() -> None:
     svc = _svc()
     with pytest.raises(AuthenticationError, match="Invalid or expired OTP challenge"):
-        svc.verify_otp(challenge_id="00000000-0000-0000-0000-000000000000", code="123456")
+        svc.verify_otp(
+            challenge_id="00000000-0000-0000-0000-000000000000", code="123456"
+        )
 
 
 def test_attempt_limit_shared_across_services() -> None:
@@ -137,7 +144,7 @@ def test_resend_cooldown_shared() -> None:
     sms = DevSmsAdapter()
     a = _svc(store, sms)
     b = _svc(store, DevSmsAdapter())
-    now = datetime(2026, 1, 1, tzinfo=timezone.utc)
+    now = datetime(2026, 1, 1, tzinfo=UTC)
     a.request_otp("+919800000004", now=now)
     with pytest.raises(AuthenticationError, match="Resend available after"):
         b.request_otp("+919800000004", now=now + timedelta(seconds=10))
@@ -148,7 +155,7 @@ def test_resend_cooldown_shared() -> None:
 def test_hourly_send_cap_shared() -> None:
     store = _shared_store()
     mobile = "+919800000005"
-    now = datetime(2026, 1, 1, tzinfo=timezone.utc)
+    now = datetime(2026, 1, 1, tzinfo=UTC)
     for i in range(5):
         _svc(store, DevSmsAdapter()).request_otp(
             mobile, now=now + timedelta(seconds=31 * i)
@@ -159,7 +166,9 @@ def test_hourly_send_cap_shared() -> None:
         )
 
 
-def test_plaintext_otp_not_persisted_or_logged(caplog: pytest.LogCaptureFixture) -> None:
+def test_plaintext_otp_not_persisted_or_logged(
+    caplog: pytest.LogCaptureFixture,
+) -> None:
     store = _shared_store()
     sms = DevSmsAdapter()
     svc = _svc(store, sms)
@@ -195,7 +204,7 @@ def test_stale_consumed_challenge_pruned_after_keep_window() -> None:
     store = _shared_store()
     sms = DevSmsAdapter()
     svc = _svc(store, sms)
-    now = datetime(2026, 1, 1, tzinfo=timezone.utc)
+    now = datetime(2026, 1, 1, tzinfo=UTC)
     issued = svc.request_otp("+919800000008", now=now)
     code = issued["sms"]["debug_code"]
     svc.verify_otp(challenge_id=issued["challenge_id"], code=code, now=now)

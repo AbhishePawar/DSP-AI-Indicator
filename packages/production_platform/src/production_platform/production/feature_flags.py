@@ -31,12 +31,8 @@ class FeatureFlagManager:
         for name, enabled in (initial or {}).items():
             self.set(name, enabled)
 
-    def set(
-        self, name: str, enabled: bool, *, description: str = ""
-    ) -> FeatureFlag:
-        flag = FeatureFlag(
-            name=name.strip(), enabled=enabled, description=description
-        )
+    def set(self, name: str, enabled: bool, *, description: str = "") -> FeatureFlag:
+        flag = FeatureFlag(name=name.strip(), enabled=enabled, description=description)
         with self._lock:
             self._flags[flag.name.lower()] = flag
         return flag
@@ -52,9 +48,7 @@ class FeatureFlagManager:
 
     def list_flags(self) -> tuple[FeatureFlag, ...]:
         with self._lock:
-            return tuple(
-                self._flags[k] for k in sorted(self._flags.keys())
-            )
+            return tuple(self._flags[k] for k in sorted(self._flags.keys()))
 
     def as_dict(self) -> dict[str, bool]:
         return {f.name: f.enabled for f in self.list_flags()}

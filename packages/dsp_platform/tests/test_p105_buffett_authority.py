@@ -2,11 +2,10 @@
 
 from __future__ import annotations
 
-from financial import FinancialEngine, FinancialStatements
-from investment_recommendation import ValuationSignals
-
 from dsp_platform import CompositionRequest, PlatformOrchestrator
 from dsp_platform.composition.adapters import pipeline_result_public_dict
+from financial import FinancialEngine, FinancialStatements
+from investment_recommendation import ValuationSignals
 
 
 def _statements() -> FinancialStatements:

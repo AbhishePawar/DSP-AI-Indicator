@@ -7,7 +7,6 @@ from investment_committee.models import (
     CommitteeConsensus,
     CommitteeEvidence,
     CommitteeExplainability,
-    InvestmentCommitteeConfidence,
     ReviewerOpinion,
 )
 from investment_committee.scoring import CommitteeDecision
@@ -45,9 +44,7 @@ def build_thesis(
     consensus: CommitteeConsensus,
     reviewers: tuple[ReviewerOpinion, ...],
 ) -> str:
-    parts = [
-        f"{r.role.value}→{r.opinion.value}({r.score.value})" for r in reviewers
-    ]
+    parts = [f"{r.role.value}→{r.opinion.value}({r.score.value})" for r in reviewers]
     flags = (
         f" Escalation: {', '.join(consensus.escalation_flags)}."
         if consensus.escalation_flags

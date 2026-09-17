@@ -62,8 +62,12 @@ def _stmt(
 class TestEpsCagr:
     def test_positive_diluted_eps_cagr(self) -> None:
         incomes = [
-            IncomeStatement(revenue=100.0, eps=1.0, diluted_eps=0.90, weighted_shares=100.0),
-            IncomeStatement(revenue=110.0, eps=1.21, diluted_eps=1.089, weighted_shares=100.0),
+            IncomeStatement(
+                revenue=100.0, eps=1.0, diluted_eps=0.90, weighted_shares=100.0
+            ),
+            IncomeStatement(
+                revenue=110.0, eps=1.21, diluted_eps=1.089, weighted_shares=100.0
+            ),
         ]
         stmts = [
             _stmt(incomes[0], _period(end=date(2022, 12, 31), fy=2022)),
@@ -76,8 +80,12 @@ class TestEpsCagr:
 
     def test_falls_back_to_basic_when_diluted_incomplete(self) -> None:
         incomes = [
-            IncomeStatement(revenue=100.0, eps=1.0, diluted_eps=None, weighted_shares=100.0),
-            IncomeStatement(revenue=110.0, eps=1.21, diluted_eps=1.10, weighted_shares=100.0),
+            IncomeStatement(
+                revenue=100.0, eps=1.0, diluted_eps=None, weighted_shares=100.0
+            ),
+            IncomeStatement(
+                revenue=110.0, eps=1.21, diluted_eps=1.10, weighted_shares=100.0
+            ),
         ]
         stmts = [
             _stmt(incomes[0], _period(end=date(2022, 12, 31), fy=2022)),
@@ -91,8 +99,12 @@ class TestEpsCagr:
     def test_never_mixes_diluted_and_basic(self) -> None:
         # Only one diluted point → diluted CAGR unavailable; uses basic series.
         incomes = [
-            IncomeStatement(revenue=100.0, eps=2.0, diluted_eps=1.0, weighted_shares=100.0),
-            IncomeStatement(revenue=110.0, eps=2.42, diluted_eps=None, weighted_shares=100.0),
+            IncomeStatement(
+                revenue=100.0, eps=2.0, diluted_eps=1.0, weighted_shares=100.0
+            ),
+            IncomeStatement(
+                revenue=110.0, eps=2.42, diluted_eps=None, weighted_shares=100.0
+            ),
         ]
         stmts = [
             _stmt(incomes[0], _period(end=date(2022, 12, 31), fy=2022)),
@@ -232,7 +244,9 @@ class TestFcfToEarnings:
         stmt = _stmt(
             IncomeStatement(revenue=100.0, net_income=50.0),
             _period(end=date(2024, 12, 31), fy=2024),
-            cash=CashFlowStatement(operating_cash_flow=80.0, free_cash_flow=None, capex=None),
+            cash=CashFlowStatement(
+                operating_cash_flow=80.0, free_cash_flow=None, capex=None
+            ),
         )
         result = CashFlowEngine().analyze(stmt)
         assert result.free_cash_flow.free_cash_flow is None

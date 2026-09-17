@@ -40,15 +40,11 @@ def test_analyze_is_deterministic(
     assert a.to_dict() == b.to_dict()
 
 
-def test_explain_and_validate(
-    financial_analysis, business_quality_analysis
-) -> None:
+def test_explain_and_validate(financial_analysis, business_quality_analysis) -> None:
     engine = EarningsQualityEngine()
     analysis = engine.analyze(financial_analysis, business_quality_analysis)
     assert engine.explain(analysis) is analysis.explainability
-    with pytest.raises(
-        EarningsQualityValidationError, match="EarningsQualityAnalysis"
-    ):
+    with pytest.raises(EarningsQualityValidationError, match="EarningsQualityAnalysis"):
         engine.explain(object())  # type: ignore[arg-type]
     assert engine.validate(None, None).ok is False
 
@@ -60,7 +56,10 @@ def test_predictability_and_accounting_confidence_caps(
         financial_analysis, business_quality_analysis
     )
     by_dim = {c.dimension: c for c in result.components}
-    assert by_dim[EarningsQualityDimension.EARNINGS_PREDICTABILITY].confidence.value <= 0.70
+    assert (
+        by_dim[EarningsQualityDimension.EARNINGS_PREDICTABILITY].confidence.value
+        <= 0.70
+    )
     assert by_dim[EarningsQualityDimension.ACCOUNTING_QUALITY].confidence.value <= 0.65
 
 

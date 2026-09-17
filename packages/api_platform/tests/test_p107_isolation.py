@@ -3,12 +3,12 @@
 from __future__ import annotations
 
 import pytest
+from auth_test_helpers import bearer_headers, register_user
 from fastapi.testclient import TestClient
 
 from api_platform import create_app
 from api_platform.api.dependencies import DatabaseReportStore
 from api_platform.api.tenant_isolation import stamp_report_owner
-from auth_test_helpers import bearer_headers, register_user
 from dsp_platform import DSPPlatform, PlatformBuilder, PlatformConfiguration
 from dsp_platform.research_workspace import reset_research_workspace_store_for_tests
 from dsp_platform.research_workspace.db_store import DatabaseResearchWorkspaceStore
@@ -63,7 +63,10 @@ def _two_tenants(client: TestClient) -> tuple[dict[str, str], dict[str, str], st
 
 def test_enterprise_cross_tenant_read_denied(client: TestClient) -> None:
     ha, hb, org_a, org_b = _two_tenants(client)
-    assert client.get(f"/api/v1/enterprise/organizations/{org_a}", headers=ha).status_code == 200
+    assert (
+        client.get(f"/api/v1/enterprise/organizations/{org_a}", headers=ha).status_code
+        == 200
+    )
     deny = client.get(f"/api/v1/enterprise/organizations/{org_a}", headers=hb)
     assert deny.status_code == 403
     deny_roles = client.get(
@@ -123,9 +126,7 @@ def test_saas_cross_tenant_read_write_denied(client: TestClient) -> None:
         json={"org_id": org_a, "plan_id": "enterprise"},
     )
     assert overwrite.status_code == 403
-    still = client.get(
-        f"/api/v1/saas/organization/{org_a}/subscription", headers=ha
-    )
+    still = client.get(f"/api/v1/saas/organization/{org_a}/subscription", headers=ha)
     assert still.json()["result"]["subscription"]["plan_id"] == "starter"
 
     # Dashboard must not list foreign orgs
@@ -176,16 +177,19 @@ def test_report_owner_isolation(client: TestClient) -> None:
     ha = bearer_headers(client, username="repa")
     hb = bearer_headers(client, username="repb")
 
-    assert client.post(
-        "/analyze/company",
-        json={
-            "symbol": "AAPL",
-            "asset_class": "equity",
-            "currency": "USD",
-            "start": "2024-01-01",
-            "end": "2024-06-01",
-        },
-    ).status_code == 401
+    assert (
+        client.post(
+            "/analyze/company",
+            json={
+                "symbol": "AAPL",
+                "asset_class": "equity",
+                "currency": "USD",
+                "start": "2024-01-01",
+                "end": "2024-06-01",
+            },
+        ).status_code
+        == 401
+    )
 
     created = client.post(
         "/analyze/company",
@@ -216,9 +220,7 @@ def test_durable_worker_isolation_restart() -> None:
     saas_a = DatabaseSaasOverlayStore(db)
     saas_a.upsert_subscription(org_id, {"plan_id": "starter", "status": "active"})
     ws_a = DatabaseResearchWorkspaceStore(db)
-    note = ws_a.create_note(
-        {"title": "Private", "body": "A", "created_by": "owner-a"}
-    )
+    note = ws_a.create_note({"title": "Private", "body": "A", "created_by": "owner-a"})
     reports_a = DatabaseReportStore(db)
     reports_a.put(
         "rpt-a",

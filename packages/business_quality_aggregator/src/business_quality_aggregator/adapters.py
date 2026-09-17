@@ -124,7 +124,9 @@ def extract_component_result(
     engine_score = (
         BusinessQualityAggregatorScore(value=None, status="insufficient_data")
         if score_value is None
-        else BusinessQualityAggregatorScore(value=round(score_value, 4), status="assessed")
+        else BusinessQualityAggregatorScore(
+            value=round(score_value, 4), status="assessed"
+        )
     )
     contribution = None if score_value is None else round(score_value * weight, 4)
     return AggregatorComponentResult(

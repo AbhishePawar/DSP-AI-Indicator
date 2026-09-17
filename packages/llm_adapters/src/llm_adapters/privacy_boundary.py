@@ -10,7 +10,6 @@ from __future__ import annotations
 from dataclasses import dataclass, field, fields
 from typing import Any
 
-
 # Names that must NEVER appear in the public pack.
 _PRIVATE_FIELD_NAMES: frozenset[str] = frozenset(
     {

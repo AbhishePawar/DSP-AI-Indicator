@@ -81,7 +81,9 @@ def _income(**kwargs) -> IncomeStatement:
     return IncomeStatement(**data)
 
 
-def _stmt(income: IncomeStatement, period: FinancialPeriod | None = None) -> FinancialStatements:
+def _stmt(
+    income: IncomeStatement, period: FinancialPeriod | None = None
+) -> FinancialStatements:
     return FinancialStatements(
         period=period or _period(),
         income_statement=income,
@@ -89,7 +91,9 @@ def _stmt(income: IncomeStatement, period: FinancialPeriod | None = None) -> Fin
     )
 
 
-def _snapshot(*incomes_and_periods: tuple[IncomeStatement, FinancialPeriod]) -> FinancialSnapshot:
+def _snapshot(
+    *incomes_and_periods: tuple[IncomeStatement, FinancialPeriod]
+) -> FinancialSnapshot:
     stmts = tuple(_stmt(inc, per) for inc, per in incomes_and_periods)
     return FinancialSnapshot(
         company=CompanyMetadata(company="Acme", ticker="ACM"),
@@ -163,7 +167,9 @@ class TestValidation:
             )
 
     def test_negative_revenue_warning(self) -> None:
-        result = validate_income_for_analysis(IncomeStatement(revenue=-50.0, net_income=-10.0))
+        result = validate_income_for_analysis(
+            IncomeStatement(revenue=-50.0, net_income=-10.0)
+        )
         assert "negative revenue" in result.warnings
 
     def test_with_statements_ok(self) -> None:
@@ -290,11 +296,25 @@ class TestAnalysisCore:
         eng = IncomeStatementEngine()
         snap = _snapshot(
             (
-                _income(revenue=800.0, ebit=200.0, net_income=150.0, eps=1.5, pretax_income=180.0, tax=30.0),
+                _income(
+                    revenue=800.0,
+                    ebit=200.0,
+                    net_income=150.0,
+                    eps=1.5,
+                    pretax_income=180.0,
+                    tax=30.0,
+                ),
                 _period(end=date(2022, 12, 31), fy=2022),
             ),
             (
-                _income(revenue=900.0, ebit=270.0, net_income=200.0, eps=2.0, pretax_income=240.0, tax=40.0),
+                _income(
+                    revenue=900.0,
+                    ebit=270.0,
+                    net_income=200.0,
+                    eps=2.0,
+                    pretax_income=240.0,
+                    tax=40.0,
+                ),
                 _period(end=date(2023, 12, 31), fy=2023),
             ),
             (
@@ -355,7 +375,14 @@ class TestAnalysisCore:
         eng = IncomeStatementEngine()
         snap = _snapshot(
             (
-                _income(revenue=1000.0, ebit=100.0, net_income=50.0, interest_expense=5.0, tax=20.0, pretax_income=80.0),
+                _income(
+                    revenue=1000.0,
+                    ebit=100.0,
+                    net_income=50.0,
+                    interest_expense=5.0,
+                    tax=20.0,
+                    pretax_income=80.0,
+                ),
                 _period(end=date(2023, 12, 31), fy=2023),
             ),
             (
@@ -497,11 +524,23 @@ class TestAnalysisCore:
         eng = IncomeStatementEngine()
         snap = _snapshot(
             (
-                _income(revenue=1000.0, net_income=200.0, other_income=1.0, pretax_income=250.0, tax=50.0),
+                _income(
+                    revenue=1000.0,
+                    net_income=200.0,
+                    other_income=1.0,
+                    pretax_income=250.0,
+                    tax=50.0,
+                ),
                 _period(end=date(2023, 12, 31), fy=2023),
             ),
             (
-                _income(revenue=1100.0, net_income=220.0, other_income=1.0, pretax_income=275.0, tax=55.0),
+                _income(
+                    revenue=1100.0,
+                    net_income=220.0,
+                    other_income=1.0,
+                    pretax_income=275.0,
+                    tax=55.0,
+                ),
                 _period(end=date(2024, 12, 31), fy=2024),
             ),
         )
@@ -511,7 +550,13 @@ class TestAnalysisCore:
     def test_tax_one_time_heuristic(self) -> None:
         eng = IncomeStatementEngine()
         result = eng.analyze(
-            _income(revenue=1000.0, pretax_income=100.0, tax=70.0, net_income=30.0, other_income=0.0)
+            _income(
+                revenue=1000.0,
+                pretax_income=100.0,
+                tax=70.0,
+                net_income=30.0,
+                other_income=0.0,
+            )
         )
         assert result.consistency.one_time_items_detected is True
 

@@ -90,16 +90,18 @@ class TestSuccessfulRetrieval:
         assert client.last_params["file_type"] == "json"
 
     def test_provider_name(self) -> None:
-        assert FredEconomicAdapter(http_client=_FakeHttpClient({})).provider_name == "fred"
+        assert (
+            FredEconomicAdapter(http_client=_FakeHttpClient({})).provider_name == "fred"
+        )
 
     def test_deterministic(self) -> None:
         payload = _fred_payload()
-        a = FredEconomicAdapter(http_client=_FakeHttpClient(payload)).get_economic_series(
-            "GDP", "US"
-        )
-        b = FredEconomicAdapter(http_client=_FakeHttpClient(payload)).get_economic_series(
-            "GDP", "US"
-        )
+        a = FredEconomicAdapter(
+            http_client=_FakeHttpClient(payload)
+        ).get_economic_series("GDP", "US")
+        b = FredEconomicAdapter(
+            http_client=_FakeHttpClient(payload)
+        ).get_economic_series("GDP", "US")
         assert a == b
 
 

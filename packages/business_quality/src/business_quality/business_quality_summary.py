@@ -5,7 +5,7 @@ Pure packaging of existing BusinessQualityAnalysis fields — no new analytics.
 
 from __future__ import annotations
 
-from typing import Iterable
+from collections.abc import Iterable
 
 from business_quality.business_quality_models import (
     BusinessQualityAnalysis,
@@ -51,9 +51,7 @@ def build_executive_summary(analysis: BusinessQualityAnalysis) -> str:
     rating_text = rating.value if rating is not None else "unknown"
     score = analysis.overall_score
     score_text = (
-        f"{score.value:.1f}"
-        if score is not None and score.value is not None
-        else "n/a"
+        f"{score.value:.1f}" if score is not None and score.value is not None else "n/a"
     )
     conf = analysis.overall_confidence.value
     headline = ""
@@ -238,9 +236,7 @@ def build_confidence_summary(analysis: BusinessQualityAnalysis) -> ConfidenceSum
             + "."
         )
     else:
-        explanation = (
-            f"Overall confidence={overall.value}; module confidence details unavailable."
-        )
+        explanation = f"Overall confidence={overall.value}; module confidence details unavailable."
     return ConfidenceSummary(
         overall=overall,
         module_confidences=tuple(module_pairs),

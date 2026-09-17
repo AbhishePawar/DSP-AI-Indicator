@@ -6,7 +6,8 @@ Never executes valuation, risk, or recommendation engines.
 
 from __future__ import annotations
 
-from typing import Any, Mapping
+from collections.abc import Mapping
+from typing import Any
 
 from dsp_platform.control_center.defaults import MODULE_IDS
 from dsp_platform.control_center.registry import get_configuration_registry
@@ -169,7 +170,9 @@ def _get_module(registry: Any, body: dict[str, Any]) -> dict[str, Any]:
     return {"module_id": mid, "configuration": cfg}
 
 
-def _audit_enterprise(platform: Any, body: dict[str, Any], change: dict[str, Any]) -> None:
+def _audit_enterprise(
+    platform: Any, body: dict[str, Any], change: dict[str, Any]
+) -> None:
     if platform is None:
         return
     try:
@@ -212,9 +215,7 @@ def _update(registry: Any, body: dict[str, Any], platform: Any) -> dict[str, Any
 
 def _rollback(registry: Any, body: dict[str, Any], platform: Any) -> dict[str, Any]:
     version = int(body.get("version") or 0)
-    result = registry.rollback(
-        version, author=_author(body), reason=body.get("reason")
-    )
+    result = registry.rollback(version, author=_author(body), reason=body.get("reason"))
     _audit_enterprise(platform, body, result.get("change") or {})
     return result
 
@@ -271,7 +272,9 @@ def _cms(registry: Any, body: dict[str, Any], platform: Any) -> dict[str, Any]:
     return _module_write(registry, "cms", body, platform)
 
 
-def _feature_flags(registry: Any, body: dict[str, Any], platform: Any) -> dict[str, Any]:
+def _feature_flags(
+    registry: Any, body: dict[str, Any], platform: Any
+) -> dict[str, Any]:
     flags = dict(body.get("flags") or body.get("configuration") or {})
     if not flags and body.get("flag") is not None:
         flags = {str(body["flag"]): bool(body.get("enabled", True))}

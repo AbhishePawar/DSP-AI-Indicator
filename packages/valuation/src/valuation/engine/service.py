@@ -5,20 +5,28 @@ from __future__ import annotations
 from collections.abc import Callable, Sequence
 from datetime import UTC, datetime
 
+import valuation.registry as method_registry
 from contracts.domain.evidence import Evidence
 from contracts.domain.valuation_summary import ValuationSummary
 from contracts.enums import EngineSource
 from fundamental import FinancialSnapshot
-
-import valuation.registry as method_registry
 from valuation.aggregation import aggregate_estimates
+from valuation.asset_based import (
+    AssetBasedEngine,
+    AssetBasedInputs,
+    AssetValuationResult,
+)
 from valuation.assumptions import ValuationAssumptions
+from valuation.consensus import ConsensusEngine, ConsensusInputs, ConsensusResult
 from valuation.dcf_intelligence import (
     DcfAnalysisInputs,
     DiscountedCashFlowEngine,
     DiscountedCashFlowResult,
 )
+from valuation.ddm import DdmEngine, DdmInputs, DdmResult
+from valuation.epv import EpvEngine, EpvInputs, EpvResult
 from valuation.exceptions import ValuationError
+from valuation.graham import GrahamEngine, GrahamInputs, GrahamResult
 from valuation.methods.base import ValuationMethodRunner
 from valuation.models import (
     IntrinsicValueEstimate,
@@ -26,19 +34,14 @@ from valuation.models import (
     ValuationAssessment,
     ValuationEvidence,
 )
-from valuation.reverse_dcf import ReverseDcfEngine, ReverseDcfInputs, ReverseDcfResult
+from valuation.overall import OverallEngine, OverallInputs, OverallValuationResult
+from valuation.relative import RelativeEngine, RelativeInputs, RelativeValuationResult
 from valuation.residual_income import (
     ResidualIncomeEngine,
     ResidualIncomeInputs,
     ResidualIncomeResult,
 )
-from valuation.epv import EpvEngine, EpvInputs, EpvResult
-from valuation.graham import GrahamEngine, GrahamInputs, GrahamResult
-from valuation.ddm import DdmEngine, DdmInputs, DdmResult
-from valuation.asset_based import AssetBasedEngine, AssetBasedInputs, AssetValuationResult
-from valuation.relative import RelativeEngine, RelativeInputs, RelativeValuationResult
-from valuation.consensus import ConsensusEngine, ConsensusInputs, ConsensusResult
-from valuation.overall import OverallEngine, OverallInputs, OverallValuationResult
+from valuation.reverse_dcf import ReverseDcfEngine, ReverseDcfInputs, ReverseDcfResult
 
 MethodResolver = Callable[[str], ValuationMethodRunner]
 Clock = Callable[[], datetime]
@@ -114,9 +117,7 @@ class ValuationEngine:
                 raises unexpectedly.
         """
         selected = (
-            tuple(method_names)
-            if method_names is not None
-            else DEFAULT_METHOD_NAMES
+            tuple(method_names) if method_names is not None else DEFAULT_METHOD_NAMES
         )
         estimates: list[IntrinsicValueEstimate] = []
         for name in selected:
@@ -224,27 +225,21 @@ class ValuationEngine:
         """
         return DdmEngine().analyze(inputs)
 
-    def analyze_asset_based(
-        self, inputs: AssetBasedInputs
-    ) -> AssetValuationResult:
+    def analyze_asset_based(self, inputs: AssetBasedInputs) -> AssetValuationResult:
         """Run Asset-Based Valuation (V1.9 additive; research-only).
 
         Does not alter existing analyze paths. Does not enable Overall Valuation.
         """
         return AssetBasedEngine().analyze(inputs)
 
-    def analyze_relative(
-        self, inputs: RelativeInputs
-    ) -> RelativeValuationResult:
+    def analyze_relative(self, inputs: RelativeInputs) -> RelativeValuationResult:
         """Run Relative Valuation Suite (V1.10 additive; research-only).
 
         Does not alter existing analyze paths. Does not enable Overall Valuation.
         """
         return RelativeEngine().analyze(inputs)
 
-    def analyze_consensus(
-        self, inputs: ConsensusInputs
-    ) -> ConsensusResult:
+    def analyze_consensus(self, inputs: ConsensusInputs) -> ConsensusResult:
         """Run Cross-Method Consensus (V1.11 additive; research-only).
 
         Accepts standardized results only — does not call valuation engines.
@@ -252,9 +247,7 @@ class ValuationEngine:
         """
         return ConsensusEngine().analyze(inputs)
 
-    def analyze_overall(
-        self, inputs: OverallInputs
-    ) -> OverallValuationResult:
+    def analyze_overall(self, inputs: OverallInputs) -> OverallValuationResult:
         """Run Overall Valuation Aggregator (V1.12; research-only).
 
         Consumes Consensus + method outputs only — does not re-execute engines.

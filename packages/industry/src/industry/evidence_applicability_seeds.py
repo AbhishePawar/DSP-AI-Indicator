@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from industry.characteristics_registry import InvestmentCharacteristicsRegistry
 from industry.enums import ApplicabilityLevel, MissingEvidencePolicy
 from industry.evidence_applicability import (
     ApplicabilityGroup,
@@ -19,7 +20,6 @@ from industry.methodology_seeds import (
     register_example_methodologies,
     seed_example_industry_context,
 )
-from industry.characteristics_registry import InvestmentCharacteristicsRegistry
 from industry.taxonomy import IndustryTaxonomy
 
 __all__ = [
@@ -36,9 +36,7 @@ EXAMPLE_APPLICABILITY_IDS: tuple[str, ...] = (
 )
 
 
-def build_example_evidence_applicability() -> tuple[
-    IndustryEvidenceApplicability, ...
-]:
+def build_example_evidence_applicability() -> tuple[IndustryEvidenceApplicability, ...]:
     return (
         IndustryEvidenceApplicability(
             id="dsp.evidence_applicability.commercial_banking",
@@ -101,9 +99,7 @@ def build_example_evidence_applicability() -> tuple[
                 RequiredEvidenceSet(
                     id="dsp.required_set.utilities_minimum",
                     name="Utilities Minimum Evidence",
-                    evidence_ids=(
-                        "dsp.evidence.regulated_cash_flow_visibility",
-                    ),
+                    evidence_ids=("dsp.evidence.regulated_cash_flow_visibility",),
                 ),
             ),
             missing_evidence_policy=MissingEvidencePolicy.RECORD_GAP,

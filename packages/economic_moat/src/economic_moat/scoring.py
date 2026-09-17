@@ -2,9 +2,10 @@
 
 from __future__ import annotations
 
+from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
 from enum import Enum
-from typing import Any, Mapping, Sequence
+from typing import Any
 
 from economic_moat.exceptions import EconomicMoatValidationError
 
@@ -125,9 +126,7 @@ def validate_weights(weights: MoatWeights | Mapping[str, float] | None) -> MoatW
         raise EconomicMoatValidationError("Moat weights must be finite and >= 0")
     total = sum(values)
     if abs(total - 1.0) > 1e-6:
-        raise EconomicMoatValidationError(
-            f"Moat weights must sum to 1.0 (got {total})"
-        )
+        raise EconomicMoatValidationError(f"Moat weights must sum to 1.0 (got {total})")
     return MoatWeights(
         brand=float(payload[MoatDimension.BRAND.value]),
         network_effects=float(payload[MoatDimension.NETWORK_EFFECTS.value]),

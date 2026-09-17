@@ -120,9 +120,7 @@ class EconomicSnapshotBuilder:
         # FEDFUNDS levels are percent; consecutive difference is in
         # percentage points (e.g. 5.50 − 5.25 = 0.25 pp → 0.0025 decimal).
         rate_change_pp = period_change(rates)
-        rate_change = (
-            rate_change_pp / 100.0 if rate_change_pp is not None else None
-        )
+        rate_change = rate_change_pp / 100.0 if rate_change_pp is not None else None
 
         try:
             return EconomicSnapshot(

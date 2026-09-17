@@ -4,6 +4,8 @@ from __future__ import annotations
 
 from business_quality.explainability import (
     RESEARCH_DISCLAIMER as FRAMEWORK_DISCLAIMER,
+)
+from business_quality.explainability import (
     BusinessQualityExplainability,
     build_explainability,
 )

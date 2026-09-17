@@ -103,9 +103,7 @@ class UrllibJsonHttpClient:
                 raise ProviderRequestError(
                     f"HTTP {status} authentication failed for '{url}'"
                 ) from None
-            raise ProviderRequestError(
-                f"HTTP {status} for '{url}'"
-            ) from None
+            raise ProviderRequestError(f"HTTP {status} for '{url}'") from None
         except OSError as exc:
             msg = f"HTTP request to '{url}' failed: {type(exc).__name__}"
             raise ProviderRequestError(msg) from None

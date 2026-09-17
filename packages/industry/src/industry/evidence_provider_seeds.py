@@ -44,9 +44,7 @@ class PlaceholderEvidenceProvider:
     def provider_metadata(self) -> IndustryEvidenceProvider:
         return self._meta
 
-    def supports(
-        self, evidence_id: str, context: EvidenceResolutionContext
-    ) -> bool:
+    def supports(self, evidence_id: str, context: EvidenceResolutionContext) -> bool:
         return evidence_id.strip().lower() in self._supported
 
     def availability(
@@ -138,8 +136,12 @@ def build_example_evidence_providers() -> tuple[PlaceholderEvidenceProvider, ...
                 name="Fundamental Provider",
                 version="1.0.0",
                 capabilities=(
-                    EvidenceProviderCapability(evidence_id="dsp.evidence.roe_persistence"),
-                    EvidenceProviderCapability(evidence_id="dsp.evidence.nim_stability"),
+                    EvidenceProviderCapability(
+                        evidence_id="dsp.evidence.roe_persistence"
+                    ),
+                    EvidenceProviderCapability(
+                        evidence_id="dsp.evidence.nim_stability"
+                    ),
                 ),
                 notes=("Placeholder only — no fundamental engine calls.",),
             )

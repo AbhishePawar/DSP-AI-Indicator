@@ -35,9 +35,7 @@ class InMemoryMetricsPort:
         key = _key(name, tags)
         with self._lock:
             self._counters[key] += value
-            self._samples.append(
-                MetricSample("counter", name, value, dict(tags or {}))
-            )
+            self._samples.append(MetricSample("counter", name, value, dict(tags or {})))
 
     def gauge(
         self, name: str, value: float, *, tags: dict[str, str] | None = None
@@ -45,9 +43,7 @@ class InMemoryMetricsPort:
         key = _key(name, tags)
         with self._lock:
             self._gauges[key] = value
-            self._samples.append(
-                MetricSample("gauge", name, value, dict(tags or {}))
-            )
+            self._samples.append(MetricSample("gauge", name, value, dict(tags or {})))
 
     def timing(
         self, name: str, ms: float, *, tags: dict[str, str] | None = None
@@ -55,9 +51,7 @@ class InMemoryMetricsPort:
         key = _key(name, tags)
         with self._lock:
             self._timings[key].append(ms)
-            self._samples.append(
-                MetricSample("timing", name, ms, dict(tags or {}))
-            )
+            self._samples.append(MetricSample("timing", name, ms, dict(tags or {})))
 
     def snapshot(self) -> dict[str, object]:
         with self._lock:

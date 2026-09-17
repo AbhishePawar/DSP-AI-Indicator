@@ -37,10 +37,7 @@ class IndustryMethodologyRegistry:
     def register(self, methodology: IndustryMethodology) -> IndustryMethodology:
         self._validate_refs(methodology)
         existing_lineage = self._industry_method.get(methodology.industry_id)
-        if (
-            existing_lineage is not None
-            and existing_lineage != methodology.id
-        ):
+        if existing_lineage is not None and existing_lineage != methodology.id:
             msg = (
                 f"industry {methodology.industry_id!r} already bound to "
                 f"methodology {existing_lineage!r}; cannot register "
@@ -69,9 +66,7 @@ class IndustryMethodologyRegistry:
             msg = f"unknown industry methodology: {key!r}"
             raise IndustryError(msg) from exc
 
-    def lookup(
-        self, methodology_id: str, *, version: str
-    ) -> IndustryMethodology:
+    def lookup(self, methodology_id: str, *, version: str) -> IndustryMethodology:
         """Alias for get — explicit version pin."""
         return self.get(methodology_id, version=version)
 
@@ -87,9 +82,7 @@ class IndustryMethodologyRegistry:
             raise IndustryError(msg)
         return max(active, key=lambda m: parse_semver(m.version))
 
-    def lookup_active_for_industry(
-        self, industry_id: str
-    ) -> IndustryMethodology:
+    def lookup_active_for_industry(self, industry_id: str) -> IndustryMethodology:
         iid = industry_id.strip().lower()
         mid = self._industry_method.get(iid)
         if mid is None:
@@ -122,9 +115,7 @@ class IndustryMethodologyRegistry:
             )
         )
 
-    def deprecate(
-        self, methodology_id: str, *, version: str
-    ) -> IndustryMethodology:
+    def deprecate(self, methodology_id: str, *, version: str) -> IndustryMethodology:
         current = self.get(methodology_id, version=version)
         if current.status is MethodologyLifecycle.DEPRECATED:
             return current
@@ -146,9 +137,7 @@ class IndustryMethodologyRegistry:
         self._by_key[deprecated.registry_key] = deprecated
         return deprecated
 
-    def assemble(
-        self, methodology: IndustryMethodology
-    ) -> AssembledMethodology:
+    def assemble(self, methodology: IndustryMethodology) -> AssembledMethodology:
         """Merge methodology with registered characteristics + system defaults."""
         chars = ()
         if methodology.characteristic_ids:

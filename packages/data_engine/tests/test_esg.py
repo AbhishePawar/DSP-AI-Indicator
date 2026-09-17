@@ -5,9 +5,9 @@ from __future__ import annotations
 from datetime import UTC, date, datetime
 
 import pytest
+
 from contracts.domain.instrument import Instrument
 from contracts.enums import AssetClass
-
 from data_engine import (
     ConnectorField,
     ConnectorProvenance,
@@ -48,7 +48,9 @@ class _FakeJsonClient:
 
 class TestNullAndInMemory:
     def test_null_always_unavailable(self) -> None:
-        assert NullEsgAdapter().get_esg_score(EsgQuery(instrument=_instrument())) is None
+        assert (
+            NullEsgAdapter().get_esg_score(EsgQuery(instrument=_instrument())) is None
+        )
 
     def test_in_memory_requires_key(self) -> None:
         with pytest.raises(ProviderRequestError):
@@ -103,7 +105,9 @@ class TestValidation:
 class TestYahooFinanceEsgAdapter:
     def test_disabled_raises(self) -> None:
         with pytest.raises(ProviderRequestError):
-            YahooFinanceEsgAdapter(enabled=False).get_esg_score(EsgQuery(instrument=_instrument()))
+            YahooFinanceEsgAdapter(enabled=False).get_esg_score(
+                EsgQuery(instrument=_instrument())
+            )
 
     def test_maps_esg_scores_module(self) -> None:
         payload = {
@@ -121,7 +125,9 @@ class TestYahooFinanceEsgAdapter:
                 ]
             }
         }
-        adapter = YahooFinanceEsgAdapter(enabled=True, http_client=_FakeJsonClient(payload))
+        adapter = YahooFinanceEsgAdapter(
+            enabled=True, http_client=_FakeJsonClient(payload)
+        )
         bundle = adapter.get_esg_score(EsgQuery(instrument=_instrument()))
         assert bundle is not None
         assert bundle.total_score.to_float() == pytest.approx(19.7)
@@ -139,7 +145,9 @@ class TestFinancialModelingPrepEsgAdapter:
                 "ESGScore": 61.6,
             }
         ]
-        adapter = FinancialModelingPrepEsgAdapter(api_key="k", http_client=_FakeJsonClient(payload))
+        adapter = FinancialModelingPrepEsgAdapter(
+            api_key="k", http_client=_FakeJsonClient(payload)
+        )
         bundle = adapter.get_esg_score(EsgQuery(instrument=_instrument()))
         assert bundle is not None
         assert bundle.as_of == date(2023, 9, 30)
@@ -147,10 +155,14 @@ class TestFinancialModelingPrepEsgAdapter:
 
     def test_requires_api_key(self) -> None:
         with pytest.raises(ProviderRequestError):
-            FinancialModelingPrepEsgAdapter(api_key="").get_esg_score(EsgQuery(instrument=_instrument()))
+            FinancialModelingPrepEsgAdapter(api_key="").get_esg_score(
+                EsgQuery(instrument=_instrument())
+            )
 
     def test_empty_payload_returns_none(self) -> None:
-        adapter = FinancialModelingPrepEsgAdapter(api_key="k", http_client=_FakeJsonClient([]))
+        adapter = FinancialModelingPrepEsgAdapter(
+            api_key="k", http_client=_FakeJsonClient([])
+        )
         assert adapter.get_esg_score(EsgQuery(instrument=_instrument())) is None
 
 
@@ -158,10 +170,16 @@ class TestRegistryAndEnv:
     def test_registry_ordering(self) -> None:
         registry = EsgProviderRegistry()
         registry.register(NullEsgAdapter(), provider_id="null_esg", priority=1000)
-        registry.register(FinancialModelingPrepEsgAdapter(api_key="k"), provider_id="fmp_esg", priority=10)
+        registry.register(
+            FinancialModelingPrepEsgAdapter(api_key="k"),
+            provider_id="fmp_esg",
+            priority=10,
+        )
         assert registry.ordered_ids() == ("fmp_esg", "null_esg")
 
-    def test_default_registry_falls_back_to_null(self, monkeypatch: pytest.MonkeyPatch) -> None:
+    def test_default_registry_falls_back_to_null(
+        self, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
         for key in ("DSP_ESG_FMP_API_KEY", "DSP_ESG_YAHOO_ENABLED", "DSP_ESG_MEMORY"):
             monkeypatch.delenv(key, raising=False)
         registry = build_default_esg_registry_from_env()

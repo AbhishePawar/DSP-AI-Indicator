@@ -6,7 +6,8 @@ billing ports). Never duplicates authentication, organizations, or payments.
 
 from __future__ import annotations
 
-from typing import Any, Mapping
+from collections.abc import Mapping
+from typing import Any
 
 from dsp_platform.saas_platform.plans import (
     PLAN_IDS,
@@ -172,9 +173,7 @@ def run_saas_platform(
                 str(body.get("org_id") or ""), actor_user_id=_actor(body)
             )
         },
-        "create_subscription": lambda: _create_subscription(
-            enterprise, overlay, body
-        ),
+        "create_subscription": lambda: _create_subscription(enterprise, overlay, body),
         "get_subscription": lambda: _get_subscription(enterprise, overlay, body),
         "billing_profile": lambda: _billing_profile(enterprise, overlay, body),
         "upsert_billing_profile": lambda: _upsert_billing_profile(
@@ -193,9 +192,7 @@ def run_saas_platform(
             or {"available": False, "message": UNAVAILABLE_MESSAGE}
         },
         "assign_license": lambda: _assign_license(enterprise, overlay, body),
-        "issue_license_key": lambda: {
-            "license_key": overlay.issue_license_key(body)
-        },
+        "issue_license_key": lambda: {"license_key": overlay.issue_license_key(body)},
         "activate_license": lambda: _activate_license(enterprise, overlay, body),
         "get_license": lambda: enterprise.get_license(
             str(body.get("org_id") or ""), actor_user_id=_actor(body)
@@ -259,7 +256,12 @@ def run_saas_platform(
     except Exception as exc:  # noqa: BLE001
         # Map enterprise domain errors to honest envelopes
         name = type(exc).__name__
-        if name in {"ValidationError", "NotFoundError", "ForbiddenError", "EnterpriseError"}:
+        if name in {
+            "ValidationError",
+            "NotFoundError",
+            "ForbiddenError",
+            "EnterpriseError",
+        }:
             return {
                 "ok": False,
                 "action": act,
@@ -620,9 +622,7 @@ def _checkout(enterprise: Any, body: dict[str, Any]) -> dict[str, Any]:
             "detail": "Billing provider unavailable.",
         }
     if not billing.is_available():
-        return billing.create_checkout_session(
-            org_id, plan=body.get("plan_id")
-        )
+        return billing.create_checkout_session(org_id, plan=body.get("plan_id"))
     return billing.create_checkout_session(org_id, plan=body.get("plan_id"))
 
 
@@ -687,9 +687,7 @@ def _activate_license(
         )
     except Exception:  # noqa: BLE001
         pass
-    overlay.upsert_subscription(
-        org_id, {"plan_id": plan_id, "status": "active"}
-    )
+    overlay.upsert_subscription(org_id, {"plan_id": plan_id, "status": "active"})
     return {
         "license_key": activated,
         "license": lic,
@@ -752,7 +750,7 @@ def _admin_dashboard(
         for s in overlay.list_subscriptions()
         if str(s.get("org_id") or "") in member_org_ids
     ]
-    plan_distribution: dict[str, int] = {p: 0 for p in PLAN_IDS}
+    plan_distribution: dict[str, int] = dict.fromkeys(PLAN_IDS, 0)
     for sub in subs:
         pid = str(sub.get("plan_id") or "")
         if pid in plan_distribution:
@@ -826,7 +824,9 @@ def _admin_dashboard(
         "admin_overview": overview,
         "billing_provider": {
             "available": bool(
-                getattr(getattr(enterprise, "billing", None), "is_available", lambda: False)()
+                getattr(
+                    getattr(enterprise, "billing", None), "is_available", lambda: False
+                )()
             ),
             "provider": getattr(
                 getattr(enterprise, "billing", None), "provider_name", lambda: "null"

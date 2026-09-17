@@ -7,6 +7,7 @@ re-exports the public model surface for backward compatibility.
 from __future__ import annotations
 
 from business_quality.business_quality_models import (
+    DEFAULT_BUSINESS_QUALITY_WEIGHTS,
     AggregatedFlag,
     AggregatedFlags,
     BusinessQualityAnalysis,
@@ -14,7 +15,6 @@ from business_quality.business_quality_models import (
     BusinessQualityScore,
     BusinessQualitySummary,
     BusinessQualityWeights,
-    DEFAULT_BUSINESS_QUALITY_WEIGHTS,
     FlagSeverity,
     OverallAssessment,
     OverallRating,

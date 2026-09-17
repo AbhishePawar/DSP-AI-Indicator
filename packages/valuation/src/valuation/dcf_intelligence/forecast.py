@@ -43,9 +43,7 @@ def build_fcff_forecast(assumptions: DcfForecastAssumptions) -> ForecastResult:
     """
     hist = tuple((p.period, p.fcf) for p in assumptions.historical_fcf)
     hist_vals = [p.fcf for p in assumptions.historical_fcf]
-    hist_mean = (
-        sum(hist_vals) / len(hist_vals) if hist_vals else None
-    )
+    hist_mean = sum(hist_vals) / len(hist_vals) if hist_vals else None
     historical_explained = ExplainedValue(
         name="historical_fcf",
         value=hist_mean,

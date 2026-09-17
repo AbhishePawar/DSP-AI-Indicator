@@ -15,7 +15,11 @@ from management_quality.models import (
     ManagementEvidence,
     ManagementScore,
 )
-from management_quality.scoring import ManagementDimension, ManagementWeights, clip_score
+from management_quality.scoring import (
+    ManagementDimension,
+    ManagementWeights,
+    clip_score,
+)
 from management_quality.signals import assessment_score_01, ratio_value, safe_getattr
 
 __all__ = ["evaluate_all_components", "mean_present"]
@@ -225,7 +229,9 @@ def evaluate_shareholder_orientation(
     positives: list[str] = []
     negatives: list[str] = []
     if fcf is not None and fcf > 0:
-        positives.append("Positive free cash flow supports owner distributions capacity")
+        positives.append(
+            "Positive free cash flow supports owner distributions capacity"
+        )
     if buyback is not None and buyback < 0.35:
         negatives.append("Weak buyback-quality proxy")
     risks = (

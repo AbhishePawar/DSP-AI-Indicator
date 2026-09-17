@@ -5,10 +5,9 @@ from __future__ import annotations
 from typing import Any
 
 from business_quality import BusinessQualityAnalysis
-from financial import FinancialAnalysis
-
 from economic_moat.metadata import EconomicMetadata
 from economic_moat.models import EconomicValidationSummary
+from financial import FinancialAnalysis
 
 __all__ = ["validate_framework_inputs", "validate_metadata"]
 

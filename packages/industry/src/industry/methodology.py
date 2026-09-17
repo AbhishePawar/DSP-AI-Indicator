@@ -8,7 +8,6 @@ from __future__ import annotations
 from dataclasses import dataclass
 
 from core.exceptions import ValidationError
-
 from industry.characteristics import (
     CharacteristicDefaults,
     InvestmentCharacteristics,
@@ -17,8 +16,8 @@ from industry.enums import (
     ComparisonDimension,
     ComparisonDimensionHint,
     MergeSource,
-    MetricImportance,
     MethodologyLifecycle,
+    MetricImportance,
     PeerUse,
     ValuationPhilosophyHint,
 )
@@ -191,12 +190,8 @@ class IndustryMethodology:
                 seen.add(cid)
                 unique_chars.append(cid)
         notes = tuple(n.strip() for n in self.interpretation_notes if n.strip())
-        changelog = (
-            None if self.changelog is None else self.changelog.strip() or None
-        )
-        dimensions = (
-            None if self.dimensions is None else tuple(self.dimensions)
-        )
+        changelog = None if self.changelog is None else self.changelog.strip() or None
+        dimensions = None if self.dimensions is None else tuple(self.dimensions)
         object.__setattr__(self, "id", methodology_id)
         object.__setattr__(self, "industry_id", industry_id)
         object.__setattr__(self, "version", version)
@@ -270,8 +265,7 @@ def assemble_methodology(
     if expected - provided:
         missing = sorted(expected - provided)
         msg = (
-            f"missing characteristics for methodology {methodology.id!r}: "
-            f"{missing}"
+            f"missing characteristics for methodology {methodology.id!r}: " f"{missing}"
         )
         raise ValidationError(msg)
     # Apply characteristics in methodology declaration order
@@ -280,12 +274,8 @@ def assemble_methodology(
         for cid in methodology.characteristic_ids
     )
 
-    valuation, valuation_source, val_trace = _resolve_valuation(
-        methodology, ordered
-    )
-    dimensions, dimensions_source, dim_trace = _resolve_dimensions(
-        methodology, ordered
-    )
+    valuation, valuation_source, val_trace = _resolve_valuation(methodology, ordered)
+    dimensions, dimensions_source, dim_trace = _resolve_dimensions(methodology, ordered)
 
     notes = list(methodology.interpretation_notes)
     for char in ordered:

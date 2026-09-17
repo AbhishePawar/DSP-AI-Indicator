@@ -39,7 +39,9 @@ def service() -> DecisionIntelligenceService:
     return DecisionIntelligenceService()
 
 
-def evidence(claim: str, *, engine: EngineSource = EngineSource.AI_COMMITTEE) -> Evidence:
+def evidence(
+    claim: str, *, engine: EngineSource = EngineSource.AI_COMMITTEE
+) -> Evidence:
     return Evidence(
         source_engine=engine,
         claim=claim,

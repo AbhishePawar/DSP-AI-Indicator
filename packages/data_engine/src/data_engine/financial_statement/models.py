@@ -231,8 +231,7 @@ class AuthenticatedFinancialStatements:
         return {
             "authenticated": True,
             "identity": self.identity.to_dict(),
-            "reporting_currency": self.reporting_currency
-            or self.identity.currency,
+            "reporting_currency": self.reporting_currency or self.identity.currency,
             "periods": [p.to_public_dict() for p in self.periods],
             "provenance": self.provenance.to_dict(),
         }

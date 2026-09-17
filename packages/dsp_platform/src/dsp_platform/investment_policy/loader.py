@@ -2,7 +2,8 @@
 
 from __future__ import annotations
 
-from typing import Any, Mapping
+from collections.abc import Mapping
+from typing import Any
 
 from dsp_platform.investment_policy.models import (
     RULE_KINDS,
@@ -185,6 +186,5 @@ def load_investment_policy(
         version=str(data.get("version") or "1.0.0"),
         rules=rules_sorted,
         exceptions=excs_sorted,
-        metadata=freeze_mapping(dict(data.get("metadata") or {}))
-        or freeze_mapping({}),
+        metadata=freeze_mapping(dict(data.get("metadata") or {})) or freeze_mapping({}),
     )

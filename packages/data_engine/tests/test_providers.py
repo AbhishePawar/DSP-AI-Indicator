@@ -79,9 +79,7 @@ class TestProviderRegistry:
         with pytest.raises(KeyError):
             registry.get("unknown")
 
-    def test_lookup_is_case_insensitive(
-        self, sample_price_series: PriceSeries
-    ) -> None:
+    def test_lookup_is_case_insensitive(self, sample_price_series: PriceSeries) -> None:
         registry = ProviderRegistry()
         adapter = FakeMarketDataAdapter(sample_price_series)
         registry.register(

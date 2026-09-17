@@ -70,9 +70,7 @@ class TestFundamentalEngineAnalyze:
 
     def test_strong_fundamentals_produce_bullish_signals(self) -> None:
         engine = FundamentalEngine()
-        result = engine.analyze(
-            self.strong_snapshot, analyzer_names=("profitability",)
-        )
+        result = engine.analyze(self.strong_snapshot, analyzer_names=("profitability",))
         directions = {signal.direction for signal in result.signals}
         assert directions == {SignalDirection.BULLISH}
 

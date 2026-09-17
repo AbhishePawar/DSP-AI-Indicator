@@ -3,10 +3,10 @@
 from __future__ import annotations
 
 import pytest
+from auth_test_helpers import bearer_headers, register_user
 from fastapi.testclient import TestClient
 
 from api_platform import create_app
-from auth_test_helpers import bearer_headers, register_user
 from dsp_platform import DSPPlatform, PlatformBuilder, PlatformConfiguration
 from dsp_platform.research_archive import (
     InMemoryArchiveStore,
@@ -37,6 +37,7 @@ def platform() -> DSPPlatform:
 @pytest.fixture
 def client(platform: DSPPlatform) -> TestClient:
     return TestClient(create_app(platform=platform))
+
 
 @pytest.fixture
 def auth_headers(client: TestClient) -> dict[str, str]:
@@ -110,7 +111,9 @@ def test_diff_api(client: TestClient, auth_headers: dict[str, str]) -> None:
     assert body["diff"]["change_summary"]["identical_content"] is False
 
 
-def test_diff_missing_snapshot(client: TestClient, auth_headers: dict[str, str]) -> None:
+def test_diff_missing_snapshot(
+    client: TestClient, auth_headers: dict[str, str]
+) -> None:
     response = client.post(
         "/api/v1/research/diff",
         headers=auth_headers,

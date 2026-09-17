@@ -255,7 +255,9 @@ class GrowthQualityAnalysis:
         object.__setattr__(self, "input_references", tuple(self.input_references))
         object.__setattr__(self, "summary", self.summary.strip())
         object.__setattr__(self, "recommendation", self.recommendation.strip())
-        object.__setattr__(self, "research_disclaimer", self.research_disclaimer.strip())
+        object.__setattr__(
+            self, "research_disclaimer", self.research_disclaimer.strip()
+        )
 
     @property
     def overall_growth_score(self) -> float | None:

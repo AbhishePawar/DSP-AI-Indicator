@@ -6,7 +6,7 @@ Does not touch frontend, Phase 1 boot decoupling, or investment connectors.
 from __future__ import annotations
 
 import ast
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from pathlib import Path
 
 import pytest
@@ -15,11 +15,11 @@ from auth import (
     AuthenticationError,
     AuthService,
     EnterpriseAuthPlatform,
+    RoleRegistry,
     ValidationError,
     reset_auth_service_for_tests,
     reset_enterprise_auth_platform_for_tests,
     reset_role_registry_for_tests,
-    RoleRegistry,
 )
 from auth.email_delivery import ConsoleEmailAdapter
 from auth.models import AuthUser, utc_now
@@ -65,7 +65,9 @@ def platform(monkeypatch: pytest.MonkeyPatch) -> EnterpriseAuthPlatform:
     reset_repository_registry_for_tests(None)
 
 
-def _register_verified(platform: EnterpriseAuthPlatform, *, email: str, username: str, password: str):
+def _register_verified(
+    platform: EnterpriseAuthPlatform, *, email: str, username: str, password: str
+):
     reg = platform.register_email(
         name="Phase2B User",
         email=email,
@@ -77,14 +79,18 @@ def _register_verified(platform: EnterpriseAuthPlatform, *, email: str, username
     return platform._get_by_email(email)
 
 
-def _attach_verified_mobile(platform: EnterpriseAuthPlatform, user: AuthUser, mobile: str) -> AuthUser:
+def _attach_verified_mobile(
+    platform: EnterpriseAuthPlatform, user: AuthUser, mobile: str
+) -> AuthUser:
     return platform._persist_meta(
         user,
         {"mobile": normalize_india_mobile(mobile), "phone_verified": True},
     )
 
 
-def _attach_unverified_mobile(platform: EnterpriseAuthPlatform, user: AuthUser, mobile: str) -> AuthUser:
+def _attach_unverified_mobile(
+    platform: EnterpriseAuthPlatform, user: AuthUser, mobile: str
+) -> AuthUser:
     return platform._persist_meta(
         user,
         {"mobile": normalize_india_mobile(mobile), "phone_verified": False},
@@ -110,18 +116,25 @@ def test_password_email_still_works(platform: EnterpriseAuthPlatform) -> None:
     _register_verified(
         platform, email="user2@example.com", username="user2", password="StrongPass1!"
     )
-    session = platform.login_password(identifier="user2@example.com", password="StrongPass1!")
+    session = platform.login_password(
+        identifier="user2@example.com", password="StrongPass1!"
+    )
     assert session["tokens"]["access_token"]
     assert session["provider"] == "EMAIL"
 
 
 def test_password_mobile_works(platform: EnterpriseAuthPlatform) -> None:
     user = _register_verified(
-        platform, email="mobilepw@example.com", username="mobilepw", password="StrongPass1!"
+        platform,
+        email="mobilepw@example.com",
+        username="mobilepw",
+        password="StrongPass1!",
     )
     assert user
     _attach_verified_mobile(platform, user, "+919876543210")
-    session = platform.login_password(identifier="+919876543210", password="StrongPass1!")
+    session = platform.login_password(
+        identifier="+919876543210", password="StrongPass1!"
+    )
     assert session["tokens"]["access_token"]
     assert session["provider"] == "PHONE"
     # 10-digit form also accepted
@@ -139,14 +152,19 @@ def test_password_invalid_password(platform: EnterpriseAuthPlatform) -> None:
 
 def test_password_unknown_identifier(platform: EnterpriseAuthPlatform) -> None:
     with pytest.raises(AuthenticationError, match="invalid credentials"):
-        platform.login_password(identifier="nobody@example.com", password="StrongPass1!")
+        platform.login_password(
+            identifier="nobody@example.com", password="StrongPass1!"
+        )
     with pytest.raises(AuthenticationError, match="invalid credentials"):
         platform.login_password(identifier="+919900011122", password="StrongPass1!")
 
 
 def test_password_locked_account(platform: EnterpriseAuthPlatform) -> None:
     user = _register_verified(
-        platform, email="locked@example.com", username="lockedu", password="StrongPass1!"
+        platform,
+        email="locked@example.com",
+        username="lockedu",
+        password="StrongPass1!",
     )
     assert user
     platform.auth.users.save(
@@ -177,7 +195,9 @@ def test_password_unverified_mobile_rejected(platform: EnterpriseAuthPlatform) -
     with pytest.raises(AuthenticationError, match="invalid credentials"):
         platform.login_password(identifier="+919812345678", password="StrongPass1!")
     # Username path still works for the same account.
-    assert platform.login_password(identifier="unvmob", password="StrongPass1!")["tokens"]
+    assert platform.login_password(identifier="unvmob", password="StrongPass1!")[
+        "tokens"
+    ]
 
 
 def test_password_ambiguous_mobile_fails_safe(platform: EnterpriseAuthPlatform) -> None:
@@ -216,7 +236,10 @@ def test_password_mobile_remember_me(platform: EnterpriseAuthPlatform) -> None:
 
 def test_password_disabled_user_rejected(platform: EnterpriseAuthPlatform) -> None:
     user = _register_verified(
-        platform, email="disabled@example.com", username="disabledu", password="StrongPass1!"
+        platform,
+        email="disabled@example.com",
+        username="disabledu",
+        password="StrongPass1!",
     )
     assert user
     user = _attach_verified_mobile(platform, user, "+919822233344")
@@ -246,7 +269,10 @@ def test_password_disabled_user_rejected(platform: EnterpriseAuthPlatform) -> No
 
 def test_email_otp_request_rejected(platform: EnterpriseAuthPlatform) -> None:
     _register_verified(
-        platform, email="otpmail@example.com", username="otpmail", password="StrongPass1!"
+        platform,
+        email="otpmail@example.com",
+        username="otpmail",
+        password="StrongPass1!",
     )
     with pytest.raises(ValidationError, match="Email OTP is no longer supported"):
         platform.request_login_otp("otpmail@example.com")
@@ -267,7 +293,9 @@ def _provision_verified_phone(
     )
 
 
-def test_mobile_otp_still_works_via_unified_api(platform: EnterpriseAuthPlatform) -> None:
+def test_mobile_otp_still_works_via_unified_api(
+    platform: EnterpriseAuthPlatform,
+) -> None:
     _provision_verified_phone(platform, "+919876543210")
     req = platform.request_login_otp("+919876543210")
     assert req["channel"] == "mobile"
@@ -287,7 +315,7 @@ def test_mobile_otp_expires(platform: EnterpriseAuthPlatform) -> None:
     req = platform.request_login_otp("+919812345678")
     code = (req.get("sms") or {}).get("debug_code")
     assert code
-    past = datetime.now(tz=timezone.utc) + timedelta(minutes=10)
+    past = datetime.now(tz=UTC) + timedelta(minutes=10)
     with pytest.raises(AuthenticationError, match="expired"):
         platform.otp.verify_otp_result(
             challenge_id=req["challenge_id"], code=code, now=past
@@ -323,7 +351,9 @@ def test_mobile_otp_resend_cooldown(platform: EnterpriseAuthPlatform) -> None:
         platform.request_login_otp("+919845678901")
 
 
-def test_unknown_mobile_otp_still_opaque_and_provisions(platform: EnterpriseAuthPlatform) -> None:
+def test_unknown_mobile_otp_still_opaque_and_provisions(
+    platform: EnterpriseAuthPlatform,
+) -> None:
     req = platform.request_login_otp("+919911122233")
     assert req["challenge_id"]
     assert req["channel"] == "mobile"

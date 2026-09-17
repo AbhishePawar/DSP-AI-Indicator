@@ -26,7 +26,9 @@ from dsp_platform import (
     load_authenticated_valuation_bundle,
 )
 from dsp_platform.composition.authenticated_valuation import signals_from_assessment
-from dsp_platform.financial_statements import reset_financial_statement_service_for_tests
+from dsp_platform.financial_statements import (
+    reset_financial_statement_service_for_tests,
+)
 from dsp_platform.market_quotes import reset_market_quote_service_for_tests
 from financial import (
     BalanceSheet,
@@ -42,7 +44,6 @@ from financial import (
 from financial.metadata import StatementMetadata
 from investment_recommendation import ValuationSignals
 from valuation import ValuationEngine
-
 
 TICKER = "TEST"
 FIXED_RETRIEVED = datetime(2024, 6, 15, 12, 0, 0, tzinfo=UTC)

@@ -26,20 +26,23 @@ registry is never empty.
 from __future__ import annotations
 
 import os
+from collections.abc import Mapping
 from dataclasses import dataclass, field
 from datetime import UTC, datetime
 from threading import Lock
-from typing import Any, Mapping
 
-from contracts.domain.instrument import Instrument
 from data_engine.connector_framework.http import JsonHttpClient, UrllibJsonHttpClient
-from data_engine.connector_framework.models import ProviderHealth, utc_now
+from data_engine.connector_framework.models import (
+    ConnectorCompanyIdentity,
+    ConnectorProvenance,
+    ProviderHealth,
+    utc_now,
+)
 from data_engine.connector_framework.registry import PriorityProviderRegistry
 from data_engine.exceptions import ProviderRequestError
 from data_engine.news.models import AuthenticatedNewsFeed, NewsArticle
 from data_engine.news.service import NewsProviderPort, NewsQuery
 from data_engine.news.validation import validate_authenticated_news_feed
-from data_engine.connector_framework.models import ConnectorCompanyIdentity, ConnectorProvenance
 
 __all__ = [
     "AlphaVantageNewsAdapter",
@@ -111,7 +114,9 @@ class InMemoryNewsAdapter(NewsProviderPort):
 
     def get_news(self, query: NewsQuery) -> AuthenticatedNewsFeed | None:
         if not self.api_key:
-            raise ProviderRequestError("memory news adapter requires api_key (authentication)")
+            raise ProviderRequestError(
+                "memory news adapter requires api_key (authentication)"
+            )
         with self._lock:
             feed = self._feeds.get(query.instrument.symbol.strip().upper())
         if feed is None:
@@ -132,7 +137,11 @@ class InMemoryNewsAdapter(NewsProviderPort):
             provider_id=self.provider_id,
             healthy=True,
             authenticated=bool(self.api_key),
-            detail="seeded in-memory authenticated news" if self.api_key else "missing api_key",
+            detail=(
+                "seeded in-memory authenticated news"
+                if self.api_key
+                else "missing api_key"
+            ),
         )
 
 
@@ -157,7 +166,9 @@ class YahooFinanceNewsAdapter(NewsProviderPort):
         return self._provider_id
 
     def _client(self) -> JsonHttpClient:
-        return self.http_client or UrllibJsonHttpClient(timeout_seconds=self.timeout_seconds)
+        return self.http_client or UrllibJsonHttpClient(
+            timeout_seconds=self.timeout_seconds
+        )
 
     def get_news(self, query: NewsQuery) -> AuthenticatedNewsFeed | None:
         if not self.enabled:
@@ -193,7 +204,9 @@ class YahooFinanceNewsAdapter(NewsProviderPort):
                 published_at = utc_now()
             related = item.get("relatedTickers")
             related_symbols = (
-                tuple(str(t).upper() for t in related) if isinstance(related, list) else ()
+                tuple(str(t).upper() for t in related)
+                if isinstance(related, list)
+                else ()
             )
             thumbnail = item.get("thumbnail")
             image_url = None
@@ -225,14 +238,18 @@ class YahooFinanceNewsAdapter(NewsProviderPort):
             auth_mode="none",
             metadata={"base_url": self.base_url},
         )
-        return build_news_feed_from_mapping(symbol=symbol, articles=articles, provenance=provenance)
+        return build_news_feed_from_mapping(
+            symbol=symbol, articles=articles, provenance=provenance
+        )
 
     def health(self) -> ProviderHealth:
         return ProviderHealth(
             provider_id=self.provider_id,
             healthy=self.enabled,
             authenticated=False,
-            detail="enabled" if self.enabled else "disabled (set DSP_NEWS_YAHOO_ENABLED=1)",
+            detail=(
+                "enabled" if self.enabled else "disabled (set DSP_NEWS_YAHOO_ENABLED=1)"
+            ),
         )
 
 
@@ -260,7 +277,9 @@ class AlphaVantageNewsAdapter(NewsProviderPort):
         return self._provider_id
 
     def _client(self) -> JsonHttpClient:
-        return self.http_client or UrllibJsonHttpClient(timeout_seconds=self.timeout_seconds)
+        return self.http_client or UrllibJsonHttpClient(
+            timeout_seconds=self.timeout_seconds
+        )
 
     def get_news(self, query: NewsQuery) -> AuthenticatedNewsFeed | None:
         if not self.api_key.strip():
@@ -292,13 +311,17 @@ class AlphaVantageNewsAdapter(NewsProviderPort):
             time_published = str(item.get("time_published") or "").strip()
             try:
                 published_at = (
-                    datetime.strptime(time_published, "%Y%m%dT%H%M%S").replace(tzinfo=UTC)
+                    datetime.strptime(time_published, "%Y%m%dT%H%M%S").replace(
+                        tzinfo=UTC
+                    )
                     if time_published
                     else utc_now()
                 )
             except ValueError:
                 published_at = utc_now()
-            sentiment_raw = str(item.get("overall_sentiment_label") or "").strip().lower()
+            sentiment_raw = (
+                str(item.get("overall_sentiment_label") or "").strip().lower()
+            )
             sentiment = _ALPHA_VANTAGE_SENTIMENT_MAP.get(sentiment_raw)
             ticker_sentiment = item.get("ticker_sentiment")
             related_symbols: tuple[str, ...] = ()
@@ -318,7 +341,11 @@ class AlphaVantageNewsAdapter(NewsProviderPort):
                     summary=str(item.get("summary")) if item.get("summary") else None,
                     sentiment=sentiment,
                     related_symbols=related_symbols or (symbol,),
-                    image_url=str(item.get("banner_image")) if item.get("banner_image") else None,
+                    image_url=(
+                        str(item.get("banner_image"))
+                        if item.get("banner_image")
+                        else None
+                    ),
                 )
             )
         if not articles:
@@ -331,12 +358,16 @@ class AlphaVantageNewsAdapter(NewsProviderPort):
             auth_mode="api_key",
             metadata={"base_url": self.base_url},
         )
-        return build_news_feed_from_mapping(symbol=symbol, articles=articles, provenance=provenance)
+        return build_news_feed_from_mapping(
+            symbol=symbol, articles=articles, provenance=provenance
+        )
 
     def health(self) -> ProviderHealth:
         ok = bool(self.api_key.strip())
         return ProviderHealth(
-            provider_id=self.provider_id, healthy=ok, authenticated=ok,
+            provider_id=self.provider_id,
+            healthy=ok,
+            authenticated=ok,
             detail="configured" if ok else "missing api_key",
         )
 
@@ -356,11 +387,15 @@ class FinancialModelingPrepNewsAdapter(NewsProviderPort):
         return self._provider_id
 
     def _client(self) -> JsonHttpClient:
-        return self.http_client or UrllibJsonHttpClient(timeout_seconds=self.timeout_seconds)
+        return self.http_client or UrllibJsonHttpClient(
+            timeout_seconds=self.timeout_seconds
+        )
 
     def get_news(self, query: NewsQuery) -> AuthenticatedNewsFeed | None:
         if not self.api_key.strip():
-            raise ProviderRequestError("financial modeling prep news adapter requires api_key")
+            raise ProviderRequestError(
+                "financial modeling prep news adapter requires api_key"
+            )
         symbol = query.instrument.symbol.strip().upper()
         payload = self._client().get_json(
             self.base_url,
@@ -384,7 +419,9 @@ class FinancialModelingPrepNewsAdapter(NewsProviderPort):
             published_raw = str(item.get("publishedDate") or "").strip()
             try:
                 published_at = (
-                    datetime.fromisoformat(published_raw.replace(" ", "T")).replace(tzinfo=UTC)
+                    datetime.fromisoformat(published_raw.replace(" ", "T")).replace(
+                        tzinfo=UTC
+                    )
                     if published_raw
                     else utc_now()
                 )
@@ -398,7 +435,11 @@ class FinancialModelingPrepNewsAdapter(NewsProviderPort):
                     source=str(item.get("site") or "Financial Modeling Prep"),
                     published_at=published_at,
                     summary=str(item.get("text")) if item.get("text") else None,
-                    related_symbols=(str(item.get("symbol")).upper(),) if item.get("symbol") else (symbol,),
+                    related_symbols=(
+                        (str(item.get("symbol")).upper(),)
+                        if item.get("symbol")
+                        else (symbol,)
+                    ),
                     image_url=str(item.get("image")) if item.get("image") else None,
                 )
             )
@@ -412,12 +453,16 @@ class FinancialModelingPrepNewsAdapter(NewsProviderPort):
             auth_mode="api_key",
             metadata={"base_url": self.base_url},
         )
-        return build_news_feed_from_mapping(symbol=symbol, articles=articles, provenance=provenance)
+        return build_news_feed_from_mapping(
+            symbol=symbol, articles=articles, provenance=provenance
+        )
 
     def health(self) -> ProviderHealth:
         ok = bool(self.api_key.strip())
         return ProviderHealth(
-            provider_id=self.provider_id, healthy=ok, authenticated=ok,
+            provider_id=self.provider_id,
+            healthy=ok,
+            authenticated=ok,
             detail="configured" if ok else "missing api_key",
         )
 
@@ -437,7 +482,9 @@ class PolygonNewsAdapter(NewsProviderPort):
         return self._provider_id
 
     def _client(self) -> JsonHttpClient:
-        return self.http_client or UrllibJsonHttpClient(timeout_seconds=self.timeout_seconds)
+        return self.http_client or UrllibJsonHttpClient(
+            timeout_seconds=self.timeout_seconds
+        )
 
     def get_news(self, query: NewsQuery) -> AuthenticatedNewsFeed | None:
         if not self.api_key.strip():
@@ -481,7 +528,9 @@ class PolygonNewsAdapter(NewsProviderPort):
                 source = str(publisher["name"])
             tickers = item.get("tickers")
             related_symbols = (
-                tuple(str(t).upper() for t in tickers) if isinstance(tickers, list) else (symbol,)
+                tuple(str(t).upper() for t in tickers)
+                if isinstance(tickers, list)
+                else (symbol,)
             )
             articles.append(
                 NewsArticle(
@@ -490,9 +539,15 @@ class PolygonNewsAdapter(NewsProviderPort):
                     url=url,
                     source=source,
                     published_at=published_at,
-                    summary=str(item.get("description")) if item.get("description") else None,
+                    summary=(
+                        str(item.get("description"))
+                        if item.get("description")
+                        else None
+                    ),
                     related_symbols=related_symbols,
-                    image_url=str(item.get("image_url")) if item.get("image_url") else None,
+                    image_url=(
+                        str(item.get("image_url")) if item.get("image_url") else None
+                    ),
                 )
             )
         if not articles:
@@ -505,17 +560,23 @@ class PolygonNewsAdapter(NewsProviderPort):
             auth_mode="api_key",
             metadata={"base_url": self.base_url},
         )
-        return build_news_feed_from_mapping(symbol=symbol, articles=articles, provenance=provenance)
+        return build_news_feed_from_mapping(
+            symbol=symbol, articles=articles, provenance=provenance
+        )
 
     def health(self) -> ProviderHealth:
         ok = bool(self.api_key.strip())
         return ProviderHealth(
-            provider_id=self.provider_id, healthy=ok, authenticated=ok,
+            provider_id=self.provider_id,
+            healthy=ok,
+            authenticated=ok,
             detail="configured" if ok else "missing api_key",
         )
 
 
-def build_default_news_registry_from_env() -> PriorityProviderRegistry[NewsProviderPort]:
+def build_default_news_registry_from_env() -> (
+    PriorityProviderRegistry[NewsProviderPort]
+):
     """Compose a news provider registry from environment configuration.
 
     Registers every vendor with credentials/flags present, in a fixed
@@ -541,23 +602,31 @@ def build_default_news_registry_from_env() -> PriorityProviderRegistry[NewsProvi
     polygon_key = os.environ.get("DSP_NEWS_POLYGON_API_KEY", "").strip()
     if polygon_key:
         registry.register(
-            PolygonNewsAdapter(api_key=polygon_key), provider_id="polygon_news", priority=20
+            PolygonNewsAdapter(api_key=polygon_key),
+            provider_id="polygon_news",
+            priority=20,
         )
 
     av_key = os.environ.get("DSP_NEWS_ALPHAVANTAGE_API_KEY", "").strip()
     if av_key:
         registry.register(
-            AlphaVantageNewsAdapter(api_key=av_key), provider_id="alpha_vantage_news", priority=30
+            AlphaVantageNewsAdapter(api_key=av_key),
+            provider_id="alpha_vantage_news",
+            priority=30,
         )
 
     if os.environ.get("DSP_NEWS_YAHOO_ENABLED", "").lower() in {"1", "true", "yes"}:
         registry.register(
-            YahooFinanceNewsAdapter(enabled=True), provider_id="yahoo_finance_news", priority=40
+            YahooFinanceNewsAdapter(enabled=True),
+            provider_id="yahoo_finance_news",
+            priority=40,
         )
 
     if memory_adapter_allowed("DSP_NEWS_MEMORY", connector="news"):
         registry.register(
-            InMemoryNewsAdapter(api_key="dev-memory-key"), provider_id="memory_news", priority=90
+            InMemoryNewsAdapter(api_key="dev-memory-key"),
+            provider_id="memory_news",
+            priority=90,
         )
 
     return finalize_provider_registry(

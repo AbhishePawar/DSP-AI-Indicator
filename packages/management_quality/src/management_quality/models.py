@@ -63,7 +63,9 @@ class ManagementScore:
         if self.value is None:
             return
         if not isinstance(self.value, (int, float)) or isinstance(self.value, bool):
-            raise ManagementQualityValidationError("score.value must be numeric or None")
+            raise ManagementQualityValidationError(
+                "score.value must be numeric or None"
+            )
         value = float(self.value)
         if not math.isfinite(value):
             raise ManagementQualityValidationError("score.value must be finite")
@@ -104,7 +106,9 @@ class ManagementEvidence:
         if not isinstance(self.confidence, (int, float)) or isinstance(
             self.confidence, bool
         ):
-            raise ManagementQualityValidationError("evidence.confidence must be numeric")
+            raise ManagementQualityValidationError(
+                "evidence.confidence must be numeric"
+            )
         confidence = float(self.confidence)
         if not math.isfinite(confidence) or not 0.0 <= confidence <= 1.0:
             raise ManagementQualityValidationError(
@@ -257,7 +261,9 @@ class ManagementAnalysis:
         object.__setattr__(self, "input_references", tuple(self.input_references))
         object.__setattr__(self, "summary", self.summary.strip())
         object.__setattr__(self, "recommendation", self.recommendation.strip())
-        object.__setattr__(self, "research_disclaimer", self.research_disclaimer.strip())
+        object.__setattr__(
+            self, "research_disclaimer", self.research_disclaimer.strip()
+        )
 
     @property
     def overall_management_score(self) -> float | None:

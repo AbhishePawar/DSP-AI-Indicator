@@ -92,8 +92,10 @@ def _project_paths(
     last_fcff = fcffs[-1]
     if inputs.wacc <= inputs.terminal_growth:
         raise ValuationError("WACC must exceed terminal growth during projection")
-    tv = last_fcff * (1.0 + inputs.terminal_growth) / (
-        inputs.wacc - inputs.terminal_growth
+    tv = (
+        last_fcff
+        * (1.0 + inputs.terminal_growth)
+        / (inputs.wacc - inputs.terminal_growth)
     )
     return revenues, ebits, fcffs, tv
 
@@ -164,9 +166,7 @@ def _solve_growth(
     while iterations < max_iter:
         iterations += 1
         mid = (lo + hi) / 2.0
-        ev, tv, revs, ebits, fcffs = _model_enterprise_value(
-            inputs, mid, margin_delta
-        )
+        ev, tv, revs, ebits, fcffs = _model_enterprise_value(inputs, mid, margin_delta)
         err = (ev - target) / target
         abs_err = abs(err)
         if abs_err < best_err:
@@ -179,9 +179,7 @@ def _solve_growth(
         if abs_err <= precision or (hi - lo) <= precision:
             converged = True
             stop_reason = (
-                "precision_met"
-                if abs_err <= precision
-                else "bracket_width_met"
+                "precision_met" if abs_err <= precision else "bracket_width_met"
             )
             best_g = mid
             best_paths = (tv, revs, ebits, fcffs)
@@ -276,14 +274,12 @@ def _scenario_result(
     fcff0 = inputs.current_fcff if inputs.current_fcff > 0 else fcffs[0]
     implied_fcff = _cagr(fcff0, fcffs[-1], inputs.forecast_years)
     ebit0 = inputs.current_ebit if inputs.current_ebit != 0 else ebits[0]
-    implied_ebit = _cagr(abs(ebit0) if ebit0 != 0 else ebits[0], ebits[-1], inputs.forecast_years)
+    implied_ebit = _cagr(
+        abs(ebit0) if ebit0 != 0 else ebits[0], ebits[-1], inputs.forecast_years
+    )
     ev, _, _, _, _ = _model_enterprise_value(inputs, g, margin_delta)
     equity = (
-        ev
-        - inputs.debt
-        - inputs.minority_interest
-        + inputs.cash
-        + inputs.investments
+        ev - inputs.debt - inputs.minority_interest + inputs.cash + inputs.investments
     )
 
     return ScenarioResult(
@@ -361,13 +357,13 @@ def _sensitivity(inputs: ReverseDcfInputs, target_ev: float) -> SensitivityMatri
     for delta in (-0.01, 0.0, 0.01):
         w = inputs.wacc + delta
         if w <= inputs.terminal_growth or w <= 0:
-            wacc_cells.append(
-                SensitivityCell("wacc", w, None, None, False)
-            )
+            wacc_cells.append(SensitivityCell("wacc", w, None, None, False))
             continue
         patched = replace(inputs, wacc=w)
         try:
-            g, meta, *_ = _solve_growth(patched, target_ev=_target_enterprise_value(patched))
+            g, meta, *_ = _solve_growth(
+                patched, target_ev=_target_enterprise_value(patched)
+            )
             wacc_cells.append(
                 SensitivityCell("wacc", w, g, meta.residual_error, meta.converged)
             )
@@ -378,9 +374,7 @@ def _sensitivity(inputs: ReverseDcfInputs, target_ev: float) -> SensitivityMatri
     for delta in (-0.005, 0.0, 0.005):
         tg = inputs.terminal_growth + delta
         if inputs.wacc <= tg:
-            tg_cells.append(
-                SensitivityCell("terminal_growth", tg, None, None, False)
-            )
+            tg_cells.append(SensitivityCell("terminal_growth", tg, None, None, False))
             continue
         patched = replace(inputs, terminal_growth=tg)
         try:
@@ -391,9 +385,7 @@ def _sensitivity(inputs: ReverseDcfInputs, target_ev: float) -> SensitivityMatri
                 )
             )
         except ValuationError:
-            tg_cells.append(
-                SensitivityCell("terminal_growth", tg, None, None, False)
-            )
+            tg_cells.append(SensitivityCell("terminal_growth", tg, None, None, False))
 
     price_cells: list[SensitivityCell] = []
     for mult in (0.9, 1.0, 1.1):
@@ -409,9 +401,7 @@ def _sensitivity(inputs: ReverseDcfInputs, target_ev: float) -> SensitivityMatri
                 )
             )
         except ValuationError:
-            price_cells.append(
-                SensitivityCell("share_price", price, None, None, False)
-            )
+            price_cells.append(SensitivityCell("share_price", price, None, None, False))
 
     explained = _explained(
         "sensitivity_matrix",

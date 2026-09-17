@@ -53,9 +53,7 @@ def price_series(instrument: Instrument) -> PriceSeries:
         close=100.5,
         volume=1_000.0,
     )
-    return PriceSeries(
-        instrument=instrument, frequency=BarFrequency.DAILY, bars=(bar,)
-    )
+    return PriceSeries(instrument=instrument, frequency=BarFrequency.DAILY, bars=(bar,))
 
 
 def financial_snapshot(instrument: Instrument) -> FinancialSnapshot:
@@ -335,7 +333,9 @@ class FakeValuationEngine:
         self._error = error
         self.calls = 0
 
-    def analyze(self, snapshot: FinancialSnapshot, market: Any = None, **kwargs: Any) -> Any:
+    def analyze(
+        self, snapshot: FinancialSnapshot, market: Any = None, **kwargs: Any
+    ) -> Any:
         self.calls += 1
         if self._error is not None:
             raise self._error
@@ -374,9 +374,7 @@ def build_offline_platform(
         else "Trading above intrinsic value."
     )
     mid = 1000.0
-    market_value = (
-        mid * (1.0 - valuation_mos) if valuation_mos is not None else None
-    )
+    market_value = mid * (1.0 - valuation_mos) if valuation_mos is not None else None
     mos = MarginOfSafety(
         ratio=valuation_mos,
         intrinsic_value=mid,

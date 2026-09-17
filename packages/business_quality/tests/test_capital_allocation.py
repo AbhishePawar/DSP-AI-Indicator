@@ -9,10 +9,10 @@ import pytest
 
 from business_quality import (
     BUSINESS_QUALITY_VERSION,
-    CapitalAllocationEngine,
-    CapitalAllocationFlag,
     BusinessQualityEngine,
     BusinessQualityValidationError,
+    CapitalAllocationEngine,
+    CapitalAllocationFlag,
     Rating,
     validate_capital_allocation_input,
 )
@@ -21,7 +21,7 @@ from business_quality.capital_allocation_engine import (
     _capex_from_intensity,
     _flexibility,
 )
-from business_quality.scoring import Assessment, Confidence, Score
+from business_quality.scoring import Assessment
 from financial import (
     BalanceSheet,
     CashFlowStatement,
@@ -38,7 +38,9 @@ from financial import (
 from financial.metadata import StatementMetadata
 
 
-def _period(*, end: date = date(2024, 12, 31), fy: int | None = 2024) -> FinancialPeriod:
+def _period(
+    *, end: date = date(2024, 12, 31), fy: int | None = 2024
+) -> FinancialPeriod:
     return FinancialPeriod(
         period_type=PeriodType.ANNUAL,
         period_end=end,
@@ -308,10 +310,14 @@ class TestCapitalAllocation:
             [
                 Assessment(name="reinvestment_quality", rating=Rating.AVERAGE),
                 Assessment(name="capex_discipline", rating=Rating.AVERAGE),
-                Assessment(name="shareholder_capital_stewardship", rating=Rating.AVERAGE),
+                Assessment(
+                    name="shareholder_capital_stewardship", rating=Rating.AVERAGE
+                ),
                 Assessment(name="cash_deployment_quality", rating=Rating.AVERAGE),
                 Assessment(name="dividend_allocation_quality", rating=Rating.AVERAGE),
-                Assessment(name="capital_allocation_consistency", rating=Rating.AVERAGE),
+                Assessment(
+                    name="capital_allocation_consistency", rating=Rating.AVERAGE
+                ),
             ],
             cash_b,
             ratios_b,
@@ -360,15 +366,11 @@ class TestCapitalAllocation:
             quality_flags=(SimpleNamespace(value="shareholder_friendly"),),
             financing=SimpleNamespace(capital_allocation_quality=None),
         )
-        cap = SimpleNamespace(
-            dividend_sustainability=None, buyback_sustainability=None
-        )
+        cap = SimpleNamespace(dividend_sustainability=None, buyback_sustainability=None)
         a4 = eng._stewardship(cash, cap, out, evidence)
         assert a4.score is not None and a4.score.value == pytest.approx(75.0)
         # Stewardship with parts
-        cap2 = SimpleNamespace(
-            dividend_sustainability=0.8, buyback_sustainability=0.6
-        )
+        cap2 = SimpleNamespace(dividend_sustainability=0.8, buyback_sustainability=0.6)
         cash2 = SimpleNamespace(
             quality_flags=(),
             financing=SimpleNamespace(capital_allocation_quality=0.7),
@@ -413,12 +415,12 @@ class TestPackage:
         assert hasattr(bq.BusinessQualityEngine, "analyze_capital_allocation")
 
     def test_strength_weakness_helpers(self) -> None:
-        from business_quality.engine import _strengths, _weaknesses
-        from business_quality.earnings_quality_models import EarningsQualityFlag
-        from business_quality.capital_allocation_models import CapitalAllocationFlag
         from business_quality.business_characteristics_models import (
             BusinessCharacteristicsFlag,
         )
+        from business_quality.capital_allocation_models import CapitalAllocationFlag
+        from business_quality.earnings_quality_models import EarningsQualityFlag
+        from business_quality.engine import _strengths, _weaknesses
 
         eq = SimpleNamespace(
             quality_flags=(
@@ -438,9 +440,27 @@ class TestPackage:
                 BusinessCharacteristicsFlag.CYCLICAL_BUSINESS,
             )
         )
-        assert any("high_earnings" in s for s in _strengths(eq, ca, bc, SimpleNamespace(quality_flags=())))
-        assert any("debt_dependent" in s for s in _weaknesses(eq, ca, bc, SimpleNamespace(quality_flags=())))
-        assert any("excellent_capital" in s for s in _strengths(eq, ca, bc, SimpleNamespace(quality_flags=())))
-        assert any("weak_cash" in s for s in _weaknesses(eq, ca, bc, SimpleNamespace(quality_flags=())))
-        assert any("margin_durable" in s for s in _strengths(eq, ca, bc, SimpleNamespace(quality_flags=())))
-        assert any("cyclical" in s for s in _weaknesses(eq, ca, bc, SimpleNamespace(quality_flags=())))
+        assert any(
+            "high_earnings" in s
+            for s in _strengths(eq, ca, bc, SimpleNamespace(quality_flags=()))
+        )
+        assert any(
+            "debt_dependent" in s
+            for s in _weaknesses(eq, ca, bc, SimpleNamespace(quality_flags=()))
+        )
+        assert any(
+            "excellent_capital" in s
+            for s in _strengths(eq, ca, bc, SimpleNamespace(quality_flags=()))
+        )
+        assert any(
+            "weak_cash" in s
+            for s in _weaknesses(eq, ca, bc, SimpleNamespace(quality_flags=()))
+        )
+        assert any(
+            "margin_durable" in s
+            for s in _strengths(eq, ca, bc, SimpleNamespace(quality_flags=()))
+        )
+        assert any(
+            "cyclical" in s
+            for s in _weaknesses(eq, ca, bc, SimpleNamespace(quality_flags=()))
+        )

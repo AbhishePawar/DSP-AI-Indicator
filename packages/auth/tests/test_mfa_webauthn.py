@@ -14,7 +14,9 @@ import time
 
 import pytest
 
-webauthn_lib = pytest.importorskip("webauthn", reason="optional 'webauthn' package not installed")
+webauthn_lib = pytest.importorskip(
+    "webauthn", reason="optional 'webauthn' package not installed"
+)
 
 from auth.mfa_webauthn import WebAuthnAdapter, _b64url_decode  # noqa: E402
 from persistence import (  # noqa: E402
@@ -66,9 +68,7 @@ _REG_CREDENTIAL = {
     "clientExtensionResults": {},
     "transports": ["nfc", "usb"],
 }
-_REG_CHALLENGE_B64URL = (
-    "TwN7n4WTyGKLc4ZY-qGsFqKnHM4nglqsyV0ICJlN2TO9XiRyFtrkaDwUvsql-gkLJXP6fnF1MlrZ53Mm4R7Cvw"
-)
+_REG_CHALLENGE_B64URL = "TwN7n4WTyGKLc4ZY-qGsFqKnHM4nglqsyV0ICJlN2TO9XiRyFtrkaDwUvsql-gkLJXP6fnF1MlrZ53Mm4R7Cvw"
 
 _AUTH_CREDENTIAL = {
     "id": "EDx9FfAbp4obx6oll2oC4-CZuDidRVV4gZhxC529ytlnqHyqCStDUwfNdm1SNHAe3X5KvueWQdAX3x9R1a2b9Q",
@@ -81,12 +81,8 @@ _AUTH_CREDENTIAL = {
     "type": "public-key",
     "clientExtensionResults": {},
 }
-_AUTH_CHALLENGE_B64URL = (
-    "xi30GPGAFYRxVDpY1sM10DaLzVQG66nv-_7RUazH0vI2YvG8LYgDEnvN5fZZNVuvEDuMi9te3VLqb42N0fkLGA"
-)
-_AUTH_PUBLIC_KEY_B64URL = (
-    "pQECAyYgASFYIIeDTe-gN8A-zQclHoRnGFWN8ehM1b7yAsa8I8KIvmplIlgg4nFGT5px8o6gpPZZhO01wdy9crDSA_Ngtkx0vGpvPHI"
-)
+_AUTH_CHALLENGE_B64URL = "xi30GPGAFYRxVDpY1sM10DaLzVQG66nv-_7RUazH0vI2YvG8LYgDEnvN5fZZNVuvEDuMi9te3VLqb42N0fkLGA"
+_AUTH_PUBLIC_KEY_B64URL = "pQECAyYgASFYIIeDTe-gN8A-zQclHoRnGFWN8ehM1b7yAsa8I8KIvmplIlgg4nFGT5px8o6gpPZZhO01wdy9crDSA_Ngtkx0vGpvPHI"
 
 
 def test_registration_completes_with_real_attestation() -> None:
@@ -94,16 +90,25 @@ def test_registration_completes_with_real_attestation() -> None:
     users = _FakeUsers()
     users.add("user-1")
     adapter = WebAuthnAdapter(
-        persistence, users, rp_id="localhost", rp_name="Test RP", origin="http://localhost:5000"
+        persistence,
+        users,
+        rp_id="localhost",
+        rp_name="Test RP",
+        origin="http://localhost:5000",
     )
     state = "reg-state-1"
-    adapter.seed_pending(state, {  # noqa: SLF001 — seeding a deterministic ceremony for the test
-        "kind": "registration",
-        "user_id": "user-1",
-        "challenge": _b64url_decode(_REG_CHALLENGE_B64URL),
-        "created_at": time.time(),
-    })
-    result = adapter.complete_registration("user-1", {"state": state, "credential": _REG_CREDENTIAL})
+    adapter.seed_pending(
+        state,
+        {  # noqa: SLF001 — seeding a deterministic ceremony for the test
+            "kind": "registration",
+            "user_id": "user-1",
+            "challenge": _b64url_decode(_REG_CHALLENGE_B64URL),
+            "created_at": time.time(),
+        },
+    )
+    result = adapter.complete_registration(
+        "user-1", {"state": state, "credential": _REG_CREDENTIAL}
+    )
     assert result["ok"] is True
     assert result["credential_id"] == _REG_CREDENTIAL["id"]
     creds = adapter.list_credentials("user-1")
@@ -115,9 +120,13 @@ def test_registration_rejects_wrong_state() -> None:
     persistence = _persistence()
     users = _FakeUsers()
     users.add("user-1")
-    adapter = WebAuthnAdapter(persistence, users, rp_id="localhost", origin="http://localhost:5000")
+    adapter = WebAuthnAdapter(
+        persistence, users, rp_id="localhost", origin="http://localhost:5000"
+    )
     with pytest.raises(Exception):
-        adapter.complete_registration("user-1", {"state": "does-not-exist", "credential": _REG_CREDENTIAL})
+        adapter.complete_registration(
+            "user-1", {"state": "does-not-exist", "credential": _REG_CREDENTIAL}
+        )
 
 
 def test_discoverable_authentication_completes_and_rotates_sign_count() -> None:
@@ -125,7 +134,11 @@ def test_discoverable_authentication_completes_and_rotates_sign_count() -> None:
     users = _FakeUsers()
     users.add("user-2")
     adapter = WebAuthnAdapter(
-        persistence, users, rp_id="localhost", rp_name="Test RP", origin="http://localhost:5000"
+        persistence,
+        users,
+        rp_id="localhost",
+        rp_name="Test RP",
+        origin="http://localhost:5000",
     )
     cred_id = _AUTH_CREDENTIAL["id"]
     adapter._save_credentials(  # noqa: SLF001
@@ -146,17 +159,24 @@ def test_discoverable_authentication_completes_and_rotates_sign_count() -> None:
     persistence.put(
         kind="metadata",
         entity_id=f"auth-webauthn-cred-index-{cred_id}",
-        payload={"auth_entity": "webauthn_cred_index", "user_id": "user-2", "credential_id": cred_id},
+        payload={
+            "auth_entity": "webauthn_cred_index",
+            "user_id": "user-2",
+            "credential_id": cred_id,
+        },
         refs={"auth_entity": "webauthn_cred_index"},
         created_at=None,
         allow_update=True,
     )
     state = "auth-state-1"
-    adapter.seed_pending(state, {  # noqa: SLF001
-        "kind": "authentication",
-        "challenge": _b64url_decode(_AUTH_CHALLENGE_B64URL),
-        "created_at": time.time(),
-    })
+    adapter.seed_pending(
+        state,
+        {  # noqa: SLF001
+            "kind": "authentication",
+            "challenge": _b64url_decode(_AUTH_CHALLENGE_B64URL),
+            "created_at": time.time(),
+        },
+    )
     resolved = adapter.complete_discoverable_authentication(
         {"state": state, "credential": _AUTH_CREDENTIAL}
     )
@@ -169,22 +189,31 @@ def test_discoverable_authentication_completes_and_rotates_sign_count() -> None:
 def test_unknown_credential_is_rejected() -> None:
     persistence = _persistence()
     users = _FakeUsers()
-    adapter = WebAuthnAdapter(persistence, users, rp_id="localhost", origin="http://localhost:5000")
+    adapter = WebAuthnAdapter(
+        persistence, users, rp_id="localhost", origin="http://localhost:5000"
+    )
     state = "auth-state-2"
-    adapter.seed_pending(state, {  # noqa: SLF001
-        "kind": "authentication",
-        "challenge": _b64url_decode(_AUTH_CHALLENGE_B64URL),
-        "created_at": time.time(),
-    })
+    adapter.seed_pending(
+        state,
+        {  # noqa: SLF001
+            "kind": "authentication",
+            "challenge": _b64url_decode(_AUTH_CHALLENGE_B64URL),
+            "created_at": time.time(),
+        },
+    )
     with pytest.raises(Exception):
-        adapter.complete_discoverable_authentication({"state": state, "credential": _AUTH_CREDENTIAL})
+        adapter.complete_discoverable_authentication(
+            {"state": state, "credential": _AUTH_CREDENTIAL}
+        )
 
 
 def test_begin_registration_and_discoverable_authentication_shapes() -> None:
     persistence = _persistence()
     users = _FakeUsers()
     users.add("user-3")
-    adapter = WebAuthnAdapter(persistence, users, rp_id="localhost", origin="http://localhost:5000")
+    adapter = WebAuthnAdapter(
+        persistence, users, rp_id="localhost", origin="http://localhost:5000"
+    )
     reg_options = adapter.begin_registration("user-3")
     assert reg_options["state"]
     assert reg_options["rp"]["id"] == "localhost"

@@ -83,7 +83,8 @@ class StepFacadeResult:
         object.__setattr__(
             self,
             "provenance",
-            tuple(p.strip() for p in self.provenance if p.strip()) or ("subsystem.facade",),
+            tuple(p.strip() for p in self.provenance if p.strip())
+            or ("subsystem.facade",),
         )
         object.__setattr__(
             self, "notes", tuple(n.strip() for n in self.notes if n.strip())
@@ -450,14 +451,10 @@ class WorkflowEngine:
             warnings=tuple(warnings),
         )
 
-    def run_many(
-        self, contexts: tuple[EngineContext, ...]
-    ) -> tuple[EngineResult, ...]:
+    def run_many(self, contexts: tuple[EngineContext, ...]) -> tuple[EngineResult, ...]:
         """Run many contexts; reject duplicate workflow identities."""
         assert_unique_workflow_ids(
-            tuple(
-                (c.profile or c.assembly.profile).workflow_id for c in contexts
-            )
+            tuple((c.profile or c.assembly.profile).workflow_id for c in contexts)
         )
         return tuple(self.run(context) for context in contexts)
 
@@ -589,9 +586,7 @@ class WorkflowEngine:
             attempts.append(exec_rec)
             final_status = WorkflowStepState.FAILED
 
-            retryable = (
-                facade_result.failure_class in policy.retryable_failure_classes
-            )
+            retryable = facade_result.failure_class in policy.retryable_failure_classes
             if not retryable or attempt >= max_attempts:
                 break
             # Honor RetryPolicy by recording another attempt immediately.
@@ -610,8 +605,12 @@ class WorkflowEngine:
                 final_status=final_status,
                 attempts=tuple(attempts),
                 outcome_ref_ids=outcome_ref_ids,
-                failure=failure if final_status is WorkflowStepState.FAILED else (
-                    failure if final_status is WorkflowStepState.BLOCKED else None
+                failure=(
+                    failure
+                    if final_status is WorkflowStepState.FAILED
+                    else (
+                        failure if final_status is WorkflowStepState.BLOCKED else None
+                    )
                 ),
             ),
             attempts,
@@ -633,9 +632,7 @@ class WorkflowEngine:
         del step_states  # states already applied onto steps
         ordered_steps = tuple(steps[s.step_id] for s in profile.steps)
         failed_count = sum(
-            1
-            for e in execution.executions
-            if e.status is WorkflowStepState.FAILED
+            1 for e in execution.executions if e.status is WorkflowStepState.FAILED
         )
         summary = WorkflowSummary(
             step_count=len(ordered_steps),

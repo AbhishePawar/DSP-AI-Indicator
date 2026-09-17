@@ -16,7 +16,12 @@ import pytest
 from fastapi.testclient import TestClient
 
 from api_platform.api.app import create_app
-from auth import AuthService, RoleRegistry, reset_auth_service_for_tests, reset_role_registry_for_tests
+from auth import (
+    AuthService,
+    RoleRegistry,
+    reset_auth_service_for_tests,
+    reset_role_registry_for_tests,
+)
 from auth.enterprise_platform import (
     EnterpriseAuthPlatform,
     reset_enterprise_auth_platform_for_tests,
@@ -38,7 +43,9 @@ def env(monkeypatch: pytest.MonkeyPatch) -> EnterpriseAuthPlatform:
     monkeypatch.setenv("DSP_ENVIRONMENT", "development")
     monkeypatch.setenv("DSP_MICROSOFT_CLIENT_ID", "ms-client")
     monkeypatch.setenv("DSP_MICROSOFT_CLIENT_SECRET", "ms-secret")
-    monkeypatch.setenv("DSP_MICROSOFT_REDIRECT_URI", "https://app.dspai.local/auth/microsoft/callback")
+    monkeypatch.setenv(
+        "DSP_MICROSOFT_REDIRECT_URI", "https://app.dspai.local/auth/microsoft/callback"
+    )
     monkeypatch.setenv("DSP_AUTH_PROVIDER_MICROSOFT", "auto")
     monkeypatch.setenv("DSP_FRONTEND_URL", "https://app.dspai.local")
     monkeypatch.setenv("DSP_COOKIE_AUTH", "true")
@@ -76,13 +83,17 @@ def test_microsoft_start_redirects_to_authorization_url(client: TestClient) -> N
     assert "client_id=ms-client" in location
 
 
-def test_microsoft_start_uses_configured_default_redirect_uri(client: TestClient) -> None:
+def test_microsoft_start_uses_configured_default_redirect_uri(
+    client: TestClient,
+) -> None:
     resp = client.get("/api/v1/auth/microsoft")
     query = urlparse(resp.headers["location"]).query
     assert "redirect_uri=" in query
 
 
-def test_microsoft_start_unavailable_without_env(monkeypatch: pytest.MonkeyPatch, client: TestClient) -> None:
+def test_microsoft_start_unavailable_without_env(
+    monkeypatch: pytest.MonkeyPatch, client: TestClient
+) -> None:
     monkeypatch.delenv("DSP_MICROSOFT_REDIRECT_URI", raising=False)
     resp = client.get("/api/v1/auth/microsoft")
     assert resp.status_code == 503
@@ -167,7 +178,8 @@ def test_microsoft_link_binds_identity_to_current_user(
     body = resp.json()
     assert body["ok"] is True
     assert any(
-        lnk["provider"] == "MICROSOFT" for lnk in body["result"]["user"]["linkedProviders"]
+        lnk["provider"] == "MICROSOFT"
+        for lnk in body["result"]["user"]["linkedProviders"]
     )
 
     unlink = client.post(

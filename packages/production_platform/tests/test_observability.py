@@ -8,15 +8,13 @@ import pytest
 
 from production_platform import (
     ConfigurationError,
-    HealthManager,
-    InMemoryLoggingPort,
+    Environment,
     InMemoryMetricsPort,
     InMemoryTracingPort,
     ObservabilityBundle,
     ObservabilitySettings,
     ProductionBundle,
     ProductionConfiguration,
-    Environment,
     correlation_context,
     get_correlation_id,
     render_prometheus,

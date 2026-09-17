@@ -16,14 +16,14 @@ from dsp_platform.composition.authenticated_valuation import (
     load_authenticated_valuation_bundle,
     signals_from_assessment,
 )
+from dsp_platform.composition.config import PipelineConfiguration
+from dsp_platform.composition.context import ExecutionContext
+from dsp_platform.composition.errors import CompositionStageError
 from dsp_platform.composition.financial_integrity import (
     FinancialIntegrityError,
     normalize_periods_to_actual,
     unit_scale_factor,
 )
-from dsp_platform.composition.config import PipelineConfiguration
-from dsp_platform.composition.context import ExecutionContext
-from dsp_platform.composition.errors import CompositionStageError
 from dsp_platform.composition.models import (
     CompositionRequest,
     ExecutionMetadata,

@@ -2,9 +2,10 @@
 
 from __future__ import annotations
 
+from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
 from enum import Enum
-from typing import Any, Mapping, Sequence
+from typing import Any
 
 from earnings_quality.exceptions import EarningsQualityValidationError
 
@@ -138,7 +139,9 @@ def validate_weights(
         earnings_consistency=float(
             payload[EarningsQualityDimension.EARNINGS_CONSISTENCY.value]
         ),
-        earnings_quality=float(payload[EarningsQualityDimension.EARNINGS_QUALITY.value]),
+        earnings_quality=float(
+            payload[EarningsQualityDimension.EARNINGS_QUALITY.value]
+        ),
         margin_stability=float(
             payload[EarningsQualityDimension.MARGIN_STABILITY.value]
         ),

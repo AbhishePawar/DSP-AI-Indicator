@@ -101,9 +101,7 @@ def test_tenant_isolation_smoke_on_enterprise() -> None:
     org_a = svc.create_organization(
         name="Alpha", slug="alpha-p006", owner_user_id="u-a"
     )
-    org_b = svc.create_organization(
-        name="Beta", slug="beta-p006", owner_user_id="u-b"
-    )
+    org_b = svc.create_organization(name="Beta", slug="beta-p006", owner_user_id="u-b")
     only_a = svc.list_organizations(user_id="u-a")
     only_b = svc.list_organizations(user_id="u-b")
     assert [o["org_id"] for o in only_a] == [org_a["org_id"]]

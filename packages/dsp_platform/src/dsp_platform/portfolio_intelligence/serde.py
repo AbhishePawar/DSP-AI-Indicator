@@ -2,7 +2,8 @@
 
 from __future__ import annotations
 
-from typing import Any, Mapping
+from collections.abc import Mapping
+from typing import Any
 
 from dsp_platform.portfolio_intelligence.models import (
     PORTFOLIO_SCHEMA_VERSION,
@@ -55,9 +56,7 @@ def portfolio_intelligence_from_dict(
                         row.get("business_quality_available")
                     ),
                     risk_available=bool(row.get("risk_available")),
-                    recommendation_available=bool(
-                        row.get("recommendation_available")
-                    ),
+                    recommendation_available=bool(row.get("recommendation_available")),
                     message=row.get("message"),
                 )
             )
@@ -67,16 +66,18 @@ def portfolio_intelligence_from_dict(
     result = PortfolioIntelligenceResult(
         result_id=str(data.get("result_id") or ""),
         schema_version=str(data.get("schema_version") or PORTFOLIO_SCHEMA_VERSION),
-        service_version=str(
-            data.get("service_version") or PORTFOLIO_SERVICE_VERSION
-        ),
+        service_version=str(data.get("service_version") or PORTFOLIO_SERVICE_VERSION),
         created_at=str(data.get("created_at") or ""),
-        portfolio=freeze_mapping(dict(data["portfolio"]))
-        if isinstance(data.get("portfolio"), Mapping)
-        else None,
-        watchlist=freeze_mapping(dict(data["watchlist"]))
-        if isinstance(data.get("watchlist"), Mapping)
-        else None,
+        portfolio=(
+            freeze_mapping(dict(data["portfolio"]))
+            if isinstance(data.get("portfolio"), Mapping)
+            else None
+        ),
+        watchlist=(
+            freeze_mapping(dict(data["watchlist"]))
+            if isinstance(data.get("watchlist"), Mapping)
+            else None
+        ),
         linked_holdings=tuple(linked),
         portfolio_summary=freeze_mapping(dict(data.get("portfolio_summary") or {}))
         or freeze_mapping({}),
@@ -115,9 +116,9 @@ def portfolio_intelligence_from_dict(
         provenance=freeze_mapping(dict(data.get("provenance") or {}))
         or freeze_mapping({}),
         audit=freeze_mapping(dict(data.get("audit") or {})) or freeze_mapping({}),
-        limitations=tuple(limitations)
-        if isinstance(limitations, (list, tuple))
-        else (),
+        limitations=(
+            tuple(limitations) if isinstance(limitations, (list, tuple)) else ()
+        ),
     )
     validate_portfolio_intelligence(result)
     return result

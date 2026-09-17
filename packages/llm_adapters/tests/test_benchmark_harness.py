@@ -18,23 +18,17 @@ from __future__ import annotations
 
 import os
 
-import pytest
-
 from llm_adapters.benchmark_cases import (
     BENCHMARK_CASES,
-    BenchmarkCase,
-    ResearchSpec,
 )
 from llm_adapters.benchmark_harness import (
     BENCHMARK_MODELS,
-    BenchmarkRun,
     build_report,
     run_benchmark,
     run_one_case_one_model,
 )
 from llm_adapters.config import LLMPlatformConfig
 from llm_adapters.evaluation import ErrorCategory, EvaluationStatus
-from llm_adapters.model_tiers import DEFAULT_TIERS, ModelTier
 from llm_adapters.privacy_boundary import (
     PrivateInternalResult,
     PublicDecisionPack,
@@ -45,7 +39,6 @@ from llm_adapters.quality_evaluator import (
     evaluate_narrative,
 )
 from llm_adapters.quality_gate import GateOutcome
-
 
 # --- benchmark cases ------------------------------------------------------
 
@@ -102,9 +95,7 @@ def test_evaluator_hallucination_counted() -> None:
 
 def test_evaluator_returns_none_for_unverifiable_components() -> None:
     frozen = {"intrinsic_value_per_share": "180"}
-    v = evaluate_narrative(
-        "The intrinsic value per share is 180.", frozen
-    )
+    v = evaluate_narrative("The intrinsic value per share is 180.", frozen)
     # moat_business_quality: not enough frozen keys to score -> None
     assert v.quality.moat_business_quality is None
     # risk: no risk key in frozen -> None
@@ -144,9 +135,14 @@ def test_aggregator_does_not_invent_components() -> None:
 def _no_key_config() -> LLMPlatformConfig:
     """A config with every key absent — every model returns PROVIDER_UNAVAILABLE."""
     for k in (
-        "OPENAI_API_KEY", "ANTHROPIC_API_KEY", "GEMINI_API_KEY", "DEEPSEEK_API_KEY",
-        "DSP_AI_OPENAI_API_KEY", "DSP_AI_ANTHROPIC_API_KEY",
-        "DSP_AI_GEMINI_API_KEY", "DSP_AI_DEEPSEEK_API_KEY",
+        "OPENAI_API_KEY",
+        "ANTHROPIC_API_KEY",
+        "GEMINI_API_KEY",
+        "DEEPSEEK_API_KEY",
+        "DSP_AI_OPENAI_API_KEY",
+        "DSP_AI_ANTHROPIC_API_KEY",
+        "DSP_AI_GEMINI_API_KEY",
+        "DSP_AI_DEEPSEEK_API_KEY",
     ):
         os.environ.pop(k, None)
     return LLMPlatformConfig(
@@ -187,7 +183,10 @@ def test_harness_never_calls_network_without_keys() -> None:
     runs = run_benchmark(config, cases=BENCHMARK_CASES[:2], models=BENCHMARK_MODELS[:2])
     assert runs  # we got records
     for r in runs:
-        assert r.gate.outcome is GateOutcome.FAILED_CLOSED or r.error_category is not ErrorCategory.NONE
+        assert (
+            r.gate.outcome is GateOutcome.FAILED_CLOSED
+            or r.error_category is not ErrorCategory.NONE
+        )
 
 
 def test_unknown_pricing_never_treated_as_zero_in_records() -> None:

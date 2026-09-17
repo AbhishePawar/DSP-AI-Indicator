@@ -10,7 +10,6 @@ from __future__ import annotations
 from dataclasses import dataclass, replace
 
 from core.exceptions import ValidationError
-
 from workflow.enums import AssemblyStatus, WorkflowState, WorkflowStepState
 from workflow.exceptions import WorkflowError
 from workflow.models import (
@@ -91,9 +90,7 @@ class AssemblyContext:
         object.__setattr__(
             self, "quantitative_risk_refs", tuple(self.quantitative_risk_refs)
         )
-        object.__setattr__(
-            self, "recommendation_refs", tuple(self.recommendation_refs)
-        )
+        object.__setattr__(self, "recommendation_refs", tuple(self.recommendation_refs))
         created_at = (
             None if self.created_at is None else self.created_at.strip() or None
         )
@@ -161,9 +158,7 @@ class WorkflowAssembler:
         self._validate_ref_group(
             "quantitative_risk_refs", context.quantitative_risk_refs
         )
-        self._validate_ref_group(
-            "recommendation_refs", context.recommendation_refs
-        )
+        self._validate_ref_group("recommendation_refs", context.recommendation_refs)
 
     def assemble(self, context: AssemblyContext) -> AssemblyResult:
         """Construct immutable profile, report skeleton, and execution skeletons."""
@@ -250,9 +245,7 @@ class WorkflowAssembler:
         self, contexts: tuple[AssemblyContext, ...]
     ) -> tuple[AssemblyResult, ...]:
         """Assemble many contexts; reject duplicate workflow identities."""
-        assert_unique_workflow_ids(
-            tuple(ctx.identity.workflow_id for ctx in contexts)
-        )
+        assert_unique_workflow_ids(tuple(ctx.identity.workflow_id for ctx in contexts))
         return tuple(self.assemble(context) for context in contexts)
 
     def _validate_steps(self, steps: tuple[WorkflowStep, ...]) -> None:

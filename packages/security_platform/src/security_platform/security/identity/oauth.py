@@ -107,7 +107,9 @@ class SsoProviderPort(Protocol):
 
     def is_available(self) -> bool: ...
 
-    def begin_login(self, *, redirect_uri: str, state: str | None = None) -> dict[str, Any]: ...
+    def begin_login(
+        self, *, redirect_uri: str, state: str | None = None
+    ) -> dict[str, Any]: ...
 
     def complete_login(self, *, code: str, state: str | None = None) -> SsoSession: ...
 
@@ -171,7 +173,9 @@ class NullSsoProvider:
     def is_available(self) -> bool:
         return False
 
-    def begin_login(self, *, redirect_uri: str, state: str | None = None) -> dict[str, Any]:
+    def begin_login(
+        self, *, redirect_uri: str, state: str | None = None
+    ) -> dict[str, Any]:
         return {
             "available": False,
             "provider": self.provider_name(),
@@ -254,7 +258,9 @@ class LocalSsoAdapter:
     def is_available(self) -> bool:
         return True
 
-    def begin_login(self, *, redirect_uri: str, state: str | None = None) -> dict[str, Any]:
+    def begin_login(
+        self, *, redirect_uri: str, state: str | None = None
+    ) -> dict[str, Any]:
         st = state or secrets.token_urlsafe(12)
         return {
             "available": True,

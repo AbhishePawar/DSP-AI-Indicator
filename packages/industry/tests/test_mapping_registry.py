@@ -114,9 +114,7 @@ class TestClassificationMappingRegistry:
                 mapping_version="1.0.0",
             )
         )
-        registry.deprecate(
-            TaxonomySource.ICB, "10101010", mapping_version="1.0.0"
-        )
+        registry.deprecate(TaxonomySource.ICB, "10101010", mapping_version="1.0.0")
         registry.register(
             _mapping(
                 source=TaxonomySource.ICB,
@@ -127,9 +125,7 @@ class TestClassificationMappingRegistry:
         )
         active = registry.lookup_active(TaxonomySource.ICB, "10101010")
         assert active.mapping_version == "2.0.0"
-        old = registry.get(
-            TaxonomySource.ICB, "10101010", mapping_version="1.0.0"
-        )
+        old = registry.get(TaxonomySource.ICB, "10101010", mapping_version="1.0.0")
         assert old.status is MappingStatus.DEPRECATED
 
     def test_list_for_industry(self) -> None:

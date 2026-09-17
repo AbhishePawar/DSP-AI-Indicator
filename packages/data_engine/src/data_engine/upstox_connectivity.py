@@ -162,7 +162,9 @@ class UpstoxConnectivityClient:
 
     def _safe_error(self, exc: BaseException) -> ProviderRequestError:
         raw = redact_secret(str(exc), self.access_token)
-        raw = redact_secret(raw, f"Bearer {self.access_token}" if self.access_token else None)
+        raw = redact_secret(
+            raw, f"Bearer {self.access_token}" if self.access_token else None
+        )
         return ProviderRequestError(redact_secret(raw, self.access_token))
 
     def probe_market_data(

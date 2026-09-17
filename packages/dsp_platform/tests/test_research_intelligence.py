@@ -5,11 +5,11 @@ from __future__ import annotations
 import pytest
 
 from dsp_platform.research_intelligence import (
+    UNABLE_MESSAGE,
+    UNAVAILABLE_MESSAGE,
     InMemoryResearchSnapshotStore,
     ResearchIntelligenceService,
     SnapshotAlreadyExistsError,
-    UNAVAILABLE_MESSAGE,
-    UNABLE_MESSAGE,
     build_snapshot_from_analyse_payload,
     measure_outcome,
     reset_research_intelligence_for_tests,
@@ -88,14 +88,18 @@ def test_outcome_math_with_fixture_prices() -> None:
         ticker="AAPL",
     )
     # Bullish + price up → correct
-    out = measure_outcome(snap, window_months=12, price_at_horizon=115.0, measured_at=FIXED)
+    out = measure_outcome(
+        snap, window_months=12, price_at_horizon=115.0, measured_at=FIXED
+    )
     assert out.price_change_pct == pytest.approx(0.15)
     assert out.recommendation_accuracy == "correct"
     assert out.success_failure == "success"
     assert out.message is None
 
     # Missing horizon → honest unavailable
-    missing = measure_outcome(snap, window_months=12, price_at_horizon=None, measured_at=FIXED)
+    missing = measure_outcome(
+        snap, window_months=12, price_at_horizon=None, measured_at=FIXED
+    )
     assert missing.recommendation_accuracy is None
     assert missing.message == UNAVAILABLE_MESSAGE
 
@@ -110,7 +114,9 @@ def test_bearish_outcome_and_unable() -> None:
         timestamp=FIXED,
     )
     # price 0 → unable to calculate change even with horizon
-    out = measure_outcome(snap, window_months=6, price_at_horizon=90.0, measured_at=FIXED)
+    out = measure_outcome(
+        snap, window_months=6, price_at_horizon=90.0, measured_at=FIXED
+    )
     assert out.price_change_pct is None
     assert out.message in {UNABLE_MESSAGE, UNAVAILABLE_MESSAGE}
 
@@ -191,6 +197,8 @@ def test_calibration_and_dashboard_with_fixtures() -> None:
 
 def test_empty_registry_honest_unavailable() -> None:
     svc = ResearchIntelligenceService(store=InMemoryResearchSnapshotStore())
-    dash = svc.performance_dashboard(window_months=12, result_id="empty", created_at=FIXED)
+    dash = svc.performance_dashboard(
+        window_months=12, result_id="empty", created_at=FIXED
+    )
     assert dash["dashboard"]["message"] == UNAVAILABLE_MESSAGE
     assert dash["dashboard"]["overall_accuracy"] == UNAVAILABLE_MESSAGE

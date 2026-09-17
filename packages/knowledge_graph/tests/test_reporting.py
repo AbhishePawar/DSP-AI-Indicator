@@ -100,9 +100,7 @@ class TestReporterHappyPath:
         assert result.metadata.node_count == engine_result.summary.node_count
         assert result.node_statistics.total == len(engine_result.nodes)
         assert result.edge_statistics.total == len(engine_result.edges)
-        assert result.relationship_statistics.total == len(
-            engine_result.relationships
-        )
+        assert result.relationship_statistics.total == len(engine_result.relationships)
         assert result.evidence_link_statistics.total == len(
             engine_result.evidence_links
         )

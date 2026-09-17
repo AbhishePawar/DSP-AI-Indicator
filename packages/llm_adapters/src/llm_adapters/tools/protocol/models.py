@@ -11,9 +11,10 @@ provider credentials never appear here.
 
 from __future__ import annotations
 
+from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
 from enum import Enum
-from typing import Any, Mapping, Sequence
+from typing import Any
 
 from llm_adapters.tools.contract import ToolResult, ToolStatus
 
@@ -50,7 +51,7 @@ class ToolDeclaration:
     output_schema: tuple[Mapping[str, Any], ...]
 
     @classmethod
-    def from_manifest_entry(cls, entry: Mapping[str, Any]) -> "ToolDeclaration":
+    def from_manifest_entry(cls, entry: Mapping[str, Any]) -> ToolDeclaration:
         name = entry.get("name")
         version = entry.get("version")
         description = entry.get("description")
@@ -62,9 +63,13 @@ class ToolDeclaration:
             raise ValueError("manifest entry missing version")
         if not isinstance(description, str):
             raise ValueError("manifest entry missing description")
-        if not isinstance(input_schema, Sequence) or isinstance(input_schema, (str, bytes)):
+        if not isinstance(input_schema, Sequence) or isinstance(
+            input_schema, (str, bytes)
+        ):
             raise ValueError("manifest entry missing input_schema")
-        if not isinstance(output_schema, Sequence) or isinstance(output_schema, (str, bytes)):
+        if not isinstance(output_schema, Sequence) or isinstance(
+            output_schema, (str, bytes)
+        ):
             raise ValueError("manifest entry missing output_schema")
         # Refuse provenance / internals if a caller tries to smuggle them.
         if "provenance" in entry or "validation_status" in entry:

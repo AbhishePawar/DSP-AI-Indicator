@@ -5,8 +5,8 @@ from __future__ import annotations
 from decimal import Decimal
 
 import pytest
-from core.exceptions import ValidationError
 
+from core.exceptions import ValidationError
 from workflow import (
     AnalysisReference,
     BackoffPolicy,
@@ -268,9 +268,7 @@ class TestValidation:
                 state=WorkflowState.PENDING,
                 metadata=_metadata(),
                 steps=(step,),
-                executions=(
-                    _execution(outcome_ref_ids=("dsp.workflow.ref.missing",)),
-                ),
+                executions=(_execution(outcome_ref_ids=("dsp.workflow.ref.missing",)),),
             )
 
     def test_duplicate_report_references(self) -> None:

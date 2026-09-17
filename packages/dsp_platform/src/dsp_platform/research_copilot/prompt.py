@@ -2,13 +2,13 @@
 
 from __future__ import annotations
 
-from typing import Any, Mapping
+from typing import Any
 
 from dsp_platform.research_copilot.models import (
     COPILOT_SERVICE_VERSION,
+    UNAVAILABLE_MESSAGE,
     ProcessedQuestion,
     ResearchContextBundle,
-    UNAVAILABLE_MESSAGE,
 )
 
 __all__ = ["SYSTEM_RULES", "build_prompt"]

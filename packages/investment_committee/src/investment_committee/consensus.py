@@ -18,9 +18,7 @@ from investment_committee.signals import CommitteeSignals
 
 __all__ = ["build_consensus"]
 
-_CONSENSUS_METHOD = (
-    "confidence_weighted_rank_mean_with_risk_veto_and_agreement_score"
-)
+_CONSENSUS_METHOD = "confidence_weighted_rank_mean_with_risk_veto_and_agreement_score"
 
 
 def build_consensus(
@@ -54,11 +52,12 @@ def build_consensus(
     decision = decision_from_rank(weighted_rank)
 
     # Risk officer soft veto: if risk is strongly bearish, cap bullish consensus
-    risk = next(
-        (r for r in reviewers if r.role is ReviewerRole.RISK_OFFICER), None
-    )
+    risk = next((r for r in reviewers if r.role is ReviewerRole.RISK_OFFICER), None)
     escalation: list[str] = []
-    if risk is not None and rank_of(risk.opinion) <= ACTION_RANK[CommitteeDecision.REDUCE]:
+    if (
+        risk is not None
+        and rank_of(risk.opinion) <= ACTION_RANK[CommitteeDecision.REDUCE]
+    ):
         if ACTION_RANK[decision] >= ACTION_RANK[CommitteeDecision.BUY]:
             decision = CommitteeDecision.ACCUMULATE
             escalation.append("risk_officer_soft_veto_cap_buy")
@@ -87,14 +86,16 @@ def build_consensus(
 
     # Agreement: fraction within 1 rank of consensus
     agree = sum(
-        1 for reviewer in reviewers if abs(rank_of(reviewer.opinion) - majority_rank) <= 1
+        1
+        for reviewer in reviewers
+        if abs(rank_of(reviewer.opinion) - majority_rank) <= 1
     )
     agreement = agree / len(reviewers) if reviewers else 0.0
 
     # Dispersion penalty
     mean_r = sum(ranks) / len(ranks)
     variance = sum((r - mean_r) ** 2 for r in ranks) / len(ranks)
-    dispersion = variance ** 0.5
+    dispersion = variance**0.5
     agreement = max(0.0, min(1.0, agreement * (1.0 - min(0.4, dispersion / 6.0))))
 
     mean_conf = sum(r.confidence.value for r in reviewers) / len(reviewers)

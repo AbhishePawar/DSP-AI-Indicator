@@ -54,17 +54,6 @@ from production_platform.production.exceptions import (
     StartupError,
     safe_public_message,
 )
-from production_platform.production.runtime import (
-    RuntimeValidationReport,
-    build_runtime_infrastructure,
-    required_env_vars,
-    validate_runtime_environment,
-)
-from production_platform.production.versioning import (
-    normalize_version,
-    resolve_application_version,
-    resolve_service_version,
-)
 from production_platform.production.feature_flags import (
     FeatureFlag,
     FeatureFlagManager,
@@ -141,6 +130,12 @@ from production_platform.production.prometheus_metrics import (
 )
 from production_platform.production.rate_limit import InMemoryRateLimitPort
 from production_platform.production.repository import DefaultRepositoryFactory
+from production_platform.production.runtime import (
+    RuntimeValidationReport,
+    build_runtime_infrastructure,
+    required_env_vars,
+    validate_runtime_environment,
+)
 from production_platform.production.scheduler import (
     InMemorySchedulerPort,
     ScheduledJob,
@@ -152,6 +147,11 @@ from production_platform.production.storage import (
     StoredObject,
 )
 from production_platform.production.tracing import InMemoryTracingPort, SpanRecord
+from production_platform.production.versioning import (
+    normalize_version,
+    resolve_application_version,
+    resolve_service_version,
+)
 
 __all__ = [
     "AuditEvent",

@@ -5,9 +5,10 @@ Grounded answers from R001/R002/R004/R005 only — never fabricate.
 
 from __future__ import annotations
 
+from collections.abc import Mapping
 from dataclasses import dataclass, field
 from datetime import UTC, datetime
-from typing import Any, Mapping
+from typing import Any
 
 from dsp_platform.research_object.models import UNAVAILABLE_MESSAGE, freeze_mapping
 
@@ -49,7 +50,9 @@ class ProcessedQuestion:
 
 @dataclass(frozen=True, slots=True)
 class Citation:
-    source_kind: str  # research_object | institutional_report | archive_snapshot | research_diff
+    source_kind: (
+        str  # research_object | institutional_report | archive_snapshot | research_diff
+    )
     section: str
     path: str
     available: bool
@@ -99,16 +102,20 @@ class ResearchContextBundle:
             "has_report": self.report is not None,
             "has_archive_snapshot": self.archive_snapshot is not None,
             "has_research_diff": self.research_diff is not None,
-            "research_object": _plain(self.research_object)
-            if self.research_object is not None
-            else None,
+            "research_object": (
+                _plain(self.research_object)
+                if self.research_object is not None
+                else None
+            ),
             "report": _plain(self.report) if self.report is not None else None,
-            "archive_snapshot": _plain(self.archive_snapshot)
-            if self.archive_snapshot is not None
-            else None,
-            "research_diff": _plain(self.research_diff)
-            if self.research_diff is not None
-            else None,
+            "archive_snapshot": (
+                _plain(self.archive_snapshot)
+                if self.archive_snapshot is not None
+                else None
+            ),
+            "research_diff": (
+                _plain(self.research_diff) if self.research_diff is not None else None
+            ),
         }
 
 

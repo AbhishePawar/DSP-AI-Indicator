@@ -17,8 +17,8 @@ from security_platform import (
     AuthorizationError,
     Permission,
     RateLimitConfig,
-    RateLimitError,
     RateLimiter,
+    RateLimitError,
     Role,
     SecurityBundle,
     SecuritySettings,
@@ -40,42 +40,30 @@ class TestRolesAndPermissions:
 
     def test_client_cannot_analyze(self) -> None:
         bundle = SecurityBundle.create()
-        assert not bundle.roles.has_permission(
-            Role.CLIENT, Permission.ANALYZE_COMPANY
-        )
+        assert not bundle.roles.has_permission(Role.CLIENT, Permission.ANALYZE_COMPANY)
         assert bundle.roles.has_permission(Role.CLIENT, Permission.VIEW_REPORTS)
 
 
 class TestJWT:
     def test_issue_and_verify(self) -> None:
-        bundle = SecurityBundle.create(
-            SecuritySettings(jwt_secret="unit-test-secret")
-        )
-        token = bundle.jwt.issue(
-            subject="usr_admin", role=Role.ADMIN, username="admin"
-        )
+        bundle = SecurityBundle.create(SecuritySettings(jwt_secret="unit-test-secret"))
+        token = bundle.jwt.issue(subject="usr_admin", role=Role.ADMIN, username="admin")
         claims = bundle.jwt.verify(token)
         assert claims.subject == "usr_admin"
         assert claims.role is Role.ADMIN
 
     def test_tampered_token_rejected(self) -> None:
-        bundle = SecurityBundle.create(
-            SecuritySettings(jwt_secret="unit-test-secret")
-        )
+        bundle = SecurityBundle.create(SecuritySettings(jwt_secret="unit-test-secret"))
         token = bundle.jwt.issue(subject="usr_admin", role=Role.ADMIN)
         bad = token[:-4] + "xxxx"
         with pytest.raises(TokenError):
             bundle.jwt.verify(bad)
 
     def test_expired_token(self, monkeypatch: pytest.MonkeyPatch) -> None:
-        bundle = SecurityBundle.create(
-            SecuritySettings(jwt_secret="unit-test-secret")
-        )
+        bundle = SecurityBundle.create(SecuritySettings(jwt_secret="unit-test-secret"))
         now = time.time()
         monkeypatch.setattr(time, "time", lambda: now)
-        token = bundle.jwt.issue(
-            subject="usr_admin", role=Role.ADMIN, ttl_seconds=10
-        )
+        token = bundle.jwt.issue(subject="usr_admin", role=Role.ADMIN, ttl_seconds=10)
         monkeypatch.setattr(time, "time", lambda: now + 11)
         with pytest.raises(TokenError, match="expired"):
             bundle.jwt.verify(token)
@@ -85,9 +73,7 @@ class TestApiKeys:
     def test_issue_and_verify(self) -> None:
         bundle = SecurityBundle.create()
         record, secret = bundle.api_keys.issue(name="ci", role=Role.API)
-        principal = bundle.authentication.authenticate_api_key(
-            record.key_id, secret
-        )
+        principal = bundle.authentication.authenticate_api_key(record.key_id, secret)
         assert principal.role is Role.API
         assert principal.auth_method == "api_key"
 
@@ -100,9 +86,7 @@ class TestApiKeys:
 
 class TestAuthzAndContext:
     def test_jwt_auth_and_permission(self) -> None:
-        bundle = SecurityBundle.create(
-            SecuritySettings(jwt_secret="unit-test-secret")
-        )
+        bundle = SecurityBundle.create(SecuritySettings(jwt_secret="unit-test-secret"))
         token = bundle.jwt.issue(subject="usr_admin", role=Role.ADMIN)
         principal = bundle.authentication.authenticate_jwt(token)
         bundle.authorization.check(principal, Permission.MANAGE_PLATFORM)
@@ -111,9 +95,7 @@ class TestAuthzAndContext:
         ctx.require(Permission.ANALYZE_COMPANY)
 
     def test_client_denied_manage(self) -> None:
-        bundle = SecurityBundle.create(
-            SecuritySettings(jwt_secret="unit-test-secret")
-        )
+        bundle = SecurityBundle.create(SecuritySettings(jwt_secret="unit-test-secret"))
         bundle.users.add(
             UserRecord(user_id="usr_client", username="client", role=Role.CLIENT)
         )
@@ -134,9 +116,7 @@ class TestAuthzAndContext:
 
 class TestRateLimitAndAudit:
     def test_rate_limit(self) -> None:
-        limiter = RateLimiter(
-            RateLimitConfig(max_requests=2, window_seconds=60.0)
-        )
+        limiter = RateLimiter(RateLimitConfig(max_requests=2, window_seconds=60.0))
         limiter.check("u1")
         limiter.check("u1")
         with pytest.raises(RateLimitError):
@@ -144,9 +124,7 @@ class TestRateLimitAndAudit:
 
     def test_audit_logger(self) -> None:
         bundle = SecurityBundle.create()
-        bundle.audit.log(
-            action="login", subject="admin", success=True, detail="ok"
-        )
+        bundle.audit.log(action="login", subject="admin", success=True, detail="ok")
         events = bundle.audit.list_events()
         assert len(events) == 1
         assert events[0].action == "login"
@@ -156,9 +134,7 @@ class TestApiIntegration:
     def test_protected_analyze_requires_auth(self) -> None:
         platform = (
             PlatformBuilder()
-            .with_configuration(
-                PlatformConfiguration(require_analysis_service=False)
-            )
+            .with_configuration(PlatformConfiguration(require_analysis_service=False))
             .build()
         )
         bundle = SecurityBundle.create(
@@ -197,9 +173,7 @@ class TestApiIntegration:
     def test_health_remains_public(self) -> None:
         platform = (
             PlatformBuilder()
-            .with_configuration(
-                PlatformConfiguration(require_analysis_service=False)
-            )
+            .with_configuration(PlatformConfiguration(require_analysis_service=False))
             .build()
         )
         bundle = SecurityBundle.create(
@@ -215,7 +189,5 @@ class TestApiIntegration:
     def test_dsp_platform_has_no_security_import(self) -> None:
         import dsp_platform
 
-        source = open(
-            dsp_platform.__file__, encoding="utf-8"
-        ).read()
+        source = open(dsp_platform.__file__, encoding="utf-8").read()
         assert "security_platform" not in source

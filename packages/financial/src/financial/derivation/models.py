@@ -5,10 +5,11 @@ Canonical policy: docs/FINANCIAL_DATA_DERIVATION_POLICY.md
 
 from __future__ import annotations
 
+from collections.abc import Mapping
 from dataclasses import dataclass, field
 from datetime import date
 from enum import Enum
-from typing import Any, Mapping
+from typing import Any
 
 from financial.currency import CurrencyCode, CurrencyRef
 from financial.metadata import UnitScale

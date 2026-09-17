@@ -2,9 +2,8 @@
 
 from __future__ import annotations
 
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from typing import Any
-
 
 __all__ = [
     "ReadinessCheck",
@@ -85,7 +84,8 @@ def validate_enterprise_startup(platform: Any) -> StartupValidation:
     if compliance is not None:
         _add(
             "research_mode_default",
-            compliance.flags.research_mode is True and compliance.flags.sebi_mode is False,
+            compliance.flags.research_mode is True
+            and compliance.flags.sebi_mode is False,
             detail=f"research={compliance.flags.research_mode} sebi={compliance.flags.sebi_mode}",
         )
         policy = compliance.audit_retention.policy()
@@ -95,7 +95,11 @@ def validate_enterprise_startup(platform: Any) -> StartupValidation:
             detail=f"days={policy.retention_days}",
         )
         disclosures = compliance.disclosures.list_active(mode="research")
-        _add("research_disclosures", len(disclosures) >= 1, detail=f"count={len(disclosures)}")
+        _add(
+            "research_disclosures",
+            len(disclosures) >= 1,
+            detail=f"count={len(disclosures)}",
+        )
 
     production = getattr(platform, "production", None)
     _add("production", production is not None)
@@ -109,9 +113,11 @@ def validate_enterprise_startup(platform: Any) -> StartupValidation:
     _add(
         "consent_alignment",
         bool(consent_aligned),
-        detail="compliance ConsentPort backing identity"
-        if consent_aligned
-        else "identity using local consent store",
+        detail=(
+            "compliance ConsentPort backing identity"
+            if consent_aligned
+            else "identity using local consent store"
+        ),
     )
 
     return StartupValidation(

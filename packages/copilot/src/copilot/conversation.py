@@ -9,8 +9,6 @@ from __future__ import annotations
 
 from dataclasses import dataclass, replace
 
-from core.exceptions import ValidationError
-
 from copilot.enums import (
     ConversationRole,
     ConversationState,
@@ -45,6 +43,7 @@ from copilot.validation import (
     assert_unique_session_ids,
     assert_user_intent_type,
 )
+from core.exceptions import ValidationError
 
 __all__ = [
     "ContextBuilder",
@@ -187,9 +186,7 @@ class ConversationEngineContext:
         object.__setattr__(
             self, "quantitative_risk_refs", tuple(self.quantitative_risk_refs)
         )
-        object.__setattr__(
-            self, "recommendation_refs", tuple(self.recommendation_refs)
-        )
+        object.__setattr__(self, "recommendation_refs", tuple(self.recommendation_refs))
         object.__setattr__(self, "workflow_refs", tuple(self.workflow_refs))
         object.__setattr__(
             self, "notes", tuple(n.strip() for n in self.notes if n.strip())
@@ -380,7 +377,9 @@ class ConversationEngine:
 
         intent = self._resolve_intent(context)
         target_state = self._target_state(intent.intent_type)
-        session = self._advance_session(context, intent=intent, target_state=target_state)
+        session = self._advance_session(
+            context, intent=intent, target_state=target_state
+        )
 
         conversation_context = self._build_conversation_context(
             context=context,
@@ -469,8 +468,7 @@ class ConversationEngine:
             raw = context.user_turn.content
         intent_type = self.detect_intent(raw)
         intent_id = (
-            f"dsp.copilot.intent.{context.identity.copilot_id}."
-            f"{intent_type.value}"
+            f"dsp.copilot.intent.{context.identity.copilot_id}." f"{intent_type.value}"
         )
         target_ref_ids: tuple[str, ...] = ()
         if context.conversation_context and context.conversation_context.focus_ref_id:
@@ -645,8 +643,8 @@ class ConversationEngine:
         seen_reports: set[str] = set()
         for ref in refs:
             self._validate_ref(ref)
-            rid = getattr(ref, "id")
-            report_id = getattr(ref, "report_id")
+            rid = ref.id
+            report_id = ref.report_id
             if rid in seen_ids:
                 msg = f"duplicate report references: {name} id {rid!r}"
                 raise CopilotError(msg)
@@ -662,7 +660,7 @@ class ConversationEngine:
             if not value or not str(value).strip():
                 msg = f"broken references: missing {field}"
                 raise CopilotError(msg)
-        digest = str(getattr(ref, "digest"))
+        digest = str(ref.digest)
         if len(digest.strip()) < 8:
             msg = "broken KnowledgeGraph references: digest invalid"
             raise CopilotError(msg)

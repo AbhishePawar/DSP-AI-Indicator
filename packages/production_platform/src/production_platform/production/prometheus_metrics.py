@@ -87,12 +87,16 @@ class _PrometheusClientMetricsPort:
         self._summaries: dict[str, Any] = {}
         self._fallback = InMemoryMetricsPort()
 
-    def incr(self, name: str, value: float = 1.0, *, tags: dict[str, str] | None = None) -> None:
+    def incr(
+        self, name: str, value: float = 1.0, *, tags: dict[str, str] | None = None
+    ) -> None:
         self._fallback.incr(name, value, tags=tags)
         counter = self._counters.get(name)
         if counter is None:
             counter = self._prom.Counter(
-                _safe_metric(name), name, labelnames=sorted((tags or {}).keys()) or (),
+                _safe_metric(name),
+                name,
+                labelnames=sorted((tags or {}).keys()) or (),
                 registry=self._registry,
             )
             self._counters[name] = counter
@@ -101,12 +105,16 @@ class _PrometheusClientMetricsPort:
         else:
             counter.inc(value)
 
-    def gauge(self, name: str, value: float, *, tags: dict[str, str] | None = None) -> None:
+    def gauge(
+        self, name: str, value: float, *, tags: dict[str, str] | None = None
+    ) -> None:
         self._fallback.gauge(name, value, tags=tags)
         gauge = self._gauges.get(name)
         if gauge is None:
             gauge = self._prom.Gauge(
-                _safe_metric(name), name, labelnames=sorted((tags or {}).keys()) or (),
+                _safe_metric(name),
+                name,
+                labelnames=sorted((tags or {}).keys()) or (),
                 registry=self._registry,
             )
             self._gauges[name] = gauge
@@ -115,12 +123,16 @@ class _PrometheusClientMetricsPort:
         else:
             gauge.set(value)
 
-    def timing(self, name: str, ms: float, *, tags: dict[str, str] | None = None) -> None:
+    def timing(
+        self, name: str, ms: float, *, tags: dict[str, str] | None = None
+    ) -> None:
         self._fallback.timing(name, ms, tags=tags)
         summary = self._summaries.get(name)
         if summary is None:
             summary = self._prom.Summary(
-                _safe_metric(name) + "_ms", name, labelnames=sorted((tags or {}).keys()) or (),
+                _safe_metric(name) + "_ms",
+                name,
+                labelnames=sorted((tags or {}).keys()) or (),
                 registry=self._registry,
             )
             self._summaries[name] = summary

@@ -2,10 +2,11 @@
 
 from __future__ import annotations
 
-from typing import Any, Mapping
+from collections.abc import Mapping
+from typing import Any
 
 from dsp_platform.research_archive.hashing import to_plain_jsonable
-from dsp_platform.research_diff.models import FieldDiff, UNAVAILABLE_MESSAGE
+from dsp_platform.research_diff.models import UNAVAILABLE_MESSAGE, FieldDiff
 
 __all__ = [
     "EXPORT_DIFF_SECTIONS",
@@ -132,7 +133,9 @@ def diff_mapping(
     )
 
 
-def _diff_lists(left: list[Any], right: list[Any], prefix: str) -> tuple[FieldDiff, ...]:
+def _diff_lists(
+    left: list[Any], right: list[Any], prefix: str
+) -> tuple[FieldDiff, ...]:
     """Index-aligned list comparison only — no analytics."""
     n = max(len(left), len(right))
     out: list[FieldDiff] = []

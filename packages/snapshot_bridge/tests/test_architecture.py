@@ -10,7 +10,35 @@ from pathlib import Path
 
 _SRC = Path(__file__).resolve().parents[1] / "src" / "snapshot_bridge"
 _PKG_ROOT = Path(__file__).resolve().parents[1]
-_FORBIDDEN = frozenset(['ai_committee', 'api_platform', 'business_quality', 'comparison', 'compliance', 'copilot', 'data_ingestion', 'decision_intelligence', 'dsp', 'dsp_platform', 'economic_moat', 'financial', 'industry', 'knowledge_graph', 'orchestration', 'portfolio', 'production_platform', 'quantitative_risk', 'recommendation', 'research', 'risk', 'security_platform', 'universe', 'valuation', 'workflow'])
+_FORBIDDEN = frozenset(
+    [
+        "ai_committee",
+        "api_platform",
+        "business_quality",
+        "comparison",
+        "compliance",
+        "copilot",
+        "data_ingestion",
+        "decision_intelligence",
+        "dsp",
+        "dsp_platform",
+        "economic_moat",
+        "financial",
+        "industry",
+        "knowledge_graph",
+        "orchestration",
+        "portfolio",
+        "production_platform",
+        "quantitative_risk",
+        "recommendation",
+        "research",
+        "risk",
+        "security_platform",
+        "universe",
+        "valuation",
+        "workflow",
+    ]
+)
 _EXPECTED_VERSION = "0.1.0"
 
 
@@ -45,13 +73,19 @@ class TestSnapshotBridgeArchitecture:
         import tomllib
 
         data = tomllib.loads((_PKG_ROOT / "pyproject.toml").read_text(encoding="utf-8"))
-        assert data["project"]["dependencies"] == ['contracts', 'core', 'data_engine', 'economic', 'fundamental']
+        assert data["project"]["dependencies"] == [
+            "contracts",
+            "core",
+            "data_engine",
+            "economic",
+            "fundamental",
+        ]
         assert data["project"]["version"] == _EXPECTED_VERSION
 
     def test_public_api_stable(self) -> None:
         import snapshot_bridge as mod
 
-        assert getattr(mod, "__version__") == _EXPECTED_VERSION
+        assert mod.__version__ == _EXPECTED_VERSION
         assert hasattr(mod, "__all__")
         missing = [name for name in mod.__all__ if not hasattr(mod, name)]
         assert missing == [], missing

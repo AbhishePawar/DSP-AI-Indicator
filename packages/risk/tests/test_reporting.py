@@ -6,9 +6,9 @@ import ast
 from pathlib import Path
 
 import pytest
+
 from industry import EvidenceBundleReference, EvidenceBundleStatus
 from portfolio import DecisionPackReference
-
 from risk import (
     PortfolioReference,
     RiskAnalysisContext,
@@ -19,10 +19,8 @@ from risk import (
     RiskCoverage,
     RiskCoverageKind,
     RiskCoverageStatus,
-    RiskDescriptor,
     RiskError,
     RiskIdentity,
-    RiskLevel,
     RiskObservation,
     RiskProfile,
     RiskReporter,
@@ -37,23 +35,27 @@ def _pack(symbol: str) -> DecisionPackReference:
 
 
 def _assembled_profile() -> RiskProfile:
-    return RiskAssembler().assemble(
-        RiskAssemblyContext(
-            identity=RiskIdentity(risk_id="dsp.risk.demo", risk_name="Demo"),
-            portfolio_ref=PortfolioReference(portfolio_id="dsp.portfolio.demo"),
-            decision_pack_refs=(_pack("AAA"), _pack("BBB")),
-            evidence_bundle_refs=(
-                EvidenceBundleReference(
-                    bundle_id="dsp.evidence_bundle.aaa",
-                    instrument_key="AAA",
-                    methodology_id="dsp.methodology.commercial_banking",
-                    methodology_version="1.0.0",
-                    digest="abcdef0123456789deadbeef",
-                    status=EvidenceBundleStatus.INCOMPLETE,
+    return (
+        RiskAssembler()
+        .assemble(
+            RiskAssemblyContext(
+                identity=RiskIdentity(risk_id="dsp.risk.demo", risk_name="Demo"),
+                portfolio_ref=PortfolioReference(portfolio_id="dsp.portfolio.demo"),
+                decision_pack_refs=(_pack("AAA"), _pack("BBB")),
+                evidence_bundle_refs=(
+                    EvidenceBundleReference(
+                        bundle_id="dsp.evidence_bundle.aaa",
+                        instrument_key="AAA",
+                        methodology_id="dsp.methodology.commercial_banking",
+                        methodology_version="1.0.0",
+                        digest="abcdef0123456789deadbeef",
+                        status=EvidenceBundleStatus.INCOMPLETE,
+                    ),
                 ),
-            ),
+            )
         )
-    ).profile
+        .profile
+    )
 
 
 def _analyzed_profile() -> RiskProfile:
@@ -151,7 +153,9 @@ class TestReporting:
 
 class TestValidation:
     def test_missing_assessment(self) -> None:
-        with pytest.raises(RiskError, match="missing required artifacts: RiskAssessment"):
+        with pytest.raises(
+            RiskError, match="missing required artifacts: RiskAssessment"
+        ):
             RiskReporter().report(_assembled_profile())
 
     def test_missing_summary(self) -> None:

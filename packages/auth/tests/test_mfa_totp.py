@@ -74,7 +74,9 @@ def test_totp_rfc6238_known_vector() -> None:
 
 
 def test_totp_adapter_enroll_confirm_verify_cycle() -> None:
-    adapter = TotpAdapter(PersistenceService(RepositoryRegistry(storage=InMemoryStorageProvider())))
+    adapter = TotpAdapter(
+        PersistenceService(RepositoryRegistry(storage=InMemoryStorageProvider()))
+    )
     enroll = adapter.begin_enroll("user-1")
     assert enroll["secret"]
     assert enroll["otpauth_uri"].startswith("otpauth://totp/")
@@ -96,7 +98,9 @@ def test_totp_adapter_enroll_confirm_verify_cycle() -> None:
     assert adapter.is_enrolled("user-1") is False
 
 
-def test_totp_platform_enroll_and_login_stepup_flow(_reset: EnterpriseAuthPlatform) -> None:
+def test_totp_platform_enroll_and_login_stepup_flow(
+    _reset: EnterpriseAuthPlatform,
+) -> None:
     platform = _reset
     reg = platform.register_email(
         name="MFA User",
@@ -131,7 +135,9 @@ def test_totp_platform_enroll_and_login_stepup_flow(_reset: EnterpriseAuthPlatfo
         platform.mfa_totp_verify_stepup(mfa_token=mfa_token, code="000000")
 
 
-def test_totp_enroll_requires_mfa_flag(monkeypatch: pytest.MonkeyPatch, _reset: EnterpriseAuthPlatform) -> None:
+def test_totp_enroll_requires_mfa_flag(
+    monkeypatch: pytest.MonkeyPatch, _reset: EnterpriseAuthPlatform
+) -> None:
     monkeypatch.setenv("DSP_AUTH_MFA", "false")
     store = InMemoryStorageProvider()
     registry = RepositoryRegistry(storage=store)
@@ -141,7 +147,9 @@ def test_totp_enroll_requires_mfa_flag(monkeypatch: pytest.MonkeyPatch, _reset: 
     reset_role_registry_for_tests(RoleRegistry())
     auth = AuthService(ps, jwt_secret="test-secret")
     reset_auth_service_for_tests(auth)
-    platform = EnterpriseAuthPlatform(auth, oauth=OAuthProviderRegistry({}), otp=OtpService(DevSmsAdapter()))
+    platform = EnterpriseAuthPlatform(
+        auth, oauth=OAuthProviderRegistry({}), otp=OtpService(DevSmsAdapter())
+    )
     reset_enterprise_auth_platform_for_tests(platform)
     with pytest.raises(ValidationError):
         platform.mfa_totp_enroll_begin("some-user")

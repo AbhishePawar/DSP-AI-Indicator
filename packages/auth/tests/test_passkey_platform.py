@@ -17,7 +17,9 @@ import time
 
 import pytest
 
-webauthn_lib = pytest.importorskip("webauthn", reason="optional 'webauthn' package not installed")
+webauthn_lib = pytest.importorskip(
+    "webauthn", reason="optional 'webauthn' package not installed"
+)
 
 from auth import (  # noqa: E402
     AuthService,
@@ -59,9 +61,7 @@ _REG_CREDENTIAL = {
     "clientExtensionResults": {},
     "transports": ["nfc", "usb"],
 }
-_REG_CHALLENGE_B64URL = (
-    "TwN7n4WTyGKLc4ZY-qGsFqKnHM4nglqsyV0ICJlN2TO9XiRyFtrkaDwUvsql-gkLJXP6fnF1MlrZ53Mm4R7Cvw"
-)
+_REG_CHALLENGE_B64URL = "TwN7n4WTyGKLc4ZY-qGsFqKnHM4nglqsyV0ICJlN2TO9XiRyFtrkaDwUvsql-gkLJXP6fnF1MlrZ53Mm4R7Cvw"
 
 _AUTH_CREDENTIAL = {
     "id": "EDx9FfAbp4obx6oll2oC4-CZuDidRVV4gZhxC529ytlnqHyqCStDUwfNdm1SNHAe3X5KvueWQdAX3x9R1a2b9Q",
@@ -74,12 +74,8 @@ _AUTH_CREDENTIAL = {
     "type": "public-key",
     "clientExtensionResults": {},
 }
-_AUTH_CHALLENGE_B64URL = (
-    "xi30GPGAFYRxVDpY1sM10DaLzVQG66nv-_7RUazH0vI2YvG8LYgDEnvN5fZZNVuvEDuMi9te3VLqb42N0fkLGA"
-)
-_AUTH_PUBLIC_KEY_B64URL = (
-    "pQECAyYgASFYIIeDTe-gN8A-zQclHoRnGFWN8ehM1b7yAsa8I8KIvmplIlgg4nFGT5px8o6gpPZZhO01wdy9crDSA_Ngtkx0vGpvPHI"
-)
+_AUTH_CHALLENGE_B64URL = "xi30GPGAFYRxVDpY1sM10DaLzVQG66nv-_7RUazH0vI2YvG8LYgDEnvN5fZZNVuvEDuMi9te3VLqb42N0fkLGA"
+_AUTH_PUBLIC_KEY_B64URL = "pQECAyYgASFYIIeDTe-gN8A-zQclHoRnGFWN8ehM1b7yAsa8I8KIvmplIlgg4nFGT5px8o6gpPZZhO01wdy9crDSA_Ngtkx0vGpvPHI"
 
 
 def _stored_credential(cred_id: str, *, sign_count: int = 77) -> dict:
@@ -99,7 +95,11 @@ def _index_credential(persistence, cred_id: str, user_id: str) -> None:
     persistence.put(
         kind="metadata",
         entity_id=f"auth-webauthn-cred-index-{cred_id}",
-        payload={"auth_entity": "webauthn_cred_index", "user_id": user_id, "credential_id": cred_id},
+        payload={
+            "auth_entity": "webauthn_cred_index",
+            "user_id": user_id,
+            "credential_id": cred_id,
+        },
         refs={"auth_entity": "webauthn_cred_index"},
         created_at=None,
         allow_update=True,
@@ -120,7 +120,11 @@ def platform(monkeypatch: pytest.MonkeyPatch):
     auth = AuthService(ps, jwt_secret="test-secret")
     reset_auth_service_for_tests(auth)
     webauthn = WebAuthnAdapter(
-        auth.persistence, auth.users, rp_id="localhost", rp_name="Test RP", origin="http://localhost:5000"
+        auth.persistence,
+        auth.users,
+        rp_id="localhost",
+        rp_name="Test RP",
+        origin="http://localhost:5000",
     )
     mfa = MfaGateway(webauthn=webauthn, enabled=True)
     plat = EnterpriseAuthPlatform(
@@ -160,20 +164,27 @@ def test_register_begin_returns_resident_key_required_options_and_audits(
     assert begin["state"]
     assert begin["authenticatorSelection"]["residentKey"] == "required"
     assert begin["rp"]["id"] == "localhost"
-    events = platform.audit.list_events(user_id=user_id, event_type="passkey.register.begin")
+    events = platform.audit.list_events(
+        user_id=user_id, event_type="passkey.register.begin"
+    )
     assert len(events) == 1
     assert events[0]["ip_hint"] == "203.0.113.9"
 
 
-def test_register_complete_with_real_attestation_records_success(platform: EnterpriseAuthPlatform) -> None:
+def test_register_complete_with_real_attestation_records_success(
+    platform: EnterpriseAuthPlatform,
+) -> None:
     user_id = _make_user(platform)
     state = "reg-state-1"
-    platform.mfa.webauthn.seed_pending(state, {  # noqa: SLF001 — deterministic ceremony seeding
-        "kind": "registration",
-        "user_id": user_id,
-        "challenge": _b64url_decode(_REG_CHALLENGE_B64URL),
-        "created_at": time.time(),
-    })
+    platform.mfa.webauthn.seed_pending(
+        state,
+        {  # noqa: SLF001 — deterministic ceremony seeding
+            "kind": "registration",
+            "user_id": user_id,
+            "challenge": _b64url_decode(_REG_CHALLENGE_B64URL),
+            "created_at": time.time(),
+        },
+    )
     result = platform.webauthn_register_complete(
         user_id, {"state": state, "credential": _REG_CREDENTIAL}, ip_hint="203.0.113.9"
     )
@@ -184,17 +195,23 @@ def test_register_complete_with_real_attestation_records_success(platform: Enter
     assert len(creds) == 1
     assert "public_key" not in creds[0]  # never exposed
 
-    events = platform.audit.list_events(user_id=user_id, event_type="passkey.register.success")
+    events = platform.audit.list_events(
+        user_id=user_id, event_type="passkey.register.success"
+    )
     assert len(events) == 1
 
 
-def test_register_complete_invalid_state_records_failure(platform: EnterpriseAuthPlatform) -> None:
+def test_register_complete_invalid_state_records_failure(
+    platform: EnterpriseAuthPlatform,
+) -> None:
     user_id = _make_user(platform)
     with pytest.raises(Exception):
         platform.webauthn_register_complete(
             user_id, {"state": "does-not-exist", "credential": _REG_CREDENTIAL}
         )
-    events = platform.audit.list_events(user_id=user_id, event_type="passkey.register.failure")
+    events = platform.audit.list_events(
+        user_id=user_id, event_type="passkey.register.failure"
+    )
     assert len(events) == 1
 
 
@@ -207,7 +224,9 @@ def test_register_requires_mfa_flag_enabled() -> None:
     reset_role_registry_for_tests(RoleRegistry())
     auth = AuthService(ps, jwt_secret="test-secret")
     reset_auth_service_for_tests(auth)
-    plat = EnterpriseAuthPlatform(auth, oauth=OAuthProviderRegistry({}), otp=OtpService(DevSmsAdapter()))
+    plat = EnterpriseAuthPlatform(
+        auth, oauth=OAuthProviderRegistry({}), otp=OtpService(DevSmsAdapter())
+    )
     try:
         with pytest.raises(ValidationError):
             plat.webauthn_register_begin("some-user")
@@ -223,18 +242,25 @@ def test_register_requires_mfa_flag_enabled() -> None:
 # --------------------------------------------------------------------- #
 
 
-def test_passkey_login_issues_full_session_and_audits_success(platform: EnterpriseAuthPlatform) -> None:
+def test_passkey_login_issues_full_session_and_audits_success(
+    platform: EnterpriseAuthPlatform,
+) -> None:
     user_id = _make_user(platform)
     cred_id = _AUTH_CREDENTIAL["id"]
-    platform.mfa.webauthn._save_credentials(user_id, [_stored_credential(cred_id)])  # noqa: SLF001
+    platform.mfa.webauthn._save_credentials(
+        user_id, [_stored_credential(cred_id)]
+    )  # noqa: SLF001
     _index_credential(platform.auth.persistence, cred_id, user_id)
 
     state = "auth-state-1"
-    platform.mfa.webauthn.seed_pending(state, {  # noqa: SLF001
-        "kind": "authentication",
-        "challenge": _b64url_decode(_AUTH_CHALLENGE_B64URL),
-        "created_at": time.time(),
-    })
+    platform.mfa.webauthn.seed_pending(
+        state,
+        {  # noqa: SLF001
+            "kind": "authentication",
+            "challenge": _b64url_decode(_AUTH_CHALLENGE_B64URL),
+            "created_at": time.time(),
+        },
+    )
     result = platform.webauthn_authenticate_complete(
         {"state": state, "credential": _AUTH_CREDENTIAL},
         remember_me=True,
@@ -248,12 +274,16 @@ def test_passkey_login_issues_full_session_and_audits_success(platform: Enterpri
     creds = platform.webauthn_list_credentials(user_id)
     assert creds[0]["sign_count"] == 78  # rotated per verification.new_sign_count
 
-    events = platform.audit.list_events(user_id=user_id, event_type="passkey.login.success")
+    events = platform.audit.list_events(
+        user_id=user_id, event_type="passkey.login.success"
+    )
     assert len(events) == 1
     assert events[0]["ip_hint"] == "203.0.113.5"
 
 
-def test_passkey_login_begin_reports_discoverable_shape(platform: EnterpriseAuthPlatform) -> None:
+def test_passkey_login_begin_reports_discoverable_shape(
+    platform: EnterpriseAuthPlatform,
+) -> None:
     begin = platform.webauthn_authenticate_begin(None)
     assert begin["state"]
     assert begin["rpId"] == "localhost"
@@ -264,55 +294,84 @@ def test_passkey_login_unknown_credential_records_failure_no_session(
     platform: EnterpriseAuthPlatform,
 ) -> None:
     state = "auth-state-2"
-    platform.mfa.webauthn.seed_pending(state, {  # noqa: SLF001
-        "kind": "authentication",
-        "challenge": _b64url_decode(_AUTH_CHALLENGE_B64URL),
-        "created_at": time.time(),
-    })
+    platform.mfa.webauthn.seed_pending(
+        state,
+        {  # noqa: SLF001
+            "kind": "authentication",
+            "challenge": _b64url_decode(_AUTH_CHALLENGE_B64URL),
+            "created_at": time.time(),
+        },
+    )
     with pytest.raises(AuthenticationError, match="Unknown passkey credential"):
-        platform.webauthn_authenticate_complete({"state": state, "credential": _AUTH_CREDENTIAL})
+        platform.webauthn_authenticate_complete(
+            {"state": state, "credential": _AUTH_CREDENTIAL}
+        )
     events = platform.audit.list_events(event_type="passkey.login.failure")
     assert len(events) == 1
 
 
-def test_passkey_login_expired_challenge_rejected(platform: EnterpriseAuthPlatform) -> None:
+def test_passkey_login_expired_challenge_rejected(
+    platform: EnterpriseAuthPlatform,
+) -> None:
     user_id = _make_user(platform)
     cred_id = _AUTH_CREDENTIAL["id"]
-    platform.mfa.webauthn._save_credentials(user_id, [_stored_credential(cred_id)])  # noqa: SLF001
+    platform.mfa.webauthn._save_credentials(
+        user_id, [_stored_credential(cred_id)]
+    )  # noqa: SLF001
     _index_credential(platform.auth.persistence, cred_id, user_id)
 
     state = "auth-state-expired"
-    platform.mfa.webauthn.seed_pending(state, {  # noqa: SLF001
-        "kind": "authentication",
-        "challenge": _b64url_decode(_AUTH_CHALLENGE_B64URL),
-        "created_at": time.time() - 10_000,  # far beyond the 300s TTL
-    })
+    platform.mfa.webauthn.seed_pending(
+        state,
+        {  # noqa: SLF001
+            "kind": "authentication",
+            "challenge": _b64url_decode(_AUTH_CHALLENGE_B64URL),
+            "created_at": time.time() - 10_000,  # far beyond the 300s TTL
+        },
+    )
     with pytest.raises(AuthenticationError, match="expired"):
-        platform.webauthn_authenticate_complete({"state": state, "credential": _AUTH_CREDENTIAL})
+        platform.webauthn_authenticate_complete(
+            {"state": state, "credential": _AUTH_CREDENTIAL}
+        )
     assert platform.audit.list_events(event_type="passkey.login.failure")
 
 
-def test_passkey_login_replay_of_same_state_rejected(platform: EnterpriseAuthPlatform) -> None:
+def test_passkey_login_replay_of_same_state_rejected(
+    platform: EnterpriseAuthPlatform,
+) -> None:
     """Challenges are single-use — the state is popped on first use, so a
     replayed assertion (same state, same or different credential blob)
     cannot be redeemed twice."""
     user_id = _make_user(platform)
     cred_id = _AUTH_CREDENTIAL["id"]
-    platform.mfa.webauthn._save_credentials(user_id, [_stored_credential(cred_id)])  # noqa: SLF001
+    platform.mfa.webauthn._save_credentials(
+        user_id, [_stored_credential(cred_id)]
+    )  # noqa: SLF001
     _index_credential(platform.auth.persistence, cred_id, user_id)
 
     state = "auth-state-replay"
-    platform.mfa.webauthn.seed_pending(state, {  # noqa: SLF001
-        "kind": "authentication",
-        "challenge": _b64url_decode(_AUTH_CHALLENGE_B64URL),
-        "created_at": time.time(),
-    })
-    platform.webauthn_authenticate_complete({"state": state, "credential": _AUTH_CREDENTIAL})
-    with pytest.raises(AuthenticationError, match="Invalid or expired authentication challenge"):
-        platform.webauthn_authenticate_complete({"state": state, "credential": _AUTH_CREDENTIAL})
+    platform.mfa.webauthn.seed_pending(
+        state,
+        {  # noqa: SLF001
+            "kind": "authentication",
+            "challenge": _b64url_decode(_AUTH_CHALLENGE_B64URL),
+            "created_at": time.time(),
+        },
+    )
+    platform.webauthn_authenticate_complete(
+        {"state": state, "credential": _AUTH_CREDENTIAL}
+    )
+    with pytest.raises(
+        AuthenticationError, match="Invalid or expired authentication challenge"
+    ):
+        platform.webauthn_authenticate_complete(
+            {"state": state, "credential": _AUTH_CREDENTIAL}
+        )
 
 
-def test_passkey_login_counter_replay_rejected(platform: EnterpriseAuthPlatform) -> None:
+def test_passkey_login_counter_replay_rejected(
+    platform: EnterpriseAuthPlatform,
+) -> None:
     """A stored sign_count greater than or equal to the assertion's own
     counter means the authenticator/credential may have been cloned — the
     library must reject the assertion rather than accept a replayed or
@@ -327,21 +386,30 @@ def test_passkey_login_counter_replay_rejected(platform: EnterpriseAuthPlatform)
     _index_credential(platform.auth.persistence, cred_id, user_id)
 
     state = "auth-state-counter"
-    platform.mfa.webauthn.seed_pending(state, {  # noqa: SLF001
-        "kind": "authentication",
-        "challenge": _b64url_decode(_AUTH_CHALLENGE_B64URL),
-        "created_at": time.time(),
-    })
+    platform.mfa.webauthn.seed_pending(
+        state,
+        {  # noqa: SLF001
+            "kind": "authentication",
+            "challenge": _b64url_decode(_AUTH_CHALLENGE_B64URL),
+            "created_at": time.time(),
+        },
+    )
     with pytest.raises(AuthenticationError, match="Passkey verification failed"):
-        platform.webauthn_authenticate_complete({"state": state, "credential": _AUTH_CREDENTIAL})
+        platform.webauthn_authenticate_complete(
+            {"state": state, "credential": _AUTH_CREDENTIAL}
+        )
     assert platform.audit.list_events(event_type="passkey.login.failure")
 
 
-def test_passkey_login_signature_failure_rejected(platform: EnterpriseAuthPlatform) -> None:
+def test_passkey_login_signature_failure_rejected(
+    platform: EnterpriseAuthPlatform,
+) -> None:
     """A tampered signature must fail verification, not merely be ignored."""
     user_id = _make_user(platform)
     cred_id = _AUTH_CREDENTIAL["id"]
-    platform.mfa.webauthn._save_credentials(user_id, [_stored_credential(cred_id)])  # noqa: SLF001
+    platform.mfa.webauthn._save_credentials(
+        user_id, [_stored_credential(cred_id)]
+    )  # noqa: SLF001
     _index_credential(platform.auth.persistence, cred_id, user_id)
 
     tampered = {
@@ -355,13 +423,18 @@ def test_passkey_login_signature_failure_rejected(platform: EnterpriseAuthPlatfo
         "clientExtensionResults": {},
     }
     state = "auth-state-badsig"
-    platform.mfa.webauthn.seed_pending(state, {  # noqa: SLF001
-        "kind": "authentication",
-        "challenge": _b64url_decode(_AUTH_CHALLENGE_B64URL),
-        "created_at": time.time(),
-    })
+    platform.mfa.webauthn.seed_pending(
+        state,
+        {  # noqa: SLF001
+            "kind": "authentication",
+            "challenge": _b64url_decode(_AUTH_CHALLENGE_B64URL),
+            "created_at": time.time(),
+        },
+    )
     with pytest.raises(AuthenticationError, match="Passkey verification failed"):
-        platform.webauthn_authenticate_complete({"state": state, "credential": tampered})
+        platform.webauthn_authenticate_complete(
+            {"state": state, "credential": tampered}
+        )
 
 
 def test_passkey_login_invalid_origin_rejected(monkeypatch: pytest.MonkeyPatch) -> None:
@@ -376,23 +449,35 @@ def test_passkey_login_invalid_origin_rejected(monkeypatch: pytest.MonkeyPatch) 
     auth = AuthService(ps, jwt_secret="test-secret")
     reset_auth_service_for_tests(auth)
     webauthn = WebAuthnAdapter(
-        auth.persistence, auth.users, rp_id="localhost", origin="https://app.dspai.example"
+        auth.persistence,
+        auth.users,
+        rp_id="localhost",
+        origin="https://app.dspai.example",
     )
     mfa = MfaGateway(webauthn=webauthn, enabled=True)
-    plat = EnterpriseAuthPlatform(auth, oauth=OAuthProviderRegistry({}), otp=OtpService(DevSmsAdapter()), mfa=mfa)
+    plat = EnterpriseAuthPlatform(
+        auth, oauth=OAuthProviderRegistry({}), otp=OtpService(DevSmsAdapter()), mfa=mfa
+    )
     try:
         user_id = _make_user(plat)
         cred_id = _AUTH_CREDENTIAL["id"]
-        webauthn._save_credentials(user_id, [_stored_credential(cred_id)])  # noqa: SLF001
+        webauthn._save_credentials(
+            user_id, [_stored_credential(cred_id)]
+        )  # noqa: SLF001
         _index_credential(auth.persistence, cred_id, user_id)
         state = "auth-state-origin"
-        webauthn.seed_pending(state, {  # noqa: SLF001
-            "kind": "authentication",
-            "challenge": _b64url_decode(_AUTH_CHALLENGE_B64URL),
-            "created_at": time.time(),
-        })
+        webauthn.seed_pending(
+            state,
+            {  # noqa: SLF001
+                "kind": "authentication",
+                "challenge": _b64url_decode(_AUTH_CHALLENGE_B64URL),
+                "created_at": time.time(),
+            },
+        )
         with pytest.raises(AuthenticationError, match="Passkey verification failed"):
-            plat.webauthn_authenticate_complete({"state": state, "credential": _AUTH_CREDENTIAL})
+            plat.webauthn_authenticate_complete(
+                {"state": state, "credential": _AUTH_CREDENTIAL}
+            )
     finally:
         reset_auth_service_for_tests(None)
         reset_role_registry_for_tests(None)
@@ -412,23 +497,35 @@ def test_passkey_login_invalid_rp_id_rejected(monkeypatch: pytest.MonkeyPatch) -
     auth = AuthService(ps, jwt_secret="test-secret")
     reset_auth_service_for_tests(auth)
     webauthn = WebAuthnAdapter(
-        auth.persistence, auth.users, rp_id="dspai.example", origin="http://localhost:5000"
+        auth.persistence,
+        auth.users,
+        rp_id="dspai.example",
+        origin="http://localhost:5000",
     )
     mfa = MfaGateway(webauthn=webauthn, enabled=True)
-    plat = EnterpriseAuthPlatform(auth, oauth=OAuthProviderRegistry({}), otp=OtpService(DevSmsAdapter()), mfa=mfa)
+    plat = EnterpriseAuthPlatform(
+        auth, oauth=OAuthProviderRegistry({}), otp=OtpService(DevSmsAdapter()), mfa=mfa
+    )
     try:
         user_id = _make_user(plat)
         cred_id = _AUTH_CREDENTIAL["id"]
-        webauthn._save_credentials(user_id, [_stored_credential(cred_id)])  # noqa: SLF001
+        webauthn._save_credentials(
+            user_id, [_stored_credential(cred_id)]
+        )  # noqa: SLF001
         _index_credential(auth.persistence, cred_id, user_id)
         state = "auth-state-rpid"
-        webauthn.seed_pending(state, {  # noqa: SLF001
-            "kind": "authentication",
-            "challenge": _b64url_decode(_AUTH_CHALLENGE_B64URL),
-            "created_at": time.time(),
-        })
+        webauthn.seed_pending(
+            state,
+            {  # noqa: SLF001
+                "kind": "authentication",
+                "challenge": _b64url_decode(_AUTH_CHALLENGE_B64URL),
+                "created_at": time.time(),
+            },
+        )
         with pytest.raises(AuthenticationError, match="Passkey verification failed"):
-            plat.webauthn_authenticate_complete({"state": state, "credential": _AUTH_CREDENTIAL})
+            plat.webauthn_authenticate_complete(
+                {"state": state, "credential": _AUTH_CREDENTIAL}
+            )
     finally:
         reset_auth_service_for_tests(None)
         reset_role_registry_for_tests(None)
@@ -441,7 +538,9 @@ def test_passkey_login_invalid_rp_id_rejected(monkeypatch: pytest.MonkeyPatch) -
 # --------------------------------------------------------------------- #
 
 
-def test_multiple_passkeys_per_user_are_all_listed(platform: EnterpriseAuthPlatform) -> None:
+def test_multiple_passkeys_per_user_are_all_listed(
+    platform: EnterpriseAuthPlatform,
+) -> None:
     user_id = _make_user(platform)
     platform.mfa.webauthn._save_credentials(  # noqa: SLF001
         user_id,
@@ -452,10 +551,16 @@ def test_multiple_passkeys_per_user_are_all_listed(platform: EnterpriseAuthPlatf
         ],
     )
     creds = platform.webauthn_list_credentials(user_id)
-    assert {c["credential_id"] for c in creds} == {"cred-phone", "cred-laptop", "cred-yubikey"}
+    assert {c["credential_id"] for c in creds} == {
+        "cred-phone",
+        "cred-laptop",
+        "cred-yubikey",
+    }
 
 
-def test_device_migration_remove_old_device_keep_new_one(platform: EnterpriseAuthPlatform) -> None:
+def test_device_migration_remove_old_device_keep_new_one(
+    platform: EnterpriseAuthPlatform,
+) -> None:
     """Simulates replacing a lost/retired device: the old credential is
     deleted while a newer one remains fully usable."""
     user_id = _make_user(platform)
@@ -463,7 +568,9 @@ def test_device_migration_remove_old_device_keep_new_one(platform: EnterpriseAut
         user_id,
         [_stored_credential("cred-old-phone"), _stored_credential("cred-new-phone")],
     )
-    out = platform.webauthn_remove_credential(user_id, "cred-old-phone", ip_hint="203.0.113.7")
+    out = platform.webauthn_remove_credential(
+        user_id, "cred-old-phone", ip_hint="203.0.113.7"
+    )
     assert out["ok"] is True
 
     remaining = platform.webauthn_list_credentials(user_id)
@@ -475,7 +582,9 @@ def test_device_migration_remove_old_device_keep_new_one(platform: EnterpriseAut
     assert events[0]["detail"] == "cred-old-phone"
 
 
-def test_remove_nonexistent_credential_raises_validation_error(platform: EnterpriseAuthPlatform) -> None:
+def test_remove_nonexistent_credential_raises_validation_error(
+    platform: EnterpriseAuthPlatform,
+) -> None:
     user_id = _make_user(platform)
     with pytest.raises(ValidationError):
         platform.webauthn_remove_credential(user_id, "does-not-exist")
@@ -507,7 +616,9 @@ def test_provider_discovery_reports_passkey_unavailable_when_mfa_disabled() -> N
     reset_role_registry_for_tests(RoleRegistry())
     auth = AuthService(ps, jwt_secret="test-secret")
     reset_auth_service_for_tests(auth)
-    plat = EnterpriseAuthPlatform(auth, oauth=OAuthProviderRegistry({}), otp=OtpService(DevSmsAdapter()))
+    plat = EnterpriseAuthPlatform(
+        auth, oauth=OAuthProviderRegistry({}), otp=OtpService(DevSmsAdapter())
+    )
     try:
         status = plat.provider_status()
         assert status["passkey"]["available"] is False

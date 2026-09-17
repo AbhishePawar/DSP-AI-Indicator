@@ -49,9 +49,7 @@ def test_org_isolation_and_rbac(svc: EnterpriseService) -> None:
 
 
 def test_license_billing_honest_empties(svc: EnterpriseService) -> None:
-    org = svc.create_organization(
-        name="Lic Org", slug="lic-org", owner_user_id="u1"
-    )
+    org = svc.create_organization(name="Lic Org", slug="lic-org", owner_user_id="u1")
     empty = svc.get_license(org["org_id"], actor_user_id="u1")
     assert empty["available"] is False
     assert empty["message"] == "No license assigned."
@@ -72,9 +70,7 @@ def test_license_billing_honest_empties(svc: EnterpriseService) -> None:
 
 
 def test_audit_immutability_and_api_key_scopes(svc: EnterpriseService) -> None:
-    org = svc.create_organization(
-        name="Sec Org", slug="sec-org", owner_user_id="u-sec"
-    )
+    org = svc.create_organization(name="Sec Org", slug="sec-org", owner_user_id="u-sec")
     key = svc.create_api_key(
         org["org_id"],
         name="CI",
@@ -111,9 +107,7 @@ def test_session_revoke(svc: EnterpriseService) -> None:
     org = svc.create_organization(
         name="Sess Org", slug="sess-org", owner_user_id="u-sess"
     )
-    session = svc.create_session(
-        org["org_id"], user_id="u-sess", device_label="laptop"
-    )
+    session = svc.create_session(org["org_id"], user_id="u-sess", device_label="laptop")
     active = svc.list_sessions(org["org_id"], actor_user_id="u-sess")
     assert len(active) == 1
     revoked = svc.revoke_session(
@@ -142,9 +136,7 @@ def test_portal_and_ops(svc: EnterpriseService) -> None:
 
 
 def test_teams_hierarchy_ready(svc: EnterpriseService) -> None:
-    org = svc.create_organization(
-        name="Team Org", slug="team-org", owner_user_id="u-t"
-    )
+    org = svc.create_organization(name="Team Org", slug="team-org", owner_user_id="u-t")
     parent = svc.create_team(
         org["org_id"],
         name="Research",

@@ -321,9 +321,7 @@ def _serialize_row(row: dict[str, Any]) -> dict[str, Any]:
             # Opaque binary — store as ASCII base64 string marker.
             import base64
 
-            out[str(key)] = {
-                "__b64__": base64.b64encode(bytes(value)).decode("ascii")
-            }
+            out[str(key)] = {"__b64__": base64.b64encode(bytes(value)).decode("ascii")}
         else:
             out[str(key)] = value
     return out

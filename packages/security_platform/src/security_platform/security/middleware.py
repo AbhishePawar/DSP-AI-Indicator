@@ -173,7 +173,10 @@ def _authorization_from_request(request: Request) -> str | None:
     if header:
         return header
     try:
-        from security_platform.security.cookies import ACCESS_COOKIE, cookie_auth_enabled
+        from security_platform.security.cookies import (
+            ACCESS_COOKIE,
+            cookie_auth_enabled,
+        )
 
         if cookie_auth_enabled():
             token = request.cookies.get(ACCESS_COOKIE)

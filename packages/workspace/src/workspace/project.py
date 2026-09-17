@@ -3,7 +3,8 @@
 from __future__ import annotations
 
 import uuid
-from typing import Any, Mapping
+from collections.abc import Mapping
+from typing import Any
 
 from workspace.models import Project, freeze_mapping, utc_now
 from workspace.validation import (

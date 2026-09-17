@@ -111,6 +111,4 @@ class FanoutLoggingPort:
         fields: dict[str, Any] | None = None,
     ) -> None:
         for port in self._ports:
-            port.log(
-                level, message, correlation_id=correlation_id, fields=fields
-            )
+            port.log(level, message, correlation_id=correlation_id, fields=fields)

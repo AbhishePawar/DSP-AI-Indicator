@@ -5,10 +5,9 @@ from __future__ import annotations
 from collections.abc import Callable, Sequence
 from datetime import UTC, datetime
 
+import economic.registry as analyzer_registry
 from contracts.domain.evidence import Evidence
 from contracts.enums import EngineSource
-
-import economic.registry as analyzer_registry
 from economic.aggregation import aggregate_signals
 from economic.analyzers.base import Analyzer
 from economic.exceptions import EconomicError

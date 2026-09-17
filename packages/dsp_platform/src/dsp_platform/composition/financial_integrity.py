@@ -7,8 +7,8 @@ Does not invent FX, corporate-action engines, or valuation methodologies.
 
 from __future__ import annotations
 
+from collections.abc import Iterable
 from dataclasses import replace
-from typing import Iterable
 
 from data_engine.financial_statement.models import (
     AuthenticatedStatementPeriod,
@@ -38,6 +38,7 @@ class FinancialIntegrityError(ValueError):
 
     def __init__(self, message: str = DATA_UNAVAILABLE) -> None:
         super().__init__(message if message else DATA_UNAVAILABLE)
+
 
 ALLOWED_STATEMENT_BASIS = frozenset({"consolidated", "standalone"})
 
@@ -106,10 +107,7 @@ def assert_statement_basis(
     periods: Iterable[AuthenticatedStatementPeriod],
 ) -> str:
     """Require a single explicit consolidated|standalone basis."""
-    bases = {
-        str(p.statement_basis or "").strip().lower()
-        for p in periods
-    }
+    bases = {str(p.statement_basis or "").strip().lower() for p in periods}
     bases.discard("")
     if not bases:
         raise FinancialIntegrityError(
@@ -138,10 +136,7 @@ def assert_unit_homogeneous(
     periods: Iterable[AuthenticatedStatementPeriod],
 ) -> str:
     """Require a single explicit unit_scale across selected periods."""
-    units = {
-        str(p.unit_scale or "").strip().lower()
-        for p in periods
-    }
+    units = {str(p.unit_scale or "").strip().lower() for p in periods}
     units.discard("")
     if not units:
         raise FinancialIntegrityError(
@@ -210,9 +205,7 @@ def normalize_periods_to_actual(
     """Scale monetary fields to ACTUAL units; leave EPS/ratios untouched."""
     factor = unit_scale_factor(source_unit)
     if factor == 1.0:
-        return tuple(
-            replace(p, unit_scale="actual") for p in periods
-        )
+        return tuple(replace(p, unit_scale="actual") for p in periods)
     out: list[AuthenticatedStatementPeriod] = []
     for period in periods:
         updates = {
@@ -227,9 +220,7 @@ def assert_profitability_sanity(period: AuthenticatedStatementPeriod) -> None:
     """Reject impossible revenue; allow legitimate losses."""
     revenue = _num(period.revenue)
     if revenue is not None and revenue < 0:
-        raise FinancialIntegrityError(
-            f"{DATA_UNAVAILABLE} (negative revenue)"
-        )
+        raise FinancialIntegrityError(f"{DATA_UNAVAILABLE} (negative revenue)")
     op = _num(period.operating_income)
     if op is None:
         op = _num(period.ebit)
@@ -317,9 +308,7 @@ def assert_share_count_integrity(
     if quote_shares is None or derived_shares is None:
         return
     if quote_shares <= 0 or derived_shares <= 0:
-        raise FinancialIntegrityError(
-            f"{DATA_UNAVAILABLE} (invalid share count)"
-        )
+        raise FinancialIntegrityError(f"{DATA_UNAVAILABLE} (invalid share count)")
     denom = max(quote_shares, derived_shares)
     if abs(quote_shares - derived_shares) / denom > tolerance:
         raise FinancialIntegrityError(

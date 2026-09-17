@@ -2,13 +2,12 @@
 
 from __future__ import annotations
 
-from contracts.enums import EngineSource, SignalDirection
-
 from ai_committee.enums import Decision
 from ai_committee.exceptions import CommitteeError
 from ai_committee.members.base import CommitteeMember
 from ai_committee.models import CommitteeInput, Opinion
 from ai_committee.voting import collapse_signals
+from contracts.enums import EngineSource, SignalDirection
 
 __all__ = ["TechnicalMember"]
 
@@ -72,15 +71,9 @@ def _technical_reasoning(
     signals: tuple,
 ) -> str:
     """Build a deterministic rationale for the technical opinion."""
-    bullish = sum(
-        1 for s in signals if s.direction is SignalDirection.BULLISH
-    )
-    bearish = sum(
-        1 for s in signals if s.direction is SignalDirection.BEARISH
-    )
-    neutral = sum(
-        1 for s in signals if s.direction is SignalDirection.NEUTRAL
-    )
+    bullish = sum(1 for s in signals if s.direction is SignalDirection.BULLISH)
+    bearish = sum(1 for s in signals if s.direction is SignalDirection.BEARISH)
+    neutral = sum(1 for s in signals if s.direction is SignalDirection.NEUTRAL)
     total = len(signals)
     return (
         f"Technical member recommends {recommendation.value} "

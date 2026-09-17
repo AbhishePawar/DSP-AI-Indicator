@@ -8,6 +8,11 @@ from admin.audit import (
     filter_records,
     search_records,
 )
+from admin.beta_programme import (
+    BetaProgrammeStore,
+    get_beta_programme,
+    reset_beta_programme_for_tests,
+)
 from admin.exceptions import AdminError, NotFoundError, ValidationError
 from admin.identity_admin import IdentityAdmin
 from admin.models import (
@@ -24,11 +29,6 @@ from admin.viewers import (
     HealthPanel,
     MetricsViewer,
     VersionViewer,
-)
-from admin.beta_programme import (
-    BetaProgrammeStore,
-    get_beta_programme,
-    reset_beta_programme_for_tests,
 )
 
 __all__ = [

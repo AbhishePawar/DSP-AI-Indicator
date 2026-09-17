@@ -8,11 +8,10 @@ from datetime import datetime
 from contracts.domain.instrument import Instrument
 from contracts.enums import RecommendationAction
 from core.exceptions import ValidationError
-
 from decision_intelligence.models.enums import (
     AgreementQuality,
-    AssuranceLevel,
     AssumptionRiskLevel,
+    AssuranceLevel,
     DecisionResilience,
     DriverDirection,
     EvidenceConsistency,
@@ -114,9 +113,7 @@ class AssuranceAssessment:
         object.__setattr__(self, "robustness_summary", summary)
         object.__setattr__(self, "key_strengths", tuple(self.key_strengths))
         object.__setattr__(self, "key_fragilities", tuple(self.key_fragilities))
-        object.__setattr__(
-            self, "confidence_drivers", tuple(self.confidence_drivers)
-        )
+        object.__setattr__(self, "confidence_drivers", tuple(self.confidence_drivers))
         object.__setattr__(self, "review_triggers", tuple(self.review_triggers))
         if self.dominant_supporting_source is not None:
             object.__setattr__(

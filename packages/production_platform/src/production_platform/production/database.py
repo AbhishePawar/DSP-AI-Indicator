@@ -151,9 +151,7 @@ class InMemoryDatabasePort:
                     return rows
                 if isinstance(params, dict):
                     return [
-                        r
-                        for r in rows
-                        if all(r.get(k) == v for k, v in params.items())
+                        r for r in rows if all(r.get(k) == v for k, v in params.items())
                     ]
                 return rows
             raise ProviderError(f"unsupported in-memory query: {sql[:80]}")
@@ -195,7 +193,10 @@ def _parse_insert(sql: str) -> tuple[str, dict[str, Any]]:
     rest = sql[into:].strip()
     table = rest.split("(", 1)[0].strip().split()[0]
     cols_part, vals_part = rest.split("VALUES", 1)
-    cols = [c.strip().strip('"') for c in cols_part[cols_part.index("(") + 1 : cols_part.rindex(")")].split(",")]
+    cols = [
+        c.strip().strip('"')
+        for c in cols_part[cols_part.index("(") + 1 : cols_part.rindex(")")].split(",")
+    ]
     raw_vals = vals_part[vals_part.index("(") + 1 : vals_part.rindex(")")].split(",")
     values: list[Any] = []
     for v in raw_vals:

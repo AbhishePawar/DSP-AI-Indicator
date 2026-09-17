@@ -29,9 +29,7 @@ class TestFlagsAndScores:
             overall=Score(value=72.0),
             rating=Rating.STRONG,
             confidence=Confidence.MEDIUM,
-            assessments=(
-                Assessment(name="placeholder", rating=Rating.AVERAGE),
-            ),
+            assessments=(Assessment(name="placeholder", rating=Rating.AVERAGE),),
         )
         summary = BusinessQualitySummary(
             headline="shell",

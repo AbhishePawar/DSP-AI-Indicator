@@ -4,7 +4,11 @@ from __future__ import annotations
 
 from production_platform.production.database import SqlRepository
 from production_platform.production.exceptions import ConfigurationError
-from production_platform.production.interfaces import DatabasePort, Repository, RepositoryFactoryPort
+from production_platform.production.interfaces import (
+    DatabasePort,
+    Repository,
+    RepositoryFactoryPort,
+)
 
 __all__ = ["DefaultRepositoryFactory", "ensure_repository_factory"]
 
@@ -23,7 +27,9 @@ class DefaultRepositoryFactory:
         existing = self._cache.get(cleaned)
         if existing is not None:
             return existing
-        repo: Repository = SqlRepository(repository_name=cleaned, database=self._database)
+        repo: Repository = SqlRepository(
+            repository_name=cleaned, database=self._database
+        )
         self._cache[cleaned] = repo
         return repo
 

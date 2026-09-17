@@ -8,7 +8,6 @@ from __future__ import annotations
 from dataclasses import dataclass
 
 from core.exceptions import ValidationError
-
 from industry.enums import GroupEligibilityStatus, PeerEligibilityStatus
 from industry.models import _normalize_id
 from industry.semver import require_semver
@@ -90,8 +89,10 @@ class PeerEligibilityPolicy:
         )
         notes = tuple(n.strip() for n in self.notes if n.strip())
 
-        overlaps = (set(related) & set(limited)) | (set(related) & set(refused)) | (
-            set(limited) & set(refused)
+        overlaps = (
+            (set(related) & set(limited))
+            | (set(related) & set(refused))
+            | (set(limited) & set(refused))
         )
         if overlaps:
             msg = (
@@ -152,10 +153,7 @@ class PeerEligibilityPolicy:
 
         if candidate == self.subject_industry_id:
             if self.require_same_business_model_for_direct:
-                if (
-                    not subject_business_model_id
-                    or not candidate_business_model_id
-                ):
+                if not subject_business_model_id or not candidate_business_model_id:
                     return (
                         PeerEligibilityStatus.INSUFFICIENT_DATA,
                         PeerEligibilityReason(

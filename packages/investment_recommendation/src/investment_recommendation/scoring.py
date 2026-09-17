@@ -2,9 +2,10 @@
 
 from __future__ import annotations
 
+from collections.abc import Mapping
 from dataclasses import dataclass
 from enum import Enum
-from typing import Any, Mapping
+from typing import Any
 
 from investment_recommendation.exceptions import (
     InvestmentRecommendationValidationError,
@@ -78,7 +79,9 @@ def clip_score(value: float, *, lo: float = 0.0, hi: float = 100.0) -> float:
     return max(lo, min(hi, value))
 
 
-def weighted_mean(items: list[tuple[float, float]] | tuple[tuple[float, float], ...]) -> float | None:
+def weighted_mean(
+    items: list[tuple[float, float]] | tuple[tuple[float, float], ...],
+) -> float | None:
     total_w = 0.0
     acc = 0.0
     for value, weight in items:
@@ -150,12 +153,8 @@ def validate_weights(
         business_quality=float(payload[DecisionComponent.BUSINESS_QUALITY.value]),
         valuation_mos=float(payload[DecisionComponent.VALUATION_MOS.value]),
         economic_moat=float(payload[DecisionComponent.ECONOMIC_MOAT.value]),
-        management_quality=float(
-            payload[DecisionComponent.MANAGEMENT_QUALITY.value]
-        ),
-        financial_strength=float(
-            payload[DecisionComponent.FINANCIAL_STRENGTH.value]
-        ),
+        management_quality=float(payload[DecisionComponent.MANAGEMENT_QUALITY.value]),
+        financial_strength=float(payload[DecisionComponent.FINANCIAL_STRENGTH.value]),
         earnings_quality=float(payload[DecisionComponent.EARNINGS_QUALITY.value]),
         growth_quality=float(payload[DecisionComponent.GROWTH_QUALITY.value]),
     )

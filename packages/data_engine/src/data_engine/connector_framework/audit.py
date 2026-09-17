@@ -22,9 +22,10 @@ requirement.
 from __future__ import annotations
 
 import logging
+from collections.abc import Mapping
 from dataclasses import dataclass, field
 from threading import Lock
-from typing import Any, Mapping, Protocol, runtime_checkable
+from typing import Any, Protocol, runtime_checkable
 
 from data_engine.connector_framework.models import utc_now
 

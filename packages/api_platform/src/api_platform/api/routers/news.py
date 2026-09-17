@@ -62,9 +62,11 @@ def news(
             "ok": True,
             "available": True,
             "authenticated": True,
-            "symbol": identity.get("symbol")
-            if isinstance(identity, dict)
-            else symbol.strip().upper(),
+            "symbol": (
+                identity.get("symbol")
+                if isinstance(identity, dict)
+                else symbol.strip().upper()
+            ),
             "identity": identity,
             "articles": payload.get("articles"),
             "provenance": payload.get("provenance"),

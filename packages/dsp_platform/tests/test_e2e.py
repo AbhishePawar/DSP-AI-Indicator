@@ -2,8 +2,8 @@
 
 from __future__ import annotations
 
+from collections.abc import Callable
 from datetime import date
-from typing import Callable
 
 import pytest
 
@@ -31,9 +31,7 @@ class TestRecommendationOutcomes:
         self, instrument: Instrument, build_platform: BuildPlatform
     ) -> None:
         platform = build_platform()
-        request = platform.make_request(
-            instrument, date(2024, 1, 1), date(2024, 6, 1)
-        )
+        request = platform.make_request(instrument, date(2024, 1, 1), date(2024, 6, 1))
         result = platform.analyze(request)
         assert isinstance(result, Recommendation)
         assert result.action is RecommendationAction.BUY
@@ -140,9 +138,7 @@ class TestFailuresAndErrors:
         )
         with pytest.raises(PlatformError) as exc_info:
             platform.analyze(
-                platform.make_request(
-                    instrument, date(2024, 1, 1), date(2024, 6, 1)
-                )
+                platform.make_request(instrument, date(2024, 1, 1), date(2024, 6, 1))
             )
         assert not isinstance(exc_info.value, DataEngineError)
         assert not isinstance(exc_info.value, OrchestrationError)
@@ -162,9 +158,7 @@ class TestDeterminismAndPublicOutput:
         self, instrument: Instrument, build_platform: BuildPlatform
     ) -> None:
         platform = build_platform()
-        request = platform.make_request(
-            instrument, date(2024, 1, 1), date(2024, 6, 1)
-        )
+        request = platform.make_request(instrument, date(2024, 1, 1), date(2024, 6, 1))
         first = platform.analyze(request)
         second = platform.analyze(request)
         assert first.action is second.action

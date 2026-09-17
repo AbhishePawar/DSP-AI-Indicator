@@ -66,8 +66,7 @@ class DatabaseSaasOverlayStore(SaasOverlayStore):
             str(k): dict(v) for k, v in (payload.get("subscriptions") or {}).items()
         }
         self._billing_profiles = {
-            str(k): dict(v)
-            for k, v in (payload.get("billing_profiles") or {}).items()
+            str(k): dict(v) for k, v in (payload.get("billing_profiles") or {}).items()
         }
         self._coupons = {
             str(k): dict(v) for k, v in (payload.get("coupons") or {}).items()

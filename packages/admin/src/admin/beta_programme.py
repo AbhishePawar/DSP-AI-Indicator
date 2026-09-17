@@ -10,7 +10,7 @@ import os
 import threading
 import uuid
 from copy import deepcopy
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 
 __all__ = [
@@ -33,7 +33,7 @@ _FEEDBACK_CATEGORIES = (
 
 
 def _utcnow() -> str:
-    return datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+    return datetime.now(UTC).isoformat().replace("+00:00", "Z")
 
 
 def _uid(prefix: str) -> str:
@@ -132,9 +132,9 @@ class BetaProgrammeStore:
             # Accept Z suffix
             normalized = str(expiry).replace("Z", "+00:00")
             exp = datetime.fromisoformat(normalized)
-            now = datetime.now(timezone.utc)
+            now = datetime.now(UTC)
             if exp.tzinfo is None:
-                exp = exp.replace(tzinfo=timezone.utc)
+                exp = exp.replace(tzinfo=UTC)
             return now > exp
         except ValueError:
             return False
@@ -259,7 +259,9 @@ class BetaProgrammeStore:
             "title": str(payload.get("title") or "")[:160],
             "description": str(payload.get("description") or "")[:4000],
             "rating": rating,
-            "screenshot_note": (str(payload.get("screenshot_note") or "")[:200] or None),
+            "screenshot_note": (
+                str(payload.get("screenshot_note") or "")[:200] or None
+            ),
             "app_version": str(payload.get("app_version") or "unknown")[:32],
             "browser": str(payload.get("browser") or "Unavailable")[:200],
             "company_analysed": (
@@ -353,7 +355,9 @@ class BetaProgrammeStore:
             return None
 
     # --- analytics ---
-    def record_analytics_event(self, event: dict[str, Any], *, actor: str) -> dict[str, Any]:
+    def record_analytics_event(
+        self, event: dict[str, Any], *, actor: str
+    ) -> dict[str, Any]:
         """Accept aggregate ops events only — never research payloads."""
         kind = str(event.get("kind") or "session")[:64]
         day = _utcnow()[:10]
@@ -427,9 +431,7 @@ class BetaProgrammeStore:
             )
             pending = sum(1 for i in self._invites.values() if i["status"] == "pending")
             sats = [
-                f["rating"]
-                for f in self._feedback
-                if isinstance(f.get("rating"), int)
+                f["rating"] for f in self._feedback if isinstance(f.get("rating"), int)
             ]
             avg = round(sum(sats) / len(sats), 2) if sats else None
             failed = sum(
@@ -594,7 +596,9 @@ class BetaProgrammeStore:
         )
         error_rate = analytics.get("error_rate")
         crash_free = (
-            round((1.0 - float(error_rate)) * 100, 2) if error_rate is not None else None
+            round((1.0 - float(error_rate)) * 100, 2)
+            if error_rate is not None
+            else None
         )
         avg = dash.get("average_feedback_rating")
         criteria = SUCCESS_CRITERIA

@@ -149,9 +149,10 @@ def test_valuation_matches_composition_without_substitute() -> None:
     assert payload is not None
     server = public["server_valuation"]
     assert payload["server_valuation"] == server
-    assert payload["intrinsic_value"]["intrinsic_value_per_share"] == server[
-        "intrinsic_value_per_share"
-    ]
+    assert (
+        payload["intrinsic_value"]["intrinsic_value_per_share"]
+        == server["intrinsic_value_per_share"]
+    )
     assert (
         payload["intrinsic_value"]["current_market_price"]
         == signals.current_market_price

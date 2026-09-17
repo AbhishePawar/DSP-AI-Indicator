@@ -75,9 +75,11 @@ def corporate_actions(
             "ok": True,
             "available": True,
             "authenticated": True,
-            "symbol": identity.get("symbol")
-            if isinstance(identity, dict)
-            else symbol.strip().upper(),
+            "symbol": (
+                identity.get("symbol")
+                if isinstance(identity, dict)
+                else symbol.strip().upper()
+            ),
             "identity": identity,
             "events": payload.get("events"),
             "provenance": payload.get("provenance"),

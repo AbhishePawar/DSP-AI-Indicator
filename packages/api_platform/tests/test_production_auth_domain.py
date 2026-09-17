@@ -51,7 +51,9 @@ def test_cloudbuild_uses_canonical_production_domain_and_cors_delimiter() -> Non
     env = _deploy_env_vars(text)
     assert env["DSP_RESEND_FROM_ADDRESS"] == "noreply@dspaiindicator.com"
     assert env["DSP_FRONTEND_URL"] == CANONICAL_ORIGIN
-    origins = [item.strip() for item in env["DSP_CORS_ORIGINS"].split(",") if item.strip()]
+    origins = [
+        item.strip() for item in env["DSP_CORS_ORIGINS"].split(",") if item.strip()
+    ]
     assert origins == [CANONICAL_ORIGIN, CLOUD_RUN_WEB_ORIGIN]
     secrets = [
         line.strip().lstrip("- ").strip()

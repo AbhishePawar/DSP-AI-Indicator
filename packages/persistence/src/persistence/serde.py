@@ -4,8 +4,9 @@ from __future__ import annotations
 
 import hashlib
 import json
+from collections.abc import Mapping
 from datetime import date, datetime
-from typing import Any, Mapping
+from typing import Any
 from uuid import UUID
 
 from persistence.models import PersistedEntity, PersistenceSnapshot, freeze_mapping

@@ -12,6 +12,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from pydantic import ValidationError
 
+from api_platform.api.csrf_middleware import CsrfMiddleware
 from api_platform.api.dependencies import (
     ApiState,
     ContextStore,
@@ -24,9 +25,9 @@ from api_platform.api.infra_bootstrap import (
     bootstrap_production_infrastructure,
     public_startup_error,
 )
+from api_platform.api.mappers import CompositionApiError, composition_error_body
 from api_platform.api.middleware import RequestContextMiddleware
 from api_platform.api.ops import metrics_registry
-from api_platform.api.csrf_middleware import CsrfMiddleware
 from api_platform.api.ops_middleware import (
     MetricsMiddleware,
     RateLimitHookMiddleware,
@@ -61,6 +62,7 @@ from api_platform.api.routers import (
     meta,
     metrics,
     news,
+    ops,
     ownership,
     persistence,
     platform,
@@ -72,12 +74,10 @@ from api_platform.api.routers import (
     research_monitoring,
     research_workspace,
     saas,
-    ops,
     transcripts,
     workflow,
 )
 from api_platform.api.schemas import ApiErrorBody
-from api_platform.api.mappers import CompositionApiError, composition_error_body
 from dsp_platform import DSPPlatform
 
 API_VERSION = "v1"
@@ -134,15 +134,15 @@ def create_app(
     import os
 
     if security is None and (
-        enable_security or os.environ.get("DSP_ENABLE_SECURITY", "").lower() in
-        {"1", "true", "yes"}
+        enable_security
+        or os.environ.get("DSP_ENABLE_SECURITY", "").lower() in {"1", "true", "yes"}
     ):
-        from security_platform import SecurityBundle, SecuritySettings
         from auth.credential_boundary import (
             AUTH_JWT_SECRET_ENV,
             auth_jwt_secret_is_default,
             resolve_auth_jwt_secret,
         )
+        from security_platform import SecurityBundle, SecuritySettings
 
         # Auth-domain JWT only — never DSP_UPSTOX_* / investment credentials.
         jwt_secret = resolve_auth_jwt_secret()
@@ -222,9 +222,7 @@ def create_app(
     )
 
     # Security middleware runs outermost when configured (added last in Starlette).
-    application.add_middleware(
-        RequestContextMiddleware, api_version=api_version
-    )
+    application.add_middleware(RequestContextMiddleware, api_version=api_version)
     application.add_middleware(SecurityHeadersMiddleware)
     application.add_middleware(MetricsMiddleware)
     application.add_middleware(RateLimitHookMiddleware)
@@ -311,9 +309,7 @@ def _register_exception_handlers(application: FastAPI) -> None:
         )
 
     @application.exception_handler(ApiError)
-    async def api_error_handler(
-        request: Request, exc: ApiError
-    ) -> JSONResponse:
+    async def api_error_handler(request: Request, exc: ApiError) -> JSONResponse:
         from datetime import UTC, datetime
 
         body = ApiErrorBody(
@@ -326,7 +322,9 @@ def _register_exception_handlers(application: FastAPI) -> None:
             status_code=exc.status_code,
             api_version=API_VERSION,
         )
-        return JSONResponse(status_code=exc.status_code, content=body.model_dump(mode="json"))
+        return JSONResponse(
+            status_code=exc.status_code, content=body.model_dump(mode="json")
+        )
 
     @application.exception_handler(PlatformError)
     async def platform_error_handler(
@@ -388,9 +386,7 @@ def _register_exception_handlers(application: FastAPI) -> None:
         return JSONResponse(status_code=422, content=body.model_dump(mode="json"))
 
     @application.exception_handler(Exception)
-    async def unhandled_handler(
-        request: Request, exc: Exception
-    ) -> JSONResponse:
+    async def unhandled_handler(request: Request, exc: Exception) -> JSONResponse:
         from datetime import UTC, datetime
 
         body = ApiErrorBody(

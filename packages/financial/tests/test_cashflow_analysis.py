@@ -44,7 +44,9 @@ from financial.intelligence.cashflow_validation import (
 from financial.metadata import StatementMetadata
 
 
-def _period(*, end: date = date(2024, 12, 31), fy: int | None = 2024) -> FinancialPeriod:
+def _period(
+    *, end: date = date(2024, 12, 31), fy: int | None = 2024
+) -> FinancialPeriod:
     return FinancialPeriod(
         period_type=PeriodType.ANNUAL,
         period_end=end,
@@ -160,16 +162,28 @@ class TestCoerce:
         assert coerce_cashflow_series(_stmt(_cf()))[2]["period_end"] == "2024-12-31"
         assert coerce_cashflow_series(_stmt(_cf()))[2]["revenue"] == 1000.0
         snap = _snap(
-            (_cf(operating_cash_flow=100.0, free_cash_flow=50.0, capex=-50.0), _period(end=date(2023, 12, 31), fy=2023)),
+            (
+                _cf(operating_cash_flow=100.0, free_cash_flow=50.0, capex=-50.0),
+                _period(end=date(2023, 12, 31), fy=2023),
+            ),
             (_cf(), _period()),
         )
-        snap2 = FinancialSnapshot(company=snap.company, statements=(snap.statements[1], snap.statements[0]))
+        snap2 = FinancialSnapshot(
+            company=snap.company, statements=(snap.statements[1], snap.statements[0])
+        )
         flows, _, meta = coerce_cashflow_series(snap2)
         assert flows[0].operating_cash_flow == 100.0
         assert meta["ticker"] == "ACM"
-        assert coerce_cashflow_series(_cf().to_dict())[0][0].operating_cash_flow == 200.0
-        assert coerce_cashflow_series(_stmt(_cf()).to_dict())[0][0].operating_cash_flow == 200.0
-        assert coerce_cashflow_series(snap.to_dict())[0][-1].operating_cash_flow == 200.0
+        assert (
+            coerce_cashflow_series(_cf().to_dict())[0][0].operating_cash_flow == 200.0
+        )
+        assert (
+            coerce_cashflow_series(_stmt(_cf()).to_dict())[0][0].operating_cash_flow
+            == 200.0
+        )
+        assert (
+            coerce_cashflow_series(snap.to_dict())[0][-1].operating_cash_flow == 200.0
+        )
 
     def test_empty_and_dupes(self) -> None:
         with pytest.raises(CashFlowAnalysisError, match="Empty"):
@@ -202,7 +216,9 @@ class TestCoerce:
             coerce_cashflow_series([_stmt(_cf()), _stmt(_cf(capex=-2.0))])
 
     def test_mixed_sequence(self) -> None:
-        flows, stmts, _ = coerce_cashflow_series([_cf(operating_cash_flow=50.0), _stmt(_cf())])
+        flows, stmts, _ = coerce_cashflow_series(
+            [_cf(operating_cash_flow=50.0), _stmt(_cf())]
+        )
         assert len(flows) == 2 and stmts[0] is None
 
 
@@ -215,7 +231,10 @@ class TestAnalysis:
         assert result.free_cash_flow.free_cash_flow == 150.0
         assert result.free_cash_flow.fcf_source == "reported"
         assert result.free_cash_flow.owner_earnings == 140.0
-        assert result.investing.growth_investment_class is GrowthInvestmentClass.MAINTENANCE
+        assert (
+            result.investing.growth_investment_class
+            is GrowthInvestmentClass.MAINTENANCE
+        )
         assert CASHFLOW_RESEARCH_DISCLAIMER in result.research_disclaimer
         assert result.metadata.engine_version == CASHFLOW_INTELLIGENCE_VERSION
         d = result.to_dict()
@@ -223,9 +242,7 @@ class TestAnalysis:
 
     def test_computed_fcf(self) -> None:
         eng = CashFlowEngine()
-        result = eng.analyze(
-            CashFlowStatement(operating_cash_flow=100.0, capex=-30.0)
-        )
+        result = eng.analyze(CashFlowStatement(operating_cash_flow=100.0, capex=-30.0))
         assert result.free_cash_flow.free_cash_flow == pytest.approx(70.0)
         assert result.free_cash_flow.fcf_source == "computed_ocf_minus_abs_capex"
 
@@ -278,11 +295,16 @@ class TestAnalysis:
     def test_growth_classes(self) -> None:
         eng = CashFlowEngine()
         maint = eng.analyze(CashFlowStatement(operating_cash_flow=100.0, capex=-20.0))
-        assert maint.investing.growth_investment_class is GrowthInvestmentClass.MAINTENANCE
+        assert (
+            maint.investing.growth_investment_class is GrowthInvestmentClass.MAINTENANCE
+        )
         growth = eng.analyze(CashFlowStatement(operating_cash_flow=100.0, capex=-50.0))
         assert growth.investing.growth_investment_class is GrowthInvestmentClass.GROWTH
         agg = eng.analyze(CashFlowStatement(operating_cash_flow=100.0, capex=-90.0))
-        assert agg.investing.growth_investment_class is GrowthInvestmentClass.AGGRESSIVE_GROWTH
+        assert (
+            agg.investing.growth_investment_class
+            is GrowthInvestmentClass.AGGRESSIVE_GROWTH
+        )
         divest = eng.analyze(
             CashFlowStatement(
                 operating_cash_flow=100.0,
@@ -290,7 +312,10 @@ class TestAnalysis:
                 investing_cash_flow=40.0,
             )
         )
-        assert divest.investing.growth_investment_class is GrowthInvestmentClass.NET_DIVESTING
+        assert (
+            divest.investing.growth_investment_class
+            is GrowthInvestmentClass.NET_DIVESTING
+        )
 
     def test_history_and_composed_investing(self) -> None:
         eng = CashFlowEngine()
@@ -302,7 +327,9 @@ class TestAnalysis:
                 free_cash_flow=90.0,
             ),
             history=[
-                CashFlowStatement(operating_cash_flow=100.0, capex=-25.0, free_cash_flow=75.0)
+                CashFlowStatement(
+                    operating_cash_flow=100.0, capex=-25.0, free_cash_flow=75.0
+                )
             ],
         )
         assert result.metadata.periods_used == 2
@@ -371,7 +398,9 @@ class TestAnalysis:
     def test_alloc_quality_branches(self) -> None:
         eng = CashFlowEngine()
         retain = eng.analyze(
-            CashFlowStatement(operating_cash_flow=100.0, capex=-20.0, free_cash_flow=80.0)
+            CashFlowStatement(
+                operating_cash_flow=100.0, capex=-20.0, free_cash_flow=80.0
+            )
         )
         assert retain.financing.capital_allocation_quality == pytest.approx(0.7)
         weak = eng.analyze(
@@ -389,9 +418,7 @@ class TestAnalysis:
         no_fcf = eng.analyze(CashFlowStatement(operating_cash_flow=100.0))
         assert no_fcf.free_cash_flow.fcf_source == "unavailable"
         assert no_fcf.free_cash_flow.free_cash_flow is None
-        zero_ocf = eng.analyze(
-            CashFlowStatement(operating_cash_flow=0.0, capex=-10.0)
-        )
+        zero_ocf = eng.analyze(CashFlowStatement(operating_cash_flow=0.0, capex=-10.0))
         assert (
             zero_ocf.investing.growth_investment_class
             is GrowthInvestmentClass.INSUFFICIENT_DATA
@@ -411,7 +438,9 @@ class TestHelpers:
         assert _stability([1.0]) is None
         assert _trend_from_delta(None) is TrendDirection.STABLE
         assert _trend_from_delta(0.01) is TrendDirection.STABLE
-        assert _trend_from_delta(0.05, improve_when_up=False) is TrendDirection.WEAKENING
+        assert (
+            _trend_from_delta(0.05, improve_when_up=False) is TrendDirection.WEAKENING
+        )
         assert _computed_fcf(CashFlowStatement(operating_cash_flow=10.0)) is None
         assert _computed_fcf(
             CashFlowStatement(operating_cash_flow=10.0, capex=-3.0)
@@ -422,7 +451,11 @@ class TestHelpers:
         eng = CashFlowEngine()
         result = eng.analyze(
             _stmt(_cf(), revenue=2000.0),
-            history=[CashFlowStatement(operating_cash_flow=150.0, free_cash_flow=100.0, capex=-50.0)],
+            history=[
+                CashFlowStatement(
+                    operating_cash_flow=150.0, free_cash_flow=100.0, capex=-50.0
+                )
+            ],
         )
         assert result.free_cash_flow.fcf_margin == pytest.approx(150 / 2000)
 
@@ -455,7 +488,9 @@ class TestEngineFacade:
         snap = _snap(
             *[
                 (
-                    _cf(operating_cash_flow=100.0 + i * 10, free_cash_flow=70.0 + i * 5),
+                    _cf(
+                        operating_cash_flow=100.0 + i * 10, free_cash_flow=70.0 + i * 5
+                    ),
                     _period(end=date(2020 + i, 12, 31), fy=2020 + i),
                 )
                 for i in range(4)

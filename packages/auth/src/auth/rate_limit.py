@@ -13,7 +13,7 @@ from __future__ import annotations
 import hashlib
 import hmac
 import logging
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from typing import Any
 
 from auth.credential_boundary import resolve_auth_jwt_secret
@@ -29,7 +29,7 @@ _HMAC_INFO = b"dsp.auth.rate.v1"
 
 
 def _now() -> datetime:
-    return datetime.now(tz=timezone.utc)
+    return datetime.now(tz=UTC)
 
 
 def _hmac_id(message: str) -> str:
@@ -48,10 +48,10 @@ class AuthRateLimiter:
             raise AuthenticationError("Rate limit exceeded. Try again later.")
         ts = _now()
         window_id = int(ts.timestamp()) // int(window_sec)
-        entity_id = f"{_PREFIX}{_hmac_id(f'{key}|{int(window_sec)}|{int(limit)}|{window_id}')}"
-        window_end = datetime.fromtimestamp(
-            (window_id + 1) * int(window_sec), tz=timezone.utc
+        entity_id = (
+            f"{_PREFIX}{_hmac_id(f'{key}|{int(window_sec)}|{int(limit)}|{window_id}')}"
         )
+        window_end = datetime.fromtimestamp((window_id + 1) * int(window_sec), tz=UTC)
         expires = window_end + timedelta(hours=1)
         now_iso = ts.isoformat()
         try:
@@ -74,7 +74,9 @@ class AuthRateLimiter:
                 counter_field=("payload", "count"),
                 max_value=int(limit),
             )
-        except Exception as exc:  # noqa: BLE001 — fail closed; never bypass on storage errors
+        except (
+            Exception
+        ) as exc:  # noqa: BLE001 — fail closed; never bypass on storage errors
             logger.info("auth rate limiter unavailable")
             raise AuthenticationError("Rate limit exceeded. Try again later.") from exc
         if stored is None:

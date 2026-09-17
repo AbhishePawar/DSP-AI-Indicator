@@ -2,12 +2,11 @@
 
 from __future__ import annotations
 
-from contracts import AnalyticalStance, EconomicContext, EngineSource
-
 from ai_committee.enums import Decision
 from ai_committee.exceptions import CommitteeError
 from ai_committee.members.base import CommitteeMember
 from ai_committee.models import CommitteeInput, Opinion
+from contracts import AnalyticalStance, EconomicContext, EngineSource
 
 __all__ = ["EconomicMember"]
 

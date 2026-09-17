@@ -42,9 +42,7 @@ def test_analyze_is_deterministic(
     assert a.to_dict() == b.to_dict()
 
 
-def test_explain_and_validate(
-    financial_analysis, business_quality_analysis
-) -> None:
+def test_explain_and_validate(financial_analysis, business_quality_analysis) -> None:
     engine = FinancialStrengthEngine()
     analysis = engine.analyze(financial_analysis, business_quality_analysis)
     assert engine.explain(analysis) is analysis.explainability
@@ -62,5 +60,10 @@ def test_balance_sheet_maturity_confidence_soft_cap(
         financial_analysis, business_quality_analysis
     )
     by_dim = {c.dimension: c for c in result.components}
-    assert by_dim[FinancialStrengthDimension.BALANCE_SHEET_STRENGTH].confidence.value <= 0.75
-    assert by_dim[FinancialStrengthDimension.FINANCIAL_RESILIENCE].confidence.value <= 0.70
+    assert (
+        by_dim[FinancialStrengthDimension.BALANCE_SHEET_STRENGTH].confidence.value
+        <= 0.75
+    )
+    assert (
+        by_dim[FinancialStrengthDimension.FINANCIAL_RESILIENCE].confidence.value <= 0.70
+    )

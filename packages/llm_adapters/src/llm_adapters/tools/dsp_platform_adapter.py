@@ -41,8 +41,9 @@ Design rules
 
 from __future__ import annotations
 
-from dataclasses import dataclass, field
-from typing import Any, Mapping
+from collections.abc import Mapping
+from dataclasses import dataclass
+from typing import Any
 
 from llm_adapters.tools.contract import DSPToolBackend
 
@@ -82,7 +83,9 @@ class DSPPlatformToolAdapter(DSPToolBackend):
         platform request shape is not importable.
         """
         self._platform = platform
-        self._compose_request_builder = compose_request_builder or self._default_request_builder
+        self._compose_request_builder = (
+            compose_request_builder or self._default_request_builder
+        )
 
     @staticmethod
     def _default_request_builder(symbol: str) -> Any | None:
@@ -96,10 +99,12 @@ class DSPPlatformToolAdapter(DSPToolBackend):
         instrument: Any = None
         try:
             from dsp_platform import Instrument  # type: ignore
+
             instrument = Instrument(symbol=symbol)
         except Exception:
             try:
                 from contracts.domain.instrument import Instrument  # type: ignore
+
                 instrument = Instrument(symbol=symbol)
             except Exception:
                 return None
@@ -217,6 +222,7 @@ class DSPPlatformToolAdapter(DSPToolBackend):
     def _decision_pack(self, symbol: str) -> Any | None:
         """Return the cached DecisionPack for ``symbol`` or compose one."""
         from llm_adapters.tools.dsp_platform_adapter import _get_cached_pack
+
         cached = _get_cached_pack(self, symbol)
         if cached is not None:
             return cached
@@ -298,8 +304,11 @@ def _safe_dict(value: Any) -> Mapping[str, Any] | None:
 def _strip_private(value: Any) -> Any:
     """Recursively drop any private field name from mappings."""
     from llm_adapters.tools.contract import _PRIVATE_FIELDS
+
     if isinstance(value, Mapping):
-        return {k: _strip_private(v) for k, v in value.items() if k not in _PRIVATE_FIELDS}
+        return {
+            k: _strip_private(v) for k, v in value.items() if k not in _PRIVATE_FIELDS
+        }
     if isinstance(value, (list, tuple)):
         return [_strip_private(v) for v in value]
     return value
@@ -358,7 +367,11 @@ def _read_valuation(pack: Mapping[str, Any]) -> dict[str, Any] | None:
     candidates = (
         pack.get("valuation"),
         pack.get("valuation_summary"),
-        (pack.get("valuation") or {}).get("summary") if isinstance(pack.get("valuation"), Mapping) else None,
+        (
+            (pack.get("valuation") or {}).get("summary")
+            if isinstance(pack.get("valuation"), Mapping)
+            else None
+        ),
     )
     for cand in candidates:
         if isinstance(cand, Mapping):

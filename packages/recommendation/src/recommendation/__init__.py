@@ -44,9 +44,9 @@ from recommendation.refs import (
 from recommendation.reporter import (
     CitationSection,
     RecommendationReporter,
-    ReportMetadata,
     ReportingContext,
     ReportingResult,
+    ReportMetadata,
 )
 
 __all__ = [

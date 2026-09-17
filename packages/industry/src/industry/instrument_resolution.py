@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 from contracts.domain.instrument import Instrument
-
 from industry.exceptions import IndustryError
 from industry.methodology_registry import IndustryMethodologyRegistry
 from industry.peer_eligibility import InstrumentMethodologyResolution
@@ -48,9 +47,7 @@ def resolve_methodology_for_instrument(
         raise IndustryError(msg) from exc
 
     try:
-        methodology = methodologies.lookup_active_for_industry(
-            assignment.industry_id
-        )
+        methodology = methodologies.lookup_active_for_industry(assignment.industry_id)
     except IndustryError as exc:
         msg = (
             f"cannot resolve methodology: industry {assignment.industry_id!r} "

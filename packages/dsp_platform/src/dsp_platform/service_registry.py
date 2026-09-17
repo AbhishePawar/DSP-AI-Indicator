@@ -92,9 +92,7 @@ class ServiceRegistry:
     def get_by_capability(self, capability: str) -> tuple[ServiceDescriptor, ...]:
         """Return all descriptors matching ``capability`` (case-insensitive)."""
         key = capability.strip().lower()
-        return tuple(
-            d for d in self._by_name.values() if d.capability.lower() == key
-        )
+        return tuple(d for d in self._by_name.values() if d.capability.lower() == key)
 
     def has(self, name: str) -> bool:
         """Return True when ``name`` is registered."""
@@ -102,9 +100,7 @@ class ServiceRegistry:
 
     def list_services(self) -> tuple[ServiceDescriptor, ...]:
         """Return all descriptors in registration order (stable by name)."""
-        return tuple(
-            self._by_name[k] for k in sorted(self._by_name.keys())
-        )
+        return tuple(self._by_name[k] for k in sorted(self._by_name.keys()))
 
     def list_capabilities(self) -> tuple[str, ...]:
         """Return unique capability names sorted alphabetically."""

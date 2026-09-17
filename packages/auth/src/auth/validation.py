@@ -46,7 +46,9 @@ def assert_status(status: str) -> str:
 
 
 def assert_roles(roles: list[str] | tuple[str, ...] | None) -> tuple[str, ...]:
-    cleaned = tuple(sorted({str(r).strip().lower() for r in (roles or []) if str(r).strip()}))
+    cleaned = tuple(
+        sorted({str(r).strip().lower() for r in (roles or []) if str(r).strip()})
+    )
     registry = get_role_registry()
     for role in cleaned:
         registry.require(role)

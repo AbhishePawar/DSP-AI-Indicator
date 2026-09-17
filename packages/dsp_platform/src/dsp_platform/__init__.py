@@ -24,6 +24,95 @@ from comparison import (
     compare_universe_result,
     comparison_result_public_dict,
 )
+from copilot import (
+    AnalysisReference as CopilotAnalysisReference,
+)
+from copilot import (
+    CategoryCount,
+    CollectionStatistics,
+    ConfidenceLevel,
+    ContextBuilder,
+    ContextBundle,
+    ConversationContext,
+    ConversationEngine,
+    ConversationEngineContext,
+    ConversationResult,
+    ConversationRole,
+    ConversationSession,
+    ConversationState,
+    ConversationStatus,
+    ConversationTurn,
+    CopilotError,
+    CopilotIdentity,
+    CopilotMetadata,
+    CopilotProfile,
+    CopilotReporter,
+    CopilotResponse,
+    CopilotSummary,
+    EvidenceValidator,
+    Explanation,
+    ExplanationDraft,
+    ExplanationEngine,
+    ExplanationInput,
+    ExplanationResult,
+    ExplanationStatus,
+    ExplanationType,
+    LanguageModelPort,
+    LanguageModelRequest,
+    LanguageModelResult,
+    LanguageModelStatus,
+    ReportFormatter,
+    ReportingContext,
+    ReportingResult,
+    ResponseFormatter,
+    ResponseMetadata,
+    ResponseMetadataBuilder,
+    ResponseStatus,
+    UserIntent,
+    UserIntentType,
+    ValidationStatusView,
+    assert_conversation_role,
+    assert_conversation_state,
+    assert_conversation_status,
+    assert_explanation_type,
+    assert_language_model_status,
+    assert_legal_conversation_transition,
+    assert_response_status,
+    assert_unique_copilot_ids,
+    assert_unique_session_ids,
+    assert_unique_turn_ids,
+    assert_user_intent_type,
+)
+from copilot import (
+    ComparisonReference as CopilotComparisonReference,
+)
+from copilot import (
+    DecisionReference as CopilotDecisionReference,
+)
+from copilot import (
+    IndustryEvidenceReference as CopilotIndustryEvidenceReference,
+)
+from copilot import (
+    KnowledgeGraphReference as CopilotKnowledgeGraphReference,
+)
+from copilot import (
+    PortfolioReference as CopilotPortfolioReference,
+)
+from copilot import (
+    QuantitativeRiskReference as CopilotQuantitativeRiskReference,
+)
+from copilot import (
+    RecommendationReference as CopilotRecommendationReference,
+)
+from copilot import (
+    ResearchReference as CopilotResearchReference,
+)
+from copilot import (
+    RiskReference as CopilotRiskReference,
+)
+from copilot import (
+    WorkflowReference as CopilotWorkflowReference,
+)
 from decision_intelligence import (
     AssuranceAssessment,
     AssuranceLevel,
@@ -45,23 +134,7 @@ from dsp_platform.boundaries import (
     scan_cross_package_deep_imports,
     scan_module_imports,
 )
-from dsp_platform.config import (
-    CacheSettings,
-    Environment,
-    FeatureFlags,
-    PlatformConfig,
-    PlatformSecrets,
-    ProviderSettings,
-    TimeoutSettings,
-)
-from dsp_platform.exceptions import (
-    PlatformConfigurationError,
-    PlatformError,
-    PlatformLifecycleError,
-    ServiceRegistryError,
-)
 from dsp_platform.comparison_engine import build_default_comparison_engine
-from dsp_platform.facade import DSPPlatform
 from dsp_platform.composition import (
     COMPOSITION_PIPELINE_VERSION,
     DATA_UNAVAILABLE,
@@ -91,24 +164,235 @@ from dsp_platform.composition import (
     run_execution_pipeline,
     signals_from_assessment,
 )
+from dsp_platform.config import (
+    CacheSettings,
+    Environment,
+    FeatureFlags,
+    PlatformConfig,
+    PlatformSecrets,
+    ProviderSettings,
+    TimeoutSettings,
+)
 from dsp_platform.configuration import (
     DEFAULT_CAPABILITIES,
     PlatformConfiguration,
 )
-from dsp_platform.lifecycle import PlatformLifecycle, PlatformStatus
-from dsp_platform.platform import (
-    PlatformBuilder,
-    PlatformMetadata,
-    PlatformResult,
+from dsp_platform.exceptions import (
+    PlatformConfigurationError,
+    PlatformError,
+    PlatformLifecycleError,
+    ServiceRegistryError,
 )
-from dsp_platform.service_registry import ServiceDescriptor, ServiceRegistry
+from dsp_platform.facade import DSPPlatform
 from dsp_platform.health import (
     CheckStatus,
     HealthCheckResult,
     PlatformHealthReport,
     PlatformHealthService,
 )
+from dsp_platform.lifecycle import PlatformLifecycle, PlatformStatus
 from dsp_platform.loaders import load_platform_config, load_secrets_from_environ
+from dsp_platform.platform import (
+    PlatformBuilder,
+    PlatformMetadata,
+    PlatformResult,
+)
+from dsp_platform.service_registry import ServiceDescriptor, ServiceRegistry
+from industry import (
+    ApplicabilityGroup,
+    ApplicabilityLevel,
+    AssembledMethodology,
+    CharacteristicDefaults,
+    CharacteristicLifecycle,
+    ClassificationMappingRegistry,
+    ClassificationReference,
+    ComparisonDimension,
+    ComparisonDimensionHint,
+    EligibilityOptions,
+    EvidenceApplicabilityRule,
+    EvidenceAvailability,
+    EvidenceBundle,
+    EvidenceBundleAssembler,
+    EvidenceBundleAssemblyContext,
+    EvidenceBundleEntry,
+    EvidenceBundleMetadata,
+    EvidenceBundleReference,
+    EvidenceBundleStatus,
+    EvidenceBundleSummary,
+    EvidenceCategory,
+    EvidenceInterpretation,
+    EvidenceInterpretationContext,
+    EvidenceInterpreter,
+    EvidenceLifecycle,
+    EvidenceObservation,
+    EvidenceObservationCategory,
+    EvidenceObservationConfidence,
+    EvidenceObservationSeverity,
+    EvidenceProvider,
+    EvidenceProviderCapability,
+    EvidenceProviderRef,
+    EvidenceProviderResult,
+    EvidenceResolutionContext,
+    EvidenceSnapshotRef,
+    EvidenceVersion,
+    GroupEligibilityResult,
+    GroupEligibilityStatus,
+    IdentityLifecycle,
+    IndustryError,
+    IndustryEvidenceApplicability,
+    IndustryEvidenceApplicabilityRegistry,
+    IndustryEvidenceDefinition,
+    IndustryEvidenceInterpreter,
+    IndustryEvidenceInterpreterRegistry,
+    IndustryEvidenceProvider,
+    IndustryEvidenceProviderRegistry,
+    IndustryEvidenceRegistry,
+    IndustryIdentity,
+    IndustryMapping,
+    IndustryMethodology,
+    IndustryMethodologyRegistry,
+    IndustryMetricDefinition,
+    IndustryMetricRegistry,
+    IndustryProfile,
+    IndustryProfileRegistry,
+    IndustryTaxonomy,
+    InstrumentIndustryAssignment,
+    InstrumentIndustryRegistry,
+    InstrumentMethodologyResolution,
+    InvestmentCharacteristics,
+    InvestmentCharacteristicsRegistry,
+    MappingStatus,
+    MergeSource,
+    MethodologyLifecycle,
+    MetricApplicability,
+    MetricAvailability,
+    MetricUnit,
+    MissingEvidencePolicy,
+    PeerEligibilityEvaluator,
+    PeerEligibilityPolicy,
+    PeerEligibilityPolicyRef,
+    PeerEligibilityPolicyRegistry,
+    PeerEligibilityReason,
+    PeerEligibilityResult,
+    PeerEligibilityStatus,
+    PlaceholderEvidenceInterpreter,
+    PlaceholderEvidenceProvider,
+    RequiredEvidenceSet,
+    TaxonomySource,
+    ValuationPhilosophyHint,
+    ValuationProfile,
+    assemble_methodology,
+    build_example_archetypes,
+    build_example_evidence_interpreters,
+    build_example_evidence_providers,
+    build_example_methodologies,
+    register_example_archetypes,
+    register_example_evidence_interpreters,
+    register_example_evidence_providers,
+    register_example_methodologies,
+    resolve_methodology_for_instrument,
+    seed_example_evidence_applicability_context,
+    seed_example_evidence_bundle_assembler,
+    seed_example_evidence_bundle_context,
+    seed_example_evidence_interpreter_context,
+    seed_example_evidence_provider_context,
+    seed_example_evidence_registries,
+)
+from knowledge_graph import (
+    AnalysisReference as KnowledgeGraphAnalysisReference,
+)
+from knowledge_graph import (
+    AssemblyContext as KnowledgeGraphAssemblyContext,
+)
+from knowledge_graph import (
+    AssemblyResult as KnowledgeGraphAssemblyResult,
+)
+from knowledge_graph import (
+    AssemblyStatus as KnowledgeGraphAssemblyStatus,
+)
+from knowledge_graph import (
+    CategoryCount as KnowledgeGraphCategoryCount,
+)
+from knowledge_graph import (
+    CollectionStatistics as KnowledgeGraphCollectionStatistics,
+)
+from knowledge_graph import (
+    ComparisonReference as KnowledgeGraphComparisonReference,
+)
+from knowledge_graph import (
+    DecisionReference as KnowledgeGraphDecisionReference,
+)
+from knowledge_graph import (
+    EngineContext as KnowledgeGraphEngineContext,
+)
+from knowledge_graph import (
+    EngineResult as KnowledgeGraphEngineResult,
+)
+from knowledge_graph import (
+    EngineStatus as KnowledgeGraphEngineStatus,
+)
+from knowledge_graph import (
+    EvidenceLink,
+    EvidenceLinkCategory,
+    GraphEdge,
+    GraphIdentity,
+    GraphMetadata,
+    GraphNode,
+    GraphProfile,
+    GraphRelationship,
+    GraphSummary,
+    KnowledgeGraphAssembler,
+    KnowledgeGraphEngine,
+    KnowledgeGraphError,
+    KnowledgeGraphReport,
+    KnowledgeGraphReporter,
+    Lineage,
+    LineageCategory,
+    NodeCategory,
+    RelationshipCategory,
+    assert_evidence_link_category,
+    assert_lineage_category,
+    assert_node_category,
+    assert_relationship_category,
+    assert_unique_graph_ids,
+)
+from knowledge_graph import (
+    IndustryEvidenceReference as KnowledgeGraphIndustryEvidenceReference,
+)
+from knowledge_graph import (
+    PortfolioReference as KnowledgeGraphPortfolioReference,
+)
+from knowledge_graph import (
+    QuantitativeRiskReference as KnowledgeGraphQuantitativeRiskReference,
+)
+from knowledge_graph import (
+    RecommendationReference as KnowledgeGraphRecommendationReference,
+)
+from knowledge_graph import (
+    ReportingContext as KnowledgeGraphReportingContext,
+)
+from knowledge_graph import (
+    ReportingResult as KnowledgeGraphReportingResult,
+)
+from knowledge_graph import (
+    ReportingStatus as KnowledgeGraphReportingStatus,
+)
+from knowledge_graph import (
+    ReportMetadata as KnowledgeGraphReportMetadata,
+)
+from knowledge_graph import (
+    ResearchReference as KnowledgeGraphResearchReference,
+)
+from knowledge_graph import (
+    RiskReference as KnowledgeGraphRiskReference,
+)
+from knowledge_graph import (
+    ValidationStatusView as KnowledgeGraphValidationStatusView,
+)
+from knowledge_graph import (
+    WorkflowReference as KnowledgeGraphWorkflowReference,
+)
+from orchestration import AnalysisRequest
 from portfolio import (
     ComparisonReportReference,
     CoverageSummary,
@@ -149,40 +433,102 @@ from portfolio import (
     PortfolioTimeline,
     PortfolioType,
 )
-from risk import (
-    IntegratedRiskContext,
-    MonitoringReference,
-    PortfolioReference,
-    RiskAnalysisContext,
-    RiskAnalysisResult,
-    RiskAnalysisStatus,
-    RiskAnalyzer,
-    RiskAssembler,
-    RiskAssemblyContext,
-    RiskAssemblyResult,
-    RiskAssemblyStatus,
-    RiskAssessment,
-    RiskConstraint,
-    RiskConstraintKind,
-    RiskCoverage,
-    RiskCoverageKind,
-    RiskCoverageStatus,
-    RiskDescriptor,
-    RiskError,
-    RiskIdentity,
-    RiskIntegrationContext,
-    RiskIntegrationResult,
-    RiskIntegrationStatus,
-    RiskIntegrator,
-    RiskLevel,
-    RiskObservation,
-    RiskProfile,
-    RiskReport,
-    RiskReporter,
-    RiskReportingContext,
-    RiskReportingResult,
-    RiskReportingStatus,
-    RiskSummary,
+from quantitative_risk import (
+    BenchmarkDataPort,
+    DrawdownProfile,
+    EngineContext,
+    EngineResult,
+    EngineStatus,
+    HistoricalReturnsPort,
+    HistoricalReturnsReference,
+    MarketDataPort,
+    MarketDataReference,
+    MetricCollection,
+    MetricStatus,
+    MetricType,
+    QuantitativeRiskEngine,
+    QuantitativeRiskError,
+    QuantitativeRiskIdentity,
+    QuantitativeRiskProfile,
+    QuantitativeRiskReport,
+    QuantitativeRiskReporter,
+    QuantitativeRiskSummary,
+    ReportingContext,
+    ReportingResult,
+    ReportingStatus,
+    ReportMetadata,
+    ReturnPoint,
+    RiskConcentration,
+    RiskCorrelation,
+    RiskDistribution,
+    RiskExposure,
+    RiskMetric,
+    RiskVolatility,
+    ScenarioResult,
+    StressScenario,
+    StressScenarioType,
+    WeightPoint,
+)
+from quantitative_risk import (
+    BenchmarkReference as QuantitativeBenchmarkReference,
+)
+from quantitative_risk import (
+    MonitoringReference as QuantitativeRiskMonitoringReference,
+)
+from quantitative_risk import (
+    PortfolioReference as QuantitativeRiskPortfolioReference,
+)
+from quantitative_risk import (
+    ResearchReference as QuantitativeResearchReference,
+)
+from recommendation import (
+    AssemblyContext,
+    AssemblyResult,
+    AssemblyStatus,
+    CitationSection,
+    ConfidenceLevel,
+    ConflictSeverity,
+    EngineContext,
+    EngineResult,
+    EngineStatus,
+    RecommendationAssembler,
+    RecommendationConflict,
+    RecommendationEngine,
+    RecommendationError,
+    RecommendationIdentity,
+    RecommendationMapper,
+    RecommendationMappingError,
+    RecommendationOption,
+    RecommendationProfile,
+    RecommendationRationale,
+    RecommendationReport,
+    RecommendationReporter,
+    RecommendationScore,
+    RecommendationSummary,
+    RecommendationType,
+    ReportingContext,
+    ReportingResult,
+    ReportingStatus,
+    ReportMetadata,
+    SignalPosture,
+)
+from recommendation import (
+    ComparisonReference as RecommendationComparisonReference,
+)
+from recommendation import (
+    DecisionReference as RecommendationDecisionReference,
+)
+from recommendation import (
+    PortfolioReference as RecommendationPortfolioReference,
+)
+from recommendation import (
+    QuantitativeRiskReference as RecommendationQuantitativeRiskReference,
+)
+from recommendation import (
+    ResearchReference as RecommendationResearchReference,
+)
+from recommendation import (
+    RiskReference as RecommendationRiskReference,
 )
 from research import (
     ComparisonReference,
@@ -225,98 +571,57 @@ from research import (
 from research import (
     PortfolioReference as ResearchPortfolioReference,
 )
-from quantitative_risk import (
-    BenchmarkDataPort,
-    BenchmarkReference as QuantitativeBenchmarkReference,
-    DrawdownProfile,
-    EngineContext,
-    EngineResult,
-    EngineStatus,
-    HistoricalReturnsPort,
-    HistoricalReturnsReference,
-    MarketDataPort,
-    MarketDataReference,
-    MetricCollection,
-    MetricStatus,
-    MetricType,
-    QuantitativeRiskEngine,
-    QuantitativeRiskError,
-    QuantitativeRiskIdentity,
-    QuantitativeRiskProfile,
-    QuantitativeRiskReport,
-    QuantitativeRiskReporter,
-    QuantitativeRiskSummary,
-    ReportMetadata,
-    ReportingContext,
-    ReportingResult,
-    ReportingStatus,
-    ResearchReference as QuantitativeResearchReference,
-    ReturnPoint,
-    RiskConcentration,
-    RiskCorrelation,
-    RiskDistribution,
-    RiskExposure,
-    RiskMetric,
-    RiskVolatility,
-    ScenarioResult,
-    StressScenario,
-    StressScenarioType,
-    WeightPoint,
+from risk import (
+    IntegratedRiskContext,
+    MonitoringReference,
+    PortfolioReference,
+    RiskAnalysisContext,
+    RiskAnalysisResult,
+    RiskAnalysisStatus,
+    RiskAnalyzer,
+    RiskAssembler,
+    RiskAssemblyContext,
+    RiskAssemblyResult,
+    RiskAssemblyStatus,
+    RiskAssessment,
+    RiskConstraint,
+    RiskConstraintKind,
+    RiskCoverage,
+    RiskCoverageKind,
+    RiskCoverageStatus,
+    RiskDescriptor,
+    RiskError,
+    RiskIdentity,
+    RiskIntegrationContext,
+    RiskIntegrationResult,
+    RiskIntegrationStatus,
+    RiskIntegrator,
+    RiskLevel,
+    RiskObservation,
+    RiskProfile,
+    RiskReport,
+    RiskReporter,
+    RiskReportingContext,
+    RiskReportingResult,
+    RiskReportingStatus,
+    RiskSummary,
 )
-from quantitative_risk import (
-    MonitoringReference as QuantitativeRiskMonitoringReference,
-)
-from quantitative_risk import (
-    PortfolioReference as QuantitativeRiskPortfolioReference,
-)
-from recommendation import (
-    AssemblyContext,
-    AssemblyResult,
-    AssemblyStatus,
-    CitationSection,
-    ConfidenceLevel,
-    ConflictSeverity,
-    EngineContext,
-    EngineResult,
-    EngineStatus,
-    RecommendationAssembler,
-    RecommendationConflict,
-    RecommendationEngine,
-    RecommendationError,
-    RecommendationIdentity,
-    RecommendationMapper,
-    RecommendationMappingError,
-    RecommendationOption,
-    RecommendationProfile,
-    RecommendationRationale,
-    RecommendationReport,
-    RecommendationReporter,
-    RecommendationScore,
-    RecommendationSummary,
-    RecommendationType,
-    ReportMetadata,
-    ReportingContext,
-    ReportingResult,
-    ReportingStatus,
-    SignalPosture,
-)
-from recommendation import (
-    ComparisonReference as RecommendationComparisonReference,
-)
-from recommendation import (
-    DecisionReference as RecommendationDecisionReference,
-)
-from recommendation import (
-    PortfolioReference as RecommendationPortfolioReference,
-)
-from recommendation import (
-    QuantitativeRiskReference as RecommendationQuantitativeRiskReference,
-)
-from recommendation import (
-    ResearchReference as RecommendationResearchReference,
-)
-from recommendation import (
-    RiskReference as RecommendationRiskReference,
+from universe import (
+    BatchFailurePolicy,
+    BatchStatus,
+    ComparableDecisionSummary,
+    InstrumentAnalysisFailure,
+    InstrumentAnalysisOutcome,
+    InstrumentOutcomeStatus,
+    InvestmentUniverse,
+    MultiStockAnalysisRequest,
+    MultiStockAnalysisService,
+    MultiStockDecisionResult,
+    UniverseEntry,
+    UniverseError,
+    filter_entries,
+    group_entries,
+    summarize_decision_pack,
 )
 from workflow import (
     ALLOWED_STEP_TRANSITIONS,
@@ -394,9 +699,6 @@ from workflow import (
     RecommendationReference as WorkflowRecommendationReference,
 )
 from workflow import (
-    ReportMetadata as WorkflowReportMetadata,
-)
-from workflow import (
     ReportingContext as WorkflowReportingContext,
 )
 from workflow import (
@@ -406,307 +708,13 @@ from workflow import (
     ReportingStatus as WorkflowReportingStatus,
 )
 from workflow import (
+    ReportMetadata as WorkflowReportMetadata,
+)
+from workflow import (
     ResearchReference as WorkflowResearchReference,
 )
 from workflow import (
     RiskReference as WorkflowRiskReference,
-)
-from knowledge_graph import (
-    EvidenceLink,
-    EvidenceLinkCategory,
-    GraphEdge,
-    GraphIdentity,
-    GraphMetadata,
-    GraphNode,
-    GraphProfile,
-    GraphRelationship,
-    GraphSummary,
-    KnowledgeGraphAssembler,
-    KnowledgeGraphEngine,
-    KnowledgeGraphError,
-    KnowledgeGraphReport,
-    KnowledgeGraphReporter,
-    Lineage,
-    LineageCategory,
-    NodeCategory,
-    RelationshipCategory,
-    ReportMetadata as KnowledgeGraphReportMetadata,
-    ReportingStatus as KnowledgeGraphReportingStatus,
-    assert_evidence_link_category,
-    assert_lineage_category,
-    assert_node_category,
-    assert_relationship_category,
-    assert_unique_graph_ids,
-)
-from knowledge_graph import (
-    AnalysisReference as KnowledgeGraphAnalysisReference,
-)
-from knowledge_graph import (
-    AssemblyContext as KnowledgeGraphAssemblyContext,
-)
-from knowledge_graph import (
-    AssemblyResult as KnowledgeGraphAssemblyResult,
-)
-from knowledge_graph import (
-    AssemblyStatus as KnowledgeGraphAssemblyStatus,
-)
-from knowledge_graph import (
-    CategoryCount as KnowledgeGraphCategoryCount,
-)
-from knowledge_graph import (
-    CollectionStatistics as KnowledgeGraphCollectionStatistics,
-)
-from knowledge_graph import (
-    ComparisonReference as KnowledgeGraphComparisonReference,
-)
-from knowledge_graph import (
-    DecisionReference as KnowledgeGraphDecisionReference,
-)
-from knowledge_graph import (
-    EngineContext as KnowledgeGraphEngineContext,
-)
-from knowledge_graph import (
-    EngineResult as KnowledgeGraphEngineResult,
-)
-from knowledge_graph import (
-    EngineStatus as KnowledgeGraphEngineStatus,
-)
-from knowledge_graph import (
-    IndustryEvidenceReference as KnowledgeGraphIndustryEvidenceReference,
-)
-from knowledge_graph import (
-    PortfolioReference as KnowledgeGraphPortfolioReference,
-)
-from knowledge_graph import (
-    QuantitativeRiskReference as KnowledgeGraphQuantitativeRiskReference,
-)
-from knowledge_graph import (
-    RecommendationReference as KnowledgeGraphRecommendationReference,
-)
-from knowledge_graph import (
-    ReportingContext as KnowledgeGraphReportingContext,
-)
-from knowledge_graph import (
-    ReportingResult as KnowledgeGraphReportingResult,
-)
-from knowledge_graph import (
-    ResearchReference as KnowledgeGraphResearchReference,
-)
-from knowledge_graph import (
-    RiskReference as KnowledgeGraphRiskReference,
-)
-from knowledge_graph import (
-    ValidationStatusView as KnowledgeGraphValidationStatusView,
-)
-from knowledge_graph import (
-    WorkflowReference as KnowledgeGraphWorkflowReference,
-)
-from copilot import (
-    CategoryCount,
-    CollectionStatistics,
-    ContextBundle,
-    ContextBuilder,
-    ConversationContext,
-    ConversationEngine,
-    ConversationEngineContext,
-    ConversationResult,
-    ConversationRole,
-    ConversationSession,
-    ConversationState,
-    ConversationStatus,
-    ConversationTurn,
-    CopilotError,
-    CopilotIdentity,
-    CopilotMetadata,
-    CopilotProfile,
-    CopilotReporter,
-    CopilotResponse,
-    CopilotSummary,
-    ConfidenceLevel,
-    EvidenceValidator,
-    Explanation,
-    ExplanationDraft,
-    ExplanationEngine,
-    ExplanationInput,
-    ExplanationResult,
-    ExplanationStatus,
-    ExplanationType,
-    LanguageModelPort,
-    LanguageModelRequest,
-    LanguageModelResult,
-    LanguageModelStatus,
-    ReportFormatter,
-    ReportingContext,
-    ReportingResult,
-    ResponseFormatter,
-    ResponseMetadata,
-    ResponseMetadataBuilder,
-    ResponseStatus,
-    UserIntent,
-    UserIntentType,
-    ValidationStatusView,
-    assert_conversation_role,
-    assert_conversation_state,
-    assert_conversation_status,
-    assert_explanation_type,
-    assert_language_model_status,
-    assert_legal_conversation_transition,
-    assert_response_status,
-    assert_unique_copilot_ids,
-    assert_unique_session_ids,
-    assert_unique_turn_ids,
-    assert_user_intent_type,
-)
-from copilot import (
-    AnalysisReference as CopilotAnalysisReference,
-)
-from copilot import (
-    ComparisonReference as CopilotComparisonReference,
-)
-from copilot import (
-    DecisionReference as CopilotDecisionReference,
-)
-from copilot import (
-    IndustryEvidenceReference as CopilotIndustryEvidenceReference,
-)
-from copilot import (
-    KnowledgeGraphReference as CopilotKnowledgeGraphReference,
-)
-from copilot import (
-    PortfolioReference as CopilotPortfolioReference,
-)
-from copilot import (
-    QuantitativeRiskReference as CopilotQuantitativeRiskReference,
-)
-from copilot import (
-    RecommendationReference as CopilotRecommendationReference,
-)
-from copilot import (
-    ResearchReference as CopilotResearchReference,
-)
-from copilot import (
-    RiskReference as CopilotRiskReference,
-)
-from copilot import (
-    WorkflowReference as CopilotWorkflowReference,
-)
-from industry import (
-    ApplicabilityGroup,
-    ApplicabilityLevel,
-    AssembledMethodology,
-    CharacteristicDefaults,
-    CharacteristicLifecycle,
-    ClassificationMappingRegistry,
-    ClassificationReference,
-    ComparisonDimension,
-    ComparisonDimensionHint,
-    EligibilityOptions,
-    EvidenceApplicabilityRule,
-    EvidenceAvailability,
-    EvidenceBundle,
-    EvidenceBundleAssembler,
-    EvidenceBundleAssemblyContext,
-    EvidenceBundleEntry,
-    EvidenceBundleMetadata,
-    EvidenceBundleReference,
-    EvidenceBundleStatus,
-    EvidenceBundleSummary,
-    EvidenceCategory,
-    EvidenceInterpretation,
-    EvidenceInterpretationContext,
-    EvidenceInterpreter,
-    EvidenceLifecycle,
-    EvidenceObservation,
-    EvidenceObservationCategory,
-    EvidenceObservationConfidence,
-    EvidenceObservationSeverity,
-    EvidenceProvider,
-    EvidenceProviderCapability,
-    EvidenceProviderRef,
-    EvidenceProviderResult,
-    EvidenceResolutionContext,
-    EvidenceSnapshotRef,
-    EvidenceVersion,
-    GroupEligibilityResult,
-    GroupEligibilityStatus,
-    IdentityLifecycle,
-    IndustryError,
-    IndustryEvidenceApplicability,
-    IndustryEvidenceApplicabilityRegistry,
-    IndustryEvidenceDefinition,
-    IndustryEvidenceInterpreter,
-    IndustryEvidenceInterpreterRegistry,
-    IndustryEvidenceProvider,
-    IndustryEvidenceProviderRegistry,
-    IndustryEvidenceRegistry,
-    IndustryIdentity,
-    IndustryMapping,
-    IndustryMethodology,
-    IndustryMethodologyRegistry,
-    IndustryMetricDefinition,
-    IndustryMetricRegistry,
-    IndustryProfile,
-    IndustryProfileRegistry,
-    IndustryTaxonomy,
-    InstrumentIndustryAssignment,
-    InstrumentIndustryRegistry,
-    InstrumentMethodologyResolution,
-    InvestmentCharacteristics,
-    InvestmentCharacteristicsRegistry,
-    MappingStatus,
-    MergeSource,
-    MetricApplicability,
-    MetricAvailability,
-    MetricUnit,
-    MethodologyLifecycle,
-    MissingEvidencePolicy,
-    PeerEligibilityEvaluator,
-    PeerEligibilityPolicy,
-    PeerEligibilityPolicyRef,
-    PeerEligibilityPolicyRegistry,
-    PeerEligibilityReason,
-    PeerEligibilityResult,
-    PeerEligibilityStatus,
-    PlaceholderEvidenceInterpreter,
-    PlaceholderEvidenceProvider,
-    RequiredEvidenceSet,
-    TaxonomySource,
-    ValuationPhilosophyHint,
-    ValuationProfile,
-    assemble_methodology,
-    build_example_archetypes,
-    build_example_evidence_interpreters,
-    build_example_evidence_providers,
-    build_example_methodologies,
-    register_example_archetypes,
-    register_example_evidence_interpreters,
-    register_example_evidence_providers,
-    register_example_methodologies,
-    resolve_methodology_for_instrument,
-    seed_example_evidence_applicability_context,
-    seed_example_evidence_bundle_assembler,
-    seed_example_evidence_bundle_context,
-    seed_example_evidence_interpreter_context,
-    seed_example_evidence_provider_context,
-    seed_example_evidence_registries,
-)
-from orchestration import AnalysisRequest
-from universe import (
-    BatchFailurePolicy,
-    BatchStatus,
-    ComparableDecisionSummary,
-    InstrumentAnalysisFailure,
-    InstrumentAnalysisOutcome,
-    InstrumentOutcomeStatus,
-    InvestmentUniverse,
-    MultiStockAnalysisRequest,
-    MultiStockAnalysisService,
-    MultiStockDecisionResult,
-    UniverseEntry,
-    UniverseError,
-    filter_entries,
-    group_entries,
-    summarize_decision_pack,
 )
 
 __all__ = [

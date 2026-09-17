@@ -5,7 +5,6 @@ from __future__ import annotations
 from dataclasses import dataclass
 
 from core.exceptions import ValidationError
-
 from industry.enums import IdentityLifecycle, MappingStatus, TaxonomySource
 
 __all__ = [
@@ -58,9 +57,7 @@ class IndustryIdentity:
             None if self.description is None else self.description.strip() or None
         )
         display = (
-            None
-            if self.display_name is None
-            else self.display_name.strip() or None
+            None if self.display_name is None else self.display_name.strip() or None
         )
         object.__setattr__(self, "id", identity_id)
         object.__setattr__(self, "name", name)

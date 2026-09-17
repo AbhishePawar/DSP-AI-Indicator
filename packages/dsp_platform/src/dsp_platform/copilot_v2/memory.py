@@ -47,7 +47,11 @@ class CopilotMemoryStore:
             self._context.setdefault(cid, _empty_context())
             self._meta.setdefault(
                 cid,
-                {"conversation_id": cid, "title": "Research Copilot", "updated_at": None},
+                {
+                    "conversation_id": cid,
+                    "title": "Research Copilot",
+                    "updated_at": None,
+                },
             )
         return cid
 
@@ -66,7 +70,9 @@ class CopilotMemoryStore:
         with self._lock:
             return deepcopy(self._context[cid])
 
-    def update_context(self, conversation_id: str, patch: dict[str, Any] | None) -> dict[str, Any]:
+    def update_context(
+        self, conversation_id: str, patch: dict[str, Any] | None
+    ) -> dict[str, Any]:
         cid = self.ensure(conversation_id)
         if not patch:
             return self.get_context(cid)
@@ -137,6 +143,8 @@ def get_copilot_memory_store() -> CopilotMemoryStore:
     return _STORE
 
 
-def reset_copilot_memory_store_for_tests(store: CopilotMemoryStore | None = None) -> None:
+def reset_copilot_memory_store_for_tests(
+    store: CopilotMemoryStore | None = None,
+) -> None:
     global _STORE
     _STORE = store

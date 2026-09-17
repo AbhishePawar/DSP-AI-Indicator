@@ -108,9 +108,7 @@ class TestSuccessfulRetrieval:
         client = _FakeHttpClient(_chart_payload())
         adapter = YahooFinanceAdapter(http_client=client)
 
-        series = adapter.get_price_series(
-            instrument, BarFrequency.DAILY, *date_range
-        )
+        series = adapter.get_price_series(instrument, BarFrequency.DAILY, *date_range)
 
         assert isinstance(series, PriceSeries)
         assert series.instrument is instrument
@@ -153,9 +151,7 @@ class TestNormalization:
         client = _FakeHttpClient(payload)
         adapter = YahooFinanceAdapter(http_client=client)
 
-        series = adapter.get_price_series(
-            instrument, BarFrequency.DAILY, *date_range
-        )
+        series = adapter.get_price_series(instrument, BarFrequency.DAILY, *date_range)
 
         assert len(series.bars) == 3
 
@@ -165,9 +161,7 @@ class TestNormalization:
         client = _FakeHttpClient(_chart_payload())
         adapter = YahooFinanceAdapter(http_client=client)
 
-        series = adapter.get_price_series(
-            instrument, BarFrequency.DAILY, *date_range
-        )
+        series = adapter.get_price_series(instrument, BarFrequency.DAILY, *date_range)
 
         assert series.bars[0].timestamp.year == 2024
 

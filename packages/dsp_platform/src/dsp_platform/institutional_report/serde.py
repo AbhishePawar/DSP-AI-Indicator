@@ -2,8 +2,9 @@
 
 from __future__ import annotations
 
+from collections.abc import Mapping
 from types import MappingProxyType
-from typing import Any, Mapping
+from typing import Any
 
 from dsp_platform.institutional_report.models import (
     GENERATOR_VERSION,
@@ -47,9 +48,11 @@ def _section_from_dict(
         status=status,
         source_section=source_section,
         payload=freeze_mapping(dict(payload)) if isinstance(payload, Mapping) else None,
-        provenance=freeze_mapping(dict(provenance))
-        if isinstance(provenance, Mapping)
-        else None,
+        provenance=(
+            freeze_mapping(dict(provenance))
+            if isinstance(provenance, Mapping)
+            else None
+        ),
         message=data.get("message"),
         retrieved_at=data.get("retrieved_at"),
     )
@@ -91,9 +94,7 @@ def institutional_report_from_dict(
         )
 
     pkg = meta_raw.get("package_versions") or {}
-    package_versions = MappingProxyType(
-        {str(k): str(v) for k, v in dict(pkg).items()}
-    )
+    package_versions = MappingProxyType({str(k): str(v) for k, v in dict(pkg).items()})
 
     metadata = ReportMetadata(
         report_id=str(meta_raw.get("report_id") or ""),
@@ -109,9 +110,7 @@ def institutional_report_from_dict(
         ticker=meta_raw.get("ticker"),
         company=meta_raw.get("company"),
         exchange=meta_raw.get("exchange"),
-        generator_version=str(
-            meta_raw.get("generator_version") or GENERATOR_VERSION
-        ),
+        generator_version=str(meta_raw.get("generator_version") or GENERATOR_VERSION),
         api_version=meta_raw.get("api_version"),
         package_versions=package_versions,
     )

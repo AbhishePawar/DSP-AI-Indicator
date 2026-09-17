@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 from contracts.enums import SignalDirection
-
 from economic.analyzers.base import Analyzer
 from economic.models import EconomicSignal, EconomicSnapshot
 
@@ -33,8 +32,7 @@ class LiquidityAnalyzer(Analyzer):
                     direction=SignalDirection.NEUTRAL,
                     observation="Liquidity Unavailable",
                     reasoning=(
-                        "Liquidity indicator was not reported in the "
-                        "snapshot."
+                        "Liquidity indicator was not reported in the " "snapshot."
                     ),
                     value=None,
                 ),

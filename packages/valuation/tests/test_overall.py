@@ -14,6 +14,15 @@ from valuation.consensus import (
     OutlierThresholds,
     WeightingMode,
 )
+from valuation.core.result_models import (
+    ScenarioKind,
+    ScenarioOutcome,
+    SensitivityCell,
+    SensitivityMatrix,
+    ValidationSummary,
+    ValuationMetadata,
+    ValuationResult,
+)
 from valuation.overall import (
     OVERALL_VERSION,
     MosClassification,
@@ -29,16 +38,6 @@ from valuation.overall import (
     validate_overall_inputs,
 )
 from valuation.overall.overall_models import to_valuation_result
-from valuation.core.quality_flags import QualityFlag
-from valuation.core.result_models import (
-    ScenarioKind,
-    ScenarioOutcome,
-    SensitivityCell,
-    SensitivityMatrix,
-    ValidationSummary,
-    ValuationMetadata,
-    ValuationResult,
-)
 
 
 def _sens(spread: float = 0.10) -> SensitivityMatrix:
@@ -67,13 +66,9 @@ def _vr(
 ) -> ValuationResult:
     if scenarios is None:
         scenarios = (
-            ScenarioOutcome(
-                ScenarioKind.bear(), None, None, (ivps or 9) * 0.9
-            ),
+            ScenarioOutcome(ScenarioKind.bear(), None, None, (ivps or 9) * 0.9),
             ScenarioOutcome(ScenarioKind.base(), None, None, ivps),
-            ScenarioOutcome(
-                ScenarioKind.bull(), None, None, (ivps or 11) * 1.1
-            ),
+            ScenarioOutcome(ScenarioKind.bull(), None, None, (ivps or 11) * 1.1),
         )
     return ValuationResult(
         model_name=method,
@@ -106,8 +101,20 @@ def _consensus(
 ):
     methods = methods or (
         _vr("dcf", ivps=12.0, iv=1200.0, confidence_score=6.0, sensitivity=_sens(0.05)),
-        _vr("relative", ivps=10.0, iv=1000.0, confidence_score=5.0, sensitivity=_sens(0.35)),
-        _vr("asset_based", ivps=9.0, iv=900.0, confidence_score=4.5, sensitivity=_sens(0.12)),
+        _vr(
+            "relative",
+            ivps=10.0,
+            iv=1000.0,
+            confidence_score=5.0,
+            sensitivity=_sens(0.35),
+        ),
+        _vr(
+            "asset_based",
+            ivps=9.0,
+            iv=900.0,
+            confidence_score=4.5,
+            sensitivity=_sens(0.12),
+        ),
         _vr("ddm", ivps=11.0, iv=1100.0, confidence_score=5.5, sensitivity=_sens(0.08)),
     )
     return ConsensusEngine().analyze(
@@ -271,17 +278,13 @@ class TestValidation:
     def test_nan_price(self) -> None:
         with pytest.raises(OverallValuationError, match="NaN"):
             validate_overall_inputs(
-                OverallInputs(
-                    current_market_price=float("nan"), consensus=_consensus()
-                )
+                OverallInputs(current_market_price=float("nan"), consensus=_consensus())
             )
 
     def test_infinite(self) -> None:
         with pytest.raises(OverallValuationError, match="infinite"):
             validate_overall_inputs(
-                OverallInputs(
-                    current_market_price=float("inf"), consensus=_consensus()
-                )
+                OverallInputs(current_market_price=float("inf"), consensus=_consensus())
             )
 
     def test_duplicate_methods(self) -> None:
@@ -468,8 +471,8 @@ class TestExplainabilityIntegration:
         vr = to_valuation_result(result)
         assert vr.model_name == "overall"
         from valuation import (
-            to_overall_valuation_result,
             to_overall_v2_aggregate_payload,
+            to_overall_valuation_result,
         )
 
         assert to_overall_valuation_result(result).model_name == "overall"
@@ -684,7 +687,10 @@ class TestEdgeCases:
     def test_mos_none_path(self) -> None:
         eng = OverallEngine()
         assert eng._mos_class(None, MosThresholds()) is MosClassification.UNAVAILABLE
-        assert eng._research_label(None, MosClassification.UNAVAILABLE) is ResearchLabel.WATCHLIST
+        assert (
+            eng._research_label(None, MosClassification.UNAVAILABLE)
+            is ResearchLabel.WATCHLIST
+        )
 
     def test_zero_ivps_mos(self) -> None:
         # P1-04 — zero IV/share cannot produce MoS; fail closed.
@@ -731,8 +737,15 @@ class TestEdgeCases:
         cons = _consensus(
             methods=(
                 _vr("dcf", ivps=10.0, confidence_score=8.0, confidence_level="high"),
-                _vr("relative", ivps=10.1, confidence_score=8.0, confidence_level="high"),
-                _vr("asset_based", ivps=9.9, confidence_score=8.0, confidence_level="high"),
+                _vr(
+                    "relative", ivps=10.1, confidence_score=8.0, confidence_level="high"
+                ),
+                _vr(
+                    "asset_based",
+                    ivps=9.9,
+                    confidence_score=8.0,
+                    confidence_level="high",
+                ),
                 _vr("ddm", ivps=10.05, confidence_score=8.0, confidence_level="high"),
                 _vr("epv", ivps=10.0, confidence_score=8.0, confidence_level="high"),
             )
@@ -857,9 +870,7 @@ class TestEdgeCases:
         eng = OverallEngine()
         from valuation.overall.overall_models import ScenarioSummary
 
-        s = ScenarioSummary(
-            bear=-1.0, base=0.0, bull=1.0, custom={}, outcomes=()
-        )
+        s = ScenarioSummary(bear=-1.0, base=0.0, bull=1.0, custom={}, outcomes=())
         # median of [-1,0,1] is 0
         assert eng._scenario_stability(s) == pytest.approx(0.4)
         assert eng._scenario_stability(

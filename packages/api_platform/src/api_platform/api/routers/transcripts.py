@@ -64,9 +64,11 @@ def transcripts(
             "ok": True,
             "available": True,
             "authenticated": True,
-            "symbol": identity.get("symbol")
-            if isinstance(identity, dict)
-            else symbol.strip().upper(),
+            "symbol": (
+                identity.get("symbol")
+                if isinstance(identity, dict)
+                else symbol.strip().upper()
+            ),
             "identity": identity,
             "transcripts": payload.get("transcripts"),
             "provenance": payload.get("provenance"),

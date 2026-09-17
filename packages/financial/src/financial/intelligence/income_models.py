@@ -126,9 +126,7 @@ class ExpenseMetrics:
             "interest_pct": self.interest_pct,
             "tax_pct": self.tax_pct,
             "other_income_pct": self.other_income_pct,
-            "expense_trend": (
-                self.expense_trend.value if self.expense_trend else None
-            ),
+            "expense_trend": (self.expense_trend.value if self.expense_trend else None),
         }
 
 

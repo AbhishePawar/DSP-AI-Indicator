@@ -55,9 +55,7 @@ class InMemoryCachePort:
         with self._lock:
             now = time.monotonic()
             alive = [
-                k
-                for k, (_v, exp) in self._data.items()
-                if exp is None or exp > now
+                k for k, (_v, exp) in self._data.items() if exp is None or exp > now
             ]
             return tuple(sorted(alive))
 

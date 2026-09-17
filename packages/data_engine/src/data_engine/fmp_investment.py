@@ -26,6 +26,8 @@ from data_engine.financial_statement.models import (
     AuthenticatedFinancialStatements,
     CompanyIdentity,
     FinancialStatementProvenance,
+)
+from data_engine.financial_statement.models import (
     utc_now as stmt_utc_now,
 )
 from data_engine.financial_statement.service import (
@@ -37,6 +39,8 @@ from data_engine.market_quote.adapters import build_quote_from_mapping
 from data_engine.market_quote.models import (
     AuthenticatedMarketQuote,
     MarketQuoteProvenance,
+)
+from data_engine.market_quote.models import (
     utc_now as quote_utc_now,
 )
 from data_engine.market_quote.service import MarketQuotePort, QuoteProviderHealth
@@ -114,9 +118,11 @@ class FinancialModelingPrepQuoteAdapter(MarketQuotePort):
             "market_cap": row.get("marketCap"),
             "enterprise_value": row.get("enterpriseValue"),
             "shares_outstanding": row.get("sharesOutstanding"),
-            "dividend_yield": row.get("dividendYield")
-            if row.get("dividendYield") is not None
-            else row.get("dividend"),
+            "dividend_yield": (
+                row.get("dividendYield")
+                if row.get("dividendYield") is not None
+                else row.get("dividend")
+            ),
             "beta": row.get("beta"),
         }
         provenance = MarketQuoteProvenance(
@@ -185,9 +191,13 @@ class FinancialModelingPrepStatementAdapter(FinancialStatementPort):
             return None
         return CompanyIdentity(
             symbol=str(row.get("symbol") or symbol).strip().upper(),
-            exchange=str(row["exchangeShortName"])
-            if row.get("exchangeShortName")
-            else (str(row["exchange"]) if row.get("exchange") else instrument.exchange),
+            exchange=(
+                str(row["exchangeShortName"])
+                if row.get("exchangeShortName")
+                else (
+                    str(row["exchange"]) if row.get("exchange") else instrument.exchange
+                )
+            ),
             company_name=str(row["companyName"]) if row.get("companyName") else None,
             isin=str(row["isin"]) if row.get("isin") else None,
             cik=str(row["cik"]) if row.get("cik") else None,
@@ -249,9 +259,7 @@ class FinancialModelingPrepStatementAdapter(FinancialStatementPort):
                     fiscal_quarter = int(period_label[1:])
                 except ValueError:
                     continue
-            raw_currency = (
-                row.get("reportedCurrency") or identity.currency or ""
-            )
+            raw_currency = row.get("reportedCurrency") or identity.currency or ""
             raw_currency = str(raw_currency).strip()
             if not raw_currency:
                 # Fail closed — do not invent USD (CV-001).

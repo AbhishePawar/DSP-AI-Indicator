@@ -30,9 +30,7 @@ def _series(
         indicator_name=code,
         country="US",
         frequency=frequency,
-        points=tuple(
-            EconomicDataPoint(observation_date=d, value=v) for d, v in points
-        ),
+        points=tuple(EconomicDataPoint(observation_date=d, value=v) for d, v in points),
         unit=unit,
     )
 
@@ -159,9 +157,7 @@ class TestEconomicSnapshotBuilder:
                     "CPI",
                     [(date(2022, 1, 1), 100.0), (date(2023, 1, 1), 102.0)],
                 ),
-                "FEDFUNDS": _series(
-                    "INTEREST_RATE", [(date(2023, 1, 1), 4.0)]
-                ),
+                "FEDFUNDS": _series("INTEREST_RATE", [(date(2023, 1, 1), 4.0)]),
             }
         )
         assert snapshot.cpi_inflation == pytest.approx(0.02)

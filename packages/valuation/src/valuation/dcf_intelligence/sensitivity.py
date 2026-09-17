@@ -74,9 +74,7 @@ def build_sensitivity_matrix(
         if w <= base_terminal.perpetual_growth:
             continue
         try:
-            ev, eq, ivps = base_bridge_equity_fn(
-                base_forecast, base_terminal, w
-            )
+            ev, eq, ivps = base_bridge_equity_fn(base_forecast, base_terminal, w)
         except (ValuationError, ValueError):
             continue
         wacc_cells.append(
@@ -97,9 +95,7 @@ def build_sensitivity_matrix(
             continue
         try:
             terminal = replace(base_terminal, perpetual_growth=tg)
-            ev, eq, ivps = base_bridge_equity_fn(
-                base_forecast, terminal, base_wacc
-            )
+            ev, eq, ivps = base_bridge_equity_fn(base_forecast, terminal, base_wacc)
         except (ValuationError, ValueError):
             continue
         tg_cells.append(

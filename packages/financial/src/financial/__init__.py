@@ -61,12 +61,12 @@ from financial.engine import FinancialEngine
 from financial.exceptions import (
     BalanceAnalysisError,
     CashFlowAnalysisError,
+    FinancialAggregationError,
     FinancialError,
     FinancialRatioError,
     FinancialValidationError,
     IncomeAnalysisError,
     TrendAnalysisError,
-    FinancialAggregationError,
 )
 from financial.income_statement import INCOME_STATEMENT_FIELDS, IncomeStatement
 from financial.intelligence import (
@@ -94,7 +94,6 @@ from financial.intelligence import (
     ConsistencyMetrics,
     EquityMetrics,
     ExpenseMetrics,
-    FinancingCashMetrics,
     FinancialAggregationError,
     FinancialAggregatorEngine,
     FinancialAnalysis,
@@ -102,6 +101,7 @@ from financial.intelligence import (
     FinancialRatioAnalysis,
     FinancialRatioEngine,
     FinancialStatementsHistory,
+    FinancingCashMetrics,
     FreeCashFlowMetrics,
     GrowthInvestmentClass,
     GrowthMetrics,

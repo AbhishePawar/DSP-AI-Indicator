@@ -7,7 +7,8 @@ metrics from measured outcomes only — never fabricates outcomes.
 from __future__ import annotations
 
 import uuid
-from typing import Any, Mapping
+from collections.abc import Mapping
+from typing import Any
 
 from dsp_platform.research_intelligence.models import (
     CALIBRATION_BUCKETS,
@@ -22,9 +23,7 @@ from dsp_platform.research_intelligence.models import (
 __all__ = ["build_calibration_report"]
 
 
-def _bucket_stats(
-    outcomes: tuple[OutcomeMeasurement, ...]
-) -> dict[str, Any]:
+def _bucket_stats(outcomes: tuple[OutcomeMeasurement, ...]) -> dict[str, Any]:
     stats: dict[str, Any] = {}
     for bucket in CALIBRATION_BUCKETS:
         subset = [
@@ -52,7 +51,7 @@ def _bucket_stats(
 
 
 def _calibration_curve(
-    outcomes: tuple[OutcomeMeasurement, ...]
+    outcomes: tuple[OutcomeMeasurement, ...],
 ) -> tuple[Mapping[str, Any], ...]:
     # Expected confidence midpoints for institutional buckets
     expected = {"high": 0.85, "medium": 0.55, "low": 0.25}
@@ -93,11 +92,7 @@ def _calibration_curve(
 
 
 def _drift(curve: tuple[Mapping[str, Any], ...]) -> dict[str, Any]:
-    gaps = [
-        abs(float(p["gap"]))
-        for p in curve
-        if p.get("gap") is not None
-    ]
+    gaps = [abs(float(p["gap"])) for p in curve if p.get("gap") is not None]
     if not gaps:
         return {
             "mean_absolute_gap": None,
@@ -124,9 +119,7 @@ def _reliability(
     outcomes: tuple[OutcomeMeasurement, ...], bucket_stats: Mapping[str, Any]
 ) -> dict[str, Any]:
     measured = [
-        o
-        for o in outcomes
-        if o.recommendation_accuracy in {"correct", "incorrect"}
+        o for o in outcomes if o.recommendation_accuracy in {"correct", "incorrect"}
     ]
     if not measured:
         return {
@@ -135,9 +128,9 @@ def _reliability(
             "brier_proxy": None,
             "message": UNAVAILABLE_MESSAGE,
         }
-    overall = sum(
-        1 for o in measured if o.recommendation_accuracy == "correct"
-    ) / len(measured)
+    overall = sum(1 for o in measured if o.recommendation_accuracy == "correct") / len(
+        measured
+    )
     # Simple reliability proxy: mean squared gap vs bucket expected
     expected = {"high": 0.85, "medium": 0.55, "low": 0.25}
     squares: list[float] = []
@@ -169,9 +162,7 @@ def build_calibration_report(
     drift = _drift(curve)
     reliability = _reliability(outs, buckets)
     measured = sum(
-        1
-        for o in outs
-        if o.recommendation_accuracy in {"correct", "incorrect"}
+        1 for o in outs if o.recommendation_accuracy in {"correct", "incorrect"}
     )
     message = None if measured else UNAVAILABLE_MESSAGE
     return CalibrationReport(

@@ -5,8 +5,8 @@ from __future__ import annotations
 from dataclasses import dataclass
 
 from valuation.dcf_intelligence.assumptions import (
-    CapmInputs,
     CapitalStructure,
+    CapmInputs,
     CostOfDebtInputs,
     DcfBridgeInputs,
     DcfForecastAssumptions,
@@ -117,10 +117,14 @@ class DiscountedCashFlowEngine:
         assert wacc.wacc.value is not None
         wacc_value = float(wacc.wacc.value)
 
-        if wacc_value <= inputs.terminal.perpetual_growth and inputs.terminal.method in {
-            "gordon",
-            "both",
-        }:
+        if (
+            wacc_value <= inputs.terminal.perpetual_growth
+            and inputs.terminal.method
+            in {
+                "gordon",
+                "both",
+            }
+        ):
             raise ValuationError(
                 "WACC must exceed perpetual growth for Gordon terminal value"
             )

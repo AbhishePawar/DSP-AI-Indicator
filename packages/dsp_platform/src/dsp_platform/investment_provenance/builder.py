@@ -2,8 +2,9 @@
 
 from __future__ import annotations
 
+from collections.abc import Mapping
 from datetime import UTC, datetime
-from typing import Any, Mapping
+from typing import Any
 from uuid import uuid4
 
 from dsp_platform.investment_provenance.fingerprint import canonical_fingerprint
@@ -91,9 +92,7 @@ def build_investment_provenance(
     aid = analysis_id or new_analysis_id()
     meta = dict(public_payload.get("metadata") or {})
     stage_summaries = list(public_payload.get("stage_summaries") or [])
-    by_stage = {
-        str(s.get("stage")): s for s in stage_summaries if isinstance(s, dict)
-    }
+    by_stage = {str(s.get("stage")): s for s in stage_summaries if isinstance(s, dict)}
     valuation_stage = by_stage.get("valuation") or {}
     rec_summary = dict(public_payload.get("recommendation_summary") or {})
     committee_summary = dict(public_payload.get("committee_summary") or {})
@@ -133,9 +132,9 @@ def build_investment_provenance(
         "market_price": source.get("current_market_price"),
         "margin_of_safety": mos,
         "recommendation_linked": rec_summary.get("decision"),
-        "reason": None
-        if val_available
-        else "valuation stage unavailable or incomplete",
+        "reason": (
+            None if val_available else "valuation stage unavailable or incomplete"
+        ),
     }
 
     conclusion = {

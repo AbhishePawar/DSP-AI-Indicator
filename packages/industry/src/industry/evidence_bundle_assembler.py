@@ -130,8 +130,7 @@ class EvidenceBundleAssembler:
 
         if (
             status is EvidenceBundleStatus.INCOMPLETE
-            and applicability.missing_evidence_policy
-            is MissingEvidencePolicy.HARD_FAIL
+            and applicability.missing_evidence_policy is MissingEvidencePolicy.HARD_FAIL
         ):
             missing = sorted(
                 eid
@@ -175,9 +174,7 @@ class EvidenceBundleAssembler:
 
         provider_result: EvidenceProviderResult | None = None
         if provider_id is None:
-            limitations.append(
-                f"No provider registered for evidence {evidence_id}."
-            )
+            limitations.append(f"No provider registered for evidence {evidence_id}.")
             is_gap = True
         else:
             resolution_ctx = EvidenceResolutionContext(
@@ -218,9 +215,7 @@ class EvidenceBundleAssembler:
             )
             observation = self._interpreters.interpret(interpreter_id, interp_ctx)
         elif provider_result is not None and interpreter_id is None:
-            limitations.append(
-                f"No interpreter registered for evidence {evidence_id}."
-            )
+            limitations.append(f"No interpreter registered for evidence {evidence_id}.")
 
         return EvidenceBundleEntry(
             evidence_id=evidence_id,
@@ -295,9 +290,7 @@ class EvidenceBundleAssembler:
     def _resolve_applicability(
         self, context: EvidenceBundleAssemblyContext
     ) -> IndustryEvidenceApplicability:
-        return self._applicability.lookup_active_for_methodology(
-            context.methodology_id
-        )
+        return self._applicability.lookup_active_for_methodology(context.methodology_id)
 
     def _bundle_id(
         self,
@@ -334,9 +327,7 @@ class EvidenceBundleAssembler:
 
         if required_ids and not required_missing:
             if any(e.is_gap for e in entries):
-                notes.append(
-                    "Required evidence available; non-required gaps remain."
-                )
+                notes.append("Required evidence available; non-required gaps remain.")
                 return EvidenceBundleStatus.PARTIAL, tuple(notes)
             return EvidenceBundleStatus.COMPLETE, tuple(notes)
 
@@ -344,7 +335,9 @@ class EvidenceBundleAssembler:
             notes.append(
                 "Required evidence missing: " + ", ".join(required_missing) + "."
             )
-            if non_gap > 0 or any(not e.is_gap for e in entries if e.evidence_id not in required_ids):
+            if non_gap > 0 or any(
+                not e.is_gap for e in entries if e.evidence_id not in required_ids
+            ):
                 return EvidenceBundleStatus.PARTIAL, tuple(notes)
             if required_available > 0:
                 return EvidenceBundleStatus.PARTIAL, tuple(notes)
@@ -366,9 +359,7 @@ class EvidenceBundleAssembler:
                 continue
             if entry.provider_result is None:
                 return False
-            return (
-                entry.provider_result.availability is EvidenceAvailability.AVAILABLE
-            )
+            return entry.provider_result.availability is EvidenceAvailability.AVAILABLE
         return False
 
     def _summarize(

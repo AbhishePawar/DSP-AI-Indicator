@@ -33,7 +33,7 @@ def test_synthetic_universe_scale(size: int) -> None:
     assert result.status is BatchStatus.SUCCESS
     assert len(result.outcomes) == size
     assert len(analyzer.calls) == size
-    # Deterministic alphabetical order by symbol S0000.. 
+    # Deterministic alphabetical order by symbol S0000..
     assert analyzer.calls == sorted(analyzer.calls)
     # Smoke bound: even 100 synthetic packs should stay modest.
     assert peak < 200 * 1024 * 1024

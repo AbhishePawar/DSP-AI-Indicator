@@ -9,7 +9,6 @@ from __future__ import annotations
 from dataclasses import dataclass
 
 from industry import EvidenceBundleReference
-
 from portfolio.enums import PortfolioCitationStatus
 from portfolio.exceptions import PortfolioError
 from portfolio.models import (
@@ -42,9 +41,7 @@ class PortfolioCitationContext:
         if self.portfolio is None:
             msg = "portfolio is required"
             raise PortfolioError(msg)
-        object.__setattr__(
-            self, "decision_pack_refs", tuple(self.decision_pack_refs)
-        )
+        object.__setattr__(self, "decision_pack_refs", tuple(self.decision_pack_refs))
         object.__setattr__(
             self, "evidence_bundle_refs", tuple(self.evidence_bundle_refs)
         )
@@ -69,12 +66,8 @@ class PortfolioCitationResult:
     warnings: tuple[str, ...] = ()
 
     def __post_init__(self) -> None:
-        object.__setattr__(
-            self, "decision_citations", tuple(self.decision_citations)
-        )
-        object.__setattr__(
-            self, "evidence_citations", tuple(self.evidence_citations)
-        )
+        object.__setattr__(self, "decision_citations", tuple(self.decision_citations))
+        object.__setattr__(self, "evidence_citations", tuple(self.evidence_citations))
         object.__setattr__(
             self, "comparison_citations", tuple(self.comparison_citations)
         )
@@ -103,8 +96,7 @@ class PortfolioCitationAssembler:
         for snap in portfolio.snapshots:
             if snap.portfolio_id != portfolio.identity.portfolio_id:
                 msg = (
-                    f"mismatched portfolio ownership: snapshot "
-                    f"{snap.snapshot_id!r}"
+                    f"mismatched portfolio ownership: snapshot " f"{snap.snapshot_id!r}"
                 )
                 raise PortfolioError(msg)
 
@@ -190,10 +182,7 @@ class PortfolioCitationAssembler:
         for ref in context.comparison_report_refs:
             self._reject_broken_comparison(ref)
             if ref.digest in seen_comp:
-                msg = (
-                    f"duplicate citation ids: ComparisonReport "
-                    f"{ref.digest!r}"
-                )
+                msg = f"duplicate citation ids: ComparisonReport " f"{ref.digest!r}"
                 raise PortfolioError(msg)
             seen_comp.add(ref.digest)
             if ref.included_symbols:
@@ -303,8 +292,7 @@ class PortfolioCitationAssembler:
         self, context: PortfolioCitationContext
     ) -> tuple[DecisionPackReference, ...]:
         by_symbol: dict[str, DecisionPackReference] = {
-            h.instrument_symbol: h.decision_pack_ref
-            for h in context.portfolio.holdings
+            h.instrument_symbol: h.decision_pack_ref for h in context.portfolio.holdings
         }
         for ref in context.decision_pack_refs:
             existing = by_symbol.get(ref.instrument_symbol)
@@ -326,12 +314,8 @@ class PortfolioCitationAssembler:
                 by_symbol[holding.instrument_symbol] = holding.evidence_bundle_ref
         for ref in context.evidence_bundle_refs:
             existing = by_symbol.get(ref.instrument_key)
-            if (
-                existing is not None
-                and (
-                    existing.digest != ref.digest
-                    or existing.bundle_id != ref.bundle_id
-                )
+            if existing is not None and (
+                existing.digest != ref.digest or existing.bundle_id != ref.bundle_id
             ):
                 msg = (
                     f"duplicate citation ids: conflicting EvidenceBundle for "
@@ -516,9 +500,7 @@ class PortfolioCitationAssembler:
                 evidence_bundle_refs=evidence,
                 comparison_report_refs=comparison,
                 limitations=base.limitations
-                + (
-                    "Citation enrichment applied — aggregation only.",
-                ),
+                + ("Citation enrichment applied — aggregation only.",),
                 citation_summary=citation_summary,
                 coverage_summary=coverage,
                 citation_gaps=gaps,

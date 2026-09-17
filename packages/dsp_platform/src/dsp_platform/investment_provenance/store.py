@@ -55,8 +55,9 @@ class InvestmentProvenanceForbidden(PermissionError):
 
 
 class InvestmentProvenanceStore(Protocol):
-    def append(self, record: InvestmentProvenanceRecord) -> InvestmentProvenanceRecord:
-        ...
+    def append(
+        self, record: InvestmentProvenanceRecord
+    ) -> InvestmentProvenanceRecord: ...
 
     def get(
         self,
@@ -64,8 +65,7 @@ class InvestmentProvenanceStore(Protocol):
         *,
         actor_user_id: str | None = None,
         org_id: str | None = None,
-    ) -> InvestmentProvenanceRecord | None:
-        ...
+    ) -> InvestmentProvenanceRecord | None: ...
 
     def list_by_ticker(
         self,
@@ -74,11 +74,9 @@ class InvestmentProvenanceStore(Protocol):
         actor_user_id: str | None = None,
         org_id: str | None = None,
         limit: int = 50,
-    ) -> list[InvestmentProvenanceRecord]:
-        ...
+    ) -> list[InvestmentProvenanceRecord]: ...
 
-    def ensure_fresh(self) -> None:
-        ...
+    def ensure_fresh(self) -> None: ...
 
 
 class InMemoryInvestmentProvenanceStore:
@@ -178,9 +176,7 @@ class DatabaseInvestmentProvenanceStore:
             ]
         )
         with self._lock:
-            existing = self._db.fetchall(
-                f"SELECT * FROM {INVESTMENT_PROVENANCE_TABLE}"
-            )
+            existing = self._db.fetchall(f"SELECT * FROM {INVESTMENT_PROVENANCE_TABLE}")
             if any(str(r.get("analysis_id")) == record.analysis_id for r in existing):
                 raise InvestmentProvenanceError(
                     f"analysis_id already exists (append-only): {record.analysis_id}"
@@ -302,9 +298,7 @@ def _enforce_tenant(
         return
 
     if owner and owner != actor:
-        raise InvestmentProvenanceForbidden(
-            "investment provenance owner mismatch"
-        )
+        raise InvestmentProvenanceForbidden("investment provenance owner mismatch")
 
 
 def _b64_json(value: dict[str, Any]) -> str:

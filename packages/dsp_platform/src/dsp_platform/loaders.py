@@ -90,21 +90,19 @@ def load_platform_config(
             fundamentals_provider_id=_str_or_default(
                 env.get(_FUND_PROVIDER), "yahoo_finance_fundamentals"
             ),
-            economic_provider_id=_str_or_default(
-                env.get(_ECON_PROVIDER), "fred"
-            ),
+            economic_provider_id=_str_or_default(env.get(_ECON_PROVIDER), "fred"),
             enable_market=_parse_bool(env.get(_ENABLE_MARKET), default=True),
             enable_fundamentals=_parse_bool(env.get(_ENABLE_FUND), default=True),
             enable_economic=_parse_bool(env.get(_ENABLE_ECON), default=True),
         )
-        cache = CacheSettings(ttl_seconds=_parse_optional_float(env.get(_CACHE_TTL), 300.0))
+        cache = CacheSettings(
+            ttl_seconds=_parse_optional_float(env.get(_CACHE_TTL), 300.0)
+        )
         timeouts = TimeoutSettings(
             request_seconds=_parse_float(env.get(_TIMEOUT), default=10.0)
         )
         features = FeatureFlags(
-            include_fundamentals=_parse_bool(
-                env.get(_INCLUDE_FUND), default=True
-            ),
+            include_fundamentals=_parse_bool(env.get(_INCLUDE_FUND), default=True),
             include_economic=_parse_bool(env.get(_INCLUDE_ECON), default=True),
             include_valuation=_parse_bool(env.get(_INCLUDE_VAL), default=True),
             allow_partial=_parse_bool(env.get(_ALLOW_PARTIAL), default=True),

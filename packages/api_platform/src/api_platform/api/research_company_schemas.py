@@ -127,9 +127,7 @@ class ResearchCompanyResponse(BaseModel):
         payload = self.model_dump(mode="python")
         assert_public_report_privacy(payload)
         leaked = sorted(
-            name
-            for name in payload
-            if str(name) in PRIVATE_REPORT_FIELD_NAMES
+            name for name in payload if str(name) in PRIVATE_REPORT_FIELD_NAMES
         )
         if leaked:
             raise ValueError(f"private fields leaked into research HTTP: {leaked}")

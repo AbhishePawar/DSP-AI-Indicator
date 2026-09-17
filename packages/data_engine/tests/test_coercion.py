@@ -122,4 +122,3 @@ class TestCoerceDate:
     def test_bad_string_raises(self) -> None:
         with pytest.raises(InvalidProviderDataError):
             coerce_date("not-a-date", provider_id="fake")
-

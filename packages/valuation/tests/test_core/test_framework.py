@@ -2,9 +2,9 @@
 
 from __future__ import annotations
 
-import math
 import time
-from typing import Any, Mapping, Sequence
+from collections.abc import Mapping, Sequence
+from typing import Any
 
 import pytest
 
@@ -345,9 +345,7 @@ class TestExplainabilityEngine:
         with pytest.raises(ExplainabilityError):
             eng.explain([{"name": "a"}])
         with pytest.raises(ExplainabilityError):
-            eng.explain(
-                [{"name": "a", "formula": "f", "confidence": "bogus"}]
-            )
+            eng.explain([{"name": "a", "formula": "f", "confidence": "bogus"}])
 
 
 class TestResultModelsAndMetadata:

@@ -8,7 +8,6 @@ from datetime import date
 from contracts import Instrument
 from core.exceptions import ValidationError
 from decision_intelligence import DecisionPack
-
 from universe.enums import (
     BatchFailurePolicy,
     BatchStatus,
@@ -117,17 +116,13 @@ class MultiStockDecisionResult:
     @property
     def successes(self) -> tuple[InstrumentAnalysisOutcome, ...]:
         return tuple(
-            o
-            for o in self.outcomes
-            if o.status is InstrumentOutcomeStatus.SUCCESS
+            o for o in self.outcomes if o.status is InstrumentOutcomeStatus.SUCCESS
         )
 
     @property
     def failures(self) -> tuple[InstrumentAnalysisOutcome, ...]:
         return tuple(
-            o
-            for o in self.outcomes
-            if o.status is InstrumentOutcomeStatus.FAILURE
+            o for o in self.outcomes if o.status is InstrumentOutcomeStatus.FAILURE
         )
 
     @property

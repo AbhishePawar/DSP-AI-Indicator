@@ -108,7 +108,9 @@ class BusinessQualityAggregatorEvidence:
         source = self.source.strip()
         reference = self.reference.strip()
         if not source:
-            raise BusinessQualityAggregatorValidationError("evidence.source is required")
+            raise BusinessQualityAggregatorValidationError(
+                "evidence.source is required"
+            )
         if not reference:
             raise BusinessQualityAggregatorValidationError(
                 "evidence.reference is required"
@@ -226,9 +228,7 @@ class ConflictAdjustment:
         object.__setattr__(self, "rule_id", self.rule_id.strip())
         object.__setattr__(self, "description", self.description.strip())
         object.__setattr__(self, "engines", tuple(self.engines))
-        object.__setattr__(
-            self, "supporting_metrics", tuple(self.supporting_metrics)
-        )
+        object.__setattr__(self, "supporting_metrics", tuple(self.supporting_metrics))
         if not self.rule_id:
             raise BusinessQualityAggregatorValidationError(
                 "conflict.rule_id is required"

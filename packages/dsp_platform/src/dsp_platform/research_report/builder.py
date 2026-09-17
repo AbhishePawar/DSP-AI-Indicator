@@ -163,9 +163,7 @@ def build_public_research_report(research_package: object) -> PublicResearchRepo
             message=_EXPECTED_RETURN_MESSAGE,
         ),
         industry=IndustryPublic(
-            industry=UnavailableBlock(
-                status="unavailable", message=_INDUSTRY_MESSAGE
-            ),
+            industry=UnavailableBlock(status="unavailable", message=_INDUSTRY_MESSAGE),
             competitors=UnavailableBlock(
                 status="unavailable", message=_INDUSTRY_MESSAGE
             ),
@@ -441,9 +439,7 @@ def _financial_metrics(
                     PublicMetric(
                         name=name,
                         value=number,
-                        status=(
-                            "available" if number is not None else "unavailable"
-                        ),
+                        status=("available" if number is not None else "unavailable"),
                         source="dsp",
                     )
                 )

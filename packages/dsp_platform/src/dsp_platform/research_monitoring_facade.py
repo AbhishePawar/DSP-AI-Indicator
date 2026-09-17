@@ -2,7 +2,8 @@
 
 from __future__ import annotations
 
-from typing import Any, Mapping
+from collections.abc import Mapping
+from typing import Any
 
 from dsp_platform.research_monitoring import (
     MONITORING_SCHEMA_VERSION,
@@ -55,9 +56,7 @@ def register_monitoring_watchlist(symbols: list[str]) -> list[str]:
 def register_monitoring_portfolio(
     portfolio_id: str, *, metadata: dict[str, Any] | None = None
 ) -> dict[str, Any]:
-    return get_monitoring_registry().register_portfolio(
-        portfolio_id, metadata=metadata
-    )
+    return get_monitoring_registry().register_portfolio(portfolio_id, metadata=metadata)
 
 
 def track_monitoring_snapshot(

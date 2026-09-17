@@ -4,8 +4,8 @@ from __future__ import annotations
 
 from dsp_platform.research_copilot.models import (
     COPILOT_SCHEMA_VERSION,
-    CopilotResponse,
     UNAVAILABLE_MESSAGE,
+    CopilotResponse,
 )
 
 __all__ = [

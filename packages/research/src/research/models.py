@@ -8,7 +8,6 @@ from __future__ import annotations
 from dataclasses import dataclass
 
 from core.exceptions import ValidationError
-
 from research.enums import (
     ResearchConflictSeverity,
     ResearchCoverageStatus,
@@ -164,9 +163,7 @@ class ResearchInsight:
             raise ResearchError(msg)
         evidence_refs = tuple(self.evidence_refs)
         if not evidence_refs:
-            msg = (
-                "broken references: insight requires one or more EvidenceReference"
-            )
+            msg = "broken references: insight requires one or more EvidenceReference"
             raise ResearchError(msg)
         seen_obs: set[str] = set()
         for oid in observation_ids:
@@ -678,10 +675,7 @@ def _unique_comparison_refs(
     seen: set[str] = set()
     for ref in items:
         if ref.digest in seen:
-            msg = (
-                f"broken references: duplicate ComparisonReference "
-                f"{ref.digest!r}"
-            )
+            msg = f"broken references: duplicate ComparisonReference " f"{ref.digest!r}"
             raise ResearchError(msg)
         seen.add(ref.digest)
     return tuple(items)

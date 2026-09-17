@@ -76,12 +76,7 @@ def extract_margin_of_safety(
         price = explained_value(valuation, "current_market_price")
         mos = explained_value(valuation, "margin_of_safety")
         premium = explained_value(valuation, "premium_discount")
-        if (
-            mos is None
-            and ivps is not None
-            and price is not None
-            and float(ivps) > 0
-        ):
+        if mos is None and ivps is not None and price is not None and float(ivps) > 0:
             mos = (ivps - price) / ivps
         if (
             premium is None
@@ -93,9 +88,7 @@ def extract_margin_of_safety(
         raw_conf = explained_value(valuation, "confidence")
 
     # Missing confidence is 0.0 — never invent mid-confidence floats (0.55/0.25).
-    val_conf = (
-        0.0 if raw_conf is None else max(0.0, min(1.0, float(raw_conf)))
-    )
+    val_conf = 0.0 if raw_conf is None else max(0.0, min(1.0, float(raw_conf)))
 
     valuation_score = mos_to_valuation_score(mos)
 

@@ -16,7 +16,6 @@ from industry import (
     InvestmentCharacteristics,
     InvestmentCharacteristicsRegistry,
     MergeSource,
-    MethodologyLifecycle,
     PeerEligibilityPolicyRef,
     ValuationProfile,
     assemble_methodology,
@@ -158,9 +157,7 @@ class TestMergePrecedence:
     def test_methodology_wins(self) -> None:
         chars = InvestmentCharacteristicsRegistry()
         register_example_archetypes(chars)
-        stable = chars.lookup_active(
-            "dsp.characteristics.stable_regulated_cash_flow"
-        )
+        stable = chars.lookup_active("dsp.characteristics.stable_regulated_cash_flow")
         methodology = IndustryMethodology(
             id="dsp.methodology.utilities",
             industry_id="dsp.industry.utilities",
@@ -183,9 +180,7 @@ class TestMergePrecedence:
     def test_characteristics_then_system(self) -> None:
         chars = InvestmentCharacteristicsRegistry()
         register_example_archetypes(chars)
-        franchise = chars.lookup_active(
-            "dsp.characteristics.pricing_power_franchise"
-        )
+        franchise = chars.lookup_active("dsp.characteristics.pricing_power_franchise")
         with_chars = IndustryMethodology(
             id="dsp.methodology.luxury",
             industry_id="dsp.industry.luxury",
@@ -213,9 +208,7 @@ class TestMergePrecedence:
             id="dsp.methodology.x",
             industry_id="dsp.industry.x",
             version="1.0.0",
-            peer_policy=PeerEligibilityPolicyRef(
-                policy_id="dsp.peer_policy.x"
-            ),
+            peer_policy=PeerEligibilityPolicyRef(policy_id="dsp.peer_policy.x"),
         )
         assembled = assemble_methodology(methodology, ())
         assert assembled.metrics == ()
@@ -236,9 +229,7 @@ class TestExampleMethodologies:
         assembled = reg.assemble(utilities)
         assert assembled.valuation_source is MergeSource.METHODOLOGY
         assert assembled.dimensions_source is MergeSource.CHARACTERISTICS
-        franchise = reg.lookup_active(
-            "dsp.methodology.premium_consumer_franchise"
-        )
+        franchise = reg.lookup_active("dsp.methodology.premium_consumer_franchise")
         fran_assembled = reg.assemble(franchise)
         assert fran_assembled.valuation_source is MergeSource.CHARACTERISTICS
         assert fran_assembled.dimensions_source is MergeSource.METHODOLOGY

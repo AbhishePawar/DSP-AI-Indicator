@@ -10,7 +10,8 @@ Policy-compliant REPORTED / CALCULATED / UNAVAILABLE derivation lives in
 from __future__ import annotations
 
 import math
-from typing import Any, Callable, Sequence
+from collections.abc import Callable, Sequence
+from typing import Any
 
 from financial.derivation import (
     FORMULA_ASSET_TURNOVER,
@@ -142,9 +143,7 @@ def _phase1_margin(
     return derive(
         formula_id,
         {
-            numerator_id: _statement_derivation_input(
-                stmt, numerator_id, numerator
-            ),
+            numerator_id: _statement_derivation_input(stmt, numerator_id, numerator),
             "revenue": _statement_derivation_input(
                 stmt, "revenue", stmt.income_statement.revenue
             ),
@@ -217,9 +216,7 @@ def _derive_roe(
             "beginning_equity": _statement_derivation_input(
                 prior, "beginning_equity", _equity(prior.balance_sheet)
             ),
-            "ending_equity": _statement_derivation_input(
-                cur, "ending_equity", end_eq
-            ),
+            "ending_equity": _statement_derivation_input(cur, "ending_equity", end_eq),
         },
     )
 
@@ -275,9 +272,7 @@ def _derive_fcf(stmt: FinancialStatements) -> DerivedFinancialValue:
     cf = stmt.cash_flow
     if cf.free_cash_flow is not None:
         return as_reported(
-            _statement_derivation_input(
-                stmt, "free_cash_flow", cf.free_cash_flow
-            )
+            _statement_derivation_input(stmt, "free_cash_flow", cf.free_cash_flow)
         )
     return derive(
         FORMULA_FCF,
@@ -464,7 +459,9 @@ def _benchmark_ratio(
     return BenchmarkClass.WEAK
 
 
-def _trend(current: float | None, prior: float | None, *, higher_better: bool = True) -> TrendDirection | None:
+def _trend(
+    current: float | None, prior: float | None, *, higher_better: bool = True
+) -> TrendDirection | None:
     if current is None or prior is None:
         return None
     delta = current - prior
@@ -486,10 +483,12 @@ class FinancialRatioEngine:
 
     def analyze(
         self,
-        source: FinancialStatements
-        | FinancialSnapshot
-        | dict
-        | Sequence[FinancialStatements],
+        source: (
+            FinancialStatements
+            | FinancialSnapshot
+            | dict
+            | Sequence[FinancialStatements]
+        ),
         *,
         history: Sequence[FinancialStatements] | None = None,
     ) -> FinancialRatioAnalysis:
@@ -627,7 +626,9 @@ class FinancialRatioEngine:
         rev = inc.revenue
         n = 2 if prior else 1
 
-        def prior_val(fn: Callable[[FinancialStatements], float | None]) -> float | None:
+        def prior_val(
+            fn: Callable[[FinancialStatements], float | None],
+        ) -> float | None:
             return fn(prior) if prior else None
 
         metrics: list[RatioMetric] = []
@@ -678,18 +679,30 @@ class FinancialRatioEngine:
         _append_phase1(
             "gross_margin", FORMULA_GROSS_MARGIN, "gross_profit", inc.gross_profit
         )
-        _append_phase1(
-            "operating_margin", FORMULA_OPERATING_MARGIN, "ebit", inc.ebit
-        )
+        _append_phase1("operating_margin", FORMULA_OPERATING_MARGIN, "ebit", inc.ebit)
 
         legacy_pairs = [
-            ("ebit_margin", "ebit / revenue", _safe_div(inc.ebit, rev), {"ebit": inc.ebit, "revenue": rev}),
-            ("ebitda_margin", "ebitda / revenue", _safe_div(inc.ebitda, rev), {"ebitda": inc.ebitda, "revenue": rev}),
+            (
+                "ebit_margin",
+                "ebit / revenue",
+                _safe_div(inc.ebit, rev),
+                {"ebit": inc.ebit, "revenue": rev},
+            ),
+            (
+                "ebitda_margin",
+                "ebitda / revenue",
+                _safe_div(inc.ebitda, rev),
+                {"ebitda": inc.ebitda, "revenue": rev},
+            ),
         ]
         for name, formula, value, inputs in legacy_pairs:
             p_map = {
-                "ebit_margin": lambda s: _safe_div(s.income_statement.ebit, s.income_statement.revenue),
-                "ebitda_margin": lambda s: _safe_div(s.income_statement.ebitda, s.income_statement.revenue),
+                "ebit_margin": lambda s: _safe_div(
+                    s.income_statement.ebit, s.income_statement.revenue
+                ),
+                "ebitda_margin": lambda s: _safe_div(
+                    s.income_statement.ebitda, s.income_statement.revenue
+                ),
             }
             metrics.append(
                 self._metric(
@@ -700,14 +713,16 @@ class FinancialRatioEngine:
                     benchmark=_benchmark_margin(value),
                     trend=_trend(value, prior_val(p_map[name])),
                     periods=n,
-                    interpretation=f"{name} = {value:.4f}." if value is not None else f"{name} unavailable.",
+                    interpretation=(
+                        f"{name} = {value:.4f}."
+                        if value is not None
+                        else f"{name} unavailable."
+                    ),
                     out=out,
                 )
             )
 
-        _append_phase1(
-            "net_margin", FORMULA_NET_MARGIN, "net_income", inc.net_income
-        )
+        _append_phase1("net_margin", FORMULA_NET_MARGIN, "net_income", inc.net_income)
 
         roa_derived = _derive_from_fields(
             cur,
@@ -1011,11 +1026,15 @@ class FinancialRatioEngine:
         )
         nd_ebitda = _phase1_ratio_value(nd_ebitda_derived)
         equity_ratio = _safe_div(eq, bs.total_assets)
-        interest_cov = _safe_div(inc.ebit, abs(inc.interest_expense) if inc.interest_expense else None)
+        interest_cov = _safe_div(
+            inc.ebit, abs(inc.interest_expense) if inc.interest_expense else None
+        )
         fin_lev = _safe_div(bs.total_assets, eq)
         n = 2 if prior else 1
         prior_dte = (
-            _phase1_ratio_value(_derive_debt_to_equity(prior)) if prior is not None else None
+            _phase1_ratio_value(_derive_debt_to_equity(prior))
+            if prior is not None
+            else None
         )
 
         metrics = []
@@ -1085,16 +1104,29 @@ class FinancialRatioEngine:
                 3.5,
             ),
         )
-        for name, derived, value, inputs, higher_better, exc, strong, adeq in derived_specs:
+        for (
+            name,
+            derived,
+            value,
+            inputs,
+            higher_better,
+            exc,
+            strong,
+            adeq,
+        ) in derived_specs:
             if name == "net_debt":
                 bench = (
                     BenchmarkClass.INSUFFICIENT
                     if value is None
-                    else BenchmarkClass.STRONG
-                    if value <= 0
-                    else BenchmarkClass.ADEQUATE
-                    if value < (bs.total_assets or value) * 0.3
-                    else BenchmarkClass.WEAK
+                    else (
+                        BenchmarkClass.STRONG
+                        if value <= 0
+                        else (
+                            BenchmarkClass.ADEQUATE
+                            if value < (bs.total_assets or value) * 0.3
+                            else BenchmarkClass.WEAK
+                        )
+                    )
                 )
             else:
                 bench = _benchmark_ratio(
@@ -1129,11 +1161,47 @@ class FinancialRatioEngine:
                 )
             )
         legacy_specs = (
-            ("equity_ratio", "equity / total_assets", equity_ratio, {"equity": eq, "total_assets": bs.total_assets}, True, 0.5, 0.4, 0.3),
-            ("interest_coverage", "ebit / |interest_expense|", interest_cov, {"ebit": inc.ebit, "interest_expense": inc.interest_expense}, True, 8.0, 4.0, 2.0),
-            ("financial_leverage", "total_assets / equity", fin_lev, {"total_assets": bs.total_assets, "equity": eq}, False, 1.5, 2.5, 3.5),
+            (
+                "equity_ratio",
+                "equity / total_assets",
+                equity_ratio,
+                {"equity": eq, "total_assets": bs.total_assets},
+                True,
+                0.5,
+                0.4,
+                0.3,
+            ),
+            (
+                "interest_coverage",
+                "ebit / |interest_expense|",
+                interest_cov,
+                {"ebit": inc.ebit, "interest_expense": inc.interest_expense},
+                True,
+                8.0,
+                4.0,
+                2.0,
+            ),
+            (
+                "financial_leverage",
+                "total_assets / equity",
+                fin_lev,
+                {"total_assets": bs.total_assets, "equity": eq},
+                False,
+                1.5,
+                2.5,
+                3.5,
+            ),
         )
-        for name, formula, value, inputs, higher_better, exc, strong, adeq in legacy_specs:
+        for (
+            name,
+            formula,
+            value,
+            inputs,
+            higher_better,
+            exc,
+            strong,
+            adeq,
+        ) in legacy_specs:
             bench = _benchmark_ratio(
                 value,
                 excellent=exc,
@@ -1150,7 +1218,11 @@ class FinancialRatioEngine:
                     benchmark=bench,
                     trend=None,
                     periods=n,
-                    interpretation=f"{name} = {value:.4f}." if value is not None else f"{name} unavailable.",
+                    interpretation=(
+                        f"{name} = {value:.4f}."
+                        if value is not None
+                        else f"{name} unavailable."
+                    ),
                     out=out,
                 )
             )
@@ -1225,9 +1297,7 @@ class FinancialRatioEngine:
             FORMULA_PAYABLE_TURNOVER,
             {
                 "cogs": _statement_derivation_input(cur, "cogs", inc.cogs),
-                "average_payables": _derived_input(
-                    avg_ap_d, cur, "average_payables"
-                ),
+                "average_payables": _derived_input(avg_ap_d, cur, "average_payables"),
             },
         )
         wc_derived, wc_to_derived = _derive_working_capital_turnover(cur)
@@ -1288,7 +1358,10 @@ class FinancialRatioEngine:
             (
                 "asset_turnover",
                 asset_to_d,
-                {"revenue": inc.revenue, "avg_assets": _phase1_ratio_value(avg_assets_d)},
+                {
+                    "revenue": inc.revenue,
+                    "avg_assets": _phase1_ratio_value(avg_assets_d),
+                },
                 "Average total assets require prior-period balance sheet.",
                 False,
             ),
@@ -1367,7 +1440,9 @@ class FinancialRatioEngine:
                     "derivation_inputs": [dict(item) for item in wc_to_derived.inputs],
                     "unavailable_reason": wc_to_derived.unavailable_reason,
                 },
-                benchmark=_benchmark_ratio(wc_to, excellent=1.5, strong=1.0, adequate=0.5),
+                benchmark=_benchmark_ratio(
+                    wc_to, excellent=1.5, strong=1.0, adequate=0.5
+                ),
                 trend=None,
                 periods=n,
                 interpretation=(
@@ -1451,7 +1526,10 @@ class FinancialRatioEngine:
             },
         )
         cash_conv = _phase1_ratio_value(cash_conv_d)
-        capex_ocf = _safe_div(abs(cf.capex) if cf.capex is not None else None, abs(ocf) if ocf is not None else None)
+        capex_ocf = _safe_div(
+            abs(cf.capex) if cf.capex is not None else None,
+            abs(ocf) if ocf is not None else None,
+        )
         div_cov_d = derive(
             FORMULA_DIVIDEND_COVERAGE,
             {
@@ -1472,7 +1550,9 @@ class FinancialRatioEngine:
             },
         )
         debt_cov = _phase1_ratio_value(debt_cov_d)
-        cash_int = _safe_div(ocf, abs(inc.interest_expense) if inc.interest_expense else None)
+        cash_int = _safe_div(
+            ocf, abs(inc.interest_expense) if inc.interest_expense else None
+        )
         n = 2 if prior else 1
         prior_ocf_m = None
         if prior is not None:
@@ -1482,10 +1562,46 @@ class FinancialRatioEngine:
 
         metrics = []
         legacy_specs = (
-            ("operating_cash_flow_ratio", "OCF / current_liabilities", ocf_ratio, {"ocf": ocf, "current_liabilities": cl}, True, 0.5, 0.3, 0.1),
-            ("operating_cash_flow_margin", "OCF / revenue", ocf_margin, {"ocf": ocf, "revenue": inc.revenue}, True, 0.2, 0.12, 0.05),
-            ("capex_to_ocf", "|capex| / |OCF|", capex_ocf, {"capex": cf.capex, "ocf": ocf}, False, 0.3, 0.5, 0.8),
-            ("cash_interest_coverage", "OCF / |interest|", cash_int, {"ocf": ocf, "interest": inc.interest_expense}, True, 8.0, 4.0, 2.0),
+            (
+                "operating_cash_flow_ratio",
+                "OCF / current_liabilities",
+                ocf_ratio,
+                {"ocf": ocf, "current_liabilities": cl},
+                True,
+                0.5,
+                0.3,
+                0.1,
+            ),
+            (
+                "operating_cash_flow_margin",
+                "OCF / revenue",
+                ocf_margin,
+                {"ocf": ocf, "revenue": inc.revenue},
+                True,
+                0.2,
+                0.12,
+                0.05,
+            ),
+            (
+                "capex_to_ocf",
+                "|capex| / |OCF|",
+                capex_ocf,
+                {"capex": cf.capex, "ocf": ocf},
+                False,
+                0.3,
+                0.5,
+                0.8,
+            ),
+            (
+                "cash_interest_coverage",
+                "OCF / |interest|",
+                cash_int,
+                {"ocf": ocf, "interest": inc.interest_expense},
+                True,
+                8.0,
+                4.0,
+                2.0,
+            ),
         )
         derived_specs = (
             (
@@ -1529,7 +1645,16 @@ class FinancialRatioEngine:
                 0.15,
             ),
         )
-        for name, derived, value, inputs, higher_better, exc, strong, adeq in derived_specs:
+        for (
+            name,
+            derived,
+            value,
+            inputs,
+            higher_better,
+            exc,
+            strong,
+            adeq,
+        ) in derived_specs:
             metrics.append(
                 self._metric(
                     name=name,
@@ -1560,7 +1685,16 @@ class FinancialRatioEngine:
                     out=out,
                 )
             )
-        for name, formula, value, inputs, higher_better, exc, strong, adeq in legacy_specs:
+        for (
+            name,
+            formula,
+            value,
+            inputs,
+            higher_better,
+            exc,
+            strong,
+            adeq,
+        ) in legacy_specs:
             metrics.append(
                 self._metric(
                     name=name,
@@ -1574,9 +1708,17 @@ class FinancialRatioEngine:
                         adequate=adeq,
                         higher_better=higher_better,
                     ),
-                    trend=_trend(value, prior_ocf_m if name == "operating_cash_flow_margin" else None, higher_better=higher_better),
+                    trend=_trend(
+                        value,
+                        prior_ocf_m if name == "operating_cash_flow_margin" else None,
+                        higher_better=higher_better,
+                    ),
                     periods=n,
-                    interpretation=f"{name} = {value:.4f}." if value is not None else f"{name} unavailable.",
+                    interpretation=(
+                        f"{name} = {value:.4f}."
+                        if value is not None
+                        else f"{name} unavailable."
+                    ),
                     out=out,
                 )
             )
@@ -1592,19 +1734,44 @@ class FinancialRatioEngine:
         shares = inc.weighted_shares
         eq = _equity(bs)
         bvps = _safe_div(eq, shares)
-        tangible = None if eq is None else eq - (bs.goodwill or 0.0) - (bs.intangibles or 0.0)
+        tangible = (
+            None if eq is None else eq - (bs.goodwill or 0.0) - (bs.intangibles or 0.0)
+        )
         tbvps = _safe_div(tangible, shares)
         re_ratio = _safe_div(bs.retained_earnings, eq)
-        payout = _safe_div(abs(cf.dividends_paid) if cf.dividends_paid is not None else None, abs(inc.net_income) if inc.net_income else None)
+        payout = _safe_div(
+            abs(cf.dividends_paid) if cf.dividends_paid is not None else None,
+            abs(inc.net_income) if inc.net_income else None,
+        )
         retention = None if payout is None else _clip01(1.0 - payout)
         n = 2 if prior else 1
 
         metrics = []
         for name, formula, value, inputs in (
-            ("book_value_per_share", "equity / weighted_shares", bvps, {"equity": eq, "shares": shares}),
-            ("tangible_book_value_per_share", "tangible_equity / weighted_shares", tbvps, {"tangible_equity": tangible, "shares": shares}),
-            ("retained_earnings_ratio", "retained_earnings / equity", re_ratio, {"retained_earnings": bs.retained_earnings, "equity": eq}),
-            ("dividend_payout_ratio", "|dividends| / |net_income|", payout, {"dividends": cf.dividends_paid, "net_income": inc.net_income}),
+            (
+                "book_value_per_share",
+                "equity / weighted_shares",
+                bvps,
+                {"equity": eq, "shares": shares},
+            ),
+            (
+                "tangible_book_value_per_share",
+                "tangible_equity / weighted_shares",
+                tbvps,
+                {"tangible_equity": tangible, "shares": shares},
+            ),
+            (
+                "retained_earnings_ratio",
+                "retained_earnings / equity",
+                re_ratio,
+                {"retained_earnings": bs.retained_earnings, "equity": eq},
+            ),
+            (
+                "dividend_payout_ratio",
+                "|dividends| / |net_income|",
+                payout,
+                {"dividends": cf.dividends_paid, "net_income": inc.net_income},
+            ),
             ("dividend_retention_ratio", "1 - payout", retention, {"payout": payout}),
         ):
             metrics.append(
@@ -1620,7 +1787,11 @@ class FinancialRatioEngine:
                     ),
                     trend=None,
                     periods=n,
-                    interpretation=f"{name} = {value:.4f}." if value is not None else f"{name} unavailable.",
+                    interpretation=(
+                        f"{name} = {value:.4f}."
+                        if value is not None
+                        else f"{name} unavailable."
+                    ),
                     out=out,
                 )
             )
@@ -1635,14 +1806,22 @@ class FinancialRatioEngine:
     ) -> CapitalAllocationMetrics:
         cf = cur.cash_flow
         ocf = cf.operating_cash_flow
-        capex_disc = _clip01(
-            1.0
-            - min(
-                1.0,
-                (_safe_div(abs(cf.capex), abs(ocf)) if cf.capex is not None and ocf else None)
-                or 1.0,
+        capex_disc = (
+            _clip01(
+                1.0
+                - min(
+                    1.0,
+                    (
+                        _safe_div(abs(cf.capex), abs(ocf))
+                        if cf.capex is not None and ocf
+                        else None
+                    )
+                    or 1.0,
+                )
             )
-        ) if cf.capex is not None and ocf is not None else None
+            if cf.capex is not None and ocf is not None
+            else None
+        )
         # Prefer sibling cash quality when present — never invent perfect
         # sustainability merely because FCF exists (CV-001 / CV-005).
         div_sust = cash_an.quality.dividend_sustainability
@@ -1653,7 +1832,11 @@ class FinancialRatioEngine:
             net_raise = (cf.debt_issued or 0.0) - abs(cf.debt_repaid or 0.0)
         debt_red = None
         if net_raise is not None:
-            debt_red = 1.0 if net_raise < 0 else _clip01(1.0 - min(1.0, abs(net_raise) / max(abs(ocf or 1.0), 1.0)))
+            debt_red = (
+                1.0
+                if net_raise < 0
+                else _clip01(1.0 - min(1.0, abs(net_raise) / max(abs(ocf or 1.0), 1.0)))
+            )
 
         # True share dilution from income intelligence (weighted_shares history).
         # Not aliased from buybacks / debt reduction.

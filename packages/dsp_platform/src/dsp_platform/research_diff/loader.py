@@ -2,7 +2,8 @@
 
 from __future__ import annotations
 
-from typing import Any, Mapping
+from collections.abc import Mapping
+from typing import Any
 
 from dsp_platform.research_archive import get_research_archive
 from dsp_platform.research_archive.hashing import to_plain_jsonable

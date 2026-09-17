@@ -3,8 +3,8 @@
 from __future__ import annotations
 
 from valuation.dcf_intelligence.assumptions import (
-    CapmInputs,
     CapitalStructure,
+    CapmInputs,
     CostOfDebtInputs,
     DcfBridgeInputs,
     DcfForecastAssumptions,

@@ -107,16 +107,8 @@ class ValuationRange:
         values = [v for v in (self.low, self.mid, self.high) if v is not None]
         if values and (
             (self.low is not None and self.high is not None and self.low > self.high)
-            or (
-                self.mid is not None
-                and self.low is not None
-                and self.mid < self.low
-            )
-            or (
-                self.mid is not None
-                and self.high is not None
-                and self.mid > self.high
-            )
+            or (self.mid is not None and self.low is not None and self.mid < self.low)
+            or (self.mid is not None and self.high is not None and self.mid > self.high)
         ):
             msg = f"invalid valuation range: {self.low}, {self.mid}, {self.high}"
             raise ValidationError(msg)

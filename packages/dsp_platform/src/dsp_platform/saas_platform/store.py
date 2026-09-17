@@ -42,7 +42,9 @@ class SaasOverlayStore:
         # provider event id -> durable processing record (idempotent webhooks)
         self._billing_events: dict[str, dict[str, Any]] = {}
 
-    def upsert_subscription(self, org_id: str, payload: dict[str, Any]) -> dict[str, Any]:
+    def upsert_subscription(
+        self, org_id: str, payload: dict[str, Any]
+    ) -> dict[str, Any]:
         with self._lock:
             row = self._subscriptions.get(org_id) or {
                 "org_id": org_id,
@@ -52,10 +54,14 @@ class SaasOverlayStore:
                 {
                     "plan_id": payload.get("plan_id") or row.get("plan_id"),
                     "status": payload.get("status") or row.get("status") or "trialing",
-                    "trial_ends_at": payload.get("trial_ends_at", row.get("trial_ends_at")),
+                    "trial_ends_at": payload.get(
+                        "trial_ends_at", row.get("trial_ends_at")
+                    ),
                     "renews_at": payload.get("renews_at", row.get("renews_at")),
                     "coupon_code": payload.get("coupon_code", row.get("coupon_code")),
-                    "discount_pct": payload.get("discount_pct", row.get("discount_pct")),
+                    "discount_pct": payload.get(
+                        "discount_pct", row.get("discount_pct")
+                    ),
                     "updated_at": _now(),
                 }
             )
@@ -154,7 +160,9 @@ class SaasOverlayStore:
             }
             row.update(
                 {
-                    "discount_pct": payload.get("discount_pct", row.get("discount_pct")),
+                    "discount_pct": payload.get(
+                        "discount_pct", row.get("discount_pct")
+                    ),
                     "active": bool(payload.get("active", row.get("active", True))),
                     "expires_at": payload.get("expires_at", row.get("expires_at")),
                     "updated_at": _now(),
@@ -185,9 +193,7 @@ class SaasOverlayStore:
             self._license_keys[key] = row
             return deepcopy(row)
 
-    def activate_license_key(
-        self, license_key: str, *, org_id: str
-    ) -> dict[str, Any]:
+    def activate_license_key(self, license_key: str, *, org_id: str) -> dict[str, Any]:
         with self._lock:
             row = self._license_keys.get(license_key)
             if row is None:

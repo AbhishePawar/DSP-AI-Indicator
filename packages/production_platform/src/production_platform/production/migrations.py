@@ -2,8 +2,8 @@
 
 from __future__ import annotations
 
+from collections.abc import Sequence
 from dataclasses import dataclass
-from typing import Sequence
 
 from production_platform.production.exceptions import ConfigurationError, ProviderError
 from production_platform.production.interfaces import DatabasePort

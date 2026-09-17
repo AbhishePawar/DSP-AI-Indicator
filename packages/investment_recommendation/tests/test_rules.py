@@ -17,8 +17,8 @@ def _mos(
         intrinsic_value_per_share=100.0,
         current_market_price=70.0 if mos and mos > 0 else 120.0,
         margin_of_safety=mos,
-        premium_discount=premium if premium is not None else (
-            None if mos is None else -mos
+        premium_discount=(
+            premium if premium is not None else (None if mos is None else -mos)
         ),
         valuation_score=50.0,
         valuation_confidence=0.7,
@@ -86,9 +86,7 @@ def test_strong_growth_weak_balance_sheet() -> None:
         growth=80.0,
         mos=_mos(mos=0.10, classification="fairly_valued"),
     )
-    assert any(
-        r.rule_id == "strong_growth_weak_balance_sheet" for r in result.rules
-    )
+    assert any(r.rule_id == "strong_growth_weak_balance_sheet" for r in result.rules)
 
 
 def test_wide_moat_poor_capital_allocation() -> None:
@@ -102,6 +100,4 @@ def test_wide_moat_poor_capital_allocation() -> None:
         growth=60.0,
         mos=_mos(mos=0.10, classification="fairly_valued"),
     )
-    assert any(
-        r.rule_id == "wide_moat_poor_capital_allocation" for r in result.rules
-    )
+    assert any(r.rule_id == "wide_moat_poor_capital_allocation" for r in result.rules)

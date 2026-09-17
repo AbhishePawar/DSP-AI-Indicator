@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import math
-from typing import Sequence
+from collections.abc import Sequence
 
 from financial.balance_sheet import BalanceSheet
 from financial.exceptions import BalanceAnalysisError, FinancialValidationError
@@ -60,11 +60,7 @@ def _check_balance_hard(
         _reject("Negative Equity")
 
     liabilities = bs.total_liabilities
-    if (
-        bs.total_assets is not None
-        and liabilities is not None
-        and equity is not None
-    ):
+    if bs.total_assets is not None and liabilities is not None and equity is not None:
         rhs = liabilities + equity
         if abs(bs.total_assets - rhs) > accounting_tolerance * max(
             1.0, abs(bs.total_assets)
@@ -123,11 +119,13 @@ def validate_balance_for_analysis(
 
 
 def coerce_balance_series(
-    source: BalanceSheet
-    | FinancialStatements
-    | FinancialSnapshot
-    | dict
-    | Sequence[BalanceSheet | FinancialStatements],
+    source: (
+        BalanceSheet
+        | FinancialStatements
+        | FinancialSnapshot
+        | dict
+        | Sequence[BalanceSheet | FinancialStatements]
+    ),
 ) -> tuple[list[BalanceSheet], list[FinancialStatements | None], dict]:
     """Normalize engine inputs into chronologically ordered balance series."""
     meta: dict = {}
@@ -186,9 +184,7 @@ def coerce_balance_series(
                 balances.append(item.balance_sheet)
                 stmts.append(item)
             else:
-                _reject(
-                    "History items must be BalanceSheet or FinancialStatements"
-                )
+                _reject("History items must be BalanceSheet or FinancialStatements")
         if all(s is not None for s in stmts):
             paired = sorted(
                 zip(balances, stmts, strict=True),

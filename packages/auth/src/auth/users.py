@@ -143,5 +143,7 @@ class UserStore:
             updated_at=str(payload.get("updated_at") or ""),
             last_login=payload.get("last_login"),
             roles=tuple(payload.get("roles") or ()),
-            metadata=freeze_mapping(dict(payload.get("metadata") or {"auth_entity": "user"})),
+            metadata=freeze_mapping(
+                dict(payload.get("metadata") or {"auth_entity": "user"})
+            ),
         )

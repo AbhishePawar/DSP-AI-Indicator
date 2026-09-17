@@ -15,7 +15,6 @@ from investment_recommendation import (
 from investment_recommendation.models import MarginOfSafetyAssessment
 from investment_recommendation.rules import apply_decision_rules
 
-
 _DIRECTIONAL = {
     InvestmentRecommendationAction.STRONG_BUY,
     InvestmentRecommendationAction.BUY,
@@ -192,8 +191,7 @@ def test_G_excellent_quality_extreme_overvaluation_not_buy(
     assert result.recommendation is not InvestmentRecommendationAction.STRONG_BUY
     assert result.recommendation is not InvestmentRecommendationAction.UNAVAILABLE
     assert any(
-        r.rule_id == "materially_above_intrinsic_value"
-        for r in result.triggered_rules
+        r.rule_id == "materially_above_intrinsic_value" for r in result.triggered_rules
     )
 
 
@@ -241,8 +239,6 @@ def test_quality_vs_valuation_high_quality_overpriced_not_buy(
 
 def test_iv_le_zero_mos_unavailable_property() -> None:
     for iv in (0.0, -1.0):
-        sig = ValuationSignals(
-            intrinsic_value_per_share=iv, current_market_price=50.0
-        )
+        sig = ValuationSignals(intrinsic_value_per_share=iv, current_market_price=50.0)
         assert sig.margin_of_safety is None
         assert sig.premium_discount is None

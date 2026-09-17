@@ -221,9 +221,11 @@ def present_decision_pack(pack: DecisionPack) -> DecisionPackView:
         ),
         evidence=EvidenceSection(
             attached=evidence_summary.attached,
-            status=None
-            if evidence_summary.status is None
-            else evidence_summary.status.value,
+            status=(
+                None
+                if evidence_summary.status is None
+                else evidence_summary.status.value
+            ),
             availability=evidence_summary.availability,
             bundle_version=evidence_summary.bundle_version,
             reference=evidence_summary.reference,

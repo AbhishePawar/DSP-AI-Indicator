@@ -10,7 +10,6 @@ from dataclasses import dataclass
 from typing import Protocol, runtime_checkable
 
 from core.exceptions import ValidationError
-
 from industry.enums import (
     ApplicabilityLevel,
     EvidenceAvailability,
@@ -142,10 +141,7 @@ class EvidenceInterpretationContext:
         )
         if self.evidence_definition is not None:
             if self.evidence_definition.id != self.provider_result.evidence_id:
-                msg = (
-                    "evidence_definition.id must match "
-                    "provider_result.evidence_id"
-                )
+                msg = "evidence_definition.id must match " "provider_result.evidence_id"
                 raise ValidationError(msg)
         as_of = None if self.as_of is None else self.as_of.strip() or None
         extras = tuple(
@@ -190,7 +186,9 @@ class EvidenceObservation:
         title = _reject_claim_language(self.title, field="title")
         summary = _reject_claim_language(self.summary, field="summary")
         explanation = _reject_claim_language(self.explanation, field="explanation")
-        refs = tuple(_normalize_id(r, field="evidence_refs") for r in self.evidence_refs)
+        refs = tuple(
+            _normalize_id(r, field="evidence_refs") for r in self.evidence_refs
+        )
         if not refs:
             msg = "evidence_refs must not be empty"
             raise ValidationError(msg)
@@ -234,9 +232,7 @@ class EvidenceInterpreter(Protocol):
     ) -> bool:
         """Return whether this interpreter may interpret the evidence."""
 
-    def interpret(
-        self, context: EvidenceInterpretationContext
-    ) -> EvidenceObservation:
+    def interpret(self, context: EvidenceInterpretationContext) -> EvidenceObservation:
         """Interpret one provider result. Never calculate or compare."""
 
     def interpret_many(

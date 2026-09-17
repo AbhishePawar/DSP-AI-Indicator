@@ -90,7 +90,7 @@ class TestBusinessQualityAggregatorArchitecture:
     def test_public_api_stable(self) -> None:
         import business_quality_aggregator as mod
 
-        assert getattr(mod, "__version__") == _EXPECTED_VERSION
+        assert mod.__version__ == _EXPECTED_VERSION
         missing = [name for name in mod.__all__ if not hasattr(mod, name)]
         assert missing == [], missing
         assert hasattr(mod, "BusinessQualityAggregatorEngine")

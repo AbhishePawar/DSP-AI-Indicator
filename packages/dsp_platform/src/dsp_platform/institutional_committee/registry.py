@@ -2,10 +2,14 @@
 
 from __future__ import annotations
 
-from typing import Callable
+from collections.abc import Callable
 
 from dsp_platform.institutional_committee.agents import AGENT_SPECS, review_agent
-from dsp_platform.institutional_committee.models import AGENT_IDS, AgentReview, CommitteeContext
+from dsp_platform.institutional_committee.models import (
+    AGENT_IDS,
+    AgentReview,
+    CommitteeContext,
+)
 
 __all__ = [
     "AgentRegistry",
@@ -25,10 +29,7 @@ class AgentRegistry:
         return AGENT_IDS
 
     def list_agents(self) -> list[dict[str, str]]:
-        return [
-            {"agent_id": aid, "agent_name": name}
-            for aid, name, _fn in AGENT_SPECS
-        ]
+        return [{"agent_id": aid, "agent_name": name} for aid, name, _fn in AGENT_SPECS]
 
     def review(self, agent_id: str, ctx: CommitteeContext) -> AgentReview:
         if agent_id not in self._agents:

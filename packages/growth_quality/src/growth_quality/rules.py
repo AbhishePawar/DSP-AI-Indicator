@@ -240,9 +240,7 @@ def evaluate_earnings_growth(
         safe_getattr(business_quality_analysis, "earnings_quality"),
         "free_cash_flow_support",
     )
-    eps_cagr = safe_getattr(
-        financial_analysis, "income", "profitability", "eps_cagr"
-    )
+    eps_cagr = safe_getattr(financial_analysis, "income", "profitability", "eps_cagr")
     eps_cagr_basis = safe_getattr(
         financial_analysis, "income", "profitability", "eps_cagr_basis"
     )
@@ -434,8 +432,10 @@ def evaluate_capital_support(
         financial_analysis, "cash_flow", "financing", "debt_issued"
     )
     # Internal funding proxy
-    internal = 0.80 if fcf is not None and float(fcf) > 0 else (
-        0.30 if fcf is not None else None
+    internal = (
+        0.80
+        if fcf is not None and float(fcf) > 0
+        else (0.30 if fcf is not None else None)
     )
     # Debt-funded expansion penalty
     debt_fund = None
@@ -526,9 +526,7 @@ def evaluate_sustainability(
     )
     om = safe_getattr(financial_analysis, "income", "margins", "operating_margin")
     om_s = None if om is None else max(0.0, min(1.0, (float(om) - 0.03) / 0.20))
-    value = mean_present(
-        [margin_def, margin_dur, scale, cash_gen, fcf_support, om_s]
-    )
+    value = mean_present([margin_def, margin_dur, scale, cash_gen, fcf_support, om_s])
     conf = _confidence(
         [margin_def, margin_dur, scale, cash_gen, fcf_support, om],
         basis="growth_sustainability_proxies",
@@ -602,7 +600,9 @@ def evaluate_growth_risk(
         "cyclicality",
     )
     # Invert cyclicality if present (high cyclicality = higher risk = lower score)
-    cyclical_safe = None if cyclical is None else max(0.0, min(1.0, 1.0 - float(cyclical)))
+    cyclical_safe = (
+        None if cyclical is None else max(0.0, min(1.0, 1.0 - float(cyclical)))
+    )
     goodwill = safe_getattr(
         financial_analysis, "balance_sheet", "assets", "goodwill_pct"
     )

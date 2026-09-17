@@ -7,9 +7,9 @@ References
 
 from __future__ import annotations
 
+from collections.abc import Mapping
 from dataclasses import dataclass
 from enum import Enum
-from typing import Mapping
 
 from valuation.residual_income.residual_income_explainability import RiExplainedValue
 

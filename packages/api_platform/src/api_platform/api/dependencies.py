@@ -3,9 +3,10 @@
 from __future__ import annotations
 
 import os
+from collections.abc import Callable
 from dataclasses import dataclass, field
 from threading import Lock
-from typing import Any, Callable
+from typing import Any
 
 from fastapi import HTTPException, Request
 

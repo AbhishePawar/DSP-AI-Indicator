@@ -172,9 +172,7 @@ def list_versions(
     state: ApiState = Depends(get_api_state),
     auth: dict[str, Any] = Depends(require_authenticated_actor),
 ) -> JSONResponse:
-    return _dispatch(
-        state, "list_versions", _with_actor(auth, {"note_id": note_id})
-    )
+    return _dispatch(state, "list_versions", _with_actor(auth, {"note_id": note_id}))
 
 
 @router.post("/research-workspace/note/{note_id}/restore")
@@ -248,7 +246,11 @@ def update_folder(
         return _dispatch(state, "archive_folder", payload)
     return JSONResponse(
         status_code=400,
-        content={"ok": False, "error": "no folder mutation", "message": "Data unavailable."},
+        content={
+            "ok": False,
+            "error": "no folder mutation",
+            "message": "Data unavailable.",
+        },
     )
 
 
@@ -384,9 +386,7 @@ def ai_assist(
     state: ApiState = Depends(get_api_state),
     auth: dict[str, Any] = Depends(require_authenticated_actor),
 ) -> JSONResponse:
-    return _dispatch(
-        state, "ai", _with_actor(auth, body.model_dump(exclude_none=True))
-    )
+    return _dispatch(state, "ai", _with_actor(auth, body.model_dump(exclude_none=True)))
 
 
 @router.post("/research-workspace/tag")

@@ -3,8 +3,8 @@
 from __future__ import annotations
 
 import pytest
-from industry import EvidenceBundleReference, EvidenceBundleStatus
 
+from industry import EvidenceBundleReference, EvidenceBundleStatus
 from portfolio import (
     ComparisonReportReference,
     DecisionPackReference,
@@ -77,9 +77,7 @@ def _holding(
 class TestEmptyAndSingle:
     def test_empty_portfolio(self) -> None:
         analyzer = PortfolioAnalyzer()
-        result = analyzer.analyze(
-            Portfolio(identity=_identity(), holdings=())
-        )
+        result = analyzer.analyze(Portfolio(identity=_identity(), holdings=()))
         assert result.status is PortfolioAnalysisStatus.EMPTY
         assert result.summary.holding_count == 0
         assert any(d.code == "broadly_diversified" for d in result.descriptors)
@@ -89,7 +87,9 @@ class TestEmptyAndSingle:
         result = analyzer.analyze(
             Portfolio(
                 identity=_identity(),
-                holdings=(_holding("HDFCBANK", weight=0.95, evidence=True, comparison=True),),
+                holdings=(
+                    _holding("HDFCBANK", weight=0.95, evidence=True, comparison=True),
+                ),
                 cash_weight=0.05,
             )
         )

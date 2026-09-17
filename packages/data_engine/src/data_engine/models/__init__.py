@@ -19,7 +19,6 @@ from data_engine.exceptions import DataEngineError
 __all__ = ["EconomicRequest", "FundamentalsRequest", "PriceSeriesRequest"]
 
 
-
 @dataclass(frozen=True, slots=True)
 class PriceSeriesRequest:
     """A single, immutable request for a price series.

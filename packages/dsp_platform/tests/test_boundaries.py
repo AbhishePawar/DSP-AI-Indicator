@@ -103,9 +103,7 @@ class TestImportBoundaries:
 class TestPackageFacadeParity:
     def test_deep_sibling_import_detected(self) -> None:
         source = "from valuation.engine.service import ValuationEngine\n"
-        deep = scan_cross_package_deep_imports(
-            source, current_package="orchestration"
-        )
+        deep = scan_cross_package_deep_imports(source, current_package="orchestration")
         assert "valuation.engine.service" in deep
         with pytest.raises(PlatformError, match="façade boundary"):
             assert_public_sibling_imports(
@@ -117,14 +115,10 @@ class TestPackageFacadeParity:
     def test_public_sibling_import_allowed(self) -> None:
         source = "from valuation import ValuationEngine\n"
         assert (
-            scan_cross_package_deep_imports(
-                source, current_package="orchestration"
-            )
+            scan_cross_package_deep_imports(source, current_package="orchestration")
             == frozenset()
         )
-        assert_public_sibling_imports(
-            source, current_package="orchestration"
-        )
+        assert_public_sibling_imports(source, current_package="orchestration")
 
     def test_all_platform_packages_use_public_sibling_imports(self) -> None:
         """Production src must not deep-import sibling packages."""
@@ -136,9 +130,7 @@ class TestPackageFacadeParity:
             for path in root.rglob("*.py"):
                 # utf-8-sig strips accidental BOM without touching package sources
                 source = path.read_text(encoding="utf-8-sig")
-                deep = scan_cross_package_deep_imports(
-                    source, current_package=package
-                )
+                deep = scan_cross_package_deep_imports(source, current_package=package)
                 if deep:
                     rel = path.relative_to(_REPO_ROOT)
                     failures.append(f"{rel}: {sorted(deep)}")

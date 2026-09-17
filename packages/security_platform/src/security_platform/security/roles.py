@@ -90,9 +90,7 @@ class RoleManager:
         resolved = assert_role(role)
         return ROLE_PERMISSIONS[resolved]
 
-    def has_permission(
-        self, role: Role | str, permission: Permission | str
-    ) -> bool:
+    def has_permission(self, role: Role | str, permission: Permission | str) -> bool:
         from security_platform.security.permissions import assert_permission
 
         perm = assert_permission(permission)

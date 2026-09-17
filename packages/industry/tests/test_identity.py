@@ -89,9 +89,7 @@ class TestIndustryTaxonomy:
         util = tax.register(
             _id("dsp.industry.utilities", "Utilities", parent_id=energy.id)
         )
-        power = tax.register(
-            _id("dsp.industry.power", "Power", parent_id=util.id)
-        )
+        power = tax.register(_id("dsp.industry.power", "Power", parent_id=util.id))
         assert tax.ancestors(power.id) == (util, energy)
         assert tax.descendants(energy.id) == (power, util)
 

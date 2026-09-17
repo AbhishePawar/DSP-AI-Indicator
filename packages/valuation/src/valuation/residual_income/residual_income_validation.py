@@ -69,9 +69,7 @@ def validate_residual_income_inputs(
         _bad_number(value, name, errors)
 
     if inputs.current_book_value <= 0:
-        errors.append(
-            f"book value must be positive, got {inputs.current_book_value}"
-        )
+        errors.append(f"book value must be positive, got {inputs.current_book_value}")
     else:
         checks.append("book_value > 0")
 
@@ -81,9 +79,7 @@ def validate_residual_income_inputs(
         checks.append("roe in [-0.5, 1.0]")
 
     if inputs.cost_of_equity <= 0:
-        errors.append(
-            f"cost_of_equity must be > 0, got {inputs.cost_of_equity}"
-        )
+        errors.append(f"cost_of_equity must be > 0, got {inputs.cost_of_equity}")
     else:
         checks.append("cost_of_equity > 0")
 
@@ -112,9 +108,7 @@ def validate_residual_income_inputs(
     if inputs.retention_ratio is not None and not (
         0.0 <= inputs.retention_ratio <= 1.0
     ):
-        errors.append(
-            f"retention_ratio out of range: {inputs.retention_ratio}"
-        )
+        errors.append(f"retention_ratio out of range: {inputs.retention_ratio}")
     else:
         checks.append("retention valid or defaulted")
 
@@ -171,8 +165,7 @@ def validate_residual_income_inputs(
         inputs.net_income_forecast is not None
         and inputs.current_book_value > 0
         and abs(
-            inputs.net_income_forecast / inputs.current_book_value
-            - inputs.roe_forecast
+            inputs.net_income_forecast / inputs.current_book_value - inputs.roe_forecast
         )
         > 0.05
     ):
@@ -182,9 +175,7 @@ def validate_residual_income_inputs(
         )
 
     if errors:
-        raise ValuationError(
-            "Residual Income validation failed: " + "; ".join(errors)
-        )
+        raise ValuationError("Residual Income validation failed: " + "; ".join(errors))
 
     return RiValidationSummary(
         ok=True,

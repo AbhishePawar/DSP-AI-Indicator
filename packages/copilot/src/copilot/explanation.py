@@ -66,9 +66,7 @@ class ExplanationDraft:
     def __post_init__(self) -> None:
         object.__setattr__(self, "key_reasons", tuple(self.key_reasons))
         object.__setattr__(self, "risks", tuple(self.risks))
-        object.__setattr__(
-            self, "supporting_evidence", tuple(self.supporting_evidence)
-        )
+        object.__setattr__(self, "supporting_evidence", tuple(self.supporting_evidence))
         object.__setattr__(
             self, "claim_evidence_links", tuple(self.claim_evidence_links)
         )
@@ -97,9 +95,7 @@ class ExplanationResult:
     def __post_init__(self) -> None:
         object.__setattr__(self, "key_reasons", tuple(self.key_reasons))
         object.__setattr__(self, "risks", tuple(self.risks))
-        object.__setattr__(
-            self, "supporting_evidence", tuple(self.supporting_evidence)
-        )
+        object.__setattr__(self, "supporting_evidence", tuple(self.supporting_evidence))
         object.__setattr__(self, "citations", tuple(self.citations))
         object.__setattr__(self, "provenance", tuple(self.provenance))
         object.__setattr__(self, "warnings", tuple(self.warnings))
@@ -286,9 +282,7 @@ class ExplanationEngine:
             )
 
         confidence = self._confidence(len(allowed))
-        status = (
-            ExplanationStatus.PARTIAL if warnings else ExplanationStatus.COMPLETE
-        )
+        status = ExplanationStatus.PARTIAL if warnings else ExplanationStatus.COMPLETE
         return self._finalize(
             explanation_input=explanation_input,
             draft=draft,
@@ -369,9 +363,7 @@ class ExplanationEngine:
             f"Intent routed as {intent.intent_type.value} (cite-only).",
             f"Knowledge Graph citation {kg.report_id} anchors navigation.",
         )
-        evidence_lines = tuple(
-            f"Cited digest {digest}" for digest in citations
-        )
+        evidence_lines = tuple(f"Cited digest {digest}" for digest in citations)
         risks = (
             "Explanation is citation-backed only; no recalculated analysis.",
             "Upstream report payloads are not embedded.",
@@ -500,7 +492,9 @@ class ExplanationEngine:
         summary = sections[0] if sections else base.executive_summary
         reasons = sections[1:] if len(sections) > 1 else base.key_reasons
         citations = tuple(lm_result.cited_digest_ids) or base.citations
-        citations = tuple(c for c in citations if c in allowed_digests) or base.citations
+        citations = (
+            tuple(c for c in citations if c in allowed_digests) or base.citations
+        )
         claim_links = tuple(
             (f"LM-supported citation {digest}.", digest) for digest in citations
         )

@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import math
-from typing import Sequence
+from collections.abc import Sequence
 
 from financial.exceptions import FinancialRatioError, FinancialValidationError
 from financial.models import FinancialSnapshot, FinancialStatements
@@ -76,10 +76,9 @@ def validate_ratio_inputs(
 
 
 def coerce_ratio_series(
-    source: FinancialStatements
-    | FinancialSnapshot
-    | dict
-    | Sequence[FinancialStatements],
+    source: (
+        FinancialStatements | FinancialSnapshot | dict | Sequence[FinancialStatements]
+    ),
 ) -> tuple[list[FinancialStatements], dict]:
     """Normalize inputs into chronologically ordered statement series."""
     meta: dict = {}
@@ -133,8 +132,6 @@ def coerce_ratio_series(
             seen_keys.add(key)
         meta["period_end"] = stmts[-1].period.period_end.isoformat()
     else:
-        _reject(
-            "Accept ONLY FinancialStatements or Normalized Financial Snapshot"
-        )
+        _reject("Accept ONLY FinancialStatements or Normalized Financial Snapshot")
 
     return stmts, meta

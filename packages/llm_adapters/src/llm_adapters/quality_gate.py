@@ -8,9 +8,9 @@ if PREMIUM also fails. Never fabricates a recommendation.
 
 from __future__ import annotations
 
+from collections.abc import Callable
 from dataclasses import dataclass
 from enum import Enum
-from typing import Callable
 
 from llm_adapters.cost_scoring import (
     calculate_quality_score,
@@ -137,7 +137,9 @@ def run_with_escalation(
         )
         premium_result = run_at_tier(ModelTier.PREMIUM)
         premium_verdict = evaluate_gate(premium_result, premium_decision, tier_registry)
-        return premium_verdict, premium_result if premium_verdict.outcome is GateOutcome.ACCEPTED else None
+        return premium_verdict, (
+            premium_result if premium_verdict.outcome is GateOutcome.ACCEPTED else None
+        )
 
     return verdict, None
 

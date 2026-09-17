@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 
 import pytest
 
@@ -11,11 +11,11 @@ from auth import (
     AuthService,
     DuplicateUserError,
     EnterpriseAuthPlatform,
+    RoleRegistry,
     ValidationError,
     reset_auth_service_for_tests,
     reset_enterprise_auth_platform_for_tests,
     reset_role_registry_for_tests,
-    RoleRegistry,
 )
 from auth.email_delivery import ConsoleEmailAdapter
 from auth.models import AuthUser
@@ -61,7 +61,9 @@ def platform(monkeypatch: pytest.MonkeyPatch) -> EnterpriseAuthPlatform:
     reset_repository_registry_for_tests(None)
 
 
-def _register_verified(platform: EnterpriseAuthPlatform, *, email: str, username: str, password: str):
+def _register_verified(
+    platform: EnterpriseAuthPlatform, *, email: str, username: str, password: str
+):
     reg = platform.register_email(
         name="User",
         email=email,
@@ -73,14 +75,18 @@ def _register_verified(platform: EnterpriseAuthPlatform, *, email: str, username
     return platform._get_by_email(email)
 
 
-def _attach_unverified_mobile(platform: EnterpriseAuthPlatform, user: AuthUser, mobile: str) -> AuthUser:
+def _attach_unverified_mobile(
+    platform: EnterpriseAuthPlatform, user: AuthUser, mobile: str
+) -> AuthUser:
     return platform._persist_meta(
         user,
         {"mobile": normalize_india_mobile(mobile), "phone_verified": False},
     )
 
 
-def test_register_username_then_password_login(platform: EnterpriseAuthPlatform) -> None:
+def test_register_username_then_password_login(
+    platform: EnterpriseAuthPlatform,
+) -> None:
     result = platform.register_username(
         username="newuser1",
         password="StrongPass1!",
@@ -109,7 +115,9 @@ def test_register_username_duplicate_rejected(platform: EnterpriseAuthPlatform) 
         )
 
 
-def test_register_username_weak_password_rejected(platform: EnterpriseAuthPlatform) -> None:
+def test_register_username_weak_password_rejected(
+    platform: EnterpriseAuthPlatform,
+) -> None:
     with pytest.raises(ValidationError, match="too weak"):
         platform.register_username(
             username="weakuser",
@@ -118,7 +126,9 @@ def test_register_username_weak_password_rejected(platform: EnterpriseAuthPlatfo
         )
 
 
-def test_register_mobile_otp_then_password_login(platform: EnterpriseAuthPlatform) -> None:
+def test_register_mobile_otp_then_password_login(
+    platform: EnterpriseAuthPlatform,
+) -> None:
     mobile = "+919876501122"
     req = platform.register_mobile_request(mobile)
     code = (req.get("sms") or {}).get("debug_code")
@@ -140,7 +150,9 @@ def test_register_mobile_otp_then_password_login(platform: EnterpriseAuthPlatfor
     assert session["provider"] == "PHONE"
 
 
-def test_register_mobile_wrong_password_rejected_after(platform: EnterpriseAuthPlatform) -> None:
+def test_register_mobile_wrong_password_rejected_after(
+    platform: EnterpriseAuthPlatform,
+) -> None:
     mobile = "+919876501133"
     req = platform.register_mobile_request(mobile)
     code = (req.get("sms") or {}).get("debug_code")
@@ -154,7 +166,9 @@ def test_register_mobile_wrong_password_rejected_after(platform: EnterpriseAuthP
         platform.login_password(identifier=mobile, password="WrongPass99!")
 
 
-def test_unverified_mobile_still_cannot_password_login(platform: EnterpriseAuthPlatform) -> None:
+def test_unverified_mobile_still_cannot_password_login(
+    platform: EnterpriseAuthPlatform,
+) -> None:
     user = _register_verified(
         platform, email="unvreg@example.com", username="unvreg", password="StrongPass1!"
     )
@@ -164,7 +178,9 @@ def test_unverified_mobile_still_cannot_password_login(platform: EnterpriseAuthP
         platform.login_password(identifier="+919876501144", password="StrongPass1!")
 
 
-def test_register_mobile_existing_updates_password(platform: EnterpriseAuthPlatform) -> None:
+def test_register_mobile_existing_updates_password(
+    platform: EnterpriseAuthPlatform,
+) -> None:
     mobile = "+919876501155"
     req1 = platform.register_mobile_request(mobile)
     code1 = (req1.get("sms") or {}).get("debug_code")
@@ -174,7 +190,7 @@ def test_register_mobile_existing_updates_password(platform: EnterpriseAuthPlatf
         password="StrongPass1!",
         confirm_password="StrongPass1!",
     )
-    future = datetime.now(tz=timezone.utc) + timedelta(seconds=31)
+    future = datetime.now(tz=UTC) + timedelta(seconds=31)
     req2 = platform.otp.request_otp(mobile, now=future)
     code2 = (req2.get("sms") or {}).get("debug_code")
     completed = platform.register_mobile_complete(
@@ -190,7 +206,9 @@ def test_register_mobile_existing_updates_password(platform: EnterpriseAuthPlatf
         platform.login_password(identifier=mobile, password="StrongPass1!")
 
 
-def test_register_mobile_duplicate_username_rejected(platform: EnterpriseAuthPlatform) -> None:
+def test_register_mobile_duplicate_username_rejected(
+    platform: EnterpriseAuthPlatform,
+) -> None:
     platform.register_username(
         username="takenname",
         password="StrongPass1!",
@@ -244,7 +262,9 @@ def test_mobile_otp_login_still_works(platform: EnterpriseAuthPlatform) -> None:
     assert session["tokens"]["access_token"]
 
 
-def test_password_reset_skips_synthetic_mailbox(platform: EnterpriseAuthPlatform) -> None:
+def test_password_reset_skips_synthetic_mailbox(
+    platform: EnterpriseAuthPlatform,
+) -> None:
     platform.register_username(
         username="resetskip",
         password="StrongPass1!",

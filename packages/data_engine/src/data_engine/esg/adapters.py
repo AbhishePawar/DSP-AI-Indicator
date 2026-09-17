@@ -12,12 +12,11 @@ Every vendor-specific field name lives in this file. Adapters:
 from __future__ import annotations
 
 import os
+from collections.abc import Mapping
 from dataclasses import dataclass, field
 from datetime import date
 from threading import Lock
-from typing import Mapping
 
-from contracts.domain.instrument import Instrument
 from data_engine.connector_framework.http import JsonHttpClient, UrllibJsonHttpClient
 from data_engine.connector_framework.models import (
     ConnectorCompanyIdentity,
@@ -41,7 +40,13 @@ __all__ = [
     "build_esg_score_from_mapping",
 ]
 
-_YAHOO_CONTROVERSY_MAP = {1: "low", 2: "moderate", 3: "significant", 4: "high", 5: "severe"}
+_YAHOO_CONTROVERSY_MAP = {
+    1: "low",
+    2: "moderate",
+    3: "significant",
+    4: "high",
+    5: "severe",
+}
 
 
 def build_esg_score_from_mapping(
@@ -107,7 +112,9 @@ class InMemoryEsgAdapter(EsgProviderPort):
 
     def get_esg_score(self, query: EsgQuery) -> AuthenticatedEsgScore | None:
         if not self.api_key:
-            raise ProviderRequestError("memory esg adapter requires api_key (authentication)")
+            raise ProviderRequestError(
+                "memory esg adapter requires api_key (authentication)"
+            )
         with self._lock:
             return self._scores.get(query.instrument.symbol.strip().upper())
 
@@ -116,7 +123,11 @@ class InMemoryEsgAdapter(EsgProviderPort):
             provider_id=self.provider_id,
             healthy=True,
             authenticated=bool(self.api_key),
-            detail="seeded in-memory authenticated esg" if self.api_key else "missing api_key",
+            detail=(
+                "seeded in-memory authenticated esg"
+                if self.api_key
+                else "missing api_key"
+            ),
         )
 
 
@@ -135,7 +146,9 @@ class YahooFinanceEsgAdapter(EsgProviderPort):
         return self._provider_id
 
     def _client(self) -> JsonHttpClient:
-        return self.http_client or UrllibJsonHttpClient(timeout_seconds=self.timeout_seconds)
+        return self.http_client or UrllibJsonHttpClient(
+            timeout_seconds=self.timeout_seconds
+        )
 
     def get_esg_score(self, query: EsgQuery) -> AuthenticatedEsgScore | None:
         if not self.enabled:
@@ -146,12 +159,18 @@ class YahooFinanceEsgAdapter(EsgProviderPort):
         )
         if not isinstance(payload, Mapping):
             return None
-        result_list = (payload.get("quoteSummary") or {}).get("result") if isinstance(
-            payload.get("quoteSummary"), Mapping
-        ) else None
+        result_list = (
+            (payload.get("quoteSummary") or {}).get("result")
+            if isinstance(payload.get("quoteSummary"), Mapping)
+            else None
+        )
         if not isinstance(result_list, list) or not result_list:
             return None
-        esg = result_list[0].get("esgScores") if isinstance(result_list[0], Mapping) else None
+        esg = (
+            result_list[0].get("esgScores")
+            if isinstance(result_list[0], Mapping)
+            else None
+        )
         if not isinstance(esg, Mapping):
             return None
 
@@ -165,7 +184,9 @@ class YahooFinanceEsgAdapter(EsgProviderPort):
         social_score = ConnectorField.of(_raw("socialScore"))
         gov_score = ConnectorField.of(_raw("governanceScore"))
         total_score = ConnectorField.of(_raw("totalEsg"))
-        if not any(f.available for f in (env_score, social_score, gov_score, total_score)):
+        if not any(
+            f.available for f in (env_score, social_score, gov_score, total_score)
+        ):
             return None
         controversy_raw = _raw("highestControversy")
         controversy_level = None
@@ -198,7 +219,9 @@ class YahooFinanceEsgAdapter(EsgProviderPort):
             provider_id=self.provider_id,
             healthy=self.enabled,
             authenticated=False,
-            detail="enabled" if self.enabled else "disabled (set DSP_ESG_YAHOO_ENABLED=1)",
+            detail=(
+                "enabled" if self.enabled else "disabled (set DSP_ESG_YAHOO_ENABLED=1)"
+            ),
         )
 
 
@@ -207,7 +230,9 @@ class FinancialModelingPrepEsgAdapter(EsgProviderPort):
     """FMP ``esg-environmental-social-governance-data`` endpoint."""
 
     api_key: str
-    base_url: str = "https://financialmodelingprep.com/api/v4/esg-environmental-social-governance-data"
+    base_url: str = (
+        "https://financialmodelingprep.com/api/v4/esg-environmental-social-governance-data"
+    )
     timeout_seconds: float = 15.0
     http_client: JsonHttpClient | None = None
     _provider_id: str = "fmp_esg"
@@ -217,13 +242,19 @@ class FinancialModelingPrepEsgAdapter(EsgProviderPort):
         return self._provider_id
 
     def _client(self) -> JsonHttpClient:
-        return self.http_client or UrllibJsonHttpClient(timeout_seconds=self.timeout_seconds)
+        return self.http_client or UrllibJsonHttpClient(
+            timeout_seconds=self.timeout_seconds
+        )
 
     def get_esg_score(self, query: EsgQuery) -> AuthenticatedEsgScore | None:
         if not self.api_key.strip():
-            raise ProviderRequestError("financial modeling prep esg adapter requires api_key")
+            raise ProviderRequestError(
+                "financial modeling prep esg adapter requires api_key"
+            )
         symbol = query.instrument.symbol.strip().upper()
-        payload = self._client().get_json(self.base_url, params={"symbol": symbol, "apikey": self.api_key})
+        payload = self._client().get_json(
+            self.base_url, params={"symbol": symbol, "apikey": self.api_key}
+        )
         if not isinstance(payload, list) or not payload:
             return None
         latest = payload[0]
@@ -233,7 +264,9 @@ class FinancialModelingPrepEsgAdapter(EsgProviderPort):
         social_score = ConnectorField.of(latest.get("socialScore"))
         gov_score = ConnectorField.of(latest.get("governanceScore"))
         total_score = ConnectorField.of(latest.get("ESGScore"))
-        if not any(f.available for f in (env_score, social_score, gov_score, total_score)):
+        if not any(
+            f.available for f in (env_score, social_score, gov_score, total_score)
+        ):
             return None
         as_of = None
         date_raw = str(latest.get("date") or "").strip()
@@ -264,7 +297,9 @@ class FinancialModelingPrepEsgAdapter(EsgProviderPort):
     def health(self) -> ProviderHealth:
         ok = bool(self.api_key.strip())
         return ProviderHealth(
-            provider_id=self.provider_id, healthy=ok, authenticated=ok,
+            provider_id=self.provider_id,
+            healthy=ok,
+            authenticated=ok,
             detail="configured" if ok else "missing api_key",
         )
 
@@ -279,16 +314,24 @@ def build_default_esg_registry_from_env() -> PriorityProviderRegistry[EsgProvide
 
     fmp_key = os.environ.get("DSP_ESG_FMP_API_KEY", "").strip()
     if fmp_key:
-        registry.register(FinancialModelingPrepEsgAdapter(api_key=fmp_key), provider_id="fmp_esg", priority=10)
+        registry.register(
+            FinancialModelingPrepEsgAdapter(api_key=fmp_key),
+            provider_id="fmp_esg",
+            priority=10,
+        )
 
     if os.environ.get("DSP_ESG_YAHOO_ENABLED", "").lower() in {"1", "true", "yes"}:
         registry.register(
-            YahooFinanceEsgAdapter(enabled=True), provider_id="yahoo_finance_esg", priority=20
+            YahooFinanceEsgAdapter(enabled=True),
+            provider_id="yahoo_finance_esg",
+            priority=20,
         )
 
     if memory_adapter_allowed("DSP_ESG_MEMORY", connector="esg"):
         registry.register(
-            InMemoryEsgAdapter(api_key="dev-memory-key"), provider_id="memory_esg", priority=90
+            InMemoryEsgAdapter(api_key="dev-memory-key"),
+            provider_id="memory_esg",
+            priority=90,
         )
 
     return finalize_provider_registry(

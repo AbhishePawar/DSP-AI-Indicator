@@ -12,10 +12,10 @@ from dsp_platform.research_copilot.extract import (
     format_section_facts,
 )
 from dsp_platform.research_copilot.models import (
+    UNAVAILABLE_MESSAGE,
     Citation,
     ProcessedQuestion,
     ResearchContextBundle,
-    UNAVAILABLE_MESSAGE,
 )
 
 __all__ = ["build_grounded_answer"]
@@ -103,8 +103,10 @@ def build_grounded_answer(
                 names = report_names or ro_names or ("metadata",)
                 for name in names:
                     section = extract_section(payload, name)
-                    if section is None and name in payload and not isinstance(
-                        payload.get(name), dict
+                    if (
+                        section is None
+                        and name in payload
+                        and not isinstance(payload.get(name), dict)
                     ):
                         # scalar/top-level — report as unavailable section shape
                         blocks.append(

@@ -9,7 +9,8 @@ Annual fiscal-year endpoints only for multi-year rates.
 from __future__ import annotations
 
 import math
-from typing import Any, Callable, Sequence
+from collections.abc import Callable, Sequence
+from typing import Any
 
 from financial.period import PeriodType
 
@@ -191,11 +192,7 @@ def operating_working_capital(
     Requires all three line items. Does not substitute CA−CL or invent zeros
     for missing components (cash/debt excluded by construction).
     """
-    if (
-        accounts_receivable is None
-        or inventory is None
-        or accounts_payable is None
-    ):
+    if accounts_receivable is None or inventory is None or accounts_payable is None:
         return None
     try:
         ar = float(accounts_receivable)

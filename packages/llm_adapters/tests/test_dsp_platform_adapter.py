@@ -4,20 +4,17 @@ provenance audit.
 
 from __future__ import annotations
 
-from typing import Any, Mapping
+from collections.abc import Mapping
+from typing import Any
 
 import pytest
 
 from llm_adapters.tools import (
-    AUTHENTICATION_REQUIRED,
     DEFAULT_TOOL_NAMES,
     DSPPlatformToolAdapter,
     DSPToolBackend,
     ToolRegistry,
-    ToolResult,
     ToolStatus,
-    UNAVAILABLE,
-    WIRED,
     assert_no_tool_leakage,
     check_tool_health,
     is_comparison_backed,
@@ -26,7 +23,6 @@ from llm_adapters.tools import (
     reset_pack_cache,
 )
 from llm_adapters.tools.dsp_platform_adapter import _flatten_pack, _safe_dict
-
 
 # --- minimal canonical backend stub --------------------------------------
 
@@ -39,25 +35,34 @@ class _CanonicalBackend:
     prevents it from duplicating DSP logic.
     """
 
-    def __init__(self, *, compose: Mapping[str, Any] | None = None,
-                 statements: Mapping[str, Any] | None = None,
-                 research: Mapping[str, Any] | None = None,
-                 committee: Mapping[str, Any] | None = None,
-                 comparison: Mapping[str, Any] | None = None,
-                 statements_health: Mapping[str, Any] | None = None,
-                 compose_raises: Exception | None = None) -> None:
+    def __init__(
+        self,
+        *,
+        compose: Mapping[str, Any] | None = None,
+        statements: Mapping[str, Any] | None = None,
+        research: Mapping[str, Any] | None = None,
+        committee: Mapping[str, Any] | None = None,
+        comparison: Mapping[str, Any] | None = None,
+        statements_health: Mapping[str, Any] | None = None,
+        compose_raises: Exception | None = None,
+    ) -> None:
         self._compose_result = compose if compose is not None else _GOOD_COMPOSE
         # Default to a healthy statements payload so direct-method tests work
-        self._statements = statements if statements is not None else {
-            "periods": ["2024", "2023"],
-            "currency": "INR",
-            "source": "dsp.financial_statements",
-        }
+        self._statements = (
+            statements
+            if statements is not None
+            else {
+                "periods": ["2024", "2023"],
+                "currency": "INR",
+                "source": "dsp.financial_statements",
+            }
+        )
         self._research = research or {"lineage_id": "lin-1", "summary": {}}
         self._committee = committee or {"decision": "BUY", "votes": {}}
         self._comparison = comparison or {"dimensions": [], "summary": {}}
         self._statements_health = (
-            statements_health if statements_health is not None
+            statements_health
+            if statements_health is not None
             else {"ok": True, "authenticated": True}
         )
         self._compose_raises = compose_raises
@@ -72,11 +77,17 @@ class _CanonicalBackend:
         self.compose_call_count += 1
         if self._compose_raises is not None:
             raise self._compose_raises
-        symbol = getattr(getattr(request, "instrument", None), "symbol", None) if request is not None else None
+        symbol = (
+            getattr(getattr(request, "instrument", None), "symbol", None)
+            if request is not None
+            else None
+        )
         self.last_compose_symbol = symbol
         return dict(self._compose_result)
 
-    def get_authenticated_financial_statements(self, *, symbol: str, exchange: str | None = None) -> Mapping[str, Any] | None:
+    def get_authenticated_financial_statements(
+        self, *, symbol: str, exchange: str | None = None
+    ) -> Mapping[str, Any] | None:
         self.statements_call_count += 1
         if self._statements is None:
             return None
@@ -97,10 +108,17 @@ class _CanonicalBackend:
         return dict(self._comparison, _pack_count=len(packs))
 
     # methods the adapter does NOT need
-    def ask_research_copilot(self, *a: Any, **kw: Any) -> Any: return None
-    def get_research_snapshot(self, *a: Any, **kw: Any) -> Any: return None
-    def run_copilot_v2(self, *a: Any, **kw: Any) -> Any: return None
-    def analyze_company(self, *a: Any, **kw: Any) -> Any: return None
+    def ask_research_copilot(self, *a: Any, **kw: Any) -> Any:
+        return None
+
+    def get_research_snapshot(self, *a: Any, **kw: Any) -> Any:
+        return None
+
+    def run_copilot_v2(self, *a: Any, **kw: Any) -> Any:
+        return None
+
+    def analyze_company(self, *a: Any, **kw: Any) -> Any:
+        return None
 
 
 _GOOD_COMPOSE: dict[str, Any] = {
@@ -118,7 +136,10 @@ _GOOD_COMPOSE: dict[str, Any] = {
     "business_quality": {"label": "Great", "score": 0.85},
     "risk": {"risks": ["FX"], "score": 0.4},
     "quantitative_risk": {"volatility": 0.25, "beta": 1.1, "max_drawdown": -0.3},
-    "technical_signals": {"signals": [{"name": "trend", "value": "up"}], "direction": "BULLISH"},
+    "technical_signals": {
+        "signals": [{"name": "trend", "value": "up"}],
+        "direction": "BULLISH",
+    },
     "recommendation": {"decision": "Buy", "confidence": 0.8, "margin_of_safety": 0.2},
 }
 
@@ -129,8 +150,10 @@ def _adapter_for(canonical: _CanonicalBackend) -> DSPPlatformToolAdapter:
     The builder produces the exact object ``analyze_decision_pack``
     receives; this avoids depending on dsp_platform's import shape.
     """
+
     def _builder(symbol: str) -> Any:
         return {"instrument": {"symbol": symbol}}
+
     return DSPPlatformToolAdapter(canonical, compose_request_builder=_builder)
 
 
@@ -161,19 +184,19 @@ def test_provenance_strings_do_not_lie_about_engine_source() -> None:
         assert spec is not None
         prov = spec.provenance
         if is_composition_backed(name):
-            assert "analyze_company" in prov or "institutional_committee" in prov, (
-                f"{name}: provenance must reference canonical composition or committee, got {prov!r}"
-            )
+            assert (
+                "analyze_company" in prov or "institutional_committee" in prov
+            ), f"{name}: provenance must reference canonical composition or committee, got {prov!r}"
         elif is_flat_backed(name):
             # Flat-backed tools must reference the canonical DSP module
             # for that domain.
-            assert "dsp_platform" in prov, (
-                f"{name}: provenance must reference canonical dsp_platform, got {prov!r}"
-            )
+            assert (
+                "dsp_platform" in prov
+            ), f"{name}: provenance must reference canonical dsp_platform, got {prov!r}"
         elif is_comparison_backed(name):
-            assert "compare_companies" in prov, (
-                f"{name}: provenance must reference canonical compare_companies, got {prov!r}"
-            )
+            assert (
+                "compare_companies" in prov
+            ), f"{name}: provenance must reference canonical compare_companies, got {prov!r}"
 
 
 def test_technical_signals_provenance_corrected() -> None:
@@ -257,10 +280,22 @@ def test_no_calculations_duplicated_in_adapter() -> None:
     and comments. Any arithmetic in executable code is a red flag.
     """
     import inspect
+
     from llm_adapters.tools import dsp_platform_adapter
 
     src = inspect.getsource(dsp_platform_adapter)
-    forbidden_tokens = ("+ ", "- ", "* ", "/ ", "abs(", "min(", "max(", "sum(", "pow(", "sqrt(")
+    forbidden_tokens = (
+        "+ ",
+        "- ",
+        "* ",
+        "/ ",
+        "abs(",
+        "min(",
+        "max(",
+        "sum(",
+        "pow(",
+        "sqrt(",
+    )
     in_docstring = False
     quote = None
     for line in src.splitlines():
@@ -278,9 +313,7 @@ def test_no_calculations_duplicated_in_adapter() -> None:
         # Assignment / comparison / keyword lines only
         for tok in forbidden_tokens:
             if tok in line:
-                pytest.fail(
-                    f"adapter contains arithmetic {tok!r} at: {line!r}"
-                )
+                pytest.fail(f"adapter contains arithmetic {tok!r} at: {line!r}")
 
 
 def test_technical_signals_provenance_finding() -> None:
@@ -344,9 +377,7 @@ def test_valid_result_preserves_evidence_refs() -> None:
     )
     adapter = _adapter_for(canonical)
     registry = ToolRegistry.default()
-    result = registry.dispatch(
-        "dsp.financial_statements", {"symbol": "AAPL"}, adapter
-    )
+    result = registry.dispatch("dsp.financial_statements", {"symbol": "AAPL"}, adapter)
     assert result.status is ToolStatus.OK
     assert "dsp.statements:2024" in result.evidence_refs
 
@@ -393,11 +424,19 @@ def test_private_fields_cannot_enter_tool_result() -> None:
 def test_adapter_does_not_construct_providers() -> None:
     """The adapter does not import or instantiate any LLM provider."""
     import inspect
+
     from llm_adapters.tools import dsp_platform_adapter
+
     src = inspect.getsource(dsp_platform_adapter)
     forbidden = (
-        "OpenAI", "Anthropic", "Gemini", "DeepSeek",
-        "httpx", "ProviderRegistry", "LLMPlatformConfig", "load_llm_config",
+        "OpenAI",
+        "Anthropic",
+        "Gemini",
+        "DeepSeek",
+        "httpx",
+        "ProviderRegistry",
+        "LLMPlatformConfig",
+        "load_llm_config",
     )
     for token in forbidden:
         assert token not in src, f"adapter must not reference {token!r}"
@@ -406,7 +445,9 @@ def test_adapter_does_not_construct_providers() -> None:
 def test_adapter_does_not_construct_credentials() -> None:
     """The adapter must not read or build any credential."""
     import inspect
+
     from llm_adapters.tools import dsp_platform_adapter
+
     src = inspect.getsource(dsp_platform_adapter)
     for token in ("API_KEY", "TOKEN", "PASSWORD", "SECRET", "getenv", "os.environ"):
         # Check only outside docstrings.
@@ -420,7 +461,9 @@ def test_adapter_does_not_construct_credentials() -> None:
             if in_doc or stripped.startswith("#"):
                 continue
             if token in line:
-                pytest.fail(f"adapter references credential token {token!r} at: {line!r}")
+                pytest.fail(
+                    f"adapter references credential token {token!r} at: {line!r}"
+                )
 
 
 def test_adapter_does_not_bypass_composition() -> None:
@@ -428,10 +471,17 @@ def test_adapter_does_not_bypass_composition() -> None:
     canonical = _CanonicalBackend()
     adapter = _adapter_for(canonical)
     for tool_name in (
-        "dsp.valuation", "dsp.margin_of_safety", "dsp.economic_moat",
-        "dsp.management_quality", "dsp.financial_strength",
-        "dsp.earnings_quality", "dsp.growth_quality", "dsp.business_quality",
-        "dsp.risk", "dsp.quantitative_risk", "dsp.technical_signals",
+        "dsp.valuation",
+        "dsp.margin_of_safety",
+        "dsp.economic_moat",
+        "dsp.management_quality",
+        "dsp.financial_strength",
+        "dsp.earnings_quality",
+        "dsp.growth_quality",
+        "dsp.business_quality",
+        "dsp.risk",
+        "dsp.quantitative_risk",
+        "dsp.technical_signals",
         "dsp.investment_recommendation",
     ):
         spec = ToolRegistry.default().get_spec(tool_name)
@@ -493,6 +543,7 @@ def test_health_reports_unavailable_when_backend_raises() -> None:
     class Broken:
         def financial_statement_health(self):
             raise RuntimeError("backend down")
+
         def analyze_decision_pack(self, request):
             raise RuntimeError("backend down")
 
@@ -531,11 +582,7 @@ def test_health_reports_no_demo_null_silently_treated_as_healthy() -> None:
 
 
 def _minimal_input_for(spec: Any) -> dict:
-    return {
-        f.name: _default_for_type(f.type)
-        for f in spec.input_schema
-        if f.required
-    }
+    return {f.name: _default_for_type(f.type) for f in spec.input_schema if f.required}
 
 
 def _default_for_type(type_str: str):
@@ -582,4 +629,3 @@ def test_adapter_satisfies_protocol() -> None:
     """DSPPlatformToolAdapter must satisfy the DSPToolBackend Protocol."""
     adapter = _adapter_for(_CanonicalBackend())
     assert isinstance(adapter, DSPToolBackend)
-

@@ -3,9 +3,10 @@
 from __future__ import annotations
 
 import re
+from collections.abc import Mapping
 from copy import deepcopy
-from datetime import datetime, timezone
-from typing import Any, Mapping
+from datetime import UTC, datetime
+from typing import Any
 
 from persistence.exceptions import PersistenceError
 from persistence.serde import to_plain_jsonable
@@ -145,7 +146,9 @@ class PostgresStorageProvider:
         out: dict[str, dict[str, Mapping[str, Any]]] = {}
         for collection, entity_id, payload in rows:
             bucket = out.setdefault(str(collection), {})
-            bucket[str(entity_id)] = deepcopy(payload) if isinstance(payload, dict) else {}
+            bucket[str(entity_id)] = (
+                deepcopy(payload) if isinstance(payload, dict) else {}
+            )
         return out
 
     def restore_state(
@@ -345,9 +348,11 @@ def build_postgres_storage(
 ) -> PostgresStorageProvider:
     """Return a verified Postgres A008 provider or raise :class:`PersistenceError`."""
     if not dsn or not str(dsn).strip():
-        raise PersistenceError("DSP_DATABASE_URL must be set for A008 persistence in production")
+        raise PersistenceError(
+            "DSP_DATABASE_URL must be set for A008 persistence in production"
+        )
     return PostgresStorageProvider(str(dsn).strip(), connect_timeout=connect_timeout)
 
 
 def _utc_now() -> str:
-    return datetime.now(tz=timezone.utc).isoformat()
+    return datetime.now(tz=UTC).isoformat()

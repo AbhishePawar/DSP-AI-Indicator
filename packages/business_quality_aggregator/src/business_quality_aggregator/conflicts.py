@@ -82,7 +82,12 @@ def resolve_conflicts(
             )
         )
 
-    if moat is not None and strength is not None and moat >= _STRONG and strength < _WEAK:
+    if (
+        moat is not None
+        and strength is not None
+        and moat >= _STRONG
+        and strength < _WEAK
+    ):
         _add(
             "strong_moat_weak_balance_sheet",
             "Strong economic moat with a weak balance sheet reduces durability "

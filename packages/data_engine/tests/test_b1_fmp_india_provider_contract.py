@@ -6,9 +6,11 @@ adapter contract so private-beta operators know exact symbol/field behaviour.
 
 from __future__ import annotations
 
-from typing import Any, Mapping
+from collections.abc import Mapping
+from typing import Any
 
 import pytest
+
 from contracts.domain.instrument import AssetClass, Instrument
 from data_engine.evidence_classes import (
     MEMORY_SEED_REFUSED_AS_LIVE,
@@ -25,9 +27,7 @@ from data_engine.market_quote.adapters import build_default_quote_adapter_from_e
 
 
 def _equity(symbol: str, *, currency: str = "INR") -> Instrument:
-    return Instrument(
-        symbol=symbol, asset_class=AssetClass.EQUITY, currency=currency
-    )
+    return Instrument(symbol=symbol, asset_class=AssetClass.EQUITY, currency=currency)
 
 
 class _RecordingHttp:
@@ -201,7 +201,9 @@ def test_fmp_unknown_period_label_not_silently_annual() -> None:
 
 
 def test_fmp_quote_auth_failure_without_api_key() -> None:
-    adapter = FinancialModelingPrepQuoteAdapter(api_key="", http_client=_RecordingHttp({}))
+    adapter = FinancialModelingPrepQuoteAdapter(
+        api_key="", http_client=_RecordingHttp({})
+    )
     with pytest.raises(ProviderRequestError, match="api_key"):
         adapter.get_quote(_equity("INFY.NS"))
 

@@ -14,7 +14,9 @@ from data_engine.cache import CachePort, InMemoryCache
 from data_engine.connector_framework.models import ProviderHealth
 from data_engine.exceptions import ProviderRequestError
 from data_engine.insider_trading.models import AuthenticatedInsiderActivity
-from data_engine.insider_trading.validation import validate_authenticated_insider_activity
+from data_engine.insider_trading.validation import (
+    validate_authenticated_insider_activity,
+)
 from data_engine.market_quote.service import (
     CircuitBreaker,
     CircuitOpenError,
@@ -121,9 +123,12 @@ class InsiderTradingService:
             self.metrics.cache_hits += 1
             self.metrics.successes += 1
             _LOG.info(
-                "insider_cache_hit", extra={"symbol": symbol, "provider": self.provider_id}
+                "insider_cache_hit",
+                extra={"symbol": symbol, "provider": self.provider_id},
             )
-            return replace(cached, provenance=replace(cached.provenance, cache_hit=True))
+            return replace(
+                cached, provenance=replace(cached.provenance, cache_hit=True)
+            )
 
         def _call() -> AuthenticatedInsiderActivity | None:
             self._breaker.before_call()
@@ -160,21 +165,27 @@ class InsiderTradingService:
         except CircuitOpenError:
             self.metrics.failures += 1
             _LOG.error(
-                "insider_circuit_open", extra={"symbol": symbol, "provider": self.provider_id}
+                "insider_circuit_open",
+                extra={"symbol": symbol, "provider": self.provider_id},
             )
             raise
         except Exception as exc:
             self.metrics.failures += 1
             _LOG.exception(
                 "insider_failure",
-                extra={"symbol": symbol, "provider": self.provider_id, "error": str(exc)},
+                extra={
+                    "symbol": symbol,
+                    "provider": self.provider_id,
+                    "error": str(exc),
+                },
             )
             raise
 
         if bundle is None:
             self.metrics.unavailable += 1
             _LOG.info(
-                "insider_unavailable", extra={"symbol": symbol, "provider": self.provider_id}
+                "insider_unavailable",
+                extra={"symbol": symbol, "provider": self.provider_id},
             )
             return None
 

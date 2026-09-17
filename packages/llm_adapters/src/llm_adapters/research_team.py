@@ -212,12 +212,14 @@ class ResearchTeamCoordinator:
         return {
             "version": "dsp.research-team.v1",
             "identity": identity.to_dict(),
-            "status": "research_complete"
-            if any(
-                item["status"] == ResearchAgentStatus.RESEARCH_COMPLETE.value
-                for item in outcomes
-            )
-            else "degraded",
+            "status": (
+                "research_complete"
+                if any(
+                    item["status"] == ResearchAgentStatus.RESEARCH_COMPLETE.value
+                    for item in outcomes
+                )
+                else "degraded"
+            ),
             "agents": outcomes,
             "evidence": {
                 "candidate_count": 0,

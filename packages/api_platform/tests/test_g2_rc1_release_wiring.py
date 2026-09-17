@@ -30,22 +30,9 @@ def gate():
 
 
 def _all_pass() -> dict[str, str]:
-    return {
-        gid: "PASS"
-        for gid in (
-            "G1",
-            "G2",
-            "G3",
-            "G4",
-            "G5",
-            "G6",
-            "G7",
-            "G8",
-            "G9",
-            "G10",
-            "G11",
-        )
-    }
+    return dict.fromkeys(
+        ("G1", "G2", "G3", "G4", "G5", "G6", "G7", "G8", "G9", "G10", "G11"), "PASS"
+    )
 
 
 def test_g2_missing_evidence_blocked(gate) -> None:

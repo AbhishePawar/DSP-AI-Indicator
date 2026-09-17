@@ -58,7 +58,8 @@ def _stmt(
     return FinancialStatements(
         period=period,
         income_statement=income or IncomeStatement(revenue=100.0, net_income=20.0),
-        balance_sheet=balance or BalanceSheet(total_assets=200.0, total_liabilities=80.0, equity=120.0),
+        balance_sheet=balance
+        or BalanceSheet(total_assets=200.0, total_liabilities=80.0, equity=120.0),
         cash_flow=cash or CashFlowStatement(),
         statement_metadata=StatementMetadata(unit_scale=UnitScale.MILLIONS),
     )
@@ -119,7 +120,9 @@ class TestCashConversionFcfOcf:
     def test_missing_fcf_unavailable(self) -> None:
         stmt = _stmt(
             period=_period(end=date(2024, 12, 31), fy=2024),
-            cash=CashFlowStatement(operating_cash_flow=80.0, free_cash_flow=None, capex=None),
+            cash=CashFlowStatement(
+                operating_cash_flow=80.0, free_cash_flow=None, capex=None
+            ),
         )
         result = CashFlowEngine().analyze(stmt)
         assert result.operating.cash_conversion is None

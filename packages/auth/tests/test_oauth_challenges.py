@@ -16,8 +16,8 @@ from auth.oauth_providers import OAuthProviderAdapter
 from auth.service import AuthService, get_auth_service, reset_auth_service_for_tests
 from persistence import (
     InMemoryStorageProvider,
-    PersistenceService,
     PersistenceError,
+    PersistenceService,
     RepositoryRegistry,
     get_persistence_service,
     get_repository_registry,
@@ -34,7 +34,7 @@ class _FakeResponse:
     def read(self) -> bytes:
         return self._body
 
-    def __enter__(self) -> "_FakeResponse":
+    def __enter__(self) -> _FakeResponse:
         return self
 
     def __exit__(self, *exc: object) -> None:
@@ -118,7 +118,9 @@ def test_replay_rejected(monkeypatch: pytest.MonkeyPatch) -> None:
     adapter = _google_adapter(OAuthChallengeStore(_shared_persistence()))
     begin = adapter.begin_login(redirect_uri="http://localhost/callback")
     monkeypatch.setattr(
-        adapter, "_exchange_code", lambda code, redirect_uri, verifier: {"access_token": "at-1"}
+        adapter,
+        "_exchange_code",
+        lambda code, redirect_uri, verifier: {"access_token": "at-1"},
     )
     _userinfo_ok(monkeypatch)
     adapter.complete_login(
@@ -126,7 +128,9 @@ def test_replay_rejected(monkeypatch: pytest.MonkeyPatch) -> None:
     )
     with pytest.raises(OAuthChallengeError) as excinfo:
         adapter.complete_login(
-            code="auth-code-2", state=begin["state"], redirect_uri="http://localhost/callback"
+            code="auth-code-2",
+            state=begin["state"],
+            redirect_uri="http://localhost/callback",
         )
     assert excinfo.value.reason == "replayed"
     assert "Invalid or expired OAuth state" not in str(excinfo.value)
@@ -138,7 +142,8 @@ def test_unknown_state_rejected(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setattr(
         adapter,
         "_exchange_code",
-        lambda code, redirect_uri, verifier: called.append("exchange") or {"access_token": "at-1"},
+        lambda code, redirect_uri, verifier: called.append("exchange")
+        or {"access_token": "at-1"},
     )
     with pytest.raises(OAuthChallengeError) as excinfo:
         adapter.complete_login(
@@ -172,23 +177,30 @@ def test_expired_challenge_rejected_without_token_exchange(
     monkeypatch.setattr(
         adapter,
         "_exchange_code",
-        lambda code, redirect_uri, verifier: called.append("exchange") or {"access_token": "at-1"},
+        lambda code, redirect_uri, verifier: called.append("exchange")
+        or {"access_token": "at-1"},
     )
     with pytest.raises(OAuthChallengeError) as excinfo:
         adapter.complete_login(
-            code="auth-code", state=begin["state"], redirect_uri="http://localhost/callback"
+            code="auth-code",
+            state=begin["state"],
+            redirect_uri="http://localhost/callback",
         )
     assert excinfo.value.reason == "expired"
     assert called == []
 
 
-def test_concurrent_consume_exactly_one_success(monkeypatch: pytest.MonkeyPatch) -> None:
+def test_concurrent_consume_exactly_one_success(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
     persistence = _shared_persistence()
     store = OAuthChallengeStore(persistence)
     adapter = _google_adapter(store)
     begin = adapter.begin_login(redirect_uri="http://localhost/callback")
     monkeypatch.setattr(
-        adapter, "_exchange_code", lambda code, redirect_uri, verifier: {"access_token": "at-1"}
+        adapter,
+        "_exchange_code",
+        lambda code, redirect_uri, verifier: {"access_token": "at-1"},
     )
     _userinfo_ok(monkeypatch)
     barrier = threading.Barrier(2)
@@ -249,7 +261,9 @@ def test_pkce_verifier_not_in_begin_payload_url_or_logs(
     assert known_verifier not in joined_logs
     assert "code_verifier" not in joined_logs
     monkeypatch.setattr(
-        adapter, "_exchange_code", lambda code, redirect_uri, verifier: {"access_token": "at-1"}
+        adapter,
+        "_exchange_code",
+        lambda code, redirect_uri, verifier: {"access_token": "at-1"},
     )
     _userinfo_ok(monkeypatch)
     profile = adapter.complete_login(
@@ -356,7 +370,9 @@ def test_auth_users_sessions_audits_share_injected_store() -> None:
         user_id=user.user_id,
     )
     assert store.get("entities:metadata", f"auth-user-{user.user_id}") is not None
-    assert store.get("entities:metadata", f"auth-session-{session.session_id}") is not None
+    assert (
+        store.get("entities:metadata", f"auth-session-{session.session_id}") is not None
+    )
     audit_ids = [
         key
         for key in store.list_keys("entities:audit_record")

@@ -9,10 +9,11 @@ import json
 import os
 import urllib.error
 import urllib.request
+from collections.abc import Mapping
 from dataclasses import dataclass, field
 from datetime import date, datetime
 from threading import Lock
-from typing import Any, Mapping
+from typing import Any
 from urllib.parse import urlencode
 
 from contracts.domain.instrument import Instrument
@@ -73,7 +74,9 @@ def _sf(payload: Mapping[str, Any], *keys: str) -> StatementField:
     return StatementField.missing()
 
 
-def build_period_from_mapping(payload: Mapping[str, Any]) -> AuthenticatedStatementPeriod:
+def build_period_from_mapping(
+    payload: Mapping[str, Any],
+) -> AuthenticatedStatementPeriod:
     """Deterministic map of vendor-neutral period dict → AuthenticatedStatementPeriod."""
     income = payload.get("income_statement")
     balance = payload.get("balance_sheet")
@@ -98,11 +101,15 @@ def build_period_from_mapping(payload: Mapping[str, Any]) -> AuthenticatedStatem
 
     basis_raw = payload.get("statement_basis") or payload.get("basis")
     statement_basis = (
-        str(basis_raw).strip().lower() if basis_raw is not None and str(basis_raw).strip() else None
+        str(basis_raw).strip().lower()
+        if basis_raw is not None and str(basis_raw).strip()
+        else None
     )
     unit_raw = payload.get("unit_scale") or payload.get("units")
     unit_scale = (
-        str(unit_raw).strip().lower() if unit_raw is not None and str(unit_raw).strip() else None
+        str(unit_raw).strip().lower()
+        if unit_raw is not None and str(unit_raw).strip()
+        else None
     )
 
     return AuthenticatedStatementPeriod(
@@ -163,9 +170,7 @@ def build_statements_from_mapping(
         identity = CompanyIdentity(
             symbol=str(identity_raw.get("symbol") or symbol).strip().upper(),
             exchange=(
-                str(identity_raw["exchange"])
-                if identity_raw.get("exchange")
-                else None
+                str(identity_raw["exchange"]) if identity_raw.get("exchange") else None
             ),
             company_name=(
                 str(identity_raw["company_name"])
@@ -205,9 +210,17 @@ def build_statements_from_mapping(
         if not isinstance(p, Mapping):
             continue
         period_payload = dict(p)
-        if default_basis is not None and not period_payload.get("statement_basis") and not period_payload.get("basis"):
+        if (
+            default_basis is not None
+            and not period_payload.get("statement_basis")
+            and not period_payload.get("basis")
+        ):
             period_payload["statement_basis"] = default_basis
-        if default_unit is not None and not period_payload.get("unit_scale") and not period_payload.get("units"):
+        if (
+            default_unit is not None
+            and not period_payload.get("unit_scale")
+            and not period_payload.get("units")
+        ):
             period_payload["unit_scale"] = default_unit
         built.append(build_period_from_mapping(period_payload))
     periods = tuple(built)

@@ -3,8 +3,8 @@
 from __future__ import annotations
 
 import pytest
-from core.exceptions import ValidationError
 
+from core.exceptions import ValidationError
 from industry import (
     EvidenceAvailability,
     EvidenceProviderCapability,
@@ -28,8 +28,12 @@ class TestProviderModels:
                 name="X",
                 version="1.0.0",
                 capabilities=(
-                    EvidenceProviderCapability(evidence_id="dsp.evidence.roe_persistence"),
-                    EvidenceProviderCapability(evidence_id="dsp.evidence.roe_persistence"),
+                    EvidenceProviderCapability(
+                        evidence_id="dsp.evidence.roe_persistence"
+                    ),
+                    EvidenceProviderCapability(
+                        evidence_id="dsp.evidence.roe_persistence"
+                    ),
                 ),
             )
 

@@ -18,12 +18,11 @@ Every vendor-specific field name lives in this file. Adapters:
 from __future__ import annotations
 
 import os
+from collections.abc import Callable, Mapping
 from dataclasses import dataclass, field
-from datetime import date, datetime
+from datetime import date
 from threading import Lock
-from typing import Callable, Mapping
 
-from contracts.domain.instrument import Instrument
 from data_engine.connector_framework.http import JsonHttpClient, UrllibJsonHttpClient
 from data_engine.connector_framework.models import (
     ConnectorCompanyIdentity,
@@ -66,7 +65,8 @@ def build_ownership_bundle_from_mapping(
         as_of=as_of,
         stakes=tuple(stakes),
         promoter_holding_percent=promoter_holding_percent or ConnectorField.missing(),
-        institutional_holding_percent=institutional_holding_percent or ConnectorField.missing(),
+        institutional_holding_percent=institutional_holding_percent
+        or ConnectorField.missing(),
         public_holding_percent=public_holding_percent or ConnectorField.missing(),
         provenance=provenance,
     )
@@ -112,7 +112,9 @@ class InMemoryOwnershipAdapter(OwnershipProviderPort):
 
     def get_ownership(self, query: OwnershipQuery) -> AuthenticatedOwnership | None:
         if not self.api_key:
-            raise ProviderRequestError("memory ownership adapter requires api_key (authentication)")
+            raise ProviderRequestError(
+                "memory ownership adapter requires api_key (authentication)"
+            )
         with self._lock:
             return self._bundles.get(query.instrument.symbol.strip().upper())
 
@@ -121,7 +123,11 @@ class InMemoryOwnershipAdapter(OwnershipProviderPort):
             provider_id=self.provider_id,
             healthy=True,
             authenticated=bool(self.api_key),
-            detail="seeded in-memory authenticated ownership" if self.api_key else "missing api_key",
+            detail=(
+                "seeded in-memory authenticated ownership"
+                if self.api_key
+                else "missing api_key"
+            ),
         )
 
 
@@ -140,7 +146,9 @@ class YahooFinanceOwnershipAdapter(OwnershipProviderPort):
         return self._provider_id
 
     def _client(self) -> JsonHttpClient:
-        return self.http_client or UrllibJsonHttpClient(timeout_seconds=self.timeout_seconds)
+        return self.http_client or UrllibJsonHttpClient(
+            timeout_seconds=self.timeout_seconds
+        )
 
     def get_ownership(self, query: OwnershipQuery) -> AuthenticatedOwnership | None:
         if not self.enabled:
@@ -151,12 +159,18 @@ class YahooFinanceOwnershipAdapter(OwnershipProviderPort):
         )
         if not isinstance(payload, Mapping):
             return None
-        result_list = (payload.get("quoteSummary") or {}).get("result") if isinstance(
-            payload.get("quoteSummary"), Mapping
-        ) else None
+        result_list = (
+            (payload.get("quoteSummary") or {}).get("result")
+            if isinstance(payload.get("quoteSummary"), Mapping)
+            else None
+        )
         if not isinstance(result_list, list) or not result_list:
             return None
-        breakdown = result_list[0].get("majorHoldersBreakdown") if isinstance(result_list[0], Mapping) else None
+        breakdown = (
+            result_list[0].get("majorHoldersBreakdown")
+            if isinstance(result_list[0], Mapping)
+            else None
+        )
         if not isinstance(breakdown, Mapping):
             return None
 
@@ -213,7 +227,11 @@ class YahooFinanceOwnershipAdapter(OwnershipProviderPort):
             provider_id=self.provider_id,
             healthy=self.enabled,
             authenticated=False,
-            detail="enabled" if self.enabled else "disabled (set DSP_OWNERSHIP_YAHOO_ENABLED=1)",
+            detail=(
+                "enabled"
+                if self.enabled
+                else "disabled (set DSP_OWNERSHIP_YAHOO_ENABLED=1)"
+            ),
         )
 
 
@@ -222,7 +240,9 @@ class FinancialModelingPrepOwnershipAdapter(OwnershipProviderPort):
     """FMP institutional ownership endpoint."""
 
     api_key: str
-    base_url: str = "https://financialmodelingprep.com/api/v4/institutional-ownership/symbol-ownership"
+    base_url: str = (
+        "https://financialmodelingprep.com/api/v4/institutional-ownership/symbol-ownership"
+    )
     timeout_seconds: float = 15.0
     max_holders: int = 25
     http_client: JsonHttpClient | None = None
@@ -233,15 +253,23 @@ class FinancialModelingPrepOwnershipAdapter(OwnershipProviderPort):
         return self._provider_id
 
     def _client(self) -> JsonHttpClient:
-        return self.http_client or UrllibJsonHttpClient(timeout_seconds=self.timeout_seconds)
+        return self.http_client or UrllibJsonHttpClient(
+            timeout_seconds=self.timeout_seconds
+        )
 
     def get_ownership(self, query: OwnershipQuery) -> AuthenticatedOwnership | None:
         if not self.api_key.strip():
-            raise ProviderRequestError("financial modeling prep ownership adapter requires api_key")
+            raise ProviderRequestError(
+                "financial modeling prep ownership adapter requires api_key"
+            )
         symbol = query.instrument.symbol.strip().upper()
         payload = self._client().get_json(
             self.base_url,
-            params={"symbol": symbol, "includeCurrentQuarter": "false", "apikey": self.api_key},
+            params={
+                "symbol": symbol,
+                "includeCurrentQuarter": "false",
+                "apikey": self.api_key,
+            },
         )
         if not isinstance(payload, list) or not payload:
             return None
@@ -254,7 +282,9 @@ class FinancialModelingPrepOwnershipAdapter(OwnershipProviderPort):
             name = str(item.get("investorName") or "").strip() or None
             weight = item.get("weight")
             shares = item.get("sharesNumber")
-            pct_field = ConnectorField.of(float(weight) * 100 if isinstance(weight, (int, float)) else None)
+            pct_field = ConnectorField.of(
+                float(weight) * 100 if isinstance(weight, (int, float)) else None
+            )
             if pct_field.available and pct_field.value is not None:
                 institutional_total += float(pct_field.value)
                 have_total = True
@@ -281,13 +311,17 @@ class FinancialModelingPrepOwnershipAdapter(OwnershipProviderPort):
             as_of=None,
             stakes=stakes,
             provenance=provenance,
-            institutional_holding_percent=ConnectorField.of(institutional_total if have_total else None),
+            institutional_holding_percent=ConnectorField.of(
+                institutional_total if have_total else None
+            ),
         )
 
     def health(self) -> ProviderHealth:
         ok = bool(self.api_key.strip())
         return ProviderHealth(
-            provider_id=self.provider_id, healthy=ok, authenticated=ok,
+            provider_id=self.provider_id,
+            healthy=ok,
+            authenticated=ok,
             detail="configured" if ok else "missing api_key",
         )
 
@@ -336,7 +370,9 @@ class NseOwnershipAdapter(OwnershipProviderPort):
         if not self.enabled:
             raise ProviderRequestError("NSE ownership adapter is not enabled")
         symbol = query.instrument.symbol.strip().upper()
-        payload = self._client().get_json(self.base_url, params={"index": "equities", "symbol": symbol})
+        payload = self._client().get_json(
+            self.base_url, params={"index": "equities", "symbol": symbol}
+        )
         if not isinstance(payload, list) or not payload:
             return None
         stakes: list[OwnershipStake] = []
@@ -352,9 +388,17 @@ class NseOwnershipAdapter(OwnershipProviderPort):
                 continue
             holder_type = _map_category(category)
             pct_field = ConnectorField.of(pct)
-            if holder_type == "promoter" and pct_field.available and pct_field.value is not None:
+            if (
+                holder_type == "promoter"
+                and pct_field.available
+                and pct_field.value is not None
+            ):
                 promoter_pct = float(pct_field.value)
-            if holder_type == "retail_public" and pct_field.available and pct_field.value is not None:
+            if (
+                holder_type == "retail_public"
+                and pct_field.available
+                and pct_field.value is not None
+            ):
                 public_pct = float(pct_field.value)
             stakes.append(
                 OwnershipStake(
@@ -388,7 +432,11 @@ class NseOwnershipAdapter(OwnershipProviderPort):
             provider_id=self.provider_id,
             healthy=self.enabled,
             authenticated=False,
-            detail="enabled" if self.enabled else "disabled (set DSP_OWNERSHIP_NSE_ENABLED=1)",
+            detail=(
+                "enabled"
+                if self.enabled
+                else "disabled (set DSP_OWNERSHIP_NSE_ENABLED=1)"
+            ),
         )
 
 
@@ -425,7 +473,9 @@ class BseOwnershipAdapter(OwnershipProviderPort):
         scrip_code = self._resolve_scrip_code(symbol)
         if scrip_code is None:
             return None
-        payload = self._client().get_json(self.base_url, params={"scripcode": scrip_code})
+        payload = self._client().get_json(
+            self.base_url, params={"scripcode": scrip_code}
+        )
         if not isinstance(payload, Mapping):
             return None
         rows = payload.get("Table")
@@ -444,9 +494,17 @@ class BseOwnershipAdapter(OwnershipProviderPort):
                 continue
             holder_type = _map_category(category)
             pct_field = ConnectorField.of(pct)
-            if holder_type == "promoter" and pct_field.available and pct_field.value is not None:
+            if (
+                holder_type == "promoter"
+                and pct_field.available
+                and pct_field.value is not None
+            ):
                 promoter_pct = float(pct_field.value)
-            if holder_type == "retail_public" and pct_field.available and pct_field.value is not None:
+            if (
+                holder_type == "retail_public"
+                and pct_field.available
+                and pct_field.value is not None
+            ):
                 public_pct = float(pct_field.value)
             stakes.append(
                 OwnershipStake(
@@ -480,13 +538,27 @@ class BseOwnershipAdapter(OwnershipProviderPort):
             provider_id=self.provider_id,
             healthy=self.enabled,
             authenticated=False,
-            detail="enabled" if self.enabled else "disabled (set DSP_OWNERSHIP_BSE_ENABLED=1)",
+            detail=(
+                "enabled"
+                if self.enabled
+                else "disabled (set DSP_OWNERSHIP_BSE_ENABLED=1)"
+            ),
         )
 
 
 _MONTH_MAP = {
-    "jan": 1, "feb": 2, "mar": 3, "apr": 4, "may": 5, "jun": 6,
-    "jul": 7, "aug": 8, "sep": 9, "oct": 10, "nov": 11, "dec": 12,
+    "jan": 1,
+    "feb": 2,
+    "mar": 3,
+    "apr": 4,
+    "may": 5,
+    "jun": 6,
+    "jul": 7,
+    "aug": 8,
+    "sep": 9,
+    "oct": 10,
+    "nov": 11,
+    "dec": 12,
 }
 
 
@@ -522,7 +594,9 @@ class ScreenerOwnershipAdapter(OwnershipProviderPort):
         return self._provider_id
 
     def _client(self) -> JsonHttpClient:
-        return self.http_client or UrllibJsonHttpClient(timeout_seconds=self.timeout_seconds)
+        return self.http_client or UrllibJsonHttpClient(
+            timeout_seconds=self.timeout_seconds
+        )
 
     def get_ownership(self, query: OwnershipQuery) -> AuthenticatedOwnership | None:
         if not self.enabled:
@@ -574,7 +648,11 @@ class ScreenerOwnershipAdapter(OwnershipProviderPort):
                 promoter_pct = value
             elif holder_type == "retail_public":
                 public_pct = value
-            elif holder_type in {"institutional_domestic", "institutional_foreign", "mutual_fund"}:
+            elif holder_type in {
+                "institutional_domestic",
+                "institutional_foreign",
+                "mutual_fund",
+            }:
                 institutional_total += value
                 have_institutional = True
         if not stakes:
@@ -605,21 +683,35 @@ class ScreenerOwnershipAdapter(OwnershipProviderPort):
             provider_id=self.provider_id,
             healthy=self.enabled,
             authenticated=False,
-            detail="enabled" if self.enabled else "disabled (set DSP_OWNERSHIP_SCREENER_ENABLED=1)",
+            detail=(
+                "enabled"
+                if self.enabled
+                else "disabled (set DSP_OWNERSHIP_SCREENER_ENABLED=1)"
+            ),
         )
 
 
-def build_default_ownership_registry_from_env() -> PriorityProviderRegistry[OwnershipProviderPort]:
+def build_default_ownership_registry_from_env() -> (
+    PriorityProviderRegistry[OwnershipProviderPort]
+):
     from data_engine.connector_framework.production_profile import (
         finalize_provider_registry,
         memory_adapter_allowed,
     )
 
-    registry: PriorityProviderRegistry[OwnershipProviderPort] = PriorityProviderRegistry()
+    registry: PriorityProviderRegistry[OwnershipProviderPort] = (
+        PriorityProviderRegistry()
+    )
 
-    if os.environ.get("DSP_OWNERSHIP_SCREENER_ENABLED", "").lower() in {"1", "true", "yes"}:
+    if os.environ.get("DSP_OWNERSHIP_SCREENER_ENABLED", "").lower() in {
+        "1",
+        "true",
+        "yes",
+    }:
         registry.register(
-            ScreenerOwnershipAdapter(enabled=True), provider_id="screener_ownership", priority=10
+            ScreenerOwnershipAdapter(enabled=True),
+            provider_id="screener_ownership",
+            priority=10,
         )
 
     fmp_key = os.environ.get("DSP_OWNERSHIP_FMP_API_KEY", "").strip()
@@ -640,9 +732,15 @@ def build_default_ownership_registry_from_env() -> PriorityProviderRegistry[Owne
             BseOwnershipAdapter(enabled=True), provider_id="bse_ownership", priority=40
         )
 
-    if os.environ.get("DSP_OWNERSHIP_YAHOO_ENABLED", "").lower() in {"1", "true", "yes"}:
+    if os.environ.get("DSP_OWNERSHIP_YAHOO_ENABLED", "").lower() in {
+        "1",
+        "true",
+        "yes",
+    }:
         registry.register(
-            YahooFinanceOwnershipAdapter(enabled=True), provider_id="yahoo_finance_ownership", priority=50
+            YahooFinanceOwnershipAdapter(enabled=True),
+            provider_id="yahoo_finance_ownership",
+            priority=50,
         )
 
     if memory_adapter_allowed("DSP_OWNERSHIP_MEMORY", connector="ownership"):

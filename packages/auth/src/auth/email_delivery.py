@@ -197,7 +197,9 @@ class SmtpEmailAdapter:
                 ) as client:
                     self._authenticate_and_send(client, message)
             else:
-                with smtplib.SMTP(self._host, self._port, timeout=self._timeout) as client:
+                with smtplib.SMTP(
+                    self._host, self._port, timeout=self._timeout
+                ) as client:
                     if self._use_tls:
                         client.starttls(context=ssl.create_default_context())
                     self._authenticate_and_send(client, message)
@@ -214,7 +216,9 @@ class SmtpEmailAdapter:
                 detail=f"SMTP send failed: {exc}",
             )
 
-    def _authenticate_and_send(self, client: smtplib.SMTP, message: EmailMessage) -> None:
+    def _authenticate_and_send(
+        self, client: smtplib.SMTP, message: EmailMessage
+    ) -> None:
         if self._username and self._password:
             client.login(self._username, self._password)
         client.send_message(message)
@@ -283,7 +287,9 @@ class ResendEmailAdapter:
             },
         )
         try:
-            with urllib.request.urlopen(req, timeout=self._timeout) as resp:  # noqa: S310
+            with urllib.request.urlopen(
+                req, timeout=self._timeout
+            ) as resp:  # noqa: S310
                 _ = resp.read()
             return EmailDeliveryResult(
                 ok=True,
@@ -291,7 +297,9 @@ class ResendEmailAdapter:
                 detail=f"Resend email queued to {to} ({purpose}).",
             )
         except urllib.error.HTTPError as exc:
-            logger.warning("Resend send failed for purpose=%s: HTTP %s", purpose, exc.code)
+            logger.warning(
+                "Resend send failed for purpose=%s: HTTP %s", purpose, exc.code
+            )
             return EmailDeliveryResult(
                 ok=False,
                 provider=self.provider_name(),
@@ -333,13 +341,23 @@ def build_email_provider(name: str | None = None) -> EmailProviderPort:
         password=os.environ.get("DSP_SMTP_PASSWORD", ""),
         from_address=os.environ.get("DSP_SMTP_FROM_ADDRESS", ""),
         from_name=os.environ.get("DSP_SMTP_FROM_NAME", "DSP AI Indicator"),
-        use_tls=(os.environ.get("DSP_SMTP_USE_TLS", "true").strip().lower() not in {"0", "false", "no"}),
-        use_ssl=(os.environ.get("DSP_SMTP_USE_SSL", "false").strip().lower() in {"1", "true", "yes"}),
+        use_tls=(
+            os.environ.get("DSP_SMTP_USE_TLS", "true").strip().lower()
+            not in {"0", "false", "no"}
+        ),
+        use_ssl=(
+            os.environ.get("DSP_SMTP_USE_SSL", "false").strip().lower()
+            in {"1", "true", "yes"}
+        ),
     )
 
     if preferred == "resend":
         # Key present ⇒ Resend mode (SMTP password never required).
-        return resend if os.environ.get(RESEND_API_KEY_ENV, "").strip() else NullEmailAdapter()
+        return (
+            resend
+            if os.environ.get(RESEND_API_KEY_ENV, "").strip()
+            else NullEmailAdapter()
+        )
     if preferred == "smtp":
         return smtp if smtp.is_available() else NullEmailAdapter()
     if preferred == "null":

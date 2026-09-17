@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import math
-from typing import Mapping
+from collections.abc import Mapping
 
 from valuation.core.errors import ValidationError
 from valuation.core.interfaces import ValidationProvider
@@ -24,9 +24,7 @@ class FieldRule:
 class ValidationEngine(ValidationProvider):
     """Shared validation helpers returning :class:`ValidationSummary`."""
 
-    def summarize(
-        self, inputs: Mapping[str, float | int | None]
-    ) -> ValidationSummary:
+    def summarize(self, inputs: Mapping[str, float | int | None]) -> ValidationSummary:
         """Collect validation issues without raising."""
         errors: list[str] = []
         checks: list[str] = []
@@ -73,9 +71,7 @@ class ValidationEngine(ValidationProvider):
         if disc is None:
             disc = rates["discount_rate"]
         if tg is not None and disc is not None and tg >= disc:
-            errors.append(
-                f"terminal_growth must be < discount rate ({tg} >= {disc})"
-            )
+            errors.append(f"terminal_growth must be < discount rate ({tg} >= {disc})")
         elif tg is not None and disc is not None:
             checks.append("terminal_growth < discount")
 
@@ -133,9 +129,7 @@ class ValidationEngine(ValidationProvider):
         """
         summary = self.summarize(inputs)
         if not summary.ok:
-            raise ValidationError(
-                "Validation failed: " + "; ".join(summary.errors)
-            )
+            raise ValidationError("Validation failed: " + "; ".join(summary.errors))
         return summary
 
     def require_positive(self, value: float, name: str) -> None:

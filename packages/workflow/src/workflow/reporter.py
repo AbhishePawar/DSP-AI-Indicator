@@ -96,9 +96,7 @@ class ReportingContext:
             msg = "missing workflow identity: WorkflowReport or EngineResult required"
             raise WorkflowError(msg)
         if self.summary_sections is not None:
-            object.__setattr__(
-                self, "summary_sections", tuple(self.summary_sections)
-            )
+            object.__setattr__(self, "summary_sections", tuple(self.summary_sections))
         object.__setattr__(
             self,
             "limitations",
@@ -125,15 +123,11 @@ class ReportingResult:
     warnings: tuple[str, ...] = ()
 
     def __post_init__(self) -> None:
-        object.__setattr__(
-            self, "execution_sections", tuple(self.execution_sections)
-        )
+        object.__setattr__(self, "execution_sections", tuple(self.execution_sections))
         object.__setattr__(self, "step_results", tuple(self.step_results))
         object.__setattr__(self, "failure_summary", tuple(self.failure_summary))
         object.__setattr__(self, "retry_history", tuple(self.retry_history))
-        object.__setattr__(
-            self, "referenced_outcomes", tuple(self.referenced_outcomes)
-        )
+        object.__setattr__(self, "referenced_outcomes", tuple(self.referenced_outcomes))
         object.__setattr__(self, "summary_sections", tuple(self.summary_sections))
         object.__setattr__(self, "warnings", tuple(self.warnings))
 
@@ -251,11 +245,7 @@ class WorkflowReporter:
             owner=workflow_metadata.owner,
         )
 
-        status = (
-            ReportingStatus.PARTIAL
-            if warnings
-            else ReportingStatus.COMPLETE
-        )
+        status = ReportingStatus.PARTIAL if warnings else ReportingStatus.COMPLETE
         if not source.steps and not source.executions:
             status = ReportingStatus.EMPTY
 
@@ -384,9 +374,7 @@ class WorkflowReporter:
             counts[execution.step_id] = counts.get(execution.step_id, 0) + 1
         retried_steps = {sid for sid, count in counts.items() if count > 1}
         history = tuple(
-            e
-            for e in executions
-            if e.attempt > 1 or e.step_id in retried_steps
+            e for e in executions if e.attempt > 1 or e.step_id in retried_steps
         )
         return history
 

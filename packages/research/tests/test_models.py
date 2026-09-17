@@ -3,8 +3,8 @@
 from __future__ import annotations
 
 import pytest
-from core.exceptions import ValidationError
 
+from core.exceptions import ValidationError
 from research import (
     ComparisonReference,
     DecisionReference,
@@ -112,9 +112,7 @@ class TestIdentityAndConstruction:
             evidence_refs=(_evidence(),),
             comparison_refs=(ComparisonReference(digest="abcdef0123456789"),),
             risk_refs=(RiskReference(risk_id="dsp.risk.demo"),),
-            integrated_risk_refs=(
-                IntegratedRiskReference(risk_id="dsp.risk.demo"),
-            ),
+            integrated_risk_refs=(IntegratedRiskReference(risk_id="dsp.risk.demo"),),
             observations=(obs,),
             insights=(insight,),
             conflicts=(conflict,),

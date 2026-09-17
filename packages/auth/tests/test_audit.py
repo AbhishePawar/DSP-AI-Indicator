@@ -11,7 +11,9 @@ from persistence.exceptions import PersistenceError
 
 @pytest.fixture
 def audit() -> AuditLogger:
-    persistence = PersistenceService(RepositoryRegistry(storage=InMemoryStorageProvider()))
+    persistence = PersistenceService(
+        RepositoryRegistry(storage=InMemoryStorageProvider())
+    )
     return AuditLogger(persistence)
 
 

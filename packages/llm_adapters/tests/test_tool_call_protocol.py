@@ -30,7 +30,6 @@ from llm_adapters.tools.protocol import (
 )
 from llm_adapters.tools.protocol.openai_compatible import OpenAICompatibleToolCalling
 
-
 # --- stub backend (no DSP engines, no network) -----------------------------
 
 
@@ -42,12 +41,16 @@ class StubBackend:
         statements: dict | None | object = ...,
         raise_on: str | None = None,
     ) -> None:
-        self._valuation = valuation if valuation is not None else {
-            "intrinsic_value_per_share": 180.0,
-            "current_market_price": 150.0,
-            "method": "two-stage DCF",
-            "as_of": "2026-09-01T00:00:00Z",
-        }
+        self._valuation = (
+            valuation
+            if valuation is not None
+            else {
+                "intrinsic_value_per_share": 180.0,
+                "current_market_price": 150.0,
+                "method": "two-stage DCF",
+                "as_of": "2026-09-01T00:00:00Z",
+            }
+        )
         if statements is ...:
             self._statements = {
                 "periods": ["2024"],
@@ -553,7 +556,12 @@ def test_anthropic_error_sets_is_error() -> None:
 
 def test_anthropic_malformed_input() -> None:
     parsed = parse_anthropic_tool_use(
-        {"type": "tool_use", "id": "toolu_1", "name": "dsp_valuation", "input": "not-json{"},
+        {
+            "type": "tool_use",
+            "id": "toolu_1",
+            "name": "dsp_valuation",
+            "input": "not-json{",
+        },
         allowed_internal=_allowed(),
     )
     assert parsed[0].status is ToolCallStatus.MALFORMED  # type: ignore[union-attr]
@@ -587,11 +595,16 @@ def test_all_four_providers_resolve_the_same_dsp_tool() -> None:
             {
                 "id": "call_1",
                 "type": "function",
-                "function": {"name": "dsp_business_quality", "arguments": '{"symbol":"INFY"}'},
+                "function": {
+                    "name": "dsp_business_quality",
+                    "arguments": '{"symbol":"INFY"}',
+                },
             }
         ]
     }
-    gemini_payload = {"functionCall": {"name": "dsp_business_quality", "args": {"symbol": "INFY"}}}
+    gemini_payload = {
+        "functionCall": {"name": "dsp_business_quality", "args": {"symbol": "INFY"}}
+    }
     anthropic_payload = {
         "type": "tool_use",
         "id": "toolu_1",
@@ -619,7 +632,11 @@ def test_all_four_providers_resolve_the_same_dsp_tool() -> None:
 
 def test_protocol_modules_do_not_reference_analyse_or_httpx() -> None:
     protocol_dir = (
-        Path(__file__).resolve().parents[1] / "src" / "llm_adapters" / "tools" / "protocol"
+        Path(__file__).resolve().parents[1]
+        / "src"
+        / "llm_adapters"
+        / "tools"
+        / "protocol"
     )
     for path in protocol_dir.rglob("*.py"):
         text = path.read_text(encoding="utf-8")

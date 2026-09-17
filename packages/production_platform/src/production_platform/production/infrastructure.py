@@ -175,7 +175,9 @@ class InfrastructureBundle:
             return cls.create_offline(configuration=cfg)
 
         cfg = load_configuration_from_environ(environ)
-        secrets: SecretsPort = EnvSecretsPort(environ=environ) if environ is not None else EnvSecretsPort()
+        secrets: SecretsPort = (
+            EnvSecretsPort(environ=environ) if environ is not None else EnvSecretsPort()
+        )
         notes: list[str] = []
 
         database = ensure_database_port(None)
@@ -334,4 +336,3 @@ class InfrastructureBundle:
                 "notes": list(self.diagnostics.notes),
             },
         }
-

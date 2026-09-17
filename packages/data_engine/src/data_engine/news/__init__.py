@@ -14,7 +14,12 @@ from data_engine.news.adapters import (
 )
 from data_engine.news.models import SENTIMENT_LABELS, AuthenticatedNewsFeed, NewsArticle
 from data_engine.news.registry import NewsProviderRegistry
-from data_engine.news.service import NewsProviderPort, NewsQuery, NewsService, NewsServiceMetrics
+from data_engine.news.service import (
+    NewsProviderPort,
+    NewsQuery,
+    NewsService,
+    NewsServiceMetrics,
+)
 from data_engine.news.validation import validate_authenticated_news_feed
 
 __all__ = [

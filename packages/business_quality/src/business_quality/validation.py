@@ -2,8 +2,9 @@
 
 from __future__ import annotations
 
+from collections.abc import Iterable, Mapping, Sequence
 from dataclasses import dataclass
-from typing import Any, Iterable, Mapping, Sequence
+from typing import Any
 
 from business_quality.exceptions import BusinessQualityValidationError
 from business_quality.scoring import Confidence, EvidenceLevel
@@ -63,9 +64,7 @@ def validate_required_inputs(
     else:
         missing = tuple(k for k in required_t if k not in payload or payload[k] is None)
         invalid = tuple(
-            k
-            for k, v in payload.items()
-            if k in required_t and _is_invalid_scalar(v)
+            k for k, v in payload.items() if k in required_t and _is_invalid_scalar(v)
         )
 
     errors: list[str] = []
@@ -123,9 +122,7 @@ def validate_evidence_level(
     if level is None:
         raise BusinessQualityValidationError("Evidence level is required")
     try:
-        ev = (
-            level if isinstance(level, EvidenceLevel) else EvidenceLevel(str(level))
-        )
+        ev = level if isinstance(level, EvidenceLevel) else EvidenceLevel(str(level))
     except ValueError as exc:
         raise BusinessQualityValidationError(
             f"Invalid evidence level: {level!r}"

@@ -4,9 +4,8 @@ from __future__ import annotations
 
 import pytest
 
-from core.exceptions import DSPAIError
-
 from ai_committee.exceptions import CommitteeError
+from core.exceptions import DSPAIError
 
 
 class TestCommitteeError:

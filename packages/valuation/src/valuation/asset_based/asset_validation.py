@@ -19,7 +19,9 @@ def _finite(value: float, name: str, errors: list[str]) -> None:
         errors.append(f"{name} is infinite")
 
 
-def _check_haircuts(schedule: HaircutSchedule, errors: list[str], checks: list[str]) -> None:
+def _check_haircuts(
+    schedule: HaircutSchedule, errors: list[str], checks: list[str]
+) -> None:
     for name, rate in schedule.as_mapping().items():
         _finite(rate, f"haircut.{name}", errors)
         if rate < 0.0 or rate > 1.0:
@@ -123,7 +125,9 @@ def validate_asset_based_inputs(inputs: AssetBasedInputs) -> ValidationSummary:
     summed_assets = sum(v for _, v in asset_fields)
     if inputs.total_assets is not None:
         if inputs.total_assets < 0:
-            errors.append(f"total_assets must be non-negative, got {inputs.total_assets}")
+            errors.append(
+                f"total_assets must be non-negative, got {inputs.total_assets}"
+            )
         elif abs(inputs.total_assets - summed_assets) > 1e-6 * max(1.0, summed_assets):
             warnings.append(
                 f"total_assets ({inputs.total_assets}) differs from sum of "
@@ -175,9 +179,7 @@ def validate_asset_based_inputs(inputs: AssetBasedInputs) -> ValidationSummary:
     warnings = list(dict.fromkeys(warnings))
 
     if errors:
-        raise ValuationError(
-            "Asset-based validation failed: " + "; ".join(errors)
-        )
+        raise ValuationError("Asset-based validation failed: " + "; ".join(errors))
 
     return ValidationSummary(
         ok=True,

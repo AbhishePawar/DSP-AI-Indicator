@@ -187,9 +187,7 @@ def _parse_ai_output(
         provided = _provided_from_dataclass(ai_output)
         return ai_output, provided
     if not isinstance(ai_output, Mapping):
-        return _invalid(
-            "AI output must be CanonicalAIResearchOutput or a mapping"
-        )
+        return _invalid("AI output must be CanonicalAIResearchOutput or a mapping")
     payload = {str(k): v for k, v in ai_output.items()}
     leaked = contains_private_fields(payload)
     leaked.extend(str(k) for k in payload if str(k) in PRIVATE_REPORT_FIELD_NAMES)
@@ -200,9 +198,7 @@ def _parse_ai_output(
         )
     unknown = sorted(set(payload) - ALLOWED_AI_FIELD_NAMES)
     if unknown:
-        return _invalid(
-            "AI output contains unsupported fields: " + ", ".join(unknown)
-        )
+        return _invalid("AI output contains unsupported fields: " + ", ".join(unknown))
     try:
         output = _output_from_mapping(payload)
     except (TypeError, ValueError):
@@ -233,9 +229,7 @@ def _output_from_mapping(payload: Mapping[str, Any]) -> CanonicalAIResearchOutpu
     return CanonicalAIResearchOutput(
         executive_summary=_as_text(payload.get("executive_summary")),
         valuation_narrative=_as_text(payload.get("valuation_narrative")),
-        business_quality_narrative=_as_text(
-            payload.get("business_quality_narrative")
-        ),
+        business_quality_narrative=_as_text(payload.get("business_quality_narrative")),
         economic_moat_narrative=_as_text(payload.get("economic_moat_narrative")),
         management_quality_narrative=_as_text(
             payload.get("management_quality_narrative")
@@ -243,9 +237,7 @@ def _output_from_mapping(payload: Mapping[str, Any]) -> CanonicalAIResearchOutpu
         financial_strength_narrative=_as_text(
             payload.get("financial_strength_narrative")
         ),
-        earnings_quality_narrative=_as_text(
-            payload.get("earnings_quality_narrative")
-        ),
+        earnings_quality_narrative=_as_text(payload.get("earnings_quality_narrative")),
         growth_quality_narrative=_as_text(payload.get("growth_quality_narrative")),
         financials_narrative=_as_text(payload.get("financials_narrative")),
         buffett_narrative=_as_text(payload.get("buffett_narrative")),
@@ -259,18 +251,14 @@ def _output_from_mapping(payload: Mapping[str, Any]) -> CanonicalAIResearchOutpu
         margin_of_safety=_as_number(payload.get("margin_of_safety")),
         financial_metrics=_optional_number_map(payload.get("financial_metrics")),
         quality_scores=_optional_number_map(payload.get("quality_scores")),
-        buffett_overall_score_100=_as_number(
-            payload.get("buffett_overall_score_100")
-        ),
+        buffett_overall_score_100=_as_number(payload.get("buffett_overall_score_100")),
         buffett_methodology=_as_text(payload.get("buffett_methodology")),
         buffett_weights=_as_mapping(payload.get("buffett_weights")),
         circle_of_competence_score=_as_number(
             payload.get("circle_of_competence_score")
         ),
         recommendation_action=_as_text(payload.get("recommendation_action")),
-        recommendation_score_100=_as_number(
-            payload.get("recommendation_score_100")
-        ),
+        recommendation_score_100=_as_number(payload.get("recommendation_score_100")),
         score_10=payload.get("score_10"),
         score_10_status=_as_text(payload.get("score_10_status")),
         entry_price=_as_number(payload.get("entry_price")),
@@ -423,9 +411,7 @@ def _compare_financial_metrics(
                 )
             )
             continue
-        issue = _compare_provided_number(
-            f"financial_metrics.{name}", dsp[name], raw
-        )
+        issue = _compare_provided_number(f"financial_metrics.{name}", dsp[name], raw)
         if issue is not None:
             issues.append(issue)
     return issues
@@ -609,9 +595,7 @@ def _expected_return_integrity(
             issues.append(
                 CanonicalValidationIssue(
                     kind=CanonicalValidationKind.EXPECTED_RETURN_FORBIDDEN,
-                    message=(
-                        f"AI invented {name}; expected return is not_implemented"
-                    ),
+                    message=(f"AI invented {name}; expected return is not_implemented"),
                 )
             )
     return issues
@@ -828,9 +812,7 @@ def _invalid(message: str) -> CanonicalValidationResult:
     )
 
 
-def _failed(
-    kind: CanonicalValidationKind, message: str
-) -> CanonicalValidationResult:
+def _failed(kind: CanonicalValidationKind, message: str) -> CanonicalValidationResult:
     return CanonicalValidationResult(
         status=CanonicalValidationStatus.FAILED_CLOSED,
         report=None,

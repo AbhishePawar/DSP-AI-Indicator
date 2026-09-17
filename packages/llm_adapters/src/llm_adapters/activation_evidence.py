@@ -7,8 +7,8 @@ evidence — nothing here is ever serialized to a client.
 
 from __future__ import annotations
 
+from collections.abc import Mapping
 from dataclasses import dataclass, field
-from typing import Mapping, Sequence
 
 from llm_adapters.evaluation import QualityEvaluation
 
@@ -27,7 +27,7 @@ class BenchmarkEvidence:
     cost_max_usd: float | None
 
     @classmethod
-    def empty(cls) -> "BenchmarkEvidence":
+    def empty(cls) -> BenchmarkEvidence:
         return cls(
             benchmark_completed=False,
             benchmark_version="",

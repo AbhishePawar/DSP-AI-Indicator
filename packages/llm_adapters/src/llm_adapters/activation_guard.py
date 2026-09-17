@@ -73,7 +73,9 @@ class ActivationVerdict:
         return self.state.value
 
 
-def _require(condition: ActivationCondition, ok: bool, reasons: list[str], msg: str) -> bool:
+def _require(
+    condition: ActivationCondition, ok: bool, reasons: list[str], msg: str
+) -> bool:
     if ok:
         reasons.append(f"ok:{condition.value}")
         return True
@@ -115,7 +117,11 @@ def evaluate_activation(evidence: ActivationEvidence) -> ActivationVerdict:
     )
 
     # 3. Required quality threshold is satisfied by every accepted run
-    below = [e for e in accepted_evals if e.quality_score < evidence.required_quality_threshold]
+    below = [
+        e
+        for e in accepted_evals
+        if e.quality_score < evidence.required_quality_threshold
+    ]
     check(
         ActivationCondition.QUALITY_THRESHOLD_REQUIRED,
         len(below) == 0,
@@ -126,7 +132,8 @@ def evaluate_activation(evidence: ActivationEvidence) -> ActivationVerdict:
     unknown_pricing = [e for e in accepted_evals if not e.pricing_known]
     check(
         ActivationCondition.PRICING_KNOWN_REQUIRED,
-        len(unknown_pricing) == 0 and evidence.configuration.pricing_known_for_all_tiers,
+        len(unknown_pricing) == 0
+        and evidence.configuration.pricing_known_for_all_tiers,
         f"{len(unknown_pricing)} accepted run(s) have unknown pricing",
     )
 
@@ -188,11 +195,16 @@ def evaluate_activation(evidence: ActivationEvidence) -> ActivationVerdict:
 
     # 10. Configuration is valid
     valid_providers = {
-        "openai", "anthropic", "gemini", "deepseek", "deterministic",
+        "openai",
+        "anthropic",
+        "gemini",
+        "deepseek",
+        "deterministic",
     }
     cfg_ok = (
         evidence.configuration.default_provider in valid_providers
-        and evidence.configuration.cost_efficient_model != evidence.configuration.premium_model
+        and evidence.configuration.cost_efficient_model
+        != evidence.configuration.premium_model
         and evidence.configuration.routing_tier_count >= 2
         and len(evidence.configuration.available_providers) >= 2
     )

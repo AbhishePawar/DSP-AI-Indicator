@@ -8,7 +8,8 @@ from __future__ import annotations
 
 import os
 import time
-from typing import Any, Mapping
+from collections.abc import Mapping
+from typing import Any
 
 from dsp_platform.production_ops.deps import ProductionOpsDeps
 
@@ -154,7 +155,9 @@ def _live(deps: ProductionOpsDeps | None = None) -> dict[str, Any]:
 def _platform_ready(platform: Any) -> tuple[bool, list[dict[str, Any]]]:
     checks: list[dict[str, Any]] = []
     if platform is None:
-        return False, [{"name": "platform", "status": "fail", "message": UNAVAILABLE_MESSAGE}]
+        return False, [
+            {"name": "platform", "status": "fail", "message": UNAVAILABLE_MESSAGE}
+        ]
     try:
         result = platform.health_check()
         ready = bool(result.ok)
@@ -238,9 +241,11 @@ def _startup(
         "platform_ready": ready,
         "checks": checks,
         "accepting_traffic": ready and startup_ok,
-        "infra_attached": getattr(api_state, "infrastructure", None) is not None
-        if api_state
-        else False,
+        "infra_attached": (
+            getattr(api_state, "infrastructure", None) is not None
+            if api_state
+            else False
+        ),
     }
 
 
@@ -250,7 +255,11 @@ def _dependencies(platform: Any, api_state: Any) -> dict[str, Any]:
 
     def _comp(name: str, ok: bool | None, detail: str) -> dict[str, Any]:
         if ok is None:
-            return {"name": name, "status": "skip", "message": detail or UNAVAILABLE_MESSAGE}
+            return {
+                "name": name,
+                "status": "skip",
+                "message": detail or UNAVAILABLE_MESSAGE,
+            }
         return {
             "name": name,
             "status": "pass" if ok else "fail",
@@ -266,9 +275,11 @@ def _dependencies(platform: Any, api_state: Any) -> dict[str, Any]:
         ),
         _comp(
             "cache",
-            None
-            if not probes
-            else str((probes.get("redis") or {}).get("status", "skip")) == "pass",
+            (
+                None
+                if not probes
+                else str((probes.get("redis") or {}).get("status", "skip")) == "pass"
+            ),
             str(probes.get("cache_adapter", UNAVAILABLE_MESSAGE)),
         ),
         _comp(
@@ -283,9 +294,11 @@ def _dependencies(platform: Any, api_state: Any) -> dict[str, Any]:
         ),
         _comp(
             "ai_copilot",
-            getattr(api_state, "copilot_service", None) is not None
-            if api_state
-            else None,
+            (
+                getattr(api_state, "copilot_service", None) is not None
+                if api_state
+                else None
+            ),
             "copilot_service wiring",
         ),
         _comp(
@@ -440,9 +453,11 @@ def _observability(deps: ProductionOpsDeps | None = None) -> dict[str, Any]:
         "opentelemetry": {
             "available": bool(tracing_available or otel_endpoint),
             "endpoint": otel_endpoint or None,
-            "message": None
-            if (tracing_available or otel_endpoint)
-            else "OpenTelemetry exporter unavailable.",
+            "message": (
+                None
+                if (tracing_available or otel_endpoint)
+                else "OpenTelemetry exporter unavailable."
+            ),
             "spans": [
                 "api",
                 "database",
@@ -535,9 +550,9 @@ def _dashboard(
         from enterprise import get_enterprise_service
 
         enterprise_ops = get_enterprise_service().operational_dashboard(
-            infrastructure=getattr(api_state, "infrastructure", None)
-            if api_state
-            else None
+            infrastructure=(
+                getattr(api_state, "infrastructure", None) if api_state else None
+            )
         )
     except Exception:  # noqa: BLE001
         enterprise_ops = {"available": False, "message": UNAVAILABLE_MESSAGE}

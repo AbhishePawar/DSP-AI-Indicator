@@ -6,8 +6,9 @@ Read-only projection. No calculations, scoring, valuation, or AI.
 from __future__ import annotations
 
 import uuid
+from collections.abc import Mapping
 from types import MappingProxyType
-from typing import Any, Mapping
+from typing import Any
 
 from dsp_platform.institutional_report.mapper import (
     field_or_unavailable,
@@ -17,11 +18,11 @@ from dsp_platform.institutional_report.mapper import (
 from dsp_platform.institutional_report.models import (
     GENERATOR_VERSION,
     REPORT_SCHEMA_VERSION,
+    UNAVAILABLE_MESSAGE,
     InstitutionalResearchReport,
     ReportMetadata,
     ReportSection,
     ReportVersion,
-    UNAVAILABLE_MESSAGE,
     freeze_mapping,
     utc_now,
 )
@@ -114,9 +115,7 @@ def _ro_section_to_report(
         )
 
     payload_src = section_payload_dict(ro_section) or {}
-    display = (
-        map_display_fields(payload_src, display_fields) if display_fields else {}
-    )
+    display = map_display_fields(payload_src, display_fields) if display_fields else {}
     out: dict[str, Any] = {}
     if display:
         out["fields"] = display
@@ -130,9 +129,11 @@ def _ro_section_to_report(
         rs_id=rs_id,
         source_section=source_section,
         payload=out,
-        provenance=dict(ro_section.provenance)
-        if isinstance(ro_section.provenance, Mapping)
-        else {"source_type": "research_object", "section": source_section},
+        provenance=(
+            dict(ro_section.provenance)
+            if isinstance(ro_section.provenance, Mapping)
+            else {"source_type": "research_object", "section": source_section}
+        ),
         retrieved_at=ro_section.retrieved_at,
         status=ro_section.status if ro_section.status in {"ok", "partial"} else "ok",
     )
@@ -277,9 +278,11 @@ class InstitutionalReportGenerator:
                     **dict(market_data.payload),
                     "fields": fields,
                 },
-                provenance=dict(ro.market_data.provenance)
-                if isinstance(ro.market_data.provenance, Mapping)
-                else market_data.provenance,
+                provenance=(
+                    dict(ro.market_data.provenance)
+                    if isinstance(ro.market_data.provenance, Mapping)
+                    else market_data.provenance
+                ),
                 retrieved_at=ro.market_data.retrieved_at,
                 status=market_data.status,
             )
@@ -426,9 +429,9 @@ class InstitutionalReportGenerator:
             "recommendation": recommendation.provenance,
             "explainability": explainability.provenance,
             "audit": audit.provenance,
-            "research_object_provenance": dict(ro.provenance)
-            if isinstance(ro.provenance, Mapping)
-            else None,
+            "research_object_provenance": (
+                dict(ro.provenance) if isinstance(ro.provenance, Mapping) else None
+            ),
         }
 
         metadata = ReportMetadata(

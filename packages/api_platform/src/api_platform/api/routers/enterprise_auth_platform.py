@@ -119,7 +119,11 @@ def _provider_redirect_uri(provider: str, redirect_uri: str | None) -> str:
 
 def _err(exc: Exception, status: int = 400) -> JSONResponse:
     msg = str(exc)
-    if "credential" in msg.lower() or "invalid otp" in msg.lower() or "expired" in msg.lower():
+    if (
+        "credential" in msg.lower()
+        or "invalid otp" in msg.lower()
+        or "expired" in msg.lower()
+    ):
         status = 401 if status == 400 else status
     if "rate limit" in msg.lower() or "too many" in msg.lower():
         status = 429
@@ -357,7 +361,9 @@ def enterprise_register_username(
 
 
 @router.post("/auth/enterprise/register/mobile/request")
-def enterprise_register_mobile_request(body: OtpRequest, request: Request) -> JSONResponse:
+def enterprise_register_mobile_request(
+    body: OtpRequest, request: Request
+) -> JSONResponse:
     try:
         meta = _client_meta(request)
         result = _platform().register_mobile_request(
@@ -392,7 +398,9 @@ def enterprise_register_mobile_complete(
 @router.post("/auth/enterprise/verify-email")
 def enterprise_verify_email(body: VerifyEmailRequest) -> JSONResponse:
     try:
-        return JSONResponse({"ok": True, "result": _platform().verify_email(body.token)})
+        return JSONResponse(
+            {"ok": True, "result": _platform().verify_email(body.token)}
+        )
     except Exception as exc:  # noqa: BLE001
         return _err(exc)
 
@@ -442,7 +450,9 @@ def enterprise_reset(body: PasswordResetConfirm) -> JSONResponse:
 
 
 @router.post("/auth/enterprise/password/reset/otp")
-def enterprise_reset_otp(body: PasswordResetOtpConfirm, request: Request) -> JSONResponse:
+def enterprise_reset_otp(
+    body: PasswordResetOtpConfirm, request: Request
+) -> JSONResponse:
     try:
         meta = _client_meta(request)
         result = _platform().confirm_password_reset_otp(
@@ -482,13 +492,17 @@ def enterprise_oauth_begin(body: OAuthBeginRequest) -> JSONResponse:
             body.provider, redirect_uri=body.redirect_uri, state=body.state
         )
         status = 200 if result.get("available") else 503
-        return JSONResponse({"ok": bool(result.get("available")), "result": result}, status_code=status)
+        return JSONResponse(
+            {"ok": bool(result.get("available")), "result": result}, status_code=status
+        )
     except Exception as exc:  # noqa: BLE001
         return _err(exc)
 
 
 @router.post("/auth/enterprise/oauth/callback")
-def enterprise_oauth_callback(body: OAuthCallbackRequest, request: Request) -> JSONResponse:
+def enterprise_oauth_callback(
+    body: OAuthCallbackRequest, request: Request
+) -> JSONResponse:
     try:
         meta = _client_meta(request)
         result = _platform().oauth_callback(
@@ -605,7 +619,9 @@ def auth_microsoft_link(
 
 
 @router.post("/auth/microsoft/unlink")
-def auth_microsoft_unlink(authorization: str | None = Header(default=None)) -> JSONResponse:
+def auth_microsoft_unlink(
+    authorization: str | None = Header(default=None),
+) -> JSONResponse:
     try:
         token = _bearer(authorization)
         user = _platform().auth.current_user(token)
@@ -711,7 +727,9 @@ def auth_facebook_link(
 
 
 @router.post("/auth/facebook/unlink")
-def auth_facebook_unlink(authorization: str | None = Header(default=None)) -> JSONResponse:
+def auth_facebook_unlink(
+    authorization: str | None = Header(default=None),
+) -> JSONResponse:
     try:
         token = _bearer(authorization)
         user = _platform().auth.current_user(token)
@@ -840,7 +858,9 @@ def enterprise_invite_accept(body: InvitationAcceptBody) -> JSONResponse:
 
 
 @router.get("/auth/enterprise/admin/users")
-def enterprise_admin_users(authorization: str | None = Header(default=None)) -> JSONResponse:
+def enterprise_admin_users(
+    authorization: str | None = Header(default=None),
+) -> JSONResponse:
     try:
         token = _bearer(authorization)
         _platform().require_admin(token)
@@ -1010,7 +1030,9 @@ def auth_oauth_start(
 ) -> JSONResponse:
     _ = next
     try:
-        result = _platform().oauth_begin(provider, redirect_uri=redirect_uri, state=state)
+        result = _platform().oauth_begin(
+            provider, redirect_uri=redirect_uri, state=state
+        )
         status = 200 if result.get("available") else 503
         return JSONResponse(
             {"ok": bool(result.get("available")), "result": result},
@@ -1455,7 +1477,9 @@ def auth_mfa_disable(
 
 
 @router.get("/auth/mfa/recovery-codes")
-def auth_mfa_recovery_codes(authorization: str | None = Header(default=None)) -> JSONResponse:
+def auth_mfa_recovery_codes(
+    authorization: str | None = Header(default=None),
+) -> JSONResponse:
     """Recovery-code *status* only — counts and last-generated timestamp.
 
     Codes are salted+hashed at rest; the plaintext values are only ever
@@ -1500,7 +1524,9 @@ def auth_mfa_recovery_codes_regenerate(
 
 
 @router.post("/auth/mfa/webauthn/register")
-def auth_mfa_webauthn_register(authorization: str | None = Header(default=None)) -> JSONResponse:
+def auth_mfa_webauthn_register(
+    authorization: str | None = Header(default=None),
+) -> JSONResponse:
     try:
         token = _bearer(authorization)
         user = _platform().auth.current_user(token)
@@ -1534,12 +1560,17 @@ def auth_mfa_webauthn_register_complete(
 
 
 @router.get("/auth/mfa/webauthn/credentials")
-def auth_mfa_webauthn_credentials(authorization: str | None = Header(default=None)) -> JSONResponse:
+def auth_mfa_webauthn_credentials(
+    authorization: str | None = Header(default=None),
+) -> JSONResponse:
     try:
         token = _bearer(authorization)
         user = _platform().auth.current_user(token)
         return JSONResponse(
-            {"ok": True, "result": _platform().webauthn_list_credentials(str(user["user_id"]))}
+            {
+                "ok": True,
+                "result": _platform().webauthn_list_credentials(str(user["user_id"])),
+            }
         )
     except Exception as exc:  # noqa: BLE001
         return _err(exc)
@@ -1553,14 +1584,18 @@ def auth_mfa_webauthn_remove(
     try:
         token = _bearer(authorization)
         user = _platform().auth.current_user(token)
-        result = _platform().webauthn_remove_credential(str(user["user_id"]), body.credential_id)
+        result = _platform().webauthn_remove_credential(
+            str(user["user_id"]), body.credential_id
+        )
         return JSONResponse({"ok": True, "result": result})
     except Exception as exc:  # noqa: BLE001
         return _err(exc)
 
 
 @router.post("/auth/mfa/webauthn/authenticate")
-def auth_mfa_webauthn_authenticate(body: WebauthnAuthenticateBeginBody | None = None) -> JSONResponse:
+def auth_mfa_webauthn_authenticate(
+    body: WebauthnAuthenticateBeginBody | None = None,
+) -> JSONResponse:
     """Begin a discoverable ("usernameless") passkey login or MFA step-up.
 
     Matches the existing frontend contract exactly (``{identifier?}`` in,
@@ -1669,7 +1704,9 @@ def auth_passkey_register_complete(
 
 
 @router.post("/auth/passkey/login/begin")
-def auth_passkey_login_begin(body: WebauthnAuthenticateBeginBody | None = None) -> JSONResponse:
+def auth_passkey_login_begin(
+    body: WebauthnAuthenticateBeginBody | None = None,
+) -> JSONResponse:
     """Begin a discoverable ("usernameless") passkey sign-in.
 
     Identical contract and platform call (`webauthn_authenticate_begin`) as
@@ -1721,7 +1758,10 @@ def auth_passkey_list(authorization: str | None = Header(default=None)) -> JSONR
         token = _bearer(authorization)
         user = _platform().auth.current_user(token)
         return JSONResponse(
-            {"ok": True, "result": _platform().webauthn_list_credentials(str(user["user_id"]))}
+            {
+                "ok": True,
+                "result": _platform().webauthn_list_credentials(str(user["user_id"])),
+            }
         )
     except Exception as exc:  # noqa: BLE001
         return _err(exc)

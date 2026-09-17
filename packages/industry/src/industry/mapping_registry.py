@@ -26,8 +26,7 @@ class ClassificationMappingRegistry:
         """Register a mapping. Rejects unknown industries and collisions."""
         if not self._taxonomy.contains(mapping.industry_id):
             msg = (
-                f"cannot map to unknown industry identity: "
-                f"{mapping.industry_id!r}"
+                f"cannot map to unknown industry identity: " f"{mapping.industry_id!r}"
             )
             raise IndustryError(msg)
 
@@ -91,8 +90,7 @@ class ClassificationMappingRegistry:
         active = [
             m
             for m in self._by_key.values()
-            if m.classification.key == class_key
-            and m.status is MappingStatus.ACTIVE
+            if m.classification.key == class_key and m.status is MappingStatus.ACTIVE
         ]
         if not active:
             msg = (
@@ -157,9 +155,7 @@ class ClassificationMappingRegistry:
         for mapping in self._by_key.values():
             if mapping.status is not MappingStatus.ACTIVE:
                 continue
-            active_by_class.setdefault(mapping.classification.key, []).append(
-                mapping
-            )
+            active_by_class.setdefault(mapping.classification.key, []).append(mapping)
         for class_key, group in active_by_class.items():
             industry_ids = {m.industry_id for m in group}
             if len(industry_ids) > 1:

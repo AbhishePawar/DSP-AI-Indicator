@@ -5,14 +5,13 @@ Produces explanations of differences — never scores or rankings.
 
 from __future__ import annotations
 
-from industry import ComparisonDimension
-from universe import ComparableDecisionSummary
-
 from comparison.models import (
     ComparisonDimensionResult,
     ComparisonLimitation,
     ComparisonObservation,
 )
+from industry import ComparisonDimension
+from universe import ComparableDecisionSummary
 
 __all__ = [
     "build_decision_context",
@@ -169,9 +168,7 @@ def build_pair_observations(
         notes.append(
             ComparisonObservation(
                 code="assurance_aligned",
-                text=(
-                    f"Both {a} and {b} exhibit {la} decision assurance."
-                ),
+                text=(f"Both {a} and {b} exhibit {la} decision assurance."),
                 dimension=ComparisonDimension.DECISION_ROBUSTNESS,
                 subjects=(a, b),
                 evidence_refs=("assurance_level",),
@@ -283,10 +280,7 @@ def build_valuation_context(
             notes.append(
                 ComparisonObservation(
                     code="valuation_snapshot",
-                    text=(
-                        f"{sym} reports MoS={summary.mos_ratio:.1%}."
-                        f"{mid_note}"
-                    ),
+                    text=(f"{sym} reports MoS={summary.mos_ratio:.1%}." f"{mid_note}"),
                     dimension=ComparisonDimension.VALUATION,
                     subjects=(sym,),
                     evidence_refs=("margin_of_safety", "valuation_summary"),
@@ -332,9 +326,7 @@ def build_dimension_results(
         matching = tuple(o for o in all_obs if o.dimension is dimension)
         if matching:
             results.append(
-                ComparisonDimensionResult(
-                    dimension=dimension, observations=matching
-                )
+                ComparisonDimensionResult(dimension=dimension, observations=matching)
             )
         else:
             results.append(
@@ -417,9 +409,7 @@ def build_limitations(
                 )
             )
     for gap in methodology_gaps:
-        limits.append(
-            ComparisonLimitation(code="methodology_gap", message=gap)
-        )
+        limits.append(ComparisonLimitation(code="methodology_gap", message=gap))
     limits.append(
         ComparisonLimitation(
             code="no_certainty",

@@ -3,9 +3,9 @@
 from __future__ import annotations
 
 import pytest
+
 from core.exceptions import ValidationError
 from industry import EvidenceBundleReference, EvidenceBundleStatus
-
 from portfolio import (
     DecisionPackReference,
     Portfolio,

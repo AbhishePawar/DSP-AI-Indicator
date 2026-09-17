@@ -61,9 +61,11 @@ class CapitalAllocationEngine:
             self._assess(
                 "capital_allocation_discipline",
                 "Capital Allocation Discipline",
-                cap.capital_allocation_score
-                if cap.capital_allocation_score is not None
-                else cash.financing.capital_allocation_quality,
+                (
+                    cap.capital_allocation_score
+                    if cap.capital_allocation_score is not None
+                    else cash.financing.capital_allocation_quality
+                ),
                 "FinancialAnalysis.ratios.capital_allocation",
                 "Reuses capital_allocation_score / financing quality.",
                 explanations,
@@ -74,9 +76,11 @@ class CapitalAllocationEngine:
             self._assess(
                 "reinvestment_quality",
                 "Reinvestment Quality",
-                cash.investing.investment_discipline
-                if cash.investing.investment_discipline is not None
-                else cash.quality.investment_discipline,
+                (
+                    cash.investing.investment_discipline
+                    if cash.investing.investment_discipline is not None
+                    else cash.quality.investment_discipline
+                ),
                 "FinancialAnalysis.cash_flow.investing",
                 "Reuses investment_discipline from cash-flow intelligence.",
                 explanations,
@@ -87,9 +91,11 @@ class CapitalAllocationEngine:
             self._assess(
                 "capex_discipline",
                 "Capital Expenditure Discipline",
-                cap.capex_discipline
-                if cap.capex_discipline is not None
-                else _capex_from_intensity(cash.investing.capex_intensity),
+                (
+                    cap.capex_discipline
+                    if cap.capex_discipline is not None
+                    else _capex_from_intensity(cash.investing.capex_intensity)
+                ),
                 "FinancialAnalysis.ratios.capital_allocation.capex_discipline",
                 "Reuses capex_discipline / investing intensity proxy.",
                 explanations,
@@ -101,9 +107,11 @@ class CapitalAllocationEngine:
             self._assess(
                 "dividend_allocation_quality",
                 "Dividend Allocation Quality",
-                cap.dividend_sustainability
-                if cap.dividend_sustainability is not None
-                else cash.quality.dividend_sustainability,
+                (
+                    cap.dividend_sustainability
+                    if cap.dividend_sustainability is not None
+                    else cash.quality.dividend_sustainability
+                ),
                 "FinancialAnalysis.ratios.capital_allocation",
                 "Reuses dividend sustainability fields.",
                 explanations,
@@ -114,9 +122,11 @@ class CapitalAllocationEngine:
             self._assess(
                 "share_buyback_quality",
                 "Share Buyback Quality",
-                cap.buyback_sustainability
-                if cap.buyback_sustainability is not None
-                else cash.quality.buyback_sustainability,
+                (
+                    cap.buyback_sustainability
+                    if cap.buyback_sustainability is not None
+                    else cash.quality.buyback_sustainability
+                ),
                 "FinancialAnalysis.ratios.capital_allocation",
                 "Reuses buyback sustainability fields.",
                 explanations,
@@ -127,9 +137,11 @@ class CapitalAllocationEngine:
             self._assess(
                 "debt_reduction_discipline",
                 "Debt Reduction Discipline",
-                cap.debt_reduction_quality
-                if cap.debt_reduction_quality is not None
-                else cash.quality.debt_sustainability,
+                (
+                    cap.debt_reduction_quality
+                    if cap.debt_reduction_quality is not None
+                    else cash.quality.debt_sustainability
+                ),
                 "FinancialAnalysis.ratios.capital_allocation",
                 "Reuses debt reduction / debt sustainability fields.",
                 explanations,
@@ -142,7 +154,9 @@ class CapitalAllocationEngine:
             dilution_value = cap.dilution_discipline
         else:
             income = getattr(fa, "income", None)
-            profit = getattr(income, "profitability", None) if income is not None else None
+            profit = (
+                getattr(income, "profitability", None) if income is not None else None
+            )
             dilution_value = getattr(profit, "dilution_discipline", None)
         assessments.append(
             self._assess(
@@ -166,9 +180,11 @@ class CapitalAllocationEngine:
             self._assess(
                 "cash_deployment_quality",
                 "Cash Deployment Quality",
-                cash.quality.cash_sustainability
-                if cash.quality.cash_sustainability is not None
-                else cash.financing.capital_allocation_quality,
+                (
+                    cash.quality.cash_sustainability
+                    if cash.quality.cash_sustainability is not None
+                    else cash.financing.capital_allocation_quality
+                ),
                 "FinancialAnalysis.cash_flow.quality",
                 "Reuses cash sustainability / financing allocation quality.",
                 explanations,
@@ -195,11 +211,11 @@ class CapitalAllocationEngine:
             )
         )
         assessments.append(
-            self._consistency(trends, cap.capital_allocation_score, explanations, evidence)
+            self._consistency(
+                trends, cap.capital_allocation_score, explanations, evidence
+            )
         )
-        assessments.append(
-            self._stewardship(cash, cap, explanations, evidence)
-        )
+        assessments.append(self._stewardship(cash, cap, explanations, evidence))
 
         scored = [
             (a.score.value / 100.0, 1.0)
@@ -300,11 +316,15 @@ class CapitalAllocationEngine:
             evidence_level=(
                 EvidenceLevel.STRONG
                 if conf is Confidence.HIGH
-                else EvidenceLevel.ADEQUATE
-                if conf is Confidence.MEDIUM
-                else EvidenceLevel.LIMITED
-                if conf is Confidence.LOW
-                else EvidenceLevel.NONE
+                else (
+                    EvidenceLevel.ADEQUATE
+                    if conf is Confidence.MEDIUM
+                    else (
+                        EvidenceLevel.LIMITED
+                        if conf is Confidence.LOW
+                        else EvidenceLevel.NONE
+                    )
+                )
             ),
             risk_level=_risk_from_01(value, invert=True),
         )
@@ -327,7 +347,9 @@ class CapitalAllocationEngine:
                 trend_cls = alloc.classification
                 if alloc.consistency is not None:
                     value = alloc.consistency
-                evidence.append(f"trend.capital_allocation_score={alloc.classification}")
+                evidence.append(
+                    f"trend.capital_allocation_score={alloc.classification}"
+                )
         conf = _confidence_from_present(value, 1.0 if trend_cls is not None else None)
         out.append(
             ca_explanation(
@@ -351,9 +373,11 @@ class CapitalAllocationEngine:
             rating=_rating_from_01(value),
             score=_score_01(value),
             confidence=conf,
-            evidence_level=EvidenceLevel.ADEQUATE
-            if trend_cls is not None
-            else EvidenceLevel.LIMITED,
+            evidence_level=(
+                EvidenceLevel.ADEQUATE
+                if trend_cls is not None
+                else EvidenceLevel.LIMITED
+            ),
             risk_level=_risk_from_01(value, invert=True),
         )
 
@@ -372,7 +396,11 @@ class CapitalAllocationEngine:
         if "shareholder_friendly" in flag_vals and value is None:
             value = 0.75
         evidence.append(f"shareholder_stewardship={value}")
-        conf = _confidence_from_present(*parts) if parts else _confidence_from_present(value)
+        conf = (
+            _confidence_from_present(*parts)
+            if parts
+            else _confidence_from_present(value)
+        )
         out.append(
             ca_explanation(
                 title="Shareholder Capital Stewardship",
@@ -482,9 +510,7 @@ def _capex_from_intensity(intensity: float | None) -> float | None:
     return max(0.0, min(1.0, 1.0 - min(1.0, intensity)))
 
 
-def _flexibility(
-    dependence: float | None, cash_sust: float | None
-) -> float | None:
+def _flexibility(dependence: float | None, cash_sust: float | None) -> float | None:
     parts: list[float] = []
     if dependence is not None:
         parts.append(1.0 - min(1.0, max(0.0, dependence)))

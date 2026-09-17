@@ -49,7 +49,9 @@ def _group() -> FailoverGroup[OwnershipService, OwnershipQuery, Any]:
     with _LOCK:
         if _GROUP is None:
             registry = build_default_ownership_registry_from_env()
-            _SERVICES = tuple(OwnershipService(provider) for provider in registry.ordered())
+            _SERVICES = tuple(
+                OwnershipService(provider) for provider in registry.ordered()
+            )
             _GROUP = _make_group(_SERVICES)
         return _GROUP
 

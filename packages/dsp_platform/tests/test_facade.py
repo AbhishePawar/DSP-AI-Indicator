@@ -90,9 +90,7 @@ class TestPublicApi:
 
 
 class TestDependencyInjection:
-    def test_analyze_delegates_to_orchestrator(
-        self, instrument: Instrument
-    ) -> None:
+    def test_analyze_delegates_to_orchestrator(self, instrument: Instrument) -> None:
         expected = _recommendation(instrument)
         fake = _FakeAnalysisService(expected)
         platform = DSPPlatform(analysis_service=fake)  # type: ignore[arg-type]
@@ -121,17 +119,13 @@ class TestDependencyInjection:
                 allow_partial=False,
             ),
         )
-        request = platform.make_request(
-            instrument, date(2024, 1, 1), date(2024, 6, 1)
-        )
+        request = platform.make_request(instrument, date(2024, 1, 1), date(2024, 6, 1))
         assert request.include_fundamentals is False
         assert request.include_economic is False
         assert request.include_valuation is False
         assert request.allow_partial is False
 
-    def test_make_request_explicit_override(
-        self, instrument: Instrument
-    ) -> None:
+    def test_make_request_explicit_override(self, instrument: Instrument) -> None:
         fake = _FakeAnalysisService(_recommendation(instrument))
         platform = DSPPlatform(
             analysis_service=fake,  # type: ignore[arg-type]
@@ -163,9 +157,7 @@ class TestErrorTranslation:
                 )
             )
 
-    def test_does_not_leak_orchestration_type(
-        self, instrument: Instrument
-    ) -> None:
+    def test_does_not_leak_orchestration_type(self, instrument: Instrument) -> None:
         fake = _FakeAnalysisService(error=OrchestrationError("boom"))
         platform = DSPPlatform(analysis_service=fake)  # type: ignore[arg-type]
         with pytest.raises(PlatformError) as exc_info:
@@ -191,9 +183,7 @@ class TestErrorTranslation:
 
 
 class TestDecisionPackApi:
-    def test_analyze_decision_pack_returns_pack(
-        self, instrument: Instrument
-    ) -> None:
+    def test_analyze_decision_pack_returns_pack(self, instrument: Instrument) -> None:
         from ai_committee import (
             CommitteeReport,
             Decision,
@@ -253,9 +243,7 @@ class TestDecisionPackApi:
         assert pack.brief.action is pack.recommendation.action
         assert pack.assurance.action is pack.recommendation.action
 
-    def test_analyze_still_returns_recommendation(
-        self, instrument: Instrument
-    ) -> None:
+    def test_analyze_still_returns_recommendation(self, instrument: Instrument) -> None:
         expected = _recommendation(instrument)
         fake = _FakeAnalysisService(expected)
         platform = DSPPlatform(analysis_service=fake)  # type: ignore[arg-type]
@@ -270,9 +258,7 @@ class TestDecisionPackApi:
 
 
 class TestUniverseApi:
-    def test_analyze_universe_uses_decision_packs(
-        self, instrument: Instrument
-    ) -> None:
+    def test_analyze_universe_uses_decision_packs(self, instrument: Instrument) -> None:
         from ai_committee import (
             CommitteeReport,
             Decision,
@@ -335,9 +321,7 @@ class TestUniverseApi:
             ) -> Recommendation:
                 raise AssertionError("should not use analyze_recommendation")
 
-        other = Instrument(
-            symbol="MSFT", asset_class=AssetClass.EQUITY, currency="USD"
-        )
+        other = Instrument(symbol="MSFT", asset_class=AssetClass.EQUITY, currency="USD")
         universe = InvestmentUniverse(name="tech")
         universe.add(instrument)
         universe.add(other)

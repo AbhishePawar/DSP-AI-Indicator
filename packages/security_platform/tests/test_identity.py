@@ -7,7 +7,6 @@ import pytest
 from production_platform import InfrastructureBundle
 from security_platform import (
     AuthenticationError,
-    IdentityService,
     PasswordPolicy,
     Role,
     SecurityBundle,

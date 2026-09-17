@@ -10,9 +10,10 @@ from __future__ import annotations
 
 import statistics
 import time
+from collections.abc import Mapping
 from dataclasses import replace
 from datetime import UTC, datetime
-from typing import Any, Mapping
+from typing import Any
 
 from valuation.core.confidence_engine import ConfidenceEngine
 from valuation.core.metadata import RESEARCH_DISCLAIMER, VALUATION_CORE_VERSION
@@ -143,7 +144,9 @@ class GrahamEngine:
             execution_time_ms=elapsed_ms,
         )
 
-    def _growth_percent(self, inputs: GrahamInputs, growth_rate: float | None = None) -> float:
+    def _growth_percent(
+        self, inputs: GrahamInputs, growth_rate: float | None = None
+    ) -> float:
         """Return G in Graham percent units (7 means 7%)."""
         g = inputs.growth_rate if growth_rate is None else growth_rate
         if inputs.growth_as_decimal:
@@ -170,9 +173,7 @@ class GrahamEngine:
                 raise ValuationError("aaa_bond_yield must be > 0")
             yield_factor = inputs.reference_aaa_yield / inputs.aaa_bond_yield
             ivps = base_ivps * yield_factor
-            formula_str = (
-                "IV = EPS × (8.5 + 2G) × (Y_ref / Y_aaa)"
-            )
+            formula_str = "IV = EPS × (8.5 + 2G) × (Y_ref / Y_aaa)"
         else:
             raise ValuationError(f"unknown Graham formula: {inputs.formula!r}")
 

@@ -52,7 +52,7 @@ from business_quality.metadata import (
     FRAMEWORK_VERSION,
     BusinessQualityMetadata,
 )
-from business_quality.scoring import Confidence, Rating, Score, weighted_mean
+from business_quality.scoring import Rating, Score, weighted_mean
 from business_quality.validation import (
     empty_validation,
     merge_validation_results,
@@ -274,9 +274,7 @@ class BusinessQualityEngine:
         overall_01, weighted_parts = compose_overall_score(
             eq=eq, ca=ca, bc=bc, cp=cp, weights=weights_used
         )
-        overall_score = Score(
-            value=None if overall_01 is None else overall_01 * 100.0
-        )
+        overall_score = Score(value=None if overall_01 is None else overall_01 * 100.0)
         overall_rating = overall_rating_from_01(overall_01)
         legacy_rating = _rating_from_01(overall_01)
         confidence = _aggregate_confidence(
@@ -589,8 +587,7 @@ def _weaknesses(
             out.append(f"Earnings quality flag: {f.value}")
     for f in ca.quality_flags:
         if f.value in (
-            _CRITICAL_FLAGS["capital_allocation"]
-            | _WARNING_FLAGS["capital_allocation"]
+            _CRITICAL_FLAGS["capital_allocation"] | _WARNING_FLAGS["capital_allocation"]
         ):
             out.append(f"Capital allocation flag: {f.value}")
     for f in bc.quality_flags:

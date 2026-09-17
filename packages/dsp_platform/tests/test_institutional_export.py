@@ -84,9 +84,7 @@ def _report():
         object_id=FIXED_RO,
         created_at=FIXED_TS,
     )
-    return generate_institutional_report(
-        ro, report_id=FIXED_RPT, generated_at=FIXED_TS
-    )
+    return generate_institutional_report(ro, report_id=FIXED_RPT, generated_at=FIXED_TS)
 
 
 def test_json_export_preserves_unavailable() -> None:

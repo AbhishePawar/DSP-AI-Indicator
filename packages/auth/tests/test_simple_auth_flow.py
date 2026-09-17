@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 
 import pytest
 
@@ -11,15 +11,15 @@ from auth import (
     AuthService,
     DuplicateUserError,
     EnterpriseAuthPlatform,
+    RoleRegistry,
     ValidationError,
     reset_auth_service_for_tests,
     reset_enterprise_auth_platform_for_tests,
     reset_role_registry_for_tests,
-    RoleRegistry,
 )
 from auth.email_delivery import ConsoleEmailAdapter
-from auth.otp import OtpService, normalize_india_mobile
 from auth.oauth_providers import OAuthProviderRegistry
+from auth.otp import OtpService, normalize_india_mobile
 from auth.sms import DevSmsAdapter
 from persistence import (
     InMemoryStorageProvider,
@@ -110,14 +110,19 @@ def test_combined_register_keeps_mobile_digits_as_username_if_chosen(
     platform: EnterpriseAuthPlatform,
 ) -> None:
     result = _register_combined(
-        platform, username="9826912399", mobile="+919826912399", email="keep@example.com"
+        platform,
+        username="9826912399",
+        mobile="+919826912399",
+        email="keep@example.com",
     )
     assert result["user"]["username"] == "9826912399"
     assert result["user"]["mobile"] == "+919826912399"
 
 
 def test_combined_register_duplicate_username(platform: EnterpriseAuthPlatform) -> None:
-    _register_combined(platform, username="taken", email="one@example.com", mobile="+919800000001")
+    _register_combined(
+        platform, username="taken", email="one@example.com", mobile="+919800000001"
+    )
     req = platform.register_mobile_request("+919800000002")
     code = (req.get("sms") or {}).get("debug_code")
     with pytest.raises(DuplicateUserError, match="username"):
@@ -133,7 +138,9 @@ def test_combined_register_duplicate_username(platform: EnterpriseAuthPlatform) 
 
 
 def test_combined_register_duplicate_email(platform: EnterpriseAuthPlatform) -> None:
-    _register_combined(platform, username="usr1", email="same@example.com", mobile="+919800000011")
+    _register_combined(
+        platform, username="usr1", email="same@example.com", mobile="+919800000011"
+    )
     req = platform.register_mobile_request("+919800000012")
     code = (req.get("sms") or {}).get("debug_code")
     with pytest.raises(DuplicateUserError):
@@ -149,7 +156,9 @@ def test_combined_register_duplicate_email(platform: EnterpriseAuthPlatform) -> 
 
 
 def test_combined_register_duplicate_mobile(platform: EnterpriseAuthPlatform) -> None:
-    _register_combined(platform, username="usr1", email="a@example.com", mobile="+919800000021")
+    _register_combined(
+        platform, username="usr1", email="a@example.com", mobile="+919800000021"
+    )
     req = platform.register_mobile_request("+919800000021")
     code = (req.get("sms") or {}).get("debug_code")
     with pytest.raises(DuplicateUserError):
@@ -196,7 +205,7 @@ def test_combined_register_invalid_otp(platform: EnterpriseAuthPlatform) -> None
 def test_combined_register_expired_otp(platform: EnterpriseAuthPlatform) -> None:
     req = platform.register_mobile_request("+919800000051")
     code = (req.get("sms") or {}).get("debug_code")
-    past = datetime.now(tz=timezone.utc) + timedelta(minutes=10)
+    past = datetime.now(tz=UTC) + timedelta(minutes=10)
     with pytest.raises(AuthenticationError, match="expired"):
         platform.otp.verify_otp_result(
             challenge_id=req["challenge_id"], code=code, now=past
@@ -251,7 +260,10 @@ def test_username_otp_login_sends_to_stored_mobile(
     platform: EnterpriseAuthPlatform,
 ) -> None:
     _register_combined(
-        platform, username="nameotp", email="nameotp@example.com", mobile="+919800000081"
+        platform,
+        username="nameotp",
+        email="nameotp@example.com",
+        mobile="+919800000081",
     )
     req = platform.request_login_otp("nameotp")
     assert "mobile" not in req
@@ -343,7 +355,7 @@ def test_password_reset_expired_otp(platform: EnterpriseAuthPlatform) -> None:
     )
     out = platform.request_password_reset_otp("resete")
     code = (out.get("sms") or {}).get("debug_code")
-    past = datetime.now(tz=timezone.utc) + timedelta(minutes=10)
+    past = datetime.now(tz=UTC) + timedelta(minutes=10)
     with pytest.raises(AuthenticationError, match="expired"):
         platform.otp.verify_otp_result(
             challenge_id=out["challenge_id"], code=code, now=past

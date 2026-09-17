@@ -3,7 +3,8 @@
 from __future__ import annotations
 
 import uuid
-from typing import Any, Mapping
+from collections.abc import Mapping
+from typing import Any
 
 from dsp_platform.investment_policy.citations import build_policy_citations
 from dsp_platform.investment_policy.evaluator import PolicyArtifacts, evaluate_rule

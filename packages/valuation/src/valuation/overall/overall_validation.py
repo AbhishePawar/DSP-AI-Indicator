@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import math
-from typing import Any, Mapping
+from collections.abc import Mapping
 
 from valuation.consensus.consensus_models import ConsensusResult
 from valuation.core.result_models import ValidationSummary, ValuationResult
@@ -87,7 +87,10 @@ def validate_overall_inputs(inputs: OverallInputs) -> ValidationSummary:
         ivps = consensus.get("intrinsic_value_per_share")
         if iv is None and ivps is None:
             errors.append("consensus payload missing intrinsic values")
-        for label, val in (("intrinsic_value", iv), ("intrinsic_value_per_share", ivps)):
+        for label, val in (
+            ("intrinsic_value", iv),
+            ("intrinsic_value_per_share", ivps),
+        ):
             if val is None:
                 continue
             try:

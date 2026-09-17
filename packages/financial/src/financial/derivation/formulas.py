@@ -123,15 +123,11 @@ class FormulaSpec:
 
 
 def _average_balance(values: Mapping[str, float]) -> float | None:
-    return _finite(
-        (values["beginning_balance"] + values["ending_balance"]) / 2.0
-    )
+    return _finite((values["beginning_balance"] + values["ending_balance"]) / 2.0)
 
 
 def _average_equity(values: Mapping[str, float]) -> float | None:
-    return _finite(
-        (values["beginning_equity"] + values["ending_equity"]) / 2.0
-    )
+    return _finite((values["beginning_equity"] + values["ending_equity"]) / 2.0)
 
 
 def _roe(values: Mapping[str, float]) -> float | None:

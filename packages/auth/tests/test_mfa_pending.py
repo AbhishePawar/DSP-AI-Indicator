@@ -2,12 +2,12 @@
 
 from __future__ import annotations
 
+import importlib.util
 import logging
 import threading
 import time
 from concurrent.futures import ThreadPoolExecutor, as_completed
-from datetime import datetime, timedelta, timezone
-import importlib.util
+from datetime import UTC, datetime, timedelta
 from pathlib import Path
 
 import pytest
@@ -73,7 +73,9 @@ def test_shared_store_totp_begin_on_a_confirm_on_b() -> None:
     a = TotpAdapter(persistence)
     b = TotpAdapter(persistence)
     begin = a.begin_enroll("user-enroll-shared")
-    confirmed = b.confirm_enroll("user-enroll-shared", {"code": totp_at(begin["secret"])})
+    confirmed = b.confirm_enroll(
+        "user-enroll-shared", {"code": totp_at(begin["secret"])}
+    )
     assert confirmed["ok"] is True
     assert a.is_enrolled("user-enroll-shared") is True
     assert b.is_enrolled("user-enroll-shared") is True
@@ -116,7 +118,10 @@ def test_concurrent_totp_confirm_one_success() -> None:
             return "failure"
 
     with ThreadPoolExecutor(max_workers=2) as pool:
-        results = [fut.result() for fut in as_completed([pool.submit(attempt), pool.submit(attempt)])]
+        results = [
+            fut.result()
+            for fut in as_completed([pool.submit(attempt), pool.submit(attempt)])
+        ]
     assert results.count("success") == 1
     assert results.count("failure") == 1
     assert TotpAdapter(persistence).is_enrolled("user-concurrent-enroll") is True
@@ -133,7 +138,9 @@ def test_totp_pending_is_user_bound() -> None:
         TotpAdapter(_persistence()).confirm_enroll(
             "user-alice", {"code": totp_at(begin_a["secret"])}
         )
-    confirmed = adapter.confirm_enroll("user-alice", {"code": totp_at(begin_a["secret"])})
+    confirmed = adapter.confirm_enroll(
+        "user-alice", {"code": totp_at(begin_a["secret"])}
+    )
     assert confirmed["ok"] is True
     assert adapter.is_enrolled("user-bob") is False
 
@@ -175,14 +182,16 @@ def test_expired_stepup_jti_fails() -> None:
     payload = gw._jwt.decode(token)  # noqa: SLF001
     jti = str(payload["jti"])
     persistence.delete("metadata", f"auth-mfa-stepup-{jti}")
-    gw._pending_store.put_stepup(jti=jti, user_id="user-stepup-expired", ttl_seconds=0)  # noqa: SLF001
+    gw._pending_store.put_stepup(
+        jti=jti, user_id="user-stepup-expired", ttl_seconds=0
+    )  # noqa: SLF001
     with pytest.raises(AuthenticationError, match="Invalid or expired MFA challenge"):
         gw.resolve_mfa_token(token)
 
 
 def test_expired_stepup_jwt_fails() -> None:
     gw = _gateway(_persistence())
-    past = (datetime.now(tz=timezone.utc) - timedelta(seconds=10)).isoformat()
+    past = (datetime.now(tz=UTC) - timedelta(seconds=10)).isoformat()
     token = gw._jwt.issue(  # noqa: SLF001
         subject="user-jwt-expired",
         expires_in=1,
@@ -231,7 +240,10 @@ def test_concurrent_stepup_consume_one_success() -> None:
             return "failure"
 
     with ThreadPoolExecutor(max_workers=2) as pool:
-        results = [fut.result() for fut in as_completed([pool.submit(attempt), pool.submit(attempt)])]
+        results = [
+            fut.result()
+            for fut in as_completed([pool.submit(attempt), pool.submit(attempt)])
+        ]
     assert results.count("success") == 1
     assert results.count("failure") == 1
 
@@ -290,7 +302,9 @@ def test_webauthn_wrong_kind_is_rejected() -> None:
             "created_at": time.time(),
         },
     )
-    with pytest.raises(AuthenticationError, match="Invalid or expired registration challenge"):
+    with pytest.raises(
+        AuthenticationError, match="Invalid or expired registration challenge"
+    ):
         adapter.complete_registration(
             "user-1", {"state": "reg-as-auth", "credential": fx._REG_CREDENTIAL}
         )
@@ -316,7 +330,9 @@ def test_webauthn_wrong_user_cannot_complete_registration() -> None:
             "created_at": time.time(),
         },
     )
-    with pytest.raises(AuthenticationError, match="Invalid or expired registration challenge"):
+    with pytest.raises(
+        AuthenticationError, match="Invalid or expired registration challenge"
+    ):
         adapter.complete_registration(
             "user-2", {"state": "reg-user-bound", "credential": fx._REG_CREDENTIAL}
         )
@@ -324,7 +340,7 @@ def test_webauthn_wrong_user_cannot_complete_registration() -> None:
 
 def test_webauthn_expired_and_replay() -> None:
     store = MfaPendingStore(_persistence())
-    past = datetime.now(tz=timezone.utc) - timedelta(seconds=10_000)
+    past = datetime.now(tz=UTC) - timedelta(seconds=10_000)
     store.put_webauthn_pending(
         "state-expired",
         kind="authentication",
@@ -356,10 +372,17 @@ def test_concurrent_webauthn_consume_one_success() -> None:
     def attempt() -> str:
         store = MfaPendingStore(persistence)
         barrier.wait()
-        return "success" if store.consume_webauthn_pending("state-concurrent") else "failure"
+        return (
+            "success"
+            if store.consume_webauthn_pending("state-concurrent")
+            else "failure"
+        )
 
     with ThreadPoolExecutor(max_workers=2) as pool:
-        results = [fut.result() for fut in as_completed([pool.submit(attempt), pool.submit(attempt)])]
+        results = [
+            fut.result()
+            for fut in as_completed([pool.submit(attempt), pool.submit(attempt)])
+        ]
     assert results.count("success") == 1
     assert results.count("failure") == 1
 
@@ -371,8 +394,12 @@ def test_shared_webauthn_adapter_seed_on_a_complete_on_b() -> None:
     persistence = _persistence()
     users = fx._FakeUsers()
     users.add("user-1")
-    a = WebAuthnAdapter(persistence, users, rp_id="localhost", origin="http://localhost:5000")
-    b = WebAuthnAdapter(persistence, users, rp_id="localhost", origin="http://localhost:5000")
+    a = WebAuthnAdapter(
+        persistence, users, rp_id="localhost", origin="http://localhost:5000"
+    )
+    b = WebAuthnAdapter(
+        persistence, users, rp_id="localhost", origin="http://localhost:5000"
+    )
     a.seed_pending(
         "reg-cross",
         {
@@ -415,7 +442,9 @@ def test_pending_entity_ids_are_hmac_not_raw_identifiers() -> None:
     )
     payload = str((totp_row or {}).get("payload") or {})
     assert begin["secret"] not in payload
-    assert str((totp_row or {}).get("payload", {}).get("secret") or "").startswith("enc:v1:")
+    assert str((totp_row or {}).get("payload", {}).get("secret") or "").startswith(
+        "enc:v1:"
+    )
 
 
 def test_pending_logs_do_not_contain_secrets(caplog: pytest.LogCaptureFixture) -> None:
@@ -445,7 +474,7 @@ def test_mfa_enable_does_not_reintroduce_process_local_pending(
         text = (src_dir / name).read_text(encoding="utf-8")
         assert "self._pending =" not in text
         assert "_pending: dict" not in text
-        assert "f\"mfa-pending:" not in text
+        assert 'f"mfa-pending:' not in text
     persistence = _persistence()
     gw = build_mfa_gateway(persistence=persistence, users=None, jwt=_jwt())
     assert gw._pending_store is not None  # noqa: SLF001
@@ -460,7 +489,9 @@ def test_disable_clears_pending_enrollment() -> None:
         adapter.confirm_enroll("user-disable", {"code": totp_at(begin["secret"])})
 
 
-def test_build_mfa_gateway_disabled_has_no_authoritative_pending(monkeypatch: pytest.MonkeyPatch) -> None:
+def test_build_mfa_gateway_disabled_has_no_authoritative_pending(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
     monkeypatch.setenv("DSP_AUTH_MFA", "false")
     gw = build_mfa_gateway(persistence=_persistence(), jwt=_jwt())
     assert gw._pending_store is None  # noqa: SLF001

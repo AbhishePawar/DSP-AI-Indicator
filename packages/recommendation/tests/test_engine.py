@@ -37,9 +37,7 @@ def _assemble() -> AssemblyResult:
                 recommendation_name="Demo Recommendation",
             ),
             decision_refs=(
-                DecisionReference(
-                    instrument_symbol="AAA", digest="abcdef0123456789"
-                ),
+                DecisionReference(instrument_symbol="AAA", digest="abcdef0123456789"),
             ),
             comparison_refs=(ComparisonReference(digest="abcdef0123456789"),),
             portfolio_ref=PortfolioReference(portfolio_id="dsp.portfolio.demo"),
@@ -191,10 +189,7 @@ class TestEngineValidation:
 class TestEngineBoundaries:
     def test_no_mapper_or_upstream_engines(self) -> None:
         source = (
-            Path(__file__).resolve().parents[1]
-            / "src"
-            / "recommendation"
-            / "engine.py"
+            Path(__file__).resolve().parents[1] / "src" / "recommendation" / "engine.py"
         ).read_text(encoding="utf-8")
         assert "RecommendationMapper" not in source
         assert "from quantitative_risk" not in source

@@ -2,7 +2,8 @@
 
 from __future__ import annotations
 
-from typing import Any, Mapping, Protocol
+from collections.abc import Mapping
+from typing import Any, Protocol
 
 from persistence.models import PersistedEntity, PersistenceSnapshot
 
@@ -30,7 +31,9 @@ class StorageProviderPort(Protocol):
 
     def snapshot_state(self) -> dict[str, dict[str, Mapping[str, Any]]]: ...
 
-    def restore_state(self, state: Mapping[str, Mapping[str, Mapping[str, Any]]]) -> None: ...
+    def restore_state(
+        self, state: Mapping[str, Mapping[str, Mapping[str, Any]]]
+    ) -> None: ...
 
     def atomic_consume_unexpired(
         self,

@@ -15,7 +15,6 @@ from datetime import date, datetime
 from contracts.domain.evidence import Evidence
 from contracts.enums import SignalDirection
 from core.exceptions import ValidationError
-
 from economic.enums import EconomicCondition, Recommendation
 
 

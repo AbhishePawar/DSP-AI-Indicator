@@ -2,13 +2,13 @@
 
 from __future__ import annotations
 
-from data_engine.exceptions import InvalidProviderDataError
 from data_engine.corporate_actions.models import (
     ACTION_TYPES,
     AuthenticatedCorporateAction,
     AuthenticatedCorporateActions,
     CorporateActionField,
 )
+from data_engine.exceptions import InvalidProviderDataError
 
 __all__ = ["validate_authenticated_corporate_actions"]
 

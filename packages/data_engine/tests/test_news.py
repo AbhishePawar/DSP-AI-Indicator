@@ -2,13 +2,12 @@
 
 from __future__ import annotations
 
-import os
 from datetime import UTC, datetime
 
 import pytest
+
 from contracts.domain.instrument import Instrument
 from contracts.enums import AssetClass
-
 from data_engine import (
     AlphaVantageNewsAdapter,
     CircuitOpenError,
@@ -27,7 +26,6 @@ from data_engine import (
     YahooFinanceNewsAdapter,
     build_default_news_registry_from_env,
     build_news_feed_from_mapping,
-    validate_authenticated_news_feed,
 )
 
 
@@ -153,7 +151,9 @@ class TestYahooFinanceNewsAdapter:
         assert feed.articles[0].related_symbols == ("AAPL",)
 
     def test_empty_news_returns_none(self) -> None:
-        adapter = YahooFinanceNewsAdapter(enabled=True, http_client=_FakeJsonClient({"news": []}))
+        adapter = YahooFinanceNewsAdapter(
+            enabled=True, http_client=_FakeJsonClient({"news": []})
+        )
         assert adapter.get_news(NewsQuery(instrument=_instrument())) is None
 
 
@@ -231,8 +231,12 @@ class TestPolygonNewsAdapter:
 class TestNewsProviderRegistryAndFailover:
     def test_registry_orders_by_priority(self) -> None:
         registry = NewsProviderRegistry()
-        registry.register(NullNewsAdapter(_provider_id="a"), provider_id="a", priority=50)
-        registry.register(NullNewsAdapter(_provider_id="b"), provider_id="b", priority=10)
+        registry.register(
+            NullNewsAdapter(_provider_id="a"), provider_id="a", priority=50
+        )
+        registry.register(
+            NullNewsAdapter(_provider_id="b"), provider_id="b", priority=10
+        )
         assert registry.ordered_ids() == ("b", "a")
 
     def test_failover_across_providers(self) -> None:
@@ -287,7 +291,9 @@ class TestBuildDefaultRegistryFromEnv:
         registry = build_default_news_registry_from_env()
         assert registry.ordered_ids() == ("null_news",)
 
-    def test_registers_configured_vendors(self, monkeypatch: pytest.MonkeyPatch) -> None:
+    def test_registers_configured_vendors(
+        self, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
         monkeypatch.setenv("DSP_NEWS_FMP_API_KEY", "key123")
         monkeypatch.setenv("DSP_NEWS_YAHOO_ENABLED", "1")
         registry = build_default_news_registry_from_env()
@@ -339,7 +345,9 @@ class TestNewsServiceResilience:
             def health(self):
                 from data_engine import ProviderHealth
 
-                return ProviderHealth(provider_id="flaky", healthy=False, authenticated=False, detail="x")
+                return ProviderHealth(
+                    provider_id="flaky", healthy=False, authenticated=False, detail="x"
+                )
 
         from data_engine import CircuitBreaker, RetryPolicy
 

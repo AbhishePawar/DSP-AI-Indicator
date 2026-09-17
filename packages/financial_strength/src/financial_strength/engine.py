@@ -4,7 +4,6 @@ from __future__ import annotations
 
 from business_quality import BusinessQualityAnalysis
 from financial import FinancialAnalysis
-
 from financial_strength.exceptions import FinancialStrengthValidationError
 from financial_strength.explainability import (
     FINANCIAL_STRENGTH_RESEARCH_DISCLAIMER,

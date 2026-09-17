@@ -133,7 +133,9 @@ def login(body: LoginRequest, request: Request) -> JSONResponse:
             status = 401
             if exc.__class__.__name__ == "RateLimitError":
                 status = 429
-            raise ApiError(str(exc) or "invalid credentials", status_code=status) from exc
+            raise ApiError(
+                str(exc) or "invalid credentials", status_code=status
+            ) from exc
         user = bundle.users.get_by_username(username)
         return _maybe_set_cookies(
             {
@@ -231,7 +233,6 @@ def logout(request: Request) -> JSONResponse:
     """Invalidate cookie session (EPIC-016)."""
     from security_platform import (
         REFRESH_COOKIE,
-        SESSION_COOKIE,
         clear_auth_cookies,
         cookie_auth_enabled,
     )

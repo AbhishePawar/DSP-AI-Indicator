@@ -6,8 +6,9 @@ never imports api_platform or production_platform.
 
 from __future__ import annotations
 
+from collections.abc import Callable
 from dataclasses import dataclass
-from typing import Any, Callable
+from typing import Any
 
 __all__ = ["ProductionOpsDeps"]
 

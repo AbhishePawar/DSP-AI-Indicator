@@ -26,20 +26,28 @@ def audit(persistence: PersistenceService) -> AuditLogger:
 
 
 @pytest.fixture
-def tokens(persistence: PersistenceService, audit: AuditLogger) -> SingleUseTokenService:
+def tokens(
+    persistence: PersistenceService, audit: AuditLogger
+) -> SingleUseTokenService:
     return SingleUseTokenService(persistence, audit=audit)
 
 
 def test_issue_returns_high_entropy_opaque_token(tokens: SingleUseTokenService) -> None:
-    token = tokens.issue(purpose="magic_link", ttl=timedelta(minutes=15), data={"email": "a@b.com"})
+    token = tokens.issue(
+        purpose="magic_link", ttl=timedelta(minutes=15), data={"email": "a@b.com"}
+    )
     assert isinstance(token, str)
     assert len(token) >= 32
-    other = tokens.issue(purpose="magic_link", ttl=timedelta(minutes=15), data={"email": "a@b.com"})
+    other = tokens.issue(
+        purpose="magic_link", ttl=timedelta(minutes=15), data={"email": "a@b.com"}
+    )
     assert token != other
 
 
 def test_consume_succeeds_exactly_once(tokens: SingleUseTokenService) -> None:
-    token = tokens.issue(purpose="magic_link", ttl=timedelta(minutes=15), data={"email": "a@b.com"})
+    token = tokens.issue(
+        purpose="magic_link", ttl=timedelta(minutes=15), data={"email": "a@b.com"}
+    )
     record = tokens.consume(purpose="magic_link", token=token)
     assert record.data["email"] == "a@b.com"
 
@@ -53,7 +61,9 @@ def test_consume_rejects_unknown_token(tokens: SingleUseTokenService) -> None:
 
 
 def test_consume_rejects_expired_token(tokens: SingleUseTokenService) -> None:
-    token = tokens.issue(purpose="email_verify", ttl=timedelta(seconds=-1), user_id="u1")
+    token = tokens.issue(
+        purpose="email_verify", ttl=timedelta(seconds=-1), user_id="u1"
+    )
     with pytest.raises(SingleUseTokenError):
         tokens.consume(purpose="email_verify", token=token)
     # Expired tokens are burned on first attempt — cannot be retried either.
@@ -77,29 +87,42 @@ def test_issue_rejects_empty_purpose(tokens: SingleUseTokenService) -> None:
 
 
 def test_user_binding_enforced(tokens: SingleUseTokenService) -> None:
-    token = tokens.issue(purpose="password_reset", ttl=timedelta(hours=1), user_id="user-a")
+    token = tokens.issue(
+        purpose="password_reset", ttl=timedelta(hours=1), user_id="user-a"
+    )
     with pytest.raises(SingleUseTokenError):
         tokens.consume(purpose="password_reset", token=token, user_id="user-b")
 
 
 def test_user_binding_matching_id_succeeds(tokens: SingleUseTokenService) -> None:
-    token = tokens.issue(purpose="password_reset", ttl=timedelta(hours=1), user_id="user-a")
+    token = tokens.issue(
+        purpose="password_reset", ttl=timedelta(hours=1), user_id="user-a"
+    )
     record = tokens.consume(purpose="password_reset", token=token, user_id="user-a")
     assert record.user_id == "user-a"
 
 
 def test_organization_binding_enforced(tokens: SingleUseTokenService) -> None:
     token = tokens.issue(
-        purpose="invitation", ttl=timedelta(hours=72), organization_id="org-1", data={"role": "member"}
+        purpose="invitation",
+        ttl=timedelta(hours=72),
+        organization_id="org-1",
+        data={"role": "member"},
     )
     with pytest.raises(SingleUseTokenError):
         tokens.consume(purpose="invitation", token=token, organization_id="org-2")
 
 
-def test_no_binding_required_when_not_supplied_at_issue(tokens: SingleUseTokenService) -> None:
+def test_no_binding_required_when_not_supplied_at_issue(
+    tokens: SingleUseTokenService,
+) -> None:
     """Magic-link-style flows issue without a user_id (account may not exist yet)."""
-    token = tokens.issue(purpose="magic_link", ttl=timedelta(minutes=15), data={"email": "x@y.com"})
-    record = tokens.consume(purpose="magic_link", token=token, user_id="does-not-matter")
+    token = tokens.issue(
+        purpose="magic_link", ttl=timedelta(minutes=15), data={"email": "x@y.com"}
+    )
+    record = tokens.consume(
+        purpose="magic_link", token=token, user_id="does-not-matter"
+    )
     assert record.data["email"] == "x@y.com"
 
 
@@ -155,7 +178,9 @@ def test_peek_missing_token_returns_none(tokens: SingleUseTokenService) -> None:
 def test_raw_token_never_persisted_in_plaintext(
     tokens: SingleUseTokenService, persistence: PersistenceService
 ) -> None:
-    token = tokens.issue(purpose="magic_link", ttl=timedelta(minutes=15), data={"email": "a@b.com"})
+    token = tokens.issue(
+        purpose="magic_link", ttl=timedelta(minutes=15), data={"email": "a@b.com"}
+    )
     for entity_id in persistence.list_ids("metadata"):
         row = persistence.get("metadata", entity_id)
         assert row is not None
@@ -201,7 +226,9 @@ def test_key_rotation_invalidates_tokens_hashed_under_old_key(
     assert record.purpose == "magic_link"
 
 
-def test_hmac_secret_changes_digest_but_not_behavior(persistence: PersistenceService) -> None:
+def test_hmac_secret_changes_digest_but_not_behavior(
+    persistence: PersistenceService,
+) -> None:
     keyed = SingleUseTokenService(persistence, secret="super-secret-key")
     token = keyed.issue(purpose="email_verify", ttl=timedelta(hours=1), user_id="u1")
     record = keyed.consume(purpose="email_verify", token=token)
@@ -217,7 +244,9 @@ def test_hmac_secret_changes_digest_but_not_behavior(persistence: PersistenceSer
 def test_concurrent_consume_only_one_winner(tokens: SingleUseTokenService) -> None:
     import threading
 
-    token = tokens.issue(purpose="magic_link", ttl=timedelta(minutes=15), data={"email": "race@x.com"})
+    token = tokens.issue(
+        purpose="magic_link", ttl=timedelta(minutes=15), data={"email": "race@x.com"}
+    )
     results: list[bool] = []
     lock = threading.Lock()
 

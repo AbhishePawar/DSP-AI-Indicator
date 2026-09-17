@@ -3,12 +3,13 @@
 from __future__ import annotations
 
 import pytest
+
+from comparison import ComparisonError, ComparisonStatus
+from decision_intelligence import AssuranceLevel
 from industry import (
     EvidenceBundleAssemblyContext,
     seed_example_evidence_bundle_assembler,
 )
-
-from comparison import ComparisonError, ComparisonStatus
 
 from .test_comparison import (
     _engine,
@@ -17,7 +18,6 @@ from .test_comparison import (
     _with_mos,
     make_pack,
 )
-from decision_intelligence import AssuranceLevel
 
 
 def _banking_bundles(

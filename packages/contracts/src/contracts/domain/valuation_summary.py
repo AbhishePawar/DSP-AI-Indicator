@@ -46,9 +46,7 @@ class ValuationSummary:
         confidence = ensure_non_empty_str(
             self.confidence, field_name="confidence"
         ).lower()
-        currency = ensure_non_empty_str(
-            self.currency, field_name="currency"
-        ).upper()
+        currency = ensure_non_empty_str(self.currency, field_name="currency").upper()
         low, mid, high = (
             self.intrinsic_low,
             self.intrinsic_mid,
@@ -61,9 +59,7 @@ class ValuationSummary:
             msg = f"intrinsic_mid ({mid}) must not be below intrinsic_low ({low})"
             raise ContractValidationError(msg)
         if mid is not None and high is not None and mid > high:
-            msg = (
-                f"intrinsic_mid ({mid}) must not exceed intrinsic_high ({high})"
-            )
+            msg = f"intrinsic_mid ({mid}) must not exceed intrinsic_high ({high})"
             raise ContractValidationError(msg)
         object.__setattr__(self, "confidence", confidence)
         object.__setattr__(self, "currency", currency)

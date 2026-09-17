@@ -91,9 +91,7 @@ class ReportingContext:
             )
             raise RecommendationError(msg)
         if self.summary_sections is not None:
-            object.__setattr__(
-                self, "summary_sections", tuple(self.summary_sections)
-            )
+            object.__setattr__(self, "summary_sections", tuple(self.summary_sections))
         object.__setattr__(
             self,
             "limitations",
@@ -276,9 +274,7 @@ class RecommendationReporter:
 
     def report_many(
         self,
-        contexts: tuple[
-            ReportingContext | RecommendationReport | EngineResult, ...
-        ],
+        contexts: tuple[ReportingContext | RecommendationReport | EngineResult, ...],
     ) -> tuple[ReportingResult, ...]:
         """Present many reports; reject duplicate recommendation identities."""
         seen: set[str] = set()
@@ -363,9 +359,7 @@ class RecommendationReporter:
                 CitationSection(
                     section_key="quantitative_risk",
                     title="Quantitative risk citations",
-                    citations=tuple(
-                        r.citation for r in source.quantitative_risk_refs
-                    ),
+                    citations=tuple(r.citation for r in source.quantitative_risk_refs),
                 )
             )
         return tuple(sections)

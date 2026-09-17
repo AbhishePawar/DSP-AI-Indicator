@@ -18,9 +18,7 @@ class TestPerformanceSmoke:
         platform: DSPPlatform = build_platform()
         startup_s = time.perf_counter() - start
 
-        request = platform.make_request(
-            instrument, date(2024, 1, 1), date(2024, 6, 1)
-        )
+        request = platform.make_request(instrument, date(2024, 1, 1), date(2024, 6, 1))
         analyze_start = time.perf_counter()
         result = platform.analyze(request)
         analyze_s = time.perf_counter() - analyze_start

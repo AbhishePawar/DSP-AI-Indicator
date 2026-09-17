@@ -15,11 +15,20 @@ import json
 
 import pytest
 
-from auth import AuthService, RoleRegistry, reset_auth_service_for_tests, reset_role_registry_for_tests
+from auth import (
+    AuthService,
+    RoleRegistry,
+    reset_auth_service_for_tests,
+    reset_role_registry_for_tests,
+)
 from auth.enterprise_models import AuthProvider
 from auth.enterprise_platform import EnterpriseAuthPlatform
 from auth.exceptions import AuthenticationError, OAuthChallengeError, ValidationError
-from auth.oauth_providers import OAuthProfile, OAuthProviderAdapter, build_oauth_registry
+from auth.oauth_providers import (
+    OAuthProfile,
+    OAuthProviderAdapter,
+    build_oauth_registry,
+)
 from auth.otp import OtpService
 from auth.sms import DevSmsAdapter
 from persistence import (
@@ -49,7 +58,7 @@ class _FakeResponse:
     def read(self) -> bytes:
         return self._body
 
-    def __enter__(self) -> "_FakeResponse":
+    def __enter__(self) -> _FakeResponse:
         return self
 
     def __exit__(self, *exc: object) -> None:
@@ -94,7 +103,9 @@ def test_begin_login_facebook_no_nonce_no_prompt_no_access_type() -> None:
     adapter = _facebook_adapter()
     begin = adapter.begin_login(redirect_uri="https://app.dspai.local/callback")
     assert begin["available"] is True
-    assert begin["authorization_url"].startswith("https://www.facebook.com/v19.0/dialog/oauth?")
+    assert begin["authorization_url"].startswith(
+        "https://www.facebook.com/v19.0/dialog/oauth?"
+    )
     assert "nonce" not in begin["authorization_url"]
     assert "access_type" not in begin["authorization_url"]
     assert "prompt" not in begin["authorization_url"]
@@ -141,7 +152,9 @@ def test_registry_reads_client_id_env_alias(monkeypatch: pytest.MonkeyPatch) -> 
     assert adapter.has_credentials()
 
 
-def test_registry_falls_back_to_legacy_app_id_env(monkeypatch: pytest.MonkeyPatch) -> None:
+def test_registry_falls_back_to_legacy_app_id_env(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
     monkeypatch.delenv("DSP_FACEBOOK_CLIENT_ID", raising=False)
     monkeypatch.delenv("DSP_FACEBOOK_CLIENT_SECRET", raising=False)
     monkeypatch.setenv("DSP_FACEBOOK_APP_ID", "legacy-id")
@@ -172,7 +185,9 @@ def test_complete_login_maps_full_profile(monkeypatch) -> None:
     )
 
     profile = adapter.complete_login(
-        code="auth-code", state=begin["state"], redirect_uri="https://app.dspai.local/callback"
+        code="auth-code",
+        state=begin["state"],
+        redirect_uri="https://app.dspai.local/callback",
     )
     assert profile.provider == "FACEBOOK"
     assert profile.subject == "fb-user-1"
@@ -185,12 +200,16 @@ def test_complete_login_maps_full_profile(monkeypatch) -> None:
     assert profile.raw_claims["locale"] == "en_US"
 
 
-def test_complete_login_builds_display_name_from_first_last_when_name_missing(monkeypatch) -> None:
+def test_complete_login_builds_display_name_from_first_last_when_name_missing(
+    monkeypatch,
+) -> None:
     adapter = _facebook_adapter()
     begin = adapter.begin_login(redirect_uri="https://app.dspai.local/callback")
 
     monkeypatch.setattr(
-        adapter, "_exchange_code", lambda code, redirect_uri, verifier: {"access_token": "at-1"}
+        adapter,
+        "_exchange_code",
+        lambda code, redirect_uri, verifier: {"access_token": "at-1"},
     )
     monkeypatch.setattr(
         "urllib.request.urlopen",
@@ -200,7 +219,9 @@ def test_complete_login_builds_display_name_from_first_last_when_name_missing(mo
     )
 
     profile = adapter.complete_login(
-        code="auth-code", state=begin["state"], redirect_uri="https://app.dspai.local/callback"
+        code="auth-code",
+        state=begin["state"],
+        redirect_uri="https://app.dspai.local/callback",
     )
     assert profile.name == "Alex Kim"
 
@@ -213,7 +234,9 @@ def test_complete_login_missing_email_is_unverified_not_an_error(monkeypatch) ->
     begin = adapter.begin_login(redirect_uri="https://app.dspai.local/callback")
 
     monkeypatch.setattr(
-        adapter, "_exchange_code", lambda code, redirect_uri, verifier: {"access_token": "at-1"}
+        adapter,
+        "_exchange_code",
+        lambda code, redirect_uri, verifier: {"access_token": "at-1"},
     )
     monkeypatch.setattr(
         "urllib.request.urlopen",
@@ -221,7 +244,9 @@ def test_complete_login_missing_email_is_unverified_not_an_error(monkeypatch) ->
     )
 
     profile = adapter.complete_login(
-        code="auth-code", state=begin["state"], redirect_uri="https://app.dspai.local/callback"
+        code="auth-code",
+        state=begin["state"],
+        redirect_uri="https://app.dspai.local/callback",
     )
     assert profile.email is None
     assert profile.email_verified is False
@@ -232,7 +257,9 @@ def test_complete_login_rejects_missing_subject(monkeypatch) -> None:
     begin = adapter.begin_login(redirect_uri="https://app.dspai.local/callback")
 
     monkeypatch.setattr(
-        adapter, "_exchange_code", lambda code, redirect_uri, verifier: {"access_token": "at-1"}
+        adapter,
+        "_exchange_code",
+        lambda code, redirect_uri, verifier: {"access_token": "at-1"},
     )
     monkeypatch.setattr(
         "urllib.request.urlopen",
@@ -241,7 +268,9 @@ def test_complete_login_rejects_missing_subject(monkeypatch) -> None:
 
     with pytest.raises(AuthenticationError, match="user id"):
         adapter.complete_login(
-            code="auth-code", state=begin["state"], redirect_uri="https://app.dspai.local/callback"
+            code="auth-code",
+            state=begin["state"],
+            redirect_uri="https://app.dspai.local/callback",
         )
 
 
@@ -258,7 +287,9 @@ def test_complete_login_rejects_invalid_access_token(monkeypatch) -> None:
 
     with pytest.raises(AuthenticationError, match="token exchange failed"):
         adapter.complete_login(
-            code="auth-code", state=begin["state"], redirect_uri="https://app.dspai.local/callback"
+            code="auth-code",
+            state=begin["state"],
+            redirect_uri="https://app.dspai.local/callback",
         )
 
 
@@ -267,7 +298,9 @@ def test_complete_login_rejects_invalid_state_replay(monkeypatch) -> None:
     begin = adapter.begin_login(redirect_uri="https://app.dspai.local/callback")
 
     monkeypatch.setattr(
-        adapter, "_exchange_code", lambda code, redirect_uri, verifier: {"access_token": "at-1"}
+        adapter,
+        "_exchange_code",
+        lambda code, redirect_uri, verifier: {"access_token": "at-1"},
     )
     monkeypatch.setattr(
         "urllib.request.urlopen",
@@ -275,17 +308,23 @@ def test_complete_login_rejects_invalid_state_replay(monkeypatch) -> None:
     )
 
     adapter.complete_login(
-        code="auth-code", state=begin["state"], redirect_uri="https://app.dspai.local/callback"
+        code="auth-code",
+        state=begin["state"],
+        redirect_uri="https://app.dspai.local/callback",
     )
     with pytest.raises(OAuthChallengeError) as replayed:
         adapter.complete_login(
-            code="auth-code-2", state=begin["state"], redirect_uri="https://app.dspai.local/callback"
+            code="auth-code-2",
+            state=begin["state"],
+            redirect_uri="https://app.dspai.local/callback",
         )
     assert replayed.value.reason == "replayed"
 
     with pytest.raises(OAuthChallengeError) as unknown:
         adapter.complete_login(
-            code="auth-code-3", state="never-issued-state", redirect_uri="https://app.dspai.local/callback"
+            code="auth-code-3",
+            state="never-issued-state",
+            redirect_uri="https://app.dspai.local/callback",
         )
     assert unknown.value.reason == "unknown"
 
@@ -295,7 +334,9 @@ def test_complete_login_surfaces_userinfo_failure(monkeypatch) -> None:
     begin = adapter.begin_login(redirect_uri="https://app.dspai.local/callback")
 
     monkeypatch.setattr(
-        adapter, "_exchange_code", lambda code, redirect_uri, verifier: {"access_token": "at-1"}
+        adapter,
+        "_exchange_code",
+        lambda code, redirect_uri, verifier: {"access_token": "at-1"},
     )
 
     def _boom(req, timeout=20):
@@ -305,7 +346,9 @@ def test_complete_login_surfaces_userinfo_failure(monkeypatch) -> None:
 
     with pytest.raises(AuthenticationError, match="OAuth userinfo failed"):
         adapter.complete_login(
-            code="auth-code", state=begin["state"], redirect_uri="https://app.dspai.local/callback"
+            code="auth-code",
+            state=begin["state"],
+            redirect_uri="https://app.dspai.local/callback",
         )
 
 
@@ -332,7 +375,11 @@ def platform():
     reset_repository_registry_for_tests(None)
 
 
-def _fb_profile(subject: str = "fb-user-1", email: str | None = "jamie@example.com", verified: bool = True):
+def _fb_profile(
+    subject: str = "fb-user-1",
+    email: str | None = "jamie@example.com",
+    verified: bool = True,
+):
     return OAuthProfile(
         provider="FACEBOOK",
         subject=subject,
@@ -344,18 +391,24 @@ def _fb_profile(subject: str = "fb-user-1", email: str | None = "jamie@example.c
     )
 
 
-def test_oauth_callback_new_account_provisioning(platform: EnterpriseAuthPlatform) -> None:
+def test_oauth_callback_new_account_provisioning(
+    platform: EnterpriseAuthPlatform,
+) -> None:
     result = platform._login_from_oauth_profile(_fb_profile())
     assert result["tokens"]["access_token"]
     assert result["tokens"]["refresh_token"]
     user = platform._get_by_provider_subject("FACEBOOK", "fb-user-1")
     assert user is not None
     assert user.email == "jamie@example.com"
-    events = platform.audit.list_events(user_id=user.user_id, event_type="oauth.facebook.login")
+    events = platform.audit.list_events(
+        user_id=user.user_id, event_type="oauth.facebook.login"
+    )
     assert events
 
 
-def test_oauth_callback_links_existing_verified_email_account(platform: EnterpriseAuthPlatform) -> None:
+def test_oauth_callback_links_existing_verified_email_account(
+    platform: EnterpriseAuthPlatform,
+) -> None:
     reg = platform.register_email(
         name="Jamie Rivera",
         email="jamie@example.com",
@@ -370,7 +423,9 @@ def test_oauth_callback_links_existing_verified_email_account(platform: Enterpri
     assert user is not None
     links = user.metadata.get("linked_providers") or []
     assert any(lnk["provider"] == "FACEBOOK" for lnk in links)
-    all_users = [u for u in platform.auth.users.list_users() if u.email == "jamie@example.com"]
+    all_users = [
+        u for u in platform.auth.users.list_users() if u.email == "jamie@example.com"
+    ]
     assert len(all_users) == 1
 
 
@@ -412,7 +467,9 @@ def test_oauth_callback_records_failure_and_callback_events(
 def test_oauth_callback_records_callback_and_login_events_on_success(
     platform: EnterpriseAuthPlatform, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    monkeypatch.setattr(platform.oauth, "complete", lambda provider, **kwargs: _fb_profile())
+    monkeypatch.setattr(
+        platform.oauth, "complete", lambda provider, **kwargs: _fb_profile()
+    )
     result = platform.oauth_callback(
         "FACEBOOK", code="good", state="s", redirect_uri="https://app/callback"
     )
@@ -437,21 +494,33 @@ def test_link_oauth_provider_binds_facebook_to_authenticated_user(
     monkeypatch.setattr(
         platform.oauth,
         "complete",
-        lambda provider, **kwargs: _fb_profile(subject="fb-owner-1", email="owner@example.com"),
+        lambda provider, **kwargs: _fb_profile(
+            subject="fb-owner-1", email="owner@example.com"
+        ),
     )
     result = platform.link_oauth_provider(
-        user.user_id, "FACEBOOK", code="code", state="state", redirect_uri="https://app/callback"
+        user.user_id,
+        "FACEBOOK",
+        code="code",
+        state="state",
+        redirect_uri="https://app/callback",
     )
     assert result["ok"] is True
-    assert any(lnk["provider"] == "FACEBOOK" for lnk in result["user"]["linkedProviders"])
-    events = platform.audit.list_events(user_id=user.user_id, event_type="oauth.facebook.link")
+    assert any(
+        lnk["provider"] == "FACEBOOK" for lnk in result["user"]["linkedProviders"]
+    )
+    events = platform.audit.list_events(
+        user_id=user.user_id, event_type="oauth.facebook.link"
+    )
     assert events
 
 
 def test_link_oauth_provider_rejects_facebook_identity_owned_by_other_user(
     platform: EnterpriseAuthPlatform, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    platform._login_from_oauth_profile(_fb_profile(subject="shared-fb-id", email="first@example.com"))
+    platform._login_from_oauth_profile(
+        _fb_profile(subject="shared-fb-id", email="first@example.com")
+    )
 
     reg = platform.register_email(
         name="Second",
@@ -466,28 +535,42 @@ def test_link_oauth_provider_rejects_facebook_identity_owned_by_other_user(
     monkeypatch.setattr(
         platform.oauth,
         "complete",
-        lambda provider, **kwargs: _fb_profile(subject="shared-fb-id", email="first@example.com"),
+        lambda provider, **kwargs: _fb_profile(
+            subject="shared-fb-id", email="first@example.com"
+        ),
     )
     with pytest.raises(ValidationError, match="already linked"):
         platform.link_oauth_provider(
-            second.user_id, "FACEBOOK", code="code", state="state", redirect_uri="https://app/callback"
+            second.user_id,
+            "FACEBOOK",
+            code="code",
+            state="state",
+            redirect_uri="https://app/callback",
         )
-    failures = platform.audit.list_events(user_id=second.user_id, event_type="oauth.facebook.failure")
+    failures = platform.audit.list_events(
+        user_id=second.user_id, event_type="oauth.facebook.failure"
+    )
     assert failures
 
 
-def test_unlink_facebook_provider_removes_link_and_records_audit(platform: EnterpriseAuthPlatform) -> None:
+def test_unlink_facebook_provider_removes_link_and_records_audit(
+    platform: EnterpriseAuthPlatform,
+) -> None:
     platform._login_from_oauth_profile(_fb_profile())
     user_id = platform._get_by_provider_subject("FACEBOOK", "fb-user-1").user_id  # type: ignore[union-attr]
 
     out = platform.unlink_provider(user_id, "FACEBOOK")
     links = out.get("linkedProviders") or []
     assert not any(lnk["provider"] == "FACEBOOK" for lnk in links)
-    events = platform.audit.list_events(user_id=user_id, event_type="oauth.facebook.unlink")
+    events = platform.audit.list_events(
+        user_id=user_id, event_type="oauth.facebook.unlink"
+    )
     assert events
 
 
-def test_logout_revokes_all_sessions_for_facebook_user(platform: EnterpriseAuthPlatform) -> None:
+def test_logout_revokes_all_sessions_for_facebook_user(
+    platform: EnterpriseAuthPlatform,
+) -> None:
     result = platform._login_from_oauth_profile(_fb_profile())
     user_id = platform._get_by_provider_subject("FACEBOOK", "fb-user-1").user_id  # type: ignore[union-attr]
     assert result["tokens"]["access_token"]

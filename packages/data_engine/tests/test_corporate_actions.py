@@ -7,9 +7,9 @@ from datetime import UTC, date, datetime
 from decimal import Decimal
 
 import pytest
+
 from contracts.domain.instrument import Instrument
 from contracts.enums import AssetClass
-
 from data_engine import (
     CircuitBreaker,
     CircuitOpenError,

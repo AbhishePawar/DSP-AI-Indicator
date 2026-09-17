@@ -133,9 +133,7 @@ class RecommendationMapper:
         return agreeing / len(votes)
 
     @staticmethod
-    def _action_matches_opinion(
-        action: RecommendationAction, opinion: Opinion
-    ) -> bool:
+    def _action_matches_opinion(action: RecommendationAction, opinion: Opinion) -> bool:
         mapped = RecommendationMapper._map_action(opinion.recommendation)
         return mapped is action
 

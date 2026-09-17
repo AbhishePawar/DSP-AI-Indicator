@@ -134,9 +134,7 @@ class TestPlatformBuilderAndInfo:
         fake = _FakeAnalysisService(_recommendation(instrument))
         platform = (
             PlatformBuilder()
-            .with_configuration(
-                PlatformConfiguration(environment=Environment.TEST)
-            )
+            .with_configuration(PlatformConfiguration(environment=Environment.TEST))
             .with_analysis_service(fake)  # type: ignore[arg-type]
             .build()
         )
@@ -176,9 +174,7 @@ class TestPlatformBuilderAndInfo:
         fake = _FakeAnalysisService(_recommendation(instrument))
         platform = (
             PlatformBuilder()
-            .with_configuration(
-                PlatformConfiguration(environment=Environment.TEST)
-            )
+            .with_configuration(PlatformConfiguration(environment=Environment.TEST))
             .with_analysis_service(fake)  # type: ignore[arg-type]
             .build()
         )
@@ -227,7 +223,5 @@ class TestFeatureFlagsPreserved:
             analysis_service=fake,  # type: ignore[arg-type]
             features=FeatureFlags(include_valuation=False),
         )
-        req = platform.make_request(
-            instrument, date(2024, 1, 1), date(2024, 6, 1)
-        )
+        req = platform.make_request(instrument, date(2024, 1, 1), date(2024, 6, 1))
         assert req.include_valuation is False

@@ -508,8 +508,7 @@ class AuthorizationManager:
         perm = assert_permission(permission)
         if not principal.has_permission(perm):
             raise AuthorizationError(
-                f"permission denied: {perm.value} "
-                f"(role={principal.role.value})"
+                f"permission denied: {perm.value} " f"(role={principal.role.value})"
             )
 
     def is_allowed(

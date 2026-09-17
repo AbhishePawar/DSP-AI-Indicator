@@ -178,7 +178,9 @@ def health_startup(state: ApiState = Depends(get_api_state)) -> JSONResponse:
     result = state.platform.run_production_ops(
         "startup", api_state=state, deps=build_production_ops_deps()
     )
-    code = 200 if result.get("ok") and (result.get("result") or {}).get("started") else 503
+    code = (
+        200 if result.get("ok") and (result.get("result") or {}).get("started") else 503
+    )
     return JSONResponse(result, status_code=code)
 
 

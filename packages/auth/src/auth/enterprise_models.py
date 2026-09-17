@@ -2,9 +2,10 @@
 
 from __future__ import annotations
 
+from collections.abc import Mapping
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Any, Mapping
+from typing import Any
 
 from auth.models import utc_now
 
@@ -243,8 +244,12 @@ def enterprise_user_public_dict(user: Any) -> dict[str, Any]:
             "role": (roles or [None])[0],
             "roles": roles,
             "status": base.get("status") or "active",
-            "emailVerified": bool(meta.get("email_verified") or base.get("email_verified")),
-            "phoneVerified": bool(meta.get("phone_verified") or base.get("phone_verified")),
+            "emailVerified": bool(
+                meta.get("email_verified") or base.get("email_verified")
+            ),
+            "phoneVerified": bool(
+                meta.get("phone_verified") or base.get("phone_verified")
+            ),
             "failedLoginCount": int(meta.get("failed_login_count") or 0),
             "lockedUntil": meta.get("locked_until"),
             "createdAt": base.get("created_at"),

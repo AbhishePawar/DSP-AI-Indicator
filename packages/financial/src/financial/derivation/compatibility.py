@@ -200,8 +200,7 @@ def _convert_units(
             for item, factor in zip(inputs, factors, strict=True)
         }
         refs = tuple(
-            item.to_ref(converted_value=values[item.field_id])
-            for item in inputs
+            item.to_ref(converted_value=values[item.field_id]) for item in inputs
         )
         return "actual", True, values, refs
 

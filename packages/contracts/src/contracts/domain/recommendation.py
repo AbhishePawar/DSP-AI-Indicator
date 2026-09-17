@@ -80,7 +80,5 @@ class Recommendation:
 
         object.__setattr__(self, "conviction", conviction)
         object.__setattr__(self, "rationale", rationale)
-        object.__setattr__(
-            self, "supporting_evidence", tuple(self.supporting_evidence)
-        )
+        object.__setattr__(self, "supporting_evidence", tuple(self.supporting_evidence))
         object.__setattr__(self, "dissenting_views", tuple(self.dissenting_views))

@@ -36,13 +36,17 @@ class ManagementMetadata:
         framework_version = self.framework_version.strip()
         schema_version = self.schema_version.strip()
         if not engine_version:
-            raise ManagementQualityValidationError("metadata.engine_version is required")
+            raise ManagementQualityValidationError(
+                "metadata.engine_version is required"
+            )
         if not framework_version:
             raise ManagementQualityValidationError(
                 "metadata.framework_version is required"
             )
         if not schema_version:
-            raise ManagementQualityValidationError("metadata.schema_version is required")
+            raise ManagementQualityValidationError(
+                "metadata.schema_version is required"
+            )
         object.__setattr__(self, "engine_version", engine_version)
         object.__setattr__(self, "framework_version", framework_version)
         object.__setattr__(self, "company", self.company.strip())

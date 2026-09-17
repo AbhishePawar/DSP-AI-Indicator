@@ -62,7 +62,11 @@ def get_repository_registry(
 ) -> RepositoryRegistry:
     global _REG
     if _REG is None:
-        _REG = RepositoryRegistry(storage=storage) if storage is not None else RepositoryRegistry()
+        _REG = (
+            RepositoryRegistry(storage=storage)
+            if storage is not None
+            else RepositoryRegistry()
+        )
     return _REG
 
 

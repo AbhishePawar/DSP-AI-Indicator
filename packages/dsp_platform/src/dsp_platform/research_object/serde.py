@@ -2,8 +2,9 @@
 
 from __future__ import annotations
 
+from collections.abc import Mapping
 from types import MappingProxyType
-from typing import Any, Mapping
+from typing import Any
 
 from dsp_platform.research_object.models import (
     RESEARCH_OBJECT_SCHEMA_VERSION,
@@ -45,9 +46,11 @@ def _section_from_dict(data: Mapping[str, Any], expected_name: str) -> ResearchS
         status=status,
         source=source,
         payload=freeze_mapping(dict(payload)) if isinstance(payload, Mapping) else None,
-        provenance=freeze_mapping(dict(provenance))
-        if isinstance(provenance, Mapping)
-        else None,
+        provenance=(
+            freeze_mapping(dict(provenance))
+            if isinstance(provenance, Mapping)
+            else None
+        ),
         message=data.get("message"),
         retrieved_at=data.get("retrieved_at"),
     )
@@ -71,9 +74,7 @@ def research_object_from_dict(data: Mapping[str, Any]) -> ResearchObject:
                 or RESEARCH_OBJECT_SCHEMA_VERSION
             ),
             object_version=str(version_raw.get("object_version") or "1"),
-            builder_version=str(
-                version_raw.get("builder_version") or _BUILDER_VERSION
-            ),
+            builder_version=str(version_raw.get("builder_version") or _BUILDER_VERSION),
         )
     else:
         version = ResearchVersion(
@@ -85,9 +86,7 @@ def research_object_from_dict(data: Mapping[str, Any]) -> ResearchObject:
         )
 
     pkg = meta_raw.get("package_versions") or {}
-    package_versions = MappingProxyType(
-        {str(k): str(v) for k, v in dict(pkg).items()}
-    )
+    package_versions = MappingProxyType({str(k): str(v) for k, v in dict(pkg).items()})
 
     metadata = ResearchMetadata(
         research_object_id=str(meta_raw.get("research_object_id") or ""),
@@ -140,12 +139,16 @@ def research_object_from_dict(data: Mapping[str, Any]) -> ResearchObject:
         audit=_section_from_dict(data.get("audit") or {}, "audit"),
         provenance=freeze_mapping(dict(provenance)) or MappingProxyType({}),
         version=version,
-        data_retrieval=freeze_mapping(dict(data["data_retrieval"]))
-        if isinstance(data.get("data_retrieval"), Mapping)
-        else None,
-        data_health=freeze_mapping(dict(data["data_health"]))
-        if isinstance(data.get("data_health"), Mapping)
-        else None,
+        data_retrieval=(
+            freeze_mapping(dict(data["data_retrieval"]))
+            if isinstance(data.get("data_retrieval"), Mapping)
+            else None
+        ),
+        data_health=(
+            freeze_mapping(dict(data["data_health"]))
+            if isinstance(data.get("data_health"), Mapping)
+            else None
+        ),
     )
     validate_research_object(obj)
     return obj

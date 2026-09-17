@@ -5,9 +5,10 @@ Read-only summaries of portfolios/watchlists linked to Research Objects.
 
 from __future__ import annotations
 
+from collections.abc import Mapping
 from dataclasses import dataclass, field
 from datetime import UTC, datetime
-from typing import Any, Mapping
+from typing import Any
 
 from dsp_platform.research_object.models import UNAVAILABLE_MESSAGE, freeze_mapping
 

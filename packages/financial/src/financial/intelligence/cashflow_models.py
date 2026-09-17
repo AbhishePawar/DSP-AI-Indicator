@@ -70,9 +70,7 @@ class OperatingCashMetrics:
             "cash_conversion": self.cash_conversion,
             "cash_flow_stability": self.cash_flow_stability,
             "cash_generation_trend": (
-                self.cash_generation_trend.value
-                if self.cash_generation_trend
-                else None
+                self.cash_generation_trend.value if self.cash_generation_trend else None
             ),
             "ocf_to_earnings": self.ocf_to_earnings,
         }

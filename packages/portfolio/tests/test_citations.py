@@ -3,8 +3,8 @@
 from __future__ import annotations
 
 import pytest
-from industry import EvidenceBundleReference, EvidenceBundleStatus
 
+from industry import EvidenceBundleReference, EvidenceBundleStatus
 from portfolio import (
     ComparisonReportReference,
     DecisionPackReference,
@@ -62,9 +62,7 @@ def _holding(
         decision_pack_ref=_pack(symbol),
         weight=0.1,
         evidence_bundle_ref=_evidence(symbol) if evidence else None,
-        comparison_report_ref=(
-            _comparison(symbol) if comparison else None
-        ),
+        comparison_report_ref=(_comparison(symbol) if comparison else None),
     )
 
 

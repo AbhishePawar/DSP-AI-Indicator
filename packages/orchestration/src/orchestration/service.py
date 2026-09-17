@@ -22,7 +22,12 @@ from data_engine import (
 )
 from dsp import AnalysisResult, IndicatorEngine, IndicatorError
 from economic import EconomicAssessment, EconomicEngine, EconomicError
-from fundamental import CompanyAnalysis, FinancialSnapshot, FundamentalEngine, FundamentalError
+from fundamental import (
+    CompanyAnalysis,
+    FinancialSnapshot,
+    FundamentalEngine,
+    FundamentalError,
+)
 from orchestration.committee_mapping import (
     to_economic_context,
     to_fundamental_context,
@@ -111,17 +116,11 @@ class InvestmentAnalysisService:
             instrument=request.instrument,
             technical=to_technical_context(technical),
             fundamental=(
-                to_fundamental_context(fundamental)
-                if fundamental is not None
-                else None
+                to_fundamental_context(fundamental) if fundamental is not None else None
             ),
-            economic=(
-                to_economic_context(economic) if economic is not None else None
-            ),
+            economic=(to_economic_context(economic) if economic is not None else None),
             valuation=(
-                to_valuation_context(valuation)
-                if valuation is not None
-                else None
+                to_valuation_context(valuation) if valuation is not None else None
             ),
         )
         committee = self._resolve_committee(context)
@@ -236,9 +235,7 @@ class InvestmentAnalysisService:
             )
             raise OrchestrationError(msg) from exc
 
-    def _run_economic(
-        self, request: AnalysisRequest
-    ) -> EconomicAssessment | None:
+    def _run_economic(self, request: AnalysisRequest) -> EconomicAssessment | None:
         if not request.include_economic:
             return None
         try:
@@ -257,8 +254,7 @@ class InvestmentAnalysisService:
             if request.allow_partial:
                 return None
             msg = (
-                f"economic analysis failed for "
-                f"'{request.instrument.symbol}': {exc}"
+                f"economic analysis failed for " f"'{request.instrument.symbol}': {exc}"
             )
             raise OrchestrationError(msg) from exc
         except Exception as exc:

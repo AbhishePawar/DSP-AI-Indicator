@@ -5,8 +5,8 @@ from __future__ import annotations
 import pytest
 
 from valuation import (
-    CapmInputs,
     CapitalStructure,
+    CapmInputs,
     CostOfDebtInputs,
     DcfAnalysisInputs,
     DcfBridgeInputs,
@@ -142,20 +142,14 @@ class TestDcfEngine:
         )
         assert result.margin_of_safety.ratio.value is not None
         assert result.margin_of_safety.ratio.value > 0.4
-        assert (
-            result.margin_of_safety.classification
-            is DcfMosClassification.STRONG_BUY
-        )
+        assert result.margin_of_safety.classification is DcfMosClassification.STRONG_BUY
         assert "NOT a Buy/Sell" in result.margin_of_safety.disclaimer
 
     def test_overvalued_band(self) -> None:
         result = DiscountedCashFlowEngine().analyze(
             _base_inputs(market=DcfMarketInputs(equity_market_cap=1_000_000.0))
         )
-        assert (
-            result.margin_of_safety.classification
-            is DcfMosClassification.OVERVALUED
-        )
+        assert result.margin_of_safety.classification is DcfMosClassification.OVERVALUED
 
     def test_sensitivity_matrix(self) -> None:
         result = DiscountedCashFlowEngine().analyze(_base_inputs())

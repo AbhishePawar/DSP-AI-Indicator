@@ -111,9 +111,7 @@ class TestCleanSurplus:
 
 class TestRoeModels:
     def test_constant(self) -> None:
-        r = ResidualIncomeEngine().analyze(
-            _inputs(roe_model=RoeForecastModel.CONSTANT)
-        )
+        r = ResidualIncomeEngine().analyze(_inputs(roe_model=RoeForecastModel.CONSTANT))
         assert all(abs(y.roe - 0.15) < 1e-12 for y in r.years)
 
     def test_linear_fade(self) -> None:
@@ -367,7 +365,9 @@ class TestEdgeCases:
     def test_mos_paths(self) -> None:
         from valuation.residual_income.residual_income_engine import _mos
 
-        assert _mos(1000.0, None, _inputs(current_market_price=None), "low").value is None
+        assert (
+            _mos(1000.0, None, _inputs(current_market_price=None), "low").value is None
+        )
         assert _mos(0.0, None, _inputs(current_market_price=10.0), "low").value is None
         mos = _mos(1000.0, None, _inputs(current_market_price=5.0), "medium")
         assert mos.value == pytest.approx(0.5)

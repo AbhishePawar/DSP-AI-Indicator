@@ -6,7 +6,6 @@ from dataclasses import dataclass, field
 
 from contracts import Instrument
 from core.exceptions import ValidationError
-
 from universe.exceptions import UniverseError
 
 __all__ = [

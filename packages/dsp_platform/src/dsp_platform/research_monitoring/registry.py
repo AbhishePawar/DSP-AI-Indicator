@@ -26,7 +26,9 @@ class MonitoringRegistry:
         self._portfolios: dict[str, dict[str, Any]] = {}
         self._tracks: dict[tuple[str, str], SnapshotTrack] = {}
 
-    def register_watchlist(self, symbols: list[str] | tuple[str, ...]) -> tuple[str, ...]:
+    def register_watchlist(
+        self, symbols: list[str] | tuple[str, ...]
+    ) -> tuple[str, ...]:
         with self._lock:
             for sym in symbols:
                 s = str(sym).strip().upper()
@@ -57,7 +59,11 @@ class MonitoringRegistry:
         current_snapshot_id: str | None = None,
         tracked_at: str | None = None,
     ) -> SnapshotTrack:
-        subj = str(subject).strip().upper() if subject_kind == "symbol" else str(subject).strip()
+        subj = (
+            str(subject).strip().upper()
+            if subject_kind == "symbol"
+            else str(subject).strip()
+        )
         kind = str(subject_kind).strip().lower()
         if kind not in {"symbol", "portfolio"}:
             raise ValueError("subject_kind must be symbol or portfolio")
@@ -97,8 +103,14 @@ class MonitoringRegistry:
                 for k in sorted(self._tracks.keys(), key=lambda x: (x[0], x[1]))
             )
 
-    def get_track(self, subject: str, subject_kind: str = "symbol") -> SnapshotTrack | None:
-        subj = str(subject).strip().upper() if subject_kind == "symbol" else str(subject).strip()
+    def get_track(
+        self, subject: str, subject_kind: str = "symbol"
+    ) -> SnapshotTrack | None:
+        subj = (
+            str(subject).strip().upper()
+            if subject_kind == "symbol"
+            else str(subject).strip()
+        )
         with self._lock:
             return self._tracks.get((subject_kind, subj))
 

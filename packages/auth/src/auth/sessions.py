@@ -3,8 +3,9 @@
 from __future__ import annotations
 
 import uuid
-from datetime import datetime, timedelta, timezone
-from typing import Any, Mapping
+from collections.abc import Mapping
+from datetime import UTC, datetime, timedelta
+from typing import Any
 
 from auth.exceptions import RefreshTokenReuseError, SessionError
 from auth.models import AuthSession, freeze_mapping, utc_now
@@ -85,7 +86,7 @@ class SessionManager:
             raise SessionError("session not found")
         if session.revoked:
             raise SessionError("session revoked")
-        current = now or datetime.now(tz=timezone.utc)
+        current = now or datetime.now(tz=UTC)
         exp = datetime.fromisoformat(session.expires_at.replace("Z", "+00:00"))
         if exp <= current:
             raise SessionError("session expired")

@@ -33,7 +33,9 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
         response = await call_next(request)
         response.headers.setdefault("X-Content-Type-Options", "nosniff")
         response.headers.setdefault("X-Frame-Options", "DENY")
-        response.headers.setdefault("Referrer-Policy", "strict-origin-when-cross-origin")
+        response.headers.setdefault(
+            "Referrer-Policy", "strict-origin-when-cross-origin"
+        )
         response.headers.setdefault(
             "Permissions-Policy", "camera=(), microphone=(), geolocation=()"
         )
@@ -41,7 +43,10 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
         # EPS-003 RC: deny Adobe Flash/PDF cross-domain policy probes on JSON API.
         response.headers.setdefault("X-Permitted-Cross-Domain-Policies", "none")
         # EPIC-016: reduce clickjacking / MIME sniffing ambiguity on API JSON.
-        response.headers.setdefault("Content-Security-Policy", "default-src 'none'; frame-ancestors 'none'; base-uri 'none'")
+        response.headers.setdefault(
+            "Content-Security-Policy",
+            "default-src 'none'; frame-ancestors 'none'; base-uri 'none'",
+        )
         response.headers.setdefault("Cache-Control", "no-store")
         return response
 
@@ -119,9 +124,7 @@ class RateLimitHookMiddleware(BaseHTTPMiddleware):
         if rate_port is not None and hasattr(rate_port, "allow"):
             try:
                 return bool(
-                    rate_port.allow(
-                        key, limit=self._limit, window_seconds=self._window
-                    )
+                    rate_port.allow(key, limit=self._limit, window_seconds=self._window)
                 )
             except Exception:  # noqa: BLE001 — degrade to process-local
                 pass

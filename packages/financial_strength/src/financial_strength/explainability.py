@@ -51,9 +51,7 @@ def build_summary(
         else ""
     )
     weak_txt = (
-        f" Weakest dimension: {weakest.dimension.value}."
-        if weakest is not None
-        else ""
+        f" Weakest dimension: {weakest.dimension.value}." if weakest is not None else ""
     )
     return (
         f"Overall financial strength rating is {rating.value} "

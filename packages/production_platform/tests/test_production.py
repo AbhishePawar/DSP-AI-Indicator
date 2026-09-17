@@ -10,9 +10,9 @@ import pytest
 from production_platform import (
     Environment,
     FeatureFlagManager,
+    InfrastructureBundle,
     InMemoryCachePort,
     InMemoryMetricsPort,
-    InfrastructureBundle,
     ProductionBundle,
     ProductionConfiguration,
     ProductionError,

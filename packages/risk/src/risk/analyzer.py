@@ -10,7 +10,6 @@ from __future__ import annotations
 from dataclasses import dataclass
 
 from portfolio import Portfolio
-
 from risk.enums import (
     RiskAnalysisStatus,
     RiskCoverageKind,
@@ -134,9 +133,7 @@ class RiskAnalyzer:
                 )
                 raise RiskError(msg)
 
-    def analyze(
-        self, context: RiskAnalysisContext | RiskProfile
-    ) -> RiskAnalysisResult:
+    def analyze(self, context: RiskAnalysisContext | RiskProfile) -> RiskAnalysisResult:
         """Run qualitative risk analysis — descriptive only."""
         ctx = (
             RiskAnalysisContext(profile=context)
@@ -160,9 +157,7 @@ class RiskAnalyzer:
             observation_count=len(observations),
             descriptor_count=len(descriptors),
             coverage_notes=tuple(c.label for c in coverage),
-            posture_notes=tuple(
-                f"{d.dimension}: {d.label}" for d in descriptors
-            ),
+            posture_notes=tuple(f"{d.dimension}: {d.label}" for d in descriptors),
             limitation_notes=(
                 "Qualitative risk analysis only — no quantitative risk metrics.",
                 "No trading, optimization, or recommendations.",
@@ -439,13 +434,7 @@ class RiskAnalyzer:
                 label="Decision coverage is complete",
             )
 
-        if n_decision == 0 and n_evidence == 0:
-            evidence = RiskCoverage(
-                kind=RiskCoverageKind.EVIDENCE,
-                status=RiskCoverageStatus.ABSENT,
-                label="Evidence coverage is incomplete",
-            )
-        elif n_evidence == 0:
+        if n_decision == 0 and n_evidence == 0 or n_evidence == 0:
             evidence = RiskCoverage(
                 kind=RiskCoverageKind.EVIDENCE,
                 status=RiskCoverageStatus.ABSENT,
@@ -501,8 +490,7 @@ class RiskAnalyzer:
                 code="concentration_posture",
                 text=text,
                 subjects=tuple(
-                    r.instrument_symbol
-                    for r in context.profile.decision_pack_refs
+                    r.instrument_symbol for r in context.profile.decision_pack_refs
                 ),
             )
         )
@@ -516,9 +504,7 @@ class RiskAnalyzer:
             text = "Diversification appears broad."
         else:
             text = "Diversification posture is unknown."
-        observations.append(
-            RiskObservation(code="diversification_posture", text=text)
-        )
+        observations.append(RiskObservation(code="diversification_posture", text=text))
 
         cash = by_dim["cash"]
         observations.append(
@@ -615,12 +601,9 @@ class RiskAnalyzer:
     ) -> RiskAnalysisStatus:
         if holding_count == 0:
             return RiskAnalysisStatus.EMPTY
-        evidence = next(
-            c for c in coverage if c.kind is RiskCoverageKind.EVIDENCE
-        )
+        evidence = next(c for c in coverage if c.kind is RiskCoverageKind.EVIDENCE)
         if (
-            evidence.status
-            in {RiskCoverageStatus.ABSENT, RiskCoverageStatus.PARTIAL}
+            evidence.status in {RiskCoverageStatus.ABSENT, RiskCoverageStatus.PARTIAL}
             or cash_weight is None
         ):
             return RiskAnalysisStatus.PARTIAL

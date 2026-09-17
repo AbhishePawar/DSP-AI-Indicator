@@ -12,9 +12,7 @@ from contracts.domain.price_series import PriceSeries
 from contracts.enums import AssetClass, BarFrequency
 
 
-def make_price_series(
-    closes: Sequence[float], *, symbol: str = "TEST"
-) -> PriceSeries:
+def make_price_series(closes: Sequence[float], *, symbol: str = "TEST") -> PriceSeries:
     """Build a daily ``PriceSeries`` whose closes are exactly ``closes``.
 
     Each bar's open/high/low are derived from the close so every bar

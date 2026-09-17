@@ -5,9 +5,9 @@ from __future__ import annotations
 from datetime import UTC, date, datetime
 
 import pytest
+
 from contracts.domain.instrument import Instrument
 from contracts.enums import AssetClass
-
 from data_engine import (
     ConnectorProvenance,
     EarningsCallTranscript,
@@ -66,11 +66,18 @@ class _FakeJsonClient:
 
 class TestNullAndInMemory:
     def test_null_always_unavailable(self) -> None:
-        assert NullTranscriptAdapter().get_transcripts(TranscriptQuery(instrument=_instrument())) is None
+        assert (
+            NullTranscriptAdapter().get_transcripts(
+                TranscriptQuery(instrument=_instrument())
+            )
+            is None
+        )
 
     def test_in_memory_requires_key(self) -> None:
         with pytest.raises(ProviderRequestError):
-            InMemoryTranscriptAdapter().get_transcripts(TranscriptQuery(instrument=_instrument()))
+            InMemoryTranscriptAdapter().get_transcripts(
+                TranscriptQuery(instrument=_instrument())
+            )
 
     def test_in_memory_put_and_get_with_filters(self) -> None:
         adapter = InMemoryTranscriptAdapter(api_key="k")
@@ -83,7 +90,9 @@ class TestNullAndInMemory:
             provenance=_provenance("memory_transcripts"),
         )
         adapter.put(bundle)
-        result = adapter.get_transcripts(TranscriptQuery(instrument=_instrument(), quarter=2, year=2023))
+        result = adapter.get_transcripts(
+            TranscriptQuery(instrument=_instrument(), quarter=2, year=2023)
+        )
         assert result is not None
         assert len(result.transcripts) == 1
         assert result.transcripts[0].transcript_id == "t-2023-q2"
@@ -108,7 +117,9 @@ class TestValidation:
 
     def test_rejects_empty_transcripts(self) -> None:
         with pytest.raises(InvalidProviderDataError):
-            build_transcripts_bundle_from_mapping(symbol="AAPL", transcripts=[], provenance=_provenance())
+            build_transcripts_bundle_from_mapping(
+                symbol="AAPL", transcripts=[], provenance=_provenance()
+            )
 
 
 class TestFinancialModelingPrepTranscriptAdapter:
@@ -138,28 +149,46 @@ class TestFinancialModelingPrepTranscriptAdapter:
 
     def test_uses_dates_index_when_year_quarter_not_given(self) -> None:
         dates_payload = [{"quarter": 3, "year": 2023}, {"quarter": 2, "year": 2023}]
-        content_payload = [{"date": "2023-08-03 17:00:00", "content": "Operator: welcome..."}]
-        client = _FakeJsonClient(sequence=[dates_payload, content_payload, content_payload])
-        adapter = FinancialModelingPrepTranscriptAdapter(api_key="k", http_client=client)
-        bundle = adapter.get_transcripts(TranscriptQuery(instrument=_instrument(), limit=2))
+        content_payload = [
+            {"date": "2023-08-03 17:00:00", "content": "Operator: welcome..."}
+        ]
+        client = _FakeJsonClient(
+            sequence=[dates_payload, content_payload, content_payload]
+        )
+        adapter = FinancialModelingPrepTranscriptAdapter(
+            api_key="k", http_client=client
+        )
+        bundle = adapter.get_transcripts(
+            TranscriptQuery(instrument=_instrument(), limit=2)
+        )
         assert bundle is not None
         assert len(bundle.transcripts) == 2
 
     def test_no_transcript_dates_returns_none(self) -> None:
-        adapter = FinancialModelingPrepTranscriptAdapter(api_key="k", http_client=_FakeJsonClient([]))
-        assert adapter.get_transcripts(TranscriptQuery(instrument=_instrument())) is None
+        adapter = FinancialModelingPrepTranscriptAdapter(
+            api_key="k", http_client=_FakeJsonClient([])
+        )
+        assert (
+            adapter.get_transcripts(TranscriptQuery(instrument=_instrument())) is None
+        )
 
 
 class TestRegistryAndEnv:
     def test_registry_ordering(self) -> None:
         registry = TranscriptProviderRegistry()
-        registry.register(NullTranscriptAdapter(), provider_id="null_transcripts", priority=1000)
         registry.register(
-            FinancialModelingPrepTranscriptAdapter(api_key="k"), provider_id="fmp_transcripts", priority=10
+            NullTranscriptAdapter(), provider_id="null_transcripts", priority=1000
+        )
+        registry.register(
+            FinancialModelingPrepTranscriptAdapter(api_key="k"),
+            provider_id="fmp_transcripts",
+            priority=10,
         )
         assert registry.ordered_ids() == ("fmp_transcripts", "null_transcripts")
 
-    def test_default_registry_falls_back_to_null(self, monkeypatch: pytest.MonkeyPatch) -> None:
+    def test_default_registry_falls_back_to_null(
+        self, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
         for key in ("DSP_TRANSCRIPT_FMP_API_KEY", "DSP_TRANSCRIPT_MEMORY"):
             monkeypatch.delenv(key, raising=False)
         registry = build_default_transcript_registry_from_env()

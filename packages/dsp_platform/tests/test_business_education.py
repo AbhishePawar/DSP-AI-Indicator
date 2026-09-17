@@ -160,9 +160,7 @@ def test_ai_cannot_overwrite_valuation_signals():
     assert report["writes_valuation"] is False
     # Report must not invent IV / price / MoS keys
     with pytest.raises(ValuationFirewallError):
-        assert_report_has_no_forbidden_outputs(
-            {**report, "intrinsic_value": 999}
-        )
+        assert_report_has_no_forbidden_outputs({**report, "intrinsic_value": 999})
 
 
 def test_ai_cannot_overwrite_buffett_score_or_create_prices():
@@ -185,7 +183,9 @@ def test_unavailable_data_produces_explicit_uncertainty():
     dq = next(
         s for s in report["sections"] if s["id"] == "data_quality_and_uncertainty"
     )
-    assert any("Data unavailable" in b or "unavailable" in b.lower() for b in dq["bullets"])
+    assert any(
+        "Data unavailable" in b or "unavailable" in b.lower() for b in dq["bullets"]
+    )
 
 
 def test_demo_seed_not_presented_as_authoritative():
@@ -198,7 +198,9 @@ def test_demo_seed_not_presented_as_authoritative():
     fh = next(s for s in report["sections"] if s["id"] == "financial_health")
     assert fh["demo_contaminated"] is True
     # Contaminated numeric stage metrics should not be presented as available facts
-    available_metrics = [c for c in fh["claims"] if c["kind"] == "CALCULATED_METRIC" and c["available"]]
+    available_metrics = [
+        c for c in fh["claims"] if c["kind"] == "CALCULATED_METRIC" and c["available"]
+    ]
     assert available_metrics == []
 
 
@@ -225,9 +227,7 @@ def test_buffett_checklist_does_not_compute_score():
 
 def test_three_key_risks_present():
     report = build_business_education_report(_payload())
-    risks = next(
-        s for s in report["sections"] if s["id"] == "key_risks_to_understand"
-    )
+    risks = next(s for s in report["sections"] if s["id"] == "key_risks_to_understand")
     assert len(risks["risks"]) == 3
 
 

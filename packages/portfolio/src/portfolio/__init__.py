@@ -46,9 +46,9 @@ from portfolio.models import (
     PortfolioTimeline,
 )
 from portfolio.monitoring import (
+    PortfolioMonitor,
     PortfolioMonitoringContext,
     PortfolioMonitoringResult,
-    PortfolioMonitor,
 )
 from portfolio.refs import ComparisonReportReference, DecisionPackReference
 

@@ -2,8 +2,9 @@
 
 from __future__ import annotations
 
+from collections.abc import Mapping
 from datetime import date
-from typing import Any, Mapping
+from typing import Any
 from urllib.parse import unquote
 
 import pytest
@@ -50,8 +51,18 @@ def _candle(
 
 
 _INFY = _eq(symbol="INFY", name="Infosys Limited", exchange="NSE", isin="INE009A01021")
-_TCS_NSE = _eq(symbol="TCS", name="Tata Consultancy Services Limited", exchange="NSE", isin="INE467B01029")
-_TCS_BSE = _eq(symbol="TCS", name="Tata Consultancy Services Limited", exchange="BSE", isin="INE467B01029")
+_TCS_NSE = _eq(
+    symbol="TCS",
+    name="Tata Consultancy Services Limited",
+    exchange="NSE",
+    isin="INE467B01029",
+)
+_TCS_BSE = _eq(
+    symbol="TCS",
+    name="Tata Consultancy Services Limited",
+    exchange="BSE",
+    isin="INE467B01029",
+)
 
 
 class _FakeHttp:
@@ -70,7 +81,9 @@ class _FakeHttp:
         self.calls: list[dict[str, Any]] = []
 
     def get_json(self, url: str, *, params=None, headers=None):
-        self.calls.append({"url": url, "params": dict(params or {}), "headers": dict(headers or {})})
+        self.calls.append(
+            {"url": url, "params": dict(params or {}), "headers": dict(headers or {})}
+        )
         assert headers and str(headers.get("Authorization", "")).startswith("Bearer ")
         if self.error is not None and (self.error_on is None or self.error_on in url):
             raise self.error
@@ -308,7 +321,9 @@ def test_missing_ohlc_field_skips_candle() -> None:
     assert result.series.bars[0].bar_date == date(2024, 1, 3)  # type: ignore[union-attr]
 
 
-@pytest.mark.parametrize("code,fragment", [(401, "401"), (403, "403"), (404, "404"), (429, "429")])
+@pytest.mark.parametrize(
+    "code,fragment", [(401, "401"), (403, "403"), (404, "404"), (429, "429")]
+)
 def test_http_errors(code: int, fragment: str) -> None:
     client = _client_for(
         search_rows=[_INFY],
@@ -363,7 +378,9 @@ def test_production_fail_closed(monkeypatch: pytest.MonkeyPatch) -> None:
 
 
 def test_token_not_in_public_dict() -> None:
-    client = _client_for(search_rows=[_INFY], symbol="INFY", token="super-secret-u3-token")
+    client = _client_for(
+        search_rows=[_INFY], symbol="INFY", token="super-secret-u3-token"
+    )
     result = client.get_history(
         UpstoxHistoricalCandleRequest(symbol="INFY", from_date=_FROM, to_date=_TO)
     )

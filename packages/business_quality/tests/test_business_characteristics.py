@@ -52,7 +52,9 @@ from financial import (
 from financial.metadata import StatementMetadata
 
 
-def _period(*, end: date = date(2024, 12, 31), fy: int | None = 2024) -> FinancialPeriod:
+def _period(
+    *, end: date = date(2024, 12, 31), fy: int | None = 2024
+) -> FinancialPeriod:
     return FinancialPeriod(
         period_type=PeriodType.ANNUAL,
         period_end=end,
@@ -178,16 +180,22 @@ class TestHelpers:
             revenue=SimpleNamespace(
                 growth_stability=0.2, trend_class=SimpleNamespace(value="volatile")
             ),
-            consistency=SimpleNamespace(earnings_stability=0.3, revenue_consistency=0.4),
+            consistency=SimpleNamespace(
+                earnings_stability=0.3, revenue_consistency=0.4
+            ),
         )
         declining_income = SimpleNamespace(
             revenue=SimpleNamespace(
                 growth_stability=None, trend_class=SimpleNamespace(value="declining")
             ),
-            consistency=SimpleNamespace(earnings_stability=None, revenue_consistency=None),
+            consistency=SimpleNamespace(
+                earnings_stability=None, revenue_consistency=None
+            ),
         )
         trends = SimpleNamespace(
-            trend_summary=SimpleNamespace(overall=SimpleNamespace(value="highly_volatile")),
+            trend_summary=SimpleNamespace(
+                overall=SimpleNamespace(value="highly_volatile")
+            ),
             quality_flags=(SimpleNamespace(value="high_volatility"),),
         )
         assert _cyclicality(volatile_income, trends) is not None
@@ -222,7 +230,9 @@ class TestValidation:
             pass
 
         obj = FinancialAnalysis()
-        obj.income = SimpleNamespace(revenue=SimpleNamespace(revenue=None), profitability=None)
+        obj.income = SimpleNamespace(
+            revenue=SimpleNamespace(revenue=None), profitability=None
+        )
         obj.balance_sheet = SimpleNamespace(working_capital=None)
         obj.cash_flow = SimpleNamespace(
             quality=None, operating=SimpleNamespace(operating_cash_flow=None)
@@ -285,7 +295,9 @@ class TestBusinessCharacteristics:
         }
         assert result.explainability
         assert result.to_dict()["overall_rating"]
-        assert all(e.evidence and e.reasoning and e.limitations for e in result.explainability)
+        assert all(
+            e.evidence and e.reasoning and e.limitations for e in result.explainability
+        )
         assert all(e.references for e in result.explainability)
 
     def test_facade_compose(self) -> None:
@@ -529,9 +541,9 @@ class TestPackage:
         assert bq.BUSINESS_CHARACTERISTICS_VERSION.startswith("0.4.0")
 
     def test_strength_weakness_helpers(self) -> None:
-        from business_quality.engine import _strengths, _weaknesses
-        from business_quality.earnings_quality_models import EarningsQualityFlag
         from business_quality.capital_allocation_models import CapitalAllocationFlag
+        from business_quality.earnings_quality_models import EarningsQualityFlag
+        from business_quality.engine import _strengths, _weaknesses
 
         eq = SimpleNamespace(
             quality_flags=(

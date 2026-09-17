@@ -6,8 +6,9 @@ recommendation logic. Missing inputs surface as ``Data unavailable.``
 
 from __future__ import annotations
 
+from collections.abc import Mapping
 from datetime import UTC, datetime
-from typing import Any, Mapping
+from typing import Any
 
 UNAVAILABLE_MESSAGE = "Data unavailable."
 
@@ -152,7 +153,9 @@ def _try_health(platform: Any) -> dict[str, Any] | None:
     return {
         "ok": bool(getattr(result, "ok", False)),
         "ready": bool(getattr(payload, "ready", getattr(result, "ok", False))),
-        "status": getattr(status, "value", str(status) if status is not None else "unknown"),
+        "status": getattr(
+            status, "value", str(status) if status is not None else "unknown"
+        ),
         "checks": [
             {
                 "name": getattr(c, "name", "unknown"),
@@ -164,7 +167,9 @@ def _try_health(platform: Any) -> dict[str, Any] | None:
     }
 
 
-def _try_persisted(platform: Any, kind: str, entity_id: str | None) -> dict[str, Any] | None:
+def _try_persisted(
+    platform: Any, kind: str, entity_id: str | None
+) -> dict[str, Any] | None:
     if not entity_id:
         return None
     try:
@@ -346,12 +351,14 @@ def _research_dashboard(
     recent_reports = _section(
         available=admin is not None and int(admin.get("research_refs_count") or 0) >= 0,
         source="admin_research_archive_metadata",
-        data={
-            "research_refs_count": (admin or {}).get("research_refs_count"),
-            "note": "Archive reference counts only — report bodies remain on /report/{id}.",
-        }
-        if admin
-        else None,
+        data=(
+            {
+                "research_refs_count": (admin or {}).get("research_refs_count"),
+                "note": "Archive reference counts only — report bodies remain on /report/{id}.",
+            }
+            if admin
+            else None
+        ),
     )
 
     research_score = _section(
@@ -391,14 +398,18 @@ def _research_dashboard(
         ),
         "companies_under_review": under_review,
         "pending_research": pending,
-        "recent_reports": recent_reports
-        if recent_reports["available"]
-        else _section(available=False, source="admin_research_archive_metadata"),
+        "recent_reports": (
+            recent_reports
+            if recent_reports["available"]
+            else _section(available=False, source="admin_research_archive_metadata")
+        ),
         "research_score": research_score,
         "ai_committee_summary": committee,
-        "watchlist": watchlist
-        if watchlist["available"]
-        else _section(available=False, source="research_monitoring_watchlist"),
+        "watchlist": (
+            watchlist
+            if watchlist["available"]
+            else _section(available=False, source="research_monitoring_watchlist")
+        ),
         "recent_news": _recent_news(platform, symbols),
     }
 
@@ -416,9 +427,21 @@ def _pi_widgets(pi: dict[str, Any] | None) -> dict[str, dict[str, Any]]:
             "portfolio_performance": unavailable,
         }
 
-    summary = pi.get("portfolio_summary") if isinstance(pi.get("portfolio_summary"), dict) else {}
-    allocation = pi.get("sector_allocation") if isinstance(pi.get("sector_allocation"), dict) else {}
-    risk = pi.get("portfolio_risk_summary") if isinstance(pi.get("portfolio_risk_summary"), dict) else {}
+    summary = (
+        pi.get("portfolio_summary")
+        if isinstance(pi.get("portfolio_summary"), dict)
+        else {}
+    )
+    allocation = (
+        pi.get("sector_allocation")
+        if isinstance(pi.get("sector_allocation"), dict)
+        else {}
+    )
+    risk = (
+        pi.get("portfolio_risk_summary")
+        if isinstance(pi.get("portfolio_risk_summary"), dict)
+        else {}
+    )
     divers = (
         pi.get("diversification_summary")
         if isinstance(pi.get("diversification_summary"), dict)
@@ -465,12 +488,14 @@ def _pi_widgets(pi: dict[str, Any] | None) -> dict[str, dict[str, Any]]:
         "valuation_heatmap": _section(
             available=bool(mos),
             source="portfolio_intelligence.margin_of_safety_summary",
-            data={
-                "positions": mos.get("positions"),
-                "note": "Pass-through MoS from linked research — not a computed heatmap score.",
-            }
-            if mos
-            else None,
+            data=(
+                {
+                    "positions": mos.get("positions"),
+                    "note": "Pass-through MoS from linked research — not a computed heatmap score.",
+                }
+                if mos
+                else None
+            ),
         ),
         "portfolio_performance": _section(
             available=False,
@@ -543,7 +568,9 @@ def _wealth_advisor_dashboard(
 
     client_rows: list[dict[str, Any]] = []
     for pid in ids[:20]:
-        entity = _portfolio_from_store(platform, pid, symbols=symbols if pid == portfolio_id else None)
+        entity = _portfolio_from_store(
+            platform, pid, symbols=symbols if pid == portfolio_id else None
+        )
         client_rows.append(
             {
                 "portfolio_id": pid,
@@ -588,13 +615,15 @@ def _wealth_advisor_dashboard(
                 "note": "Reviews reflect workflow templates / supplied workflow_id only.",
             },
         ),
-        "workflow_notifications": _section(
-            available=workflow is not None,
-            source="workflow_automation",
-            data=workflow,
-        )
-        if workflow is not None
-        else _section(available=False, source="workflow_automation"),
+        "workflow_notifications": (
+            _section(
+                available=workflow is not None,
+                source="workflow_automation",
+                data=workflow,
+            )
+            if workflow is not None
+            else _section(available=False, source="workflow_automation")
+        ),
     }
 
 
@@ -717,13 +746,15 @@ def _executive_dashboard(
         "user_activity": _section(
             available=admin is not None,
             source="admin_dashboard",
-            data={
-                "users_count": (admin or {}).get("users_count"),
-                "sessions_count": (admin or {}).get("sessions_count"),
-                "active_sessions_count": (admin or {}).get("active_sessions_count"),
-            }
-            if admin
-            else None,
+            data=(
+                {
+                    "users_count": (admin or {}).get("users_count"),
+                    "sessions_count": (admin or {}).get("sessions_count"),
+                    "active_sessions_count": (admin or {}).get("active_sessions_count"),
+                }
+                if admin
+                else None
+            ),
         ),
         "system_health": _section(
             available=health is not None,

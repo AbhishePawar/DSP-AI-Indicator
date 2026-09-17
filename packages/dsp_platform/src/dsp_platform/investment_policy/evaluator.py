@@ -6,7 +6,8 @@ scoring, or recommendations.
 
 from __future__ import annotations
 
-from typing import Any, Mapping
+from collections.abc import Mapping
+from typing import Any
 
 from dsp_platform.investment_policy.citations import citation
 from dsp_platform.investment_policy.models import (
@@ -257,9 +258,7 @@ def evaluate_rule(
             )
         consensus = artifacts.committee_report.get("consensus")
         stance = (
-            str(consensus.get("stance") or "")
-            if isinstance(consensus, Mapping)
-            else ""
+            str(consensus.get("stance") or "") if isinstance(consensus, Mapping) else ""
         )
         allowed = params.get("stances") or []
         if not isinstance(allowed, (list, tuple)):
@@ -421,9 +420,7 @@ def evaluate_rule(
             evidence=freeze_mapping(
                 {
                     "hit_count": len(hits),
-                    "severities": sorted(
-                        {str(a.get("severity")) for a in hits}
-                    ),
+                    "severities": sorted({str(a.get("severity")) for a in hits}),
                 }
             )
             or freeze_mapping({}),

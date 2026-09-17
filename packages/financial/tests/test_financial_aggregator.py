@@ -45,7 +45,9 @@ from financial.metadata import StatementMetadata
 from financial.validation import ValidationResult
 
 
-def _period(*, end: date = date(2024, 12, 31), fy: int | None = 2024) -> FinancialPeriod:
+def _period(
+    *, end: date = date(2024, 12, 31), fy: int | None = 2024
+) -> FinancialPeriod:
     return FinancialPeriod(
         period_type=PeriodType.ANNUAL,
         period_end=end,
@@ -226,9 +228,12 @@ class TestAggregator:
             "insufficient",
         }
         assert result.overall_summary.to_dict()["health_label"]
-        assert FinancialAnalysisMetadata(
-            engine_version="t", periods_used=1, period_ends=("2024-12-31",)
-        ).to_dict()["periods_used"] == 1
+        assert (
+            FinancialAnalysisMetadata(
+                engine_version="t", periods_used=1, period_ends=("2024-12-31",)
+            ).to_dict()["periods_used"]
+            == 1
+        )
 
     def test_performance_multi_period(self) -> None:
         scales = [1.0 + i * 0.06 for i in range(5)]
@@ -267,9 +272,7 @@ class TestFlagComposition:
             ),
             self._ns(CashFlowQualityFlag.NEGATIVE_FREE_CASH_FLOW),
             self._ns(RatioQualityFlag.WEAK_LIQUIDITY, RatioQualityFlag.HIGH_LEVERAGE),
-            SimpleNamespace(
-                quality_flags=(TrendQualityFlag.DEBT_INCREASING,)
-            ),
+            SimpleNamespace(quality_flags=(TrendQualityFlag.DEBT_INCREASING,)),
         )
         assert AggregatedQualityFlag.LIQUIDITY_CONCERN in flags
         assert AggregatedQualityFlag.LEVERAGE_CONCERN in flags

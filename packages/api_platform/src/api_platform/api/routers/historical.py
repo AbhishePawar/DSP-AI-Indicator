@@ -17,14 +17,10 @@ def historical_series(
     symbol: str = Query(..., min_length=1, max_length=32),
     series_kind: str = Query(
         ...,
-        description=(
-            "ohlcv|market_cap|volume|enterprise_value|fundamentals|ratios"
-        ),
+        description=("ohlcv|market_cap|volume|enterprise_value|fundamentals|ratios"),
     ),
     exchange: str | None = Query(None, max_length=32),
-    frequency: str | None = Query(
-        "daily", description="daily|weekly|monthly (ohlcv)"
-    ),
+    frequency: str | None = Query("daily", description="daily|weekly|monthly (ohlcv)"),
     start_date: str | None = Query(None, description="ISO date YYYY-MM-DD"),
     end_date: str | None = Query(None, description="ISO date YYYY-MM-DD"),
     limit: int = Query(500, ge=1, le=5000),
@@ -82,9 +78,11 @@ def historical_series(
             "ok": True,
             "available": True,
             "authenticated": True,
-            "symbol": identity.get("symbol")
-            if isinstance(identity, dict)
-            else symbol.strip().upper(),
+            "symbol": (
+                identity.get("symbol")
+                if isinstance(identity, dict)
+                else symbol.strip().upper()
+            ),
             "identity": identity,
             "series_kind": payload.get("series_kind"),
             "frequency": payload.get("frequency"),

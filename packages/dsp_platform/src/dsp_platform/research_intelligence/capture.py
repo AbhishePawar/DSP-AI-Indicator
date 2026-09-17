@@ -6,7 +6,8 @@ Pure consumer of public composition / report dicts. Never calls engines.
 from __future__ import annotations
 
 import uuid
-from typing import Any, Mapping
+from collections.abc import Mapping
+from typing import Any
 
 from dsp_platform.research_intelligence.hashing import content_sha256
 from dsp_platform.research_intelligence.models import (
@@ -250,7 +251,9 @@ def build_snapshot_from_analyse_payload(
     exch = _as_str(exchange) or _as_str(
         extract_nested(payload, "exchange", "market.exchange", "header.exchange")
     )
-    sector = _as_str(extract_nested(payload, "sector", "company.sector", "header.sector"))
+    sector = _as_str(
+        extract_nested(payload, "sector", "company.sector", "header.sector")
+    )
     industry = _as_str(
         extract_nested(payload, "industry", "company.industry", "header.industry")
     )

@@ -4,7 +4,11 @@ from __future__ import annotations
 
 from economic_moat.engine import EconomicEngine
 from economic_moat.exceptions import EconomicMoatError, EconomicMoatValidationError
-from economic_moat.metadata import ECONOMIC_MOAT_VERSION, FRAMEWORK_VERSION, EconomicMetadata
+from economic_moat.metadata import (
+    ECONOMIC_MOAT_VERSION,
+    FRAMEWORK_VERSION,
+    EconomicMetadata,
+)
 from economic_moat.models import (
     EconomicAnalysis,
     EconomicConfidence,

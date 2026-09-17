@@ -10,7 +10,6 @@ from __future__ import annotations
 from dataclasses import dataclass
 
 from core.exceptions import ValidationError
-
 from recommendation.enums import AssemblyStatus
 from recommendation.exceptions import RecommendationError
 from recommendation.models import (
@@ -105,9 +104,7 @@ class RecommendationAssembler:
             msg = "missing Decision reference: at least one DecisionReference required"
             raise RecommendationError(msg)
         if not context.comparison_refs:
-            msg = (
-                "missing Comparison reference: at least one ComparisonReference required"
-            )
+            msg = "missing Comparison reference: at least one ComparisonReference required"
             raise RecommendationError(msg)
         if context.portfolio_ref is None:
             msg = "missing Portfolio reference: PortfolioReference required"
@@ -155,9 +152,7 @@ class RecommendationAssembler:
                 msg = "broken references: ComparisonReference digest invalid"
                 raise RecommendationError(msg)
             if ref.digest in seen_comp:
-                msg = (
-                    f"duplicate report references: ComparisonReference {ref.digest!r}"
-                )
+                msg = f"duplicate report references: ComparisonReference {ref.digest!r}"
                 raise RecommendationError(msg)
             seen_comp.add(ref.digest)
 
@@ -268,9 +263,7 @@ class RecommendationAssembler:
             ),
         )
 
-        status = (
-            AssemblyStatus.PARTIAL if warnings else AssemblyStatus.COMPLETE
-        )
+        status = AssemblyStatus.PARTIAL if warnings else AssemblyStatus.COMPLETE
         return AssemblyResult(
             profile=profile,
             report=report,

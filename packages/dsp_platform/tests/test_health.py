@@ -130,9 +130,7 @@ class TestHealthService:
         """
         platform = (
             PlatformBuilder()
-            .with_configuration(
-                PlatformConfiguration(require_analysis_service=False)
-            )
+            .with_configuration(PlatformConfiguration(require_analysis_service=False))
             .auto_ready(True)
             .build()
         )
@@ -205,7 +203,9 @@ class TestHealthService:
         ).check()
         by_name = {c.name: c for c in report.checks}
         assert by_name["investment_data_provider"].status is CheckStatus.FAIL
-        assert "DSP_UPSTOX_ANALYTICS_TOKEN" in by_name["investment_data_provider"].message
+        assert (
+            "DSP_UPSTOX_ANALYTICS_TOKEN" in by_name["investment_data_provider"].message
+        )
         # Auth/API boot must remain ready without investment credentials.
         assert report.ready is True
         assert report.status is CheckStatus.FAIL
@@ -225,9 +225,7 @@ class TestHealthService:
         assert "Upstox" in check.message
         # CV-001 / security: adapter class names only, never credentials.
         assert "super-secret-token" not in check.message
-        assert all(
-            "super-secret-token" not in c.message for c in report.checks
-        )
+        assert all("super-secret-token" not in c.message for c in report.checks)
 
     def test_no_network_on_registry_check(self) -> None:
         """Registry health must not invoke adapter I/O."""

@@ -27,7 +27,7 @@ import secrets
 import struct
 import time
 import urllib.parse
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 
 from auth.exceptions import AuthenticationError, ValidationError
@@ -75,7 +75,9 @@ def _hotp(secret_b32: str, counter: int, *, digits: int = _DIGITS) -> str:
     return str(truncated).zfill(digits)
 
 
-def totp_at(secret_b32: str, *, for_time: float | None = None, step: int = _STEP_SECONDS) -> str:
+def totp_at(
+    secret_b32: str, *, for_time: float | None = None, step: int = _STEP_SECONDS
+) -> str:
     """Return the current TOTP code for ``secret_b32`` (test/debug helper)."""
     t = for_time if for_time is not None else time.time()
     return _hotp(secret_b32, int(t // step))
@@ -149,7 +151,7 @@ def generate_recovery_codes(n: int = _RECOVERY_CODE_COUNT) -> list[str]:
 
 def _hash_secret_token(token: str) -> str:
     salt = secrets.token_hex(8)
-    digest = hashlib.sha256(f"{salt}:{token.strip().lower()}".encode("utf-8")).hexdigest()
+    digest = hashlib.sha256(f"{salt}:{token.strip().lower()}".encode()).hexdigest()
     return f"sha256${salt}${digest}"
 
 
@@ -160,7 +162,7 @@ def _verify_secret_token(token: str, token_hash: str) -> bool:
         return False
     if scheme != "sha256":
         return False
-    candidate = hashlib.sha256(f"{salt}:{token.strip().lower()}".encode("utf-8")).hexdigest()
+    candidate = hashlib.sha256(f"{salt}:{token.strip().lower()}".encode()).hexdigest()
     return hmac.compare_digest(candidate, digest)
 
 
@@ -168,7 +170,7 @@ def _recovery_entity_id(user_id: str, token_hash: str) -> str:
     from auth.credential_boundary import resolve_auth_jwt_secret
 
     key = resolve_auth_jwt_secret().encode("utf-8")
-    material = _RECOVERY_HMAC + b":" + f"{user_id}:{token_hash}".encode("utf-8")
+    material = _RECOVERY_HMAC + b":" + f"{user_id}:{token_hash}".encode()
     digest = hmac.new(key, material, hashlib.sha256).hexdigest()
     return f"{_RECOVERY_PREFIX}{digest}"
 
@@ -199,12 +201,16 @@ class TotpAdapter:
         record = self._load(user_id)
         return bool(record and record.get("enabled"))
 
-    def begin_enroll(self, user_id: str, *, account_name: str | None = None) -> dict[str, Any]:
+    def begin_enroll(
+        self, user_id: str, *, account_name: str | None = None
+    ) -> dict[str, Any]:
         secret = generate_totp_secret()
         self._pending_store.put_totp_pending(
             user_id, secret=secret, ttl_seconds=_PENDING_TTL_SECONDS
         )
-        uri = build_otpauth_uri(secret, issuer=self._issuer, account_name=account_name or user_id)
+        uri = build_otpauth_uri(
+            secret, issuer=self._issuer, account_name=account_name or user_id
+        )
         return {
             "method": "totp",
             "secret": secret,
@@ -292,12 +298,16 @@ class TotpAdapter:
 
     def disable(self, user_id: str) -> None:
         record = self._load(user_id)
-        hashes = [str(c.get("hash") or "") for c in (record or {}).get("recovery_codes") or []]
+        hashes = [
+            str(c.get("hash") or "") for c in (record or {}).get("recovery_codes") or []
+        ]
         self._persistence.delete("metadata", f"{_ENTITY_PREFIX}{user_id}")
         self._pending_store.delete_totp_pending(user_id)
         for token_hash in hashes:
             if token_hash:
-                self._persistence.delete("metadata", _recovery_entity_id(user_id, token_hash))
+                self._persistence.delete(
+                    "metadata", _recovery_entity_id(user_id, token_hash)
+                )
 
     def recovery_codes_remaining(self, user_id: str) -> int:
         record = self._load(user_id)
@@ -374,7 +384,7 @@ class TotpAdapter:
     def _claim_totp_step(self, user_id: str, counter: int) -> bool:
         entity_id = f"auth-mfa-totp-step-{user_id}-{int(counter)}"
         now = utc_now().isoformat()
-        expires = datetime(2099, 1, 1, tzinfo=timezone.utc).isoformat()
+        expires = datetime(2099, 1, 1, tzinfo=UTC).isoformat()
         self._persistence.atomic_put_if_absent(
             kind="metadata",
             entity_id=entity_id,
@@ -405,8 +415,10 @@ class TotpAdapter:
     ) -> None:
         for token_hash in previous or []:
             if token_hash and token_hash not in hashes:
-                self._persistence.delete("metadata", _recovery_entity_id(user_id, token_hash))
-        expires = datetime(2099, 1, 1, tzinfo=timezone.utc).isoformat()
+                self._persistence.delete(
+                    "metadata", _recovery_entity_id(user_id, token_hash)
+                )
+        expires = datetime(2099, 1, 1, tzinfo=UTC).isoformat()
         now = utc_now().isoformat()
         for token_hash in hashes:
             self._persistence.put(

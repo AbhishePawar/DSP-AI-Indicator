@@ -4,6 +4,11 @@ from __future__ import annotations
 
 import pytest
 
+from ai_committee.enums import Decision
+from ai_committee.exceptions import CommitteeError
+from ai_committee.members import ValuationMember
+from ai_committee.members.valuation import map_valuation_decision
+from ai_committee.models import CommitteeInput
 from contracts import (
     AssetClass,
     EngineSource,
@@ -11,12 +16,6 @@ from contracts import (
     SignalDirection,
     ValuationConfidence,
 )
-
-from ai_committee.enums import Decision
-from ai_committee.exceptions import CommitteeError
-from ai_committee.members import ValuationMember
-from ai_committee.members.valuation import map_valuation_decision
-from ai_committee.models import CommitteeInput
 
 
 class TestValuationMember:
@@ -119,9 +118,7 @@ class TestValuationMember:
     def test_instrument_mismatch_raises(
         self, instrument, technical_factory, fundamental_factory, valuation_factory
     ) -> None:
-        other = Instrument(
-            symbol="MSFT", asset_class=AssetClass.EQUITY, currency="USD"
-        )
+        other = Instrument(symbol="MSFT", asset_class=AssetClass.EQUITY, currency="USD")
         context = CommitteeInput(
             instrument=instrument,
             technical=technical_factory((SignalDirection.BULLISH,)),

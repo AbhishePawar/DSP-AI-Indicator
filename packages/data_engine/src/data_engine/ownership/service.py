@@ -114,9 +114,12 @@ class OwnershipService:
             self.metrics.cache_hits += 1
             self.metrics.successes += 1
             _LOG.info(
-                "ownership_cache_hit", extra={"symbol": symbol, "provider": self.provider_id}
+                "ownership_cache_hit",
+                extra={"symbol": symbol, "provider": self.provider_id},
             )
-            return replace(cached, provenance=replace(cached.provenance, cache_hit=True))
+            return replace(
+                cached, provenance=replace(cached.provenance, cache_hit=True)
+            )
 
         def _call() -> AuthenticatedOwnership | None:
             self._breaker.before_call()
@@ -153,21 +156,27 @@ class OwnershipService:
         except CircuitOpenError:
             self.metrics.failures += 1
             _LOG.error(
-                "ownership_circuit_open", extra={"symbol": symbol, "provider": self.provider_id}
+                "ownership_circuit_open",
+                extra={"symbol": symbol, "provider": self.provider_id},
             )
             raise
         except Exception as exc:
             self.metrics.failures += 1
             _LOG.exception(
                 "ownership_failure",
-                extra={"symbol": symbol, "provider": self.provider_id, "error": str(exc)},
+                extra={
+                    "symbol": symbol,
+                    "provider": self.provider_id,
+                    "error": str(exc),
+                },
             )
             raise
 
         if bundle is None:
             self.metrics.unavailable += 1
             _LOG.info(
-                "ownership_unavailable", extra={"symbol": symbol, "provider": self.provider_id}
+                "ownership_unavailable",
+                extra={"symbol": symbol, "provider": self.provider_id},
             )
             return None
 

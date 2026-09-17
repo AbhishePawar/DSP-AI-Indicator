@@ -2,12 +2,11 @@
 
 from __future__ import annotations
 
-from industry import EligibilityOptions, EvidenceBundle
-from universe import MultiStockDecisionResult
-
 from comparison.engine import QualitativeComparisonEngine
 from comparison.exceptions import ComparisonError
 from comparison.models import ComparisonRequest, ComparisonResult
+from industry import EligibilityOptions, EvidenceBundle
+from universe import MultiStockDecisionResult
 
 __all__ = ["compare_universe_result"]
 

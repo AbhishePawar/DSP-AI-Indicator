@@ -321,12 +321,7 @@ class ResearchReporter:
         if not insights and not conflicts and not gaps:
             return ResearchReportingStatus.EMPTY
         has_agenda = agenda is not None and bool(agenda.priorities)
-        if (
-            insights
-            and coverage
-            and summary.insight_count > 0
-            and has_agenda
-        ):
+        if insights and coverage and summary.insight_count > 0 and has_agenda:
             return ResearchReportingStatus.COMPLETE
         return ResearchReportingStatus.PARTIAL
 
@@ -373,9 +368,7 @@ class ResearchReporter:
         seen: set[str] = set()
         for conflict in conflicts:
             if conflict.conflict_id in seen:
-                msg = (
-                    f"duplicate report sections: conflict {conflict.conflict_id!r}"
-                )
+                msg = f"duplicate report sections: conflict {conflict.conflict_id!r}"
                 raise ResearchError(msg)
             seen.add(conflict.conflict_id)
 
@@ -405,8 +398,7 @@ class ResearchReporter:
         for priority in agenda.priorities:
             if priority.priority_id in seen:
                 msg = (
-                    f"duplicate report sections: priority "
-                    f"{priority.priority_id!r}"
+                    f"duplicate report sections: priority " f"{priority.priority_id!r}"
                 )
                 raise ResearchError(msg)
             seen.add(priority.priority_id)

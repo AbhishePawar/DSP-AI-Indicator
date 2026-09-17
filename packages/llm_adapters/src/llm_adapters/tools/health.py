@@ -21,13 +21,12 @@ failure is fast and observable.
 
 from __future__ import annotations
 
-from dataclasses import dataclass, field
-from typing import Any, Iterable, Mapping, Sequence
+from collections.abc import Mapping
+from dataclasses import dataclass
 
-from llm_adapters.tools.contract import DSPToolBackend, ToolSpec
+from llm_adapters.tools.contract import DSPToolBackend
 from llm_adapters.tools.dsp_platform_adapter import DSPPlatformToolAdapter
 from llm_adapters.tools.registry import ToolRegistry
-
 
 WIRED = "wired"
 AUTHENTICATION_REQUIRED = "authentication_required"
@@ -90,6 +89,7 @@ def _probe_composition(backend: DSPPlatformToolAdapter) -> str:
         return UNAVAILABLE
     # The probe must produce at least one known per-tool sub-result.
     from llm_adapters.tools.dsp_platform_adapter import _flatten_pack
+
     view = _flatten_pack(result, "__TOOL_HEALTH_PROBE__")
     if not view:
         return UNAVAILABLE
@@ -128,9 +128,18 @@ def check_tool_health(
         needs_composition = name in _COMPOSITION_BACKED_TOOLS
         needs_flat = name in _FLAT_BACKED_TOOLS
         if needs_composition and needs_flat:
-            state = flat_health if flat_health == comp_health else (
-                WIRED if flat_health == WIRED and comp_health == WIRED
-                else (UNAVAILABLE if UNAVAILABLE in (flat_health, comp_health) else AUTHENTICATION_REQUIRED)
+            state = (
+                flat_health
+                if flat_health == comp_health
+                else (
+                    WIRED
+                    if flat_health == WIRED and comp_health == WIRED
+                    else (
+                        UNAVAILABLE
+                        if UNAVAILABLE in (flat_health, comp_health)
+                        else AUTHENTICATION_REQUIRED
+                    )
+                )
             )
         elif needs_composition:
             state = comp_health
@@ -148,6 +157,7 @@ def check_tool_health(
     # recomposes for the actual symbol.
     if isinstance(backend, DSPPlatformToolAdapter):
         from llm_adapters.tools.dsp_platform_adapter import reset_pack_cache
+
         reset_pack_cache(backend)
 
     return ToolHealthReport(

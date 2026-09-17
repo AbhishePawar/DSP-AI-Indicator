@@ -171,9 +171,7 @@ def _factor_scores(package: ResearchPackage) -> list[dict[str, Any]]:
     return rows
 
 
-def _score_row(
-    label: str, factor_id: str, section: PackageSection
-) -> dict[str, Any]:
+def _score_row(label: str, factor_id: str, section: PackageSection) -> dict[str, Any]:
     score = _copy_existing_score(section.payload if section.available else None)
     assigned = score is not None
     return {

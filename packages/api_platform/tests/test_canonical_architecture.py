@@ -5,7 +5,6 @@ from __future__ import annotations
 import ast
 from pathlib import Path
 
-
 _REPO = Path(__file__).resolve().parents[3]
 _WEB = _REPO / "apps" / "web" / "src"
 _COMPOSITION = (

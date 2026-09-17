@@ -84,9 +84,12 @@ def _buffett(signals: CommitteeSignals) -> ReviewerOpinion:
         concerns.append("Insufficient margin of safety")
     if signals.mos_ratio is not None and signals.mos_ratio >= 0.25:
         factors.append("Attractive margin of safety")
-    conf = _mean(
-        [signals.bq_confidence, signals.ir_confidence, signals.valuation_confidence]
-    ) or 0.4
+    conf = (
+        _mean(
+            [signals.bq_confidence, signals.ir_confidence, signals.valuation_confidence]
+        )
+        or 0.4
+    )
     role = ReviewerRole.BUFFETT_ANALYST
     return ReviewerOpinion(
         role=role,
@@ -283,7 +286,9 @@ def _risk(signals: CommitteeSignals) -> ReviewerOpinion:
     if signals.financial_strength is not None and signals.financial_strength < _WEAK:
         value -= 15.0
         concerns.append("Balance-sheet / financial-strength risk")
-    elif signals.financial_strength is not None and signals.financial_strength >= _STRONG:
+    elif (
+        signals.financial_strength is not None and signals.financial_strength >= _STRONG
+    ):
         factors.append("Balance sheet supports resilience")
     if signals.conflict_count > 0:
         value -= min(12.0, 3.0 * signals.conflict_count)
@@ -313,9 +318,12 @@ def _risk(signals: CommitteeSignals) -> ReviewerOpinion:
     ):
         concerns.append("Great business / expensive valuation")
     value = clip_score(value)
-    conf = _mean(
-        [signals.ir_confidence, signals.bq_confidence, signals.valuation_confidence]
-    ) or 0.35
+    conf = (
+        _mean(
+            [signals.ir_confidence, signals.bq_confidence, signals.valuation_confidence]
+        )
+        or 0.35
+    )
     # Risk officer confidence is intentionally tempered
     conf = min(conf, 0.75)
     role = ReviewerRole.RISK_OFFICER

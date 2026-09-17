@@ -2,7 +2,8 @@
 
 from __future__ import annotations
 
-from typing import Any, Mapping
+from collections.abc import Mapping
+from typing import Any
 from uuid import uuid4
 
 from dsp_platform.research_monitoring.models import (
@@ -31,7 +32,11 @@ IMPORTANT_SECTIONS = frozenset(
 
 def severity_from_diff(diff: Mapping[str, Any]) -> str:
     """Deterministic severity from structural diff metadata — not a score."""
-    summary = diff.get("change_summary") if isinstance(diff.get("change_summary"), Mapping) else {}
+    summary = (
+        diff.get("change_summary")
+        if isinstance(diff.get("change_summary"), Mapping)
+        else {}
+    )
     if summary.get("identical_content"):
         return "info"
     sections = diff.get("sections") if isinstance(diff.get("sections"), list) else []
@@ -42,14 +47,18 @@ def severity_from_diff(diff: Mapping[str, Any]) -> str:
     }
     if changed_names & IMPORTANT_SECTIONS:
         return "important"
-    if int(summary.get("fields_changed") or 0) or int(summary.get("fields_added") or 0) or int(
-        summary.get("fields_removed") or 0
+    if (
+        int(summary.get("fields_changed") or 0)
+        or int(summary.get("fields_added") or 0)
+        or int(summary.get("fields_removed") or 0)
     ):
         return "watch"
     return "info"
 
 
-def _citations_from_diff(diff: Mapping[str, Any], subject: str) -> tuple[dict[str, Any], ...]:
+def _citations_from_diff(
+    diff: Mapping[str, Any], subject: str
+) -> tuple[dict[str, Any], ...]:
     citations: list[dict[str, Any]] = []
     sections = diff.get("sections") if isinstance(diff.get("sections"), list) else []
     for section in sections:
@@ -98,7 +107,11 @@ def alerts_from_diff(
     current_snapshot_id: str | None,
     alert_id: str | None = None,
 ) -> MonitoringAlert | None:
-    summary = diff.get("change_summary") if isinstance(diff.get("change_summary"), Mapping) else {}
+    summary = (
+        diff.get("change_summary")
+        if isinstance(diff.get("change_summary"), Mapping)
+        else {}
+    )
     if summary.get("identical_content"):
         return None
     severity = severity_from_diff(diff)
@@ -259,9 +272,7 @@ def alerts_from_portfolio_intelligence(
                     )
                     or {},
                 ),
-                change_summary=freeze_mapping(
-                    {"symbol": sym, "status": "recovered"}
-                )
+                change_summary=freeze_mapping({"symbol": sym, "status": "recovered"})
                 or freeze_mapping({}),
                 provenance=freeze_mapping(
                     {

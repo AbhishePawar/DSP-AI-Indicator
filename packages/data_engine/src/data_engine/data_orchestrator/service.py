@@ -7,9 +7,10 @@ No calculations, valuation, scoring, or fabricated payloads.
 from __future__ import annotations
 
 import logging
+from collections.abc import Callable
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from dataclasses import dataclass, field
-from typing import Any, Callable
+from typing import Any
 
 from data_engine.data_orchestrator.models import (
     SECTION_ORDER,

@@ -7,9 +7,10 @@ benchmarks. No network I/O; no hardcoded company names.
 from __future__ import annotations
 
 import time
+from collections.abc import Mapping
 from dataclasses import replace
 from datetime import UTC, datetime
-from typing import Any, Mapping
+from typing import Any
 
 from valuation.core.confidence_engine import ConfidenceEngine
 from valuation.core.metadata import RESEARCH_DISCLAIMER, VALUATION_CORE_VERSION
@@ -247,11 +248,7 @@ class RelativeEngine:
                 else inputs.operating_cash_flow / shares
             )
         if multiple is RelativeMultiple.PRICE_FCF:
-            return (
-                None
-                if not inputs.free_cash_flow
-                else inputs.free_cash_flow / shares
-            )
+            return None if not inputs.free_cash_flow else inputs.free_cash_flow / shares
         if multiple in {
             RelativeMultiple.EV_SALES,
             RelativeMultiple.EV_EBIT,
@@ -266,7 +263,9 @@ class RelativeEngine:
 
     def _resolve_bench(
         self, inputs: RelativeInputs, multiple: RelativeMultiple
-    ) -> tuple[BenchmarkMultiples, BenchmarkMultiples, BenchmarkMultiples, float | None]:
+    ) -> tuple[
+        BenchmarkMultiples, BenchmarkMultiples, BenchmarkMultiples, float | None
+    ]:
         industry = inputs.industry_by_multiple.get(multiple, inputs.industry)
         sector = inputs.sector_by_multiple.get(multiple, inputs.sector)
         peer = inputs.peer_by_multiple.get(multiple, inputs.peer)
@@ -276,11 +275,7 @@ class RelativeEngine:
             peer = inputs.peer if _has_bench(inputs.peer) else peer
         hist = inputs.historical_by_multiple.get(multiple)
         if hist is None and multiple is inputs.method:
-            hist = (
-                inputs.historical_average
-                or inputs.average_5y
-                or inputs.average_10y
-            )
+            hist = inputs.historical_average or inputs.average_5y or inputs.average_10y
         return industry, sector, peer, hist
 
     def _fair_from_scope(
@@ -470,7 +465,10 @@ class RelativeEngine:
             name="current_multiple",
             value=current,
             formula=f"Current {inputs.method.value} from company fundamentals",
-            inputs={"method": inputs.method.value, "price": inputs.current_market_price},
+            inputs={
+                "method": inputs.method.value,
+                "price": inputs.current_market_price,
+            },
             intermediates={},
             confidence=conf,
         )

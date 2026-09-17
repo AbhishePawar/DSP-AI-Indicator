@@ -73,7 +73,9 @@ class SensitivityEngine(SensitivityProvider):
                 # already holds the base key; if value looks like a delta
                 # key is missing, store as absolute sample.
                 merged = dict(context)
-                if axis.name in context and isinstance(context[axis.name], (int, float)):
+                if axis.name in context and isinstance(
+                    context[axis.name], (int, float)
+                ):
                     # treat sequence as absolute levels when caller passes levels
                     merged[axis.name] = value
                 else:

@@ -2,26 +2,14 @@
 
 from __future__ import annotations
 
-from decision_intelligence import DecisionPack
-from industry import (
-    ComparisonDimension,
-    EligibilityOptions,
-    EvidenceBundle,
-    GroupEligibilityStatus,
-    IndustryMethodology,
-    IndustryMethodologyRegistry,
-    PeerEligibilityEvaluator,
-)
-from universe import summarize_decision_pack
-
 from comparison.enums import ComparisonStatus
-from comparison.exceptions import ComparisonError
 from comparison.evidence_integration import (
     build_comparison_evidence_summary,
     build_evidence_backed_observations,
     build_evidence_limitations,
     validate_evidence_bundles_for_comparison,
 )
+from comparison.exceptions import ComparisonError
 from comparison.models import (
     ComparisonEvidenceSummary,
     ComparisonExplanation,
@@ -40,6 +28,17 @@ from comparison.observations import (
     build_shared_observations,
     build_valuation_context,
 )
+from decision_intelligence import DecisionPack
+from industry import (
+    ComparisonDimension,
+    EligibilityOptions,
+    EvidenceBundle,
+    GroupEligibilityStatus,
+    IndustryMethodology,
+    IndustryMethodologyRegistry,
+    PeerEligibilityEvaluator,
+)
+from universe import summarize_decision_pack
 
 __all__ = ["QualitativeComparisonEngine"]
 
@@ -63,9 +62,7 @@ class QualitativeComparisonEngine:
         packs = request.packs
         options = request.eligibility_options
         symbols = tuple(p.recommendation.instrument.symbol for p in packs)
-        pack_by_symbol = {
-            p.recommendation.instrument.symbol: p for p in packs
-        }
+        pack_by_symbol = {p.recommendation.instrument.symbol: p for p in packs}
 
         # --- Entry validation: resolution + eligibility ---
         resolution_errors: list[str] = []
@@ -95,16 +92,12 @@ class QualitativeComparisonEngine:
 
         group = self._evaluator.evaluate_group(symbols, options=options)
         comparable_pairs = [
-            (p.left_key, p.right_key)
-            for p in group.pair_results
-            if p.comparable
+            (p.left_key, p.right_key) for p in group.pair_results if p.comparable
         ]
 
         if not comparable_pairs:
             return self._refuse(
-                scope_notes=(
-                    "Peer eligibility produced no comparable pairs.",
-                ),
+                scope_notes=("Peer eligibility produced no comparable pairs.",),
                 exclusion_reasons=group.exclusions,
                 excluded=symbols,
                 options=options,
@@ -118,33 +111,19 @@ class QualitativeComparisonEngine:
                 ),
             )
 
-        included = tuple(
-            sorted(
-                {
-                    s
-                    for pair in comparable_pairs
-                    for s in pair
-                }
-            )
-        )
+        included = tuple(sorted({s for pair in comparable_pairs for s in pair}))
         excluded = tuple(s for s in symbols if s not in set(included))
         filtered_exclusions = tuple(
-            e
-            for e in group.exclusions
-            if any(sym in e for sym in excluded)
+            e for e in group.exclusions if any(sym in e for sym in excluded)
         )
         if excluded and not filtered_exclusions:
             filtered_exclusions = group.exclusions
 
         # Single methodology among included
-        method_ids = {
-            resolutions[s].methodology_id for s in included
-        }
+        method_ids = {resolutions[s].methodology_id for s in included}
         if len(method_ids) != 1:
             return self._refuse(
-                scope_notes=(
-                    "Included peers resolve to heterogeneous methodologies.",
-                ),
+                scope_notes=("Included peers resolve to heterogeneous methodologies.",),
                 exclusion_reasons=(
                     "Qualitative comparison requires a single IndustryMethodology "
                     f"among included peers; found {sorted(method_ids)}.",
@@ -177,18 +156,14 @@ class QualitativeComparisonEngine:
         for left_key, right_key in comparable_pairs:
             if left_key in summary_by and right_key in summary_by:
                 pair_notes.extend(
-                    build_pair_observations(
-                        summary_by[left_key], summary_by[right_key]
-                    )
+                    build_pair_observations(summary_by[left_key], summary_by[right_key])
                 )
         pair_obs = tuple(pair_notes)
 
         decision_ctx = build_decision_context(summaries)
         valuation_ctx = build_valuation_context(summaries)
         robustness_ctx = build_robustness_context(summaries)
-        dimension_results = build_dimension_results(
-            dimensions, shared, pair_obs
-        )
+        dimension_results = build_dimension_results(dimensions, shared, pair_obs)
 
         status = (
             ComparisonStatus.COMPLETE
@@ -263,9 +238,7 @@ class QualitativeComparisonEngine:
             "No scores, rankings, or league tables are produced.",
         ]
         if excluded:
-            scope.append(
-                f"Excluded from comparison: {', '.join(excluded)}."
-            )
+            scope.append(f"Excluded from comparison: {', '.join(excluded)}.")
         if evidence_summary.attached:
             scope.append(
                 f"Industry Evidence Bundles cited for "
@@ -365,9 +338,7 @@ class QualitativeComparisonEngine:
             ),
             ComparisonLimitation(
                 code="qualitative_only",
-                message=(
-                    "Even when comparison proceeds, DSP never scores or ranks."
-                ),
+                message=("Even when comparison proceeds, DSP never scores or ranks."),
             ),
             *(
                 ComparisonLimitation(

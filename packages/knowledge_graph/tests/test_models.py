@@ -5,8 +5,8 @@ from __future__ import annotations
 from decimal import Decimal
 
 import pytest
-from core.exceptions import ValidationError
 
+from core.exceptions import ValidationError
 from knowledge_graph import (
     AnalysisReference,
     EvidenceLink,

@@ -2,7 +2,8 @@
 
 from __future__ import annotations
 
-from typing import Any, Mapping
+from collections.abc import Mapping
+from typing import Any
 
 from dsp_platform.institutional_committee.models import (
     COMMITTEE_SCHEMA_VERSION,
@@ -49,12 +50,8 @@ def committee_report_from_dict(data: Mapping[str, Any]) -> CommitteeReport:
                 stance=str(row.get("stance") or ""),
                 confidence=str(row.get("confidence") or ""),
                 summary=str(row.get("summary") or ""),
-                findings=tuple(findings)
-                if isinstance(findings, (list, tuple))
-                else (),
-                focus_sections=tuple(focus)
-                if isinstance(focus, (list, tuple))
-                else (),
+                findings=tuple(findings) if isinstance(findings, (list, tuple)) else (),
+                focus_sections=tuple(focus) if isinstance(focus, (list, tuple)) else (),
                 citations=citations,
                 provenance=freeze_mapping(dict(row.get("provenance") or {}))
                 or freeze_mapping({}),
@@ -75,9 +72,7 @@ def committee_report_from_dict(data: Mapping[str, Any]) -> CommitteeReport:
     report = CommitteeReport(
         report_id=str(data.get("report_id") or ""),
         schema_version=str(data.get("schema_version") or COMMITTEE_SCHEMA_VERSION),
-        service_version=str(
-            data.get("service_version") or COMMITTEE_SERVICE_VERSION
-        ),
+        service_version=str(data.get("service_version") or COMMITTEE_SERVICE_VERSION),
         created_at=str(data.get("created_at") or ""),
         subject=str(data.get("subject") or ""),
         context=freeze_mapping(dict(data.get("context") or {})) or freeze_mapping({}),
@@ -91,9 +86,9 @@ def committee_report_from_dict(data: Mapping[str, Any]) -> CommitteeReport:
         provenance=freeze_mapping(dict(data.get("provenance") or {}))
         or freeze_mapping({}),
         audit=freeze_mapping(dict(data.get("audit") or {})) or freeze_mapping({}),
-        limitations=tuple(limitations)
-        if isinstance(limitations, (list, tuple))
-        else (),
+        limitations=(
+            tuple(limitations) if isinstance(limitations, (list, tuple)) else ()
+        ),
     )
     validate_committee_report(report)
     return report

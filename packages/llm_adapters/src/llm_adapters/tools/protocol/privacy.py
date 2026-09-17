@@ -10,11 +10,11 @@ than a redacted secret.
 from __future__ import annotations
 
 import re
-from typing import Any, Mapping
+from collections.abc import Mapping
+from typing import Any
 
-from llm_adapters.tools.contract import assert_no_tool_leakage
 from llm_adapters.privacy_boundary import assert_no_private_leakage
-
+from llm_adapters.tools.contract import assert_no_tool_leakage
 
 # Keys that must never appear in a provider-facing tool envelope,
 # including nested mappings. Extends the contract-level set.
@@ -105,13 +105,17 @@ def assert_provider_envelope_private_free(payload: Mapping[str, Any]) -> None:
     _walk_keys(payload, found=keys)
     leaked = sorted(keys & _PROTOCOL_PRIVATE_KEYS)
     if leaked:
-        raise ProtocolPrivacyError(f"private fields leaked into provider envelope: {leaked}")
+        raise ProtocolPrivacyError(
+            f"private fields leaked into provider envelope: {leaked}"
+        )
     strings: list[str] = []
     _walk_strings(payload, found=strings)
     for text in strings:
         for pattern in _SECRET_PATTERNS:
             if pattern.search(text):
-                raise ProtocolPrivacyError("secret-shaped value leaked into provider envelope")
+                raise ProtocolPrivacyError(
+                    "secret-shaped value leaked into provider envelope"
+                )
 
 
 def assert_browser_pack_private_free(pack: Mapping[str, Any]) -> None:
@@ -119,7 +123,9 @@ def assert_browser_pack_private_free(pack: Mapping[str, Any]) -> None:
     assert_no_private_leakage(dict(pack))
 
 
-def failed_privacy_envelope(tool_name: str, tool_version: str = "0.0.0") -> dict[str, Any]:
+def failed_privacy_envelope(
+    tool_name: str, tool_version: str = "0.0.0"
+) -> dict[str, Any]:
     """Replacement envelope when a result fails privacy validation."""
     return {
         "tool_name": tool_name,

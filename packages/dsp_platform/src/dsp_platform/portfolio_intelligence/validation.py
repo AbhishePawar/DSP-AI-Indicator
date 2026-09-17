@@ -27,9 +27,7 @@ def validate_portfolio_intelligence(result: PortfolioIntelligenceResult) -> None
     if not result.created_at:
         raise PortfolioIntelligenceValidationError("missing created_at")
     if result.portfolio is None and result.watchlist is None:
-        raise PortfolioIntelligenceValidationError(
-            "portfolio or watchlist is required"
-        )
+        raise PortfolioIntelligenceValidationError("portfolio or watchlist is required")
     if result.provenance is None or result.audit is None:
         raise PortfolioIntelligenceValidationError("missing provenance/audit")
     for citation in result.citations:

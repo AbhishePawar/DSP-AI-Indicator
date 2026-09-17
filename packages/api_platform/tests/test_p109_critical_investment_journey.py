@@ -13,10 +13,10 @@ import json
 from pathlib import Path
 
 import pytest
+from auth_test_helpers import bearer_headers, register_user
 from fastapi.testclient import TestClient
 
 from api_platform import create_app
-from auth_test_helpers import bearer_headers, register_user
 from data_engine import (
     FinancialStatementService,
     InMemoryAuthenticatedQuoteAdapter,
@@ -24,7 +24,9 @@ from data_engine import (
     MarketQuoteService,
 )
 from dsp_platform import PlatformBuilder, PlatformConfiguration
-from dsp_platform.financial_statements import reset_financial_statement_service_for_tests
+from dsp_platform.financial_statements import (
+    reset_financial_statement_service_for_tests,
+)
 from dsp_platform.investment_provenance import (
     RELEASE_IDENTITY,
     DatabaseInvestmentProvenanceStore,
@@ -59,9 +61,7 @@ def seeded_client(db: InMemoryDatabasePort, monkeypatch: pytest.MonkeyPatch):
     quote_adapter.put(build_p109_quote())
     stmt_adapter.put(build_p109_statements())
     reset_market_quote_service_for_tests(MarketQuoteService(quote_adapter))
-    reset_financial_statement_service_for_tests(
-        FinancialStatementService(stmt_adapter)
-    )
+    reset_financial_statement_service_for_tests(FinancialStatementService(stmt_adapter))
 
     platform = (
         PlatformBuilder()
@@ -70,9 +70,7 @@ def seeded_client(db: InMemoryDatabasePort, monkeypatch: pytest.MonkeyPatch):
         .build()
     )
     client = TestClient(create_app(platform=platform))
-    reset_investment_provenance_store_for_tests(
-        DatabaseInvestmentProvenanceStore(db)
-    )
+    reset_investment_provenance_store_for_tests(DatabaseInvestmentProvenanceStore(db))
     yield client
     reset_market_quote_service_for_tests(None)
     reset_financial_statement_service_for_tests(None)
@@ -264,9 +262,7 @@ def test_p109_critical_investment_journey_hard_gate(seeded_client: TestClient) -
         "cash_flow": {"operating_cash_flow": 1.0},
         "statement_metadata": {},
     }
-    schema_resp = client.post(
-        "/api/v1/analyse", headers=headers_a, json=schema_forged
-    )
+    schema_resp = client.post("/api/v1/analyse", headers=headers_a, json=schema_forged)
     assert schema_resp.status_code == 422
 
     # --- IDOR: User B cannot read User A's provenance ---
@@ -336,7 +332,9 @@ def test_p109_critical_investment_journey_hard_gate(seeded_client: TestClient) -
     assert evidence["evidence_class"] != "real_live_authenticated_provider"
 
 
-def test_p109_fixture_refused_in_production_env(monkeypatch: pytest.MonkeyPatch) -> None:
+def test_p109_fixture_refused_in_production_env(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
     from dsp_platform.p109_e2e_fixture import p109_fixture_enabled
 
     monkeypatch.setenv("DSP_ENVIRONMENT", "production")

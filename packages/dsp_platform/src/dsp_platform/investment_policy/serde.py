@@ -2,7 +2,8 @@
 
 from __future__ import annotations
 
-from typing import Any, Mapping
+from collections.abc import Mapping
+from typing import Any
 
 from dsp_platform.investment_policy.models import (
     POLICY_SCHEMA_VERSION,
@@ -64,9 +65,7 @@ def compliance_result_from_dict(data: Mapping[str, Any]) -> ComplianceResult:
     result = ComplianceResult(
         result_id=str(data.get("result_id") or ""),
         schema_version=str(data.get("schema_version") or POLICY_SCHEMA_VERSION),
-        service_version=str(
-            data.get("service_version") or POLICY_SERVICE_VERSION
-        ),
+        service_version=str(data.get("service_version") or POLICY_SERVICE_VERSION),
         created_at=str(data.get("created_at") or ""),
         subject=str(data.get("subject") or ""),
         policy=freeze_mapping(dict(data.get("policy") or {})) or freeze_mapping({}),
@@ -79,9 +78,9 @@ def compliance_result_from_dict(data: Mapping[str, Any]) -> ComplianceResult:
         provenance=freeze_mapping(dict(data.get("provenance") or {}))
         or freeze_mapping({}),
         audit=freeze_mapping(dict(data.get("audit") or {})) or freeze_mapping({}),
-        limitations=tuple(limitations)
-        if isinstance(limitations, (list, tuple))
-        else (),
+        limitations=(
+            tuple(limitations) if isinstance(limitations, (list, tuple)) else ()
+        ),
     )
     validate_compliance_result(result)
     return result

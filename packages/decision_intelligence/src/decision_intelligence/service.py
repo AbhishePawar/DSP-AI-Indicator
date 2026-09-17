@@ -4,14 +4,13 @@ from __future__ import annotations
 
 from ai_committee import CommitteeReport
 from contracts import Recommendation
-from industry import EvidenceBundleReference
-
 from decision_intelligence.assurance import build_assurance_assessment
 from decision_intelligence.brief import build_decision_brief
 from decision_intelligence.exceptions import DecisionIntelligenceError
 from decision_intelligence.models.assurance import AssuranceAssessment
 from decision_intelligence.models.brief import DecisionBrief
 from decision_intelligence.models.pack import DecisionPack
+from industry import EvidenceBundleReference
 
 __all__ = ["DecisionIntelligenceService", "attach_evidence_bundle_ref"]
 

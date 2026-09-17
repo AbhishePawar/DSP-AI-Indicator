@@ -5,13 +5,14 @@ No calculations. Preserves values exactly (including \"Data unavailable.\").
 
 from __future__ import annotations
 
+from collections.abc import Mapping
 from dataclasses import dataclass
-from typing import Any, Mapping
+from typing import Any
 
 from dsp_platform.institutional_report.models import (
     REPORT_SECTION_ORDER,
-    InstitutionalResearchReport,
     UNAVAILABLE_MESSAGE,
+    InstitutionalResearchReport,
 )
 from dsp_platform.institutional_report.serde import institutional_report_from_dict
 
@@ -61,8 +62,7 @@ def _value_as_text(value: Any) -> str:
         return value
     if isinstance(value, Mapping):
         parts = [
-            f"{k}={_value_as_text(value[k])}"
-            for k in sorted(value.keys(), key=str)
+            f"{k}={_value_as_text(value[k])}" for k in sorted(value.keys(), key=str)
         ]
         return "{" + ", ".join(parts) + "}"
     if isinstance(value, (list, tuple)):

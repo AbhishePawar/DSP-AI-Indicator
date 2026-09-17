@@ -82,4 +82,6 @@ class TestRSI:
 
     def test_callable_shorthand(self, sample_prices: np.ndarray) -> None:
         indicator = RSI(5)
-        np.testing.assert_array_equal(indicator(sample_prices), indicator.compute(sample_prices))
+        np.testing.assert_array_equal(
+            indicator(sample_prices), indicator.compute(sample_prices)
+        )

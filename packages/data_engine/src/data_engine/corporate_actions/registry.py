@@ -2,8 +2,8 @@
 
 from __future__ import annotations
 
+from collections.abc import Iterable
 from threading import Lock
-from typing import Iterable
 
 from data_engine.corporate_actions.service import CorporateActionPort
 from data_engine.exceptions import DataEngineError
@@ -19,9 +19,7 @@ class CorporateActionProviderRegistry:
         self._default: str | None = None
         self._lock = Lock()
 
-    def register(
-        self, provider: CorporateActionPort, *, default: bool = False
-    ) -> None:
+    def register(self, provider: CorporateActionPort, *, default: bool = False) -> None:
         with self._lock:
             self._providers[provider.provider_id] = provider
             if default or self._default is None:

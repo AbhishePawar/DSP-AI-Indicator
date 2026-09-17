@@ -9,9 +9,10 @@ Future Market Data Platform adapters should implement
 
 from __future__ import annotations
 
+from collections.abc import Mapping
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Any, Mapping, Protocol, runtime_checkable
+from typing import Any, Protocol, runtime_checkable
 
 from valuation.core.confidence_engine import ConfidenceDetail
 from valuation.core.metadata import RESEARCH_DISCLAIMER, VALUATION_CORE_VERSION

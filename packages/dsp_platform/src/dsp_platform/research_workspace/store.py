@@ -372,7 +372,9 @@ class ResearchWorkspaceStore:
             }
             row.update(
                 {
-                    "label": str(payload.get("label") or row.get("label") or "tag").strip(),
+                    "label": str(
+                        payload.get("label") or row.get("label") or "tag"
+                    ).strip(),
                     "color": payload.get("color") or row.get("color") or "#64748b",
                     "kind": payload.get("kind") or row.get("kind") or "custom",
                     "updated_at": _now(),
@@ -497,7 +499,9 @@ class ResearchWorkspaceStore:
             bookmarks = [
                 deepcopy(b)
                 for b in self._bookmarks.values()
-                if match_text(b.get("label"), b.get("kind"), b.get("target_id"), b.get("company"))
+                if match_text(
+                    b.get("label"), b.get("kind"), b.get("target_id"), b.get("company")
+                )
             ]
             tags = [
                 deepcopy(t)

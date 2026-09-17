@@ -89,7 +89,10 @@ def test_portfolio_reuses_pi(platform: DSPPlatform) -> None:
         symbols=["AAPL", "MSFT"],
     )
     assert result["unavailable"] is False
-    assert "Portfolio Intelligence" in result["answer"] or "Linked research" in result["answer"]
+    assert (
+        "Portfolio Intelligence" in result["answer"]
+        or "Linked research" in result["answer"]
+    )
     assert any(s["engine"] == "portfolio_intelligence" for s in result["sources"])
 
 

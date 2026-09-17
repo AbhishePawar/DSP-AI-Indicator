@@ -6,8 +6,9 @@ import base64
 import hashlib
 import hmac
 import json
-from datetime import datetime, timedelta, timezone
-from typing import Any, Mapping
+from collections.abc import Mapping
+from datetime import UTC, datetime, timedelta
+from typing import Any
 
 from auth.exceptions import InvalidTokenError
 
@@ -26,7 +27,9 @@ def b64url_decode(data: str) -> bytes:
 class JwtService:
     """HS256 JWT issuer/validator — no external JWT dependency."""
 
-    def __init__(self, secret: str = "dsp-auth-dev-secret", *, issuer: str = "dsp-auth") -> None:
+    def __init__(
+        self, secret: str = "dsp-auth-dev-secret", *, issuer: str = "dsp-auth"
+    ) -> None:
         if not secret:
             raise ValueError("jwt secret is required")
         self._secret = secret.encode("utf-8")
@@ -45,7 +48,7 @@ class JwtService:
         if issued_at:
             iat_dt = datetime.fromisoformat(issued_at.replace("Z", "+00:00"))
         else:
-            iat_dt = datetime.now(tz=timezone.utc)
+            iat_dt = datetime.now(tz=UTC)
         exp_dt = iat_dt + timedelta(seconds=int(expires_in))
         header = {"alg": "HS256", "typ": "JWT"}
         payload: dict[str, Any] = {
@@ -77,7 +80,7 @@ class JwtService:
             raise InvalidTokenError("invalid payload") from exc
         if not isinstance(payload, dict):
             raise InvalidTokenError("invalid payload")
-        current = now or datetime.now(tz=timezone.utc)
+        current = now or datetime.now(tz=UTC)
         exp = payload.get("exp")
         if exp is None or int(exp) < int(current.timestamp()):
             raise InvalidTokenError("token expired")

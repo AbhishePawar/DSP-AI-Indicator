@@ -5,10 +5,11 @@ Stores references and metadata only — research artifact payloads are never sto
 
 from __future__ import annotations
 
+from collections.abc import Mapping
 from dataclasses import dataclass, field
 from datetime import UTC, datetime
 from types import MappingProxyType
-from typing import Any, Mapping
+from typing import Any
 
 __all__ = [
     "ENTITY_KINDS",
@@ -71,7 +72,10 @@ class PersistedEntity:
     def to_dict(self) -> dict[str, Any]:
         def _plain(obj: Any) -> Any:
             if isinstance(obj, Mapping):
-                return {str(k): _plain(v) for k, v in sorted(obj.items(), key=lambda x: str(x[0]))}
+                return {
+                    str(k): _plain(v)
+                    for k, v in sorted(obj.items(), key=lambda x: str(x[0]))
+                }
             if isinstance(obj, (list, tuple)):
                 return [_plain(v) for v in obj]
             return obj
@@ -101,7 +105,10 @@ class PersistenceSnapshot:
     def to_dict(self) -> dict[str, Any]:
         def _plain(obj: Any) -> Any:
             if isinstance(obj, Mapping):
-                return {str(k): _plain(v) for k, v in sorted(obj.items(), key=lambda x: str(x[0]))}
+                return {
+                    str(k): _plain(v)
+                    for k, v in sorted(obj.items(), key=lambda x: str(x[0]))
+                }
             if isinstance(obj, (list, tuple)):
                 return [_plain(v) for v in obj]
             return obj

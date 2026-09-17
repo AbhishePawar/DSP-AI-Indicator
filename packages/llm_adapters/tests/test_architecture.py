@@ -67,6 +67,7 @@ class TestLlmAdaptersArchitecture:
         modules may import the adapter type for re-export and use, but
         they must not invoke platform methods directly."""
         from pathlib import Path as _P
+
         allowed = _P("tools") / "dsp_platform_adapter.py"
         offenders: list[str] = []
         for path in _SRC.rglob("*.py"):
@@ -76,13 +77,24 @@ class TestLlmAdaptersArchitecture:
             text = path.read_text(encoding="utf-8")
             for line in text.splitlines():
                 stripped = line.strip()
-                if stripped.startswith("#") or stripped.startswith('"""') or stripped.startswith("'''"):
+                if (
+                    stripped.startswith("#")
+                    or stripped.startswith('"""')
+                    or stripped.startswith("'''")
+                ):
                     continue
                 # Direct method calls on a platform object are forbidden.
-                if "_platform.analyze" in line or "_platform.get_" in line or "_platform.run_" in line:
+                if (
+                    "_platform.analyze" in line
+                    or "_platform.get_" in line
+                    or "_platform.run_" in line
+                ):
                     offenders.append(f"{path.name}: {stripped}")
                     break
-                if "platform.analyze_decision_pack" in line or "platform.run_institutional_committee" in line:
+                if (
+                    "platform.analyze_decision_pack" in line
+                    or "platform.run_institutional_committee" in line
+                ):
                     offenders.append(f"{path.name}: {stripped}")
                     break
         assert not offenders, offenders
@@ -91,7 +103,6 @@ class TestLlmAdaptersArchitecture:
         """Beyond the adapter, the tools subpackage must not import any
         DSP engine package directly. Everything goes through the
         adapter or the registry."""
-        from pathlib import Path as _P
         # Forbidden import statements (not constants or string literals).
         forbidden_imports: tuple[tuple[str, str], ...] = (
             ("import", "valuation"),
@@ -109,11 +120,15 @@ class TestLlmAdaptersArchitecture:
             text = path.read_text(encoding="utf-8")
             for line in text.splitlines():
                 stripped = line.strip()
-                if stripped.startswith("#") or stripped.startswith('"""') or stripped.startswith("'''"):
+                if (
+                    stripped.startswith("#")
+                    or stripped.startswith('"""')
+                    or stripped.startswith("'''")
+                ):
                     continue
                 for kw, module in forbidden_imports:
                     # Only flag actual import statements.
-                    if (f"{kw} {module}" in stripped or f"{kw} {module}." in stripped):
+                    if f"{kw} {module}" in stripped or f"{kw} {module}." in stripped:
                         raise AssertionError(
                             f"{path.name} imports DSP engine module {module!r} at: {stripped!r}"
                         )
@@ -190,15 +205,24 @@ class TestLlmAdaptersArchitecture:
         assert issubclass(DeepSeekAdapter, OpenAICompatibleToolCalling)
         assert not issubclass(GeminiAdapter, OpenAICompatibleToolCalling)
         assert not issubclass(AnthropicAdapter, OpenAICompatibleToolCalling)
-        assert OpenAIAdapter.parse_tool_calls is OpenAICompatibleToolCalling.parse_tool_calls
-        assert DeepSeekAdapter.parse_tool_calls is OpenAICompatibleToolCalling.parse_tool_calls
+        assert (
+            OpenAIAdapter.parse_tool_calls
+            is OpenAICompatibleToolCalling.parse_tool_calls
+        )
+        assert (
+            DeepSeekAdapter.parse_tool_calls
+            is OpenAICompatibleToolCalling.parse_tool_calls
+        )
         assert OpenAIAdapter.parse_tool_calls is DeepSeekAdapter.parse_tool_calls
         assert OpenAIAdapter.tool_declarations is DeepSeekAdapter.tool_declarations
         assert OpenAIAdapter.format_tool_results is DeepSeekAdapter.format_tool_results
 
         openai_src = (_SRC / "openai_adapter.py").read_text(encoding="utf-8")
         deepseek_src = (_SRC / "deepseek_adapter.py").read_text(encoding="utf-8")
-        for src, label in ((openai_src, "openai_adapter"), (deepseek_src, "deepseek_adapter")):
+        for src, label in (
+            (openai_src, "openai_adapter"),
+            (deepseek_src, "deepseek_adapter"),
+        ):
             assert "def declarations_as_openai_tools" not in src, label
             assert "def parse_openai_tool_calls" not in src, label
             assert "OpenAICompatibleToolCalling" in src, label

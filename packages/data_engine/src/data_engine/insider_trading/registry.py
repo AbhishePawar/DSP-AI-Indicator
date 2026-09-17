@@ -8,5 +8,7 @@ from data_engine.insider_trading.service import InsiderTradingProviderPort
 __all__ = ["InsiderTradingProviderRegistry"]
 
 
-class InsiderTradingProviderRegistry(PriorityProviderRegistry[InsiderTradingProviderPort]):
+class InsiderTradingProviderRegistry(
+    PriorityProviderRegistry[InsiderTradingProviderPort]
+):
     """Registry of authenticated insider trading providers, ordered by priority."""

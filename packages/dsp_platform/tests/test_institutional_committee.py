@@ -173,9 +173,10 @@ def test_unavailable_without_artifacts() -> None:
     for review in result["reviews"]:
         if review["agent_id"] != "devils_advocate":
             assert review["stance"] == "unavailable"
-            assert UNAVAILABLE_MESSAGE in review["summary"] or UNAVAILABLE_MESSAGE in review[
-                "findings"
-            ]
+            assert (
+                UNAVAILABLE_MESSAGE in review["summary"]
+                or UNAVAILABLE_MESSAGE in review["findings"]
+            )
 
 
 def test_determinism_and_serde() -> None:

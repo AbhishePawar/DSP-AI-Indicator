@@ -3,8 +3,8 @@
 from __future__ import annotations
 
 import pytest
-from core.exceptions import ValidationError
 
+from core.exceptions import ValidationError
 from industry import (
     ApplicabilityLevel,
     EvidenceAvailability,
@@ -135,9 +135,7 @@ class TestInterpreterRegistry:
                 name="Bad",
                 version="1.0.0",
                 interpretations=(
-                    EvidenceInterpretation(
-                        evidence_id="dsp.evidence.does_not_exist"
-                    ),
+                    EvidenceInterpretation(evidence_id="dsp.evidence.does_not_exist"),
                 ),
             )
         )

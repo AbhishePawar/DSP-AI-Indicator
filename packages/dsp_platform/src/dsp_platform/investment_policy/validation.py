@@ -31,9 +31,7 @@ def validate_compliance_result(result: ComplianceResult) -> None:
         raise InvestmentPolicyValidationError("missing created_at")
     for rule in result.rule_results:
         if rule.outcome not in RULE_OUTCOMES:
-            raise InvestmentPolicyValidationError(
-                f"invalid outcome {rule.outcome!r}"
-            )
+            raise InvestmentPolicyValidationError(f"invalid outcome {rule.outcome!r}")
         if not rule.citations:
             raise InvestmentPolicyValidationError(
                 f"rule {rule.rule_id} missing citations"

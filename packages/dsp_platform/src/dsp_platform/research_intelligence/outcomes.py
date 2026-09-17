@@ -5,7 +5,7 @@ Missing market data → honest "Data unavailable." / Unable to calculate.
 
 from __future__ import annotations
 
-from typing import Any, Mapping
+from collections.abc import Mapping
 
 from dsp_platform.research_intelligence.models import (
     OUTCOME_WINDOWS_MONTHS,
@@ -95,9 +95,7 @@ def _recommendation_accuracy(
     return None
 
 
-def _confidence_accuracy(
-    label: str | None, rec_accuracy: str | None
-) -> str | None:
+def _confidence_accuracy(label: str | None, rec_accuracy: str | None) -> str | None:
     if label is None or rec_accuracy is None:
         return None
     # High confidence should be correct more often; we only mark per-sample match.
@@ -145,9 +143,7 @@ def measure_outcome(
     metrics remain unavailable — never fabricated.
     """
     if window_months not in OUTCOME_WINDOWS_MONTHS:
-        raise ValueError(
-            f"window_months must be one of {OUTCOME_WINDOWS_MONTHS}"
-        )
+        raise ValueError(f"window_months must be one of {OUTCOME_WINDOWS_MONTHS}")
 
     price_start = snapshot.price
     price_end = price_at_horizon

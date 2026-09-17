@@ -147,9 +147,11 @@ class AuthenticatedPoint:
         return {
             "date": self.point_date.isoformat(),
             "series_kind": self.series_kind,
-            "value": float(self.value.value)
-            if self.value.available and self.value.value is not None
-            else None,
+            "value": (
+                float(self.value.value)
+                if self.value.available and self.value.value is not None
+                else None
+            ),
         }
 
 

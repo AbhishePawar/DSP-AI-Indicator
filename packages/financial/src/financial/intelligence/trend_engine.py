@@ -8,7 +8,7 @@ from __future__ import annotations
 
 import math
 import statistics
-from typing import Any, Sequence
+from collections.abc import Sequence
 
 from financial.intelligence.balance_engine import BalanceSheetEngine
 from financial.intelligence.cashflow_engine import CashFlowEngine
@@ -141,10 +141,12 @@ class TrendEngine:
 
     def analyze(
         self,
-        source: FinancialStatementsHistory
-        | FinancialSnapshot
-        | dict
-        | Sequence[FinancialStatements],
+        source: (
+            FinancialStatementsHistory
+            | FinancialSnapshot
+            | dict
+            | Sequence[FinancialStatements]
+        ),
     ) -> TrendAnalysis:
         """Run Trend & Time-Series Intelligence."""
         stmts, meta = coerce_trend_history(source)
@@ -174,7 +176,9 @@ class TrendEngine:
             higher_better={"revenue": True, "revenue_growth": True},
             cagr_keys={"revenue"},
         )
-        revenue_trends = self._enrich_revenue(revenue_trends, income_series, explanations)
+        revenue_trends = self._enrich_revenue(
+            revenue_trends, income_series, explanations
+        )
 
         profitability_trends = self._build_family(
             {
@@ -206,7 +210,9 @@ class TrendEngine:
                 "operating_cash_flow": [
                     a.operating.operating_cash_flow for a in cash_series
                 ],
-                "free_cash_flow": [a.free_cash_flow.free_cash_flow for a in cash_series],
+                "free_cash_flow": [
+                    a.free_cash_flow.free_cash_flow for a in cash_series
+                ],
                 "cash_conversion": [a.operating.cash_conversion for a in cash_series],
                 "capex": [a.investing.capex for a in cash_series],
                 "dividends_paid": [a.financing.dividends_paid for a in cash_series],
@@ -227,7 +233,9 @@ class TrendEngine:
                 "net_debt": [a.leverage.net_debt for a in balance_series],
                 "cash": [a.working_capital.cash_position for a in balance_series],
                 "book_value": [a.equity.book_value for a in balance_series],
-                "working_capital": [a.liquidity.working_capital for a in balance_series],
+                "working_capital": [
+                    a.liquidity.working_capital for a in balance_series
+                ],
                 "total_assets": asset_series,
                 "equity": [a.equity.book_value for a in balance_series],
             },
@@ -245,9 +253,15 @@ class TrendEngine:
 
         ratio_trends = self._build_family(
             {
-                "current_ratio": [_ratio_value(r, "current_ratio") for r in ratio_series],
-                "debt_to_equity": [_ratio_value(r, "debt_to_equity") for r in ratio_series],
-                "asset_turnover": [_ratio_value(r, "asset_turnover") for r in ratio_series],
+                "current_ratio": [
+                    _ratio_value(r, "current_ratio") for r in ratio_series
+                ],
+                "debt_to_equity": [
+                    _ratio_value(r, "debt_to_equity") for r in ratio_series
+                ],
+                "asset_turnover": [
+                    _ratio_value(r, "asset_turnover") for r in ratio_series
+                ],
                 "net_margin": [_ratio_value(r, "net_margin") for r in ratio_series],
                 "capital_allocation_score": [
                     r.capital_allocation.capital_allocation_score for r in ratio_series
@@ -325,7 +339,9 @@ class TrendEngine:
             if name in cagr_keys and len(clean) >= 2:
                 cagr = _cagr(clean[0], clean[-1], len(clean) - 1)
             cls = _classify(series, higher_better=hb)
-            conf = _confidence(len(series), has_value=latest_growth is not None or len(clean) >= 2)
+            conf = _confidence(
+                len(series), has_value=latest_growth is not None or len(clean) >= 2
+            )
             interp = (
                 f"{name}: {cls.value}"
                 if cls is not TrendClass.INSUFFICIENT
@@ -396,9 +412,7 @@ class TrendEngine:
         stability_series: list[float | None] = [None] * n
         for i in range(1, n):
             partial = [g for g in growth_series[1 : i + 1] if g is not None]
-            stability_series[i] = (
-                _stability(partial) if len(partial) >= 2 else None
-            )
+            stability_series[i] = _stability(partial) if len(partial) >= 2 else None
         extra = self._build_family(
             {
                 "growth_consistency": growth_series,
@@ -423,17 +437,18 @@ class TrendEngine:
                         latest_growth=t.latest_growth,
                         cagr=t.cagr,
                         classification=t.classification,
-                        consistency=consistency if consistency is not None else t.consistency,
+                        consistency=(
+                            consistency if consistency is not None else t.consistency
+                        ),
                         acceleration=accel if accel is not None else t.acceleration,
                         confidence=t.confidence,
                         interpretation=t.interpretation
-                        + (
-                            f"; acceleration={accel:.4f}"
-                            if accel is not None
-                            else ""
-                        ),
+                        + (f"; acceleration={accel:.4f}" if accel is not None else ""),
                         method=t.method,
-                        intermediates={**dict(t.intermediates), "growth_consistency": consistency},
+                        intermediates={
+                            **dict(t.intermediates),
+                            "growth_consistency": consistency,
+                        },
                         limitations=t.limitations,
                     )
                 )
@@ -454,17 +469,13 @@ class TrendEngine:
             for t in group
             if t.consistency is not None
         ]
-        consistency_score = (
-            sum(cons_vals) / len(cons_vals) if cons_vals else None
-        )
+        consistency_score = sum(cons_vals) / len(cons_vals) if cons_vals else None
         volatility_score = (
             _clip01(1.0 - consistency_score) if consistency_score is not None else None
         )
         # Stability: share of STABLE/IMPROVING classifications
         classes = [
-            t.classification
-            for group in (revenue, profitability, cash)
-            for t in group
+            t.classification for group in (revenue, profitability, cash) for t in group
         ]
         if classes:
             stable_like = sum(
@@ -496,7 +507,11 @@ class TrendEngine:
                         break
                 persistence = run / len(rates)
         predictability = None
-        parts = [p for p in (consistency_score, stability_score, persistence) if p is not None]
+        parts = [
+            p
+            for p in (consistency_score, stability_score, persistence)
+            if p is not None
+        ]
         if parts:
             predictability = sum(parts) / len(parts)
         out.append(
@@ -509,7 +524,9 @@ class TrendEngine:
                     "persistence": persistence,
                 },
                 result=consistency_score,
-                confidence=_confidence(len(cons_vals), has_value=consistency_score is not None),
+                confidence=_confidence(
+                    len(cons_vals), has_value=consistency_score is not None
+                ),
                 interpretation=(
                     "Consistency unavailable."
                     if consistency_score is None
@@ -599,7 +616,9 @@ class TrendEngine:
             return group[0].classification
 
         rev_c = _dom(tuple(t for t in revenue if t.name == "revenue") or revenue)
-        prof_c = _dom(tuple(t for t in profitability if t.name == "net_margin") or profitability)
+        prof_c = _dom(
+            tuple(t for t in profitability if t.name == "net_margin") or profitability
+        )
         cash_c = _dom(tuple(t for t in cash if t.name == "free_cash_flow") or cash)
         bal_c = _dom(tuple(t for t in balance if t.name == "book_value") or balance)
         ratio_c = _dom(tuple(t for t in ratios if t.name == "net_margin") or ratios)

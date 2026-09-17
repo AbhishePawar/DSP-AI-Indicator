@@ -42,8 +42,10 @@ def compute_terminal_value(
                 "WACC must exceed perpetual growth for Gordon model "
                 f"(wacc={wacc}, g={assumptions.perpetual_growth})"
             )
-        tv = last_fcff * (1.0 + assumptions.perpetual_growth) / (
-            wacc - assumptions.perpetual_growth
+        tv = (
+            last_fcff
+            * (1.0 + assumptions.perpetual_growth)
+            / (wacc - assumptions.perpetual_growth)
         )
         gordon = ExplainedValue(
             name="terminal_value_gordon",

@@ -9,7 +9,6 @@ from __future__ import annotations
 from collections import defaultdict
 
 from contracts import AssetClass
-
 from universe.models import InvestmentUniverse, UniverseEntry
 
 __all__ = ["filter_entries", "group_entries"]

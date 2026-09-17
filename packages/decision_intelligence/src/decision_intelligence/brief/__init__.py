@@ -4,7 +4,6 @@ from __future__ import annotations
 
 from ai_committee import CommitteeReport, Decision
 from contracts import Recommendation, RecommendationAction
-
 from decision_intelligence.models.brief import (
     DecisionBrief,
     EvidenceHighlight,
@@ -215,19 +214,13 @@ def _invalidators(
             "Margin of Safety compresses below the valuation member's actionable cushion."
         )
     if any(a.source == "economic" for a in attribution):
-        items.append(
-            "Macro member flips stance on a material regime change."
-        )
+        items.append("Macro member flips stance on a material regime change.")
     if any(a.source == "fundamental" for a in attribution):
-        items.append(
-            "Fundamental signal majority reverses on updated statements."
-        )
+        items.append("Fundamental signal majority reverses on updated statements.")
     dissenters = [a for a in attribution if a.role == "dissenting"]
     if dissenters:
         names = ", ".join(a.source for a in dissenters)
-        items.append(
-            f"Dissenting member(s) ({names}) gain plurality support."
-        )
+        items.append(f"Dissenting member(s) ({names}) gain plurality support.")
     if recommendation.action is RecommendationAction.HOLD or (
         report.decision.decision is Decision.NEUTRAL
     ):
@@ -235,9 +228,7 @@ def _invalidators(
             "A clear majority forms for BUY or SELL, ending the unresolved conflict."
         )
     if not items:
-        items.append(
-            "A change in committee plurality would reopen the recommendation."
-        )
+        items.append("A change in committee plurality would reopen the recommendation.")
     return tuple(items)
 
 
@@ -258,9 +249,7 @@ def _watchlist(
         items.append("Watch technical regime / trend confirmation among indicators.")
     soft = [a for a in attribution if a.role == "neutral"]
     if soft:
-        items.append(
-            "Revisit soft-dissent members for confirmation before sizing up."
-        )
+        items.append("Revisit soft-dissent members for confirmation before sizing up.")
     if not items:
         items.append("Re-run deliberation when material new evidence arrives.")
     return tuple(items)
@@ -313,9 +302,7 @@ def _executive_summary(
         )
     if neutral:
         parts.append(
-            "Non-opposing HOLD stances: "
-            + ", ".join(a.source for a in neutral)
-            + "."
+            "Non-opposing HOLD stances: " + ", ".join(a.source for a in neutral) + "."
         )
     mos = recommendation.margin_of_safety
     if mos is not None and mos.available and mos.ratio is not None:

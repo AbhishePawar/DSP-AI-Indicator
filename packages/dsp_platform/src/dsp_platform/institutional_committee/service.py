@@ -3,7 +3,8 @@
 from __future__ import annotations
 
 import uuid
-from typing import Any, Mapping
+from collections.abc import Mapping
+from typing import Any
 
 from dsp_platform.institutional_committee.citations import build_committee_citations
 from dsp_platform.institutional_committee.consensus import (

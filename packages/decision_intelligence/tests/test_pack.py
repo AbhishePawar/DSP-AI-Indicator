@@ -34,7 +34,8 @@ class TestDecisionPack:
         assert pack.assurance.instrument == instrument
 
     def test_mismatched_instruments_rejected(self, instrument: Instrument) -> None:
-        from contracts import AssetClass, Instrument as Inst
+        from contracts import AssetClass
+        from contracts import Instrument as Inst
 
         report = make_report(
             instrument,
@@ -55,9 +56,7 @@ class TestDecisionPack:
         with pytest.raises(DecisionIntelligenceError, match="instrument"):
             DecisionIntelligenceService().build_pack(report, bad)
 
-    def test_pack_validation_on_action_mismatch(
-        self, instrument: Instrument
-    ) -> None:
+    def test_pack_validation_on_action_mismatch(self, instrument: Instrument) -> None:
         report = make_report(
             instrument,
             decision=Decision.BUY,

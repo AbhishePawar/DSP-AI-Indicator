@@ -51,7 +51,9 @@ from financial.intelligence.trend_validation import coerce_trend_history
 from financial.metadata import StatementMetadata
 
 
-def _period(*, end: date = date(2024, 12, 31), fy: int | None = 2024) -> FinancialPeriod:
+def _period(
+    *, end: date = date(2024, 12, 31), fy: int | None = 2024
+) -> FinancialPeriod:
     return FinancialPeriod(
         period_type=PeriodType.ANNUAL,
         period_end=end,
@@ -103,9 +105,7 @@ def _full(*, year: int = 2024, scale: float = 1.0, **kwargs) -> FinancialStateme
         debt_issued=10.0 * scale,
         debt_repaid=-40.0 * scale,
     )
-    period = kwargs.pop("period", None) or _period(
-        end=date(year, 12, 31), fy=year
-    )
+    period = kwargs.pop("period", None) or _period(end=date(year, 12, 31), fy=year)
     return FinancialStatements(
         period=period,
         income_statement=income,
@@ -116,9 +116,7 @@ def _full(*, year: int = 2024, scale: float = 1.0, **kwargs) -> FinancialStateme
 
 
 def _history(*scales: float, start_year: int = 2020) -> list[FinancialStatements]:
-    return [
-        _full(year=start_year + i, scale=s) for i, s in enumerate(scales)
-    ]
+    return [_full(year=start_year + i, scale=s) for i, s in enumerate(scales)]
 
 
 def _snap(*stmts: FinancialStatements) -> FinancialSnapshot:
@@ -158,7 +156,10 @@ class TestHelpers:
         assert _classify([100.0, 104.0]) is TrendClass.IMPROVING
         assert _classify([100.0, 90.0]) is TrendClass.STRONGLY_WEAKENING
         assert _classify([100.0, 96.0]) is TrendClass.WEAKENING
-        assert _classify([100.0, 110.0], higher_better=False) is TrendClass.STRONGLY_WEAKENING
+        assert (
+            _classify([100.0, 110.0], higher_better=False)
+            is TrendClass.STRONGLY_WEAKENING
+        )
         # Highly volatile growth rates
         assert (
             _classify([100.0, 200.0, 50.0, 300.0, 40.0]) is TrendClass.HIGHLY_VOLATILE
@@ -427,8 +428,7 @@ class TestEngine:
         )
         assert result.consistency.consistency_score is not None
         assert TrendQualityFlag.IMPROVING_BUSINESS in result.quality_flags or (
-            rev.classification
-            in (TrendClass.IMPROVING, TrendClass.STRONGLY_IMPROVING)
+            rev.classification in (TrendClass.IMPROVING, TrendClass.STRONGLY_IMPROVING)
         )
         assert result.explainability
         payload = result.to_dict()
@@ -467,9 +467,7 @@ class TestEngine:
             )
         # Ensure balance equation roughly holds
         result = engine.analyze(stmts)
-        assert any(
-            t.name == "net_debt" for t in result.balance_sheet_trends
-        )
+        assert any(t.name == "net_debt" for t in result.balance_sheet_trends)
         # May or may not flag depending on classification thresholds
         assert result.trend_summary.overall in TrendClass
 
@@ -498,13 +496,17 @@ class TestEngine:
             )
         result = engine.analyze(stmts)
         flags = set(result.quality_flags)
-        assert flags & {
-            TrendQualityFlag.MARGIN_EXPANSION,
-            TrendQualityFlag.MARGIN_COMPRESSION,
-            TrendQualityFlag.IMPROVING_BUSINESS,
-            TrendQualityFlag.DETERIORATING_BUSINESS,
-            TrendQualityFlag.HIGH_VOLATILITY,
-        } or True  # classification-dependent
+        assert (
+            flags
+            & {
+                TrendQualityFlag.MARGIN_EXPANSION,
+                TrendQualityFlag.MARGIN_COMPRESSION,
+                TrendQualityFlag.IMPROVING_BUSINESS,
+                TrendQualityFlag.DETERIORATING_BUSINESS,
+                TrendQualityFlag.HIGH_VOLATILITY,
+            }
+            or True
+        )  # classification-dependent
         assert result.profitability_trends
 
     def test_cash_flow_and_ratio_families(self) -> None:
@@ -557,9 +559,12 @@ class TestEngine:
         assert mt.to_dict()["name"] == "x"
         assert TrendConsistencyMetrics().to_dict()["consistency_score"] is None
         assert TrendSummary().to_dict()["overall"] == "insufficient"
-        assert TrendAnalysisMetadata(
-            engine_version="t", periods_used=2, period_ends=("2020-12-31",)
-        ).to_dict()["periods_used"] == 2
+        assert (
+            TrendAnalysisMetadata(
+                engine_version="t", periods_used=2, period_ends=("2020-12-31",)
+            ).to_dict()["periods_used"]
+            == 2
+        )
 
     def test_performance_10_periods(self) -> None:
         scales = [1.0 + i * 0.07 for i in range(10)]
@@ -580,9 +585,9 @@ class TestEngine:
         except Exception:  # pragma: no cover
             under_cov = False
         limit_ms = 120.0 if under_cov else 40.0
-        assert elapsed_ms < limit_ms, (
-            f"trend analysis best-of-5 took {elapsed_ms:.1f} ms (limit {limit_ms})"
-        )
+        assert (
+            elapsed_ms < limit_ms
+        ), f"trend analysis best-of-5 took {elapsed_ms:.1f} ms (limit {limit_ms})"
 
 
 class TestIntegrationExports:

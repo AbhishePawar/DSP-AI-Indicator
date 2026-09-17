@@ -30,7 +30,10 @@ def test_analyze_produces_six_components_with_evidence(
     assert result.summary
     assert result.recommendation
     assert result.weights_used is not None
-    assert "research-only" in result.research_disclaimer.lower() or "not investment" in result.research_disclaimer.lower()
+    assert (
+        "research-only" in result.research_disclaimer.lower()
+        or "not investment" in result.research_disclaimer.lower()
+    )
     payload = result.to_dict()
     assert payload["overall_moat_score"] == result.score.value
     assert len(payload["components"]) == 6

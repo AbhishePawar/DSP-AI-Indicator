@@ -6,12 +6,11 @@ AI. Required tools are a subset of ``ToolRegistry.public_manifest()``.
 
 from __future__ import annotations
 
+from collections.abc import Iterable
 from dataclasses import dataclass
-from typing import Iterable
 
-from llm_adapters.routing import ComplexitySignal, decide_routing
 from llm_adapters.model_tiers import ModelTier
-
+from llm_adapters.routing import ComplexitySignal, decide_routing
 
 SPEC_VERSION = "dsp.research_orchestrator.v1"
 
@@ -67,7 +66,7 @@ class ResearchSpecification:
         request: UserResearchRequest,
         *,
         allowed_tools: Iterable[str],
-    ) -> "ResearchSpecification":
+    ) -> ResearchSpecification:
         symbol = (request.symbol or "").strip().upper()
         question = (request.question or "").strip()
         if not symbol:
@@ -77,7 +76,9 @@ class ResearchSpecification:
         allowed = frozenset(allowed_tools)
         signals = tuple(request.complexity_signals)
         routing = decide_routing(signals)
-        planned = COMPLEX_TOOLS if routing.routing_tier is ModelTier.PREMIUM else SIMPLE_TOOLS
+        planned = (
+            COMPLEX_TOOLS if routing.routing_tier is ModelTier.PREMIUM else SIMPLE_TOOLS
+        )
         required = tuple(name for name in planned if name in allowed)
         if not required:
             raise ValueError("no approved tools available for research specification")

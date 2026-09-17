@@ -3,7 +3,8 @@
 from __future__ import annotations
 
 import uuid
-from typing import Any, Mapping
+from collections.abc import Mapping
+from typing import Any
 
 from dsp_platform.decision_workspace.citations import build_workspace_citations
 from dsp_platform.decision_workspace.models import (

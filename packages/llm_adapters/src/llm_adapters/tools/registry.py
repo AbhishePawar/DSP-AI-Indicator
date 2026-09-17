@@ -23,8 +23,9 @@ those names are honoured; an unknown name returns INVALID_INPUT.
 
 from __future__ import annotations
 
+from collections.abc import Callable, Iterable, Mapping
 from dataclasses import dataclass, field
-from typing import Any, Callable, Iterable, Mapping
+from typing import Any
 
 from llm_adapters.tools.contract import (
     DSPToolBackend,
@@ -35,7 +36,6 @@ from llm_adapters.tools.contract import (
     ToolStatus,
     assert_no_tool_leakage,
 )
-
 
 # --- helper builders ------------------------------------------------------
 
@@ -187,7 +187,9 @@ def _spec_financial_quality() -> ToolSpec:
         provenance=f"{_COMMON_PROVENANCE}.analyze_company (composition)",
         input_schema=(ToolInputField("symbol", "string", True, "Ticker symbol"),),
         output_schema=(
-            ToolOutputField("metrics", "object", True, "Named financial-quality metrics"),
+            ToolOutputField(
+                "metrics", "object", True, "Named financial-quality metrics"
+            ),
             ToolOutputField("as_of", "string", True, "Effective timestamp (ISO-8601)"),
         ),
     )
@@ -201,8 +203,18 @@ def _spec_valuation() -> ToolSpec:
         provenance=f"{_COMMON_PROVENANCE}.analyze_company.valuation_summary",
         input_schema=(ToolInputField("symbol", "string", True, "Ticker symbol"),),
         output_schema=(
-            ToolOutputField("intrinsic_value_per_share", "number", True, "Authoritative intrinsic value"),
-            ToolOutputField("current_market_price", "number", False, "Current authenticated market price"),
+            ToolOutputField(
+                "intrinsic_value_per_share",
+                "number",
+                True,
+                "Authoritative intrinsic value",
+            ),
+            ToolOutputField(
+                "current_market_price",
+                "number",
+                False,
+                "Current authenticated market price",
+            ),
             ToolOutputField("method", "string", True, "Valuation method used"),
         ),
     )
@@ -300,7 +312,9 @@ def _spec_business_quality() -> ToolSpec:
         provenance=f"{_COMMON_PROVENANCE}.analyze_company.business_quality",
         input_schema=(ToolInputField("symbol", "string", True, "Ticker symbol"),),
         output_schema=(
-            ToolOutputField("label", "string", True, "Great / Good / Average / Weak / Poor"),
+            ToolOutputField(
+                "label", "string", True, "Great / Good / Average / Weak / Poor"
+            ),
             ToolOutputField("score", "number", True, "0-1 normalized score"),
         ),
     )
@@ -344,7 +358,9 @@ def _spec_technical_signals() -> ToolSpec:
         input_schema=(ToolInputField("symbol", "string", True, "Ticker symbol"),),
         output_schema=(
             ToolOutputField("signals", "array", True, "Named signal items"),
-            ToolOutputField("direction", "string", False, "BULLISH / BEARISH / NEUTRAL"),
+            ToolOutputField(
+                "direction", "string", False, "BULLISH / BEARISH / NEUTRAL"
+            ),
         ),
     )
 
@@ -359,7 +375,9 @@ def _spec_investment_recommendation() -> ToolSpec:
         output_schema=(
             ToolOutputField("decision", "string", True, "Buy / Hold / Sell"),
             ToolOutputField("confidence", "number", True, "0-1 confidence"),
-            ToolOutputField("margin_of_safety", "number", False, "Decimal margin of safety"),
+            ToolOutputField(
+                "margin_of_safety", "number", False, "Decimal margin of safety"
+            ),
         ),
     )
 
@@ -388,7 +406,9 @@ def _spec_research_object() -> ToolSpec:
         input_schema=(ToolInputField("symbol", "string", True, "Ticker symbol"),),
         output_schema=(
             ToolOutputField("lineage_id", "string", True, "Stable lineage identifier"),
-            ToolOutputField("evidence_refs", "array", True, "Evidence section references"),
+            ToolOutputField(
+                "evidence_refs", "array", True, "Evidence section references"
+            ),
             ToolOutputField("summary", "object", True, "Top-level research summary"),
         ),
     )
@@ -405,7 +425,9 @@ def _spec_comparison() -> ToolSpec:
             ToolInputField("symbol_b", "string", True, "Second ticker"),
         ),
         output_schema=(
-            ToolOutputField("dimensions", "array", True, "Per-dimension comparison results"),
+            ToolOutputField(
+                "dimensions", "array", True, "Per-dimension comparison results"
+            ),
             ToolOutputField("summary", "object", True, "Aggregate comparison summary"),
         ),
     )
@@ -414,9 +436,13 @@ def _spec_comparison() -> ToolSpec:
 # --- tool implementations -------------------------------------------------
 
 
-def _impl_financial_statements(backend: DSPToolBackend, input_: Mapping[str, Any]) -> ToolResult:
+def _impl_financial_statements(
+    backend: DSPToolBackend, input_: Mapping[str, Any]
+) -> ToolResult:
     name, version = "dsp.financial_statements", "1.0.0"
-    err = _validate_input(name, version, _spec_financial_statements().input_schema, input_)
+    err = _validate_input(
+        name, version, _spec_financial_statements().input_schema, input_
+    )
     if err is not None:
         return err
     try:
@@ -458,7 +484,9 @@ def _impl_passthrough(
             return err
         method = getattr(backend, backend_method, None)
         if method is None:
-            return _failed(spec.name, spec.version, f"backend missing {backend_method!r}")
+            return _failed(
+                spec.name, spec.version, f"backend missing {backend_method!r}"
+            )
         try:
             kwargs: dict[str, Any] = {"symbol": input_["symbol"]}
             if "exchange" in input_:
@@ -474,11 +502,14 @@ def _impl_passthrough(
             spec.name,
             spec.version,
             ok_transform(out),
-            evidence_refs=tuple(out.get("evidence_refs", ())) if isinstance(out, Mapping) else (),
+            evidence_refs=(
+                tuple(out.get("evidence_refs", ())) if isinstance(out, Mapping) else ()
+            ),
             calculation_metadata={
                 "as_of": out.get("as_of") if isinstance(out, Mapping) else None,
             },
         )
+
     return invoke
 
 
@@ -502,15 +533,25 @@ def _impl_comparison(backend: DSPToolBackend, input_: Mapping[str, Any]) -> Tool
         name,
         version,
         {
-            "dimensions": list(out.get("dimensions", [])) if isinstance(out, Mapping) else [],
+            "dimensions": (
+                list(out.get("dimensions", [])) if isinstance(out, Mapping) else []
+            ),
             "summary": dict(out.get("summary", {})) if isinstance(out, Mapping) else {},
         },
-        evidence_refs=tuple(out.get("evidence_refs", ())) if isinstance(out, Mapping) else (),
+        evidence_refs=(
+            tuple(out.get("evidence_refs", ())) if isinstance(out, Mapping) else ()
+        ),
     )
 
 
-def _build_default_tools() -> dict[str, tuple[ToolSpec, Callable[[DSPToolBackend, Mapping[str, Any]], ToolResult]]]:
-    tools: dict[str, tuple[ToolSpec, Callable[[DSPToolBackend, Mapping[str, Any]], ToolResult]]] = {}
+def _build_default_tools() -> (
+    dict[
+        str, tuple[ToolSpec, Callable[[DSPToolBackend, Mapping[str, Any]], ToolResult]]
+    ]
+):
+    tools: dict[
+        str, tuple[ToolSpec, Callable[[DSPToolBackend, Mapping[str, Any]], ToolResult]]
+    ] = {}
 
     def add(
         spec: ToolSpec,
@@ -525,7 +566,9 @@ def _build_default_tools() -> dict[str, tuple[ToolSpec, Callable[[DSPToolBackend
             "get_financial_quality",
             _spec_financial_quality(),
             ok_transform=lambda out: {
-                "metrics": dict(out.get("metrics", {})) if isinstance(out, Mapping) else {},
+                "metrics": (
+                    dict(out.get("metrics", {})) if isinstance(out, Mapping) else {}
+                ),
                 "as_of": out.get("as_of") if isinstance(out, Mapping) else None,
             },
         ),
@@ -648,7 +691,9 @@ def _build_default_tools() -> dict[str, tuple[ToolSpec, Callable[[DSPToolBackend
             "get_technical_signals",
             _spec_technical_signals(),
             ok_transform=lambda out: {
-                "signals": list(out.get("signals", [])) if isinstance(out, Mapping) else [],
+                "signals": (
+                    list(out.get("signals", [])) if isinstance(out, Mapping) else []
+                ),
                 "direction": out.get("direction"),
             },
         ),
@@ -684,8 +729,14 @@ def _build_default_tools() -> dict[str, tuple[ToolSpec, Callable[[DSPToolBackend
             _spec_research_object(),
             ok_transform=lambda out: {
                 "lineage_id": out.get("lineage_id"),
-                "evidence_refs": list(out.get("evidence_refs", [])) if isinstance(out, Mapping) else [],
-                "summary": dict(out.get("summary", {})) if isinstance(out, Mapping) else {},
+                "evidence_refs": (
+                    list(out.get("evidence_refs", []))
+                    if isinstance(out, Mapping)
+                    else []
+                ),
+                "summary": (
+                    dict(out.get("summary", {})) if isinstance(out, Mapping) else {}
+                ),
             },
         ),
     )
@@ -700,12 +751,12 @@ def _build_default_tools() -> dict[str, tuple[ToolSpec, Callable[[DSPToolBackend
 class ToolRegistry:
     """Immutable registry of approved tools."""
 
-    _tools: Mapping[str, tuple[ToolSpec, Callable[[DSPToolBackend, Mapping[str, Any]], ToolResult]]] = field(
-        default_factory=dict
-    )
+    _tools: Mapping[
+        str, tuple[ToolSpec, Callable[[DSPToolBackend, Mapping[str, Any]], ToolResult]]
+    ] = field(default_factory=dict)
 
     @classmethod
-    def default(cls) -> "ToolRegistry":
+    def default(cls) -> ToolRegistry:
         return cls(_build_default_tools())
 
     def names(self) -> tuple[str, ...]:

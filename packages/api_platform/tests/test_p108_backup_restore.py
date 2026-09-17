@@ -92,7 +92,9 @@ def test_build_backup_adapter_default_null() -> None:
     assert adapter.is_available() is False
 
 
-def test_build_backup_adapter_logical(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
+def test_build_backup_adapter_logical(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
     monkeypatch.setenv("DSP_BACKUP_ADAPTER", "logical")
     monkeypatch.setenv("DSP_BACKUP_DIR", str(tmp_path))
     db = InMemoryDatabasePort()
@@ -207,7 +209,9 @@ def test_incomplete_archive_refused(
 
 
 def _postgres_port():
-    dsn = (os.environ.get("DSP_DATABASE_URL") or os.environ.get("DATABASE_URL") or "").strip()
+    dsn = (
+        os.environ.get("DSP_DATABASE_URL") or os.environ.get("DATABASE_URL") or ""
+    ).strip()
     if not dsn:
         return None
     try:
@@ -225,7 +229,9 @@ def _postgres_port():
         "(no DSP_DATABASE_URL / psycopg / reachable Postgres)"
     ),
 )
-def test_postgres_logical_restore_drill(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
+def test_postgres_logical_restore_drill(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
     """Real PostgreSQL evidence path — skipped when Postgres is not available."""
     monkeypatch.setenv(RESTORE_CONFIRM_ENV, "YES")
     db = _postgres_port()

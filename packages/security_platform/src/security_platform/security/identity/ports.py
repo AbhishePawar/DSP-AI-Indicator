@@ -67,10 +67,10 @@ class UserRepositoryPort(Protocol):
 class RefreshTokenStorePort(Protocol):
     """Opaque refresh-token persistence."""
 
-    def save(self, record: "RefreshTokenRecord") -> None:
+    def save(self, record: RefreshTokenRecord) -> None:
         """Persist a refresh token record."""
 
-    def get(self, token_hash: str) -> "RefreshTokenRecord | None":
+    def get(self, token_hash: str) -> RefreshTokenRecord | None:
         """Lookup by hash of the opaque token."""
 
     def revoke(self, token_hash: str) -> None:
@@ -84,10 +84,10 @@ class RefreshTokenStorePort(Protocol):
 class SessionTrackerPort(Protocol):
     """Server-side session metadata tracking."""
 
-    def create(self, record: "SessionRecord") -> None:
+    def create(self, record: SessionRecord) -> None:
         """Create a session."""
 
-    def get(self, session_id: str) -> "SessionRecord | None":
+    def get(self, session_id: str) -> SessionRecord | None:
         """Fetch session metadata."""
 
     def touch(self, session_id: str) -> None:
@@ -115,10 +115,10 @@ class AuditStorePort(Protocol):
 class ConsentRecordPort(Protocol):
     """DPDP consent record store — architecture + minimal implementation."""
 
-    def record(self, consent: "ConsentRecord") -> None:
+    def record(self, consent: ConsentRecord) -> None:
         """Store a consent decision."""
 
-    def list_for_subject(self, subject_id: str) -> Sequence["ConsentRecord"]:
+    def list_for_subject(self, subject_id: str) -> Sequence[ConsentRecord]:
         """List consents for a data principal."""
 
 
@@ -143,7 +143,9 @@ class WebAuthnPort(Protocol):
     def begin_registration(self, user_id: str) -> dict[str, Any]:
         """Return WebAuthn registration options."""
 
-    def complete_registration(self, user_id: str, credential: dict[str, Any]) -> dict[str, Any]:
+    def complete_registration(
+        self, user_id: str, credential: dict[str, Any]
+    ) -> dict[str, Any]:
         """Persist credential after client attestation."""
 
     def begin_authentication(self, user_id: str) -> dict[str, Any]:
@@ -157,16 +159,16 @@ class WebAuthnPort(Protocol):
 class OrganisationStorePort(Protocol):
     """Organisation + membership — architecture foundation."""
 
-    def upsert_org(self, org: "Organisation") -> Organisation:
+    def upsert_org(self, org: Organisation) -> Organisation:
         """Create or update an organisation."""
 
-    def get_org(self, org_id: str) -> "Organisation | None":
+    def get_org(self, org_id: str) -> Organisation | None:
         """Fetch organisation."""
 
-    def set_membership(self, membership: "OrgMembership") -> None:
+    def set_membership(self, membership: OrgMembership) -> None:
         """Bind a user to an org role."""
 
-    def memberships_for_user(self, user_id: str) -> Sequence["OrgMembership"]:
+    def memberships_for_user(self, user_id: str) -> Sequence[OrgMembership]:
         """List org memberships."""
 
 

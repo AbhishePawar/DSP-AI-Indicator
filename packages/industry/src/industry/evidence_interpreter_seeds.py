@@ -67,17 +67,13 @@ class PlaceholderEvidenceInterpreter:
         del context
         return evidence_id.strip().lower() in self._supported
 
-    def interpret(
-        self, context: EvidenceInterpretationContext
-    ) -> EvidenceObservation:
+    def interpret(self, context: EvidenceInterpretationContext) -> EvidenceObservation:
         if not context.methodology_id:
             msg = "missing methodology for interpretation"
             raise IndustryError(msg)
         eid = context.evidence_id
         if not self.supports(eid, context):
-            msg = (
-                f"interpreter {self._meta.id!r} does not support evidence {eid!r}"
-            )
+            msg = f"interpreter {self._meta.id!r} does not support evidence {eid!r}"
             raise IndustryError(msg)
         rule = _rule_for(self._meta, eid)
         assert rule is not None
@@ -90,9 +86,7 @@ class PlaceholderEvidenceInterpreter:
         severity, confidence, category, title, summary, explanation = (
             self._placeholder_copy(name=name, context=context, rule=rule)
         )
-        observation_id = (
-            f"obs.{self._meta.id}.{context.instrument_key.lower()}.{eid}"
-        )
+        observation_id = f"obs.{self._meta.id}.{context.instrument_key.lower()}.{eid}"
         return EvidenceObservation(
             id=observation_id,
             title=title,
@@ -177,9 +171,7 @@ class PlaceholderEvidenceInterpreter:
             category = EvidenceObservationCategory.METHODOLOGY
             title = f"Not applicable: {name}"
             summary = "Evidence is outside this provider path for the instrument."
-            explanation = (
-                f"Provider reported NOT_APPLICABLE for {context.evidence_id}."
-            )
+            explanation = f"Provider reported NOT_APPLICABLE for {context.evidence_id}."
         elif availability is EvidenceAvailability.ERROR:
             severity = EvidenceObservationSeverity.WARNING
             confidence = EvidenceObservationConfidence.UNKNOWN
@@ -187,9 +179,7 @@ class PlaceholderEvidenceInterpreter:
             title = f"Provider error for {name}"
             summary = "Interpretation limited by provider error."
             err = context.provider_result.error_message or "unspecified error"
-            explanation = (
-                f"Provider reported ERROR for {context.evidence_id}: {err}."
-            )
+            explanation = f"Provider reported ERROR for {context.evidence_id}: {err}."
         else:
             severity = EvidenceObservationSeverity.NOTICE
             confidence = EvidenceObservationConfidence.UNKNOWN
@@ -212,18 +202,14 @@ class PlaceholderEvidenceInterpreter:
         return severity, confidence, category, title, summary, explanation
 
 
-def build_example_evidence_interpreters() -> tuple[
-    PlaceholderEvidenceInterpreter, ...
-]:
+def build_example_evidence_interpreters() -> tuple[PlaceholderEvidenceInterpreter, ...]:
     return (
         PlaceholderEvidenceInterpreter(
             IndustryEvidenceInterpreter(
                 id="dsp.interpreter.decision_pack",
                 name="DecisionPack Interpreter",
                 version="1.0.0",
-                description=(
-                    "Future interpreter for DecisionPack-sourced evidence."
-                ),
+                description=("Future interpreter for DecisionPack-sourced evidence."),
                 interpretations=(
                     EvidenceInterpretation(
                         evidence_id="dsp.evidence.roe_persistence",
@@ -302,8 +288,6 @@ def seed_example_evidence_interpreter_context(
         _, evidence_reg = seed_example_evidence_registries()
     else:
         evidence_reg = evidence
-    interpreter_reg = interpreters or IndustryEvidenceInterpreterRegistry(
-        evidence_reg
-    )
+    interpreter_reg = interpreters or IndustryEvidenceInterpreterRegistry(evidence_reg)
     register_example_evidence_interpreters(interpreter_reg)
     return evidence_reg, interpreter_reg

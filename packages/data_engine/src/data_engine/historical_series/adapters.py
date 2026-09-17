@@ -9,10 +9,11 @@ import json
 import os
 import urllib.error
 import urllib.request
+from collections.abc import Mapping
 from dataclasses import dataclass, field
 from datetime import date, datetime
 from threading import Lock
-from typing import Any, Mapping
+from typing import Any
 from urllib.parse import urlencode
 
 from contracts.domain.instrument import Instrument
@@ -101,9 +102,7 @@ def _build_snapshot(
     fields_raw = payload.get("fields")
     if not isinstance(fields_raw, Mapping) or not fields_raw:
         raise InvalidProviderDataError("snapshot missing fields")
-    fields = {
-        str(k): HistoricalField.of(v) for k, v in fields_raw.items()
-    }
+    fields = {str(k): HistoricalField.of(v) for k, v in fields_raw.items()}
     return AuthenticatedSnapshot(
         as_of=as_of,
         series_kind=str(payload.get("series_kind") or series_kind).strip().lower(),
@@ -127,9 +126,7 @@ def build_historical_bundle_from_mapping(
         identity = HistoricalCompanyIdentity(
             symbol=str(identity_raw.get("symbol") or symbol).strip().upper(),
             exchange=(
-                str(identity_raw["exchange"])
-                if identity_raw.get("exchange")
-                else None
+                str(identity_raw["exchange"]) if identity_raw.get("exchange") else None
             ),
             company_name=(
                 str(identity_raw["company_name"])
@@ -160,9 +157,7 @@ def build_historical_bundle_from_mapping(
         )
 
     frequency = payload.get("frequency")
-    frequency_norm = (
-        str(frequency).strip().lower() if frequency is not None else None
-    )
+    frequency_norm = str(frequency).strip().lower() if frequency is not None else None
     start_date = _parse_date(payload.get("start_date"))
     end_date = _parse_date(payload.get("end_date"))
 
@@ -175,9 +170,7 @@ def build_historical_bundle_from_mapping(
         if not isinstance(bars_raw, list) or not bars_raw:
             raise InvalidProviderDataError("ohlcv payload missing bars")
         freq = frequency_norm or "daily"
-        built = [
-            _build_bar(b, freq) for b in bars_raw if isinstance(b, Mapping)
-        ]
+        built = [_build_bar(b, freq) for b in bars_raw if isinstance(b, Mapping)]
         built.sort(key=lambda b: b.bar_date)
         bars = tuple(built)
     elif series_kind in {"market_cap", "volume", "enterprise_value"}:
@@ -185,9 +178,7 @@ def build_historical_bundle_from_mapping(
         if not isinstance(points_raw, list) or not points_raw:
             raise InvalidProviderDataError(f"{series_kind} payload missing points")
         built_p = [
-            _build_point(p, series_kind)
-            for p in points_raw
-            if isinstance(p, Mapping)
+            _build_point(p, series_kind) for p in points_raw if isinstance(p, Mapping)
         ]
         built_p.sort(key=lambda p: p.point_date)
         points = tuple(built_p)
@@ -196,9 +187,7 @@ def build_historical_bundle_from_mapping(
         if not isinstance(snaps_raw, list) or not snaps_raw:
             raise InvalidProviderDataError(f"{series_kind} payload missing snapshots")
         built_s = [
-            _build_snapshot(s, series_kind)
-            for s in snaps_raw
-            if isinstance(s, Mapping)
+            _build_snapshot(s, series_kind) for s in snaps_raw if isinstance(s, Mapping)
         ]
         built_s.sort(key=lambda s: s.as_of)
         snapshots = tuple(built_s)
@@ -476,9 +465,7 @@ class ConfiguredHttpHistoricalAdapter(HistoricalSeriesPort):
                     else None
                 ),
             )
-        return HistoricalCompanyIdentity(
-            symbol=symbol, exchange=instrument.exchange
-        )
+        return HistoricalCompanyIdentity(symbol=symbol, exchange=instrument.exchange)
 
     def get_series(
         self, query: HistoricalSeriesQuery

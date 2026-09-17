@@ -91,9 +91,7 @@ def extract_research_payload(
     committee = payload.get("committee_summary") or {}
     stages = payload.get("stage_summaries") or []
     strengths = tuple(
-        str(s.get("label"))
-        for s in stages
-        if s.get("has_result") and s.get("label")
+        str(s.get("label")) for s in stages if s.get("has_result") and s.get("label")
     )
 
     intrinsic = request.get("intrinsic_value_per_share")
@@ -176,7 +174,9 @@ def compose_deterministic_answer(
             f"with confidence {research.committee_confidence or 'unavailable'}."
         )
     elif intent == "summarise_strengths":
-        joined = ", ".join(research.strengths) if research.strengths else "none reported"
+        joined = (
+            ", ".join(research.strengths) if research.strengths else "none reported"
+        )
         content = f"Reported strengths from stage summaries: {joined}."
     elif intent == "compare_companies":
         content = (

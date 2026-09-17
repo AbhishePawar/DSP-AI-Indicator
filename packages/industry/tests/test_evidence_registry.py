@@ -3,8 +3,8 @@
 from __future__ import annotations
 
 import pytest
-from core.exceptions import ValidationError
 
+from core.exceptions import ValidationError
 from industry import (
     EvidenceCategory,
     EvidenceLifecycle,
@@ -124,12 +124,8 @@ class TestEvidenceRegistry:
         metrics = IndustryMetricRegistry()
         metrics.register(_metric("dsp.metric.roe"))
         evidence = IndustryEvidenceRegistry(metrics)
-        evidence.register(
-            _evidence(related=("dsp.metric.roe",), version="1.0.0")
-        )
-        evidence.register(
-            _evidence(related=("dsp.metric.roe",), version="2.0.0")
-        )
+        evidence.register(_evidence(related=("dsp.metric.roe",), version="1.0.0"))
+        evidence.register(_evidence(related=("dsp.metric.roe",), version="2.0.0"))
         assert evidence.lookup_active("dsp.evidence.demo").version == "2.0.0"
         evidence.validate()
 

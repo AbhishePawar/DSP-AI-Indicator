@@ -3,10 +3,11 @@
 from __future__ import annotations
 
 import uuid
+from collections.abc import Sequence
 from dataclasses import dataclass, field
 from datetime import UTC, datetime
 from threading import Lock
-from typing import Any, Protocol, Sequence, runtime_checkable
+from typing import Protocol, runtime_checkable
 
 __all__ = [
     "ConsentPort",
@@ -70,7 +71,9 @@ class ConsentPort(Protocol):
     ) -> ConsentRecord | None:
         """Return the latest decision for a purpose, if any."""
 
-    def withdraw(self, subject_id: str, purpose_id: str, *, policy_version: str) -> ConsentRecord:
+    def withdraw(
+        self, subject_id: str, purpose_id: str, *, policy_version: str
+    ) -> ConsentRecord:
         """Record a withdrawal (granted=False)."""
 
 
@@ -134,9 +137,7 @@ class InMemoryConsentPort:
         self, subject_id: str, purpose_id: str
     ) -> ConsentRecord | None:
         matches = [
-            r
-            for r in self.list_for_subject(subject_id)
-            if r.purpose_id == purpose_id
+            r for r in self.list_for_subject(subject_id) if r.purpose_id == purpose_id
         ]
         return matches[-1] if matches else None
 

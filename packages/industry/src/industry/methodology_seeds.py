@@ -104,9 +104,7 @@ def build_example_methodologies() -> tuple[IndustryMethodology, ...]:
                 "Regulated utility policy inheriting Stable Regulated Cash Flow "
                 "defaults with income-oriented valuation override."
             ),
-            characteristic_ids=(
-                "dsp.characteristics.stable_regulated_cash_flow",
-            ),
+            characteristic_ids=("dsp.characteristics.stable_regulated_cash_flow",),
             valuation=ValuationProfile(
                 preferred=("dividend_discount", "nav", "dcf"),
                 acceptable=("earnings_multiple",),
@@ -135,9 +133,7 @@ def build_example_methodologies() -> tuple[IndustryMethodology, ...]:
                 "Pricing-power consumer franchise; inherits Pricing Power "
                 "Franchise characteristic defaults unless overridden."
             ),
-            characteristic_ids=(
-                "dsp.characteristics.pricing_power_franchise",
-            ),
+            characteristic_ids=("dsp.characteristics.pricing_power_franchise",),
             valuation=None,  # characteristics → preferred methods
             dimensions=(
                 ComparisonDimension.QUALITY,

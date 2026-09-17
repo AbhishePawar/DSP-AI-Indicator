@@ -2,16 +2,16 @@
 
 from __future__ import annotations
 
+from dsp_platform.research_workspace.db_store import (
+    DatabaseResearchWorkspaceStore,
+    build_research_workspace_store,
+)
 from dsp_platform.research_workspace.service import (
     RESEARCH_WORKSPACE_SCHEMA_VERSION,
     RESEARCH_WORKSPACE_SERVICE_VERSION,
     UNAVAILABLE_MESSAGE,
     research_workspace_schema,
     run_research_workspace,
-)
-from dsp_platform.research_workspace.db_store import (
-    DatabaseResearchWorkspaceStore,
-    build_research_workspace_store,
 )
 from dsp_platform.research_workspace.store import (
     ResearchWorkspaceStore,

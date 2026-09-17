@@ -3,7 +3,8 @@
 from __future__ import annotations
 
 import uuid
-from typing import Any, Mapping
+from collections.abc import Mapping
+from typing import Any
 
 from dsp_platform.institutional_workflow.citations import build_workflow_citations
 from dsp_platform.institutional_workflow.models import (
@@ -24,7 +25,6 @@ from dsp_platform.institutional_workflow.models import (
 from dsp_platform.institutional_workflow.registry import get_workflow_registry
 from dsp_platform.institutional_workflow.serde import workflow_result_to_dict
 from dsp_platform.institutional_workflow.templates import (
-    DEFAULT_TEMPLATE_ID,
     get_workflow_template,
 )
 from dsp_platform.institutional_workflow.validation import (

@@ -42,9 +42,7 @@ class WorkflowRegistry:
 
     def list_workflows(self) -> tuple[WorkflowInstance, ...]:
         with self._lock:
-            return tuple(
-                self._workflows[k] for k in sorted(self._workflows.keys())
-            )
+            return tuple(self._workflows[k] for k in sorted(self._workflows.keys()))
 
 
 _REG: WorkflowRegistry | None = None

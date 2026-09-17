@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import math
-from typing import Sequence
+from collections.abc import Sequence
 
 from financial.exceptions import FinancialValidationError, TrendAnalysisError
 from financial.intelligence.trend_models import FinancialStatementsHistory
@@ -75,7 +75,12 @@ def validate_trend_history(
     # CAGR validity soft check when revenue series present
     revenues = [s.income_statement.revenue for s in statements]
     if all(r is not None for r in revenues):
-        if revenues[0] is not None and revenues[0] <= 0 and revenues[-1] and revenues[-1] > 0:
+        if (
+            revenues[0] is not None
+            and revenues[0] <= 0
+            and revenues[-1]
+            and revenues[-1] > 0
+        ):
             warnings.append("Invalid CAGR inputs: non-positive start revenue")
 
     return ValidationResult(
@@ -87,10 +92,12 @@ def validate_trend_history(
 
 
 def coerce_trend_history(
-    source: FinancialStatementsHistory
-    | FinancialSnapshot
-    | dict
-    | Sequence[FinancialStatements],
+    source: (
+        FinancialStatementsHistory
+        | FinancialSnapshot
+        | dict
+        | Sequence[FinancialStatements]
+    ),
 ) -> tuple[list[FinancialStatements], dict]:
     """Normalize trend inputs into chronologically ordered statements."""
     meta: dict = {}

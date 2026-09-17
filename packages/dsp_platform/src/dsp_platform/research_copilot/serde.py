@@ -2,7 +2,8 @@
 
 from __future__ import annotations
 
-from typing import Any, Mapping
+from collections.abc import Mapping
+from typing import Any
 
 from dsp_platform.research_copilot.models import (
     COPILOT_SCHEMA_VERSION,
@@ -66,9 +67,9 @@ def copilot_response_from_dict(data: Mapping[str, Any]) -> CopilotResponse:
         provenance=freeze_mapping(dict(data.get("provenance") or {}))
         or freeze_mapping({}),
         audit=freeze_mapping(dict(data.get("audit") or {})) or freeze_mapping({}),
-        limitations=tuple(limitations)
-        if isinstance(limitations, (list, tuple))
-        else (),
+        limitations=(
+            tuple(limitations) if isinstance(limitations, (list, tuple)) else ()
+        ),
     )
     validate_copilot_response(response)
     return response

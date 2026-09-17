@@ -3,11 +3,11 @@
 from __future__ import annotations
 
 import pytest
+from auth_test_helpers import admin_headers, bearer_headers, register_user
 from fastapi.testclient import TestClient
 
 from api_platform import create_app
 from auth import get_auth_service, reset_auth_service_for_tests
-from auth_test_helpers import admin_headers, bearer_headers, register_user
 from enterprise import EnterpriseService, reset_enterprise_service_for_tests
 
 
@@ -22,10 +22,14 @@ def client() -> TestClient:
     reset_auth_service_for_tests(None)
 
 
-def test_x_user_id_never_authoritative_for_saas_or_enterprise(client: TestClient) -> None:
+def test_x_user_id_never_authoritative_for_saas_or_enterprise(
+    client: TestClient,
+) -> None:
     spoof = {"X-User-Id": "attacker"}
     assert client.get("/api/v1/saas/organizations", headers=spoof).status_code == 401
-    assert client.get("/api/v1/enterprise/organizations", headers=spoof).status_code == 401
+    assert (
+        client.get("/api/v1/enterprise/organizations", headers=spoof).status_code == 401
+    )
     assert client.get("/api/v1/ops/secrets", headers=spoof).status_code == 401
     assert client.get("/api/v1/admin/schema", headers=spoof).status_code == 401
 

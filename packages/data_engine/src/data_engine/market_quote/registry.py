@@ -2,8 +2,8 @@
 
 from __future__ import annotations
 
+from collections.abc import Iterable
 from threading import Lock
-from typing import Iterable
 
 from data_engine.exceptions import DataEngineError
 from data_engine.market_quote.service import MarketQuotePort
@@ -19,9 +19,7 @@ class MarketQuoteProviderRegistry:
         self._default: str | None = None
         self._lock = Lock()
 
-    def register(
-        self, provider: MarketQuotePort, *, default: bool = False
-    ) -> None:
+    def register(self, provider: MarketQuotePort, *, default: bool = False) -> None:
         with self._lock:
             self._providers[provider.provider_id] = provider
             if default or self._default is None:

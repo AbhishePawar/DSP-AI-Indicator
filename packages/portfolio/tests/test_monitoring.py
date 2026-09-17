@@ -60,9 +60,7 @@ class TestMonitoringFlow:
     def test_initial_snapshot(self) -> None:
         monitor = PortfolioMonitor()
         snap = _snap("dsp.snapshot.1", "2026-07-01", (_holding("AAA"),))
-        result = monitor.monitor(
-            Portfolio(identity=_identity(), snapshots=(snap,))
-        )
+        result = monitor.monitor(Portfolio(identity=_identity(), snapshots=(snap,)))
         assert result.status is PortfolioMonitoringStatus.INITIAL
         assert result.current_snapshot is not None
         assert result.previous_snapshot is None
@@ -74,9 +72,7 @@ class TestMonitoringFlow:
         h = (_holding("AAA"),)
         s1 = _snap("dsp.snapshot.1", "2026-07-01", h)
         s2 = _snap("dsp.snapshot.2", "2026-07-02", h)
-        result = monitor.monitor(
-            Portfolio(identity=_identity(), snapshots=(s1, s2))
-        )
+        result = monitor.monitor(Portfolio(identity=_identity(), snapshots=(s1, s2)))
         assert result.status is PortfolioMonitoringStatus.UNCHANGED
 
     def test_holding_added_and_removed(self) -> None:
@@ -111,9 +107,7 @@ class TestMonitoringFlow:
         monitor = PortfolioMonitor()
         s1 = _snap("dsp.snapshot.b", "2026-07-02", (_holding("AAA"),))
         s2 = _snap("dsp.snapshot.a", "2026-07-01", (_holding("AAA"),))
-        timeline = monitor.timeline(
-            Portfolio(identity=_identity(), snapshots=(s1, s2))
-        )
+        timeline = monitor.timeline(Portfolio(identity=_identity(), snapshots=(s1, s2)))
         assert [e.as_of for e in timeline.entries] == ["2026-07-01", "2026-07-02"]
 
 

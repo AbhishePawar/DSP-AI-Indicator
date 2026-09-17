@@ -2,7 +2,8 @@
 
 from __future__ import annotations
 
-from typing import Any, Mapping
+from collections.abc import Mapping
+from typing import Any
 
 import pytest
 
@@ -98,7 +99,9 @@ _FIXTURES: dict[str, list[dict[str, Any]]] = {
 
 
 class _FakeSearchHttp:
-    def __init__(self, routes: Mapping[str, Any] | None = None, *, error: Exception | None = None) -> None:
+    def __init__(
+        self, routes: Mapping[str, Any] | None = None, *, error: Exception | None = None
+    ) -> None:
         self._routes = dict(routes or {})
         self._error = error
         self.calls: list[dict[str, Any]] = []
@@ -124,7 +127,9 @@ class _FakeSearchHttp:
         return {"status": "success", "data": []}
 
 
-def _resolver_for(symbol: str, rows: list[dict[str, Any]] | None = None) -> UpstoxInstrumentResolver:
+def _resolver_for(
+    symbol: str, rows: list[dict[str, Any]] | None = None
+) -> UpstoxInstrumentResolver:
     data = rows if rows is not None else _FIXTURES.get(symbol, [])
     http = _FakeSearchHttp({symbol: {"status": "success", "data": data}})
     return UpstoxInstrumentResolver(access_token="u1-test-token", http_client=http)
@@ -251,9 +256,7 @@ def test_forged_client_isin_rejected() -> None:
 
 def test_forged_client_instrument_key_rejected() -> None:
     result = _resolver_for("INFY").resolve(
-        UpstoxResolveRequest(
-            symbol="INFY", client_instrument_key="NSE_EQ|INE009A01021"
-        )
+        UpstoxResolveRequest(symbol="INFY", client_instrument_key="NSE_EQ|INE009A01021")
     )
     assert result.status == "REJECTED"
 
@@ -304,9 +307,7 @@ def test_provider_http_error_unavailable_no_token_leak() -> None:
 
 def test_token_not_in_public_dict() -> None:
     secret = "must-not-appear"
-    http = _FakeSearchHttp(
-        {"INFY": {"status": "success", "data": _FIXTURES["INFY"]}}
-    )
+    http = _FakeSearchHttp({"INFY": {"status": "success", "data": _FIXTURES["INFY"]}})
     resolver = UpstoxInstrumentResolver(access_token=secret, http_client=http)
     payload = resolver.resolve("INFY").to_public_dict()
     blob = str(payload)

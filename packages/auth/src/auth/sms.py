@@ -47,7 +47,9 @@ class SmsProviderPort(Protocol):
 
     def is_available(self) -> bool: ...
 
-    def send_otp(self, mobile: str, code: str, *, purpose: str = "login") -> SmsDeliveryResult: ...
+    def send_otp(
+        self, mobile: str, code: str, *, purpose: str = "login"
+    ) -> SmsDeliveryResult: ...
 
 
 class NullSmsAdapter:
@@ -57,7 +59,9 @@ class NullSmsAdapter:
     def is_available(self) -> bool:
         return False
 
-    def send_otp(self, mobile: str, code: str, *, purpose: str = "login") -> SmsDeliveryResult:
+    def send_otp(
+        self, mobile: str, code: str, *, purpose: str = "login"
+    ) -> SmsDeliveryResult:
         _ = (mobile, code, purpose)
         return SmsDeliveryResult(
             ok=False,
@@ -78,7 +82,9 @@ class DevSmsAdapter:
     def is_available(self) -> bool:
         return True
 
-    def send_otp(self, mobile: str, code: str, *, purpose: str = "login") -> SmsDeliveryResult:
+    def send_otp(
+        self, mobile: str, code: str, *, purpose: str = "login"
+    ) -> SmsDeliveryResult:
         self._last[mobile] = code
         return SmsDeliveryResult(
             ok=True,
@@ -107,7 +113,9 @@ class TwilioSmsAdapter:
     def is_available(self) -> bool:
         return bool(self._sid and self._token and self._from)
 
-    def send_otp(self, mobile: str, code: str, *, purpose: str = "login") -> SmsDeliveryResult:
+    def send_otp(
+        self, mobile: str, code: str, *, purpose: str = "login"
+    ) -> SmsDeliveryResult:
         if not self.is_available():
             return SmsDeliveryResult(
                 ok=False,
@@ -126,7 +134,9 @@ class TwilioSmsAdapter:
                 f"To={urllib.parse.quote(mobile)}"
             )
 
-            url = f"https://api.twilio.com/2010-04-01/Accounts/{self._sid}/Messages.json"
+            url = (
+                f"https://api.twilio.com/2010-04-01/Accounts/{self._sid}/Messages.json"
+            )
             req = urllib.request.Request(
                 url,
                 data=body.encode("utf-8"),
@@ -153,7 +163,9 @@ class TwilioSmsAdapter:
 
 
 class Msg91SmsAdapter:
-    def __init__(self, *, auth_key: str, sender_id: str = "DSPAI", template_id: str = "") -> None:
+    def __init__(
+        self, *, auth_key: str, sender_id: str = "DSPAI", template_id: str = ""
+    ) -> None:
         self._key = auth_key
         self._sender = sender_id
         self._template = template_id
@@ -164,7 +176,9 @@ class Msg91SmsAdapter:
     def is_available(self) -> bool:
         return bool(self._key)
 
-    def send_otp(self, mobile: str, code: str, *, purpose: str = "login") -> SmsDeliveryResult:
+    def send_otp(
+        self, mobile: str, code: str, *, purpose: str = "login"
+    ) -> SmsDeliveryResult:
         if not self.is_available():
             return SmsDeliveryResult(
                 ok=False,
@@ -210,7 +224,9 @@ class Msg91SmsAdapter:
 class Fast2SmsAdapter:
     """Fast2SMS DLT/OTP route — popular India-focused transactional SMS provider."""
 
-    def __init__(self, *, api_key: str, sender_id: str = "FSTSMS", route: str = "otp") -> None:
+    def __init__(
+        self, *, api_key: str, sender_id: str = "FSTSMS", route: str = "otp"
+    ) -> None:
         self._api_key = api_key
         self._sender_id = sender_id
         self._route = route
@@ -221,7 +237,9 @@ class Fast2SmsAdapter:
     def is_available(self) -> bool:
         return bool(self._api_key)
 
-    def send_otp(self, mobile: str, code: str, *, purpose: str = "login") -> SmsDeliveryResult:
+    def send_otp(
+        self, mobile: str, code: str, *, purpose: str = "login"
+    ) -> SmsDeliveryResult:
         if not self.is_available():
             return SmsDeliveryResult(
                 ok=False,
@@ -242,7 +260,9 @@ class Fast2SmsAdapter:
             }
             if self._route == "dlt":
                 params["sender_id"] = self._sender_id
-            url = f"https://www.fast2sms.com/dev/bulkV2?{urllib.parse.urlencode(params)}"
+            url = (
+                f"https://www.fast2sms.com/dev/bulkV2?{urllib.parse.urlencode(params)}"
+            )
             req = urllib.request.Request(
                 url,
                 method="GET",
@@ -253,13 +273,18 @@ class Fast2SmsAdapter:
             ok = bool(payload.get("return"))
             request_id = str(payload.get("request_id") or "")
             if not ok:
-                message = "; ".join(str(m) for m in (payload.get("message") or [])) or "unknown error"
+                message = (
+                    "; ".join(str(m) for m in (payload.get("message") or []))
+                    or "unknown error"
+                )
                 return SmsDeliveryResult(
                     ok=False,
                     provider=self.provider_name(),
                     detail=f"Fast2SMS send failed: {message}",
                 )
-            return SmsDeliveryResult(ok=True, provider=self.provider_name(), message_id=request_id)
+            return SmsDeliveryResult(
+                ok=True, provider=self.provider_name(), message_id=request_id
+            )
         except Exception as exc:  # noqa: BLE001
             return SmsDeliveryResult(
                 ok=False,
@@ -280,7 +305,9 @@ class FirebaseSmsAdapter:
     def is_available(self) -> bool:
         return bool(self._api_key)
 
-    def send_otp(self, mobile: str, code: str, *, purpose: str = "login") -> SmsDeliveryResult:
+    def send_otp(
+        self, mobile: str, code: str, *, purpose: str = "login"
+    ) -> SmsDeliveryResult:
         _ = (mobile, code, purpose)
         if not self.is_available():
             return SmsDeliveryResult(

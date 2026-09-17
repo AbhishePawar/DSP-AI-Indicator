@@ -7,9 +7,9 @@ from datetime import UTC, date, datetime
 from decimal import Decimal
 
 import pytest
+
 from contracts.domain.instrument import Instrument
 from contracts.enums import AssetClass
-
 from data_engine import (
     CircuitBreaker,
     CircuitOpenError,
@@ -218,9 +218,7 @@ class TestMemoryAdapterAndService:
             )
         )
         assert again is not None
-        assert [b.bar_date for b in again.bars] == [
-            b.bar_date for b in ranged.bars
-        ]
+        assert [b.bar_date for b in again.bars] == [b.bar_date for b in ranged.bars]
 
     def test_market_cap_series(self) -> None:
         adapter = InMemoryAuthenticatedHistoricalAdapter(api_key="secret")

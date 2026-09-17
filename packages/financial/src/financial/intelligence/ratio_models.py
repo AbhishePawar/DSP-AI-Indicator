@@ -2,9 +2,10 @@
 
 from __future__ import annotations
 
+from collections.abc import Mapping
 from dataclasses import dataclass
 from enum import Enum
-from typing import Any, Mapping
+from typing import Any
 
 from financial.intelligence.income_explainability import MetricExplanation
 from financial.intelligence.income_models import TrendDirection

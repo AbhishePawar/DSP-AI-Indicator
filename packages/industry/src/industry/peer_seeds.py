@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from industry.characteristics_registry import InvestmentCharacteristicsRegistry
 from industry.enums import PeerEligibilityStatus
 from industry.methodology_registry import IndustryMethodologyRegistry
 from industry.methodology_seeds import (
@@ -17,7 +18,6 @@ from industry.peer_registry import (
     InstrumentIndustryRegistry,
     PeerEligibilityPolicyRegistry,
 )
-from industry.characteristics_registry import InvestmentCharacteristicsRegistry
 from industry.taxonomy import IndustryTaxonomy
 
 __all__ = [
@@ -148,12 +148,12 @@ def seed_peer_eligibility_context(
             taxonomy.register(IndustryIdentity(id=industry_id, name=name))
     register_example_methodologies(methodologies)
     # Extra methodologies so related/refusal examples can resolve both sides.
+    from industry.enums import ComparisonDimension
     from industry.methodology import (
         IndustryMethodology,
         PeerEligibilityPolicyRef,
         ValuationProfile,
     )
-    from industry.enums import ComparisonDimension
 
     for mid, iid, name, policy_id in (
         (

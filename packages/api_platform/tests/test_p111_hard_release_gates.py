@@ -29,9 +29,9 @@ def gate():
 
 
 def _all_pass() -> dict[str, str]:
-    return {gid: "PASS" for gid in (
-        "G1", "G2", "G3", "G4", "G5", "G6", "G7", "G8", "G9", "G10", "G11"
-    )}
+    return dict.fromkeys(
+        ("G1", "G2", "G3", "G4", "G5", "G6", "G7", "G8", "G9", "G10", "G11"), "PASS"
+    )
 
 
 def test_case_a_all_required_gates_pass(gate) -> None:
@@ -163,12 +163,16 @@ def test_cli_stale_identity_blocks_even_if_gates_pass() -> None:
     assert completed.returncode != 0
 
 
-def test_fixture_evidence_does_not_clear_g2(gate, monkeypatch: pytest.MonkeyPatch) -> None:
+def test_fixture_evidence_does_not_clear_g2(
+    gate, monkeypatch: pytest.MonkeyPatch
+) -> None:
     """test_fixture must never be treated as real_live_authenticated_provider."""
     artifacts = ROOT / "artifacts"
     artifacts.mkdir(parents=True, exist_ok=True)
     fixture_path = artifacts / "g2_live_vendor_evidence.json"
-    previous = fixture_path.read_text(encoding="utf-8") if fixture_path.is_file() else None
+    previous = (
+        fixture_path.read_text(encoding="utf-8") if fixture_path.is_file() else None
+    )
     try:
         fixture_path.write_text(
             json.dumps(

@@ -95,9 +95,7 @@ def validate_reverse_dcf_inputs(inputs: ReverseDcfInputs) -> ValidationSummary:
     ):
         if value < 0:
             errors.append(f"impossible capital structure field {name}={value}")
-    if not any(
-        e.startswith("impossible capital structure") for e in errors
-    ):
+    if not any(e.startswith("impossible capital structure") for e in errors):
         checks.append("capital structure non-negative")
 
     if inputs.current_revenue <= 0:
@@ -131,9 +129,7 @@ def validate_reverse_dcf_inputs(inputs: ReverseDcfInputs) -> ValidationSummary:
         checks.append("reinvestment_rate in range")
 
     if errors:
-        raise ValuationError(
-            "Reverse DCF validation failed: " + "; ".join(errors)
-        )
+        raise ValuationError("Reverse DCF validation failed: " + "; ".join(errors))
 
     return ValidationSummary(
         ok=True,

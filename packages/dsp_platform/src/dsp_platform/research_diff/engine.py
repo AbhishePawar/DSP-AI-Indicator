@@ -6,7 +6,8 @@ Compares R004 snapshots structurally — no calculations or interpretation.
 from __future__ import annotations
 
 import uuid
-from typing import Any, Mapping
+from collections.abc import Mapping
+from typing import Any
 
 from dsp_platform.research_diff.loader import LoadedSnapshot, load_snapshot
 from dsp_platform.research_diff.models import (
@@ -168,9 +169,7 @@ class ResearchDiffEngine:
             raise ValueError("left and right snapshots are required")
         left, right = self._left, self._right
         if left.kind != right.kind:
-            raise ValueError(
-                f"snapshot kind mismatch: {left.kind!r} vs {right.kind!r}"
-            )
+            raise ValueError(f"snapshot kind mismatch: {left.kind!r} vs {right.kind!r}")
 
         created_at = self._created_at or utc_now().isoformat()
         diff_id = self._diff_id or str(uuid.uuid4())

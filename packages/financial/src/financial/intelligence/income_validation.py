@@ -3,14 +3,18 @@
 from __future__ import annotations
 
 import math
-from typing import Sequence
+from collections.abc import Sequence
 
 from financial.exceptions import FinancialValidationError, IncomeAnalysisError
 from financial.income_statement import IncomeStatement
 from financial.models import FinancialSnapshot, FinancialStatements
 from financial.validation import ValidationResult, validate_statements
 
-__all__ = ["IncomeAnalysisError", "validate_income_for_analysis", "coerce_income_series"]
+__all__ = [
+    "IncomeAnalysisError",
+    "validate_income_for_analysis",
+    "coerce_income_series",
+]
 
 
 def _reject(message: str) -> None:
@@ -68,9 +72,7 @@ def _check_income_hard(income: IncomeStatement, *, require_revenue: bool) -> lis
             if math.isnan(margin) or math.isinf(margin):
                 _reject(f"Impossible Margins: {label} is non-finite")
             if abs(margin) > 5.0:
-                _reject(
-                    f"Impossible Margins: {label}={margin:.4f} exceeds ±500%"
-                )
+                _reject(f"Impossible Margins: {label}={margin:.4f} exceeds ±500%")
 
     if income.revenue is not None and income.revenue < 0:
         warnings.append("negative revenue")
@@ -120,11 +122,13 @@ def validate_income_for_analysis(
 
 
 def coerce_income_series(
-    source: IncomeStatement
-    | FinancialStatements
-    | FinancialSnapshot
-    | dict
-    | Sequence[IncomeStatement | FinancialStatements],
+    source: (
+        IncomeStatement
+        | FinancialStatements
+        | FinancialSnapshot
+        | dict
+        | Sequence[IncomeStatement | FinancialStatements]
+    ),
 ) -> tuple[list[IncomeStatement], list[FinancialStatements | None], dict]:
     """Normalize engine inputs into chronologically ordered income series.
 
@@ -159,9 +163,7 @@ def coerce_income_series(
     elif isinstance(source, FinancialSnapshot):
         meta["company"] = source.company.company
         meta["ticker"] = source.company.ticker
-        ordered = sorted(
-            source.statements, key=lambda s: s.period.period_end
-        )
+        ordered = sorted(source.statements, key=lambda s: s.period.period_end)
         if not ordered:
             _reject("Empty financial snapshot: no statements to analyze")
         incomes = [s.income_statement for s in ordered]
@@ -178,9 +180,7 @@ def coerce_income_series(
                 incomes.append(item.income_statement)
                 stmts.append(item)
             else:
-                _reject(
-                    "History items must be IncomeStatement or FinancialStatements"
-                )
+                _reject("History items must be IncomeStatement or FinancialStatements")
         # Sort when period metadata available
         if all(s is not None for s in stmts):
             paired = sorted(
@@ -191,8 +191,6 @@ def coerce_income_series(
             stmts = [p[1] for p in paired]
             meta["period_end"] = stmts[-1].period.period_end.isoformat()  # type: ignore[union-attr]
     else:
-        _reject(
-            "Accept ONLY IncomeStatement or Normalized Financial Payload"
-        )
+        _reject("Accept ONLY IncomeStatement or Normalized Financial Payload")
 
     return incomes, stmts, meta

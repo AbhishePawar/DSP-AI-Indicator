@@ -247,9 +247,7 @@ def list_users(state: ApiState = Depends(get_api_state)) -> dict[str, Any]:
 
 
 @router.get("/auth/rbac/users/{user_id}")
-def get_user(
-    user_id: str, state: ApiState = Depends(get_api_state)
-) -> JSONResponse:
+def get_user(user_id: str, state: ApiState = Depends(get_api_state)) -> JSONResponse:
     result = state.platform.get_auth_user(user_id)
     if result is None:
         return _err(ValueError("not found"), status=404)
@@ -297,9 +295,7 @@ def evaluate_permission(
     body: EvaluatePermissionRequest, state: ApiState = Depends(get_api_state)
 ) -> JSONResponse:
     try:
-        result = state.platform.evaluate_auth_permission(
-            body.user_id, body.permission
-        )
+        result = state.platform.evaluate_auth_permission(body.user_id, body.permission)
     except Exception as exc:  # noqa: BLE001
         return _err(exc)
     return JSONResponse({"ok": True, "result": result, "message": None})

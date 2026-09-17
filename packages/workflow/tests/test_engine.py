@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import ast
-from decimal import Decimal
 from pathlib import Path
 
 import pytest
@@ -140,9 +139,7 @@ def _fail(
 class TestEngineHappyPath:
     def test_ready_to_completed(self) -> None:
         assembly = _assemble()
-        facade = _ScriptedFacade(
-            {"dsp.workflow.step.analysis": [_success()]}
-        )
+        facade = _ScriptedFacade({"dsp.workflow.step.analysis": [_success()]})
         result = WorkflowEngine().run(
             EngineContext(
                 assembly=assembly,  # type: ignore[arg-type]
@@ -222,9 +219,7 @@ class TestEngineHappyPath:
 
     def test_failed_workflow(self) -> None:
         assembly = _assemble()
-        facade = _ScriptedFacade(
-            {"dsp.workflow.step.analysis": [_fail()]}
-        )
+        facade = _ScriptedFacade({"dsp.workflow.step.analysis": [_fail()]})
         result = WorkflowEngine().run(
             EngineContext(
                 assembly=assembly,  # type: ignore[arg-type]
@@ -299,9 +294,7 @@ class TestEngineHappyPath:
         a = WorkflowEngine().run(
             EngineContext(
                 assembly=assembly,  # type: ignore[arg-type]
-                facade=_ScriptedFacade(
-                    {"dsp.workflow.step.analysis": [_success()]}
-                ),
+                facade=_ScriptedFacade({"dsp.workflow.step.analysis": [_success()]}),
                 execution_timestamp="2026-07-21T12:00:00Z",
             )
         )
@@ -319,9 +312,7 @@ class TestEngineHappyPath:
         result = WorkflowEngine().run(
             EngineContext(
                 assembly=_assemble(),  # type: ignore[arg-type]
-                facade=_ScriptedFacade(
-                    {"dsp.workflow.step.analysis": [_success()]}
-                ),
+                facade=_ScriptedFacade({"dsp.workflow.step.analysis": [_success()]}),
                 execution_timestamp="2026-07-21T12:00:00Z",
             )
         )
@@ -394,9 +385,7 @@ class TestEngineValidation:
         assembly = _assemble()
         ctx = EngineContext(
             assembly=assembly,  # type: ignore[arg-type]
-            facade=_ScriptedFacade(
-                {"dsp.workflow.step.analysis": [_success()]}
-            ),
+            facade=_ScriptedFacade({"dsp.workflow.step.analysis": [_success()]}),
             execution_timestamp="2026-07-21T12:00:00Z",
         )
         with pytest.raises(WorkflowError, match="duplicate workflow ids"):

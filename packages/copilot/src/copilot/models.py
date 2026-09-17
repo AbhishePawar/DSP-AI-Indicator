@@ -9,8 +9,6 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Any
 
-from core.exceptions import ValidationError
-
 from copilot.enums import (
     ConversationRole,
     ConversationState,
@@ -43,6 +41,7 @@ from copilot.validation import (
     assert_unique_turn_ids,
     assert_user_intent_type,
 )
+from core.exceptions import ValidationError
 
 __all__ = [
     "ContextBundle",
@@ -327,9 +326,7 @@ class ContextBundle:
         object.__setattr__(
             self, "quantitative_risk_refs", tuple(self.quantitative_risk_refs)
         )
-        object.__setattr__(
-            self, "recommendation_refs", tuple(self.recommendation_refs)
-        )
+        object.__setattr__(self, "recommendation_refs", tuple(self.recommendation_refs))
         object.__setattr__(self, "workflow_refs", tuple(self.workflow_refs))
         object.__setattr__(self, "notes", notes)
 
@@ -398,9 +395,7 @@ class CopilotSummary:
             if getattr(self, name) < 0:
                 msg = "counts must be >= 0"
                 raise ValidationError(msg)
-        limitations = tuple(
-            n.strip() for n in self.limitation_notes if n.strip()
-        )
+        limitations = tuple(n.strip() for n in self.limitation_notes if n.strip())
         object.__setattr__(self, "limitation_notes", limitations)
 
 
@@ -465,9 +460,7 @@ class LanguageModelResult:
             raise CopilotError(msg)
         provenance = tuple(_non_empty(p, field="provenance") for p in self.provenance)
         narrative_text = (
-            None
-            if self.narrative_text is None
-            else self.narrative_text.strip() or None
+            None if self.narrative_text is None else self.narrative_text.strip() or None
         )
         structured_sections = tuple(
             s.strip() for s in self.structured_sections if s.strip()
@@ -577,9 +570,7 @@ class CopilotResponse:
         object.__setattr__(
             self, "quantitative_risk_refs", tuple(self.quantitative_risk_refs)
         )
-        object.__setattr__(
-            self, "recommendation_refs", tuple(self.recommendation_refs)
-        )
+        object.__setattr__(self, "recommendation_refs", tuple(self.recommendation_refs))
         object.__setattr__(self, "workflow_refs", tuple(self.workflow_refs))
         object.__setattr__(self, "limitations", limitations)
 
@@ -655,9 +646,7 @@ class CopilotProfile:
         object.__setattr__(
             self, "quantitative_risk_refs", tuple(self.quantitative_risk_refs)
         )
-        object.__setattr__(
-            self, "recommendation_refs", tuple(self.recommendation_refs)
-        )
+        object.__setattr__(self, "recommendation_refs", tuple(self.recommendation_refs))
         object.__setattr__(self, "workflow_refs", tuple(self.workflow_refs))
         object.__setattr__(self, "notes", notes)
 

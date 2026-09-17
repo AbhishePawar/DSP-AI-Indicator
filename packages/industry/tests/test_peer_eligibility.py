@@ -3,21 +3,21 @@
 from __future__ import annotations
 
 import pytest
+
 from contracts.domain.instrument import Instrument
 from contracts.enums import AssetClass
-
 from industry import (
     EligibilityOptions,
     GroupEligibilityStatus,
     IndustryError,
     IndustryMethodologyRegistry,
+    IndustryTaxonomy,
     InstrumentIndustryAssignment,
     InstrumentIndustryRegistry,
     InvestmentCharacteristicsRegistry,
     PeerEligibilityEvaluator,
     PeerEligibilityPolicyRegistry,
     PeerEligibilityStatus,
-    IndustryTaxonomy,
     seed_peer_eligibility_context,
 )
 
@@ -70,9 +70,12 @@ class TestDirectRelatedRefusal:
         result = evaluator.evaluate_pair("HDFCBANK", "TCS")
         assert result.status is PeerEligibilityStatus.NOT_COMPARABLE
         assert result.comparable is False
-        assert any("refuse" in r.message.lower() or "not_comparable" in r.code
-                   or "refuses" in r.message.lower()
-                   for r in result.reasons)
+        assert any(
+            "refuse" in r.message.lower()
+            or "not_comparable" in r.code
+            or "refuses" in r.message.lower()
+            for r in result.reasons
+        )
 
 
 class TestResolutionFailures:

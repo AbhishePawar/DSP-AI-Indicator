@@ -85,7 +85,11 @@ def test_comparison_requires_payloads(client: TestClient) -> None:
 def test_document_route(client: TestClient) -> None:
     response = client.post(
         "/api/v1/copilot/document",
-        json={"message": "Summarize filings", "symbol": "AAPL", "document_kind": "filings"},
+        json={
+            "message": "Summarize filings",
+            "symbol": "AAPL",
+            "document_kind": "filings",
+        },
     )
     assert response.status_code == 200
     assert response.json()["result"]["intent"] == "document"

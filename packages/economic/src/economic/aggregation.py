@@ -13,7 +13,6 @@ from __future__ import annotations
 from collections.abc import Sequence
 
 from contracts.enums import SignalDirection
-
 from economic.enums import EconomicCondition, Recommendation
 from economic.models import EconomicSignal
 
@@ -38,12 +37,8 @@ def aggregate_signals(
         msg = "signals must not be empty"
         raise ValueError(msg)
 
-    bullish = sum(
-        1 for s in signals if s.direction is SignalDirection.BULLISH
-    )
-    bearish = sum(
-        1 for s in signals if s.direction is SignalDirection.BEARISH
-    )
+    bullish = sum(1 for s in signals if s.direction is SignalDirection.BULLISH)
+    bearish = sum(1 for s in signals if s.direction is SignalDirection.BEARISH)
     neutral = len(signals) - bullish - bearish
     observations = ", ".join(s.observation for s in signals)
 

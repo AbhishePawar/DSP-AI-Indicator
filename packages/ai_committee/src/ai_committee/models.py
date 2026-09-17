@@ -12,6 +12,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from datetime import datetime
 
+from ai_committee.enums import Decision
 from contracts.domain.committee_context import (
     EconomicContext,
     FundamentalContext,
@@ -24,8 +25,6 @@ from contracts.domain.margin_of_safety import MarginOfSafety
 from contracts.domain.valuation_summary import ValuationSummary
 from contracts.enums import EngineSource
 from core.exceptions import ValidationError
-
-from ai_committee.enums import Decision
 
 #: Recommendations a single member is allowed to cast. NEUTRAL is
 #: reserved for the committee's aggregated decision when members
@@ -113,9 +112,7 @@ class Opinion:
         if not reasoning:
             msg = "reasoning must not be empty"
             raise ValidationError(msg)
-        if self.confidence is not None and not (
-            0.0 <= self.confidence <= 1.0
-        ):
+        if self.confidence is not None and not (0.0 <= self.confidence <= 1.0):
             msg = "confidence must be in [0.0, 1.0] when provided"
             raise ValidationError(msg)
         object.__setattr__(self, "source", source)
@@ -263,6 +260,4 @@ class CommitteeReport:
     @property
     def evidence_used(self) -> tuple[Evidence, ...]:
         """Return every evidence item cited across all opinions."""
-        return tuple(
-            item for opinion in self.opinions for item in opinion.evidence
-        )
+        return tuple(item for opinion in self.opinions for item in opinion.evidence)

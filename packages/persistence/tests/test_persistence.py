@@ -66,7 +66,12 @@ def test_repository_crud() -> None:
 
 def test_duplicate_id_when_update_forbidden() -> None:
     svc = get_persistence_service()
-    svc.put(kind="citation", entity_id="c1", payload={"path": "a", "section": "b"}, created_at=FIXED)
+    svc.put(
+        kind="citation",
+        entity_id="c1",
+        payload={"path": "a", "section": "b"},
+        created_at=FIXED,
+    )
     with pytest.raises(DuplicateIdError):
         svc.registry.repository("citation").put(
             svc.registry.repository("citation").require("c1"),
@@ -77,12 +82,22 @@ def test_duplicate_id_when_update_forbidden() -> None:
 def test_transactions_commit_and_rollback() -> None:
     svc = get_persistence_service()
     svc.begin()
-    svc.put(kind="audit_record", entity_id="audit-1", payload={"event": "x"}, created_at=FIXED)
+    svc.put(
+        kind="audit_record",
+        entity_id="audit-1",
+        payload={"event": "x"},
+        created_at=FIXED,
+    )
     svc.commit()
     assert svc.get("audit_record", "audit-1") is not None
 
     svc.begin()
-    svc.put(kind="audit_record", entity_id="audit-2", payload={"event": "y"}, created_at=FIXED)
+    svc.put(
+        kind="audit_record",
+        entity_id="audit-2",
+        payload={"event": "y"},
+        created_at=FIXED,
+    )
     assert svc.get("audit_record", "audit-2") is not None
     svc.rollback()
     assert svc.get("audit_record", "audit-2") is None
@@ -176,11 +191,20 @@ def test_workflow_persistence_strips_to_metadata() -> None:
 def test_audit_citation_provenance_persistence() -> None:
     svc = get_persistence_service()
     audit = svc.persist_audit_record(
-        {"event_id": "e1", "event": "stage_transition", "workflow_id": "wf-1", "created_at": FIXED},
+        {
+            "event_id": "e1",
+            "event": "stage_transition",
+            "workflow_id": "wf-1",
+            "created_at": FIXED,
+        },
         created_at=FIXED,
     )
     cite = svc.persist_citation(
-        {"path": "research_object.risk", "section": "risk", "source_kind": "research_object"},
+        {
+            "path": "research_object.risk",
+            "section": "risk",
+            "source_kind": "research_object",
+        },
         created_at=FIXED,
     )
     prov = svc.persist_provenance(
@@ -243,7 +267,11 @@ def test_atomic_increment_unexpired_caps_and_skips_consumed() -> None:
     svc.put(
         kind="metadata",
         entity_id="inc-1",
-        payload={"expires_at": "2099-01-01T00:00:00+00:00", "consumed_at": None, "attempts": 0},
+        payload={
+            "expires_at": "2099-01-01T00:00:00+00:00",
+            "consumed_at": None,
+            "attempts": 0,
+        },
         created_at=FIXED,
     )
     first = svc.atomic_increment_unexpired(
@@ -360,7 +388,9 @@ def test_atomic_consume_rejects_expired_and_missing() -> None:
     )
 
 
-def test_production_missing_database_url_fail_closed(monkeypatch: pytest.MonkeyPatch) -> None:
+def test_production_missing_database_url_fail_closed(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
     monkeypatch.setenv("DSP_ENVIRONMENT", "production")
     monkeypatch.delenv("DSP_DATABASE_URL", raising=False)
     monkeypatch.delenv("DATABASE_URL", raising=False)

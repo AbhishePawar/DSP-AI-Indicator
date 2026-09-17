@@ -10,7 +10,30 @@ from pathlib import Path
 
 _SRC = Path(__file__).resolve().parents[1] / "src" / "orchestration"
 _PKG_ROOT = Path(__file__).resolve().parents[1]
-_FORBIDDEN = frozenset(['api_platform', 'business_quality', 'comparison', 'compliance', 'copilot', 'data_ingestion', 'decision_intelligence', 'dsp_platform', 'economic_moat', 'financial', 'industry', 'knowledge_graph', 'portfolio', 'production_platform', 'quantitative_risk', 'research', 'risk', 'security_platform', 'universe', 'workflow'])
+_FORBIDDEN = frozenset(
+    [
+        "api_platform",
+        "business_quality",
+        "comparison",
+        "compliance",
+        "copilot",
+        "data_ingestion",
+        "decision_intelligence",
+        "dsp_platform",
+        "economic_moat",
+        "financial",
+        "industry",
+        "knowledge_graph",
+        "portfolio",
+        "production_platform",
+        "quantitative_risk",
+        "research",
+        "risk",
+        "security_platform",
+        "universe",
+        "workflow",
+    ]
+)
 _EXPECTED_VERSION = "0.2.0"
 
 
@@ -62,7 +85,7 @@ class TestOrchestrationArchitecture:
     def test_public_api_stable(self) -> None:
         import orchestration as mod
 
-        assert getattr(mod, "__version__") == _EXPECTED_VERSION
+        assert mod.__version__ == _EXPECTED_VERSION
         assert hasattr(mod, "__all__")
         missing = [name for name in mod.__all__ if not hasattr(mod, name)]
         assert missing == [], missing

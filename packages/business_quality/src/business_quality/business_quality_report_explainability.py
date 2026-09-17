@@ -58,10 +58,13 @@ def build_report_explainability(
 ) -> tuple[BusinessQualityExplainability, ...]:
     """Compose report explainability from analysis + aggregated summaries."""
     present = [m for m in module_breakdown if m.present]
-    contribution = "; ".join(
-        f"{m.label} rating={m.rating} score={m.score} weight={m.weight}"
-        for m in present
-    ) or "No module outputs present."
+    contribution = (
+        "; ".join(
+            f"{m.label} rating={m.rating} score={m.score} weight={m.weight}"
+            for m in present
+        )
+        or "No module outputs present."
+    )
 
     overall = report_explanation(
         title="Business Quality Report Summary",
@@ -72,7 +75,11 @@ def build_report_explainability(
             f"{confidence_summary.explanation} Module contribution: {contribution}"
         ),
         confidence=confidence_summary.overall,
-        limitations="; ".join(limitations) if limitations else BUSINESS_QUALITY_AGGREGATOR_DISCLAIMER,
+        limitations=(
+            "; ".join(limitations)
+            if limitations
+            else BUSINESS_QUALITY_AGGREGATOR_DISCLAIMER
+        ),
         references=(
             "BusinessQualityAnalysis",
             "BusinessQualityAnalysis.overall_assessment",

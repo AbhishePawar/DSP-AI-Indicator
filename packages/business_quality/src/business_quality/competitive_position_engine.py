@@ -267,9 +267,7 @@ class CompetitivePositionEngine:
                 + ((extra_evidence,) if extra_evidence else ()),
                 reasoning=reasoning,
                 confidence=conf,
-                limitations=(
-                    "Does not recalculate statement ratios or use peer data."
-                ),
+                limitations=("Does not recalculate statement ratios or use peer data."),
                 references=(reference,),
             )
         )
@@ -281,11 +279,15 @@ class CompetitivePositionEngine:
             evidence_level=(
                 EvidenceLevel.STRONG
                 if conf is Confidence.HIGH
-                else EvidenceLevel.ADEQUATE
-                if conf is Confidence.MEDIUM
-                else EvidenceLevel.LIMITED
-                if conf is Confidence.LOW
-                else EvidenceLevel.NONE
+                else (
+                    EvidenceLevel.ADEQUATE
+                    if conf is Confidence.MEDIUM
+                    else (
+                        EvidenceLevel.LIMITED
+                        if conf is Confidence.LOW
+                        else EvidenceLevel.NONE
+                    )
+                )
             ),
             risk_level=_risk_from_01(value, invert=True),
         )
@@ -438,7 +440,9 @@ def _return_on_capital(ratios) -> float | None:
 
 
 def _cash_conversion(cash, ratios) -> float | None:
-    ratio_conv = _ratio_metric(getattr(ratios, "cash_flow", None), "cash_conversion_ratio")
+    ratio_conv = _ratio_metric(
+        getattr(ratios, "cash_flow", None), "cash_conversion_ratio"
+    )
     return _mean(
         [
             _clip01(getattr(cash.operating, "cash_conversion", None)),

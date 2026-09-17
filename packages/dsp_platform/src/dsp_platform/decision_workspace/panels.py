@@ -2,7 +2,8 @@
 
 from __future__ import annotations
 
-from typing import Any, Mapping
+from collections.abc import Mapping
+from typing import Any
 
 from dsp_platform.decision_workspace.citations import citation
 from dsp_platform.decision_workspace.models import (
@@ -10,6 +11,7 @@ from dsp_platform.decision_workspace.models import (
     WorkspacePanel,
     freeze_mapping,
 )
+
 __all__ = [
     "build_active_alerts_panel",
     "build_audit_panel",
@@ -101,8 +103,7 @@ def build_report_panel(report: Mapping[str, Any] | None) -> WorkspacePanel:
             {
                 "report_id": rid or None,
                 "schema_version": report.get("schema_version"),
-                "generated_at": report.get("generated_at")
-                or report.get("created_at"),
+                "generated_at": report.get("generated_at") or report.get("created_at"),
             }
         )
         or freeze_mapping({}),

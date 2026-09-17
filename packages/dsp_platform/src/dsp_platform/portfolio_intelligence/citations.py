@@ -47,7 +47,9 @@ def build_portfolio_citations(
         ):
             available = True
             if section == "identity":
-                available = holding.sector != "Data unavailable." or holding.research_linked
+                available = (
+                    holding.sector != "Data unavailable." or holding.research_linked
+                )
             elif section == "margin_of_safety":
                 available = holding.margin_of_safety != "Data unavailable."
             elif section == "business_quality":

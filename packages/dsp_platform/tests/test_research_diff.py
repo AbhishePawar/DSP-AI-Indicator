@@ -74,9 +74,7 @@ def _archive_pair() -> tuple[str, str]:
 
 def test_snapshot_comparison_detects_change() -> None:
     left, right = _archive_pair()
-    result = diff_research_snapshots(
-        left, right, diff_id="diff-1", created_at=FIXED
-    )
+    result = diff_research_snapshots(left, right, diff_id="diff-1", created_at=FIXED)
     assert result.schema_version == DIFF_SCHEMA_VERSION
     assert result.kind == "research_object"
     assert result.change_summary["identical_content"] is False
@@ -143,11 +141,11 @@ def test_serialization_roundtrip() -> None:
 
 
 def test_kind_mismatch() -> None:
-    from dsp_platform.research_archive import get_research_archive
     from dsp_platform.institutional_report import (
         generate_institutional_report,
         institutional_report_to_dict,
     )
+    from dsp_platform.research_archive import get_research_archive
 
     service = get_research_archive()
     ro = research_object_to_dict(

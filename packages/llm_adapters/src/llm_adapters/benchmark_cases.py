@@ -17,8 +17,8 @@ history, difficult Buffett/BQ case, high-risk/uncertain.
 
 from __future__ import annotations
 
-from dataclasses import dataclass, field
-from typing import Mapping
+from collections.abc import Mapping
+from dataclasses import dataclass
 
 from llm_adapters.routing import ComplexitySignal
 

@@ -8,7 +8,8 @@ from __future__ import annotations
 import base64
 import hashlib
 import uuid
-from typing import Any, Mapping
+from collections.abc import Mapping
+from typing import Any
 
 from dsp_platform.institutional_export.formats import (
     export_csv_bytes,
@@ -164,7 +165,9 @@ class InstitutionalExportEngine:
             content_base64=b64,
             content_sha256=digest,
             content_text=content_text,
-            structured_json=freeze_mapping(structured) if structured is not None else None,
+            structured_json=(
+                freeze_mapping(structured) if structured is not None else None
+            ),
         )
         validate_export_artifact(artifact)
         return artifact
@@ -178,11 +181,7 @@ def export_institutional_report(
     exported_at: str | None = None,
 ) -> ExportArtifact:
     """Convenience entry — Institutional Report is the only input source."""
-    engine = (
-        InstitutionalExportEngine()
-        .with_report(report)
-        .with_format(format)
-    )
+    engine = InstitutionalExportEngine().with_report(report).with_format(format)
     if export_id:
         engine = engine.with_export_id(export_id)
     if exported_at:

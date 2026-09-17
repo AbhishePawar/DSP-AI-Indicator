@@ -9,7 +9,6 @@ import pytest
 from auth import (
     AuthenticationError,
     AuthService,
-    DuplicateUserError,
     RoleRegistry,
     ValidationError,
     hash_password,
@@ -19,9 +18,9 @@ from auth import (
     reset_role_registry_for_tests,
     verify_password,
 )
-from auth.enterprise_platform import EnterpriseAuthPlatform, password_strength
-from auth.oauth_providers import OAuthProviderAdapter, OAuthProviderRegistry
 from auth.enterprise_models import AuthProvider
+from auth.enterprise_platform import EnterpriseAuthPlatform, password_strength
+from auth.oauth_providers import OAuthProviderAdapter
 from auth.otp import OtpService, normalize_india_mobile
 from auth.sms import DevSmsAdapter
 from persistence import (
@@ -67,7 +66,8 @@ def test_seed_super_admin_once() -> None:
     admins = [
         u
         for u in users
-        if "super_admin" in (u.get("roles") or []) or "administrator" in (u.get("roles") or [])
+        if "super_admin" in (u.get("roles") or [])
+        or "administrator" in (u.get("roles") or [])
     ]
     assert admins
     assert admins[0]["email"] == "admin@dspai.local"

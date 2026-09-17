@@ -2,8 +2,8 @@
 
 from __future__ import annotations
 
+from collections.abc import Mapping
 from dataclasses import dataclass
-from typing import Mapping
 
 from core.exceptions import ValidationError
 
@@ -42,9 +42,7 @@ class ExplainedValue:
         if not formula:
             raise ValidationError("ExplainedValue.formula must not be empty")
         if self.confidence not in {"high", "medium", "low", "insufficient"}:
-            raise ValidationError(
-                f"invalid confidence: {self.confidence!r}"
-            )
+            raise ValidationError(f"invalid confidence: {self.confidence!r}")
         object.__setattr__(self, "name", name)
         object.__setattr__(self, "formula", formula)
         object.__setattr__(self, "notes", self.notes.strip())

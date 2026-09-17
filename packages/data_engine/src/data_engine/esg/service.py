@@ -105,8 +105,12 @@ class EsgService:
         if isinstance(cached, AuthenticatedEsgScore):
             self.metrics.cache_hits += 1
             self.metrics.successes += 1
-            _LOG.info("esg_cache_hit", extra={"symbol": symbol, "provider": self.provider_id})
-            return replace(cached, provenance=replace(cached.provenance, cache_hit=True))
+            _LOG.info(
+                "esg_cache_hit", extra={"symbol": symbol, "provider": self.provider_id}
+            )
+            return replace(
+                cached, provenance=replace(cached.provenance, cache_hit=True)
+            )
 
         def _call() -> AuthenticatedEsgScore | None:
             self._breaker.before_call()
@@ -131,7 +135,8 @@ class EsgService:
                 self.metrics.rejected_invalid += 1
                 self._breaker.record_failure()
                 _LOG.warning(
-                    "esg_rejected_invalid", extra={"symbol": symbol, "provider": self.provider_id}
+                    "esg_rejected_invalid",
+                    extra={"symbol": symbol, "provider": self.provider_id},
                 )
                 raise
             self._breaker.record_success()
@@ -141,19 +146,29 @@ class EsgService:
             score = self._retry.run(_call)
         except CircuitOpenError:
             self.metrics.failures += 1
-            _LOG.error("esg_circuit_open", extra={"symbol": symbol, "provider": self.provider_id})
+            _LOG.error(
+                "esg_circuit_open",
+                extra={"symbol": symbol, "provider": self.provider_id},
+            )
             raise
         except Exception as exc:
             self.metrics.failures += 1
             _LOG.exception(
                 "esg_failure",
-                extra={"symbol": symbol, "provider": self.provider_id, "error": str(exc)},
+                extra={
+                    "symbol": symbol,
+                    "provider": self.provider_id,
+                    "error": str(exc),
+                },
             )
             raise
 
         if score is None:
             self.metrics.unavailable += 1
-            _LOG.info("esg_unavailable", extra={"symbol": symbol, "provider": self.provider_id})
+            _LOG.info(
+                "esg_unavailable",
+                extra={"symbol": symbol, "provider": self.provider_id},
+            )
             return None
 
         stamped = replace(

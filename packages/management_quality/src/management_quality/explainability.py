@@ -5,10 +5,10 @@ from __future__ import annotations
 from management_quality.metadata import ManagementMetadata
 from management_quality.models import (
     ManagementAnalysis,
+    ManagementComponentScore,
     ManagementConfidence,
     ManagementEvidence,
     ManagementExplainability,
-    ManagementComponentScore,
 )
 from management_quality.scoring import ManagementRating
 
@@ -52,9 +52,7 @@ def build_summary(
         else ""
     )
     weak_txt = (
-        f" Weakest dimension: {weakest.dimension.value}."
-        if weakest is not None
-        else ""
+        f" Weakest dimension: {weakest.dimension.value}." if weakest is not None else ""
     )
     return (
         f"Overall management quality rating is {rating.value} "

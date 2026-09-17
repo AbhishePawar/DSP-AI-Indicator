@@ -3,8 +3,6 @@
 from __future__ import annotations
 
 from business_quality import BusinessQualityAnalysis
-from financial import FinancialAnalysis
-
 from earnings_quality.exceptions import EarningsQualityValidationError
 from earnings_quality.explainability import (
     EARNINGS_QUALITY_RESEARCH_DISCLAIMER,
@@ -34,6 +32,7 @@ from earnings_quality.scoring import (
     weighted_mean,
 )
 from earnings_quality.validation import validate_framework_inputs
+from financial import FinancialAnalysis
 
 __all__ = ["EarningsQualityEngine"]
 
@@ -45,7 +44,9 @@ class EarningsQualityEngine:
     It is distinct from ``business_quality.EarningsQualityEngine`` (F3.2 module).
     """
 
-    def __init__(self, *, default_weights: EarningsQualityWeights | None = None) -> None:
+    def __init__(
+        self, *, default_weights: EarningsQualityWeights | None = None
+    ) -> None:
         self._default_weights = validate_weights(
             default_weights or DEFAULT_EARNINGS_WEIGHTS
         )
@@ -141,7 +142,9 @@ class EarningsQualityEngine:
             research_disclaimer=EARNINGS_QUALITY_RESEARCH_DISCLAIMER,
         )
 
-    def explain(self, analysis: EarningsQualityAnalysis) -> EarningsQualityExplainability:
+    def explain(
+        self, analysis: EarningsQualityAnalysis
+    ) -> EarningsQualityExplainability:
         if not isinstance(analysis, EarningsQualityAnalysis):
             raise EarningsQualityValidationError(
                 f"Accept ONLY EarningsQualityAnalysis, got {type(analysis).__name__}"

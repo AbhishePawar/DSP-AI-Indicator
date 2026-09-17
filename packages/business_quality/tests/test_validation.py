@@ -62,9 +62,7 @@ class TestValidation:
         with pytest.raises(BusinessQualityValidationError, match="Invalid confidence"):
             validate_confidence("nope")
         with pytest.raises(BusinessQualityValidationError, match="Insufficient"):
-            validate_confidence(
-                Confidence.INSUFFICIENT, allow_insufficient=False
-            )
+            validate_confidence(Confidence.INSUFFICIENT, allow_insufficient=False)
 
         assert validate_evidence_level(EvidenceLevel.ADEQUATE) is EvidenceLevel.ADEQUATE
         assert validate_evidence_level("limited") is EvidenceLevel.LIMITED

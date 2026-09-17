@@ -121,9 +121,7 @@ class FredEconomicAdapter(BaseAdapter, EconomicDataPort):
         except DataEngineError:
             raise
         except Exception as exc:
-            msg = (
-                f"failed to normalize fred data for '{spec.platform_code}': {exc}"
-            )
+            msg = f"failed to normalize fred data for '{spec.platform_code}': {exc}"
             raise TransformationError(msg) from exc
 
     def _fetch_observations(self, fred_series_id: str) -> Mapping[str, Any]:
@@ -171,9 +169,7 @@ class FredEconomicAdapter(BaseAdapter, EconomicDataPort):
 
         observations = payload.get("observations")
         if observations is None:
-            msg = (
-                f"fred returned no observations field for '{spec.fred_series_id}'"
-            )
+            msg = f"fred returned no observations field for '{spec.fred_series_id}'"
             raise InvalidProviderDataError(msg)
         if not isinstance(observations, Sequence) or isinstance(
             observations, (str, bytes)

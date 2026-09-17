@@ -117,8 +117,7 @@ class CanonicalValidationResult:
     @property
     def ok(self) -> bool:
         return (
-            self.status is CanonicalValidationStatus.VALID
-            and self.report is not None
+            self.status is CanonicalValidationStatus.VALID and self.report is not None
         )
 
     def to_dict(self) -> dict[str, Any]:

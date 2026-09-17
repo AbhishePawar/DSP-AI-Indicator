@@ -12,7 +12,11 @@ from collections.abc import Sequence
 from datetime import date
 
 from contracts.domain.economic_series import EconomicSeries
-from data_engine import EconomicDataService, FundamentalsDataService, FundamentalsRequest
+from data_engine import (
+    EconomicDataService,
+    FundamentalsDataService,
+    FundamentalsRequest,
+)
 from economic import EconomicSnapshot
 from fundamental import FinancialSnapshot
 from snapshot_bridge.economic import EconomicSnapshotBuilder
@@ -70,9 +74,7 @@ class EconomicBridgeService:
             provider_name=provider_name,
             limit=limit,
         )
-        return EconomicSnapshotBuilder.build(
-            available, country=country, as_of=as_of
-        )
+        return EconomicSnapshotBuilder.build(available, country=country, as_of=as_of)
 
     def get_snapshot_from_series(
         self,

@@ -14,7 +14,9 @@ from dsp_platform.research_object import build_research_object, research_object_
 FIXED = "2026-07-28T12:00:00+00:00"
 
 
-def _ro(symbol: str, *, sector: str | None = "Technology", mos: float | None = 0.2) -> dict:
+def _ro(
+    symbol: str, *, sector: str | None = "Technology", mos: float | None = 0.2
+) -> dict:
     identity = {
         "symbol": symbol,
         "ticker": symbol,
@@ -30,7 +32,11 @@ def _ro(symbol: str, *, sector: str | None = "Technology", mos: float | None = 0
     if mos is not None:
         analysis["recommendation_summary"]["margin_of_safety"] = mos
         analysis["stage_summaries"] = [
-            {"stage": "business_quality_aggregator", "has_result": True, "summary": "q"},
+            {
+                "stage": "business_quality_aggregator",
+                "has_result": True,
+                "summary": "q",
+            },
         ]
         analysis["risk"] = {"overall": "moderate"}
     return research_object_to_dict(
@@ -87,7 +93,10 @@ def test_portfolio_loading_and_linking() -> None:
                 {"symbol": "MSFT", "weight": 0.4},
             ],
         },
-        research_objects={"AAPL": _ro("AAPL"), "MSFT": _ro("MSFT", sector="Technology")},
+        research_objects={
+            "AAPL": _ro("AAPL"),
+            "MSFT": _ro("MSFT", sector="Technology"),
+        },
         result_id="pi-1",
         created_at=FIXED,
     )
@@ -127,7 +136,9 @@ def test_citations_and_mos_pass_through() -> None:
         result_id="pi-3",
         created_at=FIXED,
     )
-    assert result["margin_of_safety_summary"]["positions"][0]["margin_of_safety"] == 0.25
+    assert (
+        result["margin_of_safety_summary"]["positions"][0]["margin_of_safety"] == 0.25
+    )
     assert any(c["section"] == "margin_of_safety" for c in result["citations"])
 
 

@@ -82,9 +82,7 @@ class TestFundamentalsDataPort:
                 return (statement,)
 
         stub = StubFundamentalsDataPort()
-        result = stub.get_fundamental_statements(
-            instrument, StatementPeriodType.ANNUAL
-        )
+        result = stub.get_fundamental_statements(instrument, StatementPeriodType.ANNUAL)
         assert result == (statement,)
 
 

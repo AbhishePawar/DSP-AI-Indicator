@@ -6,18 +6,17 @@ It never calculates, interprets, or owns evidence.
 
 from __future__ import annotations
 
-from decision_intelligence import DecisionPack
-from industry import (
-    EvidenceAvailability,
-    EvidenceBundle,
-    EvidenceBundleStatus,
-)
-
 from comparison.exceptions import ComparisonError
 from comparison.models import (
     ComparisonEvidenceSummary,
     ComparisonLimitation,
     ComparisonObservation,
+)
+from decision_intelligence import DecisionPack
+from industry import (
+    EvidenceAvailability,
+    EvidenceBundle,
+    EvidenceBundleStatus,
 )
 
 __all__ = [
@@ -37,9 +36,7 @@ def validate_evidence_bundles_for_comparison(
     included_symbols: tuple[str, ...],
 ) -> None:
     """Reject invalid / mismatched Evidence Bundles before citation."""
-    pack_by_symbol = {
-        p.recommendation.instrument.symbol: p for p in packs
-    }
+    pack_by_symbol = {p.recommendation.instrument.symbol: p for p in packs}
     pack_symbols = set(pack_by_symbol)
     included = set(included_symbols)
     seen: set[str] = set()
@@ -101,9 +98,7 @@ def validate_evidence_bundles_for_comparison(
                 )
                 raise ComparisonError(msg)
             if ref.methodology_id != meta.methodology_id:
-                msg = (
-                    f"evidence_bundle_ref methodology mismatch for {key}"
-                )
+                msg = f"evidence_bundle_ref methodology mismatch for {key}"
                 raise ComparisonError(msg)
 
 
@@ -120,9 +115,7 @@ def build_comparison_evidence_summary(
     covered = tuple(s for s in included_symbols if s in by_symbol)
     missing = tuple(s for s in included_symbols if s not in by_symbol)
     statuses = tuple(by_symbol[s].status.value for s in covered)
-    versions = tuple(
-        by_symbol[s].metadata.methodology_version for s in covered
-    )
+    versions = tuple(by_symbol[s].metadata.methodology_version for s in covered)
     digests = tuple(by_symbol[s].digest for s in covered)
 
     if missing:
@@ -243,9 +236,7 @@ def build_evidence_backed_observations(
             if entry.provider_result is None:
                 parts.append(f"{symbol}=unresolved")
             else:
-                parts.append(
-                    f"{symbol}={entry.provider_result.availability.value}"
-                )
+                parts.append(f"{symbol}={entry.provider_result.availability.value}")
         if len(subjects) >= 2 and len(set(parts)) > 1:
             notes.append(
                 ComparisonObservation(
@@ -332,8 +323,7 @@ def build_evidence_limitations(
                 ComparisonLimitation(
                     code="industry_evidence_incomplete",
                     message=(
-                        f"{symbol} Industry Evidence Bundle status is "
-                        f"incomplete."
+                        f"{symbol} Industry Evidence Bundle status is " f"incomplete."
                     ),
                     subjects=(symbol,),
                 )
@@ -342,9 +332,7 @@ def build_evidence_limitations(
             limits.append(
                 ComparisonLimitation(
                     code="industry_evidence_partial",
-                    message=(
-                        f"{symbol} Industry Evidence Bundle status is partial."
-                    ),
+                    message=(f"{symbol} Industry Evidence Bundle status is partial."),
                     subjects=(symbol,),
                 )
             )
@@ -352,9 +340,7 @@ def build_evidence_limitations(
             limits.append(
                 ComparisonLimitation(
                     code="industry_evidence_empty",
-                    message=(
-                        f"{symbol} Industry Evidence Bundle is empty."
-                    ),
+                    message=(f"{symbol} Industry Evidence Bundle is empty."),
                     subjects=(symbol,),
                 )
             )

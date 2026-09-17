@@ -11,7 +11,6 @@ from decimal import Decimal
 from typing import Any
 
 from core.exceptions import ValidationError
-
 from knowledge_graph.enums import (
     EvidenceLinkCategory,
     LineageCategory,
@@ -150,9 +149,7 @@ class GraphRelationship:
     notes: tuple[str, ...] = ()
 
     def __post_init__(self) -> None:
-        relationship_id = _normalize_id(
-            self.relationship_id, field="relationship_id"
-        )
+        relationship_id = _normalize_id(self.relationship_id, field="relationship_id")
         assert_relationship_category(self.category)
         title = _non_empty(self.title, field="title")
         if not self.provenance:
@@ -252,9 +249,7 @@ class Lineage:
         if not self.node_ids:
             msg = "broken references: Lineage requires at least one node_id"
             raise KnowledgeGraphError(msg)
-        node_ids = tuple(
-            _normalize_id(n, field="node_ids") for n in self.node_ids
-        )
+        node_ids = tuple(_normalize_id(n, field="node_ids") for n in self.node_ids)
         if not self.provenance:
             msg = "missing provenance: Lineage requires provenance"
             raise KnowledgeGraphError(msg)
@@ -288,9 +283,7 @@ class GraphSummary:
             if getattr(self, name) < 0:
                 msg = "counts must be >= 0"
                 raise ValidationError(msg)
-        limitations = tuple(
-            n.strip() for n in self.limitation_notes if n.strip()
-        )
+        limitations = tuple(n.strip() for n in self.limitation_notes if n.strip())
         object.__setattr__(self, "limitation_notes", limitations)
 
 
@@ -368,9 +361,7 @@ class KnowledgeGraphReport:
         object.__setattr__(
             self, "quantitative_risk_refs", tuple(self.quantitative_risk_refs)
         )
-        object.__setattr__(
-            self, "recommendation_refs", tuple(self.recommendation_refs)
-        )
+        object.__setattr__(self, "recommendation_refs", tuple(self.recommendation_refs))
         object.__setattr__(self, "workflow_refs", tuple(self.workflow_refs))
         object.__setattr__(self, "limitations", limitations)
 
@@ -447,9 +438,7 @@ class GraphProfile:
         object.__setattr__(
             self, "quantitative_risk_refs", tuple(self.quantitative_risk_refs)
         )
-        object.__setattr__(
-            self, "recommendation_refs", tuple(self.recommendation_refs)
-        )
+        object.__setattr__(self, "recommendation_refs", tuple(self.recommendation_refs))
         object.__setattr__(self, "workflow_refs", tuple(self.workflow_refs))
         object.__setattr__(self, "notes", notes)
 

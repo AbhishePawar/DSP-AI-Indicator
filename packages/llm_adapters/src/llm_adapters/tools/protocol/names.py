@@ -8,7 +8,7 @@ unknown provider name can never invent a DSP tool.
 
 from __future__ import annotations
 
-from typing import Iterable, Mapping
+from collections.abc import Iterable, Mapping
 
 
 def to_provider_name(internal_name: str) -> str:
@@ -51,7 +51,9 @@ def resolve_internal_name(
     return None
 
 
-def allowed_names_from_manifest(manifest: Iterable[Mapping[str, object]]) -> frozenset[str]:
+def allowed_names_from_manifest(
+    manifest: Iterable[Mapping[str, object]],
+) -> frozenset[str]:
     names: set[str] = set()
     for entry in manifest:
         name = entry.get("name") if isinstance(entry, Mapping) else None

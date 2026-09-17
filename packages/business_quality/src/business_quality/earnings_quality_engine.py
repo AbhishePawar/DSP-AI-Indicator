@@ -19,6 +19,7 @@ from business_quality.earnings_quality_models import (
 from business_quality.earnings_quality_validation import (
     validate_earnings_quality_input,
 )
+from business_quality.explainability import BusinessQualityExplainability
 from business_quality.metadata import (
     FRAMEWORK_VERSION,
     BusinessQualityMetadata,
@@ -33,7 +34,6 @@ from business_quality.scoring import (
     clip_score,
     weighted_mean,
 )
-from business_quality.explainability import BusinessQualityExplainability
 from financial.intelligence.quality_signals import (
     map_fcf_to_earnings_01,
     map_ocf_to_earnings_01,
@@ -121,18 +121,12 @@ class EarningsQualityEngine:
         assessments: list[Assessment] = []
         evidence: list[str] = []
 
-        assessments.append(
-            self._assess_revenue_quality(income, explanations, evidence)
-        )
+        assessments.append(self._assess_revenue_quality(income, explanations, evidence))
         assessments.append(
             self._assess_operating_earnings(income, explanations, evidence)
         )
-        assessments.append(
-            self._assess_net_earnings(income, explanations, evidence)
-        )
-        assessments.append(
-            self._assess_cash_earnings(cash, explanations, evidence)
-        )
+        assessments.append(self._assess_net_earnings(income, explanations, evidence))
+        assessments.append(self._assess_cash_earnings(cash, explanations, evidence))
         assessments.append(
             self._assess_accrual_quality(cash, income, explanations, evidence)
         )
@@ -142,15 +136,9 @@ class EarningsQualityEngine:
         assessments.append(
             self._assess_earnings_consistency(income, explanations, evidence)
         )
-        assessments.append(
-            self._assess_fcf_support(cash, explanations, evidence)
-        )
-        assessments.append(
-            self._assess_non_operating(income, explanations, evidence)
-        )
-        assessments.append(
-            self._assess_recurring(income, explanations, evidence)
-        )
+        assessments.append(self._assess_fcf_support(cash, explanations, evidence))
+        assessments.append(self._assess_non_operating(income, explanations, evidence))
+        assessments.append(self._assess_recurring(income, explanations, evidence))
 
         scored = [
             (a.score.value / 100.0, 1.0)
@@ -320,9 +308,11 @@ class EarningsQualityEngine:
             rating=_rating_from_01(value),
             score=_score_01(value),
             confidence=conf,
-            evidence_level=EvidenceLevel.STRONG
-            if conf is Confidence.HIGH
-            else EvidenceLevel.ADEQUATE,
+            evidence_level=(
+                EvidenceLevel.STRONG
+                if conf is Confidence.HIGH
+                else EvidenceLevel.ADEQUATE
+            ),
             risk_level=_risk_from_01(value, invert=True),
         )
 
@@ -516,9 +506,11 @@ class EarningsQualityEngine:
             rating=_rating_from_01(value),
             score=_score_01(value),
             confidence=conf,
-            evidence_level=EvidenceLevel.LIMITED
-            if conf is Confidence.LOW
-            else EvidenceLevel.ADEQUATE,
+            evidence_level=(
+                EvidenceLevel.LIMITED
+                if conf is Confidence.LOW
+                else EvidenceLevel.ADEQUATE
+            ),
             risk_level=_risk_from_01(value, invert=True),
         )
 
@@ -582,9 +574,8 @@ class EarningsQualityEngine:
         conversion = cash.operating.cash_conversion
         if conversion is not None and conversion >= 0.8:
             flags.append(EarningsQualityFlag.CASH_SUPPORTED_EARNINGS)
-        if (
-            (cash_a and cash_a.rating in (Rating.STRONG, Rating.EXCELLENT))
-            or (fcf and fcf.rating in (Rating.STRONG, Rating.EXCELLENT))
+        if (cash_a and cash_a.rating in (Rating.STRONG, Rating.EXCELLENT)) or (
+            fcf and fcf.rating in (Rating.STRONG, Rating.EXCELLENT)
         ):
             if EarningsQualityFlag.CASH_SUPPORTED_EARNINGS not in flags:
                 flags.append(EarningsQualityFlag.CASH_SUPPORTED_EARNINGS)
@@ -594,9 +585,10 @@ class EarningsQualityEngine:
             Rating.EXCELLENT,
             Rating.AVERAGE,
         ):
-            if not income.consistency.one_time_items_detected:
-                flags.append(EarningsQualityFlag.RECURRING_EARNINGS)
-            elif recurring.rating in (Rating.STRONG, Rating.EXCELLENT):
+            if not income.consistency.one_time_items_detected or recurring.rating in (
+                Rating.STRONG,
+                Rating.EXCELLENT,
+            ):
                 flags.append(EarningsQualityFlag.RECURRING_EARNINGS)
 
         if margin and margin.rating in (Rating.STRONG, Rating.EXCELLENT):
@@ -619,9 +611,7 @@ class EarningsQualityEngine:
             flags.append(EarningsQualityFlag.VOLATILE_EARNINGS)
 
         # Aggressive accounting: weak cash + weak accrual or upstream weak quality
-        income_flag_values = {
-            getattr(f, "value", str(f)) for f in income.quality_flags
-        }
+        income_flag_values = {getattr(f, "value", str(f)) for f in income.quality_flags}
         if (
             EarningsQualityFlag.WEAK_CASH_SUPPORT in flags
             and EarningsQualityFlag.HIGH_ACCRUAL_RISK in flags

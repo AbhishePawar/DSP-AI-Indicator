@@ -151,9 +151,7 @@ def evaluate_consistency(
     eps_stab = safe_getattr(
         financial_analysis, "income", "profitability", "eps_stability"
     )
-    value = mean_present(
-        [earn_cons, rev_stab, op_qual, net_qual, rev_cons, eps_stab]
-    )
+    value = mean_present([earn_cons, rev_stab, op_qual, net_qual, rev_cons, eps_stab])
     conf = _confidence(
         [earn_cons, rev_stab, op_qual, net_qual, rev_cons, eps_stab],
         basis="earnings_consistency_proxies",
@@ -231,10 +229,14 @@ def evaluate_quality(
     one_time_s = None if one_time is None else (0.35 if one_time else 0.80)
     conv_s = None
     if conversion is not None:
-        conv_s = max(0.0, min(1.0, float(conversion) if float(conversion) <= 1.5 else 1.0))
+        conv_s = max(
+            0.0, min(1.0, float(conversion) if float(conversion) <= 1.5 else 1.0)
+        )
     ocf_ni_s = None
     if ocf_to_earn is not None:
-        ocf_ni_s = max(0.0, min(1.0, float(ocf_to_earn) if float(ocf_to_earn) <= 1.5 else 1.0))
+        ocf_ni_s = max(
+            0.0, min(1.0, float(ocf_to_earn) if float(ocf_to_earn) <= 1.5 else 1.0)
+        )
         if float(ocf_to_earn) < 0:
             ocf_ni_s = 0.15
     # Soften slightly when receivables grow faster than revenue (evidence gap, not a hard flag).
@@ -246,7 +248,16 @@ def evaluate_quality(
         else:
             wc_drag = 0.85
     value = mean_present(
-        [cash_eq, accruals, fcf_support, conv_s, ocf_ni_s, one_time_s, recurring, wc_drag]
+        [
+            cash_eq,
+            accruals,
+            fcf_support,
+            conv_s,
+            ocf_ni_s,
+            one_time_s,
+            recurring,
+            wc_drag,
+        ]
     )
     conf = _confidence(
         [
@@ -393,23 +404,30 @@ def evaluate_predictability(
     cyclical = _bq_bc(business_quality_analysis, "business_scalability")
     # Invert high operating leverage / cyclical flags when present
     cyclical_flag = False
-    flags = safe_getattr(
-        business_quality_analysis, "business_characteristics", "quality_flags"
-    ) or ()
+    flags = (
+        safe_getattr(
+            business_quality_analysis, "business_characteristics", "quality_flags"
+        )
+        or ()
+    )
     for flag in flags:
         name = getattr(flag, "value", str(flag)).lower()
         if "cyclical" in name:
             cyclical_flag = True
             break
-    cyclical_s = 0.35 if cyclical_flag else (
-        None if cyclical is None else max(0.0, min(1.0, 0.55 + 0.3 * float(cyclical)))
+    cyclical_s = (
+        0.35
+        if cyclical_flag
+        else (
+            None
+            if cyclical is None
+            else max(0.0, min(1.0, 0.55 + 0.3 * float(cyclical)))
+        )
     )
     growth_stab = safe_getattr(
         financial_analysis, "income", "revenue", "growth_stability"
     )
-    value = mean_present(
-        [earn_cons, rev_stab, profit_pers, cyclical_s, growth_stab]
-    )
+    value = mean_present([earn_cons, rev_stab, profit_pers, cyclical_s, growth_stab])
     conf = _confidence(
         [earn_cons, rev_stab, profit_pers, growth_stab],
         basis="earnings_predictability_proxies",
@@ -570,9 +588,7 @@ def evaluate_sustainability(
         safe_getattr(financial_analysis, "ratios", "profitability"), "roic"
     )
     roic_s = _map_ratio(roic, good=0.15, bad=0.05)
-    value = mean_present(
-        [fcf_support, cash_eq, profit_pers, reinvest, roc, roic_s]
-    )
+    value = mean_present([fcf_support, cash_eq, profit_pers, reinvest, roc, roic_s])
     conf = _confidence(
         [fcf_support, cash_eq, profit_pers, reinvest, roc, roic],
         basis="long_term_sustainability_proxies",

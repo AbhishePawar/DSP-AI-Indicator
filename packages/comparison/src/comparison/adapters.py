@@ -93,9 +93,7 @@ def _report_dict(report: ComparisonReport) -> dict[str, Any]:
         "pair_observations": [_observation_dict(o) for o in report.pair_observations],
         "decision_context": [_observation_dict(o) for o in report.decision_context],
         "valuation_context": [_observation_dict(o) for o in report.valuation_context],
-        "robustness_context": [
-            _observation_dict(o) for o in report.robustness_context
-        ],
+        "robustness_context": [_observation_dict(o) for o in report.robustness_context],
         "limitations": [_limitation_dict(lim) for lim in report.limitations],
         "research_priorities": list(report.research_priorities),
         "explanation": _explanation_dict(report.explanation),

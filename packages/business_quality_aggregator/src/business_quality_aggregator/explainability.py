@@ -57,9 +57,7 @@ def build_summary(
         else ""
     )
     weak_txt = (
-        f" Weakest engine: {weakest.component.value}."
-        if weakest is not None
-        else ""
+        f" Weakest engine: {weakest.component.value}." if weakest is not None else ""
     )
     conflict_txt = (
         f" Applied {len(conflicts)} cross-domain conflict adjustment(s)."

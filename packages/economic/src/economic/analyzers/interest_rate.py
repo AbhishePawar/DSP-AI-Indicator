@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 from contracts.enums import SignalDirection
-
 from economic.analyzers.base import Analyzer
 from economic.models import EconomicSignal, EconomicSnapshot
 
@@ -72,9 +71,7 @@ class InterestRateAnalyzer(Analyzer):
                     name="interest_rate",
                     direction=SignalDirection.NEUTRAL,
                     observation="Interest Rate Unavailable",
-                    reasoning=(
-                        "Interest rate was not reported in the snapshot."
-                    ),
+                    reasoning=("Interest rate was not reported in the snapshot."),
                     value=None,
                 ),
             )

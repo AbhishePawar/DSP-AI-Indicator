@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import Sequence
+from collections.abc import Sequence
 
 from financial.exceptions import FinancialAggregationError
 from financial.intelligence.trend_models import FinancialStatementsHistory
@@ -21,7 +21,9 @@ def _reject(message: str) -> None:
 
 
 def coerce_aggregation_source(
-    source: FinancialStatements | FinancialStatementsHistory | Sequence[FinancialStatements],
+    source: (
+        FinancialStatements | FinancialStatementsHistory | Sequence[FinancialStatements]
+    ),
 ) -> tuple[list[FinancialStatements], dict]:
     """Normalize aggregator inputs into ordered FinancialStatements list.
 
@@ -50,9 +52,7 @@ def coerce_aggregation_source(
             # sequences of statements are accepted as ordered history.
             pass
     else:
-        _reject(
-            "Accept ONLY FinancialStatements or FinancialStatementsHistory"
-        )
+        _reject("Accept ONLY FinancialStatements or FinancialStatementsHistory")
 
     if not stmts:
         _reject("Missing required statement sets: empty history")
@@ -111,9 +111,7 @@ def validate_aggregation_inputs(
         warnings.extend(result.warnings)
 
     if len(statements) < 2:
-        warnings.append(
-            "Trend analysis omitted: fewer than 2 reporting periods"
-        )
+        warnings.append("Trend analysis omitted: fewer than 2 reporting periods")
 
     return ValidationResult(
         ok=True,

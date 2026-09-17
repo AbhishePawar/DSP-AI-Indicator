@@ -19,7 +19,7 @@ from datetime import datetime
 
 from contracts.domain.instrument import Instrument
 from data_engine.cache import CachePort, InMemoryCache
-from data_engine.connector_framework.models import ProviderHealth, utc_now
+from data_engine.connector_framework.models import ProviderHealth
 from data_engine.exceptions import ProviderRequestError
 from data_engine.market_quote.service import (
     CircuitBreaker,
@@ -129,7 +129,9 @@ class NewsService:
             _LOG.info(
                 "news_cache_hit", extra={"symbol": symbol, "provider": self.provider_id}
             )
-            return replace(cached, provenance=replace(cached.provenance, cache_hit=True))
+            return replace(
+                cached, provenance=replace(cached.provenance, cache_hit=True)
+            )
 
         def _call() -> AuthenticatedNewsFeed | None:
             self._breaker.before_call()
@@ -166,21 +168,27 @@ class NewsService:
         except CircuitOpenError:
             self.metrics.failures += 1
             _LOG.error(
-                "news_circuit_open", extra={"symbol": symbol, "provider": self.provider_id}
+                "news_circuit_open",
+                extra={"symbol": symbol, "provider": self.provider_id},
             )
             raise
         except Exception as exc:
             self.metrics.failures += 1
             _LOG.exception(
                 "news_failure",
-                extra={"symbol": symbol, "provider": self.provider_id, "error": str(exc)},
+                extra={
+                    "symbol": symbol,
+                    "provider": self.provider_id,
+                    "error": str(exc),
+                },
             )
             raise
 
         if feed is None:
             self.metrics.unavailable += 1
             _LOG.info(
-                "news_unavailable", extra={"symbol": symbol, "provider": self.provider_id}
+                "news_unavailable",
+                extra={"symbol": symbol, "provider": self.provider_id},
             )
             return None
 

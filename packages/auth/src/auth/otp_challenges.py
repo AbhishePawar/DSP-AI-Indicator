@@ -17,12 +17,11 @@ import hmac
 import logging
 import os
 from dataclasses import dataclass
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from typing import Any
 
 from auth.credential_boundary import resolve_auth_jwt_secret
 from auth.enterprise_models import OtpChallenge
-from auth.exceptions import AuthenticationError
 
 __all__ = [
     "OTP_KEEP_AFTER_EXPIRY",
@@ -41,7 +40,7 @@ OTP_KEEP_AFTER_EXPIRY = timedelta(hours=1)
 
 
 def _now() -> datetime:
-    return datetime.now(tz=timezone.utc)
+    return datetime.now(tz=UTC)
 
 
 def _parse_dt(value: Any) -> datetime | None:
@@ -52,7 +51,7 @@ def _parse_dt(value: Any) -> datetime | None:
     except ValueError:
         return None
     if parsed.tzinfo is None:
-        parsed = parsed.replace(tzinfo=timezone.utc)
+        parsed = parsed.replace(tzinfo=UTC)
     return parsed
 
 
@@ -244,7 +243,11 @@ def default_otp_store() -> OtpChallengeStore:
     environment = (os.environ.get("DSP_ENVIRONMENT") or "").strip().lower()
     if environment == "production":
         return OtpChallengeStore()
-    from persistence import InMemoryStorageProvider, PersistenceService, RepositoryRegistry
+    from persistence import (
+        InMemoryStorageProvider,
+        PersistenceService,
+        RepositoryRegistry,
+    )
 
     return OtpChallengeStore(
         PersistenceService(RepositoryRegistry(storage=InMemoryStorageProvider()))

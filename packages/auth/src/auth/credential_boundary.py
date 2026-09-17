@@ -49,9 +49,7 @@ GOOGLE_CLIENT_SECRET_ENV = "DSP_GOOGLE_CLIENT_SECRET"
 # Legacy API/security seam — prefer AUTH_JWT_SECRET_ENV; never investment vars.
 LEGACY_JWT_SECRET_ENV = "DSP_JWT_SECRET"
 
-_DEFAULT_DEV_SECRETS = frozenset(
-    {"", "dsp-auth-dev-secret", "dev-only-change-me"}
-)
+_DEFAULT_DEV_SECRETS = frozenset({"", "dsp-auth-dev-secret", "dev-only-change-me"})
 
 
 def resolve_auth_jwt_secret(

@@ -73,9 +73,7 @@ def _vr(
             ScenarioOutcome(
                 ScenarioKind.bear(), iv * 0.9 if iv else 9.0, None, (ivps or 9) * 0.9
             ),
-            ScenarioOutcome(
-                ScenarioKind.base(), iv, None, ivps
-            ),
+            ScenarioOutcome(ScenarioKind.base(), iv, None, ivps),
             ScenarioOutcome(
                 ScenarioKind.bull(), iv * 1.1 if iv else 11.0, None, (ivps or 11) * 1.1
             ),
@@ -139,7 +137,9 @@ class TestCategories:
         assert default_category_for_method("riv_v2") is MethodCategory.RESIDUAL
         assert default_category_for_method("implied_growth") is MethodCategory.MARKET
         assert default_category_for_method("earnings_power") is MethodCategory.INCOME
-        assert default_category_for_method("brand_new_method") is MethodCategory.INTRINSIC
+        assert (
+            default_category_for_method("brand_new_method") is MethodCategory.INTRINSIC
+        )
 
 
 class TestWeightingModes:
@@ -264,7 +264,9 @@ class TestOutliers:
             ConsensusInputs(
                 methods=methods,
                 weighting_mode=WeightingMode.EQUAL,
-                outlier_thresholds=OutlierThresholds(exclude_outliers_from_consensus=False),
+                outlier_thresholds=OutlierThresholds(
+                    exclude_outliers_from_consensus=False
+                ),
             )
         )
         assert any("negative" in " ".join(o.reasons) for o in r.outliers)
@@ -400,7 +402,9 @@ class TestValidation:
                 manual_weights={"dcf": 0.3, "relative": 0.3},
             )
         )
-        assert any("normalized" in w.lower() or "sum" in w.lower() for w in summary.warnings)
+        assert any(
+            "normalized" in w.lower() or "sum" in w.lower() for w in summary.warnings
+        )
 
 
 class TestNormalize:
@@ -497,8 +501,8 @@ class TestExplainabilityIntegration:
         vr = to_valuation_result(result)
         assert vr.model_name == "consensus"
         from valuation import (
-            to_consensus_valuation_result,
             to_consensus_v2_aggregate_payload,
+            to_consensus_valuation_result,
         )
 
         assert to_consensus_valuation_result(result).model_name == "consensus"
@@ -511,9 +515,7 @@ class TestExplainabilityIntegration:
 
 class TestEdgeCases:
     def test_single_method(self) -> None:
-        r = ConsensusEngine().analyze(
-            ConsensusInputs(methods=(_vr("dcf", ivps=15.0),))
-        )
+        r = ConsensusEngine().analyze(ConsensusInputs(methods=(_vr("dcf", ivps=15.0),)))
         assert r.consensus_per_share.value == pytest.approx(15.0)
         assert r.consistency_score.value == pytest.approx(100.0)
 
@@ -568,9 +570,7 @@ class TestEdgeCases:
         object.__setattr__(inputs, "weighting_mode", "bogus")  # type: ignore[arg-type]
         with pytest.raises(ConsensusValidationError, match="unknown weighting"):
             ConsensusEngine()._compute_weights(
-                methods=tuple(
-                    normalize_method_input(m) for m in inputs.methods
-                ),
+                methods=tuple(normalize_method_input(m) for m in inputs.methods),
                 applicability={"dcf": 1, "relative": 1, "asset_based": 1, "ddm": 1},
                 app_explain={
                     "dcf": "",
@@ -598,9 +598,7 @@ class TestEdgeCases:
     def test_custom_scenario_in_methods(self) -> None:
         sc = (
             ScenarioOutcome(ScenarioKind.base(), 100, 100, 10),
-            ScenarioOutcome(
-                ScenarioKind.custom("stress", "Stress"), 80, 80, 8
-            ),
+            ScenarioOutcome(ScenarioKind.custom("stress", "Stress"), 80, 80, 8),
         )
         r = ConsensusEngine().analyze(
             ConsensusInputs(
@@ -667,9 +665,9 @@ class TestEdgeCases:
     def test_helper_math_edges(self) -> None:
         eng = ConsensusEngine()
         assert eng._quartiles([7.0]) == (7.0, 7.0)
-        assert eng._weighted_mean([("a", 10.0, 0.0), ("b", 20.0, 0.0)]) == pytest.approx(
-            15.0
-        )
+        assert eng._weighted_mean(
+            [("a", 10.0, 0.0), ("b", 20.0, 0.0)]
+        ) == pytest.approx(15.0)
         assert eng._weighted_median(
             [("a", 10.0, 0.0), ("b", 20.0, 0.0)]
         ) == pytest.approx(15.0)
@@ -680,7 +678,7 @@ class TestEdgeCases:
         )
         assert lo == pytest.approx(10.0)
         assert hi == pytest.approx(30.0)
-        # Force _at fallthrough by using weights that never reach target early... 
+        # Force _at fallthrough by using weights that never reach target early...
         # last element path when cum never hits — use empty weight after sort edge
         band = eng._weighted_percentile_band([("a", 5.0, 1.0)], 0.0, 1.0)
         assert band[0] == pytest.approx(5.0)
@@ -816,8 +814,6 @@ class TestEdgeCases:
             )
             return {m.method: 0.0 for m in ms}, details
 
-        import valuation.consensus.consensus_engine as mod
-
         orig = eng._compute_weights
         eng._compute_weights = zero_weights  # type: ignore[method-assign]
         try:
@@ -900,9 +896,7 @@ class TestEdgeCases:
                     _vr("epv", ivps=10.5),
                 ),
                 weighting_mode=WeightingMode.APPLICABILITY,
-                company_profile=CompanyProfile(
-                    growth_company=True, pays_dividend=True
-                ),
+                company_profile=CompanyProfile(growth_company=True, pays_dividend=True),
             )
         )
         assert r.applicability_scores["reverse_dcf"] >= 0.55

@@ -379,8 +379,7 @@ def _report_requires_binding(report: dict[str, Any]) -> bool:
     for key in ("valuation", "margin_of_safety", "recommendation", "audit"):
         section = report.get(key)
         if isinstance(section, dict) and (
-            section.get("available") is True
-            or isinstance(section.get("payload"), dict)
+            section.get("available") is True or isinstance(section.get("payload"), dict)
         ):
             return True
     return True
@@ -451,9 +450,11 @@ def generate_research_report(
     P1-12 — research object must be bound to owned analysis_id when present.
     """
     try:
-        audit = body.research_object.get("audit") if isinstance(
-            body.research_object, dict
-        ) else None
+        audit = (
+            body.research_object.get("audit")
+            if isinstance(body.research_object, dict)
+            else None
+        )
         audit_payload = (
             audit.get("payload")
             if isinstance(audit, dict) and isinstance(audit.get("payload"), dict)
@@ -473,8 +474,7 @@ def generate_research_report(
             or (
                 isinstance(audit_payload, dict)
                 and (
-                    audit_payload.get("analysis_id")
-                    or audit_payload.get("trust_chain")
+                    audit_payload.get("analysis_id") or audit_payload.get("trust_chain")
                 )
             )
             or valuation_available
@@ -508,9 +508,11 @@ def generate_research_report(
             },
         )
 
-    meta = body.research_object.get("metadata") if isinstance(
-        body.research_object.get("metadata"), dict
-    ) else {}
+    meta = (
+        body.research_object.get("metadata")
+        if isinstance(body.research_object.get("metadata"), dict)
+        else {}
+    )
     symbol = meta.get("ticker") if isinstance(meta, dict) else None
 
     return JSONResponse(

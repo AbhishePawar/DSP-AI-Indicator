@@ -2,7 +2,8 @@
 
 from __future__ import annotations
 
-from typing import Any, Mapping
+from collections.abc import Mapping
+from typing import Any
 
 from dsp_platform.decision_workspace.models import (
     WORKSPACE_SCHEMA_VERSION,
@@ -87,9 +88,7 @@ def workspace_result_from_dict(data: Mapping[str, Any]) -> WorkspaceResult:
     result = WorkspaceResult(
         workspace_id=str(data.get("workspace_id") or ""),
         schema_version=str(data.get("schema_version") or WORKSPACE_SCHEMA_VERSION),
-        service_version=str(
-            data.get("service_version") or WORKSPACE_SERVICE_VERSION
-        ),
+        service_version=str(data.get("service_version") or WORKSPACE_SERVICE_VERSION),
         created_at=str(data.get("created_at") or ""),
         kind=str(data.get("kind") or ""),
         subject=str(data.get("subject") or ""),
@@ -99,9 +98,9 @@ def workspace_result_from_dict(data: Mapping[str, Any]) -> WorkspaceResult:
         provenance=freeze_mapping(dict(data.get("provenance") or {}))
         or freeze_mapping({}),
         audit=freeze_mapping(dict(data.get("audit") or {})) or freeze_mapping({}),
-        limitations=tuple(limitations)
-        if isinstance(limitations, (list, tuple))
-        else (),
+        limitations=(
+            tuple(limitations) if isinstance(limitations, (list, tuple)) else ()
+        ),
     )
     validate_workspace_result(result)
     return result

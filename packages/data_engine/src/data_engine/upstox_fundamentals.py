@@ -50,6 +50,8 @@ from data_engine.financial_statement.models import (
     CompanyIdentity,
     FinancialStatementProvenance,
     StatementField,
+)
+from data_engine.financial_statement.models import (
     utc_now as statement_utc_now,
 )
 from data_engine.financial_statement.service import (
@@ -186,10 +188,12 @@ class UpstoxFundamentalsResult:
             "retrieved_at": self.retrieved_at.isoformat(),
             "latency_ms": self.latency_ms,
             "http_status": self.http_status,
-            "identity": None if self.identity is None else self.identity.to_public_dict(),
-            "statements": None
-            if self.statements is None
-            else self.statements.to_public_dict(),
+            "identity": (
+                None if self.identity is None else self.identity.to_public_dict()
+            ),
+            "statements": (
+                None if self.statements is None else self.statements.to_public_dict()
+            ),
             "coverage": [c.to_public_dict() for c in self.coverage],
             "eps_cagr_basis": self.eps_cagr_basis,
             "annual_period_count": self.annual_period_count,
@@ -830,25 +834,27 @@ def _build_period_dicts(
                     "eps_diluted": pick(inc, "eps - diluted", "eps diluted"),
                 },
                 "balance_sheet": {
-                    "cash_and_equivalents": pick(
-                        bal,
-                        "cash and cash equivalents",
-                        "cash & cash equivalents",
-                        "cash",
-                    )
-                    if pick(
-                        bal,
-                        "cash and cash equivalents",
-                        "cash & cash equivalents",
-                        "cash",
-                    )
-                    is not None
-                    else pick(
-                        cf,
-                        "cash (end of the year)",
-                        "cash and cash equivalents",
-                        "cash & cash equivalents",
-                        "cash",
+                    "cash_and_equivalents": (
+                        pick(
+                            bal,
+                            "cash and cash equivalents",
+                            "cash & cash equivalents",
+                            "cash",
+                        )
+                        if pick(
+                            bal,
+                            "cash and cash equivalents",
+                            "cash & cash equivalents",
+                            "cash",
+                        )
+                        is not None
+                        else pick(
+                            cf,
+                            "cash (end of the year)",
+                            "cash and cash equivalents",
+                            "cash & cash equivalents",
+                            "cash",
+                        )
                     ),
                     "current_assets": pick(
                         bal, "current assets", "total current assets"

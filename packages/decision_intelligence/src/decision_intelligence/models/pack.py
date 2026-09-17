@@ -6,10 +6,9 @@ from dataclasses import dataclass
 
 from contracts.domain.recommendation import Recommendation
 from core.exceptions import ValidationError
-from industry import EvidenceBundleReference, EvidenceBundleStatus
-
 from decision_intelligence.models.assurance import AssuranceAssessment
 from decision_intelligence.models.brief import DecisionBrief
+from industry import EvidenceBundleReference, EvidenceBundleStatus
 
 __all__ = ["DecisionPack", "DecisionPackEvidenceSummary"]
 

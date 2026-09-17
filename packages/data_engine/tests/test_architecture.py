@@ -10,7 +10,38 @@ from pathlib import Path
 
 _SRC = Path(__file__).resolve().parents[1] / "src" / "data_engine"
 _PKG_ROOT = Path(__file__).resolve().parents[1]
-_FORBIDDEN = frozenset(['ai_committee', 'api_platform', 'business_quality', 'comparison', 'compliance', 'copilot', 'data_ingestion', 'decision_intelligence', 'dsp', 'dsp_platform', 'economic', 'economic_moat', 'financial', 'fundamental', 'industry', 'knowledge_graph', 'orchestration', 'portfolio', 'production_platform', 'quantitative_risk', 'recommendation', 'research', 'risk', 'security_platform', 'snapshot_bridge', 'universe', 'valuation', 'workflow'])
+_FORBIDDEN = frozenset(
+    [
+        "ai_committee",
+        "api_platform",
+        "business_quality",
+        "comparison",
+        "compliance",
+        "copilot",
+        "data_ingestion",
+        "decision_intelligence",
+        "dsp",
+        "dsp_platform",
+        "economic",
+        "economic_moat",
+        "financial",
+        "fundamental",
+        "industry",
+        "knowledge_graph",
+        "orchestration",
+        "portfolio",
+        "production_platform",
+        "quantitative_risk",
+        "recommendation",
+        "research",
+        "risk",
+        "security_platform",
+        "snapshot_bridge",
+        "universe",
+        "valuation",
+        "workflow",
+    ]
+)
 _EXPECTED_VERSION = "0.7.0"
 
 
@@ -51,7 +82,7 @@ class TestDataEngineArchitecture:
     def test_public_api_stable(self) -> None:
         import data_engine as mod
 
-        assert getattr(mod, "__version__") == _EXPECTED_VERSION
+        assert mod.__version__ == _EXPECTED_VERSION
         assert hasattr(mod, "__all__")
         missing = [name for name in mod.__all__ if not hasattr(mod, name)]
         assert missing == [], missing

@@ -29,7 +29,9 @@ def _int_to_b64url(value: int) -> str:
 class _KeyPair:
     def __init__(self, kid: str = "test-kid") -> None:
         self.kid = kid
-        self.private_key = rsa.generate_private_key(public_exponent=65537, key_size=2048)
+        self.private_key = rsa.generate_private_key(
+            public_exponent=65537, key_size=2048
+        )
         self.public_key = self.private_key.public_key()
 
     def jwks(self) -> dict:

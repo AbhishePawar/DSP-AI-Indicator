@@ -16,7 +16,6 @@ from dsp_platform.research_object import (
     validate_research_object,
 )
 
-
 FIXED_TS = "2026-07-28T12:00:00+00:00"
 FIXED_ID = "ro-test-001"
 

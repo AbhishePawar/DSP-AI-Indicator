@@ -3,10 +3,10 @@
 from __future__ import annotations
 
 import pytest
+from auth_test_helpers import admin_headers
 from fastapi.testclient import TestClient
 
 from api_platform import create_app
-from auth_test_helpers import admin_headers
 from dsp_platform import DSPPlatform, PlatformBuilder, PlatformConfiguration
 from dsp_platform.control_center import reset_configuration_registry_for_tests
 
@@ -93,9 +93,7 @@ def test_configuration_update_rollback(
         headers=headers,
     )
     assert history.status_code == 200
-    assert any(
-        h["version"] == version for h in history.json()["result"]["history"]
-    )
+    assert any(h["version"] == version for h in history.json()["result"]["history"])
 
     rolled = client.post(
         "/api/v1/admin/rollback",
@@ -144,9 +142,7 @@ def test_feature_flags_business_rules_security(
     assert sec.status_code == 200
     assert sec.json()["result"]["configuration"]["mfa_required"] is True
 
-    deleted = client.delete(
-        f"/api/v1/admin/business-rules/{rule_id}", headers=headers
-    )
+    deleted = client.delete(f"/api/v1/admin/business-rules/{rule_id}", headers=headers)
     assert deleted.status_code == 200
     assert deleted.json()["result"]["deleted"] is True
 

@@ -26,7 +26,10 @@ class TestExplainability:
         assert payload["confidence"] == "high"
         assert payload["evidence"] == ["e1", "e2"]
         assert payload["references"] == ["ref://1"]
-        assert "research" in RESEARCH_DISCLAIMER.lower() or "Framework" in RESEARCH_DISCLAIMER
+        assert (
+            "research" in RESEARCH_DISCLAIMER.lower()
+            or "Framework" in RESEARCH_DISCLAIMER
+        )
 
     def test_defaults_and_from_mapping(self) -> None:
         exp = build_explainability(

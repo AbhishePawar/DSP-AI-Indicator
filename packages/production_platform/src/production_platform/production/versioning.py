@@ -7,9 +7,9 @@ Application / service version is resolved from env or the repo ``VERSION`` file.
 from __future__ import annotations
 
 import os
+from collections.abc import Mapping
 from functools import lru_cache
 from pathlib import Path
-from typing import Mapping
 
 __all__ = [
     "DEFAULT_APPLICATION_VERSION",

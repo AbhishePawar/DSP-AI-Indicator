@@ -78,9 +78,7 @@ def build_research_package(
     """
     result = _require_pipeline_result(pipeline_result)
     public = pipeline_result_public_dict(result)
-    methodology = str(
-        result.metadata.pipeline_version or COMPOSITION_PIPELINE_VERSION
-    )
+    methodology = str(result.metadata.pipeline_version or COMPOSITION_PIPELINE_VERSION)
     by_stage = {row.stage: row for row in result.stages}
 
     identity = _identity_section(request)
@@ -178,9 +176,11 @@ def build_research_package(
             "methodology_version": methodology,
             "calculation": False,
         },
-        message=None
-        if _as_mapping(public.get("buffett_authority")) is not None
-        else DATA_UNAVAILABLE,
+        message=(
+            None
+            if _as_mapping(public.get("buffett_authority")) is not None
+            else DATA_UNAVAILABLE
+        ),
     )
     evidence = _evidence_section(result, public, methodology)
     entry_exit = _mapping_section(

@@ -28,11 +28,10 @@ from business_quality.business_quality_engine import (
     _module_01,
 )
 from business_quality.business_quality_explainability import (
-    merge_module_explainability,
     bq_explanation,
+    merge_module_explainability,
 )
 from business_quality.business_quality_models import BusinessQualityFlag
-from business_quality.explainability import BusinessQualityExplainability
 from business_quality.scoring import Confidence, Rating, Score
 from financial import (
     BalanceSheet,
@@ -50,7 +49,9 @@ from financial import (
 from financial.metadata import StatementMetadata
 
 
-def _period(*, end: date = date(2024, 12, 31), fy: int | None = 2024) -> FinancialPeriod:
+def _period(
+    *, end: date = date(2024, 12, 31), fy: int | None = 2024
+) -> FinancialPeriod:
     return FinancialPeriod(
         period_type=PeriodType.ANNUAL,
         period_end=end,
@@ -260,9 +261,9 @@ class TestScoringAndFlags:
     def test_compose_and_module_01(self) -> None:
         assert _module_01(SimpleNamespace(overall_score=None)) is None
         assert _module_01(SimpleNamespace(overall_score=Score(value=None))) is None
-        assert _module_01(SimpleNamespace(overall_score=Score(value=80.0))) == pytest.approx(
-            0.8
-        )
+        assert _module_01(
+            SimpleNamespace(overall_score=Score(value=80.0))
+        ) == pytest.approx(0.8)
         eq = SimpleNamespace(overall_score=Score(value=80.0))
         ca = SimpleNamespace(overall_score=Score(value=60.0))
         bc = SimpleNamespace(overall_score=Score(value=None))
@@ -323,7 +324,10 @@ class TestScoringAndFlags:
             cp=SimpleNamespace(quality_flags=()),
         )
         assert len(flags2.positive) == 1
-        assert _classify_flag("earnings_quality", "high_earnings_quality") is FlagSeverity.POSITIVE
+        assert (
+            _classify_flag("earnings_quality", "high_earnings_quality")
+            is FlagSeverity.POSITIVE
+        )
         assert _classify_flag("competitive_position", "mystery") is FlagSeverity.WARNING
 
     def test_map_flag_and_explainability(self) -> None:
@@ -345,6 +349,7 @@ class TestScoringAndFlags:
             _map_overall_to_bq_flag(OverallRating.POOR, Rating.INSUFFICIENT_DATA)
             is BusinessQualityFlag.POOR
         )
+
         # legacy fallback when overall somehow not mapped — call internal with Ranking via
         # reconstructing: all OverallRating values are mapped; cover legacy_map via
         # Rating-only path by temporarily using a non-enum — skip; cover UNKNOWN via
@@ -485,15 +490,15 @@ class TestPackage:
         assert hasattr(bq.BusinessQualityEngine, "analyze")
 
     def test_strength_weakness_helpers(self) -> None:
-        from business_quality.engine import _strengths, _weaknesses
-        from business_quality.earnings_quality_models import EarningsQualityFlag
-        from business_quality.capital_allocation_models import CapitalAllocationFlag
         from business_quality.business_characteristics_models import (
             BusinessCharacteristicsFlag,
         )
+        from business_quality.capital_allocation_models import CapitalAllocationFlag
         from business_quality.competitive_position_models import (
             CompetitivePositionFlag,
         )
+        from business_quality.earnings_quality_models import EarningsQualityFlag
+        from business_quality.engine import _strengths, _weaknesses
 
         eq = SimpleNamespace(
             quality_flags=(
@@ -507,9 +512,7 @@ class TestPackage:
                 CapitalAllocationFlag.DEBT_DEPENDENT,
             )
         )
-        bc = SimpleNamespace(
-            quality_flags=(BusinessCharacteristicsFlag.ASSET_LIGHT,)
-        )
+        bc = SimpleNamespace(quality_flags=(BusinessCharacteristicsFlag.ASSET_LIGHT,))
         cp = SimpleNamespace(
             quality_flags=(
                 CompetitivePositionFlag.STRONG_COMPETITIVE_POSITION,

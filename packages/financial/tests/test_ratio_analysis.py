@@ -29,21 +29,8 @@ from financial import (
     UnitScale,
     validate_ratio_inputs,
 )
-from financial.intelligence.ratio_engine import (
-    RATIO_INTELLIGENCE_VERSION,
-    _benchmark_margin,
-    _benchmark_ratio,
-    _clip01,
-    _confidence,
-    _safe_div,
-    _trend,
-)
-from financial.intelligence.ratio_explainability import RATIO_RESEARCH_DISCLAIMER
-from financial.intelligence.ratio_validation import coerce_ratio_series
-from financial.metadata import StatementMetadata
 from financial.derivation import (
     FORMULA_ASSET_TURNOVER,
-    FORMULA_AVERAGE_BALANCE,
     FORMULA_CASH_RATIO,
     FORMULA_CURRENT_RATIO,
     FORMULA_DEBT_COVERAGE,
@@ -65,9 +52,23 @@ from financial.derivation import (
     FinancialValueStatus,
     as_reported,
 )
+from financial.intelligence.ratio_engine import (
+    RATIO_INTELLIGENCE_VERSION,
+    _benchmark_margin,
+    _benchmark_ratio,
+    _clip01,
+    _confidence,
+    _safe_div,
+    _trend,
+)
+from financial.intelligence.ratio_explainability import RATIO_RESEARCH_DISCLAIMER
+from financial.intelligence.ratio_validation import coerce_ratio_series
+from financial.metadata import StatementMetadata
 
 
-def _period(*, end: date = date(2024, 12, 31), fy: int | None = 2024) -> FinancialPeriod:
+def _period(
+    *, end: date = date(2024, 12, 31), fy: int | None = 2024
+) -> FinancialPeriod:
     return FinancialPeriod(
         period_type=PeriodType.ANNUAL,
         period_end=end,
@@ -173,7 +174,9 @@ class TestValidation:
 
     def test_zero_assets(self) -> None:
         stmt = _full(
-            balance=BalanceSheet(total_assets=0.0, total_liabilities=0.0, total_equity=0.0)
+            balance=BalanceSheet(
+                total_assets=0.0, total_liabilities=0.0, total_equity=0.0
+            )
         )
         with pytest.raises(FinancialRatioError, match="total_assets"):
             validate_ratio_inputs(stmt)
@@ -191,7 +194,10 @@ class TestValidation:
     def test_domain_error(self) -> None:
         stmt = _full(
             balance=BalanceSheet(
-                total_assets=100.0, total_liabilities=10.0, total_equity=10.0, equity=10.0
+                total_assets=100.0,
+                total_liabilities=10.0,
+                total_equity=10.0,
+                equity=10.0,
             )
         )
         with pytest.raises(FinancialRatioError):
@@ -210,11 +216,16 @@ class TestCoerce:
             _full(),
         )
         # reverse
-        snap2 = FinancialSnapshot(company=snap.company, statements=(snap.statements[1], snap.statements[0]))
+        snap2 = FinancialSnapshot(
+            company=snap.company, statements=(snap.statements[1], snap.statements[0])
+        )
         ordered, meta = coerce_ratio_series(snap2)
         assert ordered[0].period.fiscal_year == 2023
         assert meta["ticker"] == "ACM"
-        assert coerce_ratio_series(_full().to_dict())[0][0].income_statement.revenue == 1000.0
+        assert (
+            coerce_ratio_series(_full().to_dict())[0][0].income_statement.revenue
+            == 1000.0
+        )
         assert coerce_ratio_series(snap.to_dict())[1]["company"] == "Acme"
 
     def test_errors(self) -> None:
@@ -223,7 +234,12 @@ class TestCoerce:
         with pytest.raises(FinancialRatioError, match="Empty"):
             coerce_ratio_series(FinancialSnapshot())
         with pytest.raises(FinancialRatioError, match="Duplicate"):
-            coerce_ratio_series(_snap(_full(), _full(income=IncomeStatement(revenue=900.0, net_income=100.0))))
+            coerce_ratio_series(
+                _snap(
+                    _full(),
+                    _full(income=IncomeStatement(revenue=900.0, net_income=100.0)),
+                )
+            )
         with pytest.raises(FinancialRatioError, match="Empty history"):
             coerce_ratio_series([])
         with pytest.raises(FinancialRatioError, match="History items"):
@@ -354,7 +370,9 @@ class TestAnalysis:
         assert any(m.confidence == "medium" for m in result.profitability)
         fcf_m = next(m for m in result.cash_flow if m.name == "free_cash_flow_margin")
         assert fcf_m.value == pytest.approx(0.15)
-        eng._flags((), (), (), (), (), result.capital_allocation, eng._cash.analyze(stmt))
+        eng._flags(
+            (), (), (), (), (), result.capital_allocation, eng._cash.analyze(stmt)
+        )
         assert _confidence(5, has_value=False) == "insufficient"
         assert _confidence(3, has_value=True) == "high"
 
@@ -447,16 +465,54 @@ class TestHelpers:
         assert _benchmark_margin(0.1) is BenchmarkClass.ADEQUATE
         assert _benchmark_margin(0.01) is BenchmarkClass.WEAK
         assert _benchmark_margin(-0.1) is BenchmarkClass.POOR
-        assert _benchmark_ratio(None, excellent=1, strong=0.5, adequate=0.2) is BenchmarkClass.INSUFFICIENT
-        assert _benchmark_ratio(2, excellent=1, strong=0.5, adequate=0.2) is BenchmarkClass.EXCELLENT
-        assert _benchmark_ratio(0.6, excellent=1, strong=0.5, adequate=0.2) is BenchmarkClass.STRONG
-        assert _benchmark_ratio(0.3, excellent=1, strong=0.5, adequate=0.2) is BenchmarkClass.ADEQUATE
-        assert _benchmark_ratio(0.1, excellent=1, strong=0.5, adequate=0.2) is BenchmarkClass.WEAK
-        assert _benchmark_ratio(-1, excellent=1, strong=0.5, adequate=0.2) is BenchmarkClass.POOR
-        assert _benchmark_ratio(0.1, excellent=0.3, strong=0.5, adequate=0.8, higher_better=False) is BenchmarkClass.EXCELLENT
-        assert _benchmark_ratio(0.4, excellent=0.3, strong=0.5, adequate=0.8, higher_better=False) is BenchmarkClass.STRONG
-        assert _benchmark_ratio(0.6, excellent=0.3, strong=0.5, adequate=0.8, higher_better=False) is BenchmarkClass.ADEQUATE
-        assert _benchmark_ratio(1.0, excellent=0.3, strong=0.5, adequate=0.8, higher_better=False) is BenchmarkClass.WEAK
+        assert (
+            _benchmark_ratio(None, excellent=1, strong=0.5, adequate=0.2)
+            is BenchmarkClass.INSUFFICIENT
+        )
+        assert (
+            _benchmark_ratio(2, excellent=1, strong=0.5, adequate=0.2)
+            is BenchmarkClass.EXCELLENT
+        )
+        assert (
+            _benchmark_ratio(0.6, excellent=1, strong=0.5, adequate=0.2)
+            is BenchmarkClass.STRONG
+        )
+        assert (
+            _benchmark_ratio(0.3, excellent=1, strong=0.5, adequate=0.2)
+            is BenchmarkClass.ADEQUATE
+        )
+        assert (
+            _benchmark_ratio(0.1, excellent=1, strong=0.5, adequate=0.2)
+            is BenchmarkClass.WEAK
+        )
+        assert (
+            _benchmark_ratio(-1, excellent=1, strong=0.5, adequate=0.2)
+            is BenchmarkClass.POOR
+        )
+        assert (
+            _benchmark_ratio(
+                0.1, excellent=0.3, strong=0.5, adequate=0.8, higher_better=False
+            )
+            is BenchmarkClass.EXCELLENT
+        )
+        assert (
+            _benchmark_ratio(
+                0.4, excellent=0.3, strong=0.5, adequate=0.8, higher_better=False
+            )
+            is BenchmarkClass.STRONG
+        )
+        assert (
+            _benchmark_ratio(
+                0.6, excellent=0.3, strong=0.5, adequate=0.8, higher_better=False
+            )
+            is BenchmarkClass.ADEQUATE
+        )
+        assert (
+            _benchmark_ratio(
+                1.0, excellent=0.3, strong=0.5, adequate=0.8, higher_better=False
+            )
+            is BenchmarkClass.WEAK
+        )
         assert _trend(None, 1.0) is None
         assert _trend(1.0, 1.0) is TrendDirection.STABLE
         assert _trend(1.1, 1.0) is TrendDirection.IMPROVING
@@ -496,7 +552,9 @@ class TestEngineFacade:
             )
         )
         assert result.profitability[0].to_dict()["name"]
-        assert result.capital_allocation.to_dict()["capital_allocation_score"] is not None
+        assert (
+            result.capital_allocation.to_dict()["capital_allocation_score"] is not None
+        )
         assert result.trend_summary.to_dict()["profitability"]
         assert result.metadata.to_dict()["periods_used"] == 2
 
@@ -961,33 +1019,53 @@ class TestF25FinalMigration:
         stmt = _full(
             balance=_bs(long_term_debt=None),
         )
-        dta = next(m for m in FinancialRatioEngine().analyze(stmt).leverage if m.name == "debt_to_assets")
+        dta = next(
+            m
+            for m in FinancialRatioEngine().analyze(stmt).leverage
+            if m.name == "debt_to_assets"
+        )
         assert dta.value is None
         assert dta.status == FinancialValueStatus.UNAVAILABLE.value
         assert dta.formula_id == FORMULA_DEBT_TO_ASSETS
 
     def test_net_debt_missing_cash_unavailable(self) -> None:
         stmt = _full(balance=_bs(cash=None))
-        nd = next(m for m in FinancialRatioEngine().analyze(stmt).leverage if m.name == "net_debt")
+        nd = next(
+            m
+            for m in FinancialRatioEngine().analyze(stmt).leverage
+            if m.name == "net_debt"
+        )
         assert nd.value is None
         assert nd.status == FinancialValueStatus.UNAVAILABLE.value
         assert nd.formula_id == FORMULA_NET_DEBT
 
     def test_net_debt_reported_zero_cash(self) -> None:
         stmt = _full(balance=_bs(cash=0.0))
-        nd = next(m for m in FinancialRatioEngine().analyze(stmt).leverage if m.name == "net_debt")
+        nd = next(
+            m
+            for m in FinancialRatioEngine().analyze(stmt).leverage
+            if m.name == "net_debt"
+        )
         assert nd.value == pytest.approx(250.0)
         assert nd.status == FinancialValueStatus.CALCULATED.value
 
     def test_roic_missing_cash_unavailable(self) -> None:
         stmt = _full(balance=_bs(cash=None))
-        roic = next(m for m in FinancialRatioEngine().analyze(stmt).profitability if m.name == "roic")
+        roic = next(
+            m
+            for m in FinancialRatioEngine().analyze(stmt).profitability
+            if m.name == "roic"
+        )
         assert roic.value is None
         assert roic.status == FinancialValueStatus.UNAVAILABLE.value
         assert roic.formula_id == FORMULA_ROIC
 
     def test_roa_calculated(self) -> None:
-        roa = next(m for m in FinancialRatioEngine().analyze(_full()).profitability if m.name == "roa")
+        roa = next(
+            m
+            for m in FinancialRatioEngine().analyze(_full()).profitability
+            if m.name == "roa"
+        )
         assert roa.value == pytest.approx(210.0 / 1000.0)
         assert roa.status == FinancialValueStatus.CALCULATED.value
         assert roa.formula_id == FORMULA_ROA
@@ -1032,7 +1110,11 @@ class TestF25FinalMigration:
         assert _eff(result, "asset_turnover").value == pytest.approx(1.0)
 
     def test_derived_metric_cannot_be_reported(self) -> None:
-        roa = next(m for m in FinancialRatioEngine().analyze(_full()).profitability if m.name == "roa")
+        roa = next(
+            m
+            for m in FinancialRatioEngine().analyze(_full()).profitability
+            if m.name == "roa"
+        )
         relabeled = as_reported(
             DerivationInput(
                 field_id="roa",
@@ -1042,5 +1124,3 @@ class TestF25FinalMigration:
         )
         assert relabeled.status is FinancialValueStatus.UNAVAILABLE
         assert relabeled.unavailable_reason == "calculated_cannot_be_reported"
-
-

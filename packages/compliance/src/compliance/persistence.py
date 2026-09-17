@@ -130,15 +130,17 @@ class SqlConsentPort:
             )
         return tuple(out)
 
-    def latest_for_purpose(self, subject_id: str, purpose_id: str) -> ConsentRecord | None:
+    def latest_for_purpose(
+        self, subject_id: str, purpose_id: str
+    ) -> ConsentRecord | None:
         matches = [
-            c
-            for c in self.list_for_subject(subject_id)
-            if c.purpose_id == purpose_id
+            c for c in self.list_for_subject(subject_id) if c.purpose_id == purpose_id
         ]
         return matches[-1] if matches else None
 
-    def withdraw(self, subject_id: str, purpose_id: str, *, policy_version: str) -> ConsentRecord:
+    def withdraw(
+        self, subject_id: str, purpose_id: str, *, policy_version: str
+    ) -> ConsentRecord:
         import uuid
 
         rec = ConsentRecord(

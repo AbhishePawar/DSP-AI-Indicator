@@ -26,7 +26,10 @@ def test_analyze_produces_six_components(
     assert all(e.source and e.reference and e.reasoning for e in result.evidence)
     assert result.summary
     assert result.recommendation
-    assert "research-only" in result.research_disclaimer.lower() or "not investment" in result.research_disclaimer.lower()
+    assert (
+        "research-only" in result.research_disclaimer.lower()
+        or "not investment" in result.research_disclaimer.lower()
+    )
     payload = result.to_dict()
     assert len(payload["components"]) == 6
     assert "strengths" in payload and "weaknesses" in payload
@@ -41,9 +44,7 @@ def test_analyze_is_deterministic(
     assert a.to_dict() == b.to_dict()
 
 
-def test_explain_and_validate(
-    financial_analysis, business_quality_analysis
-) -> None:
+def test_explain_and_validate(financial_analysis, business_quality_analysis) -> None:
     engine = ManagementEngine()
     analysis = engine.analyze(financial_analysis, business_quality_analysis)
     assert engine.explain(analysis) is analysis.explainability

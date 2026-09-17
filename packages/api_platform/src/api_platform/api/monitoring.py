@@ -71,8 +71,7 @@ def mark_lifecycle(state: PlatformLifecycleState) -> None:
     set_lifecycle_state(state)
     level = (
         "INFO"
-        if state
-        in {PlatformLifecycleState.READY, PlatformLifecycleState.DEGRADED}
+        if state in {PlatformLifecycleState.READY, PlatformLifecycleState.DEGRADED}
         else "WARNING"
     )
     ops_logger.log(

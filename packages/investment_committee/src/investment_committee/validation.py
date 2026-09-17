@@ -9,12 +9,11 @@ from earnings_quality import EarningsQualityAnalysis
 from economic_moat import EconomicAnalysis
 from financial_strength import FinancialStrengthAnalysis
 from growth_quality import GrowthQualityAnalysis
+from investment_committee.metadata import InvestmentCommitteeMetadata
+from investment_committee.models import CommitteeValidationSummary
 from investment_recommendation import InvestmentRecommendation, ValuationSignals
 from management_quality import ManagementAnalysis
 from valuation import OverallValuationResult
-
-from investment_committee.metadata import InvestmentCommitteeMetadata
-from investment_committee.models import CommitteeValidationSummary
 
 __all__ = ["validate_framework_inputs", "validate_metadata"]
 

@@ -53,9 +53,9 @@ from quantitative_risk.refs import (
 from quantitative_risk.reporter import (
     MetricCollection,
     QuantitativeRiskReporter,
-    ReportMetadata,
     ReportingContext,
     ReportingResult,
+    ReportMetadata,
 )
 
 __all__ = [

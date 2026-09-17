@@ -4,7 +4,6 @@ from __future__ import annotations
 
 from ai_committee import CommitteeReport, Decision
 from contracts import Recommendation, RecommendationAction
-
 from decision_intelligence.models.assurance import (
     AssuranceAssessment,
     ConfidenceDriver,
@@ -13,8 +12,8 @@ from decision_intelligence.models.assurance import (
 )
 from decision_intelligence.models.enums import (
     AgreementQuality,
-    AssuranceLevel,
     AssumptionRiskLevel,
+    AssuranceLevel,
     DecisionResilience,
     DriverDirection,
     EvidenceConsistency,
@@ -53,7 +52,9 @@ def build_assurance_assessment(
             Decision.SELL,
         }:
             hard_dissent.append(v)
-        elif final in {Decision.BUY, Decision.SELL} and v.recommendation is Decision.HOLD:
+        elif (
+            final in {Decision.BUY, Decision.SELL} and v.recommendation is Decision.HOLD
+        ):
             soft_dissent.append(v)
         elif final is Decision.HOLD and v.recommendation in {
             Decision.BUY,
@@ -220,9 +221,7 @@ def _evidence_consistency(
     ``EngineSource`` therefore understates multi-domain support. Prefer the
     count of agreeing members that contributed evidence.
     """
-    domains_with_evidence = {
-        vote.source for vote in agreeing if vote.opinion.evidence
-    }
+    domains_with_evidence = {vote.source for vote in agreeing if vote.opinion.evidence}
     if len(domains_with_evidence) >= 2:
         return EvidenceConsistency.ALIGNED
     supporting = recommendation.supporting_evidence
@@ -282,9 +281,10 @@ def _assurance_level(
         return AssuranceLevel.LOW
 
     score = 3  # 3=HIGH … 0=LOW
-    if agreement is AgreementQuality.UNANIMOUS:
-        score = 3
-    elif agreement is AgreementQuality.STRONG_MAJORITY:
+    if (
+        agreement is AgreementQuality.UNANIMOUS
+        or agreement is AgreementQuality.STRONG_MAJORITY
+    ):
         score = 3
     elif agreement is AgreementQuality.MAJORITY:
         score = 2
@@ -344,11 +344,15 @@ def _drivers(
     drivers: list[ConfidenceDriver] = [
         ConfidenceDriver(
             code="agreement",
-            direction=DriverDirection.SUPPORTS
-            if agree_frac >= 0.75
-            else DriverDirection.WEAKENS
-            if agree_frac <= 0.5
-            else DriverDirection.SUPPORTS,
+            direction=(
+                DriverDirection.SUPPORTS
+                if agree_frac >= 0.75
+                else (
+                    DriverDirection.WEAKENS
+                    if agree_frac <= 0.5
+                    else DriverDirection.SUPPORTS
+                )
+            ),
             statement=f"Agreement quality is {agreement.value} ({agree_frac:.0%} aligned).",
         )
     ]
@@ -399,9 +403,11 @@ def _drivers(
     drivers.append(
         ConfidenceDriver(
             code="evidence",
-            direction=DriverDirection.SUPPORTS
-            if evidence_consistency is EvidenceConsistency.ALIGNED
-            else DriverDirection.WEAKENS,
+            direction=(
+                DriverDirection.SUPPORTS
+                if evidence_consistency is EvidenceConsistency.ALIGNED
+                else DriverDirection.WEAKENS
+            ),
             statement=f"Supporting evidence consistency is {evidence_consistency.value}.",
         )
     )
@@ -543,9 +549,9 @@ def _guidance(
     }
     valuation_led = any(v.source == "valuation" for v in agreeing)
     economic_led = any(v.source == "economic" for v in agreeing)
-    fundamental_involved = any(
-        v.source == "fundamental" for v in agreeing
-    ) or any(v.source == "fundamental" for v in hard_dissent)
+    fundamental_involved = any(v.source == "fundamental" for v in agreeing) or any(
+        v.source == "fundamental" for v in hard_dissent
+    )
 
     # HOLD is never an engagement instruction to buy or sell.
     if action is RecommendationAction.HOLD:
@@ -567,9 +573,7 @@ def _guidance(
                 "Recommendation is HOLD; do not add exposure on this "
                 "deliberation alone."
             )
-        return InvestorGuidance(
-            stance=GuidanceStance.STAND_ASIDE, rationale=rationale
-        )
+        return InvestorGuidance(stance=GuidanceStance.STAND_ASIDE, rationale=rationale)
 
     if agreement is AgreementQuality.CONFLICT or level is AssuranceLevel.LOW:
         return InvestorGuidance(
@@ -661,9 +665,7 @@ def _guidance(
             )
         return InvestorGuidance(
             stance=GuidanceStance.ACCUMULATE_GRADUALLY,
-            rationale=(
-                "Assurance is high but hard dissent remains; engage gradually."
-            ),
+            rationale=("Assurance is high but hard dissent remains; engage gradually."),
         )
     if valuation_led and mos_available and buy_like:
         return InvestorGuidance(
@@ -698,11 +700,7 @@ def _robustness_summary(
     single_dep: bool,
     dominant: str | None,
 ) -> str:
-    dep = (
-        f" Single-engine dependence on {dominant}."
-        if single_dep and dominant
-        else ""
-    )
+    dep = f" Single-engine dependence on {dominant}." if single_dep and dominant else ""
     return (
         f"Assurance is {level.value} with {agreement.value} agreement "
         f"and {resilience.value} resilience.{dep}"

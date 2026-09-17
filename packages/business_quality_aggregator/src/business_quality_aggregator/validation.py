@@ -4,14 +4,15 @@ from __future__ import annotations
 
 from typing import Any
 
+from business_quality_aggregator.metadata import BusinessQualityAggregatorMetadata
+from business_quality_aggregator.models import (
+    BusinessQualityAggregatorValidationSummary,
+)
 from earnings_quality import EarningsQualityAnalysis
 from economic_moat import EconomicAnalysis
 from financial_strength import FinancialStrengthAnalysis
 from growth_quality import GrowthQualityAnalysis
 from management_quality import ManagementAnalysis
-
-from business_quality_aggregator.metadata import BusinessQualityAggregatorMetadata
-from business_quality_aggregator.models import BusinessQualityAggregatorValidationSummary
 
 __all__ = ["validate_framework_inputs", "validate_metadata"]
 

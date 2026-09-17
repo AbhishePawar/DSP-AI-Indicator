@@ -4,6 +4,14 @@ from __future__ import annotations
 
 import pytest
 
+from dsp_platform.institutional_export import (
+    export_artifact_to_dict,
+    export_institutional_report,
+)
+from dsp_platform.institutional_report import (
+    generate_institutional_report,
+    institutional_report_to_dict,
+)
 from dsp_platform.research_archive import (
     ARCHIVE_SCHEMA_VERSION,
     InMemoryArchiveStore,
@@ -16,14 +24,6 @@ from dsp_platform.research_archive import (
     reset_research_archive_for_tests,
 )
 from dsp_platform.research_object import build_research_object, research_object_to_dict
-from dsp_platform.institutional_report import (
-    generate_institutional_report,
-    institutional_report_to_dict,
-)
-from dsp_platform.institutional_export import (
-    export_artifact_to_dict,
-    export_institutional_report,
-)
 
 FIXED = "2026-07-28T12:00:00+00:00"
 
@@ -98,9 +98,7 @@ def test_immutability_no_overwrite() -> None:
 
     service = get_research_archive()
     payload = _ro_payload()
-    service.archive(
-        "research_object", payload, snapshot_id="snap-x", archived_at=FIXED
-    )
+    service.archive("research_object", payload, snapshot_id="snap-x", archived_at=FIXED)
     with pytest.raises(SnapshotAlreadyExistsError):
         service.archive(
             "research_object", payload, snapshot_id="snap-x", archived_at=FIXED

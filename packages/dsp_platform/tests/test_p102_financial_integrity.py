@@ -21,13 +21,13 @@ from dsp_platform import (
     load_authenticated_valuation_bundle,
 )
 from dsp_platform.composition.financial_integrity import (
-    FinancialIntegrityError,
     normalize_periods_to_actual,
     unit_scale_factor,
 )
-from dsp_platform.financial_statements import reset_financial_statement_service_for_tests
+from dsp_platform.financial_statements import (
+    reset_financial_statement_service_for_tests,
+)
 from dsp_platform.market_quotes import reset_market_quote_service_for_tests
-
 
 TICKER = "TEST"
 FIXED = datetime(2024, 6, 15, 12, 0, 0, tzinfo=UTC)
@@ -195,7 +195,19 @@ def test_missing_basis_rejected() -> None:
 
 def test_unit_normalization_crore_equals_lakh() -> None:
     # ₹100 crore == ₹1,000 lakh == ₹1,000,000,000 actual
-    crore_period = _period(revenue=100.0, net_income=10.0, eps=1.0, unit="crore", equity=200.0, assets=300.0, liabilities=100.0, ocf=15.0, capex=-3.0, fcf=12.0, operating_income=12.0)
+    crore_period = _period(
+        revenue=100.0,
+        net_income=10.0,
+        eps=1.0,
+        unit="crore",
+        equity=200.0,
+        assets=300.0,
+        liabilities=100.0,
+        ocf=15.0,
+        capex=-3.0,
+        fcf=12.0,
+        operating_income=12.0,
+    )
     # shares for EPS consistency: NI/EPS = 10/1 = 10 in crore units → after scale NI=1e8, need shares still 100 for quote
     # Use eps scaled conceptually: after normalize NI=10*1e7=1e8, eps stays 1.0 → derived shares huge.
     # Better: keep eps consistent with ACTUAL after scale by setting eps = NI_actual/shares.
@@ -277,7 +289,9 @@ def test_wrong_ticker_rejected() -> None:
 
 def test_inconsistent_eps_shares_rejected() -> None:
     # NI=100, eps=1 ⇒ implied shares=100, but quote shares=10
-    _seed([_period(net_income=100.0, eps=1.0)], quote=_quote(shares=10.0, market_cap=80.0))
+    _seed(
+        [_period(net_income=100.0, eps=1.0)], quote=_quote(shares=10.0, market_cap=80.0)
+    )
     with pytest.raises(AuthenticatedValuationError, match="share"):
         load_authenticated_valuation_bundle(TICKER)
 
@@ -355,7 +369,23 @@ def test_missing_statements_rejected() -> None:
 
 
 def test_normalize_periods_deterministic() -> None:
-    bundle = _statements([_period(unit="millions", revenue=5.0, net_income=1.0, eps=10_000.0, equity=10.0, assets=15.0, liabilities=5.0, ocf=1.5, capex=-0.3, fcf=1.2, operating_income=1.2)])
+    bundle = _statements(
+        [
+            _period(
+                unit="millions",
+                revenue=5.0,
+                net_income=1.0,
+                eps=10_000.0,
+                equity=10.0,
+                assets=15.0,
+                liabilities=5.0,
+                ocf=1.5,
+                capex=-0.3,
+                fcf=1.2,
+                operating_income=1.2,
+            )
+        ]
+    )
     scaled = normalize_periods_to_actual(bundle.periods, source_unit="millions")
     scaled2 = normalize_periods_to_actual(bundle.periods, source_unit="millions")
     assert _sf(scaled[0].revenue) == pytest.approx(_sf(scaled2[0].revenue))

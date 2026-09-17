@@ -62,7 +62,9 @@ class _UpstoxBase:
     provider_name: str = "Upstox"
 
     def _client(self) -> JsonHttpClient:
-        return self.http_client or UrllibJsonHttpClient(timeout_seconds=self.timeout_seconds)
+        return self.http_client or UrllibJsonHttpClient(
+            timeout_seconds=self.timeout_seconds
+        )
 
     def _get(self, path: str, params: Mapping[str, Any] | None = None) -> Any:
         if not self.access_token.strip():
@@ -204,7 +206,9 @@ class UpstoxStatementAdapter(_UpstoxBase, FinancialStatementPort):
             return None
         return result.statements.identity
 
-    def get_statements(self, query: StatementQuery) -> AuthenticatedFinancialStatements | None:
+    def get_statements(
+        self, query: StatementQuery
+    ) -> AuthenticatedFinancialStatements | None:
         from data_engine.upstox_fundamentals import UpstoxFundamentalsRequest
 
         period = str(query.period_type or "annual").strip().lower()

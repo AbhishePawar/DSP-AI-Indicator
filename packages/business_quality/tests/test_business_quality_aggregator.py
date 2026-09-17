@@ -71,7 +71,9 @@ from financial import (
 from financial.metadata import StatementMetadata
 
 
-def _period(*, end: date = date(2024, 12, 31), fy: int | None = 2024) -> FinancialPeriod:
+def _period(
+    *, end: date = date(2024, 12, 31), fy: int | None = 2024
+) -> FinancialPeriod:
     return FinancialPeriod(
         period_type=PeriodType.ANNUAL,
         period_end=end,
@@ -185,7 +187,11 @@ class TestSummaryHelpers:
         )
         conf = build_confidence_summary(analysis)
         assert conf.overall in Confidence
-        assert "confidence" in conf.explanation.lower() or "Confidence" in conf.explanation or conf.explanation
+        assert (
+            "confidence" in conf.explanation.lower()
+            or "Confidence" in conf.explanation
+            or conf.explanation
+        )
         exec_sum = build_executive_summary(analysis)
         assert "rating" in exec_sum.lower() or "Business quality" in exec_sum
 
@@ -290,7 +296,9 @@ class TestValidation:
         with pytest.raises(BusinessQualityValidationError, match="metadata"):
             validate_report_metadata(None)
         with pytest.raises(BusinessQualityValidationError, match="engine_version"):
-            validate_report_metadata(SimpleNamespace(engine_version="", schema_version="1"))
+            validate_report_metadata(
+                SimpleNamespace(engine_version="", schema_version="1")
+            )
         meta_ok = validate_report_metadata(
             SimpleNamespace(engine_version="0.7.0", schema_version=None)
         )
@@ -298,7 +306,9 @@ class TestValidation:
 
         with pytest.raises(BusinessQualityValidationError, match="report"):
             validate_report_object(None)
-        with pytest.raises(BusinessQualityValidationError, match="BusinessQualityReport"):
+        with pytest.raises(
+            BusinessQualityValidationError, match="BusinessQualityReport"
+        ):
             validate_report_object({"x": 1})
 
         class BusinessQualityReport:

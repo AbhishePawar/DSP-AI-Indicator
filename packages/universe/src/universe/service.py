@@ -6,7 +6,6 @@ from typing import Protocol
 
 from contracts import Instrument
 from decision_intelligence import DecisionPack
-
 from universe.enums import (
     BatchFailurePolicy,
     BatchStatus,
@@ -43,9 +42,7 @@ class MultiStockAnalysisService:
     def __init__(self, analyzer: DecisionPackAnalyzer) -> None:
         self._analyzer = analyzer
 
-    def analyze(
-        self, request: MultiStockAnalysisRequest
-    ) -> MultiStockDecisionResult:
+    def analyze(self, request: MultiStockAnalysisRequest) -> MultiStockDecisionResult:
         """Analyze every instrument; apply the configured failure policy."""
         universe = request.universe
         entries = universe.entries()
@@ -134,9 +131,7 @@ class MultiStockAnalysisService:
 def _batch_status(outcomes: list[InstrumentAnalysisOutcome]) -> BatchStatus:
     if not outcomes:
         return BatchStatus.SUCCESS
-    successes = sum(
-        1 for o in outcomes if o.status is InstrumentOutcomeStatus.SUCCESS
-    )
+    successes = sum(1 for o in outcomes if o.status is InstrumentOutcomeStatus.SUCCESS)
     failures = len(outcomes) - successes
     if failures == 0:
         return BatchStatus.SUCCESS

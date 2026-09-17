@@ -9,7 +9,6 @@ from decimal import Decimal
 from typing import Any
 
 from core.exceptions import ValidationError
-
 from knowledge_graph.enums import (
     EvidenceLinkCategory,
     LineageCategory,

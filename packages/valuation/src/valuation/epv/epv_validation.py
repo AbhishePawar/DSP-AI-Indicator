@@ -102,9 +102,7 @@ def validate_epv_inputs(inputs: EpvInputs) -> ValidationSummary:
         checks.append("shares > 0")
 
     if inputs.cost_of_capital <= 0:
-        errors.append(
-            f"cost_of_capital must be > 0, got {inputs.cost_of_capital}"
-        )
+        errors.append(f"cost_of_capital must be > 0, got {inputs.cost_of_capital}")
     else:
         checks.append("cost_of_capital > 0")
 
@@ -150,9 +148,7 @@ def validate_epv_inputs(inputs: EpvInputs) -> ValidationSummary:
                     "or normalized_operating_margin"
                 )
             elif inputs.revenue <= 0:
-                errors.append(
-                    "normalized_operating_margin requires positive revenue"
-                )
+                errors.append("normalized_operating_margin requires positive revenue")
         else:
             checks.append(f"normalization={method.value} inputs present")
 

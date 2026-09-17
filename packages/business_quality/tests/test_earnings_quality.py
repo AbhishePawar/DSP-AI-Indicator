@@ -9,10 +9,10 @@ import pytest
 
 from business_quality import (
     BUSINESS_QUALITY_VERSION,
-    EarningsQualityEngine,
-    EarningsQualityFlag,
     BusinessQualityEngine,
     BusinessQualityValidationError,
+    EarningsQualityEngine,
+    EarningsQualityFlag,
     Rating,
     validate_earnings_quality_input,
 )
@@ -39,7 +39,9 @@ from financial import (
 from financial.metadata import StatementMetadata
 
 
-def _period(*, end: date = date(2024, 12, 31), fy: int | None = 2024) -> FinancialPeriod:
+def _period(
+    *, end: date = date(2024, 12, 31), fy: int | None = 2024
+) -> FinancialPeriod:
     return FinancialPeriod(
         period_type=PeriodType.ANNUAL,
         period_end=end,
@@ -101,9 +103,7 @@ def _full(*, year: int = 2024, scale: float = 1.0, **kwargs) -> FinancialStateme
 
 
 def _fa(*scales: float):
-    stmts = [
-        _full(year=2020 + i, scale=s) for i, s in enumerate(scales or (1.0,))
-    ]
+    stmts = [_full(year=2020 + i, scale=s) for i, s in enumerate(scales or (1.0,))]
     if len(stmts) == 1:
         return FinancialEngine().analyze_financials(stmts[0])
     return FinancialEngine().analyze_financials(
@@ -176,9 +176,7 @@ class TestValidation:
             profitability=SimpleNamespace(net_income_quality=None),
         )
         obj.cash_flow = SimpleNamespace(
-            operating=SimpleNamespace(
-                operating_cash_flow=None, cash_conversion=None
-            )
+            operating=SimpleNamespace(operating_cash_flow=None, cash_conversion=None)
         )
         obj.ratios = fa.ratios
         obj.validation = fa.validation
@@ -198,9 +196,7 @@ class TestValidation:
             profitability=SimpleNamespace(net_income_quality=None),
         )
         obj.cash_flow = SimpleNamespace(
-            operating=SimpleNamespace(
-                operating_cash_flow=50.0, cash_conversion=None
-            )
+            operating=SimpleNamespace(operating_cash_flow=50.0, cash_conversion=None)
         )
         obj.ratios = fa.ratios
         obj.validation = SimpleNamespace(ok=False)
@@ -284,6 +280,7 @@ class TestEarningsQuality:
 
     def test_accrual_conversion_branches(self) -> None:
         eng = EarningsQualityEngine()
+
         # Force conversion tiers via mocked namespaces with FinancialAnalysis type
         class FinancialAnalysis:
             pass

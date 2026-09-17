@@ -293,11 +293,15 @@ class BusinessCharacteristicsEngine:
             evidence_level=(
                 EvidenceLevel.STRONG
                 if conf is Confidence.HIGH
-                else EvidenceLevel.ADEQUATE
-                if conf is Confidence.MEDIUM
-                else EvidenceLevel.LIMITED
-                if conf is Confidence.LOW
-                else EvidenceLevel.NONE
+                else (
+                    EvidenceLevel.ADEQUATE
+                    if conf is Confidence.MEDIUM
+                    else (
+                        EvidenceLevel.LIMITED
+                        if conf is Confidence.LOW
+                        else EvidenceLevel.NONE
+                    )
+                )
             ),
             risk_level=_risk_from_01(value, invert=True),
         )
@@ -345,9 +349,7 @@ class BusinessCharacteristicsEngine:
         cyc = by_name.get("cyclicality")
         if cyc and cyc.rating in (Rating.STRONG, Rating.EXCELLENT):
             flags.append(BusinessCharacteristicsFlag.CYCLICAL_BUSINESS)
-        trend_class = getattr(
-            getattr(income, "revenue", None), "trend_class", None
-        )
+        trend_class = getattr(getattr(income, "revenue", None), "trend_class", None)
         if getattr(trend_class, "value", str(trend_class or "")) == "volatile":
             if BusinessCharacteristicsFlag.CYCLICAL_BUSINESS not in flags:
                 flags.append(BusinessCharacteristicsFlag.CYCLICAL_BUSINESS)
@@ -530,7 +532,9 @@ def _cyclicality(income, trends) -> float | None:
         ov = getattr(overall, "value", str(overall or ""))
         if ov == "highly_volatile":
             parts.append(0.8)
-        tflags = {getattr(f, "value", str(f)) for f in getattr(trends, "quality_flags", ())}
+        tflags = {
+            getattr(f, "value", str(f)) for f in getattr(trends, "quality_flags", ())
+        }
         if "high_volatility" in tflags:
             parts.append(0.75)
     return _mean(parts)

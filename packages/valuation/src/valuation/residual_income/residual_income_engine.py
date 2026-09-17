@@ -117,28 +117,22 @@ def _explained(
     )
 
 
-def _roe_path(inputs: ResidualIncomeInputs, *, roe_shift: float = 0.0) -> tuple[float, ...]:
+def _roe_path(
+    inputs: ResidualIncomeInputs, *, roe_shift: float = 0.0
+) -> tuple[float, ...]:
     """Build per-year ROE path for the explicit forecast period."""
     n = inputs.forecast_years
     base = inputs.roe_forecast + roe_shift
     terminal = (
-        (inputs.terminal_roe + roe_shift)
-        if inputs.terminal_roe is not None
-        else base
+        (inputs.terminal_roe + roe_shift) if inputs.terminal_roe is not None else base
     )
-    long_run = (
-        inputs.roe_long_run
-        if inputs.roe_long_run is not None
-        else terminal
-    )
+    long_run = inputs.roe_long_run if inputs.roe_long_run is not None else terminal
 
     if inputs.roe_model is RoeForecastModel.CONSTANT:
         return tuple(base for _ in range(n))
 
     if inputs.roe_model is RoeForecastModel.LINEAR_FADE:
-        return tuple(
-            base + (terminal - base) * (t / n) for t in range(1, n + 1)
-        )
+        return tuple(base + (terminal - base) * (t / n) for t in range(1, n + 1))
 
     if inputs.roe_model is RoeForecastModel.MEAN_REVERSION:
         kappa = inputs.mean_reversion_kappa
@@ -253,7 +247,10 @@ def _quality_flags(
         bv_growth = years[-1].ending_book_value / years[0].opening_book_value - 1.0
         if bv_growth < 0.0:
             flags.append(RiQualityFlag.WEAK_BOOK_VALUE_GROWTH)
-    if inputs.accounting_quality_score is not None and inputs.accounting_quality_score < 40:
+    if (
+        inputs.accounting_quality_score is not None
+        and inputs.accounting_quality_score < 40
+    ):
         flags.append(RiQualityFlag.ACCOUNTING_WARNING)
     if clean_warnings or not clean_surplus_ok:
         flags.append(RiQualityFlag.CLEAN_SURPLUS_WARNING)
@@ -548,7 +545,9 @@ def _sensitivity(inputs: ResidualIncomeInputs) -> RiSensitivityMatrix:
                 intrinsic,
                 _ok,
                 _w,
-            ) = _run_core(src, **kwargs)  # type: ignore[arg-type]
+            ) = _run_core(
+                src, **kwargs
+            )  # type: ignore[arg-type]
             ivps = intrinsic / src.shares_outstanding
             return RiSensitivityCell(dim, param, intrinsic, ivps)
         except ValuationError:
@@ -603,9 +602,7 @@ def _sensitivity(inputs: ResidualIncomeInputs) -> RiSensitivityMatrix:
 
     troe_cells: list[RiSensitivityCell] = []
     base_troe = (
-        inputs.terminal_roe
-        if inputs.terminal_roe is not None
-        else inputs.roe_forecast
+        inputs.terminal_roe if inputs.terminal_roe is not None else inputs.roe_forecast
     )
     for delta in (-0.02, 0.0, 0.02):
         troe = base_troe + delta
@@ -756,7 +753,11 @@ class ResidualIncomeEngine:
             "continuing_value_pv",
             pv_cv,
             "PV(CV) = CV / (1+r)^n  (terminal stage)",
-            {"continuing": continuing, "r": inputs.cost_of_equity, "n": inputs.forecast_years},
+            {
+                "continuing": continuing,
+                "r": inputs.cost_of_equity,
+                "n": inputs.forecast_years,
+            },
             {},
             conf,
             notes=RESEARCH_DISCLAIMER,
@@ -791,12 +792,8 @@ class ResidualIncomeEngine:
         )
 
         base = _scenario(inputs, ResidualIncomeScenario.BASE, 0.0)
-        bear = _scenario(
-            inputs, ResidualIncomeScenario.BEAR, inputs.bear_roe_delta
-        )
-        bull = _scenario(
-            inputs, ResidualIncomeScenario.BULL, inputs.bull_roe_delta
-        )
+        bear = _scenario(inputs, ResidualIncomeScenario.BEAR, inputs.bear_roe_delta)
+        bull = _scenario(inputs, ResidualIncomeScenario.BULL, inputs.bull_roe_delta)
         sensitivity = _sensitivity(inputs)
 
         from valuation.residual_income.residual_income_models import (

@@ -12,9 +12,7 @@ class TestEvidence:
     """Tests for Evidence construction and validation."""
 
     def test_minimal_evidence(self, source_engine: EngineSource) -> None:
-        evidence = Evidence(
-            source_engine=source_engine, claim="RSI(14) is overbought."
-        )
+        evidence = Evidence(source_engine=source_engine, claim="RSI(14) is overbought.")
         assert evidence.value is None
         assert evidence.weight is None
 

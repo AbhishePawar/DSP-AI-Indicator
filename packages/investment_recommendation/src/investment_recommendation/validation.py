@@ -9,12 +9,11 @@ from earnings_quality import EarningsQualityAnalysis
 from economic_moat import EconomicAnalysis
 from financial_strength import FinancialStrengthAnalysis
 from growth_quality import GrowthQualityAnalysis
-from management_quality import ManagementAnalysis
-from valuation import OverallValuationResult
-
 from investment_recommendation.metadata import InvestmentRecommendationMetadata
 from investment_recommendation.models import InvestmentRecommendationValidationSummary
 from investment_recommendation.valuation_signals import ValuationSignals
+from management_quality import ManagementAnalysis
+from valuation import OverallValuationResult
 
 __all__ = ["validate_framework_inputs", "validate_metadata"]
 
@@ -26,9 +25,7 @@ def validate_metadata(
         return InvestmentRecommendationValidationSummary(
             ok=False,
             invalid_inputs=("metadata",),
-            errors=(
-                "Invalid metadata: InvestmentRecommendationMetadata is required",
-            ),
+            errors=("Invalid metadata: InvestmentRecommendationMetadata is required",),
         )
     if not metadata.engine_version or not metadata.framework_version:
         return InvestmentRecommendationValidationSummary(

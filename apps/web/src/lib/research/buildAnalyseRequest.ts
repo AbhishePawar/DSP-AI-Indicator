@@ -19,7 +19,7 @@ export type AuthenticatedStatementsSource = {
   available?: boolean;
   authenticated?: boolean;
   reporting_currency?: string | null;
-  periods?: Array<{
+  periods?: ReadonlyArray<{
     period_type: string;
     period_end: string;
     fiscal_year?: number | null;

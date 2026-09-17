@@ -2,6 +2,12 @@ import "@testing-library/jest-dom/vitest";
 import { expect } from "vitest";
 import * as axeMatchers from "vitest-axe/matchers";
 
+declare module "vitest" {
+  interface Assertion<T = any> {
+    toHaveNoViolations(): void;
+  }
+}
+
 /** EPIC-010 / GA-003 — axe matchers for accessibility automation. */
 expect.extend(axeMatchers);
 

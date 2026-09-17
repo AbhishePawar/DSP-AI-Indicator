@@ -17,6 +17,12 @@ import {
 const sampleResponse: AnalyseResponse = {
   ok: true,
   capability: "analyse",
+  limitations: [],
+  errors: [],
+  api_version: "test",
+  platform_version: "1.0.0",
+  pipeline_version: "1.0.0-test",
+  correlation_id: null,
   payload: {
     ok: true,
     metadata: {
@@ -133,6 +139,12 @@ describe("business education mapper", () => {
     const empty: AnalyseResponse = {
       ok: true,
       capability: "analyse",
+      limitations: [],
+      errors: [],
+      api_version: "test",
+      platform_version: null,
+      pipeline_version: null,
+      correlation_id: null,
       payload: {
         ok: true,
         metadata: {},

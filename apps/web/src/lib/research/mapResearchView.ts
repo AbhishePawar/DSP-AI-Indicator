@@ -17,6 +17,10 @@ import {
 } from "@/lib/intelligence/mapResponse";
 import { mapBuffettReport, type BuffettReportView } from "@/lib/buffett-indicator";
 import {
+  mapBusinessEducation,
+  type BusinessEducationReportView,
+} from "@/lib/business-education";
+import {
   mapInstitutionalRatings,
   type InstitutionalRatingFramework,
 } from "@/lib/institutional-rating";
@@ -76,6 +80,8 @@ export type ResearchView = IntelligenceView & {
   };
   /** ARCH-001 — presentation synthesis after final recommendation (no new engine). */
   buffett: BuffettReportView;
+  /** Educational presentation layer derived from the mapped research view. */
+  businessEducation: BusinessEducationReportView;
   /** ARCH-002 — unified institutional rating framework (presentation aggregate). */
   ratings: InstitutionalRatingFramework;
   /** P2.1 — report transparency / Report Information card. */
@@ -332,8 +338,12 @@ export function mapResearchView(
     transparency: mapReportTransparency(withRatings),
     explainability: mapInstitutionalExplainability(withRatings.ratings.modules),
   };
-  return {
+  const withEducation = {
     ...withTransparency,
     valuationTransparency: mapValuationTransparency(withTransparency),
+  };
+  return {
+    ...withEducation,
+    businessEducation: mapBusinessEducation(withEducation),
   };
 }

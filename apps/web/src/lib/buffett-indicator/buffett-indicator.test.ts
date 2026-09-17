@@ -12,7 +12,7 @@ import {
 } from "@/lib/buffett-indicator";
 import { mapResearchView } from "@/lib/research/mapResearchView";
 import { buildDemoAnalyseRequest } from "@/lib/research/buildAnalyseRequest";
-import type { AnalyseResponse } from "@/lib/api/compositionTypes";
+import type { AnalyseResponse, StageSummary } from "@/lib/api/compositionTypes";
 
 const sampleResponse: AnalyseResponse = {
   ok: true,
@@ -201,7 +201,7 @@ describe("ARCH-001 Buffett Indicator report", () => {
       payload: {
         ...sampleResponse.payload,
         stage_summaries: (
-          sampleResponse.payload.stage_summaries as Array<Record<string, unknown>>
+          sampleResponse.payload.stage_summaries as StageSummary[]
         ).map((s) =>
           s.stage === "business_quality_aggregator"
             ? {

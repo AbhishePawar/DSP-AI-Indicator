@@ -111,7 +111,7 @@ export function investmentActionFromExisting(decision: string): InvestmentAction
 }
 
 export function mapInstitutionalRatings(
-  view: Omit<ResearchView, "ratings" | "transparency" | "explainability" | "valuationTransparency">,
+  view: Omit<ResearchView, "businessEducation" | "ratings" | "transparency" | "explainability" | "valuationTransparency">,
 ): InstitutionalRatingFramework {
   const financialStrength = fromStage(
     "financial_strength",

@@ -49,7 +49,7 @@ export function mapDataFreshness(
 }
 
 export function mapReportTransparency(
-  view: Omit<ResearchView, "transparency" | "explainability" | "valuationTransparency">,
+  view: Omit<ResearchView, "businessEducation" | "transparency" | "explainability" | "valuationTransparency">,
   options?: { marketStatus?: string | null },
 ): ReportTransparencyView {
   const frontend = env.frontendVersion || FRONTEND_FOUNDATION_VERSION;

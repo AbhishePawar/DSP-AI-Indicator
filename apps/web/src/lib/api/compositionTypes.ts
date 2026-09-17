@@ -152,7 +152,7 @@ export type PipelinePayload = {
     message?: string;
     error?: string | null;
   }>;
-  stages?: Array<{
+  stages?: ReadonlyArray<{
     stage: string;
     status: string;
     error?: string | null;

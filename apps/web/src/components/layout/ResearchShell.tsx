@@ -1,12 +1,23 @@
 "use client";
 
 import Link from "next/link";
-import type { ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 
 import { useAuth } from "@/lib/auth/AuthProvider";
 
 export function ResearchShell({ children }: { children: ReactNode }) {
   const { session } = useAuth();
+  const [menuOpen, setMenuOpen] = useState(false);
+  const menuId = "research-navigation-mobile";
+
+  useEffect(() => {
+    if (!menuOpen) return;
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setMenuOpen(false);
+    };
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [menuOpen]);
 
   return (
     <div className="min-h-screen bg-[var(--bg)] text-[var(--fg)]">
@@ -29,9 +40,20 @@ export function ResearchShell({ children }: { children: ReactNode }) {
               </span>
             </span>
           </Link>
+          <button
+            type="button"
+            className="min-h-11 rounded-[var(--radius-sm)] border border-[var(--border)] px-3 py-2 text-sm md:hidden"
+            aria-label={menuOpen ? "Close navigation menu" : "Open navigation menu"}
+            aria-expanded={menuOpen}
+            aria-controls={menuId}
+            onClick={() => setMenuOpen((open) => !open)}
+          >
+            Menu
+          </button>
           <nav
+            id="research-navigation-desktop"
             aria-label="Research navigation"
-            className="flex items-center gap-2 text-sm"
+            className="hidden items-center gap-2 text-sm md:flex"
           >
             <Link
               href="/dashboard"
@@ -57,6 +79,42 @@ export function ResearchShell({ children }: { children: ReactNode }) {
           </nav>
         </div>
       </header>
+      {menuOpen ? (
+        <div
+          id={menuId}
+          role="dialog"
+          aria-modal="true"
+          aria-label="Navigation"
+          className="border-b border-[var(--border)] bg-[var(--surface)] px-4 py-3 md:hidden"
+        >
+          <nav aria-label="Mobile research navigation" className="flex flex-col gap-2">
+            <Link
+              href="/dashboard"
+              onClick={() => setMenuOpen(false)}
+              className="rounded-[var(--radius-sm)] px-3 py-2 text-[var(--muted)] hover:bg-[var(--surface-2)] hover:text-[var(--fg)]"
+            >
+              Search
+            </Link>
+            {session ? (
+              <Link
+                href="/logout"
+                onClick={() => setMenuOpen(false)}
+                className="rounded-[var(--radius-sm)] px-3 py-2 text-[var(--muted)] hover:bg-[var(--surface-2)] hover:text-[var(--fg)]"
+              >
+                Sign out
+              </Link>
+            ) : (
+              <Link
+                href="/login"
+                onClick={() => setMenuOpen(false)}
+                className="rounded-[var(--radius-sm)] px-3 py-2 text-[var(--muted)] hover:bg-[var(--surface-2)] hover:text-[var(--fg)]"
+              >
+                Sign in
+              </Link>
+            )}
+          </nav>
+        </div>
+      ) : null}
       <main
         id="main-content"
         className="mx-auto w-full max-w-7xl px-4 py-6 sm:px-6 sm:py-10"

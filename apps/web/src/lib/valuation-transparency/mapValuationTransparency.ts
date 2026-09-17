@@ -77,7 +77,7 @@ function methodMatches(methodLabel: string, matchToken: string): boolean {
 }
 
 function mapMethods(
-  view: Omit<ResearchView, "valuationTransparency">,
+  view: Omit<ResearchView, "businessEducation" | "valuationTransparency">,
 ): ValuationMethodCard[] {
   const methodLabel = view.valuation.method;
   const valuationStage = view.stages.find((s) => s.stage === "valuation");
@@ -121,7 +121,7 @@ function mapMethods(
 }
 
 function mapConsensus(
-  view: Omit<ResearchView, "valuationTransparency">,
+  view: Omit<ResearchView, "businessEducation" | "valuationTransparency">,
   methods: ValuationMethodCard[],
 ): ConsensusPanel {
   const consensusMethod = methods.find(
@@ -141,7 +141,7 @@ function mapConsensus(
 }
 
 function mapMarginOfSafety(
-  view: Omit<ResearchView, "valuationTransparency">,
+  view: Omit<ResearchView, "businessEducation" | "valuationTransparency">,
   consensus: ConsensusPanel,
 ): MarginOfSafetyPanel {
   return {
@@ -154,7 +154,7 @@ function mapMarginOfSafety(
 }
 
 function mapExecutive(
-  view: Omit<ResearchView, "valuationTransparency">,
+  view: Omit<ResearchView, "businessEducation" | "valuationTransparency">,
 ): ExecutiveValuationCard {
   const valuationModule = view.ratings.modules.valuation;
   return {
@@ -169,7 +169,7 @@ function mapExecutive(
 }
 
 export function mapValuationTransparency(
-  view: Omit<ResearchView, "valuationTransparency">,
+  view: Omit<ResearchView, "businessEducation" | "valuationTransparency">,
 ): ValuationTransparencyView {
   const methods = mapMethods(view);
   const consensus = mapConsensus(view, methods);

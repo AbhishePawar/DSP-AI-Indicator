@@ -38,8 +38,7 @@ const controlCenterDashboard = vi.fn(async () => ({
 
 vi.mock("@/lib/api/client", () => ({
   api: {
-    controlCenterDashboard: (...args: unknown[]) =>
-      controlCenterDashboard(...args),
+    controlCenterDashboard: vi.fn(() => controlCenterDashboard()),
     controlCenterRegistry: vi.fn(async () => ({
       ok: true,
       result: {

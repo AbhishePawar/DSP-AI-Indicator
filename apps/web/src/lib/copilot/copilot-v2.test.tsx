@@ -47,7 +47,7 @@ const copilotV2Chat = vi.fn(async () => ({
 
 vi.mock("@/lib/api/client", () => ({
   api: {
-    copilotV2Chat: (...args: unknown[]) => copilotV2Chat(...args),
+    copilotV2Chat: vi.fn(() => copilotV2Chat()),
     copilotHistoryList: vi.fn(async () => ({ ok: true, conversations: [] })),
     copilotHistoryDelete: vi.fn(async () => ({ ok: true, deleted: true })),
   },

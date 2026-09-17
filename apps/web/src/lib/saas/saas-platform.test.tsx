@@ -62,9 +62,8 @@ const saasListOrganizations = vi.fn(async () => ({
 
 vi.mock("@/lib/api/client", () => ({
   api: {
-    saasDashboard: (...args: unknown[]) => saasDashboard(...args),
-    saasListOrganizations: (...args: unknown[]) =>
-      saasListOrganizations(...args),
+    saasDashboard: vi.fn(() => saasDashboard()),
+    saasListOrganizations: vi.fn(() => saasListOrganizations()),
     saasPlans: vi.fn(async () => ({ ok: true, result: { plans: [] } })),
   },
 }));

@@ -127,7 +127,7 @@ function scorecardRow(
 }
 
 export function mapBuffettReport(
-  view: Omit<ResearchView, "buffett" | "ratings" | "transparency" | "explainability" | "valuationTransparency">,
+  view: Omit<ResearchView, "buffett" | "businessEducation" | "ratings" | "transparency" | "explainability" | "valuationTransparency">,
 ): BuffettReportView {
   const moat = view.moat;
   const mgmt = view.management;

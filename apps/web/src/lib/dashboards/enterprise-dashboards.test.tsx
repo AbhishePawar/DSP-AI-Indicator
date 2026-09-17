@@ -90,7 +90,7 @@ const enterpriseDashboard = vi.fn(async () => ({
 
 vi.mock("@/lib/api/client", () => ({
   api: {
-    enterpriseDashboard: (...args: unknown[]) => enterpriseDashboard(...args),
+    enterpriseDashboard: vi.fn(() => enterpriseDashboard()),
   },
 }));
 

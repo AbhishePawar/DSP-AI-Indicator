@@ -63,14 +63,10 @@ const researchWorkspaceListBookmarks = vi.fn(async () => ({
 
 vi.mock("@/lib/api/client", () => ({
   api: {
-    researchWorkspaceDashboard: (...args: unknown[]) =>
-      researchWorkspaceDashboard(...args),
-    researchWorkspaceListNotes: (...args: unknown[]) =>
-      researchWorkspaceListNotes(...args),
-    researchWorkspaceListFolders: (...args: unknown[]) =>
-      researchWorkspaceListFolders(...args),
-    researchWorkspaceListBookmarks: (...args: unknown[]) =>
-      researchWorkspaceListBookmarks(...args),
+    researchWorkspaceDashboard: vi.fn(() => researchWorkspaceDashboard()),
+    researchWorkspaceListNotes: vi.fn(() => researchWorkspaceListNotes()),
+    researchWorkspaceListFolders: vi.fn(() => researchWorkspaceListFolders()),
+    researchWorkspaceListBookmarks: vi.fn(() => researchWorkspaceListBookmarks()),
   },
 }));
 

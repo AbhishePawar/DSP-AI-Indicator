@@ -10,7 +10,7 @@ from dsp_platform.portfolio_intelligence.models import (
     PORTFOLIO_SERVICE_VERSION,
     LinkedHolding,
     PortfolioIntelligenceResult,
-    freeze_mapping,
+    freeze_mapping_or_empty,
 )
 from dsp_platform.portfolio_intelligence.validation import (
     PortfolioIntelligenceValidationError,
@@ -63,59 +63,56 @@ def portfolio_intelligence_from_dict(
     missing = tuple(data.get("missing_research") or ())
     citations = tuple(data.get("citations") or ())
     limitations = data.get("limitations") or ()
+
+    def mapping_field(name: str) -> Mapping[str, Any]:
+        value = data.get(name)
+        return value if isinstance(value, Mapping) else {}
+
     result = PortfolioIntelligenceResult(
         result_id=str(data.get("result_id") or ""),
         schema_version=str(data.get("schema_version") or PORTFOLIO_SCHEMA_VERSION),
         service_version=str(data.get("service_version") or PORTFOLIO_SERVICE_VERSION),
         created_at=str(data.get("created_at") or ""),
         portfolio=(
-            freeze_mapping(dict(data["portfolio"]))
+            freeze_mapping_or_empty(dict(data["portfolio"]))
             if isinstance(data.get("portfolio"), Mapping)
             else None
         ),
         watchlist=(
-            freeze_mapping(dict(data["watchlist"]))
+            freeze_mapping_or_empty(dict(data["watchlist"]))
             if isinstance(data.get("watchlist"), Mapping)
             else None
         ),
         linked_holdings=tuple(linked),
-        portfolio_summary=freeze_mapping(dict(data.get("portfolio_summary") or {}))
-        or freeze_mapping({}),
-        diversification_summary=freeze_mapping(
-            dict(data.get("diversification_summary") or {})
-        )
-        or freeze_mapping({}),
-        sector_allocation=freeze_mapping(dict(data.get("sector_allocation") or {}))
-        or freeze_mapping({}),
-        position_concentration=freeze_mapping(
-            dict(data.get("position_concentration") or {})
-        )
-        or freeze_mapping({}),
-        portfolio_risk_summary=freeze_mapping(
-            dict(data.get("portfolio_risk_summary") or {})
-        )
-        or freeze_mapping({}),
-        margin_of_safety_summary=freeze_mapping(
-            dict(data.get("margin_of_safety_summary") or {})
-        )
-        or freeze_mapping({}),
-        quality_summary=freeze_mapping(dict(data.get("quality_summary") or {}))
-        or freeze_mapping({}),
-        watchlist_summary=freeze_mapping(dict(data.get("watchlist_summary") or {}))
-        or freeze_mapping({}),
+        portfolio_summary=freeze_mapping_or_empty(mapping_field("portfolio_summary"))
+        or freeze_mapping_or_empty({}),
+        diversification_summary=freeze_mapping_or_empty(mapping_field("diversification_summary"))
+        or freeze_mapping_or_empty({}),
+        sector_allocation=freeze_mapping_or_empty(mapping_field("sector_allocation"))
+        or freeze_mapping_or_empty({}),
+        position_concentration=freeze_mapping_or_empty(mapping_field("position_concentration"))
+        or freeze_mapping_or_empty({}),
+        portfolio_risk_summary=freeze_mapping_or_empty(mapping_field("portfolio_risk_summary"))
+        or freeze_mapping_or_empty({}),
+        margin_of_safety_summary=freeze_mapping_or_empty(mapping_field("margin_of_safety_summary"))
+        or freeze_mapping_or_empty({}),
+        quality_summary=freeze_mapping_or_empty(mapping_field("quality_summary"))
+        or freeze_mapping_or_empty({}),
+        watchlist_summary=freeze_mapping_or_empty(mapping_field("watchlist_summary"))
+        or freeze_mapping_or_empty({}),
         missing_research=tuple(
-            freeze_mapping(dict(m)) or freeze_mapping({})
+            freeze_mapping_or_empty(dict(m)) or freeze_mapping_or_empty({})
             for m in missing
             if isinstance(m, Mapping)
         ),
         citations=tuple(
-            freeze_mapping(dict(c)) or freeze_mapping({})
+            freeze_mapping_or_empty(dict(c)) or freeze_mapping_or_empty({})
             for c in citations
             if isinstance(c, Mapping)
         ),
-        provenance=freeze_mapping(dict(data.get("provenance") or {}))
-        or freeze_mapping({}),
-        audit=freeze_mapping(dict(data.get("audit") or {})) or freeze_mapping({}),
+        provenance=freeze_mapping_or_empty(dict(data.get("provenance") or {}))
+        or freeze_mapping_or_empty({}),
+        audit=freeze_mapping_or_empty(dict(data.get("audit") or {})) or freeze_mapping_or_empty({}),
         limitations=(
             tuple(limitations) if isinstance(limitations, (list, tuple)) else ()
         ),

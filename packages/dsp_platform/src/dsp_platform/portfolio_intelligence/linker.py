@@ -132,24 +132,24 @@ def _index_by_symbol(
             if isinstance(value, Mapping) and (
                 "metadata" in value or "identity" in value or "version" in value
             ):
-                sym = str(key).strip().upper()
-                out[sym] = to_plain_jsonable(value)
+                symbol = str(key).strip().upper()
+                out[symbol] = to_plain_jsonable(value)
             elif key in prefer_keys:
                 # single document keyed oddly — ignore
                 continue
         # If mapping looks like a single research object
         if not out and ("metadata" in items or "identity" in items):
-            sym = _symbol_from_doc(items)
-            if sym:
-                out[sym] = to_plain_jsonable(items)
+            doc_symbol = _symbol_from_doc(items)
+            if doc_symbol:
+                out[doc_symbol] = to_plain_jsonable(items)
         return out
     if isinstance(items, list):
         for value in items:
             if not isinstance(value, Mapping):
                 continue
-            sym = _symbol_from_doc(value)
-            if sym:
-                out[sym] = to_plain_jsonable(value)
+            doc_symbol = _symbol_from_doc(value)
+            if doc_symbol:
+                out[doc_symbol] = to_plain_jsonable(value)
     return out
 
 

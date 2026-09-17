@@ -67,9 +67,7 @@ def export_artifact_from_dict(data: Mapping[str, Any]) -> ExportArtifact:
         correlation_id=meta_raw.get("correlation_id"),
         ticker=meta_raw.get("ticker"),
         provenance=(
-            freeze_mapping(dict(provenance))
-            if isinstance(provenance, Mapping)
-            else freeze_mapping({})
+            freeze_mapping(dict(provenance)) if isinstance(provenance, Mapping) else freeze_mapping({})
         ),
     )
 

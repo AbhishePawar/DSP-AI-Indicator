@@ -36,7 +36,7 @@ def source_evidence_from_trace(trace: Mapping[str, Any] | None) -> dict[str, Any
     stmt = dict(trace.get("statement_provenance") or {})
     quote = dict(trace.get("quote_provenance") or {})
     authenticated = bool(trace.get("authenticated"))
-    return redact_secrets(
+    return dict(redact_secrets(
         {
             "authenticated": authenticated,
             "status": "authenticated" if authenticated else "unavailable",
@@ -47,26 +47,16 @@ def source_evidence_from_trace(trace: Mapping[str, Any] | None) -> dict[str, Any
             "unit_scale": trace.get("unit_scale"),
             "current_market_price": trace.get("current_market_price"),
             "shares_outstanding": trace.get("shares_outstanding"),
-            "statement_provider": (
-                stmt.get("provider_id")
-                or stmt.get("provider_name")
-                or stmt.get("provider")
-                or stmt.get("source")
-            ),
+            "statement_provider": stmt.get("provider_id") or stmt.get("provider_name") or stmt.get("provider") or stmt.get("source"),
             "statement_source_type": stmt.get("source_type") or stmt.get("kind"),
             "statement_retrieved_at": stmt.get("retrieved_at") or stmt.get("as_of"),
-            "quote_provider": (
-                quote.get("provider_id")
-                or quote.get("provider_name")
-                or quote.get("provider")
-                or quote.get("source")
-            ),
+            "quote_provider": quote.get("provider_id") or quote.get("provider_name") or quote.get("provider") or quote.get("source"),
             "quote_source_type": quote.get("source_type") or quote.get("kind"),
             "quote_retrieved_at": quote.get("retrieved_at") or quote.get("as_of"),
             "statement_provenance": stmt,
             "quote_provenance": quote,
         }
-    )
+    ))
 
 
 def build_investment_provenance(

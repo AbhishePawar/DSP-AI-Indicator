@@ -19,7 +19,7 @@ from dsp_platform.research_monitoring.models import (
     MonitoringAlert,
     MonitoringEvaluateResult,
     SnapshotTrack,
-    freeze_mapping,
+    freeze_mapping_or_empty,
     utc_now,
 )
 from dsp_platform.research_monitoring.registry import get_monitoring_registry
@@ -119,7 +119,7 @@ class ResearchMonitoringService:
                         alert_type="snapshot_missing",
                         message=UNAVAILABLE_MESSAGE,
                         citations=(
-                            freeze_mapping(
+                            freeze_mapping_or_empty(
                                 {
                                     "symbol": subject,
                                     "source_kind": "research_archive",
@@ -133,10 +133,10 @@ class ResearchMonitoringService:
                         ),
                         baseline_snapshot_id=baseline_id,
                         current_snapshot_id=current_id,
-                        provenance=freeze_mapping(
+                        provenance=freeze_mapping_or_empty(
                             {"source": "research_monitoring", "via": "snapshot_tracker"}
                         )
-                        or freeze_mapping({}),
+                        or freeze_mapping_or_empty({}),
                     )
                 )
                 continue
@@ -159,7 +159,7 @@ class ResearchMonitoringService:
                         alert_type="snapshot_not_found",
                         message=UNAVAILABLE_MESSAGE,
                         citations=(
-                            freeze_mapping(
+                            freeze_mapping_or_empty(
                                 {
                                     "symbol": subject,
                                     "source_kind": "research_archive",
@@ -173,10 +173,10 @@ class ResearchMonitoringService:
                         ),
                         baseline_snapshot_id=baseline_id,
                         current_snapshot_id=current_id,
-                        provenance=freeze_mapping(
+                        provenance=freeze_mapping_or_empty(
                             {"source": "research_monitoring", "via": "research_archive"}
                         )
-                        or freeze_mapping({}),
+                        or freeze_mapping_or_empty({}),
                     )
                 )
                 continue
@@ -190,7 +190,7 @@ class ResearchMonitoringService:
                         alert_type="diff_unavailable",
                         message=UNAVAILABLE_MESSAGE,
                         citations=(
-                            freeze_mapping(
+                            freeze_mapping_or_empty(
                                 {
                                     "symbol": subject,
                                     "source_kind": "research_diff",
@@ -205,10 +205,10 @@ class ResearchMonitoringService:
                         ),
                         baseline_snapshot_id=baseline_id,
                         current_snapshot_id=current_id,
-                        provenance=freeze_mapping(
+                        provenance=freeze_mapping_or_empty(
                             {"source": "research_monitoring", "via": "research_diff"}
                         )
-                        or freeze_mapping({}),
+                        or freeze_mapping_or_empty({}),
                     )
                 )
                 continue
@@ -281,12 +281,12 @@ class ResearchMonitoringService:
             schema_version=MONITORING_SCHEMA_VERSION,
             service_version=MONITORING_SERVICE_VERSION,
             created_at=created,
-            watchlist=freeze_mapping(watchlist) or freeze_mapping({}),
-            portfolios=freeze_mapping(portfolios) or freeze_mapping({}),
+            watchlist=freeze_mapping_or_empty(watchlist) or freeze_mapping_or_empty({}),
+            portfolios=freeze_mapping_or_empty(portfolios) or freeze_mapping_or_empty({}),
             tracks=tracks_sorted,
             alerts=alerts_sorted,
-            provenance=freeze_mapping(provenance) or freeze_mapping({}),
-            audit=freeze_mapping(audit) or freeze_mapping({}),
+            provenance=freeze_mapping_or_empty(provenance) or freeze_mapping_or_empty({}),
+            audit=freeze_mapping_or_empty(audit) or freeze_mapping_or_empty({}),
             limitations=limitations,
         )
         validate_monitoring_result(result)

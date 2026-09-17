@@ -105,7 +105,7 @@ def get_authenticated_filings(
     outcome = _group().call(query, symbol=instrument.symbol)
     if outcome is None:
         return None
-    payload = outcome.result.to_public_dict()
+    payload: dict[str, Any] = dict(outcome.result.to_public_dict())
     payload["attempted_provider_ids"] = list(outcome.attempted_provider_ids)
     return payload
 

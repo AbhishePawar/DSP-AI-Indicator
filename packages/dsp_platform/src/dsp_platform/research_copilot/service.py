@@ -16,7 +16,7 @@ from dsp_platform.research_copilot.models import (
     COPILOT_SCHEMA_VERSION,
     COPILOT_SERVICE_VERSION,
     CopilotResponse,
-    freeze_mapping,
+    freeze_mapping_or_empty,
     utc_now,
 )
 from dsp_platform.research_copilot.prompt import build_prompt
@@ -96,15 +96,15 @@ class ResearchCopilotService:
             service_version=COPILOT_SERVICE_VERSION,
             created_at=created,
             conversation_id=cid,
-            question=freeze_mapping(processed.to_dict()) or freeze_mapping({}),
+            question=freeze_mapping_or_empty(processed.to_dict()) or freeze_mapping_or_empty({}),
             answer=answer,
             citations=citations,
             unavailable=unavailable,
-            prompt=freeze_mapping(prompt) or freeze_mapping({}),
-            context_refs=freeze_mapping(dict(context.source_refs))
-            or freeze_mapping({}),
-            provenance=freeze_mapping(provenance) or freeze_mapping({}),
-            audit=freeze_mapping(audit) or freeze_mapping({}),
+            prompt=freeze_mapping_or_empty(prompt) or freeze_mapping_or_empty({}),
+            context_refs=freeze_mapping_or_empty(dict(context.source_refs))
+            or freeze_mapping_or_empty({}),
+            provenance=freeze_mapping_or_empty(provenance) or freeze_mapping_or_empty({}),
+            audit=freeze_mapping_or_empty(audit) or freeze_mapping_or_empty({}),
             limitations=limitations,
         )
         validate_copilot_response(response)

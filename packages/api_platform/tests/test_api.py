@@ -2,10 +2,13 @@
 
 from __future__ import annotations
 
-from datetime import UTC, date, datetime
+from datetime import UTC, datetime
 from typing import Any
 
 import pytest
+from auth_test_helpers import bearer_headers, register_user
+from fastapi.testclient import TestClient
+
 from ai_committee import (
     CommitteeReport,
     Decision,
@@ -13,22 +16,19 @@ from ai_committee import (
     MemberVote,
     Opinion,
 )
-from contracts import EngineSource, Evidence
-from decision_intelligence import DecisionIntelligenceService, DecisionPack
-from fastapi.testclient import TestClient
-from recommendation import RecommendationMapper
-
 from api_platform import __version__, create_app
-from auth_test_helpers import bearer_headers, register_user
+from contracts import EngineSource, Evidence
 from contracts.domain.instrument import Instrument
 from contracts.domain.recommendation import Recommendation
 from contracts.enums import AssetClass, RecommendationAction
+from decision_intelligence import DecisionIntelligenceService, DecisionPack
 from dsp_platform import (
     AnalysisRequest,
     DSPPlatform,
     PlatformBuilder,
     PlatformConfiguration,
 )
+from recommendation import RecommendationMapper
 
 FIXED_NOW = datetime(2024, 6, 15, 12, 0, 0, tzinfo=UTC)
 
@@ -143,7 +143,7 @@ class TestVersionAndOpenAPI:
         response = client.get("/openapi.json")
         assert response.status_code == 200
         data = response.json()
-        assert data["info"]["version"] == "0.3.0"
+        assert data["info"]["version"] == "1.0.0"
         paths = data["paths"]
         assert "/health" in paths
         assert "/platform" in paths
@@ -180,7 +180,7 @@ class TestHealthAndPlatform:
         response = client.get("/platform")
         assert response.status_code == 200
         body = response.json()
-        assert body["version"] == "1.0.0"
+        assert body["version"] == "0.7.1"
         assert "analyze_company" in body["capabilities"]
         assert "compose_intelligence" in body["capabilities"]
 
@@ -234,41 +234,55 @@ class TestAnalyzeAndReport:
 
 
 class TestCompareWorkflowCopilot:
+    @staticmethod
+    def _headers(client: TestClient, username: str) -> dict[str, str]:
+        register_user(client, user_id=f"{username}-id", username=username)
+        return bearer_headers(client, username=username)
+
     def test_compare_requires_two_report_ids(self, client: TestClient) -> None:
-        response = client.post("/compare", json={"report_ids": []})
+        headers = self._headers(client, "compare-validation")
+        response = client.post("/compare", headers=headers, json={"report_ids": []})
         assert response.status_code == 422
 
-        response = client.post("/compare", json={"report_ids": ["only-one"]})
-        assert response.status_code == 422
-
-    def test_compare_unknown_report_id(self, client: TestClient) -> None:
         response = client.post(
-            "/compare", json={"report_ids": ["missing-a", "missing-b"]}
+            "/compare", headers=headers, json={"report_ids": ["only-one"]}
         )
         assert response.status_code == 422
 
-    def test_compare_rejects_non_decision_pack_report(
-        self, client: TestClient
-    ) -> None:
+    def test_compare_unknown_report_id(self, client: TestClient) -> None:
+        headers = self._headers(client, "compare-missing")
+        response = client.post(
+            "/compare", headers=headers, json={"report_ids": ["missing-a", "missing-b"]}
+        )
+        assert response.status_code == 422
+
+    def test_compare_rejects_non_decision_pack_report(self, client: TestClient) -> None:
         state = client.app.state.api  # type: ignore[attr-defined]
         state.reports.put("rpt-not-a-pack", {"payload": {"not": "a pack"}})
         state.reports.put("rpt-also-not", {"payload": None})
+        headers = self._headers(client, "compare-invalid-pack")
         response = client.post(
             "/compare",
+            headers=headers,
             json={"report_ids": ["rpt-not-a-pack", "rpt-also-not"]},
         )
         assert response.status_code == 422
 
     def test_compare_end_to_end(self, client: TestClient) -> None:
+        headers = self._headers(client, "compare-e2e")
+        actor_id = "compare-e2e-id"
         state = client.app.state.api  # type: ignore[attr-defined]
         state.reports.put(
-            "rpt-hdfcbank", {"payload": make_decision_pack("HDFCBANK")}
+            "rpt-hdfcbank",
+            {"owner_user_id": actor_id, "payload": make_decision_pack("HDFCBANK")},
         )
         state.reports.put(
-            "rpt-icicibank", {"payload": make_decision_pack("ICICIBANK")}
+            "rpt-icicibank",
+            {"owner_user_id": actor_id, "payload": make_decision_pack("ICICIBANK")},
         )
         response = client.post(
             "/compare",
+            headers=headers,
             json={"report_ids": ["rpt-hdfcbank", "rpt-icicibank"]},
         )
         assert response.status_code == 200
@@ -284,14 +298,21 @@ class TestCompareWorkflowCopilot:
         assert payload["report"]["excluded_symbols"] == []
         assert payload["report"]["pair_observations"]
 
-    def test_compare_refuses_incompatible_industries(
-        self, client: TestClient
-    ) -> None:
+    def test_compare_refuses_incompatible_industries(self, client: TestClient) -> None:
+        headers = self._headers(client, "compare-industries")
+        actor_id = "compare-industries-id"
         state = client.app.state.api  # type: ignore[attr-defined]
-        state.reports.put("rpt-bank2", {"payload": make_decision_pack("HDFCBANK")})
-        state.reports.put("rpt-software2", {"payload": make_decision_pack("TCS")})
+        state.reports.put(
+            "rpt-bank2",
+            {"owner_user_id": actor_id, "payload": make_decision_pack("HDFCBANK")},
+        )
+        state.reports.put(
+            "rpt-software2",
+            {"owner_user_id": actor_id, "payload": make_decision_pack("TCS")},
+        )
         response = client.post(
             "/compare",
+            headers=headers,
             json={"report_ids": ["rpt-bank2", "rpt-software2"]},
         )
         assert response.status_code == 200
@@ -305,9 +326,7 @@ class TestCompareWorkflowCopilot:
         assert response.status_code == 422
 
     def test_workflow_missing_context(self, client: TestClient) -> None:
-        response = client.post(
-            "/workflow/run", json={"context_ref": "missing"}
-        )
+        response = client.post("/workflow/run", json={"context_ref": "missing"})
         assert response.status_code == 404
 
     def test_copilot_chat_accepts_freeform_without_context_ref(
@@ -321,20 +340,16 @@ class TestCompareWorkflowCopilot:
         assert body["result"]["unavailable"] is True
 
 
-
 class TestAuthLogin:
     def test_login_requires_security(self, client: TestClient) -> None:
         response = client.post("/auth/login", json={"username": "admin"})
         assert response.status_code == 503
 
     def test_login_issues_jwt(self) -> None:
+        from api_platform import create_app
         from security_platform import SecurityBundle, SecuritySettings
 
-        from api_platform import create_app
-
-        bundle = SecurityBundle.create(
-            SecuritySettings(jwt_secret="web-login-secret")
-        )
+        bundle = SecurityBundle.create(SecuritySettings(jwt_secret="web-login-secret"))
         secured = TestClient(create_app(security=bundle))
         response = secured.post("/api/v1/auth/login", json={"username": "admin"})
         assert response.status_code == 200
@@ -348,9 +363,9 @@ class TestAuthLogin:
         from pathlib import Path
 
         data = tomllib.loads(
-            (
-                Path(__file__).resolve().parents[1] / "pyproject.toml"
-            ).read_text(encoding="utf-8")
+            (Path(__file__).resolve().parents[1] / "pyproject.toml").read_text(
+                encoding="utf-8"
+            )
         )
         deps = data["project"]["dependencies"]
         assert any(d.startswith("dsp_platform") for d in deps)

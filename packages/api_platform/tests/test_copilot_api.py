@@ -73,4 +73,4 @@ def test_copilot_providers_discovery() -> None:
     assert response.status_code == 200
     data = response.json()
     assert data["active_provider"] == "deterministic"
-    assert len(data["providers"]) == 3
+    assert len(data["providers"]) == 4

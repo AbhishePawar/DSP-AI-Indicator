@@ -8,7 +8,6 @@ from fastapi.testclient import TestClient
 from api_platform import __version__, create_app
 from dsp_platform import (
     COMPOSITION_PIPELINE_VERSION,
-    DSPPlatform,
     PlatformBuilder,
     PlatformConfiguration,
 )
@@ -96,7 +95,7 @@ class TestVersionHealthCapabilities:
         assert response.status_code == 200
         body = response.json()
         assert body["pipeline_version"] == COMPOSITION_PIPELINE_VERSION
-        assert body["platform_version"] == "1.0.0"
+        assert body["platform_version"] == "0.7.1"
         assert any(c["name"] == "composition_pipeline" for c in body["checks"])
 
     def test_version_endpoint(self, client: TestClient) -> None:
@@ -105,7 +104,7 @@ class TestVersionHealthCapabilities:
         body = response.json()
         assert body["api_version"] == "v1"
         assert body["api_package_version"] == "0.3.0"
-        assert body["platform_version"] == "1.0.0"
+        assert body["platform_version"] == "0.7.1"
         assert body["pipeline_version"] == COMPOSITION_PIPELINE_VERSION
         assert body["docs_version"] == "1.3.32"
         assert "financial" in body["package_versions"]
@@ -134,7 +133,9 @@ class TestValidate:
         assert response.status_code == 200
         body = response.json()
         assert body["valid"] is False
-        assert any("valuation" in e or "current_market_price" in e for e in body["errors"])
+        assert any(
+            "valuation" in e or "current_market_price" in e for e in body["errors"]
+        )
 
     def test_validate_rejects_client_intrinsic_value(self, client: TestClient) -> None:
         payload = _analyse_body(
@@ -237,4 +238,4 @@ class TestOpenAPIComposition:
         assert "/api/v1/validate" in paths or "/validate" in paths
         assert "/api/v1/version" in paths or "/version" in paths
         assert "/api/v1/capabilities" in paths or "/capabilities" in paths
-        assert data["info"]["version"] == "0.3.0"
+        assert data["info"]["version"] == "1.0.0"

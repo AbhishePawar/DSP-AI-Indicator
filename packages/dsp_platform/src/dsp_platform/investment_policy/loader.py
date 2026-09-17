@@ -10,7 +10,7 @@ from dsp_platform.investment_policy.models import (
     InvestmentPolicy,
     PolicyException,
     PolicyRule,
-    freeze_mapping,
+    freeze_mapping_or_empty,
 )
 
 __all__ = [
@@ -31,66 +31,66 @@ def default_institutional_policy() -> InvestmentPolicy:
             kind="require_source_present",
             severity="violation",
             description="Research Object must be supplied.",
-            params=freeze_mapping({"source": "research_object"}) or freeze_mapping({}),
+            params=freeze_mapping_or_empty({"source": "research_object"}) or freeze_mapping_or_empty({}),
         ),
         PolicyRule(
             rule_id="REQ-MOS-AVAILABLE",
             kind="require_section_available",
             severity="violation",
             description="margin_of_safety section must be available on Research Object.",
-            params=freeze_mapping({"section": "margin_of_safety"})
-            or freeze_mapping({}),
+            params=freeze_mapping_or_empty({"section": "margin_of_safety"})
+            or freeze_mapping_or_empty({}),
         ),
         PolicyRule(
             rule_id="REQ-QUALITY-AVAILABLE",
             kind="require_section_available",
             severity="warning",
             description="business_quality section should be available.",
-            params=freeze_mapping({"section": "business_quality"})
-            or freeze_mapping({}),
+            params=freeze_mapping_or_empty({"section": "business_quality"})
+            or freeze_mapping_or_empty({}),
         ),
         PolicyRule(
             rule_id="REQ-RISK-AVAILABLE",
             kind="require_section_available",
             severity="warning",
             description="risk section should be available.",
-            params=freeze_mapping({"section": "risk"}) or freeze_mapping({}),
+            params=freeze_mapping_or_empty({"section": "risk"}) or freeze_mapping_or_empty({}),
         ),
         PolicyRule(
             rule_id="REQ-REPORT-PRESENT",
             kind="require_report_present",
             severity="warning",
             description="Institutional Report should be supplied.",
-            params=freeze_mapping({}) or freeze_mapping({}),
+            params=freeze_mapping_or_empty({}) or freeze_mapping_or_empty({}),
         ),
         PolicyRule(
             rule_id="REQ-COMMITTEE-USABLE",
             kind="forbid_committee_stance",
             severity="violation",
             description="Committee consensus must not be unavailable.",
-            params=freeze_mapping({"stances": ["unavailable"]}) or freeze_mapping({}),
+            params=freeze_mapping_or_empty({"stances": ["unavailable"]}) or freeze_mapping_or_empty({}),
         ),
         PolicyRule(
             rule_id="FORBID-MISSING-RESEARCH",
             kind="forbid_missing_research",
             severity="violation",
             description="Portfolio Intelligence must not list missing research links.",
-            params=freeze_mapping({}) or freeze_mapping({}),
+            params=freeze_mapping_or_empty({}) or freeze_mapping_or_empty({}),
         ),
         PolicyRule(
             rule_id="FORBID-IMPORTANT-ALERTS",
             kind="forbid_alert_severity",
             severity="warning",
             description="Monitoring must not include important/unavailable alerts.",
-            params=freeze_mapping({"severities": ["important", "unavailable"]})
-            or freeze_mapping({}),
+            params=freeze_mapping_or_empty({"severities": ["important", "unavailable"]})
+            or freeze_mapping_or_empty({}),
         ),
         PolicyRule(
             rule_id="REQ-DIFF-IDENTICAL",
             kind="require_diff_identical",
             severity="warning",
             description="Supplied research diffs should report identical_content.",
-            params=freeze_mapping({}) or freeze_mapping({}),
+            params=freeze_mapping_or_empty({}) or freeze_mapping_or_empty({}),
         ),
     )
     return InvestmentPolicy(
@@ -99,14 +99,14 @@ def default_institutional_policy() -> InvestmentPolicy:
         version="1.0.0",
         rules=rules,
         exceptions=(),
-        metadata=freeze_mapping(
+        metadata=freeze_mapping_or_empty(
             {
                 "read_only": True,
                 "no_calculations": True,
                 "no_scoring": True,
             }
         )
-        or freeze_mapping({}),
+        or freeze_mapping_or_empty({}),
     )
 
 
@@ -146,8 +146,8 @@ def load_investment_policy(
                     kind=kind,
                     severity=severity,
                     description=str(row.get("description") or rule_id),
-                    params=freeze_mapping(dict(row.get("params") or {}))
-                    or freeze_mapping({}),
+                    params=freeze_mapping_or_empty(dict(row.get("params") or {}))
+                    or freeze_mapping_or_empty({}),
                     enabled=bool(row.get("enabled", True)),
                 )
             )
@@ -186,5 +186,5 @@ def load_investment_policy(
         version=str(data.get("version") or "1.0.0"),
         rules=rules_sorted,
         exceptions=excs_sorted,
-        metadata=freeze_mapping(dict(data.get("metadata") or {})) or freeze_mapping({}),
+        metadata=freeze_mapping_or_empty(dict(data.get("metadata") or {})) or freeze_mapping_or_empty({}),
     )

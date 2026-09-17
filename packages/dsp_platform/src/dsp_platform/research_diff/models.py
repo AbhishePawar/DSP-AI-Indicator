@@ -10,7 +10,11 @@ from dataclasses import dataclass
 from datetime import UTC, datetime
 from typing import Any
 
-from dsp_platform.research_object.models import UNAVAILABLE_MESSAGE, freeze_mapping
+from dsp_platform.research_object.models import (
+    UNAVAILABLE_MESSAGE,
+    freeze_mapping,
+    freeze_mapping_or_empty,
+)
 
 __all__ = [
     "DIFF_SCHEMA_VERSION",
@@ -21,6 +25,7 @@ __all__ = [
     "ResearchDiffResult",
     "SectionDiff",
     "freeze_mapping",
+    "freeze_mapping_or_empty",
     "utc_now",
 ]
 

@@ -21,6 +21,7 @@ __all__ = [
     "ResearchVersion",
     "UNAVAILABLE_MESSAGE",
     "freeze_mapping",
+    "freeze_mapping_or_empty",
     "utc_now",
 ]
 
@@ -65,6 +66,11 @@ def freeze_mapping(value: Mapping[str, Any] | None) -> Mapping[str, Any] | None:
         return obj
 
     return cast(Mapping[str, Any], _freeze(value))
+
+
+def freeze_mapping_or_empty(value: Mapping[str, Any] | None) -> Mapping[str, Any]:
+    """Freeze a mapping and normalize a missing value to an empty mapping."""
+    return freeze_mapping(value) or {}
 
 
 @dataclass(frozen=True, slots=True)

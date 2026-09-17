@@ -7,7 +7,7 @@ from typing import Any
 
 from dsp_platform.institutional_workflow.models import (
     UNAVAILABLE_MESSAGE,
-    freeze_mapping,
+    freeze_mapping_or_empty,
 )
 
 __all__ = ["build_workflow_citations", "citation"]
@@ -36,7 +36,7 @@ def citation(
         row["ref_id"] = ref_id
     if not available:
         row["message"] = UNAVAILABLE_MESSAGE
-    return freeze_mapping(row) or freeze_mapping({})
+    return freeze_mapping_or_empty(row)
 
 
 def build_workflow_citations(

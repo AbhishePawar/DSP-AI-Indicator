@@ -5,7 +5,7 @@ from __future__ import annotations
 from collections.abc import Mapping
 from typing import Any
 
-from dsp_platform.investment_policy.models import UNAVAILABLE_MESSAGE, freeze_mapping
+from dsp_platform.investment_policy.models import UNAVAILABLE_MESSAGE, freeze_mapping_or_empty
 
 __all__ = ["build_policy_citations", "citation"]
 
@@ -36,7 +36,7 @@ def citation(
         row["ref_id"] = ref_id
     if not available:
         row["message"] = UNAVAILABLE_MESSAGE
-    return freeze_mapping(row) or freeze_mapping({})
+    return freeze_mapping_or_empty(row)
 
 
 def build_policy_citations(

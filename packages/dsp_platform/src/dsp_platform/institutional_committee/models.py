@@ -7,7 +7,11 @@ from dataclasses import dataclass, field
 from datetime import UTC, datetime
 from typing import Any
 
-from dsp_platform.research_object.models import UNAVAILABLE_MESSAGE, freeze_mapping
+from dsp_platform.research_object.models import (
+    UNAVAILABLE_MESSAGE,
+    freeze_mapping,
+    freeze_mapping_or_empty,
+)
 
 __all__ = [
     "AGENT_IDS",
@@ -20,6 +24,7 @@ __all__ = [
     "CommitteeReport",
     "CommitteeContext",
     "freeze_mapping",
+    "freeze_mapping_or_empty",
     "utc_now",
 ]
 

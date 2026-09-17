@@ -5,7 +5,7 @@ from __future__ import annotations
 from collections.abc import Mapping
 from typing import Any
 
-from dsp_platform.institutional_committee.models import AgentReview, freeze_mapping
+from dsp_platform.institutional_committee.models import AgentReview, freeze_mapping_or_empty
 
 __all__ = ["build_consensus", "build_minority_opinions", "build_committee_summary"]
 
@@ -40,7 +40,7 @@ def build_consensus(reviews: tuple[AgentReview, ...]) -> Mapping[str, Any]:
         conf = "unavailable"
 
     agreeing = [r.agent_id for r in reviews if r.stance == stance]
-    return freeze_mapping(
+    return freeze_mapping_or_empty(
         {
             "stance": stance,
             "confidence": conf,
@@ -49,7 +49,7 @@ def build_consensus(reviews: tuple[AgentReview, ...]) -> Mapping[str, Any]:
             "usable_agent_count": len(usable),
             "total_agent_count": len(reviews),
         }
-    ) or freeze_mapping({})
+    ) or freeze_mapping_or_empty({})
 
 
 def build_minority_opinions(
@@ -64,7 +64,7 @@ def build_minority_opinions(
         if review.stance == "unavailable" and stance == "unavailable":
             continue
         minorities.append(
-            freeze_mapping(
+            freeze_mapping_or_empty(
                 {
                     "agent_id": review.agent_id,
                     "agent_name": review.agent_name,
@@ -74,7 +74,7 @@ def build_minority_opinions(
                     "findings": list(review.findings),
                 }
             )
-            or freeze_mapping({})
+            or freeze_mapping_or_empty({})
         )
     minorities.sort(key=lambda m: str(m.get("agent_id") or ""))
     return tuple(minorities)
@@ -87,7 +87,7 @@ def build_committee_summary(
     consensus: Mapping[str, Any],
     minority_opinions: tuple[Mapping[str, Any], ...],
 ) -> Mapping[str, Any]:
-    return freeze_mapping(
+    return freeze_mapping_or_empty(
         {
             "subject": subject,
             "consensus_stance": consensus.get("stance"),
@@ -106,4 +106,4 @@ def build_committee_summary(
                 "no recommendations or new research."
             ),
         }
-    ) or freeze_mapping({})
+    ) or freeze_mapping_or_empty({})

@@ -11,7 +11,7 @@ from dsp_platform.decision_workspace.models import (
     TimelineEvent,
     WorkspacePanel,
     WorkspaceResult,
-    freeze_mapping,
+    freeze_mapping_or_empty,
 )
 from dsp_platform.decision_workspace.validation import (
     DecisionWorkspaceValidationError,
@@ -38,7 +38,7 @@ def workspace_result_from_dict(data: Mapping[str, Any]) -> WorkspaceResult:
         if not isinstance(row, Mapping):
             continue
         citations = tuple(
-            freeze_mapping(dict(c)) or freeze_mapping({})
+            freeze_mapping_or_empty(dict(c)) or freeze_mapping_or_empty({})
             for c in (row.get("citations") or [])
             if isinstance(c, Mapping)
         )
@@ -48,11 +48,11 @@ def workspace_result_from_dict(data: Mapping[str, Any]) -> WorkspaceResult:
                 available=bool(row.get("available")),
                 status=str(row.get("status") or ""),
                 source_kind=str(row.get("source_kind") or ""),
-                summary=freeze_mapping(dict(row.get("summary") or {}))
-                or freeze_mapping({}),
+                summary=freeze_mapping_or_empty(dict(row.get("summary") or {}))
+                or freeze_mapping_or_empty({}),
                 citations=citations,
                 payload=(
-                    freeze_mapping(dict(row["payload"]))
+                    freeze_mapping_or_empty(dict(row["payload"]))
                     if isinstance(row.get("payload"), Mapping)
                     else None
                 ),
@@ -74,13 +74,13 @@ def workspace_result_from_dict(data: Mapping[str, Any]) -> WorkspaceResult:
                 available=bool(row.get("available")),
                 ref_id=row.get("ref_id"),
                 message=row.get("message"),
-                metadata=freeze_mapping(dict(row.get("metadata") or {}))
-                or freeze_mapping({}),
+                metadata=freeze_mapping_or_empty(dict(row.get("metadata") or {}))
+                or freeze_mapping_or_empty({}),
             )
         )
 
     citations = tuple(
-        freeze_mapping(dict(c)) or freeze_mapping({})
+        freeze_mapping_or_empty(dict(c)) or freeze_mapping_or_empty({})
         for c in (data.get("citations") or [])
         if isinstance(c, Mapping)
     )
@@ -95,9 +95,9 @@ def workspace_result_from_dict(data: Mapping[str, Any]) -> WorkspaceResult:
         panels=tuple(panels),
         timeline=tuple(timeline),
         citations=citations,
-        provenance=freeze_mapping(dict(data.get("provenance") or {}))
-        or freeze_mapping({}),
-        audit=freeze_mapping(dict(data.get("audit") or {})) or freeze_mapping({}),
+        provenance=freeze_mapping_or_empty(dict(data.get("provenance") or {}))
+        or freeze_mapping_or_empty({}),
+        audit=freeze_mapping_or_empty(dict(data.get("audit") or {})) or freeze_mapping_or_empty({}),
         limitations=(
             tuple(limitations) if isinstance(limitations, (list, tuple)) else ()
         ),

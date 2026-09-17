@@ -1,13 +1,17 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useEffect, useState, type ReactNode } from "react";
 
+import { Avatar, AvatarFallback, UserMenu } from "@/components/ds";
 import { useAuth } from "@/lib/auth/AuthProvider";
 
 export function ResearchShell({ children }: { children: ReactNode }) {
-  const { session } = useAuth();
+  const { session, user } = useAuth();
+  const router = useRouter();
   const [menuOpen, setMenuOpen] = useState(false);
+  const initials = (user?.displayName || "U").slice(0, 2).toUpperCase();
   const menuId = "research-navigation-mobile";
 
   useEffect(() => {
@@ -61,13 +65,21 @@ export function ResearchShell({ children }: { children: ReactNode }) {
             >
               Search
             </Link>
-            {session ? (
-              <Link
-                href="/logout"
-                className="rounded-[var(--radius-sm)] px-3 py-2 text-[var(--muted)] hover:bg-[var(--surface-2)] hover:text-[var(--fg)]"
-              >
-                Sign out
-              </Link>
+            {session && user ? (
+              <UserMenu
+                name={user.displayName}
+                email={user.email || undefined}
+                avatar={
+                  <Avatar className="size-7">
+                    <AvatarFallback className="text-[10px]">{initials}</AvatarFallback>
+                  </Avatar>
+                }
+                items={[
+                  { id: "profile", label: "Profile", onSelect: () => router.push("/profile") },
+                  { id: "settings", label: "Settings", onSelect: () => router.push("/settings") },
+                  { id: "logout", label: "Logout", destructive: true, onSelect: () => router.push("/logout") },
+                ]}
+              />
             ) : (
               <Link
                 href="/login"

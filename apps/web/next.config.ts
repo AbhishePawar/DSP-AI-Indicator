@@ -23,6 +23,8 @@ const nextConfig: NextConfig = {
   compress: true,
   productionBrowserSourceMaps: false,
   output: "standalone",
+  // The v0 preview iframe serves the app from a separate origin during development.
+  allowedDevOrigins: ["identify-gaps-list.v0.build"],
   // Pin tracing to this app. A leftover empty repo-root package-lock.json
   // otherwise makes Next infer the workspace root as the repository root,
   // emitting .next/standalone/apps/web/server.js instead of

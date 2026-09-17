@@ -138,10 +138,10 @@ class ResearchArchiveService:
             content_sha256=digest,
             archived_at=archived,
             ticker=ticker,
-            subject_ids=freeze_mapping(subject_ids) or freeze_mapping({}),
-            provenance=freeze_mapping(prov) or freeze_mapping({}),
-            payload=freeze_mapping(plain_payload) or freeze_mapping({}),
-            retention_hooks=freeze_mapping(retention_hooks) or freeze_mapping({}),
+            subject_ids=freeze_mapping(subject_ids) or {},
+            provenance=freeze_mapping(prov) or {},
+            payload=freeze_mapping(plain_payload) or {},
+            retention_hooks=freeze_mapping(retention_hooks) or {},
         )
         validate_archive_snapshot(snapshot)
         self._store.put_if_absent(snapshot)

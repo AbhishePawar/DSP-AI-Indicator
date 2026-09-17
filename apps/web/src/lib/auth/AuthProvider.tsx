@@ -26,6 +26,7 @@ import {
   sessionFromLoginPayload,
   sessionFromRbacLogin,
 } from "./sessionStore";
+import { cookieAuthPreferred, probeCookieSession } from "./cookieSession";
 import { clearRecentAnalyses } from "@/lib/analysis/recentAnalyses";
 import { clearMarketCache } from "@/lib/market/cache";
 import { clearMemoryUserData } from "@/lib/persistence/storage";
@@ -101,21 +102,37 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   );
 
   useEffect(() => {
-    const stored = readStoredSession();
-    if (!stored) {
-      setStatus("unauthenticated");
-      resetAuthStore();
-      return;
-    }
-    if (isSessionExpired(stored)) {
-      clearStoredSession();
-      setStatus("unauthenticated");
-      resetAuthStore();
-      return;
-    }
-    setSessionState(stored);
-    setStatus("authenticated");
-    syncStore("authenticated", stored);
+    let cancelled = false;
+
+    const restore = async () => {
+      if (cookieAuthPreferred()) {
+        const probe = await probeCookieSession();
+        if (cancelled) return;
+        if (!probe?.authenticated || !probe.cookie_auth) {
+          clearStoredSession();
+          setStatus("unauthenticated");
+          resetAuthStore();
+          return;
+        }
+      }
+
+      const stored = readStoredSession();
+      if (!stored || isSessionExpired(stored)) {
+        clearStoredSession();
+        setStatus("unauthenticated");
+        resetAuthStore();
+        return;
+      }
+      if (cancelled) return;
+      setSessionState(stored);
+      setStatus("authenticated");
+      syncStore("authenticated", stored);
+    };
+
+    void restore();
+    return () => {
+      cancelled = true;
+    };
   }, [resetAuthStore, syncStore]);
 
   useEffect(() => {

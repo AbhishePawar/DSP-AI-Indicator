@@ -245,7 +245,10 @@ async function request<T>(
     headers.set("Content-Type", "application/json");
   }
   const token = options.token;
-  if (token && token !== "__cookie__") {
+  const cookieMode =
+    process.env.NEXT_PUBLIC_COOKIE_AUTH !== "false" &&
+    process.env.NEXT_PUBLIC_COOKIE_AUTH !== "0";
+  if (!cookieMode && token && token !== "__cookie__") {
     headers.set("Authorization", `Bearer ${token}`);
   }
 
@@ -253,9 +256,6 @@ async function request<T>(
 
   let response: Response;
   try {
-    const cookieMode =
-      process.env.NEXT_PUBLIC_COOKIE_AUTH !== "false" &&
-      process.env.NEXT_PUBLIC_COOKIE_AUTH !== "0";
     let csrf: Record<string, string> = {};
     if (cookieMode && typeof window !== "undefined") {
       try {

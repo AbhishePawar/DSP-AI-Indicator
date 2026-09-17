@@ -214,6 +214,7 @@ export function CompanyAnalysisWorkspace() {
 
   const activeSection = useWorkspacePrefsStore((s) => s.activeSection);
   const setActiveSection = useWorkspacePrefsStore((s) => s.setActiveSection);
+  const searchParamsKey = searchParams.toString();
   const leftOpen = useWorkspacePrefsStore((s) => s.leftOpen);
   const rightOpen = useWorkspacePrefsStore((s) => s.rightOpen);
   const toggleLeft = useWorkspacePrefsStore((s) => s.toggleLeft);
@@ -228,7 +229,9 @@ export function CompanyAnalysisWorkspace() {
   const catalogue = useMemo(() => resolveCatalogue(symbol), [symbol]);
 
   useEffect(() => {
-    const next = (searchParams.get("symbol") || "").trim().toUpperCase();
+    const next = (
+      new URLSearchParams(searchParamsKey).get("symbol") || ""
+    ).trim().toUpperCase();
     setActiveSection("summary");
     setSymbol((prev) => {
       if (prev === next) return prev;
@@ -241,7 +244,7 @@ export function CompanyAnalysisWorkspace() {
       return next;
     });
     setQuery(next);
-  }, [searchParams, setActiveSection]);
+  }, [searchParamsKey, setActiveSection]);
 
   const selectSymbol = useCallback(
     (next: string) => {

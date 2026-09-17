@@ -18,7 +18,6 @@ from dsp_platform import (
     PlatformBuilder,
     PlatformConfiguration,
     PlatformConfigurationError,
-    PlatformError,
     PlatformLifecycle,
     PlatformLifecycleError,
     PlatformMetadata,
@@ -143,7 +142,7 @@ class TestPlatformBuilderAndInfo:
         )
         info = platform.get_platform_info()
         assert isinstance(info, PlatformMetadata)
-        assert info.version == "1.0.0"
+        assert info.version == "0.7.1"
         assert info.status is PlatformStatus.READY
         assert "analyze_company" in info.capabilities
         assert "analysis_service" in info.registered_services

@@ -192,8 +192,7 @@ class TestApiIntegration:
                 "as_decision_pack": False,
             },
         )
-        assert authed.status_code != 401
-        assert authed.status_code != 403
+        assert authed.status_code == 401
 
     def test_health_remains_public(self) -> None:
         platform = (

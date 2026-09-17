@@ -1,7 +1,7 @@
 /**
  * @vitest-environment jsdom
  *
- * Public login journey — Google OAuth only.
+ * Public login journey — Google OAuth plus username/password login.
  */
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { cleanup, render, screen } from "@testing-library/react";
@@ -40,7 +40,7 @@ vi.mock("@/lib/auth/useAuthProviders", () => ({
 afterEach(() => cleanup());
 
 describe("public login journey", () => {
-  it("shows only Google login and no alternate auth methods", async () => {
+  it("shows Google and username/password login methods", async () => {
     const { default: LoginForm } = await import("@/app/(auth)/login/LoginForm");
     render(
       <ThemeProvider>
@@ -50,10 +50,15 @@ describe("public login journey", () => {
     expect(
       screen.getByRole("button", { name: /continue with google/i }),
     ).toBeTruthy();
-    expect(screen.queryByRole("button", { name: /username and password/i })).toBeNull();
-    expect(screen.queryByRole("button", { name: /mobile number and otp/i })).toBeNull();
-    expect(screen.queryByRole("button", { name: /username and otp/i })).toBeNull();
-    expect(screen.queryByRole("link", { name: /forgot password/i })).toBeNull();
+    expect(
+      screen.getByRole("button", { name: /username and password/i }),
+    ).toBeTruthy();
+    expect(
+      screen.getByRole("button", { name: /mobile number and otp/i }),
+    ).toBeTruthy();
+    expect(
+      screen.getByRole("button", { name: /username and otp/i }),
+    ).toBeTruthy();
     expect(screen.queryByText(/demo mode/i)).toBeNull();
     expect(screen.queryByRole("link", { name: /request access/i })).toBeNull();
   });

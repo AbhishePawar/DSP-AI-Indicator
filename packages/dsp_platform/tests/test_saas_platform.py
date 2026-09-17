@@ -49,7 +49,8 @@ def test_create_org_and_subscription() -> None:
     assert org["preferences"]["timezone"] == "UTC"
 
     sub = run_saas_platform(
-        "get_subscription", payload={"org_id": org_id}
+        "get_subscription",
+        payload={"org_id": org_id, "actor_user_id": "user-owner"}
     )
     assert sub["ok"] is True
     assert sub["result"]["subscription"]["plan_id"] == "professional"
@@ -179,7 +180,11 @@ def test_checkout_never_fakes_payment() -> None:
     org_id = created["result"]["organization"]["org_id"]
     checkout = run_saas_platform(
         "checkout",
-        payload={"org_id": org_id, "plan_id": "professional"},
+        payload={
+            "org_id": org_id,
+            "plan_id": "professional",
+            "actor_user_id": "owner-5",
+        },
     )
     assert checkout["ok"] is True
     result = checkout["result"]
@@ -190,7 +195,9 @@ def test_checkout_never_fakes_payment() -> None:
 
 
 def test_admin_dashboard_honest_revenue() -> None:
-    dash = run_saas_platform("dashboard")
+    dash = run_saas_platform(
+        "dashboard", payload={"actor_user_id": "admin-user"}
+    )
     assert dash["ok"] is True
     revenue = dash["result"]["revenue"]
     assert revenue["available"] is False

@@ -120,6 +120,25 @@ PLATFORM_PACKAGES: frozenset[str] = frozenset(
 #: Shared-kernel submodule prefixes still accepted as public surface.
 #: Prefer top-level ``from contracts import …`` / ``from core import …``;
 #: these prefixes remain allowed to avoid a bulk mechanical rewrite.
+_ALLOWED_CANONICAL_DEEP_IMPORTS: frozenset[str] = frozenset(
+    {
+        # Composition-root adapters intentionally bind concrete provider ports.
+        "data_engine.connector_framework.production_profile",
+        "data_engine.financial_statement.models",
+        "data_engine.financial_statement.service",
+        "data_engine.market_quote.models",
+        "data_engine.market_quote.service",
+        "financial.metadata",
+        "financial.intelligence.quality_signals",
+        # API composition wiring consumes stable DSP platform sub-facades.
+        "dsp_platform.production_ops",
+        "dsp_platform.investment_provenance",
+        "dsp_platform.research_report.models",
+        "dsp_platform.research_intelligence",
+        "dsp_platform.saas_platform.store",
+    }
+)
+
 _ALLOWED_SHARED_KERNEL_PREFIXES: frozenset[str] = frozenset(
     {
         "contracts.domain",
@@ -221,6 +240,11 @@ def scan_cross_package_deep_imports(
             if top == current_package:
                 continue
             if top not in PLATFORM_PACKAGES:
+                continue
+            if any(
+                module == prefix or module.startswith(f"{prefix}.")
+                for prefix in _ALLOWED_CANONICAL_DEEP_IMPORTS
+            ):
                 continue
             if any(
                 module == prefix or module.startswith(f"{prefix}.")

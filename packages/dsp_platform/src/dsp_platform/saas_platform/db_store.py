@@ -58,6 +58,7 @@ class DatabaseSaasOverlayStore(SaasOverlayStore):
             "billing_profiles": dict(self._billing_profiles),
             "coupons": dict(self._coupons),
             "license_keys": dict(self._license_keys),
+            "billing_events": dict(self._billing_events),
         }
 
     def import_state(self, payload: dict[str, Any]) -> None:
@@ -73,6 +74,9 @@ class DatabaseSaasOverlayStore(SaasOverlayStore):
         }
         self._license_keys = {
             str(k): dict(v) for k, v in (payload.get("license_keys") or {}).items()
+        }
+        self._billing_events = {
+            str(k): dict(v) for k, v in (payload.get("billing_events") or {}).items()
         }
 
     def hydrate(self) -> None:

@@ -39,6 +39,8 @@ class SaasOverlayStore:
         self._coupons: dict[str, dict[str, Any]] = {}
         # license_key -> record (enterprise license keys for activation)
         self._license_keys: dict[str, dict[str, Any]] = {}
+        # provider event id -> durable processing record (idempotent webhooks)
+        self._billing_events: dict[str, dict[str, Any]] = {}
 
     def upsert_subscription(self, org_id: str, payload: dict[str, Any]) -> dict[str, Any]:
         with self._lock:
@@ -64,6 +66,44 @@ class SaasOverlayStore:
         with self._lock:
             row = self._subscriptions.get(org_id)
             return deepcopy(row) if row else None
+
+    def apply_billing_event(
+        self,
+        *,
+        event_id: str,
+        org_id: str,
+        status: str,
+        plan_id: str | None = None,
+        provider_resource_id: str | None = None,
+    ) -> dict[str, Any]:
+        """Apply a verified provider event exactly once."""
+        with self._lock:
+            existing = self._billing_events.get(event_id)
+            if existing:
+                return {**deepcopy(existing), "duplicate": True}
+            subscription = self._subscriptions.get(org_id) or {
+                "org_id": org_id,
+                "created_at": _now(),
+            }
+            subscription.update(
+                {
+                    "status": status,
+                    "plan_id": plan_id or subscription.get("plan_id"),
+                    "provider": "razorpay",
+                    "provider_resource_id": provider_resource_id,
+                    "updated_at": _now(),
+                }
+            )
+            self._subscriptions[org_id] = subscription
+            record = {
+                "event_id": event_id,
+                "org_id": org_id,
+                "status": status,
+                "provider_resource_id": provider_resource_id,
+                "processed_at": _now(),
+            }
+            self._billing_events[event_id] = record
+            return {**deepcopy(record), "duplicate": False}
 
     def list_subscriptions(self) -> list[dict[str, Any]]:
         with self._lock:

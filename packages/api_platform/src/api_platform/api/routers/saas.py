@@ -10,7 +10,7 @@ from __future__ import annotations
 
 from typing import Any
 
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException, Query, Request
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -50,6 +50,40 @@ class SaasPayload(BaseModel):
     scopes: list[str] | None = None
     branding: dict[str, Any] | None = None
     preferences: dict[str, Any] | None = None
+
+
+@router.post("/saas/webhooks/razorpay")
+async def razorpay_webhook(request: Request) -> JSONResponse:
+    """Verify and apply Razorpay events without requiring a user session."""
+    from enterprise.billing import build_billing_adapter
+    from dsp_platform.saas_platform.store import get_saas_overlay_store
+
+    payload = await request.body()
+    signature = request.headers.get("x-razorpay-signature")
+    verified = build_billing_adapter("razorpay").verify_webhook(
+        payload, signature=signature
+    )
+    if not verified.get("verified"):
+        return JSONResponse(status_code=400, content={"ok": False, "message": "invalid webhook"})
+    event = verified.get("event") or {}
+    event_id = str(request.headers.get("x-razorpay-event-id") or event.get("id") or "").strip()
+    if not event_id:
+        return JSONResponse(status_code=400, content={"ok": False, "message": "missing event id"})
+    entity = ((event.get("payload") or {}).get("payment") or {}).get("entity") or {}
+    notes = entity.get("notes") or {}
+    org_id = str(notes.get("org_id") or "").strip()
+    if not org_id:
+        return JSONResponse(status_code=400, content={"ok": False, "message": "missing organization"})
+    event_name = str(event.get("event") or "")
+    status = "active" if event_name in {"payment.captured", "order.paid", "subscription.activated", "subscription.charged"} else "past_due" if event_name == "payment.failed" else "cancelled" if event_name in {"subscription.cancelled", "subscription.completed"} else "pending"
+    result = get_saas_overlay_store().apply_billing_event(
+        event_id=event_id,
+        org_id=org_id,
+        status=status,
+        plan_id=notes.get("plan"),
+        provider_resource_id=entity.get("id"),
+    )
+    return JSONResponse(status_code=200, content={"ok": True, "processed": result})
 
 
 def _actor(auth: dict[str, Any]) -> str:

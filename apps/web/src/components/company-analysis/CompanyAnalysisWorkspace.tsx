@@ -46,6 +46,11 @@ import { ExportSection, SummarySection } from "./WorkspaceSections";
 import { InvestmentSnapshot, SnapshotSignals } from "./InvestmentSnapshot";
 import { ResearchProgressTracker } from "./ResearchProgressTracker";
 import { mapReportTransparency } from "@/lib/report-transparency";
+import { SurfaceTrustChrome } from "@/components/trust/SurfaceTrustChrome";
+import {
+  emptySurfaceTrust,
+  researchWorkspaceSurfaceTrust,
+} from "@/lib/trust/surfaceTrust";
 import { WorkspaceEmpty, WorkspaceSkeleton } from "./WorkspacePrimitives";
 
 const ValuationSection = lazy(() =>
@@ -417,9 +422,35 @@ export function CompanyAnalysisWorkspace() {
     ? activeSection
     : "summary";
 
+  const trustSummary = view
+    ? researchWorkspaceSurfaceTrust({
+        ticker: view.ticker,
+        analyseOk: true,
+        stagesCount: [
+          view.financial,
+          view.growth,
+          view.businessQuality,
+          view.recommendationStage,
+          view.committee,
+        ].filter(Boolean).length,
+        recommendation: view.committee.finalRecommendation,
+        confidenceDisplay: view.committee.confidence || null,
+        opposingNotes: view.committee.opposingReasons,
+        analysedAt: view.analysedAt,
+      })
+    : emptySurfaceTrust("company_analysis", {
+        auditNote: "Audit: company analysis is awaiting an authenticated analyse payload.",
+      });
+
   return (
     <div className="flex min-h-[70vh] flex-col rounded-[var(--radius-md)] border border-[var(--border)] bg-[var(--bg)]">
       {disclaimerGate}
+      <div className="border-b border-[var(--border)] p-4">
+        <SurfaceTrustChrome
+          summary={trustSummary}
+          title="Company Analysis Trust Ladder"
+        />
+      </div>
       <WorkspaceToolbar
         onAnalyze={runAnalyse}
         analyzing={analyseMutation.isPending}

@@ -9,7 +9,7 @@ from dsp_platform.institutional_workflow.models import (
     WORKFLOW_SCHEMA_VERSION,
     WORKFLOW_SERVICE_VERSION,
     WorkflowResult,
-    freeze_mapping,
+    freeze_mapping_or_empty,
 )
 from dsp_platform.institutional_workflow.validation import (
     InstitutionalWorkflowValidationError,
@@ -31,7 +31,7 @@ def workflow_result_from_dict(data: Mapping[str, Any]) -> WorkflowResult:
     if not isinstance(data, Mapping):
         raise InstitutionalWorkflowValidationError("result must be a mapping")
     citations = tuple(
-        freeze_mapping(dict(c)) or freeze_mapping({})
+        freeze_mapping_or_empty(dict(c)) or freeze_mapping_or_empty({})
         for c in (data.get("citations") or [])
         if isinstance(c, Mapping)
     )
@@ -42,11 +42,11 @@ def workflow_result_from_dict(data: Mapping[str, Any]) -> WorkflowResult:
         service_version=str(data.get("service_version") or WORKFLOW_SERVICE_VERSION),
         created_at=str(data.get("created_at") or ""),
         action=str(data.get("action") or ""),
-        workflow=freeze_mapping(dict(data.get("workflow") or {})) or freeze_mapping({}),
+        workflow=freeze_mapping_or_empty(dict(data.get("workflow") or {})) or freeze_mapping_or_empty({}),
         citations=citations,
-        provenance=freeze_mapping(dict(data.get("provenance") or {}))
-        or freeze_mapping({}),
-        audit=freeze_mapping(dict(data.get("audit") or {})) or freeze_mapping({}),
+        provenance=freeze_mapping_or_empty(dict(data.get("provenance") or {}))
+        or freeze_mapping_or_empty({}),
+        audit=freeze_mapping_or_empty(dict(data.get("audit") or {})) or freeze_mapping_or_empty({}),
         limitations=(
             tuple(limitations) if isinstance(limitations, (list, tuple)) else ()
         ),

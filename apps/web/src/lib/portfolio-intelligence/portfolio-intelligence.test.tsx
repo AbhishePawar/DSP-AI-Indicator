@@ -1,7 +1,7 @@
 /**
  * @vitest-environment jsdom
  */
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { cleanup, render, screen } from "@testing-library/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
@@ -153,6 +153,10 @@ function wrap(ui: React.ReactNode) {
 }
 
 describe("P9.5 portfolio intelligence lib", () => {
+  afterEach(() => {
+    cleanup();
+  });
+
   it("registers institutional sections", () => {
     expect(PORTFOLIO_SECTIONS.map((s) => s.id)).toEqual(
       expect.arrayContaining([

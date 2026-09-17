@@ -10,7 +10,7 @@ from dsp_platform.research_copilot.models import (
     COPILOT_SERVICE_VERSION,
     Citation,
     CopilotResponse,
-    freeze_mapping,
+    freeze_mapping_or_empty,
 )
 from dsp_platform.research_copilot.validation import (
     ResearchCopilotValidationError,
@@ -51,22 +51,25 @@ def copilot_response_from_dict(data: Mapping[str, Any]) -> CopilotResponse:
                 )
             )
     limitations = data.get("limitations") or ()
+
+    def mapping_field(name: str) -> Mapping[str, Any]:
+        value = data.get(name)
+        return value if isinstance(value, Mapping) else {}
+
     response = CopilotResponse(
         response_id=str(data.get("response_id") or ""),
         schema_version=str(data.get("schema_version") or COPILOT_SCHEMA_VERSION),
         service_version=str(data.get("service_version") or COPILOT_SERVICE_VERSION),
         created_at=str(data.get("created_at") or ""),
         conversation_id=data.get("conversation_id"),
-        question=freeze_mapping(dict(data.get("question") or {})) or freeze_mapping({}),
+        question=freeze_mapping_or_empty(mapping_field("question")),
         answer=str(data.get("answer") or ""),
         citations=tuple(citations),
         unavailable=bool(data.get("unavailable")),
-        prompt=freeze_mapping(dict(data.get("prompt") or {})) or freeze_mapping({}),
-        context_refs=freeze_mapping(dict(data.get("context_refs") or {}))
-        or freeze_mapping({}),
-        provenance=freeze_mapping(dict(data.get("provenance") or {}))
-        or freeze_mapping({}),
-        audit=freeze_mapping(dict(data.get("audit") or {})) or freeze_mapping({}),
+        prompt=freeze_mapping_or_empty(mapping_field("prompt")),
+        context_refs=freeze_mapping_or_empty(mapping_field("context_refs")),
+        provenance=freeze_mapping_or_empty(mapping_field("provenance")),
+        audit=freeze_mapping_or_empty(mapping_field("audit")),
         limitations=(
             tuple(limitations) if isinstance(limitations, (list, tuple)) else ()
         ),

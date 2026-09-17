@@ -507,10 +507,10 @@ def _backup(
             "status": adapter.status(),
         }
     if action == "create":
-        return adapter.create_snapshot(label=body.get("label"))
+        return dict(adapter.create_snapshot(label=body.get("label")))
     if action == "restore":
-        return adapter.restore_snapshot(str(body.get("snapshot_id") or ""))
-    return adapter.status()
+        return dict(adapter.restore_snapshot(str(body.get("snapshot_id") or "")))
+    return dict(adapter.status())
 
 
 def _secrets(deps: ProductionOpsDeps | None = None) -> dict[str, Any]:

@@ -210,14 +210,14 @@ def _update(registry: Any, body: dict[str, Any], platform: Any) -> dict[str, Any
         replace=bool(body.get("replace")),
     )
     _audit_enterprise(platform, body, result.get("change") or {})
-    return result
+    return dict(result)
 
 
 def _rollback(registry: Any, body: dict[str, Any], platform: Any) -> dict[str, Any]:
     version = int(body.get("version") or 0)
     result = registry.rollback(version, author=_author(body), reason=body.get("reason"))
     _audit_enterprise(platform, body, result.get("change") or {})
-    return result
+    return dict(result)
 
 
 def _module_write(
@@ -245,7 +245,7 @@ def _module_write(
         replace=bool(body.get("replace")),
     )
     _audit_enterprise(platform, body, result.get("change") or {})
-    return result
+    return dict(result)
 
 
 def _cms(registry: Any, body: dict[str, Any], platform: Any) -> dict[str, Any]:
@@ -287,7 +287,7 @@ def _feature_flags(
     _audit_enterprise(platform, body, result.get("change") or {})
     # Feature-flag overlays are owned by ConfigurationRegistry (ASI-003:
     # do not import production_platform FeatureFlagManager from dsp_platform).
-    return result
+    return dict(result)
 
 
 def _ai(registry: Any, body: dict[str, Any], platform: Any) -> dict[str, Any]:
@@ -366,8 +366,10 @@ def _backup(
     if body.get("label"):
         payload["label"] = body["label"]
     try:
-        return platform.run_production_ops(
-            "backup", api_state=api_state, payload=payload, deps=ops_deps
+        return dict(
+            platform.run_production_ops(
+                "backup", api_state=api_state, payload=payload, deps=ops_deps
+            )
         )
     except Exception as exc:  # noqa: BLE001
         return {"available": False, "message": UNAVAILABLE_MESSAGE, "error": str(exc)}

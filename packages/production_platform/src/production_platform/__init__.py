@@ -136,6 +136,10 @@ from production_platform.production.runtime import (
     required_env_vars,
     validate_runtime_environment,
 )
+from production_platform.production.schema import (
+    APPLICATION_MIGRATIONS,
+    apply_application_schema,
+)
 from production_platform.production.scheduler import (
     InMemorySchedulerPort,
     ScheduledJob,
@@ -154,6 +158,8 @@ from production_platform.production.versioning import (
 )
 
 __all__ = [
+    "APPLICATION_MIGRATIONS",
+    "apply_application_schema",
     "AuditEvent",
     "AuditEventPort",
     "BackgroundTaskPort",

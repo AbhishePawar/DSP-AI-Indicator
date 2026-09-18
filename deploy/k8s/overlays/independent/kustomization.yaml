@@ -1,0 +1,17 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: dsp
+
+resources:
+  - ../../base
+
+patches:
+  - path: api-patch.yaml
+  - path: web-patch.yaml
+  - path: ingress-patch.yaml
+  - path: remove-stateful-services.yaml
+
+# Externalize stateful services: provide dsp-external-secrets and
+# dsp-external-config through the cluster's secret/config management system
+# before applying this overlay.

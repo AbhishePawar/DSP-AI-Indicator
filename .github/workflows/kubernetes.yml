@@ -1,0 +1,61 @@
+name: Kubernetes deployment
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: Kubernetes overlay to deploy
+        required: true
+        default: independent
+        type: choice
+        options:
+          - independent
+          - staging
+          - production
+      image_tag:
+        description: Immutable container tag
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+env:
+  KUBE_CONTEXT: ${{ secrets.KUBE_CONTEXT }}
+  KUBE_NAMESPACE: dsp
+
+jobs:
+  validate:
+    name: Validate Kubernetes manifests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: azure/setup-kubectl@v4
+      - name: Render selected overlay
+        run: kubectl kustomize deploy/k8s/overlays/${{ inputs.environment }} > /tmp/dsp-${{ inputs.environment }}.yaml
+      - name: Validate rendered resources
+        run: test -s /tmp/dsp-${{ inputs.environment }}.yaml
+
+  deploy:
+    name: Deploy selected overlay
+    needs: validate
+    runs-on: ubuntu-latest
+    environment: ${{ inputs.environment }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: azure/setup-kubectl@v4
+      - name: Configure kubeconfig
+        env:
+          KUBE_CONFIG_DATA: ${{ secrets.KUBE_CONFIG_DATA }}
+        run: |
+          mkdir -p "${HOME}/.kube"
+          echo "${KUBE_CONFIG_DATA}" | base64 --decode > "${HOME}/.kube/config"
+          kubectl config use-context "${KUBE_CONTEXT}"
+      - name: Set immutable image tags
+        run: |
+          kubectl -n "${KUBE_NAMESPACE}" set image deployment/dsp-api api=dsp-api:${{ inputs.image_tag }}
+          kubectl -n "${KUBE_NAMESPACE}" set image deployment/dsp-web web=dsp-web:${{ inputs.image_tag }}
+      - name: Wait for rollout
+        run: |
+          kubectl -n "${KUBE_NAMESPACE}" rollout status deployment/dsp-api --timeout=5m
+          kubectl -n "${KUBE_NAMESPACE}" rollout status deployment/dsp-web --timeout=5m

@@ -1,0 +1,20 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: dsp-external-config
+  namespace: dsp
+data:
+  # Public frontend origin and API prefix. Replace both example hosts.
+  cors-origins: "https://app.example.com"
+  api-base-url: "https://api.example.com/api/v1"
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: dsp-external-secrets
+  namespace: dsp
+type: Opaque
+stringData:
+  database-url: "postgresql://USER:PASSWORD@HOST:5432/DATABASE?sslmode=require"
+  redis-url: "rediss://:PASSWORD@HOST:6379/0"
+  jwt-secret: "REPLACE_WITH_A_RANDOM_SECRET"

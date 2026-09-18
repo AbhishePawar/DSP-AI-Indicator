@@ -1,0 +1,46 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: dsp-api
+spec:
+  template:
+    spec:
+      containers:
+        - name: api
+          image: dsp-api:2.0.0
+          imagePullPolicy: Always
+          env:
+            - name: DSP_DATABASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: dsp-external-secrets
+                  key: database-url
+            - name: DSP_REDIS_URL
+              valueFrom:
+                secretKeyRef:
+                  name: dsp-external-secrets
+                  key: redis-url
+            - name: DSP_JWT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: dsp-external-secrets
+                  key: jwt-secret
+            - name: DSP_CORS_ORIGINS
+              valueFrom:
+                configMapKeyRef:
+                  name: dsp-external-config
+                  key: cors-origins
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: dsp-api
+spec:
+  type: ClusterIP
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: dsp-api
+spec:
+  replicas: 2

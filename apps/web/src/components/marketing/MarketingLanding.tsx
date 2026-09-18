@@ -2,6 +2,7 @@
 
 import { ArrowRight, ChevronRight, Menu, Plus, Search, X } from "lucide-react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { FormEvent, useMemo, useState } from "react";
 
 import { env } from "@/lib/env";
@@ -27,10 +28,13 @@ export function MarketingLanding() {
     null,
   );
   const [mobileOpen, setMobileOpen] = useState(false);
+  const router = useRouter();
 
   function runDspIndicatorAnalysis() {
     const company = selected ?? researchExamples[0];
-    window.location.href = `/analysis?symbol=${encodeURIComponent(company.ticker)}&intent=${ANALYSIS_INTENTS.dspIndicator}`;
+    router.push(
+      `/analysis?symbol=${encodeURIComponent(company.ticker)}&intent=${ANALYSIS_INTENTS.dspIndicator}`,
+    );
   }
 
   const matches = useMemo(() => {
@@ -47,9 +51,9 @@ export function MarketingLanding() {
     event.preventDefault();
     const company = selected ?? matches[0];
     if (company) {
-      window.location.href = `/analysis?symbol=${encodeURIComponent(company.ticker)}`;
+      router.push(`/analysis?symbol=${encodeURIComponent(company.ticker)}`);
     } else if (query.trim()) {
-      window.location.href = `/search?q=${encodeURIComponent(query.trim())}`;
+      router.push(`/search?q=${encodeURIComponent(query.trim())}`);
     }
   }
 

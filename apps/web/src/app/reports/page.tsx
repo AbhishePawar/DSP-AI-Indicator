@@ -1,7 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
 
 import { PageHeader } from "@/components/layout/PageHeader";
 import { Card, CardBody } from "@/components/ui/Card";
@@ -10,11 +11,8 @@ import { Table, Td, Tr } from "@/components/ui/Table";
 import { listRecentReports, type RecentReportEntry } from "@/lib/recentReports";
 
 export default function ReportsPage() {
-  const [entries, setEntries] = useState<RecentReportEntry[]>([]);
-
-  useEffect(() => {
-    setEntries(listRecentReports());
-  }, []);
+  const router = useRouter();
+  const [entries] = useState<RecentReportEntry[]>(listRecentReports);
 
   return (
     <div>
@@ -30,7 +28,7 @@ export default function ReportsPage() {
               description="Run Company Analysis to receive a report_id from the API."
               actionLabel="Analyze Company"
               onAction={() => {
-                window.location.href = "/analysis";
+                router.push("/analysis");
               }}
             />
           ) : (

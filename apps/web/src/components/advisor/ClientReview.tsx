@@ -43,11 +43,6 @@ function useReviewSession() {
   return useSyncExternalStore(subscribeReviews, getReviewSnapshot, getReviewSnapshot);
 }
 
-function useActiveReview(): ClientReview | null {
-  const { reviews, activeId } = useReviewSession();
-  return reviews.find((r) => r.id === activeId) ?? null;
-}
-
 function ReviewShell({
   title,
   description,

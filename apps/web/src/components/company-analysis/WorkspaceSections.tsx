@@ -756,7 +756,6 @@ function describeExportError(error: unknown): string {
 
 export function ExportSection({
   view,
-  analyseRequest,
   analyseResponse,
 }: {
   view: ResearchView;

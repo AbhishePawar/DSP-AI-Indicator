@@ -102,7 +102,7 @@ export const EvidenceTree = memo(function EvidenceTree({
           </h3>
           <ul className="max-h-[28rem] space-y-2 overflow-y-auto overscroll-contain pr-1">
             {g.items.map((item) => (
-              <li key={item.id} role="treeitem">
+              <li key={item.id} role="treeitem" aria-selected={false}>
                 <EvidenceItem item={item} />
               </li>
             ))}

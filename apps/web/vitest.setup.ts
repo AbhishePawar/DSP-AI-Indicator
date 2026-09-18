@@ -3,7 +3,7 @@ import { expect } from "vitest";
 import * as axeMatchers from "vitest-axe/matchers";
 
 declare module "vitest" {
-  interface Assertion<T = any> {
+  interface Assertion {
     toHaveNoViolations(): void;
   }
 }

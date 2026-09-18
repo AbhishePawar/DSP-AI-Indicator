@@ -27,6 +27,5 @@ export const useAuthStore = create<AuthStoreState>((set) => ({
   session: null,
   user: null,
   setAuth: (patch) => set((state) => ({ ...state, ...patch })),
-  reset: () =>
-    set({ status: "unauthenticated", session: null, user: null }),
+  reset: () => set({ status: "unauthenticated", session: null, user: null }),
 }));

@@ -10,10 +10,7 @@ import { Skeleton } from "@/components/ui/Skeleton";
 import { Table, Td, Tr } from "@/components/ui/Table";
 import { api } from "@/lib/api/client";
 import { useAuth } from "@/lib/auth/AuthProvider";
-import {
-  listRecentReports,
-  type RecentReportEntry,
-} from "@/lib/recentReports";
+import { listRecentReports, type RecentReportEntry } from "@/lib/recentReports";
 
 export function RecentReportsWidget() {
   const { session } = useAuth();
@@ -26,8 +23,7 @@ export function RecentReportsWidget() {
   const queries = useQueries({
     queries: entries.slice(0, 5).map((entry) => ({
       queryKey: ["report", entry.reportId],
-      queryFn: () =>
-        api.getReport(entry.reportId, { token: session?.accessToken }),
+      queryFn: () => api.getReport(entry.reportId, { token: session?.accessToken }),
       enabled: Boolean(session?.accessToken) && entries.length > 0,
       retry: false,
     })),
@@ -58,7 +54,10 @@ export function RecentReportsWidget() {
             }}
           />
         ) : (
-          <Table headers={["Report ID", "Symbol", "API status"]} caption="Recent reports">
+          <Table
+            headers={["Report ID", "Symbol", "API status"]}
+            caption="Recent reports"
+          >
             {entries.slice(0, 5).map((entry, i) => {
               const q = queries[i];
               return (

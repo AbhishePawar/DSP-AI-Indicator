@@ -29,9 +29,7 @@ export function Table({
 }
 
 export function Tr({ children }: { children: ReactNode }) {
-  return (
-    <tr className="border-b border-[var(--border)] last:border-0">{children}</tr>
-  );
+  return <tr className="border-b border-[var(--border)] last:border-0">{children}</tr>;
 }
 
 export function Td({ children }: { children: ReactNode }) {

@@ -35,9 +35,7 @@ export function SuccessState({
       {description ? (
         <p className="mt-2 max-w-sm text-sm text-[var(--muted)]">{description}</p>
       ) : null}
-      {action ? (
-        <div className="mt-4 flex justify-center">{action}</div>
-      ) : null}
+      {action ? <div className="mt-4 flex justify-center">{action}</div> : null}
     </div>
   );
 }

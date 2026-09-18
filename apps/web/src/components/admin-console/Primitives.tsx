@@ -21,10 +21,7 @@ export function FieldRow({
   value: string | number | boolean | null | undefined;
 }) {
   const display =
-    value === null ||
-    value === undefined ||
-    value === "" ||
-    value === "Unavailable"
+    value === null || value === undefined || value === "" || value === "Unavailable"
       ? "Data unavailable."
       : String(value);
   return (

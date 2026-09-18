@@ -82,7 +82,11 @@ function PresShell({
 export function PresentationToolbar({ onPrint }: { onPrint?: () => void }) {
   const active = useActivePresentation();
   return (
-    <div className="flex flex-wrap gap-2" role="toolbar" aria-label="Presentation toolbar">
+    <div
+      className="flex flex-wrap gap-2"
+      role="toolbar"
+      aria-label="Presentation toolbar"
+    >
       <Badge tone="accent">{active?.title ?? "No presentation"}</Badge>
       {onPrint ? (
         <Button type="button" variant="secondary" size="sm" onClick={onPrint}>
@@ -93,7 +97,11 @@ export function PresentationToolbar({ onPrint }: { onPrint?: () => void }) {
   );
 }
 
-export function PresentationOutline({ sections }: { sections: PresentationSectionDef[] }) {
+export function PresentationOutline({
+  sections,
+}: {
+  sections: PresentationSectionDef[];
+}) {
   const visible = sections.filter((s) => s.visible);
   return (
     <nav aria-label="Presentation outline">
@@ -140,7 +148,9 @@ export function PresentationSectionList({
               onChange={() => onToggle(s.id)}
               aria-label={`Show ${s.label}`}
             />
-            <span className={s.visible ? "font-medium" : "text-[var(--muted)]"}>{s.label}</span>
+            <span className={s.visible ? "font-medium" : "text-[var(--muted)]"}>
+              {s.label}
+            </span>
           </label>
           <Button
             type="button"
@@ -180,7 +190,9 @@ export function AdvisorCommentaryCard({
   return (
     <Card className="dsp-interactive">
       <CardHeader title={title} action={<Badge tone="neutral">{kind}</Badge>} />
-      <CardBody className="text-sm text-[var(--muted)] whitespace-pre-wrap">{body}</CardBody>
+      <CardBody className="text-sm text-[var(--muted)] whitespace-pre-wrap">
+        {body}
+      </CardBody>
     </Card>
   );
 }
@@ -196,7 +208,11 @@ export function PresentationTemplateCard({
 }) {
   return (
     <Card className="dsp-interactive">
-      <CardHeader title={name} description={blurb} action={<Badge tone="accent">Template</Badge>} />
+      <CardHeader
+        title={name}
+        description={blurb}
+        action={<Badge tone="accent">Template</Badge>}
+      />
       <CardBody>
         {onUse ? (
           <Button type="button" variant="secondary" onClick={onUse}>
@@ -252,13 +268,16 @@ export const PresentationSectionContent = memo(function PresentationSectionConte
           {section.id === "executive_summary" ? (
             <p>
               Pack for <strong>{presentation.clientAlias}</strong> using model{" "}
-              <strong>{portfolio.name}</strong> ({portfolio.riskLevel}, {portfolio.targetHorizon}
+              <strong>{portfolio.name}</strong> ({portfolio.riskLevel},{" "}
+              {portfolio.targetHorizon}
               ). Envelopes: {envelopes.map((e) => e.companyLabel).join(", ")}.
             </p>
           ) : null}
           {section.id === "investment_objectives" ? <p>{portfolio.objective}</p> : null}
           {section.id === "client_profile" ? (
-            <p>{presentation.clientAlias} — demo alias only. No personal information.</p>
+            <p>
+              {presentation.clientAlias} — demo alias only. No personal information.
+            </p>
           ) : null}
           {section.id === "research_summary" ? (
             <div className="space-y-4">
@@ -270,7 +289,9 @@ export const PresentationSectionContent = memo(function PresentationSectionConte
                   />
                   <CardBody className="space-y-1 text-[var(--muted)]">
                     <p>
-                      <span className="font-medium text-[var(--fg)]">Investment thesis — </span>
+                      <span className="font-medium text-[var(--fg)]">
+                        Investment thesis —{" "}
+                      </span>
                       {e.thesis}
                     </p>
                     <p>Business quality: {e.businessQuality}</p>
@@ -288,7 +309,8 @@ export const PresentationSectionContent = memo(function PresentationSectionConte
           ) : null}
           {section.id === "model_portfolio" ? (
             <p>
-              {portfolio.name} · {portfolio.category.replace(/_/g, " ")} · Risk {portfolio.riskLevel}
+              {portfolio.name} · {portfolio.category.replace(/_/g, " ")} · Risk{" "}
+              {portfolio.riskLevel}
             </p>
           ) : null}
           {section.id === "portfolio_allocation" ? (
@@ -301,8 +323,14 @@ export const PresentationSectionContent = memo(function PresentationSectionConte
                   </li>
                 ))}
               </ul>
-              <p>Sector mix: {sectors.map((s) => `${s.label} ${s.pct}%`).join("; ") || "None"}</p>
-              <p>Market cap mix: {caps.map((c) => `${c.label} ${c.pct}%`).join("; ") || "None"}</p>
+              <p>
+                Sector mix:{" "}
+                {sectors.map((s) => `${s.label} ${s.pct}%`).join("; ") || "None"}
+              </p>
+              <p>
+                Market cap mix:{" "}
+                {caps.map((c) => `${c.label} ${c.pct}%`).join("; ") || "None"}
+              </p>
               <p>Diversification: {review.diversification}</p>
               <p className="font-medium text-[var(--fg)]">Holding summaries</p>
               <ul className="list-disc pl-5 text-[var(--muted)]">
@@ -414,7 +442,9 @@ export function PresentationBuilder() {
   const toggle = (id: string) => {
     updateSessionPresentation(active.id, (p) => ({
       ...p,
-      sections: p.sections.map((s) => (s.id === id ? { ...s, visible: !s.visible } : s)),
+      sections: p.sections.map((s) =>
+        s.id === id ? { ...s, visible: !s.visible } : s,
+      ),
     }));
   };
 
@@ -455,11 +485,18 @@ export function PresentationBuilder() {
           className="mt-1 min-h-11 w-full rounded-md border border-[var(--border)] bg-[var(--surface)] px-3 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
           value={active.title}
           onChange={(e) =>
-            updateSessionPresentation(active.id, (p) => ({ ...p, title: e.target.value }))
+            updateSessionPresentation(active.id, (p) => ({
+              ...p,
+              title: e.target.value,
+            }))
           }
         />
       </label>
-      <PresentationSectionList sections={active.sections} onToggle={toggle} onMove={move} />
+      <PresentationSectionList
+        sections={active.sections}
+        onToggle={toggle}
+        onMove={move}
+      />
       <PresentationOutline sections={active.sections} />
     </div>
   );
@@ -478,7 +515,10 @@ export const PresentationWorkspace = memo(function PresentationWorkspace() {
     >
       <PresentationToolbar />
       <Card>
-        <CardHeader title="Create presentation" description="Session only — not persisted" />
+        <CardHeader
+          title="Create presentation"
+          description="Session only — not persisted"
+        />
         <CardBody className="flex flex-wrap gap-2">
           <input
             className="min-h-11 min-w-[12rem] flex-1 rounded-md border border-[var(--border)] bg-[var(--surface)] px-3 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
@@ -559,68 +599,77 @@ export const PresentationWorkspace = memo(function PresentationWorkspace() {
   );
 });
 
-export const PresentationBuilderWorkspace = memo(function PresentationBuilderWorkspace() {
-  return (
-    <PresShell
-      title="Presentation Builder"
-      description="Reorder sections and toggle visibility — session only."
-    >
-      <PresentationBuilder />
-    </PresShell>
-  );
-});
-
-export const PresentationPreviewWorkspace = memo(function PresentationPreviewWorkspace() {
-  const active = useActivePresentation();
-  const [mode, setMode] = useState<PreviewMode>("desktop");
-  if (!active) {
+export const PresentationBuilderWorkspace = memo(
+  function PresentationBuilderWorkspace() {
     return (
-      <PresShell title="Presentation Preview">
-        <EmptyState title="Select or create a presentation first" />
+      <PresShell
+        title="Presentation Builder"
+        description="Reorder sections and toggle visibility — session only."
+      >
+        <PresentationBuilder />
       </PresShell>
     );
-  }
-  return (
-    <PresShell
-      title="Presentation Preview"
-      description="Desktop · Tablet · Print · Presentation mode"
-    >
-      <PresentationToolbar onPrint={() => window.print()} />
-      <div className="flex flex-wrap gap-2" role="group" aria-label="Preview mode">
-        {(["desktop", "tablet", "print", "present"] as PreviewMode[]).map((m) => (
-          <Button
-            key={m}
-            type="button"
-            size="sm"
-            variant={mode === m ? "primary" : "secondary"}
-            aria-pressed={mode === m}
-            onClick={() => setMode(m)}
-          >
-            {m}
-          </Button>
-        ))}
-      </div>
-      <PresentationPreview presentation={active} mode={mode} />
-    </PresShell>
-  );
-});
+  },
+);
 
-export const PresentationTemplatesWorkspace = memo(function PresentationTemplatesWorkspace() {
-  return (
-    <PresShell title="Presentation Templates" description="Initial Consultation → Custom">
-      <div className="grid gap-3 md:grid-cols-2">
-        {presentationTemplates.map((t) => (
-          <PresentationTemplateCard
-            key={t.id}
-            name={t.name}
-            blurb={t.blurb}
-            onUse={() => createSessionPresentation(t.id)}
-          />
-        ))}
-      </div>
-    </PresShell>
-  );
-});
+export const PresentationPreviewWorkspace = memo(
+  function PresentationPreviewWorkspace() {
+    const active = useActivePresentation();
+    const [mode, setMode] = useState<PreviewMode>("desktop");
+    if (!active) {
+      return (
+        <PresShell title="Presentation Preview">
+          <EmptyState title="Select or create a presentation first" />
+        </PresShell>
+      );
+    }
+    return (
+      <PresShell
+        title="Presentation Preview"
+        description="Desktop · Tablet · Print · Presentation mode"
+      >
+        <PresentationToolbar onPrint={() => window.print()} />
+        <div className="flex flex-wrap gap-2" role="group" aria-label="Preview mode">
+          {(["desktop", "tablet", "print", "present"] as PreviewMode[]).map((m) => (
+            <Button
+              key={m}
+              type="button"
+              size="sm"
+              variant={mode === m ? "primary" : "secondary"}
+              aria-pressed={mode === m}
+              onClick={() => setMode(m)}
+            >
+              {m}
+            </Button>
+          ))}
+        </div>
+        <PresentationPreview presentation={active} mode={mode} />
+      </PresShell>
+    );
+  },
+);
+
+export const PresentationTemplatesWorkspace = memo(
+  function PresentationTemplatesWorkspace() {
+    return (
+      <PresShell
+        title="Presentation Templates"
+        description="Initial Consultation → Custom"
+      >
+        <div className="grid gap-3 md:grid-cols-2">
+          {presentationTemplates.map((t) => (
+            <PresentationTemplateCard
+              key={t.id}
+              name={t.name}
+              blurb={t.blurb}
+              onUse={() => createSessionPresentation(t.id)}
+            />
+          ))}
+        </div>
+      </PresShell>
+    );
+  },
+);
 
 export const PresentationExportWorkspace = memo(function PresentationExportWorkspace() {
   const active = useActivePresentation();
@@ -652,7 +701,9 @@ export const PresentationExportWorkspace = memo(function PresentationExportWorks
         <Button
           type="button"
           variant="secondary"
-          onClick={() => downloadText(`${active.title}.html`, html, "text/html;charset=utf-8")}
+          onClick={() =>
+            downloadText(`${active.title}.html`, html, "text/html;charset=utf-8")
+          }
         >
           Download HTML preview
         </Button>

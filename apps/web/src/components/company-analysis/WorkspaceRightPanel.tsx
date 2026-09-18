@@ -4,10 +4,7 @@ import Link from "next/link";
 import { useState } from "react";
 
 import { Badge, Button, Input } from "@/components/ds";
-import {
-  ANALYSIS_SECTIONS,
-  useWorkspacePrefsStore,
-} from "@/lib/company-analysis";
+import { ANALYSIS_SECTIONS, useWorkspacePrefsStore } from "@/lib/company-analysis";
 import type { ResearchView } from "@/lib/research/mapResearchView";
 
 export function WorkspaceRightPanel({

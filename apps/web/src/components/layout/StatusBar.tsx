@@ -56,9 +56,7 @@ export function StatusBar() {
         <Badge variant="accent" className="font-mono text-[10px]">
           Foundation v{env.foundationVersion}
         </Badge>
-        {platformVersion ? (
-          <span>Backend v{platformVersion}</span>
-        ) : null}
+        {platformVersion ? <span>Backend v{platformVersion}</span> : null}
         <Badge variant="outline" className="font-mono text-[10px]">
           {envLabel}
         </Badge>

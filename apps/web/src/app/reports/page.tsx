@@ -7,10 +7,7 @@ import { PageHeader } from "@/components/layout/PageHeader";
 import { Card, CardBody } from "@/components/ui/Card";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { Table, Td, Tr } from "@/components/ui/Table";
-import {
-  listRecentReports,
-  type RecentReportEntry,
-} from "@/lib/recentReports";
+import { listRecentReports, type RecentReportEntry } from "@/lib/recentReports";
 
 export default function ReportsPage() {
   const [entries, setEntries] = useState<RecentReportEntry[]>([]);

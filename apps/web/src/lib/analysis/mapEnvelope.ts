@@ -24,9 +24,7 @@ import {
   buildResearchLimitations,
   buildTransparencyPanel,
 } from "@/lib/analysis/sprint4Explainability";
-import {
-  buildKnowledgeGraph,
-} from "@/lib/analysis/sprint5KnowledgeGraph";
+import { buildKnowledgeGraph } from "@/lib/analysis/sprint5KnowledgeGraph";
 import {
   GROWTH_METRICS,
   MANAGEMENT_METRICS,
@@ -174,7 +172,8 @@ function emptyInsightEvidence(topic: string): EvidenceView {
     lastUpdated: null,
     confidence: "Insufficient Evidence",
     aiReasoning: null,
-    aiExplanation: "AI reasoning deferred — Copilot / Challenge arrive in later sprints.",
+    aiExplanation:
+      "AI reasoning deferred — Copilot / Challenge arrive in later sprints.",
     limitations: [
       "Thin client will not invent figures",
       "Wire fundamentals/research artifacts to populate this insight",

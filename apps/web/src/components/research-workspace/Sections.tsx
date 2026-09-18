@@ -47,9 +47,7 @@ export function LibrarySection({
   const [sourceFilter, setSourceFilter] = useState("all");
   const [sortKey, setSortKey] = useState<SortKey>("analysedAt");
   const [sortDir, setSortDir] = useState<"asc" | "desc">("desc");
-  const toggleFavourite = useResearchWorkspacePrefsStore(
-    (s) => s.toggleFavourite,
-  );
+  const toggleFavourite = useResearchWorkspacePrefsStore((s) => s.toggleFavourite);
   const togglePinned = useResearchWorkspacePrefsStore((s) => s.togglePinned);
   const isFavourite = useResearchWorkspacePrefsStore((s) => s.isFavourite);
   const isPinned = useResearchWorkspacePrefsStore((s) => s.isPinned);
@@ -70,8 +68,7 @@ export function LibrarySection({
       if (sourceFilter !== "all" && item.source !== sourceFilter) return false;
       if (!q) return true;
       return (
-        item.ticker.toLowerCase().includes(q) ||
-        item.company.toLowerCase().includes(q)
+        item.ticker.toLowerCase().includes(q) || item.company.toLowerCase().includes(q)
       );
     });
     next = [...next].sort((a, b) => {
@@ -180,9 +177,7 @@ export function LibrarySection({
                     <Button
                       size="sm"
                       variant="ghost"
-                      onClick={() =>
-                        toggleFavourite(item.ticker, item.company)
-                      }
+                      onClick={() => toggleFavourite(item.ticker, item.company)}
                     >
                       {isFavourite(item.ticker) ? "Unfavourite" : "Favourite"}
                     </Button>
@@ -447,10 +442,7 @@ export function AiSection({ view }: { view: ResearchView | null }) {
       <SectionCard title="Committee Summary">
         <dl>
           <FieldRow label="Decision" value={view.committeeDecision} />
-          <FieldRow
-            label="Confidence"
-            value={formatPct(view.committeeConfidence)}
-          />
+          <FieldRow label="Confidence" value={formatPct(view.committeeConfidence)} />
           <FieldRow label="Consensus" value={view.committeeConsensus} />
           <FieldRow
             label="Final recommendation"
@@ -517,9 +509,7 @@ export function ComplianceSection({ view }: { view: ResearchView | null }) {
           </li>
           <li className="flex justify-between gap-2">
             <span className="text-[var(--muted)]">SEBI Mode</span>
-            <Badge variant="outline">
-              {featureFlags.sebiMode ? "On" : "Off"}
-            </Badge>
+            <Badge variant="outline">{featureFlags.sebiMode ? "On" : "Off"}</Badge>
           </li>
         </ul>
       </SectionCard>
@@ -568,11 +558,7 @@ export function ExportSection({ view }: { view: ResearchView | null }) {
         <Button
           variant="secondary"
           onClick={() =>
-            downloadText(
-              `${base}.json`,
-              researchViewToJson(view),
-              "application/json",
-            )
+            downloadText(`${base}.json`, researchViewToJson(view), "application/json")
           }
         >
           Export JSON
@@ -588,11 +574,7 @@ export function ExportSection({ view }: { view: ResearchView | null }) {
         <Button
           variant="secondary"
           onClick={() =>
-            downloadText(
-              `${base}-excel.csv`,
-              researchViewToCsv(view),
-              "text/csv",
-            )
+            downloadText(`${base}-excel.csv`, researchViewToCsv(view), "text/csv")
           }
         >
           Export Excel (CSV)
@@ -600,11 +582,7 @@ export function ExportSection({ view }: { view: ResearchView | null }) {
         <Button
           variant="secondary"
           onClick={() => {
-            downloadText(
-              `${base}.html`,
-              researchViewToHtml(view),
-              "text/html",
-            );
+            downloadText(`${base}.html`, researchViewToHtml(view), "text/html");
             window.print();
           }}
         >

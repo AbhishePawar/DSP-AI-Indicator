@@ -69,8 +69,8 @@ export function CompanySnapshotCard({
         </div>
 
         <p className="text-xs text-[var(--muted)]">
-          Research Mode: conclusions use {presentFieldLabel("action")} language —
-          never Buy / Sell / Hold tips.
+          Research Mode: conclusions use {presentFieldLabel("action")} language — never
+          Buy / Sell / Hold tips.
         </p>
       </CardBody>
     </Card>

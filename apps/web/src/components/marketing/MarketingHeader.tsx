@@ -77,10 +77,7 @@ export function MarketingHeader() {
           {env.appName}
         </Link>
 
-        <nav
-          aria-label="Marketing"
-          className="hidden items-center gap-5 lg:flex"
-        >
+        <nav aria-label="Marketing" className="hidden items-center gap-5 lg:flex">
           {MARKETING_NAV.map((item) => (
             <Link
               key={item.href}

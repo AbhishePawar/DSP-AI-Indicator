@@ -59,10 +59,7 @@ export const featureFlags: FeatureFlags = {
   researchIntelligence: envBool("NEXT_PUBLIC_RESEARCH_INTELLIGENCE", true),
   companyComparison: envBool("NEXT_PUBLIC_COMPANY_COMPARISON", true),
   researchCanvas: envBool("NEXT_PUBLIC_RESEARCH_CANVAS", true),
-  portfolioIntelligenceV2: envBool(
-    "NEXT_PUBLIC_PORTFOLIO_INTELLIGENCE_V2",
-    true,
-  ),
+  portfolioIntelligenceV2: envBool("NEXT_PUBLIC_PORTFOLIO_INTELLIGENCE_V2", true),
   closedBeta: envBool("NEXT_PUBLIC_CLOSED_BETA", false),
   betaBanner: envBool("NEXT_PUBLIC_BETA_BANNER", true),
   betaInvitationOnly: envBool("NEXT_PUBLIC_BETA_INVITATION_ONLY", true),
@@ -71,10 +68,7 @@ export const featureFlags: FeatureFlags = {
   enterpriseAdmin: envBool("NEXT_PUBLIC_ENTERPRISE_ADMIN", true),
   enterpriseOps: envBool("NEXT_PUBLIC_ENTERPRISE_OPS", true),
   enterpriseDashboards: envBool("NEXT_PUBLIC_ENTERPRISE_DASHBOARDS", true),
-  researchWorkspacePlatform: envBool(
-    "NEXT_PUBLIC_RESEARCH_WORKSPACE_PLATFORM",
-    true,
-  ),
+  researchWorkspacePlatform: envBool("NEXT_PUBLIC_RESEARCH_WORKSPACE_PLATFORM", true),
   saasPlatform: envBool("NEXT_PUBLIC_SAAS_PLATFORM", true),
   productionOps: envBool("NEXT_PUBLIC_PRODUCTION_OPS", true),
   controlCenter: envBool("NEXT_PUBLIC_CONTROL_CENTER", true),
@@ -84,9 +78,7 @@ export function allowActionLabels(flags: FeatureFlags = featureFlags): boolean {
   return flags.recommendationMode && flags.sebiMode && flags.showBuySell;
 }
 
-export function allowOfficialTargetPrice(
-  flags: FeatureFlags = featureFlags,
-): boolean {
+export function allowOfficialTargetPrice(flags: FeatureFlags = featureFlags): boolean {
   return flags.recommendationMode && flags.sebiMode && flags.showTargetPrice;
 }
 

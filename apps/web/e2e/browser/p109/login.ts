@@ -76,10 +76,10 @@ export async function submitPasswordLogin(page: Page): Promise<void> {
  * (`data-testid="account-menu"` + menuitem Logout).
  */
 export async function assertAuthenticatedSession(page: Page): Promise<void> {
-  await expect(
-    page,
-    "[P1-09 LOGIN] must leave /login after sign-in",
-  ).not.toHaveURL(/\/login(\?|$)/, { timeout: 60_000 });
+  await expect(page, "[P1-09 LOGIN] must leave /login after sign-in").not.toHaveURL(
+    /\/login(\?|$)/,
+    { timeout: 60_000 },
+  );
 
   const accountMenu = page.getByTestId("account-menu");
   await expect(

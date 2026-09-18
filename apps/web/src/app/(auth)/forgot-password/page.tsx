@@ -185,11 +185,7 @@ export default function ForgotPasswordPage() {
                 />
               </FormField>
               <PasswordStrengthMeter password={password} />
-              <FormField
-                label="Confirm new password"
-                htmlFor="forgot-confirm"
-                required
-              >
+              <FormField label="Confirm new password" htmlFor="forgot-confirm" required>
                 <PasswordInput
                   id="forgot-confirm"
                   value={confirm}
@@ -209,7 +205,10 @@ export default function ForgotPasswordPage() {
           ) : null}
 
           {step !== "done" ? (
-            <Link href="/login" className="text-center text-sm text-[var(--accent)] underline">
+            <Link
+              href="/login"
+              className="text-center text-sm text-[var(--accent)] underline"
+            >
               Back to sign in
             </Link>
           ) : null}

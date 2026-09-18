@@ -154,8 +154,7 @@ export function ProductionOpsPanel() {
             : String(otel.message || "Data unavailable.")}
         </p>
         <p className="mt-1 text-xs text-[var(--dsp-text-muted)]">
-          Structured JSON logging + correlation IDs reused from
-          production_platform.
+          Structured JSON logging + correlation IDs reused from production_platform.
         </p>
       </section>
 

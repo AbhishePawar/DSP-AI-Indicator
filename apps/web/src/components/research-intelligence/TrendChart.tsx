@@ -7,11 +7,7 @@
 
 import { DATA_UNAVAILABLE, displayMetric } from "@/lib/research-intelligence";
 
-export function TrendChart({
-  trends,
-}: {
-  trends: Record<string, unknown>[];
-}) {
+export function TrendChart({ trends }: { trends: Record<string, unknown>[] }) {
   const points = trends
     .map((t) => ({
       period: String(t.period ?? ""),
@@ -39,10 +35,10 @@ export function TrendChart({
     accuracy: number;
     sample: number;
   }[];
-  const xs = usable.map((_, i) => pad + (i * (width - pad * 2)) / Math.max(usable.length - 1, 1));
-  const ys = usable.map(
-    (p) => height - pad - p.accuracy * (height - pad * 2),
+  const xs = usable.map(
+    (_, i) => pad + (i * (width - pad * 2)) / Math.max(usable.length - 1, 1),
   );
+  const ys = usable.map((p) => height - pad - p.accuracy * (height - pad * 2));
   const path = usable
     .map((_, i) => `${i === 0 ? "M" : "L"} ${xs[i]} ${ys[i]}`)
     .join(" ");

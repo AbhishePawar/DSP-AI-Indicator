@@ -61,8 +61,7 @@ export function isDemoStatementContamination(
   const sample = SAMPLE_ANALYSE_REQUEST.financial_statements;
   return (
     statements.income_statement?.revenue === sample.income_statement?.revenue &&
-    statements.income_statement?.net_income ===
-      sample.income_statement?.net_income &&
+    statements.income_statement?.net_income === sample.income_statement?.net_income &&
     statements.balance_sheet?.total_assets === sample.balance_sheet?.total_assets
   );
 }
@@ -87,8 +86,7 @@ export function financialStatementsInputFromAuthenticated(
       period_end: latest.period_end,
       fiscal_year: latest.fiscal_year ?? null,
       fiscal_quarter: latest.fiscal_quarter ?? null,
-      currency:
-        latest.reporting_currency ?? payload.reporting_currency ?? "USD",
+      currency: latest.reporting_currency ?? payload.reporting_currency ?? "USD",
     },
     income_statement: { ...(latest.income_statement ?? {}) },
     balance_sheet: { ...(latest.balance_sheet ?? {}) },

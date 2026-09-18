@@ -10,8 +10,8 @@ export default function NotFound() {
         <CardHeader title="404 — Page not found" description="Unknown route" />
         <CardBody className="space-y-4">
           <p className="text-sm text-[var(--muted)]">
-            That route is not part of the DSP terminal surface. No research data
-            was changed.
+            That route is not part of the DSP terminal surface. No research data was
+            changed.
           </p>
           <div className="flex flex-wrap gap-2">
             <Link href="/dashboard">

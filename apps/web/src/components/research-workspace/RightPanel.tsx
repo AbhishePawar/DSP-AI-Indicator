@@ -23,9 +23,7 @@ export function ResearchRightPanel({
   const removeNote = useResearchWorkspacePrefsStore((s) => s.removeNote);
   const addTag = useResearchWorkspacePrefsStore((s) => s.addTag);
   const removeTag = useResearchWorkspacePrefsStore((s) => s.removeTag);
-  const setActiveSection = useResearchWorkspacePrefsStore(
-    (s) => s.setActiveSection,
-  );
+  const setActiveSection = useResearchWorkspacePrefsStore((s) => s.setActiveSection);
   const favourites = useResearchWorkspacePrefsStore((s) => s.favourites);
   const [noteText, setNoteText] = useState("");
   const [tagText, setTagText] = useState("");

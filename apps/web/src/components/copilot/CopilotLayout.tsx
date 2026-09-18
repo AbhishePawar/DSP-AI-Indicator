@@ -20,7 +20,10 @@ import {
 import { buildCopilotContext } from "@/lib/copilot/contextBuilder";
 import { modeForQuestion } from "@/lib/copilot/modeMap";
 import { SUGGESTED_QUESTIONS } from "@/lib/copilot/questions";
-import { archiveResearchSession, listArchivedSessions } from "@/lib/copilot/sessionArchive";
+import {
+  archiveResearchSession,
+  listArchivedSessions,
+} from "@/lib/copilot/sessionArchive";
 import type {
   CopilotConversation,
   CopilotIntent,
@@ -54,21 +57,17 @@ function asIntent(value: string | undefined): CopilotIntent {
     "buffett",
     "unknown",
   ];
-  return known.includes(value as CopilotIntent)
-    ? (value as CopilotIntent)
-    : "unknown";
+  return known.includes(value as CopilotIntent) ? (value as CopilotIntent) : "unknown";
 }
 
 export function CopilotLayout() {
   const { status: authStatus, session } = useAuth();
   const { persistCopilotConversations } = usePersistence();
-  const [conversations, setConversations] = useState<CopilotConversation[]>(
-    () => [createConversation("Research Copilot")],
-  );
+  const [conversations, setConversations] = useState<CopilotConversation[]>(() => [
+    createConversation("Research Copilot"),
+  ]);
   const [activeId, setActiveId] = useState<string | null>(null);
-  const [serverConversationId, setServerConversationId] = useState<string | null>(
-    null,
-  );
+  const [serverConversationId, setServerConversationId] = useState<string | null>(null);
   const [draft, setDraft] = useState("");
   const [typing, setTyping] = useState(false);
   const [streamingHint, setStreamingHint] = useState<string | null>(null);
@@ -82,10 +81,10 @@ export function CopilotLayout() {
   });
   const [request, setRequest] = useState<AnalyseRequest | null>(null);
   const [response, setResponse] = useState<AnalyseResponse | null>(null);
-  const [secondaryRequest, setSecondaryRequest] =
-    useState<AnalyseRequest | null>(null);
-  const [secondaryResponse, setSecondaryResponse] =
-    useState<AnalyseResponse | null>(null);
+  const [secondaryRequest, setSecondaryRequest] = useState<AnalyseRequest | null>(null);
+  const [secondaryResponse, setSecondaryResponse] = useState<AnalyseResponse | null>(
+    null,
+  );
   const [latestCitations, setLatestCitations] = useState<
     ResearchCitationId[] | undefined
   >(undefined);
@@ -100,8 +99,7 @@ export function CopilotLayout() {
     const secondary =
       archive.find(
         (item) =>
-          sessionRow &&
-          item.ticker.toUpperCase() !== sessionRow.ticker.toUpperCase(),
+          sessionRow && item.ticker.toUpperCase() !== sessionRow.ticker.toUpperCase(),
       ) ?? null;
 
     if (sessionRow) {
@@ -109,8 +107,7 @@ export function CopilotLayout() {
         .map((item) => item.ticker)
         .filter(
           (ticker, index, all) =>
-            all.findIndex((t) => t.toUpperCase() === ticker.toUpperCase()) ===
-            index,
+            all.findIndex((t) => t.toUpperCase() === ticker.toUpperCase()) === index,
         );
       setContext({
         ticker: sessionRow.ticker,
@@ -238,9 +235,7 @@ export function CopilotLayout() {
             ),
           );
           if (result?.conversation_id) {
-            setActiveId((id) =>
-              id === active.id ? result.conversation_id! : id,
-            );
+            setActiveId((id) => (id === active.id ? result.conversation_id! : id));
           }
           setTyping(false);
         })
@@ -357,9 +352,7 @@ export function CopilotLayout() {
           Explaining {context.company ?? context.ticker} ({context.ticker})
           {context.canCompare
             ? ` · Compare ready with ${context.comparableTickers
-                .filter(
-                  (t) => t.toUpperCase() !== context.ticker?.toUpperCase(),
-                )
+                .filter((t) => t.toUpperCase() !== context.ticker?.toUpperCase())
                 .join(", ")}`
             : ""}
           .
@@ -401,9 +394,7 @@ export function CopilotLayout() {
           <ResearchContextPanel
             context={context}
             latestAnswer={latestAssistant?.content ?? null}
-            latestCitations={
-              latestAssistant?.citations ?? latestCitations
-            }
+            latestCitations={latestAssistant?.citations ?? latestCitations}
             onCompare={handleCompare}
           />
           <ComparisonPanel

@@ -20,14 +20,7 @@ import { FRONTEND_FOUNDATION_VERSION } from "@/foundation";
 describe("P4.1 legal content", () => {
   it("exposes required legal documents", () => {
     expect(Object.keys(LEGAL_DOCUMENTS).sort()).toEqual(
-      [
-        "cookies",
-        "data-usage",
-        "disclaimer",
-        "privacy",
-        "risk",
-        "terms",
-      ].sort(),
+      ["cookies", "data-usage", "disclaimer", "privacy", "risk", "terms"].sort(),
     );
     expect(LEGAL_ROUTES.privacy).toBe("/docs/privacy");
     expect(LEGAL_ROUTES.terms).toBe("/docs/terms");
@@ -35,9 +28,7 @@ describe("P4.1 legal content", () => {
   });
 
   it("states research-not-advice requirements in disclaimer", () => {
-    const text = LEGAL_DOCUMENTS.disclaimer.sections
-      .flatMap((s) => s.body)
-      .join(" ");
+    const text = LEGAL_DOCUMENTS.disclaimer.sections.flatMap((s) => s.body).join(" ");
     expect(text).toMatch(/research and educational/i);
     expect(text).toMatch(/not personalized investment advice/i);
     expect(text).toMatch(/Investing involves risk/i);

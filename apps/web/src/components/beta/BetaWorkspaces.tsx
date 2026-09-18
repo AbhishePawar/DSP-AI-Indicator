@@ -92,7 +92,8 @@ export function FeedbackListCard({ item }: { item: FeedbackRecord }) {
       />
       <CardBody className="space-y-2 text-sm">
         <p className="text-xs text-[var(--muted)]">
-          {FEEDBACK_CATEGORIES.find((c) => c.id === item.category)?.label} · {item.pagePath}
+          {FEEDBACK_CATEGORIES.find((c) => c.id === item.category)?.label} ·{" "}
+          {item.pagePath}
         </p>
         <p>{item.description}</p>
         <p className="text-xs text-[var(--muted)]">{item.trustNote}</p>
@@ -112,8 +113,8 @@ export const FeedbackWorkspace = memo(function FeedbackWorkspace() {
   return (
     <div className="space-y-4">
       <p className="rounded-md border border-[var(--border)] bg-[var(--accent-soft)]/40 px-3 py-2 text-sm">
-        Structured Private Beta feedback stays on this device. Never paste research envelopes,
-        portfolio holdings, or API secrets.
+        Structured Private Beta feedback stays on this device. Never paste research
+        envelopes, portfolio holdings, or API secrets.
       </p>
       <div className="flex flex-wrap gap-2">
         <Button onClick={() => openFeedback()}>New feedback</Button>
@@ -126,7 +127,10 @@ export const FeedbackWorkspace = memo(function FeedbackWorkspace() {
         <Button
           variant="secondary"
           onClick={() =>
-            openFeedback({ sectionId: pathname.split("/")[1] || "section", category: "ux_feedback" })
+            openFeedback({
+              sectionId: pathname.split("/")[1] || "section",
+              category: "ux_feedback",
+            })
           }
         >
           Section feedback
@@ -161,7 +165,10 @@ export function BetaDashboard({ refreshTick }: { refreshTick: number }) {
     { label: "Resolved issues", value: String(dash.resolvedIssues) },
     {
       label: "Average satisfaction",
-      value: dash.averageSatisfaction != null ? String(dash.averageSatisfaction) : "Unavailable",
+      value:
+        dash.averageSatisfaction != null
+          ? String(dash.averageSatisfaction)
+          : "Unavailable",
     },
   ];
   return (
@@ -201,8 +208,7 @@ export const IssueTrackerWorkspace = memo(function IssueTrackerWorkspace() {
   const { refreshTick, bumpRefresh } = useFeedback();
   const [filter, setFilter] = useState<IssueStatus | "all">("all");
   const issues = useMemo(() => listIssues(), [refreshTick]);
-  const visible =
-    filter === "all" ? issues : issues.filter((i) => i.status === filter);
+  const visible = filter === "all" ? issues : issues.filter((i) => i.status === filter);
 
   const onStatus = (id: string, status: IssueStatus) => {
     const prev = issues.find((i) => i.id === id);
@@ -265,7 +271,10 @@ export function ReleaseCandidateCard({ refreshTick }: { refreshTick: number }) {
     rc.decision === "GO" ? "success" : rc.decision === "NO-GO" ? "danger" : "warning";
   return (
     <Card className="border-[var(--accent)]/40">
-      <CardHeader title="Go / No-Go" action={<Badge tone={tone}>{rc.decision}</Badge>} />
+      <CardHeader
+        title="Go / No-Go"
+        action={<Badge tone={tone}>{rc.decision}</Badge>}
+      />
       <CardBody className="space-y-2 text-sm">
         <p>{rc.rationale}</p>
         <ul className="list-disc pl-5 text-[var(--muted)]">
@@ -289,9 +298,9 @@ export const ReleaseCandidateWorkspace = memo(function ReleaseCandidateWorkspace
       <Card>
         <CardHeader title="RC soak notes" />
         <CardBody className="text-sm text-[var(--muted)]">
-          Web 1.0.0 is the stable public release promoted from RC 0.9.5. Use `/launch` for live
-          quality gates and `/launch/report` for post-launch review. Research outputs and portfolio
-          math remain unchanged.
+          Web 1.0.0 is the stable public release promoted from RC 0.9.5. Use `/launch`
+          for live quality gates and `/launch/report` for post-launch review. Research
+          outputs and portfolio math remain unchanged.
         </CardBody>
       </Card>
     </div>
@@ -314,7 +323,9 @@ export function AnalyticsPlaceholderCard() {
         <p>Copilot usage: {a.copilotUsage}</p>
         <p>Nav flow depth: {a.navigationFlow.length}</p>
         <div className="sm:col-span-2">
-          <p className="text-xs font-medium uppercase text-[var(--muted)]">Page visits</p>
+          <p className="text-xs font-medium uppercase text-[var(--muted)]">
+            Page visits
+          </p>
           <ul className="mt-1 list-disc pl-5 text-[var(--muted)]">
             {Object.entries(a.pageVisits)
               .slice(0, 8)
@@ -326,7 +337,9 @@ export function AnalyticsPlaceholderCard() {
           </ul>
         </div>
         <div className="sm:col-span-2">
-          <p className="text-xs font-medium uppercase text-[var(--muted)]">Feature usage</p>
+          <p className="text-xs font-medium uppercase text-[var(--muted)]">
+            Feature usage
+          </p>
           <ul className="mt-1 list-disc pl-5 text-[var(--muted)]">
             {Object.entries(a.featureUsage).length === 0 ? (
               <li>None yet</li>

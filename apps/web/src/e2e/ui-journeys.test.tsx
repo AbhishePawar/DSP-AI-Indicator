@@ -175,9 +175,7 @@ function wrap(ui: ReactElement) {
   const client = new QueryClient({
     defaultOptions: { queries: { retry: false } },
   });
-  return render(
-    <QueryClientProvider client={client}>{ui}</QueryClientProvider>,
-  );
+  return render(<QueryClientProvider client={client}>{ui}</QueryClientProvider>);
 }
 
 describe("EPIC-F011 UI journeys", () => {
@@ -201,38 +199,30 @@ describe("EPIC-F011 UI journeys", () => {
   });
 
   it("admin overview journey loads dashboard region", async () => {
-    const { AdminConsole } = await import(
-      "@/components/admin-console/AdminConsole"
-    );
+    const { AdminConsole } = await import("@/components/admin-console/AdminConsole");
     wrap(<AdminConsole />);
     expect(await screen.findByText("Administration Overview")).toBeTruthy();
     expect(screen.getByLabelText("Main administration view")).toBeTruthy();
   });
 
   it("settings about journey shows foundation version", async () => {
-    const { SettingsWorkspace } = await import(
-      "@/components/settings-workspace/SettingsWorkspace"
-    );
+    const { SettingsWorkspace } =
+      await import("@/components/settings-workspace/SettingsWorkspace");
     wrap(<SettingsWorkspace />);
     expect(await screen.findByText("Version Information")).toBeTruthy();
   });
 
   it("research diff journey stays honest when API missing", async () => {
-    const { DiffSection } = await import(
-      "@/components/research-workspace/Sections"
-    );
+    const { DiffSection } = await import("@/components/research-workspace/Sections");
     wrap(<DiffSection />);
     expect(screen.getByText("Research Diff Viewer")).toBeTruthy();
     expect(screen.getAllByText(/Data unavailable/i).length).toBeGreaterThan(0);
   });
 
   it("portfolio empty journey shows data unavailable when no holdings", async () => {
-    const { SummarySection } = await import(
-      "@/components/portfolio-intelligence/Sections"
-    );
-    wrap(
-      <SummarySection holdings={[]} watchlistCount={0} lastUpdated={null} />,
-    );
+    const { SummarySection } =
+      await import("@/components/portfolio-intelligence/Sections");
+    wrap(<SummarySection holdings={[]} watchlistCount={0} lastUpdated={null} />);
     expect(screen.getByText("Portfolio Overview")).toBeTruthy();
     expect(screen.getAllByText(/Data unavailable/i).length).toBeGreaterThan(0);
   });

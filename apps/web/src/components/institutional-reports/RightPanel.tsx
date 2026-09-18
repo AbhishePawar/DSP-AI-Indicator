@@ -31,13 +31,9 @@ export function ReportsRightPanel({
   const removeNote = useInstitutionalReportsPrefsStore((s) => s.removeNote);
   const addTag = useInstitutionalReportsPrefsStore((s) => s.addTag);
   const removeTag = useInstitutionalReportsPrefsStore((s) => s.removeTag);
-  const setActiveSection = useInstitutionalReportsPrefsStore(
-    (s) => s.setActiveSection,
-  );
+  const setActiveSection = useInstitutionalReportsPrefsStore((s) => s.setActiveSection);
   const reportMode = useInstitutionalReportsPrefsStore((s) => s.reportMode);
-  const setReportMode = useInstitutionalReportsPrefsStore(
-    (s) => s.setReportMode,
-  );
+  const setReportMode = useInstitutionalReportsPrefsStore((s) => s.setReportMode);
   const [noteText, setNoteText] = useState("");
   const [tagText, setTagText] = useState("");
 

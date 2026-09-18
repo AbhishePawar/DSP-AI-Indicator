@@ -54,7 +54,9 @@ export function seedSharedPortfolioCollections(): SharedPortfolioCollection[] {
  * Scenario cards frame existing demo fields under labeled scenarios.
  * No new Portfolio Engine calculations.
  */
-export function buildScenarioViews(draft: ModelPortfolioDraft): PortfolioScenarioView[] {
+export function buildScenarioViews(
+  draft: ModelPortfolioDraft,
+): PortfolioScenarioView[] {
   const totals = computeAllocationTotals(draft.holdings, draft.cashAllocationPct);
   const sectors = sectorMix(draft.holdings);
   const topSector = sectors[0]?.label ?? "n/a";
@@ -88,7 +90,8 @@ export function buildScenarioViews(draft: ModelPortfolioDraft): PortfolioScenari
     {
       id: "bear",
       label: "Bear Scenario",
-      framing: "Discussion focus on concentration and sector concentration already reported by portfolio review helpers.",
+      framing:
+        "Discussion focus on concentration and sector concentration already reported by portfolio review helpers.",
       riskCue: `Existing risk tag remains ${draft.riskLevel}`,
       allocationCue: baseAlloc,
       note: "Bear label reuses existing holdings — no downside engine run.",
@@ -161,7 +164,5 @@ export const FILTER_STRATEGIES = [
 ].sort();
 
 export const FILTER_SECTORS = [
-  ...new Set(
-    seedModelPortfolioLibrary.flatMap((p) => p.holdings.map((h) => h.sector)),
-  ),
+  ...new Set(seedModelPortfolioLibrary.flatMap((p) => p.holdings.map((h) => h.sector))),
 ].sort();

@@ -29,9 +29,8 @@ describe("Forgot password page", () => {
       ok: true,
       result: { challenge_id: "ch-reset", sms: { debug_code: "654321" } },
     });
-    const { default: ForgotPasswordPage } = await import(
-      "@/app/(auth)/forgot-password/page"
-    );
+    const { default: ForgotPasswordPage } =
+      await import("@/app/(auth)/forgot-password/page");
     render(
       <ThemeProvider>
         <ForgotPasswordPage />

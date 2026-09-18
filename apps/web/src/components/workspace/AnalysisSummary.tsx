@@ -29,14 +29,8 @@ export function AnalysisSummary({
         <CardBody>
           <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
             <Metric label="Recommendation" value={view.recommendation} emphasize />
-            <Metric
-              label="Intrinsic Value"
-              value={intrinsicValue || "Unavailable"}
-            />
-            <Metric
-              label="Margin of Safety"
-              value={formatPct(view.marginOfSafety)}
-            />
+            <Metric label="Intrinsic Value" value={intrinsicValue || "Unavailable"} />
+            <Metric label="Margin of Safety" value={formatPct(view.marginOfSafety)} />
             <Metric
               label="Overall Quality"
               value={`${view.businessQualityLabel} · ${formatScore(view.businessQualityScore)}`}
@@ -90,8 +84,8 @@ export function AnalysisSummaryEmpty() {
       <CardHeader title="Analysis Summary" />
       <CardBody>
         <p className="text-sm text-[var(--muted)]">
-          Run analysis to populate recommendation, valuation, quality, and
-          committee outputs.
+          Run analysis to populate recommendation, valuation, quality, and committee
+          outputs.
         </p>
         <Link href="/companies" className="mt-3 inline-block text-sm underline">
           Browse companies

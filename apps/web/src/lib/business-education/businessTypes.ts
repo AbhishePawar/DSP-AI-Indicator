@@ -13,26 +13,8 @@ export type BusinessType =
   | "general";
 
 const METRIC_PRESETS: Record<BusinessType, string[]> = {
-  bank: [
-    "aum",
-    "nim",
-    "roa",
-    "roe",
-    "credit_cost",
-    "gnpa",
-    "nnpa",
-    "capital_adequacy",
-  ],
-  nbfc: [
-    "aum",
-    "nim",
-    "roa",
-    "roe",
-    "credit_cost",
-    "gnpa",
-    "nnpa",
-    "capital_adequacy",
-  ],
+  bank: ["aum", "nim", "roa", "roe", "credit_cost", "gnpa", "nnpa", "capital_adequacy"],
+  nbfc: ["aum", "nim", "roa", "roe", "credit_cost", "gnpa", "nnpa", "capital_adequacy"],
   insurance: [
     "premium_growth",
     "combined_ratio",
@@ -109,7 +91,10 @@ const KEYWORD_MAP: Array<{ keys: string[]; type: BusinessType }> = [
   { keys: ["insurance"], type: "insurance" },
   { keys: ["asset management", "mutual fund", "amc"], type: "asset_manager" },
   { keys: ["exchange", "clearing", "depository"], type: "exchange" },
-  { keys: ["software", "saas", "it services", "information technology"], type: "it_saas" },
+  {
+    keys: ["software", "saas", "it services", "information technology"],
+    type: "it_saas",
+  },
   { keys: ["fmcg", "consumer"], type: "consumer" },
   { keys: ["manufactur", "industrial"], type: "manufacturing" },
   { keys: ["infra", "power", "utility"], type: "infrastructure" },

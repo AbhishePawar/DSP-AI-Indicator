@@ -147,9 +147,7 @@ function wrap(ui: React.ReactNode) {
   const client = new QueryClient({
     defaultOptions: { queries: { retry: false }, mutations: { retry: false } },
   });
-  return render(
-    <QueryClientProvider client={client}>{ui}</QueryClientProvider>,
-  );
+  return render(<QueryClientProvider client={client}>{ui}</QueryClientProvider>);
 }
 
 describe("P9.5 portfolio intelligence lib", () => {
@@ -269,13 +267,9 @@ describe("P9.5 portfolio intelligence lib", () => {
       tags: [],
     });
     usePortfolioIntelPrefsStore.getState().addWatchlistSymbol("nvda");
-    expect(usePortfolioIntelPrefsStore.getState().watchlist[0]?.symbol).toBe(
-      "NVDA",
-    );
+    expect(usePortfolioIntelPrefsStore.getState().watchlist[0]?.symbol).toBe("NVDA");
     usePortfolioIntelPrefsStore.getState().setActiveSection("holdings");
-    expect(usePortfolioIntelPrefsStore.getState().activeSection).toBe(
-      "holdings",
-    );
+    expect(usePortfolioIntelPrefsStore.getState().activeSection).toBe("holdings");
   });
 });
 
@@ -302,9 +296,8 @@ describe("P9.5 workspace UI", () => {
   });
 
   it("renders workspace layout and executive summary", async () => {
-    const { PortfolioIntelligenceWorkspace } = await import(
-      "@/components/portfolio-intelligence/PortfolioIntelligenceWorkspace"
-    );
+    const { PortfolioIntelligenceWorkspace } =
+      await import("@/components/portfolio-intelligence/PortfolioIntelligenceWorkspace");
     wrap(<PortfolioIntelligenceWorkspace />);
     expect(screen.getByLabelText("Portfolio navigation")).toBeTruthy();
     expect(screen.getByLabelText("Main portfolio view")).toBeTruthy();
@@ -317,9 +310,8 @@ describe("P9.5 workspace UI", () => {
 
   it("renders holdings table with company links", async () => {
     usePortfolioIntelPrefsStore.setState({ activeSection: "holdings" });
-    const { HoldingsSection } = await import(
-      "@/components/portfolio-intelligence/Sections"
-    );
+    const { HoldingsSection } =
+      await import("@/components/portfolio-intelligence/Sections");
     wrap(
       <HoldingsSection
         holdings={[

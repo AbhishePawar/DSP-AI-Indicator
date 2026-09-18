@@ -22,9 +22,15 @@ import type {
   Task,
   TaskStatus,
 } from "@/lib/advisor/advisorTypes";
-import { listClients, listMeetings, listTasksByStatus } from "@/lib/advisor/advisorViewModel";
+import {
+  listClients,
+  listMeetings,
+  listTasksByStatus,
+} from "@/lib/advisor/advisorViewModel";
 
-function reviewTone(status: ReviewStatus): "success" | "warning" | "danger" | "neutral" {
+function reviewTone(
+  status: ReviewStatus,
+): "success" | "warning" | "danger" | "neutral" {
   if (status === "on_track" || status === "completed") return "success";
   if (status === "due_soon") return "warning";
   if (status === "overdue") return "danger";
@@ -50,7 +56,9 @@ export function PortfolioHealthCard({
       <CardBody className="space-y-1 text-sm">
         <p className="font-medium">{label}</p>
         <p className="text-[var(--muted)]">{snapshot}</p>
-        <p className="text-xs text-[var(--muted)]">Size band: {sizeLabel} (illustrative)</p>
+        <p className="text-xs text-[var(--muted)]">
+          Size band: {sizeLabel} (illustrative)
+        </p>
       </CardBody>
     </Card>
   );
@@ -88,7 +96,11 @@ export function ClientFilters({
   const selectClass =
     "mt-1 min-h-11 w-full rounded-md border border-[var(--border)] bg-[var(--surface)] px-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]";
   return (
-    <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4" role="group" aria-label="Client filters">
+    <div
+      className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4"
+      role="group"
+      aria-label="Client filters"
+    >
       <label className="block text-sm">
         Risk profile
         <select
@@ -172,7 +184,8 @@ export function ClientFilters({
 }
 
 export const ClientDirectory = memo(function ClientDirectory() {
-  const [filters, setFilters] = useState<ClientDirectoryFilters>(DEFAULT_CLIENT_FILTERS);
+  const [filters, setFilters] =
+    useState<ClientDirectoryFilters>(DEFAULT_CLIENT_FILTERS);
   const all = useMemo(() => listClients(), []);
   const visible = useMemo(() => filterAndSortClients(all, filters), [all, filters]);
 
@@ -248,7 +261,10 @@ export function MeetingTimeline({ meetings }: { meetings: Meeting[] }) {
         const items = meetings.filter((m) => m.status === g.status);
         return (
           <section key={g.status} aria-labelledby={`mtg-${g.status}`}>
-            <h2 id={`mtg-${g.status}`} className="font-[family-name:var(--font-display)] text-lg">
+            <h2
+              id={`mtg-${g.status}`}
+              className="font-[family-name:var(--font-display)] text-lg"
+            >
               {g.label}
             </h2>
             {items.length === 0 ? (
@@ -323,8 +339,7 @@ export function TaskLane({
       className="min-w-[16rem] flex-1 rounded-lg border border-[var(--border)] bg-[var(--surface)] p-3"
     >
       <h3 id={`lane-${status}`} className="font-medium text-sm">
-        {label}{" "}
-        <span className="text-[var(--muted)]">({tasks.length})</span>
+        {label} <span className="text-[var(--muted)]">({tasks.length})</span>
       </h3>
       <div className="mt-3 space-y-2">
         {tasks.length === 0 ? (
@@ -373,7 +388,10 @@ export function TaskBoard() {
 export function NotesCard({ notes }: { notes: ClientNote[] }) {
   return (
     <Card>
-      <CardHeader title="Notes" description="Pinned · Meeting · Research · Advisor (demo)" />
+      <CardHeader
+        title="Notes"
+        description="Pinned · Meeting · Research · Advisor (demo)"
+      />
       <CardBody className="space-y-3">
         {notes.length === 0 ? (
           <p className="text-sm text-[var(--muted)]">No demo notes</p>
@@ -420,7 +438,8 @@ export function ResearchHistoryCard({ events }: { events: ResearchHistoryEvent[]
                 />
                 <p className="font-medium">{e.label}</p>
                 <p className="text-xs text-[var(--muted)]">
-                  {e.kind.replace(/_/g, " ")} · {new Date(e.occurredAt).toLocaleString()}
+                  {e.kind.replace(/_/g, " ")} ·{" "}
+                  {new Date(e.occurredAt).toLocaleString()}
                 </p>
               </li>
             ))}
@@ -463,7 +482,10 @@ export function ClientDashboardCards({
         <CardBody className="text-sm text-[var(--muted)]">{meetingStatus}</CardBody>
       </Card>
       <Card>
-        <CardHeader title="Outstanding tasks" action={<Badge tone="warning">{outstandingTasks.length}</Badge>} />
+        <CardHeader
+          title="Outstanding tasks"
+          action={<Badge tone="warning">{outstandingTasks.length}</Badge>}
+        />
         <CardBody>
           <ul className="list-disc space-y-1 pl-5 text-sm text-[var(--muted)]">
             {outstandingTasks.length === 0 ? (
@@ -487,7 +509,10 @@ export function ClientDashboardCards({
         </CardBody>
       </Card>
       <Card>
-        <CardHeader title="Risk level" action={<Badge tone="neutral">{riskLevel}</Badge>} />
+        <CardHeader
+          title="Risk level"
+          action={<Badge tone="neutral">{riskLevel}</Badge>}
+        />
         <CardBody className="text-sm text-[var(--muted)]">
           <ReviewStatusBadge status={client.reviewStatus} />
         </CardBody>

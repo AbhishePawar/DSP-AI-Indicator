@@ -47,9 +47,7 @@ export function InstitutionalDashboardClient({
         );
       }
       const opts = { token: session?.accessToken };
-      const match = COMPANY_CATALOGUE.find(
-        (c) => c.ticker.toUpperCase() === symbol,
-      );
+      const match = COMPANY_CATALOGUE.find((c) => c.ticker.toUpperCase() === symbol);
       // P0-01 — authenticated statements only; never clone demo ACM financials.
       const request = await loadAuthenticatedAnalyseRequest(symbol, {
         exchange: match?.exchange,
@@ -104,9 +102,7 @@ export function InstitutionalDashboardClient({
         ...sections,
         analysedAt: new Date().toISOString(),
         dataGatewayNote:
-          "ok" in dataResp && dataResp.ok === false
-            ? dataResp.message
-            : undefined,
+          "ok" in dataResp && dataResp.ok === false ? dataResp.message : undefined,
       };
     },
   });
@@ -152,9 +148,7 @@ export function InstitutionalDashboardClient({
     return "Analysis request failed. Data unavailable.";
   }
 
-  const errorMessage = mutation.error
-    ? describeIrdError(mutation.error)
-    : null;
+  const errorMessage = mutation.error ? describeIrdError(mutation.error) : null;
 
   const classicResearchHref = ticker.trim()
     ? `/research/${encodeURIComponent(ticker.trim().toUpperCase())}`
@@ -217,10 +211,7 @@ export function InstitutionalDashboardClient({
                 required
               />
             </div>
-            <Button
-              type="submit"
-              disabled={mutation.isPending || !ticker.trim()}
-            >
+            <Button type="submit" disabled={mutation.isPending || !ticker.trim()}>
               {mutation.isPending ? "Loading…" : "Run research"}
             </Button>
             {classicResearchHref ? (
@@ -264,8 +255,8 @@ export function InstitutionalDashboardClient({
         <Alert variant="warning">
           Partial coverage: analyse succeeded but the data gateway reported —{" "}
           {mutation.data.dataGatewayNote} Market/statement panels may show Data
-          unavailable. Full trust ladder, contradictory evidence, and
-          recommendation evidence live on{" "}
+          unavailable. Full trust ladder, contradictory evidence, and recommendation
+          evidence live on{" "}
           <Link
             href="/research/institutional"
             className="underline underline-offset-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
@@ -279,8 +270,8 @@ export function InstitutionalDashboardClient({
       {view && !mutation.data?.dataGatewayNote ? (
         <Alert variant="info">
           This dashboard renders RS panels from the analyse composition. For the
-          epistemic ladder (Facts → Analysis → Inference → Recommendation),
-          opposing evidence, and report audit trail, open{" "}
+          epistemic ladder (Facts → Analysis → Inference → Recommendation), opposing
+          evidence, and report audit trail, open{" "}
           <Link
             href="/research/institutional"
             className="underline underline-offset-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"

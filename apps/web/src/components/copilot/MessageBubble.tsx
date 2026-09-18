@@ -65,16 +65,15 @@ export function MessageBubble({
           {isUser ? "You" : "Copilot"}
         </p>
         <div className="mt-1">
-          {message.markdown && !isUser
-            ? renderMarkdownLite(message.content)
-            : <p className="whitespace-pre-wrap">{message.content}</p>}
+          {message.markdown && !isUser ? (
+            renderMarkdownLite(message.content)
+          ) : (
+            <p className="whitespace-pre-wrap">{message.content}</p>
+          )}
         </div>
         {!isUser ? (
           <>
-            <ResearchCitationList
-              citations={message.citations}
-              ticker={ticker}
-            />
+            <ResearchCitationList citations={message.citations} ticker={ticker} />
             {message.sources?.length ? (
               <div
                 className="mt-2 border-t border-[var(--border)] pt-2"

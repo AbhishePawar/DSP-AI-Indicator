@@ -158,8 +158,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const enrichPermissions = useCallback(async (next: Session) => {
     if (!next.roles.length) return next;
     try {
-      const token =
-        next.authMethod === "cookie_rbac" ? null : next.accessToken;
+      const token = next.authMethod === "cookie_rbac" ? null : next.accessToken;
       const evalResult = await rbacAuthApi.evaluate(token ?? "", {
         user_id: next.subject,
         permission: "read_research",

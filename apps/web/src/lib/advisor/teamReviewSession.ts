@@ -15,10 +15,7 @@ import {
   updateSessionReview,
 } from "./reviewSession";
 import type { ClientReview, ReviewStatus } from "./reviewTypes";
-import {
-  seedTeamAssignments,
-  seedTeamReviewActivity,
-} from "./teamReviewModels";
+import { seedTeamAssignments, seedTeamReviewActivity } from "./teamReviewModels";
 import {
   ASSIGNMENT_COLUMNS,
   DEFAULT_TEAM_REVIEW_FILTERS,
@@ -176,9 +173,7 @@ export function moveAssignment(reviewId: string, column: AssignmentColumnId) {
 export function setAssignmentOwner(reviewId: string, owner: string) {
   const review = getReviewSnapshot().reviews.find((r) => r.id === reviewId);
   if (!review) return;
-  assignments = assignments.map((a) =>
-    a.reviewId === reviewId ? { ...a, owner } : a,
-  );
+  assignments = assignments.map((a) => (a.reviewId === reviewId ? { ...a, owner } : a));
   if (owner !== "Unassigned") {
     const meta = getAssignment(reviewId);
     if (meta?.column === "unassigned") {
@@ -248,7 +243,11 @@ export function filterTeamReviews(
 
   return snap.reviews.filter((r) => {
     const meta = snap.assignments.find((a) => a.reviewId === r.id);
-    if (q && !r.title.toLowerCase().includes(q) && !r.clientAlias.toLowerCase().includes(q)) {
+    if (
+      q &&
+      !r.title.toLowerCase().includes(q) &&
+      !r.clientAlias.toLowerCase().includes(q)
+    ) {
       return false;
     }
     if (f.owner && meta?.owner !== f.owner) return false;

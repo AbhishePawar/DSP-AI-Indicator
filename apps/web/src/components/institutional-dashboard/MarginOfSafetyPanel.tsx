@@ -26,10 +26,7 @@ export function MarginOfSafetyPanel({ view }: { view: MarginOfSafetyView }) {
               <MetricCell label={label} field={field} emphasize />
             </div>
             {index < arr.length - 1 ? (
-              <p
-                className="py-1 text-center text-lg text-[var(--muted)]"
-                aria-hidden
-              >
+              <p className="py-1 text-center text-lg text-[var(--muted)]" aria-hidden>
                 ↓
               </p>
             ) : null}

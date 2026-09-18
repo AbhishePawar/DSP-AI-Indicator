@@ -63,9 +63,7 @@ export function normalizePath(pathname: string): string {
   const trimmed = pathname.trim();
   if (trimmed === "/") return "/dashboard";
   if (!isSafeRedirectPath(trimmed)) return "/dashboard";
-  return trimmed.endsWith("/") && trimmed.length > 1
-    ? trimmed.slice(0, -1)
-    : trimmed;
+  return trimmed.endsWith("/") && trimmed.length > 1 ? trimmed.slice(0, -1) : trimmed;
 }
 
 /** Strip trailing slash without remapping `/` to dashboard (marketing home). */
@@ -114,7 +112,5 @@ export function requiresAuth(pathname: string): boolean {
 
 export function loginRedirectUrl(nextPath: string, expired = false): string {
   const next = encodeURIComponent(normalizePath(nextPath));
-  return expired
-    ? `/login?expired=1&next=${next}`
-    : `/login?next=${next}`;
+  return expired ? `/login?expired=1&next=${next}` : `/login?next=${next}`;
 }

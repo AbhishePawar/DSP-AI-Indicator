@@ -135,7 +135,10 @@ describe("cookieSession", () => {
   });
 
   it("uses cookie mode when only csrf_token is present", () => {
-    const session = sessionFromRbacLogin(rbacResult({ csrf_token: "csrf-only" }), false);
+    const session = sessionFromRbacLogin(
+      rbacResult({ csrf_token: "csrf-only" }),
+      false,
+    );
     expect(session.accessToken).toBe(COOKIE_TOKEN_PLACEHOLDER);
     expect(session.refreshToken).toBeNull();
     persistSession(session);

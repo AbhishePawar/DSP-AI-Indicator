@@ -2,10 +2,7 @@
 
 import { env } from "@/lib/env";
 import { ApiClientError, type ApiErrorBody } from "@/lib/api/types";
-import {
-  cookieAuthPreferred,
-  cookieFetchInit,
-} from "@/lib/auth/cookieSession";
+import { cookieAuthPreferred, cookieFetchInit } from "@/lib/auth/cookieSession";
 import { COOKIE_TOKEN_PLACEHOLDER } from "@/lib/auth/sessionStore";
 import type { RbacEnvelope, RbacLoginResult } from "@/lib/api/rbacTypes";
 
@@ -142,10 +139,10 @@ export const enterpriseAuthApi = {
     confirm_password: string;
     name?: string;
   }) =>
-    enterpriseRequest<Record<string, unknown>>(
-      "/auth/enterprise/register/username",
-      { method: "POST", body: JSON.stringify(body) },
-    ),
+    enterpriseRequest<Record<string, unknown>>("/auth/enterprise/register/username", {
+      method: "POST",
+      body: JSON.stringify(body),
+    }),
 
   registerMobileRequest: (identifier: string) =>
     enterpriseRequest<{
@@ -172,15 +169,11 @@ export const enterpriseAuthApi = {
       { method: "POST", body: JSON.stringify(body) },
     ),
 
-  login: (body: {
-    identifier: string;
-    password: string;
-    remember_me?: boolean;
-  }) =>
-    enterpriseRequest<RbacLoginResult & MfaAdditiveFields>(
-      "/auth/enterprise/login",
-      { method: "POST", body: JSON.stringify(body) },
-    ),
+  login: (body: { identifier: string; password: string; remember_me?: boolean }) =>
+    enterpriseRequest<RbacLoginResult & MfaAdditiveFields>("/auth/enterprise/login", {
+      method: "POST",
+      body: JSON.stringify(body),
+    }),
 
   forgotPassword: (identifier: string) =>
     enterpriseRequest<{
@@ -193,17 +186,15 @@ export const enterpriseAuthApi = {
     }>("/auth/enterprise/password/forgot", {
       method: "POST",
       body: JSON.stringify(
-        identifier.includes("@")
-          ? { email: identifier }
-          : { identifier },
+        identifier.includes("@") ? { email: identifier } : { identifier },
       ),
     }),
 
   resetPassword: (token: string, new_password: string) =>
-    enterpriseRequest<Record<string, unknown>>(
-      "/auth/enterprise/password/reset",
-      { method: "POST", body: JSON.stringify({ token, new_password }) },
-    ),
+    enterpriseRequest<Record<string, unknown>>("/auth/enterprise/password/reset", {
+      method: "POST",
+      body: JSON.stringify({ token, new_password }),
+    }),
 
   resetPasswordOtp: (body: {
     challenge_id: string;
@@ -211,16 +202,16 @@ export const enterpriseAuthApi = {
     new_password: string;
     confirm_password: string;
   }) =>
-    enterpriseRequest<Record<string, unknown>>(
-      "/auth/enterprise/password/reset/otp",
-      { method: "POST", body: JSON.stringify(body) },
-    ),
+    enterpriseRequest<Record<string, unknown>>("/auth/enterprise/password/reset/otp", {
+      method: "POST",
+      body: JSON.stringify(body),
+    }),
 
   verifyEmail: (token: string) =>
-    enterpriseRequest<Record<string, unknown>>(
-      "/auth/enterprise/verify-email",
-      { method: "POST", body: JSON.stringify({ token }) },
-    ),
+    enterpriseRequest<Record<string, unknown>>("/auth/enterprise/verify-email", {
+      method: "POST",
+      body: JSON.stringify({ token }),
+    }),
 
   oauthBegin: (provider: string, redirect_uri: string) =>
     enterpriseRequest<{
@@ -250,9 +241,7 @@ export const enterpriseAuthApi = {
   requestOtp: (identifier: string) => {
     if (String(identifier || "").includes("@")) {
       return Promise.reject(
-        new Error(
-          "Email OTP is no longer supported. Sign in with Google or password.",
-        ),
+        new Error("Email OTP is no longer supported. Sign in with Google or password."),
       );
     }
     return enterpriseRequest<{
@@ -307,10 +296,10 @@ export const enterpriseAuthApi = {
     organization?: string;
     reason?: string;
   }) =>
-    enterpriseRequest<Record<string, unknown>>(
-      "/auth/enterprise/access-requests",
-      { method: "POST", body: JSON.stringify(body) },
-    ),
+    enterpriseRequest<Record<string, unknown>>("/auth/enterprise/access-requests", {
+      method: "POST",
+      body: JSON.stringify(body),
+    }),
 
   listAccessRequests: (token?: string | null, status?: string) =>
     enterpriseRequest<Record<string, unknown>[]>(
@@ -336,10 +325,10 @@ export const enterpriseAuthApi = {
     confirm_password: string;
     username?: string;
   }) =>
-    enterpriseRequest<Record<string, unknown>>(
-      "/auth/enterprise/invitations/accept",
-      { method: "POST", body: JSON.stringify(body) },
-    ),
+    enterpriseRequest<Record<string, unknown>>("/auth/enterprise/invitations/accept", {
+      method: "POST",
+      body: JSON.stringify(body),
+    }),
 
   passwordStrength: (password: string) =>
     enterpriseRequest<{
@@ -356,9 +345,7 @@ export const enterpriseAuthApi = {
   resendOtp: (identifier: string) => {
     if (String(identifier || "").includes("@")) {
       return Promise.reject(
-        new Error(
-          "Email OTP is no longer supported. Sign in with Google or password.",
-        ),
+        new Error("Email OTP is no longer supported. Sign in with Google or password."),
       );
     }
     return enterpriseRequest<{
@@ -378,10 +365,7 @@ export const enterpriseAuthApi = {
   getProfile: (token?: string | null) =>
     enterpriseRequest<Record<string, unknown>>("/auth/me", {}, { token }),
 
-  updateProfile: (
-    body: { name?: string; avatar?: string },
-    token?: string | null,
-  ) =>
+  updateProfile: (body: { name?: string; avatar?: string }, token?: string | null) =>
     enterpriseRequest<Record<string, unknown>>(
       "/auth/me",
       { method: "PATCH", body: JSON.stringify(body) },
@@ -420,11 +404,7 @@ export const enterpriseAuthApi = {
     ),
 
   listDevices: (token?: string | null) =>
-    enterpriseRequest<Record<string, unknown>[]>(
-      "/auth/me/devices",
-      {},
-      { token },
-    ),
+    enterpriseRequest<Record<string, unknown>[]>("/auth/me/devices", {}, { token }),
 
   trustDevice: (deviceId: string, trusted: boolean, token?: string | null) =>
     enterpriseRequest<Record<string, unknown>>(
@@ -484,11 +464,7 @@ export const enterpriseAuthApi = {
       { token },
     ),
 
-  adminResetPassword: (
-    userId: string,
-    new_password: string,
-    token?: string | null,
-  ) =>
+  adminResetPassword: (userId: string, new_password: string, token?: string | null) =>
     enterpriseRequest<Record<string, unknown>>(
       `/auth/enterprise/admin/users/${encodeURIComponent(userId)}/reset-password`,
       { method: "POST", body: JSON.stringify({ new_password }) },
@@ -515,10 +491,10 @@ export const enterpriseAuthApi = {
     }),
 
   webauthnAuthenticateBegin: (body: { identifier?: string } = {}) =>
-    enterpriseRequest<Record<string, unknown>>(
-      "/auth/mfa/webauthn/authenticate",
-      { method: "POST", body: JSON.stringify(body) },
-    ),
+    enterpriseRequest<Record<string, unknown>>("/auth/mfa/webauthn/authenticate", {
+      method: "POST",
+      body: JSON.stringify(body),
+    }),
 
   webauthnRegisterBegin: (token?: string | null) =>
     enterpriseRequest<Record<string, unknown>>(

@@ -20,11 +20,7 @@ export function Section({
     : undefined;
 
   return (
-    <section
-      aria-labelledby={headingId}
-      className={cn("py-6", className)}
-      {...props}
-    >
+    <section aria-labelledby={headingId} className={cn("py-6", className)} {...props}>
       {(title || description || actions) && (
         <div className="mb-4 flex flex-wrap items-start justify-between gap-3">
           <div className="min-w-0 flex-1">

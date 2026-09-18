@@ -73,7 +73,9 @@ function ReviewShell({
   );
 }
 
-function statusTone(status: ReviewStatus): "success" | "warning" | "accent" | "neutral" {
+function statusTone(
+  status: ReviewStatus,
+): "success" | "warning" | "accent" | "neutral" {
   if (status === "completed") return "success";
   if (status === "in_progress") return "warning";
   if (status === "upcoming") return "accent";
@@ -98,7 +100,10 @@ export function ReviewChecklist({
 }) {
   return (
     <Card>
-      <CardHeader title="Review checklist" description="Toggle items independently — session only" />
+      <CardHeader
+        title="Review checklist"
+        description="Toggle items independently — session only"
+      />
       <CardBody>
         <ul className="space-y-2" aria-label="Review checklist">
           {items.map((item) => (
@@ -110,7 +115,11 @@ export function ReviewChecklist({
                   onChange={() => toggleChecklistItem(reviewId, item.id)}
                   aria-label={item.label}
                 />
-                <span className={item.done ? "text-[var(--muted)] line-through" : "font-medium"}>
+                <span
+                  className={
+                    item.done ? "text-[var(--muted)] line-through" : "font-medium"
+                  }
+                >
                   {item.label}
                 </span>
               </label>
@@ -125,9 +134,15 @@ export function ReviewChecklist({
 export function ReviewTimeline({ events }: { events: ReviewTimelineEvent[] }) {
   return (
     <Card>
-      <CardHeader title="Review timeline" description="Previous · current · upcoming · meetings · research · portfolio" />
+      <CardHeader
+        title="Review timeline"
+        description="Previous · current · upcoming · meetings · research · portfolio"
+      />
       <CardBody>
-        <ol className="space-y-3 border-l-2 border-[var(--border)] pl-4" aria-label="Review timeline">
+        <ol
+          className="space-y-3 border-l-2 border-[var(--border)] pl-4"
+          aria-label="Review timeline"
+        >
           {events.map((e) => (
             <li key={e.id} className="relative text-sm">
               <span
@@ -150,10 +165,10 @@ export function MeetingPreparationCard({ review }: { review: ClientReview }) {
   const portfolio =
     seedModelPortfolioLibrary.find((p) => p.id === review.modelPortfolioId) ??
     seedModelPortfolioLibrary[0];
-  const tasks = listTasks().filter((t) => t.status !== "done").slice(0, 4);
-  const envelopes = review.envelopeIds
-    .map((id) => getEnvelope(id))
-    .filter(Boolean);
+  const tasks = listTasks()
+    .filter((t) => t.status !== "done")
+    .slice(0, 4);
+  const envelopes = review.envelopeIds.map((id) => getEnvelope(id)).filter(Boolean);
 
   return (
     <Card>
@@ -191,7 +206,9 @@ export function MeetingPreparationCard({ review }: { review: ClientReview }) {
         </section>
         <section>
           <h3 className="font-medium">Advisor notes</h3>
-          <p className="mt-1 text-[var(--muted)] whitespace-pre-wrap">{review.advisorNotes}</p>
+          <p className="mt-1 text-[var(--muted)] whitespace-pre-wrap">
+            {review.advisorNotes}
+          </p>
         </section>
         <section>
           <h3 className="font-medium">Client questions</h3>
@@ -275,12 +292,20 @@ export function ReviewSummaryCard({ review }: { review: ClientReview }) {
   );
 }
 
-const ACTION_STATUSES: ReviewActionStatus[] = ["open", "waiting", "completed", "deferred"];
+const ACTION_STATUSES: ReviewActionStatus[] = [
+  "open",
+  "waiting",
+  "completed",
+  "deferred",
+];
 
 export function ActionTracker({ review }: { review: ClientReview }) {
   return (
     <Card>
-      <CardHeader title="Action tracker" description="Open · Waiting · Completed · Deferred" />
+      <CardHeader
+        title="Action tracker"
+        description="Open · Waiting · Completed · Deferred"
+      />
       <CardBody className="space-y-3">
         {ACTION_STATUSES.map((status) => {
           const items = review.actions.filter((a) => a.status === status);
@@ -344,7 +369,11 @@ export function ReviewTemplateCard({
 }) {
   return (
     <Card className="dsp-interactive">
-      <CardHeader title={name} description={blurb} action={<Badge tone="accent">Template</Badge>} />
+      <CardHeader
+        title={name}
+        description={blurb}
+        action={<Badge tone="accent">Template</Badge>}
+      />
       <CardBody>
         {onUse ? (
           <Button type="button" variant="secondary" onClick={onUse}>
@@ -390,9 +419,11 @@ function ReviewLane({
   const items = reviews.filter((r) => r.status === status);
   return (
     <section aria-labelledby={`lane-${status}`} className="space-y-2">
-      <h2 id={`lane-${status}`} className="font-[family-name:var(--font-display)] text-lg">
-        {label}{" "}
-        <span className="text-[var(--muted)]">({items.length})</span>
+      <h2
+        id={`lane-${status}`}
+        className="font-[family-name:var(--font-display)] text-lg"
+      >
+        {label} <span className="text-[var(--muted)]">({items.length})</span>
       </h2>
       <WindowedList
         items={items}
@@ -406,7 +437,9 @@ function ReviewLane({
               description={r.clientAlias}
               action={
                 <div className="flex flex-wrap gap-1">
-                  <Badge tone={statusTone(r.status)}>{r.status.replace(/_/g, " ")}</Badge>
+                  <Badge tone={statusTone(r.status)}>
+                    {r.status.replace(/_/g, " ")}
+                  </Badge>
                   <ReviewProgressBadge review={r} />
                 </div>
               }
@@ -478,15 +511,15 @@ export const ClientReviewWorkspace = memo(function ClientReviewWorkspace() {
 export const ActiveReviewWorkspace = memo(function ActiveReviewWorkspace() {
   const { reviews, activeId } = useReviewSession();
   const review = reviews.find((r) => r.id === activeId) ?? null;
-  const timeline = useMemo(
-    () => (review ? buildReviewTimeline(review) : []),
-    [review],
-  );
+  const timeline = useMemo(() => (review ? buildReviewTimeline(review) : []), [review]);
 
   if (!review) {
     return (
       <ReviewShell title="Active Review">
-        <EmptyState title="No active review" description="Open one from the workspace." />
+        <EmptyState
+          title="No active review"
+          description="Open one from the workspace."
+        />
       </ReviewShell>
     );
   }
@@ -497,7 +530,9 @@ export const ActiveReviewWorkspace = memo(function ActiveReviewWorkspace() {
       description={`${review.clientAlias} · ${review.templateId}`}
     >
       <div className="flex flex-wrap items-center gap-2">
-        <Badge tone={statusTone(review.status)}>{review.status.replace(/_/g, " ")}</Badge>
+        <Badge tone={statusTone(review.status)}>
+          {review.status.replace(/_/g, " ")}
+        </Badge>
         <ReviewProgressBadge review={review} />
         <label className="text-sm">
           Switch review

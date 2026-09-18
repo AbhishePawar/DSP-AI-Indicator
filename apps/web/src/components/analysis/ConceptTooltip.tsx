@@ -38,9 +38,7 @@ export function ConceptTooltip({
         >
           <strong className="text-[var(--fg)]">{tip.title}</strong> — {tip.definition}
           <br />
-          <span className="mt-1 block">
-            AI explanation: {tip.aiExplanation}
-          </span>
+          <span className="mt-1 block">AI explanation: {tip.aiExplanation}</span>
         </span>
       ) : null}
     </span>

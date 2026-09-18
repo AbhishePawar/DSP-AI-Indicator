@@ -4,10 +4,8 @@ export const PRODUCT = {
   name: "DSP AI Indicator",
   primaryTagline: "Complex Analysis. Simple Decisions.",
   secondaryTagline: "Professional Investment Research for Everyone.",
-  mission:
-    "Help investors understand businesses before making investment decisions.",
-  philosophy:
-    "Explainable AI Investment Research Platform — not a stock tip service.",
+  mission: "Help investors understand businesses before making investment decisions.",
+  philosophy: "Explainable AI Investment Research Platform — not a stock tip service.",
 } as const;
 
 /** Design principle — every screen must answer these. */

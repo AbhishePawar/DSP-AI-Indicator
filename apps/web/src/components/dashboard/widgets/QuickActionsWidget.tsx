@@ -61,15 +61,11 @@ export function QuickActionsWidget() {
     }
     if (action.href === "/research/institutional") {
       const research = SHELL_NAV.find((n) => n.id === "research");
-      const child = research?.children?.find(
-        (c) => c.id === "research-institutional",
-      );
+      const child = research?.children?.find((c) => c.id === "research-institutional");
       if (!research || !canAccessNavItem(research, permissions, roles)) {
         return false;
       }
-      return child
-        ? canAccessNavItem(child, permissions, roles)
-        : true;
+      return child ? canAccessNavItem(child, permissions, roles) : true;
     }
     if (action.href === "/research/canvas") {
       const research = SHELL_NAV.find((n) => n.id === "research");

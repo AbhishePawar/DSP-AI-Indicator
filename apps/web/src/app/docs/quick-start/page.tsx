@@ -17,9 +17,7 @@ export default function QuickStartPage() {
           </Link>{" "}
           with your organisation credentials (or closed-beta invite).
         </li>
-        <li>
-          Complete the welcome tour (skip anytime; restart from Beta hub).
-        </li>
+        <li>Complete the welcome tour (skip anytime; restart from Beta hub).</li>
         <li>
           Open{" "}
           <Link
@@ -30,16 +28,13 @@ export default function QuickStartPage() {
           </Link>
           .
         </li>
+        <li>Acknowledge the research disclaimer on first report generation.</li>
         <li>
-          Acknowledge the research disclaimer on first report generation.
+          Review Summary → Ratings → Explainability → Valuation Transparency → Buffett
+          Indicator. Treat Unavailable as honest missing data.
         </li>
         <li>
-          Review Summary → Ratings → Explainability → Valuation Transparency →
-          Buffett Indicator. Treat Unavailable as honest missing data.
-        </li>
-        <li>
-          Send Feedback if something is unclear — never paste secrets or
-          holdings.
+          Send Feedback if something is unclear — never paste secrets or holdings.
         </li>
       </ol>
       <p className="mt-6 text-sm text-[var(--muted)]">

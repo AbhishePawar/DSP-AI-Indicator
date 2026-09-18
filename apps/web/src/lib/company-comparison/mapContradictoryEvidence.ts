@@ -4,10 +4,7 @@
  */
 
 import type { ResearchView } from "@/lib/research/mapResearchView";
-import {
-  COVERAGE_UNAVAILABLE,
-  DATA_UNAVAILABLE,
-} from "./constants";
+import { COVERAGE_UNAVAILABLE, DATA_UNAVAILABLE } from "./constants";
 import type { ContradictoryEvidenceCell } from "./types";
 
 function uniqueNonEmpty(items: string[]): string[] {
@@ -31,13 +28,13 @@ export function mapContradictoryEvidence(
     const supporting = uniqueNonEmpty([
       ...v.committee.supportingReasons,
       ...v.strengths,
-      ...(v.explainability.modules
+      ...v.explainability.modules
         .filter((m) => {
           const c = m.confidence?.toLowerCase?.() ?? "";
           return c.includes("high") || c.includes("strong");
         })
         .map((m) => `${m.title}: ${m.oneLineSummary}`)
-        .filter((s) => !s.toLowerCase().includes("unavailable"))),
+        .filter((s) => !s.toLowerCase().includes("unavailable")),
     ]);
 
     const contradictory = uniqueNonEmpty([
@@ -45,17 +42,13 @@ export function mapContradictoryEvidence(
       ...v.weaknesses,
       ...v.risks,
       ...(v.limitations ?? []),
-      ...(v.errors ?? []).map((e) =>
-        typeof e === "string" ? e : String(e),
-      ),
+      ...(v.errors ?? []).map((e) => (typeof e === "string" ? e : String(e))),
     ]);
 
     const succeeded = v.stages.filter((s) => s.status === "succeeded").length;
     const total = v.stages.length;
     const coverage =
-      total === 0
-        ? COVERAGE_UNAVAILABLE
-        : `${succeeded}/${total} stages succeeded`;
+      total === 0 ? COVERAGE_UNAVAILABLE : `${succeeded}/${total} stages succeeded`;
 
     const confidence =
       v.recommendationConfidence != null
@@ -82,8 +75,7 @@ export function mapContradictoryEvidence(
             ],
       coverage,
       confidence,
-      sourceQuality:
-        sourceBits.length > 0 ? sourceBits.join("; ") : DATA_UNAVAILABLE,
+      sourceQuality: sourceBits.length > 0 ? sourceBits.join("; ") : DATA_UNAVAILABLE,
       honestyNote:
         "Conflicts are never hidden. Both supporting and contradictory lists are shown when present on existing research outputs.",
     };

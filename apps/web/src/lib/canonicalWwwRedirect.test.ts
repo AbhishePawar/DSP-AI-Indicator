@@ -22,10 +22,7 @@ function headers(init: Record<string, string>) {
 
 describe("production www canonical redirect", () => {
   it("permanently redirects exact www host to the hardcoded canonical origin", () => {
-    const result = productionWwwRedirect(
-      headers({ host: WWW_PRODUCTION_HOST }),
-      "/",
-    );
+    const result = productionWwwRedirect(headers({ host: WWW_PRODUCTION_HOST }), "/");
     expect(result).toEqual({
       status: 301,
       location: "https://dspaiindicator.com/",
@@ -33,9 +30,9 @@ describe("production www canonical redirect", () => {
   });
 
   it("preserves pathname on the canonical origin", () => {
-    expect(
-      canonicalWwwRedirectLocation(WWW_PRODUCTION_HOST, "/login", ""),
-    ).toBe("https://dspaiindicator.com/login");
+    expect(canonicalWwwRedirectLocation(WWW_PRODUCTION_HOST, "/login", "")).toBe(
+      "https://dspaiindicator.com/login",
+    );
   });
 
   it("preserves query string", () => {
@@ -48,9 +45,7 @@ describe("production www canonical redirect", () => {
   });
 
   it("redirects the root path", () => {
-    expect(
-      productionWwwRedirect(headers({ host: WWW_PRODUCTION_HOST }), "/"),
-    ).toEqual({
+    expect(productionWwwRedirect(headers({ host: WWW_PRODUCTION_HOST }), "/")).toEqual({
       status: 301,
       location: "https://dspaiindicator.com/",
     });
@@ -95,9 +90,7 @@ describe("production www canonical redirect", () => {
   });
 
   it("does not redirect 127.0.0.1", () => {
-    expect(
-      productionWwwRedirect(headers({ host: "127.0.0.1:3000" }), "/"),
-    ).toBeNull();
+    expect(productionWwwRedirect(headers({ host: "127.0.0.1:3000" }), "/")).toBeNull();
   });
 
   it("does not redirect Cloud Run *.run.app hosts", () => {
@@ -118,10 +111,7 @@ describe("production www canonical redirect", () => {
       "www.dspaindicator.com",
       "dspaindicator.com",
     ]) {
-      expect(
-        productionWwwRedirect(headers({ host }), "/login"),
-        host,
-      ).toBeNull();
+      expect(productionWwwRedirect(headers({ host }), "/login"), host).toBeNull();
     }
   });
 
@@ -159,9 +149,7 @@ describe("production www canonical redirect", () => {
       "/oauth/callback",
       "?code=1",
     );
-    expect(location).toBe(
-      "https://dspaiindicator.com/oauth/callback?code=1",
-    );
+    expect(location).toBe("https://dspaiindicator.com/oauth/callback?code=1");
     expect(location).not.toContain("://www.");
   });
 });

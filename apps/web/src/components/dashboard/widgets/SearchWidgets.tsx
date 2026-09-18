@@ -91,7 +91,13 @@ export function CanonicalCompanySearch() {
   }
 
   return (
-    <form onSubmit={(e) => { e.preventDefault(); submit(query); }} className="w-full space-y-3">
+    <form
+      onSubmit={(e) => {
+        e.preventDefault();
+        submit(query);
+      }}
+      className="w-full space-y-3"
+    >
       <SearchBox
         value={query}
         onChange={(e) => setQuery(e.target.value)}

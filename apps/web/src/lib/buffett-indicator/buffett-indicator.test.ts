@@ -200,18 +200,17 @@ describe("ARCH-001 Buffett Indicator report", () => {
       ...sampleResponse,
       payload: {
         ...sampleResponse.payload,
-        stage_summaries: (
-          sampleResponse.payload.stage_summaries as StageSummary[]
-        ).map((s) =>
-          s.stage === "business_quality_aggregator"
-            ? {
-                ...s,
-                status: "failed",
-                has_result: false,
-                score: null,
-                label: null,
-              }
-            : s,
+        stage_summaries: (sampleResponse.payload.stage_summaries as StageSummary[]).map(
+          (s) =>
+            s.stage === "business_quality_aggregator"
+              ? {
+                  ...s,
+                  status: "failed",
+                  has_result: false,
+                  score: null,
+                  label: null,
+                }
+              : s,
         ),
       },
     };

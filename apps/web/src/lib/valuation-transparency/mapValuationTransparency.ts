@@ -83,12 +83,11 @@ function mapMethods(
   const valuationStage = view.stages.find((s) => s.stage === "valuation");
   const stageAvailable =
     valuationStage?.status === "succeeded" || valuationStage?.has_result === true;
-  const missingFromStage =
-    valuationStage?.warnings?.length
-      ? valuationStage.warnings.join("; ")
-      : valuationStage?.error
-        ? valuationStage.error
-        : "Unavailable";
+  const missingFromStage = valuationStage?.warnings?.length
+    ? valuationStage.warnings.join("; ")
+    : valuationStage?.error
+      ? valuationStage.error
+      : "Unavailable";
 
   return METHOD_DEFS.map((def) => {
     const matched = methodMatches(methodLabel, def.matchToken);
@@ -107,9 +106,7 @@ function mapMethods(
       explanation: available
         ? `Method label from valuation stage / signals matches “${def.name}” (${methodLabel}). Intrinsic value shown only when present on existing valuation outputs.`
         : `Sub-method “${def.name}” is not separately exposed on AnalyseResponse stage_summaries — not invented.`,
-      confidence: available
-        ? orUnavailable(view.valuation.confidence)
-        : "Unavailable",
+      confidence: available ? orUnavailable(view.valuation.confidence) : "Unavailable",
       dataCompleteness: "Unavailable",
       missingInputs: available ? orUnavailable(missingFromStage) : "Unavailable",
       assumptionsUsed: "Unavailable",

@@ -42,10 +42,7 @@ describe("screening filters", () => {
       sector: "Financials",
       exchange: "NSE",
     });
-    expect(results.map((company) => company.ticker)).toEqual([
-      "HDFCBANK",
-      "ICICIBANK",
-    ]);
+    expect(results.map((company) => company.ticker)).toEqual(["HDFCBANK", "ICICIBANK"]);
   });
 
   it("applies growth preset", () => {

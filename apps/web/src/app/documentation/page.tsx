@@ -31,26 +31,17 @@ export default function DocumentationPage() {
               label="API package"
               value={versionQuery.data?.api_package_version ?? "—"}
             />
-            <Row
-              label="Platform"
-              value={versionQuery.data?.platform_version ?? "—"}
-            />
-            <Row
-              label="Pipeline"
-              value={versionQuery.data?.pipeline_version ?? "—"}
-            />
-            <Row
-              label="Docs suite"
-              value={versionQuery.data?.docs_version ?? "—"}
-            />
+            <Row label="Platform" value={versionQuery.data?.platform_version ?? "—"} />
+            <Row label="Pipeline" value={versionQuery.data?.pipeline_version ?? "—"} />
+            <Row label="Docs suite" value={versionQuery.data?.docs_version ?? "—"} />
           </CardBody>
         </Card>
         <Card>
           <CardHeader title="Architecture" />
           <CardBody className="text-sm text-[var(--muted)]">
             <p>
-              Next.js 15 + React 19 + TanStack Query thin client over
-              /api/v1. Backend: Python FastAPI + dsp_platform orchestration.
+              Next.js 15 + React 19 + TanStack Query thin client over /api/v1. Backend:
+              Python FastAPI + dsp_platform orchestration.
             </p>
             <p className="mt-2">
               Frontend imports ONLY HTTP responses — no backend packages.
@@ -74,11 +65,12 @@ export default function DocumentationPage() {
           <CardHeader title="Release Notes" />
           <CardBody className="text-sm text-[var(--muted)]">
             <p>
-              <strong>EPIC-004A</strong> — Investment Terminal Foundation.
-              Application shell, terminal navigation, status bar, dark theme.
+              <strong>EPIC-004A</strong> — Investment Terminal Foundation. Application
+              shell, terminal navigation, status bar, dark theme.
             </p>
             <p className="mt-2">
-              Prior: EPIC-003 Intelligence Workspace · EPIC-002 API · EPIC-001 Composition.
+              Prior: EPIC-003 Intelligence Workspace · EPIC-002 API · EPIC-001
+              Composition.
             </p>
           </CardBody>
         </Card>

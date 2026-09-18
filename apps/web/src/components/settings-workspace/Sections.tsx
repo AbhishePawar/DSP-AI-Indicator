@@ -18,10 +18,7 @@ import {
 import { rbacAuthApi } from "@/lib/api/rbacAuth";
 import { useAuth } from "@/lib/auth/AuthProvider";
 import { tokenStatus } from "@/lib/auth/sessionStore";
-import {
-  DASHBOARD_WIDGETS,
-  useDashboardPrefsStore,
-} from "@/lib/dashboard";
+import { DASHBOARD_WIDGETS, useDashboardPrefsStore } from "@/lib/dashboard";
 import { env } from "@/lib/env";
 import {
   FRONTEND_FOUNDATION_EPIC,
@@ -142,9 +139,7 @@ export function AppearanceSection() {
   const setDensity = useSettingsPrefsStore((s) => s.setDensity);
   const setFontSize = useSettingsPrefsStore((s) => s.setFontSize);
   const setMotionPreference = useSettingsPrefsStore((s) => s.setMotionPreference);
-  const setContrastPreference = useSettingsPrefsStore(
-    (s) => s.setContrastPreference,
-  );
+  const setContrastPreference = useSettingsPrefsStore((s) => s.setContrastPreference);
   const resetAppearance = useSettingsPrefsStore((s) => s.resetAppearance);
 
   const setTheme = (next: ThemeMode) => {
@@ -257,9 +252,7 @@ export function AppearanceSection() {
 export function DashboardSection() {
   const widgetOrder = useDashboardPrefsStore((s) => s.widgetOrder);
   const hiddenWidgets = useDashboardPrefsStore((s) => s.hiddenWidgets);
-  const toggleWidgetVisible = useDashboardPrefsStore(
-    (s) => s.toggleWidgetVisible,
-  );
+  const toggleWidgetVisible = useDashboardPrefsStore((s) => s.toggleWidgetVisible);
   const moveWidget = useDashboardPrefsStore((s) => s.moveWidget);
   const resetLayout = useDashboardPrefsStore((s) => s.resetLayout);
   const isWidgetVisible = useDashboardPrefsStore((s) => s.isWidgetVisible);
@@ -267,9 +260,7 @@ export function DashboardSection() {
   const { status } = useAuth();
   const { success } = useNotifications();
 
-  const metaById = Object.fromEntries(
-    DASHBOARD_WIDGETS.map((w) => [w.id, w]),
-  );
+  const metaById = Object.fromEntries(DASHBOARD_WIDGETS.map((w) => [w.id, w]));
 
   return (
     <div className="space-y-4">
@@ -387,16 +378,10 @@ export function WorkspaceSection() {
   const recentSearches = useDashboardPrefsStore((s) => s.recentSearches);
   const pinnedCompanies = useDashboardPrefsStore((s) => s.pinnedCompanies);
   const defaultWorkspace = useSettingsPrefsStore((s) => s.defaultWorkspace);
-  const setDefaultWorkspace = useSettingsPrefsStore(
-    (s) => s.setDefaultWorkspace,
-  );
+  const setDefaultWorkspace = useSettingsPrefsStore((s) => s.setDefaultWorkspace);
   const recentItemsLimit = useSettingsPrefsStore((s) => s.recentItemsLimit);
-  const setRecentItemsLimit = useSettingsPrefsStore(
-    (s) => s.setRecentItemsLimit,
-  );
-  const searchHistoryEnabled = useSettingsPrefsStore(
-    (s) => s.searchHistoryEnabled,
-  );
+  const setRecentItemsLimit = useSettingsPrefsStore((s) => s.setRecentItemsLimit);
+  const searchHistoryEnabled = useSettingsPrefsStore((s) => s.searchHistoryEnabled);
   const setSearchHistoryEnabled = useSettingsPrefsStore(
     (s) => s.setSearchHistoryEnabled,
   );
@@ -453,10 +438,7 @@ export function WorkspaceSection() {
       </SectionCard>
 
       <SectionCard title="Recent Items Limit">
-        <label
-          className="block text-sm text-[var(--muted)]"
-          htmlFor="recent-limit"
-        >
+        <label className="block text-sm text-[var(--muted)]" htmlFor="recent-limit">
           Display limit for recent pages in Settings
         </label>
         <Input
@@ -528,10 +510,7 @@ export function WorkspaceSection() {
           <ul className="space-y-1 text-sm">
             {limitedRecent.map((p) => (
               <li key={p.path}>
-                <Link
-                  href={p.path}
-                  className="text-[var(--accent)] hover:underline"
-                >
+                <Link href={p.path} className="text-[var(--accent)] hover:underline">
                   {p.title}
                 </Link>
               </li>
@@ -618,8 +597,8 @@ export function NotificationsSection() {
           </Button>
         </ChoiceGroup>
         <p className="mt-2 text-xs text-[var(--muted)]">
-          Preference stored locally. No notification sound engine is wired in
-          the thin client.
+          Preference stored locally. No notification sound engine is wired in the thin
+          client.
         </p>
       </SectionCard>
 
@@ -710,15 +689,11 @@ export function SecuritySection() {
             <TableBody>
               {sessionsQuery.data!.map((s) => (
                 <TableRow key={s.session_id}>
-                  <TableCell className="font-mono text-xs">
-                    {s.session_id}
-                  </TableCell>
+                  <TableCell className="font-mono text-xs">{s.session_id}</TableCell>
                   <TableCell>{s.created_at || "Data unavailable."}</TableCell>
                   <TableCell>{s.expires_at || "Data unavailable."}</TableCell>
                   <TableCell>
-                    {s.revoked === undefined
-                      ? "Data unavailable."
-                      : String(s.revoked)}
+                    {s.revoked === undefined ? "Data unavailable." : String(s.revoked)}
                   </TableCell>
                 </TableRow>
               ))}
@@ -763,9 +738,7 @@ export function AccessibilitySection() {
   const contrastPreference = useSettingsPrefsStore((s) => s.contrastPreference);
   const focusVisible = useSettingsPrefsStore((s) => s.focusVisible);
   const setMotionPreference = useSettingsPrefsStore((s) => s.setMotionPreference);
-  const setContrastPreference = useSettingsPrefsStore(
-    (s) => s.setContrastPreference,
-  );
+  const setContrastPreference = useSettingsPrefsStore((s) => s.setContrastPreference);
   const setFocusVisible = useSettingsPrefsStore((s) => s.setFocusVisible);
 
   return (
@@ -833,8 +806,7 @@ export function AccessibilitySection() {
           </Button>
         </ChoiceGroup>
         <p className="mt-2 text-xs text-[var(--muted)]">
-          Enhanced mode strengthens `:focus-visible` outlines via document
-          dataset.
+          Enhanced mode strengthens `:focus-visible` outlines via document dataset.
         </p>
       </SectionCard>
     </div>
@@ -847,15 +819,9 @@ export function AboutSection() {
       <SectionCard title="Version Information">
         <dl>
           <FieldRow label="Platform / app channel" value={env.frontendVersion} />
-          <FieldRow
-            label="Frontend foundation"
-            value={FRONTEND_FOUNDATION_VERSION}
-          />
+          <FieldRow label="Frontend foundation" value={FRONTEND_FOUNDATION_VERSION} />
           <FieldRow label="Foundation epic" value={FRONTEND_FOUNDATION_EPIC} />
-          <FieldRow
-            label="Foundation status"
-            value={FRONTEND_FOUNDATION_STATUS}
-          />
+          <FieldRow label="Foundation status" value={FRONTEND_FOUNDATION_STATUS} />
           <FieldRow label="Backend target" value={BACKEND_PLATFORM_TARGET} />
           <FieldRow label="API contract" value={API_CONTRACT_TARGET} />
           <FieldRow label="Environment" value={env.environment} />
@@ -890,10 +856,7 @@ export function AboutSection() {
             </Link>
           </li>
           <li>
-            <Link
-              href="/diagnostics"
-              className="text-[var(--accent)] hover:underline"
-            >
+            <Link href="/diagnostics" className="text-[var(--accent)] hover:underline">
               Diagnostics
             </Link>
           </li>

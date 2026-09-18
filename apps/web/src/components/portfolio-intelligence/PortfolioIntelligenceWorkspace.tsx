@@ -49,54 +49,53 @@ import type { PortfolioHolding } from "@/lib/portfolio/model";
 
 /** RC3-004 — real code-splitting (dynamic import), not cosmetic lazy wrappers. */
 const LazySummary = lazy(() =>
-  Promise.all([
-    import("./FlagshipSections"),
-    import("./PortfolioV2Sections"),
-  ]).then(([m, v2]) => ({
-    default: function PortfolioSummaryBundle({
-      portfolioName,
-      owner,
-      lastUpdated,
-      holdingsCount,
-      researchCoverage,
-      onExport,
-      onShare,
-      holdings,
-      intel,
-      intelStatus,
-    }: {
-      portfolioName: string;
-      owner: string;
-      lastUpdated: string | null;
-      holdingsCount: number;
-      researchCoverage: string;
-      onExport: () => void;
-      onShare: () => void;
-      holdings: PortfolioHolding[];
-      intel: PortfolioIntelligenceView | null;
-      intelStatus: string;
-    }) {
-      return (
-        <div className="space-y-4">
-          <m.PortfolioHeaderCard
-            portfolioName={portfolioName}
-            owner={owner}
-            lastUpdated={lastUpdated}
-            holdingsCount={holdingsCount}
-            researchCoverage={researchCoverage}
-            onExport={onExport}
-            onShare={onShare}
-          />
-          <m.ExecutivePortfolioSummary
-            holdings={holdings}
-            intel={intel}
-            intelStatus={intelStatus}
-          />
-          <v2.OverviewV2Extras holdings={holdings} intel={intel} />
-        </div>
-      );
-    },
-  })),
+  Promise.all([import("./FlagshipSections"), import("./PortfolioV2Sections")]).then(
+    ([m, v2]) => ({
+      default: function PortfolioSummaryBundle({
+        portfolioName,
+        owner,
+        lastUpdated,
+        holdingsCount,
+        researchCoverage,
+        onExport,
+        onShare,
+        holdings,
+        intel,
+        intelStatus,
+      }: {
+        portfolioName: string;
+        owner: string;
+        lastUpdated: string | null;
+        holdingsCount: number;
+        researchCoverage: string;
+        onExport: () => void;
+        onShare: () => void;
+        holdings: PortfolioHolding[];
+        intel: PortfolioIntelligenceView | null;
+        intelStatus: string;
+      }) {
+        return (
+          <div className="space-y-4">
+            <m.PortfolioHeaderCard
+              portfolioName={portfolioName}
+              owner={owner}
+              lastUpdated={lastUpdated}
+              holdingsCount={holdingsCount}
+              researchCoverage={researchCoverage}
+              onExport={onExport}
+              onShare={onShare}
+            />
+            <m.ExecutivePortfolioSummary
+              holdings={holdings}
+              intel={intel}
+              intelStatus={intelStatus}
+            />
+            <v2.OverviewV2Extras holdings={holdings} intel={intel} />
+          </div>
+        );
+      },
+    }),
+  ),
 );
 const LazyScenarios = lazy(() =>
   import("./PortfolioV2Sections").then((m) => ({ default: m.ScenariosSection })),
@@ -236,8 +235,7 @@ export function PortfolioIntelligenceWorkspace() {
     session?.email ||
     "Sign in for owner identity";
 
-  const { holdings, view, isEmpty, addHolding, recordResearchOpened } =
-    usePortfolio();
+  const { holdings, view, isEmpty, addHolding, recordResearchOpened } = usePortfolio();
 
   const activeSection = usePortfolioIntelPrefsStore((s) => s.activeSection);
   const setActiveSection = usePortfolioIntelPrefsStore((s) => s.setActiveSection);
@@ -249,9 +247,7 @@ export function PortfolioIntelligenceWorkspace() {
   const setRightOpen = usePortfolioIntelPrefsStore((s) => s.setRightOpen);
   const watchlist = usePortfolioIntelPrefsStore((s) => s.watchlist);
   const touchPortfolio = usePortfolioIntelPrefsStore((s) => s.touchPortfolio);
-  const activePortfolioId = usePortfolioIntelPrefsStore(
-    (s) => s.activePortfolioId,
-  );
+  const activePortfolioId = usePortfolioIntelPrefsStore((s) => s.activePortfolioId);
   const portfolios = usePortfolioIntelPrefsStore((s) => s.portfolios);
   const portfolioName =
     portfolios.find((p) => p.id === activePortfolioId)?.name ??
@@ -322,11 +318,7 @@ export function PortfolioIntelligenceWorkspace() {
     }
     if (error instanceof Error) {
       const msg = error.message.toLowerCase();
-      if (
-        msg.includes("timeout") ||
-        msg.includes("network") ||
-        msg.includes("fetch")
-      ) {
+      if (msg.includes("timeout") || msg.includes("network") || msg.includes("fetch")) {
         return "Network failure — Data unavailable. Retry when online.";
       }
       return error.message || "Intelligence unavailable.";
@@ -512,18 +504,10 @@ export function PortfolioIntelligenceWorkspace() {
               })
             : null}
 
-          {section === "allocation"
-            ? wrapLazy(LazyAllocation, { holdings })
-            : null}
-          {section === "performance"
-            ? wrapLazy(LazyPerformance, {})
-            : null}
-          {section === "quality"
-            ? wrapLazy(LazyQuality, { holdings, intel })
-            : null}
-          {section === "valuation"
-            ? wrapLazy(LazyValuation, { intel })
-            : null}
+          {section === "allocation" ? wrapLazy(LazyAllocation, { holdings }) : null}
+          {section === "performance" ? wrapLazy(LazyPerformance, {}) : null}
+          {section === "quality" ? wrapLazy(LazyQuality, { holdings, intel }) : null}
+          {section === "valuation" ? wrapLazy(LazyValuation, { intel }) : null}
           {section === "risk" ? wrapLazy(LazyRisk, { intel }) : null}
           {section === "research"
             ? wrapLazy(LazyResearchActivity, {
@@ -542,32 +526,19 @@ export function PortfolioIntelligenceWorkspace() {
             ? wrapLazy(LazyExplainability, { holdings, intel })
             : null}
           {section === "export" ? (
-            <ExportSection
-              holdings={holdings}
-              activities={view.activities}
-            />
+            <ExportSection holdings={holdings} activities={view.activities} />
           ) : null}
-          {section === "holdings"
-            ? wrapLazy(LazyHoldings, { holdings })
-            : null}
-          {section === "compliance"
-            ? wrapLazy(LazyCompliance, {})
-            : null}
-          {section === "scenarios"
-            ? wrapLazy(LazyScenarios, { intel })
-            : null}
-          {section === "drift"
-            ? wrapLazy(LazyDrift, { intel, holdings })
-            : null}
+          {section === "holdings" ? wrapLazy(LazyHoldings, { holdings }) : null}
+          {section === "compliance" ? wrapLazy(LazyCompliance, {}) : null}
+          {section === "scenarios" ? wrapLazy(LazyScenarios, { intel }) : null}
+          {section === "drift" ? wrapLazy(LazyDrift, { intel, holdings }) : null}
           {section === "timeline"
             ? wrapLazy(LazyPortfolioTimeline, {
                 activities: view.activities,
                 holdings,
               })
             : null}
-          {section === "integrations"
-            ? wrapLazy(LazyIntegrations, { holdings })
-            : null}
+          {section === "integrations" ? wrapLazy(LazyIntegrations, { holdings }) : null}
 
           {!isEmpty && section === "summary" && holdings.length === 0 ? (
             <WorkspaceEmpty description="Data unavailable." />
@@ -588,10 +559,7 @@ export function PortfolioIntelligenceWorkspace() {
           )}
           aria-label="Portfolio context panel"
         >
-          <PortfolioRightPanel
-            holdings={holdings}
-            activities={view.activities}
-          />
+          <PortfolioRightPanel holdings={holdings} activities={view.activities} />
         </aside>
       </div>
     </div>

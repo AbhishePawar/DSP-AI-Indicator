@@ -27,7 +27,10 @@ export function ConfidenceMatrix({ matrix }: { matrix: ConfidenceMatrixView }) {
             </thead>
             <tbody>
               {matrix.rows.map((row) => (
-                <tr key={row.id} className="border-b border-[var(--border)] last:border-0">
+                <tr
+                  key={row.id}
+                  className="border-b border-[var(--border)] last:border-0"
+                >
                   <td className="px-2 py-2">{row.label}</td>
                   <td className="px-2 py-2">
                     <ConfidenceBadge level={row.level} />

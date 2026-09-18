@@ -36,9 +36,7 @@ import {
   SectionCard,
 } from "./Primitives";
 
-function emphasisClass(
-  emphasis: "highlight" | "normal" | "deemphasize",
-): string {
+function emphasisClass(emphasis: "highlight" | "normal" | "deemphasize"): string {
   if (emphasis === "highlight") {
     return "bg-[var(--accent-soft)]/40 ring-1 ring-[var(--accent)]/30";
   }
@@ -204,10 +202,7 @@ export function EvidenceStrengthSection({
                 <FieldRow label="Freshness" value={e.freshness} />
                 <FieldRow label="Completeness" value={e.completeness} />
                 <FieldRow label="Source quality" value={e.sourceQuality} />
-                <FieldRow
-                  label="Research confidence"
-                  value={e.researchConfidence}
-                />
+                <FieldRow label="Research confidence" value={e.researchConfidence} />
               </dl>
               <p className="mt-2 text-xs text-[var(--muted)]">{e.rationale}</p>
             </div>
@@ -305,11 +300,7 @@ export function WhyNotSection({ model }: { model: ComparisonWorkspaceModel }) {
   );
 }
 
-export function CommitteeMemoSection({
-  model,
-}: {
-  model: ComparisonWorkspaceModel;
-}) {
+export function CommitteeMemoSection({ model }: { model: ComparisonWorkspaceModel }) {
   const memo = model.committeeMemo;
   const stamp = model.symbols.join("-") || "memo";
 
@@ -415,11 +406,7 @@ export function CommitteeMemoSection({
   );
 }
 
-export function SectorContextSection({
-  model,
-}: {
-  model: ComparisonWorkspaceModel;
-}) {
+export function SectorContextSection({ model }: { model: ComparisonWorkspaceModel }) {
   return (
     <SectionCard
       title="Sector Context"
@@ -447,11 +434,7 @@ export function SectorContextSection({
   );
 }
 
-export function SensitivitySection({
-  model,
-}: {
-  model: ComparisonWorkspaceModel;
-}) {
+export function SensitivitySection({ model }: { model: ComparisonWorkspaceModel }) {
   return (
     <SectionCard
       title="Sensitivity Panel"
@@ -467,14 +450,8 @@ export function SensitivitySection({
                 <FieldRow label="Coverage input" value={s.coverageInput} />
                 <FieldRow label="Evidence input" value={s.evidenceInput} />
                 <FieldRow label="Confidence input" value={s.confidenceInput} />
-                <FieldRow
-                  label="Coverage sensitivity"
-                  value={s.coverageSensitivity}
-                />
-                <FieldRow
-                  label="Evidence sensitivity"
-                  value={s.evidenceSensitivity}
-                />
+                <FieldRow label="Coverage sensitivity" value={s.coverageSensitivity} />
+                <FieldRow label="Evidence sensitivity" value={s.evidenceSensitivity} />
                 <FieldRow
                   label="Confidence sensitivity"
                   value={s.confidenceSensitivity}
@@ -494,8 +471,7 @@ export function WeightingProfilesSection({
 }: {
   model: ComparisonWorkspaceModel;
 }) {
-  const { weightingProfileId, setWeightingProfileId } =
-    useComparisonPrefsStore();
+  const { weightingProfileId, setWeightingProfileId } = useComparisonPrefsStore();
   const active = WEIGHTING_PROFILES.find((p) => p.id === weightingProfileId);
 
   return (
@@ -520,8 +496,8 @@ export function WeightingProfilesSection({
         <p className="mt-3 text-sm text-[var(--muted)]">{active.description}</p>
       ) : null}
       <p className="mt-2 text-xs text-[var(--muted)]">
-        Model weighting id: {model.weightingProfileId}. Scorecard highlighting
-        updates for emphasis; Winner Matrix numeric cells remain identical.
+        Model weighting id: {model.weightingProfileId}. Scorecard highlighting updates
+        for emphasis; Winner Matrix numeric cells remain identical.
       </p>
     </SectionCard>
   );
@@ -583,8 +559,7 @@ export function DecisionWorkspaceSection({
   model: ComparisonWorkspaceModel;
   onNavigateSection?: (sectionId: string) => void;
 }) {
-  const { workflowStep, setWorkflowStep, setActiveSection } =
-    useComparisonPrefsStore();
+  const { workflowStep, setWorkflowStep, setActiveSection } = useComparisonPrefsStore();
   const step =
     DECISION_WORKFLOW_STEPS.find((s) => s.id === workflowStep) ??
     DECISION_WORKFLOW_STEPS[0]!;
@@ -620,8 +595,7 @@ export function DecisionWorkspaceSection({
       <p className="mt-1 text-sm text-[var(--muted)]">{step.description}</p>
       {step.userOwned ? (
         <p className="mt-2 text-xs text-[var(--muted)]">
-          User-owned step — your notes/thesis/decision memo. Platform assists
-          only.
+          User-owned step — your notes/thesis/decision memo. Platform assists only.
         </p>
       ) : null}
       <div className="mt-4 flex flex-wrap gap-2">
@@ -633,11 +607,7 @@ export function DecisionWorkspaceSection({
         >
           Previous
         </Button>
-        <Button
-          size="sm"
-          disabled={!next}
-          onClick={() => next && go(next)}
-        >
+        <Button size="sm" disabled={!next} onClick={() => next && go(next)}>
           Next
         </Button>
         <Button
@@ -687,11 +657,7 @@ export function ReviewModeControls() {
   );
 }
 
-export function WinnerMatrixSection({
-  model,
-}: {
-  model: ComparisonWorkspaceModel;
-}) {
+export function WinnerMatrixSection({ model }: { model: ComparisonWorkspaceModel }) {
   const symbols = model.symbols.filter((s) =>
     model.winnerMatrix.some((r) => r.cells.some((c) => c.symbol === s)),
   );
@@ -717,10 +683,7 @@ export function WinnerMatrixSection({
           </thead>
           <tbody>
             {model.winnerMatrix.map((row) => (
-              <tr
-                key={row.id}
-                className="border-b border-[var(--border)] align-top"
-              >
+              <tr key={row.id} className="border-b border-[var(--border)] align-top">
                 <td className="py-2 pr-3 text-[var(--muted)]">{row.label}</td>
                 {cols.map((sym) => {
                   const cell = row.cells.find((c) => c.symbol === sym);
@@ -761,9 +724,7 @@ export function TradeOffSection({ model }: { model: ComparisonWorkspaceModel }) 
                 {t.stronger !== "Data unavailable." ? (
                   <span className="text-xs text-[var(--muted)]">
                     Stronger: {t.stronger}
-                    {t.weaker !== "Data unavailable."
-                      ? ` · Weaker: ${t.weaker}`
-                      : ""}
+                    {t.weaker !== "Data unavailable." ? ` · Weaker: ${t.weaker}` : ""}
                   </span>
                 ) : null}
               </div>
@@ -843,11 +804,7 @@ function QualityModuleSection({
   );
 }
 
-export function BusinessQualitySection({
-  model,
-}: {
-  model: ComparisonWorkspaceModel;
-}) {
+export function BusinessQualitySection({ model }: { model: ComparisonWorkspaceModel }) {
   return (
     <QualityModuleSection
       title="Business Quality"
@@ -857,11 +814,7 @@ export function BusinessQualitySection({
   );
 }
 
-export function ManagementSection({
-  model,
-}: {
-  model: ComparisonWorkspaceModel;
-}) {
+export function ManagementSection({ model }: { model: ComparisonWorkspaceModel }) {
   return (
     <QualityModuleSection
       title="Management"
@@ -891,11 +844,7 @@ export function RiskSection({ model }: { model: ComparisonWorkspaceModel }) {
   );
 }
 
-export function FinancialSection({
-  model,
-}: {
-  model: ComparisonWorkspaceModel;
-}) {
+export function FinancialSection({ model }: { model: ComparisonWorkspaceModel }) {
   return (
     <QualityModuleSection
       title="Financial Strength"
@@ -937,11 +886,7 @@ export function EvidenceSection({ model }: { model: ComparisonWorkspaceModel }) 
   );
 }
 
-export function ExplainabilitySection({
-  model,
-}: {
-  model: ComparisonWorkspaceModel;
-}) {
+export function ExplainabilitySection({ model }: { model: ComparisonWorkspaceModel }) {
   return (
     <SectionCard
       title="Explainability Comparison"
@@ -972,11 +917,7 @@ export function ExplainabilitySection({
   );
 }
 
-export function IntelligenceSection({
-  model,
-}: {
-  model: ComparisonWorkspaceModel;
-}) {
+export function IntelligenceSection({ model }: { model: ComparisonWorkspaceModel }) {
   return (
     <SectionCard
       title="Research Intelligence Integration"
@@ -1021,10 +962,7 @@ export function BuffettPreferenceSection({
       <p className="mb-4 text-sm text-[var(--muted)]">{model.buffettDisclaimer}</p>
       <div className="space-y-4">
         {model.buffettPreference.map((row) => (
-          <div
-            key={row.id}
-            className="rounded-md border border-[var(--border)] p-3"
-          >
+          <div key={row.id} className="rounded-md border border-[var(--border)] p-3">
             <div className="flex flex-wrap items-center gap-2">
               <h3 className="text-sm font-semibold">{row.label}</h3>
               <Badge variant="outline">{row.framing}</Badge>
@@ -1128,11 +1066,7 @@ export function ScenarioSection({ model }: { model: ComparisonWorkspaceModel }) 
   );
 }
 
-export function PortfolioFitSection({
-  model,
-}: {
-  model: ComparisonWorkspaceModel;
-}) {
+export function PortfolioFitSection({ model }: { model: ComparisonWorkspaceModel }) {
   return (
     <SectionCard
       title="Portfolio Fit"
@@ -1163,11 +1097,7 @@ export function PortfolioFitSection({
   );
 }
 
-export function PersonalResearchSection({
-  symbols,
-}: {
-  symbols: string[];
-}) {
+export function PersonalResearchSection({ symbols }: { symbols: string[] }) {
   const {
     notes,
     watch,
@@ -1180,9 +1110,7 @@ export function PersonalResearchSection({
     removeSaved,
   } = useComparisonPrefsStore();
   const [text, setText] = useState("");
-  const [kind, setKind] = useState<"note" | "thesis" | "question" | "decision">(
-    "note",
-  );
+  const [kind, setKind] = useState<"note" | "thesis" | "question" | "decision">("note");
   const [title, setTitle] = useState("");
 
   return (
@@ -1199,9 +1127,7 @@ export function PersonalResearchSection({
             id="cmp-note-kind"
             className="w-full rounded-md border border-[var(--border)] bg-[var(--bg)] px-2 py-2 text-sm"
             value={kind}
-            onChange={(e) =>
-              setKind(e.target.value as typeof kind)
-            }
+            onChange={(e) => setKind(e.target.value as typeof kind)}
           >
             <option value="note">Note</option>
             <option value="thesis">Thesis</option>
@@ -1226,17 +1152,10 @@ export function PersonalResearchSection({
           </Button>
           <ul className="mt-3 max-h-64 space-y-2 overflow-y-auto text-sm">
             {notes.map((n) => (
-              <li
-                key={n.id}
-                className="rounded border border-[var(--border)] p-2"
-              >
+              <li key={n.id} className="rounded border border-[var(--border)] p-2">
                 <div className="flex justify-between gap-2">
                   <Badge variant="outline">{n.kind}</Badge>
-                  <Button
-                    size="sm"
-                    variant="ghost"
-                    onClick={() => removeNote(n.id)}
-                  >
+                  <Button size="sm" variant="ghost" onClick={() => removeNote(n.id)}>
                     Remove
                   </Button>
                 </div>
@@ -1253,7 +1172,12 @@ export function PersonalResearchSection({
             <p className="mb-2 text-sm font-medium">Watch symbols</p>
             <div className="flex flex-wrap gap-2">
               {symbols.map((s) => (
-                <Button key={s} size="sm" variant="secondary" onClick={() => addWatch(s)}>
+                <Button
+                  key={s}
+                  size="sm"
+                  variant="secondary"
+                  onClick={() => addWatch(s)}
+                >
                   Watch {s}
                 </Button>
               ))}
@@ -1262,11 +1186,7 @@ export function PersonalResearchSection({
               {watch.map((w) => (
                 <li key={w.id} className="flex justify-between gap-2">
                   <span>{w.symbol}</span>
-                  <Button
-                    size="sm"
-                    variant="ghost"
-                    onClick={() => removeWatch(w.id)}
-                  >
+                  <Button size="sm" variant="ghost" onClick={() => removeWatch(w.id)}>
                     Remove
                   </Button>
                 </li>
@@ -1300,11 +1220,7 @@ export function PersonalResearchSection({
                   <span>
                     {s.title} — {s.symbols.join(", ")}
                   </span>
-                  <Button
-                    size="sm"
-                    variant="ghost"
-                    onClick={() => removeSaved(s.id)}
-                  >
+                  <Button size="sm" variant="ghost" onClick={() => removeSaved(s.id)}>
                     Remove
                   </Button>
                 </li>
@@ -1407,14 +1323,19 @@ export function ExportSection({ model }: { model: ComparisonWorkspaceModel }) {
         >
           Copy share link
         </Button>
-        <Button size="sm" variant="outline" disabled title="DOCX not available in current export patterns">
+        <Button
+          size="sm"
+          variant="outline"
+          disabled
+          title="DOCX not available in current export patterns"
+        >
           DOCX unavailable
         </Button>
       </div>
       <p className="mt-3 text-xs text-[var(--muted)]">
-        Exports serialize mapped research comparison fields only. No client-side
-        scoring is performed at export time. The platform never produces the
-        investment decision.
+        Exports serialize mapped research comparison fields only. No client-side scoring
+        is performed at export time. The platform never produces the investment
+        decision.
       </p>
     </SectionCard>
   );
@@ -1431,10 +1352,7 @@ export function ArchitectureSection() {
           label="Supported (v1)"
           value={SUPPORTED_SUBJECT_KINDS_V1.join(", ")}
         />
-        <FieldRow
-          label="Planned"
-          value={PLANNED_SUBJECT_KINDS.join(", ")}
-        />
+        <FieldRow label="Planned" value={PLANNED_SUBJECT_KINDS.join(", ")} />
       </dl>
       <ul className="list-disc space-y-1 pl-5 text-sm text-[var(--muted)]">
         {FUTURE_ARCHITECTURE_NOTES.map((n) => (
@@ -1449,8 +1367,7 @@ export function ArchitectureSection() {
         ))}
       </div>
       <p className="mt-3 text-xs">
-        Sections registered:{" "}
-        {COMPARISON_SECTIONS.map((s) => s.label).join(" · ")}
+        Sections registered: {COMPARISON_SECTIONS.map((s) => s.label).join(" · ")}
       </p>
     </SectionCard>
   );

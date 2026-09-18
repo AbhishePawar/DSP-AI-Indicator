@@ -3,11 +3,7 @@
 import { Card, CardBody, CardHeader } from "@/components/ui/Card";
 import type { PortfolioActivity } from "@/lib/portfolio/model";
 
-export function ActivityTimeline({
-  activities,
-}: {
-  activities: PortfolioActivity[];
-}) {
+export function ActivityTimeline({ activities }: { activities: PortfolioActivity[] }) {
   return (
     <Card>
       <CardHeader title="Recent Activity" description="Placeholder timeline" />

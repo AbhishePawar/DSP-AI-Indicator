@@ -5,14 +5,7 @@
  * Thin /api/v1/research-workspace client — orchestration only; reuses Copilot 2.0 + workflow.
  */
 
-import {
-  Suspense,
-  lazy,
-  useCallback,
-  useMemo,
-  useState,
-  startTransition,
-} from "react";
+import { Suspense, lazy, useCallback, useMemo, useState, startTransition } from "react";
 import Link from "next/link";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
@@ -261,11 +254,7 @@ export function InstitutionalResearchWorkspace() {
 
   const archiveFolder = useMutation({
     mutationFn: () =>
-      api.researchWorkspaceUpdateFolder(
-        selectedFolderId,
-        { archived: true },
-        opts,
-      ),
+      api.researchWorkspaceUpdateFolder(selectedFolderId, { archived: true }, opts),
     onSuccess: () => {
       setSelectedFolderId("folder-root");
       invalidateAll();
@@ -273,8 +262,7 @@ export function InstitutionalResearchWorkspace() {
   });
 
   const deleteFolder = useMutation({
-    mutationFn: () =>
-      api.researchWorkspaceDeleteFolder(selectedFolderId, opts),
+    mutationFn: () => api.researchWorkspaceDeleteFolder(selectedFolderId, opts),
     onSuccess: () => {
       setSelectedFolderId("folder-root");
       invalidateAll();
@@ -450,9 +438,7 @@ export function InstitutionalResearchWorkspace() {
       ) : null}
 
       <Suspense
-        fallback={
-          <p className="text-xs text-[var(--muted)]">Loading dashboard…</p>
-        }
+        fallback={<p className="text-xs text-[var(--muted)]">Loading dashboard…</p>}
       >
         <LazyDashboardPanel dashboard={dashboard} onOpenNote={selectNote} />
       </Suspense>
@@ -519,8 +505,7 @@ export function InstitutionalResearchWorkspace() {
                   type="button"
                   className={cn(
                     "w-full rounded px-2 py-1 text-left hover:bg-[var(--surface-2)]",
-                    selectedNoteId === n.note_id &&
-                      "bg-[var(--surface-2)] font-medium",
+                    selectedNoteId === n.note_id && "bg-[var(--surface-2)] font-medium",
                   )}
                   onClick={() => selectNote(n)}
                 >
@@ -648,9 +633,7 @@ export function InstitutionalResearchWorkspace() {
                 </select>
                 <span className="text-xs text-[var(--muted)]">
                   Current: {activeNote?.status || "draft"}
-                  {activeNote?.version != null
-                    ? ` · v${activeNote.version}`
-                    : ""}
+                  {activeNote?.version != null ? ` · v${activeNote.version}` : ""}
                 </span>
               </div>
               <div className="flex flex-wrap gap-1">
@@ -677,8 +660,8 @@ export function InstitutionalResearchWorkspace() {
             </>
           ) : (
             <p className="text-sm text-[var(--muted)]">
-              Select a note or create one to begin. Markdown editor · versioned
-              saves · workflow publish.
+              Select a note or create one to begin. Markdown editor · versioned saves ·
+              workflow publish.
             </p>
           )}
         </section>
@@ -844,9 +827,7 @@ export function InstitutionalResearchWorkspace() {
                   className="rounded border border-[var(--border)] px-2 py-1"
                 >
                   <span className="font-medium">{b.label}</span>
-                  <span className="ml-1 text-[10px] text-[var(--muted)]">
-                    {b.kind}
-                  </span>
+                  <span className="ml-1 text-[10px] text-[var(--muted)]">{b.kind}</span>
                 </li>
               ))}
               {bookmarks.length === 0 ? (

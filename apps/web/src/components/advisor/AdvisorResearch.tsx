@@ -38,7 +38,10 @@ function ResearchShell({
 }) {
   return (
     <AdvisorShell title={title} description={description}>
-      <p role="note" className="rounded-md border border-[var(--border)] bg-[var(--accent-soft)]/40 px-3 py-2 text-sm">
+      <p
+        role="note"
+        className="rounded-md border border-[var(--border)] bg-[var(--accent-soft)]/40 px-3 py-2 text-sm"
+      >
         {ADVISOR_RESEARCH_TRUST}
       </p>
       <div className="flex flex-col gap-4 lg:flex-row">
@@ -181,7 +184,9 @@ export const ResearchBookmarkCard = memo(function ResearchBookmarkCard({
     <Card className="dsp-interactive">
       <CardHeader
         title={label}
-        action={kind === "favorite" ? <FavoriteBadge /> : <Badge tone="neutral">{kind}</Badge>}
+        action={
+          kind === "favorite" ? <FavoriteBadge /> : <Badge tone="neutral">{kind}</Badge>
+        }
       />
       <CardBody className="flex flex-wrap gap-1">
         {tags.map((t) => (
@@ -196,7 +201,10 @@ export function ResearchTimelineCard() {
   const events = useMemo(() => listAdvisorResearchTimeline(), []);
   return (
     <Card>
-      <CardHeader title="Research timeline" description="Demo activity — not engine events" />
+      <CardHeader
+        title="Research timeline"
+        description="Demo activity — not engine events"
+      />
       <CardBody>
         <ol className="space-y-3 border-l-2 border-[var(--border)] pl-4">
           {events.map((e) => (
@@ -283,7 +291,10 @@ export const ResearchLibraryWorkspace = memo(function ResearchLibraryWorkspace()
         </Card>
       </div>
       <section aria-labelledby="recently-viewed">
-        <h2 id="recently-viewed" className="mb-3 font-[family-name:var(--font-display)] text-xl">
+        <h2
+          id="recently-viewed"
+          className="mb-3 font-[family-name:var(--font-display)] text-xl"
+        >
           Recently viewed
         </h2>
         <WindowedList
@@ -295,7 +306,10 @@ export const ResearchLibraryWorkspace = memo(function ResearchLibraryWorkspace()
       </section>
       {featured ? (
         <section aria-labelledby="featured-quick">
-          <h2 id="featured-quick" className="mb-3 font-[family-name:var(--font-display)] text-xl">
+          <h2
+            id="featured-quick"
+            className="mb-3 font-[family-name:var(--font-display)] text-xl"
+          >
             Featured quick review
           </h2>
           <QuickReviewCard envelope={featured} />
@@ -368,7 +382,10 @@ export const ResearchCollectionWorkspace = memo(function ResearchCollectionWorks
       description="Growth · Value · Dividend · Small Cap · Large Cap · High Quality · Custom — session demo only."
     >
       <Card>
-        <CardHeader title="Create collection (demo)" description="In-session only — not persisted" />
+        <CardHeader
+          title="Create collection (demo)"
+          description="In-session only — not persisted"
+        />
         <CardBody className="flex flex-wrap gap-2">
           <input
             className="min-h-11 min-w-[12rem] flex-1 rounded-md border border-[var(--border)] bg-[var(--surface)] px-3 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
@@ -447,7 +464,10 @@ export const ResearchCollectionWorkspace = memo(function ResearchCollectionWorks
       ) : null}
       {archived.length > 0 ? (
         <section aria-labelledby="archived-cols">
-          <h2 id="archived-cols" className="mb-2 font-[family-name:var(--font-display)] text-lg">
+          <h2
+            id="archived-cols"
+            className="mb-2 font-[family-name:var(--font-display)] text-lg"
+          >
             Archived
           </h2>
           <ul className="list-disc pl-5 text-sm text-[var(--muted)]">
@@ -541,44 +561,56 @@ export const CompareWorkspace = memo(function CompareWorkspace() {
         </div>
       )}
       <p className="text-xs text-[var(--muted)]">
-        Evidence · Confidence · Methodology · Limitations remain on each envelope&apos;s Quick
-        Review — compare does not generate recommendations.
+        Evidence · Confidence · Methodology · Limitations remain on each envelope&apos;s
+        Quick Review — compare does not generate recommendations.
       </p>
     </ResearchShell>
   );
 });
 
-export const AdvisorResearchNotesWorkspace = memo(function AdvisorResearchNotesWorkspace() {
-  const notes = useMemo(() => listAdvisorResearchNotes(), []);
-  return (
-    <ResearchShell title="Research Notes" description="Pinned · Private · Client · Meeting · Findings — demo only.">
-      <div className="space-y-3">
-        {notes.map((n) => (
-          <Card key={n.id} className="dsp-interactive">
-            <CardHeader
-              title={n.title}
-              action={
-                <div className="flex gap-1">
-                  {n.pinned ? <Badge tone="accent">Pinned</Badge> : null}
-                  <Badge tone="neutral">{n.kind}</Badge>
-                </div>
-              }
-            />
-            <CardBody className="text-sm text-[var(--muted)] whitespace-pre-wrap">{n.body}</CardBody>
-          </Card>
-        ))}
-      </div>
-    </ResearchShell>
-  );
-});
+export const AdvisorResearchNotesWorkspace = memo(
+  function AdvisorResearchNotesWorkspace() {
+    const notes = useMemo(() => listAdvisorResearchNotes(), []);
+    return (
+      <ResearchShell
+        title="Research Notes"
+        description="Pinned · Private · Client · Meeting · Findings — demo only."
+      >
+        <div className="space-y-3">
+          {notes.map((n) => (
+            <Card key={n.id} className="dsp-interactive">
+              <CardHeader
+                title={n.title}
+                action={
+                  <div className="flex gap-1">
+                    {n.pinned ? <Badge tone="accent">Pinned</Badge> : null}
+                    <Badge tone="neutral">{n.kind}</Badge>
+                  </div>
+                }
+              />
+              <CardBody className="text-sm text-[var(--muted)] whitespace-pre-wrap">
+                {n.body}
+              </CardBody>
+            </Card>
+          ))}
+        </div>
+      </ResearchShell>
+    );
+  },
+);
 
-export const AdvisorResearchTimelineWorkspace = memo(function AdvisorResearchTimelineWorkspace() {
-  return (
-    <ResearchShell title="Research Timeline" description="Analysis · updates · reports · collections · favorites.">
-      <ResearchTimelineCard />
-    </ResearchShell>
-  );
-});
+export const AdvisorResearchTimelineWorkspace = memo(
+  function AdvisorResearchTimelineWorkspace() {
+    return (
+      <ResearchShell
+        title="Research Timeline"
+        description="Analysis · updates · reports · collections · favorites."
+      >
+        <ResearchTimelineCard />
+      </ResearchShell>
+    );
+  },
+);
 
 export const AdvisorResearchBookmarksWorkspace = memo(
   function AdvisorResearchBookmarksWorkspace() {
@@ -594,7 +626,12 @@ export const AdvisorResearchBookmarksWorkspace = memo(
           empty={<EmptyState title="No bookmarks" />}
           className="grid gap-3 sm:grid-cols-2"
           renderItem={(b) => (
-            <ResearchBookmarkCard key={b.id} label={b.label} kind={b.kind} tags={b.tags} />
+            <ResearchBookmarkCard
+              key={b.id}
+              label={b.label}
+              kind={b.kind}
+              tags={b.tags}
+            />
           )}
         />
       </ResearchShell>

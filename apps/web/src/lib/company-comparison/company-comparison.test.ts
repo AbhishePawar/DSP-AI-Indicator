@@ -182,10 +182,7 @@ function viewFor(ticker: string, response: AnalyseResponse) {
   return mapResearchView(response, request, "2026-08-02T12:00:00.000Z");
 }
 
-function readySlot(
-  ticker: string,
-  response: AnalyseResponse,
-): ComparisonCompanySlot {
+function readySlot(ticker: string, response: AnalyseResponse): ComparisonCompanySlot {
   const view = viewFor(ticker, response);
   return {
     symbol: ticker,
@@ -259,18 +256,14 @@ describe("EPIC-012/013 company comparison", () => {
         }
       }
     }
-    expect(containsForbiddenBuffettCopy("Buffett would buy this stock")).toBe(
-      true,
-    );
+    expect(containsForbiddenBuffettCopy("Buffett would buy this stock")).toBe(true);
   });
 
   it("workspace model shows honest empty / unavailable states", () => {
     const empty = mapComparisonWorkspace([]);
     expect(empty.executive.winnerSummary).toBe(DATA_UNAVAILABLE);
     expect(empty.winnerMatrix.every((r) => r.cells.length === 0)).toBe(true);
-    expect(empty.winnerMatrix.every((r) => r.leader === DATA_UNAVAILABLE)).toBe(
-      true,
-    );
+    expect(empty.winnerMatrix.every((r) => r.leader === DATA_UNAVAILABLE)).toBe(true);
     expect(empty.scenarios).toEqual([]);
     expect(empty.tradeOffs).toEqual([]);
 
@@ -280,9 +273,7 @@ describe("EPIC-012/013 company comparison", () => {
     ]);
     expect(model.symbols).toEqual(["AAA", "BBB"]);
     expect(model.tradeOffs.length).toBeGreaterThan(0);
-    expect(model.scenarios.every((s) => s.bull === "Analysis unavailable.")).toBe(
-      true,
-    );
+    expect(model.scenarios.every((s) => s.bull === "Analysis unavailable.")).toBe(true);
     expect(model.valuation[0]?.historical).toBe(DATA_UNAVAILABLE);
     expect(model.buffettDisclaimer).toContain(BUFFETT_FRAMEWORK_PREFIX);
     expect(containsForbiddenBuffettCopy(model.buffettDisclaimer)).toBe(false);
@@ -381,9 +372,7 @@ describe("EPIC-012/013 company comparison", () => {
     const aaa = model.whyNot.find((w) => w.symbol === "AAA")!;
     const bbb = model.whyNot.find((w) => w.symbol === "BBB")!;
     expect(aaa.reasons.some((r) => r.dimension === "Moat")).toBe(true);
-    expect(bbb.reasons.some((r) => r.dimension === "Business Quality")).toBe(
-      true,
-    );
+    expect(bbb.reasons.some((r) => r.dimension === "Business Quality")).toBe(true);
     for (const item of model.whyNot) {
       for (const r of item.reasons) {
         expect(r.reason.length).toBeGreaterThan(20);
@@ -393,9 +382,7 @@ describe("EPIC-012/013 company comparison", () => {
   });
 
   it("evidence strength meter never fabricates Strong without signals", () => {
-    const meters = mapEvidenceStrengthMeters([
-      viewFor("AAA", sampleResponse()),
-    ]);
+    const meters = mapEvidenceStrengthMeters([viewFor("AAA", sampleResponse())]);
     expect(["Strong", "Moderate", "Limited", DATA_UNAVAILABLE]).toContain(
       meters[0]!.level,
     );
@@ -417,9 +404,7 @@ describe("EPIC-012/013 company comparison", () => {
     const qualityScores = quality.winnerMatrix.flatMap((r) =>
       r.cells.map((c) => c.numeric),
     );
-    expect(
-      assertWeightingIsPresentationOnly(equalScores, qualityScores),
-    ).toBe(true);
+    expect(assertWeightingIsPresentationOnly(equalScores, qualityScores)).toBe(true);
     expect(equal.winnerMatrix).toEqual(quality.winnerMatrix);
     expect(WEIGHTING_PROFILES.map((p) => p.id)).toEqual(
       expect.arrayContaining([
@@ -434,9 +419,7 @@ describe("EPIC-012/013 company comparison", () => {
     // Scorecard displays identical; emphasis may differ.
     const eqBq = equal.scorecard.find((r) => r.id === "businessQuality")!;
     const qBq = quality.scorecard.find((r) => r.id === "businessQuality")!;
-    expect(eqBq.cells.map((c) => c.display)).toEqual(
-      qBq.cells.map((c) => c.display),
-    );
+    expect(eqBq.cells.map((c) => c.display)).toEqual(qBq.cells.map((c) => c.display));
     expect(qBq.emphasis).toBe("highlight");
   });
 
@@ -470,9 +453,7 @@ describe("EPIC-012/013 company comparison", () => {
         readySlot("BBB", sampleResponse({ bq: 40 })),
       ],
       {
-        catalogue: [
-          { ticker: "AAA", sector: "Technology", industry: "Software" },
-        ],
+        catalogue: [{ ticker: "AAA", sector: "Technology", industry: "Software" }],
       },
     );
     const aaa = model.sectorContext.find((s) => s.symbol === "AAA")!;
@@ -480,9 +461,7 @@ describe("EPIC-012/013 company comparison", () => {
     expect(aaa.sectorMedian).toBe(DATA_UNAVAILABLE);
     expect(aaa.relativePosition).toBe(DATA_UNAVAILABLE);
     expect(
-      model.sensitivity.every(
-        (s) => s.coverageSensitivity === ANALYSIS_UNAVAILABLE,
-      ),
+      model.sensitivity.every((s) => s.coverageSensitivity === ANALYSIS_UNAVAILABLE),
     ).toBe(true);
   });
 });

@@ -47,10 +47,7 @@ export function CanvasBottomDock({ symbol }: { symbol: string | null }) {
           {timeline.map((ev) => (
             <li key={ev.id}>
               {ev.href ? (
-                <Link
-                  href={ev.href}
-                  className="text-[var(--accent)] hover:underline"
-                >
+                <Link href={ev.href} className="text-[var(--accent)] hover:underline">
                   {ev.title}
                 </Link>
               ) : (
@@ -75,8 +72,8 @@ export function CanvasBottomDock({ symbol }: { symbol: string | null }) {
 
       <SectionCard title="Version History" description="Research versions">
         <p className="text-sm text-[var(--muted)]">
-          Data unavailable. Version diffs require Research Archive / Diff APIs —
-          open Research Workspace archive when linked.
+          Data unavailable. Version diffs require Research Archive / Diff APIs — open
+          Research Workspace archive when linked.
         </p>
         <Link href="/research?section=archive" className="mt-2 inline-block">
           <Button size="sm" variant="ghost">
@@ -89,10 +86,7 @@ export function CanvasBottomDock({ symbol }: { symbol: string | null }) {
         <p className="text-sm text-[var(--muted)]">
           Evidence chain is institutional — open Company Analysis Evidence.
         </p>
-        <Link
-          href={`${analysisHref}&section=evidence`}
-          className="mt-2 inline-block"
-        >
+        <Link href={`${analysisHref}&section=evidence`} className="mt-2 inline-block">
           <Button size="sm" variant="secondary">
             Open evidence
           </Button>

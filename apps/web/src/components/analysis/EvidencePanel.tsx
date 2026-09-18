@@ -44,9 +44,7 @@ export function EvidencePanel({
         </Block>
         <Block label="Source">{evidence.source}</Block>
         <Block label="Methodology">{evidence.methodology}</Block>
-        <Block label="Confidence">
-          {evidence.confidence ?? "Unavailable"}
-        </Block>
+        <Block label="Confidence">{evidence.confidence ?? "Unavailable"}</Block>
         <Block label="AI reasoning">
           {evidence.aiReasoning ?? (
             <span className="text-[var(--muted)]">Unavailable</span>
@@ -58,14 +56,9 @@ export function EvidencePanel({
           )}
         </Block>
         <Block label="Limitations">
-          <ListOrEmpty
-            items={evidence.limitations}
-            empty="No limitations listed"
-          />
+          <ListOrEmpty items={evidence.limitations} empty="No limitations listed" />
         </Block>
-        <Block label="Last updated">
-          {evidence.lastUpdated ?? "Unavailable"}
-        </Block>
+        <Block label="Last updated">{evidence.lastUpdated ?? "Unavailable"}</Block>
         <p className="text-xs text-[var(--muted)]">
           Explore: <TraceLink href="#evidence_explorer">Evidence Explorer</TraceLink>
           {" · "}

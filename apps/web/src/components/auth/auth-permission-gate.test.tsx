@@ -46,10 +46,7 @@ describe("AuthPermissionGate", () => {
     } as ReturnType<typeof useAuth>);
 
     render(
-      <AuthPermissionGate
-        permission="manage_users"
-        fallback={<span>Denied</span>}
-      >
+      <AuthPermissionGate permission="manage_users" fallback={<span>Denied</span>}>
         <span>Secret</span>
       </AuthPermissionGate>,
     );

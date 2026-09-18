@@ -67,8 +67,7 @@ vi.mock("@/lib/api/client", () => ({
   api: {
     analyse: (...args: unknown[]) => analyseMock(...args),
     marketQuote: (...args: unknown[]) => marketQuoteMock(...args),
-    financialStatements: (...args: unknown[]) =>
-      financialStatementsMock(...args),
+    financialStatements: (...args: unknown[]) => financialStatementsMock(...args),
   },
 }));
 
@@ -186,9 +185,7 @@ function wrap(ui: React.ReactNode) {
   const client = new QueryClient({
     defaultOptions: { queries: { retry: false }, mutations: { retry: false } },
   });
-  return render(
-    <QueryClientProvider client={client}>{ui}</QueryClientProvider>,
-  );
+  return render(<QueryClientProvider client={client}>{ui}</QueryClientProvider>);
 }
 
 describe("P9.6 / EPIC-007 institutional reports lib", () => {
@@ -227,15 +224,9 @@ describe("P9.6 / EPIC-007 institutional reports lib", () => {
     useInstitutionalReportsPrefsStore.getState().setActiveSection("audit");
     useInstitutionalReportsPrefsStore.getState().setReportMode("print");
     useInstitutionalReportsPrefsStore.getState().toggleFavourite("MSFT");
-    expect(useInstitutionalReportsPrefsStore.getState().activeSection).toBe(
-      "audit",
-    );
-    expect(useInstitutionalReportsPrefsStore.getState().reportMode).toBe(
-      "print",
-    );
-    expect(useInstitutionalReportsPrefsStore.getState().favourites).toContain(
-      "MSFT",
-    );
+    expect(useInstitutionalReportsPrefsStore.getState().activeSection).toBe("audit");
+    expect(useInstitutionalReportsPrefsStore.getState().reportMode).toBe("print");
+    expect(useInstitutionalReportsPrefsStore.getState().favourites).toContain("MSFT");
   });
 });
 
@@ -277,9 +268,8 @@ describe("P9.6 / EPIC-007 report modules", () => {
   });
 
   it("renders workspace and loads analyse API only", async () => {
-    const { InstitutionalReportsWorkspace } = await import(
-      "@/components/institutional-reports/InstitutionalReportsWorkspace"
-    );
+    const { InstitutionalReportsWorkspace } =
+      await import("@/components/institutional-reports/InstitutionalReportsWorkspace");
     wrap(<InstitutionalReportsWorkspace />);
     expect(screen.getByLabelText("Report navigation")).toBeTruthy();
     expect(screen.getByLabelText("Institutional research report")).toBeTruthy();
@@ -297,9 +287,8 @@ describe("P9.6 / EPIC-007 report modules", () => {
   });
 
   it("shows Book 04 labels without inventing sub-scores", async () => {
-    const { BusinessQualityModule } = await import(
-      "@/components/institutional-reports/ReportModules"
-    );
+    const { BusinessQualityModule } =
+      await import("@/components/institutional-reports/ReportModules");
     const request = buildDemoAnalyseRequest("AAPL");
     const view = mapResearchView(sampleResponse, request, null);
     wrap(<BusinessQualityModule view={view} />);
@@ -312,9 +301,8 @@ describe("P9.6 / EPIC-007 report modules", () => {
   });
 
   it("shows Book 07 risk labels without aliasing stage decisions", async () => {
-    const { RiskModule } = await import(
-      "@/components/institutional-reports/ReportModules"
-    );
+    const { RiskModule } =
+      await import("@/components/institutional-reports/ReportModules");
     const request = buildDemoAnalyseRequest("AAPL");
     const view = mapResearchView(sampleResponse, request, null);
     wrap(<RiskModule view={view} />);
@@ -327,9 +315,8 @@ describe("P9.6 / EPIC-007 report modules", () => {
   });
 
   it("renders AI committee and valuation from mapped outputs", async () => {
-    const { AiCommitteeModule, ValuationModule } = await import(
-      "@/components/institutional-reports/ReportModules"
-    );
+    const { AiCommitteeModule, ValuationModule } =
+      await import("@/components/institutional-reports/ReportModules");
     const request = buildDemoAnalyseRequest("AAPL");
     const view = mapResearchView(sampleResponse, request, null);
     wrap(<ValuationModule view={view} />);
@@ -343,21 +330,12 @@ describe("P9.6 / EPIC-007 report modules", () => {
   });
 
   it("renders explainability trust ladder and audit metadata", async () => {
-    const { ExplainabilityModule, AuditModule, CoverSection } = await import(
-      "@/components/institutional-reports/Sections"
-    );
+    const { ExplainabilityModule, AuditModule, CoverSection } =
+      await import("@/components/institutional-reports/Sections");
     const request = buildDemoAnalyseRequest("AAPL");
-    const view = mapResearchView(
-      sampleResponse,
-      request,
-      "2026-08-01T12:00:00.000Z",
-    );
+    const view = mapResearchView(sampleResponse, request, "2026-08-01T12:00:00.000Z");
     wrap(
-      <CoverSection
-        view={view}
-        preparedBy="Ada Analyst"
-        marketStatus="Quote loaded"
-      />,
+      <CoverSection view={view} preparedBy="Ada Analyst" marketStatus="Quote loaded" />,
     );
     expect(screen.getByText("Research Date")).toBeTruthy();
     cleanup();

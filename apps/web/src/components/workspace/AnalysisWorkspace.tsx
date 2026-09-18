@@ -112,12 +112,8 @@ export function AnalysisWorkspace() {
     },
     onError: (err) => {
       analysisTiming.end();
-      const message =
-        err instanceof ApiClientError ? err.message : "Analyse failed";
-      logger.recordClientError(
-        err instanceof Error ? err : message,
-        "api",
-      );
+      const message = err instanceof ApiClientError ? err.message : "Analyse failed";
+      logger.recordClientError(err instanceof Error ? err : message, "api");
       notifyError(message, "Analyse failed");
     },
   });
@@ -154,12 +150,7 @@ export function AnalysisWorkspace() {
       running: false,
       failed: Boolean(analyseMutation.isError),
     });
-  }, [
-    analyseMutation.isPending,
-    analyseMutation.isError,
-    tick,
-    view.stages,
-  ]);
+  }, [analyseMutation.isPending, analyseMutation.isError, tick, view.stages]);
 
   const intrinsicValue = useMemo(() => {
     const iv = lastRequest?.valuation_signals?.intrinsic_value_per_share;
@@ -382,9 +373,7 @@ export function AnalysisWorkspace() {
             apiError={apiError}
             correlationId={correlationId}
             onRetry={
-              lastRequest
-                ? () => analyseMutation.mutate(lastRequest)
-                : undefined
+              lastRequest ? () => analyseMutation.mutate(lastRequest) : undefined
             }
           />
 

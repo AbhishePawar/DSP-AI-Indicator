@@ -88,9 +88,7 @@ const RULES: IntentRule[] = [
   },
 ];
 
-export function intentFromSuggestedId(
-  id: SuggestedQuestionId,
-): CopilotIntent {
+export function intentFromSuggestedId(id: SuggestedQuestionId): CopilotIntent {
   return SUGGESTED_TO_INTENT[id];
 }
 

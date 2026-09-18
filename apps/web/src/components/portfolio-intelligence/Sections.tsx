@@ -23,18 +23,10 @@ import {
   usePortfolioIntelPrefsStore,
 } from "@/lib/portfolio-intelligence";
 import { featureFlags } from "@/lib/featureFlags";
-import {
-  listRecentReports,
-  type RecentReportEntry,
-} from "@/lib/recentReports";
+import { listRecentReports, type RecentReportEntry } from "@/lib/recentReports";
 import type { PortfolioActivity, PortfolioHolding } from "@/lib/portfolio/model";
 import { RemoveHoldingButton } from "@/components/portfolio/RemoveHoldingButton";
-import {
-  FieldRow,
-  SectionCard,
-  StatusBadge,
-  WorkspaceEmpty,
-} from "./Primitives";
+import { FieldRow, SectionCard, StatusBadge, WorkspaceEmpty } from "./Primitives";
 
 type SortKey = "ticker" | "company" | "sector" | "recommendation";
 
@@ -68,19 +60,14 @@ export function SummarySection({
   );
 }
 
-export function HoldingsSection({
-  holdings,
-}: {
-  holdings: PortfolioHolding[];
-}) {
+export function HoldingsSection({ holdings }: { holdings: PortfolioHolding[] }) {
   const [search, setSearch] = useState("");
   const [sectorFilter, setSectorFilter] = useState("all");
   const [sortKey, setSortKey] = useState<SortKey>("ticker");
   const [sortDir, setSortDir] = useState<"asc" | "desc">("asc");
 
   const sectors = useMemo(
-    () =>
-      Array.from(new Set(holdings.map((h) => h.sector).filter(Boolean))).sort(),
+    () => Array.from(new Set(holdings.map((h) => h.sector).filter(Boolean))).sort(),
     [holdings],
   );
 
@@ -199,16 +186,12 @@ export function HoldingsSection({
                   </TableCell>
                   <TableCell>
                     <Badge variant={h.researchAvailable ? "accent" : "outline"}>
-                      {h.researchAvailable
-                        ? "Session flag: linked"
-                        : "Not linked"}
+                      {h.researchAvailable ? "Session flag: linked" : "Not linked"}
                     </Badge>
                   </TableCell>
                   <TableCell>
                     <div className="flex flex-wrap gap-2">
-                      <Link
-                        href={`/analysis?symbol=${encodeURIComponent(h.ticker)}`}
-                      >
+                      <Link href={`/analysis?symbol=${encodeURIComponent(h.ticker)}`}>
                         <Button size="sm" variant="secondary">
                           Quick analysis
                         </Button>
@@ -226,11 +209,7 @@ export function HoldingsSection({
   );
 }
 
-export function ResearchSection({
-  holdings,
-}: {
-  holdings: PortfolioHolding[];
-}) {
+export function ResearchSection({ holdings }: { holdings: PortfolioHolding[] }) {
   const covered = holdings.filter((h) => h.researchAvailable);
   const [reports, setReports] = useState<RecentReportEntry[]>([]);
 
@@ -422,10 +401,7 @@ export function ComplianceSection() {
           label="Research Mode"
           value={featureFlags.researchMode ? "On" : "Off"}
         />
-        <FieldRow
-          label="SEBI Mode"
-          value={featureFlags.sebiMode ? "On" : "Off"}
-        />
+        <FieldRow label="SEBI Mode" value={featureFlags.sebiMode ? "On" : "Off"} />
       </SectionCard>
       <SectionCard title="Portfolio Warnings">
         <WorkspaceEmpty description="Data unavailable. No portfolio compliance warnings API." />
@@ -451,8 +427,7 @@ export function ExportSection({
   const portfolios = usePortfolioIntelPrefsStore((s) => s.portfolios);
   const watchlist = usePortfolioIntelPrefsStore((s) => s.watchlist);
   const name =
-    portfolios.find((p) => p.id === portfolioId)?.name ??
-    "Primary session portfolio";
+    portfolios.find((p) => p.id === portfolioId)?.name ?? "Primary session portfolio";
 
   const snapshot = buildPortfolioExportSnapshot({
     portfolioId,

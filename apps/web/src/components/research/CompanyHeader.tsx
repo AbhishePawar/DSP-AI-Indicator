@@ -36,55 +36,53 @@ export function CompanyHeader({ view }: { view: ResearchView }) {
               </p>
               <DeterministicAnalysisLabel />
             </div>
-          <h1 className="mt-1 font-[family-name:var(--font-display)] text-3xl tracking-tight">
-            {view.company}
-          </h1>
-          <p className="mt-1 font-mono text-sm text-[var(--muted)]">
-            {view.ticker} · {view.exchange}
-          </p>
-          <div className="mt-3">
-            <AddToPortfolioButton
-              company={view.company}
-              ticker={view.ticker}
-              sector={catalogueEntry?.sector ?? "Unknown"}
-              recommendation={view.recommendation}
-              researchAvailable={view.ok}
-              size="md"
-            />
-          </div>
-        </div>
-        <div className="grid gap-2 text-right sm:grid-cols-2">
-          <div>
-            <p className="text-xs text-[var(--muted)]">Recommendation</p>
-            <p className="font-[family-name:var(--font-display)] text-xl">
-              {view.recommendation}
+            <h1 className="mt-1 font-[family-name:var(--font-display)] text-3xl tracking-tight">
+              {view.company}
+            </h1>
+            <p className="mt-1 font-mono text-sm text-[var(--muted)]">
+              {view.ticker} · {view.exchange}
             </p>
-          </div>
-          <div>
-            <p className="text-xs text-[var(--muted)]">Overall Rating</p>
-            <p className="font-[family-name:var(--font-display)] text-xl">
-              {view.businessQualityLabel}
-            </p>
-          </div>
-          <div className="sm:col-span-2">
-            <p className="text-xs text-[var(--muted)]">Last Analysis</p>
-            <p className="font-mono text-sm">
-              {view.analysedAt
-                ? new Date(view.analysedAt).toLocaleString()
-                : "—"}
-            </p>
-            <div className="mt-2 flex flex-wrap justify-end gap-2">
-              <Badge tone={view.ok ? "success" : "danger"}>
-                {view.ok ? "Pipeline OK" : "Issues"}
-              </Badge>
-              <Badge tone="neutral">
-                Confidence {formatPct(view.recommendationConfidence)}
-              </Badge>
+            <div className="mt-3">
+              <AddToPortfolioButton
+                company={view.company}
+                ticker={view.ticker}
+                sector={catalogueEntry?.sector ?? "Unknown"}
+                recommendation={view.recommendation}
+                researchAvailable={view.ok}
+                size="md"
+              />
             </div>
           </div>
-        </div>
-      </CardBody>
-    </Card>
+          <div className="grid gap-2 text-right sm:grid-cols-2">
+            <div>
+              <p className="text-xs text-[var(--muted)]">Recommendation</p>
+              <p className="font-[family-name:var(--font-display)] text-xl">
+                {view.recommendation}
+              </p>
+            </div>
+            <div>
+              <p className="text-xs text-[var(--muted)]">Overall Rating</p>
+              <p className="font-[family-name:var(--font-display)] text-xl">
+                {view.businessQualityLabel}
+              </p>
+            </div>
+            <div className="sm:col-span-2">
+              <p className="text-xs text-[var(--muted)]">Last Analysis</p>
+              <p className="font-mono text-sm">
+                {view.analysedAt ? new Date(view.analysedAt).toLocaleString() : "—"}
+              </p>
+              <div className="mt-2 flex flex-wrap justify-end gap-2">
+                <Badge tone={view.ok ? "success" : "danger"}>
+                  {view.ok ? "Pipeline OK" : "Issues"}
+                </Badge>
+                <Badge tone="neutral">
+                  Confidence {formatPct(view.recommendationConfidence)}
+                </Badge>
+              </div>
+            </div>
+          </div>
+        </CardBody>
+      </Card>
 
       <MarketDataCard ticker={view.ticker} />
     </div>

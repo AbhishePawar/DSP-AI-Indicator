@@ -138,9 +138,7 @@ export const SessionSummaryCard = memo(function SessionSummaryCard() {
   const session = useCollaborationSession();
   const pinned = useMemo(
     () =>
-      collaborationPinnedCatalog.filter((p) =>
-        session.pinnedItemIds.includes(p.id),
-      ),
+      collaborationPinnedCatalog.filter((p) => session.pinnedItemIds.includes(p.id)),
     [session.pinnedItemIds],
   );
   return (
@@ -157,8 +155,7 @@ export const SessionSummaryCard = memo(function SessionSummaryCard() {
           </Badge>
         </p>
         <p>
-          Sidebar:{" "}
-          <Badge>{session.sidebarCollapsed ? "Collapsed" : "Expanded"}</Badge>
+          Sidebar: <Badge>{session.sidebarCollapsed ? "Collapsed" : "Expanded"}</Badge>
           {" · "}
           Main width: <Badge>{session.mainPanelWidthPct}%</Badge>
         </p>
@@ -693,7 +690,8 @@ export const SharedResearchSection = memo(function SharedResearchSection() {
         />
         <CardBody className="space-y-3 text-sm">
           <p className="text-[var(--muted)]">
-            Sprint 7.2 workspace reuses demo research envelopes only — conclusions unchanged.
+            Sprint 7.2 workspace reuses demo research envelopes only — conclusions
+            unchanged.
           </p>
           <div className="flex flex-wrap gap-2">
             <Link href="/advisor/team/shared-research">
@@ -731,8 +729,8 @@ export const SharedReviewsSection = memo(function SharedReviewsSection() {
         />
         <CardBody className="space-y-3 text-sm">
           <p className="text-[var(--muted)]">
-            Sprint 7.4 workspace reuses Client Review demos only — research and portfolio outputs
-            unchanged.
+            Sprint 7.4 workspace reuses Client Review demos only — research and
+            portfolio outputs unchanged.
           </p>
           <div className="flex flex-wrap gap-2">
             <Link href="/advisor/team/shared-reviews">
@@ -770,8 +768,8 @@ export const SharedPortfoliosSection = memo(function SharedPortfoliosSection() {
         />
         <CardBody className="space-y-3 text-sm">
           <p className="text-[var(--muted)]">
-            Sprint 7.3 workspace reuses demo model portfolios only — allocations and risk are not
-            recalculated.
+            Sprint 7.3 workspace reuses demo model portfolios only — allocations and
+            risk are not recalculated.
           </p>
           <div className="flex flex-wrap gap-2">
             <Link href="/advisor/team/shared-portfolios">
@@ -815,7 +813,10 @@ export const DiscussionsSection = memo(function DiscussionsSection() {
 
 export const AssignmentsSection = memo(function AssignmentsSection() {
   const tasks = useMemo(
-    () => listTasks().filter((t) => t.status !== "done").slice(0, 6),
+    () =>
+      listTasks()
+        .filter((t) => t.status !== "done")
+        .slice(0, 6),
     [],
   );
   return (

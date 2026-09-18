@@ -38,10 +38,7 @@ import type {
 import { mapAnalyseResponse } from "@/lib/intelligence/mapResponse";
 import { presentAction } from "@/lib/terminology";
 
-function stageByName(
-  stages: StageSummary[],
-  name: string,
-): StageSummary | undefined {
+function stageByName(stages: StageSummary[], name: string): StageSummary | undefined {
   return stages.find((s) => s.stage === name);
 }
 
@@ -72,21 +69,19 @@ function scoreCardFromStage(
     engines: stage
       ? availableField([engineName], "calculated", "calculated_metric")
       : unavailableField(),
-    confidence: stage?.confidence != null
-      ? fieldFromUnknown(stage.confidence, "calculated", "calculated_metric", {
-          pct: true,
-        })
-      : unavailableField(),
+    confidence:
+      stage?.confidence != null
+        ? fieldFromUnknown(stage.confidence, "calculated", "calculated_metric", {
+            pct: true,
+          })
+        : unavailableField(),
     reasoning: stage?.decision
       ? availableField(String(stage.decision), "calculated", "calculated_metric")
       : unavailableField(),
-    calculation: stage?.score != null
-      ? availableField(
-          `Score ${stage.score}`,
-          "calculated",
-          "calculated_metric",
-        )
-      : unableToCalculateField(),
+    calculation:
+      stage?.score != null
+        ? availableField(`Score ${stage.score}`, "calculated", "calculated_metric")
+        : unableToCalculateField(),
     contribution: stage?.label
       ? availableField(String(stage.label), "calculated", "calculated_metric")
       : unavailableField(),
@@ -131,7 +126,12 @@ function buildFinancial(
     ) =>
       value == null
         ? unavailableField()
-        : fieldFromUnknown(value, "verified_fact", "verified_financial_statement", opts);
+        : fieldFromUnknown(
+            value,
+            "verified_fact",
+            "verified_financial_statement",
+            opts,
+          );
 
     const hist =
       statements.periods.length > 1
@@ -171,8 +171,14 @@ function buildFinancial(
           field: line(balance.total_liabilities, { money: true }),
         },
         { label: "Equity", field: line(balance.total_equity, { money: true }) },
-        { label: "Long-term debt", field: line(balance.long_term_debt, { money: true }) },
-        { label: "Current assets", field: line(balance.current_assets, { money: true }) },
+        {
+          label: "Long-term debt",
+          field: line(balance.long_term_debt, { money: true }),
+        },
+        {
+          label: "Current assets",
+          field: line(balance.current_assets, { money: true }),
+        },
         {
           label: "Current liabilities",
           field: line(balance.current_liabilities, { money: true }),
@@ -282,9 +288,7 @@ function buildFinancial(
       { label: "Debt / Equity", field: unableToCalculateField() },
       { label: "Working capital", field: unableToCalculateField() },
     ],
-    historicalTrends: [
-      { label: "Multi-period trend", field: unavailableField() },
-    ],
+    historicalTrends: [{ label: "Multi-period trend", field: unavailableField() }],
   };
 }
 
@@ -445,11 +449,7 @@ function buildCorporateActions(
         ? availableField(e.ex_date, "verified_fact", "verified_financial_statement")
         : unavailableField(),
       recordDate: e.record_date
-        ? availableField(
-            e.record_date,
-            "verified_fact",
-            "verified_financial_statement",
-          )
+        ? availableField(e.record_date, "verified_fact", "verified_financial_statement")
         : unavailableField(),
       paymentDate: e.payment_date
         ? availableField(
@@ -461,9 +461,14 @@ function buildCorporateActions(
       amount:
         e.amount == null
           ? unavailableField()
-          : fieldFromUnknown(e.amount, "verified_fact", "verified_financial_statement", {
-              money: true,
-            }),
+          : fieldFromUnknown(
+              e.amount,
+              "verified_fact",
+              "verified_financial_statement",
+              {
+                money: true,
+              },
+            ),
       ratio,
     };
   });
@@ -705,7 +710,11 @@ function buildHistorical(
   return {
     source: availableField(srcLabel, "verified_fact", "authenticated_market_data"),
     seriesKind: payload.series_kind
-      ? availableField(payload.series_kind, "verified_fact", "authenticated_market_data")
+      ? availableField(
+          payload.series_kind,
+          "verified_fact",
+          "authenticated_market_data",
+        )
       : unavailableField(),
     frequency: payload.frequency
       ? availableField(payload.frequency, "verified_fact", "authenticated_market_data")
@@ -831,11 +840,7 @@ function buildValuation(
     fairValueRange: unableToCalculateField(),
     methods,
     methodContributions: valuationStage?.label
-      ? availableField(
-          String(valuationStage.label),
-          "calculated",
-          "calculated_metric",
-        )
+      ? availableField(String(valuationStage.label), "calculated", "calculated_metric")
       : unavailableField(),
     sensitivity: unavailableField(),
     assumptions: unavailableField(),
@@ -863,23 +868,17 @@ function buildMoS(
           { pct: true },
         )
       : signals?.margin_of_safety != null
-        ? fieldFromUnknown(
-            signals.margin_of_safety,
-            "user_input",
-            "user_input",
-            { pct: true },
-          )
+        ? fieldFromUnknown(signals.margin_of_safety, "user_input", "user_input", {
+            pct: true,
+          })
         : unableToCalculateField();
 
   return {
     currentPrice:
       signals?.current_market_price != null
-        ? fieldFromUnknown(
-            signals.current_market_price,
-            "user_input",
-            "user_input",
-            { money: true },
-          )
+        ? fieldFromUnknown(signals.current_market_price, "user_input", "user_input", {
+            money: true,
+          })
         : unavailableField(),
     intrinsicValue:
       signals?.intrinsic_value_per_share != null
@@ -920,12 +919,7 @@ function buildBusinessQuality(stages: StageSummary[]): BusinessQualityView {
       stageByName(stages, "management_quality"),
       "management_quality",
     ),
-    governance: scoreCardFromStage(
-      "governance",
-      "Governance",
-      undefined,
-      "governance",
-    ),
+    governance: scoreCardFromStage("governance", "Governance", undefined, "governance"),
     capitalAllocation: scoreCardFromStage(
       "capital_allocation",
       "Capital Allocation",
@@ -994,11 +988,7 @@ function buildScenarios(
     expectedCagr: unableToCalculateField(),
     sensitivity: unavailableField(),
     keyDrivers: intelligence.strengths.length
-      ? availableField(
-          intelligence.strengths,
-          "ai_interpretation",
-          "ai_interpretation",
-        )
+      ? availableField(intelligence.strengths, "ai_interpretation", "ai_interpretation")
       : unavailableField(),
   };
 }
@@ -1035,16 +1025,12 @@ export function mapInstitutionalDashboard(args: {
   const historical = buildHistorical(historicalPayload);
 
   const headerPrice =
-    market.hasAuthenticatedMarketData &&
-    market.currentPrice.presence === "available"
+    market.hasAuthenticatedMarketData && market.currentPrice.presence === "available"
       ? market.currentPrice
       : signals?.current_market_price != null
-        ? fieldFromUnknown(
-            signals.current_market_price,
-            "user_input",
-            "user_input",
-            { money: true },
-          )
+        ? fieldFromUnknown(signals.current_market_price, "user_input", "user_input", {
+            money: true,
+          })
         : unavailableField();
 
   const intrinsic =
@@ -1067,8 +1053,7 @@ export function mapInstitutionalDashboard(args: {
         )
       : unableToCalculateField();
 
-  const recommendationRaw =
-    rec?.decision ?? rec?.action ?? rec?.recommendation ?? null;
+  const recommendationRaw = rec?.decision ?? rec?.action ?? rec?.recommendation ?? null;
   const recommendation =
     recommendationRaw != null
       ? availableField(
@@ -1100,11 +1085,7 @@ export function mapInstitutionalDashboard(args: {
 
   const audit = {
     reportId: intelligence.correlationId
-      ? availableField(
-          intelligence.correlationId,
-          "calculated",
-          "calculated_metric",
-        )
+      ? availableField(intelligence.correlationId, "calculated", "calculated_metric")
       : unavailableField(),
     auditReference: intelligence.correlationId
       ? availableField(
@@ -1122,18 +1103,10 @@ export function mapInstitutionalDashboard(args: {
         : unavailableField(),
     financialStatementPeriod: financial.reportingPeriod,
     engineVersion: intelligence.pipelineVersion
-      ? availableField(
-          intelligence.pipelineVersion,
-          "calculated",
-          "calculated_metric",
-        )
+      ? availableField(intelligence.pipelineVersion, "calculated", "calculated_metric")
       : unavailableField(),
     researchVersion: intelligence.platformVersion
-      ? availableField(
-          intelligence.platformVersion,
-          "calculated",
-          "calculated_metric",
-        )
+      ? availableField(intelligence.platformVersion, "calculated", "calculated_metric")
       : unavailableField(),
     rulesVersion: unavailableField(),
     dataSources: availableField(
@@ -1165,11 +1138,7 @@ export function mapInstitutionalDashboard(args: {
       "calculated_metric",
     ),
     correlationId: intelligence.correlationId
-      ? availableField(
-          intelligence.correlationId,
-          "calculated",
-          "calculated_metric",
-        )
+      ? availableField(intelligence.correlationId, "calculated", "calculated_metric")
       : unavailableField(),
     packageVersions: packageVersionList.length
       ? availableField(packageVersionList, "calculated", "calculated_metric")
@@ -1219,11 +1188,7 @@ export function mapInstitutionalDashboard(args: {
     engineVersion: audit.engineVersion,
     researchMode: availableField("Research Mode", "verified_fact", "user_input"),
     reportVersion: intelligence.pipelineVersion
-      ? availableField(
-          intelligence.pipelineVersion,
-          "calculated",
-          "calculated_metric",
-        )
+      ? availableField(intelligence.pipelineVersion, "calculated", "calculated_metric")
       : unavailableField(),
   };
 

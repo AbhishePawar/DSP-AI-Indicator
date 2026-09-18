@@ -15,10 +15,7 @@ import { featureFlags } from "@/lib/featureFlags";
 import { usePortfolio } from "@/lib/portfolio/PortfolioProvider";
 import { usePortfolioIntelPrefsStore } from "@/lib/portfolio-intelligence";
 import { useResearchNotebookStore } from "@/lib/research-canvas";
-import {
-  DashboardWidgetShell,
-  WidgetUnavailable,
-} from "../DashboardWidgetShell";
+import { DashboardWidgetShell, WidgetUnavailable } from "../DashboardWidgetShell";
 
 export function ResearchCommandCenterWidget() {
   const { holdings } = usePortfolio();
@@ -137,8 +134,8 @@ export function ResearchCommandCenterWidget() {
         <section>
           <h3 className="text-sm font-medium">Committee Alerts</h3>
           <p className="mt-2 text-sm text-[var(--muted)]">
-            Data unavailable. Open Company Analysis AI Committee per ticker —
-            no portfolio-level committee feed in v1.
+            Data unavailable. Open Company Analysis AI Committee per ticker — no
+            portfolio-level committee feed in v1.
           </p>
           <Link href="/analysis?section=ai" className="mt-2 inline-block">
             <Button size="sm" variant="ghost">
@@ -161,10 +158,7 @@ export function ResearchCommandCenterWidget() {
             </ul>
           )}
           {featureFlags.researchCanvas ? (
-            <Link
-              href="/research/canvas?tab=notes"
-              className="mt-2 inline-block"
-            >
+            <Link href="/research/canvas?tab=notes" className="mt-2 inline-block">
               <Button size="sm" variant="ghost">
                 Notebook
               </Button>

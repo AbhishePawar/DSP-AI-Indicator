@@ -52,7 +52,5 @@ test("tabs through every Company Workspace section without crashing", async ({
     await page.waitForTimeout(50);
   }
 
-  expect(pageErrors, `uncaught page errors: ${pageErrors.join("; ")}`).toEqual(
-    [],
-  );
+  expect(pageErrors, `uncaught page errors: ${pageErrors.join("; ")}`).toEqual([]);
 });

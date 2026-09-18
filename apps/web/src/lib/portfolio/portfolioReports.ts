@@ -12,10 +12,7 @@ import {
 import type { PortfolioWorkspaceView } from "@/lib/portfolio/portfolioWorkspace";
 
 export type PortfolioReportKind =
-  | "portfolio_report"
-  | "allocation_report"
-  | "risk_report"
-  | "watchlist_report";
+  "portfolio_report" | "allocation_report" | "risk_report" | "watchlist_report";
 
 function citations(view: PortfolioWorkspaceView): ReportBlock["citation"] {
   return {
@@ -26,7 +23,14 @@ function citations(view: PortfolioWorkspaceView): ReportBlock["citation"] {
   };
 }
 
-function trustLine(m: { label: string; value: string | null; confidence: string; evidence: string; methodology: string; timestamp: string | null }) {
+function trustLine(m: {
+  label: string;
+  value: string | null;
+  confidence: string;
+  evidence: string;
+  methodology: string;
+  timestamp: string | null;
+}) {
   return `${m.label}: ${m.value ?? "Unavailable"} · confidence ${m.confidence} · ${m.evidence}`;
 }
 
@@ -52,10 +56,22 @@ export function buildPortfolioReport(
       id: "overview",
       heading: "Portfolio Overview",
       paragraphs: [
-        trustLine({ ...view.overview.portfolioValue, confidence: view.overview.portfolioValue.confidence }),
-        trustLine({ ...view.overview.cashPercent, confidence: view.overview.cashPercent.confidence }),
-        trustLine({ ...view.overview.averageMos, confidence: view.overview.averageMos.confidence }),
-        trustLine({ ...view.overview.expectedCagr, confidence: view.overview.expectedCagr.confidence }),
+        trustLine({
+          ...view.overview.portfolioValue,
+          confidence: view.overview.portfolioValue.confidence,
+        }),
+        trustLine({
+          ...view.overview.cashPercent,
+          confidence: view.overview.cashPercent.confidence,
+        }),
+        trustLine({
+          ...view.overview.averageMos,
+          confidence: view.overview.averageMos.confidence,
+        }),
+        trustLine({
+          ...view.overview.expectedCagr,
+          confidence: view.overview.expectedCagr.confidence,
+        }),
       ],
       bullets: view.holdings.map(
         (h) =>
@@ -82,8 +98,14 @@ export function buildPortfolioReport(
       id: "risk",
       heading: "Risk Summary",
       paragraphs: [
-        trustLine({ ...view.risk.largestPosition, confidence: view.risk.largestPosition.confidence }),
-        trustLine({ ...view.risk.largestSector, confidence: view.risk.largestSector.confidence }),
+        trustLine({
+          ...view.risk.largestPosition,
+          confidence: view.risk.largestPosition.confidence,
+        }),
+        trustLine({
+          ...view.risk.largestSector,
+          confidence: view.risk.largestSector.confidence,
+        }),
         trustLine({
           ...view.overview.portfolioRiskScore,
           confidence: view.overview.portfolioRiskScore.confidence,

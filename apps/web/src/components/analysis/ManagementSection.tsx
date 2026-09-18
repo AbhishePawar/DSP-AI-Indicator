@@ -2,11 +2,7 @@ import { InsightCard } from "@/components/analysis/InsightCard";
 import { ManagementCard } from "@/components/analysis/ManagementCard";
 import type { ManagementInsightView } from "@/lib/analysis/types";
 
-export function ManagementSection({
-  items,
-}: {
-  items: ManagementInsightView[];
-}) {
+export function ManagementSection({ items }: { items: ManagementInsightView[] }) {
   return (
     <InsightCard
       title="Management Quality"

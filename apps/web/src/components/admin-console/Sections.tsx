@@ -57,11 +57,7 @@ function entitySummary(entity: AdminEntity): string {
   return displayValue(subject);
 }
 
-export function OverviewSection({
-  token,
-}: {
-  token?: string | null;
-}) {
+export function OverviewSection({ token }: { token?: string | null }) {
   const query = useQuery({
     queryKey: ["admin", "dashboard", token],
     queryFn: () => adminApi.dashboard(tokenOpts(token)),
@@ -91,10 +87,7 @@ export function OverviewSection({
           <FieldRow label="Sessions" value={data.sessions_count} />
           <FieldRow label="Active sessions" value={data.active_sessions_count} />
           <FieldRow label="Audit records" value={data.audit_records_count} />
-          <FieldRow
-            label="Workflow records"
-            value={data.workflow_records_count}
-          />
+          <FieldRow label="Workflow records" value={data.workflow_records_count} />
           <FieldRow label="Research refs" value={data.research_refs_count} />
         </dl>
       </SectionCard>
@@ -107,19 +100,11 @@ export function OverviewSection({
   );
 }
 
-export function IdentitySection({
-  token,
-}: {
-  token?: string | null;
-}) {
+export function IdentitySection({ token }: { token?: string | null }) {
   const selectedUserId = useAdminConsolePrefsStore((s) => s.selectedUserId);
-  const setSelectedUserId = useAdminConsolePrefsStore(
-    (s) => s.setSelectedUserId,
-  );
+  const setSelectedUserId = useAdminConsolePrefsStore((s) => s.setSelectedUserId);
   const selectedRoleId = useAdminConsolePrefsStore((s) => s.selectedRoleId);
-  const setSelectedRoleId = useAdminConsolePrefsStore(
-    (s) => s.setSelectedRoleId,
-  );
+  const setSelectedRoleId = useAdminConsolePrefsStore((s) => s.setSelectedRoleId);
   const [userFilter, setUserFilter] = useState("");
 
   const usersQuery = useQuery({
@@ -136,8 +121,7 @@ export function IdentitySection({
   });
   const sessionsQuery = useQuery({
     queryKey: ["admin", "sessions", token, selectedUserId],
-    queryFn: () =>
-      adminApi.listSessions(tokenOpts(token), selectedUserId || undefined),
+    queryFn: () => adminApi.listSessions(tokenOpts(token), selectedUserId || undefined),
   });
   const userDetailQuery = useQuery({
     queryKey: ["admin", "user", selectedUserId, token],
@@ -171,12 +155,9 @@ export function IdentitySection({
         `/auth/enterprise/admin/login-history${
           selectedUserId ? `?user_id=${encodeURIComponent(selectedUserId)}` : ""
         }`;
-      const { cookieAuthPreferred, cookieFetchInit } = await import(
-        "@/lib/auth/cookieSession"
-      );
-      const init = cookieAuthPreferred()
-        ? cookieFetchInit({ headers })
-        : { headers };
+      const { cookieAuthPreferred, cookieFetchInit } =
+        await import("@/lib/auth/cookieSession");
+      const init = cookieAuthPreferred() ? cookieFetchInit({ headers }) : { headers };
       const res = await fetch(base, init);
       const data = (await res.json()) as {
         ok?: boolean;
@@ -276,23 +257,11 @@ export function IdentitySection({
             <FieldRow label="User ID" value={userDetailQuery.data.user_id} />
             <FieldRow label="Username" value={userDetailQuery.data.username} />
             <FieldRow label="Email" value={userDetailQuery.data.email} />
-            <FieldRow
-              label="Display name"
-              value={userDetailQuery.data.display_name}
-            />
+            <FieldRow label="Display name" value={userDetailQuery.data.display_name} />
             <FieldRow label="Status" value={userDetailQuery.data.status} />
-            <FieldRow
-              label="Created"
-              value={userDetailQuery.data.created_at}
-            />
-            <FieldRow
-              label="Updated"
-              value={userDetailQuery.data.updated_at}
-            />
-            <FieldRow
-              label="Last login"
-              value={userDetailQuery.data.last_login}
-            />
+            <FieldRow label="Created" value={userDetailQuery.data.created_at} />
+            <FieldRow label="Updated" value={userDetailQuery.data.updated_at} />
+            <FieldRow label="Last login" value={userDetailQuery.data.last_login} />
             <FieldRow
               label="Roles"
               value={(userDetailQuery.data.roles || []).join(", ")}
@@ -307,11 +276,7 @@ export function IdentitySection({
               size="sm"
               variant="secondary"
               onClick={async () => {
-                await enterpriseAuthApi.adminSetStatus(
-                  selectedUserId,
-                  false,
-                  token,
-                );
+                await enterpriseAuthApi.adminSetStatus(selectedUserId, false, token);
                 await userDetailQuery.refetch();
                 await usersQuery.refetch();
               }}
@@ -337,11 +302,7 @@ export function IdentitySection({
                   "Force new temporary password (min 12 chars, mixed case, digit, special):",
                 );
                 if (!pwd) return;
-                await enterpriseAuthApi.adminResetPassword(
-                  selectedUserId,
-                  pwd,
-                  token,
-                );
+                await enterpriseAuthApi.adminResetPassword(selectedUserId, pwd, token);
               }}
             >
               Force password reset
@@ -350,10 +311,7 @@ export function IdentitySection({
               size="sm"
               variant="secondary"
               onClick={async () => {
-                await enterpriseAuthApi.adminRevokeSessions(
-                  selectedUserId,
-                  token,
-                );
+                await enterpriseAuthApi.adminRevokeSessions(selectedUserId, token);
                 await sessionsQuery.refetch();
               }}
             >
@@ -400,9 +358,7 @@ export function IdentitySection({
             <TableBody>
               {roles.map((r: AdminRole) => (
                 <TableRow key={r.role_id}>
-                  <TableCell className="font-mono text-xs">
-                    {r.role_id}
-                  </TableCell>
+                  <TableCell className="font-mono text-xs">{r.role_id}</TableCell>
                   <TableCell>{r.name || "Data unavailable."}</TableCell>
                   <TableCell>
                     {r.configurable === undefined
@@ -491,18 +447,12 @@ export function IdentitySection({
             <TableBody>
               {sessionsQuery.data!.map((s) => (
                 <TableRow key={s.session_id}>
-                  <TableCell className="font-mono text-xs">
-                    {s.session_id}
-                  </TableCell>
-                  <TableCell className="font-mono text-xs">
-                    {s.user_id}
-                  </TableCell>
+                  <TableCell className="font-mono text-xs">{s.session_id}</TableCell>
+                  <TableCell className="font-mono text-xs">{s.user_id}</TableCell>
                   <TableCell>{s.created_at || "Data unavailable."}</TableCell>
                   <TableCell>{s.expires_at || "Data unavailable."}</TableCell>
                   <TableCell>
-                    {s.revoked === undefined
-                      ? "Data unavailable."
-                      : String(s.revoked)}
+                    {s.revoked === undefined ? "Data unavailable." : String(s.revoked)}
                   </TableCell>
                 </TableRow>
               ))}
@@ -724,9 +674,7 @@ export function AuditSection({ token }: { token?: string | null }) {
                   </TableCell>
                   <TableCell>{row.kind || "Data unavailable."}</TableCell>
                   <TableCell>{row.created_at || "Data unavailable."}</TableCell>
-                  <TableCell className="text-xs">
-                    {entitySummary(row)}
-                  </TableCell>
+                  <TableCell className="text-xs">{entitySummary(row)}</TableCell>
                 </TableRow>
               ))}
             </TableBody>
@@ -749,9 +697,7 @@ export function AuditSection({ token }: { token?: string | null }) {
                 className="rounded-[var(--radius-md)] border border-[var(--border)] p-3 text-sm"
               >
                 <div className="flex flex-wrap items-center justify-between gap-2">
-                  <Badge variant="outline">
-                    {item.kind || "Data unavailable."}
-                  </Badge>
+                  <Badge variant="outline">{item.kind || "Data unavailable."}</Badge>
                   <span className="text-xs text-[var(--muted)]">
                     {item.created_at || "Data unavailable."}
                   </span>
@@ -912,9 +858,7 @@ export function PlatformSection({ token }: { token?: string | null }) {
                     {item.key || "Data unavailable."}
                   </TableCell>
                   <TableCell>
-                    {item.set === undefined
-                      ? "Data unavailable."
-                      : String(item.set)}
+                    {item.set === undefined ? "Data unavailable." : String(item.set)}
                   </TableCell>
                   <TableCell className="text-xs">
                     {item.value || "Data unavailable."}
@@ -948,18 +892,9 @@ export function PlatformSection({ token }: { token?: string | null }) {
 
       <SectionCard title="Environment Information">
         <dl>
-          <FieldRow
-            label="Config source"
-            value={configQuery.data?.source}
-          />
-          <FieldRow
-            label="Flag source"
-            value={flagsQuery.data?.source}
-          />
-          <FieldRow
-            label="API contract"
-            value="v1.0.0"
-          />
+          <FieldRow label="Config source" value={configQuery.data?.source} />
+          <FieldRow label="Flag source" value={flagsQuery.data?.source} />
+          <FieldRow label="API contract" value="v1.0.0" />
         </dl>
       </SectionCard>
     </div>
@@ -1078,9 +1013,7 @@ export function WorkflowSection({ token }: { token?: string | null }) {
                 const f = workflowFields(r);
                 return (
                   <TableRow key={r.entity_id || `wf-${idx}`}>
-                    <TableCell className="font-mono text-xs">
-                      {f.workflowId}
-                    </TableCell>
+                    <TableCell className="font-mono text-xs">{f.workflowId}</TableCell>
                     <TableCell>{f.subject}</TableCell>
                     <TableCell>{f.stage}</TableCell>
                     <TableCell>
@@ -1269,11 +1202,7 @@ export function ExportSection({ token }: { token?: string | null }) {
         description="Exports backend A010 payloads only. Uses current audit filters."
       >
         <div className="flex flex-wrap gap-2">
-          <Button
-            size="sm"
-            disabled={busy}
-            onClick={() => void exportAudit("json")}
-          >
+          <Button size="sm" disabled={busy} onClick={() => void exportAudit("json")}>
             Export audit metadata (JSON)
           </Button>
           <Button
@@ -1299,8 +1228,8 @@ export function ExportSection({ token }: { token?: string | null }) {
           </p>
         ) : null}
         <p className="mt-3 text-xs text-[var(--muted)]">
-          Excel is not a separate A010 format — use CSV. No client-side scoring
-          or fabricated rows.
+          Excel is not a separate A010 format — use CSV. No client-side scoring or
+          fabricated rows.
         </p>
       </SectionCard>
     </div>
@@ -1428,7 +1357,11 @@ export function BetaSection({ token }: { token?: string | null }) {
             aria-label="Invite identity"
             className="min-w-[12rem] flex-1"
           />
-          <Button size="sm" onClick={() => void createInvite()} disabled={!inviteIdentity.trim()}>
+          <Button
+            size="sm"
+            onClick={() => void createInvite()}
+            disabled={!inviteIdentity.trim()}
+          >
             Approve invite
           </Button>
         </div>
@@ -1465,7 +1398,10 @@ export function BetaSection({ token }: { token?: string | null }) {
         ) : null}
       </SectionCard>
 
-      <SectionCard title="Issue workflow" description="New → Triaged → In Progress → Resolved → Closed">
+      <SectionCard
+        title="Issue workflow"
+        description="New → Triaged → In Progress → Resolved → Closed"
+      >
         {issuesQuery.data && issuesQuery.data.length === 0 ? (
           <WorkspaceEmpty description="No issues." />
         ) : null}

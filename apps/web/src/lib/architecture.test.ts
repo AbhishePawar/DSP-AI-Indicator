@@ -25,16 +25,10 @@ const FORBIDDEN_PYTHON_PACKAGES = [
  * Local TypeScript investment-engine trees retired in EPIC-015.
  * Must not reappear under apps/web/src/lib.
  */
-const FORBIDDEN_ENGINE_DIRS = [
-  "moat",
-  "valuation",
-  "management",
-  "earnings",
-] as const;
+const FORBIDDEN_ENGINE_DIRS = ["moat", "valuation", "management", "earnings"] as const;
 
 /** Filename patterns that indicate browser-side investment scoring. */
-const FORBIDDEN_FILENAME_RE =
-  /(Engine|Scoring|Aggregation)\.tsx?$/i;
+const FORBIDDEN_FILENAME_RE = /(Engine|Scoring|Aggregation)\.tsx?$/i;
 
 /** Allowlist dirs may contain presentation helpers only. */
 const LIB_ALLOWLIST = new Set([

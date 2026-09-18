@@ -17,9 +17,8 @@ export default function ForbiddenPage() {
       >
         <Stack gap={4}>
           <Alert variant="warning" title="Insufficient privileges">
-            Your account is authenticated but lacks the required role or
-            permission. Contact an administrator if you believe this is an
-            error.
+            Your account is authenticated but lacks the required role or permission.
+            Contact an administrator if you believe this is an error.
           </Alert>
           <div className="flex flex-wrap gap-2">
             <Link href="/dashboard">

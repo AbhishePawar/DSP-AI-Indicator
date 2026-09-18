@@ -49,15 +49,39 @@ export const COLLAB_NAV: {
   label: string;
 }[] = [
   { id: "overview", href: "/advisor/team", label: "Workspace Overview" },
-  { id: "dashboard", href: "/advisor/team/dashboard", label: "Collaboration Dashboard" },
+  {
+    id: "dashboard",
+    href: "/advisor/team/dashboard",
+    label: "Collaboration Dashboard",
+  },
   { id: "my_work", href: "/advisor/team/my-work", label: "My Work" },
-  { id: "shared_research", href: "/advisor/team/shared-research", label: "Shared Research" },
-  { id: "shared_reviews", href: "/advisor/team/shared-reviews", label: "Shared Reviews" },
-  { id: "shared_portfolios", href: "/advisor/team/shared-portfolios", label: "Shared Portfolios" },
+  {
+    id: "shared_research",
+    href: "/advisor/team/shared-research",
+    label: "Shared Research",
+  },
+  {
+    id: "shared_reviews",
+    href: "/advisor/team/shared-reviews",
+    label: "Shared Reviews",
+  },
+  {
+    id: "shared_portfolios",
+    href: "/advisor/team/shared-portfolios",
+    label: "Shared Portfolios",
+  },
   { id: "discussions", href: "/advisor/team/discussions", label: "Discussions" },
-  { id: "assignments", href: "/advisor/team/shared-reviews/board", label: "Assignments" },
+  {
+    id: "assignments",
+    href: "/advisor/team/shared-reviews/board",
+    label: "Assignments",
+  },
   { id: "activity", href: "/advisor/team/activity", label: "Activity" },
-  { id: "validation", href: "/advisor/team/validation", label: "Production Validation" },
+  {
+    id: "validation",
+    href: "/advisor/team/validation",
+    label: "Production Validation",
+  },
 ];
 
 export const DEFAULT_COLLAB_SESSION: CollaborationSessionState = {

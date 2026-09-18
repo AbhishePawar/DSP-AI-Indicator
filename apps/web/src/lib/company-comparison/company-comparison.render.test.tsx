@@ -48,17 +48,13 @@ function wrap(ui: ReactNode) {
   const client = new QueryClient({
     defaultOptions: { queries: { retry: false }, mutations: { retry: false } },
   });
-  return render(
-    <QueryClientProvider client={client}>{ui}</QueryClientProvider>,
-  );
+  return render(<QueryClientProvider client={client}>{ui}</QueryClientProvider>);
 }
 
 describe("CompanyComparisonWorkspace render", () => {
   it("renders empty decision workspace shell", () => {
     wrap(<CompanyComparisonWorkspace />);
-    expect(
-      screen.getByTestId("company-comparison-workspace"),
-    ).toBeInTheDocument();
+    expect(screen.getByTestId("company-comparison-workspace")).toBeInTheDocument();
     expect(
       screen.getByRole("heading", { name: /Institutional Company Comparison/i }),
     ).toBeInTheDocument();

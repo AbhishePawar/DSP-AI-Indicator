@@ -92,7 +92,10 @@ export function mapPortfolioIntelligenceResult(
     return {
       symbol: display(r.symbol ?? r.ticker),
       detail: display(
-        r.overall ?? r.summary ?? r.message ?? (r.available === false ? "Data unavailable." : r),
+        r.overall ??
+          r.summary ??
+          r.message ??
+          (r.available === false ? "Data unavailable." : r),
       ),
     };
   });
@@ -109,9 +112,7 @@ export function mapPortfolioIntelligenceResult(
     const r = asRecord(row);
     return {
       symbol: display(r.symbol ?? r.ticker),
-      detail: display(
-        r.summary ?? r.label ?? r.message ?? "Data unavailable.",
-      ),
+      detail: display(r.summary ?? r.label ?? r.message ?? "Data unavailable."),
     };
   });
 

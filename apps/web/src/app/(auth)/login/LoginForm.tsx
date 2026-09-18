@@ -72,9 +72,8 @@ export default function LoginForm() {
 
   const googleProvider = useMemo(
     () =>
-      oauthAvailable.find(
-        (p) => String(p.provider || "").toUpperCase() === "GOOGLE",
-      ) ?? null,
+      oauthAvailable.find((p) => String(p.provider || "").toUpperCase() === "GOOGLE") ??
+      null,
     [oauthAvailable],
   );
 
@@ -274,8 +273,8 @@ export default function LoginForm() {
           <Stack gap={4}>
             {expired ? (
               <Alert variant="warning" title="Session expired">
-                Your session is no longer valid. Sign in again to continue where
-                you left off.
+                Your session is no longer valid. Sign in again to continue where you
+                left off.
               </Alert>
             ) : null}
             {verified ? (
@@ -283,9 +282,7 @@ export default function LoginForm() {
                 Your email was verified. Choose a sign-in method to continue.
               </Alert>
             ) : null}
-            {error ? (
-              <ValidationMessage tone="error">{error}</ValidationMessage>
-            ) : null}
+            {error ? <ValidationMessage tone="error">{error}</ValidationMessage> : null}
 
             <Button
               type="button"
@@ -341,8 +338,8 @@ export default function LoginForm() {
             />
             {!googleProvider ? (
               <p className="text-center text-xs text-[var(--muted)]">
-                If Google is not configured on the API, you will see an error
-                after clicking Continue with Google.
+                If Google is not configured on the API, you will see an error after
+                clicking Continue with Google.
               </p>
             ) : null}
 
@@ -440,8 +437,7 @@ export default function LoginForm() {
     );
   }
 
-  const otpTitle =
-    step === "mobile-otp" ? "Mobile number and OTP" : "Username and OTP";
+  const otpTitle = step === "mobile-otp" ? "Mobile number and OTP" : "Username and OTP";
   const otpDescription =
     otpPhase === "request"
       ? step === "mobile-otp"
@@ -475,11 +471,7 @@ export default function LoginForm() {
                   />
                 </FormField>
               ) : (
-                <FormField
-                  label="Username"
-                  htmlFor="login-otp-identifier"
-                  required
-                >
+                <FormField label="Username" htmlFor="login-otp-identifier" required>
                   <Input
                     id="login-otp-identifier"
                     value={otpIdentifier}

@@ -41,9 +41,7 @@ export function CompanyCard({ company }: { company: CompanyEntry }) {
               sector={company.sector}
               researchAvailable={company.researchAvailable}
             />
-            <Link
-              href={`/analysis?symbol=${encodeURIComponent(company.ticker)}`}
-            >
+            <Link href={`/analysis?symbol=${encodeURIComponent(company.ticker)}`}>
               <Button size="sm" variant="secondary">
                 Open Research
               </Button>

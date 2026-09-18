@@ -66,10 +66,7 @@ export const betaApi = {
     return betaFetch<BetaStatusResult>(`/beta/status${q ? `?${q}` : ""}`);
   },
 
-  submitFeedback: (
-    body: Record<string, unknown>,
-    token?: string | null,
-  ) =>
+  submitFeedback: (body: Record<string, unknown>, token?: string | null) =>
     betaFetch<Record<string, unknown>>("/beta/feedback", {
       method: "POST",
       body: JSON.stringify(body),
@@ -113,11 +110,7 @@ export const betaApi = {
       token,
     }),
 
-  patchInvite: (
-    id: string,
-    status: string,
-    token?: string | null,
-  ) =>
+  patchInvite: (id: string, status: string, token?: string | null) =>
     betaFetch<Record<string, unknown>>(`/admin/beta/invites/${id}`, {
       method: "PATCH",
       body: JSON.stringify({ status }),
@@ -130,11 +123,7 @@ export const betaApi = {
       token,
     }),
 
-  patchIssue: (
-    id: string,
-    body: Record<string, unknown>,
-    token?: string | null,
-  ) =>
+  patchIssue: (id: string, body: Record<string, unknown>, token?: string | null) =>
     betaFetch<Record<string, unknown>>(`/admin/beta/issues/${id}`, {
       method: "PATCH",
       body: JSON.stringify(body),

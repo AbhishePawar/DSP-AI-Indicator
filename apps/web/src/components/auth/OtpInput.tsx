@@ -1,12 +1,6 @@
 "use client";
 
-import {
-  ClipboardEvent,
-  KeyboardEvent,
-  useEffect,
-  useMemo,
-  useRef,
-} from "react";
+import { ClipboardEvent, KeyboardEvent, useEffect, useMemo, useRef } from "react";
 import { cn } from "@/lib/utils";
 
 export type OtpInputProps = {
@@ -112,7 +106,10 @@ export function OtpInput({
 
   return (
     <div role="group" aria-labelledby={`${groupId}-label`}>
-      <span id={`${groupId}-label`} className="mb-1.5 block text-sm font-medium text-[var(--fg)]">
+      <span
+        id={`${groupId}-label`}
+        className="mb-1.5 block text-sm font-medium text-[var(--fg)]"
+      >
         {label}
       </span>
       <div className="flex gap-2">

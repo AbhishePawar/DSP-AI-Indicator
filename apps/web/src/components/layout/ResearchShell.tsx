@@ -75,9 +75,22 @@ export function ResearchShell({ children }: { children: ReactNode }) {
                   </Avatar>
                 }
                 items={[
-                  { id: "profile", label: "Profile", onSelect: () => router.push("/profile") },
-                  { id: "settings", label: "Settings", onSelect: () => router.push("/settings") },
-                  { id: "logout", label: "Logout", destructive: true, onSelect: () => router.push("/logout") },
+                  {
+                    id: "profile",
+                    label: "Profile",
+                    onSelect: () => router.push("/profile"),
+                  },
+                  {
+                    id: "settings",
+                    label: "Settings",
+                    onSelect: () => router.push("/settings"),
+                  },
+                  {
+                    id: "logout",
+                    label: "Logout",
+                    destructive: true,
+                    onSelect: () => router.push("/logout"),
+                  },
                 ]}
               />
             ) : (

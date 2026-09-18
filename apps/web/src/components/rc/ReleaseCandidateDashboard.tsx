@@ -13,7 +13,9 @@ import {
   type RcDashboardView,
 } from "@/lib/rc/rcStabilizationModel";
 
-function toneForStatus(status: ValidationRow["status"]): "success" | "warning" | "danger" | "neutral" {
+function toneForStatus(
+  status: ValidationRow["status"],
+): "success" | "warning" | "danger" | "neutral" {
   if (status === "pass") return "success";
   if (status === "warn") return "warning";
   if (status === "fail") return "danger";
@@ -33,7 +35,11 @@ export function IssueResolutionCard({ item }: { item: ResolutionRecord }) {
     <Card className="dsp-interactive">
       <CardHeader
         title={item.title}
-        action={<Badge tone={item.status === "resolved" ? "success" : "warning"}>{item.status}</Badge>}
+        action={
+          <Badge tone={item.status === "resolved" ? "success" : "warning"}>
+            {item.status}
+          </Badge>
+        }
       />
       <CardBody className="space-y-2 text-sm">
         <div className="flex flex-wrap gap-2">
@@ -147,7 +153,9 @@ export function ReleaseSummaryCard({ view }: { view: RcDashboardView }) {
     <Card className="border-[var(--accent)]/40">
       <CardHeader
         title="Release summary"
-        action={<Badge tone={recTone(view.recommendation)}>{view.recommendation}</Badge>}
+        action={
+          <Badge tone={recTone(view.recommendation)}>{view.recommendation}</Badge>
+        }
       />
       <CardBody className="space-y-3 text-sm">
         <p className="font-[family-name:var(--font-display)] text-4xl tabular-nums tracking-tight">
@@ -234,7 +242,10 @@ export function ReleaseCandidateDashboard({ refreshTick }: { refreshTick: number
         <VersionManifestCard manifest={view.manifest} />
       </div>
       <section className="space-y-3" aria-labelledby="rc-resolutions">
-        <h2 id="rc-resolutions" className="font-[family-name:var(--font-display)] text-xl">
+        <h2
+          id="rc-resolutions"
+          className="font-[family-name:var(--font-display)] text-xl"
+        >
           Issue resolutions (Before → After)
         </h2>
         <div className="grid gap-3 md:grid-cols-2">
@@ -260,7 +271,11 @@ export function ReleaseCandidateDashboard({ refreshTick }: { refreshTick: number
 }
 
 export const ReleaseCandidateDashboardWorkspace = memo(
-  function ReleaseCandidateDashboardWorkspace({ refreshTick }: { refreshTick: number }) {
+  function ReleaseCandidateDashboardWorkspace({
+    refreshTick,
+  }: {
+    refreshTick: number;
+  }) {
     return <ReleaseCandidateDashboard refreshTick={refreshTick} />;
   },
 );

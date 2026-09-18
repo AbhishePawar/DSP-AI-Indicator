@@ -198,9 +198,7 @@ describe("sessionStore", () => {
     const payload = btoa(JSON.stringify({ exp: 2_000_000_000 }));
     const token = `${header}.${payload}.sig`;
     expect(parseJwtExpiryMs(token)).toBe(2_000_000_000_000);
-    expect(resolveExpiry(token, new Date().toISOString(), false)).toContain(
-      "2033",
-    );
+    expect(resolveExpiry(token, new Date().toISOString(), false)).toContain("2033");
   });
 });
 

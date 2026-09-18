@@ -229,9 +229,9 @@ export function CompanyAnalysisWorkspace() {
   const catalogue = useMemo(() => resolveCatalogue(symbol), [symbol]);
 
   useEffect(() => {
-    const next = (
-      new URLSearchParams(searchParamsKey).get("symbol") || ""
-    ).trim().toUpperCase();
+    const next = (new URLSearchParams(searchParamsKey).get("symbol") || "")
+      .trim()
+      .toUpperCase();
     setActiveSection("summary");
     setSymbol((prev) => {
       if (prev === next) return prev;
@@ -442,7 +442,8 @@ export function CompanyAnalysisWorkspace() {
         analysedAt: view.analysedAt,
       })
     : emptySurfaceTrust("company_analysis", {
-        auditNote: "Audit: company analysis is awaiting an authenticated analyse payload.",
+        auditNote:
+          "Audit: company analysis is awaiting an authenticated analyse payload.",
       });
 
   return (

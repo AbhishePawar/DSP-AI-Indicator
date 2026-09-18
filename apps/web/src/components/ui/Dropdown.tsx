@@ -2,13 +2,7 @@
 
 import { useEffect, useId, useRef, useState, type ReactNode } from "react";
 
-export function Dropdown({
-  label,
-  children,
-}: {
-  label: string;
-  children: ReactNode;
-}) {
+export function Dropdown({ label, children }: { label: string; children: ReactNode }) {
   const [open, setOpen] = useState(false);
   const id = useId();
   const ref = useRef<HTMLDivElement>(null);

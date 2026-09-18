@@ -81,7 +81,14 @@ export const E2E_JOURNEYS: readonly E2EJourneyMeta[] = [
   {
     id: "navigation_routing",
     label: "Navigation & routing",
-    routes: ["/dashboard", "/analysis", "/portfolio", "/research", "/admin", "/settings"],
+    routes: [
+      "/dashboard",
+      "/analysis",
+      "/portfolio",
+      "/research",
+      "/admin",
+      "/settings",
+    ],
     automated: true,
     notes: "Shell nav registry, breadcrumbs, searchable routes",
   },

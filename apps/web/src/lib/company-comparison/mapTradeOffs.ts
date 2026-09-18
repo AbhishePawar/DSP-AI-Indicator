@@ -65,9 +65,7 @@ export function mapTradeOffs(
     const withScores = row.cells.filter((c) => c.numeric != null);
     if (withScores.length < 2) continue;
 
-    const sorted = [...withScores].sort(
-      (a, b) => (b.numeric ?? 0) - (a.numeric ?? 0),
-    );
+    const sorted = [...withScores].sort((a, b) => (b.numeric ?? 0) - (a.numeric ?? 0));
     const top = sorted[0]!;
     const bottom = sorted[sorted.length - 1]!;
     if (top.symbol === bottom.symbol) continue;
@@ -94,12 +92,8 @@ export function mapTradeOffs(
   if (views.length >= 2) {
     const a = views[0]!;
     const b = views[1]!;
-    const mosA = parseExistingScore(
-      a.valuation.marginOfSafety.replace("%", ""),
-    );
-    const mosB = parseExistingScore(
-      b.valuation.marginOfSafety.replace("%", ""),
-    );
+    const mosA = parseExistingScore(a.valuation.marginOfSafety.replace("%", ""));
+    const mosB = parseExistingScore(b.valuation.marginOfSafety.replace("%", ""));
     const mosItem = pairTradeOff(
       "Margin of Safety",
       a,

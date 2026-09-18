@@ -21,11 +21,7 @@ export function ExplainableScore({ score }: { score: ScoreCard }) {
           <p className="text-xs text-[var(--muted)]">{score.label.display}</p>
         </div>
         <div className="flex items-center gap-2">
-          <Badge
-            variant={
-              score.score.presence === "available" ? "accent" : "default"
-            }
-          >
+          <Badge variant={score.score.presence === "available" ? "accent" : "default"}>
             {score.score.presence === "available" ? "Scored" : "Pending"}
           </Badge>
           <Button
@@ -48,27 +44,18 @@ export function ExplainableScore({ score }: { score: ScoreCard }) {
           <MetricCell label="Formula" field={score.explainability.formula} />
           <MetricCell label="Inputs" field={score.explainability.inputs} />
           <MetricCell label="Weights" field={score.explainability.weights} />
-          <MetricCell
-            label="Calculation"
-            field={score.explainability.calculation}
-          />
+          <MetricCell label="Calculation" field={score.explainability.calculation} />
           <MetricCell
             label="Contributing engines"
             field={score.explainability.engines}
           />
-          <MetricCell
-            label="Confidence"
-            field={score.explainability.confidence}
-          />
+          <MetricCell label="Confidence" field={score.explainability.confidence} />
           <MetricCell
             label="Supporting data"
             field={score.explainability.supportingData}
           />
           <MetricCell label="Reasoning" field={score.explainability.reasoning} />
-          <MetricCell
-            label="Contribution"
-            field={score.explainability.contribution}
-          />
+          <MetricCell label="Contribution" field={score.explainability.contribution} />
         </div>
       ) : null}
     </div>

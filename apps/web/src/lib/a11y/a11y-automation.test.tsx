@@ -96,9 +96,7 @@ describe("EPIC-010 dialogs / keyboard", () => {
         onConfirm={() => undefined}
       />,
     );
-    expect(
-      screen.getByRole("dialog", { name: "Discard draft?" }),
-    ).toBeTruthy();
+    expect(screen.getByRole("dialog", { name: "Discard draft?" })).toBeTruthy();
     expect(screen.getByText("Unsaved research notes will be lost.")).toBeTruthy();
     expect(await runAxe(baseElement)).toHaveNoViolations();
   });

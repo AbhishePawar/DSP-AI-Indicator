@@ -55,9 +55,7 @@ export function WorkspaceDashboardPanel({
       title: "Recent Copilot conversations",
       items: (dashboard.recent_copilot_conversations || []).map((c, i) => ({
         key: `copilot-${i}`,
-        label: String(
-          c.title || c.conversation_id || "Copilot conversation",
-        ),
+        label: String(c.title || c.conversation_id || "Copilot conversation"),
       })),
     },
   ];

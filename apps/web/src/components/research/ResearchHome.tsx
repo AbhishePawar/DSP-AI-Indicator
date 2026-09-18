@@ -64,8 +64,7 @@ export function ResearchHome() {
               <Link href="/analysis" className="underline">
                 Company Analysis
               </Link>{" "}
-              first, then open Research Reports or classic research for that
-              ticker.
+              first, then open Research Reports or classic research for that ticker.
             </p>
           </CardBody>
         </Card>

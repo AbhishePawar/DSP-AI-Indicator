@@ -30,8 +30,7 @@
 }
 
 .mkt-reveal {
-  animation: mkt-fade-up var(--motion-slow, 280ms) var(--ease-standard, ease-out)
-    both;
+  animation: mkt-fade-up var(--motion-slow, 280ms) var(--ease-standard, ease-out) both;
 }
 
 .mkt-reveal-delay {
@@ -39,8 +38,7 @@
 }
 
 .mkt-fade {
-  animation: mkt-fade-in var(--motion-normal, 180ms)
-    var(--ease-standard, ease-out) both;
+  animation: mkt-fade-in var(--motion-normal, 180ms) var(--ease-standard, ease-out) both;
 }
 
 .mkt-hero-wash {

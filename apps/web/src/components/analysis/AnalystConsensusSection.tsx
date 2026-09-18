@@ -4,11 +4,7 @@ import { Card, CardBody, CardHeader } from "@/components/ui/Card";
 import { EmptyState } from "@/components/ui/EmptyState";
 import type { AnalystConsensusView } from "@/lib/analysis/types";
 
-export function ConsensusCard({
-  consensus,
-}: {
-  consensus: AnalystConsensusView;
-}) {
+export function ConsensusCard({ consensus }: { consensus: AnalystConsensusView }) {
   return (
     <Card>
       <CardHeader
@@ -26,17 +22,16 @@ export function ConsensusCard({
   );
 }
 
-export function ConsensusTrendCard({
-  consensus,
-}: {
-  consensus: AnalystConsensusView;
-}) {
+export function ConsensusTrendCard({ consensus }: { consensus: AnalystConsensusView }) {
   return (
     <Card>
       <CardHeader title="Consensus trend & scenarios" />
       <CardBody className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         <FieldRow label="Consensus trend" field={consensus.trend} />
-        <FieldRow label="Historical consensus trend" field={consensus.historicalTrend} />
+        <FieldRow
+          label="Historical consensus trend"
+          field={consensus.historicalTrend}
+        />
         <FieldRow label="Consensus changes" field={consensus.consensusChanges} />
         <FieldRow label="Bull case" field={consensus.bullCase} />
         <FieldRow label="Base case" field={consensus.baseCase} />

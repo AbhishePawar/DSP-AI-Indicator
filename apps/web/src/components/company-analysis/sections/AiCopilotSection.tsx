@@ -65,7 +65,10 @@ export function AiCopilotSection({
   const idRef = useRef(0);
 
   const askMutation = useMutation({
-    mutationFn: async (args: { questionId: SuggestedQuestionId | "freeform"; text: string }) => {
+    mutationFn: async (args: {
+      questionId: SuggestedQuestionId | "freeform";
+      text: string;
+    }) => {
       return api.copilotComplete(
         {
           question_id: args.questionId,
@@ -132,8 +135,8 @@ export function AiCopilotSection({
       >
         {!analyseResponse ? (
           <p className="text-sm text-[var(--muted)]">
-            Run an analysis first — the Copilot explains the loaded research,
-            it does not fetch its own data.
+            Run an analysis first — the Copilot explains the loaded research, it does
+            not fetch its own data.
           </p>
         ) : null}
         <div className="mb-3 flex flex-wrap gap-2" aria-label="Suggested questions">

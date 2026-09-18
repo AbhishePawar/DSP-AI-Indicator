@@ -155,11 +155,7 @@ export function ApiStatusWidget() {
                 className={`terminal-dot${ready === false ? " terminal-dot--danger" : ready === undefined ? " terminal-dot--warn" : ""}`}
                 aria-hidden
               />
-              {ready === undefined
-                ? "Checking…"
-                : ready
-                  ? "Connected"
-                  : "Unavailable"}
+              {ready === undefined ? "Checking…" : ready ? "Connected" : "Unavailable"}
             </dd>
           </div>
           <div className="flex justify-between gap-3">
@@ -251,9 +247,7 @@ export function ComplianceSummaryWidget() {
         </li>
         <li className="flex justify-between gap-2">
           <span className="text-[var(--muted)]">SEBI Mode</span>
-          <Badge variant="outline">
-            {featureFlags.sebiMode ? "On" : "Off"}
-          </Badge>
+          <Badge variant="outline">{featureFlags.sebiMode ? "On" : "Off"}</Badge>
         </li>
       </ul>
       <p className="mt-3 text-xs text-[var(--muted)]">

@@ -15,12 +15,7 @@ export const AI_PROVIDER_IDS = ["mock", "deterministic", "backend"] as const;
 
 export type AIProviderId = (typeof AI_PROVIDER_IDS)[number];
 
-export type AICapability =
-  | "chat"
-  | "compare"
-  | "streaming"
-  | "vision"
-  | "reasoning";
+export type AICapability = "chat" | "compare" | "streaming" | "vision" | "reasoning";
 
 export type AIProviderStatus = "ready" | "unavailable" | "placeholder";
 

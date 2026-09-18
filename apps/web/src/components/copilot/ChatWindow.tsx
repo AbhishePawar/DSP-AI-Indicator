@@ -40,7 +40,10 @@ export function ChatWindow({
 
   return (
     <Card className="flex min-h-[28rem] flex-col">
-      <CardHeader title="Chat" description="Copilot 2.0 — orchestrates engines; never invents numbers" />
+      <CardHeader
+        title="Chat"
+        description="Copilot 2.0 — orchestrates engines; never invents numbers"
+      />
       <CardBody className="flex flex-1 flex-col gap-3">
         <div
           className="max-h-[22rem] flex-1 space-y-3 overflow-y-auto pr-1"
@@ -48,11 +51,7 @@ export function ChatWindow({
           aria-label="Copilot messages"
         >
           {messages.map((message) => (
-            <MessageBubble
-              key={message.id}
-              message={message}
-              ticker={ticker}
-            />
+            <MessageBubble key={message.id} message={message} ticker={ticker} />
           ))}
           {typing ? (
             <div className="text-sm text-[var(--muted)]" role="status">

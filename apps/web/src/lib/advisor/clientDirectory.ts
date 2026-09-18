@@ -46,9 +46,14 @@ export function filterAndSortClients(
 ): ClientSummary[] {
   const q = filters.query.trim().toLowerCase();
   let list = clients.filter((c) => {
-    if (filters.riskProfile !== "all" && c.riskProfile !== filters.riskProfile) return false;
-    if (filters.reviewStatus !== "all" && c.reviewStatus !== filters.reviewStatus) return false;
-    if (filters.portfolioSize !== "all" && c.portfolioSizeBand !== filters.portfolioSize)
+    if (filters.riskProfile !== "all" && c.riskProfile !== filters.riskProfile)
+      return false;
+    if (filters.reviewStatus !== "all" && c.reviewStatus !== filters.reviewStatus)
+      return false;
+    if (
+      filters.portfolioSize !== "all" &&
+      c.portfolioSizeBand !== filters.portfolioSize
+    )
       return false;
     if (!q) return true;
     return (

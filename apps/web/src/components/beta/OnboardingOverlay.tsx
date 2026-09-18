@@ -29,14 +29,8 @@ export function TutorialStep({
 }
 
 export function OnboardingOverlay() {
-  const {
-    tourOpen,
-    tourStep,
-    skipTour,
-    nextTourStep,
-    prevTourStep,
-    restartTour,
-  } = useFeedback();
+  const { tourOpen, tourStep, skipTour, nextTourStep, prevTourStep, restartTour } =
+    useFeedback();
 
   if (!tourOpen) return null;
 
@@ -73,7 +67,11 @@ export function OnboardingOverlay() {
             total={TUTORIAL_STEPS.length}
           />
           <div className="flex flex-wrap gap-2">
-            <Button variant="secondary" onClick={prevTourStep} disabled={tourStep === 0}>
+            <Button
+              variant="secondary"
+              onClick={prevTourStep}
+              disabled={tourStep === 0}
+            >
               Back
             </Button>
             {isLast ? (

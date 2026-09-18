@@ -20,10 +20,7 @@ export function analysisMain(page: Page) {
   return page.getByRole("region", { name: "Main analysis area" });
 }
 
-export async function openAnalysisWorkspace(
-  page: Page,
-  ticker: string,
-): Promise<void> {
+export async function openAnalysisWorkspace(page: Page, ticker: string): Promise<void> {
   await page.goto(`/analysis?symbol=${encodeURIComponent(ticker)}`, {
     waitUntil: "domcontentloaded",
   });
@@ -39,10 +36,7 @@ export async function openAnalysisSection(
   heading: string | RegExp,
 ): Promise<void> {
   const button = analysisNav(page).getByRole("button", { name: label });
-  await expect(
-    button,
-    `[P1-09] section control ${label} must exist`,
-  ).toBeVisible();
+  await expect(button, `[P1-09] section control ${label} must exist`).toBeVisible();
   await button.click();
   await expect(analysisMain(page)).toBeVisible();
   await expect(
@@ -83,21 +77,20 @@ export async function waitForAnalyseSuccess(
   capture: AnalyseCapture,
   ticker: string,
 ): Promise<{ analysisId: string; payload: Record<string, unknown> }> {
-  const ready = () =>
-    Boolean(capture.body?.ok === true && capture.body?.analysis_id);
+  const ready = () => Boolean(capture.body?.ok === true && capture.body?.analysis_id);
 
   if (!ready()) {
-    await page.getByRole("button", { name: /^Analyze/i }).first().click();
+    await page
+      .getByRole("button", { name: /^Analyze/i })
+      .first()
+      .click();
   }
 
   await expect
-    .poll(
-      async () => ready(),
-      {
-        timeout: 90_000,
-        message: `[P1-09 ANALYSIS] POST /analyse must succeed with analysis_id (last status=${capture.status})`,
-      },
-    )
+    .poll(async () => ready(), {
+      timeout: 90_000,
+      message: `[P1-09 ANALYSIS] POST /analyse must succeed with analysis_id (last status=${capture.status})`,
+    })
     .toBeTruthy();
 
   let stableId = "";
@@ -156,14 +149,10 @@ export async function assertValuationVisible(
   await expect(page.getByText("Current Price", { exact: true })).toBeVisible();
   await expect(page.getByText("Margin of Safety", { exact: true })).toBeVisible();
 
-  const stages = (payload.stage_summaries ?? []) as Array<
-    Record<string, unknown>
-  >;
+  const stages = (payload.stage_summaries ?? []) as Array<Record<string, unknown>>;
   const valuation = stages.find((s) => s.stage === "valuation");
   expect(valuation, "[P1-09 VALUATION] valuation stage must exist").toBeTruthy();
-  expect(["succeeded", "degraded", "unavailable"]).toContain(
-    String(valuation!.status),
-  );
+  expect(["succeeded", "degraded", "unavailable"]).toContain(String(valuation!.status));
   await expect(page.getByText("Stage status", { exact: true })).toBeVisible();
 }
 
@@ -172,11 +161,7 @@ export async function assertBuffettVisible(
   payload: Record<string, unknown>,
   ticker: string,
 ): Promise<void> {
-  await openAnalysisSection(
-    page,
-    /Buffett Indicator/i,
-    /Buffett Indicator Analysis/i,
-  );
+  await openAnalysisSection(page, /Buffett Indicator/i, /Buffett Indicator Analysis/i);
   const buffettMain = analysisMain(page);
   await expect(
     buffettMain.getByText(/Presentation synthesis of existing/i),
@@ -204,11 +189,7 @@ export async function assertEvidenceVisible(
   page: Page,
   analysisId: string,
 ): Promise<void> {
-  await openAnalysisSection(
-    page,
-    /Supporting Evidence/i,
-    /Research objects/i,
-  );
+  await openAnalysisSection(page, /Supporting Evidence/i, /Research objects/i);
   await expect(page.getByText("Analysis ID", { exact: true })).toBeVisible();
   await expect(analysisMain(page)).toContainText(analysisId);
 }
@@ -250,10 +231,7 @@ export async function fetchProvenanceFromSession(
     },
     { apiBase, id: analysisId },
   );
-  expect(
-    provFetch.ok,
-    `[P1-09 PROVENANCE] HTTP ${provFetch.status}`,
-  ).toBeTruthy();
+  expect(provFetch.ok, `[P1-09 PROVENANCE] HTTP ${provFetch.status}`).toBeTruthy();
   const provenance = (provFetch.body as { provenance: Record<string, unknown> })
     .provenance;
   expect(provenance.analysis_id).toBe(analysisId);

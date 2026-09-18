@@ -10,7 +10,8 @@ export function comparisonToJson(model: ComparisonWorkspaceModel): string {
   return JSON.stringify(
     {
       exportedAt: new Date().toISOString(),
-      source: "dsp_platform institutional company comparison (client-orchestrated /analyse)",
+      source:
+        "dsp_platform institutional company comparison (client-orchestrated /analyse)",
       note: "Display snapshot only — no client-side scoring or investment decisions.",
       kind: model.kind,
       version: model.version,

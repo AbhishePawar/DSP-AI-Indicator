@@ -159,8 +159,12 @@ export function PeersSection({ view }: { view: ResearchView }) {
       >
         <div className="flex flex-col gap-2 sm:flex-row sm:items-end">
           <div className="flex-1">
-            <label className="mb-1 block text-xs text-[var(--muted)]" htmlFor="peer-symbols">
-              Peer tickers (comma-separated, up to {MAX_PEERS}) — compared against {primary}
+            <label
+              className="mb-1 block text-xs text-[var(--muted)]"
+              htmlFor="peer-symbols"
+            >
+              Peer tickers (comma-separated, up to {MAX_PEERS}) — compared against{" "}
+              {primary}
             </label>
             <Input
               id="peer-symbols"
@@ -279,7 +283,10 @@ export function PeersSection({ view }: { view: ResearchView }) {
               ) : (
                 <ul className="space-y-2 text-sm">
                   {dim.observations.map((o) => (
-                    <li key={o.code} className="border-b border-[var(--border)] pb-2 last:border-0">
+                    <li
+                      key={o.code}
+                      className="border-b border-[var(--border)] pb-2 last:border-0"
+                    >
                       <p>{o.text}</p>
                       {o.subjects.length ? (
                         <p className="mt-1 text-xs text-[var(--muted)]">

@@ -116,9 +116,7 @@ export function CompanyResearchPage({ ticker }: { ticker: string }) {
         : "Unable to load company research.";
     if (analyseMutation.error) {
       logger.recordClientError(
-        analyseMutation.error instanceof Error
-          ? analyseMutation.error
-          : message,
+        analyseMutation.error instanceof Error ? analyseMutation.error : message,
         "research",
       );
     }

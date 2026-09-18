@@ -31,10 +31,7 @@ export function writeUserData(bundle: UserDataBundle): void {
   memoryCache.set(bundle.subject, structuredClone(bundle));
   if (typeof window === "undefined") return;
   try {
-    window.localStorage.setItem(
-      storageKey(bundle.subject),
-      JSON.stringify(bundle),
-    );
+    window.localStorage.setItem(storageKey(bundle.subject), JSON.stringify(bundle));
   } catch {
     /* quota */
   }

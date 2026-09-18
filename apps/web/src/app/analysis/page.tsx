@@ -13,7 +13,8 @@ import dynamic from "next/dynamic";
 import { Suspense } from "react";
 
 const CompanyAnalysisWorkspace = dynamic(
-  () => import("@/components/company-analysis").then((mod) => mod.CompanyAnalysisWorkspace),
+  () =>
+    import("@/components/company-analysis").then((mod) => mod.CompanyAnalysisWorkspace),
   { loading: () => <WorkspaceSkeleton /> },
 );
 import { WorkspaceSkeleton } from "@/components/company-analysis/WorkspacePrimitives";

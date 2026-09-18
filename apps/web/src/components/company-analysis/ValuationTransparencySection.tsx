@@ -48,14 +48,8 @@ export function ValuationTransparencySection({
             value={executive.currentMarketPrice}
           />
           <MetricRow label="Intrinsic Value" value={executive.intrinsicValue} />
-          <MetricRow
-            label="Margin of Safety"
-            value={executive.marginOfSafety}
-          />
-          <MetricRow
-            label="Valuation Verdict"
-            value={executive.valuationVerdict}
-          />
+          <MetricRow label="Margin of Safety" value={executive.marginOfSafety} />
+          <MetricRow label="Valuation Verdict" value={executive.valuationVerdict} />
         </dl>
       </SectionCard>
 
@@ -74,9 +68,7 @@ export function ValuationTransparencySection({
                 <h4 className="font-[family-name:var(--font-display)] text-sm tracking-tight text-[var(--fg)]">
                   {m.methodName}
                 </h4>
-                <Badge
-                  variant={m.status === "Available" ? "accent" : "outline"}
-                >
+                <Badge variant={m.status === "Available" ? "accent" : "outline"}>
                   {m.status}
                 </Badge>
               </div>
@@ -89,15 +81,9 @@ export function ValuationTransparencySection({
                   value={m.contributionToConsensus}
                 />
                 <MetricRow label="Confidence" value={m.confidence} />
-                <MetricRow
-                  label="Data Completeness"
-                  value={m.dataCompleteness}
-                />
+                <MetricRow label="Data Completeness" value={m.dataCompleteness} />
                 <MetricRow label="Missing Inputs" value={m.missingInputs} />
-                <MetricRow
-                  label="Assumptions Used"
-                  value={m.assumptionsUsed}
-                />
+                <MetricRow label="Assumptions Used" value={m.assumptionsUsed} />
               </dl>
               <p className="mt-2 text-xs leading-relaxed text-[var(--fg)]">
                 {m.explanation}
@@ -113,18 +99,9 @@ export function ValuationTransparencySection({
       <div className="grid gap-4 lg:grid-cols-2">
         <SectionCard title="Consensus Panel">
           <dl>
-            <MetricRow
-              label="Highest Valuation"
-              value={consensus.highestValuation}
-            />
-            <MetricRow
-              label="Lowest Valuation"
-              value={consensus.lowestValuation}
-            />
-            <MetricRow
-              label="Consensus Value"
-              value={consensus.consensusValue}
-            />
+            <MetricRow label="Highest Valuation" value={consensus.highestValuation} />
+            <MetricRow label="Lowest Valuation" value={consensus.lowestValuation} />
+            <MetricRow label="Consensus Value" value={consensus.consensusValue} />
             <MetricRow
               label="Dispersion Indicator"
               value={consensus.dispersionIndicator}
@@ -138,18 +115,12 @@ export function ValuationTransparencySection({
 
         <SectionCard title="Margin of Safety Panel">
           <dl>
-            <MetricRow
-              label="Current Price"
-              value={marginOfSafety.currentPrice}
-            />
+            <MetricRow label="Current Price" value={marginOfSafety.currentPrice} />
             <MetricRow
               label="Consensus Intrinsic Value"
               value={marginOfSafety.consensusIntrinsicValue}
             />
-            <MetricRow
-              label="Margin of Safety"
-              value={marginOfSafety.marginOfSafety}
-            />
+            <MetricRow label="Margin of Safety" value={marginOfSafety.marginOfSafety} />
             <MetricRow
               label="Valuation Category"
               value={marginOfSafety.valuationCategory}

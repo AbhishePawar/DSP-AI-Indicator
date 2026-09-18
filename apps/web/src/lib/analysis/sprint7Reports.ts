@@ -314,18 +314,19 @@ export const EXPORT_FORMATS: {
 }[] = [
   { id: "pdf", label: "PDF", description: "Printable research pack", ready: false },
   { id: "docx", label: "DOCX", description: "Editable Word document", ready: false },
-  { id: "markdown", label: "Markdown", description: "Preview-ready text export", ready: true },
+  {
+    id: "markdown",
+    label: "Markdown",
+    description: "Preview-ready text export",
+    ready: true,
+  },
   { id: "html", label: "HTML", description: "Browser-readable report", ready: true },
   { id: "json", label: "JSON", description: "Structured report payload", ready: true },
   { id: "csv", label: "CSV", description: "Metrics only", ready: true },
 ];
 
 function companyLabel(view: AnalysisWorkspaceView): string {
-  return (
-    view.snapshot.companyName.value ??
-    view.snapshot.ticker.value ??
-    "Company"
-  );
+  return view.snapshot.companyName.value ?? view.snapshot.ticker.value ?? "Company";
 }
 
 function formatDate(iso: string | null, format: DateFormatId): string {
@@ -341,10 +342,7 @@ function formatDate(iso: string | null, format: DateFormatId): string {
   });
 }
 
-function citation(
-  view: AnalysisWorkspaceView,
-  evidenceRef: string,
-): ReportCitation {
+function citation(view: AnalysisWorkspaceView, evidenceRef: string): ReportCitation {
   return {
     evidenceReference: evidenceRef,
     confidence: CONFIDENCE_LABELS[view.confidenceBreakdown.overall],
@@ -467,9 +465,7 @@ export function buildReport(
         blocks.push({
           id: "business_analysis",
           heading: "Business Analysis",
-          paragraphs: [
-            "Business quality metrics from the Company Analysis workspace.",
-          ],
+          paragraphs: ["Business quality metrics from the Company Analysis workspace."],
           bullets: view.businessQuality.map(
             (m) =>
               `${m.title}: ${m.available ? m.actualValue : "Unavailable"} — ${m.investorTakeaway}`,
@@ -487,8 +483,7 @@ export function buildReport(
             `Intrinsic range: ${view.valuation.intrinsicValueRange.value ?? "Unavailable"}`,
           ],
           bullets: view.financialStrength.map(
-            (m) =>
-              `${m.title}: ${m.available ? m.actualValue : "Unavailable"}`,
+            (m) => `${m.title}: ${m.available ? m.actualValue : "Unavailable"}`,
           ),
           citation: citation(view, "Financial Strength / Valuation"),
         });
@@ -582,10 +577,7 @@ export function buildReport(
           bullets: (trimEvidence
             ? view.evidenceExplorer.items.slice(0, 3)
             : view.evidenceExplorer.items
-          ).map(
-            (e) =>
-              `[${e.group}] ${e.title} — ${e.confidence} — ${e.source}`,
-          ),
+          ).map((e) => `[${e.group}] ${e.title} — ${e.confidence} — ${e.source}`),
           citation: citation(view, "Evidence Explorer"),
         });
         break;
@@ -611,8 +603,7 @@ export function buildReport(
             `Evidence strength label: ${view.coverage.evidenceStrength}`,
           ],
           bullets: view.confidenceBreakdown.rows.map(
-            (r) =>
-              `${r.label}: ${CONFIDENCE_LABELS[r.level]} — ${r.whyDifferent}`,
+            (r) => `${r.label}: ${CONFIDENCE_LABELS[r.level]} — ${r.whyDifferent}`,
           ),
           citation: citation(view, "Confidence Breakdown"),
         });
@@ -625,9 +616,7 @@ export function buildReport(
           bullets: [
             ...view.researchLimitations.unavailableData.map((x) => `Unavailable: ${x}`),
             ...view.researchLimitations.unknownFactors.map((x) => `Unknown: ${x}`),
-            ...view.researchLimitations.pendingImprovements.map(
-              (x) => `Pending: ${x}`,
-            ),
+            ...view.researchLimitations.pendingImprovements.map((x) => `Pending: ${x}`),
           ],
           citation: citation(view, "Research Limitations"),
         });
@@ -656,10 +645,12 @@ export function buildReport(
             `Available nodes: ${view.knowledgeGraph.nodes.filter((n) => n.available).length}`,
             view.knowledgeGraph.emptyState.whyIncomplete,
           ],
-          bullets: view.knowledgeGraph.nodes.slice(0, 20).map(
-            (n) =>
-              `${n.label} (${n.nodeType}) — ${CONFIDENCE_LABELS[n.confidence]} — ev ${n.evidenceCount}`,
-          ),
+          bullets: view.knowledgeGraph.nodes
+            .slice(0, 20)
+            .map(
+              (n) =>
+                `${n.label} (${n.nodeType}) — ${CONFIDENCE_LABELS[n.confidence]} — ev ${n.evidenceCount}`,
+            ),
           citation: citation(view, "Knowledge Graph"),
         });
         break;
@@ -749,13 +740,7 @@ export function reportToHtml(report: BuiltReport): string {
 export function reportMetricsCsv(view: AnalysisWorkspaceView): string {
   const rows = [["section", "metric", "value", "available", "category"]];
   for (const m of [...view.businessQuality, ...view.financialStrength]) {
-    rows.push([
-      "metrics",
-      m.title,
-      m.actualValue,
-      String(m.available),
-      m.category,
-    ]);
+    rows.push(["metrics", m.title, m.actualValue, String(m.available), m.category]);
   }
   return rows.map((r) => r.map(csvEscape).join(",")).join("\n");
 }
@@ -775,7 +760,11 @@ function csvEscape(s: string): string {
 
 export function downloadText(filename: string, content: string, mime: string) {
   // Sprint 9: path-safe filenames only (no business logic change)
-  const safe = filename.replace(/[\\/:*?"<>|]+/g, "_").replace(/\.\./g, "_").slice(0, 180) || "dsp-export.txt";
+  const safe =
+    filename
+      .replace(/[\\/:*?"<>|]+/g, "_")
+      .replace(/\.\./g, "_")
+      .slice(0, 180) || "dsp-export.txt";
   const blob = new Blob([content], { type: mime });
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");

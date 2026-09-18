@@ -185,7 +185,9 @@ export function submitFeedback(input: {
     severity: input.severity,
     title: redactSensitive(input.title.trim()).slice(0, 160),
     description: redactSensitive(input.description.trim()),
-    pagePath: input.pagePath.startsWith("/") ? input.pagePath.slice(0, 120) : "/unknown",
+    pagePath: input.pagePath.startsWith("/")
+      ? input.pagePath.slice(0, 120)
+      : "/unknown",
     sectionId: input.sectionId ? input.sectionId.slice(0, 80) : null,
     satisfaction: input.satisfaction ?? null,
     screenshotNote: input.screenshotNote
@@ -336,7 +338,9 @@ export function buildBetaDashboard(): BetaDashboardView {
     .map((f) => f.satisfaction)
     .filter((n): n is number => typeof n === "number");
   const avg =
-    sats.length > 0 ? Math.round((sats.reduce((a, b) => a + b, 0) / sats.length) * 10) / 10 : null;
+    sats.length > 0
+      ? Math.round((sats.reduce((a, b) => a + b, 0) / sats.length) * 10) / 10
+      : null;
 
   const featureReqs = feedback.filter((f) => f.category === "feature_request");
   const topMap = new Map<string, number>();
@@ -445,7 +449,8 @@ export function buildReleaseCandidate(): ReleaseCandidateView {
   const regressionStatus = "GREEN — 1551 passed (last known)";
 
   let decision: ReleaseCandidateView["decision"] = "GO";
-  let rationale = "No critical open bugs; regression green; CSP enforced — public 1.0.0 ready.";
+  let rationale =
+    "No critical open bugs; regression green; CSP enforced — public 1.0.0 ready.";
   if (openCritical > 0) {
     decision = "NO-GO";
     rationale = "Critical bugs remain open — block public launch.";

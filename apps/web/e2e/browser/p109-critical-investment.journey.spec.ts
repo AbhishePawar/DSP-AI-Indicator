@@ -22,8 +22,7 @@ import {
  * Stages: LOGIN → ANALYSIS → VALUATION → BUFFETT → PROVENANCE → EXPORT
  */
 
-const API_BASE =
-  process.env.PLAYWRIGHT_API_BASE_URL ?? "http://127.0.0.1:8000/api/v1";
+const API_BASE = process.env.PLAYWRIGHT_API_BASE_URL ?? "http://127.0.0.1:8000/api/v1";
 const TICKER = process.env.DSP_P109_TICKER ?? "DSPFIX";
 const ADMIN_ID = process.env.DSP_P109_LOGIN ?? "admin";
 const ADMIN_PASSWORD =
@@ -40,10 +39,7 @@ const EVIDENCE_CLASS = "test_fixture";
 async function seedNonBlockingBrowserState(page: Page) {
   await page.addInitScript(() => {
     try {
-      window.localStorage.setItem(
-        "dsp.researchDisclaimer.acknowledged.v1",
-        "1",
-      );
+      window.localStorage.setItem("dsp.researchDisclaimer.acknowledged.v1", "1");
       window.localStorage.setItem(
         "dsp.researchDisclaimer.acknowledged.v1.at",
         new Date().toISOString(),
@@ -183,8 +179,6 @@ test.describe("P1-09 critical investment journey", () => {
       .toBeTruthy();
     const bodyText = await page.locator("body").innerText();
     expect(bodyText.toLowerCase()).not.toMatch(/intrinsic value:\s*\$?\s*[1-9]/i);
-    expect(bodyText.toLowerCase()).not.toMatch(
-      /margin of safety:\s*[+-]?\d/i,
-    );
+    expect(bodyText.toLowerCase()).not.toMatch(/margin of safety:\s*[+-]?\d/i);
   });
 });

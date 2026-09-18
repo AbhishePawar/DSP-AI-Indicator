@@ -54,37 +54,19 @@ export function ValuationModule({ view }: { view: ResearchView }) {
         description="Mapped engine outputs only — no client recalculation. Missing methods show Data unavailable."
       >
         <dl>
-          <FieldRow
-            label="Intrinsic Value"
-            value={view.valuation.intrinsicValue}
-          />
+          <FieldRow label="Intrinsic Value" value={view.valuation.intrinsicValue} />
           <FieldRow label="Current Price" value={view.valuation.currentPrice} />
-          <FieldRow
-            label="Margin of Safety"
-            value={view.valuation.marginOfSafety}
-          />
-          <FieldRow
-            label="DCF"
-            value={valuationMethodValue(vt.methods, ["DCF"])}
-          />
+          <FieldRow label="Margin of Safety" value={view.valuation.marginOfSafety} />
+          <FieldRow label="DCF" value={valuationMethodValue(vt.methods, ["DCF"])} />
           <FieldRow
             label="Relative Valuation"
-            value={valuationMethodValue(vt.methods, [
-              "Relative Valuation",
-              "Relative",
-            ])}
+            value={valuationMethodValue(vt.methods, ["Relative Valuation", "Relative"])}
           />
           <FieldRow
             label="Residual Income"
-            value={valuationMethodValue(vt.methods, [
-              "Residual Income",
-              "Residual",
-            ])}
+            value={valuationMethodValue(vt.methods, ["Residual Income", "Residual"])}
           />
-          <FieldRow
-            label="EPV"
-            value={valuationMethodValue(vt.methods, ["EPV"])}
-          />
+          <FieldRow label="EPV" value={valuationMethodValue(vt.methods, ["EPV"])} />
           <FieldRow
             label="Overall Valuation"
             value={
@@ -231,10 +213,7 @@ export function MoatModule({ view }: { view: ResearchView }) {
           />
           <FieldRow
             label="Cost-Based Moat"
-            value={firstMetric(moat, [
-              "Cost-Based Moat",
-              "Cost Advantage",
-            ])}
+            value={firstMetric(moat, ["Cost-Based Moat", "Cost Advantage"])}
           />
           <FieldRow
             label="Moat Durability"
@@ -294,9 +273,8 @@ export function RiskModule({ view }: { view: ResearchView }) {
           />
         </dl>
         <p className="mt-3 text-xs text-[var(--muted)]">
-          Typed Book 07 dimensions stay Data unavailable. until the analyse
-          contract exposes dedicated risk metrics. Margin of Safety is under
-          Valuation.
+          Typed Book 07 dimensions stay Data unavailable. until the analyse contract
+          exposes dedicated risk metrics. Margin of Safety is under Valuation.
         </p>
       </SectionCard>
       <ListBlock
@@ -322,14 +300,8 @@ export function AiCommitteeModule({ view }: { view: ResearchView }) {
       >
         <dl>
           <FieldRow label="Decision" value={view.committeeDecision} />
-          <FieldRow
-            label="Reasoning"
-            value={view.committee.finalRecommendation}
-          />
-          <FieldRow
-            label="Confidence"
-            value={formatPct(view.committeeConfidence)}
-          />
+          <FieldRow label="Reasoning" value={view.committee.finalRecommendation} />
+          <FieldRow label="Confidence" value={formatPct(view.committeeConfidence)} />
           <FieldRow label="Consensus" value={view.committeeConsensus} />
           <FieldRow label="Status" value={view.committee.status} />
         </dl>

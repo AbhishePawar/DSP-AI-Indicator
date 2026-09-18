@@ -73,7 +73,10 @@ export function useRenderTiming(componentName: string) {
 
   const mark = useCallback(
     (phase: string) => {
-      recordTiming(`render:${componentName}:${phase}`, performance.now() - mountTime.current);
+      recordTiming(
+        `render:${componentName}:${phase}`,
+        performance.now() - mountTime.current,
+      );
     },
     [componentName],
   );

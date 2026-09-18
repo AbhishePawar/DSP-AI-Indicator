@@ -4,10 +4,7 @@
 import { describe, expect, it } from "vitest";
 import { render, screen } from "@testing-library/react";
 
-import {
-  PORTFOLIO_SECTIONS,
-  isPortfolioSectionId,
-} from "@/lib/portfolio-intelligence";
+import { PORTFOLIO_SECTIONS, isPortfolioSectionId } from "@/lib/portfolio-intelligence";
 import {
   DriftSection,
   IntegrationsSection,
@@ -20,21 +17,16 @@ describe("EPIC-015 Portfolio Intelligence 2.0", () => {
   it("registers v2 sections", () => {
     const ids = PORTFOLIO_SECTIONS.map((s) => s.id);
     expect(ids).toEqual(
-      expect.arrayContaining([
-        "scenarios",
-        "drift",
-        "timeline",
-        "integrations",
-      ]),
+      expect.arrayContaining(["scenarios", "drift", "timeline", "integrations"]),
     );
     expect(isPortfolioSectionId("scenarios")).toBe(true);
   });
 
   it("shows honest unavailable for scenarios and drift", () => {
     render(<ScenariosSection intel={null} />);
-    expect(screen.getAllByText(/Analysis unavailable|Data unavailable/i).length).toBeGreaterThan(
-      0,
-    );
+    expect(
+      screen.getAllByText(/Analysis unavailable|Data unavailable/i).length,
+    ).toBeGreaterThan(0);
 
     render(<DriftSection intel={null} holdings={[]} />);
     expect(screen.getAllByText(/Data unavailable/i).length).toBeGreaterThan(0);
@@ -62,8 +54,6 @@ describe("EPIC-015 Portfolio Intelligence 2.0", () => {
   it("overview extras stay honest about missing value fields", () => {
     if (!featureFlags.portfolioIntelligenceV2) return;
     render(<OverviewV2Extras holdings={[]} intel={null} />);
-    expect(
-      screen.getByText(/No portfolio market-value API/i),
-    ).toBeTruthy();
+    expect(screen.getByText(/No portfolio market-value API/i)).toBeTruthy();
   });
 });

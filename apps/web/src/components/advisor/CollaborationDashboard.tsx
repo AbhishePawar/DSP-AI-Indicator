@@ -138,13 +138,18 @@ export const TeamMetricsPanel = memo(function TeamMetricsPanel() {
   return (
     <Card>
       <CardHeader title="Team Metrics" description="Presentation-only aggregates" />
-      <CardBody className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4" aria-label="Team metrics">
+      <CardBody
+        className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4"
+        aria-label="Team metrics"
+      >
         {cells.map(([label, value]) => (
           <div
             key={label}
             className="rounded-md border border-[var(--border)] bg-[var(--surface-2)]/40 p-3"
           >
-            <p className="text-xs uppercase tracking-wide text-[var(--muted)]">{label}</p>
+            <p className="text-xs uppercase tracking-wide text-[var(--muted)]">
+              {label}
+            </p>
             <p className="mt-1 text-sm font-medium">{value}</p>
           </div>
         ))}
@@ -361,7 +366,10 @@ export const CrossWorkspaceNav = memo(function CrossWorkspaceNav() {
         title="Cross Workspace Navigation"
         description="Seamless links — in-memory session state preserved while navigating"
       />
-      <CardBody className="flex flex-wrap gap-2" aria-label="Cross workspace navigation">
+      <CardBody
+        className="flex flex-wrap gap-2"
+        aria-label="Cross workspace navigation"
+      >
         {links.map((l) => (
           <Link key={l.href} href={l.href}>
             <Button variant="secondary" size="md">

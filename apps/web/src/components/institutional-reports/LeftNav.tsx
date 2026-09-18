@@ -28,16 +28,10 @@ export function ReportsLeftNav({
   loading: boolean;
 }) {
   const router = useRouter();
-  const activeSection = useInstitutionalReportsPrefsStore(
-    (s) => s.activeSection,
-  );
-  const setActiveSection = useInstitutionalReportsPrefsStore(
-    (s) => s.setActiveSection,
-  );
+  const activeSection = useInstitutionalReportsPrefsStore((s) => s.activeSection);
+  const setActiveSection = useInstitutionalReportsPrefsStore((s) => s.setActiveSection);
   const favourites = useInstitutionalReportsPrefsStore((s) => s.favourites);
-  const toggleFavourite = useInstitutionalReportsPrefsStore(
-    (s) => s.toggleFavourite,
-  );
+  const toggleFavourite = useInstitutionalReportsPrefsStore((s) => s.toggleFavourite);
   const [recentTick] = useState(0);
   void recentTick;
   const recent = loadRecentAnalyses();
@@ -71,12 +65,7 @@ export function ReportsLeftNav({
             autoComplete="off"
           />
           <div className="flex gap-2">
-            <Button
-              size="sm"
-              type="submit"
-              disabled={loading}
-              className="flex-1"
-            >
+            <Button size="sm" type="submit" disabled={loading} className="flex-1">
               {loading ? "Loading…" : "Load report"}
             </Button>
             <Button
@@ -85,9 +74,7 @@ export function ReportsLeftNav({
               variant="ghost"
               aria-pressed={favourites.includes(symbol)}
               aria-label={
-                favourites.includes(symbol)
-                  ? "Remove favourite"
-                  : "Add favourite"
+                favourites.includes(symbol) ? "Remove favourite" : "Add favourite"
               }
               onClick={() => toggleFavourite(symbol)}
             >
@@ -133,9 +120,7 @@ export function ReportsLeftNav({
               <button
                 type="button"
                 onClick={() => selectSection(section.id)}
-                aria-current={
-                  activeSection === section.id ? "true" : undefined
-                }
+                aria-current={activeSection === section.id ? "true" : undefined}
                 className={cn(
                   "flex w-full items-center justify-between rounded-[var(--radius-md)] px-2 py-2 text-left text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]",
                   activeSection === section.id

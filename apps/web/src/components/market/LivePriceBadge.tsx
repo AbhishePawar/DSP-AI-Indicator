@@ -1,10 +1,6 @@
 "use client";
 
-import {
-  formatChange,
-  formatMarketPrice,
-  type MarketQuote,
-} from "@/lib/market";
+import { formatChange, formatMarketPrice, type MarketQuote } from "@/lib/market";
 import { Badge } from "@/components/ui/Badge";
 
 export function LivePriceBadge({

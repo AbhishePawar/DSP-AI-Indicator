@@ -25,10 +25,7 @@ import {
 const DISCLAIMER =
   "Institutional Rating Framework is a presentation remapping of existing /api/v1/analyse outputs. It does not recalculate fundamentals, valuation, or recommendations. Missing fields show Unavailable. Research Mode — not investment advice.";
 
-function metric(
-  section: StageSectionView,
-  label: string,
-): string {
+function metric(section: StageSectionView, label: string): string {
   const hit = section.metrics.find(
     (m) => m.label.toLowerCase() === label.toLowerCase(),
   );
@@ -97,11 +94,7 @@ export function investmentActionFromExisting(decision: string): InvestmentAction
   if (d === "buy" || d.endsWith("_buy") || d.includes("overweight")) return "BUY";
   if (d.includes("watch") || d.includes("monitor")) return "WATCH";
   if (d.includes("reduce") || d.includes("underweight")) return "REDUCE";
-  if (
-    d.includes("strong_sell") ||
-    d.includes("sell") ||
-    d.includes("avoid")
-  ) {
+  if (d.includes("strong_sell") || d.includes("sell") || d.includes("avoid")) {
     return "AVOID";
   }
   if (d.includes("hold") || d.includes("neutral") || d.includes("approve")) {
@@ -111,7 +104,14 @@ export function investmentActionFromExisting(decision: string): InvestmentAction
 }
 
 export function mapInstitutionalRatings(
-  view: Omit<ResearchView, "businessEducation" | "ratings" | "transparency" | "explainability" | "valuationTransparency">,
+  view: Omit<
+    ResearchView,
+    | "businessEducation"
+    | "ratings"
+    | "transparency"
+    | "explainability"
+    | "valuationTransparency"
+  >,
 ): InstitutionalRatingFramework {
   const financialStrength = fromStage(
     "financial_strength",
@@ -130,7 +130,11 @@ export function mapInstitutionalRatings(
         metric(view.financialStrength, "Cash Flow"),
         "financial_strength metric",
       ),
-      dim("Coverage", metric(view.financialStrength, "Coverage"), "financial_strength metric"),
+      dim(
+        "Coverage",
+        metric(view.financialStrength, "Coverage"),
+        "financial_strength metric",
+      ),
     ],
   );
 
@@ -175,17 +179,13 @@ export function mapInstitutionalRatings(
     explanation: `Valuation Rating remaps existing valuation signals and recommendation-stage score. Individual engine lines show Unavailable unless the method string matches. Verdict uses existing MoS ${view.valuation.marginOfSafety}.`,
     dimensions: [
       dim("Current Price", view.valuation.currentPrice, "request/valuation_signals"),
+      dim("Intrinsic Value", view.valuation.intrinsicValue, "valuation_signals"),
+      dim("Margin of Safety", view.valuation.marginOfSafety, "recommendation_summary"),
       dim(
-        "Intrinsic Value",
-        view.valuation.intrinsicValue,
-        "valuation_signals",
+        "Valuation Verdict",
+        view.recommendationStage.label,
+        "investment_recommendation",
       ),
-      dim(
-        "Margin of Safety",
-        view.valuation.marginOfSafety,
-        "recommendation_summary",
-      ),
-      dim("Valuation Verdict", view.recommendationStage.label, "investment_recommendation"),
       ...valuationMethods,
     ],
     sourceStages: ["valuation", "investment_recommendation", "valuation_signals"],
@@ -198,10 +198,22 @@ export function mapInstitutionalRatings(
     ["economic_moat"],
     [
       dim("Brand", "Unavailable", "Moat sub-dimensions not on stage_summaries"),
-      dim("Network Effect", "Unavailable", "Moat sub-dimensions not on stage_summaries"),
-      dim("Switching Costs", "Unavailable", "Moat sub-dimensions not on stage_summaries"),
+      dim(
+        "Network Effect",
+        "Unavailable",
+        "Moat sub-dimensions not on stage_summaries",
+      ),
+      dim(
+        "Switching Costs",
+        "Unavailable",
+        "Moat sub-dimensions not on stage_summaries",
+      ),
       dim("Scale", "Unavailable", "Moat sub-dimensions not on stage_summaries"),
-      dim("Cost Advantage", "Unavailable", "Moat sub-dimensions not on stage_summaries"),
+      dim(
+        "Cost Advantage",
+        "Unavailable",
+        "Moat sub-dimensions not on stage_summaries",
+      ),
       dim(
         "Regulatory Advantage",
         "Unavailable",
@@ -291,11 +303,7 @@ export function mapInstitutionalRatings(
       ),
       dim("ROE", "Unavailable", "ROE not exposed on AnalyseResponse"),
       dim("ROCE", "Unavailable", "ROCE not exposed on AnalyseResponse"),
-      dim(
-        "Balance Sheet",
-        view.financialStrength.label,
-        "financial_strength.label",
-      ),
+      dim("Balance Sheet", view.financialStrength.label, "financial_strength.label"),
     ],
     [],
     [],
@@ -336,7 +344,8 @@ export function mapInstitutionalRatings(
     evidence: riskItems.length
       ? riskItems.map((r) => `Existing warning/weakness: ${r}`)
       : ["No stage warnings or weaknesses on AnalyseResponse"],
-    strengths: riskItems.length === 0 ? ["No risk warnings surfaced"] : ["Data unavailable."],
+    strengths:
+      riskItems.length === 0 ? ["No risk warnings surfaced"] : ["Data unavailable."],
     weaknesses: riskItems.length
       ? riskItems.slice(0, 6)
       : ["Dedicated risk score not available on AnalyseResponse"],
@@ -399,8 +408,16 @@ export function mapInstitutionalRatings(
         : ["Data unavailable."],
     explanation: `Committee display remapped from investment_committee stage and committee_summary. Recommendation: ${view.committee.finalRecommendation}.`,
     dimensions: [
-      dim("Committee Consensus", view.committeeConsensus ?? "Unavailable", "committee_summary"),
-      dim("Major Reasons", view.committee.supportingReasons[0] ?? "Unavailable", "strengths"),
+      dim(
+        "Committee Consensus",
+        view.committeeConsensus ?? "Unavailable",
+        "committee_summary",
+      ),
+      dim(
+        "Major Reasons",
+        view.committee.supportingReasons[0] ?? "Unavailable",
+        "strengths",
+      ),
       dim(
         "Minor Concerns",
         view.committee.opposingReasons[0] ?? "Unavailable",
@@ -427,9 +444,7 @@ export function mapInstitutionalRatings(
     ),
     grade: buffett.overallRating,
     confidence: confidenceDisplay(
-      buffett.confidence.includes("=")
-        ? buffett.confidence
-        : buffett.confidence,
+      buffett.confidence.includes("=") ? buffett.confidence : buffett.confidence,
     ),
     evidence: [
       buffett.disclaimer,
@@ -441,23 +456,11 @@ export function mapInstitutionalRatings(
     weaknesses: buffett.keyWeaknesses,
     explanation: buffett.verdict,
     dimensions: [
-      dim(
-        "Circle of Competence",
-        buffett.circleOfCompetence.verdict,
-        "buffett report",
-      ),
+      dim("Circle of Competence", buffett.circleOfCompetence.verdict, "buffett report"),
       dim("Economic Moat", buffett.economicMoat.verdict, "buffett report"),
       dim("Management", buffett.managementQuality.verdict, "buffett report"),
-      dim(
-        "Financial Fortress",
-        buffett.financialFortress.verdict,
-        "buffett report",
-      ),
-      dim(
-        "Capital Allocation",
-        buffett.capitalAllocation.verdict,
-        "buffett report",
-      ),
+      dim("Financial Fortress", buffett.financialFortress.verdict, "buffett report"),
+      dim("Capital Allocation", buffett.capitalAllocation.verdict, "buffett report"),
       dim(
         "Margin of Safety",
         buffett.intrinsicValue.marginOfSafety,
@@ -466,15 +469,17 @@ export function mapInstitutionalRatings(
       dim("Buffett Action", buffett.recommendation.action, "buffett recommendation"),
       dim("Buffett Verdict", buffett.verdict.slice(0, 160) + "…", "buffett verdict"),
     ],
-    sourceStages: ["buffett_indicator_report", ...buffett.circleOfCompetence.evidenceSources],
+    sourceStages: [
+      "buffett_indicator_report",
+      ...buffett.circleOfCompetence.evidenceSources,
+    ],
   };
 
   // Prefer overall letter from buffett; score from BQ when overall is letter-only
   if (buffett.overallRating !== "Unavailable") {
     buffettIndicator.grade = buffett.overallRating;
     const bqScore = scoreOutOf10FromExisting(view.businessQuality.score);
-    buffettIndicator.scoreOutOf10 =
-      bqScore !== "Unavailable" ? bqScore : "Unavailable";
+    buffettIndicator.scoreOutOf10 = bqScore !== "Unavailable" ? bqScore : "Unavailable";
   }
 
   const modules = {
@@ -553,9 +558,7 @@ export function mapInstitutionalRatings(
     },
   ];
 
-  const gradePool = scorecard
-    .map((r) => r.grade)
-    .filter((g) => g !== "Unavailable");
+  const gradePool = scorecard.map((r) => r.grade).filter((g) => g !== "Unavailable");
   const scorePool = scorecard
     .map((r) => r.scoreOutOf10)
     .filter((s) => s !== "Unavailable");

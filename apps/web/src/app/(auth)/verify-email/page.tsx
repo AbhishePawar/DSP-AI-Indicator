@@ -84,9 +84,7 @@ function VerifyEmailForm() {
                 disabled={pending}
               />
             </FormField>
-            {error ? (
-              <ValidationMessage tone="error">{error}</ValidationMessage>
-            ) : null}
+            {error ? <ValidationMessage tone="error">{error}</ValidationMessage> : null}
             <Button type="submit" className="w-full" disabled={pending}>
               {pending ? "Verifying…" : "Verify email"}
             </Button>

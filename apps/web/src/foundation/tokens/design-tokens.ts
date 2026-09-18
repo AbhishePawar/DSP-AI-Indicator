@@ -42,8 +42,8 @@ export const colorTokens = {
 export const forbiddenAccents = ["purple", "magenta", "neon"] as const;
 
 export const typographyTokens = {
-  display: 'var(--font-display)',
-  body: 'var(--font-body)',
+  display: "var(--font-display)",
+  body: "var(--font-body)",
   scale: {
     xs: "0.75rem",
     sm: "0.875rem",

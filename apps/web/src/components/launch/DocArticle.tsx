@@ -18,11 +18,15 @@ export function DocArticle({
           ← Documentation
         </Link>
       </p>
-      <h1 className="font-[family-name:var(--font-display)] text-3xl tracking-tight">{title}</h1>
+      <h1 className="font-[family-name:var(--font-display)] text-3xl tracking-tight">
+        {title}
+      </h1>
       {sections.map((s) => (
         <Card key={s.heading}>
           <CardBody className="space-y-2 text-sm">
-            <h2 className="font-[family-name:var(--font-display)] text-lg">{s.heading}</h2>
+            <h2 className="font-[family-name:var(--font-display)] text-lg">
+              {s.heading}
+            </h2>
             {s.body.map((p) => (
               <p key={p} className="text-[var(--muted)]">
                 {p}

@@ -83,7 +83,9 @@ describe("EPIC-014 Research Canvas", () => {
   });
 
   it("searches companies and tabs client-side", () => {
-    useResearchNotebookStore.getState().addEntry("question", "Moat durability?", "AAPL");
+    useResearchNotebookStore
+      .getState()
+      .addEntry("question", "Moat durability?", "AAPL");
     const hits = searchResearchCanvas({
       query: "aapl",
       notebookEntries: useResearchNotebookStore.getState().entries,
@@ -93,10 +95,7 @@ describe("EPIC-014 Research Canvas", () => {
   });
 
   it("RBAC-filters quick actions and surfaces canvas in shell nav", () => {
-    const actions = filterResearchQuickActions(
-      ["read_research"],
-      ["research_analyst"],
-    );
+    const actions = filterResearchQuickActions(["read_research"], ["research_analyst"]);
     expect(actions.map((a) => a.id)).toEqual(
       expect.arrayContaining([
         "qa-open-company",
@@ -108,14 +107,13 @@ describe("EPIC-014 Research Canvas", () => {
 
     const visible = filterShellNav(["read_research"], ["research_analyst"]);
     const research = visible.find((n) => n.id === "research");
-    expect(
-      research?.children?.some((c) => c.href === "/research/canvas"),
-    ).toBe(featureFlags.researchCanvas);
+    expect(research?.children?.some((c) => c.href === "/research/canvas")).toBe(
+      featureFlags.researchCanvas,
+    );
 
-    const routes = searchableRoutes(
-      ["read_research"],
-      ["research_analyst"],
-    ).map((r) => r.path);
+    const routes = searchableRoutes(["read_research"], ["research_analyst"]).map(
+      (r) => r.path,
+    );
     if (featureFlags.researchCanvas) {
       expect(routes).toContain("/research/canvas");
     }
@@ -130,8 +128,6 @@ describe("EPIC-014 Research Canvas", () => {
     expect(
       screen.getByRole("tablist", { name: /research workspace tabs/i }),
     ).toBeTruthy();
-    expect(
-      screen.getByLabelText(/research notebook/i),
-    ).toBeTruthy();
+    expect(screen.getByLabelText(/research notebook/i)).toBeTruthy();
   });
 });

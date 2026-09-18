@@ -137,9 +137,7 @@ export const adminApi = {
     adminRequest<AdminSchema>("/admin/schema", { method: "GET" }, options, "schema"),
 
   dashboard: (options?: AdminRequestOptions, generatedAt?: string) => {
-    const q = generatedAt
-      ? `?generated_at=${encodeURIComponent(generatedAt)}`
-      : "";
+    const q = generatedAt ? `?generated_at=${encodeURIComponent(generatedAt)}` : "";
     return adminRequest<AdminDashboard>(
       `/admin/dashboard${q}`,
       { method: "GET" },
@@ -187,18 +185,10 @@ export const adminApi = {
     ),
 
   workflowHistory: (options?: AdminRequestOptions) =>
-    adminRequest<AdminEntity[]>(
-      "/admin/workflow-history",
-      { method: "GET" },
-      options,
-    ),
+    adminRequest<AdminEntity[]>("/admin/workflow-history", { method: "GET" }, options),
 
   researchArchive: (options?: AdminRequestOptions) =>
-    adminRequest<AdminEntity[]>(
-      "/admin/research-archive",
-      { method: "GET" },
-      options,
-    ),
+    adminRequest<AdminEntity[]>("/admin/research-archive", { method: "GET" }, options),
 
   timeline: (limit = 100, options?: AdminRequestOptions) =>
     adminRequest<AdminTimelineItem[]>(
@@ -235,11 +225,7 @@ export const adminApi = {
     adminRequest<AdminVersions>("/admin/versions", { method: "GET" }, options),
 
   featureFlags: (options?: AdminRequestOptions) =>
-    adminRequest<AdminFeatureFlags>(
-      "/admin/feature-flags",
-      { method: "GET" },
-      options,
-    ),
+    adminRequest<AdminFeatureFlags>("/admin/feature-flags", { method: "GET" }, options),
 
   metrics: (options?: AdminRequestOptions) =>
     adminRequest<AdminMetrics>("/admin/metrics", { method: "GET" }, options),

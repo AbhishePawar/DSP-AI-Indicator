@@ -11,15 +11,8 @@ import { RecommendationDistribution } from "./RecommendationDistribution";
 import { ResearchCoverage } from "./ResearchCoverage";
 import { SectorAllocation } from "./SectorAllocation";
 
-export function PortfolioAnalytics({
-  holdings,
-}: {
-  holdings: PortfolioHolding[];
-}) {
-  const analytics = useMemo(
-    () => buildPortfolioAnalytics(holdings),
-    [holdings],
-  );
+export function PortfolioAnalytics({ holdings }: { holdings: PortfolioHolding[] }) {
+  const analytics = useMemo(() => buildPortfolioAnalytics(holdings), [holdings]);
 
   return (
     <section aria-label="Portfolio analytics" className="space-y-4">

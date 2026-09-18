@@ -55,15 +55,12 @@ describe("EPIC-010 flagship route code splitting", () => {
 });
 
 describe("EPIC-010 workspace React.lazy modules", () => {
-  it.each([...LAZY_WORKSPACE_MODULES])(
-    "%s uses React.lazy dynamic import",
-    (rel) => {
-      const src = readSrc(rel);
-      expect(src).toMatch(/\blazy\s*\(/);
-      expect(src).toMatch(/import\s*\(/);
-      expect(src).toMatch(/Suspense|WorkspaceSkeleton|Skeleton/);
-    },
-  );
+  it.each([...LAZY_WORKSPACE_MODULES])("%s uses React.lazy dynamic import", (rel) => {
+    const src = readSrc(rel);
+    expect(src).toMatch(/\blazy\s*\(/);
+    expect(src).toMatch(/import\s*\(/);
+    expect(src).toMatch(/Suspense|WorkspaceSkeleton|Skeleton/);
+  });
 });
 
 describe("EPIC-010 analyzer + lighthouse tooling present", () => {

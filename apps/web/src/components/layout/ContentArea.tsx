@@ -36,9 +36,7 @@ export function PageContainer({
 }
 
 export function WidgetGrid({ children }: { children: ReactNode }) {
-  return (
-    <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">{children}</div>
-  );
+  return <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">{children}</div>;
 }
 
 /** Section rhythm used across Dashboard → Beta workspaces. */

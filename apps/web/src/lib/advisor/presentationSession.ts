@@ -43,7 +43,10 @@ export function getActivePresentation() {
   return presentations.find((p) => p.id === activeId) ?? null;
 }
 
-export function createSessionPresentation(templateId: PresentationTemplateId, title?: string) {
+export function createSessionPresentation(
+  templateId: PresentationTemplateId,
+  title?: string,
+) {
   const next = createPresentationFromTemplate(templateId, title);
   presentations = [next, ...presentations];
   activeId = next.id;
@@ -72,7 +75,9 @@ export function renameSessionPresentation(id: string, title: string) {
 
 export function archiveSessionPresentation(id: string) {
   presentations = presentations.map((p) =>
-    p.id === id ? { ...p, lifecycle: "archived", updatedAt: new Date().toISOString() } : p,
+    p.id === id
+      ? { ...p, lifecycle: "archived", updatedAt: new Date().toISOString() }
+      : p,
   );
   emit();
 }

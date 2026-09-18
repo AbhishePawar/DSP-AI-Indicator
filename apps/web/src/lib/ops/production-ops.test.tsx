@@ -61,14 +61,10 @@ describe("ProductionOpsPanel", () => {
     await waitFor(() => {
       expect(screen.getByTestId("production-ops-panel")).toBeTruthy();
     });
-    expect(screen.getByTestId("production-ops-panel").textContent).toMatch(
-      /1\.0\.0/,
-    );
+    expect(screen.getByTestId("production-ops-panel").textContent).toMatch(/1\.0\.0/);
     expect(screen.getByTestId("production-ops-panel").textContent).toMatch(
       /Backup provider unavailable/i,
     );
-    expect(screen.getByTestId("production-ops-panel").textContent).toMatch(
-      /platform/,
-    );
+    expect(screen.getByTestId("production-ops-panel").textContent).toMatch(/platform/);
   });
 });

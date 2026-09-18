@@ -10,7 +10,6 @@ Next.js thin client over frozen backend **v1.0.0-rc1** `/api/v1`.
 
 See `docs/V2_SPRINT1_ADVISOR_FOUNDATION.md` through `docs/V2_SPRINT6_CLIENT_REVIEW_WORKFLOW.md`. Enable with `NEXT_PUBLIC_ADVISOR_DEMO=true`.
 
-
 ## Stack
 
 - Next.js · React · TypeScript
@@ -43,20 +42,20 @@ Open http://localhost:3000 — login as seeded user `admin`.
 
 ## Pages
 
-| Route | Purpose |
-|---|---|
-| `/login` | Authentication → `POST /api/v1/auth/login` |
-| `/dashboard` | Widget dashboard |
-| `/analysis` | Company analysis → `POST /api/v1/analyze/company` |
-| `/search` | Redirect → `/analysis` |
-| `/compare` | Compare stub |
-| `/portfolio` | Portfolio stub |
-| `/copilot` | Copilot stub |
-| `/reports` | Recent report ids |
-| `/reports/[id]` | `GET /api/v1/report/{id}` |
-| `/settings` | Theme preferences |
-| `/health` | `GET /api/v1/health` |
-| `/platform` | `GET /api/v1/platform` |
+| Route           | Purpose                                           |
+| --------------- | ------------------------------------------------- |
+| `/login`        | Authentication → `POST /api/v1/auth/login`        |
+| `/dashboard`    | Widget dashboard                                  |
+| `/analysis`     | Company analysis → `POST /api/v1/analyze/company` |
+| `/search`       | Redirect → `/analysis`                            |
+| `/compare`      | Compare stub                                      |
+| `/portfolio`    | Portfolio stub                                    |
+| `/copilot`      | Copilot stub                                      |
+| `/reports`      | Recent report ids                                 |
+| `/reports/[id]` | `GET /api/v1/report/{id}`                         |
+| `/settings`     | Theme preferences                                 |
+| `/health`       | `GET /api/v1/health`                              |
+| `/platform`     | `GET /api/v1/platform`                            |
 
 See `docs/L1_1_DASHBOARD_AND_NAVIGATION.md` for layout, widgets, and a11y.
 

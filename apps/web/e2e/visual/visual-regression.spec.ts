@@ -34,20 +34,18 @@ for (const route of ROUTES) {
         await page.emulateMedia({ colorScheme: "light" });
         await page.goto(route.path, { waitUntil: "domcontentloaded" });
         await settle(page);
-        await expect(page).toHaveScreenshot(
-          `${route.name}-${vp.name}-light.png`,
-          { fullPage: true },
-        );
+        await expect(page).toHaveScreenshot(`${route.name}-${vp.name}-light.png`, {
+          fullPage: true,
+        });
       });
 
       test(`dark theme screenshot`, async ({ page }) => {
         await page.emulateMedia({ colorScheme: "dark" });
         await page.goto(route.path, { waitUntil: "domcontentloaded" });
         await settle(page);
-        await expect(page).toHaveScreenshot(
-          `${route.name}-${vp.name}-dark.png`,
-          { fullPage: true },
-        );
+        await expect(page).toHaveScreenshot(`${route.name}-${vp.name}-dark.png`, {
+          fullPage: true,
+        });
       });
     });
   }

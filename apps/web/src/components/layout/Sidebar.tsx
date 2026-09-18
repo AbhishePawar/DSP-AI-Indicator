@@ -17,10 +17,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useMemo, useState, type KeyboardEvent } from "react";
 
-import {
-  Sidebar as DsSidebar,
-  SidebarGroup,
-} from "@/components/ds";
+import { Sidebar as DsSidebar, SidebarGroup } from "@/components/ds";
 import { useAuth } from "@/lib/auth/AuthProvider";
 import { env } from "@/lib/env";
 import {
@@ -108,9 +105,7 @@ function NavTree({
     <>
       {items.map((item) => {
         const hasChildren = Boolean(item.children?.length);
-        const childActive = item.children?.some((c) =>
-          isActivePath(pathname, c.href),
-        );
+        const childActive = item.children?.some((c) => isActivePath(pathname, c.href));
         const open =
           expanded[item.id] ?? (childActive || isActivePath(pathname, item.href));
 
@@ -135,9 +130,7 @@ function NavTree({
                       ? `Collapse ${item.label} submenu`
                       : `Expand ${item.label} submenu`
                   }
-                  onClick={() =>
-                    setExpanded((s) => ({ ...s, [item.id]: !open }))
-                  }
+                  onClick={() => setExpanded((s) => ({ ...s, [item.id]: !open }))}
                 >
                   {open ? (
                     <ChevronDown className="size-4" aria-hidden />
@@ -224,9 +217,7 @@ export function Sidebar({
 
   function onNavKeyDown(event: KeyboardEvent<HTMLElement>) {
     const root = event.currentTarget;
-    const links = Array.from(
-      root.querySelectorAll<HTMLAnchorElement>("a[href]"),
-    );
+    const links = Array.from(root.querySelectorAll<HTMLAnchorElement>("a[href]"));
     if (!links.length) return;
     const index = links.indexOf(document.activeElement as HTMLAnchorElement);
     if (event.key === "ArrowDown") {
@@ -290,10 +281,7 @@ export function Sidebar({
         className="!w-full flex-1 border-0 bg-transparent"
         onKeyDown={onNavKeyDown}
       >
-        <SidebarGroup
-          label="Primary"
-          collapsed={collapsed && !mobile}
-        >
+        <SidebarGroup label="Primary" collapsed={collapsed && !mobile}>
           <NavTree
             items={primaryItems}
             collapsed={collapsed}
@@ -303,10 +291,7 @@ export function Sidebar({
         </SidebarGroup>
 
         {moreItems.length > 0 && (
-          <SidebarGroup
-            label="More"
-            collapsed={collapsed && !mobile}
-          >
+          <SidebarGroup label="More" collapsed={collapsed && !mobile}>
             <NavTree
               items={moreItems}
               collapsed={collapsed}

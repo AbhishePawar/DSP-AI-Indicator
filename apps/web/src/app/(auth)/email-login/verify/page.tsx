@@ -74,7 +74,10 @@ function EmailLoginVerifyInner() {
             </Link>
           </>
         ) : mfaChallenge ? (
-          <MfaChallenge challenge={mfaChallenge} onDone={() => navigateAfterLogin(nextPath)} />
+          <MfaChallenge
+            challenge={mfaChallenge}
+            onDone={() => navigateAfterLogin(nextPath)}
+          />
         ) : null}
       </Stack>
     </AuthCard>

@@ -1,0 +1,59 @@
+{
+  "commit": "f0874683c72e963f754dae3e6181abd07547c1be",
+  "credential_presence": {
+    "DSP_FINANCIAL_STATEMENT_API_KEY": "ABSENT",
+    "DSP_FINANCIAL_STATEMENT_BASE_URL": "ABSENT",
+    "DSP_FMP_API_KEY": "ABSENT",
+    "DSP_INVESTMENT_FMP_API_KEY": "ABSENT",
+    "DSP_MARKET_QUOTE_API_KEY": "ABSENT",
+    "DSP_MARKET_QUOTE_BASE_URL": "ABSENT"
+  },
+  "error": "G2 live authenticated vendor evidence requires EITHER (A) DSP_FMP_API_KEY or DSP_INVESTMENT_FMP_API_KEY (single-key Financial Modeling Prep free developer tier), OR (B) all four ConfiguredHttp secrets: DSP_MARKET_QUOTE_API_KEY, DSP_MARKET_QUOTE_BASE_URL, DSP_FINANCIAL_STATEMENT_API_KEY, DSP_FINANCIAL_STATEMENT_BASE_URL. Inject via GitHub Environment 'live-data-evidence' (workflow_dispatch) or a secure local runtime - never commit.",
+  "evidence_class": "credentials_unavailable",
+  "finished_at": "2026-09-18T06:57:09.029509+00:00",
+  "g2_status": "BLOCKED",
+  "gate": "G2",
+  "memory_flags_enabled": [],
+  "ok": false,
+  "provider": {
+    "auth_mode": null,
+    "note": "No authenticated route selected \u2014 provider identity withheld",
+    "quote_provider_id": null,
+    "statement_provider_id": null,
+    "vendor": null
+  },
+  "reason": "G2 live authenticated vendor evidence requires EITHER (A) DSP_FMP_API_KEY or DSP_INVESTMENT_FMP_API_KEY (single-key Financial Modeling Prep free developer tier), OR (B) all four ConfiguredHttp secrets: DSP_MARKET_QUOTE_API_KEY, DSP_MARKET_QUOTE_BASE_URL, DSP_FINANCIAL_STATEMENT_API_KEY, DSP_FINANCIAL_STATEMENT_BASE_URL. Inject via GitHub Environment 'live-data-evidence' (workflow_dispatch) or a secure local runtime - never commit.",
+  "release_identity": {
+    "channel": "rc",
+    "decision": "RELEASE_CANDIDATE",
+    "epic": "EPS-003",
+    "label": "EPS-003 \u00b7 2.0.0-rc.1 \u00b7 rc \u00b7 RELEASE_CANDIDATE",
+    "product_version": "2.0.0-rc.1"
+  },
+  "required_secrets": [
+    "DSP_FMP_API_KEY (preferred single-key FMP route)",
+    "DSP_MARKET_QUOTE_API_KEY",
+    "DSP_MARKET_QUOTE_BASE_URL",
+    "DSP_FINANCIAL_STATEMENT_API_KEY",
+    "DSP_FINANCIAL_STATEMENT_BASE_URL"
+  ],
+  "route": "none",
+  "secrets_logged": false,
+  "secure_injection": [
+    "GitHub Environment: live-data-evidence",
+    "workflow_dispatch protected job",
+    "organization/repository Actions secrets (names only above)",
+    "production secret manager \u2192 runtime env (never source tree)",
+    "FMP free developer signup: https://site.financialmodelingprep.com/developer/docs"
+  ],
+  "started_at": "2026-09-18T06:57:09.029480+00:00",
+  "steps": {
+    "gate": {
+      "ready": false,
+      "route": "none",
+      "status": "BLOCKED"
+    }
+  },
+  "ticker": "AAPL",
+  "track": "live_authenticated_vendor_evidence"
+}

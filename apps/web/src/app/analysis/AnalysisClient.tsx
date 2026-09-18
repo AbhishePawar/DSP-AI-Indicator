@@ -11,10 +11,7 @@ import { Alert } from "@/components/ui/Alert";
 import { Button } from "@/components/ui/Button";
 import { Card, CardBody } from "@/components/ui/Card";
 import { Input } from "@/components/ui/Input";
-import {
-  emptyWorkspace,
-  mapAnalyzeResponse,
-} from "@/lib/analysis/mapEnvelope";
+import { emptyWorkspace, mapAnalyzeResponse } from "@/lib/analysis/mapEnvelope";
 import type { AnalysisWorkspaceView } from "@/lib/analysis/types";
 import { api } from "@/lib/api/client";
 import { ApiClientError } from "@/lib/api/types";
@@ -37,9 +34,7 @@ export default function AnalysisClient() {
   const [symbol, setSymbol] = useState("");
   const [start, setStart] = useState(range.start);
   const [end, setEnd] = useState(range.end);
-  const [restoredView, setRestoredView] = useState<AnalysisWorkspaceView | null>(
-    null,
-  );
+  const [restoredView, setRestoredView] = useState<AnalysisWorkspaceView | null>(null);
   const [restoredBanner, setRestoredBanner] = useState<string | null>(null);
 
   useEffect(() => {
@@ -98,9 +93,7 @@ export default function AnalysisClient() {
   ) {
     setRestoredView(next);
     setSymbol(meta.ticker);
-    setRestoredBanner(
-      `Reopened local save “${meta.name}” — not a live API refresh.`,
-    );
+    setRestoredBanner(`Reopened local save “${meta.name}” — not a live API refresh.`);
     window.location.hash = "#company_snapshot";
   }
 

@@ -43,7 +43,9 @@ describe("Register page", () => {
       }),
     ).toBeTruthy();
     expect(screen.getByRole("button", { name: /continue with google/i })).toBeTruthy();
-    expect(screen.getByText(/google is the only available sign-up method/i)).toBeTruthy();
+    expect(
+      screen.getByText(/google is the only available sign-up method/i),
+    ).toBeTruthy();
     expect(screen.getByRole("link", { name: /sign in/i })).toBeTruthy();
     expect(screen.queryByLabelText(/full name/i)).toBeNull();
     expect(screen.queryByLabelText(/mobile number/i)).toBeNull();

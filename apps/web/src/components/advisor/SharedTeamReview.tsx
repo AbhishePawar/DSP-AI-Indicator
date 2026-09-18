@@ -71,8 +71,7 @@ export function OwnerBadge({ owner }: { owner: string }) {
 }
 
 export function PriorityBadge({ priority }: { priority: AssignmentPriority }) {
-  const tone =
-    priority === "p0" ? "danger" : priority === "p1" ? "warning" : "neutral";
+  const tone = priority === "p0" ? "danger" : priority === "p1" ? "warning" : "neutral";
   return <Badge tone={tone}>{priority.toUpperCase()}</Badge>;
 }
 
@@ -205,7 +204,10 @@ export const ReviewFilterPanel = memo(function ReviewFilterPanel() {
 
   return (
     <Card>
-      <CardHeader title="Review Filters" description="Presentation filters over demo reviews" />
+      <CardHeader
+        title="Review Filters"
+        description="Presentation filters over demo reviews"
+      />
       <CardBody className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
         <label className="block text-xs text-[var(--muted)] sm:col-span-2 lg:col-span-3">
           Search
@@ -376,7 +378,12 @@ export const ReviewFilterPanel = memo(function ReviewFilterPanel() {
           </div>
         </fieldset>
         <div className="sm:col-span-2 lg:col-span-3">
-          <Button type="button" variant="ghost" size="sm" onClick={() => resetTeamReviewFilters()}>
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            onClick={() => resetTeamReviewFilters()}
+          >
             Reset filters
           </Button>
         </div>
@@ -411,7 +418,9 @@ export const ReviewOverviewDashboard = memo(function ReviewOverviewDashboard() {
             key={label}
             className="rounded-md border border-[var(--border)] bg-[var(--surface-2)]/40 p-3"
           >
-            <p className="text-xs uppercase tracking-wide text-[var(--muted)]">{label}</p>
+            <p className="text-xs uppercase tracking-wide text-[var(--muted)]">
+              {label}
+            </p>
             <p className="mt-1 text-sm font-medium">{value}</p>
           </div>
         ))}
@@ -427,7 +436,10 @@ export const ReviewActivityFeed = memo(function ReviewActivityFeed({
 }) {
   return (
     <Card>
-      <CardHeader title="Review Activity" description="Session feed — not live multi-user" />
+      <CardHeader
+        title="Review Activity"
+        description="Session feed — not live multi-user"
+      />
       <CardBody>
         <WindowedList
           items={items}
@@ -538,8 +550,8 @@ export const AssignmentBoard = memo(function AssignmentBoard() {
         })}
       </div>
       <p className="text-xs text-[var(--muted)]" role="note">
-        Drag cards between columns or use the keyboard-accessible column selector on each card.
-        Presentation only — not persisted.
+        Drag cards between columns or use the keyboard-accessible column selector on
+        each card. Presentation only — not persisted.
       </p>
     </div>
   );
@@ -661,7 +673,8 @@ export const ReviewDiscussionPanel = memo(function ReviewDiscussionPanel() {
           </p>
           <ul className="space-y-2 text-sm" aria-label="Discussion thread">
             <li className="rounded-md border border-[var(--border)] px-3 py-2">
-              <span className="font-medium">System</span> — Review pack linked to existing DSP demos.
+              <span className="font-medium">System</span> — Review pack linked to
+              existing DSP demos.
             </li>
             {draft.updatedAt ? (
               <li className="rounded-md border border-[var(--border)] px-3 py-2">

@@ -36,7 +36,10 @@ export default function LaunchPage() {
         <LaunchDashboardWorkspace />
       </SectionErrorBoundary>
       <section className="mt-10 space-y-4" aria-labelledby="readiness-detail">
-        <h2 id="readiness-detail" className="font-[family-name:var(--font-display)] text-xl">
+        <h2
+          id="readiness-detail"
+          className="font-[family-name:var(--font-display)] text-xl"
+        >
           Readiness detail
         </h2>
         <SectionErrorBoundary title="Launch readiness section">

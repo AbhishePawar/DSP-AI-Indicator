@@ -12,9 +12,8 @@ export function MarketDataPanel({ view }: { view: MarketDataView }) {
     >
       {!view.hasAuthenticatedMarketData ? (
         <Alert variant="warning">
-          Authenticated market-data feed is not attached to this composition
-          contract. Fields show Data unavailable. — no estimated or placeholder
-          quotes.
+          Authenticated market-data feed is not attached to this composition contract.
+          Fields show Data unavailable. — no estimated or placeholder quotes.
         </Alert>
       ) : null}
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">

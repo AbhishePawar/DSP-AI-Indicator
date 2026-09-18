@@ -47,17 +47,15 @@ export const AssumptionCard = memo(function AssumptionCard({
 function Field({ label, text }: { label: string; text: string }) {
   return (
     <div>
-      <p className="text-xs font-medium uppercase tracking-wide text-[var(--muted)]">{label}</p>
+      <p className="text-xs font-medium uppercase tracking-wide text-[var(--muted)]">
+        {label}
+      </p>
       <p className="mt-1">{text}</p>
     </div>
   );
 }
 
-export function AssumptionExplorerSection({
-  view,
-}: {
-  view: AssumptionExplorerView;
-}) {
+export function AssumptionExplorerSection({ view }: { view: AssumptionExplorerView }) {
   return (
     <div className="space-y-4">
       <p className="rounded-md border border-[var(--border)] bg-[var(--accent-soft)]/40 px-3 py-2 text-sm">

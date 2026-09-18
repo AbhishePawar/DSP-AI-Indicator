@@ -67,8 +67,16 @@ function MultiSelect({
           <ChevronDown className="h-4 w-4 shrink-0 text-[var(--muted)]" aria-hidden />
         </Button>
       </PopoverTrigger>
-      <PopoverContent align="start" className="w-[var(--radix-popover-trigger-width)] p-1">
-        <ul role="listbox" aria-multiselectable="true" aria-label={ariaLabel} className="max-h-60 overflow-auto">
+      <PopoverContent
+        align="start"
+        className="w-[var(--radix-popover-trigger-width)] p-1"
+      >
+        <ul
+          role="listbox"
+          aria-multiselectable="true"
+          aria-label={ariaLabel}
+          className="max-h-60 overflow-auto"
+        >
           {options.map((option) => {
             const checked = value.includes(option.value);
             const id = `ms-${option.value}`;

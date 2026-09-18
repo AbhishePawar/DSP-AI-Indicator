@@ -65,9 +65,11 @@ export function evaluatePasswordStrength(password: string): PasswordStrength {
 
   if (password.length >= 8) score = 1;
   if (password.length >= 12) score = 2;
-  if (/[a-z]/.test(password) && /[A-Z]/.test(password)) score = Math.max(score, 2) as PasswordStrength["score"];
+  if (/[a-z]/.test(password) && /[A-Z]/.test(password))
+    score = Math.max(score, 2) as PasswordStrength["score"];
   if (/\d/.test(password)) score = Math.min(4, score + 1) as PasswordStrength["score"];
-  if (/[^A-Za-z0-9]/.test(password)) score = Math.min(4, score + 1) as PasswordStrength["score"];
+  if (/[^A-Za-z0-9]/.test(password))
+    score = Math.min(4, score + 1) as PasswordStrength["score"];
   if (password.length >= 16 && score >= 3) score = 4;
 
   if (password.length < 8) hints.push("Use at least 8 characters");
@@ -92,11 +94,7 @@ export function mapAuthError(error: unknown): string {
   const message = error instanceof Error ? error.message : String(error ?? "");
   const lower = message.toLowerCase();
 
-  if (
-    lower.includes("429") ||
-    lower.includes("rate") ||
-    lower.includes("too many")
-  ) {
+  if (lower.includes("429") || lower.includes("rate") || lower.includes("too many")) {
     return "Too many attempts. Wait a moment, then try again.";
   }
   if (

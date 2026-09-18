@@ -18,13 +18,7 @@ function formatTimestamp(iso: string | null | undefined): string {
   return new Date(iso).toLocaleString();
 }
 
-function MetricRow({
-  label,
-  value,
-}: {
-  label: string;
-  value: string;
-}) {
+function MetricRow({ label, value }: { label: string; value: string }) {
   return (
     <div>
       <p className="text-xs text-[var(--muted)]">{label}</p>
@@ -83,15 +77,10 @@ export function MarketQuoteGrid({ quote }: { quote: MarketQuote }) {
           label="Previous Close"
           value={formatMarketPrice(quote.previousClose, quote.currency)}
         />
-        <MetricRow
-          label="Market Cap"
-          value={formatMarketCap(quote.marketCap)}
-        />
+        <MetricRow label="Market Cap" value={formatMarketCap(quote.marketCap)} />
         <MetricRow
           label="Volume"
-          value={
-            quote.volume != null ? quote.volume.toLocaleString() : "Unavailable"
-          }
+          value={quote.volume != null ? quote.volume.toLocaleString() : "Unavailable"}
         />
         <MetricRow
           label="52 Week High"

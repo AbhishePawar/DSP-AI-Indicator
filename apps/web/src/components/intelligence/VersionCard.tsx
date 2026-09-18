@@ -24,10 +24,7 @@ export function VersionCard({
   ];
   return (
     <Card>
-      <CardHeader
-        title="Version Information"
-        description="From GET /api/v1/version"
-      />
+      <CardHeader title="Version Information" description="From GET /api/v1/version" />
       <CardBody>
         <dl className="grid gap-2 sm:grid-cols-2">
           {rows.map(([label, value]) => (

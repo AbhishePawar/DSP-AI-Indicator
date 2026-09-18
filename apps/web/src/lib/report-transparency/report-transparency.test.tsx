@@ -174,18 +174,10 @@ describe("P2.1 report transparency", () => {
       company: "Apple",
       exchange: "NASDAQ",
     });
-    const view = mapResearchView(
-      sampleResponse,
-      request,
-      "2026-07-28T12:00:00.000Z",
-    );
+    const view = mapResearchView(sampleResponse, request, "2026-07-28T12:00:00.000Z");
     expect(view.transparency.kind).toBe("report_transparency");
-    expect(view.transparency.dataInformation.financialPeriodUsed).toBe(
-      "Unavailable",
-    );
-    expect(view.transparency.transparency.recommendationEngineVersion).toBe(
-      "0.1.0",
-    );
+    expect(view.transparency.dataInformation.financialPeriodUsed).toBe("Unavailable");
+    expect(view.transparency.transparency.recommendationEngineVersion).toBe("0.1.0");
     expect(view.transparency.qualityBadges.length).toBe(6);
   });
 
@@ -194,11 +186,7 @@ describe("P2.1 report transparency", () => {
       company: "Apple",
       exchange: "NASDAQ",
     });
-    const view = mapResearchView(
-      sampleResponse,
-      request,
-      "2026-07-28T12:00:00.000Z",
-    );
+    const view = mapResearchView(sampleResponse, request, "2026-07-28T12:00:00.000Z");
     render(
       <ReportInformationCard
         transparency={mapReportTransparency(view, { marketStatus: "live" })}
@@ -214,11 +202,7 @@ describe("P2.1 report transparency", () => {
       company: "Apple",
       exchange: "NASDAQ",
     });
-    const view = mapResearchView(
-      sampleResponse,
-      request,
-      "2026-07-28T12:00:00.000Z",
-    );
+    const view = mapResearchView(sampleResponse, request, "2026-07-28T12:00:00.000Z");
     expect(researchViewToJson(view)).toContain("reportInformation");
     expect(researchViewToCsv(view)).toContain("reportId");
   });

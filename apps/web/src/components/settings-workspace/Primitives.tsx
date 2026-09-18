@@ -21,10 +21,7 @@ export function FieldRow({
   value: string | number | boolean | null | undefined;
 }) {
   const display =
-    value === null ||
-    value === undefined ||
-    value === "" ||
-    value === "Unavailable"
+    value === null || value === undefined || value === "" || value === "Unavailable"
       ? "Data unavailable."
       : String(value);
   return (
@@ -78,11 +75,7 @@ export function WorkspaceEmpty({
 
 export function WorkspaceSkeleton() {
   return (
-    <div
-      className="space-y-3"
-      aria-busy="true"
-      aria-label="Loading settings"
-    >
+    <div className="space-y-3" aria-busy="true" aria-label="Loading settings">
       <Skeleton className="h-8 w-1/3" />
       <Skeleton className="h-24 w-full" />
       <Skeleton className="h-40 w-full" />

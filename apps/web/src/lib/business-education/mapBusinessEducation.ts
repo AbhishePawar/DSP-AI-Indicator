@@ -141,10 +141,7 @@ export function mapBusinessEducation(view: DraftView): BusinessEducationReportVi
   const financial = view.financial;
   const bq = view.businessQuality;
 
-  const warnings = [
-    ...view.risks.slice(0, 8),
-    ...view.weaknesses.slice(0, 4),
-  ];
+  const warnings = [...view.risks.slice(0, 8), ...view.weaknesses.slice(0, 4)];
 
   const sections: BusinessEducationSectionView[] = [];
 
@@ -219,7 +216,11 @@ export function mapBusinessEducation(view: DraftView): BusinessEducationReportVi
     : [claim(UNAVAILABLE, "UNAVAILABLE", "stage:economic_moat", false)];
   if (stageAvailable(bq)) {
     strengthClaims.push(
-      claim(`Business quality: ${bq.label}.`, "INTERPRETATION", "stage:business_quality"),
+      claim(
+        `Business quality: ${bq.label}.`,
+        "INTERPRETATION",
+        "stage:business_quality",
+      ),
     );
   }
   sections.push(
@@ -257,7 +258,10 @@ export function mapBusinessEducation(view: DraftView): BusinessEducationReportVi
       SECTION_META[3].title,
       "Weaknesses listed only when evidenced by stage warnings or failures.",
       weakClaims,
-      weakClaims.filter((c) => c.available).map((c) => c.text).slice(0, 10),
+      weakClaims
+        .filter((c) => c.available)
+        .map((c) => c.text)
+        .slice(0, 10),
     ),
   );
 
@@ -282,7 +286,12 @@ export function mapBusinessEducation(view: DraftView): BusinessEducationReportVi
   });
   for (const m of metrics) {
     fhClaims.push(
-      claim(`${m}: ${UNAVAILABLE}`, "UNAVAILABLE", `business_type:${businessType}`, false),
+      claim(
+        `${m}: ${UNAVAILABLE}`,
+        "UNAVAILABLE",
+        `business_type:${businessType}`,
+        false,
+      ),
     );
   }
   sections.push(
@@ -315,8 +324,7 @@ export function mapBusinessEducation(view: DraftView): BusinessEducationReportVi
       whyItMatters: evidenced
         ? "Material to long-term business durability and capital outcomes."
         : "Educational monitoring lens when specific warnings are sparse.",
-      potentialTrigger:
-        "Adverse change in the related stage label, score, or warning.",
+      potentialTrigger: "Adverse change in the related stage label, score, or warning.",
       metricToMonitor: monitors[i]!,
       kind: evidenced ? "FACT" : "INTERPRETATION",
       source: evidenced ? "stage_summaries.warnings" : "educational_layer",

@@ -18,13 +18,7 @@ export type HonestUnavailable =
 
 /** Future-proof subject kinds for the comparison engine. */
 export type ComparisonSubjectKind =
-  | "company"
-  | "portfolio"
-  | "etf"
-  | "mutual_fund"
-  | "sector"
-  | "industry"
-  | "watchlist";
+  "company" | "portfolio" | "etf" | "mutual_fund" | "sector" | "industry" | "watchlist";
 
 export type ComparisonSubjectRef = {
   kind: ComparisonSubjectKind;
@@ -35,11 +29,7 @@ export type ComparisonSubjectRef = {
 };
 
 export type ComparisonSlotStatus =
-  | "idle"
-  | "loading"
-  | "ready"
-  | "error"
-  | "unavailable";
+  "idle" | "loading" | "ready" | "error" | "unavailable";
 
 export type ComparisonCompanySlot = {
   symbol: string;
@@ -231,10 +221,7 @@ export type ExecutiveScorecardRow = {
 };
 
 export type EvidenceStrengthLevel =
-  | "Strong"
-  | "Moderate"
-  | "Limited"
-  | "Data unavailable.";
+  "Strong" | "Moderate" | "Limited" | "Data unavailable.";
 
 export type EvidenceStrengthMeter = {
   symbol: string;
@@ -344,7 +331,12 @@ export type ComparisonWorkspaceModel = {
   tradeOffs: TradeOffItem[];
   valuation: ValuationCompareCell[];
   qualityModules: {
-    businessQuality: { symbol: string; score: string; label: string; confidence: string }[];
+    businessQuality: {
+      symbol: string;
+      score: string;
+      label: string;
+      confidence: string;
+    }[];
     management: { symbol: string; score: string; label: string; confidence: string }[];
     moat: { symbol: string; score: string; label: string; confidence: string }[];
     risk: { symbol: string; score: string; label: string; confidence: string }[];

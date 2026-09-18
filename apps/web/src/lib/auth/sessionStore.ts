@@ -86,16 +86,13 @@ function normalizeLegacy(raw: Record<string, unknown>): Session | null {
   if (typeof raw.accessToken !== "string") return null;
   return {
     accessToken: raw.accessToken,
-    refreshToken:
-      typeof raw.refreshToken === "string" ? raw.refreshToken : null,
+    refreshToken: typeof raw.refreshToken === "string" ? raw.refreshToken : null,
     tokenType: String(raw.tokenType || "bearer"),
     role: String(raw.role || "read_only"),
     roles: Array.isArray(raw.roles)
       ? (raw.roles as string[])
       : [String(raw.role || "read_only")],
-    permissions: Array.isArray(raw.permissions)
-      ? (raw.permissions as string[])
-      : [],
+    permissions: Array.isArray(raw.permissions) ? (raw.permissions as string[]) : [],
     subject: String(raw.subject || ""),
     username: String(raw.username || raw.subject || ""),
     displayName: String(raw.displayName || raw.username || ""),
@@ -148,14 +145,11 @@ export function sessionFromRbacLogin(
   if (cookieAuthPreferred() && !cookieAuthConfirmed(result)) {
     throw new CookieSessionUnavailableError();
   }
-  const useCookies =
-    cookieAuthPreferred() && cookieAuthConfirmed(result);
+  const useCookies = cookieAuthPreferred() && cookieAuthConfirmed(result);
   if (result.csrf_token) {
     persistCsrfToken(result.csrf_token, rememberMe);
   }
-  const accessToken = useCookies
-    ? COOKIE_TOKEN_PLACEHOLDER
-    : tokens.access_token;
+  const accessToken = useCookies ? COOKIE_TOKEN_PLACEHOLDER : tokens.access_token;
   const refreshToken = useCookies ? null : tokens.refresh_token;
   const next: Session = {
     accessToken,
@@ -328,7 +322,10 @@ export function clearStoredSession(): void {
   clearCsrfToken();
 }
 
-export function tokenStatus(session: Session | null, now = Date.now()): {
+export function tokenStatus(
+  session: Session | null,
+  now = Date.now(),
+): {
   label: string;
   valid: boolean;
   expiresAt: string | null;

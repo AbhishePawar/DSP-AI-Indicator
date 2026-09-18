@@ -19,19 +19,13 @@ function MetricRow({ label, value }: { label: string; value: string }) {
     <div className="flex justify-between gap-4 border-b border-[var(--border)] py-2 text-sm last:border-0">
       <dt className="text-[var(--muted)]">{label}</dt>
       <dd className="text-right font-medium text-[var(--fg)]">
-        {value.trim() && value !== "Unavailable"
-          ? value
-          : "Data unavailable."}
+        {value.trim() && value !== "Unavailable" ? value : "Data unavailable."}
       </dd>
     </div>
   );
 }
 
-export function ExplainableRatingItem({
-  item,
-}: {
-  item: ModuleExplainability;
-}) {
+export function ExplainableRatingItem({ item }: { item: ModuleExplainability }) {
   return (
     <AccordionItem
       value={item.moduleId}

@@ -81,10 +81,7 @@ export function ReportInformationCard({
             label="Analysis Type"
             value={transparency.transparency.analysisType}
           />
-          <FieldRow
-            label="Methodology"
-            value={transparency.transparency.methodology}
-          />
+          <FieldRow label="Methodology" value={transparency.transparency.methodology} />
           <FieldRow
             label="Pipeline Version"
             value={transparency.transparency.pipelineVersion}

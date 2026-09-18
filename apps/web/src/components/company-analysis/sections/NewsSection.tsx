@@ -31,7 +31,8 @@ export function NewsSection({ view }: { view: ResearchView }) {
   });
 
   const payload = newsQuery.data;
-  const articles = payload?.available && payload.authenticated ? payload.articles ?? [] : [];
+  const articles =
+    payload?.available && payload.authenticated ? (payload.articles ?? []) : [];
 
   return (
     <div className="space-y-4">
@@ -39,7 +40,9 @@ export function NewsSection({ view }: { view: ResearchView }) {
         title={`News — ${view.company}`}
         description="Authenticated feed via GET /news — real articles only, never invented."
       >
-        {newsQuery.isLoading ? <p className="text-sm text-[var(--muted)]">Loading…</p> : null}
+        {newsQuery.isLoading ? (
+          <p className="text-sm text-[var(--muted)]">Loading…</p>
+        ) : null}
         {newsQuery.isError ? (
           <p className="text-sm text-[var(--danger-fg)]">Data unavailable.</p>
         ) : null}
@@ -62,7 +65,9 @@ export function NewsSection({ view }: { view: ResearchView }) {
                 </a>
                 <p className="mt-1 text-xs text-[var(--muted)]">
                   {a.source}
-                  {a.published_at ? ` · ${new Date(a.published_at).toLocaleString()}` : ""}
+                  {a.published_at
+                    ? ` · ${new Date(a.published_at).toLocaleString()}`
+                    : ""}
                   {a.sentiment ? ` · ${a.sentiment}` : ""}
                 </p>
                 {a.summary ? (

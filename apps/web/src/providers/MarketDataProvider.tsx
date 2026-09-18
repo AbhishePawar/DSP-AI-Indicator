@@ -1,12 +1,6 @@
 "use client";
 
-import {
-  createContext,
-  useCallback,
-  useContext,
-  useMemo,
-  type ReactNode,
-} from "react";
+import { createContext, useCallback, useContext, useMemo, type ReactNode } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 
 import { env } from "@/lib/env";
@@ -76,9 +70,7 @@ export function MarketDataProvider({
   );
 
   return (
-    <MarketDataContext.Provider value={value}>
-      {children}
-    </MarketDataContext.Provider>
+    <MarketDataContext.Provider value={value}>{children}</MarketDataContext.Provider>
   );
 }
 
@@ -93,9 +85,7 @@ export function useMarketDataContext(): MarketDataContextValue {
 export function useMarketQuote(ticker: string | null | undefined) {
   const normalized = ticker?.trim().toUpperCase() ?? "";
   const { config, refreshTicker } = useMarketDataContext();
-  const cached = normalized
-    ? readCachedQuote(normalized, config.cacheTtlMs)
-    : null;
+  const cached = normalized ? readCachedQuote(normalized, config.cacheTtlMs) : null;
 
   const query = useQuery({
     queryKey: ["market", "quote", normalized],
@@ -104,7 +94,9 @@ export function useMarketQuote(ticker: string | null | undefined) {
     staleTime: config.cacheTtlMs,
     refetchInterval: config.autoRefreshMs,
     initialData: cached?.quote,
-    initialDataUpdatedAt: cached ? Date.now() - (cached.stale ? config.cacheTtlMs + 1 : 0) : undefined,
+    initialDataUpdatedAt: cached
+      ? Date.now() - (cached.stale ? config.cacheTtlMs + 1 : 0)
+      : undefined,
   });
 
   const status = statusFromQuery(
@@ -125,9 +117,7 @@ export function useMarketQuote(ticker: string | null | undefined) {
 
 export function useMarketQuotes(tickers: string[]) {
   const normalized = useMemo(
-    () => [
-      ...new Set(tickers.map((t) => t.trim().toUpperCase()).filter(Boolean)),
-    ],
+    () => [...new Set(tickers.map((t) => t.trim().toUpperCase()).filter(Boolean))],
     [tickers],
   );
   const { config, refreshTickers } = useMarketDataContext();

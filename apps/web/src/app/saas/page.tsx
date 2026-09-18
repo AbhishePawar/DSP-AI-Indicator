@@ -16,10 +16,7 @@ export default function SaasPlatformPage() {
     <Suspense
       fallback={
         <div className="space-y-4 p-6">
-          <PageHeader
-            title="Commercial SaaS Platform"
-            description="Loading…"
-          />
+          <PageHeader title="Commercial SaaS Platform" description="Loading…" />
           <Skeleton className="h-40 w-full" />
         </div>
       }

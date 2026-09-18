@@ -4,10 +4,7 @@
  */
 
 import type { ResearchView } from "@/lib/research/mapResearchView";
-import {
-  COVERAGE_UNAVAILABLE,
-  DATA_UNAVAILABLE,
-} from "./constants";
+import { COVERAGE_UNAVAILABLE, DATA_UNAVAILABLE } from "./constants";
 import { isUnavailableDisplay } from "./ranking";
 import type { EvidenceStrengthMeter } from "./types";
 
@@ -47,14 +44,11 @@ export function mapEvidenceStrengthMeters(
     if (v.correlationId) sources.push(`correlation_id=${v.correlationId}`);
     if (v.pipelineVersion) sources.push(`pipeline=${v.pipelineVersion}`);
     if (v.platformVersion) sources.push(`platform=${v.platformVersion}`);
-    const sourceQuality =
-      sources.length > 0 ? sources.join("; ") : DATA_UNAVAILABLE;
+    const sourceQuality = sources.length > 0 ? sources.join("; ") : DATA_UNAVAILABLE;
 
     const coverageDisplay = completeness.display;
     const confidenceDisplay =
-      confidence != null
-        ? `${Math.round(confidence * 100)}%`
-        : DATA_UNAVAILABLE;
+      confidence != null ? `${Math.round(confidence * 100)}%` : DATA_UNAVAILABLE;
 
     // Honest unavailable when mandatory signals are missing.
     if (

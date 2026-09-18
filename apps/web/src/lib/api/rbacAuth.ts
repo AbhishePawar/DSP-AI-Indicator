@@ -2,10 +2,7 @@
 
 import { env } from "@/lib/env";
 import { ApiClientError, type ApiErrorBody } from "@/lib/api/types";
-import {
-  cookieAuthPreferred,
-  cookieFetchInit,
-} from "@/lib/auth/cookieSession";
+import { cookieAuthPreferred, cookieFetchInit } from "@/lib/auth/cookieSession";
 import { COOKIE_TOKEN_PLACEHOLDER } from "@/lib/auth/sessionStore";
 import type {
   RbacEnvelope,
@@ -122,10 +119,14 @@ export const rbacAuthApi = {
     }),
 
   me: (token?: string | null, options?: RbacRequestOptions) =>
-    rbacRequest<RbacUser>("/auth/rbac/me", { method: "GET" }, {
-      ...options,
-      token: token ?? undefined,
-    }),
+    rbacRequest<RbacUser>(
+      "/auth/rbac/me",
+      { method: "GET" },
+      {
+        ...options,
+        token: token ?? undefined,
+      },
+    ),
 
   listSessions: (token: string, userId?: string) => {
     const q = userId ? `?user_id=${encodeURIComponent(userId)}` : "";
@@ -136,20 +137,21 @@ export const rbacAuthApi = {
     );
   },
 
-  evaluate: (
-    token: string,
-    body: { user_id: string; permission: string },
-  ) =>
+  evaluate: (token: string, body: { user_id: string; permission: string }) =>
     rbacRequest<{
       user_id: string;
       permission: string;
       allowed: boolean;
       roles: string[];
       permissions: string[];
-    }>("/auth/rbac/evaluate", {
-      method: "POST",
-      body: JSON.stringify(body),
-    }, { token }),
+    }>(
+      "/auth/rbac/evaluate",
+      {
+        method: "POST",
+        body: JSON.stringify(body),
+      },
+      { token },
+    ),
 };
 
 export type { RbacTokens };

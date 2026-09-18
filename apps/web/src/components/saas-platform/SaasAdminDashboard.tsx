@@ -54,9 +54,7 @@ export function SaasAdminDashboard({
             ? `MRR ${String(revenue.mrr)}`
             : String(revenue.message || "Data unavailable.")}
         </p>
-        <p className="mt-1 text-xs text-[var(--muted)]">
-          {String(revenue.note || "")}
-        </p>
+        <p className="mt-1 text-xs text-[var(--muted)]">{String(revenue.note || "")}</p>
       </section>
 
       <section className="rounded-md border border-[var(--border)] p-3">
@@ -94,9 +92,7 @@ export function SaasAdminDashboard({
           <li>Exports: {String(growth.exports ?? 0)}</li>
           <li>API: {String(growth.api_usage ?? 0)}</li>
         </ul>
-        <p className="mt-1 text-xs text-[var(--muted)]">
-          {String(growth.note || "")}
-        </p>
+        <p className="mt-1 text-xs text-[var(--muted)]">{String(growth.note || "")}</p>
       </section>
 
       <section className="rounded-md border border-[var(--border)] p-3 sm:col-span-2 xl:col-span-1">
@@ -109,8 +105,7 @@ export function SaasAdminDashboard({
           ) : (
             active.slice(0, 5).map((o) => (
               <li key={String(o.org_id)}>
-                {String(o.name || o.org_id)} · score{" "}
-                {String(o.activity_score ?? 0)}
+                {String(o.name || o.org_id)} · score {String(o.activity_score ?? 0)}
               </li>
             ))
           )}

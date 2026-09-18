@@ -16,10 +16,7 @@ export default function ControlCenterPage() {
     <Suspense
       fallback={
         <div className="space-y-4 p-6">
-          <PageHeader
-            title="Super Admin Control Center"
-            description="Loading…"
-          />
+          <PageHeader title="Super Admin Control Center" description="Loading…" />
           <Skeleton className="h-40 w-full" />
         </div>
       }

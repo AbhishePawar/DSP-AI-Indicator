@@ -127,7 +127,15 @@ function scorecardRow(
 }
 
 export function mapBuffettReport(
-  view: Omit<ResearchView, "buffett" | "businessEducation" | "ratings" | "transparency" | "explainability" | "valuationTransparency">,
+  view: Omit<
+    ResearchView,
+    | "buffett"
+    | "businessEducation"
+    | "ratings"
+    | "transparency"
+    | "explainability"
+    | "valuationTransparency"
+  >,
 ): BuffettReportView {
   const moat = view.moat;
   const mgmt = view.management;
@@ -305,15 +313,12 @@ export function mapBuffettReport(
     ),
     matrixItem(
       "Positive Free Cash Flow",
-      !isUnavailable(metricValue(strength, "Cash Flow"))
-        ? "met"
-        : "unavailable",
+      !isUnavailable(metricValue(strength, "Cash Flow")) ? "met" : "unavailable",
       `Evidence: financial_strength Cash Flow field=${metricValue(strength, "Cash Flow")} (no client FCF recalculation)`,
     ),
     matrixItem(
       "Attractive Valuation",
-      !isUnavailable(valuation.intrinsicValue) ||
-        !isUnavailable(valuation.currentPrice)
+      !isUnavailable(valuation.intrinsicValue) || !isUnavailable(valuation.currentPrice)
         ? "met"
         : "unavailable",
       `Evidence: price=${valuation.currentPrice}, IV=${valuation.intrinsicValue}`,
@@ -444,9 +449,7 @@ export function mapBuffettReport(
     },
     keyStrengths: keyStrengths.length ? keyStrengths : ["Data unavailable."],
     keyWeaknesses: keyWeaknesses.length ? keyWeaknesses : ["Data unavailable."],
-    confidence: confidenceParts.length
-      ? confidenceParts.join("; ")
-      : "Unavailable",
+    confidence: confidenceParts.length ? confidenceParts.join("; ") : "Unavailable",
     disclaimer: DISCLAIMER,
   };
 }

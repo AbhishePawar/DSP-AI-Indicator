@@ -21,12 +21,7 @@ import { useInstitutionalReportsPrefsStore } from "@/lib/institutional-reports";
 import { loadRecentAnalyses } from "@/lib/analysis/recentAnalyses";
 import type { ResearchView } from "@/lib/research/mapResearchView";
 import { mapReportTransparency } from "@/lib/report-transparency";
-import {
-  FieldRow,
-  ListBlock,
-  SectionCard,
-  WorkspaceEmpty,
-} from "./Primitives";
+import { FieldRow, ListBlock, SectionCard, WorkspaceEmpty } from "./Primitives";
 
 export function CoverSection({
   view,
@@ -67,20 +62,14 @@ export function CoverSection({
           <FieldRow label="Coverage" value={coverage} />
           <FieldRow
             label="Confidence"
-            value={
-              formatPct(view.recommendationConfidence) ||
-              transparency.confidence
-            }
+            value={formatPct(view.recommendationConfidence) || transparency.confidence}
           />
           <FieldRow label="Prepared By" value={preparedBy} />
           <FieldRow
             label="Status"
             value={view.ok ? "Published (analyse OK)" : "Incomplete"}
           />
-          <FieldRow
-            label="Recommendation state"
-            value={view.recommendation}
-          />
+          <FieldRow label="Recommendation state" value={view.recommendation} />
         </dl>
       </SectionCard>
       <ReportInformationCard transparency={transparency} />
@@ -106,22 +95,13 @@ export function ExecutiveSummarySection({
             label="Conclusion"
             value={view.committeeDecision || view.recommendation}
           />
-          <FieldRow
-            label="Recommendation state"
-            value={view.recommendation}
-          />
+          <FieldRow label="Recommendation state" value={view.recommendation} />
           <FieldRow
             label="Confidence"
             value={formatPct(view.recommendationConfidence)}
           />
-          <FieldRow
-            label="Business quality"
-            value={view.businessQualityLabel}
-          />
-          <FieldRow
-            label="Margin of safety"
-            value={formatPct(view.marginOfSafety)}
-          />
+          <FieldRow label="Business quality" value={view.businessQualityLabel} />
+          <FieldRow label="Margin of safety" value={formatPct(view.marginOfSafety)} />
           <FieldRow label="Research timestamp" value={view.analysedAt} />
           <FieldRow label="Market status" value={marketStatus} />
         </dl>
@@ -140,10 +120,7 @@ function TrustLadderCard({ view }: { view: ResearchView }) {
       title="Trust Ladder"
       description="User Trust Standard — Observed Facts → Analysis → Inference → Recommendation"
     >
-      <div
-        className="mb-3 flex flex-wrap gap-2"
-        aria-label="Epistemic categories"
-      >
+      <div className="mb-3 flex flex-wrap gap-2" aria-label="Epistemic categories">
         <Badge variant="outline">Verified / Observed</Badge>
         <Badge variant="outline">Calculated</Badge>
         <Badge variant="outline">AI / Committee</Badge>
@@ -187,8 +164,8 @@ function TrustLadderCard({ view }: { view: ResearchView }) {
             {formatPct(view.recommendationConfidence)}
           </p>
           <p className="mt-1 text-xs text-[var(--muted)]">
-            Educational investigation — not personalised investment advice.
-            Confidence always shown; missing fields remain Data unavailable.
+            Educational investigation — not personalised investment advice. Confidence
+            always shown; missing fields remain Data unavailable.
           </p>
         </li>
       </ol>
@@ -205,15 +182,9 @@ export function ExplainabilityModule({ view }: { view: ResearchView }) {
     ...view.risks,
   ];
   return (
-    <div
-      className="space-y-4 report-module"
-      data-report-module="explainability"
-    >
+    <div className="space-y-4 report-module" data-report-module="explainability">
       <TrustLadderCard view={view} />
-      <SectionCard
-        title="Reasoning path"
-        description={view.explainability.disclaimer}
-      >
+      <SectionCard title="Reasoning path" description={view.explainability.disclaimer}>
         <dl>
           <FieldRow label="Recommendation" value={view.recommendation} />
           <FieldRow
@@ -224,10 +195,7 @@ export function ExplainabilityModule({ view }: { view: ResearchView }) {
             label="One-line summary"
             value={first?.oneLineSummary ?? "Data unavailable."}
           />
-          <FieldRow
-            label="Framework version"
-            value={view.explainability.version}
-          />
+          <FieldRow label="Framework version" value={view.explainability.version} />
         </dl>
       </SectionCard>
       <SectionCard
@@ -308,8 +276,8 @@ export function EvidenceModule({ view }: { view: ResearchView }) {
         }
       >
         <p className="text-sm text-[var(--muted)]">
-          Open Company Analysis for the flagship investigation workspace. This
-          report surface stays honest about missing document payloads.
+          Open Company Analysis for the flagship investigation workspace. This report
+          surface stays honest about missing document payloads.
         </p>
       </SectionCard>
     </div>
@@ -339,16 +307,10 @@ export function TimelineModule({ view }: { view: ResearchView }) {
                 <span>
                   <span className="font-medium">{stage.stage}</span>
                   {stage.label ? (
-                    <span className="ml-2 text-[var(--muted)]">
-                      {stage.label}
-                    </span>
+                    <span className="ml-2 text-[var(--muted)]">{stage.label}</span>
                   ) : null}
                 </span>
-                <Badge
-                  variant={
-                    stage.status === "succeeded" ? "accent" : "outline"
-                  }
-                >
+                <Badge variant={stage.status === "succeeded" ? "accent" : "outline"}>
                   {stage.status}
                 </Badge>
               </li>
@@ -377,19 +339,13 @@ export function TimelineModule({ view }: { view: ResearchView }) {
       </SectionCard>
       <SectionCard title="Previous recommendations">
         <dl>
-          <FieldRow
-            label="Current recommendation"
-            value={view.recommendation}
-          />
-          <FieldRow
-            label="Committee decision"
-            value={view.committeeDecision}
-          />
+          <FieldRow label="Current recommendation" value={view.recommendation} />
+          <FieldRow label="Committee decision" value={view.committeeDecision} />
           <FieldRow label="Analysed at" value={view.analysedAt} />
         </dl>
         <p className="mt-2 text-xs text-[var(--muted)]">
-          Multi-run server history is Data unavailable. Local recent analyses
-          appear above when present.
+          Multi-run server history is Data unavailable. Local recent analyses appear
+          above when present.
         </p>
       </SectionCard>
       <SectionCard title="Material events">
@@ -411,15 +367,11 @@ export function TimelineModule({ view }: { view: ResearchView }) {
 }
 
 export function DownloadsModule({ view }: { view: ResearchView }) {
-  const setReportMode = useInstitutionalReportsPrefsStore(
-    (s) => s.setReportMode,
-  );
+  const setReportMode = useInstitutionalReportsPrefsStore((s) => s.setReportMode);
   const base = `${view.ticker.toLowerCase()}-institutional-report`;
   const sharePath = `/research/institutional?symbol=${encodeURIComponent(view.ticker)}`;
   const shareUrl =
-    typeof window !== "undefined"
-      ? `${window.location.origin}${sharePath}`
-      : sharePath;
+    typeof window !== "undefined" ? `${window.location.origin}${sharePath}` : sharePath;
 
   return (
     <div className="space-y-4 report-module" data-report-module="export">
@@ -491,11 +443,7 @@ export function DownloadsModule({ view }: { view: ResearchView }) {
           <Button
             variant="secondary"
             onClick={() => {
-              downloadText(
-                `${base}.html`,
-                researchViewToHtml(view),
-                "text/html",
-              );
+              downloadText(`${base}.html`, researchViewToHtml(view), "text/html");
             }}
           >
             Export HTML
@@ -503,11 +451,7 @@ export function DownloadsModule({ view }: { view: ResearchView }) {
           <Button
             variant="secondary"
             onClick={() => {
-              downloadText(
-                `${base}.html`,
-                researchViewToHtml(view),
-                "text/html",
-              );
+              downloadText(`${base}.html`, researchViewToHtml(view), "text/html");
               setReportMode("pdf");
               window.setTimeout(() => window.print(), 50);
             }}
@@ -516,8 +460,8 @@ export function DownloadsModule({ view }: { view: ResearchView }) {
           </Button>
         </div>
         <p className="mt-3 text-xs text-[var(--muted)]">
-          PDF uses browser print CSS. Native XLSX/PDF engines are not shipped in
-          this epic — no fabricated PDF service.
+          PDF uses browser print CSS. Native XLSX/PDF engines are not shipped in this
+          epic — no fabricated PDF service.
         </p>
       </SectionCard>
     </div>
@@ -541,10 +485,7 @@ export function AuditModule({
         <dl>
           <FieldRow label="Report version / ID" value={transparency.reportId} />
           <FieldRow label="Research timestamp" value={view.analysedAt} />
-          <FieldRow
-            label="Analysis date"
-            value={transparency.analysisDate}
-          />
+          <FieldRow label="Analysis date" value={transparency.analysisDate} />
           <FieldRow
             label="Frontend version"
             value={transparency.analysisVersions.frontend}
@@ -561,9 +502,7 @@ export function AuditModule({
           />
           <FieldRow
             label="Institutional rating framework"
-            value={
-              transparency.analysisVersions.institutionalRatingFramework
-            }
+            value={transparency.analysisVersions.institutionalRatingFramework}
           />
           <FieldRow
             label="Explainability framework"

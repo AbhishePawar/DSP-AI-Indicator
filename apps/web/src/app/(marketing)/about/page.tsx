@@ -23,8 +23,8 @@ export default function AboutPage() {
           <p key={p}>{p}</p>
         ))}
         <p>
-          Brand promise: <strong className="text-[var(--fg)]">{env.tagline}</strong>{" "}
-          · Professional Investment Research for Everyone.
+          Brand promise: <strong className="text-[var(--fg)]">{env.tagline}</strong> ·
+          Professional Investment Research for Everyone.
         </p>
       </div>
       <p className="mt-8 text-sm">

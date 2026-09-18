@@ -26,7 +26,10 @@ export {
 } from "./ResearchCoverageCard";
 export { CoverageProgressBar } from "./CoverageProgressBar";
 export { InsightCard, SectionDivider } from "./InsightCard";
-export { MarketIntelligenceSection, MarketSentimentCard } from "./MarketIntelligenceSection";
+export {
+  MarketIntelligenceSection,
+  MarketSentimentCard,
+} from "./MarketIntelligenceSection";
 export {
   AnalystConsensusSection,
   ConsensusCard,
@@ -48,10 +51,7 @@ export {
   EvidenceTree,
   EvidenceItem,
 } from "./EvidenceExplorerSection";
-export {
-  AssumptionCard,
-  AssumptionExplorerSection,
-} from "./AssumptionCard";
+export { AssumptionCard, AssumptionExplorerSection } from "./AssumptionCard";
 export { ReasoningFlow, ReasoningNode, ReasoningFlowSection } from "./ReasoningFlow";
 export { ConfidenceBreakdown } from "./ConfidenceBreakdown";
 export { ResearchLimitationsCard } from "./ResearchLimitationsCard";
@@ -63,7 +63,11 @@ export {
   NodeDetailsPanel,
 } from "./KnowledgeGraphWorkspace";
 export { ResearchCopilotWorkspace } from "./copilot/ResearchCopilotWorkspace";
-export { CopilotProvider, useCopilot, useCopilotOptional } from "./copilot/CopilotContext";
+export {
+  CopilotProvider,
+  useCopilot,
+  useCopilotOptional,
+} from "./copilot/CopilotContext";
 export {
   CopilotMessageView,
   ResponseCard,

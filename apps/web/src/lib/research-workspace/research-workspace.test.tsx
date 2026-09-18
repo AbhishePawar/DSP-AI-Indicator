@@ -244,9 +244,7 @@ function wrap(ui: React.ReactNode) {
   const client = new QueryClient({
     defaultOptions: { queries: { retry: false }, mutations: { retry: false } },
   });
-  return render(
-    <QueryClientProvider client={client}>{ui}</QueryClientProvider>,
-  );
+  return render(<QueryClientProvider client={client}>{ui}</QueryClientProvider>);
 }
 
 describe("EPIC-F007 research workspace lib", () => {
@@ -295,13 +293,9 @@ describe("EPIC-F007 research workspace lib", () => {
       tags: [],
     });
     useResearchWorkspacePrefsStore.getState().toggleFavourite("aapl", "Apple");
-    expect(useResearchWorkspacePrefsStore.getState().isFavourite("AAPL")).toBe(
-      true,
-    );
+    expect(useResearchWorkspacePrefsStore.getState().isFavourite("AAPL")).toBe(true);
     useResearchWorkspacePrefsStore.getState().togglePinned("aapl");
-    expect(useResearchWorkspacePrefsStore.getState().isPinned("AAPL")).toBe(
-      true,
-    );
+    expect(useResearchWorkspacePrefsStore.getState().isPinned("AAPL")).toBe(true);
   });
 });
 
@@ -328,9 +322,8 @@ describe("EPIC-F007 workspace UI", () => {
   });
 
   it("renders workspace layout and library", async () => {
-    const { ResearchWorkspace } = await import(
-      "@/components/research-workspace/ResearchWorkspace"
-    );
+    const { ResearchWorkspace } =
+      await import("@/components/research-workspace/ResearchWorkspace");
     wrap(<ResearchWorkspace />);
     expect(screen.getByLabelText("Research navigation")).toBeTruthy();
     expect(screen.getByLabelText("Main research view")).toBeTruthy();
@@ -341,20 +334,15 @@ describe("EPIC-F007 workspace UI", () => {
 
   it("shows honest empty diff state", async () => {
     useResearchWorkspacePrefsStore.setState({ activeSection: "diff" });
-    const { DiffSection } = await import(
-      "@/components/research-workspace/Sections"
-    );
+    const { DiffSection } = await import("@/components/research-workspace/Sections");
     wrap(<DiffSection />);
     expect(screen.getByText("Research Diff Viewer")).toBeTruthy();
-    expect(
-      screen.getAllByText(/Data unavailable/i).length,
-    ).toBeGreaterThan(0);
+    expect(screen.getAllByText(/Data unavailable/i).length).toBeGreaterThan(0);
   });
 
   it("loads analyse API into viewer when opening ticker", async () => {
-    const { ResearchWorkspace } = await import(
-      "@/components/research-workspace/ResearchWorkspace"
-    );
+    const { ResearchWorkspace } =
+      await import("@/components/research-workspace/ResearchWorkspace");
     wrap(<ResearchWorkspace />);
     const openButtons = await screen.findAllByRole("button", { name: "Open" });
     openButtons[0]?.click();

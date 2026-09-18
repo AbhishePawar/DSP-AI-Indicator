@@ -90,10 +90,7 @@ export function compareCompanyContexts(
       `• Business quality: ${primary.businessQualityLabel} vs ${secondary.businessQualityLabel}`,
     );
   }
-  if (
-    present(primary.committeeDecision) &&
-    present(secondary.committeeDecision)
-  ) {
+  if (present(primary.committeeDecision) && present(secondary.committeeDecision)) {
     lines.push(
       `• Committee: ${primary.committeeDecision} vs ${secondary.committeeDecision}`,
     );
@@ -111,11 +108,7 @@ export function compareCompanyContexts(
       primary.financialStrength,
       secondary.financialStrength,
     ),
-    stageLine(
-      "Earnings quality",
-      primary.earningsQuality,
-      secondary.earningsQuality,
-    ),
+    stageLine("Earnings quality", primary.earningsQuality, secondary.earningsQuality),
     stageLine("Growth quality", primary.growthQuality, secondary.growthQuality),
   ].filter(Boolean) as string[];
 
@@ -131,9 +124,7 @@ export function compareCompanyContexts(
     };
   }
 
-  lines.push(
-    "Missing fields on either side were omitted rather than estimated.",
-  );
+  lines.push("Missing fields on either side were omitted rather than estimated.");
 
   return {
     content: lines.join("\n"),

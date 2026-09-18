@@ -14,8 +14,8 @@ export default function MaintenancePage() {
         <CardHeader title="Platform temporarily unavailable" />
         <CardBody className="space-y-3 text-sm">
           <p>
-            DSP may be offline for maintenance. Research engines and valuations are not running
-            client-side — please retry when the banner clears.
+            DSP may be offline for maintenance. Research engines and valuations are not
+            running client-side — please retry when the banner clears.
           </p>
           <Link href="/dashboard" className="text-[var(--accent)] underline">
             Return to dashboard

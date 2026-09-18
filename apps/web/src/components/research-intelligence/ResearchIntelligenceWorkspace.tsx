@@ -148,19 +148,11 @@ export function ResearchIntelligenceWorkspace() {
 
   const errorMessage = useMemo(() => {
     const err =
-      perfQuery.error ||
-      timelineQuery.error ||
-      calQuery.error ||
-      insightsQuery.error;
+      perfQuery.error || timelineQuery.error || calQuery.error || insightsQuery.error;
     if (err instanceof ApiClientError) return err.message;
     if (err) return "API unavailable";
     return null;
-  }, [
-    perfQuery.error,
-    timelineQuery.error,
-    calQuery.error,
-    insightsQuery.error,
-  ]);
+  }, [perfQuery.error, timelineQuery.error, calQuery.error, insightsQuery.error]);
 
   if (!featureFlags.researchIntelligence) {
     return (
@@ -303,12 +295,12 @@ export function ResearchIntelligenceWorkspace() {
           <div className="space-y-3 p-4 text-sm">
             <h2 className="font-medium text-[var(--fg)]">Trust notes</h2>
             <p className="text-[var(--muted)]">
-              This workspace measures research quality over time. It does not
-              change valuation, recommendations, or analytical engines.
+              This workspace measures research quality over time. It does not change
+              valuation, recommendations, or analytical engines.
             </p>
             <p className="text-[var(--muted)]">
-              Missing horizon market data is shown as Data unavailable. No
-              outcomes are fabricated in the browser.
+              Missing horizon market data is shown as Data unavailable. No outcomes are
+              fabricated in the browser.
             </p>
             <p className="text-[var(--muted)]">
               Company Analysis remains the flagship research surface.

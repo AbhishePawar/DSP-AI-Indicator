@@ -12,7 +12,10 @@ export function RetryCard({
 }) {
   return (
     <Card>
-      <CardHeader title="Retry" description="Recover without reloading the whole application" />
+      <CardHeader
+        title="Retry"
+        description="Recover without reloading the whole application"
+      />
       <CardBody className="space-y-3">
         {detail ? <p className="text-sm text-[var(--muted)]">{detail}</p> : null}
         <Button onClick={onRetry}>Try again</Button>
@@ -34,8 +37,8 @@ export function GracefulDegradationCard({
       <CardBody>
         <p className="text-sm">{message}</p>
         <p className="mt-2 text-xs text-[var(--muted)]">
-          DSP Research Mode, evidence, confidence, and methodology remain authoritative when
-          available elsewhere in the workspace.
+          DSP Research Mode, evidence, confidence, and methodology remain authoritative
+          when available elsewhere in the workspace.
         </p>
       </CardBody>
     </Card>

@@ -491,12 +491,7 @@ export function filterShellNav(
 export function groupShellNav(
   items: readonly ShellNavItem[],
 ): { section: ShellNavItem["section"]; label: string; items: ShellNavItem[] }[] {
-  const order: ShellNavItem["section"][] = [
-    "overview",
-    "research",
-    "ops",
-    "account",
-  ];
+  const order: ShellNavItem["section"][] = ["overview", "research", "ops", "account"];
   return order
     .map((section) => ({
       section,
@@ -509,18 +504,12 @@ export function groupShellNav(
 export type BreadcrumbCrumb = { href: string; label: string };
 
 function findRouteMeta(pathname: string): RouteMeta | undefined {
-  const sorted = [...ROUTE_REGISTRY].sort(
-    (a, b) => b.path.length - a.path.length,
-  );
-  return sorted.find(
-    (r) => pathname === r.path || pathname.startsWith(`${r.path}/`),
-  );
+  const sorted = [...ROUTE_REGISTRY].sort((a, b) => b.path.length - a.path.length);
+  return sorted.find((r) => pathname === r.path || pathname.startsWith(`${r.path}/`));
 }
 
 export function breadcrumbsForPath(pathname: string): BreadcrumbCrumb[] {
-  const crumbs: BreadcrumbCrumb[] = [
-    { href: "/dashboard", label: "Home" },
-  ];
+  const crumbs: BreadcrumbCrumb[] = [{ href: "/dashboard", label: "Home" }];
   if (pathname === "/dashboard" || pathname === "/") {
     return crumbs;
   }

@@ -11,9 +11,9 @@ import { Skeleton } from "@/components/ds";
 
 const InstitutionalDashboardClient = dynamic(
   () =>
-    import(
-      "@/components/institutional-dashboard/InstitutionalDashboardClient"
-    ).then((m) => ({ default: m.InstitutionalDashboardClient })),
+    import("@/components/institutional-dashboard/InstitutionalDashboardClient").then(
+      (m) => ({ default: m.InstitutionalDashboardClient }),
+    ),
   {
     ssr: false,
     loading: () => (

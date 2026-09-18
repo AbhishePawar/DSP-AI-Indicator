@@ -89,8 +89,7 @@ export const useSettingsPrefsStore = create<SettingsPrefsState>()(
       setDensity: (density) => set({ density }),
       setFontSize: (fontSize) => set({ fontSize }),
       setMotionPreference: (motionPreference) => set({ motionPreference }),
-      setContrastPreference: (contrastPreference) =>
-        set({ contrastPreference }),
+      setContrastPreference: (contrastPreference) => set({ contrastPreference }),
       setFocusVisible: (focusVisible) => set({ focusVisible }),
       setToastEnabled: (toastEnabled) => set({ toastEnabled }),
       setToastDurationMs: (toastDurationMs) =>
@@ -103,8 +102,7 @@ export const useSettingsPrefsStore = create<SettingsPrefsState>()(
         set({
           recentItemsLimit: Math.min(24, Math.max(3, Math.round(recentItemsLimit))),
         }),
-      setSearchHistoryEnabled: (searchHistoryEnabled) =>
-        set({ searchHistoryEnabled }),
+      setSearchHistoryEnabled: (searchHistoryEnabled) => set({ searchHistoryEnabled }),
       addNote: (text) =>
         set((s) => {
           const trimmed = text.trim();
@@ -120,8 +118,7 @@ export const useSettingsPrefsStore = create<SettingsPrefsState>()(
             ].slice(0, 20),
           };
         }),
-      removeNote: (id) =>
-        set((s) => ({ notes: s.notes.filter((n) => n.id !== id) })),
+      removeNote: (id) => set((s) => ({ notes: s.notes.filter((n) => n.id !== id) })),
       resetAppearance: () => set({ ...APPEARANCE_DEFAULTS }),
     }),
     {

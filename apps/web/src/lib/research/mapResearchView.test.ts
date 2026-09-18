@@ -146,13 +146,11 @@ describe("mapResearchView", () => {
       "intangible_assets",
       "efficient_scale",
     ]);
-    expect(
-      view.canonicalMoatDimensions.every((d) => d.displayRating === "N/A"),
-    ).toBe(true);
-    expect(view.moat.label).toBe("Wide");
-    expect(view.canonicalMoatDimensions[0]?.displayRating).not.toBe(
-      view.moat.score,
+    expect(view.canonicalMoatDimensions.every((d) => d.displayRating === "N/A")).toBe(
+      true,
     );
+    expect(view.moat.label).toBe("Wide");
+    expect(view.canonicalMoatDimensions[0]?.displayRating).not.toBe(view.moat.score);
   });
 
   it("RC3-001 — does not alias Management/Moat into Business Quality metrics", () => {
@@ -168,9 +166,7 @@ describe("mapResearchView", () => {
     expect(byLabel["Franchise Durability"]).toBe("Unavailable");
     expect(byLabel["Industry Structure"]).toBe("Unavailable");
     // Must not equal sibling stage labels/decisions
-    expect(byLabel["Capital Allocation Quality"]).not.toBe(
-      view.management.label,
-    );
+    expect(byLabel["Capital Allocation Quality"]).not.toBe(view.management.label);
     expect(byLabel["Franchise Durability"]).not.toBe(view.moat.label);
     expect(byLabel["Industry Structure"]).not.toBe(view.moat.decision);
   });
@@ -204,9 +200,9 @@ describe("mapResearchView", () => {
     );
     expect(view.moat.label).toBe("Wide");
     expect(view.moat.score).not.toBe("N/A");
-    expect(
-      view.canonicalMoatDimensions.every((d) => d.displayRating === "N/A"),
-    ).toBe(true);
+    expect(view.canonicalMoatDimensions.every((d) => d.displayRating === "N/A")).toBe(
+      true,
+    );
   });
 });
 
@@ -217,10 +213,6 @@ describe("research routing breadcrumbs", () => {
 
   it("builds ticker crumbs for /research/[ticker]", () => {
     const crumbs = breadcrumbsFor("/research/acm");
-    expect(crumbs.map((c) => c.label)).toEqual([
-      "Home",
-      "Research Workspace",
-      "ACM",
-    ]);
+    expect(crumbs.map((c) => c.label)).toEqual(["Home", "Research Workspace", "ACM"]);
   });
 });

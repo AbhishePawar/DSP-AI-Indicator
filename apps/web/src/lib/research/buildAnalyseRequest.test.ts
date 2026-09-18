@@ -56,10 +56,7 @@ describe("P0-01 buildAnalyseRequestForTicker", () => {
 
   it("rejects ACM demo statement contamination on another ticker", () => {
     expect(
-      isDemoStatementContamination(
-        "AAPL",
-        SAMPLE_ANALYSE_REQUEST.financial_statements,
-      ),
+      isDemoStatementContamination("AAPL", SAMPLE_ANALYSE_REQUEST.financial_statements),
     ).toBe(true);
     expect(() =>
       buildAnalyseRequestForTicker("AAPL", {

@@ -17,11 +17,7 @@ import {
   usePortfolioIntelPrefsStore,
 } from "@/lib/portfolio-intelligence";
 import type { PortfolioActivity, PortfolioHolding } from "@/lib/portfolio/model";
-import {
-  FieldRow,
-  SectionCard,
-  WorkspaceEmpty,
-} from "./Primitives";
+import { FieldRow, SectionCard, WorkspaceEmpty } from "./Primitives";
 import { ResearchSection } from "./Sections";
 
 function CountBars({
@@ -139,10 +135,14 @@ export function ExecutivePortfolioSummary({
   const strengths: string[] = [];
   const risks: string[] = [];
   if (coverage.covered > 0) {
-    strengths.push(`${coverage.covered} holding(s) flagged research-available in session.`);
+    strengths.push(
+      `${coverage.covered} holding(s) flagged research-available in session.`,
+    );
   }
   if (intel?.linkedResearchCount && intel.linkedResearchCount !== "Data unavailable.") {
-    strengths.push(`Intelligence API linked research count: ${intel.linkedResearchCount}.`);
+    strengths.push(
+      `Intelligence API linked research count: ${intel.linkedResearchCount}.`,
+    );
   }
   if (coverage.pending > 0) {
     risks.push(`${coverage.pending} holding(s) without research coverage flag.`);
@@ -222,11 +222,7 @@ export function ExecutivePortfolioSummary({
   );
 }
 
-export function AllocationSection({
-  holdings,
-}: {
-  holdings: PortfolioHolding[];
-}) {
+export function AllocationSection({ holdings }: { holdings: PortfolioHolding[] }) {
   const bySector = sectorHoldingCounts(holdings);
   const sessionAlloc = sessionAllocationBySector(holdings);
   return (
@@ -313,18 +309,9 @@ export function QualitySection({
             label="Average Business Quality"
             value="Data unavailable. API does not emit portfolio-average BQ; see position pass-through."
           />
-          <FieldRow
-            label="Average Management Quality"
-            value="Data unavailable."
-          />
-          <FieldRow
-            label="Average Economic Moat"
-            value="Data unavailable."
-          />
-          <FieldRow
-            label="Average Financial Strength"
-            value="Data unavailable."
-          />
+          <FieldRow label="Average Management Quality" value="Data unavailable." />
+          <FieldRow label="Average Economic Moat" value="Data unavailable." />
+          <FieldRow label="Average Financial Strength" value="Data unavailable." />
           <FieldRow
             label="Quality positions available (API)"
             value={intel?.qualityAvailableCount ?? "Data unavailable."}
@@ -452,11 +439,7 @@ export function ValuationSection({
   );
 }
 
-export function RiskSection({
-  intel,
-}: {
-  intel: PortfolioIntelligenceView | null;
-}) {
+export function RiskSection({ intel }: { intel: PortfolioIntelligenceView | null }) {
   return (
     <div className="space-y-4">
       <SectionCard
@@ -507,14 +490,19 @@ export function RiskSection({
             ))}
           </ul>
         ) : (
-          <WorkspaceEmpty description={intel?.concentrationNote || "Data unavailable."} />
+          <WorkspaceEmpty
+            description={intel?.concentrationNote || "Data unavailable."}
+          />
         )}
       </SectionCard>
       <SectionCard title="Risk Heatmap">
         {intel?.riskPositions.length ? (
           <ul className="space-y-1 text-sm">
             {intel.riskPositions.map((p) => (
-              <li key={p.symbol} className="flex justify-between gap-2 border-b border-[var(--border)] py-1">
+              <li
+                key={p.symbol}
+                className="flex justify-between gap-2 border-b border-[var(--border)] py-1"
+              >
                 <span className="font-mono text-xs">{p.symbol}</span>
                 <span>{p.detail}</span>
               </li>
@@ -574,8 +562,8 @@ export function WatchlistSection() {
       </SectionCard>
       <SectionCard title="Candidates">
         <p className="text-sm text-[var(--muted)]">
-          Use Company Analysis to research a ticker, then pin it to this
-          watchlist. No demo symbols are pre-loaded.
+          Use Company Analysis to research a ticker, then pin it to this watchlist. No
+          demo symbols are pre-loaded.
         </p>
       </SectionCard>
       <SectionCard title="Recently Added">
@@ -666,9 +654,7 @@ export function OpportunitiesSection({
       </SectionCard>
       <SectionCard title="Upgrade Candidates">
         {pending.length === 0 ? (
-          <p className="text-sm text-[var(--muted)]">
-            No coverage-pending holdings.
-          </p>
+          <p className="text-sm text-[var(--muted)]">No coverage-pending holdings.</p>
         ) : (
           <ul className="space-y-1 text-sm">
             {pending.map((h) => (
@@ -703,9 +689,8 @@ export function RebalancingSection({
         description="Trade-off / evidence / confidence review only — NEVER transaction recommendations or personalized advice"
       >
         <p className="mb-3 text-xs text-[var(--muted)]">
-          EPIC-015: Suggestions are investigation cues from coverage and
-          concentration pass-through. No BUY/SELL, no order tickets, no
-          optimizer.
+          EPIC-015: Suggestions are investigation cues from coverage and concentration
+          pass-through. No BUY/SELL, no order tickets, no optimizer.
         </p>
         <dl>
           <FieldRow
@@ -787,8 +772,14 @@ export function ExplainabilitySection({
             label="Portfolio Score"
             value="Data unavailable — not computed in the thin client."
           />
-          <FieldRow label="Intelligence result id" value={intel?.resultId ?? "Data unavailable."} />
-          <FieldRow label="Schema version" value={intel?.schemaVersion ?? "Data unavailable."} />
+          <FieldRow
+            label="Intelligence result id"
+            value={intel?.resultId ?? "Data unavailable."}
+          />
+          <FieldRow
+            label="Schema version"
+            value={intel?.schemaVersion ?? "Data unavailable."}
+          />
           <FieldRow
             label="Session holdings"
             value={`${coverage.total} · research-available ${coverage.covered}`}

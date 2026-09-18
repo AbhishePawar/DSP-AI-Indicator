@@ -97,13 +97,7 @@ export function WorkspaceSkeleton() {
   );
 }
 
-export function MetricTile({
-  label,
-  value,
-}: {
-  label: string;
-  value: string;
-}) {
+export function MetricTile({ label, value }: { label: string; value: string }) {
   return (
     <div className="rounded-[var(--radius-md)] border border-[var(--border)] bg-[var(--surface)] p-4">
       <p className="text-xs uppercase tracking-wide text-[var(--muted)]">{label}</p>

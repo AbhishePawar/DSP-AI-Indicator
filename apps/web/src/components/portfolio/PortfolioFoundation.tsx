@@ -17,10 +17,7 @@ export function PortfolioFoundation() {
 
   return (
     <div className="space-y-8">
-      <PageHeader
-        title="Portfolio"
-        description="Manage your investment portfolio."
-      />
+      <PageHeader title="Portfolio" description="Manage your investment portfolio." />
 
       {isEmpty ? (
         <>
@@ -45,10 +42,7 @@ export function PortfolioFoundation() {
               Allocation Overview
             </h2>
             <div className="grid gap-4 lg:grid-cols-3">
-              <AllocationCard
-                title="By Sector"
-                segments={view.allocations.bySector}
-              />
+              <AllocationCard title="By Sector" segments={view.allocations.bySector} />
               <AllocationCard
                 title="By Market Cap"
                 segments={view.allocations.byMarketCap}

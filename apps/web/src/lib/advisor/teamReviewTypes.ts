@@ -3,12 +3,7 @@
  */
 
 export type AssignmentColumnId =
-  | "unassigned"
-  | "assigned"
-  | "in_progress"
-  | "ready"
-  | "completed"
-  | "deferred";
+  "unassigned" | "assigned" | "in_progress" | "ready" | "completed" | "deferred";
 
 export type AssignmentPriority = "p0" | "p1" | "p2" | "p3";
 

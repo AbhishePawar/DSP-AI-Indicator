@@ -18,12 +18,7 @@ export {
   zIndexTokens,
 } from "./tokens/design-tokens";
 export { FROZEN_FEATURE_ROUTES, ROUTE_GROUPS } from "./routes/freeze";
-export {
-  footerSpec,
-  globalLayoutSpec,
-  headerSpec,
-  sidebarSpec,
-} from "./layout/spec";
+export { footerSpec, globalLayoutSpec, headerSpec, sidebarSpec } from "./layout/spec";
 export {
   stateArchitecture,
   uiStoreDefaults,

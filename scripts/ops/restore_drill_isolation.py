@@ -46,9 +46,9 @@ def main() -> int:
     from dsp_platform.saas_platform.db_store import DatabaseSaasOverlayStore
     from enterprise import DatabaseEnterpriseStore, EnterpriseService
     from production_platform.production.product_state_backup import (
+        PRODUCT_STATE_TABLES,
         RESTORE_CONFIRM_ENV,
         LogicalProductStateBackupAdapter,
-        PRODUCT_STATE_TABLES,
     )
 
     db = None
@@ -57,12 +57,18 @@ def main() -> int:
         from production_platform.adapters.postgres import try_build_postgres
 
         db = try_build_postgres(
-            (os.environ.get("DSP_DATABASE_URL") or os.environ.get("DATABASE_URL") or "").strip()
+            (
+                os.environ.get("DSP_DATABASE_URL")
+                or os.environ.get("DATABASE_URL")
+                or ""
+            ).strip()
         )
         if db is not None:
             evidence = "real_postgresql"
         elif args.postgres:
-            print("FAIL: --postgres requested but PostgreSQL unavailable", file=sys.stderr)
+            print(
+                "FAIL: --postgres requested but PostgreSQL unavailable", file=sys.stderr
+            )
             return 2
 
     if db is None:
@@ -82,7 +88,9 @@ def main() -> int:
             name="Drill B", slug="drill-b-p108", owner_user_id="owner-b"
         )
         saas = DatabaseSaasOverlayStore(db)
-        saas.upsert_subscription(org_a["org_id"], {"plan_id": "starter", "status": "active"})
+        saas.upsert_subscription(
+            org_a["org_id"], {"plan_id": "starter", "status": "active"}
+        )
         saas.upsert_subscription(
             org_b["org_id"], {"plan_id": "enterprise", "status": "active"}
         )
@@ -93,7 +101,9 @@ def main() -> int:
         reports = DatabaseReportStore(db)
         reports.put(
             "rpt-a",
-            stamp_report_owner({"capability": "x", "payload": {}, "ok": True}, "owner-a"),
+            stamp_report_owner(
+                {"capability": "x", "payload": {}, "ok": True}, "owner-a"
+            ),
         )
 
         adapter = LogicalProductStateBackupAdapter(db, backup_root=tmp)
@@ -111,7 +121,9 @@ def main() -> int:
             return 1
 
         ent2 = EnterpriseService(store=DatabaseEnterpriseStore(db))
-        assert ent2.get_organization(org_a["org_id"], actor_user_id="owner-a") is not None
+        assert (
+            ent2.get_organization(org_a["org_id"], actor_user_id="owner-a") is not None
+        )
         try:
             ent2.get_organization(org_a["org_id"], actor_user_id="owner-b")
             print("FAIL: cross-tenant read allowed after restore", file=sys.stderr)

@@ -314,11 +314,20 @@ def classify_path(path: str) -> str:
     # Root / config
     if p in {".gitignore", "VERSION", "CONTRIBUTING.md", "LICENSE", "LICENSE.md"}:
         return "configuration"
-    if p.startswith(".cursor/") or p.startswith(".vscode/") or p.endswith(".editorconfig"):
+    if (
+        p.startswith(".cursor/")
+        or p.startswith(".vscode/")
+        or p.endswith(".editorconfig")
+    ):
         return "configuration"
     if p.startswith(".github/"):
         return "cicd"
-    if p.startswith("docker/") or p.startswith("scripts/") or p.startswith("monitoring/") or p.startswith("grafana/"):
+    if (
+        p.startswith("docker/")
+        or p.startswith("scripts/")
+        or p.startswith("monitoring/")
+        or p.startswith("grafana/")
+    ):
         return "devops"
     if p.startswith("tools/"):
         # Tooling itself — treat as devops/other tooling
@@ -339,7 +348,9 @@ def classify_path(path: str) -> str:
             "PEP_004",
             "P4_",
         )
-        if any(t in name.upper() for t in legal_tokens) or name.upper().startswith("TERMS"):
+        if any(t in name.upper() for t in legal_tokens) or name.upper().startswith(
+            "TERMS"
+        ):
             return "legal"
         return "documentation"
 
@@ -432,7 +443,12 @@ def classify_path(path: str) -> str:
         return "frontend_other"
 
     # Generic tests outside apps/web
-    if "/tests/" in p or p.startswith("tests/") or p.endswith("_test.py") or p.startswith("test_"):
+    if (
+        "/tests/" in p
+        or p.startswith("tests/")
+        or p.endswith("_test.py")
+        or p.startswith("test_")
+    ):
         return "tests"
 
     return "other"

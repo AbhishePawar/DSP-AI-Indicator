@@ -36,11 +36,11 @@ def create_notes(
 
     text = f"""# Release Notes — DSP AI Indicator
 
-**Date:** {date.today().isoformat()}  
-**Frontend:** `{frontend_version}`  
-**Backend:** `dsp_platform {backend_version}`  
-**API contract:** `{api_contract}`  
-**Channel:** `{prod.get("channel", "ga-candidate")}`  
+**Date:** {date.today().isoformat()}\\
+**Frontend:** `{frontend_version}`\\
+**Backend:** `dsp_platform {backend_version}`\\
+**API contract:** `{api_contract}`\\
+**Channel:** `{prod.get("channel", "ga-candidate")}`\\
 **Milestone:** `{prod.get("milestone", "P8.0")}`
 
 ## Summary

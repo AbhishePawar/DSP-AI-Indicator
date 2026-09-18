@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 
 from tools.git_recovery.classifier import classify_files
@@ -31,7 +31,7 @@ def build_plan(
         total_files=len(files),
         groups=commit_groups,
         ignored=ignored,
-        generated_at=datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
+        generated_at=datetime.now(UTC).strftime("%Y-%m-%dT%H:%M:%SZ"),
     )
 
 
@@ -43,8 +43,8 @@ def render_plan_markdown(plan: RecoveryPlan) -> str:
     lines.append("")
     lines.append("## Summary")
     lines.append("")
-    lines.append(f"| Field | Value |")
-    lines.append(f"|---|---|")
+    lines.append("| Field | Value |")
+    lines.append("|---|---|")
     lines.append(f"| Generated at (UTC) | `{plan.generated_at}` |")
     lines.append(f"| Branch | `{plan.branch}` |")
     lines.append(f"| Remote | `{plan.remote}` |")
@@ -72,7 +72,11 @@ def render_plan_markdown(plan: RecoveryPlan) -> str:
         lines.append(f"- **Package:** {group.package}")
         lines.append(f"- **Action:** {group.action}")
         lines.append(f"- **Estimated Risk:** `{group.risk.value}`")
-        deps = ", ".join(f"`{d}`" for d in group.depends_on) if group.depends_on else "_none_"
+        deps = (
+            ", ".join(f"`{d}`" for d in group.depends_on)
+            if group.depends_on
+            else "_none_"
+        )
         lines.append(f"- **Dependencies:** {deps}")
         lines.append(f"- **Suggested Commit Message:** `{group.suggested_message}`")
         lines.append(f"- **Files ({len(group.files)}):**")

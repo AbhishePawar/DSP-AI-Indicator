@@ -8,7 +8,7 @@ from pathlib import Path
 
 from tools.git_recovery import __version__
 from tools.git_recovery.git_ops import GitOps, GitSafetyError
-from tools.git_recovery.models import RecoveryGroup, RecoveryPlan
+from tools.git_recovery.models import RecoveryGroup
 from tools.git_recovery.planner import build_plan, write_plan
 
 
@@ -153,7 +153,9 @@ def cmd_status(args: argparse.Namespace) -> int:
     print(git.status_short())
     porcelain = git.status_porcelain()
     plan = build_plan(porcelain, branch=git.current_branch(), remote=args.remote)
-    print(f"Files: {plan.total_files} | Groups: {len(plan.commit_groups)} | Ignored: {len(plan.ignored)}")
+    print(
+        f"Files: {plan.total_files} | Groups: {len(plan.commit_groups)} | Ignored: {len(plan.ignored)}"
+    )
     for g in plan.commit_groups:
         print(f"  - {g.key:28} {len(g.files):4d} files  risk={g.risk.value}")
     return 0
@@ -177,7 +179,9 @@ def build_parser() -> argparse.ArgumentParser:
         prog="git-recovery",
         description="DSP Git Recovery Manager — logical commits from a dirty tree.",
     )
-    parser.add_argument("--version", action="version", version=f"%(prog)s {__version__}")
+    parser.add_argument(
+        "--version", action="version", version=f"%(prog)s {__version__}"
+    )
 
     sub = parser.add_subparsers(dest="command", required=True)
 

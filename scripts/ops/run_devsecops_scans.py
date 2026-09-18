@@ -11,7 +11,7 @@ import json
 import shutil
 import subprocess
 import sys
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -44,7 +44,7 @@ def write(path: Path, text: str) -> None:
 
 
 def main() -> int:
-    ts = datetime.now(timezone.utc).isoformat()
+    ts = datetime.now(UTC).isoformat()
     summary: dict = {
         "epic": "019A",
         "generated_at": ts,
@@ -53,7 +53,9 @@ def main() -> int:
     }
 
     # --- CycloneDX / lite SBOM via existing generator ---
-    code, out = run([sys.executable, str(ROOT / "scripts" / "ops" / "generate_sbom.py")])
+    code, out = run(
+        [sys.executable, str(ROOT / "scripts" / "ops" / "generate_sbom.py")]
+    )
     summary["tools"]["generate_sbom"] = {"exit": code}
     summary["artifacts"].append("docs/security/SBOM_GENERATION_REPORT.md")
 
@@ -118,13 +120,13 @@ def main() -> int:
                 [
                     "# TRIVY REPORT — EPIC-019A",
                     "",
-                    f"| Field | Value |",
-                    f"|---|---|",
+                    "| Field | Value |",
+                    "|---|---|",
                     f"| Generated | {ts} |",
-                    f"| Tool | trivy (local/CI) |",
+                    "| Tool | trivy (local/CI) |",
                     f"| Exit (json) | {code} |",
                     f"| Exit (table) | {code2} |",
-                    f"| JSON artefact | `docs/devsecops/trivy-fs.json` |",
+                    "| JSON artefact | `docs/devsecops/trivy-fs.json` |",
                     "",
                     "## Table output",
                     "",
@@ -146,11 +148,11 @@ def main() -> int:
                 [
                     "# TRIVY REPORT — EPIC-019A",
                     "",
-                    f"| Field | Value |",
-                    f"|---|---|",
+                    "| Field | Value |",
+                    "|---|---|",
                     f"| Generated | {ts} |",
-                    f"| Tool | **trivy not installed on this host** |",
-                    f"| Status | DEFERRED to CI workflow `.github/workflows/devsecops.yml` |",
+                    "| Tool | **trivy not installed on this host** |",
+                    "| Status | DEFERRED to CI workflow `.github/workflows/devsecops.yml` |",
                     "",
                     "## How to run locally",
                     "",
@@ -173,10 +175,22 @@ def main() -> int:
     # --- pip-audit / npm audit snapshots ---
     pip_audit = shutil.which("pip-audit")
     if pip_audit:
-        code, out = run([pip_audit, "--format", "json", "-o", str(OUT / "pip-audit.json")])
+        code, out = run(
+            [pip_audit, "--format", "json", "-o", str(OUT / "pip-audit.json")]
+        )
         summary["tools"]["pip_audit"] = {"exit": code, "available": True}
     else:
-        code, out = run([sys.executable, "-m", "pip_audit", "--format", "json", "-o", str(OUT / "pip-audit.json")])
+        code, out = run(
+            [
+                sys.executable,
+                "-m",
+                "pip_audit",
+                "--format",
+                "json",
+                "-o",
+                str(OUT / "pip-audit.json"),
+            ]
+        )
         summary["tools"]["pip_audit"] = {
             "exit": code,
             "available": code != 127,
@@ -186,7 +200,10 @@ def main() -> int:
     npm_bin = shutil.which("npm")
     if npm_bin:
         code, out = run([npm_bin, "audit", "--json"], cwd=ROOT / "apps" / "web")
-        write(OUT / "npm-audit.json", out if out.strip().startswith("{") else json.dumps({"raw": out[:50000]}))
+        write(
+            OUT / "npm-audit.json",
+            out if out.strip().startswith("{") else json.dumps({"raw": out[:50000]}),
+        )
         summary["tools"]["npm_audit"] = {"exit": code, "available": True}
 
     # --- SBOM report pointer ---
@@ -196,8 +213,8 @@ def main() -> int:
             [
                 "# SBOM REPORT — EPIC-019A",
                 "",
-                f"| Field | Value |",
-                f"|---|---|",
+                "| Field | Value |",
+                "|---|---|",
                 f"| Generated | {ts} |",
                 f"| Lite SBOM script | `scripts/ops/generate_sbom.py` (exit {summary['tools'].get('generate_sbom', {}).get('exit')}) |",
                 f"| CycloneDX npm | {summary['tools'].get('cyclonedx_npm')} |",

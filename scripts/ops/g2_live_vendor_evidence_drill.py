@@ -146,7 +146,9 @@ def classify_gate(
         "evidence_class": evidence_class,
         "reason": reason,
         "route": route,
-        "credential_presence": {k: ("PRESENT" if v else "ABSENT") for k, v in present.items()},
+        "credential_presence": {
+            k: ("PRESENT" if v else "ABSENT") for k, v in present.items()
+        },
         "memory_flags_enabled": memory,
         "required_secrets": [
             "DSP_FMP_API_KEY (preferred single-key FMP route)",
@@ -247,9 +249,10 @@ def _fail(msg: str, evidence: dict[str, Any], code: int = 2) -> int:
     if evidence.get("g2_status") != "CLEARED":
         evidence["g2_status"] = evidence.get("g2_status") or "BLOCKED"
     # Never leave real_live_authenticated_provider on a failed/blocked run.
-    if evidence.get("evidence_class") == "real_live_authenticated_provider":
-        evidence["evidence_class"] = "live_execution_failed"
-    elif evidence.get("evidence_class") == "credentials_present_pending_live":
+    if (
+        evidence.get("evidence_class") == "real_live_authenticated_provider"
+        or evidence.get("evidence_class") == "credentials_present_pending_live"
+    ):
         evidence["evidence_class"] = "live_execution_failed"
     _write_evidence(evidence)
     print(f"FAIL G2: {msg}", file=sys.stderr)
@@ -307,9 +310,8 @@ def _run_live(evidence: dict[str, Any]) -> int:
     from data_engine.market_quote.adapters import build_default_quote_adapter_from_env
 
     def _instrument(symbol: str) -> Instrument:
-        return Instrument(
-            symbol=symbol, asset_class=AssetClass.EQUITY, currency="USD"
-        )
+        return Instrument(symbol=symbol, asset_class=AssetClass.EQUITY, currency="USD")
+
     from dsp_platform import (
         PlatformBuilder,
         PlatformConfiguration,
@@ -338,23 +340,27 @@ def _run_live(evidence: dict[str, Any]) -> int:
             "class": type(quote_adapter).__name__,
             "provider_id": quote_adapter.provider_id,
             "authenticated": bool(getattr(q_health, "authenticated", False)),
-            "health": q_health.to_dict()
-            if hasattr(q_health, "to_dict")
-            else {
-                "provider_id": quote_adapter.provider_id,
-                "authenticated": bool(getattr(q_health, "authenticated", False)),
-            },
+            "health": (
+                q_health.to_dict()
+                if hasattr(q_health, "to_dict")
+                else {
+                    "provider_id": quote_adapter.provider_id,
+                    "authenticated": bool(getattr(q_health, "authenticated", False)),
+                }
+            ),
         },
         "statements": {
             "class": type(stmt_adapter).__name__,
             "provider_id": stmt_adapter.provider_id,
             "authenticated": bool(getattr(s_health, "authenticated", False)),
-            "health": s_health.to_dict()
-            if hasattr(s_health, "to_dict")
-            else {
-                "provider_id": stmt_adapter.provider_id,
-                "authenticated": bool(getattr(s_health, "authenticated", False)),
-            },
+            "health": (
+                s_health.to_dict()
+                if hasattr(s_health, "to_dict")
+                else {
+                    "provider_id": stmt_adapter.provider_id,
+                    "authenticated": bool(getattr(s_health, "authenticated", False)),
+                }
+            ),
         },
     }
     if not steps["adapters"]["quote"]["authenticated"]:
@@ -374,9 +380,7 @@ def _run_live(evidence: dict[str, Any]) -> int:
             getattr(quote.current_price, "available", False)
             and getattr(quote.current_price, "value", None) is not None
         ),
-        "price_finite": bool(
-            getattr(quote.current_price, "value", None) is not None
-        ),
+        "price_finite": bool(getattr(quote.current_price, "value", None) is not None),
         "shares_outstanding_available": bool(
             getattr(quote.shares_outstanding, "available", False)
         ),

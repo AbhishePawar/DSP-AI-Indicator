@@ -12,7 +12,8 @@ VERSION (repo root) semantics:
 
 from __future__ import annotations
 
-from typing import Any, Mapping, TypedDict
+from collections.abc import Mapping
+from typing import Any, TypedDict
 
 
 class ReleaseProfile(TypedDict):

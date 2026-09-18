@@ -143,7 +143,9 @@ def main() -> int:
         text=True,
         check=False,
     )
-    passed &= _ok("validate_env production synthetic", proc.returncode == 0, proc.stderr)
+    passed &= _ok(
+        "validate_env production synthetic", proc.returncode == 0, proc.stderr
+    )
 
     # Compose requires ../.env.production (gitignored). For offline CI/cert only,
     # materialize a temporary stub from the committed example — never commit secrets.

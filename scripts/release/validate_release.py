@@ -78,7 +78,9 @@ def validate(
 ) -> int:
     passed = True
 
-    be_init = ROOT / "packages" / "dsp_platform" / "src" / "dsp_platform" / "__init__.py"
+    be_init = (
+        ROOT / "packages" / "dsp_platform" / "src" / "dsp_platform" / "__init__.py"
+    )
     be_toml = ROOT / "packages" / "dsp_platform" / "pyproject.toml"
     fe_ver = ROOT / "apps" / "web" / "src" / "foundation" / "version.ts"
     fe_pkg = ROOT / "apps" / "web" / "package.json"
@@ -88,7 +90,15 @@ def validate(
     version_matrix = ROOT / "docs" / "VERSION_MATRIX.md"
     compose_prod = ROOT / "docker" / "docker-compose.production.yml"
 
-    for path in [be_init, be_toml, fe_ver, fe_pkg, fe_manifest, prod_manifest, version_file]:
+    for path in [
+        be_init,
+        be_toml,
+        fe_ver,
+        fe_pkg,
+        fe_manifest,
+        prod_manifest,
+        version_file,
+    ]:
         passed &= _ok(f"exists {path.relative_to(ROOT)}", path.is_file())
 
     try:
@@ -114,7 +124,9 @@ def validate(
     toml_v = _extract_toml_version(_read(be_toml))
     passed &= _ok("backend semver", bool(SEMVER.match(be_v)), be_v)
     passed &= _ok("backend == expected", be_v == expected["backend"], be_v)
-    passed &= _ok("pyproject matches __version__", be_v == toml_v, f"{be_v} vs {toml_v}")
+    passed &= _ok(
+        "pyproject matches __version__", be_v == toml_v, f"{be_v} vs {toml_v}"
+    )
 
     fe_text = _read(fe_ver)
     m_fe = re.search(r'FRONTEND_FOUNDATION_VERSION\s*=\s*"([^"]+)"', fe_text)
@@ -167,9 +179,7 @@ def validate(
     )
 
     matrix = _read(version_matrix)
-    passed &= _ok(
-        "VERSION_MATRIX backend pin", f"**{expected['backend']}**" in matrix
-    )
+    passed &= _ok("VERSION_MATRIX backend pin", f"**{expected['backend']}**" in matrix)
     passed &= _ok(
         "VERSION_MATRIX frontend pin", f"**{expected['frontend']}**" in matrix
     )
@@ -209,7 +219,8 @@ def validate(
     alt = GA_PROFILE if expected["channel"] == RC_PROFILE["channel"] else RC_PROFILE
     passed &= _ok(
         f"alternate profile retained ({alt['channel']})",
-        alt["frontend"] != expected["frontend"] or alt["channel"] != expected["channel"],
+        alt["frontend"] != expected["frontend"]
+        or alt["channel"] != expected["channel"],
         f"{alt['epic']} / {alt['frontend']}",
     )
 

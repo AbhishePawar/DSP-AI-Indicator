@@ -17,7 +17,7 @@ import os
 import sys
 import time
 import tracemalloc
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
@@ -60,8 +60,12 @@ def _sample_health(client: Any, path: str) -> dict[str, Any]:
 
 def main() -> int:
     parser = argparse.ArgumentParser(description="DSP synthetic soak test")
-    parser.add_argument("--hours", type=float, default=0.05, help="Duration hours (default ~3 min)")
-    parser.add_argument("--minutes", type=float, default=None, help="Override duration in minutes")
+    parser.add_argument(
+        "--hours", type=float, default=0.05, help="Duration hours (default ~3 min)"
+    )
+    parser.add_argument(
+        "--minutes", type=float, default=None, help="Override duration in minutes"
+    )
     parser.add_argument("--interval-seconds", type=float, default=5.0)
     parser.add_argument(
         "--paths",
@@ -83,7 +87,7 @@ def main() -> int:
         args.minutes * 60.0 if args.minutes is not None else args.hours * 3600.0
     )
     paths = [p.strip() for p in args.paths.split(",") if p.strip()]
-    started = datetime.now(timezone.utc)
+    started = datetime.now(UTC)
     deadline = time.monotonic() + duration_s
 
     samples: list[dict[str, Any]] = []
@@ -124,7 +128,7 @@ def main() -> int:
 
     while time.monotonic() < deadline:
         row: dict[str, Any] = {
-            "t": datetime.now(timezone.utc).isoformat(),
+            "t": datetime.now(UTC).isoformat(),
             "paths": {},
             "rss_mb": _rss_mb(),
         }
@@ -141,7 +145,7 @@ def main() -> int:
 
     current_end, peak_end = tracemalloc.get_traced_memory()
     rss_end = _rss_mb()
-    ended = datetime.now(timezone.utc)
+    ended = datetime.now(UTC)
     wall_s = (ended - started).total_seconds()
 
     report = {

@@ -25,8 +25,9 @@ import json
 import os
 import subprocess
 import sys
+from collections.abc import Mapping
 from pathlib import Path
-from typing import Any, Mapping
+from typing import Any
 
 ROOT = Path(__file__).resolve().parents[2]
 EVIDENCE_PATH = ROOT / "artifacts" / "rc1_hard_release_gate.json"
@@ -103,10 +104,7 @@ def classify_g2_artifact_status(
     has_live_shape = bool(
         evidence.get("quote_adapter")
         and evidence.get("statement_adapter")
-        and (
-            evidence.get("quote_retrieved_at")
-            or quote_step.get("retrieved_at")
-        )
+        and (evidence.get("quote_retrieved_at") or quote_step.get("retrieved_at"))
         and evidence.get("authenticated") is True
     )
 
@@ -191,7 +189,9 @@ def evaluate_gates(
 ) -> GateDecision:
     """Pure aggregator — no I/O. Any FAIL/BLOCKED or bad identity ⇒ NO-GO."""
     normalized = {gid: str(statuses.get(gid, "BLOCKED")).upper() for gid in GATE_IDS}
-    blocking = [gid for gid, status in normalized.items() if status in BLOCKING_STATUSES]
+    blocking = [
+        gid for gid, status in normalized.items() if status in BLOCKING_STATUSES
+    ]
     if not identity_ok:
         blocking.append("RELEASE_IDENTITY")
     # Deduplicate while preserving order
@@ -226,7 +226,9 @@ def load_json(path: Path) -> dict[str, Any] | None:
 
 def _load_g2_classify():
     drill = ROOT / "scripts" / "ops" / "g2_live_vendor_evidence_drill.py"
-    spec = importlib.util.spec_from_file_location("g2_live_vendor_evidence_drill", drill)
+    spec = importlib.util.spec_from_file_location(
+        "g2_live_vendor_evidence_drill", drill
+    )
     if spec is None or spec.loader is None:
         raise RuntimeError("Unable to load G2 drill module")
     mod = importlib.util.module_from_spec(spec)
@@ -241,7 +243,11 @@ def check_release_identity(
 ) -> tuple[bool, dict[str, str], str]:
     """Verify EPS-003 · 2.0.0-rc.1 · rc · RELEASE_CANDIDATE (no stale GA)."""
     prod_path = ROOT / "PRODUCTION_VERSION_MANIFEST.json"
-    prod = dict(prod_manifest) if prod_manifest is not None else (load_json(prod_path) or {})
+    prod = (
+        dict(prod_manifest)
+        if prod_manifest is not None
+        else (load_json(prod_path) or {})
+    )
     identity = {
         "epic": str(prod.get("milestone") or ""),
         "product_version": str(
@@ -255,7 +261,8 @@ def check_release_identity(
         identity = {
             "epic": str(provenance_identity.get("epic") or identity["epic"]),
             "product_version": str(
-                provenance_identity.get("product_version") or identity["product_version"]
+                provenance_identity.get("product_version")
+                or identity["product_version"]
             ),
             "channel": str(provenance_identity.get("channel") or identity["channel"]),
             "decision": str(
@@ -282,9 +289,7 @@ def check_release_identity(
     return ok, identity, reason
 
 
-def _status_from_ok_evidence(
-    path: Path, *, require_ok: bool = True
-) -> tuple[str, str]:
+def _status_from_ok_evidence(path: Path, *, require_ok: bool = True) -> tuple[str, str]:
     data = load_json(path)
     if data is None:
         return "BLOCKED", f"missing evidence: {path.name}"
@@ -415,8 +420,7 @@ def run_critical_command(command: list[str], *, cwd: Path | None = None) -> int:
     completed = subprocess.run(command, cwd=str(cwd or ROOT), check=False)
     if completed.returncode != 0:
         print(
-            f"CRITICAL_CMD_FAILED exit={completed.returncode} "
-            "(soft-fail forbidden)",
+            f"CRITICAL_CMD_FAILED exit={completed.returncode} " "(soft-fail forbidden)",
             file=sys.stderr,
         )
     return completed.returncode
@@ -439,7 +443,7 @@ def write_evidence(decision: GateDecision) -> Path:
 
 
 def parse_inject(values: list[str]) -> dict[str, str]:
-    out: dict[str, str] = {gid: "PASS" for gid in GATE_IDS}
+    out: dict[str, str] = dict.fromkeys(GATE_IDS, "PASS")
     for raw in values:
         if "=" not in raw:
             raise ValueError(f"inject must be GATE=STATUS, got {raw!r}")
@@ -483,13 +487,15 @@ def main(argv: list[str] | None = None) -> int:
     if args.simulate_critical_failure is not None:
         code = int(args.simulate_critical_failure)
         if code == 0:
-            print("simulate-critical-failure requires non-zero EXIT_CODE", file=sys.stderr)
+            print(
+                "simulate-critical-failure requires non-zero EXIT_CODE", file=sys.stderr
+            )
             return 1
         print(
             f"CRITICAL_CMD_FAILED exit={code} (soft-fail forbidden)",
             file=sys.stderr,
         )
-        decision = evaluate_gates({gid: "PASS" for gid in GATE_IDS}, identity_ok=True)
+        decision = evaluate_gates(dict.fromkeys(GATE_IDS, "PASS"), identity_ok=True)
         decision.release_allowed = False
         decision.decision = "NO-GO"
         decision.blocking = ["CRITICAL_CMD"]

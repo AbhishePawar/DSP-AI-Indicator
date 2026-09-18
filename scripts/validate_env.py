@@ -126,8 +126,7 @@ def main(argv: list[str] | None = None) -> int:
             )
         if domain.startswith("http://") or domain.startswith("https://"):
             print(
-                "[production] DSP_PUBLIC_DOMAIN must be a hostname only "
-                "(no scheme)",
+                "[production] DSP_PUBLIC_DOMAIN must be a hostname only " "(no scheme)",
                 file=sys.stderr,
             )
             return 1

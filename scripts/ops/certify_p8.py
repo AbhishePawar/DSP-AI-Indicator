@@ -84,7 +84,9 @@ def main() -> int:
 
     debt = (ROOT / "docs" / "GA_TECHNICAL_DEBT.md").read_text(encoding="utf-8")
     for cat in ("Critical", "High", "Medium", "Low", "Deferred"):
-        passed &= _ok(f"debt category {cat}", f"**{cat}**" in debt or f"| **{cat}**" in debt)
+        passed &= _ok(
+            f"debt category {cat}", f"**{cat}**" in debt or f"| **{cat}**" in debt
+        )
 
     ga = (ROOT / "docs" / "P8_GENERAL_AVAILABILITY.md").read_text(encoding="utf-8")
     for needle in (
@@ -96,7 +98,9 @@ def main() -> int:
     ):
         passed &= _ok(f"GA report mentions {needle}", needle in ga)
 
-    arch = (ROOT / "docs" / "GA_ARCHITECTURE_CERTIFICATION.md").read_text(encoding="utf-8")
+    arch = (ROOT / "docs" / "GA_ARCHITECTURE_CERTIFICATION.md").read_text(
+        encoding="utf-8"
+    )
     for needle in (
         "Thin Client",
         "API Freeze",
@@ -113,7 +117,9 @@ def main() -> int:
     m = re.search(r'__version__\s*=\s*"([^"]+)"', init_py)
     passed &= _ok("backend 2.0.0", (m.group(1) if m else "") == EXPECTED_BE)
 
-    fe = json.loads((ROOT / "apps" / "web" / "VERSION_MANIFEST.json").read_text(encoding="utf-8"))
+    fe = json.loads(
+        (ROOT / "apps" / "web" / "VERSION_MANIFEST.json").read_text(encoding="utf-8")
+    )
     passed &= _ok("frontend 2.0.0", fe.get("appVersion") == EXPECTED_FE)
     passed &= _ok("epic P8.0", fe.get("foundationEpic") == EXPECTED_EPIC)
     passed &= _ok("api v1.0.0", fe.get("apiContract") == EXPECTED_API)
@@ -131,7 +137,9 @@ def main() -> int:
         f'BACKEND_PLATFORM_TARGET = "dsp_platform@{EXPECTED_BE}"' in ver_ts,
     )
 
-    prod = json.loads((ROOT / "PRODUCTION_VERSION_MANIFEST.json").read_text(encoding="utf-8"))
+    prod = json.loads(
+        (ROOT / "PRODUCTION_VERSION_MANIFEST.json").read_text(encoding="utf-8")
+    )
     passed &= _ok("prod milestone P8.0", prod.get("milestone") == EXPECTED_EPIC)
     passed &= _ok("prod backend 2.0.0", prod.get("backendVersion") == EXPECTED_BE)
     passed &= _ok("prod frontend 2.0.0", prod.get("frontendVersion") == EXPECTED_FE)

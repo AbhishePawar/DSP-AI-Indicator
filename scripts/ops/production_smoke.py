@@ -69,7 +69,8 @@ def smoke_api(base: str) -> bool:
     code, body = _get(f"{base}/metrics")
     passed &= _check(
         "API /metrics",
-        code == 200 and ("#" in body or "http_" in body or "dsp_" in body or len(body) > 0),
+        code == 200
+        and ("#" in body or "http_" in body or "dsp_" in body or len(body) > 0),
         f"status={code}",
     )
 
@@ -111,7 +112,9 @@ def smoke_web(base: str) -> bool:
         ("/docs/privacy", "Privacy"),
     ):
         code, _ = _get(f"{base}{path}")
-        passed &= _check(f"Web {label} ({path})", code in {200, 307, 308, 401}, f"status={code}")
+        passed &= _check(
+            f"Web {label} ({path})", code in {200, 307, 308, 401}, f"status={code}"
+        )
 
     return passed
 

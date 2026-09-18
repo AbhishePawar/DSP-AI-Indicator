@@ -9,7 +9,7 @@ from __future__ import annotations
 
 import json
 import re
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -26,12 +26,17 @@ def main() -> int:
     # .gitignore protects production env
     gi = (ROOT / ".gitignore").read_text(encoding="utf-8")
     findings.append(
-        check(".env.production gitignored", ".env.production" in gi, "expected in .gitignore")
+        check(
+            ".env.production gitignored",
+            ".env.production" in gi,
+            "expected in .gitignore",
+        )
     )
     findings.append(
         check(
             ".env.production.example allowed",
-            "!.env.production.example" in gi or (ROOT / ".env.production.example").exists(),
+            "!.env.production.example" in gi
+            or (ROOT / ".env.production.example").exists(),
         )
     )
 
@@ -57,30 +62,49 @@ def main() -> int:
     findings.append(
         check(
             "compose uses env substitution for DB password",
-            "POSTGRES_PASSWORD" in prod and "CHANGE_ME" in (ROOT / ".env.production.example").read_text(encoding="utf-8"),
+            "POSTGRES_PASSWORD" in prod
+            and "CHANGE_ME"
+            in (ROOT / ".env.production.example").read_text(encoding="utf-8"),
         )
     )
 
     # Security headers middleware exists
-    mw = ROOT / "packages" / "security_platform" / "src" / "security_platform" / "security" / "middleware.py"
+    mw = (
+        ROOT
+        / "packages"
+        / "security_platform"
+        / "src"
+        / "security_platform"
+        / "security"
+        / "middleware.py"
+    )
     findings.append(check("security middleware present", mw.exists()))
     if mw.exists():
         text = mw.read_text(encoding="utf-8")
         findings.append(
             check(
                 "security headers referenced",
-                "X-Content-Type-Options" in text or "nosniff" in text or "Security" in text,
+                "X-Content-Type-Options" in text
+                or "nosniff" in text
+                or "Security" in text,
                 "see docs/security/PRODUCTION_SECURITY_GUIDE.md",
             )
         )
 
     # k8s drop ALL capabilities
     api_k8s = (ROOT / "deploy/k8s/base/api-deployment.yaml").read_text(encoding="utf-8")
-    findings.append(check("k8s API drops ALL caps", 'drop: ["ALL"]' in api_k8s or "drop: [\"ALL\"]" in api_k8s))
+    findings.append(
+        check(
+            "k8s API drops ALL caps",
+            'drop: ["ALL"]' in api_k8s or 'drop: ["ALL"]' in api_k8s,
+        )
+    )
     findings.append(check("k8s runAsNonRoot", "runAsNonRoot: true" in api_k8s))
 
     # Secret scanning heuristics on deploy/ (skip docs + examples + placeholders)
-    secret_pat = re.compile(r"(api[_-]?key|password|secret)\s*[:=]\s*['\"][^'\"]{12,}", re.I)
+    secret_pat = re.compile(
+        r"(api[_-]?key|password|secret)\s*[:=]\s*['\"][^'\"]{12,}", re.I
+    )
     placeholder = re.compile(
         r"(CHANGE_ME|from-vault|your-domain|<from-|<vault|example\.|TODO)",
         re.I,
@@ -101,14 +125,16 @@ def main() -> int:
                 continue
             leaked.append(f"{path.relative_to(ROOT)}: {snippet[:40]}…")
     findings.append(
-        check("no hardcoded secrets in deploy/", len(leaked) == 0, "; ".join(leaked[:5]))
+        check(
+            "no hardcoded secrets in deploy/", len(leaked) == 0, "; ".join(leaked[:5])
+        )
     )
 
     ok_count = sum(1 for f in findings if f["ok"])
     lines = [
         "# EPIC-017 Security Packaging Review",
         "",
-        f"Generated: `{datetime.now(timezone.utc).isoformat()}`",
+        f"Generated: `{datetime.now(UTC).isoformat()}`",
         "",
         f"**Result:** {ok_count}/{len(findings)} checks passed",
         "",
@@ -142,7 +168,9 @@ def main() -> int:
             "- Full CycloneDX requires syft/cyclonedx CLI in CI",
             "",
             "```json",
-            json.dumps({"epic": "017", "passed": ok_count, "total": len(findings)}, indent=2),
+            json.dumps(
+                {"epic": "017", "passed": ok_count, "total": len(findings)}, indent=2
+            ),
             "```",
             "",
         ]

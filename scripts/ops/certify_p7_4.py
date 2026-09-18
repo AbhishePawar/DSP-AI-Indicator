@@ -84,9 +84,9 @@ def main() -> int:
     for svc in ("grafana:", "alertmanager:", "postgres-exporter:", "redis-exporter:"):
         passed &= _ok(f"compose {svc}", svc in compose)
 
-    dash = (ROOT / "docker" / "grafana" / "dashboards" / "dsp-operations.json").read_text(
-        encoding="utf-8"
-    )
+    dash = (
+        ROOT / "docker" / "grafana" / "dashboards" / "dsp-operations.json"
+    ).read_text(encoding="utf-8")
     for panel_hint in (
         "System Health",
         "CPU",
@@ -99,7 +99,9 @@ def main() -> int:
         passed &= _ok(f"dashboard mentions {panel_hint}", panel_hint in dash)
 
     readiness = (ROOT / "docs" / "OPERATIONAL_READINESS.md").read_text(encoding="utf-8")
-    passed &= _ok("readiness has PASS/FAIL", "**PASS**" in readiness and "**FAIL" in readiness)
+    passed &= _ok(
+        "readiness has PASS/FAIL", "**PASS**" in readiness and "**FAIL" in readiness
+    )
 
     risk = (ROOT / "docs" / "PRODUCTION_RISK_REGISTER.md").read_text(encoding="utf-8")
     passed &= _ok("risk register rows", risk.count("| OPS-") >= 10)
@@ -128,7 +130,9 @@ def main() -> int:
     m = re.search(r'__version__\s*=\s*"([^"]+)"', init_py)
     passed &= _ok("backend", (m.group(1) if m else "") == expected["backend"])
 
-    fe = json.loads((ROOT / "apps" / "web" / "VERSION_MANIFEST.json").read_text(encoding="utf-8"))
+    fe = json.loads(
+        (ROOT / "apps" / "web" / "VERSION_MANIFEST.json").read_text(encoding="utf-8")
+    )
     passed &= _ok("frontend", fe.get("appVersion") == expected["frontend"])
     passed &= _ok("epic", fe.get("foundationEpic") == expected["epic"])
     passed &= _ok("api", fe.get("apiContract") == expected["api_contract"])
@@ -154,7 +158,9 @@ def main() -> int:
         text=True,
         check=False,
     )
-    passed &= _ok("validate_release", proc.returncode == 0, (proc.stdout + proc.stderr)[-200:])
+    passed &= _ok(
+        "validate_release", proc.returncode == 0, (proc.stdout + proc.stderr)[-200:]
+    )
 
     print("CERTIFICATION_P7_4", "PASS" if passed else "FAIL")
     return 0 if passed else 1

@@ -7,7 +7,9 @@ import numpy as np
 from dsp import compute, list_indicators
 
 
-def run_demo(prices: list[float] | None = None, period: int = 5) -> dict[str, list[float]]:
+def run_demo(
+    prices: list[float] | None = None, period: int = 5
+) -> dict[str, list[float]]:
     """Compute all registered indicators on a sample price series.
 
     Args:

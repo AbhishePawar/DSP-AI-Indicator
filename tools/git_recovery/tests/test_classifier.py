@@ -22,12 +22,24 @@ def test_classify_core_paths() -> None:
 
 
 def test_classify_frontend_paths() -> None:
-    assert classify_path("apps/web/src/foundation/tokens/colors.ts") == "frontend_foundation"
-    assert classify_path("apps/web/src/app/login/LoginForm.tsx") == "frontend_authentication"
+    assert (
+        classify_path("apps/web/src/foundation/tokens/colors.ts")
+        == "frontend_foundation"
+    )
+    assert (
+        classify_path("apps/web/src/app/login/LoginForm.tsx")
+        == "frontend_authentication"
+    )
     assert classify_path("apps/web/src/app/docs/privacy/page.tsx") == "frontend_legal"
     assert classify_path("apps/web/src/app/dashboard/page.tsx") == "frontend_dashboard"
-    assert classify_path("apps/web/src/lib/research-workspace/index.ts") == "frontend_research"
-    assert classify_path("apps/web/src/lib/portfolio-intelligence/index.ts") == "frontend_portfolio"
+    assert (
+        classify_path("apps/web/src/lib/research-workspace/index.ts")
+        == "frontend_research"
+    )
+    assert (
+        classify_path("apps/web/src/lib/portfolio-intelligence/index.ts")
+        == "frontend_portfolio"
+    )
     assert classify_path("apps/web/src/app/admin/page.tsx") == "frontend_admin"
     assert classify_path("apps/web/src/e2e/login.journey.test.tsx") == "tests"
 

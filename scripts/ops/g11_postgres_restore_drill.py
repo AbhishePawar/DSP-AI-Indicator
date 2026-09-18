@@ -55,7 +55,9 @@ def _write_evidence(evidence: dict[str, Any]) -> None:
     out_dir = root / "artifacts"
     out_dir.mkdir(parents=True, exist_ok=True)
     path = out_dir / "g11_postgres_restore_evidence.json"
-    path.write_text(json.dumps(evidence, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+    path.write_text(
+        json.dumps(evidence, indent=2, sort_keys=True) + "\n", encoding="utf-8"
+    )
     print(f"evidence_written={path}")
 
 
@@ -134,16 +136,28 @@ def _seed(db: Any) -> dict[str, Any]:
     w1_reports = DatabaseReportStore(db)
     w1_reports.put(
         "rpt-a",
-        stamp_report_owner({"capability": "analyse", "payload": {}, "ok": True}, "owner-a"),
+        stamp_report_owner(
+            {"capability": "analyse", "payload": {}, "ok": True}, "owner-a"
+        ),
     )
     w1_reports.put(
         "rpt-b",
-        stamp_report_owner({"capability": "analyse", "payload": {}, "ok": True}, "owner-b"),
+        stamp_report_owner(
+            {"capability": "analyse", "payload": {}, "ok": True}, "owner-b"
+        ),
     )
 
     ownership = {
-        "org_a": {"org_id": org_a["org_id"], "owner_user_id": "owner-a", "name": "G11 Org A"},
-        "org_b": {"org_id": org_b["org_id"], "owner_user_id": "owner-b", "name": "G11 Org B"},
+        "org_a": {
+            "org_id": org_a["org_id"],
+            "owner_user_id": "owner-a",
+            "name": "G11 Org A",
+        },
+        "org_b": {
+            "org_id": org_b["org_id"],
+            "owner_user_id": "owner-b",
+            "name": "G11 Org B",
+        },
         "note_a": {"note_id": note_a["note_id"], "created_by": "owner-a"},
         "note_b": {"note_id": note_b["note_id"], "created_by": "owner-b"},
         "rpt_a": {"report_id": "rpt-a", "owner_user_id": "owner-a"},
@@ -154,7 +168,9 @@ def _seed(db: Any) -> dict[str, Any]:
     return ownership
 
 
-def _assert_workers_and_isolation(db: Any, ownership: dict[str, Any], phase: str) -> dict[str, Any]:
+def _assert_workers_and_isolation(
+    db: Any, ownership: dict[str, Any], phase: str
+) -> dict[str, Any]:
     from api_platform.api.dependencies import DatabaseReportStore
     from dsp_platform.research_workspace.db_store import DatabaseResearchWorkspaceStore
     from dsp_platform.saas_platform.db_store import DatabaseSaasOverlayStore
@@ -163,12 +179,8 @@ def _assert_workers_and_isolation(db: Any, ownership: dict[str, Any], phase: str
 
     # Worker 1
     w1 = EnterpriseService(store=DatabaseEnterpriseStore(db))
-    org_a = w1.get_organization(
-        ownership["org_a"]["org_id"], actor_user_id="owner-a"
-    )
-    org_b = w1.get_organization(
-        ownership["org_b"]["org_id"], actor_user_id="owner-b"
-    )
+    org_a = w1.get_organization(ownership["org_a"]["org_id"], actor_user_id="owner-a")
+    org_b = w1.get_organization(ownership["org_b"]["org_id"], actor_user_id="owner-b")
     if org_a is None or org_b is None:
         raise AssertionError(f"{phase}: org missing after restore/restart")
     if org_a["name"] != ownership["org_a"]["name"]:
@@ -178,9 +190,7 @@ def _assert_workers_and_isolation(db: Any, ownership: dict[str, Any], phase: str
 
     # Worker 2 — new process-local store instances, same PostgreSQL
     w2 = EnterpriseService(store=DatabaseEnterpriseStore(db))
-    org_a2 = w2.get_organization(
-        ownership["org_a"]["org_id"], actor_user_id="owner-a"
-    )
+    org_a2 = w2.get_organization(ownership["org_a"]["org_id"], actor_user_id="owner-a")
     if org_a2 is None or org_a2["org_id"] != ownership["org_a"]["org_id"]:
         raise AssertionError(f"{phase}: worker2 cannot read org A")
 
@@ -258,10 +268,10 @@ def _assert_workers_and_isolation(db: Any, ownership: dict[str, Any], phase: str
 
 def _assert_api_isolation(ownership: dict[str, Any]) -> dict[str, Any]:
     """HTTP-layer isolation after restore (P1-07 contract)."""
+    from auth_test_helpers import bearer_headers, register_user
     from fastapi.testclient import TestClient
 
     from api_platform import create_app
-    from auth_test_helpers import bearer_headers, register_user
     from dsp_platform import PlatformBuilder, PlatformConfiguration
     from dsp_platform.research_workspace import reset_research_workspace_store_for_tests
     from dsp_platform.saas_platform import reset_saas_overlay_store_for_tests
@@ -378,7 +388,9 @@ def main() -> int:
     if api_tests.is_dir():
         sys.path.insert(0, str(api_tests))
 
-    dsn = (os.environ.get("DSP_DATABASE_URL") or os.environ.get("DATABASE_URL") or "").strip()
+    dsn = (
+        os.environ.get("DSP_DATABASE_URL") or os.environ.get("DATABASE_URL") or ""
+    ).strip()
     backup_dir = Path(os.environ.get("DSP_BACKUP_DIR") or (root / "backups")).resolve()
     backup_dir.mkdir(parents=True, exist_ok=True)
     os.environ["DSP_BACKUP_DIR"] = str(backup_dir)
@@ -427,7 +439,9 @@ def main() -> int:
     if db is None:
         return _fail("PostgreSQL unreachable or adapter unavailable", evidence)
     if type(db).__name__ != "PostgresDatabasePort":
-        return _fail(f"expected PostgresDatabasePort, got {type(db).__name__}", evidence)
+        return _fail(
+            f"expected PostgresDatabasePort, got {type(db).__name__}", evidence
+        )
 
     try:
         evidence["postgres_version"] = _pg_version(dsn)
@@ -436,7 +450,9 @@ def main() -> int:
 
     adapter = ShellPgDumpBackupAdapter(backup_root=backup_dir, repo_root=root)
     if not adapter.is_available():
-        return _fail("ShellPgDumpBackupAdapter unavailable (pg_dump/DSN/bash)", evidence)
+        return _fail(
+            "ShellPgDumpBackupAdapter unavailable (pg_dump/DSN/bash)", evidence
+        )
     evidence["steps"]["adapter"] = {
         "provider": adapter.provider_name(),
         "available": True,
@@ -499,7 +515,10 @@ def main() -> int:
         restored = adapter.restore_snapshot(str(created["snapshot_id"]))
         if not restored.get("ok"):
             return _fail(f"pg_dump restore failed: {restored}", evidence)
-        evidence["steps"]["restore"] = {"result": "PASS", "detail": restored.get("message")}
+        evidence["steps"]["restore"] = {
+            "result": "PASS",
+            "detail": restored.get("message"),
+        }
 
         post = _assert_workers_and_isolation(db, ownership, "post_restore")
         evidence["steps"]["post_restore_workers"] = post

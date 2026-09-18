@@ -6,7 +6,6 @@ from pathlib import Path
 
 from tools.git_recovery.planner import build_plan, render_plan_markdown, write_plan
 
-
 SAMPLE = """\
  M .gitignore
 ?? docs/EPIC_F000_README.md

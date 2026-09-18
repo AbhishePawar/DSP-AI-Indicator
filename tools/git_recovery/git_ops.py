@@ -39,7 +39,9 @@ class GitOps:
             raise GitSafetyError(f"Only git commands allowed, got: {args!r}")
         self._assert_safe(args)
         if self.dry_run and args[1] in {"add", "commit", "push"}:
-            return GitResult(args=args, returncode=0, stdout="[dry-run] skipped", stderr="")
+            return GitResult(
+                args=args, returncode=0, stdout="[dry-run] skipped", stderr=""
+            )
         completed = subprocess.run(
             args,
             cwd=self.repo_root,
@@ -72,7 +74,9 @@ class GitOps:
             raise GitSafetyError("Force push blocked")
         if any(a in {"rebase", "filter-branch", "filter-repo"} for a in lowered):
             raise GitSafetyError("History rewrite commands are blocked")
-        if "reset" in lowered and ("--hard" in lowered or "-h" in {a.lower() for a in args}):
+        if "reset" in lowered and (
+            "--hard" in lowered or "-h" in {a.lower() for a in args}
+        ):
             raise GitSafetyError("Hard reset is blocked")
         if args[1] == "add":
             add_args = args[2:]
@@ -113,7 +117,9 @@ class GitOps:
             if normalized in {".", ""} or normalized.startswith(".."):
                 raise GitSafetyError(f"Unsafe stage path: {raw!r}")
             if is_ignored_path_safe(normalized):
-                raise GitSafetyError(f"Refusing to stage ignored/unsafe path: {normalized}")
+                raise GitSafetyError(
+                    f"Refusing to stage ignored/unsafe path: {normalized}"
+                )
             rel_paths.append(normalized)
         # Deduplicate preserving order
         seen: set[str] = set()
@@ -138,7 +144,9 @@ class GitOps:
         if not branch or branch == "HEAD":
             raise GitSafetyError("Detached HEAD — refusing push")
         # Explicit refspec; never --force
-        return self.run(["git", "push", remote, f"HEAD:refs/heads/{branch}"], check=True)
+        return self.run(
+            ["git", "push", remote, f"HEAD:refs/heads/{branch}"], check=True
+        )
 
     def verify_clean_commit(self) -> bool:
         """Return True if index has no staged leftovers after commit."""

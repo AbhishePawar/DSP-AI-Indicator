@@ -57,9 +57,7 @@ def main() -> int:
             continue
         # import name = single package dir under src
         kids = [
-            p.name
-            for p in src.iterdir()
-            if p.is_dir() and (p / "__init__.py").exists()
+            p.name for p in src.iterdir() if p.is_dir() and (p / "__init__.py").exists()
         ]
         if len(kids) != 1:
             errors.append(f"expected one import package under {rel}, found {kids}")

@@ -7,7 +7,7 @@ import hashlib
 import json
 import subprocess
 import sys
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -77,7 +77,7 @@ def main() -> int:
     _write(RELEASE / "RELEASE_CHECKLIST.md", checklist)
 
     build_manifest = {
-        "generatedAt": datetime.now(timezone.utc).isoformat(),
+        "generatedAt": datetime.now(UTC).isoformat(),
         "epic": "P8.0",
         "backendVersion": BACKEND,
         "frontendVersion": FRONTEND,
@@ -102,14 +102,16 @@ def main() -> int:
     _write(RELEASE / "BUILD_MANIFEST.json", json.dumps(build_manifest, indent=2) + "\n")
 
     # Lightweight SBOM (CycloneDX-inspired JSON; not a full scanner dump)
-    web_pkg = json.loads((ROOT / "apps" / "web" / "package.json").read_text(encoding="utf-8"))
+    web_pkg = json.loads(
+        (ROOT / "apps" / "web" / "package.json").read_text(encoding="utf-8")
+    )
     root_py = (ROOT / "pyproject.toml").read_text(encoding="utf-8")
     sbom = {
         "bomFormat": "CycloneDX",
         "specVersion": "1.5",
         "version": 1,
         "metadata": {
-            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "timestamp": datetime.now(UTC).isoformat(),
             "component": {
                 "type": "application",
                 "name": "dsp-ai-indicator",

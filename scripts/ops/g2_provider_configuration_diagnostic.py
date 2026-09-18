@@ -40,9 +40,7 @@ def diagnose(*, probe: bool = False, ticker: str = "AAPL") -> dict[str, Any]:
     report: dict[str, Any] = {
         "provider_configured": "yes" if provider_configured else "no",
         "route": route,
-        "base_url_configured": "yes"
-        if (http_ready or fmp_key)
-        else "no",
+        "base_url_configured": "yes" if (http_ready or fmp_key) else "no",
         "api_key_configured": "yes" if (http_ready or fmp_key) else "no",
         "production_adapter_selected": "unknown",
         "credential_presence": {
@@ -53,11 +51,13 @@ def diagnose(*, probe: bool = False, ticker: str = "AAPL") -> dict[str, Any]:
             "DSP_MARKET_QUOTE_API_KEY": "PRESENT" if http_quote_key else "ABSENT",
             "DSP_MARKET_QUOTE_BASE_URL": "PRESENT" if http_quote_url else "ABSENT",
             "DSP_FINANCIAL_STATEMENT_API_KEY": "PRESENT" if http_stmt_key else "ABSENT",
-            "DSP_FINANCIAL_STATEMENT_BASE_URL": "PRESENT" if http_stmt_url else "ABSENT",
+            "DSP_FINANCIAL_STATEMENT_BASE_URL": (
+                "PRESENT" if http_stmt_url else "ABSENT"
+            ),
         },
-        "classification": "missing_credential"
-        if not provider_configured
-        else "configured",
+        "classification": (
+            "missing_credential" if not provider_configured else "configured"
+        ),
         "dsp_environment": os.environ.get("DSP_ENVIRONMENT", ""),
         "probe": None,
     }
@@ -67,7 +67,9 @@ def diagnose(*, probe: bool = False, ticker: str = "AAPL") -> dict[str, Any]:
         from data_engine.financial_statement.adapters import (
             build_default_statement_adapter_from_env,
         )
-        from data_engine.market_quote.adapters import build_default_quote_adapter_from_env
+        from data_engine.market_quote.adapters import (
+            build_default_quote_adapter_from_env,
+        )
 
         quote = build_default_quote_adapter_from_env()
         stmt = build_default_statement_adapter_from_env()
@@ -82,7 +84,9 @@ def diagnose(*, probe: bool = False, ticker: str = "AAPL") -> dict[str, Any]:
         report["adapters"] = {
             "quote_class": q_name,
             "quote_provider_id": getattr(quote, "provider_id", None),
-            "quote_authenticated": bool(getattr(quote.health(), "authenticated", False)),
+            "quote_authenticated": bool(
+                getattr(quote.health(), "authenticated", False)
+            ),
             "statement_class": s_name,
             "statement_provider_id": getattr(stmt, "provider_id", None),
             "statement_authenticated": bool(

@@ -14,7 +14,7 @@ import json
 import shutil
 import subprocess
 import sys
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -42,7 +42,7 @@ def _run(cmd: list[str], cwd: Path | None = None) -> tuple[int, str]:
 def main() -> int:
     report: dict = {
         "epic": "017",
-        "generated_at": datetime.now(timezone.utc).isoformat(),
+        "generated_at": datetime.now(UTC).isoformat(),
         "tools": {},
         "artifacts": [],
         "instructions": {
@@ -74,9 +74,11 @@ def main() -> int:
                     "type": "library",
                     "name": p.split("==")[0] if "==" in p else p,
                     "version": p.split("==")[1] if "==" in p else "unknown",
-                    "purl": f"pkg:pypi/{p.split('==')[0]}@{p.split('==')[1]}"
-                    if "==" in p
-                    else f"pkg:pypi/{p}",
+                    "purl": (
+                        f"pkg:pypi/{p.split('==')[0]}@{p.split('==')[1]}"
+                        if "==" in p
+                        else f"pkg:pypi/{p}"
+                    ),
                 }
                 for p in packages
             ],

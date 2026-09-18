@@ -64,7 +64,9 @@ def main() -> int:
     m = re.search(r'__version__\s*=\s*"([^"]+)"', init_py)
     passed &= _ok("backend", (m.group(1) if m else "") == expected["backend"])
 
-    fe = json.loads((ROOT / "apps" / "web" / "VERSION_MANIFEST.json").read_text(encoding="utf-8"))
+    fe = json.loads(
+        (ROOT / "apps" / "web" / "VERSION_MANIFEST.json").read_text(encoding="utf-8")
+    )
     passed &= _ok("frontend", fe.get("appVersion") == expected["frontend"])
     passed &= _ok("epic", fe.get("foundationEpic") == expected["epic"])
     passed &= _ok("api", fe.get("apiContract") == expected["api_contract"])
@@ -79,7 +81,9 @@ def main() -> int:
     )
 
     # Benchmark sanity: zero failures in load test + finite p99
-    load = json.loads((ROOT / "docs" / "perf" / "load_test_results.json").read_text(encoding="utf-8"))
+    load = json.loads(
+        (ROOT / "docs" / "perf" / "load_test_results.json").read_text(encoding="utf-8")
+    )
     scenarios = load.get("scenarios") or []
     passed &= _ok("load scenarios present", len(scenarios) >= 4)
     for sc in scenarios:
@@ -93,7 +97,9 @@ def main() -> int:
             isinstance(sc.get("p99_ms"), (int, float)) and sc["p99_ms"] > 0,
         )
 
-    api = json.loads((ROOT / "docs" / "perf" / "api_benchmark.json").read_text(encoding="utf-8"))
+    api = json.loads(
+        (ROOT / "docs" / "perf" / "api_benchmark.json").read_text(encoding="utf-8")
+    )
     ready = (api.get("endpoints") or {}).get("/health/ready") or {}
     passed &= _ok(
         "ready p99 under 100ms (sequential)",
@@ -102,7 +108,9 @@ def main() -> int:
     )
 
     # Docker runtime optimisation markers
-    dockerfile = (ROOT / "docker" / "backend" / "Dockerfile").read_text(encoding="utf-8")
+    dockerfile = (ROOT / "docker" / "backend" / "Dockerfile").read_text(
+        encoding="utf-8"
+    )
     passed &= _ok("docker uses .[api]", ".[api]" in dockerfile)
     passed &= _ok("PYTHONOPTIMIZE", "PYTHONOPTIMIZE=1" in dockerfile)
 
@@ -118,7 +126,9 @@ def main() -> int:
         text=True,
         check=False,
     )
-    passed &= _ok("validate_release", proc.returncode == 0, (proc.stdout + proc.stderr)[-200:])
+    passed &= _ok(
+        "validate_release", proc.returncode == 0, (proc.stdout + proc.stderr)[-200:]
+    )
 
     print("CERTIFICATION_P7_3", "PASS" if passed else "FAIL")
     return 0 if passed else 1

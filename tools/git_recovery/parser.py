@@ -39,7 +39,11 @@ def parse_porcelain(text: str) -> list[ChangedFile]:
         path = path.replace("\\", "/")
         if original:
             original = original.replace("\\", "/")
-        files.append(ChangedFile(status=status.strip() or status, path=path, original_path=original))
+        files.append(
+            ChangedFile(
+                status=status.strip() or status, path=path, original_path=original
+            )
+        )
     return files
 
 

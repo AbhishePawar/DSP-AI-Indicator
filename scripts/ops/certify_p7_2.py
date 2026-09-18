@@ -75,7 +75,9 @@ def main() -> int:
     ]
     for rel in release_files:
         path = ROOT / rel
-        passed &= _ok(f"release artifact {rel}", path.is_file() and path.stat().st_size > 20)
+        passed &= _ok(
+            f"release artifact {rel}", path.is_file() and path.stat().st_size > 20
+        )
 
     # Version consistency
     proc = subprocess.run(
@@ -85,7 +87,9 @@ def main() -> int:
         text=True,
         check=False,
     )
-    passed &= _ok("validate_release", proc.returncode == 0, (proc.stdout + proc.stderr)[-300:])
+    passed &= _ok(
+        "validate_release", proc.returncode == 0, (proc.stdout + proc.stderr)[-300:]
+    )
 
     # Workflows must fail on critical errors — ensure no continue-on-error for validate
     re_wf = (ROOT / ".github" / "workflows" / "release-engineering.yml").read_text(
@@ -100,7 +104,9 @@ def main() -> int:
         "certify_p7_2.py" in re_wf,
     )
 
-    prod = json.loads((ROOT / "PRODUCTION_VERSION_MANIFEST.json").read_text(encoding="utf-8"))
+    prod = json.loads(
+        (ROOT / "PRODUCTION_VERSION_MANIFEST.json").read_text(encoding="utf-8")
+    )
     try:
         expected = resolve_profile(prod)
     except ValueError as exc:

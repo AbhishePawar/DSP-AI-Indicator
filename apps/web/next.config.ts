@@ -23,6 +23,11 @@ const nextConfig: NextConfig = {
   compress: true,
   productionBrowserSourceMaps: false,
   output: "standalone",
+  // The v0 preview can resolve the app from src/app. Keep Turbopack anchored
+  // to this package so it never searches above the app for Next.js.
+  turbopack: {
+    root: appRoot,
+  },
   // The v0 preview iframe serves the app from a separate origin during development.
   allowedDevOrigins: ["identify-gaps-list.v0.build"],
   // Pin tracing to this app. A leftover empty repo-root package-lock.json

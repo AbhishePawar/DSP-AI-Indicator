@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useQueries } from "@tanstack/react-query";
 
@@ -14,6 +15,7 @@ import { listRecentReports, type RecentReportEntry } from "@/lib/recentReports";
 
 export function RecentReportsWidget() {
   const { session } = useAuth();
+  const router = useRouter();
   const [entries, setEntries] = useState<RecentReportEntry[]>([]);
 
   useEffect(() => {
@@ -50,7 +52,7 @@ export function RecentReportsWidget() {
             description="Analyze a company to store a report id locally. The browser never computes valuation."
             actionLabel="Analyze Company"
             onAction={() => {
-              window.location.href = "/analysis";
+              router.push("/analysis");
             }}
           />
         ) : (

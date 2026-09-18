@@ -9,7 +9,7 @@ from dsp_platform.decision_workspace.citations import citation
 from dsp_platform.decision_workspace.models import (
     UNAVAILABLE_MESSAGE,
     WorkspacePanel,
-    freeze_mapping,
+    freeze_mapping_or_empty,
 )
 
 __all__ = [
@@ -33,7 +33,8 @@ def _unavailable_panel(name: str, source_kind: str) -> WorkspacePanel:
         available=False,
         status="unavailable",
         source_kind=source_kind,
-        summary=freeze_mapping({"available": False}) or freeze_mapping({}),
+        summary=freeze_mapping_or_empty({"available": False})
+        or freeze_mapping_or_empty({}),
         citations=(
             citation(
                 source_kind=source_kind,
@@ -65,7 +66,7 @@ def build_research_panel(
         available=True,
         status="ok",
         source_kind="research_object",
-        summary=freeze_mapping(
+        summary=freeze_mapping_or_empty(
             {
                 "object_id": oid or None,
                 "symbol": research_object.get("symbol") or symbol,
@@ -73,7 +74,7 @@ def build_research_panel(
                 "created_at": research_object.get("created_at"),
             }
         )
-        or freeze_mapping({}),
+        or freeze_mapping_or_empty({}),
         citations=(
             citation(
                 source_kind="research_object",
@@ -85,7 +86,7 @@ def build_research_panel(
                 label="research_object",
             ),
         ),
-        payload=freeze_mapping(dict(research_object)),
+        payload=freeze_mapping_or_empty(dict(research_object)),
         message=None,
     )
 
@@ -99,14 +100,14 @@ def build_report_panel(report: Mapping[str, Any] | None) -> WorkspacePanel:
         available=True,
         status="ok",
         source_kind="institutional_report",
-        summary=freeze_mapping(
+        summary=freeze_mapping_or_empty(
             {
                 "report_id": rid or None,
                 "schema_version": report.get("schema_version"),
                 "generated_at": report.get("generated_at") or report.get("created_at"),
             }
         )
-        or freeze_mapping({}),
+        or freeze_mapping_or_empty({}),
         citations=(
             citation(
                 source_kind="institutional_report",
@@ -117,7 +118,7 @@ def build_report_panel(report: Mapping[str, Any] | None) -> WorkspacePanel:
                 label="institutional_report",
             ),
         ),
-        payload=freeze_mapping(dict(report)),
+        payload=freeze_mapping_or_empty(dict(report)),
         message=None,
     )
 
@@ -135,8 +136,10 @@ def build_timeline_panel(
         available=available,
         status="ok" if available else "unavailable",
         source_kind="decision_workspace",
-        summary=freeze_mapping({"event_count": len(events), "available": available})
-        or freeze_mapping({}),
+        summary=freeze_mapping_or_empty(
+            {"event_count": len(events), "available": available}
+        )
+        or freeze_mapping_or_empty({}),
         citations=(
             citation(
                 source_kind="decision_workspace",
@@ -146,7 +149,7 @@ def build_timeline_panel(
                 label="timeline",
             ),
         ),
-        payload=freeze_mapping({"events": events}),
+        payload=freeze_mapping_or_empty({"events": events}),
         message=None if available else UNAVAILABLE_MESSAGE,
     )
 
@@ -170,14 +173,14 @@ def build_active_alerts_panel(
         available=True,
         status="ok",
         source_kind="research_monitoring",
-        summary=freeze_mapping(
+        summary=freeze_mapping_or_empty(
             {
                 "alert_count": len(alerts),
                 "active_count": len(active),
                 "result_id": monitoring_result.get("result_id"),
             }
         )
-        or freeze_mapping({}),
+        or freeze_mapping_or_empty({}),
         citations=(
             citation(
                 source_kind="research_monitoring",
@@ -188,7 +191,7 @@ def build_active_alerts_panel(
                 label="monitoring/alerts",
             ),
         ),
-        payload=freeze_mapping({"alerts": active, "all_alerts": alerts}),
+        payload=freeze_mapping_or_empty({"alerts": active, "all_alerts": alerts}),
         message=None,
     )
 
@@ -213,7 +216,8 @@ def build_report_history_panel(
         available=True,
         status="ok",
         source_kind="institutional_report",
-        summary=freeze_mapping({"count": len(history)}) or freeze_mapping({}),
+        summary=freeze_mapping_or_empty({"count": len(history)})
+        or freeze_mapping_or_empty({}),
         citations=(
             citation(
                 source_kind="institutional_report",
@@ -223,7 +227,7 @@ def build_report_history_panel(
                 label="report_history",
             ),
         ),
-        payload=freeze_mapping({"reports": history}),
+        payload=freeze_mapping_or_empty({"reports": history}),
         message=None,
     )
 
@@ -236,7 +240,10 @@ def build_snapshot_history_panel(
         return _unavailable_panel("snapshot_history", "research_archive")
     history = []
     for s in rows:
-        version = s.get("version") if isinstance(s.get("version"), Mapping) else {}
+        version_value = s.get("version")
+        version: Mapping[str, Any] = (
+            version_value if isinstance(version_value, Mapping) else {}
+        )
         history.append(
             {
                 "snapshot_id": s.get("snapshot_id"),
@@ -252,7 +259,8 @@ def build_snapshot_history_panel(
         available=True,
         status="ok",
         source_kind="research_archive",
-        summary=freeze_mapping({"count": len(history)}) or freeze_mapping({}),
+        summary=freeze_mapping_or_empty({"count": len(history)})
+        or freeze_mapping_or_empty({}),
         citations=(
             citation(
                 source_kind="research_archive",
@@ -262,7 +270,7 @@ def build_snapshot_history_panel(
                 label="snapshot_history",
             ),
         ),
-        payload=freeze_mapping({"snapshots": history}),
+        payload=freeze_mapping_or_empty({"snapshots": history}),
         message=None,
     )
 
@@ -275,10 +283,9 @@ def build_diff_history_panel(
         return _unavailable_panel("diff_history", "research_diff")
     history = []
     for d in rows:
-        summary = (
-            d.get("change_summary")
-            if isinstance(d.get("change_summary"), Mapping)
-            else {}
+        summary_value = d.get("change_summary")
+        summary: Mapping[str, Any] = (
+            summary_value if isinstance(summary_value, Mapping) else {}
         )
         history.append(
             {
@@ -296,7 +303,8 @@ def build_diff_history_panel(
         available=True,
         status="ok",
         source_kind="research_diff",
-        summary=freeze_mapping({"count": len(history)}) or freeze_mapping({}),
+        summary=freeze_mapping_or_empty({"count": len(history)})
+        or freeze_mapping_or_empty({}),
         citations=(
             citation(
                 source_kind="research_diff",
@@ -306,7 +314,7 @@ def build_diff_history_panel(
                 label="diff_history",
             ),
         ),
-        payload=freeze_mapping({"diffs": history}),
+        payload=freeze_mapping_or_empty({"diffs": history}),
         message=None,
     )
 
@@ -321,14 +329,14 @@ def build_copilot_panel(
         available=True,
         status="ok",
         source_kind="research_copilot",
-        summary=freeze_mapping(
+        summary=freeze_mapping_or_empty(
             {
                 "response_id": copilot_response.get("response_id"),
                 "unavailable": copilot_response.get("unavailable"),
                 "citation_count": len(copilot_response.get("citations") or []),
             }
         )
-        or freeze_mapping({}),
+        or freeze_mapping_or_empty({}),
         citations=(
             citation(
                 source_kind="research_copilot",
@@ -339,7 +347,7 @@ def build_copilot_panel(
                 label="copilot/answer",
             ),
         ),
-        payload=freeze_mapping(dict(copilot_response)),
+        payload=freeze_mapping_or_empty(dict(copilot_response)),
         message=None,
     )
 
@@ -357,7 +365,7 @@ def build_portfolio_panel(
         available=True,
         status="ok",
         source_kind="portfolio_intelligence",
-        summary=freeze_mapping(
+        summary=freeze_mapping_or_empty(
             {
                 "result_id": portfolio_intelligence.get("result_id"),
                 "holding_count": summary_src.get("holding_count"),
@@ -365,7 +373,7 @@ def build_portfolio_panel(
                 "missing_research_count": summary_src.get("missing_research_count"),
             }
         )
-        or freeze_mapping({}),
+        or freeze_mapping_or_empty({}),
         citations=(
             citation(
                 source_kind="portfolio_intelligence",
@@ -376,7 +384,7 @@ def build_portfolio_panel(
                 label="portfolio_intelligence",
             ),
         ),
-        payload=freeze_mapping(dict(portfolio_intelligence)),
+        payload=freeze_mapping_or_empty(dict(portfolio_intelligence)),
         message=None,
     )
 
@@ -386,17 +394,14 @@ def build_monitoring_panel(
 ) -> WorkspacePanel:
     if monitoring_result is None:
         return _unavailable_panel("monitoring", "research_monitoring")
-    audit = (
-        monitoring_result.get("audit")
-        if isinstance(monitoring_result.get("audit"), Mapping)
-        else {}
-    )
+    audit_value = monitoring_result.get("audit")
+    audit: Mapping[str, Any] = audit_value if isinstance(audit_value, Mapping) else {}
     return WorkspacePanel(
         name="monitoring",
         available=True,
         status="ok",
         source_kind="research_monitoring",
-        summary=freeze_mapping(
+        summary=freeze_mapping_or_empty(
             {
                 "result_id": monitoring_result.get("result_id"),
                 "alert_count": audit.get("alert_count")
@@ -404,7 +409,7 @@ def build_monitoring_panel(
                 "track_count": audit.get("track_count"),
             }
         )
-        or freeze_mapping({}),
+        or freeze_mapping_or_empty({}),
         citations=(
             citation(
                 source_kind="research_monitoring",
@@ -415,7 +420,7 @@ def build_monitoring_panel(
                 label="research_monitoring",
             ),
         ),
-        payload=freeze_mapping(dict(monitoring_result)),
+        payload=freeze_mapping_or_empty(dict(monitoring_result)),
         message=None,
     )
 
@@ -444,7 +449,7 @@ def build_audit_panel(
         available=True,
         status="ok",
         source_kind="decision_workspace",
-        summary=freeze_mapping(summary) or freeze_mapping({}),
+        summary=freeze_mapping_or_empty(summary) or freeze_mapping_or_empty({}),
         citations=(
             citation(
                 source_kind="decision_workspace",
@@ -454,7 +459,7 @@ def build_audit_panel(
                 label="workspace/audit",
             ),
         ),
-        payload=freeze_mapping(
+        payload=freeze_mapping_or_empty(
             {
                 "panels": panel_names,
                 "available_panels": available_panels,

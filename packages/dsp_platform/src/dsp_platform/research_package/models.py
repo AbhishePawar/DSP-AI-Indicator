@@ -10,7 +10,7 @@ from collections.abc import Mapping
 from dataclasses import dataclass
 from enum import Enum, StrEnum
 from types import MappingProxyType
-from typing import Any
+from typing import Any, cast
 
 __all__ = [
     "ENTRY_EXIT_NOT_IMPLEMENTED_MESSAGE",
@@ -95,7 +95,7 @@ def freeze_mapping(value: Mapping[str, Any] | None) -> Mapping[str, Any] | None:
             return tuple(_freeze(v) for v in obj)
         return obj
 
-    return _freeze(value)  # type: ignore[return-value]
+    return cast(Mapping[str, Any], _freeze(value))
 
 
 def strip_private_fields(obj: Any) -> Any:

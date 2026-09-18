@@ -45,9 +45,18 @@ def archive_snapshot_from_dict(data: Mapping[str, Any]) -> ArchiveSnapshot:
     if not isinstance(payload, Mapping):
         raise ResearchArchiveValidationError("missing payload")
 
-    subject_ids = data.get("subject_ids") or {}
-    provenance = data.get("provenance") or {}
-    retention_hooks = data.get("retention_hooks") or {}
+    subject_ids_raw = data.get("subject_ids")
+    provenance_raw = data.get("provenance")
+    retention_hooks_raw = data.get("retention_hooks")
+    subject_ids: Mapping[str, Any] = (
+        subject_ids_raw if isinstance(subject_ids_raw, Mapping) else {}
+    )
+    provenance: Mapping[str, Any] = (
+        provenance_raw if isinstance(provenance_raw, Mapping) else {}
+    )
+    retention_hooks: Mapping[str, Any] = (
+        retention_hooks_raw if isinstance(retention_hooks_raw, Mapping) else {}
+    )
 
     snapshot = ArchiveSnapshot(
         snapshot_id=str(data.get("snapshot_id") or ""),
@@ -60,22 +69,10 @@ def archive_snapshot_from_dict(data: Mapping[str, Any]) -> ArchiveSnapshot:
         content_sha256=str(data.get("content_sha256") or ""),
         archived_at=str(data.get("archived_at") or ""),
         ticker=data.get("ticker"),
-        subject_ids=(
-            freeze_mapping(dict(subject_ids))
-            if isinstance(subject_ids, Mapping)
-            else freeze_mapping({})
-        ),
-        provenance=(
-            freeze_mapping(dict(provenance))
-            if isinstance(provenance, Mapping)
-            else freeze_mapping({})
-        ),
-        payload=freeze_mapping(dict(payload)) or freeze_mapping({}),
-        retention_hooks=(
-            freeze_mapping(dict(retention_hooks))
-            if isinstance(retention_hooks, Mapping)
-            else freeze_mapping({})
-        ),
+        subject_ids=freeze_mapping(dict(subject_ids)) or {},
+        provenance=freeze_mapping(dict(provenance)) or {},
+        payload=freeze_mapping(dict(payload)) or {},
+        retention_hooks=freeze_mapping(dict(retention_hooks)) or {},
     )
     validate_archive_snapshot(snapshot)
     return snapshot

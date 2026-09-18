@@ -224,10 +224,11 @@ def _try_portfolio_intelligence(
     if portfolio is None and watchlist is None:
         return None
     try:
-        return platform.evaluate_portfolio_intelligence(
+        result = platform.evaluate_portfolio_intelligence(
             portfolio=dict(portfolio) if portfolio else None,
             watchlist=dict(watchlist) if watchlist else None,
         )
+        return result if isinstance(result, dict) else None
     except Exception:  # noqa: BLE001
         return None
 
@@ -236,10 +237,11 @@ def _try_workflow(platform: Any, *, workflow_id: str | None) -> dict[str, Any] |
     if not workflow_id:
         return None
     try:
-        return platform.apply_institutional_workflow(
+        result = platform.apply_institutional_workflow(
             action="get",
             workflow_id=workflow_id,
         )
+        return result if isinstance(result, dict) else None
     except Exception:  # noqa: BLE001
         return None
 
@@ -452,15 +454,16 @@ def _pi_widgets(pi: dict[str, Any] | None) -> dict[str, dict[str, Any]]:
         if isinstance(pi.get("margin_of_safety_summary"), dict)
         else {}
     )
+    summary_data: dict[str, Any] = dict(summary) if isinstance(summary, dict) else {}
 
     return {
         "portfolio_health_score": _section(
             available=True,
             source="portfolio_intelligence.portfolio_summary",
             data={
-                "linked_research_count": summary.get("linked_research_count"),
-                "missing_research_count": summary.get("missing_research_count"),
-                "holding_count": summary.get("holding_count"),
+                "linked_research_count": summary_data.get("linked_research_count"),
+                "missing_research_count": summary_data.get("missing_research_count"),
+                "holding_count": summary_data.get("holding_count"),
                 "health_score": UNAVAILABLE_MESSAGE,
                 "note": "Health is expressed via linked/missing research counts — no invented score.",
             },

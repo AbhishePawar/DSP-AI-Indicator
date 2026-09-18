@@ -13,7 +13,7 @@ from dsp_platform.investment_policy.models import (
     POLICY_SCHEMA_VERSION,
     POLICY_SERVICE_VERSION,
     ComplianceResult,
-    freeze_mapping,
+    freeze_mapping_or_empty,
     utc_now,
 )
 from dsp_platform.investment_policy.registry import ExceptionRegistry, RuleRegistry
@@ -85,12 +85,12 @@ class ComplianceChecker:
         )
 
         violations = tuple(
-            freeze_mapping(r.to_dict()) or freeze_mapping({})
+            freeze_mapping_or_empty(r.to_dict()) or freeze_mapping_or_empty({})
             for r in rule_results
             if r.outcome == "violation"
         )
         warnings = tuple(
-            freeze_mapping(r.to_dict()) or freeze_mapping({})
+            freeze_mapping_or_empty(r.to_dict()) or freeze_mapping_or_empty({})
             for r in rule_results
             if r.outcome == "warning"
         )
@@ -109,7 +109,7 @@ class ComplianceChecker:
         else:
             status = "compliant"
 
-        summary = freeze_mapping(
+        summary = freeze_mapping_or_empty(
             {
                 "status": status,
                 "counts": counts,
@@ -119,10 +119,10 @@ class ComplianceChecker:
                 "violation_count": counts["violation"],
                 "warning_count": counts["warning"],
             }
-        ) or freeze_mapping({})
+        ) or freeze_mapping_or_empty({})
 
         audit_trail = tuple(
-            freeze_mapping(
+            freeze_mapping_or_empty(
                 {
                     "event": "rule_evaluated",
                     "rule_id": r.rule_id,
@@ -131,7 +131,7 @@ class ComplianceChecker:
                     "message": r.message,
                 }
             )
-            or freeze_mapping({})
+            or freeze_mapping_or_empty({})
             for r in rule_results
         )
 
@@ -183,15 +183,17 @@ class ComplianceChecker:
             service_version=POLICY_SERVICE_VERSION,
             created_at=created,
             subject=subject_norm,
-            policy=freeze_mapping(loaded.to_dict()) or freeze_mapping({}),
+            policy=freeze_mapping_or_empty(loaded.to_dict())
+            or freeze_mapping_or_empty({}),
             rule_results=rule_results,
             summary=summary,
             violations=violations,
             warnings=warnings,
             audit_trail=audit_trail,
             citations=citations,
-            provenance=freeze_mapping(provenance) or freeze_mapping({}),
-            audit=freeze_mapping(audit) or freeze_mapping({}),
+            provenance=freeze_mapping_or_empty(provenance)
+            or freeze_mapping_or_empty({}),
+            audit=freeze_mapping_or_empty(audit) or freeze_mapping_or_empty({}),
             limitations=limitations,
         )
         validate_compliance_result(result)

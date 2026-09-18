@@ -348,7 +348,8 @@ class InstitutionalReportGenerator:
             ro_section=ro.explainability,
         )
 
-        ro_audit = section_payload_dict(ro.audit)
+        ro_audit = section_payload_dict(ro.audit) or {}
+        trust_chain = ro_audit.get("trust_chain")
         audit_payload: dict[str, Any] = {
             "report_id": report_id,
             "audit_reference": field_or_unavailable(
@@ -384,8 +385,8 @@ class InstitutionalReportGenerator:
             ),
             "source_metadata": ro_audit,
             "trust_chain": (
-                dict(ro_audit["trust_chain"])
-                if isinstance(ro_audit.get("trust_chain"), dict)
+                dict(trust_chain)
+                if isinstance(trust_chain, dict)
                 else UNAVAILABLE_MESSAGE
             ),
             "result_fingerprint": field_or_unavailable(

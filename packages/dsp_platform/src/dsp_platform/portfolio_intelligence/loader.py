@@ -29,24 +29,28 @@ def load_portfolio(data: Mapping[str, Any] | None) -> Portfolio | None:
                 continue
             weight = row.get("weight")
             shares = row.get("shares")
-            labels = row.get("labels") if isinstance(row.get("labels"), Mapping) else {}
+            labels_value = row.get("labels")
+            labels: Mapping[str, Any] = (
+                labels_value if isinstance(labels_value, Mapping) else {}
+            )
             holdings.append(
                 Holding(
                     symbol=symbol,
                     weight=float(weight) if isinstance(weight, (int, float)) else None,
                     shares=float(shares) if isinstance(shares, (int, float)) else None,
-                    labels=dict(labels),
+                    labels={str(key): value for key, value in labels.items()},
                 )
             )
     # Deterministic holding order by symbol
     holdings.sort(key=lambda h: h.symbol)
-    meta = data.get("metadata") if isinstance(data.get("metadata"), Mapping) else {}
+    meta_value = data.get("metadata")
+    meta: Mapping[str, Any] = meta_value if isinstance(meta_value, Mapping) else {}
     return Portfolio(
         portfolio_id=str(data.get("portfolio_id") or uuid4()),
         name=data.get("name"),
         holdings=tuple(holdings),
         created_at=data.get("created_at"),
-        metadata=dict(meta),
+        metadata={str(key): value for key, value in meta.items()},
     )
 
 
@@ -64,11 +68,12 @@ def load_watchlist(data: Mapping[str, Any] | None) -> Watchlist | None:
             if sym and sym not in symbols:
                 symbols.append(sym)
     symbols.sort()
-    meta = data.get("metadata") if isinstance(data.get("metadata"), Mapping) else {}
+    meta_value = data.get("metadata")
+    meta: Mapping[str, Any] = meta_value if isinstance(meta_value, Mapping) else {}
     return Watchlist(
         watchlist_id=str(data.get("watchlist_id") or uuid4()),
         name=data.get("name"),
         symbols=tuple(symbols),
         created_at=data.get("created_at"),
-        metadata=dict(meta),
+        metadata={str(key): value for key, value in meta.items()},
     )

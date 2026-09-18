@@ -11,7 +11,7 @@ from dsp_platform.research_diff.models import (
     FieldDiff,
     ResearchDiffResult,
     SectionDiff,
-    freeze_mapping,
+    freeze_mapping_or_empty,
 )
 from dsp_platform.research_diff.validation import (
     ResearchDiffValidationError,
@@ -69,17 +69,18 @@ def research_diff_from_dict(data: Mapping[str, Any]) -> ResearchDiffResult:
         left_snapshot_id=str(data.get("left_snapshot_id") or ""),
         right_snapshot_id=str(data.get("right_snapshot_id") or ""),
         kind=str(data.get("kind") or ""),
-        archive_comparison=freeze_mapping(dict(data.get("archive_comparison") or {}))
-        or freeze_mapping({}),
-        schema_comparison=freeze_mapping(dict(data.get("schema_comparison") or {}))
-        or freeze_mapping({}),
-        version_comparison=freeze_mapping(dict(data.get("version_comparison") or {}))
-        or freeze_mapping({}),
+        archive_comparison=freeze_mapping_or_empty(
+            dict(data.get("archive_comparison") or {})
+        ),
+        schema_comparison=freeze_mapping_or_empty(
+            dict(data.get("schema_comparison") or {})
+        ),
+        version_comparison=freeze_mapping_or_empty(
+            dict(data.get("version_comparison") or {})
+        ),
         sections=sections,
-        change_summary=freeze_mapping(dict(data.get("change_summary") or {}))
-        or freeze_mapping({}),
-        provenance=freeze_mapping(dict(data.get("provenance") or {}))
-        or freeze_mapping({}),
+        change_summary=freeze_mapping_or_empty(dict(data.get("change_summary") or {})),
+        provenance=freeze_mapping_or_empty(dict(data.get("provenance") or {})),
     )
     validate_research_diff(result)
     return result

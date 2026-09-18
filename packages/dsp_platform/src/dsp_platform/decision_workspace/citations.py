@@ -5,7 +5,10 @@ from __future__ import annotations
 from collections.abc import Mapping
 from typing import Any
 
-from dsp_platform.decision_workspace.models import UNAVAILABLE_MESSAGE, freeze_mapping
+from dsp_platform.decision_workspace.models import (
+    UNAVAILABLE_MESSAGE,
+    freeze_mapping_or_empty,
+)
 
 __all__ = [
     "build_workspace_citations",
@@ -39,7 +42,7 @@ def citation(
         row["message"] = UNAVAILABLE_MESSAGE
     if extra:
         row.update(dict(extra))
-    return freeze_mapping(row) or freeze_mapping({})
+    return freeze_mapping_or_empty(row)
 
 
 def build_workspace_citations(

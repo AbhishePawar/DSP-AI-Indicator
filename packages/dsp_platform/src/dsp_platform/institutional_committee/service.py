@@ -17,7 +17,7 @@ from dsp_platform.institutional_committee.models import (
     COMMITTEE_SCHEMA_VERSION,
     COMMITTEE_SERVICE_VERSION,
     CommitteeReport,
-    freeze_mapping,
+    freeze_mapping_or_empty,
     utc_now,
 )
 from dsp_platform.institutional_committee.registry import get_agent_registry
@@ -116,14 +116,16 @@ class CommitteeOrchestrator:
             service_version=COMMITTEE_SERVICE_VERSION,
             created_at=created,
             subject=ctx.subject,
-            context=freeze_mapping(ctx.to_dict()) or freeze_mapping({}),
+            context=freeze_mapping_or_empty(ctx.to_dict())
+            or freeze_mapping_or_empty({}),
             reviews=reviews,
             consensus=consensus,
             minority_opinions=minority,
             committee_summary=summary,
             citations=citations,
-            provenance=freeze_mapping(provenance) or freeze_mapping({}),
-            audit=freeze_mapping(audit) or freeze_mapping({}),
+            provenance=freeze_mapping_or_empty(provenance)
+            or freeze_mapping_or_empty({}),
+            audit=freeze_mapping_or_empty(audit) or freeze_mapping_or_empty({}),
             limitations=limitations,
         )
         validate_committee_report(result)

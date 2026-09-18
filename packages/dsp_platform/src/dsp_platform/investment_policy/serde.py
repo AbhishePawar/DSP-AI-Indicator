@@ -10,7 +10,7 @@ from dsp_platform.investment_policy.models import (
     POLICY_SERVICE_VERSION,
     ComplianceResult,
     RuleResult,
-    freeze_mapping,
+    freeze_mapping_or_empty,
 )
 from dsp_platform.investment_policy.validation import (
     InvestmentPolicyValidationError,
@@ -37,7 +37,7 @@ def compliance_result_from_dict(data: Mapping[str, Any]) -> ComplianceResult:
         if not isinstance(row, Mapping):
             continue
         citations = tuple(
-            freeze_mapping(dict(c)) or freeze_mapping({})
+            freeze_mapping_or_empty(dict(c)) or freeze_mapping_or_empty({})
             for c in (row.get("citations") or [])
             if isinstance(c, Mapping)
         )
@@ -49,14 +49,14 @@ def compliance_result_from_dict(data: Mapping[str, Any]) -> ComplianceResult:
                 severity=str(row.get("severity") or ""),
                 message=str(row.get("message") or ""),
                 citations=citations,
-                evidence=freeze_mapping(dict(row.get("evidence") or {}))
-                or freeze_mapping({}),
+                evidence=freeze_mapping_or_empty(dict(row.get("evidence") or {}))
+                or freeze_mapping_or_empty({}),
             )
         )
 
     def _map_tuple(key: str) -> tuple[Mapping[str, Any], ...]:
         return tuple(
-            freeze_mapping(dict(m)) or freeze_mapping({})
+            freeze_mapping_or_empty(dict(m)) or freeze_mapping_or_empty({})
             for m in (data.get(key) or [])
             if isinstance(m, Mapping)
         )
@@ -68,16 +68,19 @@ def compliance_result_from_dict(data: Mapping[str, Any]) -> ComplianceResult:
         service_version=str(data.get("service_version") or POLICY_SERVICE_VERSION),
         created_at=str(data.get("created_at") or ""),
         subject=str(data.get("subject") or ""),
-        policy=freeze_mapping(dict(data.get("policy") or {})) or freeze_mapping({}),
+        policy=freeze_mapping_or_empty(dict(data.get("policy") or {}))
+        or freeze_mapping_or_empty({}),
         rule_results=tuple(rule_results),
-        summary=freeze_mapping(dict(data.get("summary") or {})) or freeze_mapping({}),
+        summary=freeze_mapping_or_empty(dict(data.get("summary") or {}))
+        or freeze_mapping_or_empty({}),
         violations=_map_tuple("violations"),
         warnings=_map_tuple("warnings"),
         audit_trail=_map_tuple("audit_trail"),
         citations=_map_tuple("citations"),
-        provenance=freeze_mapping(dict(data.get("provenance") or {}))
-        or freeze_mapping({}),
-        audit=freeze_mapping(dict(data.get("audit") or {})) or freeze_mapping({}),
+        provenance=freeze_mapping_or_empty(dict(data.get("provenance") or {}))
+        or freeze_mapping_or_empty({}),
+        audit=freeze_mapping_or_empty(dict(data.get("audit") or {}))
+        or freeze_mapping_or_empty({}),
         limitations=(
             tuple(limitations) if isinstance(limitations, (list, tuple)) else ()
         ),

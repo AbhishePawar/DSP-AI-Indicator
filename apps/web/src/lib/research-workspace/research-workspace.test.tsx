@@ -1,7 +1,7 @@
 /**
  * @vitest-environment jsdom
  */
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { cleanup, render, screen, waitFor } from "@testing-library/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
@@ -306,6 +306,10 @@ describe("EPIC-F007 research workspace lib", () => {
 });
 
 describe("EPIC-F007 workspace UI", () => {
+  afterEach(() => {
+    cleanup();
+  });
+
   beforeEach(() => {
     cleanup();
     acknowledgeResearchDisclaimer();
@@ -357,6 +361,7 @@ describe("EPIC-F007 workspace UI", () => {
     await waitFor(() => {
       expect(analyseMock).toHaveBeenCalled();
     });
+    expect(await screen.findByText("Research Object Viewer")).toBeTruthy();
   });
 });
 

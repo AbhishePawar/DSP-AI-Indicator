@@ -13,7 +13,7 @@ from dsp_platform.decision_workspace.models import (
     WORKSPACE_SCHEMA_VERSION,
     WORKSPACE_SERVICE_VERSION,
     WorkspaceResult,
-    freeze_mapping,
+    freeze_mapping_or_empty,
     utc_now,
 )
 from dsp_platform.decision_workspace.panels import (
@@ -190,8 +190,9 @@ class DecisionWorkspaceService:
             panels=tuple(panels),
             timeline=timeline,
             citations=citations,
-            provenance=freeze_mapping(provenance) or freeze_mapping({}),
-            audit=freeze_mapping(audit) or freeze_mapping({}),
+            provenance=freeze_mapping_or_empty(provenance)
+            or freeze_mapping_or_empty({}),
+            audit=freeze_mapping_or_empty(audit) or freeze_mapping_or_empty({}),
             limitations=limitations,
         )
         validate_workspace_result(result)

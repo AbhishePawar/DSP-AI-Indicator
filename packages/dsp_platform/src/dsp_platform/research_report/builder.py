@@ -430,14 +430,14 @@ def _financial_metrics(
             for item in items:
                 if not isinstance(item, Mapping):
                     continue
-                name = _as_str(item.get("name"))
-                if name is None or name in seen:
+                metric_name = _as_str(item.get("name"))
+                if metric_name is None or metric_name in seen:
                     continue
                 number = _as_number(item.get("value"))
-                seen.add(name)
+                seen.add(metric_name)
                 rows.append(
                     PublicMetric(
-                        name=name,
+                        name=metric_name,
                         value=number,
                         status=("available" if number is not None else "unavailable"),
                         source="dsp",

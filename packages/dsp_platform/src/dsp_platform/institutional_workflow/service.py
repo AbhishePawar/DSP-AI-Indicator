@@ -19,7 +19,7 @@ from dsp_platform.institutional_workflow.models import (
     ReviewerRecord,
     WorkflowInstance,
     WorkflowResult,
-    freeze_mapping,
+    freeze_mapping_or_empty,
     utc_now,
 )
 from dsp_platform.institutional_workflow.registry import get_workflow_registry
@@ -58,12 +58,12 @@ def _audit_event(
         row["actor_id"] = actor_id
     if detail:
         row["detail"] = dict(detail)
-    return freeze_mapping(row) or freeze_mapping({})
+    return freeze_mapping_or_empty(row) or freeze_mapping_or_empty({})
 
 
 def _normalize_refs(refs: Mapping[str, Any] | None) -> Mapping[str, Any]:
     if not refs:
-        return freeze_mapping({}) or freeze_mapping({})
+        return freeze_mapping_or_empty({}) or freeze_mapping_or_empty({})
     cleaned: dict[str, Any] = {}
     for key in sorted(refs.keys()):
         value = refs.get(key)
@@ -72,7 +72,7 @@ def _normalize_refs(refs: Mapping[str, Any] | None) -> Mapping[str, Any]:
         text = str(value).strip()
         if text:
             cleaned[str(key)] = text
-    return freeze_mapping(cleaned) or freeze_mapping({})
+    return freeze_mapping_or_empty(cleaned) or freeze_mapping_or_empty({})
 
 
 def _wrap_result(
@@ -119,10 +119,11 @@ def _wrap_result(
         service_version=WORKFLOW_SERVICE_VERSION,
         created_at=created,
         action=action,
-        workflow=freeze_mapping(workflow.to_dict()) or freeze_mapping({}),
+        workflow=freeze_mapping_or_empty(workflow.to_dict())
+        or freeze_mapping_or_empty({}),
         citations=citations,
-        provenance=freeze_mapping(provenance) or freeze_mapping({}),
-        audit=freeze_mapping(audit) or freeze_mapping({}),
+        provenance=freeze_mapping_or_empty(provenance) or freeze_mapping_or_empty({}),
+        audit=freeze_mapping_or_empty(audit) or freeze_mapping_or_empty({}),
         limitations=limitations,
     )
     validate_workflow_result(result)
@@ -194,7 +195,8 @@ class WorkflowService:
             approvals=(),
             decision_history=(),
             audit_trail=audit,
-            metadata=freeze_mapping(dict(metadata or {})) or freeze_mapping({}),
+            metadata=freeze_mapping_or_empty(dict(metadata or {}))
+            or freeze_mapping_or_empty({}),
         )
         get_workflow_registry().put(workflow)
         return _wrap_result(
@@ -481,7 +483,7 @@ class WorkflowService:
             workflow=result.workflow,
             citations=result.citations,
             provenance=result.provenance,
-            audit=freeze_mapping(
+            audit=freeze_mapping_or_empty(
                 {
                     **dict(result.audit),
                     "action": "history",
@@ -492,7 +494,7 @@ class WorkflowService:
                     "comment_count": len(result.workflow.get("comments") or []),
                 }
             )
-            or freeze_mapping({}),
+            or freeze_mapping_or_empty({}),
             limitations=result.limitations,
         )
 

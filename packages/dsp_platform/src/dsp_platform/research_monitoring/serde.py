@@ -11,7 +11,7 @@ from dsp_platform.research_monitoring.models import (
     MonitoringAlert,
     MonitoringEvaluateResult,
     SnapshotTrack,
-    freeze_mapping,
+    freeze_mapping_or_empty,
 )
 from dsp_platform.research_monitoring.validation import (
     ResearchMonitoringValidationError,
@@ -54,7 +54,7 @@ def monitoring_result_from_dict(data: Mapping[str, Any]) -> MonitoringEvaluateRe
             if not isinstance(row, Mapping):
                 continue
             citations = tuple(
-                freeze_mapping(dict(c)) or freeze_mapping({})
+                freeze_mapping_or_empty(dict(c))
                 for c in (row.get("citations") or [])
                 if isinstance(c, Mapping)
             )
@@ -70,10 +70,12 @@ def monitoring_result_from_dict(data: Mapping[str, Any]) -> MonitoringEvaluateRe
                     diff_id=row.get("diff_id"),
                     baseline_snapshot_id=row.get("baseline_snapshot_id"),
                     current_snapshot_id=row.get("current_snapshot_id"),
-                    change_summary=freeze_mapping(dict(row.get("change_summary") or {}))
-                    or freeze_mapping({}),
-                    provenance=freeze_mapping(dict(row.get("provenance") or {}))
-                    or freeze_mapping({}),
+                    change_summary=freeze_mapping_or_empty(
+                        dict(row.get("change_summary") or {})
+                    ),
+                    provenance=freeze_mapping_or_empty(
+                        dict(row.get("provenance") or {})
+                    ),
                 )
             )
     limitations = data.get("limitations") or ()
@@ -82,15 +84,12 @@ def monitoring_result_from_dict(data: Mapping[str, Any]) -> MonitoringEvaluateRe
         schema_version=str(data.get("schema_version") or MONITORING_SCHEMA_VERSION),
         service_version=str(data.get("service_version") or MONITORING_SERVICE_VERSION),
         created_at=str(data.get("created_at") or ""),
-        watchlist=freeze_mapping(dict(data.get("watchlist") or {}))
-        or freeze_mapping({}),
-        portfolios=freeze_mapping(dict(data.get("portfolios") or {}))
-        or freeze_mapping({}),
+        watchlist=freeze_mapping_or_empty(dict(data.get("watchlist") or {})),
+        portfolios=freeze_mapping_or_empty(dict(data.get("portfolios") or {})),
         tracks=tuple(tracks),
         alerts=tuple(alerts),
-        provenance=freeze_mapping(dict(data.get("provenance") or {}))
-        or freeze_mapping({}),
-        audit=freeze_mapping(dict(data.get("audit") or {})) or freeze_mapping({}),
+        provenance=freeze_mapping_or_empty(dict(data.get("provenance") or {})),
+        audit=freeze_mapping_or_empty(dict(data.get("audit") or {})),
         limitations=(
             tuple(limitations) if isinstance(limitations, (list, tuple)) else ()
         ),

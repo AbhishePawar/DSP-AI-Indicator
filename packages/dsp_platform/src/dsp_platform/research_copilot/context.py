@@ -8,7 +8,7 @@ from typing import Any
 from dsp_platform.research_archive.hashing import to_plain_jsonable
 from dsp_platform.research_copilot.models import (
     ResearchContextBundle,
-    freeze_mapping,
+    freeze_mapping_or_empty,
     utc_now,
 )
 
@@ -40,12 +40,14 @@ def build_research_context(
     # — do not invent; consumers read snapshot.payload explicitly.
     refs: dict[str, Any] = {}
     if isinstance(ro, dict):
-        meta = ro.get("metadata") if isinstance(ro.get("metadata"), dict) else {}
-        refs["research_object_id"] = meta.get("research_object_id")
+        meta_ro = ro.get("metadata")
+        if isinstance(meta_ro, dict):
+            refs["research_object_id"] = meta_ro.get("research_object_id")
     if isinstance(rp, dict):
-        meta = rp.get("metadata") if isinstance(rp.get("metadata"), dict) else {}
-        refs["report_id"] = meta.get("report_id")
-        refs["report_research_object_id"] = meta.get("research_object_id")
+        meta_rp = rp.get("metadata")
+        if isinstance(meta_rp, dict):
+            refs["report_id"] = meta_rp.get("report_id")
+            refs["report_research_object_id"] = meta_rp.get("research_object_id")
     if isinstance(sn, dict):
         refs["snapshot_id"] = sn.get("snapshot_id")
         refs["snapshot_kind"] = sn.get("kind")
@@ -56,10 +58,10 @@ def build_research_context(
         refs["diff_right_snapshot_id"] = df.get("right_snapshot_id")
 
     return ResearchContextBundle(
-        research_object=freeze_mapping(ro) if isinstance(ro, dict) else None,
-        report=freeze_mapping(rp) if isinstance(rp, dict) else None,
-        archive_snapshot=freeze_mapping(sn) if isinstance(sn, dict) else None,
-        research_diff=freeze_mapping(df) if isinstance(df, dict) else None,
+        research_object=freeze_mapping_or_empty(ro) if isinstance(ro, dict) else None,
+        report=freeze_mapping_or_empty(rp) if isinstance(rp, dict) else None,
+        archive_snapshot=freeze_mapping_or_empty(sn) if isinstance(sn, dict) else None,
+        research_diff=freeze_mapping_or_empty(df) if isinstance(df, dict) else None,
         assembled_at=assembled_at or utc_now().isoformat(),
-        source_refs=freeze_mapping(refs) or freeze_mapping({}),
+        source_refs=freeze_mapping_or_empty(refs),
     )

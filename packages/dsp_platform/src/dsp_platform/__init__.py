@@ -433,7 +433,7 @@ from portfolio import (
     PortfolioTimeline,
     PortfolioType,
 )
-from quantitative_risk import (
+from quantitative_risk import (  # type: ignore[assignment]
     BenchmarkDataPort,
     DrawdownProfile,
     EngineContext,
@@ -481,7 +481,7 @@ from quantitative_risk import (
 from quantitative_risk import (
     ResearchReference as QuantitativeResearchReference,
 )
-from recommendation import (
+from recommendation import (  # type: ignore[assignment]
     AssemblyContext,
     AssemblyResult,
     AssemblyStatus,

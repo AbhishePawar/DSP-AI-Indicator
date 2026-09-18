@@ -16,7 +16,7 @@ from dsp_platform.portfolio_intelligence.models import (
     PORTFOLIO_SCHEMA_VERSION,
     PORTFOLIO_SERVICE_VERSION,
     PortfolioIntelligenceResult,
-    freeze_mapping,
+    freeze_mapping_or_empty,
     utc_now,
 )
 from dsp_platform.portfolio_intelligence.serde import portfolio_intelligence_to_dict
@@ -124,36 +124,44 @@ class PortfolioIntelligenceService:
             schema_version=PORTFOLIO_SCHEMA_VERSION,
             service_version=PORTFOLIO_SERVICE_VERSION,
             created_at=created,
-            portfolio=freeze_mapping(port.to_dict()) if port else None,
-            watchlist=freeze_mapping(watch.to_dict()) if watch else None,
+            portfolio=freeze_mapping_or_empty(port.to_dict()) if port else None,
+            watchlist=freeze_mapping_or_empty(watch.to_dict()) if watch else None,
             linked_holdings=linked_portfolio,
-            portfolio_summary=freeze_mapping(summaries["portfolio_summary"])
-            or freeze_mapping({}),
-            diversification_summary=freeze_mapping(summaries["diversification_summary"])
-            or freeze_mapping({}),
-            sector_allocation=freeze_mapping(summaries["sector_allocation"])
-            or freeze_mapping({}),
-            position_concentration=freeze_mapping(summaries["position_concentration"])
-            or freeze_mapping({}),
-            portfolio_risk_summary=freeze_mapping(summaries["portfolio_risk_summary"])
-            or freeze_mapping({}),
-            margin_of_safety_summary=freeze_mapping(
+            portfolio_summary=freeze_mapping_or_empty(summaries["portfolio_summary"])
+            or freeze_mapping_or_empty({}),
+            diversification_summary=freeze_mapping_or_empty(
+                summaries["diversification_summary"]
+            )
+            or freeze_mapping_or_empty({}),
+            sector_allocation=freeze_mapping_or_empty(summaries["sector_allocation"])
+            or freeze_mapping_or_empty({}),
+            position_concentration=freeze_mapping_or_empty(
+                summaries["position_concentration"]
+            )
+            or freeze_mapping_or_empty({}),
+            portfolio_risk_summary=freeze_mapping_or_empty(
+                summaries["portfolio_risk_summary"]
+            )
+            or freeze_mapping_or_empty({}),
+            margin_of_safety_summary=freeze_mapping_or_empty(
                 summaries["margin_of_safety_summary"]
             )
-            or freeze_mapping({}),
-            quality_summary=freeze_mapping(summaries["quality_summary"])
-            or freeze_mapping({}),
-            watchlist_summary=freeze_mapping(summaries["watchlist_summary"])
-            or freeze_mapping({}),
+            or freeze_mapping_or_empty({}),
+            quality_summary=freeze_mapping_or_empty(summaries["quality_summary"])
+            or freeze_mapping_or_empty({}),
+            watchlist_summary=freeze_mapping_or_empty(summaries["watchlist_summary"])
+            or freeze_mapping_or_empty({}),
             missing_research=tuple(
-                freeze_mapping(dict(m)) or freeze_mapping({})
+                freeze_mapping_or_empty(dict(m)) or freeze_mapping_or_empty({})
                 for m in summaries["missing_research"]
             ),
             citations=tuple(
-                freeze_mapping(dict(c)) or freeze_mapping({}) for c in citations
+                freeze_mapping_or_empty(dict(c)) or freeze_mapping_or_empty({})
+                for c in citations
             ),
-            provenance=freeze_mapping(provenance) or freeze_mapping({}),
-            audit=freeze_mapping(audit) or freeze_mapping({}),
+            provenance=freeze_mapping_or_empty(provenance)
+            or freeze_mapping_or_empty({}),
+            audit=freeze_mapping_or_empty(audit) or freeze_mapping_or_empty({}),
             limitations=limitations,
         )
         validate_portfolio_intelligence(result)

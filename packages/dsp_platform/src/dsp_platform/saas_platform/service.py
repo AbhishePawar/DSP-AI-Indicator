@@ -27,7 +27,7 @@ UNAVAILABLE_MESSAGE = "Data unavailable."
 SAAS_SCHEMA_VERSION = "1.0.0"
 SAAS_SERVICE_VERSION = "0.1.0"
 
-DEFAULT_ORG_PREFERENCES = {
+DEFAULT_ORG_PREFERENCES: dict[str, Any] = {
     "timezone": "UTC",
     "country": None,
     "currency": "USD",
@@ -622,8 +622,8 @@ def _checkout(enterprise: Any, body: dict[str, Any]) -> dict[str, Any]:
             "detail": "Billing provider unavailable.",
         }
     if not billing.is_available():
-        return billing.create_checkout_session(org_id, plan=body.get("plan_id"))
-    return billing.create_checkout_session(org_id, plan=body.get("plan_id"))
+        return dict(billing.create_checkout_session(org_id, plan=body.get("plan_id")))
+    return dict(billing.create_checkout_session(org_id, plan=body.get("plan_id")))
 
 
 def _assign_license(

@@ -5,7 +5,7 @@ from __future__ import annotations
 import uuid
 from collections.abc import Mapping
 from datetime import UTC, datetime
-from typing import Any
+from typing import Any, cast
 
 from dsp_platform.copilot_v2.intent import (
     COPILOT_MODES,
@@ -206,7 +206,7 @@ def _dispatch(
         "chat": _handle_chat,
     }
     handler = handlers.get(intent, _handle_chat)
-    answer, sources, unavailable, payload = handler(
+    answer, sources, unavailable, payload = cast(Any, handler)(
         platform,
         message=message,
         symbols=symbols,
@@ -305,10 +305,9 @@ def _handle_company(
             bundle = platform.get_unified_data_bundle(symbols[0])
             if isinstance(bundle, dict):
                 sources.append(source_ref("data_connector", "unified_data_bundle"))
-                identity = (
-                    bundle.get("identity")
-                    if isinstance(bundle.get("identity"), dict)
-                    else {}
+                identity_raw = bundle.get("identity")
+                identity: dict[str, Any] = (
+                    identity_raw if isinstance(identity_raw, dict) else {}
                 )
                 return (
                     "\n".join(

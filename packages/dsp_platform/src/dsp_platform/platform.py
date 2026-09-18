@@ -6,10 +6,10 @@ logic, financial calculations, persistence, REST, or authentication.
 
 from __future__ import annotations
 
-from collections.abc import Callable
+from collections.abc import Callable, Mapping
 from dataclasses import dataclass
 from datetime import UTC, date, datetime
-from typing import Any
+from typing import Any, cast
 
 from comparison import ComparisonResult, QualitativeComparisonEngine
 from contracts import (
@@ -528,20 +528,26 @@ class DSPPlatform:
 
     def _comparison_cache(self) -> InMemoryCache:
         """Resolve the platform's shared short-TTL comparison cache."""
-        return self._resolve_service(
-            "comparison_cache",
+        return cast(
             InMemoryCache,
-            capability="compare_companies",
+            self._resolve_service(
+                "comparison_cache",
+                InMemoryCache,
+                capability="compare_companies",
+            ),
         )
 
     def _default_comparison_engine(self) -> QualitativeComparisonEngine:
         """Resolve the platform's shared default comparison engine (cached)."""
         from dsp_platform.comparison_engine import build_default_comparison_engine
 
-        return self._resolve_service(
-            "comparison_engine",
-            build_default_comparison_engine,
-            capability="compare_companies",
+        return cast(
+            QualitativeComparisonEngine,
+            self._resolve_service(
+                "comparison_engine",
+                build_default_comparison_engine,
+                capability="compare_companies",
+            ),
         )
 
     def run_workflow(self, context: Any) -> PlatformResult:
@@ -970,8 +976,8 @@ class DSPPlatform:
         exchange: str | None = None,
         currency: str = "USD",
         frequency: str | None = "daily",
-        start_date: object | None = None,
-        end_date: object | None = None,
+        start_date: date | str | None = None,
+        end_date: date | str | None = None,
         limit: int = 500,
     ) -> dict[str, object] | None:
         from dsp_platform.historical_series import get_authenticated_historical_series
@@ -999,8 +1005,8 @@ class DSPPlatform:
         exchange: str | None = None,
         currency: str = "USD",
         action_type: str | None = None,
-        start_date: object | None = None,
-        end_date: object | None = None,
+        start_date: date | str | None = None,
+        end_date: date | str | None = None,
         limit: int = 50,
     ) -> dict[str, object] | None:
         from dsp_platform.corporate_actions import get_authenticated_corporate_actions
@@ -1032,7 +1038,7 @@ class DSPPlatform:
         exchange: str | None = None,
         currency: str = "USD",
         limit: int = 20,
-        since: object | None = None,
+        since: datetime | None = None,
     ) -> dict[str, object] | None:
         from dsp_platform.news import get_authenticated_news
 
@@ -1052,8 +1058,8 @@ class DSPPlatform:
         exchange: str | None = None,
         currency: str = "USD",
         filing_types: tuple[str, ...] = (),
-        start_date: object | None = None,
-        end_date: object | None = None,
+        start_date: date | str | None = None,
+        end_date: date | str | None = None,
         limit: int = 50,
     ) -> dict[str, object] | None:
         from dsp_platform.filings import get_authenticated_filings
@@ -1079,7 +1085,7 @@ class DSPPlatform:
         *,
         exchange: str | None = None,
         currency: str = "USD",
-        as_of: object | None = None,
+        as_of: date | str | None = None,
     ) -> dict[str, object] | None:
         from dsp_platform.ownership import get_authenticated_ownership
 
@@ -1098,8 +1104,8 @@ class DSPPlatform:
         *,
         exchange: str | None = None,
         currency: str = "USD",
-        start_date: object | None = None,
-        end_date: object | None = None,
+        start_date: date | str | None = None,
+        end_date: date | str | None = None,
         limit: int = 50,
     ) -> dict[str, object] | None:
         from dsp_platform.insider_trading import get_authenticated_insider_activity
@@ -1719,7 +1725,7 @@ class DSPPlatform:
         workflow_id: str | None = None,
         template_id: str | None = None,
         artifact_refs: dict[str, object] | None = None,
-        reviewers: list[dict[str, object]] | None = None,
+        reviewers: list[Mapping[str, Any]] | None = None,
         to_stage: str | None = None,
         actor_id: str | None = None,
         author_id: str | None = None,
@@ -1783,7 +1789,7 @@ class DSPPlatform:
         *,
         subject: str,
         policy: dict[str, object] | None = None,
-        exceptions: list[dict[str, object]] | None = None,
+        exceptions: list[Mapping[str, Any]] | None = None,
         research_object: dict[str, object] | None = None,
         report: dict[str, object] | None = None,
         snapshots: dict[str, object] | list[object] | None = None,

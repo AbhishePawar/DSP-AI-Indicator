@@ -10,7 +10,7 @@ from collections.abc import Mapping
 from dataclasses import dataclass, field
 from datetime import UTC, datetime
 from types import MappingProxyType
-from typing import Any
+from typing import Any, cast
 
 __all__ = [
     "RESEARCH_OBJECT_SCHEMA_VERSION",
@@ -21,6 +21,7 @@ __all__ = [
     "ResearchVersion",
     "UNAVAILABLE_MESSAGE",
     "freeze_mapping",
+    "freeze_mapping_or_empty",
     "utc_now",
 ]
 
@@ -64,7 +65,12 @@ def freeze_mapping(value: Mapping[str, Any] | None) -> Mapping[str, Any] | None:
             return tuple(_freeze(v) for v in obj)
         return obj
 
-    return _freeze(value)  # type: ignore[return-value]
+    return cast(Mapping[str, Any], _freeze(value))
+
+
+def freeze_mapping_or_empty(value: Mapping[str, Any] | None) -> Mapping[str, Any]:
+    """Freeze a mapping and normalize a missing value to an empty mapping."""
+    return freeze_mapping(value) or {}
 
 
 @dataclass(frozen=True, slots=True)

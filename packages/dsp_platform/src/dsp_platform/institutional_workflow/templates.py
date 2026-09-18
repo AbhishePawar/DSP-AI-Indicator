@@ -8,7 +8,7 @@ from typing import Any
 from dsp_platform.institutional_workflow.models import (
     ALLOWED_TRANSITIONS,
     WORKFLOW_STAGES,
-    freeze_mapping,
+    freeze_mapping_or_empty,
 )
 
 __all__ = [
@@ -20,7 +20,7 @@ __all__ = [
 DEFAULT_TEMPLATE_ID = "institutional_research_v1"
 
 _TEMPLATES: dict[str, Mapping[str, Any]] = {
-    DEFAULT_TEMPLATE_ID: freeze_mapping(
+    DEFAULT_TEMPLATE_ID: freeze_mapping_or_empty(
         {
             "template_id": DEFAULT_TEMPLATE_ID,
             "name": "Institutional Research Lifecycle",
@@ -44,8 +44,7 @@ _TEMPLATES: dict[str, Mapping[str, Any]] = {
                 "deterministic_transitions",
             ],
         }
-    )
-    or freeze_mapping({}),
+    ),
 }
 
 

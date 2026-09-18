@@ -37,7 +37,7 @@ class EvidenceCollector:
         evidence = getattr(payload, "evidence", None)
         if evidence is not None:
             try:
-                count = len(evidence)  # type: ignore[arg-type]
+                count = len(evidence)
             except TypeError:
                 count = 0
         self._counts[stage] = count

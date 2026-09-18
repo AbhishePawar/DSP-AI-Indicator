@@ -60,7 +60,10 @@ def _section_from_data_bundle(
     section = bundle.get(bundle_key)
     if not isinstance(section, Mapping):
         return ResearchSection.unavailable(name, source="data_bundle")
-    status = section.get("status") if isinstance(section.get("status"), Mapping) else {}
+    status_value = section.get("status")
+    status: Mapping[str, Any] = (
+        status_value if isinstance(status_value, Mapping) else {}
+    )
     available = bool(status.get("available"))
     payload = section.get("payload")
     provenance = section.get("provenance")
@@ -301,7 +304,7 @@ class ResearchObjectBuilder:
             risk = ResearchSection.from_payload(
                 "risk",
                 source="analysis",
-                payload=self._analysis["risk"],  # type: ignore[arg-type]
+                payload=self._analysis["risk"],
                 provenance={"source_type": "analysis_pipeline"},
             )
 
@@ -312,7 +315,7 @@ class ResearchObjectBuilder:
             scenarios = ResearchSection.from_payload(
                 "scenarios",
                 source="analysis",
-                payload=self._analysis["scenarios"],  # type: ignore[arg-type]
+                payload=self._analysis["scenarios"],
                 provenance={"source_type": "analysis_pipeline"},
             )
 
@@ -371,7 +374,7 @@ class ResearchObjectBuilder:
             if self._analysis.get("result_fingerprint") is not None:
                 result_fingerprint = self._analysis.get("result_fingerprint")
             if isinstance(self._analysis.get("trust_chain"), Mapping):
-                trust_chain = dict(self._analysis["trust_chain"])  # type: ignore[index]
+                trust_chain = dict(self._analysis["trust_chain"])
 
         audit_payload = {
             "research_object_id": object_id,

@@ -46,7 +46,7 @@ def _require_note_owner(store: Any, note_id: str, actor: str) -> dict[str, Any]:
         raise ValueError("note not found")
     if not _owned_by(note, actor):
         raise WorkspaceForbiddenError("forbidden")
-    return note
+    return note if isinstance(note, dict) else {}
 
 
 def _require_folder_owner(store: Any, folder_id: str, actor: str) -> dict[str, Any]:
@@ -55,10 +55,10 @@ def _require_folder_owner(store: Any, folder_id: str, actor: str) -> dict[str, A
     if folder is None:
         raise ValueError("folder not found")
     if folder_id == "folder-root":
-        return folder
+        return dict(folder) if isinstance(folder, dict) else {}
     if not _owned_by(folder, actor):
         raise WorkspaceForbiddenError("forbidden")
-    return folder
+    return dict(folder) if isinstance(folder, dict) else {}
 
 
 _STATUS_TO_WORKFLOW = {
@@ -608,7 +608,7 @@ def _diff_versions(store: Any, body: dict[str, Any]) -> dict[str, Any]:
     def pick(v: int) -> dict[str, Any] | None:
         for item in versions:
             if int(item.get("version") or 0) == v:
-                return item
+                return dict(item) if isinstance(item, dict) else None
         return None
 
     left = pick(left_v)

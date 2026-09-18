@@ -125,7 +125,7 @@ def _confidence(obj: object | None) -> float | None:
         return None
     value = getattr(conf, "value", conf)
     try:
-        return float(value)  # type: ignore[arg-type]
+        return float(value)
     except (TypeError, ValueError):
         return None
 

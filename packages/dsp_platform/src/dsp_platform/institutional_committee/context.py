@@ -8,7 +8,7 @@ from typing import Any
 from dsp_platform.institutional_committee.models import (
     UNAVAILABLE_MESSAGE,
     CommitteeContext,
-    freeze_mapping,
+    freeze_mapping_or_empty,
 )
 
 __all__ = [
@@ -147,33 +147,45 @@ def distribute_committee_context(
     return CommitteeContext(
         subject=str(subject).strip().upper(),
         research_object=(
-            freeze_mapping(dict(research_object))
+            freeze_mapping_or_empty(dict(research_object))
             if isinstance(research_object, Mapping)
             else None
         ),
-        report=freeze_mapping(dict(report)) if isinstance(report, Mapping) else None,
-        snapshots=tuple(
-            freeze_mapping(dict(s)) or freeze_mapping({}) for s in snap_list
+        report=(
+            freeze_mapping_or_empty(dict(report))
+            if isinstance(report, Mapping)
+            else None
         ),
-        diffs=tuple(freeze_mapping(dict(d)) or freeze_mapping({}) for d in diff_list),
+        snapshots=tuple(
+            freeze_mapping_or_empty(dict(s)) or freeze_mapping_or_empty({})
+            for s in snap_list
+        ),
+        diffs=tuple(
+            freeze_mapping_or_empty(dict(d)) or freeze_mapping_or_empty({})
+            for d in diff_list
+        ),
         copilot_response=(
-            freeze_mapping(dict(copilot_response))
+            freeze_mapping_or_empty(dict(copilot_response))
             if isinstance(copilot_response, Mapping)
             else None
         ),
         portfolio_intelligence=(
-            freeze_mapping(dict(portfolio_intelligence))
+            freeze_mapping_or_empty(dict(portfolio_intelligence))
             if isinstance(portfolio_intelligence, Mapping)
             else None
         ),
         monitoring_result=(
-            freeze_mapping(dict(monitoring_result))
+            freeze_mapping_or_empty(dict(monitoring_result))
             if isinstance(monitoring_result, Mapping)
             else None
         ),
         workspace=(
-            freeze_mapping(dict(workspace)) if isinstance(workspace, Mapping) else None
+            freeze_mapping_or_empty(dict(workspace))
+            if isinstance(workspace, Mapping)
+            else None
         ),
-        section_index=freeze_mapping(section_index) or freeze_mapping({}),
-        source_flags=freeze_mapping(source_flags) or freeze_mapping({}),
+        section_index=freeze_mapping_or_empty(section_index)
+        or freeze_mapping_or_empty({}),
+        source_flags=freeze_mapping_or_empty(source_flags)
+        or freeze_mapping_or_empty({}),
     )

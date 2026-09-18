@@ -182,8 +182,10 @@ def assert_duplicate_periods(
                 f"{DATA_UNAVAILABLE} (duplicate fiscal quarter)"
             )
     elif kind in {"annual", "ttm"}:
-        keys = [(p.period_type, p.fiscal_year) for p in periods]
-        if len(keys) != len(set(keys)):
+        annual_keys: list[tuple[str, int]] = [
+            (p.period_type, p.fiscal_year) for p in periods
+        ]
+        if len(annual_keys) != len(set(annual_keys)):
             raise FinancialIntegrityError(
                 f"{DATA_UNAVAILABLE} (duplicate fiscal period)"
             )
@@ -212,7 +214,7 @@ def normalize_periods_to_actual(
             name: _scale_field(getattr(period, name), factor)
             for name in _MONETARY_FIELDS
         }
-        out.append(replace(period, unit_scale="actual", **updates))
+        out.append(replace(period, unit_scale="actual", **updates))  # type: ignore[arg-type]
     return tuple(out)
 
 

@@ -478,8 +478,6 @@ def build_default_statement_adapter_from_env() -> FinancialStatementPort:
     cannot silently become the production provider.
 
     Routes:
-    - ``DSP_INVESTMENT_DATA_PROVIDER=upstox`` → Upstox U4 only (no FMP fallback)
-    - ``DSP_INVESTMENT_DATA_PROVIDER=fmp`` → FMP only
     - unset / ``auto`` (first match wins):
       1. ConfiguredHttp — statement key + base URL
       2. FMP — ``DSP_FMP_API_KEY`` or ``DSP_INVESTMENT_FMP_API_KEY``
@@ -494,19 +492,10 @@ def build_default_statement_adapter_from_env() -> FinancialStatementPort:
         resolve_fmp_api_key,
     )
     from data_engine.investment_data_provider import (
-        require_upstox_analytics_token,
         resolve_investment_data_provider,
     )
 
     provider = resolve_investment_data_provider()
-
-    if provider == "upstox":
-        from data_engine.upstox_investment import UpstoxStatementAdapter
-
-        token = require_upstox_analytics_token(connector="financial_statement")
-        if token:
-            return UpstoxStatementAdapter(access_token=token)
-        return NullAuthenticatedStatementAdapter()
 
     if provider == "fmp":
         fmp_key = resolve_fmp_api_key()

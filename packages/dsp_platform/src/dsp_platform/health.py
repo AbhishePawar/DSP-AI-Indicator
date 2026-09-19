@@ -48,7 +48,6 @@ class PlatformHealthReport:
     Attributes:
         ready: ``True`` when every *blocking* non-skipped check passed.
             ``investment_data_provider`` may fail without clearing readiness so
-            auth/API boot is independent of Upstox/FMP credentials (P1-03 still
             fail-closes on investment use paths).
         status: Overall status (``pass`` if ready else ``fail``).
         checks: Individual check results.

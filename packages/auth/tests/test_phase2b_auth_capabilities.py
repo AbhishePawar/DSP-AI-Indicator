@@ -360,9 +360,7 @@ def test_google_oauth_begin_still_gated_without_credentials(
         platform.oauth_begin("GOOGLE", redirect_uri="http://localhost/oauth/callback")
 
 
-def test_auth_package_does_not_import_upstox_or_investment() -> None:
     auth_root = Path(__file__).resolve().parents[1] / "src" / "auth"
-    forbidden = ("upstox", "investment", "data_engine.adapters")
     offenders: list[str] = []
     for path in auth_root.rglob("*.py"):
         tree = ast.parse(path.read_text(encoding="utf-8"), filename=str(path))

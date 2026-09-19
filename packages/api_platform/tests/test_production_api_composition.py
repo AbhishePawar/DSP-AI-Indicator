@@ -2,7 +2,6 @@
 
 Proves ``POST /api/v1/analyse`` is served by the canonical DSP AI Indicator
 composition path — ``DSPPlatform.compose_intelligence`` → ``PlatformOrchestrator``
-→ ``run_execution_pipeline`` → authenticated valuation bundle → Upstox
 production adapters — and never by the legacy Yahoo/FRED
 ``InvestmentAnalysisService``.
 """
@@ -26,7 +25,6 @@ from dsp_platform import (
     PlatformError,
 )
 
-_SECRET = "upstox-analytics-secret-token"
 
 
 def _analyse_body() -> dict[str, Any]:
@@ -246,13 +244,10 @@ class TestHealthReflectsCanonicalComposition:
 class TestProductionFailClosed:
     """Production must fail closed rather than silently degrade."""
 
-    def test_missing_upstox_token_reports_investment_fail_without_blocking_ready(
         self, monkeypatch: pytest.MonkeyPatch
     ) -> None:
         platform = build_default_platform()
         monkeypatch.setenv("DSP_ENVIRONMENT", "production")
-        monkeypatch.setenv("DSP_INVESTMENT_DATA_PROVIDER", "upstox")
-        monkeypatch.delenv("DSP_UPSTOX_ANALYTICS_TOKEN", raising=False)
         result = platform.health_check()
         assert result.ok is True
         by_name = {c.name: c.status.value for c in result.payload.checks}
@@ -260,26 +255,19 @@ class TestProductionFailClosed:
         assert result.payload.ready is True
         assert "investment_data_provider" in " ".join(result.limitations)
 
-    def test_upstox_provider_selection_intact(
         self, monkeypatch: pytest.MonkeyPatch
     ) -> None:
         monkeypatch.setenv("DSP_ENVIRONMENT", "production")
-        monkeypatch.setenv("DSP_INVESTMENT_DATA_PROVIDER", "upstox")
-        monkeypatch.setenv("DSP_UPSTOX_ANALYTICS_TOKEN", _SECRET)
         from data_engine.connector_framework.production_profile import (
             assert_production_investment_connectors_configured,
         )
 
         selected = assert_production_investment_connectors_configured()
-        assert selected["market_quote"] == "UpstoxQuoteAdapter"
-        assert selected["financial_statement"] == "UpstoxStatementAdapter"
 
     def test_no_in_memory_analysis_fallback_in_production(
         self, monkeypatch: pytest.MonkeyPatch
     ) -> None:
         monkeypatch.setenv("DSP_ENVIRONMENT", "production")
-        monkeypatch.setenv("DSP_INVESTMENT_DATA_PROVIDER", "upstox")
-        monkeypatch.setenv("DSP_UPSTOX_ANALYTICS_TOKEN", _SECRET)
         platform = build_default_platform()
         result = platform.health_check()
         message = " ".join(c.message for c in result.payload.checks)
@@ -290,8 +278,6 @@ class TestProductionFailClosed:
         self, monkeypatch: pytest.MonkeyPatch
     ) -> None:
         monkeypatch.setenv("DSP_ENVIRONMENT", "production")
-        monkeypatch.setenv("DSP_INVESTMENT_DATA_PROVIDER", "upstox")
-        monkeypatch.setenv("DSP_UPSTOX_ANALYTICS_TOKEN", _SECRET)
         platform = build_default_platform()
         result = platform.health_check()
         rendered = " ".join(
@@ -302,7 +288,6 @@ class TestProductionFailClosed:
     def test_analyse_response_never_leaks_credentials(
         self, monkeypatch: pytest.MonkeyPatch
     ) -> None:
-        monkeypatch.setenv("DSP_UPSTOX_ANALYTICS_TOKEN", _SECRET)
         client = TestClient(create_app())
         response = client.post("/api/v1/analyse", json=_analyse_body())
         assert _SECRET not in response.text

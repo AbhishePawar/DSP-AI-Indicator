@@ -454,17 +454,15 @@ export function CompanyAnalysisWorkspace() {
             </div>
           ) : null}
 
-          {analyseMutation.isError && !view ? (
-            <ErrorState
-              title="Analysis failed"
-              description={describeAnalyseError(analyseMutation.error)}
-              action={
-                <Button size="sm" variant="secondary" onClick={runAnalyse}>
-                  Retry
-                </Button>
-              }
-            />
-          ) : null}
+{analyseMutation.isError && !view ? (
+  <ResultConversation
+    view={null}
+    onShare={() => {
+      void navigator.clipboard?.writeText(window.location.href);
+    }}
+    onRefresh={runAnalyse}
+  />
+  ) : null}
 
           {!analyseMutation.isPending && !analyseMutation.isError && !view ? (
             <WorkspaceEmpty

@@ -38,7 +38,7 @@ AI_EXECUTION_BLOCKED_MESSAGE = (
     "Research is unavailable because production AI execution is blocked."
 )
 AI_EXECUTION_UNAVAILABLE_MESSAGE = (
-    "Research AI is unavailable because the OpenAI provider is not configured."
+    "Research AI is unavailable because the configured AI provider is unavailable."
 )
 AI_VALIDATION_FAILED_MESSAGE = (
     "Research AI output failed DSP validation and was rejected."

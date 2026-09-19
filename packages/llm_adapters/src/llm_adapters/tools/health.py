@@ -7,8 +7,8 @@ Reports one of three states per tool:
                               be invoked (possibly with a HEALTH probe)
 - ``authentication_required``— the backend method exists but the
                               canonical engine reports an authentication
-                              gap (e.g. no Upstox token, missing API
-                              credential)
+gap (e.g. missing API
+  credential)
 - ``unavailable``            — the backend method is missing or the
                               canonical engine reports the data
                               unavailable

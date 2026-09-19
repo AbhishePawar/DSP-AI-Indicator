@@ -91,25 +91,13 @@ def require_authenticated_http_adapter(
         DSP_INVESTMENT_DATA_PROVIDER_ENV,
         resolve_investment_data_provider,
     )
-    from data_engine.upstox_investment import resolve_upstox_analytics_token
-
     provider = resolve_investment_data_provider(environ)
-    if provider == "upstox":
-        if resolve_upstox_analytics_token(environ):
-            return
-        raise ConnectorConfigurationError(
-            f"P1-03: production requires authenticated {connector} provider; "
-            f"{DSP_INVESTMENT_DATA_PROVIDER_ENV}=upstox but "
-            "DSP_UPSTOX_ANALYTICS_TOKEN is absent. "
-            "Null/demo/seed/FMP fallback is not permitted when Upstox is selected."
-        )
-    if resolve_fmp_api_key(environ):
+    if provider in {"auto", "fmp"} and resolve_fmp_api_key(environ):
         return
     raise ConnectorConfigurationError(
         f"P1-03: production requires authenticated {connector} provider; "
         f"set {api_key_env} and {base_url_env}, "
         "or DSP_FMP_API_KEY / DSP_INVESTMENT_FMP_API_KEY (single-key FMP route), "
-        f"or {DSP_INVESTMENT_DATA_PROVIDER_ENV}=upstox with DSP_UPSTOX_ANALYTICS_TOKEN. "
         "Null/demo/seed adapters are not permitted on the production path."
     )
 

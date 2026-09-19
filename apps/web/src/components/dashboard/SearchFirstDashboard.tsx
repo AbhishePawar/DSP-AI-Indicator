@@ -58,9 +58,9 @@ export function SearchFirstDashboard() {
   }
 
   return (
-    <div className="dsp-page-enter mx-auto max-w-5xl space-y-12 pb-12">
+    <div className="dsp-page-enter mx-auto w-full max-w-5xl space-y-12 pb-12">
       <section className="pt-4 text-center sm:pt-10">
-        <div className="mx-auto max-w-2xl">
+        <div className="mx-auto w-full max-w-2xl">
           <p className="text-sm font-semibold tracking-[0.16em] text-[var(--accent)]">AI-POWERED EQUITY RESEARCH</p>
           <h1 className="mt-4 font-[family-name:var(--font-display)] text-4xl leading-[1.08] tracking-tight sm:text-5xl">Research smarter.</h1>
           <p className="mx-auto mt-4 max-w-xl text-base leading-7 text-[var(--muted)] sm:text-lg">Analyse companies, compare businesses, and uncover value with evidence-driven research.</p>
@@ -77,7 +77,7 @@ export function SearchFirstDashboard() {
       <section aria-labelledby="paths-heading">
         <h2 id="paths-heading" className="text-xl font-semibold tracking-tight">Start with a research path</h2>
         <p className="mt-1 text-sm text-[var(--muted)]">Focused workflows for faster, clearer research.</p>
-        <div className="mt-5 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="mx-auto mt-5 grid max-w-4xl gap-4 sm:grid-cols-2">
           {researchPaths.map((path) => { const Icon = path.icon; return <button key={path.title} type="button" onClick={() => choosePath(path.intent)} className={`group flex min-h-44 flex-col rounded-[var(--radius-lg)] border p-5 text-left transition-colors ${path.featured ? "border-[var(--accent)] bg-[var(--accent-soft)]" : "border-[var(--border)] bg-[var(--surface)] hover:border-[var(--accent)]"}`}>
             <span className={`flex h-9 w-9 items-center justify-center rounded-lg ${path.featured ? "bg-[var(--accent)] text-[var(--accent-foreground)]" : "bg-[var(--surface-2)] text-[var(--accent)]"}`}><Icon size={18} aria-hidden="true" /></span>
             <span className="mt-5 text-base font-semibold">{path.title}</span>

@@ -58,14 +58,14 @@ export function SearchFirstDashboard() {
   }
 
   return (
-    <div className="dsp-page-enter mx-auto max-w-6xl space-y-12 pb-12">
-      <section className="pt-4 sm:pt-10">
-        <div className="max-w-2xl">
+    <div className="dsp-page-enter mx-auto max-w-5xl space-y-12 pb-12">
+      <section className="pt-4 text-center sm:pt-10">
+        <div className="mx-auto max-w-2xl">
           <p className="text-sm font-semibold tracking-[0.16em] text-[var(--accent)]">AI-POWERED EQUITY RESEARCH</p>
           <h1 className="mt-4 font-[family-name:var(--font-display)] text-4xl leading-[1.08] tracking-tight sm:text-5xl">Research smarter.</h1>
-          <p className="mt-4 max-w-xl text-base leading-7 text-[var(--muted)] sm:text-lg">Analyse companies, compare businesses, and uncover value with evidence-driven research.</p>
+          <p className="mx-auto mt-4 max-w-xl text-base leading-7 text-[var(--muted)] sm:text-lg">Analyse companies, compare businesses, and uncover value with evidence-driven research.</p>
         </div>
-        <div className="relative mt-8 max-w-3xl">
+        <div className="relative mx-auto mt-8 max-w-3xl text-left">
           <SearchBox value={query} onChange={(event) => setQuery(event.target.value)} onKeyDown={onSearchKeyDown} placeholder="Search a company or ask a research question..." aria-label="Search a company or ask a research question" aria-controls="company-results" aria-autocomplete="list" />
           {showResults ? <div id="company-results" role="listbox" aria-label="Company search results" className="absolute z-10 mt-2 w-full overflow-hidden rounded-[var(--radius-lg)] border border-[var(--border)] bg-[var(--surface)] shadow-[var(--shadow-md)]">
             {matched.length === 0 ? <p className="p-4 text-sm text-[var(--muted)]">No matching company. Try a ticker or company name.</p> : matched.map((company, index) => <CompanyResult key={company.ticker} company={company} active={index === activeIndex} onSelect={() => submit(company.ticker)} />)}

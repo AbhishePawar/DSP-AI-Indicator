@@ -194,6 +194,7 @@ export function CompanyAnalysisWorkspace() {
 
   // RC3-003 — no silent default company; require explicit symbol selection.
   const urlSymbol = (searchParams.get("symbol") || "").trim().toUpperCase();
+  const exampleMode = searchParams.get("example") === "true";
   const [symbol, setSymbol] = useState(urlSymbol);
   const [query, setQuery] = useState(urlSymbol);
   const [view, setView] = useState<ResearchView | null>(null);
@@ -454,7 +455,7 @@ export function CompanyAnalysisWorkspace() {
             </div>
           ) : null}
 
-{analyseMutation.isError && !view ? (
+{!analyseMutation.isPending && (exampleMode || !view) ? (
   <ResultConversation
     view={null}
     onShare={() => {

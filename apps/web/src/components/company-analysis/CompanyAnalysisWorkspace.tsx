@@ -455,17 +455,18 @@ export function CompanyAnalysisWorkspace() {
             </div>
           ) : null}
 
-{!analyseMutation.isPending && (exampleMode || !view) ? (
-  <ResultConversation
-    view={null}
-    onShare={() => {
-      void navigator.clipboard?.writeText(window.location.href);
-    }}
-    onRefresh={runAnalyse}
-  />
-  ) : null}
+          {!analyseMutation.isPending && exampleMode && !view ? (
+            <ResultConversation
+              view={null}
+              exampleMode
+              onShare={() => {
+                void navigator.clipboard?.writeText(window.location.href);
+              }}
+              onRefresh={runAnalyse}
+            />
+          ) : null}
 
-          {!analyseMutation.isPending && !analyseMutation.isError && !view ? (
+          {!analyseMutation.isPending && !exampleMode && !analyseMutation.isError && !view ? (
             <WorkspaceEmpty
               description={
                 symbol
@@ -492,6 +493,9 @@ export function CompanyAnalysisWorkspace() {
               {section === "summary" ? (
                 <ResultConversation
                   view={view}
+                  token={token}
+                  analyseRequest={lastAnalyseRequest}
+                  analyseResponse={lastAnalyseResponse}
                   onShare={() => {
                     void navigator.clipboard?.writeText(window.location.href);
                   }}

@@ -20,6 +20,8 @@ class LLMPlatformConfig:
     anthropic_api_key: str | None
     gemini_api_key: str | None
     deepseek_api_key: str | None
+    ai_gateway_api_key: str | None
+    ai_gateway_base_url: str
     openai_model: str
     anthropic_model: str
     gemini_model: str
@@ -32,11 +34,11 @@ class LLMPlatformConfig:
         if self.default_provider == "deterministic":
             return False
         if self.default_provider == "openai":
-            return bool(self.openai_api_key)
+            return bool(self.ai_gateway_api_key or self.openai_api_key)
         if self.default_provider == "anthropic":
             return bool(self.anthropic_api_key)
         if self.default_provider == "gemini":
-            return bool(self.gemini_api_key)
+            return bool(self.ai_gateway_api_key or self.gemini_api_key)
         if self.default_provider == "deepseek":
             return bool(self.deepseek_api_key)
         return False
@@ -53,7 +55,7 @@ def _read_env(*names: str) -> str | None:
 def load_llm_config() -> LLMPlatformConfig:
     """Load provider configuration from environment variables."""
     default_raw = (
-        _read_env("DEFAULT_AI_PROVIDER", "DSP_AI_DEFAULT_PROVIDER") or "deterministic"
+        _read_env("DEFAULT_AI_PROVIDER", "DSP_AI_DEFAULT_PROVIDER") or "gemini"
     ).lower()
     allowed = {"deterministic", "openai", "anthropic", "gemini", "deepseek"}
     default_provider: ProviderName = (
@@ -66,11 +68,13 @@ def load_llm_config() -> LLMPlatformConfig:
         anthropic_api_key=_read_env("ANTHROPIC_API_KEY", "DSP_AI_ANTHROPIC_API_KEY"),
         gemini_api_key=_read_env("GEMINI_API_KEY", "DSP_AI_GEMINI_API_KEY"),
         deepseek_api_key=_read_env("DEEPSEEK_API_KEY", "DSP_AI_DEEPSEEK_API_KEY"),
-        openai_model=_read_env("OPENAI_MODEL", "DSP_AI_OPENAI_MODEL") or "gpt-4o-mini",
+        ai_gateway_api_key=_read_env("AI_GATEWAY_API_KEY"),
+        ai_gateway_base_url=_read_env("AI_GATEWAY_BASE_URL") or "https://ai-gateway.vercel.sh/v1",
+        openai_model=_read_env("OPENAI_MODEL", "DSP_AI_OPENAI_MODEL") or "openai/gpt-4.1-mini",
         anthropic_model=_read_env("ANTHROPIC_MODEL", "DSP_AI_ANTHROPIC_MODEL")
         or "claude-3-5-sonnet-20241022",
         gemini_model=_read_env("GEMINI_MODEL", "DSP_AI_GEMINI_MODEL")
-        or "gemini-1.5-flash",
+        or "google/gemini-3.1-flash-lite",
         deepseek_model=_read_env("DEEPSEEK_MODEL", "DSP_AI_DEEPSEEK_MODEL")
         or "deepseek-chat",
         request_timeout_seconds=float(_read_env("DSP_AI_LLM_TIMEOUT_SECONDS") or "30"),

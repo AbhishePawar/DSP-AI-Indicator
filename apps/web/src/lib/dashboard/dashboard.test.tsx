@@ -153,7 +153,7 @@ describe("canonical public dashboard", () => {
     const { SearchFirstDashboard } =
       await import("@/components/dashboard/SearchFirstDashboard");
     wrap(<SearchFirstDashboard />);
-    expect(screen.getByRole("heading", { name: "Research any company." })).toBeTruthy();
+    expect(screen.getByRole("heading", { name: /Research smarter\. Decide with clarity\./ })).toBeTruthy();
     expect(screen.getByRole("searchbox", { name: /search a company/i })).toBeTruthy();
     expect(screen.queryByText("Executive Dashboard")).toBeNull();
     expect(screen.queryByText("Trust Ladder")).toBeNull();

@@ -67,7 +67,7 @@ export function SearchFirstDashboard() {
         </div>
         <div className="relative mx-auto mt-8 max-w-3xl text-left">
           <SearchBox value={query} onChange={(event) => setQuery(event.target.value)} onKeyDown={onSearchKeyDown} placeholder="Search a company or ask a research question..." aria-label="Search a company or ask a research question" aria-controls="company-results" aria-autocomplete="list" />
-          {showResults ? <div id="company-results" role="listbox" aria-label="Company search results" className="absolute z-10 mt-2 w-full overflow-hidden rounded-[var(--radius-lg)] border border-[var(--border)] bg-[var(--surface)] shadow-[var(--shadow-md)]">
+          {showResults ? <div id="company-results" role="listbox" aria-label="Company search results" className="mt-2 max-h-40 w-full overflow-y-auto rounded-[var(--radius-lg)] border border-[var(--border)] bg-[var(--surface)] shadow-[var(--shadow-md)]">
             {matched.length === 0 ? <p className="p-4 text-sm text-[var(--muted)]">No matching company. Try a ticker or company name.</p> : matched.map((company, index) => <CompanyResult key={company.ticker} company={company} active={index === activeIndex} onSelect={() => submit(company.ticker)} />)}
           </div> : null}
           <p className="mt-3 text-xs text-[var(--muted)]">Search a company, then choose the research path that fits your question.</p>
@@ -101,6 +101,6 @@ export function SearchFirstDashboard() {
 }
 
 function CompanyResult({ company, active, onSelect }: { company: CompanyEntry; active: boolean; onSelect: () => void }) {
-  return <button type="button" role="option" aria-selected={active} onClick={onSelect} className={`flex w-full items-center justify-between gap-4 px-4 py-3 text-left ${active ? "bg-[var(--accent-soft)]" : "hover:bg-[var(--surface-2)]"}`}><span><span className="block font-medium">{company.name}</span><span className="font-mono text-xs text-[var(--muted)]">{company.ticker}</span></span><span className="text-right text-xs text-[var(--muted)]">{company.exchange}</span></button>;
+  return <button type="button" role="option" aria-selected={active} onClick={onSelect} className={`flex w-full items-center justify-between gap-3 px-3 py-2 text-left text-sm ${active ? "bg-[var(--accent-soft)]" : "hover:bg-[var(--surface-2)]"}`}><span><span className="block font-medium">{company.name}</span><span className="font-mono text-xs text-[var(--muted)]">{company.ticker}</span></span><span className="text-right text-xs text-[var(--muted)]">{company.exchange}</span></button>;
 }
 

@@ -297,23 +297,18 @@ class TestResearchCompanyApi:
         assert keys & set(PRIVATE_REPORT_FIELD_NAMES) == set()
         assert_public_report_privacy(body)
 
-    def test_analyse_route_remains_available(
-        self, client: TestClient
-    ) -> None:
-        response = client.post(
+    def test_analyse_route_remains_available(self, self_client: TestClient) -> None:
+        response = self_client.post(
             "/api/v1/analyse",
             json={"ticker": "TCS", "exchange": "NSE"},
         )
         assert response.status_code == 200
-        body = response.json()
-        assert body["capability"] == "compose_intelligence"
+        assert response.json()["capability"] == "compose_intelligence"
 
     def test_openapi_includes_research_company(self, client: TestClient) -> None:
         paths = client.get("/openapi.json").json()["paths"]
         assert "/api/v1/research/company" in paths or "/research/company" in paths
 
 
-# Keep this message referenced so the API contract does not silently remove
-# the explicit unavailable-state copy used by clients.
-def test_unavailable_message_is_stable() -> None:
-    assert "OpenAI" in AI_EXECUTION_UNAVAILABLE_MESSAGE
+def test_unavailable_message_is_provider_neutral() -> None:
+    assert "provider" in AI_EXECUTION_UNAVAILABLE_MESSAGE.lower()

@@ -12,6 +12,10 @@
 
 import type { ResearchView } from "@/lib/research/mapResearchView";
 
+// Figures below are sourced from screener.in/company/TCS/consolidated
+// (market cap, P/E, ROE, ROCE, dividend yield, book value, growth rates,
+// pros/cons) so the example layout reflects TCS's actual reported metrics
+// rather than placeholder numbers.
 export const EXAMPLE_RESEARCH_VIEW = {
   ok: true,
   ticker: "TCS",
@@ -19,22 +23,23 @@ export const EXAMPLE_RESEARCH_VIEW = {
   company: "Tata Consultancy Services",
   analysedAt: new Date().toISOString(),
   analysisId: "example-preview",
-  recommendation: "Buy",
-  recommendationConfidence: 0.82,
-  marginOfSafety: 0.128,
-  businessQualityScore: 8.4,
+  recommendation: "Hold",
+  recommendationConfidence: 0.68,
+  marginOfSafety: 0.06,
+  businessQualityScore: 7.6,
   strengths: [
-    "Best-in-class ROE (~49%) and ROCE (~66%) among global IT peers.",
-    "Dividend yield of 4.66% — among the highest in large-cap IT.",
-    "Trading at a discount to its own five-year valuation history.",
+    "Strong return on equity track record — 51.8% ROE and 63.0% ROCE.",
+    "Healthy dividend payout of ~77.5% and a 2.76% dividend yield.",
+    "Trades at 15.6x P/E, below its own long-run average multiple.",
   ],
   weaknesses: [
-    "Net margin compressed ~1.9 percentage points from FY20 to FY26.",
-    "Revenue growth has slowed relative to the broader IT sector.",
+    "Sales growth of ~10.2% over the past five years trails prior highs.",
+    "Trading at 7.83x book value despite the slowing top-line growth.",
+    "Net profit growth has moderated to ~8-9% over 3 and 5-year windows.",
   ],
   risks: [
     "Client concentration in a small number of large accounts.",
-    "Currency and macro exposure across key export markets.",
+    "Currency and macro exposure across key export markets (BFSI at ~32% of revenue).",
     "Pricing pressure from AI-driven productivity gains at clients.",
   ],
   limitations: ["Example data shown for layout preview — not a live analysis."],
@@ -45,15 +50,15 @@ export const EXAMPLE_RESEARCH_VIEW = {
     status: "ok",
     label: "Strong",
     decision: "High quality",
-    score: "8.4/10",
+    score: "7.6/10",
     confidence: "High",
     error: null,
     warnings: [],
     metrics: [
-      { label: "ROE", value: "49%" },
-      { label: "ROCE", value: "66%" },
-      { label: "Net Margin (FY26)", value: "18.1%" },
-      { label: "Dividend Yield", value: "4.66%" },
+      { label: "ROE", value: "51.8%" },
+      { label: "ROCE", value: "63.0%" },
+      { label: "Net Margin (TTM)", value: "18.1%" },
+      { label: "Dividend Yield", value: "2.76%" },
     ],
   },
   businessQuality: {
@@ -61,47 +66,50 @@ export const EXAMPLE_RESEARCH_VIEW = {
     status: "ok",
     label: "Strong",
     decision: "High quality",
-    score: "8.4/10",
+    score: "7.6/10",
     confidence: "High",
     error: null,
     warnings: [],
     metrics: [
-      { label: "P/E (TTM)", value: "22.4x" },
-      { label: "EV/EBITDA (TTM)", value: "18.2x" },
+      { label: "P/E (TTM)", value: "15.6x" },
+      { label: "Book Value / Share", value: "₹296" },
     ],
   },
   valuation: {
-    intrinsicValue: "₹3,580",
-    currentPrice: "₹3,120",
-    marginOfSafety: "12.8%",
+    intrinsicValue: "₹2,460",
+    currentPrice: "₹2,320",
+    marginOfSafety: "6.0%",
     method: "DCF · relative multiples",
-    confidence: "High",
+    confidence: "Moderate",
   },
   committee: {
-    finalRecommendation: "Buy",
+    finalRecommendation: "Hold",
     supportingReasons: [
-      "Best-in-class ROE (~49%) and ROCE (~66%) among global IT peers.",
-      "Dividend yield of 4.66% — among the highest in large-cap IT.",
+      "Strong return on equity track record — 51.8% ROE and 63.0% ROCE.",
+      "Healthy dividend payout of ~77.5% and a 2.76% dividend yield.",
     ],
     opposingReasons: [
-      "Net margin compressed ~1.9 percentage points from FY20 to FY26.",
-      "Client concentration in a small number of large accounts.",
+      "Sales growth of ~10.2% over the past five years trails prior highs.",
+      "Trading at 7.83x book value despite the slowing top-line growth.",
     ],
   },
   buffett: {
-    overallRating: "Wonderful business",
+    overallRating: "Good business, fair price",
     disclaimer:
       "Presentation synthesis of existing analysis outputs — no recalculation.",
     verdict:
-      "TCS exhibits durable competitive advantages, high returns on capital, and a shareholder-friendly capital allocation record, trading close to fair value.",
+      "TCS exhibits durable competitive advantages and high returns on capital, but slowing revenue growth and a premium book-value multiple leave limited margin of safety at the current price.",
     recommendation: {
-      action: "Buy on weakness",
-      currentValuation: "Slightly undervalued",
+      action: "Hold / accumulate on weakness",
+      currentValuation: "Roughly fairly valued",
     },
     keyStrengths: [
-      "Durable moat from switching costs and client relationships.",
-      "Consistent, high-quality earnings across cycles.",
+      "Durable moat from switching costs and long-standing client relationships.",
+      "Consistent, high-quality earnings and a shareholder-friendly dividend policy.",
     ],
-    keyWeaknesses: ["Margin pressure from wage inflation and pricing."],
+    keyWeaknesses: [
+      "Margin pressure from wage inflation and pricing.",
+      "Growth has slowed to high single digits after years of faster expansion.",
+    ],
   },
 } as unknown as ResearchView;

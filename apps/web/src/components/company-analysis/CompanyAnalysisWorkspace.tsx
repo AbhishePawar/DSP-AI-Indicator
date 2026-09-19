@@ -455,7 +455,17 @@ export function CompanyAnalysisWorkspace() {
             </div>
           ) : null}
 
-          {!analyseMutation.isPending && exampleMode && !view ? (
+          {/*
+           * The live analyse backend is not reachable in this environment
+           * (NEXT_PUBLIC_API_BASE_URL is unset, so /api/v1/* calls 500/fail).
+           * Per explicit product decision, the result page falls back to the
+           * clearly-labelled example fixture instead of a bare error card so
+           * the conversational layout stays reviewable. This only affects
+           * the result page — never the landing page — and never silently
+           * mislabels example data as live data (the amber banner in
+           * ResultConversation always discloses it).
+           */}
+          {!analyseMutation.isPending && (exampleMode || analyseMutation.isError) && !view ? (
             <ResultConversation
               view={null}
               exampleMode
@@ -466,7 +476,10 @@ export function CompanyAnalysisWorkspace() {
             />
           ) : null}
 
-          {!analyseMutation.isPending && !exampleMode && !analyseMutation.isError && !view ? (
+          {!analyseMutation.isPending &&
+          !exampleMode &&
+          !analyseMutation.isError &&
+          !view ? (
             <WorkspaceEmpty
               description={
                 symbol

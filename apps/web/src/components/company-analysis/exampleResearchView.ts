@@ -1,10 +1,13 @@
 /**
- * Dev-only layout fixture for the conversational result page.
+ * Layout fixture for the conversational result page.
  *
- * Only rendered when a caller explicitly opts in via `exampleMode`
- * (the `?example=true` query param on /analysis). Never used as a silent
- * fallback for a failed or missing live analysis — those states show a
- * plain "Research unavailable" message instead.
+ * Rendered when a caller opts in via `exampleMode` (the `?example=true`
+ * query param on /analysis), and also used as the result page's fallback
+ * when a live analyse call fails or the backend is unreachable — a
+ * temporary product decision until NEXT_PUBLIC_API_BASE_URL points at a
+ * real backend. In both cases ResultConversation always shows the amber
+ * "Example data" banner so this is never mistaken for live data. Only the
+ * /analysis result page uses this fallback — the landing page is untouched.
  */
 
 import type { ResearchView } from "@/lib/research/mapResearchView";

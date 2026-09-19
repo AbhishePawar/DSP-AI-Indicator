@@ -41,17 +41,11 @@ import { useNotifications } from "@/providers/NotificationProvider";
 import { cn } from "@/lib/utils";
 import { WorkspaceLeftNav } from "./WorkspaceLeftNav";
 import { WorkspaceRightPanel } from "./WorkspaceRightPanel";
-import { WorkspaceToolbar } from "./WorkspaceChrome";
-import { ExportSection, SummarySection } from "./WorkspaceSections";
-import { InvestmentSnapshot, SnapshotSignals } from "./InvestmentSnapshot";
+import { ExportSection } from "./WorkspaceSections";
 import { ResearchProgressTracker } from "./ResearchProgressTracker";
 import { mapReportTransparency } from "@/lib/report-transparency";
-import { SurfaceTrustChrome } from "@/components/trust/SurfaceTrustChrome";
-import {
-  emptySurfaceTrust,
-  researchWorkspaceSurfaceTrust,
-} from "@/lib/trust/surfaceTrust";
 import { WorkspaceEmpty, WorkspaceSkeleton } from "./WorkspacePrimitives";
+import { ResultConversation } from "./ResultConversation";
 
 const ValuationSection = lazy(() =>
   import("./WorkspaceSections").then((m) => ({ default: m.ValuationSection })),
@@ -425,44 +419,9 @@ export function CompanyAnalysisWorkspace() {
     ? activeSection
     : "summary";
 
-  const trustSummary = view
-    ? researchWorkspaceSurfaceTrust({
-        ticker: view.ticker,
-        analyseOk: true,
-        stagesCount: [
-          view.financial,
-          view.growth,
-          view.businessQuality,
-          view.recommendationStage,
-          view.committee,
-        ].filter(Boolean).length,
-        recommendation: view.committee.finalRecommendation,
-        confidenceDisplay: view.committee.confidence || null,
-        opposingNotes: view.committee.opposingReasons,
-        analysedAt: view.analysedAt,
-      })
-    : emptySurfaceTrust("company_analysis", {
-        auditNote: "Audit: company analysis is awaiting an authenticated analyse payload.",
-      });
-
   return (
     <div className="flex min-h-[calc(100vh-8rem)] flex-col overflow-hidden rounded-[var(--radius-md)] border border-[var(--border)] bg-[var(--bg)] shadow-[var(--shadow-sm)]">
       {disclaimerGate}
-      <div className="border-b border-[var(--border)] p-4">
-        <SurfaceTrustChrome
-          summary={trustSummary}
-          title="Company Analysis Trust Ladder"
-        />
-      </div>
-      <WorkspaceToolbar
-        onAnalyze={runAnalyse}
-        analyzing={analyseMutation.isPending}
-        onToggleLeft={toggleLeft}
-        onToggleRight={toggleRight}
-        leftOpen={leftOpen}
-        rightOpen={rightOpen}
-      />
-
       <div className="flex min-h-0 flex-1 flex-col lg:flex-row">
         <aside
           className={cn(
@@ -532,24 +491,13 @@ export function CompanyAnalysisWorkspace() {
                 </p>
               ) : null}
               {section === "summary" ? (
-                <div className="space-y-4">
-                  <ResearchProgressTracker
-                    view={view}
-                    ticker={symbol}
-                    analysing={analyseMutation.isPending}
-                  />
-                  <InvestmentSnapshot view={view} />
-                  <div className="mx-auto grid w-full max-w-4xl gap-6">
-                    <SummarySection
-                      view={view}
-                      catalogue={catalogue}
-                      marketStatus={marketStatus}
-                      marketQuote={marketQuery.data ?? null}
-                      financialStatements={financialStatementsQuery.data ?? null}
-                    />
-                    <SnapshotSignals view={view} />
-                  </div>
-                </div>
+                <ResultConversation
+                  view={view}
+                  onShare={() => {
+                    void navigator.clipboard?.writeText(window.location.href);
+                  }}
+                  onRefresh={runAnalyse}
+                />
               ) : null}
               {section === "valuation" ? (
                 <LazyViewSection Section={ValuationSection} view={view} />
@@ -647,16 +595,18 @@ export function CompanyAnalysisWorkspace() {
           ) : null}
         </div>
 
-        <aside
-          className={cn(
-            "border-[var(--border)] bg-[var(--surface-2)] lg:w-64 lg:shrink-0 lg:border-l",
-            rightOpen ? "block" : "hidden",
-            "max-lg:border-t",
-          )}
-          aria-label="Context panel"
-        >
-          <WorkspaceRightPanel view={view} symbol={symbol} />
-        </aside>
+        {section !== "summary" ? (
+          <aside
+            className={cn(
+              "border-[var(--border)] bg-[var(--surface-2)] lg:w-64 lg:shrink-0 lg:border-l",
+              rightOpen ? "block" : "hidden",
+              "max-lg:border-t",
+            )}
+            aria-label="Context panel"
+          >
+            <WorkspaceRightPanel view={view} symbol={symbol} />
+          </aside>
+        ) : null}
       </div>
     </div>
   );

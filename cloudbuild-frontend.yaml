@@ -19,7 +19,13 @@ substitutions:
   _SERVICE: dsp-ai-indicator-web
   _AR_REPOSITORY: dsp-ai-indicator
   _IMAGE: dsp-web
-  _API_BASE_URL: https://dsp-ai-indicator-6uxsluxowq-el.a.run.app/api/v1
+  # Same-origin API path: production Caddy reverse-proxies /api/v1/* to the API
+  # service, so the browser must call the frontend's own origin rather than a
+  # separate Cloud Run URL. An absolute cross-origin URL here breaks cookies and
+  # surfaces as "Authentication service temporarily unavailable". If a future
+  # topology serves the API on a distinct origin, use the absolute form
+  # https://dspaiindicator.com/api/v1 instead — never localhost.
+  _API_BASE_URL: /api/v1
 
 options:
   logging: CLOUD_LOGGING_ONLY

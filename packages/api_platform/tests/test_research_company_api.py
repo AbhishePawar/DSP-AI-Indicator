@@ -297,8 +297,8 @@ class TestResearchCompanyApi:
         assert keys & set(PRIVATE_REPORT_FIELD_NAMES) == set()
         assert_public_report_privacy(body)
 
-    def test_analyse_route_remains_available(self, self_client: TestClient) -> None:
-        response = self_client.post(
+    def test_analyse_route_remains_available(self, client: TestClient) -> None:
+        response = client.post(
             "/api/v1/analyse",
             json={"ticker": "TCS", "exchange": "NSE"},
         )

@@ -25,6 +25,11 @@ const nextConfig: NextConfig = {
   output: "standalone",
   // The v0 preview iframe serves the app from a separate origin during development.
   allowedDevOrigins: ["identify-gaps-list.v0.build"],
+  // Keep preview and production resolution rooted at this app instead of
+  // inferring a parent monorepo root from unrelated lockfiles.
+  turbopack: {
+    root: appRoot,
+  },
   // Pin tracing to this app. A leftover empty repo-root package-lock.json
   // otherwise makes Next infer the workspace root as the repository root,
   // emitting .next/standalone/apps/web/server.js instead of

@@ -1,7 +1,8 @@
-"""Canonical research HTTP contract — STEP 4I blocked stub.
+"""Canonical research HTTP contract.
 
 Typed request/response for POST /api/v1/research/company.
-Does not execute AI, compose a ResearchPackage, or return a report.
+AI execution happens outside the HTTP contract; only the validated public
+research report may cross this boundary.
 """
 
 from __future__ import annotations
@@ -20,6 +21,8 @@ from dsp_platform.research_report.models import (
 
 __all__ = [
     "AI_EXECUTION_BLOCKED_MESSAGE",
+    "AI_EXECUTION_UNAVAILABLE_MESSAGE",
+    "AI_VALIDATION_FAILED_MESSAGE",
     "AiExecutionState",
     "PublicResearchReportHttp",
     "ResearchCompanyOutcome",
@@ -34,18 +37,30 @@ _EXCHANGE_PATTERN = r"^[A-Za-z0-9_\-]{1,32}$"
 AI_EXECUTION_BLOCKED_MESSAGE = (
     "Research is unavailable because production AI execution is blocked."
 )
+AI_EXECUTION_UNAVAILABLE_MESSAGE = (
+    "Research AI is unavailable because the configured AI provider is unavailable."
+)
+AI_VALIDATION_FAILED_MESSAGE = (
+    "Research AI output failed DSP validation and was rejected."
+)
 
 
 class AiExecutionState(StrEnum):
-    """Public AI execution state. STEP 4I emits only the blocked value."""
+    """Public AI execution state."""
 
     AI_EXECUTION_BLOCKED = "ai_execution_blocked"
+    AI_EXECUTED = "ai_executed"
+    AI_UNAVAILABLE = "ai_unavailable"
+    AI_VALIDATION_FAILED = "ai_validation_failed"
 
 
 class ResearchCompanyOutcome(StrEnum):
-    """Public research outcome. STEP 4I emits only the blocked value."""
+    """Public research outcome."""
 
     AI_EXECUTION_BLOCKED = "ai_execution_blocked"
+    SUCCESS = "success"
+    AI_UNAVAILABLE = "ai_unavailable"
+    AI_VALIDATION_FAILED = "ai_validation_failed"
 
 
 class ResearchCompanyRequest(BaseModel):
@@ -68,9 +83,8 @@ class ResearchCompanyRequest(BaseModel):
 class PublicResearchReportHttp(BaseModel):
     """Strict HTTP twin of ``PublicResearchReport.to_public_dict()``.
 
-    extra=forbid so unknown private keys cannot pass this contract.
-    Nested public sections stay JSON objects. STEP 4I never populates this
-    model — ``report`` is always null while AI execution is blocked.
+    Extra fields are forbidden so private DSP/AI internals cannot pass this
+    contract. The report is populated only after DSP validation succeeds.
     """
 
     model_config = ConfigDict(extra="forbid")
@@ -101,14 +115,12 @@ class PublicResearchReportHttp(BaseModel):
     limitations: list[str]
 
 
-# Keep the HTTP twin aligned with the canonical public report keys.
 assert frozenset(PublicResearchReportHttp.model_fields) == PUBLIC_TOP_LEVEL_KEYS
-# Semantic anchor — the HTTP report field is the public projection of this type.
 assert PublicResearchReport.__name__ == "PublicResearchReport"
 
 
 class ResearchCompanyResponse(BaseModel):
-    """Typed blocked/success envelope. Not ``dict[str, Any]``."""
+    """Typed research envelope; never exposes raw AI/provider internals."""
 
     model_config = ConfigDict(extra="forbid")
 

@@ -21,11 +21,11 @@ _PROVENANCE = ("llm_adapters.openai", "dsp.llm.openai.v1")
 
 
 class OpenAIAdapter(OpenAICompatibleToolCalling):
-    """OpenAI Chat Completions adapter implementing LanguageModelPort.
+    """OpenAI adapter implementing the provider-neutral LanguageModelPort.
 
-    Function-calling wire format is inherited from
-    ``OpenAICompatibleToolCalling`` (shared with DeepSeek). ``invoke``
-    does not send tools and is not wired to ``/api/v1/analyse``.
+    Generic copilot traffic keeps the existing Chat Completions path. The
+    canonical ResearchPackage path uses the OpenAI Responses API so research
+    execution has a dedicated modern provider boundary.
     """
 
     provider_id = "openai"
@@ -48,8 +48,58 @@ class OpenAIAdapter(OpenAICompatibleToolCalling):
         tools: Any = None,
         tool_result_messages: Any = None,
     ) -> tuple[LanguageModelResult, dict[str, Any] | None]:
-        del tool_result_messages
-        return self._chat(request, tools=tools, allow_tool_only=True)
+        """Run canonical research through the OpenAI Responses API."""
+        del tools, tool_result_messages
+        return self._responses(request)
+
+    def _responses(
+        self,
+        request: LanguageModelRequest,
+    ) -> tuple[LanguageModelResult, dict[str, Any] | None]:
+        if not self.is_configured():
+            return self._unavailable("OPENAI_API_KEY not configured"), None
+
+        instructions = request.prompt_parts[0] if request.prompt_parts else ""
+        input_text = "\n\n".join(request.prompt_parts[1:])
+        payload: dict[str, Any] = {
+            "model": self.model_label,
+            "instructions": instructions,
+            "input": input_text,
+        }
+
+        try:
+            with httpx.Client(timeout=self._config.request_timeout_seconds) as client:
+                response = client.post(
+                    "https://api.openai.com/v1/responses",
+                    headers={
+                        "Authorization": f"Bearer {self._config.openai_api_key}",
+                        "Content-Type": "application/json",
+                    },
+                    json=payload,
+                )
+                response.raise_for_status()
+                data = response.json()
+        except Exception as exc:
+            return self._failed(str(exc)), None
+
+        if not isinstance(data, dict):
+            return self._failed("malformed OpenAI Responses API response"), None
+
+        text = self._extract_response_text(data)
+        if not text:
+            return self._failed("empty OpenAI Responses API response"), data
+
+        return (
+            LanguageModelResult(
+                result_id=str(uuid.uuid4()),
+                status=LanguageModelStatus.COMPLETE,
+                provenance=_PROVENANCE,
+                narrative_text=text,
+                structured_sections=(),
+                model_label=self.model_label,
+            ),
+            data,
+        )
 
     def _chat(
         self,
@@ -156,6 +206,28 @@ class OpenAIAdapter(OpenAICompatibleToolCalling):
         message = choices[0].get("message") or {}
         content = message.get("content")
         return str(content).strip() if content else None
+
+    def _extract_response_text(self, data: dict[str, Any]) -> str | None:
+        output_text = data.get("output_text")
+        if isinstance(output_text, str) and output_text.strip():
+            return output_text.strip()
+
+        output = data.get("output") or []
+        chunks: list[str] = []
+        if isinstance(output, list):
+            for item in output:
+                if not isinstance(item, dict):
+                    continue
+                content = item.get("content") or []
+                if not isinstance(content, list):
+                    continue
+                for part in content:
+                    if not isinstance(part, dict):
+                        continue
+                    text = part.get("text")
+                    if isinstance(text, str) and text:
+                        chunks.append(text)
+        return "\n".join(chunks).strip() or None
 
     def _unavailable(self, reason: str) -> LanguageModelResult:
         return LanguageModelResult(

@@ -30,7 +30,10 @@ from copilot.enums import LanguageModelStatus, UserIntentType
 from copilot.models import LanguageModelRequest
 from dsp_platform import CompositionInputError, build_composition_request
 from dsp_platform.research_package.builder import build_research_package
-from dsp_platform.research_prompt import PrivateResearchPromptError, build_private_research_prompt
+from dsp_platform.research_prompt import (
+    PrivateResearchPromptError,
+    build_private_research_prompt,
+)
 from dsp_platform.research_validation import (
     CanonicalValidationResult,
     CanonicalValidationStatus,
@@ -179,7 +182,10 @@ def execute_research_company(
         )
 
     validation = validate_canonical_research(package, ai_payload)
-    if validation.status is not CanonicalValidationStatus.VALID or not validation.ok:
+    if (
+        validation.status is not CanonicalValidationStatus.VALID
+        or not validation.ok
+    ):
         return _validation_failure(validation)
 
     report = validation.report.to_public_dict() if validation.report else None
@@ -217,7 +223,9 @@ def _parse_json_object(text: str) -> Mapping[str, Any]:
     try:
         payload = json.loads(candidate)
     except json.JSONDecodeError as exc:
-        raise ValueError("OpenAI research draft could not be parsed as JSON.") from exc
+        raise ValueError(
+            "OpenAI research draft could not be parsed as JSON."
+        ) from exc
     if not isinstance(payload, Mapping):
         raise ValueError("OpenAI research draft must be a JSON object.")
     return payload
@@ -231,7 +239,8 @@ def _validation_failure(validation: CanonicalValidationResult) -> ResearchExecut
         outcome="ai_validation_failed",
         report=None,
         limitations=(
-            "AI output was rejected by DSP validation; no unverified conclusion was returned.",
+            "AI output was rejected by DSP validation; no unverified "
+            "conclusion was returned.",
         ),
         errors=issues or ("AI research validation failed.",),
     )

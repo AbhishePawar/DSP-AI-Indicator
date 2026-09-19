@@ -446,7 +446,7 @@ export function CompanyAnalysisWorkspace() {
       });
 
   return (
-    <div className="flex min-h-[70vh] flex-col rounded-[var(--radius-md)] border border-[var(--border)] bg-[var(--bg)]">
+    <div className="flex min-h-[calc(100vh-8rem)] flex-col overflow-hidden rounded-[var(--radius-md)] border border-[var(--border)] bg-[var(--bg)] shadow-[var(--shadow-sm)]">
       {disclaimerGate}
       <div className="border-b border-[var(--border)] p-4">
         <SurfaceTrustChrome
@@ -466,7 +466,7 @@ export function CompanyAnalysisWorkspace() {
       <div className="flex min-h-0 flex-1 flex-col lg:flex-row">
         <aside
           className={cn(
-            "border-[var(--border)] bg-[var(--surface)] lg:w-72 lg:shrink-0 lg:border-r",
+            "border-[var(--border)] bg-[var(--surface-2)] lg:w-72 lg:shrink-0 lg:border-r",
             leftOpen ? "block" : "hidden",
           )}
           aria-label="Company navigation"
@@ -483,7 +483,7 @@ export function CompanyAnalysisWorkspace() {
 
         <div
           role="region"
-          className="min-w-0 flex-1 overflow-y-auto scroll-smooth p-4 motion-reduce:scroll-auto"
+          className="min-w-0 flex-1 overflow-y-auto scroll-smooth bg-[var(--bg)] p-4 motion-reduce:scroll-auto lg:p-8"
           id="company-analysis-main"
           tabIndex={-1}
           aria-label="Main analysis area"
@@ -539,7 +539,7 @@ export function CompanyAnalysisWorkspace() {
                     analysing={analyseMutation.isPending}
                   />
                   <InvestmentSnapshot view={view} />
-                  <div className="grid gap-4 xl:grid-cols-[minmax(0,1.4fr)_minmax(18rem,0.6fr)]">
+                  <div className="mx-auto grid w-full max-w-4xl gap-6">
                     <SummarySection
                       view={view}
                       catalogue={catalogue}
@@ -649,7 +649,7 @@ export function CompanyAnalysisWorkspace() {
 
         <aside
           className={cn(
-            "border-[var(--border)] bg-[var(--surface)] lg:w-72 lg:shrink-0 lg:border-l",
+            "border-[var(--border)] bg-[var(--surface-2)] lg:w-64 lg:shrink-0 lg:border-l",
             rightOpen ? "block" : "hidden",
             "max-lg:border-t",
           )}

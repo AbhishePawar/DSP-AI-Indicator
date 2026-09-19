@@ -2,9 +2,9 @@
 
 POST /api/v1/research/company (and unversioned /research/company).
 
-The router owns authentication and the public DTO only. AI execution,
-ResearchPackage construction, provider calls, and DSP validation live in the
-application service so private research internals cannot leak through HTTP.
+The router owns authentication and the public DTO only. Execution and
+validation live in the application service so private research internals
+cannot leak through HTTP.
 """
 
 from __future__ import annotations
@@ -40,7 +40,7 @@ def research_company(
     request: Request,
     _actor: _ResearchActor = Depends(require_authenticated_actor),  # noqa: B008
 ) -> ResearchCompanyResponse:
-    """Run the authenticated canonical DSP → OpenAI research path."""
+    """Run the authenticated canonical research path."""
     correlation_id = getattr(request.state, "request_id", None)
     state = getattr(request.app.state, "api", None)
     platform = getattr(state, "platform", None)

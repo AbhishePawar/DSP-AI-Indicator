@@ -9,7 +9,7 @@ Canonical path:
       -> DSP compose_intelligence
       -> private ResearchPackage
       -> private methodology prompt
-      -> OpenAI
+      -> OpenAI Responses API
       -> JSON draft
       -> DSP validation
       -> PublicResearchReport
@@ -153,7 +153,15 @@ def execute_research_company(
     attempts = max(1, provider_registry.config.max_retries + 1)
     lm_result = None
     for _ in range(attempts):
-        lm_result = adapter.invoke(lm_request)
+        research_invoke = getattr(adapter, "invoke_research", None)
+        if callable(research_invoke):
+            lm_result, _raw_provider_response = research_invoke(
+                lm_request,
+                tools=None,
+                tool_result_messages=None,
+            )
+        else:
+            lm_result = adapter.invoke(lm_request)
         if lm_result.status is LanguageModelStatus.COMPLETE:
             break
 

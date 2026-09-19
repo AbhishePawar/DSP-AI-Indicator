@@ -420,12 +420,12 @@ export function CompanyAnalysisWorkspace() {
     : "summary";
 
   return (
-    <div className="flex min-h-[calc(100vh-8rem)] flex-col overflow-hidden rounded-[var(--radius-md)] border border-[var(--border)] bg-[var(--bg)] shadow-[var(--shadow-sm)]">
+    <div className="flex min-h-[calc(100vh-4rem)] flex-col overflow-hidden bg-[var(--bg)] lg:min-h-[calc(100vh-2rem)]">
       {disclaimerGate}
       <div className="flex min-h-0 flex-1 flex-col lg:flex-row">
         <aside
           className={cn(
-            "border-[var(--border)] bg-[var(--surface-2)] lg:w-72 lg:shrink-0 lg:border-r",
+            "border-[var(--border)] bg-[var(--surface)] lg:w-64 lg:shrink-0 lg:border-r",
             leftOpen ? "block" : "hidden",
           )}
           aria-label="Company navigation"
@@ -442,7 +442,7 @@ export function CompanyAnalysisWorkspace() {
 
         <div
           role="region"
-          className="min-w-0 flex-1 overflow-y-auto scroll-smooth bg-[var(--bg)] p-4 motion-reduce:scroll-auto lg:p-8"
+          className="min-w-0 flex-1 overflow-y-auto scroll-smooth bg-[var(--surface)] p-0 motion-reduce:scroll-auto"
           id="company-analysis-main"
           tabIndex={-1}
           aria-label="Main analysis area"

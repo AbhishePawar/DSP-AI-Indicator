@@ -31,14 +31,14 @@ export function ResultConversation({ view, onShare, onRefresh }: { view: Researc
   const roce = view.financial.metrics.find((metric) => metric.label.toLowerCase().includes("roce"))?.value ?? "Data unavailable";
 
   return (
-    <div className="flex min-h-[calc(100vh-2rem)] flex-col overflow-hidden rounded-[var(--radius-md)] border border-[var(--border)] bg-[var(--surface)] shadow-[var(--shadow-sm)]">
+    <div className="flex min-h-screen flex-col overflow-hidden bg-[var(--surface)]">
       <header className="flex items-center justify-between border-b border-[var(--border)] px-5 py-3">
         <div className="min-w-0"><div className="flex items-center gap-2"><h1 className="truncate text-base font-semibold text-[var(--ink)]">{company} ({ticker})</h1><Pencil className="size-4 text-[var(--muted)]" aria-hidden="true" /></div><p className="text-xs text-[var(--muted)]">DSP AI Research · Updated {view.analysedAt ? new Date(view.analysedAt).toLocaleString() : "Data unavailable"}</p></div>
         <div className="flex items-center gap-1"><button type="button" onClick={onShare} className="inline-flex items-center gap-2 rounded-lg bg-[var(--surface-2)] px-3 py-2 text-sm font-medium text-[var(--ink)] hover:bg-[var(--accent-soft)]"><Share2 className="size-4" /> Share</button><button type="button" aria-label="More options" className="rounded-lg p-2 text-[var(--muted)] hover:bg-[var(--surface-2)]"><MoreHorizontal className="size-5" /></button></div>
       </header>
 
       <main className="min-h-0 flex-1 overflow-y-auto px-4 py-6 sm:px-8 lg:px-12">
-        <div className="mx-auto max-w-5xl space-y-5">
+        <div className="mx-auto w-full max-w-6xl space-y-5">
           <div className="flex items-start gap-3"><div className="flex size-9 shrink-0 items-center justify-center rounded-full bg-[var(--accent-strong)] text-sm font-semibold text-white">AP</div><div><div className="rounded-xl bg-[var(--surface-2)] px-4 py-2 text-sm text-[var(--ink)]">Analyse {company} fundamentals and valuation.</div><p className="mt-1 text-[11px] text-[var(--muted)]">Research request</p></div></div>
           <div className="flex items-start gap-3"><div className="flex size-9 shrink-0 items-center justify-center rounded-full bg-[var(--accent)] text-sm font-semibold text-white">D</div><div className="min-w-0 flex-1"><div className="mb-2 flex items-center gap-3 text-xs"><span className="font-semibold text-[var(--accent-strong)]">DSP AI</span><span className="text-[var(--muted)]">Research Mode</span></div>
             <article className="overflow-hidden rounded-xl border border-[var(--border)] bg-[var(--surface)] shadow-[var(--shadow-sm)]">

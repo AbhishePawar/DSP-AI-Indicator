@@ -237,6 +237,7 @@ def build_research_orchestrator(platform: DSPPlatform) -> Any | None:
             ModelTier.COST_EFFICIENT: AdapterBackedAIProvider(gemini),
             ModelTier.PREMIUM: AdapterBackedAIProvider(openai),
         },
+        dual_verification=True,
         tier_registry={
             ModelTier.COST_EFFICIENT: TierConfig(
                 tier=ModelTier.COST_EFFICIENT,

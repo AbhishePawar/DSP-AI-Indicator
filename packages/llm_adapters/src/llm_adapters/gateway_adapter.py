@@ -5,6 +5,7 @@ from __future__ import annotations
 import uuid
 from collections.abc import Iterator
 from typing import Any
+from urllib.parse import urlsplit, urlunsplit
 
 import httpx
 
@@ -36,13 +37,24 @@ class AIGatewayAdapter:
         prompt = "\n\n".join(request.prompt_parts)
         payload: dict[str, Any] = {
             "model": self.model_label,
-            "messages": [{"role": "user", "content": prompt}],
+            "messages": [
+                {
+                    "role": "system",
+                    "content": (
+                        "Analyze only the validated DSP evidence supplied by the user. "
+                        "Do not fetch external financial data or override deterministic DSP values. "
+                        "Return a concise evidence-backed conclusion."
+                    ),
+                },
+                {"role": "user", "content": prompt},
+            ],
             "temperature": 0.2,
         }
+        endpoint = _chat_completions_url(self._config.ai_gateway_base_url)
         try:
             with httpx.Client(timeout=self._config.request_timeout_seconds) as client:
                 response = client.post(
-                    f"{self._config.ai_gateway_base_url}/chat/completions",
+                    endpoint,
                     headers={
                         "Authorization": f"Bearer {self._config.ai_gateway_api_key}",
                         "Content-Type": "application/json",
@@ -51,8 +63,14 @@ class AIGatewayAdapter:
                 )
                 response.raise_for_status()
                 data = response.json()
-        except httpx.HTTPError as exc:
-            return self._failed(f"gateway_http_error: {exc.__class__.__name__}")
+        except httpx.HTTPStatusError as exc:
+            return self._failed(
+                f"gateway_http_error:{_classify_status(exc.response.status_code)}"
+            )
+        except httpx.TimeoutException:
+            return self._failed("gateway_http_error:timeout")
+        except httpx.RequestError:
+            return self._failed("gateway_http_error:network")
         except (ValueError, TypeError):
             return self._failed("gateway_malformed_response")
         if not isinstance(data, dict):
@@ -93,6 +111,32 @@ class AIGatewayAdapter:
         )
 
     
+def _chat_completions_url(base_url: str) -> str:
+    """Normalize supported Gateway base URL forms to one endpoint."""
+    parsed = urlsplit(base_url.strip())
+    path = parsed.path.rstrip("/")
+    while path.endswith("/chat/completions") or path.endswith("/v1"):
+        if path.endswith("/chat/completions"):
+            path = path[: -len("/chat/completions")].rstrip("/")
+        else:
+            path = path[: -len("/v1")].rstrip("/")
+    return urlunsplit((parsed.scheme, parsed.netloc, f"{path}/v1/chat/completions", "", ""))
+
+
+def _classify_status(status_code: int) -> str:
+    if status_code in {401, 403}:
+        return "authentication"
+    if status_code == 404:
+        return "endpoint_or_model"
+    if status_code == 400:
+        return "request"
+    if status_code == 429:
+        return "rate_limit"
+    if 500 <= status_code <= 599:
+        return "upstream"
+    return f"http_{status_code}"
+
+
 __all__ = ["AIGatewayAdapter"]
 
 

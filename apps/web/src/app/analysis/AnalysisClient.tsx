@@ -1,16 +1,11 @@
 "use client";
 
-import { FormEvent, useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { useSearchParams } from "next/navigation";
 
 import { AnalysisWorkspace } from "@/components/analysis/AnalysisWorkspace";
-import { PageHeader } from "@/components/layout/PageHeader";
-import { ResearchModeBanner } from "@/components/research/ResearchModeBanner";
 import { Alert } from "@/components/ui/Alert";
-import { Button } from "@/components/ui/Button";
-import { Card, CardBody } from "@/components/ui/Card";
-import { Input } from "@/components/ui/Input";
 import {
   emptyWorkspace,
   mapAnalyzeResponse,
@@ -80,8 +75,7 @@ export default function AnalysisClient() {
     return emptyWorkspace(symbol.trim().toUpperCase() || "—");
   }, [mutation.data, symbol, restoredView]);
 
-  function onSubmit(event: FormEvent) {
-    event.preventDefault();
+  function onResearch() {
     setRestoredView(null);
     setRestoredBanner(null);
     mutation.mutate();
@@ -105,15 +99,7 @@ export default function AnalysisClient() {
   }
 
   return (
-    <div>
-      <PageHeader
-        title="Company Analysis"
-        description="Understand one company in under five minutes. Thin client over /api/v1 — Research Mode language, honest Unavailable labels, no fabricated numbers."
-      />
-      <div className="mb-4">
-        <ResearchModeBanner />
-      </div>
-
+    <div className="mx-auto max-w-5xl">
       {restoredBanner ? (
         <div className="mb-4">
           <Alert tone="info" title="Local workspace">
@@ -121,55 +107,6 @@ export default function AnalysisClient() {
           </Alert>
         </div>
       ) : null}
-
-      <Card className="mb-6">
-        <CardBody>
-          <form
-            onSubmit={onSubmit}
-            className="grid gap-4 md:grid-cols-4"
-            aria-label="Analyze company"
-          >
-            <label className="text-sm md:col-span-2">
-              <span className="text-[var(--muted)]">Symbol</span>
-              <Input
-                className="mt-1 min-h-11"
-                value={symbol}
-                onChange={(e) => setSymbol(e.target.value)}
-                required
-                aria-required
-                autoComplete="off"
-              />
-            </label>
-            <label className="text-sm">
-              <span className="text-[var(--muted)]">Start</span>
-              <Input
-                type="date"
-                className="mt-1 min-h-11"
-                value={start}
-                onChange={(e) => setStart(e.target.value)}
-                required
-              />
-            </label>
-            <label className="text-sm">
-              <span className="text-[var(--muted)]">End</span>
-              <Input
-                type="date"
-                className="mt-1 min-h-11"
-                value={end}
-                onChange={(e) => setEnd(e.target.value)}
-                required
-              />
-            </label>
-            <Button
-              type="submit"
-              disabled={mutation.isPending}
-              className="min-h-11 md:col-span-4 md:w-fit"
-            >
-              {mutation.isPending ? "Requesting…" : "Analyze via API"}
-            </Button>
-          </form>
-        </CardBody>
-      </Card>
 
       {mutation.isError ? (
         <div className="mb-4">
@@ -184,6 +121,9 @@ export default function AnalysisClient() {
       <AnalysisWorkspace
         view={view}
         loading={mutation.isPending}
+        symbol={symbol}
+        onSymbolChange={setSymbol}
+        onResearch={onResearch}
         onRefresh={() => {
           setRestoredView(null);
           setRestoredBanner(null);

@@ -6,10 +6,16 @@ import type { AnalysisWorkspaceView } from "@/lib/analysis/types";
 export function AnalysisWorkspace({
   view,
   loading,
+  symbol,
+  onSymbolChange,
+  onResearch,
   onRefresh,
 }: {
   view: AnalysisWorkspaceView;
   loading: boolean;
+  symbol: string;
+  onSymbolChange: (value: string) => void;
+  onResearch: () => void;
   onRefresh: () => void;
   onShare?: () => void;
   onReopenSaved?: (
@@ -18,7 +24,7 @@ export function AnalysisWorkspace({
   ) => void;
 }) {
   if (loading) return <ResearchChatLoading />;
-  return <ResearchChatShell view={view} loading={loading} onRefresh={onRefresh} />;
+  return <ResearchChatShell view={view} loading={loading} symbol={symbol} onSymbolChange={onSymbolChange} onResearch={onResearch} onRefresh={onRefresh} />;
 }
 
 export default AnalysisWorkspace;

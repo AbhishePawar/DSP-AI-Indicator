@@ -24,10 +24,16 @@ type ConversationMessage = {
 export function ResearchChatShell({
   view,
   loading,
+  symbol,
+  onSymbolChange,
+  onResearch,
   onRefresh,
 }: {
   view: AnalysisWorkspaceView;
   loading: boolean;
+  symbol: string;
+  onSymbolChange: (value: string) => void;
+  onResearch: () => void;
   onRefresh: () => void;
 }) {
   const [messages, setMessages] = useState<ConversationMessage[]>([]);
@@ -37,6 +43,9 @@ export function ResearchChatShell({
     () => display(view.snapshot.companyName, view.snapshot.ticker.value ? String(view.snapshot.ticker.value) : "Security"),
     [view.snapshot.companyName, view.snapshot.ticker.value],
   );
+  const hasResearchResult =
+    view.conclusion.conclusion.presence === "available" ||
+    view.executiveSummary.available;
   const initialResearch = [
     display(view.conclusion.conclusion),
     displayText(view.executiveSummary.paragraphs?.[0]),
@@ -80,11 +89,39 @@ export function ResearchChatShell({
         <div className="flex flex-1 flex-col gap-6 px-4 py-6 sm:px-10 sm:py-8">
           <div className="flex gap-3">
             <div className="mt-1 flex size-7 shrink-0 items-center justify-center rounded-full border border-[var(--border)] text-xs font-semibold">D</div>
-            <div className="min-w-0 max-w-2xl space-y-2">
-              <p className="text-xs font-medium uppercase tracking-[0.14em] text-[var(--muted)]">DSP Research</p>
-              {loading ? <Skeleton className="h-16 w-full" /> : <p className="whitespace-pre-line text-sm leading-7 text-[var(--foreground)]">{initialResearch}</p>}
+            <div className="min-w-0 max-w-2xl space-y-3">
+              <p className="text-xs font-medium uppercase tracking-[0.14em] text-[var(--muted)]">DSP</p>
+              <p className="text-sm leading-7 text-[var(--foreground)]">What security would you like to research?</p>
+              <form onSubmit={(event) => { event.preventDefault(); onResearch(); }} className="flex max-w-lg items-center gap-2 rounded-xl border border-[var(--border)] bg-[var(--background)] p-2">
+                <Input
+                  value={symbol}
+                  onChange={(event) => onSymbolChange(event.target.value.toUpperCase())}
+                  placeholder="Enter a ticker or security"
+                  aria-label="Security ticker"
+                  autoComplete="off"
+                  className="min-h-10 border-0 bg-transparent shadow-none focus-visible:ring-0"
+                />
+                <Button type="submit" size="sm" disabled={!symbol.trim() || loading}>Research</Button>
+              </form>
+              {!loading && symbol.trim() ? <p className="text-xs text-[var(--muted)]">I&apos;ll use the existing research service for {symbol.trim().toUpperCase()}.</p> : null}
             </div>
           </div>
+
+          {loading ? (
+            <div className="flex gap-3">
+              <div className="mt-1 flex size-7 shrink-0 items-center justify-center rounded-full border border-[var(--border)] text-xs font-semibold">D</div>
+              <Skeleton className="h-20 max-w-2xl flex-1" />
+            </div>
+          ) : hasResearchResult ? (
+            <div className="flex gap-3">
+              <div className="mt-1 flex size-7 shrink-0 items-center justify-center rounded-full border border-[var(--border)] text-xs font-semibold">D</div>
+              <div className="min-w-0 max-w-2xl space-y-3">
+                <p className="text-xs font-medium uppercase tracking-[0.14em] text-[var(--muted)]">Research result</p>
+                <p className="whitespace-pre-line text-sm leading-7 text-[var(--foreground)]">{initialResearch}</p>
+                <p className="text-sm text-[var(--muted)]">Would you like me to examine the next part of the investment case?</p>
+              </div>
+            </div>
+          ) : null}
 
           {messages.map((message) => (
             <div key={message.id} className="flex justify-end">

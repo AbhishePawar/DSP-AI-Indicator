@@ -52,6 +52,7 @@ import {
   researchWorkspaceSurfaceTrust,
 } from "@/lib/trust/surfaceTrust";
 import { WorkspaceEmpty, WorkspaceSkeleton } from "./WorkspacePrimitives";
+import { ModernAnalysisResult } from "./ModernAnalysisResult";
 
 const ValuationSection = lazy(() =>
   import("./WorkspaceSections").then((m) => ({ default: m.ValuationSection })),
@@ -446,218 +447,16 @@ export function CompanyAnalysisWorkspace() {
       });
 
   return (
-    <div className="flex min-h-[70vh] flex-col rounded-[var(--radius-md)] border border-[var(--border)] bg-[var(--bg)]">
-      {disclaimerGate}
-      <div className="border-b border-[var(--border)] p-4">
-        <SurfaceTrustChrome
-          summary={trustSummary}
-          title="Company Analysis Trust Ladder"
-        />
-      </div>
-      <WorkspaceToolbar
-        onAnalyze={runAnalyse}
-        analyzing={analyseMutation.isPending}
-        onToggleLeft={toggleLeft}
-        onToggleRight={toggleRight}
-        leftOpen={leftOpen}
-        rightOpen={rightOpen}
-      />
-
-      <div className="flex min-h-0 flex-1 flex-col lg:flex-row">
-        <aside
-          className={cn(
-            "border-[var(--border)] bg-[var(--surface)] lg:w-72 lg:shrink-0 lg:border-r",
-            leftOpen ? "block" : "hidden",
-          )}
-          aria-label="Company navigation"
-        >
-          <WorkspaceLeftNav
-            symbol={symbol}
-            query={query}
-            onQueryChange={setQuery}
-            onSelectSymbol={selectSymbol}
-            onAnalyze={runAnalyse}
-            analyzing={analyseMutation.isPending}
-          />
-        </aside>
-
-        <div
-          role="region"
-          className="min-w-0 flex-1 overflow-y-auto scroll-smooth p-4 motion-reduce:scroll-auto"
-          id="company-analysis-main"
-          tabIndex={-1}
-          aria-label="Main analysis area"
-        >
-          {analyseMutation.isPending && !view ? (
-            <div className="space-y-4">
-              <ResearchProgressTracker ticker={symbol} analysing />
-              <WorkspaceSkeleton />
-            </div>
-          ) : null}
-
-          {analyseMutation.isError && !view ? (
-            <ErrorState
-              title="Analysis failed"
-              description={describeAnalyseError(analyseMutation.error)}
-              action={
-                <Button size="sm" variant="secondary" onClick={runAnalyse}>
-                  Retry
-                </Button>
-              }
-            />
-          ) : null}
-
-          {!analyseMutation.isPending && !analyseMutation.isError && !view ? (
-            <WorkspaceEmpty
-              description={
-                symbol
-                  ? "Run analysis to load backend research outputs for this symbol."
-                  : "Select a ticker to begin company analysis. No company is pre-selected."
-              }
-              action={
-                symbol ? (
-                  <Button size="sm" onClick={runAnalyse}>
-                    Analyze {symbol}
-                  </Button>
-                ) : undefined
-              }
-            />
-          ) : null}
-
-          {view ? (
-            <div className="space-y-4">
-              {analyseMutation.isPending ? (
-                <p className="text-xs text-[var(--muted)]" aria-live="polite">
-                  Refreshing analysis…
-                </p>
-              ) : null}
-              {section === "summary" ? (
-                <div className="space-y-4">
-                  <ResearchProgressTracker
-                    view={view}
-                    ticker={symbol}
-                    analysing={analyseMutation.isPending}
-                  />
-                  <InvestmentSnapshot view={view} />
-                  <div className="grid gap-4 xl:grid-cols-[minmax(0,1.4fr)_minmax(18rem,0.6fr)]">
-                    <SummarySection
-                      view={view}
-                      catalogue={catalogue}
-                      marketStatus={marketStatus}
-                      marketQuote={marketQuery.data ?? null}
-                      financialStatements={financialStatementsQuery.data ?? null}
-                    />
-                    <SnapshotSignals view={view} />
-                  </div>
-                </div>
-              ) : null}
-              {section === "valuation" ? (
-                <LazyViewSection Section={ValuationSection} view={view} />
-              ) : null}
-              {section === "quality" ? (
-                <LazyViewSection Section={QualitySection} view={view} />
-              ) : null}
-              {section === "management" ? (
-                <LazyViewSection Section={ManagementSection} view={view} />
-              ) : null}
-              {section === "moat" ? (
-                <LazyViewSection Section={MoatSection} view={view} />
-              ) : null}
-              {section === "risk" ? (
-                <LazyViewSection Section={RiskSection} view={view} />
-              ) : null}
-              {section === "financial" ? (
-                <LazyViewSection Section={FinancialSection} view={view} />
-              ) : null}
-              {section === "ai" ? (
-                <LazyViewSection Section={AiSection} view={view} />
-              ) : null}
-              {section === "explainability" ? (
-                <LazyViewSection Section={ExplainabilitySection} view={view} />
-              ) : null}
-              {section === "evidence" ? (
-                <LazyViewSection Section={EvidenceSection} view={view} />
-              ) : null}
-              {section === "timeline" ? (
-                <LazyViewSection Section={TimelineSection} view={view} />
-              ) : null}
-              {section === "export" ? (
-                <ExportSection
-                  view={view}
-                  analyseRequest={lastAnalyseRequest}
-                  analyseResponse={lastAnalyseResponse}
-                />
-              ) : null}
-              {section === "ratings" ? (
-                <Suspense fallback={<SectionFallback />}>
-                  <InstitutionalRatingsSection
-                    ratings={view.ratings}
-                    transparency={mapReportTransparency(view, { marketStatus })}
-                    explainability={view.explainability}
-                  />
-                </Suspense>
-              ) : null}
-              {section === "valuationTransparency" ? (
-                <Suspense fallback={<SectionFallback />}>
-                  <ValuationTransparencySection
-                    transparency={view.valuationTransparency}
-                  />
-                </Suspense>
-              ) : null}
-              {section === "research" ? (
-                <LazyViewSection Section={ResearchSection} view={view} />
-              ) : null}
-              {section === "buffett" ? (
-                <Suspense fallback={<SectionFallback />}>
-                  <BuffettIndicatorSection report={view.buffett} />
-                </Suspense>
-              ) : null}
-              {section === "compliance" ? (
-                <LazyViewSection Section={ComplianceSection} view={view} />
-              ) : null}
-              {section === "ownership" ? (
-                <LazyViewSection Section={OwnershipSection} view={view} />
-              ) : null}
-              {section === "peers" ? (
-                <LazyViewSection Section={PeersSection} view={view} />
-              ) : null}
-              {section === "documents" ? (
-                <LazyViewSection Section={DocumentsSection} view={view} />
-              ) : null}
-              {section === "news" ? (
-                <LazyViewSection Section={NewsSection} view={view} />
-              ) : null}
-              {section === "settings" ? (
-                <LazyViewSection Section={SettingsSection} view={view} />
-              ) : null}
-              {section === "copilot" ? (
-                <Suspense fallback={<SectionFallback />}>
-                  <AiCopilotSection
-                    view={view}
-                    analyseRequest={lastAnalyseRequest}
-                    analyseResponse={lastAnalyseResponse}
-                  />
-                </Suspense>
-              ) : null}
-              <p className="text-[10px] text-[var(--muted)]">
-                Last updated: {analysedAt ?? view.analysedAt ?? "Data unavailable."} ·
-                Research tools — not investment advice
-              </p>
-            </div>
-          ) : null}
-        </div>
-
-        <aside
-          className={cn(
-            "border-[var(--border)] bg-[var(--surface)] lg:w-72 lg:shrink-0 lg:border-l",
-            rightOpen ? "block" : "hidden",
-            "max-lg:border-t",
-          )}
-          aria-label="Context panel"
-        >
-          <WorkspaceRightPanel view={view} symbol={symbol} />
-        </aside>
-      </div>
-    </div>
+    <ModernAnalysisResult
+      symbol={symbol}
+      query={query}
+      setQuery={setQuery}
+      onAnalyze={runAnalyse}
+      analyzing={analyseMutation.isPending}
+      view={view}
+      error={analyseMutation.isError ? describeAnalyseError(analyseMutation.error) : null}
+      disclaimerGate={disclaimerGate}
+    />
   );
+
 }

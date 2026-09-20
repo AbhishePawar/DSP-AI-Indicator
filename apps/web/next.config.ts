@@ -23,12 +23,6 @@ const nextConfig: NextConfig = {
   compress: true,
   productionBrowserSourceMaps: false,
   output: "standalone",
-  // Keep Turbopack resolution anchored to the app package in this monorepo.
-  // This prevents preview startup from resolving dependencies from a transient
-  // or unrelated workspace root while dependencies are being installed.
-  turbopack: {
-    root: appRoot,
-  },
   // The v0 preview iframe serves the app from a separate origin during development.
   allowedDevOrigins: ["identify-gaps-list.v0.build"],
   // Pin tracing to this app. A leftover empty repo-root package-lock.json

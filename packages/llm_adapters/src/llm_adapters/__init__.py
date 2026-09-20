@@ -14,7 +14,6 @@ from llm_adapters.cost_scoring import (
     calculate_quality_score,
     score_evaluations,
 )
-from llm_adapters.gateway_adapter import AIGatewayAdapter
 from llm_adapters.evaluation import (
     ErrorCategory,
     EvaluationRequest,
@@ -108,6 +107,15 @@ from llm_adapters.tools import (
 )
 
 __version__ = "0.1.0"
+
+
+def __getattr__(name: str):
+    if name == "AIGatewayAdapter":
+        from llm_adapters.gateway_adapter import AIGatewayAdapter
+
+        return AIGatewayAdapter
+    raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
+
 
 __all__ = [
     "AUTHENTICATION_REQUIRED",

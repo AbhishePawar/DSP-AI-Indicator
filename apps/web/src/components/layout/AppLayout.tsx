@@ -52,6 +52,13 @@ export function AppLayout({ children }: { children: ReactNode }) {
     if (status === "restoring" || status === "loading" || status === "refreshing")
       return;
 
+    // The root URL is the application entry point, not a public marketing
+    // surface. Send signed-out visitors to auth and signed-in users to work.
+    if (pathname === "/") {
+      router.replace(session ? "/dashboard" : loginRedirectUrl("/dashboard"));
+      return;
+    }
+
     if (isAuthPublicPath(pathname)) {
       if (session && pathname === "/login") {
         router.replace("/dashboard");

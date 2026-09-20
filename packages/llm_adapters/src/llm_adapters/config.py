@@ -76,7 +76,7 @@ def load_llm_config() -> LLMPlatformConfig:
     return LLMPlatformConfig(
         default_provider=default_provider,
         openai_api_key=_read_env(
-            "OPENAI_API_KEY_4", "OPENAI_API_KEY", "DSP_AI_OPENAI_API_KEY"
+            "OPENAI_API_KEY_5", "OPENAI_API_KEY", "DSP_AI_OPENAI_API_KEY"
         ),
         anthropic_api_key=_read_env("ANTHROPIC_API_KEY", "DSP_AI_ANTHROPIC_API_KEY"),
         gemini_api_key=_read_env("GEMINI_API_KEY", "DSP_AI_GEMINI_API_KEY"),

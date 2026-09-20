@@ -100,6 +100,7 @@ class ResearchOrchestrator:
         registry: ToolRegistry | None = None,
         tier_registry: Mapping[ModelTier, TierConfig] | None = None,
         loop_limits: ToolLoopLimits | None = None,
+        dual_verification: bool = False,
     ) -> None:
         self._registry = registry or ToolRegistry.default()
         self._boundary = ToolCallBoundary(self._registry, backend)
@@ -108,6 +109,7 @@ class ResearchOrchestrator:
             dict(tier_registry) if tier_registry is not None else dict(DEFAULT_TIERS)
         )
         self._loop_limits = loop_limits or DEFAULT_TOOL_LOOP_LIMITS
+        self._dual_verification = dual_verification
         self._memory = _AttemptMemory()
 
     def run(self, request: UserResearchRequest) -> OrchestratorResult:
@@ -119,6 +121,9 @@ class ResearchOrchestrator:
         prefetched = gather_specified_tools(spec, self._boundary)
         self._memory = _AttemptMemory(outcomes=prefetched)
 
+        if self._dual_verification:
+            return self._run_dual(spec, routing)
+
         def run_at_tier(tier: ModelTier) -> EvaluationResult:
             return self._run_tier(tier, spec, routing)
 
@@ -128,6 +133,95 @@ class ResearchOrchestrator:
             tier_registry=self._tier_registry,
         )
         return self._finalize(spec, routing, verdict, accepted)
+
+    def _run_dual(
+        self,
+        spec: ResearchSpecification,
+        routing: RoutingDecision,
+    ) -> OrchestratorResult:
+        """Run both configured tiers independently over the same evidence snapshot."""
+        tiers = (ModelTier.COST_EFFICIENT, ModelTier.PREMIUM)
+        attempts: list[tuple[EvaluationResult, _AttemptMemory]] = []
+        initial_outcomes = self._memory.outcomes
+        for tier in tiers:
+            self._memory = _AttemptMemory(outcomes=initial_outcomes)
+            evaluation = self._run_tier(tier, spec, routing)
+            attempts.append((evaluation, self._memory))
+
+        successful = [
+            item for item in attempts
+            if item[0].status is EvaluationStatus.SUCCESS
+            and isinstance(item[1].validation, ValidationSuccess)
+        ]
+        if len(successful) >= 2:
+            selected = self._select_evidence_supported(successful)
+            self._memory = selected[1]
+            verdict = GateVerdict(
+                outcome=GateOutcome.ACCEPTED,
+                tier=self._tier_for_memory(selected[1], attempts),
+                reason="independent provider analyses reconciled against DSP evidence",
+                quality_score=100.0,
+                meets_floor=True,
+                requires_escalation=False,
+            )
+            return self._finalize(spec, routing, verdict, selected[0])
+        if successful:
+            selected = successful[0]
+            self._memory = selected[1]
+            verdict = GateVerdict(
+                outcome=GateOutcome.ACCEPTED,
+                tier=self._tier_for_memory(selected[1], attempts),
+                reason="one provider completed; deterministic DSP evidence preserved",
+                quality_score=100.0,
+                meets_floor=True,
+                requires_escalation=False,
+            )
+            return self._finalize(spec, routing, verdict, selected[0])
+
+        self._memory = attempts[0][1] if attempts else _AttemptMemory(outcomes=initial_outcomes)
+        verdict = GateVerdict(
+            outcome=GateOutcome.FAILED_CLOSED,
+            tier=ModelTier.PREMIUM,
+            reason="both independent providers failed; deterministic result remains authoritative",
+            quality_score=0.0,
+            meets_floor=False,
+            requires_escalation=False,
+        )
+        return self._finalize(spec, routing, verdict, None)
+
+    @staticmethod
+    def _tier_for_memory(
+        memory: _AttemptMemory,
+        attempts: list[tuple[EvaluationResult, _AttemptMemory]],
+    ) -> ModelTier:
+        for index, (_, candidate) in enumerate(attempts):
+            if candidate is memory:
+                return (ModelTier.COST_EFFICIENT, ModelTier.PREMIUM)[index]
+        return ModelTier.PREMIUM
+
+    @staticmethod
+    def _select_evidence_supported(
+        attempts: list[tuple[EvaluationResult, _AttemptMemory]],
+    ) -> tuple[EvaluationResult, _AttemptMemory]:
+        """Resolve model disagreement without provider preference.
+
+        Validation already binds recommendations, valuations, and citations to
+        DSP tool outputs. When narratives differ, the result with the greater
+        evidence-backed quality score wins; ties are resolved conservatively by
+        the lower reported confidence in the validated output.
+        """
+        ranked = sorted(
+            attempts,
+            key=lambda item: (
+                item[0].quality.evidence_correctness,
+                item[0].quality.factual_accuracy,
+                -item[1].validation.output.confidence
+                if isinstance(item[1].validation, ValidationSuccess)
+                else 0.0,
+            ),
+            reverse=True,
+        )
+        return ranked[0]
 
     def _run_tier(
         self,

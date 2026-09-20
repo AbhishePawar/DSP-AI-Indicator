@@ -188,6 +188,7 @@ class ApiState:
     contexts: ContextStore = field(default_factory=ContextStore)
     api_version: str = "v1"
     copilot_service: Any = field(default=None)
+    research_orchestrator: Any = field(default=None)
     language_model: Any | None = None
     # EPIC-011A — optional production infra (duck-typed)
     infrastructure: Any | None = None

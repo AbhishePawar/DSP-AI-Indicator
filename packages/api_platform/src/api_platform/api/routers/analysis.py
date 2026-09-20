@@ -78,15 +78,41 @@ def analyze_company(
         ),
     )
 
+    serialized_result = _serialize_payload(result.payload)
+    limitations = list(result.limitations)
     payload = {
         "report_id": report_id,
-        "result": _serialize_payload(result.payload),
+        "result": serialized_result,
     }
+
+    # AI is an explanation layer over the already validated DSP result. The
+    # service owns provider routing, dual-provider verification, fallback, and
+    # prompt privacy; the HTTP response receives only client-safe narrative.
+    if state.copilot_service is not None and result.ok:
+        try:
+            explanation = state.copilot_service.complete(
+                question_id="company_analysis",
+                freeform=(
+                    "Explain the validated company analysis concisely. "
+                    "Do not invent or alter financial facts."
+                ),
+                request={"symbol": instrument.symbol},
+                response={"result": serialized_result},
+            )
+            payload["explanation"] = {
+                "content": explanation.content,
+                "citations": explanation.citations,
+                "unavailable": explanation.unavailable,
+            }
+            limitations.extend(explanation.limitations)
+        except Exception:  # noqa: BLE001 — analysis remains available without AI
+            limitations.append("AI explanation unavailable; deterministic result returned.")
+
     return ApiResponse(
         ok=result.ok,
         capability=result.capability,
         payload=payload,
-        limitations=list(result.limitations),
+        limitations=limitations,
         errors=list(result.errors),
         api_version=state.api_version,
         platform_version=result.metadata.version,

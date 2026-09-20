@@ -1,7 +1,5 @@
-"use client";
-
-import { SearchFirstDashboard } from "@/components/dashboard/SearchFirstDashboard";
+import { MarketingLanding } from "@/components/marketing";
 
 export default function DashboardPage() {
-  return <SearchFirstDashboard />;
+  return <MarketingLanding />;
 }

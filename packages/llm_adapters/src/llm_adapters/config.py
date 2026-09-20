@@ -7,9 +7,10 @@ from dataclasses import dataclass
 from typing import Literal
 
 ProviderName = Literal["deterministic", "openai", "anthropic", "gemini", "deepseek"]
+ProviderMode = Literal["direct", "gateway", "deterministic"]
 
-DEFAULT_GEMINI_MODEL = "google/gemini-3.1-flash-lite"
-DEFAULT_OPENAI_MODEL = "openai/gpt-4.1-mini"
+DEFAULT_GEMINI_MODEL = "gemini-3.1-flash-lite"
+DEFAULT_OPENAI_MODEL = "gpt-4.1-mini"
 
 _PROVENANCE = ("llm_adapters.config", "dsp.llm.config.v1")
 
@@ -32,13 +33,14 @@ class LLMPlatformConfig:
     ai_gateway_api_key: str | None = None
     ai_gateway_base_url: str = "https://ai-gateway.vercel.sh/v1"
     direct_provider_fallback: bool = True
+    provider_mode: ProviderMode = "direct"
 
     @property
     def has_external_provider(self) -> bool:
         if self.default_provider == "deterministic":
             return False
         if self.default_provider == "openai":
-            return bool(self.openai_api_key)
+            return bool(self.openai_api_key or (self.provider_mode == "gateway" and self.ai_gateway_api_key))
         if self.default_provider == "anthropic":
             return bool(self.anthropic_api_key)
         if self.default_provider == "gemini":
@@ -66,6 +68,11 @@ def load_llm_config() -> LLMPlatformConfig:
         default_raw if default_raw in allowed else "deterministic"
     )
 
+    mode_raw = (_read_env("AI_PROVIDER_MODE", "DSP_AI_PROVIDER_MODE") or "direct").lower()
+    provider_mode: ProviderMode = (
+        mode_raw if mode_raw in {"direct", "gateway", "deterministic"} else "direct"
+    )
+
     return LLMPlatformConfig(
         default_provider=default_provider,
         openai_api_key=_read_env("OPENAI_API_KEY", "DSP_AI_OPENAI_API_KEY"),
@@ -90,4 +97,5 @@ def load_llm_config() -> LLMPlatformConfig:
             _read_env("DSP_AI_DIRECT_PROVIDER_FALLBACK") or "true"
         ).lower()
         in {"1", "true", "yes", "on"},
+        provider_mode=provider_mode,
     )

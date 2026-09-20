@@ -142,4 +142,6 @@ __all__ = ["AIGatewayAdapter"]
 
 def gateway_provider(config: LLMPlatformConfig, provider_id: str) -> AIGatewayAdapter:
     model = config.gemini_model if provider_id == "gemini" else config.openai_model
+    if "/" not in model:
+        model = f"{provider_id}/{model}"
     return AIGatewayAdapter(config, provider_id=provider_id, model=model)

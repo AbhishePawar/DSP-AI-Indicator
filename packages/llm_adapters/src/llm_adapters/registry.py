@@ -6,9 +6,9 @@ from llm_adapters.anthropic_adapter import AnthropicAdapter
 from llm_adapters.config import LLMPlatformConfig, ProviderName, load_llm_config
 from llm_adapters.gateway_adapter import gateway_provider
 from llm_adapters.deepseek_adapter import DeepSeekAdapter
-from llm_adapters.gemini_adapter import GeminiAdapter
+from llm_adapters.gemini_adapter import GeminiDirectAdapter
 from llm_adapters.interfaces import ProviderAdapter
-from llm_adapters.openai_adapter import OpenAIAdapter
+from llm_adapters.openai_adapter import OpenAIDirectAdapter
 
 
 class ProviderRegistry:
@@ -17,16 +17,16 @@ class ProviderRegistry:
     def __init__(self, config: LLMPlatformConfig | None = None) -> None:
         self._config = config or load_llm_config()
         self._direct_adapters: dict[str, ProviderAdapter] = {
-            "openai": OpenAIAdapter(self._config),
-            "gemini": GeminiAdapter(self._config),
+            "openai": OpenAIDirectAdapter(self._config),
+            "gemini": GeminiDirectAdapter(self._config),
         }
         self._adapters: dict[str, ProviderAdapter] = {
             "openai": gateway_provider(self._config, "openai")
-            if self._config.ai_gateway_api_key
+            if self._config.provider_mode == "gateway"
             else self._direct_adapters["openai"],
             "anthropic": AnthropicAdapter(self._config),
             "gemini": gateway_provider(self._config, "gemini")
-            if self._config.ai_gateway_api_key
+            if self._config.provider_mode == "gateway"
             else self._direct_adapters["gemini"],
             "deepseek": DeepSeekAdapter(self._config),
         }

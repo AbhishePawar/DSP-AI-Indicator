@@ -6,6 +6,8 @@ from llm_adapters.benchmark import (
     run_case_against_model,
 )
 from llm_adapters.config import LLMPlatformConfig, load_llm_config
+from llm_adapters.gemini_adapter import GeminiDirectAdapter
+from llm_adapters.openai_adapter import OpenAIDirectAdapter
 from llm_adapters.cost_scoring import (
     ScoredEvaluation,
     calculate_cost_score,
@@ -139,6 +141,7 @@ __all__ = [
     "EvaluationRequest",
     "EvaluationResult",
     "EvaluationStatus",
+    "GeminiDirectAdapter",
     "GeminiToolCalling",
     "GateOutcome",
     "GateVerdict",
@@ -148,6 +151,7 @@ __all__ = [
     "ModelLimits",
     "ModelPricing",
     "ModelTier",
+    "OpenAIDirectAdapter",
     "OpenAICompatibleToolCalling",
     "OrchestratorResult",
     "OrchestratorStatus",

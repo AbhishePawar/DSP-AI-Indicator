@@ -176,6 +176,9 @@ class OpenAIAdapter(OpenAICompatibleToolCalling):
         )
 
 
+OpenAIDirectAdapter = OpenAIAdapter
+
+
 def map_intent_to_user_intent(intent: str) -> UserIntentType:
     if intent == "compare_companies":
         return UserIntentType.COMPARE_OUTCOMES

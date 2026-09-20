@@ -19,6 +19,7 @@ from api_platform.api.dependencies import (
     build_copilot_service,
     build_default_platform,
     build_language_model,
+    build_research_orchestrator,
 )
 from api_platform.api.exceptions import ApiError, PlatformError
 from api_platform.api.infra_bootstrap import (
@@ -201,6 +202,7 @@ def create_app(
         contexts=ContextStore(),
         api_version=api_version,
         copilot_service=build_copilot_service(),
+        research_orchestrator=build_research_orchestrator(resolved),
         language_model=build_language_model(),
         infrastructure=boot.infrastructure,
         production=boot.production,

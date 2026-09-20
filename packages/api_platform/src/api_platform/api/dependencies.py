@@ -20,9 +20,18 @@ from dsp_platform import (
 
 try:
     from llm_adapters import CopilotCompleteService, build_default_registry
+    from llm_adapters.model_tiers import ModelTier, TierConfig
+    from llm_adapters.orchestrator import (
+        AdapterBackedAIProvider,
+        ResearchOrchestrator,
+    )
 except ImportError:  # pragma: no cover - optional during partial installs
     CopilotCompleteService = None  # type: ignore[misc, assignment]
     build_default_registry = None  # type: ignore[misc, assignment]
+    ModelTier = None  # type: ignore[misc, assignment]
+    TierConfig = None  # type: ignore[misc, assignment]
+    AdapterBackedAIProvider = None  # type: ignore[misc, assignment]
+    ResearchOrchestrator = None  # type: ignore[misc, assignment]
 
 __all__ = [
     "ApiState",
@@ -39,6 +48,7 @@ __all__ = [
     "require_authenticated_actor",
     "require_admin_access",
     "build_report_store",
+    "build_research_orchestrator",
 ]
 
 
@@ -200,6 +210,48 @@ def build_copilot_service() -> Any:
     if CopilotCompleteService is None:
         return None
     return CopilotCompleteService(build_default_registry())
+
+
+def build_research_orchestrator(platform: DSPPlatform) -> Any | None:
+    """Compose the live research pipeline around the canonical DSP platform.
+
+    Provider adapters remain behind ``AdapterBackedAIProvider`` and the
+    orchestrator receives the platform facade as its only data backend.
+    """
+    if (
+        ResearchOrchestrator is None
+        or AdapterBackedAIProvider is None
+        or ModelTier is None
+        or TierConfig is None
+        or build_default_registry is None
+    ):
+        return None
+    registry = build_default_registry()
+    gemini = registry.get("gemini")
+    openai = registry.get("openai")
+    if gemini is None or openai is None:
+        return None
+    return ResearchOrchestrator(
+        backend=platform,
+        providers={
+            ModelTier.COST_EFFICIENT: AdapterBackedAIProvider(gemini),
+            ModelTier.PREMIUM: AdapterBackedAIProvider(openai),
+        },
+        tier_registry={
+            ModelTier.COST_EFFICIENT: TierConfig(
+                tier=ModelTier.COST_EFFICIENT,
+                model_identity="gemini:google/gemini-3.1-flash-lite",
+                min_quality_score=60.0,
+                description="Default DSP Gateway research model.",
+            ),
+            ModelTier.PREMIUM: TierConfig(
+                tier=ModelTier.PREMIUM,
+                model_identity="openai:openai/gpt-4.1-mini",
+                min_quality_score=80.0,
+                description="Independent DSP Gateway verification model.",
+            ),
+        },
+    )
 
 
 def build_language_model(registry: Any | None = None) -> Any | None:

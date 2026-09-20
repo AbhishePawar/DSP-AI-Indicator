@@ -403,9 +403,8 @@ describe("EPIC-F005 workspace UI", () => {
       "@/components/company-analysis/CompanyAnalysisWorkspace"
     );
     wrap(<CompanyAnalysisWorkspace />);
-    expect(screen.getByLabelText("Company navigation")).toBeTruthy();
-    expect(screen.getByLabelText("Main analysis area")).toBeTruthy();
-    expect(screen.getByLabelText("Context panel")).toBeTruthy();
+    expect(screen.getByRole("textbox", { name: "Company ticker" })).toBeTruthy();
+    expect(screen.getByRole("button", { name: "Refresh analysis" })).toBeTruthy();
     await waitFor(() => {
       expect(financialStatementsMock).toHaveBeenCalled();
       expect(analyseMock).toHaveBeenCalled();
@@ -422,9 +421,6 @@ describe("EPIC-F005 workspace UI", () => {
     expect(body.valuation_signals).toBeUndefined();
     expect(body.current_market_price).toBe(190.5);
     expect(marketQuoteMock).toHaveBeenCalled();
-    expect(
-      await screen.findByRole("heading", { name: /Executive Summary/i }),
-    ).toBeTruthy();
   });
 
   it("propagates catalogue NSE onto TCS statements, quote, and analyse", async () => {
@@ -540,27 +536,15 @@ describe("EPIC-F005 workspace UI", () => {
     ).toBeGreaterThanOrEqual(4);
   });
 
-  it("does not fire a new lazy section's queries until it becomes active", async () => {
+  it("renders the focused result surface without the legacy workspace shell", async () => {
     const { CompanyAnalysisWorkspace } = await import(
       "@/components/company-analysis/CompanyAnalysisWorkspace"
     );
     wrap(<CompanyAnalysisWorkspace />);
     await waitFor(() => expect(analyseMock).toHaveBeenCalled());
-    await screen.findByRole("heading", { name: /Executive Summary/i });
-
-    // Documents is a lazy, net-new section — its component (and therefore its
-    // corporateActions query) must not mount while Overview is active.
-    expect(corporateActionsMock).not.toHaveBeenCalled();
-
-    const sectionsNav = await screen.findByRole("navigation", {
-      name: "Analysis sections",
-    });
-    const documentsNavButton = within(sectionsNav).getByRole("button", {
-      name: /Documents/i,
-    });
-    documentsNavButton.click();
-
-    await waitFor(() => expect(corporateActionsMock).toHaveBeenCalled());
+    expect(await screen.findByText(/source-led analysis surface/i)).toBeTruthy();
+    expect(screen.queryByLabelText("Company navigation")).toBeNull();
+    expect(screen.queryByLabelText("Context panel")).toBeNull();
   });
 });
 

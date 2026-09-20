@@ -1,0 +1,53 @@
+{
+  "blocking": [
+    "RELEASE_IDENTITY"
+  ],
+  "decision": "NO-GO",
+  "exit_code": 2,
+  "g2_claim": false,
+  "gate": "P1-11",
+  "hard_fail": true,
+  "identity": {
+    "channel": "ga",
+    "decision": "GENERAL_AVAILABILITY",
+    "epic": "EPS-003",
+    "product_version": "2.0.0"
+  },
+  "identity_ok": false,
+  "note": "G2 BLOCKED without real_live_authenticated_provider evidence \u21d2 RC1 NO-GO. test_fixture must never clear G2.",
+  "reasons": {
+    "G1": "injected=PASS",
+    "G10": "injected=PASS",
+    "G11": "injected=PASS",
+    "G2": "injected=PASS",
+    "G3": "injected=PASS",
+    "G4": "injected=PASS",
+    "G5": "injected=PASS",
+    "G6": "injected=PASS",
+    "G7": "injected=PASS",
+    "G8": "injected=PASS",
+    "G9": "injected=PASS",
+    "RELEASE_IDENTITY": "stale GA identity forced"
+  },
+  "release_allowed": false,
+  "required_identity": {
+    "channel": "rc",
+    "decision": "RELEASE_CANDIDATE",
+    "epic": "EPS-003",
+    "product_version": "2.0.0-rc.1"
+  },
+  "soft_fail_forbidden": true,
+  "statuses": {
+    "G1": "PASS",
+    "G10": "PASS",
+    "G11": "PASS",
+    "G2": "PASS",
+    "G3": "PASS",
+    "G4": "PASS",
+    "G5": "PASS",
+    "G6": "PASS",
+    "G7": "PASS",
+    "G8": "PASS",
+    "G9": "PASS"
+  }
+}

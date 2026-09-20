@@ -6,6 +6,8 @@ from llm_adapters.benchmark import (
     run_case_against_model,
 )
 from llm_adapters.config import LLMPlatformConfig, load_llm_config
+from llm_adapters.gemini_adapter import GeminiDirectAdapter
+from llm_adapters.openai_adapter import OpenAIDirectAdapter
 from llm_adapters.cost_scoring import (
     ScoredEvaluation,
     calculate_cost_score,
@@ -108,8 +110,18 @@ from llm_adapters.tools import (
 
 __version__ = "0.1.0"
 
+
+def __getattr__(name: str):
+    if name == "AIGatewayAdapter":
+        from llm_adapters.gateway_adapter import AIGatewayAdapter
+
+        return AIGatewayAdapter
+    raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
+
+
 __all__ = [
     "AUTHENTICATION_REQUIRED",
+    "AIGatewayAdapter",
     "AICompletion",
     "AIProvider",
     "AIResearchOutput",
@@ -129,6 +141,7 @@ __all__ = [
     "EvaluationRequest",
     "EvaluationResult",
     "EvaluationStatus",
+    "GeminiDirectAdapter",
     "GeminiToolCalling",
     "GateOutcome",
     "GateVerdict",
@@ -138,6 +151,7 @@ __all__ = [
     "ModelLimits",
     "ModelPricing",
     "ModelTier",
+    "OpenAIDirectAdapter",
     "OpenAICompatibleToolCalling",
     "OrchestratorResult",
     "OrchestratorStatus",

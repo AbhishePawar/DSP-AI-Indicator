@@ -223,3 +223,6 @@ class GeminiAdapter(GeminiToolCalling):
             limitations=(reason,),
             model_label=self.model_label,
         )
+
+
+GeminiDirectAdapter = GeminiAdapter

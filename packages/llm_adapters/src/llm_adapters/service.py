@@ -82,7 +82,15 @@ class CopilotCompleteService:
             ),
         )
 
-        lm_result = self._invoke_with_retry(adapter, lm_request)
+        dual_result = self._complete_with_cross_verification(
+            lm_request=lm_request,
+            research=research,
+            deterministic=deterministic,
+        )
+        if dual_result is not None:
+            return dual_result
+
+        lm_result = self._invoke_provider_with_fallback(provider_name, adapter, lm_request)
         if lm_result.status not in (
             LanguageModelStatus.COMPLETE,
             LanguageModelStatus.PARTIAL,
@@ -139,6 +147,95 @@ class CopilotCompleteService:
     def active_provider_id(self) -> str:
         provider_name, _ = self._registry.resolve_active()
         return provider_name
+
+    def _complete_with_cross_verification(
+        self,
+        *,
+        lm_request: LanguageModelRequest,
+        research: dict[str, Any],
+        deterministic: DeterministicAnswer,
+    ) -> CopilotCompleteResult | None:
+        """Run independent Gemini/OpenAI analyses and reconcile privately.
+
+        This path is intentionally internal: only the reconciled narrative is
+        returned. Validated DSP data and deterministic calculations outrank
+        either model, and an unavailable model never blocks the final result.
+        """
+        gemini = self._registry.get("gemini")
+        openai = self._registry.get("openai")
+        if not gemini or not openai or not gemini.is_configured() or not openai.is_configured():
+            return None
+
+        gemini_result = self._invoke_provider_with_fallback("gemini", gemini, lm_request)
+        openai_result = self._invoke_provider_with_fallback("openai", openai, lm_request)
+        successful = [
+            result
+            for result in (gemini_result, openai_result)
+            if result.status in (LanguageModelStatus.COMPLETE, LanguageModelStatus.PARTIAL)
+            and result.narrative_text
+        ]
+        if not successful:
+            return None
+        if len(successful) == 1:
+            narrative = successful[0].narrative_text or ""
+            safe_text, warnings = validate_llm_narrative(narrative, research)
+            return CopilotCompleteResult(
+                content=safe_text,
+                citations=list(deterministic.citations),
+                intent=deterministic.intent,
+                unavailable=False,
+                provider_id="cross-verified",
+                limitations=("One independent analysis was unavailable.",) + warnings,
+            )
+
+        reconciliation_prompt = LanguageModelRequest(
+            request_id=str(uuid.uuid4()),
+            intent_class=lm_request.intent_class,
+            prompt_parts=(
+                "Reconcile two independent research analyses into one concise final explanation.",
+                "Use this evidence hierarchy: approved financial data, DSP-validated data, deterministic DSP calculations, DSP valuation methodology, supporting evidence, then model interpretations.",
+                "Never change or invent numerical facts. Do not choose a model by score or fluency. If interpretation remains uncertain, use the conservative evidence-supported interpretation.",
+                f"Validated DSP context: {research}",
+                f"Independent analysis A: {successful[0].narrative_text}",
+                f"Independent analysis B: {successful[1].narrative_text}",
+            ),
+            context_digest_ids=lm_request.context_digest_ids,
+            provenance=("llm_adapters.service", "dsp.cross_verification.v1"),
+            constraints=(
+                "Return only the final client-safe explanation.",
+                "Do not mention models, disagreement, prompts, reconciliation, or internal confidence.",
+            ),
+        )
+        resolver = openai if self._registry.config.default_provider == "gemini" else gemini
+        resolved = self._invoke_with_retry(resolver, reconciliation_prompt)
+        if resolved.status not in (LanguageModelStatus.COMPLETE, LanguageModelStatus.PARTIAL):
+            resolved = successful[0]
+        narrative = resolved.narrative_text or ""
+        safe_text, warnings = validate_llm_narrative(narrative, research)
+        return CopilotCompleteResult(
+            content=safe_text,
+            citations=list(deterministic.citations),
+            intent=deterministic.intent,
+            unavailable=False,
+            provider_id="cross-verified",
+            limitations=tuple(warnings),
+        )
+
+    def _invoke_provider_with_fallback(
+        self,
+        provider_name: str,
+        adapter,
+        request: LanguageModelRequest,
+    ) -> LanguageModelResult:
+        result = self._invoke_with_retry(adapter, request)
+        if result.status in (LanguageModelStatus.COMPLETE, LanguageModelStatus.PARTIAL):
+            return result
+        direct_adapter = self._registry.direct_fallback(provider_name)
+        if direct_adapter is not None and direct_adapter is not adapter:
+            fallback = self._invoke_with_retry(direct_adapter, request)
+            if fallback.status in (LanguageModelStatus.COMPLETE, LanguageModelStatus.PARTIAL):
+                return fallback
+        return result
 
     def _invoke_with_retry(
         self,

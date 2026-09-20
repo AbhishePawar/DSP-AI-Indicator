@@ -18,6 +18,11 @@ from api_platform.api.tenant_isolation import stamp_report_owner
 from contracts import Instrument
 from contracts.enums import AssetClass
 
+try:
+    from llm_adapters.orchestrator import UserResearchRequest
+except ImportError:  # pragma: no cover - optional during partial installs
+    UserResearchRequest = None  # type: ignore[misc, assignment]
+
 router = APIRouter(tags=["analysis"])
 
 
@@ -78,15 +83,65 @@ def analyze_company(
         ),
     )
 
+    serialized_result = _serialize_payload(result.payload)
+    limitations = list(result.limitations)
     payload = {
         "report_id": report_id,
-        "result": _serialize_payload(result.payload),
+        "result": serialized_result,
     }
+
+    # Run the private, methodology-driven research loop against the same
+    # deterministic DSP backend. Only its client-safe pack is allowed to cross
+    # this boundary; prompts, provider identities, and raw responses stay in
+    # the orchestrator's private result.
+    research_pack: object | None = None
+    if state.research_orchestrator is not None and UserResearchRequest is not None:
+        try:
+            research = state.research_orchestrator.run(
+                UserResearchRequest(
+                    symbol=instrument.symbol,
+                    question="Explain the validated company analysis.",
+                    exchange=instrument.asset_class.value,
+                    request_id=report_id,
+                )
+            )
+            research_pack = research.to_public().to_dict()
+            if research.status.value != "accepted":
+                limitations.append("AI research validation failed closed; deterministic result returned.")
+        except Exception:  # noqa: BLE001 — deterministic analysis remains available
+            limitations.append("AI research unavailable; deterministic result returned.")
+
+    # AI is an explanation layer over the already validated DSP result. The
+    # service owns provider routing, dual-provider verification, fallback, and
+    # prompt privacy; the HTTP response receives only client-safe narrative.
+    if state.copilot_service is not None and result.ok:
+        try:
+            explanation = state.copilot_service.complete(
+                question_id="company_analysis",
+                freeform=(
+                    "Explain the validated company analysis concisely. "
+                    "Do not invent or alter financial facts."
+                ),
+                    request={"symbol": instrument.symbol},
+                    response={
+                        "result": serialized_result,
+                        "validated_research": research_pack,
+                    },
+                )
+            payload["explanation"] = {
+                "content": explanation.content,
+                "citations": explanation.citations,
+                "unavailable": explanation.unavailable,
+            }
+            limitations.extend(explanation.limitations)
+        except Exception:  # noqa: BLE001 — analysis remains available without AI
+            limitations.append("AI explanation unavailable; deterministic result returned.")
+
     return ApiResponse(
         ok=result.ok,
         capability=result.capability,
         payload=payload,
-        limitations=list(result.limitations),
+        limitations=limitations,
         errors=list(result.errors),
         api_version=state.api_version,
         platform_version=result.metadata.version,

@@ -7,6 +7,10 @@ from dataclasses import dataclass
 from typing import Literal
 
 ProviderName = Literal["deterministic", "openai", "anthropic", "gemini", "deepseek"]
+ProviderMode = Literal["direct", "gateway", "deterministic"]
+
+DEFAULT_GEMINI_MODEL = "gemini-3.1-flash-lite"
+DEFAULT_OPENAI_MODEL = "gpt-4.1-mini"
 
 _PROVENANCE = ("llm_adapters.config", "dsp.llm.config.v1")
 
@@ -28,17 +32,19 @@ class LLMPlatformConfig:
     deepseek_model: str
     request_timeout_seconds: float
     max_retries: int
+    direct_provider_fallback: bool = True
+    provider_mode: ProviderMode = "gateway"
 
     @property
     def has_external_provider(self) -> bool:
         if self.default_provider == "deterministic":
             return False
         if self.default_provider == "openai":
-            return bool(self.ai_gateway_api_key or self.openai_api_key)
+            return bool(self.openai_api_key or self.ai_gateway_api_key)
         if self.default_provider == "anthropic":
             return bool(self.anthropic_api_key)
         if self.default_provider == "gemini":
-            return bool(self.ai_gateway_api_key or self.gemini_api_key)
+            return bool(self.gemini_api_key or self.ai_gateway_api_key)
         if self.default_provider == "deepseek":
             return bool(self.deepseek_api_key)
         return False
@@ -62,21 +68,32 @@ def load_llm_config() -> LLMPlatformConfig:
         default_raw if default_raw in allowed else "deterministic"
     )
 
+    mode_raw = (_read_env("AI_PROVIDER_MODE", "DSP_AI_PROVIDER_MODE") or "direct").lower()
+    provider_mode: ProviderMode = (
+        mode_raw if mode_raw in {"direct", "gateway", "deterministic"} else "direct"
+    )
+
     return LLMPlatformConfig(
         default_provider=default_provider,
-        openai_api_key=_read_env("OPENAI_API_KEY", "DSP_AI_OPENAI_API_KEY"),
+        openai_api_key=_read_env("OPENAI_API_KEY_5"),
         anthropic_api_key=_read_env("ANTHROPIC_API_KEY", "DSP_AI_ANTHROPIC_API_KEY"),
         gemini_api_key=_read_env("GEMINI_API_KEY", "DSP_AI_GEMINI_API_KEY"),
         deepseek_api_key=_read_env("DEEPSEEK_API_KEY", "DSP_AI_DEEPSEEK_API_KEY"),
-        ai_gateway_api_key=_read_env("AI_GATEWAY_API_KEY"),
-        ai_gateway_base_url=_read_env("AI_GATEWAY_BASE_URL") or "https://ai-gateway.vercel.sh/v1",
-        openai_model=_read_env("OPENAI_MODEL", "DSP_AI_OPENAI_MODEL") or "openai/gpt-4.1-mini",
+        openai_model=_read_env("OPENAI_MODEL", "DSP_AI_OPENAI_MODEL") or DEFAULT_OPENAI_MODEL,
         anthropic_model=_read_env("ANTHROPIC_MODEL", "DSP_AI_ANTHROPIC_MODEL")
         or "claude-3-5-sonnet-20241022",
-        gemini_model=_read_env("GEMINI_MODEL", "DSP_AI_GEMINI_MODEL")
-        or "google/gemini-3.1-flash-lite",
+        gemini_model=_read_env("GEMINI_MODEL", "DSP_AI_GEMINI_MODEL") or DEFAULT_GEMINI_MODEL,
         deepseek_model=_read_env("DEEPSEEK_MODEL", "DSP_AI_DEEPSEEK_MODEL")
         or "deepseek-chat",
         request_timeout_seconds=float(_read_env("DSP_AI_LLM_TIMEOUT_SECONDS") or "30"),
         max_retries=int(_read_env("DSP_AI_LLM_MAX_RETRIES") or "2"),
+        ai_gateway_api_key=_read_env("AI_GATEWAY_API_KEY"),
+        ai_gateway_base_url=(
+            _read_env("AI_GATEWAY_BASE_URL") or "https://ai-gateway.vercel.sh/v1"
+        ).rstrip("/"),
+        direct_provider_fallback=(
+            _read_env("DSP_AI_DIRECT_PROVIDER_FALLBACK") or "true"
+        ).lower()
+        in {"1", "true", "yes", "on"},
+        provider_mode=provider_mode,
     )

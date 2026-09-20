@@ -52,7 +52,6 @@ import {
   researchWorkspaceSurfaceTrust,
 } from "@/lib/trust/surfaceTrust";
 import { WorkspaceEmpty, WorkspaceSkeleton } from "./WorkspacePrimitives";
-import { ModernAnalysisResult } from "./ModernAnalysisResult";
 
 const ValuationSection = lazy(() =>
   import("./WorkspaceSections").then((m) => ({ default: m.ValuationSection })),
@@ -426,37 +425,54 @@ export function CompanyAnalysisWorkspace() {
     ? activeSection
     : "summary";
 
-  const trustSummary = view
-    ? researchWorkspaceSurfaceTrust({
-        ticker: view.ticker,
-        analyseOk: true,
-        stagesCount: [
-          view.financial,
-          view.growth,
-          view.businessQuality,
-          view.recommendationStage,
-          view.committee,
-        ].filter(Boolean).length,
-        recommendation: view.committee.finalRecommendation,
-        confidenceDisplay: view.committee.confidence || null,
-        opposingNotes: view.committee.opposingReasons,
-        analysedAt: view.analysedAt,
-      })
-    : emptySurfaceTrust("company_analysis", {
-        auditNote: "Audit: company analysis is awaiting an authenticated analyse payload.",
-      });
+  const error = analyseMutation.isError
+    ? describeAnalyseError(analyseMutation.error)
+    : null;
 
   return (
-    <ModernAnalysisResult
-      symbol={symbol}
-      query={query}
-      setQuery={setQuery}
-      onAnalyze={runAnalyse}
-      analyzing={analyseMutation.isPending}
-      view={view}
-      error={analyseMutation.isError ? describeAnalyseError(analyseMutation.error) : null}
-      disclaimerGate={disclaimerGate}
-    />
+    <main className="min-h-[60vh] px-4 py-8 sm:px-6 lg:px-8">
+      {disclaimerGate}
+      <div className="mx-auto max-w-3xl space-y-6">
+        <div>
+          <p className="text-sm text-[var(--muted)]">Analysis route</p>
+          <h1 className="mt-2 text-2xl font-semibold text-[var(--text)]">
+            Result page ready for redesign
+          </h1>
+          <p className="mt-3 text-sm leading-6 text-[var(--muted)]">
+            The previous result-page presentation has been removed. The existing analysis request and response flow remain connected to the backend.
+          </p>
+        </div>
+
+        <form
+          className="flex flex-col gap-3 sm:flex-row"
+          onSubmit={(event) => {
+            event.preventDefault();
+            runAnalyse();
+          }}
+        >
+          <label className="sr-only" htmlFor="analysis-symbol">Company ticker</label>
+          <input
+            id="analysis-symbol"
+            value={query}
+            onChange={(event) => setQuery(event.target.value.toUpperCase())}
+            placeholder="Enter ticker"
+            className="min-w-0 flex-1 rounded-md border border-[var(--border)] bg-[var(--surface)] px-3 py-2 text-[var(--text)] outline-none"
+          />
+          <Button type="submit" disabled={analyseMutation.isPending || !query.trim()}>
+            {analyseMutation.isPending ? "Loading…" : "Run analysis"}
+          </Button>
+        </form>
+
+        {error ? (
+          <p role="alert" className="text-sm text-[var(--muted)]">{error}</p>
+        ) : null}
+        {view ? (
+          <p role="status" className="text-sm text-[var(--muted)]">
+            Analysis response received for {view.ticker}. The new result design will be added from the future specification.
+          </p>
+        ) : null}
+      </div>
+    </main>
   );
 
 }

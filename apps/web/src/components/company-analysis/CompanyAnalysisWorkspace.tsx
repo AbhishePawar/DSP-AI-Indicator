@@ -194,7 +194,7 @@ export function CompanyAnalysisWorkspace() {
   const searchParams = useSearchParams();
   const { session } = useAuth();
   const token = session?.accessToken;
-  const { success, error: notifyError } = useNotifications();
+  const { success } = useNotifications();
 
   // RC3-003 — no silent default company; require explicit symbol selection.
   const urlSymbol = (searchParams.get("symbol") || "").trim().toUpperCase();
@@ -319,16 +319,7 @@ export function CompanyAnalysisWorkspace() {
         Number.isFinite(serverIv);
       if (valuationOk) {
         success(`Analysis loaded for ${body.ticker.toUpperCase()}`, "Analyse");
-      } else {
-        notifyError(
-          "Analysis completed with unavailable valuation or incomplete data",
-          "Analyse",
-        );
       }
-    },
-    onError: (err) => {
-      const message = err instanceof ApiClientError ? err.message : "Analyse failed";
-      notifyError(message, "Analyse failed");
     },
   });
 

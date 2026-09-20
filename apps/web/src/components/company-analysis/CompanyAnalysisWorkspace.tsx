@@ -39,9 +39,6 @@ import { mapResearchView, type ResearchView } from "@/lib/research/mapResearchVi
 import { saveResearchSession } from "@/lib/research/sessionStore";
 import { useNotifications } from "@/providers/NotificationProvider";
 import { cn } from "@/lib/utils";
-import { WorkspaceLeftNav } from "./WorkspaceLeftNav";
-import { WorkspaceRightPanel } from "./WorkspaceRightPanel";
-import { WorkspaceToolbar } from "./WorkspaceChrome";
 import { ExportSection, SummarySection } from "./WorkspaceSections";
 import { InvestmentSnapshot, SnapshotSignals } from "./InvestmentSnapshot";
 import { ResearchProgressTracker } from "./ResearchProgressTracker";

@@ -66,7 +66,7 @@ export default function LoginForm() {
   const [pending, setPending] = useState(false);
   const [mfaChallenge, setMfaChallenge] = useState<MfaChallengeInfo | null>(null);
 
-  const nextPath = normalizePath(searchParams.get("next") || "/dashboard");
+  const nextPath = normalizePath(searchParams.get("next") || "/research");
   const expired = searchParams.get("expired") === "1";
   const verified = searchParams.get("verified") === "1";
 

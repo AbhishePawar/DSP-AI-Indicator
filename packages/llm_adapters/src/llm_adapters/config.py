@@ -24,23 +24,23 @@ class LLMPlatformConfig:
     anthropic_api_key: str | None
     gemini_api_key: str | None
     deepseek_api_key: str | None
+    ai_gateway_api_key: str | None
+    ai_gateway_base_url: str
     openai_model: str
     anthropic_model: str
     gemini_model: str
     deepseek_model: str
     request_timeout_seconds: float
     max_retries: int
-    ai_gateway_api_key: str | None = None
-    ai_gateway_base_url: str = "https://ai-gateway.vercel.sh/v1"
     direct_provider_fallback: bool = True
-    provider_mode: ProviderMode = "direct"
+    provider_mode: ProviderMode = "gateway"
 
     @property
     def has_external_provider(self) -> bool:
         if self.default_provider == "deterministic":
             return False
         if self.default_provider == "openai":
-            return bool(self.openai_api_key or (self.provider_mode == "gateway" and self.ai_gateway_api_key))
+            return bool(self.openai_api_key or self.ai_gateway_api_key)
         if self.default_provider == "anthropic":
             return bool(self.anthropic_api_key)
         if self.default_provider == "gemini":
@@ -79,12 +79,10 @@ def load_llm_config() -> LLMPlatformConfig:
         anthropic_api_key=_read_env("ANTHROPIC_API_KEY", "DSP_AI_ANTHROPIC_API_KEY"),
         gemini_api_key=_read_env("GEMINI_API_KEY", "DSP_AI_GEMINI_API_KEY"),
         deepseek_api_key=_read_env("DEEPSEEK_API_KEY", "DSP_AI_DEEPSEEK_API_KEY"),
-        openai_model=_read_env("OPENAI_MODEL", "DSP_AI_OPENAI_MODEL")
-        or DEFAULT_OPENAI_MODEL,
+        openai_model=_read_env("OPENAI_MODEL", "DSP_AI_OPENAI_MODEL") or DEFAULT_OPENAI_MODEL,
         anthropic_model=_read_env("ANTHROPIC_MODEL", "DSP_AI_ANTHROPIC_MODEL")
         or "claude-3-5-sonnet-20241022",
-        gemini_model=_read_env("GEMINI_MODEL", "DSP_AI_GEMINI_MODEL")
-        or DEFAULT_GEMINI_MODEL,
+        gemini_model=_read_env("GEMINI_MODEL", "DSP_AI_GEMINI_MODEL") or DEFAULT_GEMINI_MODEL,
         deepseek_model=_read_env("DEEPSEEK_MODEL", "DSP_AI_DEEPSEEK_MODEL")
         or "deepseek-chat",
         request_timeout_seconds=float(_read_env("DSP_AI_LLM_TIMEOUT_SECONDS") or "30"),

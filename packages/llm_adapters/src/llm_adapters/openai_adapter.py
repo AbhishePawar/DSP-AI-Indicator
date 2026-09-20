@@ -35,7 +35,7 @@ class OpenAIAdapter(OpenAICompatibleToolCalling):
         self.model_label = config.openai_model
 
     def is_configured(self) -> bool:
-        return bool(self._config.openai_api_key)
+        return bool(self._config.ai_gateway_api_key or self._config.openai_api_key)
 
     def invoke(self, request: LanguageModelRequest) -> LanguageModelResult:
         result, _ = self._chat(request, tools=None, allow_tool_only=False)
@@ -59,9 +59,12 @@ class OpenAIAdapter(OpenAICompatibleToolCalling):
         allow_tool_only: bool,
     ) -> tuple[LanguageModelResult, dict[str, Any] | None]:
         if not self.is_configured():
-            return self._unavailable("OPENAI_API_KEY not configured"), None
+            return self._unavailable("AI Gateway is not configured"), None
 
         prompt = "\n\n".join(request.prompt_parts)
+        api_key = self._config.ai_gateway_api_key or self._config.openai_api_key or ""
+        base_url = self._config.ai_gateway_base_url if self._config.ai_gateway_api_key else "https://api.openai.com/v1"
+
         payload: dict[str, Any] = {
             "model": self.model_label,
             "messages": [
@@ -76,9 +79,9 @@ class OpenAIAdapter(OpenAICompatibleToolCalling):
         try:
             with httpx.Client(timeout=self._config.request_timeout_seconds) as client:
                 response = client.post(
-                    "https://api.openai.com/v1/chat/completions",
+                    f"{base_url.rstrip('/')}/chat/completions",
                     headers={
-                        "Authorization": f"Bearer {self._config.openai_api_key}",
+                        "Authorization": f"Bearer {api_key}",
                         "Content-Type": "application/json",
                     },
                     json=payload,
@@ -112,6 +115,8 @@ class OpenAIAdapter(OpenAICompatibleToolCalling):
             return
 
         prompt = "\n\n".join(request.prompt_parts)
+        api_key = self._config.ai_gateway_api_key or self._config.openai_api_key or ""
+        base_url = self._config.ai_gateway_base_url if self._config.ai_gateway_api_key else "https://api.openai.com/v1"
         payload = {
             "model": self.model_label,
             "stream": True,
@@ -125,9 +130,9 @@ class OpenAIAdapter(OpenAICompatibleToolCalling):
         with httpx.Client(timeout=self._config.request_timeout_seconds) as client:
             with client.stream(
                 "POST",
-                "https://api.openai.com/v1/chat/completions",
+                f"{base_url.rstrip('/')}/chat/completions",
                 headers={
-                    "Authorization": f"Bearer {self._config.openai_api_key}",
+                    "Authorization": f"Bearer {api_key}",
                     "Content-Type": "application/json",
                 },
                 json=payload,

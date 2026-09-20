@@ -8,6 +8,13 @@ layer. Concrete adapters: Yahoo Finance (OHLCV + fundamentals) and FRED
 from __future__ import annotations
 
 from data_engine.adapters import BaseAdapter
+from data_engine.source_governance import (
+    APPROVED_SOURCES,
+    PRIMARY_SOURCES,
+    SECONDARY_SOURCES,
+    DataProvenance,
+    is_approved_source,
+)
 from data_engine.adapters.fred import (
     CANONICAL_INDICATOR_CODES,
     FRED_METADATA,

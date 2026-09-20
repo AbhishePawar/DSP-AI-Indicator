@@ -87,6 +87,19 @@ class CopilotCompleteService:
             LanguageModelStatus.COMPLETE,
             LanguageModelStatus.PARTIAL,
         ):
+            direct_adapter = self._registry.direct_fallback(provider_name)
+            if direct_adapter is not None and direct_adapter is not adapter:
+                fallback_result = self._invoke_with_retry(direct_adapter, lm_request)
+                if fallback_result.status in (
+                    LanguageModelStatus.COMPLETE,
+                    LanguageModelStatus.PARTIAL,
+                ):
+                    provider_name = f"{provider_name}:direct-fallback"
+                    lm_result = fallback_result
+        if lm_result.status not in (
+            LanguageModelStatus.COMPLETE,
+            LanguageModelStatus.PARTIAL,
+        ):
             limitations = tuple(lm_result.limitations or ("LLM unavailable",))
             result = self._from_deterministic(deterministic, "deterministic")
             return CopilotCompleteResult(

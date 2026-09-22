@@ -1,7 +1,7 @@
 /**
  * @vitest-environment jsdom
  */
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { cleanup, render, screen, fireEvent } from "@testing-library/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import type { ReactElement } from "react";
@@ -108,6 +108,10 @@ function wrap(ui: ReactElement) {
   );
 }
 
+afterEach(() => {
+  cleanup();
+});
+
 describe("EPIC-F009 settings lib", () => {
   it("registers sections", () => {
     expect(SETTINGS_SECTIONS.map((s) => s.id)).toEqual([
@@ -155,7 +159,6 @@ describe("EPIC-F009 settings lib", () => {
 
 describe("EPIC-F009 settings workspace UI", () => {
   beforeEach(() => {
-    cleanup();
     useSettingsPrefsStore.setState({
       activeSection: "appearance",
       leftOpen: true,

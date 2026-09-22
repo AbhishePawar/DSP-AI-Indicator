@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 
 import { Button } from "@/components/ui/Button";
 import { Card, CardBody, CardHeader } from "@/components/ui/Card";
@@ -8,12 +9,12 @@ import { useAuth } from "@/lib/auth/AuthProvider";
 import { usePersistence } from "@/providers/PersistenceProvider";
 
 export function SavedAnalysesPanel() {
+  const router = useRouter();
   const { status } = useAuth();
   const {
     savedAnalyses,
     deleteSavedAnalysis,
     reopenSavedAnalysis,
-    saveAnalysis,
   } = usePersistence();
 
   if (status !== "authenticated") {
@@ -64,7 +65,7 @@ export function SavedAnalysesPanel() {
                     disabled={!item.request || !item.response}
                     onClick={() => {
                       if (reopenSavedAnalysis(item.id)) {
-                        window.location.href = `/research/${encodeURIComponent(item.ticker)}`;
+                        router.push(`/research/${encodeURIComponent(item.ticker)}`);
                       }
                     }}
                   >

@@ -39,6 +39,8 @@ export function PasskeyButton({
   const [browserOk, setBrowserOk] = useState(true);
 
   useEffect(() => {
+    // WebAuthn support is only observable in the browser after hydration.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setBrowserOk(browserSupportsWebAuthn());
   }, []);
 

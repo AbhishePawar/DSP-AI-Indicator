@@ -469,7 +469,6 @@ function ResizeHandle() {
   const onPointerUp = useCallback(() => {
     dragging.current = false;
     window.removeEventListener("pointermove", onPointerMove);
-    window.removeEventListener("pointerup", onPointerUp);
   }, [onPointerMove]);
 
   return (

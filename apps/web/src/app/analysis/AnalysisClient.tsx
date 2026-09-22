@@ -1,6 +1,6 @@
 "use client";
 
-import { FormEvent, useEffect, useMemo, useState } from "react";
+import { FormEvent, useMemo, useState } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { useSearchParams } from "next/navigation";
 
@@ -34,18 +34,15 @@ export default function AnalysisClient() {
   const searchParams = useSearchParams();
   const range = defaultRange();
   // RC3-003 — no silent default company; require explicit symbol.
-  const [symbol, setSymbol] = useState("");
+  const [symbol, setSymbol] = useState(
+    () => searchParams.get("symbol")?.toUpperCase() ?? "",
+  );
   const [start, setStart] = useState(range.start);
   const [end, setEnd] = useState(range.end);
   const [restoredView, setRestoredView] = useState<AnalysisWorkspaceView | null>(
     null,
   );
   const [restoredBanner, setRestoredBanner] = useState<string | null>(null);
-
-  useEffect(() => {
-    const fromQuery = searchParams.get("symbol");
-    if (fromQuery) setSymbol(fromQuery.toUpperCase());
-  }, [searchParams]);
 
   const mutation = useMutation({
     mutationFn: () =>

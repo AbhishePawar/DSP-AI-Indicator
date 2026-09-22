@@ -88,6 +88,8 @@ export const KnowledgeGraphWorkspace = memo(function KnowledgeGraphWorkspace({
 
   useEffect(() => {
     if (selectedId && !visibleIds.has(selectedId)) {
+      // Selection must be cleared when filtering removes its node.
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setSelectedId(null);
     }
   }, [selectedId, visibleIds]);

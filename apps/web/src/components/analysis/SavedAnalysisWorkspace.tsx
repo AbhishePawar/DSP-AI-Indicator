@@ -93,6 +93,8 @@ export const SavedAnalysisWorkspace = memo(function SavedAnalysisWorkspace({
   const [compareRight, setCompareRight] = useState<string | null>(null);
 
   useEffect(() => {
+    // Hydrate browser-only workspace storage after mount.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setStore(loadWorkspaceStore());
   }, []);
 

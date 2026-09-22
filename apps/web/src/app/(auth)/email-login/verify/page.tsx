@@ -21,16 +21,16 @@ function EmailLoginVerifyInner() {
   const token = searchParams.get("token") || "";
   const nextPath = normalizePath(searchParams.get("next") || "/dashboard");
 
-  const [status, setStatus] = useState<"pending" | "error" | "done">("pending");
-  const [error, setError] = useState<string | null>(null);
+  const [status, setStatus] = useState<"pending" | "error" | "done">(
+    token ? "pending" : "error",
+  );
+  const [error, setError] = useState<string | null>(
+    token ? null : "Missing sign-in token.",
+  );
   const [mfaChallenge, setMfaChallenge] = useState<MfaChallengeInfo | null>(null);
 
   useEffect(() => {
-    if (!token) {
-      setStatus("error");
-      setError("Missing sign-in token.");
-      return;
-    }
+    if (!token) return;
     let cancelled = false;
     enterpriseAuthApi
       .verifyEmailLink({ token, remember_me: false })

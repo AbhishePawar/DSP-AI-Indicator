@@ -24,6 +24,8 @@ export default function OAuthCallbackPage() {
     const state = params.get("state");
     const oauthError = params.get("error");
     if (oauthError) {
+      // OAuth callback state is external input and is intentionally copied into UI state once.
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setError(params.get("error_description") || oauthError);
       return;
     }

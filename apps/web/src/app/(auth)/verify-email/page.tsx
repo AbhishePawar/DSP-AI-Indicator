@@ -26,6 +26,8 @@ function VerifyEmailForm() {
   useEffect(() => {
     const t = searchParams.get("token");
     if (t && !done && !pending) {
+      // This effect bridges the URL token into the one-shot verification request.
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setPending(true);
       enterpriseAuthApi
         .verifyEmail(t)

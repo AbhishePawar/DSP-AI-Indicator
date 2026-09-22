@@ -8,7 +8,6 @@ import { getCollaborationSnapshot } from "./collaborationSession";
 import { ADVISOR_SECTIONS } from "./advisorWorkspace";
 import { seedModelPortfolioLibrary } from "./modelPortfolioManager";
 import { seedPresentations } from "./presentationModels";
-import { checklistCompletionPct } from "./reviewModels";
 import { getSharedPortfolioSnapshot } from "./sharedPortfolioSession";
 import { buildSharedOverview, getSharedResearchSnapshot } from "./sharedResearchSession";
 import { buildTeamReviewOverview, getTeamReviewSnapshot } from "./teamReviewSession";
@@ -91,7 +90,6 @@ export function buildTeamMetrics() {
   const portfolioSnap = getSharedPortfolioSnapshot();
   const reviewOverview = buildTeamReviewOverview();
   const reviews = getTeamReviewSnapshot().reviews;
-  const activeReviews = reviews.filter((r) => r.status !== "archived");
   const openTasks = listTasks().filter((t) => t.status !== "done").length;
   const presentationReady = seedPresentations.filter((p) => p.lifecycle === "active").length;
   const meetingReady = reviews.filter((r) =>

@@ -1,5 +1,6 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import {
   createContext,
   useCallback,
@@ -60,6 +61,7 @@ const AuthContext = createContext<AuthContextValue | null>(null);
 const EXPIRY_CHECK_MS = 60_000;
 
 export function AuthProvider({ children }: { children: ReactNode }) {
+  const router = useRouter();
   const [status, setStatus] = useState<AuthenticationStatus>("restoring");
   const [session, setSessionState] = useState<Session | null>(null);
   const statusRef = useRef<AuthenticationStatus>("restoring");
@@ -381,9 +383,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const handleForbidden = useCallback(() => {
     logger.warn("Forbidden API response");
     if (typeof window !== "undefined") {
-      window.location.assign("/forbidden");
+      router.push("/forbidden");
     }
-  }, []);
+  }, [router]);
 
   useEffect(() => {
     setApiAuthFailureHandler((status) => {

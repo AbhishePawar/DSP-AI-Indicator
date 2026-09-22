@@ -57,7 +57,6 @@ export function PortfolioProvider({ children }: { children: ReactNode }) {
   // eslint-disable-next-line react-hooks/set-state-in-effect -- intentional sync on auth subject change, see comment above
   setView(portfolioView);
   } else if (status !== "authenticated") {
-  // eslint-disable-next-line react-hooks/set-state-in-effect -- intentional sync on auth subject change, see comment above
   setView(getEmptyPortfolio());
   }
     window.setTimeout(() => {

@@ -1,4 +1,5 @@
 "use client";
+/* eslint-disable react-hooks/set-state-in-effect -- loads local research history after hydration */
 
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";

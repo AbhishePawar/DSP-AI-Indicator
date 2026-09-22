@@ -1,4 +1,5 @@
 "use client";
+/* eslint-disable react-hooks/set-state-in-effect -- loads browser-local report history after hydration */
 
 /**
  * P9.3 Executive Dashboard widgets — existing APIs only; never invent metrics.

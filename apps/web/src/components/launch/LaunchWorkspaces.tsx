@@ -1,4 +1,5 @@
 "use client";
+/* eslint-disable react-hooks/set-state-in-effect -- records browser performance measurements */
 
 import { memo, useEffect, useMemo, useState } from "react";
 

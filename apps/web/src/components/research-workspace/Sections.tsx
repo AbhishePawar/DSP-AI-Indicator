@@ -1,4 +1,5 @@
 "use client";
+/* eslint-disable react-hooks/set-state-in-effect -- loads browser-local research history */
 
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";

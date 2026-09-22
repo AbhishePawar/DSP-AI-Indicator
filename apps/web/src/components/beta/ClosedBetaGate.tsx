@@ -1,4 +1,5 @@
 "use client";
+/* eslint-disable react-hooks/set-state-in-effect -- synchronizes async beta access and fail-open state */
 
 import { useEffect, useState, type ReactNode } from "react";
 import Link from "next/link";

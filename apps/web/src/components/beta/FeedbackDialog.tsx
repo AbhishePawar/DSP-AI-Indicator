@@ -1,4 +1,5 @@
 "use client";
+/* eslint-disable react-hooks/set-state-in-effect -- syncs URL and dialog presets when opened */
 
 import { useEffect, useId, useState, type FormEvent } from "react";
 import { usePathname, useSearchParams } from "next/navigation";

@@ -1,4 +1,5 @@
 "use client";
+/* eslint-disable react-hooks/set-state-in-effect -- restores connectivity metadata after hydration */
 
 import { useEffect, useState, type ReactNode } from "react";
 

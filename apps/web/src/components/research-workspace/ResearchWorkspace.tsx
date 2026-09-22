@@ -1,4 +1,5 @@
 "use client";
+/* eslint-disable react-hooks/set-state-in-effect -- synchronizes URL state with the workspace */
 
 /**
  * EPIC-F007 — Institutional Research Workspace.

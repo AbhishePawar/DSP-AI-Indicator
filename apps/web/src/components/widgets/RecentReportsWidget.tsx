@@ -1,4 +1,5 @@
 "use client";
+/* eslint-disable react-hooks/set-state-in-effect -- loads browser-local reports after hydration */
 
 import Link from "next/link";
 import { useEffect, useState } from "react";

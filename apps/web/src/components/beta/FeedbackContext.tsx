@@ -1,4 +1,5 @@
 "use client";
+/* eslint-disable react-hooks/set-state-in-effect -- restores persisted onboarding state after hydration */
 
 import {
   createContext,

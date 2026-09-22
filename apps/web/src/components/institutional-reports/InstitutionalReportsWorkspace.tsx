@@ -1,4 +1,5 @@
 "use client";
+/* eslint-disable react-hooks/set-state-in-effect -- synchronizes URL search state with the workspace */
 
 /**
  * P9.6 / EPIC-007 — Institutional Research Reports & Explainability Workspace.

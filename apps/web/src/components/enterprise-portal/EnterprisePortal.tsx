@@ -1,4 +1,5 @@
 "use client";
+/* eslint-disable react-hooks/set-state-in-effect -- synchronizes async portal data with selection */
 
 /**
  * EPS-002 — Customer Portal (thin client).

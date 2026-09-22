@@ -1,4 +1,5 @@
 "use client";
+/* eslint-disable react-hooks/set-state-in-effect -- synchronizes production probe state */
 
 /**
  * RC1 Milestone 10 — Production Operations panel.

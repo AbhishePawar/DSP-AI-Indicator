@@ -1,4 +1,5 @@
 "use client";
+/* eslint-disable react-hooks/set-state-in-effect -- resets conversation when the company changes */
 
 /**
  * Conversational result-page workspace for /analysis.

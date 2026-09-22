@@ -50,11 +50,16 @@ export function PortfolioProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     if (!isLoaded) return;
     skipPersist.current = true;
-    if (status === "authenticated" && portfolioView) {
-      setView(portfolioView);
-    } else if (status !== "authenticated") {
-      setView(getEmptyPortfolio());
-    }
+  // Synchronizing view state to the auth subject (not a derived-render value)
+  // is the intended behavior here: it resets/hydrates the portfolio exactly
+  // once per subject change, guarded by `isLoaded` above.
+  if (status === "authenticated" && portfolioView) {
+  // eslint-disable-next-line react-hooks/set-state-in-effect -- intentional sync on auth subject change, see comment above
+  setView(portfolioView);
+  } else if (status !== "authenticated") {
+  // eslint-disable-next-line react-hooks/set-state-in-effect -- intentional sync on auth subject change, see comment above
+  setView(getEmptyPortfolio());
+  }
     window.setTimeout(() => {
       skipPersist.current = false;
     }, 0);

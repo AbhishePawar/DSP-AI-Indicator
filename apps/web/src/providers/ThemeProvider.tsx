@@ -45,6 +45,10 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
       stored === "light" || stored === "dark" || stored === "system"
         ? stored
         : "system";
+    // Hydrating theme state from localStorage (an external system unavailable
+    // during SSR) requires this client-only effect; it cannot be a lazy
+    // useState initializer because it also applies the resolved theme to the DOM.
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- intentional client-only hydration from localStorage, see comment above
     setModeState(initial);
     const next = resolveMode(initial);
     setResolved(next);

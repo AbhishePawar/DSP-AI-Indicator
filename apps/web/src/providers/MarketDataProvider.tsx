@@ -104,6 +104,10 @@ export function useMarketQuote(ticker: string | null | undefined) {
     staleTime: config.cacheTtlMs,
     refetchInterval: config.autoRefreshMs,
     initialData: cached?.quote,
+    // Reading the wall clock here is intentional: TanStack Query needs to know
+    // whether the hydrated cache entry is already stale relative to "now" at
+    // mount time. There is no pure alternative for this staleness check.
+    // eslint-disable-next-line react-hooks/purity -- see comment above
     initialDataUpdatedAt: cached ? Date.now() - (cached.stale ? config.cacheTtlMs + 1 : 0) : undefined,
   });
 

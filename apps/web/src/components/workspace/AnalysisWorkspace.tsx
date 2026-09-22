@@ -74,12 +74,18 @@ export function AnalysisWorkspace() {
   const [lastRequest, setLastRequest] = useState<AnalyseRequest | null>(null);
 
   useEffect(() => {
+    // Hydrating from localStorage (an external system unavailable during SSR)
+    // requires a client-only effect rather than a render-time read.
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- intentional client-only hydration from localStorage
     setRecent(loadRecentAnalyses());
   }, []);
 
   useEffect(() => {
     const match = resolveCompany(ticker);
     if (match) {
+      // Deriving exchange/company from a ticker lookup table on ticker change
+      // is an intentional sync to an external reference dataset.
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- intentional sync from ticker lookup table
       setExchange(match.exchange);
       setCompany(match.name);
     }

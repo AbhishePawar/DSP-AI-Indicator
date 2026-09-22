@@ -111,6 +111,9 @@ export function PersistenceProvider({ children }: { children: ReactNode }) {
     if (status === "restoring" || status === "loading" || status === "refreshing") return;
 
     if (!subject || status !== "authenticated") {
+      // Resetting persisted state to auth status (external system) is the
+      // intended sync here — it clears a previous user's bundle on logout.
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- intentional reset on auth status change, see comment above
       setBundle(null);
       setIsLoaded(true);
       setSyncStatus("idle");

@@ -92,13 +92,6 @@ export function buildTeamMetrics() {
   const reviewOverview = buildTeamReviewOverview();
   const reviews = getTeamReviewSnapshot().reviews;
   const activeReviews = reviews.filter((r) => r.status !== "archived");
-  const avgReview =
-    activeReviews.length === 0
-      ? 0
-      : Math.round(
-          activeReviews.reduce((s, r) => s + checklistCompletionPct(r), 0) /
-            activeReviews.length,
-        );
   const openTasks = listTasks().filter((t) => t.status !== "done").length;
   const presentationReady = seedPresentations.filter((p) => p.lifecycle === "active").length;
   const meetingReady = reviews.filter((r) =>

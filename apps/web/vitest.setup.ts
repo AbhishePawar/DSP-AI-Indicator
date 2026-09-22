@@ -3,6 +3,7 @@ import { expect } from "vitest";
 import * as axeMatchers from "vitest-axe/matchers";
 
 declare module "vitest" {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars, @typescript-eslint/no-explicit-any -- must match the `any` default from jest-dom/vitest-axe's Assertion<T> for declaration merging
   interface Assertion<T = any> {
     toHaveNoViolations(): void;
   }

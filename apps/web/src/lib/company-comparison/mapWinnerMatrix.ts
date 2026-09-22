@@ -37,7 +37,6 @@ function fromStageScore(
 function fromModuleScore(
   module: ResearchView["ratings"]["modules"]["valuation"],
 ): ReturnType<ScoreExtractor> {
-  const display = honestDisplay(module.scoreOutOf10);
   return {
     display: isUnavailableDisplay(module.scoreOutOf10)
       ? DATA_UNAVAILABLE

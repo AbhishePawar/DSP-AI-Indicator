@@ -228,6 +228,7 @@ describe("ARCH-001 Buffett Indicator report", () => {
     const a = mapResearchView(sampleResponse, request).buffett;
     const b = mapResearchView(sampleResponse, request).buffett;
     expect(a).toEqual(b);
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars -- intentional omit via rest destructuring
     const { buffett: _omit, ...rest } = mapResearchView(sampleResponse, request);
     expect(mapBuffettReport(rest)).toEqual(a);
   });

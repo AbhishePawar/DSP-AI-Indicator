@@ -176,6 +176,7 @@ describe("ARCH-002 institutional rating framework", () => {
     const a = mapResearchView(sampleResponse, request);
     const b = mapResearchView(sampleResponse, request);
     expect(a.ratings).toEqual(b.ratings);
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars -- intentional omit via rest destructuring
     const { ratings: _r, ...rest } = a;
     expect(mapInstitutionalRatings(rest)).toEqual(a.ratings);
   });

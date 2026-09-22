@@ -41,12 +41,18 @@ export function usePerformanceTiming(label: string) {
 export function useRouteTransitionTiming() {
   const pathname = usePathname();
   const previousPath = useRef<string | null>(null);
-  const routeStart = useRef<number>(performance.now());
+  // Seeded lazily inside the effect below instead of at render time, so the
+  // first navigation's baseline is captured only once the effect commits.
+  const routeStart = useRef<number | null>(null);
   const [lastRouteMs, setLastRouteMs] = useState<number | null>(null);
 
   useEffect(() => {
     const now = performance.now();
-    if (previousPath.current && previousPath.current !== pathname) {
+    if (
+      previousPath.current &&
+      previousPath.current !== pathname &&
+      routeStart.current !== null
+    ) {
       const durationMs = now - routeStart.current;
       setLastRouteMs(durationMs);
       recordTiming(`route:${previousPath.current}→${pathname}`, durationMs);
@@ -63,17 +69,23 @@ export function useRouteTransitionTiming() {
  * Full Profiler integration deferred — exposes manual mark API.
  */
 export function useRenderTiming(componentName: string) {
-  const mountTime = useRef(performance.now());
+  // Read lazily inside the effect rather than during render: calling
+  // performance.now() while rendering is an impure operation React may
+  // invoke more than once per commit, which would skew the measured duration.
+  const mountTime = useRef<number | null>(null);
 
   useEffect(() => {
-    const durationMs = performance.now() - mountTime.current;
+    const measuredAt = performance.now();
+    const durationMs = mountTime.current === null ? 0 : measuredAt - mountTime.current;
+    mountTime.current = measuredAt;
     recordTiming(`render:${componentName}`, durationMs);
     // eslint-disable-next-line react-hooks/exhaustive-deps -- mount only
   }, []);
 
   const mark = useCallback(
     (phase: string) => {
-      recordTiming(`render:${componentName}:${phase}`, performance.now() - mountTime.current);
+      const baseline = mountTime.current ?? performance.now();
+      recordTiming(`render:${componentName}:${phase}`, performance.now() - baseline);
     },
     [componentName],
   );

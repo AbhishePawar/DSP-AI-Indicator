@@ -112,6 +112,9 @@ export function CopilotLayout() {
             all.findIndex((t) => t.toUpperCase() === ticker.toUpperCase()) ===
             index,
         );
+      // This effect bootstraps state from the persisted research session once on mount.
+      // The update is intentional: the session store is an external persistence boundary.
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setContext({
         ticker: sessionRow.ticker,
         company: sessionRow.company,

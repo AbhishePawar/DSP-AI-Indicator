@@ -3,6 +3,7 @@
 import { ArrowRight, ChevronRight, Menu, Plus, Search, X } from "lucide-react";
 import Link from "next/link";
 import { FormEvent, useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
 
 import { env } from "@/lib/env";
 import { ANALYSIS_INTENTS } from "@/lib/analysis/intents";
@@ -22,6 +23,7 @@ const prompts = [
 ];
 
 export function MarketingLanding() {
+  const router = useRouter();
   const [query, setQuery] = useState("");
   const [selected, setSelected] = useState<(typeof researchExamples)[number] | null>(null);
   const [suggestionsOpen, setSuggestionsOpen] = useState(false);
@@ -35,7 +37,7 @@ export function MarketingLanding() {
 
   function runDspIndicatorAnalysis() {
     const company = selected ?? researchExamples[0];
-    window.location.href = `/analysis?symbol=${encodeURIComponent(company.ticker)}&intent=${ANALYSIS_INTENTS.dspIndicator}`;
+    router.push(`/analysis?symbol=${encodeURIComponent(company.ticker)}&intent=${ANALYSIS_INTENTS.dspIndicator}`);
   }
 
   const matches = useMemo(() => {
@@ -50,9 +52,9 @@ export function MarketingLanding() {
     event.preventDefault();
     const company = selected ?? matches[0];
     if (company) {
-      window.location.href = `/analysis?symbol=${encodeURIComponent(company.ticker)}`;
+      router.push(`/analysis?symbol=${encodeURIComponent(company.ticker)}`);
     } else if (query.trim()) {
-      window.location.href = `/search?q=${encodeURIComponent(query.trim())}`;
+      router.push(`/search?q=${encodeURIComponent(query.trim())}`);
     }
   }
 

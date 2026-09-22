@@ -2,6 +2,7 @@
 /* eslint-disable react-hooks/set-state-in-effect -- loads browser-local reports after hydration */
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useQueries } from "@tanstack/react-query";
 
@@ -17,6 +18,7 @@ import {
 } from "@/lib/recentReports";
 
 export function RecentReportsWidget() {
+  const router = useRouter();
   const { session } = useAuth();
   const [entries, setEntries] = useState<RecentReportEntry[]>([]);
 
@@ -55,7 +57,7 @@ export function RecentReportsWidget() {
             description="Analyze a company to store a report id locally. The browser never computes valuation."
             actionLabel="Analyze Company"
             onAction={() => {
-              window.location.href = "/analysis";
+              router.push("/analysis");
             }}
           />
         ) : (

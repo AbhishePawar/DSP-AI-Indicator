@@ -1,0 +1,450 @@
+"use client";
+
+/**
+ * P9.4 / EPIC-005 — Flagship Company Analysis Workspace.
+ * Consumes frozen /api/v1/analyse (+ optional market quote). Display only.
+ */
+
+import {
+  lazy,
+  Suspense,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type ComponentType,
+} from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { useMutation, useQuery } from "@tanstack/react-query";
+
+import { Button, ErrorState } from "@/components/ds";
+import { useResearchDisclaimerGate } from "@/components/legal/useResearchDisclaimerGate";
+import { api } from "@/lib/api/client";
+import type { AnalyseRequest, AnalyseResponse } from "@/lib/api/compositionTypes";
+import { ApiClientError } from "@/lib/api/types";
+import {
+  ANALYSIS_SECTIONS,
+  isAnalysisSectionId,
+  useWorkspacePrefsStore,
+  type AnalysisSectionId,
+} from "@/lib/company-analysis";
+import { useAuth } from "@/lib/auth/AuthProvider";
+import { pushRecentAnalysis } from "@/lib/analysis/recentAnalyses";
+import { COMPANY_CATALOGUE } from "@/lib/companies/catalogue";
+import { useDashboardPrefsStore } from "@/lib/dashboard";
+import { useCollapsePanelsBelowLg } from "@/lib/a11y";
+import { loadAuthenticatedAnalyseRequest } from "@/lib/research/buildAnalyseRequest";
+import { mapResearchView, type ResearchView } from "@/lib/research/mapResearchView";
+import { saveResearchSession } from "@/lib/research/sessionStore";
+import { useNotifications } from "@/providers/NotificationProvider";
+import { cn } from "@/lib/utils";
+import { ExportSection, SummarySection } from "./WorkspaceSections";
+import { InvestmentSnapshot, SnapshotSignals } from "./InvestmentSnapshot";
+import { ResearchProgressTracker } from "./ResearchProgressTracker";
+import { mapReportTransparency } from "@/lib/report-transparency";
+import { SurfaceTrustChrome } from "@/components/trust/SurfaceTrustChrome";
+import {
+  emptySurfaceTrust,
+  researchWorkspaceSurfaceTrust,
+} from "@/lib/trust/surfaceTrust";
+import { WorkspaceEmpty, WorkspaceSkeleton } from "./WorkspacePrimitives";
+import { ModernAnalysisResult } from "./ModernAnalysisResult";
+
+const ValuationSection = lazy(() =>
+  import("./WorkspaceSections").then((m) => ({ default: m.ValuationSection })),
+);
+const QualitySection = lazy(() =>
+  import("./WorkspaceSections").then((m) => ({ default: m.QualitySection })),
+);
+const AiSection = lazy(() =>
+  import("./WorkspaceSections").then((m) => ({ default: m.AiSection })),
+);
+const ComplianceSection = lazy(() =>
+  import("./WorkspaceSections").then((m) => ({ default: m.ComplianceSection })),
+);
+const ResearchSection = lazy(() =>
+  import("./WorkspaceSections").then((m) => ({ default: m.ResearchSection })),
+);
+const TimelineSection = lazy(() =>
+  import("./WorkspaceSections").then((m) => ({ default: m.TimelineSection })),
+);
+const ManagementSection = lazy(() =>
+  import("./FlagshipSections").then((m) => ({ default: m.ManagementSection })),
+);
+const MoatSection = lazy(() =>
+  import("./FlagshipSections").then((m) => ({ default: m.MoatSection })),
+);
+const RiskSection = lazy(() =>
+  import("./FlagshipSections").then((m) => ({ default: m.RiskSection })),
+);
+const FinancialSection = lazy(() =>
+  import("./FlagshipSections").then((m) => ({ default: m.FinancialSection })),
+);
+const ExplainabilitySection = lazy(() =>
+  import("./FlagshipSections").then((m) => ({
+    default: m.ExplainabilitySection,
+  })),
+);
+const EvidenceSection = lazy(() =>
+  import("./FlagshipSections").then((m) => ({ default: m.EvidenceSection })),
+);
+const BuffettIndicatorSection = lazy(() =>
+  import("./BuffettIndicatorSection").then((m) => ({
+    default: m.BuffettIndicatorSection,
+  })),
+);
+const InstitutionalRatingsSection = lazy(() =>
+  import("./InstitutionalRatingsSection").then((m) => ({
+    default: m.InstitutionalRatingsSection,
+  })),
+);
+const ValuationTransparencySection = lazy(() =>
+  import("./ValuationTransparencySection").then((m) => ({
+    default: m.ValuationTransparencySection,
+  })),
+);
+const PeersSection = lazy(() =>
+  import("./sections/PeersSection").then((m) => ({ default: m.PeersSection })),
+);
+const OwnershipSection = lazy(() =>
+  import("./sections/OwnershipSection").then((m) => ({
+    default: m.OwnershipSection,
+  })),
+);
+const DocumentsSection = lazy(() =>
+  import("./sections/DocumentsSection").then((m) => ({
+    default: m.DocumentsSection,
+  })),
+);
+const NewsSection = lazy(() =>
+  import("./sections/NewsSection").then((m) => ({ default: m.NewsSection })),
+);
+const SettingsSection = lazy(() =>
+  import("./sections/SettingsSection").then((m) => ({
+    default: m.SettingsSection,
+  })),
+);
+const AiCopilotSection = lazy(() =>
+  import("./sections/AiCopilotSection").then((m) => ({
+    default: m.AiCopilotSection,
+  })),
+);
+
+function resolveCatalogue(ticker: string) {
+  return COMPANY_CATALOGUE.find(
+    (c) => c.ticker.toUpperCase() === ticker.trim().toUpperCase(),
+  );
+}
+
+function describeAnalyseError(error: unknown): string {
+  if (error instanceof ApiClientError) {
+    if (error.status === 401) {
+      return "Permission denied — sign in required for /api/v1/analyse. No fabricated research is shown.";
+    }
+    if (error.status === 403) {
+      return "Permission denied — this account cannot run analyse for the requested symbol.";
+    }
+    if (error.status === 404) {
+      return "No coverage — analyse returned not found for this symbol. Data unavailable.";
+    }
+    if (error.status === 408 || error.status === 504) {
+      return "Network timeout — the analyse request did not complete. Retry when the API is available.";
+    }
+    if (error.status >= 500) {
+      return `API unavailable (${error.status}) — ${error.message}. Data unavailable.`;
+    }
+    return error.message || "Data unavailable.";
+  }
+  if (error instanceof Error) {
+    const msg = error.message.toLowerCase();
+    if (msg.includes("timeout") || msg.includes("network")) {
+      return "Network timeout or connectivity failure — Data unavailable. Retry when online.";
+    }
+    return error.message;
+  }
+  return "Data unavailable.";
+}
+
+function SectionFallback() {
+  return (
+    <div role="status" aria-live="polite" className="space-y-3">
+      <WorkspaceSkeleton />
+      <p className="text-xs text-[var(--muted)]">Loading section…</p>
+    </div>
+  );
+}
+
+function LazyViewSection({
+  Section,
+  view,
+}: {
+  Section: ComponentType<{ view: ResearchView }>;
+  view: ResearchView;
+}) {
+  return (
+    <Suspense fallback={<SectionFallback />}>
+      <Section view={view} />
+    </Suspense>
+  );
+}
+
+export function CompanyAnalysisWorkspace() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const { session } = useAuth();
+  const token = session?.accessToken;
+  const { success } = useNotifications();
+
+  // RC3-003 — no silent default company; require explicit symbol selection.
+  const urlSymbol = (searchParams.get("symbol") || "").trim().toUpperCase();
+  const [symbol, setSymbol] = useState(urlSymbol);
+  const [query, setQuery] = useState(urlSymbol);
+  const [view, setView] = useState<ResearchView | null>(null);
+  const [analysedAt, setAnalysedAt] = useState<string | null>(null);
+  const [lastAnalyseRequest, setLastAnalyseRequest] = useState<AnalyseRequest | null>(
+    null,
+  );
+  const [lastAnalyseResponse, setLastAnalyseResponse] =
+    useState<AnalyseResponse | null>(null);
+  /** Monotonic generation — drop stale analyse responses after symbol change. */
+  const analyseGeneration = useRef(0);
+
+  const activeSection = useWorkspacePrefsStore((s) => s.activeSection);
+  const setActiveSection = useWorkspacePrefsStore((s) => s.setActiveSection);
+  const searchParamsKey = searchParams.toString();
+  const leftOpen = useWorkspacePrefsStore((s) => s.leftOpen);
+  const rightOpen = useWorkspacePrefsStore((s) => s.rightOpen);
+  const toggleLeft = useWorkspacePrefsStore((s) => s.toggleLeft);
+  const toggleRight = useWorkspacePrefsStore((s) => s.toggleRight);
+  const setLeftOpen = useWorkspacePrefsStore((s) => s.setLeftOpen);
+  const setRightOpen = useWorkspacePrefsStore((s) => s.setRightOpen);
+  const recordSearch = useDashboardPrefsStore((s) => s.recordSearch);
+  const { runWithDisclaimer, gate: disclaimerGate } = useResearchDisclaimerGate();
+
+  useCollapsePanelsBelowLg(setLeftOpen, setRightOpen);
+
+  const catalogue = useMemo(() => resolveCatalogue(symbol), [symbol]);
+
+  useEffect(() => {
+    const next = (
+      new URLSearchParams(searchParamsKey).get("symbol") || ""
+    ).trim().toUpperCase();
+    setActiveSection("summary");
+    setSymbol((prev) => {
+      if (prev === next) return prev;
+      // Clear prior company research only when the ticker actually changes.
+      analyseGeneration.current += 1;
+      setView(null);
+      setLastAnalyseRequest(null);
+      setLastAnalyseResponse(null);
+      setAnalysedAt(null);
+      return next;
+    });
+    setQuery(next);
+  }, [searchParamsKey, setActiveSection]);
+
+  const selectSymbol = useCallback(
+    (next: string) => {
+      const normalized = next.trim().toUpperCase();
+      if (!normalized) return;
+      setSymbol(normalized);
+      setQuery(normalized);
+      recordSearch(normalized);
+      router.replace(
+        `/analysis?symbol=${encodeURIComponent(normalized)}&intent=dsp_indicator`,
+      );
+    },
+    [recordSearch, router],
+  );
+
+  const analyseMutation = useMutation({
+    mutationFn: async () => {
+      const generation = ++analyseGeneration.current;
+      const requestedSymbol = symbol;
+      const match = resolveCatalogue(requestedSymbol);
+      // P0-01 — authenticated statements only; never clone demo ACM financials.
+      const body = await loadAuthenticatedAnalyseRequest(requestedSymbol, {
+        exchange: match?.exchange,
+        company: match?.name,
+        loadStatements: () =>
+          api.financialStatements(requestedSymbol, {
+            token,
+            limit: 1,
+            exchange: match?.exchange,
+          }),
+        // P0-02 — market price only from authenticated quote (never client IV).
+        loadQuote: () =>
+          api.marketQuote(requestedSymbol, {
+            token,
+            exchange: match?.exchange,
+          }),
+      });
+      const response = await api.analyse(body, { token });
+      return { body, response, generation, requestedSymbol };
+    },
+    onSuccess: ({ body, response, generation, requestedSymbol }) => {
+      // Drop stale responses after navigation / newer analyse.
+      if (generation !== analyseGeneration.current) return;
+      if (body.ticker.toUpperCase() !== requestedSymbol.toUpperCase()) return;
+      const at = new Date().toISOString();
+      setAnalysedAt(at);
+      setLastAnalyseRequest(body);
+      setLastAnalyseResponse(response);
+      const mapped = mapResearchView(response, body, at);
+      setView(mapped);
+      saveResearchSession({
+        ticker: body.ticker,
+        exchange: body.exchange ?? null,
+        company: body.company ?? null,
+        analysedAt: at,
+        request: body,
+        response,
+      });
+      pushRecentAnalysis({
+        ticker: body.ticker.toUpperCase(),
+        company: body.company || body.ticker,
+        exchange: body.exchange || "—",
+        recommendation: mapped.recommendation,
+        analysedAt: at,
+      });
+      const serverIv = (
+        response.payload as {
+          server_valuation?: { intrinsic_value_per_share?: number | null };
+        }
+      )?.server_valuation?.intrinsic_value_per_share;
+      const valuationOk =
+        response.ok === true &&
+        typeof serverIv === "number" &&
+        Number.isFinite(serverIv);
+      if (valuationOk) {
+        success(`Analysis loaded for ${body.ticker.toUpperCase()}`, "Analyse");
+      }
+    },
+  });
+
+  const runAnalyse = useCallback(() => {
+    const normalized = (query.trim() || symbol).toUpperCase();
+    if (!normalized) return;
+    if (normalized !== symbol) {
+      selectSymbol(normalized);
+      return;
+    }
+    runWithDisclaimer(() => {
+      analyseMutation.mutate();
+    });
+  }, [analyseMutation, query, runWithDisclaimer, selectSymbol, symbol]);
+
+  // Auto-run only when the user (or deep link) provides an explicit symbol.
+  useEffect(() => {
+    if (!symbol) return;
+    runWithDisclaimer(() => {
+      analyseMutation.mutate();
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- intentional symbol-driven refresh
+  }, [symbol, token]);
+
+  const marketQuery = useQuery({
+    queryKey: ["company-analysis", "market", symbol, catalogue?.exchange],
+    queryFn: () => api.marketQuote(symbol, { token, exchange: catalogue?.exchange }),
+    enabled: Boolean(token && symbol),
+    retry: false,
+    staleTime: 60_000,
+  });
+
+  // EPIC-D002 — header enrichment only (Market Cap/52wk/ROE); independent of /analyse.
+  const financialStatementsQuery = useQuery({
+    queryKey: ["company-analysis", "financial-statements", symbol, catalogue?.exchange],
+    queryFn: () =>
+      api.financialStatements(symbol, {
+        token,
+        limit: 1,
+        exchange: catalogue?.exchange,
+      }),
+    enabled: Boolean(token && symbol),
+    retry: false,
+    staleTime: 60_000,
+  });
+
+  const marketStatus = !token
+    ? "Sign in for live market status"
+    : marketQuery.isLoading
+      ? "Checking…"
+      : marketQuery.isError
+        ? "Data unavailable."
+        : marketQuery.data
+          ? "Quote loaded"
+          : "Data unavailable.";
+
+  useEffect(() => {
+    function onKeyDown(event: KeyboardEvent) {
+      const target = event.target as HTMLElement | null;
+      const typing =
+        target &&
+        (target.tagName === "INPUT" ||
+          target.tagName === "TEXTAREA" ||
+          target.isContentEditable);
+      if ((event.ctrlKey || event.metaKey) && event.key === "Enter") {
+        event.preventDefault();
+        runAnalyse();
+        return;
+      }
+      if (typing) return;
+      if (event.key === "[") {
+        event.preventDefault();
+        toggleLeft();
+      } else if (event.key === "]") {
+        event.preventDefault();
+        toggleRight();
+      } else if (/^[0-9a-z]$/i.test(event.key)) {
+        const section = ANALYSIS_SECTIONS.find(
+          (s) => s.shortcut.toLowerCase() === event.key.toLowerCase(),
+        );
+        if (section) {
+          event.preventDefault();
+          setActiveSection(section.id);
+        }
+      }
+    }
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [runAnalyse, setActiveSection, toggleLeft, toggleRight]);
+
+  const section: AnalysisSectionId = isAnalysisSectionId(activeSection)
+    ? activeSection
+    : "summary";
+
+  const trustSummary = view
+    ? researchWorkspaceSurfaceTrust({
+        ticker: view.ticker,
+        analyseOk: true,
+        stagesCount: [
+          view.financial,
+          view.growth,
+          view.businessQuality,
+          view.recommendationStage,
+          view.committee,
+        ].filter(Boolean).length,
+        recommendation: view.committee.finalRecommendation,
+        confidenceDisplay: view.committee.confidence || null,
+        opposingNotes: view.committee.opposingReasons,
+        analysedAt: view.analysedAt,
+      })
+    : emptySurfaceTrust("company_analysis", {
+        auditNote: "Audit: company analysis is awaiting an authenticated analyse payload.",
+      });
+
+  return (
+    <ModernAnalysisResult
+      symbol={symbol}
+      query={query}
+      setQuery={setQuery}
+      onAnalyze={runAnalyse}
+      analyzing={analyseMutation.isPending}
+      view={view}
+      error={analyseMutation.isError ? describeAnalyseError(analyseMutation.error) : null}
+      disclaimerGate={disclaimerGate}
+    />
+  );
+
+}

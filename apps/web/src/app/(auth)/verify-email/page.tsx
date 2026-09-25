@@ -26,6 +26,7 @@ function VerifyEmailForm() {
   useEffect(() => {
     const t = searchParams.get("token");
     if (t && !done && !pending) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setPending(true);
       enterpriseAuthApi
         .verifyEmail(t)

@@ -44,7 +44,11 @@ export default function AnalysisClient() {
 
   useEffect(() => {
     const fromQuery = searchParams.get("symbol");
-    if (fromQuery) setSymbol(fromQuery.toUpperCase());
+    // The query string is an external navigation input; synchronize it into the editable field.
+    if (fromQuery) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setSymbol(fromQuery.toUpperCase());
+    }
   }, [searchParams]);
 
   const mutation = useMutation({

@@ -21,7 +21,7 @@ const SearchBox = React.forwardRef<HTMLInputElement, SearchBoxProps>(
         <Input
           ref={ref}
           type="search"
-          role="textbox"
+          role="searchbox"
           aria-label={ariaLabel}
           className={cn("pl-9", className)}
           {...props}

@@ -1,0 +1,168 @@
+{
+  "commit": "a64bb96864815b975594acef9e5eca4cb88d088b",
+  "dsn_redacted": "postgresql://***@localhost:5432/dsp",
+  "evidence_class": "real_postgresql_pg_dump",
+  "finished_at": "2026-08-08T17:06:55.892050+00:00",
+  "gate": "G11",
+  "ok": true,
+  "ownership_before": {
+    "note_a": {
+      "created_by": "owner-a",
+      "note_id": "note-2fdf62ca12e5"
+    },
+    "note_b": {
+      "created_by": "owner-b",
+      "note_id": "note-d5d04a4aebf2"
+    },
+    "org_a": {
+      "name": "G11 Org A",
+      "org_id": "org_d440e782f2e0",
+      "owner_user_id": "owner-a"
+    },
+    "org_b": {
+      "name": "G11 Org B",
+      "org_id": "org_cd7570cb7bbf",
+      "owner_user_id": "owner-b"
+    },
+    "rpt_a": {
+      "owner_user_id": "owner-a",
+      "report_id": "rpt-a"
+    },
+    "rpt_b": {
+      "owner_user_id": "owner-b",
+      "report_id": "rpt-b"
+    },
+    "saas_a": {
+      "org_id": "org_d440e782f2e0",
+      "plan_id": "starter"
+    },
+    "saas_b": {
+      "org_id": "org_cd7570cb7bbf",
+      "plan_id": "enterprise"
+    }
+  },
+  "postgres_version": "16.14",
+  "result": "PASS",
+  "started_at": "2026-08-08T17:06:49.190709+00:00",
+  "steps": {
+    "adapter": {
+      "available": true,
+      "provider": "shell_pg_dump"
+    },
+    "api_isolation": {
+      "checks": [
+        {
+          "detail": "200",
+          "name": "A_reads_A",
+          "ok": true
+        },
+        {
+          "detail": "200",
+          "name": "B_reads_B",
+          "ok": true
+        },
+        {
+          "detail": "",
+          "name": "A_denied_B_org",
+          "ok": true
+        },
+        {
+          "detail": "",
+          "name": "B_denied_A_org",
+          "ok": true
+        },
+        {
+          "detail": "",
+          "name": "A_denied_B_saas",
+          "ok": true
+        },
+        {
+          "detail": "",
+          "name": "B_denied_A_saas",
+          "ok": true
+        },
+        {
+          "detail": "",
+          "name": "A_reads_A_note",
+          "ok": true
+        },
+        {
+          "detail": "",
+          "name": "A_denied_B_note",
+          "ok": true
+        },
+        {
+          "detail": "",
+          "name": "B_denied_A_note",
+          "ok": true
+        },
+        {
+          "detail": "",
+          "name": "A_reads_A_report",
+          "ok": true
+        },
+        {
+          "detail": "",
+          "name": "A_denied_B_report",
+          "ok": true
+        },
+        {
+          "detail": "",
+          "name": "B_denied_A_report",
+          "ok": true
+        }
+      ],
+      "ok": true
+    },
+    "backup": {
+      "artifact": "dsp_pg_20260808T170653Z.sql.gz",
+      "bytes": 3694,
+      "result": "PASS",
+      "sha256": "798c6b106183916db6ec9189304b4602724d6ddacd2858bb17e746d741624d69",
+      "snapshot_id": "dsp_pg_20260808T170653Z.sql.gz"
+    },
+    "post_restart": {
+      "idor_denied": [
+        "A\u2192B org",
+        "B\u2192A org",
+        "A\u2192B org.view"
+      ],
+      "ownership_ok": true,
+      "phase": "post_restart",
+      "shared_state_ok": true,
+      "worker1_org_a": "org_d440e782f2e0",
+      "worker2_org_a": "org_d440e782f2e0"
+    },
+    "post_restore_workers": {
+      "idor_denied": [
+        "A\u2192B org",
+        "B\u2192A org",
+        "A\u2192B org.view"
+      ],
+      "ownership_ok": true,
+      "phase": "post_restore",
+      "shared_state_ok": true,
+      "worker1_org_a": "org_d440e782f2e0",
+      "worker2_org_a": "org_d440e782f2e0"
+    },
+    "pre_backup_isolation": {
+      "idor_denied": [
+        "A\u2192B org",
+        "B\u2192A org",
+        "A\u2192B org.view"
+      ],
+      "ownership_ok": true,
+      "phase": "pre_backup",
+      "shared_state_ok": true,
+      "worker1_org_a": "org_d440e782f2e0",
+      "worker2_org_a": "org_d440e782f2e0"
+    },
+    "restore": {
+      "detail": "PostgreSQL restore completed.",
+      "result": "PASS"
+    },
+    "seed": "PASS",
+    "wipe": "PASS"
+  },
+  "track": "P1-08"
+}

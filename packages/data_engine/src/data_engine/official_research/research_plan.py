@@ -49,6 +49,7 @@ _EQUITY_REQUIRED: tuple[str, ...] = (
     "equity",
     "cash",
     "cfo",
+    "capex",
     "shares_outstanding",
 )
 _EQUITY_OPTIONAL: tuple[str, ...] = (
@@ -56,8 +57,9 @@ _EQUITY_OPTIONAL: tuple[str, ...] = (
     "total_liabilities",
     "operating_profit",
     "debt",
+    "finance_costs",
 )
-_EQUITY_NICE: tuple[str, ...] = ("ebit", "capex")
+_EQUITY_NICE: tuple[str, ...] = ("ebit",)
 _BANK_REQUIRED: tuple[str, ...] = (
     "eod_close",
     "net_income",
@@ -82,6 +84,7 @@ REQUEST_FIELD_GROUPS: dict[str, tuple[str, ...]] = {
         "ebit",
         "capex",
         "debt",
+        "finance_costs",
         "total_assets",
         "total_liabilities",
     ),
@@ -129,6 +132,7 @@ _FRESHNESS = {
     "cfo": "latest_audited_period",
     "capex": "latest_audited_period",
     "debt": "latest_audited_period",
+    "finance_costs": "latest_audited_period",
     "total_assets": "latest_audited_period",
     "total_liabilities": "latest_audited_period",
     "shares_outstanding": "latest_count_plus_ca_review",
@@ -253,6 +257,7 @@ _FIELD_EVIDENCE_CLASS = {
     "cfo": "financial_statements",
     "capex": "financial_statements",
     "debt": "financial_statements",
+    "finance_costs": "financial_statements",
     "total_assets": "financial_statements",
     "total_liabilities": "financial_statements",
     "shares_outstanding": "outstanding_shares",

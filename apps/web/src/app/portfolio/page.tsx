@@ -1,40 +1,42 @@
 "use client";
 
 /**
- * P9.5 / EPIC-006 — Portfolio Intelligence Workspace route.
- * RC3-004 — dynamic import for workspace code-splitting.
+ * Portfolio — Figma Make `Portfolio.tsx` (summary cards · Holdings · Sector
+ * Allocation) over the session portfolio store and /api/v1/market/quote.
+ * No client-side scoring — quantity-dependent figures stay Data unavailable.
  */
 
 import dynamic from "next/dynamic";
 import { Suspense } from "react";
 
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
-import { WorkspaceSkeleton } from "@/components/portfolio-intelligence/Primitives";
-import { PageHeader } from "@/components/layout/PageHeader";
+import { Skeleton } from "@/components/ds";
 
-const PortfolioIntelligenceWorkspace = dynamic(
-  () =>
-    import("@/components/portfolio-intelligence").then((m) => ({
-      default: m.PortfolioIntelligenceWorkspace,
-    })),
-  {
-    ssr: false,
-    loading: () => <WorkspaceSkeleton />,
-  },
+function PortfolioFallback() {
+  return (
+    <div className="space-y-4 py-6" role="status" aria-live="polite" aria-label="Loading portfolio">
+      <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+        <Skeleton className="h-20" />
+        <Skeleton className="h-20" />
+        <Skeleton className="h-20" />
+        <Skeleton className="h-20" />
+      </div>
+      <Skeleton className="h-64 w-full" />
+    </div>
+  );
+}
+
+const PortfolioHoldings = dynamic(
+  () => import("@/components/pages").then((m) => ({ default: m.PortfolioHoldings })),
+  { ssr: false, loading: () => <PortfolioFallback /> },
 );
 
 export default function PortfolioPage() {
   return (
     <ProtectedRoute>
-      <div className="space-y-4">
-        <PageHeader
-          title="Portfolio Intelligence Workspace"
-          description="Institutional portfolio coverage, allocation, quality, valuation, risk, and explainability over session holdings and /api/v1/portfolio/intelligence. No client-side scoring — missing feeds stay Data unavailable."
-        />
-        <Suspense fallback={<WorkspaceSkeleton />}>
-          <PortfolioIntelligenceWorkspace />
-        </Suspense>
-      </div>
+      <Suspense fallback={<PortfolioFallback />}>
+        <PortfolioHoldings />
+      </Suspense>
     </ProtectedRoute>
   );
 }

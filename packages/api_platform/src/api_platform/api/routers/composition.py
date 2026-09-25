@@ -132,6 +132,7 @@ def analyse(
 
     # EPIC-011B — best-effort immutable snapshot capture AFTER pipeline completes.
     # Never alters engines, recommendation logic, or the analyse response contract.
+    research_id: str | None = None
     try:
         if os.getenv("DSP_RI_AUTO_CAPTURE", "1").lower() in {
             "1",
@@ -142,13 +143,32 @@ def analyse(
             capture_payload = (
                 public_payload if isinstance(public_payload, dict) else {}
             )
-            state.platform.capture_research_intelligence_snapshot(
+            captured = state.platform.capture_research_intelligence_snapshot(
                 capture_payload,
                 ticker=body.ticker,
                 company=body.company or None,
                 exchange=body.exchange,
                 allow_duplicate=True,
             )
+            snap = captured.get("snapshot") if isinstance(captured, dict) else None
+            if isinstance(snap, dict):
+                research_id = snap.get("research_id")
+    except Exception:  # noqa: BLE001
+        pass
+
+    # Coverage registry — server-authored copy of public fields for the
+    # Figma Institutional / Dashboard / Directory / Signals surfaces.
+    # Owner comes from the server-validated JWT only (never from the body).
+    try:
+        actor = _optional_actor(request)
+        state.platform.record_coverage(
+            public_payload if isinstance(public_payload, dict) else {},
+            ticker=body.ticker,
+            exchange=body.exchange,
+            company=body.company or None,
+            owner_user_id=actor.get("user_id") if actor else None,
+            research_id=research_id,
+        )
     except Exception:  # noqa: BLE001
         pass
 

@@ -118,6 +118,8 @@ class FinancialModelingPrepQuoteAdapter(MarketQuotePort):
             if row.get("dividendYield") is not None
             else row.get("dividend"),
             "beta": row.get("beta"),
+            "change": row.get("change"),
+            "change_percent": row.get("changesPercentage"),
         }
         provenance = MarketQuoteProvenance(
             provider_id=self.provider_id,
@@ -195,6 +197,8 @@ class FinancialModelingPrepStatementAdapter(FinancialStatementPort):
             currency=normalize_reporting_currency(
                 row.get("currency"), default=instrument.currency or "USD"
             ),
+            sector=str(row["sector"]).strip() if row.get("sector") else None,
+            industry=str(row["industry"]).strip() if row.get("industry") else None,
         )
 
     def get_statements(
@@ -304,6 +308,13 @@ class FinancialModelingPrepStatementAdapter(FinancialStatementPort):
                         "free_cash_flow": c.get("freeCashFlow"),
                         "dividends_paid": c.get("dividendsPaid"),
                         "share_buybacks": c.get("commonStockRepurchased"),
+                    },
+                    # Provider-reported ratios only (FMP income-statement
+                    # ``*Ratio`` fields). Pass-through — never computed here.
+                    "ratios": {
+                        "gross_margin": row.get("grossProfitRatio"),
+                        "operating_margin": row.get("operatingIncomeRatio"),
+                        "net_margin": row.get("netIncomeRatio"),
                     },
                 }
             )

@@ -72,7 +72,7 @@ export function MarketingHeader() {
       <div className="mx-auto flex max-w-[72rem] items-center justify-between gap-4 px-4 py-3 sm:px-6">
         <Link
           href="/"
-          className="font-[family-name:var(--font-display)] text-lg font-medium tracking-tight text-[var(--fg)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent)]"
+          className="whitespace-nowrap font-[family-name:var(--font-display)] text-lg font-medium tracking-tight text-[var(--fg)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent)]"
         >
           {env.appName}
         </Link>
@@ -109,7 +109,7 @@ export function MarketingHeader() {
           </Link>
           <Link
             href="/login"
-            className="inline-flex min-h-11 items-center rounded-[var(--radius-sm)] bg-[var(--accent)] px-3 text-sm font-medium text-[var(--accent-fg)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent)]"
+            className="inline-flex min-h-11 items-center whitespace-nowrap rounded-[var(--radius-sm)] bg-[var(--accent)] px-3 text-sm font-medium text-[var(--accent-fg)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent)]"
           >
             Sign in
           </Link>

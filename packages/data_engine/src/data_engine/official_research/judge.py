@@ -43,6 +43,7 @@ from data_engine.official_research.source_policy import (
     field_policy,
     record_source_clash,
 )
+from data_engine.official_research.share_records import ShareRecordStore
 from data_engine.official_research.verified_dataset import (
     FinancialField,
     FinancialSnapshotVerified,
@@ -223,6 +224,62 @@ def _comparable_number(item: EvidenceItem) -> Decimal | None:
         return None
 
 
+_FORBIDDEN_RISK_FREE_KINDS = frozenset(
+    {
+        "repo_rate",
+        "reverse_repo",
+        "crr",
+        "slr",
+        "msf",
+        "sdf",
+        "bank_rate",
+        "policy_rate",
+        "mclr",
+        "inflation",
+        "cpi",
+        "wpi",
+        "corporate_bond",
+    }
+)
+
+
+_FORBIDDEN_BETA_KINDS = frozenset(
+    {
+        "industry_beta",
+        "unlevered_beta",
+        "peer_beta",
+        "etf_beta",
+        "index_beta",
+        "ai_estimate",
+    }
+)
+_FORBIDDEN_ERP_KINDS = frozenset(
+    {
+        "us_market",
+        "us_erp",
+        "gdp",
+        "inflation",
+        "ai_estimate",
+        "company_growth",
+    }
+)
+
+
+def _forbidden_risk_free_semantic(item: EvidenceItem) -> bool:
+    kind = str(item.semantic_kind or "").strip().lower()
+    return kind in _FORBIDDEN_RISK_FREE_KINDS
+
+
+def _forbidden_beta_semantic(item: EvidenceItem) -> bool:
+    kind = str(item.semantic_kind or "").strip().lower()
+    return kind in _FORBIDDEN_BETA_KINDS
+
+
+def _forbidden_erp_semantic(item: EvidenceItem) -> bool:
+    kind = str(item.semantic_kind or "").strip().lower()
+    return kind in _FORBIDDEN_ERP_KINDS
+
+
 def _is_ai(item: EvidenceItem) -> bool:
     return item.source_type in _AI_TYPES or str(item.agent or "") in {
         "gemini_find",
@@ -237,8 +294,13 @@ def _is_ai(item: EvidenceItem) -> bool:
 class EvidenceJudge:
     """DSP judge. Never promotes LLM answers or secondary sources."""
 
-    def __init__(self, policy: SourcePolicy | None = None) -> None:
+    def __init__(
+        self,
+        policy: SourcePolicy | None = None,
+        share_store: ShareRecordStore | None = None,
+    ) -> None:
         self._policy = policy or SourcePolicy()
+        self._share_store = share_store or ShareRecordStore()
 
     def ingest_raw(self, item: EvidenceItem) -> EvidenceItem:
         if item.stage != "RAW":
@@ -311,6 +373,12 @@ class EvidenceJudge:
             return self._copy(item, status="UNAVAILABLE")
         if production and self._nse_mcp_commercial_blocked(item):
             return self._copy(item, status="UNAVAILABLE")
+        if item.field == "risk_free_rate" and _forbidden_risk_free_semantic(item):
+            return self._copy(item, status="REJECTED")
+        if item.field == "beta" and _forbidden_beta_semantic(item):
+            return self._copy(item, status="REJECTED")
+        if item.field == "equity_risk_premium" and _forbidden_erp_semantic(item):
+            return self._copy(item, status="REJECTED")
         if item.field in {
             "market_cap",
             "enterprise_value",
@@ -320,6 +388,20 @@ class EvidenceJudge:
             "ev_ebit",
             "ev_ebitda",
             "price_to_earnings",
+            "wacc",
+            "discount_rate",
+            "fcf_growth_rate",
+            "terminal_growth_rate",
+            "revenue_growth",
+            "cost_of_equity",
+            "after_tax_cost_of_debt",
+            "capital_weights",
+            "intrinsic_value",
+            "intrinsic_value_per_share",
+            "margin_of_safety",
+            "dcf",
+            "terminal_value",
+            "equity_value",
         }:
             return self._copy(item, status="UNAVAILABLE")
         if item.field == "shares_outstanding" and item.as_of is None:
@@ -795,6 +877,10 @@ class EvidenceJudge:
                 price = None
 
         shares = self._shares_from(verified_rows, promoted)
+        share_history: tuple[ShareCountSnapshot, ...] = ()
+        if shares is not None and identity is not None:
+            self._share_store.put(identity.isin, identity.mic, shares)
+            share_history = self._share_store.history(identity.isin, identity.mic)
         financials = self._financials_from(promoted)
         unresolved = list(result.unresolved)
         for item in promoted:
@@ -830,6 +916,7 @@ class EvidenceJudge:
             unresolved=tuple(dict.fromkeys(unresolved)),
             mode=result.mode,
             capital_events=tuple(capital_events),
+            share_history=share_history,
         )
         decision = dsp_gate(dataset)
         return VerifiedDataset(
@@ -849,6 +936,7 @@ class EvidenceJudge:
             unresolved=dataset.unresolved,
             mode=dataset.mode,
             capital_events=tuple(capital_events),
+            share_history=share_history,
         )
 
     @staticmethod

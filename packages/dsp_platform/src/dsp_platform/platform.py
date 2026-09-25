@@ -929,6 +929,47 @@ class DSPPlatform:
 
         return market_quote_health()
 
+    def get_market_indices(self) -> dict[str, object]:
+        """Benchmark index snapshots for the Dashboard market bar (RS-002)."""
+        from dsp_platform.market_indices import get_market_indices
+
+        return get_market_indices()
+
+    # -- Coverage registry (Figma Institutional / Directory / Signals) ----
+    # Server-authored copies of ``/analyse`` public fields; no engine calls.
+
+    def record_coverage(
+        self,
+        payload: dict[str, object],
+        *,
+        ticker: str | None,
+        exchange: str | None = None,
+        company: str | None = None,
+        owner_user_id: str | None = None,
+        research_id: str | None = None,
+    ) -> dict[str, object] | None:
+        from dsp_platform.coverage_registry import get_coverage_registry_service
+
+        record = get_coverage_registry_service().record_from_payload(
+            payload,
+            ticker=ticker,
+            exchange=exchange,
+            company=company,
+            owner_user_id=owner_user_id,
+            research_id=research_id,
+        )
+        return record.to_dict() if record is not None else None
+
+    def coverage_registry(self):  # noqa: ANN201 — façade accessor
+        from dsp_platform.coverage_registry import get_coverage_registry_service
+
+        return get_coverage_registry_service()
+
+    def investor_workspace(self):  # noqa: ANN201 — façade accessor
+        from dsp_platform.investor_workspace import get_investor_workspace_service
+
+        return get_investor_workspace_service()
+
     def get_authenticated_financial_statements(
         self,
         symbol: str,

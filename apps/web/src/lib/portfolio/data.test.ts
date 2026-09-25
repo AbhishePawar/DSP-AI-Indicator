@@ -43,12 +43,17 @@ describe("portfolio foundation data", () => {
     expect(summary.portfolioStatus).toContain("Active");
   });
 
-  it("builds geography allocation buckets", () => {
+  it("does not guess market-cap or geography buckets from ticker lists (CV-001)", () => {
     const allocations = buildAllocations(getDemoPortfolio().holdings);
-    expect(allocations.byGeography.some((s) => s.name === "India")).toBe(true);
-    expect(allocations.byGeography.some((s) => s.name === "United States")).toBe(
-      true,
-    );
+    expect(allocations.byMarketCap).toEqual([]);
+    expect(allocations.byGeography).toEqual([]);
+  });
+
+  it("never fabricates portfolio value or cash allocation", () => {
+    const summary = buildPortfolioSummary(getDemoPortfolio().holdings);
+    expect(summary.portfolioValue).toBe("Data unavailable.");
+    expect(summary.cashAllocation).toBe("Data unavailable.");
+    expect(JSON.stringify(summary)).not.toMatch(/₹|12,45,000/);
   });
 });
 

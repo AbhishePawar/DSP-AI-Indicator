@@ -50,6 +50,8 @@ const LIB_ALLOWLIST = new Set([
   "institutional-rating",
   "companies",
   "company-analysis",
+  // Figma Make page view-models (Dashboard / Portfolio / Research Hub / Institutional).
+  "figma-pages",
   "copilot",
   "dashboard",
   "institutional-dashboard",

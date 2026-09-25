@@ -156,14 +156,19 @@ export function WorkspaceRightPanel({
           Context actions
         </p>
         <div className="flex flex-col gap-2">
-          <Link href={`/research/${encodeURIComponent(sym)}`}>
+          <Link href={`/analysis/compare?symbol=${encodeURIComponent(sym)}`}>
             <Button size="sm" variant="secondary" className="w-full justify-start">
-              Research workspace
+              Compare with peers
+            </Button>
+          </Link>
+          <Link href="/research">
+            <Button size="sm" variant="secondary" className="w-full justify-start">
+              Research Hub
             </Button>
           </Link>
           <Link href="/research/institutional">
             <Button size="sm" variant="secondary" className="w-full justify-start">
-              Institutional dashboard
+              Institutional
             </Button>
           </Link>
           <Link href="/copilot">

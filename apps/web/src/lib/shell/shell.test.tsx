@@ -29,6 +29,7 @@ describe("EPIC-F003 navigation registry", () => {
       expect.arrayContaining([
         "/dashboard",
         "/analysis",
+        "/companies",
         "/portfolio",
         "/research",
         "/admin",
@@ -80,7 +81,7 @@ describe("EPIC-F003 navigation registry", () => {
   it("builds breadcrumbs for nested and ticker routes", () => {
     expect(
       breadcrumbsForPath("/research/institutional").map((c) => c.label),
-    ).toEqual(["Home", "Research Workspace", "Research Reports"]);
+    ).toEqual(["Home", "Research Hub", "Institutional"]);
     expect(breadcrumbsFor("/research/acm").map((c) => c.label)).toContain(
       "ACM",
     );
@@ -99,10 +100,11 @@ describe("EPIC-F003 navigation registry", () => {
         "/research",
         "/research/institutional",
         "/research/canvas",
+        // Figma Make sidebar lists AI Copilot and Advisor as primary items.
+        "/copilot",
+        "/advisor",
       ]),
     );
-    expect(analyst).not.toContain("/copilot");
-    expect(analyst).not.toContain("/advisor");
     expect(analyst).not.toContain("/launch");
     expect(analyst).not.toContain("/screening");
     expect(analyst).not.toContain("/admin");

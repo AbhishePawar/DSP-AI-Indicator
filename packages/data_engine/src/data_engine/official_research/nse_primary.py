@@ -8,6 +8,7 @@ hosts cannot appear here.
 from __future__ import annotations
 
 import json
+import re
 from dataclasses import dataclass
 from datetime import date
 from decimal import Decimal, InvalidOperation
@@ -18,6 +19,7 @@ from data_engine.official_research.currentness import CapitalEvent
 from data_engine.official_research.extraction import (
     ExtractedField,
     attack_corporate_actions,
+    esop_changes_outstanding,
 )
 from data_engine.official_research.nse_eod import (
     NSE_ALL_REPORTS,
@@ -33,14 +35,19 @@ __all__ = [
     "NSE_FINANCIAL_RESULTS_URL",
     "NSE_QUOTE_EQUITY_URL",
     "NSE_SHAREHOLDING_URL",
+    "NSE_SHAREHOLDING_MASTER_URL",
+    "NSE_CORPORATE_ACTIONS_URL",
     "NseAnnouncementDocument",
     "NsePrimaryBundle",
     "NsePrimaryEvidenceService",
     "parse_announcement_capital_events",
     "parse_announcement_documents",
     "parse_annual_report_documents",
+    "parse_corporate_action_calendar",
+    "parse_financial_result_documents",
     "parse_financial_results",
     "parse_quote_equity_shares",
+    "parse_shareholding_documents",
     "parse_shareholding_shares",
     "extract_nse_api_field",
 ]
@@ -49,13 +56,21 @@ NSE_QUOTE_EQUITY_URL = "https://www.nseindia.com/api/quote-equity"
 NSE_FINANCIAL_RESULTS_URL = "https://www.nseindia.com/api/corporates-financial-results"
 NSE_ANNOUNCEMENTS_URL = "https://www.nseindia.com/api/corporate-announcements"
 NSE_ANNUAL_REPORTS_URL = "https://www.nseindia.com/api/annual-reports"
-NSE_SHAREHOLDING_URL = "https://www.nseindia.com/api/corporate-shareholding-pattern"
+NSE_SHAREHOLDING_URL = "https://www.nseindia.com/api/corporate-share-holdings-master"
+NSE_SHAREHOLDING_MASTER_URL = NSE_SHAREHOLDING_URL
+NSE_SHAREHOLDING_PATTERN_URL = (
+    "https://www.nseindia.com/api/corporate-shareholding-pattern"
+)
+NSE_CORPORATE_ACTIONS_URL = "https://www.nseindia.com/api/corporates-corporateActions"
 
 _QUOTE_LAST_PRICE_KEYS = frozenset(
     {"lastprice", "last_price", "lastp", "ltp", "lasttradedprice"}
 )
 
-# Explicit particulars only. Operating profit is not EBIT. PPE purchase is not capex.
+# Explicit P&L/JSON particulars only. Operating profit is not EBIT.
+# These NSE result rows do not expose cash-flow PPE. DCF capex is taken from
+# XBRL investing PPE concepts or classified cash-flow extraction, not from
+# unlabeled JSON particulars.
 _PARTICULAR_LABELS: dict[str, tuple[str, ...]] = {
     "revenue": (
         "revenuefromoperations",
@@ -120,6 +135,10 @@ class NseAnnouncementDocument:
     as_of: date | None
     kind: str
     source: str = "nse_announcement"
+    isin: str | None = None
+    document_id: str | None = None
+    period: str | None = None
+    statement_basis: str | None = None
 
 
 @dataclass(frozen=True, slots=True)
@@ -168,10 +187,10 @@ def _decimal(raw: Any) -> str | None:
 
 def _is_annual(period_text: str) -> bool | None:
     lowered = str(period_text or "").lower()
-    if any(hint in lowered for hint in _QUARTER_HINTS):
-        return False
     if any(hint in lowered for hint in _ANNUAL_HINTS):
         return True
+    if any(hint in lowered for hint in _QUARTER_HINTS):
+        return False
     return None
 
 
@@ -367,6 +386,185 @@ def parse_shareholding_shares(payload: Any, *, ticker: str) -> ExtractedField | 
     )
 
 
+def parse_shareholding_documents(
+    payload: Any,
+    *,
+    ticker: str,
+    isin: str | None = None,
+) -> tuple[NseAnnouncementDocument, ...]:
+    """Index rows are not share counts. SHP XBRL URLs are the filing layer."""
+    rows: list[dict[str, Any]] = []
+    if isinstance(payload, list):
+        rows = [item for item in payload if isinstance(item, dict)]
+    elif isinstance(payload, dict):
+        for key in ("data", "shareholdingPattern", "dataList"):
+            maybe = payload.get(key)
+            if isinstance(maybe, list):
+                rows = [item for item in maybe if isinstance(item, dict)]
+                break
+        if not rows:
+            rows = [payload]
+    found: list[NseAnnouncementDocument] = []
+    seen: set[str] = set()
+    expected = None if isin is None else isin.strip().upper()
+    for row in rows:
+        symbol = str(row.get("symbol") or row.get("symbolName") or "").strip().upper()
+        if symbol and symbol != ticker.upper():
+            continue
+        url = str(row.get("xbrl") or row.get("xbrlFile") or "").strip()
+        if not url.lower().startswith("http"):
+            continue
+        if url in seen:
+            continue
+        seen.add(url)
+        as_of = (
+            parse_nse_calendar_date(str(row.get("date") or ""))
+            or parse_nse_calendar_date(str(row.get("asOnDate") or ""))
+            or parse_nse_calendar_date(str(row.get("recordDate") or ""))
+        )
+        row_isin = str(row.get("isin") or "").strip().upper() or None
+        if expected and row_isin and row_isin != expected:
+            row_isin = None
+        found.append(
+            NseAnnouncementDocument(
+                title=" ".join(
+                    part
+                    for part in (
+                        str(row.get("name") or ""),
+                        "Shareholding pattern XBRL",
+                        str(row.get("date") or ""),
+                    )
+                    if part
+                ),
+                url=url,
+                as_of=as_of,
+                kind="shareholding",
+                source="nse_shareholding",
+                isin=row_isin,
+                document_id=str(row.get("recordId") or "").strip() or None,
+                period=str(row.get("date") or "") or None,
+            )
+        )
+    found.sort(key=lambda item: item.as_of or date.min, reverse=True)
+    return tuple(found)
+
+
+def parse_corporate_action_calendar(
+    payload: Any,
+    *,
+    ticker: str,
+    isin: str | None = None,
+) -> tuple[CapitalEvent, ...]:
+    """NSE CA calendar. Dividend/AGM do not change outstanding shares."""
+    rows: list[dict[str, Any]] = []
+    if isinstance(payload, list):
+        rows = [item for item in payload if isinstance(item, dict)]
+    elif isinstance(payload, dict):
+        maybe = payload.get("data") or payload.get("corporateActions")
+        if isinstance(maybe, list):
+            rows = [item for item in maybe if isinstance(item, dict)]
+    found: list[CapitalEvent] = []
+    seen: set[tuple[str, date]] = set()
+    expected = None if isin is None else isin.strip().upper()
+    for row in rows:
+        symbol = str(row.get("symbol") or "").strip().upper()
+        if symbol and symbol != ticker.upper():
+            continue
+        row_isin = str(row.get("isin") or "").strip().upper()
+        if expected and row_isin and row_isin != expected:
+            continue
+        subject = str(row.get("subject") or row.get("purpose") or "")
+        event_type = _calendar_event_type(subject)
+        if event_type is None:
+            continue
+        as_of = (
+            parse_nse_calendar_date(str(row.get("exDate") or ""))
+            or parse_nse_calendar_date(str(row.get("recDate") or ""))
+            or parse_nse_calendar_date(str(row.get("caBroadcastDate") or ""))
+        )
+        if as_of is None:
+            continue
+        key = (event_type, as_of)
+        if key in seen:
+            continue
+        seen.add(key)
+        effect = _calendar_share_effect(event_type, subject)
+        found.append(
+            CapitalEvent(
+                event_type=event_type,
+                event_date=as_of,
+                source_url=NSE_CORPORATE_ACTIONS_URL,
+                capital_changing=effect != "NONE",
+            )
+        )
+    found.sort(key=lambda item: (item.event_date, item.event_type))
+    return tuple(found)
+
+
+def _calendar_event_type(subject: str) -> str | None:
+    lowered = str(subject or "").lower()
+    if "buy back" in lowered or "buyback" in lowered:
+        return "buyback"
+    if "bonus" in lowered:
+        return "bonus"
+    if re.search(r"\b(stock |share )?split\b", lowered):
+        return "split"
+    if "rights" in lowered:
+        return "rights"
+    if "qip" in lowered or "qualified institutional" in lowered:
+        return "qip"
+    if "fpo" in lowered or "follow-on" in lowered or "follow on public" in lowered:
+        return "fpo"
+    if "preferential" in lowered:
+        return "preferential_issue"
+    if "esop" in lowered or "employee stock" in lowered:
+        return "esop"
+    if "warrant" in lowered:
+        return "warrants"
+    if "convertible" in lowered:
+        return "convertibles"
+    if "capital reduction" in lowered:
+        return "capital_reduction"
+    if "extinguish" in lowered or "cancellation of share" in lowered:
+        return "extinguishment"
+    if "demerger" in lowered:
+        return "demerger"
+    if "merger" in lowered or "amalgamation" in lowered:
+        return "merger"
+    if "scheme of" in lowered:
+        return "scheme"
+    if "share swap" in lowered:
+        return "share_swap"
+    if "acquisition" in lowered:
+        return "acquisition"
+    return None
+
+
+def _calendar_share_effect(event_type: str, subject: str) -> str:
+    from data_engine.official_research.extraction import (
+        classify_acquisition_consideration,
+        classify_capital_effect,
+    )
+
+    if event_type == "acquisition":
+        consider = classify_acquisition_consideration(subject)
+        if consider == "CASH":
+            return "NONE"
+        if consider in {"SHARE_SWAP", "MIXED"}:
+            return "UNKNOWN"
+        return "UNKNOWN"
+    if event_type in {"merger", "demerger", "scheme", "share_swap"}:
+        return "UNKNOWN"
+    if event_type == "buyback":
+        lowered = str(subject or "").lower()
+        if "extinguish" in lowered or "cancel" in lowered:
+            return "DECREASE"
+        return "UNKNOWN"
+    if event_type == "esop":
+        return "INCREASE" if esop_changes_outstanding(subject) else "NONE"
+    return classify_capital_effect(event_type)
+
+
 def parse_financial_results(
     payload: Any,
     *,
@@ -491,24 +689,40 @@ def extract_nse_api_field(
 ) -> ExtractedField | None:
     """Parse an already-retrieved NSE JSON body for one planned field."""
     if isinstance(payload, (bytes, bytearray)):
-        try:
-            payload = _json_loads(bytes(payload))
-        except LookupError:
-            return None
-    if isinstance(payload, str):
+        raw = bytes(payload)
+        if not raw.lstrip().startswith(b"<"):
+            try:
+                payload = _json_loads(raw)
+            except LookupError:
+                return None
+        else:
+            payload = raw
+    if isinstance(payload, str) and not payload.lstrip().startswith("<"):
         try:
             payload = json.loads(payload)
         except json.JSONDecodeError:
             return None
     lowered = str(url or "").lower()
+    if "xbrl" in lowered or lowered.split("?", 1)[0].endswith((".xml", ".xbrl")):
+        from data_engine.official_research.xbrl import extract_xbrl_fields
+
+        parsed = extract_xbrl_fields(payload, isin=listing.isin)
+        return parsed.fields.get(field)
     if "corporates-financial-results" in lowered or "/financial-results" in lowered:
         fields, _basis, _unit, _issue = parse_financial_results(
             payload, ticker=listing.ticker
         )
         return fields.get(field)
-    if "shareholding" in lowered:
+    if "shareholding" in lowered or "share-holdings" in lowered:
         if field != "shares_outstanding":
             return None
+        if isinstance(payload, (bytes, bytearray, str)) and (
+            "xbrl" in lowered or str(payload)[:80].lstrip().startswith(("<", "<?xml"))
+        ):
+            from data_engine.official_research.xbrl import extract_shareholding_xbrl_fields
+
+            parsed = extract_shareholding_xbrl_fields(payload, isin=listing.isin)
+            return parsed.fields.get(field)
         return parse_shareholding_shares(payload, ticker=listing.ticker)
     if "quote-equity" in lowered:
         if field != "shares_outstanding":
@@ -620,6 +834,80 @@ def parse_announcement_documents(payload: Any) -> tuple[NseAnnouncementDocument,
     return tuple(found)
 
 
+def parse_financial_result_documents(
+    payload: Any,
+    *,
+    ticker: str,
+) -> tuple[NseAnnouncementDocument, ...]:
+    """Index rows are not line items. XBRL/detail URLs are the filing layer."""
+    rows: list[dict[str, Any]] = []
+    if isinstance(payload, list):
+        rows = [item for item in payload if isinstance(item, dict)]
+    elif isinstance(payload, dict):
+        for key in ("data", "results", "financialResults"):
+            maybe = payload.get(key)
+            if isinstance(maybe, list):
+                rows = [item for item in maybe if isinstance(item, dict)]
+                break
+        if not rows:
+            rows = [payload]
+    found: list[NseAnnouncementDocument] = []
+    seen: set[str] = set()
+    for row in rows:
+        symbol = str(row.get("symbol") or row.get("symbolName") or "").strip().upper()
+        if symbol and symbol != ticker.upper():
+            continue
+        period_blob = " ".join(
+            str(row.get(key) or "")
+            for key in ("period", "relatingTo", "fromTo", "fromDate", "toDate", "financialYear")
+        )
+        annual = _is_annual(period_blob) if period_blob.strip() else None
+        if annual is False:
+            continue
+        as_of = (
+            parse_nse_calendar_date(str(row.get("toDate") or ""))
+            or parse_nse_calendar_date(str(row.get("reDate") or ""))
+            or _period_end_from_range(str(row.get("fromTo") or row.get("financialYear") or ""))
+        )
+        basis = _statement_basis(row)
+        isin = str(row.get("isin") or "").strip().upper() or None
+        seq = str(row.get("seqNumber") or row.get("seq_id") or "").strip() or None
+        for key in ("xbrl", "xbrlFiling", "resultDetailedDataLink"):
+            url = str(row.get(key) or "").strip()
+            if not url.lower().startswith("http"):
+                continue
+            if url in seen:
+                continue
+            seen.add(url)
+            kind = "xbrl" if "xbrl" in key.lower() or url.lower().endswith((".xml", ".xbrl")) else "financial_results"
+            title = " ".join(
+                part
+                for part in (
+                    str(row.get("companyName") or ""),
+                    "Annual financial results",
+                    "XBRL" if kind == "xbrl" else "filing",
+                    period_blob,
+                    str(row.get("consolidated") or row.get("resultType") or ""),
+                )
+                if part
+            )
+            found.append(
+                NseAnnouncementDocument(
+                    title=title,
+                    url=url,
+                    as_of=as_of,
+                    kind=kind,
+                    source="nse_financial_results",
+                    isin=isin,
+                    document_id=seq,
+                    period=period_blob or None,
+                    statement_basis=basis,
+                )
+            )
+    found.sort(key=lambda item: item.as_of or date.min, reverse=True)
+    return tuple(found)
+
+
 def parse_annual_report_documents(payload: Any) -> tuple[NseAnnouncementDocument, ...]:
     """Official NSE annual-reports archive. fromYr/toYr are the FY labels."""
     rows: list[dict[str, Any]] = []
@@ -698,6 +986,10 @@ class NsePrimaryEvidenceService:
         self._transport = transport
         self._mode = mode
 
+    @property
+    def transport(self) -> NseHttpTransport:
+        return self._transport
+
     def fetch(self, listing: SecurityListing) -> NsePrimaryBundle:
         if listing.mic != "XNSE":
             return NsePrimaryBundle(
@@ -741,6 +1033,7 @@ class NsePrimaryEvidenceService:
 
         hold_url = f"{NSE_SHAREHOLDING_URL}?index=equities&symbol={symbol}"
         urls["shareholding"] = hold_url
+        hold_documents: tuple[NseAnnouncementDocument, ...] = ()
         try:
             hold_payload = _json_loads(
                 self._transport.get_bytes(hold_url, referer=NSE_ALL_REPORTS)
@@ -748,6 +1041,26 @@ class NsePrimaryEvidenceService:
             hold = parse_shareholding_shares(hold_payload, ticker=listing.ticker)
             if hold is not None:
                 fields["shares_outstanding"] = hold
+            hold_documents = parse_shareholding_documents(
+                hold_payload, ticker=listing.ticker, isin=listing.isin
+            )
+            if not hold_documents and hold is None:
+                issues.append("NSE shareholding index returned no filing-detail URLs")
+        except LookupError as exc:
+            issues.append(str(exc))
+
+        ca_url = f"{NSE_CORPORATE_ACTIONS_URL}?index=equities&symbol={symbol}"
+        urls["corporate_actions"] = ca_url
+        calendar_events: tuple[CapitalEvent, ...] = ()
+        calendar_searched = False
+        try:
+            ca_payload = _json_loads(
+                self._transport.get_bytes(ca_url, referer=NSE_ALL_REPORTS)
+            )
+            calendar_events = parse_corporate_action_calendar(
+                ca_payload, ticker=listing.ticker, isin=listing.isin
+            )
+            calendar_searched = True
         except LookupError as exc:
             issues.append(str(exc))
 
@@ -755,6 +1068,7 @@ class NsePrimaryEvidenceService:
             f"{NSE_FINANCIAL_RESULTS_URL}?index=equities&symbol={symbol}&period=Annual"
         )
         urls["financial_results"] = result_url
+        result_documents: tuple[NseAnnouncementDocument, ...] = ()
         try:
             result_payload = _json_loads(
                 self._transport.get_bytes(result_url, referer=NSE_ALL_REPORTS)
@@ -763,8 +1077,13 @@ class NsePrimaryEvidenceService:
                 result_payload, ticker=listing.ticker
             )
             fields.update(parsed)
+            result_documents = parse_financial_result_documents(
+                result_payload, ticker=listing.ticker
+            )
             if result_issue:
                 issues.append(result_issue)
+            if not result_documents:
+                issues.append("NSE financial-results index returned no filing-detail URLs")
         except LookupError as exc:
             issues.append(str(exc))
 
@@ -791,16 +1110,34 @@ class NsePrimaryEvidenceService:
             announcement_documents = parse_announcement_documents(ann_payload)
             existing = {item.url for item in announcement_documents}
             merged = list(announcement_documents)
-            for item in annual_documents:
+            for item in (*result_documents, *annual_documents, *hold_documents):
                 if item.url not in existing:
                     merged.append(item)
+                    existing.add(item.url)
             announcement_documents = tuple(merged)
             announcement_payload = ann_payload
             announcements_searched = True
+            seen_events = {(item.event_type, item.event_date) for item in events}
+            extra_events = [
+                item
+                for item in calendar_events
+                if (item.event_type, item.event_date) not in seen_events
+            ]
+            events = tuple(sorted((*events, *extra_events), key=lambda item: (item.event_date, item.event_type)))
         except LookupError as exc:
             issues.append(str(exc))
-            if annual_documents:
-                announcement_documents = annual_documents
+            leftover = tuple(
+                item
+                for item in (*result_documents, *annual_documents, *hold_documents)
+                if item.url
+            )
+            if leftover:
+                announcement_documents = leftover
+            if calendar_events:
+                events = calendar_events
+
+        if calendar_searched:
+            announcements_searched = True
 
         return NsePrimaryBundle(
             fields=fields,

@@ -13,15 +13,10 @@ import { Suspense } from "react";
 
 import { CompanyAnalysisWorkspace } from "@/components/company-analysis";
 import { WorkspaceSkeleton } from "@/components/company-analysis/WorkspacePrimitives";
-import { PageHeader } from "@/components/layout/PageHeader";
 
 export default function AnalysisRoute() {
   return (
-    <div className="space-y-4">
-      <PageHeader
-        title="Company Research"
-        description="Search a company or ticker, then review certified /api/v1 analysis. No client-side scoring or valuation math."
-      />
+    <div className="analysis-shell min-h-[calc(100vh-8rem)]">
       <Suspense fallback={<WorkspaceSkeleton />}>
         <CompanyAnalysisWorkspace />
       </Suspense>

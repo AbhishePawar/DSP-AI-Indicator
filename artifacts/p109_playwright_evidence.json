@@ -1,0 +1,22 @@
+{
+  "ok": true,
+  "gate": "P1-09",
+  "evidence_class": "test_fixture",
+  "g2_claim": false,
+  "ticker": "DSPFIX",
+  "exchange": "NYSE",
+  "analysis_id": "3aa30cd5-2271-4cb5-a40b-3c6cbe286c2a",
+  "release_identity": {
+    "epic": "EPS-003",
+    "product_version": "2.0.0-rc.1",
+    "channel": "rc",
+    "decision": "RELEASE_CANDIDATE",
+    "label": "EPS-003 · 2.0.0-rc.1 · rc · RELEASE_CANDIDATE"
+  },
+  "intentional_analysis_submissions": 1,
+  "unexpected_analysis_submissions": 0,
+  "analyse_request_count": 1,
+  "api_origin": "http://127.0.0.1:8000",
+  "browser": "chromium",
+  "retries": 0
+}

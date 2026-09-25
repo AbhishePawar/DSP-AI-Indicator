@@ -85,4 +85,22 @@ def configure_durable_product_stores(database: Any | None) -> ReportStore:
     except Exception:  # noqa: BLE001
         pass
 
+    # Figma-first product stores: coverage registry (institutional / signals)
+    # and per-user investor workspace (watchlist / holdings / profile / canvas).
+    try:
+        cov = importlib.import_module("dsp_platform.coverage_registry")
+        cov.reset_coverage_registry_store_for_tests(
+            cov.DatabaseCoverageRegistryStore(database)
+        )
+    except Exception:  # noqa: BLE001
+        pass
+
+    try:
+        iw = importlib.import_module("dsp_platform.investor_workspace")
+        iw.reset_investor_workspace_store_for_tests(
+            iw.DatabaseInvestorWorkspaceStore(database)
+        )
+    except Exception:  # noqa: BLE001
+        pass
+
     return build_report_store(database)

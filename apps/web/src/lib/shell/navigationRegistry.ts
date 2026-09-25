@@ -43,12 +43,21 @@ export type ShellNavIconId =
   | "research"
   | "admin"
   | "settings"
-  | "profile";
+  | "profile"
+  | "copilot"
+  | "advisor";
 
 /**
  * RC3-003 — Primary shell journey:
- * Dashboard → Company Analysis → Research Workspace → Portfolio → Research Reports
- * IRD is a supporting child under Research Reports, not a competing primary.
+ * Dashboard → Company Analysis → Research Hub → Portfolio → Institutional
+ * IRD is a supporting child under Research Hub, not a competing primary.
+ *
+ * Labels and primary items follow the Figma Make sidebar (`Nav.tsx`):
+ * Dashboard · Research Hub · Companies · Compare · Portfolio · AI Copilot · Advisor,
+ * research children Institutional · Canvas · Intelligence, account items
+ * Settings · Financial Profile · Coupons & Offers. RBAC gating is preserved;
+ * Figma's hard-coded recent searches / "Pro Plan" avatar are intentionally not
+ * reproduced (CV-001 — no fabricated session data).
  */
 export const SHELL_NAV: readonly ShellNavItem[] = [
   {
@@ -82,7 +91,7 @@ export const SHELL_NAV: readonly ShellNavItem[] = [
       {
         id: "analysis-compare",
         href: "/analysis/compare",
-        label: "Company Comparison",
+        label: "Compare",
         description:
           "Institutional decision workspace — compare 2–5 companies (supporting intelligence)",
         section: "research",
@@ -92,9 +101,17 @@ export const SHELL_NAV: readonly ShellNavItem[] = [
     ],
   },
   {
+    id: "companies",
+    href: "/companies",
+    label: "Companies",
+    description: "Identity-only company lookup into /analysis",
+    section: "research",
+    icon: "analysis",
+  },
+  {
     id: "research",
     href: "/research",
-    label: "Research Workspace",
+    label: "Research Hub",
     description: "Research library and session history",
     section: "research",
     icon: "research",
@@ -113,7 +130,7 @@ export const SHELL_NAV: readonly ShellNavItem[] = [
       {
         id: "research-canvas",
         href: "/research/canvas",
-        label: "Research Canvas",
+        label: "Canvas",
         description:
           "Institutional Research Operating System — unified navigator, tabs, notebook, and timeline",
         section: "research",
@@ -123,7 +140,7 @@ export const SHELL_NAV: readonly ShellNavItem[] = [
       {
         id: "research-institutional",
         href: "/research/institutional",
-        label: "Research Reports",
+        label: "Institutional",
         description: "Publication and export surface for institutional reports",
         section: "research",
         icon: "research",
@@ -142,7 +159,7 @@ export const SHELL_NAV: readonly ShellNavItem[] = [
       {
         id: "research-intelligence",
         href: "/research/intelligence",
-        label: "Research Intelligence",
+        label: "Intelligence",
         description:
           "Research performance, calibration, and outcome validation (measurement only)",
         section: "research",
@@ -162,6 +179,25 @@ export const SHELL_NAV: readonly ShellNavItem[] = [
       anyOfPermissions: ["read_research"],
       anyOfRoles: ["portfolio_manager", "administrator"],
     },
+  },
+  {
+    id: "copilot",
+    href: "/copilot",
+    label: "AI Copilot",
+    description:
+      "Research copilot over /api/v1/copilot — AI interpretation labelled separately from evidence",
+    section: "research",
+    icon: "copilot",
+    access: { anyOfPermissions: ["read_research"] },
+  },
+  {
+    id: "advisor",
+    href: "/advisor",
+    label: "Advisor",
+    description: "Advisor workspace — clients, portfolios, reviews, and team",
+    section: "research",
+    icon: "advisor",
+    access: { anyOfPermissions: ["read_research"] },
   },
   {
     id: "admin",
@@ -253,10 +289,18 @@ export const SHELL_NAV: readonly ShellNavItem[] = [
   {
     id: "profile",
     href: "/profile",
-    label: "Profile",
+    label: "Financial Profile",
     description: "Identity and sessions",
     section: "account",
     icon: "profile",
+  },
+  {
+    id: "coupons",
+    href: "/coupons",
+    label: "Coupons & Offers",
+    description: "Administrator-provisioned offers only",
+    section: "account",
+    icon: "settings",
   },
 ] as const;
 
@@ -290,13 +334,6 @@ export const AUX_ROUTES: readonly RouteMeta[] = [
     id: "screening",
     path: "/screening",
     title: "Screening",
-    searchable: false,
-    group: "Workspace",
-  },
-  {
-    id: "copilot",
-    path: "/copilot",
-    title: "Copilot",
     searchable: false,
     group: "Workspace",
   },
@@ -341,13 +378,6 @@ export const AUX_ROUTES: readonly RouteMeta[] = [
     title: "Platform",
     searchable: false,
     group: "Ops",
-  },
-  {
-    id: "advisor",
-    path: "/advisor",
-    title: "Advisor",
-    searchable: false,
-    group: "Workspace",
   },
   {
     id: "reports",
@@ -524,7 +554,7 @@ export function breadcrumbsForPath(pathname: string): BreadcrumbCrumb[] {
       !pathname.startsWith("/research/intelligence") &&
       !pathname.startsWith("/research/canvas")
     ) {
-      crumbs.push({ href: "/research", label: "Research Workspace" });
+      crumbs.push({ href: "/research", label: "Research Hub" });
       const ticker = pathname.split("/")[2];
       if (ticker) {
         crumbs.push({

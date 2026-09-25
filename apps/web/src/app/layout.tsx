@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Fraunces, Sora } from "next/font/google";
+import { Fraunces, Inter, JetBrains_Mono } from "next/font/google";
 import { headers } from "next/headers";
 
 import { AppLayout } from "@/components/layout/AppLayout";
@@ -30,9 +30,15 @@ const display = Fraunces({
   display: "swap",
 });
 
-const body = Sora({
+const body = Inter({
   subsets: ["latin"],
   variable: "--font-body",
+  display: "swap",
+});
+
+const mono = JetBrains_Mono({
+  subsets: ["latin"],
+  variable: "--font-mono",
   display: "swap",
 });
 
@@ -49,9 +55,9 @@ export default async function RootLayout({
   // EPIC-019A — propagate CSP nonce from middleware for Next inline scripts.
   const nonce = (await headers()).get("x-nonce") ?? undefined;
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html lang="en" data-theme="dark" suppressHydrationWarning>
       <body
-        className={`${display.variable} ${body.variable} antialiased`}
+        className={`${display.variable} ${body.variable} ${mono.variable} antialiased`}
         data-csp-nonce={nonce ? "present" : "absent"}
       >
         <a

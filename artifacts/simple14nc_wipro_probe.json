@@ -1,0 +1,325 @@
+{
+  "ar_hash": "48f0612b11ccd1883d229d9c6ae3fcc0de65c6ae6bc6034b562884ecbbd5afd9",
+  "ar_size": 8877705,
+  "pages": [],
+  "fields": {
+    "revenue": null,
+    "net_income": null,
+    "ebit": null,
+    "operating_profit": null,
+    "equity": null,
+    "cash": null,
+    "cfo": null,
+    "capex": null,
+    "debt": null,
+    "total_assets": null,
+    "total_liabilities": null
+  },
+  "span_diag": {
+    "298": {
+      "span_count": 95,
+      "date_like": [
+        {
+          "t": "March 31, 2026",
+          "x": 417.3,
+          "y": 613.9
+        },
+        {
+          "t": "March 31, 2025",
+          "x": 488.3,
+          "y": 613.9
+        },
+        {
+          "t": "June 2, 2026",
+          "x": 53.0,
+          "y": 82.7
+        }
+      ]
+    },
+    "326": {
+      "span_count": 162,
+      "date_like": [
+        {
+          "t": "As at April 1, 2025",
+          "x": 53.0,
+          "y": 549.5
+        },
+        {
+          "t": "As at March 31, 2026",
+          "x": 53.0,
+          "y": 484.4
+        },
+        {
+          "t": "As at April 1, 2025",
+          "x": 53.0,
+          "y": 445.2
+        },
+        {
+          "t": "As at March 31, 2026",
+          "x": 53.0,
+          "y": 393.0
+        },
+        {
+          "t": "Net carrying value as at March 31, 2026",
+          "x": 53.0,
+          "y": 379.5
+        },
+        {
+          "t": "As at March 31, 2025",
+          "x": 53.0,
+          "y": 288.1
+        },
+        {
+          "t": "As at March 31, 2025",
+          "x": 53.0,
+          "y": 196.7
+        },
+        {
+          "t": "Net carrying value as at March 31, 2025",
+          "x": 53.0,
+          "y": 183.1
+        },
+        {
+          "t": "March 31, 2026",
+          "x": 417.4,
+          "y": 128.1
+        },
+        {
+          "t": "March 31, 2025",
+          "x": 488.3,
+          "y": 128.1
+        }
+      ]
+    },
+    "327": {
+      "span_count": 118,
+      "date_like": [
+        {
+          "t": "INTEGRATED ANNUAL REPORT 2025-26",
+          "x": 32.6,
+          "y": 76.9
+        },
+        {
+          "t": "WIPRO   INTEGRATED ANNUAL REPORT 2025-26\nNotes to the Consolidated Financial Sta",
+          "x": 27.0,
+          "y": 686.6
+        },
+        {
+          "t": "Income from subleasing RoU assets for the years ended March 31, 2026 and 2025 is",
+          "x": 81.1,
+          "y": 585.4
+        },
+        {
+          "t": "999 which have not commenced as of March 31, 2026. The",
+          "x": 312.4,
+          "y": 567.4
+        },
+        {
+          "t": "March 31, 2026",
+          "x": 416.9,
+          "y": 495.9
+        },
+        {
+          "t": "March 31, 2025",
+          "x": 487.8,
+          "y": 495.9
+        },
+        {
+          "t": "The following table represents ageing of CWIP as on March 31, 2026:",
+          "x": 81.1,
+          "y": 280.5
+        },
+        {
+          "t": "The following table represents ageing of CWIP as on March 31, 2025:",
+          "x": 81.1,
+          "y": 186.8
+        },
+        {
+          "t": "As on March 31, 2026 and 2025, there are no projects under CWIP whose completion",
+          "x": 81.1,
+          "y": 92.3
+        },
+        {
+          "t": "As on March 31, 2026 and 2025, there are no projects under CWIP where the projec",
+          "x": 81.1,
+          "y": 62.3
+        }
+      ]
+    },
+    "348": {
+      "span_count": 136,
+      "date_like": [
+        {
+          "t": "March 31, 2026",
+          "x": 417.4,
+          "y": 561.9
+        },
+        {
+          "t": "March 31, 2025",
+          "x": 488.4,
+          "y": 561.9
+        },
+        {
+          "t": "March 31, 2026",
+          "x": 416.6,
+          "y": 366.9
+        },
+        {
+          "t": "March 31, 2025",
+          "x": 487.6,
+          "y": 366.9
+        },
+        {
+          "t": "1,333 during the years ended March 31, 2026 and 2025, respectively.",
+          "x": 226.1,
+          "y": 57.5
+        },
+        {
+          "t": "83 during the years ended March 31, 2026 and 2025, respectively.",
+          "x": 214.2,
+          "y": 48.5
+        }
+      ]
+    },
+    "349": {
+      "span_count": 114,
+      "date_like": [
+        {
+          "t": "INTEGRATED ANNUAL REPORT 2025-26",
+          "x": 32.6,
+          "y": 76.9
+        },
+        {
+          "t": "WIPRO   INTEGRATED ANNUAL REPORT 2025-26\nNotes to the Consolidated Financial Sta",
+          "x": 27.0,
+          "y": 686.6
+        },
+        {
+          "t": "March 31, 2026",
+          "x": 417.4,
+          "y": 591.9
+        },
+        {
+          "t": "March 31, 2025",
+          "x": 488.4,
+          "y": 591.9
+        },
+        {
+          "t": "March 31, 2026",
+          "x": 417.4,
+          "y": 483.9
+        },
+        {
+          "t": "March 31, 2025",
+          "x": 488.4,
+          "y": 483.9
+        },
+        {
+          "t": "March 31, 2026",
+          "x": 417.9,
+          "y": 321.4
+        },
+        {
+          "t": "March 31, 2025",
+          "x": 488.9,
+          "y": 321.4
+        },
+        {
+          "t": "March 31, 2026",
+          "x": 417.4,
+          "y": 198.9
+        },
+        {
+          "t": "March 31, 2025",
+          "x": 488.4,
+          "y": 198.9
+        },
+        {
+          "t": "2 per share (March 31, 2025:",
+          "x": 83.1,
+          "y": 167.9
+        },
+        {
+          "t": "10 per share (March 31, 2025: 25,000,000",
+          "x": 83.1,
+          "y": 144.0
+        },
+        {
+          "t": "share (March 31, 2025: 150,000 10% optionally convertible cumulative preference ",
+          "x": 83.1,
+          "y": 110.4
+        },
+        {
+          "t": "2 each (March 31, 2025: 10,472,136,049 equity shares)",
+          "x": 201.9,
+          "y": 68.1
+        }
+      ]
+    },
+    "360": {
+      "span_count": 106,
+      "date_like": [
+        {
+          "t": "March 31, 2026",
+          "x": 417.4,
+          "y": 591.9
+        },
+        {
+          "t": "March 31, 2025",
+          "x": 488.3,
+          "y": 591.9
+        },
+        {
+          "t": "March 31, 2026",
+          "x": 418.1,
+          "y": 465.9
+        },
+        {
+          "t": "March 31, 2025",
+          "x": 489.1,
+          "y": 465.9
+        },
+        {
+          "t": "(9) for the years ended March 31, 2026 and 2025, respectively, towards cash sett",
+          "x": 156.9,
+          "y": 391.4
+        },
+        {
+          "t": "March 31, 2026",
+          "x": 417.4,
+          "y": 342.8
+        },
+        {
+          "t": "March 31, 2025",
+          "x": 488.3,
+          "y": 342.8
+        },
+        {
+          "t": "March 31, 2026",
+          "x": 416.6,
+          "y": 147.9
+        },
+        {
+          "t": "March 31, 2025",
+          "x": 487.6,
+          "y": 147.9
+        }
+      ]
+    }
+  },
+  "post_buyback": {
+    "url": "https://nsearchives.nseindia.com/corporate/Cslogin_26062026181043_SEIntimationPostBuybackPA.pdf",
+    "hash": "2d35f0d17814ef0cd676c3691bcd099149e817c9d77c65f5ed6a300b4df70fa4",
+    "size": 4319631,
+    "chars": 11774,
+    "shares_field": null,
+    "hits": [
+      "Sub: Submission of Post-Buyback Public Announcement for Buyback of equity shares ",
+      "Public Announcement for the Buyback of 60,00,00,000 (Sixty C rore) fully paid up Equity ",
+      "We are enclosing herewith copy of the Post-Buyback Public Announcement published on June "
+    ],
+    "large_numbers": [
+      "60,00,00,000"
+    ]
+  }
+}

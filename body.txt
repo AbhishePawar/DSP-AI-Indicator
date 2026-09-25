@@ -1,0 +1,1 @@
+{"ok":false,"error":"InternalServerError","detail":"an unexpected error occurred","message":"an unexpected error occurred","error_code":"INTERNAL_ERROR","pipeline_stage":null,"validation_errors":[],"correlation_id":"a48d586d-15cd-4711-9a4b-528fd4868c51","timestamp":"2026-08-20T08:16:08.112567Z","api_version":"v1","status_code":500}

@@ -41,6 +41,7 @@ from api_platform.api.routers import (
     control_center,
     copilot,
     corporate_actions,
+    coverage,
     dashboards,
     data,
     decision_workspace,
@@ -57,6 +58,7 @@ from api_platform.api.routers import (
     institutional_committee,
     institutional_workflow,
     investment_policy,
+    investor_workspace,
     market,
     meta,
     metrics,
@@ -292,6 +294,8 @@ def _register_routers(application: FastAPI) -> None:
         investment_policy.router,
         persistence.router,
         securities.router,
+        investor_workspace.router,
+        coverage.router,
     ]
     for router in versioned:
         application.include_router(router)

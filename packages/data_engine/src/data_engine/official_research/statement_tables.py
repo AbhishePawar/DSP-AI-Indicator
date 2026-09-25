@@ -13,7 +13,11 @@ from datetime import date
 from decimal import Decimal, InvalidOperation
 from io import BytesIO
 
-from data_engine.official_research.extraction import ExtractedField
+from data_engine.official_research.extraction import (
+    DCF_CAPEX_SEMANTICS,
+    ExtractedField,
+    classify_capex_semantic,
+)
 from data_engine.official_research.semantics import semantic_field_status
 
 __all__ = [
@@ -51,7 +55,18 @@ _FIELD_LABELS: dict[str, tuple[str, ...]] = {
         "cash from operations",
         "cfo",
     ),
-    "capex": ("capital expenditure", "capex"),
+    "capex": (
+        "capital expenditure",
+        "capital expenditures",
+        "capex",
+        "purchase of property, plant and equipment",
+        "purchase of property plant and equipment",
+        "purchase of ppe",
+        "purchase of fixed assets",
+        "purchase of tangible assets",
+        "additions to property plant and equipment",
+        "payments to acquire property, plant and equipment",
+    ),
     "cash": ("cash and cash equivalents",),
     "debt": ("total borrowings", "borrowings"),
     "total_assets": ("total assets",),
@@ -406,7 +421,10 @@ def extract_field_from_statements(
             semantic = semantic_field_status(
                 requested_field=requested, document_label=matched
             )
-            if semantic != "VERIFIED":
+            if requested == "capex":
+                if classify_capex_semantic(matched) not in DCF_CAPEX_SEMANTICS:
+                    continue
+            elif semantic != "VERIFIED":
                 continue
             hits.append((row, page, matched))
     if not hits:

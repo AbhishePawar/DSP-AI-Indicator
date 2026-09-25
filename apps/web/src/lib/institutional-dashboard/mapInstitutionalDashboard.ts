@@ -349,6 +349,10 @@ export type MarketQuotePayload = {
     shares_outstanding?: number | null;
     dividend_yield?: number | null;
     beta?: number | null;
+    /** Provider-reported session change (absolute). */
+    change?: number | null;
+    /** Provider-reported session change in percent units (1.25 → +1.25%). */
+    change_percent?: number | null;
   } | null;
   provenance?: {
     provider_id?: string;

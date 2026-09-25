@@ -303,8 +303,25 @@ describe("EPIC-F005 company analysis lib", () => {
         "news",
         "copilot",
         "settings",
+        // Figma CompanyAnalysis.tsx DEEP DIVE sections (final Figma-first pass).
+        "earningsQuality",
+        "growthQuality",
+        "marginOfSafety",
+        "strengthsWeaknesses",
+        "investmentContext",
       ]),
     );
+  });
+
+  it("labels the Figma deep-dive sections with Figma TOC terminology", () => {
+    const labels = Object.fromEntries(
+      ANALYSIS_SECTIONS.map((s) => [s.id, s.label]),
+    );
+    expect(labels.earningsQuality).toBe("Earnings Quality");
+    expect(labels.growthQuality).toBe("Growth Quality");
+    expect(labels.marginOfSafety).toBe("Margin of Safety");
+    expect(labels.strengthsWeaknesses).toBe("Strengths & Weaknesses");
+    expect(labels.investmentContext).toBe("Investment Context");
   });
 
   it("exports mapped research view without inventing scores", () => {
@@ -463,14 +480,18 @@ describe("EPIC-F005 workspace UI", () => {
     expect(body.financial_statements.income_statement?.revenue).toBe(391_035);
     expect(body.financial_statements.income_statement?.revenue).not.toBe(1000);
     expect(body.valuation_signals).toBeUndefined();
-    expect(body.current_market_price).toBe(190.5);
+    // CV-001 — the quote price is display-only; it is never copied into the
+    // analyse request. Market price authority is the backend's
+    // server_valuation.current_market_price.
+    expect(body.current_market_price).toBeUndefined();
     expect(marketQuoteMock).toHaveBeenCalled();
     expect(
-      await screen.findByRole("heading", { name: /Executive Summary/i }),
+      // Figma TOC label for RS-001.
+      await screen.findByRole("heading", { name: /^Summary$/i }),
     ).toBeTruthy();
   });
 
-  it("does not call analyse when authenticated statements are unavailable", async () => {
+  it("calls analyse through the server-authenticated evidence path when client statements are unavailable", async () => {
     financialStatementsMock.mockResolvedValue({
       ok: true,
       available: false,
@@ -485,11 +506,16 @@ describe("EPIC-F005 workspace UI", () => {
     await waitFor(() => {
       expect(financialStatementsMock).toHaveBeenCalled();
     });
-    expect(analyseMock).not.toHaveBeenCalled();
-    expect(
-      await screen.findByText("Investment data is currently unavailable."),
-    ).toBeTruthy();
-    expect(screen.getByText(/Security identified successfully/)).toBeTruthy();
+    // CV-002 — no client statements are fabricated. The request omits
+    // financial_statements and the backend resolves official evidence itself
+    // (composition.analyse → preload_verified_evidence).
+    await waitFor(() => expect(analyseMock).toHaveBeenCalled());
+    const body = analyseMock.mock.calls[0]?.[0] as {
+      financial_statements?: unknown;
+      current_market_price?: unknown;
+    };
+    expect(body.financial_statements).toBeUndefined();
+    expect(body.current_market_price).toBeUndefined();
   });
 
   it("blocks analyse until research disclaimer is acknowledged", async () => {
@@ -541,7 +567,10 @@ describe("EPIC-F005 workspace UI", () => {
     );
     wrap(<CompanyAnalysisWorkspace />);
     await waitFor(() => expect(analyseMock).toHaveBeenCalled());
-    await screen.findByRole("heading", { name: /Executive Summary/i });
+    const summaryHeadings = await screen.findAllByRole("heading", {
+      name: /^Summary$/i,
+    });
+    expect(summaryHeadings.length).toBeGreaterThan(0);
 
     // Documents is a lazy, net-new section — its component (and therefore its
     // corporateActions query) must not mount while Overview is active.

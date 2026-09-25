@@ -1,0 +1,698 @@
+{
+  "WIPRO": {
+    "pages_pdf": 561,
+    "statement_pages": [
+      {
+        "page": 109,
+        "kind": "pl",
+        "unit": "million",
+        "basis": "consolidated",
+        "columns": [
+          "2025-26",
+          "2024-25"
+        ]
+      },
+      {
+        "page": 295,
+        "kind": "bs",
+        "unit": "million",
+        "basis": "consolidated",
+        "columns": [
+          "March 31, 2026",
+          "March 31, 2025"
+        ]
+      },
+      {
+        "page": 296,
+        "kind": "bs",
+        "unit": "million",
+        "basis": "consolidated",
+        "columns": [
+          "March 31, 2026",
+          "March 31, 2025"
+        ]
+      },
+      {
+        "page": 297,
+        "kind": "pl",
+        "unit": "million",
+        "basis": "consolidated",
+        "columns": [
+          "March 31, 2026",
+          "March 31, 2025"
+        ]
+      },
+      {
+        "page": 298,
+        "kind": "pl",
+        "unit": "million",
+        "basis": "consolidated",
+        "columns": [
+          "March 31, 2026",
+          "March 31, 2025"
+        ]
+      },
+      {
+        "page": 303,
+        "kind": "cf",
+        "unit": "million",
+        "basis": "consolidated",
+        "columns": [
+          "March 31, 2026",
+          "March 31, 2025"
+        ]
+      },
+      {
+        "page": 304,
+        "kind": "cf",
+        "unit": "million",
+        "basis": "consolidated",
+        "columns": [
+          "March 31, 2026",
+          "March 31, 2025"
+        ]
+      },
+      {
+        "page": 365,
+        "kind": "pl",
+        "unit": "million",
+        "basis": "consolidated",
+        "columns": [
+          "March 31, 2026",
+          "March 31, 2025"
+        ]
+      },
+      {
+        "page": 369,
+        "kind": "pl",
+        "unit": "million",
+        "basis": "consolidated",
+        "columns": [
+          "March 31, 2026",
+          "March 31, 2025"
+        ]
+      }
+    ],
+    "dialect": "A_POSITIONAL_MILLION+US_DATE+B_YEAR_UNDER_MONTH+FY_RANGE+C_MULTI_PAGE",
+    "identity": "PASS",
+    "text_s": 50.463,
+    "reconstruct_s": 2.525,
+    "fields": {
+      "revenue": {
+        "status": "VERIFIED",
+        "raw": "926240",
+        "value": "926240000000",
+        "unit": "million",
+        "currency": "INR",
+        "locator": "page=297;statement=Consolidated Statement of Profit and Loss;row=Revenue from operations 22;column=March 31, 2026",
+        "period": "2026-03-31",
+        "basis": "consolidated",
+        "document": "https://nsearchives.nseindia.com/annual_reports/AR_29427_WIPRO_2025_2026_A_8877705_22062026190140.pdf",
+        "sha256": "48f0612b11ccd1883d229d9c6ae3fcc0de65c6ae6bc6034b562884ecbbd5afd9"
+      },
+      "net_income": {
+        "status": "VERIFIED",
+        "raw": "131974",
+        "value": "131974000000",
+        "unit": "million",
+        "currency": "INR",
+        "locator": "page=298;statement=Consolidated Statement of Profit and Loss;row=Profit for the year attributable to: Equity holders of the Company;column=March 31, 2026",
+        "period": "2026-03-31",
+        "basis": "consolidated",
+        "document": "https://nsearchives.nseindia.com/annual_reports/AR_29427_WIPRO_2025_2026_A_8877705_22062026190140.pdf",
+        "sha256": "48f0612b11ccd1883d229d9c6ae3fcc0de65c6ae6bc6034b562884ecbbd5afd9"
+      },
+      "equity": {
+        "status": "VERIFIED",
+        "raw": "882692",
+        "value": "882692000000",
+        "unit": "million",
+        "currency": "INR",
+        "locator": "page=295;statement=Consolidated Balance Sheet;row=TOTAL EQUITY;column=March 31, 2026",
+        "period": "2026-03-31",
+        "basis": "consolidated",
+        "document": "https://nsearchives.nseindia.com/annual_reports/AR_29427_WIPRO_2025_2026_A_8877705_22062026190140.pdf",
+        "sha256": "48f0612b11ccd1883d229d9c6ae3fcc0de65c6ae6bc6034b562884ecbbd5afd9"
+      },
+      "cash": {
+        "status": "VERIFIED",
+        "raw": "105555",
+        "value": "105555000000",
+        "unit": "million",
+        "currency": "INR",
+        "locator": "page=295;statement=Consolidated Balance Sheet;row=Cash and cash equivalents 15;column=March 31, 2026",
+        "period": "2026-03-31",
+        "basis": "consolidated",
+        "document": "https://nsearchives.nseindia.com/annual_reports/AR_29427_WIPRO_2025_2026_A_8877705_22062026190140.pdf",
+        "sha256": "48f0612b11ccd1883d229d9c6ae3fcc0de65c6ae6bc6034b562884ecbbd5afd9"
+      },
+      "cfo": {
+        "status": "VERIFIED",
+        "raw": "149316",
+        "value": "149316000000",
+        "unit": "million",
+        "currency": "INR",
+        "locator": "page=303;statement=Consolidated Statement of Cash Flows;row=Net cash generated from operating activities;column=March 31, 2026",
+        "period": "2026-03-31",
+        "basis": "consolidated",
+        "document": "https://nsearchives.nseindia.com/annual_reports/AR_29427_WIPRO_2025_2026_A_8877705_22062026190140.pdf",
+        "sha256": "48f0612b11ccd1883d229d9c6ae3fcc0de65c6ae6bc6034b562884ecbbd5afd9"
+      },
+      "total_assets": {
+        "status": "VERIFIED",
+        "raw": "1414077",
+        "value": "1414077000000",
+        "unit": "million",
+        "currency": "INR",
+        "locator": "page=295;statement=Consolidated Balance Sheet;row=TOTAL ASSETS;column=March 31, 2026",
+        "period": "2026-03-31",
+        "basis": "consolidated",
+        "document": "https://nsearchives.nseindia.com/annual_reports/AR_29427_WIPRO_2025_2026_A_8877705_22062026190140.pdf",
+        "sha256": "48f0612b11ccd1883d229d9c6ae3fcc0de65c6ae6bc6034b562884ecbbd5afd9"
+      },
+      "total_liabilities": {
+        "status": "VERIFIED",
+        "raw": "531385",
+        "value": "531385000000",
+        "unit": "million",
+        "currency": "INR",
+        "locator": "page=296;statement=Consolidated Balance Sheet;row=TOTAL LIABILITIES;column=March 31, 2026",
+        "period": "2026-03-31",
+        "basis": "consolidated",
+        "document": "https://nsearchives.nseindia.com/annual_reports/AR_29427_WIPRO_2025_2026_A_8877705_22062026190140.pdf",
+        "sha256": "48f0612b11ccd1883d229d9c6ae3fcc0de65c6ae6bc6034b562884ecbbd5afd9"
+      }
+    }
+  },
+  "TCS": {
+    "pages_pdf": 361,
+    "statement_pages": [
+      {
+        "page": 36,
+        "kind": "pl",
+        "unit": "crore",
+        "basis": "consolidated",
+        "columns": [
+          "2025-26",
+          "2024-25"
+        ]
+      },
+      {
+        "page": 167,
+        "kind": "bs",
+        "unit": "crore",
+        "basis": "consolidated",
+        "columns": [
+          "31 March 2026",
+          "31 March 2025"
+        ]
+      },
+      {
+        "page": 168,
+        "kind": "pl",
+        "unit": "crore",
+        "basis": "consolidated",
+        "columns": [
+          "March 31, 2026",
+          "March 31, 2025"
+        ]
+      },
+      {
+        "page": 173,
+        "kind": "cf",
+        "unit": "crore",
+        "basis": "consolidated",
+        "columns": [
+          "March 31, 2026",
+          "March 31, 2025"
+        ]
+      },
+      {
+        "page": 174,
+        "kind": "cf",
+        "unit": "crore",
+        "basis": "consolidated",
+        "columns": [
+          "March 31, 2026",
+          "March 31, 2025"
+        ]
+      },
+      {
+        "page": 222,
+        "kind": "pl",
+        "unit": "crore",
+        "basis": "consolidated",
+        "columns": [
+          "March 31, 2026",
+          "March 31, 2025"
+        ]
+      },
+      {
+        "page": 226,
+        "kind": "pl",
+        "unit": "crore",
+        "basis": "consolidated",
+        "columns": [
+          "March 31, 2026",
+          "March 31, 2025"
+        ]
+      }
+    ],
+    "dialect": "E_CRORE_ENCODING+US_DATE+UK_ORDINAL+B_YEAR_UNDER_MONTH+FY_RANGE",
+    "identity": "UNKNOWN",
+    "text_s": 51.99,
+    "reconstruct_s": 2.587,
+    "fields": {
+      "revenue": {
+        "status": "CONFLICT",
+        "raw": "220938",
+        "value": "",
+        "unit": "crore",
+        "currency": "INR",
+        "locator": "page=36;statement=Consolidated Statement of Profit and Loss;row=Revenue from operations;column=2025-26",
+        "period": "2026-03-31",
+        "basis": "consolidated",
+        "document": "https://nsearchives.nseindia.com/annual_reports/AR_29263_TCS_2025_2026_A_17427580_15052026234830.pdf",
+        "sha256": "d0bdc7fe1ae741b07bb76a158019cae05ab18abd2c2eeda43177d367bef24eb8"
+      },
+      "net_income": {
+        "status": "VERIFIED",
+        "raw": "49210",
+        "value": "492100000000",
+        "unit": "crore",
+        "currency": "INR",
+        "locator": "page=168;statement=Consolidated Statement of Profit and Loss;row=Profit for the year attributable to: Shareholders of the Company;column=March 31, 2026",
+        "period": "2026-03-31",
+        "basis": "consolidated",
+        "document": "https://nsearchives.nseindia.com/annual_reports/AR_29263_TCS_2025_2026_A_17427580_15052026234830.pdf",
+        "sha256": "d0bdc7fe1ae741b07bb76a158019cae05ab18abd2c2eeda43177d367bef24eb8"
+      },
+      "equity": {
+        "status": "VERIFIED",
+        "raw": "108478",
+        "value": "1084780000000",
+        "unit": "crore",
+        "currency": "INR",
+        "locator": "page=167;statement=Consolidated Balance Sheet;row=Total equity;column=31 March 2026",
+        "period": "2026-03-31",
+        "basis": "consolidated",
+        "document": "https://nsearchives.nseindia.com/annual_reports/AR_29263_TCS_2025_2026_A_17427580_15052026234830.pdf",
+        "sha256": "d0bdc7fe1ae741b07bb76a158019cae05ab18abd2c2eeda43177d367bef24eb8"
+      },
+      "cash": {
+        "status": "VERIFIED",
+        "raw": "6417",
+        "value": "64170000000",
+        "unit": "crore",
+        "currency": "INR",
+        "locator": "page=167;statement=Consolidated Balance Sheet;row=Cash and cash equivalents 8(c);column=31 March 2026",
+        "period": "2026-03-31",
+        "basis": "consolidated",
+        "document": "https://nsearchives.nseindia.com/annual_reports/AR_29263_TCS_2025_2026_A_17427580_15052026234830.pdf",
+        "sha256": "d0bdc7fe1ae741b07bb76a158019cae05ab18abd2c2eeda43177d367bef24eb8"
+      },
+      "cfo": null,
+      "total_assets": {
+        "status": "VERIFIED",
+        "raw": "182372",
+        "value": "1823720000000",
+        "unit": "crore",
+        "currency": "INR",
+        "locator": "page=167;statement=Consolidated Balance Sheet;row=TOTAL ASSETS;column=31 March 2026",
+        "period": "2026-03-31",
+        "basis": "consolidated",
+        "document": "https://nsearchives.nseindia.com/annual_reports/AR_29263_TCS_2025_2026_A_17427580_15052026234830.pdf",
+        "sha256": "d0bdc7fe1ae741b07bb76a158019cae05ab18abd2c2eeda43177d367bef24eb8"
+      },
+      "total_liabilities": null
+    }
+  },
+  "INFY": {
+    "pages_pdf": 384,
+    "statement_pages": [],
+    "dialect": "UNCLASSIFIED",
+    "identity": "UNKNOWN",
+    "text_s": 30.849,
+    "reconstruct_s": 1.713,
+    "fields": {
+      "revenue": null,
+      "net_income": null,
+      "equity": null,
+      "cash": null,
+      "cfo": null,
+      "total_assets": null,
+      "total_liabilities": null
+    }
+  },
+  "ASIANPAINT": {
+    "pages_pdf": 294,
+    "statement_pages": [
+      {
+        "page": 233,
+        "kind": "bs",
+        "unit": "crore",
+        "basis": "consolidated",
+        "columns": [
+          "31.03.2026",
+          "31.03.2025"
+        ]
+      },
+      {
+        "page": 234,
+        "kind": "pl",
+        "unit": "crore",
+        "basis": "consolidated",
+        "columns": [
+          "2025-26",
+          "2024-25"
+        ]
+      },
+      {
+        "page": 235,
+        "kind": "pl",
+        "unit": "crore",
+        "basis": "consolidated",
+        "columns": [
+          "March 2025 (D) = (A+B+C)",
+          "March 2026 (D+E+F)"
+        ]
+      },
+      {
+        "page": 236,
+        "kind": "cf",
+        "unit": "crore",
+        "basis": "consolidated",
+        "columns": [
+          "2025-26",
+          "2024-25"
+        ]
+      },
+      {
+        "page": 270,
+        "kind": "pl",
+        "unit": "crore",
+        "basis": "consolidated",
+        "columns": [
+          "31.03.2026",
+          "31.03.2025"
+        ]
+      }
+    ],
+    "dialect": "E_CRORE_ENCODING+FY_RANGE",
+    "identity": "UNKNOWN",
+    "text_s": 65.687,
+    "reconstruct_s": 6.961,
+    "fields": {
+      "revenue": null,
+      "net_income": {
+        "status": "VERIFIED",
+        "raw": "33626.82",
+        "value": "336268200000.00",
+        "unit": "crore",
+        "currency": "INR",
+        "locator": "page=234;statement=Consolidated Statement of Profit and Loss;row=REVENUE FROM OPERATIONS PROFIT FOR THE YEAR ATTRIBUTABLE TO : Revenue from Sale of Products - Owners of the Company;column=2025-26",
+        "period": "2026-03-31",
+        "basis": "consolidated",
+        "document": "https://nsearchives.nseindia.com/annual_reports/AR_29385_ASIANPAINT_2025_2026_A_26278926_12062026160918.pdf",
+        "sha256": "b7977d2419ed2e211d0ad53270165cc4205cafff7982b6b74fed6502fa25aacb"
+      },
+      "equity": null,
+      "cash": null,
+      "cfo": null,
+      "total_assets": null,
+      "total_liabilities": null
+    }
+  },
+  "RELIANCE": {
+    "pages_pdf": 187,
+    "statement_pages": [
+      {
+        "page": 139,
+        "kind": "bs",
+        "unit": "crore",
+        "basis": "consolidated",
+        "columns": [
+          "March,\t2026",
+          "March,\t2025"
+        ]
+      },
+      {
+        "page": 157,
+        "kind": "pl",
+        "unit": "crore",
+        "basis": "consolidated",
+        "columns": [
+          "March,\t2025",
+          "2025-26 2024-25"
+        ]
+      },
+      {
+        "page": 183,
+        "kind": "bs",
+        "unit": "crore",
+        "basis": "consolidated",
+        "columns": [
+          "March,\t2026",
+          "March,\t2025"
+        ]
+      },
+      {
+        "page": 184,
+        "kind": "bs",
+        "unit": "crore",
+        "basis": "consolidated",
+        "columns": [
+          "March,\t2026",
+          "March,\t2025"
+        ]
+      }
+    ],
+    "dialect": "E_CRORE_ENCODING+FY_RANGE+C_MULTI_PAGE",
+    "identity": "UNKNOWN",
+    "text_s": 31.757,
+    "reconstruct_s": 3.315,
+    "fields": {
+      "revenue": null,
+      "net_income": null,
+      "equity": {
+        "status": "CONFLICT",
+        "raw": "1085866",
+        "value": "",
+        "unit": "crore",
+        "currency": "INR",
+        "locator": "page=139;statement=Consolidated Balance Sheet;row=Goodwill Total\tEquity;column=March,\t2026",
+        "period": "2026-03-31",
+        "basis": "consolidated",
+        "document": "https://nsearchives.nseindia.com/annual_reports/AR_29285_RELIANCE_2025_2026_A_11007429_28052026133947.pdf",
+        "sha256": "6fc365c08e7be923eedfa824bc92e605e094da98ad18e1f54cf71db7392c4a94"
+      },
+      "cash": {
+        "status": "VERIFIED",
+        "raw": "10145977106502",
+        "value": "101459771065020000000",
+        "unit": "crore",
+        "currency": "INR",
+        "locator": "page=139;statement=Consolidated Balance Sheet;row=Cash and Cash Equivalents Trade Payables;column=March,\t2026",
+        "period": "2026-03-31",
+        "basis": "consolidated",
+        "document": "https://nsearchives.nseindia.com/annual_reports/AR_29285_RELIANCE_2025_2026_A_11007429_28052026133947.pdf",
+        "sha256": "6fc365c08e7be923eedfa824bc92e605e094da98ad18e1f54cf71db7392c4a94"
+      },
+      "cfo": null,
+      "total_assets": {
+        "status": "VERIFIED",
+        "raw": "21781401950121",
+        "value": "217814019501210000000",
+        "unit": "crore",
+        "currency": "INR",
+        "locator": "page=139;statement=Consolidated Balance Sheet;row=Total Assets Total Liabilities;column=March,\t2026",
+        "period": "2026-03-31",
+        "basis": "consolidated",
+        "document": "https://nsearchives.nseindia.com/annual_reports/AR_29285_RELIANCE_2025_2026_A_11007429_28052026133947.pdf",
+        "sha256": "6fc365c08e7be923eedfa824bc92e605e094da98ad18e1f54cf71db7392c4a94"
+      },
+      "total_liabilities": {
+        "status": "VERIFIED",
+        "raw": "21781401950121",
+        "value": "217814019501210000000",
+        "unit": "crore",
+        "currency": "INR",
+        "locator": "page=139;statement=Consolidated Balance Sheet;row=Total Assets Total Liabilities;column=March,\t2026",
+        "period": "2026-03-31",
+        "basis": "consolidated",
+        "document": "https://nsearchives.nseindia.com/annual_reports/AR_29285_RELIANCE_2025_2026_A_11007429_28052026133947.pdf",
+        "sha256": "6fc365c08e7be923eedfa824bc92e605e094da98ad18e1f54cf71db7392c4a94"
+      }
+    }
+  },
+  "HINDUNILVR": {
+    "pages_pdf": 246,
+    "statement_pages": [
+      {
+        "page": 185,
+        "kind": "bs",
+        "unit": "crore",
+        "basis": "consolidated",
+        "columns": [
+          "31st March, 2026",
+          "31st March, 2025"
+        ]
+      },
+      {
+        "page": 186,
+        "kind": "pl",
+        "unit": "crore",
+        "basis": "consolidated",
+        "columns": [
+          "31st March, 2026",
+          "31st March, 2025"
+        ]
+      },
+      {
+        "page": 188,
+        "kind": "cf",
+        "unit": "crore",
+        "basis": "consolidated",
+        "columns": [
+          "31st March, 2026",
+          "31st March, 2025"
+        ]
+      },
+      {
+        "page": 203,
+        "kind": "pl",
+        "unit": "crore",
+        "basis": "consolidated",
+        "columns": [
+          "31st March, 2026",
+          "31st March, 2025"
+        ]
+      },
+      {
+        "page": 205,
+        "kind": "pl",
+        "unit": "crore",
+        "basis": "consolidated",
+        "columns": [
+          "31st March, 2026",
+          "31st March, 2025"
+        ]
+      }
+    ],
+    "dialect": "E_CRORE_ENCODING+UK_ORDINAL",
+    "identity": "UNKNOWN",
+    "text_s": 49.284,
+    "reconstruct_s": 4.306,
+    "fields": {
+      "revenue": {
+        "status": "VERIFIED",
+        "raw": "-59",
+        "value": "-590000000",
+        "unit": "crore",
+        "currency": "INR",
+        "locator": "page=205;statement=Consolidated Statement of Profit and Loss;row=Current liabilities  - Revenue from operations  653;column=31st March, 2026",
+        "period": "2026-03-31",
+        "basis": "consolidated",
+        "document": "https://nsearchives.nseindia.com/annual_reports/AR_29330_HINDUNILVR_2025_2026_A_21643813_02062026215058.pdf",
+        "sha256": "ab3842889a4dbfe697fa2bbed89d3b8bc622e7a13b052841b4908b92be719054"
+      },
+      "net_income": {
+        "status": "VERIFIED",
+        "raw": "51157",
+        "value": "511570000000",
+        "unit": "crore",
+        "currency": "INR",
+        "locator": "page=186;statement=Consolidated Statement of Profit and Loss;row=TOTAL EXPENSES Net profit attributable to:;column=31st March, 2026",
+        "period": "2026-03-31",
+        "basis": "consolidated",
+        "document": "https://nsearchives.nseindia.com/annual_reports/AR_29330_HINDUNILVR_2025_2026_A_21643813_02062026215058.pdf",
+        "sha256": "ab3842889a4dbfe697fa2bbed89d3b8bc622e7a13b052841b4908b92be719054"
+      },
+      "equity": null,
+      "cash": {
+        "status": "VERIFIED",
+        "raw": "1483",
+        "value": "14830000000",
+        "unit": "crore",
+        "currency": "INR",
+        "locator": "page=185;statement=Consolidated Balance Sheet;row=Bank balances other than cash and cash equivalents mentioned above 14  665 and small enterprises;column=31st March, 2026",
+        "period": "2026-03-31",
+        "basis": "consolidated",
+        "document": "https://nsearchives.nseindia.com/annual_reports/AR_29330_HINDUNILVR_2025_2026_A_21643813_02062026215058.pdf",
+        "sha256": "ab3842889a4dbfe697fa2bbed89d3b8bc622e7a13b052841b4908b92be719054"
+      },
+      "cfo": null,
+      "total_assets": {
+        "status": "VERIFIED",
+        "raw": "79752",
+        "value": "797520000000",
+        "unit": "crore",
+        "currency": "INR",
+        "locator": "page=185;statement=Consolidated Balance Sheet;row=TOTAL ASSETS (A+B);column=31st March, 2026",
+        "period": "2026-03-31",
+        "basis": "consolidated",
+        "document": "https://nsearchives.nseindia.com/annual_reports/AR_29330_HINDUNILVR_2025_2026_A_21643813_02062026215058.pdf",
+        "sha256": "ab3842889a4dbfe697fa2bbed89d3b8bc622e7a13b052841b4908b92be719054"
+      },
+      "total_liabilities": null
+    }
+  },
+  "HDFCBANK": {
+    "pages_pdf": 678,
+    "statement_pages": [
+      {
+        "page": 496,
+        "kind": "bs",
+        "unit": "crore",
+        "basis": "consolidated",
+        "columns": [
+          "March 31, 2026",
+          "March 31, 2025"
+        ]
+      },
+      {
+        "page": 497,
+        "kind": "pl",
+        "unit": "crore",
+        "basis": "consolidated",
+        "columns": [
+          "March 31, 2026",
+          "March 31, 2025"
+        ]
+      },
+      {
+        "page": 498,
+        "kind": "cf",
+        "unit": "crore",
+        "basis": "consolidated",
+        "columns": [
+          "March 31, 2026",
+          "March 31, 2025"
+        ]
+      },
+      {
+        "page": 499,
+        "kind": "cf",
+        "unit": "crore",
+        "basis": "consolidated",
+        "columns": [
+          "March 31, 2026",
+          "March 31, 2025"
+        ]
+      }
+    ],
+    "dialect": "E_CRORE_ENCODING+US_DATE+B_YEAR_UNDER_MONTH",
+    "identity": "UNKNOWN",
+    "text_s": 44.601,
+    "reconstruct_s": 2.419,
+    "fields": {
+      "revenue": null,
+      "net_income": null,
+      "equity": null,
+      "cash": null,
+      "cfo": null,
+      "total_assets": null,
+      "total_liabilities": null
+    }
+  }
+}

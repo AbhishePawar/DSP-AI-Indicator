@@ -1,0 +1,348 @@
+{
+  "fy": 2026,
+  "names": [
+    {
+      "ticker": "INFY",
+      "isin": "INE009A01021",
+      "annual_reports": [],
+      "annual_fy_count": 0,
+      "fy_result_rows": [],
+      "selected_from_announcements": [
+        {
+          "title": "General Updates",
+          "kind": "other",
+          "fy": null,
+          "score": 100,
+          "url": "https://nsearchives.nseindia.com/corporate/INFY_30052026201240_SE_Integrated_Annual_Report_2025-26.pdf"
+        },
+        {
+          "title": "General Updates",
+          "kind": "other",
+          "fy": null,
+          "score": 100,
+          "url": "https://nsearchives.nseindia.com/corporate/Infosys_29052026202126_Infosys_Integrated_Annual_Report_2025-26.pdf"
+        },
+        {
+          "title": "Shareholders meeting",
+          "kind": "other",
+          "fy": null,
+          "score": 100,
+          "url": "https://nsearchives.nseindia.com/corporate/INFY_30052026200807_SE_Integrated_Annual_Report_2025-26.pdf"
+        },
+        {
+          "title": "Shareholders meeting",
+          "kind": "other",
+          "fy": null,
+          "score": 100,
+          "url": "https://nsearchives.nseindia.com/corporate/Infosys_29052026201312_Infosys_Integrated_Annual_Report_2025-26.pdf"
+        },
+        {
+          "title": "Updates",
+          "kind": "other",
+          "fy": null,
+          "score": 90,
+          "url": "https://nsearchives.nseindia.com/corporate/INFY_18052019004043_Infosys_Annual_Report_FY19_591.pdf"
+        }
+      ],
+      "ca_announcements": [
+        {
+          "an_dt": "05-Dec-2025 15:40:37",
+          "desc": "Post Buyback Public Announcement",
+          "text": "Post Buyback Public Announcement"
+        },
+        {
+          "an_dt": "18-Nov-2025 18:25:53",
+          "desc": "Buyback",
+          "text": "Buyback"
+        },
+        {
+          "an_dt": "10-Nov-2025 17:23:20",
+          "desc": "Public Announcement - Buyback of Shares",
+          "text": "Public Announcement - Buyback of Shares"
+        },
+        {
+          "an_dt": "11-Sep-2025 21:52:12",
+          "desc": "Buyback",
+          "text": "Buyback"
+        },
+        {
+          "an_dt": "10-Oct-2022 21:57:30",
+          "desc": "Buyback - others",
+          "text": "Buyback - others"
+        },
+        {
+          "an_dt": "13-Sep-2021 18:48:10",
+          "desc": "Post Buyback Public Announcement",
+          "text": "Post Buyback Public Announcement"
+        },
+        {
+          "an_dt": "10-Sep-2021 22:07:36",
+          "desc": "Post Buyback Public Announcement",
+          "text": "Post Buyback Public Announcement"
+        },
+        {
+          "an_dt": "24-Aug-2021 20:02:59",
+          "desc": "Extinguishment",
+          "text": "Extinguishment"
+        }
+      ]
+    },
+    {
+      "ticker": "TCS",
+      "isin": "INE467B01029",
+      "annual_reports": [],
+      "annual_fy_count": 0,
+      "fy_result_rows": [],
+      "selected_from_announcements": [
+        {
+          "title": "Shareholders meeting",
+          "kind": "other",
+          "fy": null,
+          "score": 90,
+          "url": "https://nsearchives.nseindia.com/corporate/TCS_CORPCS_15052026234517_SE_Letter_-_Annual_Report_signed.pdf"
+        }
+      ],
+      "ca_announcements": [
+        {
+          "an_dt": "13-Dec-2023 16:23:02",
+          "desc": "Post Buyback Public Announcement",
+          "text": "Post Buyback Public Announcement"
+        },
+        {
+          "an_dt": "28-Nov-2023 15:03:06",
+          "desc": "Buyback",
+          "text": "Buyback"
+        },
+        {
+          "an_dt": "17-Nov-2023 17:34:03",
+          "desc": "Public Announcement - Buyback of Shares",
+          "text": "Public Announcement - Buyback of Shares"
+        },
+        {
+          "an_dt": "11-Oct-2023 17:22:45",
+          "desc": "Buyback",
+          "text": "Buyback"
+        },
+        {
+          "an_dt": "29-Mar-2022 19:10:32",
+          "desc": "Post Buyback Public Announcement",
+          "text": "Post Buyback Public Announcement"
+        },
+        {
+          "an_dt": "06-Mar-2022 22:26:20",
+          "desc": "Buyback - others",
+          "text": "Buyback - others"
+        },
+        {
+          "an_dt": "06-Mar-2022 22:15:40",
+          "desc": "Buyback - others",
+          "text": "Buyback - others"
+        },
+        {
+          "an_dt": "14-Feb-2022 17:54:34",
+          "desc": "Public Announcement - Buyback of Shares",
+          "text": "Public Announcement - Buyback of Shares"
+        }
+      ]
+    },
+    {
+      "ticker": "WIPRO",
+      "isin": "INE075A01022",
+      "annual_reports": [],
+      "annual_fy_count": 0,
+      "fy_result_rows": [],
+      "selected_from_announcements": [
+        {
+          "title": "Shareholders meeting",
+          "kind": "other",
+          "fy": null,
+          "score": 100,
+          "url": "https://nsearchives.nseindia.com/corporate/WIPRO_19062021220116_Integrated_Annual_Report.pdf"
+        },
+        {
+          "title": "General updates",
+          "kind": "other",
+          "fy": null,
+          "score": 90,
+          "url": "https://nsearchives.nseindia.com/corporate/WIPRO_27062022201354_Wipro_Annual_Report.pdf"
+        }
+      ],
+      "ca_announcements": [
+        {
+          "an_dt": "26-Jun-2026 18:10:57",
+          "desc": "Post Buyback Public Announcement",
+          "text": "Post Buyback Public Announcement"
+        },
+        {
+          "an_dt": "25-May-2026 17:09:20",
+          "desc": "Public Announcement - Buyback of Shares",
+          "text": "Public Announcement - Buyback of Shares"
+        },
+        {
+          "an_dt": "17-Oct-2024 15:55:16",
+          "desc": "Bonus",
+          "text": "Bonus"
+        },
+        {
+          "an_dt": "06-Jul-2023 18:05:01",
+          "desc": "Post Buyback Public Announcement",
+          "text": "Post Buyback Public Announcement"
+        },
+        {
+          "an_dt": "27-Jun-2023 20:17:40",
+          "desc": "Buyback",
+          "text": "Buyback"
+        },
+        {
+          "an_dt": "20-Jun-2023 08:55:46",
+          "desc": "Buyback",
+          "text": "Buyback"
+        },
+        {
+          "an_dt": "05-Jun-2023 17:26:51",
+          "desc": "Public Announcement - Buyback of Shares",
+          "text": "Public Announcement - Buyback of Shares"
+        },
+        {
+          "an_dt": "16-Jan-2021 11:37:17",
+          "desc": "Post Buyback Public Announcement",
+          "text": "Post Buyback Public Announcement"
+        }
+      ]
+    },
+    {
+      "ticker": "HDFCBANK",
+      "isin": "INE040A01034",
+      "annual_reports": [],
+      "annual_fy_count": 0,
+      "fy_result_rows": [],
+      "selected_from_announcements": [],
+      "ca_announcements": [
+        {
+          "an_dt": "19-Jul-2025 14:56:32",
+          "desc": "Bonus",
+          "text": "Bonus"
+        },
+        {
+          "an_dt": "23-May-2019 14:10:00",
+          "desc": "Stock split",
+          "text": "Stock split"
+        },
+        {
+          "an_dt": "18-Apr-2011 16:57:00",
+          "desc": "Share Split",
+          "text": "Share Split"
+        }
+      ]
+    },
+    {
+      "ticker": "RELIANCE",
+      "isin": "INE002A01018",
+      "annual_reports": [],
+      "annual_fy_count": 0,
+      "fy_result_rows": [],
+      "selected_from_announcements": [],
+      "ca_announcements": [
+        {
+          "an_dt": "29-Oct-2024 12:34:03",
+          "desc": "Bonus",
+          "text": "Bonus"
+        },
+        {
+          "an_dt": "05-Sep-2024 15:10:57",
+          "desc": "Bonus",
+          "text": "Bonus"
+        },
+        {
+          "an_dt": "30-Apr-2020 18:40:00",
+          "desc": "Rights Issue",
+          "text": "Rights Issue"
+        },
+        {
+          "an_dt": "21-Jul-2017 12:42:00",
+          "desc": "Bonus",
+          "text": "Bonus"
+        },
+        {
+          "an_dt": "22-Jan-2013 10:43:00",
+          "desc": "Post Buyback Public Announcement",
+          "text": "Post Buyback Public Announcement"
+        },
+        {
+          "an_dt": "10-Jan-2013 18:03:00",
+          "desc": "Buyback",
+          "text": "Buyback"
+        },
+        {
+          "an_dt": "01-Jan-2013 17:07:00",
+          "desc": "Buyback",
+          "text": "Buyback"
+        },
+        {
+          "an_dt": "13-Dec-2012 19:24:00",
+          "desc": "Buyback",
+          "text": "Buyback"
+        }
+      ]
+    },
+    {
+      "ticker": "ASIANPAINT",
+      "isin": "INE021A01026",
+      "annual_reports": [],
+      "annual_fy_count": 0,
+      "fy_result_rows": [],
+      "selected_from_announcements": [],
+      "ca_announcements": []
+    },
+    {
+      "ticker": "HINDUNILVR",
+      "isin": "INE030A01027",
+      "annual_reports": [],
+      "annual_fy_count": 0,
+      "fy_result_rows": [],
+      "selected_from_announcements": [],
+      "ca_announcements": [
+        {
+          "an_dt": "31-Mar-2011 18:48:00",
+          "desc": "Extinguishment of Shares",
+          "text": "Extinguishment of Shares"
+        },
+        {
+          "an_dt": "15-Mar-2011 15:23:00",
+          "desc": "Extinguishment of Shares",
+          "text": "Extinguishment of Shares"
+        },
+        {
+          "an_dt": "09-Mar-2011 15:21:00",
+          "desc": "Extinguishment of Shares",
+          "text": "Extinguishment of Shares"
+        },
+        {
+          "an_dt": "21-Feb-2011 14:47:00",
+          "desc": "Extinguishment of Shares",
+          "text": "Extinguishment of Shares"
+        },
+        {
+          "an_dt": "09-Feb-2011 17:03:00",
+          "desc": "Extinguishment of Shares",
+          "text": "Extinguishment of Shares"
+        },
+        {
+          "an_dt": "14-Sep-2010 10:56:00",
+          "desc": "Extinguishment of Shares",
+          "text": "Extinguishment of Shares"
+        },
+        {
+          "an_dt": "12-Aug-2010 17:47:00",
+          "desc": "Public Announcement - Buyback of Shares",
+          "text": "Public Announcement - Buyback of Shares"
+        },
+        {
+          "an_dt": "15-Jun-2010 11:06:00",
+          "desc": "Buyback",
+          "text": "Buyback"
+        }
+      ]
+    }
+  ]
+}

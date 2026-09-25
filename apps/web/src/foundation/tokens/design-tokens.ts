@@ -5,15 +5,15 @@
 
 export const colorTokens = {
   light: {
-    bg: "#f3efe6",
-    fg: "#1c2421",
-    muted: "#5c6b66",
-    surface: "#fffdf8",
-    surface2: "#ebe4d6",
-    border: "#d5ccbc",
-    accent: "#0f6e56",
-    accentFg: "#f4fff9",
-    accentSoft: "#d8f0e6",
+    bg: "#f4f5fb",
+    fg: "#141824",
+    muted: "#5b6680",
+    surface: "#ffffff",
+    surface2: "#eceef6",
+    border: "#d5dae8",
+    accent: "#5b4ee0",
+    accentFg: "#ffffff",
+    accentSoft: "rgba(91, 78, 224, 0.12)",
     dangerBg: "#fde8e4",
     dangerFg: "#7a2e22",
     dangerBorder: "#e7b1a6",
@@ -21,15 +21,15 @@ export const colorTokens = {
     warningFg: "#7a5a12",
   },
   dark: {
-    bg: "#0a0e12",
-    fg: "#d4dce4",
-    muted: "#7b8fa0",
-    surface: "#0f1318",
-    surface2: "#161c22",
-    border: "#1e2830",
-    accent: "#2cb67d",
-    accentFg: "#0a0e12",
-    accentSoft: "#1a2f26",
+    bg: "#080b12",
+    fg: "#dde2ed",
+    muted: "#6b7a99",
+    surface: "#111520",
+    surface2: "#151a28",
+    border: "#1e2538",
+    accent: "#7c6af7",
+    accentFg: "#ffffff",
+    accentSoft: "rgba(124, 106, 247, 0.14)",
     dangerBg: "#2a1215",
     dangerFg: "#f87171",
     dangerBorder: "#4c1d1d",
@@ -38,8 +38,8 @@ export const colorTokens = {
   },
 } as const;
 
-/** Forbidden brand accents (VLIS / product constitution). */
-export const forbiddenAccents = ["purple", "magenta", "neon"] as const;
+/** Forbidden brand accents — neon/magenta only. Figma Make uses DSP violet. */
+export const forbiddenAccents = ["magenta", "neon"] as const;
 
 export const typographyTokens = {
   display: 'var(--font-display)',

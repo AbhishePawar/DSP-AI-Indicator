@@ -34,6 +34,7 @@ from data_engine.official_research.extraction import (
     attack_corporate_actions,
     canonical_share_semantic_type,
     document_identity_matches,
+    extract_classified_capex,
     extract_labeled_field,
     parse_document_context,
 )
@@ -492,6 +493,8 @@ def _acquire_one_field(
                 )
                 continue
             extracted = extract_labeled_field(body, field)
+            if field == "capex" and (extracted is None or not extracted.value):
+                extracted = extract_classified_capex(body)
             if extracted is None or not extracted.value:
                 extracted = extract_nse_api_field(
                     url, body, listing=listing, field=field
@@ -521,6 +524,8 @@ def _acquire_one_field(
     if not raw_items and document_text:
         text = sanitize_document_text(document_text)
         extracted = extract_labeled_field(text, field)
+        if field == "capex" and (extracted is None or not extracted.value):
+            extracted = extract_classified_capex(text)
         timings["extract"] += perf_counter() - t
         t = perf_counter()
         if extracted is None or not extracted.value:
@@ -686,10 +691,12 @@ def _acquire_one_field(
             research_horizon=research_horizon,
             ca_checked_through=ca_checked_through,
         )
+        through = ca_checked_through or chosen.current_through or chosen.as_of
         chosen = replace(
             chosen,
             corporate_action_status=ca_status,
             semantic_kind=share_type,
+            current_through=through,
         )
     if chosen.identity_status != "PASS":
         failures.append(ResearchFailure("IDENTITY_FAILURE", "document identity failed", field=field))

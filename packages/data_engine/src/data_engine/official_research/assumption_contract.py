@@ -40,6 +40,7 @@ ASSUMPTION_STATUSES: frozenset[str] = frozenset(
         "UNKNOWN",
         "USER_REQUIRED",
         "REVIEW_REQUIRED",
+        "STALE",
     }
 )
 
@@ -77,6 +78,7 @@ FACT_FIELDS: frozenset[str] = frozenset(
         "total_liabilities",
         "gdp",
         "total_market_cap",
+        "finance_costs",
     }
 )
 
@@ -96,6 +98,9 @@ DERIVED_FIELDS: frozenset[str] = frozenset(
         "equity_value",
         "dcf",
         "terminal_value",
+        "cost_of_equity",
+        "after_tax_cost_of_debt",
+        "capital_weights",
     }
 )
 
@@ -115,6 +120,7 @@ ASSUMPTION_FIELDS: frozenset[str] = frozenset(
         "beta",
         "risk_free_rate",
         "equity_risk_premium",
+        "pre_tax_cost_of_debt",
     }
 )
 

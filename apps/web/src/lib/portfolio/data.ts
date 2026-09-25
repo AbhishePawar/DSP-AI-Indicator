@@ -95,38 +95,6 @@ function groupAllocation(
     .sort((a, b) => b.percent - a.percent);
 }
 
-function deriveMarketCapSegment(ticker: string): string {
-  const largeCap = new Set([
-    "AAPL",
-    "MSFT",
-    "TCS",
-    "HDFCBANK",
-    "NESTLEIND",
-    "NVDA",
-    "GOOGL",
-    "AMZN",
-  ]);
-  return largeCap.has(ticker) ? "Large Cap" : "Mid Cap";
-}
-
-function deriveGeography(exchange: string): string {
-  if (exchange === "NSE") return "India";
-  if (exchange === "NASDAQ" || exchange === "NYSE") return "United States";
-  return "Other";
-}
-
-function exchangeForTicker(ticker: string): string {
-  const nse = new Set([
-    "TCS",
-    "HDFCBANK",
-    "NESTLEIND",
-    "INFY",
-    "RELIANCE",
-    "ICICIBANK",
-  ]);
-  return nse.has(ticker) ? "NSE" : "NASDAQ";
-}
-
 /** Rebalance allocations equally across holdings (presentation only). */
 export function rebalanceHoldings(
   holdings: PortfolioHolding[],
@@ -144,7 +112,6 @@ export function rebalanceHoldings(
 
 export function buildPortfolioSummary(
   holdings: PortfolioHolding[],
-  cashAllocation = "12%",
 ): PortfolioSummary {
   const buyCount = holdings.filter((h) => h.recommendation === "Buy").length;
   const holdCount = holdings.filter((h) => h.recommendation === "Hold").length;
@@ -174,8 +141,10 @@ export function buildPortfolioSummary(
     sectorCount,
     researchCoverage,
     portfolioStatus,
-    portfolioValue: holdings.length > 0 ? "₹12,45,000" : "—",
-    cashAllocation: holdings.length > 0 ? cashAllocation : "—",
+    // CV-001: holdings carry no quantity / cost / cash sleeve, so portfolio
+    // value and cash allocation are unavailable — never a placeholder figure.
+    portfolioValue: "Data unavailable.",
+    cashAllocation: "Data unavailable.",
     // Company quality scores come from /api/v1/analyse — never invented here.
     averageQualityScore: "Unavailable",
     averageRecommendation: recommendation,
@@ -185,12 +154,12 @@ export function buildPortfolioSummary(
 export function buildAllocations(holdings: PortfolioHolding[]) {
   return {
     bySector: groupAllocation(holdings, (h) => h.sector),
-    byMarketCap: groupAllocation(holdings, (h) =>
-      deriveMarketCapSegment(h.ticker),
-    ),
-    byGeography: groupAllocation(holdings, (h) =>
-      deriveGeography(exchangeForTicker(h.ticker)),
-    ),
+    // Market-cap bucket and listing geography are not attributes of the
+    // holdings model; they were previously guessed from hardcoded ticker
+    // sets (CV-001 violation). They stay empty until an authenticated
+    // classification is available.
+    byMarketCap: [] as AllocationSegment[],
+    byGeography: [] as AllocationSegment[],
   };
 }
 
@@ -227,6 +196,10 @@ export function holdingFromInput(input: AddHoldingInput): PortfolioHolding {
   };
 }
 
+/**
+ * Test-only fixture. Not reachable from production UI — the Figma portfolio
+ * workspace never seeds demo holdings, prices, or recommendations (CV-001).
+ */
 export function getDemoPortfolio(): PortfolioView {
   return buildPortfolioView(DEMO_HOLDINGS, DEMO_ACTIVITIES);
 }

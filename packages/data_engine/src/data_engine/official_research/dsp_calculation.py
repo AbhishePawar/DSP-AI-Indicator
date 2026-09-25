@@ -73,6 +73,7 @@ __all__ = [
     "presentation_round",
     "run_dsp_calculations",
     "scenario_pack",
+    "describe_dcf_blockers",
 ]
 
 DCF_METHOD_FORMULA = (
@@ -422,7 +423,16 @@ def _run_dcf(
     wacc = _rate(wacc_row)
     growth = _rate(growth_row)
     terminal = _rate(terminal_row)
-    years = 5 if years_row is None or years_row.value is None else int(years_row.value)
+    if years_row is None or years_row.value is None:
+        return _blocked(
+            "dcf",
+            status="BLOCKED",
+            detail="projection_years is an explicit assumption; no hidden horizon default",
+            now=now,
+            scenario=scenario,
+            inputs=inputs,
+        )
+    years = int(years_row.value)
     if wacc is None or growth is None or terminal is None:
         return _blocked(
             "dcf",
@@ -882,6 +892,40 @@ def buffett_market_gdp(
         calculated_at=now,
         detail="classic market-cap/GDP; company market cap is not the market",
     )
+
+
+def describe_dcf_blockers(
+    dataset: VerifiedDataset | None,
+    dsp: DspCalculationSet | None,
+    *,
+    capability: str,
+    assumptions_accepted: bool,
+) -> tuple[str, ...]:
+    """Exact missing/invalid DCF prerequisites. Does not invent substitutes."""
+    if capability != "equity":
+        return (f"{capability}: ordinary DCF not applicable",)
+    if dataset is None:
+        return ("dataset unavailable",)
+    reasons: list[str] = []
+    if dataset.identity_status != "VERIFIED":
+        reasons.append("IDENTITY")
+    if dataset.price_status != "VERIFIED":
+        reasons.append("PRICE")
+    if dataset.shares_status != "VERIFIED":
+        reasons.append(f"SHARES:{dataset.shares_status}")
+    if dataset.field_status("cfo") != "VERIFIED":
+        reasons.append("CFO")
+    if dataset.field_status("capex") != "VERIFIED":
+        reasons.append("CAPEX")
+    if dsp is None or dsp.derived.fcf.status != "CALCULATED":
+        status = "MISSING" if dsp is None else dsp.derived.fcf.status
+        reasons.append(f"FCF:{status}")
+    if not assumptions_accepted:
+        reasons.append("ASSUMPTIONS")
+    if dsp is not None and dsp.dcf.status != "CALCULATED" and dsp.dcf.detail:
+        if dsp.dcf.detail not in reasons:
+            reasons.append(dsp.dcf.detail)
+    return tuple(reasons) if reasons else ("NONE",)
 
 
 def run_dsp_calculations(

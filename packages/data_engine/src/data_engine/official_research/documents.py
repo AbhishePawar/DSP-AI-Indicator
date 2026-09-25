@@ -4,9 +4,11 @@ from __future__ import annotations
 
 import hashlib
 import re
+import zipfile
 from dataclasses import dataclass
 from datetime import date, datetime
 from http.cookiejar import CookieJar
+from io import BytesIO
 from urllib.error import HTTPError, URLError
 from urllib.parse import urljoin
 from urllib.request import HTTPCookieProcessor, HTTPRedirectHandler, Request, build_opener
@@ -17,6 +19,8 @@ from data_engine.official_research.nse_eod import NseHttpTransport, NsePublicHtt
 from data_engine.official_research.source_policy import SourcePolicy, classify_source_url
 
 __all__ = [
+    "APPROVED_HTTPS_MAX_BYTES",
+    "APPROVED_HTTPS_TIMEOUT_SECONDS",
     "DocumentCandidate",
     "DocumentCharacteristics",
     "DocumentRecord",
@@ -26,9 +30,16 @@ __all__ = [
     "document_version_relation",
     "identify_document_characteristics",
     "redirect_is_approved",
+    "retrieve_approved_https",
     "retrieve_official_document",
     "select_extraction_strategy",
+    "unwrap_archive_payload",
+    "validate_document_payload",
 ]
+
+APPROVED_HTTPS_MAX_BYTES = 2_000_000
+APPROVED_HTTPS_TIMEOUT_SECONDS = 20.0
+_NSE_HOST_SUFFIXES = ("nseindia.com", "nseindia.in", "nse.co.in")
 
 _UA = (
     "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
@@ -190,7 +201,22 @@ class _ApprovedRedirectHandler(HTTPRedirectHandler):
         return super().redirect_request(req, fp, code, msg, headers, newurl)
 
 
-def _fetch_with_redirect_policy(url: str, *, allow) -> bytes:
+def _read_bounded(response, *, max_bytes: int | None) -> bytes:
+    if max_bytes is None:
+        return response.read()
+    payload = response.read(max_bytes + 1)
+    if len(payload) > max_bytes:
+        raise LookupError(f"response exceeds bound of {max_bytes} bytes")
+    return payload
+
+
+def _fetch_with_redirect_policy(
+    url: str,
+    *,
+    allow,
+    timeout_seconds: float = 45.0,
+    max_bytes: int | None = None,
+) -> tuple[bytes, int, str, str]:
     opener = build_opener(
         HTTPCookieProcessor(CookieJar()),
         _ApprovedRedirectHandler(allow),
@@ -205,14 +231,96 @@ def _fetch_with_redirect_policy(url: str, *, allow) -> bytes:
         },
     )
     try:
-        with opener.open(request, timeout=45.0) as response:
-            return response.read()
+        with opener.open(request, timeout=timeout_seconds) as response:
+            payload = _read_bounded(response, max_bytes=max_bytes)
+            status = int(getattr(response, "status", 200) or 200)
+            header_type = str(response.headers.get("Content-Type") or "")
+            final_url = str(getattr(response, "geturl", lambda: url)())
+            return payload, status, header_type, final_url
     except HTTPError as exc:
         raise LookupError(f"HTTP {exc.code} for official URL") from None
     except LookupError:
         raise
     except (URLError, OSError) as exc:
         raise LookupError(f"request failed: {type(exc).__name__}") from None
+
+
+def _is_nse_host(url: str) -> bool:
+    host = host_of(url)
+    return any(host == suffix or host.endswith("." + suffix) for suffix in _NSE_HOST_SUFFIXES)
+
+
+def retrieve_approved_https(
+    url: str,
+    *,
+    isin: str,
+    mic: str,
+    source_type: str = "regulator",
+    timeout_seconds: float = APPROVED_HTTPS_TIMEOUT_SECONDS,
+    max_bytes: int = APPROVED_HTTPS_MAX_BYTES,
+    registry: CompanySourceRegistry | None = None,
+    document_date: str | None = None,
+    policy: SourcePolicy | None = None,
+) -> DocumentRecord | RetrievalFailure:
+    """HTTPS fetch for an already-approved host. No NSE cookie-warming.
+
+    Rejects http, unapproved hosts, unapproved redirects, and oversized bodies.
+    Does not log request headers or payloads.
+    """
+    policy = policy or SourcePolicy()
+    text = str(url or "").strip()
+    if not text.lower().startswith("https://"):
+        return RetrievalFailure(url=text, reason="HTTPS required")
+    host_kind = classify_source_url(text, source_type=source_type)
+    if host_kind == "forbidden":
+        return RetrievalFailure(url=text, reason="forbidden source")
+    if host_kind == "secondary":
+        return RetrievalFailure(url=text, reason="secondary source cannot be retrieved as truth")
+    if host_kind == "approved_research":
+        return RetrievalFailure(
+            url=text,
+            reason="approved research cannot be retrieved as primary truth",
+        )
+    if host_kind != "primary":
+        return RetrievalFailure(url=text, reason="unapproved host")
+    if not policy.may_verify(text, source_type=source_type) and host_kind != "primary":
+        return RetrievalFailure(url=text, reason=f"unapproved source class={host_kind}")
+    allow = lambda target: redirect_is_approved(target, isin=isin, registry=registry)
+    try:
+        payload, status, header_type, final_url = _fetch_with_redirect_policy(
+            text,
+            allow=allow,
+            timeout_seconds=timeout_seconds,
+            max_bytes=max_bytes,
+        )
+    except LookupError as exc:
+        http_status = None
+        message = str(exc)
+        if "HTTP " in message:
+            try:
+                http_status = int(message.split("HTTP ", 1)[1].split()[0])
+            except ValueError:
+                http_status = None
+        return RetrievalFailure(url=text, reason=message, http_status=http_status)
+    invalid = validate_document_payload(text, payload)
+    if invalid:
+        return RetrievalFailure(url=text, reason=invalid, http_status=status)
+    sniffed = _sniff_content_type(payload)
+    header_main = header_type.split(";", 1)[0].strip().lower()
+    content_type = sniffed if sniffed != "application/octet-stream" else (header_main or sniffed)
+    return DocumentRecord(
+        url=text,
+        retrieved_at=utc_now(),
+        http_status=status,
+        content_type=content_type,
+        content_length=len(payload),
+        document_hash=hashlib.sha256(payload).hexdigest(),
+        payload=payload,
+        company_isin=isin,
+        company_mic=mic,
+        document_date=document_date,
+        final_url=final_url,
+    )
 
 
 def retrieve_official_document(
@@ -262,9 +370,23 @@ def retrieve_official_document(
             return cached
     allow = lambda target: redirect_is_approved(target, isin=isin, registry=registry)
     live_company = isinstance(transport, NsePublicHttp) and host_kind != "primary"
+    live_non_nse_primary = (
+        isinstance(transport, NsePublicHttp)
+        and host_kind == "primary"
+        and not _is_nse_host(url)
+    )
     try:
         if live_company:
-            payload = _fetch_with_redirect_policy(url, allow=allow)
+            payload, _status, _header_type, _final = _fetch_with_redirect_policy(
+                url, allow=allow
+            )
+        elif live_non_nse_primary:
+            payload, _status, _header_type, _final = _fetch_with_redirect_policy(
+                url,
+                allow=allow,
+                timeout_seconds=APPROVED_HTTPS_TIMEOUT_SECONDS,
+                max_bytes=APPROVED_HTTPS_MAX_BYTES,
+            )
         else:
             payload = transport.get_bytes(url)
     except LookupError as exc:
@@ -276,10 +398,11 @@ def retrieve_official_document(
             except ValueError:
                 status = None
         return RetrievalFailure(url=url, reason=message, http_status=status)
+    invalid = validate_document_payload(url, payload)
+    if invalid:
+        return RetrievalFailure(url=url, reason=invalid, http_status=200)
     digest = hashlib.sha256(payload).hexdigest()
-    content_type = "application/pdf" if payload[:5] == b"%PDF-" else "application/octet-stream"
-    if payload.lstrip()[:1] in {b"<", b"{"}:
-        content_type = "text/html" if payload.lstrip().startswith(b"<") else "application/json"
+    content_type = _sniff_content_type(payload)
     record = DocumentRecord(
         url=url,
         retrieved_at=utc_now(),
@@ -296,6 +419,85 @@ def retrieve_official_document(
     if store is not None:
         return store.put(record)
     return record
+
+
+def validate_document_payload(url: str, payload: bytes) -> str | None:
+    """HTTP 200 is not proof of a filing. Reject empty, login, and type mismatch."""
+    if not payload or not payload.strip():
+        return "empty document"
+    path = str(url or "").lower().split("?", 1)[0]
+    stripped = payload.lstrip()
+    if stripped.startswith(b"\xef\xbb\xbf"):
+        stripped = stripped[3:].lstrip()
+    head = stripped[:800].lower()
+    htmlish = stripped.startswith(b"<") and (
+        b"<html" in head or b"<!doctype html" in head
+    )
+    if path.endswith(".pdf"):
+        if stripped.startswith(b"%PDF"):
+            return None
+        if stripped.startswith(b"PK"):
+            return None
+        if htmlish:
+            return "HTML instead of PDF"
+        if b"\x00" in stripped[:1024]:
+            return "invalid PDF"
+        return None
+    if htmlish and (b"login" in head or b"sign in" in head) and b"password" in head:
+        return "authentication/login page"
+    if path.endswith((".xml", ".xbrl")):
+        if htmlish:
+            return "HTML instead of XML"
+        if stripped.startswith(b"<"):
+            return None
+        return "unexpected content"
+    if path.endswith((".zip",)):
+        if stripped.startswith(b"PK"):
+            return None
+        return "unexpected content"
+    return None
+
+
+def unwrap_archive_payload(payload: bytes) -> tuple[tuple[str, bytes], ...]:
+    """Generic ZIP unwrap. Inner PDFs/XML stay distinct versions."""
+    if not payload.lstrip().startswith(b"PK"):
+        return (("document", payload),)
+    try:
+        archive = zipfile.ZipFile(BytesIO(payload))
+    except zipfile.BadZipFile:
+        return ()
+    found: list[tuple[str, bytes]] = []
+    for name in archive.namelist():
+        lowered = name.lower()
+        if lowered.endswith("/"):
+            continue
+        if not lowered.endswith((".pdf", ".xml", ".xbrl", ".html", ".htm", ".csv")):
+            continue
+        try:
+            data = archive.read(name)
+        except Exception:
+            continue
+        if data:
+            found.append((name, data))
+    return tuple(found)
+
+
+def _sniff_content_type(payload: bytes) -> str:
+    stripped = payload.lstrip()
+    if stripped.startswith(b"%PDF"):
+        return "application/pdf"
+    if stripped.startswith(b"PK"):
+        return "application/zip"
+    if stripped.startswith(b"{") or stripped.startswith(b"["):
+        return "application/json"
+    if stripped.startswith(b"<"):
+        head = stripped[:400].lower()
+        if b"<xbrl" in head or b"xbrli" in head:
+            return "application/xml"
+        if b"<html" in head or b"<!doctype html" in head:
+            return "text/html"
+        return "application/xml"
+    return "application/octet-stream"
 
 
 @dataclass(frozen=True, slots=True)

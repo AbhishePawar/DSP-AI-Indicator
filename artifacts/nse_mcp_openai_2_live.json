@@ -1,0 +1,683 @@
+{
+  "servers": {
+    "bhavcopy": {
+      "label": "bhavcopy",
+      "url": "https://mcp.nseindia.in/bhavcopy/cm/mcp",
+      "initialize_ms": 737,
+      "protocol": "2025-03-26",
+      "serverInfo": {
+        "name": "nse-bhavcopy-redis-mcp",
+        "version": "1.0.0"
+      },
+      "capabilities": {
+        "completions": {},
+        "logging": {},
+        "prompts": {
+          "listChanged": true
+        },
+        "resources": {
+          "subscribe": false,
+          "listChanged": false
+        },
+        "tools": {
+          "listChanged": true
+        }
+      },
+      "session": true,
+      "instructions_present": true,
+      "list_ms": 302,
+      "tools": [
+        {
+          "name": "get_top_by_volume",
+          "description": "Get the top N most actively traded NSE stocks on a specific date, sorted descending.\nSort by 'volume' (traded quantity) or 'value' (turnover in \u20b9).\nIf the exact date is a holiday/weekend, returns the nearest trading day.\n\nDisclaimer: Inform",
+          "required": [
+            "date",
+            "n",
+            "sortBy"
+          ],
+          "optional": [],
+          "properties": [
+            "date",
+            "n",
+            "sortBy"
+          ]
+        },
+        {
+          "name": "get_top_movers",
+          "description": "Get the top N gaining or losing NSE stocks on a specific date.\nReturns stocks sorted by % change with OHLCV details.\nIf the exact date is a holiday/weekend, returns the nearest trading day.\n\nIMPORTANT \u2014 UNADJUSTED PRICES + CORPORATE ACTION ",
+          "required": [
+            "date",
+            "n",
+            "direction"
+          ],
+          "optional": [],
+          "properties": [
+            "date",
+            "direction",
+            "n"
+          ]
+        },
+        {
+          "name": "get_volume_analysis",
+          "description": "Analyse trading volume trends for an NSE stock over N trading days.\nReturns: average volume, max/min volume, volume spike days (>2\u00d7 avg), 5-day recent trend.\n\nDisclaimer: Information/Data made available through the NSEIL MCP server is for i",
+          "required": [
+            "symbol",
+            "days"
+          ],
+          "optional": [],
+          "properties": [
+            "days",
+            "symbol"
+          ]
+        },
+        {
+          "name": "nse_lookup_symbol",
+          "description": "Look up NSE ticker symbols by partial name or keyword. Returns matching ticker list only \u2014 no price data.\nUse this to find the exact NSE symbol before calling other tools.\nFaster and lighter than search_symbols when you only need the ticker",
+          "required": [
+            "query"
+          ],
+          "optional": [],
+          "properties": [
+            "query"
+          ]
+        },
+        {
+          "name": "get_stock_history",
+          "description": "Get daily OHLCV (Open, High, Low, Close, Volume) price history for an NSE stock.\nReturns up to 3 months per call to keep response size manageable.\nFor longer periods, chain calls using next_end_date from each response.\n\nExample \u2014 fetch 1 ye",
+          "required": [
+            "symbol",
+            "months",
+            "endDate"
+          ],
+          "optional": [],
+          "properties": [
+            "endDate",
+            "months",
+            "symbol"
+          ]
+        },
+        {
+          "name": "search_symbols",
+          "description": "Search for NSE stock symbols by company name or partial symbol.\nReturns matching symbols with latest close price and % change.\nUse this when you do not know the exact NSE symbol for a company.\n\nDisclaimer: Information/Data made available th",
+          "required": [
+            "query"
+          ],
+          "optional": [],
+          "properties": [
+            "query"
+          ]
+        },
+        {
+          "name": "get_market_breadth",
+          "description": "Get overall NSE market breadth for a trading date.\nReturns: total stocks, advances, declines, unchanged count, A/D ratio, total market volume.\nA/D ratio > 1.5 indicates a bullish day; A/D ratio < 0.7 indicates a bearish day.\n\nDisclaimer: In",
+          "required": [
+            "date"
+          ],
+          "optional": [],
+          "properties": [
+            "date"
+          ]
+        },
+        {
+          "name": "get_corporate_actions",
+          "description": "Fetch actual NSE corporate action events for a stock directly from NSE India.\nReturns splits, bonus issues, dividends, and other events with exact ex-dates.\nData cached in Redis for 24 hours \u2014 first call per symbol takes ~2s for NSE fetch.\n",
+          "required": [
+            "symbol",
+            "fromDate",
+            "toDate"
+          ],
+          "optional": [],
+          "properties": [
+            "fromDate",
+            "symbol",
+            "toDate"
+          ]
+        },
+        {
+          "name": "compare_stocks",
+          "description": "Compare multiple NSE stocks side-by-side over a time period.\nReturns % return for each stock ranked best to worst, plus max drawdown per stock.\nPass up to 10 valid NSE symbols.\n\nIMPORTANT \u2014 UNADJUSTED PRICES + CORPORATE ACTION CHECK:\nPrices",
+          "required": [
+            "symbols",
+            "months"
+          ],
+          "optional": [],
+          "properties": [
+            "months",
+            "symbols"
+          ]
+        },
+        {
+          "name": "get_ltp_by_date",
+          "description": "Returns the last traded price (close price) for a given NSE symbol on a specific date.\nIf the date is a non-trading day, returns the previous available trading day's price.\n\nDisclaimer: Information/Data made available through the NSEIL MCP ",
+          "required": [
+            "symbol",
+            "date"
+          ],
+          "optional": [],
+          "properties": [
+            "date",
+            "symbol"
+          ]
+        },
+        {
+          "name": "get_bulk_quote",
+          "description": "Get the latest available price snapshot for multiple NSE stocks in one call.\nReturns: open, high, low, close, prev close, % change, volume, and date for each symbol.\n\nDisclaimer: Information/Data made available through the NSEIL MCP server ",
+          "required": [
+            "symbols"
+          ],
+          "optional": [],
+          "properties": [
+            "symbols"
+          ]
+        },
+        {
+          "name": "moving_average",
+          "description": "Calculates the simple moving average (SMA) of close prices for a stock over the last N trading days.\nCommon periods: 20-day (short-term), 50-day (medium-term), 200-day (long-term).\n\nDisclaimer: Information/Data made available through the NS",
+          "required": [
+            "symbol",
+            "days"
+          ],
+          "optional": [],
+          "properties": [
+            "days",
+            "symbol"
+          ]
+        },
+        {
+          "name": "get_52_week_high_low",
+          "description": "Get the 52-week high and low prices for an NSE stock.\nReturns: 52w high/low with dates, current price position within range, % distance from each extreme.\n\nIMPORTANT \u2014 UNADJUSTED PRICES + CORPORATE ACTION CHECK:\nHigh/low values are from raw",
+          "required": [
+            "symbol"
+          ],
+          "optional": [],
+          "properties": [
+            "symbol"
+          ]
+        }
+      ]
+    },
+    "cmmkt": {
+      "label": "cmmkt",
+      "url": "https://mcp.nseindia.in/cmmkt/mcp",
+      "initialize_ms": 510,
+      "protocol": "2025-03-26",
+      "serverInfo": {
+        "name": "cm-market-mcp",
+        "version": "1.0.0"
+      },
+      "capabilities": {
+        "completions": {},
+        "logging": {},
+        "prompts": {
+          "listChanged": true
+        },
+        "resources": {
+          "subscribe": false,
+          "listChanged": false
+        },
+        "tools": {
+          "listChanged": true
+        }
+      },
+      "session": true,
+      "instructions_present": true,
+      "list_ms": 241,
+      "tools": [
+        {
+          "name": "cm_get_sme_stocks",
+          "description": "Get latest live data for NSE SME (Small & Medium Enterprises) stocks (series: SM, ST).\nReturns symbol, LTP, open, high, low, change, % change, volume, 52w range.\nData refreshes every 1 minute.\n\nDisclaimer: Information/Data made available th",
+          "required": [
+            "limit",
+            "symbolFilter"
+          ],
+          "optional": [],
+          "properties": [
+            "limit",
+            "symbolFilter"
+          ]
+        },
+        {
+          "name": "cm_get_live_market_data",
+          "description": "Get live NSE market data for a specific variation type.\nValid index values:\n  - gainers : top gaining stocks\n  - loosers : top losing stocks\nData refreshes every 5 minutes.\n\nSEBI Disclaimer: For educational and research purposes only. Not i",
+          "required": [
+            "index"
+          ],
+          "optional": [],
+          "properties": [
+            "index"
+          ]
+        },
+        {
+          "name": "cm_get_equity_stocks",
+          "description": "Get latest live data for NSE Capital Market EQUITY stocks (series: EQ, BE, BL, BT, IL, IQ).\nReturns symbol, LTP, open, high, low, change, % change, volume, 52w range.\nUse limit to cap results. Use symbolFilter for prefix search (e.g. \"RELI\"",
+          "required": [
+            "limit",
+            "symbolFilter"
+          ],
+          "optional": [],
+          "properties": [
+            "limit",
+            "symbolFilter"
+          ]
+        },
+        {
+          "name": "nse_get_losers",
+          "description": "Get top N NSE stocks by % loss, flattened across all indices and sorted ascending.\nIdeal for risk alerts \u2014 e.g., \"flag biggest intraday losers\".\n\n\nSEBI Disclaimer: For educational and research purposes only. Not investment advice. Past perf",
+          "required": [
+            "limit"
+          ],
+          "optional": [],
+          "properties": [
+            "limit"
+          ]
+        },
+        {
+          "name": "cm_get_call_auction_stocks",
+          "description": "Get latest live data for NSE Call Auction session stocks (series: CA, CB).\nReturns symbol, LTP, open, high, low, change, % change, volume.\nData refreshes every 1 minute.\n\nDisclaimer: Information/Data made available through the NSEIL MCP ser",
+          "required": [
+            "limit",
+            "symbolFilter"
+          ],
+          "optional": [],
+          "properties": [
+            "limit",
+            "symbolFilter"
+          ]
+        },
+        {
+          "name": "cm_get_bond_stocks",
+          "description": "Get latest live data for NSE BONDS / Debt instruments (all series not classified as equity, SME, or call auction \u2014 e.g. N1-N9, NE, NF, NU, Z1-Z5, ZA, ZP, ZU, GB, SG, TB etc.).\nReturns symbol, LTP, preClosePrice, change, % change, 52w range.",
+          "required": [
+            "limit",
+            "symbolFilter"
+          ],
+          "optional": [],
+          "properties": [
+            "limit",
+            "symbolFilter"
+          ]
+        },
+        {
+          "name": "cm_get_live_gainers",
+          "description": "Returns RAW NSE gainers data grouped by index segments (NIFTY, BANKNIFTY, NIFTYNEXT50, allSec, etc.).\nNOT sorted by % change. NOT suitable for \"top gainers today\" questions.\nUse nse_get_market_movers instead for sorted top gainers/losers ra",
+          "required": [],
+          "optional": [],
+          "properties": []
+        },
+        {
+          "name": "nse_get_gainers",
+          "description": "Get top N NSE stocks by % gain, flattened across all indices and sorted descending.\nIdeal for dashboard display \u2014 e.g., \"show today's top 10 gainers\".\n\nSEBI Disclaimer: For educational and research purposes only. Not investment advice. Past",
+          "required": [
+            "limit"
+          ],
+          "optional": [],
+          "properties": [
+            "limit"
+          ]
+        },
+        {
+          "name": "cm_get_data_status",
+          "description": "Check freshness of NSE live market data.\nShows when gainers and losers data was last crawled from NSE.\nUse this to verify data is up-to-date before querying.",
+          "required": [],
+          "optional": [],
+          "properties": []
+        },
+        {
+          "name": "cm_get_live_losers",
+          "description": "Returns RAW NSE losers data grouped by index segments (NIFTY, BANKNIFTY, NIFTYNEXT50, allSec, etc.).\nNOT sorted by % change. NOT suitable for \"top losers today\" questions.\nUse nse_get_market_movers instead for sorted top gainers/losers rank",
+          "required": [],
+          "optional": [],
+          "properties": []
+        },
+        {
+          "name": "cm_get_stock_quote",
+          "description": "Get latest live quote for a specific NSE CM stock by exact symbol.\nWorks for any segment (equity, SME, bonds, call auction).\nReturns full price data: LTP, open, high, low, change, % change, volume, 52w range, series, latestTimestamp.\n\nDiscl",
+          "required": [
+            "symbol"
+          ],
+          "optional": [],
+          "properties": [
+            "symbol"
+          ]
+        },
+        {
+          "name": "nse_get_market_movers",
+          "description": "PRIMARY TOOL for: \"What are the top gainers today?\", \"top losers today?\", \"market movers\", \"best/worst performing stocks\", \"biggest gainers/losers\".\n\nReturns top N gainers (sorted by highest % gain) and top N losers (sorted by biggest % los",
+          "required": [
+            "indexName",
+            "limit"
+          ],
+          "optional": [],
+          "properties": [
+            "indexName",
+            "limit"
+          ]
+        },
+        {
+          "name": "cm_get_allstocks_status",
+          "description": "Check freshness of NSE allstocks data cache.\nShows when last crawled, whether data is available, and segment-wise stock counts.",
+          "required": [],
+          "optional": [],
+          "properties": []
+        }
+      ]
+    }
+  },
+  "calls": [
+    {
+      "fixture_label": "TCS",
+      "resolve": "RESOLVED",
+      "ticker": "TCS",
+      "isin": "INE467B01029",
+      "mic": "XNSE",
+      "lookup": {
+        "tool": "nse_lookup_symbol",
+        "ms": 246,
+        "payload": {
+          "count": 2,
+          "query": "TCS",
+          "symbols": [
+            "TCS",
+            "WSTCSTPAPR"
+          ]
+        }
+      },
+      "ltp": {
+        "tool": "get_ltp_by_date",
+        "params": {
+          "symbol": "TCS",
+          "date": "2026-09-11"
+        },
+        "ms": 203,
+        "payload": 2204.1,
+        "price_kind": "EOD",
+        "evidence": {
+          "evidence_id": "f83253f6-02ed-4e75-8b18-6f59ffddb90d",
+          "company": "Tata Consultancy Services Limited",
+          "ticker": "TCS",
+          "isin": "INE467B01029",
+          "mic": "XNSE",
+          "field": "eod_close",
+          "value": null,
+          "as_of": null,
+          "retrieved_at": "2026-09-11T08:10:29.160078+00:00",
+          "source": "nse-bhavcopy-redis-mcp",
+          "source_type": "exchange_eod",
+          "source_url": "https://mcp.nseindia.in/bhavcopy/cm/mcp",
+          "document_date": null,
+          "evidence_locator": "mcp:nse-bhavcopy-redis-mcp:get_ltp_by_date;field=unknown;price_kind=EOD;exchange=NSE;mic=XNSE",
+          "currency": "INR",
+          "unit": "actual",
+          "statement_basis": null,
+          "agent": "official_nse_mcp",
+          "identity_status": "PASS",
+          "semantic_status": "UNKNOWN",
+          "freshness_status": "UNKNOWN",
+          "corporate_action_status": "UNKNOWN",
+          "confidence": "low",
+          "stage": "RAW",
+          "status": "UNKNOWN",
+          "mode": "LIVE",
+          "raw_price_field": null,
+          "current_through": null,
+          "last_verified_at": null,
+          "period": null,
+          "raw_value": null,
+          "raw_unit": "actual",
+          "restated": false,
+          "document_hash": null
+        },
+        "judge": {
+          "status": "UNKNOWN",
+          "stage": "RECONCILED"
+        },
+        "judge_production": {
+          "status": "UNKNOWN",
+          "stage": "RECONCILED"
+        }
+      },
+      "quote": {
+        "tool": "cm_get_stock_quote",
+        "ms": 265,
+        "payload": {
+          "updatedAt": "2026-09-11T08:09:34.293140957Z",
+          "stock": {
+            "type": "CM",
+            "symbol": "TCS",
+            "series": "EQ",
+            "openPrice": 2185.5,
+            "highPrice": 2232.6,
+            "lowPrice": 2185.5,
+            "preClosePrice": 2204.1,
+            "lastTradedPrice": 2206.4,
+            "indicativeClosePrice": 0.0,
+            "change": 2.9,
+            "perChange": 0.13,
+            "volume": 1698450,
+            "value": 375.86528655,
+            "fiftyTwoWeekHigh": 3350.0,
+            "fiftyTwoWeekLow": 1976.8,
+            "perChange30d": -9.76,
+            "latestTimestamp": "2026-09-11 13:39:33"
+          }
+        },
+        "price_kind": "DELAYED_15M",
+        "evidence": {
+          "evidence_id": "762210fa-f7a1-40ec-81e5-0f759550bb21",
+          "company": "Tata Consultancy Services Limited",
+          "ticker": "TCS",
+          "isin": "INE467B01029",
+          "mic": "XNSE",
+          "field": "last_price",
+          "value": "2206.4",
+          "as_of": "2026-09-11",
+          "retrieved_at": "2026-09-11T08:10:29.425128+00:00",
+          "source": "cm-market-mcp",
+          "source_type": "regulator",
+          "source_url": "https://mcp.nseindia.in/cmmkt/mcp",
+          "document_date": "2026-09-11",
+          "evidence_locator": "mcp:cm-market-mcp:cm_get_stock_quote;field=lastTradedPrice;price_kind=DELAYED_15M;exchange=NSE;mic=XNSE",
+          "currency": "INR",
+          "unit": "actual",
+          "statement_basis": null,
+          "agent": "official_nse_mcp",
+          "identity_status": "PASS",
+          "semantic_status": "PASS",
+          "freshness_status": "UNKNOWN",
+          "corporate_action_status": "UNKNOWN",
+          "confidence": "medium",
+          "stage": "RAW",
+          "status": "UNKNOWN",
+          "mode": "LIVE",
+          "raw_price_field": "lastTradedPrice",
+          "current_through": null,
+          "last_verified_at": null,
+          "period": "2026-09-11",
+          "raw_value": "2206.4",
+          "raw_unit": "actual",
+          "restated": false,
+          "document_hash": null
+        },
+        "judge": {
+          "status": "VERIFIED",
+          "stage": "VERIFIED"
+        }
+      },
+      "generic_research_ms": 982,
+      "generic_fields": [
+        "eod_close",
+        "last_price"
+      ],
+      "generic_kinds": [
+        "mcp:nse-bhavcopy-redis-mcp:get_ltp_by_date;field=unknown;price_kind=EOD;exchange=NSE;mic=XNSE",
+        "mcp:cm-market-mcp:cm_get_stock_quote;field=lastTradedPrice;price_kind=DELAYED_15M;exchange=NSE;mic=XNSE"
+      ],
+      "generic_stages": [
+        "RAW",
+        "RAW"
+      ],
+      "generic_agents": [
+        "official_nse_mcp",
+        "official_nse_mcp"
+      ]
+    },
+    {
+      "fixture_label": "other",
+      "resolve": "RESOLVED",
+      "ticker": "20MICRONS",
+      "isin": "INE144J01027",
+      "mic": "XNSE",
+      "lookup": {
+        "tool": "nse_lookup_symbol",
+        "ms": 293,
+        "payload": {
+          "count": 1,
+          "query": "20MICRONS",
+          "symbols": [
+            "20MICRONS"
+          ]
+        }
+      },
+      "ltp": {
+        "tool": "get_ltp_by_date",
+        "params": {
+          "symbol": "20MICRONS",
+          "date": "2026-09-11"
+        },
+        "ms": 172,
+        "payload": 211.87,
+        "price_kind": "EOD",
+        "evidence": {
+          "evidence_id": "93207b92-8760-4bfb-9e88-b112bf690e1b",
+          "company": "20 Microns Limited",
+          "ticker": "20MICRONS",
+          "isin": "INE144J01027",
+          "mic": "XNSE",
+          "field": "eod_close",
+          "value": null,
+          "as_of": null,
+          "retrieved_at": "2026-09-11T08:10:30.872347+00:00",
+          "source": "nse-bhavcopy-redis-mcp",
+          "source_type": "exchange_eod",
+          "source_url": "https://mcp.nseindia.in/bhavcopy/cm/mcp",
+          "document_date": null,
+          "evidence_locator": "mcp:nse-bhavcopy-redis-mcp:get_ltp_by_date;field=unknown;price_kind=EOD;exchange=NSE;mic=XNSE",
+          "currency": "INR",
+          "unit": "actual",
+          "statement_basis": null,
+          "agent": "official_nse_mcp",
+          "identity_status": "PASS",
+          "semantic_status": "UNKNOWN",
+          "freshness_status": "UNKNOWN",
+          "corporate_action_status": "UNKNOWN",
+          "confidence": "low",
+          "stage": "RAW",
+          "status": "UNKNOWN",
+          "mode": "LIVE",
+          "raw_price_field": null,
+          "current_through": null,
+          "last_verified_at": null,
+          "period": null,
+          "raw_value": null,
+          "raw_unit": "actual",
+          "restated": false,
+          "document_hash": null
+        },
+        "judge": {
+          "status": "UNKNOWN",
+          "stage": "RECONCILED"
+        },
+        "judge_production": {
+          "status": "UNKNOWN",
+          "stage": "RECONCILED"
+        }
+      },
+      "quote": {
+        "tool": "cm_get_stock_quote",
+        "ms": 219,
+        "payload": {
+          "updatedAt": "2026-09-11T08:09:34.293140957Z",
+          "stock": {
+            "type": "CM",
+            "symbol": "20MICRONS",
+            "series": "EQ",
+            "openPrice": 211.75,
+            "highPrice": 211.75,
+            "lowPrice": 204.01,
+            "preClosePrice": 211.87,
+            "lastTradedPrice": 208.65,
+            "indicativeClosePrice": 0.0,
+            "change": -3.22,
+            "perChange": -1.52,
+            "volume": 120650,
+            "value": 2.5034875,
+            "fiftyTwoWeekHigh": 237.45,
+            "fiftyTwoWeekLow": 129.61,
+            "perChange30d": 12.23,
+            "latestTimestamp": "2026-09-11 13:39:33"
+          }
+        },
+        "price_kind": "DELAYED_15M",
+        "evidence": {
+          "evidence_id": "11e53b4f-d173-4f43-b5a7-9d6645017782",
+          "company": "20 Microns Limited",
+          "ticker": "20MICRONS",
+          "isin": "INE144J01027",
+          "mic": "XNSE",
+          "field": "last_price",
+          "value": "208.65",
+          "as_of": "2026-09-11",
+          "retrieved_at": "2026-09-11T08:10:31.091364+00:00",
+          "source": "cm-market-mcp",
+          "source_type": "regulator",
+          "source_url": "https://mcp.nseindia.in/cmmkt/mcp",
+          "document_date": "2026-09-11",
+          "evidence_locator": "mcp:cm-market-mcp:cm_get_stock_quote;field=lastTradedPrice;price_kind=DELAYED_15M;exchange=NSE;mic=XNSE",
+          "currency": "INR",
+          "unit": "actual",
+          "statement_basis": null,
+          "agent": "official_nse_mcp",
+          "identity_status": "PASS",
+          "semantic_status": "PASS",
+          "freshness_status": "UNKNOWN",
+          "corporate_action_status": "UNKNOWN",
+          "confidence": "medium",
+          "stage": "RAW",
+          "status": "UNKNOWN",
+          "mode": "LIVE",
+          "raw_price_field": "lastTradedPrice",
+          "current_through": null,
+          "last_verified_at": null,
+          "period": "2026-09-11",
+          "raw_value": "208.65",
+          "raw_unit": "actual",
+          "restated": false,
+          "document_hash": null
+        },
+        "judge": {
+          "status": "VERIFIED",
+          "stage": "VERIFIED"
+        }
+      },
+      "generic_research_ms": 1107,
+      "generic_fields": [
+        "eod_close",
+        "last_price"
+      ],
+      "generic_kinds": [
+        "mcp:nse-bhavcopy-redis-mcp:get_ltp_by_date;field=unknown;price_kind=EOD;exchange=NSE;mic=XNSE",
+        "mcp:cm-market-mcp:cm_get_stock_quote;field=lastTradedPrice;price_kind=DELAYED_15M;exchange=NSE;mic=XNSE"
+      ],
+      "generic_stages": [
+        "RAW",
+        "RAW"
+      ],
+      "generic_agents": [
+        "official_nse_mcp",
+        "official_nse_mcp"
+      ]
+    }
+  ],
+  "research": {},
+  "judge": {}
+}

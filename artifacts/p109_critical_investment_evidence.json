@@ -1,0 +1,26 @@
+{
+  "analysis_id": "e0621535-793d-4895-ae14-9a0fd301d4c5",
+  "buffett_status": "succeeded",
+  "evidence_class": "test_fixture",
+  "forgery_rejected": true,
+  "g2_claim": false,
+  "gate": "P1-09",
+  "health": {
+    "live": 200,
+    "ready": 200
+  },
+  "idor_status": 403,
+  "input_fingerprint": "ea163406dba7429c88e1945fc78400a80e48f29910bb19a2ff60a5c66601120a",
+  "note": "Deterministic memory fixture only \u2014 NOT real_live_authenticated_provider",
+  "ok": true,
+  "release_identity": {
+    "channel": "rc",
+    "decision": "RELEASE_CANDIDATE",
+    "epic": "EPS-003",
+    "label": "EPS-003 \u00b7 2.0.0-rc.1 \u00b7 rc \u00b7 RELEASE_CANDIDATE",
+    "product_version": "2.0.0-rc.1"
+  },
+  "result_fingerprint": "8792e3b22a402571f86b11fd63418b6cdb24c9b5df3ab00028c492a64eb35a80",
+  "ticker": "DSPFIX",
+  "valuation_status": "succeeded"
+}

@@ -135,6 +135,9 @@ def build_snapshot_from_analyse_payload(
             "current_market_price",
             "price",
             "header.price",
+            # canonical /analyse public payload (server-authoritative)
+            "server_valuation.current_market_price",
+            "recommendation_summary.margin_of_safety_assessment.current_market_price",
         )
     )
     iv = _as_float(
@@ -145,6 +148,8 @@ def build_snapshot_from_analyse_payload(
             "intrinsic_value",
             "header.intrinsic_value",
             "header.iv",
+            "server_valuation.intrinsic_value_per_share",
+            "recommendation_summary.margin_of_safety_assessment.intrinsic_value_per_share",
         )
     )
     mos = _as_float(
@@ -156,6 +161,7 @@ def build_snapshot_from_analyse_payload(
             "margin_of_safety",
             "header.margin_of_safety",
             "header.mos",
+            "recommendation_summary.margin_of_safety_assessment.margin_of_safety",
         )
     )
 
@@ -245,14 +251,36 @@ def build_snapshot_from_analyse_payload(
         extract_nested(payload, "symbol", "ticker", "metadata.symbol", "header.symbol")
     )
     company_name = _as_str(company) or _as_str(
-        extract_nested(payload, "company", "company_name", "header.company")
+        extract_nested(
+            payload,
+            "company",
+            "company_name",
+            "header.company",
+            "dsp_analysis.identity.company_name",
+        )
     )
     exch = _as_str(exchange) or _as_str(
         extract_nested(payload, "exchange", "market.exchange", "header.exchange")
     )
-    sector = _as_str(extract_nested(payload, "sector", "company.sector", "header.sector"))
+    sector = _as_str(
+        extract_nested(
+            payload,
+            "sector",
+            "company.sector",
+            "header.sector",
+            "dsp_analysis.identity.sector",
+            "fundamental_metrics.sector.value",
+        )
+    )
     industry = _as_str(
-        extract_nested(payload, "industry", "company.industry", "header.industry")
+        extract_nested(
+            payload,
+            "industry",
+            "company.industry",
+            "header.industry",
+            "dsp_analysis.identity.industry",
+            "fundamental_metrics.industry.value",
+        )
     )
 
     rid = research_id or str(uuid.uuid4())

@@ -60,6 +60,9 @@ class CompanyIdentity:
     cik: str | None = None
     provider_company_id: str | None = None
     currency: str | None = None
+    # Provider-reported classification (never inferred). Additive, optional.
+    sector: str | None = None
+    industry: str | None = None
 
     def to_dict(self) -> dict[str, Any]:
         return {
@@ -70,6 +73,8 @@ class CompanyIdentity:
             "cik": self.cik,
             "provider_company_id": self.provider_company_id,
             "currency": self.currency,
+            "sector": self.sector,
+            "industry": self.industry,
         }
 
 

@@ -1865,4 +1865,221 @@ export const api = {
       { method: "POST", body: JSON.stringify(body) },
       options,
     ),
+
+  // -- Figma-first contracts: market indices · investor workspace · coverage --
+
+  marketIndices: (options?: RequestOptions) =>
+    request<import("@/lib/api/workspaceTypes").MarketIndicesResponse>(
+      "/market/indices",
+      { method: "GET" },
+      options,
+    ),
+
+  workspaceWatchlist: (options?: RequestOptions) =>
+    request<import("@/lib/api/workspaceTypes").WatchlistResponse>(
+      "/workspace/watchlist",
+      { method: "GET" },
+      options,
+    ),
+  workspaceWatchlistAdd: (
+    body: { symbol: string; exchange?: string | null },
+    options?: RequestOptions,
+  ) =>
+    request<import("@/lib/api/workspaceTypes").WatchlistResponse>(
+      "/workspace/watchlist",
+      { method: "POST", body: JSON.stringify(body) },
+      options,
+    ),
+  workspaceWatchlistRemove: (symbol: string, options?: RequestOptions) =>
+    request<import("@/lib/api/workspaceTypes").WatchlistResponse>(
+      `/workspace/watchlist/${encodeURIComponent(symbol.trim().toUpperCase())}`,
+      { method: "DELETE" },
+      options,
+    ),
+
+  workspacePortfolio: (options?: RequestOptions) =>
+    request<import("@/lib/api/workspaceTypes").PortfolioResponse>(
+      "/workspace/portfolio",
+      { method: "GET" },
+      options,
+    ),
+  workspaceHoldingUpsert: (
+    body: {
+      symbol: string;
+      quantity: number;
+      average_cost: number;
+      exchange?: string | null;
+      sector?: string | null;
+    },
+    options?: RequestOptions,
+  ) =>
+    request<import("@/lib/api/workspaceTypes").PortfolioResponse>(
+      "/workspace/portfolio/holdings",
+      { method: "POST", body: JSON.stringify(body) },
+      options,
+    ),
+  workspaceHoldingRemove: (symbol: string, options?: RequestOptions) =>
+    request<import("@/lib/api/workspaceTypes").PortfolioResponse>(
+      `/workspace/portfolio/holdings/${encodeURIComponent(symbol.trim().toUpperCase())}`,
+      { method: "DELETE" },
+      options,
+    ),
+  workspaceHoldingsClear: (options?: RequestOptions) =>
+    request<import("@/lib/api/workspaceTypes").PortfolioResponse>(
+      "/workspace/portfolio/holdings",
+      { method: "DELETE" },
+      options,
+    ),
+
+  workspaceDashboard: (options?: RequestOptions) =>
+    request<import("@/lib/api/workspaceTypes").DashboardOverviewResponse>(
+      "/workspace/dashboard",
+      { method: "GET" },
+      options,
+    ),
+
+  workspaceSavedResearch: (options?: RequestOptions) =>
+    request<{ ok: boolean; items: import("@/lib/api/workspaceTypes").SavedResearchItem[]; count: number }>(
+      "/workspace/research/saved",
+      { method: "GET" },
+      options,
+    ),
+  workspaceSavedResearchSave: (
+    body: {
+      symbol: string;
+      title: string;
+      tags?: string[];
+      turns?: number | null;
+      research_id?: string | null;
+      saved_id?: string | null;
+    },
+    options?: RequestOptions,
+  ) =>
+    request<{ ok: boolean; item: import("@/lib/api/workspaceTypes").SavedResearchItem }>(
+      "/workspace/research/saved",
+      { method: "POST", body: JSON.stringify(body) },
+      options,
+    ),
+  workspaceSavedResearchDelete: (savedId: string, options?: RequestOptions) =>
+    request<{ ok: boolean; removed: boolean }>(
+      `/workspace/research/saved/${encodeURIComponent(savedId)}`,
+      { method: "DELETE" },
+      options,
+    ),
+
+  workspaceCanvases: (options?: RequestOptions) =>
+    request<{ ok: boolean; items: import("@/lib/api/workspaceTypes").CanvasItem[]; count: number }>(
+      "/workspace/research/canvas",
+      { method: "GET" },
+      options,
+    ),
+  workspaceCanvasGet: (canvasId: string, options?: RequestOptions) =>
+    request<{ ok: boolean; item: import("@/lib/api/workspaceTypes").CanvasItem }>(
+      `/workspace/research/canvas/${encodeURIComponent(canvasId)}`,
+      { method: "GET" },
+      options,
+    ),
+  workspaceCanvasSave: (
+    body: {
+      title: string;
+      blocks: Array<{ id?: string; type: string; content: string; meta?: Record<string, unknown> }>;
+      canvas_id?: string | null;
+    },
+    options?: RequestOptions,
+  ) =>
+    request<{ ok: boolean; item: import("@/lib/api/workspaceTypes").CanvasItem }>(
+      "/workspace/research/canvas",
+      { method: "POST", body: JSON.stringify(body) },
+      options,
+    ),
+
+  workspaceProfile: (options?: RequestOptions) =>
+    request<import("@/lib/api/workspaceTypes").ProfileResponse>(
+      "/workspace/profile",
+      { method: "GET" },
+      options,
+    ),
+  workspaceProfileSave: (
+    body: import("@/lib/api/workspaceTypes").FinancialProfilePayload,
+    options?: RequestOptions,
+  ) =>
+    request<import("@/lib/api/workspaceTypes").ProfileResponse>(
+      "/workspace/profile",
+      { method: "PUT", body: JSON.stringify(body) },
+      options,
+    ),
+  workspaceProfileScore: (options?: RequestOptions) =>
+    request<import("@/lib/api/workspaceTypes").ProfileResponse>(
+      "/workspace/profile/score",
+      { method: "POST" },
+      options,
+    ),
+
+  coverageInstitutional: (
+    options?: RequestOptions & { rating?: string | null; months?: number },
+  ) => {
+    const params = new URLSearchParams();
+    if (options?.rating && options.rating !== "All") params.set("rating", options.rating);
+    if (options?.months) params.set("months", String(options.months));
+    const qs = params.toString();
+    return request<import("@/lib/api/workspaceTypes").InstitutionalResponse>(
+      `/coverage/institutional${qs ? `?${qs}` : ""}`,
+      { method: "GET" },
+      options,
+    );
+  },
+  coverageDirectory: (
+    options?: RequestOptions & {
+      sector?: string | null;
+      rating?: string | null;
+      q?: string | null;
+      sort?: string | null;
+      order?: string | null;
+      limit?: number;
+      offset?: number;
+    },
+  ) => {
+    const params = new URLSearchParams();
+    if (options?.sector) params.set("sector", options.sector);
+    if (options?.rating) params.set("rating", options.rating);
+    if (options?.q) params.set("q", options.q);
+    if (options?.sort) params.set("sort", options.sort);
+    if (options?.order) params.set("order", options.order);
+    if (options?.limit) params.set("limit", String(options.limit));
+    if (options?.offset) params.set("offset", String(options.offset));
+    const qs = params.toString();
+    return request<import("@/lib/api/workspaceTypes").DirectoryResponse>(
+      `/coverage/directory${qs ? `?${qs}` : ""}`,
+      { method: "GET" },
+      options,
+    );
+  },
+  coverageCompare: (a: string, b: string, options?: RequestOptions) => {
+    const params = new URLSearchParams({ a: a.trim().toUpperCase(), b: b.trim().toUpperCase() });
+    return request<import("@/lib/api/workspaceTypes").CompareResponse>(
+      `/coverage/compare?${params.toString()}`,
+      { method: "GET" },
+      options,
+    );
+  },
+  coverageSignals: (
+    options?: RequestOptions & {
+      limit?: number;
+      symbol?: string | null;
+      type?: string | null;
+      sector?: string | null;
+    },
+  ) => {
+    const params = new URLSearchParams();
+    if (options?.limit) params.set("limit", String(options.limit));
+    if (options?.symbol) params.set("symbol", options.symbol);
+    if (options?.type) params.set("type", options.type);
+    if (options?.sector) params.set("sector", options.sector);
+    const qs = params.toString();
+    return request<import("@/lib/api/workspaceTypes").SignalsResponse>(
+      `/coverage/signals${qs ? `?${qs}` : ""}`,
+      { method: "GET" },
+      options,
+    );
+  },
 };

@@ -5,6 +5,7 @@ from __future__ import annotations
 from datetime import date
 
 from data_engine.official_research.nse_primary import (
+    parse_financial_result_documents,
     parse_financial_results,
     parse_quote_equity_shares,
     parse_shareholding_shares,
@@ -133,3 +134,46 @@ def test_yahoo_still_cannot_verify() -> None:
         "https://www.nseindia.com/api/corporates-financial-results",
         source_type="regulator",
     )
+
+
+def test_financial_results_index_exposes_xbrl_detail_urls() -> None:
+    payload = [
+        {
+            "symbol": "INFY",
+            "isin": "INE009A01021",
+            "period": "Annual",
+            "consolidated": "Consolidated",
+            "toDate": "31-Mar-2024",
+            "financialYear": "01-Apr-2023 To 31-Mar-2024",
+            "seqNumber": "1169124",
+            "xbrl": "https://nsearchives.nseindia.com/corporate/xbrl/INDAS_sample.xml",
+            "resultDetailedDataLink": None,
+        }
+    ]
+    docs = parse_financial_result_documents(payload, ticker="INFY")
+    assert len(docs) == 1
+    assert docs[0].kind == "xbrl"
+    assert docs[0].isin == "INE009A01021"
+    assert docs[0].statement_basis == "consolidated"
+    assert docs[0].url.endswith(".xml")
+    assert docs[0].source == "nse_financial_results"
+
+
+def test_q4_year_end_labeled_annual_is_kept() -> None:
+    docs = parse_financial_result_documents(
+        [
+            {
+                "symbol": "INFY",
+                "isin": "INE009A01021",
+                "period": "Annual",
+                "relatingTo": "Fourth Quarter / Annual",
+                "consolidated": "Consolidated",
+                "toDate": "31-Mar-2026",
+                "xbrl": "https://nsearchives.nseindia.com/corporate/xbrl/INDAS_fy26.xml",
+            }
+        ],
+        ticker="INFY",
+    )
+    assert len(docs) == 1
+    assert docs[0].as_of is not None
+    assert docs[0].as_of.year == 2026

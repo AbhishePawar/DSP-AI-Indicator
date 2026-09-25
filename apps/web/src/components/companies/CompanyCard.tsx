@@ -31,9 +31,7 @@ export function CompanyCard({ company }: { company: CompanyEntry }) {
           </div>
         </div>
         <div className="flex flex-wrap items-center justify-between gap-2">
-          <Badge tone={company.researchAvailable ? "success" : "neutral"}>
-            {company.researchAvailable ? "Research available" : "Pending"}
-          </Badge>
+          <Badge tone="neutral">Identity only</Badge>
           <div className="flex flex-wrap gap-2">
             <AddToPortfolioButton
               company={company.name}

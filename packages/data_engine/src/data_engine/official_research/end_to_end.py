@@ -9,7 +9,9 @@ Wires existing contracts only:
   → acquire_planned_fields (retrieve/extract/normalize/reconcile/verify)
   → EvidenceJudge VerifiedDataset
   → SIMPLE-17 derived fields
-  → SIMPLE-18 DCF/DSP
+  → SIMPLE-26/27 assumption research (DSP calculates WACC from components)
+  → AssumptionValidator
+  → SIMPLE-18 DCF/DSP (accepted assumptions only)
 
 Does not branch on ticker, company, or ISIN.
 ResearchOrchestrator.research is a thin compatibility wrapper over this pipeline.
@@ -17,13 +19,16 @@ ResearchOrchestrator.research is a thin compatibility wrapper over this pipeline
 
 from __future__ import annotations
 
-from datetime import date
-from dataclasses import dataclass, field
+from datetime import UTC, date, datetime
+from dataclasses import dataclass, field, replace
 from time import perf_counter
 from typing import Any, Mapping, Sequence
 
 from data_engine.official_research.assumption_contract import CanonicalAssumption
-from data_engine.official_research.assumption_validator import validate_assumption_pack
+from data_engine.official_research.assumption_research import (
+    DcfAssumptionCandidate,
+    research_dcf_assumptions,
+)
 from data_engine.official_research.advanced_check import evaluate_advanced_check
 from data_engine.official_research.dsp_calculation import run_dsp_calculations
 from data_engine.official_research.currentness import corporate_action_horizon_status
@@ -50,6 +55,11 @@ from data_engine.official_research.research_plan import (
     field_source_priority,
     plan_report_block,
 )
+from data_engine.official_research.rbi_risk_free import (
+    acquire_rbi_risk_free,
+    merge_rbi_into_dataset_evidence,
+)
+from data_engine.official_research.capm_components import research_live_capm_components
 from data_engine.official_research.verified_dataset import VerifiedDataset
 from data_engine.security_master.catalog import SecurityMasterCatalog, load_default_catalog
 from data_engine.security_master.models import (
@@ -236,6 +246,9 @@ class EndToEndResult:
     analysis_state: str = "PARTIAL_DATA"
     qualitative: Any = None
     advanced_check: Any = None
+    assumption_research: Any = None
+    rbi_risk_free: Any = None
+    capm_components: Any = None
 
     def to_public_dict(self) -> dict[str, Any]:
         payload = {
@@ -266,6 +279,12 @@ class EndToEndResult:
             payload["thesis_breakers"] = [
                 item.to_public_dict() for item in self.advanced_check.thesis_breakers
             ]
+        if self.assumption_research is not None:
+            payload["assumption_research"] = self.assumption_research.to_public_dict()
+        if self.rbi_risk_free is not None:
+            payload["rbi_risk_free"] = self.rbi_risk_free.to_public_dict()
+        if self.capm_components is not None:
+            payload["capm_components"] = self.capm_components.to_public_dict()
         return payload
 
     def _result_contract(self) -> dict[str, Any]:
@@ -666,7 +685,7 @@ def analyse_listing(
     documents: Sequence[Any] | None = None,
     candidates: Mapping[str, Sequence[EvidenceItem]] | None = None,
     retrieve_fn: Any | None = None,
-    assumptions: tuple[CanonicalAssumption, ...] = (),
+    assumptions: Sequence[CanonicalAssumption | DcfAssumptionCandidate] = (),
     capital_events: tuple[Any, ...] = (),
     quality_components: Mapping[str, Any] | None = None,
     moat_components: Mapping[str, Any] | None = None,
@@ -679,6 +698,8 @@ def analyse_listing(
     research_horizon: date | None = None,
     ca_checked_through: date | None = None,
     claims: Sequence[Any] = (),
+    rbi_document_text: str | None = None,
+    rbi_retrieve_fn: Any | None = None,
 ) -> EndToEndResult:
     """Automatic plan → acquire → judge → DSP for one resolved listing."""
     _ = master
@@ -689,7 +710,16 @@ def analyse_listing(
         "acquisition_dataset": 0.0,
         "dataset_dsp": 0.0,
         "qualitative": 0.0,
+        "assumption_research": 0.0,
+        "assumption_generation": 0.0,
+        "assumption_validation": 0.0,
         "advanced_check": 0.0,
+        "rbi_http": 0.0,
+        "rbi_extraction": 0.0,
+        "rbi_judge": 0.0,
+        "beta_retrieval": 0.0,
+        "erp_retrieval": 0.0,
+        "dsp_wacc": 0.0,
         "complete": 0.0,
     }
     started = perf_counter()
@@ -771,12 +801,43 @@ def analyse_listing(
     t = perf_counter()
     dataset = acquisition.dataset
     timings["acquisition_dataset"] = perf_counter() - t
-    validated = validate_assumption_pack(assumptions)
-    accepted = tuple(item.assumption for item in validated if item.accepted)
-    assumptions_accepted = bool(accepted) and all(
-        name in {row.field for row in accepted}
-        for name in ("fcf_growth_rate", "terminal_growth_rate")
-    ) and any(row.field in {"discount_rate", "wacc"} for row in accepted)
+    t = perf_counter()
+    rbi = acquire_rbi_risk_free(
+        listing,
+        valuation_date=research_horizon,
+        document_text=rbi_document_text,
+        retrieve_fn=rbi_retrieve_fn,
+        judge=judge,
+        mode=mode,
+    )
+    timings["rbi_http"] = float(rbi.timings.get("http", 0.0))
+    timings["rbi_extraction"] = float(rbi.timings.get("extraction", 0.0))
+    timings["rbi_judge"] = float(rbi.timings.get("evidence_judge", 0.0))
+    if dataset is not None and rbi.evidence:
+        dataset = replace(
+            dataset,
+            evidence=merge_rbi_into_dataset_evidence(dataset.evidence, rbi),
+        )
+    capm = research_live_capm_components(
+        listing,
+        valuation_date=research_horizon,
+    )
+    timings["beta_retrieval"] = float(capm.timings.get("beta_retrieval", 0.0))
+    timings["erp_retrieval"] = float(capm.timings.get("erp_retrieval", 0.0))
+    t = perf_counter()
+    research = research_dcf_assumptions(
+        dataset,
+        listing,
+        proposals=assumptions,
+        now=datetime.now(tz=UTC),
+        ai_configured=False,
+    )
+    timings["assumption_research"] = perf_counter() - t
+    timings["assumption_generation"] = float(research.timings.get("assumption_generation", 0.0))
+    timings["assumption_validation"] = float(research.timings.get("assumption_validation", 0.0))
+    timings["dsp_wacc"] = float(research.timings.get("dsp_wacc", 0.0))
+    accepted = research.accepted_pack
+    assumptions_accepted = research.dcf_eligibility == "ELIGIBLE"
     t = perf_counter()
     qualitative = run_qualitative_engines(dataset, listing)
     timings["qualitative"] = perf_counter() - t
@@ -862,6 +923,9 @@ def analyse_listing(
         ),
         qualitative=qualitative,
         advanced_check=advanced,
+        assumption_research=research,
+        rbi_risk_free=rbi,
+        capm_components=capm,
     )
 
 
@@ -926,6 +990,9 @@ def analyse_user_query(
             analysis_state=result.analysis_state,
             qualitative=result.qualitative,
             advanced_check=result.advanced_check,
+            assumption_research=result.assumption_research,
+            rbi_risk_free=result.rbi_risk_free,
+            capm_components=result.capm_components,
         )
     mapped = {
         "AMBIGUOUS": "AMBIGUOUS",

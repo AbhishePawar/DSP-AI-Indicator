@@ -1,0 +1,8614 @@
+[
+  {
+    "ticker": "INFY",
+    "isin": "INE009A01021",
+    "url": "https://nsearchives.nseindia.com/annual_reports/AR_29313_INFY_2025_2026_U_8985411_30052026200413.pdf",
+    "hash": "4fc4a071157f446bfc96f71763159122059c9881870e245cb9383069906bf3e8",
+    "size": 8985411,
+    "pages": 384,
+    "json_s": 2.372,
+    "download_s": 5.13,
+    "open_s": 0.449,
+    "text_s": 28.135,
+    "coord_s": 5.046,
+    "low_text_pages": 2,
+    "statement_pages": [
+      {
+        "page": 17,
+        "kind": "consolidated_cf",
+        "chars": 2905,
+        "coord_fragments": 95,
+        "number_fragments": 3,
+        "x_range": [
+          44.48,
+          1067.9
+        ],
+        "y_range": [
+          22.35,
+          745.07
+        ]
+      },
+      {
+        "page": 27,
+        "kind": "consolidated_bs",
+        "chars": 5610,
+        "coord_fragments": 221,
+        "number_fragments": 42,
+        "x_range": [
+          0.0,
+          1142.08
+        ],
+        "y_range": [
+          0.0,
+          745.35
+        ]
+      },
+      {
+        "page": 37,
+        "kind": "consolidated_bs",
+        "chars": 5114,
+        "coord_fragments": 121,
+        "number_fragments": 2,
+        "x_range": [
+          0.0,
+          558.44
+        ],
+        "y_range": [
+          0.0,
+          695.0
+        ]
+      },
+      {
+        "page": 39,
+        "kind": "consolidated_bs",
+        "chars": 4041,
+        "coord_fragments": 107,
+        "number_fragments": 1,
+        "x_range": [
+          0.0,
+          558.44
+        ],
+        "y_range": [
+          0.0,
+          695.0
+        ]
+      },
+      {
+        "page": 80,
+        "kind": "consolidated_pl",
+        "chars": 4789,
+        "coord_fragments": 89,
+        "number_fragments": 1,
+        "x_range": [
+          0.0,
+          487.21
+        ],
+        "y_range": [
+          0.0,
+          731.98
+        ]
+      },
+      {
+        "page": 81,
+        "kind": "consolidated_bs",
+        "chars": 3271,
+        "coord_fragments": 99,
+        "number_fragments": 12,
+        "x_range": [
+          0.0,
+          554.33
+        ],
+        "y_range": [
+          0.0,
+          697.25
+        ]
+      },
+      {
+        "page": 194,
+        "kind": "consolidated_pl",
+        "chars": 4590,
+        "coord_fragments": 57,
+        "number_fragments": 1,
+        "x_range": [
+          0.0,
+          473.39
+        ],
+        "y_range": [
+          0.0,
+          745.07
+        ]
+      },
+      {
+        "page": 195,
+        "kind": "standalone_pl",
+        "chars": 9015,
+        "coord_fragments": 45,
+        "number_fragments": 1,
+        "x_range": [
+          0.0,
+          554.33
+        ],
+        "y_range": [
+          0.0,
+          686.4
+        ]
+      },
+      {
+        "page": 196,
+        "kind": "standalone_pl",
+        "chars": 2778,
+        "coord_fragments": 31,
+        "number_fragments": 1,
+        "x_range": [
+          0.0,
+          422.4
+        ],
+        "y_range": [
+          0.0,
+          686.4
+        ]
+      },
+      {
+        "page": 200,
+        "kind": "standalone_pl",
+        "chars": 4738,
+        "coord_fragments": 50,
+        "number_fragments": 1,
+        "x_range": [
+          0.0,
+          422.4
+        ],
+        "y_range": [
+          0.0,
+          697.25
+        ]
+      },
+      {
+        "page": 204,
+        "kind": "unlabeled_bs",
+        "chars": 5119,
+        "coord_fragments": 57,
+        "number_fragments": 1,
+        "x_range": [
+          0.0,
+          422.4
+        ],
+        "y_range": [
+          0.0,
+          686.4
+        ]
+      },
+      {
+        "page": 206,
+        "kind": "standalone_bs",
+        "chars": 5075,
+        "coord_fragments": 52,
+        "number_fragments": 1,
+        "x_range": [
+          0.0,
+          422.4
+        ],
+        "y_range": [
+          0.0,
+          693.25
+        ]
+      },
+      {
+        "page": 207,
+        "kind": "unlabeled_bs",
+        "chars": 1375,
+        "coord_fragments": 22,
+        "number_fragments": 1,
+        "x_range": [
+          0.0,
+          554.33
+        ],
+        "y_range": [
+          0.0,
+          693.25
+        ]
+      },
+      {
+        "page": 208,
+        "kind": "standalone_bs",
+        "chars": 1027,
+        "coord_fragments": 38,
+        "number_fragments": 1,
+        "x_range": [
+          0.0,
+          525.38
+        ],
+        "y_range": [
+          0.0,
+          686.4
+        ]
+      },
+      {
+        "page": 209,
+        "kind": "standalone_bs",
+        "chars": 1731,
+        "coord_fragments": 68,
+        "number_fragments": 1,
+        "x_range": [
+          0.0,
+          554.33
+        ],
+        "y_range": [
+          0.0,
+          686.4
+        ]
+      },
+      {
+        "page": 210,
+        "kind": "standalone_pl",
+        "chars": 1042,
+        "coord_fragments": 37,
+        "number_fragments": 1,
+        "x_range": [
+          0.0,
+          462.84
+        ],
+        "y_range": [
+          0.0,
+          686.4
+        ]
+      },
+      {
+        "page": 211,
+        "kind": "standalone_pl",
+        "chars": 1704,
+        "coord_fragments": 59,
+        "number_fragments": 1,
+        "x_range": [
+          0.0,
+          554.33
+        ],
+        "y_range": [
+          0.0,
+          686.4
+        ]
+      },
+      {
+        "page": 217,
+        "kind": "standalone_cf",
+        "chars": 2470,
+        "coord_fragments": 54,
+        "number_fragments": 2,
+        "x_range": [
+          0.0,
+          554.33
+        ],
+        "y_range": [
+          0.0,
+          686.4
+        ]
+      },
+      {
+        "page": 220,
+        "kind": "standalone_bs",
+        "chars": 5067,
+        "coord_fragments": 99,
+        "number_fragments": 3,
+        "x_range": [
+          0.0,
+          511.74
+        ],
+        "y_range": [
+          0.0,
+          697.26
+        ]
+      },
+      {
+        "page": 221,
+        "kind": "unlabeled_pl",
+        "chars": 2797,
+        "coord_fragments": 72,
+        "number_fragments": 1,
+        "x_range": [
+          0.0,
+          554.33
+        ],
+        "y_range": [
+          0.0,
+          697.25
+        ]
+      },
+      {
+        "page": 223,
+        "kind": "unlabeled_pl",
+        "chars": 3126,
+        "coord_fragments": 85,
+        "number_fragments": 2,
+        "x_range": [
+          0.0,
+          554.33
+        ],
+        "y_range": [
+          0.0,
+          697.25
+        ]
+      },
+      {
+        "page": 224,
+        "kind": "unlabeled_bs",
+        "chars": 5451,
+        "coord_fragments": 101,
+        "number_fragments": 1,
+        "x_range": [
+          0.0,
+          525.38
+        ],
+        "y_range": [
+          0.0,
+          697.24
+        ]
+      },
+      {
+        "page": 225,
+        "kind": "unlabeled_pl",
+        "chars": 2772,
+        "coord_fragments": 99,
+        "number_fragments": 1,
+        "x_range": [
+          0.0,
+          554.33
+        ],
+        "y_range": [
+          0.0,
+          697.25
+        ]
+      },
+      {
+        "page": 234,
+        "kind": "unlabeled_pl",
+        "chars": 5848,
+        "coord_fragments": 104,
+        "number_fragments": 1,
+        "x_range": [
+          0.0,
+          422.4
+        ],
+        "y_range": [
+          0.0,
+          697.26
+        ]
+      },
+      {
+        "page": 236,
+        "kind": "unlabeled_bs",
+        "chars": 2715,
+        "coord_fragments": 87,
+        "number_fragments": 2,
+        "x_range": [
+          0.0,
+          537.86
+        ],
+        "y_range": [
+          0.0,
+          692.88
+        ]
+      },
+      {
+        "page": 240,
+        "kind": "unlabeled_pl",
+        "chars": 3479,
+        "coord_fragments": 96,
+        "number_fragments": 3,
+        "x_range": [
+          0.0,
+          546.2
+        ],
+        "y_range": [
+          0.0,
+          692.88
+        ]
+      },
+      {
+        "page": 241,
+        "kind": "unlabeled_bs",
+        "chars": 4125,
+        "coord_fragments": 117,
+        "number_fragments": 5,
+        "x_range": [
+          0.0,
+          554.33
+        ],
+        "y_range": [
+          0.0,
+          697.25
+        ]
+      },
+      {
+        "page": 243,
+        "kind": "consolidated_pl",
+        "chars": 5709,
+        "coord_fragments": 136,
+        "number_fragments": 2,
+        "x_range": [
+          0.0,
+          554.33
+        ],
+        "y_range": [
+          0.0,
+          697.25
+        ]
+      },
+      {
+        "page": 245,
+        "kind": "unlabeled_pl",
+        "chars": 4752,
+        "coord_fragments": 111,
+        "number_fragments": 11,
+        "x_range": [
+          0.0,
+          558.33
+        ],
+        "y_range": [
+          0.0,
+          697.25
+        ]
+      },
+      {
+        "page": 250,
+        "kind": "unlabeled_bs",
+        "chars": 4680,
+        "coord_fragments": 111,
+        "number_fragments": 1,
+        "x_range": [
+          0.0,
+          525.38
+        ],
+        "y_range": [
+          0.0,
+          697.25
+        ]
+      },
+      {
+        "page": 251,
+        "kind": "unlabeled_pl",
+        "chars": 6008,
+        "coord_fragments": 140,
+        "number_fragments": 3,
+        "x_range": [
+          0.0,
+          554.33
+        ],
+        "y_range": [
+          0.0,
+          697.25
+        ]
+      },
+      {
+        "page": 255,
+        "kind": "standalone_pl",
+        "chars": 5828,
+        "coord_fragments": 117,
+        "number_fragments": 1,
+        "x_range": [
+          0.0,
+          554.33
+        ],
+        "y_range": [
+          0.0,
+          697.25
+        ]
+      },
+      {
+        "page": 256,
+        "kind": "standalone_pl",
+        "chars": 4643,
+        "coord_fragments": 106,
+        "number_fragments": 1,
+        "x_range": [
+          0.0,
+          525.38
+        ],
+        "y_range": [
+          0.0,
+          697.25
+        ]
+      },
+      {
+        "page": 257,
+        "kind": "standalone_pl",
+        "chars": 5219,
+        "coord_fragments": 129,
+        "number_fragments": 5,
+        "x_range": [
+          0.0,
+          554.33
+        ],
+        "y_range": [
+          0.0,
+          697.25
+        ]
+      },
+      {
+        "page": 258,
+        "kind": "standalone_bs",
+        "chars": 2550,
+        "coord_fragments": 70,
+        "number_fragments": 10,
+        "x_range": [
+          0.0,
+          542.15
+        ],
+        "y_range": [
+          0.0,
+          697.25
+        ]
+      },
+      {
+        "page": 259,
+        "kind": "unlabeled_pl",
+        "chars": 1873,
+        "coord_fragments": 46,
+        "number_fragments": 1,
+        "x_range": [
+          0.0,
+          554.33
+        ],
+        "y_range": [
+          0.0,
+          697.25
+        ]
+      },
+      {
+        "page": 261,
+        "kind": "unlabeled_pl",
+        "chars": 3939,
+        "coord_fragments": 116,
+        "number_fragments": 1,
+        "x_range": [
+          0.0,
+          554.33
+        ],
+        "y_range": [
+          0.0,
+          697.25
+        ]
+      },
+      {
+        "page": 262,
+        "kind": "unlabeled_pl",
+        "chars": 4082,
+        "coord_fragments": 115,
+        "number_fragments": 3,
+        "x_range": [
+          0.0,
+          477.28
+        ],
+        "y_range": [
+          0.0,
+          697.25
+        ]
+      },
+      {
+        "page": 276,
+        "kind": "consolidated_pl",
+        "chars": 9240,
+        "coord_fragments": 45,
+        "number_fragments": 1,
+        "x_range": [
+          0.0,
+          422.4
+        ],
+        "y_range": [
+          0.0,
+          686.4
+        ]
+      },
+      {
+        "page": 277,
+        "kind": "consolidated_pl",
+        "chars": 3021,
+        "coord_fragments": 34,
+        "number_fragments": 1,
+        "x_range": [
+          0.0,
+          554.33
+        ],
+        "y_range": [
+          0.0,
+          686.4
+        ]
+      },
+      {
+        "page": 281,
+        "kind": "consolidated_pl",
+        "chars": 4997,
+        "coord_fragments": 50,
+        "number_fragments": 1,
+        "x_range": [
+          0.0,
+          554.33
+        ],
+        "y_range": [
+          0.0,
+          697.25
+        ]
+      },
+      {
+        "page": 286,
+        "kind": "consolidated_bs",
+        "chars": 1054,
+        "coord_fragments": 39,
+        "number_fragments": 1,
+        "x_range": [
+          0.0,
+          530.43
+        ],
+        "y_range": [
+          0.0,
+          686.4
+        ]
+      },
+      {
+        "page": 287,
+        "kind": "consolidated_bs",
+        "chars": 1682,
+        "coord_fragments": 66,
+        "number_fragments": 5,
+        "x_range": [
+          0.0,
+          554.33
+        ],
+        "y_range": [
+          0.0,
+          686.4
+        ]
+      },
+      {
+        "page": 288,
+        "kind": "consolidated_pl",
+        "chars": 1753,
+        "coord_fragments": 57,
+        "number_fragments": 12,
+        "x_range": [
+          0.0,
+          542.4
+        ],
+        "y_range": [
+          0.0,
+          686.4
+        ]
+      },
+      {
+        "page": 289,
+        "kind": "consolidated_pl",
+        "chars": 1336,
+        "coord_fragments": 56,
+        "number_fragments": 3,
+        "x_range": [
+          0.0,
+          554.33
+        ],
+        "y_range": [
+          0.0,
+          686.4
+        ]
+      },
+      {
+        "page": 295,
+        "kind": "consolidated_cf",
+        "chars": 2648,
+        "coord_fragments": 54,
+        "number_fragments": 1,
+        "x_range": [
+          0.0,
+          554.33
+        ],
+        "y_range": [
+          0.0,
+          686.4
+        ]
+      },
+      {
+        "page": 296,
+        "kind": "consolidated_cf",
+        "chars": 2102,
+        "coord_fragments": 67,
+        "number_fragments": 4,
+        "x_range": [
+          0.0,
+          546.85
+        ],
+        "y_range": [
+          0.0,
+          686.4
+        ]
+      },
+      {
+        "page": 299,
+        "kind": "consolidated_pl",
+        "chars": 5481,
+        "coord_fragments": 132,
+        "number_fragments": 2,
+        "x_range": [
+          0.0,
+          554.33
+        ],
+        "y_range": [
+          0.0,
+          697.25
+        ]
+      },
+      {
+        "page": 300,
+        "kind": "consolidated_pl",
+        "chars": 4818,
+        "coord_fragments": 142,
+        "number_fragments": 5,
+        "x_range": [
+          0.0,
+          539.55
+        ],
+        "y_range": [
+          0.0,
+          697.26
+        ]
+      },
+      {
+        "page": 301,
+        "kind": "consolidated_pl",
+        "chars": 6318,
+        "coord_fragments": 123,
+        "number_fragments": 2,
+        "x_range": [
+          0.0,
+          554.33
+        ],
+        "y_range": [
+          0.0,
+          697.25
+        ]
+      },
+      {
+        "page": 303,
+        "kind": "consolidated_pl",
+        "chars": 3038,
+        "coord_fragments": 84,
+        "number_fragments": 1,
+        "x_range": [
+          0.0,
+          554.33
+        ],
+        "y_range": [
+          0.0,
+          695.71
+        ]
+      },
+      {
+        "page": 305,
+        "kind": "consolidated_pl",
+        "chars": 3960,
+        "coord_fragments": 88,
+        "number_fragments": 1,
+        "x_range": [
+          0.0,
+          554.33
+        ],
+        "y_range": [
+          0.0,
+          697.25
+        ]
+      },
+      {
+        "page": 307,
+        "kind": "consolidated_pl",
+        "chars": 1722,
+        "coord_fragments": 58,
+        "number_fragments": 1,
+        "x_range": [
+          0.0,
+          554.33
+        ],
+        "y_range": [
+          0.0,
+          697.25
+        ]
+      },
+      {
+        "page": 312,
+        "kind": "consolidated_pl",
+        "chars": 6299,
+        "coord_fragments": 114,
+        "number_fragments": 1,
+        "x_range": [
+          0.0,
+          543.51
+        ],
+        "y_range": [
+          0.0,
+          697.24
+        ]
+      },
+      {
+        "page": 313,
+        "kind": "consolidated_pl",
+        "chars": 3573,
+        "coord_fragments": 102,
+        "number_fragments": 1,
+        "x_range": [
+          0.0,
+          554.33
+        ],
+        "y_range": [
+          0.0,
+          697.25
+        ]
+      },
+      {
+        "page": 314,
+        "kind": "unlabeled_bs",
+        "chars": 2629,
+        "coord_fragments": 86,
+        "number_fragments": 1,
+        "x_range": [
+          0.0,
+          537.85
+        ],
+        "y_range": [
+          0.0,
+          697.25
+        ]
+      },
+      {
+        "page": 319,
+        "kind": "consolidated_pl",
+        "chars": 4789,
+        "coord_fragments": 114,
+        "number_fragments": 2,
+        "x_range": [
+          0.0,
+          554.33
+        ],
+        "y_range": [
+          0.0,
+          697.25
+        ]
+      },
+      {
+        "page": 321,
+        "kind": "consolidated_pl",
+        "chars": 3914,
+        "coord_fragments": 84,
+        "number_fragments": 1,
+        "x_range": [
+          0.0,
+          554.33
+        ],
+        "y_range": [
+          0.0,
+          697.25
+        ]
+      },
+      {
+        "page": 322,
+        "kind": "consolidated_cf",
+        "chars": 5100,
+        "coord_fragments": 121,
+        "number_fragments": 1,
+        "x_range": [
+          0.0,
+          508.53
+        ],
+        "y_range": [
+          0.0,
+          697.25
+        ]
+      },
+      {
+        "page": 324,
+        "kind": "unlabeled_pl",
+        "chars": 4962,
+        "coord_fragments": 91,
+        "number_fragments": 1,
+        "x_range": [
+          0.0,
+          432.08
+        ],
+        "y_range": [
+          0.0,
+          697.25
+        ]
+      },
+      {
+        "page": 329,
+        "kind": "consolidated_pl",
+        "chars": 4565,
+        "coord_fragments": 110,
+        "number_fragments": 1,
+        "x_range": [
+          0.0,
+          554.33
+        ],
+        "y_range": [
+          0.0,
+          697.25
+        ]
+      },
+      {
+        "page": 330,
+        "kind": "consolidated_pl",
+        "chars": 5883,
+        "coord_fragments": 130,
+        "number_fragments": 1,
+        "x_range": [
+          0.0,
+          520.62
+        ],
+        "y_range": [
+          0.0,
+          697.25
+        ]
+      },
+      {
+        "page": 334,
+        "kind": "consolidated_pl",
+        "chars": 5862,
+        "coord_fragments": 107,
+        "number_fragments": 1,
+        "x_range": [
+          0.0,
+          525.38
+        ],
+        "y_range": [
+          0.0,
+          697.25
+        ]
+      },
+      {
+        "page": 335,
+        "kind": "consolidated_bs",
+        "chars": 5142,
+        "coord_fragments": 112,
+        "number_fragments": 1,
+        "x_range": [
+          0.0,
+          554.33
+        ],
+        "y_range": [
+          0.0,
+          697.26
+        ]
+      },
+      {
+        "page": 336,
+        "kind": "consolidated_pl",
+        "chars": 4864,
+        "coord_fragments": 104,
+        "number_fragments": 1,
+        "x_range": [
+          0.0,
+          525.38
+        ],
+        "y_range": [
+          0.0,
+          697.25
+        ]
+      },
+      {
+        "page": 337,
+        "kind": "consolidated_pl",
+        "chars": 4955,
+        "coord_fragments": 111,
+        "number_fragments": 1,
+        "x_range": [
+          0.0,
+          554.33
+        ],
+        "y_range": [
+          0.0,
+          697.25
+        ]
+      },
+      {
+        "page": 338,
+        "kind": "consolidated_pl",
+        "chars": 3584,
+        "coord_fragments": 72,
+        "number_fragments": 1,
+        "x_range": [
+          0.0,
+          525.38
+        ],
+        "y_range": [
+          0.0,
+          697.25
+        ]
+      },
+      {
+        "page": 339,
+        "kind": "unlabeled_bs",
+        "chars": 4017,
+        "coord_fragments": 109,
+        "number_fragments": 3,
+        "x_range": [
+          0.0,
+          554.33
+        ],
+        "y_range": [
+          0.0,
+          697.25
+        ]
+      },
+      {
+        "page": 340,
+        "kind": "consolidated_pl",
+        "chars": 3769,
+        "coord_fragments": 77,
+        "number_fragments": 1,
+        "x_range": [
+          0.0,
+          525.38
+        ],
+        "y_range": [
+          0.0,
+          697.25
+        ]
+      },
+      {
+        "page": 341,
+        "kind": "consolidated_pl",
+        "chars": 1880,
+        "coord_fragments": 49,
+        "number_fragments": 1,
+        "x_range": [
+          0.0,
+          554.33
+        ],
+        "y_range": [
+          0.0,
+          692.88
+        ]
+      },
+      {
+        "page": 343,
+        "kind": "consolidated_pl",
+        "chars": 4204,
+        "coord_fragments": 121,
+        "number_fragments": 3,
+        "x_range": [
+          0.0,
+          554.33
+        ],
+        "y_range": [
+          0.0,
+          697.25
+        ]
+      },
+      {
+        "page": 344,
+        "kind": "consolidated_pl",
+        "chars": 4294,
+        "coord_fragments": 117,
+        "number_fragments": 2,
+        "x_range": [
+          0.0,
+          542.18
+        ],
+        "y_range": [
+          0.0,
+          697.25
+        ]
+      }
+    ],
+    "coord_samples": [
+      {
+        "page": 17,
+        "kind": "consolidated_cf",
+        "headers": [
+          {
+            "text": "Revenue crosses $20 billion mark with resilient growth in fiscal 2026",
+            "x": 44.48,
+            "y": 691.54,
+            "size": 1.0
+          },
+          {
+            "text": "In \u20b9 crore, except per equity share data* FY 2026 FY 2025 FY 2024 FY 2023 FY 202",
+            "x": 58.57,
+            "y": 390.82,
+            "size": 1.0
+          },
+          {
+            "text": "Basic earnings per share (in \u20b9) 71.58 64.50 63.39 57. 63 52.52",
+            "x": 58.56,
+            "y": 346.57,
+            "size": 1.0
+          },
+          {
+            "text": "In US$ million, except per equity share data* FY 2026 FY 2025 FY 2024 FY 2023 FY",
+            "x": 58.57,
+            "y": 306.95,
+            "size": 1.0
+          },
+          {
+            "text": "Basic earnings per share (in \u20b9) 0.81 0.76 0.77 0.71 0.70",
+            "x": 58.57,
+            "y": 262.7,
+            "size": 1.0
+          },
+          {
+            "text": "million + clients",
+            "x": 441.87,
+            "y": 518.65,
+            "size": 1.0
+          },
+          {
+            "text": "(in \u20b9)",
+            "x": 137.93,
+            "y": 499.22,
+            "size": 1.0
+          },
+          {
+            "text": "(par value of \u20b9 5 each)",
+            "x": 55.76,
+            "y": 569.64,
+            "size": 1.0
+          },
+          {
+            "text": "\u20b9 1,78,650 cr 33,097 cr",
+            "x": 57.34,
+            "y": 645.88,
+            "size": 1.0
+          },
+          {
+            "text": "\u20b9 43,075 cr",
+            "x": 306.48,
+            "y": 555.4,
+            "size": 1.0
+          },
+          {
+            "text": "48.0 \u20b9 18,000 cr",
+            "x": 55.6,
+            "y": 477.48,
+            "size": 1.0
+          },
+          {
+            "text": "11.6% growth Y-o-Y at a price of \u20b9 1,800",
+            "x": 55.61,
+            "y": 462.82,
+            "size": 1.0
+          },
+          {
+            "text": "Employer 2026",
+            "x": 1037.81,
+            "y": 463.91,
+            "size": 1.0
+          },
+          {
+            "text": "compensated absences by \u20b91,289 crore.",
+            "x": 714.45,
+            "y": 51.32,
+            "size": 1.0
+          },
+          {
+            "text": "Infosys has been recognized as one of the 2026 World\u2019s Most Ethical",
+            "x": 759.69,
+            "y": 681.98,
+            "size": 1.0
+          }
+        ],
+        "numbers": [
+          {
+            "text": "88",
+            "x": 441.93,
+            "y": 499.26,
+            "size": 1.0
+          },
+          {
+            "text": "71.58",
+            "x": 55.82,
+            "y": 550.2,
+            "size": 1.0
+          },
+          {
+            "text": "14.9",
+            "x": 435.69,
+            "y": 613.6,
+            "size": 1.0
+          }
+        ]
+      },
+      {
+        "page": 27,
+        "kind": "consolidated_bs",
+        "headers": [
+          {
+            "text": "Over \u20b9 37,500 crore has been returned to shareholders for",
+            "x": 224.79,
+            "y": 561.05,
+            "size": 1.0
+          },
+          {
+            "text": "fiscal 2026, reflecting disciplined capital allocation and",
+            "x": 224.79,
+            "y": 545.45,
+            "size": 1.0
+          },
+          {
+            "text": "crore",
+            "x": 686.67,
+            "y": 655.99,
+            "size": 1.0
+          },
+          {
+            "text": "2026",
+            "x": 782.5,
+            "y": 560.53,
+            "size": 1.0
+          },
+          {
+            "text": "2026",
+            "x": 958.28,
+            "y": 561.01,
+            "size": 1.0
+          },
+          {
+            "text": "2026",
+            "x": 1139.78,
+            "y": 560.36,
+            "size": 1.0
+          },
+          {
+            "text": "2026",
+            "x": 1139.78,
+            "y": 560.36,
+            "size": 1.0
+          },
+          {
+            "text": "2026",
+            "x": 957.7,
+            "y": 401.94,
+            "size": 1.0
+          },
+          {
+            "text": "2026",
+            "x": 1142.08,
+            "y": 402.7,
+            "size": 1.0
+          },
+          {
+            "text": "compensated absences by \u20b91,289 crore.",
+            "x": 1033.23,
+            "y": 73.6,
+            "size": 1.0
+          },
+          {
+            "text": "(2) Dividend excludes special dividend of \u20b98.0",
+            "x": 1023.31,
+            "y": 61.85,
+            "size": 1.0
+          },
+          {
+            "text": "cash flow for fiscals 2025 and 2026",
+            "x": 842.45,
+            "y": 128.06,
+            "size": 1.0
+          },
+          {
+            "text": "2026",
+            "x": 783.97,
+            "y": 401.32,
+            "size": 1.0
+          },
+          {
+            "text": "crore and as a % of",
+            "x": 740.03,
+            "y": 511.27,
+            "size": 1.0
+          }
+        ],
+        "numbers": [
+          {
+            "text": "9.6",
+            "x": 45.35,
+            "y": 406.1,
+            "size": 1.0
+          },
+          {
+            "text": "21.0",
+            "x": 45.35,
+            "y": 348.61,
+            "size": 1.0
+          },
+          {
+            "text": "31.6",
+            "x": 45.35,
+            "y": 289.77,
+            "size": 1.0
+          },
+          {
+            "text": "11.6",
+            "x": 45.35,
+            "y": 229.58,
+            "size": 1.0
+          },
+          {
+            "text": "11.0",
+            "x": 45.35,
+            "y": 169.39,
+            "size": 1.0
+          },
+          {
+            "text": "2024",
+            "x": 683.9,
+            "y": 560.53,
+            "size": 1.0
+          },
+          {
+            "text": "6,21,821",
+            "x": 676.68,
+            "y": 634.66,
+            "size": 1.0
+          },
+          {
+            "text": "2025",
+            "x": 733.2,
+            "y": 560.53,
+            "size": 1.0
+          },
+          {
+            "text": "6,52,332",
+            "x": 725.98,
+            "y": 637.41,
+            "size": 1.0
+          },
+          {
+            "text": "2026",
+            "x": 782.5,
+            "y": 560.53,
+            "size": 1.0
+          }
+        ]
+      },
+      {
+        "page": 37,
+        "kind": "consolidated_bs",
+        "headers": [
+          {
+            "text": "18,000 crore, which was subsequently approved by",
+            "x": 77.3,
+            "y": 521.83,
+            "size": 1.0
+          },
+          {
+            "text": "crore (excluding transaction costs), funded from free reserves",
+            "x": 51.02,
+            "y": 386.73,
+            "size": 1.0
+          },
+          {
+            "text": "50 crore as at March 31, 2026,",
+            "x": 51.02,
+            "y": 338.03,
+            "size": 1.0
+          },
+          {
+            "text": "During the year ended March 31, 2026, the Company paid an",
+            "x": 51.02,
+            "y": 300.14,
+            "size": 1.0
+          },
+          {
+            "text": "55,523 crore, which is 82.1% of the free cash flow",
+            "x": 112.11,
+            "y": 246.14,
+            "size": 1.0
+          },
+          {
+            "text": "for fiscal 2025 and 2026 through dividends and buybacks, in line",
+            "x": 51.02,
+            "y": 235.34,
+            "size": 1.0
+          },
+          {
+            "text": "As of March 31, 2026, we had",
+            "x": 320.17,
+            "y": 575.83,
+            "size": 1.0
+          },
+          {
+            "text": "40,794 crore in working capital on",
+            "x": 433.86,
+            "y": 575.83,
+            "size": 1.0
+          },
+          {
+            "text": "51,167 crore on a consolidated basis.",
+            "x": 414.09,
+            "y": 565.03,
+            "size": 1.0
+          },
+          {
+            "text": "28,662 crore on a",
+            "x": 320.17,
+            "y": 548.73,
+            "size": 1.0
+          },
+          {
+            "text": "43,075 crore on a consolidated basis as on",
+            "x": 405.53,
+            "y": 537.93,
+            "size": 1.0
+          },
+          {
+            "text": "March 31, 2026, as against",
+            "x": 320.17,
+            "y": 527.13,
+            "size": 1.0
+          },
+          {
+            "text": "35,916 crore on a standalone basis,",
+            "x": 423.58,
+            "y": 527.13,
+            "size": 1.0
+          },
+          {
+            "text": "47,549 crore on a consolidated basis as on March 31, 2025.",
+            "x": 340.64,
+            "y": 516.33,
+            "size": 1.0
+          }
+        ],
+        "numbers": [
+          {
+            "text": "67",
+            "x": 558.44,
+            "y": 22.68,
+            "size": 1.0
+          },
+          {
+            "text": "18,000",
+            "x": 51.02,
+            "y": 397.53,
+            "size": 1.0
+          }
+        ]
+      }
+    ],
+    "ca_events": [
+      {
+        "type": "esop",
+        "date": "2005-07-29"
+      },
+      {
+        "type": "esop",
+        "date": "2005-08-11"
+      },
+      {
+        "type": "esop",
+        "date": "2005-09-12"
+      },
+      {
+        "type": "esop",
+        "date": "2005-09-16"
+      },
+      {
+        "type": "bonus",
+        "date": "2006-01-05"
+      },
+      {
+        "type": "bonus",
+        "date": "2006-04-14"
+      },
+      {
+        "type": "bonus",
+        "date": "2006-06-12"
+      },
+      {
+        "type": "bonus",
+        "date": "2006-07-17"
+      },
+      {
+        "type": "esop",
+        "date": "2012-06-25"
+      },
+      {
+        "type": "esop",
+        "date": "2012-08-03"
+      },
+      {
+        "type": "esop",
+        "date": "2012-09-11"
+      },
+      {
+        "type": "esop",
+        "date": "2012-09-12"
+      }
+    ],
+    "buyback_docs": [
+      {
+        "title": "Post Buyback Public Announcement",
+        "url": "https://nsearchives.nseindia.com/corporate/Infosys_05122025154029_SE_Newspaper_Advt_05122025.pdf",
+        "as_of": "2025-12-05"
+      },
+      {
+        "title": "Buyback",
+        "url": "https://nsearchives.nseindia.com/corporate/Infosys_18112025182523_SE_letter_LoF_18112025.pdf",
+        "as_of": "2025-11-18"
+      },
+      {
+        "title": "Public Announcement - Buyback of Shares",
+        "url": "https://nsearchives.nseindia.com/corporate/Infosys_10112025172147_SE_PublicAnnouncement_10112025.pdf",
+        "as_of": "2025-11-10"
+      },
+      {
+        "title": "Buyback",
+        "url": "https://nsearchives.nseindia.com/corporate/INFY_11092025215149_Outcome11092025.pdf",
+        "as_of": "2025-09-11"
+      },
+      {
+        "title": "Closure of Buy Back",
+        "url": "https://nsearchives.nseindia.com/corporate/INFY_13022023210817_OutcomeoftheBuybackCommitteeMeeting.pdf",
+        "as_of": "2023-02-13"
+      },
+      {
+        "title": "Buyback - others",
+        "url": "https://nsearchives.nseindia.com/corporate/INFY_10102022215730_Infy_BB_Intimation_10102022.pdf",
+        "as_of": "2022-10-10"
+      },
+      {
+        "title": "Post Buyback Public Announcement",
+        "url": "https://nsearchives.nseindia.com/corporate/INFY_13092021184810_Intimation_PostBuybackPublicAdvertisement.pdf",
+        "as_of": "2021-09-13"
+      },
+      {
+        "title": "Post Buyback Public Announcement",
+        "url": "https://nsearchives.nseindia.com/corporate/INFY_10092021220736_Infy_Buyback_PublicAdvertisement.pdf",
+        "as_of": "2021-09-10"
+      }
+    ],
+    "sha256_payload": "4fc4a071157f446bfc96f71763159122059c9881870e245cb9383069906bf3e8"
+  },
+  {
+    "ticker": "TCS",
+    "isin": "INE467B01029",
+    "url": "https://nsearchives.nseindia.com/annual_reports/AR_29263_TCS_2025_2026_A_17427580_15052026234830.pdf",
+    "hash": "d0bdc7fe1ae741b07bb76a158019cae05ab18abd2c2eeda43177d367bef24eb8",
+    "size": 17427580,
+    "pages": 361,
+    "json_s": 2.282,
+    "download_s": 3.707,
+    "open_s": 0.469,
+    "text_s": 49.883,
+    "coord_s": 8.374,
+    "low_text_pages": 0,
+    "statement_pages": [
+      {
+        "page": 4,
+        "kind": "consolidated_bs",
+        "chars": 1760,
+        "coord_fragments": 130,
+        "number_fragments": 53,
+        "x_range": [
+          43.06,
+          1010.88
+        ],
+        "y_range": [
+          43.35,
+          634.85
+        ]
+      },
+      {
+        "page": 42,
+        "kind": "unlabeled_bs",
+        "chars": 4288,
+        "coord_fragments": 94,
+        "number_fragments": 1,
+        "x_range": [
+          0.0,
+          538.2
+        ],
+        "y_range": [
+          0.0,
+          709.11
+        ]
+      },
+      {
+        "page": 71,
+        "kind": "unlabeled_bs",
+        "chars": 2234,
+        "coord_fragments": 64,
+        "number_fragments": 1,
+        "x_range": [
+          0.0,
+          168.36
+        ],
+        "y_range": [
+          0.0,
+          651.96
+        ]
+      },
+      {
+        "page": 103,
+        "kind": "unlabeled_cf",
+        "chars": 2337,
+        "coord_fragments": 37,
+        "number_fragments": 1,
+        "x_range": [
+          0.0,
+          752.6
+        ],
+        "y_range": [
+          0.0,
+          709.11
+        ]
+      },
+      {
+        "page": 158,
+        "kind": "consolidated_pl",
+        "chars": 2814,
+        "coord_fragments": 54,
+        "number_fragments": 1,
+        "x_range": [
+          0.0,
+          535.92
+        ],
+        "y_range": [
+          0.0,
+          709.37
+        ]
+      },
+      {
+        "page": 161,
+        "kind": "consolidated_pl",
+        "chars": 4935,
+        "coord_fragments": 98,
+        "number_fragments": 1,
+        "x_range": [
+          0.0,
+          357.95
+        ],
+        "y_range": [
+          0.0,
+          664.3
+        ]
+      },
+      {
+        "page": 162,
+        "kind": "consolidated_bs",
+        "chars": 4352,
+        "coord_fragments": 102,
+        "number_fragments": 1,
+        "x_range": [
+          0.0,
+          535.92
+        ],
+        "y_range": [
+          0.0,
+          709.37
+        ]
+      },
+      {
+        "page": 167,
+        "kind": "consolidated_bs",
+        "chars": 2637,
+        "coord_fragments": 85,
+        "number_fragments": 1,
+        "x_range": [
+          0.0,
+          512.5
+        ],
+        "y_range": [
+          0.0,
+          661.3
+        ]
+      },
+      {
+        "page": 168,
+        "kind": "consolidated_pl",
+        "chars": 2992,
+        "coord_fragments": 78,
+        "number_fragments": 1,
+        "x_range": [
+          0.0,
+          535.92
+        ],
+        "y_range": [
+          0.0,
+          709.37
+        ]
+      },
+      {
+        "page": 172,
+        "kind": "consolidated_pl",
+        "chars": 2927,
+        "coord_fragments": 64,
+        "number_fragments": 1,
+        "x_range": [
+          0.0,
+          535.92
+        ],
+        "y_range": [
+          0.0,
+          709.37
+        ]
+      },
+      {
+        "page": 173,
+        "kind": "consolidated_cf",
+        "chars": 2382,
+        "coord_fragments": 66,
+        "number_fragments": 1,
+        "x_range": [
+          0.0,
+          503.29
+        ],
+        "y_range": [
+          0.0,
+          660.46
+        ]
+      },
+      {
+        "page": 174,
+        "kind": "consolidated_cf",
+        "chars": 2441,
+        "coord_fragments": 62,
+        "number_fragments": 1,
+        "x_range": [
+          0.0,
+          535.92
+        ],
+        "y_range": [
+          0.0,
+          709.37
+        ]
+      },
+      {
+        "page": 175,
+        "kind": "consolidated_pl",
+        "chars": 4755,
+        "coord_fragments": 94,
+        "number_fragments": 1,
+        "x_range": [
+          0.0,
+          434.17
+        ],
+        "y_range": [
+          0.0,
+          662.16
+        ]
+      },
+      {
+        "page": 178,
+        "kind": "consolidated_pl",
+        "chars": 4546,
+        "coord_fragments": 109,
+        "number_fragments": 3,
+        "x_range": [
+          0.0,
+          543.56
+        ],
+        "y_range": [
+          0.0,
+          709.37
+        ]
+      },
+      {
+        "page": 180,
+        "kind": "consolidated_pl",
+        "chars": 4491,
+        "coord_fragments": 100,
+        "number_fragments": 1,
+        "x_range": [
+          0.0,
+          535.92
+        ],
+        "y_range": [
+          0.0,
+          709.37
+        ]
+      },
+      {
+        "page": 183,
+        "kind": "consolidated_pl",
+        "chars": 2459,
+        "coord_fragments": 80,
+        "number_fragments": 1,
+        "x_range": [
+          0.0,
+          504.61
+        ],
+        "y_range": [
+          0.0,
+          662.16
+        ]
+      },
+      {
+        "page": 193,
+        "kind": "consolidated_pl",
+        "chars": 2904,
+        "coord_fragments": 91,
+        "number_fragments": 1,
+        "x_range": [
+          0.0,
+          504.04
+        ],
+        "y_range": [
+          0.0,
+          662.16
+        ]
+      },
+      {
+        "page": 194,
+        "kind": "consolidated_pl",
+        "chars": 3808,
+        "coord_fragments": 55,
+        "number_fragments": 1,
+        "x_range": [
+          0.0,
+          535.92
+        ],
+        "y_range": [
+          0.0,
+          709.37
+        ]
+      },
+      {
+        "page": 200,
+        "kind": "consolidated_pl",
+        "chars": 3019,
+        "coord_fragments": 64,
+        "number_fragments": 1,
+        "x_range": [
+          0.0,
+          535.92
+        ],
+        "y_range": [
+          0.0,
+          709.37
+        ]
+      },
+      {
+        "page": 202,
+        "kind": "consolidated_pl",
+        "chars": 3014,
+        "coord_fragments": 42,
+        "number_fragments": 1,
+        "x_range": [
+          0.0,
+          535.92
+        ],
+        "y_range": [
+          0.0,
+          709.37
+        ]
+      },
+      {
+        "page": 206,
+        "kind": "consolidated_pl",
+        "chars": 2053,
+        "coord_fragments": 70,
+        "number_fragments": 2,
+        "x_range": [
+          0.0,
+          535.92
+        ],
+        "y_range": [
+          0.0,
+          709.37
+        ]
+      },
+      {
+        "page": 207,
+        "kind": "consolidated_pl",
+        "chars": 1733,
+        "coord_fragments": 69,
+        "number_fragments": 1,
+        "x_range": [
+          0.0,
+          504.04
+        ],
+        "y_range": [
+          0.0,
+          662.16
+        ]
+      },
+      {
+        "page": 218,
+        "kind": "consolidated_bs",
+        "chars": 3338,
+        "coord_fragments": 55,
+        "number_fragments": 1,
+        "x_range": [
+          0.0,
+          535.92
+        ],
+        "y_range": [
+          0.0,
+          709.37
+        ]
+      },
+      {
+        "page": 221,
+        "kind": "consolidated_pl",
+        "chars": 3574,
+        "coord_fragments": 51,
+        "number_fragments": 1,
+        "x_range": [
+          0.0,
+          504.04
+        ],
+        "y_range": [
+          0.0,
+          662.16
+        ]
+      },
+      {
+        "page": 222,
+        "kind": "consolidated_pl",
+        "chars": 2578,
+        "coord_fragments": 56,
+        "number_fragments": 1,
+        "x_range": [
+          0.0,
+          535.92
+        ],
+        "y_range": [
+          0.0,
+          709.37
+        ]
+      },
+      {
+        "page": 228,
+        "kind": "consolidated_pl",
+        "chars": 3195,
+        "coord_fragments": 53,
+        "number_fragments": 1,
+        "x_range": [
+          0.0,
+          535.92
+        ],
+        "y_range": [
+          0.0,
+          709.37
+        ]
+      },
+      {
+        "page": 238,
+        "kind": "consolidated_pl",
+        "chars": 3659,
+        "coord_fragments": 80,
+        "number_fragments": 1,
+        "x_range": [
+          0.0,
+          535.92
+        ],
+        "y_range": [
+          0.0,
+          709.37
+        ]
+      },
+      {
+        "page": 240,
+        "kind": "standalone_pl",
+        "chars": 2590,
+        "coord_fragments": 51,
+        "number_fragments": 1,
+        "x_range": [
+          0.0,
+          411.93
+        ],
+        "y_range": [
+          0.0,
+          709.37
+        ]
+      },
+      {
+        "page": 243,
+        "kind": "standalone_pl",
+        "chars": 4822,
+        "coord_fragments": 98,
+        "number_fragments": 1,
+        "x_range": [
+          0.0,
+          377.8
+        ],
+        "y_range": [
+          0.0,
+          664.22
+        ]
+      },
+      {
+        "page": 246,
+        "kind": "standalone_bs",
+        "chars": 3349,
+        "coord_fragments": 113,
+        "number_fragments": 1,
+        "x_range": [
+          0.0,
+          535.92
+        ],
+        "y_range": [
+          0.0,
+          709.37
+        ]
+      },
+      {
+        "page": 250,
+        "kind": "standalone_bs",
+        "chars": 2982,
+        "coord_fragments": 65,
+        "number_fragments": 1,
+        "x_range": [
+          0.0,
+          535.92
+        ],
+        "y_range": [
+          0.0,
+          709.37
+        ]
+      },
+      {
+        "page": 253,
+        "kind": "standalone_bs",
+        "chars": 2632,
+        "coord_fragments": 83,
+        "number_fragments": 1,
+        "x_range": [
+          0.0,
+          512.48
+        ],
+        "y_range": [
+          0.0,
+          660.32
+        ]
+      },
+      {
+        "page": 254,
+        "kind": "standalone_pl",
+        "chars": 2382,
+        "coord_fragments": 64,
+        "number_fragments": 1,
+        "x_range": [
+          0.0,
+          535.92
+        ],
+        "y_range": [
+          0.0,
+          709.37
+        ]
+      },
+      {
+        "page": 256,
+        "kind": "standalone_pl",
+        "chars": 2463,
+        "coord_fragments": 54,
+        "number_fragments": 1,
+        "x_range": [
+          0.0,
+          535.92
+        ],
+        "y_range": [
+          0.0,
+          709.37
+        ]
+      },
+      {
+        "page": 257,
+        "kind": "standalone_cf",
+        "chars": 2349,
+        "coord_fragments": 63,
+        "number_fragments": 1,
+        "x_range": [
+          0.0,
+          504.0
+        ],
+        "y_range": [
+          0.0,
+          660.32
+        ]
+      },
+      {
+        "page": 258,
+        "kind": "standalone_cf",
+        "chars": 1707,
+        "coord_fragments": 48,
+        "number_fragments": 1,
+        "x_range": [
+          0.0,
+          535.92
+        ],
+        "y_range": [
+          0.0,
+          709.37
+        ]
+      },
+      {
+        "page": 259,
+        "kind": "standalone_pl",
+        "chars": 4398,
+        "coord_fragments": 89,
+        "number_fragments": 1,
+        "x_range": [
+          0.0,
+          379.2
+        ],
+        "y_range": [
+          0.0,
+          660.32
+        ]
+      },
+      {
+        "page": 261,
+        "kind": "standalone_cf",
+        "chars": 4502,
+        "coord_fragments": 88,
+        "number_fragments": 1,
+        "x_range": [
+          0.0,
+          338.13
+        ],
+        "y_range": [
+          0.0,
+          660.32
+        ]
+      },
+      {
+        "page": 263,
+        "kind": "standalone_pl",
+        "chars": 3467,
+        "coord_fragments": 86,
+        "number_fragments": 1,
+        "x_range": [
+          0.0,
+          504.08
+        ],
+        "y_range": [
+          0.0,
+          660.32
+        ]
+      },
+      {
+        "page": 266,
+        "kind": "standalone_pl",
+        "chars": 1937,
+        "coord_fragments": 65,
+        "number_fragments": 3,
+        "x_range": [
+          0.0,
+          539.45
+        ],
+        "y_range": [
+          0.0,
+          709.37
+        ]
+      },
+      {
+        "page": 277,
+        "kind": "standalone_pl",
+        "chars": 3615,
+        "coord_fragments": 67,
+        "number_fragments": 1,
+        "x_range": [
+          0.0,
+          504.08
+        ],
+        "y_range": [
+          0.0,
+          660.32
+        ]
+      },
+      {
+        "page": 278,
+        "kind": "standalone_pl",
+        "chars": 3654,
+        "coord_fragments": 64,
+        "number_fragments": 1,
+        "x_range": [
+          0.0,
+          535.92
+        ],
+        "y_range": [
+          0.0,
+          709.37
+        ]
+      },
+      {
+        "page": 282,
+        "kind": "standalone_pl",
+        "chars": 3856,
+        "coord_fragments": 60,
+        "number_fragments": 1,
+        "x_range": [
+          0.0,
+          535.92
+        ],
+        "y_range": [
+          0.0,
+          709.37
+        ]
+      },
+      {
+        "page": 283,
+        "kind": "standalone_pl",
+        "chars": 3038,
+        "coord_fragments": 59,
+        "number_fragments": 1,
+        "x_range": [
+          0.0,
+          504.08
+        ],
+        "y_range": [
+          0.0,
+          660.32
+        ]
+      },
+      {
+        "page": 285,
+        "kind": "standalone_pl",
+        "chars": 2341,
+        "coord_fragments": 33,
+        "number_fragments": 1,
+        "x_range": [
+          0.0,
+          120.95
+        ],
+        "y_range": [
+          0.0,
+          660.32
+        ]
+      },
+      {
+        "page": 287,
+        "kind": "standalone_pl",
+        "chars": 2431,
+        "coord_fragments": 56,
+        "number_fragments": 1,
+        "x_range": [
+          0.0,
+          504.08
+        ],
+        "y_range": [
+          0.0,
+          660.32
+        ]
+      },
+      {
+        "page": 290,
+        "kind": "standalone_pl",
+        "chars": 1772,
+        "coord_fragments": 64,
+        "number_fragments": 1,
+        "x_range": [
+          0.0,
+          535.92
+        ],
+        "y_range": [
+          0.0,
+          709.37
+        ]
+      },
+      {
+        "page": 295,
+        "kind": "standalone_bs",
+        "chars": 2656,
+        "coord_fragments": 55,
+        "number_fragments": 1,
+        "x_range": [
+          0.0,
+          504.08
+        ],
+        "y_range": [
+          0.0,
+          660.32
+        ]
+      },
+      {
+        "page": 296,
+        "kind": "standalone_bs",
+        "chars": 2331,
+        "coord_fragments": 59,
+        "number_fragments": 1,
+        "x_range": [
+          0.0,
+          535.92
+        ],
+        "y_range": [
+          0.0,
+          709.37
+        ]
+      },
+      {
+        "page": 300,
+        "kind": "standalone_pl",
+        "chars": 2748,
+        "coord_fragments": 48,
+        "number_fragments": 1,
+        "x_range": [
+          0.0,
+          535.92
+        ],
+        "y_range": [
+          0.0,
+          709.37
+        ]
+      },
+      {
+        "page": 303,
+        "kind": "standalone_pl",
+        "chars": 2308,
+        "coord_fragments": 65,
+        "number_fragments": 1,
+        "x_range": [
+          0.0,
+          504.06
+        ],
+        "y_range": [
+          0.0,
+          660.32
+        ]
+      },
+      {
+        "page": 304,
+        "kind": "consolidated_bs",
+        "chars": 3707,
+        "coord_fragments": 53,
+        "number_fragments": 1,
+        "x_range": [
+          0.0,
+          535.92
+        ],
+        "y_range": [
+          0.0,
+          709.37
+        ]
+      },
+      {
+        "page": 305,
+        "kind": "standalone_pl",
+        "chars": 2199,
+        "coord_fragments": 93,
+        "number_fragments": 14,
+        "x_range": [
+          0.0,
+          504.06
+        ],
+        "y_range": [
+          0.0,
+          660.32
+        ]
+      },
+      {
+        "page": 308,
+        "kind": "standalone_pl",
+        "chars": 3819,
+        "coord_fragments": 69,
+        "number_fragments": 1,
+        "x_range": [
+          0.0,
+          535.92
+        ],
+        "y_range": [
+          0.0,
+          709.37
+        ]
+      },
+      {
+        "page": 315,
+        "kind": "standalone_pl",
+        "chars": 3539,
+        "coord_fragments": 92,
+        "number_fragments": 3,
+        "x_range": [
+          0.0,
+          504.06
+        ],
+        "y_range": [
+          0.0,
+          660.32
+        ]
+      }
+    ],
+    "coord_samples": [
+      {
+        "page": 4,
+        "kind": "consolidated_bs",
+        "headers": [],
+        "numbers": [
+          {
+            "text": "04",
+            "x": 135.42,
+            "y": 574.04,
+            "size": 1.0
+          },
+          {
+            "text": "06",
+            "x": 135.42,
+            "y": 562.0,
+            "size": 1.0
+          },
+          {
+            "text": "08",
+            "x": 135.42,
+            "y": 549.96,
+            "size": 1.0
+          },
+          {
+            "text": "10",
+            "x": 135.42,
+            "y": 537.91,
+            "size": 1.0
+          },
+          {
+            "text": "12",
+            "x": 135.42,
+            "y": 525.87,
+            "size": 1.0
+          },
+          {
+            "text": "14",
+            "x": 135.42,
+            "y": 513.82,
+            "size": 1.0
+          },
+          {
+            "text": "01",
+            "x": 72.18,
+            "y": 587.58,
+            "size": 1.0
+          },
+          {
+            "text": "42",
+            "x": 365.67,
+            "y": 408.33,
+            "size": 1.0
+          },
+          {
+            "text": "44",
+            "x": 365.67,
+            "y": 396.28,
+            "size": 1.0
+          },
+          {
+            "text": "46",
+            "x": 365.67,
+            "y": 384.24,
+            "size": 1.0
+          }
+        ]
+      },
+      {
+        "page": 158,
+        "kind": "consolidated_pl",
+        "headers": [
+          {
+            "text": "comprise the consolidated balance sheet as at 31 March 2026,",
+            "x": 56.69,
+            "y": 225.72,
+            "size": 1.0
+          },
+          {
+            "text": "Group as at 31 March 2026, of its consolidated profit and other",
+            "x": 56.69,
+            "y": 75.66,
+            "size": 1.0
+          }
+        ],
+        "numbers": [
+          {
+            "text": "187",
+            "x": 535.92,
+            "y": 18.24,
+            "size": 1.0
+          }
+        ]
+      },
+      {
+        "page": 161,
+        "kind": "consolidated_pl",
+        "headers": [
+          {
+            "text": "Company as on 1 April 2026 to 9 April 2026",
+            "x": 357.95,
+            "y": 321.85,
+            "size": 1.0
+          },
+          {
+            "text": "incorporated in India, as on 1 April 2026 to",
+            "x": 357.95,
+            "y": 261.86,
+            "size": 1.0
+          },
+          {
+            "text": "9 April 2026, none of the directors of the Group",
+            "x": 357.95,
+            "y": 249.86,
+            "size": 1.0
+          },
+          {
+            "text": "as on 31 March 2026 from being appointed as a",
+            "x": 357.95,
+            "y": 225.87,
+            "size": 1.0
+          }
+        ],
+        "numbers": [
+          {
+            "text": "190",
+            "x": 44.4,
+            "y": 18.24,
+            "size": 1.0
+          }
+        ]
+      }
+    ],
+    "ca_events": [
+      {
+        "type": "esop",
+        "date": "2004-09-29"
+      },
+      {
+        "type": "esop",
+        "date": "2004-11-04"
+      },
+      {
+        "type": "merger",
+        "date": "2005-07-15"
+      },
+      {
+        "type": "scheme",
+        "date": "2005-07-15"
+      },
+      {
+        "type": "scheme",
+        "date": "2005-09-29"
+      },
+      {
+        "type": "scheme",
+        "date": "2005-10-19"
+      },
+      {
+        "type": "bonus",
+        "date": "2005-12-08"
+      },
+      {
+        "type": "scheme",
+        "date": "2006-01-17"
+      },
+      {
+        "type": "scheme",
+        "date": "2006-02-01"
+      },
+      {
+        "type": "bonus",
+        "date": "2006-04-17"
+      },
+      {
+        "type": "bonus",
+        "date": "2006-06-30"
+      },
+      {
+        "type": "bonus",
+        "date": "2006-07-18"
+      }
+    ],
+    "buyback_docs": [
+      {
+        "title": "Closure of Buy Back",
+        "url": "https://nsearchives.nseindia.com/corporate/TCS_13122023215652_SELetter.pdf",
+        "as_of": "2023-12-13"
+      },
+      {
+        "title": "Post Buyback Public Announcement",
+        "url": "https://nsearchives.nseindia.com/corporate/TCS_13122023162302_SEIntsigned.pdf",
+        "as_of": "2023-12-13"
+      },
+      {
+        "title": "Buyback",
+        "url": "https://nsearchives.nseindia.com/corporate/TCS_28112023150306_SELetterLOF.pdf",
+        "as_of": "2023-11-28"
+      },
+      {
+        "title": "Public Announcement - Buyback of Shares",
+        "url": "https://nsearchives.nseindia.com/corporate/TCS_17112023173403_SELetterforPublicAnnouncement_signed.pdf",
+        "as_of": "2023-11-17"
+      },
+      {
+        "title": "Buyback",
+        "url": "https://nsearchives.nseindia.com/corporate/TCS_11102023172245_SEIntimationBBsigned.pdf",
+        "as_of": "2023-10-11"
+      },
+      {
+        "title": "Post Buyback Public Announcement",
+        "url": "https://nsearchives.nseindia.com/corporate/TCS_29032022191031_SEInt.pdf",
+        "as_of": "2022-03-29"
+      },
+      {
+        "title": "Buyback - others",
+        "url": "https://nsearchives.nseindia.com/corporate/TCS_06032022222513_SEIntimationLetterofOffer.pdf",
+        "as_of": "2022-03-06"
+      },
+      {
+        "title": "Buyback - others",
+        "url": "https://nsearchives.nseindia.com/corporate/TCS_06032022221439_SELetterUpdatesonBuyback.pdf",
+        "as_of": "2022-03-06"
+      }
+    ],
+    "sha256_payload": "d0bdc7fe1ae741b07bb76a158019cae05ab18abd2c2eeda43177d367bef24eb8"
+  },
+  {
+    "ticker": "WIPRO",
+    "isin": "INE075A01022",
+    "url": "https://nsearchives.nseindia.com/annual_reports/AR_29427_WIPRO_2025_2026_A_8877705_22062026190140.pdf",
+    "hash": "48f0612b11ccd1883d229d9c6ae3fcc0de65c6ae6bc6034b562884ecbbd5afd9",
+    "size": 8877705,
+    "pages": 561,
+    "json_s": 2.627,
+    "download_s": 1.506,
+    "open_s": 0.399,
+    "text_s": 48.177,
+    "coord_s": 4.236,
+    "low_text_pages": 2,
+    "statement_pages": [
+      {
+        "page": 41,
+        "kind": "consolidated_cf",
+        "chars": 7475,
+        "coord_fragments": 145,
+        "number_fragments": 1,
+        "x_range": [
+          27.02,
+          1126.33
+        ],
+        "y_range": [
+          48.19,
+          686.63
+        ]
+      },
+      {
+        "page": 109,
+        "kind": "consolidated_bs",
+        "chars": 2636,
+        "coord_fragments": 141,
+        "number_fragments": 48,
+        "x_range": [
+          0.0,
+          496.72
+        ],
+        "y_range": [
+          0.0,
+          686.63
+        ]
+      },
+      {
+        "page": 124,
+        "kind": "unlabeled_bs",
+        "chars": 3589,
+        "coord_fragments": 86,
+        "number_fragments": 1,
+        "x_range": [
+          51.02,
+          527.79
+        ],
+        "y_range": [
+          69.93,
+          686.63
+        ]
+      },
+      {
+        "page": 175,
+        "kind": "standalone_pl",
+        "chars": 2823,
+        "coord_fragments": 44,
+        "number_fragments": 1,
+        "x_range": [
+          0.0,
+          219.01
+        ],
+        "y_range": [
+          0.0,
+          686.63
+        ]
+      },
+      {
+        "page": 178,
+        "kind": "standalone_pl",
+        "chars": 4252,
+        "coord_fragments": 83,
+        "number_fragments": 1,
+        "x_range": [
+          51.02,
+          527.76
+        ],
+        "y_range": [
+          97.5,
+          686.63
+        ]
+      },
+      {
+        "page": 183,
+        "kind": "standalone_bs",
+        "chars": 2458,
+        "coord_fragments": 41,
+        "number_fragments": 1,
+        "x_range": [
+          0.0,
+          278.54
+        ],
+        "y_range": [
+          0.0,
+          686.63
+        ]
+      },
+      {
+        "page": 188,
+        "kind": "unlabeled_bs",
+        "chars": 2203,
+        "coord_fragments": 47,
+        "number_fragments": 1,
+        "x_range": [
+          51.02,
+          527.19
+        ],
+        "y_range": [
+          339.39,
+          686.63
+        ]
+      },
+      {
+        "page": 189,
+        "kind": "standalone_bs",
+        "chars": 1493,
+        "coord_fragments": 104,
+        "number_fragments": 48,
+        "x_range": [
+          0.0,
+          522.55
+        ],
+        "y_range": [
+          0.0,
+          686.63
+        ]
+      },
+      {
+        "page": 197,
+        "kind": "standalone_cf",
+        "chars": 1702,
+        "coord_fragments": 74,
+        "number_fragments": 12,
+        "x_range": [
+          0.0,
+          527.68
+        ],
+        "y_range": [
+          0.0,
+          686.63
+        ]
+      },
+      {
+        "page": 198,
+        "kind": "standalone_pl",
+        "chars": 3184,
+        "coord_fragments": 68,
+        "number_fragments": 1,
+        "x_range": [
+          89.48,
+          537.1
+        ],
+        "y_range": [
+          48.19,
+          686.63
+        ]
+      },
+      {
+        "page": 204,
+        "kind": "consolidated_bs",
+        "chars": 4024,
+        "coord_fragments": 103,
+        "number_fragments": 1,
+        "x_range": [
+          51.02,
+          527.94
+        ],
+        "y_range": [
+          64.5,
+          686.63
+        ]
+      },
+      {
+        "page": 205,
+        "kind": "standalone_pl",
+        "chars": 4005,
+        "coord_fragments": 91,
+        "number_fragments": 1,
+        "x_range": [
+          0.0,
+          392.4
+        ],
+        "y_range": [
+          0.0,
+          686.63
+        ]
+      },
+      {
+        "page": 217,
+        "kind": "standalone_pl",
+        "chars": 1839,
+        "coord_fragments": 182,
+        "number_fragments": 55,
+        "x_range": [
+          0.0,
+          529.63
+        ],
+        "y_range": [
+          0.0,
+          686.63
+        ]
+      },
+      {
+        "page": 218,
+        "kind": "standalone_bs",
+        "chars": 2024,
+        "coord_fragments": 119,
+        "number_fragments": 29,
+        "x_range": [
+          51.02,
+          527.3
+        ],
+        "y_range": [
+          71.33,
+          686.63
+        ]
+      },
+      {
+        "page": 225,
+        "kind": "standalone_bs",
+        "chars": 1577,
+        "coord_fragments": 115,
+        "number_fragments": 41,
+        "x_range": [
+          0.0,
+          532.78
+        ],
+        "y_range": [
+          0.0,
+          686.63
+        ]
+      },
+      {
+        "page": 232,
+        "kind": "standalone_bs",
+        "chars": 1975,
+        "coord_fragments": 147,
+        "number_fragments": 40,
+        "x_range": [
+          51.02,
+          527.51
+        ],
+        "y_range": [
+          131.71,
+          686.63
+        ]
+      },
+      {
+        "page": 237,
+        "kind": "standalone_pl",
+        "chars": 3020,
+        "coord_fragments": 76,
+        "number_fragments": 10,
+        "x_range": [
+          0.0,
+          532.78
+        ],
+        "y_range": [
+          0.0,
+          686.63
+        ]
+      },
+      {
+        "page": 240,
+        "kind": "standalone_pl",
+        "chars": 3627,
+        "coord_fragments": 81,
+        "number_fragments": 6,
+        "x_range": [
+          51.02,
+          527.22
+        ],
+        "y_range": [
+          100.51,
+          686.63
+        ]
+      },
+      {
+        "page": 241,
+        "kind": "standalone_pl",
+        "chars": 3754,
+        "coord_fragments": 64,
+        "number_fragments": 1,
+        "x_range": [
+          0.0,
+          516.23
+        ],
+        "y_range": [
+          0.0,
+          686.63
+        ]
+      },
+      {
+        "page": 245,
+        "kind": "standalone_pl",
+        "chars": 2043,
+        "coord_fragments": 121,
+        "number_fragments": 29,
+        "x_range": [
+          0.0,
+          532.21
+        ],
+        "y_range": [
+          0.0,
+          686.63
+        ]
+      },
+      {
+        "page": 246,
+        "kind": "standalone_bs",
+        "chars": 1900,
+        "coord_fragments": 150,
+        "number_fragments": 30,
+        "x_range": [
+          51.02,
+          527.94
+        ],
+        "y_range": [
+          56.26,
+          686.63
+        ]
+      },
+      {
+        "page": 247,
+        "kind": "standalone_pl",
+        "chars": 3934,
+        "coord_fragments": 110,
+        "number_fragments": 8,
+        "x_range": [
+          0.0,
+          522.54
+        ],
+        "y_range": [
+          0.0,
+          686.63
+        ]
+      },
+      {
+        "page": 251,
+        "kind": "standalone_pl",
+        "chars": 2299,
+        "coord_fragments": 117,
+        "number_fragments": 35,
+        "x_range": [
+          0.0,
+          533.76
+        ],
+        "y_range": [
+          0.0,
+          686.63
+        ]
+      },
+      {
+        "page": 253,
+        "kind": "standalone_bs",
+        "chars": 2890,
+        "coord_fragments": 85,
+        "number_fragments": 18,
+        "x_range": [
+          0.0,
+          510.8
+        ],
+        "y_range": [
+          0.0,
+          686.63
+        ]
+      },
+      {
+        "page": 285,
+        "kind": "consolidated_pl",
+        "chars": 3231,
+        "coord_fragments": 63,
+        "number_fragments": 11,
+        "x_range": [
+          0.0,
+          522.8
+        ],
+        "y_range": [
+          0.0,
+          686.63
+        ]
+      },
+      {
+        "page": 287,
+        "kind": "consolidated_pl",
+        "chars": 2976,
+        "coord_fragments": 46,
+        "number_fragments": 1,
+        "x_range": [
+          0.0,
+          219.01
+        ],
+        "y_range": [
+          0.0,
+          686.63
+        ]
+      },
+      {
+        "page": 290,
+        "kind": "consolidated_pl",
+        "chars": 4346,
+        "coord_fragments": 84,
+        "number_fragments": 1,
+        "x_range": [
+          51.02,
+          527.08
+        ],
+        "y_range": [
+          91.5,
+          686.63
+        ]
+      },
+      {
+        "page": 295,
+        "kind": "consolidated_bs",
+        "chars": 1613,
+        "coord_fragments": 113,
+        "number_fragments": 54,
+        "x_range": [
+          0.0,
+          521.87
+        ],
+        "y_range": [
+          0.0,
+          686.63
+        ]
+      },
+      {
+        "page": 298,
+        "kind": "consolidated_pl",
+        "chars": 2327,
+        "coord_fragments": 95,
+        "number_fragments": 36,
+        "x_range": [
+          52.98,
+          528.13
+        ],
+        "y_range": [
+          82.65,
+          686.63
+        ]
+      },
+      {
+        "page": 304,
+        "kind": "consolidated_cf",
+        "chars": 1729,
+        "coord_fragments": 64,
+        "number_fragments": 11,
+        "x_range": [
+          53.02,
+          527.95
+        ],
+        "y_range": [
+          221.76,
+          686.63
+        ]
+      },
+      {
+        "page": 305,
+        "kind": "consolidated_pl",
+        "chars": 3020,
+        "coord_fragments": 74,
+        "number_fragments": 1,
+        "x_range": [
+          0.0,
+          529.37
+        ],
+        "y_range": [
+          0.0,
+          686.63
+        ]
+      },
+      {
+        "page": 312,
+        "kind": "consolidated_pl",
+        "chars": 3966,
+        "coord_fragments": 91,
+        "number_fragments": 1,
+        "x_range": [
+          51.02,
+          527.17
+        ],
+        "y_range": [
+          97.5,
+          686.63
+        ]
+      },
+      {
+        "page": 315,
+        "kind": "consolidated_pl",
+        "chars": 4102,
+        "coord_fragments": 97,
+        "number_fragments": 1,
+        "x_range": [
+          0.0,
+          537.08
+        ],
+        "y_range": [
+          0.0,
+          686.63
+        ]
+      },
+      {
+        "page": 324,
+        "kind": "consolidated_bs",
+        "chars": 3343,
+        "coord_fragments": 68,
+        "number_fragments": 1,
+        "x_range": [
+          51.02,
+          527.19
+        ],
+        "y_range": [
+          217.5,
+          686.63
+        ]
+      },
+      {
+        "page": 326,
+        "kind": "consolidated_pl",
+        "chars": 1806,
+        "coord_fragments": 162,
+        "number_fragments": 57,
+        "x_range": [
+          51.02,
+          527.02
+        ],
+        "y_range": [
+          69.09,
+          686.63
+        ]
+      },
+      {
+        "page": 327,
+        "kind": "consolidated_bs",
+        "chars": 2205,
+        "coord_fragments": 118,
+        "number_fragments": 29,
+        "x_range": [
+          0.0,
+          532.63
+        ],
+        "y_range": [
+          0.0,
+          686.63
+        ]
+      },
+      {
+        "page": 333,
+        "kind": "consolidated_pl",
+        "chars": 2320,
+        "coord_fragments": 100,
+        "number_fragments": 14,
+        "x_range": [
+          0.0,
+          523.41
+        ],
+        "y_range": [
+          0.0,
+          686.63
+        ]
+      },
+      {
+        "page": 337,
+        "kind": "consolidated_pl",
+        "chars": 3622,
+        "coord_fragments": 93,
+        "number_fragments": 11,
+        "x_range": [
+          0.0,
+          521.78
+        ],
+        "y_range": [
+          0.0,
+          686.63
+        ]
+      },
+      {
+        "page": 338,
+        "kind": "consolidated_pl",
+        "chars": 2124,
+        "coord_fragments": 72,
+        "number_fragments": 4,
+        "x_range": [
+          51.02,
+          527.84
+        ],
+        "y_range": [
+          196.51,
+          686.63
+        ]
+      },
+      {
+        "page": 341,
+        "kind": "consolidated_pl",
+        "chars": 4131,
+        "coord_fragments": 98,
+        "number_fragments": 8,
+        "x_range": [
+          0.0,
+          522.53
+        ],
+        "y_range": [
+          0.0,
+          686.63
+        ]
+      },
+      {
+        "page": 342,
+        "kind": "consolidated_pl",
+        "chars": 3650,
+        "coord_fragments": 56,
+        "number_fragments": 1,
+        "x_range": [
+          51.01,
+          527.16
+        ],
+        "y_range": [
+          145.51,
+          686.63
+        ]
+      },
+      {
+        "page": 348,
+        "kind": "consolidated_bs",
+        "chars": 1860,
+        "coord_fragments": 136,
+        "number_fragments": 53,
+        "x_range": [
+          51.02,
+          527.7
+        ],
+        "y_range": [
+          48.49,
+          686.63
+        ]
+      },
+      {
+        "page": 349,
+        "kind": "consolidated_cf",
+        "chars": 1732,
+        "coord_fragments": 114,
+        "number_fragments": 34,
+        "x_range": [
+          0.0,
+          532.99
+        ],
+        "y_range": [
+          0.0,
+          686.63
+        ]
+      },
+      {
+        "page": 357,
+        "kind": "consolidated_pl",
+        "chars": 1762,
+        "coord_fragments": 83,
+        "number_fragments": 21,
+        "x_range": [
+          0.0,
+          521.78
+        ],
+        "y_range": [
+          0.0,
+          686.63
+        ]
+      },
+      {
+        "page": 360,
+        "kind": "consolidated_pl",
+        "chars": 1909,
+        "coord_fragments": 106,
+        "number_fragments": 30,
+        "x_range": [
+          51.02,
+          527.25
+        ],
+        "y_range": [
+          74.56,
+          686.63
+        ]
+      },
+      {
+        "page": 363,
+        "kind": "consolidated_bs",
+        "chars": 2404,
+        "coord_fragments": 82,
+        "number_fragments": 7,
+        "x_range": [
+          0.0,
+          528.76
+        ],
+        "y_range": [
+          0.0,
+          686.63
+        ]
+      },
+      {
+        "page": 365,
+        "kind": "consolidated_pl",
+        "chars": 1574,
+        "coord_fragments": 96,
+        "number_fragments": 22,
+        "x_range": [
+          0.0,
+          516.15
+        ],
+        "y_range": [
+          0.0,
+          686.63
+        ]
+      },
+      {
+        "page": 366,
+        "kind": "consolidated_bs",
+        "chars": 1945,
+        "coord_fragments": 125,
+        "number_fragments": 18,
+        "x_range": [
+          51.02,
+          527.28
+        ],
+        "y_range": [
+          60.18,
+          686.63
+        ]
+      },
+      {
+        "page": 369,
+        "kind": "consolidated_pl",
+        "chars": 2947,
+        "coord_fragments": 95,
+        "number_fragments": 21,
+        "x_range": [
+          0.0,
+          521.78
+        ],
+        "y_range": [
+          0.0,
+          686.63
+        ]
+      },
+      {
+        "page": 375,
+        "kind": "consolidated_pl",
+        "chars": 2456,
+        "coord_fragments": 76,
+        "number_fragments": 10,
+        "x_range": [
+          0.0,
+          511.76
+        ],
+        "y_range": [
+          0.0,
+          686.63
+        ]
+      },
+      {
+        "page": 395,
+        "kind": "consolidated_pl",
+        "chars": 3423,
+        "coord_fragments": 60,
+        "number_fragments": 2,
+        "x_range": [
+          0.0,
+          514.74
+        ],
+        "y_range": [
+          0.0,
+          686.63
+        ]
+      },
+      {
+        "page": 402,
+        "kind": "consolidated_bs",
+        "chars": 1717,
+        "coord_fragments": 79,
+        "number_fragments": 1,
+        "x_range": [
+          60.5,
+          528.14
+        ],
+        "y_range": [
+          48.19,
+          686.63
+        ]
+      },
+      {
+        "page": 435,
+        "kind": "consolidated_cf",
+        "chars": 4146,
+        "coord_fragments": 91,
+        "number_fragments": 1,
+        "x_range": [
+          0.0,
+          337.85
+        ],
+        "y_range": [
+          0.0,
+          686.63
+        ]
+      },
+      {
+        "page": 439,
+        "kind": "consolidated_cf",
+        "chars": 1928,
+        "coord_fragments": 77,
+        "number_fragments": 18,
+        "x_range": [
+          0.0,
+          508.16
+        ],
+        "y_range": [
+          0.0,
+          686.63
+        ]
+      },
+      {
+        "page": 447,
+        "kind": "consolidated_cf",
+        "chars": 1703,
+        "coord_fragments": 107,
+        "number_fragments": 27,
+        "x_range": [
+          0.0,
+          526.49
+        ],
+        "y_range": [
+          0.0,
+          686.63
+        ]
+      },
+      {
+        "page": 483,
+        "kind": "consolidated_bs",
+        "chars": 2308,
+        "coord_fragments": 78,
+        "number_fragments": 19,
+        "x_range": [
+          0.0,
+          519.45
+        ],
+        "y_range": [
+          0.0,
+          686.63
+        ]
+      }
+    ],
+    "coord_samples": [
+      {
+        "page": 41,
+        "kind": "consolidated_cf",
+        "headers": [
+          {
+            "text": "March 31, 2025, was \u20b963,963 million. This is primarily on",
+            "x": 645.02,
+            "y": 616.75,
+            "size": 1.0
+          },
+          {
+            "text": "\u20b962,750 million, payment of lease liabilities including interest",
+            "x": 645.02,
+            "y": 592.75,
+            "size": 1.0
+          },
+          {
+            "text": "of \u20b910,474 million and payment of interest and finance",
+            "x": 645.02,
+            "y": 580.75,
+            "size": 1.0
+          },
+          {
+            "text": "expenses of \u20b98,689 million. These were partially offset by an",
+            "x": 645.02,
+            "y": 568.76,
+            "size": 1.0
+          },
+          {
+            "text": "inflow of \u20b917,923 million from loans and borrowings during",
+            "x": 645.02,
+            "y": 556.76,
+            "size": 1.0
+          },
+          {
+            "text": "the year ended March 31, 2025.",
+            "x": 645.02,
+            "y": 544.76,
+            "size": 1.0
+          },
+          {
+            "text": "As of March 31, 2026, we had contractual commitments of",
+            "x": 645.02,
+            "y": 412.79,
+            "size": 1.0
+          },
+          {
+            "text": "\u20b99,416 million ($100 million) related to capital expenditures",
+            "x": 645.02,
+            "y": 400.79,
+            "size": 1.0
+          },
+          {
+            "text": "facilities and \u20b952,214 million ($556 million) related to other",
+            "x": 645.02,
+            "y": 376.8,
+            "size": 1.0
+          },
+          {
+            "text": "cash flow and liquidity for the years ended March 31, 2025",
+            "x": 645.02,
+            "y": 94.85,
+            "size": 1.0
+          },
+          {
+            "text": "and 2026 is not material. Please refer to Note 19 of our",
+            "x": 645.02,
+            "y": 82.86,
+            "size": 1.0
+          },
+          {
+            "text": "As of March 31, 2025 and 2026, our cash and cash",
+            "x": 897.0,
+            "y": 538.88,
+            "size": 1.0
+          },
+          {
+            "text": "(\u20b9 in million)",
+            "x": 502.2,
+            "y": 580.83,
+            "size": 1.0
+          },
+          {
+            "text": "As of March 31, 2026, we had cash and cash equivalents",
+            "x": 81.02,
+            "y": 463.46,
+            "size": 1.0
+          },
+          {
+            "text": "and short-term investments of \u20b9543,235 million. Cash",
+            "x": 81.02,
+            "y": 451.46,
+            "size": 1.0
+          },
+          {
+            "text": "loans and borrowings, were \u20b9375,361 million.",
+            "x": 81.02,
+            "y": 427.46,
+            "size": 1.0
+          }
+        ],
+        "numbers": [
+          {
+            "text": "758",
+            "x": 512.17,
+            "y": 343.57,
+            "size": 1.0
+          }
+        ]
+      },
+      {
+        "page": 109,
+        "kind": "consolidated_bs",
+        "headers": [
+          {
+            "text": "year ended March 31, 2026.",
+            "x": 219.2,
+            "y": 573.39,
+            "size": 1.0
+          },
+          {
+            "text": "926,240 Million",
+            "x": 479.72,
+            "y": 526.5,
+            "size": 1.0
+          },
+          {
+            "text": "890,884 Million in the previous year, recording",
+            "x": 360.26,
+            "y": 514.5,
+            "size": 1.0
+          },
+          {
+            "text": "132,655 Million",
+            "x": 480.76,
+            "y": 502.51,
+            "size": 1.0
+          },
+          {
+            "text": "132,180 Million in the previous year, recording",
+            "x": 361.24,
+            "y": 490.51,
+            "size": 1.0
+          },
+          {
+            "text": "713,451 Million for the",
+            "x": 459.42,
+            "y": 460.5,
+            "size": 1.0
+          },
+          {
+            "text": "685,750 Million in the previous year, recording an increase",
+            "x": 327.52,
+            "y": 448.5,
+            "size": 1.0
+          },
+          {
+            "text": "121,296 Million in the current year",
+            "x": 418.96,
+            "y": 436.5,
+            "size": 1.0
+          },
+          {
+            "text": "109,131 Million in the previous year, recording an increase of 11.15%.",
+            "x": 282.04,
+            "y": 424.5,
+            "size": 1.0
+          },
+          {
+            "text": "in Millions)",
+            "x": 496.72,
+            "y": 368.96,
+            "size": 1.0
+          },
+          {
+            "text": "ended March 31, 2026, have been prepared in accordance with the Indian Accountin",
+            "x": 239.04,
+            "y": 82.92,
+            "size": 1.0
+          }
+        ],
+        "numbers": [
+          {
+            "text": "122",
+            "x": 27.02,
+            "y": 686.63,
+            "size": 1.0
+          },
+          {
+            "text": "713,451",
+            "x": 380.49,
+            "y": 328.63,
+            "size": 1.0
+          },
+          {
+            "text": "685,750",
+            "x": 380.49,
+            "y": 328.63,
+            "size": 1.0
+          },
+          {
+            "text": "926,240",
+            "x": 423.37,
+            "y": 328.63,
+            "size": 1.0
+          },
+          {
+            "text": "890,884",
+            "x": 465.86,
+            "y": 328.63,
+            "size": 1.0
+          },
+          {
+            "text": "47,491",
+            "x": 385.05,
+            "y": 317.23,
+            "size": 1.0
+          },
+          {
+            "text": "39,477",
+            "x": 385.05,
+            "y": 317.23,
+            "size": 1.0
+          },
+          {
+            "text": "38,737",
+            "x": 427.94,
+            "y": 317.23,
+            "size": 1.0
+          },
+          {
+            "text": "38,840",
+            "x": 470.43,
+            "y": 317.23,
+            "size": 1.0
+          },
+          {
+            "text": "257",
+            "x": 449.45,
+            "y": 294.42,
+            "size": 1.0
+          }
+        ]
+      },
+      {
+        "page": 204,
+        "kind": "consolidated_bs",
+        "headers": [
+          {
+            "text": "in millions, except share and per share data, unless otherwise stated)",
+            "x": 331.32,
+            "y": 648.73,
+            "size": 1.0
+          },
+          {
+            "text": "Notes to the Standalone Financial Statements\n(I in millions, except share and pe",
+            "x": 527.94,
+            "y": 686.63,
+            "size": 1.0
+          },
+          {
+            "text": "31, 2026 is",
+            "x": 70.87,
+            "y": 481.5,
+            "size": 1.0
+          },
+          {
+            "text": "11,905,480 treasury shares as at March 31, 2026 and",
+            "x": 70.87,
+            "y": 259.5,
+            "size": 1.0
+          },
+          {
+            "text": "March 31, 2026 and 2025, respectively, is not freely",
+            "x": 70.86,
+            "y": 178.5,
+            "size": 1.0
+          },
+          {
+            "text": "13 as of March 31, 2026 and 2025,",
+            "x": 411.78,
+            "y": 603.39,
+            "size": 1.0
+          },
+          {
+            "text": "with the Company during the year ended March 31, 2019.",
+            "x": 322.84,
+            "y": 451.5,
+            "size": 1.0
+          },
+          {
+            "text": "As of March 31, 2026 and 2025, this reserve amounting",
+            "x": 322.84,
+            "y": 439.5,
+            "size": 1.0
+          }
+        ],
+        "numbers": [
+          {
+            "text": "217",
+            "x": 527.94,
+            "y": 686.63,
+            "size": 1.0
+          }
+        ]
+      }
+    ],
+    "ca_events": [
+      {
+        "type": "bonus",
+        "date": "2005-04-22"
+      },
+      {
+        "type": "warrants",
+        "date": "2005-05-30"
+      },
+      {
+        "type": "scheme",
+        "date": "2005-07-01"
+      },
+      {
+        "type": "bonus",
+        "date": "2005-07-22"
+      },
+      {
+        "type": "esop",
+        "date": "2005-12-09"
+      },
+      {
+        "type": "esop",
+        "date": "2005-12-13"
+      },
+      {
+        "type": "esop",
+        "date": "2005-12-26"
+      },
+      {
+        "type": "merger",
+        "date": "2006-01-30"
+      },
+      {
+        "type": "merger",
+        "date": "2006-04-06"
+      },
+      {
+        "type": "scheme",
+        "date": "2006-04-06"
+      },
+      {
+        "type": "merger",
+        "date": "2006-05-08"
+      },
+      {
+        "type": "warrants",
+        "date": "2006-06-19"
+      }
+    ],
+    "buyback_docs": [
+      {
+        "title": "Post Buyback Public Announcement",
+        "url": "https://nsearchives.nseindia.com/corporate/Cslogin_26062026181043_SEIntimationPostBuybackPA.pdf",
+        "as_of": "2026-06-26"
+      },
+      {
+        "title": "Public Announcement - Buyback of Shares",
+        "url": "https://nsearchives.nseindia.com/corporate/Cslogin_25052026170905_SEIntimationPA.pdf",
+        "as_of": "2026-05-25"
+      },
+      {
+        "title": "Post Buyback Public Announcement",
+        "url": "https://nsearchives.nseindia.com/corporate/WIPRO_06072023180501_Post_Buyback_PA.pdf",
+        "as_of": "2023-07-06"
+      },
+      {
+        "title": "Buyback",
+        "url": "https://nsearchives.nseindia.com/corporate/WIPRO_27062023201740_PA_Signed_27062023.pdf",
+        "as_of": "2023-06-27"
+      },
+      {
+        "title": "Buyback",
+        "url": "https://nsearchives.nseindia.com/corporate/WIPRO_20062023085546_LOF.pdf",
+        "as_of": "2023-06-20"
+      },
+      {
+        "title": "Public Announcement - Buyback of Shares",
+        "url": "https://nsearchives.nseindia.com/corporate/WIPRO_05062023172651_PA_Buyback.pdf",
+        "as_of": "2023-06-05"
+      },
+      {
+        "title": "Post Buyback Public Announcement",
+        "url": "https://nsearchives.nseindia.com/corporate/WIPRO_16012021113717_SEintimationletter_PostBuybackPA.pdf",
+        "as_of": "2021-01-16"
+      },
+      {
+        "title": "Buyback",
+        "url": "https://nsearchives.nseindia.com/corporate/WIPRO_24122020085040_SE_LOF_24122020.pdf",
+        "as_of": "2020-12-24"
+      }
+    ],
+    "sha256_payload": "48f0612b11ccd1883d229d9c6ae3fcc0de65c6ae6bc6034b562884ecbbd5afd9"
+  },
+  {
+    "ticker": "HDFCBANK",
+    "isin": "INE040A01034",
+    "url": "https://nsearchives.nseindia.com/annual_reports/AR_29735_HDFCBANK_2025_2026_A_12667766_11072026001055.pdf",
+    "hash": "92de3c75b6fc05afe8731e97705c9d3534cc192e677af02f4b325e3d82eafca6",
+    "size": 12667766,
+    "pages": 678,
+    "json_s": 2.568,
+    "download_s": 2.661,
+    "open_s": 0.458,
+    "text_s": 50.532,
+    "coord_s": 5.346,
+    "low_text_pages": 7,
+    "statement_pages": [
+      {
+        "page": 19,
+        "kind": "unlabeled_bs",
+        "chars": 4232,
+        "coord_fragments": 98,
+        "number_fragments": 5,
+        "x_range": [
+          0.0,
+          314.72
+        ],
+        "y_range": [
+          0.0,
+          669.0
+        ]
+      },
+      {
+        "page": 20,
+        "kind": "unlabeled_bs",
+        "chars": 3187,
+        "coord_fragments": 69,
+        "number_fragments": 1,
+        "x_range": [
+          0.0,
+          538.18
+        ],
+        "y_range": [
+          0.0,
+          668.04
+        ]
+      },
+      {
+        "page": 29,
+        "kind": "consolidated_bs",
+        "chars": 1782,
+        "coord_fragments": 80,
+        "number_fragments": 9,
+        "x_range": [
+          43.0,
+          391.67
+        ],
+        "y_range": [
+          138.51,
+          669.43
+        ]
+      },
+      {
+        "page": 30,
+        "kind": "unlabeled_bs",
+        "chars": 938,
+        "coord_fragments": 111,
+        "number_fragments": 21,
+        "x_range": [
+          0.0,
+          542.03
+        ],
+        "y_range": [
+          0.0,
+          704.82
+        ]
+      },
+      {
+        "page": 41,
+        "kind": "unlabeled_bs",
+        "chars": 5463,
+        "coord_fragments": 122,
+        "number_fragments": 2,
+        "x_range": [
+          42.28,
+          304.5
+        ],
+        "y_range": [
+          30.0,
+          670.86
+        ]
+      },
+      {
+        "page": 62,
+        "kind": "unlabeled_bs",
+        "chars": 1871,
+        "coord_fragments": 74,
+        "number_fragments": 24,
+        "x_range": [
+          0.0,
+          538.7
+        ],
+        "y_range": [
+          0.0,
+          704.82
+        ]
+      },
+      {
+        "page": 69,
+        "kind": "consolidated_bs",
+        "chars": 1711,
+        "coord_fragments": 78,
+        "number_fragments": 17,
+        "x_range": [
+          42.28,
+          494.45
+        ],
+        "y_range": [
+          30.0,
+          670.86
+        ]
+      },
+      {
+        "page": 102,
+        "kind": "consolidated_bs",
+        "chars": 1756,
+        "coord_fragments": 54,
+        "number_fragments": 1,
+        "x_range": [
+          0.0,
+          522.58
+        ],
+        "y_range": [
+          0.0,
+          670.86
+        ]
+      },
+      {
+        "page": 123,
+        "kind": "unlabeled_bs",
+        "chars": 2767,
+        "coord_fragments": 56,
+        "number_fragments": 1,
+        "x_range": [
+          62.17,
+          532.59
+        ],
+        "y_range": [
+          30.0,
+          704.8
+        ]
+      },
+      {
+        "page": 147,
+        "kind": "unlabeled_bs",
+        "chars": 4867,
+        "coord_fragments": 90,
+        "number_fragments": 1,
+        "x_range": [
+          43.0,
+          532.39
+        ],
+        "y_range": [
+          30.0,
+          704.8
+        ]
+      },
+      {
+        "page": 274,
+        "kind": "unlabeled_bs",
+        "chars": 3665,
+        "coord_fragments": 81,
+        "number_fragments": 1,
+        "x_range": [
+          43.0,
+          323.07
+        ],
+        "y_range": [
+          30.0,
+          678.0
+        ]
+      },
+      {
+        "page": 275,
+        "kind": "unlabeled_bs",
+        "chars": 2296,
+        "coord_fragments": 102,
+        "number_fragments": 28,
+        "x_range": [
+          0.0,
+          530.82
+        ],
+        "y_range": [
+          0.0,
+          704.82
+        ]
+      },
+      {
+        "page": 278,
+        "kind": "unlabeled_bs",
+        "chars": 4842,
+        "coord_fragments": 97,
+        "number_fragments": 1,
+        "x_range": [
+          43.0,
+          304.5
+        ],
+        "y_range": [
+          30.0,
+          669.0
+        ]
+      },
+      {
+        "page": 279,
+        "kind": "unlabeled_bs",
+        "chars": 5263,
+        "coord_fragments": 125,
+        "number_fragments": 1,
+        "x_range": [
+          43.0,
+          530.87
+        ],
+        "y_range": [
+          30.0,
+          704.82
+        ]
+      },
+      {
+        "page": 280,
+        "kind": "unlabeled_bs",
+        "chars": 4204,
+        "coord_fragments": 127,
+        "number_fragments": 3,
+        "x_range": [
+          43.0,
+          479.24
+        ],
+        "y_range": [
+          30.0,
+          669.0
+        ]
+      },
+      {
+        "page": 285,
+        "kind": "unlabeled_bs",
+        "chars": 5023,
+        "coord_fragments": 106,
+        "number_fragments": 2,
+        "x_range": [
+          43.0,
+          530.79
+        ],
+        "y_range": [
+          30.0,
+          704.82
+        ]
+      },
+      {
+        "page": 286,
+        "kind": "unlabeled_bs",
+        "chars": 4638,
+        "coord_fragments": 98,
+        "number_fragments": 1,
+        "x_range": [
+          43.0,
+          416.88
+        ],
+        "y_range": [
+          30.0,
+          669.0
+        ]
+      },
+      {
+        "page": 297,
+        "kind": "consolidated_bs",
+        "chars": 3103,
+        "coord_fragments": 71,
+        "number_fragments": 1,
+        "x_range": [
+          43.0,
+          531.24
+        ],
+        "y_range": [
+          30.0,
+          704.82
+        ]
+      },
+      {
+        "page": 369,
+        "kind": "standalone_bs",
+        "chars": 2646,
+        "coord_fragments": 27,
+        "number_fragments": 1,
+        "x_range": [
+          43.0,
+          530.83
+        ],
+        "y_range": [
+          30.0,
+          668.0
+        ]
+      },
+      {
+        "page": 373,
+        "kind": "standalone_bs",
+        "chars": 4282,
+        "coord_fragments": 46,
+        "number_fragments": 1,
+        "x_range": [
+          43.0,
+          530.77
+        ],
+        "y_range": [
+          30.0,
+          669.0
+        ]
+      },
+      {
+        "page": 374,
+        "kind": "standalone_bs",
+        "chars": 4217,
+        "coord_fragments": 47,
+        "number_fragments": 1,
+        "x_range": [
+          43.0,
+          122.37
+        ],
+        "y_range": [
+          30.0,
+          669.0
+        ]
+      },
+      {
+        "page": 378,
+        "kind": "standalone_bs",
+        "chars": 2162,
+        "coord_fragments": 130,
+        "number_fragments": 45,
+        "x_range": [
+          0.0,
+          529.73
+        ],
+        "y_range": [
+          0.0,
+          683.2
+        ]
+      },
+      {
+        "page": 379,
+        "kind": "standalone_bs",
+        "chars": 2409,
+        "coord_fragments": 147,
+        "number_fragments": 44,
+        "x_range": [
+          0.0,
+          537.47
+        ],
+        "y_range": [
+          0.0,
+          678.0
+        ]
+      },
+      {
+        "page": 380,
+        "kind": "standalone_cf",
+        "chars": 1994,
+        "coord_fragments": 99,
+        "number_fragments": 35,
+        "x_range": [
+          0.0,
+          537.14
+        ],
+        "y_range": [
+          0.0,
+          678.0
+        ]
+      },
+      {
+        "page": 381,
+        "kind": "standalone_cf",
+        "chars": 1967,
+        "coord_fragments": 90,
+        "number_fragments": 11,
+        "x_range": [
+          0.0,
+          537.14
+        ],
+        "y_range": [
+          0.0,
+          679.0
+        ]
+      },
+      {
+        "page": 382,
+        "kind": "standalone_bs",
+        "chars": 1464,
+        "coord_fragments": 103,
+        "number_fragments": 37,
+        "x_range": [
+          0.0,
+          527.64
+        ],
+        "y_range": [
+          0.0,
+          677.9
+        ]
+      },
+      {
+        "page": 384,
+        "kind": "standalone_bs",
+        "chars": 1688,
+        "coord_fragments": 113,
+        "number_fragments": 39,
+        "x_range": [
+          0.0,
+          531.39
+        ],
+        "y_range": [
+          0.0,
+          677.9
+        ]
+      },
+      {
+        "page": 386,
+        "kind": "standalone_bs",
+        "chars": 1790,
+        "coord_fragments": 119,
+        "number_fragments": 41,
+        "x_range": [
+          0.0,
+          541.41
+        ],
+        "y_range": [
+          0.0,
+          677.9
+        ]
+      },
+      {
+        "page": 388,
+        "kind": "standalone_bs",
+        "chars": 1372,
+        "coord_fragments": 95,
+        "number_fragments": 32,
+        "x_range": [
+          0.0,
+          536.08
+        ],
+        "y_range": [
+          0.0,
+          677.9
+        ]
+      },
+      {
+        "page": 399,
+        "kind": "unlabeled_bs",
+        "chars": 5032,
+        "coord_fragments": 98,
+        "number_fragments": 2,
+        "x_range": [
+          43.0,
+          531.33
+        ],
+        "y_range": [
+          30.0,
+          704.82
+        ]
+      },
+      {
+        "page": 400,
+        "kind": "standalone_bs",
+        "chars": 4942,
+        "coord_fragments": 99,
+        "number_fragments": 1,
+        "x_range": [
+          43.0,
+          324.34
+        ],
+        "y_range": [
+          30.0,
+          677.9
+        ]
+      },
+      {
+        "page": 401,
+        "kind": "unlabeled_bs",
+        "chars": 2702,
+        "coord_fragments": 57,
+        "number_fragments": 1,
+        "x_range": [
+          43.0,
+          531.2
+        ],
+        "y_range": [
+          30.0,
+          704.82
+        ]
+      },
+      {
+        "page": 402,
+        "kind": "standalone_bs",
+        "chars": 2968,
+        "coord_fragments": 63,
+        "number_fragments": 7,
+        "x_range": [
+          0.0,
+          525.34
+        ],
+        "y_range": [
+          0.0,
+          677.9
+        ]
+      },
+      {
+        "page": 409,
+        "kind": "standalone_bs",
+        "chars": 3239,
+        "coord_fragments": 236,
+        "number_fragments": 145,
+        "x_range": [
+          0.0,
+          530.71
+        ],
+        "y_range": [
+          0.0,
+          704.82
+        ]
+      },
+      {
+        "page": 416,
+        "kind": "standalone_bs",
+        "chars": 2256,
+        "coord_fragments": 183,
+        "number_fragments": 62,
+        "x_range": [
+          0.0,
+          530.18
+        ],
+        "y_range": [
+          0.0,
+          677.9
+        ]
+      },
+      {
+        "page": 417,
+        "kind": "unlabeled_bs",
+        "chars": 2215,
+        "coord_fragments": 173,
+        "number_fragments": 63,
+        "x_range": [
+          0.0,
+          531.13
+        ],
+        "y_range": [
+          0.0,
+          704.82
+        ]
+      },
+      {
+        "page": 418,
+        "kind": "standalone_bs",
+        "chars": 2527,
+        "coord_fragments": 166,
+        "number_fragments": 62,
+        "x_range": [
+          0.0,
+          530.68
+        ],
+        "y_range": [
+          0.0,
+          677.9
+        ]
+      },
+      {
+        "page": 432,
+        "kind": "standalone_bs",
+        "chars": 2584,
+        "coord_fragments": 120,
+        "number_fragments": 29,
+        "x_range": [
+          0.0,
+          526.64
+        ],
+        "y_range": [
+          0.0,
+          677.9
+        ]
+      },
+      {
+        "page": 439,
+        "kind": "unlabeled_bs",
+        "chars": 3648,
+        "coord_fragments": 129,
+        "number_fragments": 65,
+        "x_range": [
+          0.0,
+          532.25
+        ],
+        "y_range": [
+          0.0,
+          704.82
+        ]
+      },
+      {
+        "page": 440,
+        "kind": "standalone_bs",
+        "chars": 3089,
+        "coord_fragments": 112,
+        "number_fragments": 38,
+        "x_range": [
+          0.0,
+          525.93
+        ],
+        "y_range": [
+          0.0,
+          677.9
+        ]
+      },
+      {
+        "page": 441,
+        "kind": "unlabeled_bs",
+        "chars": 2370,
+        "coord_fragments": 140,
+        "number_fragments": 19,
+        "x_range": [
+          0.0,
+          531.39
+        ],
+        "y_range": [
+          0.0,
+          704.82
+        ]
+      },
+      {
+        "page": 442,
+        "kind": "consolidated_bs",
+        "chars": 2741,
+        "coord_fragments": 104,
+        "number_fragments": 43,
+        "x_range": [
+          0.0,
+          525.7
+        ],
+        "y_range": [
+          0.0,
+          677.9
+        ]
+      },
+      {
+        "page": 465,
+        "kind": "unlabeled_bs",
+        "chars": 2356,
+        "coord_fragments": 121,
+        "number_fragments": 35,
+        "x_range": [
+          0.0,
+          530.73
+        ],
+        "y_range": [
+          0.0,
+          704.82
+        ]
+      },
+      {
+        "page": 467,
+        "kind": "unlabeled_bs",
+        "chars": 2114,
+        "coord_fragments": 116,
+        "number_fragments": 38,
+        "x_range": [
+          0.0,
+          531.33
+        ],
+        "y_range": [
+          0.0,
+          704.82
+        ]
+      },
+      {
+        "page": 478,
+        "kind": "standalone_bs",
+        "chars": 3100,
+        "coord_fragments": 64,
+        "number_fragments": 7,
+        "x_range": [
+          0.0,
+          255.84
+        ],
+        "y_range": [
+          0.0,
+          677.9
+        ]
+      },
+      {
+        "page": 482,
+        "kind": "consolidated_cf",
+        "chars": 3252,
+        "coord_fragments": 35,
+        "number_fragments": 1,
+        "x_range": [
+          43.0,
+          79.72
+        ],
+        "y_range": [
+          30.0,
+          668.0
+        ]
+      },
+      {
+        "page": 484,
+        "kind": "unlabeled_bs",
+        "chars": 3874,
+        "coord_fragments": 79,
+        "number_fragments": 1,
+        "x_range": [
+          0.0,
+          324.1
+        ],
+        "y_range": [
+          0.0,
+          667.91
+        ]
+      },
+      {
+        "page": 490,
+        "kind": "consolidated_bs",
+        "chars": 5024,
+        "coord_fragments": 54,
+        "number_fragments": 1,
+        "x_range": [
+          43.0,
+          462.95
+        ],
+        "y_range": [
+          30.0,
+          669.0
+        ]
+      },
+      {
+        "page": 491,
+        "kind": "consolidated_bs",
+        "chars": 4339,
+        "coord_fragments": 45,
+        "number_fragments": 1,
+        "x_range": [
+          43.0,
+          531.83
+        ],
+        "y_range": [
+          30.0,
+          669.0
+        ]
+      },
+      {
+        "page": 496,
+        "kind": "consolidated_bs",
+        "chars": 2206,
+        "coord_fragments": 137,
+        "number_fragments": 49,
+        "x_range": [
+          0.0,
+          529.15
+        ],
+        "y_range": [
+          0.0,
+          678.0
+        ]
+      },
+      {
+        "page": 497,
+        "kind": "consolidated_bs",
+        "chars": 2628,
+        "coord_fragments": 154,
+        "number_fragments": 50,
+        "x_range": [
+          0.0,
+          543.54
+        ],
+        "y_range": [
+          0.0,
+          678.0
+        ]
+      },
+      {
+        "page": 498,
+        "kind": "consolidated_cf",
+        "chars": 1874,
+        "coord_fragments": 96,
+        "number_fragments": 37,
+        "x_range": [
+          0.0,
+          536.58
+        ],
+        "y_range": [
+          0.0,
+          678.0
+        ]
+      },
+      {
+        "page": 499,
+        "kind": "consolidated_cf",
+        "chars": 2209,
+        "coord_fragments": 99,
+        "number_fragments": 16,
+        "x_range": [
+          0.0,
+          536.58
+        ],
+        "y_range": [
+          0.0,
+          679.0
+        ]
+      },
+      {
+        "page": 500,
+        "kind": "consolidated_bs",
+        "chars": 1407,
+        "coord_fragments": 103,
+        "number_fragments": 37,
+        "x_range": [
+          0.0,
+          529.4
+        ],
+        "y_range": [
+          0.0,
+          677.9
+        ]
+      },
+      {
+        "page": 502,
+        "kind": "consolidated_bs",
+        "chars": 1361,
+        "coord_fragments": 88,
+        "number_fragments": 30,
+        "x_range": [
+          0.0,
+          529.15
+        ],
+        "y_range": [
+          0.0,
+          677.9
+        ]
+      },
+      {
+        "page": 504,
+        "kind": "consolidated_bs",
+        "chars": 877,
+        "coord_fragments": 66,
+        "number_fragments": 23,
+        "x_range": [
+          0.0,
+          542.83
+        ],
+        "y_range": [
+          0.0,
+          677.9
+        ]
+      },
+      {
+        "page": 506,
+        "kind": "consolidated_bs",
+        "chars": 1379,
+        "coord_fragments": 100,
+        "number_fragments": 39,
+        "x_range": [
+          0.0,
+          528.42
+        ],
+        "y_range": [
+          0.0,
+          677.9
+        ]
+      },
+      {
+        "page": 508,
+        "kind": "consolidated_bs",
+        "chars": 1635,
+        "coord_fragments": 97,
+        "number_fragments": 38,
+        "x_range": [
+          0.0,
+          540.33
+        ],
+        "y_range": [
+          0.0,
+          677.9
+        ]
+      },
+      {
+        "page": 516,
+        "kind": "consolidated_bs",
+        "chars": 4342,
+        "coord_fragments": 89,
+        "number_fragments": 1,
+        "x_range": [
+          43.0,
+          324.34
+        ],
+        "y_range": [
+          30.0,
+          677.9
+        ]
+      },
+      {
+        "page": 518,
+        "kind": "consolidated_bs",
+        "chars": 4702,
+        "coord_fragments": 95,
+        "number_fragments": 1,
+        "x_range": [
+          43.0,
+          324.34
+        ],
+        "y_range": [
+          30.0,
+          677.9
+        ]
+      },
+      {
+        "page": 522,
+        "kind": "consolidated_bs",
+        "chars": 3960,
+        "coord_fragments": 116,
+        "number_fragments": 1,
+        "x_range": [
+          0.0,
+          407.41
+        ],
+        "y_range": [
+          0.0,
+          677.9
+        ]
+      },
+      {
+        "page": 525,
+        "kind": "consolidated_bs",
+        "chars": 4657,
+        "coord_fragments": 96,
+        "number_fragments": 1,
+        "x_range": [
+          43.0,
+          530.77
+        ],
+        "y_range": [
+          30.0,
+          704.82
+        ]
+      },
+      {
+        "page": 527,
+        "kind": "consolidated_bs",
+        "chars": 4929,
+        "coord_fragments": 98,
+        "number_fragments": 2,
+        "x_range": [
+          43.0,
+          531.08
+        ],
+        "y_range": [
+          30.0,
+          704.82
+        ]
+      },
+      {
+        "page": 528,
+        "kind": "consolidated_bs",
+        "chars": 4932,
+        "coord_fragments": 99,
+        "number_fragments": 1,
+        "x_range": [
+          43.0,
+          324.34
+        ],
+        "y_range": [
+          30.0,
+          677.9
+        ]
+      },
+      {
+        "page": 529,
+        "kind": "consolidated_bs",
+        "chars": 4626,
+        "coord_fragments": 93,
+        "number_fragments": 1,
+        "x_range": [
+          0.0,
+          530.7
+        ],
+        "y_range": [
+          0.0,
+          704.82
+        ]
+      },
+      {
+        "page": 530,
+        "kind": "consolidated_bs",
+        "chars": 3886,
+        "coord_fragments": 87,
+        "number_fragments": 1,
+        "x_range": [
+          43.0,
+          344.19
+        ],
+        "y_range": [
+          30.0,
+          677.9
+        ]
+      },
+      {
+        "page": 532,
+        "kind": "consolidated_bs",
+        "chars": 4803,
+        "coord_fragments": 93,
+        "number_fragments": 1,
+        "x_range": [
+          43.0,
+          324.34
+        ],
+        "y_range": [
+          30.0,
+          677.9
+        ]
+      },
+      {
+        "page": 533,
+        "kind": "consolidated_bs",
+        "chars": 1910,
+        "coord_fragments": 42,
+        "number_fragments": 1,
+        "x_range": [
+          43.0,
+          532.08
+        ],
+        "y_range": [
+          30.0,
+          704.82
+        ]
+      },
+      {
+        "page": 534,
+        "kind": "consolidated_bs",
+        "chars": 3723,
+        "coord_fragments": 104,
+        "number_fragments": 8,
+        "x_range": [
+          0.0,
+          525.34
+        ],
+        "y_range": [
+          0.0,
+          677.9
+        ]
+      },
+      {
+        "page": 555,
+        "kind": "unlabeled_bs",
+        "chars": 2599,
+        "coord_fragments": 93,
+        "number_fragments": 27,
+        "x_range": [
+          0.0,
+          538.19
+        ],
+        "y_range": [
+          0.0,
+          704.82
+        ]
+      },
+      {
+        "page": 559,
+        "kind": "consolidated_bs",
+        "chars": 2513,
+        "coord_fragments": 102,
+        "number_fragments": 24,
+        "x_range": [
+          0.0,
+          539.49
+        ],
+        "y_range": [
+          0.0,
+          704.82
+        ]
+      },
+      {
+        "page": 561,
+        "kind": "consolidated_bs",
+        "chars": 1947,
+        "coord_fragments": 136,
+        "number_fragments": 50,
+        "x_range": [
+          0.0,
+          541.96
+        ],
+        "y_range": [
+          0.0,
+          704.82
+        ]
+      },
+      {
+        "page": 572,
+        "kind": "consolidated_bs",
+        "chars": 3406,
+        "coord_fragments": 87,
+        "number_fragments": 13,
+        "x_range": [
+          0.0,
+          523.87
+        ],
+        "y_range": [
+          0.0,
+          677.9
+        ]
+      },
+      {
+        "page": 646,
+        "kind": "unlabeled_pl",
+        "chars": 4348,
+        "coord_fragments": 139,
+        "number_fragments": 25,
+        "x_range": [
+          0.0,
+          506.65
+        ],
+        "y_range": [
+          0.0,
+          669.0
+        ]
+      }
+    ],
+    "coord_samples": [
+      {
+        "page": 29,
+        "kind": "consolidated_bs",
+        "headers": [],
+        "numbers": [
+          {
+            "text": "116",
+            "x": 178.56,
+            "y": 305.81,
+            "size": 1.0
+          },
+          {
+            "text": "252",
+            "x": 217.33,
+            "y": 438.94,
+            "size": 1.0
+          },
+          {
+            "text": "314",
+            "x": 352.62,
+            "y": 426.94,
+            "size": 1.0
+          },
+          {
+            "text": "315",
+            "x": 352.52,
+            "y": 414.94,
+            "size": 1.0
+          },
+          {
+            "text": "316",
+            "x": 352.49,
+            "y": 402.95,
+            "size": 1.0
+          },
+          {
+            "text": "349",
+            "x": 351.89,
+            "y": 390.95,
+            "size": 1.0
+          },
+          {
+            "text": "462",
+            "x": 351.9,
+            "y": 321.96,
+            "size": 1.0
+          },
+          {
+            "text": "480",
+            "x": 351.84,
+            "y": 264.96,
+            "size": 1.0
+          },
+          {
+            "text": "560",
+            "x": 351.84,
+            "y": 231.96,
+            "size": 1.0
+          }
+        ]
+      },
+      {
+        "page": 69,
+        "kind": "consolidated_bs",
+        "headers": [
+          {
+            "text": "for the year ended March 31, 2026. The Bank has maintained",
+            "x": 43.0,
+            "y": 279.0,
+            "size": 1.0
+          },
+          {
+            "text": "March 31, 2026. The Bank consolidated",
+            "x": 43.0,
+            "y": 497.73,
+            "size": 1.0
+          }
+        ],
+        "numbers": [
+          {
+            "text": "43,64,886",
+            "x": 494.45,
+            "y": 578.86,
+            "size": 1.0
+          },
+          {
+            "text": "31,05,250",
+            "x": 494.45,
+            "y": 435.66,
+            "size": 1.0
+          },
+          {
+            "text": "1.15",
+            "x": 476.01,
+            "y": 291.92,
+            "size": 1.0
+          },
+          {
+            "text": "38.0",
+            "x": 486.37,
+            "y": 149.89,
+            "size": 1.0
+          },
+          {
+            "text": "39,10,199",
+            "x": 480.26,
+            "y": 563.99,
+            "size": 1.0
+          },
+          {
+            "text": "27,14,715",
+            "x": 477.31,
+            "y": 420.78,
+            "size": 1.0
+          },
+          {
+            "text": "1.33",
+            "x": 494.45,
+            "y": 277.04,
+            "size": 1.0
+          },
+          {
+            "text": "40.5",
+            "x": 494.45,
+            "y": 135.01,
+            "size": 1.0
+          },
+          {
+            "text": "36,17,623",
+            "x": 471.12,
+            "y": 547.78,
+            "size": 1.0
+          },
+          {
+            "text": "23,79,786",
+            "x": 462.62,
+            "y": 404.57,
+            "size": 1.0
+          }
+        ]
+      },
+      {
+        "page": 102,
+        "kind": "consolidated_bs",
+        "headers": [],
+        "numbers": [
+          {
+            "text": "80",
+            "x": 42.28,
+            "y": 30.0,
+            "size": 1.0
+          }
+        ]
+      }
+    ],
+    "ca_events": [
+      {
+        "type": "esop",
+        "date": "2005-04-13"
+      },
+      {
+        "type": "esop",
+        "date": "2005-06-20"
+      },
+      {
+        "type": "esop",
+        "date": "2006-11-09"
+      },
+      {
+        "type": "bonus",
+        "date": "2007-01-05"
+      },
+      {
+        "type": "bonus",
+        "date": "2007-01-08"
+      },
+      {
+        "type": "esop",
+        "date": "2007-03-12"
+      },
+      {
+        "type": "esop",
+        "date": "2007-03-15"
+      },
+      {
+        "type": "preferential_issue",
+        "date": "2007-07-04"
+      },
+      {
+        "type": "merger",
+        "date": "2008-02-23"
+      },
+      {
+        "type": "scheme",
+        "date": "2008-02-23"
+      },
+      {
+        "type": "share_swap",
+        "date": "2008-02-23"
+      },
+      {
+        "type": "merger",
+        "date": "2008-02-25"
+      }
+    ],
+    "buyback_docs": [],
+    "sha256_payload": "92de3c75b6fc05afe8731e97705c9d3534cc192e677af02f4b325e3d82eafca6"
+  },
+  {
+    "ticker": "RELIANCE",
+    "isin": "INE002A01018",
+    "url": "https://nsearchives.nseindia.com/annual_reports/AR_29285_RELIANCE_2025_2026_A_11007429_28052026133947.pdf",
+    "hash": "6fc365c08e7be923eedfa824bc92e605e094da98ad18e1f54cf71db7392c4a94",
+    "size": 11007429,
+    "pages": 187,
+    "json_s": 2.474,
+    "download_s": 2.065,
+    "open_s": 0.278,
+    "text_s": 24.978,
+    "coord_s": 6.297,
+    "low_text_pages": 0,
+    "statement_pages": [
+      {
+        "page": 43,
+        "kind": "consolidated_bs",
+        "chars": 7779,
+        "coord_fragments": 238,
+        "number_fragments": 1,
+        "x_range": [
+          0.0,
+          1039.07
+        ],
+        "y_range": [
+          0.0,
+          790.89
+        ]
+      },
+      {
+        "page": 45,
+        "kind": "unlabeled_bs",
+        "chars": 7767,
+        "coord_fragments": 225,
+        "number_fragments": 3,
+        "x_range": [
+          0.0,
+          1132.07
+        ],
+        "y_range": [
+          0.0,
+          790.89
+        ]
+      },
+      {
+        "page": 74,
+        "kind": "unlabeled_cf",
+        "chars": 6856,
+        "coord_fragments": 185,
+        "number_fragments": 0,
+        "x_range": [
+          0.0,
+          1124.58
+        ],
+        "y_range": [
+          0.0,
+          790.89
+        ]
+      },
+      {
+        "page": 91,
+        "kind": "standalone_pl",
+        "chars": 7856,
+        "coord_fragments": 180,
+        "number_fragments": 3,
+        "x_range": [
+          0.0,
+          1117.09
+        ],
+        "y_range": [
+          0.0,
+          790.89
+        ]
+      },
+      {
+        "page": 93,
+        "kind": "standalone_pl",
+        "chars": 6375,
+        "coord_fragments": 172,
+        "number_fragments": 1,
+        "x_range": [
+          0.0,
+          1117.09
+        ],
+        "y_range": [
+          0.0,
+          790.89
+        ]
+      },
+      {
+        "page": 95,
+        "kind": "standalone_bs",
+        "chars": 8637,
+        "coord_fragments": 230,
+        "number_fragments": 4,
+        "x_range": [
+          0.0,
+          1117.09
+        ],
+        "y_range": [
+          0.0,
+          790.89
+        ]
+      },
+      {
+        "page": 96,
+        "kind": "standalone_bs",
+        "chars": 6853,
+        "coord_fragments": 156,
+        "number_fragments": 0,
+        "x_range": [
+          0.0,
+          1117.09
+        ],
+        "y_range": [
+          0.0,
+          790.89
+        ]
+      },
+      {
+        "page": 97,
+        "kind": "standalone_bs",
+        "chars": 2959,
+        "coord_fragments": 175,
+        "number_fragments": 4,
+        "x_range": [
+          0.0,
+          1118.9
+        ],
+        "y_range": [
+          0.0,
+          790.89
+        ]
+      },
+      {
+        "page": 98,
+        "kind": "standalone_pl",
+        "chars": 2709,
+        "coord_fragments": 133,
+        "number_fragments": 1,
+        "x_range": [
+          0.0,
+          1117.09
+        ],
+        "y_range": [
+          0.0,
+          790.89
+        ]
+      },
+      {
+        "page": 100,
+        "kind": "standalone_cf",
+        "chars": 4516,
+        "coord_fragments": 197,
+        "number_fragments": 12,
+        "x_range": [
+          0.0,
+          1118.85
+        ],
+        "y_range": [
+          0.0,
+          790.89
+        ]
+      },
+      {
+        "page": 101,
+        "kind": "standalone_pl",
+        "chars": 9397,
+        "coord_fragments": 230,
+        "number_fragments": 0,
+        "x_range": [
+          0.0,
+          1117.09
+        ],
+        "y_range": [
+          0.0,
+          790.89
+        ]
+      },
+      {
+        "page": 102,
+        "kind": "standalone_pl",
+        "chars": 9135,
+        "coord_fragments": 214,
+        "number_fragments": 0,
+        "x_range": [
+          0.0,
+          1117.09
+        ],
+        "y_range": [
+          0.0,
+          790.89
+        ]
+      },
+      {
+        "page": 103,
+        "kind": "standalone_pl",
+        "chars": 7247,
+        "coord_fragments": 253,
+        "number_fragments": 9,
+        "x_range": [
+          0.0,
+          1119.94
+        ],
+        "y_range": [
+          0.0,
+          790.89
+        ]
+      },
+      {
+        "page": 104,
+        "kind": "standalone_bs",
+        "chars": 4375,
+        "coord_fragments": 207,
+        "number_fragments": 4,
+        "x_range": [
+          0.0,
+          1117.09
+        ],
+        "y_range": [
+          0.0,
+          790.89
+        ]
+      },
+      {
+        "page": 109,
+        "kind": "standalone_bs",
+        "chars": 4704,
+        "coord_fragments": 247,
+        "number_fragments": 11,
+        "x_range": [
+          0.0,
+          1119.13
+        ],
+        "y_range": [
+          0.0,
+          790.89
+        ]
+      },
+      {
+        "page": 111,
+        "kind": "standalone_bs",
+        "chars": 5216,
+        "coord_fragments": 192,
+        "number_fragments": 9,
+        "x_range": [
+          0.0,
+          1117.09
+        ],
+        "y_range": [
+          0.0,
+          790.89
+        ]
+      },
+      {
+        "page": 112,
+        "kind": "standalone_bs",
+        "chars": 4088,
+        "coord_fragments": 255,
+        "number_fragments": 26,
+        "x_range": [
+          0.0,
+          1119.4
+        ],
+        "y_range": [
+          0.0,
+          790.89
+        ]
+      },
+      {
+        "page": 113,
+        "kind": "standalone_pl",
+        "chars": 4209,
+        "coord_fragments": 227,
+        "number_fragments": 23,
+        "x_range": [
+          0.0,
+          1119.13
+        ],
+        "y_range": [
+          0.0,
+          790.89
+        ]
+      },
+      {
+        "page": 115,
+        "kind": "standalone_bs",
+        "chars": 3775,
+        "coord_fragments": 163,
+        "number_fragments": 7,
+        "x_range": [
+          0.0,
+          1117.09
+        ],
+        "y_range": [
+          0.0,
+          790.89
+        ]
+      },
+      {
+        "page": 117,
+        "kind": "standalone_pl",
+        "chars": 5618,
+        "coord_fragments": 234,
+        "number_fragments": 17,
+        "x_range": [
+          0.0,
+          1117.09
+        ],
+        "y_range": [
+          0.0,
+          790.89
+        ]
+      },
+      {
+        "page": 128,
+        "kind": "standalone_bs",
+        "chars": 5269,
+        "coord_fragments": 247,
+        "number_fragments": 35,
+        "x_range": [
+          0.0,
+          1130.81
+        ],
+        "y_range": [
+          0.0,
+          790.89
+        ]
+      },
+      {
+        "page": 130,
+        "kind": "standalone_bs",
+        "chars": 5480,
+        "coord_fragments": 205,
+        "number_fragments": 16,
+        "x_range": [
+          0.0,
+          1117.09
+        ],
+        "y_range": [
+          0.0,
+          790.89
+        ]
+      },
+      {
+        "page": 131,
+        "kind": "consolidated_bs",
+        "chars": 4284,
+        "coord_fragments": 281,
+        "number_fragments": 34,
+        "x_range": [
+          0.0,
+          1119.15
+        ],
+        "y_range": [
+          0.0,
+          790.89
+        ]
+      },
+      {
+        "page": 133,
+        "kind": "consolidated_bs",
+        "chars": 8649,
+        "coord_fragments": 182,
+        "number_fragments": 4,
+        "x_range": [
+          0.0,
+          906.72
+        ],
+        "y_range": [
+          0.0,
+          790.89
+        ]
+      },
+      {
+        "page": 136,
+        "kind": "consolidated_pl",
+        "chars": 9427,
+        "coord_fragments": 224,
+        "number_fragments": 1,
+        "x_range": [
+          0.0,
+          1076.99
+        ],
+        "y_range": [
+          0.0,
+          790.89
+        ]
+      },
+      {
+        "page": 139,
+        "kind": "consolidated_bs",
+        "chars": 3166,
+        "coord_fragments": 176,
+        "number_fragments": 4,
+        "x_range": [
+          0.0,
+          1118.43
+        ],
+        "y_range": [
+          0.0,
+          790.89
+        ]
+      },
+      {
+        "page": 140,
+        "kind": "consolidated_pl",
+        "chars": 3282,
+        "coord_fragments": 147,
+        "number_fragments": 1,
+        "x_range": [
+          0.0,
+          1103.32
+        ],
+        "y_range": [
+          0.0,
+          790.89
+        ]
+      },
+      {
+        "page": 142,
+        "kind": "consolidated_cf",
+        "chars": 4716,
+        "coord_fragments": 207,
+        "number_fragments": 10,
+        "x_range": [
+          0.0,
+          1119.17
+        ],
+        "y_range": [
+          0.0,
+          790.89
+        ]
+      },
+      {
+        "page": 143,
+        "kind": "consolidated_bs",
+        "chars": 9166,
+        "coord_fragments": 233,
+        "number_fragments": 1,
+        "x_range": [
+          0.0,
+          1117.09
+        ],
+        "y_range": [
+          0.0,
+          790.89
+        ]
+      },
+      {
+        "page": 144,
+        "kind": "consolidated_pl",
+        "chars": 9315,
+        "coord_fragments": 225,
+        "number_fragments": 0,
+        "x_range": [
+          0.0,
+          1117.09
+        ],
+        "y_range": [
+          0.0,
+          790.89
+        ]
+      },
+      {
+        "page": 145,
+        "kind": "consolidated_pl",
+        "chars": 8995,
+        "coord_fragments": 227,
+        "number_fragments": 4,
+        "x_range": [
+          0.0,
+          1118.8
+        ],
+        "y_range": [
+          0.0,
+          790.89
+        ]
+      },
+      {
+        "page": 146,
+        "kind": "consolidated_pl",
+        "chars": 5505,
+        "coord_fragments": 263,
+        "number_fragments": 28,
+        "x_range": [
+          0.0,
+          1136.28
+        ],
+        "y_range": [
+          0.0,
+          790.89
+        ]
+      },
+      {
+        "page": 151,
+        "kind": "consolidated_bs",
+        "chars": 5320,
+        "coord_fragments": 179,
+        "number_fragments": 6,
+        "x_range": [
+          0.0,
+          1117.09
+        ],
+        "y_range": [
+          0.0,
+          790.89
+        ]
+      },
+      {
+        "page": 152,
+        "kind": "consolidated_bs",
+        "chars": 4303,
+        "coord_fragments": 236,
+        "number_fragments": 20,
+        "x_range": [
+          0.0,
+          1117.09
+        ],
+        "y_range": [
+          0.0,
+          790.89
+        ]
+      },
+      {
+        "page": 155,
+        "kind": "consolidated_bs",
+        "chars": 3753,
+        "coord_fragments": 178,
+        "number_fragments": 9,
+        "x_range": [
+          0.0,
+          1118.43
+        ],
+        "y_range": [
+          0.0,
+          790.89
+        ]
+      },
+      {
+        "page": 157,
+        "kind": "consolidated_pl",
+        "chars": 5195,
+        "coord_fragments": 244,
+        "number_fragments": 2,
+        "x_range": [
+          0.0,
+          1117.09
+        ],
+        "y_range": [
+          0.0,
+          790.89
+        ]
+      },
+      {
+        "page": 164,
+        "kind": "consolidated_bs",
+        "chars": 6655,
+        "coord_fragments": 234,
+        "number_fragments": 23,
+        "x_range": [
+          0.0,
+          1117.09
+        ],
+        "y_range": [
+          0.0,
+          790.89
+        ]
+      },
+      {
+        "page": 165,
+        "kind": "consolidated_bs",
+        "chars": 5935,
+        "coord_fragments": 148,
+        "number_fragments": 3,
+        "x_range": [
+          0.0,
+          1118.45
+        ],
+        "y_range": [
+          0.0,
+          790.89
+        ]
+      },
+      {
+        "page": 166,
+        "kind": "consolidated_bs",
+        "chars": 5725,
+        "coord_fragments": 172,
+        "number_fragments": 9,
+        "x_range": [
+          0.0,
+          1117.09
+        ],
+        "y_range": [
+          0.0,
+          790.89
+        ]
+      },
+      {
+        "page": 167,
+        "kind": "consolidated_bs",
+        "chars": 3703,
+        "coord_fragments": 248,
+        "number_fragments": 24,
+        "x_range": [
+          0.0,
+          1117.09
+        ],
+        "y_range": [
+          0.0,
+          790.89
+        ]
+      },
+      {
+        "page": 168,
+        "kind": "consolidated_bs",
+        "chars": 4308,
+        "coord_fragments": 182,
+        "number_fragments": 17,
+        "x_range": [
+          0.0,
+          1122.32
+        ],
+        "y_range": [
+          0.0,
+          790.89
+        ]
+      },
+      {
+        "page": 183,
+        "kind": "consolidated_bs",
+        "chars": 3369,
+        "coord_fragments": 165,
+        "number_fragments": 2,
+        "x_range": [
+          0.0,
+          1118.45
+        ],
+        "y_range": [
+          0.0,
+          790.89
+        ]
+      },
+      {
+        "page": 184,
+        "kind": "consolidated_pl",
+        "chars": 3882,
+        "coord_fragments": 178,
+        "number_fragments": 2,
+        "x_range": [
+          0.0,
+          1118.45
+        ],
+        "y_range": [
+          0.0,
+          790.89
+        ]
+      },
+      {
+        "page": 185,
+        "kind": "consolidated_pl",
+        "chars": 4268,
+        "coord_fragments": 189,
+        "number_fragments": 2,
+        "x_range": [
+          51.0,
+          1018.29
+        ],
+        "y_range": [
+          26.0,
+          790.89
+        ]
+      }
+    ],
+    "coord_samples": [
+      {
+        "page": 43,
+        "kind": "consolidated_bs",
+        "headers": [
+          {
+            "text": "crore, EBITDA of",
+            "x": 646.28,
+            "y": 181.9,
+            "size": 1.0
+          },
+          {
+            "text": "2,07,911 crore, and",
+            "x": 717.75,
+            "y": 181.9,
+            "size": 1.0
+          },
+          {
+            "text": "95,754 crore. These",
+            "x": 697.61,
+            "y": 169.91,
+            "size": 1.0
+          },
+          {
+            "text": "May 27, 2026",
+            "x": 983.13,
+            "y": 205.93,
+            "size": 1.0
+          }
+        ],
+        "numbers": [
+          {
+            "text": "11,75,919",
+            "x": 750.31,
+            "y": 193.9,
+            "size": 1.0
+          }
+        ]
+      },
+      {
+        "page": 131,
+        "kind": "consolidated_bs",
+        "headers": [
+          {
+            "text": "March, 2026",
+            "x": 293.49,
+            "y": 733.89,
+            "size": 1.0
+          },
+          {
+            "text": "in crore)",
+            "x": 508.19,
+            "y": 704.47,
+            "size": 1.0
+          },
+          {
+            "text": "March,\t2026",
+            "x": 128.02,
+            "y": 666.26,
+            "size": 1.0
+          },
+          {
+            "text": "in crore)",
+            "x": 507.94,
+            "y": 316.69,
+            "size": 1.0
+          },
+          {
+            "text": "March,\t2026",
+            "x": 128.02,
+            "y": 278.54,
+            "size": 1.0
+          },
+          {
+            "text": "June 2026 to",
+            "x": 428.01,
+            "y": 255.3,
+            "size": 1.0
+          },
+          {
+            "text": "June 2026 to",
+            "x": 428.01,
+            "y": 234.11,
+            "size": 1.0
+          },
+          {
+            "text": "in crore)",
+            "x": 1103.44,
+            "y": 702.47,
+            "size": 1.0
+          },
+          {
+            "text": "March,\t2026",
+            "x": 723.27,
+            "y": 667.74,
+            "size": 1.0
+          },
+          {
+            "text": "in crore)",
+            "x": 1103.44,
+            "y": 503.77,
+            "size": 1.0
+          },
+          {
+            "text": "March, 2026.",
+            "x": 921.96,
+            "y": 334.89,
+            "size": 1.0
+          },
+          {
+            "text": "in crore)",
+            "x": 1103.47,
+            "y": 318.35,
+            "size": 1.0
+          },
+          {
+            "text": "March,\t2026",
+            "x": 1027.28,
+            "y": 296.99,
+            "size": 1.0
+          }
+        ],
+        "numbers": [
+          {
+            "text": "66",
+            "x": 92.69,
+            "y": 562.58,
+            "size": 1.0
+          },
+          {
+            "text": "66",
+            "x": 400.91,
+            "y": 562.58,
+            "size": 1.0
+          },
+          {
+            "text": "1,824",
+            "x": 339.8,
+            "y": 522.0,
+            "size": 1.0
+          },
+          {
+            "text": "457",
+            "x": 400.9,
+            "y": 522.0,
+            "size": 1.0
+          },
+          {
+            "text": "1,247",
+            "x": 92.71,
+            "y": 484.28,
+            "size": 1.0
+          },
+          {
+            "text": "1,257",
+            "x": 400.93,
+            "y": 484.28,
+            "size": 1.0
+          },
+          {
+            "text": "125",
+            "x": 345.63,
+            "y": 381.75,
+            "size": 1.0
+          },
+          {
+            "text": "125",
+            "x": 400.91,
+            "y": 381.75,
+            "size": 1.0
+          },
+          {
+            "text": "4,253",
+            "x": 339.81,
+            "y": 361.47,
+            "size": 1.0
+          },
+          {
+            "text": "25,338",
+            "x": 248.82,
+            "y": 255.3,
+            "size": 1.0
+          }
+        ]
+      },
+      {
+        "page": 133,
+        "kind": "consolidated_bs",
+        "headers": [
+          {
+            "text": "March, 2026, and the Consolidated Statement of",
+            "x": 85.53,
+            "y": 568.89,
+            "size": 1.0
+          },
+          {
+            "text": "2026, and their consolidated profit and their consolidated other",
+            "x": 51.0,
+            "y": 322.89,
+            "size": 1.0
+          },
+          {
+            "text": "2026 till the date of approval of the Parent\u2019s Consolidated",
+            "x": 311.45,
+            "y": 135.78,
+            "size": 1.0
+          },
+          {
+            "text": "March, 2026, the Parent has investments of",
+            "x": 697.76,
+            "y": 409.03,
+            "size": 1.0
+          },
+          {
+            "text": "crore in Preference Shares of Jio Digital Fibre Private Limited",
+            "x": 665.28,
+            "y": 399.43,
+            "size": 1.0
+          }
+        ],
+        "numbers": [
+          {
+            "text": "1.",
+            "x": 53.0,
+            "y": 264.04,
+            "size": 1.0
+          },
+          {
+            "text": "5",
+            "x": 685.12,
+            "y": 582.59,
+            "size": 1.0
+          },
+          {
+            "text": "2.",
+            "x": 648.28,
+            "y": 423.43,
+            "size": 1.0
+          },
+          {
+            "text": "77,852",
+            "x": 697.76,
+            "y": 409.03,
+            "size": 1.0
+          }
+        ]
+      }
+    ],
+    "ca_events": [
+      {
+        "type": "buyback",
+        "date": "2004-12-22"
+      },
+      {
+        "type": "buyback",
+        "date": "2004-12-27"
+      },
+      {
+        "type": "buyback",
+        "date": "2004-12-28"
+      },
+      {
+        "type": "buyback",
+        "date": "2004-12-29"
+      },
+      {
+        "type": "buyback",
+        "date": "2005-01-10"
+      },
+      {
+        "type": "merger",
+        "date": "2005-03-09"
+      },
+      {
+        "type": "scheme",
+        "date": "2005-06-18"
+      },
+      {
+        "type": "buyback",
+        "date": "2005-07-29"
+      },
+      {
+        "type": "bonus",
+        "date": "2005-08-03"
+      },
+      {
+        "type": "buyback",
+        "date": "2005-08-03"
+      },
+      {
+        "type": "scheme",
+        "date": "2005-08-03"
+      },
+      {
+        "type": "split",
+        "date": "2005-08-03"
+      }
+    ],
+    "buyback_docs": [
+      {
+        "title": "Post Buyback Public Announcement",
+        "url": "https://nsearchives.nseindia.com/corporate/RELIANCE.zip",
+        "as_of": "2013-01-22"
+      },
+      {
+        "title": "Buyback",
+        "url": "https://nsearchives.nseindia.com/corporate/RELIANCE_buyback_10012013.zip",
+        "as_of": "2013-01-10"
+      },
+      {
+        "title": "Buyback",
+        "url": "https://nsearchives.nseindia.com/corporate/RELIANCE_BB_01012013.zip",
+        "as_of": "2013-01-01"
+      },
+      {
+        "title": "Buyback",
+        "url": "https://nsearchives.nseindia.com/corporate/Reliance_Buyback_13122012.zip",
+        "as_of": "2012-12-13"
+      },
+      {
+        "title": "Buyback",
+        "url": "https://nsearchives.nseindia.com/corporate/Reliance_Buyback_29112012.zip",
+        "as_of": "2012-11-29"
+      },
+      {
+        "title": "Buyback",
+        "url": "https://nsearchives.nseindia.com/corporate/RELIANCE_BB_16112012.zip",
+        "as_of": "2012-11-19"
+      },
+      {
+        "title": "Buyback",
+        "url": "https://nsearchives.nseindia.com/corporate/RELIANCE_BUYBACK_20092012.zip",
+        "as_of": "2012-09-21"
+      },
+      {
+        "title": "Buyback",
+        "url": "https://nsearchives.nseindia.com/corporate/RELIANCE_buyback_05092012.zip",
+        "as_of": "2012-09-05"
+      }
+    ],
+    "sha256_payload": "6fc365c08e7be923eedfa824bc92e605e094da98ad18e1f54cf71db7392c4a94"
+  },
+  {
+    "ticker": "ASIANPAINT",
+    "isin": "INE021A01026",
+    "url": "https://nsearchives.nseindia.com/annual_reports/AR_29385_ASIANPAINT_2025_2026_A_26278926_12062026160918.pdf",
+    "hash": "b7977d2419ed2e211d0ad53270165cc4205cafff7982b6b74fed6502fa25aacb",
+    "size": 26278926,
+    "pages": 294,
+    "json_s": 2.064,
+    "download_s": 5.33,
+    "open_s": 0.231,
+    "text_s": 63.803,
+    "coord_s": 11.999,
+    "low_text_pages": 1,
+    "statement_pages": [
+      {
+        "page": 42,
+        "kind": "consolidated_bs",
+        "chars": 9499,
+        "coord_fragments": 857,
+        "number_fragments": 453,
+        "x_range": [
+          0.0,
+          1136.48
+        ],
+        "y_range": [
+          0.0,
+          748.33
+        ]
+      },
+      {
+        "page": 44,
+        "kind": "unlabeled_bs",
+        "chars": 4016,
+        "coord_fragments": 250,
+        "number_fragments": 12,
+        "x_range": [
+          0.0,
+          1136.45
+        ],
+        "y_range": [
+          0.0,
+          748.33
+        ]
+      },
+      {
+        "page": 156,
+        "kind": "unlabeled_cf",
+        "chars": 4117,
+        "coord_fragments": 78,
+        "number_fragments": 2,
+        "x_range": [
+          0.0,
+          1060.98
+        ],
+        "y_range": [
+          0.0,
+          748.33
+        ]
+      },
+      {
+        "page": 180,
+        "kind": "consolidated_pl",
+        "chars": 10246,
+        "coord_fragments": 218,
+        "number_fragments": 2,
+        "x_range": [
+          0.0,
+          1132.18
+        ],
+        "y_range": [
+          0.0,
+          748.33
+        ]
+      },
+      {
+        "page": 181,
+        "kind": "standalone_pl",
+        "chars": 7226,
+        "coord_fragments": 177,
+        "number_fragments": 2,
+        "x_range": [
+          0.0,
+          1132.14
+        ],
+        "y_range": [
+          0.0,
+          748.33
+        ]
+      },
+      {
+        "page": 184,
+        "kind": "unlabeled_bs",
+        "chars": 6681,
+        "coord_fragments": 218,
+        "number_fragments": 22,
+        "x_range": [
+          0.0,
+          1131.97
+        ],
+        "y_range": [
+          0.0,
+          748.33
+        ]
+      },
+      {
+        "page": 185,
+        "kind": "standalone_pl",
+        "chars": 5722,
+        "coord_fragments": 395,
+        "number_fragments": 181,
+        "x_range": [
+          0.0,
+          1139.91
+        ],
+        "y_range": [
+          0.0,
+          748.33
+        ]
+      },
+      {
+        "page": 186,
+        "kind": "standalone_cf",
+        "chars": 7403,
+        "coord_fragments": 628,
+        "number_fragments": 128,
+        "x_range": [
+          0.0,
+          1137.45
+        ],
+        "y_range": [
+          0.0,
+          748.33
+        ]
+      },
+      {
+        "page": 187,
+        "kind": "standalone_cf",
+        "chars": 3511,
+        "coord_fragments": 229,
+        "number_fragments": 47,
+        "x_range": [
+          0.0,
+          1132.06
+        ],
+        "y_range": [
+          0.0,
+          748.33
+        ]
+      },
+      {
+        "page": 188,
+        "kind": "standalone_pl",
+        "chars": 9475,
+        "coord_fragments": 212,
+        "number_fragments": 3,
+        "x_range": [
+          0.0,
+          1132.31
+        ],
+        "y_range": [
+          0.0,
+          748.33
+        ]
+      },
+      {
+        "page": 189,
+        "kind": "standalone_pl",
+        "chars": 8638,
+        "coord_fragments": 215,
+        "number_fragments": 11,
+        "x_range": [
+          0.0,
+          1132.08
+        ],
+        "y_range": [
+          0.0,
+          748.33
+        ]
+      },
+      {
+        "page": 190,
+        "kind": "standalone_pl",
+        "chars": 8432,
+        "coord_fragments": 202,
+        "number_fragments": 2,
+        "x_range": [
+          0.0,
+          1132.31
+        ],
+        "y_range": [
+          0.0,
+          748.33
+        ]
+      },
+      {
+        "page": 191,
+        "kind": "standalone_pl",
+        "chars": 8930,
+        "coord_fragments": 204,
+        "number_fragments": 2,
+        "x_range": [
+          0.0,
+          1132.05
+        ],
+        "y_range": [
+          0.0,
+          748.33
+        ]
+      },
+      {
+        "page": 192,
+        "kind": "standalone_pl",
+        "chars": 8634,
+        "coord_fragments": 197,
+        "number_fragments": 2,
+        "x_range": [
+          0.0,
+          1132.13
+        ],
+        "y_range": [
+          0.0,
+          748.33
+        ]
+      },
+      {
+        "page": 193,
+        "kind": "standalone_pl",
+        "chars": 8330,
+        "coord_fragments": 201,
+        "number_fragments": 2,
+        "x_range": [
+          0.0,
+          1132.01
+        ],
+        "y_range": [
+          0.0,
+          748.33
+        ]
+      },
+      {
+        "page": 194,
+        "kind": "standalone_pl",
+        "chars": 8675,
+        "coord_fragments": 197,
+        "number_fragments": 2,
+        "x_range": [
+          0.0,
+          1131.89
+        ],
+        "y_range": [
+          0.0,
+          748.33
+        ]
+      },
+      {
+        "page": 195,
+        "kind": "standalone_bs",
+        "chars": 6942,
+        "coord_fragments": 401,
+        "number_fragments": 190,
+        "x_range": [
+          0.0,
+          1143.37
+        ],
+        "y_range": [
+          0.0,
+          748.33
+        ]
+      },
+      {
+        "page": 205,
+        "kind": "standalone_pl",
+        "chars": 3648,
+        "coord_fragments": 240,
+        "number_fragments": 87,
+        "x_range": [
+          0.0,
+          1139.77
+        ],
+        "y_range": [
+          0.0,
+          748.33
+        ]
+      },
+      {
+        "page": 206,
+        "kind": "standalone_pl",
+        "chars": 4473,
+        "coord_fragments": 237,
+        "number_fragments": 55,
+        "x_range": [
+          0.0,
+          1131.89
+        ],
+        "y_range": [
+          0.0,
+          748.33
+        ]
+      },
+      {
+        "page": 207,
+        "kind": "standalone_bs",
+        "chars": 3730,
+        "coord_fragments": 271,
+        "number_fragments": 63,
+        "x_range": [
+          0.0,
+          1140.31
+        ],
+        "y_range": [
+          0.0,
+          748.33
+        ]
+      },
+      {
+        "page": 211,
+        "kind": "standalone_pl",
+        "chars": 4366,
+        "coord_fragments": 255,
+        "number_fragments": 95,
+        "x_range": [
+          0.0,
+          1140.05
+        ],
+        "y_range": [
+          0.0,
+          748.33
+        ]
+      },
+      {
+        "page": 212,
+        "kind": "standalone_pl",
+        "chars": 6279,
+        "coord_fragments": 283,
+        "number_fragments": 41,
+        "x_range": [
+          0.0,
+          1137.61
+        ],
+        "y_range": [
+          0.0,
+          748.33
+        ]
+      },
+      {
+        "page": 213,
+        "kind": "standalone_pl",
+        "chars": 6891,
+        "coord_fragments": 162,
+        "number_fragments": 22,
+        "x_range": [
+          0.0,
+          1132.19
+        ],
+        "y_range": [
+          0.0,
+          748.33
+        ]
+      },
+      {
+        "page": 217,
+        "kind": "standalone_pl",
+        "chars": 6241,
+        "coord_fragments": 177,
+        "number_fragments": 44,
+        "x_range": [
+          0.0,
+          1138.94
+        ],
+        "y_range": [
+          0.0,
+          748.33
+        ]
+      },
+      {
+        "page": 218,
+        "kind": "standalone_pl",
+        "chars": 6328,
+        "coord_fragments": 306,
+        "number_fragments": 104,
+        "x_range": [
+          0.0,
+          1138.99
+        ],
+        "y_range": [
+          0.0,
+          748.33
+        ]
+      },
+      {
+        "page": 219,
+        "kind": "standalone_bs",
+        "chars": 5171,
+        "coord_fragments": 195,
+        "number_fragments": 31,
+        "x_range": [
+          0.0,
+          1138.99
+        ],
+        "y_range": [
+          0.0,
+          748.33
+        ]
+      },
+      {
+        "page": 225,
+        "kind": "standalone_pl",
+        "chars": 4426,
+        "coord_fragments": 286,
+        "number_fragments": 112,
+        "x_range": [
+          0.0,
+          1137.71
+        ],
+        "y_range": [
+          0.0,
+          748.33
+        ]
+      },
+      {
+        "page": 227,
+        "kind": "standalone_pl",
+        "chars": 5689,
+        "coord_fragments": 185,
+        "number_fragments": 40,
+        "x_range": [
+          0.0,
+          1137.12
+        ],
+        "y_range": [
+          0.0,
+          748.33
+        ]
+      },
+      {
+        "page": 228,
+        "kind": "standalone_bs",
+        "chars": 5374,
+        "coord_fragments": 171,
+        "number_fragments": 22,
+        "x_range": [
+          0.0,
+          1132.38
+        ],
+        "y_range": [
+          0.0,
+          748.33
+        ]
+      },
+      {
+        "page": 229,
+        "kind": "consolidated_pl",
+        "chars": 10684,
+        "coord_fragments": 206,
+        "number_fragments": 2,
+        "x_range": [
+          0.0,
+          1132.09
+        ],
+        "y_range": [
+          0.0,
+          748.33
+        ]
+      },
+      {
+        "page": 230,
+        "kind": "consolidated_pl",
+        "chars": 10398,
+        "coord_fragments": 223,
+        "number_fragments": 2,
+        "x_range": [
+          0.0,
+          1132.13
+        ],
+        "y_range": [
+          0.0,
+          748.33
+        ]
+      },
+      {
+        "page": 233,
+        "kind": "consolidated_bs",
+        "chars": 3132,
+        "coord_fragments": 249,
+        "number_fragments": 125,
+        "x_range": [
+          0.0,
+          1132.19
+        ],
+        "y_range": [
+          0.0,
+          748.33
+        ]
+      },
+      {
+        "page": 234,
+        "kind": "consolidated_pl",
+        "chars": 4041,
+        "coord_fragments": 236,
+        "number_fragments": 92,
+        "x_range": [
+          0.0,
+          1131.84
+        ],
+        "y_range": [
+          0.0,
+          748.33
+        ]
+      },
+      {
+        "page": 236,
+        "kind": "consolidated_cf",
+        "chars": 4990,
+        "coord_fragments": 256,
+        "number_fragments": 78,
+        "x_range": [
+          0.0,
+          1137.45
+        ],
+        "y_range": [
+          0.0,
+          748.33
+        ]
+      },
+      {
+        "page": 237,
+        "kind": "consolidated_cf",
+        "chars": 6522,
+        "coord_fragments": 254,
+        "number_fragments": 27,
+        "x_range": [
+          0.0,
+          1131.93
+        ],
+        "y_range": [
+          0.0,
+          748.33
+        ]
+      },
+      {
+        "page": 238,
+        "kind": "consolidated_pl",
+        "chars": 8895,
+        "coord_fragments": 213,
+        "number_fragments": 4,
+        "x_range": [
+          0.0,
+          1132.32
+        ],
+        "y_range": [
+          0.0,
+          748.33
+        ]
+      },
+      {
+        "page": 239,
+        "kind": "consolidated_pl",
+        "chars": 8686,
+        "coord_fragments": 207,
+        "number_fragments": 4,
+        "x_range": [
+          0.0,
+          1132.1
+        ],
+        "y_range": [
+          0.0,
+          748.33
+        ]
+      },
+      {
+        "page": 240,
+        "kind": "consolidated_pl",
+        "chars": 8123,
+        "coord_fragments": 199,
+        "number_fragments": 2,
+        "x_range": [
+          0.0,
+          1132.32
+        ],
+        "y_range": [
+          0.0,
+          748.33
+        ]
+      },
+      {
+        "page": 241,
+        "kind": "consolidated_pl",
+        "chars": 8137,
+        "coord_fragments": 200,
+        "number_fragments": 2,
+        "x_range": [
+          0.0,
+          1132.07
+        ],
+        "y_range": [
+          0.0,
+          748.33
+        ]
+      },
+      {
+        "page": 242,
+        "kind": "consolidated_pl",
+        "chars": 8610,
+        "coord_fragments": 193,
+        "number_fragments": 2,
+        "x_range": [
+          0.0,
+          1132.14
+        ],
+        "y_range": [
+          0.0,
+          748.33
+        ]
+      },
+      {
+        "page": 243,
+        "kind": "consolidated_pl",
+        "chars": 7904,
+        "coord_fragments": 194,
+        "number_fragments": 2,
+        "x_range": [
+          0.0,
+          1131.91
+        ],
+        "y_range": [
+          0.0,
+          748.33
+        ]
+      },
+      {
+        "page": 244,
+        "kind": "consolidated_pl",
+        "chars": 8867,
+        "coord_fragments": 199,
+        "number_fragments": 2,
+        "x_range": [
+          0.0,
+          1131.79
+        ],
+        "y_range": [
+          0.0,
+          748.33
+        ]
+      },
+      {
+        "page": 245,
+        "kind": "consolidated_pl",
+        "chars": 8989,
+        "coord_fragments": 205,
+        "number_fragments": 2,
+        "x_range": [
+          0.0,
+          1131.82
+        ],
+        "y_range": [
+          0.0,
+          748.33
+        ]
+      },
+      {
+        "page": 246,
+        "kind": "consolidated_pl",
+        "chars": 6699,
+        "coord_fragments": 490,
+        "number_fragments": 227,
+        "x_range": [
+          0.0,
+          1139.21
+        ],
+        "y_range": [
+          0.0,
+          748.33
+        ]
+      },
+      {
+        "page": 251,
+        "kind": "consolidated_pl",
+        "chars": 3891,
+        "coord_fragments": 191,
+        "number_fragments": 50,
+        "x_range": [
+          0.0,
+          1132.09
+        ],
+        "y_range": [
+          0.0,
+          748.33
+        ]
+      },
+      {
+        "page": 252,
+        "kind": "consolidated_bs",
+        "chars": 4162,
+        "coord_fragments": 302,
+        "number_fragments": 68,
+        "x_range": [
+          0.0,
+          1137.87
+        ],
+        "y_range": [
+          0.0,
+          748.33
+        ]
+      },
+      {
+        "page": 253,
+        "kind": "consolidated_bs",
+        "chars": 3809,
+        "coord_fragments": 275,
+        "number_fragments": 67,
+        "x_range": [
+          0.0,
+          1132.03
+        ],
+        "y_range": [
+          0.0,
+          748.33
+        ]
+      },
+      {
+        "page": 259,
+        "kind": "consolidated_pl",
+        "chars": 4228,
+        "coord_fragments": 240,
+        "number_fragments": 76,
+        "x_range": [
+          0.0,
+          1132.74
+        ],
+        "y_range": [
+          0.0,
+          748.33
+        ]
+      },
+      {
+        "page": 263,
+        "kind": "consolidated_bs",
+        "chars": 3886,
+        "coord_fragments": 227,
+        "number_fragments": 95,
+        "x_range": [
+          0.0,
+          1139.67
+        ],
+        "y_range": [
+          0.0,
+          748.33
+        ]
+      },
+      {
+        "page": 264,
+        "kind": "consolidated_pl",
+        "chars": 4107,
+        "coord_fragments": 297,
+        "number_fragments": 140,
+        "x_range": [
+          0.0,
+          1139.67
+        ],
+        "y_range": [
+          0.0,
+          748.33
+        ]
+      },
+      {
+        "page": 265,
+        "kind": "consolidated_pl",
+        "chars": 4459,
+        "coord_fragments": 232,
+        "number_fragments": 58,
+        "x_range": [
+          0.0,
+          1139.03
+        ],
+        "y_range": [
+          0.0,
+          748.33
+        ]
+      },
+      {
+        "page": 266,
+        "kind": "consolidated_pl",
+        "chars": 7034,
+        "coord_fragments": 175,
+        "number_fragments": 6,
+        "x_range": [
+          0.0,
+          1139.89
+        ],
+        "y_range": [
+          0.0,
+          748.33
+        ]
+      },
+      {
+        "page": 270,
+        "kind": "consolidated_pl",
+        "chars": 5682,
+        "coord_fragments": 160,
+        "number_fragments": 44,
+        "x_range": [
+          0.0,
+          1132.14
+        ],
+        "y_range": [
+          0.0,
+          748.33
+        ]
+      },
+      {
+        "page": 271,
+        "kind": "consolidated_pl",
+        "chars": 6770,
+        "coord_fragments": 257,
+        "number_fragments": 58,
+        "x_range": [
+          0.0,
+          1138.51
+        ],
+        "y_range": [
+          0.0,
+          748.33
+        ]
+      },
+      {
+        "page": 272,
+        "kind": "consolidated_pl",
+        "chars": 4096,
+        "coord_fragments": 275,
+        "number_fragments": 83,
+        "x_range": [
+          0.0,
+          1132.1
+        ],
+        "y_range": [
+          0.0,
+          748.33
+        ]
+      },
+      {
+        "page": 273,
+        "kind": "consolidated_bs",
+        "chars": 6254,
+        "coord_fragments": 132,
+        "number_fragments": 7,
+        "x_range": [
+          0.0,
+          1132.15
+        ],
+        "y_range": [
+          0.0,
+          748.33
+        ]
+      },
+      {
+        "page": 283,
+        "kind": "consolidated_bs",
+        "chars": 6072,
+        "coord_fragments": 206,
+        "number_fragments": 25,
+        "x_range": [
+          0.0,
+          1132.31
+        ],
+        "y_range": [
+          0.0,
+          748.33
+        ]
+      },
+      {
+        "page": 284,
+        "kind": "consolidated_bs",
+        "chars": 6701,
+        "coord_fragments": 555,
+        "number_fragments": 240,
+        "x_range": [
+          0.0,
+          1131.96
+        ],
+        "y_range": [
+          0.0,
+          748.33
+        ]
+      }
+    ],
+    "coord_samples": [
+      {
+        "page": 42,
+        "kind": "consolidated_bs",
+        "headers": [
+          {
+            "text": "(\u20b9 in Crores except per share data, number of employees, number of shareholders ",
+            "x": 49.57,
+            "y": 329.5,
+            "size": 1.0
+          },
+          {
+            "text": "Basic Earnings Per Share (EPS) (\u20b9)",
+            "x": 375.7,
+            "y": 44.52,
+            "size": 1.0
+          },
+          {
+            "text": "Diluted Earnings Per Share (EPS) (\u20b9)",
+            "x": 384.52,
+            "y": 44.52,
+            "size": 1.0
+          },
+          {
+            "text": "Book Value (\u20b9)",
+            "x": 410.98,
+            "y": 44.52,
+            "size": 1.0
+          },
+          {
+            "text": "42.0 Crores).",
+            "x": 488.03,
+            "y": 328.65,
+            "size": 1.0
+          },
+          {
+            "text": "(\u20b9 in Crores except per share data and ratios)",
+            "x": 643.87,
+            "y": 485.35,
+            "size": 1.0
+          },
+          {
+            "text": "Basic Earnings Per Share (EPS) (\u20b9)",
+            "x": 1004.0,
+            "y": 44.52,
+            "size": 1.0
+          },
+          {
+            "text": "Diluted Earnings Per Share (EPS) (\u20b9)",
+            "x": 1013.86,
+            "y": 44.52,
+            "size": 1.0
+          },
+          {
+            "text": "Book Value (\u20b9)",
+            "x": 1023.71,
+            "y": 44.52,
+            "size": 1.0
+          },
+          {
+            "text": "April, 2018 (reducing the same by \u20b9 46.9 Crores).",
+            "x": 1073.96,
+            "y": 218.02,
+            "size": 1.0
+          }
+        ],
+        "numbers": [
+          {
+            "text": "30,680.2",
+            "x": 0.0,
+            "y": 0.0,
+            "size": 1.0
+          },
+          {
+            "text": "29,421.1",
+            "x": 0.0,
+            "y": 0.0,
+            "size": 1.0
+          },
+          {
+            "text": "31,093.8",
+            "x": 0.0,
+            "y": 0.0,
+            "size": 1.0
+          },
+          {
+            "text": "29,953.1",
+            "x": 0.0,
+            "y": 0.0,
+            "size": 1.0
+          },
+          {
+            "text": "25,002.1",
+            "x": 0.0,
+            "y": 0.0,
+            "size": 1.0
+          },
+          {
+            "text": "18,280.1",
+            "x": 0.0,
+            "y": 0.0,
+            "size": 1.0
+          },
+          {
+            "text": "17,025.6",
+            "x": 0.0,
+            "y": 0.0,
+            "size": 1.0
+          },
+          {
+            "text": "16,209.4",
+            "x": 0.0,
+            "y": 0.0,
+            "size": 1.0
+          },
+          {
+            "text": "13,923.3",
+            "x": 0.0,
+            "y": 0.0,
+            "size": 1.0
+          },
+          {
+            "text": "12,524.5",
+            "x": 0.0,
+            "y": 0.0,
+            "size": 1.0
+          }
+        ]
+      },
+      {
+        "page": 180,
+        "kind": "consolidated_pl",
+        "headers": [
+          {
+            "text": "comprise the Balance Sheet as at March 31, 2026 and the",
+            "x": 42.52,
+            "y": 555.2,
+            "size": 1.0
+          },
+          {
+            "text": "of the Company as at March 31, 2026 and its profit, total",
+            "x": 42.52,
+            "y": 381.2,
+            "size": 1.0
+          }
+        ],
+        "numbers": [
+          {
+            "text": "354",
+            "x": 42.52,
+            "y": 19.06,
+            "size": 1.0
+          },
+          {
+            "text": "355",
+            "x": 0.0,
+            "y": 0.0,
+            "size": 1.0
+          }
+        ]
+      },
+      {
+        "page": 229,
+        "kind": "consolidated_pl",
+        "headers": [
+          {
+            "text": "Balance Sheet as at March 31, 2026, and the Consolidated",
+            "x": 42.52,
+            "y": 539.47,
+            "size": 1.0
+          },
+          {
+            "text": "state of affairs of the Group as at March 31, 2026, and their",
+            "x": 42.52,
+            "y": 317.46,
+            "size": 1.0
+          },
+          {
+            "text": "219.08 crores. Goodwill is tested",
+            "x": 155.39,
+            "y": 150.32,
+            "size": 1.0
+          }
+        ],
+        "numbers": [
+          {
+            "text": "452",
+            "x": 42.52,
+            "y": 19.06,
+            "size": 1.0
+          },
+          {
+            "text": "453",
+            "x": 0.0,
+            "y": 0.0,
+            "size": 1.0
+          }
+        ]
+      }
+    ],
+    "ca_events": [
+      {
+        "type": "scheme",
+        "date": "2009-03-30"
+      },
+      {
+        "type": "scheme",
+        "date": "2009-06-03"
+      },
+      {
+        "type": "merger",
+        "date": "2009-08-17"
+      },
+      {
+        "type": "scheme",
+        "date": "2009-08-17"
+      },
+      {
+        "type": "demerger",
+        "date": "2011-09-21"
+      },
+      {
+        "type": "merger",
+        "date": "2011-09-21"
+      },
+      {
+        "type": "demerger",
+        "date": "2012-02-07"
+      },
+      {
+        "type": "merger",
+        "date": "2012-02-07"
+      },
+      {
+        "type": "demerger",
+        "date": "2012-02-21"
+      },
+      {
+        "type": "merger",
+        "date": "2012-02-21"
+      },
+      {
+        "type": "demerger",
+        "date": "2012-07-06"
+      },
+      {
+        "type": "merger",
+        "date": "2012-07-06"
+      }
+    ],
+    "buyback_docs": [],
+    "sha256_payload": "b7977d2419ed2e211d0ad53270165cc4205cafff7982b6b74fed6502fa25aacb"
+  },
+  {
+    "ticker": "HINDUNILVR",
+    "isin": "INE030A01027",
+    "url": "https://nsearchives.nseindia.com/annual_reports/AR_29330_HINDUNILVR_2025_2026_A_21643813_02062026215058.pdf",
+    "hash": "ab3842889a4dbfe697fa2bbed89d3b8bc622e7a13b052841b4908b92be719054",
+    "size": 21643813,
+    "pages": 246,
+    "json_s": 1.939,
+    "download_s": 9.36,
+    "open_s": 0.376,
+    "text_s": 24.088,
+    "coord_s": 5.541,
+    "low_text_pages": 0,
+    "statement_pages": [
+      {
+        "page": 5,
+        "kind": "consolidated_pl",
+        "chars": 6551,
+        "coord_fragments": 197,
+        "number_fragments": 9,
+        "x_range": [
+          0.0,
+          1070.07
+        ],
+        "y_range": [
+          0.0,
+          799.15
+        ]
+      },
+      {
+        "page": 13,
+        "kind": "standalone_bs",
+        "chars": 4930,
+        "coord_fragments": 156,
+        "number_fragments": 21,
+        "x_range": [
+          0.0,
+          1128.4
+        ],
+        "y_range": [
+          0.0,
+          799.15
+        ]
+      },
+      {
+        "page": 44,
+        "kind": "standalone_bs",
+        "chars": 5567,
+        "coord_fragments": 132,
+        "number_fragments": 2,
+        "x_range": [
+          51.02,
+          1128.4
+        ],
+        "y_range": [
+          19.27,
+          799.15
+        ]
+      },
+      {
+        "page": 45,
+        "kind": "unlabeled_bs",
+        "chars": 10133,
+        "coord_fragments": 199,
+        "number_fragments": 2,
+        "x_range": [
+          51.02,
+          1124.7
+        ],
+        "y_range": [
+          19.27,
+          799.15
+        ]
+      },
+      {
+        "page": 51,
+        "kind": "consolidated_bs",
+        "chars": 10730,
+        "coord_fragments": 215,
+        "number_fragments": 2,
+        "x_range": [
+          0.0,
+          1124.7
+        ],
+        "y_range": [
+          0.0,
+          799.15
+        ]
+      },
+      {
+        "page": 54,
+        "kind": "unlabeled_cf",
+        "chars": 10723,
+        "coord_fragments": 208,
+        "number_fragments": 2,
+        "x_range": [
+          0.0,
+          1124.7
+        ],
+        "y_range": [
+          0.0,
+          799.15
+        ]
+      },
+      {
+        "page": 132,
+        "kind": "unlabeled_cf",
+        "chars": 5879,
+        "coord_fragments": 83,
+        "number_fragments": 2,
+        "x_range": [
+          50.98,
+          1117.28
+        ],
+        "y_range": [
+          19.27,
+          799.15
+        ]
+      },
+      {
+        "page": 137,
+        "kind": "unlabeled_bs",
+        "chars": 5999,
+        "coord_fragments": 147,
+        "number_fragments": 2,
+        "x_range": [
+          50.95,
+          1117.28
+        ],
+        "y_range": [
+          19.27,
+          799.15
+        ]
+      },
+      {
+        "page": 138,
+        "kind": "standalone_bs",
+        "chars": 7151,
+        "coord_fragments": 138,
+        "number_fragments": 4,
+        "x_range": [
+          51.01,
+          1117.28
+        ],
+        "y_range": [
+          19.27,
+          799.15
+        ]
+      },
+      {
+        "page": 140,
+        "kind": "standalone_bs",
+        "chars": 3180,
+        "coord_fragments": 98,
+        "number_fragments": 2,
+        "x_range": [
+          51.02,
+          1117.7
+        ],
+        "y_range": [
+          19.27,
+          799.15
+        ]
+      },
+      {
+        "page": 141,
+        "kind": "standalone_pl",
+        "chars": 3316,
+        "coord_fragments": 128,
+        "number_fragments": 13,
+        "x_range": [
+          51.02,
+          1117.28
+        ],
+        "y_range": [
+          19.27,
+          799.15
+        ]
+      },
+      {
+        "page": 143,
+        "kind": "standalone_cf",
+        "chars": 4999,
+        "coord_fragments": 129,
+        "number_fragments": 3,
+        "x_range": [
+          51.02,
+          1117.74
+        ],
+        "y_range": [
+          19.27,
+          799.15
+        ]
+      },
+      {
+        "page": 144,
+        "kind": "standalone_pl",
+        "chars": 8951,
+        "coord_fragments": 200,
+        "number_fragments": 2,
+        "x_range": [
+          0.0,
+          1120.99
+        ],
+        "y_range": [
+          0.0,
+          799.15
+        ]
+      },
+      {
+        "page": 145,
+        "kind": "standalone_pl",
+        "chars": 5671,
+        "coord_fragments": 114,
+        "number_fragments": 2,
+        "x_range": [
+          0.0,
+          1117.28
+        ],
+        "y_range": [
+          0.0,
+          799.15
+        ]
+      },
+      {
+        "page": 148,
+        "kind": "standalone_pl",
+        "chars": 6535,
+        "coord_fragments": 122,
+        "number_fragments": 2,
+        "x_range": [
+          0.0,
+          1117.28
+        ],
+        "y_range": [
+          0.0,
+          799.15
+        ]
+      },
+      {
+        "page": 149,
+        "kind": "standalone_pl",
+        "chars": 6414,
+        "coord_fragments": 156,
+        "number_fragments": 2,
+        "x_range": [
+          0.0,
+          1120.99
+        ],
+        "y_range": [
+          0.0,
+          799.15
+        ]
+      },
+      {
+        "page": 150,
+        "kind": "standalone_pl",
+        "chars": 6078,
+        "coord_fragments": 137,
+        "number_fragments": 3,
+        "x_range": [
+          0.0,
+          1118.09
+        ],
+        "y_range": [
+          0.0,
+          799.15
+        ]
+      },
+      {
+        "page": 152,
+        "kind": "standalone_pl",
+        "chars": 3898,
+        "coord_fragments": 143,
+        "number_fragments": 6,
+        "x_range": [
+          0.0,
+          1119.31
+        ],
+        "y_range": [
+          0.0,
+          799.15
+        ]
+      },
+      {
+        "page": 154,
+        "kind": "standalone_bs",
+        "chars": 4659,
+        "coord_fragments": 127,
+        "number_fragments": 2,
+        "x_range": [
+          0.0,
+          1120.99
+        ],
+        "y_range": [
+          0.0,
+          799.15
+        ]
+      },
+      {
+        "page": 155,
+        "kind": "standalone_bs",
+        "chars": 4837,
+        "coord_fragments": 131,
+        "number_fragments": 2,
+        "x_range": [
+          0.0,
+          1129.54
+        ],
+        "y_range": [
+          0.0,
+          799.15
+        ]
+      },
+      {
+        "page": 156,
+        "kind": "standalone_pl",
+        "chars": 5631,
+        "coord_fragments": 131,
+        "number_fragments": 3,
+        "x_range": [
+          0.0,
+          1117.7
+        ],
+        "y_range": [
+          0.0,
+          799.15
+        ]
+      },
+      {
+        "page": 157,
+        "kind": "standalone_bs",
+        "chars": 5396,
+        "coord_fragments": 113,
+        "number_fragments": 2,
+        "x_range": [
+          0.0,
+          1118.05
+        ],
+        "y_range": [
+          0.0,
+          799.15
+        ]
+      },
+      {
+        "page": 158,
+        "kind": "standalone_bs",
+        "chars": 5601,
+        "coord_fragments": 117,
+        "number_fragments": 2,
+        "x_range": [
+          0.0,
+          1118.64
+        ],
+        "y_range": [
+          0.0,
+          799.15
+        ]
+      },
+      {
+        "page": 161,
+        "kind": "standalone_pl",
+        "chars": 7900,
+        "coord_fragments": 110,
+        "number_fragments": 2,
+        "x_range": [
+          0.0,
+          1120.99
+        ],
+        "y_range": [
+          0.0,
+          799.15
+        ]
+      },
+      {
+        "page": 163,
+        "kind": "standalone_pl",
+        "chars": 6204,
+        "coord_fragments": 147,
+        "number_fragments": 12,
+        "x_range": [
+          0.0,
+          1120.99
+        ],
+        "y_range": [
+          0.0,
+          799.15
+        ]
+      },
+      {
+        "page": 164,
+        "kind": "standalone_pl",
+        "chars": 8024,
+        "coord_fragments": 101,
+        "number_fragments": 2,
+        "x_range": [
+          0.0,
+          1120.99
+        ],
+        "y_range": [
+          0.0,
+          799.15
+        ]
+      },
+      {
+        "page": 165,
+        "kind": "standalone_bs",
+        "chars": 5321,
+        "coord_fragments": 109,
+        "number_fragments": 2,
+        "x_range": [
+          0.0,
+          1117.28
+        ],
+        "y_range": [
+          0.0,
+          799.15
+        ]
+      },
+      {
+        "page": 167,
+        "kind": "standalone_pl",
+        "chars": 5218,
+        "coord_fragments": 174,
+        "number_fragments": 7,
+        "x_range": [
+          0.0,
+          1117.28
+        ],
+        "y_range": [
+          0.0,
+          799.15
+        ]
+      },
+      {
+        "page": 168,
+        "kind": "standalone_pl",
+        "chars": 7372,
+        "coord_fragments": 165,
+        "number_fragments": 4,
+        "x_range": [
+          0.0,
+          1117.28
+        ],
+        "y_range": [
+          0.0,
+          799.15
+        ]
+      },
+      {
+        "page": 169,
+        "kind": "standalone_bs",
+        "chars": 4471,
+        "coord_fragments": 142,
+        "number_fragments": 2,
+        "x_range": [
+          0.0,
+          1120.99
+        ],
+        "y_range": [
+          0.0,
+          799.15
+        ]
+      },
+      {
+        "page": 171,
+        "kind": "standalone_pl",
+        "chars": 4378,
+        "coord_fragments": 170,
+        "number_fragments": 8,
+        "x_range": [
+          0.0,
+          1117.63
+        ],
+        "y_range": [
+          0.0,
+          799.15
+        ]
+      },
+      {
+        "page": 172,
+        "kind": "standalone_bs",
+        "chars": 4819,
+        "coord_fragments": 148,
+        "number_fragments": 2,
+        "x_range": [
+          0.0,
+          1117.72
+        ],
+        "y_range": [
+          0.0,
+          799.15
+        ]
+      },
+      {
+        "page": 173,
+        "kind": "standalone_pl",
+        "chars": 5795,
+        "coord_fragments": 139,
+        "number_fragments": 2,
+        "x_range": [
+          0.0,
+          1117.79
+        ],
+        "y_range": [
+          0.0,
+          799.15
+        ]
+      },
+      {
+        "page": 174,
+        "kind": "standalone_pl",
+        "chars": 5815,
+        "coord_fragments": 128,
+        "number_fragments": 2,
+        "x_range": [
+          0.0,
+          1120.99
+        ],
+        "y_range": [
+          0.0,
+          799.15
+        ]
+      },
+      {
+        "page": 179,
+        "kind": "consolidated_pl",
+        "chars": 9334,
+        "coord_fragments": 202,
+        "number_fragments": 2,
+        "x_range": [
+          51.02,
+          1120.99
+        ],
+        "y_range": [
+          19.27,
+          799.15
+        ]
+      },
+      {
+        "page": 185,
+        "kind": "consolidated_bs",
+        "chars": 3225,
+        "coord_fragments": 101,
+        "number_fragments": 2,
+        "x_range": [
+          50.89,
+          1117.7
+        ],
+        "y_range": [
+          19.27,
+          799.15
+        ]
+      },
+      {
+        "page": 186,
+        "kind": "consolidated_pl",
+        "chars": 4004,
+        "coord_fragments": 146,
+        "number_fragments": 13,
+        "x_range": [
+          51.02,
+          1117.28
+        ],
+        "y_range": [
+          19.27,
+          799.15
+        ]
+      },
+      {
+        "page": 188,
+        "kind": "consolidated_bs",
+        "chars": 5749,
+        "coord_fragments": 152,
+        "number_fragments": 3,
+        "x_range": [
+          51.02,
+          1117.28
+        ],
+        "y_range": [
+          19.27,
+          799.15
+        ]
+      },
+      {
+        "page": 191,
+        "kind": "consolidated_pl",
+        "chars": 9755,
+        "coord_fragments": 205,
+        "number_fragments": 2,
+        "x_range": [
+          0.0,
+          1117.28
+        ],
+        "y_range": [
+          0.0,
+          799.15
+        ]
+      },
+      {
+        "page": 192,
+        "kind": "consolidated_pl",
+        "chars": 5621,
+        "coord_fragments": 125,
+        "number_fragments": 2,
+        "x_range": [
+          0.0,
+          1117.28
+        ],
+        "y_range": [
+          0.0,
+          799.15
+        ]
+      },
+      {
+        "page": 193,
+        "kind": "consolidated_pl",
+        "chars": 6484,
+        "coord_fragments": 129,
+        "number_fragments": 2,
+        "x_range": [
+          0.0,
+          1117.28
+        ],
+        "y_range": [
+          0.0,
+          799.15
+        ]
+      },
+      {
+        "page": 196,
+        "kind": "consolidated_pl",
+        "chars": 7170,
+        "coord_fragments": 128,
+        "number_fragments": 2,
+        "x_range": [
+          0.0,
+          1117.28
+        ],
+        "y_range": [
+          0.0,
+          799.15
+        ]
+      },
+      {
+        "page": 197,
+        "kind": "consolidated_pl",
+        "chars": 5949,
+        "coord_fragments": 123,
+        "number_fragments": 2,
+        "x_range": [
+          0.0,
+          1118.17
+        ],
+        "y_range": [
+          0.0,
+          799.15
+        ]
+      },
+      {
+        "page": 199,
+        "kind": "consolidated_bs",
+        "chars": 4857,
+        "coord_fragments": 157,
+        "number_fragments": 10,
+        "x_range": [
+          0.0,
+          1133.18
+        ],
+        "y_range": [
+          0.0,
+          799.15
+        ]
+      },
+      {
+        "page": 200,
+        "kind": "consolidated_pl",
+        "chars": 4843,
+        "coord_fragments": 157,
+        "number_fragments": 10,
+        "x_range": [
+          0.0,
+          1117.67
+        ],
+        "y_range": [
+          0.0,
+          799.15
+        ]
+      },
+      {
+        "page": 202,
+        "kind": "consolidated_bs",
+        "chars": 5260,
+        "coord_fragments": 128,
+        "number_fragments": 2,
+        "x_range": [
+          0.0,
+          1117.79
+        ],
+        "y_range": [
+          0.0,
+          799.15
+        ]
+      },
+      {
+        "page": 203,
+        "kind": "consolidated_pl",
+        "chars": 4913,
+        "coord_fragments": 121,
+        "number_fragments": 2,
+        "x_range": [
+          0.0,
+          1117.28
+        ],
+        "y_range": [
+          0.0,
+          799.15
+        ]
+      },
+      {
+        "page": 204,
+        "kind": "consolidated_pl",
+        "chars": 5434,
+        "coord_fragments": 131,
+        "number_fragments": 2,
+        "x_range": [
+          0.0,
+          1120.99
+        ],
+        "y_range": [
+          0.0,
+          799.15
+        ]
+      },
+      {
+        "page": 206,
+        "kind": "consolidated_bs",
+        "chars": 4848,
+        "coord_fragments": 107,
+        "number_fragments": 2,
+        "x_range": [
+          0.0,
+          1118.09
+        ],
+        "y_range": [
+          0.0,
+          799.15
+        ]
+      },
+      {
+        "page": 207,
+        "kind": "consolidated_bs",
+        "chars": 5748,
+        "coord_fragments": 126,
+        "number_fragments": 2,
+        "x_range": [
+          0.0,
+          1118.09
+        ],
+        "y_range": [
+          0.0,
+          799.15
+        ]
+      },
+      {
+        "page": 210,
+        "kind": "consolidated_pl",
+        "chars": 7469,
+        "coord_fragments": 110,
+        "number_fragments": 2,
+        "x_range": [
+          0.0,
+          1120.99
+        ],
+        "y_range": [
+          0.0,
+          799.15
+        ]
+      },
+      {
+        "page": 212,
+        "kind": "consolidated_bs",
+        "chars": 5394,
+        "coord_fragments": 122,
+        "number_fragments": 2,
+        "x_range": [
+          0.0,
+          1120.99
+        ],
+        "y_range": [
+          0.0,
+          799.15
+        ]
+      },
+      {
+        "page": 213,
+        "kind": "consolidated_pl",
+        "chars": 7755,
+        "coord_fragments": 101,
+        "number_fragments": 2,
+        "x_range": [
+          0.0,
+          1120.99
+        ],
+        "y_range": [
+          0.0,
+          799.15
+        ]
+      },
+      {
+        "page": 214,
+        "kind": "consolidated_pl",
+        "chars": 6042,
+        "coord_fragments": 105,
+        "number_fragments": 2,
+        "x_range": [
+          0.0,
+          1120.99
+        ],
+        "y_range": [
+          0.0,
+          799.15
+        ]
+      },
+      {
+        "page": 215,
+        "kind": "consolidated_bs",
+        "chars": 5489,
+        "coord_fragments": 149,
+        "number_fragments": 3,
+        "x_range": [
+          0.0,
+          1121.04
+        ],
+        "y_range": [
+          0.0,
+          799.15
+        ]
+      },
+      {
+        "page": 216,
+        "kind": "consolidated_pl",
+        "chars": 5056,
+        "coord_fragments": 105,
+        "number_fragments": 2,
+        "x_range": [
+          0.0,
+          1126.95
+        ],
+        "y_range": [
+          0.0,
+          799.15
+        ]
+      },
+      {
+        "page": 217,
+        "kind": "consolidated_pl",
+        "chars": 3726,
+        "coord_fragments": 138,
+        "number_fragments": 4,
+        "x_range": [
+          0.0,
+          1117.28
+        ],
+        "y_range": [
+          0.0,
+          799.15
+        ]
+      },
+      {
+        "page": 218,
+        "kind": "consolidated_pl",
+        "chars": 6638,
+        "coord_fragments": 154,
+        "number_fragments": 3,
+        "x_range": [
+          0.0,
+          1117.28
+        ],
+        "y_range": [
+          0.0,
+          799.15
+        ]
+      },
+      {
+        "page": 219,
+        "kind": "consolidated_bs",
+        "chars": 4599,
+        "coord_fragments": 124,
+        "number_fragments": 2,
+        "x_range": [
+          0.0,
+          1120.99
+        ],
+        "y_range": [
+          0.0,
+          799.15
+        ]
+      },
+      {
+        "page": 221,
+        "kind": "consolidated_pl",
+        "chars": 4235,
+        "coord_fragments": 154,
+        "number_fragments": 2,
+        "x_range": [
+          0.0,
+          1125.25
+        ],
+        "y_range": [
+          0.0,
+          799.15
+        ]
+      },
+      {
+        "page": 222,
+        "kind": "consolidated_bs",
+        "chars": 5163,
+        "coord_fragments": 173,
+        "number_fragments": 8,
+        "x_range": [
+          0.0,
+          1124.18
+        ],
+        "y_range": [
+          0.0,
+          799.15
+        ]
+      },
+      {
+        "page": 223,
+        "kind": "consolidated_pl",
+        "chars": 5143,
+        "coord_fragments": 148,
+        "number_fragments": 2,
+        "x_range": [
+          0.0,
+          1123.71
+        ],
+        "y_range": [
+          0.0,
+          799.15
+        ]
+      },
+      {
+        "page": 224,
+        "kind": "consolidated_pl",
+        "chars": 6100,
+        "coord_fragments": 102,
+        "number_fragments": 3,
+        "x_range": [
+          0.0,
+          1120.99
+        ],
+        "y_range": [
+          0.0,
+          799.15
+        ]
+      },
+      {
+        "page": 225,
+        "kind": "consolidated_pl",
+        "chars": 6825,
+        "coord_fragments": 123,
+        "number_fragments": 4,
+        "x_range": [
+          0.0,
+          1117.28
+        ],
+        "y_range": [
+          0.0,
+          799.15
+        ]
+      },
+      {
+        "page": 232,
+        "kind": "consolidated_bs",
+        "chars": 1831,
+        "coord_fragments": 46,
+        "number_fragments": 2,
+        "x_range": [
+          51.02,
+          1117.28
+        ],
+        "y_range": [
+          19.27,
+          799.15
+        ]
+      }
+    ],
+    "coord_samples": [
+      {
+        "page": 5,
+        "kind": "consolidated_pl",
+        "headers": [
+          {
+            "text": "1st April, 2025 to 31st March, 2026",
+            "x": 51.02,
+            "y": 542.4,
+            "size": 1.0
+          }
+        ],
+        "numbers": [
+          {
+            "text": "1",
+            "x": 661.86,
+            "y": 615.01,
+            "size": 1.0
+          },
+          {
+            "text": "3",
+            "x": 658.65,
+            "y": 560.71,
+            "size": 1.0
+          },
+          {
+            "text": "5",
+            "x": 658.46,
+            "y": 508.26,
+            "size": 1.0
+          },
+          {
+            "text": "7",
+            "x": 658.46,
+            "y": 455.04,
+            "size": 1.0
+          },
+          {
+            "text": "2",
+            "x": 783.83,
+            "y": 616.12,
+            "size": 1.0
+          },
+          {
+            "text": "4",
+            "x": 782.36,
+            "y": 560.18,
+            "size": 1.0
+          },
+          {
+            "text": "6",
+            "x": 783.21,
+            "y": 508.23,
+            "size": 1.0
+          },
+          {
+            "text": "03",
+            "x": 0.0,
+            "y": 0.0,
+            "size": 1.0
+          },
+          {
+            "text": "02",
+            "x": 51.02,
+            "y": 21.67,
+            "size": 1.0
+          }
+        ]
+      },
+      {
+        "page": 51,
+        "kind": "consolidated_bs",
+        "headers": [
+          {
+            "text": "(\u20b9 in crores)",
+            "x": 244.76,
+            "y": 544.03,
+            "size": 1.0
+          },
+          {
+            "text": "(\u20b9 in crores)",
+            "x": 244.76,
+            "y": 285.31,
+            "size": 1.0
+          },
+          {
+            "text": "(CFS) for the FY ended 31st March, 2026 is included in the",
+            "x": 51.03,
+            "y": 110.75,
+            "size": 1.0
+          },
+          {
+            "text": "In accordance with the circular dated 7th January, 2026",
+            "x": 902.87,
+            "y": 206.77,
+            "size": 1.0
+          },
+          {
+            "text": "the Board, at its meeting held on 30th April, 2026, upon",
+            "x": 902.87,
+            "y": 183.77,
+            "size": 1.0
+          },
+          {
+            "text": "and demand water management, over 2.7 million metric",
+            "x": 902.84,
+            "y": 567.11,
+            "size": 1.0
+          },
+          {
+            "text": "and over 125 million person-days of employment due to",
+            "x": 902.84,
+            "y": 544.1,
+            "size": 1.0
+          }
+        ],
+        "numbers": [
+          {
+            "text": "95",
+            "x": 1124.7,
+            "y": 21.67,
+            "size": 1.0
+          },
+          {
+            "text": "94",
+            "x": 51.02,
+            "y": 21.67,
+            "size": 1.0
+          }
+        ]
+      },
+      {
+        "page": 179,
+        "kind": "consolidated_pl",
+        "headers": [
+          {
+            "text": "31 March 2026, the Consolidated Statement of Profit",
+            "x": 70.86,
+            "y": 590.71,
+            "size": 1.0
+          },
+          {
+            "text": "of affairs of the Group, as at 31 March 2026, and their",
+            "x": 70.86,
+            "y": 342.17,
+            "size": 1.0
+          },
+          {
+            "text": "17,265 crores and",
+            "x": 671.81,
+            "y": 416.37,
+            "size": 1.0
+          },
+          {
+            "text": "27,228 crores,",
+            "x": 671.81,
+            "y": 416.37,
+            "size": 1.0
+          },
+          {
+            "text": "total assets of the Group as at 31 March 2026.",
+            "x": 671.81,
+            "y": 392.36,
+            "size": 1.0
+          }
+        ],
+        "numbers": [
+          {
+            "text": "351",
+            "x": 1120.99,
+            "y": 21.67,
+            "size": 1.0
+          },
+          {
+            "text": "350",
+            "x": 51.02,
+            "y": 21.67,
+            "size": 1.0
+          }
+        ]
+      }
+    ],
+    "ca_events": [
+      {
+        "type": "scheme",
+        "date": "2005-04-29"
+      },
+      {
+        "type": "demerger",
+        "date": "2005-07-07"
+      },
+      {
+        "type": "scheme",
+        "date": "2005-07-07"
+      },
+      {
+        "type": "demerger",
+        "date": "2005-08-03"
+      },
+      {
+        "type": "merger",
+        "date": "2005-08-03"
+      },
+      {
+        "type": "scheme",
+        "date": "2005-08-03"
+      },
+      {
+        "type": "scheme",
+        "date": "2005-08-11"
+      },
+      {
+        "type": "scheme",
+        "date": "2005-09-21"
+      },
+      {
+        "type": "scheme",
+        "date": "2005-10-21"
+      },
+      {
+        "type": "demerger",
+        "date": "2005-12-01"
+      },
+      {
+        "type": "scheme",
+        "date": "2005-12-01"
+      },
+      {
+        "type": "scheme",
+        "date": "2005-12-13"
+      }
+    ],
+    "buyback_docs": [
+      {
+        "title": "Public Announcement - Buyback of Shares",
+        "url": "https://nsearchives.nseindia.com/corporate/HUL_buyback_12082010.zip",
+        "as_of": "2010-08-12"
+      },
+      {
+        "title": "Buyback",
+        "url": "https://nsearchives.nseindia.com/corporate/hinduni_proceeds_15062010.zip",
+        "as_of": "2010-06-15"
+      }
+    ],
+    "sha256_payload": "ab3842889a4dbfe697fa2bbed89d3b8bc622e7a13b052841b4908b92be719054"
+  }
+]

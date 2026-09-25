@@ -1,0 +1,1406 @@
+===== PAGE 186 =====
+199
+C in million
+Name of Statute Nature of dues Forum where dispute is 
+pending
+Period to which the 
+amount relates
+Amount 
+Involved
+Amount not 
+deposited as 
+at March  
+31, 2026
+Sales Tax / VAT Sales Tax / VAT Assistant Commissioner/ 
+Deputy Commissioner 1986-87 to 2017-18 4404 4,113
+Sales Tax / VAT Sales Tax / VAT Commissioner (Appeals) 1988-89 to 2017-18 1,774 1,649
+Sales Tax / VAT Sales Tax / VAT Additional Commissioner 
+(Appeals) 1990 -91 to 2005-06 19 18
+Sales Tax / VAT Sales Tax / VAT Commercial Tax Tribunal 1997-98 1 -
+Sales Tax / VAT Sales Tax / VAT Deputy Commissioner 
+(Appeals) 2007-08 1 -
+Sales Tax / VAT Sales Tax / VAT Tamil Nadu Sales Tax 
+Appellate Tribunal 1986-87 to 1990-91 2 1
+Sales Tax / VAT Sales Tax / VAT Tribunal 2009-10 to 2016-17 810 746
+Sales Tax / VAT Sales Tax / VAT High Court 2002-03 to 2013-14 34 27
+Sales Tax/ VAT Sales Tax/ VAT Supreme Court 2001-02 12 12
+Sales Tax/ VAT Sales Tax/ VAT Assessing Officer 2017-18 118 118
+Goods and Services Tax Goods and 
+Services Tax Appellate Authority 2017-18 to 2021-22 1,784 1,283
+Goods and Services Tax Goods and 
+Services Tax Assistant Commissioner 2018-24 2 2
+Goods and Services Tax Goods and 
+Services Tax Deputy Commissioner 2018-19 and 2020-2021 246 77
+Goods and Services Tax Goods and 
+Services Tax High Court 2017-18, 2018-19 2,719 2,646
+The Income Tax Act, 
+1961 Income Tax - TDS Commissioner of Income 
+tax (Appeals) – TDS
+2003-04, 2011-12, 2017-
+18, 2018-19, 2020-21 
+to 2023-24, 2009-10 to 
+2013-14, 2009-10 to 
+2011-12, 2014-15 to 
+2018-19, 2020-21 to 
+2022-23
+338 328
+The Income Tax Act, 
+1961 Income Tax Assessing Officer 2007-08 97 42
+The Income Tax Act, 
+1961 Income Tax Commissioner of Income 
+tax (Appeals) 2012-13 16 16
+The Income Tax Act, 
+1961 Income Tax Income Tax Appellate 
+Tribunal
+2007-08, 2009
+
+===== PAGE 187 =====
+200
+WIPRO   INTEGRATED ANNUAL REPORT 2025-26 STATUTORY REPORTS AND FINANCIAL STATEMENTS STANDALONE FINANCIAL STATEMENT UNDER IND AS
+(viii)  There were no transactions relating to previously 
+unrecorded income that were surrendered or 
+disclosed as income in the tax assessments under the 
+Income Tax Act, 1961 (43 of 1961) during the year.
+(ix) (a)  In our opinion, the Company has not defaulted 
+in the repayment of loans or other borrowings or 
+in the payment of interest thereon to any lender 
+during the year.
+ (b)  The Company has not been declared wilful 
+defaulter by any bank or financial institution or 
+government or any government authority.
+ (c)  The Company has not taken any term loan during 
+the year and there are no unutilised term loans at 
+the beginning of the year and hence, reporting 
+under clause (ix)(c) of the Order is not applicable 
+to the Company.
+ (d)  On an overall examination of the financial 
+statements of the Company, funds raised on 
+short-term basis have, prima facie, not been 
+used during the year for long-term purposes by 
+the Company.
+ (e)  On an overall examination of the financial 
+statements of the Company, the Company has 
+not taken any funds from any entity or person 
+on account of or to meet the obligations of its 
+subsidiaries or associates.
+ (f)  The Company has not raised any loans during 
+the year on the pledge of securities held in 
+its subsidiaries and hence reporting under 
+clause (ix)(f) of the Order is not applicable to 
+the Company.
+(x) (a)  The Company has not raised moneys by way of 
+initial public offer or further public offer (including 
+debt instruments) during the year and hence 
+reporting under clause (x)(a) of the Order is not 
+applicable to the Company.
+ (b)  During the year the Company has not made 
+any preferential al
+
+===== PAGE 188 =====
+201
+(xvii)  The Company has not incurred cash losses during the 
+financial year covered by our audit and the immediately 
+preceding financial year.
+(xviii)  There has been no resignation of the statutory auditors of 
+the Company during the year.
+(xix)  On the basis of the financial ratios, ageing and expected 
+dates of realisation of financial assets and payment of 
+financial liabilities, other information accompanying the 
+financial statements and our knowledge of the Board 
+of Directors and Management plans and based on our 
+examination of the evidence supporting the assumptions, 
+nothing has come to our attention, which causes us to 
+believe that any material uncertainty exists as on the date 
+of the audit report indicating that Company is not capable 
+of meeting its liabilities existing at the date of balance 
+sheet as and when they fall due within a period of one year 
+from the balance sheet date. We, however, state that this is 
+not an assurance as to the future viability of the Company. 
+We further state that our reporting is based on the facts 
+up to the date of the audit report and we neither give any 
+guarantee nor any assurance that all liabilities falling due 
+within a period of one year from the balance sheet date, 
+will get discharged by the Company as and when they 
+fall due.
+(xx) (a)  There is no unspent amount towards Corporate 
+Social Responsibility (CSR) on other than ongoing 
+projects requiring a transfer to a Fund specified in 
+Schedule VII to the Companies Act or special account 
+in compliance with the provision of sub-section (6) of 
+section 135 of the said Act. Accordingly, reporting 
+under clause (xx)(a) of the Order is not applicable to 
+the Company.
+ (b)  In respect of ongoing projects, the Company has 
+transferred unspent Corporate Social Res
+
+===== PAGE 189 =====
+202
+WIPRO   INTEGRATED ANNUAL REPORT 2025-26 STATUTORY REPORTS AND FINANCIAL STATEMENTS STANDALONE FINANCIAL STATEMENT UNDER IND AS
+Notes As at  
+March 31, 2026
+As at  
+March 31, 2025
+ASSETS
+ Non-current assets
+ Property, plant and equipment 4  68,146   70,517 
+ Right-of-Use assets 5  14,506   12,909 
+ Capital work-in-progress 6  4,122   1,785 
+ Goodwill 7  6,098   6,082 
+ Other intangible assets 7  430   721 
+ Financial assets
+  Investments 8  242,145   204,399 
+  Derivative assets 20  -     ^ 
+  Unbilled receivables  7,010   -   
+  Other financial assets 11  4,291   3,538 
+ Deferred tax assets (net) 21  2,102   453 
+ Non-current tax assets (net)  5,558   7,075 
+ Other non-current assets 13  6,848   5,474 
+ Total non-current assets  361,256   312,953 
+ Current assets
+ Inventories 12  468   622 
+ Financial assets
+  Investments 8  394,720   409,568 
+  Derivative assets 20  888   1,578 
+  Trade receivables 9  96,616   80,796 
+  Unbilled receivables  46,202   37,436 
+  Cash and cash equivalents 10  26,778   44,342 
+  Other financial assets 11  6,694   5,973 
+ Current tax assets (net)  6,308   3,781 
+ Contract assets  7,352   9,815 
+ Other current assets 13  26,142   22,408 
+ Total current assets  612,168   616,319 
+TOTAL ASSETS  973,424   929,272 
+EQUITY AND LIABILITIES
+EQUITY
+ Equity share capital 14  20,977   20,944 
+ Other equity  615,820   613,930 
+TOTAL EQUITY  636,797   634,874 
+(I in millions, except share and per share data, unless otherwise stated)
+Balance Sheet 
+
+===== PAGE 190 =====
+203
+Notes As at  
+March 31, 2026
+As at  
+March 31, 2025
+LIABILITIES
+ Non-current liabilities
+ Financial liabilities
+  Lease liabilities 5  15,213   11,978 
+  Trade payables
+  (a) Total outstanding dues of micro enterprises and small enterprises 16  -     -   
+  (b)  Total outstanding dues of creditors other than micro enterprises and 
+small enterprises
+16  3,719   -   
+  Other financial liabilities 17  731   1,051 
+ Provisions 18  1,838   2,600 
+ Deferred tax liabilities (net) 21  -     1,315 
+ Non-current tax liabilities (net)  44,420   38,525 
+ Other non-current liabilities 19  17,877   12,703 
+ 	 Total	non-current	liabilities   83,798   68,172 
+ Current liabilities
+ Financial liabilities
+  Borrowings 15  61,500   60,500 
+  Lease liabilities 5  4,148   3,813 
+  Derivative liabilities 20  9,799   968 
+  Trade payables
+  (a) Total outstanding dues of micro enterprises and small enterprises 16  2,315   1,286 
+  (b)  Total outstanding dues of creditors other than micro enterprises and 
+small enterprises
+16  57,788   66,537 
+  Other financial liabilities 17  28,681   22,656 
+ Contract liabilities  18,829   15,162 
+ Other current liabilities 19  10,479   10,037 
+ Provisions 18  13,058   13,167 
+ Current tax liabilities (net)  46,232   32,100 
+ Total current liabilities  252,829   226,226 
+TOTAL LIABILITIES  336,627   294,398 
+TOTAL EQUITY AND LIABILITIES  973,424   929,272 
+^ Value is less than H 0.5
+The accompanying notes form an integral part of these standalone financial statements
+As per our report of even date attached For and on behalf of the Board of Directors
+for Deloitte Haskins & Sells LLP 
+Chartered Accountants
+Firm’s Registration No.: 117366W/W - 100018
+Rishad A. Premji
+Chairman
+(DIN: 02983899)
+Deepak M. Satwalekar
+Director
+(DIN: 00009627)
+Srinivas Pallia
+Chief 
+
+===== PAGE 191 =====
+204
+WIPRO   INTEGRATED ANNUAL REPORT 2025-26 STATUTORY REPORTS AND FINANCIAL STATEMENTS STANDALONE FINANCIAL STATEMENT UNDER IND AS
+Notes Year ended  
+March 31, 2026
+Year ended  
+March 31, 2025
+INCOME
+ Revenue from operations 22  713,451  685,750 
+ Other income 23  47,491  39,477 
+Total income 	760,942	 	725,227	
+EXPENSES
+ Purchases of stock-in-trade  3,352  2,113 
+  Changes in inventories of stock-in-
+trade
+24  148  90 
+  Employee benefits expense 25  388,809  383,850 
+  Finance costs 26  10,959  10,018 
+  Depreciation, amortisation and 
+impairment expense  14,182  15,013 
+  Sub-contracting and technical 
+fees  126,442  112,812 
+  Facility expenses  12,542  12,350 
+  Software license expense for 
+internal use  17,331  16,023 
+  Travel  11,447  11,646 
+  Communication  2,333  2,335 
+  Legal and professional charges  6,075  7,189 
+ Marketing and brand building  3,031  3,117 
+ Other expenses 27  5,239  2,546 
+Total expenses 	601,890	 	579,102	
+Profit	before	tax 	159,052	 	146,125	
+Tax expense
+ Current tax 21  38,349  39,934 
+ Deferred tax 21  (593)  (2,940)
+Total tax expense 	37,756	 	36,994	
+Profit	for	the	year 	121,296 	109,131	
+Other comprehensive income (OCI)
+Items	that	will	not	be	reclassified	to	
+profit	or	loss:
+  Re-measurements of the defined 
+benefit plans, net
+25  222  316 
+  Net change in fair value of 
+investment in equity instruments 
+measured at fair value through OCI
+ 134  (9)
+  Income taxes relating to items that 
+will not be reclassified to profit or 
+loss
+21
+ (49)  (73)
+(I in millions, except share and per share data, unless otherwise stated)
+Statements of Profit and Loss 
+
+===== PAGE 192 =====
+205
+Notes As at  
+March 31, 2026
+As at  
+March 31, 2025
+Items	that	will	be	reclassified	to	profit	or	loss:
+ Net change in time value of option contracts designated as cash flow hedges 20  73  (248)
+ Net change in intrinsic value of option contracts designated as cash flow hedges 20  (1,622)  193 
+ Net change in fair value of forward contracts designated as cash flow hedges 20  (7,478)  (787)
+  Net change in fair value of investment in debt instruments measured at fair value 
+through OCI  (2,413)  1,189 
+  Income taxes relating to items that will be reclassified to profit or loss 21  2,468  (24)
+Total	other	comprehensive	income/(losses)	for	the	year ,	net	of	taxes 	(8,665) 	557	
+Total	comprehensive	income	for	the	year  112,631 	109,688	
+Earnings	per	equity	share 28
+(Equity shares of par value H 2 each)
+ Basic  11.59  10.44 
+ Diluted  11.55  10.40 
+Weighted	average	number	of	equity	shares	used	in	computing	earnings	per	
+equity share
+ Basic  10,476,247,846  10,456,741,552 
+ Diluted  10,503,422,936  10,488,939,392 
+The accompanying notes form an integral part of these standalone financial statements
+As per our report of even date attached For and on behalf of the Board of Directors
+for Deloitte Haskins & Sells LLP 
+Chartered Accountants
+Firm’s Registration No.: 117366W/W - 100018
+Rishad A. Premji
+Chairman
+(DIN: 02983899)
+Deepak M. Satwalekar
+Director
+(DIN: 00009627)
+Srinivas Pallia
+Chief Executive Officer and 
+Managing Director   
+(DIN: 10574442)
+Anand Subramanian
+Partner
+Membership No.: 110815
+Aparna C. Iyer
+Chief Financial Officer
+M. Sanaulla Khan
+Company Secretary
+Membership No.: F4129
+Bengaluru
+June 2, 2026
+(I in millions, except share and per share data, unless otherwise stated)
+
+===== PAGE 193 =====
+206
+WIPRO   INTEGRATED ANNUAL REPORT 2025-26 STATUTORY REPORTS AND FINANCIAL STATEMENTS STANDALONE FINANCIAL STATEMENT UNDER IND AS
+A. EQUITY SHARE CAPITAL
+Balance as at  
+April 1, 2025
+Changes in equity share capital 
+due to prior period errors
+Restated balance as at  
+April 1, 2025
+Changes in equity share capital 
+during the current year
+Balance as at  
+March 31, 2026(2)
+ 20,944  -    20,944  33 	20,977	
+Balance as at 
+ April 1, 2024
+Changes in equity share capital 
+due to prior period errors
+Restated balance as at  
+April 1, 2024
+Changes in equity share capital 
+during the previous year (1)
+Balance as at  
+March 31, 2025(2)
+ 10,450  -    10,450  10,494 	20,944	
+(1) I 10,467 is towards issue of bonus shares (Refer to Note 29) and I 27 is towards proceeds from issue of equity shares on exercise of options.
+(2)  As at March 31, 2026, the Company has 10,488,412,458 equity shares of I 2 each (March 31, 2025: 10,472,136,049 equity shares). As at March 31, 2026, the Company has 11,905,480 
+treasury shares (March 31, 2025 : 11,905,480 treasury shares), held by a controlled trust consolidated as part of the Company.
+(I in millions, except share and per share data, unless otherwise stated)
+Statements of Changes in Equity 
+
+===== PAGE 194 =====
+207
+B. OTHER EQUITY
+Share 
+application 
+money	
+pending 
+allotment
+Reserves and Surplus Other	components	of	equity
+Total 
+other 
+equitySecurities 
+premium
+Capital 
+reserve
+Capital 
+redemption 
+reserve
+Retained 
+earnings
+Common 
+control 
+transactions 
+capital 
+reserve
+Share 
+options 
+outstanding 
+account
+Special 
+Economic 
+Zone re-
+investment 
+reserve
+Cash	flow	
+hedging 
+reserve(1)
+Foreign 
+currency	
+translation 
+reserve
+Remeasurements 
+of	the	defined	
+benefit	plans
+Investment 
+in debt 
+instruments 
+measured 
+at	fair	value	
+through OCI
+Investment 
+in	equity	
+instruments 
+measured 
+at	fair	value	
+through OCI
+Balance	as	at	April	1,	2025 ^ 2,240 1,139 13 571,291 2,473 6,985 27,778 (241) 1,882 159 2,360 (2,149) 613,930
+ Profit for the year - - - - 121,296 - - - - - - - - 121,296
+  Other comprehensive 
+income
+- - - - - - - - (6,878) - 169 (2,094) 138 (8,665)
+Total comprehensive  
+income	for	the	year
+- - - - 121,296 - - - (6,878) - 169 (2,094) 138 112,631
+Issue of equity shares on 
+exercise of options
+- 3,530 - - - - (3,530) - - - - - - -
+Dividend (2) - - - - (115,206) - - - - - - - - (115,206)
+Compensation cost related 
+to employee share-based 
+payment
+- - - - - - 4,465 - - - - - - 4,465
+Transferred from Special 
+Economic Zone re-
+investment reserve
+- - - - 1,812 - - (1,812) - - - - - -
+Other	transactions	for	
+the	year
+- 3,530 - - (113,394) - 935 (1,812) - - - - - (110,741)
+Balance as at March 31, 2026 ^ 5,770 1,139 13 579,193 2,473 7,920 25,966 (7,119) 1,882 328 266 (2,011) 615,820
+^ Value is less than I 0.5
+(1) Refer to Note 20
+(2) Refer to Note 29
+(I in millions, except share and per share data, unless otherwise stated)
+
+===== PAGE 195 =====
+208
+WIPRO   INTEGRATED ANNUAL REPORT 2025-26 STATUTORY REPORTS AND FINANCIAL STATEMENTS STANDALONE FINANCIAL STATEMENT UNDER IND AS
+Share 
+application 
+money 
+pending 
+allotment
+Reserves and Surplus Other components of equity
+Total 
+other 
+equitySecurities 
+premium
+Capital 
+reserve
+Capital 
+redemption 
+reserve
+Retained 
+earnings
+Common 
+control 
+transactions 
+capital 
+reserve
+Share 
+options 
+outstanding 
+account
+Special 
+Economic 
+Zone re-
+investment 
+reserve
+Cash flow 
+hedging 
+reserve(1)
+Foreign 
+currency 
+translation 
+reserve
+Remeasurements 
+of the defined 
+benefit plans
+Investment 
+in debt 
+instruments 
+measured 
+at fair value 
+through OCI
+Investment 
+in equity 
+instruments 
+measured 
+at fair value 
+through OCI 
+Balance as at April 1, 2024 ^ 2,903 1,139 1,674 509,281 2,473 6,384 42,129 399 1,882 (147) 1,397 (2,145) 567,369
+Adjustment on account of merger(3) - - - - 4,471 - - - - - 68 - - 4,539
+Adjusted balance as at April 1, 2024 ^ 2,903 1,139 1,674 513,752 2,473 6,384 42,129 399 1,882 (79) 1,397 (2,145) 571,908
+ Profit for the year - - - - 109,131 - - - - - - - - 109,131
+ Other comprehensive income - - - - - - - - (640) - 238 963 (4) 557
+Total	comprehensive	income	for	
+the	year - - - - 109,131 - - - (640) - 238 963 (4) 109,688
+Issue of equity shares on exercise of 
+options - 4,950 - - - - (4,950) - - - - - - -
+Dividend (2) - - - - (62,750) - - - - - - - - (62,750)
+Compensation cost related to 
+employee share based payment - - - - - - 5,551 - - - - - - 5,551
+Bonus issue of equity shares(2) - (5,613) - (1,661) (3,193) - - - - - - - - (10,467)
+Transferred from Special Economic 
+Zone re investment reserve - - - - 14,351 - - (14,351) - - - - - -
+Other	transactions	for	the	year - (663) - (1,661) (51,592) - 601 (14,351) - - - - - (67,666)
+Balance	as	at	March	31,	2025 ^ 2,
+
+===== PAGE 196 =====
+209
+Notes For	the	year	ended 
+March 31, 2026
+For the year ended  
+March 31, 2025
+Cash	flows	from	operating	activities
+Profit for the year  121,296  109,131 
+Adjustments	to	reconcile	profit	for	the	year	to	
+net	cash	generated	from	operating	activities
+  Gain on sale of property, plant and 
+equipment, net  (415)  (712)
+  Depreciation, amortisation and impairment 
+expense  14,182  15,013 
+  Unrealised exchange (gain)/loss and 
+net exchange (gain)/loss on loans to 
+subsidiaries
+ (1,496)  (788)
+  Share-based compensation expense  3,874  4,847 
+  Income tax expense 21  37,756  36,994 
+  Lifetime expected credit loss 27  2,729  829 
+  Finance and other income, net of finance 
+costs  (32,945)  (28,187)
+  Diminution in the value of investments in 
+subsidiaries
+27  (1,554)  359 
+Changes in operating assets and liabilities
+  (Increase)/Decrease in trade receivables  (17,933)  3,627 
+  (Increase)/Decrease in unbilled receivables 
+and contract assets  (13,532)  (2,920)
+  (Increase)/Decrease in inventories  154  107 
+  (Increase)/Decrease in other financial 
+assets and other assets  (2,735)  5,740 
+  Increase/(Decrease) in trade payables, 
+other financial liabilities, other liabilities 
+and provisions
+ 1,992  9,341 
+  Increase/(Decrease) in contract liabilities  3,667  845 
+	Cash	generated	from	operating	activities	
+before	taxes 	115,040	 	154,226	
+ Income taxes paid, net  (19,332)  (20,860)
+Net	cash	generated	from	operating activities 	95,708	  133,366 
+Cash	flows	from	investing	activities
+  Payment for purchase of property, plant and 
+equipment  (12,350)  (10,956)
+  Proceeds from disposal of property, plant 
+and equipment  648  1,789 
+  Payment for purchase of investments  (778,407)  (797,809)
+ Proceeds from sale of investments  796,704  704,597 
+ Investment in subsidiaries  (33,54
+
+===== PAGE 197 =====
+210
+WIPRO   INTEGRATED ANNUAL REPORT 2025-26 STATUTORY REPORTS AND FINANCIAL STATEMENTS STANDALONE FINANCIAL STATEMENT UNDER IND AS
+Notes For	the	year	ended	 
+March 31, 2026
+For the year ended  
+March 31, 2025
+Cash	flows	from	financing	activities
+ Proceeds from issuance of equity shares and shares pending allotment  33  27 
+ Repayment of borrowings  (218,000)  (176,000)
+ Proceeds from borrowings  219,000  194,750 
+ Payment of lease liabilities including interest 5  (5,754)  (5,254)
+ Payment of dividend  (115,206)  (62,750)
+ Interest and finance costs paid  (4,343)  (4,810)
+Net	cash	used	in	financing	activities 	(124,270) 	(54,037)
+Net	increase/(decrease)	in	cash	and	cash	equivalents	during	the	year  (17,770)  5,580 
+  Effect of exchange rate changes on cash and cash equivalents  206  (293)
+  Cash and cash equivalents at the beginning of the year 10  44,342  39,055 
+Cash	and	cash	equivalents	at	the	end	of	the	year 10 	26,778	  44,342 
+Refer to Note 15 for supplementary information on statement of cash flows.
+The accompanying notes form an integral part of these standalone financial statements
+As per our report of even date attached For and on behalf of the Board of Directors
+for Deloitte Haskins & Sells LLP 
+Chartered Accountants
+Firm’s Registration No.: 117366W/W - 100018
+Rishad A. Premji
+Chairman
+(DIN: 02983899)
+Deepak M. Satwalekar
+Director
+(DIN: 00009627)
+Srinivas Pallia
+Chief Executive Officer and 
+Managing Director 
+(DIN: 10574442)
+Anand Subramanian
+Partner
+Membership No.: 110815
+Aparna C. Iyer
+Chief Financial Officer
+M. Sanaulla Khan
+Company Secretary
+Membership No.: F4129
+Bengaluru
+June 2, 2026
+(I in millions, except share and per share data, unless otherwise stated)
+
+===== PAGE 198 =====
+211
+1. THE COMPANY OVERVIEW
+  Wipro Limited (“Wipro” or “the Company” or “we” or “our” or “us”), is a leading artificial 
+intelligence (“AI”) powered technology services and consulting company focused on 
+building innovative solutions that address clients’ most complex digital transformation 
+needs. Leveraging our consulting-led approach and the Wipro Intelligence™ unified suite 
+of AI-powered platforms, solutions and transformative offerings, we help clients realise 
+their boldest ambitions to build intelligent and sustainable businesses.
+  Wipro is a public limited company incorporated and domiciled in India. The address of 
+its registered office is Wipro Limited, Doddakannelli, Sarjapur Road, Bengaluru – 560 
+035, Karnataka, India. The Company has its primary listing with BSE Ltd. and National 
+Stock Exchange of India Limited. The Company’s American Depository Shares (“ADS”) 
+representing equity shares are also listed on the New York Stock Exchange.
+  The Company’s Board of Directors authorised these standalone financial statements for 
+issue on June 2, 2026.
+2.  BASIS OF PREPARATION OF STANDALONE 
+FINANCIAL STATEMENTS
+(i) Statement of compliance and basis of preparation
+  The standalone financial statements have been prepared in compliance with Indian 
+Accounting Standards (“Ind AS”), the provisions of Schedule III to the Companies Act, 
+2013 ("the Companies Act"), as applicable and guidelines issued by the Securities and 
+Exchange Board of India (“SEBI”). The Ind AS are prescribed under Section 133 of the 
+Companies Act read with Rule 3 of the Companies (Indian Accounting Standards) Rules, 
+2015 and amendments issued thereafter. All accounting policies have been applied 
+consistently to all periods presented in these standalone financial statements, except for 
+the
+
+===== PAGE 199 =====
+212
+WIPRO   INTEGRATED ANNUAL REPORT 2025-26
+Notes to the Standalone Financial Statements
+(I in millions, except share and per share data, unless otherwise stated) STATUTORY REPORTS AND FINANCIAL STATEMENTS STANDALONE FINANCIAL STATEMENT UNDER IND AS
+(ii) Basis of measurement
+  The standalone financial statements have been 
+prepared on a historical cost convention and on an 
+accrual basis, except for the following material items, 
+which have been measured at fair value as required 
+by relevant Ind AS:
+ a) Derivative financial instruments;
+ b)  Financial instruments classified as fair value 
+through other comprehensive income or fair 
+value through profit or loss;
+ c)  The defined benefit liability/(asset) is recognised 
+as the present value of defined benefit obligation 
+less fair value of plan assets; and
+ d) Contingent consideration.
+(iii) Use of estimates and judgement
+  The preparation of these standalone financial 
+statements in conformity with Ind AS requires the 
+management to make judgements, accounting 
+estimates and assumptions that affect the application 
+of accounting policies and the reported amounts of 
+assets, liabilities, income and expenses. Accounting 
+estimates are monetary amounts in the standalone 
+financial statements that are subject to measurement 
+uncertainty. An accounting policy may require items 
+in standalone financial statements to be measured at 
+monetary amounts that cannot be observed directly 
+and must instead be estimated. In such a case, 
+management develops an accounting estimate to 
+achieve the objective set out by the accounting policy. 
+Developing accounting estimates involves the use 
+of judgements or assumptions based on the latest 
+available and reliable information. Actual results may 
+differ from those accounting estimates.
+ 
+
+===== PAGE 293 =====
+306
+WIPRO   INTEGRATED ANNUAL REPORT 2025-26 STATUTORY REPORTS AND FINANCIAL STATEMENTS CONSOLIDATED FINANCIAL STATEMENT UNDER IND AS
+Annexure “A” 
+tto the Independent Auditor’s Report 
+(Referred to in paragraph 1(f) under ‘Report on Other Legal and Regulatory 
+Requirements’ section of our report of even date)
+REPORT ON THE INTERNAL FINANCIAL CONTROLS WITH 
+REFERENCE TO CONSOLIDATED FINANCIAL STATEMENTS 
+UNDER CLAUSE (I) OF SUB-SECTION 3 OF SECTION 143 OF 
+THE COMPANIES ACT, 2013 (THE “ACT”)
+In conjunction with our audit of the consolidated Ind AS financial statements of the 
+Company as at and for the year ended March 31, 2026, we have audited the internal 
+financial controls with reference to Consolidated Financial Statements of Wipro 
+Limited (hereinafter referred to as “the Company”) and its subsidiary companies which 
+are companies incorporated in India as of that date.
+MANAGEMENT’S AND BOARD OF DIRECTORS’ 
+RESPONSIBILITIES FOR INTERNAL FINANCIAL CONTROLS
+The respective management and Board of Directors of the Company, and its 
+subsidiary companies, which are companies incorporated in India, are responsible for 
+establishing and maintaining internal financial controls based on the internal control 
+with reference to the financial statements criteria established by the respective 
+companies considering the essential components of internal control stated in the 
+Guidance Note on Audit of Internal Financial Controls Over Financial Reporting issued 
+by the Institute of Chartered Accountants of India (ICAI). These responsibilities include 
+the design, implementation and maintenance of adequate internal financial controls 
+that were operating effectively for ensuring the orderly and efficient conduct of its 
+business, including adherence to the respective company’s polici
+
+===== PAGE 294 =====
+307
+Our audit involves performing procedures to obtain audit 
+evidence about the adequacy of the internal financial controls 
+with reference to Consolidated Financial Statements and their 
+operating effectiveness. Our audit of internal financial controls 
+with reference to Consolidated Financial Statements included 
+obtaining an understanding of internal financial controls with 
+reference to Consolidated Financial Statements, assessing the 
+risk that a material weakness exists, and testing and evaluating 
+the design and operating effectiveness of internal control based 
+on the assessed risk. The procedures selected depend on the 
+auditor’s judgement, including the assessment of the risks of 
+material misstatement of the financial statements, whether due 
+to fraud or error.
+We believe that the audit evidence we have obtained is sufficient 
+and appropriate to provide a basis for our audit opinion on 
+the internal financial controls with reference to Consolidated 
+Financial Statements of the Company, its subsidiary companies, 
+which are companies incorporated in India.
+MEANING OF INTERNAL FINANCIAL 
+CONTROLS WITH REFERENCE TO 
+CONSOLIDATED FINANCIAL STATEMENTS
+A company's internal financial control with reference to 
+Consolidated Financial Statements is a process designed 
+to provide reasonable assurance regarding the reliability of 
+financial reporting and the preparation of financial statements 
+for external purposes in accordance with generally accepted 
+accounting principles. A company's internal financial control 
+with reference to Consolidated Financial Statements 
+includes those policies and procedures that (1) pertain to the 
+maintenance of records that, in reasonable detail, accurately 
+and fairly reflect the transactions and dispositions of the 
+assets of the com
+
+===== PAGE 295 =====
+308
+WIPRO   INTEGRATED ANNUAL REPORT 2025-26 STATUTORY REPORTS AND FINANCIAL STATEMENTS CONSOLIDATED FINANCIAL STATEMENT UNDER IND AS
+Notes As at 
+March 31, 2026
+As at 
+March 31, 2025
+ASSETS
+ Non-current assets
+ Property, plant and equipment 4 77,224 78,473
+ Right-of-Use assets 5 28,287 25,598
+ Capital work-in-progress 6 4,122 1,964
+ Goodwill 7 382,214 320,346
+ Other intangible assets 7 29,176 27,450
+  Investments accounted for using 
+the equity method 9 2,126 1,327
+ Financial assets
+Investments 9 28,053 26,458
+Derivative assets 10 - ^
+Trade receivables 11 349 299
+Unbilled receivables 7,433 -
+Other financial assets 12 6,259 4,664
+ Deferred tax assets (net) 28 5,242 2,561
+ Non-current tax assets (net) 7,787 7,230
+ Other non-current assets 13 9,451 7,707
+ Total non-current assets 587,723 504,077
+ Current assets
+ Inventories 14 517 694
+ Financial assets
+  Investments 9 437,680 411,474
+  Derivative assets 10 888 1,820
+  Trade receivables 11 135,901 117,745
+  Unbilled receivables 76,823 64,280
+  Cash and cash equivalents 15 105,555 121,974
+  Other financial assets 12 10,245 8,448
+ Current tax assets (net) 10,762 6,417
+ Contract assets 14,819 15,795
+ Other current assets 13 33,164 29,128
+ Total current assets 826,354 777,775
+TOTAL ASSETS 1,414,077 1,281,852
+EQUITY AND LIABILITIES
+EQUITY
+ Equity share capital 16 20,977 20,944
+ Other equity 859,206 802,697
+Equity attributable to the equity 
+holders of the Company
+880,183 823,641
+Non-controlling interests 2,509 2,138
+TOTAL EQUITY 882,692 825,779
+(I in millions, except share and per share data, unless otherwise stated)
+Consolidated Balance Sheet 
+
+===== PAGE 296 =====
+309
+Notes As at 
+March 31, 2026
+As at 
+March 31, 2025
+LIABILITIES    
+ Non-current liabilities
+ Financial liabilities
+  Borrowings 17 1,962 63,954
+  Lease liabilities 5 26,327 22,193
+  Trade payables 21 4,394 -
+  Other financial liabilities 18 6,743 7,793
+ Provisions 19 5,389 4,656
+ Deferred tax liabilities (net) 28 17,266 16,443
+ Non-current tax liabilities (net) 48,195 42,024
+ Other non-current liabilities 20 17,877 12,757
+ Total non-current liabilities 128,153 169,820
+ Current liabilities
+ Financial liabilities
+  Borrowings 17 165,912 97,863
+  Lease liabilities 5 8,709 8,025
+  Derivative liabilities 10 10,978 968
+  Trade payables 21 62,894 58,667
+  Other financial liabilities 18 43,387 33,463
+ Contract liabilities 25,434 20,063
+ Other current liabilities 20 16,834 15,085
+ Provisions 19 19,463 17,638
+ Current tax liabilities (net) 49,621 34,481
+ Total current liabilities 403,232 286,253
+TOTAL LIABILITIES 531,385 456,073
+TOTAL EQUITY AND LIABILITIES 1,414,077 1,281,852
+^ Value is less than H 0.5
+The accompanying notes form an integral part of these consolidated financial statements
+As per our report of even date attached For and on behalf of the Board of Directors
+for Deloitte Haskins & Sells LLP Rishad A. Premji Deepak M. Satwalekar Srinivas Pallia
+Chartered Accountants
+Firm’s Registration No.: 117366W/W - 100018
+Chairman
+(DIN: 02983899)
+Director
+(DIN: 00009627)
+Chief Executive Officer and 
+Managing Director
+(DIN: 10574442)
+Anand Subramanian Aparna C. Iyer M. Sanaulla Khan
+Partner Chief Financial Officer Company Secretary
+Membership No.: 110815 Membership No.: F4129
+Bengaluru
+June 2, 2026
+(I in millions, except share and per share data, unless otherwise stated)
+
+===== PAGE 297 =====
+310
+WIPRO   INTEGRATED ANNUAL REPORT 2025-26 STATUTORY REPORTS AND FINANCIAL STATEMENTS CONSOLIDATED FINANCIAL STATEMENT UNDER IND AS
+Notes Year ended 
+March 31, 2026
+Year ended 
+March 31, 2025
+INCOME
+ Revenue from operations 22 926,240 890,884
+ Other income 23 38,737 38,840
+Total income (A) 964,977 929,724
+EXPENSES
+Purchases of stock-in-trade 5,755 2,967
+Changes in inventories of stock-
+in-trade
+24 171 195
+Employee benefits expense 25 555,855 533,477
+Finance costs 26 14,577 14,770
+Depreciation, amortisation and 
+impairment expense 29,107 29,579
+Sub-contracting and technical 
+fees 107,668 100,148
+Facility expenses 15,886 16,067
+Software license expense for 
+internal use 21,720 19,338
+Travel 13,882 14,095
+Communication 3,414 3,842
+Legal and professional charges 10,199 11,270
+Marketing and brand building 3,480 3,591
+Lifetime expected credit loss 2,838 324
+Other expenses 27 7,260 5,358
+Total expenses (B) 791,812 755,021
+Profit before share of net profit/(loss) 
+of associate and joint venture 173,165 174,703
+Share of net profit/(loss) of associate 
+and joint venture accounted for using 
+the equity method (C)
+9
+257 254
+Profit before tax (A)-(B)+(C) 173,422 174,957
+Tax expense
+Current tax 28 42,665 45,405
+Deferred tax 28 (1,898) (2,628)
+Total tax expense 40,767 42,777
+Profit for the year 132,655 132,180
+Other Comprehensive Income (OCI)
+Items that will not be reclassified to 
+profit or loss:
+  Remeasurements of the defined 
+benefit plans, net
+25 142 323
+  Net change in fair value of 
+investment in equity instruments 
+measured at  
+fair value through OCI
+(1,452) (3,619)
+  Income taxes relating to items  
+that will not be reclassified to 
+profit or loss
+28
+(6) 94
+(I in millions, except share and per share data, unless otherwise stated)
+Consolidated Statements of Profit and Loss 
+
+===== PAGE 298 =====
+311
+Notes Year ended 
+March 31, 2026
+Year ended 
+March 31, 2025
+Items that will be reclassified to profit or loss:
+Foreign currency translation differences relating to foreign operations 46,126 7,216
+Reclassification of foreign currency translation differences on liquidation of 
+subsidiaries to consolidated statement of profit and loss 29 - (41)
+Net change in time value of option contracts designated as cash flow hedges 10 73 (248)
+Net change in intrinsic value of option contracts designated as cash flow hedges 10 (1,622) 193
+Net change in fair value of forward contracts designated as cash flow hedges 10 (7,902) (993)
+Net change in fair value of investment in debt instruments measured at fair value 
+through OCI (2,413) 1,189
+Income taxes relating to items that will be reclassified to profit or loss 28 2,576 34
+Total other comprehensive income for the year, net of taxes 35,522 4,148
+Total comprehensive income for the year 168,177 136,328
+Profit for the year attributable to:
+Equity holders of the Company 131,974 131,354
+Non-controlling interests 681 826
+132,655 132,180
+Other comprehensive income for the year attributable to:
+Equity holders of the Company 35,276 4,126
+Non-controlling interests 246 22
+35,522 4,148
+Total comprehensive income for the year attributable to:
+Equity holders of the Company 167,250 135,480
+Non-controlling interests 927 848
+168,177 136,328
+Earnings per equity share: (Equity shares of par value K 2 each) 30
+Basic 12.60 12.56
+Diluted 12.56 12.52
+Weighted average number of equity shares used in computing earnings per equity share
+Basic 10,476,247,846 10,456,741,552
+Diluted 10,503,422,936 10,488,939,392
+The accompanying notes form an integral part of these consolidated financial statements
+As per our report of even date attached For and on behalf of the
+
+===== PAGE 299 =====
+312
+WIPRO   INTEGRATED ANNUAL REPORT 2025-26 STATUTORY REPORTS AND FINANCIAL STATEMENTS CONSOLIDATED FINANCIAL STATEMENT UNDER IND AS
+A. EQUITY SHARE CAPITAL
+Balance as at  
+April 1, 2025
+Changes in equity share capital 
+due to prior period errors
+Restated balance as at  
+April 1, 2025
+Changes in equity share capital 
+during the current year
+Balance as at  
+March 31, 2026(2)
+ 20,944  -  20,944  33  20,977 
+Balance as at 
+ April 1, 2024
+Changes in equity share capital 
+due to prior period errors
+Restated balance as at  
+April 1, 2024
+Changes in equity share capital 
+during the previous year (1)
+Balance as at  
+March 31, 2025(2)
+ 10,450  -  10,450  10,494  20,944 
+(1) I 10,467 is towards issue of bonus shares (Refer to Note 32) and I 27 is towards proceeds from issue of equity shares on exercise of options.
+(2)  As at March 31, 2026, the Company has 10,488,412,458 equity shares of I 2 each (March 31, 2025: 10,472,136,049 equity shares). As at March 31, 2026, the Company has 11,905,480 
+treasury shares (March 31, 2025: 11,905,480 treasury shares), held by a controlled trust consolidated as part of the Group.
+(I in millions, except share and per share data, unless otherwise stated)
+Consolidated Statements of Changes in Equity 
+
+===== PAGE 300 =====
+313
+B. OTHER EQUITY
+Share 
+application 
+money 
+pending 
+allotment
+Reserves and Surplus Other components of equity
+Equity 
+attributable 
+to equity 
+holders of the 
+Company
+Non-
+controlling 
+interests
+Total other 
+equitySecurities 
+premium 
+Capital 
+reserve
+Capital 
+redemption 
+reserve
+Retained 
+earnings
+Share options 
+outstanding 
+account
+Special 
+Economic 
+Zone re-
+investment 
+reserve
+Foreign 
+currency 
+translation 
+reserve(1)
+Cash flow 
+hedging 
+reserve(2)
+Remeasure-
+ments of 
+the defined 
+benefit plans
+Investment 
+in debt 
+instruments
+measured 
+at fair value 
+through OCI
+Investment 
+in equity 
+instruments
+measured 
+at fair value 
+through OCI 
+Gross 
+obligation to 
+non-controlling 
+interests under 
+put options
+Balance as at April 1, 2025 ^ 2,699 1,139 13 712,693 6,985 27,778 52,393 (210) (127) 2,360 1,212 (4,238) 802,697 2,138 804,835
+Profit for the year - - - - 131,974 - - - - - - - - 131,974 681 132,655
+Other comprehensive income - - - - - - - 45,860 (7,194) 152 (2,094) (1,448) - 35,276 246 35,522
+Total comprehensive income/(loss) 
+for the year - - - - 131,974 - - 45,860 (7,194) 152 (2,094) (1,448) - 167,250 927 168,177
+Issue of equity shares on exercise 
+of options - 3,530 - - - (3,530) - - - - - - - - - -
+Dividend (3) - - - - (115,206) - - - - - - - - (115,206) (569) (115,775)
+Compensation cost related to 
+employee share-based payment - - - - - 4,465 - - - - - - - 4,465 - 4,465
+Transferred from Special Economic 
+Zone re-investment reserve - - - - 1,812 - (1,812) - - - - - - - - -
+ Others - - - - - - - (5) 5 (8) - 8 - - 13 13
+Other transactions for the year - 3,530 - - (113,394) 935 (1,812) (5) 5 (8) - 8 - (110,741) (556) (111,297)
+Balance as at March 31, 2026 ^ 6,229 1,139 13 731,273 7,920 25,966 98,248 (7,399) 17 266 (228) (4,238) 859,206 2,509 861,715
+^ Value is 
+
+===== PAGE 301 =====
+314
+WIPRO   INTEGRATED ANNUAL REPORT 2025-26 STATUTORY REPORTS AND FINANCIAL STATEMENTS CONSOLIDATED FINANCIAL STATEMENT UNDER IND AS
+Share 
+application 
+money 
+pending 
+allotment
+Reserves and Surplus Other components of equity
+Equity 
+attributable 
+to equity 
+holders of the 
+Company
+Non-
+controlling 
+interests
+Total other 
+equitySecurities 
+premium 
+Capital 
+reserve
+Capital 
+redemption 
+reserve
+Retained 
+earnings
+Share options 
+outstanding 
+accoun
+Special 
+Economic 
+Zone re-
+investment 
+reserve
+Foreign 
+currency 
+translation 
+reserve(1)
+Cash flow 
+hedging 
+reserve(2)
+Remeasure-
+ments of 
+the defined 
+benefit plans
+Investment 
+in debt 
+instruments
+measured 
+at fair value 
+through OCI
+Investment 
+in equity 
+instruments
+measured 
+at fair value 
+through OCI 
+Gross 
+obligation to 
+non-controlling 
+interests under 
+put options
+Balance as at April 1, 2024 ^ 3,362 1,139 1,674 627,152 6,384 42,129 45,269 578 (286) 1,397 10,320 (4,238) 734,880 1,340 736,220
+ Profit for the year - - - - 131,354 - - - - - - - - 131,354 826 132,180
+ Other comprehensive 
+income - - - - - - - 7,138 (788) 289 963 (3,476) - 4,126 22 4,148
+Total comprehensive income/
+(loss) for the year - - - - 131,354 - - 7,138 (788) 289 963 (3,476) - 135,480 848 136,328
+Issue of equity shares on 
+exercise of options - 4,950 - - - (4,950) - - - - - - - - - -
+Bonus issue of equity shares 
+(3) - (5,613) - (1,661) (3,193) - - - - - - - - (10,467) - (10,467)
+Dividend (3) - - - - (62,750) - - - - - - - - (62,750) - (62,750)
+Transfer from Other 
+components of equity(4) - - - - 5,754 - - - - (130) - (5,624) - - - -
+Transfer of shares pertaining 
+to  
+Non-controlling interests of 
+subsidiary 
+- - - - 25 - - (14) - - - (8) - 3 (3) -
+Compensation cost related 
+to employee share-based 
+payment 
+- - - - - 5,551 - - - - - - - 5,551
+
+===== PAGE 302 =====
+315
+Share 
+application 
+money 
+pending 
+allotment
+Reserves and Surplus Other components of equity
+Equity 
+attributable 
+to equity 
+holders of the 
+Company
+Non-
+controlling 
+interests
+Total other 
+equitySecurities 
+premium 
+Capital 
+reserve
+Capital 
+redemption 
+reserve
+Retained 
+earnings
+Share options 
+outstanding 
+accoun
+Special 
+Economic 
+Zone re-
+investment 
+reserve
+Foreign 
+currency 
+translation 
+reserve(1)
+Cash flow 
+hedging 
+reserve(2)
+Remeasure-
+ments of 
+the defined 
+benefit plans
+Investment 
+in debt 
+instruments
+measured 
+at fair value 
+through OCI
+Investment 
+in equity 
+instruments
+measured 
+at fair value 
+through OCI 
+Gross 
+obligation to 
+non-controlling 
+interests under 
+put options
+Others - - - - - - - - - - - - - - (47) (47)
+Other transactions for the 
+year - (663) - (1,661) (45,813) 601 (14,351) (14) - (130) - (5,632) - (67,663) (50) (67,713)
+Balance as at  
+March 31, 2025 ^ 2,699 1,139 13 712,693 6,985 27,778 52,393 (210) (127) 2,360 1,212 (4,238) 802,697 2,138 804,835
+^ Value is less than H 0.5 
+(1) Refer to Note 29 
+(2) Refer to Note 10 
+(3) Refer to Note 32 
+(4) Towards transfer of cumulative realised (gain)/loss on disposal of investments in equity instruments designated as FVTOCI and towards transfer of cumulative (gain)/loss on remeasurement of defined benefit plans to 
+retained earnings.
+The accompanying notes form an integral part of these consolidated financial statements
+As per our report of even date attached For and on behalf of the Board of Directors
+for Deloitte Haskins & Sells LLP Rishad A. Premji Deepak M. Satwalekar Srinivas Pallia
+Chartered Accountants Chairman Director Chief Executive Officer and 
+Managing Director
+(DIN: 10574442)
+Firm’s Registration No.: 117366W/W - 100018 (DIN: 02983899) (DIN: 00009627)
+Anand Subramanian Aparna C. Iy
+
+===== PAGE 303 =====
+316
+WIPRO   INTEGRATED ANNUAL REPORT 2025-26 STATUTORY REPORTS AND FINANCIAL STATEMENTS CONSOLIDATED FINANCIAL STATEMENT UNDER IND AS
+Notes For the year ended  
+March 31, 2026
+For the year ended 
+March 31, 2025
+Cash flows from operating activities:
+Profit for the year 132,655 132,180
+Adjustments to reconcile profit for the 
+year to net cash generated from operating 
+activities
+Gain on sale of property, plant and 
+equipment, net (393) (606)
+Depreciation, amortisation and 
+impairment expense 29,107 29,579
+Unrealised exchange (gain)/loss, net 2,168 (623)
+Share-based compensation expense 4,465 5,551
+Share of net (profit)/loss of associate 
+and joint venture accounted for using 
+equity method
+(257) (254)
+Income tax expense 28 40,767 42,777
+Finance and other income, net of 
+finance costs (21,914) (23,432)
+Change in fair value of contingent 
+consideration 49 (169)
+Lifetime expected credit loss 11 2,838 324
+Changes in operating assets and 
+liabilities, net of effects from acquisitions
+(Increase)/Decrease in trade 
+receivables (11,442) 1,894
+(Increase)/Decrease in unbilled 
+receivables and contract assets (14,498) (1,331)
+(Increase)/Decrease in inventories 184 213
+(Increase)/Decrease in other financial 
+assets and other assets (205) 6,609
+Increase/(Decrease) in trade payables, 
+other financial liabilities, other liabilities 
+and provisions
+8,482 548
+Increase/(Decrease) in contract 
+liabilities 3,555 2,341
+Cash generated from operating activities 
+before taxes 175,561 195,601
+Income taxes paid (26,245) (26,175)
+Net cash generated from operating 
+activities 149,316 169,426
+Cash flows from investing activities:
+Payment for purchase of property, 
+plant and equipment (15,603) (14,737)
+Proceeds from disposal of property, 
+plant and equipment 758 1,822
+Investment in associate (352) -
+P
+
+===== PAGE 304 =====
+317
+Notes For the year ended  
+March 31, 2026
+For the year ended 
+March 31, 2025
+Cash flows from financing activities:
+Proceeds from issuance of equity shares and shares pending allotment 33 27
+Repayment of borrowings (259,841) (177,672)
+Proceeds from borrowings 253,089 195,595
+Payment of lease liabilities including interests 5 (11,561) (10,474)
+Payment for contingent consideration (648) -
+Payment of deferred consideration on business combination (221) -
+Interest and finance costs paid (6,336) (8,689)
+Payment of dividend (115,206) (62,750)
+Payment of dividend to Non-controlling interest holders (569) -
+Net cash used in financing activities (141,260) (63,963)
+Net increase/(decrease) in cash and cash equivalents during the year (25,367) 24,733
+Effect of exchange rate changes on cash and cash equivalents 8,948 290
+Cash and cash equivalents at the beginning of the year 15 121,974 96,951
+Cash and cash equivalents at the end of the year 15 105,555 121,974
+Refer to Note 17 for supplementary information on consolidated statement of cash flows
+The accompanying notes form an integral part of these consolidated financial statements
+As per our report of even date attached For and on behalf of the Board of Directors
+for Deloitte Haskins & Sells LLP Rishad A. Premji Deepak M. Satwalekar Srinivas Pallia
+Chartered Accountants Chairman Director Chief Executive Officer and 
+Managing Director
+(DIN: 10574442)Firm’s Registration No.: 117366W/W - 100018 (DIN: 02983899) (DIN: 00009627)
+Anand Subramanian Aparna C. Iyer M. Sanaulla Khan
+Partner Chief Financial Officer Company Secretary
+Membership No.: 110815 Membership No.: F4129
+Bengaluru
+June 2, 2026
+(I in millions, except share and per share data, unless otherwise stated)
+
+===== PAGE 305 =====
+318
+WIPRO   INTEGRATED ANNUAL REPORT 2025-26 STATUTORY REPORTS AND FINANCIAL STATEMENTS CONSOLIDATED FINANCIAL STATEMENT UNDER IND AS
+1. THE COMPANY OVERVIEW
+  Wipro Limited (“Wipro” or the “Parent Company”), together with its subsidiaries 
+and controlled trusts (collectively, “ we”, “us”, “our”, “the Company” or “the 
+Group”) is a leading artificial intelligence (“AI”) powered technology services 
+and consulting company focused on building innovative solutions that address 
+clients’ most complex digital transformation needs. Leveraging our consulting-
+led approach and the Wipro Intelligence™ unified suite of AI-powered platforms, 
+solutions and transformative offerings, we help clients realise their boldest 
+ambitions to build intelligent and sustainable businesses.
+  Wipro is a public limited company incorporated and domiciled in India. The 
+address of its registered office is Wipro Limited, Doddakannelli, Sarjapur Road, 
+Bengaluru – 560 035, Karnataka, India. The Company has its primary listing 
+with BSE Ltd. and National Stock Exchange of India Limited. The Company’s 
+American Depository Shares (“ADS”) representing equity shares are also listed 
+on the New York Stock Exchange.
+  The Company’s Board of Directors authorised these consolidated financial 
+statements for issue on June 2, 2026.
+2.  BASIS OF PREPARATION OF CONSOLIDATED 
+FINANCIAL STATEMENTS
+(i) Statement of compliance and basis of preparation
+  The consolidated financial statements have been prepared in compliance with 
+Indian Accounting Standards (“Ind AS”), the provisions of Schedule III to the 
+Companies Act, 2013 ("the Companies Act"), as applicable and guidelines 
+issued by the Securities and Exchange Board of India (“ SEBI”). The Ind AS 
+are prescribed under Section 133 of the Companies Act read with
+
+===== PAGE 306 =====
+319
+Notes to the Consolidated Financial Statements
+(I in millions, except share and per share data, unless otherwise stated)
+  All amounts included in the consolidated financial 
+statements are reported in millions of Indian Rupees 
+(I in millions) except share and per share data, unless 
+otherwise stated. Due to rounding off, the numbers 
+presented throughout the document may not add up 
+precisely to the totals and percentages may not precisely 
+reflect the absolute figures. Previous year figures have 
+been regrouped/rearranged, wherever necessary.
+(ii) Basis of measurement
+  The consolidated financial statements have been 
+prepared on a historical cost convention and on an 
+accrual basis, except for the following material items 
+which have been measured at fair value as required by 
+relevant Ind AS:
+ a. Derivative financial instruments;
+ b.  Financial instruments classified as fair value through 
+other comprehensive income or fair value through 
+profit or loss;
+ c.  The defined benefit liability/(asset) is recognised as 
+the present value of defined benefit obligation less 
+fair value of plan assets; and
+ d.  Contingent consideration and liability on written 
+put options.
+(iii) Use of estimates and judgement
+  The preparation of the consolidated financial statements 
+in conformity with Ind AS requires the management to 
+make judgements, accounting estimates and assumptions 
+that affect the application of accounting policies and 
+the reported amounts of assets, liabilities, income and 
+expenses. Accounting estimates are monetary amounts 
+in the consolidated financial statements that are subject 
+to measurement uncertainty. An accounting policy may 
+require items in consolidated financial statements to be 
+measured at monetary amounts that cannot be observed 
+directly a

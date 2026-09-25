@@ -20,6 +20,7 @@ from data_engine.official_research.documents import DocumentStore
 from data_engine.official_research.extraction import (
     attack_corporate_actions,
     document_identity_matches,
+    extract_classified_capex,
     extract_labeled_field,
     extract_shares_outstanding,
 )
@@ -184,6 +185,9 @@ class ResearchOrchestrator:
                 extra["eod_close"] = (item,)
         events = tuple(corporate_actions)
         ca_checked_through = None
+        document_text_out = document_text
+        document_url_out = request.document_url
+        acquired_docs = None
         if resolved.status == "RESOLVED" and resolved.identity is not None:
             primary = self._primary_bundle(resolved.identity, request.mode)
             if primary is not None:
@@ -211,6 +215,49 @@ class ResearchOrchestrator:
                             agent="official_nse_primary",
                         ),
                     )
+                if (
+                    request.mode == "LIVE"
+                    and document_text is None
+                    and self._nse_primary is not None
+                ):
+                    acquired_docs = acquire_primary_documents(
+                        resolved.identity,
+                        transport=self._nse_primary.transport,
+                        extra_announcements=primary.announcement_documents,
+                        store=self._document_store,
+                        fetch_registered_ir=False,
+                        ir_fallback=True,
+                    )
+                    events = events + tuple(acquired_docs.capital_events)
+                    field_urls = acquired_docs.field_urls or {}
+                    for name, extracted in acquired_docs.fields.items():
+                        source_url = field_urls.get(name) or acquired_docs.selected_url
+                        document_hash = None
+                        for record in acquired_docs.documents:
+                            if source_url and record.url == source_url:
+                                document_hash = record.document_hash
+                                break
+                        if document_hash is None and acquired_docs.documents:
+                            document_hash = acquired_docs.documents[0].document_hash
+                        extra[name] = extra.get(name, ()) + (
+                            normalize_extracted_field(
+                                resolved.identity,
+                                extracted,
+                                source_url=source_url,
+                                source_type="regulator",
+                                source="NSE",
+                                retrieved_at=now,
+                                document_hash=document_hash,
+                                document_date=extracted.as_of,
+                                document_text=acquired_docs.sanitized_text,
+                                mode=request.mode,
+                                agent="official_filing_detail",
+                            ),
+                        )
+                    if acquired_docs.sanitized_text and document_text_out is None:
+                        document_text_out = acquired_docs.sanitized_text
+                    if acquired_docs.selected_url:
+                        document_url_out = acquired_docs.selected_url
         return analyse_user_query(
             request.ticker or request.company or request.isin or "",
             exchange=request.exchange,
@@ -219,8 +266,9 @@ class ResearchOrchestrator:
             master=self._master,
             mode=request.mode,
             production=self._production,
-            document_text=document_text,
-            document_url=request.document_url,
+            document_text=document_text_out,
+            document_url=document_url_out,
+            documents=None if acquired_docs is None else acquired_docs.documents,
             candidates=extra,
             capital_events=events,
             judge=self._judge,
@@ -346,7 +394,7 @@ class ResearchOrchestrator:
             ticker=None if listing is None else listing.ticker,
             evidence=evidence,
             price=price,
-            claims=(),
+            claims=self._compat_claims(request, listing, document_text),
             unresolved=tuple(unresolved),
             mode=request.mode,
             agent_outcomes=self._agent_map(),
@@ -365,6 +413,27 @@ class ResearchOrchestrator:
             research_started_at=utc_now(),
             research_finished_at=utc_now(),
         )
+
+    def _compat_claims(
+        self,
+        request: ResearchRequest,
+        listing: SecurityListing | None,
+        document_text: str | None,
+    ) -> tuple:
+        if listing is None or self._gemini is None or not self._gemini.available():
+            return ()
+        found = []
+        for field in request.fields:
+            if field in PRICE_FIELDS:
+                continue
+            found.append(
+                self._gemini.run(
+                    identity=listing.isin,
+                    field=field,
+                    document_text=document_text,
+                )
+            )
+        return tuple(found)
 
     def _agent_map(self) -> dict[str, FailureStatus]:
         return {
@@ -568,6 +637,8 @@ class ResearchOrchestrator:
             if field == "shares_outstanding"
             else extract_labeled_field(document_text, field)
         )
+        if (extracted is None or not extracted.value) and field == "capex":
+            extracted = extract_classified_capex(document_text)
         overlay = None if overlay_fields is None else overlay_fields.get(field)
         if overlay is not None and getattr(overlay, "semantic_status", None) == "VERIFIED":
             extracted = overlay
@@ -582,12 +653,18 @@ class ResearchOrchestrator:
                 ) or primary.source_urls.get("quote_equity")
             else:
                 document_url = primary.source_urls.get("financial_results")
+        identity_ok = True
+        if document_text and not document_identity_matches(
+            document_text, isin=listing.isin, company_name=listing.company_name
+        ):
+            identity_ok = False
         unknown_semantics = extracted is not None and extracted.semantic_status in {
             "UNKNOWN",
             "CONFLICT",
         }
         usable = (
-            extracted is not None
+            identity_ok
+            and extracted is not None
             and extracted.semantic_status == "VERIFIED"
             and extracted.value
         )
@@ -691,7 +768,7 @@ class ResearchOrchestrator:
             ),
             statement_basis=statement_basis,
             agent=agent,
-            identity_status="PASS",
+            identity_status="PASS" if identity_ok else "FAIL",
             semantic_status="FAIL" if unknown_semantics or value is None else "PASS",
             freshness_status=freshness if freshness in {"PASS", "FAIL"} else "UNKNOWN",
             corporate_action_status=ca_status,

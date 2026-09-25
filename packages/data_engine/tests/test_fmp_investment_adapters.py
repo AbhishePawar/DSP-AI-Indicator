@@ -77,6 +77,8 @@ def test_fmp_quote_maps_authenticated_fields() -> None:
                     "sharesOutstanding": 15_000_000_000,
                     "exchange": "NASDAQ",
                     "currency": "USD",
+                    "change": 2.0,
+                    "changesPercentage": 1.0610079576,
                 }
             ]
         }
@@ -90,6 +92,26 @@ def test_fmp_quote_maps_authenticated_fields() -> None:
     assert quote.provenance.provider_id == "fmp_market_quote"
     assert quote.provenance.auth_mode == "api_key"
     assert adapter.health().authenticated is True
+    # Figma Watchlist "Change" column — provider-reported, never derived.
+    assert float(quote.change.value) == pytest.approx(2.0)
+    assert float(quote.change_percent.value) == pytest.approx(1.0610079576)
+    public = quote.to_public_dict()["fields"]
+    assert public["change"] == pytest.approx(2.0)
+    assert public["change_percent"] == pytest.approx(1.0610079576)
+
+
+def test_fmp_quote_change_fields_stay_unavailable_when_missing() -> None:
+    http = _FakeHttp(
+        {"/quote/AAPL": [{"symbol": "AAPL", "price": 190.5, "previousClose": 188.5}]}
+    )
+    adapter = FinancialModelingPrepQuoteAdapter(api_key="test-key", http_client=http)
+    quote = adapter.get_quote(_equity())
+    assert quote is not None
+    assert quote.change.available is False
+    assert quote.change_percent.available is False
+    public = quote.to_public_dict()["fields"]
+    assert public["change"] is None
+    assert public["change_percent"] is None
 
 
 def test_fmp_statements_merge_income_balance_cash() -> None:
@@ -118,6 +140,9 @@ def test_fmp_statements_merge_income_balance_cash() -> None:
                     "operatingIncome": 123216000000,
                     "ebitda": 134661000000,
                     "netIncome": 93736000000,
+                    "grossProfitRatio": 0.4620634982,
+                    "operatingIncomeRatio": 0.3151022287,
+                    "netIncomeRatio": 0.2397125577,
                     "eps": 6.11,
                     "epsdiluted": 6.08,
                 }
@@ -166,8 +191,45 @@ def test_fmp_statements_merge_income_balance_cash() -> None:
     assert period.revenue.value == pytest.approx(391035000000)
     assert period.total_equity.value == pytest.approx(56950000000)
     assert period.free_cash_flow.value == pytest.approx(108807000000)
+    # Provider-reported ratios pass through untouched (Figma margin trend source).
+    assert float(period.net_margin.value) == pytest.approx(0.2397125577)
+    assert float(period.gross_margin.value) == pytest.approx(0.4620634982)
+    assert float(period.operating_margin.value) == pytest.approx(0.3151022287)
+    public_ratios = statements.to_public_dict()["periods"][0]["ratios"]
+    assert public_ratios["net_margin"] == pytest.approx(0.2397125577)
     assert statements.provenance.provider_id == "fmp_financial_statements"
     assert statements.provenance.auth_mode == "api_key"
+
+
+def test_fmp_statements_missing_ratio_fields_stay_unavailable() -> None:
+    """No ``*Ratio`` field from the vendor → ratio is missing, never computed."""
+    http = _FakeHttp(
+        {
+            "/profile/AAPL": [{"symbol": "AAPL", "currency": "USD"}],
+            "/income-statement/AAPL": [
+                {
+                    "date": "2024-09-28",
+                    "calendarYear": "2024",
+                    "period": "FY",
+                    "reportedCurrency": "USD",
+                    "revenue": 391035000000,
+                    "netIncome": 93736000000,
+                }
+            ],
+            "/balance-sheet-statement/AAPL": [{"date": "2024-09-28"}],
+            "/cash-flow-statement/AAPL": [{"date": "2024-09-28"}],
+        }
+    )
+    adapter = FinancialModelingPrepStatementAdapter(
+        api_key="test-key", http_client=http
+    )
+    statements = adapter.get_statements(
+        StatementQuery(instrument=_equity(), limit=1)
+    )
+    assert statements is not None
+    period = statements.periods[0]
+    assert period.net_margin.available is False
+    assert statements.to_public_dict()["periods"][0]["ratios"]["net_margin"] is None
 
 
 def test_factory_selects_fmp_when_key_present(

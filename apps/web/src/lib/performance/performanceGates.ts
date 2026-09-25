@@ -2,15 +2,22 @@
  * EPIC-010 / GA-003 — Performance automation catalogue (thin-client UI only).
  */
 
-/** Flagship product routes that must keep route-level code splitting. */
+/**
+ * Flagship routes that keep next/dynamic + skeleton loading.
+ * /analysis is excluded: P1-09 requires a static workspace import so the
+ * critical research journey mounts in production (dynamic ssr:false stuck
+ * on the skeleton). Asserted separately in performance-automation.test.ts.
+ */
 export const FLAGSHIP_DYNAMIC_ROUTES = [
-  "src/app/analysis/page.tsx",
   "src/app/portfolio/page.tsx",
   "src/app/research/page.tsx",
   "src/app/research/institutional/page.tsx",
   "src/app/research/institutional/dashboard/page.tsx",
   "src/app/settings/page.tsx",
 ] as const;
+
+/** Critical analysis route — static workspace import + Suspense skeleton. */
+export const ANALYSIS_STATIC_ROUTE = "src/app/analysis/page.tsx" as const;
 
 /** Workspaces that must use React.lazy / dynamic import for heavy modules. */
 export const LAZY_WORKSPACE_MODULES = [

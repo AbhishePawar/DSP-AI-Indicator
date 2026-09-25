@@ -27,6 +27,11 @@ from data_engine.official_research.assumption_contract import (
     CanonicalAssumption,
     classify_data_class,
 )
+from data_engine.official_research.assumption_research import (
+    DcfAssumptionCandidate,
+    DcfAssumptionResearchResult,
+    research_dcf_assumptions,
+)
 from data_engine.official_research.assumption_validator import (
     validate_assumption,
     validate_assumption_pack,
@@ -43,6 +48,7 @@ from data_engine.official_research.documents import (
     DocumentCandidate,
     DocumentStore,
     document_version_relation,
+    retrieve_approved_https,
 )
 from data_engine.official_research.extraction import (
     attack_corporate_actions,
@@ -115,6 +121,20 @@ from data_engine.official_research.source_policy import (
     SourcePolicy,
     classify_source_url,
 )
+from data_engine.official_research.rbi_risk_free import (
+    RBI_NSDP_URL,
+    RBI_RISK_FREE_MATURITY_POLICY,
+    acquire_rbi_risk_free,
+)
+from data_engine.official_research.dcf_tenor_policy import (
+    DCF_RISK_FREE_MATURITY_POLICY,
+    evaluate_risk_free_binding,
+    tenor_policy_public_dict,
+)
+from data_engine.official_research.capm_components import (
+    qualify_capm_component,
+    research_live_capm_components,
+)
 from data_engine.official_research.udiff import parse_udiff_csv
 from data_engine.official_research.verified_dataset import (
     DSPAnalysisResult,
@@ -129,6 +149,8 @@ __all__ = [
     "NSE_UDIFF_FILE_KEY",
     "BseEodService",
     "CanonicalAssumption",
+    "DcfAssumptionCandidate",
+    "DcfAssumptionResearchResult",
     "CapitalEvent",
     "ChatGPTVerifyAgent",
     "ClaudeReviewAgent",
@@ -147,6 +169,8 @@ __all__ = [
     "NsePublicHttp",
     "PriceContractError",
     "PriceSnapshot",
+    "RBI_NSDP_URL",
+    "RBI_RISK_FREE_MATURITY_POLICY",
     "ResearchClaim",
     "ResearchOrchestrator",
     "ResearchRequest",
@@ -159,6 +183,7 @@ __all__ = [
     "analyse_user_query",
     "describe_supported_universe",
     "acquire_planned_fields",
+    "acquire_rbi_risk_free",
     "attack_corporate_actions",
     "build_research_plan",
     "cache_key",
@@ -170,11 +195,13 @@ __all__ = [
     "classify_share_semantic_type",
     "canonical_share_semantic_type",
     "classify_source_url",
+    "DCF_RISK_FREE_MATURITY_POLICY",
     "derive_dsp_fields",
     "discover_udiff_final",
     "document_version_relation",
     "dsp_gate",
     "eod_close_snapshot",
+    "evaluate_risk_free_binding",
     "is_current",
     "judge_currentness",
     "looks_like_injection",
@@ -188,6 +215,10 @@ __all__ = [
     "parse_shareholding_shares",
     "parse_udiff_csv",
     "plan_report_block",
+    "qualify_capm_component",
+    "research_dcf_assumptions",
+    "research_live_capm_components",
+    "retrieve_approved_https",
     "route_research_roles",
     "run_dsp_calculations",
     "run_research_loop",
@@ -195,6 +226,7 @@ __all__ = [
     "select_research_agent",
     "sanitize_document_text",
     "semantic_field_status",
+    "tenor_policy_public_dict",
     "unzip_udiff",
     "utc_now",
     "validate_assumption",

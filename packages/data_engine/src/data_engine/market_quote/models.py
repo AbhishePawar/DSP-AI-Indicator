@@ -89,6 +89,10 @@ class AuthenticatedMarketQuote:
     dividend_yield: QuoteField
     beta: QuoteField
     provenance: MarketQuoteProvenance
+    # Provider-reported session change (absolute, and percent in percent units,
+    # e.g. 1.25 == +1.25%). Pass-through only — never derived here or in the UI.
+    change: QuoteField = QuoteField.missing()
+    change_percent: QuoteField = QuoteField.missing()
 
     def has_any_price(self) -> bool:
         return self.current_price.available or self.previous_close.available
@@ -119,6 +123,8 @@ class AuthenticatedMarketQuote:
                 "shares_outstanding": _f(self.shares_outstanding),
                 "dividend_yield": _f(self.dividend_yield),
                 "beta": _f(self.beta),
+                "change": _f(self.change),
+                "change_percent": _f(self.change_percent),
             },
             "provenance": self.provenance.to_dict(),
         }

@@ -9,12 +9,19 @@ import {
   ChevronRight,
   Shield,
   Settings,
+  Sparkles,
   User,
+  Users,
   type LucideIcon,
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useMemo, useState, type KeyboardEvent } from "react";
+import { useEffect, useMemo, useState, type KeyboardEvent } from "react";
+
+import {
+  loadRecentAnalyses,
+  type RecentAnalysisEntry,
+} from "@/lib/analysis/recentAnalyses";
 
 import {
   Sidebar as DsSidebar,
@@ -39,6 +46,8 @@ const ICONS: Record<ShellNavIconId, LucideIcon> = {
   admin: Shield,
   settings: Settings,
   profile: User,
+  copilot: Sparkles,
+  advisor: Users,
 };
 
 function NavLink({
@@ -169,6 +178,11 @@ export function Sidebar({
   const { session, user } = useAuth();
   const permissions = session?.permissions ?? user?.permissions ?? [];
   const roles = session?.roles ?? user?.roles ?? [];
+  const [recent, setRecent] = useState<RecentAnalysisEntry[]>([]);
+
+  useEffect(() => {
+    setRecent(loadRecentAnalyses());
+  }, []);
 
   const groups = useMemo(() => {
     const filtered = filterShellNav(permissions, roles);
@@ -220,23 +234,76 @@ export function Sidebar({
         )}
       >
         <Link
-          href="/dashboard"
+          href="/"
           onClick={onNavigate}
-          className="block focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
+          className="flex items-center gap-2.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
         >
-          <p
-            className={cn(
-              "font-[family-name:var(--font-display)] tracking-tight text-[var(--accent)]",
-              collapsed && !mobile ? "text-sm" : "text-lg",
-            )}
-          >
-            {collapsed && !mobile ? "DSP" : env.appName}
-          </p>
+          <span className="dsp-logo-mark" aria-hidden />
           {!(collapsed && !mobile) ? (
-            <p className="mt-0.5 text-xs text-[var(--muted)]">{env.tagline}</p>
-          ) : null}
+            <span>
+              <p className="font-[family-name:var(--font-display)] text-lg tracking-tight text-[var(--fg)]">
+                DSP
+              </p>
+              <p className="font-mono text-[10px] tracking-[0.06em] text-[var(--muted)]">
+                AI RESEARCH
+              </p>
+            </span>
+          ) : (
+            <span className="sr-only">{env.appName}</span>
+          )}
         </Link>
       </div>
+
+      {!(collapsed && !mobile) ? (
+        <div className="border-b border-[var(--border)] px-3 py-3">
+          <Link
+            href="/analysis"
+            onClick={onNavigate}
+            className="flex min-h-11 w-full items-center gap-2 rounded-[10px] border border-[var(--border)] bg-[var(--surface-2)] px-3 text-sm font-medium text-[var(--fg)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
+          >
+            <span aria-hidden className="text-base text-[var(--muted)]">
+              +
+            </span>
+            Start New Research
+          </Link>
+          <p className="section-label mt-3 mb-1">Today</p>
+          {recent.length === 0 ? (
+            <p className="px-1 text-xs text-[var(--muted)]">No recent research.</p>
+          ) : (
+            <ul className="space-y-0.5">
+              {recent.slice(0, 3).map((entry) => (
+                <li key={`${entry.ticker}-${entry.analysedAt}`}>
+                  <Link
+                    href={`/analysis?symbol=${encodeURIComponent(entry.ticker)}`}
+                    onClick={onNavigate}
+                    className="block truncate rounded-lg px-2 py-1.5 text-xs text-[var(--muted)] hover:bg-[var(--surface-2)] hover:text-[var(--fg)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
+                  >
+                    {entry.company || entry.ticker}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          )}
+          <Link
+            href="/analysis"
+            onClick={onNavigate}
+            className="mt-3 flex items-center justify-between rounded-[var(--card-radius)] border border-[color-mix(in_srgb,var(--c-cashflow)_30%,transparent)] bg-[color-mix(in_srgb,var(--c-cashflow)_12%,transparent)] px-3.5 py-3 no-underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
+          >
+            <span>
+              <span className="block text-xs font-semibold text-[var(--fg)]">
+                DSP Buffett Indicator Analysis
+              </span>
+              <span className="mt-1 block text-[10px] leading-snug text-[var(--muted)]">
+                Evaluate a company using DSP&apos;s Buffett-style investment
+                analysis framework.
+              </span>
+            </span>
+            <span className="ml-2 shrink-0 text-[var(--c-cashflow)]" aria-hidden>
+              →
+            </span>
+          </Link>
+        </div>
+      ) : null}
 
       <DsSidebar
         collapsed={collapsed && !mobile}

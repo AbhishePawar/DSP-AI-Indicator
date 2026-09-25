@@ -15,6 +15,15 @@ export {
 } from "./workspacePrefsStore";
 
 export {
+  formatTrendValue,
+  mapFinancialTrends,
+  type FinancialTrendId,
+  type FinancialTrendPoint,
+  type FinancialTrendSeries,
+  type FinancialTrendsView,
+} from "./financialTrends";
+
+export {
   downloadBase64,
   downloadText,
   researchViewToCsv,

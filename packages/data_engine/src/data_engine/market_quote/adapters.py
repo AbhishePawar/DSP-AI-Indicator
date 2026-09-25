@@ -60,6 +60,8 @@ def build_quote_from_mapping(
         dividend_yield=q("dividend_yield"),
         beta=q("beta"),
         provenance=provenance,
+        change=q("change"),
+        change_percent=q("change_percent"),
     )
     validate_authenticated_quote(quote)
     return quote

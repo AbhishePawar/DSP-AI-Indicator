@@ -5,6 +5,7 @@ export const PUBLIC_ROUTE_PREFIXES = [
   "/companies",
   "/research",
   "/analysis",
+  "/coupons",
 ] as const;
 
 export const PROTECTED_ROUTE_PREFIXES = [

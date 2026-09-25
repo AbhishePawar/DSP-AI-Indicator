@@ -7,7 +7,7 @@ import { Card, CardBody, CardHeader } from "@/components/ui/Card";
 import { usePortfolio } from "@/lib/portfolio/PortfolioProvider";
 
 export function PortfolioActions() {
-  const { isEmpty, loadDemo, clearPortfolio } = usePortfolio();
+  const { isEmpty, clearPortfolio } = usePortfolio();
 
   return (
     <Card>
@@ -19,11 +19,8 @@ export function PortfolioActions() {
         <Link href="/screening">
           <Button variant="secondary">Open Screening</Button>
         </Link>
-        {isEmpty ? (
-          <Button variant="secondary" onClick={loadDemo}>
-            Load Demo Holdings
-          </Button>
-        ) : (
+        {/* CV-001 — no demo holdings in production; empty portfolios stay empty. */}
+        {isEmpty ? null : (
           <Button variant="ghost" onClick={clearPortfolio}>
             Clear Portfolio
           </Button>

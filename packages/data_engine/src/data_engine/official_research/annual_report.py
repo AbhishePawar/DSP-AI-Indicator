@@ -43,6 +43,7 @@ class AnnualDocumentCandidate:
     prefers_consolidated: bool
     as_of: date | None
     source: str
+    statement_basis: str | None = None
 
 
 def latest_completed_indian_fy(today: date | None = None) -> int:
@@ -143,6 +144,9 @@ def rank_annual_candidates(
             -item.score,
             0 if item.source == "nse_annual_reports" else 1,
             0 if item.prefers_consolidated == (statement_basis == "consolidated") else 1,
+            0 if item.statement_basis == statement_basis else 1,
+            0 if item.as_of is not None else 1,
+            -(item.as_of.toordinal() if item.as_of is not None else 0),
             item.title.lower(),
         )
     )
@@ -182,6 +186,7 @@ def _from_announcement(item: NseAnnouncementDocument) -> AnnualDocumentCandidate
         source=getattr(item, "source", None) or "nse_announcement",
         kind=item.kind,
         as_of=item.as_of,
+        statement_basis=getattr(item, "statement_basis", None),
     )
 
 
@@ -192,33 +197,49 @@ def _from_label(
     source: str,
     kind: str | None = None,
     as_of: date | None = None,
+    statement_basis: str | None = None,
 ) -> AnnualDocumentCandidate | None:
     filename = url.rstrip("/").rsplit("/", 1)[-1]
     score_blob = f"{title} {filename}"
     fy_blob = f"{title} {url}"
     normalized = re.sub(r"[-_./]+", " ", score_blob.lower())
+    xmlish = url.lower().split("?", 1)[0].endswith((".xml", ".xbrl")) or "xbrl" in normalized
     if _REJECT.search(normalized) and not re.search(
-        r"annual report|integrated annual", normalized
-    ):
+        r"annual report|integrated annual|xbrl", normalized
+    ) and not xmlish:
         return None
-    score, kind_name = _score(score_blob)
+    score, kind_name = _score(score_blob, url)
     if score <= 0:
         return None
-    prefers = "consolidated" in normalized
+    prefers = (
+        (statement_basis == "consolidated")
+        or (
+            "consolidated" in normalized
+            and "non-consolidated" not in normalized
+            and "nonconsolidated" not in normalized
+        )
+    )
+    fy = normalize_financial_year(fy_blob)
+    if fy is None and as_of is not None:
+        fy = as_of.year if as_of.month <= 3 else as_of.year + 1
     return AnnualDocumentCandidate(
         url=url,
         title=title,
         kind=kind or kind_name,
         score=score,
-        financial_year=normalize_financial_year(fy_blob),
+        financial_year=fy,
         prefers_consolidated=prefers,
         as_of=as_of,
         source=source,
+        statement_basis=statement_basis,
     )
 
 
-def _score(blob: str) -> tuple[int, str]:
+def _score(blob: str, url: str = "") -> tuple[int, str]:
     lowered = re.sub(r"[-_./]+", " ", blob.lower())
+    path = str(url or "").lower().split("?", 1)[0]
+    if "xbrl" in lowered or path.endswith((".xml", ".xbrl")):
+        return 95, "xbrl"
     if "integrated annual report" in lowered:
         return 100, "annual_report"
     if "annual report" in lowered:

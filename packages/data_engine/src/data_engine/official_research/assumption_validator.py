@@ -65,6 +65,7 @@ ASSUMPTION_BOUNDS: dict[str, tuple[Decimal | None, Decimal | None, str]] = {
     "beta": (Decimal("0.0000001"), Decimal("5"), "open_low"),
     "risk_free_rate": (Decimal("-0.05"), Decimal("0.25"), "closed"),
     "equity_risk_premium": (Decimal("0.0000001"), Decimal("0.20"), "open_low"),
+    "pre_tax_cost_of_debt": (Decimal("0"), Decimal("0.40"), "closed"),
 }
 
 _RATE_UNITS = frozenset({"decimal", "ratio", "percent", "pct", "%"})
@@ -289,7 +290,7 @@ def validate_assumption_pack(
     required_period: str | None = None,
 ) -> tuple[AssumptionValidation, ...]:
     """Validate a scenario pack. Isolation is by scenario field on each row."""
-    return tuple(
+    results = [
         validate_assumption(
             item,
             historical=historical,
@@ -297,7 +298,36 @@ def validate_assumption_pack(
             required_period=required_period,
         )
         for item in items
-    )
+    ]
+    grouped: dict[tuple[str, str], list[Decimal]] = {}
+    for item in items:
+        if item.value is None:
+            continue
+        field = "discount_rate" if item.field in {"wacc", "discount_rate"} else item.field
+        grouped.setdefault((item.scenario, field), []).append(item.value)
+    conflicts = {
+        key for key, values in grouped.items() if len(set(values)) > 1
+    }
+    if not conflicts:
+        return tuple(results)
+    revised: list[AssumptionValidation] = []
+    for result in results:
+        field = (
+            "discount_rate"
+            if result.assumption.field in {"wacc", "discount_rate"}
+            else result.assumption.field
+        )
+        key = (result.assumption.scenario, field)
+        if key not in conflicts:
+            revised.append(result)
+            continue
+        reviewed = _copy(
+            result.assumption,
+            status="REVIEW_REQUIRED",
+            detail="conflicting assumption values are not averaged",
+        )
+        revised.append(AssumptionValidation(reviewed, "REVIEW_REQUIRED", reviewed.detail))
+    return tuple(revised)
 
 
 def ai_assumption_workflow(

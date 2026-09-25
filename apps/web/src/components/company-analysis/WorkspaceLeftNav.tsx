@@ -4,7 +4,11 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 
 import { Badge, Button } from "@/components/ds";
-import { ANALYSIS_SECTIONS, useWorkspacePrefsStore } from "@/lib/company-analysis";
+import {
+  ANALYSIS_SECTIONS,
+  useWorkspacePrefsStore,
+  type AnalysisSectionId,
+} from "@/lib/company-analysis";
 import {
   loadRecentAnalyses,
   type RecentAnalysisEntry,
@@ -52,7 +56,7 @@ export function WorkspaceLeftNav({
         )}
         <div className="flex flex-wrap gap-2">
           <Button className="min-h-11" onClick={onAnalyze} disabled={analyzing}>
-            {analyzing ? "Analyzing…" : "Analyze"}
+            {analyzing ? "Preparing your analysis…" : "Analyze"}
           </Button>
           <Button
             size="sm"
@@ -66,86 +70,89 @@ export function WorkspaceLeftNav({
       </div>
 
       <nav aria-label="Analysis sections">
-        <p className="mb-2 text-xs font-medium uppercase tracking-wide text-[var(--muted)]">
-          Workspace
-        </p>
-        <ul className="space-y-0.5">
-          {ANALYSIS_SECTIONS.filter((s) =>
-            [
-              "summary",
-              "valuation",
-              "quality",
-              "management",
-              "moat",
-              "risk",
-              "advancedCheck",
-              "financial",
-              "ownership",
-              "peers",
-              "ai",
-              "copilot",
-              "explainability",
-              "evidence",
-              "timeline",
-              "documents",
-              "news",
-              "export",
-              "settings",
-            ].includes(s.id),
-          ).map((section) => (
-            <li key={section.id}>
-              <button
-                type="button"
-                onClick={() => setActiveSection(section.id)}
-                aria-current={activeSection === section.id ? "page" : undefined}
-                className={cn(
-                  "flex w-full items-center justify-between rounded-[var(--radius-md)] px-2 py-2 text-left text-sm transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]",
-                  activeSection === section.id
-                    ? "bg-[var(--accent-soft)] text-[var(--accent)]"
-                    : "text-[var(--muted)] hover:bg-[var(--surface-2)] hover:text-[var(--fg)]",
-                )}
-              >
-                <span>{section.label}</span>
-                <kbd className="font-mono text-[10px] opacity-70">
-                  {section.shortcut}
-                </kbd>
-              </button>
-            </li>
-          ))}
-        </ul>
-        <p className="mb-2 mt-4 text-xs font-medium uppercase tracking-wide text-[var(--muted)]">
-          Deep dive
-        </p>
-        <ul className="space-y-0.5">
-          {ANALYSIS_SECTIONS.filter((s) =>
-            [
-              "ratings",
-              "valuationTransparency",
-              "research",
-              "buffett",
-              "compliance",
-            ].includes(s.id),
-          ).map((section) => (
-            <li key={section.id}>
-              <button
-                type="button"
-                onClick={() => setActiveSection(section.id)}
-                aria-current={activeSection === section.id ? "page" : undefined}
-                className={cn(
-                  "flex w-full items-center justify-between rounded-[var(--radius-md)] px-2 py-2 text-left text-sm transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]",
-                  activeSection === section.id
-                    ? "bg-[var(--accent-soft)] text-[var(--accent)]"
-                    : "text-[var(--muted)] hover:bg-[var(--surface-2)] hover:text-[var(--fg)]",
-                )}
-              >
-                <span>{section.label}</span>
-                <kbd className="font-mono text-[10px] opacity-70">
-                  {section.shortcut}
-                </kbd>
-              </button>
-            </li>
-          ))}
-        </ul>
+        {(
+          [
+            {
+              label: "Analysis",
+              ids: [
+                "summary",
+                "buffett",
+                "financial",
+                "valuation",
+                "quality",
+                "risk",
+              ],
+            },
+            {
+              // Figma CompanyAnalysis.tsx TOC_GROUPS "DEEP DIVE" order.
+              label: "Deep dive",
+              ids: [
+                "management",
+                "earningsQuality",
+                "growthQuality",
+                "marginOfSafety",
+                "strengthsWeaknesses",
+                "investmentContext",
+                "evidence",
+              ],
+            },
+            {
+              // Data-backed DSP sections beyond the Figma TOC — kept, not surfaced
+              // as Figma "ANALYSIS"/"DEEP DIVE" items.
+              label: "Workspace",
+              ids: [
+                "moat",
+                "valuationTransparency",
+                "explainability",
+                "ratings",
+                "advancedCheck",
+                "ownership",
+                "peers",
+                "ai",
+                "copilot",
+                "timeline",
+                "documents",
+                "news",
+                "research",
+                "compliance",
+                "export",
+                "settings",
+              ],
+            },
+          ] as const
+        ).map((group) => (
+          <div key={group.label} className="mb-4">
+            <p className="section-label">{group.label}</p>
+            <ul className="space-y-0.5">
+              {ANALYSIS_SECTIONS.filter((section) =>
+                (group.ids as readonly AnalysisSectionId[]).includes(
+                  section.id,
+                ),
+              ).map((section) => (
+                <li key={section.id}>
+                  <button
+                    type="button"
+                    onClick={() => setActiveSection(section.id)}
+                    aria-current={
+                      activeSection === section.id ? "page" : undefined
+                    }
+                    className={cn(
+                      "flex w-full items-center justify-between rounded-[var(--radius-md)] px-2 py-2 text-left text-sm transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]",
+                      activeSection === section.id
+                        ? "bg-[var(--accent-soft)] text-[var(--accent)]"
+                        : "text-[var(--muted)] hover:bg-[var(--surface-2)] hover:text-[var(--fg)]",
+                    )}
+                  >
+                    <span>{section.label}</span>
+                    <kbd className="font-mono text-[10px] opacity-70">
+                      {section.shortcut}
+                    </kbd>
+                  </button>
+                </li>
+              ))}
+            </ul>
+          </div>
+        ))}
       </nav>
 
       <div>

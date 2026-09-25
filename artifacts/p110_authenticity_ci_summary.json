@@ -1,0 +1,20 @@
+{
+  "evidence_class_note": "fixture/dev paths remain test_fixture; never live vendor",
+  "exit_code": 1073807364,
+  "g2_claim": false,
+  "gate": "P1-10",
+  "hard_fail": true,
+  "ok": false,
+  "soft_fail_forbidden": true,
+  "targets": [
+    "packages/api_platform/tests/test_p110_authenticity_hard_fail.py",
+    "packages/api_platform/tests/test_p103_connector_boot.py",
+    "packages/data_engine/tests/test_p103_production_connectors.py",
+    "packages/api_platform/tests/test_p005_authz.py",
+    "packages/api_platform/tests/test_p105_buffett_authority.py",
+    "packages/api_platform/tests/test_p106_investment_provenance.py",
+    "packages/dsp_platform/tests/test_p101_authenticated_valuation.py",
+    "packages/dsp_platform/tests/test_p105_buffett_authority.py",
+    "packages/api_platform/tests/test_p109_critical_investment_journey.py"
+  ]
+}

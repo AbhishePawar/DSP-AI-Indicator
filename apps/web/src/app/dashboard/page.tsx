@@ -1,12 +1,12 @@
 "use client";
 
 /**
- * P9.3 / EPIC-004 — Institutional Executive Dashboard landing page.
- * Consumes frozen /api/v1 only. No mock business metrics.
+ * Dashboard — Figma Make `Dashboard.tsx` (market bar · Watchlist · Recent
+ * Research · DSP Signals). Consumes frozen /api/v1 only; no mock metrics.
  */
 
-import { InstitutionalDashboard } from "@/components/dashboard";
+import { DashboardOverview } from "@/components/pages";
 
 export default function DashboardPage() {
-  return <InstitutionalDashboard />;
+  return <DashboardOverview />;
 }

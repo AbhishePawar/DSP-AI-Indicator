@@ -1,0 +1,758 @@
+{
+  "WIPRO": {
+    "shareholding": null,
+    "hold_error": "NSE HTTP 404 for official URL",
+    "ca_2025plus": [
+      {
+        "type": "merger",
+        "date": "2025-06-11",
+        "url": null
+      },
+      {
+        "type": "scheme",
+        "date": "2025-06-11",
+        "url": null
+      },
+      {
+        "type": "merger",
+        "date": "2025-12-02",
+        "url": null
+      },
+      {
+        "type": "merger",
+        "date": "2026-03-31",
+        "url": null
+      },
+      {
+        "type": "merger",
+        "date": "2026-04-01",
+        "url": null
+      },
+      {
+        "type": "buyback",
+        "date": "2026-05-22",
+        "url": null
+      },
+      {
+        "type": "buyback",
+        "date": "2026-05-25",
+        "url": null
+      },
+      {
+        "type": "buyback",
+        "date": "2026-06-09",
+        "url": null
+      },
+      {
+        "type": "buyback",
+        "date": "2026-06-26",
+        "url": null
+      },
+      {
+        "type": "buyback",
+        "date": "2026-06-30",
+        "url": null
+      }
+    ],
+    "share_docs": [
+      {
+        "title": "Post Buyback Public Announcement",
+        "url": "https://nsearchives.nseindia.com/corporate/Cslogin_26062026181043_SEIntimationPostBuybackPA.pdf",
+        "as_of": "2026-06-26",
+        "kind": "corporate_action"
+      },
+      {
+        "title": "Public Announcement - Buyback of Shares",
+        "url": "https://nsearchives.nseindia.com/corporate/Cslogin_25052026170905_SEIntimationPA.pdf",
+        "as_of": "2026-05-25",
+        "kind": "corporate_action"
+      },
+      {
+        "title": "Bonus",
+        "url": "https://nsearchives.nseindia.com/corporate/WIPRO_17102024155516_OutcomeofBM.pdf",
+        "as_of": "2024-10-17",
+        "kind": "corporate_action"
+      },
+      {
+        "title": "ESOP/ESOS/ESPS",
+        "url": "https://nsearchives.nseindia.com/corporate/WIPRO_20092024154425_SE.pdf",
+        "as_of": "2024-09-20",
+        "kind": "corporate_action"
+      },
+      {
+        "title": "Allotment of Securities",
+        "url": "https://nsearchives.nseindia.com/corporate/WIPRO_12092024215829_SE.pdf",
+        "as_of": "2024-09-12",
+        "kind": "other"
+      },
+      {
+        "title": "ESOP/ESOS/ESPS",
+        "url": "https://nsearchives.nseindia.com/corporate/WIPRO_05092024183422_SEIntimationGrantofRSUs.pdf",
+        "as_of": "2024-09-05",
+        "kind": "corporate_action"
+      },
+      {
+        "title": "ESOP/ESOS/ESPS",
+        "url": "https://nsearchives.nseindia.com/corporate/WIPRO_05092024180320_SE.pdf",
+        "as_of": "2024-09-05",
+        "kind": "corporate_action"
+      },
+      {
+        "title": "ESOP/ESOS/ESPS",
+        "url": "https://nsearchives.nseindia.com/corporate/WIPRO_28082024172024_SE.pdf",
+        "as_of": "2024-08-28",
+        "kind": "corporate_action"
+      },
+      {
+        "title": "ESOP/ESOS/ESPS",
+        "url": "https://nsearchives.nseindia.com/corporate/WIPRO_14082024213432_SE.pdf",
+        "as_of": "2024-08-14",
+        "kind": "corporate_action"
+      },
+      {
+        "title": "Allotment of Securities",
+        "url": "https://nsearchives.nseindia.com/corporate/WIPRO_09082024081830_SE.pdf",
+        "as_of": "2024-08-09",
+        "kind": "other"
+      },
+      {
+        "title": "ESOP/ESOS/ESPS",
+        "url": "https://nsearchives.nseindia.com/corporate/WIPRO_03082024132238_SE.pdf",
+        "as_of": "2024-08-03",
+        "kind": "corporate_action"
+      },
+      {
+        "title": "ESOP/ESOS/ESPS",
+        "url": "https://nsearchives.nseindia.com/corporate/WIPRO_26072024075428_SE.pdf",
+        "as_of": "2024-07-26",
+        "kind": "corporate_action"
+      },
+      {
+        "title": "ESOP/ESOS/ESPS",
+        "url": "https://nsearchives.nseindia.com/corporate/WIPRO_24072024180240_SEgrantintimation24072024.pdf",
+        "as_of": "2024-07-24",
+        "kind": "corporate_action"
+      },
+      {
+        "title": "ESOP/ESOS/ESPS",
+        "url": "https://nsearchives.nseindia.com/corporate/WIPRO_23072024180301_SEGrantIntimation.pdf",
+        "as_of": "2024-07-23",
+        "kind": "corporate_action"
+      },
+      {
+        "title": "ESOP/ESOS/ESPS",
+        "url": "https://nsearchives.nseindia.com/corporate/WIPRO_18072024211153_SE.pdf",
+        "as_of": "2024-07-18",
+        "kind": "corporate_action"
+      }
+    ],
+    "horizon": "2026-09-11"
+  },
+  "HDFCBANK": {
+    "shareholding": null,
+    "hold_error": "NSE HTTP 404 for official URL",
+    "ca_2025plus": [
+      {
+        "type": "esop",
+        "date": "2025-01-29",
+        "url": null
+      },
+      {
+        "type": "esop",
+        "date": "2025-01-30",
+        "url": null
+      },
+      {
+        "type": "esop",
+        "date": "2025-02-14",
+        "url": null
+      },
+      {
+        "type": "esop",
+        "date": "2025-02-28",
+        "url": null
+      },
+      {
+        "type": "esop",
+        "date": "2025-03-01",
+        "url": null
+      },
+      {
+        "type": "esop",
+        "date": "2025-03-13",
+        "url": null
+      },
+      {
+        "type": "esop",
+        "date": "2025-03-26",
+        "url": null
+      },
+      {
+        "type": "esop",
+        "date": "2025-04-23",
+        "url": null
+      },
+      {
+        "type": "esop",
+        "date": "2025-04-25",
+        "url": null
+      },
+      {
+        "type": "esop",
+        "date": "2025-05-10",
+        "url": null
+      },
+      {
+        "type": "esop",
+        "date": "2025-05-15",
+        "url": null
+      },
+      {
+        "type": "esop",
+        "date": "2025-05-28",
+        "url": null
+      },
+      {
+        "type": "esop",
+        "date": "2025-06-17",
+        "url": null
+      },
+      {
+        "type": "esop",
+        "date": "2025-07-22",
+        "url": null
+      },
+      {
+        "type": "esop",
+        "date": "2025-07-31",
+        "url": null
+      },
+      {
+        "type": "bonus",
+        "date": "2025-08-01",
+        "url": null
+      },
+      {
+        "type": "bonus",
+        "date": "2025-08-13",
+        "url": null
+      },
+      {
+        "type": "esop",
+        "date": "2025-08-19",
+        "url": null
+      },
+      {
+        "type": "esop",
+        "date": "2025-09-16",
+        "url": null
+      },
+      {
+        "type": "esop",
+        "date": "2025-09-18",
+        "url": null
+      },
+      {
+        "type": "esop",
+        "date": "2025-09-30",
+        "url": null
+      },
+      {
+        "type": "esop",
+        "date": "2025-10-28",
+        "url": null
+      },
+      {
+        "type": "esop",
+        "date": "2025-11-14",
+        "url": null
+      },
+      {
+        "type": "esop",
+        "date": "2025-11-27",
+        "url": null
+      },
+      {
+        "type": "esop",
+        "date": "2025-12-18",
+        "url": null
+      },
+      {
+        "type": "esop",
+        "date": "2026-01-21",
+        "url": null
+      },
+      {
+        "type": "esop",
+        "date": "2026-01-30",
+        "url": null
+      },
+      {
+        "type": "esop",
+        "date": "2026-02-03",
+        "url": null
+      },
+      {
+        "type": "esop",
+        "date": "2026-02-27",
+        "url": null
+      },
+      {
+        "type": "esop",
+        "date": "2026-03-16",
+        "url": null
+      },
+      {
+        "type": "esop",
+        "date": "2026-03-24",
+        "url": null
+      },
+      {
+        "type": "esop",
+        "date": "2026-04-22",
+        "url": null
+      },
+      {
+        "type": "esop",
+        "date": "2026-04-29",
+        "url": null
+      },
+      {
+        "type": "esop",
+        "date": "2026-05-19",
+        "url": null
+      },
+      {
+        "type": "esop",
+        "date": "2026-05-29",
+        "url": null
+      },
+      {
+        "type": "esop",
+        "date": "2026-06-16",
+        "url": null
+      },
+      {
+        "type": "esop",
+        "date": "2026-06-25",
+        "url": null
+      },
+      {
+        "type": "esop",
+        "date": "2026-07-21",
+        "url": null
+      },
+      {
+        "type": "esop",
+        "date": "2026-07-31",
+        "url": null
+      },
+      {
+        "type": "esop",
+        "date": "2026-08-14",
+        "url": null
+      },
+      {
+        "type": "esop",
+        "date": "2026-08-31",
+        "url": null
+      }
+    ],
+    "share_docs": [
+      {
+        "title": "ESOP/ESOS/ESPS",
+        "url": "https://nsearchives.nseindia.com/corporate/HDFCBANK_31082026135453_SELetterESOP31082026.pdf",
+        "as_of": "2026-08-31",
+        "kind": "corporate_action"
+      },
+      {
+        "title": "ESOP/ESOS/ESPS",
+        "url": "https://nsearchives.nseindia.com/corporate/HDFCBANK_14082026140700_SELetterESOP14082026.pdf",
+        "as_of": "2026-08-14",
+        "kind": "corporate_action"
+      },
+      {
+        "title": "ESOP/ESOS/ESPS",
+        "url": "https://nsearchives.nseindia.com/corporate/HDFCBANK_31072026120129_SELetterESOP31072026.pdf",
+        "as_of": "2026-07-31",
+        "kind": "corporate_action"
+      },
+      {
+        "title": "ESOP/ESOS/ESPS",
+        "url": "https://nsearchives.nseindia.com/corporate/HDFCBANK_21072026134737_SELetterESOP21072026.pdf",
+        "as_of": "2026-07-21",
+        "kind": "corporate_action"
+      },
+      {
+        "title": "ESOP/ESOS/ESPS",
+        "url": "https://nsearchives.nseindia.com/corporate/HDFCBANK_25062026121849_SELetterESOP25062026.pdf",
+        "as_of": "2026-06-25",
+        "kind": "corporate_action"
+      },
+      {
+        "title": "ESOP/ESOS/ESPS",
+        "url": "https://nsearchives.nseindia.com/corporate/HDFCBANK_16062026143348_SELetterESOP16062026.pdf",
+        "as_of": "2026-06-16",
+        "kind": "corporate_action"
+      },
+      {
+        "title": "ESOP/ESOS/ESPS",
+        "url": "https://nsearchives.nseindia.com/corporate/HDFCBANK_29052026120546_SELetterESOP29052026.pdf",
+        "as_of": "2026-05-29",
+        "kind": "corporate_action"
+      },
+      {
+        "title": "ESOP/ESOS/ESPS",
+        "url": "https://nsearchives.nseindia.com/corporate/HDFCBANK_19052026161853_SELetterESOP19052026.pdf",
+        "as_of": "2026-05-19",
+        "kind": "corporate_action"
+      },
+      {
+        "title": "ESOP/ESOS/ESPS",
+        "url": "https://nsearchives.nseindia.com/corporate/HDFCBANK_29042026123225_SELetterESOP29042026.pdf",
+        "as_of": "2026-04-29",
+        "kind": "corporate_action"
+      },
+      {
+        "title": "ESOP/ESOS/ESPS",
+        "url": "https://nsearchives.nseindia.com/corporate/HDFCBANK_22042026143315_SELetterESOP22042026.pdf",
+        "as_of": "2026-04-22",
+        "kind": "corporate_action"
+      },
+      {
+        "title": "ESOP/ESOS/ESPS",
+        "url": "https://nsearchives.nseindia.com/corporate/HDFCBANK_24032026134622_SELetterESOP24032026.pdf",
+        "as_of": "2026-03-24",
+        "kind": "corporate_action"
+      },
+      {
+        "title": "ESOP/ESOS/ESPS",
+        "url": "https://nsearchives.nseindia.com/corporate/HDFCBANK_27022026153104_SELetterESOP27022026.pdf",
+        "as_of": "2026-02-27",
+        "kind": "corporate_action"
+      },
+      {
+        "title": "ESOP/ESOS/ESPS",
+        "url": "https://nsearchives.nseindia.com/corporate/HDFCBANK_03022026211302_SEintimationLTIgrant03022026.pdf",
+        "as_of": "2026-02-03",
+        "kind": "corporate_action"
+      },
+      {
+        "title": "ESOP/ESOS/ESPS",
+        "url": "https://nsearchives.nseindia.com/corporate/HDFCBANK_21012026165700_SELetterESOP21012026.pdf",
+        "as_of": "2026-01-21",
+        "kind": "corporate_action"
+      },
+      {
+        "title": "ESOP/ESOS/ESPS",
+        "url": "https://nsearchives.nseindia.com/corporate/HDFCBANK_18122025160703_SELetterESOP18122025.pdf",
+        "as_of": "2025-12-18",
+        "kind": "corporate_action"
+      }
+    ],
+    "horizon": "2026-09-11"
+  },
+  "TCS": {
+    "shareholding": null,
+    "hold_error": "NSE HTTP 404 for official URL",
+    "ca_2025plus": [
+      {
+        "type": "merger",
+        "date": "2026-01-14",
+        "url": null
+      }
+    ],
+    "share_docs": [
+      {
+        "title": "Post Buyback Public Announcement",
+        "url": "https://nsearchives.nseindia.com/corporate/TCS_13122023162302_SEIntsigned.pdf",
+        "as_of": "2023-12-13",
+        "kind": "corporate_action"
+      },
+      {
+        "title": "Buyback",
+        "url": "https://nsearchives.nseindia.com/corporate/TCS_28112023150306_SELetterLOF.pdf",
+        "as_of": "2023-11-28",
+        "kind": "corporate_action"
+      },
+      {
+        "title": "Public Announcement - Buyback of Shares",
+        "url": "https://nsearchives.nseindia.com/corporate/TCS_17112023173403_SELetterforPublicAnnouncement_signed.pdf",
+        "as_of": "2023-11-17",
+        "kind": "corporate_action"
+      },
+      {
+        "title": "Buyback",
+        "url": "https://nsearchives.nseindia.com/corporate/TCS_11102023172245_SEIntimationBBsigned.pdf",
+        "as_of": "2023-10-11",
+        "kind": "corporate_action"
+      },
+      {
+        "title": "Post Buyback Public Announcement",
+        "url": "https://nsearchives.nseindia.com/corporate/TCS_29032022191031_SEInt.pdf",
+        "as_of": "2022-03-29",
+        "kind": "corporate_action"
+      },
+      {
+        "title": "Buyback - others",
+        "url": "https://nsearchives.nseindia.com/corporate/TCS_06032022222513_SEIntimationLetterofOffer.pdf",
+        "as_of": "2022-03-06",
+        "kind": "corporate_action"
+      },
+      {
+        "title": "Buyback - others",
+        "url": "https://nsearchives.nseindia.com/corporate/TCS_06032022221439_SELetterUpdatesonBuyback.pdf",
+        "as_of": "2022-03-06",
+        "kind": "corporate_action"
+      },
+      {
+        "title": "Public Announcement - Buyback of Shares",
+        "url": "https://nsearchives.nseindia.com/corporate/TCS_14022022175433_SEIntPABuyback.pdf",
+        "as_of": "2022-02-14",
+        "kind": "corporate_action"
+      },
+      {
+        "title": "Buyback",
+        "url": "https://nsearchives.nseindia.com/corporate/TCS_12012022192727_TCSBUYBACK.pdf",
+        "as_of": "2022-01-12",
+        "kind": "corporate_action"
+      },
+      {
+        "title": "Buyback",
+        "url": "https://nsearchives.nseindia.com/corporate/TCS_06012021205045_SEintimationfinal.pdf",
+        "as_of": "2021-01-06",
+        "kind": "corporate_action"
+      },
+      {
+        "title": "Post Buyback Public Announcement",
+        "url": "https://nsearchives.nseindia.com/corporate/TCS_06012021183507_SE_Int.pdf",
+        "as_of": "2021-01-06",
+        "kind": "corporate_action"
+      },
+      {
+        "title": "Buyback",
+        "url": "https://nsearchives.nseindia.com/corporate/TCS_11122020192515_SEintTCSLOF.pdf",
+        "as_of": "2020-12-11",
+        "kind": "corporate_action"
+      },
+      {
+        "title": "Buyback",
+        "url": "https://nsearchives.nseindia.com/corporate/TCS_09122020190118_SE_scheduleofactivities.pdf",
+        "as_of": "2020-12-09",
+        "kind": "corporate_action"
+      },
+      {
+        "title": "Public Announcement - Buyback of Shares",
+        "url": "https://nsearchives.nseindia.com/corporate/TCS_20112020215932_SE_IntPABuyback.pdf",
+        "as_of": "2020-11-20",
+        "kind": "corporate_action"
+      },
+      {
+        "title": "Buyback",
+        "url": "https://nsearchives.nseindia.com/corporate/listcontract3_2692018193955_StockExchangeLetter_598.pdf",
+        "as_of": "2018-09-26",
+        "kind": "corporate_action"
+      }
+    ],
+    "horizon": "2026-09-11"
+  },
+  "INFY": {
+    "shareholding": null,
+    "hold_error": "NSE HTTP 404 for official URL",
+    "ca_2025plus": [
+      {
+        "type": "esop",
+        "date": "2025-08-10",
+        "url": null
+      },
+      {
+        "type": "esop",
+        "date": "2025-08-30",
+        "url": null
+      },
+      {
+        "type": "buyback",
+        "date": "2025-09-11",
+        "url": null
+      },
+      {
+        "type": "buyback",
+        "date": "2025-09-12",
+        "url": null
+      },
+      {
+        "type": "esop",
+        "date": "2025-09-23",
+        "url": null
+      },
+      {
+        "type": "buyback",
+        "date": "2025-10-22",
+        "url": null
+      },
+      {
+        "type": "buyback",
+        "date": "2025-11-06",
+        "url": null
+      },
+      {
+        "type": "buyback",
+        "date": "2025-11-10",
+        "url": null
+      },
+      {
+        "type": "buyback",
+        "date": "2025-11-18",
+        "url": null
+      },
+      {
+        "type": "esop",
+        "date": "2025-11-21",
+        "url": null
+      },
+      {
+        "type": "buyback",
+        "date": "2025-12-05",
+        "url": null
+      },
+      {
+        "type": "esop",
+        "date": "2025-12-19",
+        "url": null
+      },
+      {
+        "type": "esop",
+        "date": "2026-02-02",
+        "url": null
+      },
+      {
+        "type": "esop",
+        "date": "2026-02-20",
+        "url": null
+      },
+      {
+        "type": "esop",
+        "date": "2026-03-23",
+        "url": null
+      },
+      {
+        "type": "esop",
+        "date": "2026-04-06",
+        "url": null
+      },
+      {
+        "type": "esop",
+        "date": "2026-05-23",
+        "url": null
+      },
+      {
+        "type": "esop",
+        "date": "2026-05-30",
+        "url": null
+      },
+      {
+        "type": "esop",
+        "date": "2026-06-22",
+        "url": null
+      },
+      {
+        "type": "esop",
+        "date": "2026-08-24",
+        "url": null
+      }
+    ],
+    "share_docs": [
+      {
+        "title": "ESOP/ESOS/ESPS",
+        "url": "https://nsearchives.nseindia.com/corporate/INFY_24082026215703_SE_filing_ESOP_Allotment.pdf",
+        "as_of": "2026-08-24",
+        "kind": "corporate_action"
+      },
+      {
+        "title": "ESOP/ESOS/ESPS",
+        "url": "https://nsearchives.nseindia.com/corporate/Infosys_22062026103142_ESOP_Allotment_Batch97.pdf",
+        "as_of": "2026-06-22",
+        "kind": "corporate_action"
+      },
+      {
+        "title": "ESOP/ESOS/ESPS",
+        "url": "https://nsearchives.nseindia.com/corporate/Infosys_30052026153231_ESOP_Allotment_Batch96.pdf",
+        "as_of": "2026-05-30",
+        "kind": "corporate_action"
+      },
+      {
+        "title": "ESOP/ESOS/ESPS",
+        "url": "https://nsearchives.nseindia.com/corporate/Infosys_23052026221740_ESOP_Allotment_Batch95.pdf",
+        "as_of": "2026-05-23",
+        "kind": "corporate_action"
+      },
+      {
+        "title": "ESOP/ESOS/ESPS",
+        "url": "https://nsearchives.nseindia.com/corporate/Infosys_06042026110718_ESOP_Allotment_Batch93.pdf",
+        "as_of": "2026-04-06",
+        "kind": "corporate_action"
+      },
+      {
+        "title": "ESOP/ESOS/ESPS",
+        "url": "https://nsearchives.nseindia.com/corporate/Infosys_23032026140356_ESOP_Allotment_Batch92.pdf",
+        "as_of": "2026-03-23",
+        "kind": "corporate_action"
+      },
+      {
+        "title": "Allotment of Securities",
+        "url": "https://nsearchives.nseindia.com/corporate/INFY_20022026211602_ESOP_Allotment_Batch91.pdf",
+        "as_of": "2026-02-20",
+        "kind": "other"
+      },
+      {
+        "title": "ESOP/ESOS/ESPS",
+        "url": "https://nsearchives.nseindia.com/corporate/INFY_02022026125257_SE_Disclsoure_stockgrants_02Feb26.pdf",
+        "as_of": "2026-02-02",
+        "kind": "corporate_action"
+      },
+      {
+        "title": "ESOP/ESOS/ESPS",
+        "url": "https://nsearchives.nseindia.com/corporate/Infosys_19122025154932_ESOP_Allotment_Batch89.pdf",
+        "as_of": "2025-12-19",
+        "kind": "corporate_action"
+      },
+      {
+        "title": "Post Buyback Public Announcement",
+        "url": "https://nsearchives.nseindia.com/corporate/Infosys_05122025154029_SE_Newspaper_Advt_05122025.pdf",
+        "as_of": "2025-12-05",
+        "kind": "corporate_action"
+      },
+      {
+        "title": "Allotment of Securities",
+        "url": "https://nsearchives.nseindia.com/corporate/Infosys_21112025122155_ESOP_Allotment_Batch88.pdf",
+        "as_of": "2025-11-21",
+        "kind": "other"
+      },
+      {
+        "title": "Buyback",
+        "url": "https://nsearchives.nseindia.com/corporate/Infosys_18112025182523_SE_letter_LoF_18112025.pdf",
+        "as_of": "2025-11-18",
+        "kind": "corporate_action"
+      },
+      {
+        "title": "Public Announcement - Buyback of Shares",
+        "url": "https://nsearchives.nseindia.com/corporate/Infosys_10112025172147_SE_PublicAnnouncement_10112025.pdf",
+        "as_of": "2025-11-10",
+        "kind": "corporate_action"
+      },
+      {
+        "title": "ESOP/ESOS/ESPS",
+        "url": "https://nsearchives.nseindia.com/corporate/Infosys_23092025122005_ESOP_Allotment_Batch87.pdf",
+        "as_of": "2025-09-23",
+        "kind": "corporate_action"
+      },
+      {
+        "title": "Buyback",
+        "url": "https://nsearchives.nseindia.com/corporate/INFY_11092025215149_Outcome11092025.pdf",
+        "as_of": "2025-09-11",
+        "kind": "corporate_action"
+      }
+    ],
+    "horizon": "2026-09-11"
+  }
+}

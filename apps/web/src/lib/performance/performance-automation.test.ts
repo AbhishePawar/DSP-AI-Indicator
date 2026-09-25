@@ -7,6 +7,7 @@ import { readFileSync, existsSync } from "node:fs";
 import path from "node:path";
 
 import {
+  ANALYSIS_STATIC_ROUTE,
   BUNDLE_BUDGETS,
   FLAGSHIP_DYNAMIC_ROUTES,
   LAZY_WORKSPACE_MODULES,
@@ -52,6 +53,18 @@ describe("EPIC-010 flagship route code splitting", () => {
       expect(src).toMatch(/Skeleton|WorkspaceSkeleton/);
     },
   );
+});
+
+describe("P1-09 analysis critical journey mount", () => {
+  it("statically imports the workspace so production does not stick on the skeleton", () => {
+    const src = readSrc(ANALYSIS_STATIC_ROUTE);
+    expect(src).toMatch(/from\s+["']@\/components\/company-analysis["']/);
+    // Ban the import, not the P1-09 comment that documents why dynamic was removed.
+    expect(src).not.toMatch(/from\s+["']next\/dynamic["']/);
+    expect(src).not.toMatch(/import\s*\(\s*["']next\/dynamic["']\s*\)/);
+    expect(src).toMatch(/Suspense/);
+    expect(src).toMatch(/WorkspaceSkeleton/);
+  });
 });
 
 describe("EPIC-010 workspace React.lazy modules", () => {

@@ -15,7 +15,6 @@ import { useAuth } from "@/lib/auth/AuthProvider";
 import {
   addHoldingToView,
   createActivity,
-  getDemoPortfolio,
   getEmptyPortfolio,
   hasHolding,
   removeHoldingFromView,
@@ -35,7 +34,6 @@ type PortfolioContextValue = {
   addHolding: (input: AddHoldingInput) => boolean;
   removeHolding: (ticker: string) => boolean;
   recordResearchOpened: (companyOrTicker: string) => void;
-  loadDemo: () => void;
   clearPortfolio: () => void;
 };
 
@@ -105,10 +103,6 @@ export function PortfolioProvider({ children }: { children: ReactNode }) {
     }));
   }, []);
 
-  const loadDemo = useCallback(() => {
-    setView(getDemoPortfolio());
-  }, []);
-
   const clearPortfolio = useCallback(() => {
     setView(getEmptyPortfolio());
   }, []);
@@ -122,7 +116,6 @@ export function PortfolioProvider({ children }: { children: ReactNode }) {
       addHolding,
       removeHolding,
       recordResearchOpened,
-      loadDemo,
       clearPortfolio,
     }),
     [
@@ -131,7 +124,6 @@ export function PortfolioProvider({ children }: { children: ReactNode }) {
       addHolding,
       removeHolding,
       recordResearchOpened,
-      loadDemo,
       clearPortfolio,
     ],
   );

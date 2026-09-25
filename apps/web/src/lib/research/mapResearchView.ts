@@ -6,7 +6,9 @@
 import type {
   AnalyseRequest,
   AnalyseResponse,
+  BusinessQualityPublic,
   CompanyRiskPayload,
+  DecisionSummary,
   StageSummary,
 } from "@/lib/api/compositionTypes";
 import {
@@ -48,11 +50,86 @@ export type StageSectionView = {
   metrics: { label: string; value: string }[];
 };
 
+/**
+ * Figma `CompanyAnalysis` domain scorecard row. Score comes from the existing
+ * pipeline stage summary; weight from `business_quality.engine_weights`
+ * (BusinessQualityAggregatorWeights.as_dict()). Presentation only — nothing
+ * is recomputed in the browser.
+ */
+export type DomainScoreView = {
+  id:
+    | "economic_moat"
+    | "management_quality"
+    | "financial_strength"
+    | "earnings_quality"
+    | "growth_quality";
+  label: string;
+  /** 0–100 or null when the stage has no result. */
+  scoreValue: number | null;
+  score: string;
+  /** Aggregator weight as a percentage (0–100) or null when not exposed. */
+  weightValue: number | null;
+  weight: string;
+  status: string;
+};
+
+/**
+ * Figma `CompanyAnalysis` S10 — standalone Margin of Safety card pair.
+ * RS-005. Values come from `recommendation_summary.margin_of_safety_assessment`
+ * (recommendation engine) with `server_valuation` as the price / IV authority.
+ * The browser formats; it never recomputes MoS.
+ */
+export type MarginOfSafetyView = {
+  /** Ratio as published (e.g. -0.188) or null. */
+  value: number | null;
+  /** Formatted percentage or "Unavailable". */
+  display: string;
+  /** discount → price below IV; premium → price above IV. */
+  status: "discount" | "premium" | "unavailable";
+  /** Engine classification label (e.g. "NEGATIVE") or "Unavailable". */
+  classification: string;
+  reasoning: string | null;
+  intrinsicValue: string;
+  currentPrice: string;
+  premiumDiscount: string;
+  valuationConfidence: string;
+};
+
+/**
+ * Figma S12 — Strengths & Weaknesses. Powered by the recommendation engine's
+ * `positive_factors` / `negative_factors` and the Business Quality aggregator's
+ * `strengths` / `weaknesses`. Not client-authored; not AI-generated in browser.
+ */
+export type StrengthsWeaknessesView = {
+  strengths: string[];
+  weaknesses: string[];
+  /** Which authoritative sources contributed (for the provenance footer). */
+  sources: string[];
+};
+
+/** Figma S13 — Investment Context tiles (all from existing payload fields). */
+export type InvestmentContextView = {
+  businessQuality: string;
+  valuation: string;
+  marginOfSafety: string;
+  riskLevel: string;
+  confidence: string;
+  decisionSummary: string | null;
+  keyDrivers: string[];
+};
+
 export type ResearchView = IntelligenceView & {
   ticker: string;
   exchange: string;
   company: string;
   analysedAt: string | null;
+  /** Figma weighted domain scorecard — existing stage scores + aggregator weights. */
+  domainScores: DomainScoreView[];
+  marginOfSafetyView: MarginOfSafetyView;
+  strengthsWeaknesses: StrengthsWeaknessesView;
+  investmentContext: InvestmentContextView;
+  /** Reporting currency from source_evidence (ISO 4217) or null. */
+  currency: string | null;
   valuation: {
     intrinsicValue: string;
     currentPrice: string;
@@ -155,15 +232,109 @@ function display(value: unknown, fallback = "Unavailable"): string {
   return String(value);
 }
 
-function money(value: unknown): string {
+/**
+ * Format a per-share amount in the reporting currency published by the
+ * backend (`source_evidence.reporting_currency`). When the currency is not
+ * known we show the bare number rather than inventing a symbol (CV-001).
+ */
+export function money(value: unknown, currency: string | null = null): string {
   if (typeof value === "number" && Number.isFinite(value)) {
-    return value.toLocaleString(undefined, {
-      style: "currency",
-      currency: "USD",
-      maximumFractionDigits: 2,
-    });
+    if (currency && /^[A-Z]{3}$/.test(currency)) {
+      try {
+        return value.toLocaleString(undefined, {
+          style: "currency",
+          currency,
+          maximumFractionDigits: 2,
+        });
+      } catch {
+        // Unknown ISO code in this runtime — fall through to bare number.
+      }
+    }
+    return value.toLocaleString(undefined, { maximumFractionDigits: 2 });
   }
   return "Unavailable";
+}
+
+function reportingCurrency(response: AnalyseResponse): string | null {
+  const raw = (
+    response.payload as { source_evidence?: { reporting_currency?: unknown } | null }
+  )?.source_evidence?.reporting_currency;
+  if (typeof raw !== "string") return null;
+  const code = raw.trim().toUpperCase();
+  return /^[A-Z]{3}$/.test(code) ? code : null;
+}
+
+function uniqueStrings(...lists: Array<readonly string[] | undefined>): string[] {
+  const seen = new Set<string>();
+  const out: string[] = [];
+  for (const list of lists) {
+    for (const item of list ?? []) {
+      const text = String(item).trim();
+      if (!text || seen.has(text)) continue;
+      seen.add(text);
+      out.push(text);
+    }
+  }
+  return out;
+}
+
+/**
+ * RS-005 Margin of Safety presentation (Figma S10). Prefers the recommendation
+ * engine's assessment; IV / price fall back to server_valuation. No arithmetic.
+ */
+export function mapMarginOfSafety(
+  recommendation: DecisionSummary | null | undefined,
+  serverValuation:
+    | { intrinsic_value_per_share?: number | null; current_market_price?: number | null }
+    | null
+    | undefined,
+  currency: string | null,
+): MarginOfSafetyView {
+  const assessment = recommendation?.margin_of_safety_assessment ?? null;
+  const ratioRaw = assessment?.margin_of_safety ?? recommendation?.margin_of_safety;
+  const value =
+    typeof ratioRaw === "number" && Number.isFinite(ratioRaw) ? ratioRaw : null;
+  const iv =
+    assessment?.intrinsic_value_per_share ?? serverValuation?.intrinsic_value_per_share;
+  const price =
+    assessment?.current_market_price ?? serverValuation?.current_market_price;
+  const premium = assessment?.premium_discount;
+  return {
+    value,
+    display: formatPct(value),
+    status: value == null ? "unavailable" : value >= 0 ? "discount" : "premium",
+    classification: display(assessment?.classification),
+    reasoning: assessment?.reasoning?.trim() ? assessment.reasoning.trim() : null,
+    intrinsicValue: money(iv ?? null, currency),
+    currentPrice: money(price ?? null, currency),
+    premiumDiscount: formatPct(
+      typeof premium === "number" && Number.isFinite(premium) ? premium : null,
+    ),
+    valuationConfidence: formatPct(
+      typeof assessment?.valuation_confidence === "number"
+        ? assessment.valuation_confidence
+        : null,
+    ),
+  };
+}
+
+/** Figma S12 — engine-published factors only (no browser synthesis). */
+export function mapStrengthsWeaknesses(
+  recommendation: DecisionSummary | null | undefined,
+  businessQuality: BusinessQualityPublic | null | undefined,
+): StrengthsWeaknessesView {
+  const sources: string[] = [];
+  if (recommendation?.positive_factors?.length || recommendation?.negative_factors?.length) {
+    sources.push("investment_recommendation");
+  }
+  if (businessQuality?.strengths?.length || businessQuality?.weaknesses?.length) {
+    sources.push("business_quality_aggregator");
+  }
+  return {
+    strengths: uniqueStrings(recommendation?.positive_factors, businessQuality?.strengths),
+    weaknesses: uniqueStrings(recommendation?.negative_factors, businessQuality?.weaknesses),
+    sources,
+  };
 }
 
 function toSection(
@@ -196,6 +367,53 @@ function toSection(
     warnings: stage?.warnings ?? [],
     metrics,
   };
+}
+
+const DOMAIN_SCORE_ORDER: readonly { id: DomainScoreView["id"]; label: string }[] = [
+  { id: "economic_moat", label: "Economic Moat" },
+  { id: "management_quality", label: "Management Quality" },
+  { id: "financial_strength", label: "Financial Strength" },
+  { id: "earnings_quality", label: "Earnings Quality" },
+  { id: "growth_quality", label: "Growth Quality" },
+];
+
+/**
+ * Weighted domain scorecard (Figma `DOMAIN_SCORES`). Scores are the existing
+ * stage_summaries scores; weights are the aggregator's published
+ * `engine_weights` (fractions summing to 1). Missing inputs stay Unavailable.
+ */
+export function mapDomainScores(
+  stages: StageSummary[],
+  engineWeights: unknown,
+): DomainScoreView[] {
+  const weights =
+    engineWeights && typeof engineWeights === "object"
+      ? (engineWeights as Record<string, unknown>)
+      : null;
+  return DOMAIN_SCORE_ORDER.map(({ id, label }) => {
+    const stage = stageOrEmpty(stages, id);
+    const status = stage?.status ?? "unavailable";
+    const available =
+      Boolean(stage?.has_result) &&
+      (status === "succeeded" || status === "degraded") &&
+      typeof stage?.score === "number" &&
+      Number.isFinite(stage.score);
+    const scoreValue = available ? (stage!.score as number) : null;
+    const rawWeight = weights?.[id];
+    const weightValue =
+      typeof rawWeight === "number" && Number.isFinite(rawWeight) && rawWeight >= 0
+        ? Math.round(rawWeight * 1000) / 10
+        : null;
+    return {
+      id,
+      label,
+      scoreValue,
+      score: formatScore(scoreValue),
+      weightValue,
+      weight: weightValue == null ? "Unavailable" : `${weightValue}%`,
+      status: available ? status : "unavailable",
+    };
+  });
 }
 
 /** Map analyse API response + request context → ResearchView. */
@@ -314,18 +532,60 @@ export function mapResearchView(
       finalRecommendation: base.recommendation,
   };
 
+  const businessQualityPublic = response.payload?.business_quality ?? null;
+  const recommendationSummary = response.payload?.recommendation_summary ?? null;
+  const currency = reportingCurrency(response);
+  const domainScores = mapDomainScores(
+    stages,
+    businessQualityPublic?.engine_weights,
+  );
+  const marginOfSafetyView = mapMarginOfSafety(
+    recommendationSummary,
+    serverValuation,
+    currency,
+  );
+  const strengthsWeaknesses = mapStrengthsWeaknesses(
+    recommendationSummary,
+    businessQualityPublic,
+  );
+  const riskPayload =
+    (response.payload?.risk as CompanyRiskPayload | null | undefined) ?? null;
+  const investmentContext: InvestmentContextView = {
+    businessQuality:
+      base.businessQualityScore == null
+        ? display(base.businessQualityLabel)
+        : `${formatScore(base.businessQualityScore)} / 100`,
+    valuation: marginOfSafetyView.classification,
+    marginOfSafety: marginOfSafetyView.display,
+    riskLevel: display(riskPayload?.overall_risk_level),
+    confidence: formatPct(base.recommendationConfidence),
+    decisionSummary: recommendationSummary?.decision_summary?.trim()
+      ? recommendationSummary.decision_summary.trim()
+      : null,
+    keyDrivers: uniqueStrings(recommendationSummary?.key_drivers),
+  };
+
   const draft = {
     ...base,
     ticker: request.ticker.toUpperCase(),
     exchange: display(request.exchange, "—"),
     company: display(request.company, request.ticker.toUpperCase()),
     analysedAt: analysedAt ?? null,
+    domainScores,
+    marginOfSafetyView,
+    strengthsWeaknesses,
+    investmentContext,
+    currency,
     valuation: {
-      intrinsicValue: money(serverValuation?.intrinsic_value_per_share ?? null),
+      intrinsicValue: money(
+        serverValuation?.intrinsic_value_per_share ?? null,
+        currency,
+      ),
       currentPrice: money(
         serverValuation?.current_market_price ??
           sourceEvidence?.current_market_price ??
           null,
+        currency,
       ),
       marginOfSafety: formatPct(base.marginOfSafety),
       method: display(

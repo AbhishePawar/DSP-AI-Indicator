@@ -259,12 +259,12 @@ def test_currentness_is_not_retrieval_time() -> None:
 def test_share_semantic_red_flags() -> None:
     assert canonical_share_semantic_type("equity shares outstanding") == "TOTAL_OUTSTANDING"
     assert canonical_share_semantic_type("Weighted average number of equity shares") == (
-        "WEIGHTED_AVERAGE_EPS"
+        "WEIGHTED_AVERAGE_BASIC"
     )
     assert classify_share_semantic_type("Weighted average number of equity shares") == (
         "WEIGHTED_AVERAGE"
     )
-    assert canonical_share_semantic_type("dilutive potential equity shares") == "POTENTIAL_DILUTED"
+    assert canonical_share_semantic_type("dilutive potential equity shares") == "POTENTIAL_EQUITY"
     assert canonical_share_semantic_type("free float shares") == "FREE_FLOAT"
     assert canonical_share_semantic_type("Paid-up capital") == "PAID_UP"
     listing = _listing("TCS", "INE467B01029")

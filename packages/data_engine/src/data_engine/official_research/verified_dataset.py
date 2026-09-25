@@ -118,6 +118,7 @@ class VerifiedDataset:
     unresolved: tuple[str, ...] = ()
     mode: ResearchMode = "LIVE"
     capital_events: tuple[CapitalEvent, ...] = ()
+    share_history: tuple[ShareCountSnapshot, ...] = ()
 
     def field_status(self, name: str) -> FailureStatus:
         if name == "price":
@@ -239,6 +240,18 @@ class VerifiedDataset:
             ],
             "unresolved": list(self.unresolved),
             "mode": self.mode,
+            "share_history": [
+                {
+                    "shares_outstanding": str(item.shares),
+                    "shares_as_of": item.as_of.isoformat(),
+                    "shares_current_through": item.current_through.isoformat(),
+                    "status": item.status,
+                    "semantic_type": item.semantic_type,
+                    "source_url": item.source_url,
+                    "evidence_id": item.evidence_id,
+                }
+                for item in self.share_history
+            ],
             "evidence": [item.to_public_dict() for item in self.evidence],
         }
 

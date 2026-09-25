@@ -61,6 +61,20 @@ export type StageSummary = {
   warnings?: string[];
 };
 
+/**
+ * RS-005 margin-of-safety assessment as published by the recommendation
+ * engine (`InvestmentRecommendation.margin_of_safety`). Display only.
+ */
+export type MarginOfSafetyAssessment = {
+  intrinsic_value_per_share?: number | null;
+  current_market_price?: number | null;
+  margin_of_safety?: number | null;
+  premium_discount?: number | null;
+  valuation_confidence?: number | null;
+  classification?: string | null;
+  reasoning?: string | null;
+};
+
 export type DecisionSummary = {
   decision?: string | null;
   confidence?: number | null;
@@ -71,7 +85,28 @@ export type DecisionSummary = {
   rationale?: string | null;
   action?: string | null;
   recommendation?: string | null;
+  /** recommendation_summary only — engine narrative (never client-authored). */
+  margin_of_safety_assessment?: MarginOfSafetyAssessment | null;
+  positive_factors?: string[];
+  negative_factors?: string[];
+  risks?: string[];
+  key_drivers?: string[];
+  decision_summary?: string | null;
+  investment_thesis?: string | null;
   [key: string]: unknown;
+};
+
+/** Public Business Quality aggregator surface (`payload.business_quality`). */
+export type BusinessQualityPublic = {
+  authority?: string;
+  score?: number | null;
+  rating?: string | null;
+  /** Aggregator weights as fractions summing to 1 (e.g. economic_moat: 0.25). */
+  engine_weights?: Record<string, number> | null;
+  summary?: string | null;
+  strengths?: string[];
+  weaknesses?: string[];
+  risks?: string[];
 };
 
 export type RiskCategoryPayload = {
@@ -132,6 +167,7 @@ export type PipelinePayload = {
   stage_summaries?: StageSummary[];
   recommendation_summary?: DecisionSummary | null;
   committee_summary?: DecisionSummary | null;
+  business_quality?: BusinessQualityPublic | null;
   limitations?: string[];
   errors?: string[];
   has_financial_analysis?: boolean;

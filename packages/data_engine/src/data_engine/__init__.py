@@ -54,6 +54,16 @@ from data_engine.exceptions import (
     ProviderRequestError,
     TransformationError,
 )
+from data_engine.market_indices import (
+    INDIA_BENCHMARK_INDICES,
+    BenchmarkIndex,
+    FinancialModelingPrepIndexAdapter,
+    MarketIndexPort,
+    MarketIndexService,
+    MarketIndexSnapshot,
+    NullMarketIndexAdapter,
+    build_default_index_adapter_from_env,
+)
 from data_engine.market_quote import (
     AuthenticatedMarketQuote,
     CircuitBreaker,
@@ -470,6 +480,14 @@ __all__ = [
     'MarketQuoteProviderRegistry',
     'MarketQuoteService',
     'MarketQuoteServiceMetrics',
+    'INDIA_BENCHMARK_INDICES',
+    'BenchmarkIndex',
+    'FinancialModelingPrepIndexAdapter',
+    'MarketIndexPort',
+    'MarketIndexService',
+    'MarketIndexSnapshot',
+    'NullMarketIndexAdapter',
+    'build_default_index_adapter_from_env',
     'MissingFieldError',
     'MissingValueValidationStage',
     'NewsArticle',

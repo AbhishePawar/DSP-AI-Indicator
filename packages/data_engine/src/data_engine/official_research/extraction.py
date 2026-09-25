@@ -29,8 +29,12 @@ __all__ = [
     "canonical_share_semantic_type",
     "classify_capital_effect",
     "classify_share_count_impact",
+    "esop_changes_outstanding",
     "classify_share_count_effect_status",
     "classify_acquisition_consideration",
+    "classify_capex_semantic",
+    "extract_classified_capex",
+    "DCF_CAPEX_SEMANTICS",
     "VALUATION_SHARE_SEMANTIC",
     "CANONICAL_SHARE_SEMANTICS",
     "canonicalize_period",
@@ -126,6 +130,7 @@ _FIELD_LABELS: dict[str, tuple[str, ...]] = {
     "capex": ("capex", "capital expenditure"),
     "cash": ("cash and cash equivalents", "cash"),
     "debt": ("total borrowings", "borrowings", "debt"),
+    "finance_costs": ("finance costs", "finance cost", "interest expense"),
     "total_assets": ("total assets",),
     "total_liabilities": ("total liabilities",),
     "shares_outstanding": (
@@ -517,37 +522,64 @@ CANONICAL_SHARE_SEMANTICS: frozenset[str] = frozenset(
     {
         "TOTAL_OUTSTANDING",
         "ISSUED",
+        "SUBSCRIBED",
         "PAID_UP",
+        "AUTHORIZED",
         "LISTED",
         "FREE_FLOAT",
         "PROMOTER",
+        "PROMOTER_HOLDING",
         "WEIGHTED_AVERAGE_EPS",
+        "WEIGHTED_AVERAGE_BASIC",
+        "WEIGHTED_AVERAGE_DILUTED",
         "POTENTIAL_DILUTED",
-        "AUTHORIZED",
+        "POTENTIAL_EQUITY",
+        "TREASURY",
+        "TREASURY_CANCELLED",
         "UNKNOWN",
     }
 )
 _SHARE_SEMANTIC_CANONICAL = {
     "TOTAL_OUTSTANDING": "TOTAL_OUTSTANDING",
     "ISSUED": "ISSUED",
+    "SUBSCRIBED": "SUBSCRIBED",
     "PAID_UP": "PAID_UP",
     "LISTED": "LISTED",
     "FREE_FLOAT": "FREE_FLOAT",
-    "PROMOTER": "PROMOTER",
-    "WEIGHTED_AVERAGE": "WEIGHTED_AVERAGE_EPS",
-    "DILUTED_EPS_DENOMINATOR": "WEIGHTED_AVERAGE_EPS",
-    "WEIGHTED_AVERAGE_EPS": "WEIGHTED_AVERAGE_EPS",
-    "TRANCHE": "POTENTIAL_DILUTED",
-    "POTENTIAL_DILUTED": "POTENTIAL_DILUTED",
+    "PROMOTER": "PROMOTER_HOLDING",
+    "PROMOTER_HOLDING": "PROMOTER_HOLDING",
+    "WEIGHTED_AVERAGE": "WEIGHTED_AVERAGE_BASIC",
+    "DILUTED_EPS_DENOMINATOR": "WEIGHTED_AVERAGE_DILUTED",
+    "WEIGHTED_AVERAGE_EPS": "WEIGHTED_AVERAGE_BASIC",
+    "WEIGHTED_AVERAGE_BASIC": "WEIGHTED_AVERAGE_BASIC",
+    "WEIGHTED_AVERAGE_DILUTED": "WEIGHTED_AVERAGE_DILUTED",
+    "TRANCHE": "POTENTIAL_EQUITY",
+    "POTENTIAL_DILUTED": "POTENTIAL_EQUITY",
+    "POTENTIAL_EQUITY": "POTENTIAL_EQUITY",
     "AUTHORIZED": "AUTHORIZED",
+    "TREASURY": "TREASURY_CANCELLED",
+    "TREASURY_CANCELLED": "TREASURY_CANCELLED",
 }
+
+
+def _humanize_concept(label: str) -> str:
+    """CamelCase/XBRL local names become comparable phrases. Not an issuer map."""
+    text = re.sub(r"([a-z])([A-Z])", r"\1 \2", str(label or ""))
+    text = re.sub(r"([A-Z]+)([A-Z][a-z])", r"\1 \2", text)
+    return re.sub(r"[\s_]+", " ", text.replace("-", " ")).strip().lower()
 
 
 def classify_share_semantic_type(label: str) -> str:
     """Generic share-label semantics. Not an issuer table."""
-    lowered = re.sub(r"\s+", " ", str(label or "").strip().lower())
+    raw = str(label or "").strip()
+    if raw.startswith("derived:"):
+        return "PAID_UP"
+    lowered = _humanize_concept(label)
+    compact = re.sub(r"[^a-z0-9]+", "", lowered)
     if not lowered:
         return "UNKNOWN"
+    if "shareholdingpattern" in compact and "fullypaidupequityshares" in compact:
+        return "TOTAL_OUTSTANDING"
     if "weighted average" in lowered:
         return "WEIGHTED_AVERAGE"
     if "dilut" in lowered and (
@@ -569,13 +601,14 @@ def classify_share_semantic_type(label: str) -> str:
         return "PROMOTER"
     if "authorised" in lowered or "authorized" in lowered:
         return "AUTHORIZED"
-    if "treasury" in lowered:
+    if "treasury" in lowered or "cancelled share" in lowered:
         return "TREASURY"
     if ("paid-up" in lowered or "paid up" in lowered) and "capital" in lowered:
         return "PAID_UP"
+    if "subscribed" in lowered and "outstanding" not in lowered:
+        return "SUBSCRIBED"
     if "issued" in lowered and "outstanding" not in lowered:
         return "ISSUED"
-    compact = re.sub(r"[^a-z0-9]+", "", lowered)
     if compact in {"totalnoofshares", "totalnumberofshares", "total_shares"}:
         if "promoter" not in lowered and "float" not in lowered:
             return "TOTAL_OUTSTANDING"
@@ -665,6 +698,34 @@ def classify_share_count_effect_status(
     }.get(impact, "UNKNOWN")
 
 
+def esop_changes_outstanding(text: str) -> bool:
+    """Option grants do not change outstanding shares. Allotment/unknown ESOP does."""
+    lowered = re.sub(r"\s+", " ", str(text or "").strip().lower())
+    if not lowered:
+        return True
+    allotted = bool(
+        re.search(
+            r"\b(allot(?:ted|ment)|issued|listing of (?:equity )?shares).{0,80}"
+            r"(esop|esos|employee stock|rsu)\b|"
+            r"\b(esop|esos|employee stock|rsu).{0,80}"
+            r"(allot(?:ted|ment)|issued|listed)\b",
+            lowered,
+        )
+    )
+    grant = bool(
+        re.search(
+            r"\b(grant|granted|grants) of .{0,40}(option|rsu|esop|esos)\b|"
+            r"\b(esop|esos|option) grant",
+            lowered,
+        )
+    )
+    if allotted:
+        return True
+    if grant and not allotted:
+        return False
+    return True
+
+
 def classify_acquisition_consideration(text: str) -> str:
     """Acquisition does not imply a share-count change. Classify consideration only."""
     lowered = re.sub(r"\s+", " ", str(text or "").strip().lower())
@@ -737,11 +798,14 @@ def attack_corporate_actions(
             changing = classify_capital_effect(event_type) in {"INCREASE", "DECREASE"}
             if event_type == "share_swap":
                 changing = True
+            elif event_type == "esop":
+                changing = esop_changes_outstanding(text)
             elif event_type == "acquisition":
                 consideration = classify_acquisition_consideration(text)
                 changing = consideration in {"SHARE_SWAP", "MIXED"}
             elif event_type in {"merger", "demerger", "scheme"}:
-                changing = False
+                # Do not invent a post-scheme count. Unresolved schemes still stale currentness.
+                changing = True
             found.append(
                 CapitalEvent(event_type, dated, capital_changing=changing)
             )
@@ -785,6 +849,141 @@ def _match_in_statement_window(
     if last < 0:
         return False
     return match_start - last <= window
+
+
+DCF_CAPEX_SEMANTICS: frozenset[str] = frozenset({"CAPITAL_EXPENDITURE", "PPE_PURCHASE"})
+_CLASSIFIED_CAPEX_LABELS: tuple[tuple[str, str], ...] = (
+    ("capital expenditure", "CAPITAL_EXPENDITURE"),
+    ("capital expenditures", "CAPITAL_EXPENDITURE"),
+    ("purchase of property, plant and equipment", "PPE_PURCHASE"),
+    ("purchase of property plant and equipment", "PPE_PURCHASE"),
+    ("purchase of ppe", "PPE_PURCHASE"),
+    ("purchase of fixed assets", "PPE_PURCHASE"),
+    ("purchase of tangible assets", "PPE_PURCHASE"),
+    ("additions to property plant and equipment", "PPE_PURCHASE"),
+    ("additions to property, plant and equipment", "PPE_PURCHASE"),
+    ("payments to acquire property, plant and equipment", "PPE_PURCHASE"),
+)
+_CAPEX_REJECT_NEARBY = re.compile(
+    r"subsidiar|acquisition of (the )?business|purchase of investment|"
+    r"goodwill|stock in trade|working capital|lease liabilit",
+    re.I,
+)
+
+
+def classify_capex_semantic(label: str) -> str:
+    """Classify investing-line language. Total investing cash flow is not capex."""
+    lowered = re.sub(r"\s+", " ", str(label or "").strip().lower())
+    compact = re.sub(r"[^a-z0-9]+", "", lowered)
+    if not lowered:
+        return "UNKNOWN"
+    if "cashflowsfromusedininvesting" in compact or lowered in {
+        "cash flow from investing activities",
+        "net cash from investing activities",
+        "cash flows from used in investing activities",
+    }:
+        return "OTHER_INVESTING"
+    if "obtainingcontrol" in compact or "subsidiar" in lowered or "acquisition" in lowered:
+        return "ACQUISITION"
+    if "goodwill" in lowered:
+        return "ACQUISITION"
+    if "intangible" in lowered:
+        return "INTANGIBLE_PURCHASE"
+    if "investment property" in lowered or "purchase of investment" in lowered:
+        return "INVESTMENT"
+    if "working capital" in lowered:
+        return "WORKING_CAPITAL"
+    if "lease" in lowered:
+        return "LEASE_CAPEX"
+    if "capital expenditure" in lowered or compact in {"capex", "capitalexpenditure"}:
+        return "CAPITAL_EXPENDITURE"
+    if "propertyplantandequipment" in compact or "purchase of ppe" in lowered:
+        return "PPE_PURCHASE"
+    if "fixed assets" in lowered or "tangible assets" in lowered:
+        return "PPE_PURCHASE"
+    return "UNKNOWN"
+
+
+def extract_classified_capex(text: str) -> ExtractedField | None:
+    """PPE purchases on the cash-flow statement may satisfy DCF capex after classification.
+
+    Explicit extract_labeled_field('capex') still requires the words capex / capital
+    expenditure. This path does not treat total investing cash flow or acquisitions
+    as capex.
+    """
+    context = parse_document_context(text)
+    as_of = context.period_end or _document_as_of(text)
+    if context.period_type == "quarter":
+        return None
+    last = _last_heading_start(text, _CF_HEAD)
+    if last < 0:
+        return None
+    search_text = text[last : last + _STATEMENT_WINDOW]
+    mixed_basis = context.statement_basis is None and (
+        "consolidated" in text.lower() and "standalone" in text.lower()
+    )
+    unlabeled_unit: ExtractedField | None = None
+    for label, semantic in _CLASSIFIED_CAPEX_LABELS:
+        if semantic not in DCF_CAPEX_SEMANTICS:
+            continue
+        pattern = re.compile(
+            rf"{re.escape(label)}\s*[:=\s]\s*([-+]?\d[\d,]*(?:\.\d+)?)",
+            re.I,
+        )
+        for match in pattern.finditer(search_text):
+            nearby = search_text[max(0, match.start() - 80) : match.end() + 80]
+            if _CAPEX_REJECT_NEARBY.search(nearby):
+                continue
+            if classify_capex_semantic(label) not in DCF_CAPEX_SEMANTICS:
+                continue
+            position = match.start() + last
+            local_basis = context.statement_basis
+            if mixed_basis:
+                local_basis = nearest_statement_basis(text, position)
+                if local_basis != "consolidated":
+                    continue
+            raw = match.group(1).replace(",", "")
+            locator = _locator_with_page(text, position, label)
+            if context.unit_multiplier is not None and context.unit_scale is not None:
+                local_unit = (context.unit_multiplier, context.unit_scale)
+            else:
+                local_unit = nearest_unit_scale(text, position)
+            if local_unit is None:
+                unlabeled_unit = ExtractedField(
+                    field="capex",
+                    value="",
+                    as_of=as_of,
+                    locator=locator,
+                    semantic_status="UNKNOWN",
+                    currency=context.currency,
+                    raw_value=raw,
+                    raw_unit=None,
+                    period_end=context.period_end,
+                    period_type=context.period_type,
+                    statement_basis=local_basis,
+                    restated=context.restated,
+                )
+                continue
+            try:
+                amount = Decimal(raw) * local_unit[0]
+            except (InvalidOperation, ValueError):
+                continue
+            return ExtractedField(
+                field="capex",
+                value=format(amount, "f"),
+                as_of=as_of,
+                locator=locator,
+                semantic_status="VERIFIED",
+                currency=context.currency or "INR",
+                raw_value=raw,
+                raw_unit=local_unit[1],
+                unit_scale=local_unit[1],
+                period_end=context.period_end,
+                period_type=context.period_type,
+                statement_basis=local_basis,
+                restated=context.restated,
+            )
+    return unlabeled_unit
 
 
 def extract_labeled_field(text: str, field: str) -> ExtractedField | None:

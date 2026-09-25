@@ -236,7 +236,7 @@ export function WorkspaceToolbar({
         </span>
       </div>
       <Button className="min-h-11" onClick={onAnalyze} disabled={analyzing}>
-        {analyzing ? "Analyzing…" : "Run analysis"}
+        {analyzing ? "Preparing your analysis…" : "Run analysis"}
       </Button>
     </div>
   );

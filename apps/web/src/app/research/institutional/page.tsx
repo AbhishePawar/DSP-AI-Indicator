@@ -1,8 +1,11 @@
 "use client";
 
 /**
- * Institutional Research Reports — publishing workspace.
- * RC3-004 — dynamic import + skeleton loading.
+ * Institutional — Figma Make `InstitutionalResearch.tsx` (coverage stats ·
+ * Quality Screener · Coverage Growth · Rating Distribution). No universe
+ * screener or coverage feed exists on /api/v1, so those tiles are honest
+ * unavailable states; screener rows are this session's backend analyses.
+ * RC3-004 — dynamic import + skeleton for route code-splitting.
  */
 
 import dynamic from "next/dynamic";
@@ -10,39 +13,37 @@ import { Suspense } from "react";
 
 import { Skeleton } from "@/components/ds";
 
-function ReportsFallback() {
+function InstitutionalFallback() {
   return (
     <div
-      className="space-y-3 p-4"
+      className="space-y-5 py-6"
       role="status"
       aria-live="polite"
-      aria-label="Loading institutional research reports"
+      aria-label="Loading Institutional Research"
     >
-      <Skeleton className="h-10 w-80" />
-      <Skeleton className="h-16 w-full" />
-      <Skeleton className="h-64 w-full" />
-      <p className="text-sm text-[var(--muted)]">
-        Loading institutional research reports workspace…
-      </p>
+      <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+        <Skeleton className="h-20" />
+        <Skeleton className="h-20" />
+        <Skeleton className="h-20" />
+        <Skeleton className="h-20" />
+      </div>
+      <div className="grid gap-5 lg:grid-cols-[1fr_280px]">
+        <Skeleton className="h-64 w-full" />
+        <Skeleton className="h-64 w-full" />
+      </div>
     </div>
   );
 }
 
-const InstitutionalReportsWorkspace = dynamic(
-  () =>
-    import("@/components/institutional-reports").then((m) => ({
-      default: m.InstitutionalReportsWorkspace,
-    })),
-  {
-    ssr: false,
-    loading: () => <ReportsFallback />,
-  },
+const InstitutionalResearch = dynamic(
+  () => import("@/components/pages").then((m) => ({ default: m.InstitutionalResearch })),
+  { ssr: false, loading: () => <InstitutionalFallback /> },
 );
 
-export default function InstitutionalResearchReportsPage() {
+export default function InstitutionalResearchPage() {
   return (
-    <Suspense fallback={<ReportsFallback />}>
-      <InstitutionalReportsWorkspace />
+    <Suspense fallback={<InstitutionalFallback />}>
+      <InstitutionalResearch />
     </Suspense>
   );
 }

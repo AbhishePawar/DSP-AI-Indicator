@@ -1,0 +1,395 @@
+{
+  "names": [
+    [
+      "INFY",
+      "INE009A01021"
+    ],
+    [
+      "TCS",
+      "INE467B01029"
+    ],
+    [
+      "WIPRO",
+      "INE075A01022"
+    ],
+    [
+      "HDFCBANK",
+      "INE040A01034"
+    ],
+    [
+      "RELIANCE",
+      "INE002A01018"
+    ],
+    [
+      "20MICRONS",
+      "INE144J01027"
+    ],
+    [
+      "21STCENMGM",
+      "INE253B01015"
+    ]
+  ],
+  "rows": [
+    {
+      "ticker": "INFY",
+      "isin": "INE009A01021",
+      "identity": "VERIFIED",
+      "seconds": 5.606,
+      "price": "1035.00",
+      "price_kind": "EOD",
+      "price_as_of": "2026-09-09",
+      "shares": {
+        "status": "UNKNOWN",
+        "as_of": null,
+        "source": "NONE",
+        "raw_unit": null,
+        "statement_basis": null
+      },
+      "net_income": {
+        "status": "UNKNOWN",
+        "as_of": null,
+        "source": "NONE",
+        "raw_unit": null,
+        "statement_basis": null
+      },
+      "revenue": {
+        "status": "UNKNOWN",
+        "as_of": null,
+        "source": "NONE",
+        "raw_unit": null,
+        "statement_basis": null
+      },
+      "ebit": {
+        "status": "UNKNOWN",
+        "as_of": null,
+        "source": "NONE",
+        "raw_unit": null,
+        "statement_basis": null
+      },
+      "capex": {
+        "status": "UNKNOWN",
+        "as_of": null,
+        "source": "NONE",
+        "raw_unit": null,
+        "statement_basis": null
+      },
+      "unresolved": [
+        "NSE HTTP 403 for official URL",
+        "NSE HTTP 404 for official URL",
+        "NSE result unit (actual/crore/lakh) unlabeled"
+      ]
+    },
+    {
+      "ticker": "TCS",
+      "isin": "INE467B01029",
+      "identity": "VERIFIED",
+      "seconds": 81.521,
+      "price": "2208.00",
+      "price_kind": "EOD",
+      "price_as_of": "2026-09-09",
+      "shares": {
+        "status": "UNKNOWN",
+        "as_of": null,
+        "source": "NONE",
+        "raw_unit": null,
+        "statement_basis": null
+      },
+      "net_income": {
+        "status": "UNKNOWN",
+        "as_of": "2024-03-31",
+        "source": "NONE",
+        "raw_unit": null,
+        "statement_basis": null
+      },
+      "revenue": {
+        "status": "UNKNOWN",
+        "as_of": "2024-03-31",
+        "source": "NONE",
+        "raw_unit": null,
+        "statement_basis": null
+      },
+      "ebit": {
+        "status": "UNKNOWN",
+        "as_of": null,
+        "source": "NONE",
+        "raw_unit": null,
+        "statement_basis": null
+      },
+      "capex": {
+        "status": "UNKNOWN",
+        "as_of": null,
+        "source": "NONE",
+        "raw_unit": null,
+        "statement_basis": null
+      },
+      "unresolved": [
+        "consolidated and standalone both present",
+        "quarterly document cannot satisfy annual DSP fields",
+        "NSE HTTP 403 for official URL",
+        "NSE HTTP 404 for official URL",
+        "NSE result unit (actual/crore/lakh) unlabeled"
+      ]
+    },
+    {
+      "ticker": "WIPRO",
+      "isin": "INE075A01022",
+      "identity": "VERIFIED",
+      "seconds": 54.603,
+      "price": "167.00",
+      "price_kind": "EOD",
+      "price_as_of": "2026-09-09",
+      "shares": {
+        "status": "UNKNOWN",
+        "as_of": null,
+        "source": "NONE",
+        "raw_unit": null,
+        "statement_basis": null
+      },
+      "net_income": {
+        "status": "UNKNOWN",
+        "as_of": null,
+        "source": "NONE",
+        "raw_unit": null,
+        "statement_basis": null
+      },
+      "revenue": {
+        "status": "UNKNOWN",
+        "as_of": null,
+        "source": "NONE",
+        "raw_unit": null,
+        "statement_basis": null
+      },
+      "ebit": {
+        "status": "UNKNOWN",
+        "as_of": null,
+        "source": "NONE",
+        "raw_unit": null,
+        "statement_basis": null
+      },
+      "capex": {
+        "status": "UNKNOWN",
+        "as_of": null,
+        "source": "NONE",
+        "raw_unit": null,
+        "statement_basis": null
+      },
+      "unresolved": [
+        "consolidated and standalone both present",
+        "quarterly document cannot satisfy annual DSP fields",
+        "-: unapproved host (not exchange/regulator and not ISIN IR registry)",
+        "NSE HTTP 403 for official URL",
+        "NSE HTTP 404 for official URL",
+        "NSE result unit (actual/crore/lakh) unlabeled"
+      ]
+    },
+    {
+      "ticker": "HDFCBANK",
+      "isin": "INE040A01034",
+      "identity": "VERIFIED",
+      "seconds": 5.151,
+      "price": "687.10",
+      "price_kind": "EOD",
+      "price_as_of": "2026-09-09",
+      "shares": {
+        "status": "UNKNOWN",
+        "as_of": null,
+        "source": "NONE",
+        "raw_unit": null,
+        "statement_basis": null
+      },
+      "net_income": {
+        "status": "UNKNOWN",
+        "as_of": null,
+        "source": "NONE",
+        "raw_unit": null,
+        "statement_basis": null
+      },
+      "revenue": {
+        "status": "UNKNOWN",
+        "as_of": null,
+        "source": "NONE",
+        "raw_unit": null,
+        "statement_basis": null
+      },
+      "ebit": {
+        "status": "UNKNOWN",
+        "as_of": null,
+        "source": "NONE",
+        "raw_unit": null,
+        "statement_basis": null
+      },
+      "capex": {
+        "status": "UNKNOWN",
+        "as_of": null,
+        "source": "NONE",
+        "raw_unit": null,
+        "statement_basis": null
+      },
+      "unresolved": [
+        "NSE HTTP 403 for official URL",
+        "NSE HTTP 404 for official URL",
+        "NSE result unit (actual/crore/lakh) unlabeled"
+      ]
+    },
+    {
+      "ticker": "RELIANCE",
+      "isin": "INE002A01018",
+      "identity": "VERIFIED",
+      "seconds": 15.572,
+      "price": "1279.00",
+      "price_kind": "EOD",
+      "price_as_of": "2026-09-09",
+      "shares": {
+        "status": "UNKNOWN",
+        "as_of": null,
+        "source": "NONE",
+        "raw_unit": null,
+        "statement_basis": null
+      },
+      "net_income": {
+        "status": "UNKNOWN",
+        "as_of": null,
+        "source": "NONE",
+        "raw_unit": null,
+        "statement_basis": null
+      },
+      "revenue": {
+        "status": "UNKNOWN",
+        "as_of": null,
+        "source": "NONE",
+        "raw_unit": null,
+        "statement_basis": null
+      },
+      "ebit": {
+        "status": "UNKNOWN",
+        "as_of": null,
+        "source": "NONE",
+        "raw_unit": null,
+        "statement_basis": null
+      },
+      "capex": {
+        "status": "UNKNOWN",
+        "as_of": null,
+        "source": "NONE",
+        "raw_unit": null,
+        "statement_basis": null
+      },
+      "unresolved": [
+        "consolidated and standalone both present",
+        "quarterly document cannot satisfy annual DSP fields",
+        "NSE HTTP 403 for official URL",
+        "NSE HTTP 404 for official URL",
+        "NSE result unit (actual/crore/lakh) unlabeled"
+      ]
+    },
+    {
+      "ticker": "20MICRONS",
+      "isin": "INE144J01027",
+      "identity": "VERIFIED",
+      "seconds": 34.3,
+      "price": "218.06",
+      "price_kind": "EOD",
+      "price_as_of": "2026-09-09",
+      "shares": {
+        "status": "UNKNOWN",
+        "as_of": null,
+        "source": "NONE",
+        "raw_unit": null,
+        "statement_basis": null
+      },
+      "net_income": {
+        "status": "UNKNOWN",
+        "as_of": null,
+        "source": "NONE",
+        "raw_unit": null,
+        "statement_basis": null
+      },
+      "revenue": {
+        "status": "UNKNOWN",
+        "as_of": null,
+        "source": "NONE",
+        "raw_unit": null,
+        "statement_basis": null
+      },
+      "ebit": {
+        "status": "UNKNOWN",
+        "as_of": null,
+        "source": "NONE",
+        "raw_unit": null,
+        "statement_basis": null
+      },
+      "capex": {
+        "status": "UNKNOWN",
+        "as_of": null,
+        "source": "NONE",
+        "raw_unit": null,
+        "statement_basis": null
+      },
+      "unresolved": [
+        "consolidated and standalone both present",
+        "quarterly document cannot satisfy annual DSP fields",
+        "NSE HTTP 403 for official URL",
+        "NSE HTTP 404 for official URL",
+        "NSE result unit (actual/crore/lakh) unlabeled"
+      ]
+    },
+    {
+      "ticker": "21STCENMGM",
+      "isin": "INE253B01015",
+      "identity": "VERIFIED",
+      "seconds": 18.612,
+      "price": "38.80",
+      "price_kind": "EOD",
+      "price_as_of": "2026-09-09",
+      "shares": {
+        "status": "UNKNOWN",
+        "as_of": null,
+        "source": "NONE",
+        "raw_unit": null,
+        "statement_basis": null
+      },
+      "net_income": {
+        "status": "UNKNOWN",
+        "as_of": null,
+        "source": "NONE",
+        "raw_unit": null,
+        "statement_basis": null
+      },
+      "revenue": {
+        "status": "UNKNOWN",
+        "as_of": null,
+        "source": "NONE",
+        "raw_unit": null,
+        "statement_basis": null
+      },
+      "ebit": {
+        "status": "UNKNOWN",
+        "as_of": null,
+        "source": "NONE",
+        "raw_unit": null,
+        "statement_basis": null
+      },
+      "capex": {
+        "status": "UNKNOWN",
+        "as_of": null,
+        "source": "NONE",
+        "raw_unit": null,
+        "statement_basis": null
+      },
+      "unresolved": [
+        "consolidated and standalone both present",
+        "quarterly document cannot satisfy annual DSP fields",
+        "NSE HTTP 403 for official URL",
+        "NSE HTTP 404 for official URL",
+        "NSE result unit (actual/crore/lakh) unlabeled"
+      ]
+    }
+  ],
+  "eod": {
+    "ok": true,
+    "seconds": 1.822,
+    "as_of": "09-Sep-2026",
+    "file": "BhavCopy_NSE_CM_0_0_0_20260909_F_0000.csv.zip"
+  },
+  "total_seconds": 217.189
+}

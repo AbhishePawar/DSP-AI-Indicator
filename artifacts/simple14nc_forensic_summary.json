@@ -1,0 +1,3466 @@
+[
+  {
+    "ticker": "INFY",
+    "isin": "INE009A01021",
+    "pages": 384,
+    "size": 8985411,
+    "hash": "4fc4a071157f446bfc96f71763159122059c9881870e245cb9383069906bf3e8",
+    "sha256_payload": "4fc4a071157f446bfc96f71763159122059c9881870e245cb9383069906bf3e8",
+    "url": "https://nsearchives.nseindia.com/annual_reports/AR_29313_INFY_2025_2026_U_8985411_30052026200413.pdf",
+    "low_text_pages": 2,
+    "json_s": 2.372,
+    "download_s": 5.13,
+    "open_s": 0.449,
+    "text_s": 28.135,
+    "coord_s": 5.046,
+    "kinds": {
+      "consolidated_cf": 4,
+      "consolidated_bs": 7,
+      "consolidated_pl": 28,
+      "standalone_pl": 8,
+      "unlabeled_bs": 8,
+      "standalone_bs": 5,
+      "standalone_cf": 1,
+      "unlabeled_pl": 11
+    },
+    "consolidated_pages": [
+      [
+        17,
+        "consolidated_cf",
+        95,
+        3
+      ],
+      [
+        27,
+        "consolidated_bs",
+        221,
+        42
+      ],
+      [
+        37,
+        "consolidated_bs",
+        121,
+        2
+      ],
+      [
+        39,
+        "consolidated_bs",
+        107,
+        1
+      ],
+      [
+        80,
+        "consolidated_pl",
+        89,
+        1
+      ],
+      [
+        81,
+        "consolidated_bs",
+        99,
+        12
+      ],
+      [
+        194,
+        "consolidated_pl",
+        57,
+        1
+      ],
+      [
+        243,
+        "consolidated_pl",
+        136,
+        2
+      ],
+      [
+        276,
+        "consolidated_pl",
+        45,
+        1
+      ],
+      [
+        277,
+        "consolidated_pl",
+        34,
+        1
+      ],
+      [
+        281,
+        "consolidated_pl",
+        50,
+        1
+      ],
+      [
+        286,
+        "consolidated_bs",
+        39,
+        1
+      ],
+      [
+        287,
+        "consolidated_bs",
+        66,
+        5
+      ],
+      [
+        288,
+        "consolidated_pl",
+        57,
+        12
+      ],
+      [
+        289,
+        "consolidated_pl",
+        56,
+        3
+      ],
+      [
+        295,
+        "consolidated_cf",
+        54,
+        1
+      ],
+      [
+        296,
+        "consolidated_cf",
+        67,
+        4
+      ],
+      [
+        299,
+        "consolidated_pl",
+        132,
+        2
+      ],
+      [
+        300,
+        "consolidated_pl",
+        142,
+        5
+      ],
+      [
+        301,
+        "consolidated_pl",
+        123,
+        2
+      ],
+      [
+        303,
+        "consolidated_pl",
+        84,
+        1
+      ],
+      [
+        305,
+        "consolidated_pl",
+        88,
+        1
+      ],
+      [
+        307,
+        "consolidated_pl",
+        58,
+        1
+      ],
+      [
+        312,
+        "consolidated_pl",
+        114,
+        1
+      ],
+      [
+        313,
+        "consolidated_pl",
+        102,
+        1
+      ],
+      [
+        319,
+        "consolidated_pl",
+        114,
+        2
+      ],
+      [
+        321,
+        "consolidated_pl",
+        84,
+        1
+      ],
+      [
+        322,
+        "consolidated_cf",
+        121,
+        1
+      ],
+      [
+        329,
+        "consolidated_pl",
+        110,
+        1
+      ],
+      [
+        330,
+        "consolidated_pl",
+        130,
+        1
+      ],
+      [
+        334,
+        "consolidated_pl",
+        107,
+        1
+      ],
+      [
+        335,
+        "consolidated_bs",
+        112,
+        1
+      ],
+      [
+        336,
+        "consolidated_pl",
+        104,
+        1
+      ],
+      [
+        337,
+        "consolidated_pl",
+        111,
+        1
+      ],
+      [
+        338,
+        "consolidated_pl",
+        72,
+        1
+      ],
+      [
+        340,
+        "consolidated_pl",
+        77,
+        1
+      ],
+      [
+        341,
+        "consolidated_pl",
+        49,
+        1
+      ],
+      [
+        343,
+        "consolidated_pl",
+        121,
+        3
+      ],
+      [
+        344,
+        "consolidated_pl",
+        117,
+        2
+      ]
+    ],
+    "ca_events": [
+      {
+        "type": "esop",
+        "date": "2005-07-29"
+      },
+      {
+        "type": "esop",
+        "date": "2005-08-11"
+      },
+      {
+        "type": "esop",
+        "date": "2005-09-12"
+      },
+      {
+        "type": "esop",
+        "date": "2005-09-16"
+      },
+      {
+        "type": "bonus",
+        "date": "2006-01-05"
+      },
+      {
+        "type": "bonus",
+        "date": "2006-04-14"
+      },
+      {
+        "type": "bonus",
+        "date": "2006-06-12"
+      },
+      {
+        "type": "bonus",
+        "date": "2006-07-17"
+      },
+      {
+        "type": "esop",
+        "date": "2012-06-25"
+      },
+      {
+        "type": "esop",
+        "date": "2012-08-03"
+      },
+      {
+        "type": "esop",
+        "date": "2012-09-11"
+      },
+      {
+        "type": "esop",
+        "date": "2012-09-12"
+      }
+    ],
+    "buyback_docs": [
+      {
+        "title": "Post Buyback Public Announcement",
+        "url": "https://nsearchives.nseindia.com/corporate/Infosys_05122025154029_SE_Newspaper_Advt_05122025.pdf",
+        "as_of": "2025-12-05"
+      },
+      {
+        "title": "Buyback",
+        "url": "https://nsearchives.nseindia.com/corporate/Infosys_18112025182523_SE_letter_LoF_18112025.pdf",
+        "as_of": "2025-11-18"
+      },
+      {
+        "title": "Public Announcement - Buyback of Shares",
+        "url": "https://nsearchives.nseindia.com/corporate/Infosys_10112025172147_SE_PublicAnnouncement_10112025.pdf",
+        "as_of": "2025-11-10"
+      },
+      {
+        "title": "Buyback",
+        "url": "https://nsearchives.nseindia.com/corporate/INFY_11092025215149_Outcome11092025.pdf",
+        "as_of": "2025-09-11"
+      },
+      {
+        "title": "Closure of Buy Back",
+        "url": "https://nsearchives.nseindia.com/corporate/INFY_13022023210817_OutcomeoftheBuybackCommitteeMeeting.pdf",
+        "as_of": "2023-02-13"
+      },
+      {
+        "title": "Buyback - others",
+        "url": "https://nsearchives.nseindia.com/corporate/INFY_10102022215730_Infy_BB_Intimation_10102022.pdf",
+        "as_of": "2022-10-10"
+      },
+      {
+        "title": "Post Buyback Public Announcement",
+        "url": "https://nsearchives.nseindia.com/corporate/INFY_13092021184810_Intimation_PostBuybackPublicAdvertisement.pdf",
+        "as_of": "2021-09-13"
+      },
+      {
+        "title": "Post Buyback Public Announcement",
+        "url": "https://nsearchives.nseindia.com/corporate/INFY_10092021220736_Infy_Buyback_PublicAdvertisement.pdf",
+        "as_of": "2021-09-10"
+      }
+    ],
+    "samples": [
+      {
+        "page": 17,
+        "kind": "consolidated_cf",
+        "headers": [
+          {
+            "text": "Revenue crosses $20 billion mark with resilient growth in fiscal 2026",
+            "x": 44.48,
+            "y": 691.54,
+            "size": 1.0
+          },
+          {
+            "text": "In ? crore, except per equity share data* FY 2026 FY 2025 FY 2024 FY 2023 FY 202",
+            "x": 58.57,
+            "y": 390.82,
+            "size": 1.0
+          },
+          {
+            "text": "Basic earnings per share (in ?) 71.58 64.50 63.39 57. 63 52.52",
+            "x": 58.56,
+            "y": 346.57,
+            "size": 1.0
+          },
+          {
+            "text": "In US$ million, except per equity share data* FY 2026 FY 2025 FY 2024 FY 2023 FY",
+            "x": 58.57,
+            "y": 306.95,
+            "size": 1.0
+          },
+          {
+            "text": "Basic earnings per share (in ?) 0.81 0.76 0.77 0.71 0.70",
+            "x": 58.57,
+            "y": 262.7,
+            "size": 1.0
+          },
+          {
+            "text": "million + clients",
+            "x": 441.87,
+            "y": 518.65,
+            "size": 1.0
+          },
+          {
+            "text": "(in ?)",
+            "x": 137.93,
+            "y": 499.22,
+            "size": 1.0
+          },
+          {
+            "text": "(par value of ? 5 each)",
+            "x": 55.76,
+            "y": 569.64,
+            "size": 1.0
+          },
+          {
+            "text": "? 1,78,650 cr 33,097 cr",
+            "x": 57.34,
+            "y": 645.88,
+            "size": 1.0
+          },
+          {
+            "text": "? 43,075 cr",
+            "x": 306.48,
+            "y": 555.4,
+            "size": 1.0
+          },
+          {
+            "text": "48.0 ? 18,000 cr",
+            "x": 55.6,
+            "y": 477.48,
+            "size": 1.0
+          },
+          {
+            "text": "11.6% growth Y-o-Y at a price of ? 1,800",
+            "x": 55.61,
+            "y": 462.82,
+            "size": 1.0
+          }
+        ],
+        "numbers": [
+          {
+            "text": "88",
+            "x": 441.93,
+            "y": 499.26,
+            "size": 1.0
+          },
+          {
+            "text": "71.58",
+            "x": 55.82,
+            "y": 550.2,
+            "size": 1.0
+          },
+          {
+            "text": "14.9",
+            "x": 435.69,
+            "y": 613.6,
+            "size": 1.0
+          }
+        ]
+      },
+      {
+        "page": 27,
+        "kind": "consolidated_bs",
+        "headers": [
+          {
+            "text": "Over ? 37,500 crore has been returned to shareholders for",
+            "x": 224.79,
+            "y": 561.05,
+            "size": 1.0
+          },
+          {
+            "text": "fiscal 2026, reflecting disciplined capital allocation and",
+            "x": 224.79,
+            "y": 545.45,
+            "size": 1.0
+          },
+          {
+            "text": "crore",
+            "x": 686.67,
+            "y": 655.99,
+            "size": 1.0
+          },
+          {
+            "text": "2026",
+            "x": 782.5,
+            "y": 560.53,
+            "size": 1.0
+          },
+          {
+            "text": "2026",
+            "x": 958.28,
+            "y": 561.01,
+            "size": 1.0
+          },
+          {
+            "text": "2026",
+            "x": 1139.78,
+            "y": 560.36,
+            "size": 1.0
+          },
+          {
+            "text": "2026",
+            "x": 1139.78,
+            "y": 560.36,
+            "size": 1.0
+          },
+          {
+            "text": "2026",
+            "x": 957.7,
+            "y": 401.94,
+            "size": 1.0
+          },
+          {
+            "text": "2026",
+            "x": 1142.08,
+            "y": 402.7,
+            "size": 1.0
+          },
+          {
+            "text": "compensated absences by ?1,289 crore.",
+            "x": 1033.23,
+            "y": 73.6,
+            "size": 1.0
+          },
+          {
+            "text": "(2) Dividend excludes special dividend of ?8.0",
+            "x": 1023.31,
+            "y": 61.85,
+            "size": 1.0
+          },
+          {
+            "text": "cash flow for fiscals 2025 and 2026",
+            "x": 842.45,
+            "y": 128.06,
+            "size": 1.0
+          }
+        ],
+        "numbers": [
+          {
+            "text": "9.6",
+            "x": 45.35,
+            "y": 406.1,
+            "size": 1.0
+          },
+          {
+            "text": "21.0",
+            "x": 45.35,
+            "y": 348.61,
+            "size": 1.0
+          },
+          {
+            "text": "31.6",
+            "x": 45.35,
+            "y": 289.77,
+            "size": 1.0
+          },
+          {
+            "text": "11.6",
+            "x": 45.35,
+            "y": 229.58,
+            "size": 1.0
+          },
+          {
+            "text": "11.0",
+            "x": 45.35,
+            "y": 169.39,
+            "size": 1.0
+          },
+          {
+            "text": "2024",
+            "x": 683.9,
+            "y": 560.53,
+            "size": 1.0
+          },
+          {
+            "text": "6,21,821",
+            "x": 676.68,
+            "y": 634.66,
+            "size": 1.0
+          },
+          {
+            "text": "2025",
+            "x": 733.2,
+            "y": 560.53,
+            "size": 1.0
+          }
+        ]
+      },
+      {
+        "page": 37,
+        "kind": "consolidated_bs",
+        "headers": [
+          {
+            "text": "18,000 crore, which was subsequently approved by",
+            "x": 77.3,
+            "y": 521.83,
+            "size": 1.0
+          },
+          {
+            "text": "crore (excluding transaction costs), funded from free reserves",
+            "x": 51.02,
+            "y": 386.73,
+            "size": 1.0
+          },
+          {
+            "text": "50 crore as at March 31, 2026,",
+            "x": 51.02,
+            "y": 338.03,
+            "size": 1.0
+          },
+          {
+            "text": "During the year ended March 31, 2026, the Company paid an",
+            "x": 51.02,
+            "y": 300.14,
+            "size": 1.0
+          },
+          {
+            "text": "55,523 crore, which is 82.1% of the free cash flow",
+            "x": 112.11,
+            "y": 246.14,
+            "size": 1.0
+          },
+          {
+            "text": "for fiscal 2025 and 2026 through dividends and buybacks, in line",
+            "x": 51.02,
+            "y": 235.34,
+            "size": 1.0
+          },
+          {
+            "text": "As of March 31, 2026, we had",
+            "x": 320.17,
+            "y": 575.83,
+            "size": 1.0
+          },
+          {
+            "text": "40,794 crore in working capital on",
+            "x": 433.86,
+            "y": 575.83,
+            "size": 1.0
+          },
+          {
+            "text": "51,167 crore on a consolidated basis.",
+            "x": 414.09,
+            "y": 565.03,
+            "size": 1.0
+          },
+          {
+            "text": "28,662 crore on a",
+            "x": 320.17,
+            "y": 548.73,
+            "size": 1.0
+          },
+          {
+            "text": "43,075 crore on a consolidated basis as on",
+            "x": 405.53,
+            "y": 537.93,
+            "size": 1.0
+          },
+          {
+            "text": "March 31, 2026, as against",
+            "x": 320.17,
+            "y": 527.13,
+            "size": 1.0
+          }
+        ],
+        "numbers": [
+          {
+            "text": "67",
+            "x": 558.44,
+            "y": 22.68,
+            "size": 1.0
+          },
+          {
+            "text": "18,000",
+            "x": 51.02,
+            "y": 397.53,
+            "size": 1.0
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "ticker": "TCS",
+    "isin": "INE467B01029",
+    "pages": 361,
+    "size": 17427580,
+    "hash": "d0bdc7fe1ae741b07bb76a158019cae05ab18abd2c2eeda43177d367bef24eb8",
+    "sha256_payload": "d0bdc7fe1ae741b07bb76a158019cae05ab18abd2c2eeda43177d367bef24eb8",
+    "url": "https://nsearchives.nseindia.com/annual_reports/AR_29263_TCS_2025_2026_A_17427580_15052026234830.pdf",
+    "low_text_pages": 0,
+    "json_s": 2.282,
+    "download_s": 3.707,
+    "open_s": 0.469,
+    "text_s": 49.883,
+    "coord_s": 8.374,
+    "kinds": {
+      "consolidated_bs": 5,
+      "unlabeled_bs": 2,
+      "unlabeled_cf": 1,
+      "consolidated_pl": 18,
+      "consolidated_cf": 2,
+      "standalone_pl": 19,
+      "standalone_bs": 5,
+      "standalone_cf": 3
+    },
+    "consolidated_pages": [
+      [
+        4,
+        "consolidated_bs",
+        130,
+        53
+      ],
+      [
+        158,
+        "consolidated_pl",
+        54,
+        1
+      ],
+      [
+        161,
+        "consolidated_pl",
+        98,
+        1
+      ],
+      [
+        162,
+        "consolidated_bs",
+        102,
+        1
+      ],
+      [
+        167,
+        "consolidated_bs",
+        85,
+        1
+      ],
+      [
+        168,
+        "consolidated_pl",
+        78,
+        1
+      ],
+      [
+        172,
+        "consolidated_pl",
+        64,
+        1
+      ],
+      [
+        173,
+        "consolidated_cf",
+        66,
+        1
+      ],
+      [
+        174,
+        "consolidated_cf",
+        62,
+        1
+      ],
+      [
+        175,
+        "consolidated_pl",
+        94,
+        1
+      ],
+      [
+        178,
+        "consolidated_pl",
+        109,
+        3
+      ],
+      [
+        180,
+        "consolidated_pl",
+        100,
+        1
+      ],
+      [
+        183,
+        "consolidated_pl",
+        80,
+        1
+      ],
+      [
+        193,
+        "consolidated_pl",
+        91,
+        1
+      ],
+      [
+        194,
+        "consolidated_pl",
+        55,
+        1
+      ],
+      [
+        200,
+        "consolidated_pl",
+        64,
+        1
+      ],
+      [
+        202,
+        "consolidated_pl",
+        42,
+        1
+      ],
+      [
+        206,
+        "consolidated_pl",
+        70,
+        2
+      ],
+      [
+        207,
+        "consolidated_pl",
+        69,
+        1
+      ],
+      [
+        218,
+        "consolidated_bs",
+        55,
+        1
+      ],
+      [
+        221,
+        "consolidated_pl",
+        51,
+        1
+      ],
+      [
+        222,
+        "consolidated_pl",
+        56,
+        1
+      ],
+      [
+        228,
+        "consolidated_pl",
+        53,
+        1
+      ],
+      [
+        238,
+        "consolidated_pl",
+        80,
+        1
+      ],
+      [
+        304,
+        "consolidated_bs",
+        53,
+        1
+      ]
+    ],
+    "ca_events": [
+      {
+        "type": "esop",
+        "date": "2004-09-29"
+      },
+      {
+        "type": "esop",
+        "date": "2004-11-04"
+      },
+      {
+        "type": "merger",
+        "date": "2005-07-15"
+      },
+      {
+        "type": "scheme",
+        "date": "2005-07-15"
+      },
+      {
+        "type": "scheme",
+        "date": "2005-09-29"
+      },
+      {
+        "type": "scheme",
+        "date": "2005-10-19"
+      },
+      {
+        "type": "bonus",
+        "date": "2005-12-08"
+      },
+      {
+        "type": "scheme",
+        "date": "2006-01-17"
+      },
+      {
+        "type": "scheme",
+        "date": "2006-02-01"
+      },
+      {
+        "type": "bonus",
+        "date": "2006-04-17"
+      },
+      {
+        "type": "bonus",
+        "date": "2006-06-30"
+      },
+      {
+        "type": "bonus",
+        "date": "2006-07-18"
+      }
+    ],
+    "buyback_docs": [
+      {
+        "title": "Closure of Buy Back",
+        "url": "https://nsearchives.nseindia.com/corporate/TCS_13122023215652_SELetter.pdf",
+        "as_of": "2023-12-13"
+      },
+      {
+        "title": "Post Buyback Public Announcement",
+        "url": "https://nsearchives.nseindia.com/corporate/TCS_13122023162302_SEIntsigned.pdf",
+        "as_of": "2023-12-13"
+      },
+      {
+        "title": "Buyback",
+        "url": "https://nsearchives.nseindia.com/corporate/TCS_28112023150306_SELetterLOF.pdf",
+        "as_of": "2023-11-28"
+      },
+      {
+        "title": "Public Announcement - Buyback of Shares",
+        "url": "https://nsearchives.nseindia.com/corporate/TCS_17112023173403_SELetterforPublicAnnouncement_signed.pdf",
+        "as_of": "2023-11-17"
+      },
+      {
+        "title": "Buyback",
+        "url": "https://nsearchives.nseindia.com/corporate/TCS_11102023172245_SEIntimationBBsigned.pdf",
+        "as_of": "2023-10-11"
+      },
+      {
+        "title": "Post Buyback Public Announcement",
+        "url": "https://nsearchives.nseindia.com/corporate/TCS_29032022191031_SEInt.pdf",
+        "as_of": "2022-03-29"
+      },
+      {
+        "title": "Buyback - others",
+        "url": "https://nsearchives.nseindia.com/corporate/TCS_06032022222513_SEIntimationLetterofOffer.pdf",
+        "as_of": "2022-03-06"
+      },
+      {
+        "title": "Buyback - others",
+        "url": "https://nsearchives.nseindia.com/corporate/TCS_06032022221439_SELetterUpdatesonBuyback.pdf",
+        "as_of": "2022-03-06"
+      }
+    ],
+    "samples": [
+      {
+        "page": 4,
+        "kind": "consolidated_bs",
+        "headers": [],
+        "numbers": [
+          {
+            "text": "04",
+            "x": 135.42,
+            "y": 574.04,
+            "size": 1.0
+          },
+          {
+            "text": "06",
+            "x": 135.42,
+            "y": 562.0,
+            "size": 1.0
+          },
+          {
+            "text": "08",
+            "x": 135.42,
+            "y": 549.96,
+            "size": 1.0
+          },
+          {
+            "text": "10",
+            "x": 135.42,
+            "y": 537.91,
+            "size": 1.0
+          },
+          {
+            "text": "12",
+            "x": 135.42,
+            "y": 525.87,
+            "size": 1.0
+          },
+          {
+            "text": "14",
+            "x": 135.42,
+            "y": 513.82,
+            "size": 1.0
+          },
+          {
+            "text": "01",
+            "x": 72.18,
+            "y": 587.58,
+            "size": 1.0
+          },
+          {
+            "text": "42",
+            "x": 365.67,
+            "y": 408.33,
+            "size": 1.0
+          }
+        ]
+      },
+      {
+        "page": 158,
+        "kind": "consolidated_pl",
+        "headers": [
+          {
+            "text": "comprise the consolidated balance sheet as at 31 March 2026,",
+            "x": 56.69,
+            "y": 225.72,
+            "size": 1.0
+          },
+          {
+            "text": "Group as at 31 March 2026, of its consolidated profit and other",
+            "x": 56.69,
+            "y": 75.66,
+            "size": 1.0
+          }
+        ],
+        "numbers": [
+          {
+            "text": "187",
+            "x": 535.92,
+            "y": 18.24,
+            "size": 1.0
+          }
+        ]
+      },
+      {
+        "page": 161,
+        "kind": "consolidated_pl",
+        "headers": [
+          {
+            "text": "Company as on 1 April 2026 to 9 April 2026",
+            "x": 357.95,
+            "y": 321.85,
+            "size": 1.0
+          },
+          {
+            "text": "incorporated in India, as on 1 April 2026 to",
+            "x": 357.95,
+            "y": 261.86,
+            "size": 1.0
+          },
+          {
+            "text": "9 April 2026, none of the directors of the Group",
+            "x": 357.95,
+            "y": 249.86,
+            "size": 1.0
+          },
+          {
+            "text": "as on 31 March 2026 from being appointed as a",
+            "x": 357.95,
+            "y": 225.87,
+            "size": 1.0
+          }
+        ],
+        "numbers": [
+          {
+            "text": "190",
+            "x": 44.4,
+            "y": 18.24,
+            "size": 1.0
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "ticker": "WIPRO",
+    "isin": "INE075A01022",
+    "pages": 561,
+    "size": 8877705,
+    "hash": "48f0612b11ccd1883d229d9c6ae3fcc0de65c6ae6bc6034b562884ecbbd5afd9",
+    "sha256_payload": "48f0612b11ccd1883d229d9c6ae3fcc0de65c6ae6bc6034b562884ecbbd5afd9",
+    "url": "https://nsearchives.nseindia.com/annual_reports/AR_29427_WIPRO_2025_2026_A_8877705_22062026190140.pdf",
+    "low_text_pages": 2,
+    "json_s": 2.627,
+    "download_s": 1.506,
+    "open_s": 0.399,
+    "text_s": 48.177,
+    "coord_s": 4.236,
+    "kinds": {
+      "consolidated_cf": 6,
+      "consolidated_bs": 10,
+      "unlabeled_bs": 2,
+      "standalone_pl": 11,
+      "standalone_bs": 7,
+      "standalone_cf": 1,
+      "consolidated_pl": 19
+    },
+    "consolidated_pages": [
+      [
+        41,
+        "consolidated_cf",
+        145,
+        1
+      ],
+      [
+        109,
+        "consolidated_bs",
+        141,
+        48
+      ],
+      [
+        204,
+        "consolidated_bs",
+        103,
+        1
+      ],
+      [
+        285,
+        "consolidated_pl",
+        63,
+        11
+      ],
+      [
+        287,
+        "consolidated_pl",
+        46,
+        1
+      ],
+      [
+        290,
+        "consolidated_pl",
+        84,
+        1
+      ],
+      [
+        295,
+        "consolidated_bs",
+        113,
+        54
+      ],
+      [
+        298,
+        "consolidated_pl",
+        95,
+        36
+      ],
+      [
+        304,
+        "consolidated_cf",
+        64,
+        11
+      ],
+      [
+        305,
+        "consolidated_pl",
+        74,
+        1
+      ],
+      [
+        312,
+        "consolidated_pl",
+        91,
+        1
+      ],
+      [
+        315,
+        "consolidated_pl",
+        97,
+        1
+      ],
+      [
+        324,
+        "consolidated_bs",
+        68,
+        1
+      ],
+      [
+        326,
+        "consolidated_pl",
+        162,
+        57
+      ],
+      [
+        327,
+        "consolidated_bs",
+        118,
+        29
+      ],
+      [
+        333,
+        "consolidated_pl",
+        100,
+        14
+      ],
+      [
+        337,
+        "consolidated_pl",
+        93,
+        11
+      ],
+      [
+        338,
+        "consolidated_pl",
+        72,
+        4
+      ],
+      [
+        341,
+        "consolidated_pl",
+        98,
+        8
+      ],
+      [
+        342,
+        "consolidated_pl",
+        56,
+        1
+      ],
+      [
+        348,
+        "consolidated_bs",
+        136,
+        53
+      ],
+      [
+        349,
+        "consolidated_cf",
+        114,
+        34
+      ],
+      [
+        357,
+        "consolidated_pl",
+        83,
+        21
+      ],
+      [
+        360,
+        "consolidated_pl",
+        106,
+        30
+      ],
+      [
+        363,
+        "consolidated_bs",
+        82,
+        7
+      ],
+      [
+        365,
+        "consolidated_pl",
+        96,
+        22
+      ],
+      [
+        366,
+        "consolidated_bs",
+        125,
+        18
+      ],
+      [
+        369,
+        "consolidated_pl",
+        95,
+        21
+      ],
+      [
+        375,
+        "consolidated_pl",
+        76,
+        10
+      ],
+      [
+        395,
+        "consolidated_pl",
+        60,
+        2
+      ],
+      [
+        402,
+        "consolidated_bs",
+        79,
+        1
+      ],
+      [
+        435,
+        "consolidated_cf",
+        91,
+        1
+      ],
+      [
+        439,
+        "consolidated_cf",
+        77,
+        18
+      ],
+      [
+        447,
+        "consolidated_cf",
+        107,
+        27
+      ],
+      [
+        483,
+        "consolidated_bs",
+        78,
+        19
+      ]
+    ],
+    "ca_events": [
+      {
+        "type": "bonus",
+        "date": "2005-04-22"
+      },
+      {
+        "type": "warrants",
+        "date": "2005-05-30"
+      },
+      {
+        "type": "scheme",
+        "date": "2005-07-01"
+      },
+      {
+        "type": "bonus",
+        "date": "2005-07-22"
+      },
+      {
+        "type": "esop",
+        "date": "2005-12-09"
+      },
+      {
+        "type": "esop",
+        "date": "2005-12-13"
+      },
+      {
+        "type": "esop",
+        "date": "2005-12-26"
+      },
+      {
+        "type": "merger",
+        "date": "2006-01-30"
+      },
+      {
+        "type": "merger",
+        "date": "2006-04-06"
+      },
+      {
+        "type": "scheme",
+        "date": "2006-04-06"
+      },
+      {
+        "type": "merger",
+        "date": "2006-05-08"
+      },
+      {
+        "type": "warrants",
+        "date": "2006-06-19"
+      }
+    ],
+    "buyback_docs": [
+      {
+        "title": "Post Buyback Public Announcement",
+        "url": "https://nsearchives.nseindia.com/corporate/Cslogin_26062026181043_SEIntimationPostBuybackPA.pdf",
+        "as_of": "2026-06-26"
+      },
+      {
+        "title": "Public Announcement - Buyback of Shares",
+        "url": "https://nsearchives.nseindia.com/corporate/Cslogin_25052026170905_SEIntimationPA.pdf",
+        "as_of": "2026-05-25"
+      },
+      {
+        "title": "Post Buyback Public Announcement",
+        "url": "https://nsearchives.nseindia.com/corporate/WIPRO_06072023180501_Post_Buyback_PA.pdf",
+        "as_of": "2023-07-06"
+      },
+      {
+        "title": "Buyback",
+        "url": "https://nsearchives.nseindia.com/corporate/WIPRO_27062023201740_PA_Signed_27062023.pdf",
+        "as_of": "2023-06-27"
+      },
+      {
+        "title": "Buyback",
+        "url": "https://nsearchives.nseindia.com/corporate/WIPRO_20062023085546_LOF.pdf",
+        "as_of": "2023-06-20"
+      },
+      {
+        "title": "Public Announcement - Buyback of Shares",
+        "url": "https://nsearchives.nseindia.com/corporate/WIPRO_05062023172651_PA_Buyback.pdf",
+        "as_of": "2023-06-05"
+      },
+      {
+        "title": "Post Buyback Public Announcement",
+        "url": "https://nsearchives.nseindia.com/corporate/WIPRO_16012021113717_SEintimationletter_PostBuybackPA.pdf",
+        "as_of": "2021-01-16"
+      },
+      {
+        "title": "Buyback",
+        "url": "https://nsearchives.nseindia.com/corporate/WIPRO_24122020085040_SE_LOF_24122020.pdf",
+        "as_of": "2020-12-24"
+      }
+    ],
+    "samples": [
+      {
+        "page": 41,
+        "kind": "consolidated_cf",
+        "headers": [
+          {
+            "text": "March 31, 2025, was ?63,963 million. This is primarily on",
+            "x": 645.02,
+            "y": 616.75,
+            "size": 1.0
+          },
+          {
+            "text": "?62,750 million, payment of lease liabilities including interest",
+            "x": 645.02,
+            "y": 592.75,
+            "size": 1.0
+          },
+          {
+            "text": "of ?10,474 million and payment of interest and finance",
+            "x": 645.02,
+            "y": 580.75,
+            "size": 1.0
+          },
+          {
+            "text": "expenses of ?8,689 million. These were partially offset by an",
+            "x": 645.02,
+            "y": 568.76,
+            "size": 1.0
+          },
+          {
+            "text": "inflow of ?17,923 million from loans and borrowings during",
+            "x": 645.02,
+            "y": 556.76,
+            "size": 1.0
+          },
+          {
+            "text": "the year ended March 31, 2025.",
+            "x": 645.02,
+            "y": 544.76,
+            "size": 1.0
+          },
+          {
+            "text": "As of March 31, 2026, we had contractual commitments of",
+            "x": 645.02,
+            "y": 412.79,
+            "size": 1.0
+          },
+          {
+            "text": "?9,416 million ($100 million) related to capital expenditures",
+            "x": 645.02,
+            "y": 400.79,
+            "size": 1.0
+          },
+          {
+            "text": "facilities and ?52,214 million ($556 million) related to other",
+            "x": 645.02,
+            "y": 376.8,
+            "size": 1.0
+          },
+          {
+            "text": "cash flow and liquidity for the years ended March 31, 2025",
+            "x": 645.02,
+            "y": 94.85,
+            "size": 1.0
+          },
+          {
+            "text": "and 2026 is not material. Please refer to Note 19 of our",
+            "x": 645.02,
+            "y": 82.86,
+            "size": 1.0
+          },
+          {
+            "text": "As of March 31, 2025 and 2026, our cash and cash",
+            "x": 897.0,
+            "y": 538.88,
+            "size": 1.0
+          }
+        ],
+        "numbers": [
+          {
+            "text": "758",
+            "x": 512.17,
+            "y": 343.57,
+            "size": 1.0
+          }
+        ]
+      },
+      {
+        "page": 109,
+        "kind": "consolidated_bs",
+        "headers": [
+          {
+            "text": "year ended March 31, 2026.",
+            "x": 219.2,
+            "y": 573.39,
+            "size": 1.0
+          },
+          {
+            "text": "926,240 Million",
+            "x": 479.72,
+            "y": 526.5,
+            "size": 1.0
+          },
+          {
+            "text": "890,884 Million in the previous year, recording",
+            "x": 360.26,
+            "y": 514.5,
+            "size": 1.0
+          },
+          {
+            "text": "132,655 Million",
+            "x": 480.76,
+            "y": 502.51,
+            "size": 1.0
+          },
+          {
+            "text": "132,180 Million in the previous year, recording",
+            "x": 361.24,
+            "y": 490.51,
+            "size": 1.0
+          },
+          {
+            "text": "713,451 Million for the",
+            "x": 459.42,
+            "y": 460.5,
+            "size": 1.0
+          },
+          {
+            "text": "685,750 Million in the previous year, recording an increase",
+            "x": 327.52,
+            "y": 448.5,
+            "size": 1.0
+          },
+          {
+            "text": "121,296 Million in the current year",
+            "x": 418.96,
+            "y": 436.5,
+            "size": 1.0
+          },
+          {
+            "text": "109,131 Million in the previous year, recording an increase of 11.15%.",
+            "x": 282.04,
+            "y": 424.5,
+            "size": 1.0
+          },
+          {
+            "text": "in Millions)",
+            "x": 496.72,
+            "y": 368.96,
+            "size": 1.0
+          },
+          {
+            "text": "ended March 31, 2026, have been prepared in accordance with the Indian Accountin",
+            "x": 239.04,
+            "y": 82.92,
+            "size": 1.0
+          }
+        ],
+        "numbers": [
+          {
+            "text": "122",
+            "x": 27.02,
+            "y": 686.63,
+            "size": 1.0
+          },
+          {
+            "text": "713,451",
+            "x": 380.49,
+            "y": 328.63,
+            "size": 1.0
+          },
+          {
+            "text": "685,750",
+            "x": 380.49,
+            "y": 328.63,
+            "size": 1.0
+          },
+          {
+            "text": "926,240",
+            "x": 423.37,
+            "y": 328.63,
+            "size": 1.0
+          },
+          {
+            "text": "890,884",
+            "x": 465.86,
+            "y": 328.63,
+            "size": 1.0
+          },
+          {
+            "text": "47,491",
+            "x": 385.05,
+            "y": 317.23,
+            "size": 1.0
+          },
+          {
+            "text": "39,477",
+            "x": 385.05,
+            "y": 317.23,
+            "size": 1.0
+          },
+          {
+            "text": "38,737",
+            "x": 427.94,
+            "y": 317.23,
+            "size": 1.0
+          }
+        ]
+      },
+      {
+        "page": 204,
+        "kind": "consolidated_bs",
+        "headers": [
+          {
+            "text": "in millions, except share and per share data, unless otherwise stated)",
+            "x": 331.32,
+            "y": 648.73,
+            "size": 1.0
+          },
+          {
+            "text": "Notes to the Standalone Financial Statements\n(I in millions, except share and pe",
+            "x": 527.94,
+            "y": 686.63,
+            "size": 1.0
+          },
+          {
+            "text": "31, 2026 is",
+            "x": 70.87,
+            "y": 481.5,
+            "size": 1.0
+          },
+          {
+            "text": "11,905,480 treasury shares as at March 31, 2026 and",
+            "x": 70.87,
+            "y": 259.5,
+            "size": 1.0
+          },
+          {
+            "text": "March 31, 2026 and 2025, respectively, is not freely",
+            "x": 70.86,
+            "y": 178.5,
+            "size": 1.0
+          },
+          {
+            "text": "13 as of March 31, 2026 and 2025,",
+            "x": 411.78,
+            "y": 603.39,
+            "size": 1.0
+          },
+          {
+            "text": "with the Company during the year ended March 31, 2019.",
+            "x": 322.84,
+            "y": 451.5,
+            "size": 1.0
+          },
+          {
+            "text": "As of March 31, 2026 and 2025, this reserve amounting",
+            "x": 322.84,
+            "y": 439.5,
+            "size": 1.0
+          }
+        ],
+        "numbers": [
+          {
+            "text": "217",
+            "x": 527.94,
+            "y": 686.63,
+            "size": 1.0
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "ticker": "HDFCBANK",
+    "isin": "INE040A01034",
+    "pages": 678,
+    "size": 12667766,
+    "hash": "92de3c75b6fc05afe8731e97705c9d3534cc192e677af02f4b325e3d82eafca6",
+    "sha256_payload": "92de3c75b6fc05afe8731e97705c9d3534cc192e677af02f4b325e3d82eafca6",
+    "url": "https://nsearchives.nseindia.com/annual_reports/AR_29735_HDFCBANK_2025_2026_A_12667766_11072026001055.pdf",
+    "low_text_pages": 7,
+    "json_s": 2.568,
+    "download_s": 2.661,
+    "open_s": 0.458,
+    "text_s": 50.532,
+    "coord_s": 5.346,
+    "kinds": {
+      "unlabeled_bs": 23,
+      "consolidated_bs": 28,
+      "standalone_bs": 17,
+      "standalone_cf": 2,
+      "consolidated_cf": 3,
+      "unlabeled_pl": 1
+    },
+    "consolidated_pages": [
+      [
+        29,
+        "consolidated_bs",
+        80,
+        9
+      ],
+      [
+        69,
+        "consolidated_bs",
+        78,
+        17
+      ],
+      [
+        102,
+        "consolidated_bs",
+        54,
+        1
+      ],
+      [
+        297,
+        "consolidated_bs",
+        71,
+        1
+      ],
+      [
+        442,
+        "consolidated_bs",
+        104,
+        43
+      ],
+      [
+        482,
+        "consolidated_cf",
+        35,
+        1
+      ],
+      [
+        490,
+        "consolidated_bs",
+        54,
+        1
+      ],
+      [
+        491,
+        "consolidated_bs",
+        45,
+        1
+      ],
+      [
+        496,
+        "consolidated_bs",
+        137,
+        49
+      ],
+      [
+        497,
+        "consolidated_bs",
+        154,
+        50
+      ],
+      [
+        498,
+        "consolidated_cf",
+        96,
+        37
+      ],
+      [
+        499,
+        "consolidated_cf",
+        99,
+        16
+      ],
+      [
+        500,
+        "consolidated_bs",
+        103,
+        37
+      ],
+      [
+        502,
+        "consolidated_bs",
+        88,
+        30
+      ],
+      [
+        504,
+        "consolidated_bs",
+        66,
+        23
+      ],
+      [
+        506,
+        "consolidated_bs",
+        100,
+        39
+      ],
+      [
+        508,
+        "consolidated_bs",
+        97,
+        38
+      ],
+      [
+        516,
+        "consolidated_bs",
+        89,
+        1
+      ],
+      [
+        518,
+        "consolidated_bs",
+        95,
+        1
+      ],
+      [
+        522,
+        "consolidated_bs",
+        116,
+        1
+      ],
+      [
+        525,
+        "consolidated_bs",
+        96,
+        1
+      ],
+      [
+        527,
+        "consolidated_bs",
+        98,
+        2
+      ],
+      [
+        528,
+        "consolidated_bs",
+        99,
+        1
+      ],
+      [
+        529,
+        "consolidated_bs",
+        93,
+        1
+      ],
+      [
+        530,
+        "consolidated_bs",
+        87,
+        1
+      ],
+      [
+        532,
+        "consolidated_bs",
+        93,
+        1
+      ],
+      [
+        533,
+        "consolidated_bs",
+        42,
+        1
+      ],
+      [
+        534,
+        "consolidated_bs",
+        104,
+        8
+      ],
+      [
+        559,
+        "consolidated_bs",
+        102,
+        24
+      ],
+      [
+        561,
+        "consolidated_bs",
+        136,
+        50
+      ],
+      [
+        572,
+        "consolidated_bs",
+        87,
+        13
+      ]
+    ],
+    "ca_events": [
+      {
+        "type": "esop",
+        "date": "2005-04-13"
+      },
+      {
+        "type": "esop",
+        "date": "2005-06-20"
+      },
+      {
+        "type": "esop",
+        "date": "2006-11-09"
+      },
+      {
+        "type": "bonus",
+        "date": "2007-01-05"
+      },
+      {
+        "type": "bonus",
+        "date": "2007-01-08"
+      },
+      {
+        "type": "esop",
+        "date": "2007-03-12"
+      },
+      {
+        "type": "esop",
+        "date": "2007-03-15"
+      },
+      {
+        "type": "preferential_issue",
+        "date": "2007-07-04"
+      },
+      {
+        "type": "merger",
+        "date": "2008-02-23"
+      },
+      {
+        "type": "scheme",
+        "date": "2008-02-23"
+      },
+      {
+        "type": "share_swap",
+        "date": "2008-02-23"
+      },
+      {
+        "type": "merger",
+        "date": "2008-02-25"
+      }
+    ],
+    "buyback_docs": [],
+    "samples": [
+      {
+        "page": 29,
+        "kind": "consolidated_bs",
+        "headers": [],
+        "numbers": [
+          {
+            "text": "116",
+            "x": 178.56,
+            "y": 305.81,
+            "size": 1.0
+          },
+          {
+            "text": "252",
+            "x": 217.33,
+            "y": 438.94,
+            "size": 1.0
+          },
+          {
+            "text": "314",
+            "x": 352.62,
+            "y": 426.94,
+            "size": 1.0
+          },
+          {
+            "text": "315",
+            "x": 352.52,
+            "y": 414.94,
+            "size": 1.0
+          },
+          {
+            "text": "316",
+            "x": 352.49,
+            "y": 402.95,
+            "size": 1.0
+          },
+          {
+            "text": "349",
+            "x": 351.89,
+            "y": 390.95,
+            "size": 1.0
+          },
+          {
+            "text": "462",
+            "x": 351.9,
+            "y": 321.96,
+            "size": 1.0
+          },
+          {
+            "text": "480",
+            "x": 351.84,
+            "y": 264.96,
+            "size": 1.0
+          }
+        ]
+      },
+      {
+        "page": 69,
+        "kind": "consolidated_bs",
+        "headers": [
+          {
+            "text": "for the year ended March 31, 2026. The Bank has maintained",
+            "x": 43.0,
+            "y": 279.0,
+            "size": 1.0
+          },
+          {
+            "text": "March 31, 2026. The Bank consolidated",
+            "x": 43.0,
+            "y": 497.73,
+            "size": 1.0
+          }
+        ],
+        "numbers": [
+          {
+            "text": "43,64,886",
+            "x": 494.45,
+            "y": 578.86,
+            "size": 1.0
+          },
+          {
+            "text": "31,05,250",
+            "x": 494.45,
+            "y": 435.66,
+            "size": 1.0
+          },
+          {
+            "text": "1.15",
+            "x": 476.01,
+            "y": 291.92,
+            "size": 1.0
+          },
+          {
+            "text": "38.0",
+            "x": 486.37,
+            "y": 149.89,
+            "size": 1.0
+          },
+          {
+            "text": "39,10,199",
+            "x": 480.26,
+            "y": 563.99,
+            "size": 1.0
+          },
+          {
+            "text": "27,14,715",
+            "x": 477.31,
+            "y": 420.78,
+            "size": 1.0
+          },
+          {
+            "text": "1.33",
+            "x": 494.45,
+            "y": 277.04,
+            "size": 1.0
+          },
+          {
+            "text": "40.5",
+            "x": 494.45,
+            "y": 135.01,
+            "size": 1.0
+          }
+        ]
+      },
+      {
+        "page": 102,
+        "kind": "consolidated_bs",
+        "headers": [],
+        "numbers": [
+          {
+            "text": "80",
+            "x": 42.28,
+            "y": 30.0,
+            "size": 1.0
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "ticker": "RELIANCE",
+    "isin": "INE002A01018",
+    "pages": 187,
+    "size": 11007429,
+    "hash": "6fc365c08e7be923eedfa824bc92e605e094da98ad18e1f54cf71db7392c4a94",
+    "sha256_payload": "6fc365c08e7be923eedfa824bc92e605e094da98ad18e1f54cf71db7392c4a94",
+    "url": "https://nsearchives.nseindia.com/annual_reports/AR_29285_RELIANCE_2025_2026_A_11007429_28052026133947.pdf",
+    "low_text_pages": 0,
+    "json_s": 2.474,
+    "download_s": 2.065,
+    "open_s": 0.278,
+    "text_s": 24.978,
+    "coord_s": 6.297,
+    "kinds": {
+      "consolidated_bs": 14,
+      "unlabeled_bs": 1,
+      "unlabeled_cf": 1,
+      "standalone_pl": 8,
+      "standalone_bs": 10,
+      "standalone_cf": 1,
+      "consolidated_pl": 8,
+      "consolidated_cf": 1
+    },
+    "consolidated_pages": [
+      [
+        43,
+        "consolidated_bs",
+        238,
+        1
+      ],
+      [
+        131,
+        "consolidated_bs",
+        281,
+        34
+      ],
+      [
+        133,
+        "consolidated_bs",
+        182,
+        4
+      ],
+      [
+        136,
+        "consolidated_pl",
+        224,
+        1
+      ],
+      [
+        139,
+        "consolidated_bs",
+        176,
+        4
+      ],
+      [
+        140,
+        "consolidated_pl",
+        147,
+        1
+      ],
+      [
+        142,
+        "consolidated_cf",
+        207,
+        10
+      ],
+      [
+        143,
+        "consolidated_bs",
+        233,
+        1
+      ],
+      [
+        144,
+        "consolidated_pl",
+        225,
+        0
+      ],
+      [
+        145,
+        "consolidated_pl",
+        227,
+        4
+      ],
+      [
+        146,
+        "consolidated_pl",
+        263,
+        28
+      ],
+      [
+        151,
+        "consolidated_bs",
+        179,
+        6
+      ],
+      [
+        152,
+        "consolidated_bs",
+        236,
+        20
+      ],
+      [
+        155,
+        "consolidated_bs",
+        178,
+        9
+      ],
+      [
+        157,
+        "consolidated_pl",
+        244,
+        2
+      ],
+      [
+        164,
+        "consolidated_bs",
+        234,
+        23
+      ],
+      [
+        165,
+        "consolidated_bs",
+        148,
+        3
+      ],
+      [
+        166,
+        "consolidated_bs",
+        172,
+        9
+      ],
+      [
+        167,
+        "consolidated_bs",
+        248,
+        24
+      ],
+      [
+        168,
+        "consolidated_bs",
+        182,
+        17
+      ],
+      [
+        183,
+        "consolidated_bs",
+        165,
+        2
+      ],
+      [
+        184,
+        "consolidated_pl",
+        178,
+        2
+      ],
+      [
+        185,
+        "consolidated_pl",
+        189,
+        2
+      ]
+    ],
+    "ca_events": [
+      {
+        "type": "buyback",
+        "date": "2004-12-22"
+      },
+      {
+        "type": "buyback",
+        "date": "2004-12-27"
+      },
+      {
+        "type": "buyback",
+        "date": "2004-12-28"
+      },
+      {
+        "type": "buyback",
+        "date": "2004-12-29"
+      },
+      {
+        "type": "buyback",
+        "date": "2005-01-10"
+      },
+      {
+        "type": "merger",
+        "date": "2005-03-09"
+      },
+      {
+        "type": "scheme",
+        "date": "2005-06-18"
+      },
+      {
+        "type": "buyback",
+        "date": "2005-07-29"
+      },
+      {
+        "type": "bonus",
+        "date": "2005-08-03"
+      },
+      {
+        "type": "buyback",
+        "date": "2005-08-03"
+      },
+      {
+        "type": "scheme",
+        "date": "2005-08-03"
+      },
+      {
+        "type": "split",
+        "date": "2005-08-03"
+      }
+    ],
+    "buyback_docs": [
+      {
+        "title": "Post Buyback Public Announcement",
+        "url": "https://nsearchives.nseindia.com/corporate/RELIANCE.zip",
+        "as_of": "2013-01-22"
+      },
+      {
+        "title": "Buyback",
+        "url": "https://nsearchives.nseindia.com/corporate/RELIANCE_buyback_10012013.zip",
+        "as_of": "2013-01-10"
+      },
+      {
+        "title": "Buyback",
+        "url": "https://nsearchives.nseindia.com/corporate/RELIANCE_BB_01012013.zip",
+        "as_of": "2013-01-01"
+      },
+      {
+        "title": "Buyback",
+        "url": "https://nsearchives.nseindia.com/corporate/Reliance_Buyback_13122012.zip",
+        "as_of": "2012-12-13"
+      },
+      {
+        "title": "Buyback",
+        "url": "https://nsearchives.nseindia.com/corporate/Reliance_Buyback_29112012.zip",
+        "as_of": "2012-11-29"
+      },
+      {
+        "title": "Buyback",
+        "url": "https://nsearchives.nseindia.com/corporate/RELIANCE_BB_16112012.zip",
+        "as_of": "2012-11-19"
+      },
+      {
+        "title": "Buyback",
+        "url": "https://nsearchives.nseindia.com/corporate/RELIANCE_BUYBACK_20092012.zip",
+        "as_of": "2012-09-21"
+      },
+      {
+        "title": "Buyback",
+        "url": "https://nsearchives.nseindia.com/corporate/RELIANCE_buyback_05092012.zip",
+        "as_of": "2012-09-05"
+      }
+    ],
+    "samples": [
+      {
+        "page": 43,
+        "kind": "consolidated_bs",
+        "headers": [
+          {
+            "text": "crore, EBITDA of",
+            "x": 646.28,
+            "y": 181.9,
+            "size": 1.0
+          },
+          {
+            "text": "2,07,911 crore, and",
+            "x": 717.75,
+            "y": 181.9,
+            "size": 1.0
+          },
+          {
+            "text": "95,754 crore. These",
+            "x": 697.61,
+            "y": 169.91,
+            "size": 1.0
+          },
+          {
+            "text": "May 27, 2026",
+            "x": 983.13,
+            "y": 205.93,
+            "size": 1.0
+          }
+        ],
+        "numbers": [
+          {
+            "text": "11,75,919",
+            "x": 750.31,
+            "y": 193.9,
+            "size": 1.0
+          }
+        ]
+      },
+      {
+        "page": 131,
+        "kind": "consolidated_bs",
+        "headers": [
+          {
+            "text": "March, 2026",
+            "x": 293.49,
+            "y": 733.89,
+            "size": 1.0
+          },
+          {
+            "text": "in crore)",
+            "x": 508.19,
+            "y": 704.47,
+            "size": 1.0
+          },
+          {
+            "text": "March,\t2026",
+            "x": 128.02,
+            "y": 666.26,
+            "size": 1.0
+          },
+          {
+            "text": "in crore)",
+            "x": 507.94,
+            "y": 316.69,
+            "size": 1.0
+          },
+          {
+            "text": "March,\t2026",
+            "x": 128.02,
+            "y": 278.54,
+            "size": 1.0
+          },
+          {
+            "text": "June 2026 to",
+            "x": 428.01,
+            "y": 255.3,
+            "size": 1.0
+          },
+          {
+            "text": "June 2026 to",
+            "x": 428.01,
+            "y": 234.11,
+            "size": 1.0
+          },
+          {
+            "text": "in crore)",
+            "x": 1103.44,
+            "y": 702.47,
+            "size": 1.0
+          },
+          {
+            "text": "March,\t2026",
+            "x": 723.27,
+            "y": 667.74,
+            "size": 1.0
+          },
+          {
+            "text": "in crore)",
+            "x": 1103.44,
+            "y": 503.77,
+            "size": 1.0
+          },
+          {
+            "text": "March, 2026.",
+            "x": 921.96,
+            "y": 334.89,
+            "size": 1.0
+          },
+          {
+            "text": "in crore)",
+            "x": 1103.47,
+            "y": 318.35,
+            "size": 1.0
+          }
+        ],
+        "numbers": [
+          {
+            "text": "66",
+            "x": 92.69,
+            "y": 562.58,
+            "size": 1.0
+          },
+          {
+            "text": "66",
+            "x": 400.91,
+            "y": 562.58,
+            "size": 1.0
+          },
+          {
+            "text": "1,824",
+            "x": 339.8,
+            "y": 522.0,
+            "size": 1.0
+          },
+          {
+            "text": "457",
+            "x": 400.9,
+            "y": 522.0,
+            "size": 1.0
+          },
+          {
+            "text": "1,247",
+            "x": 92.71,
+            "y": 484.28,
+            "size": 1.0
+          },
+          {
+            "text": "1,257",
+            "x": 400.93,
+            "y": 484.28,
+            "size": 1.0
+          },
+          {
+            "text": "125",
+            "x": 345.63,
+            "y": 381.75,
+            "size": 1.0
+          },
+          {
+            "text": "125",
+            "x": 400.91,
+            "y": 381.75,
+            "size": 1.0
+          }
+        ]
+      },
+      {
+        "page": 133,
+        "kind": "consolidated_bs",
+        "headers": [
+          {
+            "text": "March, 2026, and the Consolidated Statement of",
+            "x": 85.53,
+            "y": 568.89,
+            "size": 1.0
+          },
+          {
+            "text": "2026, and their consolidated profit and their consolidated other",
+            "x": 51.0,
+            "y": 322.89,
+            "size": 1.0
+          },
+          {
+            "text": "2026 till the date of approval of the Parent?s Consolidated",
+            "x": 311.45,
+            "y": 135.78,
+            "size": 1.0
+          },
+          {
+            "text": "March, 2026, the Parent has investments of",
+            "x": 697.76,
+            "y": 409.03,
+            "size": 1.0
+          },
+          {
+            "text": "crore in Preference Shares of Jio Digital Fibre Private Limited",
+            "x": 665.28,
+            "y": 399.43,
+            "size": 1.0
+          }
+        ],
+        "numbers": [
+          {
+            "text": "1.",
+            "x": 53.0,
+            "y": 264.04,
+            "size": 1.0
+          },
+          {
+            "text": "5",
+            "x": 685.12,
+            "y": 582.59,
+            "size": 1.0
+          },
+          {
+            "text": "2.",
+            "x": 648.28,
+            "y": 423.43,
+            "size": 1.0
+          },
+          {
+            "text": "77,852",
+            "x": 697.76,
+            "y": 409.03,
+            "size": 1.0
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "ticker": "ASIANPAINT",
+    "isin": "INE021A01026",
+    "pages": 294,
+    "size": 26278926,
+    "hash": "b7977d2419ed2e211d0ad53270165cc4205cafff7982b6b74fed6502fa25aacb",
+    "sha256_payload": "b7977d2419ed2e211d0ad53270165cc4205cafff7982b6b74fed6502fa25aacb",
+    "url": "https://nsearchives.nseindia.com/annual_reports/AR_29385_ASIANPAINT_2025_2026_A_26278926_12062026160918.pdf",
+    "low_text_pages": 1,
+    "json_s": 2.064,
+    "download_s": 5.33,
+    "open_s": 0.231,
+    "text_s": 63.803,
+    "coord_s": 11.999,
+    "kinds": {
+      "consolidated_bs": 8,
+      "unlabeled_bs": 2,
+      "unlabeled_cf": 1,
+      "consolidated_pl": 21,
+      "standalone_pl": 18,
+      "standalone_cf": 2,
+      "standalone_bs": 4,
+      "consolidated_cf": 2
+    },
+    "consolidated_pages": [
+      [
+        42,
+        "consolidated_bs",
+        857,
+        453
+      ],
+      [
+        180,
+        "consolidated_pl",
+        218,
+        2
+      ],
+      [
+        229,
+        "consolidated_pl",
+        206,
+        2
+      ],
+      [
+        230,
+        "consolidated_pl",
+        223,
+        2
+      ],
+      [
+        233,
+        "consolidated_bs",
+        249,
+        125
+      ],
+      [
+        234,
+        "consolidated_pl",
+        236,
+        92
+      ],
+      [
+        236,
+        "consolidated_cf",
+        256,
+        78
+      ],
+      [
+        237,
+        "consolidated_cf",
+        254,
+        27
+      ],
+      [
+        238,
+        "consolidated_pl",
+        213,
+        4
+      ],
+      [
+        239,
+        "consolidated_pl",
+        207,
+        4
+      ],
+      [
+        240,
+        "consolidated_pl",
+        199,
+        2
+      ],
+      [
+        241,
+        "consolidated_pl",
+        200,
+        2
+      ],
+      [
+        242,
+        "consolidated_pl",
+        193,
+        2
+      ],
+      [
+        243,
+        "consolidated_pl",
+        194,
+        2
+      ],
+      [
+        244,
+        "consolidated_pl",
+        199,
+        2
+      ],
+      [
+        245,
+        "consolidated_pl",
+        205,
+        2
+      ],
+      [
+        246,
+        "consolidated_pl",
+        490,
+        227
+      ],
+      [
+        251,
+        "consolidated_pl",
+        191,
+        50
+      ],
+      [
+        252,
+        "consolidated_bs",
+        302,
+        68
+      ],
+      [
+        253,
+        "consolidated_bs",
+        275,
+        67
+      ],
+      [
+        259,
+        "consolidated_pl",
+        240,
+        76
+      ],
+      [
+        263,
+        "consolidated_bs",
+        227,
+        95
+      ],
+      [
+        264,
+        "consolidated_pl",
+        297,
+        140
+      ],
+      [
+        265,
+        "consolidated_pl",
+        232,
+        58
+      ],
+      [
+        266,
+        "consolidated_pl",
+        175,
+        6
+      ],
+      [
+        270,
+        "consolidated_pl",
+        160,
+        44
+      ],
+      [
+        271,
+        "consolidated_pl",
+        257,
+        58
+      ],
+      [
+        272,
+        "consolidated_pl",
+        275,
+        83
+      ],
+      [
+        273,
+        "consolidated_bs",
+        132,
+        7
+      ],
+      [
+        283,
+        "consolidated_bs",
+        206,
+        25
+      ],
+      [
+        284,
+        "consolidated_bs",
+        555,
+        240
+      ]
+    ],
+    "ca_events": [
+      {
+        "type": "scheme",
+        "date": "2009-03-30"
+      },
+      {
+        "type": "scheme",
+        "date": "2009-06-03"
+      },
+      {
+        "type": "merger",
+        "date": "2009-08-17"
+      },
+      {
+        "type": "scheme",
+        "date": "2009-08-17"
+      },
+      {
+        "type": "demerger",
+        "date": "2011-09-21"
+      },
+      {
+        "type": "merger",
+        "date": "2011-09-21"
+      },
+      {
+        "type": "demerger",
+        "date": "2012-02-07"
+      },
+      {
+        "type": "merger",
+        "date": "2012-02-07"
+      },
+      {
+        "type": "demerger",
+        "date": "2012-02-21"
+      },
+      {
+        "type": "merger",
+        "date": "2012-02-21"
+      },
+      {
+        "type": "demerger",
+        "date": "2012-07-06"
+      },
+      {
+        "type": "merger",
+        "date": "2012-07-06"
+      }
+    ],
+    "buyback_docs": [],
+    "samples": [
+      {
+        "page": 42,
+        "kind": "consolidated_bs",
+        "headers": [
+          {
+            "text": "(? in Crores except per share data, number of employees, number of shareholders ",
+            "x": 49.57,
+            "y": 329.5,
+            "size": 1.0
+          },
+          {
+            "text": "Basic Earnings Per Share (EPS) (?)",
+            "x": 375.7,
+            "y": 44.52,
+            "size": 1.0
+          },
+          {
+            "text": "Diluted Earnings Per Share (EPS) (?)",
+            "x": 384.52,
+            "y": 44.52,
+            "size": 1.0
+          },
+          {
+            "text": "Book Value (?)",
+            "x": 410.98,
+            "y": 44.52,
+            "size": 1.0
+          },
+          {
+            "text": "42.0 Crores).",
+            "x": 488.03,
+            "y": 328.65,
+            "size": 1.0
+          },
+          {
+            "text": "(? in Crores except per share data and ratios)",
+            "x": 643.87,
+            "y": 485.35,
+            "size": 1.0
+          },
+          {
+            "text": "Basic Earnings Per Share (EPS) (?)",
+            "x": 1004.0,
+            "y": 44.52,
+            "size": 1.0
+          },
+          {
+            "text": "Diluted Earnings Per Share (EPS) (?)",
+            "x": 1013.86,
+            "y": 44.52,
+            "size": 1.0
+          },
+          {
+            "text": "Book Value (?)",
+            "x": 1023.71,
+            "y": 44.52,
+            "size": 1.0
+          },
+          {
+            "text": "April, 2018 (reducing the same by ? 46.9 Crores).",
+            "x": 1073.96,
+            "y": 218.02,
+            "size": 1.0
+          }
+        ],
+        "numbers": [
+          {
+            "text": "30,680.2",
+            "x": 0.0,
+            "y": 0.0,
+            "size": 1.0
+          },
+          {
+            "text": "29,421.1",
+            "x": 0.0,
+            "y": 0.0,
+            "size": 1.0
+          },
+          {
+            "text": "31,093.8",
+            "x": 0.0,
+            "y": 0.0,
+            "size": 1.0
+          },
+          {
+            "text": "29,953.1",
+            "x": 0.0,
+            "y": 0.0,
+            "size": 1.0
+          },
+          {
+            "text": "25,002.1",
+            "x": 0.0,
+            "y": 0.0,
+            "size": 1.0
+          },
+          {
+            "text": "18,280.1",
+            "x": 0.0,
+            "y": 0.0,
+            "size": 1.0
+          },
+          {
+            "text": "17,025.6",
+            "x": 0.0,
+            "y": 0.0,
+            "size": 1.0
+          },
+          {
+            "text": "16,209.4",
+            "x": 0.0,
+            "y": 0.0,
+            "size": 1.0
+          }
+        ]
+      },
+      {
+        "page": 180,
+        "kind": "consolidated_pl",
+        "headers": [
+          {
+            "text": "comprise the Balance Sheet as at March 31, 2026 and the",
+            "x": 42.52,
+            "y": 555.2,
+            "size": 1.0
+          },
+          {
+            "text": "of the Company as at March 31, 2026 and its profit, total",
+            "x": 42.52,
+            "y": 381.2,
+            "size": 1.0
+          }
+        ],
+        "numbers": [
+          {
+            "text": "354",
+            "x": 42.52,
+            "y": 19.06,
+            "size": 1.0
+          },
+          {
+            "text": "355",
+            "x": 0.0,
+            "y": 0.0,
+            "size": 1.0
+          }
+        ]
+      },
+      {
+        "page": 229,
+        "kind": "consolidated_pl",
+        "headers": [
+          {
+            "text": "Balance Sheet as at March 31, 2026, and the Consolidated",
+            "x": 42.52,
+            "y": 539.47,
+            "size": 1.0
+          },
+          {
+            "text": "state of affairs of the Group as at March 31, 2026, and their",
+            "x": 42.52,
+            "y": 317.46,
+            "size": 1.0
+          },
+          {
+            "text": "219.08 crores. Goodwill is tested",
+            "x": 155.39,
+            "y": 150.32,
+            "size": 1.0
+          }
+        ],
+        "numbers": [
+          {
+            "text": "452",
+            "x": 42.52,
+            "y": 19.06,
+            "size": 1.0
+          },
+          {
+            "text": "453",
+            "x": 0.0,
+            "y": 0.0,
+            "size": 1.0
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "ticker": "HINDUNILVR",
+    "isin": "INE030A01027",
+    "pages": 246,
+    "size": 21643813,
+    "hash": "ab3842889a4dbfe697fa2bbed89d3b8bc622e7a13b052841b4908b92be719054",
+    "sha256_payload": "ab3842889a4dbfe697fa2bbed89d3b8bc622e7a13b052841b4908b92be719054",
+    "url": "https://nsearchives.nseindia.com/annual_reports/AR_29330_HINDUNILVR_2025_2026_A_21643813_02062026215058.pdf",
+    "low_text_pages": 0,
+    "json_s": 1.939,
+    "download_s": 9.36,
+    "open_s": 0.376,
+    "text_s": 24.088,
+    "coord_s": 5.541,
+    "kinds": {
+      "consolidated_pl": 21,
+      "standalone_bs": 11,
+      "unlabeled_bs": 2,
+      "consolidated_bs": 12,
+      "unlabeled_cf": 2,
+      "standalone_pl": 16,
+      "standalone_cf": 1
+    },
+    "consolidated_pages": [
+      [
+        5,
+        "consolidated_pl",
+        197,
+        9
+      ],
+      [
+        51,
+        "consolidated_bs",
+        215,
+        2
+      ],
+      [
+        179,
+        "consolidated_pl",
+        202,
+        2
+      ],
+      [
+        185,
+        "consolidated_bs",
+        101,
+        2
+      ],
+      [
+        186,
+        "consolidated_pl",
+        146,
+        13
+      ],
+      [
+        188,
+        "consolidated_bs",
+        152,
+        3
+      ],
+      [
+        191,
+        "consolidated_pl",
+        205,
+        2
+      ],
+      [
+        192,
+        "consolidated_pl",
+        125,
+        2
+      ],
+      [
+        193,
+        "consolidated_pl",
+        129,
+        2
+      ],
+      [
+        196,
+        "consolidated_pl",
+        128,
+        2
+      ],
+      [
+        197,
+        "consolidated_pl",
+        123,
+        2
+      ],
+      [
+        199,
+        "consolidated_bs",
+        157,
+        10
+      ],
+      [
+        200,
+        "consolidated_pl",
+        157,
+        10
+      ],
+      [
+        202,
+        "consolidated_bs",
+        128,
+        2
+      ],
+      [
+        203,
+        "consolidated_pl",
+        121,
+        2
+      ],
+      [
+        204,
+        "consolidated_pl",
+        131,
+        2
+      ],
+      [
+        206,
+        "consolidated_bs",
+        107,
+        2
+      ],
+      [
+        207,
+        "consolidated_bs",
+        126,
+        2
+      ],
+      [
+        210,
+        "consolidated_pl",
+        110,
+        2
+      ],
+      [
+        212,
+        "consolidated_bs",
+        122,
+        2
+      ],
+      [
+        213,
+        "consolidated_pl",
+        101,
+        2
+      ],
+      [
+        214,
+        "consolidated_pl",
+        105,
+        2
+      ],
+      [
+        215,
+        "consolidated_bs",
+        149,
+        3
+      ],
+      [
+        216,
+        "consolidated_pl",
+        105,
+        2
+      ],
+      [
+        217,
+        "consolidated_pl",
+        138,
+        4
+      ],
+      [
+        218,
+        "consolidated_pl",
+        154,
+        3
+      ],
+      [
+        219,
+        "consolidated_bs",
+        124,
+        2
+      ],
+      [
+        221,
+        "consolidated_pl",
+        154,
+        2
+      ],
+      [
+        222,
+        "consolidated_bs",
+        173,
+        8
+      ],
+      [
+        223,
+        "consolidated_pl",
+        148,
+        2
+      ],
+      [
+        224,
+        "consolidated_pl",
+        102,
+        3
+      ],
+      [
+        225,
+        "consolidated_pl",
+        123,
+        4
+      ],
+      [
+        232,
+        "consolidated_bs",
+        46,
+        2
+      ]
+    ],
+    "ca_events": [
+      {
+        "type": "scheme",
+        "date": "2005-04-29"
+      },
+      {
+        "type": "demerger",
+        "date": "2005-07-07"
+      },
+      {
+        "type": "scheme",
+        "date": "2005-07-07"
+      },
+      {
+        "type": "demerger",
+        "date": "2005-08-03"
+      },
+      {
+        "type": "merger",
+        "date": "2005-08-03"
+      },
+      {
+        "type": "scheme",
+        "date": "2005-08-03"
+      },
+      {
+        "type": "scheme",
+        "date": "2005-08-11"
+      },
+      {
+        "type": "scheme",
+        "date": "2005-09-21"
+      },
+      {
+        "type": "scheme",
+        "date": "2005-10-21"
+      },
+      {
+        "type": "demerger",
+        "date": "2005-12-01"
+      },
+      {
+        "type": "scheme",
+        "date": "2005-12-01"
+      },
+      {
+        "type": "scheme",
+        "date": "2005-12-13"
+      }
+    ],
+    "buyback_docs": [
+      {
+        "title": "Public Announcement - Buyback of Shares",
+        "url": "https://nsearchives.nseindia.com/corporate/HUL_buyback_12082010.zip",
+        "as_of": "2010-08-12"
+      },
+      {
+        "title": "Buyback",
+        "url": "https://nsearchives.nseindia.com/corporate/hinduni_proceeds_15062010.zip",
+        "as_of": "2010-06-15"
+      }
+    ],
+    "samples": [
+      {
+        "page": 5,
+        "kind": "consolidated_pl",
+        "headers": [
+          {
+            "text": "1st April, 2025 to 31st March, 2026",
+            "x": 51.02,
+            "y": 542.4,
+            "size": 1.0
+          }
+        ],
+        "numbers": [
+          {
+            "text": "1",
+            "x": 661.86,
+            "y": 615.01,
+            "size": 1.0
+          },
+          {
+            "text": "3",
+            "x": 658.65,
+            "y": 560.71,
+            "size": 1.0
+          },
+          {
+            "text": "5",
+            "x": 658.46,
+            "y": 508.26,
+            "size": 1.0
+          },
+          {
+            "text": "7",
+            "x": 658.46,
+            "y": 455.04,
+            "size": 1.0
+          },
+          {
+            "text": "2",
+            "x": 783.83,
+            "y": 616.12,
+            "size": 1.0
+          },
+          {
+            "text": "4",
+            "x": 782.36,
+            "y": 560.18,
+            "size": 1.0
+          },
+          {
+            "text": "6",
+            "x": 783.21,
+            "y": 508.23,
+            "size": 1.0
+          },
+          {
+            "text": "03",
+            "x": 0.0,
+            "y": 0.0,
+            "size": 1.0
+          }
+        ]
+      },
+      {
+        "page": 51,
+        "kind": "consolidated_bs",
+        "headers": [
+          {
+            "text": "(? in crores)",
+            "x": 244.76,
+            "y": 544.03,
+            "size": 1.0
+          },
+          {
+            "text": "(? in crores)",
+            "x": 244.76,
+            "y": 285.31,
+            "size": 1.0
+          },
+          {
+            "text": "(CFS) for the FY ended 31st March, 2026 is included in the",
+            "x": 51.03,
+            "y": 110.75,
+            "size": 1.0
+          },
+          {
+            "text": "In accordance with the circular dated 7th January, 2026",
+            "x": 902.87,
+            "y": 206.77,
+            "size": 1.0
+          },
+          {
+            "text": "the Board, at its meeting held on 30th April, 2026, upon",
+            "x": 902.87,
+            "y": 183.77,
+            "size": 1.0
+          },
+          {
+            "text": "and demand water management, over 2.7 million metric",
+            "x": 902.84,
+            "y": 567.11,
+            "size": 1.0
+          },
+          {
+            "text": "and over 125 million person-days of employment due to",
+            "x": 902.84,
+            "y": 544.1,
+            "size": 1.0
+          }
+        ],
+        "numbers": [
+          {
+            "text": "95",
+            "x": 1124.7,
+            "y": 21.67,
+            "size": 1.0
+          },
+          {
+            "text": "94",
+            "x": 51.02,
+            "y": 21.67,
+            "size": 1.0
+          }
+        ]
+      },
+      {
+        "page": 179,
+        "kind": "consolidated_pl",
+        "headers": [
+          {
+            "text": "31 March 2026, the Consolidated Statement of Profit",
+            "x": 70.86,
+            "y": 590.71,
+            "size": 1.0
+          },
+          {
+            "text": "of affairs of the Group, as at 31 March 2026, and their",
+            "x": 70.86,
+            "y": 342.17,
+            "size": 1.0
+          },
+          {
+            "text": "17,265 crores and",
+            "x": 671.81,
+            "y": 416.37,
+            "size": 1.0
+          },
+          {
+            "text": "27,228 crores,",
+            "x": 671.81,
+            "y": 416.37,
+            "size": 1.0
+          },
+          {
+            "text": "total assets of the Group as at 31 March 2026.",
+            "x": 671.81,
+            "y": 392.36,
+            "size": 1.0
+          }
+        ],
+        "numbers": [
+          {
+            "text": "351",
+            "x": 1120.99,
+            "y": 21.67,
+            "size": 1.0
+          },
+          {
+            "text": "350",
+            "x": 51.02,
+            "y": 21.67,
+            "size": 1.0
+          }
+        ]
+      }
+    ]
+  }
+]

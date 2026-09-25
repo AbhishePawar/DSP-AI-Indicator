@@ -417,7 +417,7 @@ def test_dcf_hard_gates_and_share_semantics() -> None:
     )
     assert wa.intrinsic_value_per_share.status == "BLOCKED"
     assert canonical_share_semantic_type("Weighted average number of equity shares") == (
-        "WEIGHTED_AVERAGE_EPS"
+        "WEIGHTED_AVERAGE_BASIC"
     )
     assert cannot_derive_shares("market_cap") is True
 

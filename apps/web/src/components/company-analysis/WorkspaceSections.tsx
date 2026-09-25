@@ -78,7 +78,7 @@ export function SummarySection({
         financialStatements={financialStatements}
       />
       <SectionCard
-        title="Executive Summary"
+        title="Summary"
         description="Institutional summary from /api/v1/analyse — Research Mode · research before recommendation"
       >
         <dl>
@@ -572,6 +572,15 @@ export function ValuationSection({ view }: { view: ResearchView }) {
   );
 }
 
+/** Figma `DOMAIN_SCORES` colour mapping — semantic financial tokens from globals.css. */
+const DOMAIN_SCORE_COLORS: Record<ResearchView["domainScores"][number]["id"], string> = {
+  economic_moat: "var(--c-dsp)",
+  management_quality: "var(--c-revenue)",
+  financial_strength: "var(--c-profit)",
+  earnings_quality: "var(--c-cashflow)",
+  growth_quality: "var(--c-valuation)",
+};
+
 export function QualitySection({ view }: { view: ResearchView }) {
   const bq = view.businessQuality;
   return (
@@ -617,6 +626,38 @@ export function QualitySection({ view }: { view: ResearchView }) {
             value={view.officialResearch.overallScoreStatus}
           />
         </dl>
+      </SectionCard>
+      <SectionCard
+        title="Domain scores"
+        description="Weighted inputs to the Business Quality aggregate — stage scores and the aggregator's published weights. Nothing is recomputed in the browser."
+      >
+        <ul className="space-y-3" aria-label="Domain scores">
+          {view.domainScores.map((d) => (
+            <li key={d.id} className="grid grid-cols-[minmax(0,1fr)_auto_auto] items-center gap-x-4 gap-y-1">
+              <span className="text-sm text-[var(--fg)]">{d.label}</span>
+              <span className="font-[family-name:var(--font-mono)] text-xs text-[var(--muted)]">
+                Weight {d.weight}
+              </span>
+              <span className="font-[family-name:var(--font-mono)] text-sm font-semibold text-[var(--fg)]">
+                {d.score}
+              </span>
+              <div
+                className="col-span-3 h-1.5 overflow-hidden rounded-full bg-[var(--muted-bg,var(--border))]"
+                role="presentation"
+              >
+                {d.scoreValue != null ? (
+                  <div
+                    className="h-full rounded-full"
+                    style={{
+                      width: `${Math.max(0, Math.min(100, d.scoreValue))}%`,
+                      background: DOMAIN_SCORE_COLORS[d.id],
+                    }}
+                  />
+                ) : null}
+              </div>
+            </li>
+          ))}
+        </ul>
       </SectionCard>
       <StageSectionCard title="Business Quality Aggregator" section={bq} />
       <p className="text-xs text-[var(--muted)]">

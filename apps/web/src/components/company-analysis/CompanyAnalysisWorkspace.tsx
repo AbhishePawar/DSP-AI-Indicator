@@ -40,6 +40,7 @@ import {
 } from "@/lib/securities/identity";
 import { useCollapsePanelsBelowLg } from "@/lib/a11y";
 import { loadAuthenticatedAnalyseRequest } from "@/lib/research/buildAnalyseRequest";
+import type { FinancialStatementsPayload } from "@/lib/institutional-dashboard/mapInstitutionalDashboard";
 import {
   mapResearchView,
   type ResearchView,
@@ -103,6 +104,31 @@ const ExplainabilitySection = lazy(() =>
 );
 const EvidenceSection = lazy(() =>
   import("./FlagshipSections").then((m) => ({ default: m.EvidenceSection })),
+);
+const EarningsQualitySection = lazy(() =>
+  import("./DeepDiveSections").then((m) => ({
+    default: m.EarningsQualitySection,
+  })),
+);
+const GrowthQualitySection = lazy(() =>
+  import("./DeepDiveSections").then((m) => ({
+    default: m.GrowthQualitySection,
+  })),
+);
+const MarginOfSafetySection = lazy(() =>
+  import("./DeepDiveSections").then((m) => ({
+    default: m.MarginOfSafetySection,
+  })),
+);
+const StrengthsWeaknessesSection = lazy(() =>
+  import("./DeepDiveSections").then((m) => ({
+    default: m.StrengthsWeaknessesSection,
+  })),
+);
+const InvestmentContextSection = lazy(() =>
+  import("./DeepDiveSections").then((m) => ({
+    default: m.InvestmentContextSection,
+  })),
 );
 const BuffettIndicatorSection = lazy(() =>
   import("./BuffettIndicatorSection").then((m) => ({
@@ -214,13 +240,18 @@ function SectionFallback() {
 function LazyViewSection({
   Section,
   view,
+  financialStatements,
 }: {
-  Section: ComponentType<{ view: ResearchView }>;
+  Section: ComponentType<{
+    view: ResearchView;
+    financialStatements?: FinancialStatementsPayload | null;
+  }>;
   view: ResearchView;
+  financialStatements?: FinancialStatementsPayload | null;
 }) {
   return (
     <Suspense fallback={<SectionFallback />}>
-      <Section view={view} />
+      <Section view={view} financialStatements={financialStatements} />
     </Suspense>
   );
 }
@@ -489,11 +520,21 @@ export function CompanyAnalysisWorkspace() {
   });
 
   const financialStatementsQuery = useQuery({
-    queryKey: ["company-analysis", "financial-statements", symbol, urlExchange],
+    // Five annual periods feed the Figma trend charts (Financials, Earnings
+    // Quality, Growth Quality) as well as the summary's latest-period fields.
+    queryKey: [
+      "company-analysis",
+      "financial-statements",
+      symbol,
+      urlExchange,
+      "annual",
+      5,
+    ],
     queryFn: () =>
       api.financialStatements(symbol, {
         token,
-        limit: 1,
+        limit: 5,
+        period_type: "annual",
         exchange: urlExchange || listing?.exchange,
       }),
     enabled: Boolean(token && symbol && (urlExchange || listing?.exchange)),
@@ -674,7 +715,34 @@ export function CompanyAnalysisWorkspace() {
                 <LazyViewSection Section={AdvancedCheckSection} view={view} />
               ) : null}
               {section === "financial" ? (
-                <LazyViewSection Section={FinancialSection} view={view} />
+                <LazyViewSection
+                  Section={FinancialSection}
+                  view={view}
+                  financialStatements={financialStatementsQuery.data ?? null}
+                />
+              ) : null}
+              {section === "earningsQuality" ? (
+                <LazyViewSection
+                  Section={EarningsQualitySection}
+                  view={view}
+                  financialStatements={financialStatementsQuery.data ?? null}
+                />
+              ) : null}
+              {section === "growthQuality" ? (
+                <LazyViewSection
+                  Section={GrowthQualitySection}
+                  view={view}
+                  financialStatements={financialStatementsQuery.data ?? null}
+                />
+              ) : null}
+              {section === "marginOfSafety" ? (
+                <LazyViewSection Section={MarginOfSafetySection} view={view} />
+              ) : null}
+              {section === "strengthsWeaknesses" ? (
+                <LazyViewSection Section={StrengthsWeaknessesSection} view={view} />
+              ) : null}
+              {section === "investmentContext" ? (
+                <LazyViewSection Section={InvestmentContextSection} view={view} />
               ) : null}
               {section === "ai" ? (
                 <LazyViewSection Section={AiSection} view={view} />

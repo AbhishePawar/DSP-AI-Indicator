@@ -269,7 +269,7 @@ export default function LoginForm() {
   if (step === "chooser") {
     return (
       <AuthShell>
-        <AuthCard title={env.appName} description="How would you like to login?">
+        <AuthCard title="Welcome back" description="Log in to your DSP account">
           <Stack gap={4}>
             {expired ? (
               <Alert variant="warning" title="Session expired">

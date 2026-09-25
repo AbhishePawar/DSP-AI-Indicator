@@ -10,13 +10,13 @@ export function PageHeader({
   actions?: ReactNode;
 }) {
   return (
-    <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-      <div>
-        <h1 className="break-words font-[family-name:var(--font-display)] text-2xl tracking-tight text-[var(--fg)] sm:text-3xl md:text-4xl">
+    <div className="page-header -mx-4 mb-2 sm:-mx-6">
+      <div className="min-w-0">
+        <h1 className="break-words font-[family-name:var(--font-display)] text-base font-medium tracking-tight text-[var(--fg)] sm:text-lg">
           {title}
         </h1>
         {description ? (
-          <p className="mt-2 max-w-2xl text-sm text-[var(--muted)] sm:text-base">
+          <p className="mt-1 max-w-2xl font-mono text-[11px] text-[var(--muted)]">
             {description}
           </p>
         ) : null}

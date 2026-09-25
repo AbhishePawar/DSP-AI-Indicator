@@ -14,6 +14,7 @@ import {
   TRUST_PILLARS,
   WORKFLOW_STEPS,
 } from "./content";
+import { LandingResearchSearch } from "./LandingResearchSearch";
 import { Section } from "./Section";
 
 function formatPrice(edition: (typeof PRODUCT_EDITIONS)[number]): string {
@@ -43,29 +44,38 @@ export function MarketingLanding() {
           }}
         />
         <div className="mx-auto flex max-w-[72rem] flex-col justify-end px-4 pb-16 pt-20 sm:px-6 sm:pb-24 sm:pt-28">
+          <p className="mkt-reveal mb-8 inline-flex items-center gap-2 rounded-full border border-[var(--border)] bg-[var(--surface-2)] px-3.5 py-1.5 font-mono text-xs text-[var(--muted)]">
+            <span
+              className="inline-block size-1.5 rounded-full bg-[var(--c-profit)]"
+              aria-hidden
+            />
+            Official evidence · deterministic DSP
+          </p>
           <h1
             id="hero-brand"
             className="mkt-reveal font-[family-name:var(--font-display)] text-5xl font-medium tracking-tight text-[var(--fg)] sm:text-6xl md:text-7xl"
           >
-            {env.appName}
+            Ask DSP anything
+            <br />
+            about any company.
           </h1>
-          <p className="mkt-reveal mkt-reveal-delay mt-6 max-w-[28ch] font-[family-name:var(--font-display)] text-2xl font-medium tracking-tight text-[var(--fg)] sm:text-3xl">
-            {env.tagline}
+          <p className="mkt-fade mx-auto mt-5 max-w-[36rem] text-lg leading-relaxed text-[var(--muted)]">
+            Chat-first equity research. Financial evidence when certified.
+            No invented numbers.
           </p>
-          <p className="mkt-fade mt-4 max-w-[42ch] text-base leading-relaxed text-[var(--muted)] sm:text-lg">
-            Institutional investment research with evidence, explainability, and
-            governed AI — calm enough for serious work.
-          </p>
-          <div className="mkt-fade mt-10 flex flex-wrap gap-3">
+          <div className="mkt-fade mt-10">
+            <LandingResearchSearch />
+          </div>
+          <div className="mkt-fade mt-6 flex flex-wrap justify-center gap-3">
             <Link
               href="/login"
-              className="inline-flex min-h-11 items-center rounded-[var(--radius-sm)] bg-[var(--accent)] px-5 py-2.5 text-sm font-medium text-[var(--accent-fg)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent)]"
+              className="inline-flex min-h-11 items-center rounded-[10px] bg-[var(--accent)] px-5 py-2.5 text-sm font-medium text-[var(--accent-fg)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent)]"
             >
               Sign in
             </Link>
             <Link
               href="/register"
-              className="inline-flex min-h-11 items-center rounded-[var(--radius-sm)] border border-[var(--border)] bg-[var(--surface)] px-5 py-2.5 text-sm text-[var(--fg)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent)]"
+              className="inline-flex min-h-11 items-center rounded-[10px] border border-[var(--border)] bg-[var(--surface)] px-5 py-2.5 text-sm text-[var(--fg)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent)]"
             >
               Create account
             </Link>

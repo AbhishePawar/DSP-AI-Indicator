@@ -27,7 +27,12 @@ export type AnalysisSectionId =
   | "documents"
   | "news"
   | "copilot"
-  | "settings";
+  | "settings"
+  | "earningsQuality"
+  | "growthQuality"
+  | "marginOfSafety"
+  | "strengthsWeaknesses"
+  | "investmentContext";
 
 export type AnalysisSectionMeta = {
   id: AnalysisSectionId;
@@ -37,11 +42,20 @@ export type AnalysisSectionMeta = {
   lazy?: boolean;
 };
 
-/** Primary institutional reading order for the flagship workspace. */
+/**
+ * Primary institutional reading order for the flagship workspace.
+ *
+ * Section ids are the DSP / RS semantic keys (RS-001 summary, RS-004
+ * valuation, RS-005 margin of safety inside valuation, RS-006 quality,
+ * RS-007 risk, RS-009 explainability, RS-010 evidence). User-facing labels
+ * follow the Figma Make `CompanyAnalysis.tsx` TOC ("Summary", "Buffett
+ * Assessment", "Financials", "Key Risks", "Evidence"); internal taxonomy is
+ * never surfaced as UI copy.
+ */
 export const ANALYSIS_SECTIONS: readonly AnalysisSectionMeta[] = [
   {
     id: "summary",
-    label: "Executive Summary",
+    label: "Summary",
     description: "Company header, conclusion, recommendation state",
     shortcut: "1",
   },
@@ -75,9 +89,44 @@ export const ANALYSIS_SECTIONS: readonly AnalysisSectionMeta[] = [
   },
   {
     id: "risk",
-    label: "Risk",
+    label: "Key Risks",
     description: "Risk notes and financial strength stage",
     shortcut: "6",
+    lazy: true,
+  },
+  {
+    id: "earningsQuality",
+    label: "Earnings Quality",
+    description: "Are reported earnings durable and supported by the business? earnings_quality stage + provider margin trend",
+    shortcut: "Q",
+    lazy: true,
+  },
+  {
+    id: "growthQuality",
+    label: "Growth Quality",
+    description: "growth_quality stage outputs — reinvestment and growth durability",
+    shortcut: "G",
+    lazy: true,
+  },
+  {
+    id: "marginOfSafety",
+    label: "Margin of Safety",
+    description: "RS-005 — business quality and valuation are separate questions",
+    shortcut: "M",
+    lazy: true,
+  },
+  {
+    id: "strengthsWeaknesses",
+    label: "Strengths & Weaknesses",
+    description: "Recommendation engine and aggregator factors — never client-authored",
+    shortcut: "X",
+    lazy: true,
+  },
+  {
+    id: "investmentContext",
+    label: "Investment Context",
+    description: "Backend-authoritative DSP context — not an independent frontend recommendation",
+    shortcut: "U",
     lazy: true,
   },
   {
@@ -89,7 +138,7 @@ export const ANALYSIS_SECTIONS: readonly AnalysisSectionMeta[] = [
   },
   {
     id: "financial",
-    label: "Financial Performance",
+    label: "Financials",
     description: "Financial and growth stage summaries",
     shortcut: "7",
     lazy: true,
@@ -110,7 +159,7 @@ export const ANALYSIS_SECTIONS: readonly AnalysisSectionMeta[] = [
   },
   {
     id: "evidence",
-    label: "Supporting Evidence",
+    label: "Evidence",
     description: "Evidence chain and research objects",
     shortcut: "E",
     lazy: true,
@@ -151,7 +200,7 @@ export const ANALYSIS_SECTIONS: readonly AnalysisSectionMeta[] = [
   },
   {
     id: "buffett",
-    label: "Buffett Indicator",
+    label: "Buffett Assessment",
     description: "Buffett-style report synthesis",
     shortcut: "B",
     lazy: true,

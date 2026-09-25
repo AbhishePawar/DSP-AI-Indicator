@@ -25,7 +25,7 @@ const STORAGE_KEY = "dsp.theme.v2";
 
 function resolveMode(mode: ThemeMode): ResolvedTheme {
   if (mode === "light" || mode === "dark") return mode;
-  if (typeof window === "undefined") return "light";
+  if (typeof window === "undefined") return "dark";
   return window.matchMedia("(prefers-color-scheme: dark)").matches
     ? "dark"
     : "light";
@@ -36,15 +36,17 @@ function applyResolved(resolved: ResolvedTheme) {
 }
 
 export function ThemeProvider({ children }: { children: ReactNode }) {
-  const [mode, setModeState] = useState<ThemeMode>("system");
-  const [resolved, setResolved] = useState<ResolvedTheme>("light");
+  const [mode, setModeState] = useState<ThemeMode>("dark");
+  const [resolved, setResolved] = useState<ResolvedTheme>("dark");
 
   useEffect(() => {
     const stored = window.localStorage.getItem(STORAGE_KEY) as ThemeMode | null;
+    // Figma design is dark-first: no stored preference → dark (not OS scheme).
+    // An explicit user choice (light / dark / system) is always honoured.
     const initial: ThemeMode =
       stored === "light" || stored === "dark" || stored === "system"
         ? stored
-        : "system";
+        : "dark";
     setModeState(initial);
     const next = resolveMode(initial);
     setResolved(next);

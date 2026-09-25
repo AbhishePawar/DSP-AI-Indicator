@@ -9,8 +9,11 @@ import Link from "next/link";
 
 import { Accordion, Button } from "@/components/ds";
 import { ExplainableRatingItem } from "./ExplainableRatingItem";
+import { TrendChart } from "./TrendChart";
+import { mapFinancialTrends } from "@/lib/company-analysis";
 import { formatPct } from "@/lib/intelligence/mapResponse";
 import type { RiskCategoryPayload } from "@/lib/api/compositionTypes";
+import type { FinancialStatementsPayload } from "@/lib/institutional-dashboard/mapInstitutionalDashboard";
 import type { ResearchView } from "@/lib/research/mapResearchView";
 import {
   FieldRow,
@@ -254,13 +257,20 @@ export function RiskSection({ view }: { view: ResearchView }) {
   );
 }
 
-export function FinancialSection({ view }: { view: ResearchView }) {
+export function FinancialSection({
+  view,
+  financialStatements,
+}: {
+  view: ResearchView;
+  financialStatements?: FinancialStatementsPayload | null;
+}) {
   const fin = view.financial;
+  const trends = mapFinancialTrends(financialStatements);
   return (
     <div className="space-y-4">
       <SectionCard
-        title="Financial Performance"
-        description="Values from the financial stage only — line-item history requires filings APIs not wired here. No cross-stage substitutes."
+        title="Financials"
+        description="Values from the financial stage only. Trend charts below are authenticated statement line items (GET /api/v1/fundamentals/statements) — no cross-stage substitutes, nothing computed in the browser."
       >
         <dl>
           <FieldRow
@@ -289,8 +299,25 @@ export function FinancialSection({ view }: { view: ResearchView }) {
         Growth and Earnings Quality are separate stages — not Financial
         Performance substitutes.
       </p>
-      <SectionCard title="Historical trends">
-        <WorkspaceEmpty description="Data unavailable. No multi-period financial series is exposed on AnalyseResponse for charting in this workspace." />
+      <SectionCard
+        title="Five-year trends"
+        description={
+          trends.authenticated
+            ? `Annual periods from authenticated statements (${trends.periodType ?? "annual"}). Reporting currency: ${
+                trends.series.revenue.currency ?? "Data unavailable."
+              }.`
+            : "Data unavailable. Authenticated statements were not returned for this company — no series is invented."
+        }
+      >
+        <div className="grid gap-3.5 md:grid-cols-2">
+          <TrendChart series={trends.series.revenue} footnote={trends.series.revenue.source} />
+          <TrendChart series={trends.series.net_income} footnote={trends.series.net_income.source} />
+          <TrendChart
+            series={trends.series.free_cash_flow}
+            footnote={trends.series.free_cash_flow.source}
+          />
+          <TrendChart series={trends.series.net_margin} footnote={trends.series.net_margin.source} />
+        </div>
       </SectionCard>
     </div>
   );

@@ -152,6 +152,13 @@ FIELD_AUTHORITY_CHAIN: dict[str, tuple[str, ...]] = {
         "yahoo_ibef",
         "ai",
     ),
+    "macro": (
+        "regulator",
+        "company",
+        "screener",
+        "yahoo_ibef",
+        "ai",
+    ),
 }
 
 
@@ -182,6 +189,12 @@ _FIELD_GROUP = {
     "shares_outstanding": "shares",
     "market_cap": "price",
     "enterprise_value": "price",
+    "risk_free_rate": "macro",
+    "beta": "macro",
+    "equity_risk_premium": "macro",
+    "pre_tax_cost_of_debt": "macro",
+    "tax_rate": "financials",
+    "finance_costs": "financials",
 }
 
 AUTHORITY_TIERS: tuple[str, ...] = (

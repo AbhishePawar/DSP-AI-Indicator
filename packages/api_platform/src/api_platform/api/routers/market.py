@@ -74,6 +74,43 @@ def market_quote(
     )
 
 
+@router.get("/market/indices")
+def market_indices(state: ApiState = Depends(get_api_state)) -> JSONResponse:
+    """Benchmark index snapshots for the Dashboard market bar (RS-002).
+
+    Always HTTP 200 with the canonical catalogue; each index carries
+    ``available`` so the UI can render provider values or its own
+    unavailable state. Values are provider-reported — never derived here.
+    """
+    try:
+        payload = state.platform.get_market_indices()
+    except Exception as exc:  # noqa: BLE001 — provider failure must not 500
+        return JSONResponse(
+            status_code=503,
+            content={
+                "ok": False,
+                "available": False,
+                "authenticated": False,
+                "indices": [],
+                "error": str(exc),
+                "message": "Data unavailable.",
+            },
+        )
+
+    indices = list(payload.get("indices") or [])
+    body: dict[str, Any] = {
+        "ok": True,
+        "available": any(bool(i.get("available")) for i in indices),
+        "authenticated": bool(payload.get("authenticated")),
+        "provider_id": payload.get("provider_id"),
+        "indices": indices,
+        "message": None if any(bool(i.get("available")) for i in indices) else "Data unavailable.",
+    }
+    if payload.get("capability"):
+        body["capability"] = payload["capability"]
+    return JSONResponse(body)
+
+
 @router.get("/market/health")
 def market_health(state: ApiState = Depends(get_api_state)) -> dict[str, Any]:
     """Authenticated market quote provider health."""

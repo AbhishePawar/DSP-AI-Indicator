@@ -1,0 +1,722 @@
+{
+  "statement_pages": [
+    {
+      "page": 295,
+      "kind": "bs",
+      "name": "Consolidated Balance Sheet",
+      "basis": "consolidated",
+      "unit": "million",
+      "columns": [
+        {
+          "x": 417.5,
+          "end": "2026-03-31",
+          "label": "March 31, 2026"
+        },
+        {
+          "x": 488.4,
+          "end": "2025-03-31",
+          "label": "March 31, 2025"
+        }
+      ],
+      "unique": [
+        {
+          "label": "Property, plant and equipment 4",
+          "current": "77224",
+          "prior": "78473"
+        },
+        {
+          "label": "Right-of-Use assets 5",
+          "current": "28287",
+          "prior": "25598"
+        },
+        {
+          "label": "Capital work-in-progress 6",
+          "current": "4122",
+          "prior": "1964"
+        },
+        {
+          "label": "Goodwill 7",
+          "current": "382214",
+          "prior": "320346"
+        },
+        {
+          "label": "Other intangible assets 7",
+          "current": "29176",
+          "prior": "27450"
+        },
+        {
+          "label": "Investments 9",
+          "current": "28053",
+          "prior": "26458"
+        },
+        {
+          "label": "Trade receivables 11",
+          "current": "349",
+          "prior": "299"
+        },
+        {
+          "label": "Other financial assets",
+          "current": "6259",
+          "prior": "4664"
+        },
+        {
+          "label": "Deferred tax assets (net) 28",
+          "current": "5242",
+          "prior": "2561"
+        },
+        {
+          "label": "Non-current tax assets (net)",
+          "current": "7787",
+          "prior": "7230"
+        },
+        {
+          "label": "in millions, except share and per share data, unless otherwise stated) Other non-current assets 13",
+          "current": "9451",
+          "prior": "7707"
+        },
+        {
+          "label": "Total non-current assets",
+          "current": "587723",
+          "prior": "504077"
+        },
+        {
+          "label": "Inventories 14",
+          "current": "517",
+          "prior": "694"
+        },
+        {
+          "label": "Investments 9",
+          "current": "437680",
+          "prior": "411474"
+        },
+        {
+          "label": "Derivative assets 10",
+          "current": "888",
+          "prior": "1820"
+        },
+        {
+          "label": "Trade receivables 11",
+          "current": "135901",
+          "prior": "117745"
+        },
+        {
+          "label": "Unbilled receivables",
+          "current": "76823",
+          "prior": "64280"
+        },
+        {
+          "label": "Cash and cash equivalents 15",
+          "current": "105555",
+          "prior": "121974"
+        },
+        {
+          "label": "Other financial assets",
+          "current": "10245",
+          "prior": "8448"
+        },
+        {
+          "label": "Current tax assets (net)",
+          "current": "10762",
+          "prior": "6417"
+        },
+        {
+          "label": "Contract assets",
+          "current": "14819",
+          "prior": "15795"
+        },
+        {
+          "label": "Other current assets 13",
+          "current": "33164",
+          "prior": "29128"
+        },
+        {
+          "label": "Total current assets",
+          "current": "826354",
+          "prior": "777775"
+        },
+        {
+          "label": "TOTAL ASSETS",
+          "current": "1414077",
+          "prior": "1281852"
+        },
+        {
+          "label": "Equity share capital 16",
+          "current": "20977",
+          "prior": "20944"
+        }
+      ]
+    },
+    {
+      "page": 296,
+      "kind": "bs",
+      "name": "Consolidated Balance Sheet",
+      "basis": "consolidated",
+      "unit": "million",
+      "columns": [
+        {
+          "x": 415.8,
+          "end": "2026-03-31",
+          "label": "March 31, 2026"
+        },
+        {
+          "x": 486.8,
+          "end": "2025-03-31",
+          "label": "March 31, 2025"
+        }
+      ],
+      "unique": [
+        {
+          "label": "Borrowings 17",
+          "current": "1962",
+          "prior": "63954"
+        },
+        {
+          "label": "Lease liabilities 5",
+          "current": "26327",
+          "prior": "22193"
+        },
+        {
+          "label": "Trade payables 21 -",
+          "current": "4394",
+          "prior": null
+        },
+        {
+          "label": "Other financial liabilities",
+          "current": "6743",
+          "prior": "7793"
+        },
+        {
+          "label": "Provisions 19",
+          "current": "5389",
+          "prior": "4656"
+        },
+        {
+          "label": "Deferred tax liabilities (net) 28",
+          "current": "17266",
+          "prior": "16443"
+        },
+        {
+          "label": "Non-current tax liabilities (net)",
+          "current": "48195",
+          "prior": "42024"
+        },
+        {
+          "label": "Other non-current liabilities 20",
+          "current": "17877",
+          "prior": "12757"
+        },
+        {
+          "label": "Total non-current liabilities",
+          "current": "128153",
+          "prior": "169820"
+        },
+        {
+          "label": "Borrowings 17",
+          "current": "165912",
+          "prior": "97863"
+        },
+        {
+          "label": "Lease liabilities 5",
+          "current": "8709",
+          "prior": "8025"
+        },
+        {
+          "label": "Derivative liabilities 10",
+          "current": "10978",
+          "prior": "968"
+        },
+        {
+          "label": "Trade payables 21",
+          "current": "62894",
+          "prior": "58667"
+        },
+        {
+          "label": "Other financial liabilities",
+          "current": "43387",
+          "prior": "33463"
+        },
+        {
+          "label": "Contract liabilities",
+          "current": "25434",
+          "prior": "20063"
+        },
+        {
+          "label": "Other current liabilities 20",
+          "current": "16834",
+          "prior": "15085"
+        },
+        {
+          "label": "Provisions 19",
+          "current": "19463",
+          "prior": "17638"
+        },
+        {
+          "label": "Current tax liabilities (net)",
+          "current": "49621",
+          "prior": "34481"
+        },
+        {
+          "label": "Total current liabilities",
+          "current": "403232",
+          "prior": "286253"
+        },
+        {
+          "label": "TOTAL LIABILITIES",
+          "current": "531385",
+          "prior": "456073"
+        },
+        {
+          "label": "TOTAL EQUITY AND LIABILITIES",
+          "current": "1414077",
+          "prior": "1281852"
+        }
+      ]
+    },
+    {
+      "page": 297,
+      "kind": "pl",
+      "name": "Consolidated Statement of Profit and Loss",
+      "basis": "consolidated",
+      "unit": "million",
+      "columns": [
+        {
+          "x": 417.8,
+          "end": "2026-03-31",
+          "label": "March 31, 2026"
+        },
+        {
+          "x": 488.8,
+          "end": "2025-03-31",
+          "label": "March 31, 2025"
+        }
+      ],
+      "unique": [
+        {
+          "label": "Revenue from operations 22",
+          "current": "926240",
+          "prior": "890884"
+        },
+        {
+          "label": "Other income 23",
+          "current": "38737",
+          "prior": "38840"
+        },
+        {
+          "label": "Total income (A)",
+          "current": "964977",
+          "prior": "929724"
+        },
+        {
+          "label": "Purchases of stock-in-trade",
+          "current": "5755",
+          "prior": "2967"
+        },
+        {
+          "label": "Changes in inventories of stock-",
+          "current": "171",
+          "prior": null
+        },
+        {
+          "label": "Employee benefits expense",
+          "current": "555855",
+          "prior": "533477"
+        },
+        {
+          "label": "Finance costs 26",
+          "current": "14577",
+          "prior": "14770"
+        },
+        {
+          "label": "Facility expenses",
+          "current": "15886",
+          "prior": "16067"
+        },
+        {
+          "label": "Travel",
+          "current": "13882",
+          "prior": "14095"
+        },
+        {
+          "label": "Communication",
+          "current": "3414",
+          "prior": "3842"
+        },
+        {
+          "label": "Legal and professional charges",
+          "current": "10199",
+          "prior": "11270"
+        },
+        {
+          "label": "Marketing and brand building",
+          "current": "3480",
+          "prior": "3591"
+        },
+        {
+          "label": "I ( Lifetime expected credit loss",
+          "current": "2838",
+          "prior": "324"
+        },
+        {
+          "label": "Other expenses 27",
+          "current": "7260",
+          "prior": "5358"
+        },
+        {
+          "label": "Total expenses (B)",
+          "current": "791812",
+          "prior": "755021"
+        },
+        {
+          "label": "of associate and joint venture",
+          "current": "173165",
+          "prior": "174703"
+        },
+        {
+          "label": "Current tax 28",
+          "current": "42665",
+          "prior": "45405"
+        },
+        {
+          "label": "Deferred tax 28",
+          "current": "-1898",
+          "prior": "-2628"
+        },
+        {
+          "label": "Total tax expense",
+          "current": "40767",
+          "prior": "42777"
+        },
+        {
+          "label": "Remeasurements of the defined",
+          "current": "142",
+          "prior": null
+        }
+      ]
+    },
+    {
+      "page": 298,
+      "kind": "pl",
+      "name": "Consolidated Statement of Profit and Loss",
+      "basis": "consolidated",
+      "unit": "million",
+      "columns": [
+        {
+          "x": 417.3,
+          "end": "2026-03-31",
+          "label": "March 31, 2026"
+        },
+        {
+          "x": 488.3,
+          "end": "2025-03-31",
+          "label": "March 31, 2025"
+        }
+      ],
+      "unique": [
+        {
+          "label": "Foreign currency translation differences relating to foreign operations",
+          "current": "46126",
+          "prior": "7216"
+        },
+        {
+          "label": "Net change in intrinsic value of option contracts designated as cash flow hedges",
+          "current": "-1622",
+          "prior": "193"
+        },
+        {
+          "label": "Net change in fair value of forward contracts designated as cash flow hedges",
+          "current": "-7902",
+          "prior": "-993"
+        },
+        {
+          "label": "Income taxes relating to items that will be reclassified to profit or loss",
+          "current": "2576",
+          "prior": "34"
+        },
+        {
+          "label": "Total other comprehensive income for the year, net of taxes",
+          "current": "35522",
+          "prior": "4148"
+        },
+        {
+          "label": "Total comprehensive income for the year",
+          "current": "168177",
+          "prior": "136328"
+        },
+        {
+          "label": "Profit for the year attributable to: Equity holders of the Company",
+          "current": "131974",
+          "prior": "131354"
+        },
+        {
+          "label": "Non-controlling interests",
+          "current": "681",
+          "prior": "826"
+        },
+        {
+          "label": "Other comprehensive income for the year attributable to: Equity holders of the Company",
+          "current": "35276",
+          "prior": "4126"
+        },
+        {
+          "label": "Non-controlling interests",
+          "current": "246",
+          "prior": "22"
+        },
+        {
+          "label": "Total comprehensive income for the year attributable to: Equity holders of the Company",
+          "current": "167250",
+          "prior": "135480"
+        },
+        {
+          "label": "Non-controlling interests",
+          "current": "927",
+          "prior": "848"
+        },
+        {
+          "label": "Basic",
+          "current": "10476247846",
+          "prior": "10456741552"
+        },
+        {
+          "label": "Diluted",
+          "current": "10503422936",
+          "prior": "10488939392"
+        }
+      ]
+    },
+    {
+      "page": 303,
+      "kind": "cf",
+      "name": "Consolidated Statement of Cash Flows",
+      "basis": "consolidated",
+      "unit": "million",
+      "columns": [
+        {
+          "x": 418.7,
+          "end": "2026-03-31",
+          "label": "March 31, 2026"
+        },
+        {
+          "x": 488.8,
+          "end": "2025-03-31",
+          "label": "March 31, 2025"
+        }
+      ],
+      "unique": [
+        {
+          "label": "Profit for the year",
+          "current": "132655",
+          "prior": "132180"
+        },
+        {
+          "label": "Unrealised exchange (gain)/loss, net",
+          "current": "2168",
+          "prior": "-623"
+        },
+        {
+          "label": "Share-based compensation expense",
+          "current": "4465",
+          "prior": "5551"
+        },
+        {
+          "label": "Income tax expense 28",
+          "current": "40767",
+          "prior": "42777"
+        },
+        {
+          "label": "Lifetime expected credit loss 11",
+          "current": "2838",
+          "prior": "324"
+        },
+        {
+          "label": "I ( (Increase)/Decrease in inventories",
+          "current": "184",
+          "prior": "213"
+        },
+        {
+          "label": "before taxes",
+          "current": "175561",
+          "prior": "195601"
+        },
+        {
+          "label": "Income taxes paid",
+          "current": "-26245",
+          "prior": "-26175"
+        },
+        {
+          "label": "Net cash generated from operating activities",
+          "current": "149316",
+          "prior": "169426"
+        },
+        {
+          "label": "Payment for purchase of investments",
+          "current": "-837806",
+          "prior": "-801582"
+        },
+        {
+          "label": "Proceeds from sale of investments",
+          "current": "816732",
+          "prior": "706520"
+        },
+        {
+          "label": "Interest received",
+          "current": "28878",
+          "prior": "26212"
+        },
+        {
+          "label": "Net cash used in investing activities",
+          "current": "-33423",
+          "prior": "-80730"
+        }
+      ]
+    },
+    {
+      "page": 304,
+      "kind": "cf",
+      "name": "Consolidated Statement of Cash Flows",
+      "basis": "consolidated",
+      "unit": "million",
+      "columns": [
+        {
+          "x": 418.7,
+          "end": "2026-03-31",
+          "label": "March 31, 2026"
+        },
+        {
+          "x": 488.8,
+          "end": "2025-03-31",
+          "label": "March 31, 2025"
+        }
+      ],
+      "unique": [
+        {
+          "label": "Repayment of borrowings",
+          "current": "-259841",
+          "prior": "-177672"
+        },
+        {
+          "label": "Proceeds from borrowings",
+          "current": "253089",
+          "prior": "195595"
+        },
+        {
+          "label": "Payment of lease liabilities including interests 5",
+          "current": "-11561",
+          "prior": "-10474"
+        },
+        {
+          "label": "Interest and finance costs paid",
+          "current": "-6336",
+          "prior": "-8689"
+        },
+        {
+          "label": "Payment of dividend",
+          "current": "-115206",
+          "prior": "-62750"
+        },
+        {
+          "label": "Net cash used in financing activities",
+          "current": "-141260",
+          "prior": "-63963"
+        },
+        {
+          "label": "Net increase/(decrease) in cash and cash equivalents during the year",
+          "current": "-25367",
+          "prior": "24733"
+        },
+        {
+          "label": "Effect of exchange rate changes on cash and cash equivalents",
+          "current": "8948",
+          "prior": "290"
+        },
+        {
+          "label": "Cash and cash equivalents at the beginning of the year 15",
+          "current": "121974",
+          "prior": "96951"
+        },
+        {
+          "label": "Cash and cash equivalents at the end of the year",
+          "current": "105555121974",
+          "prior": null
+        }
+      ]
+    }
+  ],
+  "fields": {
+    "revenue": {
+      "status": "VERIFIED",
+      "value": "926240000000",
+      "raw": "926240",
+      "unit": "million",
+      "locator": "page=297;statement=Consolidated Statement of Profit and Loss;row=Revenue from operations 22;column=March 31, 2026",
+      "period": "2026-03-31",
+      "basis": "consolidated"
+    },
+    "net_income": {
+      "status": "VERIFIED",
+      "value": "131974000000",
+      "raw": "131974",
+      "unit": "million",
+      "locator": "page=298;statement=Consolidated Statement of Profit and Loss;row=Profit for the year attributable to: Equity holders of the Company;column=March 31, 2026",
+      "period": "2026-03-31",
+      "basis": "consolidated"
+    },
+    "ebit": null,
+    "operating_profit": null,
+    "equity": {
+      "status": "VERIFIED",
+      "value": "882692000000",
+      "raw": "882692",
+      "unit": "million",
+      "locator": "page=295;statement=Consolidated Balance Sheet;row=TOTAL EQUITY;column=March 31, 2026",
+      "period": "2026-03-31",
+      "basis": "consolidated"
+    },
+    "cash": {
+      "status": "VERIFIED",
+      "value": "105555000000",
+      "raw": "105555",
+      "unit": "million",
+      "locator": "page=295;statement=Consolidated Balance Sheet;row=Cash and cash equivalents 15;column=March 31, 2026",
+      "period": "2026-03-31",
+      "basis": "consolidated"
+    },
+    "cfo": {
+      "status": "VERIFIED",
+      "value": "149316000000",
+      "raw": "149316",
+      "unit": "million",
+      "locator": "page=303;statement=Consolidated Statement of Cash Flows;row=Net cash generated from operating activities;column=March 31, 2026",
+      "period": "2026-03-31",
+      "basis": "consolidated"
+    },
+    "capex": null,
+    "debt": {
+      "status": "CONFLICT",
+      "value": "",
+      "raw": "1962",
+      "unit": "million",
+      "locator": "page=296;statement=Consolidated Balance Sheet;row=Borrowings 17;column=March 31, 2026",
+      "period": "2026-03-31",
+      "basis": "consolidated"
+    },
+    "total_assets": {
+      "status": "VERIFIED",
+      "value": "1414077000000",
+      "raw": "1414077",
+      "unit": "million",
+      "locator": "page=295;statement=Consolidated Balance Sheet;row=TOTAL ASSETS;column=March 31, 2026",
+      "period": "2026-03-31",
+      "basis": "consolidated"
+    },
+    "total_liabilities": {
+      "status": "VERIFIED",
+      "value": "531385000000",
+      "raw": "531385",
+      "unit": "million",
+      "locator": "page=296;statement=Consolidated Balance Sheet;row=TOTAL LIABILITIES;column=March 31, 2026",
+      "period": "2026-03-31",
+      "basis": "consolidated"
+    }
+  }
+}

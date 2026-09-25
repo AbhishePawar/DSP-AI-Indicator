@@ -314,6 +314,8 @@ class MarketQuoteService:
                 auth_mode=quote.provenance.auth_mode,
                 metadata=dict(quote.provenance.metadata),
             ),
+            change=quote.change,
+            change_percent=quote.change_percent,
         )
         self._cache.set(cache_key, stamped, ttl_seconds=self._cache_ttl)
         self.metrics.successes += 1

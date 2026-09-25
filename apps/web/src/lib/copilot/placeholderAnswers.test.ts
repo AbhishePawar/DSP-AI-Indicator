@@ -119,9 +119,10 @@ describe("copilot navigation", () => {
   });
 
   it("builds breadcrumbs for /copilot", () => {
+    // Label follows the Figma Make sidebar ("AI Copilot").
     expect(breadcrumbsFor("/copilot").map((c) => c.label)).toEqual([
       "Home",
-      "Copilot",
+      "AI Copilot",
     ]);
   });
 

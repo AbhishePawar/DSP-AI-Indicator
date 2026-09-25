@@ -1,0 +1,88 @@
+[1mdiff --git a/apps/web/src/lib/company-analysis/company-analysis.test.tsx b/apps/web/src/lib/company-analysis/company-analysis.test.tsx[m
+[1mindex 059acf2..1251338 100644[m
+[1m--- a/apps/web/src/lib/company-analysis/company-analysis.test.tsx[m
+[1m+++ b/apps/web/src/lib/company-analysis/company-analysis.test.tsx[m
+[36m@@ -303,10 +303,27 @@[m [mdescribe("EPIC-F005 company analysis lib", () => {[m
+         "news",[m
+         "copilot",[m
+         "settings",[m
+[32m+[m[32m        // Figma CompanyAnalysis.tsx DEEP DIVE sections (final Figma-first pass).[m
+[32m+[m[32m        "earningsQuality",[m
+[32m+[m[32m        "growthQuality",[m
+[32m+[m[32m        "marginOfSafety",[m
+[32m+[m[32m        "strengthsWeaknesses",[m
+[32m+[m[32m        "investmentContext",[m
+       ]),[m
+     );[m
+   });[m
+ [m
+[32m+[m[32m  it("labels the Figma deep-dive sections with Figma TOC terminology", () => {[m
+[32m+[m[32m    const labels = Object.fromEntries([m
+[32m+[m[32m      ANALYSIS_SECTIONS.map((s) => [s.id, s.label]),[m
+[32m+[m[32m    );[m
+[32m+[m[32m    expect(labels.earningsQuality).toBe("Earnings Quality");[m
+[32m+[m[32m    expect(labels.growthQuality).toBe("Growth Quality");[m
+[32m+[m[32m    expect(labels.marginOfSafety).toBe("Margin of Safety");[m
+[32m+[m[32m    expect(labels.strengthsWeaknesses).toBe("Strengths & Weaknesses");[m
+[32m+[m[32m    expect(labels.investmentContext).toBe("Investment Context");[m
+[32m+[m[32m  });[m
+[32m+[m
+   it("exports mapped research view without inventing scores", () => {[m
+     const request = buildDemoAnalyseRequest("AAPL", {[m
+       company: "Apple",[m
+[36m@@ -463,14 +480,18 @@[m [mdescribe("EPIC-F005 workspace UI", () => {[m
+     expect(body.financial_statements.income_statement?.revenue).toBe(391_035);[m
+     expect(body.financial_statements.income_statement?.revenue).not.toBe(1000);[m
+     expect(body.valuation_signals).toBeUndefined();[m
+[31m-    expect(body.current_market_price).toBe(190.5);[m
+[32m+[m[32m    // CV-001 — the quote price is display-only; it is never copied into the[m
+[32m+[m[32m    // analyse request. Market price authority is the backend's[m
+[32m+[m[32m    // server_valuation.current_market_price.[m
+[32m+[m[32m    expect(body.current_market_price).toBeUndefined();[m
+     expect(marketQuoteMock).toHaveBeenCalled();[m
+     expect([m
+[31m-      await screen.findByRole("heading", { name: /Executive Summary/i }),[m
+[32m+[m[32m      // Figma TOC label for RS-001.[m
+[32m+[m[32m      await screen.findByRole("heading", { name: /^Summary$/i }),[m
+     ).toBeTruthy();[m
+   });[m
+ [m
+[31m-  it("does not call analyse when authenticated statements are unavailable", async () => {[m
+[32m+[m[32m  it("calls analyse through the server-authenticated evidence path when client statements are unavailable", async () => {[m
+     financialStatementsMock.mockResolvedValue({[m
+       ok: true,[m
+       available: false,[m
+[36m@@ -485,11 +506,16 @@[m [mdescribe("EPIC-F005 workspace UI", () => {[m
+     await waitFor(() => {[m
+       expect(financialStatementsMock).toHaveBeenCalled();[m
+     });[m
+[31m-    expect(analyseMock).not.toHaveBeenCalled();[m
+[31m-    expect([m
+[31m-      await screen.findByText("Investment data is currently unavailable."),[m
+[31m-    ).toBeTruthy();[m
+[31m-    expect(screen.getByText(/Security identified successfully/)).toBeTruthy();[m
+[32m+[m[32m    // CV-002 — no client statements are fabricated. The request omits[m
+[32m+[m[32m    // financial_statements and the backend resolves official evidence itself[m
+[32m+[m[32m    // (composition.analyse → preload_verified_evidence).[m
+[32m+[m[32m    await waitFor(() => expect(analyseMock).toHaveBeenCalled());[m
+[32m+[m[32m    const body = analyseMock.mock.calls[0]?.[0] as {[m
+[32m+[m[32m      financial_statements?: unknown;[m
+[32m+[m[32m      current_market_price?: unknown;[m
+[32m+[m[32m    };[m
+[32m+[m[32m    expect(body.financial_statements).toBeUndefined();[m
+[32m+[m[32m    expect(body.current_market_price).toBeUndefined();[m
+   });[m
+ [m
+   it("blocks analyse until research disclaimer is acknowledged", async () => {[m
+[36m@@ -541,7 +567,10 @@[m [mdescribe("EPIC-F005 workspace UI", () => {[m
+     );[m
+     wrap(<CompanyAnalysisWorkspace />);[m
+     await waitFor(() => expect(analyseMock).toHaveBeenCalled());[m
+[31m-    await screen.findByRole("heading", { name: /Executive Summary/i });[m
+[32m+[m[32m    const summaryHeadings = await screen.findAllByRole("heading", {[m
+[32m+[m[32m      name: /^Summary$/i,[m
+[32m+[m[32m    });[m
+[32m+[m[32m    expect(summaryHeadings.length).toBeGreaterThan(0);[m
+ [m
+     // Documents is a lazy, net-new section — its component (and therefore its[m
+     // corporateActions query) must not mount while Overview is active.[m

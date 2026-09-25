@@ -36,8 +36,9 @@ describe("EPIC-F000 foundation freeze", () => {
     );
   });
 
-  it("keeps PR1.2 accent (no purple brand)", () => {
-    expect(colorTokens.light.accent).toBe("#0f6e56");
+  it("keeps Figma Make DSP violet as the brand accent", () => {
+    expect(colorTokens.dark.accent).toBe("#7c6af7");
+    expect(colorTokens.light.accent).toBe("#5b4ee0");
     expect(technologyDecisions.ui.choice).toContain("shadcn");
   });
 

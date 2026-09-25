@@ -113,6 +113,12 @@ class AuthenticatedValuationBundle:
     price_as_of: date | None = None
     price_retrieved_at: datetime | None = None
     valuation_methods: tuple[str, ...] | None = None
+    # Provider-reported classification (identity resolution) — additive.
+    sector: str | None = None
+    industry: str | None = None
+    # Provider-reported session change — pass-through only (Figma header).
+    price_change: float | None = None
+    price_change_percent: float | None = None
 
     def to_trace_dict(self) -> dict[str, Any]:
         latest = self.financial_snapshot.latest
@@ -126,6 +132,8 @@ class AuthenticatedValuationBundle:
             "shares_outstanding": self.shares_outstanding,
             "market_cap": self.market_snapshot.market_cap,
             "company_name": self.company_name,
+            "sector": self.sector,
+            "industry": self.industry,
             "revenue": latest.revenue,
             "operating_income": latest.operating_income,
             "net_income": latest.net_income,
@@ -147,6 +155,8 @@ class AuthenticatedValuationBundle:
                 else self.price_retrieved_at.isoformat()
             ),
             "valuation_methods": list(self.valuation_methods or ()),
+            "price_change": self.price_change,
+            "price_change_percent": self.price_change_percent,
         }
 
 
@@ -542,6 +552,12 @@ def load_authenticated_valuation_bundle(
         statement_basis=statement_basis,
         unit_scale="actual",
         company_name=statements.identity.company_name,
+        sector=getattr(statements.identity, "sector", None),
+        industry=getattr(statements.identity, "industry", None),
+        price_change=_qf(quote.change),
+        price_change_percent=_qf(quote.change_percent),
+        price_as_of=quote.provenance.as_of.date() if quote.provenance.as_of else None,
+        price_retrieved_at=quote.provenance.retrieved_at,
     )
 
 

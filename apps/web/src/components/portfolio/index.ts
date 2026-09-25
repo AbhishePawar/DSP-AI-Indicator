@@ -1,4 +1,3 @@
-export { PortfolioFoundation } from "./PortfolioFoundation";
 export { PortfolioSummary } from "./PortfolioSummary";
 export { PortfolioStatus } from "./PortfolioStatus";
 export { PortfolioCard } from "./PortfolioCard";

@@ -13,9 +13,20 @@ def document_text_from_payload(payload: bytes, *, content_type: str = "") -> str
     _ = content_type
     if not payload:
         return None
-    if payload.lstrip().startswith(b"%PDF"):
+    stripped = payload.lstrip()
+    if stripped.startswith(b"%PDF"):
         return _pdf_text(payload)
-    if b"\x00" in payload[:1024] and not payload.lstrip().startswith((b"<", b"{")):
+    if stripped.startswith((b"<", b"{", b"[")) or stripped.startswith(b"\xef\xbb\xbf"):
+        try:
+            text = payload.decode("utf-8")
+        except UnicodeDecodeError:
+            try:
+                text = payload.decode("latin-1")
+            except UnicodeDecodeError:
+                return None
+        cleaned = text.strip()
+        return cleaned or None
+    if b"\x00" in payload[:1024]:
         return None
     try:
         text = payload.decode("utf-8")

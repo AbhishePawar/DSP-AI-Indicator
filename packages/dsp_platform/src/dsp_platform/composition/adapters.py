@@ -162,8 +162,13 @@ def pipeline_result_public_dict(result: PipelineResult) -> dict[str, Any]:
         payload = getattr(result, _attr_for_stage(stage), None)
         summaries.append(_stage_summary(stage.value, payload, outcome))
     base["stage_summaries"] = summaries
-    base["recommendation_summary"] = _decision_summary(result.investment_recommendation)
+    base["recommendation_summary"] = _recommendation_public_summary(
+        result.investment_recommendation
+    )
     base["committee_summary"] = _decision_summary(result.investment_committee)
+    # Figma-first contract: expose the aggregator's published weights and its
+    # own strengths / weaknesses so the client never recomputes or invents them.
+    base["business_quality"] = _business_quality_public(result.business_quality)
     base["buffett_authority"] = _buffett_authority_summary(result, summaries)
     # P1-06 — public source evidence for lineage (secrets redacted in builder).
     base["source_evidence"] = source_evidence_from_trace(
@@ -186,6 +191,8 @@ def pipeline_result_public_dict(result: PipelineResult) -> dict[str, Any]:
             "confidence": _opt_float(getattr(signals, "confidence", None)),
             "price_kind": price_kind,
             "price_as_of": trace.get("price_as_of"),
+            "price_change": _opt_float(trace.get("price_change")),
+            "price_change_percent": _opt_float(trace.get("price_change_percent")),
             "valuation_status": status,
             "valuation_detail": trace.get("valuation_detail"),
         }
@@ -198,6 +205,8 @@ def pipeline_result_public_dict(result: PipelineResult) -> dict[str, Any]:
             "confidence": None,
             "price_kind": price_kind,
             "price_as_of": trace.get("price_as_of"),
+            "price_change": _opt_float(trace.get("price_change")),
+            "price_change_percent": _opt_float(trace.get("price_change_percent")),
             "valuation_status": trace.get("valuation_status") or "UNAVAILABLE",
             "valuation_detail": trace.get("valuation_detail") or "VALUATION UNAVAILABLE",
         }
@@ -211,6 +220,8 @@ def pipeline_result_public_dict(result: PipelineResult) -> dict[str, Any]:
             "mic": trace.get("mic"),
             "ticker": trace.get("ticker"),
             "company_name": trace.get("company_name"),
+            "sector": trace.get("sector"),
+            "industry": trace.get("industry"),
         }
         if trace.get("isin") or trace.get("ticker")
         else None,
@@ -227,6 +238,11 @@ def pipeline_result_public_dict(result: PipelineResult) -> dict[str, Any]:
     base["risk"] = (
         result.risk.to_dict() if hasattr(result.risk, "to_dict") else None
     )
+    # Figma header strip / screener columns (Market Cap · Sector · ROE · D/E ·
+    # PE · Rev Growth) — engine outputs + server-derived P/E with formula.
+    from dsp_platform.composition.fundamental_metrics import fundamental_metrics_public
+
+    base["fundamental_metrics"] = fundamental_metrics_public(result)
     return base
 
 
@@ -414,13 +430,104 @@ def _decision_summary(payload: object | None) -> dict[str, Any] | None:
                         continue
                     if summary.get(key) is not None:
                         continue
-                    if key in {"confidence", "score", "margin_of_safety"}:
+                    if key == "margin_of_safety" and isinstance(raw[key], dict):
+                        # MarginOfSafetyAssessment.to_dict() nests the ratio
+                        # under its own ``margin_of_safety`` key.
+                        summary[key] = _opt_float(raw[key].get("margin_of_safety"))
+                    elif key in {"confidence", "score", "margin_of_safety"}:
                         summary[key] = _opt_float(raw[key])
                     else:
                         summary[key] = _opt_str(raw[key]) or raw[key]
         except Exception:  # noqa: BLE001
             pass
     return summary
+
+
+def _str_list(value: object) -> list[str]:
+    if not isinstance(value, (list, tuple)):
+        return []
+    return [str(item).strip() for item in value if str(item).strip()]
+
+
+def _recommendation_public_summary(payload: object | None) -> dict[str, Any] | None:
+    """``recommendation_summary`` + the recommendation engine's own narrative fields.
+
+    Additive over ``_decision_summary``. Everything here is copied from
+    ``InvestmentRecommendation.to_dict()`` — positive / negative factors, risks,
+    key drivers, and the RS-005 margin-of-safety assessment. Nothing is derived.
+    """
+    summary = _decision_summary(payload)
+    if summary is None or payload is None:
+        return summary
+    if not (hasattr(payload, "to_dict") and callable(payload.to_dict)):
+        return summary
+    try:
+        raw = payload.to_dict()
+    except Exception:  # noqa: BLE001
+        return summary
+    if not isinstance(raw, dict):
+        return summary
+    mos_raw = raw.get("margin_of_safety")
+    summary["margin_of_safety_assessment"] = (
+        {
+            "intrinsic_value_per_share": _opt_float(
+                mos_raw.get("intrinsic_value_per_share")
+            ),
+            "current_market_price": _opt_float(mos_raw.get("current_market_price")),
+            "margin_of_safety": _opt_float(mos_raw.get("margin_of_safety")),
+            "premium_discount": _opt_float(mos_raw.get("premium_discount")),
+            "valuation_confidence": _opt_float(mos_raw.get("valuation_confidence")),
+            "classification": _opt_str(mos_raw.get("classification")),
+            "reasoning": _opt_str(mos_raw.get("reasoning")),
+        }
+        if isinstance(mos_raw, dict)
+        else None
+    )
+    summary["positive_factors"] = _str_list(raw.get("positive_factors"))
+    summary["negative_factors"] = _str_list(raw.get("negative_factors"))
+    summary["risks"] = _str_list(raw.get("risks"))
+    summary["key_drivers"] = _str_list(raw.get("key_drivers"))
+    summary["decision_summary"] = _opt_str(raw.get("decision_summary"))
+    summary["investment_thesis"] = _opt_str(raw.get("investment_thesis"))
+    return summary
+
+
+def _business_quality_public(payload: object | None) -> dict[str, Any] | None:
+    """Public Business Quality aggregator surface (weights + narrative).
+
+    ``engine_weights`` are the aggregator's own ``weights_used`` (fractions
+    summing to 1). Strengths / weaknesses / risks are the aggregator's lists.
+    """
+    if payload is None:
+        return None
+    weights_used = getattr(payload, "weights_used", None)
+    engine_weights: dict[str, float] | None = None
+    if weights_used is not None and hasattr(weights_used, "as_dict"):
+        try:
+            engine_weights = {
+                str(k): float(v) for k, v in weights_used.as_dict().items()
+            }
+        except Exception:  # noqa: BLE001
+            engine_weights = None
+    if engine_weights is None:
+        explain = getattr(payload, "explainability", None)
+        raw_weights = getattr(explain, "engine_weights", None)
+        if isinstance(raw_weights, dict):
+            engine_weights = {
+                str(k): float(v)
+                for k, v in raw_weights.items()
+                if isinstance(v, (int, float))
+            }
+    return {
+        "authority": "server",
+        "score": _opt_float(getattr(payload, "overall_business_quality_score", None)),
+        "rating": _opt_str(getattr(payload, "overall_business_quality_rating", None)),
+        "engine_weights": engine_weights,
+        "summary": _opt_str(getattr(payload, "summary", None)),
+        "strengths": _str_list(getattr(payload, "strengths", ())),
+        "weaknesses": _str_list(getattr(payload, "weaknesses", ())),
+        "risks": _str_list(getattr(payload, "risks", ())),
+    }
 
 
 def _opt_float(value: object) -> float | None:

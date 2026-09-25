@@ -28,7 +28,9 @@ export function ResearchHome() {
     e.preventDefault();
     const ticker = query.trim().toUpperCase();
     if (!ticker) return;
-    router.push(`/research/${encodeURIComponent(ticker)}`);
+    router.push(
+      `/analysis?symbol=${encodeURIComponent(ticker)}&intent=dsp_indicator`,
+    );
   }
 
   const ticker = query.trim().toUpperCase();
@@ -60,12 +62,8 @@ export function ResearchHome() {
               </Button>
             </form>
             <p className="mt-3 text-xs text-[var(--muted)]">
-              Tip: run analysis in{" "}
-              <Link href="/analysis" className="underline">
-                Company Analysis
-              </Link>{" "}
-              first, then open Research Reports or classic research for that
-              ticker.
+              Tip: open the DSP Indicator analysis first, then review the
+              governed research result and Trust Ladder.
             </p>
           </CardBody>
         </Card>

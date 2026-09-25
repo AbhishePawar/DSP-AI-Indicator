@@ -1,5 +1,5 @@
-import { MarketingLanding } from "@/components/marketing";
+import { ResearchHome } from "@/components/research/ResearchHome";
 
 export default function DashboardPage() {
-  return <MarketingLanding />;
+  return <ResearchHome />;
 }

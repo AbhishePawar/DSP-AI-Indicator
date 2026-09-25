@@ -41,6 +41,8 @@ export function usePerformanceTiming(label: string) {
 export function useRouteTransitionTiming() {
   const pathname = usePathname();
   const previousPath = useRef<string | null>(null);
+  // Route timing intentionally starts at hook initialization.
+  // eslint-disable-next-line react-hooks/purity
   const routeStart = useRef<number>(performance.now());
   const [lastRouteMs, setLastRouteMs] = useState<number | null>(null);
 
@@ -63,6 +65,8 @@ export function useRouteTransitionTiming() {
  * Full Profiler integration deferred — exposes manual mark API.
  */
 export function useRenderTiming(componentName: string) {
+  // Mount timing intentionally captures the first render timestamp.
+  // eslint-disable-next-line react-hooks/purity
   const mountTime = useRef(performance.now());
 
   useEffect(() => {

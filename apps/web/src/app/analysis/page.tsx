@@ -9,11 +9,18 @@
  * in production builds (critical journey could not mount).
  */
 
-import { Suspense } from "react";
+import dynamic from "next/dynamic";
 
-import { CompanyAnalysisWorkspace } from "@/components/company-analysis";
 import { WorkspaceSkeleton } from "@/components/company-analysis/WorkspacePrimitives";
 import { PageHeader } from "@/components/layout/PageHeader";
+
+const CompanyAnalysisWorkspace = dynamic(
+  () =>
+    import("@/components/company-analysis").then(
+      ({ CompanyAnalysisWorkspace: Workspace }) => ({ default: Workspace }),
+    ),
+  { loading: () => <WorkspaceSkeleton /> },
+);
 
 export default function AnalysisRoute() {
   return (
@@ -22,9 +29,7 @@ export default function AnalysisRoute() {
         title="Company Analysis Workspace"
         description="Institutional research interface over certified /api/v1/analyse outputs. No client-side scoring or valuation math."
       />
-      <Suspense fallback={<WorkspaceSkeleton />}>
-        <CompanyAnalysisWorkspace />
-      </Suspense>
+      <CompanyAnalysisWorkspace />
     </div>
   );
 }

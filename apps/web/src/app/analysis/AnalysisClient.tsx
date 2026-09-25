@@ -46,8 +46,7 @@ export default function AnalysisClient() {
     const fromQuery = searchParams.get("symbol");
     // The query string is an external navigation input; synchronize it into the editable field.
     if (fromQuery) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
-      setSymbol(fromQuery.toUpperCase());
+    setSymbol(fromQuery.toUpperCase());
     }
   }, [searchParams]);
 

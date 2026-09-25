@@ -104,6 +104,8 @@ export function useMarketQuote(ticker: string | null | undefined) {
     staleTime: config.cacheTtlMs,
     refetchInterval: config.autoRefreshMs,
     initialData: cached?.quote,
+    // The cache timestamp is intentionally relative to the current wall clock.
+    // eslint-disable-next-line react-hooks/purity
     initialDataUpdatedAt: cached ? Date.now() - (cached.stale ? config.cacheTtlMs + 1 : 0) : undefined,
   });
 

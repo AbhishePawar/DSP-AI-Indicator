@@ -1,5 +1,5 @@
 {
-  "commit": "3b44397822c7e1996eabf3231def9e3fa624ff40",
+  "commit": "6a674c9f885f1d01c2b56426abf29deb50ae9488",
   "credential_presence": {
     "DSP_FINANCIAL_STATEMENT_API_KEY": "ABSENT",
     "DSP_FINANCIAL_STATEMENT_BASE_URL": "ABSENT",
@@ -10,7 +10,7 @@
   },
   "error": "G2 live authenticated vendor evidence requires EITHER (A) DSP_FMP_API_KEY or DSP_INVESTMENT_FMP_API_KEY (single-key Financial Modeling Prep free developer tier), OR (B) all four ConfiguredHttp secrets: DSP_MARKET_QUOTE_API_KEY, DSP_MARKET_QUOTE_BASE_URL, DSP_FINANCIAL_STATEMENT_API_KEY, DSP_FINANCIAL_STATEMENT_BASE_URL. Inject via GitHub Environment 'live-data-evidence' (workflow_dispatch) or a secure local runtime - never commit.",
   "evidence_class": "credentials_unavailable",
-  "finished_at": "2026-09-20T07:08:57.369810+00:00",
+  "finished_at": "2026-09-25T08:16:57.538866+00:00",
   "g2_status": "BLOCKED",
   "gate": "G2",
   "memory_flags_enabled": [],
@@ -46,7 +46,7 @@
     "production secret manager \u2192 runtime env (never source tree)",
     "FMP free developer signup: https://site.financialmodelingprep.com/developer/docs"
   ],
-  "started_at": "2026-09-20T07:08:57.369786+00:00",
+  "started_at": "2026-09-25T08:16:57.538829+00:00",
   "steps": {
     "gate": {
       "ready": false,

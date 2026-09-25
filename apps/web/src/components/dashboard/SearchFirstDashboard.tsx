@@ -41,7 +41,8 @@ export function SearchFirstDashboard() {
   function submit(symbol: string, intent = selectedIntent) {
     const ticker = symbol.trim().toUpperCase();
     if (!ticker) return;
-    router.push(`/analysis?symbol=${encodeURIComponent(ticker)}&intent=${encodeURIComponent(intent)}`);
+    const intentQuery = intent === "dsp_indicator" ? "intent=dsp_indicator" : `intent=${encodeURIComponent(intent)}`;
+    router.push(`/analysis?symbol=${encodeURIComponent(ticker)}&${intentQuery}`);
   }
 
   function onSearchKeyDown(event: KeyboardEvent<HTMLInputElement>) {

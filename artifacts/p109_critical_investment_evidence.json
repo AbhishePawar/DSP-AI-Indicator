@@ -1,5 +1,5 @@
 {
-  "analysis_id": "6555655f-199d-4eea-acd0-acdbcb283b82",
+  "analysis_id": "d2073c07-178f-4a6d-a545-62825efcc3fb",
   "buffett_status": "succeeded",
   "evidence_class": "test_fixture",
   "forgery_rejected": true,
@@ -10,7 +10,7 @@
     "ready": 200
   },
   "idor_status": 403,
-  "input_fingerprint": "0ca2768c9f250fb81636506468d049c840da079f3cd6acae9d1c352910364c42",
+  "input_fingerprint": "88d7d7ba3f23bc3d2cc70afdf9e18250e046a2dac3b6f208886e371449dc3a65",
   "note": "Deterministic memory fixture only \u2014 NOT real_live_authenticated_provider",
   "ok": true,
   "release_identity": {

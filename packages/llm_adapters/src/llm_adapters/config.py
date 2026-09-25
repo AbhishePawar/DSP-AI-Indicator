@@ -24,14 +24,14 @@ class LLMPlatformConfig:
     anthropic_api_key: str | None
     gemini_api_key: str | None
     deepseek_api_key: str | None
-    ai_gateway_api_key: str | None
-    ai_gateway_base_url: str
     openai_model: str
     anthropic_model: str
     gemini_model: str
     deepseek_model: str
     request_timeout_seconds: float
     max_retries: int
+    ai_gateway_api_key: str | None = None
+    ai_gateway_base_url: str = "https://ai-gateway.vercel.sh/v1"
     direct_provider_fallback: bool = True
     provider_mode: ProviderMode = "gateway"
 

@@ -27,7 +27,7 @@ from data_engine.financial_statement.adapters import (
 from data_engine.market_quote.adapters import build_default_quote_adapter_from_env
 from dsp_platform import DSPPlatform, PlatformBuilder, PlatformConfiguration
 
-_UPSTOX_TOKEN = "phase1-test-upstox-analytics-token-not-real"
+_UPSTOX_TOKEN = "phase1-test-fmp-analytics-token-not-real"
 
 
 @pytest.fixture()
@@ -52,7 +52,7 @@ def _strip_investment_credentials(monkeypatch: pytest.MonkeyPatch) -> None:
     )
     for key in (
         "DSP_INVESTMENT_DATA_PROVIDER",
-        "DSP_UPSTOX_ANALYTICS_TOKEN",
+        "DSP_FMP_API_KEY",
         "DSP_UPSTOX_ACCESS_TOKEN",
         "DSP_FMP_API_KEY",
         "DSP_INVESTMENT_FMP_API_KEY",
@@ -100,14 +100,14 @@ def test_b_auth_endpoints_accessible_without_investment_config(
     assert any("/auth/enterprise" in path or "/auth/rbac" in path for path in paths)
 
 
-def test_b_ready_probe_accepts_traffic_without_upstox_token(
+def test_b_ready_probe_accepts_traffic_without_fmp_token(
     monkeypatch: pytest.MonkeyPatch, platform: DSPPlatform
 ) -> None:
     """Cloud Run / Docker HEALTHCHECK must not require Upstox for API readiness."""
     from api_platform import create_app
 
     _strip_investment_credentials(monkeypatch)
-    monkeypatch.setenv("DSP_INVESTMENT_DATA_PROVIDER", "upstox")
+    monkeypatch.setenv("DSP_INVESTMENT_DATA_PROVIDER", "fmp")
     client = TestClient(create_app(platform=platform, enable_security=False))
 
     ready = client.get("/api/v1/health/ready")
@@ -119,7 +119,7 @@ def test_b_ready_probe_accepts_traffic_without_upstox_token(
     investment = checks.get("investment_data_provider")
     assert investment is not None
     assert investment["status"] == "fail"
-    assert "DSP_UPSTOX_ANALYTICS_TOKEN" in investment["message"]
+    assert "DSP_FMP_API_KEY" in investment["message"]
 
 
 # --- TEST C -----------------------------------------------------------------
@@ -135,19 +135,19 @@ def test_c_investment_operations_fail_closed_without_provider(
         build_default_statement_adapter_from_env()
 
 
-def test_c_upstox_selected_without_token_fails_closed(
+def test_c_fmp_selected_without_token_fails_closed(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     _strip_investment_credentials(monkeypatch)
-    monkeypatch.setenv("DSP_INVESTMENT_DATA_PROVIDER", "upstox")
-    with pytest.raises(ConnectorConfigurationError, match="DSP_UPSTOX_ANALYTICS_TOKEN"):
+    monkeypatch.setenv("DSP_INVESTMENT_DATA_PROVIDER", "fmp")
+    with pytest.raises(ConnectorConfigurationError, match="DSP_FMP_API_KEY"):
         build_default_quote_adapter_from_env()
 
 
 # --- TEST D -----------------------------------------------------------------
 
 
-def test_d_valid_upstox_configuration_still_works(
+def test_d_valid_fmp_configuration_still_works(
     monkeypatch: pytest.MonkeyPatch, platform: DSPPlatform
 ) -> None:
     from api_platform import create_app
@@ -160,16 +160,16 @@ def test_d_valid_upstox_configuration_still_works(
         "api_platform.api.durable_product_stores.require_durable_product_database",
         lambda database: None,
     )
-    monkeypatch.setenv("DSP_INVESTMENT_DATA_PROVIDER", "upstox")
-    monkeypatch.setenv("DSP_UPSTOX_ANALYTICS_TOKEN", _UPSTOX_TOKEN)
+    monkeypatch.setenv("DSP_INVESTMENT_DATA_PROVIDER", "fmp")
+    monkeypatch.setenv("DSP_FMP_API_KEY", _UPSTOX_TOKEN)
 
     app = create_app(platform=platform, enable_security=False)
     assert app is not None
 
     quote = build_default_quote_adapter_from_env()
     statements = build_default_statement_adapter_from_env()
-    assert type(quote).__name__ == "UpstoxQuoteAdapter"
-    assert type(statements).__name__ == "UpstoxStatementAdapter"
+    assert type(quote).__name__ == "FinancialModelingPrepQuoteAdapter"
+    assert type(statements).__name__ == "FinancialModelingPrepStatementAdapter"
 
 
 # --- TEST E -----------------------------------------------------------------
@@ -182,18 +182,18 @@ def test_e_p103_assert_helper_still_enforces_investment_boundary(
     with pytest.raises(ConnectorConfigurationError, match="P1-03"):
         assert_production_investment_connectors_configured()
 
-    monkeypatch.setenv("DSP_INVESTMENT_DATA_PROVIDER", "upstox")
-    monkeypatch.setenv("DSP_UPSTOX_ANALYTICS_TOKEN", _UPSTOX_TOKEN)
+    monkeypatch.setenv("DSP_INVESTMENT_DATA_PROVIDER", "fmp")
+    monkeypatch.setenv("DSP_FMP_API_KEY", _UPSTOX_TOKEN)
     selected = assert_production_investment_connectors_configured()
-    assert selected["market_quote"] == "UpstoxQuoteAdapter"
-    assert selected["financial_statement"] == "UpstoxStatementAdapter"
+    assert selected["market_quote"] == "FinancialModelingPrepQuoteAdapter"
+    assert selected["financial_statement"] == "FinancialModelingPrepStatementAdapter"
 
 
 # --- TEST F -----------------------------------------------------------------
 
 
 _FORBIDDEN_IMPORT_ROOTS = (
-    "data_engine.upstox",
+    "data_engine.fmp",
     "data_engine.investment_data_provider",
     "data_engine.fmp_investment",
     "data_engine.market_quote",
@@ -251,7 +251,7 @@ def _imported_modules(path: Path) -> list[str]:
     return names
 
 
-def test_f_auth_modules_do_not_import_upstox_or_investment_adapters() -> None:
+def test_f_auth_modules_do_not_import_fmp_or_investment_adapters() -> None:
     violations: list[str] = []
     for root in _auth_source_roots():
         if not root.exists():

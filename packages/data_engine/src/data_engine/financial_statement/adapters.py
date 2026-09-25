@@ -479,7 +479,6 @@ def build_default_statement_adapter_from_env() -> FinancialStatementPort:
 
     Routes:
     - ``DSP_INVESTMENT_DATA_PROVIDER=unavailable`` → no feed (honest Null)
-    - ``DSP_INVESTMENT_DATA_PROVIDER=upstox`` → Upstox U4 only (no FMP fallback)
     - ``DSP_INVESTMENT_DATA_PROVIDER=fmp`` → FMP only
     - unset / ``auto`` (first match wins):
       1. ConfiguredHttp — statement key + base URL
@@ -494,22 +493,11 @@ def build_default_statement_adapter_from_env() -> FinancialStatementPort:
         FinancialModelingPrepStatementAdapter,
         resolve_fmp_api_key,
     )
-    from data_engine.investment_data_provider import (
-        require_upstox_analytics_token,
-        resolve_investment_data_provider,
-    )
+    from data_engine.investment_data_provider import resolve_investment_data_provider
 
     provider = resolve_investment_data_provider()
 
     if provider == "unavailable":
-        return NullAuthenticatedStatementAdapter()
-
-    if provider == "upstox":
-        from data_engine.upstox_investment import UpstoxStatementAdapter
-
-        token = require_upstox_analytics_token(connector="financial_statement")
-        if token:
-            return UpstoxStatementAdapter(access_token=token)
         return NullAuthenticatedStatementAdapter()
 
     if provider == "fmp":

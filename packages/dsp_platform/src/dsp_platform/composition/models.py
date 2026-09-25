@@ -47,7 +47,7 @@ class CompositionRequest:
     company: str = ""
     ticker: str = ""
     # Public request field threaded to the authenticated provider so the
-    # Upstox U1 resolver can disambiguate dual-listed NSE/BSE equities.
+    # Security Master / FMP path can disambiguate dual-listed NSE/BSE equities.
     exchange: str | None = None
     # Security Master ISIN (optional). Does not replace exchange disambiguation.
     isin: str | None = None

@@ -109,7 +109,7 @@ def _nse_services(
 
 
 def preload_verified_evidence(ctx: ExecutionContext) -> None:
-    """Identity → official evidence → verified dataset. Never calls Upstox/FMP/Yahoo."""
+    """Identity → official evidence → verified dataset. Never calls FMP/Yahoo."""
     production = is_production_environment()
     mode = _research_mode(ctx.request, production=production)
     if production and mode == "MOCK":

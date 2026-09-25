@@ -1,6 +1,6 @@
 """Official Security Master search and resolve (SIMPLE-WEB-04).
 
-Provider-neutral. Identity is ISIN + MIC. No Upstox / Yahoo / FMP.
+Provider-neutral. Identity is ISIN + MIC. No Yahoo / FMP.
 """
 
 from __future__ import annotations

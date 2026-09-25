@@ -4,7 +4,7 @@ Authority:
   * NSE EQUITY_L.csv (official NSE equity master, ISIN + ticker + name)
   * BSE dual listings of the same ISIN (MIC XBOM) for Nifty-50 constituents
 
-Does not load Upstox, Yahoo, FMP, or any vendor instrument key.
+Does not load Yahoo, FMP, or any vendor instrument key.
 """
 
 from __future__ import annotations

@@ -217,7 +217,6 @@ def build_default_quote_adapter_from_env() -> MarketQuotePort:
 
     Routes:
     - ``DSP_INVESTMENT_DATA_PROVIDER=unavailable`` → no feed (honest Null)
-    - ``DSP_INVESTMENT_DATA_PROVIDER=upstox`` → Upstox U2 only (no FMP fallback)
     - ``DSP_INVESTMENT_DATA_PROVIDER=fmp`` → FMP only
     - unset / ``auto`` (first match wins):
       1. ConfiguredHttp — ``DSP_MARKET_QUOTE_API_KEY`` + ``DSP_MARKET_QUOTE_BASE_URL``
@@ -232,22 +231,11 @@ def build_default_quote_adapter_from_env() -> MarketQuotePort:
         FinancialModelingPrepQuoteAdapter,
         resolve_fmp_api_key,
     )
-    from data_engine.investment_data_provider import (
-        require_upstox_analytics_token,
-        resolve_investment_data_provider,
-    )
+    from data_engine.investment_data_provider import resolve_investment_data_provider
 
     provider = resolve_investment_data_provider()
 
     if provider == "unavailable":
-        return NullAuthenticatedQuoteAdapter()
-
-    if provider == "upstox":
-        from data_engine.upstox_investment import UpstoxQuoteAdapter
-
-        token = require_upstox_analytics_token(connector="market_quote")
-        if token:
-            return UpstoxQuoteAdapter(access_token=token)
         return NullAuthenticatedQuoteAdapter()
 
     if provider == "fmp":

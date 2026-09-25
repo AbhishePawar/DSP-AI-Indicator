@@ -75,7 +75,7 @@ class AnalyseRequest(BaseModel):
     isin: str | None = Field(default=None, max_length=16)
     mic: str | None = Field(default=None, max_length=8)
     company: str = Field(default="", max_length=256)
-    # Optional: production ticker/exchange path loads authenticated Upstox
+    # Optional: production ticker/exchange path loads authenticated FMP
     # statements server-side (P1-01). Client FS remains accepted for tests /
     # Research Mode but is never authoritative over the auth bundle.
     financial_statements: FinancialStatementsDTO | None = None

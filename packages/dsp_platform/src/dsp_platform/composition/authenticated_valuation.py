@@ -638,7 +638,7 @@ def production_investment_connectors() -> dict[str, str]:
 
     Empty outside production. Constructed offline — no provider I/O — so
     readiness probes can assert the authenticated quote/statement connectors
-    without contacting Upstox. Raises when production would select an unsafe
+    without contacting FMP. Raises when production would select an unsafe
     (Null/memory/demo) adapter.
     """
     return assert_production_investment_connectors_configured()

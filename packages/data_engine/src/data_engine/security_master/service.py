@@ -1,7 +1,7 @@
 """Provider-neutral Security Master search and identity resolution.
 
 Search may match ticker, company name, or alias. Final identity is always
-ISIN + MIC. Never guesses, never uses Upstox keys, never silently picks
+ISIN + MIC. Never guesses, never uses vendor instrument keys, never silently picks
 NSE vs BSE.
 """
 

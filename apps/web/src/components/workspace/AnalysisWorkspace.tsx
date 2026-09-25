@@ -299,7 +299,7 @@ export function AnalysisWorkspace() {
                     onChange={(e) => setTicker(e.target.value.toUpperCase())}
                     placeholder="Enter ticker"
                     required
-                    aria-label="Ticker"
+                    aria-label="Company ticker"
                   />
                 </label>
 

@@ -235,7 +235,12 @@ export function WorkspaceToolbar({
           Shortcuts: Ctrl+Enter analyze · 1–9 / E T R V O B C · [ / ] panels
         </span>
       </div>
-      <Button className="min-h-11" onClick={onAnalyze} disabled={analyzing}>
+      <Button
+    className="min-h-11"
+    onClick={onAnalyze}
+    disabled={analyzing}
+    aria-label="Refresh analysis"
+  >
         {analyzing ? "Analyzing…" : "Run analysis"}
       </Button>
     </div>

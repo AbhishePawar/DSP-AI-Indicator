@@ -427,22 +427,24 @@ export function CompanyAnalysisWorkspace() {
       />
 
       <div className="flex min-h-0 flex-1 flex-col lg:flex-row">
-        <aside
-          className={cn(
-            "border-[var(--border)] bg-[var(--surface)] lg:w-72 lg:shrink-0 lg:border-r",
-            leftOpen ? "block" : "hidden",
-          )}
-          aria-label="Company navigation"
-        >
-          <WorkspaceLeftNav
-            symbol={symbol}
-            query={query}
-            onQueryChange={setQuery}
-            onSelectSymbol={selectSymbol}
-            onAnalyze={runAnalyse}
-            analyzing={analyseMutation.isPending}
-          />
-        </aside>
+        {!view ? (
+          <aside
+            className={cn(
+              "border-[var(--border)] bg-[var(--surface)] lg:w-72 lg:shrink-0 lg:border-r",
+              leftOpen ? "block" : "hidden",
+            )}
+            aria-label="Company navigation"
+          >
+            <WorkspaceLeftNav
+              symbol={symbol}
+              query={query}
+              onQueryChange={setQuery}
+              onSelectSymbol={selectSymbol}
+              onAnalyze={runAnalyse}
+              analyzing={analyseMutation.isPending}
+            />
+          </aside>
+        ) : null}
 
         <div
           role="region"
@@ -484,6 +486,9 @@ export function CompanyAnalysisWorkspace() {
 
           {view ? (
             <div className="space-y-4">
+              <p className="text-xs font-medium uppercase tracking-wide text-[var(--muted)]">
+                Source-led analysis surface
+              </p>
               {analyseMutation.isPending ? (
                 <p className="text-xs text-[var(--muted)]" aria-live="polite">
                   Refreshing analysis…
@@ -604,16 +609,18 @@ export function CompanyAnalysisWorkspace() {
           ) : null}
         </div>
 
-        <aside
-          className={cn(
-            "border-[var(--border)] bg-[var(--surface)] lg:w-72 lg:shrink-0 lg:border-l",
-            rightOpen ? "block" : "hidden",
-            "max-lg:border-t",
-          )}
-          aria-label="Context panel"
-        >
-          <WorkspaceRightPanel view={view} symbol={symbol} />
-        </aside>
+        {!view ? (
+          <aside
+            className={cn(
+              "border-[var(--border)] bg-[var(--surface)] lg:w-72 lg:shrink-0 lg:border-l",
+              rightOpen ? "block" : "hidden",
+              "max-lg:border-t",
+            )}
+            aria-label="Context panel"
+          >
+            <WorkspaceRightPanel view={view} symbol={symbol} />
+          </aside>
+        ) : null}
       </div>
     </div>
   );

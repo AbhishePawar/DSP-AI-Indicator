@@ -58,7 +58,7 @@ export function WorkspaceLeftNav({
             }
           }}
           placeholder="Symbol or name"
-          aria-label="Company search"
+          aria-label="Company ticker"
         />
         <div className="mt-2 flex flex-wrap gap-2">
           <Button className="min-h-11" onClick={onAnalyze} disabled={analyzing}>

@@ -19,7 +19,8 @@ export default function OAuthCallbackPage() {
   const [nextPath, setNextPath] = useState("/dashboard");
 
   useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
+    void Promise.resolve().then(() => {
+      const params = new URLSearchParams(window.location.search);
     const code = params.get("code");
     const state = params.get("state");
     const oauthError = params.get("error");
@@ -73,6 +74,7 @@ export default function OAuthCallbackPage() {
         navigateAfterLogin(pending.next || "/dashboard");
       })
       .catch((err) => setError(mapAuthError(err)));
+    });
   }, []);
 
   return (

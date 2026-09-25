@@ -11,7 +11,10 @@ export interface SearchBoxProps extends Omit<InputProps, "type"> {
 }
 
 const SearchBox = React.forwardRef<HTMLInputElement, SearchBoxProps>(
-  ({ className, "aria-label": ariaLabel = "Search", ...props }, ref) => {
+  (
+    { className, role = "searchbox", "aria-label": ariaLabel = "Search", ...props },
+    ref,
+  ) => {
     return (
       <div className="relative w-full">
         <Search
@@ -21,7 +24,7 @@ const SearchBox = React.forwardRef<HTMLInputElement, SearchBoxProps>(
         <Input
           ref={ref}
           type="search"
-          role="searchbox"
+          role={role}
           aria-label={ariaLabel}
           className={cn("pl-9", className)}
           {...props}

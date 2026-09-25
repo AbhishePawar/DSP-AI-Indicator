@@ -58,6 +58,7 @@ export function WorkspaceLeftNav({
             }
           }}
           placeholder="Symbol or name"
+          role="textbox"
           aria-label="Company ticker"
         />
         <div className="mt-2 flex flex-wrap gap-2">

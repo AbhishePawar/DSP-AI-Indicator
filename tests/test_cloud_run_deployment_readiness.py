@@ -1,4 +1,4 @@
-"""Cloud Run deployment readiness — PORT binding + production wiring."""
+"""VPS deployment readiness — container port binding and Google-free production wiring."""
 
 from __future__ import annotations
 
@@ -6,16 +6,17 @@ from pathlib import Path
 
 _REPO = Path(__file__).resolve().parents[1]
 _START_API = _REPO / "scripts" / "start-api.sh"
-_CLOUDBUILD = _REPO / "cloudbuild.yaml"
+_COMPOSE = _REPO / "docker" / "docker-compose.production.yml"
+_ENV_EXAMPLE = _REPO / ".env.production.example"
 _DOCKERFILE = _REPO / "docker" / "backend" / "Dockerfile"
+_CADDY = _REPO / "docker" / "Caddyfile"
 
 
 class TestStartApiPortBinding:
-    def test_honors_cloud_run_port(self) -> None:
+    def test_honors_container_port(self) -> None:
         text = _START_API.read_text(encoding="utf-8")
         assert 'PORT="${PORT:-${DSP_API_PORT:-8000}}"' in text
         assert '--port "${PORT}"' in text
-        # Must not bind solely to DSP_API_PORT (Cloud Run injects PORT).
         assert '--port "${DSP_API_PORT' not in text
 
     def test_binds_all_interfaces(self) -> None:
@@ -24,24 +25,45 @@ class TestStartApiPortBinding:
         assert "uvicorn api_platform.api.app:app" in text
 
 
-class TestCloudBuildDeployWiring:
-    def test_sets_production_database_region_and_unavailable_investment_feed(self) -> None:
-        text = _CLOUDBUILD.read_text(encoding="utf-8")
-        assert "DSP_ENVIRONMENT=production" in text
-        assert "DSP_REGION=ap-south-1" in text
-        assert "DSP_INVESTMENT_DATA_PROVIDER=unavailable" in text
-        assert "DSP_INVESTMENT_DATA_PROVIDER=upstox" not in text
-        assert "DSP_DATABASE_URL=dsp-database-url:latest" in text
-        assert "DSP_UPSTOX_ANALYTICS_TOKEN" not in text
-        assert (
-            "--add-cloudsql-instances="
-            "project-34de429e-3c43-4ae7-b75:asia-south1:dsp-postgres"
-        ) in text
-        assert "--port=8000" in text
-        assert "--region=$_REGION" in text
-        assert "_REGION: asia-south1" in text
-        assert "DSP_FMP" not in text
-        assert "yfinance" not in text
+class TestGoogleDeployFilesRemoved:
+    def test_cloud_build_and_gcloud_deploy_script_are_gone(self) -> None:
+        assert not (_REPO / "cloudbuild.yaml").exists()
+        assert not (_REPO / "cloudbuild-frontend.yaml").exists()
+        assert not (_REPO / "scripts" / "deploy-google-email-auth.sh").exists()
+
+
+class TestVpsComposeWiring:
+    def test_production_compose_is_caddy_api_and_web_only(self) -> None:
+        text = _COMPOSE.read_text(encoding="utf-8")
+        assert "caddy:2.8-alpine" in text
+        assert "docker/backend/Dockerfile" in text
+        assert "docker/frontend/Dockerfile" in text
+        assert "postgres:" not in text
+        assert "redis:" not in text
+        assert "gcr.io" not in text
+        assert "pkg.dev" not in text
+        assert "cloudsql" not in text
+        assert "gcloud" not in text
+        assert "DSP_REDIS_URL:" not in text
+        assert "sslmode=require" in text
+        assert '"8000:8000"' not in text
+        assert '"5432:5432"' not in text
+
+    def test_caddy_keeps_api_on_the_public_host(self) -> None:
+        text = _CADDY.read_text(encoding="utf-8")
+        assert "handle /api/v1/*" in text
+        assert "reverse_proxy api:8000" in text
+        assert "reverse_proxy web:3000" in text
+        assert "DSP_API_DOMAIN" not in text
+
+    def test_env_example_points_at_neon_direct_tls(self) -> None:
+        text = _ENV_EXAMPLE.read_text(encoding="utf-8")
+        assert "sslmode=require" in text
+        assert "neon.tech" in text
+        assert "DSP_REDIS_URL=" not in text
+        assert "https://dspaiindicator.com/api/v1" in text
+        assert "run.app" not in text
+        assert "@postgres:" not in text
 
 
 class TestDockerfilePsycopgContract:

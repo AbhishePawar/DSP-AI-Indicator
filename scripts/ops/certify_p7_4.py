@@ -81,8 +81,10 @@ def main() -> int:
     compose = (ROOT / "docker" / "docker-compose.production.yml").read_text(
         encoding="utf-8"
     )
-    for svc in ("grafana:", "alertmanager:", "postgres-exporter:", "redis-exporter:"):
+    for svc in ("proxy:", "api:", "web:"):
         passed &= _ok(f"compose {svc}", svc in compose)
+    passed &= _ok("compose has no bundled postgres", "\n  postgres:" not in compose)
+    passed &= _ok("compose has no bundled redis", "\n  redis:" not in compose)
 
     dash = (ROOT / "docker" / "grafana" / "dashboards" / "dsp-operations.json").read_text(
         encoding="utf-8"

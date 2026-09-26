@@ -100,7 +100,7 @@ describe("production www canonical redirect", () => {
     ).toBeNull();
   });
 
-  it("does not redirect Cloud Run *.run.app hosts", () => {
+  it("does not redirect a former Cloud Run hostname", () => {
     expect(
       productionWwwRedirect(
         headers({

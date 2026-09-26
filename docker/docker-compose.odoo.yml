@@ -1,0 +1,52 @@
+# Optional Odoo stack. Not part of DSP startup.
+# DSP does not connect to this database. Neon remains the DSP database.
+#
+#   docker compose -f docker/docker-compose.odoo.yml up -d
+#
+# Postgres is not published. Odoo listens on 127.0.0.1:8069 only.
+# Put it behind Caddy on its own hostname later. Do not mount it on the DSP origin.
+
+name: dsp-odoo
+
+services:
+  odoo-db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${ODOO_DB_USER:-odoo}
+      POSTGRES_PASSWORD: ${ODOO_DB_PASSWORD:?set ODOO_DB_PASSWORD}
+      POSTGRES_DB: ${ODOO_DB_NAME:-postgres}
+    volumes:
+      - odoo_pg_data:/var/lib/postgresql/data
+    networks:
+      - odoo_net
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER"]
+      interval: 10s
+      timeout: 5s
+      retries: 8
+
+  odoo:
+    image: odoo:17
+    restart: unless-stopped
+    depends_on:
+      odoo-db:
+        condition: service_healthy
+    environment:
+      HOST: odoo-db
+      USER: ${ODOO_DB_USER:-odoo}
+      PASSWORD: ${ODOO_DB_PASSWORD:?set ODOO_DB_PASSWORD}
+    ports:
+      - "127.0.0.1:8069:8069"
+    volumes:
+      - odoo_filestore:/var/lib/odoo
+    networks:
+      - odoo_net
+
+networks:
+  odoo_net:
+    driver: bridge
+
+volumes:
+  odoo_pg_data:
+  odoo_filestore:

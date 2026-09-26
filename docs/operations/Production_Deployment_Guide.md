@@ -7,13 +7,13 @@
 ## 1. Topology
 
 ```
-Internet → TLS terminator (Caddy / Ingress)
-              ├─ dsp-web (Next.js thin client)
-              └─ dsp-api (/api/v1, /health/*, /metrics)
-                     ├─ PostgreSQL (durable identity/enterprise state)
-                     └─ Redis (cache, sessions, rate limits, locks, queues)
-Observability → Prometheus → Grafana / Alertmanager
-Optional       → OTel Collector → Prometheus / logs
+Internet → domain (DNS unchanged until cutover)
+              → VPS
+                   Caddy (HTTPS, same origin)
+                     ├─ dsp-web (Next.js)
+                     └─ /api/v1, /health/*, /metrics → dsp-api (FastAPI)
+                          └─ Neon PostgreSQL
+Redis is not required. Odoo, if used, is a separate Compose file and database.
 ```
 
 ## 2. Artefacts
@@ -35,7 +35,7 @@ Optional       → OTel Collector → Prometheus / logs
 |---|---|---|
 | Local | `.env` / compose base | Dev defaults |
 | Staging | `.env.staging` | Staging vault |
-| Production | `.env.production` (gitignored) | KMS / Secrets Manager |
+| Production | `.env.production` (gitignored, on the VPS) | Not committed. Not Google Secret Manager |
 
 Non-secret knobs → ConfigMap (`deploy/k8s/base/configmap.yaml`).  
 Secrets → Secret / ExternalSecrets (`deploy/docker/secrets.md`).
@@ -109,7 +109,7 @@ Ports in `production_platform.production.interfaces`:
 | `JobQueuePort` / `QueuePort` | Background jobs + DLQ/retry abstraction |
 | `LockPort` | Distributed locks |
 
-Wire via `DSP_REDIS_URL`. Set `DSP_REDIS_FALLBACK=false` in production. In-memory adapters remain for local/dev only.
+The production Compose file does not start Redis. Leave `DSP_REDIS_URL` unset. Cache, rate limit, locks, and the infra session port stay in memory. `JobQueuePort` is process-local either way. Set `DSP_REDIS_URL` only if a later change actually needs a shared cache.
 
 ## 9. Post-deploy verification
 

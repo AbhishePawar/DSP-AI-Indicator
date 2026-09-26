@@ -4,24 +4,22 @@
 
 | Control | Setting |
 |---|---|
-| Primary region | India (`ap-south-1` / Azure Central India / GCP Mumbai) |
+| Primary region | India posture (`DSP_REGION`, timezone `Asia/Kolkata`) |
 | Timezone default | `Asia/Kolkata` |
 | Currency default | `INR` |
-| DB | Managed PostgreSQL (India residency) |
-| Cache | Managed Redis (same region) |
-| Object storage | S3-compatible in India region |
+| DB | Neon PostgreSQL via `DSP_DATABASE_URL` (direct host, `sslmode=require`) |
+| Cache | In-process memory. Redis is optional and not in the production Compose file |
+| Object storage | `memory` unless an S3-compatible bucket is deliberately configured |
 | Log retention | ≥180 days (CERT-In) |
-| Secrets | Cloud KMS + Secrets Manager behind `SecretsPort` |
+| Secrets | Gitignored `.env.production` on the VPS. Not Google Secret Manager |
 
 ## Environment skeleton
 
 ```bash
 DSP_ENVIRONMENT=production
 DSP_REGION=ap-south-1
-DSP_DATABASE_URL=postgresql://...
-DSP_REDIS_URL=rediss://...
-DSP_REDIS_FALLBACK=true
-DSP_OBJECT_STORAGE_PROVIDER=s3
+DSP_DATABASE_URL=postgresql://USER:PASSWORD@ep-example.region.aws.neon.tech/dsp?sslmode=require
+DSP_OBJECT_STORAGE_PROVIDER=memory
 DSP_OBJECT_STORAGE_BUCKET=dsp-prod-artifacts
 DSP_OBJECT_STORAGE_REGION=ap-south-1
 DSP_CERT_IN_LOG_RETENTION_DAYS=180

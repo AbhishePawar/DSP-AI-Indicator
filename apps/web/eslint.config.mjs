@@ -1,15 +1,11 @@
-import { dirname } from "path";
-import { fileURLToPath } from "url";
-import { FlatCompat } from "@eslint/eslintrc";
+import nextCoreWebVitals from "eslint-config-next/core-web-vitals";
+import nextTypescript from "eslint-config-next/typescript";
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
-
-const compat = new FlatCompat({
-  baseDirectory: __dirname,
-});
-
-/** EPIC-F000 — ESLint baseline (Next.js core-web-vitals). */
-const eslintConfig = [...compat.extends("next/core-web-vitals", "next/typescript")];
+/** Next.js 16 flat config. FlatCompat cannot load these shareable configs. */
+const eslintConfig = [
+  { ignores: [".next/**", "out/**", "build/**", "coverage/**", "playwright-report/**"] },
+  ...nextCoreWebVitals,
+  ...nextTypescript,
+];
 
 export default eslintConfig;

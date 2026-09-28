@@ -38,10 +38,24 @@ const nextConfig: NextConfig = {
   outputFileTracingRoot: appRoot,
   // P7.3 — tree-shake heavy UI kits without changing product behaviour
   async rewrites() {
-    const configuredBackend = (process.env.NEXT_PUBLIC_API_BASE_URL || process.env.BACKEND || "").trim();
-    if (!configuredBackend || configuredBackend.startsWith("/")) return [];
-    const backendBase = `${/^https?:\/\//i.test(configuredBackend) ? "" : "https://"}${configuredBackend}`.replace(/\/$/, "");
-    return [{ source: "/api/v1/:path*", destination: `${backendBase}/:path*` }];
+    const publicUrl = (process.env.NEXT_PUBLIC_API_BASE_URL || "").trim().replace(/\/$/, "");
+    const backendEnv = (process.env.BACKEND || "").trim().replace(/\/$/, "");
+    const absolute = [backendEnv, publicUrl].find((value) => /^https?:\/\//i.test(value));
+    // Browser calls same-origin /api/v1. An absolute BACKEND (preferred) or an
+    // absolute NEXT_PUBLIC_API_BASE_URL is the proxy target. Relative
+    // NEXT_PUBLIC_API_BASE_URL=/api/v1 does not itself prove a proxy exists.
+    // Local dev proxies to the API on port 8000. Production does not invent
+    // a localhost target when no absolute backend is configured.
+    if (absolute) {
+      return [{ source: "/api/v1/:path*", destination: `${absolute}/:path*` }];
+    }
+    if (process.env.NODE_ENV === "production") return [];
+    return [
+      {
+        source: "/api/v1/:path*",
+        destination: "http://127.0.0.1:8000/api/v1/:path*",
+      },
+    ];
   },
   experimental: {
     optimizePackageImports: ["lucide-react"],

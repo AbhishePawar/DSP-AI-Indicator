@@ -105,7 +105,12 @@ export function AppLayout({ children }: { children: ReactNode }) {
     };
   }, [drawerOpen, setDrawerOpen]);
 
-  if (status === "restoring" || status === "loading" || status === "refreshing") {
+  const sessionPending =
+    status === "restoring" || status === "loading" || status === "refreshing";
+  // Public research and marketing routes render immediately. A missing or
+  // unreachable /api/v1/auth/session must not hide the Figma UI. Protected
+  // routes still wait, then redirect to sign-in when no session exists.
+  if (sessionPending && requiresAuth(pathname)) {
     return (
       <div className="grid min-h-screen place-items-center bg-[var(--bg)]">
         <LoadingLayout

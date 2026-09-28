@@ -106,6 +106,8 @@ export function cookieFetchInit(init: RequestInit = {}): RequestInit {
   };
 }
 
+const SESSION_PROBE_TIMEOUT_MS = 4_000;
+
 export async function probeCookieSession(): Promise<{
   authenticated: boolean;
   csrf_token: string | null;
@@ -117,7 +119,10 @@ export async function probeCookieSession(): Promise<{
       method: "GET",
       credentials: "include",
       headers: { Accept: "application/json" },
+      signal: AbortSignal.timeout(SESSION_PROBE_TIMEOUT_MS),
     });
+    // 404/502/503 mean the auth service is absent or down. Treat that as
+    // "no session", not as an authenticated user and not as a hung restore.
     if (!response.ok) return null;
     const data = (await response.json()) as {
       payload?: {

@@ -26,6 +26,10 @@ substitutions:
   # topology serves the API on a distinct origin, use the absolute form
   # https://dspaiindicator.com/api/v1 instead — never localhost.
   _API_BASE_URL: /api/v1
+  # Absolute DSP API origin used only as the Next.js server rewrite target.
+  # The browser keeps NEXT_PUBLIC_API_BASE_URL=/api/v1. Override at submit time
+  # with the live Cloud Run API URL. "unset" leaves production without a rewrite.
+  _BACKEND_URL: unset
 
 options:
   logging: CLOUD_LOGGING_ONLY
@@ -68,12 +72,18 @@ steps:
         TS="$$(cat /workspace/.frontend_build_timestamp)"
         IMAGE="${_REGION}-docker.pkg.dev/$PROJECT_ID/${_AR_REPOSITORY}/${_IMAGE}:$$TAG"
         LATEST="${_REGION}-docker.pkg.dev/$PROJECT_ID/${_AR_REPOSITORY}/${_IMAGE}:frontend-latest"
+        BACKEND_URL='${_BACKEND_URL}'
+        BACKEND_ARGS=()
+        if [ -n "$$BACKEND_URL" ] && [ "$$BACKEND_URL" != "unset" ]; then
+          BACKEND_ARGS+=(--build-arg "BACKEND=$$BACKEND_URL")
+        fi
         docker build \
           -f docker/frontend/Dockerfile \
           --build-arg "NEXT_PUBLIC_API_BASE_URL=${_API_BASE_URL}" \
           --build-arg "NEXT_PUBLIC_APP_NAME=DSP AI Indicator" \
           --build-arg "NEXT_PUBLIC_AI_PROVIDER=backend" \
           --build-arg "NEXT_PUBLIC_BUILD_TIMESTAMP=$$TS" \
+          "$${BACKEND_ARGS[@]}" \
           -t "$$IMAGE" \
           -t "$$LATEST" \
           apps/web

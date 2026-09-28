@@ -9,7 +9,7 @@ import { ANALYSIS_INTENTS } from "@/lib/analysis/intents";
 
 const researchExamples = [
   { ticker: "TCS", name: "Tata Consultancy Services", market: "NSE · TCS" },
-  { ticker: "HDFC Bank", name: "HDFC Bank Limited", market: "NSE · HDFCBANK" },
+  { ticker: "HDFCBANK", name: "HDFC Bank Limited", market: "NSE · HDFCBANK" },
   { ticker: "INFY", name: "Infosys Limited", market: "NSE · INFY" },
   { ticker: "RELIANCE", name: "Reliance Industries", market: "NSE · RELIANCE" },
 ];

@@ -100,8 +100,10 @@ services:
   web:
     image: ${DSP_WEB_IMAGE:-dsp-web}:${DSP_IMAGE_TAG_WEB:-2.0.0-rc.1}
     build:
-      context: ..
-      dockerfile: docker/frontend/Dockerfile
+      # Frontend Dockerfile copies package.json from the context root.
+      # That file lives in apps/web, not the repository root.
+      context: ../apps/web
+      dockerfile: ../../docker/frontend/Dockerfile
       args:
         NEXT_PUBLIC_API_BASE_URL: ${NEXT_PUBLIC_API_BASE_URL:-https://${DSP_PUBLIC_DOMAIN:-localhost}/api/v1}
         NEXT_PUBLIC_APP_NAME: ${NEXT_PUBLIC_APP_NAME:-DSP AI Indicator}

@@ -230,14 +230,14 @@ export const TeamHeader = memo(function TeamHeader({
     >
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
-          <p className="text-xs uppercase tracking-wide text-[var(--muted)]">
+          <p className="font-mono text-[10px] uppercase tracking-[0.06em] text-[var(--muted)]">
             Team Collaboration
           </p>
-          <h1 className="font-[family-name:var(--font-display)] text-3xl tracking-tight">
+          <h1 className="font-[family-name:var(--font-display)] text-base font-medium tracking-tight sm:text-lg">
             {title}
           </h1>
           {description ? (
-            <p className="mt-1 text-[var(--muted)]">{description}</p>
+            <p className="mt-0.5 font-mono text-[11px] text-[var(--muted)]">{description}</p>
           ) : null}
         </div>
         <div

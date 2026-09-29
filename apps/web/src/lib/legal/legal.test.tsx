@@ -13,7 +13,7 @@ import {
   clearResearchDisclaimerAcknowledgement,
   isResearchDisclaimerAcknowledged,
 } from "@/lib/legal";
-import { LegalNavLinks } from "@/components/legal/LegalNavLinks";
+import { MarketingFooter } from "@/components/marketing/MarketingFooter";
 import { ResearchDisclaimerGate } from "@/components/legal/ResearchDisclaimerGate";
 import { FRONTEND_FOUNDATION_VERSION } from "@/foundation";
 
@@ -69,15 +69,15 @@ describe("P4.1 acknowledgement storage", () => {
   });
 });
 
-describe("P4.1 LegalNavLinks", () => {
+describe("P4.1 legal links in the Figma footer", () => {
   beforeEach(() => {
     cleanup();
   });
 
   it("renders Privacy, Terms, Disclaimer, and Support links", () => {
-    render(<LegalNavLinks />);
-    const privacy = screen.getByRole("link", { name: "Privacy Policy" });
-    const terms = screen.getByRole("link", { name: "Terms of Service" });
+    render(<MarketingFooter />);
+    const privacy = screen.getByRole("link", { name: "Privacy" });
+    const terms = screen.getByRole("link", { name: "Terms" });
     const disclaimer = screen.getByRole("link", { name: "Disclaimer" });
     const support = screen.getByRole("link", { name: "Support" });
     expect(privacy.getAttribute("href")).toBe("/docs/privacy");

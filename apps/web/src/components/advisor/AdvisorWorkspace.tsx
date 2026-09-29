@@ -7,6 +7,7 @@ import {
   TaskCard,
 } from "@/components/advisor/AdvisorCards";
 import { AdvisorSidebar } from "@/components/advisor/AdvisorSidebar";
+import { FigmaPage } from "@/components/pages/PagePrimitives";
 import {
   ClientDashboardCards,
   ClientDirectory,
@@ -27,7 +28,7 @@ function TrustBanner({ text }: { text: string }) {
   return (
     <p
       role="note"
-      className="rounded-md border border-[var(--border)] bg-[var(--accent-soft)]/40 px-3 py-2 text-sm"
+      className="rounded-[10px] border border-[var(--border)] bg-[var(--surface)] px-4 py-3 text-[13px] text-[var(--muted)]"
     >
       {text}
     </p>
@@ -44,22 +45,14 @@ export function AdvisorShell({
   children: ReactNode;
 }) {
   const ws = getAdvisorWorkspace();
+  // Figma Make `Advisor.tsx` shell: TopBar title + mono subtitle, then a flat
+  // scroll column. Advisor sub-sections render as Figma pill chips.
   return (
-    <div className="space-y-4">
+    <FigmaPage title={title} subtitle={description}>
       <TrustBanner text={ws.trustBanner} />
-      <div className="flex flex-col gap-4 sm:flex-row">
-        <AdvisorSidebar />
-        <div className="min-w-0 flex-1 space-y-4">
-          <header>
-            <h1 className="font-[family-name:var(--font-display)] text-3xl tracking-tight">{title}</h1>
-            {description ? (
-              <p className="mt-1 text-[var(--muted)]">{description}</p>
-            ) : null}
-          </header>
-          {children}
-        </div>
-      </div>
-    </div>
+      <AdvisorSidebar />
+      <div className="min-w-0 flex-1 space-y-4">{children}</div>
+    </FigmaPage>
   );
 }
 

@@ -10,6 +10,8 @@ const LINKS = [
   { href: "/docs/privacy", label: "Privacy" },
   { href: "/docs/terms", label: "Terms" },
   { href: "/docs/disclaimer", label: "Disclaimer" },
+  // P6.1 support path — kept in the Figma footer after LegalNavLinks was retired.
+  { href: "/docs/support", label: "Support" },
 ] as const;
 
 export function MarketingFooter() {

@@ -513,14 +513,10 @@ export function CompanyComparisonWorkspace() {
       {disclaimerGate}
       <header className="sticky top-0 z-10 space-y-3 border-b border-[var(--border)] bg-[var(--surface)]/95 p-3 backdrop-blur supports-[backdrop-filter]:bg-[var(--surface)]/80 md:p-4">
         <div className="flex flex-wrap items-start justify-between gap-3">
-          <div>
-            <h2 className="font-[family-name:var(--font-display)] text-lg font-medium text-[var(--fg)]">
-              Compare
-            </h2>
-            <p className="mt-1 max-w-3xl text-xs text-[var(--muted)]">
-              {WORKSPACE_DISCLAIMER}
-            </p>
-          </div>
+          {/* Route-level FigmaPage/PageHeader owns the "Compare" title — no duplicate heading here. */}
+          <p className="max-w-3xl font-mono text-[11px] text-[var(--muted)]">
+            {WORKSPACE_DISCLAIMER}
+          </p>
           <div className="flex flex-wrap gap-2">
             <Button size="sm" variant="ghost" onClick={toggleLeft}>
               {leftOpen ? "Hide sections" : "Show sections"}
@@ -625,22 +621,24 @@ export function CompanyComparisonWorkspace() {
         </p>
       </header>
 
-      <div className="flex min-h-[70vh] flex-col lg:flex-row">
+      <div className="flex min-h-[70vh] flex-col">
         {leftOpen ? (
           <nav
             aria-label="Comparison sections"
-            className="w-full shrink-0 border-b border-[var(--border)] p-2 lg:w-56 lg:border-b-0 lg:border-r"
+            className="w-full shrink-0 border-b border-[var(--border)] px-3 py-2 md:px-4"
           >
-            <ul className="flex gap-1 overflow-x-auto lg:flex-col lg:overflow-visible">
+            {/* Figma SecurityCompare: flat page — sections as pill chips, not a side rail. */}
+            <ul className="flex flex-wrap gap-2">
               {COMPARISON_SECTIONS.map((section) => (
                 <li key={section.id}>
                   <button
                     type="button"
+                    aria-current={activeSection === section.id ? "page" : undefined}
                     className={cn(
-                      "w-full rounded-md px-2 py-2 text-left text-sm motion-safe:transition-colors",
+                      "min-h-11 rounded-[20px] border border-[var(--border)] px-3 font-mono text-xs motion-safe:transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]",
                       activeSection === section.id
-                        ? "bg-[var(--accent-soft)] text-[var(--accent)]"
-                        : "text-[var(--muted)] hover:bg-[var(--surface-2)] hover:text-[var(--fg)]",
+                        ? "bg-[var(--surface-2)] text-[var(--fg)]"
+                        : "text-[var(--muted)] hover:text-[var(--fg)]",
                     )}
                     onClick={() => navigateSection(section.id)}
                   >

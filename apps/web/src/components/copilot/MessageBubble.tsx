@@ -24,7 +24,7 @@ function renderMarkdownLite(content: string) {
       return (
         <pre
           key={index}
-          className="mt-1 overflow-x-auto rounded bg-[var(--surface-1)] px-2 py-1 text-[11px]"
+          className="mt-1 overflow-x-auto rounded bg-[var(--surface-2)] px-2 py-1 text-[11px]"
         >
           {line}
         </pre>

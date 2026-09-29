@@ -341,19 +341,19 @@ export function ControlCenter() {
         />
         <Link
           href="/ops"
-          className="text-sm text-[var(--dsp-accent)] underline-offset-2 hover:underline"
+          className="text-sm text-[var(--accent)] underline-offset-2 hover:underline"
         >
           Production Ops
         </Link>
         <Link
           href="/saas"
-          className="text-sm text-[var(--dsp-accent)] underline-offset-2 hover:underline"
+          className="text-sm text-[var(--accent)] underline-offset-2 hover:underline"
         >
           SaaS Platform
         </Link>
         <Link
           href="/admin"
-          className="text-sm text-[var(--dsp-accent)] underline-offset-2 hover:underline"
+          className="text-sm text-[var(--accent)] underline-offset-2 hover:underline"
         >
           Enterprise Admin
         </Link>
@@ -368,7 +368,7 @@ export function ControlCenter() {
       <div
         role="tablist"
         aria-label="Control Center sections"
-        className="flex flex-wrap gap-2 border-b border-[var(--dsp-border)] pb-2"
+        className="flex flex-wrap gap-2 border-b border-[var(--border)] pb-2"
       >
         {filteredTabs.map((t) => (
           <button
@@ -378,8 +378,8 @@ export function ControlCenter() {
             aria-selected={tab === t.id}
             className={
               tab === t.id
-                ? "rounded-md bg-[var(--dsp-accent)] px-3 py-1.5 text-sm text-white"
-                : "rounded-md px-3 py-1.5 text-sm text-[var(--dsp-text-muted)] hover:bg-[var(--dsp-surface)]"
+                ? "rounded-md bg-[var(--accent)] px-3 py-1.5 text-sm text-white"
+                : "rounded-md px-3 py-1.5 text-sm text-[var(--muted)] hover:bg-[var(--surface)]"
             }
             onClick={() => setTab(t.id)}
           >
@@ -402,7 +402,7 @@ export function ControlCenter() {
 
         {tab === "registry" ? (
           <div className="space-y-3">
-            <p className="text-sm text-[var(--dsp-text-muted)]">
+            <p className="text-sm text-[var(--muted)]">
               Modules: {modules.length ? modules.join(", ") : "Data unavailable."}
             </p>
             <label className="block text-sm">
@@ -424,7 +424,7 @@ export function ControlCenter() {
             <label className="block text-sm">
               JSON patch
               <textarea
-                className="mt-1 w-full max-w-2xl rounded-md border border-[var(--dsp-border)] bg-[var(--dsp-surface)] p-2 font-mono text-xs"
+                className="mt-1 w-full max-w-2xl rounded-md border border-[var(--border)] bg-[var(--surface)] p-2 font-mono text-xs"
                 rows={8}
                 value={jsonPatch}
                 onChange={(e) => setJsonPatch(e.target.value)}
@@ -446,11 +446,11 @@ export function ControlCenter() {
 
         {tab === "branding" ? (
           <div className="space-y-3">
-            <p className="text-sm text-[var(--dsp-text-muted)]">
+            <p className="text-sm text-[var(--muted)]">
               Logo, theme, fonts, colors, login/landing/footer — config only.
             </p>
             <textarea
-              className="w-full max-w-2xl rounded-md border border-[var(--dsp-border)] bg-[var(--dsp-surface)] p-2 font-mono text-xs"
+              className="w-full max-w-2xl rounded-md border border-[var(--border)] bg-[var(--surface)] p-2 font-mono text-xs"
               rows={8}
               value={jsonPatch}
               onChange={(e) => setJsonPatch(e.target.value)}
@@ -487,11 +487,11 @@ export function ControlCenter() {
 
         {tab === "ai" ? (
           <div className="space-y-3">
-            <p className="text-sm text-[var(--dsp-text-muted)]">
+            <p className="text-sm text-[var(--muted)]">
               AI provider/model/temperature overlays — secrets never stored here.
             </p>
             <textarea
-              className="w-full max-w-2xl rounded-md border border-[var(--dsp-border)] bg-[var(--dsp-surface)] p-2 font-mono text-xs"
+              className="w-full max-w-2xl rounded-md border border-[var(--border)] bg-[var(--surface)] p-2 font-mono text-xs"
               rows={8}
               value={jsonPatch}
               onChange={(e) => setJsonPatch(e.target.value)}
@@ -504,11 +504,11 @@ export function ControlCenter() {
 
         {tab === "valuation" ? (
           <div className="space-y-3">
-            <p className="text-sm text-[var(--dsp-text-muted)]">
+            <p className="text-sm text-[var(--muted)]">
               Valuation / MoS / sector default overlays only — engines are not run.
             </p>
             <textarea
-              className="w-full max-w-2xl rounded-md border border-[var(--dsp-border)] bg-[var(--dsp-surface)] p-2 font-mono text-xs"
+              className="w-full max-w-2xl rounded-md border border-[var(--border)] bg-[var(--surface)] p-2 font-mono text-xs"
               rows={8}
               value={jsonPatch}
               onChange={(e) => setJsonPatch(e.target.value)}
@@ -545,11 +545,11 @@ export function ControlCenter() {
 
         {tab === "security" ? (
           <div className="space-y-3">
-            <p className="text-sm text-[var(--dsp-text-muted)]">
+            <p className="text-sm text-[var(--muted)]">
               Password policy, MFA, session timeout, rate limits — overlays only.
             </p>
             <textarea
-              className="w-full max-w-2xl rounded-md border border-[var(--dsp-border)] bg-[var(--dsp-surface)] p-2 font-mono text-xs"
+              className="w-full max-w-2xl rounded-md border border-[var(--border)] bg-[var(--surface)] p-2 font-mono text-xs"
               rows={8}
               value={jsonPatch}
               onChange={(e) => setJsonPatch(e.target.value)}

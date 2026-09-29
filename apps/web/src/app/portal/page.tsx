@@ -18,7 +18,7 @@ const EnterprisePortal = dynamic(
   {
     ssr: false,
     loading: () => (
-      <p className="text-sm text-[var(--dsp-text-muted)]">Loading portal…</p>
+      <p className="text-sm text-[var(--muted)]">Loading portal…</p>
     ),
   },
 );
@@ -31,7 +31,7 @@ export default function CustomerPortalPage() {
           title="Customer Portal"
           description="Enterprise customer portal is disabled by feature flag."
         />
-        <p className="text-sm text-[var(--dsp-text-muted)]" role="status">
+        <p className="text-sm text-[var(--muted)]" role="status">
           No organizations available.
         </p>
       </div>
@@ -46,7 +46,7 @@ export default function CustomerPortalPage() {
       />
       <Suspense
         fallback={
-          <p className="text-sm text-[var(--dsp-text-muted)]">Loading portal…</p>
+          <p className="text-sm text-[var(--muted)]">Loading portal…</p>
         }
       >
         <EnterprisePortal />

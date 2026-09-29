@@ -5,13 +5,11 @@ import { usePathname } from "next/navigation";
 
 import { ADVISOR_SECTIONS } from "@/lib/advisor/advisorWorkspace";
 
+/** Advisor sub-section switcher rendered as Figma pill chips (no second sidebar). */
 export function AdvisorSidebar() {
   const pathname = usePathname();
   return (
-    <nav
-      aria-label="Advisor sections"
-      className="flex flex-wrap gap-1 rounded-lg border border-[var(--border)] bg-[var(--surface)] p-2 sm:flex-col sm:w-48 sm:shrink-0"
-    >
+    <nav aria-label="Advisor sections" className="flex flex-wrap gap-2">
       {ADVISOR_SECTIONS.map((section) => {
         const active =
           section.href === "/advisor"
@@ -22,10 +20,10 @@ export function AdvisorSidebar() {
             key={section.id}
             href={section.href}
             aria-current={active ? "page" : undefined}
-            className={`min-h-11 rounded-md px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] ${
+            className={`inline-flex min-h-11 items-center rounded-[20px] border border-[var(--border)] px-3 font-mono text-xs focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] ${
               active
-                ? "bg-[var(--accent-soft)] text-[var(--accent)]"
-                : "text-[var(--muted)] hover:bg-[var(--surface-2)] hover:text-[var(--fg)]"
+                ? "bg-[var(--surface-2)] text-[var(--fg)]"
+                : "text-[var(--muted)] hover:text-[var(--fg)]"
             }`}
           >
             {section.label}

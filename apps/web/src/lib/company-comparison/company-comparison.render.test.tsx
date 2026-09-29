@@ -59,9 +59,12 @@ describe("CompanyComparisonWorkspace render", () => {
     expect(
       screen.getByTestId("company-comparison-workspace"),
     ).toBeInTheDocument();
+    // The "Compare" title is owned by the route-level Figma page header, so the
+    // workspace must not render a second heading.
     expect(
-      screen.getByRole("heading", { name: /^Compare$/i }),
-    ).toBeInTheDocument();
+      screen.queryByRole("heading", { name: /^Compare$/i }),
+    ).not.toBeInTheDocument();
+    expect(screen.getByLabelText(/Comparison sections/i)).toBeInTheDocument();
     expect(screen.getByText(/No comparison yet/i)).toBeInTheDocument();
     expect(screen.getByLabelText(/Comparison tickers/i)).toBeInTheDocument();
   });

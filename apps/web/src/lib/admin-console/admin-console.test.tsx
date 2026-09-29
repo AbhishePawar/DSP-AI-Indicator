@@ -240,7 +240,7 @@ describe("EPIC-F008 admin console UI", () => {
       "@/components/admin-console/AdminConsole"
     );
     wrap(<AdminConsole />);
-    expect(screen.getByLabelText("Administration navigation")).toBeTruthy();
+    expect(screen.getByLabelText("Administration sections")).toBeTruthy();
     expect(screen.getByLabelText("Main administration view")).toBeTruthy();
     expect(screen.getByLabelText("Administration context panel")).toBeTruthy();
     expect(await screen.findByText("Administration Overview")).toBeTruthy();

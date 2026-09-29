@@ -1294,7 +1294,7 @@ export function ExportSection({ token }: { token?: string | null }) {
           </Button>
         </div>
         {error ? (
-          <p className="mt-3 text-sm text-[var(--danger)]" role="alert">
+          <p className="mt-3 text-sm text-[var(--danger-fg)]" role="alert">
             {error}
           </p>
         ) : null}

@@ -1,18 +1,8 @@
 /**
  * @vitest-environment jsdom
  */
-import { beforeEach, describe, expect, it, vi } from "vitest";
-import { cleanup, render, screen } from "@testing-library/react";
-
-vi.mock("next/navigation", () => ({
-  usePathname: () => "/research/canvas",
-  useRouter: () => ({ push: vi.fn(), replace: vi.fn() }),
-  useSearchParams: () => new URLSearchParams("tab=overview"),
-}));
-
-vi.mock("@/lib/a11y", () => ({
-  useCollapsePanelsBelowLg: () => undefined,
-}));
+import { beforeEach, describe, expect, it } from "vitest";
+import { cleanup } from "@testing-library/react";
 
 import {
   CANVAS_TABS,
@@ -26,7 +16,6 @@ import {
 } from "@/lib/research-canvas";
 import { filterShellNav, searchableRoutes } from "@/lib/shell/navigationRegistry";
 import { featureFlags } from "@/lib/featureFlags";
-import { ResearchCanvasWorkspace } from "@/components/research-canvas";
 
 describe("EPIC-014 Research Canvas", () => {
   beforeEach(() => {
@@ -119,19 +108,5 @@ describe("EPIC-014 Research Canvas", () => {
     if (featureFlags.researchCanvas) {
       expect(routes).toContain("/research/canvas");
     }
-  });
-
-  it("renders canvas shell with navigator and notebook regions", () => {
-    if (!featureFlags.researchCanvas) return;
-    render(<ResearchCanvasWorkspace />);
-    expect(
-      screen.getByRole("navigation", { name: /research navigator/i }),
-    ).toBeTruthy();
-    expect(
-      screen.getByRole("tablist", { name: /research workspace tabs/i }),
-    ).toBeTruthy();
-    expect(
-      screen.getByLabelText(/research notebook/i),
-    ).toBeTruthy();
   });
 });

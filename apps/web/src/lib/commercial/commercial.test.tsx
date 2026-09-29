@@ -4,7 +4,7 @@
 import { describe, expect, it } from "vitest";
 import { cleanup, render, screen } from "@testing-library/react";
 
-import { LegalNavLinks } from "@/components/legal/LegalNavLinks";
+import { MarketingFooter } from "@/components/marketing/MarketingFooter";
 import { TUTORIAL_STEPS } from "@/lib/beta/onboardingSteps";
 import {
   FEATURE_MATRIX_ROWS,
@@ -38,7 +38,7 @@ describe("P6.1 commercial packaging", () => {
 describe("P6.1 support nav", () => {
   it("renders Support link alongside legal links", () => {
     cleanup();
-    render(<LegalNavLinks />);
+    render(<MarketingFooter />);
     const support = screen.getByRole("link", { name: "Support" });
     expect(support.getAttribute("href")).toBe("/docs/support");
     expect(FRONTEND_FOUNDATION_VERSION).toBe("2.0.0-rc.1");

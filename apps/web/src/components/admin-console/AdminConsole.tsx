@@ -19,7 +19,6 @@ import {
 } from "@/lib/admin-console";
 import { useCollapsePanelsBelowLg } from "@/lib/a11y";
 import { cn } from "@/lib/utils";
-import { AdminLeftNav } from "./LeftNav";
 import { AdminRightPanel } from "./RightPanel";
 import {
   AuditSection,
@@ -38,33 +37,51 @@ function hasAdminAccess(permissions: string[], roles: string[]): boolean {
   return ADMIN_ACCESS_PERMISSIONS.some((p) => permissions.includes(p));
 }
 
-function Toolbar({
-  leftOpen,
+/**
+ * Figma Make `AdminPanel.tsx` shell: TopBar (rendered by the route) → flat
+ * scroll column of cards. Section switching uses Figma pill chips instead of
+ * the retired three-panel workspace nav; A010 sections are unchanged.
+ */
+function SectionChips({
+  activeSection,
+  onSelect,
   rightOpen,
-  onToggleLeft,
   onToggleRight,
   onRefresh,
   refreshing,
 }: {
-  leftOpen: boolean;
+  activeSection: string;
+  onSelect: (id: (typeof ADMIN_SECTIONS)[number]["id"]) => void;
   rightOpen: boolean;
-  onToggleLeft: () => void;
   onToggleRight: () => void;
   onRefresh: () => void;
   refreshing: boolean;
 }) {
   return (
-    <div className="sticky top-0 z-20 flex flex-wrap items-center justify-between gap-2 border-b border-[var(--border)] bg-[var(--surface)]/95 px-3 py-2 backdrop-blur motion-reduce:backdrop-blur-none">
-      <div className="flex flex-wrap items-center gap-2">
-        <Button
-          size="sm"
-          variant="ghost"
-          onClick={onToggleLeft}
-          aria-pressed={leftOpen}
-          aria-label={leftOpen ? "Hide navigation panel" : "Show navigation panel"}
-        >
-          {leftOpen ? "Hide nav" : "Show nav"}
-        </Button>
+    <div className="flex flex-wrap items-center justify-between gap-3">
+      <nav aria-label="Administration sections" className="flex flex-wrap gap-2">
+        {ADMIN_SECTIONS.map((section) => {
+          const active = activeSection === section.id;
+          return (
+            <button
+              key={section.id}
+              type="button"
+              aria-current={active ? "page" : undefined}
+              title={`${section.description} (shortcut ${section.shortcut})`}
+              onClick={() => onSelect(section.id)}
+              className={cn(
+                "min-h-11 rounded-[20px] border px-3 font-mono text-xs focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]",
+                active
+                  ? "border-[var(--border)] bg-[var(--surface-2)] text-[var(--fg)]"
+                  : "border-[var(--border)] text-[var(--muted)] hover:text-[var(--fg)]",
+              )}
+            >
+              {section.label}
+            </button>
+          );
+        })}
+      </nav>
+      <div className="flex flex-wrap gap-2">
         <Button
           size="sm"
           variant="ghost"
@@ -74,11 +91,6 @@ function Toolbar({
         >
           {rightOpen ? "Hide context" : "Show context"}
         </Button>
-        <span className="hidden text-xs text-[var(--muted)] md:inline">
-          Shortcuts: 1–9 sections · [ / ] panels · Ctrl+Enter refresh
-        </span>
-      </div>
-      <div className="flex flex-wrap gap-2">
         <Button size="sm" onClick={onRefresh} disabled={refreshing}>
           {refreshing ? "Refreshing…" : "Refresh"}
         </Button>
@@ -96,9 +108,7 @@ export function AdminConsole() {
 
   const activeSection = useAdminConsolePrefsStore((s) => s.activeSection);
   const setActiveSection = useAdminConsolePrefsStore((s) => s.setActiveSection);
-  const leftOpen = useAdminConsolePrefsStore((s) => s.leftOpen);
   const rightOpen = useAdminConsolePrefsStore((s) => s.rightOpen);
-  const toggleLeft = useAdminConsolePrefsStore((s) => s.toggleLeft);
   const toggleRight = useAdminConsolePrefsStore((s) => s.toggleRight);
   const setLeftOpen = useAdminConsolePrefsStore((s) => s.setLeftOpen);
   const setRightOpen = useAdminConsolePrefsStore((s) => s.setRightOpen);
@@ -159,10 +169,7 @@ export function AdminConsole() {
       if (tag === "input" || tag === "textarea" || target?.isContentEditable) {
         return;
       }
-      if (e.key === "[" ) {
-        e.preventDefault();
-        toggleLeft();
-      } else if (e.key === "]") {
+      if (e.key === "]") {
         e.preventDefault();
         toggleRight();
       } else if ((e.ctrlKey || e.metaKey) && e.key === "Enter") {
@@ -178,7 +185,7 @@ export function AdminConsole() {
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [refresh, setActiveSection, toggleLeft, toggleRight]);
+  }, [refresh, setActiveSection, toggleRight]);
 
   if (status === "loading") {
     return (
@@ -211,29 +218,24 @@ export function AdminConsole() {
   const refreshing = false;
 
   return (
-    <div className="flex min-h-[70vh] flex-col rounded-[var(--radius-md)] border border-[var(--border)] bg-[var(--bg)]">
-      <Toolbar
-        leftOpen={leftOpen}
+    <div className="flex min-h-[70vh] flex-col gap-5">
+      <SectionChips
+        activeSection={activeSection}
+        onSelect={setActiveSection}
         rightOpen={rightOpen}
-        onToggleLeft={toggleLeft}
         onToggleRight={toggleRight}
         onRefresh={refresh}
         refreshing={refreshing}
       />
-      <div className="flex min-h-0 flex-1 flex-col lg:flex-row">
-        <aside
-          aria-label="Administration navigation"
-          className={cn(
-            "border-[var(--border)] bg-[var(--surface)] lg:w-72 lg:shrink-0 lg:border-r",
-            leftOpen ? "block" : "hidden",
-          )}
-        >
-          <AdminLeftNav onRefresh={refresh} refreshing={refreshing} />
-        </aside>
+      <p className="sr-only">
+        Keyboard shortcuts: 1–9 switch sections, ] toggles the context panel,
+        Ctrl+Enter refreshes.
+      </p>
+      <div className="flex min-h-0 flex-1 flex-col gap-5 lg:flex-row">
         <div
           role="region"
           aria-label="Main administration view"
-          className="min-w-0 flex-1 overflow-auto p-4"
+          className="flex min-w-0 flex-1 flex-col gap-5"
         >
           {activeSection === "overview" ? (
             <OverviewSection token={token} />
@@ -260,7 +262,7 @@ export function AdminConsole() {
         <aside
           aria-label="Administration context panel"
           className={cn(
-            "border-[var(--border)] bg-[var(--surface)] lg:w-72 lg:shrink-0 lg:border-l",
+            "rounded-[var(--card-radius)] border border-[var(--border)] bg-[var(--surface)] lg:w-60 lg:shrink-0",
             rightOpen ? "block" : "hidden",
           )}
         >

@@ -55,7 +55,7 @@ export function ProductionOpsPanel() {
 
   if (loading) {
     return (
-      <p className="text-sm text-[var(--dsp-text-muted)]">
+      <p className="text-sm text-[var(--muted)]">
         Loading production operations…
       </p>
     );
@@ -63,7 +63,7 @@ export function ProductionOpsPanel() {
 
   if (error || !result) {
     return (
-      <p className="text-sm text-[var(--dsp-danger)]" role="alert">
+      <p className="text-sm text-[var(--danger-fg)]" role="alert">
         {error || "Data unavailable."}
       </p>
     );
@@ -83,36 +83,36 @@ export function ProductionOpsPanel() {
 
   return (
     <div className="space-y-4" data-testid="production-ops-panel">
-      <section className="rounded-lg border border-[var(--dsp-border)] bg-[var(--dsp-surface)] p-4">
+      <section className="rounded-lg border border-[var(--border)] bg-[var(--surface)] p-4">
         <h2 className="mb-2 text-base font-semibold">Production operations</h2>
-        <p className="mb-3 text-xs text-[var(--dsp-text-muted)]">
+        <p className="mb-3 text-xs text-[var(--muted)]">
           Aggregated from /api/v1/ops — reuses existing health, metrics, and audit
           infrastructure.
         </p>
         <h3 className="mb-2 text-sm font-medium">Build / version</h3>
         <dl className="grid gap-2 text-sm sm:grid-cols-2">
           <div>
-            <dt className="text-[var(--dsp-text-muted)]">Application</dt>
+            <dt className="text-[var(--muted)]">Application</dt>
             <dd>{String(version.application_version ?? "Data unavailable.")}</dd>
           </div>
           <div>
-            <dt className="text-[var(--dsp-text-muted)]">Git SHA</dt>
+            <dt className="text-[var(--muted)]">Git SHA</dt>
             <dd className="font-mono text-xs">
               {String(version.git_sha ?? "unknown")}
             </dd>
           </div>
           <div>
-            <dt className="text-[var(--dsp-text-muted)]">Environment</dt>
+            <dt className="text-[var(--muted)]">Environment</dt>
             <dd>{String(version.environment ?? "unknown")}</dd>
           </div>
           <div>
-            <dt className="text-[var(--dsp-text-muted)]">Channel</dt>
+            <dt className="text-[var(--muted)]">Channel</dt>
             <dd>{String(version.release_channel ?? "unknown")}</dd>
           </div>
         </dl>
       </section>
 
-      <section className="rounded-lg border border-[var(--dsp-border)] bg-[var(--dsp-surface)] p-4">
+      <section className="rounded-lg border border-[var(--border)] bg-[var(--surface)] p-4">
         <h2 className="mb-2 text-base font-semibold">System health</h2>
         <p className="text-sm">
           Live: {String(live.status ?? "Data unavailable.")} · Ready:{" "}
@@ -123,10 +123,10 @@ export function ProductionOpsPanel() {
           {(deps.components || []).map((c) => (
             <li
               key={c.name}
-              className="flex justify-between rounded border border-[var(--dsp-border)] px-3 py-2"
+              className="flex justify-between rounded border border-[var(--border)] px-3 py-2"
             >
               <span className="capitalize">{c.name}</span>
-              <span className="text-[var(--dsp-text-muted)]">
+              <span className="text-[var(--muted)]">
                 {c.status} — {c.message}
               </span>
             </li>
@@ -134,18 +134,18 @@ export function ProductionOpsPanel() {
         </ul>
       </section>
 
-      <section className="rounded-lg border border-[var(--dsp-border)] bg-[var(--dsp-surface)] p-4">
+      <section className="rounded-lg border border-[var(--border)] bg-[var(--surface)] p-4">
         <h2 className="mb-2 text-base font-semibold">Metrics</h2>
         <p className="text-sm">
           Scrape: {String(metrics.scrape_path ?? "/metrics")} · Series sample:{" "}
           {String(metrics.sample_series_count ?? "Data unavailable.")}
         </p>
-        <p className="mt-1 text-xs text-[var(--dsp-text-muted)]">
+        <p className="mt-1 text-xs text-[var(--muted)]">
           {String(metrics.note ?? "")}
         </p>
       </section>
 
-      <section className="rounded-lg border border-[var(--dsp-border)] bg-[var(--dsp-surface)] p-4">
+      <section className="rounded-lg border border-[var(--border)] bg-[var(--surface)] p-4">
         <h2 className="mb-2 text-base font-semibold">Observability</h2>
         <p className="text-sm">
           OpenTelemetry:{" "}
@@ -153,20 +153,20 @@ export function ProductionOpsPanel() {
             ? String(otel.endpoint || "configured")
             : String(otel.message || "Data unavailable.")}
         </p>
-        <p className="mt-1 text-xs text-[var(--dsp-text-muted)]">
+        <p className="mt-1 text-xs text-[var(--muted)]">
           Structured JSON logging + correlation IDs reused from
           production_platform.
         </p>
       </section>
 
-      <section className="rounded-lg border border-[var(--dsp-border)] bg-[var(--dsp-surface)] p-4">
+      <section className="rounded-lg border border-[var(--border)] bg-[var(--surface)] p-4">
         <h2 className="mb-2 text-base font-semibold">Backup</h2>
         <p className="text-sm" role="status">
           {backup.available
             ? "Backup provider available."
             : String(backup.message || "Data unavailable.")}
         </p>
-        <p className="mt-1 text-xs text-[var(--dsp-text-muted)]">
+        <p className="mt-1 text-xs text-[var(--muted)]">
           {String(backup.note || "")}
         </p>
       </section>

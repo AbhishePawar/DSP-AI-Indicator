@@ -18,7 +18,7 @@ const OpsPortal = dynamic(
   {
     ssr: false,
     loading: () => (
-      <p className="text-sm text-[var(--dsp-text-muted)]">Loading ops…</p>
+      <p className="text-sm text-[var(--muted)]">Loading ops…</p>
     ),
   },
 );
@@ -31,7 +31,7 @@ export default function OpsPage() {
           title="Operations"
           description="Enterprise operations dashboard is disabled by feature flag."
         />
-        <p className="text-sm text-[var(--dsp-text-muted)]" role="status">
+        <p className="text-sm text-[var(--muted)]" role="status">
           Data unavailable.
         </p>
       </div>
@@ -46,7 +46,7 @@ export default function OpsPage() {
       />
       <Suspense
         fallback={
-          <p className="text-sm text-[var(--dsp-text-muted)]">Loading ops…</p>
+          <p className="text-sm text-[var(--muted)]">Loading ops…</p>
         }
       >
         <OpsPortal />

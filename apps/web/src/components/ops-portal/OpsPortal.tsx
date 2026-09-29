@@ -18,7 +18,7 @@ const ProductionOpsPanel = lazy(() =>
 
 function Empty({ children }: { children: React.ReactNode }) {
   return (
-    <p className="text-sm text-[var(--dsp-text-muted)]" role="status">
+    <p className="text-sm text-[var(--muted)]" role="status">
       {children}
     </p>
   );
@@ -51,7 +51,7 @@ export function OpsPortal() {
   if (loading) return <Empty>Loading operations dashboard…</Empty>;
   if (error) {
     return (
-      <p className="text-sm text-[var(--dsp-danger)]" role="alert">
+      <p className="text-sm text-[var(--danger-fg)]" role="alert">
         {error}
       </p>
     );
@@ -64,7 +64,7 @@ export function OpsPortal() {
     <div className="space-y-4" data-testid="ops-portal">
       <Suspense
         fallback={
-          <p className="text-sm text-[var(--dsp-text-muted)]">
+          <p className="text-sm text-[var(--muted)]">
             Loading production operations…
           </p>
         }
@@ -72,7 +72,7 @@ export function OpsPortal() {
         <ProductionOpsPanel />
       </Suspense>
 
-      <section className="rounded-lg border border-[var(--dsp-border)] bg-[var(--dsp-surface)] p-4">
+      <section className="rounded-lg border border-[var(--border)] bg-[var(--surface)] p-4">
         <h2 className="mb-2 text-base font-semibold">Enterprise health</h2>
         <p className="text-sm">
           Overall:{" "}
@@ -82,10 +82,10 @@ export function OpsPortal() {
           {Object.entries(components).map(([name, c]) => (
             <li
               key={name}
-              className="flex justify-between rounded border border-[var(--dsp-border)] px-3 py-2"
+              className="flex justify-between rounded border border-[var(--border)] px-3 py-2"
             >
               <span className="capitalize">{name}</span>
-              <span className="text-[var(--dsp-text-muted)]">
+              <span className="text-[var(--muted)]">
                 {c.status} — {c.detail}
               </span>
             </li>
@@ -93,19 +93,19 @@ export function OpsPortal() {
         </ul>
       </section>
 
-      <section className="rounded-lg border border-[var(--dsp-border)] bg-[var(--dsp-surface)] p-4">
+      <section className="rounded-lg border border-[var(--border)] bg-[var(--surface)] p-4">
         <h2 className="mb-2 text-base font-semibold">Platform metrics</h2>
         <dl className="grid gap-2 text-sm sm:grid-cols-3">
           <div>
-            <dt className="text-[var(--dsp-text-muted)]">Organizations</dt>
+            <dt className="text-[var(--muted)]">Organizations</dt>
             <dd>{data.organizations}</dd>
           </div>
           <div>
-            <dt className="text-[var(--dsp-text-muted)]">Active sessions</dt>
+            <dt className="text-[var(--muted)]">Active sessions</dt>
             <dd>{data.active_sessions}</dd>
           </div>
           <div>
-            <dt className="text-[var(--dsp-text-muted)]">Billing</dt>
+            <dt className="text-[var(--muted)]">Billing</dt>
             <dd>
               {data.billing_available
                 ? data.billing_provider
@@ -115,34 +115,34 @@ export function OpsPortal() {
         </dl>
       </section>
 
-      <section className="rounded-lg border border-[var(--dsp-border)] bg-[var(--dsp-surface)] p-4">
+      <section className="rounded-lg border border-[var(--border)] bg-[var(--surface)] p-4">
         <h2 className="mb-2 text-base font-semibold">Services</h2>
         <ul className="text-sm">
           {data.services.map((s) => (
             <li key={s.name} className="flex justify-between py-1">
               <span>{s.name}</span>
-              <span className="text-[var(--dsp-text-muted)]">{s.status}</span>
+              <span className="text-[var(--muted)]">{s.status}</span>
             </li>
           ))}
         </ul>
       </section>
 
-      <section className="rounded-lg border border-[var(--dsp-border)] bg-[var(--dsp-surface)] p-4">
+      <section className="rounded-lg border border-[var(--border)] bg-[var(--surface)] p-4">
         <h2 className="mb-2 text-base font-semibold">Deployments</h2>
         <Empty>
           {data.deployments?.message || "Data unavailable."}
         </Empty>
       </section>
 
-      <section className="rounded-lg border border-[var(--dsp-border)] bg-[var(--dsp-surface)] p-4">
+      <section className="rounded-lg border border-[var(--border)] bg-[var(--surface)] p-4">
         <h2 className="mb-2 text-base font-semibold">
           Collaboration architecture
         </h2>
-        <p className="text-sm text-[var(--dsp-text-muted)]">
+        <p className="text-sm text-[var(--muted)]">
           Status: {data.collaboration.status}. Realtime:{" "}
           {data.collaboration.realtime ? "enabled" : "not implemented"}.
         </p>
-        <ul className="mt-2 list-inside list-disc text-sm text-[var(--dsp-text-muted)]">
+        <ul className="mt-2 list-inside list-disc text-sm text-[var(--muted)]">
           {data.collaboration.capabilities_reserved.map((c) => (
             <li key={c}>{c}</li>
           ))}

@@ -328,7 +328,7 @@ export function ControlCenter() {
       <SurfaceTrustChrome summary={trustSummary} />
       <PageHeader
         title="Super Admin Control Center"
-        description="Platform operating system — configuration registry, branding, flags, rules, and façades over Admin / SaaS / Ops. Thin client over /api/v1/admin. No engine execution in the browser."
+        description="System settings and preferences over /api/v1/admin. Account toggles and sample plans from the design file are not applied here."
       />
 
       <div className="flex flex-wrap items-center gap-3">

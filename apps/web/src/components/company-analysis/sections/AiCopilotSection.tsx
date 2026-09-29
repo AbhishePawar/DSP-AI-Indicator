@@ -9,7 +9,7 @@
  * symbol/company/exchange already visible on screen).
  */
 
-import { useId, useRef, useState } from "react";
+import { useEffect, useId, useRef, useState } from "react";
 import { useMutation } from "@tanstack/react-query";
 
 import { Button } from "@/components/ds";
@@ -46,10 +46,13 @@ export function AiCopilotSection({
   view,
   analyseRequest,
   analyseResponse,
+  seedQuestion,
 }: {
   view: ResearchView;
   analyseRequest: AnalyseRequest | null;
   analyseResponse: AnalyseResponse | null;
+  /** Prefills the composer from an "Ask" chip. Never auto-submits. */
+  seedQuestion?: string | null;
 }) {
   const { session } = useAuth();
   const token = session?.accessToken ?? null;
@@ -63,6 +66,10 @@ export function AiCopilotSection({
   ]);
   const [draft, setDraft] = useState("");
   const idRef = useRef(0);
+
+  useEffect(() => {
+    if (seedQuestion?.trim()) setDraft(seedQuestion);
+  }, [seedQuestion]);
 
   const askMutation = useMutation({
     mutationFn: async (args: { questionId: SuggestedQuestionId | "freeform"; text: string }) => {

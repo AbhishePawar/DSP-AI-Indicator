@@ -194,7 +194,7 @@ export default function RegisterPage() {
   return (
     <AuthShell>
       <AuthCard
-        title="Create your DSP AI Indicator account"
+        title="Create account"
         description={
           step === "details"
             ? "Enter your details. We will send an OTP to verify your mobile number."

@@ -79,7 +79,7 @@ function NavLink({
         hideLabel ? "justify-center" : "justify-start",
         nested && !hideLabel ? "pl-8" : null,
         active
-          ? "bg-[var(--accent-soft)] text-[var(--accent)]"
+          ? "bg-[var(--surface-2)] text-[var(--fg)]"
           : "text-[var(--muted)] hover:bg-[var(--surface-2)] hover:text-[var(--fg)]",
       )}
     >
@@ -221,7 +221,7 @@ export function Sidebar({
           ? "flex h-full w-72 flex-col"
           : cn(
               "hidden md:flex md:flex-col md:border-r md:border-[var(--border)] md:bg-[var(--surface)]",
-              collapsed ? "md:w-[4.5rem]" : "md:w-60",
+              collapsed ? "md:w-[4.5rem]" : "md:w-[220px]",
             ),
       )}
       aria-label="Primary"
@@ -325,6 +325,54 @@ export function Sidebar({
           </SidebarGroup>
         ))}
       </DsSidebar>
+
+      <div className="border-t border-[var(--border)] px-3 py-3">
+        {collapsed && !mobile ? (
+          <Link
+            href={session && user ? "/profile" : "/login"}
+            onClick={onNavigate}
+            aria-label={session && user ? "Financial Profile" : "Sign in"}
+            className="mx-auto flex h-11 w-11 items-center justify-center rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
+          >
+            <span
+              aria-hidden
+              className="flex h-7 w-7 items-center justify-center rounded-full bg-[linear-gradient(135deg,#7c6af7_0%,#2dd4bf_100%)] font-mono text-[11px] font-semibold text-white"
+            >
+              {(user?.displayName || "U").slice(0, 1).toUpperCase()}
+            </span>
+          </Link>
+        ) : session && user ? (
+          <div className="flex items-center gap-2.5">
+            <span
+              aria-hidden
+              className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[linear-gradient(135deg,#7c6af7_0%,#2dd4bf_100%)] font-mono text-[11px] font-semibold text-white"
+            >
+              {(user.displayName || "U").slice(0, 1).toUpperCase()}
+            </span>
+            <span className="min-w-0 flex-1">
+              <span className="block truncate text-xs text-[var(--fg)]">{user.displayName}</span>
+              <span className="block truncate font-mono text-[10px] text-[var(--muted)]">
+                {user.email || "Signed in"}
+              </span>
+            </span>
+            <Link
+              href="/logout"
+              onClick={onNavigate}
+              className="inline-flex min-h-11 items-center px-1 text-[11px] text-[var(--muted)] hover:text-[var(--fg)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
+            >
+              Log out
+            </Link>
+          </div>
+        ) : (
+          <Link
+            href="/login"
+            onClick={onNavigate}
+            className="flex min-h-11 items-center justify-center rounded-[10px] border border-[var(--border)] text-xs text-[var(--fg)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
+          >
+            Sign in
+          </Link>
+        )}
+      </div>
     </aside>
   );
 }

@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 
-import { Section } from "@/components/marketing";
 import { SUPPORT_CONTACT } from "@/lib/commercial";
 import { env } from "@/lib/env";
 
@@ -11,101 +10,83 @@ export const metadata: Metadata = {
   alternates: { canonical: "/contact" },
 };
 
-/**
- * RC3-002 — Respect channelsPublished. Never show .example mailto as live contact.
- */
 export default function ContactPage() {
   const published = SUPPORT_CONTACT.channelsPublished;
 
   return (
-    <Section
-      id="contact"
-      eyebrow="Contact"
-      title="Talk to the research desk"
-      lead="Programme and access guidance for institutional research use. Not a brokerage order desk."
-    >
-      {published ? (
-        <dl className="grid max-w-xl gap-6 text-sm">
-          <div>
-            <dt className="font-medium text-[var(--fg)]">Sales</dt>
-            <dd className="mt-1 text-[var(--muted)]">
-              <a
-                className="text-[var(--accent)] underline"
-                href={`mailto:${SUPPORT_CONTACT.salesEmail}`}
-              >
-                {SUPPORT_CONTACT.salesEmail}
-              </a>
-            </dd>
-          </div>
-          <div>
-            <dt className="font-medium text-[var(--fg)]">Support</dt>
-            <dd className="mt-1 text-[var(--muted)]">
-              <a
-                className="text-[var(--accent)] underline"
-                href={`mailto:${SUPPORT_CONTACT.email}`}
-              >
-                {SUPPORT_CONTACT.email}
-              </a>
-            </dd>
-          </div>
-          <div>
-            <dt className="font-medium text-[var(--fg)]">Platform access</dt>
-            <dd className="mt-1 text-[var(--muted)]">
-              Existing users can{" "}
-              <Link className="text-[var(--accent)] underline" href="/login">
-                sign in
-              </Link>
-              . New desks should email sales for edition guidance.
-            </dd>
-          </div>
-        </dl>
-      ) : (
-        <div className="max-w-xl space-y-4 text-sm">
-          <p
-            role="status"
-            className="rounded-[var(--radius-md)] border border-[var(--border)] bg-[var(--surface-2)] px-4 py-3 text-[var(--muted)]"
-          >
-            Contact channels are not yet publicly available.
-          </p>
-          <p className="text-[var(--muted)]">
-            {SUPPORT_CONTACT.unpublishedNote}
-          </p>
-          <dl className="grid gap-4">
-            <div>
-              <dt className="font-medium text-[var(--fg)]">Platform access</dt>
-              <dd className="mt-1 text-[var(--muted)]">
-                Existing users can{" "}
-                <Link className="text-[var(--accent)] underline" href="/login">
-                  sign in
-                </Link>
-                . New users can{" "}
-                <Link className="text-[var(--accent)] underline" href="/register">
-                  create an account
-                </Link>
-                .
-              </dd>
-            </div>
-            <div>
-              <dt className="font-medium text-[var(--fg)]">Documentation</dt>
-              <dd className="mt-1 text-[var(--muted)]">
-                <Link
-                  className="text-[var(--accent)] underline"
-                  href={SUPPORT_CONTACT.knowledgeBasePath}
-                >
-                  Product docs
-                </Link>
-                {" · "}
-                <Link
-                  className="text-[var(--accent)] underline"
-                  href={SUPPORT_CONTACT.faqPath}
-                >
-                  FAQ
-                </Link>
-              </dd>
-            </div>
-          </dl>
+    <div>
+      <section className="px-4 py-16 text-center sm:px-6 sm:py-20">
+        <h1 className="font-[family-name:var(--font-heading)] text-[clamp(32px,5vw,48px)] font-medium tracking-tight text-[var(--fg)]">
+          Get in touch
+        </h1>
+        <p className="mx-auto mt-3 max-w-md text-[15px] text-[var(--muted)]">
+          Programme and access guidance. Not a brokerage order desk.
+        </p>
+      </section>
+      <section className="mx-auto grid max-w-[680px] gap-10 px-4 pb-20 sm:px-6 md:grid-cols-2">
+        <div>
+          <h2 className="font-[family-name:var(--font-heading)] text-[22px] font-medium text-[var(--fg)]">
+            Contact
+          </h2>
+          {published ? (
+            <dl className="mt-5 space-y-4 text-sm">
+              <div>
+                <dt className="font-mono text-[11px] uppercase tracking-wider text-[var(--muted)]">
+                  Support
+                </dt>
+                <dd className="mt-1">
+                  <a className="text-[var(--accent)] underline" href={`mailto:${SUPPORT_CONTACT.email}`}>
+                    {SUPPORT_CONTACT.email}
+                  </a>
+                </dd>
+              </div>
+              <div>
+                <dt className="font-mono text-[11px] uppercase tracking-wider text-[var(--muted)]">
+                  Sales
+                </dt>
+                <dd className="mt-1">
+                  <a className="text-[var(--accent)] underline" href={`mailto:${SUPPORT_CONTACT.salesEmail}`}>
+                    {SUPPORT_CONTACT.salesEmail}
+                  </a>
+                </dd>
+              </div>
+            </dl>
+          ) : (
+            <p role="status" className="mt-5 text-sm leading-relaxed text-[var(--muted)]">
+              {SUPPORT_CONTACT.unpublishedNote}
+            </p>
+          )}
         </div>
-      )}
-    </Section>
+        <div className="space-y-4 text-sm text-[var(--muted)]">
+          <h2 className="font-[family-name:var(--font-heading)] text-[22px] font-medium text-[var(--fg)]">
+            Access
+          </h2>
+          <p>
+            Existing users can{" "}
+            <Link className="text-[var(--accent)] underline" href="/login">
+              sign in
+            </Link>
+            . New users can{" "}
+            <Link className="text-[var(--accent)] underline" href="/register">
+              create an account
+            </Link>
+            {" or "}
+            <Link className="text-[var(--accent)] underline" href="/signup">
+              request access
+            </Link>
+            .
+          </p>
+          <p>
+            <Link className="text-[var(--accent)] underline" href={SUPPORT_CONTACT.knowledgeBasePath}>
+              Product docs
+            </Link>
+            {" · "}
+            <Link className="text-[var(--accent)] underline" href={SUPPORT_CONTACT.faqPath}>
+              FAQ
+            </Link>
+          </p>
+        </div>
+      </section>
+    </div>
   );
 }

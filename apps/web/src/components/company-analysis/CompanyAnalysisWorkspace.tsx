@@ -5,16 +5,7 @@
  * Consumes frozen /api/v1/analyse (+ optional market quote). Display only.
  */
 
-import {
-  lazy,
-  Suspense,
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-  type ComponentType,
-} from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useMutation, useQuery } from "@tanstack/react-query";
 
@@ -23,12 +14,6 @@ import { useResearchDisclaimerGate } from "@/components/legal/useResearchDisclai
 import { api } from "@/lib/api/client";
 import type { AnalyseRequest, AnalyseResponse } from "@/lib/api/compositionTypes";
 import { ApiClientError } from "@/lib/api/types";
-import {
-  ANALYSIS_SECTIONS,
-  isAnalysisSectionId,
-  useWorkspacePrefsStore,
-  type AnalysisSectionId,
-} from "@/lib/company-analysis";
 import { useAuth } from "@/lib/auth/AuthProvider";
 import { pushRecentAnalysis } from "@/lib/analysis/recentAnalyses";
 import { useDashboardPrefsStore } from "@/lib/dashboard";
@@ -38,139 +23,19 @@ import {
   identityFromSearchParams,
   type SecurityListingView,
 } from "@/lib/securities/identity";
-import { useCollapsePanelsBelowLg } from "@/lib/a11y";
 import { loadAuthenticatedAnalyseRequest } from "@/lib/research/buildAnalyseRequest";
-import type { FinancialStatementsPayload } from "@/lib/institutional-dashboard/mapInstitutionalDashboard";
 import {
   mapResearchView,
   type ResearchView,
 } from "@/lib/research/mapResearchView";
 import { saveResearchSession } from "@/lib/research/sessionStore";
 import { useNotifications } from "@/providers/NotificationProvider";
-import { cn } from "@/lib/utils";
 import { CompanyResearchBar } from "@/components/securities/CompanyResearchBar";
-import { WorkspaceLeftNav } from "./WorkspaceLeftNav";
-import { WorkspaceRightPanel } from "./WorkspaceRightPanel";
-import { WorkspaceToolbar } from "./WorkspaceChrome";
 import {
-  ExportSection,
-  SummarySection,
-} from "./WorkspaceSections";
-import { mapReportTransparency } from "@/lib/report-transparency";
-import {
-  WorkspaceEmpty,
-  WorkspaceSkeleton,
-} from "./WorkspacePrimitives";
-
-const ValuationSection = lazy(() =>
-  import("./WorkspaceSections").then((m) => ({ default: m.ValuationSection })),
-);
-const QualitySection = lazy(() =>
-  import("./WorkspaceSections").then((m) => ({ default: m.QualitySection })),
-);
-const AiSection = lazy(() =>
-  import("./WorkspaceSections").then((m) => ({ default: m.AiSection })),
-);
-const ComplianceSection = lazy(() =>
-  import("./WorkspaceSections").then((m) => ({ default: m.ComplianceSection })),
-);
-const ResearchSection = lazy(() =>
-  import("./WorkspaceSections").then((m) => ({ default: m.ResearchSection })),
-);
-const TimelineSection = lazy(() =>
-  import("./WorkspaceSections").then((m) => ({ default: m.TimelineSection })),
-);
-const ManagementSection = lazy(() =>
-  import("./FlagshipSections").then((m) => ({ default: m.ManagementSection })),
-);
-const MoatSection = lazy(() =>
-  import("./FlagshipSections").then((m) => ({ default: m.MoatSection })),
-);
-const RiskSection = lazy(() =>
-  import("./FlagshipSections").then((m) => ({ default: m.RiskSection })),
-);
-const AdvancedCheckSection = lazy(() =>
-  import("./WorkspaceSections").then((m) => ({
-    default: m.AdvancedCheckSection,
-  })),
-);
-const FinancialSection = lazy(() =>
-  import("./FlagshipSections").then((m) => ({ default: m.FinancialSection })),
-);
-const ExplainabilitySection = lazy(() =>
-  import("./FlagshipSections").then((m) => ({
-    default: m.ExplainabilitySection,
-  })),
-);
-const EvidenceSection = lazy(() =>
-  import("./FlagshipSections").then((m) => ({ default: m.EvidenceSection })),
-);
-const EarningsQualitySection = lazy(() =>
-  import("./DeepDiveSections").then((m) => ({
-    default: m.EarningsQualitySection,
-  })),
-);
-const GrowthQualitySection = lazy(() =>
-  import("./DeepDiveSections").then((m) => ({
-    default: m.GrowthQualitySection,
-  })),
-);
-const MarginOfSafetySection = lazy(() =>
-  import("./DeepDiveSections").then((m) => ({
-    default: m.MarginOfSafetySection,
-  })),
-);
-const StrengthsWeaknessesSection = lazy(() =>
-  import("./DeepDiveSections").then((m) => ({
-    default: m.StrengthsWeaknessesSection,
-  })),
-);
-const InvestmentContextSection = lazy(() =>
-  import("./DeepDiveSections").then((m) => ({
-    default: m.InvestmentContextSection,
-  })),
-);
-const BuffettIndicatorSection = lazy(() =>
-  import("./BuffettIndicatorSection").then((m) => ({
-    default: m.BuffettIndicatorSection,
-  })),
-);
-const InstitutionalRatingsSection = lazy(() =>
-  import("./InstitutionalRatingsSection").then((m) => ({
-    default: m.InstitutionalRatingsSection,
-  })),
-);
-const ValuationTransparencySection = lazy(() =>
-  import("./ValuationTransparencySection").then((m) => ({
-    default: m.ValuationTransparencySection,
-  })),
-);
-const PeersSection = lazy(() =>
-  import("./sections/PeersSection").then((m) => ({ default: m.PeersSection })),
-);
-const OwnershipSection = lazy(() =>
-  import("./sections/OwnershipSection").then((m) => ({
-    default: m.OwnershipSection,
-  })),
-);
-const DocumentsSection = lazy(() =>
-  import("./sections/DocumentsSection").then((m) => ({
-    default: m.DocumentsSection,
-  })),
-);
-const NewsSection = lazy(() =>
-  import("./sections/NewsSection").then((m) => ({ default: m.NewsSection })),
-);
-const SettingsSection = lazy(() =>
-  import("./sections/SettingsSection").then((m) => ({
-    default: m.SettingsSection,
-  })),
-);
-const AiCopilotSection = lazy(() =>
-  import("./sections/AiCopilotSection").then((m) => ({
-    default: m.AiCopilotSection,
-  })),
-);
+  AnalysisEmpty,
+  AnalysisPending,
+  FigmaAnalysisReport,
+} from "./FigmaAnalysisReport";
 
 function listingFromIdentity(identity: {
   ticker: string;
@@ -228,34 +93,6 @@ function describeAnalyseError(error: unknown): string {
   return "Data unavailable.";
 }
 
-function SectionFallback() {
-  return (
-    <div role="status" aria-live="polite" className="space-y-3">
-      <WorkspaceSkeleton />
-      <p className="text-xs text-[var(--muted)]">Loading section…</p>
-    </div>
-  );
-}
-
-function LazyViewSection({
-  Section,
-  view,
-  financialStatements,
-}: {
-  Section: ComponentType<{
-    view: ResearchView;
-    financialStatements?: FinancialStatementsPayload | null;
-  }>;
-  view: ResearchView;
-  financialStatements?: FinancialStatementsPayload | null;
-}) {
-  return (
-    <Suspense fallback={<SectionFallback />}>
-      <Section view={view} financialStatements={financialStatements} />
-    </Suspense>
-  );
-}
-
 export function CompanyAnalysisWorkspace() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -284,44 +121,9 @@ export function CompanyAnalysisWorkspace() {
   /** Monotonic generation — drop stale analyse responses after symbol change. */
   const analyseGeneration = useRef(0);
 
-  const activeSection = useWorkspacePrefsStore((s) => s.activeSection);
-  const setActiveSection = useWorkspacePrefsStore((s) => s.setActiveSection);
-  const leftOpen = useWorkspacePrefsStore((s) => s.leftOpen);
-  const rightOpen = useWorkspacePrefsStore((s) => s.rightOpen);
-  const toggleLeft = useWorkspacePrefsStore((s) => s.toggleLeft);
-  const toggleRight = useWorkspacePrefsStore((s) => s.toggleRight);
-  const setLeftOpen = useWorkspacePrefsStore((s) => s.setLeftOpen);
-  const setRightOpen = useWorkspacePrefsStore((s) => s.setRightOpen);
   const recordSearch = useDashboardPrefsStore((s) => s.recordSearch);
   const { runWithDisclaimer, gate: disclaimerGate } =
     useResearchDisclaimerGate();
-
-  useCollapsePanelsBelowLg(setLeftOpen, setRightOpen);
-
-  const catalogue = useMemo(() => {
-    if (!listing?.ticker && !symbol) return undefined;
-    return {
-      name: listing?.company_name || symbol,
-      ticker: listing?.ticker || symbol,
-      exchange: listing?.exchange || urlExchange || "",
-      sector: "",
-      industry: "",
-      marketCap: "",
-      marketCapBucket: "large" as const,
-      researchAvailable: true,
-      featured: false,
-      screening: {
-        roe: 0,
-        roce: 0,
-        debtToEquity: 0,
-        revenueGrowth: 0,
-        profitGrowth: 0,
-        dividend: false,
-        style: "blend" as const,
-        quality: "medium" as const,
-      },
-    };
-  }, [listing, symbol, urlExchange]);
 
   useEffect(() => {
     setSymbol((prev) => {
@@ -542,16 +344,6 @@ export function CompanyAnalysisWorkspace() {
     staleTime: 60_000,
   });
 
-  const marketStatus = !token
-    ? "Sign in for live market status"
-    : marketQuery.isLoading
-      ? "Checking…"
-      : marketQuery.isError
-        ? "Data unavailable."
-        : marketQuery.data
-          ? "Quote loaded"
-          : "Data unavailable.";
-
   useEffect(() => {
     function onKeyDown(event: KeyboardEvent) {
       const target = event.target as HTMLElement | null;
@@ -560,278 +352,84 @@ export function CompanyAnalysisWorkspace() {
         (target.tagName === "INPUT" ||
           target.tagName === "TEXTAREA" ||
           target.isContentEditable);
+      if (typing) return;
       if ((event.ctrlKey || event.metaKey) && event.key === "Enter") {
         event.preventDefault();
         runAnalyse();
-        return;
-      }
-      if (typing) return;
-      if (event.key === "[") {
-        event.preventDefault();
-        toggleLeft();
-      } else if (event.key === "]") {
-        event.preventDefault();
-        toggleRight();
-      } else if (/^[0-9a-z]$/i.test(event.key)) {
-        const section = ANALYSIS_SECTIONS.find(
-          (s) => s.shortcut.toLowerCase() === event.key.toLowerCase(),
-        );
-        if (section) {
-          event.preventDefault();
-          setActiveSection(section.id);
-        }
       }
     }
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
-  }, [runAnalyse, setActiveSection, toggleLeft, toggleRight]);
-
-  const section: AnalysisSectionId = isAnalysisSectionId(activeSection)
-    ? activeSection
-    : "summary";
+  }, [runAnalyse]);
 
   return (
-    <div className="flex min-h-[70vh] flex-col rounded-[var(--radius-md)] border border-[var(--border)] bg-[var(--bg)]">
+    <div className="flex min-h-[70vh] flex-col bg-[var(--bg)]">
       {disclaimerGate}
-      <WorkspaceToolbar
-        onAnalyze={runAnalyse}
-        analyzing={analyseMutation.isPending}
-        onToggleLeft={toggleLeft}
-        onToggleRight={toggleRight}
-        leftOpen={leftOpen}
-        rightOpen={rightOpen}
-      />
+      <div className="border-b border-[var(--border)] px-4 py-3 sm:px-6">
+        <CompanyResearchBar
+          variant={symbol ? "compact" : "hero"}
+          query={query}
+          onQueryChange={setQuery}
+          onSelect={selectSymbol}
+        />
+      </div>
+      <div
+        role="region"
+        className="min-w-0 flex-1"
+        id="company-analysis-main"
+        tabIndex={-1}
+        aria-label="Main analysis area"
+      >
+        {analyseMutation.isPending && !view ? <AnalysisPending /> : null}
 
-      <div className="flex min-h-0 flex-1 flex-col lg:flex-row">
-        <aside
-          className={cn(
-            "border-[var(--border)] bg-[var(--surface)] lg:w-72 lg:shrink-0 lg:border-r",
-            leftOpen ? "block" : "hidden",
-          )}
-          aria-label="Company navigation"
-        >
-          <WorkspaceLeftNav
-            symbol={symbol}
-            onSelectSymbol={selectSymbol}
-            onAnalyze={runAnalyse}
-            analyzing={analyseMutation.isPending}
-            identityLabel={
-              listing?.isin && listing.mic
-                ? `${listing.ticker} · ${listing.exchange} · ${listing.isin} · ${listing.mic}`
-                : urlIsin && urlMic
-                  ? `${symbol} · ${urlExchange} · ${urlIsin} · ${urlMic}`
-                  : identityError
+        {analyseMutation.isError && !view ? (
+          <ErrorState
+            title="Investment data is currently unavailable."
+            description={describeAnalyseError(analyseMutation.error)}
+            action={
+              <Button size="sm" variant="secondary" onClick={runAnalyse}>
+                Retry
+              </Button>
             }
           />
-        </aside>
+        ) : null}
 
-        <div
-          role="region"
-          className="min-w-0 flex-1 overflow-y-auto scroll-smooth p-4 motion-reduce:scroll-auto"
-          id="company-analysis-main"
-          tabIndex={-1}
-          aria-label="Main analysis area"
-        >
-          <CompanyResearchBar
-            variant={symbol ? "compact" : "hero"}
-            query={query}
-            onQueryChange={setQuery}
-            onSelect={selectSymbol}
-            className="mb-4"
+        {!analyseMutation.isPending && !analyseMutation.isError && !view ? (
+          <AnalysisEmpty
+            symbol={symbol}
+            description={
+              identityError
+                ? identityError
+                : hasExactListingIdentity(urlIdentity)
+                  ? "Security identified successfully. No valuation was calculated."
+                  : symbol
+                    ? "Select the official listing, then run analysis. No company is pre-selected."
+                    : "Search for a company to begin. No company is pre-selected."
+            }
+            onAnalyze={symbol ? runAnalyse : undefined}
           />
+        ) : null}
 
-          {analyseMutation.isPending && !view ? <WorkspaceSkeleton /> : null}
-
-          {analyseMutation.isError && !view ? (
-            <ErrorState
-              title="Investment data is currently unavailable."
-              description={describeAnalyseError(analyseMutation.error)}
-              action={
-                <Button size="sm" variant="secondary" onClick={runAnalyse}>
-                  Retry
-                </Button>
-              }
-            />
-          ) : null}
-
-          {!analyseMutation.isPending && !analyseMutation.isError && !view ? (
-            <WorkspaceEmpty
-              title={
-                hasExactListingIdentity(urlIdentity)
-                  ? "Investment data is currently unavailable."
-                  : "Data unavailable."
-              }
-              description={
-                identityError
-                  ? identityError
-                  : hasExactListingIdentity(urlIdentity)
-                    ? "Security identified successfully. No valuation was calculated."
-                    : symbol
-                      ? "Run analysis to load backend research outputs for this symbol."
-                      : "Search a company or ticker above, then select the official listing. No company is pre-selected."
-              }
-              action={
-                symbol ? (
-                  <Button size="sm" onClick={runAnalyse}>
-                    Analyze {symbol}
-                  </Button>
-                ) : undefined
-              }
-            />
-          ) : null}
-
-          {view ? (
-            <div className="space-y-4">
-              {analyseMutation.isPending ? (
-                <p className="text-xs text-[var(--muted)]" aria-live="polite">
-                  Refreshing analysis…
-                </p>
-              ) : null}
-              {section === "summary" ? (
-                <SummarySection
-                  view={view}
-                  catalogue={catalogue}
-                  marketStatus={marketStatus}
-                  marketQuote={marketQuery.data ?? null}
-                  financialStatements={financialStatementsQuery.data ?? null}
-                />
-              ) : null}
-              {section === "valuation" ? (
-                <LazyViewSection Section={ValuationSection} view={view} />
-              ) : null}
-              {section === "quality" ? (
-                <LazyViewSection Section={QualitySection} view={view} />
-              ) : null}
-              {section === "management" ? (
-                <LazyViewSection Section={ManagementSection} view={view} />
-              ) : null}
-              {section === "moat" ? (
-                <LazyViewSection Section={MoatSection} view={view} />
-              ) : null}
-              {section === "risk" ? (
-                <LazyViewSection Section={RiskSection} view={view} />
-              ) : null}
-              {section === "advancedCheck" ? (
-                <LazyViewSection Section={AdvancedCheckSection} view={view} />
-              ) : null}
-              {section === "financial" ? (
-                <LazyViewSection
-                  Section={FinancialSection}
-                  view={view}
-                  financialStatements={financialStatementsQuery.data ?? null}
-                />
-              ) : null}
-              {section === "earningsQuality" ? (
-                <LazyViewSection
-                  Section={EarningsQualitySection}
-                  view={view}
-                  financialStatements={financialStatementsQuery.data ?? null}
-                />
-              ) : null}
-              {section === "growthQuality" ? (
-                <LazyViewSection
-                  Section={GrowthQualitySection}
-                  view={view}
-                  financialStatements={financialStatementsQuery.data ?? null}
-                />
-              ) : null}
-              {section === "marginOfSafety" ? (
-                <LazyViewSection Section={MarginOfSafetySection} view={view} />
-              ) : null}
-              {section === "strengthsWeaknesses" ? (
-                <LazyViewSection Section={StrengthsWeaknessesSection} view={view} />
-              ) : null}
-              {section === "investmentContext" ? (
-                <LazyViewSection Section={InvestmentContextSection} view={view} />
-              ) : null}
-              {section === "ai" ? (
-                <LazyViewSection Section={AiSection} view={view} />
-              ) : null}
-              {section === "explainability" ? (
-                <LazyViewSection Section={ExplainabilitySection} view={view} />
-              ) : null}
-              {section === "evidence" ? (
-                <LazyViewSection Section={EvidenceSection} view={view} />
-              ) : null}
-              {section === "timeline" ? (
-                <LazyViewSection Section={TimelineSection} view={view} />
-              ) : null}
-              {section === "export" ? (
-                <ExportSection
-                  view={view}
-                  analyseRequest={lastAnalyseRequest}
-                  analyseResponse={lastAnalyseResponse}
-                />
-              ) : null}
-              {section === "ratings" ? (
-                <Suspense fallback={<SectionFallback />}>
-                  <InstitutionalRatingsSection
-                    ratings={view.ratings}
-                    transparency={mapReportTransparency(view, { marketStatus })}
-                    explainability={view.explainability}
-                  />
-                </Suspense>
-              ) : null}
-              {section === "valuationTransparency" ? (
-                <Suspense fallback={<SectionFallback />}>
-                  <ValuationTransparencySection
-                    transparency={view.valuationTransparency}
-                  />
-                </Suspense>
-              ) : null}
-              {section === "research" ? (
-                <LazyViewSection Section={ResearchSection} view={view} />
-              ) : null}
-              {section === "buffett" ? (
-                <Suspense fallback={<SectionFallback />}>
-                  <BuffettIndicatorSection report={view.buffett} />
-                </Suspense>
-              ) : null}
-              {section === "compliance" ? (
-                <LazyViewSection Section={ComplianceSection} view={view} />
-              ) : null}
-              {section === "ownership" ? (
-                <LazyViewSection Section={OwnershipSection} view={view} />
-              ) : null}
-              {section === "peers" ? (
-                <LazyViewSection Section={PeersSection} view={view} />
-              ) : null}
-              {section === "documents" ? (
-                <LazyViewSection Section={DocumentsSection} view={view} />
-              ) : null}
-              {section === "news" ? (
-                <LazyViewSection Section={NewsSection} view={view} />
-              ) : null}
-              {section === "settings" ? (
-                <LazyViewSection Section={SettingsSection} view={view} />
-              ) : null}
-              {section === "copilot" ? (
-                <Suspense fallback={<SectionFallback />}>
-                  <AiCopilotSection
-                    view={view}
-                    analyseRequest={lastAnalyseRequest}
-                    analyseResponse={lastAnalyseResponse}
-                  />
-                </Suspense>
-              ) : null}
-              <p className="text-[10px] text-[var(--muted)]">
-                Last updated: {analysedAt ?? view.analysedAt ?? "Data unavailable."}{" "}
-                · Research tools — not investment advice
+        {view ? (
+          <>
+            {analyseMutation.isPending ? (
+              <p className="px-6 pt-3 text-xs text-[var(--muted)]" aria-live="polite">
+                Refreshing analysis…
               </p>
-            </div>
-          ) : null}
-        </div>
-
-        <aside
-          className={cn(
-            "border-[var(--border)] bg-[var(--surface)] lg:w-72 lg:shrink-0 lg:border-l",
-            rightOpen ? "block" : "hidden",
-            "max-lg:border-t",
-          )}
-          aria-label="Context panel"
-        >
-          <WorkspaceRightPanel view={view} symbol={symbol} />
-        </aside>
+            ) : null}
+            <FigmaAnalysisReport
+              view={view}
+              marketQuote={marketQuery.data ?? null}
+              financialStatements={financialStatementsQuery.data ?? null}
+              analyseRequest={lastAnalyseRequest}
+              analyseResponse={lastAnalyseResponse}
+            />
+            <p className="px-6 pb-6 text-[10px] text-[var(--muted)]">
+              Last updated: {analysedAt ?? view.analysedAt ?? "Data unavailable."}{" "}
+              · Research tools — not investment advice
+            </p>
+          </>
+        ) : null}
       </div>
     </div>
   );

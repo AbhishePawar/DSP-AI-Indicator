@@ -60,7 +60,7 @@ describe("CompanyComparisonWorkspace render", () => {
       screen.getByTestId("company-comparison-workspace"),
     ).toBeInTheDocument();
     expect(
-      screen.getByRole("heading", { name: /Institutional Company Comparison/i }),
+      screen.getByRole("heading", { name: /^Compare$/i }),
     ).toBeInTheDocument();
     expect(screen.getByText(/No comparison yet/i)).toBeInTheDocument();
     expect(screen.getByLabelText(/Comparison tickers/i)).toBeInTheDocument();

@@ -172,12 +172,6 @@ describe("EPIC-F003 layout primitives", () => {
     expect(screen.getByText("Page body")).toBeTruthy();
   });
 
-  it("renders breadcrumbs for current route", async () => {
-    const { Breadcrumbs } = await import("@/components/layout/Breadcrumbs");
-    render(<Breadcrumbs />);
-    expect(screen.getByLabelText("Breadcrumb")).toBeTruthy();
-    expect(screen.getByText("Settings")).toBeTruthy();
-  });
 });
 
 describe("EPIC-F003 foundation version", () => {

@@ -51,17 +51,25 @@ export function MessageBubble({
   const isUser = message.role === "user";
   return (
     <div
-      className={`flex ${isUser ? "justify-end" : "justify-start"}`}
+      className={`flex gap-3 ${isUser ? "justify-end" : "justify-start"}`}
       data-role={message.role}
     >
+      {!isUser ? (
+        <span
+          aria-hidden
+          className="mt-0.5 flex h-[30px] w-[30px] shrink-0 items-center justify-center rounded-full bg-[linear-gradient(135deg,#7c6af7,#2dd4bf)] font-mono text-[11px] font-bold text-white"
+        >
+          D
+        </span>
+      ) : null}
       <div
-        className={`max-w-[90%] rounded-lg px-3 py-2 text-sm ${
+        className={`max-w-[85%] border border-[var(--border)] px-4 py-3 text-sm leading-relaxed text-[var(--fg)] ${
           isUser
-            ? "bg-[var(--accent)] text-[var(--accent-fg)] whitespace-pre-wrap"
-            : "border border-[var(--border)] bg-[var(--surface-2)] text-[var(--fg)]"
+            ? "rounded-[16px_16px_4px_16px] bg-[var(--surface-2)] whitespace-pre-wrap"
+            : "rounded-[4px_16px_16px_16px] bg-[var(--surface)]"
         }`}
       >
-        <p className="text-[10px] uppercase tracking-wider opacity-70">
+        <p className="font-mono text-[10px] uppercase tracking-wider text-[var(--muted)]">
           {isUser ? "You" : "Copilot"}
         </p>
         <div className="mt-1">

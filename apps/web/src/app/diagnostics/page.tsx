@@ -8,7 +8,7 @@ export default function DiagnosticsPage() {
       <div className="space-y-6">
         <PageHeader
           title="Diagnostics"
-          description="Production readiness visibility — version, session, errors, and timings. No external telemetry."
+          description="System health from the live diagnostics dashboard. Design-file service checks and sample logs are not shown."
         />
         <DiagnosticsDashboard />
       </div>

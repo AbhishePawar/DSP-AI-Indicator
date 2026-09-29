@@ -72,9 +72,13 @@ export function MarketingHeader() {
       <div className="mx-auto flex max-w-[72rem] items-center justify-between gap-4 px-4 py-3 sm:px-6">
         <Link
           href="/"
-          className="whitespace-nowrap font-[family-name:var(--font-display)] text-lg font-medium tracking-tight text-[var(--fg)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent)]"
+          className="inline-flex min-h-11 items-center gap-2.5 whitespace-nowrap focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent)]"
         >
-          {env.appName}
+          <span className="dsp-logo-mark" aria-hidden />
+          <span className="font-[family-name:var(--font-display)] text-lg tracking-tight text-[var(--fg)]">
+            DSP
+          </span>
+          <span className="sr-only">{env.appName}</span>
         </Link>
 
         <nav
@@ -102,16 +106,16 @@ export function MarketingHeader() {
             {mode === "system" ? "System" : resolved === "dark" ? "Dark" : "Light"}
           </button>
           <Link
-            href="/register"
-            className="hidden min-h-11 items-center rounded-[var(--radius-sm)] border border-[var(--border)] bg-[var(--surface)] px-3 text-sm text-[var(--fg)] sm:inline-flex focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent)]"
+            href="/login"
+            className="hidden min-h-11 items-center rounded-lg border border-[var(--border)] px-4 text-[13px] text-[var(--muted)] sm:inline-flex focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent)]"
           >
-            Create account
+            Log in
           </Link>
           <Link
-            href="/login"
-            className="inline-flex min-h-11 items-center whitespace-nowrap rounded-[var(--radius-sm)] bg-[var(--accent)] px-3 text-sm font-medium text-[var(--accent-fg)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent)]"
+            href="/signup"
+            className="inline-flex min-h-11 items-center whitespace-nowrap rounded-lg bg-[var(--c-dsp)] px-4 text-[13px] text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent)]"
           >
-            Sign in
+            Get started
           </Link>
           <button
             ref={menuButtonRef}
@@ -148,11 +152,11 @@ export function MarketingHeader() {
             ))}
             <li>
               <Link
-                href="/register"
+                href="/signup"
                 className="flex min-h-11 items-center text-sm text-[var(--fg)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent)]"
                 onClick={() => setOpen(false)}
               >
-                Create account
+                Get started
               </Link>
             </li>
             <li>

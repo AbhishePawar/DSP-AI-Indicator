@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 
-import { FAQ_ITEMS, Section } from "@/components/marketing";
+import { MarketingFaqList } from "@/components/marketing";
 import { env } from "@/lib/env";
 
 export const metadata: Metadata = {
@@ -12,38 +12,27 @@ export const metadata: Metadata = {
 
 export default function MarketingFaqPage() {
   return (
-    <Section
-      id="faq"
-      eyebrow="FAQ"
-      title="Frequently asked questions"
-      lead="Research boundaries, architecture, and access — answered plainly."
-    >
-      <dl className="mx-auto max-w-3xl space-y-8">
-        {FAQ_ITEMS.map((item) => (
-          <div key={item.q}>
-            <dt className="font-[family-name:var(--font-display)] text-xl font-medium tracking-tight">
-              {item.q}
-            </dt>
-            <dd className="mt-2 text-sm leading-relaxed text-[var(--muted)]">
-              {item.a}
-            </dd>
-          </div>
-        ))}
-      </dl>
-      <p className="mt-10 text-sm text-[var(--muted)]">
-        More product docs:{" "}
-        <Link className="text-[var(--accent)] underline" href="/docs/faq">
-          in-app FAQ
-        </Link>
-        {" · "}
-        <Link className="text-[var(--accent)] underline" href="/docs/disclaimer">
-          disclaimer
-        </Link>
-        {" · "}
-        <Link className="text-[var(--accent)] underline" href="/contact">
-          contact
-        </Link>
-      </p>
-    </Section>
+    <div>
+      <section className="px-4 py-16 text-center sm:px-6 sm:py-20">
+        <h1 className="font-[family-name:var(--font-heading)] text-[clamp(32px,5vw,48px)] font-medium tracking-tight text-[var(--fg)]">
+          Frequently asked questions
+        </h1>
+        <p className="mx-auto mt-3 max-w-md text-[15px] text-[var(--muted)]">
+          Research boundaries, architecture, and access.
+        </p>
+      </section>
+      <section className="px-4 pb-20 sm:px-6">
+        <MarketingFaqList />
+        <p className="mx-auto mt-8 max-w-[680px] text-sm text-[var(--muted)]">
+          <Link className="text-[var(--accent)] underline" href="/docs/faq">
+            In-app FAQ
+          </Link>
+          {" · "}
+          <Link className="text-[var(--accent)] underline" href="/docs/disclaimer">
+            Disclaimer
+          </Link>
+        </p>
+      </section>
+    </div>
   );
 }

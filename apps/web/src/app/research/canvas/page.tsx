@@ -9,6 +9,7 @@ import dynamic from "next/dynamic";
 import { Suspense } from "react";
 
 import { PageHeader } from "@/components/layout/PageHeader";
+import { FigmaNotebook } from "@/components/research-canvas/FigmaNotebook";
 import { WorkspaceSkeleton } from "@/components/research-canvas";
 import { featureFlags } from "@/lib/featureFlags";
 import { EmptyState } from "@/components/ds";
@@ -38,8 +39,9 @@ export default function ResearchCanvasPage() {
     <div className="space-y-4">
       <PageHeader
         title="Research Canvas"
-        description="Institutional Research Operating System — unify Company Analysis, Comparison, Research Intelligence, Timeline, Evidence, Committee, and Notebook without rewriting engines."
+        description="Notebook-style research environment. Blocks load and save through the workspace canvas API. The operating system below keeps the existing research surfaces."
       />
+      <FigmaNotebook />
       <Suspense fallback={<WorkspaceSkeleton />}>
         <ResearchCanvasWorkspace />
       </Suspense>

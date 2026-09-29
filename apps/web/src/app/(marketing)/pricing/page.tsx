@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 
-import { Section } from "@/components/marketing";
 import {
   COMMERCIAL_PRICING_DISCLOSURE,
   FEATURE_MATRIX_ROWS,
@@ -26,31 +25,39 @@ function formatPrice(edition: (typeof PRODUCT_EDITIONS)[number]): string {
 
 export default function MarketingPricingPage() {
   return (
-    <Section
-      id="pricing"
-      eyebrow="Pricing"
-      title="Product editions"
-      lead={`${env.appName} edition packaging is shown for planning only. These plans are not available for public purchase on this release.`}
-    >
+    <div>
+      <section className="px-4 py-16 text-center sm:px-6 sm:py-20">
+        <h1 className="font-[family-name:var(--font-heading)] text-[clamp(32px,5vw,52px)] font-medium tracking-tight text-[var(--fg)]">
+          Product editions
+        </h1>
+        <p className="mx-auto mt-4 max-w-md text-base text-[var(--muted)]">
+          Packaging for planning only. These plans are not available for public purchase.
+        </p>
+      </section>
+      <section className="px-4 pb-16 sm:px-6">
       <p
         role="note"
-        className="mb-6 rounded-[var(--radius-md)] border border-[var(--border)] bg-[var(--surface-2)] px-4 py-3 text-sm text-[var(--muted)]"
+        className="mx-auto mb-6 max-w-[920px] rounded-[14px] border border-[var(--border)] bg-[var(--surface-2)] px-4 py-3 text-sm text-[var(--muted)]"
       >
         {COMMERCIAL_PRICING_DISCLOSURE}
       </p>
-      <ul className="grid gap-6 lg:grid-cols-3">
+      <ul className="mx-auto grid max-w-[920px] gap-5 lg:grid-cols-3">
         {PRODUCT_EDITIONS.map((edition) => (
           <li
             key={edition.id}
-            className="rounded-[var(--radius-md)] border border-[var(--border)] bg-[var(--surface)] p-6"
+            className={`rounded-2xl border p-7 ${
+              edition.id === "professional"
+                ? "border-[rgba(124,106,247,0.4)] bg-[linear-gradient(160deg,rgba(124,106,247,0.12),rgba(45,212,191,0.06))]"
+                : "border-[var(--border)] bg-[var(--surface)]"
+            }`}
           >
-            <h3 className="font-[family-name:var(--font-display)] text-xl font-medium">
+            <p className="font-mono text-xs uppercase tracking-wider text-[var(--muted)]">
               {edition.name}
-            </h3>
-            <p className="mt-1 text-sm text-[var(--muted)]">{edition.tagline}</p>
-            <p className="mt-4 font-[family-name:var(--font-display)] text-2xl font-medium">
+            </p>
+            <p className="mt-3 font-[family-name:var(--font-heading)] text-4xl font-medium text-[var(--fg)]">
               {formatPrice(edition)}
             </p>
+            <p className="mt-2 text-sm text-[var(--muted)]">{edition.tagline}</p>
             <p className="mt-2 text-sm text-[var(--muted)]">{edition.audience}</p>
             <p className="mt-3 text-sm text-[var(--muted)]">
               Illustrative seats: {edition.seatsIncluded}
@@ -136,6 +143,7 @@ export default function MarketingPricingPage() {
           Create account
         </Link>
       </p>
-    </Section>
+      </section>
+    </div>
   );
 }

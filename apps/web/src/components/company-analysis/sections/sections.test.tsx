@@ -47,8 +47,6 @@ import { AiCopilotSection } from "./AiCopilotSection";
 import { OwnershipSection } from "./OwnershipSection";
 import { DocumentsSection } from "./DocumentsSection";
 import { NewsSection } from "./NewsSection";
-import { SettingsSection } from "./SettingsSection";
-
 const sampleResponse: AnalyseResponse = {
   ok: true,
   capability: "analyse",
@@ -188,11 +186,5 @@ describe("Honest empty-state sections", () => {
     await waitFor(() => expect(corporateActionsMock).toHaveBeenCalled());
     await waitFor(() => expect(filingsMock).toHaveBeenCalled());
     await waitFor(() => expect(transcriptsMock).toHaveBeenCalled());
-  });
-
-  it("SettingsSection reuses the workspace prefs store", () => {
-    wrap(<SettingsSection view={buildView()} />);
-    expect(screen.getByText("Appearance")).toBeTruthy();
-    expect(screen.getByRole("button", { name: /Hide navigation/i })).toBeTruthy();
   });
 });

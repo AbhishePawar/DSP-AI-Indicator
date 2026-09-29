@@ -55,8 +55,8 @@ function ResetPasswordForm() {
 
   return (
     <AuthCard
-      title="Reset password"
-      description="Set a new password using your reset token."
+      title="Set new password"
+      description="Choose a strong password for your account. The reset token from your recovery flow is still required."
     >
       <Stack gap={4}>
         {done ? (

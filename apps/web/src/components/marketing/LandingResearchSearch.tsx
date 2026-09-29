@@ -3,8 +3,6 @@
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 
-const SEARCH_HINTS = ["TCS", "INFY", "HDFCBANK", "RELIANCE"] as const;
-
 export function LandingResearchSearch() {
   const router = useRouter();
   const [query, setQuery] = useState("");
@@ -140,19 +138,6 @@ export function LandingResearchSearch() {
         <span className="font-normal opacity-85">DSP</span>
         Buffett Indicator Analysis
       </button>
-      <div className="mt-4 flex flex-wrap items-center justify-center gap-2">
-        <span className="font-mono text-xs text-[var(--muted)]">Search:</span>
-        {SEARCH_HINTS.map((ticker) => (
-          <button
-            key={ticker}
-            type="button"
-            onClick={() => go(`/analysis?symbol=${ticker}`)}
-            className="rounded-full border border-[var(--border)] bg-[var(--surface-2)] px-3 py-1 font-mono text-xs text-[var(--muted)] hover:border-[var(--accent)] hover:text-[var(--accent)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
-          >
-            {ticker}
-          </button>
-        ))}
-      </div>
     </div>
   );
 }

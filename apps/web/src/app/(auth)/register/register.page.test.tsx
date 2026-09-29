@@ -58,7 +58,7 @@ describe("Register page", () => {
     );
     expect(
       screen.getByRole("heading", {
-        name: /create your dsp ai indicator account/i,
+        name: /create account/i,
       }),
     ).toBeTruthy();
     expect(document.getElementById("reg-name")).toBeTruthy();

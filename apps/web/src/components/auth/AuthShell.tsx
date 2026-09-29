@@ -37,15 +37,15 @@ export function AuthShell({ children, footerNote }: AuthShellProps) {
               AI for every investor.
             </h2>
             <p className="mt-4 text-sm leading-relaxed text-[var(--muted)]">
-              Ask DSP anything about any listed company. Official evidence
-              through the deterministic DSP pipeline. No invented numbers.
+              Ask DSP anything about any listed company. Answers stay tied to
+              authenticated financial evidence.
             </p>
           </div>
           {[
             "Chat-first equity research",
-            "Official evidence before opinion",
-            "Deterministic DSP calculations",
-            "Thin-client /api/v1 only",
+            "Visual financial evidence",
+            "DSP analysis when the pipeline returns it",
+            "Multi-security comparison",
           ].map((feature) => (
             <div key={feature} className="flex items-center gap-2.5">
               <span className="text-sm text-[var(--c-profit)]" aria-hidden>

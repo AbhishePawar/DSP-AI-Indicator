@@ -19,7 +19,6 @@ import { useUiStore } from "@/lib/shell";
 import { ContentArea } from "./ContentArea";
 import { ShellCommandPalette } from "./ShellCommandPalette";
 import { Sidebar } from "./Sidebar";
-import { StatusBar } from "./StatusBar";
 import { Topbar } from "./Topbar";
 
 function focusableSelector() {
@@ -38,8 +37,8 @@ export function AppLayout({ children }: { children: ReactNode }) {
   const router = useRouter();
   const { session, status } = useAuth();
 
+  // Figma shell has no header collapse control; the Settings › Workspace preference still applies.
   const sidebarCollapsed = useUiStore((s) => s.sidebarCollapsed);
-  const toggleSidebarCollapsed = useUiStore((s) => s.toggleSidebarCollapsed);
   const drawerOpen = useUiStore((s) => s.mobileDrawerOpen);
   const setDrawerOpen = useUiStore((s) => s.setMobileDrawerOpen);
   const drawerRef = useRef<HTMLDivElement | null>(null);
@@ -144,11 +143,7 @@ export function AppLayout({ children }: { children: ReactNode }) {
         <div className="flex min-h-screen">
           <Sidebar collapsed={sidebarCollapsed} />
           <div className="flex min-w-0 flex-1 flex-col">
-            <Topbar
-              onMenuClick={() => setDrawerOpen(true)}
-              onToggleCollapse={toggleSidebarCollapsed}
-              sidebarCollapsed={sidebarCollapsed}
-            />
+            <Topbar onMenuClick={() => setDrawerOpen(true)} />
             <main
               id="main-content"
               className="flex-1 overflow-auto scroll-smooth motion-reduce:scroll-auto"
@@ -158,7 +153,6 @@ export function AppLayout({ children }: { children: ReactNode }) {
                 <ClosedBetaGate>{children}</ClosedBetaGate>
               </ContentArea>
             </main>
-            <StatusBar />
           </div>
         </div>
 

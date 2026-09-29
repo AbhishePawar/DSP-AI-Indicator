@@ -109,8 +109,8 @@ export default function ForgotPasswordPage() {
   return (
     <AuthShell>
       <AuthCard
-        title="Forgot password"
-        description="Recover access using the verified mobile number already stored on the account."
+        title="Reset password"
+        description="Enter the username or India mobile number on the account. Recovery continues with a one-time code, not an email link."
       >
         <Stack gap={4}>
           {step === "done" ? (

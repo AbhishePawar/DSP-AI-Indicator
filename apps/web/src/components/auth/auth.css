@@ -21,3 +21,38 @@
     animation: none !important;
   }
 }
+
+/*
+ * Figma Make AuthLayout field chrome (Login/Signup/ForgotPassword/ResetPassword):
+ * uppercase data-font labels, --secondary inputs with 10px radius, 12/14 padding,
+ * full-width 10px-radius primary actions. Presentation only — form logic is untouched.
+ */
+.auth-reveal label:not(.auth-inline-label) {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.auth-reveal label:has(> input[type="checkbox"]),
+.auth-reveal label:has(> input[type="radio"]) {
+  font-family: var(--font-body, inherit);
+  font-size: 0.875rem;
+  letter-spacing: normal;
+  text-transform: none;
+}
+
+.auth-reveal input:not([type="checkbox"]):not([type="radio"]),
+.auth-reveal select,
+.auth-reveal textarea {
+  background: var(--surface-2);
+  border-radius: 10px;
+  padding: 12px 14px;
+  font-size: 14px;
+}
+
+.auth-reveal button[type="submit"] {
+  border-radius: 10px;
+  min-height: 44px;
+}

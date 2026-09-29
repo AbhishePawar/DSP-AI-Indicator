@@ -37,7 +37,7 @@ export default function CompanyComparisonPage() {
   return (
     <div className="space-y-4">
       <PageHeader
-        title="Institutional Company Comparison"
+        title="Compare"
         description="Investment Decision Workspace over frozen /api/v1/analyse packs. Assists decisions — never makes them. No client-side scoring."
       />
       <Suspense fallback={<WorkspaceSkeleton />}>

@@ -55,22 +55,39 @@ export function ChatWindow({
             />
           ))}
           {typing ? (
-            <div className="text-sm text-[var(--muted)]" role="status">
-              Copilot is preparing an answer…
+            <div className="flex gap-3" role="status">
+              <span
+                aria-hidden
+                className="flex h-[30px] w-[30px] shrink-0 items-center justify-center rounded-full bg-[linear-gradient(135deg,#7c6af7,#2dd4bf)] font-mono text-[11px] text-white"
+              >
+                D
+              </span>
+              <div className="rounded-[4px_16px_16px_16px] border border-[var(--border)] bg-[var(--surface)] px-4 py-3 text-[13px] text-[var(--muted)]">
+                Copilot is preparing an answer…
+              </div>
             </div>
           ) : null}
           <div ref={endRef} />
         </div>
 
-        <form onSubmit={handleSubmit} className="flex gap-2">
+        <form
+          onSubmit={handleSubmit}
+          className="flex items-center gap-2 rounded-xl border border-[var(--border)] bg-[var(--surface-2)] px-3 py-2 focus-within:border-[color-mix(in_srgb,var(--accent)_50%,transparent)]"
+        >
           <Input
             value={draft}
             onChange={(e) => onDraftChange(e.target.value)}
-            placeholder="Ask about valuation, moat, risks…"
+            placeholder="Ask DSP Copilot about valuation, moat, risks…"
             aria-label="Copilot message"
             disabled={disabled || typing}
+            className="border-0 bg-transparent shadow-none focus-visible:ring-0"
           />
-          <Button type="submit" disabled={disabled || typing || !draft.trim()}>
+          <Button
+            type="submit"
+            size="sm"
+            disabled={disabled || typing || !draft.trim()}
+            className="min-h-11 shrink-0"
+          >
             Send
           </Button>
         </form>

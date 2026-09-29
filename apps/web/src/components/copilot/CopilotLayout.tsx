@@ -332,7 +332,7 @@ export function CopilotLayout() {
   return (
     <div className="space-y-6" data-testid="copilot-v2-layout">
       <PageHeader
-        title="AI Research Copilot 2.0"
+        title="AI Copilot"
         description="Conversational orchestration over existing engines. No duplicated calculations. Missing data stays Data unavailable."
         actions={
           <div className="flex flex-wrap gap-2">

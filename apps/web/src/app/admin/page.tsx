@@ -16,8 +16,8 @@ export default function AdminPage() {
     <AuthGuard>
       <div className="space-y-4">
         <PageHeader
-          title="Enterprise Administration"
-          description="Operational visibility from certified A010 /api/v1/admin APIs. Display-only — no client-side administration logic."
+          title="Admin Panel"
+          description="System administration from certified /api/v1/admin APIs. Display-only — sample users from the design file are not shown."
         />
         <Suspense fallback={<WorkspaceSkeleton />}>
           <AdminConsole />

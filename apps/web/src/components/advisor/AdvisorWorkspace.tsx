@@ -67,8 +67,8 @@ export const AdvisorWorkspace = memo(function AdvisorWorkspace() {
   const ws = getAdvisorWorkspace();
   return (
     <AdvisorShell
-      title="Advisor Workspace"
-      description="Client management foundation — demo data only, optional layer."
+      title="Advisor"
+      description="Client management stays on the existing advisor workspace. No sample clients are added from the design file."
     >
       <AdvisorQuickActions />
       <AdvisorOverviewCard overview={ws.overview} />

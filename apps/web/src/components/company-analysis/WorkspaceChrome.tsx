@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import Link from "next/link";
 
@@ -37,7 +37,7 @@ function pct(value: number | null | undefined): string | null {
 }
 
 /** Daily change is a display-only derivation from two already-fetched raw
- * quote fields — not a valuation calculation. */
+ * quote fields â€” not a valuation calculation. */
 function dailyChange(
   current: number | null | undefined,
   previousClose: number | null | undefined,
@@ -63,13 +63,13 @@ export function CompanyHeaderBar({
   catalogue: CompanyEntry | undefined;
   marketStatus: string;
   lastUpdated: string | null;
-  /** EPIC-D001 authenticated market quote — never invents missing fields. */
+  /** EPIC-D001 authenticated market quote â€” never invents missing fields. */
   marketQuote?: MarketQuotePayload | null;
-  /** EPIC-D002 authenticated financial statements — latest period ratios only. */
+  /** EPIC-D002 authenticated financial statements â€” latest period ratios only. */
   financialStatements?: FinancialStatementsPayload | null;
 }) {
   const company = view?.company || catalogue?.name || "Data unavailable.";
-  const symbol = view?.ticker || catalogue?.ticker || "—";
+  const symbol = view?.ticker || catalogue?.ticker || "â€”";
   const exchange = view?.exchange || catalogue?.exchange || "Data unavailable.";
   const pinCompany = useDashboardPrefsStore((s) => s.pinCompany);
   const unpinCompany = useDashboardPrefsStore((s) => s.unpinCompany);
@@ -83,7 +83,7 @@ export function CompanyHeaderBar({
       : view.ok
         ? "Covered"
         : view.failedStage
-          ? `Partial · failed ${view.failedStage}`
+          ? `Partial Â· failed ${view.failedStage}`
           : "Incomplete";
   const researchConfidence =
     view?.recommendationConfidence != null
@@ -165,7 +165,7 @@ export function CompanyHeaderBar({
         <FieldRow label="Market status" value={marketStatus} />
       </dl>
       <p className="mb-2 mt-4 text-xs font-medium uppercase tracking-wide text-[var(--muted)]">
-        Live market snapshot — EPIC-D001/D002 authenticated feeds only
+        Live market snapshot â€” EPIC-D001/D002 authenticated feeds only
       </p>
       <dl className="grid gap-x-6 sm:grid-cols-2 lg:grid-cols-3">
         <FieldRow label="Current Price" value={money(quoteFields?.current_price)} />
@@ -191,53 +191,5 @@ export function CompanyHeaderBar({
         <FieldRow label="ROE" value={pct(latestRatios?.roe)} />
       </dl>
     </SectionCard>
-  );
-}
-
-export function WorkspaceToolbar({
-  onAnalyze,
-  analyzing,
-  onToggleLeft,
-  onToggleRight,
-  leftOpen,
-  rightOpen,
-}: {
-  onAnalyze: () => void;
-  analyzing: boolean;
-  onToggleLeft: () => void;
-  onToggleRight: () => void;
-  leftOpen: boolean;
-  rightOpen: boolean;
-}) {
-  return (
-    <div className="sticky top-0 z-20 flex flex-wrap items-center justify-between gap-2 border-b border-[var(--border)] bg-[var(--surface)]/95 px-3 py-2 backdrop-blur motion-reduce:backdrop-blur-none">
-      <div className="flex flex-wrap items-center gap-2">
-        <Button
-          size="sm"
-          variant="ghost"
-          onClick={onToggleLeft}
-          aria-pressed={leftOpen}
-          aria-label={leftOpen ? "Hide navigation panel" : "Show navigation panel"}
-        >
-          {leftOpen ? "Hide nav" : "Show nav"}
-        </Button>
-        <Button
-          size="sm"
-          variant="ghost"
-          className="lg:inline-flex"
-          onClick={onToggleRight}
-          aria-pressed={rightOpen}
-          aria-label={rightOpen ? "Hide context panel" : "Show context panel"}
-        >
-          {rightOpen ? "Hide context" : "Show context"}
-        </Button>
-        <span className="hidden text-xs text-[var(--muted)] md:inline">
-          Shortcuts: Ctrl+Enter analyze · 1–9 / E T R V O B C · [ / ] panels
-        </span>
-      </div>
-      <Button className="min-h-11" onClick={onAnalyze} disabled={analyzing}>
-        {analyzing ? "Preparing your analysis…" : "Run analysis"}
-      </Button>
-    </div>
   );
 }

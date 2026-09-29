@@ -279,6 +279,14 @@ export const SHELL_NAV: readonly ShellNavItem[] = [
     },
   },
   {
+    id: "diagnostics",
+    href: "/diagnostics",
+    label: "Diagnostics",
+    description: "API health, environment, and runtime diagnostics",
+    section: "account",
+    icon: "settings",
+  },
+  {
     id: "settings",
     href: "/settings",
     label: "Settings",
@@ -348,13 +356,6 @@ export const AUX_ROUTES: readonly RouteMeta[] = [
     id: "health",
     path: "/health",
     title: "Health",
-    searchable: false,
-    group: "Ops",
-  },
-  {
-    id: "diagnostics",
-    path: "/diagnostics",
-    title: "Diagnostics",
     searchable: false,
     group: "Ops",
   },

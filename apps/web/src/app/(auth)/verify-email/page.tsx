@@ -60,8 +60,8 @@ function VerifyEmailForm() {
 
   return (
     <AuthCard
-      title="Verify email"
-      description="Activate your account with the verification token from registration."
+      title={done ? "Verify email" : "Check your email"}
+      description="Use the verification token from your registration email. This page confirms the token with the existing verification API."
     >
       <Stack gap={4}>
         {done ? (

@@ -1,123 +1,58 @@
 "use client";
 
 /**
- * Application header — Figma Make TopBar: title row, diagnostics, identity.
- * Auth, command palette, and theme remain production controls.
+ * Figma Make AppLayout mobile top bar — hamburger + logo, shown below md.
+ * Desktop uses the sidebar as the only application chrome.
  */
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 
-import {
-  Avatar,
-  AvatarFallback,
-  Button,
-  ThemeSwitcher,
-  UserMenu,
-} from "@/components/ds";
-import { useAuth } from "@/lib/auth/AuthProvider";
+import { Button } from "@/components/ds";
 import { useUiStore } from "@/lib/shell";
-import { Breadcrumbs } from "./Breadcrumbs";
 
 export function Topbar({
   onMenuClick,
-  onToggleCollapse,
-  sidebarCollapsed,
 }: {
   onMenuClick: () => void;
-  onToggleCollapse: () => void;
-  sidebarCollapsed: boolean;
+  /** Kept for call-site compatibility; the Figma shell has no desktop collapse control. */
+  onToggleCollapse?: () => void;
+  sidebarCollapsed?: boolean;
 }) {
-  const { user, session } = useAuth();
-  const router = useRouter();
   const setCommandPaletteOpen = useUiStore((s) => s.setCommandPaletteOpen);
-  const initials = (user?.displayName || "U").slice(0, 2).toUpperCase();
 
   return (
     <header
       aria-label="Application header"
-      className="page-header"
+      className="flex shrink-0 items-center justify-between gap-3 border-b border-[var(--border)] bg-[var(--surface)] px-4 py-2 md:hidden"
     >
-      <div className="flex min-w-0 items-center gap-2">
+      <div className="flex items-center gap-3">
         <Button
-          variant="ghost"
-          className="min-h-11 md:hidden"
+          variant="secondary"
+          className="min-h-11 min-w-11 px-3"
           onClick={onMenuClick}
           aria-label="Open navigation menu"
         >
-          Menu
-        </Button>
-        <Button
-          variant="ghost"
-          className="hidden min-h-11 md:inline-flex"
-          onClick={onToggleCollapse}
-          aria-label={sidebarCollapsed ? "Expand sidebar" : "Collapse sidebar"}
-          aria-pressed={sidebarCollapsed}
-        >
-          {sidebarCollapsed ? "Expand" : "Collapse"}
-        </Button>
-        {/* Breadcrumb trail collides with header controls below 640px; the Menu drawer carries navigation there. */}
-        <div className="hidden min-w-0 sm:block">
-          <Breadcrumbs />
-        </div>
-      </div>
-      <div className="flex shrink-0 items-center gap-2">
-        <Button
-          variant="ghost"
-          size="sm"
-          className="min-h-11"
-          onClick={() => setCommandPaletteOpen(true)}
-          aria-label="Open command palette"
-        >
-          Commands
+          <span aria-hidden>☰</span>
         </Button>
         <Link
-          href="/diagnostics"
-          className="hidden rounded-lg border border-[var(--border)] px-3.5 py-1.5 text-xs text-[var(--muted)] hover:text-[var(--fg)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] sm:inline-flex"
+          href="/dashboard"
+          className="flex min-h-11 items-center gap-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
         >
-          Diagnostics
+          <span className="dsp-logo-mark" aria-hidden />
+          <span className="font-[family-name:var(--font-display)] text-base text-[var(--fg)]">
+            DSP
+          </span>
         </Link>
-        <ThemeSwitcher />
-        {session && user ? (
-          <UserMenu
-            name={user.displayName}
-            email={user.email || undefined}
-            avatar={
-              <Avatar className="size-7">
-                <AvatarFallback className="text-[10px]">
-                  {initials}
-                </AvatarFallback>
-              </Avatar>
-            }
-            items={[
-              {
-                id: "profile",
-                label: "Financial Profile",
-                onSelect: () => router.push("/profile"),
-              },
-              {
-                id: "settings",
-                label: "Settings",
-                onSelect: () => router.push("/settings"),
-              },
-              {
-                id: "logout",
-                label: "Logout",
-                destructive: true,
-                onSelect: () => {
-                  router.push("/logout");
-                },
-              },
-            ]}
-          />
-        ) : (
-          <Link href="/login">
-            <Button size="sm" variant="secondary">
-              Sign in
-            </Button>
-          </Link>
-        )}
       </div>
+      <Button
+        variant="ghost"
+        size="sm"
+        className="min-h-11"
+        onClick={() => setCommandPaletteOpen(true)}
+        aria-label="Open command palette"
+      >
+        Commands
+      </Button>
     </header>
   );
 }

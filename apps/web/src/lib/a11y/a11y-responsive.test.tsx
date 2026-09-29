@@ -72,10 +72,6 @@ vi.mock("@/components/layout/ShellCommandPalette", () => ({
   ShellCommandPalette: () => null,
 }));
 
-vi.mock("@/components/layout/StatusBar", () => ({
-  StatusBar: () => <footer aria-label="Status">Status</footer>,
-}));
-
 function wrap(ui: ReactElement) {
   return render(<ThemeProvider>{ui}</ThemeProvider>);
 }

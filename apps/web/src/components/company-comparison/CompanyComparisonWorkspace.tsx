@@ -514,8 +514,8 @@ export function CompanyComparisonWorkspace() {
       <header className="sticky top-0 z-10 space-y-3 border-b border-[var(--border)] bg-[var(--surface)]/95 p-3 backdrop-blur supports-[backdrop-filter]:bg-[var(--surface)]/80 md:p-4">
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div>
-            <h2 className="text-lg font-semibold text-[var(--fg)]">
-              Institutional Company Comparison
+            <h2 className="font-[family-name:var(--font-display)] text-lg font-medium text-[var(--fg)]">
+              Compare
             </h2>
             <p className="mt-1 max-w-3xl text-xs text-[var(--muted)]">
               {WORKSPACE_DISCLAIMER}
@@ -558,18 +558,6 @@ export function CompanyComparisonWorkspace() {
             </Button>
             <Button size="sm" variant="secondary" onClick={swapSymbols}>
               Swap first two
-            </Button>
-            <Button
-              size="sm"
-              variant="ghost"
-              onClick={() => {
-                const featured = COMPANY_CATALOGUE.filter((c) => c.featured)
-                  .slice(0, 3)
-                  .map((c) => c.ticker);
-                setDraftInput(featured.join(", "));
-              }}
-            >
-              Sample set
             </Button>
           </div>
         </div>

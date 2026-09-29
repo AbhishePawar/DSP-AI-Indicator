@@ -24,8 +24,7 @@ granularity they need:
   only care about "did the whole pipeline succeed" can catch a single,
   predictable exception type at the top level.
 
-``ProviderRequestError`` was added in Sprint 2.4 alongside the first
-concrete adapter (Yahoo Finance). It is a sibling of
+``ProviderRequestError`` is a sibling of
 ``NormalizationError``, not a subclass: ``NormalizationError`` means
 "a response was received but its data is bad"; ``ProviderRequestError``
 means "no usable response was received at all" (a network error, a

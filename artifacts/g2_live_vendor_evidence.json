@@ -1,5 +1,5 @@
 {
-  "commit": "bdf4f1ed6ea4bd72b11224a026694e14f6efe6f8",
+  "commit": "d6bdcf378d60df1ecdc4779726a4bc5c0be15bdb",
   "credential_presence": {
     "DSP_FINANCIAL_STATEMENT_API_KEY": "ABSENT",
     "DSP_FINANCIAL_STATEMENT_BASE_URL": "ABSENT",
@@ -8,9 +8,9 @@
     "DSP_MARKET_QUOTE_API_KEY": "ABSENT",
     "DSP_MARKET_QUOTE_BASE_URL": "ABSENT"
   },
-  "error": "G2 live authenticated vendor evidence requires EITHER (A) DSP_FMP_API_KEY or DSP_INVESTMENT_FMP_API_KEY (single-key Financial Modeling Prep free developer tier), OR (B) all four ConfiguredHttp secrets: DSP_MARKET_QUOTE_API_KEY, DSP_MARKET_QUOTE_BASE_URL, DSP_FINANCIAL_STATEMENT_API_KEY, DSP_FINANCIAL_STATEMENT_BASE_URL. Inject via GitHub Environment 'live-data-evidence' (workflow_dispatch) or a secure local runtime - never commit.",
+  "error": "G2 does not accept FMP, Upstox, or other commercial investment data providers. Official/evidence-backed DSP data is authoritative.",
   "evidence_class": "credentials_unavailable",
-  "finished_at": "2026-09-10T19:32:29.910006+00:00",
+  "finished_at": "2026-09-26T10:50:33.667153+00:00",
   "g2_status": "BLOCKED",
   "gate": "G2",
   "memory_flags_enabled": [],
@@ -22,7 +22,7 @@
     "statement_provider_id": null,
     "vendor": null
   },
-  "reason": "G2 live authenticated vendor evidence requires EITHER (A) DSP_FMP_API_KEY or DSP_INVESTMENT_FMP_API_KEY (single-key Financial Modeling Prep free developer tier), OR (B) all four ConfiguredHttp secrets: DSP_MARKET_QUOTE_API_KEY, DSP_MARKET_QUOTE_BASE_URL, DSP_FINANCIAL_STATEMENT_API_KEY, DSP_FINANCIAL_STATEMENT_BASE_URL. Inject via GitHub Environment 'live-data-evidence' (workflow_dispatch) or a secure local runtime - never commit.",
+  "reason": "G2 does not accept FMP, Upstox, or other commercial investment data providers. Official/evidence-backed DSP data is authoritative.",
   "release_identity": {
     "channel": "rc",
     "decision": "RELEASE_CANDIDATE",
@@ -31,7 +31,6 @@
     "product_version": "2.0.0-rc.1"
   },
   "required_secrets": [
-    "DSP_FMP_API_KEY (preferred single-key FMP route)",
     "DSP_MARKET_QUOTE_API_KEY",
     "DSP_MARKET_QUOTE_BASE_URL",
     "DSP_FINANCIAL_STATEMENT_API_KEY",
@@ -44,9 +43,9 @@
     "workflow_dispatch protected job",
     "organization/repository Actions secrets (names only above)",
     "production secret manager \u2192 runtime env (never source tree)",
-    "FMP free developer signup: https://site.financialmodelingprep.com/developer/docs"
+    "Commercial FMP/Upstox keys are rejected and never injected"
   ],
-  "started_at": "2026-09-10T19:32:29.909963+00:00",
+  "started_at": "2026-09-26T10:50:33.667114+00:00",
   "steps": {
     "gate": {
       "ready": false,

@@ -40,10 +40,7 @@ jobs:
       DSP_INFRA_OFFLINE: "0"
       PYTHONUNBUFFERED: "1"
       DSP_G2_TICKER: ${{ inputs.ticker || 'AAPL' }}
-      # Preferred single-key FMP route (Environment ``live-data-evidence``).
-      DSP_FMP_API_KEY: ${{ secrets.DSP_FMP_API_KEY }}
-      DSP_INVESTMENT_FMP_API_KEY: ${{ secrets.DSP_INVESTMENT_FMP_API_KEY }}
-      # Alternative ConfiguredHttp route.
+      # FMP/Upstox secrets are never injected. Official evidence is authoritative.
       DSP_MARKET_QUOTE_API_KEY: ${{ secrets.DSP_MARKET_QUOTE_API_KEY }}
       DSP_MARKET_QUOTE_BASE_URL: ${{ secrets.DSP_MARKET_QUOTE_BASE_URL }}
       DSP_FINANCIAL_STATEMENT_API_KEY: ${{ secrets.DSP_FINANCIAL_STATEMENT_API_KEY }}
@@ -134,7 +131,7 @@ jobs:
             echo "| Commit | \`${{ github.sha }}\` |"
             echo "| Ticker | \`${{ env.DSP_G2_TICKER }}\` |"
             echo "| Environment | \`live-data-evidence\` |"
-            echo "| Preferred secret | \`DSP_FMP_API_KEY\` |"
+            echo "| Commercial FMP/Upstox | rejected |"
             echo "| Hard-fail | true |"
             echo ""
             if [[ -f artifacts/g2_live_vendor_evidence.json ]]; then

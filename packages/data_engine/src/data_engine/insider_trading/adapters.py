@@ -9,12 +9,9 @@ Every vendor-specific field name lives in this file. Adapters:
   recent Form 4 filings from the submissions API, then fetches and
   parses each filing's XML to extract reporting-owner name/role and
   each non-derivative transaction (code, shares, price, date).
-- :class:`FinancialModelingPrepInsiderTradingAdapter` — FMP
   ``insider-trading`` endpoint (already-normalized Form 4 data).
 - :class:`NseInsiderTradingAdapter` / :class:`BseInsiderTradingAdapter`
   — India exchange insider-trading (SAST/PIT) disclosures.
-- :class:`YahooFinanceInsiderTradingAdapter` — Yahoo's
-  ``insiderTransactions`` quoteSummary module.
 """
 
 from __future__ import annotations
@@ -24,11 +21,10 @@ import urllib.error
 import urllib.request
 import xml.etree.ElementTree as ET
 from dataclasses import dataclass, field
-from datetime import UTC, date, datetime
+from datetime import date, datetime
 from threading import Lock
 from typing import Callable, Mapping
 
-from contracts.domain.instrument import Instrument
 from data_engine.connector_framework.http import JsonHttpClient, UrllibJsonHttpClient
 from data_engine.connector_framework.models import (
     ConnectorCompanyIdentity,
@@ -45,12 +41,10 @@ from data_engine.insider_trading.validation import validate_authenticated_inside
 
 __all__ = [
     "BseInsiderTradingAdapter",
-    "FinancialModelingPrepInsiderTradingAdapter",
     "InMemoryInsiderTradingAdapter",
     "NseInsiderTradingAdapter",
     "NullInsiderTradingAdapter",
     "SecEdgarInsiderTradingAdapter",
-    "YahooFinanceInsiderTradingAdapter",
     "build_default_insider_trading_registry_from_env",
     "build_insider_activity_from_mapping",
 ]
@@ -344,95 +338,6 @@ class SecEdgarInsiderTradingAdapter(InsiderTradingProviderPort):
         )
 
 
-@dataclass
-class FinancialModelingPrepInsiderTradingAdapter(InsiderTradingProviderPort):
-    api_key: str
-    base_url: str = "https://financialmodelingprep.com/api/v4/insider-trading"
-    timeout_seconds: float = 15.0
-    http_client: JsonHttpClient | None = None
-    _provider_id: str = "fmp_insider_trading"
-
-    @property
-    def provider_id(self) -> str:
-        return self._provider_id
-
-    def _client(self) -> JsonHttpClient:
-        return self.http_client or UrllibJsonHttpClient(timeout_seconds=self.timeout_seconds)
-
-    def get_insider_activity(
-        self, query: InsiderTradingQuery
-    ) -> AuthenticatedInsiderActivity | None:
-        if not self.api_key.strip():
-            raise ProviderRequestError("financial modeling prep insider trading adapter requires api_key")
-        symbol = query.instrument.symbol.strip().upper()
-        payload = self._client().get_json(
-            self.base_url, params={"symbol": symbol, "page": "0", "apikey": self.api_key}
-        )
-        if not isinstance(payload, list) or not payload:
-            return None
-        transactions: list[InsiderTransaction] = []
-        for i, item in enumerate(payload[: max(1, min(query.limit, 200))]):
-            if not isinstance(item, Mapping):
-                continue
-            name = str(item.get("reportingName") or "").strip()
-            date_raw = str(item.get("transactionDate") or "").strip()
-            if not name or not date_raw:
-                continue
-            try:
-                txn_date = date.fromisoformat(date_raw[:10])
-            except ValueError:
-                continue
-            transaction_type_raw = str(item.get("transactionType") or "").strip()
-            code = transaction_type_raw.split("-", 1)[0].strip().upper()
-            txn_type = _SEC_TRANSACTION_CODE_MAP.get(code, "other")
-            shares_field = ConnectorField.of(item.get("securitiesTransacted"))
-            price_field = ConnectorField.of(item.get("price"))
-            value_field = ConnectorField.missing()
-            if shares_field.available and price_field.available:
-                value_field = ConnectorField.of(float(shares_field.value) * float(price_field.value))
-            filed_raw = str(item.get("filingDate") or "").strip()
-            filed_at = None
-            if filed_raw:
-                try:
-                    filed_at = date.fromisoformat(filed_raw[:10])
-                except ValueError:
-                    filed_at = None
-            transactions.append(
-                InsiderTransaction(
-                    transaction_id=f"fmp-{symbol}-{i}-{txn_date.isoformat()}",
-                    insider_name=name,
-                    role=str(item.get("typeOfOwner")) if item.get("typeOfOwner") else None,
-                    transaction_type=txn_type,
-                    shares=shares_field,
-                    price=price_field,
-                    value=value_field,
-                    transaction_date=txn_date,
-                    filed_at=filed_at,
-                    source="Financial Modeling Prep",
-                    metadata={"raw_transaction_type": transaction_type_raw},
-                )
-            )
-        transactions = _apply_query_filters(transactions, query)
-        if not transactions:
-            return None
-        provenance = ConnectorProvenance(
-            provider_id=self.provider_id,
-            provider_name="Financial Modeling Prep",
-            source_type="licensed_vendor",
-            retrieved_at=utc_now(),
-            auth_mode="api_key",
-            metadata={"base_url": self.base_url},
-        )
-        return build_insider_activity_from_mapping(symbol=symbol, transactions=transactions, provenance=provenance)
-
-    def health(self) -> ProviderHealth:
-        ok = bool(self.api_key.strip())
-        return ProviderHealth(
-            provider_id=self.provider_id, healthy=ok, authenticated=ok,
-            detail="configured" if ok else "missing api_key",
-        )
-
-
 def _parse_indian_date(value: str) -> date | None:
     value = value.strip()
     for fmt in ("%d-%b-%Y %H:%M:%S", "%d-%b-%Y", "%Y-%m-%dT%H:%M:%S", "%Y-%m-%d"):
@@ -612,112 +517,6 @@ class BseInsiderTradingAdapter(InsiderTradingProviderPort):
         )
 
 
-@dataclass
-class YahooFinanceInsiderTradingAdapter(InsiderTradingProviderPort):
-    """Yahoo Finance ``insiderTransactions`` quoteSummary module."""
-
-    enabled: bool = False
-    base_url: str = "https://query1.finance.yahoo.com/v10/finance/quoteSummary"
-    timeout_seconds: float = 10.0
-    http_client: JsonHttpClient | None = None
-    _provider_id: str = "yahoo_finance_insider_trading"
-
-    @property
-    def provider_id(self) -> str:
-        return self._provider_id
-
-    def _client(self) -> JsonHttpClient:
-        return self.http_client or UrllibJsonHttpClient(timeout_seconds=self.timeout_seconds)
-
-    def get_insider_activity(
-        self, query: InsiderTradingQuery
-    ) -> AuthenticatedInsiderActivity | None:
-        if not self.enabled:
-            raise ProviderRequestError("yahoo finance insider trading adapter is not enabled")
-        symbol = query.instrument.symbol.strip().upper()
-        payload = self._client().get_json(
-            f"{self.base_url}/{symbol}", params={"modules": "insiderTransactions"}
-        )
-        if not isinstance(payload, Mapping):
-            return None
-        result_list = (payload.get("quoteSummary") or {}).get("result") if isinstance(
-            payload.get("quoteSummary"), Mapping
-        ) else None
-        if not isinstance(result_list, list) or not result_list:
-            return None
-        insider_module = result_list[0].get("insiderTransactions") if isinstance(result_list[0], Mapping) else None
-        if not isinstance(insider_module, Mapping):
-            return None
-        raw_transactions = insider_module.get("transactions")
-        if not isinstance(raw_transactions, list) or not raw_transactions:
-            return None
-
-        transactions: list[InsiderTransaction] = []
-        for i, item in enumerate(raw_transactions):
-            if not isinstance(item, Mapping):
-                continue
-            name = str(item.get("filerName") or "").strip()
-            start_date_raw = item.get("startDate")
-            ts = start_date_raw.get("raw") if isinstance(start_date_raw, Mapping) else start_date_raw
-            if not name or ts is None:
-                continue
-            try:
-                txn_date = datetime.fromtimestamp(float(ts), tz=UTC).date()
-            except (TypeError, ValueError):
-                continue
-            text = str(item.get("transactionText") or "").lower()
-            if "sale" in text or "sell" in text:
-                txn_type = "sell"
-            elif "purchase" in text or "buy" in text:
-                txn_type = "buy"
-            elif "award" in text or "grant" in text:
-                txn_type = "grant"
-            elif "gift" in text:
-                txn_type = "gift"
-            elif "exercise" in text:
-                txn_type = "exercise"
-            else:
-                txn_type = "other"
-            shares_raw = item.get("shares")
-            shares_val = shares_raw.get("raw") if isinstance(shares_raw, Mapping) else shares_raw
-            value_raw = item.get("value")
-            value_val = value_raw.get("raw") if isinstance(value_raw, Mapping) else value_raw
-            transactions.append(
-                InsiderTransaction(
-                    transaction_id=f"yahoo-{symbol}-{i}-{txn_date.isoformat()}",
-                    insider_name=name,
-                    role=str(item.get("filerRelation")) if item.get("filerRelation") else None,
-                    transaction_type=txn_type,
-                    shares=ConnectorField.of(shares_val),
-                    price=ConnectorField.missing(),
-                    value=ConnectorField.of(value_val),
-                    transaction_date=txn_date,
-                    source="Yahoo Finance",
-                    metadata={"transaction_text": str(item.get("transactionText") or "")},
-                )
-            )
-        transactions = _apply_query_filters(transactions, query)
-        if not transactions:
-            return None
-        provenance = ConnectorProvenance(
-            provider_id=self.provider_id,
-            provider_name="Yahoo Finance",
-            source_type="public_endpoint",
-            retrieved_at=utc_now(),
-            auth_mode="none",
-            metadata={"base_url": self.base_url},
-        )
-        return build_insider_activity_from_mapping(symbol=symbol, transactions=transactions, provenance=provenance)
-
-    def health(self) -> ProviderHealth:
-        return ProviderHealth(
-            provider_id=self.provider_id,
-            healthy=self.enabled,
-            authenticated=False,
-            detail="enabled" if self.enabled else "disabled (set DSP_INSIDER_YAHOO_ENABLED=1)",
-        )
-
-
 def build_default_insider_trading_registry_from_env() -> PriorityProviderRegistry[InsiderTradingProviderPort]:
     from data_engine.connector_framework.production_profile import (
         finalize_provider_registry,
@@ -734,14 +533,6 @@ def build_default_insider_trading_registry_from_env() -> PriorityProviderRegistr
             priority=10,
         )
 
-    fmp_key = os.environ.get("DSP_INSIDER_FMP_API_KEY", "").strip()
-    if fmp_key:
-        registry.register(
-            FinancialModelingPrepInsiderTradingAdapter(api_key=fmp_key),
-            provider_id="fmp_insider_trading",
-            priority=20,
-        )
-
     if os.environ.get("DSP_INSIDER_NSE_ENABLED", "").lower() in {"1", "true", "yes"}:
         registry.register(
             NseInsiderTradingAdapter(enabled=True), provider_id="nse_insider_trading", priority=30
@@ -750,13 +541,6 @@ def build_default_insider_trading_registry_from_env() -> PriorityProviderRegistr
     if os.environ.get("DSP_INSIDER_BSE_ENABLED", "").lower() in {"1", "true", "yes"}:
         registry.register(
             BseInsiderTradingAdapter(enabled=True), provider_id="bse_insider_trading", priority=40
-        )
-
-    if os.environ.get("DSP_INSIDER_YAHOO_ENABLED", "").lower() in {"1", "true", "yes"}:
-        registry.register(
-            YahooFinanceInsiderTradingAdapter(enabled=True),
-            provider_id="yahoo_finance_insider_trading",
-            priority=50,
         )
 
     if memory_adapter_allowed("DSP_INSIDER_MEMORY", connector="insider_trading"):

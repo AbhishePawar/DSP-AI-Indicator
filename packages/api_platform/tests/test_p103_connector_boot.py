@@ -61,12 +61,17 @@ def test_create_app_production_boots_without_investment_connectors(
     assert client.get("/api/v1/auth/session").status_code == 200
 
 
-def test_production_investment_factory_still_fails_closed(
+def test_production_investment_factory_is_unavailable_not_fmp(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    """P1-03 still refuses Null/memory selection when building connectors."""
+    """Official path: no commercial quote adapter is selected."""
+    from data_engine.market_quote.adapters import NullAuthenticatedQuoteAdapter
+
     _clear_investment_env(monkeypatch)
-    with pytest.raises(ConnectorConfigurationError, match="P1-03"):
+    adapter = build_default_quote_adapter_from_env()
+    assert isinstance(adapter, NullAuthenticatedQuoteAdapter)
+    monkeypatch.setenv("DSP_INVESTMENT_DATA_PROVIDER", "fmp")
+    with pytest.raises(ConnectorConfigurationError, match="not permitted"):
         build_default_quote_adapter_from_env()
 
 

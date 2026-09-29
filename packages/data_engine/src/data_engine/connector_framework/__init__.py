@@ -35,8 +35,7 @@ shared once rather than duplicated six times:
   existing authenticated domain already imports them from — this
   framework does not fork a second copy of that logic.
 - :class:`JsonHttpClient` / :class:`UrllibJsonHttpClient` — a generic,
-  dependency-free JSON-over-HTTP client for vendor adapters, mirroring
-  ``adapters/yahoo_finance/http_client.py``.
+  dependency-free JSON-over-HTTP client for official adapters and FRED.
 
 No business logic lives here: no scoring, no valuation, no vendor field
 names. Vendor-specific mapping stays entirely inside each domain's own

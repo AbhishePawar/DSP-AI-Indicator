@@ -24,6 +24,11 @@ def _now() -> str:
     return datetime.now(tz=UTC).isoformat()
 
 
+# Figma Coupons & Offers filter chips / discount rendering.
+COUPON_CATEGORIES = ("premium", "research", "analysis", "referral")
+COUPON_DISCOUNT_TYPES = ("percent", "flat", "free")
+
+
 def _id(prefix: str) -> str:
     return f"{prefix}-{uuid4().hex[:12]}"
 
@@ -118,11 +123,39 @@ class SaasOverlayStore:
                 "code": code,
                 "created_at": _now(),
             }
+            category = str(payload.get("category") or row.get("category") or "premium").lower()
+            if category not in COUPON_CATEGORIES:
+                raise ValueError("category must be one of " + ", ".join(COUPON_CATEGORIES))
+            discount_type = str(
+                payload.get("discount_type") or row.get("discount_type") or "percent"
+            ).lower()
+            if discount_type not in COUPON_DISCOUNT_TYPES:
+                raise ValueError(
+                    "discount_type must be one of " + ", ".join(COUPON_DISCOUNT_TYPES)
+                )
+            applicable_to = payload.get("applicable_to", row.get("applicable_to") or [])
+            if not isinstance(applicable_to, list):
+                raise ValueError("applicable_to must be a list")
             row.update(
                 {
                     "discount_pct": payload.get("discount_pct", row.get("discount_pct")),
                     "active": bool(payload.get("active", row.get("active", True))),
                     "expires_at": payload.get("expires_at", row.get("expires_at")),
+                    # Figma Coupons & Offers presentation metadata (optional).
+                    "title": (str(payload.get("title")).strip()[:120] or None)
+                    if payload.get("title") is not None
+                    else row.get("title"),
+                    "description": (str(payload.get("description")).strip()[:600] or None)
+                    if payload.get("description") is not None
+                    else row.get("description"),
+                    "category": category,
+                    "discount_type": discount_type,
+                    "discount_label": (str(payload.get("discount_label")).strip()[:32] or None)
+                    if payload.get("discount_label") is not None
+                    else row.get("discount_label"),
+                    "applicable_to": [str(a).strip()[:80] for a in applicable_to if str(a).strip()][:12],
+                    "min_spend": payload.get("min_spend", row.get("min_spend")),
+                    "featured": bool(payload.get("featured", row.get("featured", False))),
                     "updated_at": _now(),
                     "note": "Coupon metadata only — no payment applied without billing provider",
                 }
@@ -134,6 +167,21 @@ class SaasOverlayStore:
         with self._lock:
             row = self._coupons.get(str(code or "").strip().upper())
             return deepcopy(row) if row else None
+
+    def list_coupons(self, *, active_only: bool = True) -> list[dict[str, Any]]:
+        """Figma Coupons & Offers — active coupon metadata only (no payment)."""
+        with self._lock:
+            rows = [deepcopy(r) for r in self._coupons.values()]
+        if active_only:
+            now = _now()
+            rows = [
+                r
+                for r in rows
+                if r.get("active")
+                and (not r.get("expires_at") or str(r["expires_at"]) > now)
+            ]
+        rows.sort(key=lambda r: str(r.get("code") or ""))
+        return rows
 
     def issue_license_key(self, payload: dict[str, Any]) -> dict[str, Any]:
         with self._lock:

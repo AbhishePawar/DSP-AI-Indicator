@@ -63,12 +63,12 @@ def test_gate_ready_only_with_full_http_credentials() -> None:
     assert gate["evidence_class"] == "credentials_present_pending_live"
 
 
-def test_gate_ready_with_single_fmp_key() -> None:
+def test_gate_rejects_single_fmp_key() -> None:
     mod = _load_drill()
     gate = mod.classify_gate(environ={"DSP_FMP_API_KEY": "k"})
-    assert gate["ready"] is True
-    assert gate["route"] == "fmp"
-    assert gate["evidence_class"] == "credentials_present_pending_live"
+    assert gate["ready"] is False
+    assert gate["route"] != "fmp"
+    assert gate["evidence_class"] == "commercial_provider_rejected"
     assert gate["credential_presence"]["DSP_FMP_API_KEY"] == "PRESENT"
 
 
@@ -117,7 +117,8 @@ def test_workflow_scaffolding_exists() -> None:
     assert "environment: live-data-evidence" in text
     assert "workflow_dispatch" in text
     assert "workflow_call:" in text
-    assert "DSP_FMP_API_KEY" in text
+    assert "DSP_FMP_API_KEY: ${{ secrets.DSP_FMP_API_KEY }}" not in text
+    assert "rejected" in text.lower() or "Commercial FMP" in text
     assert "DSP_MARKET_QUOTE_API_KEY" in text
     assert "g2_live_vendor_evidence_drill.py" in text
     assert "g2_provider_configuration_diagnostic.py" in text

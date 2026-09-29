@@ -17,7 +17,9 @@ class TestLoaders:
     def test_defaults_when_empty(self) -> None:
         config = load_platform_config({})
         assert config.environment is Environment.DEVELOPMENT
-        assert config.providers.enable_market is True
+        assert config.providers.enable_market is False
+        assert config.providers.enable_fundamentals is False
+        assert config.providers.market_provider_id == "unavailable"
         assert config.secrets.fred_api_key is None
 
     def test_loads_environment_and_secrets(self) -> None:

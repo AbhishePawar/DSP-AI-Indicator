@@ -13,7 +13,7 @@ export const FLAGSHIP_DYNAMIC_ROUTES = [
   "src/app/research/page.tsx",
   "src/app/research/institutional/page.tsx",
   "src/app/research/institutional/dashboard/page.tsx",
-  "src/app/settings/page.tsx",
+  "src/app/control-center/page.tsx",
 ] as const;
 
 /** Critical analysis route — static workspace import + Suspense skeleton. */

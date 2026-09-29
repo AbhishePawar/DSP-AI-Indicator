@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 from data_engine.transcripts.adapters import (
-    FinancialModelingPrepTranscriptAdapter,
     InMemoryTranscriptAdapter,
     NullTranscriptAdapter,
     build_default_transcript_registry_from_env,
@@ -22,7 +21,6 @@ from data_engine.transcripts.validation import validate_authenticated_transcript
 __all__ = [
     "AuthenticatedTranscripts",
     "EarningsCallTranscript",
-    "FinancialModelingPrepTranscriptAdapter",
     "InMemoryTranscriptAdapter",
     "NullTranscriptAdapter",
     "TranscriptProviderPort",

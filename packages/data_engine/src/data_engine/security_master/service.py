@@ -33,7 +33,7 @@ __all__ = [
     "normalize_security_query",
 ]
 
-_YAHOO_STYLE_SUFFIX = re.compile(r"\.(NS|BO)$", re.IGNORECASE)
+_EXCHANGE_TICKER_SUFFIX = re.compile(r"\.(NS|BO)$", re.IGNORECASE)
 _VENDOR_PREFIX = re.compile(
     r"^(NSE_EQ|BSE_EQ|NSE_FO|BSE_FO|NSE_INDEX|BSE_INDEX|MCX_FO|NSE_COM)\|",
     re.IGNORECASE,
@@ -53,7 +53,7 @@ def is_vendor_shaped_identity(raw: str) -> bool:
 def normalize_security_query(raw: str) -> str:
     """Harmless formatting only — does not invent an exchange."""
     text = str(raw or "").strip()
-    text = _YAHOO_STYLE_SUFFIX.sub("", text)
+    text = _EXCHANGE_TICKER_SUFFIX.sub("", text)
     return " ".join(text.split())
 
 

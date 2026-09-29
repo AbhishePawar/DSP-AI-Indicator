@@ -4,7 +4,6 @@ from __future__ import annotations
 
 from data_engine.filings.adapters import (
     BseFilingsAdapter,
-    FinancialModelingPrepFilingsAdapter,
     InMemoryFilingsAdapter,
     NseFilingsAdapter,
     NullFilingsAdapter,
@@ -33,7 +32,6 @@ __all__ = [
     "FilingsQuery",
     "FilingsService",
     "FilingsServiceMetrics",
-    "FinancialModelingPrepFilingsAdapter",
     "InMemoryFilingsAdapter",
     "NseFilingsAdapter",
     "NullFilingsAdapter",

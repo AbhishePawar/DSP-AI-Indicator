@@ -4,12 +4,10 @@ from __future__ import annotations
 
 from data_engine.ownership.adapters import (
     BseOwnershipAdapter,
-    FinancialModelingPrepOwnershipAdapter,
     InMemoryOwnershipAdapter,
     NseOwnershipAdapter,
     NullOwnershipAdapter,
     ScreenerOwnershipAdapter,
-    YahooFinanceOwnershipAdapter,
     build_default_ownership_registry_from_env,
     build_ownership_bundle_from_mapping,
 )
@@ -31,7 +29,6 @@ __all__ = [
     "OWNERSHIP_HOLDER_TYPES",
     "AuthenticatedOwnership",
     "BseOwnershipAdapter",
-    "FinancialModelingPrepOwnershipAdapter",
     "InMemoryOwnershipAdapter",
     "NseOwnershipAdapter",
     "NullOwnershipAdapter",
@@ -42,7 +39,6 @@ __all__ = [
     "OwnershipServiceMetrics",
     "OwnershipStake",
     "ScreenerOwnershipAdapter",
-    "YahooFinanceOwnershipAdapter",
     "build_default_ownership_registry_from_env",
     "build_ownership_bundle_from_mapping",
     "validate_authenticated_ownership",

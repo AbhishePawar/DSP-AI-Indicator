@@ -67,7 +67,16 @@ export function PersistenceProvider({ children }: { children: ReactNode }) {
   const [lastSyncedAt, setLastSyncedAt] = useState<string | null>(null);
   const [lastError, setLastError] = useState<string | null>(null);
   const [isLoaded, setIsLoaded] = useState(false);
-  const [bundle, setBundle] = useState<UserDataBundle | null>(null);
+  const [bundle, setBundleState] = useState<UserDataBundle | null>(null);
+  // Mirror of `bundle` readable from stable callbacks. Keeping `scheduleSave`
+  // independent of the `bundle` identity breaks the effect → persist →
+  // setBundle → new callback → effect cycle that otherwise loops forever
+  // ("Maximum update depth exceeded") in consumers such as PortfolioProvider.
+  const bundleRef = useRef<UserDataBundle | null>(null);
+  const setBundle = useCallback((next: UserDataBundle | null) => {
+    bundleRef.current = next;
+    setBundleState(next);
+  }, []);
   const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const preferencesApplied = useRef(false);
 
@@ -93,18 +102,21 @@ export function PersistenceProvider({ children }: { children: ReactNode }) {
         logger.error(message, { subject });
       }
     },
-    [subject],
+    [subject, setBundle],
   );
 
   const scheduleSave = useCallback(
     (updater: (current: UserDataBundle) => UserDataBundle) => {
-      if (!bundle) return;
-      const next = updater(bundle);
+      const current = bundleRef.current;
+      if (!current) return;
+      const next = updater(current);
+      // Updaters return `current` for no-op writes — nothing to persist.
+      if (next === current) return;
       setBundle(next);
       if (saveTimer.current) clearTimeout(saveTimer.current);
       saveTimer.current = setTimeout(() => flushSave(next), SAVE_DEBOUNCE_MS);
     },
-    [bundle, flushSave],
+    [flushSave, setBundle],
   );
 
   useEffect(() => {
@@ -147,18 +159,26 @@ export function PersistenceProvider({ children }: { children: ReactNode }) {
 
   const persistPortfolio = useCallback(
     (view: PortfolioView) => {
-      if (!bundle || status !== "authenticated") return;
-      scheduleSave((current) => ({
-        ...current,
-        portfolio: userPortfolioFromView(view, current.portfolio),
-      }));
+      if (status !== "authenticated") return;
+      scheduleSave((current) => {
+        // Skip identical snapshots so hydrating the view back from the
+        // bundle never schedules a write (and never re-renders consumers).
+        const unchanged =
+          JSON.stringify(view.holdings) === JSON.stringify(current.portfolio.holdings) &&
+          JSON.stringify(view.activities) === JSON.stringify(current.portfolio.activities);
+        if (unchanged) return current;
+        return {
+          ...current,
+          portfolio: userPortfolioFromView(view, current.portfolio),
+        };
+      });
     },
-    [bundle, status, scheduleSave],
+    [status, scheduleSave],
   );
 
   const saveAnalysis = useCallback(
     (input: Omit<SavedAnalysis, "id" | "savedAt">): SavedAnalysis | null => {
-      if (!bundle || status !== "authenticated") return null;
+      if (!bundleRef.current || status !== "authenticated") return null;
       const entry: SavedAnalysis = {
         ...input,
         id: createSavedAnalysisId(),
@@ -175,18 +195,19 @@ export function PersistenceProvider({ children }: { children: ReactNode }) {
       }));
       return entry;
     },
-    [bundle, status, scheduleSave],
+    [status, scheduleSave],
   );
 
   const deleteSavedAnalysis = useCallback(
     (id: string) => {
-      if (!bundle) return;
-      scheduleSave((current) => ({
-        ...current,
-        savedAnalyses: current.savedAnalyses.filter((item) => item.id !== id),
-      }));
+      scheduleSave((current) => {
+        const savedAnalyses = current.savedAnalyses.filter((item) => item.id !== id);
+        return savedAnalyses.length === current.savedAnalyses.length
+          ? current
+          : { ...current, savedAnalyses };
+      });
     },
-    [bundle, scheduleSave],
+    [scheduleSave],
   );
 
   const reopenSavedAnalysis = useCallback(
@@ -208,19 +229,23 @@ export function PersistenceProvider({ children }: { children: ReactNode }) {
 
   const persistCopilotConversations = useCallback(
     (conversations: CopilotConversation[]) => {
-      if (!bundle || status !== "authenticated") return;
+      if (status !== "authenticated") return;
       const metadata = conversations.map(toSavedConversation);
-      scheduleSave((current) => ({
-        ...current,
-        copilotConversations: metadata,
-      }));
+      scheduleSave((current) => {
+        if (
+          JSON.stringify(metadata) === JSON.stringify(current.copilotConversations)
+        ) {
+          return current;
+        }
+        return { ...current, copilotConversations: metadata };
+      });
     },
-    [bundle, status, scheduleSave],
+    [status, scheduleSave],
   );
 
   const updatePreferences = useCallback(
     (patch: Partial<UserPreference>) => {
-      if (!bundle) return;
+      if (!bundleRef.current) return;
       scheduleSave((current) => ({
         ...current,
         preferences: { ...current.preferences, ...patch },
@@ -229,7 +254,7 @@ export function PersistenceProvider({ children }: { children: ReactNode }) {
         setMode(patch.theme as ThemeMode);
       }
     },
-    [bundle, scheduleSave, setMode],
+    [scheduleSave, setMode],
   );
 
   const syncNow = useCallback(async () => {

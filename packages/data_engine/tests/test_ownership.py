@@ -12,7 +12,6 @@ from data_engine import (
     BseOwnershipAdapter,
     ConnectorField,
     ConnectorProvenance,
-    FinancialModelingPrepOwnershipAdapter,
     InMemoryOwnershipAdapter,
     InvalidProviderDataError,
     NseOwnershipAdapter,
@@ -23,7 +22,6 @@ from data_engine import (
     OwnershipStake,
     ProviderRequestError,
     ScreenerOwnershipAdapter,
-    YahooFinanceOwnershipAdapter,
     build_default_ownership_registry_from_env,
     build_ownership_bundle_from_mapping,
 )
@@ -120,41 +118,12 @@ class TestValidation:
             )
 
 
-class TestYahooFinanceOwnershipAdapter:
-    def test_disabled_raises(self) -> None:
-        with pytest.raises(ProviderRequestError):
-            YahooFinanceOwnershipAdapter(enabled=False).get_ownership(OwnershipQuery(instrument=_instrument()))
+class TestCommercialOwnershipAdaptersAbsent:
+    def test_commercial_ownership_adapters_are_not_exported(self) -> None:
+        import data_engine
 
-    def test_maps_major_holders_breakdown(self) -> None:
-        payload = {
-            "quoteSummary": {
-                "result": [
-                    {
-                        "majorHoldersBreakdown": {
-                            "insidersPercentHeld": {"raw": 0.02},
-                            "institutionsPercentHeld": {"raw": 0.61},
-                        }
-                    }
-                ]
-            }
-        }
-        adapter = YahooFinanceOwnershipAdapter(enabled=True, http_client=_FakeJsonClient(payload))
-        bundle = adapter.get_ownership(OwnershipQuery(instrument=_instrument()))
-        assert bundle is not None
-        assert bundle.institutional_holding_percent.to_float() == pytest.approx(61.0)
-
-
-class TestFinancialModelingPrepOwnershipAdapter:
-    def test_maps_institutional_ownership(self) -> None:
-        payload = [
-            {"investorName": "Vanguard", "weight": 0.08, "sharesNumber": 1000000},
-            {"investorName": "BlackRock", "weight": 0.06, "sharesNumber": 900000},
-        ]
-        adapter = FinancialModelingPrepOwnershipAdapter(api_key="k", http_client=_FakeJsonClient(payload))
-        bundle = adapter.get_ownership(OwnershipQuery(instrument=_instrument()))
-        assert bundle is not None
-        assert len(bundle.stakes) == 2
-        assert bundle.institutional_holding_percent.to_float() == pytest.approx(14.0)
+        assert not hasattr(data_engine, "FinancialModelingPrepOwnershipAdapter")
+        assert not hasattr(data_engine, "YahooFinanceOwnershipAdapter")
 
 
 class TestNseAndBseOwnership:
@@ -214,6 +183,7 @@ class TestRegistryAndEnv:
             "DSP_OWNERSHIP_MEMORY",
         ):
             monkeypatch.delenv(key, raising=False)
+        monkeypatch.setenv("DSP_OWNERSHIP_YAHOO_ENABLED", "1")
         registry = build_default_ownership_registry_from_env()
         assert registry.ordered_ids() == ("null_ownership",)
 

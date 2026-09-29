@@ -40,7 +40,7 @@ const ACTIONS = [
     id: "research",
     hint: "Publish & export",
   },
-  { href: "/settings", label: "Settings", id: "settings", hint: "Preferences" },
+  { href: "/control-center", label: "Settings", id: "settings", hint: "Preferences" },
   { href: "/profile", label: "Profile", id: "profile", hint: "Identity" },
   {
     href: "/admin",

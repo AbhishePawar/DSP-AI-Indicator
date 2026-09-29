@@ -64,6 +64,7 @@ _FORBIDDEN_HINTS: tuple[str, ...] = (
     "eodhd.com",
     "upstox.com",
     "alphavantage.co",
+    "polygon.io",
 )
 
 

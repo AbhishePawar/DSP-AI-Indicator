@@ -1,37 +1,23 @@
 "use client";
 
 /**
- * EPIC-F009 — Settings & User Preferences landing page.
- * RC3-004 — dynamic import for workspace code-splitting.
+ * Figma Settings lives at /control-center. Keep /settings as a stable alias.
  */
 
-import dynamic from "next/dynamic";
-import { Suspense } from "react";
+import { useEffect } from "react";
+import { useRouter } from "next/navigation";
 
-import { WorkspaceSkeleton } from "@/components/settings-workspace/Primitives";
-import { PageHeader } from "@/components/layout/PageHeader";
+import { Skeleton } from "@/components/ds";
 
-const SettingsWorkspace = dynamic(
-  () =>
-    import("@/components/settings-workspace").then((m) => ({
-      default: m.SettingsWorkspace,
-    })),
-  {
-    ssr: false,
-    loading: () => <WorkspaceSkeleton />,
-  },
-);
+export default function SettingsRedirectPage() {
+  const router = useRouter();
+  useEffect(() => {
+    router.replace("/control-center");
+  }, [router]);
 
-export default function SettingsPage() {
   return (
-    <div className="space-y-4">
-      <PageHeader
-        title="Settings & Preferences"
-        description="Manage UI preferences locally and view account information from existing auth APIs. No new backend behaviour."
-      />
-      <Suspense fallback={<WorkspaceSkeleton />}>
-        <SettingsWorkspace />
-      </Suspense>
+    <div className="space-y-4 py-6" role="status" aria-label="Opening settings">
+      <Skeleton className="h-20 w-full" />
     </div>
   );
 }

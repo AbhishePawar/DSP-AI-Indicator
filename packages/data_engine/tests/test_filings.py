@@ -15,7 +15,6 @@ from data_engine import (
     FilingsProviderRegistry,
     FilingsQuery,
     FilingsService,
-    FinancialModelingPrepFilingsAdapter,
     InMemoryFilingsAdapter,
     InvalidProviderDataError,
     NseFilingsAdapter,
@@ -147,24 +146,11 @@ class TestSecEdgarFilingsAdapter:
         assert adapter.get_filings(FilingsQuery(instrument=_instrument("ZZZZ"))) is None
 
 
-class TestFinancialModelingPrepFilingsAdapter:
-    def test_maps_array_payload(self) -> None:
-        client = _FakeJsonClient(
-            [
-                {
-                    "symbol": "AAPL",
-                    "fillingDate": "2023-11-03 00:00:00",
-                    "type": "10-K",
-                    "link": "https://sec.gov/link",
-                    "finalLink": "https://sec.gov/final",
-                    "cik": "320193",
-                }
-            ]
-        )
-        adapter = FinancialModelingPrepFilingsAdapter(api_key="k", http_client=client)
-        bundle = adapter.get_filings(FilingsQuery(instrument=_instrument()))
-        assert bundle is not None
-        assert bundle.filings[0].url == "https://sec.gov/final"
+class TestFinancialModelingPrepFilingsAdapterAbsent:
+    def test_fmp_filings_adapter_is_not_exported(self) -> None:
+        import data_engine
+
+        assert not hasattr(data_engine, "FinancialModelingPrepFilingsAdapter")
 
 
 class TestNseAndBseFilings:
@@ -225,8 +211,9 @@ class TestRegistryAndEnv:
     def test_registry_ordering(self) -> None:
         registry = FilingsProviderRegistry()
         registry.register(NullFilingsAdapter(), provider_id="null_filings", priority=1000)
-        registry.register(FinancialModelingPrepFilingsAdapter(api_key="k"), provider_id="fmp_filings", priority=10)
-        assert registry.ordered_ids() == ("fmp_filings", "null_filings")
+        registry.register(SecEdgarFilingsAdapter(user_agent="Test test@example.com"), provider_id="sec_edgar_filings", priority=10)
+        assert registry.ordered_ids() == ("sec_edgar_filings", "null_filings")
+        assert "fmp_filings" not in registry.ordered_ids()
 
     def test_default_registry_falls_back_to_null(self, monkeypatch: pytest.MonkeyPatch) -> None:
         for key in (

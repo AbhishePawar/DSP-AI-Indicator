@@ -17,6 +17,7 @@ from pydantic import BaseModel, ConfigDict, Field
 from api_platform.api.dependencies import (
     ApiState,
     get_api_state,
+    require_admin_access,
     require_authenticated_actor,
 )
 from dsp_platform.saas_platform import handle_razorpay_webhook
@@ -442,10 +443,20 @@ def feature_limits(
 def upsert_coupon(
     body: SaasPayload,
     state: ApiState = Depends(get_api_state),
-    auth: dict[str, Any] = Depends(require_authenticated_actor),
+    auth: dict[str, Any] = Depends(require_admin_access),
 ) -> JSONResponse:
+    """Create/update platform coupon metadata — administrators only."""
     payload = _with_actor(auth, body.model_dump(exclude_none=True))
     return _dispatch(state, "upsert_coupon", payload)
+
+
+@router.get("/saas/coupons")
+def list_coupons(
+    state: ApiState = Depends(get_api_state),
+    auth: dict[str, Any] = Depends(require_authenticated_actor),
+) -> JSONResponse:
+    """Figma Coupons & Offers — active coupon metadata for signed-in users."""
+    return _dispatch(state, "list_coupons", _with_actor(auth, {"active_only": True}))
 
 
 @router.post("/saas/checkout")

@@ -30,7 +30,7 @@ class RawMarketBar:
 
     Attributes:
         provider_id: Identifier of the provider this raw bar came from
-            (e.g. ``"yahoo_finance"``), used for provenance and for
+            (e.g. ``"official_evidence"``), used for provenance and for
             attributing errors to the right provider.
         timestamp: Raw timestamp as reported by the provider (could be
             an ISO string, a Unix epoch int/float, an already-parsed

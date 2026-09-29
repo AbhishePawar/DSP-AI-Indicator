@@ -250,8 +250,9 @@ export function MiniLineChart({
   const ticks = [0, 0.5, 1].map((f) => Math.round(max * f));
   return (
     <svg viewBox={`0 0 ${width} ${height}`} width="100%" height={height} role="img" aria-label={label}>
-      {ticks.map((t) => (
-        <g key={t}>
+      {ticks.map((t, i) => (
+        // Rounded ticks can collide (e.g. max=1 → 0,1,1); key on position.
+        <g key={`tick-${i}`}>
           <line x1={padL} x2={width - 4} y1={y(t)} y2={y(t)} stroke="var(--border)" strokeDasharray="3 3" />
           <text x={padL - 4} y={y(t) + 3} textAnchor="end" fontSize={9} fill="var(--muted)" fontFamily="var(--font-mono)">
             {t}
@@ -311,8 +312,8 @@ export function MiniBarChart({
   const barW = Math.max(4, slot * 0.6);
   return (
     <svg viewBox={`0 0 ${width} ${height}`} width="100%" height={height} role="img" aria-label={label}>
-      {[0, max].map((t) => (
-        <text key={t} x={padL - 4} y={padT + innerH - (t / max) * innerH + 3} textAnchor="end" fontSize={9} fill="var(--muted)" fontFamily="var(--font-mono)">
+      {[0, max].map((t, i) => (
+        <text key={`tick-${i}`} x={padL - 4} y={padT + innerH - (t / max) * innerH + 3} textAnchor="end" fontSize={9} fill="var(--muted)" fontFamily="var(--font-mono)">
           {t}
         </text>
       ))}

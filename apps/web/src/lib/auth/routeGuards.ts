@@ -5,7 +5,6 @@ export const PUBLIC_ROUTE_PREFIXES = [
   "/companies",
   "/research",
   "/analysis",
-  "/coupons",
 ] as const;
 
 export const PROTECTED_ROUTE_PREFIXES = [
@@ -14,6 +13,10 @@ export const PROTECTED_ROUTE_PREFIXES = [
   "/diagnostics",
   "/profile",
   "/admin",
+  // Figma in-app pages backed by per-user /api/v1 routes (bearer required).
+  "/advisor",
+  "/control-center",
+  "/coupons",
 ] as const;
 
 export const AUTH_PUBLIC_PATHS = [

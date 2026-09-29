@@ -1,15 +1,9 @@
 """Minimal, generic JSON-over-HTTP client shared by connector adapters.
 
-Mirrors ``data_engine.adapters.yahoo_finance.http_client`` exactly (that
-module's own docstring already anticipated this: "a future adapter
-could reuse ``JsonHttpClient``/``UrllibJsonHttpClient`` as-is if
-useful"). Promoted to a shared location now that many vendor adapters
-across six new domains need it, instead of copy-pasting it six times.
-
-Knows nothing about any vendor — only how to GET a URL (optionally with
-custom headers) and parse a JSON response. Every vendor-specific detail
+Knows nothing about any source — only how to GET a URL (optionally with
+custom headers) and parse a JSON response. Every source-specific detail
 (URL shape, query parameters, headers, response schema) stays in the
-adapter that uses this client.
+adapter that uses this client. Official adapters and FRED use this client.
 """
 
 from __future__ import annotations

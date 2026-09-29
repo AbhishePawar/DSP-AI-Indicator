@@ -44,12 +44,6 @@ export function getFeatureFlagPlaceholders(): FeatureFlagPlaceholder[] {
       note: "Always on — compliance default",
     },
     {
-      id: "advisor_demo",
-      label: "Advisor Demo",
-      enabled: process.env.NEXT_PUBLIC_ADVISOR_DEMO === "true",
-      note: "NEXT_PUBLIC_ADVISOR_DEMO",
-    },
-    {
       id: "copilot_llm",
       label: "Copilot LLM",
       enabled: process.env.NEXT_PUBLIC_AI_PROVIDER === "backend",

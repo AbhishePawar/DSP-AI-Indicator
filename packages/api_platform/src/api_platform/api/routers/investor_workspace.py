@@ -12,7 +12,7 @@ from typing import Any
 
 from fastapi import APIRouter, Depends, Query, Request
 from fastapi.responses import JSONResponse
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, StrictBool
 
 from api_platform.api.dependencies import (
     ApiState,
@@ -213,6 +213,16 @@ def save_research(
     return JSONResponse({"ok": True, "item": record})
 
 
+@router.delete("/workspace/research/saved")
+def clear_saved_research(
+    request: Request, state: ApiState = Depends(get_api_state)
+) -> dict[str, Any]:
+    """Figma Control Center → "Clear Research History" (per-user, all items)."""
+    actor = require_authenticated_actor(request)
+    store = state.platform.investor_workspace().store
+    return {"ok": True, "removed": store.clear_saved_research(actor["user_id"])}
+
+
 @router.delete("/workspace/research/saved/{saved_id}")
 def delete_saved_research(
     saved_id: str, request: Request, state: ApiState = Depends(get_api_state)
@@ -220,6 +230,50 @@ def delete_saved_research(
     actor = require_authenticated_actor(request)
     store = state.platform.investor_workspace().store
     return {"ok": True, "removed": store.delete_saved_research(actor["user_id"], saved_id)}
+
+
+# -- Preferences (Figma Control Center toggles) ------------------------------
+
+
+class PreferencesRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    notifications: StrictBool | None = None
+    dsp_alerts: StrictBool | None = None
+    email_digest: StrictBool | None = None
+    peer_comparisons: StrictBool | None = None
+    auto_research: StrictBool | None = None
+    dark_mode: StrictBool | None = None
+    compact_view: StrictBool | None = None
+    beta_features: StrictBool | None = None
+
+
+@router.get("/workspace/preferences")
+def get_preferences(
+    request: Request, state: ApiState = Depends(get_api_state)
+) -> dict[str, Any]:
+    actor = require_authenticated_actor(request)
+    store = state.platform.investor_workspace().store
+    return {"ok": True, "preferences": store.get_preferences(actor["user_id"])}
+
+
+@router.put("/workspace/preferences")
+def put_preferences(
+    body: PreferencesRequest,
+    request: Request,
+    state: ApiState = Depends(get_api_state),
+) -> JSONResponse:
+    actor = require_authenticated_actor(request)
+    store = state.platform.investor_workspace().store
+    try:
+        record = store.put_preferences(
+            actor["user_id"], body.model_dump(exclude_none=True)
+        )
+    except Exception as exc:  # noqa: BLE001
+        if _is_validation_error(exc):
+            return _validation_error(exc)
+        raise
+    return JSONResponse({"ok": True, "preferences": record})
 
 
 # -- Research canvas ----------------------------------------------------------

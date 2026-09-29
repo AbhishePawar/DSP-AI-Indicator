@@ -246,7 +246,7 @@ class TestHealthReflectsCanonicalComposition:
 class TestProductionFailClosed:
     """Production must fail closed rather than silently degrade."""
 
-    def test_missing_fmp_key_reports_investment_fail_without_blocking_ready(
+    def test_fmp_provider_name_fails_without_blocking_ready(
         self, monkeypatch: pytest.MonkeyPatch
     ) -> None:
         platform = build_default_platform()
@@ -260,25 +260,26 @@ class TestProductionFailClosed:
         assert result.payload.ready is True
         assert "investment_data_provider" in " ".join(result.limitations)
 
-    def test_fmp_provider_selection_intact(
+    def test_fmp_is_not_selected_even_with_key(
         self, monkeypatch: pytest.MonkeyPatch
     ) -> None:
         monkeypatch.setenv("DSP_ENVIRONMENT", "production")
-        monkeypatch.setenv("DSP_INVESTMENT_DATA_PROVIDER", "fmp")
+        monkeypatch.delenv("DSP_INVESTMENT_DATA_PROVIDER", raising=False)
         monkeypatch.setenv("DSP_FMP_API_KEY", _SECRET)
         from data_engine.connector_framework.production_profile import (
             assert_production_investment_connectors_configured,
         )
+        from data_engine.investment_data_provider import INVESTMENT_DATA_UNAVAILABLE
 
         selected = assert_production_investment_connectors_configured()
-        assert selected["market_quote"] == "FinancialModelingPrepQuoteAdapter"
-        assert selected["financial_statement"] == "FinancialModelingPrepStatementAdapter"
+        assert selected["market_quote"] == INVESTMENT_DATA_UNAVAILABLE
+        assert selected["financial_statement"] == INVESTMENT_DATA_UNAVAILABLE
 
     def test_no_in_memory_analysis_fallback_in_production(
         self, monkeypatch: pytest.MonkeyPatch
     ) -> None:
         monkeypatch.setenv("DSP_ENVIRONMENT", "production")
-        monkeypatch.setenv("DSP_INVESTMENT_DATA_PROVIDER", "fmp")
+        monkeypatch.delenv("DSP_INVESTMENT_DATA_PROVIDER", raising=False)
         monkeypatch.setenv("DSP_FMP_API_KEY", _SECRET)
         platform = build_default_platform()
         result = platform.health_check()
@@ -290,7 +291,7 @@ class TestProductionFailClosed:
         self, monkeypatch: pytest.MonkeyPatch
     ) -> None:
         monkeypatch.setenv("DSP_ENVIRONMENT", "production")
-        monkeypatch.setenv("DSP_INVESTMENT_DATA_PROVIDER", "fmp")
+        monkeypatch.delenv("DSP_INVESTMENT_DATA_PROVIDER", raising=False)
         monkeypatch.setenv("DSP_FMP_API_KEY", _SECRET)
         platform = build_default_platform()
         result = platform.health_check()

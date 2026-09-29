@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 
+import { ContactForm } from "@/components/marketing/ContactForm";
 import { SUPPORT_CONTACT } from "@/lib/commercial";
 import { env } from "@/lib/env";
 
@@ -20,7 +21,7 @@ export default function ContactPage() {
           Get in touch
         </h1>
         <p className="mx-auto mt-3 max-w-md text-[15px] text-[var(--muted)]">
-          Programme and access guidance. Not a brokerage order desk.
+          For enterprise inquiries, press, or general questions. Not a brokerage order desk.
         </p>
       </section>
       <section className="mx-auto grid max-w-[680px] gap-10 px-4 pb-20 sm:px-6 md:grid-cols-2">
@@ -57,33 +58,29 @@ export default function ContactPage() {
             </p>
           )}
         </div>
-        <div className="space-y-4 text-sm text-[var(--muted)]">
-          <h2 className="font-[family-name:var(--font-heading)] text-[22px] font-medium text-[var(--fg)]">
-            Access
+        <div>
+          <h2 className="mb-5 font-[family-name:var(--font-heading)] text-[22px] font-medium text-[var(--fg)]">
+            Send a message
           </h2>
-          <p>
+          <ContactForm />
+          <p className="mt-6 text-xs leading-relaxed text-[var(--muted)]">
             Existing users can{" "}
             <Link className="text-[var(--accent)] underline" href="/login">
               sign in
             </Link>
-            . New users can{" "}
-            <Link className="text-[var(--accent)] underline" href="/register">
-              create an account
-            </Link>
-            {" or "}
+            ; new users can{" "}
             <Link className="text-[var(--accent)] underline" href="/signup">
               request access
             </Link>
-            .
-          </p>
-          <p>
+            . See{" "}
             <Link className="text-[var(--accent)] underline" href={SUPPORT_CONTACT.knowledgeBasePath}>
-              Product docs
+              product docs
             </Link>
             {" · "}
             <Link className="text-[var(--accent)] underline" href={SUPPORT_CONTACT.faqPath}>
               FAQ
             </Link>
+            .
           </p>
         </div>
       </section>

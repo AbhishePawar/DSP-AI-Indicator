@@ -35,6 +35,10 @@ export type HealthResponse = {
   repository_version?: string | null;
   checks: Array<{ name: string; status: string; message: string }>;
   limitations: string[];
+  /** P1.3 — per-component operational status keyed by component id. */
+  components?: Record<string, unknown>;
+  /** P1.3 — aggregated status (ready | degraded | unhealthy | startup | …). */
+  platform_status?: string | null;
 };
 
 export type PlatformInfoResponse = {

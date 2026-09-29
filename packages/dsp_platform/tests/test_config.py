@@ -20,7 +20,10 @@ class TestConfig:
     def test_defaults(self) -> None:
         config = PlatformConfig()
         assert config.environment is Environment.DEVELOPMENT
-        assert config.providers.market_provider_id == "yahoo_finance"
+        assert config.providers.market_provider_id == "unavailable"
+        assert config.providers.fundamentals_provider_id == "unavailable"
+        assert config.providers.enable_market is False
+        assert config.providers.enable_fundamentals is False
         assert config.features.allow_partial is True
 
     def test_secrets_repr_redacts(self) -> None:

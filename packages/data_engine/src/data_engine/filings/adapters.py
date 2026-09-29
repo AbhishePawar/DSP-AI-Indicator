@@ -9,7 +9,6 @@ Every vendor-specific field name lives in this file. Adapters:
   ``data.sec.gov/submissions/CIK##########.json``). Free, but SEC's
   fair-access policy requires a descriptive ``User-Agent``; treated
   here as the adapter's "credential".
-- :class:`FinancialModelingPrepFilingsAdapter` — FMP ``sec_filings``.
 - :class:`NseFilingsAdapter` / :class:`BseFilingsAdapter` — India
   exchange corporate announcements/filings feeds.
 - :class:`ScreenerFilingsAdapter` — Screener.in company document
@@ -46,7 +45,6 @@ from data_engine.filings.validation import validate_authenticated_filings
 
 __all__ = [
     "BseFilingsAdapter",
-    "FinancialModelingPrepFilingsAdapter",
     "InMemoryFilingsAdapter",
     "NseFilingsAdapter",
     "NullFilingsAdapter",
@@ -271,79 +269,6 @@ class SecEdgarFilingsAdapter(FilingsProviderPort):
             healthy=ok,
             authenticated=ok,
             detail="configured" if ok else "missing User-Agent (required by SEC fair-access policy)",
-        )
-
-
-@dataclass
-class FinancialModelingPrepFilingsAdapter(FilingsProviderPort):
-    api_key: str
-    base_url: str = "https://financialmodelingprep.com/api/v3/sec_filings"
-    timeout_seconds: float = 15.0
-    http_client: JsonHttpClient | None = None
-    _provider_id: str = "fmp_filings"
-
-    @property
-    def provider_id(self) -> str:
-        return self._provider_id
-
-    def _client(self) -> JsonHttpClient:
-        return self.http_client or UrllibJsonHttpClient(timeout_seconds=self.timeout_seconds)
-
-    def get_filings(self, query: FilingsQuery) -> AuthenticatedFilings | None:
-        if not self.api_key.strip():
-            raise ProviderRequestError("financial modeling prep filings adapter requires api_key")
-        symbol = query.instrument.symbol.strip().upper()
-        payload = self._client().get_json(
-            f"{self.base_url}/{symbol}",
-            params={"limit": str(max(1, min(query.limit, 250))), "apikey": self.api_key},
-        )
-        if not isinstance(payload, list) or not payload:
-            return None
-        filings: list[Filing] = []
-        for item in payload:
-            if not isinstance(item, Mapping):
-                continue
-            form_type = str(item.get("type") or "").strip().upper()
-            filing_type = _SEC_FORM_MAP.get(form_type, "other")
-            filed_raw = str(item.get("fillingDate") or "").strip()
-            if not filed_raw:
-                continue
-            try:
-                filed_at = date.fromisoformat(filed_raw[:10])
-            except ValueError:
-                continue
-            url = str(item.get("finalLink") or item.get("link") or "").strip()
-            if not url:
-                continue
-            filings.append(
-                Filing(
-                    filing_id=f"{symbol}-{form_type}-{filed_at.isoformat()}",
-                    filing_type=filing_type,
-                    title=f"{form_type} filed {filed_at.isoformat()}",
-                    url=url,
-                    filed_at=filed_at,
-                    source="Financial Modeling Prep",
-                    metadata={"form": form_type, "cik": str(item.get("cik") or "")},
-                )
-            )
-        filings = _apply_query_filters(filings, query)
-        if not filings:
-            return None
-        provenance = ConnectorProvenance(
-            provider_id=self.provider_id,
-            provider_name="Financial Modeling Prep",
-            source_type="licensed_vendor",
-            retrieved_at=utc_now(),
-            auth_mode="api_key",
-            metadata={"base_url": self.base_url},
-        )
-        return build_filings_bundle_from_mapping(symbol=symbol, filings=filings, provenance=provenance)
-
-    def health(self) -> ProviderHealth:
-        ok = bool(self.api_key.strip())
-        return ProviderHealth(
-            provider_id=self.provider_id, healthy=ok, authenticated=ok,
-            detail="configured" if ok else "missing api_key",
         )
 
 
@@ -640,14 +565,6 @@ def build_default_filings_registry_from_env() -> PriorityProviderRegistry[Filing
     if sec_ua:
         registry.register(
             SecEdgarFilingsAdapter(user_agent=sec_ua), provider_id="sec_edgar_filings", priority=10
-        )
-
-    fmp_key = os.environ.get("DSP_FILINGS_FMP_API_KEY", "").strip()
-    if fmp_key:
-        registry.register(
-            FinancialModelingPrepFilingsAdapter(api_key=fmp_key),
-            provider_id="fmp_filings",
-            priority=20,
         )
 
     if os.environ.get("DSP_FILINGS_NSE_ENABLED", "").lower() in {"1", "true", "yes"}:

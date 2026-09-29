@@ -14,12 +14,10 @@ from data_engine import (
     EsgProviderRegistry,
     EsgQuery,
     EsgService,
-    FinancialModelingPrepEsgAdapter,
     InMemoryEsgAdapter,
     InvalidProviderDataError,
     NullEsgAdapter,
     ProviderRequestError,
-    YahooFinanceEsgAdapter,
     build_default_esg_registry_from_env,
     build_esg_score_from_mapping,
 )
@@ -36,14 +34,6 @@ def _provenance(provider_id: str = "x") -> ConnectorProvenance:
         source_type="public_endpoint",
         retrieved_at=datetime.now(tz=UTC),
     )
-
-
-class _FakeJsonClient:
-    def __init__(self, payload) -> None:
-        self._payload = payload
-
-    def get_json(self, url, *, params=None, headers=None):
-        return self._payload
 
 
 class TestNullAndInMemory:
@@ -100,70 +90,25 @@ class TestValidation:
             )
 
 
-class TestYahooFinanceEsgAdapter:
-    def test_disabled_raises(self) -> None:
-        with pytest.raises(ProviderRequestError):
-            YahooFinanceEsgAdapter(enabled=False).get_esg_score(EsgQuery(instrument=_instrument()))
+class TestCommercialEsgAdaptersAbsent:
+    def test_commercial_esg_adapters_are_not_exported(self) -> None:
+        import data_engine
 
-    def test_maps_esg_scores_module(self) -> None:
-        payload = {
-            "quoteSummary": {
-                "result": [
-                    {
-                        "esgScores": {
-                            "environmentScore": {"raw": 5.2},
-                            "socialScore": {"raw": 8.1},
-                            "governanceScore": {"raw": 6.4},
-                            "totalEsg": {"raw": 19.7},
-                            "highestControversy": 2,
-                        }
-                    }
-                ]
-            }
-        }
-        adapter = YahooFinanceEsgAdapter(enabled=True, http_client=_FakeJsonClient(payload))
-        bundle = adapter.get_esg_score(EsgQuery(instrument=_instrument()))
-        assert bundle is not None
-        assert bundle.total_score.to_float() == pytest.approx(19.7)
-        assert bundle.controversy_level == "moderate"
-
-
-class TestFinancialModelingPrepEsgAdapter:
-    def test_maps_latest_entry(self) -> None:
-        payload = [
-            {
-                "date": "2023-09-30",
-                "environmentalScore": 55.0,
-                "socialScore": 60.0,
-                "governanceScore": 70.0,
-                "ESGScore": 61.6,
-            }
-        ]
-        adapter = FinancialModelingPrepEsgAdapter(api_key="k", http_client=_FakeJsonClient(payload))
-        bundle = adapter.get_esg_score(EsgQuery(instrument=_instrument()))
-        assert bundle is not None
-        assert bundle.as_of == date(2023, 9, 30)
-        assert bundle.total_score.to_float() == pytest.approx(61.6)
-
-    def test_requires_api_key(self) -> None:
-        with pytest.raises(ProviderRequestError):
-            FinancialModelingPrepEsgAdapter(api_key="").get_esg_score(EsgQuery(instrument=_instrument()))
-
-    def test_empty_payload_returns_none(self) -> None:
-        adapter = FinancialModelingPrepEsgAdapter(api_key="k", http_client=_FakeJsonClient([]))
-        assert adapter.get_esg_score(EsgQuery(instrument=_instrument())) is None
+        assert not hasattr(data_engine, "FinancialModelingPrepEsgAdapter")
+        assert not hasattr(data_engine, "YahooFinanceEsgAdapter")
 
 
 class TestRegistryAndEnv:
     def test_registry_ordering(self) -> None:
         registry = EsgProviderRegistry()
         registry.register(NullEsgAdapter(), provider_id="null_esg", priority=1000)
-        registry.register(FinancialModelingPrepEsgAdapter(api_key="k"), provider_id="fmp_esg", priority=10)
-        assert registry.ordered_ids() == ("fmp_esg", "null_esg")
+        registry.register(InMemoryEsgAdapter(api_key="k"), provider_id="memory_esg", priority=10)
+        assert registry.ordered_ids() == ("memory_esg", "null_esg")
 
     def test_default_registry_falls_back_to_null(self, monkeypatch: pytest.MonkeyPatch) -> None:
         for key in ("DSP_ESG_FMP_API_KEY", "DSP_ESG_YAHOO_ENABLED", "DSP_ESG_MEMORY"):
             monkeypatch.delenv(key, raising=False)
+        monkeypatch.setenv("DSP_ESG_YAHOO_ENABLED", "1")
         registry = build_default_esg_registry_from_env()
         assert registry.ordered_ids() == ("null_esg",)
 

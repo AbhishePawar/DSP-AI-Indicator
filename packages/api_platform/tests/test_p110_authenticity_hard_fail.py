@@ -157,42 +157,36 @@ class TestProductionConnectorAuthenticity:
         ):
             monkeypatch.delenv(key, raising=False)
 
-    def test_production_null_quote_hard_fails(
+    def test_production_quote_is_unavailable_not_fmp(
         self, monkeypatch: pytest.MonkeyPatch
     ) -> None:
         monkeypatch.setenv("DSP_ENVIRONMENT", "production")
-        try:
-            adapter = build_default_quote_adapter_from_env()
-        except ConnectorConfigurationError as exc:
-            hard_fail(
-                "P1-03" in str(exc),
-                PRODUCTION_NULL_FALLBACK_DETECTED,
-                f"unexpected error: {exc}",
-            )
-            return
+        adapter = build_default_quote_adapter_from_env()
         hard_fail(
-            False,
+            isinstance(adapter, NullAuthenticatedQuoteAdapter),
             PRODUCTION_NULL_FALLBACK_DETECTED,
             f"production selected {type(adapter).__name__}",
         )
+        hard_fail(
+            type(adapter).__name__ != "FinancialModelingPrepQuoteAdapter",
+            PRODUCTION_NULL_FALLBACK_DETECTED,
+            "FMP quote adapter must not be selected",
+        )
 
-    def test_production_null_statements_hard_fails(
+    def test_production_statements_are_unavailable_not_fmp(
         self, monkeypatch: pytest.MonkeyPatch
     ) -> None:
         monkeypatch.setenv("DSP_ENVIRONMENT", "production")
-        try:
-            adapter = build_default_statement_adapter_from_env()
-        except ConnectorConfigurationError as exc:
-            hard_fail(
-                "P1-03" in str(exc) or "financial_statement" in str(exc),
-                PRODUCTION_NULL_FALLBACK_DETECTED,
-                f"unexpected error: {exc}",
-            )
-            return
+        adapter = build_default_statement_adapter_from_env()
         hard_fail(
-            False,
+            isinstance(adapter, NullAuthenticatedStatementAdapter),
             PRODUCTION_NULL_FALLBACK_DETECTED,
             f"production selected {type(adapter).__name__}",
+        )
+        hard_fail(
+            type(adapter).__name__ != "FinancialModelingPrepStatementAdapter",
+            PRODUCTION_NULL_FALLBACK_DETECTED,
+            "FMP statement adapter must not be selected",
         )
 
     def test_production_memory_quote_hard_fails(
@@ -238,10 +232,9 @@ class TestProductionConnectorAuthenticity:
     def test_production_investment_factory_rejects_null_connectors(
         self, monkeypatch: pytest.MonkeyPatch
     ) -> None:
-        """P1-03 fail-closed lives at connector use, not create_app boot.
+        """Auth/core API may start without investment credentials.
 
-        Auth/core API may start without investment credentials; factories still
-        refuse Null/memory selection in production (authenticity preserved).
+        Factories return honest Null/unavailable; FMP is never selected.
         """
         monkeypatch.setenv("DSP_ENVIRONMENT", "production")
         monkeypatch.setenv("DSP_JWT_SECRET", "unit-test-production-secret-not-default")
@@ -284,19 +277,16 @@ class TestProductionConnectorAuthenticity:
             "create_app returned None",
         )
 
-        try:
-            build_default_quote_adapter_from_env()
-        except ConnectorConfigurationError as exc:
-            hard_fail(
-                "P1-03" in str(exc),
-                PRODUCTION_NULL_FALLBACK_DETECTED,
-                f"unexpected error: {exc}",
-            )
-            return
+        adapter = build_default_quote_adapter_from_env()
         hard_fail(
-            False,
+            isinstance(adapter, NullAuthenticatedQuoteAdapter),
             PRODUCTION_NULL_FALLBACK_DETECTED,
-            "quote factory allowed Null connectors in production",
+            f"expected honest Null/unavailable, got {type(adapter).__name__}",
+        )
+        hard_fail(
+            type(adapter).__name__ != "FinancialModelingPrepQuoteAdapter",
+            PRODUCTION_NULL_FALLBACK_DETECTED,
+            "FMP must not be selected as a quote connector",
         )
 
     def test_null_adapters_classified_unsafe(self) -> None:

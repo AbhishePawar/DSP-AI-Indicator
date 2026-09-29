@@ -3,10 +3,8 @@
 from __future__ import annotations
 
 from data_engine.esg.adapters import (
-    FinancialModelingPrepEsgAdapter,
     InMemoryEsgAdapter,
     NullEsgAdapter,
-    YahooFinanceEsgAdapter,
     build_default_esg_registry_from_env,
     build_esg_score_from_mapping,
 )
@@ -23,10 +21,8 @@ __all__ = [
     "EsgQuery",
     "EsgService",
     "EsgServiceMetrics",
-    "FinancialModelingPrepEsgAdapter",
     "InMemoryEsgAdapter",
     "NullEsgAdapter",
-    "YahooFinanceEsgAdapter",
     "build_default_esg_registry_from_env",
     "build_esg_score_from_mapping",
     "validate_authenticated_esg_score",

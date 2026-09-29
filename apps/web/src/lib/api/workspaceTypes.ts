@@ -289,3 +289,101 @@ export type SignalsResponse = {
   sectors: string[];
   count: number;
 };
+
+// ── Figma Control Center (user settings) ────────────────────────────────────
+
+export type PreferenceKey =
+  | "notifications"
+  | "dsp_alerts"
+  | "email_digest"
+  | "peer_comparisons"
+  | "auto_research"
+  | "dark_mode"
+  | "compact_view"
+  | "beta_features";
+
+export type Preferences = Record<PreferenceKey, boolean> & { updated_at?: string };
+
+export type PreferencesResponse = { ok: boolean; preferences: Preferences };
+
+// ── Figma Advisor (client book) ─────────────────────────────────────────────
+
+export type AdvisorRiskProfile = "conservative" | "moderate" | "aggressive";
+
+export type AdvisorClient = {
+  client_id: string;
+  name: string;
+  email: string | null;
+  risk_profile: AdvisorRiskProfile;
+  /** Advisor-entered figure; null → "Data unavailable." */
+  portfolio_value: number | null;
+  notes: string | null;
+  research_sessions: number;
+  last_session_at?: string;
+  created_at: string;
+  updated_at: string;
+};
+
+export type AdvisorClientPayload = {
+  name: string;
+  risk_profile: AdvisorRiskProfile;
+  email?: string | null;
+  portfolio_value?: number | null;
+  notes?: string | null;
+};
+
+export type AdvisorOverview = {
+  active_clients: number;
+  total_portfolio_value: number | null;
+  clients_with_portfolio_value: number;
+  research_sessions: number;
+  risk_profile_counts: Record<AdvisorRiskProfile, number>;
+};
+
+export type AdvisorClientsResponse = {
+  ok: boolean;
+  items: AdvisorClient[];
+  count: number;
+  overview: AdvisorOverview;
+};
+
+// ── Figma Contact ───────────────────────────────────────────────────────────
+
+export type ContactPayload = {
+  name: string;
+  email: string;
+  message: string;
+  source?: string;
+};
+
+export type ContactResponse = { ok: boolean; message_id: string; received_at: string };
+
+// ── Figma Coupons & Offers (SaaS overlay coupon metadata) ───────────────────
+
+export type CouponCategory = "premium" | "research" | "analysis" | "referral";
+export type CouponDiscountType = "percent" | "flat" | "free";
+
+export type Coupon = {
+  code: string;
+  discount_pct: number | null;
+  active: boolean;
+  expires_at: string | null;
+  title: string | null;
+  description: string | null;
+  category: CouponCategory;
+  discount_type: CouponDiscountType;
+  discount_label: string | null;
+  applicable_to: string[];
+  min_spend: number | string | null;
+  featured: boolean;
+  created_at: string;
+  updated_at: string;
+  note?: string;
+};
+
+export type CouponsResponse = {
+  ok: boolean;
+  result?: { coupons: Coupon[] };
+  message?: string | null;
+  error?: string;
+};

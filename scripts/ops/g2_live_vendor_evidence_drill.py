@@ -11,9 +11,9 @@ Proves (when credentials are present):
 Fails closed when credentials are absent. Never fabricates live evidence.
 Never logs API keys / Authorization headers.
 
-Routes (either is sufficient):
-  A) Single-key FMP — DSP_FMP_API_KEY or DSP_INVESTMENT_FMP_API_KEY
-  B) ConfiguredHttp — quote key+URL and statement key+URL
+Commercial FMP/Upstox keys never unlock this gate.
+ConfiguredHttp credentials may still be present for diagnostics, but
+FMP is never a selected route.
 
 Evidence: artifacts/g2_live_vendor_evidence.json
 """
@@ -44,10 +44,12 @@ HTTP_REQUIRED_ENV = (
     "DSP_FINANCIAL_STATEMENT_BASE_URL",
 )
 
-FMP_KEY_ENVS = (
+# Tracked only so leftover commercial secrets are reported as rejected.
+REJECTED_FMP_KEY_ENVS = (
     "DSP_FMP_API_KEY",
     "DSP_INVESTMENT_FMP_API_KEY",
 )
+FMP_KEY_ENVS = REJECTED_FMP_KEY_ENVS
 
 # Back-compat alias used by older tests / docs.
 REQUIRED_ENV = HTTP_REQUIRED_ENV
@@ -83,20 +85,28 @@ def http_credentials_ready(environ: dict[str, str] | None = None) -> bool:
     return all(present[name] for name in HTTP_REQUIRED_ENV)
 
 
-def fmp_credentials_ready(environ: dict[str, str] | None = None) -> bool:
+def fmp_credentials_present(environ: dict[str, str] | None = None) -> bool:
     present = credential_presence(environ)
-    return any(present[name] for name in FMP_KEY_ENVS)
+    return any(present[name] for name in REJECTED_FMP_KEY_ENVS)
+
+
+def fmp_credentials_ready(environ: dict[str, str] | None = None) -> bool:
+    """FMP is never a valid live route."""
+    _ = environ
+    return False
 
 
 def credentials_ready(environ: dict[str, str] | None = None) -> bool:
-    return http_credentials_ready(environ) or fmp_credentials_ready(environ)
+    if fmp_credentials_present(environ) and not http_credentials_ready(environ):
+        return False
+    return http_credentials_ready(environ)
 
 
 def selected_route(environ: dict[str, str] | None = None) -> str:
+    if fmp_credentials_present(environ) and not http_credentials_ready(environ):
+        return "rejected_fmp"
     if http_credentials_ready(environ):
         return "configured_http"
-    if fmp_credentials_ready(environ):
-        return "fmp"
     return "none"
 
 
@@ -119,17 +129,22 @@ def classify_gate(
             "G2 refuses in-memory/seed adapters as live vendor evidence; "
             f"disable {', '.join(memory)}"
         )
+    elif route == "rejected_fmp" or (
+        fmp_credentials_present(environ) and not http_credentials_ready(environ)
+    ):
+        evidence_class = "commercial_provider_rejected"
+        status = "BLOCKED"
+        ready = False
+        reason = (
+            "G2 rejects commercial FMP/Upstox credentials. Official "
+            "Security Master + NSE/BSE evidence is authoritative."
+        )
     elif not ready:
         evidence_class = "credentials_unavailable"
         status = "BLOCKED"
         reason = (
-            "G2 live authenticated vendor evidence requires EITHER "
-            "(A) DSP_FMP_API_KEY or DSP_INVESTMENT_FMP_API_KEY "
-            "(single-key Financial Modeling Prep free developer tier), "
-            "OR (B) all four ConfiguredHttp secrets: "
-            + ", ".join(HTTP_REQUIRED_ENV)
-            + ". Inject via GitHub Environment 'live-data-evidence' "
-            "(workflow_dispatch) or a secure local runtime - never commit."
+            "G2 does not accept FMP, Upstox, or other commercial investment "
+            "data providers. Official/evidence-backed DSP data is authoritative."
         )
     else:
         # Credentials are necessary but not sufficient. Do NOT claim
@@ -149,15 +164,15 @@ def classify_gate(
         "credential_presence": {k: ("PRESENT" if v else "ABSENT") for k, v in present.items()},
         "memory_flags_enabled": memory,
         "required_secrets": [
-            "DSP_FMP_API_KEY (preferred single-key FMP route)",
             *HTTP_REQUIRED_ENV,
         ],
+        "rejected_secrets": list(REJECTED_FMP_KEY_ENVS),
         "secure_injection": [
             "GitHub Environment: live-data-evidence",
             "workflow_dispatch protected job",
             "organization/repository Actions secrets (names only above)",
             "production secret manager → runtime env (never source tree)",
-            "FMP free developer signup: https://site.financialmodelingprep.com/developer/docs",
+            "Commercial FMP/Upstox keys are rejected and never injected",
         ],
     }
 
@@ -176,13 +191,13 @@ def _write_evidence(evidence: dict[str, Any]) -> Path:
 
 
 def _provider_meta(route: str) -> dict[str, Any]:
-    if route == "fmp":
+    if route == "rejected_fmp" or route == "fmp":
         return {
-            "quote_provider_id": "fmp_market_quote",
-            "statement_provider_id": "fmp_financial_statements",
-            "auth_mode": "api_key",
-            "vendor": "financial_modeling_prep",
-            "note": "Single authenticated FMP key satisfies quote + statements",
+            "quote_provider_id": None,
+            "statement_provider_id": None,
+            "auth_mode": None,
+            "vendor": "rejected_commercial",
+            "note": "FMP is not a permitted investment-data provider",
         }
     if route == "configured_http":
         return {

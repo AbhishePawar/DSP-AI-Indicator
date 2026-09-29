@@ -33,7 +33,8 @@ describe("EPIC-F003 navigation registry", () => {
         "/portfolio",
         "/research",
         "/admin",
-        "/settings",
+        "/control-center",
+        "/compare",
         "/profile",
       ]),
     );
@@ -85,6 +86,7 @@ describe("EPIC-F003 navigation registry", () => {
     expect(breadcrumbsFor("/research/acm").map((c) => c.label)).toContain(
       "ACM",
     );
+    expect(breadcrumbsForPath("/control-center").at(-1)?.label).toBe("Settings");
     expect(breadcrumbsForPath("/settings").at(-1)?.label).toBe("Settings");
   });
 

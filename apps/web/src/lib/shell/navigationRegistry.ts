@@ -87,18 +87,6 @@ export const SHELL_NAV: readonly ShellNavItem[] = [
     section: "research",
     icon: "analysis",
     access: { anyOfPermissions: ["read_research"] },
-    children: [
-      {
-        id: "analysis-compare",
-        href: "/analysis/compare",
-        label: "Compare",
-        description:
-          "Institutional decision workspace — compare 2–5 companies (supporting intelligence)",
-        section: "research",
-        icon: "analysis",
-        access: { anyOfPermissions: ["read_research"] },
-      },
-    ],
   },
   {
     id: "companies",
@@ -107,6 +95,15 @@ export const SHELL_NAV: readonly ShellNavItem[] = [
     description: "Identity-only company lookup into /analysis",
     section: "research",
     icon: "analysis",
+  },
+  {
+    id: "compare",
+    href: "/compare",
+    label: "Compare",
+    description: "Compare listed companies over frozen /api/v1/analyse packs",
+    section: "research",
+    icon: "analysis",
+    access: { anyOfPermissions: ["read_research"] },
   },
   {
     id: "research",
@@ -194,7 +191,7 @@ export const SHELL_NAV: readonly ShellNavItem[] = [
     id: "advisor",
     href: "/advisor",
     label: "Advisor",
-    description: "Advisor workspace — clients, portfolios, reviews, and team",
+    description: "Advisor client book — portfolios, risk profile, and research sessions",
     section: "research",
     icon: "advisor",
     access: { anyOfPermissions: ["read_research"] },
@@ -261,9 +258,9 @@ export const SHELL_NAV: readonly ShellNavItem[] = [
     },
   },
   {
-    id: "control-center",
-    href: "/control-center",
-    label: "Control Center",
+    id: "admin-control-center",
+    href: "/admin/control-center",
+    label: "Super Admin Control Center",
     description:
       "Super Admin configuration registry, branding, flags, rules, and platform OS",
     section: "ops",
@@ -282,15 +279,7 @@ export const SHELL_NAV: readonly ShellNavItem[] = [
     id: "diagnostics",
     href: "/diagnostics",
     label: "Diagnostics",
-    description: "API health, environment, and runtime diagnostics",
-    section: "account",
-    icon: "settings",
-  },
-  {
-    id: "settings",
-    href: "/settings",
-    label: "Settings",
-    description: "Preferences and configuration",
+    description: "Service status from /api/v1/health and client session logs",
     section: "account",
     icon: "settings",
   },
@@ -298,7 +287,7 @@ export const SHELL_NAV: readonly ShellNavItem[] = [
     id: "profile",
     href: "/profile",
     label: "Financial Profile",
-    description: "Identity and sessions",
+    description: "Your financial profile and Financial Health Score",
     section: "account",
     icon: "profile",
   },
@@ -307,6 +296,22 @@ export const SHELL_NAV: readonly ShellNavItem[] = [
     href: "/coupons",
     label: "Coupons & Offers",
     description: "Administrator-provisioned offers only",
+    section: "account",
+    icon: "settings",
+  },
+  {
+    id: "pricing",
+    href: "/pricing",
+    label: "Pricing",
+    description: "Plans and commercial disclosure",
+    section: "account",
+    icon: "settings",
+  },
+  {
+    id: "control-center",
+    href: "/control-center",
+    label: "Settings",
+    description: "Account, notifications, research preferences, and interface settings",
     section: "account",
     icon: "settings",
   },
@@ -324,6 +329,21 @@ export const SECTION_LABELS: Record<ShellNavItem["section"], string> = {
  * RC3-003 — not searchable in the command palette (hide unfinished surfaces).
  */
 export const AUX_ROUTES: readonly RouteMeta[] = [
+  {
+    id: "settings-alias",
+    path: "/settings",
+    title: "Settings",
+    searchable: false,
+    group: "Account",
+  },
+  {
+    id: "analysis-compare-alias",
+    path: "/analysis/compare",
+    title: "Compare",
+    parentPath: "/analysis",
+    searchable: false,
+    group: "Research",
+  },
   {
     id: "intelligence",
     path: "/intelligence",
@@ -489,14 +509,11 @@ export function filterShellNav(
     if (item.id === "portal" && !featureFlags.enterprisePortal) return null;
     if (item.id === "ops" && !featureFlags.enterpriseOps) return null;
     if (item.id === "admin" && !featureFlags.enterpriseAdmin) return null;
+    if (item.id === "compare" && !featureFlags.companyComparison) return null;
     const children = item.children?.filter((c) => {
       if (!canAccessNavItem(c, permissions, roles)) return false;
       // EPIC-011B — hide unfinished / flagged-off Research Intelligence
       if (c.id === "research-intelligence" && !featureFlags.researchIntelligence) {
-        return false;
-      }
-      // EPIC-012/013 — hide flagged-off Company Comparison
-      if (c.id === "analysis-compare" && !featureFlags.companyComparison) {
         return false;
       }
       // EPIC-014 — hide flagged-off Research Canvas

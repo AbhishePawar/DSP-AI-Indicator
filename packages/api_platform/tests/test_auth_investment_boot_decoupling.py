@@ -4,7 +4,7 @@ Proves:
 A) Production create_app succeeds without investment credentials
 B) Auth endpoints and readiness probes remain reachable in that condition
 C) Investment adapter construction still fails closed (P1-03)
-D) Valid FMP configuration still selects FMP adapters
+D) FMP credentials do not select a commercial adapter
 E) P1-03 assert helper remains usable for investment/ops paths
 F) Authentication modules do not import FMP/investment adapters
 """
@@ -115,35 +115,38 @@ def test_b_ready_probe_accepts_traffic_without_fmp_key(
     investment = checks.get("investment_data_provider")
     assert investment is not None
     assert investment["status"] == "fail"
-    assert "DSP_FMP_API_KEY" in investment["message"]
+    assert "not permitted" in investment["message"]
 
 
 # --- TEST C -----------------------------------------------------------------
 
 
-def test_c_investment_operations_fail_closed_without_provider(
+def test_c_investment_operations_are_unavailable_without_provider(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
+    from data_engine.financial_statement.adapters import NullAuthenticatedStatementAdapter
+    from data_engine.market_quote.adapters import NullAuthenticatedQuoteAdapter
+
     _strip_investment_credentials(monkeypatch)
-    with pytest.raises(ConnectorConfigurationError, match="P1-03"):
-        build_default_quote_adapter_from_env()
-    with pytest.raises(ConnectorConfigurationError, match="P1-03|financial_statement"):
-        build_default_statement_adapter_from_env()
+    assert isinstance(build_default_quote_adapter_from_env(), NullAuthenticatedQuoteAdapter)
+    assert isinstance(
+        build_default_statement_adapter_from_env(), NullAuthenticatedStatementAdapter
+    )
 
 
-def test_c_fmp_selected_without_key_fails_closed(
+def test_c_fmp_provider_name_fails_closed(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     _strip_investment_credentials(monkeypatch)
     monkeypatch.setenv("DSP_INVESTMENT_DATA_PROVIDER", "fmp")
-    with pytest.raises(ConnectorConfigurationError, match="DSP_FMP_API_KEY"):
+    with pytest.raises(ConnectorConfigurationError, match="not permitted"):
         build_default_quote_adapter_from_env()
 
 
 # --- TEST D -----------------------------------------------------------------
 
 
-def test_d_valid_fmp_configuration_still_works(
+def test_d_fmp_key_does_not_select_commercial_adapters(
     monkeypatch: pytest.MonkeyPatch, platform: DSPPlatform
 ) -> None:
     from api_platform import create_app
@@ -156,7 +159,7 @@ def test_d_valid_fmp_configuration_still_works(
         "api_platform.api.durable_product_stores.require_durable_product_database",
         lambda database: None,
     )
-    monkeypatch.setenv("DSP_INVESTMENT_DATA_PROVIDER", "fmp")
+    monkeypatch.delenv("DSP_INVESTMENT_DATA_PROVIDER", raising=False)
     monkeypatch.setenv("DSP_FMP_API_KEY", _FMP_KEY)
 
     app = create_app(platform=platform, enable_security=False)
@@ -164,25 +167,27 @@ def test_d_valid_fmp_configuration_still_works(
 
     quote = build_default_quote_adapter_from_env()
     statements = build_default_statement_adapter_from_env()
-    assert type(quote).__name__ == "FinancialModelingPrepQuoteAdapter"
-    assert type(statements).__name__ == "FinancialModelingPrepStatementAdapter"
+    assert type(quote).__name__ == "NullAuthenticatedQuoteAdapter"
+    assert type(statements).__name__ == "NullAuthenticatedStatementAdapter"
 
 
 # --- TEST E -----------------------------------------------------------------
 
 
-def test_e_p103_assert_helper_still_enforces_investment_boundary(
+def test_e_p103_assert_helper_reports_unavailable_not_fmp(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
+    from data_engine.investment_data_provider import INVESTMENT_DATA_UNAVAILABLE
+
     _strip_investment_credentials(monkeypatch)
-    with pytest.raises(ConnectorConfigurationError, match="P1-03"):
-        assert_production_investment_connectors_configured()
+    selected = assert_production_investment_connectors_configured()
+    assert selected["market_quote"] == INVESTMENT_DATA_UNAVAILABLE
+    assert selected["financial_statement"] == INVESTMENT_DATA_UNAVAILABLE
 
     monkeypatch.setenv("DSP_INVESTMENT_DATA_PROVIDER", "fmp")
     monkeypatch.setenv("DSP_FMP_API_KEY", _FMP_KEY)
-    selected = assert_production_investment_connectors_configured()
-    assert selected["market_quote"] == "FinancialModelingPrepQuoteAdapter"
-    assert selected["financial_statement"] == "FinancialModelingPrepStatementAdapter"
+    with pytest.raises(ConnectorConfigurationError, match="not permitted"):
+        assert_production_investment_connectors_configured()
 
 
 # --- TEST F -----------------------------------------------------------------

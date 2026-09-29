@@ -193,10 +193,10 @@ class TestHealthService:
         by_name = {c.name: c for c in report.checks}
         assert by_name["investment_data_provider"].status is CheckStatus.SKIP
 
-    def test_investment_data_provider_fails_closed_in_production(
+    def test_investment_data_provider_rejects_fmp_in_production(
         self, monkeypatch: pytest.MonkeyPatch
     ) -> None:
-        """P1-03 — missing FMP is reported but does not block API readiness."""
+        """Commercial FMP selection fails closed and does not block API readiness."""
         monkeypatch.setenv("DSP_ENVIRONMENT", "production")
         monkeypatch.setenv("DSP_INVESTMENT_DATA_PROVIDER", "fmp")
         monkeypatch.delenv("DSP_FMP_API_KEY", raising=False)
@@ -205,8 +205,7 @@ class TestHealthService:
         ).check()
         by_name = {c.name: c for c in report.checks}
         assert by_name["investment_data_provider"].status is CheckStatus.FAIL
-        assert "DSP_FMP_API_KEY" in by_name["investment_data_provider"].message
-        # Auth/API boot must remain ready without investment credentials.
+        assert "not permitted" in by_name["investment_data_provider"].message
         assert report.ready is True
         assert report.status is CheckStatus.FAIL
 
@@ -224,11 +223,11 @@ class TestHealthService:
         assert "INVESTMENT_DATA_UNAVAILABLE" in check.message
         assert report.ready is True
 
-    def test_investment_data_provider_passes_with_fmp_key(
+    def test_investment_data_provider_ignores_fmp_key(
         self, monkeypatch: pytest.MonkeyPatch
     ) -> None:
         monkeypatch.setenv("DSP_ENVIRONMENT", "production")
-        monkeypatch.setenv("DSP_INVESTMENT_DATA_PROVIDER", "fmp")
+        monkeypatch.delenv("DSP_INVESTMENT_DATA_PROVIDER", raising=False)
         monkeypatch.setenv("DSP_FMP_API_KEY", "super-secret-token")
         report = PlatformHealthService(
             config=PlatformConfig(environment=Environment.PRODUCTION)
@@ -236,12 +235,10 @@ class TestHealthService:
         by_name = {c.name: c for c in report.checks}
         check = by_name["investment_data_provider"]
         assert check.status is CheckStatus.PASS
-        assert "FinancialModelingPrep" in check.message
-        # CV-001 / security: adapter class names only, never credentials.
+        assert "INVESTMENT_DATA_UNAVAILABLE" in check.message
+        assert "FinancialModelingPrep" not in check.message
         assert "super-secret-token" not in check.message
-        assert all(
-            "super-secret-token" not in c.message for c in report.checks
-        )
+        assert all("super-secret-token" not in c.message for c in report.checks)
 
     def test_no_network_on_registry_check(self) -> None:
         """Registry health must not invoke adapter I/O."""

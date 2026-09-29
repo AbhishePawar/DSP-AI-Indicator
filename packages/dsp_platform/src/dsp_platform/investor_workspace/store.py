@@ -78,6 +78,12 @@ class InvestorWorkspaceStore:
         self._saved_research: dict[str, dict[str, dict[str, Any]]] = {}
         self._canvases: dict[str, dict[str, dict[str, Any]]] = {}
         self._profiles: dict[str, dict[str, Any]] = {}
+        # Figma Control Center toggles (per user).
+        self._preferences: dict[str, dict[str, Any]] = {}
+        # Figma Advisor — clients registered by an advisor user.
+        self._advisor_clients: dict[str, dict[str, dict[str, Any]]] = {}
+        # Figma Contact form — public inbox, reviewed by administrators.
+        self._contact_messages: list[dict[str, Any]] = []
 
     # -- watchlist ---------------------------------------------------------
     def list_watchlist(self, user_id: str) -> list[dict[str, Any]]:
@@ -202,6 +208,132 @@ class InvestorWorkspaceStore:
         with self._lock:
             return self._saved_research.get(user_id, {}).pop(str(saved_id), None) is not None
 
+    def clear_saved_research(self, user_id: str) -> int:
+        """Figma Control Center → "Clear Research History"."""
+        with self._lock:
+            removed = len(self._saved_research.get(user_id, {}))
+            self._saved_research[user_id] = {}
+            return removed
+
+    # -- preferences (Figma Control Center) --------------------------------
+    def get_preferences(self, user_id: str) -> dict[str, Any]:
+        with self._lock:
+            row = self._preferences.get(user_id)
+        return {**default_preferences(), **(row or {})}
+
+    def put_preferences(self, user_id: str, preferences: dict[str, Any]) -> dict[str, Any]:
+        clean = validate_preferences(preferences)
+        with self._lock:
+            current = {**default_preferences(), **self._preferences.get(user_id, {})}
+            current.update(clean)
+            current["updated_at"] = _now()
+            self._preferences[user_id] = current
+            return dict(current)
+
+    # -- advisor clients (Figma Advisor) ------------------------------------
+    def list_clients(self, advisor_id: str) -> list[dict[str, Any]]:
+        with self._lock:
+            rows = list(self._advisor_clients.get(advisor_id, {}).values())
+        rows.sort(key=lambda r: r["created_at"])
+        return [dict(r) for r in rows]
+
+    def get_client(self, advisor_id: str, client_id: str) -> dict[str, Any] | None:
+        with self._lock:
+            row = self._advisor_clients.get(advisor_id, {}).get(str(client_id))
+            return dict(row) if row else None
+
+    def upsert_client(
+        self,
+        advisor_id: str,
+        *,
+        name: str,
+        risk_profile: str,
+        email: str | None = None,
+        portfolio_value: Any = None,
+        notes: str | None = None,
+        client_id: str | None = None,
+    ) -> dict[str, Any]:
+        clean_name = str(name or "").strip()
+        if not clean_name or len(clean_name) > 120:
+            raise WorkspaceValidationError("name must be 1–120 characters")
+        risk = str(risk_profile or "").strip().lower()
+        if risk not in ADVISOR_RISK_PROFILES:
+            raise WorkspaceValidationError(
+                "risk_profile must be one of " + ", ".join(ADVISOR_RISK_PROFILES)
+            )
+        clean_email = str(email).strip().lower() if email else None
+        if clean_email and ("@" not in clean_email or len(clean_email) > 254):
+            raise WorkspaceValidationError("email is invalid")
+        value = _optional_nonneg(portfolio_value, "portfolio_value")
+        clean_notes = str(notes).strip()[:1000] if notes else None
+        with self._lock:
+            book = self._advisor_clients.setdefault(advisor_id, {})
+            existing = book.get(str(client_id)) if client_id else None
+            if client_id and existing is None:
+                raise WorkspaceValidationError("client not found")
+            record = {
+                "client_id": existing["client_id"] if existing else str(uuid.uuid4()),
+                "name": clean_name,
+                "email": clean_email,
+                "risk_profile": risk,
+                # Advisor-entered figure; None renders "Data unavailable." (CV-001).
+                "portfolio_value": value,
+                "notes": clean_notes,
+                "research_sessions": int((existing or {}).get("research_sessions") or 0),
+                "created_at": existing["created_at"] if existing else _now(),
+                "updated_at": _now(),
+            }
+            book[record["client_id"]] = record
+            return dict(record)
+
+    def record_client_session(self, advisor_id: str, client_id: str) -> dict[str, Any] | None:
+        with self._lock:
+            row = self._advisor_clients.get(advisor_id, {}).get(str(client_id))
+            if row is None:
+                return None
+            row["research_sessions"] = int(row.get("research_sessions") or 0) + 1
+            row["last_session_at"] = _now()
+            row["updated_at"] = _now()
+            return dict(row)
+
+    def delete_client(self, advisor_id: str, client_id: str) -> bool:
+        with self._lock:
+            return self._advisor_clients.get(advisor_id, {}).pop(str(client_id), None) is not None
+
+    # -- contact inbox (Figma Contact page) ---------------------------------
+    def add_contact_message(
+        self, *, name: str, email: str, message: str, source: str | None = None
+    ) -> dict[str, Any]:
+        clean_name = str(name or "").strip()
+        clean_email = str(email or "").strip().lower()
+        clean_message = str(message or "").strip()
+        if not clean_name or len(clean_name) > 120:
+            raise WorkspaceValidationError("name must be 1–120 characters")
+        if not clean_email or "@" not in clean_email or len(clean_email) > 254:
+            raise WorkspaceValidationError("email is invalid")
+        if len(clean_message) < 10 or len(clean_message) > 4000:
+            raise WorkspaceValidationError("message must be 10–4000 characters")
+        record = {
+            "message_id": str(uuid.uuid4()),
+            "name": clean_name,
+            "email": clean_email,
+            "message": clean_message,
+            "source": (str(source).strip()[:64] or None) if source else None,
+            "status": "new",
+            "received_at": _now(),
+        }
+        with self._lock:
+            self._contact_messages.append(record)
+            # Bounded inbox: keep the most recent 5,000 messages.
+            if len(self._contact_messages) > 5000:
+                del self._contact_messages[: len(self._contact_messages) - 5000]
+        return dict(record)
+
+    def list_contact_messages(self, *, limit: int = 200) -> list[dict[str, Any]]:
+        with self._lock:
+            rows = list(reversed(self._contact_messages))[: max(1, min(int(limit), 1000))]
+        return [dict(r) for r in rows]
+
     # -- canvases ----------------------------------------------------------
     def list_canvases(self, user_id: str) -> list[dict[str, Any]]:
         with self._lock:
@@ -288,6 +420,11 @@ class InvestorWorkspaceStore:
                 "saved_research": {k: {s: dict(h) for s, h in v.items()} for k, v in self._saved_research.items()},
                 "canvases": {k: {s: dict(h) for s, h in v.items()} for k, v in self._canvases.items()},
                 "profiles": {k: dict(v) for k, v in self._profiles.items()},
+                "preferences": {k: dict(v) for k, v in self._preferences.items()},
+                "advisor_clients": {
+                    k: {s: dict(h) for s, h in v.items()} for k, v in self._advisor_clients.items()
+                },
+                "contact_messages": [dict(m) for m in self._contact_messages],
             }
 
     def import_state(self, payload: dict[str, Any]) -> None:
@@ -311,6 +448,55 @@ class InvestorWorkspaceStore:
             self._profiles = {
                 str(k): dict(v) for k, v in (payload.get("profiles") or {}).items()
             }
+            self._preferences = {
+                str(k): dict(v) for k, v in (payload.get("preferences") or {}).items()
+            }
+            self._advisor_clients = {
+                str(k): {str(s): dict(h) for s, h in (v or {}).items()}
+                for k, v in (payload.get("advisor_clients") or {}).items()
+            }
+            self._contact_messages = [dict(m) for m in (payload.get("contact_messages") or [])]
+
+
+# Figma Control Center toggles — exact set; nothing else is accepted.
+PREFERENCE_KEYS = (
+    "notifications",
+    "dsp_alerts",
+    "email_digest",
+    "peer_comparisons",
+    "auto_research",
+    "dark_mode",
+    "compact_view",
+    "beta_features",
+)
+_PREFERENCE_DEFAULTS = {
+    "notifications": True,
+    "dsp_alerts": True,
+    "email_digest": True,
+    "peer_comparisons": False,
+    "auto_research": False,
+    "dark_mode": True,
+    "compact_view": False,
+    "beta_features": False,
+}
+ADVISOR_RISK_PROFILES = ("conservative", "moderate", "aggressive")
+
+
+def default_preferences() -> dict[str, Any]:
+    return dict(_PREFERENCE_DEFAULTS)
+
+
+def validate_preferences(preferences: dict[str, Any]) -> dict[str, Any]:
+    if not isinstance(preferences, dict):
+        raise WorkspaceValidationError("preferences must be an object")
+    clean: dict[str, Any] = {}
+    for key, value in preferences.items():
+        if key not in PREFERENCE_KEYS:
+            raise WorkspaceValidationError(f"unknown preference: {key}")
+        if not isinstance(value, bool):
+            raise WorkspaceValidationError(f"{key} must be a boolean")
+        clean[key] = value
+    return clean
 
 
 # Figma Client Profile form fields — exact set; nothing else is accepted.
@@ -406,6 +592,10 @@ _READ_ONLY = frozenset(
         "list_canvases",
         "get_canvas",
         "get_profile",
+        "get_preferences",
+        "list_clients",
+        "get_client",
+        "list_contact_messages",
     }
 )
 

@@ -185,7 +185,7 @@ def test_c_missing_fmp_still_fail_closed_for_investment(
 ) -> None:
     _auth_boot_env(monkeypatch)
     monkeypatch.setenv("DSP_INVESTMENT_DATA_PROVIDER", "fmp")
-    with pytest.raises(ConnectorConfigurationError, match="DSP_FMP_API_KEY"):
+    with pytest.raises(ConnectorConfigurationError, match="not permitted"):
         build_default_quote_adapter_from_env()
 
 
@@ -208,8 +208,7 @@ def test_d_health_ready_while_investment_limitation_visible(
     checks = {c["name"]: c for c in body.get("checks", [])}
     investment = checks["investment_data_provider"]
     assert investment["status"] == "fail"
-    assert "investment_capability" in investment["message"]
-    assert "DSP_FMP_API_KEY" in investment["message"]
+    assert "not permitted" in investment["message"]
     assert "does not block auth" in investment["message"]
 
 
@@ -290,12 +289,12 @@ def test_f_auth_tests_and_sources_do_not_init_investment_adapters() -> None:
     assert offenders == []
 
 
-def test_f_fmp_still_selected_when_key_present(
+def test_f_fmp_key_does_not_select_commercial_adapter(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    """G-adjacent: investment path intact with proper FMP credentials."""
+    """FMP credentials must not activate a commercial quote adapter."""
     monkeypatch.setenv("DSP_ENVIRONMENT", "production")
-    monkeypatch.setenv("DSP_INVESTMENT_DATA_PROVIDER", "fmp")
+    monkeypatch.delenv("DSP_INVESTMENT_DATA_PROVIDER", raising=False)
     monkeypatch.setenv("DSP_FMP_API_KEY", _FMP_KEY)
     quote = build_default_quote_adapter_from_env()
-    assert type(quote).__name__ == "FinancialModelingPrepQuoteAdapter"
+    assert type(quote).__name__ == "NullAuthenticatedQuoteAdapter"

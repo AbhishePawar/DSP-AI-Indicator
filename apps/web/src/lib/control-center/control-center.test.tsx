@@ -9,7 +9,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ControlCenter } from "@/components/control-center";
 
 vi.mock("next/navigation", () => ({
-  usePathname: () => "/control-center",
+  usePathname: () => "/admin/control-center",
   useRouter: () => ({ push: vi.fn(), replace: vi.fn() }),
   useSearchParams: () => new URLSearchParams(),
 }));

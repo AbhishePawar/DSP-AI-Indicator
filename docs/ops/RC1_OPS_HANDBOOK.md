@@ -88,7 +88,7 @@ Browser → Next.js (apps/web) → /api/v1/* → api_platform → dsp_platform
 
 **Current investment-safety reality:**
 
-- G2 remains **BLOCKED** until a legitimate authenticated vendor credential is injected into `live-data-evidence` (e.g. `DSP_FMP_API_KEY`). Do not fabricate or simulate CLEARED evidence.
+- G2 remains **BLOCKED** for commercial FMP/Upstox credentials. Official Security Master + NSE/BSE evidence is authoritative. Do not fabricate or simulate CLEARED evidence.
 - Public web / public filing / `test_fixture` data is **development evidence only** and must never clear G2.
 - **CMIE** (and other licensed feeds) are **future data-infrastructure** additions — not part of this RC1 credential path.
 - RC1 cannot become **GO** without real G2 live evidence from the reusable G2 workflow.

@@ -1966,6 +1966,86 @@ export const api = {
       { method: "DELETE" },
       options,
     ),
+  /** Figma Control Center → "Clear Research History" (all saved research). */
+  workspaceSavedResearchClear: (options?: RequestOptions) =>
+    request<{ ok: boolean; removed: number }>(
+      "/workspace/research/saved",
+      { method: "DELETE" },
+      options,
+    ),
+
+  workspacePreferences: (options?: RequestOptions) =>
+    request<import("@/lib/api/workspaceTypes").PreferencesResponse>(
+      "/workspace/preferences",
+      { method: "GET" },
+      options,
+    ),
+  workspacePreferencesSave: (
+    body: Partial<Record<import("@/lib/api/workspaceTypes").PreferenceKey, boolean>>,
+    options?: RequestOptions,
+  ) =>
+    request<import("@/lib/api/workspaceTypes").PreferencesResponse>(
+      "/workspace/preferences",
+      { method: "PUT", body: JSON.stringify(body) },
+      options,
+    ),
+
+  advisorClients: (options?: RequestOptions) =>
+    request<import("@/lib/api/workspaceTypes").AdvisorClientsResponse>(
+      "/advisor/clients",
+      { method: "GET" },
+      options,
+    ),
+  advisorClientCreate: (
+    body: import("@/lib/api/workspaceTypes").AdvisorClientPayload,
+    options?: RequestOptions,
+  ) =>
+    request<{ ok: boolean; item: import("@/lib/api/workspaceTypes").AdvisorClient }>(
+      "/advisor/clients",
+      { method: "POST", body: JSON.stringify(body) },
+      options,
+    ),
+  advisorClientUpdate: (
+    clientId: string,
+    body: import("@/lib/api/workspaceTypes").AdvisorClientPayload,
+    options?: RequestOptions,
+  ) =>
+    request<{ ok: boolean; item: import("@/lib/api/workspaceTypes").AdvisorClient }>(
+      `/advisor/clients/${encodeURIComponent(clientId)}`,
+      { method: "PUT", body: JSON.stringify(body) },
+      options,
+    ),
+  advisorClientRecordSession: (clientId: string, options?: RequestOptions) =>
+    request<{ ok: boolean; item: import("@/lib/api/workspaceTypes").AdvisorClient }>(
+      `/advisor/clients/${encodeURIComponent(clientId)}/sessions`,
+      { method: "POST" },
+      options,
+    ),
+  advisorClientDelete: (clientId: string, options?: RequestOptions) =>
+    request<{ ok: boolean; removed: boolean }>(
+      `/advisor/clients/${encodeURIComponent(clientId)}`,
+      { method: "DELETE" },
+      options,
+    ),
+
+  /** Public marketing contact form → durable inbox reviewed by administrators. */
+  contactSubmit: (
+    body: import("@/lib/api/workspaceTypes").ContactPayload,
+    options?: RequestOptions,
+  ) =>
+    request<import("@/lib/api/workspaceTypes").ContactResponse>(
+      "/contact",
+      { method: "POST", body: JSON.stringify(body) },
+      options,
+    ),
+
+  /** Active coupon metadata for signed-in users (no payment is applied). */
+  coupons: (options?: RequestOptions) =>
+    request<import("@/lib/api/workspaceTypes").CouponsResponse>(
+      "/saas/coupons",
+      { method: "GET" },
+      options,
+    ),
 
   workspaceCanvases: (options?: RequestOptions) =>
     request<{ ok: boolean; items: import("@/lib/api/workspaceTypes").CanvasItem[]; count: number }>(

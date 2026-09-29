@@ -4,12 +4,10 @@ from __future__ import annotations
 
 from data_engine.insider_trading.adapters import (
     BseInsiderTradingAdapter,
-    FinancialModelingPrepInsiderTradingAdapter,
     InMemoryInsiderTradingAdapter,
     NseInsiderTradingAdapter,
     NullInsiderTradingAdapter,
     SecEdgarInsiderTradingAdapter,
-    YahooFinanceInsiderTradingAdapter,
     build_default_insider_trading_registry_from_env,
     build_insider_activity_from_mapping,
 )
@@ -31,7 +29,6 @@ __all__ = [
     "INSIDER_TRANSACTION_TYPES",
     "AuthenticatedInsiderActivity",
     "BseInsiderTradingAdapter",
-    "FinancialModelingPrepInsiderTradingAdapter",
     "InMemoryInsiderTradingAdapter",
     "InsiderTradingProviderPort",
     "InsiderTradingProviderRegistry",
@@ -42,7 +39,6 @@ __all__ = [
     "NseInsiderTradingAdapter",
     "NullInsiderTradingAdapter",
     "SecEdgarInsiderTradingAdapter",
-    "YahooFinanceInsiderTradingAdapter",
     "build_default_insider_trading_registry_from_env",
     "build_insider_activity_from_mapping",
     "validate_authenticated_insider_activity",

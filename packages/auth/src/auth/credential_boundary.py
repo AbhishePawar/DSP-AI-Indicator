@@ -11,13 +11,10 @@ satisfied by investment credentials.
     DSP_GOOGLE_CLIENT_ID
     DSP_GOOGLE_CLIENT_SECRET
 
-INVESTMENT DOMAIN — market data / FMP. Owned by ``data_engine`` /
-composition. Auth boot, login, OTP, magic-link, Google OAuth, JWT/session,
-and ``/health/ready`` must not require these.
-
-    DSP_INVESTMENT_DATA_PROVIDER
-    DSP_FMP_API_KEY
-    DSP_INVESTMENT_FMP_API_KEY
+INVESTMENT DOMAIN — official/evidence-backed DSP data only. Owned by
+``data_engine`` / composition. Auth boot, login, OTP, magic-link, Google
+OAuth, JWT/session, and ``/health/ready`` must not require commercial
+vendor credentials. FMP and Upstox keys are not used.
 
 Auth code must not call investment factories
 (``build_default_quote_adapter_from_env``,

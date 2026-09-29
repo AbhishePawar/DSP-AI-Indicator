@@ -16,8 +16,6 @@ from data_engine import (
     ProviderFactory,
     ProviderRegistry,
     register_fred,
-    register_yahoo_finance,
-    register_yahoo_finance_fundamentals,
 )
 from dsp_platform.config import Environment, PlatformConfig
 from dsp_platform.exceptions import PlatformError
@@ -40,14 +38,9 @@ def build_analysis_service(config: PlatformConfig) -> InvestmentAnalysisService:
         registry = ProviderRegistry()
         timeout = config.timeouts.request_seconds
 
-        if config.providers.enable_market:
-            register_yahoo_finance(
-                factory, registry, {"timeout_seconds": timeout}
-            )
-        if config.providers.enable_fundamentals:
-            register_yahoo_finance_fundamentals(
-                factory, registry, {"timeout_seconds": timeout}
-            )
+        # Market and fundamentals are not served by a commercial vendor.
+        # Official evidence (NSE/BSE/filings) is the authoritative path.
+        # enable_market / enable_fundamentals do not register a provider.
         if config.providers.enable_economic:
             # Allow missing key only in TEST (unit tests inject fakes).
             # DEVELOPMENT/PRODUCTION require an injected key for live FRED.

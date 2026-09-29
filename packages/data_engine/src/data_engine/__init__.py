@@ -1,8 +1,9 @@
 """Data Engine public API.
 
 The Data Engine is the platform's data-acquisition and normalization
-layer. Concrete adapters: Yahoo Finance (OHLCV + fundamentals) and FRED
-(macroeconomic series). Depends only on ``contracts`` and ``core``.
+layer. Official evidence adapters (NSE, BSE, SEC EDGAR, company filings)
+and the FRED macroeconomic series live here. Commercial market-data
+vendors are not part of this surface. Depends only on ``contracts`` and ``core``.
 """
 
 from __future__ import annotations
@@ -15,18 +16,6 @@ from data_engine.adapters.fred import (
     build_fred_adapter,
     register_fred,
     supported_indicator_codes,
-)
-from data_engine.adapters.yahoo_finance import (
-    YAHOO_FINANCE_FUNDAMENTALS_METADATA,
-    YAHOO_FINANCE_METADATA,
-    JsonHttpClient,
-    UrllibJsonHttpClient,
-    YahooFinanceAdapter,
-    YahooFinanceFundamentalsAdapter,
-    build_yahoo_finance_adapter,
-    build_yahoo_finance_fundamentals_adapter,
-    register_yahoo_finance,
-    register_yahoo_finance_fundamentals,
 )
 from data_engine.builders import EconomicSeriesBuilder, FundamentalStatementsBuilder
 from data_engine.connector_framework import (
@@ -57,7 +46,6 @@ from data_engine.exceptions import (
 from data_engine.market_indices import (
     INDIA_BENCHMARK_INDICES,
     BenchmarkIndex,
-    FinancialModelingPrepIndexAdapter,
     MarketIndexPort,
     MarketIndexService,
     MarketIndexSnapshot,
@@ -129,9 +117,7 @@ from data_engine.corporate_actions import (
 )
 from data_engine.news import (
     SENTIMENT_LABELS,
-    AlphaVantageNewsAdapter,
     AuthenticatedNewsFeed,
-    FinancialModelingPrepNewsAdapter,
     InMemoryNewsAdapter,
     NewsArticle,
     NewsProviderPort,
@@ -140,8 +126,6 @@ from data_engine.news import (
     NewsService,
     NewsServiceMetrics,
     NullNewsAdapter,
-    PolygonNewsAdapter,
-    YahooFinanceNewsAdapter,
     build_default_news_registry_from_env,
     build_news_feed_from_mapping,
     validate_authenticated_news_feed,
@@ -156,7 +140,6 @@ from data_engine.filings import (
     FilingsQuery,
     FilingsService,
     FilingsServiceMetrics,
-    FinancialModelingPrepFilingsAdapter,
     InMemoryFilingsAdapter,
     NseFilingsAdapter,
     NullFilingsAdapter,
@@ -170,7 +153,6 @@ from data_engine.ownership import (
     OWNERSHIP_HOLDER_TYPES,
     AuthenticatedOwnership,
     BseOwnershipAdapter,
-    FinancialModelingPrepOwnershipAdapter,
     InMemoryOwnershipAdapter,
     NseOwnershipAdapter,
     NullOwnershipAdapter,
@@ -181,7 +163,6 @@ from data_engine.ownership import (
     OwnershipServiceMetrics,
     OwnershipStake,
     ScreenerOwnershipAdapter,
-    YahooFinanceOwnershipAdapter,
     build_default_ownership_registry_from_env,
     build_ownership_bundle_from_mapping,
     validate_authenticated_ownership,
@@ -190,7 +171,6 @@ from data_engine.insider_trading import (
     INSIDER_TRANSACTION_TYPES,
     AuthenticatedInsiderActivity,
     BseInsiderTradingAdapter,
-    FinancialModelingPrepInsiderTradingAdapter,
     InMemoryInsiderTradingAdapter,
     InsiderTradingProviderPort,
     InsiderTradingProviderRegistry,
@@ -201,7 +181,6 @@ from data_engine.insider_trading import (
     NseInsiderTradingAdapter,
     NullInsiderTradingAdapter,
     SecEdgarInsiderTradingAdapter,
-    YahooFinanceInsiderTradingAdapter,
     build_default_insider_trading_registry_from_env,
     build_insider_activity_from_mapping,
     validate_authenticated_insider_activity,
@@ -214,10 +193,8 @@ from data_engine.esg import (
     EsgQuery,
     EsgService,
     EsgServiceMetrics,
-    FinancialModelingPrepEsgAdapter,
     InMemoryEsgAdapter,
     NullEsgAdapter,
-    YahooFinanceEsgAdapter,
     build_default_esg_registry_from_env,
     build_esg_score_from_mapping,
     validate_authenticated_esg_score,
@@ -225,7 +202,6 @@ from data_engine.esg import (
 from data_engine.transcripts import (
     AuthenticatedTranscripts,
     EarningsCallTranscript,
-    FinancialModelingPrepTranscriptAdapter,
     InMemoryTranscriptAdapter,
     NullTranscriptAdapter,
     TranscriptProviderPort,
@@ -346,7 +322,6 @@ from data_engine.services import (
 
 __all__ = [
     'ACTION_TYPES',
-    'AlphaVantageNewsAdapter',
     'AlternativeDataNormalizer',
     'AlternativeDataPort',
     'AuthenticatedCorporateAction',
@@ -424,12 +399,6 @@ __all__ = [
     'FilingsQuery',
     'FilingsService',
     'FilingsServiceMetrics',
-    'FinancialModelingPrepEsgAdapter',
-    'FinancialModelingPrepFilingsAdapter',
-    'FinancialModelingPrepInsiderTradingAdapter',
-    'FinancialModelingPrepNewsAdapter',
-    'FinancialModelingPrepOwnershipAdapter',
-    'FinancialModelingPrepTranscriptAdapter',
     'FinancialStatementPort',
     'FinancialStatementProvenance',
     'FinancialStatementProviderRegistry',
@@ -470,7 +439,6 @@ __all__ = [
     'InsiderTradingServiceMetrics',
     'InsiderTransaction',
     'InvalidProviderDataError',
-    'JsonHttpClient',
     'LoggingProviderAuditPort',
     'MarketDataNormalizer',
     'MarketDataPort',
@@ -482,7 +450,6 @@ __all__ = [
     'MarketQuoteServiceMetrics',
     'INDIA_BENCHMARK_INDICES',
     'BenchmarkIndex',
-    'FinancialModelingPrepIndexAdapter',
     'MarketIndexPort',
     'MarketIndexService',
     'MarketIndexSnapshot',
@@ -522,7 +489,6 @@ __all__ = [
     'OwnershipService',
     'OwnershipServiceMetrics',
     'OwnershipStake',
-    'PolygonNewsAdapter',
     'PriceSeriesRequest',
     'PriorityProviderRegistry',
     'ProviderAuditEvent',
@@ -573,18 +539,9 @@ __all__ = [
     'UnifiedCompanyIdentity',
     'UnifiedDataBundle',
     'UnifiedHealthReport',
-    'UrllibJsonHttpClient',
     'ValidationPipeline',
     'ValidationStage',
     'VolumeValidationStage',
-    'YAHOO_FINANCE_FUNDAMENTALS_METADATA',
-    'YAHOO_FINANCE_METADATA',
-    'YahooFinanceAdapter',
-    'YahooFinanceEsgAdapter',
-    'YahooFinanceFundamentalsAdapter',
-    'YahooFinanceInsiderTradingAdapter',
-    'YahooFinanceNewsAdapter',
-    'YahooFinanceOwnershipAdapter',
     'build_actions_from_mapping',
     'build_default_corporate_action_adapter_from_env',
     'build_default_esg_registry_from_env',
@@ -608,12 +565,8 @@ __all__ = [
     'build_quote_from_mapping',
     'build_statements_from_mapping',
     'build_transcripts_bundle_from_mapping',
-    'build_yahoo_finance_adapter',
-    'build_yahoo_finance_fundamentals_adapter',
     'normalize_reporting_currency',
     'register_fred',
-    'register_yahoo_finance',
-    'register_yahoo_finance_fundamentals',
     'supported_indicator_codes',
     'utc_now',
     'validate_authenticated_corporate_actions',

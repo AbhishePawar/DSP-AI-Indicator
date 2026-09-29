@@ -62,16 +62,22 @@ def test_dev_default_still_allows_null() -> None:
     assert adapter_is_production_unsafe(quote) is True
 
 
-def test_production_rejects_null_quote(monkeypatch: pytest.MonkeyPatch) -> None:
+def test_production_quote_is_honestly_unavailable(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
     monkeypatch.setenv("DSP_ENVIRONMENT", "production")
-    with pytest.raises(ConnectorConfigurationError, match="P1-03"):
-        build_default_quote_adapter_from_env()
+    quote = build_default_quote_adapter_from_env()
+    assert isinstance(quote, NullAuthenticatedQuoteAdapter)
+    assert type(quote).__name__ != "FinancialModelingPrepQuoteAdapter"
 
 
-def test_production_rejects_null_statements(monkeypatch: pytest.MonkeyPatch) -> None:
+def test_production_statements_are_honestly_unavailable(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
     monkeypatch.setenv("DSP_ENVIRONMENT", "production")
-    with pytest.raises(ConnectorConfigurationError, match="financial_statement"):
-        build_default_statement_adapter_from_env()
+    statements = build_default_statement_adapter_from_env()
+    assert isinstance(statements, NullAuthenticatedStatementAdapter)
+    assert type(statements).__name__ != "FinancialModelingPrepStatementAdapter"
 
 
 def test_production_rejects_memory_quote(monkeypatch: pytest.MonkeyPatch) -> None:
@@ -97,7 +103,9 @@ def test_dev_memory_still_allowed(monkeypatch: pytest.MonkeyPatch) -> None:
     assert isinstance(statements, InMemoryAuthenticatedStatementAdapter)
 
 
-def test_production_selects_configured_http(monkeypatch: pytest.MonkeyPatch) -> None:
+def test_production_does_not_select_configured_http_fallback(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
     monkeypatch.setenv("DSP_ENVIRONMENT", "production")
     monkeypatch.setenv("DSP_MARKET_QUOTE_API_KEY", "test-key")
     monkeypatch.setenv("DSP_MARKET_QUOTE_BASE_URL", "https://vendor.example/quotes")
@@ -107,12 +115,12 @@ def test_production_selects_configured_http(monkeypatch: pytest.MonkeyPatch) -> 
     )
     quote = build_default_quote_adapter_from_env()
     statements = build_default_statement_adapter_from_env()
-    assert isinstance(quote, ConfiguredHttpQuoteAdapter)
-    assert isinstance(statements, ConfiguredHttpStatementAdapter)
-    assert adapter_is_production_unsafe(quote) is False
+    assert isinstance(quote, NullAuthenticatedQuoteAdapter)
+    assert isinstance(statements, NullAuthenticatedStatementAdapter)
+    assert not isinstance(quote, ConfiguredHttpQuoteAdapter)
     selected = assert_production_investment_connectors_configured()
-    assert selected["market_quote"] == "ConfiguredHttpQuoteAdapter"
-    assert selected["financial_statement"] == "ConfiguredHttpStatementAdapter"
+    assert selected["market_quote"] == "INVESTMENT_DATA_UNAVAILABLE"
+    assert selected["financial_statement"] == "INVESTMENT_DATA_UNAVAILABLE"
 
 
 def test_production_news_rejects_null_only_registry(
@@ -129,25 +137,24 @@ def test_dev_news_keeps_null_fallback() -> None:
     assert isinstance(registry.get("null_news"), NullNewsAdapter)
 
 
-def test_production_news_with_vendor_omits_null(
+def test_production_news_fmp_key_does_not_register_fmp(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     monkeypatch.setenv("DSP_ENVIRONMENT", "production")
     monkeypatch.setenv("DSP_NEWS_FMP_API_KEY", "fmp-test-key")
-    registry = build_default_news_registry_from_env()
-    assert "fmp_news" in registry.all_ids()
-    assert "null_news" not in registry.all_ids()
+    with pytest.raises(ConnectorConfigurationError, match="news"):
+        build_default_news_registry_from_env()
 
 
 def test_classify_provider_ids() -> None:
     assert classify_provider_id("null_news") == "NULL_UNAVAILABLE"
     assert classify_provider_id("memory_news") == "TEST_MEMORY"
+    # Historical commercial id is not treated as an official feed.
     assert classify_provider_id("fmp_news") == "PRODUCTION_CANDIDATE"
 
 
-def test_missing_credentials_fail_closed(monkeypatch: pytest.MonkeyPatch) -> None:
+def test_fmp_provider_name_fails_closed(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setenv("DSP_ENVIRONMENT", "production")
-    monkeypatch.setenv("DSP_MARKET_QUOTE_API_KEY", "only-key")
-    # base URL missing → fail closed (not Null)
-    with pytest.raises(ConnectorConfigurationError, match="DSP_MARKET_QUOTE_BASE_URL"):
+    monkeypatch.setenv("DSP_INVESTMENT_DATA_PROVIDER", "fmp")
+    with pytest.raises(ConnectorConfigurationError, match="not permitted"):
         build_default_quote_adapter_from_env()

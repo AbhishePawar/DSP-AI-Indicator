@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import os
 from datetime import UTC, datetime
 
 import pytest
@@ -10,11 +9,9 @@ from contracts.domain.instrument import Instrument
 from contracts.enums import AssetClass
 
 from data_engine import (
-    AlphaVantageNewsAdapter,
     CircuitOpenError,
     ConnectorProvenance,
     FailoverGroup,
-    FinancialModelingPrepNewsAdapter,
     InMemoryNewsAdapter,
     InvalidProviderDataError,
     NewsArticle,
@@ -22,9 +19,7 @@ from data_engine import (
     NewsQuery,
     NewsService,
     NullNewsAdapter,
-    PolygonNewsAdapter,
     ProviderRequestError,
-    YahooFinanceNewsAdapter,
     build_default_news_registry_from_env,
     build_news_feed_from_mapping,
     validate_authenticated_news_feed,
@@ -33,16 +28,6 @@ from data_engine import (
 
 def _instrument(symbol: str = "AAPL") -> Instrument:
     return Instrument(symbol=symbol, asset_class=AssetClass.EQUITY, currency="USD")
-
-
-class _FakeJsonClient:
-    def __init__(self, payload) -> None:
-        self.payload = payload
-        self.calls: list[tuple[str, dict]] = []
-
-    def get_json(self, url, *, params=None, headers=None):
-        self.calls.append((url, dict(params or {})))
-        return self.payload
 
 
 class TestNullAndInMemoryAdapters:
@@ -125,107 +110,17 @@ class TestValidation:
             )
 
 
-class TestYahooFinanceNewsAdapter:
-    def test_disabled_raises(self) -> None:
-        adapter = YahooFinanceNewsAdapter(enabled=False)
-        with pytest.raises(ProviderRequestError):
-            adapter.get_news(NewsQuery(instrument=_instrument()))
+class TestCommercialNewsAdaptersAbsent:
+    def test_commercial_news_adapters_are_not_exported(self) -> None:
+        import data_engine
 
-    def test_maps_search_payload(self) -> None:
-        client = _FakeJsonClient(
-            {
-                "news": [
-                    {
-                        "uuid": "abc-1",
-                        "title": "Apple unveils new product",
-                        "link": "https://finance.yahoo.com/news/abc-1",
-                        "publisher": "Yahoo Finance",
-                        "providerPublishTime": 1700000000,
-                        "relatedTickers": ["AAPL"],
-                    }
-                ]
-            }
-        )
-        adapter = YahooFinanceNewsAdapter(enabled=True, http_client=client)
-        feed = adapter.get_news(NewsQuery(instrument=_instrument(), limit=5))
-        assert feed is not None
-        assert feed.articles[0].article_id == "abc-1"
-        assert feed.articles[0].related_symbols == ("AAPL",)
-
-    def test_empty_news_returns_none(self) -> None:
-        adapter = YahooFinanceNewsAdapter(enabled=True, http_client=_FakeJsonClient({"news": []}))
-        assert adapter.get_news(NewsQuery(instrument=_instrument())) is None
-
-
-class TestAlphaVantageNewsAdapter:
-    def test_requires_api_key(self) -> None:
-        adapter = AlphaVantageNewsAdapter(api_key="")
-        with pytest.raises(ProviderRequestError):
-            adapter.get_news(NewsQuery(instrument=_instrument()))
-
-    def test_maps_feed_and_sentiment(self) -> None:
-        client = _FakeJsonClient(
-            {
-                "feed": [
-                    {
-                        "title": "Apple bullish outlook",
-                        "url": "https://example.com/av1",
-                        "time_published": "20231101T093000",
-                        "summary": "Summary text",
-                        "source": "Benzinga",
-                        "overall_sentiment_label": "Bullish",
-                        "ticker_sentiment": [{"ticker": "AAPL"}],
-                    }
-                ]
-            }
-        )
-        adapter = AlphaVantageNewsAdapter(api_key="k", http_client=client)
-        feed = adapter.get_news(NewsQuery(instrument=_instrument()))
-        assert feed is not None
-        assert feed.articles[0].sentiment == "positive"
-        assert feed.articles[0].related_symbols == ("AAPL",)
-
-
-class TestFinancialModelingPrepNewsAdapter:
-    def test_maps_array_payload(self) -> None:
-        client = _FakeJsonClient(
-            [
-                {
-                    "symbol": "AAPL",
-                    "publishedDate": "2023-11-01 09:30:00",
-                    "title": "FMP headline",
-                    "site": "fmp.com",
-                    "text": "body",
-                    "url": "https://fmp.com/1",
-                }
-            ]
-        )
-        adapter = FinancialModelingPrepNewsAdapter(api_key="k", http_client=client)
-        feed = adapter.get_news(NewsQuery(instrument=_instrument()))
-        assert feed is not None
-        assert feed.articles[0].headline == "FMP headline"
-
-
-class TestPolygonNewsAdapter:
-    def test_maps_results_payload(self) -> None:
-        client = _FakeJsonClient(
-            {
-                "results": [
-                    {
-                        "id": "poly-1",
-                        "title": "Polygon headline",
-                        "article_url": "https://polygon.io/1",
-                        "published_utc": "2023-11-01T09:30:00Z",
-                        "publisher": {"name": "Polygon"},
-                        "tickers": ["AAPL"],
-                    }
-                ]
-            }
-        )
-        adapter = PolygonNewsAdapter(api_key="k", http_client=client)
-        feed = adapter.get_news(NewsQuery(instrument=_instrument()))
-        assert feed is not None
-        assert feed.articles[0].source == "Polygon"
+        for name in (
+            "FinancialModelingPrepNewsAdapter",
+            "YahooFinanceNewsAdapter",
+            "AlphaVantageNewsAdapter",
+            "PolygonNewsAdapter",
+        ):
+            assert not hasattr(data_engine, name)
 
 
 class TestNewsProviderRegistryAndFailover:
@@ -287,15 +182,16 @@ class TestBuildDefaultRegistryFromEnv:
         registry = build_default_news_registry_from_env()
         assert registry.ordered_ids() == ("null_news",)
 
-    def test_registers_configured_vendors(self, monkeypatch: pytest.MonkeyPatch) -> None:
+    def test_commercial_news_keys_do_not_register_vendors(
+        self, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
         monkeypatch.setenv("DSP_NEWS_FMP_API_KEY", "key123")
+        monkeypatch.setenv("DSP_NEWS_POLYGON_API_KEY", "poly")
+        monkeypatch.setenv("DSP_NEWS_ALPHAVANTAGE_API_KEY", "av")
         monkeypatch.setenv("DSP_NEWS_YAHOO_ENABLED", "1")
         registry = build_default_news_registry_from_env()
         ids = registry.ordered_ids()
-        assert "fmp_news" in ids
-        assert "yahoo_finance_news" in ids
-        assert ids[-1] == "null_news"
-        assert ids.index("fmp_news") < ids.index("yahoo_finance_news")
+        assert ids == ("null_news",)
 
 
 class TestNewsServiceResilience:

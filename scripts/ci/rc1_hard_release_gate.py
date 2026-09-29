@@ -560,7 +560,7 @@ def main(argv: list[str] | None = None) -> int:
         )
         if "G2" in decision.blocking:
             print(
-                "G2 BLOCKED — awaiting legitimate FMP credential ⇒ RC1 NO-GO",
+                "G2 BLOCKED — commercial FMP/Upstox credentials are rejected ⇒ RC1 NO-GO",
                 file=sys.stderr,
             )
     return decision.exit_code

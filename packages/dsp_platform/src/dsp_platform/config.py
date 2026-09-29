@@ -31,19 +31,22 @@ class ProviderSettings:
     """Which data providers the composition root should register.
 
     Attributes:
-        market_provider_id: Default market-data provider registry id.
-        fundamentals_provider_id: Default fundamentals provider id.
-        economic_provider_id: Default economic provider id.
-        enable_market: Register the market adapter when building.
-        enable_fundamentals: Register the fundamentals adapter.
-        enable_economic: Register the economic adapter.
+        market_provider_id: Label for the market slot. No commercial
+            market adapter is registered.
+        fundamentals_provider_id: Label for the fundamentals slot. No
+            commercial fundamentals adapter is registered.
+        economic_provider_id: Default economic provider id (FRED).
+        enable_market: When false, the market slot has no default provider.
+        enable_fundamentals: When false, the fundamentals slot has no
+            default provider.
+        enable_economic: Register the FRED economic adapter.
     """
 
-    market_provider_id: str = "yahoo_finance"
-    fundamentals_provider_id: str = "yahoo_finance_fundamentals"
+    market_provider_id: str = "unavailable"
+    fundamentals_provider_id: str = "unavailable"
     economic_provider_id: str = "fred"
-    enable_market: bool = True
-    enable_fundamentals: bool = True
+    enable_market: bool = False
+    enable_fundamentals: bool = False
     enable_economic: bool = True
 
     def __post_init__(self) -> None:

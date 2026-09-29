@@ -331,6 +331,14 @@ textarea {
   min-height: calc(100vh - 8rem);
 }
 
+html[data-density="compact"] .page-header {
+  padding: 10px 16px;
+}
+
+html[data-density="compact"] {
+  --card-padding: 14px;
+}
+
 @media (max-width: 768px) {
   .page-header {
     padding: 12px 16px;

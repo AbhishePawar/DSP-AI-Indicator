@@ -2,9 +2,10 @@
 
 These enumerations give the provider framework a controlled, closed
 vocabulary for concepts that recur across every provider a future
-adapter might integrate — Yahoo Finance, Alpha Vantage, Polygon, FMP,
-Twelve Data, NSE, RBI, FRED, Quandl, CoinGecko, and any provider added
-after them. None of these enumerations know about any specific vendor.
+adapter might describe — official exchange/evidence sources, FRED, and
+other non-commercial series. Commercial vendors (FMP, Upstox, yfinance)
+are rejected at the investment-data policy layer. None of these
+enumerations know about any specific vendor.
 """
 
 from __future__ import annotations

@@ -206,6 +206,11 @@ def run_saas_platform(
         "checkout": lambda: _checkout(enterprise, overlay, body),
         "checkout_verify": lambda: _checkout_verify(enterprise, overlay, body),
         "upsert_coupon": lambda: {"coupon": overlay.upsert_coupon(body)},
+        "list_coupons": lambda: {
+            "coupons": overlay.list_coupons(
+                active_only=bool(body.get("active_only", True))
+            )
+        },
         "get_coupon": lambda: {
             "coupon": overlay.get_coupon(str(body.get("code") or ""))
             or {"available": False, "message": UNAVAILABLE_MESSAGE}

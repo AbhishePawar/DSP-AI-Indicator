@@ -1,9 +1,8 @@
-/** Primary navigation map — L1.1 + optional Advisor (V2.0 demo gate).
+/** Primary navigation map — L1.1 (Figma Make sidebar parity).
  * EPIC-F003: institutional shell uses `@/lib/shell` SHELL_NAV;
  * this module remains for legacy surfaces and breadcrumb fallbacks.
  */
 
-import { isAdvisorDemoEnabled } from "@/lib/advisor/isAdvisorDemoEnabled";
 import { breadcrumbsForPath } from "@/lib/shell/navigationRegistry";
 
 export type NavItem = {
@@ -59,33 +58,28 @@ const CORE_NAV: readonly NavItem[] = [
     description: "AI research explainability assistant",
   },
   {
+    href: "/advisor",
+    label: "Advisor",
+    description: "Client portfolio management and research delegation",
+  },
+  {
     href: "/documentation",
     label: "Documentation",
     description: "Platform documentation and guides",
   },
   {
-    href: "/settings",
+    href: "/control-center",
     label: "Settings",
-    description: "Theme and configuration",
+    description: "Account, notifications, research preferences, and interface",
   },
 ] as const;
-
-const ADVISOR_NAV: NavItem = {
-  href: "/advisor",
-  label: "Advisor",
-  description: "Advisor platform foundation (demo)",
-};
 
 /** Full static list for type consumers; prefer getPrimaryNav() for UI. */
 export const PRIMARY_NAV: readonly NavItem[] = CORE_NAV;
 
-/** Navigation visible in the shell — Advisor only when demo mode enabled. */
+/** Navigation visible in the shell. */
 export function getPrimaryNav(): NavItem[] {
-  if (!isAdvisorDemoEnabled()) return [...CORE_NAV];
-  const insertAt = CORE_NAV.findIndex((n) => n.href === "/settings");
-  const next = [...CORE_NAV];
-  next.splice(insertAt >= 0 ? insertAt : next.length, 0, ADVISOR_NAV);
-  return next;
+  return [...CORE_NAV];
 }
 
 /** Breadcrumbs — delegated to F003 route registry. */

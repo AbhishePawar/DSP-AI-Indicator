@@ -11,7 +11,6 @@ from contracts.enums import AssetClass
 from data_engine import (
     ConnectorProvenance,
     EarningsCallTranscript,
-    FinancialModelingPrepTranscriptAdapter,
     InMemoryTranscriptAdapter,
     InvalidProviderDataError,
     NullTranscriptAdapter,
@@ -111,53 +110,20 @@ class TestValidation:
             build_transcripts_bundle_from_mapping(symbol="AAPL", transcripts=[], provenance=_provenance())
 
 
-class TestFinancialModelingPrepTranscriptAdapter:
-    def test_requires_api_key(self) -> None:
-        with pytest.raises(ProviderRequestError):
-            FinancialModelingPrepTranscriptAdapter(api_key="").get_transcripts(
-                TranscriptQuery(instrument=_instrument())
-            )
+class TestFinancialModelingPrepTranscriptAdapterAbsent:
+    def test_fmp_transcript_adapter_is_not_exported(self) -> None:
+        import data_engine
 
-    def test_fetches_by_explicit_year_and_quarter(self) -> None:
-        content_payload = [
-            {"date": "2023-08-03 17:00:00", "content": "Operator: welcome..."}
-        ]
-        adapter = FinancialModelingPrepTranscriptAdapter(
-            api_key="k", http_client=_FakeJsonClient(content_payload)
-        )
-        bundle = adapter.get_transcripts(
-            TranscriptQuery(instrument=_instrument(), year=2023, quarter=3)
-        )
-        assert bundle is not None
-        assert len(bundle.transcripts) == 1
-        t = bundle.transcripts[0]
-        assert t.year == 2023
-        assert t.quarter == 3
-        assert t.call_date == date(2023, 8, 3)
-        assert t.content is not None
-
-    def test_uses_dates_index_when_year_quarter_not_given(self) -> None:
-        dates_payload = [{"quarter": 3, "year": 2023}, {"quarter": 2, "year": 2023}]
-        content_payload = [{"date": "2023-08-03 17:00:00", "content": "Operator: welcome..."}]
-        client = _FakeJsonClient(sequence=[dates_payload, content_payload, content_payload])
-        adapter = FinancialModelingPrepTranscriptAdapter(api_key="k", http_client=client)
-        bundle = adapter.get_transcripts(TranscriptQuery(instrument=_instrument(), limit=2))
-        assert bundle is not None
-        assert len(bundle.transcripts) == 2
-
-    def test_no_transcript_dates_returns_none(self) -> None:
-        adapter = FinancialModelingPrepTranscriptAdapter(api_key="k", http_client=_FakeJsonClient([]))
-        assert adapter.get_transcripts(TranscriptQuery(instrument=_instrument())) is None
+        assert not hasattr(data_engine, "FinancialModelingPrepTranscriptAdapter")
 
 
 class TestRegistryAndEnv:
     def test_registry_ordering(self) -> None:
         registry = TranscriptProviderRegistry()
         registry.register(NullTranscriptAdapter(), provider_id="null_transcripts", priority=1000)
-        registry.register(
-            FinancialModelingPrepTranscriptAdapter(api_key="k"), provider_id="fmp_transcripts", priority=10
-        )
-        assert registry.ordered_ids() == ("fmp_transcripts", "null_transcripts")
+        registry.register(InMemoryTranscriptAdapter(api_key="k"), provider_id="memory_transcripts", priority=10)
+        assert registry.ordered_ids() == ("memory_transcripts", "null_transcripts")
+        assert "fmp_transcripts" not in registry.ordered_ids()
 
     def test_default_registry_falls_back_to_null(self, monkeypatch: pytest.MonkeyPatch) -> None:
         for key in ("DSP_TRANSCRIPT_FMP_API_KEY", "DSP_TRANSCRIPT_MEMORY"):

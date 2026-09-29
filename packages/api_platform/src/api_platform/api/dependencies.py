@@ -229,7 +229,7 @@ def build_default_platform() -> DSPPlatform:
     composition orchestrator → ``run_execution_pipeline``, which sources
     authenticated quotes/statements from the production investment adapters and
     never uses the legacy ``InvestmentAnalysisService``. Hence
-    ``require_analysis_service=False``: the legacy Yahoo/FRED analyze path stays
+    ``require_analysis_service=False``: the legacy analysis service stays
     optional and must be injected explicitly when a caller wants it.
     """
     return (

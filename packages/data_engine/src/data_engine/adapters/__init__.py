@@ -1,19 +1,12 @@
 """Base scaffolding for Data Engine provider adapters.
 
 An adapter is a concrete implementation of one of the abstract ports in
-``data_engine.ports`` for a specific external data source — a market-data
-vendor, a fundamentals API, and so on. No concrete adapter is implemented
-in this package: this module only defines the shared shape every future
-adapter should follow.
+``data_engine.ports`` for a specific external data source. This module
+only defines the shared shape every adapter follows.
 
-Concrete adapters (e.g. a Yahoo Finance adapter implementing
-``MarketDataPort``) are intentionally out of scope for this sprint. They
-will live in their own modules under this package once a real provider
-integration is undertaken, each subclassing ``BaseAdapter`` together with
-the specific port(s) it implements, e.g.::
-
-    class YahooFinanceAdapter(BaseAdapter, MarketDataPort):
-        ...
+Concrete official adapters (FRED, and exchange/filing adapters elsewhere
+in the package) subclass ``BaseAdapter`` together with the port they
+implement. Commercial market-data vendors are not implemented here.
 """
 
 from __future__ import annotations

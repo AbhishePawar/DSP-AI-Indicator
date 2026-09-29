@@ -34,16 +34,20 @@ def diagnose(*, probe: bool = False, ticker: str = "AAPL") -> dict[str, Any]:
     fmp_key = _present("DSP_FMP_API_KEY") or _present("DSP_INVESTMENT_FMP_API_KEY")
 
     http_ready = http_quote_key and http_quote_url and http_stmt_key and http_stmt_url
-    route = "configured_http" if http_ready else ("fmp" if fmp_key else "none")
-    provider_configured = route != "none"
+    if fmp_key and not http_ready:
+        route = "rejected_fmp"
+    elif http_ready:
+        route = "configured_http"
+    else:
+        route = "none"
+    provider_configured = route == "configured_http"
 
     report: dict[str, Any] = {
         "provider_configured": "yes" if provider_configured else "no",
         "route": route,
-        "base_url_configured": "yes"
-        if (http_ready or fmp_key)
-        else "no",
-        "api_key_configured": "yes" if (http_ready or fmp_key) else "no",
+        "base_url_configured": "yes" if http_ready else "no",
+        "api_key_configured": "yes" if http_ready else "no",
+        "fmp_rejected": "yes" if fmp_key else "no",
         "production_adapter_selected": "unknown",
         "credential_presence": {
             "DSP_FMP_API_KEY": "PRESENT" if _present("DSP_FMP_API_KEY") else "ABSENT",

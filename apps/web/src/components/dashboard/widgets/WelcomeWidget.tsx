@@ -103,7 +103,7 @@ export function WelcomeWidget() {
             Profile
           </Button>
         </Link>
-        <Link href="/settings">
+        <Link href="/control-center">
           <Button size="sm" variant="secondary">
             Settings
           </Button>

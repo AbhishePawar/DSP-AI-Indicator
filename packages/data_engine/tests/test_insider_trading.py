@@ -12,7 +12,6 @@ from data_engine import (
     BseInsiderTradingAdapter,
     ConnectorField,
     ConnectorProvenance,
-    FinancialModelingPrepInsiderTradingAdapter,
     InMemoryInsiderTradingAdapter,
     InsiderTradingProviderRegistry,
     InsiderTradingQuery,
@@ -23,7 +22,6 @@ from data_engine import (
     NullInsiderTradingAdapter,
     ProviderRequestError,
     SecEdgarInsiderTradingAdapter,
-    YahooFinanceInsiderTradingAdapter,
     build_default_insider_trading_registry_from_env,
     build_insider_activity_from_mapping,
 )
@@ -206,30 +204,12 @@ class TestSecEdgarInsiderTradingAdapter:
         assert adapter.get_insider_activity(InsiderTradingQuery(instrument=_instrument("AAPL"))) is None
 
 
-class TestFinancialModelingPrepInsiderTradingAdapter:
-    def test_maps_array_payload(self) -> None:
-        payload = [
-            {
-                "reportingName": "Jane Doe",
-                "transactionDate": "2023-06-05",
-                "transactionType": "P-Purchase",
-                "securitiesTransacted": 500,
-                "price": 150.25,
-                "filingDate": "2023-06-06",
-                "typeOfOwner": "officer: CEO",
-            }
-        ]
-        adapter = FinancialModelingPrepInsiderTradingAdapter(api_key="k", http_client=_FakeJsonClient(payload))
-        bundle = adapter.get_insider_activity(InsiderTradingQuery(instrument=_instrument()))
-        assert bundle is not None
-        assert bundle.transactions[0].transaction_type == "buy"
-        assert bundle.transactions[0].value.to_float() == pytest.approx(500 * 150.25)
+class TestFinancialModelingPrepInsiderTradingAdapterAbsent:
+    def test_fmp_insider_adapter_is_not_exported(self) -> None:
+        import data_engine
 
-    def test_requires_api_key(self) -> None:
-        with pytest.raises(ProviderRequestError):
-            FinancialModelingPrepInsiderTradingAdapter(api_key="").get_insider_activity(
-                InsiderTradingQuery(instrument=_instrument())
-            )
+        assert not hasattr(data_engine, "FinancialModelingPrepInsiderTradingAdapter")
+        assert not hasattr(data_engine, "YahooFinanceInsiderTradingAdapter")
 
 
 class TestNseAndBseInsiderTrading:
@@ -255,34 +235,6 @@ class TestNseAndBseInsiderTrading:
         assert adapter.get_insider_activity(InsiderTradingQuery(instrument=_instrument("RELIANCE"))) is None
 
 
-class TestYahooFinanceInsiderTradingAdapter:
-    def test_maps_insider_transactions_module(self) -> None:
-        payload = {
-            "quoteSummary": {
-                "result": [
-                    {
-                        "insiderTransactions": {
-                            "transactions": [
-                                {
-                                    "filerName": "Jane Doe",
-                                    "filerRelation": "CEO",
-                                    "startDate": {"raw": 1685923200},
-                                    "transactionText": "Sale at price",
-                                    "shares": {"raw": 500},
-                                    "value": {"raw": 75125},
-                                }
-                            ]
-                        }
-                    }
-                ]
-            }
-        }
-        adapter = YahooFinanceInsiderTradingAdapter(enabled=True, http_client=_FakeJsonClient(payload))
-        bundle = adapter.get_insider_activity(InsiderTradingQuery(instrument=_instrument()))
-        assert bundle is not None
-        assert bundle.transactions[0].transaction_type == "sell"
-
-
 class TestRegistryAndEnv:
     def test_registry_ordering(self) -> None:
         registry = InsiderTradingProviderRegistry()
@@ -302,6 +254,7 @@ class TestRegistryAndEnv:
             "DSP_INSIDER_MEMORY",
         ):
             monkeypatch.delenv(key, raising=False)
+        monkeypatch.setenv("DSP_INSIDER_YAHOO_ENABLED", "1")
         registry = build_default_insider_trading_registry_from_env()
         assert registry.ordered_ids() == ("null_insider_trading",)
 

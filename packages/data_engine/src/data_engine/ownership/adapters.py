@@ -4,10 +4,6 @@ Every vendor-specific field name lives in this file. Adapters:
 
 - :class:`NullOwnershipAdapter` / :class:`InMemoryOwnershipAdapter` —
   safe defaults.
-- :class:`YahooFinanceOwnershipAdapter` — Yahoo's
-  ``quoteSummary?modules=majorHoldersBreakdown`` module.
-- :class:`FinancialModelingPrepOwnershipAdapter` — FMP institutional
-  ownership endpoint.
 - :class:`NseOwnershipAdapter` / :class:`BseOwnershipAdapter` — India
   exchange shareholding-pattern disclosures.
 - :class:`ScreenerOwnershipAdapter` — Screener.in quarterly
@@ -19,11 +15,10 @@ from __future__ import annotations
 
 import os
 from dataclasses import dataclass, field
-from datetime import date, datetime
+from datetime import date
 from threading import Lock
 from typing import Callable, Mapping
 
-from contracts.domain.instrument import Instrument
 from data_engine.connector_framework.http import JsonHttpClient, UrllibJsonHttpClient
 from data_engine.connector_framework.models import (
     ConnectorCompanyIdentity,
@@ -40,12 +35,10 @@ from data_engine.ownership.validation import validate_authenticated_ownership
 
 __all__ = [
     "BseOwnershipAdapter",
-    "FinancialModelingPrepOwnershipAdapter",
     "InMemoryOwnershipAdapter",
     "NseOwnershipAdapter",
     "NullOwnershipAdapter",
     "ScreenerOwnershipAdapter",
-    "YahooFinanceOwnershipAdapter",
     "build_default_ownership_registry_from_env",
     "build_ownership_bundle_from_mapping",
 ]
@@ -122,173 +115,6 @@ class InMemoryOwnershipAdapter(OwnershipProviderPort):
             healthy=True,
             authenticated=bool(self.api_key),
             detail="seeded in-memory authenticated ownership" if self.api_key else "missing api_key",
-        )
-
-
-@dataclass
-class YahooFinanceOwnershipAdapter(OwnershipProviderPort):
-    """Yahoo Finance ``quoteSummary`` major-holders-breakdown adapter."""
-
-    enabled: bool = False
-    base_url: str = "https://query1.finance.yahoo.com/v10/finance/quoteSummary"
-    timeout_seconds: float = 10.0
-    http_client: JsonHttpClient | None = None
-    _provider_id: str = "yahoo_finance_ownership"
-
-    @property
-    def provider_id(self) -> str:
-        return self._provider_id
-
-    def _client(self) -> JsonHttpClient:
-        return self.http_client or UrllibJsonHttpClient(timeout_seconds=self.timeout_seconds)
-
-    def get_ownership(self, query: OwnershipQuery) -> AuthenticatedOwnership | None:
-        if not self.enabled:
-            raise ProviderRequestError("yahoo finance ownership adapter is not enabled")
-        symbol = query.instrument.symbol.strip().upper()
-        payload = self._client().get_json(
-            f"{self.base_url}/{symbol}", params={"modules": "majorHoldersBreakdown"}
-        )
-        if not isinstance(payload, Mapping):
-            return None
-        result_list = (payload.get("quoteSummary") or {}).get("result") if isinstance(
-            payload.get("quoteSummary"), Mapping
-        ) else None
-        if not isinstance(result_list, list) or not result_list:
-            return None
-        breakdown = result_list[0].get("majorHoldersBreakdown") if isinstance(result_list[0], Mapping) else None
-        if not isinstance(breakdown, Mapping):
-            return None
-
-        def _raw(key: str) -> float | None:
-            entry = breakdown.get(key)
-            if isinstance(entry, Mapping):
-                return entry.get("raw")
-            return entry
-
-        insider_pct = _raw("insidersPercentHeld")
-        institutions_pct = _raw("institutionsPercentHeld")
-        stakes: list[OwnershipStake] = []
-        if insider_pct is not None:
-            stakes.append(
-                OwnershipStake(
-                    holder_type="insider",
-                    holder_name=None,
-                    percent_held=ConnectorField.of(float(insider_pct) * 100),
-                    shares_held=ConnectorField.missing(),
-                )
-            )
-        if institutions_pct is not None:
-            stakes.append(
-                OwnershipStake(
-                    holder_type="institutional_domestic",
-                    holder_name=None,
-                    percent_held=ConnectorField.of(float(institutions_pct) * 100),
-                    shares_held=ConnectorField.missing(),
-                )
-            )
-        if not stakes:
-            return None
-        provenance = ConnectorProvenance(
-            provider_id=self.provider_id,
-            provider_name="Yahoo Finance",
-            source_type="public_endpoint",
-            retrieved_at=utc_now(),
-            auth_mode="none",
-            metadata={"base_url": self.base_url},
-        )
-        institutional_total = ConnectorField.of(
-            float(institutions_pct) * 100 if institutions_pct is not None else None
-        )
-        return build_ownership_bundle_from_mapping(
-            symbol=symbol,
-            as_of=None,
-            stakes=stakes,
-            provenance=provenance,
-            institutional_holding_percent=institutional_total,
-        )
-
-    def health(self) -> ProviderHealth:
-        return ProviderHealth(
-            provider_id=self.provider_id,
-            healthy=self.enabled,
-            authenticated=False,
-            detail="enabled" if self.enabled else "disabled (set DSP_OWNERSHIP_YAHOO_ENABLED=1)",
-        )
-
-
-@dataclass
-class FinancialModelingPrepOwnershipAdapter(OwnershipProviderPort):
-    """FMP institutional ownership endpoint."""
-
-    api_key: str
-    base_url: str = "https://financialmodelingprep.com/api/v4/institutional-ownership/symbol-ownership"
-    timeout_seconds: float = 15.0
-    max_holders: int = 25
-    http_client: JsonHttpClient | None = None
-    _provider_id: str = "fmp_ownership"
-
-    @property
-    def provider_id(self) -> str:
-        return self._provider_id
-
-    def _client(self) -> JsonHttpClient:
-        return self.http_client or UrllibJsonHttpClient(timeout_seconds=self.timeout_seconds)
-
-    def get_ownership(self, query: OwnershipQuery) -> AuthenticatedOwnership | None:
-        if not self.api_key.strip():
-            raise ProviderRequestError("financial modeling prep ownership adapter requires api_key")
-        symbol = query.instrument.symbol.strip().upper()
-        payload = self._client().get_json(
-            self.base_url,
-            params={"symbol": symbol, "includeCurrentQuarter": "false", "apikey": self.api_key},
-        )
-        if not isinstance(payload, list) or not payload:
-            return None
-        stakes: list[OwnershipStake] = []
-        institutional_total = 0.0
-        have_total = False
-        for item in payload[: self.max_holders]:
-            if not isinstance(item, Mapping):
-                continue
-            name = str(item.get("investorName") or "").strip() or None
-            weight = item.get("weight")
-            shares = item.get("sharesNumber")
-            pct_field = ConnectorField.of(float(weight) * 100 if isinstance(weight, (int, float)) else None)
-            if pct_field.available and pct_field.value is not None:
-                institutional_total += float(pct_field.value)
-                have_total = True
-            stakes.append(
-                OwnershipStake(
-                    holder_type="institutional_domestic",
-                    holder_name=name,
-                    percent_held=pct_field,
-                    shares_held=ConnectorField.of(shares),
-                )
-            )
-        if not stakes:
-            return None
-        provenance = ConnectorProvenance(
-            provider_id=self.provider_id,
-            provider_name="Financial Modeling Prep",
-            source_type="licensed_vendor",
-            retrieved_at=utc_now(),
-            auth_mode="api_key",
-            metadata={"base_url": self.base_url},
-        )
-        return build_ownership_bundle_from_mapping(
-            symbol=symbol,
-            as_of=None,
-            stakes=stakes,
-            provenance=provenance,
-            institutional_holding_percent=ConnectorField.of(institutional_total if have_total else None),
-        )
-
-    def health(self) -> ProviderHealth:
-        ok = bool(self.api_key.strip())
-        return ProviderHealth(
-            provider_id=self.provider_id, healthy=ok, authenticated=ok,
-            detail="configured" if ok else "missing api_key",
         )
 
 
@@ -622,14 +448,6 @@ def build_default_ownership_registry_from_env() -> PriorityProviderRegistry[Owne
             ScreenerOwnershipAdapter(enabled=True), provider_id="screener_ownership", priority=10
         )
 
-    fmp_key = os.environ.get("DSP_OWNERSHIP_FMP_API_KEY", "").strip()
-    if fmp_key:
-        registry.register(
-            FinancialModelingPrepOwnershipAdapter(api_key=fmp_key),
-            provider_id="fmp_ownership",
-            priority=20,
-        )
-
     if os.environ.get("DSP_OWNERSHIP_NSE_ENABLED", "").lower() in {"1", "true", "yes"}:
         registry.register(
             NseOwnershipAdapter(enabled=True), provider_id="nse_ownership", priority=30
@@ -638,11 +456,6 @@ def build_default_ownership_registry_from_env() -> PriorityProviderRegistry[Owne
     if os.environ.get("DSP_OWNERSHIP_BSE_ENABLED", "").lower() in {"1", "true", "yes"}:
         registry.register(
             BseOwnershipAdapter(enabled=True), provider_id="bse_ownership", priority=40
-        )
-
-    if os.environ.get("DSP_OWNERSHIP_YAHOO_ENABLED", "").lower() in {"1", "true", "yes"}:
-        registry.register(
-            YahooFinanceOwnershipAdapter(enabled=True), provider_id="yahoo_finance_ownership", priority=50
         )
 
     if memory_adapter_allowed("DSP_OWNERSHIP_MEMORY", connector="ownership"):

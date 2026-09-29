@@ -1,10 +1,9 @@
 """Provider registration, discovery, and construction for the Data Engine.
 
-This subpackage is the Data Engine's provider framework: a vendor-agnostic
-set of building blocks that every future adapter (Yahoo Finance, Alpha
-Vantage, Polygon, Financial Modeling Prep, Twelve Data, NSE, RBI, FRED,
-Quandl, CoinGecko, or anything added later) plugs into without requiring
-any change here.
+This subpackage is the Data Engine's provider framework: a source-agnostic
+set of building blocks that official adapters (NSE, BSE, SEC EDGAR, FRED)
+plug into without requiring any change here. Commercial market-data
+vendors are not registered.
 
 Modules:
     enums: ``ProviderStatus``, ``AuthenticationType``, ``DataCapability``

@@ -1,24 +1,32 @@
 "use client";
 
-import { FigmaPage, Panel } from "@/components/pages/PagePrimitives";
-
 /**
- * Figma Make `Coupons.tsx` shell. Offers are not invented — this release
- * has no certified public coupon catalogue.
+ * /coupons — Figma Make `Coupons.tsx` over administrator-provisioned coupon
+ * metadata (`GET /api/v1/saas/coupons`). Nothing is invented.
  */
+
+import dynamic from "next/dynamic";
+
+import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
+import { Skeleton } from "@/components/ds";
+
+const CouponsOffers = dynamic(
+  () => import("@/components/pages").then((m) => ({ default: m.CouponsOffers })),
+  {
+    ssr: false,
+    loading: () => (
+      <div className="space-y-4 py-6" role="status" aria-label="Loading offers">
+        <Skeleton className="h-20 w-full" />
+        <Skeleton className="h-48 w-full" />
+      </div>
+    ),
+  },
+);
+
 export default function CouponsPage() {
   return (
-    <FigmaPage title="Coupons & Offers" subtitle="Administrator-provisioned plans only">
-      <Panel title="Offers" padded>
-        <h2 className="font-[family-name:var(--font-display)] text-xl font-medium text-[var(--fg)]">
-          Offers unavailable.
-        </h2>
-        <p className="mt-2 max-w-xl text-sm leading-relaxed text-[var(--muted)]">
-          No certified commercial offer is published on this release. Pricing
-          remains administrator-provisioned. Referral totals and claimed
-          discounts are not fabricated.
-        </p>
-      </Panel>
-    </FigmaPage>
+    <ProtectedRoute>
+      <CouponsOffers />
+    </ProtectedRoute>
   );
 }

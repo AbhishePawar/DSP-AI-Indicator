@@ -51,8 +51,8 @@ class ProviderMetadata:
     Attributes:
         provider_id: Stable, machine-readable identifier used to
             register and look up this provider (e.g.
-            ``"yahoo_finance"``). Normalized to lowercase.
-        name: Human-readable display name (e.g. ``"Yahoo Finance"``).
+            ``"fred"``). Normalized to lowercase.
+        name: Human-readable display name (e.g. ``"FRED"``).
         version: Version of the adapter implementation itself — not the
             vendor's API version.
         description: Short human-readable description of the provider.

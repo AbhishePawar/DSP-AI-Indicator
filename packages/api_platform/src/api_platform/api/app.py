@@ -33,6 +33,7 @@ from api_platform.api.ops_middleware import (
     SecurityHeadersMiddleware,
 )
 from api_platform.api.routers import (
+    advisor,
     analysis,
     auth,
     beta_programme,
@@ -40,6 +41,7 @@ from api_platform.api.routers import (
     composition,
     control_center,
     copilot,
+    contact,
     corporate_actions,
     coverage,
     dashboards,
@@ -163,7 +165,7 @@ def create_app(
         )
 
     # P1-03 investment connector validation is intentionally NOT run here.
-    # Client authentication must boot independently of FMP availability.
+    # Client authentication must boot independently of investment-data availability.
     # Fail-closed investment checks remain in adapter factories and investment
     # use paths (see data_engine.connector_framework.production_profile and
     # build_default_*_adapter_from_env). Do not reintroduce an eager assert
@@ -296,6 +298,8 @@ def _register_routers(application: FastAPI) -> None:
         securities.router,
         investor_workspace.router,
         coverage.router,
+        advisor.router,
+        contact.router,
     ]
     for router in versioned:
         application.include_router(router)

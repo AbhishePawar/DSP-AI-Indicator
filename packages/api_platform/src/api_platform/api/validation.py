@@ -97,8 +97,8 @@ def validate_analyse_request(body: AnalyseRequest) -> list[str]:
     ticker_only_auth_path = bool(ticker) and fs is None
 
     if ticker_only_auth_path:
-        # Production path: server loads authenticated statements + quote
-        # (FMP P1-01). Client FS / price are not required at the boundary.
+        # Production path: server loads official/evidence-backed statements
+        # + quote (P1-01). Client FS / price are not required at the boundary.
         return errors
 
     # CLIENT-FS PATH — statements may be attached after an authenticated GET.

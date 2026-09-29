@@ -29,15 +29,26 @@ _PUBLIC_PREFIXES = (
     "/openapi.json",
 )
 # Login/refresh establish cookies — CSRF not required on first auth exchange.
-_AUTH_EXEMPT = (
+# The enterprise credential-establishing endpoints (password login, OTP
+# verify, OAuth callback, magic link, passkey complete) are exempt for the
+# same reason: a browser holding a stale/expired `dsp_access` cookie must be
+# able to re-authenticate instead of receiving 403 CSRF on the login form.
+_AUTH_EXEMPT_PATHS = (
     "/auth/login",
-    "/api/v1/auth/login",
     "/auth/rbac/login",
-    "/api/v1/auth/rbac/login",
     "/auth/refresh",
-    "/api/v1/auth/refresh",
     "/auth/rbac/refresh",
-    "/api/v1/auth/rbac/refresh",
+    "/auth/enterprise/login",
+    "/auth/enterprise/otp/verify",
+    "/auth/enterprise/oauth/callback",
+    "/auth/enterprise/magic-link/consume",
+    "/auth/mfa/webauthn/authenticate/complete",
+    "/auth/passkey/login/complete",
+)
+_AUTH_EXEMPT = tuple(
+    path
+    for base in _AUTH_EXEMPT_PATHS
+    for path in (base, f"/api/v1{base}")
 )
 # Razorpay server-to-server webhooks cannot send JWT or CSRF tokens.
 _WEBHOOK_EXEMPT = (

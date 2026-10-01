@@ -263,6 +263,16 @@ export type DirectoryResponse = {
   limit?: number;
   offset?: number;
   sectors: string[];
+  ratings?: string[];
+};
+
+export type QualityShape = {
+  profitability: number | null;
+  growth: number | null;
+  margins: number | null;
+  valuation: number | null;
+  cash_flow: number | null;
+  low_debt: number | null;
 };
 
 export type CompareResponse = {
@@ -272,6 +282,7 @@ export type CompareResponse = {
   b: Record<string, unknown> | null;
   metrics: { key: string; label: string; suffix: string; a: number | null; b: number | null; winner: string | null }[];
   radar: { a: Record<string, number | null>; b: Record<string, number | null> };
+  quality_shape?: { a: QualityShape; b: QualityShape };
   formula: Record<string, string>;
   message: string | null;
 };

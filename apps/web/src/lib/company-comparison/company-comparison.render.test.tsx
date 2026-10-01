@@ -45,6 +45,12 @@ vi.mock("@/lib/api/client", () => ({
     researchIntelligencePerformance: vi.fn().mockResolvedValue(null),
     researchIntelligenceCalibration: vi.fn().mockResolvedValue(null),
     researchIntelligenceTimeline: vi.fn().mockResolvedValue(null),
+    coverageCompare: vi.fn().mockResolvedValue({
+      ok: true,
+      available: false,
+      quality_shape: null,
+      message: "Data unavailable.",
+    }),
   },
 }));
 
@@ -132,5 +138,45 @@ describe("CompanyComparisonWorkspace render", () => {
       expect(screen.getAllByText(axis).length).toBeGreaterThan(0);
     }
     expect(screen.getAllByText("Data unavailable.").length).toBeGreaterThanOrEqual(6);
+    expect(screen.queryByTestId("radar-polygon-left")).not.toBeInTheDocument();
+  });
+
+  it("shows a published growth score and still withholds an incomplete polygon", () => {
+    const model = {
+      slots: [
+        { symbol: "AAA", company: "Alpha", status: "ready" },
+        { symbol: "BBB", company: "Beta", status: "ready" },
+      ],
+      scorecard: [],
+      tradeOffs: [],
+      executive: { evidenceQuality: "", confidence: "" },
+      qualityModules: { businessQuality: [] },
+    } as unknown as ComparisonWorkspaceModel;
+    wrap(
+      <ComparisonPairBoard
+        model={model}
+        qualityShape={{
+          a: {
+            profitability: null,
+            growth: 75,
+            margins: null,
+            valuation: null,
+            cash_flow: null,
+            low_debt: null,
+          },
+          b: {
+            profitability: null,
+            growth: null,
+            margins: null,
+            valuation: null,
+            cash_flow: null,
+            low_debt: null,
+          },
+        }}
+      />,
+    );
+    expect(screen.getByText("75")).toBeInTheDocument();
+    expect(screen.queryByTestId("radar-polygon-left")).not.toBeInTheDocument();
+    expect(screen.queryByTestId("radar-polygon-right")).not.toBeInTheDocument();
   });
 });

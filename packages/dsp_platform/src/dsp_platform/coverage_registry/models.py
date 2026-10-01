@@ -70,6 +70,9 @@ class CoverageRecord:
     risk_score: float | None
     roce: float | None = None
     fcf: float | None = None
+    growth_quality_score: float | None = None
+    price_change: float | None = None
+    price_change_percent: float | None = None
     research_id: str | None = None
     owner_user_id: str | None = None
     metadata: Mapping[str, Any] = field(default_factory=dict)
@@ -94,6 +97,9 @@ class CoverageRecord:
             "debt_to_equity": self.debt_to_equity,
             "revenue_growth": self.revenue_growth,
             "fcf": self.fcf,
+            "growth_quality_score": self.growth_quality_score,
+            "price_change": self.price_change,
+            "price_change_percent": self.price_change_percent,
             "intrinsic_value": self.intrinsic_value,
             "margin_of_safety": self.margin_of_safety,
             "risk_score": self.risk_score,
@@ -136,6 +142,9 @@ class CoverageRecord:
             debt_to_equity=f("debt_to_equity"),
             revenue_growth=f("revenue_growth"),
             fcf=f("fcf"),
+            growth_quality_score=f("growth_quality_score"),
+            price_change=f("price_change"),
+            price_change_percent=f("price_change_percent"),
             intrinsic_value=f("intrinsic_value"),
             margin_of_safety=f("margin_of_safety"),
             risk_score=f("risk_score"),

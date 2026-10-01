@@ -16,7 +16,7 @@ import {
   type ComponentType,
 } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 
 import { Button, ErrorState, Input } from "@/components/ds";
 import { useResearchDisclaimerGate } from "@/components/legal/useResearchDisclaimerGate";
@@ -479,6 +479,14 @@ export function CompanyComparisonWorkspace() {
   );
 
   const readyCount = slots.filter((s) => s.status === "ready").length;
+  const readyPair = slots.filter((slot) => slot.status === "ready").slice(0, 2);
+  const qualityQuery = useQuery({
+    queryKey: ["coverage-compare", readyPair[0]?.symbol, readyPair[1]?.symbol],
+    enabled: Boolean(token && readyPair.length >= 2),
+    queryFn: () =>
+      api.coverageCompare(readyPair[0]!.symbol, readyPair[1]!.symbol, { token }),
+    retry: false,
+  });
   const isLoading = compareMutation.isPending;
 
   const runCompare = () => {
@@ -744,7 +752,7 @@ export function CompanyComparisonWorkspace() {
 
           {!isLoading && readyCount >= MIN_COMPANIES ? (
             <Suspense fallback={<WorkspaceSkeleton />}>
-              <ComparisonPairBoard model={model} />
+              <ComparisonPairBoard model={model} qualityShape={qualityQuery.data?.quality_shape} />
               {activeSection === "personal" ? (
                 <PersonalResearchSection symbols={model.symbols} />
               ) : activeSection === "architecture" ? (

@@ -59,6 +59,57 @@ def _parse_ts(value: str | None) -> datetime | None:
     return parsed if parsed.tzinfo else parsed.replace(tzinfo=UTC)
 
 
+def _bounded_score(value: Any) -> float | None:
+    """Keep a published 0–100 stage score. Never rescale a ratio into one."""
+    score = _f(value)
+    if score is None or score < 0 or score > 100:
+        return None
+    return score
+
+
+def _stage_score(payload: Mapping[str, Any], stage: str) -> float | None:
+    rows = payload.get("stage_summaries")
+    if not isinstance(rows, list):
+        return None
+    for row in rows:
+        if isinstance(row, Mapping) and str(row.get("stage") or "") == stage:
+            return _bounded_score(row.get("score"))
+    return None
+
+
+_QUALITY_SHAPE_AXES: tuple[str, ...] = (
+    "profitability",
+    "growth",
+    "margins",
+    "valuation",
+    "cash_flow",
+    "low_debt",
+)
+_RADAR_LABELS: tuple[tuple[str, str], ...] = (
+    ("Profitability", "profitability"),
+    ("Growth", "growth"),
+    ("Margins", "margins"),
+    ("Valuation", "valuation"),
+    ("Cash Flow", "cash_flow"),
+    ("Low Debt", "low_debt"),
+)
+
+
+def quality_shape_from_record(row: Mapping[str, Any] | None) -> dict[str, float | None]:
+    """ZIP comparison axes. Only Growth can be filled, and only from the
+    published ``growth_quality`` stage score. Ratios are not renormalised.
+    """
+    shape = {axis: None for axis in _QUALITY_SHAPE_AXES}
+    if not row:
+        return shape
+    shape["growth"] = _bounded_score(row.get("growth_quality_score"))
+    return shape
+
+
+def radar_from_shape(shape: Mapping[str, float | None]) -> dict[str, float | None]:
+    return {label: shape.get(key) for label, key in _RADAR_LABELS}
+
+
 def _rank(rating: str | None) -> int | None:
     if rating is None or rating not in RATING_ORDER:
         return None
@@ -136,6 +187,11 @@ class CoverageRegistryService:
                 extract_nested(payload, "fundamental_metrics.revenue_growth.value")
             ),
             fcf=_f(extract_nested(payload, "fundamental_metrics.fcf.value")),
+            growth_quality_score=_stage_score(payload, "growth_quality"),
+            price_change=_f(extract_nested(payload, "server_valuation.price_change")),
+            price_change_percent=_f(
+                extract_nested(payload, "server_valuation.price_change_percent")
+            ),
             intrinsic_value=_f(
                 extract_nested(payload, "server_valuation.intrinsic_value_per_share")
             ),
@@ -215,8 +271,8 @@ class CoverageRegistryService:
                 "market_cap": r.market_cap,
                 "rating": r.rating,
                 "price": r.price,
-                "change": None,
-                "change_percent": None,
+                "change": r.price_change,
+                "change_percent": r.price_change_percent,
                 "as_of": r.as_of,
             }
             for r in sorted(latest.values(), key=lambda r: r.symbol)
@@ -463,6 +519,7 @@ class CoverageRegistryService:
             "limit": limit,
             "offset": offset,
             "sectors": self.sectors(),
+            "ratings": list(RATING_ORDER),
         }
 
     def compare(self, symbol_a: str, symbol_b: str) -> dict[str, Any]:
@@ -495,30 +552,8 @@ class CoverageRegistryService:
                 }
             )
 
-        def _radar(row: dict[str, Any] | None) -> dict[str, float | None]:
-            if not row:
-                return {
-                    "Profitability": None,
-                    "Growth": None,
-                    "Balance Sheet": None,
-                    "Valuation": None,
-                    "Cash Flow": None,
-                    "Quality": None,
-                }
-            roe = row.get("roe")
-            growth = row.get("revenue_growth")
-            de = row.get("debt_to_equity")
-            mos = row.get("margin_of_safety")
-            fcf = row.get("fcf")
-            quality = row.get("business_quality_score")
-            return {
-                "Profitability": None if roe is None else max(0.0, min(100.0, float(roe) / 0.40 * 100.0)),
-                "Growth": None if growth is None else max(0.0, min(100.0, float(growth) / 0.20 * 100.0)),
-                "Balance Sheet": None if de is None else max(0.0, min(100.0, (1.0 - min(float(de), 2.0) / 2.0) * 100.0)),
-                "Valuation": None if mos is None else max(0.0, min(100.0, (float(mos) + 0.30) / 0.60 * 100.0)),
-                "Cash Flow": None if fcf is None else max(0.0, min(100.0, 70.0 if float(fcf) > 0 else 20.0)),
-                "Quality": None if quality is None else max(0.0, min(100.0, float(quality))),
-            }
+        shape_a = quality_shape_from_record(left)
+        shape_b = quality_shape_from_record(right)
 
         return {
             "ok": True,
@@ -526,14 +561,15 @@ class CoverageRegistryService:
             "a": left,
             "b": right,
             "metrics": table,
-            "radar": {"a": _radar(left), "b": _radar(right)},
+            "radar": {"a": radar_from_shape(shape_a), "b": radar_from_shape(shape_b)},
+            "quality_shape": {"a": shape_a, "b": shape_b},
             "formula": {
-                "Profitability": "ROE ÷ 40% × 100 (capped)",
-                "Growth": "revenue growth ÷ 20% × 100 (capped)",
-                "Balance Sheet": "(1 − min(D/E, 2) ÷ 2) × 100",
-                "Valuation": "(MoS + 30%) ÷ 60% × 100",
-                "Cash Flow": "70 if FCF > 0 else 20",
-                "Quality": "business quality score 0–100",
+                "Profitability": "No 0–100 profitability score is published by the analysis pipeline.",
+                "Growth": "Published growth_quality stage score when present. Revenue growth is not rescaled.",
+                "Margins": "No 0–100 margin score is published by the analysis pipeline.",
+                "Valuation": "Margin of safety is not converted into a radar score.",
+                "Cash Flow": "No 0–100 cash-flow score is published by the analysis pipeline.",
+                "Low Debt": "Debt ratios are not converted into a radar score.",
             },
             "message": None
             if left is not None and right is not None

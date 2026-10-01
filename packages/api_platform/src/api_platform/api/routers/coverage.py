@@ -77,6 +77,16 @@ class DirectoryResponse(BaseModel):
     limit: int = 48
     offset: int = 0
     sectors: list[str]
+    ratings: list[str] = []
+
+
+class QualityShapeModel(BaseModel):
+    profitability: float | None = None
+    growth: float | None = None
+    margins: float | None = None
+    valuation: float | None = None
+    cash_flow: float | None = None
+    low_debt: float | None = None
 
 
 class CompareResponse(BaseModel):
@@ -86,6 +96,7 @@ class CompareResponse(BaseModel):
     b: dict[str, Any] | None = None
     metrics: list[dict[str, Any]]
     radar: dict[str, Any]
+    quality_shape: dict[str, QualityShapeModel]
     formula: dict[str, str]
     message: str | None = None
 

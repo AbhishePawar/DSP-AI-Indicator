@@ -161,9 +161,48 @@ class TestCoverageRegistry:
         assert pe["winner"] == "INFY"  # inverse: lower P/E wins
         roe = next(m for m in out["metrics"] if m["key"] == "roe")
         assert roe["winner"] == "TCS"
-        assert out["radar"]["a"]["Quality"] == 92.0
+        assert set(out["radar"]["a"]) == {
+            "Profitability",
+            "Growth",
+            "Margins",
+            "Valuation",
+            "Cash Flow",
+            "Low Debt",
+        }
+        assert "Quality" not in out["radar"]["a"]
+        assert out["quality_shape"]["a"]["growth"] is None
+        assert out["radar"]["a"]["Profitability"] is None
+        assert out["radar"]["a"]["Growth"] is None
+        # Ratios stay ratios. They are not rescaled into a 0–100 polygon.
+        assert out["radar"]["a"]["Cash Flow"] is None
         missing = svc.compare("TCS", "NOPE")
         assert missing["available"] is False and missing["message"].startswith("Data unavailable.")
+
+    def test_quality_shape_copies_published_growth_score_only(self) -> None:
+        svc = CoverageRegistryService(CoverageRegistryStore())
+        payload = _payload(92.0)
+        payload["stage_summaries"] = [
+            {"stage": "growth_quality", "score": 75.0},
+            {"stage": "valuation", "score": 88.0},
+        ]
+        payload["server_valuation"]["price_change"] = 12.5
+        payload["server_valuation"]["price_change_percent"] = 0.4
+        payload["fundamental_metrics"]["roe"] = {"value": 0.46}
+        svc.record_from_payload(payload, ticker="TCS")
+        latest = svc.latest("TCS")
+        assert latest is not None
+        assert latest["growth_quality_score"] == 75.0
+        assert latest["price_change"] == 12.5
+        assert latest["price_change_percent"] == 0.4
+        shape = svc.compare("TCS", "INFY")["quality_shape"]["a"]
+        assert shape["growth"] == 75.0
+        assert shape["valuation"] is None
+        assert shape["profitability"] is None
+        page = svc.directory_page(sector="Technology", rating="A+")
+        assert page["count"] == 1
+        assert page["items"][0]["change_percent"] == 0.4
+        assert page["ratings"] == ["A+", "A", "B+", "B", "C", "D", "F"]
+        assert svc.directory_page(sector="Technology", rating="B")["count"] == 0
 
     def test_signals_carry_severity_status_and_dsp_context(self) -> None:
         svc = CoverageRegistryService(CoverageRegistryStore())

@@ -1,6 +1,9 @@
 # DSP-AI-Indicator — Figma Full-Stack Integration
 
 ## Current authoritative requirements (continuation)
+- LATEST visual authority is the live site https://cel-bacon-55476680.figma.site/ supplied explicitly by the user. Fetched rendered HTML and inspected desktop screenshot; Fraunces heading font verified directly. ZIP source remains implementation reference. Do not reproduce its demo user, fabricated coverage metrics, or financial fixtures.
+- Latest uploaded ZIP extracted at `.figma_latest` has 76 files; all 55 design/source files match `.figma_ref` byte-for-byte. User explicitly says most design is implemented: differences-only changes, no whole-app rebuild, no repeated work.
+- Delta audit: `UI_DELTA_AUDIT.md`. Current batch replaces incompatible home sidebar with reference marketing hero/header/depth selector, updates directory search/filter/grid, adds real-history Research Hub while preserving detailed workspace, restores analysis detail navigation by reusing existing backend-fed sections, and corrects Fraunces headings. Batch not yet validated; see test_reports/ui_delta.
 - User authorized frontend AND backend changes; preserve DSP deterministic research methodology, financial calculations, evidence/source hierarchy and final-result authority without alteration.
 - Figma ZIP remains UI/UX authority; existing repository remains business logic authority. All 21 requested screens must be covered (reference router actually has 27 named paths, including an alias).
 - Real data only. Clear loading/error/unavailable states, never substitute fabricated financials, scores, citations or verification results. No internal prompts/provider disputes exposed to ordinary clients.

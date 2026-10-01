@@ -1,0 +1,95 @@
+{
+  "typography": {
+    "font_family_heading": "Fraunces, Georgia, serif",
+    "font_family_body": "Inter, system-ui, -apple-system, sans-serif",
+    "font_family_mono": "JetBrains Mono, monospace",
+    "heading_scale": {
+      "h1": "text-4xl sm:text-5xl lg:text-6xl font-medium tracking-tight font-display",
+      "h2": "text-2xl sm:text-3xl lg:text-4xl font-medium tracking-tight font-display",
+      "h3": "text-xl sm:text-2xl font-medium font-display",
+      "h4": "text-lg sm:text-xl font-medium font-display",
+      "section_label": "text-[10px] sm:text-xs font-mono uppercase tracking-[0.1em] text-[var(--muted)]"
+    },
+    "body_scale": {
+      "base": "text-base leading-relaxed text-[var(--fg)]",
+      "sm": "text-sm leading-normal text-[var(--muted)]",
+      "xs": "text-xs font-mono text-[var(--muted)]"
+    }
+  },
+  "colors": {
+    "background": "#080b12",
+    "card": "#111520",
+    "foreground": "#dde2ed",
+    "muted": "#6b7a99",
+    "border": "#1e2538",
+    "primary": "#7c6af7",
+    "accent": "#7c6af7",
+    "secondary": "#181e2e",
+    "semantic_financial": {
+      "revenue": "#38bdf8",
+      "profit": "#34d399",
+      "risk": "#fbbf24",
+      "valuation": "#a78bfa",
+      "cashflow": "#2dd4bf",
+      "debt": "#94a3b8",
+      "dsp_brand": "#7c6af7"
+    }
+  },
+  "visual_enhancers": {
+    "card_shell": "dsp-card: bg-[var(--card)] border border-[var(--border)] rounded-[var(--card-radius,14px)] p-5 sm:p-6",
+    "status_pill": "inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-mono tracking-wide",
+    "score_card": "flex flex-col items-center justify-center p-6 rounded-2xl border border-[var(--border)] bg-[var(--card)]",
+    "active_indicator": "border-l-2 border-[var(--accent)] bg-[var(--muted)]/50",
+    "header_scrim": "backdrop-blur-xl bg-[#080b12]/80 border-b border-[var(--border)]"
+  },
+  "grids": {
+    "market_indices": "grid grid-cols-2 md:grid-cols-4 gap-3",
+    "dashboard_main": "grid grid-cols-1 xl:grid-cols-[minmax(0,1fr)_300px] gap-5 items-start",
+    "analysis_overview": "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4",
+    "analysis_workspace": "flex flex-col lg:flex-row h-full min-w-0 overflow-hidden",
+    "profile_summary": "grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_340px] gap-6 max-w-6xl mx-auto"
+  },
+  "layouts": {
+    "sidebar_width": "220px",
+    "topbar_height": "48px",
+    "content_scroll": "overflow-y-auto h-full scroll-container",
+    "responsive_drawer": "fixed inset-y-0 left-0 w-[220px] z-50 bg-[var(--card)] border-r border-[var(--border)] md:relative"
+  },
+  "motion": {
+    "hover_transition": "transition-colors duration-150 ease-out",
+    "drawer_transition": "transition-transform duration-250 ease-in-out",
+    "accordion_transition": "transition-all duration-200 ease-out",
+    "respect_reduced_motion": "motion-reduce:transition-none motion-reduce:animate-none"
+  },
+  "accessibility": {
+    "test_id_convention": "kebab-case role-based data-testid on every interactive and metric element",
+    "color_contrast_min": "4.5:1 for body copy; 3:1 for large display and charts",
+    "focus_rings": "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--background)]",
+    "screen_reader": "sr-only tags for icon buttons and assistive descriptions"
+  },
+  "component_path": {
+    "app_shell": "/app/apps/web/src/components/layout/AppLayout.tsx",
+    "sidebar": "/app/apps/web/src/components/layout/Sidebar.tsx",
+    "topbar": "/app/apps/web/src/components/layout/Topbar.tsx",
+    "dashboard": "/app/apps/web/src/components/dashboard/ResearchOverview.tsx",
+    "analysis_workspace": "/app/apps/web/src/components/company-analysis/CompanyAnalysisWorkspace.tsx",
+    "marketing_landing": "/app/apps/web/src/components/marketing/MarketingLanding.tsx",
+    "coupons_page": "/app/apps/web/src/app/coupons/page.tsx",
+    "global_css": "/app/apps/web/src/app/globals.css"
+  },
+  "instructions_to_main_agent": [
+    "Preserve all working backend API integrations, RBAC permissions, and deterministic DSP analysis logic under all circumstances.",
+    "Update globals.css to import and assign Fraunces for --font-heading and --font-display while preserving Inter for --font-body and JetBrains Mono for --font-data.",
+    "Implement /coupons route using the reference Figma component logic adapted to Next.js navigation.",
+    "Add coupons link in Sidebar navigation to maintain parity with reference.",
+    "Ensure all headers, dropdowns, and overlays have solid or crystal-glass semi-opaque backgrounds to prevent background bleed.",
+    "Retain data-testid attributes across all existing tested flows."
+  ],
+  "UNIVERSAL GUIDELINES FOR MAIN AGENT": {
+    "do_not_rebuild_from_scratch": true,
+    "strictly_surgical_modifications": true,
+    "never_use_default_inter_for_headings": true,
+    "ensure_all_data_testids_preserved": true,
+    "never_replace_live_api_with_mock_data": true
+  }
+}

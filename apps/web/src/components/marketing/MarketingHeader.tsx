@@ -3,12 +3,15 @@
 import Link from "next/link";
 import { useEffect, useId, useRef, useState } from "react";
 
+import { MoonStar } from "lucide-react";
+import { useAuth } from "@/lib/auth/AuthProvider";
 import { env } from "@/lib/env";
 import { useTheme } from "@/providers/ThemeProvider";
 
 import { MARKETING_NAV } from "./content";
 
 export function MarketingHeader() {
+  const { user } = useAuth();
   const { cycleMode, resolved, mode } = useTheme();
   const [open, setOpen] = useState(false);
   const menuId = useId();
@@ -68,24 +71,27 @@ export function MarketingHeader() {
       : `Theme: ${mode}. Activate to cycle theme. Currently showing ${resolved}.`;
 
   return (
-    <header className="sticky top-0 z-40 border-b border-[var(--border)] bg-[color-mix(in_srgb,var(--bg)_88%,transparent)] backdrop-blur-md motion-reduce:backdrop-blur-none">
-      <div className="mx-auto flex max-w-[72rem] items-center justify-between gap-4 px-4 py-3 sm:px-6">
+    <header data-testid="marketing-header" className="sticky top-0 z-40 border-b border-[var(--border)] bg-[var(--surface)]">
+      <div className="relative flex min-h-[70px] items-center justify-between gap-4 px-5 py-4 sm:px-12">
         <Link
           href="/"
-          className="font-[family-name:var(--font-display)] text-lg font-medium tracking-tight text-[var(--fg)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent)]"
+          data-testid="marketing-home"
+          aria-label={`${env.appName} home`}
+          className="flex items-center gap-2.5 font-[family-name:var(--font-display)] text-lg text-[var(--fg)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent)]"
         >
-          {env.appName}
+          <span className="size-[26px] rounded-full bg-[linear-gradient(135deg,#7c6af7,#2dd4bf)]" />DSP
         </Link>
 
         <nav
           aria-label="Marketing"
-          className="hidden items-center gap-5 lg:flex"
+          className="absolute left-1/2 hidden -translate-x-1/2 items-center gap-1 lg:flex"
         >
           {MARKETING_NAV.map((item) => (
             <Link
               key={item.href}
               href={item.href}
-              className="inline-flex min-h-11 items-center text-sm text-[var(--muted)] transition-colors duration-[var(--motion-fast)] hover:text-[var(--fg)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent)] motion-reduce:transition-none"
+              data-testid={`marketing-nav-${item.label.toLowerCase()}`}
+              className="inline-flex items-center rounded-md px-3 py-1.5 text-[13px] text-[var(--muted)] transition-colors hover:text-[var(--fg)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent)]"
             >
               {item.label}
             </Link>
@@ -93,27 +99,20 @@ export function MarketingHeader() {
         </nav>
 
         <div className="flex items-center gap-2">
-          <button
+          <button data-testid="marketing-theme"
             type="button"
             onClick={cycleMode}
-            className="inline-flex min-h-11 min-w-11 items-center justify-center rounded-[var(--radius-sm)] border border-[var(--border)] bg-[var(--surface)] px-2.5 text-xs text-[var(--muted)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent)]"
+            className="inline-flex size-8 items-center justify-center rounded-full text-[var(--muted)] transition-colors hover:bg-[var(--surface-2)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent)]"
             aria-label={themeLabel}
           >
-            {mode === "system" ? "System" : resolved === "dark" ? "Dark" : "Light"}
+            <MoonStar className="size-3.5" />
           </button>
-          <Link
-            href="/register"
-            className="hidden min-h-11 items-center rounded-[var(--radius-sm)] border border-[var(--border)] bg-[var(--surface)] px-3 text-sm text-[var(--fg)] sm:inline-flex focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent)]"
-          >
-            Create account
-          </Link>
-          <Link
-            href="/login"
-            className="inline-flex min-h-11 items-center rounded-[var(--radius-sm)] bg-[var(--accent)] px-3 text-sm font-medium text-[var(--accent-fg)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent)]"
-          >
-            Sign in
+          <Link data-testid="marketing-account" href={user ? "/profile" : "/login"} className="flex min-h-9 max-w-44 items-center gap-2 rounded-lg px-2 text-xs transition-colors hover:bg-[var(--surface-2)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]">
+            {user && <span className="grid size-[26px] shrink-0 place-items-center rounded-full bg-[linear-gradient(135deg,#7c6af7,#2dd4bf)] font-mono text-[10px] font-semibold text-white">{user.displayName.slice(0, 2).toUpperCase()}</span>}
+            <span className="truncate">{user?.displayName || "Log in"}</span>
           </Link>
           <button
+            data-testid="marketing-menu-toggle"
             ref={menuButtonRef}
             type="button"
             className="inline-flex min-h-11 min-w-11 items-center justify-center rounded-[var(--radius-sm)] border border-[var(--border)] px-2.5 text-sm lg:hidden focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent)]"
@@ -129,6 +128,7 @@ export function MarketingHeader() {
 
       {open ? (
         <nav
+          data-testid="marketing-mobile-menu"
           ref={panelRef}
           id={menuId}
           aria-label="Marketing mobile"
@@ -138,6 +138,7 @@ export function MarketingHeader() {
             {MARKETING_NAV.map((item) => (
               <li key={item.href}>
                 <Link
+                  data-testid={`marketing-mobile-${item.label.toLowerCase()}`}
                   href={item.href}
                   className="flex min-h-11 items-center text-sm text-[var(--fg)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent)]"
                   onClick={() => setOpen(false)}

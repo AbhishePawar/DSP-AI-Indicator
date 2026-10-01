@@ -1,26 +1,21 @@
 "use client";
 
-import { ArrowRight, ChevronRight, Menu, Plus, Search, X } from "lucide-react";
+import { BarChart3, GitCompareArrows, MessageSquare, Search, ShieldCheck } from "lucide-react";
 import Link from "next/link";
-import { FormEvent, useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
+import { type FormEvent, useEffect, useRef, useState } from "react";
 
-import { env } from "@/lib/env";
+import { COMPANY_CATALOGUE } from "@/lib/companies/catalogue";
 import { ANALYSIS_INTENTS } from "@/lib/analysis/intents";
 import { useDashboardPrefsStore } from "@/lib/dashboard";
 import { useAuth } from "@/lib/auth/AuthProvider";
 
-const researchExamples = [
-  { ticker: "TCS", name: "Tata Consultancy Services", market: "NSE · TCS" },
-  { ticker: "HDFCBANK", name: "HDFC Bank Limited", market: "NSE · HDFCBANK" },
-  { ticker: "INFY", name: "Infosys Limited", market: "NSE · INFY" },
-  { ticker: "RELIANCE", name: "Reliance Industries", market: "NSE · RELIANCE" },
-];
-
-const prompts = [
-  "Analyze TCS",
-  "Check valuation",
-  "Find investment risks",
-  "Review latest results",
+const researchExamples = ["TCS", "INFY", "HDFCBANK", "RELIANCE", "WIPRO"];
+const features = [
+  { icon: MessageSquare, title: "Conversational Research", description: "Ask questions in plain English. Explore financial evidence with clear explanations.", color: "var(--c-dsp)", href: "/copilot" },
+  { icon: BarChart3, title: "Visual Evidence", description: "Explore available charts, ratios, and trends alongside the evidence behind them.", color: "var(--c-revenue)", href: "/analysis" },
+  { icon: ShieldCheck, title: "DSP AI Indicator", description: "Deterministic DSP quality analysis grounded in verified financial data.", color: "var(--c-profit)", href: "/analysis" },
+  { icon: GitCompareArrows, title: "Peer Comparison", description: "Compare companies side-by-side across available financial and valuation evidence.", color: "var(--c-valuation)", href: "/analysis/compare" },
 ];
 
 export function MarketingLanding() {
@@ -28,132 +23,71 @@ export function MarketingLanding() {
   const recordSearch = useDashboardPrefsStore((s) => s.recordSearch);
   const { user } = useAuth();
   const [query, setQuery] = useState("");
-  const [selected, setSelected] = useState<(typeof researchExamples)[number] | null>(null);
   const [suggestionsOpen, setSuggestionsOpen] = useState(false);
-  const [mobileOpen, setMobileOpen] = useState(false);
+  const panelRef = useRef<HTMLDivElement>(null);
+  const router = useRouter();
 
-  function selectCompany(company: (typeof researchExamples)[number]) {
-    setSelected(company);
-    setQuery(company.ticker);
-    setSuggestionsOpen(false);
+  useEffect(() => {
+    const close = (event: MouseEvent) => {
+      if (!panelRef.current?.contains(event.target as Node)) setSuggestionsOpen(false);
+    };
+    document.addEventListener("mousedown", close);
+    return () => document.removeEventListener("mousedown", close);
+  }, []);
+
+  function openResearch(mode: "simple" | "full", raw = query) {
+    const value = raw.trim();
+    const company = COMPANY_CATALOGUE.find((entry) => entry.ticker.toLowerCase() === value.toLowerCase() || entry.name.toLowerCase() === value.toLowerCase());
+    // Unknown names continue through the existing identity-search flow.
+    if (value && !company && /\s/.test(value)) {
+      router.push(`/search?q=${encodeURIComponent(value)}`);
+      return;
+    }
+    const ticker = company?.ticker || value.toUpperCase();
+    if (ticker) recordSearch(ticker);
+    const params = new URLSearchParams({ intent: mode === "full" ? ANALYSIS_INTENTS.dspIndicator : ANALYSIS_INTENTS.company, mode });
+    if (ticker) params.set("symbol", ticker);
+    router.push(`/analysis?${params}`);
   }
 
   function runDspIndicatorAnalysis() {
-    const ticker = selected?.ticker || query.trim();
-    if (ticker) recordSearch(ticker);
-    window.location.href = `/analysis?${ticker ? `symbol=${encodeURIComponent(ticker)}&` : ""}intent=${ANALYSIS_INTENTS.dspIndicator}`;
+    openResearch("full");
   }
-
-  const matches = useMemo(() => {
-    const normalized = query.trim().toLowerCase();
-    if (!normalized) return [];
-    return researchExamples.filter((company) =>
-      `${company.ticker} ${company.name} ${company.market}`.toLowerCase().includes(normalized),
-    );
-  }, [query]);
 
   function submitResearch(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    const company = selected ?? matches[0];
-    if (company) {
-      recordSearch(company.ticker);
-      window.location.href = `/analysis?symbol=${encodeURIComponent(company.ticker)}`;
-    } else if (query.trim()) {
-      window.location.href = `/search?q=${encodeURIComponent(query.trim())}`;
-    }
+    if (query.trim()) openResearch("full");
   }
 
   return (
-    <main className="min-h-screen bg-[var(--bg)] text-[var(--fg)]">
-      <div className="flex min-h-screen">
-        <aside data-testid="landing-sidebar" className="hidden w-[220px] shrink-0 flex-col border-r border-[var(--border)] bg-[var(--surface)] px-3.5 py-5 lg:flex">
-          <div className="flex items-start justify-between">
-            <Link href="/" className="group" aria-label={`${env.appName} home`}>
-              <span className="block font-[family-name:var(--font-display)] text-2xl font-semibold tracking-[-0.04em]">DSP</span>
-              <span className="mt-1 block text-[10px] font-medium uppercase tracking-[0.22em] text-[var(--muted)]">AI Research</span>
-            </Link>
-            <Link href="/dashboard" data-testid="landing-open-dashboard" className="dsp-interactive rounded-lg border border-transparent p-2 text-[var(--muted)] hover:border-[var(--border)] hover:bg-[var(--surface-2)]" aria-label="Open dashboard">
-              <ChevronRight className="size-4" />
-            </Link>
-          </div>
-
-          <button type="button" onClick={() => { setQuery(""); setSelected(null); setSuggestionsOpen(false); }} className="dsp-interactive mt-10 flex min-h-12 items-center gap-3 rounded-xl border border-[var(--border)] bg-[var(--bg)] px-4 text-left text-sm font-medium hover:bg-[var(--surface-2)]">
-            <Plus className="size-4" />
-            Start New Research
-          </button>
-
-          <div className="mt-9">
-            <p className="font-mono text-[10px] uppercase tracking-wider text-[var(--muted)]">Recent searches</p>
-            <nav className="mt-3 flex flex-col gap-1" aria-label="Recent research">
-              {recentSearches.length ? recentSearches.slice(0, 3).map(({ query: recent }) => (
-                <Link data-testid={`landing-recent-${recent}`} key={recent} href={`/analysis?symbol=${encodeURIComponent(recent)}`} className="dsp-interactive truncate rounded-lg px-2 py-2 text-xs text-[var(--muted)] hover:bg-[var(--surface-2)] hover:text-[var(--fg)]">{recent}</Link>
-              )) : <p data-testid="landing-empty-history" className="px-2 py-2 text-xs text-[var(--muted)]">Your searches will appear here</p>}
-            </nav>
-          </div>
-
-          <div className="mt-auto flex flex-col gap-4">
-            <div className="rounded-xl border border-[var(--border)] bg-[var(--bg)] p-4">
-              <div className="flex items-center justify-between text-sm">
-                <span className="font-medium">Research workspace</span>
-                <span className="text-[var(--muted)]">Ready</span>
+    <main data-testid="figma-landing" className="bg-[var(--bg)] text-[var(--fg)]">
+      <section className="border-b border-[var(--border)] bg-[radial-gradient(ellipse_80%_60%_at_50%_0%,rgba(124,106,247,0.08)_0%,transparent_70%)] px-5 pb-16 pt-14 text-center sm:px-12 sm:pb-[100px] sm:pt-20">
+        <div data-testid="landing-evidence-status" className="mb-8 inline-flex items-center gap-2 rounded-full border border-[var(--border)] bg-[var(--surface-2)] px-3.5 py-[5px] font-mono text-xs text-[var(--muted)]"><span className="size-1.5 rounded-full bg-[var(--c-cashflow)]" />Research mode · Verified evidence only</div>
+        <h1 data-testid="landing-title" className="mb-5 font-[family-name:var(--font-display)] text-[clamp(36px,6vw,68px)] font-medium leading-[1.1] tracking-[-0.02em]">Ask DSP anything<br />about any company.</h1>
+        <p className="mx-auto mb-12 max-w-[520px] text-lg leading-[1.65] text-[var(--muted)]">Chat-first equity research. Financial evidence when you need it. No dashboards, no noise.</p>
+        <div className="mx-auto mb-6 max-w-[560px]">
+          <div ref={panelRef} className="relative mb-3" onKeyDown={(event) => { if (event.key === "Escape") setSuggestionsOpen(false); }}>
+            <form onSubmit={submitResearch} data-testid="landing-search-form" className={`flex overflow-hidden border border-[var(--border)] bg-[var(--surface-2)] focus-within:border-[var(--accent)]/50 ${suggestionsOpen && query.trim() ? "rounded-t-[14px]" : "rounded-[14px]"}`}>
+              <label className="sr-only" htmlFor="company-research">Company name or ticker</label>
+              <input data-testid="landing-company-search" id="company-research" value={query} onFocus={() => setSuggestionsOpen(Boolean(query.trim()))} onChange={(event) => { setQuery(event.target.value); setSuggestionsOpen(true); }} aria-expanded={Boolean(suggestionsOpen && query.trim())} aria-controls="landing-analysis-depth" placeholder="Enter company name or ticker — e.g. TCS, HDFC Bank" autoComplete="off" className="min-w-0 flex-1 bg-transparent px-5 py-4 text-[15px] outline-none placeholder:text-[var(--muted)]" />
+              <button data-testid="landing-research-submit" type="submit" aria-label="Research" disabled={!query.trim()} className="flex shrink-0 items-center justify-center bg-[var(--accent)] px-6 text-white transition-colors hover:bg-[var(--accent-hover)] disabled:cursor-not-allowed"><Search className="size-[18px]" /></button>
+            </form>
+            {suggestionsOpen && query.trim() && <div data-testid="landing-depth-panel" id="landing-analysis-depth" className="absolute left-0 right-0 top-full z-20 overflow-hidden rounded-b-[14px] border border-[var(--accent)]/30 bg-[var(--surface)] text-left shadow-[0_12px_40px_rgba(0,0,0,0.35)]">
+              <p className="px-4 pb-2 pt-2.5 font-mono text-[10px] tracking-widest text-[var(--muted)]">CHOOSE ANALYSIS DEPTH FOR <span className="break-words text-[var(--fg)]">{query.toUpperCase()}</span></p>
+              <div className="grid grid-cols-2 border-t border-[var(--border)]">
+                <button data-testid="landing-simple-research" type="button" onClick={() => openResearch("simple")} className="border-r border-[var(--border)] px-4 py-4 text-left transition-colors hover:bg-[var(--surface-2)] sm:px-[18px]"><span className="block text-[13px] font-medium">Simple Research</span><span className="mt-1 block text-[11px] leading-relaxed text-[var(--muted)]">Key metrics, strengths, risks, and valuation in one view.</span><span className="mt-2.5 flex flex-wrap gap-1.5">{["Metrics", "Risks", "Valuation"].map((label) => <span key={label} className="rounded-full border border-[var(--border)] bg-[var(--surface-2)] px-2 py-0.5 font-mono text-[10px] text-[var(--muted)]">{label}</span>)}</span><span className="mt-2.5 block text-xs text-[var(--c-revenue)]">Quick research →</span></button>
+                <button data-testid="landing-full-research" type="button" onClick={() => openResearch("full")} className="bg-[var(--accent)]/5 px-4 py-4 text-left transition-colors hover:bg-[var(--accent)]/10 sm:px-[18px]"><span className="mb-1 block font-mono text-[10px] tracking-wider text-[var(--accent)]">FLAGSHIP</span><span className="block text-[13px] font-medium">DSP Buffett Analysis</span><span className="mt-1 block text-[11px] leading-relaxed text-[var(--muted)]">Complete evidence-driven analysis — moat, earnings, management, and intrinsic value.</span><span className="mt-2.5 flex flex-wrap gap-1.5">{["Moat", "Quality", "Valuation", "AI Chat"].map((label) => <span key={label} className="rounded-full border border-[var(--accent)]/25 bg-[var(--accent-soft)] px-2 py-0.5 font-mono text-[10px] text-[var(--accent)]">{label}</span>)}</span><span className="mt-2.5 block text-xs text-[var(--accent)]">Full analysis →</span></button>
               </div>
-              <p className="mt-2 text-xs leading-relaxed text-[var(--muted)]">Evidence-first analysis for Indian listed companies.</p>
-            </div>
-            <Link data-testid="landing-account" href={user ? "/profile" : "/login"} className="dsp-interactive flex items-center gap-2 rounded-xl border border-[var(--border)] bg-[var(--surface)] px-3 py-3 text-left hover:bg-[var(--surface-2)]">
-              <span className="flex size-8 shrink-0 items-center justify-center rounded-full bg-[var(--accent-soft)] text-xs font-semibold text-[var(--accent)]">{user ? user.displayName.slice(0, 2).toUpperCase() : "D"}</span>
-              <span className="min-w-0 flex-1"><span className="block truncate text-xs font-medium">{user?.displayName || "Research account"}</span><span className="mt-1 block truncate text-[10px] text-[var(--muted)]">{user ? "View your profile" : "Sign in to save work"}</span></span>
-              <ChevronRight className="size-4 shrink-0 text-[var(--muted)]" />
-            </Link>
+            </div>}
           </div>
-        </aside>
-
-        <div className="flex min-w-0 flex-1 flex-col">
-          <header className="flex items-center justify-between border-b border-[var(--border)] bg-[var(--bg)] px-5 py-4 lg:hidden">
-            <Link href="/" className="font-[family-name:var(--font-display)] text-xl font-semibold tracking-[-0.04em]">DSP</Link>
-            <button type="button" className="rounded-lg border border-[var(--border)] p-2" aria-label={mobileOpen ? "Close menu" : "Open menu"} onClick={() => setMobileOpen((value) => !value)}>
-              {mobileOpen ? <X className="size-5" /> : <Menu className="size-5" />}
-            </button>
-          </header>
-          {mobileOpen ? <div className="border-b border-[var(--border)] bg-[var(--surface)] px-5 py-4 lg:hidden"><button type="button" onClick={() => { setMobileOpen(false); setQuery(""); setSelected(null); setSuggestionsOpen(false); }} className="flex min-h-11 items-center gap-3 text-sm font-medium"><Plus className="size-4" /> Start New Research</button></div> : null}
-
-          <section className="flex flex-1 flex-col px-5 py-12 sm:px-8 lg:px-16 lg:py-16">
-            <div className="mx-auto flex w-full max-w-[860px] flex-1 flex-col justify-center">
-              <div className="mb-10 text-center">
-                <p className="text-xs font-semibold uppercase tracking-[0.22em] text-[var(--accent)]">DSP AI Research</p>
-                <h1 className="mt-4 text-balance font-[family-name:var(--font-display)] text-4xl font-semibold tracking-[-0.04em] sm:text-5xl">Research any Indian company</h1>
-                <p className="mx-auto mt-4 max-w-[48ch] text-pretty text-sm leading-6 text-[var(--muted)] sm:text-base">DSP investigates the evidence, validates the data, and builds the investment case.</p>
-              </div>
-
-              <form onSubmit={submitResearch} className="relative rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-4 shadow-[var(--shadow-sm)] sm:p-5">
-                <label htmlFor="company-research" className="sr-only">Search company, ticker or ISIN</label>
-                <div className="flex items-start gap-3">
-                  <Search className="mt-1.5 size-5 shrink-0 text-[var(--muted)]" />
-                  <input data-testid="landing-company-search" id="company-research" value={query} onFocus={() => setSuggestionsOpen(Boolean(query.trim()))} onChange={(event) => { setQuery(event.target.value); setSelected(null); setSuggestionsOpen(true); }} placeholder="Search company, ticker or ISIN" autoComplete="off" className="min-w-0 flex-1 bg-transparent text-lg text-[var(--fg)] outline-none placeholder:text-[var(--muted)]" aria-describedby="research-help" />
-                </div>
-                <div className="mt-8 flex items-center justify-between gap-3">
-                  <p id="research-help" className="text-xs text-[var(--muted)]">Choose a security to confirm its identity before research begins.</p>
-                  <button data-testid="landing-research-submit" type="submit" disabled={!query.trim()} className="dsp-interactive inline-flex min-h-11 shrink-0 items-center gap-2 rounded-xl bg-[var(--accent)] px-4 text-sm font-semibold text-[var(--accent-fg)] disabled:cursor-not-allowed disabled:opacity-45">Research <ArrowRight className="size-4" /></button>
-                </div>
-                {suggestionsOpen && !selected && query.trim() ? <div className="absolute left-4 right-4 top-full z-10 mt-2 overflow-hidden rounded-xl border border-[var(--border)] bg-[var(--surface)] shadow-[var(--shadow-md)] sm:left-5 sm:right-auto sm:w-1/2" role="listbox" aria-label="Company suggestions">
-                  {matches.length ? matches.map((company) => <button key={company.ticker} type="button" role="option" aria-selected={false} onMouseDown={(event) => { event.preventDefault(); selectCompany(company); }} onClick={() => selectCompany(company)} className="flex w-full items-center justify-between gap-4 border-b border-[var(--border)] px-4 py-3 text-left last:border-b-0 hover:bg-[var(--surface-2)]"><span><span className="block text-sm font-medium">{company.name}</span><span className="mt-1 block text-xs text-[var(--muted)]">{company.market}</span></span><ChevronRight className="size-4 text-[var(--muted)]" /></button>) : <div className="px-4 py-4 text-sm text-[var(--muted)]">No matching company in the reference directory. Search another ticker; live source coverage is verified during analysis.</div>}
-                </div> : null}
-              </form>
-
-              <div className="mt-10">
-                <div className="flex items-center justify-between gap-4"><p className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--muted)]">Suggested research</p><span className="text-xs text-[var(--muted)]">Start with a company</span></div>
-                <div className="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">{researchExamples.map((company) => <button key={company.ticker} type="button" onClick={() => selectCompany(company)} className="dsp-interactive rounded-xl border border-[var(--border)] bg-[var(--surface)] px-4 py-3 text-left hover:bg-[var(--surface-2)]"><span className="block text-sm font-medium">{company.ticker}</span><span className="mt-1 block truncate text-xs text-[var(--muted)]">{company.name}</span></button>)}</div>
-                <button type="button" onClick={runDspIndicatorAnalysis} className="dsp-interactive mt-3 flex w-full items-center justify-between gap-4 rounded-xl border border-[var(--accent)] bg-[var(--accent-soft)] px-4 py-4 text-left hover:bg-[var(--surface-2)]">
-                  <span><span className="block text-sm font-semibold text-[var(--fg)]">DSP Indicator Analysis</span><span className="mt-1 block text-xs leading-5 text-[var(--muted)]">Evaluate a company using DSP&apos;s Buffett-style investment analysis framework.</span></span>
-                  <ArrowRight className="size-4 shrink-0 text-[var(--accent)]" />
-                </button>
-              </div>
-
-              <div className="mt-10 border-t border-[var(--border)] pt-6"><p className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--muted)]">Research prompts</p><div className="mt-3 flex flex-wrap gap-2">{prompts.map((prompt) => <button key={prompt} type="button" onClick={() => setQuery(prompt.replace(/^\w+ /, ""))} className="rounded-full border border-[var(--border)] px-3 py-2 text-xs text-[var(--muted)] hover:border-[var(--accent)] hover:text-[var(--fg)]">{prompt}</button>)}</div></div>
-            </div>
-            <footer className="mt-12 flex flex-wrap items-center justify-center gap-x-3 gap-y-2 text-center text-xs text-[var(--muted)]"><span>{env.appName} · Evidence before opinion</span><span aria-hidden="true">·</span><Link href="/docs/disclaimer" className="hover:text-[var(--fg)]">Research disclaimer</Link><span aria-hidden="true">·</span><Link href="/docs/privacy" className="hover:text-[var(--fg)]">Privacy</Link></footer>
-          </section>
+          <button data-testid="landing-buffett-analysis" type="button" onClick={runDspIndicatorAnalysis} className="flex w-full items-center justify-center gap-2 rounded-[14px] bg-[linear-gradient(135deg,#7c6af7_0%,#2dd4bf_100%)] px-6 py-[13px] text-sm font-semibold tracking-tight text-white transition-opacity hover:opacity-85"><span className="text-[13px] font-normal opacity-85">DSP</span> Buffett Indicator Analysis</button>
         </div>
-      </div>
+        {user && recentSearches.length > 0 && <div data-testid="landing-recent-searches" className="mb-3 flex flex-wrap items-center justify-center gap-2 font-mono text-xs text-[var(--accent)]"><span>Recent on this device:</span>{recentSearches.slice(0, 5).map(({ query: recent }) => <button data-testid={`landing-recent-${recent}`} key={recent} onClick={() => { setQuery(recent); setSuggestionsOpen(true); }} className="rounded-full border border-[var(--accent)]/30 bg-[var(--accent-soft)] px-3 py-1 transition-colors hover:border-[var(--accent)]">{recent}</button>)}</div>}
+        <div className="flex flex-wrap items-center justify-center gap-2 font-mono text-xs text-[var(--muted)]"><span>Explore:</span>{researchExamples.map((ticker) => <button data-testid={`landing-example-${ticker}`} key={ticker} onClick={() => openResearch("full", ticker)} className="rounded-full border border-[var(--border)] bg-[var(--surface-2)] px-3 py-1 transition-colors hover:border-[var(--accent)] hover:text-[var(--accent)]">{ticker}</button>)}</div>
+      </section>
+      <section data-testid="landing-capabilities" className="grid grid-cols-2 border-b border-[var(--border)] lg:grid-cols-4">{[{ value: String(COMPANY_CATALOGUE.length), label: "Directory entries" }, { value: "DSP", label: "Research framework" }, { value: "Verified", label: "Evidence sources" }, { value: "On request", label: "Company analysis" }].map((stat) => <div key={stat.label} className="border-r border-[var(--border)] px-5 py-8 text-center last:border-r-0 sm:px-10"><p className="mb-1.5 font-[family-name:var(--font-display)] text-[28px] font-semibold text-[var(--accent)]">{stat.value}</p><p className="font-mono text-xs uppercase tracking-wider text-[var(--muted)]">{stat.label}</p></div>)}</section>
+      <section id="features" className="px-5 py-16 sm:px-12 sm:py-20"><div className="mb-14 text-center"><h2 className="mb-3 font-[family-name:var(--font-display)] text-3xl font-medium tracking-tight sm:text-4xl">Research the way you think.</h2><p className="mx-auto max-w-[480px] text-[15px] text-[var(--muted)]">No complex dashboards to learn. Just ask, and DSP builds the picture.</p></div><div className="mx-auto grid max-w-[840px] gap-5 sm:grid-cols-2">{features.map(({ title, description, href, color, icon: Icon }) => <Link data-testid={`landing-feature-${href.split("/").filter(Boolean).join("-")}-${title.split(" ")[0].toLowerCase()}`} key={title} href={href} className="rounded-[14px] border border-[var(--border)] border-t-2 bg-[var(--surface)] p-7 transition-colors hover:bg-[var(--surface-2)]" style={{ borderTopColor: color }}><Icon className="mb-3.5 size-6" style={{ color }} /><h3 className="mb-2 font-[family-name:var(--font-display)] text-lg font-medium">{title}</h3><p className="text-[13px] leading-relaxed text-[var(--muted)]">{description}</p></Link>)}</div></section>
+      <section className="border-t border-[var(--border)] bg-[radial-gradient(ellipse_60%_80%_at_50%_100%,rgba(124,106,247,0.07)_0%,transparent_70%)] px-5 py-20 text-center sm:px-12"><h2 className="mb-4 font-[family-name:var(--font-display)] text-4xl font-medium tracking-tight">Start researching.</h2><p className="mb-8 text-[15px] text-[var(--muted)]">Create an account to explore evidence-backed company research.</p><div className="flex flex-wrap justify-center gap-3"><Link data-testid="landing-create-account" href="/register" className="rounded-[10px] bg-[var(--accent)] px-8 py-[13px] text-[15px] font-medium text-white transition-colors hover:bg-[var(--accent-hover)]">Create account</Link><Link data-testid="landing-learn-more" href="/about" className="rounded-[10px] border border-[var(--border)] bg-[var(--surface-2)] px-8 py-[13px] text-[15px] transition-colors hover:border-[var(--accent)]">Learn more</Link></div></section>
     </main>
   );
 }

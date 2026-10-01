@@ -3,7 +3,7 @@
 Visual authority: extracted ZIP at `.figma_ref/src`; preserve existing correct implementations rather than replacing the app.
 
 ## Global tokens
-Use `globals.css` mappings to reference `index.css`: dark #0c0c0e background, #131315 cards, #1c1c20 secondary, #232328 borders, #fafafa foreground, #72727e muted, #7c6af7 DSP accent. Reference uses Inter for headings/body and JetBrains Mono for data. The user explicitly selected this design; do not substitute unrelated fonts or palettes.
+Use verified ZIP tokens: #080b12 background, #111520 cards, #181e2e secondary, #1e2538 borders, #dde2ed foreground, #6b7a99 muted, #7c6af7 DSP accent. The ZIP uses Fraunces headings, Inter body, and JetBrains Mono data. Earlier Inter-heading guidance was incorrect and is superseded by actual source inspection.
 
 ## App layout
 220px desktop sidebar; 48px topbar; 28px content padding; 16–20px main gaps. Sidebar is viewport height with overflow support. Research CTA, real history, Buffett callout, main nav, research group, permission-filtered supplementary tools, account footer. No fake profile, history, metrics or notifications. Mobile uses existing accessible drawer and one-column content; no page overflow.

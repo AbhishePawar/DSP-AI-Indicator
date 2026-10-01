@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Inter, JetBrains_Mono } from "next/font/google";
+import { Fraunces, Inter, JetBrains_Mono } from "next/font/google";
 import { headers } from "next/headers";
 
 import { AppLayout } from "@/components/layout/AppLayout";
@@ -24,7 +24,7 @@ const marketConfig = {
   autoRefreshMs: env.marketRefreshMs,
 } as const;
 
-const display = Inter({
+const display = Fraunces({
   subsets: ["latin"],
   variable: "--font-display",
   display: "swap",

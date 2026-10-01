@@ -26,6 +26,9 @@ export type AnalysisSectionId =
   | "documents"
   | "news"
   | "copilot"
+  | "earnings"
+  | "growth"
+  | "strengths"
   | "settings";
 
 export type AnalysisSectionMeta = {
@@ -38,6 +41,9 @@ export type AnalysisSectionMeta = {
 
 /** Primary institutional reading order for the flagship workspace. */
 export const ANALYSIS_SECTIONS: readonly AnalysisSectionMeta[] = [
+  { id: "earnings", label: "Earnings Quality", description: "Evidence-backed earnings assessment", shortcut: "" },
+  { id: "growth", label: "Growth Quality", description: "Evidence-backed growth assessment", shortcut: "" },
+  { id: "strengths", label: "Strengths & Weaknesses", description: "Supporting evidence and limitations", shortcut: "" },
   {
     id: "summary",
     label: "Executive Summary",
@@ -199,7 +205,7 @@ export const ANALYSIS_SECTIONS: readonly AnalysisSectionMeta[] = [
   },
 ] as const;
 
-export function isAnalysisSectionId(value: string): boolean {
+export function isAnalysisSectionId(value: string): value is AnalysisSectionId {
   return ANALYSIS_SECTIONS.some((s) => s.id === value);
 }
 

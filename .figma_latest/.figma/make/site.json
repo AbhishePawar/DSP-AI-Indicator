@@ -1,0 +1,10 @@
+{
+  "description": "Streamline project collaboration by integrating GitHub for version control, enabling teams to manage code efficiently and enhance productivity.",
+  "robots": {
+    "index": false
+  },
+  "accessibility": {
+    "addBypassLinks": false,
+    "ignoreReducedMotion": false
+  }
+}

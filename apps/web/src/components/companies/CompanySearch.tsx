@@ -12,6 +12,7 @@ export function CompanySearch({
   return (
     <div className="relative">
       <Input
+        data-testid="company-directory-search"
         value={value}
         onChange={(e) => onChange(e.target.value)}
         placeholder="Search by company name or ticker…"

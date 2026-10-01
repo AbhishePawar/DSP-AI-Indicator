@@ -10,7 +10,7 @@ export function CompanyGrid({ companies }: { companies: CompanyEntry[] }) {
   }
 
   return (
-    <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+    <div data-testid="company-grid" className="grid grid-cols-[repeat(auto-fill,minmax(min(100%,280px),1fr))] gap-3">
       {companies.map((c) => (
         <CompanyCard key={c.ticker} company={c} />
       ))}

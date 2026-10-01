@@ -1,12 +1,9 @@
 /** Marketing copy — Design System brand voice; Research Mode safe. */
 
 export const MARKETING_NAV = [
-  { href: "/#features", label: "Features" },
-  { href: "/#trust", label: "Trust" },
-  { href: "/#workflow", label: "Workflow" },
+  { href: "/about", label: "About" },
   { href: "/pricing", label: "Pricing" },
   { href: "/faq", label: "FAQ" },
-  { href: "/about", label: "About" },
   { href: "/contact", label: "Contact" },
 ] as const;
 

@@ -50,6 +50,7 @@ import {
 } from "@/lib/trust/surfaceTrust";
 import { WorkspaceEmpty, WorkspaceSkeleton } from "./WorkspacePrimitives";
 import { ModernAnalysisResult } from "./ModernAnalysisResult";
+import { AnalysisNavigation, AnalysisStageDetails } from "./AnalysisNavigation";
 
 const ValuationSection = lazy(() =>
   import("./WorkspaceSections").then((m) => ({ default: m.ValuationSection })),
@@ -230,7 +231,8 @@ export function CompanyAnalysisWorkspace() {
     const next = (
       new URLSearchParams(searchParamsKey).get("symbol") || ""
     ).trim().toUpperCase();
-    setActiveSection("summary");
+    const requestedSection = new URLSearchParams(searchParamsKey).get("section");
+    setActiveSection(requestedSection && isAnalysisSectionId(requestedSection) ? requestedSection : "summary");
     setSymbol((prev) => {
       if (prev === next) return prev;
       // Clear prior company research only when the ticker actually changes.
@@ -424,6 +426,29 @@ export function CompanyAnalysisWorkspace() {
         auditNote: "Audit: company analysis is awaiting an authenticated analyse payload.",
       });
 
+  const detailComponents: Partial<Record<AnalysisSectionId, ComponentType<{ view: ResearchView }>>> = {
+    valuation: ValuationSection, quality: QualitySection, management: ManagementSection,
+    moat: MoatSection, risk: RiskSection, financial: FinancialSection,
+    explainability: ExplainabilitySection, evidence: EvidenceSection,
+    compliance: ComplianceSection, ownership: OwnershipSection, peers: PeersSection,
+    documents: DocumentsSection, news: NewsSection, settings: SettingsSection,
+  };
+  const Detail = detailComponents[section];
+  const detail = view ? (
+    <Suspense fallback={<WorkspaceSkeleton />}>
+      {Detail ? <Detail view={view} /> :
+        section === "buffett" ? <BuffettIndicatorSection report={view.buffett} /> :
+        section === "ratings" ? <InstitutionalRatingsSection ratings={view.ratings} transparency={view.transparency} explainability={view.explainability} /> :
+        section === "valuationTransparency" ? <ValuationTransparencySection transparency={view.valuationTransparency} /> :
+        section === "copilot" ? <AiCopilotSection view={view} analyseRequest={lastAnalyseRequest} analyseResponse={lastAnalyseResponse} /> :
+        section === "export" ? <ExportSection view={view} analyseRequest={lastAnalyseRequest} analyseResponse={lastAnalyseResponse} /> :
+        section === "earnings" ? <AnalysisStageDetails title="Earnings Quality" stage={view.earnings} /> :
+        section === "growth" ? <AnalysisStageDetails title="Growth Quality" stage={view.growth} /> :
+        section === "strengths" ? <div className="grid gap-4 sm:grid-cols-2">{[{ title: "Strengths", items: view.strengths }, { title: "Weaknesses", items: view.weaknesses }].map(({ title, items }) => <section key={title} data-testid={`analysis-${title.toLowerCase()}`} className="rounded-[14px] border border-[var(--border)] bg-[var(--surface)] p-5"><h2 className="font-[family-name:var(--font-display)] text-lg">{title}</h2>{items.length ? <ul className="mt-4 list-disc space-y-2 pl-4 text-sm text-[var(--muted)]">{items.map((text, index) => <li key={index}>{text}</li>)}</ul> : <p className="mt-4 text-sm text-[var(--muted)]">Evidence unavailable.</p>}</section>)}</div> :
+        <ExplainabilitySection view={view} />}
+    </Suspense>
+  ) : null;
+
   return (
     <ModernAnalysisResult
       symbol={symbol}
@@ -434,6 +459,15 @@ export function CompanyAnalysisWorkspace() {
       view={view}
       error={analyseMutation.isError ? describeAnalyseError(analyseMutation.error) : null}
       disclaimerGate={disclaimerGate}
+      activeSection={section}
+      navigation={<AnalysisNavigation active={section} onSelect={setActiveSection} />}
+      detail={detail}
+      simpleMode={searchParams.get("mode") === "simple"}
+      onModeChange={() => {
+        const params = new URLSearchParams(searchParams.toString());
+        params.set("mode", searchParams.get("mode") === "simple" ? "full" : "simple");
+        router.replace(`/analysis?${params}`);
+      }}
     />
   );
 

@@ -1,0 +1,751 @@
+MASTER FRONTEND IMPLEMENTATION PROMPT — DSP AI INDICATOR
+
+IMPORTANT: Work ONLY on the existing DSP AI Indicator application and existing Git-connected codebase. Do NOT create a separate demo, duplicate application, mock product, or disconnected frontend.
+
+The goal is to complete and stabilize the frontend product experience from 0 through 18 while preserving the existing backend, API contracts, deterministic DSP analysis engine, AI Gateway integration, existing routes, existing data structures, and already implemented functionality.
+
+DO NOT modify backend logic or API contracts unless absolutely required for an existing frontend integration to function.
+
+DO NOT fabricate financial data, AI results, company metrics, valuations, scores, evidence, research, charts, or statistics.
+
+REUSE existing components, routes, data models, APIs, and functionality wherever they already exist.
+
+==================================================
+0. FRONTEND / GIT SAFETY AND EXISTING FUNCTIONALITY
+==================================================
+
+Before making UI changes, inspect the existing frontend structure and preserve all working functionality.
+
+The recent frontend changes introduced/reworked:
+- ResultConversation
+- ResearchResponse
+- conversational research result UI
+- example research data
+
+Important existing functionality such as:
+- Company Analysis workspace
+- Marketing Landing
+- analysis route
+- comparison workspace
+- Copilot
+- Research Workspace
+- dashboards
+
+must remain functional.
+
+DO NOT blindly overwrite, delete, replace, or simplify existing components.
+
+Reconcile the current implementation so that these routes continue to work:
+
+/
+/analysis
+/analysis/compare
+/compare
+/copilot
+/research
+/research/institutional
+/research/institutional/dashboard
+existing dashboard routes
+existing report routes
+
+If an existing component already implements the required functionality, REUSE AND INTEGRATE IT instead of rebuilding it.
+
+Do not remove existing working frontend or backend functionality.
+
+==================================================
+1. RESTORE / MAINTAIN THE APPLICATION SHELL
+==================================================
+
+Ensure the application has a stable and coherent frontend shell containing:
+
+- global navigation
+- responsive layout
+- consistent typography
+- spacing system
+- buttons
+- cards
+- navigation links
+- loading states
+- error states
+- empty states
+- accessibility states
+
+Preserve the existing DSP AI Indicator visual identity.
+
+Do not introduce an unrelated design system.
+
+Keep the existing premium dark financial-research visual language.
+
+==================================================
+2. FINAL LANDING PAGE
+==================================================
+
+Complete the existing landing page as the primary entry point to DSP AI Indicator.
+
+Preserve the current landing-page visual design and structure unless a change is specifically required for functionality.
+
+Do NOT redesign the landing page unnecessarily.
+
+The landing page should clearly communicate DSP AI Indicator as an evidence-backed investment intelligence and company research platform.
+
+Preserve existing:
+- hero
+- navigation
+- typography
+- colors
+- cards
+- spacing
+- visual identity
+
+==================================================
+3. COMPANY SEARCH
+==================================================
+
+Make company search the primary action on the landing page.
+
+Requirements:
+
+- search by company name
+- search by ticker/symbol where supported
+- autocomplete/suggestions where existing API/data allows
+- loading state
+- no-result state
+- keyboard navigation
+- Enter-key support
+- accessible input
+- clear selected-company state
+
+After selecting a company, take the user into the existing Company Analysis workflow.
+
+DO NOT hard-code demo companies as the primary experience.
+
+If real data is unavailable, show an honest "Data unavailable" state.
+
+==================================================
+4. RESEARCH BAR / MAGNIFYING GLASS
+==================================================
+
+In the existing blue Research bar:
+
+REMOVE the visible "Research" text.
+
+Replace it with a professional magnifying-glass Search icon.
+
+Use a proper SVG/icon-library icon such as Lucide Search.
+
+DO NOT use an emoji.
+
+Preserve:
+- existing blue bar dimensions
+- height
+- width
+- padding
+- border
+- border radius
+- position
+- click behavior
+
+Center the magnifying-glass icon precisely.
+
+Add an accessible label/title such as:
+
+title="Research"
+
+or an appropriate aria-label.
+
+Do not make unrelated styling changes.
+
+==================================================
+5. MAKE THE FOUR FEATURE CARDS FUNCTIONAL
+==================================================
+
+The four landing-page feature cards must become REAL NAVIGATION CARDS rather than decorative boxes.
+
+CARD 1 — CONVERSATIONAL RESEARCH
+
+Clicking anywhere on the card should navigate to the existing conversational research / AI Copilot experience.
+
+Reuse the existing /copilot functionality where appropriate.
+
+CARD 2 — VISUAL EVIDENCE
+
+Clicking anywhere on the card should navigate to the existing evidence / Company Analysis evidence experience.
+
+DO NOT create a fake Visual Evidence page if the evidence experience already exists inside Company Analysis.
+
+Use the appropriate existing route/section.
+
+CARD 3 — DSP AI INDICATOR
+
+Clicking anywhere on the card should navigate to the existing Company Analysis / DSP AI Indicator experience.
+
+Reuse /analysis.
+
+CARD 4 — PEER COMPARISON
+
+Clicking anywhere on the card should navigate to the existing comparison experience.
+
+Reuse /analysis/compare.
+
+DO NOT create another comparison application.
+
+CARD INTERACTION REQUIREMENTS:
+
+- entire card must be clickable
+- proper navigation semantics
+- keyboard accessible
+- pointer cursor
+- subtle hover state
+- visible focus state
+- preserve existing visual design
+- preserve card dimensions
+- no nested invalid links
+- no dead click areas
+
+The cards should feel like product entry points, not decorative marketing boxes.
+
+==================================================
+6. COMPANY ANALYSIS — FLAGSHIP EXPERIENCE
+==================================================
+
+Restore and complete the existing Company Analysis workspace.
+
+The /analysis route must remain the central DSP research experience.
+
+DO NOT create a second analysis system.
+
+Integrate the existing conversational result experience into the existing Company Analysis workspace.
+
+The overall journey should visually communicate:
+
+Company
+↓
+Research
+↓
+Evidence
+↓
+Challenge
+↓
+Decision
+↓
+Export
+
+==================================================
+7. COMPANY ANALYSIS HEADER
+==================================================
+
+Create or restore a professional company header containing ONLY available data such as:
+
+- company name
+- ticker
+- exchange
+- current price
+- daily movement
+- market capitalization
+- relevant available company metrics
+- data freshness
+- Research Mode indicator
+
+Only display data actually provided by the backend.
+
+Missing values MUST show:
+
+"Data unavailable"
+
+Do NOT fabricate values.
+
+Keep the header compact, professional, balanced, and visually consistent with the rest of the application.
+
+==================================================
+8. COMPANY ANALYSIS — 19-SECTION STRUCTURE
+==================================================
+
+Implement/preserve the following exact analysis order:
+
+1. Company Snapshot
+2. Research Conclusion
+3. Executive Summary
+4. Investment Thesis
+5. Business Quality
+6. Financial Strength
+7. Growth
+8. Valuation
+9. Risk
+10. Management
+11. Competitive Advantage
+12. Market Analyst Consensus
+13. DSP vs Street
+14. AI Challenge Mode
+15. Knowledge Graph
+16. AI Copilot
+17. Decision Dashboard
+18. Evidence
+19. Export
+
+MAINTAIN THIS ORDER.
+
+Do not invent additional analytical sections.
+
+Each section should have where applicable:
+
+- clear H2 heading
+- one-line purpose
+- summary information
+- available metrics
+- charts where supported
+- terminology/tooltips
+- relevant Copilot question suggestions
+- evidence/source references
+- honest unavailable states
+
+Desktop:
+Use a sticky section navigation / TOC where appropriate.
+
+Mobile:
+Use accordion/progress navigation.
+
+==================================================
+9. CONVERSATIONAL RESEARCH RESULT
+==================================================
+
+Integrate the EXISTING ResultConversation and ResearchResponse components into the Company Analysis experience.
+
+DO NOT unnecessarily rebuild these components.
+
+The user must be able to:
+
+- see the initial research response
+- read structured research
+- see evidence/citations
+- ask follow-up questions
+- use suggested questions
+- submit custom questions
+- see loading state
+- see errors
+- retry
+- refresh/regenerate where supported
+- share where supported
+
+Keep the interface clean, premium, professional, and readable.
+
+The frontend MUST NOT expose:
+
+- internal AI prompts
+- provider-selection logic
+- Gemini/OpenAI internal routing
+- internal verification prompts
+- internal AI disagreement
+- secret API keys
+- backend implementation details
+
+==================================================
+10. VISUAL EVIDENCE EXPERIENCE
+==================================================
+
+Make Visual Evidence a genuine product capability.
+
+Reuse the existing evidence components and Company Analysis data.
+
+Present supported evidence through:
+
+- financial charts
+- trend charts
+- ratio visualizations
+- valuation visuals
+- quality metrics
+- financial-strength metrics
+- risk evidence
+- source references
+
+Every important displayed metric should have a clear relationship to its source/evidence where the backend provides it.
+
+Include where available:
+
+- source
+- source date
+- data freshness
+- metric context
+- interpretation
+- limitations
+
+DO NOT create fake charts.
+
+DO NOT create placeholder financial numbers.
+
+If data is unavailable, show an appropriate unavailable state.
+
+==================================================
+11. DSP AI INDICATOR EXPERIENCE
+==================================================
+
+Make the DSP AI Indicator experience easy for a long-term investor to understand.
+
+Organize the existing DSP analysis into the following hierarchy:
+
+Company
+↓
+Research Conclusion
+↓
+Business Quality
+↓
+Financial Strength
+↓
+Growth
+↓
+Valuation
+↓
+Risk
+↓
+Management
+↓
+Competitive Advantage
+↓
+AI Challenge
+↓
+Decision Dashboard
+↓
+Evidence
+↓
+Export
+
+Do not expose unnecessary backend or engine complexity.
+
+The frontend is a thin client.
+
+The deterministic DSP backend remains authoritative for calculations and results.
+
+==================================================
+12. AI CHALLENGE MODE
+==================================================
+
+Build/polish the existing AI Challenge Mode.
+
+The purpose is to help the user challenge the research conclusion rather than simply repeat it.
+
+Where backend data exists, show:
+
+- supporting evidence
+- opposing evidence
+- risks
+- assumptions
+- unknowns
+- falsifiers
+- research gaps
+- questions the investor should investigate
+
+Clearly distinguish:
+
+Evidence
+Interpretation
+Assumption
+Unknown
+
+Do not present AI-generated interpretations as certainty.
+
+Do not fabricate supporting or opposing evidence.
+
+Do not create Buy/Sell/Hold recommendations unless explicitly supported by the existing product/compliance configuration.
+
+==================================================
+13. EVIDENCE / TRUST SYSTEM
+==================================================
+
+Create/reuse a consistent evidence and trust UI across the product.
+
+The UI should communicate:
+
+SOURCE
+↓
+DATA
+↓
+CONTEXT / METHOD
+↓
+FRESHNESS
+↓
+LIMITATIONS
+
+Use reusable components rather than separate evidence systems for every page.
+
+Evidence should be easy to access without overwhelming the primary research narrative.
+
+Use expandable evidence details where appropriate.
+
+==================================================
+14. DECISION DASHBOARD
+==================================================
+
+Preserve and polish the existing Decision Dashboard architecture.
+
+Present available DSP outputs in a clear investor-friendly summary.
+
+Include ONLY metrics actually returned by the backend.
+
+Where available, provide:
+
+- research summary
+- quality information
+- valuation context
+- risk context
+- evidence strength
+- important assumptions
+- limitations
+- links back to detailed analysis sections
+
+The Decision Dashboard is a SUMMARY of the research.
+
+It is NOT a separate calculation engine.
+
+Do not duplicate backend calculations in frontend code.
+
+==================================================
+15. PEER COMPARISON
+==================================================
+
+Connect the landing-page Peer Comparison card to the existing comparison workspace.
+
+Preserve the existing comparison functionality.
+
+The comparison workflow should allow the user to:
+
+- select company A
+- select company B
+- compare available metrics
+- view evidence
+- view relevant differences
+- view quality context
+- view financial context
+- view valuation context
+- view risk context
+- inspect contradictory evidence
+- access existing comparison history where supported
+
+Reuse /analysis/compare.
+
+DO NOT create a duplicate comparison application.
+
+==================================================
+16. AI COPILOT
+==================================================
+
+Connect the existing AI Copilot into the analysis journey.
+
+The Copilot should be contextual to:
+
+- current company
+- current analysis section
+- available evidence
+- existing DSP outputs
+
+Provide useful suggested prompts such as:
+
+"Explain this metric"
+
+"What could invalidate this conclusion?"
+
+"Show me the evidence"
+
+"What are the major risks?"
+
+"Explain the valuation assumptions"
+
+The Copilot must NOT expose internal prompts, provider names, provider-selection logic, or internal verification logic.
+
+==================================================
+17. EXPORT / SHARE
+==================================================
+
+Make Export a first-class part of Company Analysis.
+
+Reuse existing export functionality.
+
+Provide a clean export menu for supported formats such as:
+
+- research summary
+- full research
+- evidence appendix
+- PDF / Print
+- DOCX
+- PPTX
+- JSON/CSV where supported
+- share/copy link where supported
+
+DO NOT display an export option if the underlying functionality does not exist.
+
+Show proper:
+
+- loading state
+- success state
+- error state
+- unavailable state
+
+==================================================
+18. FINAL UX QUALITY PASS
+==================================================
+
+After implementing all above requirements, perform a complete frontend consistency and quality pass.
+
+VISUAL QUALITY:
+
+Ensure:
+
+- visual symmetry
+- consistent card heights
+- consistent spacing
+- consistent icon sizing
+- consistent border radius
+- consistent typography
+- aligned grids
+- no unnecessary visual clutter
+- no broken icons
+- no placeholder graphics
+- no accidental layout shifts
+
+RESPONSIVE:
+
+Verify:
+
+- desktop
+- laptop
+- tablet
+- mobile
+
+Company Analysis navigation:
+
+Desktop:
+Sticky section TOC.
+
+Mobile:
+Accordion/progress navigation.
+
+ACCESSIBILITY:
+
+Ensure:
+
+- keyboard navigation
+- visible focus states
+- semantic headings
+- accessible labels
+- accessible buttons
+- accessible links
+- appropriate ARIA
+- sufficient contrast
+- reduced-motion support
+
+INTERACTION:
+
+Verify:
+
+- no dead buttons
+- no dead cards
+- no dead navigation links
+- all clickable cards have hover states
+- all clickable cards have focus states
+- loading states work
+- error states work
+- empty states work
+- back navigation works
+- browser refresh does not unnecessarily break state
+
+==================================================
+CRITICAL DEVELOPMENT RULES
+==================================================
+
+1. DO NOT redesign unrelated pages.
+
+2. DO NOT delete existing functionality.
+
+3. DO NOT create duplicate routes when an existing route already provides the functionality.
+
+4. DO NOT create fake financial data.
+
+5. DO NOT create fake AI answers.
+
+6. DO NOT expose internal AI prompts.
+
+7. DO NOT expose Gemini/OpenAI provider selection or internal verification logic.
+
+8. DO NOT modify the deterministic DSP calculation engine.
+
+9. DO NOT change backend API contracts.
+
+10. DO NOT unnecessarily change the existing landing-page visual identity.
+
+11. Preserve all existing working functionality.
+
+12. Reuse existing components before creating new ones.
+
+13. Keep the frontend a thin client.
+
+14. Never fabricate unavailable metrics. Use "Data unavailable."
+
+15. Do not create Buy/Sell/Hold recommendations unless explicitly enabled by the existing compliance configuration.
+
+16. Do not use placeholder company data in the production workflow.
+
+17. Do not replace real functionality with static mockups.
+
+18. Do not create duplicate versions of Company Analysis, Copilot, Research Workspace, or Peer Comparison.
+
+19. Do not remove existing backend integrations.
+
+20. Do not expose internal API keys, environment variables, prompts, or server-side configuration.
+
+==================================================
+FINAL ACCEPTANCE CRITERIA
+==================================================
+
+Before finishing, verify all of the following:
+
+1. Landing page loads correctly.
+2. Company search works.
+3. Research magnifying-glass icon is correctly displayed.
+4. Research icon retains correct accessibility label/title.
+5. All four feature cards are clickable.
+6. Conversational Research card navigates to existing Copilot/research functionality.
+7. Visual Evidence card navigates to existing evidence functionality.
+8. DSP AI Indicator card navigates to /analysis.
+9. Peer Comparison card navigates to /analysis/compare.
+10. /analysis loads correctly.
+11. Company Analysis loads real API data when available.
+12. Conversational research works.
+13. Follow-up questions work.
+14. Evidence/citations are displayed correctly.
+15. AI Challenge Mode is accessible.
+16. Decision Dashboard works.
+17. Peer Comparison works.
+18. Copilot works.
+19. Export works where supported.
+20. Existing Research Workspace continues to work.
+21. Existing dashboard routes continue to work.
+22. No existing route is unnecessarily removed.
+23. No existing component is unnecessarily duplicated.
+24. No fake financial numbers are displayed.
+25. No fake research results are displayed.
+26. No internal AI prompts are exposed.
+27. No AI provider-selection information is exposed.
+28. Desktop layout works.
+29. Mobile layout works.
+30. Keyboard navigation works.
+31. Focus states work.
+32. Loading states work.
+33. Error states work.
+34. Empty states work.
+35. Existing backend/API integrations remain intact.
+36. Build/type/lint errors introduced by these changes are fixed.
+37. Do not leave unfinished placeholder UI.
+
+MOST IMPORTANT:
+
+This is an implementation and integration task for the EXISTING DSP AI Indicator product.
+
+DO NOT simplify the product into a generic landing page.
+
+DO NOT create a separate prototype.
+
+PRESERVE THE EXISTING ARCHITECTURE.
+
+PRESERVE EXISTING FUNCTIONALITY.
+
+REUSE EXISTING ROUTES AND COMPONENTS.
+
+Make the frontend feel like ONE coherent, professional, evidence-backed investment research application from landing page → company search → research → evidence → AI challenge → decision dashboard → comparison → Copilot → export.

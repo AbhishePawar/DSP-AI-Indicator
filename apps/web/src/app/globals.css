@@ -2,7 +2,7 @@
 
 :root {
   /* ── Figma design system fonts (authoritative visual target) ── */
-  --font-display: "Inter", sans-serif;
+  --font-display: "Fraunces", Georgia, serif;
   --font-heading: var(--font-display);
   --font-body: "Inter", system-ui, sans-serif;
   --font-data: "JetBrains Mono", ui-monospace, monospace;

@@ -250,10 +250,6 @@ DEFAULT_REGISTRY: dict[str, dict[str, Any]] = {
     },
     "connectors": {
         "providers": {
-            "yahoo": {"enabled": True, "priority": 10},
-            "polygon": {"enabled": False, "priority": 20},
-            "fmp": {"enabled": False, "priority": 30},
-            "screener": {"enabled": False, "priority": 40},
             "nse": {"enabled": True, "priority": 5},
             "bse": {"enabled": True, "priority": 6},
         },

@@ -6,10 +6,12 @@ import { FormEvent, useMemo, useState } from "react";
 
 import { env } from "@/lib/env";
 import { ANALYSIS_INTENTS } from "@/lib/analysis/intents";
+import { useDashboardPrefsStore } from "@/lib/dashboard";
+import { useAuth } from "@/lib/auth/AuthProvider";
 
 const researchExamples = [
   { ticker: "TCS", name: "Tata Consultancy Services", market: "NSE · TCS" },
-  { ticker: "HDFC Bank", name: "HDFC Bank Limited", market: "NSE · HDFCBANK" },
+  { ticker: "HDFCBANK", name: "HDFC Bank Limited", market: "NSE · HDFCBANK" },
   { ticker: "INFY", name: "Infosys Limited", market: "NSE · INFY" },
   { ticker: "RELIANCE", name: "Reliance Industries", market: "NSE · RELIANCE" },
 ];
@@ -22,6 +24,9 @@ const prompts = [
 ];
 
 export function MarketingLanding() {
+  const recentSearches = useDashboardPrefsStore((s) => s.recentSearches);
+  const recordSearch = useDashboardPrefsStore((s) => s.recordSearch);
+  const { user } = useAuth();
   const [query, setQuery] = useState("");
   const [selected, setSelected] = useState<(typeof researchExamples)[number] | null>(null);
   const [suggestionsOpen, setSuggestionsOpen] = useState(false);
@@ -34,8 +39,9 @@ export function MarketingLanding() {
   }
 
   function runDspIndicatorAnalysis() {
-    const company = selected ?? researchExamples[0];
-    window.location.href = `/analysis?symbol=${encodeURIComponent(company.ticker)}&intent=${ANALYSIS_INTENTS.dspIndicator}`;
+    const ticker = selected?.ticker || query.trim();
+    if (ticker) recordSearch(ticker);
+    window.location.href = `/analysis?${ticker ? `symbol=${encodeURIComponent(ticker)}&` : ""}intent=${ANALYSIS_INTENTS.dspIndicator}`;
   }
 
   const matches = useMemo(() => {
@@ -50,6 +56,7 @@ export function MarketingLanding() {
     event.preventDefault();
     const company = selected ?? matches[0];
     if (company) {
+      recordSearch(company.ticker);
       window.location.href = `/analysis?symbol=${encodeURIComponent(company.ticker)}`;
     } else if (query.trim()) {
       window.location.href = `/search?q=${encodeURIComponent(query.trim())}`;
@@ -59,15 +66,15 @@ export function MarketingLanding() {
   return (
     <main className="min-h-screen bg-[var(--bg)] text-[var(--fg)]">
       <div className="flex min-h-screen">
-        <aside className="hidden w-[320px] shrink-0 flex-col border-r border-[var(--border)] bg-[var(--surface)] px-5 py-6 lg:flex">
+        <aside data-testid="landing-sidebar" className="hidden w-[220px] shrink-0 flex-col border-r border-[var(--border)] bg-[var(--surface)] px-3.5 py-5 lg:flex">
           <div className="flex items-start justify-between">
             <Link href="/" className="group" aria-label={`${env.appName} home`}>
               <span className="block font-[family-name:var(--font-display)] text-2xl font-semibold tracking-[-0.04em]">DSP</span>
               <span className="mt-1 block text-[10px] font-medium uppercase tracking-[0.22em] text-[var(--muted)]">AI Research</span>
             </Link>
-            <button className="dsp-interactive rounded-lg border border-transparent p-2 text-[var(--muted)] hover:border-[var(--border)] hover:bg-[var(--surface-2)]" aria-label="Collapse sidebar" type="button">
+            <Link href="/dashboard" data-testid="landing-open-dashboard" className="dsp-interactive rounded-lg border border-transparent p-2 text-[var(--muted)] hover:border-[var(--border)] hover:bg-[var(--surface-2)]" aria-label="Open dashboard">
               <ChevronRight className="size-4" />
-            </button>
+            </Link>
           </div>
 
           <button type="button" onClick={() => { setQuery(""); setSelected(null); setSuggestionsOpen(false); }} className="dsp-interactive mt-10 flex min-h-12 items-center gap-3 rounded-xl border border-[var(--border)] bg-[var(--bg)] px-4 text-left text-sm font-medium hover:bg-[var(--surface-2)]">
@@ -76,13 +83,11 @@ export function MarketingLanding() {
           </button>
 
           <div className="mt-9">
-            <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[var(--muted)]">Today</p>
+            <p className="font-mono text-[10px] uppercase tracking-wider text-[var(--muted)]">Recent searches</p>
             <nav className="mt-3 flex flex-col gap-1" aria-label="Recent research">
-              {researchExamples.slice(0, 3).map((company, index) => (
-                <button key={company.ticker} type="button" onClick={() => selectCompany(company)} className={`dsp-interactive flex items-center rounded-lg px-3 py-2.5 text-left text-sm ${index === 0 ? "bg-[var(--surface-2)] text-[var(--fg)]" : "text-[var(--muted)] hover:bg-[var(--surface-2)] hover:text-[var(--fg)]"}`}>
-                  <span className="truncate">{company.name}</span>
-                </button>
-              ))}
+              {recentSearches.length ? recentSearches.slice(0, 3).map(({ query: recent }) => (
+                <Link data-testid={`landing-recent-${recent}`} key={recent} href={`/analysis?symbol=${encodeURIComponent(recent)}`} className="dsp-interactive truncate rounded-lg px-2 py-2 text-xs text-[var(--muted)] hover:bg-[var(--surface-2)] hover:text-[var(--fg)]">{recent}</Link>
+              )) : <p data-testid="landing-empty-history" className="px-2 py-2 text-xs text-[var(--muted)]">Your searches will appear here</p>}
             </nav>
           </div>
 
@@ -94,11 +99,11 @@ export function MarketingLanding() {
               </div>
               <p className="mt-2 text-xs leading-relaxed text-[var(--muted)]">Evidence-first analysis for Indian listed companies.</p>
             </div>
-            <button type="button" className="dsp-interactive flex items-center gap-3 rounded-xl border border-[var(--border)] bg-[var(--surface)] px-3 py-3 text-left hover:bg-[var(--surface-2)]">
-              <span className="flex size-9 items-center justify-center rounded-full bg-[var(--accent-soft)] text-sm font-semibold text-[var(--accent)]">AP</span>
-              <span className="min-w-0 flex-1"><span className="block truncate text-sm font-medium">Research account</span><span className="block truncate text-xs text-[var(--muted)]">Sign in to save work</span></span>
-              <ChevronRight className="size-4 text-[var(--muted)]" />
-            </button>
+            <Link data-testid="landing-account" href={user ? "/profile" : "/login"} className="dsp-interactive flex items-center gap-2 rounded-xl border border-[var(--border)] bg-[var(--surface)] px-3 py-3 text-left hover:bg-[var(--surface-2)]">
+              <span className="flex size-8 shrink-0 items-center justify-center rounded-full bg-[var(--accent-soft)] text-xs font-semibold text-[var(--accent)]">{user ? user.displayName.slice(0, 2).toUpperCase() : "D"}</span>
+              <span className="min-w-0 flex-1"><span className="block truncate text-xs font-medium">{user?.displayName || "Research account"}</span><span className="mt-1 block truncate text-[10px] text-[var(--muted)]">{user ? "View your profile" : "Sign in to save work"}</span></span>
+              <ChevronRight className="size-4 shrink-0 text-[var(--muted)]" />
+            </Link>
           </div>
         </aside>
 
@@ -123,14 +128,14 @@ export function MarketingLanding() {
                 <label htmlFor="company-research" className="sr-only">Search company, ticker or ISIN</label>
                 <div className="flex items-start gap-3">
                   <Search className="mt-1.5 size-5 shrink-0 text-[var(--muted)]" />
-                  <input id="company-research" value={query} onFocus={() => setSuggestionsOpen(Boolean(query.trim()))} onChange={(event) => { setQuery(event.target.value); setSelected(null); setSuggestionsOpen(true); }} placeholder="Search company, ticker or ISIN" autoComplete="off" className="min-w-0 flex-1 bg-transparent text-lg text-[var(--fg)] outline-none placeholder:text-[var(--muted)]" aria-describedby="research-help" />
+                  <input data-testid="landing-company-search" id="company-research" value={query} onFocus={() => setSuggestionsOpen(Boolean(query.trim()))} onChange={(event) => { setQuery(event.target.value); setSelected(null); setSuggestionsOpen(true); }} placeholder="Search company, ticker or ISIN" autoComplete="off" className="min-w-0 flex-1 bg-transparent text-lg text-[var(--fg)] outline-none placeholder:text-[var(--muted)]" aria-describedby="research-help" />
                 </div>
                 <div className="mt-8 flex items-center justify-between gap-3">
                   <p id="research-help" className="text-xs text-[var(--muted)]">Choose a security to confirm its identity before research begins.</p>
-                  <button type="submit" disabled={!query.trim()} className="dsp-interactive inline-flex min-h-11 shrink-0 items-center gap-2 rounded-xl bg-[var(--accent)] px-4 text-sm font-semibold text-[var(--accent-fg)] disabled:cursor-not-allowed disabled:opacity-45">Research <ArrowRight className="size-4" /></button>
+                  <button data-testid="landing-research-submit" type="submit" disabled={!query.trim()} className="dsp-interactive inline-flex min-h-11 shrink-0 items-center gap-2 rounded-xl bg-[var(--accent)] px-4 text-sm font-semibold text-[var(--accent-fg)] disabled:cursor-not-allowed disabled:opacity-45">Research <ArrowRight className="size-4" /></button>
                 </div>
                 {suggestionsOpen && !selected && query.trim() ? <div className="absolute left-4 right-4 top-full z-10 mt-2 overflow-hidden rounded-xl border border-[var(--border)] bg-[var(--surface)] shadow-[var(--shadow-md)] sm:left-5 sm:right-auto sm:w-1/2" role="listbox" aria-label="Company suggestions">
-                  {matches.length ? matches.map((company) => <button key={company.ticker} type="button" role="option" aria-selected={false} onMouseDown={(event) => { event.preventDefault(); selectCompany(company); }} onClick={() => selectCompany(company)} className="flex w-full items-center justify-between gap-4 border-b border-[var(--border)] px-4 py-3 text-left last:border-b-0 hover:bg-[var(--surface-2)]"><span><span className="block text-sm font-medium">{company.name}</span><span className="mt-1 block text-xs text-[var(--muted)]">{company.market}</span></span><ChevronRight className="size-4 text-[var(--muted)]" /></button>) : <div className="px-4 py-4 text-sm text-[var(--muted)]">No matching listed company found. Try a name, ticker or ISIN.</div>}
+                  {matches.length ? matches.map((company) => <button key={company.ticker} type="button" role="option" aria-selected={false} onMouseDown={(event) => { event.preventDefault(); selectCompany(company); }} onClick={() => selectCompany(company)} className="flex w-full items-center justify-between gap-4 border-b border-[var(--border)] px-4 py-3 text-left last:border-b-0 hover:bg-[var(--surface-2)]"><span><span className="block text-sm font-medium">{company.name}</span><span className="mt-1 block text-xs text-[var(--muted)]">{company.market}</span></span><ChevronRight className="size-4 text-[var(--muted)]" /></button>) : <div className="px-4 py-4 text-sm text-[var(--muted)]">No matching company in the reference directory. Search another ticker; live source coverage is verified during analysis.</div>}
                 </div> : null}
               </form>
 

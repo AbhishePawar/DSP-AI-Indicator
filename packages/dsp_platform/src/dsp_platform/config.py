@@ -39,11 +39,11 @@ class ProviderSettings:
         enable_economic: Register the economic adapter.
     """
 
-    market_provider_id: str = "yahoo_finance"
-    fundamentals_provider_id: str = "yahoo_finance_fundamentals"
+    market_provider_id: str = "unconfigured_market"
+    fundamentals_provider_id: str = "unconfigured_fundamentals"
     economic_provider_id: str = "fred"
-    enable_market: bool = True
-    enable_fundamentals: bool = True
+    enable_market: bool = False
+    enable_fundamentals: bool = False
     enable_economic: bool = True
 
     def __post_init__(self) -> None:

@@ -714,14 +714,6 @@ def build_default_filings_registry_from_env() -> (
             priority=10,
         )
 
-    fmp_key = os.environ.get("DSP_FILINGS_FMP_API_KEY", "").strip()
-    if fmp_key:
-        registry.register(
-            FinancialModelingPrepFilingsAdapter(api_key=fmp_key),
-            provider_id="fmp_filings",
-            priority=20,
-        )
-
     if os.environ.get("DSP_FILINGS_NSE_ENABLED", "").lower() in {"1", "true", "yes"}:
         registry.register(
             NseFilingsAdapter(enabled=True), provider_id="nse_filings", priority=30
@@ -730,17 +722,6 @@ def build_default_filings_registry_from_env() -> (
     if os.environ.get("DSP_FILINGS_BSE_ENABLED", "").lower() in {"1", "true", "yes"}:
         registry.register(
             BseFilingsAdapter(enabled=True), provider_id="bse_filings", priority=40
-        )
-
-    if os.environ.get("DSP_FILINGS_SCREENER_ENABLED", "").lower() in {
-        "1",
-        "true",
-        "yes",
-    }:
-        registry.register(
-            ScreenerFilingsAdapter(enabled=True),
-            provider_id="screener_filings",
-            priority=50,
         )
 
     if memory_adapter_allowed("DSP_FILINGS_MEMORY", connector="filings"):

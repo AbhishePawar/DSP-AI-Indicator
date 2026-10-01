@@ -703,25 +703,6 @@ def build_default_ownership_registry_from_env() -> (
         PriorityProviderRegistry()
     )
 
-    if os.environ.get("DSP_OWNERSHIP_SCREENER_ENABLED", "").lower() in {
-        "1",
-        "true",
-        "yes",
-    }:
-        registry.register(
-            ScreenerOwnershipAdapter(enabled=True),
-            provider_id="screener_ownership",
-            priority=10,
-        )
-
-    fmp_key = os.environ.get("DSP_OWNERSHIP_FMP_API_KEY", "").strip()
-    if fmp_key:
-        registry.register(
-            FinancialModelingPrepOwnershipAdapter(api_key=fmp_key),
-            provider_id="fmp_ownership",
-            priority=20,
-        )
-
     if os.environ.get("DSP_OWNERSHIP_NSE_ENABLED", "").lower() in {"1", "true", "yes"}:
         registry.register(
             NseOwnershipAdapter(enabled=True), provider_id="nse_ownership", priority=30
@@ -730,17 +711,6 @@ def build_default_ownership_registry_from_env() -> (
     if os.environ.get("DSP_OWNERSHIP_BSE_ENABLED", "").lower() in {"1", "true", "yes"}:
         registry.register(
             BseOwnershipAdapter(enabled=True), provider_id="bse_ownership", priority=40
-        )
-
-    if os.environ.get("DSP_OWNERSHIP_YAHOO_ENABLED", "").lower() in {
-        "1",
-        "true",
-        "yes",
-    }:
-        registry.register(
-            YahooFinanceOwnershipAdapter(enabled=True),
-            provider_id="yahoo_finance_ownership",
-            priority=50,
         )
 
     if memory_adapter_allowed("DSP_OWNERSHIP_MEMORY", connector="ownership"):

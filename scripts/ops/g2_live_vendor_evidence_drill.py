@@ -11,9 +11,8 @@ Proves (when credentials are present):
 Fails closed when credentials are absent. Never fabricates live evidence.
 Never logs API keys / Authorization headers.
 
-Routes (either is sufficient):
-  A) Single-key FMP — DSP_FMP_API_KEY or DSP_INVESTMENT_FMP_API_KEY
-  B) ConfiguredHttp — quote key+URL and statement key+URL
+Source route: ConfiguredHttp — quote key+URL and statement key+URL.
+Commercial vendor credentials never satisfy this gate.
 
 Evidence: artifacts/g2_live_vendor_evidence.json
 """
@@ -44,11 +43,6 @@ HTTP_REQUIRED_ENV = (
     "DSP_FINANCIAL_STATEMENT_BASE_URL",
 )
 
-FMP_KEY_ENVS = (
-    "DSP_FMP_API_KEY",
-    "DSP_INVESTMENT_FMP_API_KEY",
-)
-
 # Back-compat alias used by older tests / docs.
 REQUIRED_ENV = HTTP_REQUIRED_ENV
 
@@ -74,7 +68,7 @@ def credential_presence(
 ) -> dict[str, bool]:
     """Return PRESENT/ABSENT map — never values."""
     env = environ if environ is not None else os.environ
-    names = list(HTTP_REQUIRED_ENV) + list(FMP_KEY_ENVS)
+    names = HTTP_REQUIRED_ENV
     return {name: bool(str(env.get(name) or "").strip()) for name in names}
 
 
@@ -83,20 +77,13 @@ def http_credentials_ready(environ: dict[str, str] | None = None) -> bool:
     return all(present[name] for name in HTTP_REQUIRED_ENV)
 
 
-def fmp_credentials_ready(environ: dict[str, str] | None = None) -> bool:
-    present = credential_presence(environ)
-    return any(present[name] for name in FMP_KEY_ENVS)
-
-
 def credentials_ready(environ: dict[str, str] | None = None) -> bool:
-    return http_credentials_ready(environ) or fmp_credentials_ready(environ)
+    return http_credentials_ready(environ)
 
 
 def selected_route(environ: dict[str, str] | None = None) -> str:
     if http_credentials_ready(environ):
         return "configured_http"
-    if fmp_credentials_ready(environ):
-        return "fmp"
     return "none"
 
 
@@ -123,10 +110,7 @@ def classify_gate(
         evidence_class = "credentials_unavailable"
         status = "BLOCKED"
         reason = (
-            "G2 live authenticated vendor evidence requires EITHER "
-            "(A) DSP_FMP_API_KEY or DSP_INVESTMENT_FMP_API_KEY "
-            "(single-key Financial Modeling Prep free developer tier), "
-            "OR (B) all four ConfiguredHttp secrets: "
+            "G2 verified source evidence requires all four source-interface settings: "
             + ", ".join(HTTP_REQUIRED_ENV)
             + ". Inject via GitHub Environment 'live-data-evidence' "
             "(workflow_dispatch) or a secure local runtime - never commit."
@@ -148,16 +132,12 @@ def classify_gate(
         "route": route,
         "credential_presence": {k: ("PRESENT" if v else "ABSENT") for k, v in present.items()},
         "memory_flags_enabled": memory,
-        "required_secrets": [
-            "DSP_FMP_API_KEY (preferred single-key FMP route)",
-            *HTTP_REQUIRED_ENV,
-        ],
+        "required_secrets": list(HTTP_REQUIRED_ENV),
         "secure_injection": [
             "GitHub Environment: live-data-evidence",
             "workflow_dispatch protected job",
             "organization/repository Actions secrets (names only above)",
             "production secret manager → runtime env (never source tree)",
-            "FMP free developer signup: https://site.financialmodelingprep.com/developer/docs",
         ],
     }
 
@@ -176,14 +156,6 @@ def _write_evidence(evidence: dict[str, Any]) -> Path:
 
 
 def _provider_meta(route: str) -> dict[str, Any]:
-    if route == "fmp":
-        return {
-            "quote_provider_id": "fmp_market_quote",
-            "statement_provider_id": "fmp_financial_statements",
-            "auth_mode": "api_key",
-            "vendor": "financial_modeling_prep",
-            "note": "Single authenticated FMP key satisfies quote + statements",
-        }
     if route == "configured_http":
         return {
             "quote_provider_id": "configured_http_quote",
@@ -247,9 +219,9 @@ def _fail(msg: str, evidence: dict[str, Any], code: int = 2) -> int:
     if evidence.get("g2_status") != "CLEARED":
         evidence["g2_status"] = evidence.get("g2_status") or "BLOCKED"
     # Never leave real_live_authenticated_provider on a failed/blocked run.
-    if evidence.get("evidence_class") == "real_live_authenticated_provider":
-        evidence["evidence_class"] = "live_execution_failed"
-    elif evidence.get("evidence_class") == "credentials_present_pending_live":
+    if evidence.get("evidence_class") in {
+        "real_live_authenticated_provider", "credentials_present_pending_live"
+    }:
         evidence["evidence_class"] = "live_execution_failed"
     _write_evidence(evidence)
     print(f"FAIL G2: {msg}", file=sys.stderr)

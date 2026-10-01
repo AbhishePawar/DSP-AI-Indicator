@@ -11,7 +11,6 @@ Every vendor-specific field name lives in this file. Adapters:
 
 from __future__ import annotations
 
-import os
 from collections.abc import Mapping
 from dataclasses import dataclass, field
 from datetime import date
@@ -311,21 +310,6 @@ def build_default_esg_registry_from_env() -> PriorityProviderRegistry[EsgProvide
     )
 
     registry: PriorityProviderRegistry[EsgProviderPort] = PriorityProviderRegistry()
-
-    fmp_key = os.environ.get("DSP_ESG_FMP_API_KEY", "").strip()
-    if fmp_key:
-        registry.register(
-            FinancialModelingPrepEsgAdapter(api_key=fmp_key),
-            provider_id="fmp_esg",
-            priority=10,
-        )
-
-    if os.environ.get("DSP_ESG_YAHOO_ENABLED", "").lower() in {"1", "true", "yes"}:
-        registry.register(
-            YahooFinanceEsgAdapter(enabled=True),
-            provider_id="yahoo_finance_esg",
-            priority=20,
-        )
 
     if memory_adapter_allowed("DSP_ESG_MEMORY", connector="esg"):
         registry.register(

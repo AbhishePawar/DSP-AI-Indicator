@@ -21,7 +21,7 @@ from typing import Any
 from contracts.domain.economic_series import EconomicSeries
 from data_engine.adapters import BaseAdapter
 from data_engine.adapters.fred.catalog import FredSeriesSpec, resolve_fred_series
-from data_engine.adapters.yahoo_finance.http_client import (
+from data_engine.connector_framework.http import (
     JsonHttpClient,
     UrllibJsonHttpClient,
 )

@@ -85,14 +85,14 @@ def load_platform_config(
         environment = _parse_environment(env.get(_ENV_KEY))
         providers = ProviderSettings(
             market_provider_id=_str_or_default(
-                env.get(_MARKET_PROVIDER), "yahoo_finance"
+                env.get(_MARKET_PROVIDER), "unconfigured_market"
             ),
             fundamentals_provider_id=_str_or_default(
-                env.get(_FUND_PROVIDER), "yahoo_finance_fundamentals"
+                env.get(_FUND_PROVIDER), "unconfigured_fundamentals"
             ),
             economic_provider_id=_str_or_default(env.get(_ECON_PROVIDER), "fred"),
-            enable_market=_parse_bool(env.get(_ENABLE_MARKET), default=True),
-            enable_fundamentals=_parse_bool(env.get(_ENABLE_FUND), default=True),
+            enable_market=_parse_bool(env.get(_ENABLE_MARKET), default=False),
+            enable_fundamentals=_parse_bool(env.get(_ENABLE_FUND), default=False),
             enable_economic=_parse_bool(env.get(_ENABLE_ECON), default=True),
         )
         cache = CacheSettings(

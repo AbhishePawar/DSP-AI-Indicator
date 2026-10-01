@@ -86,18 +86,10 @@ def require_authenticated_http_adapter(
         return
     if api_key.strip() and base_url.strip():
         return
-    from data_engine.fmp_investment import resolve_fmp_api_key
-    from data_engine.investment_data_provider import (
-        DSP_INVESTMENT_DATA_PROVIDER_ENV,
-        resolve_investment_data_provider,
-    )
-    provider = resolve_investment_data_provider(environ)
-    if provider in {"auto", "fmp"} and resolve_fmp_api_key(environ):
-        return
+    # Financial data is source-neutral; no commercial key bypasses validation.
     raise ConnectorConfigurationError(
         f"P1-03: production requires authenticated {connector} provider; "
         f"set {api_key_env} and {base_url_env}, "
-        "or DSP_FMP_API_KEY / DSP_INVESTMENT_FMP_API_KEY (single-key FMP route), "
         "Null/demo/seed adapters are not permitted on the production path."
     )
 

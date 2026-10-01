@@ -31,25 +31,20 @@ def diagnose(*, probe: bool = False, ticker: str = "AAPL") -> dict[str, Any]:
     http_quote_url = _present("DSP_MARKET_QUOTE_BASE_URL")
     http_stmt_key = _present("DSP_FINANCIAL_STATEMENT_API_KEY")
     http_stmt_url = _present("DSP_FINANCIAL_STATEMENT_BASE_URL")
-    fmp_key = _present("DSP_FMP_API_KEY") or _present("DSP_INVESTMENT_FMP_API_KEY")
 
     http_ready = http_quote_key and http_quote_url and http_stmt_key and http_stmt_url
-    route = "configured_http" if http_ready else ("fmp" if fmp_key else "none")
+    route = "configured_http" if http_ready else "none"
     provider_configured = route != "none"
 
     report: dict[str, Any] = {
         "provider_configured": "yes" if provider_configured else "no",
         "route": route,
         "base_url_configured": "yes"
-        if (http_ready or fmp_key)
+        if http_ready
         else "no",
-        "api_key_configured": "yes" if (http_ready or fmp_key) else "no",
+        "api_key_configured": "yes" if http_ready else "no",
         "production_adapter_selected": "unknown",
         "credential_presence": {
-            "DSP_FMP_API_KEY": "PRESENT" if _present("DSP_FMP_API_KEY") else "ABSENT",
-            "DSP_INVESTMENT_FMP_API_KEY": (
-                "PRESENT" if _present("DSP_INVESTMENT_FMP_API_KEY") else "ABSENT"
-            ),
             "DSP_MARKET_QUOTE_API_KEY": "PRESENT" if http_quote_key else "ABSENT",
             "DSP_MARKET_QUOTE_BASE_URL": "PRESENT" if http_quote_url else "ABSENT",
             "DSP_FINANCIAL_STATEMENT_API_KEY": "PRESENT" if http_stmt_key else "ABSENT",
@@ -67,7 +62,9 @@ def diagnose(*, probe: bool = False, ticker: str = "AAPL") -> dict[str, Any]:
         from data_engine.financial_statement.adapters import (
             build_default_statement_adapter_from_env,
         )
-        from data_engine.market_quote.adapters import build_default_quote_adapter_from_env
+        from data_engine.market_quote.adapters import (
+            build_default_quote_adapter_from_env,
+        )
 
         quote = build_default_quote_adapter_from_env()
         stmt = build_default_statement_adapter_from_env()

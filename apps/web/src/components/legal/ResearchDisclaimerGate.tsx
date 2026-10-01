@@ -40,8 +40,8 @@ export function ResearchDisclaimerGate({
     if (!checked) return;
     acknowledgeResearchDisclaimer();
     setChecked(false);
-    onOpenChange(false);
     onAcknowledged();
+    onOpenChange(false);
   }
 
   return (
@@ -53,6 +53,7 @@ export function ResearchDisclaimerGate({
       }}
     >
       <DialogContent
+        data-testid="research-disclaimer-modal"
         className="max-w-lg"
         aria-describedby="research-disclaimer-desc"
       >
@@ -89,6 +90,7 @@ export function ResearchDisclaimerGate({
 
         <label className="flex items-start gap-2 text-sm text-[var(--fg)]">
           <Checkbox
+            data-testid="research-disclaimer-checkbox"
             checked={checked}
             onCheckedChange={(v) => setChecked(v === true)}
             aria-label="I understand the investment research disclaimer"
@@ -104,6 +106,7 @@ export function ResearchDisclaimerGate({
           <Button
             type="button"
             variant="secondary"
+            data-testid="research-disclaimer-cancel"
             onClick={() => onOpenChange(false)}
           >
             Cancel
@@ -111,6 +114,7 @@ export function ResearchDisclaimerGate({
           <Button
             type="button"
             disabled={!checked}
+            data-testid="research-disclaimer-confirm"
             onClick={handleConfirm}
             aria-disabled={!checked}
           >

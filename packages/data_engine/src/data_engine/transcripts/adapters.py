@@ -11,7 +11,6 @@ Every vendor-specific field name lives in this file. Adapters:
 
 from __future__ import annotations
 
-import os
 from collections.abc import Mapping
 from dataclasses import dataclass, field
 from datetime import datetime
@@ -269,14 +268,6 @@ def build_default_transcript_registry_from_env() -> (
     registry: PriorityProviderRegistry[TranscriptProviderPort] = (
         PriorityProviderRegistry()
     )
-
-    fmp_key = os.environ.get("DSP_TRANSCRIPT_FMP_API_KEY", "").strip()
-    if fmp_key:
-        registry.register(
-            FinancialModelingPrepTranscriptAdapter(api_key=fmp_key),
-            provider_id="fmp_transcripts",
-            priority=10,
-        )
 
     if memory_adapter_allowed("DSP_TRANSCRIPT_MEMORY", connector="transcripts"):
         registry.register(

@@ -291,6 +291,7 @@ export default function LoginForm() {
               type="button"
               className="w-full"
               disabled={pending}
+              data-testid="login-password-method"
               onClick={() => {
                 setError(null);
                 setStep("password");
@@ -372,6 +373,7 @@ export default function LoginForm() {
             <form className="space-y-4" onSubmit={onPasswordSubmit} noValidate>
               <FormField label="Username" htmlFor="login-username" required>
                 <Input
+                  data-testid="login-username"
                   id="login-username"
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
@@ -384,6 +386,7 @@ export default function LoginForm() {
               </FormField>
               <FormField label="Password" htmlFor="login-password" required>
                 <PasswordInput
+                  data-testid="login-password"
                   id="login-password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
@@ -396,6 +399,7 @@ export default function LoginForm() {
               <div className="flex flex-wrap items-center justify-between gap-2">
                 <label className="flex items-center gap-2 text-sm text-[var(--muted)]">
                   <Checkbox
+                    data-testid="login-remember-me"
                     checked={rememberMe}
                     onCheckedChange={(v) => setRememberMe(v === true)}
                     aria-label="Remember me on this device"

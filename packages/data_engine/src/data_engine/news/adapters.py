@@ -25,7 +25,6 @@ registry is never empty.
 
 from __future__ import annotations
 
-import os
 from collections.abc import Mapping
 from dataclasses import dataclass, field
 from datetime import UTC, datetime
@@ -579,10 +578,8 @@ def build_default_news_registry_from_env() -> (
 ):
     """Compose a news provider registry from environment configuration.
 
-    Registers every vendor with credentials/flags present, in a fixed
-    priority order (licensed structured feeds before unofficial public
-    endpoints). P1-03: Null is registered only outside production; production
-    refuses a Null-only / memory-only registry.
+    Commercial feeds are not registered. Missing verified news is explicitly
+    unavailable. P1-03 still refuses a Null-only / memory-only production registry.
     """
     from data_engine.connector_framework.production_profile import (
         finalize_provider_registry,
@@ -590,37 +587,6 @@ def build_default_news_registry_from_env() -> (
     )
 
     registry: PriorityProviderRegistry[NewsProviderPort] = PriorityProviderRegistry()
-
-    fmp_key = os.environ.get("DSP_NEWS_FMP_API_KEY", "").strip()
-    if fmp_key:
-        registry.register(
-            FinancialModelingPrepNewsAdapter(api_key=fmp_key),
-            provider_id="fmp_news",
-            priority=10,
-        )
-
-    polygon_key = os.environ.get("DSP_NEWS_POLYGON_API_KEY", "").strip()
-    if polygon_key:
-        registry.register(
-            PolygonNewsAdapter(api_key=polygon_key),
-            provider_id="polygon_news",
-            priority=20,
-        )
-
-    av_key = os.environ.get("DSP_NEWS_ALPHAVANTAGE_API_KEY", "").strip()
-    if av_key:
-        registry.register(
-            AlphaVantageNewsAdapter(api_key=av_key),
-            provider_id="alpha_vantage_news",
-            priority=30,
-        )
-
-    if os.environ.get("DSP_NEWS_YAHOO_ENABLED", "").lower() in {"1", "true", "yes"}:
-        registry.register(
-            YahooFinanceNewsAdapter(enabled=True),
-            provider_id="yahoo_finance_news",
-            priority=40,
-        )
 
     if memory_adapter_allowed("DSP_NEWS_MEMORY", connector="news"):
         registry.register(

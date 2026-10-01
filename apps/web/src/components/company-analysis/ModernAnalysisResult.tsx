@@ -48,7 +48,7 @@ export function ModernAnalysisResult({
     <div data-testid="company-analysis" className="min-h-[calc(100vh-8rem)] bg-[var(--bg)]">
       {disclaimerGate}
       <div className="mx-auto max-w-6xl space-y-8">
-        <header className="flex flex-col gap-6 border-b border-[var(--border)] pb-8 lg:flex-row lg:items-end lg:justify-between">
+        <header data-testid="page-header" className="flex flex-col gap-6 border-b border-[var(--border)] pb-8 lg:flex-row lg:items-end lg:justify-between">
           <div className="max-w-3xl">
             <p className="text-[10px] font-mono uppercase tracking-wider text-[var(--muted)]">DSP AI Indicator / Company analysis</p>
             <h1 data-testid="analysis-title" className="mt-3 font-[family-name:var(--font-display)] text-3xl font-medium tracking-tight text-[var(--fg)]">{view?.company || "Research a company"}</h1>

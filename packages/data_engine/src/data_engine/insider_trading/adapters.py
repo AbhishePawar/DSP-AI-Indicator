@@ -873,14 +873,6 @@ def build_default_insider_trading_registry_from_env() -> (
             priority=10,
         )
 
-    fmp_key = os.environ.get("DSP_INSIDER_FMP_API_KEY", "").strip()
-    if fmp_key:
-        registry.register(
-            FinancialModelingPrepInsiderTradingAdapter(api_key=fmp_key),
-            provider_id="fmp_insider_trading",
-            priority=20,
-        )
-
     if os.environ.get("DSP_INSIDER_NSE_ENABLED", "").lower() in {"1", "true", "yes"}:
         registry.register(
             NseInsiderTradingAdapter(enabled=True),
@@ -893,13 +885,6 @@ def build_default_insider_trading_registry_from_env() -> (
             BseInsiderTradingAdapter(enabled=True),
             provider_id="bse_insider_trading",
             priority=40,
-        )
-
-    if os.environ.get("DSP_INSIDER_YAHOO_ENABLED", "").lower() in {"1", "true", "yes"}:
-        registry.register(
-            YahooFinanceInsiderTradingAdapter(enabled=True),
-            provider_id="yahoo_finance_insider_trading",
-            priority=50,
         )
 
     if memory_adapter_allowed("DSP_INSIDER_MEMORY", connector="insider_trading"):

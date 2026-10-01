@@ -1,0 +1,98 @@
+{
+  "summary": "First testing iteration for DSP-AI-Indicator Figma migration shell/dashboard/analysis work. Backend regression + live preview API smoke tests + Playwright flows for landing, login, shell (sidebar 220px), dashboard watchlist (add TCS → persist on reload → remove TCS), /analyse identity-only POST and honest 'Unavailable' envelope rendering. Overall core infrastructure, shell, dashboard and analysis identity flow are green. Minor UX quirks and 4 pre-existing upstox-removal regressions remain.",
+  "backend_issues": {
+    "critical": [
+      {
+        "endpoint": "/api/v1/auth/login",
+        "issue": "Legacy /auth/login path returns 503 'security bundle is not configured'. AuthProvider's final fallback (api.login via /auth/login) is non-functional. Enterprise and RBAC endpoints work (used in practice), so UI is unaffected, but anyone hitting the legacy endpoint directly gets 503. Expected per architectural note; keep as honest unavailable OR remove the dead api.login code path.",
+        "priority": "HIGH"
+      }
+    ],
+    "minor": [
+      {
+        "endpoint": "/api/v1/auth/login (schema)",
+        "issue": "Pydantic model rejects {email,password}; only {username,password} accepted. Error message is clear but credentials file labels field as 'Email' which is misleading. Consider documenting as username."
+      },
+      {
+        "endpoint": "packages/api_platform/tests/test_auth_investment_boot_decoupling.py",
+        "issue": "4/4 tests reference removed 'upstox' provider; current resolve_investment_data_provider only allows 'fmp'|'auto'. Tests still expect ConnectorConfigurationError text 'DSP_UPSTOX_ANALYTICS_TOKEN'. Pre-existing regression — not caused by this iteration but blocks that suite."
+      }
+    ]
+  },
+  "frontend_issues": {
+    "ui_bugs": [
+      {
+        "component": "LoginForm (/login username+password)",
+        "issue": "Username/Password/Remember-me inputs and 'Sign in' button lack data-testid. Only visible labels differentiate them.",
+        "selector": "input[type=text] / input[type=password]",
+        "priority": "MEDIUM"
+      },
+      {
+        "component": "CompanyAnalysisWorkspace",
+        "issue": "Clicking analysis-submit opens disclaimer modal; after acknowledging, user must click a SECOND 'Analyze TCS' button inside the FLAGSHIP RESEARCH card to actually POST /api/v1/analyse. Two-step confirmation is unexpected — flow should auto-dispatch after acknowledgement OR disclaimer should be gated once per session only.",
+        "selector": "[data-testid='analysis-submit']",
+        "priority": "MEDIUM"
+      },
+      {
+        "component": "Disclaimer modal checkbox",
+        "issue": "Programmatic click on the inner <input type='checkbox'> does not toggle (label click works). Likely a controlled component intercepting pointer events — minor automation friction, no user impact.",
+        "selector": "div[role=dialog] input[type=checkbox]",
+        "priority": "LOW"
+      },
+      {
+        "component": "ResearchOverview / Dashboard",
+        "issue": "data-testid 'page-header' exists on /dashboard but is MISSING on /analysis (CompanyAnalysisWorkspace header). Review request calls for unified shell testids; add page-header testid to analysis header too.",
+        "selector": "n/a",
+        "priority": "LOW"
+      }
+    ],
+    "integration_issues": [],
+    "design_issues": [
+      {
+        "screen": "/ (marketing landing)",
+        "issues": [
+          "'TODAY' sidebar section lists Tata Consultancy Services / HDFC Bank Limited / Infosys Limited by default — these look like fabricated recent-search chips when no searches have been made. FIGMA_PARITY.md explicitly says 'No fabricated recent searches or signed-in user'. Verify whether these are hardcoded fixtures or sourced from real local-user searches — on first visit they appear before any user action."
+        ]
+      },
+      {
+        "screen": "Global typography",
+        "issues": [
+          "Headings render in a serif face despite next/font Inter configuration (noted by main agent). Font CSS mapping bug — body text looks correct, large display text is serif."
+        ]
+      }
+    ]
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_live_api.py",
+    "/app/test_reports/pytest/live_api.xml",
+    "/app/test_reports/pytest/regression.xml"
+  ],
+  "action_items": [
+    "Investigate 'TODAY' sidebar list on marketing landing — ensure it only shows real local user searches, not fabricated fixtures.",
+    "Add data-testid attributes to LoginForm username/password/submit and to CompanyAnalysisWorkspace page header.",
+    "Remove the legacy /auth/login fallback from lib/api/client.ts or configure the security bundle so the endpoint doesn't 503 silently.",
+    "Fix /analysis two-click submit flow — after disclaimer acknowledgement, auto-POST instead of showing another 'Analyze TCS' button.",
+    "Reconcile test_auth_investment_boot_decoupling.py with the fmp|auto-only provider resolver (or restore upstox allowed value) — 4 failing tests.",
+    "Fix serif-headings regression (next/font Inter CSS mapping) — called out in main agent context."
+  ],
+  "critical_code_review_comments": [
+    "AuthProvider.tsx uses three fallbacks (enterprise → rbac → legacy /auth/login). Legacy path is dead (503). Remove to simplify and reduce confusion.",
+    "Dashboard watchlist persistence is localStorage-only ('saved on this device'). Clearly disclosed but not synced across devices once auth lands — document as backlog.",
+    "Analyse POST body is correctly identity-only {ticker,exchange,company}; no fabricated financial_statements payload leaked.",
+    "Honest 'Unavailable' envelopes rendered for market indices and analysis metrics — matches no-fake-data mandate.",
+    "A008 in-memory auth store confirmed as production readiness blocker (RBAC login succeeds but seed user is in-memory)."
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_live_api.py"
+  ],
+  "success_rate": {
+    "backend": "95% (73/77 regression + 9/9 live-api; 4 failures are pre-existing upstox-removal mismatch)",
+    "frontend": "90% (shell, dashboard, analysis identity flow all green; two UX quirks on analysis submit; testid gaps on login)"
+  },
+  "test_credentials": "Preview credentials are documented privately in /app/memory/test_credentials.md. Enterprise and RBAC login work; legacy login endpoint is unavailable.",
+  "seed_data_creation": "None. Added TCS to watchlist via UI then removed it. No other test data created.",
+  "retest_needed": true,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "Dashboard uses testids 'desktop-sidebar','app-topbar','watchlist-add-toggle/watchlist-symbol/watchlist-add-submit/watchlist-remove-<SYMBOL>','market-index-nifty-50', etc. Login flow: /login → click 'Username and password' button → fill labelled Username/Password inputs → click 'Sign in'. Analysis flow needs TWO clicks: 'analysis-submit' opens disclaimer, acknowledge it, then click the 'Analyze TCS' button inside the FLAGSHIP RESEARCH card to actually POST. Disclaimer checkbox toggles via label click (programmatic input click fails). Market/fundamentals providers are intentionally null — 'Unavailable' is correct. research/company is architecturally gated — do not treat non-200 as regression. 4 upstox tests in test_auth_investment_boot_decoupling.py are pre-existing failures.",
+  "rca_of_the_issue": "Legacy /auth/login 503 cause: security bundle (A008 auth composition) is not fully bootstrapped on this preview. The /auth/rbac/* and /auth/enterprise/* routers are backed by the in-memory RBAC store which is bootstrapped by the dsp-api lifecycle, but the legacy /auth/login handler requires the richer security bundle that is only installed when enterprise security is fully configured. Mitigation: AuthProvider's enterprise→rbac fallback masks this for end users; remove the dead api.login call or wire the security bundle. Analysis two-click flow RCA: analysis-submit button handler fires openDisclaimer() and sets a 'pending' symbol; after acknowledgement the UI resets to a 'ready to run' state showing a confirmation CTA rather than auto-dispatching the request — appears to be an intentional guard but it is confusing and the review request contract implies single-click submit."
+}

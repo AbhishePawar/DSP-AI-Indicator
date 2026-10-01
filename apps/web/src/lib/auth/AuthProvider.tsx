@@ -24,7 +24,6 @@ import {
   mergeUserProfile,
   persistSession,
   readStoredSession,
-  sessionFromLoginPayload,
   sessionFromRbacLogin,
 } from "./sessionStore";
 import { cookieAuthPreferred, probeCookieSession } from "./cookieSession";
@@ -246,18 +245,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           return;
         }
 
-        const result = await api.login({
-          username: credentials.username.trim(),
-        });
-        if (!result.ok || !result.payload?.access_token) {
-          throw new Error(result.errors?.[0] || "Login failed");
-        }
-        const next = sessionFromLoginPayload(
-          result.payload,
-          Boolean(credentials.rememberMe),
-        );
-        applySession(next);
-        logger.info("User signed in", { subject: next.subject, role: next.role });
+        throw new Error("Choose an available sign-in method and provide your credentials.");
       } catch (error) {
         setStatus(session ? "authenticated" : "unauthenticated");
         syncStore(session ? "authenticated" : "unauthenticated", session);

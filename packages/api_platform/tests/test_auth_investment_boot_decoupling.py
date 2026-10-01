@@ -4,7 +4,7 @@ Proves:
 A) Production create_app succeeds without investment credentials
 B) Auth endpoints and readiness probes remain reachable in that condition
 C) Investment adapter construction still fails closed (P1-03)
-D) Valid Upstox configuration still selects Upstox adapters
+D) Configured vendor-neutral HTTP sources select their existing adapters
 E) P1-03 assert helper remains usable for investment/ops paths
 F) Authentication modules do not import Upstox/investment adapters
 """
@@ -27,7 +27,7 @@ from data_engine.financial_statement.adapters import (
 from data_engine.market_quote.adapters import build_default_quote_adapter_from_env
 from dsp_platform import DSPPlatform, PlatformBuilder, PlatformConfiguration
 
-_UPSTOX_TOKEN = "phase1-test-upstox-analytics-token-not-real"
+_SOURCE_KEY = "phase1-test-source-key-not-real"
 
 
 @pytest.fixture()
@@ -100,14 +100,14 @@ def test_b_auth_endpoints_accessible_without_investment_config(
     assert any("/auth/enterprise" in path or "/auth/rbac" in path for path in paths)
 
 
-def test_b_ready_probe_accepts_traffic_without_upstox_token(
+def test_b_ready_probe_accepts_traffic_without_http_key(
     monkeypatch: pytest.MonkeyPatch, platform: DSPPlatform
 ) -> None:
-    """Cloud Run / Docker HEALTHCHECK must not require Upstox for API readiness."""
+    """Cloud Run / Docker HEALTHCHECK must not require investment keys for API readiness."""
     from api_platform import create_app
 
     _strip_investment_credentials(monkeypatch)
-    monkeypatch.setenv("DSP_INVESTMENT_DATA_PROVIDER", "upstox")
+    monkeypatch.setenv("DSP_INVESTMENT_DATA_PROVIDER", "http")
     client = TestClient(create_app(platform=platform, enable_security=False))
 
     ready = client.get("/api/v1/health/ready")
@@ -119,7 +119,7 @@ def test_b_ready_probe_accepts_traffic_without_upstox_token(
     investment = checks.get("investment_data_provider")
     assert investment is not None
     assert investment["status"] == "fail"
-    assert "DSP_UPSTOX_ANALYTICS_TOKEN" in investment["message"]
+    assert "DSP_MARKET_QUOTE_API_KEY" in investment["message"]
 
 
 # --- TEST C -----------------------------------------------------------------
@@ -135,19 +135,19 @@ def test_c_investment_operations_fail_closed_without_provider(
         build_default_statement_adapter_from_env()
 
 
-def test_c_upstox_selected_without_token_fails_closed(
+def test_c_http_selected_without_key_fails_closed(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     _strip_investment_credentials(monkeypatch)
-    monkeypatch.setenv("DSP_INVESTMENT_DATA_PROVIDER", "upstox")
-    with pytest.raises(ConnectorConfigurationError, match="DSP_UPSTOX_ANALYTICS_TOKEN"):
+    monkeypatch.setenv("DSP_INVESTMENT_DATA_PROVIDER", "http")
+    with pytest.raises(ConnectorConfigurationError, match="DSP_MARKET_QUOTE_API_KEY"):
         build_default_quote_adapter_from_env()
 
 
 # --- TEST D -----------------------------------------------------------------
 
 
-def test_d_valid_upstox_configuration_still_works(
+def test_d_valid_http_configuration_still_works(
     monkeypatch: pytest.MonkeyPatch, platform: DSPPlatform
 ) -> None:
     from api_platform import create_app
@@ -160,16 +160,19 @@ def test_d_valid_upstox_configuration_still_works(
         "api_platform.api.durable_product_stores.require_durable_product_database",
         lambda database: None,
     )
-    monkeypatch.setenv("DSP_INVESTMENT_DATA_PROVIDER", "upstox")
-    monkeypatch.setenv("DSP_UPSTOX_ANALYTICS_TOKEN", _UPSTOX_TOKEN)
+    monkeypatch.setenv("DSP_INVESTMENT_DATA_PROVIDER", "http")
+    monkeypatch.setenv("DSP_MARKET_QUOTE_API_KEY", _SOURCE_KEY)
+    monkeypatch.setenv("DSP_MARKET_QUOTE_BASE_URL", "https://source.example/quotes")
+    monkeypatch.setenv("DSP_FINANCIAL_STATEMENT_API_KEY", _SOURCE_KEY)
+    monkeypatch.setenv("DSP_FINANCIAL_STATEMENT_BASE_URL", "https://source.example/statements")
 
     app = create_app(platform=platform, enable_security=False)
     assert app is not None
 
     quote = build_default_quote_adapter_from_env()
     statements = build_default_statement_adapter_from_env()
-    assert type(quote).__name__ == "UpstoxQuoteAdapter"
-    assert type(statements).__name__ == "UpstoxStatementAdapter"
+    assert type(quote).__name__ == "ConfiguredHttpQuoteAdapter"
+    assert type(statements).__name__ == "ConfiguredHttpStatementAdapter"
 
 
 # --- TEST E -----------------------------------------------------------------
@@ -182,11 +185,14 @@ def test_e_p103_assert_helper_still_enforces_investment_boundary(
     with pytest.raises(ConnectorConfigurationError, match="P1-03"):
         assert_production_investment_connectors_configured()
 
-    monkeypatch.setenv("DSP_INVESTMENT_DATA_PROVIDER", "upstox")
-    monkeypatch.setenv("DSP_UPSTOX_ANALYTICS_TOKEN", _UPSTOX_TOKEN)
+    monkeypatch.setenv("DSP_INVESTMENT_DATA_PROVIDER", "http")
+    monkeypatch.setenv("DSP_MARKET_QUOTE_API_KEY", _SOURCE_KEY)
+    monkeypatch.setenv("DSP_MARKET_QUOTE_BASE_URL", "https://source.example/quotes")
+    monkeypatch.setenv("DSP_FINANCIAL_STATEMENT_API_KEY", _SOURCE_KEY)
+    monkeypatch.setenv("DSP_FINANCIAL_STATEMENT_BASE_URL", "https://source.example/statements")
     selected = assert_production_investment_connectors_configured()
-    assert selected["market_quote"] == "UpstoxQuoteAdapter"
-    assert selected["financial_statement"] == "UpstoxStatementAdapter"
+    assert selected["market_quote"] == "ConfiguredHttpQuoteAdapter"
+    assert selected["financial_statement"] == "ConfiguredHttpStatementAdapter"
 
 
 # --- TEST F -----------------------------------------------------------------

@@ -99,3 +99,9 @@ apps/web/playwright-results.json
 apps/web/.env.local
 /frontend/
 /.emergent/
+.env.*
+*.env
+credentials.json
+*.pem
+*.key
+.credentials

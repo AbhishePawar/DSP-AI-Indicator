@@ -92,3 +92,4 @@ apps/web/playwright-report/
 apps/web/test-results/
 apps/web/playwright-results.json
 .tmp-browser-cert/
+.tmp-zip-audit/

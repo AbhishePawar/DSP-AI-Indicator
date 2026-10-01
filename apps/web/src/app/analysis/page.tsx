@@ -16,7 +16,7 @@ import { WorkspaceSkeleton } from "@/components/company-analysis/WorkspacePrimit
 
 export default function AnalysisRoute() {
   return (
-    <div className="analysis-shell min-h-[calc(100vh-8rem)]">
+    <div className="analysis-shell min-h-full">
       <Suspense fallback={<WorkspaceSkeleton />}>
         <CompanyAnalysisWorkspace />
       </Suspense>

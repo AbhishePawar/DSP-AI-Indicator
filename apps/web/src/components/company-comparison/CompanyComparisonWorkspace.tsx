@@ -29,7 +29,6 @@ import {
   DATA_UNAVAILABLE,
   MAX_COMPANIES,
   MIN_COMPANIES,
-  WORKSPACE_DISCLAIMER,
   describeHistoryChanges,
   isComparisonSectionId,
   mapComparisonWorkspace,
@@ -79,6 +78,7 @@ import {
   WinnerMatrixSection,
 } from "./Sections";
 import { WorkspaceEmpty, WorkspaceSkeleton } from "./Primitives";
+import { ComparisonPairBoard } from "./ComparisonPairBoard";
 
 const LazyWinner = lazy(async () => ({ default: WinnerMatrixSection }));
 const LazyTradeOff = lazy(async () => ({ default: TradeOffSection }));
@@ -515,7 +515,7 @@ export function CompanyComparisonWorkspace() {
         <div className="flex flex-wrap items-start justify-between gap-3">
           {/* Route-level FigmaPage/PageHeader owns the "Compare" title — no duplicate heading here. */}
           <p className="max-w-3xl font-mono text-[11px] text-[var(--muted)]">
-            {WORKSPACE_DISCLAIMER}
+            Side-by-side financial comparison. Research assists the review — it does not decide for you.
           </p>
           <div className="flex flex-wrap gap-2">
             <Button size="sm" variant="ghost" onClick={toggleLeft}>
@@ -534,20 +534,53 @@ export function CompanyComparisonWorkspace() {
             ) : null}
           </div>
         </div>
-        <ReviewModeControls />
-        <div className="flex flex-col gap-2 lg:flex-row lg:items-end">
-          <div className="flex-1">
-            <label className="mb-1 block text-xs text-[var(--muted)]" htmlFor="cmp-symbols">
-              Companies (2–{MAX_COMPANIES} tickers, comma-separated)
+        <details className="rounded-lg border border-[var(--border)] px-3 py-2">
+          <summary className="cursor-pointer text-xs text-[var(--muted)]">
+            Review tools
+          </summary>
+          <div className="pt-2">
+            <ReviewModeControls />
+          </div>
+        </details>
+        <div className="flex flex-col gap-2">
+        <div className="grid gap-2 sm:grid-cols-2">
+          <div>
+            <label className="mb-1 block font-[family-name:var(--font-mono)] text-[10px] tracking-[0.08em] text-[var(--c-revenue)]" htmlFor="cmp-security-1">
+              Security 1
             </label>
             <Input
-              id="cmp-symbols"
-              value={draftInput}
-              onChange={(e) => setDraftInput(e.target.value)}
-              placeholder="AAPL, MSFT, GOOGL"
-              aria-label="Comparison tickers"
+              id="cmp-security-1"
+              value={draftInput.split(",")[0]?.trim() ?? ""}
+              onChange={(e) => {
+                const parts = draftInput.split(",");
+                while (parts.length < 2) parts.push("");
+                parts[0] = e.target.value;
+                setDraftInput(parts.join(","));
+              }}
+              placeholder="Ticker"
+              aria-label="Security 1"
+              autoComplete="off"
             />
           </div>
+          <div>
+            <label className="mb-1 block font-[family-name:var(--font-mono)] text-[10px] tracking-[0.08em] text-[var(--c-profit)]" htmlFor="cmp-security-2">
+              Security 2
+            </label>
+            <Input
+              id="cmp-security-2"
+              value={draftInput.split(",")[1]?.trim() ?? ""}
+              onChange={(e) => {
+                const parts = draftInput.split(",");
+                while (parts.length < 2) parts.push("");
+                parts[1] = e.target.value;
+                setDraftInput(parts.join(","));
+              }}
+              placeholder="Ticker"
+              aria-label="Security 2"
+              autoComplete="off"
+            />
+          </div>
+        </div>
           <div className="flex flex-wrap gap-2">
             <Button size="sm" onClick={runCompare} disabled={isLoading}>
               {isLoading ? "Comparing…" : "Compare"}
@@ -623,10 +656,14 @@ export function CompanyComparisonWorkspace() {
 
       <div className="flex min-h-[70vh] flex-col">
         {leftOpen ? (
-          <nav
-            aria-label="Comparison sections"
-            className="w-full shrink-0 border-b border-[var(--border)] px-3 py-2 md:px-4"
-          >
+          <details className="border-b border-[var(--border)] px-3 py-2 md:px-4">
+            <summary className="cursor-pointer text-xs text-[var(--muted)]">
+              Comparison sections
+            </summary>
+            <nav
+              aria-label="Comparison sections"
+              className="w-full shrink-0 pt-2"
+            >
             {/* Figma SecurityCompare: flat page — sections as pill chips, not a side rail. */}
             <ul className="flex flex-wrap gap-2">
               {COMPARISON_SECTIONS.map((section) => (
@@ -649,6 +686,7 @@ export function CompanyComparisonWorkspace() {
               ))}
             </ul>
           </nav>
+          </details>
         ) : null}
 
         <main className="min-w-0 flex-1 p-3 md:p-4" aria-live="polite">
@@ -656,6 +694,7 @@ export function CompanyComparisonWorkspace() {
 
           {!isLoading && slots.length === 0 ? (
             <WorkspaceEmpty
+              description="Enter Security 1 and Security 2, then run Compare. Figures appear only after both analyses succeed."
               action={
                 <Button size="sm" onClick={runCompare}>
                   Start comparison
@@ -673,6 +712,7 @@ export function CompanyComparisonWorkspace() {
 
           {!isLoading && readyCount >= MIN_COMPANIES ? (
             <Suspense fallback={<WorkspaceSkeleton />}>
+              <ComparisonPairBoard model={model} />
               {activeSection === "personal" ? (
                 <PersonalResearchSection symbols={model.symbols} />
               ) : activeSection === "architecture" ? (

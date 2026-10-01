@@ -138,15 +138,14 @@ export function AppLayout({ children }: { children: ReactNode }) {
 
   return (
     <FeedbackProvider>
-      <div className="min-h-screen bg-[var(--bg)] text-[var(--fg)]">
-        <div className="pointer-events-none fixed inset-0 -z-10 bg-[radial-gradient(ellipse_at_top,_var(--glow)_0%,_transparent_55%)]" />
-        <div className="flex min-h-screen">
+      <div className="h-dvh overflow-hidden bg-[var(--bg)] text-[var(--fg)]">
+        <div className="flex h-full">
           <Sidebar collapsed={sidebarCollapsed} />
-          <div className="flex min-w-0 flex-1 flex-col">
+          <div className="flex min-h-0 min-w-0 flex-1 flex-col">
             <Topbar onMenuClick={() => setDrawerOpen(true)} />
             <main
               id="main-content"
-              className="flex-1 overflow-auto scroll-smooth motion-reduce:scroll-auto"
+              className="min-h-0 flex-1 overflow-auto scroll-smooth motion-reduce:scroll-auto"
               tabIndex={-1}
             >
               <ContentArea>

@@ -6,7 +6,7 @@ import { cn } from "@/lib/utils";
 /** Consistent page shell spacing + subtle route enter (respects reduced motion). */
 export function ContentArea({ children }: { children: ReactNode }) {
   return (
-    <div className="dsp-page-enter mx-auto w-full max-w-6xl space-y-6 px-4 py-6 sm:space-y-8 sm:px-6 sm:py-8">
+    <div className="dsp-page-enter w-full px-4 pb-8 sm:px-7">
       {children}
     </div>
   );

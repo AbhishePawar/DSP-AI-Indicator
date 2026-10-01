@@ -39,7 +39,7 @@ export function createConversation(title = "New conversation"): CopilotConversat
     messages: [
       createMessage(
         "assistant",
-        "Ask a suggested question to explain existing research. Copilot 2.0 orchestrates Company Workspace, Valuation, Committee, Risk, Portfolio Intelligence, Comparison, and Documents — it never invents numbers.",
+        "Ask a question about a company you have already analysed. Answers stay tied to that research.",
       ),
     ],
   };

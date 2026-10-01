@@ -75,7 +75,8 @@ function NavLink({
       onClick={onNavigate}
       aria-current={active ? "page" : undefined}
       className={cn(
-        "inline-flex min-h-11 items-center gap-2 rounded-[var(--radius-md)] px-2.5 text-sm transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] motion-reduce:transition-none",
+        "inline-flex items-center gap-2 rounded-lg px-2.5 text-[13px] transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] motion-reduce:transition-none",
+        mobile ? "min-h-11" : "min-h-9 py-1.5",
         hideLabel ? "justify-center" : "justify-start",
         nested && !hideLabel ? "pl-8" : null,
         active
@@ -220,7 +221,7 @@ export function Sidebar({
         mobile
           ? "flex h-full w-72 flex-col"
           : cn(
-              "hidden md:flex md:flex-col md:border-r md:border-[var(--border)] md:bg-[var(--surface)]",
+              "hidden h-full overflow-hidden md:flex md:flex-col md:border-r md:border-[var(--border)] md:bg-[var(--surface)]",
               collapsed ? "md:w-[4.5rem]" : "md:w-[220px]",
             ),
       )}

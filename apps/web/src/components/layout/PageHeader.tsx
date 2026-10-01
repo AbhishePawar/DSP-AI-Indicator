@@ -10,7 +10,7 @@ export function PageHeader({
   actions?: ReactNode;
 }) {
   return (
-    <div className="page-header -mx-4 mb-2 sm:-mx-6">
+    <div className="page-header -mx-4 mb-2 sm:-mx-7">
       <div className="min-w-0">
         <h1 className="break-words font-[family-name:var(--font-display)] text-base font-medium tracking-tight text-[var(--fg)] sm:text-lg">
           {title}

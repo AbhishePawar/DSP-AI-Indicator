@@ -429,6 +429,236 @@ export function AnalysisPending() {
   );
 }
 
+export function AnalysisModeChooser({
+  companyLabel,
+  onSimple,
+  onBuffett,
+  blockedReason,
+}: {
+  companyLabel: string;
+  onSimple: () => void;
+  onBuffett: () => void;
+  blockedReason?: string | null;
+}) {
+  const blocked = Boolean(blockedReason);
+  return (
+    <div className="flex flex-1 flex-col items-center justify-center px-6 py-10">
+      <p className="mb-2.5 font-[family-name:var(--font-mono)] text-xs tracking-[0.08em] text-[var(--muted)]">
+        COMPANY ANALYSIS
+      </p>
+      <h1 className="m-0 text-center font-[family-name:var(--font-display)] text-[clamp(24px,4vw,36px)] font-medium tracking-tight text-[var(--fg)]">
+        {companyLabel || "Select a company"}
+      </h1>
+      <p className="mb-12 mt-2 text-center text-sm text-[var(--muted)]">
+        Choose your research depth
+      </p>
+      {blockedReason ? (
+        <p className="mb-6 max-w-md text-center text-sm text-[var(--muted)]">{blockedReason}</p>
+      ) : null}
+      <div className="grid w-full max-w-[660px] gap-4 sm:grid-cols-2">
+        <button
+          type="button"
+          disabled={blocked}
+          onClick={onSimple}
+          className="rounded-[14px] border border-[var(--border)] bg-[var(--card)] px-7 py-7 text-left transition hover:border-[color-mix(in_srgb,var(--c-revenue)_50%,transparent)] hover:shadow-[0_8px_24px_rgba(0,0,0,0.2)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] disabled:cursor-not-allowed disabled:opacity-60"
+        >
+          <div className="mb-3 text-[22px] text-[var(--c-revenue)]" aria-hidden>
+            ◈
+          </div>
+          <div className="mb-2 font-[family-name:var(--font-display)] text-[17px] font-medium text-[var(--fg)]">
+            Simple Research
+          </div>
+          <p className="mb-5 text-[13px] leading-relaxed text-[var(--muted)]">
+            A concise investigation — key metrics, financial summary, strengths, risks, and valuation context from the same DSP analysis.
+          </p>
+          <span className="inline-block rounded-lg border border-[var(--border)] bg-[var(--surface-2)] px-4 py-2 text-[13px] text-[var(--c-revenue)]">
+            Research →
+          </span>
+        </button>
+        <button
+          type="button"
+          disabled={blocked}
+          onClick={onBuffett}
+          className="rounded-[14px] border border-[color-mix(in_srgb,var(--c-dsp)_35%,transparent)] bg-[var(--card)] px-7 py-7 text-left shadow-[0_0_0_1px_rgba(124,106,247,0.08)] transition hover:border-[color-mix(in_srgb,var(--c-dsp)_70%,transparent)] hover:shadow-[0_8px_32px_rgba(124,106,247,0.18)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] disabled:cursor-not-allowed disabled:opacity-60"
+        >
+          <div className="mb-3 flex items-center gap-2">
+            <span
+              aria-hidden
+              className="flex size-[22px] items-center justify-center rounded-md bg-[linear-gradient(135deg,#7c6af7,#2dd4bf)] text-[10px] font-bold text-white"
+            >
+              D
+            </span>
+            <span className="font-[family-name:var(--font-mono)] text-[10px] tracking-[0.08em] text-[var(--c-dsp)]">
+              FLAGSHIP
+            </span>
+          </div>
+          <div className="mb-2 font-[family-name:var(--font-display)] text-[17px] font-medium text-[var(--fg)]">
+            DSP Buffett Indicator Analysis
+          </div>
+          <p className="mb-5 text-[13px] leading-relaxed text-[var(--muted)]">
+            The full evidence-driven report — business quality, economic moat, management, earnings, growth, valuation, and margin of safety.
+          </p>
+          <span className="inline-block rounded-lg bg-[var(--c-dsp)] px-4 py-2 text-[13px] text-white">
+            Analyse →
+          </span>
+        </button>
+      </div>
+    </div>
+  );
+}
+
+export function SimpleResearchSummary({
+  view,
+  marketQuote,
+  financialStatements,
+  onUpgrade,
+}: {
+  view: ResearchView;
+  marketQuote: MarketQuotePayload | null;
+  financialStatements: FinancialStatementsPayload | null;
+  onUpgrade: () => void;
+}) {
+  const fields = quoteFields(marketQuote);
+  const currency = view.currency || quoteCurrency(marketQuote);
+  const price = finite(fields?.current_price);
+  const change = dailyChangeLabel(
+    price,
+    finite(fields?.previous_close),
+    finite(fields?.change),
+    finite(fields?.change_percent),
+  );
+  const roe = latestRatio(financialStatements, ["roe", "return_on_equity"]);
+  const roce = latestRatio(financialStatements, ["roce", "return_on_capital_employed"]);
+  const debtEquity = latestRatio(financialStatements, ["debt_to_equity", "debt_equity"]);
+  const pe = latestRatio(financialStatements, ["pe", "pe_ratio", "price_to_earnings"]);
+  const trends = mapFinancialTrends(financialStatements);
+  const strengths =
+    view.strengthsWeaknesses.strengths.length > 0
+      ? view.strengthsWeaknesses.strengths
+      : view.strengths;
+  const risks = riskRows(view);
+  const metrics = [
+    { label: "ROE", value: ratioPct(roe), color: "var(--c-profit)" },
+    { label: "ROCE", value: ratioPct(roce), color: "var(--c-profit)" },
+    { label: "Revenue", value: lastValued(trends.series.revenue), color: "var(--c-revenue)" },
+    { label: "Net Profit", value: lastValued(trends.series.net_income), color: "var(--c-cashflow)" },
+    { label: "D/E", value: multiple(debtEquity), color: "var(--muted)" },
+    { label: "PE Ratio", value: multiple(pe), color: "var(--c-valuation)" },
+  ];
+  const valuation = [
+    { label: "Market Price", value: price == null ? UNAVAILABLE : money(price, currency), color: "var(--fg)" },
+    { label: "Intrinsic Value", value: present(view.marginOfSafetyView.intrinsicValue), color: "var(--c-cashflow)" },
+    { label: "Margin of Safety", value: present(view.marginOfSafetyView.display), color: toneColor(toneFor(view.marginOfSafetyView.classification)) },
+  ];
+
+  return (
+    <div className="px-4 py-7 sm:px-7">
+      <p className="mb-1.5 font-[family-name:var(--font-mono)] text-[10px] tracking-[0.1em] text-[var(--muted)]">
+        SIMPLE RESEARCH
+      </p>
+      <div className="flex flex-wrap items-baseline gap-3">
+        <h1 className="m-0 font-[family-name:var(--font-display)] text-[28px] font-medium text-[var(--fg)]">
+          {present(view.company)}
+        </h1>
+        <StatusBadge text={present(view.businessQualityLabel)} />
+      </div>
+      <div className="mt-2.5 flex flex-wrap gap-4 font-[family-name:var(--font-mono)] text-xs text-[var(--muted)]">
+        <span>
+          {present(view.exchange)}: {view.ticker}
+        </span>
+        <span className="text-[var(--c-revenue)]">
+          {price == null ? UNAVAILABLE : money(price, currency)}
+        </span>
+        {change ? (
+          <span style={{ color: change.down ? "var(--c-risk)" : "var(--c-profit)" }}>{change.text}</span>
+        ) : null}
+      </div>
+
+      <div className="mt-6 grid gap-4">
+        <Card>
+          <div className="mb-3.5 font-[family-name:var(--font-mono)] text-[11px] tracking-[0.08em] text-[var(--muted)]">
+            KEY METRICS
+          </div>
+          <div className="grid grid-cols-[repeat(auto-fill,minmax(130px,1fr))] gap-3">
+            {metrics.map((metric) => (
+              <div key={metric.label} className="rounded-lg bg-[var(--surface-2)] px-3.5 py-3">
+                <div className="mb-1.5 font-[family-name:var(--font-mono)] text-[10px] tracking-[0.07em] text-[var(--muted)]">
+                  {metric.label}
+                </div>
+                <div
+                  className="font-[family-name:var(--font-mono)] text-base font-semibold"
+                  style={{ color: metric.value === UNAVAILABLE ? "var(--muted)" : metric.color }}
+                >
+                  {metric.value}
+                </div>
+              </div>
+            ))}
+          </div>
+        </Card>
+
+        <div className="grid gap-4 md:grid-cols-2">
+          <BulletList title="KEY STRENGTHS" items={strengths.slice(0, 3)} tone="strong" marker="+" />
+          <div className="rounded-xl border border-[var(--border)] bg-[var(--card)] p-4">
+            <div className="mb-3 font-[family-name:var(--font-mono)] text-[11px] tracking-[0.08em] text-[var(--c-risk)]">
+              KEY RISKS
+            </div>
+            {risks.length === 0 ? (
+              <p className="m-0 text-xs text-[var(--muted)]">{UNAVAILABLE}</p>
+            ) : (
+              risks.slice(0, 3).map((risk) => (
+                <div key={risk.name} className="mb-2.5">
+                  <div className="text-[13px] font-medium text-[var(--fg)]">{risk.name}</div>
+                  <div className="text-xs leading-relaxed text-[var(--muted)]">{risk.evidence}</div>
+                </div>
+              ))
+            )}
+          </div>
+        </div>
+
+        <Card>
+          <div className="mb-3.5 font-[family-name:var(--font-mono)] text-[11px] tracking-[0.08em] text-[var(--muted)]">
+            VALUATION SUMMARY
+          </div>
+          <div className="mb-3 flex flex-wrap gap-6">
+            {valuation.map((item) => (
+              <div key={item.label}>
+                <div className="mb-1 font-[family-name:var(--font-mono)] text-[10px] tracking-[0.07em] text-[var(--muted)]">
+                  {item.label}
+                </div>
+                <div
+                  className="font-[family-name:var(--font-mono)] text-xl font-semibold"
+                  style={{ color: item.value === UNAVAILABLE ? "var(--muted)" : item.color }}
+                >
+                  {item.value}
+                </div>
+              </div>
+            ))}
+          </div>
+          <p className="m-0 text-[13px] leading-relaxed text-[var(--muted)]">
+            {present(view.investmentContext.decisionSummary)}
+          </p>
+        </Card>
+
+        <div className="rounded-xl border border-[color-mix(in_srgb,var(--c-dsp)_30%,transparent)] bg-[color-mix(in_srgb,var(--c-dsp)_4%,transparent)] px-5 py-5">
+          <div className="mb-1.5 font-[family-name:var(--font-display)] text-[15px] text-[var(--fg)]">
+            Want the complete analysis?
+          </div>
+          <p className="mb-3.5 text-[13px] leading-relaxed text-[var(--muted)]">
+            Open the full DSP Buffett Indicator Analysis — the same research, with economic moat, earnings quality, management, intrinsic value, evidence, and follow-up questions.
+          </p>
+          <button
+            type="button"
+            onClick={onUpgrade}
+            className="rounded-lg bg-[var(--c-dsp)] px-5 py-2 text-[13px] text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
+          >
+            Run DSP Buffett Indicator Analysis →
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export function AnalysisEmpty({
   symbol,
   description,
@@ -1287,23 +1517,40 @@ export function FigmaAnalysisReport({
       ) : null}
 
       {chatOpen ? (
-        <div className="fixed inset-x-0 bottom-0 z-50 max-h-[46vh] overflow-auto border-t border-[var(--border)] bg-[var(--card)] shadow-2xl">
-          <div className="flex items-center justify-between border-b border-[var(--border)] px-4 py-2">
-            <span className="text-sm font-medium">Ask DSP</span>
+        <div
+          className="fixed inset-x-0 bottom-0 z-50 flex max-h-[46vh] flex-col overflow-hidden border-t border-[var(--border)] bg-[var(--card)] shadow-[0_-4px_24px_rgba(0,0,0,0.4)]"
+          role="dialog"
+          aria-label="Ask DSP about this analysis"
+        >
+          <div className="flex items-center justify-between border-b border-[var(--border)] px-4 py-2.5">
+            <div className="flex min-w-0 items-center gap-2">
+              <span
+                aria-hidden
+                className="flex size-[22px] items-center justify-center rounded-md bg-[linear-gradient(135deg,#7c6af7,#2dd4bf)] text-[10px] font-bold text-white"
+              >
+                D
+              </span>
+              <span className="text-[13px] font-medium text-[var(--fg)]">Ask DSP about this analysis</span>
+              <span className="truncate font-[family-name:var(--font-mono)] text-[11px] text-[var(--muted)]">
+                · {view.ticker}
+              </span>
+            </div>
             <button
               type="button"
               onClick={() => setChatOpen(false)}
-              className="text-xs text-[var(--muted)]"
+              className="rounded-md px-2 py-1 text-base leading-none text-[var(--muted)] hover:text-[var(--fg)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
+              aria-label="Close Ask DSP"
             >
-              Close
+              ×
             </button>
           </div>
-          <div className="p-3">
+          <div className="min-h-0 flex-1 overflow-auto p-3">
             <AiCopilotSection
               view={view}
               analyseRequest={analyseRequest}
               analyseResponse={analyseResponse}
               seedQuestion={chatSeed}
+              presentation="conversation"
             />
           </div>
         </div>

@@ -33,8 +33,10 @@ import { useNotifications } from "@/providers/NotificationProvider";
 import { CompanyResearchBar } from "@/components/securities/CompanyResearchBar";
 import {
   AnalysisEmpty,
+  AnalysisModeChooser,
   AnalysisPending,
   FigmaAnalysisReport,
+  SimpleResearchSummary,
 } from "./FigmaAnalysisReport";
 
 function listingFromIdentity(identity: {
@@ -120,6 +122,8 @@ export function CompanyAnalysisWorkspace() {
     useState<AnalyseResponse | null>(null);
   /** Monotonic generation — drop stale analyse responses after symbol change. */
   const analyseGeneration = useRef(0);
+  /** Skip a second /analyse when the user only changes presentation depth. */
+  const analysedKeyRef = useRef<string | null>(null);
 
   const recordSearch = useDashboardPrefsStore((s) => s.recordSearch);
   const { runWithDisclaimer, gate: disclaimerGate } =
@@ -129,6 +133,7 @@ export function CompanyAnalysisWorkspace() {
     setSymbol((prev) => {
       if (prev === urlSymbol) return prev;
       analyseGeneration.current += 1;
+      analysedKeyRef.current = null;
       setView(null);
       setLastAnalyseRequest(null);
       setLastAnalyseResponse(null);
@@ -201,9 +206,15 @@ export function CompanyAnalysisWorkspace() {
         loadQuote: () => api.marketQuote(requestedSymbol, { token, exchange }),
       });
       const response = await api.analyse(body, { token });
-      return { body, response, generation, requestedSymbol };
+      return {
+        body,
+        response,
+        generation,
+        requestedSymbol,
+        identityKey: `${requestedSymbol.toUpperCase()}|${exchange || ""}|${isin || ""}|${listing?.mic || urlMic || ""}`,
+      };
     },
-    onSuccess: ({ body, response, generation, requestedSymbol }) => {
+    onSuccess: ({ body, response, generation, requestedSymbol, identityKey }) => {
       // Drop stale responses after navigation / newer analyse.
       if (generation !== analyseGeneration.current) return;
       if (body.ticker.toUpperCase() !== requestedSymbol.toUpperCase()) return;
@@ -213,6 +224,7 @@ export function CompanyAnalysisWorkspace() {
       setLastAnalyseResponse(response);
       const mapped = mapResearchView(response, body, at);
       setView(mapped);
+      analysedKeyRef.current = identityKey;
       saveResearchSession({
         ticker: body.ticker,
         exchange: body.exchange ?? null,
@@ -302,15 +314,26 @@ export function CompanyAnalysisWorkspace() {
     urlMic,
   ]);
 
-  // Auto-run only when the URL already has an exact listing (no silent NSE/BSE pick).
+  const depthParam = searchParams.get("depth");
+  const depth = depthParam === "simple" || depthParam === "buffett" ? depthParam : null;
+  const identityKey = `${symbol}|${listing?.exchange || urlExchange || ""}|${listing?.isin || urlIsin || ""}|${listing?.mic || urlMic || ""}`;
+
+  function chooseDepth(next: "simple" | "buffett") {
+    const params = new URLSearchParams(searchParams.toString());
+    params.set("depth", next);
+    router.replace(`/analysis?${params.toString()}`);
+  }
+
+  // Auto-run only after the user picks a depth and the URL has an exact listing.
   useEffect(() => {
-    if (!symbol || !token) return;
+    if (!symbol || !token || !depth) return;
     if (!hasExactListingIdentity(urlIdentity) && !urlExchange) return;
+    if (analysedKeyRef.current === identityKey) return;
     runWithDisclaimer(() => {
       analyseMutation.mutate();
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps -- intentional identity-driven refresh
-  }, [symbol, urlExchange, urlIsin, urlMic, token]);
+  }, [symbol, urlExchange, urlIsin, urlMic, token, depth, identityKey]);
 
   const marketQuery = useQuery({
     queryKey: ["company-analysis", "market", symbol, urlExchange],
@@ -380,9 +403,30 @@ export function CompanyAnalysisWorkspace() {
         tabIndex={-1}
         aria-label="Main analysis area"
       >
-        {analyseMutation.isPending && !view ? <AnalysisPending /> : null}
+        {!depth ? (
+          <AnalysisModeChooser
+            companyLabel={
+              listing?.company_name && listing.company_name !== symbol
+                ? listing.company_name
+                : symbol
+            }
+            blockedReason={
+              !symbol
+                ? "Search for a company to begin."
+                : identityError
+                  ? identityError
+                  : !urlExchange && !listing?.exchange
+                    ? "Select the official listing, then choose a research depth."
+                    : null
+            }
+            onSimple={() => chooseDepth("simple")}
+            onBuffett={() => chooseDepth("buffett")}
+          />
+        ) : null}
 
-        {analyseMutation.isError && !view ? (
+        {depth && analyseMutation.isPending && !view ? <AnalysisPending /> : null}
+
+        {depth && analyseMutation.isError && !view ? (
           <ErrorState
             title="Investment data is currently unavailable."
             description={describeAnalyseError(analyseMutation.error)}
@@ -394,7 +438,7 @@ export function CompanyAnalysisWorkspace() {
           />
         ) : null}
 
-        {!analyseMutation.isPending && !analyseMutation.isError && !view ? (
+        {depth && !analyseMutation.isPending && !analyseMutation.isError && !view ? (
           <AnalysisEmpty
             symbol={symbol}
             description={
@@ -410,20 +454,29 @@ export function CompanyAnalysisWorkspace() {
           />
         ) : null}
 
-        {view ? (
+        {view && depth ? (
           <>
             {analyseMutation.isPending ? (
               <p className="px-6 pt-3 text-xs text-[var(--muted)]" aria-live="polite">
                 Refreshing analysis…
               </p>
             ) : null}
-            <FigmaAnalysisReport
-              view={view}
-              marketQuote={marketQuery.data ?? null}
-              financialStatements={financialStatementsQuery.data ?? null}
-              analyseRequest={lastAnalyseRequest}
-              analyseResponse={lastAnalyseResponse}
-            />
+            {depth === "simple" ? (
+              <SimpleResearchSummary
+                view={view}
+                marketQuote={marketQuery.data ?? null}
+                financialStatements={financialStatementsQuery.data ?? null}
+                onUpgrade={() => chooseDepth("buffett")}
+              />
+            ) : (
+              <FigmaAnalysisReport
+                view={view}
+                marketQuote={marketQuery.data ?? null}
+                financialStatements={financialStatementsQuery.data ?? null}
+                analyseRequest={lastAnalyseRequest}
+                analyseResponse={lastAnalyseResponse}
+              />
+            )}
             <p className="px-6 pb-6 text-[10px] text-[var(--muted)]">
               Last updated: {analysedAt ?? view.analysedAt ?? "Data unavailable."}{" "}
               · Research tools — not investment advice

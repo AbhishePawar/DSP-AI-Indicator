@@ -16,7 +16,7 @@ export function SuggestedQuestions({
     <Card>
       <CardHeader
         title="Suggested Questions"
-        description="Deterministic explainability prompts"
+        description="Questions about the loaded research"
       />
       <CardBody>
         <ul className="space-y-2" aria-label="Suggested questions">

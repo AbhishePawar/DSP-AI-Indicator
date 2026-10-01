@@ -66,6 +66,7 @@ describe("CompanyComparisonWorkspace render", () => {
     ).not.toBeInTheDocument();
     expect(screen.getByLabelText(/Comparison sections/i)).toBeInTheDocument();
     expect(screen.getByText(/No comparison yet/i)).toBeInTheDocument();
-    expect(screen.getByLabelText(/Comparison tickers/i)).toBeInTheDocument();
+    expect(screen.getByLabelText("Security 1")).toBeInTheDocument();
+    expect(screen.getByLabelText("Security 2")).toBeInTheDocument();
   });
 });

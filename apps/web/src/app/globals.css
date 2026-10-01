@@ -328,7 +328,7 @@ textarea {
 
 .analysis-shell {
   display: flex;
-  min-height: calc(100vh - 8rem);
+  min-height: 100%;
 }
 
 html[data-density="compact"] .page-header {

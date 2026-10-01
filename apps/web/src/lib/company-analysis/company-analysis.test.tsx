@@ -13,7 +13,7 @@ vi.mock("next/navigation", () => ({
   useRouter: () => ({ push, replace }),
   useSearchParams: () =>
     new URLSearchParams(
-      "symbol=INFY&exchange=NSE&isin=INE009A01021&mic=XNSE",
+      "symbol=INFY&exchange=NSE&isin=INE009A01021&mic=XNSE&depth=buffett",
     ),
 }));
 

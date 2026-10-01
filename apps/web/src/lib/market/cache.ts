@@ -15,7 +15,7 @@ export function readCachedQuote(
   ticker: string,
   ttlMs: number,
   now = Date.now(),
-): { quote: MarketQuote; stale: boolean } | null {
+): { quote: MarketQuote; stale: boolean; fetchedAt: number } | null {
   const entry = cache.get(cacheKey(ticker));
   if (!entry) return null;
   const age = now - entry.fetchedAt;
@@ -26,6 +26,7 @@ export function readCachedQuote(
   return {
     quote: { ...entry.quote, source: age > ttlMs ? "cached" : entry.quote.source },
     stale: age > ttlMs,
+    fetchedAt: entry.fetchedAt,
   };
 }
 

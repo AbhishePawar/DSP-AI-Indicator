@@ -11,6 +11,12 @@ import {
   FileText,
   Settings,
   User,
+  Plus,
+  ArrowRight,
+  LogOut,
+  GitCompareArrows,
+  Sparkles,
+  Ticket,
   type LucideIcon,
 } from "lucide-react";
 import Link from "next/link";
@@ -22,7 +28,7 @@ import {
   SidebarGroup,
 } from "@/components/ds";
 import { useAuth } from "@/lib/auth/AuthProvider";
-import { env } from "@/lib/env";
+import { useDashboardPrefsStore } from "@/lib/dashboard";
 import {
   filterShellNav,
   groupShellNav,
@@ -41,14 +47,9 @@ const ICONS: Record<ShellNavIconId, LucideIcon> = {
   admin: Shield,
   settings: Settings,
   profile: User,
+  compare: GitCompareArrows,
+  copilot: Sparkles,
 };
-
-const PRIMARY_IDS = new Set([
-  "dashboard",
-  "analysis",
-  "portfolio",
-  "institutional-reports",
-]);
 
 function NavLink({
   item,
@@ -72,14 +73,15 @@ function NavLink({
     <Link
       href={item.href}
       title={item.label}
+      data-testid={`sidebar-${mobile ? "mobile" : "desktop"}-${item.id}`}
       onClick={onNavigate}
       aria-current={active ? "page" : undefined}
       className={cn(
-        "inline-flex min-h-11 items-center gap-2 rounded-[var(--radius-md)] px-2.5 text-sm transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] motion-reduce:transition-none",
+        "flex min-h-9 w-full items-center gap-2.5 rounded-lg px-2.5 text-[13px] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] motion-reduce:transition-none",
         hideLabel ? "justify-center" : "justify-start",
         nested && !hideLabel ? "pl-8" : null,
         active
-          ? "bg-[var(--accent-soft)] text-[var(--accent)]"
+          ? "bg-[var(--surface-2)] text-[var(--fg)]"
           : "text-[var(--muted)] hover:bg-[var(--surface-2)] hover:text-[var(--fg)]",
       )}
     >
@@ -129,6 +131,7 @@ function NavTree({
                 <button
                   type="button"
                   className="inline-flex size-11 shrink-0 items-center justify-center rounded-[var(--radius-md)] text-[var(--muted)] hover:bg-[var(--surface-2)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
+                  data-testid={`sidebar-${mobile ? "mobile" : "desktop"}-${item.id}-expand`}
                   aria-expanded={open}
                   aria-label={
                     open
@@ -184,43 +187,29 @@ export function Sidebar({
     return groupShellNav(filtered);
   }, [permissions, roles]);
 
-  const primaryItems = useMemo(() => {
-    const items: ShellNavItem[] = [];
-    for (const group of groups) {
-      for (const item of group.items) {
-        if (PRIMARY_IDS.has(item.id)) {
-          items.push(item);
-        }
-        if (item.children) {
-          for (const child of item.children) {
-            if (PRIMARY_IDS.has(child.id)) {
-              items.push(child);
-            }
-          }
-        }
-      }
-    }
-    return items;
-  }, [groups]);
-
-  const moreItems = useMemo(() => {
-    const items: ShellNavItem[] = [];
-    for (const group of groups) {
-      for (const item of group.items) {
-        if (!PRIMARY_IDS.has(item.id)) {
-          items.push(item);
-        }
-        if (item.children) {
-          for (const child of item.children) {
-            if (!PRIMARY_IDS.has(child.id)) {
-              items.push(child);
-            }
-          }
-        }
-      }
-    }
-    return items;
-  }, [groups]);
+  const recentSearches = useDashboardPrefsStore((s) => s.recentSearches);
+  const primaryItems: ShellNavItem[] = [
+    { id: "dashboard", href: "/dashboard", label: "Dashboard", icon: "dashboard", section: "overview", description: "Your research overview" },
+    { id: "companies", href: "/companies", label: "Companies", icon: "analysis", section: "research", description: "Company directory" },
+    { id: "compare", href: "/compare", label: "Compare", icon: "compare", section: "research", description: "Compare companies" },
+    { id: "portfolio", href: "/portfolio", label: "Portfolio", icon: "portfolio", section: "research", description: "Your portfolio" },
+    { id: "copilot", href: "/copilot", label: "AI Copilot", icon: "copilot", section: "research", description: "Evidence-backed explanations" },
+    { id: "advisor", href: "/advisor", label: "Advisor", icon: "profile", section: "research", description: "Advisor workspace" },
+  ];
+  const researchItems: ShellNavItem[] = [
+    { id: "research-hub", href: "/research", label: "Research Hub", icon: "research", section: "research", description: "Saved research" },
+    { id: "institutional", href: "/research/institutional", label: "Institutional", icon: "reports", section: "research", description: "Institutional reports" },
+    { id: "canvas", href: "/research/canvas", label: "Canvas", icon: "research", section: "research", description: "Research notebook" },
+    { id: "intelligence", href: "/research/intelligence", label: "Intelligence", icon: "research", section: "research", description: "Research insights" },
+  ];
+  // Keep permission-filtered legacy tools discoverable without duplicating the main links.
+  const mainPaths = new Set([...primaryItems, ...researchItems].map((item) => item.href));
+  const moreItems = groups.flatMap((group) => group.items).flatMap((item) => {
+    const children = item.children?.filter((child) => !mainPaths.has(child.href));
+    if (mainPaths.has(item.href)) return children ? [...children] : [];
+    if (["/analysis", "/profile", "/settings"].includes(item.href)) return children ? [...children] : [];
+    return [{ ...item, children }];
+  });
 
   function onNavKeyDown(event: KeyboardEvent<HTMLElement>) {
     const root = event.currentTarget;
@@ -248,42 +237,37 @@ export function Sidebar({
 
   return (
     <aside
+      data-testid={mobile ? "mobile-sidebar" : "desktop-sidebar"}
       className={cn(
         "shrink-0 transition-[width] duration-200 motion-reduce:transition-none",
         mobile
-          ? "flex h-full w-72 flex-col"
+          ? "flex h-full w-[220px] flex-col"
           : cn(
-              "hidden md:flex md:flex-col md:border-r md:border-[var(--border)] md:bg-[var(--surface)]",
-              collapsed ? "md:w-[4.5rem]" : "md:w-60",
+              "sticky top-0 hidden h-dvh flex-col overflow-y-auto border-r border-[var(--border)] bg-[var(--surface)] md:flex",
+              collapsed ? "w-[4.5rem]" : "w-[220px]",
             ),
       )}
       aria-label="Primary"
       data-collapsed={collapsed && !mobile ? "true" : undefined}
     >
-      <div
-        className={cn(
-          "border-b border-[var(--border)] px-3 py-4",
-          collapsed && !mobile ? "px-2 text-center" : "",
-        )}
-      >
-        <Link
-          href="/dashboard"
-          onClick={onNavigate}
-          className="block focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
-        >
-          <p
-            className={cn(
-              "font-[family-name:var(--font-display)] tracking-tight text-[var(--accent)]",
-              collapsed && !mobile ? "text-sm" : "text-lg",
-            )}
-          >
-            {collapsed && !mobile ? "DSP" : env.appName}
-          </p>
-          {!(collapsed && !mobile) ? (
-            <p className="mt-0.5 text-xs text-[var(--muted)]">{env.tagline}</p>
-          ) : null}
+      <Link href="/" onClick={onNavigate} data-testid={`sidebar-${mobile ? "mobile" : "desktop"}-home`} className="border-b border-[var(--border)] px-[18px] pb-4 pt-5">
+        <span className="flex items-center gap-2.5"><span className="size-[26px] shrink-0 rounded-full bg-[linear-gradient(135deg,#7c6af7,#2dd4bf)]" /><span className="font-[family-name:var(--font-display)] text-lg">{!(collapsed && !mobile) && "DSP"}</span></span>
+        {!(collapsed && !mobile) && <span className="mt-1 block font-mono text-[10px] tracking-wider text-[var(--muted)]">AI RESEARCH</span>}
+      </Link>
+      <div className="border-b border-[var(--border)] p-3">
+        <Link href="/analysis" onClick={onNavigate} data-testid={`sidebar-${mobile ? "mobile" : "desktop"}-new-research`} title="Start New Research" className="flex min-h-10 items-center justify-center gap-2 rounded-[10px] border border-[var(--border)] bg-[var(--surface-2)] px-2 text-[13px] transition-colors hover:border-[var(--accent)]">
+          <Plus className="size-4 shrink-0" />{!(collapsed && !mobile) && "Start New Research"}
         </Link>
       </div>
+      {!(collapsed && !mobile) && <div className="space-y-3 px-3.5 pb-2 pt-3">
+        <div>
+          <p className="mb-1 font-mono text-[10px] tracking-wider text-[var(--muted)]">RECENT SEARCHES</p>
+          {recentSearches.length ? recentSearches.slice(0, 3).map(({ query }) => <Link key={query} href={`/analysis?symbol=${encodeURIComponent(query)}`} onClick={onNavigate} data-testid={`sidebar-${mobile ? "mobile" : "desktop"}-recent-${query}`} className="block truncate rounded-lg px-2 py-1.5 text-xs text-[var(--muted)] hover:bg-[var(--surface-2)] hover:text-[var(--fg)]">{query}</Link>) : <p data-testid={`sidebar-${mobile ? "mobile" : "desktop"}-empty-history`} className="py-2 text-xs text-[var(--muted)]">Your searches will appear here</p>}
+        </div>
+        <Link href="/analysis?intent=dsp_indicator" onClick={onNavigate} data-testid={`sidebar-${mobile ? "mobile" : "desktop"}-buffett`} className="flex items-center gap-2 rounded-xl border border-[var(--c-cashflow)]/30 bg-[var(--c-cashflow)]/10 p-3">
+          <span><span className="block text-xs font-semibold">DSP Buffett Indicator Analysis</span><span className="mt-1 block text-[10px] leading-relaxed text-[var(--muted)]">Evaluate a company using DSP&apos;s Buffett-style investment analysis framework.</span></span><ArrowRight className="size-4 shrink-0 text-[var(--c-cashflow)]" />
+        </Link>
+      </div>}
 
       <DsSidebar
         collapsed={collapsed && !mobile}
@@ -302,6 +286,9 @@ export function Sidebar({
           />
         </SidebarGroup>
 
+        <SidebarGroup label="Research" collapsed={collapsed && !mobile}>
+          <NavTree items={researchItems} collapsed={collapsed} mobile={mobile} onNavigate={onNavigate} />
+        </SidebarGroup>
         {moreItems.length > 0 && (
           <SidebarGroup
             label="More"
@@ -316,6 +303,20 @@ export function Sidebar({
           </SidebarGroup>
         )}
       </DsSidebar>
+      <div className="mt-auto space-y-1 border-t border-[var(--border)] p-2.5">
+        {[
+          { href: "/profile", label: "Financial Profile", icon: User },
+          { href: "/pricing", label: "Pricing", icon: Ticket },
+          { href: "/settings", label: "Settings", icon: Settings },
+        ].map(({ href, label, icon: Icon }) => <Link key={href} href={href} title={label} onClick={onNavigate} data-testid={`sidebar-${mobile ? "mobile" : "desktop"}-account-${label.toLowerCase().replaceAll(" ", "-")}`} className="flex min-h-9 items-center gap-2.5 rounded-lg px-2.5 text-xs text-[var(--muted)] transition-colors hover:bg-[var(--surface-2)] hover:text-[var(--fg)]"><Icon className="size-4 shrink-0" />{!(collapsed && !mobile) && label}</Link>)}
+        <div className="flex items-center justify-between gap-2 border-t border-[var(--border)] px-2 pt-3">
+          <Link href={session ? "/profile" : "/login"} onClick={onNavigate} data-testid={`sidebar-${mobile ? "mobile" : "desktop"}-account`} className="flex min-h-9 min-w-0 items-center gap-2 text-xs">
+            <span className="grid size-7 shrink-0 place-items-center rounded-full border border-[var(--border)] bg-[var(--accent-soft)] text-[var(--accent)]">{user ? user.displayName.slice(0, 2).toUpperCase() : <User className="size-4" />}</span>
+            {!(collapsed && !mobile) && <span className="truncate">{user?.displayName || "Log in"}</span>}
+          </Link>
+          {session && !(collapsed && !mobile) && <Link href="/logout" onClick={onNavigate} data-testid={`sidebar-${mobile ? "mobile" : "desktop"}-logout`} aria-label="Log out" className="p-2 text-[var(--muted)] hover:text-[var(--fg)]"><LogOut className="size-4" /></Link>}
+        </div>
+      </div>
     </aside>
   );
 }

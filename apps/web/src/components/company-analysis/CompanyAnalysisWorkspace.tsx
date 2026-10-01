@@ -34,7 +34,7 @@ import { pushRecentAnalysis } from "@/lib/analysis/recentAnalyses";
 import { COMPANY_CATALOGUE } from "@/lib/companies/catalogue";
 import { useDashboardPrefsStore } from "@/lib/dashboard";
 import { useCollapsePanelsBelowLg } from "@/lib/a11y";
-import { loadAuthenticatedAnalyseRequest } from "@/lib/research/buildAnalyseRequest";
+
 import { mapResearchView, type ResearchView } from "@/lib/research/mapResearchView";
 import { saveResearchSession } from "@/lib/research/sessionStore";
 import { useNotifications } from "@/providers/NotificationProvider";
@@ -140,7 +140,7 @@ function resolveCatalogue(ticker: string) {
 function describeAnalyseError(error: unknown): string {
   if (error instanceof ApiClientError) {
     if (error.status === 401) {
-      return "Permission denied — sign in required for /api/v1/analyse. No fabricated research is shown.";
+      return "Sign in to run company analysis.";
     }
     if (error.status === 403) {
       return "Permission denied — this account cannot run analyse for the requested symbol.";
@@ -152,7 +152,7 @@ function describeAnalyseError(error: unknown): string {
       return "Network timeout — the analyse request did not complete. Retry when the API is available.";
     }
     if (error.status >= 500) {
-      return `API unavailable (${error.status}) — ${error.message}. Data unavailable.`;
+      return "Research is temporarily unavailable. Please try again later.";
     }
     return error.message || "Data unavailable.";
   }
@@ -263,23 +263,13 @@ export function CompanyAnalysisWorkspace() {
       const generation = ++analyseGeneration.current;
       const requestedSymbol = symbol;
       const match = resolveCatalogue(requestedSymbol);
-      // P0-01 — authenticated statements only; never clone demo ACM financials.
-      const body = await loadAuthenticatedAnalyseRequest(requestedSymbol, {
+      // The existing ticker-only API resolves verified sources and calculates
+      // authoritative DSP results server-side. The client sends identity only.
+      const body: AnalyseRequest = {
+        ticker: requestedSymbol,
         exchange: match?.exchange,
         company: match?.name,
-        loadStatements: () =>
-          api.financialStatements(requestedSymbol, {
-            token,
-            limit: 1,
-            exchange: match?.exchange,
-          }),
-        // P0-02 — market price only from authenticated quote (never client IV).
-        loadQuote: () =>
-          api.marketQuote(requestedSymbol, {
-            token,
-            exchange: match?.exchange,
-          }),
-      });
+      };
       const response = await api.analyse(body, { token });
       return { body, response, generation, requestedSymbol };
     },

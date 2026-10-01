@@ -45,30 +45,31 @@ export function ModernAnalysisResult({
   const hasResult = Boolean(view);
 
   return (
-    <main className="min-h-[calc(100vh-5rem)] bg-[var(--bg)] px-4 py-6 sm:px-6 lg:px-10 lg:py-10">
+    <div data-testid="company-analysis" className="min-h-[calc(100vh-8rem)] bg-[var(--bg)]">
       {disclaimerGate}
       <div className="mx-auto max-w-6xl space-y-8">
         <header className="flex flex-col gap-6 border-b border-[var(--border)] pb-8 lg:flex-row lg:items-end lg:justify-between">
           <div className="max-w-3xl">
-            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[var(--accent)]">DSP AI Indicator / Research result</p>
-            <h1 className="mt-3 text-balance text-4xl font-semibold tracking-[-0.04em] text-[var(--text)] sm:text-5xl">{view?.company || "Company analysis"}</h1>
-            <p className="mt-3 max-w-2xl text-pretty text-base leading-7 text-[var(--muted)]">A source-led analysis surface for {view?.ticker || symbol || "the selected company"}. Every output below is presented as reported, calculated, or unavailable — never invented.</p>
+            <p className="text-[10px] font-mono uppercase tracking-wider text-[var(--muted)]">DSP AI Indicator / Company analysis</p>
+            <h1 data-testid="analysis-title" className="mt-3 font-[family-name:var(--font-display)] text-3xl font-medium tracking-tight text-[var(--fg)]">{view?.company || "Research a company"}</h1>
+            <p className="mt-3 max-w-2xl text-sm leading-6 text-[var(--muted)]">Business quality, financial strength, valuation, and evidence — brought together by the DSP research framework.</p>
           </div>
-          <div className="flex w-full max-w-md gap-2 rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-2 shadow-[0_12px_35px_rgba(25,40,35,0.05)]">
+          <form onSubmit={(event) => { event.preventDefault(); onAnalyze(); }} data-testid="analysis-search-form" className="flex w-full max-w-md gap-2 rounded-xl border border-[var(--border)] bg-[var(--surface)] p-2">
             <label className="sr-only" htmlFor="analysis-symbol">Company ticker</label>
-            <input id="analysis-symbol" value={query} onChange={(event) => setQuery(event.target.value.toUpperCase())} className="min-w-0 flex-1 bg-transparent px-3 text-base text-[var(--text)] outline-none placeholder:text-[var(--muted)]" placeholder="Enter ticker" />
-            <Button onClick={onAnalyze} disabled={analyzing || !query.trim()}>{analyzing ? "Loading…" : "Refresh analysis"}</Button>
-          </div>
+            <input data-testid="analysis-symbol" id="analysis-symbol" value={query} onChange={(event) => setQuery(event.target.value.toUpperCase())} className="min-w-0 flex-1 bg-transparent px-3 text-sm text-[var(--text)] outline-none placeholder:text-[var(--muted)]" placeholder="Enter company ticker" required />
+            <Button data-testid="analysis-submit" type="submit" disabled={analyzing || !query.trim()}>{analyzing ? "Loading…" : hasResult ? "Refresh analysis" : "Analyze"}</Button>
+          </form>
         </header>
 
-        {error ? <div role="alert" className="rounded-2xl border border-red-200 bg-red-50 px-5 py-4 text-sm text-red-900">{error}</div> : null}
+        {error ? <div data-testid="analysis-error" role="alert" className="rounded-xl border border-[var(--danger-border)] bg-[var(--danger-bg)] px-5 py-4 text-sm text-[var(--danger-fg)]">{error}</div> : null}
 
-        {!hasResult ? (
-          <section className="rounded-3xl border border-[var(--border)] bg-[var(--surface)] p-8 sm:p-12">
-            <p className="text-sm font-semibold uppercase tracking-[0.16em] text-[var(--muted)]">No result loaded</p>
-            <h2 className="mt-3 text-2xl font-semibold tracking-tight text-[var(--text)]">Run a company analysis to begin.</h2>
-            <p className="mt-3 max-w-xl text-sm leading-6 text-[var(--muted)]">The result page is intentionally empty until an authenticated backend payload is available. This prevents stale or fabricated numbers from appearing as research.</p>
-            <div className="mt-6"><Button onClick={onAnalyze} disabled={analyzing || !query.trim()}>{analyzing ? "Loading…" : `Analyze ${query || symbol}`}</Button></div>
+        {analyzing ? <section data-testid="analysis-loading" role="status" aria-live="polite" className="space-y-4 rounded-[14px] border border-[var(--border)] bg-[var(--surface)] p-8"><p className="text-sm">Preparing your analysis…</p><p className="text-xs text-[var(--muted)]">Checking company evidence and available financial data.</p><div className="h-3 w-2/3 animate-pulse rounded bg-[var(--surface-2)]" /><div className="h-24 animate-pulse rounded-lg bg-[var(--surface-2)]" /></section> : !hasResult ? (
+          <section data-testid="analysis-empty" className="mx-auto max-w-[660px] rounded-[14px] border border-[var(--accent)]/30 bg-[var(--surface)] p-7 sm:my-12">
+            <p className="font-mono text-[10px] tracking-wider text-[var(--accent)]">FLAGSHIP RESEARCH</p>
+            <h2 className="mt-3 font-[family-name:var(--font-display)] text-lg font-medium text-[var(--fg)]">DSP Buffett Indicator Analysis</h2>
+            <p className="mt-3 text-[13px] leading-6 text-[var(--muted)]">Complete evidence-driven analysis — business quality, economic moat, management, earnings, growth, valuation, and margin of safety.</p>
+            <p className="mt-4 text-xs text-[var(--muted)]">Enter a company ticker to begin. Results appear only when verified source data is available.</p>
+            <div className="mt-6"><Button data-testid="analysis-empty-submit" onClick={onAnalyze} disabled={!query.trim()}>Analyze {query || symbol || "company"}</Button></div>
           </section>
         ) : (
           <>
@@ -91,6 +92,6 @@ export function ModernAnalysisResult({
           </>
         )}
       </div>
-    </main>
+    </div>
     );
 }

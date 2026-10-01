@@ -41,7 +41,7 @@ export function usePerformanceTiming(label: string) {
 export function useRouteTransitionTiming() {
   const pathname = usePathname();
   const previousPath = useRef<string | null>(null);
-  const routeStart = useRef<number>(performance.now());
+  const routeStart = useRef<number>(0);
   const [lastRouteMs, setLastRouteMs] = useState<number | null>(null);
 
   useEffect(() => {
@@ -63,12 +63,10 @@ export function useRouteTransitionTiming() {
  * Full Profiler integration deferred — exposes manual mark API.
  */
 export function useRenderTiming(componentName: string) {
-  const mountTime = useRef(performance.now());
+  const mountTime = useRef(0);
 
   useEffect(() => {
-    const durationMs = performance.now() - mountTime.current;
-    recordTiming(`render:${componentName}`, durationMs);
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- mount only
+    mountTime.current = performance.now();
   }, []);
 
   const mark = useCallback(

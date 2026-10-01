@@ -104,7 +104,7 @@ export function useMarketQuote(ticker: string | null | undefined) {
     staleTime: config.cacheTtlMs,
     refetchInterval: config.autoRefreshMs,
     initialData: cached?.quote,
-    initialDataUpdatedAt: cached ? Date.now() - (cached.stale ? config.cacheTtlMs + 1 : 0) : undefined,
+    initialDataUpdatedAt: cached?.fetchedAt,
   });
 
   const status = statusFromQuery(

@@ -13,6 +13,8 @@ import type {
 } from "@/lib/api/compositionTypes";
 import { SAMPLE_ANALYSE_REQUEST } from "@/lib/intelligence/sampleRequest";
 
+type StatementAnalyseRequest = AnalyseRequest & { financial_statements: FinancialStatementsInput };
+
 export const ANALYSE_DATA_UNAVAILABLE = "Data unavailable.";
 
 export type AuthenticatedStatementsSource = {
@@ -106,7 +108,7 @@ export function financialStatementsInputFromAuthenticated(
 export function buildAnalyseRequestForTicker(
   ticker: string,
   overrides: AnalyseRequestOverrides,
-): AnalyseRequest {
+): StatementAnalyseRequest {
   const normalized = normalizeTicker(ticker);
   const statements = overrides.financial_statements;
   if (!statements?.period?.period_type || !statements.period.period_end) {
@@ -116,7 +118,7 @@ export function buildAnalyseRequestForTicker(
     throw new Error(ANALYSE_DATA_UNAVAILABLE);
   }
 
-  const request: AnalyseRequest = {
+  const request: StatementAnalyseRequest = {
     ticker: normalized,
     exchange: overrides.exchange ?? null,
     company: overrides.company,
@@ -138,7 +140,7 @@ export function buildAnalyseRequestForTicker(
 export function buildDemoAnalyseRequest(
   ticker: string = SAMPLE_ANALYSE_REQUEST.ticker,
   overrides?: Partial<Pick<AnalyseRequest, "exchange" | "company">>,
-): AnalyseRequest {
+): StatementAnalyseRequest {
   const normalized = normalizeTicker(ticker);
   return {
     ...SAMPLE_ANALYSE_REQUEST,
@@ -171,7 +173,7 @@ export async function loadAuthenticatedAnalyseRequest(
     loadStatements: () => Promise<AuthenticatedStatementsSource>;
     loadQuote?: () => Promise<AuthenticatedQuoteSource | null | undefined>;
   },
-): Promise<AnalyseRequest> {
+): Promise<StatementAnalyseRequest> {
   let payload: AuthenticatedStatementsSource;
   try {
     payload = await options.loadStatements();

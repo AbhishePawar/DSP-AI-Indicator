@@ -466,10 +466,10 @@ function ResizeHandle() {
     setMainPanelWidthPct(pct - 14);
   }, []);
 
-  const onPointerUp = useCallback(() => {
+  const onPointerUp = useCallback(function stopDragging() {
     dragging.current = false;
     window.removeEventListener("pointermove", onPointerMove);
-    window.removeEventListener("pointerup", onPointerUp);
+    window.removeEventListener("pointerup", stopDragging);
   }, [onPointerMove]);
 
   return (

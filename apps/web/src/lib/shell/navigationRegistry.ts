@@ -44,7 +44,9 @@ export type ShellNavIconId =
   | "admin"
   | "settings"
   | "profile"
-  | "reports";
+  | "reports"
+  | "compare"
+  | "copilot";
 
 /**
  * RC3-003 — Primary shell journey:

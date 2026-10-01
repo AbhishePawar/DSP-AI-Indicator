@@ -1,15 +1,12 @@
-import { dirname } from "path";
-import { fileURLToPath } from "url";
-import { FlatCompat } from "@eslint/eslintrc";
+import { defineConfig, globalIgnores } from "eslint/config";
+import nextVitals from "eslint-config-next/core-web-vitals";
+import nextTypescript from "eslint-config-next/typescript";
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
-
-const compat = new FlatCompat({
-  baseDirectory: __dirname,
-});
-
-/** EPIC-F000 — ESLint baseline (Next.js core-web-vitals). */
-const eslintConfig = [...compat.extends("next/core-web-vitals", "next/typescript")];
-
-export default eslintConfig;
+export default defineConfig([
+  ...nextVitals,
+  ...nextTypescript,
+  // Existing external-store/session hydration predates React Compiler. Keep its
+  // migration diagnostics visible without treating them as compiler adoption.
+  { files: ["**/*.{js,jsx,mjs,ts,tsx,mts,cts}"], rules: { "react-hooks/set-state-in-effect": "warn" } },
+  globalIgnores([".next/**", "out/**", "build/**", "coverage/**", "next-env.d.ts"]),
+]);

@@ -7,7 +7,7 @@ import { FeedbackProvider } from "@/components/beta/FeedbackContext";
 import { BetaShellWidgets } from "@/components/beta/BetaShellWidgets";
 import { ClosedBetaGate } from "@/components/beta/ClosedBetaGate";
 import { LoadingLayout } from "@/components/layout/ContentArea";
-import { ResearchShell } from "@/components/layout/ResearchShell";
+
 import { useRouteTransitionTiming } from "@/hooks/usePerformanceTiming";
 import { useAuth } from "@/lib/auth/AuthProvider";
 import {
@@ -121,12 +121,6 @@ export function AppLayout({ children }: { children: ReactNode }) {
     );
   }
 
-  const isResearchRoute = pathname === "/dashboard" || pathname === "/analysis";
-
-  if (isResearchRoute) {
-    return <ResearchShell>{children}</ResearchShell>;
-  }
-
   if (isMarketingPath(pathname) || isAuthPublicPath(pathname)) {
     return (
       <main
@@ -149,8 +143,7 @@ export function AppLayout({ children }: { children: ReactNode }) {
 
   return (
     <FeedbackProvider>
-      <div className="min-h-screen bg-[var(--bg)] text-[var(--fg)]">
-        <div className="pointer-events-none fixed inset-0 -z-10 bg-[radial-gradient(ellipse_at_top,_var(--glow)_0%,_transparent_55%)]" />
+      <div data-testid="app-shell" className="min-h-screen bg-[var(--bg)] text-[var(--fg)]">
         <div className="flex min-h-screen">
           <Sidebar collapsed={sidebarCollapsed} />
           <div className="flex min-w-0 flex-1 flex-col">
@@ -160,6 +153,7 @@ export function AppLayout({ children }: { children: ReactNode }) {
               sidebarCollapsed={sidebarCollapsed}
             />
             <main
+              data-testid="app-content"
               id="main-content"
               className="flex-1 overflow-auto scroll-smooth motion-reduce:scroll-auto"
               tabIndex={-1}
@@ -177,10 +171,12 @@ export function AppLayout({ children }: { children: ReactNode }) {
             <button
               type="button"
               className="absolute inset-0 bg-black/40"
+              data-testid="navigation-overlay"
               aria-label="Close navigation menu"
               onClick={() => setDrawerOpen(false)}
             />
             <div
+              data-testid="navigation-drawer"
               ref={drawerRef}
               role="dialog"
               aria-modal="true"

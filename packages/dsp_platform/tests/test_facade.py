@@ -354,6 +354,11 @@ class TestFromConfig:
             DSPPlatform.from_config(config)
 
     def test_builds_in_test_without_fred_key(self) -> None:
+        """build_analysis_service must refuse to auto-register commercial
+        market/fundamentals providers even if the enable flags are set — this
+        is the P1-03 / commercial-vendor removal contract."""
+        from dsp_platform.platform_exceptions import PlatformError
+
         config = PlatformConfig(
             environment=Environment.TEST,
             providers=ProviderSettings(
@@ -363,6 +368,5 @@ class TestFromConfig:
             ),
             secrets=PlatformSecrets(fred_api_key=None),
         )
-        platform = DSPPlatform.from_config(config)
-        assert isinstance(platform, DSPPlatform)
-        assert platform.features.allow_partial is True
+        with pytest.raises(PlatformError, match="commercial"):
+            DSPPlatform.from_config(config)

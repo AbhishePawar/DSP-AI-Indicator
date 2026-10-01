@@ -170,9 +170,11 @@ def test_fmp_statements_merge_income_balance_cash() -> None:
     assert statements.provenance.auth_mode == "api_key"
 
 
-def test_factory_selects_fmp_when_key_present(
+def test_factory_does_not_select_fmp_when_only_legacy_key_present(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
+    """Legacy DSP_FMP_API_KEY alone must NOT select the FMP adapter; commercial
+    vendors are disabled from runtime default factories."""
     for name in (
         "DSP_MARKET_QUOTE_API_KEY",
         "DSP_MARKET_QUOTE_BASE_URL",
@@ -187,7 +189,8 @@ def test_factory_selects_fmp_when_key_present(
     monkeypatch.setenv("DSP_FMP_API_KEY", "unit-test-key")
     quote = build_default_quote_adapter_from_env()
     stmt = build_default_statement_adapter_from_env()
-    assert type(quote).__name__ == "FinancialModelingPrepQuoteAdapter"
-    assert type(stmt).__name__ == "FinancialModelingPrepStatementAdapter"
-    assert quote.provider_id == "fmp_market_quote"
-    assert stmt.provider_id == "fmp_financial_statements"
+    assert type(quote).__name__ != "FinancialModelingPrepQuoteAdapter"
+    assert type(stmt).__name__ != "FinancialModelingPrepStatementAdapter"
+    # Neutral / Null fallback expected when no neutral HTTP creds provided.
+    assert "fmp" not in quote.provider_id.lower()
+    assert "fmp" not in stmt.provider_id.lower()

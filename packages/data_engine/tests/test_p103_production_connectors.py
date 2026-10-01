@@ -131,14 +131,15 @@ def test_dev_news_keeps_null_fallback() -> None:
     assert isinstance(registry.get("null_news"), NullNewsAdapter)
 
 
-def test_production_news_with_vendor_omits_null(
+def test_production_news_legacy_fmp_key_still_fails_closed(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
+    """Legacy DSP_NEWS_FMP_API_KEY alone must NOT satisfy production news
+    (commercial vendors removed); production should fail-closed."""
     monkeypatch.setenv("DSP_ENVIRONMENT", "production")
     monkeypatch.setenv("DSP_NEWS_FMP_API_KEY", "fmp-test-key")
-    registry = build_default_news_registry_from_env()
-    assert "fmp_news" in registry.all_ids()
-    assert "null_news" not in registry.all_ids()
+    with pytest.raises(ConnectorConfigurationError, match="news"):
+        build_default_news_registry_from_env()
 
 
 def test_classify_provider_ids() -> None:

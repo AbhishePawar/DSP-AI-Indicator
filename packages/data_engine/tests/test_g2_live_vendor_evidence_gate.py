@@ -63,13 +63,13 @@ def test_gate_ready_only_with_full_http_credentials() -> None:
     assert gate["evidence_class"] == "credentials_present_pending_live"
 
 
-def test_gate_ready_with_single_fmp_key() -> None:
+def test_gate_not_ready_with_legacy_fmp_key_only() -> None:
+    """Legacy DSP_FMP_API_KEY alone must NOT certify G2 readiness after
+    commercial vendor removal."""
     mod = _load_drill()
     gate = mod.classify_gate(environ={"DSP_FMP_API_KEY": "k"})
-    assert gate["ready"] is True
-    assert gate["route"] == "fmp"
-    assert gate["evidence_class"] == "credentials_present_pending_live"
-    assert gate["credential_presence"]["DSP_FMP_API_KEY"] == "PRESENT"
+    assert gate["ready"] is False
+    assert gate["credential_presence"].get("DSP_FMP_API_KEY", "ABSENT") in {"PRESENT", "ABSENT"}
 
 
 def test_drill_fails_closed_without_credentials(
@@ -117,7 +117,6 @@ def test_workflow_scaffolding_exists() -> None:
     assert "environment: live-data-evidence" in text
     assert "workflow_dispatch" in text
     assert "workflow_call:" in text
-    assert "DSP_FMP_API_KEY" in text
     assert "DSP_MARKET_QUOTE_API_KEY" in text
     assert "g2_live_vendor_evidence_drill.py" in text
     assert "g2_provider_configuration_diagnostic.py" in text

@@ -20,7 +20,11 @@ class TestConfig:
     def test_defaults(self) -> None:
         config = PlatformConfig()
         assert config.environment is Environment.DEVELOPMENT
-        assert config.providers.market_provider_id == "yahoo_finance"
+        # Commercial-vendor defaults removed: market/fundamentals providers
+        # default to the honest "unconfigured" sentinel and are disabled until
+        # verified sources are explicitly wired.
+        assert config.providers.market_provider_id == "unconfigured_market"
+        assert config.providers.enable_market is False
         assert config.features.allow_partial is True
 
     def test_secrets_repr_redacts(self) -> None:

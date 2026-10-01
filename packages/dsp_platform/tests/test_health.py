@@ -194,7 +194,7 @@ class TestHealthService:
     def test_investment_data_provider_fails_closed_in_production(
         self, monkeypatch: pytest.MonkeyPatch
     ) -> None:
-        """P1-03 — missing Upstox is reported but does not block API readiness."""
+        """P1-03 — invalid commercial provider selection fails closed but does not block API readiness."""
         monkeypatch.setenv("DSP_ENVIRONMENT", "production")
         monkeypatch.setenv("DSP_INVESTMENT_DATA_PROVIDER", "upstox")
         monkeypatch.delenv("DSP_UPSTOX_ANALYTICS_TOKEN", raising=False)
@@ -203,16 +203,17 @@ class TestHealthService:
         ).check()
         by_name = {c.name: c for c in report.checks}
         assert by_name["investment_data_provider"].status is CheckStatus.FAIL
-        assert (
-            "DSP_UPSTOX_ANALYTICS_TOKEN" in by_name["investment_data_provider"].message
-        )
+        # New contract: 'upstox' is an invalid value; commercial vendors are disabled.
+        msg = by_name["investment_data_provider"].message
+        assert "commercial vendors" in msg or "DSP_INVESTMENT_DATA_PROVIDER" in msg
         # Auth/API boot must remain ready without investment credentials.
         assert report.ready is True
         assert report.status is CheckStatus.FAIL
 
-    def test_investment_data_provider_passes_with_upstox_token(
+    def test_investment_data_provider_rejects_commercial_token_route(
         self, monkeypatch: pytest.MonkeyPatch
     ) -> None:
+        """Legacy Upstox token alone must not satisfy readiness (commercial vendors disabled)."""
         monkeypatch.setenv("DSP_ENVIRONMENT", "production")
         monkeypatch.setenv("DSP_INVESTMENT_DATA_PROVIDER", "upstox")
         monkeypatch.setenv("DSP_UPSTOX_ANALYTICS_TOKEN", "super-secret-token")
@@ -221,9 +222,8 @@ class TestHealthService:
         ).check()
         by_name = {c.name: c for c in report.checks}
         check = by_name["investment_data_provider"]
-        assert check.status is CheckStatus.PASS
-        assert "Upstox" in check.message
-        # CV-001 / security: adapter class names only, never credentials.
+        assert check.status is CheckStatus.FAIL
+        # CV-001 / security: never leak credentials in health messages.
         assert "super-secret-token" not in check.message
         assert all("super-secret-token" not in c.message for c in report.checks)
 

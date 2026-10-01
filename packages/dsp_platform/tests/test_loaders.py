@@ -17,7 +17,9 @@ class TestLoaders:
     def test_defaults_when_empty(self) -> None:
         config = load_platform_config({})
         assert config.environment is Environment.DEVELOPMENT
-        assert config.providers.enable_market is True
+        # Commercial-vendor auto-enable removed: enable_market defaults to False
+        # so build_analysis_service does not silently wire Yahoo/FMP.
+        assert config.providers.enable_market is False
         assert config.secrets.fred_api_key is None
 
     def test_loads_environment_and_secrets(self) -> None:

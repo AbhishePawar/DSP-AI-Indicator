@@ -291,17 +291,18 @@ class TestBuildDefaultRegistryFromEnv:
         registry = build_default_news_registry_from_env()
         assert registry.ordered_ids() == ("null_news",)
 
-    def test_registers_configured_vendors(
+    def test_commercial_news_flags_ignored(
         self, monkeypatch: pytest.MonkeyPatch
     ) -> None:
+        """Legacy commercial news keys/flags no longer register vendors in
+        default registry (commercial providers removed)."""
         monkeypatch.setenv("DSP_NEWS_FMP_API_KEY", "key123")
         monkeypatch.setenv("DSP_NEWS_YAHOO_ENABLED", "1")
         registry = build_default_news_registry_from_env()
         ids = registry.ordered_ids()
-        assert "fmp_news" in ids
-        assert "yahoo_finance_news" in ids
-        assert ids[-1] == "null_news"
-        assert ids.index("fmp_news") < ids.index("yahoo_finance_news")
+        assert "fmp_news" not in ids
+        assert "yahoo_finance_news" not in ids
+        assert ids == ("null_news",)
 
 
 class TestNewsServiceResilience:

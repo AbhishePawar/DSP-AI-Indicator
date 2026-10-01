@@ -260,19 +260,20 @@ class TestProductionFailClosed:
         assert result.payload.ready is True
         assert "investment_data_provider" in " ".join(result.limitations)
 
-    def test_upstox_provider_selection_intact(
+    def test_commercial_provider_selection_rejected(
         self, monkeypatch: pytest.MonkeyPatch
     ) -> None:
-        monkeypatch.setenv("DSP_ENVIRONMENT", "production")
-        monkeypatch.setenv("DSP_INVESTMENT_DATA_PROVIDER", "upstox")
-        monkeypatch.setenv("DSP_UPSTOX_ANALYTICS_TOKEN", _SECRET)
+        """Commercial vendor selection values are no longer accepted."""
         from data_engine.connector_framework.production_profile import (
+            ConnectorConfigurationError,
             assert_production_investment_connectors_configured,
         )
 
-        selected = assert_production_investment_connectors_configured()
-        assert selected["market_quote"] == "UpstoxQuoteAdapter"
-        assert selected["financial_statement"] == "UpstoxStatementAdapter"
+        monkeypatch.setenv("DSP_ENVIRONMENT", "production")
+        monkeypatch.setenv("DSP_INVESTMENT_DATA_PROVIDER", "upstox")
+        monkeypatch.setenv("DSP_UPSTOX_ANALYTICS_TOKEN", _SECRET)
+        with pytest.raises(ConnectorConfigurationError, match="commercial vendors"):
+            assert_production_investment_connectors_configured()
 
     def test_no_in_memory_analysis_fallback_in_production(
         self, monkeypatch: pytest.MonkeyPatch

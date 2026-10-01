@@ -387,3 +387,26 @@ export type CouponsResponse = {
   message?: string | null;
   error?: string;
 };
+
+export type ReferralProgramme = {
+  title: string | null;
+  description: string | null;
+  discount_pct: number | null;
+  discount_label: string | null;
+  coupon_code: string | null;
+};
+
+export type ReferralProfile = {
+  code: string;
+  path: string;
+  referred_count: number;
+  savings_status: "unavailable";
+  programme: ReferralProgramme | null;
+};
+
+export type ReferralResponse = {
+  ok: boolean;
+  result?: { referral: ReferralProfile };
+  message?: string | null;
+  error?: string;
+};

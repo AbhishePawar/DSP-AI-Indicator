@@ -111,6 +111,7 @@ export function CompanyAnalysisWorkspace() {
   const [symbol, setSymbol] = useState(urlSymbol);
   const [query, setQuery] = useState(urlSymbol);
   const [identityError, setIdentityError] = useState<string | null>(null);
+  const [resolvingListing, setResolvingListing] = useState(false);
   const [listing, setListing] = useState<SecurityListingView | null>(() =>
     listingFromIdentity(urlIdentity),
   );
@@ -162,7 +163,7 @@ export function CompanyAnalysisWorkspace() {
   }, [urlSymbol, urlExchange, urlIsin, urlMic]);
 
   const selectSymbol = useCallback(
-    (next: SecurityListingView | string) => {
+    (next: SecurityListingView | string, depthOverride?: "simple" | "buffett") => {
       if (typeof next === "string") {
         const normalized = next.trim().toUpperCase();
         if (!normalized) return;
@@ -178,9 +179,60 @@ export function CompanyAnalysisWorkspace() {
       setListing(next);
       setIdentityError(null);
       recordSearch(next.ticker);
-      router.replace(analysisPath(next));
+      const params = new URLSearchParams(analysisPath(next).split("?")[1] || "");
+      const depthNow = searchParams.get("depth");
+      const modeNow = searchParams.get("mode");
+      const keep =
+        depthOverride ||
+        (depthNow === "simple" || depthNow === "buffett"
+          ? depthNow
+          : modeNow === "simple"
+            ? "simple"
+            : modeNow === "buffett"
+              ? "buffett"
+              : null);
+      if (keep) params.set("depth", keep);
+      router.replace(`/analysis?${params.toString()}`);
     },
-    [recordSearch, router],
+    [recordSearch, router, searchParams],
+  );
+
+  const explainResolveStatus = useCallback((status: string | null | undefined) => {
+    if (status === "AMBIGUOUS") {
+      return "Multiple listings matched. Select the ISIN and exchange to continue.";
+    }
+    if (status === "UNSUPPORTED" || status === "REJECTED") {
+      return "This instrument is outside ordinary-equity analysis.";
+    }
+    return "No official listing matched. Data unavailable.";
+  }, []);
+
+  const resolveListing = useCallback(
+    async (raw: string, depthOverride?: "simple" | "buffett") => {
+      const normalized = raw.trim().toUpperCase();
+      if (!normalized) return null;
+      if (!token) {
+        setIdentityError("Sign in required for Security Master search.");
+        return null;
+      }
+      setResolvingListing(true);
+      setIdentityError(null);
+      try {
+        const payload = await api.resolveSecurity(normalized, { token });
+        if (payload.status === "RESOLVED" && payload.identity?.exchange) {
+          selectSymbol(payload.identity, depthOverride);
+          return payload.identity;
+        }
+        setIdentityError(explainResolveStatus(payload.status));
+        return null;
+      } catch {
+        setIdentityError("Security Master search failed. Retry when the API is available.");
+        return null;
+      } finally {
+        setResolvingListing(false);
+      }
+    },
+    [explainResolveStatus, selectSymbol, token],
   );
 
   const analyseMutation = useMutation({
@@ -270,20 +322,7 @@ export function CompanyAnalysisWorkspace() {
     if (!normalized) return;
     const exchange = listing?.exchange || urlExchange;
     if (!exchange) {
-      if (!token) {
-        setIdentityError("Sign in required for Security Master search.");
-        return;
-      }
-      void api
-        .resolveSecurity(normalized, { token })
-        .then((payload) => {
-          if (payload.status === "RESOLVED" && payload.identity) {
-            selectSymbol(payload.identity);
-            return;
-          }
-          setIdentityError(payload.status || "UNKNOWN");
-        })
-        .catch(() => setIdentityError("UNKNOWN"));
+      void resolveListing(normalized);
       return;
     }
     if (normalized !== symbol) {
@@ -305,23 +344,50 @@ export function CompanyAnalysisWorkspace() {
     analyseMutation,
     listing,
     query,
+    resolveListing,
     runWithDisclaimer,
     selectSymbol,
     symbol,
-    token,
     urlExchange,
     urlIsin,
     urlMic,
   ]);
 
   const depthParam = searchParams.get("depth");
-  const depth = depthParam === "simple" || depthParam === "buffett" ? depthParam : null;
+  const modeParam = searchParams.get("mode");
+  const depth =
+    depthParam === "simple" || depthParam === "buffett"
+      ? depthParam
+      : modeParam === "simple" || modeParam === "buffett"
+        ? modeParam
+        : null;
   const identityKey = `${symbol}|${listing?.exchange || urlExchange || ""}|${listing?.isin || urlIsin || ""}|${listing?.mic || urlMic || ""}`;
+  const hasListing = Boolean(listing?.exchange || urlExchange);
+
+  useEffect(() => {
+    if (!symbol || !token || hasListing || resolvingListing || identityError) return;
+    void resolveListing(symbol);
+  }, [hasListing, identityError, resolveListing, resolvingListing, symbol, token]);
 
   function chooseDepth(next: "simple" | "buffett") {
+    const target = (query.trim() || symbol).toUpperCase();
+    if (!target) return;
+    if (!hasListing) {
+      void resolveListing(target, next);
+      return;
+    }
     const params = new URLSearchParams(searchParams.toString());
     params.set("depth", next);
+    params.delete("mode");
     router.replace(`/analysis?${params.toString()}`);
+  }
+
+  function returnToDepthChoice() {
+    const params = new URLSearchParams(searchParams.toString());
+    params.delete("depth");
+    params.delete("mode");
+    const next = params.toString();
+    router.replace(next ? `/analysis?${next}` : "/analysis");
   }
 
   // Auto-run only after the user picks a depth and the URL has an exact listing.
@@ -411,12 +477,12 @@ export function CompanyAnalysisWorkspace() {
                 : symbol
             }
             blockedReason={
-              !symbol
+              !symbol && !query.trim()
                 ? "Search for a company to begin."
                 : identityError
                   ? identityError
-                  : !urlExchange && !listing?.exchange
-                    ? "Select the official listing, then choose a research depth."
+                  : resolvingListing
+                    ? "Resolving the official listing…"
                     : null
             }
             onSimple={() => chooseDepth("simple")}
@@ -456,6 +522,15 @@ export function CompanyAnalysisWorkspace() {
 
         {view && depth ? (
           <>
+            <div className="px-4 pt-3 sm:px-6">
+              <button
+                type="button"
+                onClick={returnToDepthChoice}
+                className="text-[13px] text-[var(--muted)] hover:text-[var(--fg)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
+              >
+                ← Change research depth
+              </button>
+            </div>
             {analyseMutation.isPending ? (
               <p className="px-6 pt-3 text-xs text-[var(--muted)]" aria-live="polite">
                 Refreshing analysis…

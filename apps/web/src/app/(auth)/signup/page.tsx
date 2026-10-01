@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { FormEvent, useState } from "react";
+import { FormEvent, useEffect, useState } from "react";
 
 import { AuthCard, AuthShell, isValidEmail, mapAuthError } from "@/components/auth";
 import {
@@ -16,6 +16,7 @@ import {
   ValidationMessage,
 } from "@/components/ds";
 import { enterpriseAuthApi } from "@/lib/api/enterpriseAuth";
+import { readReferralCode } from "@/lib/auth/referralCode";
 import { SUPPORT_CONTACT } from "@/lib/commercial";
 
 type RequesterType = "individual" | "organization";
@@ -43,6 +44,15 @@ export default function SignUpPage() {
   const [pending, setPending] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [requestId, setRequestId] = useState<string | null>(null);
+  const [referralCode, setReferralCode] = useState<string | null>(null);
+
+  useEffect(() => {
+    setReferralCode(readReferralCode());
+  }, []);
+
+  const registerHref = referralCode
+    ? `/register?ref=${encodeURIComponent(referralCode)}`
+    : "/register";
 
   async function onSubmit(event: FormEvent) {
     event.preventDefault();
@@ -113,13 +123,20 @@ export default function SignUpPage() {
                 <Link href="/login">
                   <Button>Sign in if already provisioned</Button>
                 </Link>
-                <Link href="/register">
+                <Link href={registerHref}>
                   <Button variant="secondary">Self-service register</Button>
                 </Link>
               </div>
             </>
           ) : (
             <>
+              {referralCode ? (
+                <Alert variant="info" title="Referral code saved">
+                  Code {referralCode} will be sent when you create an account. An
+                  unrecognized code will not block registration, and no savings
+                  are applied until a qualifying billing credit exists.
+                </Alert>
+              ) : null}
               <Alert variant="info" title="Enterprise workflow">
                 Submit → Admin Approval → Invitation → Create Password → Login.
                 For immediate self-service, use Register instead.
@@ -239,7 +256,7 @@ export default function SignUpPage() {
             </Link>
             {" · "}
             <Link
-              href="/register"
+              href={registerHref}
               className="text-[var(--accent)] underline-offset-2 hover:underline"
             >
               Register

@@ -17,6 +17,7 @@ import {
   groupShellNav,
   isActivePath,
   searchableRoutes,
+  zipSidebarModel,
 } from "@/lib/shell/navigationRegistry";
 import { useUiStore } from "@/lib/shell/uiStore";
 import { breadcrumbsFor } from "@/lib/navigation";
@@ -34,7 +35,7 @@ describe("EPIC-F003 navigation registry", () => {
         "/research",
         "/admin",
         "/control-center",
-        "/compare",
+        "/analysis/compare",
         "/profile",
       ]),
     );
@@ -118,9 +119,45 @@ describe("EPIC-F003 navigation registry", () => {
     expect(admin).toContain("/admin");
   });
 
+  it("orders the sidebar like the ZIP navigation", () => {
+    const visible = filterShellNav(
+      ["read_research", "manage_users"],
+      ["administrator", "portfolio_manager"],
+    );
+    const model = zipSidebarModel(visible);
+    expect(model.primary.map((item) => item.label)).toEqual([
+      "Dashboard",
+      "Research Hub",
+      "Companies",
+      "Compare",
+      "Portfolio",
+      "AI Copilot",
+      "Advisor",
+    ]);
+    expect(model.research.map((item) => item.label)).toEqual([
+      "Research Hub",
+      "Institutional",
+      "Canvas",
+      "Intelligence",
+    ]);
+    expect(model.account.map((item) => item.id)).toEqual([
+      "profile",
+      "coupons",
+      "pricing",
+      "control-center",
+      "admin",
+      "diagnostics",
+    ]);
+    expect(model.more.map((item) => item.id)).toContain("analysis");
+    expect(model.more.map((item) => item.id)).not.toContain("admin");
+    expect(model.primary.map((item) => item.id)).not.toContain("analysis");
+  });
+
   it("detects active paths", () => {
     expect(isActivePath("/research/acm", "/research")).toBe(true);
     expect(isActivePath("/dashboard", "/analysis")).toBe(false);
+    expect(isActivePath("/analysis/compare", "/analysis")).toBe(false);
+    expect(isActivePath("/analysis/compare", "/analysis/compare")).toBe(true);
   });
 });
 

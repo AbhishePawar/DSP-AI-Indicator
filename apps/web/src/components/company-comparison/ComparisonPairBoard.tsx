@@ -33,6 +33,80 @@ function qualityLabel(model: ComparisonWorkspaceModel, symbol: string): string {
   );
 }
 
+/** ZIP radar axes. Values are not invented — the comparison API does not return these 0–100 axes. */
+export const COMPARISON_RADAR_AXES = [
+  "Profitability",
+  "Growth",
+  "Margins",
+  "Valuation",
+  "Cash Flow",
+  "Low Debt",
+] as const;
+
+function ComparisonRadar({
+  leftLabel,
+  rightLabel,
+}: {
+  leftLabel: string;
+  rightLabel: string;
+}) {
+  const cx = 120;
+  const cy = 120;
+  const radius = 78;
+  const points = COMPARISON_RADAR_AXES.map((_, index) => {
+    const angle = -Math.PI / 2 + (index * 2 * Math.PI) / COMPARISON_RADAR_AXES.length;
+    return {
+      x: cx + radius * Math.cos(angle),
+      y: cy + radius * Math.sin(angle),
+      label: COMPARISON_RADAR_AXES[index],
+    };
+  });
+  const outline = points.map((point) => `${point.x},${point.y}`).join(" ");
+
+  return (
+    <article className="rounded-[14px] border border-[var(--border)] bg-[var(--card)] px-4 py-4">
+      <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+        <h3 className="m-0 font-[family-name:var(--font-mono)] text-[10px] tracking-[0.08em] text-[var(--muted)]">
+          QUALITY SHAPE
+        </h3>
+        <div className="flex gap-3 font-[family-name:var(--font-mono)] text-[10px]">
+          <span style={{ color: "var(--c-revenue)" }}>{leftLabel}</span>
+          <span style={{ color: "var(--c-profit)" }}>{rightLabel}</span>
+        </div>
+      </div>
+      <div className="grid items-center gap-4 md:grid-cols-[240px_1fr]">
+        <svg viewBox="0 0 240 240" role="img" aria-label="Comparison radar. Axis scores are unavailable." className="mx-auto h-56 w-56">
+          <polygon points={outline} fill="none" stroke="var(--border)" strokeWidth="1" />
+          {points.map((point) => (
+            <line key={point.label} x1={cx} y1={cy} x2={point.x} y2={point.y} stroke="var(--border)" strokeWidth="1" />
+          ))}
+          {points.map((point) => (
+            <text
+              key={`${point.label}-label`}
+              x={point.x}
+              y={point.y}
+              textAnchor="middle"
+              dominantBaseline="middle"
+              fill="var(--muted)"
+              fontSize="8"
+            >
+              {point.label}
+            </text>
+          ))}
+        </svg>
+        <ul className="m-0 list-none space-y-1.5 p-0">
+          {COMPARISON_RADAR_AXES.map((axis) => (
+            <li key={axis} className="flex items-baseline justify-between gap-3 text-[13px]">
+              <span className="text-[var(--fg)]">{axis}</span>
+              <span className="font-[family-name:var(--font-mono)] text-xs text-[var(--muted)]">{DATA_UNAVAILABLE}</span>
+            </li>
+          ))}
+        </ul>
+      </div>
+    </article>
+  );
+}
+
 export function ComparisonPairBoard({ model }: { model: ComparisonWorkspaceModel }) {
   const pair = model.slots.slice(0, 2);
   if (pair.length < 2) return null;
@@ -65,6 +139,8 @@ export function ComparisonPairBoard({ model }: { model: ComparisonWorkspaceModel
           </article>
         ))}
       </div>
+
+      <ComparisonRadar leftLabel={left.symbol} rightLabel={right.symbol} />
 
       <div className="overflow-x-auto rounded-[14px] border border-[var(--border)] bg-[var(--card)]">
         <table className="w-full min-w-[32rem] border-collapse text-sm">

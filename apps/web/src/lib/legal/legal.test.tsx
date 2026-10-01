@@ -15,6 +15,7 @@ import {
 } from "@/lib/legal";
 import { MarketingFooter } from "@/components/marketing/MarketingFooter";
 import { ResearchDisclaimerGate } from "@/components/legal/ResearchDisclaimerGate";
+import { useResearchDisclaimerGate } from "@/components/legal/useResearchDisclaimerGate";
 import { FRONTEND_FOUNDATION_VERSION } from "@/foundation";
 
 describe("P4.1 legal content", () => {
@@ -122,6 +123,28 @@ describe("P4.1 ResearchDisclaimerGate", () => {
     fireEvent.click(continueBtn);
     expect(onAcknowledged).toHaveBeenCalled();
     expect(isResearchDisclaimerAcknowledged()).toBe(true);
+  });
+
+  it("runs the queued research action after acknowledgement", () => {
+    const action = vi.fn();
+    function Harness() {
+      const { runWithDisclaimer, gate } = useResearchDisclaimerGate();
+      return (
+        <>
+          <button type="button" onClick={() => runWithDisclaimer(action)}>
+            Run research
+          </button>
+          {gate}
+        </>
+      );
+    }
+    render(<Harness />);
+    fireEvent.click(screen.getByRole("button", { name: "Run research" }));
+    fireEvent.click(
+      screen.getByLabelText(/I understand the investment research disclaimer/i),
+    );
+    fireEvent.click(screen.getByRole("button", { name: /Acknowledge and continue/i }));
+    expect(action).toHaveBeenCalledTimes(1);
   });
 });
 

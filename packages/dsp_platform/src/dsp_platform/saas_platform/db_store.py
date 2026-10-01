@@ -36,6 +36,8 @@ _META = frozenset(
         "flush",
         "export_state",
         "import_state",
+        "export_referral_state",
+        "import_referral_state",
     }
 )
 
@@ -83,6 +85,7 @@ class DatabaseSaasOverlayStore(SaasOverlayStore):
             "checkout_intents": dict(self._checkout_intents),
             "billing_events": dict(self._billing_events),
             "processed_payments": dict(self._processed_payments),
+            **self.export_referral_state(),
         }
 
     def import_state(self, payload: dict[str, Any]) -> None:
@@ -110,6 +113,7 @@ class DatabaseSaasOverlayStore(SaasOverlayStore):
             str(k): dict(v)
             for k, v in (payload.get("processed_payments") or {}).items()
         }
+        self.import_referral_state(payload)
 
     def hydrate(self) -> None:
         payload = load_snapshot(

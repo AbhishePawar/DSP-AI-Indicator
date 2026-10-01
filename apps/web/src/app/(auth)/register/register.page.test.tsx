@@ -47,6 +47,8 @@ describe("Register page", () => {
     registerMobileRequestMock.mockReset();
     registerMobileCompleteMock.mockReset();
     oauthBeginMock.mockReset();
+    sessionStorage.clear();
+    window.history.replaceState({}, "", "/register");
   });
 
   it("shows the public registration form and Google, with no Request Access UI", async () => {
@@ -145,5 +147,46 @@ describe("Register page", () => {
     await waitFor(() =>
       expect(screen.getByRole("button", { name: /^create account$/i })).toBeTruthy(),
     );
+  });
+
+  it("sends a preserved referral code and explains that savings are not applied", async () => {
+    window.history.replaceState({}, "", "/register?ref=DSPABC12345");
+    registerMobileRequestMock.mockResolvedValue({
+      ok: true,
+      result: { challenge_id: "ch-ref", sms: { debug_code: "123456" } },
+    });
+    registerMobileCompleteMock.mockResolvedValue({
+      ok: true,
+      result: {
+        message: "Account created.",
+        referral: { attributed: true, reason: "recorded", credit_state: "unavailable" },
+      },
+    });
+    const { default: RegisterPage } = await import("@/app/(auth)/register/page");
+    render(
+      <ThemeProvider>
+        <RegisterPage />
+      </ThemeProvider>,
+    );
+    expect(await screen.findByText(/DSPABC12345 will be checked/i)).toBeTruthy();
+    fireEvent.change(document.getElementById("reg-name")!, { target: { value: "Abhishek" } });
+    fireEvent.change(document.getElementById("reg-mobile")!, { target: { value: "9826912345" } });
+    fireEvent.change(document.getElementById("reg-username")!, { target: { value: "abhishek" } });
+    fireEvent.change(document.getElementById("reg-email")!, { target: { value: "abhishek@gmail.com" } });
+    fireEvent.change(document.getElementById("reg-password")!, { target: { value: "StrongPass1!" } });
+    fireEvent.change(document.getElementById("reg-confirm")!, { target: { value: "StrongPass1!" } });
+    fireEvent.click(screen.getByRole("button", { name: /verify mobile/i }));
+    await waitFor(() =>
+      expect(screen.getByRole("button", { name: /^create account$/i })).toBeTruthy(),
+    );
+    const otp = screen.getAllByRole("textbox")[0];
+    expect(otp).toBeTruthy();
+    fireEvent.change(otp!, { target: { value: "123456" } });
+    fireEvent.click(screen.getByRole("button", { name: /^create account$/i }));
+    await waitFor(() => expect(registerMobileCompleteMock).toHaveBeenCalled());
+    expect(registerMobileCompleteMock.mock.calls[0][0]).toMatchObject({
+      referral_code: "DSPABC12345",
+    });
+    expect(await screen.findByText(/No savings are applied/i)).toBeTruthy();
   });
 });

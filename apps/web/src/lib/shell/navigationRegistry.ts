@@ -98,7 +98,7 @@ export const SHELL_NAV: readonly ShellNavItem[] = [
   },
   {
     id: "compare",
-    href: "/compare",
+    href: "/analysis/compare",
     label: "Compare",
     description: "Compare listed companies over frozen /api/v1/analyse packs",
     section: "research",
@@ -657,5 +657,91 @@ export function searchableRoutes(
 }
 
 export function isActivePath(pathname: string, href: string): boolean {
-  return pathname === href || pathname.startsWith(`${href}/`);
+  if (pathname === href) return true;
+  if (!pathname.startsWith(`${href}/`)) return false;
+  // Security Compare lives under /analysis/compare and must not light up Company Analysis.
+  if (href === "/analysis" && pathname.startsWith("/analysis/compare")) return false;
+  return true;
+}
+
+/** ZIP sidebar order. Extra production routes stay in `more`. */
+const ZIP_PRIMARY_IDS = [
+  "dashboard",
+  "research",
+  "companies",
+  "compare",
+  "portfolio",
+  "copilot",
+  "advisor",
+] as const;
+
+const ZIP_RESEARCH_CHILD_IDS = [
+  "research-institutional",
+  "research-canvas",
+  "research-intelligence",
+] as const;
+
+const ZIP_ACCOUNT_IDS = [
+  "profile",
+  "coupons",
+  "pricing",
+  "control-center",
+  "admin",
+  "diagnostics",
+] as const;
+
+export type ZipSidebarModel = {
+  primary: ShellNavItem[];
+  research: ShellNavItem[];
+  account: ShellNavItem[];
+  more: ShellNavItem[];
+};
+
+export function zipSidebarModel(items: readonly ShellNavItem[]): ZipSidebarModel {
+  const byId = new Map<string, ShellNavItem>();
+  const walk = (list: readonly ShellNavItem[]) => {
+    for (const item of list) {
+      byId.set(item.id, item);
+      if (item.children?.length) walk(item.children);
+    }
+  };
+  walk(items);
+
+  const take = (ids: readonly string[]) =>
+    ids
+      .map((id) => byId.get(id))
+      .filter((item): item is ShellNavItem => Boolean(item));
+
+  const primary = take(ZIP_PRIMARY_IDS);
+  const researchParent = byId.get("research");
+  const research: ShellNavItem[] = [];
+  if (researchParent) {
+    research.push({
+      ...researchParent,
+      id: "research-hub",
+      label: "Research Hub",
+      children: undefined,
+    });
+  }
+  research.push(...take(ZIP_RESEARCH_CHILD_IDS));
+  const account = take(ZIP_ACCOUNT_IDS);
+
+  const placed = new Set<string>([
+    ...primary.map((item) => item.id),
+    ...research.map((item) => item.id),
+    ...account.map((item) => item.id),
+  ]);
+
+  const more: ShellNavItem[] = [];
+  const pushMore = (item: ShellNavItem) => {
+    if (placed.has(item.id)) return;
+    placed.add(item.id);
+    more.push({ ...item, children: undefined });
+  };
+  for (const item of items) {
+    pushMore(item);
+    for (const child of item.children ?? []) pushMore(child);
+  }
+
+  return { primary, research, account, more };
 }

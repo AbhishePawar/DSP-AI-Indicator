@@ -450,6 +450,27 @@ def upsert_coupon(
     return _dispatch(state, "upsert_coupon", payload)
 
 
+@router.get("/saas/referral")
+def referral_profile(
+    state: ApiState = Depends(get_api_state),
+    auth: dict[str, Any] = Depends(require_authenticated_actor),
+) -> JSONResponse:
+    """Personal referral code for the signed-in user. Savings are not invented."""
+    return _dispatch(state, "referral_profile", _with_actor(auth, {}))
+
+
+@router.post("/saas/referral/attribute")
+def attribute_referral(
+    body: SaasPayload,
+    state: ApiState = Depends(get_api_state),
+    auth: dict[str, Any] = Depends(require_authenticated_actor),
+) -> JSONResponse:
+    """Attribute the signed-in account to a referral code. The server resolves the referrer."""
+    return _dispatch(
+        state, "attribute_referral", _with_actor(auth, {"code": body.code or ""})
+    )
+
+
 @router.get("/saas/coupons")
 def list_coupons(
     state: ApiState = Depends(get_api_state),

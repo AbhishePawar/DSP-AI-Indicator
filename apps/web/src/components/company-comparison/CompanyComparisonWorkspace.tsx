@@ -295,20 +295,52 @@ export function CompanyComparisonWorkspace() {
         unique.map(async (symbol) => {
           const cat = resolveCatalogue(symbol);
           try {
-            // P0-01 — authenticated statements only; never clone demo ACM financials.
-            const body = await loadAuthenticatedAnalyseRequest(symbol, {
-              company: cat?.name,
-              exchange: cat?.exchange,
+            // Official Security Master identity before /analyse. Catalogue
+            // exchange is not a substitute for a resolved listing.
+            const resolved = await api.resolveSecurity(symbol, { token });
+            const identity =
+              resolved.status === "RESOLVED" && resolved.identity?.exchange
+                ? resolved.identity
+                : null;
+            if (!identity) {
+              const error =
+                resolved.status === "AMBIGUOUS"
+                  ? "Multiple listings matched. Select the ISIN and exchange to continue."
+                  : resolved.status === "UNSUPPORTED" || resolved.status === "REJECTED"
+                    ? "This instrument is outside ordinary-equity analysis."
+                    : resolved.message || "No official listing matched. Data unavailable.";
+              return {
+                symbol,
+                company: cat?.name ?? symbol,
+                exchange: "—",
+                pinned: pinned.includes(symbol),
+                status: "error" as const,
+                analysedAt: null,
+                correlationId: null,
+                error,
+                view: null,
+                intelligence: null,
+              };
+            }
+            const body = await loadAuthenticatedAnalyseRequest(identity.ticker || symbol, {
+              company: identity.company_name || cat?.name,
+              exchange: identity.exchange,
+              isin: identity.isin,
+              mic: identity.mic,
               loadStatements: () =>
-                api.financialStatements(symbol, { token, limit: 1 }),
+                api.financialStatements(identity.ticker || symbol, {
+                  token,
+                  exchange: identity.exchange,
+                  limit: 1,
+                }),
             });
             const response = await api.analyse(body, { token });
             const at = new Date().toISOString();
             const view = mapResearchView(response, body, at);
             return {
               symbol,
-              company: cat?.name ?? symbol,
-              exchange: cat?.exchange ?? "—",
+              company: identity.company_name || cat?.name || symbol,
+              exchange: identity.exchange,
               pinned: pinned.includes(symbol),
               status: "ready" as const,
               analysedAt: at,

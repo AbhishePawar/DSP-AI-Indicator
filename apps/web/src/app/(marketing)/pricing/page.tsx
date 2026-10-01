@@ -65,6 +65,19 @@ export default function MarketingPricingPage() {
                 ? ` · Illustrative trial length: ${edition.trialDays} days`
                 : null}
             </p>
+            <Link
+              href={edition.monthlyPriceUsd === 0 ? "/register" : "/contact"}
+              className="mt-5 inline-flex min-h-11 w-full items-center justify-center rounded-[10px] bg-[var(--c-dsp)] px-4 text-sm font-medium text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
+            >
+              {edition.monthlyPriceUsd === 0
+                ? "Create account"
+                : edition.monthlyPriceUsd === null
+                  ? "Contact sales"
+                  : "Request access"}
+            </Link>
+            <p className="mt-2 text-xs text-[var(--muted)]">
+              This does not start a payment. Purchase is not available on this release.
+            </p>
           </li>
         ))}
       </ul>

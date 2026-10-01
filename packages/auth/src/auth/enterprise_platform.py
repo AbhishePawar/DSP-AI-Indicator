@@ -1450,6 +1450,7 @@ class EnterpriseAuthPlatform:
         if not profile.email_verified:
             raise AuthenticationError("OAuth email is not verified by the provider.")
         user = self._get_by_provider_subject(profile.provider, profile.subject)
+        account_created = False
         if user is None:
             user = self._get_by_email(profile.email)
             if user is not None:
@@ -1467,6 +1468,7 @@ class EnterpriseAuthPlatform:
                         display_name=profile.name or profile.email,
                         roles=["read_only"],
                     )
+                    account_created = True
                 except DuplicateUserError:
                     # Race: fetch again
                     created = self._get_by_email(profile.email)
@@ -1513,7 +1515,7 @@ class EnterpriseAuthPlatform:
             user_agent_hint=user_agent_hint,
             detail=profile.provider,
         )
-        return self._issue_session(
+        session = self._issue_session(
             user,
             remember_me=remember_me,
             provider=profile.provider,
@@ -1521,6 +1523,9 @@ class EnterpriseAuthPlatform:
             user_agent_hint=user_agent_hint,
             device_label=f"oauth:{profile.provider.lower()}",
         )
+        if account_created:
+            session["account_created"] = True
+        return session
 
     # --- OTP -------------------------------------------------------------
     #

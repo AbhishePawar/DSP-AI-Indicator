@@ -7,6 +7,7 @@ available (P0-06). Never fabricates payments.
 
 from __future__ import annotations
 
+import hashlib
 from copy import deepcopy
 from datetime import UTC, datetime, timedelta
 from threading import RLock
@@ -50,6 +51,12 @@ class SaasOverlayStore:
         self._billing_events: dict[str, dict[str, Any]] = {}
         # razorpay payment id -> processed marker (entitlement idempotency)
         self._processed_payments: dict[str, dict[str, Any]] = {}
+        # referrer user id -> attribution records
+        self._referrals: dict[str, list[dict[str, Any]]] = {}
+        # issued code -> referrer user id (codes are hashes and cannot be reversed)
+        self._referral_codes: dict[str, str] = {}
+        # referred user id -> referrer user id
+        self._referred_index: dict[str, str] = {}
 
     def upsert_subscription(self, org_id: str, payload: dict[str, Any]) -> dict[str, Any]:
         with self._lock:
@@ -182,6 +189,120 @@ class SaasOverlayStore:
             ]
         rows.sort(key=lambda r: str(r.get("code") or ""))
         return rows
+
+    def referral_profile(self, user_id: str) -> dict[str, Any]:
+        """Personal referral code. Counts come from the ledger; savings are not invented."""
+        actor = str(user_id or "").strip()
+        if not actor:
+            raise ValueError("actor_user_id required")
+        digest = hashlib.sha256(f"dsp-referral-v1:{actor}".encode()).hexdigest()[:10].upper()
+        code = f"DSP{digest}"
+        with self._lock:
+            self._referral_codes[code] = actor
+            referred = list(self._referrals.get(actor) or [])
+            programme = None
+            now = _now()
+            for row in self._coupons.values():
+                if not row.get("active") or str(row.get("category") or "") != "referral":
+                    continue
+                expires = row.get("expires_at")
+                if expires and str(expires) <= now:
+                    continue
+                programme = {
+                    "title": row.get("title"),
+                    "description": row.get("description"),
+                    "discount_pct": row.get("discount_pct"),
+                    "discount_label": row.get("discount_label"),
+                    "coupon_code": row.get("code"),
+                }
+                break
+        return {
+            "code": code,
+            "path": f"/signup?ref={code}",
+            "referred_count": len(referred),
+            "savings_status": "unavailable",
+            "programme": programme,
+        }
+
+    def attribute_referral(self, *, code: str, referred_user_id: str) -> dict[str, Any]:
+        """Record a signup attribution. Invalid codes do not raise. No credit is issued."""
+        normalized = str(code or "").strip().upper()
+        referred = str(referred_user_id or "").strip()
+        if not referred:
+            return {"attributed": False, "reason": "missing_user", "credit_state": "unavailable"}
+        with self._lock:
+            referrer = self._referral_codes.get(normalized)
+            if not referrer:
+                return {"attributed": False, "reason": "invalid_code", "credit_state": "unavailable"}
+            if referrer == referred:
+                return {"attributed": False, "reason": "self_referral", "credit_state": "unavailable"}
+            if referred in self._referred_index:
+                return {"attributed": False, "reason": "duplicate", "credit_state": "unavailable"}
+            record = {
+                "referrer_user_id": referrer,
+                "referred_user_id": referred,
+                "referral_code": normalized,
+                "created_at": _now(),
+                "status": "attributed",
+                "qualification": "signed_up",
+                "credit_state": "unavailable",
+            }
+            self._referrals.setdefault(referrer, []).append(record)
+            self._referred_index[referred] = referrer
+        return {"attributed": True, "reason": "recorded", "credit_state": "unavailable"}
+
+    def export_referral_state(self) -> dict[str, Any]:
+        return {
+            "referrals": {
+                referrer: [dict(row) for row in rows]
+                for referrer, rows in self._referrals.items()
+            },
+            "referral_codes": dict(self._referral_codes),
+        }
+
+    def import_referral_state(self, payload: dict[str, Any] | None) -> None:
+        """Restore ledger records and the code index. Legacy string lists are accepted."""
+        source = payload or {}
+        records: dict[str, list[dict[str, Any]]] = {}
+        index: dict[str, str] = {}
+        for referrer, items in (source.get("referrals") or {}).items():
+            owner = str(referrer)
+            rows: list[dict[str, Any]] = []
+            for item in items or []:
+                if isinstance(item, str) and item.strip():
+                    row = {
+                        "referrer_user_id": owner,
+                        "referred_user_id": item.strip(),
+                        "referral_code": None,
+                        "created_at": None,
+                        "status": "attributed",
+                        "qualification": "signed_up",
+                        "credit_state": "unavailable",
+                    }
+                elif isinstance(item, dict) and str(item.get("referred_user_id") or "").strip():
+                    row = dict(item)
+                    row["referred_user_id"] = str(row["referred_user_id"]).strip()
+                    row.setdefault("referrer_user_id", owner)
+                    row.setdefault("status", "attributed")
+                    row.setdefault("qualification", "signed_up")
+                    row.setdefault("credit_state", "unavailable")
+                else:
+                    continue
+                referred = str(row["referred_user_id"])
+                if referred in index:
+                    continue
+                rows.append(row)
+                index[referred] = owner
+            records[owner] = rows
+        codes: dict[str, str] = {}
+        for code, user_id in (source.get("referral_codes") or {}).items():
+            normalized = str(code or "").strip().upper()
+            owner = str(user_id or "").strip()
+            if normalized and owner:
+                codes[normalized] = owner
+        self._referrals = records
+        self._referred_index = index
+        self._referral_codes = codes
 
     def issue_license_key(self, payload: dict[str, Any]) -> dict[str, Any]:
         with self._lock:

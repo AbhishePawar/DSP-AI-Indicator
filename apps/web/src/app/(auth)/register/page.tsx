@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { FormEvent, useMemo, useState } from "react";
+import { FormEvent, useEffect, useMemo, useState } from "react";
 
 import {
   AuthCard,
@@ -25,9 +25,29 @@ import {
   ValidationMessage,
 } from "@/components/ds";
 import { enterpriseAuthApi } from "@/lib/api/enterpriseAuth";
+import { clearReferralCode, readReferralCode } from "@/lib/auth/referralCode";
 import { useAuthProviders } from "@/lib/auth/useAuthProviders";
 
 type CreateStep = "details" | "otp";
+
+function referralOutcome(result: unknown): string | null {
+  const referral = (result as { referral?: { attributed?: boolean; reason?: string } } | undefined)
+    ?.referral;
+  if (!referral) return null;
+  if (referral.attributed) {
+    return "Referral recorded. No savings are applied until a qualifying billing credit exists.";
+  }
+  if (referral.reason === "invalid_code") {
+    return "That referral code was not recognized. Your account was still created.";
+  }
+  if (referral.reason === "self_referral") {
+    return "A referral code cannot be used on your own account. Your account was still created.";
+  }
+  if (referral.reason === "duplicate") {
+    return "This account already has a referral recorded.";
+  }
+  return null;
+}
 
 export default function RegisterPage() {
   const { oauthAvailable } = useAuthProviders();
@@ -55,6 +75,12 @@ export default function RegisterPage() {
   const [challengeId, setChallengeId] = useState<string | null>(null);
   const [otpCode, setOtpCode] = useState("");
   const [devOtpHint, setDevOtpHint] = useState<string | null>(null);
+  const [referralCode, setReferralCode] = useState<string | null>(null);
+  const [referralNote, setReferralNote] = useState<string | null>(null);
+
+  useEffect(() => {
+    setReferralCode(readReferralCode());
+  }, []);
 
   function onMobileChange(value: string) {
     setMobile(value);
@@ -85,6 +111,7 @@ export default function RegisterPage() {
           redirect_uri: redirectUri,
           remember_me: false,
           next: "/dashboard",
+          referral_code: readReferralCode(),
         }),
       );
       window.location.assign(result.authorization_url);
@@ -159,10 +186,13 @@ export default function RegisterPage() {
         name: name.trim(),
         username: username.trim(),
         email: email.trim(),
+        ...(referralCode ? { referral_code: referralCode } : {}),
       });
       if (!envelope.ok) {
         throw new Error(envelope.error || "Registration failed");
       }
+      clearReferralCode();
+      setReferralNote(referralOutcome(envelope.result));
       setDoneMessage(
         String(
           (envelope.result as { message?: string } | undefined)?.message ||
@@ -182,6 +212,11 @@ export default function RegisterPage() {
       <AuthShell>
         <AuthCard title="Account created" description={doneMessage}>
           <Stack gap={4}>
+            {referralNote ? (
+              <Alert variant="info" title="Referral">
+                {referralNote}
+              </Alert>
+            ) : null}
             <Link href="/login">
               <Button className="w-full">Back to sign in</Button>
             </Link>
@@ -202,6 +237,12 @@ export default function RegisterPage() {
         }
       >
         <Stack gap={4}>
+          {referralCode ? (
+            <Alert variant="info" title="Referral code">
+              {referralCode} will be checked when this account is created. An
+              invalid code will not stop registration.
+            </Alert>
+          ) : null}
           {step === "details" ? (
             <form className="space-y-4" onSubmit={onSendOtp} noValidate>
               <FormField label="Full name" htmlFor="reg-name" required>

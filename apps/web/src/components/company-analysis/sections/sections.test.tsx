@@ -151,6 +151,33 @@ describe("AiCopilotSection", () => {
       await screen.findByText("The valuation uses DCF and Relative methods."),
     ).toBeTruthy();
   });
+
+  it("submits an Ask chip question instead of only prefilling the composer", async () => {
+    copilotCompleteMock.mockResolvedValue({
+      content: "Moat evidence is incomplete.",
+      citations: [],
+      intent: "freeform",
+      unavailable: true,
+      provider_id: "test",
+      limitations: [],
+    });
+    wrap(
+      <AiCopilotSection
+        view={buildView()}
+        analyseRequest={buildDemoAnalyseRequest("AAPL")}
+        analyseResponse={sampleResponse}
+        seedQuestion="Explain the economic moat."
+        presentation="conversation"
+      />,
+    );
+    await waitFor(() => expect(copilotCompleteMock).toHaveBeenCalled());
+    const payload = copilotCompleteMock.mock.calls.at(-1)?.[0] as {
+      question_id?: string;
+      freeform?: string;
+    };
+    expect(payload.question_id).toBe("freeform");
+    expect(payload.freeform).toBe("Explain the economic moat.");
+  });
 });
 
 describe("Honest empty-state sections", () => {

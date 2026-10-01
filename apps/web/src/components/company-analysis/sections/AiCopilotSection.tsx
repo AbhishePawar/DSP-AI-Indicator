@@ -52,7 +52,10 @@ export function AiCopilotSection({
   view: ResearchView;
   analyseRequest: AnalyseRequest | null;
   analyseResponse: AnalyseResponse | null;
-  /** Prefills the composer from an "Ask" chip. Never auto-submits. */
+  /**
+   * Question from an "Ask" chip. In the analysis drawer this is submitted
+   * to the copilot engine. The panel variant only prefills the composer.
+   */
   seedQuestion?: string | null;
   /** Drawer copy stays client-facing. The panel variant keeps the workspace card. */
   presentation?: "panel" | "conversation";
@@ -73,9 +76,7 @@ export function AiCopilotSection({
   const [draft, setDraft] = useState("");
   const idRef = useRef(0);
 
-  useEffect(() => {
-    if (seedQuestion?.trim()) setDraft(seedQuestion);
-  }, [seedQuestion]);
+  const lastSubmittedSeed = useRef<string | null>(null);
 
   const askMutation = useMutation({
     mutationFn: async (args: { questionId: SuggestedQuestionId | "freeform"; text: string }) => {
@@ -128,6 +129,19 @@ export function AiCopilotSection({
       ]);
     },
   });
+
+  useEffect(() => {
+    const text = seedQuestion?.trim() ?? "";
+    if (!text) return;
+    if (presentation !== "conversation" || !analyseResponse) {
+      setDraft(text);
+      return;
+    }
+    if (lastSubmittedSeed.current === text || askMutation.isPending) return;
+    lastSubmittedSeed.current = text;
+    setDraft("");
+    askMutation.mutate({ questionId: "freeform", text });
+  }, [seedQuestion, analyseResponse, presentation, askMutation]);
 
   const disabled = !analyseResponse || askMutation.isPending;
 

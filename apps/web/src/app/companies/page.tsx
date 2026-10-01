@@ -61,6 +61,30 @@ export default function CompaniesPage() {
           placeholder="Search by name or ticker..."
           className="min-h-11 min-w-[240px] flex-1 rounded-[10px] border border-[var(--border)] bg-[var(--card)] px-3.5 text-sm text-[var(--fg)] outline-none focus-visible:ring-2 focus-visible:ring-[var(--c-dsp)]"
         />
+        <label className="sr-only" htmlFor="company-directory-sector">
+          Sector
+        </label>
+        <select
+          id="company-directory-sector"
+          aria-label="Sector"
+          disabled
+          defaultValue="all"
+          className="min-h-11 rounded-lg border border-[var(--border)] bg-[var(--card)] px-3 font-[family-name:var(--font-mono)] text-[13px] text-[var(--muted)]"
+        >
+          <option value="all">All sectors</option>
+        </select>
+        <label className="sr-only" htmlFor="company-directory-rating">
+          DSP rating
+        </label>
+        <select
+          id="company-directory-rating"
+          aria-label="DSP rating"
+          disabled
+          defaultValue="all"
+          className="min-h-11 rounded-lg border border-[var(--border)] bg-[var(--card)] px-3 font-[family-name:var(--font-mono)] text-[13px] text-[var(--muted)]"
+        >
+          <option value="all">All ratings</option>
+        </select>
         <button
           type="submit"
           className="min-h-11 rounded-lg bg-[var(--c-dsp)] px-4 text-sm text-white"
@@ -71,6 +95,9 @@ export default function CompaniesPage() {
           {submitted ? `${results.length} results` : "Enter a name or ticker"}
         </span>
       </form>
+      <p className="m-0 text-xs text-[var(--muted)]">
+        Sector and DSP rating filters stay unavailable until Security Master listings include those fields.
+      </p>
 
       {!token ? (
         <p className="text-sm text-[var(--muted)]">

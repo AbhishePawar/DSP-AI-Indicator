@@ -3,11 +3,27 @@
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 
+import { useAuth } from "@/lib/auth/AuthProvider";
+import { useDashboardPrefsStore } from "@/lib/dashboard/dashboardPrefsStore";
+
+const SIMPLE_TAGS = ["Metrics", "Risks", "Valuation"] as const;
+const BUFFETT_TAGS = ["Moat", "Quality", "Valuation", "AI Chat"] as const;
+
 export function LandingResearchSearch() {
   const router = useRouter();
+  const { status } = useAuth();
+  const recentSearches = useDashboardPrefsStore((s) => s.recentSearches);
+  const recordSearch = useDashboardPrefsStore((s) => s.recordSearch);
   const [query, setQuery] = useState("");
   const [panelVisible, setPanelVisible] = useState(false);
   const panelRef = useRef<HTMLDivElement>(null);
+  const signedIn = status === "authenticated";
+  const personal = signedIn
+    ? recentSearches
+        .map((entry) => entry.query.trim().toUpperCase())
+        .filter(Boolean)
+        .slice(0, 5)
+    : [];
 
   useEffect(() => {
     setPanelVisible(query.trim().length > 0);
@@ -23,19 +39,24 @@ export function LandingResearchSearch() {
     return () => document.removeEventListener("mousedown", handler);
   }, []);
 
-  function go(path: string) {
-    router.push(path);
-  }
-
   function symbol() {
     return query.trim().toUpperCase();
   }
 
+  function openAnalysis(mode?: "simple") {
+    const next = symbol();
+    if (next) recordSearch(next);
+    const params = new URLSearchParams();
+    if (next) params.set("symbol", next);
+    if (mode) params.set("mode", mode);
+    const qs = params.toString();
+    router.push(qs ? `/analysis?${qs}` : "/analysis");
+  }
+
   function handleSearch(event: React.FormEvent) {
     event.preventDefault();
-    const next = symbol();
-    if (!next) return;
-    go(`/analysis?symbol=${encodeURIComponent(next)}`);
+    if (!symbol()) return;
+    openAnalysis();
   }
 
   return (
@@ -92,11 +113,7 @@ export function LandingResearchSearch() {
               <button
                 type="button"
                 className="border-b border-[var(--border)] p-4 text-left sm:border-b-0 sm:border-r"
-                onClick={() =>
-                  go(
-                    `/analysis?symbol=${encodeURIComponent(symbol())}&mode=simple`,
-                  )
-                }
+                onClick={() => openAnalysis("simple")}
                 disabled={!symbol()}
               >
                 <p className="text-sm font-medium text-[var(--fg)]">
@@ -105,13 +122,21 @@ export function LandingResearchSearch() {
                 <p className="mt-1 text-xs leading-relaxed text-[var(--muted)]">
                   Key certified metrics, risks, and valuation in one view.
                 </p>
+                <span className="mt-2 flex flex-wrap gap-1.5">
+                  {SIMPLE_TAGS.map((tag) => (
+                    <span
+                      key={tag}
+                      className="rounded-full border border-[var(--border)] px-2 py-0.5 font-mono text-[10px] text-[var(--muted)]"
+                    >
+                      {tag}
+                    </span>
+                  ))}
+                </span>
               </button>
               <button
                 type="button"
                 className="bg-[rgba(124,106,247,0.03)] p-4 text-left"
-                onClick={() =>
-                  go(`/analysis?symbol=${encodeURIComponent(symbol())}`)
-                }
+                onClick={() => openAnalysis()}
                 disabled={!symbol()}
               >
                 <p className="font-mono text-[10px] tracking-wider text-[var(--accent)]">
@@ -123,6 +148,16 @@ export function LandingResearchSearch() {
                 <p className="mt-1 text-xs leading-relaxed text-[var(--muted)]">
                   Official evidence through the deterministic DSP pipeline.
                 </p>
+                <span className="mt-2 flex flex-wrap gap-1.5">
+                  {BUFFETT_TAGS.map((tag) => (
+                    <span
+                      key={tag}
+                      className="rounded-full border border-[color-mix(in_srgb,var(--accent)_35%,transparent)] px-2 py-0.5 font-mono text-[10px] text-[var(--accent)]"
+                    >
+                      {tag}
+                    </span>
+                  ))}
+                </span>
               </button>
             </div>
           </div>
@@ -130,14 +165,28 @@ export function LandingResearchSearch() {
       </div>
       <button
         type="button"
-        onClick={() =>
-          go(symbol() ? `/analysis?symbol=${encodeURIComponent(symbol())}` : "/analysis")
-        }
+        onClick={() => openAnalysis()}
         className="flex min-h-11 w-full items-center justify-center gap-2 rounded-[14px] bg-[linear-gradient(135deg,#7c6af7_0%,#2dd4bf_100%)] px-6 text-sm font-semibold text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
       >
         <span className="font-normal opacity-85">DSP</span>
         Buffett Indicator Analysis
       </button>
+      {personal.length > 0 ? (
+        <div className="mt-4 flex flex-wrap items-center justify-center gap-2">
+          <span className="font-mono text-xs text-[var(--accent)]">Your Recent Searches:</span>
+          {personal.map((ticker) => (
+            <button
+              key={ticker}
+              type="button"
+              className="rounded-full border border-[color-mix(in_srgb,var(--accent)_30%,transparent)] bg-[color-mix(in_srgb,var(--accent)_10%,transparent)] px-3 py-1 font-mono text-xs text-[var(--accent)]"
+              onClick={() => setQuery(ticker)}
+            >
+              {ticker}
+            </button>
+          ))}
+        </div>
+      ) : null}
+      <p className="mt-3 font-mono text-xs text-[var(--muted)]">Trending unavailable.</p>
     </div>
   );
 }

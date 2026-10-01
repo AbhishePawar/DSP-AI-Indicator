@@ -2,19 +2,19 @@
  * @vitest-environment jsdom
  */
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { cleanup, render, screen, waitFor, within } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
 const push = vi.fn();
 const replace = vi.fn();
+const nav = vi.hoisted(() => ({
+  search: "symbol=INFY&exchange=NSE&isin=INE009A01021&mic=XNSE&depth=buffett",
+}));
 
 vi.mock("next/navigation", () => ({
   usePathname: () => "/analysis",
   useRouter: () => ({ push, replace }),
-  useSearchParams: () =>
-    new URLSearchParams(
-      "symbol=INFY&exchange=NSE&isin=INE009A01021&mic=XNSE&depth=buffett",
-    ),
+  useSearchParams: () => new URLSearchParams(nav.search),
 }));
 
 vi.mock("@/lib/auth/AuthProvider", () => ({
@@ -380,6 +380,8 @@ describe("EPIC-F005 company analysis lib", () => {
 describe("EPIC-F005 workspace UI", () => {
   beforeEach(() => {
     cleanup();
+    nav.search = "symbol=INFY&exchange=NSE&isin=INE009A01021&mic=XNSE&depth=buffett";
+    replace.mockReset();
     acknowledgeResearchDisclaimer();
     analyseMock.mockReset();
     marketQuoteMock.mockReset();
@@ -487,6 +489,10 @@ describe("EPIC-F005 workspace UI", () => {
       // Figma TOC label for RS-001.
       await screen.findByRole("heading", { name: /^Summary$/i }),
     ).toBeTruthy();
+    fireEvent.click(screen.getByRole("button", { name: /Change research depth/i }));
+    const lastUrl = String(replace.mock.calls.at(-1)?.[0] ?? "");
+    expect(lastUrl).toContain("symbol=INFY");
+    expect(lastUrl).not.toContain("depth=");
   });
 
   it("calls analyse through the server-authenticated evidence path when client statements are unavailable", async () => {
@@ -583,6 +589,22 @@ describe("EPIC-F005 workspace UI", () => {
     documentsNavButton.click();
 
     await waitFor(() => expect(corporateActionsMock).toHaveBeenCalled());
+  });
+
+  it("resolves a symbol-only company before enabling research depth", async () => {
+    nav.search = "symbol=INFY&mode=simple";
+    const { CompanyAnalysisWorkspace } = await import(
+      "@/components/company-analysis/CompanyAnalysisWorkspace"
+    );
+    wrap(<CompanyAnalysisWorkspace />);
+    await waitFor(() => expect(resolveSecurityMock).toHaveBeenCalled());
+    expect(String(resolveSecurityMock.mock.calls[0]?.[0])).toBe("INFY");
+    await waitFor(() => expect(replace).toHaveBeenCalled());
+    const nextUrl = String(replace.mock.calls.at(-1)?.[0]);
+    expect(nextUrl).toContain("symbol=INFY");
+    expect(nextUrl).toContain("exchange=NSE");
+    expect(nextUrl).toContain("depth=simple");
+    expect(analyseMock).not.toHaveBeenCalled();
   });
 });
 

@@ -2047,6 +2047,13 @@ export const api = {
       options,
     ),
 
+  referral: (options?: RequestOptions) =>
+    request<import("@/lib/api/workspaceTypes").ReferralResponse>(
+      "/saas/referral",
+      { method: "GET" },
+      options,
+    ),
+
   workspaceCanvases: (options?: RequestOptions) =>
     request<{ ok: boolean; items: import("@/lib/api/workspaceTypes").CanvasItem[]; count: number }>(
       "/workspace/research/canvas",

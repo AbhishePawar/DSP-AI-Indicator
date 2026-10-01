@@ -5,8 +5,6 @@ import {
   Building2,
   Briefcase,
   BookOpen,
-  ChevronDown,
-  ChevronRight,
   Shield,
   Settings,
   Sparkles,
@@ -23,16 +21,12 @@ import {
   type RecentAnalysisEntry,
 } from "@/lib/analysis/recentAnalyses";
 
-import {
-  Sidebar as DsSidebar,
-  SidebarGroup,
-} from "@/components/ds";
 import { useAuth } from "@/lib/auth/AuthProvider";
 import { env } from "@/lib/env";
 import {
   filterShellNav,
-  groupShellNav,
   isActivePath,
+  zipSidebarModel,
   type ShellNavIconId,
   type ShellNavItem,
 } from "@/lib/shell";
@@ -50,120 +44,109 @@ const ICONS: Record<ShellNavIconId, LucideIcon> = {
   advisor: Users,
 };
 
+const ZIP_GLYPH: Record<string, string> = {
+  dashboard: "⬡",
+  research: "◈",
+  companies: "⊞",
+  compare: "⇌",
+  portfolio: "◲",
+  copilot: "✦",
+  advisor: "◑",
+  profile: "◎",
+  coupons: "◈",
+  pricing: "◇",
+  "control-center": "⚙",
+  admin: "⊕",
+  diagnostics: "◎",
+};
+
+function displayLabel(item: ShellNavItem): string {
+  if (item.id === "admin") return "Admin";
+  if (item.id === "research") return "Research";
+  return item.label;
+}
+
+function SearchGlyph() {
+  return (
+    <svg
+      width="17"
+      height="17"
+      viewBox="0 0 20 20"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.75"
+      strokeLinecap="round"
+      aria-hidden
+    >
+      <circle cx="8.5" cy="8.5" r="5.25" />
+      <line x1="12.5" y1="12.5" x2="17" y2="17" />
+    </svg>
+  );
+}
+
 function NavLink({
   item,
   collapsed,
   mobile,
   onNavigate,
-  nested = false,
+  exact = false,
+  iconOnly = false,
+  dot = false,
 }: {
   item: ShellNavItem;
   collapsed: boolean;
   mobile: boolean;
   onNavigate?: () => void;
-  nested?: boolean;
+  exact?: boolean;
+  iconOnly?: boolean;
+  dot?: boolean;
 }) {
   const pathname = usePathname();
-  const active = isActivePath(pathname, item.href);
+  const active = exact
+    ? pathname === item.href
+    : isActivePath(pathname, item.href);
   const Icon = ICONS[item.icon];
-  const hideLabel = collapsed && !mobile;
+  const label = displayLabel(item);
+  const hideLabel = iconOnly || (collapsed && !mobile);
+  const glyph = ZIP_GLYPH[item.id];
 
   return (
     <Link
       href={item.href}
-      title={item.label}
+      title={label}
       onClick={onNavigate}
       aria-current={active ? "page" : undefined}
       className={cn(
-        "inline-flex items-center gap-2 rounded-lg px-2.5 text-[13px] transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] motion-reduce:transition-none",
+        "inline-flex items-center gap-2.5 rounded-lg px-2.5 text-[13px] transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] motion-reduce:transition-none",
         mobile ? "min-h-11" : "min-h-9 py-1.5",
-        hideLabel ? "justify-center" : "justify-start",
-        nested && !hideLabel ? "pl-8" : null,
+        hideLabel
+          ? mobile
+            ? "min-w-11 justify-center px-0"
+            : "w-9 justify-center px-0"
+          : "justify-start",
+        dot && !hideLabel ? "text-xs" : null,
         active
           ? "bg-[var(--surface-2)] text-[var(--fg)]"
           : "text-[var(--muted)] hover:bg-[var(--surface-2)] hover:text-[var(--fg)]",
       )}
     >
-      <Icon className="size-4 shrink-0" aria-hidden />
-      {!hideLabel ? <span className="truncate">{item.label}</span> : null}
-      {hideLabel ? <span className="sr-only">{item.label}</span> : null}
+      {item.id === "research" && iconOnly ? (
+        <SearchGlyph />
+      ) : dot && !hideLabel ? (
+        <span
+          aria-hidden
+          className="ml-1 size-1 shrink-0 rounded-full bg-current"
+        />
+      ) : glyph && !hideLabel ? (
+        <span aria-hidden className="w-4 text-center text-sm opacity-80">
+          {glyph}
+        </span>
+      ) : (
+        <Icon className="size-4 shrink-0" aria-hidden />
+      )}
+      {!hideLabel ? <span className="truncate">{label}</span> : null}
+      {hideLabel ? <span className="sr-only">{label}</span> : null}
     </Link>
-  );
-}
-
-function NavTree({
-  items,
-  collapsed,
-  mobile,
-  onNavigate,
-}: {
-  items: ShellNavItem[];
-  collapsed: boolean;
-  mobile: boolean;
-  onNavigate?: () => void;
-}) {
-  const pathname = usePathname();
-  const [expanded, setExpanded] = useState<Record<string, boolean>>({});
-
-  return (
-    <>
-      {items.map((item) => {
-        const hasChildren = Boolean(item.children?.length);
-        const childActive = item.children?.some((c) =>
-          isActivePath(pathname, c.href),
-        );
-        const open =
-          expanded[item.id] ?? (childActive || isActivePath(pathname, item.href));
-
-        return (
-          <div key={item.id} className="flex flex-col gap-0.5">
-            <div className="flex items-center gap-0.5">
-              <div className="min-w-0 flex-1">
-                <NavLink
-                  item={item}
-                  collapsed={collapsed}
-                  mobile={mobile}
-                  onNavigate={onNavigate}
-                />
-              </div>
-              {hasChildren && !(collapsed && !mobile) ? (
-                <button
-                  type="button"
-                  className="inline-flex size-11 shrink-0 items-center justify-center rounded-[var(--radius-md)] text-[var(--muted)] hover:bg-[var(--surface-2)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
-                  aria-expanded={open}
-                  aria-label={
-                    open
-                      ? `Collapse ${item.label} submenu`
-                      : `Expand ${item.label} submenu`
-                  }
-                  onClick={() =>
-                    setExpanded((s) => ({ ...s, [item.id]: !open }))
-                  }
-                >
-                  {open ? (
-                    <ChevronDown className="size-4" aria-hidden />
-                  ) : (
-                    <ChevronRight className="size-4" aria-hidden />
-                  )}
-                </button>
-              ) : null}
-            </div>
-            {hasChildren && open && !(collapsed && !mobile)
-              ? item.children!.map((child) => (
-                  <NavLink
-                    key={child.id}
-                    item={child}
-                    collapsed={collapsed}
-                    mobile={mobile}
-                    onNavigate={onNavigate}
-                    nested
-                  />
-                ))
-              : null}
-          </div>
-        );
-      })}
-    </>
   );
 }
 
@@ -185,9 +168,8 @@ export function Sidebar({
     setRecent(loadRecentAnalyses());
   }, []);
 
-  const groups = useMemo(() => {
-    const filtered = filterShellNav(permissions, roles);
-    return groupShellNav(filtered);
+  const nav = useMemo(() => {
+    return zipSidebarModel(filterShellNav(permissions, roles));
   }, [permissions, roles]);
 
   function onNavKeyDown(event: KeyboardEvent<HTMLElement>) {
@@ -227,6 +209,7 @@ export function Sidebar({
       )}
       aria-label="Primary"
       data-collapsed={collapsed && !mobile ? "true" : undefined}
+      onKeyDown={onNavKeyDown}
     >
       <div
         className={cn(
@@ -306,26 +289,65 @@ export function Sidebar({
         </div>
       ) : null}
 
-      <DsSidebar
-        collapsed={collapsed && !mobile}
-        className="!w-full flex-1 border-0 bg-transparent"
-        onKeyDown={onNavKeyDown}
+      <nav
+        className="flex min-h-0 flex-1 flex-col overflow-y-auto px-2.5 py-2.5"
+        aria-label="Primary navigation"
       >
-        {groups.map((group) => (
-          <SidebarGroup
-            key={group.section}
-            label={group.label}
-            collapsed={collapsed && !mobile}
-          >
-            <NavTree
-              items={group.items}
+        <div className="flex flex-col gap-0.5">
+          {nav.primary.map((item) => (
+            <NavLink
+              key={item.id}
+              item={item}
               collapsed={collapsed}
               mobile={mobile}
               onNavigate={onNavigate}
+              iconOnly={item.id === "research"}
             />
-          </SidebarGroup>
+          ))}
+        </div>
+        {nav.research.length > 0 && !(collapsed && !mobile) ? (
+          <div className="mt-3">
+            <p className="section-label mb-1 px-2.5">Research</p>
+            {nav.research.map((item) => (
+              <NavLink
+                key={item.id}
+                item={item}
+                collapsed={collapsed}
+                mobile={mobile}
+                onNavigate={onNavigate}
+                exact={item.id === "research-hub"}
+                dot
+              />
+            ))}
+          </div>
+        ) : null}
+        {nav.more.length > 0 && !(collapsed && !mobile) ? (
+          <div className="mt-3">
+            <p className="section-label mb-1 px-2.5">More</p>
+            {nav.more.map((item) => (
+              <NavLink
+                key={item.id}
+                item={item}
+                collapsed={collapsed}
+                mobile={mobile}
+                onNavigate={onNavigate}
+              />
+            ))}
+          </div>
+        ) : null}
+      </nav>
+
+      <div className="border-t border-[var(--border)] px-2.5 py-2">
+        {nav.account.map((item) => (
+          <NavLink
+            key={item.id}
+            item={item}
+            collapsed={collapsed}
+            mobile={mobile}
+            onNavigate={onNavigate}
+          />
         ))}
-      </DsSidebar>
+      </div>
 
       <div className="border-t border-[var(--border)] px-3 py-3">
         {collapsed && !mobile ? (
@@ -344,24 +366,33 @@ export function Sidebar({
           </Link>
         ) : session && user ? (
           <div className="flex items-center gap-2.5">
-            <span
-              aria-hidden
-              className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[linear-gradient(135deg,#7c6af7_0%,#2dd4bf_100%)] font-mono text-[11px] font-semibold text-white"
+            <Link
+              href="/profile"
+              onClick={onNavigate}
+              aria-label="My Profile"
+              className="flex min-w-0 flex-1 items-center gap-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
             >
-              {(user.displayName || "U").slice(0, 1).toUpperCase()}
-            </span>
-            <span className="min-w-0 flex-1">
-              <span className="block truncate text-xs text-[var(--fg)]">{user.displayName}</span>
-              <span className="block truncate font-mono text-[10px] text-[var(--muted)]">
-                {user.email || "Signed in"}
+              <span
+                aria-hidden
+                className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[linear-gradient(135deg,#7c6af7_0%,#2dd4bf_100%)] font-mono text-[11px] font-semibold text-white"
+              >
+                {(user.displayName || "U").slice(0, 1).toUpperCase()}
               </span>
-            </span>
+              <span className="min-w-0">
+                <span className="block truncate text-xs text-[var(--fg)]">{user.displayName}</span>
+                <span className="block truncate font-mono text-[10px] text-[var(--muted)]">
+                  {user.roles?.[0]?.replaceAll("_", " ") || "Signed in"}
+                </span>
+              </span>
+            </Link>
             <Link
               href="/logout"
               onClick={onNavigate}
-              className="inline-flex min-h-11 items-center px-1 text-[11px] text-[var(--muted)] hover:text-[var(--fg)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
+              aria-label="Log out"
+              title="Log out"
+              className="inline-flex min-h-11 items-center px-1 text-xs text-[var(--muted)] hover:text-[var(--fg)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
             >
-              Log out
+              <span aria-hidden>↩</span>
             </Link>
           </div>
         ) : (

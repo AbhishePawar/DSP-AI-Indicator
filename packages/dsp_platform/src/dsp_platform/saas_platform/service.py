@@ -211,6 +211,15 @@ def run_saas_platform(
                 active_only=bool(body.get("active_only", True))
             )
         },
+        "referral_profile": lambda: {
+            "referral": overlay.referral_profile(_actor(body))
+        },
+        "attribute_referral": lambda: {
+            "referral": overlay.attribute_referral(
+                code=str(body.get("code") or ""),
+                referred_user_id=_actor(body),
+            )
+        },
         "get_coupon": lambda: {
             "coupon": overlay.get_coupon(str(body.get("code") or ""))
             or {"available": False, "message": UNAVAILABLE_MESSAGE}

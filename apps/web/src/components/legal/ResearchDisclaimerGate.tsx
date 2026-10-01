@@ -40,8 +40,9 @@ export function ResearchDisclaimerGate({
     if (!checked) return;
     acknowledgeResearchDisclaimer();
     setChecked(false);
-    onOpenChange(false);
+    // Run the queued action before close. Closing clears the pending callback.
     onAcknowledged();
+    onOpenChange(false);
   }
 
   return (

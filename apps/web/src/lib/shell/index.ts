@@ -11,11 +11,13 @@ export {
   groupShellNav,
   isActivePath,
   searchableRoutes,
+  zipSidebarModel,
   type BreadcrumbCrumb,
   type NavPermissionRule,
   type RouteMeta,
   type ShellNavIconId,
   type ShellNavItem,
+  type ZipSidebarModel,
 } from "./navigationRegistry";
 
 export { useUiStore, type NavHistoryEntry } from "./uiStore";

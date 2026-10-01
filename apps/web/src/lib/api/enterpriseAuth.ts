@@ -166,6 +166,7 @@ export const enterpriseAuthApi = {
     name?: string;
     username?: string;
     email?: string;
+    referral_code?: string;
   }) =>
     enterpriseRequest<Record<string, unknown>>(
       "/auth/enterprise/register/mobile/complete",
@@ -240,6 +241,7 @@ export const enterpriseAuthApi = {
     state?: string | null;
     redirect_uri: string;
     remember_me?: boolean;
+    referral_code?: string;
   }) =>
     enterpriseRequest<RbacLoginResult & MfaAdditiveFields>(
       "/auth/enterprise/oauth/callback",

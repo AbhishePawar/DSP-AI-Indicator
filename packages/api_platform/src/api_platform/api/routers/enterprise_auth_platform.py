@@ -21,6 +21,34 @@ def _platform():
     return get_enterprise_auth_platform()
 
 
+def _attach_referral(result: dict[str, Any], referral_code: str | None) -> dict[str, Any]:
+    """Attribute a newly created account. Invalid codes never fail registration."""
+    code = str(referral_code or "").strip()
+    if not code or not isinstance(result, dict):
+        return result
+    user = result.get("user")
+    user_id = ""
+    if isinstance(user, dict):
+        user_id = str(user.get("user_id") or user.get("id") or "").strip()
+    if not user_id:
+        return result
+    try:
+        from dsp_platform.saas_platform.store import get_saas_overlay_store
+
+        attribution = get_saas_overlay_store().attribute_referral(
+            code=code, referred_user_id=user_id
+        )
+    except Exception:
+        attribution = {
+            "attributed": False,
+            "reason": "unavailable",
+            "credit_state": "unavailable",
+        }
+    merged = dict(result)
+    merged["referral"] = attribution
+    return merged
+
+
 def _attach_auth_cookies(
     response: JSONResponse,
     result: dict[str, Any],
@@ -146,6 +174,7 @@ class RegisterRequest(BaseModel):
     password: str = Field(..., min_length=8, max_length=256)
     confirm_password: str = Field(..., min_length=8, max_length=256)
     username: str | None = Field(None, max_length=64)
+    referral_code: str | None = Field(None, max_length=64)
 
 
 class RegisterUsernameRequest(BaseModel):
@@ -153,6 +182,7 @@ class RegisterUsernameRequest(BaseModel):
     password: str = Field(..., min_length=8, max_length=256)
     confirm_password: str = Field(..., min_length=8, max_length=256)
     name: str | None = Field(None, max_length=128)
+    referral_code: str | None = Field(None, max_length=64)
 
 
 class RegisterMobileCompleteRequest(BaseModel):
@@ -163,6 +193,7 @@ class RegisterMobileCompleteRequest(BaseModel):
     name: str | None = Field(None, max_length=128)
     username: str | None = Field(None, max_length=64)
     email: str | None = Field(None, max_length=256)
+    referral_code: str | None = Field(None, max_length=64)
 
 
 class LoginPasswordRequest(BaseModel):
@@ -218,6 +249,7 @@ class OAuthCallbackRequest(BaseModel):
     state: str | None = None
     redirect_uri: str = Field(..., min_length=8, max_length=512)
     remember_me: bool = False
+    referral_code: str | None = Field(None, max_length=64)
 
 
 class OAuthLinkRequest(BaseModel):
@@ -325,13 +357,16 @@ def enterprise_providers() -> dict[str, Any]:
 def enterprise_register(body: RegisterRequest, request: Request) -> JSONResponse:
     try:
         meta = _client_meta(request)
-        result = _platform().register_email(
-            name=body.name,
-            email=body.email,
-            password=body.password,
-            confirm_password=body.confirm_password,
-            username=body.username,
-            ip_hint=meta["ip_hint"],
+        result = _attach_referral(
+            _platform().register_email(
+                name=body.name,
+                email=body.email,
+                password=body.password,
+                confirm_password=body.confirm_password,
+                username=body.username,
+                ip_hint=meta["ip_hint"],
+            ),
+            body.referral_code,
         )
         return JSONResponse({"ok": True, "result": result, "message": None})
     except Exception as exc:  # noqa: BLE001
@@ -344,12 +379,15 @@ def enterprise_register_username(
 ) -> JSONResponse:
     try:
         meta = _client_meta(request)
-        result = _platform().register_username(
-            username=body.username,
-            password=body.password,
-            confirm_password=body.confirm_password,
-            name=body.name,
-            ip_hint=meta["ip_hint"],
+        result = _attach_referral(
+            _platform().register_username(
+                username=body.username,
+                password=body.password,
+                confirm_password=body.confirm_password,
+                name=body.name,
+                ip_hint=meta["ip_hint"],
+            ),
+            body.referral_code,
         )
         return JSONResponse({"ok": True, "result": result, "message": None})
     except Exception as exc:  # noqa: BLE001
@@ -374,15 +412,18 @@ def enterprise_register_mobile_complete(
 ) -> JSONResponse:
     try:
         meta = _client_meta(request)
-        result = _platform().register_mobile_complete(
-            challenge_id=body.challenge_id,
-            code=body.code.strip(),
-            password=body.password,
-            confirm_password=body.confirm_password,
-            name=body.name,
-            username=body.username,
-            email=body.email,
-            ip_hint=meta["ip_hint"],
+        result = _attach_referral(
+            _platform().register_mobile_complete(
+                challenge_id=body.challenge_id,
+                code=body.code.strip(),
+                password=body.password,
+                confirm_password=body.confirm_password,
+                name=body.name,
+                username=body.username,
+                email=body.email,
+                ip_hint=meta["ip_hint"],
+            ),
+            body.referral_code,
         )
         return JSONResponse({"ok": True, "result": result, "message": None})
     except Exception as exc:  # noqa: BLE001
@@ -500,6 +541,8 @@ def enterprise_oauth_callback(body: OAuthCallbackRequest, request: Request) -> J
             ip_hint=meta["ip_hint"],
             user_agent_hint=meta["user_agent_hint"],
         )
+        if result.get("account_created"):
+            result = _attach_referral(result, body.referral_code)
         response = JSONResponse({"ok": True, "result": result, "message": None})
         return _attach_auth_cookies(response, result, remember_me=body.remember_me)
     except Exception as exc:  # noqa: BLE001

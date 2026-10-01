@@ -42,6 +42,7 @@ export default function OAuthCallbackPage() {
       redirect_uri: string;
       remember_me?: boolean;
       next?: string;
+      referral_code?: string | null;
     };
     try {
       pending = JSON.parse(pendingRaw) as typeof pending;
@@ -59,6 +60,7 @@ export default function OAuthCallbackPage() {
         state: state || pending.state,
         redirect_uri: pending.redirect_uri,
         remember_me: Boolean(pending.remember_me),
+        ...(pending.referral_code ? { referral_code: pending.referral_code } : {}),
       })
       .then((envelope) => {
         if (!envelope.ok || !envelope.result) {

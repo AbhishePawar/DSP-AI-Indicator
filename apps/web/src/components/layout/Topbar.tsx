@@ -6,6 +6,7 @@
  */
 
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 
 import { useAuth } from "@/lib/auth/AuthProvider";
 import { useUiStore } from "@/lib/shell";
@@ -26,6 +27,7 @@ export function Topbar({
   sidebarCollapsed?: boolean;
 }) {
   const setCommandPaletteOpen = useUiStore((s) => s.setCommandPaletteOpen);
+  const pathname = usePathname();
   const { session, user } = useAuth();
   const signedIn = Boolean(session && user);
   const name = user?.displayName || session?.displayName || "Account";
@@ -60,6 +62,14 @@ export function Topbar({
       </div>
 
       <div className="flex items-center gap-1.5">
+        {pathname !== "/diagnostics" ? (
+          <Link
+            href="/diagnostics"
+            className="hidden min-h-9 items-center rounded-lg border border-[var(--border)] px-3.5 text-xs text-[var(--muted)] hover:text-[var(--fg)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] sm:inline-flex"
+          >
+            Diagnostics
+          </Link>
+        ) : null}
         <button
           type="button"
           className="inline-flex size-9 items-center justify-center rounded-md text-[var(--muted)] hover:bg-[var(--surface-2)] hover:text-[var(--fg)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"

@@ -94,29 +94,6 @@ export function MarketingLanding() {
           ))}
         </div>
       </section>
-
-      <section className="mx-auto max-w-3xl px-4 py-20 text-center sm:px-6">
-        <h2 className="font-[family-name:var(--font-heading)] text-3xl font-medium text-[var(--fg)] sm:text-4xl">
-          Start your research.
-        </h2>
-        <p className="mt-3 text-sm text-[var(--muted)]">
-          Access is provisioned for your account. Search does not require a public checkout.
-        </p>
-        <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
-          <Link
-            href="/signup"
-            className="inline-flex min-h-11 items-center justify-center rounded-[10px] bg-[var(--fg)] px-6 text-sm font-medium text-[var(--bg)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
-          >
-            Get started
-          </Link>
-          <Link
-            href="/about"
-            className="inline-flex min-h-11 items-center justify-center rounded-[10px] border border-[var(--border)] px-6 text-sm text-[var(--fg)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
-          >
-            Learn more
-          </Link>
-        </div>
-      </section>
     </div>
   );
 }

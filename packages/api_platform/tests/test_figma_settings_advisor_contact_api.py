@@ -233,6 +233,119 @@ def test_coupons_listing_returns_only_active(client: TestClient, auth: dict[str,
     assert coupons[0]["applicable_to"] == ["Premium Monthly"] and coupons[0]["featured"] is True
 
 
+def test_referral_profile_is_personal_and_does_not_invent_savings(
+    client: TestClient, auth: dict[str, str], admin_auth: dict[str, str]
+) -> None:
+    anonymous = client.get("/api/v1/saas/referral")
+    assert anonymous.status_code in (401, 403)
+
+    res = client.get("/api/v1/saas/referral", headers=auth)
+    assert res.status_code == 200, res.text
+    referral = res.json()["result"]["referral"]
+    assert referral["code"].startswith("DSP")
+    assert referral["path"] == f"/signup?ref={referral['code']}"
+    assert referral["referred_count"] == 0
+    assert referral["savings_status"] == "unavailable"
+    assert referral["programme"] is None
+
+    assert client.post(
+        "/api/v1/saas/coupon",
+        json={
+            "code": "REFER20",
+            "discount_pct": 20,
+            "active": True,
+            "title": "Give 20% off · Get 20% off",
+            "description": "Both accounts receive the published referral discount.",
+            "category": "referral",
+        },
+        headers=admin_auth,
+    ).status_code == 200
+    again = client.get("/api/v1/saas/referral", headers=auth).json()["result"]["referral"]
+    assert again["programme"]["coupon_code"] == "REFER20"
+    assert again["programme"]["discount_pct"] == 20
+    assert again["savings_status"] == "unavailable"
+
+
+def test_referral_attribution_is_server_authoritative(
+    client: TestClient, auth: dict[str, str], other_auth: dict[str, str]
+) -> None:
+    from dsp_platform.saas_platform.store import SaasOverlayStore
+
+    profile = client.get("/api/v1/saas/referral", headers=auth)
+    assert profile.status_code == 200, profile.text
+    code = profile.json()["result"]["referral"]["code"]
+
+    anonymous = client.post("/api/v1/saas/referral/attribute", json={"code": code})
+    assert anonymous.status_code in (401, 403)
+
+    spoofed = client.post(
+        "/api/v1/saas/referral/attribute",
+        json={"code": code, "user_id": "settings-user", "actor_user_id": "settings-user"},
+        headers=other_auth,
+    )
+    assert spoofed.status_code == 200, spoofed.text
+    attributed = spoofed.json()["result"]["referral"]
+    assert attributed["attributed"] is True
+    assert attributed["reason"] == "recorded"
+    assert attributed["credit_state"] == "unavailable"
+    assert "referrer_user_id" not in attributed
+
+    counted = client.get("/api/v1/saas/referral", headers=auth).json()["result"]["referral"]
+    assert counted["referred_count"] == 1
+    assert counted["savings_status"] == "unavailable"
+
+    duplicate = client.post(
+        "/api/v1/saas/referral/attribute",
+        json={"code": code},
+        headers=other_auth,
+    )
+    assert duplicate.status_code == 200, duplicate.text
+    assert duplicate.json()["result"]["referral"]["reason"] == "duplicate"
+    still = client.get("/api/v1/saas/referral", headers=auth).json()["result"]["referral"]
+    assert still["referred_count"] == 1
+    assert still["savings_status"] == "unavailable"
+
+    own = client.get("/api/v1/saas/referral", headers=other_auth).json()["result"]["referral"]
+    self_referral = client.post(
+        "/api/v1/saas/referral/attribute",
+        json={"code": own["code"]},
+        headers=other_auth,
+    )
+    assert self_referral.json()["result"]["referral"]["reason"] == "self_referral"
+
+    invalid = client.post(
+        "/api/v1/saas/referral/attribute",
+        json={"code": "NOTACODE"},
+        headers=auth,
+    )
+    assert invalid.status_code == 200, invalid.text
+    assert invalid.json()["result"]["referral"] == {
+        "attributed": False,
+        "reason": "invalid_code",
+        "credit_state": "unavailable",
+    }
+    unchanged = client.get("/api/v1/saas/referral", headers=auth).json()["result"]["referral"]
+    assert unchanged["referred_count"] == 1
+    assert unchanged["savings_status"] == "unavailable"
+
+    store = SaasOverlayStore()
+    issued = store.referral_profile("referrer-1")
+    assert store.attribute_referral(code="nope", referred_user_id="friend-1")["reason"] == "invalid_code"
+    assert store.attribute_referral(code=issued["code"], referred_user_id="referrer-1")["reason"] == "self_referral"
+    assert store.attribute_referral(code=issued["code"], referred_user_id="friend-1")["attributed"] is True
+    assert store.attribute_referral(code=issued["code"], referred_user_id="friend-1")["reason"] == "duplicate"
+    assert store.referral_profile("referrer-1")["referred_count"] == 1
+    assert store.referral_profile("referrer-1")["savings_status"] == "unavailable"
+    snapshot = store.export_referral_state()
+    restored = SaasOverlayStore()
+    restored.import_referral_state(snapshot)
+    assert restored.referral_profile("referrer-1")["referred_count"] == 1
+    legacy = SaasOverlayStore()
+    legacy.import_referral_state({"referrals": {"referrer-1": ["friend-9"]}})
+    assert legacy.referral_profile("referrer-1")["referred_count"] == 1
+    assert legacy.attribute_referral(code=issued["code"], referred_user_id="friend-9")["reason"] == "duplicate"
+
+
 # -- durability ---------------------------------------------------------------
 
 

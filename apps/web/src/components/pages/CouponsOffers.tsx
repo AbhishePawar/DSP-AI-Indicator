@@ -6,8 +6,8 @@
  *
  * Data: `GET /api/v1/saas/coupons` (administrator-provisioned coupon metadata
  * from the SaaS overlay). Nothing is invented: when no coupon is published the
- * page states so. The Figma referral programme (personal link, savings totals)
- * has no backing service and is omitted rather than fabricated.
+ * page states so. The referral programme uses GET /api/v1/saas/referral.
+ * Friend counts come from the ledger. Savings stay unavailable until a credit is recorded.
  */
 
 import { useQuery } from "@tanstack/react-query";
@@ -15,10 +15,11 @@ import { useMemo, useState } from "react";
 
 import { FigmaPage, PanelEmpty, PillButton } from "@/components/pages/PagePrimitives";
 import { api } from "@/lib/api/client";
-import type { Coupon, CouponCategory } from "@/lib/api/workspaceTypes";
+import type { Coupon, CouponCategory, ReferralProfile } from "@/lib/api/workspaceTypes";
 import { useAuth } from "@/lib/auth/AuthProvider";
 
 const QUERY_KEY = ["saas", "coupons"] as const;
+const REFERRAL_KEY = ["saas", "referral"] as const;
 
 type Filter = "all" | CouponCategory;
 const FILTERS: { label: string; value: Filter }[] = [
@@ -164,6 +165,68 @@ function CouponCard({ coupon }: { coupon: Coupon }) {
   );
 }
 
+function ReferralSection({ profile }: { profile: ReferralProfile }) {
+  const [copied, setCopied] = useState(false);
+  const headline =
+    profile.programme?.title ||
+    (typeof profile.programme?.discount_pct === "number"
+      ? `${profile.programme.discount_pct}% referral discount`
+      : "Referral programme");
+  const description =
+    profile.programme?.description ||
+    "A referral discount applies only when an administrator publishes a referral offer.";
+  const friends =
+    profile.referred_count === 1
+      ? "1 friend referred"
+      : `${profile.referred_count} friends referred`;
+
+  async function copy() {
+    const link = `${window.location.origin}${profile.path}`;
+    try {
+      await navigator.clipboard.writeText(link);
+      setCopied(true);
+      window.setTimeout(() => setCopied(false), 2200);
+    } catch {
+      setCopied(false);
+    }
+  }
+
+  return (
+    <section
+      className="flex flex-wrap items-center justify-between gap-5 rounded-[14px] border border-[color-mix(in_srgb,var(--c-profit)_25%,transparent)] bg-[var(--card)] px-6 py-6 sm:px-7"
+      aria-label="Referral programme"
+    >
+      <div className="min-w-[220px] flex-1">
+        <p className="mb-2 font-[family-name:var(--font-mono)] text-[10px] tracking-[0.1em] text-[var(--c-profit)]">
+          REFERRAL PROGRAMME
+        </p>
+        <h2 className="mb-1.5 font-[family-name:var(--font-heading)] text-lg font-medium text-[var(--fg)]">
+          {headline}
+        </h2>
+        <p className="m-0 text-[13px] leading-relaxed text-[var(--muted)]">{description}</p>
+      </div>
+      <div className="flex flex-col items-stretch gap-2 sm:items-end">
+        <div className="flex overflow-hidden rounded-lg border border-[var(--border)] bg-[var(--surface-2)]">
+          <span className="px-3.5 py-2 font-[family-name:var(--font-mono)] text-xs text-[var(--muted)]">
+            {profile.path}
+          </span>
+          <button
+            type="button"
+            onClick={() => void copy()}
+            className="px-4 py-2 text-xs text-white"
+            style={{ background: copied ? "var(--c-profit)" : "var(--c-dsp)" }}
+          >
+            {copied ? "✓ Copied" : "Copy link"}
+          </button>
+        </div>
+        <p className="m-0 font-[family-name:var(--font-mono)] text-[11px] text-[var(--muted)]">
+          {friends} · Savings unavailable.
+        </p>
+      </div>
+    </section>
+  );
+}
+
 function FeaturedBanner({ coupon }: { coupon: Coupon }) {
   const days = daysLeft(coupon.expires_at);
   return (
@@ -206,6 +269,15 @@ export function CouponsOffers() {
   const token = session?.accessToken;
   const [filter, setFilter] = useState<Filter>("all");
   const [query, setQuery] = useState("");
+
+  const referralQuery = useQuery({
+    queryKey: REFERRAL_KEY,
+    queryFn: () => api.referral({ token }),
+    enabled: Boolean(token),
+    retry: false,
+    staleTime: 60_000,
+  });
+  const referral = referralQuery.data?.result?.referral ?? null;
 
   const couponsQuery = useQuery({
     queryKey: QUERY_KEY,
@@ -273,6 +345,8 @@ export function CouponsOffers() {
           </div>
         ))}
       </div>
+
+      {referral ? <ReferralSection profile={referral} /> : null}
 
       {!token ? (
         <PanelEmpty title="Sign in required." description="Offers are shown to signed-in DSP users." />

@@ -36,15 +36,15 @@ function applyResolved(resolved: ResolvedTheme) {
 }
 
 export function ThemeProvider({ children }: { children: ReactNode }) {
-  const [mode, setModeState] = useState<ThemeMode>("system");
-  const [resolved, setResolved] = useState<ResolvedTheme>("light");
+  const [mode, setModeState] = useState<ThemeMode>("dark");
+  const [resolved, setResolved] = useState<ResolvedTheme>("dark");
 
   useEffect(() => {
     const stored = window.localStorage.getItem(STORAGE_KEY) as ThemeMode | null;
     const initial: ThemeMode =
       stored === "light" || stored === "dark" || stored === "system"
         ? stored
-        : "system";
+        : "dark";
     setModeState(initial);
     const next = resolveMode(initial);
     setResolved(next);

@@ -113,11 +113,22 @@ export async function probeCookieSession(): Promise<{
   cookie_auth: boolean;
 } | null> {
   try {
-    const response = await fetch(`${env.apiBaseUrl}/auth/session`, {
-      method: "GET",
-      credentials: "include",
-      headers: { Accept: "application/json" },
-    });
+    const controller =
+      typeof AbortController !== "undefined" ? new AbortController() : null;
+    const timer = controller
+      ? setTimeout(() => controller.abort(), 4000)
+      : null;
+    let response: Response;
+    try {
+      response = await fetch(`${env.apiBaseUrl}/auth/session`, {
+        method: "GET",
+        credentials: "include",
+        headers: { Accept: "application/json" },
+        signal: controller?.signal,
+      });
+    } finally {
+      if (timer) clearTimeout(timer);
+    }
     if (!response.ok) return null;
     const data = (await response.json()) as {
       payload?: {

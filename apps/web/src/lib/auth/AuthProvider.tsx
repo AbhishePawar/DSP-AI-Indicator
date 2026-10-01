@@ -111,29 +111,36 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     let cancelled = false;
 
     const restore = async () => {
-      if (cookieAuthPreferred()) {
-        const probe = await probeCookieSession();
+      try {
+        if (cookieAuthPreferred()) {
+          const probe = await probeCookieSession();
+          if (cancelled || statusRef.current !== "restoring") return;
+          if (!probe?.authenticated || !probe.cookie_auth) {
+            clearStoredSession();
+            setStatusSafe("unauthenticated");
+            resetAuthStore();
+            return;
+          }
+        }
+
+        const stored = readStoredSession();
         if (cancelled || statusRef.current !== "restoring") return;
-        if (!probe?.authenticated || !probe.cookie_auth) {
+        if (!stored || isSessionExpired(stored)) {
           clearStoredSession();
           setStatusSafe("unauthenticated");
           resetAuthStore();
           return;
         }
-      }
-
-      const stored = readStoredSession();
-      if (cancelled || statusRef.current !== "restoring") return;
-      if (!stored || isSessionExpired(stored)) {
+        if (cancelled || statusRef.current !== "restoring") return;
+        setSessionState(stored);
+        setStatusSafe("authenticated");
+        syncStore("authenticated", stored);
+      } catch {
+        if (cancelled || statusRef.current !== "restoring") return;
         clearStoredSession();
         setStatusSafe("unauthenticated");
         resetAuthStore();
-        return;
       }
-      if (cancelled || statusRef.current !== "restoring") return;
-      setSessionState(stored);
-      setStatusSafe("authenticated");
-      syncStore("authenticated", stored);
     };
 
     void restore();

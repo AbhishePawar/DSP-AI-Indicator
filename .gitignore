@@ -92,3 +92,10 @@ apps/web/playwright-report/
 apps/web/test-results/
 apps/web/playwright-results.json
 .tmp-browser-cert/
+
+# Emergent migration work artifacts
+.figma_ref/
+.shots/
+apps/web/.env.local
+/frontend/
+/.emergent/

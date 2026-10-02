@@ -28,63 +28,98 @@ export function CompanyHeader({ view }: { view: ResearchView }) {
   return (
     <div className="space-y-4">
       <Card>
-        <CardBody className="flex flex-wrap items-start justify-between gap-4">
-          <div>
+        <CardBody className="space-y-4">
+          <div className="flex flex-wrap items-center justify-between gap-2 border-b border-[var(--border)] pb-3">
             <div className="flex flex-wrap items-center gap-2">
-              <p className="text-xs uppercase tracking-wider text-[var(--muted)]">
+              <span className="text-xs font-semibold uppercase tracking-wider text-[var(--muted)]">
                 Company Research
-              </p>
+              </span>
               <DeterministicAnalysisLabel />
+              <Badge tone="neutral">
+                Deep Research: Provider Unavailable (Deterministic Pipeline Only)
+              </Badge>
             </div>
-          <h1 className="mt-1 font-[family-name:var(--font-display)] text-3xl tracking-tight">
-            {view.company}
-          </h1>
-          <p className="mt-1 font-mono text-sm text-[var(--muted)]">
-            {view.ticker} · {view.exchange}
-          </p>
-          <div className="mt-3">
-            <AddToPortfolioButton
-              company={view.company}
-              ticker={view.ticker}
-              sector={catalogueEntry?.sector ?? "Unknown"}
-              recommendation={view.recommendation}
-              researchAvailable={view.ok}
-              size="md"
-            />
-          </div>
-        </div>
-        <div className="grid gap-2 text-right sm:grid-cols-2">
-          <div>
-            <p className="text-xs text-[var(--muted)]">Recommendation</p>
-            <p className="font-[family-name:var(--font-display)] text-xl">
-              {view.recommendation}
-            </p>
-          </div>
-          <div>
-            <p className="text-xs text-[var(--muted)]">Overall Rating</p>
-            <p className="font-[family-name:var(--font-display)] text-xl">
-              {view.businessQualityLabel}
-            </p>
-          </div>
-          <div className="sm:col-span-2">
-            <p className="text-xs text-[var(--muted)]">Last Analysis</p>
-            <p className="font-mono text-sm">
-              {view.analysedAt
-                ? new Date(view.analysedAt).toLocaleString()
-                : "—"}
-            </p>
-            <div className="mt-2 flex flex-wrap justify-end gap-2">
+            <div className="flex flex-wrap items-center gap-2">
               <Badge tone={view.ok ? "success" : "danger"}>
-                {view.ok ? "Pipeline OK" : "Issues"}
+                {view.ok ? "Pipeline Succeeded" : "Pipeline Degraded / Issues"}
               </Badge>
               <Badge tone="neutral">
                 Confidence {formatPct(view.recommendationConfidence)}
               </Badge>
             </div>
           </div>
-        </div>
-      </CardBody>
-    </Card>
+
+          <div className="flex flex-wrap items-start justify-between gap-4">
+            <div className="min-w-0 max-w-xl">
+              <h1 className="font-[family-name:var(--font-display)] text-2xl font-bold tracking-tight text-[var(--fg)] sm:text-3xl">
+                {view.company || view.ticker}
+              </h1>
+              <p className="mt-1 font-mono text-sm text-[var(--muted)]">
+                {view.ticker} · {view.exchange || "Exchange unavailable"}
+              </p>
+              <div className="mt-3 inline-block min-h-[44px]">
+                <AddToPortfolioButton
+                  company={view.company}
+                  ticker={view.ticker}
+                  sector={catalogueEntry?.sector ?? "Unknown"}
+                  recommendation={view.recommendation}
+                  researchAvailable={view.ok}
+                  size="md"
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+              <div className="rounded-[var(--radius-md)] border border-[var(--border)] bg-[var(--surface-2)] p-2.5">
+                <p className="text-[11px] font-medium uppercase tracking-wider text-[var(--muted)]">
+                  Recommendation
+                </p>
+                <p className="mt-1 font-[family-name:var(--font-display)] text-lg font-semibold text-[var(--fg)]">
+                  {view.recommendation || "Unavailable"}
+                </p>
+              </div>
+
+              <div className="rounded-[var(--radius-md)] border border-[var(--border)] bg-[var(--surface-2)] p-2.5">
+                <p className="text-[11px] font-medium uppercase tracking-wider text-[var(--muted)]">
+                  Overall Rating
+                </p>
+                <p className="mt-1 font-[family-name:var(--font-display)] text-lg font-semibold text-[var(--fg)]">
+                  {view.businessQualityLabel || "Unavailable"}
+                </p>
+              </div>
+
+              <div className="rounded-[var(--radius-md)] border border-[var(--border)] bg-[var(--surface-2)] p-2.5">
+                <p className="text-[11px] font-medium uppercase tracking-wider text-[var(--muted)]">
+                  Analysed At
+                </p>
+                <p className="mt-1 font-mono text-xs text-[var(--fg)]">
+                  {view.analysedAt
+                    ? new Date(view.analysedAt).toLocaleString()
+                    : "Data unavailable"}
+                </p>
+              </div>
+
+              <div className="rounded-[var(--radius-md)] border border-[var(--border)] bg-[var(--surface-2)] p-2.5">
+                <p className="text-[11px] font-medium uppercase tracking-wider text-[var(--muted)]">
+                  Pipeline Version
+                </p>
+                <p className="mt-1 font-mono text-xs text-[var(--fg)]">
+                  {view.pipelineVersion || "v1.0.0"}
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <div className="flex flex-wrap items-center justify-between gap-2 border-t border-[var(--border)] pt-2 text-xs text-[var(--muted)]">
+            <span className="font-mono break-all">
+              Correlation ID: {view.correlationId || "Data unavailable"}
+            </span>
+            <span>
+              Platform: {view.platformVersion || "v1.0.0"}
+            </span>
+          </div>
+        </CardBody>
+      </Card>
 
       <MarketDataCard ticker={view.ticker} />
     </div>

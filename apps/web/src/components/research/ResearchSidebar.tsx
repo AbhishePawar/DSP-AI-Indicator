@@ -12,6 +12,7 @@ const LINKS = [
   { id: "earnings", label: "Earnings" },
   { id: "growth", label: "Growth" },
   { id: "committee", label: "Committee" },
+  { id: "evidence", label: "Evidence & Sources" },
   { id: "pipeline", label: "Pipeline" },
 ] as const;
 
@@ -19,6 +20,9 @@ export function ResearchSidebar() {
   const [active, setActive] = useState<string>("overview");
 
   useEffect(() => {
+    if (typeof window === "undefined" || !("IntersectionObserver" in window)) {
+      return;
+    }
     const observer = new IntersectionObserver(
       (entries) => {
         const visible = entries
@@ -40,17 +44,17 @@ export function ResearchSidebar() {
       className="sticky top-20 hidden w-44 shrink-0 lg:block"
       aria-label="Research sections"
     >
-      <p className="mb-2 text-xs font-medium uppercase tracking-wider text-[var(--muted)]">
+      <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-[var(--muted)]">
         Jump to
       </p>
-      <ul className="space-y-0.5">
+      <ul className="space-y-1">
         {LINKS.map((link) => {
           const isActive = active === link.id;
           return (
             <li key={link.id}>
               <a
                 href={`#${link.id}`}
-                className={`block rounded-md px-2.5 py-1.5 text-sm transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] ${
+                className={`flex min-h-[44px] items-center rounded-md px-2.5 py-1.5 text-sm font-medium transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] ${
                   isActive
                     ? "bg-[var(--accent-soft)] text-[var(--accent)]"
                     : "text-[var(--muted)] hover:bg-[var(--surface-2)] hover:text-[var(--fg)]"

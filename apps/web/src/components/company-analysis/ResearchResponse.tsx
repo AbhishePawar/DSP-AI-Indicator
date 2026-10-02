@@ -100,6 +100,10 @@ export function ResearchResponse({ view }: { view: ResearchView }) {
 
   return (
     <article className="overflow-hidden rounded-xl border border-[var(--border)] bg-[var(--surface)] shadow-[var(--shadow-sm)]">
+      <div className="border-b border-[var(--border)] bg-[var(--surface-2)] px-4 py-2 text-xs text-[var(--muted)] flex items-center justify-between gap-2">
+        <span className="font-semibold uppercase tracking-wider">Deep Research &amp; AI Boundary</span>
+        <span className="rounded bg-[var(--surface)] px-2 py-0.5 text-[11px] font-medium border border-[var(--border)]">Provider Unavailable (Deterministic Research Only)</span>
+      </div>
       <Section title="Executive Summary">
         <p className="text-sm leading-6 text-[var(--ink)]">
           {display(view.company)} ({display(view.ticker)}) — {display(view.recommendation)}
@@ -170,7 +174,8 @@ export function ResearchResponse({ view }: { view: ResearchView }) {
           <button
             type="button"
             onClick={() => setBuffettExpanded((prev) => !prev)}
-            className="mt-3 text-xs font-medium text-[var(--accent-strong)] hover:underline"
+            aria-expanded={buffettExpanded}
+            className="mt-3 inline-flex min-h-[44px] items-center text-xs font-medium text-[var(--accent-strong)] hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
           >
             {buffettExpanded ? "Hide full Buffett analysis" : "View full Buffett analysis"}
           </button>

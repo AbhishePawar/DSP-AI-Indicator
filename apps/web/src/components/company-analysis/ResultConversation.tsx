@@ -1,15 +1,16 @@
 "use client";
 
 /**
- * Conversational result-page workspace for /analysis.
+ * Institutional Conversational Research Result Workspace for /analysis.
  *
- * The initial research result and every follow-up question live in one
- * vertical conversation. Follow-ups call the existing `/copilot/complete`
- * engine (already used by AiCopilotSection) — no client-side templating and
- * no invented valuation methodology. When no live analysis is loaded, the
- * page shows either an explicit, dev-only example fixture (behind
- * `exampleMode`) or a clean "Research unavailable" state — never fabricated
- * production data.
+ * Preserves the analytical hierarchy:
+ * 1. RESEARCH RESULT (authoritative deterministic research models)
+ * 2. EVIDENCE & ANALYSIS (provenance, sources, audit metadata)
+ * 3. RESEARCH COPILOT & FOLLOW-UP (structured institutional research assistant)
+ * 4. CONVERSATION TURNS (Answer → Supporting Evidence → Sources → Audit & Limitations)
+ *
+ * Backend calls route to the live /copilot/complete engine.
+ * No client-side templating or synthetic AI data.
  */
 
 import {
@@ -19,8 +20,18 @@ import {
   type KeyboardEvent as ReactKeyboardEvent,
 } from "react";
 import { useMutation } from "@tanstack/react-query";
-import { MoreHorizontal, Pencil, RefreshCw, Share2, ArrowUp } from "lucide-react";
+import {
+  Share2,
+  RefreshCw,
+  ArrowUp,
+  AlertCircle,
+  HelpCircle,
+  ExternalLink,
+} from "lucide-react";
+import Link from "next/link";
 
+import { Badge } from "@/components/ui/Badge";
+import { Card, CardBody, CardHeader } from "@/components/ui/Card";
 import { api } from "@/lib/api/client";
 import type { AnalyseRequest, AnalyseResponse } from "@/lib/api/compositionTypes";
 import { ApiClientError } from "@/lib/api/types";
@@ -29,7 +40,7 @@ import type { ResearchView } from "@/lib/research/mapResearchView";
 import { EXAMPLE_RESEARCH_VIEW } from "./exampleResearchView";
 import { ResearchResponse } from "./ResearchResponse";
 
-type FollowUpTurn = {
+export type FollowUpTurn = {
   id: string;
   question: string;
   status: "loading" | "ready" | "error";
@@ -38,13 +49,34 @@ type FollowUpTurn = {
   limitations?: string[];
   unavailable?: boolean;
   errorMessage?: string;
+  timestamp: string;
 };
 
-const SUGGESTIONS: Array<{ label: string; questionId: SuggestedQuestionId | "freeform" }> = [
-  { label: "Run DSP Buffett-style analysis", questionId: "buffett" },
-  { label: "Explain the key risks", questionId: "explain_risk" },
-  { label: "Show valuation assumptions", questionId: "explain_valuation" },
-  { label: "What should I investigate next?", questionId: "freeform" },
+export const RESEARCH_SUGGESTIONS: Array<{
+  label: string;
+  questionId: SuggestedQuestionId | "freeform";
+  description: string;
+}> = [
+  {
+    label: "Explain the valuation",
+    questionId: "explain_valuation",
+    description: "DCF model and intrinsic value drivers",
+  },
+  {
+    label: "Why is margin of safety low?",
+    questionId: "explain_margin_of_safety",
+    description: "Downside buffer and discount rationale",
+  },
+  {
+    label: "Explain the key risks",
+    questionId: "explain_risk",
+    description: "Vulnerabilities and risk factors",
+  },
+  {
+    label: "Run DSP Buffett-style analysis",
+    questionId: "buffett",
+    description: "Durable competitive moat evaluation",
+  },
 ];
 
 function describeError(error: unknown): string {
@@ -83,13 +115,15 @@ export function ResultConversation({
   const idRef = useRef(0);
   const bottomRef = useRef<HTMLDivElement | null>(null);
 
-  // Start a fresh conversation whenever the underlying company changes.
+  // Clear conversation when company changes
   useEffect(() => {
     setFollowUps([]);
   }, [activeView?.ticker]);
 
   useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
+    if (typeof bottomRef.current?.scrollIntoView === "function") {
+      bottomRef.current.scrollIntoView({ behavior: "smooth", block: "end" });
+    }
   }, [followUps.length]);
 
   const askMutation = useMutation({
@@ -117,7 +151,7 @@ export function ResultConversation({
             ? {
                 ...turn,
                 status: "ready",
-                content: data.content || "Research unavailable.",
+                content: data.content || "Research explanation unavailable.",
                 citations: data.citations,
                 limitations: data.limitations,
                 unavailable: data.unavailable,
@@ -142,7 +176,12 @@ export function ResultConversation({
     if (!trimmed || askMutation.isPending) return;
     idRef.current += 1;
     const id = `turn-${idRef.current}`;
-    setFollowUps((prev) => [...prev, { id, question: trimmed, status: "loading" }]);
+    const timestamp = new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+
+    setFollowUps((prev) => [
+      ...prev,
+      { id, question: trimmed, status: "loading", timestamp },
+    ]);
     setDraft("");
 
     if (!canAskBackend) {
@@ -153,14 +192,15 @@ export function ResultConversation({
                 ...turn,
                 status: "error",
                 errorMessage: exampleMode
-                  ? "Example data mode — connect a live analysis to ask real follow-up questions."
-                  : "Run an analysis first to ask follow-up questions.",
+                  ? "Example data mode — connect a live analysis session to ask research follow-up questions."
+                  : "Run an analysis first to enable research follow-up questions.",
               }
             : turn,
         ),
       );
       return;
     }
+
     askMutation.mutate({ id, questionId, text: trimmed });
   }
 
@@ -171,8 +211,10 @@ export function ResultConversation({
 
   function onComposerKeyDown(event: ReactKeyboardEvent<HTMLTextAreaElement>) {
     if (event.key !== "Enter" || event.shiftKey) return;
-    // Avoid submitting mid-IME composition (CJK input, Safari's keyCode 229).
-    if (event.nativeEvent.isComposing || (event.nativeEvent as unknown as { keyCode?: number }).keyCode === 229) {
+    if (
+      event.nativeEvent.isComposing ||
+      (event.nativeEvent as unknown as { keyCode?: number }).keyCode === 229
+    ) {
       return;
     }
     event.preventDefault();
@@ -181,199 +223,299 @@ export function ResultConversation({
 
   const company = activeView?.company ?? "Data unavailable";
   const ticker = activeView?.ticker ?? "—";
-  const requestLine = activeView
-    ? `Give me a DSP Buffett-style analysis of ${company}.`
-    : "Give me a DSP Buffett-style analysis.";
 
   return (
-    <div className="flex min-h-screen flex-col overflow-hidden bg-[var(--surface)]">
+    <div className="flex min-h-screen flex-col bg-[var(--surface)] text-[var(--fg)]">
       {exampleMode && !view ? (
-        <div className="border-b border-amber-200 bg-amber-50 px-5 py-2 text-center text-xs font-medium text-amber-800">
-          Example data shown for layout preview. Live analysis data will replace this automatically.
+        <div className="border-b border-amber-200 bg-amber-50 px-5 py-2 text-center text-xs font-medium text-amber-900">
+          Example fixture active. Live analysis results will populate automatically when connected.
         </div>
       ) : null}
-      <header className="flex items-center justify-between border-b border-[var(--border)] px-5 py-3">
+
+      {/* Terminal Header */}
+      <header className="flex flex-wrap items-center justify-between gap-4 border-b border-[var(--border)] bg-[var(--surface-2)] px-6 py-4">
         <div className="min-w-0">
-          <div className="flex items-center gap-2">
-            <h1 className="truncate text-base font-semibold text-[var(--ink)]">
-              {company} ({ticker})
+          <div className="flex flex-wrap items-center gap-2">
+            <h1 className="truncate text-lg font-bold text-[var(--ink)]">
+              {company}
             </h1>
-            <Pencil className="size-4 text-[var(--muted)]" aria-hidden="true" />
+            <span className="font-mono text-xs text-[var(--muted)]">
+              {ticker} · {activeView?.exchange || "NYSE/NASDAQ"}
+            </span>
+            <Badge tone="neutral">Institutional Research</Badge>
           </div>
-          <p className="text-xs text-[var(--muted)]">
-            DSP AI Research · Updated{" "}
+          <p className="mt-0.5 text-xs text-[var(--muted)]">
+            DSP Deterministic Pipeline · Updated:{" "}
             {activeView?.analysedAt
               ? new Date(activeView.analysedAt).toLocaleString()
               : "Data unavailable"}
           </p>
         </div>
-        <div className="flex items-center gap-1">
+
+        <div className="flex items-center gap-2">
+          {activeView?.ticker ? (
+            <Link
+              href={`/analysis/compare?symbols=${activeView.ticker}`}
+              className="inline-flex min-h-[44px] items-center gap-1.5 rounded-[var(--radius-md)] border border-[var(--border)] bg-[var(--surface)] px-3 py-2 text-xs font-medium text-[var(--fg)] hover:bg-[var(--surface-2)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
+            >
+              Compare Peer <ExternalLink className="size-3.5 text-[var(--muted)]" />
+            </Link>
+          ) : null}
           <button
             type="button"
             onClick={onShare}
-            className="inline-flex items-center gap-2 rounded-lg bg-[var(--surface-2)] px-3 py-2 text-sm font-medium text-[var(--ink)] hover:bg-[var(--accent-soft)]"
+            className="inline-flex min-h-[44px] items-center gap-1.5 rounded-[var(--radius-md)] border border-[var(--border)] bg-[var(--surface)] px-3 py-2 text-xs font-medium text-[var(--fg)] hover:bg-[var(--surface-2)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
           >
-            <Share2 className="size-4" /> Share
+            <Share2 className="size-3.5" /> Share
           </button>
           <button
             type="button"
-            aria-label="More options"
-            className="rounded-lg p-2 text-[var(--muted)] hover:bg-[var(--surface-2)]"
+            onClick={onRefresh}
+            aria-label="Refresh analysis"
+            className="inline-flex min-h-[44px] items-center gap-1.5 rounded-[var(--radius-md)] border border-[var(--border)] bg-[var(--surface)] px-3 py-2 text-xs font-medium text-[var(--fg)] hover:bg-[var(--surface-2)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
           >
-            <MoreHorizontal className="size-5" />
+            <RefreshCw className="size-3.5" /> Refresh
           </button>
         </div>
       </header>
 
-      <main className="min-h-0 flex-1 overflow-y-auto px-4 py-6 sm:px-8 lg:px-12">
-        <div className="mx-auto w-full max-w-3xl space-y-5">
-          <UserBubble text={requestLine} caption="Research request" />
-
-          <AssistantBubble>
+      {/* Main Workspace Body */}
+      <main className="min-h-0 flex-1 overflow-y-auto px-4 py-8 sm:px-6 lg:px-12">
+        <div className="mx-auto w-full max-w-4xl space-y-8">
+          {/* Section 1: Research Result */}
+          <section aria-labelledby="primary-research-heading" className="space-y-4">
+            <h2 id="primary-research-heading" className="text-xs font-semibold uppercase tracking-wider text-[var(--muted)]">
+              1. Authoritative Research Result
+            </h2>
             {activeView ? (
-              <>
-                <div className="mb-2 flex items-center justify-between gap-2">
-                  <div className="flex items-center gap-3 text-xs">
-                    <span className="font-semibold text-[var(--accent-strong)]">DSP AI</span>
-                    <span className="text-[var(--muted)]">Research Mode</span>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={onRefresh}
-                    aria-label="Regenerate result"
-                    className="rounded p-1.5 text-[var(--muted)] hover:bg-[var(--surface-2)]"
-                  >
-                    <RefreshCw className="size-4" />
-                  </button>
-                </div>
-                <ResearchResponse view={activeView} />
-              </>
+              <ResearchResponse view={activeView} />
             ) : (
-              <div className="rounded-xl border border-[var(--border)] bg-[var(--surface)] p-4">
-                <p className="text-sm font-medium text-[var(--ink)]">Research unavailable</p>
-                <p className="mt-1 text-sm text-[var(--muted)]">
-                  Run analysis to load backend research outputs for this symbol.
+              <Card>
+                <CardBody className="p-6">
+                  <h3 className="text-base font-semibold text-[var(--ink)]">Research unavailable</h3>
+                  <p className="mt-1 text-sm text-[var(--muted)]">
+                    Run an analysis to execute deterministic valuation, economic moat, and investment committee models for this security.
+                  </p>
+                </CardBody>
+              </Card>
+            )}
+          </section>
+
+          {/* Section 2: Research Interaction / Copilot */}
+          <section aria-labelledby="copilot-section-heading" className="space-y-4">
+            <div className="flex flex-wrap items-center justify-between gap-2 border-t border-[var(--border)] pt-8">
+              <div>
+                <h2 id="copilot-section-heading" className="text-xs font-semibold uppercase tracking-wider text-[var(--muted)]">
+                  2. Research Interaction &amp; Follow-up Copilot
+                </h2>
+                <p className="text-xs text-[var(--muted)]">
+                  Contextual research assistant grounded in authoritative session findings
                 </p>
               </div>
-            )}
-          </AssistantBubble>
 
-          {followUps.map((turn) => (
-            <div key={turn.id} className="space-y-3">
-              <UserBubble text={turn.question} />
-              <AssistantBubble>
-                {turn.status === "loading" ? (
-                  <p className="text-sm text-[var(--muted)]" role="status">
-                    DSP AI is researching…
-                  </p>
-                ) : turn.status === "error" ? (
-                  <div className="rounded-xl border border-red-200 bg-red-50 p-3">
-                    <p className="text-sm text-red-700">{turn.errorMessage}</p>
-                    {canAskBackend ? (
-                      <button
-                        type="button"
-                        onClick={() => retry(turn)}
-                        className="mt-2 text-xs font-medium text-red-700 hover:underline"
-                      >
-                        Retry
-                      </button>
-                    ) : null}
-                  </div>
-                ) : (
-                  <div className="rounded-xl border border-[var(--border)] bg-[var(--surface)] p-4">
-                    <p className="text-sm leading-6 text-[var(--ink)]">{turn.content}</p>
-                    {turn.citations?.length ? (
-                      <p className="mt-2 text-[11px] text-[var(--muted)]">
-                        Citations: {turn.citations.join(", ")}
-                      </p>
-                    ) : null}
-                    {turn.limitations?.length ? (
-                      <p className="mt-1 text-[11px] text-[var(--muted)]">
-                        {turn.limitations.join(" · ")}
-                      </p>
-                    ) : null}
-                  </div>
-                )}
-              </AssistantBubble>
+              {/* Context Awareness Badge */}
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="inline-flex min-h-[32px] items-center gap-1.5 rounded-[var(--radius-sm)] border border-[var(--border)] bg-[var(--surface-2)] px-2.5 py-1 text-xs">
+                  <span className="text-[var(--muted)]">Context:</span>
+                  <span className="font-semibold text-[var(--fg)]">{ticker}</span>
+                  <span className="text-[var(--muted)]">({company})</span>
+                </span>
+                <Badge tone="neutral">
+                  AI Provider: Bounded (Deterministic Engine)
+                </Badge>
+              </div>
             </div>
-          ))}
-          <div ref={bottomRef} />
+
+            {/* Conversation History */}
+            <div className="space-y-4" role="log" aria-live="polite" aria-label="Research Copilot Conversation">
+              {followUps.length === 0 ? (
+                <div className="rounded-[var(--radius-lg)] border border-dashed border-[var(--border)] bg-[var(--surface-2)] p-6 text-center">
+                  <HelpCircle className="mx-auto size-6 text-[var(--muted)]" aria-hidden="true" />
+                  <h3 className="mt-2 text-sm font-semibold text-[var(--fg)]">
+                    No follow-up questions yet
+                  </h3>
+                  <p className="mt-1 text-xs text-[var(--muted)]">
+                    Ask questions below or select a suggested topic to explore valuation, risk factors, or Buffett methodology.
+                  </p>
+                </div>
+              ) : (
+                followUps.map((turn) => (
+                  <article
+                    key={turn.id}
+                    className="space-y-3 rounded-[var(--radius-lg)] border border-[var(--border)] bg-[var(--surface)] p-5 shadow-[var(--shadow-sm)]"
+                  >
+                    {/* User Question */}
+                    <div className="flex items-start justify-between gap-3 border-b border-[var(--border)] pb-3">
+                      <div>
+                        <span className="text-[11px] font-semibold uppercase tracking-wider text-[var(--accent)]">
+                          Analyst Inquiry
+                        </span>
+                        <p className="mt-0.5 text-sm font-medium text-[var(--ink)]">
+                          {turn.question}
+                        </p>
+                      </div>
+                      <span className="text-[11px] text-[var(--muted)]">
+                        {turn.timestamp}
+                      </span>
+                    </div>
+
+                    {/* Assistant Response State */}
+                    {turn.status === "loading" ? (
+                      <div className="flex items-center gap-3 py-3 text-sm text-[var(--muted)]" role="status">
+                        <span
+                          className="h-2.5 w-2.5 animate-pulse rounded-full bg-[var(--accent)] motion-reduce:animate-none"
+                          aria-hidden="true"
+                        />
+                        <span>Analyzing session data and generating response…</span>
+                      </div>
+                    ) : turn.status === "error" ? (
+                      <div className="rounded-[var(--radius-md)] border border-red-200 bg-red-50 p-4">
+                        <div className="flex items-center gap-2 text-sm font-semibold text-red-800">
+                          <AlertCircle className="size-4" />
+                          <span>Response Failed</span>
+                        </div>
+                        <p className="mt-1 text-xs text-red-700">{turn.errorMessage}</p>
+                        {canAskBackend ? (
+                          <button
+                            type="button"
+                            onClick={() => retry(turn)}
+                            className="mt-3 inline-flex min-h-[44px] items-center rounded-[var(--radius-sm)] bg-red-100 px-3 py-1.5 text-xs font-semibold text-red-800 hover:bg-red-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-400"
+                          >
+                            Retry Question
+                          </button>
+                        ) : null}
+                      </div>
+                    ) : (
+                      <div className="space-y-4">
+                        {/* Response Header */}
+                        <div className="flex flex-wrap items-center justify-between gap-2">
+                          <div className="flex items-center gap-2">
+                            <span className="text-xs font-bold text-[var(--accent-strong)]">
+                              DSP Copilot Engine
+                            </span>
+                            <span className="text-[11px] text-[var(--muted)]">· /copilot/complete</span>
+                          </div>
+                          {turn.unavailable ? (
+                            <Badge tone="warning">Provider Unavailable</Badge>
+                          ) : (
+                            <Badge tone="success">Validated</Badge>
+                          )}
+                        </div>
+
+                        {/* Answer Content */}
+                        <div className="text-sm leading-relaxed text-[var(--fg)]">
+                          {turn.content}
+                        </div>
+
+                        {/* Evidence & Sources Sub-panel */}
+                        <div className="rounded-[var(--radius-md)] border border-[var(--border)] bg-[var(--surface-2)] p-3 text-xs">
+                          <div className="grid gap-3 sm:grid-cols-2">
+                            <div>
+                              <p className="font-semibold uppercase tracking-wider text-[var(--muted)]">
+                                Supporting Evidence
+                              </p>
+                              {turn.citations?.length ? (
+                                <ul className="mt-1 list-inside list-disc space-y-0.5 text-[var(--fg)]">
+                                  {turn.citations.map((c) => (
+                                    <li key={c}>{c}</li>
+                                  ))}
+                                </ul>
+                              ) : (
+                                <p className="mt-1 text-[var(--muted)]">Evidence unavailable</p>
+                              )}
+                            </div>
+
+                            <div>
+                              <p className="font-semibold uppercase tracking-wider text-[var(--muted)]">
+                                Source Verification
+                              </p>
+                              <p className="mt-1 text-[var(--muted)]">
+                                Source unavailable: External document retrieval and multi-source citations are bounded by provider availability.
+                              </p>
+                            </div>
+                          </div>
+
+                          {turn.limitations?.length ? (
+                            <div className="mt-3 border-t border-[var(--border)] pt-2 text-[11px] text-[var(--muted)]">
+                              <span className="font-semibold text-[var(--fg)]">Limitations:</span>{" "}
+                              {turn.limitations.join(" · ")}
+                            </div>
+                          ) : null}
+                        </div>
+                      </div>
+                    )}
+                  </article>
+                ))
+              )}
+              <div ref={bottomRef} />
+            </div>
+
+            {/* Suggested Follow-up Actions */}
+            <div className="space-y-2 pt-2">
+              <p className="text-xs font-semibold uppercase tracking-wider text-[var(--muted)]">
+                Suggested Follow-up Inquiries
+              </p>
+              <div className="grid gap-2 sm:grid-cols-2" aria-label="Suggested follow-up questions">
+                {RESEARCH_SUGGESTIONS.map((suggestion) => (
+                  <button
+                    key={suggestion.questionId}
+                    type="button"
+                    onClick={() => submitQuestion(suggestion.questionId, suggestion.label)}
+                    disabled={askMutation.isPending}
+                    className="flex min-h-[44px] flex-col items-start justify-center rounded-[var(--radius-md)] border border-[var(--border)] bg-[var(--surface)] px-3.5 py-2 text-left hover:border-[var(--accent)] hover:bg-[var(--surface-2)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] disabled:opacity-50"
+                  >
+                    <span className="text-xs font-semibold text-[var(--fg)]">
+                      {suggestion.label}
+                    </span>
+                    <span className="text-[11px] text-[var(--muted)]">
+                      {suggestion.description}
+                    </span>
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Composer Input */}
+            <div className="pt-2">
+              <form
+                onSubmit={(event) => {
+                  event.preventDefault();
+                  submitQuestion("freeform", draft);
+                }}
+                className="space-y-2 rounded-[var(--radius-lg)] border border-[var(--border)] bg-[var(--surface)] p-3 shadow-[var(--shadow-sm)]"
+              >
+                <label htmlFor="research-composer" className="block text-xs font-semibold text-[var(--muted)]">
+                  Ask a follow-up question regarding {ticker}
+                </label>
+                <div className="flex items-end gap-3">
+                  <textarea
+                    id="research-composer"
+                    value={draft}
+                    onChange={(event) => setDraft(event.target.value)}
+                    onKeyDown={onComposerKeyDown}
+                    placeholder={`e.g. "Explain the valuation assumptions" or "What are the primary operational risks?"`}
+                    rows={2}
+                    className="min-h-[44px] min-w-0 flex-1 resize-none rounded-[var(--radius-sm)] border border-[var(--border)] bg-[var(--surface-2)] p-2.5 text-sm leading-snug text-[var(--fg)] placeholder:text-[var(--muted)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
+                    aria-label="Ask a follow-up question"
+                  />
+                  <button
+                    type="submit"
+                    disabled={!draft.trim() || askMutation.isPending}
+                    aria-label="Send inquiry"
+                    className="inline-flex min-h-[44px] min-w-[44px] items-center justify-center rounded-[var(--radius-md)] bg-[var(--accent)] px-4 font-semibold text-white hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] disabled:opacity-40"
+                  >
+                    <ArrowUp className="size-4" />
+                  </button>
+                </div>
+                <div className="flex flex-wrap items-center justify-between text-[11px] text-[var(--muted)]">
+                  <span>Press <kbd className="rounded border px-1">Enter</kbd> to submit, <kbd className="rounded border px-1">Shift+Enter</kbd> for newline</span>
+                  <span>Institutional Engine · No synthetic AI values</span>
+                </div>
+              </form>
+            </div>
+          </section>
         </div>
       </main>
-
-      <div className="mx-auto w-[calc(100%-2rem)] max-w-3xl space-y-2 pb-1">
-        <div className="flex flex-wrap gap-2" aria-label="Suggested follow-up questions">
-          {SUGGESTIONS.map((suggestion) => (
-            <button
-              key={suggestion.label}
-              type="button"
-              onClick={() => submitQuestion(suggestion.questionId, suggestion.label)}
-              disabled={askMutation.isPending}
-              className="rounded-full border border-[var(--border)] px-3 py-1.5 text-xs text-[var(--muted)] hover:border-[var(--accent)] hover:text-[var(--accent-strong)] disabled:opacity-50"
-            >
-              {suggestion.label}
-            </button>
-          ))}
-        </div>
-        <form
-          onSubmit={(event) => {
-            event.preventDefault();
-            submitQuestion("freeform", draft);
-          }}
-          className="flex items-end gap-3 rounded-3xl border border-[var(--border)] bg-[var(--surface)] px-4 py-2.5 shadow-[var(--shadow-sm)]"
-        >
-          <label htmlFor="research-composer" className="sr-only">
-            Ask a follow-up question
-          </label>
-          <textarea
-            id="research-composer"
-            value={draft}
-            onChange={(event) => setDraft(event.target.value)}
-            onKeyDown={onComposerKeyDown}
-            placeholder={`Ask a follow-up question about ${ticker}...`}
-            rows={1}
-            className="min-w-0 flex-1 resize-none bg-transparent py-1.5 text-sm leading-6 outline-none placeholder:text-[var(--muted)]"
-            aria-label="Ask a follow-up question"
-          />
-          <button
-            type="submit"
-            disabled={!draft.trim() || askMutation.isPending}
-            aria-label="Send follow-up"
-            className="flex size-9 shrink-0 items-center justify-center rounded-full bg-[var(--accent)] text-white hover:opacity-90 disabled:opacity-40"
-          >
-            <ArrowUp className="size-4" />
-          </button>
-        </form>
-      </div>
-      <p className="pb-2 pt-1 text-center text-[10px] text-[var(--muted)]">
-        DSP AI can make mistakes. Please verify important information.
-      </p>
-    </div>
-  );
-}
-
-function UserBubble({ text, caption }: { text: string; caption?: string }) {
-  return (
-    <div className="flex items-start justify-end gap-3">
-      <div className="min-w-0 max-w-[85%]">
-        <div className="rounded-2xl bg-[var(--accent-soft)] px-4 py-2 text-sm text-[var(--ink)]">
-          {text}
-        </div>
-        {caption ? (
-          <p className="mt-1 text-right text-[11px] text-[var(--muted)]">{caption}</p>
-        ) : null}
-      </div>
-    </div>
-  );
-}
-
-function AssistantBubble({ children }: { children: React.ReactNode }) {
-  return (
-    <div className="flex items-start gap-3">
-      <div className="flex size-9 shrink-0 items-center justify-center rounded-full bg-[var(--accent)] text-sm font-semibold text-white">
-        D
-      </div>
-      <div className="min-w-0 flex-1">{children}</div>
     </div>
   );
 }

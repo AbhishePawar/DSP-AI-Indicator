@@ -13,6 +13,7 @@ const LINKS = [
   { id: "growth", label: "Growth" },
   { id: "committee", label: "Committee" },
   { id: "evidence", label: "Evidence & Sources" },
+  { id: "copilot", label: "Research Copilot" },
   { id: "pipeline", label: "Pipeline" },
 ] as const;
 

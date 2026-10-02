@@ -1,6 +1,10 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
+import { ExternalLink, HelpCircle } from "lucide-react";
+import type { AnalyseRequest, AnalyseResponse } from "@/lib/api/compositionTypes";
+
 import {
   CommitteeConsensusCard,
   RecommendationCard,
@@ -15,7 +19,7 @@ import { CompanyHeader } from "./CompanyHeader";
 import { MetricGrid, ResearchSection } from "./ResearchSection";
 import { ResearchSidebar } from "./ResearchSidebar";
 
-export function CompanyResearchLayout({ view }: { view: ResearchView }) {
+export function CompanyResearchLayout({ view, request, response }: { view: ResearchView; request?: AnalyseRequest | null; response?: AnalyseResponse | null }) {
   const [showMinorityNotes, setShowMinorityNotes] = useState(false);
   const [showAuditDetails, setShowAuditDetails] = useState(false);
 
@@ -346,6 +350,73 @@ export function CompanyResearchLayout({ view }: { view: ResearchView }) {
                     </div>
                   </dl>
                 ) : null}
+              </div>
+            </CardBody>
+          </Card>
+        </section>
+
+        
+        {/* Research Copilot & Two-Way Follow-up Section */}
+        <section id="copilot" className="scroll-mt-24 space-y-4">
+          <Card>
+            <CardHeader
+              title="Research Copilot & Follow-up Inquiries"
+              description="Interactive research assistant grounded in authoritative session findings"
+            />
+            <CardBody className="space-y-4">
+              <div className="flex flex-wrap items-center justify-between gap-2 border-b border-[var(--border)] pb-3">
+                <div className="flex items-center gap-2">
+                  <span className="inline-flex min-h-[32px] items-center gap-1.5 rounded-[var(--radius-sm)] border border-[var(--border)] bg-[var(--surface-2)] px-2.5 py-1 text-xs">
+                    <span className="text-[var(--muted)]">Active Context:</span>
+                    <span className="font-semibold text-[var(--fg)]">{view.ticker}</span>
+                    <span className="text-[var(--muted)]">({view.company})</span>
+                  </span>
+                  <Badge tone="neutral">AI Boundary: Deterministic Grounding</Badge>
+                </div>
+                <span className="text-xs text-[var(--muted)]">
+                  Session models: DCF, Moat, Quality, Committee
+                </span>
+              </div>
+
+              <div className="grid gap-3 sm:grid-cols-2">
+                <div className="rounded-[var(--radius-md)] border border-[var(--border)] bg-[var(--surface-2)] p-3">
+                  <h4 className="text-xs font-semibold uppercase tracking-wider text-[var(--muted)]">
+                    Valuation & Margin of Safety
+                  </h4>
+                  <p className="mt-1 text-xs text-[var(--fg)]">
+                    Model: {view.valuation.method || "DCF Analysis"} · Intrinsic: {view.valuation.intrinsicValue || "Data unavailable"}
+                  </p>
+                  <Link
+                    href={`/analysis?ticker=${view.ticker}&section=valuation`}
+                    className="mt-2 inline-flex min-h-[44px] items-center gap-1 text-xs font-medium text-[var(--accent)] hover:underline"
+                  >
+                    Explore Valuation in Analysis Workspace <ExternalLink className="size-3" />
+                  </Link>
+                </div>
+
+                <div className="rounded-[var(--radius-md)] border border-[var(--border)] bg-[var(--surface-2)] p-3">
+                  <h4 className="text-xs font-semibold uppercase tracking-wider text-[var(--muted)]">
+                    Security Comparison & Peer Analysis
+                  </h4>
+                  <p className="mt-1 text-xs text-[var(--fg)]">
+                    Compare {view.ticker} directly against sector peers across quantitative dimensions.
+                  </p>
+                  <Link
+                    href={`/analysis/compare?symbols=${view.ticker}`}
+                    className="mt-2 inline-flex min-h-[44px] items-center gap-1 text-xs font-medium text-[var(--accent)] hover:underline"
+                  >
+                    Open Security Comparison <ExternalLink className="size-3" />
+                  </Link>
+                </div>
+              </div>
+
+              <div className="rounded-[var(--radius-md)] border border-[var(--border)] bg-[var(--surface)] p-3.5">
+                <p className="text-xs font-semibold uppercase tracking-wider text-[var(--muted)]">
+                  AI Provider Boundary Status
+                </p>
+                <p className="mt-1 text-xs text-[var(--muted)]">
+                  External LLM synthesis and conversational multi-turn generation are bounded by provider availability. Authoritative results above are verified and server-authoritative.
+                </p>
               </div>
             </CardBody>
           </Card>

@@ -168,7 +168,7 @@ export function CompanyResearchPage({ ticker }: { ticker: string }) {
           Refresh Analysis
         </Button>
       </div>
-      <CompanyResearchLayout view={view} />
+      <CompanyResearchLayout view={view} request={analyseMutation.data?.request} response={analyseMutation.data?.response} />
     </div>
   );
 }

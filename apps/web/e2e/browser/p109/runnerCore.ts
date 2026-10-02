@@ -12,7 +12,7 @@ export type HealthConfig = {
   intervalMs: number;
 };
 
-export function getHealthConfig(env: NodeJS.ProcessEnv = process.env): HealthConfig {
+export function getHealthConfig(env: Partial<NodeJS.ProcessEnv> | Record<string, string | undefined> = process.env): HealthConfig {
   const rawTimeout = Number(env.DSP_P109_HEALTH_TIMEOUT_MS);
   const rawInterval = Number(env.DSP_P109_HEALTH_INTERVAL_MS);
 

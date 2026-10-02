@@ -1729,7 +1729,12 @@ export function ResearchChatDrawer({
     setThinking(true);
 
     try {
-      const res = await api.copilotComplete({
+      const res = await api.copilotQuery({
+        query: userText,
+        symbol,
+        analysis_id: analysisId,
+        section_context: sectionContext,
+        prompt: userText,
         prompt: `Context: ${initCtx || "General analysis"} for ${symbol} (Analysis ID: ${analysisId || "unknown"}). Question: ${text}`,
         stream: false,
       });

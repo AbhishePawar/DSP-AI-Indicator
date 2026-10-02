@@ -1,10 +1,10 @@
 "use client";
 
 /**
- * EPIC-F003 — Sticky application header.
+ * EPIC-F003 — Sticky application header with reference ZIP Diagnostics action.
  */
 
-import { ChevronLeft, ChevronRight, Search, Menu } from "lucide-react";
+import { ChevronLeft, ChevronRight, Search, Menu, Activity } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 
@@ -19,7 +19,6 @@ import { useAuth } from "@/lib/auth/AuthProvider";
 
 import { env } from "@/lib/env";
 import { useUiStore } from "@/lib/shell";
-
 
 export function Topbar({
   onMenuClick,
@@ -91,6 +90,15 @@ export function Topbar({
           >
             <Search className="size-4" aria-hidden />
           </Button>
+          <Link
+            href="/diagnostics"
+            data-testid="topbar-diagnostics"
+            className="hidden items-center gap-1.5 rounded-lg border border-[var(--border)] px-3 py-1 text-xs text-[var(--muted)] transition-colors hover:border-[var(--accent)] hover:text-[var(--fg)] sm:inline-flex"
+            title="System & Runtime Diagnostics"
+          >
+            <Activity className="size-3.5" aria-hidden />
+            <span>Diagnostics</span>
+          </Link>
           {session && user ? (
             <UserMenu
               name={user.displayName}
@@ -110,6 +118,11 @@ export function Topbar({
                   id: "settings",
                   label: "Settings",
                   onSelect: () => router.push("/settings"),
+                },
+                {
+                  id: "diagnostics",
+                  label: "Diagnostics",
+                  onSelect: () => router.push("/diagnostics"),
                 },
                 {
                   id: "logout",

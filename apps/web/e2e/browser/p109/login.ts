@@ -50,7 +50,6 @@ export async function submitPasswordLogin(page: Page): Promise<void> {
   await page.getByTestId("login-submit").click();
 
   const loginResponse = await loginResponsePromise;
-  const responseText = await loginResponse.text().catch(() => "<unavailable>");
   if (!loginResponse.ok()) {
     const alertText = await page
       .getByRole("alert")
@@ -61,8 +60,6 @@ export async function submitPasswordLogin(page: Page): Promise<void> {
       [
         "[P1-09 LOGIN] authentication request failed",
         `HTTP status: ${loginResponse.status()}`,
-        `response URL: ${loginResponse.url()}`,
-        `response body: ${responseText || "<empty>"}`,
         alertText ? `visible alert: ${alertText.trim()}` : null,
       ]
         .filter(Boolean)

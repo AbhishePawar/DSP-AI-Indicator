@@ -254,15 +254,15 @@ export function AskButton({ label, onClick }: { label: string; onClick: () => vo
 
 // ─── Simple SVG Charts ───────────────────────────────────────────────────────
 
-export function SvgAreaChart({
-  data,
-  color,
-  unit = "",
-}: {
-  data: { label: string; value: number }[];
-  color: string;
-  unit?: string;
-}) {
+export function SvgAreaChart({ data, color, label }: { data: ZipFinancialPoint[]; color: string; label?: string }) {
+  if (!data || data.length === 0) {
+    return (
+      <div style={{ height: 160, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", background: "var(--surface-2, rgba(255,255,255,0.02))", borderRadius: 8, border: "1px dashed var(--border)", padding: 16, textAlign: "center" }}>
+        <p style={{ fontSize: 12, color: "var(--muted-foreground)", margin: 0 }}>Historical {label || "series"} awaiting filing data from backend</p>
+        <span style={{ fontSize: 10, color: "var(--muted-foreground)", marginTop: 4 }}>Production AnalyseResponse does not include multi-year series</span>
+      </div>
+    );
+  }
   if (!data || data.length === 0) {
     return (
       <div style={{ height: 110, display: "flex", alignItems: "center", justifyContent: "center", color: "var(--muted-foreground)", fontSize: 12 }}>
@@ -324,13 +324,15 @@ export function SvgAreaChart({
   );
 }
 
-export function SvgBarChart({
-  data,
-  color,
-}: {
-  data: { label: string; value: number }[];
-  color: string;
-}) {
+export function SvgBarChart({ data, color, label }: { data: ZipFinancialPoint[]; color: string; label?: string }) {
+  if (!data || data.length === 0) {
+    return (
+      <div style={{ height: 160, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", background: "var(--surface-2, rgba(255,255,255,0.02))", borderRadius: 8, border: "1px dashed var(--border)", padding: 16, textAlign: "center" }}>
+        <p style={{ fontSize: 12, color: "var(--muted-foreground)", margin: 0 }}>Historical {label || "cash flow"} awaiting filing data from backend</p>
+        <span style={{ fontSize: 10, color: "var(--muted-foreground)", marginTop: 4 }}>Production AnalyseResponse does not include multi-year series</span>
+      </div>
+    );
+  }
   if (!data || data.length === 0) {
     return (
       <div style={{ height: 110, display: "flex", alignItems: "center", justifyContent: "center", color: "var(--muted-foreground)", fontSize: 12 }}>

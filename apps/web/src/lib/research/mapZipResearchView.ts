@@ -366,7 +366,7 @@ export function mapZipResearchView(
     {
       label: "Economic Moat",
       weight: 25,
-      score: parseScoreNumber(moat.score) || 85,
+      score: parseScoreNumber(moat.score) ?? 0,
       color: "var(--c-dsp)",
       status: moat.status,
       confidence: moat.confidence,
@@ -374,7 +374,7 @@ export function mapZipResearchView(
     {
       label: "Management Quality",
       weight: 20,
-      score: parseScoreNumber(management.score) || 80,
+      score: parseScoreNumber(management.score) ?? 0,
       color: "var(--c-revenue)",
       status: management.status,
       confidence: management.confidence,
@@ -382,7 +382,7 @@ export function mapZipResearchView(
     {
       label: "Financial Strength",
       weight: 20,
-      score: parseScoreNumber(financialStrength.score) || 90,
+      score: parseScoreNumber(financialStrength.score) ?? 0,
       color: "var(--c-profit)",
       status: financialStrength.status,
       confidence: financialStrength.confidence,
@@ -390,7 +390,7 @@ export function mapZipResearchView(
     {
       label: "Earnings Quality",
       weight: 20,
-      score: parseScoreNumber(earnings.score) || 85,
+      score: parseScoreNumber(earnings.score) ?? 0,
       color: "var(--c-cashflow)",
       status: earnings.status,
       confidence: earnings.confidence,
@@ -398,7 +398,7 @@ export function mapZipResearchView(
     {
       label: "Growth Quality",
       weight: 15,
-      score: parseScoreNumber(growth.score) || 75,
+      score: parseScoreNumber(growth.score) ?? 0,
       color: "var(--c-valuation)",
       status: growth.status,
       confidence: growth.confidence,
@@ -406,34 +406,10 @@ export function mapZipResearchView(
   ];
 
   // Financial series data: from payload if available, or structured fallback from real reported years
-  const revenueData: ZipFinancialPoint[] = payload.revenue_data ?? [
-    { year: "FY22", value: 1917 },
-    { year: "FY23", value: 2254 },
-    { year: "FY24", value: 2408 },
-    { year: "FY25", value: 2551 },
-    { year: "FY26", value: 2703 },
-  ];
-  const profitData: ZipFinancialPoint[] = payload.profit_data ?? [
-    { year: "FY22", value: 382 },
-    { year: "FY23", value: 421 },
-    { year: "FY24", value: 455 },
-    { year: "FY25", value: 487 },
-    { year: "FY26", value: 519 },
-  ];
-  const marginData: ZipFinancialPoint[] = payload.margin_data ?? [
-    { year: "FY22", value: 19.9 },
-    { year: "FY23", value: 18.7 },
-    { year: "FY24", value: 18.9 },
-    { year: "FY25", value: 19.1 },
-    { year: "FY26", value: 19.2 },
-  ];
-  const cashData: ZipFinancialPoint[] = payload.cash_data ?? [
-    { year: "FY22", value: 5900 },
-    { year: "FY23", value: 6800 },
-    { year: "FY24", value: 7400 },
-    { year: "FY25", value: 8100 },
-    { year: "FY26", value: 8420 },
-  ];
+  const revenueData: ZipFinancialPoint[] = payload.revenue_data ?? [];
+  const profitData: ZipFinancialPoint[] = payload.profit_data ?? [];
+  const marginData: ZipFinancialPoint[] = payload.margin_data ?? [];
+  const cashData: ZipFinancialPoint[] = payload.cash_data ?? [];
 
   // Risks
   const riskPayload = (payload.risk as CompanyRiskPayload | null | undefined);

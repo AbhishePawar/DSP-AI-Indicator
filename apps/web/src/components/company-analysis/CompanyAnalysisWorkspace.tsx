@@ -111,6 +111,7 @@ export function CompanyAnalysisWorkspace() {
   const [symbol, setSymbol] = useState(urlSymbol);
   const [query, setQuery] = useState(urlSymbol);
   const [identityError, setIdentityError] = useState<string | null>(null);
+  const [listingCandidates, setListingCandidates] = useState<SecurityListingView[]>([]);
   const [resolvingListing, setResolvingListing] = useState(false);
   const [listing, setListing] = useState<SecurityListingView | null>(() =>
     listingFromIdentity(urlIdentity),
@@ -212,17 +213,22 @@ export function CompanyAnalysisWorkspace() {
       const normalized = raw.trim().toUpperCase();
       if (!normalized) return null;
       if (!token) {
+        setListingCandidates([]);
         setIdentityError("Sign in required for Security Master search.");
         return null;
       }
       setResolvingListing(true);
       setIdentityError(null);
+      setListingCandidates([]);
       try {
         const payload = await api.resolveSecurity(normalized, { token });
         if (payload.status === "RESOLVED" && payload.identity?.exchange) {
+          setListingCandidates([]);
           selectSymbol(payload.identity, depthOverride);
           return payload.identity;
         }
+        const choices = (payload.candidates ?? []).filter((row) => row.exchange && row.isin);
+        setListingCandidates(choices);
         setIdentityError(explainResolveStatus(payload.status));
         return null;
       } catch {
@@ -488,6 +494,34 @@ export function CompanyAnalysisWorkspace() {
             onSimple={() => chooseDepth("simple")}
             onBuffett={() => chooseDepth("buffett")}
           />
+        ) : null}
+
+        {!depth && listingCandidates.length > 0 ? (
+          <ul
+            aria-label="Matching official listings"
+            className="mx-auto mb-6 flex w-full max-w-3xl list-none flex-col gap-2 px-4 sm:px-6"
+          >
+            {listingCandidates.map((candidate) => (
+              <li key={`${candidate.isin}-${candidate.mic}-${candidate.exchange}`}>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setListingCandidates([]);
+                    setIdentityError(null);
+                    selectSymbol(candidate);
+                  }}
+                  className="flex min-h-11 w-full items-center justify-between gap-3 rounded-[10px] border border-[var(--border)] bg-[var(--card)] px-3 py-2 text-left text-sm text-[var(--fg)] hover:border-[var(--c-dsp)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
+                >
+                  <span>
+                    {candidate.company_name || candidate.ticker} · {candidate.exchange}
+                  </span>
+                  <span className="font-[family-name:var(--font-mono)] text-xs text-[var(--muted)]">
+                    {candidate.isin}
+                  </span>
+                </button>
+              </li>
+            ))}
+          </ul>
         ) : null}
 
         {depth && analyseMutation.isPending && !view ? <AnalysisPending /> : null}

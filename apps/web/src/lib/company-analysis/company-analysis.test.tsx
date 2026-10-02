@@ -606,6 +606,48 @@ describe("EPIC-F005 workspace UI", () => {
     expect(nextUrl).toContain("depth=simple");
     expect(analyseMock).not.toHaveBeenCalled();
   });
+
+  it("shows official listings when a symbol matches more than one exchange", async () => {
+    nav.search = "symbol=INFY";
+    resolveSecurityMock.mockResolvedValue({
+      ok: true,
+      status: "AMBIGUOUS",
+      query: "INFY",
+      identity: null,
+      candidates: [
+        {
+          company_name: "Infosys Limited",
+          ticker: "INFY",
+          isin: "INE009A01021",
+          exchange: "NSE",
+          mic: "XNSE",
+          security_type: "equity",
+          eligibility: true,
+        },
+        {
+          company_name: "Infosys Limited",
+          ticker: "INFY",
+          isin: "INE009A01021",
+          exchange: "BSE",
+          mic: "XBOM",
+          security_type: "equity",
+          eligibility: true,
+        },
+      ],
+    });
+    const { CompanyAnalysisWorkspace } = await import(
+      "@/components/company-analysis/CompanyAnalysisWorkspace"
+    );
+    wrap(<CompanyAnalysisWorkspace />);
+    const nse = await screen.findByRole("button", { name: /Infosys Limited · NSE/i });
+    expect(screen.getByRole("button", { name: /Infosys Limited · BSE/i })).toBeTruthy();
+    fireEvent.click(nse);
+    await waitFor(() => expect(replace).toHaveBeenCalled());
+    const nextUrl = String(replace.mock.calls.at(-1)?.[0]);
+    expect(nextUrl).toContain("exchange=NSE");
+    expect(nextUrl).toContain("isin=INE009A01021");
+    expect(analyseMock).not.toHaveBeenCalled();
+  });
 });
 
 describe("EPIC-F005 foundation version", () => {

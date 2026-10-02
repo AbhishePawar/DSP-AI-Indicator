@@ -96,4 +96,42 @@ describe("cookieSession", () => {
     expect(stored?.accessToken).toBe(COOKIE_TOKEN_PLACEHOLDER);
     expect(window.localStorage.getItem("dsp.auth.session.v3")).toBeNull();
   });
+
+  it("keeps a bearer session when cookie mode is preferred but no cookie was issued", () => {
+    const session = sessionFromRbacLogin(
+      {
+        user: {
+          user_id: "u-2",
+          username: "admin",
+          email: null,
+          display_name: "Admin",
+          status: "active",
+          created_at: "2026-07-28T12:00:00+00:00",
+          updated_at: "2026-07-28T12:00:00+00:00",
+          last_login: null,
+          roles: ["platform_admin"],
+        },
+        tokens: {
+          access_token: "bearer-access",
+          refresh_token: "bearer-refresh",
+          token_type: "bearer",
+          expires_in: 3600,
+          session_id: "s-2",
+        },
+        session: {
+          session_id: "s-2",
+          user_id: "u-2",
+          created_at: "2026-07-28T12:00:00+00:00",
+          expires_at: "2026-07-28T13:00:00+00:00",
+          revoked: false,
+        },
+      } as never,
+      false,
+    );
+    expect(session.authMethod).not.toBe("cookie_rbac");
+    persistSession(session);
+    const stored = readStoredSession();
+    expect(stored?.accessToken).toBe("bearer-access");
+    expect(stored?.username).toBe("admin");
+  });
 });

@@ -187,7 +187,11 @@ export function readStoredSession(): Session | null {
     const meta = readCookieMeta();
     if (meta) {
       const session = metaToSession(meta);
-      if (!isSessionExpired(session)) return session;
+      if (!isSessionExpired(session)) {
+        // Cookie session is the source of truth. Drop any leftover bearer copy.
+        clearLegacyTokenStorage();
+        return session;
+      }
       clearCookieMeta();
     }
   }
@@ -202,15 +206,8 @@ export function readStoredSession(): Session | null {
           store.removeItem(key);
           continue;
         }
-        // Migrate away from persisted secrets when cookie mode is preferred.
-        if (
-          cookieAuthPreferred() &&
-          parsed.accessToken &&
-          parsed.accessToken !== COOKIE_TOKEN_PLACEHOLDER
-        ) {
-          store.removeItem(key);
-          continue;
-        }
+        // A bearer session is valid when the API did not issue a cookie
+        // session. Discarding it here signed the user out on the next page.
         return parsed;
       }
     } catch {

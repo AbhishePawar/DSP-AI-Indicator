@@ -12,6 +12,7 @@ import {
   type ZipFinancialPoint,
 } from "@/lib/research/mapZipResearchView";
 import { useResearchDisclaimerGate } from "@/components/legal/useResearchDisclaimerGate";
+import { Badge } from "@/components/ds/data/badge";
 import { pushRecentAnalysis } from "@/lib/analysis/recentAnalyses";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
@@ -904,14 +905,15 @@ export function CompanyHeader({
           </button>
         </form>
         <div>
-          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
             <h1
               style={{
-                fontSize: 20,
+                fontSize: 22,
                 fontWeight: 700,
                 color: "var(--foreground)",
                 margin: 0,
                 fontFamily: "var(--font-heading)",
+                letterSpacing: "-0.015em",
               }}
             >
               {model.header.companyName}
@@ -919,29 +921,19 @@ export function CompanyHeader({
             <span
               style={{
                 fontSize: 11,
-                padding: "2px 6px",
-                background: "var(--secondary)",
+                padding: "2px 8px",
+                background: "var(--surface-2, #181e2e)",
                 border: "1px solid var(--border)",
-                borderRadius: 4,
+                borderRadius: "var(--radius-sm, 4px)",
                 fontFamily: "var(--font-data)",
                 color: "var(--muted-foreground)",
               }}
             >
               {model.header.ticker} · {model.header.exchange}
             </span>
-            <span
-              style={{
-                fontSize: 11,
-                padding: "2px 6px",
-                background: "rgba(59,130,246,0.12)",
-                border: "1px solid rgba(59,130,246,0.25)",
-                borderRadius: 4,
-                fontFamily: "var(--font-data)",
-                color: "var(--c-dsp, #3b82f6)",
-              }}
-            >
+            <Badge variant="accent" style={{ fontFamily: "var(--font-data)", fontSize: 11 }}>
               {model.header.sector}
-            </span>
+            </Badge>
           </div>
           <div
             style={{

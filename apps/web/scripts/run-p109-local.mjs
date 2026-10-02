@@ -5,6 +5,8 @@
  *
  * - Explicitly loads apps/web/.env.local.
  * - Detects and reuses existing services at 127.0.0.1:8000 and 127.0.0.1:3000.
+ * - Inspects process ownership to avoid attaching to alien or stale working trees.
+ * - Enforces bounded HTTP readiness checks rather than relying on raw TCP port listeners.
  * - Auto-launches missing services with configurable health polling and output capture.
  * - Cleans up only child processes it spawned on exit.
  * - Never prints or leaks credentials.
@@ -96,22 +98,26 @@ async function main() {
       "DSP_SEED_ADMIN_PASSWORD='[configured in apps/web/.env.local]' \\",
       "python -m uvicorn api_platform.api.app:app --host 127.0.0.1 --port 8000",
     ].join("\n"));
+    tracker.cleanup();
+    process.exit(2);
   }
 
   // 2. Ensure frontend service
   const frontendResult = await ensureFrontendService(config, tracker, healthConfig, {
+    webDir,
     onProgress: (dot) => process.stdout.write(dot),
   });
 
   if (frontendResult.alreadyRunning) {
-    console.log(`[PREFLIGHT] Frontend is already running (reused existing process).`);
+    console.log(`[PREFLIGHT] Frontend is already running and verified responsive (reused existing process).`);
   } else if (!frontendResult.ok) {
     console.error(`\n[PREFLIGHT ERROR] FRONTEND_UNAVAILABLE`);
     if (frontendResult.errorDiagnostic) {
       console.error(frontendResult.errorDiagnostic);
     }
-    console.error("\nSafe Manual Startup Command (Frontend):");
-    console.error("cd apps/web && npm run dev\n");
+    console.error("\nP1-09: BLOCKED — frontend infrastructure unavailable");
+    tracker.cleanup();
+    process.exit(2);
   }
 
   // 3. Final preflight validation check

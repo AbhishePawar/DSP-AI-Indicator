@@ -7,6 +7,7 @@
  * - Detects and reuses existing services at 127.0.0.1:8000 and 127.0.0.1:3000.
  * - Inspects process ownership to avoid attaching to alien or stale working trees.
  * - Enforces bounded HTTP readiness checks rather than relying on raw TCP port listeners.
+ * - Auto-isolates to fallback port (3001) if port 3000 is occupied by a foreign worktree.
  * - Auto-launches missing services with configurable health polling and output capture.
  * - Cleans up only child processes it spawned on exit.
  * - Never prints or leaks credentials.
@@ -102,14 +103,22 @@ async function main() {
     process.exit(2);
   }
 
-  // 2. Ensure frontend service
+  // 2. Ensure frontend service (with autoFallbackPort support)
+  const autoFallbackPort = process.env.DSP_P109_NO_FALLBACK === "1" ? false : 3001;
   const frontendResult = await ensureFrontendService(config, tracker, healthConfig, {
     webDir,
-    onProgress: (dot) => process.stdout.write(dot),
+    autoFallbackPort,
+    onProgress: (msg) => process.stdout.write(msg),
   });
 
+  if (frontendResult.effectiveBaseUrl && frontendResult.effectiveBaseUrl !== config.baseUrl) {
+    console.log(`\n[PREFLIGHT] Isolated P1-09 frontend to: ${frontendResult.effectiveBaseUrl}`);
+    config.baseUrl = frontendResult.effectiveBaseUrl;
+    process.env.PLAYWRIGHT_BASE_URL = frontendResult.effectiveBaseUrl;
+  }
+
   if (frontendResult.alreadyRunning) {
-    console.log(`[PREFLIGHT] Frontend is already running and verified responsive (reused existing process).`);
+    console.log(`[PREFLIGHT] Frontend is already running and verified responsive (reused existing process at ${config.baseUrl}).`);
   } else if (!frontendResult.ok) {
     console.error(`\n[PREFLIGHT ERROR] FRONTEND_UNAVAILABLE`);
     if (frontendResult.errorDiagnostic) {
@@ -139,7 +148,7 @@ async function main() {
     process.exit(2);
   }
 
-  console.log("\n[EXECUTION] Launching P1-09 Chromium journey (PLAYWRIGHT_SKIP_WEBSERVER=1)...");
+  console.log(`\n[EXECUTION] Launching P1-09 Chromium journey against ${config.baseUrl} (PLAYWRIGHT_SKIP_WEBSERVER=1)...`);
   const child = spawn(
     "npx",
     ["playwright", "test", "e2e/browser/p109-critical-investment.journey.spec.ts", "--project=chromium"],
@@ -148,6 +157,7 @@ async function main() {
       env: {
         ...process.env,
         PLAYWRIGHT_SKIP_WEBSERVER: "1",
+        PLAYWRIGHT_BASE_URL: config.baseUrl,
       },
       stdio: "inherit",
     }

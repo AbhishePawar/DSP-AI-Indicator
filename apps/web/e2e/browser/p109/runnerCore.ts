@@ -5,8 +5,8 @@ import { fileURLToPath } from "node:url";
 
 const filename = fileURLToPath(import.meta.url);
 const dirname = path.dirname(filename);
-const defaultWebDir = path.resolve(dirname, "../../..");
-const defaultRepoRoot = path.resolve(defaultWebDir, "../..");
+export const defaultWebDir = path.resolve(dirname, "../../..");
+export const defaultRepoRoot = path.resolve(defaultWebDir, "../..");
 
 export type HealthConfig = {
   timeoutMs: number;
@@ -20,12 +20,12 @@ export function getHealthConfig(
   const rawInterval = Number(env.DSP_P109_HEALTH_INTERVAL_MS);
 
   const timeoutMs =
-    Number.isFinite(rawTimeout) && rawTimeout >= 1000 && rawTimeout <= 120_000
+    !isNaN(rawTimeout) && rawTimeout >= 1_000 && rawTimeout <= 120_000
       ? rawTimeout
       : 25_000;
 
   const intervalMs =
-    Number.isFinite(rawInterval) && rawInterval >= 100 && rawInterval <= 10_000
+    !isNaN(rawInterval) && rawInterval >= 100 && rawInterval <= 10_000
       ? rawInterval
       : 1_000;
 
@@ -40,25 +40,48 @@ export type PortProcessInfo = {
   isCurrentWorktree?: boolean;
 };
 
-export function parsePortFromUrl(rawUrl: string): number {
+export function parsePortFromUrl(rawUrl: string, defaultPort = 3000): number {
   try {
     const u = new URL(rawUrl);
     if (u.port) return parseInt(u.port, 10);
     return u.protocol === "https:" ? 443 : 80;
   } catch {
-    return 3000;
+    return defaultPort;
   }
 }
 
-function normalizePath(p?: string): string {
-  return p ? path.resolve(p).replace(/\\/g, "/").toLowerCase() : "";
+/**
+ * Robust cross-platform path normalization for Windows and POSIX:
+ * - Converts backslashes to forward slashes
+ * - Strips duplicate and trailing slashes
+ * - Lowercases for case-insensitive comparisons (Windows drive letters & paths)
+ */
+export function normalizePath(p?: string): string {
+  if (!p) return "";
+  let norm = p.trim().replace(/\\/g, "/");
+  norm = norm.replace(/\/+/g, "/");
+  if (norm.length > 3 && norm.endsWith("/")) {
+    norm = norm.slice(0, -1);
+  }
+  return norm.toLowerCase();
 }
 
-export function isSameOrSubdirectory(candidate?: string, expected?: string): boolean | undefined {
-  if (!candidate || !expected) return undefined;
+/**
+ * Checks if a candidate directory matches or is a subdirectory/parent of expected directory.
+ */
+export function isSameOrSubdirectory(candidate?: string, expected?: string): boolean {
+  if (!candidate || !expected) return false;
   const c = normalizePath(candidate);
   const e = normalizePath(expected);
+  if (!c || !e) return false;
   return c === e || c.startsWith(e + "/") || e.startsWith(c + "/");
+}
+
+export function commandLineContainsWorktree(commandLine?: string, expectedDir?: string): boolean {
+  if (!commandLine || !expectedDir) return false;
+  const normCmd = commandLine.toLowerCase().replace(/\\/g, "/");
+  const normExpected = normalizePath(expectedDir);
+  return normCmd.includes(normExpected);
 }
 
 export function inspectPortProcess(
@@ -123,9 +146,7 @@ function inspectPortProcessPosix(port: number, expectedDir?: string): PortProces
       if (workingDirectory) {
         isCurrentWorktree = isSameOrSubdirectory(workingDirectory, expectedDir);
       } else if (commandLine) {
-        const normCmd = commandLine.toLowerCase().replace(/\\/g, "/");
-        const normExpected = normalizePath(expectedDir);
-        isCurrentWorktree = normCmd.includes(normExpected);
+        isCurrentWorktree = commandLineContainsWorktree(commandLine, expectedDir);
       }
     }
 
@@ -191,10 +212,10 @@ function inspectPortProcessWin32(port: number, expectedDir?: string): PortProces
 
     let isCurrentWorktree: boolean | undefined;
     if (expectedDir) {
-      const normExpected = normalizePath(expectedDir);
-      if (commandLine) {
-        const normCmd = commandLine.toLowerCase().replace(/\\/g, "/");
-        isCurrentWorktree = normCmd.includes(normExpected);
+      if (workingDirectory) {
+        isCurrentWorktree = isSameOrSubdirectory(workingDirectory, expectedDir);
+      } else if (commandLine) {
+        isCurrentWorktree = commandLineContainsWorktree(commandLine, expectedDir);
       }
     }
 
@@ -214,14 +235,13 @@ export class ManagedProcessTracker {
   private readonly managedChildren = new Set<ChildProcess>();
   private readonly outputBuffers = new Map<ChildProcess, string[]>();
 
-  track(child: ChildProcess, maxBufferLines = 20): void {
+  track(child: ChildProcess, maxBufferLines = 40): void {
     this.managedChildren.add(child);
     const buffer: string[] = [];
     this.outputBuffers.set(child, buffer);
 
     const append = (data: Buffer | string) => {
-      const text = data.toString();
-      const lines = text.split(/\r?\n/).filter((l) => l.trim().length > 0);
+      const lines = String(data).split(/\r?\n/).filter(Boolean);
       for (const line of lines) {
         buffer.push(line);
         if (buffer.length > maxBufferLines) buffer.shift();
@@ -231,33 +251,35 @@ export class ManagedProcessTracker {
     child.stdout?.on("data", append);
     child.stderr?.on("data", append);
 
-    child.on("close", () => {
-      // Retain buffer for diagnostics
+    child.on("exit", () => {
+      this.managedChildren.delete(child);
     });
   }
 
-  isManaged(child: ChildProcess): boolean {
-    return this.managedChildren.has(child);
+  getRecentOutput(child: ChildProcess): string[] {
+    return this.outputBuffers.get(child) ?? [];
   }
 
-  getOutputTail(child: ChildProcess): string[] {
-    return this.outputBuffers.get(child) ?? [];
+  cleanup(): void {
+    for (const child of this.managedChildren) {
+      try {
+        if (!child.killed) {
+          child.kill("SIGTERM");
+        }
+      } catch {
+        /* ignore */
+      }
+    }
+    this.managedChildren.clear();
+    this.outputBuffers.clear();
   }
 
   getManagedCount(): number {
     return this.managedChildren.size;
   }
 
-  cleanup(): void {
-    for (const child of this.managedChildren) {
-      if (child && !child.killed) {
-        try {
-          child.kill("SIGTERM");
-        } catch {
-          /* ignore */
-        }
-      }
-    }
+  isManaged(child: ChildProcess): boolean {
+    return this.managedChildren.has(child);
   }
 }
 
@@ -295,8 +317,8 @@ export async function pollServiceHealth(
   const startTime = Date.now();
 
   for (let attempt = 1; attempt <= maxAttempts; attempt++) {
-    const isHealthy = await checkFn();
-    if (isHealthy) {
+    const ok = await checkFn();
+    if (ok) {
       return { ok: true, elapsedMs: Date.now() - startTime, timedOut: false };
     }
     onProgress?.(".");
@@ -315,6 +337,17 @@ export type ServiceStartupOptions = {
   checkUrlFn?: HealthChecker;
   inspectPortFn?: (port: number, expectedDir?: string) => PortProcessInfo | null;
   onProgress?: (msg: string) => void;
+  autoFallbackPort?: boolean | number;
+};
+
+export type FrontendServiceResult = {
+  ok: boolean;
+  alreadyRunning: boolean;
+  child?: ChildProcess;
+  errorDiagnostic?: string;
+  processInfo?: PortProcessInfo | null;
+  effectiveBaseUrl: string;
+  isolatedPort?: number;
 };
 
 export async function ensureBackendService(
@@ -356,9 +389,6 @@ export async function ensureBackendService(
           DSP_FINANCIAL_STATEMENT_MEMORY: "1",
           DSP_P109_E2E_FIXTURE: "1",
           DSP_SEED_ADMIN_PASSWORD: config.adminPassword,
-          DSP_COOKIE_AUTH: "true",
-          DSP_ENABLE_SECURITY: "false",
-          PYTHONUNBUFFERED: "1",
           NEXT_PUBLIC_API_BASE_URL: config.apiBaseUrl,
         },
         stdio: ["ignore", "pipe", "pipe"],
@@ -369,7 +399,7 @@ export async function ensureBackendService(
     return {
       ok: false,
       alreadyRunning: false,
-      errorDiagnostic: `Failed to spawn Python process: ${(err as Error).message}`,
+      errorDiagnostic: `Failed to spawn backend process: ${err instanceof Error ? err.message : String(err)}`,
     };
   }
 
@@ -386,28 +416,22 @@ export async function ensureBackendService(
   );
 
   if (child.exitCode !== null) {
-    const tail = tracker.getOutputTail(child);
+    const recentLines = tracker.getRecentOutput(child);
+    const tail = recentLines.length > 0 ? `\n--- Output Tail ---\n${recentLines.join("\n")}` : "";
     return {
       ok: false,
       alreadyRunning: false,
-      child,
-      errorDiagnostic: [
-        `Backend process exited early with code ${child.exitCode}.`,
-        tail.length > 0 ? "Output tail:\n  " + tail.join("\n  ") : "No output captured.",
-      ].join("\n"),
+      errorDiagnostic: `Backend process exited early with code ${child.exitCode}.${tail}`,
     };
   }
 
   if (pollResult.timedOut) {
-    const tail = tracker.getOutputTail(child);
+    const recentLines = tracker.getRecentOutput(child);
+    const tail = recentLines.length > 0 ? `\n--- Output Tail ---\n${recentLines.join("\n")}` : "";
     return {
       ok: false,
       alreadyRunning: false,
-      child,
-      errorDiagnostic: [
-        `Backend health check timed out after ${pollResult.elapsedMs}ms (configured limit: ${healthConfig.timeoutMs}ms).`,
-        tail.length > 0 ? "Output tail:\n  " + tail.join("\n  ") : "No output captured.",
-      ].join("\n"),
+      errorDiagnostic: `Backend health check timed out after ${pollResult.elapsedMs}ms (configured limit: ${healthConfig.timeoutMs}ms).${tail}`,
     };
   }
 
@@ -419,47 +443,52 @@ export async function ensureFrontendService(
   tracker: ManagedProcessTracker,
   healthConfig: HealthConfig = getHealthConfig(),
   options: ServiceStartupOptions = {},
-): Promise<{
-  ok: boolean;
-  alreadyRunning: boolean;
-  child?: ChildProcess;
-  errorDiagnostic?: string;
-  processInfo?: PortProcessInfo | null;
-}> {
+): Promise<FrontendServiceResult> {
   const web = options.webDir ?? defaultWebDir;
-  const port = parsePortFromUrl(config.baseUrl);
+  let targetUrl = config.baseUrl;
+  let port = parsePortFromUrl(targetUrl);
 
-  // 1. Inspect port process ownership
   const inspector = options.inspectPortFn ?? inspectPortProcess;
-  const processInfo = inspector(port, web);
+  let processInfo = inspector(port, web);
 
-  // If port is occupied by a process belonging to a DIFFERENT worktree, block reuse
+  // If port is occupied by a foreign worktree:
   if (processInfo && processInfo.isCurrentWorktree === false) {
-    const diag = [
-      "==================================================",
-      "P1-09 FRONTEND PREFLIGHT",
-      `Expected URL:       ${config.baseUrl}`,
-      `Port:               ${port}`,
-      `Occupying Process:  PID ${processInfo.pid ?? "unknown"}`,
-      `Process Command:    ${processInfo.commandLine || "unknown"}`,
-      `Working Directory:  ${processInfo.workingDirectory || "unknown"}`,
-      `Expected Directory: ${web}`,
-      "Status:             BLOCKED — port occupied by unrelated Next.js process",
-      "",
-      "Safe Remediation:",
-      `  1. Stop the external process occupying port ${port} from the other repository:`,
-      `     ${processInfo.workingDirectory || processInfo.commandLine || "PID " + processInfo.pid}`,
-      `  2. Or run P1-09 on a dedicated isolated port:`,
-      `     PORT=3001 PLAYWRIGHT_BASE_URL=http://127.0.0.1:3001 pnpm test:p109`,
-      "==================================================",
-    ].join("\n");
+    // If autoFallbackPort is enabled, isolate to alternative port (default 3001)
+    if (options.autoFallbackPort) {
+      const fallbackPort = typeof options.autoFallbackPort === "number" ? options.autoFallbackPort : 3001;
+      options.onProgress?.(`\n[PREFLIGHT] Port ${port} occupied by foreign worktree (${processInfo.workingDirectory || "PID " + processInfo.pid}). Isolating P1-09 frontend to port ${fallbackPort}...`);
+      
+      port = fallbackPort;
+      targetUrl = `http://127.0.0.1:${fallbackPort}`;
+      processInfo = inspector(port, web);
+    } else {
+      const diag = [
+        "==================================================",
+        "P1-09 FRONTEND PREFLIGHT",
+        `Expected URL:       ${config.baseUrl}`,
+        `Port:               ${port}`,
+        `Occupying Process:  PID ${processInfo.pid ?? "unknown"}`,
+        `Process Command:    ${processInfo.commandLine || "unknown"}`,
+        `Working Directory:  ${processInfo.workingDirectory || "unknown"}`,
+        `Expected Directory: ${web}`,
+        "Status:             BLOCKED — port occupied by unrelated Next.js process",
+        "",
+        "Safe Remediation:",
+        `  1. Stop the external process occupying port ${port} from the other repository:`,
+        `     ${processInfo.workingDirectory || processInfo.commandLine || "PID " + processInfo.pid}`,
+        `  2. Or run P1-09 on a dedicated isolated port:`,
+        `     PORT=3001 PLAYWRIGHT_BASE_URL=http://127.0.0.1:3001 pnpm test:p109`,
+        "==================================================",
+      ].join("\n");
 
-    return {
-      ok: false,
-      alreadyRunning: false,
-      processInfo,
-      errorDiagnostic: diag,
-    };
+      return {
+        ok: false,
+        alreadyRunning: false,
+        processInfo,
+        effectiveBaseUrl: targetUrl,
+        errorDiagnostic: diag,
+      };
+    }
   }
 
   // 2. Perform bounded HTTP readiness check
@@ -470,9 +499,9 @@ export async function ensureFrontendService(
       return result.ok;
     });
 
-  const isUp = await checkUrl(config.baseUrl, 2500);
+  const isUp = await checkUrl(targetUrl, 2500);
   if (isUp) {
-    return { ok: true, alreadyRunning: true, processInfo };
+    return { ok: true, alreadyRunning: true, processInfo, effectiveBaseUrl: targetUrl };
   }
 
   // If a process is listening on the port but failed the HTTP check, report responsive failure
@@ -480,7 +509,7 @@ export async function ensureFrontendService(
     const tail = [
       "==================================================",
       "P1-09 FRONTEND PREFLIGHT — UNRESPONSIVE SERVER",
-      `Target URL:         ${config.baseUrl}`,
+      `Target URL:         ${targetUrl}`,
       `Port:               ${port} is listening (PID ${processInfo.pid})`,
       `HTTP Check:         FAILED — server did not return a valid HTTP response within 2500ms`,
       `Command:            ${processInfo.commandLine || "unknown"}`,
@@ -495,6 +524,7 @@ export async function ensureFrontendService(
       ok: false,
       alreadyRunning: false,
       processInfo,
+      effectiveBaseUrl: targetUrl,
       errorDiagnostic: tail,
     };
   }
@@ -519,45 +549,42 @@ export async function ensureFrontendService(
     return {
       ok: false,
       alreadyRunning: false,
-      errorDiagnostic: `Failed to spawn npm process: ${(err as Error).message}`,
+      effectiveBaseUrl: targetUrl,
+      errorDiagnostic: `Failed to spawn frontend process: ${err instanceof Error ? err.message : String(err)}`,
     };
   }
 
   const pollResult = await pollServiceHealth(
     async () => {
       if (child.exitCode !== null) return false;
-      return checkUrl(config.baseUrl, 2000);
+      return checkUrl(targetUrl, 2000);
     },
-    `Frontend (${config.baseUrl})`,
+    `Frontend (${targetUrl})`,
     healthConfig,
     options.onProgress,
   );
 
   if (child.exitCode !== null) {
-    const tail = tracker.getOutputTail(child);
+    const recentLines = tracker.getRecentOutput(child);
+    const tail = recentLines.length > 0 ? `\n--- Output Tail ---\n${recentLines.join("\n")}` : "";
     return {
       ok: false,
       alreadyRunning: false,
-      child,
-      errorDiagnostic: [
-        `Frontend process exited early with code ${child.exitCode}.`,
-        tail.length > 0 ? "Output tail:\n  " + tail.join("\n  ") : "No output captured.",
-      ].join("\n"),
+      effectiveBaseUrl: targetUrl,
+      errorDiagnostic: `Frontend process exited early with code ${child.exitCode}.${tail}`,
     };
   }
 
   if (pollResult.timedOut) {
-    const tail = tracker.getOutputTail(child);
+    const recentLines = tracker.getRecentOutput(child);
+    const tail = recentLines.length > 0 ? `\n--- Output Tail ---\n${recentLines.join("\n")}` : "";
     return {
       ok: false,
       alreadyRunning: false,
-      child,
-      errorDiagnostic: [
-        `Frontend health check timed out after ${pollResult.elapsedMs}ms (configured limit: ${healthConfig.timeoutMs}ms).`,
-        tail.length > 0 ? "Output tail:\n  " + tail.join("\n  ") : "No output captured.",
-      ].join("\n"),
+      effectiveBaseUrl: targetUrl,
+      errorDiagnostic: `Frontend health check timed out after ${pollResult.elapsedMs}ms (configured limit: ${healthConfig.timeoutMs}ms).${tail}`,
     };
   }
 
-  return { ok: true, alreadyRunning: false, child, processInfo };
+  return { ok: true, alreadyRunning: false, child, processInfo, effectiveBaseUrl: targetUrl, isolatedPort: port };
 }

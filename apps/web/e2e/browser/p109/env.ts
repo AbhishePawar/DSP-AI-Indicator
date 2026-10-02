@@ -139,7 +139,8 @@ export function resolveP109Config(
   const ticker = env.DSP_P109_TICKER?.trim() || "DSPFIX";
   const apiBaseUrl =
     env.PLAYWRIGHT_API_BASE_URL?.trim() || "http://127.0.0.1:8000/api/v1";
-  const baseUrl = env.PLAYWRIGHT_BASE_URL?.trim() || "http://127.0.0.1:3000";
+  const defaultPort = env.PORT?.trim() || "3000";
+  const baseUrl = env.PLAYWRIGHT_BASE_URL?.trim() || `http://127.0.0.1:${defaultPort}`;
 
   return { adminLogin, adminPassword, ticker, apiBaseUrl, baseUrl };
 }

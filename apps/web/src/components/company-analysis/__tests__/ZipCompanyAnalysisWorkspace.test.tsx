@@ -1,4 +1,4 @@
-import { describe, it, expect, vi } from "vitest";
+import { describe, it, expect } from "vitest";
 import { mapZipResearchView } from "@/lib/research/mapZipResearchView";
 import type { AnalyseResponse, AnalyseRequest } from "@/lib/api/compositionTypes";
 
@@ -85,7 +85,7 @@ describe("Stage 3 Research Workspace Data-State and Adapter Contract", () => {
     // When stages are missing, criteria should reflect unavailable/neutral status
     expect(model.buffettRows.length).toBe(10);
     model.buffettRows.forEach((row) => {
-      expect(["strong", "watch", "weak", "neutral"]).toContain(row.status);
+      expect(["strong", "watch", "weak", "neutral", "unavailable"]).toContain(row.status);
     });
   });
 
@@ -116,5 +116,25 @@ describe("Stage 3 Research Workspace Data-State and Adapter Contract", () => {
 
     const model = mapZipResearchView(mockResponse, mockBaseRequest);
     expect(model.risks.length).toBeGreaterThanOrEqual(1);
+  });
+
+  it("renders workspace model when symbol is provided via URL without claiming completed results", () => {
+    const emptyResponse: AnalyseResponse = {
+      ok: true,
+      capability: "analyse",
+      payload: { ok: true },
+      limitations: [],
+      errors: [],
+      api_version: "v1",
+      platform_version: "1.0",
+      pipeline_version: "1.0",
+      correlation_id: "corr-empty",
+    };
+    const model = mapZipResearchView(emptyResponse, { ticker: "INFY", exchange: "NSE" });
+    expect(model.symbol).toBe("INFY");
+    expect(model.currentPrice).toBe("Unavailable");
+    expect(model.intrinsicValue).toBe("Unavailable");
+    expect(model.marginOfSafety).toBe("Unavailable");
+    expect(model.analysisId).toBeNull();
   });
 });

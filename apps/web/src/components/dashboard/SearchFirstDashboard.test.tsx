@@ -14,38 +14,93 @@ vi.mock("next/navigation", () => ({
   }),
 }));
 
+const mockRecentAnalyses = vi.fn(() => [
+  {
+    ticker: "TCS.NS",
+    company: "Tata Consultancy Services",
+    exchange: "NSE",
+    recommendation: "Strong",
+    analysedAt: "2026-10-01T10:00:00Z",
+  },
+]);
+
 vi.mock("@/lib/companies/catalogue", () => ({
   searchCatalogue: (query: string) => {
     if (!query) return [];
     if (query.toUpperCase().includes("TCS")) {
       return [
-        { ticker: "TCS", name: "Tata Consultancy Services", exchange: "NSE" },
-        { ticker: "TCS.BO", name: "Tata Consultancy Services (BSE)", exchange: "BSE" },
+        {
+          ticker: "TCS",
+          name: "Tata Consultancy Services",
+          exchange: "NSE",
+          sector: "Technology",
+          industry: "IT Services",
+          marketCap: "Large Cap",
+        },
+        {
+          ticker: "TCS.BO",
+          name: "Tata Consultancy Services (BSE)",
+          exchange: "BSE",
+          sector: "Technology",
+          industry: "IT Services",
+          marketCap: "Large Cap",
+        },
       ];
     }
     if (query.toUpperCase().includes("HDFC")) {
-      return [{ ticker: "HDFCBANK", name: "HDFC Bank Limited", exchange: "NSE" }];
+      return [
+        {
+          ticker: "HDFCBANK",
+          name: "HDFC Bank Limited",
+          exchange: "NSE",
+          sector: "Financials",
+          industry: "Banking",
+          marketCap: "Large Cap",
+        },
+      ];
     }
-    return [{ ticker: "INFY", name: "Infosys Limited", exchange: "NSE" }];
+    if (query.toUpperCase().includes("UNKNOWN")) {
+      return [];
+    }
+    return [
+      {
+        ticker: "INFY",
+        name: "Infosys Limited",
+        exchange: "NSE",
+        sector: "Technology",
+        industry: "IT Services",
+        marketCap: "Large Cap",
+      },
+    ];
   },
 }));
 
 vi.mock("@/lib/analysis/recentAnalyses", () => ({
-  loadRecentAnalyses: () => [
-    {
-      ticker: "TCS.NS",
-      company: "Tata Consultancy Services",
-      exchange: "NSE",
-      recommendation: "Strong",
-      analysedAt: "2026-10-01T10:00:00Z",
-    },
-  ],
+  loadRecentAnalyses: () => mockRecentAnalyses(),
 }));
 
-describe("SearchFirstDashboard: Keyboard navigation, selection, and Escape behavior", () => {
+describe("SearchFirstDashboard: Search, Accessibility, and Keyboard Navigation", () => {
   beforeEach(() => {
     cleanup();
     vi.clearAllMocks();
+    mockRecentAnalyses.mockReturnValue([
+      {
+        ticker: "TCS.NS",
+        company: "Tata Consultancy Services",
+        exchange: "NSE",
+        recommendation: "Strong",
+        analysedAt: "2026-10-01T10:00:00Z",
+      },
+    ]);
+  });
+
+  it("provides exactly ONE accessible company searchbox in the primary hierarchy", () => {
+    render(<SearchFirstDashboard />);
+    const searchBoxes = screen.getAllByRole("searchbox");
+    expect(searchBoxes).toHaveLength(1);
+    expect(searchBoxes[0].getAttribute("aria-label")).toBe(
+      "Search a company or ask a research question"
+    );
   });
 
   it("handles keyboard navigation across matched catalogue suggestions and submits active item on Enter", async () => {
@@ -56,9 +111,11 @@ describe("SearchFirstDashboard: Keyboard navigation, selection, and Escape behav
     });
     fireEvent.change(searchInput, { target: { value: "TCS" } });
 
-    // Wait for debounced search match
+    // Wait for debounced search dropdown listbox
     await waitFor(() => {
-      expect(screen.getByText("Tata Consultancy Services")).toBeTruthy();
+      expect(
+        screen.getByRole("listbox", { name: "Company search results" })
+      ).toBeTruthy();
     });
 
     // Arrow down moves selection
@@ -70,6 +127,59 @@ describe("SearchFirstDashboard: Keyboard navigation, selection, and Escape behav
 
     // Enter submits selected item
     fireEvent.keyDown(searchInput, { key: "Enter" });
+    expect(mockPush).toHaveBeenCalledWith(
+      expect.stringContaining("/analysis?symbol=TCS")
+    );
+  });
+
+  it("renders rich search result metadata: ticker, exchange, sector and industry", async () => {
+    render(<SearchFirstDashboard />);
+
+    const searchInput = screen.getByRole("searchbox", {
+      name: "Search a company or ask a research question",
+    });
+    fireEvent.change(searchInput, { target: { value: "TCS" } });
+
+    await waitFor(() => {
+      expect(
+        screen.getByRole("listbox", { name: "Company search results" })
+      ).toBeTruthy();
+    });
+
+    const listbox = screen.getByRole("listbox", { name: "Company search results" });
+    expect(listbox).toBeTruthy();
+    expect(screen.getAllByText("TCS")[0]).toBeTruthy();
+    expect(screen.getAllByText("NSE")[0]).toBeTruthy();
+    expect(screen.getAllByText("Technology · IT Services")[0]).toBeTruthy();
+  });
+
+  it("displays honest no-results guidance when no catalogue items match", async () => {
+    render(<SearchFirstDashboard />);
+
+    const searchInput = screen.getByRole("searchbox", {
+      name: "Search a company or ask a research question",
+    });
+    fireEvent.change(searchInput, { target: { value: "UNKNOWNXYZ" } });
+
+    await waitFor(() => {
+      expect(screen.getByText("No matching securities found")).toBeTruthy();
+    });
+    expect(
+      screen.getByText(/Try searching by ticker/i)
+    ).toBeTruthy();
+  });
+
+  it("submits search when clicking the Analyze button", () => {
+    render(<SearchFirstDashboard />);
+
+    const searchInput = screen.getByRole("searchbox", {
+      name: "Search a company or ask a research question",
+    });
+    fireEvent.change(searchInput, { target: { value: "TCS" } });
+
+    const analyzeBtn = screen.getByRole("button", { name: "Analyze" });
+    fireEvent.click(analyzeBtn);
+
     expect(mockPush).toHaveBeenCalledWith(
       expect.stringContaining("/analysis?symbol=TCS")
     );
@@ -100,6 +210,90 @@ describe("SearchFirstDashboard: Keyboard navigation, selection, and Escape behav
     expect(mockPush).toHaveBeenCalledWith(
       expect.stringContaining("/analysis?symbol=HDFC%20BANK")
     );
+  });
+});
+
+describe("SearchFirstDashboard: Research Workflows and Boundaries", () => {
+  beforeEach(() => {
+    cleanup();
+    vi.clearAllMocks();
+  });
+
+  it("renders all four research workflows with governed status for Deep Research", () => {
+    render(<SearchFirstDashboard />);
+
+    expect(screen.getByRole("button", { name: /^DSP Indicator/i })).toBeTruthy();
+    expect(screen.getByRole("button", { name: /^Company Research/i })).toBeTruthy();
+    expect(screen.getByRole("button", { name: /^Compare Companies/i })).toBeTruthy();
+    expect(screen.getByRole("button", { name: /^Deep Research/i })).toBeTruthy();
+
+    // Verify Deep Research communicates legitimate backend availability boundary
+    expect(
+      screen.getByText("Governed / Subject to provider availability")
+    ).toBeTruthy();
+  });
+
+  it("allows selecting a research path and submitting with chosen intent", () => {
+    render(<SearchFirstDashboard />);
+
+    const compareBtn = screen.getByRole("button", { name: /^Compare Companies/i });
+    fireEvent.click(compareBtn);
+
+    const searchInput = screen.getByRole("searchbox", {
+      name: "Search a company or ask a research question",
+    });
+    fireEvent.change(searchInput, { target: { value: "INFY" } });
+    fireEvent.keyDown(searchInput, { key: "Enter" });
+
+    expect(mockPush).toHaveBeenCalledWith("/analysis?symbol=INFY&intent=compare");
+  });
+});
+
+describe("SearchFirstDashboard: Recent Analyses Presentation and Empty State", () => {
+  beforeEach(() => {
+    cleanup();
+    vi.clearAllMocks();
+  });
+
+  it("renders recent analysis cards with company, ticker, context, and resume action", () => {
+    mockRecentAnalyses.mockReturnValue([
+      {
+        ticker: "TCS.NS",
+        company: "Tata Consultancy Services",
+        exchange: "NSE",
+        recommendation: "Strong",
+        analysedAt: "2026-10-01T10:00:00Z",
+      },
+    ]);
+
+    render(<SearchFirstDashboard />);
+
+    expect(screen.getByRole("heading", { name: "Recent research" })).toBeTruthy();
+    expect(screen.getByText("Tata Consultancy Services")).toBeTruthy();
+    expect(screen.getByText("TCS.NS")).toBeTruthy();
+    expect(screen.getByText("· Strong")).toBeTruthy();
+
+    const resumeBtn = screen.getByRole("button", {
+      name: /Resume analysis for Tata Consultancy Services/i,
+    });
+    expect(resumeBtn).toBeTruthy();
+    fireEvent.click(resumeBtn);
+    expect(mockPush).toHaveBeenCalledWith(
+      expect.stringContaining("/analysis?symbol=TCS.NS")
+    );
+  });
+
+  it("renders honest empty state when there are no recent analyses", () => {
+    mockRecentAnalyses.mockReturnValue([]);
+
+    render(<SearchFirstDashboard />);
+
+    expect(screen.getByText("No recent analyses yet")).toBeTruthy();
+    expect(
+      screen.getByText(/Securities you analyze will appear here/i)
+    ).toBeTruthy();
+    // Verify no fake analyses are rendered
+    expect(screen.queryByText("Tata Consultancy Services")).toBeNull();
   });
 });
 

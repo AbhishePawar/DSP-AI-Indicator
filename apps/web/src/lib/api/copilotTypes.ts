@@ -82,3 +82,26 @@ export type CopilotV2ResponseBody = {
   message?: string | null;
   error?: string;
 };
+
+
+export type CopilotQueryRequestBody = {
+  query: string;
+  symbol?: string | null;
+  analysis_id?: string | null;
+  section_context?: string | null;
+  prompt?: string | null;
+  system_instruction?: string | null;
+  market_context?: Record<string, string | number | null> | null;
+};
+
+export type CopilotQueryResponseBody = {
+  content: string;
+  citations: string[];
+  intent: string;
+  unavailable: boolean;
+  provider_id: string;
+  limitations: string[];
+  symbol?: string | null;
+  analysis_id?: string | null;
+  section_context?: string | null;
+};

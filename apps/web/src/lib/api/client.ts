@@ -419,25 +419,21 @@ export const api = {
     ),
 
   copilotQuery: (
-    body: {
-      prompt?: string;
-      query?: string;
-      analysis_id?: string | null;
-      symbol?: string;
-      section_context?: string | null;
-      system_instruction?: string;
-    },
+    body: import("@/lib/api/copilotTypes").CopilotQueryRequestBody,
     options?: RequestOptions
   ) =>
-    request<import("@/lib/api/copilotTypes").CopilotCompleteResponseBody>(
-      "/copilot/complete",
+    request<import("@/lib/api/copilotTypes").CopilotQueryResponseBody>(
+      "/copilot/query",
       {
         method: "POST",
         body: JSON.stringify({
+          query: body.query || body.prompt || "",
+          symbol: body.symbol,
+          analysis_id: body.analysis_id,
+          section_context: body.section_context,
           prompt: body.prompt || body.query || "",
-          system_instruction:
-            body.system_instruction ||
-            `DSP Research Copilot context: Symbol=${body.symbol || ""}, AnalysisID=${body.analysis_id || ""}, Section=${body.section_context || ""}.`,
+          system_instruction: body.system_instruction,
+          market_context: body.market_context,
         }),
         ...options,
       }

@@ -1730,23 +1730,24 @@ export function ResearchChatDrawer({
 
     try {
       const res = await api.copilotQuery({
-        query: userText,
+        query: text,
         symbol,
         analysis_id: analysisId,
-        section_context: sectionContext,
-        prompt: userText,
+        section_context: initCtx,
         prompt: `Context: ${initCtx || "General analysis"} for ${symbol} (Analysis ID: ${analysisId || "unknown"}). Question: ${text}`,
-        stream: false,
       });
 
-      const reply = res?.text || `Analysis for ${symbol}: ${text} has been processed against server evidence.`;
+      const reply =
+        res?.content ||
+        (res as any)?.text ||
+        `Analysis for ${symbol}: ${text} has been processed against server evidence.`;
       setMessages((prev) => [...prev, { role: "dsp", text: reply }]);
     } catch (e: any) {
       setMessages((prev) => [
         ...prev,
         {
           role: "dsp",
-          text: `DSP Research Assistant: Regarding ${symbol} (${initCtx || "Workspace"}), analytical output indicates strong fundamentals with valuation discipline.`,
+          text: `DSP Research Assistant: Regarding ${symbol} (${initCtx || "Workspace"}), analytical output is unavailable or temporarily unreached.`,
         },
       ]);
     } finally {

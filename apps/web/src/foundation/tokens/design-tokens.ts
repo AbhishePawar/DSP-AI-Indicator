@@ -109,3 +109,23 @@ export const zIndexTokens = {
   modal: 60,
   toast: 70,
 } as const;
+
+
+export const shadowTokens = {
+  sm: "var(--shadow-sm, 0 1px 2px 0 rgba(0, 0, 0, 0.4))",
+  md: "var(--shadow-md, 0 4px 6px -1px rgba(0, 0, 0, 0.5))",
+  lg: "var(--shadow-lg, 0 10px 15px -3px rgba(0, 0, 0, 0.6))",
+  card: "var(--shadow-card, 0 4px 20px -2px rgba(0, 0, 0, 0.5))",
+} as const;
+
+export const figmaSpacingTokens = {
+  sp1: "4px",
+  sp2: "8px",
+  sp3: "12px",
+  sp4: "16px",
+  sp5: "20px",
+  sp6: "24px",
+  sp7: "28px",
+  sp8: "32px",
+  sp10: "40px",
+} as const;

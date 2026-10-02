@@ -77,12 +77,13 @@ function NavLink({
       onClick={onNavigate}
       aria-current={active ? "page" : undefined}
       className={cn(
-        "flex min-h-9 w-full items-center gap-2.5 rounded-lg px-2.5 text-[13px] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] motion-reduce:transition-none",
+        "flex w-full items-center gap-2.5 rounded-lg px-2.5 text-[13px] font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] motion-reduce:transition-none",
+        mobile ? "min-h-11" : "min-h-9",
         hideLabel ? "justify-center" : "justify-start",
         nested && !hideLabel ? "pl-8" : null,
         active
-          ? "bg-[var(--surface-2)] text-[var(--fg)]"
-          : "text-[var(--muted)] hover:bg-[var(--surface-2)] hover:text-[var(--fg)]",
+          ? "bg-[var(--surface-2,#181e2e)] text-[var(--foreground)] border-l-2 border-[var(--accent)] font-medium"
+          : "text-[var(--muted-foreground,#6b7a99)] hover:bg-[var(--surface-2,#181e2e)] hover:text-[var(--foreground)]",
       )}
     >
       <Icon className="size-4 shrink-0" aria-hidden />

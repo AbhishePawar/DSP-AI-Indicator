@@ -38,14 +38,14 @@ export function Topbar({
     <Header
       aria-label="Application header"
       data-testid="app-topbar"
-      className="!h-12 !min-h-12 !gap-2 !px-4 !py-0 motion-reduce:transition-none"
+      className="!h-12 !min-h-11 !gap-2 !border-b !border-[var(--border)] !bg-[var(--card)] !px-4 !py-0 motion-reduce:transition-none sm:!min-h-12"
       left={
         <div className="flex min-w-0 flex-col gap-1 sm:flex-row sm:items-center sm:gap-3">
           <div className="flex items-center gap-2">
             <Button
               variant="ghost"
               data-testid="open-navigation"
-              className="size-9 px-0 md:hidden"
+              className="size-9 min-h-11 px-0 md:hidden"
               onClick={onMenuClick}
               aria-label="Open navigation menu"
             >
@@ -70,10 +70,11 @@ export function Topbar({
             <Link
               href="/dashboard"
               data-testid="topbar-home"
-              className="flex shrink-0 items-center gap-2 font-[family-name:var(--font-display)] text-[15px] tracking-tight text-[var(--fg)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
+              className="flex shrink-0 items-center gap-2 font-[family-name:var(--font-heading)] text-[15px] font-medium tracking-tight text-[var(--foreground)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
               aria-label={`${env.appName} home`}
             >
-              <span className="size-5 rounded-full bg-[linear-gradient(135deg,#7c6af7,#2dd4bf)]" /> DSP
+              <span className="size-5 shrink-0 rounded-full bg-[linear-gradient(135deg,#7c6af7,#2dd4bf)]" />
+              <span className="tracking-tight">DSP</span>
             </Link>
           </div>
         </div>
@@ -84,7 +85,7 @@ export function Topbar({
             variant="ghost"
             size="sm"
             data-testid="open-command-palette"
-            className="size-9 px-0"
+            className="size-9 px-0 text-[var(--muted-foreground)] hover:text-[var(--foreground)]"
             onClick={() => setCommandPaletteOpen(true)}
             aria-label="Open search and command palette"
           >
@@ -93,7 +94,7 @@ export function Topbar({
           <Link
             href="/diagnostics"
             data-testid="topbar-diagnostics"
-            className="hidden items-center gap-1.5 rounded-lg border border-[var(--border)] px-3 py-1 text-xs text-[var(--muted)] transition-colors hover:border-[var(--accent)] hover:text-[var(--fg)] sm:inline-flex"
+            className="hidden items-center gap-1.5 rounded-lg border border-[var(--border)] bg-[var(--surface)]/50 px-3 py-1 font-mono text-xs text-[var(--muted-foreground)] transition-colors hover:border-[var(--accent)] hover:text-[var(--foreground)] sm:inline-flex"
             title="System & Runtime Diagnostics"
           >
             <Activity className="size-3.5" aria-hidden />
@@ -104,8 +105,10 @@ export function Topbar({
               name={user.displayName}
               email={user.email || undefined}
               avatar={
-                <Avatar className="size-7">
-                  <AvatarFallback className="text-[10px]">{initials}</AvatarFallback>
+                <Avatar className="size-7 border border-[var(--border)]">
+                  <AvatarFallback className="bg-[linear-gradient(135deg,#7c6af7,#2dd4bf)] font-mono text-[10px] font-bold text-white">
+                    {initials}
+                  </AvatarFallback>
                 </Avatar>
               }
               items={[
@@ -135,7 +138,13 @@ export function Topbar({
               ]}
             />
           ) : (
-            <Link href="/login" data-testid="topbar-login" className="rounded-lg border border-[var(--border)] px-3.5 py-1.5 text-[13px] text-[var(--muted)] transition-colors hover:border-[var(--accent)] hover:text-[var(--accent)]">Log in</Link>
+            <Link
+              href="/login"
+              data-testid="topbar-login"
+              className="rounded-lg border border-[var(--border)] px-3.5 py-1.5 font-[family-name:var(--font-body)] text-[13px] font-medium text-[var(--muted-foreground)] transition-colors hover:border-[var(--accent)] hover:text-[var(--accent)]"
+            >
+              Log in
+            </Link>
           )}
         </div>
       }

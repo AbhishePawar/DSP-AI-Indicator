@@ -24,7 +24,7 @@ export function Breadcrumbs() {
   }, [pathname, recordRecentPage]); // eslint-disable-line react-hooks/exhaustive-deps -- record on path change only
 
   return (
-    <Breadcrumb className="text-xs">
+    <Breadcrumb className="font-mono text-[11px] text-[var(--muted-foreground)]">
       {crumbs.map((crumb, i) => {
         const last = i === crumbs.length - 1;
         return (

@@ -55,7 +55,12 @@ describe("cookieSession", () => {
     expect(readCookieMeta()?.subject).toBe("u-1");
   });
 
-  it("sessionFromRbacLogin uses cookie placeholder when csrf present", () => {
+  it("sessionFromRbacLogin uses cookie placeholder when csrf present on the API origin", () => {
+    const page = window.location;
+    Object.defineProperty(window, "location", {
+      configurable: true,
+      value: new URL("http://127.0.0.1:8000/"),
+    });
     const session = sessionFromRbacLogin(
       {
         user: {
@@ -95,6 +100,46 @@ describe("cookieSession", () => {
     const stored = readStoredSession();
     expect(stored?.accessToken).toBe(COOKIE_TOKEN_PLACEHOLDER);
     expect(window.localStorage.getItem("dsp.auth.session.v3")).toBeNull();
+    Object.defineProperty(window, "location", { configurable: true, value: page });
+  });
+
+  it("keeps the bearer token when the page and API are different origins", () => {
+    const session = sessionFromRbacLogin(
+      {
+        user: {
+          user_id: "u-3",
+          username: "admin",
+          email: null,
+          display_name: "Admin",
+          status: "active",
+          created_at: "2026-07-28T12:00:00+00:00",
+          updated_at: "2026-07-28T12:00:00+00:00",
+          last_login: null,
+          roles: ["platform_admin"],
+        },
+        tokens: {
+          access_token: "bearer-cross-origin",
+          refresh_token: "refresh-cross-origin",
+          token_type: "bearer",
+          expires_in: 3600,
+          session_id: "s-3",
+        },
+        session: {
+          session_id: "s-3",
+          user_id: "u-3",
+          created_at: "2026-07-28T12:00:00+00:00",
+          expires_at: "2026-07-28T13:00:00+00:00",
+          revoked: false,
+        },
+        csrf_token: "csrf-cross",
+        cookie_auth: true,
+      } as never,
+      false,
+    );
+    expect(session.accessToken).toBe("bearer-cross-origin");
+    expect(session.authMethod).not.toBe("cookie_rbac");
+    persistSession(session);
+    expect(readStoredSession()?.accessToken).toBe("bearer-cross-origin");
   });
 
   it("keeps a bearer session when cookie mode is preferred but no cookie was issued", () => {

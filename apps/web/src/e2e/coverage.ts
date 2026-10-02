@@ -66,7 +66,7 @@ export const E2E_JOURNEYS: readonly E2EJourneyMeta[] = [
   },
   {
     id: "admin",
-    label: "Administration",
+    label: "Admin",
     routes: ["/admin"],
     automated: true,
     notes: "A010 admin client surface + RBAC gate",

@@ -166,3 +166,68 @@ def test_admin_requires_bearer_always(client: TestClient) -> None:
         ).status_code
         == 401
     )
+
+
+def test_admin_api_rejects_non_admin_and_searches_real_users(client: TestClient) -> None:
+    """Authorization is the token's permissions, not a client-supplied role flag."""
+    register_user(
+        client,
+        user_id="u-analyst-gate",
+        username="analystgate",
+        email="analyst.gate@example.com",
+        roles=["research_analyst"],
+    )
+    register_user(
+        client,
+        user_id="u-admin-gate",
+        username="admingate",
+        roles=["administrator"],
+    )
+    analyst = bearer_headers(client, username="analystgate")
+    assert client.get("/api/v1/admin/users", headers=analyst).status_code == 403
+    assert (
+        client.post(
+            "/api/v1/admin/search",
+            headers=analyst,
+            json={"query": "analyst.gate", "scope": "users"},
+        ).status_code
+        == 403
+    )
+    assert (
+        client.post(
+            "/api/v1/auth/enterprise/admin/users/u-analyst-gate/status",
+            headers=analyst,
+            json={"active": False},
+        ).status_code
+        == 403
+    )
+
+    admin = bearer_headers(client, username="admingate")
+    listed = client.get("/api/v1/admin/users", headers=admin)
+    assert listed.status_code == 200
+    emails = [row.get("email") for row in listed.json()["result"]]
+    assert "analyst.gate@example.com" in emails
+
+    found = client.post(
+        "/api/v1/admin/search",
+        headers=admin,
+        json={"query": "analyst.gate@example.com", "scope": "users"},
+    )
+    assert found.status_code == 200
+    body = found.json()["result"]
+    assert body["scope"] == "users"
+    assert any(
+        row.get("email") == "analyst.gate@example.com" for row in body["results"]
+    )
+
+    updated = client.post(
+        "/api/v1/auth/enterprise/admin/users/u-analyst-gate/status",
+        headers=admin,
+        json={"active": False},
+    )
+    assert updated.status_code == 200
+    assert updated.json()["result"]["status"] == "disabled"
+
+    again = client.get("/api/v1/admin/users/u-analyst-gate", headers=admin)
+    assert again.status_code == 200
+    assert again.json()["result"]["status"] == "disabled"

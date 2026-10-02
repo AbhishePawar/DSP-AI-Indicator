@@ -12,6 +12,7 @@ import {
   useCallback,
   useEffect,
   useMemo,
+  useRef,
   useState,
   type ComponentType,
 } from "react";
@@ -43,6 +44,7 @@ import {
 import { featureFlags } from "@/lib/featureFlags";
 import { loadAuthenticatedAnalyseRequest } from "@/lib/research/buildAnalyseRequest";
 import { mapResearchView } from "@/lib/research/mapResearchView";
+import type { SecurityListingView } from "@/lib/securities/identity";
 import { useNotifications } from "@/providers/NotificationProvider";
 import { cn } from "@/lib/utils";
 import {
@@ -175,6 +177,10 @@ export function CompanyComparisonWorkspace() {
   const searchParams = useSearchParams();
   const { session } = useAuth();
   const token = session?.accessToken ?? null;
+  const chosenListings = useRef<Record<string, SecurityListingView>>({});
+  const [pendingListings, setPendingListings] = useState<
+    Record<string, SecurityListingView[]>
+  >({});
   const { success, error: notifyError } = useNotifications();
   const { runWithDisclaimer, gate: disclaimerGate } =
     useResearchDisclaimerGate();
@@ -291,24 +297,40 @@ export function CompanyComparisonWorkspace() {
       });
       setSlots(nextSlots);
 
+      const ambiguous: Record<string, SecurityListingView[]> = {};
+      for (const key of Object.keys(chosenListings.current)) {
+        if (!unique.includes(key)) delete chosenListings.current[key];
+      }
+
       const results = await Promise.all(
         unique.map(async (symbol) => {
           const cat = resolveCatalogue(symbol);
           try {
             // Official Security Master identity before /analyse. Catalogue
             // exchange is not a substitute for a resolved listing.
-            const resolved = await api.resolveSecurity(symbol, { token });
+            const chosen = chosenListings.current[symbol];
+            const resolved = chosen
+              ? null
+              : await api.resolveSecurity(symbol, { token });
             const identity =
-              resolved.status === "RESOLVED" && resolved.identity?.exchange
-                ? resolved.identity
-                : null;
+              chosen?.exchange && chosen.isin
+                ? chosen
+                : resolved?.status === "RESOLVED" && resolved.identity?.exchange
+                  ? resolved.identity
+                  : null;
             if (!identity) {
+              const candidates = (resolved?.candidates ?? []).filter(
+                (candidate) => candidate.exchange && candidate.isin,
+              );
+              if (resolved?.status === "AMBIGUOUS" && candidates.length > 0) {
+                ambiguous[symbol] = candidates;
+              }
               const error =
-                resolved.status === "AMBIGUOUS"
+                resolved?.status === "AMBIGUOUS"
                   ? "Multiple listings matched. Select the ISIN and exchange to continue."
-                  : resolved.status === "UNSUPPORTED" || resolved.status === "REJECTED"
+                  : resolved?.status === "UNSUPPORTED" || resolved?.status === "REJECTED"
                     ? "This instrument is outside ordinary-equity analysis."
-                    : resolved.message || "No official listing matched. Data unavailable.";
+                    : resolved?.message || "No official listing matched. Data unavailable.";
               return {
                 symbol,
                 company: cat?.name ?? symbol,
@@ -400,9 +422,10 @@ export function CompanyComparisonWorkspace() {
         );
       }
 
-      return { slots: results, overlays };
+      return { slots: results, overlays, ambiguous };
     },
-    onSuccess: ({ slots: next, overlays }) => {
+    onSuccess: ({ slots: next, overlays, ambiguous }) => {
+      setPendingListings(ambiguous);
       setSlots(next);
       setIntelligence(overlays);
       setSymbols(next.map((s) => s.symbol));
@@ -490,6 +513,19 @@ export function CompanyComparisonWorkspace() {
   const isLoading = compareMutation.isPending;
 
   const runCompare = () => {
+    const symbols = parseSymbolsParam(draftInput.replace(/\s+/g, ","));
+    runWithDisclaimer(() => {
+      compareMutation.mutate(symbols);
+    });
+  };
+
+  const chooseListing = (symbol: string, listing: SecurityListingView) => {
+    chosenListings.current[symbol] = listing;
+    setPendingListings((prev) => {
+      const next = { ...prev };
+      delete next[symbol];
+      return next;
+    });
     const symbols = parseSymbolsParam(draftInput.replace(/\s+/g, ","));
     runWithDisclaimer(() => {
       compareMutation.mutate(symbols);
@@ -667,6 +703,31 @@ export function CompanyComparisonWorkspace() {
             ))}
           </div>
         ) : null}
+        {Object.entries(pendingListings).map(([symbol, candidates]) => (
+          <div key={symbol} className="space-y-2">
+            <p className="text-xs text-[var(--muted)]">
+              {symbol}: multiple official listings. Select the ISIN and exchange.
+            </p>
+            <ul aria-label={`${symbol} official listings`} className="flex list-none flex-col gap-2">
+              {candidates.map((candidate) => (
+                <li key={`${symbol}-${candidate.isin}-${candidate.mic}-${candidate.exchange}`}>
+                  <button
+                    type="button"
+                    onClick={() => chooseListing(symbol, candidate)}
+                    className="flex min-h-11 w-full items-center justify-between gap-3 rounded-[10px] border border-[var(--border)] bg-[var(--card)] px-3 py-2 text-left text-sm text-[var(--fg)] hover:border-[var(--c-dsp)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
+                  >
+                    <span>
+                      {candidate.company_name || candidate.ticker} · {candidate.exchange}
+                    </span>
+                    <span className="font-[family-name:var(--font-mono)] text-xs text-[var(--muted)]">
+                      {candidate.isin} · {candidate.mic}
+                    </span>
+                  </button>
+                </li>
+              ))}
+            </ul>
+          </div>
+        ))}
         {historyEntries.length > 0 ? (
           <div className="flex flex-wrap items-center gap-2 text-xs text-[var(--muted)]">
             <span>History:</span>

@@ -10,11 +10,12 @@
 
 import { useMemo, useState } from "react";
 import Link from "next/link";
-import { useQuery } from "@tanstack/react-query";
+import { keepPreviousData, useQuery } from "@tanstack/react-query";
 
 import { ErrorState } from "@/components/ds";
 import { FigmaPage } from "@/components/pages/PagePrimitives";
 import { api } from "@/lib/api/client";
+import { readStoredSession } from "@/lib/auth/sessionStore";
 import { ApiClientError } from "@/lib/api/types";
 import type { CoverageSignal } from "@/lib/api/workspaceTypes";
 import { displayMetric } from "@/lib/research-intelligence";
@@ -55,15 +56,20 @@ export function FigmaSignalFeed() {
     queryKey: ["coverage-signals", sector],
     queryFn: () =>
       api.coverageSignals({
+        token: readStoredSession()?.accessToken ?? null,
         limit: 50,
         sector: sector === "All Sectors" ? null : sector,
       }),
+    placeholderData: keepPreviousData,
   });
 
   const performance = useQuery({
     queryKey: ["ri-performance", 12],
     queryFn: async () => {
-      const res = await api.researchIntelligencePerformance({ window_months: 12 });
+      const res = await api.researchIntelligencePerformance(
+        { window_months: 12 },
+        { token: readStoredSession()?.accessToken ?? null },
+      );
       return res.dashboard ?? null;
     },
     retry: 1,
@@ -80,9 +86,11 @@ export function FigmaSignalFeed() {
   }, [query.data?.sectors, query.data?.signals]);
 
   const activeTypes = TYPE_FILTERS.find((f) => f.id === typeFilter)?.types ?? null;
-  const signals = (query.data?.signals ?? []).filter(
-    (signal) => !activeTypes || activeTypes.includes(signal.type),
-  );
+  const signals = (query.data?.signals ?? []).filter((signal) => {
+    if (activeTypes && !activeTypes.includes(signal.type)) return false;
+    if (sector !== "All Sectors" && signal.sector !== sector) return false;
+    return true;
+  });
   const today = query.data?.today;
   const dashboard = performance.data as Record<string, unknown> | null | undefined;
 

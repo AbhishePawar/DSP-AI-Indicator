@@ -1,5 +1,6 @@
 /** HTTP client for `/api/v1` only — no DSP Platform imports. */
 
+import { browserCanUseAuthCookies } from "@/lib/auth/sessionStore";
 import { env } from "@/lib/env";
 import type {
   AnalyseRequest,
@@ -250,12 +251,12 @@ async function request<T>(
   }
 
   const url = `${env.apiBaseUrl}${path.startsWith("/") ? path : `/${path}`}`;
+  const cookieMode =
+    process.env.NEXT_PUBLIC_COOKIE_AUTH !== "false" &&
+    process.env.NEXT_PUBLIC_COOKIE_AUTH !== "0";
 
   let response: Response;
   try {
-    const cookieMode =
-      process.env.NEXT_PUBLIC_COOKIE_AUTH !== "false" &&
-      process.env.NEXT_PUBLIC_COOKIE_AUTH !== "0";
     let csrf: Record<string, string> = {};
     if (cookieMode && typeof window !== "undefined") {
       try {
@@ -305,9 +306,14 @@ async function request<T>(
 
   if (!response.ok) {
     const body = (data as ApiErrorBody | null) ?? null;
+    const sentBearer = Boolean(token && token !== "__cookie__");
+    const sentCookie =
+      cookieMode &&
+      (typeof window === "undefined" || browserCanUseAuthCookies());
     if (
       (response.status === 401 || response.status === 403) &&
-      authFailureHandler
+      authFailureHandler &&
+      (sentBearer || sentCookie)
     ) {
       try {
         authFailureHandler(response.status);

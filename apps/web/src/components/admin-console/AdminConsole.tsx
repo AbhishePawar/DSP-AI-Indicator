@@ -19,6 +19,7 @@ import {
 } from "@/lib/admin-console";
 import { useCollapsePanelsBelowLg } from "@/lib/a11y";
 import { cn } from "@/lib/utils";
+import { ZipAdminPanel } from "./ZipAdminPanel";
 import { AdminRightPanel } from "./RightPanel";
 import {
   AuditSection,
@@ -201,8 +202,8 @@ export function AdminConsole() {
   if (!session || !hasAdminAccess(permissions, roles)) {
     return (
       <EmptyState
-        title="Access unavailable."
-        description="Administration requires manage_users, manage_roles, configure_platform, view_audit, or the administrator role."
+        title="Access denied"
+        description="Administration requires manage_users, manage_roles, configure_platform, view_audit, or the administrator role. The server enforces this on every admin request."
         action={
           <Button size="sm" variant="secondary" onClick={() => router.push("/dashboard")}>
             Return to dashboard
@@ -231,6 +232,7 @@ export function AdminConsole() {
         Keyboard shortcuts: 1–9 switch sections, ] toggles the context panel,
         Ctrl+Enter refreshes.
       </p>
+      <ZipAdminPanel token={token} />
       <div className="flex min-h-0 flex-1 flex-col gap-5 lg:flex-row">
         <div
           role="region"

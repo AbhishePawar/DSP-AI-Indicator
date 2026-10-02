@@ -1,5 +1,6 @@
 import type { LoginPayload } from "@/lib/api/types";
 import type { RbacLoginResult, RbacUser } from "@/lib/api/rbacTypes";
+import { env } from "@/lib/env";
 import {
   clearCookieMeta,
   clearCsrfToken,
@@ -15,6 +16,21 @@ const STORAGE_KEY = "dsp.auth.session.v3";
 const LEGACY_STORAGE_KEY = "dsp.auth.session.v2";
 /** Sentinel — real JWTs stay HttpOnly; SPA must not persist secrets. */
 export const COOKIE_TOKEN_PLACEHOLDER = "__cookie__";
+
+/**
+ * HttpOnly cookies are only sent on same-origin API calls. A page on
+ * localhost:3000 calling 127.0.0.1:8000 cannot attach them, so the bearer
+ * token must be kept or the next navigation looks signed out.
+ */
+export function browserCanUseAuthCookies(): boolean {
+  if (typeof window === "undefined") return true;
+  try {
+    const apiOrigin = new URL(env.apiBaseUrl, window.location.href).origin;
+    return apiOrigin === window.location.origin;
+  } catch {
+    return false;
+  }
+}
 
 const SESSION_TTL_MS = 8 * 60 * 60 * 1000;
 const REMEMBER_TTL_MS = 30 * 24 * 60 * 60 * 1000;
@@ -118,9 +134,9 @@ export function sessionFromRbacLogin(
   const issuedAt = new Date().toISOString();
   const { user, tokens, session } = result;
   const roles = user.roles?.length ? user.roles : ["read_only"];
+  const cookieIssued = Boolean(result.cookie_auth) || Boolean(result.csrf_token);
   const useCookies =
-    cookieAuthPreferred() &&
-    (Boolean(result.cookie_auth) || Boolean(result.csrf_token));
+    cookieAuthPreferred() && cookieIssued && browserCanUseAuthCookies();
   if (result.csrf_token) {
     persistCsrfToken(result.csrf_token, rememberMe);
   }
@@ -183,7 +199,7 @@ function metaToSession(meta: CookieAuthMeta): Session {
 
 export function readStoredSession(): Session | null {
   if (typeof window === "undefined") return null;
-  if (cookieAuthPreferred()) {
+  if (cookieAuthPreferred() && browserCanUseAuthCookies()) {
     const meta = readCookieMeta();
     if (meta) {
       const session = metaToSession(meta);
@@ -221,6 +237,7 @@ export function readStoredSession(): Session | null {
 export function persistSession(session: Session): void {
   const isCookie =
     cookieAuthPreferred() &&
+    browserCanUseAuthCookies() &&
     (session.authMethod === "cookie_rbac" ||
       session.accessToken === COOKIE_TOKEN_PLACEHOLDER);
   if (isCookie) {

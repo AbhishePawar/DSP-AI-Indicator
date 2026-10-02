@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { useEffect, useId, useRef, useState } from "react";
 
 import { env } from "@/lib/env";
@@ -9,6 +10,7 @@ import { useTheme } from "@/providers/ThemeProvider";
 import { MARKETING_NAV } from "./content";
 
 export function MarketingHeader() {
+  const pathname = usePathname();
   const { cycleMode, resolved, mode } = useTheme();
   const [open, setOpen] = useState(false);
   const menuId = useId();
@@ -89,6 +91,7 @@ export function MarketingHeader() {
             <Link
               key={item.href}
               href={item.href}
+              aria-current={pathname === item.href ? "page" : undefined}
               className="inline-flex min-h-11 items-center text-sm text-[var(--muted)] transition-colors duration-[var(--motion-fast)] hover:text-[var(--fg)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent)] motion-reduce:transition-none"
             >
               {item.label}
@@ -143,6 +146,7 @@ export function MarketingHeader() {
               <li key={item.href}>
                 <Link
                   href={item.href}
+                  aria-current={pathname === item.href ? "page" : undefined}
                   className="flex min-h-11 items-center text-sm text-[var(--fg)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent)]"
                   onClick={() => setOpen(false)}
                 >

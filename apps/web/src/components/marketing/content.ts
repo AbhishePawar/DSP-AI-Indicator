@@ -6,6 +6,7 @@ export const MARKETING_NAV = [
   { href: "/pricing", label: "Pricing" },
   { href: "/faq", label: "FAQ" },
   { href: "/contact", label: "Contact" },
+  { href: "/admin", label: "Admin" },
 ] as const;
 
 export const FEATURES = [

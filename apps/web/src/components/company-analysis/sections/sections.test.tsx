@@ -177,6 +177,9 @@ describe("AiCopilotSection", () => {
     };
     expect(payload.question_id).toBe("freeform");
     expect(payload.freeform).toBe("Explain the economic moat.");
+    expect(await screen.findByText("Moat evidence is incomplete.")).toBeTruthy();
+    expect(screen.queryByText("Reviewing the analysis…")).toBeNull();
+    expect(screen.getByLabelText("Ask about this analysis")).not.toBeDisabled();
   });
 });
 

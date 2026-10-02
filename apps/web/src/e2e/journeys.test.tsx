@@ -108,9 +108,9 @@ describe("EPIC-F011 authentication & RBAC journey", () => {
     expect(loginRedirectUrl("/admin", true)).toContain("expired=1");
   });
 
-  it("filters admin navigation without elevated permissions", () => {
+  it("shows Admin navigation; authorization stays on the server", () => {
     const analyst = filterShellNav(["read_research"], ["research_analyst"]);
-    expect(analyst.some((i) => i.id === "admin")).toBe(false);
+    expect(analyst.some((i) => i.id === "admin")).toBe(true);
     expect(analyst.some((i) => i.id === "analysis")).toBe(true);
 
     const admin = filterShellNav(["manage_users"], ["administrator"]);
@@ -119,7 +119,9 @@ describe("EPIC-F011 authentication & RBAC journey", () => {
 
   it("evaluates admin nav access rules", () => {
     const adminItem = SHELL_NAV.find((i) => i.id === "admin")!;
-    expect(canAccessNavItem(adminItem, [], [])).toBe(false);
+    expect(adminItem.href).toBe("/admin");
+    expect(adminItem.label).toBe("Admin");
+    expect(canAccessNavItem(adminItem, [], [])).toBe(true);
     expect(canAccessNavItem(adminItem, ["view_audit"], [])).toBe(true);
     expect(canAccessNavItem(adminItem, [], ["administrator"])).toBe(true);
   });
@@ -135,7 +137,7 @@ describe("EPIC-F011 navigation & routing journey", () => {
         "/portfolio",
         "/research",
         "/admin",
-        "/settings",
+        "/control-center",
         "/profile",
       ]),
     );

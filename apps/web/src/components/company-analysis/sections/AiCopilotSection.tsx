@@ -77,6 +77,11 @@ export function AiCopilotSection({
   const idRef = useRef(0);
 
   const lastSubmittedSeed = useRef<string | null>(null);
+  const requestRef = useRef(analyseRequest);
+  const responseRef = useRef(analyseResponse);
+  requestRef.current = analyseRequest;
+  responseRef.current = analyseResponse;
+  const [busy, setBusy] = useState(false);
 
   const askMutation = useMutation({
     mutationFn: async (args: { questionId: SuggestedQuestionId | "freeform"; text: string }) => {
@@ -84,8 +89,8 @@ export function AiCopilotSection({
         {
           question_id: args.questionId,
           freeform: args.questionId === "freeform" ? args.text : undefined,
-          request: analyseRequest,
-          response: analyseResponse,
+          request: requestRef.current,
+          response: responseRef.current,
           market_context: {
             ticker: view.ticker,
             company: view.company,
@@ -96,6 +101,7 @@ export function AiCopilotSection({
       );
     },
     onMutate: (args) => {
+      setBusy(true);
       idRef.current += 1;
       setMessages((prev) => [
         ...prev,
@@ -128,22 +134,28 @@ export function AiCopilotSection({
         },
       ]);
     },
+    onSettled: () => {
+      setBusy(false);
+    },
   });
+
+  const submitRef = useRef(askMutation.mutate);
+  submitRef.current = askMutation.mutate;
 
   useEffect(() => {
     const text = seedQuestion?.trim() ?? "";
     if (!text) return;
-    if (presentation !== "conversation" || !analyseResponse) {
+    if (presentation !== "conversation" || !responseRef.current) {
       setDraft(text);
       return;
     }
-    if (lastSubmittedSeed.current === text || askMutation.isPending) return;
+    if (lastSubmittedSeed.current === text) return;
     lastSubmittedSeed.current = text;
     setDraft("");
-    askMutation.mutate({ questionId: "freeform", text });
-  }, [seedQuestion, analyseResponse, presentation, askMutation]);
+    submitRef.current({ questionId: "freeform", text });
+  }, [seedQuestion, analyseResponse, presentation]);
 
-  const disabled = !analyseResponse || askMutation.isPending;
+  const disabled = !analyseResponse || busy;
 
   function ask(questionId: SuggestedQuestionId | "freeform", text: string) {
     if (!text.trim() || disabled) return;
@@ -211,7 +223,7 @@ export function AiCopilotSection({
               </div>
             </div>
           ))}
-          {askMutation.isPending ? (
+          {busy ? (
             <p className="text-xs text-[var(--muted)]" role="status">
               Reviewing the analysis…
             </p>
@@ -304,7 +316,7 @@ export function AiCopilotSection({
               ) : null}
             </div>
           ))}
-          {askMutation.isPending ? (
+          {busy ? (
             <p className="text-xs text-[var(--muted)]" role="status">
               Copilot is thinking…
             </p>

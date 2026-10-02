@@ -86,6 +86,8 @@ describe("FigmaSignalFeed (Research Intelligence)", () => {
     expect(signalsMock).toHaveBeenLastCalledWith(
       expect.objectContaining({ sector: "Banking" }),
     );
+    expect(screen.queryByText("TCS")).toBeNull();
+    expect(screen.getByText("HDFCBANK")).toBeTruthy();
   });
 
   it("renders honest empty and error states without demo signals", async () => {

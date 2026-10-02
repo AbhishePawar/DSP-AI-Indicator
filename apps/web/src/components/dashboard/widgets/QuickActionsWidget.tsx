@@ -44,7 +44,7 @@ const ACTIONS = [
   { href: "/profile", label: "Profile", id: "profile", hint: "Identity" },
   {
     href: "/admin",
-    label: "Administration",
+    label: "Admin",
     id: "admin",
     hint: "Ops",
   },

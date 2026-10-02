@@ -17,7 +17,7 @@ export default function AdminPage() {
       <div className="space-y-4">
         <PageHeader
           title="Admin Panel"
-          description="System administration from certified /api/v1/admin APIs. Display-only — sample users from the design file are not shown."
+          description="System administration · User management. Counts and accounts come from /api/v1/admin."
         />
         <Suspense fallback={<WorkspaceSkeleton />}>
           <AdminConsole />

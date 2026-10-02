@@ -273,7 +273,7 @@ export function WorkflowSummaryWidget() {
       <WidgetUnavailable
         description="Data unavailable. Workflow queues will surface when admin workflow APIs are consumed in a later epic."
         href="/admin"
-        actionLabel="Administration"
+        actionLabel="Admin"
       />
     </DashboardWidgetShell>
   );

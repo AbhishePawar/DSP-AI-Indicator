@@ -51,9 +51,11 @@ describe("EPIC-F003 navigation registry", () => {
     ).toBe(true);
   });
 
-  it("filters admin without permissions", () => {
+  it("shows Admin in navigation; the server still authorizes /admin", () => {
     const visible = filterShellNav(["read_research"], ["research_analyst"]);
-    expect(visible.some((i) => i.id === "admin")).toBe(false);
+    expect(visible.some((i) => i.id === "admin" && i.label === "Admin")).toBe(
+      true,
+    );
     expect(visible.some((i) => i.id === "analysis")).toBe(true);
   });
 
@@ -62,10 +64,10 @@ describe("EPIC-F003 navigation registry", () => {
     expect(visible.some((i) => i.id === "admin")).toBe(true);
   });
 
-  it("hides admin for legacy empty claims", () => {
+  it("keeps Admin visible for legacy empty claims", () => {
     expect(
       canAccessNavItem(SHELL_NAV.find((i) => i.id === "admin")!, [], []),
-    ).toBe(false);
+    ).toBe(true);
     expect(
       canAccessNavItem(SHELL_NAV.find((i) => i.id === "analysis")!, [], []),
     ).toBe(true);
@@ -76,6 +78,7 @@ describe("EPIC-F003 navigation registry", () => {
     expect(groups.map((g) => g.section)).toEqual([
       "overview",
       "research",
+      "ops",
       "account",
     ]);
   });
@@ -110,7 +113,7 @@ describe("EPIC-F003 navigation registry", () => {
     );
     expect(analyst).not.toContain("/launch");
     expect(analyst).not.toContain("/screening");
-    expect(analyst).not.toContain("/admin");
+    expect(analyst).toContain("/admin");
 
     const admin = searchableRoutes(
       ["manage_users", "read_research"],
@@ -158,6 +161,9 @@ describe("EPIC-F003 navigation registry", () => {
     expect(isActivePath("/dashboard", "/analysis")).toBe(false);
     expect(isActivePath("/analysis/compare", "/analysis")).toBe(false);
     expect(isActivePath("/analysis/compare", "/analysis/compare")).toBe(true);
+    expect(isActivePath("/admin", "/admin")).toBe(true);
+    expect(isActivePath("/admin/control-center", "/admin")).toBe(false);
+    expect(isActivePath("/dashboard", "/admin")).toBe(false);
   });
 });
 

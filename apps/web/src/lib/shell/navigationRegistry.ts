@@ -199,21 +199,10 @@ export const SHELL_NAV: readonly ShellNavItem[] = [
   {
     id: "admin",
     href: "/admin",
-    label: "Administration",
-    description: "Enterprise administration",
+    label: "Admin",
+    description: "System administration · User management",
     section: "ops",
     icon: "admin",
-    access: {
-      anyOfPermissions: [
-        "manage_users",
-        "manage_roles",
-        "configure_platform",
-        "view_audit",
-        "admin.view",
-        "admin.manage",
-      ],
-      anyOfRoles: ["administrator", "owner"],
-    },
   },
   {
     id: "saas",
@@ -657,6 +646,7 @@ export function searchableRoutes(
 }
 
 export function isActivePath(pathname: string, href: string): boolean {
+  if (href === "/admin") return pathname === "/admin";
   if (pathname === href) return true;
   if (!pathname.startsWith(`${href}/`)) return false;
   // Security Compare lives under /analysis/compare and must not light up Company Analysis.

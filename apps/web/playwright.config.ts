@@ -1,4 +1,9 @@
 import { defineConfig, devices } from "@playwright/test";
+import { loadP109LocalEnv } from "./e2e/browser/p109/env";
+
+// Playwright does not automatically load apps/web/.env.local. Load it explicitly
+// before any configuration reads process.env. Explicit shell/CI variables win.
+loadP109LocalEnv();
 
 /**
  * EPIC-019A — Visual regression + multi-browser smoke.

@@ -1812,13 +1812,37 @@ export function InvestmentContextSection({ model }: { model: ZipResearchViewMode
   );
 }
 
-export function EvidenceExplorerSection({ model, analysisId }: { model: ZipResearchViewModel; analysisId?: string }) {
+export function EvidenceExplorerSection({
+  model,
+  analysisId,
+}: {
+  model: ZipResearchViewModel;
+  analysisId?: string;
+}) {
   const [open, setOpen] = useState(false);
+  const [expandedIndex, setExpandedIndex] = useState<number | null>(null);
+
+  const effectiveAnalysisId = analysisId || model.analysisId || "Data unavailable";
+  const effectiveAuditRef = model.auditReference || "Unavailable";
+  const evidenceList = model.evidence || [];
 
   return (
     <div style={{ marginBottom: 36 }}>
-      <div style={{ fontSize: 10, color: "var(--muted-foreground)", fontFamily: "var(--font-data)", letterSpacing: "0.1em", marginBottom: 16, display: "flex", alignItems: "center", gap: 8 }}>
-        <span style={{ padding: "2px 8px", background: "var(--secondary)", borderRadius: 4 }}>DEEP DIVE</span>
+      <div
+        style={{
+          fontSize: 10,
+          color: "var(--muted-foreground)",
+          fontFamily: "var(--font-data)",
+          letterSpacing: "0.1em",
+          marginBottom: 16,
+          display: "flex",
+          alignItems: "center",
+          gap: 8,
+        }}
+      >
+        <span style={{ padding: "2px 8px", background: "var(--secondary)", borderRadius: 4 }}>
+          DEEP DIVE
+        </span>
         Supporting Evidence
       </div>
       <SectionHead
@@ -1827,58 +1851,254 @@ export function EvidenceExplorerSection({ model, analysisId }: { model: ZipResea
         title="Research objects"
         subtitle="Supporting Evidence and provenance traceable to backend stage analysis."
       />
-      <Card style={{ marginBottom: 14, padding: "14px 18px" }}>
-        <dl style={{ margin: 0, display: "flex", gap: 20 }}>
+
+      {/* Provenance Card */}
+      <Card style={{ marginBottom: 14, padding: "16px 20px" }}>
+        <dl
+          style={{
+            margin: 0,
+            display: "grid",
+            gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))",
+            gap: 16,
+          }}
+        >
           <div>
-            <dt style={{ fontSize: 11, color: "var(--muted-foreground)", fontFamily: "var(--font-data)" }}>Analysis ID</dt>
-            <dd style={{ fontSize: 14, fontWeight: 600, margin: 0, color: "var(--foreground)", fontFamily: "var(--font-data)" }}>
-              {analysisId || "Data unavailable"}
+            <dt style={{ fontSize: 11, color: "var(--muted-foreground)", fontFamily: "var(--font-data)" }}>
+              Analysis ID
+            </dt>
+            <dd
+              style={{
+                fontSize: 14,
+                fontWeight: 600,
+                margin: "4px 0 0",
+                color: "var(--foreground)",
+                fontFamily: "var(--font-data)",
+              }}
+            >
+              {effectiveAnalysisId}
+            </dd>
+          </div>
+          <div>
+            <dt style={{ fontSize: 11, color: "var(--muted-foreground)", fontFamily: "var(--font-data)" }}>
+              Audit Reference
+            </dt>
+            <dd
+              style={{
+                fontSize: 14,
+                fontWeight: 600,
+                margin: "4px 0 0",
+                color: "var(--foreground)",
+                fontFamily: "var(--font-data)",
+              }}
+            >
+              {effectiveAuditRef}
             </dd>
           </div>
         </dl>
       </Card>
-      <button
-        type="button"
-        onClick={() => setOpen((v) => !v)}
-        style={{
-          marginBottom: 12,
-          background: "none",
-          border: "1px solid var(--border)",
-          borderRadius: 8,
-          padding: "8px 16px",
-          fontSize: 13,
-          color: "var(--muted-foreground)",
-          cursor: "pointer",
-          fontFamily: "var(--font-body)",
-        }}
-      >
-        {open ? "▲ Hide evidence trail" : "▼ View evidence trail"}
-      </button>
+
+      {/* Evidence Trail Control */}
+      <div style={{ marginBottom: 14, display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 12 }}>
+        <button
+          type="button"
+          aria-expanded={open}
+          aria-controls="evidence-trail-container"
+          onClick={() => setOpen((v) => !v)}
+          style={{
+            background: "var(--surface-2, #181e2e)",
+            border: "1px solid var(--border)",
+            borderRadius: "var(--radius-md, 8px)",
+            padding: "8px 16px",
+            fontSize: 13,
+            fontWeight: 500,
+            color: "var(--foreground)",
+            cursor: "pointer",
+            fontFamily: "var(--font-body)",
+            display: "inline-flex",
+            alignItems: "center",
+            gap: 8,
+            transition: "all 0.15s ease",
+          }}
+        >
+          <span>{open ? "▲ Hide evidence trail" : "▼ View evidence trail"}</span>
+          <span
+            style={{
+              fontSize: 10,
+              fontFamily: "var(--font-data)",
+              padding: "1px 6px",
+              borderRadius: 99,
+              background: "var(--card, #111520)",
+              border: "1px solid var(--border)",
+              color: "var(--muted-foreground)",
+            }}
+          >
+            {evidenceList.length} items
+          </span>
+        </button>
+      </div>
+
+      {/* Evidence Trail Items */}
       {open && (
-        <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-          {model.evidence.map((e, i) => (
-            <Card key={i} style={{ padding: "14px 18px" }}>
-              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(130px, 1fr))", gap: 12 }}>
-                {[
-                  { l: "METRIC", v: e.metric },
-                  { l: "VALUE", v: e.value },
-                  { l: "PERIOD", v: e.period },
-                  { l: "SOURCE", v: e.source },
-                  { l: "STAGE", v: e.stage },
-                  { l: "CONFIDENCE", v: e.confidence },
-                ].map((f) => (
-                  <div key={f.l}>
-                    <div style={{ fontSize: 9, color: "var(--muted-foreground)", fontFamily: "var(--font-data)", letterSpacing: "0.09em", marginBottom: 3 }}>
-                      {f.l}
-                    </div>
-                    <div style={{ fontSize: 12, color: "var(--foreground)", fontFamily: "var(--font-data)" }}>
-                      {f.v}
-                    </div>
-                  </div>
-                ))}
+        <div id="evidence-trail-container" style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+          {evidenceList.length === 0 ? (
+            <Card style={{ padding: "20px 22px", textAlign: "center" }}>
+              <div style={{ fontSize: 13, color: "var(--muted-foreground)", fontFamily: "var(--font-body)" }}>
+                No evidence items reported by the backend analytical pipeline.
               </div>
             </Card>
-          ))}
+          ) : (
+            evidenceList.map((e, i) => {
+              const isRowExpanded = expandedIndex === i;
+              const sourceLabel = e.source && e.source.trim() ? e.source : "Source unavailable";
+
+              return (
+                <Card key={i} style={{ padding: "16px 20px" }}>
+                  {/* Primary Row */}
+                  <div
+                    style={{
+                      display: "flex",
+                      justifyContent: "space-between",
+                      alignItems: "flex-start",
+                      flexWrap: "wrap",
+                      gap: 12,
+                    }}
+                  >
+                    <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+                      <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
+                        <span
+                          style={{
+                            fontSize: 10,
+                            fontWeight: 600,
+                            letterSpacing: "0.06em",
+                            textTransform: "uppercase",
+                            padding: "2px 8px",
+                            borderRadius: 4,
+                            background: "var(--surface-2, #181e2e)",
+                            border: "1px solid var(--border)",
+                            color: e.source ? "var(--foreground)" : "var(--muted-foreground)",
+                            fontFamily: "var(--font-data)",
+                          }}
+                        >
+                          {sourceLabel}
+                        </span>
+                        <span
+                          style={{
+                            fontSize: 11,
+                            color: "var(--muted-foreground)",
+                            fontFamily: "var(--font-data)",
+                          }}
+                        >
+                          {e.stage} · {e.period}
+                        </span>
+                      </div>
+                      <div
+                        style={{
+                          fontSize: 14,
+                          fontWeight: 600,
+                          color: "var(--foreground)",
+                          fontFamily: "var(--font-heading)",
+                        }}
+                      >
+                        {e.metric}
+                      </div>
+                    </div>
+
+                    <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
+                      <div style={{ textAlign: "right" }}>
+                        <div
+                          style={{
+                            fontSize: 16,
+                            fontWeight: 700,
+                            color: "var(--foreground)",
+                            fontFamily: "var(--font-data)",
+                            fontVariantNumeric: "tabular-nums",
+                          }}
+                        >
+                          {e.value}
+                        </div>
+                        <div
+                          style={{
+                            fontSize: 10,
+                            color: "var(--muted-foreground)",
+                            fontFamily: "var(--font-data)",
+                            letterSpacing: "0.04em",
+                          }}
+                        >
+                          Confidence: {e.confidence}
+                        </div>
+                      </div>
+
+                      <button
+                        type="button"
+                        aria-expanded={isRowExpanded}
+                        aria-label={`Toggle details for ${e.metric}`}
+                        onClick={() => setExpandedIndex(isRowExpanded ? null : i)}
+                        style={{
+                          background: "none",
+                          border: "1px solid var(--border)",
+                          borderRadius: "var(--radius-sm, 6px)",
+                          padding: "6px 10px",
+                          fontSize: 11,
+                          color: "var(--muted-foreground)",
+                          cursor: "pointer",
+                          fontFamily: "var(--font-body)",
+                        }}
+                      >
+                        {isRowExpanded ? "Less" : "Details"}
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Expanded Technical Telemetry */}
+                  {isRowExpanded && (
+                    <div
+                      style={{
+                        marginTop: 14,
+                        paddingTop: 12,
+                        borderTop: "1px solid var(--border)",
+                        display: "grid",
+                        gridTemplateColumns: "repeat(auto-fit, minmax(130px, 1fr))",
+                        gap: 12,
+                      }}
+                    >
+                      {[
+                        { l: "STAGE", v: e.stage },
+                        { l: "METRIC", v: e.metric },
+                        { l: "PERIOD", v: e.period },
+                        { l: "VALUE", v: e.value },
+                        { l: "SOURCE", v: sourceLabel },
+                        { l: "CONFIDENCE", v: e.confidence },
+                        { l: "AUDIT REF", v: effectiveAuditRef },
+                      ].map((f) => (
+                        <div key={f.l}>
+                          <div
+                            style={{
+                              fontSize: 9,
+                              color: "var(--muted-foreground)",
+                              fontFamily: "var(--font-data)",
+                              letterSpacing: "0.08em",
+                              marginBottom: 3,
+                            }}
+                          >
+                            {f.l}
+                          </div>
+                          <div
+                            style={{
+                              fontSize: 12,
+                              color: "var(--foreground)",
+                              fontFamily: "var(--font-data)",
+                            }}
+                          >
+                            {f.v}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </Card>
+              );
+            })
+          )}
         </div>
       )}
     </div>

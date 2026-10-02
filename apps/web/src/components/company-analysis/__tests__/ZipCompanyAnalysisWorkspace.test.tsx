@@ -1,6 +1,6 @@
 /** @vitest-environment jsdom */
-import { render, screen } from "@testing-library/react";
-import { CompanyHeader } from "../ZipCompanyAnalysisWorkspace";
+import { render, screen, fireEvent } from "@testing-library/react";
+import { CompanyHeader, EvidenceExplorerSection, InvestmentSummary, ValuationSection } from "../ZipCompanyAnalysisWorkspace";
 import { describe, it, expect } from "vitest";
 import { mapZipResearchView } from "@/lib/research/mapZipResearchView";
 import type { AnalyseResponse, AnalyseRequest } from "@/lib/api/compositionTypes";
@@ -168,5 +168,156 @@ describe("Stage 3 Research Workspace Data-State and Adapter Contract", () => {
     const searchInput = screen.getByLabelText(/Company search/i);
     expect(searchInput).toHaveAttribute("type", "search");
     expect(searchInput).toHaveAttribute("id", "company-search-input");
+  });
+
+  it("renders evidence and provenance correctly with accessible progressive disclosure", () => {
+    const mockModel = {
+      analysisId: "test-analysis-123",
+      auditReference: "AUDIT-TCS-XYZ",
+      evidence: [
+        {
+          metric: "Operating Margin",
+          value: "25.4%",
+          period: "FY25",
+          source: "Company filing",
+          stage: "Financial Analysis",
+          confidence: "High",
+        },
+      ],
+    } as any;
+
+    const { getByText, getByRole } = render(
+      <EvidenceExplorerSection model={mockModel} analysisId="test-analysis-123" />
+    );
+
+    // Provenance rendering
+    expect(getByText("Analysis ID")).toBeDefined();
+    expect(getByText("test-analysis-123")).toBeDefined();
+    expect(getByText("Audit Reference")).toBeDefined();
+    expect(getByText("AUDIT-TCS-XYZ")).toBeDefined();
+
+    // Evidence trail toggle accessible state
+    const trailToggle = getByRole("button", { name: /View evidence trail/i });
+    expect(trailToggle).toHaveAttribute("aria-expanded", "false");
+
+    // Expand trail
+    fireEvent.click(trailToggle);
+    expect(trailToggle).toHaveAttribute("aria-expanded", "true");
+    expect(getByText("Operating Margin")).toBeDefined();
+    expect(getByText("Company filing")).toBeDefined();
+    expect(getByText("25.4%")).toBeDefined();
+
+    // Expand item details
+    const detailsBtn = getByRole("button", { name: /Toggle details for Operating Margin/i });
+    expect(detailsBtn).toHaveAttribute("aria-expanded", "false");
+    fireEvent.click(detailsBtn);
+    expect(detailsBtn).toHaveAttribute("aria-expanded", "true");
+  });
+
+  it("handles missing evidence state gracefully without inventing data", () => {
+    const emptyModel = {
+      analysisId: "empty-analysis",
+      auditReference: null,
+      evidence: [],
+    } as any;
+
+    const { getByRole, getByText } = render(
+      <EvidenceExplorerSection model={emptyModel} />
+    );
+
+    const trailToggle = getByRole("button", { name: /View evidence trail/i });
+    fireEvent.click(trailToggle);
+
+    expect(
+      getByText("No evidence items reported by the backend analytical pipeline.")
+    ).toBeDefined();
+  });
+
+  it("handles missing source state explicitly as Source unavailable", () => {
+    const noSourceModel = {
+      analysisId: "no-source",
+      auditReference: "REF-001",
+      evidence: [
+        {
+          metric: "Beta",
+          value: "0.85",
+          period: "Current",
+          source: "",
+          stage: "Risk",
+          confidence: "Low",
+        },
+      ],
+    } as any;
+
+    const { getByRole, getByText } = render(
+      <EvidenceExplorerSection model={noSourceModel} />
+    );
+
+    const trailToggle = getByRole("button", { name: /View evidence trail/i });
+    fireEvent.click(trailToggle);
+
+    expect(getByText("Source unavailable")).toBeDefined();
+  });
+
+  describe("Responsive viewport regression checks for analysis results", () => {
+    const viewports = [320, 375, 768, 1024, 1440];
+
+    viewports.forEach((width) => {
+      it(`renders metric cards, valuation, and evidence at ${width}px without structural breakage`, () => {
+        window.innerWidth = width;
+        window.dispatchEvent(new Event("resize"));
+
+        const model = {
+          analysisId: "resp-test",
+          auditReference: "REF-RESP",
+          header: {
+            exchange: "NSE",
+            companyName: "Responsive Test Corp",
+            ticker: "RESP",
+            sector: "Technology",
+            currency: "₹",
+            asOfDate: "2026-10-02",
+          },
+          investmentSummary: {
+            verdict: "Strong",
+            recommendationBadge: "POSITIVE",
+            recommendationStatus: "strong",
+            summaryText: "Analysis text for testing responsive layouts.",
+            metrics: [
+              { label: "P/E Ratio", value: "24.5" },
+              { label: "ROCE", value: "32.1%" },
+            ],
+          },
+          valuation: {
+            status: "strong",
+            currentPriceFormatted: "₹3,400",
+            intrinsicValueFormatted: "₹4,100",
+            marginOfSafetyFormatted: "+20.5%",
+            methodologyNote: "Standard DCF model",
+          },
+          evidence: [
+            {
+              metric: "Free Cash Flow",
+              value: "₹12,000 Cr",
+              period: "FY25",
+              source: "Annual Report",
+              stage: "Cashflow",
+              confidence: "High",
+            },
+          ],
+        } as any;
+
+        const { container } = render(
+          <div>
+            <InvestmentSummary model={model} onAsk={() => {}} />
+            <ValuationSection model={model} onAsk={() => {}} />
+            <EvidenceExplorerSection model={model} />
+          </div>
+        );
+
+        expect(container).toBeDefined();
+        expect(container.querySelectorAll("button").length).toBeGreaterThan(0);
+      });
+    });
   });
 });

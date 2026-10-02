@@ -1028,17 +1028,30 @@ export function InvestmentSummary({
               fontSize: 10,
               color: "var(--c-dsp, #3b82f6)",
               fontFamily: "var(--font-data)",
-              letterSpacing: "0.1em",
+              letterSpacing: "0.12em",
               marginBottom: 4,
+              textTransform: "uppercase",
             }}
           >
-            INVESTMENT SUMMARY
+            RESEARCH OUTCOME
           </div>
-          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-            <span
+          <div style={{ display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
+            <h2
               style={{
                 fontSize: 22,
                 fontWeight: 700,
+                color: "var(--foreground)",
+                fontFamily: "var(--font-heading)",
+                margin: 0,
+              }}
+            >
+              Investment Summary
+            </h2>
+            <span style={{ fontSize: 18, color: "var(--muted-foreground)" }}>·</span>
+            <span
+              style={{
+                fontSize: 20,
+                fontWeight: 600,
                 color: "var(--foreground)",
                 fontFamily: "var(--font-heading)",
               }}

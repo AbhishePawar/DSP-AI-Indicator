@@ -1038,7 +1038,8 @@ export function BuffettAssessmentTable({
       />
       <Card>
         <div style={{ overflowX: "auto" }}>
-          <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13 }}>
+          <table role="table" aria-label="Buffett Assessment Dimension Matrix" style={{ width: "100%", borderCollapse: "collapse", fontSize: 13 }}>
+      <caption className="sr-only" style={{ position: "absolute", width: 1, height: 1, padding: 0, margin: -1, overflow: "hidden", clip: "rect(0,0,0,0)", border: 0 }}>Evaluation of 10 core Buffett investment criteria</caption>
             <thead>
               <tr style={{ borderBottom: "1px solid var(--border)" }}>
                 <th style={{ textAlign: "left", padding: "8px 12px", fontFamily: "var(--font-data)", fontSize: 10, letterSpacing: "0.08em", color: "var(--muted-foreground)", fontWeight: 400 }}>

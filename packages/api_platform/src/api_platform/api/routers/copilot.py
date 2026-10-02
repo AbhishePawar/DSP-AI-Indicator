@@ -13,8 +13,6 @@ from api_platform.api.copilot_schemas import (
     CopilotCompleteRequest,
     CopilotCompleteResponse,
     CopilotProviderInfo,
-    CopilotQueryRequest,
-    CopilotQueryResponse,
 )
 from api_platform.api.copilot_v2_schemas import CopilotV2Request
 from api_platform.api.dependencies import ApiState, get_api_state
@@ -197,41 +195,6 @@ def copilot_history_delete(
         )
     return JSONResponse({"ok": True, "deleted": True, "message": None})
 
-
-
-
-@router.post("/copilot/query", response_model=CopilotQueryResponse)
-def copilot_query(
-    body: CopilotQueryRequest,
-    state: ApiState = Depends(get_api_state),
-) -> CopilotQueryResponse:
-    """Execute contextual copilot research query delegating to copilot service."""
-    if state.copilot_service is None:
-        raise ApiValidationError("Copilot service is not configured")
-
-    question_text = body.query or body.prompt or ""
-    context_meta = {
-        "symbol": body.symbol,
-        "analysis_id": body.analysis_id,
-        "section_context": body.section_context,
-        **(body.market_context or {}),
-    }
-    result = state.copilot_service.complete(
-        question_id="freeform",
-        freeform=question_text,
-        market_context=context_meta,
-    )
-    return CopilotQueryResponse(
-        content=result.content,
-        citations=result.citations,
-        intent="research_query",
-        unavailable=result.unavailable,
-        provider_id=result.provider_id,
-        limitations=list(result.limitations),
-        symbol=body.symbol,
-        analysis_id=body.analysis_id,
-        section_context=body.section_context,
-    )
 
 @router.post("/copilot/complete", response_model=CopilotCompleteResponse)
 def copilot_complete(

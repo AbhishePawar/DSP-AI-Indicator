@@ -422,18 +422,20 @@ export const api = {
     body: import("@/lib/api/copilotTypes").CopilotQueryRequestBody,
     options?: RequestOptions
   ) =>
-    request<import("@/lib/api/copilotTypes").CopilotQueryResponseBody>(
-      "/copilot/query",
+    request<import("@/lib/api/copilotTypes").CopilotCompleteResponseBody>(
+      "/copilot/complete",
       {
         method: "POST",
         body: JSON.stringify({
-          query: body.query || body.prompt || "",
-          symbol: body.symbol,
-          analysis_id: body.analysis_id,
-          section_context: body.section_context,
-          prompt: body.prompt || body.query || "",
-          system_instruction: body.system_instruction,
-          market_context: body.market_context,
+          question_id: "freeform",
+          freeform: body.prompt || body.query || "",
+          market_context: {
+            symbol: body.symbol ?? null,
+            analysis_id: body.analysis_id ?? null,
+            section_context: body.section_context ?? null,
+            query: body.query || body.prompt || "",
+            ...(body.market_context || {}),
+          },
         }),
         ...options,
       }

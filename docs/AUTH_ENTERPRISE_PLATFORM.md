@@ -56,12 +56,22 @@ OAuth uses **PKCE (S256)** + CSRF `state`. Account linking merges by verified em
 | Enterprise Client | `enterprise_client` |
 | Read Only Viewer | `read_only` |
 
-Dev seed (only if no Super Admin / Administrator exists):
+### Development admin seed and P1-09 fixture credential
+
+The development admin is created only when no Super Admin / Administrator already exists and an explicit `DSP_SEED_ADMIN_PASSWORD` is supplied. There is **no checked-in default password**.
 
 - Email: `admin@dspai.local`
 - Username: `admin`
-- Password: `Admin@123` (override `DSP_SEED_ADMIN_PASSWORD`)
-- Role: `super_admin`
+- Password source: `DSP_SEED_ADMIN_PASSWORD`
+- Role: `administrator`
+
+For the P1-09 browser journey, `apps/web/playwright.config.ts` explicitly loads `apps/web/.env.local`. The reusable validator in `apps/web/e2e/browser/p109/env.ts` resolves credentials in this order:
+
+1. `DSP_SEED_ADMIN_PASSWORD` — canonical source
+2. `DSP_P109_PASSWORD` — legacy fallback only
+3. Missing configuration error before the browser journey starts
+
+The actual fixture credential must remain outside tracked source code, documentation, screenshots, logs, and commits. Configure the same canonical environment variable for the backend seed process and the Playwright process.
 
 ## Security controls
 
@@ -74,7 +84,7 @@ Dev seed (only if no Super Admin / Administrator exists):
 - Account lockout (`DSP_AUTH_LOCKOUT_THRESHOLD`, `DSP_AUTH_LOCKOUT_SECONDS`)
 - Session expiry + Remember Me TTL
 - Login audit logs + device management + **expiring** trusted devices (`DSP_AUTH_TRUSTED_DEVICE_DAYS`, default 30 — "remember this device" always lapses, never trusted forever)
-- MFA implemented (TOTP enrollment/verify/enable/disable, encrypted-at-rest secrets, recovery codes with status + regeneration, enrollment/verify rate limiting, forced re-authentication on disable/regenerate) and WebAuthn/Passkey implemented (registration + authentication, discoverable credentials) — both gated by `DSP_AUTH_MFA=true`; login contracts stay additive-stable (`mfa_required` + `mfa_token` + `methods` only appear when a factor is actually enrolled)
+- MFA implemented (TOTP enrollment/verify/enable/disable, encrypted-at-rest secrets, recovery codes with status + regeneration, forced re-authentication on disable/regenerate) and WebAuthn/Passkey implemented (registration + authentication, discoverable credentials) — both gated by `DSP_AUTH_MFA=true`; login contracts stay additive-stable (`mfa_required` + `mfa_token` + `methods` only appear when a factor is actually enrolled)
 
 ## Key API routes
 
@@ -90,7 +100,6 @@ Dev seed (only if no Super Admin / Administrator exists):
 | Access requests | `POST/GET /auth/enterprise/access-requests`, invitations/accept |
 | MFA | `POST /auth/mfa/{enroll,enable,verify,disable}`, `GET /auth/mfa/recovery-codes`, `POST /auth/mfa/recovery-codes/regenerate` (canonical); `POST /auth/mfa/totp/{enroll,enroll/confirm,verify,disable}` (pre-existing aliases, unchanged); `POST /auth/mfa/webauthn/{register,register/complete,authenticate,authenticate/complete,credentials/remove}`, `GET /auth/mfa/webauthn/credentials` — all `DSP_AUTH_MFA=true` |
 | Passkey (primary login) | `POST /auth/passkey/{register/begin,register/complete,login/begin,login/complete}`, `GET /auth/passkey`, `DELETE /auth/passkey/{credential_id}` — `DSP_AUTH_MFA=true` |
-| Admin | provision, status, unlock, force reset, roles, revoke sessions, login history |
 
 ## SMS / Email adapters
 
@@ -105,23 +114,11 @@ TOTP enrollment is two-phase and encrypted at rest: `POST /auth/mfa/enroll` issu
 
 ## Refresh token rotation & reuse detection
 
-`POST /auth/rbac/refresh` (and `EnterpriseAuthPlatform.refresh_session`, a
-thin bridge over the same `AuthenticationService.refresh` used by that
-endpoint) rotates the refresh token on every call: the presented token is
-invalidated in the same atomic write that mints its replacement, so a
-refresh token can only ever be used once. Presenting a token that has
-already been rotated away — replay, forgery, or a losing concurrent
-request — revokes the entire session (the refresh-token family, since one
-A009 session has exactly one active refresh-token lineage) rather than
-just rejecting the one bad token. `refresh.issued`, `refresh.rotated`,
-`refresh.reused`, `refresh.revoked`, and `session.revoked` are recorded in
-the same audit trail as every other authentication event. See
-[ENTERPRISE_AUTH_PLATFORM.md §3e](security/ENTERPRISE_AUTH_PLATFORM.md) for
-the full design, sequence diagrams, and security model.
+`POST /auth/rbac/refresh` (and `EnterpriseAuthPlatform.refresh_session`, a thin bridge over the same `AuthenticationService.refresh` used by that endpoint) rotates the refresh token on every call: the presented token is invalidated in the same atomic write that mints its replacement, so a refresh token can only ever be used once. Presenting a token that has already been rotated away — replay, forgery, or a losing concurrent request — revokes the entire session (the refresh-token family, since one A009 session has exactly one active refresh-token lineage) rather than just rejecting the one bad token. `refresh.issued`, `refresh.rotated`, `refresh.reused`, `refresh.revoked`, and `session.revoked` are recorded in the same audit trail as every other authentication event. See [ENTERPRISE_AUTH_PLATFORM.md §3e](security/ENTERPRISE_AUTH_PLATFORM.md) for the full design, sequence diagrams, and security model.
 
 ## Passkey (WebAuthn) — primary, passwordless sign-in
 
-The same `WebAuthnAdapter`/credential store used for MFA step-up above also powers a fully passwordless, primary sign-in path under `/auth/passkey/*` (`GET /auth/enterprise/providers` → `passkey.available`). `login/begin` requests a *discoverable* ("usernameless") credential challenge — no identifier required, the browser's own account picker supplies it — and `login/complete` verifies the assertion and issues a full session (HttpOnly cookies + JWT) exactly like password/OAuth/OTP login. A credential registered via either `/auth/mfa/webauthn/register*` or `/auth/passkey/register/*` works for both entry points. See [ENTERPRISE_AUTH_PLATFORM.md §3c](security/ENTERPRISE_AUTH_PLATFORM.md) for ceremony sequence diagrams, the full security model (challenge/origin/RP-ID/signature/counter validation), recovery strategy (device migration), and browser/deployment requirements.
+The same `WebAuthnAdapter`/credential store used for MFA step-up above also powers a fully passwordless, primary sign-in path under `/auth/passkey/*` (`GET /auth/enterprise/providers` → `passkey.available`). `login/begin` requests a *discoverable* ("usernameless") credential challenge — no identifier required, the browser's own account picker supplies it — and `login/complete` verifies the assertion and issues a full session (HttpOnly cookies + JWT) exactly like password/OAuth/OTP login. A credential registered via either `/auth/mfa/webauthn/register*` or `/auth/passkey/register/*` works for both entry points. See [ENTERPRISE_AUTH_PLATFORM.md §3c](security/ENTERPRISE_AUTH_PLATFORM.md) for the full design, sequence diagrams, and security model.
 
 ## Non-goals
 

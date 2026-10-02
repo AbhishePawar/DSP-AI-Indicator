@@ -1103,7 +1103,7 @@ export function InvestmentSummary({
         {model.investmentSummary.summaryText}
       </p>
 
-      {/* Grid of 4 key numbers */}
+      {/* Grid of 4 key numbers - VALUE prioritized above METRIC NAME */}
       <div
         style={{
           display: "grid",
@@ -1120,35 +1120,37 @@ export function InvestmentSummary({
               background: "var(--surface-2, #181e2e)",
               border: "1px solid var(--border)",
               borderRadius: "var(--radius-md, 8px)",
-              padding: "12px 14px",
-              minHeight: 76,
+              padding: "14px 16px",
+              minHeight: 80,
               display: "flex",
               flexDirection: "column",
-              justifyContent: "space-between",
+              justifyContent: "center",
+              gap: 4,
               boxShadow: "var(--shadow-sm, 0 1px 2px 0 rgba(0, 0, 0, 0.4))",
             }}
           >
             <div
               style={{
-                fontSize: 10,
-                color: "var(--muted-foreground)",
-                fontFamily: "var(--font-data)",
-                letterSpacing: "0.06em",
-                textTransform: "uppercase",
-              }}
-            >
-              {m.label}
-            </div>
-            <div
-              style={{
-                fontSize: 18,
+                fontSize: 20,
                 fontWeight: 700,
                 color: (m as any).color || "var(--foreground)",
                 fontFamily: "var(--font-data)",
                 fontVariantNumeric: "tabular-nums",
+                lineHeight: 1.2,
               }}
             >
               {m.value}
+            </div>
+            <div
+              style={{
+                fontSize: 10,
+                color: "var(--muted-foreground)",
+                fontFamily: "var(--font-data)",
+                letterSpacing: "0.08em",
+                textTransform: "uppercase",
+              }}
+            >
+              {m.label}
             </div>
           </div>
         ))}
@@ -1924,11 +1926,16 @@ function DownloadsSection({
       <Card style={{ padding: "22px 24px" }}>
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 16 }}>
           <div>
-            <div style={{ fontWeight: 600, fontSize: 15, color: "var(--foreground)", fontFamily: "var(--font-heading)" }}>
-              JSON Research Snapshot
+            <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 4 }}>
+              <span style={{ fontWeight: 600, fontSize: 15, color: "var(--foreground)", fontFamily: "var(--font-heading)" }}>
+                Audit-Grade JSON Research Snapshot
+              </span>
+              <span style={{ fontSize: 10, padding: "2px 6px", borderRadius: 4, background: "var(--surface-2, #181e2e)", border: "1px solid var(--border)", color: "var(--muted-foreground)", fontFamily: "var(--font-data)" }}>
+                .JSON
+              </span>
             </div>
-            <div style={{ fontSize: 12, color: "var(--muted-foreground)", marginTop: 4, lineHeight: 1.5 }}>
-              Deterministic audit-grade export with cryptographic hash, stage references, and parameters.
+            <div style={{ fontSize: 12, color: "var(--muted-foreground)", lineHeight: 1.5, maxWidth: 540 }}>
+              Export machine-readable research telemetry including authoritative valuation parameters, Buffett criteria statuses, stage execution timestamps, and cryptographic audit reference.
             </div>
           </div>
           <button

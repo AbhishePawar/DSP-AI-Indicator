@@ -1,5 +1,6 @@
 import fs from "node:fs";
 import path from "node:path";
+import { fileURLToPath } from "node:url";
 
 export type P109Config = {
   adminLogin: string;
@@ -9,20 +10,36 @@ export type P109Config = {
   baseUrl: string;
 };
 
-export type P109ConfigErrorCode =
-  | "MISSING_PASSWORD"
-  | "MISSING_LOGIN"
-  | "MISSING_TICKER"
-  | "MISSING_API_BASE_URL"
-  | "MISSING_BASE_URL";
+export type P109PreflightCategory =
+  | "MISSING_CONFIGURATION"
+  | "FIXTURE_INFRASTRUCTURE_UNAVAILABLE"
+  | "BACKEND_UNAVAILABLE"
+  | "FRONTEND_UNAVAILABLE"
+  | "AUTHENTICATION_FAILED";
 
 export class P109ConfigError extends Error {
-  readonly code: P109ConfigErrorCode;
+  readonly code: string;
 
-  constructor(code: P109ConfigErrorCode, message: string) {
+  constructor(code: string, message: string) {
     super(message);
     this.name = "P109ConfigError";
     this.code = code;
+  }
+}
+
+export class P109PreflightError extends Error {
+  readonly category: P109PreflightCategory;
+  readonly safeRemediation: string;
+
+  constructor(
+    category: P109PreflightCategory,
+    message: string,
+    safeRemediation: string = ""
+  ) {
+    super(message);
+    this.name = "P109PreflightError";
+    this.category = category;
+    this.safeRemediation = safeRemediation;
   }
 }
 
@@ -54,7 +71,7 @@ function parseEnvLine(line: string): [string, string] | null {
 export function findP109LocalEnvFile(): string | null {
   const candidates = [
     process.env.DSP_P109_ENV_FILE,
-    path.resolve(__dirname, "../../../.env.local"),
+    path.resolve(typeof __dirname !== "undefined" ? __dirname : path.dirname(fileURLToPath(import.meta.url)), "../../../.env.local"),
     path.resolve(process.cwd(), "apps/web/.env.local"),
     path.resolve(process.cwd(), ".env.local"),
   ].filter((p): p is string => Boolean(p && fs.existsSync(p)));
@@ -106,9 +123,16 @@ export function resolveP109Config(
 
   const adminPassword = resolveP109AdminPassword(env);
   if (!adminPassword) {
-    throw new P109ConfigError(
-      "MISSING_PASSWORD",
-      "P1-09 configuration is incomplete: set DSP_SEED_ADMIN_PASSWORD in apps/web/.env.local (DSP_P109_PASSWORD is supported only as a legacy fallback).",
+    throw new P109PreflightError(
+      "MISSING_CONFIGURATION",
+      "P1-09 configuration is incomplete: required credential is not configured.",
+      [
+        "Safe Remediation:",
+        "1. Create apps/web/.env.local",
+        "2. Add the canonical credential:",
+        "   DSP_SEED_ADMIN_PASSWORD=<local_fixture_secret>",
+        "   (DSP_P109_PASSWORD is supported only as a legacy fallback)",
+      ].join("\n")
     );
   }
 
@@ -121,43 +145,19 @@ export function resolveP109Config(
   return { adminLogin, adminPassword, ticker, apiBaseUrl, baseUrl };
 }
 
-/**
- * Fail during test-module initialization, before any browser fixture is
- * requested. This prevents a missing credential from becoming a confusing
- * browser/login failure.
- */
 export function assertP109Config(
   env: NodeJS.ProcessEnv = process.env,
 ): P109Config {
   return resolveP109Config(env);
 }
 
-/** Diagnostic failure categories for P1-09 preflight checks. */
-export type P109PreflightCategory =
-  | "MISSING_CONFIGURATION"
-  | "BACKEND_UNAVAILABLE"
-  | "FRONTEND_UNAVAILABLE"
-  | "AUTHENTICATION_FAILED";
-
-export class P109PreflightError extends Error {
-  readonly category: P109PreflightCategory;
-
-  constructor(category: P109PreflightCategory, message: string) {
-    super(message);
-    this.name = "P109PreflightError";
-    this.category = category;
-  }
-}
-
-
 /**
- * Run asynchronous preflight checks against backend and frontend before launching the browser.
- * Throws P109PreflightError with distinct categories.
+ * Validate backend, fixture infrastructure, and frontend before launching Chromium.
  */
 export async function validateP109Preflight(
   config: P109Config = assertP109Config(),
   options: { timeoutMs?: number; fetchFn?: typeof fetch } = {}
-): Promise<{ ok: boolean; backendReady: boolean; frontendReady: boolean }> {
+): Promise<{ ok: boolean; backendReady: boolean; frontendReady: boolean; fixtureReady: boolean }> {
   const fetcher = options.fetchFn ?? fetch;
   const timeoutMs = options.timeoutMs ?? 5000;
 
@@ -169,25 +169,66 @@ export async function validateP109Preflight(
   try {
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), timeoutMs);
-    const liveRes = await fetcher(liveUrl, { signal: controller.signal }).catch(() => null);
-    const readyRes = await fetcher(readyUrl, { signal: controller.signal }).catch(() => null);
+    const [liveRes, readyRes] = await Promise.all([
+      fetcher(liveUrl, { signal: controller.signal }).catch(() => null),
+      fetcher(readyUrl, { signal: controller.signal }).catch(() => null),
+    ]);
     clearTimeout(timer);
 
     if (!liveRes || !liveRes.ok || !readyRes || !readyRes.ok) {
       throw new P109PreflightError(
         "BACKEND_UNAVAILABLE",
-        `Backend is unreachable at ${liveUrl}. Start local backend service before running P1-09.`
+        `Backend is unreachable at ${liveUrl} or ${readyUrl}.`,
+        [
+          "Safe Startup Command (Backend):",
+          "DSP_ENVIRONMENT=development \\",
+          "DSP_INFRA_OFFLINE=0 \\",
+          "DSP_P109_E2E_FIXTURE=1 \\",
+          "DSP_SEED_ADMIN_PASSWORD='[configured in apps/web/.env.local]' \\",
+          "python -m uvicorn api_platform.api.app:app --host 127.0.0.1 --port 8000",
+        ].join("\n")
       );
     }
   } catch (err) {
     if (err instanceof P109PreflightError) throw err;
     throw new P109PreflightError(
       "BACKEND_UNAVAILABLE",
-      `Backend is unreachable at ${liveUrl}. Start local backend service before running P1-09.`
+      `Backend is unreachable at ${liveUrl}.`,
+      [
+        "Safe Startup Command (Backend):",
+        "DSP_ENVIRONMENT=development \\",
+        "DSP_INFRA_OFFLINE=0 \\",
+        "DSP_P109_E2E_FIXTURE=1 \\",
+        "DSP_SEED_ADMIN_PASSWORD='[configured in apps/web/.env.local]' \\",
+        "python -m uvicorn api_platform.api.app:app --host 127.0.0.1 --port 8000",
+      ].join("\n")
     );
   }
 
-  // 2. Verify frontend reachability
+  // 2. Verify fixture infrastructure (quotes / statements endpoints)
+  const quoteUrl = `${config.apiBaseUrl}/market/quote?symbol=${config.ticker}`;
+  try {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), timeoutMs);
+    const quoteRes = await fetcher(quoteUrl, { signal: controller.signal }).catch(() => null);
+    clearTimeout(timer);
+
+    if (quoteRes && quoteRes.status === 503) {
+      throw new P109PreflightError(
+        "FIXTURE_INFRASTRUCTURE_UNAVAILABLE",
+        `Backend is running but fixture infrastructure is unavailable for ${config.ticker}.`,
+        [
+          "Safe Remediation:",
+          "Ensure backend is started with fixture memory flags:",
+          "DSP_MARKET_QUOTE_MEMORY=1 DSP_FINANCIAL_STATEMENT_MEMORY=1 DSP_P109_E2E_FIXTURE=1",
+        ].join("\n")
+      );
+    }
+  } catch (err) {
+    if (err instanceof P109PreflightError) throw err;
+  }
+
+  // 3. Verify frontend reachability
   try {
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), timeoutMs);
@@ -197,16 +238,24 @@ export async function validateP109Preflight(
     if (!feRes || !feRes.ok) {
       throw new P109PreflightError(
         "FRONTEND_UNAVAILABLE",
-        `Frontend is unreachable at ${config.baseUrl}. Start local frontend dev or preview server before running P1-09.`
+        `Frontend is unreachable at ${config.baseUrl}.`,
+        [
+          "Safe Startup Command (Frontend):",
+          "cd apps/web && npm run dev",
+        ].join("\n")
       );
     }
   } catch (err) {
     if (err instanceof P109PreflightError) throw err;
     throw new P109PreflightError(
       "FRONTEND_UNAVAILABLE",
-      `Frontend is unreachable at ${config.baseUrl}. Start local frontend dev or preview server before running P1-09.`
+      `Frontend is unreachable at ${config.baseUrl}.`,
+      [
+        "Safe Startup Command (Frontend):",
+        "cd apps/web && npm run dev",
+      ].join("\n")
     );
   }
 
-  return { ok: true, backendReady: true, frontendReady: true };
+  return { ok: true, backendReady: true, frontendReady: true, fixtureReady: true };
 }

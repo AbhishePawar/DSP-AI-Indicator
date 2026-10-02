@@ -39,32 +39,54 @@ const LOADING_STEPS = [
   "Preparing analysis report",
 ];
 
-const TOC_GROUPS = [
+export const TOC_GROUPS = [
   {
-    label: "ANALYSIS",
+    label: "OVERVIEW",
     items: [
-      { id: "s01", label: "Summary" },
-      { id: "s03", label: "Buffett Indicator" },
-      { id: "s04", label: "Financials" },
-      { id: "s09", label: "Valuation" },
-      { id: "s02", label: "Business Quality" },
-      { id: "s11", label: "Key Risks" },
+      { id: "s01", label: "Executive Summary" },
     ],
   },
   {
-    label: "DEEP DIVE",
+    label: "FUNDAMENTALS",
     items: [
+      { id: "s04", label: "Financials" },
+    ],
+  },
+  {
+    label: "VALUATION",
+    items: [
+      { id: "s09", label: "Valuation" },
+      { id: "s10", label: "Margin of Safety" },
+    ],
+  },
+  {
+    label: "BUFFETT / QUALITY",
+    items: [
+      { id: "s03", label: "Buffett Indicator" },
+      { id: "s02", label: "Business Quality" },
       { id: "s06", label: "Management" },
       { id: "s07", label: "Earnings Quality" },
       { id: "s08", label: "Growth Quality" },
-      { id: "s10", label: "Margin of Safety" },
+    ],
+  },
+  {
+    label: "RISKS",
+    items: [
+      { id: "s11", label: "Key Risks" },
       { id: "s12", label: "Strengths & Weaknesses" },
+    ],
+  },
+  {
+    label: "EVIDENCE & AUDIT",
+    items: [
       { id: "s13", label: "Investment Context" },
       { id: "s14", label: "Supporting Evidence" },
       { id: "s15", label: "Downloads" },
     ],
   },
 ];
+
+export const ALL_SECTIONS = TOC_GROUPS.flatMap((g) => g.items);
 
 // ─── Primitives & Badges ─────────────────────────────────────────────────────
 
@@ -2388,6 +2410,32 @@ export function ZipCompanyAnalysisWorkspace() {
   const [chatCtx, setChatCtx] = useState("");
   const [tocOpen, setTocOpen] = useState(false);
 
+  const mobileNavTriggerRef = useRef<HTMLButtonElement | null>(null);
+  const closeButtonRef = useRef<HTMLButtonElement | null>(null);
+  const prevTocOpen = useRef(false);
+
+  useEffect(() => {
+    if (tocOpen) {
+      closeButtonRef.current?.focus();
+      const handleKeyDown = (e: KeyboardEvent) => {
+        if (e.key === "Escape") {
+          e.preventDefault();
+          setTocOpen(false);
+        }
+      };
+      window.addEventListener("keydown", handleKeyDown);
+      return () => window.removeEventListener("keydown", handleKeyDown);
+    }
+    if (prevTocOpen.current) {
+      mobileNavTriggerRef.current?.focus();
+    }
+    prevTocOpen.current = tocOpen;
+  }, [tocOpen]);
+
+  const activeIndex = ALL_SECTIONS.findIndex((s) => s.id === activeSection);
+  const currentSectionIndex = activeIndex >= 0 ? activeIndex + 1 : 1;
+  const totalSectionsCount = ALL_SECTIONS.length;
+
   const sectionRefs = useRef<Record<string, HTMLDivElement | null>>({});
 
   const { runWithDisclaimer, gate } = useResearchDisclaimerGate();
@@ -2512,7 +2560,7 @@ export function ZipCompanyAnalysisWorkspace() {
               aria-label="Analysis sections"
               className="toc-sidebar"
               style={{
-                width: 210,
+                width: 220,
                 flexShrink: 0,
                 borderRight: "1px solid var(--border)",
                 display: "flex",
@@ -2522,46 +2570,103 @@ export function ZipCompanyAnalysisWorkspace() {
                 background: "var(--card)",
               }}
             >
-              {TOC_GROUPS.map((group) => (
-                <div key={group.label} style={{ marginBottom: 8 }}>
+              <div
+                style={{
+                  padding: "0 16px 12px",
+                  borderBottom: "1px solid var(--border)",
+                  marginBottom: 10,
+                }}
+              >
+                <div
+                  style={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "center",
+                    fontSize: 10,
+                    color: "var(--muted-foreground)",
+                    fontFamily: "var(--font-data)",
+                    letterSpacing: "0.08em",
+                    textTransform: "uppercase",
+                  }}
+                >
+                  <span>Navigation</span>
+                  <span style={{ fontWeight: 600, color: "var(--foreground)" }}>
+                    Section {currentSectionIndex} of {totalSectionsCount}
+                  </span>
+                </div>
+                <div
+                  style={{
+                    height: 3,
+                    width: "100%",
+                    background: "var(--surface-2)",
+                    borderRadius: 2,
+                    marginTop: 6,
+                    overflow: "hidden",
+                  }}
+                  role="progressbar"
+                  aria-valuenow={currentSectionIndex}
+                  aria-valuemin={1}
+                  aria-valuemax={totalSectionsCount}
+                  aria-label="Analysis reading progress"
+                >
                   <div
                     style={{
-                      padding: "0 16px 8px",
-                      fontSize: 9,
+                      height: "100%",
+                      width: `${(currentSectionIndex / totalSectionsCount) * 100}%`,
+                      background: "var(--accent)",
+                      transition: "width 0.2s ease",
+                    }}
+                  />
+                </div>
+              </div>
+
+              {TOC_GROUPS.map((group) => (
+                <div key={group.label} style={{ marginBottom: 10 }}>
+                  <div
+                    style={{
+                      padding: "4px 16px 6px",
+                      fontSize: 10,
+                      fontWeight: 700,
                       color: "var(--muted-foreground)",
                       fontFamily: "var(--font-data)",
                       letterSpacing: "0.12em",
+                      textTransform: "uppercase",
                     }}
                   >
                     {group.label}
                   </div>
-                  {group.items.map((t) => (
-                    <button
-                      key={t.id}
-                      type="button"
-                      onClick={() => scrollTo(t.id)}
-                      style={{
-                        background: activeSection === t.id ? "var(--secondary)" : "none",
-                        border: "none",
-                        padding: "7px 16px",
-                        textAlign: "left",
-                        cursor: "pointer",
-                        width: "100%",
-                        fontSize: 12,
-                        fontFamily: "var(--font-body)",
-                        color: activeSection === t.id ? "var(--foreground)" : "var(--muted-foreground)",
-                        borderLeft: activeSection === t.id ? "2px solid var(--c-dsp, #3b82f6)" : "2px solid transparent",
-                        transition: "all 0.15s",
-                      }}
-                    >
-                      {t.label}
-                    </button>
-                  ))}
-                  <div style={{ height: 1, background: "var(--border)", margin: "8px 16px" }} />
+                  {group.items.map((t) => {
+                    const isActive = activeSection === t.id;
+                    return (
+                      <button
+                        key={t.id}
+                        type="button"
+                        onClick={() => scrollTo(t.id)}
+                        aria-current={isActive ? "page" : undefined}
+                        style={{
+                          background: isActive ? "var(--surface-2)" : "transparent",
+                          border: "none",
+                          padding: "8px 16px",
+                          textAlign: "left",
+                          cursor: "pointer",
+                          width: "100%",
+                          fontSize: 12,
+                          fontFamily: "var(--font-body)",
+                          fontWeight: isActive ? 600 : 400,
+                          color: isActive ? "var(--foreground)" : "var(--muted-foreground)",
+                          borderLeft: isActive ? "3px solid var(--accent, #3b82f6)" : "3px solid transparent",
+                          transition: "background 0.15s, color 0.15s, border-color 0.15s",
+                        }}
+                      >
+                        {t.label}
+                      </button>
+                    );
+                  })}
+                  <div style={{ height: 1, background: "var(--border)", margin: "8px 16px 4px" }} />
                 </div>
               ))}
 
-              <div style={{ padding: "0 16px 8px", fontSize: 9, color: "var(--muted-foreground)", fontFamily: "var(--font-data)", letterSpacing: "0.12em" }}>
+              <div style={{ padding: "4px 16px 6px", fontSize: 10, fontWeight: 700, color: "var(--muted-foreground)", fontFamily: "var(--font-data)", letterSpacing: "0.12em", textTransform: "uppercase" }}>
                 TOOLS
               </div>
               <button
@@ -2601,9 +2706,15 @@ export function ZipCompanyAnalysisWorkspace() {
                 }}
               >
                 <button
+                  ref={mobileNavTriggerRef}
                   type="button"
+                  aria-haspopup="dialog"
+                  aria-expanded={tocOpen}
+                  aria-controls="mobile-nav-dialog"
                   onClick={() => setTocOpen((v) => !v)}
                   style={{
+                    minHeight: 44,
+                    minWidth: 44,
                     padding: "10px 20px",
                     background: "var(--card)",
                     border: "1px solid var(--border)",
@@ -2613,6 +2724,9 @@ export function ZipCompanyAnalysisWorkspace() {
                     cursor: "pointer",
                     fontWeight: 500,
                     boxShadow: "0 4px 20px rgba(0,0,0,0.5)",
+                    display: "inline-flex",
+                    alignItems: "center",
+                    justifyContent: "center",
                   }}
                 >
                   Sections
@@ -2621,6 +2735,8 @@ export function ZipCompanyAnalysisWorkspace() {
                   type="button"
                   onClick={() => setChatOpen((v) => !v)}
                   style={{
+                    minHeight: 44,
+                    minWidth: 44,
                     padding: "10px 20px",
                     background: chatOpen ? "var(--c-dsp, #3b82f6)" : "var(--card)",
                     border: `1px solid ${chatOpen ? "var(--c-dsp, #3b82f6)" : "var(--border)"}`,
@@ -2630,6 +2746,9 @@ export function ZipCompanyAnalysisWorkspace() {
                     cursor: "pointer",
                     fontWeight: 500,
                     boxShadow: "0 4px 20px rgba(0,0,0,0.5)",
+                    display: "inline-flex",
+                    alignItems: "center",
+                    justifyContent: "center",
                   }}
                 >
                   Ask DSP
@@ -2640,9 +2759,14 @@ export function ZipCompanyAnalysisWorkspace() {
                 <>
                   <div
                     onClick={() => setTocOpen(false)}
+                    aria-hidden="true"
                     style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.55)", zIndex: 60 }}
                   />
                   <div
+                    id="mobile-nav-dialog"
+                    role="dialog"
+                    aria-modal="true"
+                    aria-labelledby="mobile-nav-title"
                     style={{
                       position: "fixed",
                       bottom: 0,
@@ -2657,30 +2781,109 @@ export function ZipCompanyAnalysisWorkspace() {
                       padding: "16px 20px 32px",
                     }}
                   >
+                    <div
+                      style={{
+                        display: "flex",
+                        justifyContent: "space-between",
+                        alignItems: "center",
+                        marginBottom: 16,
+                        paddingBottom: 12,
+                        borderBottom: "1px solid var(--border)",
+                      }}
+                    >
+                      <div>
+                        <h2
+                          id="mobile-nav-title"
+                          style={{
+                            margin: 0,
+                            fontSize: 14,
+                            fontWeight: 600,
+                            color: "var(--foreground)",
+                          }}
+                        >
+                          Analysis Sections
+                        </h2>
+                        <div
+                          style={{
+                            fontSize: 11,
+                            color: "var(--muted-foreground)",
+                            fontFamily: "var(--font-data)",
+                            marginTop: 2,
+                          }}
+                        >
+                          Section {currentSectionIndex} of {totalSectionsCount}
+                        </div>
+                      </div>
+                      <button
+                        ref={closeButtonRef}
+                        type="button"
+                        aria-label="Close navigation"
+                        onClick={() => setTocOpen(false)}
+                        style={{
+                          minHeight: 44,
+                          minWidth: 44,
+                          padding: "8px 14px",
+                          background: "var(--surface-2)",
+                          border: "1px solid var(--border)",
+                          borderRadius: 8,
+                          color: "var(--foreground)",
+                          fontSize: 13,
+                          fontWeight: 500,
+                          cursor: "pointer",
+                          display: "inline-flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                        }}
+                      >
+                        Close
+                      </button>
+                    </div>
+
                     {TOC_GROUPS.map((group) => (
-                      <div key={group.label} style={{ marginBottom: 12 }}>
-                        <div style={{ fontSize: 10, color: "var(--muted-foreground)", fontFamily: "var(--font-data)", marginBottom: 6 }}>
+                      <div key={group.label} style={{ marginBottom: 14 }}>
+                        <div
+                          style={{
+                            fontSize: 10,
+                            fontWeight: 700,
+                            color: "var(--muted-foreground)",
+                            fontFamily: "var(--font-data)",
+                            letterSpacing: "0.12em",
+                            textTransform: "uppercase",
+                            marginBottom: 6,
+                          }}
+                        >
                           {group.label}
                         </div>
-                        {group.items.map((t) => (
-                          <button
-                            key={t.id}
-                            type="button"
-                            onClick={() => scrollTo(t.id)}
-                            style={{
-                              display: "block",
-                              width: "100%",
-                              textAlign: "left",
-                              padding: "10px 0",
-                              background: "none",
-                              border: "none",
-                              fontSize: 14,
-                              color: activeSection === t.id ? "var(--c-dsp, #3b82f6)" : "var(--foreground)",
-                            }}
-                          >
-                            {t.label}
-                          </button>
-                        ))}
+                        {group.items.map((t) => {
+                          const isActive = activeSection === t.id;
+                          return (
+                            <button
+                              key={t.id}
+                              type="button"
+                              onClick={() => scrollTo(t.id)}
+                              aria-current={isActive ? "page" : undefined}
+                              style={{
+                                display: "flex",
+                                alignItems: "center",
+                                width: "100%",
+                                textAlign: "left",
+                                minHeight: 44,
+                                padding: "10px 14px",
+                                marginBottom: 4,
+                                background: isActive ? "var(--surface-2)" : "transparent",
+                                border: "none",
+                                borderRadius: 6,
+                                fontSize: 14,
+                                fontWeight: isActive ? 600 : 400,
+                                color: isActive ? "var(--foreground)" : "var(--muted-foreground)",
+                                borderLeft: isActive ? "3px solid var(--accent, #3b82f6)" : "3px solid transparent",
+                                cursor: "pointer",
+                              }}
+                            >
+                              {t.label}
+                            </button>
+                          );
+                        })}
                       </div>
                     ))}
                   </div>

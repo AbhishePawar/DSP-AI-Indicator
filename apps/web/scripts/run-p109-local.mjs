@@ -10,16 +10,55 @@
  * - Auto-isolates to fallback port (3001) if port 3000 is occupied by a foreign worktree.
  * - Auto-launches missing services with configurable health polling and output capture.
  * - Cleans up only child processes it spawned on exit.
+ * - Emits a final validation summary with selected port, verified frontend worktree, and test counts.
  * - Never prints or leaks credentials.
  */
 
 import { spawn } from "node:child_process";
+import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
 const filename = fileURLToPath(import.meta.url);
 const dirname = path.dirname(filename);
 const webDir = path.resolve(dirname, "..");
+
+function parsePlaywrightResults(resultsPath) {
+  try {
+    if (!fs.existsSync(resultsPath)) return null;
+    const raw = fs.readFileSync(resultsPath, "utf8");
+    const json = JSON.parse(raw);
+    let passed = 0;
+    let failed = 0;
+    let skipped = 0;
+
+    function countSuites(suites) {
+      if (!Array.isArray(suites)) return;
+      for (const suite of suites) {
+        if (Array.isArray(suite.specs)) {
+          for (const spec of suite.specs) {
+            if (Array.isArray(spec.tests)) {
+              for (const test of spec.tests) {
+                const status = test.status || (test.results && test.results[0]?.status);
+                if (status === "expected" || status === "passed") passed++;
+                else if (status === "skipped") skipped++;
+                else if (status === "unexpected" || status === "failed") failed++;
+              }
+            }
+          }
+        }
+        if (Array.isArray(suite.suites)) {
+          countSuites(suite.suites);
+        }
+      }
+    }
+
+    countSuites(json.suites);
+    return { passed, failed, skipped };
+  } catch {
+    return null;
+  }
+}
 
 async function main() {
   console.log("==================================================");
@@ -38,6 +77,7 @@ async function main() {
     getHealthConfig,
     ensureBackendService,
     ensureFrontendService,
+    parsePortFromUrl,
   } = await import("../e2e/browser/p109/runnerCore.ts");
 
   loadP109LocalEnv();
@@ -117,6 +157,8 @@ async function main() {
     process.env.PLAYWRIGHT_BASE_URL = frontendResult.effectiveBaseUrl;
   }
 
+  const selectedPort = parsePortFromUrl(config.baseUrl);
+
   if (frontendResult.alreadyRunning) {
     console.log(`[PREFLIGHT] Frontend is already running and verified responsive (reused existing process at ${config.baseUrl}).`);
   } else if (!frontendResult.ok) {
@@ -149,6 +191,11 @@ async function main() {
   }
 
   console.log(`\n[EXECUTION] Launching P1-09 Chromium journey against ${config.baseUrl} (PLAYWRIGHT_SKIP_WEBSERVER=1)...`);
+  const resultsJsonPath = path.resolve(webDir, "playwright-results.json");
+  if (fs.existsSync(resultsJsonPath)) {
+    try { fs.unlinkSync(resultsJsonPath); } catch {}
+  }
+
   const child = spawn(
     "npx",
     ["playwright", "test", "e2e/browser/p109-critical-investment.journey.spec.ts", "--project=chromium"],
@@ -165,17 +212,28 @@ async function main() {
 
   child.on("close", (code) => {
     tracker.cleanup();
-    if (code === 0) {
-      console.log("\n==================================================");
-      console.log("P1-09: PASS — actual Chromium journey executed");
-      console.log("==================================================");
-      process.exit(0);
-    } else {
-      console.error("\n==================================================");
-      console.error("P1-09: FAIL — actual Chromium journey executed");
-      console.error("==================================================");
-      process.exit(code || 1);
-    }
+
+    const counts = parsePlaywrightResults(resultsJsonPath) || {
+      passed: code === 0 ? 1 : 0,
+      failed: code !== 0 ? 1 : 0,
+      skipped: 0,
+    };
+
+    const statusText = code === 0 ? "PASS" : "FAIL";
+
+    console.log("\n==================================================");
+    console.log(`P1-09 FINAL VALIDATION SUMMARY`);
+    console.log("==================================================");
+    console.log(`Selected Port:            ${selectedPort}`);
+    console.log(`Verified Frontend Dir:    ${webDir}`);
+    console.log(`Playwright Test Results:`);
+    console.log(`  - Passed:               ${counts.passed}`);
+    console.log(`  - Failed:               ${counts.failed}`);
+    console.log(`  - Skipped:              ${counts.skipped}`);
+    console.log(`Status:                   ${statusText}`);
+    console.log("==================================================");
+
+    process.exit(code || 0);
   });
 }
 

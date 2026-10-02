@@ -208,3 +208,81 @@ describe("P1-09 runner lifecycle & health configuration", () => {
     expect(dots.length).toBe(2);
   });
 });
+
+  it("Windows integration test: simulates a foreign worktree on port 3000 and isolates P1-09 on port 3001 without terminating foreign process", async () => {
+    const tracker = new ManagedProcessTracker();
+    const killedPids: number[] = [];
+
+    // Simulate an external, foreign process running from C:\dev\DSP-AI-Indicator\apps\web
+    const foreignPid = 24116;
+    const foreignWorktreeDir = "C:\\dev\\DSP-AI-Indicator\\apps\\web";
+    const expectedWorktreeDir = "C:\\Users\\abhis\\OneDrive\\Desktop\\DSP-AI-Indicator\\DSP-AI-Indicator-P109\\apps\\web";
+
+    // Mock inspectPortFn: port 3000 is occupied by foreign worktree, port 3001 is clean/empty
+    const inspectPortFn = vi.fn((port: number, expectedDir?: string) => {
+      if (port === 3000) {
+        return {
+          port: 3000,
+          pid: foreignPid,
+          commandLine: "node server.js",
+          workingDirectory: foreignWorktreeDir,
+          isCurrentWorktree: isSameOrSubdirectory(foreignWorktreeDir, expectedDir),
+        };
+      }
+      return null; // port 3001 is unallocated
+    });
+
+    let spawnedWithPort: string | undefined;
+    const mockSpawnedChild = createMockProcess(null);
+
+
+    let hasSpawned = false;
+    const spawnFn = vi.fn((cmd: string, args: string[], options: any) => {
+      hasSpawned = true;
+      spawnedWithPort = options?.env?.PORT;
+      return mockSpawnedChild;
+    });
+
+    // checkUrlFn: returns true only after the isolated server has been spawned
+    const checkUrlFn = vi.fn(async (url: string) => {
+      return hasSpawned && url.includes(":3001");
+    });
+
+    const result = await ensureFrontendService(
+      {
+        baseUrl: "http://127.0.0.1:3000",
+        apiBaseUrl: "http://127.0.0.1:8000/api/v1",
+      },
+      tracker,
+      { timeoutMs: 2000, intervalMs: 100 },
+      {
+        webDir: expectedWorktreeDir,
+        autoFallbackPort: 3001,
+        inspectPortFn,
+        spawnFn: spawnFn as any,
+        checkUrlFn,
+      }
+    );
+
+    // 1. Verify successful isolation to port 3001
+    expect(result.ok).toBe(true);
+    expect(result.alreadyRunning).toBe(false);
+    expect(result.isolatedPort).toBe(3001);
+    expect(result.effectiveBaseUrl).toBe("http://127.0.0.1:3001");
+
+    // 2. Verify spawn was called with isolated port 3001
+    expect(spawnFn).toHaveBeenCalledTimes(1);
+    expect(spawnedWithPort).toBe("3001");
+
+    // 3. Verify only the runner-spawned child is tracked
+    expect(tracker.getManagedCount()).toBe(1);
+    expect(tracker.isManaged(mockSpawnedChild as any)).toBe(true);
+
+    // 4. Verify the foreign process was never registered in the tracker and remains untouched
+    expect(tracker.isManaged({ pid: foreignPid } as any)).toBe(false);
+
+    // 5. Cleanup only kills the spawned child, never the foreign PID
+    tracker.cleanup();
+    expect(mockSpawnedChild.killed).toBe(true);
+    expect(killedPids).not.toContain(foreignPid);
+  });

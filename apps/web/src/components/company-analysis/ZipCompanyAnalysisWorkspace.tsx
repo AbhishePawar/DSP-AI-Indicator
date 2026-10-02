@@ -833,7 +833,6 @@ export function CompanyHeader({
       <div style={{ display: "flex", alignItems: "center", gap: 16, flexWrap: "wrap" }}>
         <form
           role="search"
-          aria-label="Company search"
           onSubmit={(e) => {
             e.preventDefault();
             if (onAnalyze) onAnalyze(searchValue);

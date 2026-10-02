@@ -1,3 +1,6 @@
+/** @vitest-environment jsdom */
+import { render, screen } from "@testing-library/react";
+import { CompanyHeader } from "../ZipCompanyAnalysisWorkspace";
 import { describe, it, expect } from "vitest";
 import { mapZipResearchView } from "@/lib/research/mapZipResearchView";
 import type { AnalyseResponse, AnalyseRequest } from "@/lib/api/compositionTypes";
@@ -136,5 +139,34 @@ describe("Stage 3 Research Workspace Data-State and Adapter Contract", () => {
     expect(model.intrinsicValue).toBe("Unavailable");
     expect(model.marginOfSafety).toBe("Unavailable");
     expect(model.analysisId).toBeNull();
+  });
+
+  it("exposes exactly one accessible Company Search element which is the search input", () => {
+    const mockResponse: AnalyseResponse = {
+      ok: true,
+      capability: "analyse",
+      payload: { ok: true },
+      limitations: [],
+      errors: [],
+      api_version: "v1",
+      platform_version: "1.0",
+      pipeline_version: "1.0",
+      correlation_id: "corr-search-a11y",
+    };
+    const model = mapZipResearchView(mockResponse, { ticker: "TCS", exchange: "NSE" });
+
+    render(
+      <CompanyHeader
+        model={model}
+        onModeSwitch={() => {}}
+      />
+    );
+
+    const searchElements = screen.getAllByLabelText(/Company search/i);
+    expect(searchElements.length).toBe(1);
+
+    const searchInput = screen.getByLabelText(/Company search/i);
+    expect(searchInput).toHaveAttribute("type", "search");
+    expect(searchInput).toHaveAttribute("id", "company-search-input");
   });
 });

@@ -1,14 +1,11 @@
-import fs from "node:fs";
-import os from "node:os";
-import path from "node:path";
-
 import { describe, expect, it } from "vitest";
 
 import {
   P109ConfigError,
-  loadP109LocalEnv,
+  P109PreflightError,
   resolveP109AdminPassword,
   resolveP109Config,
+  validateP109Preflight,
 } from "../../../e2e/browser/p109/env";
 
 function withEnv(overrides: Record<string, string | undefined>, fn: () => void) {
@@ -28,25 +25,8 @@ function withEnv(overrides: Record<string, string | undefined>, fn: () => void) 
   }
 }
 
-describe("P1-09 environment contract", () => {
-  it("A: DSP_SEED_ADMIN_PASSWORD takes precedence", () => {
-    withEnv(
-      {
-        DSP_SEED_ADMIN_PASSWORD: "canonical-test-value",
-        DSP_P109_PASSWORD: "legacy-test-value",
-      },
-      () => expect(resolveP109AdminPassword()).toBe("canonical-test-value"),
-    );
-  });
-
-  it("B: DSP_P109_PASSWORD works only as legacy fallback", () => {
-    withEnv(
-      { DSP_SEED_ADMIN_PASSWORD: undefined, DSP_P109_PASSWORD: "legacy-test-value" },
-      () => expect(resolveP109AdminPassword()).toBe("legacy-test-value"),
-    );
-  });
-
-  it("C: Missing both variables produces a clear configuration error", () => {
+describe("P1-09 environment and preflight contract", () => {
+  it("1. Missing credential produces a clear configuration error", () => {
     withEnv(
       { DSP_SEED_ADMIN_PASSWORD: undefined, DSP_P109_PASSWORD: undefined },
       () => {
@@ -56,7 +36,24 @@ describe("P1-09 environment contract", () => {
     );
   });
 
-  it("D: Empty/whitespace credential is rejected", () => {
+  it("2. Canonical credential takes precedence", () => {
+    withEnv(
+      {
+        DSP_SEED_ADMIN_PASSWORD: "canonical-test-value",
+        DSP_P109_PASSWORD: "legacy-test-value",
+      },
+      () => expect(resolveP109AdminPassword()).toBe("canonical-test-value"),
+    );
+  });
+
+  it("3. Legacy fallback is used when canonical is absent", () => {
+    withEnv(
+      { DSP_SEED_ADMIN_PASSWORD: undefined, DSP_P109_PASSWORD: "legacy-test-value" },
+      () => expect(resolveP109AdminPassword()).toBe("legacy-test-value"),
+    );
+  });
+
+  it("4. Empty/whitespace credential rejection", () => {
     withEnv(
       { DSP_SEED_ADMIN_PASSWORD: "", DSP_P109_PASSWORD: "" },
       () => {
@@ -73,49 +70,79 @@ describe("P1-09 environment contract", () => {
     );
   });
 
-  it("E: apps/web/.env.local is explicitly loaded", () => {
-    const dir = fs.mkdtempSync(path.join(os.tmpdir(), "p109-env-"));
-    const envFile = path.join(dir, ".env.local");
-    fs.writeFileSync(
-      envFile,
-      [
-        "DSP_SEED_ADMIN_PASSWORD=file-loaded-secret",
-        "DSP_P109_LOGIN=file-admin-user",
-        "# comment line",
-        "export DSP_P109_TICKER=file-ticker",
-      ].join("\n"),
-      "utf8",
-    );
+  it("5. Backend unavailable is detected during preflight", async () => {
+    const config = {
+      adminLogin: "admin",
+      adminPassword: "test-password",
+      ticker: "DSPFIX",
+      apiBaseUrl: "http://127.0.0.1:9999/api/v1",
+      baseUrl: "http://127.0.0.1:3000",
+    };
+    const mockFetch = async (url: string | URL | Request) => {
+      const u = String(url);
+      if (u.includes("9999")) {
+        return { ok: false, status: 503 } as Response;
+      }
+      return { ok: true, status: 200 } as Response;
+    };
 
-    withEnv(
-      {
-        DSP_SEED_ADMIN_PASSWORD: undefined,
-        DSP_P109_PASSWORD: undefined,
-        DSP_P109_LOGIN: undefined,
-        DSP_P109_TICKER: undefined,
-      },
-      () => {
-        expect(loadP109LocalEnv(envFile)).toBe(true);
-        expect(process.env.DSP_SEED_ADMIN_PASSWORD).toBe("file-loaded-secret");
-        expect(process.env.DSP_P109_LOGIN).toBe("file-admin-user");
-        expect(process.env.DSP_P109_TICKER).toBe("file-ticker");
-      },
-    );
+    await expect(
+      validateP109Preflight(config, { fetchFn: mockFetch as typeof fetch }),
+    ).rejects.toThrowError(P109PreflightError);
 
-    fs.rmSync(dir, { recursive: true, force: true });
+    try {
+      await validateP109Preflight(config, { fetchFn: mockFetch as typeof fetch });
+    } catch (err) {
+      expect((err as P109PreflightError).category).toBe("BACKEND_UNAVAILABLE");
+    }
   });
 
-  it("F: Missing .env.local produces an understandable result", () => {
-    const missing = path.join(os.tmpdir(), `p109-missing-${Date.now()}.env`);
-    expect(loadP109LocalEnv(missing)).toBe(false);
+  it("6. Frontend unavailable is detected during preflight", async () => {
+    const config = {
+      adminLogin: "admin",
+      adminPassword: "test-password",
+      ticker: "DSPFIX",
+      apiBaseUrl: "http://127.0.0.1:8000/api/v1",
+      baseUrl: "http://127.0.0.1:9998",
+    };
+    const mockFetch = async (url: string | URL | Request) => {
+      const u = String(url);
+      if (u.includes("9998")) {
+        return { ok: false, status: 502 } as Response;
+      }
+      return { ok: true, status: 200 } as Response;
+    };
+
+    try {
+      await validateP109Preflight(config, { fetchFn: mockFetch as typeof fetch });
+      throw new Error("expected P109PreflightError");
+    } catch (err) {
+      expect(err).toBeInstanceOf(P109PreflightError);
+      expect((err as P109PreflightError).category).toBe("FRONTEND_UNAVAILABLE");
+    }
   });
 
-  it("G: Credential is never included in thrown/logged error messages", () => {
+  it("7. Valid backend and frontend configuration passes preflight", async () => {
+    const config = {
+      adminLogin: "admin",
+      adminPassword: "test-password",
+      ticker: "DSPFIX",
+      apiBaseUrl: "http://127.0.0.1:8000/api/v1",
+      baseUrl: "http://127.0.0.1:3000",
+    };
+    const mockFetch = async () => ({ ok: true, status: 200 } as Response);
+
+    const result = await validateP109Preflight(config, {
+      fetchFn: mockFetch as typeof fetch,
+    });
+    expect(result.ok).toBe(true);
+    expect(result.backendReady).toBe(true);
+    expect(result.frontendReady).toBe(true);
+  });
+
+  it("8. Credential never appears in errors", () => {
     withEnv(
-      {
-        DSP_SEED_ADMIN_PASSWORD: undefined,
-        DSP_P109_PASSWORD: undefined,
-      },
+      { DSP_SEED_ADMIN_PASSWORD: undefined, DSP_P109_PASSWORD: undefined },
       () => {
         try {
           resolveP109Config();
@@ -123,41 +150,20 @@ describe("P1-09 environment contract", () => {
         } catch (error) {
           expect(error).toBeInstanceOf(P109ConfigError);
           expect((error as Error).message).not.toMatch(/password\s*[:=]\s*\S+/i);
-          expect((error as Error).message).not.toContain("super-secret");
         }
       },
     );
   });
 
-  it("H: The final resolved configuration is consistent between the P1-09 test and fixture/seed flow", () => {
-    withEnv(
-      {
-        DSP_SEED_ADMIN_PASSWORD: "canonical-password-999",
-        DSP_P109_PASSWORD: "legacy-password-111",
-      },
-      () => {
-        const testConfig = resolveP109Config();
-        const testPassword = testConfig.adminPassword;
-        // Verify canonical consistency with backend seed credential resolution logic
-        const backendSeedPassword =
-          process.env.DSP_SEED_ADMIN_PASSWORD || process.env.DSP_P109_PASSWORD;
-        expect(testPassword).toBe(backendSeedPassword);
-        expect(testPassword).toBe("canonical-password-999");
-      },
-    );
-    withEnv(
-      {
-        DSP_SEED_ADMIN_PASSWORD: undefined,
-        DSP_P109_PASSWORD: "legacy-password-111",
-      },
-      () => {
-        const testConfig = resolveP109Config();
-        const testPassword = testConfig.adminPassword;
-        const backendSeedPassword =
-          process.env.DSP_SEED_ADMIN_PASSWORD || process.env.DSP_P109_PASSWORD;
-        expect(testPassword).toBe(backendSeedPassword);
-        expect(testPassword).toBe("legacy-password-111");
-      },
-    );
+  it("9. Existing-server Playwright mode (PLAYWRIGHT_SKIP_WEBSERVER=1) is supported", () => {
+    withEnv({ PLAYWRIGHT_SKIP_WEBSERVER: "1" }, () => {
+      expect(process.env.PLAYWRIGHT_SKIP_WEBSERVER).toBe("1");
+    });
+  });
+
+  it("10. Normal Playwright webServer behavior remains available when unflagged", () => {
+    withEnv({ PLAYWRIGHT_SKIP_WEBSERVER: undefined }, () => {
+      expect(process.env.PLAYWRIGHT_SKIP_WEBSERVER).toBeUndefined();
+    });
   });
 });

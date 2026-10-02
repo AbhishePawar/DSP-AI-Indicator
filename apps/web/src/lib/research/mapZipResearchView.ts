@@ -21,8 +21,6 @@ import {
   formatScore,
   mapAnalyseResponse,
 } from "@/lib/intelligence/mapResponse";
-import { mapBuffettReport } from "@/lib/buffett-indicator/mapBuffettReport";
-import { mapCanonicalMoatDimensions } from "@/lib/research/canonicalMoatDimensions";
 
 export type ZipStatus = "strong" | "adequate" | "weak" | "unavailable";
 
@@ -42,9 +40,17 @@ export type ZipDomainScore = {
   confidence: string;
 };
 
+export type ZipMetricItem = {
+  label: string;
+  value: string;
+  status: ZipStatus;
+  color?: string;
+};
+
 export type ZipFinancialPoint = {
   year: string;
   value: number;
+  label?: string;
 };
 
 export type ZipRiskItem = {
@@ -76,7 +82,64 @@ export type ZipSectionSummary = {
 };
 
 export type ZipResearchViewModel = {
-  // Identity & header
+  // Nested groups for workspace views
+  header: {
+    companyName: string;
+    ticker: string;
+    exchange: string;
+    sector: string;
+    currency: string;
+    asOfDate: string;
+  };
+  valuation: {
+    currentPrice: number;
+    intrinsicValue: number;
+    currentPriceFormatted: string;
+    intrinsicValueFormatted: string;
+    marginOfSafetyFormatted: string;
+    status: ZipStatus;
+    methodologyNote: string;
+  };
+  investmentSummary: {
+    verdict: string;
+    recommendationStatus: ZipStatus;
+    recommendationBadge: string;
+    summaryText: string;
+    metrics: Array<{ label: string; value: string; color?: string }>;
+  };
+  financialMetrics: ZipMetricItem[];
+  businessQuality: {
+    status: ZipStatus;
+    compositeScore: number | string;
+    verdict: string;
+    qualityNote: string;
+    overview: string;
+  };
+  moat: {
+    status: ZipStatus;
+    description: string;
+    score: number | string;
+  };
+  management: {
+    status: ZipStatus;
+    overview: string;
+    capitalAllocation: ZipMetricItem[];
+  };
+  earningsQuality: {
+    status: ZipStatus;
+    indicators: ZipMetricItem[];
+  };
+  growthQuality: {
+    status: ZipStatus;
+    indicators: ZipMetricItem[];
+  };
+  investmentContext: {
+    metrics: ZipMetricItem[];
+    narrative: string;
+  };
+  evidence: ZipEvidenceItem[];
+
+  // Flat top-level properties
   symbol: string;
   companyName: string;
   exchange: string;
@@ -97,11 +160,9 @@ export type ZipResearchViewModel = {
   auditReference: string | null;
   provenancePersisted: boolean | null;
 
-  // Executive overview & narrative
   summaryHeading: string;
   summaryText: string;
 
-  // Key sections
   buffettRows: ZipBuffettRow[];
   domainScores: ZipDomainScore[];
   revenueData: ZipFinancialPoint[];
@@ -113,7 +174,6 @@ export type ZipResearchViewModel = {
   weaknesses: string[];
   evidenceItems: ZipEvidenceItem[];
 
-  // Detailed stage sections
   sections: {
     financial: ZipSectionSummary;
     moat: ZipSectionSummary;
@@ -414,13 +474,23 @@ export function mapZipResearchView(
   // Risks
   const riskPayload = (payload.risk as CompanyRiskPayload | null | undefined);
   const risks: ZipRiskItem[] = [];
-  if (riskPayload?.risk_factors && Array.isArray(riskPayload.risk_factors)) {
-    for (const rf of riskPayload.risk_factors) {
-      risks.push({
-        risk: rf.name ?? "Identified Risk",
-        evidence: rf.evidence ?? rf.description ?? "Risk identified in pipeline evaluation",
-        implication: rf.implication ?? "Requires ongoing monitoring",
-      });
+  if (riskPayload) {
+    const riskCategories = [
+      riskPayload.business_risk,
+      riskPayload.financial_risk,
+      riskPayload.regulatory_risk,
+      riskPayload.technology_risk,
+      riskPayload.currency_risk,
+      riskPayload.customer_concentration_risk,
+    ];
+    for (const cat of riskCategories) {
+      if (cat && (cat.available || cat.level === "high" || cat.level === "medium")) {
+        risks.push({
+          risk: `${(cat.category || "General").replace(/_/g, " ").toUpperCase()}: ${cat.level ?? "Evaluated"} risk`,
+          evidence: cat.evidence?.join("; ") || cat.message || "Evaluated by risk assessment pipeline",
+          implication: `Risk category level assessed as ${cat.level ?? "moderate"}`,
+        });
+      }
     }
   }
   if (risks.length === 0 && base.risks.length > 0) {
@@ -490,7 +560,93 @@ export function mapZipResearchView(
   const summaryHeading = `${companyName} exhibits ${bqLabel.toLowerCase()} characteristics across fundamental dimensions.`;
   const summaryText = `DSP analysis assesses ${companyName} (${symbol}) with a Business Quality score of ${bqScore ?? "—"}/100 and an overall investment action of ${recDecision}. Valuation indicates ${rawMos && rawMos < 0 ? `a negative margin of safety of ${marginOfSafety}` : `a positive margin of safety of ${marginOfSafety}`}.`;
 
+  const header = {
+    companyName,
+    ticker: symbol,
+    exchange,
+    sector: "General",
+    currency,
+    asOfDate: analysedAt ?? new Date().toISOString().split("T")[0],
+  };
+
+  const valuationGroup = {
+    currentPrice: rawPrice != null ? Number(rawPrice) : 0,
+    intrinsicValue: rawIV != null ? Number(rawIV) : 0,
+    currentPriceFormatted: currentPrice,
+    intrinsicValueFormatted: intrinsicValue,
+    marginOfSafetyFormatted: marginOfSafety,
+    status: marginOfSafetyStatus,
+    methodologyNote: "Computed via deterministic server valuation model.",
+  };
+
+  const investmentSummary = {
+    verdict: recDecision,
+    recommendationStatus: recStatus,
+    recommendationBadge: recDecision,
+    summaryText,
+    metrics: [
+      { label: "Current Price", value: currentPrice },
+      { label: "Intrinsic Value", value: intrinsicValue },
+      { label: "Margin of Safety", value: marginOfSafety },
+      { label: "Business Quality", value: bqScore != null ? `${bqScore}/100` : "Unavailable" },
+    ],
+  };
+
+  const financialMetrics: ZipMetricItem[] = [
+    { label: "Revenue", value: revenueData.length > 0 ? `${revenueData[revenueData.length - 1].value}` : "Unavailable", status: "adequate" },
+    { label: "Net Profit", value: profitData.length > 0 ? `${profitData[profitData.length - 1].value}` : "Unavailable", status: "adequate" },
+    { label: "Operating Margin", value: marginData.length > 0 ? `${marginData[marginData.length - 1].value}%` : "Unavailable", status: "adequate" },
+    { label: "Free Cash Flow", value: cashData.length > 0 ? `${cashData[cashData.length - 1].value}` : "Unavailable", status: "adequate" },
+  ];
+
+  const businessQualityGroup = {
+    status: bqStatus,
+    compositeScore: bqScore != null ? bqScore : "N/A",
+    verdict: bqLabel,
+    qualityNote: "Deterministic business quality evaluation.",
+    overview: summaryText,
+  };
+
+  const moatGroup = {
+    status: moat.status,
+    description: moat.decision,
+    score: moat.score,
+  };
+
+  const managementGroup = {
+    status: management.status,
+    overview: management.decision,
+    capitalAllocation: management.metrics.map((m) => ({ label: m.label, value: m.value, status: management.status })),
+  };
+
+  const earningsQualityGroup = {
+    status: earnings.status,
+    indicators: earnings.metrics.map((m) => ({ label: m.label, value: m.value, status: earnings.status })),
+  };
+
+  const growthQualityGroup = {
+    status: growth.status,
+    indicators: growth.metrics.map((m) => ({ label: m.label, value: m.value, status: growth.status })),
+  };
+
+  const investmentContextGroup = {
+    metrics: recommendationStage.metrics.map((m) => ({ label: m.label, value: m.value, status: recommendationStage.status })),
+    narrative: recommendationStage.decision,
+  };
+
   return {
+    header,
+    valuation: valuationGroup,
+    investmentSummary,
+    financialMetrics,
+    businessQuality: businessQualityGroup,
+    moat: moatGroup,
+    management: managementGroup,
+    earningsQuality: earningsQualityGroup,
+    growthQuality: growthQualityGroup,
+    investmentContext: investmentContextGroup,
+    evidence: evidenceItems,
+
     symbol,
     companyName,
     exchange,

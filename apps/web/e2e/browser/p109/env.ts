@@ -148,3 +148,65 @@ export class P109PreflightError extends Error {
     this.category = category;
   }
 }
+
+
+/**
+ * Run asynchronous preflight checks against backend and frontend before launching the browser.
+ * Throws P109PreflightError with distinct categories.
+ */
+export async function validateP109Preflight(
+  config: P109Config = assertP109Config(),
+  options: { timeoutMs?: number; fetchFn?: typeof fetch } = {}
+): Promise<{ ok: boolean; backendReady: boolean; frontendReady: boolean }> {
+  const fetcher = options.fetchFn ?? fetch;
+  const timeoutMs = options.timeoutMs ?? 5000;
+
+  // 1. Verify backend reachability
+  const apiRoot = config.apiBaseUrl.replace(/\/api\/v1\/?$/, "");
+  const liveUrl = `${apiRoot}/health/live`;
+  const readyUrl = `${apiRoot}/health/ready`;
+
+  try {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), timeoutMs);
+    const liveRes = await fetcher(liveUrl, { signal: controller.signal }).catch(() => null);
+    const readyRes = await fetcher(readyUrl, { signal: controller.signal }).catch(() => null);
+    clearTimeout(timer);
+
+    if (!liveRes || !liveRes.ok || !readyRes || !readyRes.ok) {
+      throw new P109PreflightError(
+        "BACKEND_UNAVAILABLE",
+        `Backend is unreachable at ${liveUrl}. Start local backend service before running P1-09.`
+      );
+    }
+  } catch (err) {
+    if (err instanceof P109PreflightError) throw err;
+    throw new P109PreflightError(
+      "BACKEND_UNAVAILABLE",
+      `Backend is unreachable at ${liveUrl}. Start local backend service before running P1-09.`
+    );
+  }
+
+  // 2. Verify frontend reachability
+  try {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), timeoutMs);
+    const feRes = await fetcher(config.baseUrl, { signal: controller.signal }).catch(() => null);
+    clearTimeout(timer);
+
+    if (!feRes || !feRes.ok) {
+      throw new P109PreflightError(
+        "FRONTEND_UNAVAILABLE",
+        `Frontend is unreachable at ${config.baseUrl}. Start local frontend dev or preview server before running P1-09.`
+      );
+    }
+  } catch (err) {
+    if (err instanceof P109PreflightError) throw err;
+    throw new P109PreflightError(
+      "FRONTEND_UNAVAILABLE",
+      `Frontend is unreachable at ${config.baseUrl}. Start local frontend dev or preview server before running P1-09.`
+    );
+  }
+
+  return { ok: true, backendReady: true, frontendReady: true };
+}

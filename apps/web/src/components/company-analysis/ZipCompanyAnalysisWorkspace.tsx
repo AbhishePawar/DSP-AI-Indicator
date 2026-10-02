@@ -9,6 +9,7 @@ import {
   mapZipResearchView,
   type ZipResearchViewModel,
   type ZipStatus,
+  type ZipFinancialPoint,
 } from "@/lib/research/mapZipResearchView";
 import { useResearchDisclaimerGate } from "@/components/legal/useResearchDisclaimerGate";
 import { pushRecentAnalysis } from "@/lib/analysis/recentAnalyses";
@@ -254,7 +255,7 @@ export function AskButton({ label, onClick }: { label: string; onClick: () => vo
 
 // ─── Simple SVG Charts ───────────────────────────────────────────────────────
 
-export function SvgAreaChart({ data, color, label }: { data: ZipFinancialPoint[]; color: string; label?: string }) {
+export function SvgAreaChart({ data, color, label, unit }: { data: ZipFinancialPoint[]; color: string; label?: string; unit?: string }) {
   if (!data || data.length === 0) {
     return (
       <div style={{ height: 160, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", background: "var(--surface-2, rgba(255,255,255,0.02))", borderRadius: 8, border: "1px dashed var(--border)", padding: 16, textAlign: "center" }}>
@@ -1011,7 +1012,7 @@ export function InvestmentSummary({
             <div style={{ fontSize: 10, color: "var(--muted-foreground)", fontFamily: "var(--font-data)", marginBottom: 4 }}>
               {m.label}
             </div>
-            <div style={{ fontSize: 16, fontWeight: 700, color: m.color || "var(--foreground)", fontFamily: "var(--font-data)" }}>
+            <div style={{ fontSize: 16, fontWeight: 700, color: (m as any).color || "var(--foreground)", fontFamily: "var(--font-data)" }}>
               {m.value}
             </div>
           </div>
@@ -1110,7 +1111,7 @@ export function FinancialAnalysisSection({
             <div style={{ fontSize: 10, color: "var(--muted-foreground)", fontFamily: "var(--font-data)", letterSpacing: "0.06em", marginBottom: 4 }}>
               {m.label}
             </div>
-            <div style={{ fontSize: 15, fontWeight: 600, color: m.color || "var(--foreground)", fontFamily: "var(--font-data)" }}>
+            <div style={{ fontSize: 15, fontWeight: 600, color: (m as any).color || "var(--foreground)", fontFamily: "var(--font-data)" }}>
               {m.value}
             </div>
           </div>
@@ -1460,7 +1461,7 @@ export function EarningsQualityDeepDive({ model, onAsk }: { model: ZipResearchVi
           <div style={{ fontSize: 11, color: "var(--muted-foreground)", fontFamily: "var(--font-data)", letterSpacing: "0.07em", marginBottom: 12 }}>
             OPERATING MARGIN TREND · Source: Server Evidence
           </div>
-          <SvgAreaChart data={model.marginData} color="var(--c-cashflow, #2dd4bf)" unit="%" />
+          <SvgAreaChart data={model.marginData} color="var(--c-cashflow, #2dd4bf)" />
         </Card>
         <Card>
           <div style={{ fontSize: 10, color: "var(--muted-foreground)", fontFamily: "var(--font-data)", letterSpacing: "0.07em", marginBottom: 10 }}>
@@ -1903,7 +1904,7 @@ export function ZipCompanyAnalysisWorkspace() {
 
   const sectionRefs = useRef<Record<string, HTMLDivElement | null>>({});
 
-  const { isAccepted, DisclaimerModal } = useResearchDisclaimerGate();
+  const { runWithDisclaimer, gate } = useResearchDisclaimerGate();
 
   const analyseMutation = useMutation({
     mutationFn: async (req: AnalyseRequest) => {
@@ -1913,9 +1914,10 @@ export function ZipCompanyAnalysisWorkspace() {
     onSuccess: (data, variables) => {
       pushRecentAnalysis({
         ticker: variables.ticker,
-        companyName: data.company_name || variables.ticker,
-        sector: data.sector || "General",
-        timestamp: Date.now(),
+        company: variables.ticker,
+        exchange: variables.exchange || "US",
+        recommendation: "Analysed",
+        analysedAt: new Date().toISOString(),
       });
     },
   });
@@ -1925,7 +1927,6 @@ export function ZipCompanyAnalysisWorkspace() {
       setPhase(targetPhase);
       const req: AnalyseRequest = {
         ticker: symbol,
-        request_id: `req_${Date.now()}`,
       };
       analyseMutation.mutate(req);
     },
@@ -1985,7 +1986,7 @@ export function ZipCompanyAnalysisWorkspace() {
         position: "relative",
       }}
     >
-      <DisclaimerModal />
+      {gate}
 
       {phase === "select" && (
         <SelectionScreen
@@ -2259,7 +2260,7 @@ export function ZipCompanyAnalysisWorkspace() {
 
           <ResearchChatDrawer
             symbol={symbol}
-            analysisId={analyseMutation.data?.analysis_id}
+            analysisId={analyseMutation.data?.analysis_id ? analyseMutation.data.analysis_id : undefined}
             open={chatOpen}
             onClose={() => setChatOpen(false)}
             initCtx={chatCtx}

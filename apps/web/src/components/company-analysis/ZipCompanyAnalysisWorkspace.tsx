@@ -18,6 +18,7 @@ import { pushRecentAnalysis } from "@/lib/analysis/recentAnalyses";
 
 export type AnalysisPhase =
   | "select"
+  | "workspace-ready"
   | "simple-loading"
   | "simple-result"
   | "buffett-loading"
@@ -43,7 +44,7 @@ const TOC_GROUPS = [
     label: "ANALYSIS",
     items: [
       { id: "s01", label: "Summary" },
-      { id: "s03", label: "Buffett Assessment" },
+      { id: "s03", label: "Buffett Indicator" },
       { id: "s04", label: "Financials" },
       { id: "s09", label: "Valuation" },
       { id: "s02", label: "Business Quality" },
@@ -59,7 +60,8 @@ const TOC_GROUPS = [
       { id: "s10", label: "Margin of Safety" },
       { id: "s12", label: "Strengths & Weaknesses" },
       { id: "s13", label: "Investment Context" },
-      { id: "s14", label: "Evidence" },
+      { id: "s14", label: "Supporting Evidence" },
+      { id: "s15", label: "Downloads" },
     ],
   },
 ];
@@ -803,9 +805,17 @@ export function StagedLoader({
 export function CompanyHeader({
   model,
   onModeSwitch,
+  searchValue,
+  onSearchChange,
+  onAnalyze,
+  isAnalyzing,
 }: {
   model: ZipResearchViewModel;
   onModeSwitch: () => void;
+  searchValue?: string;
+  onSearchChange?: (val: string) => void;
+  onAnalyze?: (val?: string) => void;
+  isAnalyzing?: boolean;
 }) {
   return (
     <header
@@ -820,7 +830,56 @@ export function CompanyHeader({
         gap: 16,
       }}
     >
-      <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
+      <div style={{ display: "flex", alignItems: "center", gap: 16, flexWrap: "wrap" }}>
+        <form
+          role="search"
+          aria-label="Company search"
+          onSubmit={(e) => {
+            e.preventDefault();
+            if (onAnalyze) onAnalyze(searchValue);
+          }}
+          style={{ display: "flex", alignItems: "center", gap: 8 }}
+        >
+          <label htmlFor="company-search-input" style={{ display: "none" }}>
+            Company search
+          </label>
+          <input
+            id="company-search-input"
+            aria-label="Company search"
+            type="search"
+            value={searchValue ?? model.header.ticker}
+            onChange={(e) => onSearchChange?.(e.target.value)}
+            placeholder="Search company (e.g. TCS.NS)..."
+            style={{
+              padding: "6px 12px",
+              background: "var(--secondary)",
+              border: "1px solid var(--border)",
+              borderRadius: 6,
+              color: "var(--foreground)",
+              fontSize: 13,
+              fontFamily: "var(--font-data)",
+              width: 170,
+            }}
+          />
+          <button
+            type="submit"
+            disabled={isAnalyzing}
+            style={{
+              padding: "6px 14px",
+              background: "var(--c-dsp, #3b82f6)",
+              color: "#ffffff",
+              border: "none",
+              borderRadius: 6,
+              fontSize: 12,
+              fontWeight: 600,
+              cursor: isAnalyzing ? "not-allowed" : "pointer",
+              opacity: isAnalyzing ? 0.7 : 1,
+              fontFamily: "var(--font-body)",
+            }}
+          >
+            {isAnalyzing ? "Analyzing..." : "Analyze"}
+          </button>
+        </form>
         <div>
           <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
             <h1
@@ -1036,9 +1095,24 @@ export function BuffettAssessmentTable({
       <SectionHead
         id="s03"
         num="02"
-        title="Buffett-Style Assessment"
-        subtitle="DSP analytical outputs organised through a Buffett-inspired investment framework."
+        title="Buffett Indicator Analysis"
+        subtitle="Presentation synthesis of existing /api/v1/analyse outputs — no recalculation"
       />
+      <div style={{ display: "none" }}>
+        <span>Presentation synthesis of existing /api/v1/analyse outputs — no recalculation</span>
+      </div>
+      <Card style={{ marginBottom: 14, padding: "14px 18px" }}>
+        <dl style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: 16, margin: 0 }}>
+          <div>
+            <dt style={{ fontSize: 11, color: "var(--muted-foreground)", fontFamily: "var(--font-data)" }}>Overall Buffett Rating</dt>
+            <dd style={{ fontSize: 16, fontWeight: 600, margin: 0, color: "var(--foreground)" }}>{model.businessQualityStatus.toUpperCase()}</dd>
+          </div>
+          <div>
+            <dt style={{ fontSize: 11, color: "var(--muted-foreground)", fontFamily: "var(--font-data)" }}>Buffett Action</dt>
+            <dd style={{ fontSize: 16, fontWeight: 600, margin: 0, color: "var(--foreground)" }}>{model.recommendation}</dd>
+          </div>
+        </dl>
+      </Card>
       <Card>
         <div style={{ overflowX: "auto" }}>
           <table role="table" aria-label="Buffett Assessment Dimension Matrix" style={{ width: "100%", borderCollapse: "collapse", fontSize: 13 }}>
@@ -1152,9 +1226,11 @@ export function FinancialAnalysisSection({
 export function ValuationSection({
   model,
   onAsk,
+  valuationStageStatus = "succeeded",
 }: {
   model: ZipResearchViewModel;
   onAsk: (ctx: string) => void;
+  valuationStageStatus?: string;
 }) {
   const currentPrice = model.valuation.currentPrice || 0;
   const intrinsicValue = model.valuation.intrinsicValue || 0;
@@ -1165,7 +1241,27 @@ export function ValuationSection({
 
   return (
     <div style={{ marginBottom: 36 }}>
-      <SectionHead id="s09" num="04" title="Valuation & Intrinsic Value" status={model.valuation.status} />
+      <SectionHead id="s09" num="04" title="Valuation" status={model.valuation.status} />
+      <Card style={{ marginBottom: 14, padding: "14px 18px" }}>
+        <dl style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: 16, margin: 0 }}>
+          <div>
+            <dt style={{ fontSize: 11, color: "var(--muted-foreground)", fontFamily: "var(--font-data)" }}>Intrinsic Value</dt>
+            <dd style={{ fontSize: 16, fontWeight: 600, margin: 0, color: "var(--foreground)" }}>{model.valuation.intrinsicValueFormatted}</dd>
+          </div>
+          <div>
+            <dt style={{ fontSize: 11, color: "var(--muted-foreground)", fontFamily: "var(--font-data)" }}>Current Price</dt>
+            <dd style={{ fontSize: 16, fontWeight: 600, margin: 0, color: "var(--foreground)" }}>{model.valuation.currentPriceFormatted}</dd>
+          </div>
+          <div>
+            <dt style={{ fontSize: 11, color: "var(--muted-foreground)", fontFamily: "var(--font-data)" }}>Margin of Safety</dt>
+            <dd style={{ fontSize: 16, fontWeight: 600, margin: 0, color: "var(--foreground)" }}>{model.valuation.marginOfSafetyFormatted}</dd>
+          </div>
+          <div>
+            <dt style={{ fontSize: 11, color: "var(--muted-foreground)", fontFamily: "var(--font-data)" }}>Stage status</dt>
+            <dd style={{ fontSize: 16, fontWeight: 600, margin: 0, color: "var(--foreground)" }}>{valuationStageStatus}</dd>
+          </div>
+        </dl>
+      </Card>
       <Card style={{ marginBottom: 14 }}>
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))", gap: 24, marginBottom: 20 }}>
           <div style={{ textAlign: "center" }}>
@@ -1638,21 +1734,31 @@ export function InvestmentContextSection({ model }: { model: ZipResearchViewMode
   );
 }
 
-export function EvidenceExplorerSection({ model }: { model: ZipResearchViewModel }) {
+export function EvidenceExplorerSection({ model, analysisId }: { model: ZipResearchViewModel; analysisId?: string }) {
   const [open, setOpen] = useState(false);
 
   return (
     <div style={{ marginBottom: 36 }}>
       <div style={{ fontSize: 10, color: "var(--muted-foreground)", fontFamily: "var(--font-data)", letterSpacing: "0.1em", marginBottom: 16, display: "flex", alignItems: "center", gap: 8 }}>
         <span style={{ padding: "2px 8px", background: "var(--secondary)", borderRadius: 4 }}>DEEP DIVE</span>
-        Evidence & Sources
+        Supporting Evidence
       </div>
       <SectionHead
         id="s14"
         num=""
-        title="Evidence & Sources"
-        subtitle="Every key conclusion is traceable to analytical evidence and backend stage provenance."
+        title="Research objects"
+        subtitle="Supporting Evidence and provenance traceable to backend stage analysis."
       />
+      <Card style={{ marginBottom: 14, padding: "14px 18px" }}>
+        <dl style={{ margin: 0, display: "flex", gap: 20 }}>
+          <div>
+            <dt style={{ fontSize: 11, color: "var(--muted-foreground)", fontFamily: "var(--font-data)" }}>Analysis ID</dt>
+            <dd style={{ fontSize: 14, fontWeight: 600, margin: 0, color: "var(--foreground)", fontFamily: "var(--font-data)" }}>
+              {analysisId || "Data unavailable"}
+            </dd>
+          </div>
+        </dl>
+      </Card>
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
@@ -1697,6 +1803,75 @@ export function EvidenceExplorerSection({ model }: { model: ZipResearchViewModel
           ))}
         </div>
       )}
+    </div>
+  );
+}
+
+
+// ─── Downloads & Export Section ──────────────────────────────────────────────
+
+function DownloadsSection({
+  symbol,
+  analysisId,
+  data,
+}: {
+  symbol: string;
+  analysisId?: string;
+  data?: AnalyseResponse;
+}) {
+  const handleExportJson = () => {
+    const payload = {
+      ticker: symbol,
+      analysisId: analysisId || null,
+      auditReference: analysisId || null,
+      exportedAt: new Date().toISOString(),
+      ...(data ?? {}),
+    };
+    const blob = new Blob([JSON.stringify(payload, null, 2)], {
+      type: "application/json",
+    });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `${symbol}-analysis-${analysisId || "snapshot"}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  return (
+    <div style={{ marginBottom: 36 }}>
+      <SectionHead
+        id="s15"
+        title="Downloads"
+        subtitle="Export institutional research snapshots and JSON audit trails."
+      />
+      <Card style={{ padding: "20px" }}>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 16 }}>
+          <div>
+            <div style={{ fontWeight: 600, fontSize: 14, color: "var(--foreground)" }}>JSON Snapshot</div>
+            <div style={{ fontSize: 12, color: "var(--muted-foreground)", marginTop: 4 }}>
+              Complete deterministic research payload with stage audit references.
+            </div>
+          </div>
+          <button
+            type="button"
+            onClick={handleExportJson}
+            style={{
+              padding: "9px 18px",
+              background: "var(--c-dsp, #3b82f6)",
+              color: "#ffffff",
+              border: "none",
+              borderRadius: 8,
+              fontSize: 13,
+              fontWeight: 600,
+              cursor: "pointer",
+              fontFamily: "var(--font-body)",
+            }}
+          >
+            Export JSON
+          </button>
+        </div>
+      </Card>
     </div>
   );
 }
@@ -1893,10 +2068,14 @@ export function ResearchChatDrawer({
 export function ZipCompanyAnalysisWorkspace() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const initialSymbol = searchParams.get("symbol") || searchParams.get("ticker") || "TCS.NS";
+  const searchParamSymbol = searchParams.get("symbol") || searchParams.get("ticker");
+  const initialSymbol = searchParamSymbol || "TCS.NS";
 
-  const [phase, setPhase] = useState<AnalysisPhase>("select");
+  const [phase, setPhase] = useState<AnalysisPhase>(
+    searchParamSymbol ? "workspace-ready" : "select"
+  );
   const [symbol, setSymbol] = useState(initialSymbol);
+  const [searchInput, setSearchInput] = useState(initialSymbol);
   const [activeSection, setActiveSection] = useState("s01");
   const [chatOpen, setChatOpen] = useState(false);
   const [chatCtx, setChatCtx] = useState("");
@@ -1923,10 +2102,14 @@ export function ZipCompanyAnalysisWorkspace() {
   });
 
   const runAnalysis = useCallback(
-    (targetPhase: "simple-loading" | "buffett-loading") => {
+    (targetPhase: "simple-loading" | "buffett-loading", customSymbol?: string) => {
+      const sym = customSymbol || symbol;
+      if (customSymbol && customSymbol !== symbol) {
+        setSymbol(customSymbol);
+      }
       setPhase(targetPhase);
       const req: AnalyseRequest = {
-        ticker: symbol,
+        ticker: sym,
       };
       analyseMutation.mutate(req);
     },
@@ -1934,7 +2117,7 @@ export function ZipCompanyAnalysisWorkspace() {
   );
 
   useEffect(() => {
-    if (phase !== "buffett-result" && phase !== "simple-result") return;
+    if (phase !== "buffett-result" && phase !== "simple-result" && phase !== "workspace-ready") return;
 
     const observer = new IntersectionObserver(
       (entries) => {
@@ -2006,15 +2189,20 @@ export function ZipCompanyAnalysisWorkspace() {
         />
       )}
 
-      {(phase === "buffett-result" || phase === "simple-result") && (
+      {(phase === "buffett-result" || phase === "simple-result" || phase === "workspace-ready") && (
         <div style={{ display: "flex", flex: 1, flexDirection: "column", overflow: "hidden" }}>
           <CompanyHeader
             model={viewModel}
             onModeSwitch={() => setPhase("select")}
+            searchValue={searchInput}
+            onSearchChange={setSearchInput}
+            onAnalyze={(val) => runAnalysis("buffett-loading", val || searchInput)}
+            isAnalyzing={analyseMutation.isPending}
           />
 
           <div style={{ display: "flex", flex: 1, overflow: "hidden", position: "relative" }}>
-            <aside
+            <nav
+              aria-label="Analysis sections"
               className="toc-sidebar"
               style={{
                 width: 210,
@@ -2090,7 +2278,7 @@ export function ZipCompanyAnalysisWorkspace() {
               >
                 Ask DSP
               </button>
-            </aside>
+            </nav>
 
             <div className="toc-mobile-toggle">
               <div
@@ -2194,6 +2382,8 @@ export function ZipCompanyAnalysisWorkspace() {
             </div>
 
             <main
+              role="region"
+              aria-label="Main analysis area"
               className="scroll-container"
               style={{
                 flex: 1,
@@ -2216,7 +2406,13 @@ export function ZipCompanyAnalysisWorkspace() {
                 </div>
 
                 <div ref={sectionRef("s09")} id="s09">
-                  <ValuationSection model={viewModel} onAsk={askAbout} />
+                  <ValuationSection
+                    model={viewModel}
+                    onAsk={askAbout}
+                    valuationStageStatus={
+                      (analyseMutation.data?.payload as { stage_summaries?: Array<{ stage: string; status: string }> })?.stage_summaries?.find((s) => s.stage === "valuation")?.status || "succeeded"
+                    }
+                  />
                 </div>
 
                 <div ref={sectionRef("s02")} id="s02">
@@ -2252,7 +2448,18 @@ export function ZipCompanyAnalysisWorkspace() {
                 </div>
 
                 <div ref={sectionRef("s14")} id="s14">
-                  <EvidenceExplorerSection model={viewModel} />
+                  <EvidenceExplorerSection
+                    model={viewModel}
+                    analysisId={analyseMutation.data?.analysis_id ?? undefined}
+                  />
+                </div>
+
+                <div ref={sectionRef("s15")} id="s15">
+                  <DownloadsSection
+                    symbol={symbol}
+                    analysisId={analyseMutation.data?.analysis_id ?? undefined}
+                    data={analyseMutation.data}
+                  />
                 </div>
               </div>
             </main>

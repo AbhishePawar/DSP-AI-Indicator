@@ -14,16 +14,17 @@ function AnalysisSkeleton() {
   );
 }
 
-const CompanyAnalysisWorkspace = dynamic(
-  () => import("@/components/company-analysis").then((module) => ({
-    default: module.CompanyAnalysisWorkspace,
-  })),
+const ZipCompanyAnalysisWorkspace = dynamic(
+  () =>
+    import("@/components/company-analysis/ZipCompanyAnalysisWorkspace").then((module) => ({
+      default: module.ZipCompanyAnalysisWorkspace,
+    })),
   {
     ssr: false,
     loading: () => <AnalysisSkeleton />,
-  },
+  }
 );
 
 export default function AnalysisRoute() {
-  return <CompanyAnalysisWorkspace />;
+  return <ZipCompanyAnalysisWorkspace />;
 }

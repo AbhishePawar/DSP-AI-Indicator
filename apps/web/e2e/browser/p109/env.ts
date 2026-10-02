@@ -1,6 +1,5 @@
 import fs from "node:fs";
 import path from "node:path";
-import { fileURLToPath } from "node:url";
 
 export type P109Config = {
   adminLogin: string;
@@ -71,7 +70,7 @@ function parseEnvLine(line: string): [string, string] | null {
 export function findP109LocalEnvFile(): string | null {
   const candidates = [
     process.env.DSP_P109_ENV_FILE,
-    path.resolve(typeof __dirname !== "undefined" ? __dirname : path.dirname(fileURLToPath(import.meta.url)), "../../../.env.local"),
+    path.resolve(typeof __dirname !== "undefined" ? __dirname : process.cwd(), "../../../.env.local"),
     path.resolve(process.cwd(), "apps/web/.env.local"),
     path.resolve(process.cwd(), ".env.local"),
   ].filter((p): p is string => Boolean(p && fs.existsSync(p)));

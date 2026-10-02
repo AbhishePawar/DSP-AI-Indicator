@@ -96,7 +96,7 @@ class EnterprisePlatform:
             )
         password = seed_admin_password
         if password is None:
-            password = env_map.get("DSP_SEED_ADMIN_PASSWORD")
+            password = env_map.get("DSP_SEED_ADMIN_PASSWORD") or env_map.get("DSP_P109_PASSWORD")
         return cls._compose(
             infra,
             jwt_secret=secret,

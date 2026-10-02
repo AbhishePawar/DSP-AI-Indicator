@@ -26,7 +26,7 @@
             and os.environ.get("DSP_FORCE_ADMIN_SEED") != "1"
         ):
             return
-        password = os.environ.get("DSP_SEED_ADMIN_PASSWORD")
+        password = os.environ.get("DSP_SEED_ADMIN_PASSWORD") or os.environ.get("DSP_P109_PASSWORD")
         if not password:
             raise RuntimeError(
                 "Development admin seed requires DSP_SEED_ADMIN_PASSWORD; "

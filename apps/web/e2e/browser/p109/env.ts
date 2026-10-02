@@ -47,13 +47,27 @@ function parseEnvLine(line: string): [string, string] | null {
   return [key, value];
 }
 
-/** Load apps/web/.env.local without overwriting explicitly supplied process env. */
-export function loadP109LocalEnv(
-  envFile = path.resolve(process.cwd(), ".env.local"),
-): boolean {
-  if (!fs.existsSync(envFile)) return false;
+/**
+ * Locate apps/web/.env.local reliably regardless of whether tests
+ * are executed from repo root, apps/web, or another directory.
+ */
+export function findP109LocalEnvFile(): string | null {
+  const candidates = [
+    process.env.DSP_P109_ENV_FILE,
+    path.resolve(__dirname, "../../../.env.local"),
+    path.resolve(process.cwd(), "apps/web/.env.local"),
+    path.resolve(process.cwd(), ".env.local"),
+  ].filter((p): p is string => Boolean(p && fs.existsSync(p)));
 
-  const contents = fs.readFileSync(envFile, "utf8");
+  return candidates.length > 0 ? candidates[0] : null;
+}
+
+/** Load apps/web/.env.local without overwriting explicitly supplied process env. */
+export function loadP109LocalEnv(envFile?: string): boolean {
+  const target = envFile ?? findP109LocalEnvFile();
+  if (!target || !fs.existsSync(target)) return false;
+
+  const contents = fs.readFileSync(target, "utf8");
   for (const line of contents.split(/\r?\n/)) {
     const parsed = parseEnvLine(line);
     if (!parsed) continue;
@@ -66,17 +80,19 @@ export function loadP109LocalEnv(
 /**
  * Resolve the P1-09 fixture credential in one canonical order.
  *
- * The backend seed uses DSP_SEED_ADMIN_PASSWORD as its canonical source.
- * DSP_P109_PASSWORD exists only as a backwards-compatible test fallback.
+ * 1. DSP_SEED_ADMIN_PASSWORD (canonical source shared with backend seed)
+ * 2. DSP_P109_PASSWORD (legacy backwards-compatible test fallback)
+ *
+ * Empty or whitespace-only credentials are strictly rejected.
  */
 export function resolveP109AdminPassword(
   env: NodeJS.ProcessEnv = process.env,
 ): string | undefined {
-  const canonical = env.DSP_SEED_ADMIN_PASSWORD;
-  if (canonical !== undefined && canonical !== "") return canonical;
+  const canonical = env.DSP_SEED_ADMIN_PASSWORD?.trim();
+  if (canonical && canonical.length > 0) return canonical;
 
-  const legacy = env.DSP_P109_PASSWORD;
-  if (legacy !== undefined && legacy !== "") return legacy;
+  const legacy = env.DSP_P109_PASSWORD?.trim();
+  if (legacy && legacy.length > 0) return legacy;
 
   return undefined;
 }
@@ -84,6 +100,10 @@ export function resolveP109AdminPassword(
 export function resolveP109Config(
   env: NodeJS.ProcessEnv = process.env,
 ): P109Config {
+  if (env === process.env && !env.DSP_SEED_ADMIN_PASSWORD && !env.DSP_P109_PASSWORD) {
+    loadP109LocalEnv();
+  }
+
   const adminPassword = resolveP109AdminPassword(env);
   if (!adminPassword) {
     throw new P109ConfigError(
@@ -92,36 +112,11 @@ export function resolveP109Config(
     );
   }
 
-  const adminLogin = env.DSP_P109_LOGIN ?? "admin";
-  const ticker = env.DSP_P109_TICKER ?? "DSPFIX";
+  const adminLogin = env.DSP_P109_LOGIN?.trim() || "admin";
+  const ticker = env.DSP_P109_TICKER?.trim() || "DSPFIX";
   const apiBaseUrl =
-    env.PLAYWRIGHT_API_BASE_URL ?? "http://127.0.0.1:8000/api/v1";
-  const baseUrl = env.PLAYWRIGHT_BASE_URL ?? "http://127.0.0.1:3000";
-
-  if (!adminLogin) {
-    throw new P109ConfigError(
-      "MISSING_LOGIN",
-      "P1-09 configuration is missing DSP_P109_LOGIN.",
-    );
-  }
-  if (!ticker) {
-    throw new P109ConfigError(
-      "MISSING_TICKER",
-      "P1-09 configuration is missing DSP_P109_TICKER.",
-    );
-  }
-  if (!apiBaseUrl) {
-    throw new P109ConfigError(
-      "MISSING_API_BASE_URL",
-      "P1-09 configuration is missing PLAYWRIGHT_API_BASE_URL.",
-    );
-  }
-  if (!baseUrl) {
-    throw new P109ConfigError(
-      "MISSING_BASE_URL",
-      "P1-09 configuration is missing PLAYWRIGHT_BASE_URL.",
-    );
-  }
+    env.PLAYWRIGHT_API_BASE_URL?.trim() || "http://127.0.0.1:8000/api/v1";
+  const baseUrl = env.PLAYWRIGHT_BASE_URL?.trim() || "http://127.0.0.1:3000";
 
   return { adminLogin, adminPassword, ticker, apiBaseUrl, baseUrl };
 }
@@ -131,6 +126,25 @@ export function resolveP109Config(
  * requested. This prevents a missing credential from becoming a confusing
  * browser/login failure.
  */
-export function assertP109Config(env: NodeJS.ProcessEnv = process.env): P109Config {
+export function assertP109Config(
+  env: NodeJS.ProcessEnv = process.env,
+): P109Config {
   return resolveP109Config(env);
+}
+
+/** Diagnostic failure categories for P1-09 preflight checks. */
+export type P109PreflightCategory =
+  | "MISSING_CONFIGURATION"
+  | "BACKEND_UNAVAILABLE"
+  | "FRONTEND_UNAVAILABLE"
+  | "AUTHENTICATION_FAILED";
+
+export class P109PreflightError extends Error {
+  readonly category: P109PreflightCategory;
+
+  constructor(category: P109PreflightCategory, message: string) {
+    super(message);
+    this.name = "P109PreflightError";
+    this.category = category;
+  }
 }

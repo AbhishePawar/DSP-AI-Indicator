@@ -4,6 +4,7 @@ import path from "node:path";
 
 import { loginWithUsernamePassword } from "./p109/login";
 import { p109Stage, type P109StageRecord } from "./p109/stages";
+import { assertP109Config } from "./p109/env";
 import {
   assertBuffettVisible,
   assertEvidenceVisible,
@@ -22,18 +23,11 @@ import {
  * Stages: LOGIN → ANALYSIS → VALUATION → BUFFETT → PROVENANCE → EXPORT
  */
 
-const API_BASE =
-  process.env.PLAYWRIGHT_API_BASE_URL ?? "http://127.0.0.1:8000/api/v1";
-const TICKER = process.env.DSP_P109_TICKER ?? "DSPFIX";
-const ADMIN_ID = process.env.DSP_P109_LOGIN ?? "admin";
-const ADMIN_PASSWORD =
-  process.env.DSP_SEED_ADMIN_PASSWORD ?? process.env.DSP_P109_PASSWORD;
-
-if (!ADMIN_PASSWORD) {
-  throw new Error(
-    "P1-09 requires DSP_SEED_ADMIN_PASSWORD or DSP_P109_PASSWORD for fixture login",
-  );
-}
+const P109 = assertP109Config();
+const API_BASE = P109.apiBaseUrl;
+const TICKER = P109.ticker;
+const ADMIN_ID = P109.adminLogin;
+const ADMIN_PASSWORD = P109.adminPassword;
 
 const EVIDENCE_CLASS = "test_fixture";
 
@@ -79,8 +73,21 @@ test.describe("P1-09 critical investment journey", () => {
 
   test("API health ready before browser journey", async ({ request }) => {
     const root = API_BASE.replace(/\/api\/v1$/, "");
-    expect((await request.get(`${root}/health/live`)).ok()).toBeTruthy();
-    expect((await request.get(`${root}/health/ready`)).ok()).toBeTruthy();
+    const live = await request.get(`${root}/health/live`);
+    if (!live.ok()) {
+      throw new Error(`P1-09 backend unavailable: ${root}/health/live returned ${live.status()}`);
+    }
+    const ready = await request.get(`${root}/health/ready`);
+    if (!ready.ok()) {
+      throw new Error(`P1-09 backend unavailable: ${root}/health/ready returned ${ready.status()}`);
+    }
+  });
+
+  test("frontend is reachable before browser journey", async ({ request }) => {
+    const response = await request.get(P109.baseUrl);
+    if (!response.ok()) {
+      throw new Error(`P1-09 frontend unavailable: ${P109.baseUrl} returned ${response.status()}`);
+    }
   });
 
   test("login → analyse → valuation → Buffett → provenance → export", async ({
@@ -100,7 +107,15 @@ test.describe("P1-09 critical investment journey", () => {
     const capture = attachAnalyseCapture(page);
 
     await p109Stage("LOGIN", async () => {
-      await loginWithUsernamePassword(page, ADMIN_ID, ADMIN_PASSWORD);
+      try {
+        await loginWithUsernamePassword(page, ADMIN_ID, ADMIN_PASSWORD);
+      } catch (error) {
+        throw new Error(
+          `P1-09 authentication failed for fixture user ${ADMIN_ID}: ${
+            error instanceof Error ? error.message : String(error)
+          }`,
+        );
+      }
       stages.push({ stage: "LOGIN", status: "passed" });
     });
 

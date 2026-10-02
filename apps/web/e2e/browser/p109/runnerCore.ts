@@ -338,6 +338,7 @@ export type ServiceStartupOptions = {
   inspectPortFn?: (port: number, expectedDir?: string) => PortProcessInfo | null;
   onProgress?: (msg: string) => void;
   autoFallbackPort?: boolean | number;
+  platform?: string;
 };
 
 export type FrontendServiceResult = {
@@ -349,6 +350,29 @@ export type FrontendServiceResult = {
   effectiveBaseUrl: string;
   isolatedPort?: number;
 };
+
+
+export interface PlaywrightCommandResolution {
+  command: string;
+  args: string[];
+}
+
+export function resolveNpmCommand(platform: string = process.platform): string {
+  return platform === "win32" ? "npm.cmd" : "npm";
+}
+
+export function resolvePlaywrightCommand(platform: string = process.platform): PlaywrightCommandResolution {
+  const command = platform === "win32" ? "npx.cmd" : "npx";
+  return {
+    command,
+    args: [
+      "playwright",
+      "test",
+      "e2e/browser/p109-critical-investment.journey.spec.ts",
+      "--project=chromium",
+    ],
+  };
+}
 
 export async function ensureBackendService(
   config: { apiBaseUrl: string; adminPassword?: string },
@@ -534,7 +558,8 @@ export async function ensureFrontendService(
 
   let child: ChildProcess;
   try {
-    child = spawner("npm", ["run", "dev", "--", "-p", String(port)], {
+    const npmCmd = resolveNpmCommand(options.platform);
+    child = spawner(npmCmd, ["run", "dev", "--", "-p", String(port)], {
       cwd: web,
       env: {
         ...process.env,

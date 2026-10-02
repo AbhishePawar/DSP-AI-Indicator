@@ -6,6 +6,8 @@ import {
   boundedHttpCheck,
   ensureBackendService,
   ensureFrontendService,
+  resolvePlaywrightCommand,
+  resolveNpmCommand,
   getHealthConfig,
   inspectPortProcess,
   isSameOrSubdirectory,
@@ -286,3 +288,38 @@ describe("P1-09 runner lifecycle & health configuration", () => {
     expect(mockSpawnedChild.killed).toBe(true);
     expect(killedPids).not.toContain(foreignPid);
   });
+
+describe("P1-09 cross-platform executable resolution & Playwright launcher", () => {
+  it("A. resolves npx.cmd on Windows and npx on POSIX", () => {
+    const win = resolvePlaywrightCommand("win32");
+    expect(win.command).toBe("npx.cmd");
+
+    const linux = resolvePlaywrightCommand("linux");
+    expect(linux.command).toBe("npx");
+
+    const darwin = resolvePlaywrightCommand("darwin");
+    expect(darwin.command).toBe("npx");
+  });
+
+  it("A2. resolves npm.cmd on Windows and npm on POSIX", () => {
+    expect(resolveNpmCommand("win32")).toBe("npm.cmd");
+    expect(resolveNpmCommand("linux")).toBe("npm");
+  });
+
+  it("B. constructs valid Playwright arguments", () => {
+    const res = resolvePlaywrightCommand();
+    expect(res.args).toEqual([
+      "playwright",
+      "test",
+      "e2e/browser/p109-critical-investment.journey.spec.ts",
+      "--project=chromium",
+    ]);
+  });
+
+  it("C. contains no absolute developer-specific paths", () => {
+    const win = resolvePlaywrightCommand("win32");
+    expect(win.command).not.toMatch(/^[A-Z]:\\/i);
+    expect(win.command).not.toContain("Users");
+    expect(win.command).not.toContain("Program Files");
+  });
+});

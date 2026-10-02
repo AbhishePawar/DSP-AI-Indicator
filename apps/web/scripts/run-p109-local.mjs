@@ -78,6 +78,7 @@ async function main() {
     ensureBackendService,
     ensureFrontendService,
     parsePortFromUrl,
+    resolvePlaywrightCommand,
   } = await import("../e2e/browser/p109/runnerCore.ts");
 
   loadP109LocalEnv();
@@ -196,9 +197,10 @@ async function main() {
     try { fs.unlinkSync(resultsJsonPath); } catch {}
   }
 
+  const pwCmd = resolvePlaywrightCommand();
   const child = spawn(
-    "npx",
-    ["playwright", "test", "e2e/browser/p109-critical-investment.journey.spec.ts", "--project=chromium"],
+    pwCmd.command,
+    pwCmd.args,
     {
       cwd: webDir,
       env: {
@@ -209,6 +211,23 @@ async function main() {
       stdio: "inherit",
     }
   );
+
+  child.on("error", (err) => {
+    tracker.cleanup();
+    console.error("\n==================================================");
+    console.error("P1-09 LAUNCH ERROR: Failed to spawn Playwright process");
+    console.error("==================================================");
+    console.error(`Platform:             ${process.platform}`);
+    console.error(`Node Executable:      ${process.execPath}`);
+    console.error(`Resolved Command:     ${pwCmd.command}`);
+    console.error(`Arguments:            ${pwCmd.args.join(" ")}`);
+    console.error(`Working Directory:    ${webDir}`);
+    console.error(`PATH Available:       ${Boolean(process.env.PATH || process.env.Path)}`);
+    console.error(`System Error:         ${err.message}`);
+    console.error("==================================================");
+    console.error("\nP1-09: BLOCKED — could not spawn Playwright runner");
+    process.exit(1);
+  });
 
   child.on("close", (code) => {
     tracker.cleanup();

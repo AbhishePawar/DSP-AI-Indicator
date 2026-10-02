@@ -35,6 +35,8 @@ from persistence import (
 @pytest.fixture(autouse=True)
 def _reset(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setenv("DSP_ENVIRONMENT", "development")
+    monkeypatch.setenv("DSP_SEED_ADMIN_PASSWORD", "unit-test-fixture-value")
+    monkeypatch.delenv("DSP_P109_PASSWORD", raising=False)
     monkeypatch.delenv("DSP_GOOGLE_CLIENT_ID", raising=False)
     monkeypatch.delenv("DSP_GOOGLE_CLIENT_SECRET", raising=False)
     monkeypatch.setenv("DSP_AUTH_PROVIDER_GOOGLE", "auto")
@@ -71,17 +73,17 @@ def test_seed_super_admin_once() -> None:
     ]
     assert admins
     assert admins[0]["email"] == "admin@dspai.local"
-    # Second construction must not duplicate
     EnterpriseAuthPlatform(platform.auth, otp=OtpService(DevSmsAdapter()))
     again = platform.admin_list_users()
     assert len([u for u in again if u.get("email") == "admin@dspai.local"]) == 1
 
 
 def test_password_strength_and_hash_upgrade(monkeypatch: pytest.MonkeyPatch) -> None:
-    assert password_strength("Admin@123456").get("score", 0) >= 4
-    legacy = hash_password("Admin@123456", salt="aabbccddeeff0011")
+    test_value = "PasswordStrength-Test-Value-1234!"
+    assert password_strength(test_value).get("score", 0) >= 4
+    legacy = hash_password(test_value, salt="aabbccddeeff0011")
     assert legacy.startswith("pbkdf2$")
-    assert verify_password("Admin@123456", legacy)
+    assert verify_password(test_value, legacy)
     monkeypatch.setenv("DSP_PASSWORD_HASHER", "pbkdf2")
     assert needs_rehash(legacy) is False or isinstance(needs_rehash(legacy), bool)
 
@@ -129,7 +131,6 @@ def test_register_verify_login_lockout() -> None:
     assert login["tokens"]["access_token"]
     assert login["device"]["device_id"]
 
-    # Lockout after threshold
     platform._lockout_threshold = 3
     for _ in range(3):
         with pytest.raises(AuthenticationError):
@@ -254,8 +255,6 @@ def test_access_request_invite_flow() -> None:
         confirm_password="StrongPass12!",
     )
     assert accepted["ok"] is True
-    # Invitation tokens are single-use: replaying the same token must be
-    # rejected outright rather than reaching duplicate-account detection.
     with pytest.raises(ValidationError):
         platform.accept_invitation(
             token=token,
@@ -270,9 +269,8 @@ def test_mfa_gateway_additive_stable() -> None:
     platform = get_enterprise_auth_platform()
     status = platform.mfa.status()
     assert status["enabled"] is False
-    # Login must not require MFA fields today
     login = platform.login_password(
         identifier="admin",
-        password=os.environ.get("DSP_SEED_ADMIN_PASSWORD") or "Admin@123",
+        password=os.environ["DSP_SEED_ADMIN_PASSWORD"],
     )
     assert "mfa_required" not in login

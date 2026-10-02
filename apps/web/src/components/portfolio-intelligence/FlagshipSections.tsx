@@ -39,21 +39,21 @@ function CountBars({
       {segments.length === 0 ? (
         <WorkspaceEmpty description="Data unavailable." />
       ) : (
-        <ul className="space-y-2" aria-label={title}>
+        <ul className="space-y-3" aria-label={title}>
           {segments.map((s) => (
-            <li key={s.name}>
-              <div className="mb-1 flex justify-between gap-2 text-sm">
-                <span>{s.name}</span>
-                <span className="text-[var(--muted)]">
+            <li key={s.name} className="space-y-1.5">
+              <div className="flex justify-between gap-2 text-sm">
+                <span className="font-medium text-[var(--fg)]">{s.name}</span>
+                <span className="font-mono text-xs tabular-nums text-[var(--muted)]">
                   {s.count} · {s.shareOfHoldings}
                 </span>
               </div>
               <div
-                className="h-2 overflow-hidden rounded-full bg-[var(--surface-2)]"
+                className="h-2.5 overflow-hidden rounded-full bg-[var(--surface-2)]"
                 role="presentation"
               >
                 <div
-                  className="h-full bg-[var(--accent)] transition-[width] duration-300 motion-reduce:transition-none"
+                  className="h-full rounded-full bg-[var(--accent)] transition-[width] duration-300 motion-reduce:transition-none"
                   style={{ width: `${(s.count / max) * 100}%` }}
                 />
               </div>
@@ -89,36 +89,52 @@ export function PortfolioHeaderCard({
       description="Portfolio identity from session prefs — values that require market feeds stay Data unavailable."
       action={
         <div className="flex flex-wrap gap-2">
-          <Button size="sm" variant="secondary" onClick={onShare}>
+          <Button size="sm" variant="secondary" onClick={onShare} className="min-h-[44px] min-w-[44px]">
             Share
           </Button>
-          <Button size="sm" variant="ghost" onClick={onExport}>
+          <Button size="sm" variant="ghost" onClick={onExport} className="min-h-[44px] min-w-[44px]">
             Export
           </Button>
         </div>
       }
     >
+      {/* Real available session metric callout cards */}
+      <div className="mb-4 grid gap-3 sm:grid-cols-3">
+        <div className="rounded-[var(--radius-md)] border border-[var(--border)] bg-[var(--surface-2)]/60 p-3.5">
+          <div className="text-xs font-medium uppercase tracking-wider text-[var(--muted)]">Holdings Count</div>
+          <div className="mt-1 text-2xl font-bold font-mono tabular-nums text-[var(--fg)]">{holdingsCount}</div>
+        </div>
+        <div className="rounded-[var(--radius-md)] border border-[var(--border)] bg-[var(--surface-2)]/60 p-3.5">
+          <div className="text-xs font-medium uppercase tracking-wider text-[var(--muted)]">Research Coverage</div>
+          <div className="mt-1 text-sm font-semibold text-[var(--fg)] truncate">{researchCoverage}</div>
+        </div>
+        <div className="rounded-[var(--radius-md)] border border-[var(--border)] bg-[var(--surface-2)]/60 p-3.5">
+          <div className="text-xs font-medium uppercase tracking-wider text-[var(--muted)]">Last Updated</div>
+          <div className="mt-1 text-sm font-medium text-[var(--fg)] truncate">{lastUpdated || "Data unavailable."}</div>
+        </div>
+      </div>
+
       <dl className="grid gap-x-6 sm:grid-cols-2 lg:grid-cols-3">
         <FieldRow label="Portfolio Name" value={portfolioName} />
         <FieldRow label="Owner" value={owner} />
         <FieldRow
           label="Total Value"
-          value="Data unavailable. No certified portfolio valuation feed in the thin client."
+          value="Data unavailable."
         />
         <FieldRow
           label="Cash Position"
-          value="Data unavailable. Cash balances are not on the session holdings model."
+          value="Data unavailable."
         />
         <FieldRow label="Holdings count" value={holdingsCount} />
         <FieldRow label="Last Updated" value={lastUpdated} />
         <FieldRow label="Research coverage" value={researchCoverage} />
         <FieldRow
           label="Benchmark"
-          value="Data unavailable. No benchmark API wired for this workspace."
+          value="Data unavailable."
         />
         <FieldRow
           label="Performance Period"
-          value="Data unavailable. Returns require a performance feed."
+          value="Data unavailable."
         />
       </dl>
     </SectionCard>

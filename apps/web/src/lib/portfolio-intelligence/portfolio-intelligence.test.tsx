@@ -345,3 +345,51 @@ describe("P9.5 foundation version", () => {
     expect(FRONTEND_FOUNDATION_VERSION).toBe("2.0.0-rc.1");
   });
 });
+
+describe("Stage 5 Portfolio UX regressions", () => {
+  it("renders Allocation (%) column and handles sorting and search", async () => {
+    const { HoldingsSection } = await import(
+      "@/components/portfolio-intelligence/Sections"
+    );
+    const { render, screen, fireEvent, cleanup } = await import("@testing-library/react");
+    cleanup();
+
+    render(
+      <HoldingsSection
+        holdings={[
+          {
+            company: "Tata Consultancy Services",
+            ticker: "TCS",
+            sector: "Technology",
+            allocationPercent: 42.5,
+            recommendation: "Buy",
+            researchAvailable: true,
+          },
+          {
+            company: "Infosys",
+            ticker: "INFY",
+            sector: "Technology",
+            allocationPercent: 57.5,
+            recommendation: "Hold",
+            researchAvailable: false,
+          },
+        ]}
+      />,
+    );
+
+    // 1. Allocation (%) rendered
+    expect(screen.getByText("42.5%")).toBeTruthy();
+    expect(screen.getByText("57.5%")).toBeTruthy();
+    const sortBtns = screen.getAllByRole("button", { name: /Sort by Allocation \(%\)/i });
+    const sortBtn = sortBtns[0];
+    expect(sortBtn).toBeTruthy();
+
+    // 2. Sorting by allocation
+    fireEvent.click(sortBtn);
+
+    // 3. Search filter
+    const searchInput = screen.getByLabelText("Search holdings");
+    fireEvent.change(searchInput, { target: { value: "TCS" } });
+    expect(screen.getByText("TCS")).toBeTruthy();
+  });
+});

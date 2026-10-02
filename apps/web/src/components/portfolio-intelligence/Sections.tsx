@@ -36,7 +36,7 @@ import {
   WorkspaceEmpty,
 } from "./Primitives";
 
-type SortKey = "ticker" | "company" | "sector" | "recommendation";
+type SortKey = "ticker" | "company" | "sector" | "recommendation" | "allocationPercent";
 
 export function SummarySection({
   holdings,
@@ -96,6 +96,12 @@ export function HoldingsSection({
       );
     });
     next = [...next].sort((a, b) => {
+      if (sortKey === "allocationPercent") {
+        const av = typeof a.allocationPercent === "number" && Number.isFinite(a.allocationPercent) ? a.allocationPercent : -1;
+        const bv = typeof b.allocationPercent === "number" && Number.isFinite(b.allocationPercent) ? b.allocationPercent : -1;
+        const cmp = av - bv;
+        return sortDir === "asc" ? cmp : -cmp;
+      }
       const av = String(a[sortKey] ?? "");
       const bv = String(b[sortKey] ?? "");
       const cmp = av.localeCompare(bv);
@@ -116,32 +122,37 @@ export function HoldingsSection({
   return (
     <SectionCard
       title="Holdings"
-      description="Session holdings list — search/filter/sort are presentation only"
+      description="Session holdings list — search/filter/sort are presentation only. Valuation, pricing, and P&L require certified engine feed."
     >
-      <div className="mb-3 flex flex-wrap gap-2">
-        <Input
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          placeholder="Search holdings"
-          aria-label="Search holdings"
-          className="max-w-xs"
-        />
-        <label className="flex items-center gap-2 text-sm text-[var(--muted)]">
-          Sector
-          <select
-            className="rounded-[var(--radius-md)] border border-[var(--border)] bg-[var(--surface)] px-2 py-1 text-[var(--fg)]"
-            value={sectorFilter}
-            onChange={(e) => setSectorFilter(e.target.value)}
-            aria-label="Filter holdings by sector"
-          >
-            <option value="all">All</option>
-            {sectors.map((s) => (
-              <option key={s} value={s}>
-                {s}
-              </option>
-            ))}
-          </select>
-        </label>
+      <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex flex-1 flex-wrap items-center gap-2">
+          <Input
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder="Search company, ticker, or sector"
+            aria-label="Search holdings"
+            className="h-11 min-h-[44px] max-w-xs"
+          />
+          <label className="flex items-center gap-2 text-sm text-[var(--muted)]">
+            <span>Sector</span>
+            <select
+              className="h-11 min-h-[44px] rounded-[var(--radius-md)] border border-[var(--border)] bg-[var(--surface)] px-3 py-2 text-sm text-[var(--fg)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
+              value={sectorFilter}
+              onChange={(e) => setSectorFilter(e.target.value)}
+              aria-label="Filter holdings by sector"
+            >
+              <option value="all">All sectors</option>
+              {sectors.map((s) => (
+                <option key={s} value={s}>
+                  {s}
+                </option>
+              ))}
+            </select>
+          </label>
+        </div>
+        <div className="text-xs text-[var(--muted)]">
+          {rows.length} of {holdings.length} holding{holdings.length === 1 ? "" : "s"}
+        </div>
       </div>
 
       {holdings.length === 0 ? (
@@ -149,7 +160,7 @@ export function HoldingsSection({
           description="Data unavailable. Add holdings from Company Analysis or load session portfolio actions."
           action={
             <Link href="/analysis">
-              <Button size="sm" variant="secondary">
+              <Button size="sm" variant="secondary" className="min-h-[44px] min-w-[44px]">
                 Analyze company
               </Button>
             </Link>
@@ -158,42 +169,62 @@ export function HoldingsSection({
       ) : rows.length === 0 ? (
         <WorkspaceEmpty description="No holdings match the current search/filter." />
       ) : (
-        <div className="max-h-[28rem] overflow-auto rounded-[var(--radius-md)] border border-[var(--border)]">
+        <div className="max-h-[32rem] overflow-auto rounded-[var(--radius-md)] border border-[var(--border)]">
           <Table aria-label="Portfolio holdings">
             <TableHeader className="sticky top-0 z-10 bg-[var(--surface)]">
               <TableRow>
                 {(
                   [
-                    ["company", "Company"],
-                    ["ticker", "Ticker"],
-                    ["sector", "Sector"],
-                    ["recommendation", "Status"],
+                    ["company", "Company", "text-left"],
+                    ["ticker", "Ticker", "text-left"],
+                    ["sector", "Sector", "text-left"],
+                    ["allocationPercent", "Allocation (%)", "text-right"],
+                    ["recommendation", "Status", "text-left"],
                   ] as const
-                ).map(([key, label]) => (
-                  <TableHead key={key}>
+                ).map(([key, label, align]) => (
+                  <TableHead key={key} className={align}>
                     <button
                       type="button"
-                      className="hover:text-[var(--accent)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
+                      className="inline-flex items-center gap-1 min-h-[44px] hover:text-[var(--accent)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
                       onClick={() => toggleSort(key)}
+                      aria-label={`Sort by ${label}`}
                     >
-                      {label}
-                      {sortKey === key ? (sortDir === "asc" ? " ↑" : " ↓") : ""}
+                      <span>{label}</span>
+                      <span className="font-mono text-xs" aria-hidden="true">
+                        {sortKey === key ? (sortDir === "asc" ? " ↑" : " ↓") : ""}
+                      </span>
                     </button>
                   </TableHead>
                 ))}
                 <TableHead>Research</TableHead>
-                <TableHead>Actions</TableHead>
+                <TableHead className="text-right">Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {rows.map((h) => (
-                <TableRow key={h.ticker}>
-                  <TableCell>{h.company}</TableCell>
-                  <TableCell className="font-mono text-xs">{h.ticker}</TableCell>
-                  <TableCell>{h.sector || "Data unavailable."}</TableCell>
+                <TableRow key={h.ticker} className="hover:bg-[var(--surface-2)]/50">
+                  <TableCell className="font-medium text-[var(--fg)]">
+                    <div className="font-semibold text-sm">{h.company}</div>
+                    <div className="text-xs text-[var(--muted)] sm:hidden">
+                      {h.sector || "Data unavailable."}
+                    </div>
+                  </TableCell>
+                  <TableCell>
+                    <span className="font-mono text-xs font-semibold px-1.5 py-0.5 rounded bg-[var(--surface-2)] border border-[var(--border)]">
+                      {h.ticker}
+                    </span>
+                  </TableCell>
+                  <TableCell className="text-[var(--muted)] text-sm">
+                    {h.sector || "Data unavailable."}
+                  </TableCell>
+                  <TableCell className="text-right font-mono text-sm tabular-nums font-semibold text-[var(--fg)]">
+                    {typeof h.allocationPercent === "number" && Number.isFinite(h.allocationPercent)
+                      ? `${h.allocationPercent.toFixed(1)}%`
+                      : "—"}
+                  </TableCell>
                   <TableCell>
                     <StatusBadge
-                      ok={Boolean(h.recommendation)}
+                      ok={Boolean(h.recommendation && h.recommendation !== "Data unavailable.")}
                       label={h.recommendation || "Data unavailable."}
                     />
                   </TableCell>
@@ -204,16 +235,18 @@ export function HoldingsSection({
                         : "Not linked"}
                     </Badge>
                   </TableCell>
-                  <TableCell>
-                    <div className="flex flex-wrap gap-2">
+                  <TableCell className="text-right">
+                    <div className="inline-flex items-center justify-end gap-2">
                       <Link
                         href={`/analysis?symbol=${encodeURIComponent(h.ticker)}`}
                       >
-                        <Button size="sm" variant="secondary">
+                        <Button size="sm" variant="secondary" className="min-h-[44px] min-w-[44px]">
                           Quick analysis
                         </Button>
                       </Link>
-                      <RemoveHoldingButton ticker={h.ticker} />
+                      <div className="min-h-[44px] min-w-[44px] inline-flex items-center">
+                        <RemoveHoldingButton ticker={h.ticker} />
+                      </div>
                     </div>
                   </TableCell>
                 </TableRow>

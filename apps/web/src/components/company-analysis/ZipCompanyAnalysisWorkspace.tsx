@@ -202,10 +202,12 @@ export function Card({
     <div
       className={className}
       style={{
-        background: "var(--card)",
+        background: "var(--card, #111520)",
         border: "1px solid var(--border)",
-        borderRadius: 10,
+        borderRadius: "var(--card-radius, 12px)",
         padding: "20px 22px",
+        boxShadow: "var(--shadow-card, 0 4px 20px -2px rgba(0, 0, 0, 0.5))",
+        transition: "border-color 0.15s ease",
         ...style,
       }}
     >
@@ -932,17 +934,18 @@ export function CompanyHeader({
         </div>
       </div>
 
-      <div style={{ display: "flex", alignItems: "center", gap: 20 }} className="company-header-metrics">
+      <div style={{ display: "flex", alignItems: "center", gap: 24, flexWrap: "wrap" }} className="company-header-metrics">
         <div style={{ textAlign: "right" }}>
           <div
             style={{
               fontSize: 10,
               color: "var(--muted-foreground)",
               fontFamily: "var(--font-data)",
-              letterSpacing: "0.06em",
+              letterSpacing: "0.08em",
+              textTransform: "uppercase",
             }}
           >
-            MARKET PRICE
+            Market Price
           </div>
           <div
             className="company-header-price"
@@ -951,6 +954,7 @@ export function CompanyHeader({
               fontWeight: 700,
               color: "var(--foreground)",
               fontFamily: "var(--font-data)",
+              fontVariantNumeric: "tabular-nums",
             }}
           >
             {model.valuation.currentPriceFormatted}
@@ -963,10 +967,11 @@ export function CompanyHeader({
               fontSize: 10,
               color: "var(--muted-foreground)",
               fontFamily: "var(--font-data)",
-              letterSpacing: "0.06em",
+              letterSpacing: "0.08em",
+              textTransform: "uppercase",
             }}
           >
-            INTRINSIC VALUE
+            Intrinsic Value
           </div>
           <div
             style={{
@@ -974,24 +979,54 @@ export function CompanyHeader({
               fontWeight: 700,
               color: "var(--c-cashflow, #2dd4bf)",
               fontFamily: "var(--font-data)",
+              fontVariantNumeric: "tabular-nums",
             }}
           >
             {model.valuation.intrinsicValueFormatted}
           </div>
         </div>
 
+        {model.valuation.marginOfSafetyFormatted ? (
+          <div style={{ textAlign: "right" }}>
+            <div
+              style={{
+                fontSize: 10,
+                color: "var(--muted-foreground)",
+                fontFamily: "var(--font-data)",
+                letterSpacing: "0.08em",
+                textTransform: "uppercase",
+              }}
+            >
+              Margin of Safety
+            </div>
+            <div
+              style={{
+                fontSize: 18,
+                fontWeight: 700,
+                color: model.valuation.status === "strong" ? "var(--c-profit, #22c55e)" : "var(--c-risk, #ef4444)",
+                fontFamily: "var(--font-data)",
+                fontVariantNumeric: "tabular-nums",
+              }}
+            >
+              {model.valuation.marginOfSafetyFormatted}
+            </div>
+          </div>
+        ) : null}
+
         <button
           type="button"
           onClick={onModeSwitch}
           style={{
-            padding: "7px 14px",
-            background: "var(--secondary)",
+            padding: "8px 14px",
+            background: "var(--surface-2, #181e2e)",
             border: "1px solid var(--border)",
-            borderRadius: 6,
+            borderRadius: "var(--radius-md, 8px)",
             fontSize: 12,
+            fontWeight: 500,
             color: "var(--foreground)",
             cursor: "pointer",
             fontFamily: "var(--font-body)",
+            transition: "all 0.15s ease",
           }}
         >
           Change Mode
@@ -1072,18 +1107,47 @@ export function InvestmentSummary({
       <div
         style={{
           display: "grid",
-          gridTemplateColumns: "repeat(auto-fit, minmax(130px, 1fr))",
+          gridTemplateColumns: "repeat(auto-fit, minmax(140px, 1fr))",
           gap: 12,
-          paddingTop: 16,
+          paddingTop: 18,
           borderTop: "1px solid var(--border)",
         }}
       >
         {model.investmentSummary.metrics.map((m) => (
-          <div key={m.label} style={{ background: "var(--secondary)", borderRadius: 8, padding: "10px 12px" }}>
-            <div style={{ fontSize: 10, color: "var(--muted-foreground)", fontFamily: "var(--font-data)", marginBottom: 4 }}>
+          <div
+            key={m.label}
+            style={{
+              background: "var(--surface-2, #181e2e)",
+              border: "1px solid var(--border)",
+              borderRadius: "var(--radius-md, 8px)",
+              padding: "12px 14px",
+              minHeight: 76,
+              display: "flex",
+              flexDirection: "column",
+              justifyContent: "space-between",
+              boxShadow: "var(--shadow-sm, 0 1px 2px 0 rgba(0, 0, 0, 0.4))",
+            }}
+          >
+            <div
+              style={{
+                fontSize: 10,
+                color: "var(--muted-foreground)",
+                fontFamily: "var(--font-data)",
+                letterSpacing: "0.06em",
+                textTransform: "uppercase",
+              }}
+            >
               {m.label}
             </div>
-            <div style={{ fontSize: 16, fontWeight: 700, color: (m as any).color || "var(--foreground)", fontFamily: "var(--font-data)" }}>
+            <div
+              style={{
+                fontSize: 18,
+                fontWeight: 700,
+                color: (m as any).color || "var(--foreground)",
+                fontFamily: "var(--font-data)",
+                fontVariantNumeric: "tabular-nums",
+              }}
+            >
               {m.value}
             </div>
           </div>
@@ -1857,27 +1921,31 @@ function DownloadsSection({
         title="Downloads"
         subtitle="Export institutional research snapshots and JSON audit trails."
       />
-      <Card style={{ padding: "20px" }}>
+      <Card style={{ padding: "22px 24px" }}>
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 16 }}>
           <div>
-            <div style={{ fontWeight: 600, fontSize: 14, color: "var(--foreground)" }}>JSON Snapshot</div>
-            <div style={{ fontSize: 12, color: "var(--muted-foreground)", marginTop: 4 }}>
-              Complete deterministic research payload with stage audit references.
+            <div style={{ fontWeight: 600, fontSize: 15, color: "var(--foreground)", fontFamily: "var(--font-heading)" }}>
+              JSON Research Snapshot
+            </div>
+            <div style={{ fontSize: 12, color: "var(--muted-foreground)", marginTop: 4, lineHeight: 1.5 }}>
+              Deterministic audit-grade export with cryptographic hash, stage references, and parameters.
             </div>
           </div>
           <button
             type="button"
             onClick={handleExportJson}
             style={{
-              padding: "9px 18px",
-              background: "var(--c-dsp, #3b82f6)",
+              padding: "10px 20px",
+              background: "var(--accent, #3b82f6)",
               color: "#ffffff",
               border: "none",
-              borderRadius: 8,
+              borderRadius: "var(--radius-md, 8px)",
               fontSize: 13,
               fontWeight: 600,
               cursor: "pointer",
               fontFamily: "var(--font-body)",
+              boxShadow: "var(--shadow-sm, 0 1px 2px 0 rgba(0, 0, 0, 0.4))",
+              transition: "opacity 0.15s ease",
             }}
           >
             Export JSON

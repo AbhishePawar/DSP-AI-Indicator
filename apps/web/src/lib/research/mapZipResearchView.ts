@@ -1,3 +1,8 @@
+function formatMosDisplay(val: number | null | undefined): string {
+  if (val === null || val === undefined) return "Unavailable";
+  const normalized = Math.abs(val) <= 1 ? val * 100 : val;
+  return `${normalized.toFixed(1)}%`;
+}
 /**
  * ZIP-aligned Research Workspace Response Adapter.
  *
@@ -297,8 +302,8 @@ export function mapZipResearchView(
   const intrinsicValue = rawIV != null ? `${currency}${Number(rawIV).toLocaleString()}` : "Unavailable";
 
   // Margin of safety
-  const rawMos = base.marginOfSafety;
-  const marginOfSafety = formatPct(rawMos);
+  const rawMos = serverValuation?.margin_of_safety ?? base.marginOfSafety;
+  const marginOfSafety = formatMosDisplay(rawMos);
   const marginOfSafetyStatus = mosToStatus(rawMos);
 
   // Business Quality

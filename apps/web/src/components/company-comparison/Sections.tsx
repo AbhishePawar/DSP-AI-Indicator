@@ -700,38 +700,60 @@ export function WinnerMatrixSection({
   return (
     <SectionCard
       title="Winner Matrix"
-      description="Medals only where server-provided scores exist. Missing fields stay Data unavailable."
+      description="Side-by-side comparison matrix. Medals and leaders only where server-provided data exists; missing fields stay Data unavailable."
     >
-      <div className="overflow-x-auto">
-        <table className="w-full min-w-[36rem] border-collapse text-sm">
+      <div className="overflow-x-auto rounded-[var(--radius-md)] border border-[var(--border)]">
+        <table className="w-full min-w-[36rem] border-collapse text-sm" aria-label="Winner comparison matrix">
           <thead>
-            <tr className="border-b border-[var(--border)] text-left">
-              <th className="py-2 pr-3 font-medium">Dimension</th>
-              {cols.map((s) => (
-                <th key={s} className="px-2 py-2 font-medium">
-                  {s}
-                </th>
-              ))}
-              <th className="py-2 pl-2 font-medium">Leader</th>
+            <tr className="border-b border-[var(--border)] bg-[var(--surface-2)]/50 text-left text-xs uppercase tracking-wider text-[var(--muted)]">
+              <th className="py-3 px-4 font-semibold">Metric / Dimension</th>
+              {cols.map((s, idx) => {
+                const slot = model.slots?.find((sl) => sl.symbol === s);
+                const colLabel = cols.length === 2 ? `Security ${idx + 1} (${s})` : s;
+                return (
+                  <th key={s} className="py-3 px-4 font-semibold text-[var(--fg)]">
+                    <div>{colLabel}</div>
+                    {slot?.company && slot.company !== s ? (
+                      <div className="text-[10px] normal-case font-normal text-[var(--muted)] truncate max-w-[12rem]">
+                        {slot.company}
+                      </div>
+                    ) : null}
+                  </th>
+                );
+              })}
+              <th className="py-3 px-4 font-semibold text-right">Leader / Winner</th>
             </tr>
           </thead>
-          <tbody>
+          <tbody className="divide-y divide-[var(--border)]">
             {model.winnerMatrix.map((row) => (
               <tr
                 key={row.id}
-                className="border-b border-[var(--border)] align-top"
+                className="transition-colors hover:bg-[var(--surface-2)]/30"
               >
-                <td className="py-2 pr-3 text-[var(--muted)]">{row.label}</td>
+                <td className="py-3 px-4 font-medium text-[var(--fg)]">{row.label}</td>
                 {cols.map((sym) => {
                   const cell = row.cells.find((c) => c.symbol === sym);
                   return (
-                    <td key={sym} className="px-2 py-2">
-                      <span>{cell?.display ?? "Data unavailable."}</span>
-                      <MedalBadge medal={cell?.medal ?? null} />
+                    <td key={sym} className="py-3 px-4">
+                      <div className="flex items-center gap-2">
+                        <span className="font-mono tabular-nums text-sm text-[var(--fg)]">
+                          {cell?.display ?? "Data unavailable."}
+                        </span>
+                        <MedalBadge medal={cell?.medal ?? null} />
+                      </div>
                     </td>
                   );
                 })}
-                <td className="py-2 pl-2 font-medium">{row.leader}</td>
+                <td className="py-3 px-4 text-right">
+                  <span className={cn(
+                    "inline-flex items-center font-semibold text-xs px-2 py-0.5 rounded",
+                    row.leader && row.leader !== "Data unavailable." && row.leader !== "Tie"
+                      ? "bg-[var(--accent)]/10 text-[var(--accent)] border border-[var(--accent)]/20"
+                      : "text-[var(--muted)]"
+                  )}>
+                    {row.leader || "Data unavailable."}
+                  </span>
+                </td>
               </tr>
             ))}
           </tbody>

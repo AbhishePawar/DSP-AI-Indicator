@@ -65,4 +65,60 @@ describe("CompanyComparisonWorkspace render", () => {
     expect(screen.getByText(/No comparison yet/i)).toBeInTheDocument();
     expect(screen.getByLabelText(/Comparison tickers/i)).toBeInTheDocument();
   });
+
+  it("renders two-security symmetrical comparison header and Winner Matrix dynamically without hardcoding", async () => {
+    const { WinnerMatrixSection } = await import(
+      "@/components/company-comparison/Sections"
+    );
+    const { render, screen, cleanup } = await import("@testing-library/react");
+    cleanup();
+
+    // Dynamic mock model for Security 1 and Security 2
+    const dynamicModel = {
+      symbols: ["SEC1", "SEC2"],
+      slots: [
+        { symbol: "SEC1", company: "Security Alpha Corp", exchange: "NYSE", status: "ready" },
+        { symbol: "SEC2", company: "Security Beta Ltd", exchange: "NASDAQ", status: "ready" },
+      ],
+      winnerMatrix: [
+        {
+          id: "valuation",
+          label: "Valuation Score",
+          leader: "SEC1",
+          cells: [
+            { symbol: "SEC1", display: "78.5", medal: "gold" as const },
+            { symbol: "SEC2", display: "62.0", medal: "silver" as const },
+          ],
+        },
+        {
+          id: "missing_metric",
+          label: "Growth Metric",
+          leader: "Data unavailable.",
+          cells: [
+            { symbol: "SEC1", display: "Data unavailable.", medal: null },
+            { symbol: "SEC2", display: "Data unavailable.", medal: null },
+          ],
+        },
+      ],
+      tradeOffs: [],
+    } as any;
+
+    render(<WinnerMatrixSection model={dynamicModel} />);
+
+    // 1. Assert dynamic Security 1 and Security 2 headers
+    expect(screen.getByText(/Security 1 \(SEC1\)/i)).toBeTruthy();
+    expect(screen.getByText(/Security Alpha Corp/i)).toBeTruthy();
+    expect(screen.getByText(/Security 2 \(SEC2\)/i)).toBeTruthy();
+    expect(screen.getByText(/Security Beta Ltd/i)).toBeTruthy();
+
+    // 2. Assert Winner / Leader table semantics and values
+    expect(screen.getByRole("table", { name: /Winner comparison matrix/i })).toBeTruthy();
+    expect(screen.getByText("Valuation Score")).toBeTruthy();
+    expect(screen.getByText("78.5")).toBeTruthy();
+    expect(screen.getByText("62.0")).toBeTruthy();
+    expect(screen.getByText("SEC1")).toBeTruthy();
+
+    // 3. Assert honest missing data / unavailable state
+    expect(screen.getAllByText("Data unavailable.").length).toBeGreaterThan(0);
+  });
 });

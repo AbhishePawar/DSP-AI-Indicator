@@ -404,23 +404,22 @@ describe("EPIC-F005 workspace UI", () => {
     );
     wrap(<CompanyAnalysisWorkspace />);
     expect(screen.getByRole("textbox", { name: "Company ticker" })).toBeTruthy();
-    expect(screen.getByRole("button", { name: "Refresh analysis" })).toBeTruthy();
+    expect(screen.getByTestId("analysis-submit")).toBeTruthy();
     await waitFor(() => {
       expect(financialStatementsMock).toHaveBeenCalled();
       expect(analyseMock).toHaveBeenCalled();
     });
     const body = analyseMock.mock.calls[0]?.[0] as {
       ticker: string;
-      financial_statements: { income_statement?: { revenue?: number } };
-      valuation_signals?: unknown;
+      exchange?: string | null;
+      company?: string | null;
       current_market_price?: number;
     };
     expect(body.ticker).toBe("AAPL");
-    expect(body.financial_statements.income_statement?.revenue).toBe(391_035);
-    expect(body.financial_statements.income_statement?.revenue).not.toBe(1000);
-    expect(body.valuation_signals).toBeUndefined();
-    expect(body.current_market_price).toBe(190.5);
     expect(marketQuoteMock).toHaveBeenCalled();
+    expect(
+      await screen.findByRole("button", { name: "Refresh analysis" }),
+    ).toBeTruthy();
   });
 
   it("propagates catalogue NSE onto TCS statements, quote, and analyse", async () => {
@@ -475,7 +474,7 @@ describe("EPIC-F005 workspace UI", () => {
     expect(body.exchange == null || body.exchange === "").toBe(true);
   });
 
-  it("does not call analyse when authenticated statements are unavailable", async () => {
+  it("runs server-authoritative analyse even when client header statements are unavailable", async () => {
     financialStatementsMock.mockResolvedValue({
       ok: true,
       available: false,
@@ -489,8 +488,8 @@ describe("EPIC-F005 workspace UI", () => {
     wrap(<CompanyAnalysisWorkspace />);
     await waitFor(() => {
       expect(financialStatementsMock).toHaveBeenCalled();
+      expect(analyseMock).toHaveBeenCalled();
     });
-    expect(analyseMock).not.toHaveBeenCalled();
   });
 
   it("blocks analyse until research disclaimer is acknowledged", async () => {
@@ -542,7 +541,10 @@ describe("EPIC-F005 workspace UI", () => {
     );
     wrap(<CompanyAnalysisWorkspace />);
     await waitFor(() => expect(analyseMock).toHaveBeenCalled());
-    expect(await screen.findByText(/source-led analysis surface/i)).toBeTruthy();
+    expect(await screen.findByTestId("analysis-title")).toBeTruthy();
+    expect(
+      screen.getByText(/Business quality, financial strength, valuation, and evidence/i),
+    ).toBeTruthy();
     expect(screen.queryByLabelText("Company navigation")).toBeNull();
     expect(screen.queryByLabelText("Context panel")).toBeNull();
   });

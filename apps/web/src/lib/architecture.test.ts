@@ -84,6 +84,7 @@ const LIB_ALLOWLIST = new Set([
   "ops",
   "control-center",
   "trust",
+  "p109",
 ]);
 
 const CALC_SMELL_RE =

@@ -28,14 +28,14 @@ export type AnalysisPhase =
 type ChatMsg = { role: "user" | "dsp"; text: string };
 
 const LOADING_STEPS = [
-  "Identifying company",
+  "Identifying security",
   "Collecting financial evidence",
   "Analysing business quality",
   "Evaluating economic moat",
   "Evaluating management",
   "Analysing earnings & growth",
   "Evaluating valuation",
-  "Assessing risks",
+  "Checking peer intelligence",
   "Validating research",
   "Preparing analysis report",
 ];

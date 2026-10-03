@@ -1,8 +1,8 @@
 /**
  * @vitest-environment jsdom
  */
-import { describe, expect, it } from "vitest";
-import { render, screen } from "@testing-library/react";
+import { afterEach, describe, expect, it } from "vitest";
+import { cleanup, render, screen } from "@testing-library/react";
 
 import {
   PORTFOLIO_SECTIONS,
@@ -17,6 +17,9 @@ import {
 import { featureFlags } from "@/lib/featureFlags";
 
 describe("EPIC-015 Portfolio Intelligence 2.0", () => {
+  afterEach(() => {
+    cleanup();
+  });
   it("registers v2 sections", () => {
     const ids = PORTFOLIO_SECTIONS.map((s) => s.id);
     expect(ids).toEqual(

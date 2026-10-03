@@ -46,6 +46,7 @@ const STATS = [
 export default function LandingPage() {
   const { isLoggedIn, user } = useAuth()
   const [query, setQuery] = useState('')
+  const [researchMode, setResearchMode] = useState<'dsp' | 'simple'>('dsp')
   const [trending, setTrending] = useState<string[]>(() => getTrending(5, FALLBACK_TRENDING))
   const [personalHistory, setPersonalHistory] = useState<string[]>(() => getPersonalHistory(user?.email, 5))
   const navigate = useNavigate()
@@ -77,11 +78,15 @@ export default function LandingPage() {
 
   function handleSearch(e: React.FormEvent) {
     e.preventDefault()
-    if (query.trim()) searchAndNavigate(query)
+    if (query.trim()) {
+      const extra = researchMode === 'simple' ? '&mode=simple' : '&mode=dsp'
+      searchAndNavigate(query, extra)
+    }
   }
 
   function goBuffett() {
-    searchAndNavigate(query.trim() || 'TCS')
+    const extra = researchMode === 'simple' ? '&mode=simple' : '&mode=dsp'
+    searchAndNavigate(query.trim() || 'TCS', extra)
   }
 
   return (
@@ -160,6 +165,44 @@ export default function LandingPage() {
                 </button>
               </div>
             </form>
+
+            {/* Mode selector */}
+            <div style={{ display: 'flex', justifyContent: 'center', gap: 8, marginTop: 8, marginBottom: 12 }}>
+              <button
+                type="button"
+                onClick={() => setResearchMode('dsp')}
+                style={{
+                  background: researchMode === 'dsp' ? 'var(--primary, #7c6af7)' : 'var(--muted, #27272a)',
+                  color: researchMode === 'dsp' ? '#ffffff' : 'var(--muted-foreground, #a1a1aa)',
+                  border: '1px solid ' + (researchMode === 'dsp' ? 'transparent' : 'var(--border, #3f3f46)'),
+                  borderRadius: 20,
+                  padding: '4px 14px',
+                  fontSize: 12,
+                  fontWeight: 500,
+                  cursor: 'pointer',
+                  transition: 'all 0.15s ease',
+                }}
+              >
+                ● DSP AI Research
+              </button>
+              <button
+                type="button"
+                onClick={() => setResearchMode('simple')}
+                style={{
+                  background: researchMode === 'simple' ? 'var(--primary, #7c6af7)' : 'var(--muted, #27272a)',
+                  color: researchMode === 'simple' ? '#ffffff' : 'var(--muted-foreground, #a1a1aa)',
+                  border: '1px solid ' + (researchMode === 'simple' ? 'transparent' : 'var(--border, #3f3f46)'),
+                  borderRadius: 20,
+                  padding: '4px 14px',
+                  fontSize: 12,
+                  fontWeight: 500,
+                  cursor: 'pointer',
+                  transition: 'all 0.15s ease',
+                }}
+              >
+                Simple Search
+              </button>
+            </div>
           </div>
 
           {/* DSP Buffett Indicator Analysis — always visible full-width button */}

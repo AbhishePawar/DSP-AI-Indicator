@@ -3,7 +3,7 @@
 import { BarChart3, GitCompareArrows, MessageSquare, Search, ShieldCheck } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { type FormEvent, useEffect, useRef, useState } from "react";
+import { type FormEvent, useState } from "react";
 
 import { COMPANY_CATALOGUE } from "@/lib/companies/catalogue";
 import { ANALYSIS_INTENTS } from "@/lib/analysis/intents";
@@ -23,17 +23,7 @@ export function MarketingLanding() {
   const recordSearch = useDashboardPrefsStore((s) => s.recordSearch);
   const { user } = useAuth();
   const [query, setQuery] = useState("");
-  const [suggestionsOpen, setSuggestionsOpen] = useState(false);
-  const panelRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
-
-  useEffect(() => {
-    const close = (event: MouseEvent) => {
-      if (!panelRef.current?.contains(event.target as Node)) setSuggestionsOpen(false);
-    };
-    document.addEventListener("mousedown", close);
-    return () => document.removeEventListener("mousedown", close);
-  }, []);
 
   function openResearch(mode: "simple" | "full", raw = query) {
     const value = raw.trim();
@@ -66,23 +56,16 @@ export function MarketingLanding() {
         <h1 data-testid="landing-title" className="mb-5 font-[family-name:var(--font-display)] text-[clamp(36px,6vw,68px)] font-medium leading-[1.1] tracking-[-0.02em]">Ask DSP anything<br />about any company.</h1>
         <p className="mx-auto mb-12 max-w-[520px] text-lg leading-[1.65] text-[var(--muted)]">Chat-first equity research. Financial evidence when you need it. No dashboards, no noise.</p>
         <div className="mx-auto mb-6 max-w-[560px]">
-          <div ref={panelRef} className="relative mb-3" onKeyDown={(event) => { if (event.key === "Escape") setSuggestionsOpen(false); }}>
-            <form onSubmit={submitResearch} data-testid="landing-search-form" className={`flex overflow-hidden border border-[var(--border)] bg-[var(--surface-2)] focus-within:border-[var(--accent)]/50 ${suggestionsOpen && query.trim() ? "rounded-t-[14px]" : "rounded-[14px]"}`}>
+          <div className="relative mb-3">
+            <form onSubmit={submitResearch} data-testid="landing-search-form" className="flex overflow-hidden rounded-[14px] border border-[var(--border)] bg-[var(--surface-2)] focus-within:border-[var(--accent)]/50">
               <label className="sr-only" htmlFor="company-research">Company name or ticker</label>
-              <input data-testid="landing-company-search" id="company-research" value={query} onFocus={() => setSuggestionsOpen(Boolean(query.trim()))} onChange={(event) => { setQuery(event.target.value); setSuggestionsOpen(true); }} aria-expanded={Boolean(suggestionsOpen && query.trim())} aria-controls="landing-analysis-depth" placeholder="Enter company name or ticker — e.g. TCS, HDFC Bank" autoComplete="off" className="min-w-0 flex-1 bg-transparent px-5 py-4 text-[15px] outline-none placeholder:text-[var(--muted)]" />
+              <input data-testid="landing-company-search" id="company-research" value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Enter company name or ticker — e.g. TCS, HDFC Bank" autoComplete="off" className="min-w-0 flex-1 bg-transparent px-5 py-4 text-[15px] outline-none placeholder:text-[var(--muted)]" />
               <button data-testid="landing-research-submit" type="submit" aria-label="Research" disabled={!query.trim()} className="flex shrink-0 items-center justify-center bg-[var(--accent)] px-6 text-white transition-colors hover:bg-[var(--accent-hover)] disabled:cursor-not-allowed"><Search className="size-[18px]" /></button>
             </form>
-            {suggestionsOpen && query.trim() && <div data-testid="landing-depth-panel" id="landing-analysis-depth" className="absolute left-0 right-0 top-full z-20 overflow-hidden rounded-b-[14px] border border-[var(--accent)]/30 bg-[var(--surface)] text-left shadow-[0_12px_40px_rgba(0,0,0,0.35)]">
-              <p className="px-4 pb-2 pt-2.5 font-mono text-[10px] tracking-widest text-[var(--muted)]">CHOOSE ANALYSIS DEPTH FOR <span className="break-words text-[var(--fg)]">{query.toUpperCase()}</span></p>
-              <div className="grid grid-cols-2 border-t border-[var(--border)]">
-                <button data-testid="landing-simple-research" type="button" onClick={() => openResearch("simple")} className="border-r border-[var(--border)] px-4 py-4 text-left transition-colors hover:bg-[var(--surface-2)] sm:px-[18px]"><span className="block text-[13px] font-medium">Simple Research</span><span className="mt-1 block text-[11px] leading-relaxed text-[var(--muted)]">Key metrics, strengths, risks, and valuation in one view.</span><span className="mt-2.5 flex flex-wrap gap-1.5">{["Metrics", "Risks", "Valuation"].map((label) => <span key={label} className="rounded-full border border-[var(--border)] bg-[var(--surface-2)] px-2 py-0.5 font-mono text-[10px] text-[var(--muted)]">{label}</span>)}</span><span className="mt-2.5 block text-xs text-[var(--c-revenue)]">Quick research →</span></button>
-                <button data-testid="landing-full-research" type="button" onClick={() => openResearch("full")} className="bg-[var(--accent)]/5 px-4 py-4 text-left transition-colors hover:bg-[var(--accent)]/10 sm:px-[18px]"><span className="mb-1 block font-mono text-[10px] tracking-wider text-[var(--accent)]">FLAGSHIP</span><span className="block text-[13px] font-medium">DSP Buffett Analysis</span><span className="mt-1 block text-[11px] leading-relaxed text-[var(--muted)]">Complete evidence-driven analysis — moat, earnings, management, and intrinsic value.</span><span className="mt-2.5 flex flex-wrap gap-1.5">{["Moat", "Quality", "Valuation", "AI Chat"].map((label) => <span key={label} className="rounded-full border border-[var(--accent)]/25 bg-[var(--accent-soft)] px-2 py-0.5 font-mono text-[10px] text-[var(--accent)]">{label}</span>)}</span><span className="mt-2.5 block text-xs text-[var(--accent)]">Full analysis →</span></button>
-              </div>
-            </div>}
           </div>
           <button data-testid="landing-buffett-analysis" type="button" onClick={runDspIndicatorAnalysis} className="flex w-full items-center justify-center gap-2 rounded-[14px] bg-[linear-gradient(135deg,#7c6af7_0%,#2dd4bf_100%)] px-6 py-[13px] text-sm font-semibold tracking-tight text-white transition-opacity hover:opacity-85"><span className="text-[13px] font-normal opacity-85">DSP</span> Buffett Indicator Analysis</button>
         </div>
-        {user && recentSearches.length > 0 && <div data-testid="landing-recent-searches" className="mb-3 flex flex-wrap items-center justify-center gap-2 font-mono text-xs text-[var(--accent)]"><span>Recent on this device:</span>{recentSearches.slice(0, 5).map(({ query: recent }) => <button data-testid={`landing-recent-${recent}`} key={recent} onClick={() => { setQuery(recent); setSuggestionsOpen(true); }} className="rounded-full border border-[var(--accent)]/30 bg-[var(--accent-soft)] px-3 py-1 transition-colors hover:border-[var(--accent)]">{recent}</button>)}</div>}
+        {user && recentSearches.length > 0 && <div data-testid="landing-recent-searches" className="mb-3 flex flex-wrap items-center justify-center gap-2 font-mono text-xs text-[var(--accent)]"><span>Recent on this device:</span>{recentSearches.slice(0, 5).map(({ query: recent }) => <button data-testid={`landing-recent-${recent}`} key={recent} onClick={() => openResearch("full", recent)} className="rounded-full border border-[var(--accent)]/30 bg-[var(--accent-soft)] px-3 py-1 transition-colors hover:border-[var(--accent)]">{recent}</button>)}</div>}
         <div className="flex flex-wrap items-center justify-center gap-2 font-mono text-xs text-[var(--muted)]"><span>Explore:</span>{researchExamples.map((ticker) => <button data-testid={`landing-example-${ticker}`} key={ticker} onClick={() => openResearch("full", ticker)} className="rounded-full border border-[var(--border)] bg-[var(--surface-2)] px-3 py-1 transition-colors hover:border-[var(--accent)] hover:text-[var(--accent)]">{ticker}</button>)}</div>
       </section>
       <section data-testid="landing-capabilities" className="grid grid-cols-2 border-b border-[var(--border)] lg:grid-cols-4">{[{ value: String(COMPANY_CATALOGUE.length), label: "Directory entries" }, { value: "DSP", label: "Research framework" }, { value: "Verified", label: "Evidence sources" }, { value: "On request", label: "Company analysis" }].map((stat) => <div key={stat.label} className="border-r border-[var(--border)] px-5 py-8 text-center last:border-r-0 sm:px-10"><p className="mb-1.5 font-[family-name:var(--font-display)] text-[28px] font-semibold text-[var(--accent)]">{stat.value}</p><p className="font-mono text-xs uppercase tracking-wider text-[var(--muted)]">{stat.label}</p></div>)}</section>

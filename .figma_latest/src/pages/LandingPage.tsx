@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import { recordSearch, getTrending, getPersonalHistory } from '../utils/searchTracking'
 import { useAuth } from '../contexts/AuthContext'
@@ -46,15 +46,9 @@ const STATS = [
 export default function LandingPage() {
   const { isLoggedIn, user } = useAuth()
   const [query, setQuery] = useState('')
-  const [panelVisible, setPanelVisible] = useState(false)
   const [trending, setTrending] = useState<string[]>(() => getTrending(5, FALLBACK_TRENDING))
   const [personalHistory, setPersonalHistory] = useState<string[]>(() => getPersonalHistory(user?.email, 5))
-  const panelRef = useRef<HTMLDivElement>(null)
   const navigate = useNavigate()
-
-  useEffect(() => {
-    setPanelVisible(query.trim().length > 0)
-  }, [query])
 
   // Refresh both lists when window regains focus (other tabs, login/logout)
   useEffect(() => {
@@ -71,17 +65,6 @@ export default function LandingPage() {
     setPersonalHistory(getPersonalHistory(user?.email))
   }, [user?.email])
 
-  // Close panel on outside click
-  useEffect(() => {
-    function handler(e: MouseEvent) {
-      if (panelRef.current && !panelRef.current.contains(e.target as Node)) {
-        setPanelVisible(false)
-      }
-    }
-    document.addEventListener('mousedown', handler)
-    return () => document.removeEventListener('mousedown', handler)
-  }, [])
-
   function searchAndNavigate(symbol: string, extra = '') {
     const s = symbol.trim().toUpperCase()
     if (s) {
@@ -95,10 +78,6 @@ export default function LandingPage() {
   function handleSearch(e: React.FormEvent) {
     e.preventDefault()
     if (query.trim()) searchAndNavigate(query)
-  }
-
-  function goSimple() {
-    searchAndNavigate(query.trim() || 'TCS', '&mode=simple')
   }
 
   function goBuffett() {
@@ -139,122 +118,49 @@ export default function LandingPage() {
           No dashboards, no noise.
         </p>
 
-        {/* Search bar + analysis path panel */}
+        {/* Search bar */}
         <div style={{ maxWidth: 560, margin: '0 auto 24px' }}>
-        <div ref={panelRef} style={{ position: 'relative', marginBottom: 12 }}>
-          <form onSubmit={handleSearch}>
-            <div style={{
-              display: 'flex', gap: 0, background: 'var(--secondary)',
-              border: '1px solid var(--border)',
-              borderRadius: panelVisible ? '14px 14px 0 0' : 14,
-              overflow: 'hidden', transition: 'border-color 0.15s, border-radius 0.15s',
-            }}
-              onFocusCapture={e => (e.currentTarget.style.borderColor = 'rgba(124,106,247,0.5)')}
-              onBlurCapture={e => (e.currentTarget.style.borderColor = 'var(--border)')}
-            >
-              <input
-                type="text"
-                value={query}
-                onChange={e => setQuery(e.target.value)}
-                onFocus={() => query.trim() && setPanelVisible(true)}
-                placeholder="Enter company name or ticker — e.g. TCS, HDFC Bank"
-                style={{
-                  flex: 1, background: 'none', border: 'none', outline: 'none',
-                  padding: '16px 20px', fontSize: 15, color: 'var(--foreground)',
-                  fontFamily: 'var(--font-body)',
-                }}
-              />
-              <button
-                type="submit"
-                title="Research"
-                aria-label="Research"
-                style={{
-                  background: 'var(--c-dsp)', border: 'none', padding: '0 24px',
-                  color: '#fff', fontSize: 14, cursor: 'pointer', fontFamily: 'var(--font-body)',
-                  fontWeight: 500, display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  flexShrink: 0,
-                }}
+          <div style={{ position: 'relative', marginBottom: 12 }}>
+            <form onSubmit={handleSearch}>
+              <div style={{
+                display: 'flex', gap: 0, background: 'var(--secondary)',
+                border: '1px solid var(--border)',
+                borderRadius: 14,
+                overflow: 'hidden', transition: 'border-color 0.15s',
+              }}
+                onFocusCapture={e => (e.currentTarget.style.borderColor = 'rgba(124,106,247,0.5)')}
+                onBlurCapture={e => (e.currentTarget.style.borderColor = 'var(--border)')}
               >
-                <svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                  <circle cx="8.5" cy="8.5" r="5.25" />
-                  <line x1="12.5" y1="12.5" x2="17" y2="17" />
-                </svg>
-              </button>
-            </div>
-          </form>
-
-          {/* Analysis path preview panel */}
-          {panelVisible && (
-            <div style={{
-              position: 'absolute', top: '100%', left: 0, right: 0, zIndex: 20,
-              background: 'var(--card)',
-              border: '1px solid rgba(124,106,247,0.3)',
-              borderTop: '1px solid var(--border)',
-              borderRadius: '0 0 14px 14px',
-              overflow: 'hidden',
-              boxShadow: '0 12px 40px rgba(0,0,0,0.35)',
-            }}>
-              <div style={{ padding: '10px 16px 8px', fontSize: 10, color: 'var(--muted-foreground)', fontFamily: 'var(--font-data)', letterSpacing: '0.1em' }}>
-                CHOOSE ANALYSIS DEPTH FOR <span style={{ color: 'var(--foreground)' }}>{query.toUpperCase()}</span>
-              </div>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', borderTop: '1px solid var(--border)' }}>
-                {/* Simple Research */}
-                <button
-                  onClick={goSimple}
+                <input
+                  type="text"
+                  value={query}
+                  onChange={e => setQuery(e.target.value)}
+                  placeholder="Enter company name or ticker — e.g. TCS, HDFC Bank"
                   style={{
-                    background: 'none', border: 'none', borderRight: '1px solid var(--border)',
-                    padding: '16px 18px', textAlign: 'left', cursor: 'pointer',
-                    transition: 'background 0.15s',
+                    flex: 1, background: 'none', border: 'none', outline: 'none',
+                    padding: '16px 20px', fontSize: 15, color: 'var(--foreground)',
+                    fontFamily: 'var(--font-body)',
                   }}
-                  onMouseEnter={e => (e.currentTarget.style.background = 'var(--secondary)')}
-                  onMouseLeave={e => (e.currentTarget.style.background = 'none')}
-                >
-                  <div style={{ fontSize: 13, fontWeight: 500, color: 'var(--foreground)', fontFamily: 'var(--font-body)', marginBottom: 4 }}>
-                    Simple Research
-                  </div>
-                  <div style={{ fontSize: 11, color: 'var(--muted-foreground)', lineHeight: 1.55 }}>
-                    Key metrics, strengths, risks, and valuation in one view.
-                  </div>
-                  <div style={{ marginTop: 10, display: 'flex', gap: 6, flexWrap: 'wrap' }}>
-                    {['Metrics', 'Risks', 'Valuation'].map(t => (
-                      <span key={t} style={{ fontSize: 10, padding: '2px 8px', background: 'var(--muted)', border: '1px solid var(--border)', borderRadius: 99, color: 'var(--muted-foreground)', fontFamily: 'var(--font-data)' }}>{t}</span>
-                    ))}
-                  </div>
-                  <div style={{ marginTop: 10, fontSize: 12, color: 'var(--c-revenue)' }}>Quick research →</div>
-                </button>
-
-                {/* DSP Buffett Analysis */}
+                />
                 <button
-                  onClick={goBuffett}
+                  type="submit"
+                  title="Research"
+                  aria-label="Research"
                   style={{
-                    background: 'rgba(124,106,247,0.03)', border: 'none',
-                    padding: '16px 18px', textAlign: 'left', cursor: 'pointer',
-                    transition: 'background 0.15s',
+                    background: 'var(--c-dsp)', border: 'none', padding: '0 24px',
+                    color: '#fff', fontSize: 14, cursor: 'pointer', fontFamily: 'var(--font-body)',
+                    fontWeight: 500, display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    flexShrink: 0,
                   }}
-                  onMouseEnter={e => (e.currentTarget.style.background = 'rgba(124,106,247,0.08)')}
-                  onMouseLeave={e => (e.currentTarget.style.background = 'rgba(124,106,247,0.03)')}
                 >
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 4 }}>
-                    <div style={{ width: 16, height: 16, borderRadius: 4, background: 'linear-gradient(135deg,#7c6af7,#2dd4bf)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 8, color: '#fff', fontWeight: 700 }}>D</div>
-                    <span style={{ fontSize: 10, color: 'var(--c-dsp)', fontFamily: 'var(--font-data)', letterSpacing: '0.08em' }}>FLAGSHIP</span>
-                  </div>
-                  <div style={{ fontSize: 13, fontWeight: 500, color: 'var(--foreground)', fontFamily: 'var(--font-body)', marginBottom: 4 }}>
-                    DSP Buffett Analysis
-                  </div>
-                  <div style={{ fontSize: 11, color: 'var(--muted-foreground)', lineHeight: 1.55 }}>
-                    Complete evidence-driven analysis — moat, earnings, management, and intrinsic value.
-                  </div>
-                  <div style={{ marginTop: 10, display: 'flex', gap: 6, flexWrap: 'wrap' }}>
-                    {['Moat', 'Quality', 'Valuation', 'AI Chat'].map(t => (
-                      <span key={t} style={{ fontSize: 10, padding: '2px 8px', background: 'rgba(124,106,247,0.12)', border: '1px solid rgba(124,106,247,0.25)', borderRadius: 99, color: 'var(--c-dsp)', fontFamily: 'var(--font-data)' }}>{t}</span>
-                    ))}
-                  </div>
-                  <div style={{ marginTop: 10, fontSize: 12, color: 'var(--c-dsp)' }}>Full analysis →</div>
+                  <svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                    <circle cx="8.5" cy="8.5" r="5.25" />
+                    <line x1="12.5" y1="12.5" x2="17" y2="17" />
+                  </svg>
                 </button>
               </div>
-            </div>
-          )}
-        </div>
+            </form>
+          </div>
 
           {/* DSP Buffett Indicator Analysis — always visible full-width button */}
           <button

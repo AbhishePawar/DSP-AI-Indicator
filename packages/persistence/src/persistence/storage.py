@@ -8,6 +8,7 @@ from datetime import UTC, datetime
 from threading import RLock
 from typing import Any
 
+from persistence.exceptions import NotFoundError, ValidationError
 from persistence.serde import to_plain_jsonable
 
 __all__ = [
@@ -166,6 +167,59 @@ class InMemoryStorageProvider:
             row["updated_at"] = updated_at
             bucket[key] = to_plain_jsonable(row)
             return deepcopy(bucket[key])
+
+
+    def append_research_turn_atomic(
+        self,
+        *,
+        session_collection: str,
+        turns_collection: str,
+        session_id: str,
+        turn_id: str,
+        turn_data: Mapping[str, Any],
+        max_turns: int = 20,
+        expected_user_id: str | None = None,
+        expected_symbol: str | None = None,
+        expected_analysis_id: str | None = None,
+    ) -> tuple[Mapping[str, Any], Mapping[str, Any]]:
+        with self._lock:
+            bucket = self._data.setdefault(session_collection, {})
+            session_row = bucket.get(session_id)
+            if session_row is None:
+                raise NotFoundError(f"Research session not found: {session_id}")
+
+            if expected_user_id is not None and str(session_row.get("user_id", "")) != str(expected_user_id):
+                raise ValidationError("Ownership validation failed: unauthorized user")
+
+            if expected_symbol is not None and str(session_row.get("symbol", "")).upper() != str(expected_symbol).upper():
+                raise ValidationError("Context validation failed: symbol mismatch")
+            if expected_analysis_id is not None and str(session_row.get("analysis_id", "")) != str(expected_analysis_id):
+                raise ValidationError("Context validation failed: analysis_id mismatch")
+
+            turn_ids = list(session_row.get("turn_ids") or [])
+            turn_ids.append(turn_id)
+
+            turns_bucket = self._data.setdefault(turns_collection, {})
+            clean_turn = to_plain_jsonable(dict(turn_data))
+            turns_bucket[turn_id] = clean_turn
+
+            if len(turn_ids) > max_turns:
+                excess = len(turn_ids) - max_turns
+                for _ in range(excess):
+                    evicted_id = turn_ids.pop(0)
+                    turns_bucket.pop(evicted_id, None)
+
+            now_iso = str(clean_turn.get("created_at") or _utc_now())
+            session_row["turn_ids"] = turn_ids
+            session_row["turn_count"] = len(turn_ids)
+            session_row["updated_at"] = now_iso
+            bucket[session_id] = to_plain_jsonable(session_row)
+
+            return deepcopy(clean_turn), deepcopy(bucket[session_id])
+
+
+def _utc_now() -> str:
+    return datetime.now(tz=UTC).isoformat()
 
 
 def _payload_matches(inner: Mapping[str, Any], match: Mapping[str, Any] | None) -> bool:

@@ -97,6 +97,23 @@ class StorageProviderPort(Protocol):
         ...
 
 
+    def append_research_turn_atomic(
+        self,
+        *,
+        session_collection: str,
+        turns_collection: str,
+        session_id: str,
+        turn_id: str,
+        turn_data: Mapping[str, Any],
+        max_turns: int = 20,
+        expected_user_id: str | None = None,
+        expected_symbol: str | None = None,
+        expected_analysis_id: str | None = None,
+    ) -> tuple[Mapping[str, Any], Mapping[str, Any]]:
+        """Atomically lock session row, validate context/ownership, append turn, apply FIFO trim, and update session."""
+        ...
+
+
 class EntityRepositoryPort(Protocol):
     def put(self, entity: PersistedEntity) -> PersistedEntity: ...
 

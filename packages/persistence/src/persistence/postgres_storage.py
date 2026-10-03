@@ -8,7 +8,7 @@ from copy import deepcopy
 from datetime import UTC, datetime
 from typing import Any
 
-from persistence.exceptions import PersistenceError
+from persistence.exceptions import NotFoundError, PersistenceError, ValidationError
 from persistence.serde import to_plain_jsonable
 
 __all__ = [
@@ -288,7 +288,7 @@ class PostgresStorageProvider:
                 found = cur.fetchone()
             conn.commit()
         if found is None:
-            from persistence.exceptions import PersistenceError
+            from persistence.exceptions import NotFoundError, PersistenceError, ValidationError
 
             raise PersistenceError("A008 atomic insert returned no document")
         payload = found[0]
@@ -339,6 +339,96 @@ class PostgresStorageProvider:
             return None
         payload = found[0]
         return deepcopy(payload) if isinstance(payload, dict) else None
+
+
+    def append_research_turn_atomic(
+        self,
+        *,
+        session_collection: str,
+        turns_collection: str,
+        session_id: str,
+        turn_id: str,
+        turn_data: Mapping[str, Any],
+        max_turns: int = 20,
+        expected_user_id: str | None = None,
+        expected_symbol: str | None = None,
+        expected_analysis_id: str | None = None,
+    ) -> tuple[Mapping[str, Any], Mapping[str, Any]]:
+        clean_turn = to_plain_jsonable(dict(turn_data))
+        turn_created = str(clean_turn.get("created_at") or _utc_now())
+        turn_updated = str(clean_turn.get("updated_at") or turn_created)
+        Json = self._psycopg.types.json.Json
+
+        conn = self._connect()
+        try:
+            with conn.cursor() as cur:
+                # 1. Atomically lock the existing research-session metadata row
+                cur.execute(
+                    f"SELECT payload FROM {_TABLE} WHERE collection = %s AND entity_id = %s FOR UPDATE",
+                    (session_collection, session_id),
+                )
+                row = cur.fetchone()
+                if row is None:
+                    raise NotFoundError(f"Research session not found: {session_id}")
+
+                session_payload = dict(row[0]) if isinstance(row[0], dict) else {}
+
+                # Server-authoritative ownership validation
+                if expected_user_id is not None and str(session_payload.get("user_id", "")) != str(expected_user_id):
+                    raise ValidationError("Ownership validation failed: unauthorized user")
+
+                # Context validation
+                if expected_symbol is not None and str(session_payload.get("symbol", "")).upper() != str(expected_symbol).upper():
+                    raise ValidationError("Context validation failed: symbol mismatch")
+                if expected_analysis_id is not None and str(session_payload.get("analysis_id", "")) != str(expected_analysis_id):
+                    raise ValidationError("Context validation failed: analysis_id mismatch")
+
+                # 2. Write turn row
+                cur.execute(
+                    f"INSERT INTO {_TABLE} (collection, entity_id, payload, created_at, updated_at) "
+                    "VALUES (%s, %s, %s, %s::timestamptz, %s::timestamptz) "
+                    "ON CONFLICT (collection, entity_id) DO UPDATE SET "
+                    "payload = EXCLUDED.payload, updated_at = EXCLUDED.updated_at",
+                    (turns_collection, turn_id, Json(clean_turn), turn_created, turn_updated),
+                )
+
+                # 3. FIFO eviction if exceeding max_turns
+                turn_ids = list(session_payload.get("turn_ids") or [])
+                turn_ids.append(turn_id)
+
+                if len(turn_ids) > max_turns:
+                    excess = len(turn_ids) - max_turns
+                    for _ in range(excess):
+                        evicted_id = turn_ids.pop(0)
+                        cur.execute(
+                            f"DELETE FROM {_TABLE} WHERE collection = %s AND entity_id = %s",
+                            (turns_collection, evicted_id),
+                        )
+
+                # 4. Update session metadata row
+                session_payload["turn_ids"] = turn_ids
+                session_payload["turn_count"] = len(turn_ids)
+                session_payload["updated_at"] = turn_updated
+
+                cur.execute(
+                    f"UPDATE {_TABLE} SET payload = %s, updated_at = %s::timestamptz "
+                    "WHERE collection = %s AND entity_id = %s",
+                    (Json(session_payload), turn_updated, session_collection, session_id),
+                )
+
+                conn.commit()
+                return deepcopy(clean_turn), deepcopy(session_payload)
+        except Exception:
+            try:
+                conn.rollback()
+            except Exception:
+                pass
+            raise
+        finally:
+            try:
+                conn.close()
+            except Exception:
+                pass
 
 
 def build_postgres_storage(

@@ -44,9 +44,27 @@ from persistence.service import (
 from persistence.storage import InMemoryStorageProvider
 from persistence.transactions import TransactionManager
 
+from persistence.research_session import (
+    COLLECTION_RESEARCH_SESSIONS,
+    COLLECTION_RESEARCH_TURNS,
+    DEFAULT_MAX_TURNS,
+    ResearchSessionService,
+    compute_session_id,
+    get_research_session_service,
+    reset_research_session_service_for_tests,
+)
+
 __version__ = "0.1.0"
 
 __all__ = [
+    "COLLECTION_RESEARCH_SESSIONS",
+    "COLLECTION_RESEARCH_TURNS",
+    "DEFAULT_MAX_TURNS",
+    "ResearchSessionService",
+    "compute_session_id",
+    "get_research_session_service",
+    "reset_research_session_service_for_tests",
+
     "__version__",
     "ENTITY_KINDS",
     "PERSISTENCE_SCHEMA_VERSION",

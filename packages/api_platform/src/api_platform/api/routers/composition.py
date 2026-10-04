@@ -115,6 +115,7 @@ def analyse(
         api_version=state.api_version,
         correlation_id=correlation_id,
         public_payload=public_payload,
+        mode=body.mode,
     )
 
     if not platform_result.ok:

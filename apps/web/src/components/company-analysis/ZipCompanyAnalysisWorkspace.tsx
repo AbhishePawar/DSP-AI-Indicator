@@ -17,6 +17,8 @@ import { pushRecentAnalysis } from "@/lib/analysis/recentAnalyses";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
+export type ResearchMode = "simple" | "buffett";
+
 export type AnalysisPhase =
   | "select"
   | "workspace-ready"
@@ -24,6 +26,24 @@ export type AnalysisPhase =
   | "simple-result"
   | "buffett-loading"
   | "buffett-result";
+
+export const SIMPLE_TOC_GROUPS = [
+  {
+    label: "OVERVIEW",
+    items: [
+      { id: "s01", label: "Executive Summary" },
+      { id: "s02", label: "Business Quality" },
+    ],
+  },
+  {
+    label: "FINANCIALS & VALUATION",
+    items: [
+      { id: "s04", label: "Financial Analysis" },
+      { id: "s09", label: "Valuation Overview" },
+      { id: "s15", label: "Downloads & Export" },
+    ],
+  },
+];
 
 type ChatMsg = { role: "user" | "dsp"; text: string };
 
@@ -2454,9 +2474,24 @@ export function ZipCompanyAnalysisWorkspace() {
       if (customSymbol && customSymbol !== symbol) {
         setSymbol(customSymbol);
       }
+      const targetMode: ResearchMode = targetPhase === "simple-loading" ? "simple" : "buffett";
+      setMode(targetMode);
       setPhase(targetPhase);
+      if (targetMode === "simple") {
+        setChatOpen(false);
+        setChatCtx("");
+      }
+      if (typeof window !== "undefined") {
+        try {
+          const url = new URL(window.location.href);
+          url.searchParams.set("symbol", sym);
+          url.searchParams.set("mode", targetMode);
+          window.history.replaceState({}, "", url.toString());
+        } catch (_) {}
+      }
       const req: AnalyseRequest = {
         ticker: sym,
+        mode: targetMode,
       };
       analyseMutation.mutate(req);
     },
@@ -2540,7 +2575,7 @@ export function ZipCompanyAnalysisWorkspace() {
         <div style={{ display: "flex", flex: 1, flexDirection: "column", overflow: "hidden" }}>
           <CompanyHeader
             model={viewModel}
-            onModeSwitch={() => setPhase("select")}
+            onModeSwitch={() => { setPhase("select"); setChatOpen(false); setChatCtx(""); }}
             searchValue={searchInput}
             onSearchChange={setSearchInput}
             onAnalyze={(val) => runAnalysis("buffett-loading", val || searchInput)}
@@ -2612,7 +2647,7 @@ export function ZipCompanyAnalysisWorkspace() {
                 </div>
               </div>
 
-              {TOC_GROUPS.map((group) => (
+              {(mode === "simple" ? SIMPLE_TOC_GROUPS : TOC_GROUPS).map((group) => (
                 <div key={group.label} style={{ marginBottom: 12, marginTop: 4 }}>
                   <div
                     style={{
@@ -2831,7 +2866,7 @@ export function ZipCompanyAnalysisWorkspace() {
                       </button>
                     </div>
 
-                    {TOC_GROUPS.map((group) => (
+                    {(mode === "simple" ? SIMPLE_TOC_GROUPS : TOC_GROUPS).map((group) => (
                       <div key={group.label} style={{ marginBottom: 14, marginTop: 4 }}>
                         <div
                           style={{
@@ -2896,85 +2931,123 @@ export function ZipCompanyAnalysisWorkspace() {
               }}
             >
               <div style={{ maxWidth: 1000, margin: "0 auto" }}>
-                <div ref={sectionRef("s01")} id="s01">
-                  <InvestmentSummary model={viewModel} onAsk={askAbout} />
-                </div>
+                {mode === "simple" ? (
+                  <>
+                    <div ref={sectionRef("s01")} id="s01">
+                      <InvestmentSummary model={viewModel} onAsk={undefined} />
+                    </div>
 
-                <div ref={sectionRef("s03")} id="s03">
-                  <BuffettAssessmentTable model={viewModel} onAsk={askAbout} />
-                </div>
+                    <div ref={sectionRef("s02")} id="s02">
+                      <BusinessQualityScores model={viewModel} onAsk={undefined} />
+                    </div>
 
-                <div ref={sectionRef("s04")} id="s04">
-                  <FinancialAnalysisSection model={viewModel} onAsk={askAbout} />
-                </div>
+                    <div ref={sectionRef("s04")} id="s04">
+                      <FinancialAnalysisSection model={viewModel} onAsk={undefined} />
+                    </div>
 
-                <div ref={sectionRef("s09")} id="s09">
-                  <ValuationSection
-                    model={viewModel}
-                    onAsk={askAbout}
-                    valuationStageStatus={
-                      (analyseMutation.data?.payload as { stage_summaries?: Array<{ stage: string; status: string }> })?.stage_summaries?.find((s) => s.stage === "valuation")?.status || "succeeded"
-                    }
-                  />
-                </div>
+                    <div ref={sectionRef("s09")} id="s09">
+                      <ValuationSection
+                        model={viewModel}
+                        onAsk={undefined}
+                        valuationStageStatus={
+                          (analyseMutation.data?.payload as { stage_summaries?: Array<{ stage: string; status: string }> })?.stage_summaries?.find((s) => s.stage === "valuation")?.status || "succeeded"
+                        }
+                      />
+                    </div>
 
-                <div ref={sectionRef("s02")} id="s02">
-                  <BusinessQualityScores model={viewModel} onAsk={askAbout} />
-                </div>
+                    <div ref={sectionRef("s15")} id="s15">
+                      <DownloadsSection
+                        symbol={symbol}
+                        analysisId={analyseMutation.data?.analysis_id ?? undefined}
+                        data={analyseMutation.data}
+                      />
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <div ref={sectionRef("s01")} id="s01">
+                      <InvestmentSummary model={viewModel} onAsk={askAbout} />
+                    </div>
 
-                <div ref={sectionRef("s11")} id="s11">
-                  <KeyRisksSection model={viewModel} onAsk={askAbout} />
-                </div>
+                    <div ref={sectionRef("s03")} id="s03">
+                      <BuffettAssessmentTable model={viewModel} onAsk={askAbout} />
+                    </div>
 
-                <div ref={sectionRef("s06")} id="s06">
-                  <ManagementDeepDive model={viewModel} />
-                </div>
+                    <div ref={sectionRef("s04")} id="s04">
+                      <FinancialAnalysisSection model={viewModel} onAsk={askAbout} />
+                    </div>
 
-                <div ref={sectionRef("s07")} id="s07">
-                  <EarningsQualityDeepDive model={viewModel} onAsk={askAbout} />
-                </div>
+                    <div ref={sectionRef("s09")} id="s09">
+                      <ValuationSection
+                        model={viewModel}
+                        onAsk={askAbout}
+                        valuationStageStatus={
+                          (analyseMutation.data?.payload as { stage_summaries?: Array<{ stage: string; status: string }> })?.stage_summaries?.find((s) => s.stage === "valuation")?.status || "succeeded"
+                        }
+                      />
+                    </div>
 
-                <div ref={sectionRef("s08")} id="s08">
-                  <GrowthQualityDeepDive model={viewModel} />
-                </div>
+                    <div ref={sectionRef("s02")} id="s02">
+                      <BusinessQualityScores model={viewModel} onAsk={askAbout} />
+                    </div>
 
-                <div ref={sectionRef("s10")} id="s10">
-                  <MarginOfSafetyDeepDive model={viewModel} onAsk={askAbout} />
-                </div>
+                    <div ref={sectionRef("s11")} id="s11">
+                      <KeyRisksSection model={viewModel} onAsk={askAbout} />
+                    </div>
 
-                <div ref={sectionRef("s12")} id="s12">
-                  <StrengthsWeaknessesSection model={viewModel} />
-                </div>
+                    <div ref={sectionRef("s06")} id="s06">
+                      <ManagementDeepDive model={viewModel} />
+                    </div>
 
-                <div ref={sectionRef("s13")} id="s13">
-                  <InvestmentContextSection model={viewModel} />
-                </div>
+                    <div ref={sectionRef("s07")} id="s07">
+                      <EarningsQualityDeepDive model={viewModel} onAsk={askAbout} />
+                    </div>
 
-                <div ref={sectionRef("s14")} id="s14">
-                  <EvidenceExplorerSection
-                    model={viewModel}
-                    analysisId={analyseMutation.data?.analysis_id ?? undefined}
-                  />
-                </div>
+                    <div ref={sectionRef("s08")} id="s08">
+                      <GrowthQualityDeepDive model={viewModel} />
+                    </div>
 
-                <div ref={sectionRef("s15")} id="s15">
-                  <DownloadsSection
-                    symbol={symbol}
-                    analysisId={analyseMutation.data?.analysis_id ?? undefined}
-                    data={analyseMutation.data}
-                  />
-                </div>
+                    <div ref={sectionRef("s10")} id="s10">
+                      <MarginOfSafetyDeepDive model={viewModel} onAsk={askAbout} />
+                    </div>
+
+                    <div ref={sectionRef("s12")} id="s12">
+                      <StrengthsWeaknessesSection model={viewModel} />
+                    </div>
+
+                    <div ref={sectionRef("s13")} id="s13">
+                      <InvestmentContextSection model={viewModel} />
+                    </div>
+
+                    <div ref={sectionRef("s14")} id="s14">
+                      <EvidenceExplorerSection
+                        model={viewModel}
+                        analysisId={analyseMutation.data?.analysis_id ?? undefined}
+                      />
+                    </div>
+
+                    <div ref={sectionRef("s15")} id="s15">
+                      <DownloadsSection
+                        symbol={symbol}
+                        analysisId={analyseMutation.data?.analysis_id ?? undefined}
+                        data={analyseMutation.data}
+                      />
+                    </div>
+                  </>
+                )}
               </div>
             </main>
           </div>
 
-          <ResearchChatDrawer
-            symbol={symbol}
-            analysisId={analyseMutation.data?.analysis_id ? analyseMutation.data.analysis_id : undefined}
-            open={chatOpen}
-            onClose={() => setChatOpen(false)}
-            initCtx={chatCtx}
-          />
+          {mode === "buffett" && phase === "buffett-result" && (
+            <ResearchChatDrawer
+              symbol={symbol}
+              analysisId={analyseMutation.data?.analysis_id ? analyseMutation.data.analysis_id : undefined}
+              open={chatOpen}
+              onClose={() => setChatOpen(false)}
+              initCtx={chatCtx}
+            />
+          )}
         </div>
       )}
 

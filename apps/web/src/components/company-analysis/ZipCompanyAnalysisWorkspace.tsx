@@ -2613,15 +2613,15 @@ export function ZipCompanyAnalysisWorkspace() {
               </div>
 
               {TOC_GROUPS.map((group) => (
-                <div key={group.label} style={{ marginBottom: 10 }}>
+                <div key={group.label} style={{ marginBottom: 12, marginTop: 4 }}>
                   <div
                     style={{
-                      padding: "4px 16px 6px",
-                      fontSize: 10,
-                      fontWeight: 700,
-                      color: "var(--muted-foreground)",
+                      padding: "6px 16px 4px",
+                      fontSize: 11,
+                      fontWeight: 600,
+                      color: "var(--accent, #7c6af7)",
                       fontFamily: "var(--font-data)",
-                      letterSpacing: "0.12em",
+                      letterSpacing: "0.14em",
                       textTransform: "uppercase",
                     }}
                   >
@@ -2638,15 +2638,15 @@ export function ZipCompanyAnalysisWorkspace() {
                         style={{
                           background: isActive ? "var(--surface-2)" : "transparent",
                           border: "none",
-                          padding: "8px 16px",
+                          padding: "7px 16px 7px 26px",
                           textAlign: "left",
                           cursor: "pointer",
                           width: "100%",
-                          fontSize: 12,
+                          fontSize: 13,
                           fontFamily: "var(--font-body)",
                           fontWeight: isActive ? 600 : 400,
                           color: isActive ? "var(--foreground)" : "var(--muted-foreground)",
-                          borderLeft: isActive ? "3px solid var(--accent, #3b82f6)" : "3px solid transparent",
+                          borderLeft: isActive ? "3px solid var(--accent, #7c6af7)" : "3px solid transparent",
                           transition: "background 0.15s, color 0.15s, border-color 0.15s",
                         }}
                       >
@@ -2658,7 +2658,7 @@ export function ZipCompanyAnalysisWorkspace() {
                 </div>
               ))}
 
-              <div style={{ padding: "4px 16px 6px", fontSize: 10, fontWeight: 700, color: "var(--muted-foreground)", fontFamily: "var(--font-data)", letterSpacing: "0.12em", textTransform: "uppercase" }}>
+              <div style={{ padding: "6px 16px 4px", fontSize: 11, fontWeight: 600, color: "var(--accent, #7c6af7)", fontFamily: "var(--font-data)", letterSpacing: "0.14em", textTransform: "uppercase" }}>
                 TOOLS
               </div>
               <button
@@ -2832,16 +2832,17 @@ export function ZipCompanyAnalysisWorkspace() {
                     </div>
 
                     {TOC_GROUPS.map((group) => (
-                      <div key={group.label} style={{ marginBottom: 14 }}>
+                      <div key={group.label} style={{ marginBottom: 14, marginTop: 4 }}>
                         <div
                           style={{
-                            fontSize: 10,
-                            fontWeight: 700,
-                            color: "var(--muted-foreground)",
+                            fontSize: 11,
+                            fontWeight: 600,
+                            color: "var(--accent, #7c6af7)",
                             fontFamily: "var(--font-data)",
-                            letterSpacing: "0.12em",
+                            letterSpacing: "0.14em",
                             textTransform: "uppercase",
                             marginBottom: 6,
+                            paddingLeft: 14,
                           }}
                         >
                           {group.label}
@@ -2860,15 +2861,15 @@ export function ZipCompanyAnalysisWorkspace() {
                                 width: "100%",
                                 textAlign: "left",
                                 minHeight: 44,
-                                padding: "10px 14px",
+                                padding: "10px 14px 10px 24px",
                                 marginBottom: 4,
                                 background: isActive ? "var(--surface-2)" : "transparent",
                                 border: "none",
                                 borderRadius: 6,
-                                fontSize: 14,
+                                fontSize: 13,
                                 fontWeight: isActive ? 600 : 400,
                                 color: isActive ? "var(--foreground)" : "var(--muted-foreground)",
-                                borderLeft: isActive ? "3px solid var(--accent, #3b82f6)" : "3px solid transparent",
+                                borderLeft: isActive ? "3px solid var(--accent, #7c6af7)" : "3px solid transparent",
                                 cursor: "pointer",
                               }}
                             >

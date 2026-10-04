@@ -63,7 +63,7 @@ def extract_research_payload(
     response: dict[str, Any] | None,
 ) -> ResearchPayload:
     """Map analyse transport payloads into a research context bundle."""
-    if not request or not response or not response.get("ok"):
+    if not response or not response.get("ok"):
         return ResearchPayload(
             company="Unknown",
             ticker="",
@@ -94,21 +94,34 @@ def extract_research_payload(
         str(s.get("label")) for s in stages if s.get("has_result") and s.get("label")
     )
 
-    intrinsic = request.get("intrinsic_value_per_share")
+    req = request or {}
+    intrinsic = req.get("intrinsic_value_per_share")
     if intrinsic is None:
-        signals = request.get("valuation_signals") or {}
+        signals = req.get("valuation_signals") or {}
         intrinsic = signals.get("intrinsic_value_per_share")
-    current = request.get("current_market_price")
+    if intrinsic is None:
+        server_val = payload.get("server_valuation") or {}
+        intrinsic = server_val.get("intrinsic_value_per_share")
+
+    current = req.get("current_market_price")
     if current is None:
-        signals = request.get("valuation_signals") or {}
+        signals = req.get("valuation_signals") or {}
         current = signals.get("current_market_price")
+    if current is None:
+        server_val = payload.get("server_valuation") or {}
+        current = server_val.get("current_market_price")
 
     bq = _stage_label(stages, "business_quality_aggregator")
 
+    team = payload.get("research_team") or {}
+    ticker = str(req.get("ticker") or payload.get("ticker") or team.get("ticker") or "")
+    company = str(req.get("company") or payload.get("company") or team.get("company") or ticker or "Unknown")
+    exchange = req.get("exchange") or payload.get("exchange") or team.get("exchange")
+
     return ResearchPayload(
-        company=str(request.get("company") or request.get("ticker") or "Unknown"),
-        ticker=str(request.get("ticker") or ""),
-        exchange=request.get("exchange"),
+        company=company,
+        ticker=ticker,
+        exchange=exchange,
         recommendation=str(rec.get("decision") or "Unavailable"),
         recommendation_confidence=_pct(rec.get("confidence")),
         intrinsic_value=str(intrinsic) if intrinsic is not None else None,

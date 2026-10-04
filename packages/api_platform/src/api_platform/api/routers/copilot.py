@@ -196,18 +196,35 @@ def copilot_history_delete(
     return JSONResponse({"ok": True, "deleted": True, "message": None})
 
 
-@router.post("/copilot/complete", response_model=CopilotCompleteResponse)
+@router.post("/copilot/complete", response_model=None)
 def copilot_complete(
     body: CopilotCompleteRequest,
     state: ApiState = Depends(get_api_state),
-) -> CopilotCompleteResponse:
+) -> CopilotCompleteResponse | JSONResponse:
     """Complete a copilot answer via backend LLM with deterministic fallback."""
+    if body.mode == "simple":
+        return JSONResponse(
+            status_code=403,
+            content={
+                "ok": False,
+                "error": "COPILOT_NOT_AVAILABLE_IN_SIMPLE_MODE",
+                "message": "AI Copilot is available only in Buffett AI Indicator mode.",
+            },
+        )
     if state.copilot_service is None:
         raise ApiValidationError("Copilot service is not configured")
+    req = body.request
+    if (not req or not req.get("ticker")) and body.response and isinstance(body.response, dict):
+        payload = body.response.get("payload") or {}
+        req = {
+            "ticker": (req.get("ticker") if req else None) or payload.get("ticker") or (body.market_context or {}).get("symbol") or "",
+            "company": (req.get("company") if req else None) or payload.get("company") or (body.market_context or {}).get("symbol") or "",
+            "exchange": (req.get("exchange") if req else None) or payload.get("exchange"),
+        }
     result = state.copilot_service.complete(
         question_id=body.question_id,
         freeform=body.freeform,
-        request=body.request,
+        request=req,
         response=body.response,
         secondary_request=body.secondary_request,
         secondary_response=body.secondary_response,
@@ -228,8 +245,17 @@ def copilot_complete(
 def copilot_stream(
     body: CopilotCompleteRequest,
     state: ApiState = Depends(get_api_state),
-) -> StreamingResponse:
+) -> StreamingResponse | JSONResponse:
     """Stream copilot answer deltas via Server-Sent Events."""
+    if body.mode == "simple":
+        return JSONResponse(
+            status_code=403,
+            content={
+                "ok": False,
+                "error": "COPILOT_NOT_AVAILABLE_IN_SIMPLE_MODE",
+                "message": "AI Copilot is available only in Buffett AI Indicator mode.",
+            },
+        )
     if state.copilot_service is None:
         raise ApiValidationError("Copilot service is not configured")
 

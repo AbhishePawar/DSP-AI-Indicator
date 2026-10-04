@@ -2,6 +2,7 @@ import type { AnalyseRequest, AnalyseResponse } from "@/lib/api/compositionTypes
 import type { CopilotIntent, SuggestedQuestionId } from "@/lib/copilot/types";
 
 export type CopilotCompleteRequestBody = {
+  mode?: "simple" | "buffett";
   question_id: SuggestedQuestionId | "freeform";
   freeform?: string;
   request: AnalyseRequest | null;
@@ -92,6 +93,9 @@ export type CopilotQueryRequestBody = {
   prompt?: string | null;
   system_instruction?: string | null;
   market_context?: Record<string, string | number | null> | null;
+  mode?: "simple" | "buffett";
+  request?: import("@/lib/api/compositionTypes").AnalyseRequest | null;
+  response?: import("@/lib/api/compositionTypes").AnalyseResponse | null;
 };
 
 export type CopilotQueryResponseBody = {

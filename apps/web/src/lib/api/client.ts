@@ -427,8 +427,11 @@ export const api = {
       {
         method: "POST",
         body: JSON.stringify({
+          mode: body.mode ?? "buffett",
           question_id: "freeform",
           freeform: body.prompt || body.query || "",
+          request: body.request ?? (body.symbol ? { ticker: body.symbol } : null),
+          response: body.response ?? null,
           market_context: {
             symbol: body.symbol ?? null,
             analysis_id: body.analysis_id ?? null,

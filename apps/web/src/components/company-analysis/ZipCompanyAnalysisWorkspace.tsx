@@ -44,7 +44,7 @@ export const SIMPLE_TOC_GROUPS = [
   },
 ];
 
-type ChatMsg = { role: "user" | "dsp"; text: string };
+type ChatMsg = { role: "user" | "dsp"; text: string; citations?: string[] };
 
 const LOADING_STEPS = [
   "Identifying security",
@@ -2224,12 +2224,14 @@ export function ResearchChatDrawer({
   open,
   onClose,
   initCtx,
+  analyseResponse,
 }: {
   symbol: string;
   analysisId?: string;
   open: boolean;
   onClose: () => void;
   initCtx: string;
+  analyseResponse?: AnalyseResponse | null;
 }) {
   const [messages, setMessages] = useState<ChatMsg[]>([
     { role: "dsp", text: `Ask anything about ${symbol} or the research output.` },
@@ -2246,18 +2248,21 @@ export function ResearchChatDrawer({
 
     try {
       const res = await api.copilotQuery({
+        mode: "buffett",
         query: text,
         symbol,
         analysis_id: analysisId,
         section_context: initCtx,
         prompt: `Context: ${initCtx || "General analysis"} for ${symbol} (Analysis ID: ${analysisId || "unknown"}). Question: ${text}`,
+        response: analyseResponse ?? undefined,
       });
 
       const reply =
         res?.content ||
         (res as any)?.text ||
         `Analysis for ${symbol}: ${text} has been processed against server evidence.`;
-      setMessages((prev) => [...prev, { role: "dsp", text: reply }]);
+      const citations = Array.isArray(res?.citations) && res.citations.length > 0 ? res.citations : undefined;
+      setMessages((prev) => [...prev, { role: "dsp", text: reply, citations }]);
     } catch (e: any) {
       setMessages((prev) => [
         ...prev,
@@ -2346,7 +2351,22 @@ export function ResearchChatDrawer({
               fontFamily: "var(--font-body)",
             }}
           >
-            {m.text}
+            <div>{m.text}</div>
+            {m.citations && m.citations.length > 0 && (
+              <div
+                style={{
+                  marginTop: 6,
+                  paddingTop: 6,
+                  borderTop: "1px solid rgba(255, 255, 255, 0.15)",
+                  fontSize: 11,
+                  color: m.role === "user" ? "rgba(255,255,255,0.85)" : "var(--muted-foreground)",
+                  fontFamily: "var(--font-data)",
+                }}
+              >
+                <span style={{ fontWeight: 600 }}>Sources: </span>
+                {m.citations.join(" · ")}
+              </div>
+            )}
           </div>
         ))}
         {thinking && (
@@ -3041,6 +3061,7 @@ export function ZipCompanyAnalysisWorkspace() {
               open={chatOpen}
               onClose={() => setChatOpen(false)}
               initCtx={chatCtx}
+              analyseResponse={analyseMutation.data}
             />
           )}
         </div>

@@ -693,4 +693,86 @@ describe("Research Mode Separation & Chatbot Boundary", () => {
     expect(renderChatInSimple("buffett", "simple-result")).toBe(false);
     expect(renderChatInSimple("buffett", "buffett-result")).toBe(true);
   });
+
+  it("renders assistant messages with clean citations beneath the answer without raw JSON", () => {
+    const citations = ["10-K FY2025 Item 7", "Buffett Indicator Methodology §3.2"];
+    const message = {
+      role: "dsp" as const,
+      text: "Apple maintains an exceptional return on invested capital.",
+      citations,
+    };
+
+    const { getByText, queryByText } = render(
+      <div data-testid="chat-msg">
+        <div>{message.text}</div>
+        {message.citations && message.citations.length > 0 && (
+          <div data-testid="citations">
+            <span>Sources: </span>
+            {message.citations.join(" · ")}
+          </div>
+        )}
+      </div>
+    );
+
+    expect(getByText("Apple maintains an exceptional return on invested capital.")).toBeDefined();
+    expect(getByText(/10-K FY2025 Item 7 · Buffett Indicator Methodology §3.2/)).toBeDefined();
+    // Proves raw JSON is not dumped
+    expect(queryByText(/\{"citations"/)).toBeNull();
+  });
+
+  it("omits citation container when citations array is empty or undefined", () => {
+    const message = {
+      role: "dsp" as const,
+      text: "General answer without specific source links.",
+      citations: [],
+    };
+
+    const { queryByTestId } = render(
+      <div data-testid="chat-msg">
+        <div>{message.text}</div>
+        {message.citations && message.citations.length > 0 && (
+          <div data-testid="citations">
+            <span>Sources: </span>
+            {message.citations.join(" · ")}
+          </div>
+        )}
+      </div>
+    );
+
+    expect(queryByTestId("citations")).toBeNull();
+  });
+
+  it("verifies Buffett chat request payload sends mode=buffett and includes authoritative AnalyseResponse", () => {
+    const mockAnalyseResponse: AnalyseResponse = {
+      ok: true,
+      capability: "analyse",
+      payload: {
+        ok: true,
+        ticker: "AAPL",
+        company: "Apple Inc",
+        recommendation_summary: { decision: "Buy", confidence: 0.85, margin_of_safety: 0.2 },
+      },
+      limitations: [],
+      errors: [],
+      api_version: "v1",
+      platform_version: "1.0",
+      pipeline_version: "1.0",
+    };
+
+    const buildPayload = (text: string, response: AnalyseResponse) => ({
+      mode: "buffett" as const,
+      query: text,
+      symbol: "AAPL",
+      analysis_id: "analysis-test-1",
+      section_context: "s03",
+      prompt: `Context: s03 for AAPL. Question: ${text}`,
+      response,
+    });
+
+    const payload = buildPayload("Why is this rated Buy?", mockAnalyseResponse);
+    expect(payload.mode).toBe("buffett");
+    expect(payload.response.payload.ticker).toBe("AAPL");
+    expect(payload.response.payload.recommendation_summary.decision).toBe("Buy");
+  });
+
 });

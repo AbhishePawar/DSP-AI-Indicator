@@ -32,7 +32,6 @@ export const SIMPLE_TOC_GROUPS = [
     label: "OVERVIEW",
     items: [
       { id: "s01", label: "Executive Summary" },
-      { id: "s02", label: "Business Quality" },
     ],
   },
   {
@@ -2935,10 +2934,6 @@ export function ZipCompanyAnalysisWorkspace() {
                   <>
                     <div ref={sectionRef("s01")} id="s01">
                       <InvestmentSummary model={viewModel} onAsk={undefined} />
-                    </div>
-
-                    <div ref={sectionRef("s02")} id="s02">
-                      <BusinessQualityScores model={viewModel} onAsk={undefined} />
                     </div>
 
                     <div ref={sectionRef("s04")} id="s04">

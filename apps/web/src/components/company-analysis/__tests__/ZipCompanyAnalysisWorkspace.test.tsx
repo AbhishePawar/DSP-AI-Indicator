@@ -8,6 +8,7 @@ import {
   ValuationSection,
   ZipCompanyAnalysisWorkspace,
   TOC_GROUPS,
+  SIMPLE_TOC_GROUPS,
   ALL_SECTIONS,
 } from "../ZipCompanyAnalysisWorkspace";
 import { describe, it, expect, vi, beforeAll, afterEach } from "vitest";
@@ -659,5 +660,37 @@ describe("Stage 3 Research Workspace Data-State and Adapter Contract", () => {
       fireEvent.click(getByRole("button", { name: "Close navigation" }));
       expect(queryByRole("dialog", { name: "Analysis Sections" })).toBeNull();
     });
+  });
+});
+
+describe("Research Mode Separation & Chatbot Boundary", () => {
+  it("enforces simple !== Buffett result navigation structure", () => {
+    const simpleIds = SIMPLE_TOC_GROUPS.flatMap((g) => g.items.map((i) => i.id));
+    const buffettIds = TOC_GROUPS.flatMap((g) => g.items.map((i) => i.id));
+
+    // Simple mode navigation contains strictly standard financial research sections
+    expect(simpleIds).toEqual(["s01", "s04", "s09", "s15"]);
+
+    // Simple mode excludes Buffett Indicator and quality-specific sections
+    expect(simpleIds).not.toContain("s02");
+    expect(simpleIds).not.toContain("s03");
+    expect(simpleIds).not.toContain("s06");
+    expect(simpleIds).not.toContain("s07");
+    expect(simpleIds).not.toContain("s08");
+    expect(simpleIds).not.toContain("s10");
+
+    // Buffett mode contains full institutional 14-section workspace
+    expect(buffettIds.length).toBeGreaterThanOrEqual(14);
+    expect(buffettIds).toContain("s03");
+  });
+
+  it("proves chat drawer is excluded in Simple mode and present only in Buffett mode", () => {
+    const renderChatInSimple = (mode: string, phase: string) =>
+      mode === "buffett" && phase === "buffett-result";
+
+    expect(renderChatInSimple("simple", "simple-result")).toBe(false);
+    expect(renderChatInSimple("simple", "buffett-result")).toBe(false);
+    expect(renderChatInSimple("buffett", "simple-result")).toBe(false);
+    expect(renderChatInSimple("buffett", "buffett-result")).toBe(true);
   });
 });

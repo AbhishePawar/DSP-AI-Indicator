@@ -105,16 +105,27 @@ class GeminiAdapter(GeminiToolCalling):
 
         try:
             with httpx.Client(timeout=self._config.request_timeout_seconds) as client:
+                headers = {
+                    "Content-Type": "application/json",
+                }
+
+                if use_gateway:
+                    headers["Authorization"] = (
+                        f"Bearer {self._config.ai_gateway_api_key}"
+                    )
+                else:
+                    headers["x-goog-api-key"] = (
+                        self._config.gemini_api_key or ""
+                    )
+
                 response = client.post(
                     url,
-                    headers={
-                        "Authorization": f"Bearer {self._config.ai_gateway_api_key}" if use_gateway else f"Bearer {self._config.gemini_api_key or ''}",
-                        "Content-Type": "application/json",
-                    },
+                    headers=headers,
                     json=payload,
                 )
                 response.raise_for_status()
                 data = response.json()
+
         except httpx.HTTPError as exc:
             return self._failed(f"http_error: {exc.__class__.__name__}"), None
         except (ValueError, KeyError) as exc:

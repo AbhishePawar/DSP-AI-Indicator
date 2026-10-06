@@ -66,11 +66,9 @@ from data_engine.connector_framework.models import (
 )
 from data_engine.connector_framework.production_profile import (
     ConnectorConfigurationError,
-    assert_production_investment_connectors_configured,
     finalize_provider_registry,
     is_production_environment,
     memory_adapter_allowed,
-    require_authenticated_http_adapter,
 )
 from data_engine.connector_framework.registry import (
     PriorityProviderRegistry,
@@ -104,10 +102,8 @@ __all__ = [
     "RateLimiter",
     "RetryPolicy",
     "UrllibJsonHttpClient",
-    "assert_production_investment_connectors_configured",
     "finalize_provider_registry",
     "is_production_environment",
     "memory_adapter_allowed",
-    "require_authenticated_http_adapter",
     "utc_now",
 ]

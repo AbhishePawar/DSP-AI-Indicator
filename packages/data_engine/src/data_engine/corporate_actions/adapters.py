@@ -458,7 +458,6 @@ def build_default_corporate_action_adapter_from_env() -> CorporateActionPort:
     """
     from data_engine.connector_framework.production_profile import (
         memory_adapter_allowed,
-        require_authenticated_http_adapter,
     )
 
     api_key = os.environ.get("DSP_CORPORATE_ACTIONS_API_KEY", "").strip()
@@ -471,11 +470,4 @@ def build_default_corporate_action_adapter_from_env() -> CorporateActionPort:
         return InMemoryAuthenticatedCorporateActionAdapter(
             api_key=api_key or "dev-memory-key"
         )
-    require_authenticated_http_adapter(
-        connector="corporate_actions",
-        api_key=api_key,
-        base_url=base_url,
-        api_key_env="DSP_CORPORATE_ACTIONS_API_KEY",
-        base_url_env="DSP_CORPORATE_ACTIONS_BASE_URL",
-    )
     return NullAuthenticatedCorporateActionAdapter()

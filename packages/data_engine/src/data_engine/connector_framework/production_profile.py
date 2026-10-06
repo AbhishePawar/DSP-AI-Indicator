@@ -18,9 +18,7 @@ __all__ = [
     "ConnectorConfigurationError",
     "is_production_environment",
     "memory_adapter_allowed",
-    "require_authenticated_http_adapter",
     "finalize_provider_registry",
-    "assert_production_investment_connectors_configured",
     "classify_provider_id",
     "adapter_is_production_unsafe",
     "adapter_is_production_unsafe_name",
@@ -72,28 +70,6 @@ def memory_adapter_allowed(
     return True
 
 
-def require_authenticated_http_adapter(
-    *,
-    connector: str,
-    api_key: str,
-    base_url: str,
-    api_key_env: str,
-    base_url_env: str,
-    environ: dict[str, str] | None = None,
-) -> None:
-    """Fail closed in production when HTTP credentials are incomplete."""
-    if not is_production_environment(environ):
-        return
-    if api_key.strip() and base_url.strip():
-        return
-    # Financial data is source-neutral; no commercial key bypasses validation.
-    raise ConnectorConfigurationError(
-        f"P1-03: production requires authenticated {connector} provider; "
-        f"set {api_key_env} and {base_url_env}, "
-        "Null/demo/seed adapters are not permitted on the production path."
-    )
-
-
 def finalize_provider_registry(
     registry: PriorityProviderRegistry[P],
     *,
@@ -125,40 +101,6 @@ def finalize_provider_registry(
         priority=1000,
     )
     return registry
-
-
-def assert_production_investment_connectors_configured() -> dict[str, str]:
-    """Validate investment-critical connectors (quote + statements) for production.
-
-    Intended for investment use paths, health/composition checks, and explicit
-    ops certification — **not** for FastAPI ``create_app`` boot. Client auth
-    must remain available when investment credentials are absent.
-
-    Returns a map of connector → selected provider class name. Raises
-    :class:`ConnectorConfigurationError` when production would select Null/memory.
-    No-op outside ``DSP_ENVIRONMENT=production``.
-    """
-    if not is_production_environment():
-        return {}
-
-    from data_engine.financial_statement.adapters import (
-        build_default_statement_adapter_from_env,
-    )
-    from data_engine.market_quote.adapters import build_default_quote_adapter_from_env
-
-    quote = build_default_quote_adapter_from_env()
-    statements = build_default_statement_adapter_from_env()
-    selected = {
-        "market_quote": type(quote).__name__,
-        "financial_statement": type(statements).__name__,
-    }
-    for name, cls_name in selected.items():
-        if adapter_is_production_unsafe_name(cls_name):
-            raise ConnectorConfigurationError(
-                f"P1-03: production selected unsafe {name} adapter {cls_name}"
-            )
-    return selected
-
 
 def adapter_is_production_unsafe_name(class_name: str) -> bool:
     name = str(class_name or "").lower()

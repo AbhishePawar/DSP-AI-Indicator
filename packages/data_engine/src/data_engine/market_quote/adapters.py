@@ -221,11 +221,7 @@ def build_default_quote_adapter_from_env() -> MarketQuotePort:
     """
     from data_engine.connector_framework.production_profile import (
         memory_adapter_allowed,
-        require_authenticated_http_adapter,
     )
-    from data_engine.investment_data_provider import resolve_investment_data_provider
-
-    resolve_investment_data_provider()
 
     api_key = os.environ.get("DSP_MARKET_QUOTE_API_KEY", "").strip()
     base_url = os.environ.get("DSP_MARKET_QUOTE_BASE_URL", "").strip()
@@ -233,11 +229,4 @@ def build_default_quote_adapter_from_env() -> MarketQuotePort:
         return ConfiguredHttpQuoteAdapter(base_url=base_url, api_key=api_key)
     if memory_adapter_allowed("DSP_MARKET_QUOTE_MEMORY", connector="market_quote"):
         return InMemoryAuthenticatedQuoteAdapter(api_key=api_key or "dev-memory-key")
-    require_authenticated_http_adapter(
-        connector="market_quote",
-        api_key=api_key,
-        base_url=base_url,
-        api_key_env="DSP_MARKET_QUOTE_API_KEY",
-        base_url_env="DSP_MARKET_QUOTE_BASE_URL",
-    )
     return NullAuthenticatedQuoteAdapter()

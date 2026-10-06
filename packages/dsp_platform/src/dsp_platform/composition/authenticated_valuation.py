@@ -16,7 +16,6 @@ from contracts.domain.fundamental_statement import FundamentalStatement
 from contracts.domain.instrument import Instrument
 from contracts.enums import AssetClass, StatementPeriodType
 from data_engine.connector_framework.production_profile import (
-    assert_production_investment_connectors_configured,
     is_production_environment,
 )
 from data_engine.financial_statement.models import (
@@ -62,7 +61,6 @@ __all__ = [
     "AuthenticatedValuationError",
     "DATA_UNAVAILABLE",
     "load_authenticated_valuation_bundle",
-    "production_investment_connectors",
     "signals_from_assessment",
     "to_financial_statements",
 ]
@@ -592,14 +590,3 @@ def _fetch_quote(
 def production_requires_authenticated_bundle() -> bool:
     """True when missing authenticated valuation inputs must fail closed."""
     return is_production_environment()
-
-
-def production_investment_connectors() -> dict[str, str]:
-    """Adapter class names the P1-03 production gate selects for this bundle.
-
-    Empty outside production. Constructed offline — no provider I/O — so
-    readiness probes can assert the authenticated quote/statement connectors
-    without contacting external providers. Raises when production would select an unsafe
-    (Null/memory/demo) adapter.
-    """
-    return assert_production_investment_connectors_configured()

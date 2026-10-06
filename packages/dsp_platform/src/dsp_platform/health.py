@@ -113,7 +113,6 @@ class PlatformHealthService:
             self._check_provider_settings(),
             self._check_provider_registry(),
             composition,
-            self._check_investment_data_provider(),
             self._check_wiring(canonical_ready=composition.status is CheckStatus.PASS),
         ]
         blocking_failed = any(
@@ -303,49 +302,6 @@ class PlatformHealthService:
             ),
         )
 
-    def _check_investment_data_provider(self) -> HealthCheckResult:
-        """P1-03 — report whether authenticated investment connectors resolve.
-
-        Failure is recorded for ops visibility but does not block overall
-        platform readiness (see ``_NON_BLOCKING_READY_CHECKS``). Investment
-        routes still fail closed via adapter factories when credentials are
-        missing. Adapters are constructed offline (no provider I/O); only
-        class names / env-var names are reported.
-        """
-        try:
-            from dsp_platform.composition.authenticated_valuation import (
-                production_investment_connectors,
-                production_requires_authenticated_bundle,
-            )
-        except Exception as exc:  # noqa: BLE001 — surface as health failure
-            return HealthCheckResult(
-                name="investment_data_provider",
-                status=CheckStatus.FAIL,
-                message=f"production profile unavailable: {exc}",
-            )
-        if not production_requires_authenticated_bundle():
-            return HealthCheckResult(
-                name="investment_data_provider",
-                status=CheckStatus.SKIP,
-                message="non-production environment",
-            )
-        try:
-            selected = production_investment_connectors()
-        except Exception as exc:  # noqa: BLE001 — fail closed, never fabricate
-            return HealthCheckResult(
-                name="investment_data_provider",
-                status=CheckStatus.FAIL,
-                message=(
-                    f"investment_capability: {type(exc).__name__}: {exc} "
-                    "(does not block auth/API readiness)"
-                ),
-            )
-        detail = ", ".join(f"{k}={v}" for k, v in sorted(selected.items()))
-        return HealthCheckResult(
-            name="investment_data_provider",
-            status=CheckStatus.PASS,
-            message=f"authenticated adapters: {detail}" if detail else "configured",
-        )
 
     def _check_wiring(self, *, canonical_ready: bool = False) -> HealthCheckResult:
         if self._platform is None:

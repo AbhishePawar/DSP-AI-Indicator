@@ -171,70 +171,84 @@ def run_copilot_v2(
     if lock:
         lock.acquire()
     try:
+        existing_failure_turn = None
+        retry_mode = False
         if durable and session_service and session_id and clean_idem:
-            # Check for existing completed assistant turn for this idempotency key
             turns = session_service.get_turns(session_id, user_id=clean_user)
-            user_idx = None
+            # Successful assistant turn bound to this key: replay it verbatim.
+            for t in reversed(turns):
+                if t.get("role") == "assistant":
+                    meta = t.get("metadata") or {}
+                    if (
+                        meta.get("idempotency_key") == clean_idem
+                        and not meta.get("failure_event", False)
+                        and not meta.get("unavailable", False)
+                    ):
+                        return {
+                            "response_id": str(uuid.uuid4()),
+                            "conversation_id": cid,
+                            "created_at": t.get("created_at") or created_at,
+                            "intent": meta.get("intent") or intent,
+                            "answer": t.get("content") or "",
+                            "unavailable": False,
+                            "sources": meta.get("sources") or [],
+                            "context": ctx,
+                            "engine_payload": None,
+                            "suggested_questions": _suggested_for(intent, resolved_symbols),
+                            "provenance": {
+                                "schema_version": COPILOT_V2_SCHEMA_VERSION,
+                                "service_version": COPILOT_V2_SERVICE_VERSION,
+                                "orchestration_only": True,
+                                "calculations_performed": False,
+                                "engines_called": bool(meta.get("sources")),
+                                "replayed_from_idempotency": True,
+                            },
+                            "message": None,
+                        }
+            # Prior failed attempt for this key (user turn followed by a failure event):
+            # allow a retry to regenerate; the failure event must never replay as success.
             for idx, t in enumerate(turns):
                 if t.get("role") == "user" and (t.get("metadata") or {}).get("idempotency_key") == clean_idem:
-                    user_idx = idx
+                    if idx + 1 < len(turns):
+                        nxt = turns[idx + 1]
+                        nxt_meta = nxt.get("metadata") or {}
+                        if nxt.get("role") == "assistant" and (
+                            nxt_meta.get("failure_event") or nxt_meta.get("unavailable")
+                        ):
+                            existing_failure_turn = nxt
+                            retry_mode = True
                     break
-            if user_idx is not None and user_idx + 1 < len(turns):
-                next_t = turns[user_idx + 1]
-                if next_t.get("role") == "assistant":
-                    next_meta = next_t.get("metadata") or {}
-                    return {
-                        "response_id": str(uuid.uuid4()),
-                        "conversation_id": cid,
-                        "created_at": next_t.get("created_at") or created_at,
-                        "intent": next_meta.get("intent") or intent,
-                        "answer": next_t.get("content") or "",
-                        "unavailable": bool(next_meta.get("unavailable", False)),
-                        "sources": next_meta.get("sources") or [],
-                        "context": ctx,
-                        "engine_payload": None,
-                        "suggested_questions": _suggested_for(intent, resolved_symbols),
-                        "provenance": {
-                            "schema_version": COPILOT_V2_SCHEMA_VERSION,
-                            "service_version": COPILOT_V2_SERVICE_VERSION,
-                            "orchestration_only": True,
-                            "calculations_performed": False,
-                            "engines_called": bool(next_meta.get("sources")),
-                            "replayed_from_idempotency": True,
-                        },
-                        "message": UNAVAILABLE_MESSAGE if next_meta.get("unavailable") else None,
-                    }
-
-        # 8. Persist user turn BEFORE generation
+        # 8. Persist user turn BEFORE generation (skip on retry: already recorded)
         user_turn_id = str(uuid.uuid4())
         user_meta: dict[str, Any] = {"intent": intent}
         if clean_idem:
             user_meta["idempotency_key"] = clean_idem
 
-        if durable and session_service and session_id:
-            session_service.append_turn(
-                session_id=session_id,
-                user_id=clean_user,
-                role="user",
-                content=message,
-                symbol=clean_symbol,
-                analysis_id=clean_analysis,
-                turn_id=user_turn_id,
-                metadata=user_meta,
-            )
+        if not retry_mode:
+            if durable and session_service and session_id:
+                session_service.append_turn(
+                    session_id=session_id,
+                    user_id=clean_user,
+                    role="user",
+                    content=message,
+                    symbol=clean_symbol,
+                    analysis_id=clean_analysis,
+                    turn_id=user_turn_id,
+                    metadata=user_meta,
+                )
 
-        store.append(
-            cid,
-            {
-                "turn_id": user_turn_id,
-                "response_id": str(uuid.uuid4()),
-                "created_at": created_at,
-                "role": "user",
-                "message": message,
-                "intent": intent,
-                "idempotency_key": clean_idem,
-            },
-        )
+            store.append(
+                cid,
+                {
+                    "turn_id": user_turn_id,
+                    "response_id": str(uuid.uuid4()),
+                    "created_at": created_at,
+                    "role": "user",
+                    "message": message,
+                    "intent": intent,
+                    "idempotency_key": clean_idem,
+                },
+            )
 
         # 9. Execute generation
         is_ai_mandatory = require_ai or durable
@@ -267,10 +281,36 @@ def run_copilot_v2(
             "unavailable": unavailable,
             "sources": sources,
         }
-        if clean_idem:
+        if unavailable:
+            asst_meta["failure_event"] = True
+        if clean_idem and not unavailable:
             asst_meta["idempotency_key"] = clean_idem
 
-        # 9. Persist assistant turn ONLY after successful generation
+        # If previous attempt was failure and this attempt also failed, replay failure without duplicate turn
+        if existing_failure_turn is not None and unavailable:
+            return {
+                "response_id": str(uuid.uuid4()),
+                "conversation_id": cid,
+                "created_at": existing_failure_turn.get("created_at") or created_at,
+                "intent": intent,
+                "answer": answer,
+                "unavailable": True,
+                "sources": sources,
+                "context": ctx,
+                "engine_payload": None,
+                "suggested_questions": _suggested_for(intent, resolved_symbols),
+                "provenance": {
+                    "schema_version": COPILOT_V2_SCHEMA_VERSION,
+                    "service_version": COPILOT_V2_SERVICE_VERSION,
+                    "orchestration_only": True,
+                    "calculations_performed": False,
+                    "engines_called": bool(sources),
+                    "replayed_from_idempotency": True,
+                },
+                "message": UNAVAILABLE_MESSAGE,
+            }
+
+        # 9. Persist assistant turn ONLY after successful generation (or initial failure event)
         if durable and session_service and session_id:
             session_service.append_turn(
                 session_id=session_id,
@@ -294,7 +334,8 @@ def run_copilot_v2(
                 "intent": intent,
                 "unavailable": unavailable,
                 "sources": sources,
-                "idempotency_key": clean_idem,
+                "idempotency_key": None if unavailable else clean_idem,
+                "failure_event": unavailable,
             },
         )
 
@@ -496,7 +537,7 @@ def _generate_ai_copilot_response(
     if dsp_decision:
         for conflicting_rec in ("Strong Buy", "Buy", "Hold", "Sell", "Strong Sell"):
             if conflicting_rec.lower() != dsp_decision.lower():
-                pattern = re.compile(rf"{re.escape(conflicting_rec)}", re.IGNORECASE)
+                pattern = re.compile(rf"\b{re.escape(conflicting_rec)}\b", re.IGNORECASE)
                 narrative = pattern.sub(dsp_decision, narrative)
 
     auth_lines = []

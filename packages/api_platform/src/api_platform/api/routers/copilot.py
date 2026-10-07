@@ -67,7 +67,7 @@ def _run_v2(
             buffett_mode=body.buffett_mode,
             research_orchestrator=state.research_orchestrator,
             language_model=state.language_model,
-            provider_registry=getattr(state.copilot_service, "_registry", None) if state.copilot_service else None,
+            provider_registry=getattr(state, "provider_registry", None) or (getattr(state.copilot_service, "_registry", None) if state.copilot_service else None),
             require_ai=require_ai,
         )
     except ValueError as exc:

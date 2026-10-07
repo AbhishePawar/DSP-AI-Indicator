@@ -200,6 +200,7 @@ class ApiState:
     copilot_service: Any = field(default=None)
     research_orchestrator: Any = field(default=None)
     language_model: Any | None = None
+    provider_registry: Any | None = None
     # EPIC-011A — optional production infra (duck-typed)
     infrastructure: Any | None = None
     production: Any | None = None

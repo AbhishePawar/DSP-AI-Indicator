@@ -24,6 +24,10 @@ RUN python -m pip install --upgrade pip && \
 RUN python -m pip show psycopg psycopg-binary && \
     python -c "import psycopg, psycopg.pq; print('BUILDER PSYCOPG OK:', psycopg.__version__, psycopg.__file__); print('BUILDER PQ IMPL:', psycopg.pq.__impl__); print('BUILDER PQ VERSION:', psycopg.pq.version())"
 
+# Prove the Redis client is installed AND importable.
+RUN python -m pip show redis && \
+    python -c "import redis; print('BUILDER REDIS OK:', redis.__version__, redis.__file__)"
+
 # Fail the image build if api_platform cannot be imported after install
 RUN python -c "import api_platform; from api_platform.api.app import app; print('API IMPORT OK:', api_platform.__file__); print('APP OK:', app.title)"
 
@@ -45,6 +49,8 @@ COPY --from=builder /usr/local /usr/local
 # Prove driver + API survive builder→runtime /usr/local copy (before USER dsp).
 RUN python -m pip show psycopg psycopg-binary && \
     python -c "import sys, psycopg, psycopg.pq; print('RUNTIME PSYCOPG OK:', psycopg.__version__, psycopg.__file__); print('RUNTIME PQ IMPL:', psycopg.pq.__impl__); print('RUNTIME PQ VERSION:', psycopg.pq.version()); print('RUNTIME PYTHON:', sys.executable)"
+RUN python -m pip show redis && \
+    python -c "import sys, redis; print('RUNTIME REDIS OK:', redis.__version__, redis.__file__); print('RUNTIME PYTHON:', sys.executable)"
 # Development override: create_app() must not require Cloud SQL/secrets at build time.
 RUN DSP_ENVIRONMENT=development python -c "import sys, api_platform; from api_platform.api.app import app; print('RUNTIME API IMPORT OK:', api_platform.__file__); print('RUNTIME APP OK:', app.title); print('RUNTIME PYTHON:', sys.executable)"
 COPY pyproject.toml README.md ./

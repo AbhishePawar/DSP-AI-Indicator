@@ -24,6 +24,9 @@ api = [
     # Production profiles require a live PostgreSQL adapter; the API image is
     # installed from this extra, so the driver must ship with it.
     "psycopg[binary]>=3.1",
+    # Production Redis adapter for cache, rate-limiting, locks, sessions.
+    # The API image installs via pip install ".[api]", so redis must ship with it.
+    "redis>=5.0",
     # Stage 0I OAuth PKCE uses AES-256-GCM via cryptography. Nested
     # packages/auth extras are not installed by docker/backend/Dockerfile
     # (`pip install ".[api]"`), so this extra must carry the dependency.

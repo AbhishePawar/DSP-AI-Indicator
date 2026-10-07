@@ -757,6 +757,7 @@ describe("Research Mode Separation & Chatbot Boundary", () => {
       api_version: "v1",
       platform_version: "1.0",
       pipeline_version: "1.0",
+      correlation_id: null,
     };
 
     const buildPayload = (text: string, response: AnalyseResponse) => ({
@@ -772,7 +773,8 @@ describe("Research Mode Separation & Chatbot Boundary", () => {
     const payload = buildPayload("Why is this rated Buy?", mockAnalyseResponse);
     expect(payload.mode).toBe("buffett");
     expect(payload.response.payload.ticker).toBe("AAPL");
-    expect(payload.response.payload.recommendation_summary.decision).toBe("Buy");
+    expect(payload.response.payload.recommendation_summary).toBeDefined();
+    expect(payload.response.payload.recommendation_summary?.decision).toBe("Buy");
   });
 
 });

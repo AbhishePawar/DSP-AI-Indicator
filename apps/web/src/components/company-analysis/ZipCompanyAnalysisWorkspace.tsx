@@ -1076,7 +1076,7 @@ export function InvestmentSummary({
   onAsk,
 }: {
   model: ZipResearchViewModel;
-  onAsk: (ctx: string) => void;
+  onAsk?: (ctx: string) => void;
 }) {
   return (
     <Card style={{ marginBottom: 36, borderLeft: "4px solid var(--c-dsp, #3b82f6)" }}>
@@ -1129,7 +1129,7 @@ export function InvestmentSummary({
             <StatusBadge status={model.investmentSummary.recommendationStatus} text={model.investmentSummary.recommendationBadge} />
           </div>
         </div>
-        <AskButton label="Ask about this verdict" onClick={() => onAsk("Investment verdict and summary")} />
+        {onAsk && <AskButton label="Ask about this verdict" onClick={() => onAsk("Investment verdict and summary")} />}
       </div>
 
       <p style={{ fontSize: 14, color: "var(--foreground)", lineHeight: 1.7, margin: "0 0 20px" }}>
@@ -1278,7 +1278,7 @@ export function FinancialAnalysisSection({
   onAsk,
 }: {
   model: ZipResearchViewModel;
-  onAsk: (ctx: string) => void;
+  onAsk?: (ctx: string) => void;
 }) {
   return (
     <div style={{ marginBottom: 36 }}>
@@ -1326,7 +1326,7 @@ export function FinancialAnalysisSection({
       </div>
 
       <div style={{ marginTop: 10, display: "flex", justifyContent: "flex-end" }}>
-        <AskButton label="Ask about the financials" onClick={() => onAsk("financial analysis")} />
+        {onAsk && <AskButton label="Ask about the financials" onClick={() => onAsk("financial analysis")} />}
       </div>
     </div>
   );
@@ -1340,7 +1340,7 @@ export function ValuationSection({
   valuationStageStatus = "succeeded",
 }: {
   model: ZipResearchViewModel;
-  onAsk: (ctx: string) => void;
+  onAsk?: (ctx: string) => void;
   valuationStageStatus?: string;
 }) {
   const currentPrice = model.valuation.currentPrice || 0;
@@ -1464,7 +1464,7 @@ export function ValuationSection({
       </Card>
 
       <div style={{ display: "flex", justifyContent: "flex-end" }}>
-        <AskButton label="Why is valuation a concern?" onClick={() => onAsk("valuation and intrinsic value")} />
+        {onAsk && <AskButton label="Why is valuation a concern?" onClick={() => onAsk("valuation and intrinsic value")} />}
       </div>
     </div>
   );
@@ -2435,6 +2435,9 @@ export function ZipCompanyAnalysisWorkspace() {
     searchParamSymbol ? "workspace-ready" : "select"
   );
   const [symbol, setSymbol] = useState(initialSymbol);
+  const initialMode: ResearchMode =
+    searchParams.get("mode") === "simple" ? "simple" : "buffett";
+  const [mode, setMode] = useState<ResearchMode>(initialMode);
   const [searchInput, setSearchInput] = useState(initialSymbol);
   const [activeSection, setActiveSection] = useState("s01");
   const [chatOpen, setChatOpen] = useState(false);
@@ -2510,7 +2513,6 @@ export function ZipCompanyAnalysisWorkspace() {
       }
       const req: AnalyseRequest = {
         ticker: sym,
-        mode: targetMode,
       };
       analyseMutation.mutate(req);
     },

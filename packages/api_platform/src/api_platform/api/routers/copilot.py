@@ -31,6 +31,7 @@ def _run_v2(
     user_id: str | None = None,
     analysis_id: str | None = None,
     idempotency_key: str | None = None,
+    require_ai: bool = False,
 ) -> JSONResponse:
     message = body.resolved_message()
     if not message:
@@ -65,6 +66,9 @@ def _run_v2(
             workspace=body.workspace,
             buffett_mode=body.buffett_mode,
             research_orchestrator=state.research_orchestrator,
+            language_model=state.language_model,
+            provider_registry=getattr(state.copilot_service, "_registry", None) if state.copilot_service else None,
+            require_ai=require_ai,
         )
     except ValueError as exc:
         return JSONResponse(
@@ -165,6 +169,7 @@ def copilot_chat(
         user_id=user_id,
         analysis_id=clean_analysis_id,
         idempotency_key=effective_idempotency_key,
+        require_ai=True,
     )
 
 

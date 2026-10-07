@@ -12,6 +12,7 @@ from dsp_platform import (
     PlatformBuilder,
     PlatformConfiguration,
 )
+from security_platform.security.middleware import _is_institutional_auth_zone
 from security_platform import (
     AuthenticationError,
     AuthorizationError,
@@ -128,6 +129,25 @@ class TestRateLimitAndAudit:
         events = bundle.audit.list_events()
         assert len(events) == 1
         assert events[0].action == "login"
+
+
+class TestInstitutionalAuthZones:
+    @pytest.mark.parametrize(
+        "path",
+        [
+            "/auth/enterprise/providers",
+            "/auth/enterprise/oauth/begin",
+            "/auth/enterprise/oauth/callback",
+            "/api/v1/auth/enterprise/providers",
+            "/api/v1/auth/enterprise/oauth/begin",
+            "/api/v1/auth/enterprise/oauth/callback",
+        ],
+    )
+    def test_enterprise_auth_bootstrap_routes_are_institutional(self, path: str) -> None:
+        assert _is_institutional_auth_zone(path) is True
+
+    def test_unrelated_api_route_is_not_institutional(self) -> None:
+        assert _is_institutional_auth_zone("/api/v1/copilot/chat") is False
 
 
 class TestApiIntegration:

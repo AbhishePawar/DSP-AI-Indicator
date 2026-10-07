@@ -64,6 +64,8 @@ def _is_institutional_auth_zone(path: str) -> bool:
         or path.startswith("/api/v1/admin")
         or path.startswith("/auth/rbac")
         or path.startswith("/api/v1/auth/rbac")
+        or path.startswith("/auth/enterprise")
+        or path.startswith("/api/v1/auth/enterprise")
         or path.startswith("/enterprise")
         or path.startswith("/api/v1/enterprise")
         or path.startswith("/beta")

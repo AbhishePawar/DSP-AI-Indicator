@@ -14,6 +14,18 @@ from dsp_platform.copilot_v2.intent import (
     source_ref,
 )
 from dsp_platform.copilot_v2.memory import get_copilot_memory_store
+import threading
+from persistence.research_session import compute_session_id, get_research_session_service
+
+_IDEMPOTENCY_LOCKS_GUARD = threading.Lock()
+_IDEMPOTENCY_LOCKS: dict[tuple[str, str, str], threading.Lock] = {}
+
+def _get_idempotency_lock(user_id: str, session_id: str, key: str) -> threading.Lock:
+    lock_key = (user_id, session_id, key)
+    with _IDEMPOTENCY_LOCKS_GUARD:
+        if lock_key not in _IDEMPOTENCY_LOCKS:
+            _IDEMPOTENCY_LOCKS[lock_key] = threading.Lock()
+        return _IDEMPOTENCY_LOCKS[lock_key]
 
 UNAVAILABLE_MESSAGE = "Data unavailable."
 COPILOT_V2_SCHEMA_VERSION = "2.0.0"
@@ -65,6 +77,9 @@ def run_copilot_v2(
     symbol: str | None = None,
     symbols: list[str] | None = None,
     portfolio_id: str | None = None,
+    analysis_id: str | None = None,
+    user_id: str | None = None,
+    idempotency_key: str | None = None,
     analyse_response: Mapping[str, Any] | None = None,
     secondary_analyse_response: Mapping[str, Any] | None = None,
     research_object: Mapping[str, Any] | None = None,
@@ -79,11 +94,47 @@ def run_copilot_v2(
 ) -> dict[str, Any]:
     """Answer using existing engine outputs only — never invent figures."""
     store = get_copilot_memory_store()
-    cid = store.ensure(conversation_id)
     created_at = datetime.now(tz=UTC).isoformat()
     intent = classify_intent(message, mode=mode)
     if buffett_mode or intent == "buffett":
         intent = "buffett" if not mode else intent
+
+    clean_user = str(user_id or "").strip()
+    clean_symbol = str(symbol or "").strip().upper()
+    clean_analysis = str(analysis_id or "").strip()
+    durable = bool(clean_user and clean_symbol and clean_analysis)
+
+    session_service = get_research_session_service() if durable else None
+    session_id: str | None = None
+    if durable and session_service:
+        session_id = compute_session_id(clean_user, clean_symbol, clean_analysis)
+        session_service.get_or_create_session(
+            user_id=clean_user,
+            symbol=clean_symbol,
+            analysis_id=clean_analysis,
+        )
+        cid = session_id
+        store.ensure(cid)
+
+        # Hydrate memory store from durable research turns
+        durable_turns = session_service.get_turns(session_id, user_id=clean_user)
+        with store._lock:
+            hydrated: list[dict[str, Any]] = []
+            for dt in durable_turns:
+                meta = dt.get("metadata") or {}
+                hydrated.append({
+                    "turn_id": dt.get("turn_id"),
+                    "role": dt.get("role"),
+                    "message": dt.get("content"),
+                    "created_at": dt.get("created_at"),
+                    "intent": meta.get("intent", "chat"),
+                    "unavailable": meta.get("unavailable", False),
+                    "sources": meta.get("sources", []),
+                    "idempotency_key": meta.get("idempotency_key"),
+                })
+            store._turns[cid] = hydrated
+    else:
+        cid = store.ensure(conversation_id)
 
     hinted = list(symbols or [])
     if symbol:
@@ -110,69 +161,157 @@ def run_copilot_v2(
 
     ctx = store.update_context(cid, context_patch)
 
-    answer, sources, unavailable, engine_payload = _dispatch(
-        platform,
-        intent=intent,
-        message=message,
-        symbols=resolved_symbols,
-        portfolio_id=portfolio_id or ctx.get("current_portfolio_id"),
-        analyse_response=analyse_response,
-        secondary_analyse_response=secondary_analyse_response,
-        research_object=research_object,
-        report=report,
-        portfolio=portfolio,
-        portfolio_intelligence=portfolio_intelligence,
-        committee_result=committee_result,
-        comparison_result=comparison_result,
-        document_kind=document_kind,
-        buffett_mode=buffett_mode or intent == "buffett",
-    )
+    clean_idem = str(idempotency_key or "").strip() or None
+    lock = _get_idempotency_lock(clean_user or "anon", cid, clean_idem) if (durable and clean_idem) else None
 
-    response_id = str(uuid.uuid4())
-    turn = {
-        "turn_id": str(uuid.uuid4()),
-        "response_id": response_id,
-        "created_at": created_at,
-        "role": "user",
-        "message": message,
-        "intent": intent,
-    }
-    store.append(cid, turn)
-    store.append(
-        cid,
-        {
-            "turn_id": str(uuid.uuid4()),
-            "response_id": response_id,
-            "created_at": created_at,
-            "role": "assistant",
-            "message": answer,
+    if lock:
+        lock.acquire()
+    try:
+        if durable and session_service and session_id and clean_idem:
+            # Check for existing completed assistant turn for this idempotency key
+            turns = session_service.get_turns(session_id, user_id=clean_user)
+            user_idx = None
+            for idx, t in enumerate(turns):
+                if t.get("role") == "user" and (t.get("metadata") or {}).get("idempotency_key") == clean_idem:
+                    user_idx = idx
+                    break
+            if user_idx is not None and user_idx + 1 < len(turns):
+                next_t = turns[user_idx + 1]
+                if next_t.get("role") == "assistant":
+                    next_meta = next_t.get("metadata") or {}
+                    return {
+                        "response_id": str(uuid.uuid4()),
+                        "conversation_id": cid,
+                        "created_at": next_t.get("created_at") or created_at,
+                        "intent": next_meta.get("intent") or intent,
+                        "answer": next_t.get("content") or "",
+                        "unavailable": bool(next_meta.get("unavailable", False)),
+                        "sources": next_meta.get("sources") or [],
+                        "context": ctx,
+                        "engine_payload": None,
+                        "suggested_questions": _suggested_for(intent, resolved_symbols),
+                        "provenance": {
+                            "schema_version": COPILOT_V2_SCHEMA_VERSION,
+                            "service_version": COPILOT_V2_SERVICE_VERSION,
+                            "orchestration_only": True,
+                            "calculations_performed": False,
+                            "engines_called": bool(next_meta.get("sources")),
+                            "replayed_from_idempotency": True,
+                        },
+                        "message": UNAVAILABLE_MESSAGE if next_meta.get("unavailable") else None,
+                    }
+
+        # 8. Persist user turn BEFORE generation
+        user_turn_id = str(uuid.uuid4())
+        user_meta: dict[str, Any] = {"intent": intent}
+        if clean_idem:
+            user_meta["idempotency_key"] = clean_idem
+
+        if durable and session_service and session_id:
+            session_service.append_turn(
+                session_id=session_id,
+                user_id=clean_user,
+                role="user",
+                content=message,
+                symbol=clean_symbol,
+                analysis_id=clean_analysis,
+                turn_id=user_turn_id,
+                metadata=user_meta,
+            )
+
+        store.append(
+            cid,
+            {
+                "turn_id": user_turn_id,
+                "response_id": str(uuid.uuid4()),
+                "created_at": created_at,
+                "role": "user",
+                "message": message,
+                "intent": intent,
+                "idempotency_key": clean_idem,
+            },
+        )
+
+        # 9. Execute generation
+        answer, sources, unavailable, engine_payload = _dispatch(
+            platform,
+            intent=intent,
+            message=message,
+            symbols=resolved_symbols,
+            portfolio_id=portfolio_id or ctx.get("current_portfolio_id"),
+            analyse_response=analyse_response,
+            secondary_analyse_response=secondary_analyse_response,
+            research_object=research_object,
+            report=report,
+            portfolio=portfolio,
+            portfolio_intelligence=portfolio_intelligence,
+            committee_result=committee_result,
+            comparison_result=comparison_result,
+            document_kind=document_kind,
+            buffett_mode=buffett_mode or intent == "buffett",
+        )
+
+        response_id = str(uuid.uuid4())
+        asst_turn_id = str(uuid.uuid4())
+        asst_meta: dict[str, Any] = {
             "intent": intent,
             "unavailable": unavailable,
             "sources": sources,
-        },
-    )
+        }
+        if clean_idem:
+            asst_meta["idempotency_key"] = clean_idem
 
-    return {
-        "response_id": response_id,
-        "conversation_id": cid,
-        "created_at": created_at,
-        "intent": intent,
-        "answer": answer,
-        "unavailable": unavailable,
-        "sources": sources,
-        "context": ctx,
-        "engine_payload": engine_payload,
-        "suggested_questions": _suggested_for(intent, resolved_symbols),
-        "provenance": {
-            "schema_version": COPILOT_V2_SCHEMA_VERSION,
-            "service_version": COPILOT_V2_SERVICE_VERSION,
-            "orchestration_only": True,
-            "calculations_performed": False,
-            "engines_called": bool(sources),
-        },
-        "message": UNAVAILABLE_MESSAGE if unavailable else None,
-    }
+        # 9. Persist assistant turn ONLY after successful generation
+        if durable and session_service and session_id:
+            session_service.append_turn(
+                session_id=session_id,
+                user_id=clean_user,
+                role="assistant",
+                content=answer,
+                symbol=clean_symbol,
+                analysis_id=clean_analysis,
+                turn_id=asst_turn_id,
+                metadata=asst_meta,
+            )
 
+        store.append(
+            cid,
+            {
+                "turn_id": asst_turn_id,
+                "response_id": response_id,
+                "created_at": created_at,
+                "role": "assistant",
+                "message": answer,
+                "intent": intent,
+                "unavailable": unavailable,
+                "sources": sources,
+                "idempotency_key": clean_idem,
+            },
+        )
+
+        return {
+            "response_id": response_id,
+            "conversation_id": cid,
+            "created_at": created_at,
+            "intent": intent,
+            "answer": answer,
+            "unavailable": unavailable,
+            "sources": sources,
+            "context": ctx,
+            "engine_payload": engine_payload,
+            "suggested_questions": _suggested_for(intent, resolved_symbols),
+            "provenance": {
+                "schema_version": COPILOT_V2_SCHEMA_VERSION,
+                "service_version": COPILOT_V2_SERVICE_VERSION,
+                "orchestration_only": True,
+                "calculations_performed": False,
+                "engines_called": bool(sources),
+            },
+            "message": UNAVAILABLE_MESSAGE if unavailable else None,
+        }
+    finally:
+        if lock:
+            lock.release()
 
 def _dispatch(
     platform: Any,

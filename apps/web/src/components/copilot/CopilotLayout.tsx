@@ -82,6 +82,7 @@ export function CopilotLayout() {
   });
   const [request, setRequest] = useState<AnalyseRequest | null>(null);
   const [response, setResponse] = useState<AnalyseResponse | null>(null);
+  const [analysisId, setAnalysisId] = useState<string | null>(null);
   const [secondaryRequest, setSecondaryRequest] =
     useState<AnalyseRequest | null>(null);
   const [secondaryResponse, setSecondaryResponse] =
@@ -122,6 +123,7 @@ export function CopilotLayout() {
       });
       setRequest(sessionRow.request);
       setResponse(sessionRow.response);
+      setAnalysisId(sessionRow.analysisId ?? sessionRow.response?.analysis_id ?? null);
     }
 
     if (secondary) {
@@ -201,6 +203,7 @@ export function CopilotLayout() {
             mode,
             conversation_id: serverConversationId,
             symbol: context.ticker,
+            analysis_id: analysisId ?? response?.analysis_id ?? null,
             symbols: context.ticker
               ? [
                   context.ticker,
@@ -262,6 +265,7 @@ export function CopilotLayout() {
     },
     [
       active,
+      analysisId,
       context.comparableTickers,
       context.ticker,
       response,

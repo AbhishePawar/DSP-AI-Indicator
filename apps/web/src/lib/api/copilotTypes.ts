@@ -47,6 +47,8 @@ export type CopilotV2RequestBody = {
   symbol?: string | null;
   symbols?: string[] | null;
   portfolio_id?: string | null;
+  analysis_id?: string | null;
+  idempotency_key?: string | null;
   analyse_response?: Record<string, unknown> | null;
   secondary_analyse_response?: Record<string, unknown> | null;
   research_object?: Record<string, unknown> | null;

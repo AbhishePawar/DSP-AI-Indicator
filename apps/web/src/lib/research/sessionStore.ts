@@ -12,6 +12,7 @@ export type ResearchSession = {
   analysedAt: string;
   request: AnalyseRequest;
   response: AnalyseResponse;
+  analysisId?: string | null;
 };
 
 export function saveResearchSession(session: ResearchSession): void {
@@ -36,6 +37,9 @@ export function loadResearchSession(ticker?: string): ResearchSession | null {
     if (!parsed?.ticker || !parsed?.response) return null;
     if (ticker && parsed.ticker.toUpperCase() !== ticker.toUpperCase()) {
       return null;
+    }
+    if (parsed.analysisId === undefined && parsed.response?.analysis_id) {
+      parsed.analysisId = parsed.response.analysis_id;
     }
     return parsed;
   } catch {

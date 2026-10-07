@@ -292,6 +292,7 @@ export function CompanyAnalysisWorkspace() {
         analysedAt: at,
         request: body,
         response,
+        analysisId: response.analysis_id ?? null,
       });
       pushRecentAnalysis({
         ticker: body.ticker.toUpperCase(),

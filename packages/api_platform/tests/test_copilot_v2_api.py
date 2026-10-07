@@ -96,7 +96,12 @@ def test_document_route(client: TestClient) -> None:
 
 
 def test_history_list_get_delete(client: TestClient) -> None:
-    created = client.post("/api/v1/copilot/chat", json={"message": "hello memory"})
+    from api_platform.api.dependencies import require_authenticated_actor
+    client.app.dependency_overrides[require_authenticated_actor] = lambda: {"user_id": "usr_history_test", "user": {}}
+    created = client.post(
+        "/api/v1/copilot/chat",
+        json={"message": "hello memory", "symbol": "AAPL", "analysis_id": "an-hist"},
+    )
     assert created.status_code == 200
     cid = created.json()["result"]["conversation_id"]
 

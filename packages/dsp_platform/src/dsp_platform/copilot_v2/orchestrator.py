@@ -91,6 +91,7 @@ def run_copilot_v2(
     document_kind: str | None = None,
     workspace: str | None = None,
     buffett_mode: bool = False,
+    research_orchestrator: Any | None = None,
 ) -> dict[str, Any]:
     """Answer using existing engine outputs only — never invent figures."""
     store = get_copilot_memory_store()
@@ -249,6 +250,7 @@ def run_copilot_v2(
             comparison_result=comparison_result,
             document_kind=document_kind,
             buffett_mode=buffett_mode or intent == "buffett",
+            research_orchestrator=research_orchestrator,
         )
 
         response_id = str(uuid.uuid4())
@@ -330,6 +332,7 @@ def _dispatch(
     comparison_result: Mapping[str, Any] | None,
     document_kind: str | None,
     buffett_mode: bool,
+    research_orchestrator: Any | None = None,
 ) -> tuple[str, list[dict[str, Any]], bool, dict[str, Any] | None]:
     handlers = {
         "company": _handle_company,
@@ -343,6 +346,7 @@ def _dispatch(
         "scenarios": _handle_scenarios,
         "buffett": _handle_buffett,
         "chat": _handle_chat,
+        "research": _handle_research,
     }
     handler = handlers.get(intent, _handle_chat)
     answer, sources, unavailable, payload = cast(Any, handler)(
@@ -359,6 +363,7 @@ def _dispatch(
         committee_result=committee_result,
         comparison_result=comparison_result,
         document_kind=document_kind,
+        research_orchestrator=research_orchestrator,
     )
     if buffett_mode and intent != "buffett":
         answer = _buffett_wrap(answer, unavailable=unavailable)
@@ -1031,6 +1036,120 @@ def _handle_buffett(
         unavailable,
         payload,
     )
+
+
+def _handle_research(
+    platform: Any,
+    *,
+    message: str,
+    symbols: list[str],
+    analyse_response: Mapping[str, Any] | None,
+    research_object: Mapping[str, Any] | None,
+    report: Mapping[str, Any] | None,
+    research_orchestrator: Any | None = None,
+    **kwargs: Any,
+) -> tuple[str, list[dict[str, Any]], bool, dict[str, Any] | None]:
+    orch = research_orchestrator or getattr(platform, "research_orchestrator", None)
+    clean_sym = symbols[0] if symbols else None
+
+    if orch is None or not clean_sym:
+        return (
+            f"AI research unavailable; data unavailable. {UNAVAILABLE_MESSAGE}",
+            [source_ref("research_orchestrator", "unconfigured")],
+            True,
+            None,
+        )
+
+    from llm_adapters.orchestrator import OrchestratorStatus, UserResearchRequest
+
+    req = UserResearchRequest(
+        symbol=clean_sym,
+        question=message,
+    )
+    try:
+        res = orch.run(req)
+    except Exception:
+        return (
+            f"AI research unavailable; data unavailable. {UNAVAILABLE_MESSAGE}",
+            [source_ref("research_orchestrator", "failed_closed")],
+            True,
+            None,
+        )
+
+    if res.status != OrchestratorStatus.ACCEPTED or res.public is None:
+        return (
+            f"AI research unavailable; data unavailable. {UNAVAILABLE_MESSAGE}",
+            [source_ref("research_orchestrator", "failed_closed")],
+            True,
+            None,
+        )
+
+    pub = res.public
+
+    # Reconcile against DSP deterministic outputs (DSP always authoritative)
+    valuation_map = _from_mapping(analyse_response, "valuation") or {}
+    summary_map = _from_mapping(analyse_response, "recommendation_summary") or {}
+
+    dsp_decision = _fmt(
+        _from_mapping(summary_map, "label")
+        or _from_mapping(summary_map, "decision")
+        or _from_mapping(summary_map, "recommendation")
+    )
+    dsp_mos = _fmt(
+        _from_mapping(summary_map, "margin_of_safety")
+        or _from_mapping(valuation_map, "margin_of_safety")
+    )
+    dsp_iv = _fmt(
+        _from_mapping(valuation_map, "intrinsic_value")
+        or _from_mapping(summary_map, "intrinsic_value")
+    )
+
+    rec = dsp_decision if dsp_decision else pub.recommendation
+    val = dsp_iv if dsp_iv else pub.valuation
+    mos = dsp_mos if dsp_mos else None
+
+    analysis_text = (pub.analysis or "Analysis complete.").strip()
+    if dsp_decision and pub.recommendation and pub.recommendation != dsp_decision:
+        analysis_text = analysis_text.replace(pub.recommendation, dsp_decision)
+    if dsp_iv and pub.valuation and pub.valuation != dsp_iv:
+        analysis_text = analysis_text.replace(pub.valuation, dsp_iv)
+
+    lines = [
+        f"## AI Research Analysis for {clean_sym}",
+        analysis_text,
+        "",
+        f"**Authoritative Recommendation:** {rec}",
+    ]
+    if val:
+        lines.append(f"**Valuation:** {val}")
+    if mos:
+        lines.append(f"**Margin of Safety:** {mos}")
+    if pub.risks:
+        lines.extend(["", "### Key Risks"])
+        for r in pub.risks:
+            lines.append(f"- {r}")
+    if pub.limitations:
+        lines.extend(["", "### Limitations"])
+        for lim in pub.limitations:
+            lines.append(f"- {lim}")
+
+    sources = [
+        source_ref("research_orchestrator", "dual_verification"),
+    ]
+    if pub.evidence_citations:
+        for cite in pub.evidence_citations:
+            sources.append(source_ref("dsp_evidence", str(cite)))
+
+    payload = {
+        "research_summary": {
+            "recommendation": rec,
+            "valuation": val,
+            "margin_of_safety": mos,
+            "confidence": pub.confidence,
+            "evidence_citations": list(pub.evidence_citations),
+        }
+    }
+    return "\n".join(lines), sources, False, payload
 
 
 def _handle_chat(

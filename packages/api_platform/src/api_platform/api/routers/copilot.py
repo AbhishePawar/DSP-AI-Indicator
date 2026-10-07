@@ -64,6 +64,7 @@ def _run_v2(
             document_kind=body.document_kind,
             workspace=body.workspace,
             buffett_mode=body.buffett_mode,
+            research_orchestrator=state.research_orchestrator,
         )
     except ValueError as exc:
         return JSONResponse(
@@ -160,7 +161,7 @@ def copilot_chat(
     return _run_v2(
         state,
         body,
-        default_mode="chat",
+        default_mode=None,
         user_id=user_id,
         analysis_id=clean_analysis_id,
         idempotency_key=effective_idempotency_key,

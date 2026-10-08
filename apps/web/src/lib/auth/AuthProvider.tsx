@@ -148,9 +148,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                 accessToken: COOKIE_TOKEN_PLACEHOLDER,
                 refreshToken: null,
                 tokenType: "bearer",
-                role: (u.roles?.[0] as any) || "read_only",
-                roles: (u.roles as any) || ["read_only"],
-                permissions: u.permissions || [],
+                role: u.roles?.[0] || "read_only",
+                roles: u.roles || ["read_only"],
+                // /auth/rbac/me returns no permissions field; permissions are
+                // filled in by the existing evaluatePermission enrichment path.
+                permissions: [],
                 subject: u.user_id,
                 username: u.username,
                 displayName: u.display_name || u.username,

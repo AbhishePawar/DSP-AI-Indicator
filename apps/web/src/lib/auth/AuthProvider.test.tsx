@@ -165,10 +165,12 @@ describe("AuthProvider cookie-session restoration", () => {
         credentials: "include",
       }),
     );
-    const lastCall = fetchMock.mock.calls.find((call: any[]) =>
+    const lastCall = fetchMock.mock.calls.find((call) =>
       String(call[0]).includes("/auth/logout")
     );
-    expect(lastCall).toBeDefined();
+    if (!lastCall) {
+      throw new Error("expected a fetch call to /auth/logout");
+    }
     const headers = lastCall[1].headers;
     const csrfSent = headers instanceof Headers ? headers.get("X-CSRF-Token") : headers["X-CSRF-Token"];
     expect(csrfSent).toBe("csrf-restored");

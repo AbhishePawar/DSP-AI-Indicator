@@ -270,7 +270,33 @@ def session_probe(request: Request) -> JSONResponse:
         cookie_auth_enabled,
     )
 
-    has_access = bool(request.cookies.get(ACCESS_COOKIE))
+    has_access = False
+    access_token = request.cookies.get(ACCESS_COOKIE)
+    if access_token:
+        bundle = getattr(request.app.state, "security", None)
+        if bundle is not None:
+            try:
+                bundle.jwt.verify(access_token)
+                has_access = True
+            except Exception:
+                has_access = False
+        else:
+            try:
+                from auth.jwt import JwtService
+                secret = getattr(getattr(request.app.state, "api", None), "jwt_secret", None)
+                if not secret:
+                    import os
+                    secret = os.environ.get("DSP_JWT_SECRET") or os.environ.get("DSP_AUTH_JWT_SECRET", "dsp-auth-dev-secret")
+                JwtService(secret).decode(access_token)
+                has_access = True
+            except Exception:
+                try:
+                    from auth.enterprise_platform import get_enterprise_auth_platform
+                    get_enterprise_auth_platform().auth.current_user(access_token)
+                    has_access = True
+                except Exception:
+                    has_access = False
+
     return JSONResponse(
         content={
             "ok": True,
@@ -278,7 +304,7 @@ def session_probe(request: Request) -> JSONResponse:
             "payload": {
                 "cookie_auth": cookie_auth_enabled(),
                 "authenticated": has_access,
-                "session_id": request.cookies.get(SESSION_COOKIE),
+                "session_id": request.cookies.get(SESSION_COOKIE) if has_access else None,
                 "csrf_token": request.cookies.get(CSRF_COOKIE),
             },
             "api_version": getattr(request.app.state.api, "api_version", "v1"),

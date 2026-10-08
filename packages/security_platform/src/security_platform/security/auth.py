@@ -91,6 +91,8 @@ class SecuritySettings:
         "/api/v1/health/live",
         "/api/v1/health/ready",
         "/api/v1/metrics",
+        "/auth/session",
+        "/api/v1/auth/session",
         "/auth/login",
         "/api/v1/auth/login",
         "/auth/refresh",

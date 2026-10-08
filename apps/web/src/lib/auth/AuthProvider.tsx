@@ -28,10 +28,12 @@ import {
 } from "./sessionStore";
 import {
   cookieAuthPreferred,
+  cookieFetchInit,
   persistCsrfToken,
   probeCookieSession,
   readCookieMeta,
 } from "./cookieSession";
+import { COOKIE_TOKEN_PLACEHOLDER } from "./sessionStore";
 import { clearRecentAnalyses } from "@/lib/analysis/recentAnalyses";
 import { clearMarketCache } from "@/lib/market/cache";
 import { clearMemoryUserData } from "@/lib/persistence/storage";
@@ -135,7 +137,37 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           }
         }
 
-        const stored = readStoredSession();
+        let stored = readStoredSession();
+        if (cancelled || statusRef.current !== "restoring") return;
+        if ((!stored || isSessionExpired(stored)) && cookieAuthPreferred()) {
+          try {
+            const meRes = await rbacAuthApi.me(null);
+            if (meRes?.ok && meRes.result) {
+              const u = meRes.result;
+              const hydratedSession: Session = {
+                accessToken: COOKIE_TOKEN_PLACEHOLDER,
+                refreshToken: null,
+                tokenType: "bearer",
+                role: (u.roles?.[0] as any) || "read_only",
+                roles: (u.roles as any) || ["read_only"],
+                permissions: u.permissions || [],
+                subject: u.user_id,
+                username: u.username,
+                displayName: u.display_name || u.username,
+                email: u.email || null,
+                authMethod: "cookie_rbac",
+                sessionId: null,
+                issuedAt: new Date().toISOString(),
+                expiresAt: null,
+                rememberMe: false,
+              };
+              persistSession(hydratedSession);
+              stored = hydratedSession;
+            }
+          } catch {
+            // failed to hydrate via me
+          }
+        }
         if (cancelled || statusRef.current !== "restoring") return;
         if (!stored || isSessionExpired(stored)) {
           clearStoredSession();
@@ -288,11 +320,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
     // Clear HttpOnly auth cookies (enterprise cookie session).
     try {
-      await fetch(`${env.apiBaseUrl}/auth/logout`, {
+      const logoutInit = cookieFetchInit({
         method: "POST",
-        credentials: "include",
         headers: { Accept: "application/json" },
       });
+      await fetch(`${env.apiBaseUrl}/auth/logout`, logoutInit);
     } catch (error) {
       logger.warn("Cookie logout failed — clearing local session", {
         error: error instanceof Error ? error.message : String(error),

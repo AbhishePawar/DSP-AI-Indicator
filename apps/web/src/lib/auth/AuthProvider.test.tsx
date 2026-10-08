@@ -134,4 +134,44 @@ describe("AuthProvider cookie-session restoration", () => {
       expect(readCsrfToken()).toBe("csrf-restored");
     });
   });
+
+  it("includes X-CSRF-Token header in cookie logout request", async () => {
+    const fetchMock = vi.fn().mockResolvedValue(new Response("{}", { status: 200 }));
+    vi.stubGlobal("fetch", fetchMock);
+
+    const { useAuth } = await import("./AuthProvider");
+    let authContext: any;
+    function Consumer() {
+      authContext = useAuth();
+      return <div>consumer</div>;
+    }
+
+    render(
+      <AuthProvider>
+        <Consumer />
+      </AuthProvider>,
+    );
+
+    await waitFor(() => {
+      expect(readCsrfToken()).toBe("csrf-restored");
+    });
+
+    await authContext.logout();
+
+    expect(fetchMock).toHaveBeenCalledWith(
+      expect.stringContaining("/auth/logout"),
+      expect.objectContaining({
+        method: "POST",
+        credentials: "include",
+      }),
+    );
+    const lastCall = fetchMock.mock.calls.find((call: any[]) =>
+      String(call[0]).includes("/auth/logout")
+    );
+    expect(lastCall).toBeDefined();
+    const headers = lastCall[1].headers;
+    const csrfSent = headers instanceof Headers ? headers.get("X-CSRF-Token") : headers["X-CSRF-Token"];
+    expect(csrfSent).toBe("csrf-restored");
+    vi.unstubAllGlobals();
+  });
 });

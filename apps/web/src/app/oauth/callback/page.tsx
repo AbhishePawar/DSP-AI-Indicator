@@ -16,7 +16,7 @@ import type { MfaChallengeInfo } from "@/lib/auth/types";
 export default function OAuthCallbackPage() {
   const [error, setError] = useState<string | null>(null);
   const [mfaChallenge, setMfaChallenge] = useState<MfaChallengeInfo | null>(null);
-  const [nextPath, setNextPath] = useState("/dashboard");
+  const [nextPath, setNextPath] = useState("/");
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -50,7 +50,7 @@ export default function OAuthCallbackPage() {
       return;
     }
     sessionStorage.removeItem("dsp.oauth.pending");
-    setNextPath(pending.next || "/dashboard");
+    setNextPath(pending.next || "/");
 
     enterpriseAuthApi
       .oauthCallback({
@@ -70,7 +70,7 @@ export default function OAuthCallbackPage() {
           setMfaChallenge(challenge);
           return;
         }
-        navigateAfterLogin(pending.next || "/dashboard");
+        navigateAfterLogin(pending.next || "/");
       })
       .catch((err) => setError(mapAuthError(err)));
   }, []);

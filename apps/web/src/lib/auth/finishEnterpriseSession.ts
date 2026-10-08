@@ -5,7 +5,7 @@
  */
 import type { RbacLoginResult } from "@/lib/api/rbacTypes";
 import type { MfaAdditiveFields } from "@/lib/api/enterpriseAuth";
-import { isAuthPublicPath } from "./routeGuards";
+import { isAuthPublicPath, isMarketingPath } from "./routeGuards";
 import { persistSession, sessionFromRbacLogin } from "./sessionStore";
 import type { MfaChallengeInfo } from "./types";
 
@@ -29,5 +29,6 @@ export function extractMfaChallenge(
 
 export function navigateAfterLogin(nextPath: string): void {
   if (typeof window === "undefined") return;
-  window.location.assign(isAuthPublicPath(nextPath) ? "/dashboard" : nextPath);
+  const isAuthScreen = !isMarketingPath(nextPath) && isAuthPublicPath(nextPath);
+  window.location.assign(isAuthScreen ? "/dashboard" : nextPath);
 }

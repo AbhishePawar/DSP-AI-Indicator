@@ -32,7 +32,7 @@ import {
   navigateAfterLogin,
   persistEnterpriseSession,
 } from "@/lib/auth/finishEnterpriseSession";
-import { isAuthPublicPath, normalizePath } from "@/lib/auth/routeGuards";
+import { isAuthPublicPath, isMarketingPath, normalizePath } from "@/lib/auth/routeGuards";
 import { sessionFromRbacLogin } from "@/lib/auth/sessionStore";
 import type { MfaChallengeInfo } from "@/lib/auth/types";
 import { useAuthProviders } from "@/lib/auth/useAuthProviders";
@@ -66,7 +66,7 @@ export default function LoginForm() {
   const [pending, setPending] = useState(false);
   const [mfaChallenge, setMfaChallenge] = useState<MfaChallengeInfo | null>(null);
 
-  const nextPath = normalizePath(searchParams.get("next") || "/dashboard");
+  const nextPath = normalizePath(searchParams.get("next") || "/");
   const expired = searchParams.get("expired") === "1";
   const verified = searchParams.get("verified") === "1";
 
@@ -80,7 +80,8 @@ export default function LoginForm() {
 
   useEffect(() => {
     if (status === "authenticated" && session && !mfaChallenge) {
-      router.replace(isAuthPublicPath(nextPath) ? "/dashboard" : nextPath);
+      const isAuthScreen = !isMarketingPath(nextPath) && isAuthPublicPath(nextPath);
+      router.replace(isAuthScreen ? "/dashboard" : nextPath);
     }
   }, [status, session, mfaChallenge, nextPath, router]);
 

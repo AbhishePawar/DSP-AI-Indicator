@@ -59,9 +59,9 @@ function isSafeRedirectPath(path: string): boolean {
 }
 
 export function normalizePath(pathname: string): string {
-  if (!pathname) return "/dashboard";
+  if (!pathname) return "/";
   const trimmed = pathname.trim();
-  if (trimmed === "/") return "/dashboard";
+  if (trimmed === "/") return "/";
   if (!isSafeRedirectPath(trimmed)) return "/dashboard";
   return trimmed.endsWith("/") && trimmed.length > 1
     ? trimmed.slice(0, -1)

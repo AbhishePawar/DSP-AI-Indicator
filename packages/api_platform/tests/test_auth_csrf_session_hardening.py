@@ -216,3 +216,108 @@ def test_csrf_middleware_still_rejects_mutating_requests_with_access_cookie_miss
                 os.environ.pop(k, None)
             else:
                 os.environ[k] = v
+
+
+def test_session_probe_accepts_oauth_auth_token_and_agrees_with_rbac_me() -> None:
+    keys = ("DSP_COOKIE_AUTH", "DSP_CSRF_ENABLED")
+    prior = {k: os.environ.get(k) for k in keys}
+    try:
+        os.environ["DSP_COOKIE_AUTH"] = "true"
+        os.environ["DSP_CSRF_ENABLED"] = "true"
+
+        bundle = SecurityBundle.create(
+            SecuritySettings(jwt_secret="test-hardening-secret"),
+            seed_admin=False,
+        )
+        app = create_app(security=bundle, enable_security=True)
+        client = TestClient(app)
+
+        # Issue token using the real auth JwtService contract (iss = dsp-auth, no aud)
+        from auth.enterprise_platform import get_enterprise_auth_platform
+
+        ent = get_enterprise_auth_platform()
+        user = ent.auth.users.create(
+            username="oauthuser",
+            email="oauthuser@example.com",
+            password="StrongPassword123!",
+            display_name="OAuth User",
+            roles=["read_only"],
+        )
+        session = ent._issue_session(user, provider="GOOGLE")
+        oauth_token = session["tokens"]["access_token"]
+        payload = ent.auth.jwt.decode(oauth_token)
+        assert payload["iss"] == "dsp-auth"
+        assert "aud" not in payload
+
+        # B. Anonymous: HTTP 200 and authenticated == False
+        anon_res = client.get("/auth/session")
+        assert anon_res.status_code == 200
+        assert anon_res.json()["payload"]["authenticated"] is False
+
+        # 1-4. Session probe with valid OAuth token cookie returns HTTP 200 and authenticated == True
+        sess_res = client.get(
+            "/auth/session",
+            cookies={ACCESS_COOKIE: oauth_token},
+        )
+        assert sess_res.status_code == 200
+        assert sess_res.json()["payload"]["authenticated"] is True
+
+        # C. Same valid OAuth cookie: /auth/rbac/me succeeds (proves both endpoints agree)
+        me_res = client.get(
+            "/auth/rbac/me",
+            cookies={ACCESS_COOKIE: oauth_token},
+        )
+        assert me_res.status_code == 200
+        assert me_res.json()["result"]["username"] == "oauthuser"
+    finally:
+        for k, v in prior.items():
+            if v is None:
+                os.environ.pop(k, None)
+            else:
+                os.environ[k] = v
+
+
+def test_session_probe_rejects_expired_or_invalid_oauth_token() -> None:
+    keys = ("DSP_COOKIE_AUTH", "DSP_CSRF_ENABLED")
+    prior = {k: os.environ.get(k) for k in keys}
+    try:
+        os.environ["DSP_COOKIE_AUTH"] = "true"
+        os.environ["DSP_CSRF_ENABLED"] = "true"
+
+        bundle = SecurityBundle.create(
+            SecuritySettings(jwt_secret="test-hardening-secret"),
+            seed_admin=False,
+        )
+        app = create_app(security=bundle, enable_security=True)
+        client = TestClient(app)
+
+        from auth.enterprise_platform import get_enterprise_auth_platform
+
+        ent = get_enterprise_auth_platform()
+
+        # A. Expired OAuth-style token using JwtService
+        expired_token = ent.auth.jwt.issue(
+            subject="expired-user",
+            expires_in=-3600,
+        )
+        exp_res = client.get(
+            "/auth/session",
+            cookies={ACCESS_COOKIE: expired_token},
+        )
+        assert exp_res.status_code == 200
+        assert exp_res.json()["payload"]["authenticated"] is False
+
+        # Invalid signature token
+        invalid_token = expired_token[:-8] + "deadbeef"
+        inv_res = client.get(
+            "/auth/session",
+            cookies={ACCESS_COOKIE: invalid_token},
+        )
+        assert inv_res.status_code == 200
+        assert inv_res.json()["payload"]["authenticated"] is False
+    finally:
+        for k, v in prior.items():
+            if v is None:
+                os.environ.pop(k, None)
+            else:
+                os.environ[k] = v

@@ -273,26 +273,31 @@ def session_probe(request: Request) -> JSONResponse:
     has_access = False
     access_token = request.cookies.get(ACCESS_COOKIE)
     if access_token:
-        bundle = getattr(request.app.state, "security", None)
-        if bundle is not None:
+        # Prefer the authoritative platform auth boundary (used by /auth/rbac/me)
+        api_state = getattr(request.app.state, "api", None)
+        platform = (
+            getattr(api_state, "platform", None) if api_state is not None else None
+        )
+        if platform is not None and hasattr(platform, "auth_current_user"):
             try:
-                bundle.jwt.verify(access_token)
+                platform.auth_current_user(access_token)
                 has_access = True
             except Exception:
                 has_access = False
         else:
             try:
-                from auth.jwt import JwtService
-                secret = getattr(getattr(request.app.state, "api", None), "jwt_secret", None)
-                if not secret:
-                    import os
-                    secret = os.environ.get("DSP_JWT_SECRET") or os.environ.get("DSP_AUTH_JWT_SECRET", "dsp-auth-dev-secret")
-                JwtService(secret).decode(access_token)
+                from auth.enterprise_platform import get_enterprise_auth_platform
+
+                get_enterprise_auth_platform().auth.current_user(access_token)
                 has_access = True
             except Exception:
+                has_access = False
+
+        if not has_access:
+            bundle = getattr(request.app.state, "security", None)
+            if bundle is not None:
                 try:
-                    from auth.enterprise_platform import get_enterprise_auth_platform
-                    get_enterprise_auth_platform().auth.current_user(access_token)
+                    bundle.jwt.verify(access_token)
                     has_access = True
                 except Exception:
                     has_access = False

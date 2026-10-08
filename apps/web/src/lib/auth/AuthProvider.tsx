@@ -26,7 +26,12 @@ import {
   readStoredSession,
   sessionFromRbacLogin,
 } from "./sessionStore";
-import { cookieAuthPreferred, probeCookieSession } from "./cookieSession";
+import {
+  cookieAuthPreferred,
+  persistCsrfToken,
+  probeCookieSession,
+  readCookieMeta,
+} from "./cookieSession";
 import { clearRecentAnalyses } from "@/lib/analysis/recentAnalyses";
 import { clearMarketCache } from "@/lib/market/cache";
 import { clearMemoryUserData } from "@/lib/persistence/storage";
@@ -119,6 +124,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             setStatusSafe("unauthenticated");
             resetAuthStore();
             return;
+          }
+
+          if (probe.csrf_token) {
+            const cookieMeta = readCookieMeta();
+            persistCsrfToken(
+              probe.csrf_token,
+              cookieMeta?.rememberMe ?? false,
+            );
           }
         }
 

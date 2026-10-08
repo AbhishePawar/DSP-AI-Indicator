@@ -97,6 +97,7 @@ describe("AuthProvider cookie-session restoration", () => {
       tokenType: "bearer",
       role: "research_analyst",
       roles: ["research_analyst"],
+    permissions: [],
       subject: "u-1",
       username: "analyst1",
       displayName: "Analyst One",

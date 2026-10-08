@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import { type FormEvent, useEffect, useRef, useState } from "react";
 
 import { COMPANY_CATALOGUE } from "@/lib/companies/catalogue";
-import { ANALYSIS_INTENTS } from "@/lib/analysis/intents";
+import { buildAnalysisUrl } from "@/lib/analysis/intents";
 import { useDashboardPrefsStore } from "@/lib/dashboard";
 import { useAuth } from "@/lib/auth/AuthProvider";
 
@@ -45,9 +45,7 @@ export function MarketingLanding() {
     }
     const ticker = company?.ticker || value.toUpperCase();
     if (ticker) recordSearch(ticker);
-    const params = new URLSearchParams({ intent: mode === "full" ? ANALYSIS_INTENTS.dspIndicator : ANALYSIS_INTENTS.company, mode });
-    if (ticker) params.set("symbol", ticker);
-    router.push(`/analysis?${params}`);
+    router.push(buildAnalysisUrl({ symbol: ticker || null, mode }));
   }
 
   function runDspIndicatorAnalysis() {

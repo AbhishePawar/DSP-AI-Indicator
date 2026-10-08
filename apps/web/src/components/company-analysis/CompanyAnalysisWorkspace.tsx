@@ -35,6 +35,10 @@ import { COMPANY_CATALOGUE } from "@/lib/companies/catalogue";
 import { useDashboardPrefsStore } from "@/lib/dashboard";
 import { useCollapsePanelsBelowLg } from "@/lib/a11y";
 
+import {
+  buildAnalysisUrl,
+  parseResearchMode,
+} from "@/lib/analysis/intents";
 import { mapResearchView, type ResearchView } from "@/lib/research/mapResearchView";
 import { saveResearchSession } from "@/lib/research/sessionStore";
 import { useNotifications } from "@/providers/NotificationProvider";
@@ -211,6 +215,12 @@ export function CompanyAnalysisWorkspace() {
   /** Monotonic generation — drop stale analyse responses after symbol change. */
   const analyseGeneration = useRef(0);
 
+  const currentMode = parseResearchMode(
+    searchParams.get("mode"),
+    searchParams.get("intent"),
+  );
+  const isSimpleMode = currentMode === "simple";
+
   const activeSection = useWorkspacePrefsStore((s) => s.activeSection);
   const setActiveSection = useWorkspacePrefsStore((s) => s.setActiveSection);
   const searchParamsKey = searchParams.toString();
@@ -253,11 +263,13 @@ export function CompanyAnalysisWorkspace() {
       setSymbol(normalized);
       setQuery(normalized);
       recordSearch(normalized);
-      router.replace(
-        `/analysis?symbol=${encodeURIComponent(normalized)}&intent=dsp_indicator`,
+      const mode = parseResearchMode(
+        searchParams.get("mode"),
+        searchParams.get("intent"),
       );
+      router.replace(buildAnalysisUrl({ symbol: normalized, mode }));
     },
-    [recordSearch, router],
+    [recordSearch, router, searchParams],
   );
 
   const analyseMutation = useMutation({
@@ -463,11 +475,15 @@ export function CompanyAnalysisWorkspace() {
       activeSection={section}
       navigation={<AnalysisNavigation active={section} onSelect={setActiveSection} />}
       detail={detail}
-      simpleMode={searchParams.get("mode") === "simple"}
+      simpleMode={isSimpleMode}
       onModeChange={() => {
-        const params = new URLSearchParams(searchParams.toString());
-        params.set("mode", searchParams.get("mode") === "simple" ? "full" : "simple");
-        router.replace(`/analysis?${params}`);
+        const nextMode = isSimpleMode ? "full" : "simple";
+        router.replace(
+          buildAnalysisUrl({
+            symbol: symbol || null,
+            mode: nextMode,
+          }),
+        );
       }}
     />
   );

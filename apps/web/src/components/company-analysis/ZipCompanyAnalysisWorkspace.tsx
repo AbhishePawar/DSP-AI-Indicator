@@ -14,6 +14,7 @@ import {
 import { useResearchDisclaimerGate } from "@/components/legal/useResearchDisclaimerGate";
 import { Badge } from "@/components/ds/data/badge";
 import { pushRecentAnalysis } from "@/lib/analysis/recentAnalyses";
+import { ANALYSIS_INTENTS } from "@/lib/analysis/intents";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -2507,7 +2508,8 @@ export function ZipCompanyAnalysisWorkspace() {
         try {
           const url = new URL(window.location.href);
           url.searchParams.set("symbol", sym);
-          url.searchParams.set("mode", targetMode);
+          url.searchParams.set("mode", targetMode === "simple" ? "simple" : "full");
+          url.searchParams.set("intent", targetMode === "simple" ? ANALYSIS_INTENTS.company : ANALYSIS_INTENTS.dspIndicator);
           window.history.replaceState({}, "", url.toString());
         } catch (_) {}
       }
@@ -2599,7 +2601,7 @@ export function ZipCompanyAnalysisWorkspace() {
             onModeSwitch={() => { setPhase("select"); setChatOpen(false); setChatCtx(""); }}
             searchValue={searchInput}
             onSearchChange={setSearchInput}
-            onAnalyze={(val) => runAnalysis("buffett-loading", val || searchInput)}
+            onAnalyze={(val) => runAnalysis(mode === "simple" ? "simple-loading" : "buffett-loading", val || searchInput)}
             isAnalyzing={analyseMutation.isPending}
           />
 

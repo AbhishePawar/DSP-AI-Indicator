@@ -97,11 +97,6 @@ describe("routeGuards", () => {
   });
 
 
-  it("defaults post-login destination to / when next parameter is omitted", () => {
-    expect(normalizePath("")).toBe("/");
-    expect(normalizePath("/")).toBe("/");
-  });
-
   it("preserves explicit valid destination in next parameter", () => {
     expect(normalizePath("/analysis")).toBe("/analysis");
     expect(normalizePath("/portfolio")).toBe("/portfolio");

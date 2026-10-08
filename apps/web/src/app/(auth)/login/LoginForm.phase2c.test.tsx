@@ -107,7 +107,12 @@ describe("Login form — public methods", () => {
     loginMock.mockResolvedValue({
       ok: true,
       result: {
-        tokens: { access_token: "tok", refresh_token: "r", token_type: "bearer" }, cookie_auth: true,
+        tokens: {
+          access_token: "tok",
+          refresh_token: "r",
+          token_type: "bearer",
+        },
+        cookie_auth: true,
         user: {
           user_id: "u1",
           username: "ada",
@@ -226,12 +231,16 @@ describe("Login form — public methods", () => {
     expect(requestOtpMock).not.toHaveBeenCalled();
   });
 
-    it("navigates to / by default upon successful login when no next param is provided", async () => {
+  it("navigates to / by default upon successful login when no next param is provided", async () => {
     const { navigateAfterLogin } = await import("@/lib/auth/finishEnterpriseSession");
     loginMock.mockResolvedValue({
       ok: true,
       result: {
-        tokens: { access_token: "tok", refresh_token: "r", token_type: "bearer" },
+        tokens: {
+          access_token: "tok",
+          refresh_token: "r",
+          token_type: "bearer",
+        },
         cookie_auth: true,
         user: {
           user_id: "u1",

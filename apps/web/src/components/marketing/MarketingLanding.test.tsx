@@ -240,4 +240,60 @@ describe("MarketingLanding - Research Mode Routing & Depth Selector", () => {
     const depthPanel = screen.getByTestId("landing-depth-panel");
     expect(depthPanel).toBeInTheDocument();
   });
+
+  it("8. DSP Buffett button is fully actionable while query is entered and depth panel is open", () => {
+    render(<MarketingLanding />);
+    const input = screen.getByTestId("landing-company-search");
+    fireEvent.change(input, { target: { value: "TCS" } });
+
+    // Depth panel is open
+    expect(screen.getByTestId("landing-depth-panel")).toBeInTheDocument();
+
+    // Click DSP Buffett button directly
+    const buffettBtn = screen.getByTestId("landing-buffett-analysis");
+    fireEvent.click(buffettBtn);
+
+    expect(mockPush).toHaveBeenCalledTimes(1);
+    const calledUrl = mockPush.mock.calls[0][0] as string;
+    const url = new URL(calledUrl, "https://dspaiindicator.com");
+    expect(url.pathname).toBe("/analysis");
+    expect(url.searchParams.get("symbol")).toBe("TCS");
+    expect(url.searchParams.get("mode")).toBe("full");
+    expect(url.searchParams.get("intent")).toBe(ANALYSIS_INTENTS.dspIndicator);
+  });
+
+  it("9. search submit button is disabled when empty, enabled when query entered, and navigates to Simple", () => {
+    render(<MarketingLanding />);
+    const submitBtn = screen.getByTestId<HTMLButtonElement>("landing-research-submit");
+    expect(submitBtn.disabled).toBe(true);
+
+    const input = screen.getByTestId("landing-company-search");
+    fireEvent.change(input, { target: { value: "INFY" } });
+    expect(submitBtn.disabled).toBe(false);
+
+    fireEvent.click(submitBtn);
+    expect(mockPush).toHaveBeenCalledTimes(1);
+    const calledUrl = mockPush.mock.calls[0][0] as string;
+    const url = new URL(calledUrl, "https://dspaiindicator.com");
+    expect(url.searchParams.get("symbol")).toBe("INFY");
+    expect(url.searchParams.get("mode")).toBe("simple");
+    expect(url.searchParams.get("intent")).toBe(ANALYSIS_INTENTS.company);
+  });
+
+  it("10. clicking outside closes the depth panel without swallowing clicks on example chips or DSP button", () => {
+    render(<MarketingLanding />);
+    const input = screen.getByTestId("landing-company-search");
+    fireEvent.change(input, { target: { value: "TCS" } });
+    expect(screen.getByTestId("landing-depth-panel")).toBeInTheDocument();
+
+    // Click outside on body/main
+    fireEvent.mouseDown(document.body);
+    expect(screen.queryByTestId("landing-depth-panel")).not.toBeInTheDocument();
+
+    // Clicking an example chip opens the panel for that ticker
+    const chip = screen.getByTestId("landing-example-INFY");
+    fireEvent.click(chip);
+    expect(screen.getByTestId("landing-depth-panel")).toBeInTheDocument();
+    expect(screen.getByTestId<HTMLInputElement>("landing-company-search").value).toBe("INFY");
+  });
 });

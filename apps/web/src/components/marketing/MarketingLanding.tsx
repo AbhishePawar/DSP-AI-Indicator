@@ -29,7 +29,13 @@ export function MarketingLanding() {
 
   useEffect(() => {
     const close = (event: MouseEvent) => {
-      if (!panelRef.current?.contains(event.target as Node)) setSuggestionsOpen(false);
+      const target = event.target as Node | null;
+      if (!target) return;
+      if (panelRef.current?.contains(target)) return;
+      if (target instanceof Element && target.closest("[data-testid^='landing-example-'], [data-testid^='landing-recent-'], [data-testid='landing-buffett-analysis']")) {
+        return;
+      }
+      setSuggestionsOpen(false);
     };
     document.addEventListener("mousedown", close);
     return () => document.removeEventListener("mousedown", close);
@@ -67,14 +73,14 @@ export function MarketingLanding() {
         <div data-testid="landing-evidence-status" className="mb-8 inline-flex items-center gap-2 rounded-full border border-[var(--border)] bg-[var(--surface-2)] px-3.5 py-[5px] font-mono text-xs text-[var(--muted)]"><span className="size-1.5 rounded-full bg-[var(--c-cashflow)]" />Research mode · Verified evidence only</div>
         <h1 data-testid="landing-title" className="mb-5 font-[family-name:var(--font-display)] text-[clamp(36px,6vw,68px)] font-medium leading-[1.1] tracking-[-0.02em]">Ask DSP anything<br />about any company.</h1>
         <p className="mx-auto mb-12 max-w-[520px] text-lg leading-[1.65] text-[var(--muted)]">Chat-first equity research. Financial evidence when you need it. No dashboards, no noise.</p>
-        <div className="mx-auto mb-6 max-w-[560px]">
-          <div ref={panelRef} className="relative mb-3" onKeyDown={(event) => { if (event.key === "Escape") setSuggestionsOpen(false); }}>
+        <div ref={panelRef} className="mx-auto mb-6 max-w-[560px]">
+          <div className="mb-3" onKeyDown={(event) => { if (event.key === "Escape") setSuggestionsOpen(false); }}>
             <form onSubmit={submitResearch} data-testid="landing-search-form" className={`flex overflow-hidden border border-[var(--border)] bg-[var(--surface-2)] focus-within:border-[var(--accent)]/50 ${suggestionsOpen && query.trim() ? "rounded-t-[14px]" : "rounded-[14px]"}`}>
               <label className="sr-only" htmlFor="company-research">Company name or ticker</label>
               <input data-testid="landing-company-search" id="company-research" value={query} onFocus={() => setSuggestionsOpen(Boolean(query.trim()))} onChange={(event) => { setQuery(event.target.value); setSuggestionsOpen(Boolean(event.target.value.trim())); }} role="combobox" aria-expanded={Boolean(suggestionsOpen && query.trim())} aria-controls="landing-analysis-depth" placeholder="Enter company name or ticker — e.g. TCS, HDFC Bank" autoComplete="off" className="min-w-0 flex-1 bg-transparent px-5 py-4 text-[15px] outline-none placeholder:text-[var(--muted)]" />
               <button data-testid="landing-research-submit" type="submit" aria-label="Research" disabled={!query.trim()} className="flex shrink-0 items-center justify-center bg-[var(--accent)] px-6 text-white transition-colors hover:bg-[var(--accent-hover)] disabled:cursor-not-allowed"><Search className="size-[18px]" /></button>
             </form>
-            {suggestionsOpen && query.trim() && <div data-testid="landing-depth-panel" id="landing-analysis-depth" className="absolute left-0 right-0 top-full z-20 overflow-hidden rounded-b-[14px] border border-[var(--accent)]/30 bg-[var(--surface)] text-left shadow-[0_12px_40px_rgba(0,0,0,0.35)]">
+            {suggestionsOpen && query.trim() && <div data-testid="landing-depth-panel" id="landing-analysis-depth" className="overflow-hidden rounded-b-[14px] border border-t-0 border-[var(--accent)]/30 bg-[var(--surface)] text-left shadow-[0_12px_40px_rgba(0,0,0,0.35)]">
               <p className="px-4 pb-2 pt-2.5 font-mono text-[10px] tracking-widest text-[var(--muted)]">CHOOSE ANALYSIS DEPTH FOR <span className="break-words text-[var(--fg)]">{query.toUpperCase()}</span></p>
               <div className="grid grid-cols-2 border-t border-[var(--border)]">
                 <button data-testid="landing-simple-research" type="button" onClick={() => { setSuggestionsOpen(false); openResearch("simple", query); }} className="border-r border-[var(--border)] px-4 py-4 text-left transition-colors hover:bg-[var(--surface-2)] sm:px-[18px]"><span className="block text-[13px] font-medium">Simple Research</span><span className="mt-1 block text-[11px] leading-relaxed text-[var(--muted)]">Key metrics, strengths, risks, and valuation in one view.</span><span className="mt-2.5 flex flex-wrap gap-1.5">{["Metrics", "Risks", "Valuation"].map((label) => <span key={label} className="rounded-full border border-[var(--border)] bg-[var(--surface-2)] px-2 py-0.5 font-mono text-[10px] text-[var(--muted)]">{label}</span>)}</span><span className="mt-2.5 block text-xs text-[var(--c-revenue)]">Quick research →</span></button>

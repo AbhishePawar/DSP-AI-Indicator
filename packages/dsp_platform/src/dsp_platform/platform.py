@@ -961,7 +961,41 @@ class DSPPlatform:
     ) -> dict[str, object] | None:
         from dsp_platform.financial_statements import resolve_company_identity
 
-        return resolve_company_identity(symbol, exchange=exchange, currency=currency)
+        res = resolve_company_identity(symbol, exchange=exchange, currency=currency)
+        if res is not None:
+            return res
+        try:
+            from dsp_platform.asset_resolution import resolve_asset
+
+            asset = resolve_asset(symbol, preferred_exchange=exchange, currency=currency)
+            if asset is not None:
+                return {
+                    "symbol": asset.symbol,
+                    "exchange": asset.exchange,
+                    "company_name": asset.name,
+                    "isin": asset.isin,
+                    "cik": None,
+                    "provider_company_id": asset.bse_code,
+                    "currency": asset.currency,
+                }
+        except Exception:
+            pass
+        return None
+
+    def resolve_asset_identity(
+        self,
+        query: str,
+        *,
+        exchange: str | None = None,
+        currency: str = "INR",
+    ) -> dict[str, object] | None:
+        try:
+            from dsp_platform.asset_resolution import resolve_asset
+
+            asset = resolve_asset(query, preferred_exchange=exchange, currency=currency)
+            return asset.to_dict() if asset is not None else None
+        except Exception:
+            return None
 
     def financial_statement_health(self) -> dict[str, object]:
         from dsp_platform.financial_statements import financial_statement_health

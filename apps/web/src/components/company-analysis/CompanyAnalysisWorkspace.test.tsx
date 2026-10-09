@@ -3,7 +3,7 @@
  */
 import React from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { cleanup, fireEvent, render, screen } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { acknowledgeResearchDisclaimer } from "@/lib/legal";
 import { CompanyAnalysisWorkspace } from "./CompanyAnalysisWorkspace";
@@ -148,5 +148,26 @@ describe("CompanyAnalysisWorkspace research mode navigation", () => {
 
     expect(replace).toHaveBeenCalledTimes(1);
     expect(replace).toHaveBeenCalledWith("/analysis?symbol=INFY&mode=full&intent=dsp_indicator");
+  });
+  it("F. prevents commodity Gold from running equity valuation", async () => {
+    navigationState.search = "symbol=GOLD&mode=simple&intent=company";
+    renderWorkspace();
+
+    await waitFor(() => {
+      const err = screen.getByTestId("analysis-error");
+      expect(err.textContent).toContain("classified as a commodity");
+      expect(err.textContent).toContain("restricted to corporate equities");
+    });
+  });
+
+  it("G. rejects ambiguous asset search with candidate suggestions", async () => {
+    navigationState.search = "symbol=TATA&mode=simple&intent=company";
+    renderWorkspace();
+
+    await waitFor(() => {
+      const err = screen.getByTestId("analysis-error");
+      expect(err.textContent).toContain("Multiple assets match");
+      expect(err.textContent).toContain("TATAMOTORS");
+    });
   });
 });

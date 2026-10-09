@@ -32,6 +32,7 @@ import {
 import { useAuth } from "@/lib/auth/AuthProvider";
 import { pushRecentAnalysis } from "@/lib/analysis/recentAnalyses";
 import { COMPANY_CATALOGUE } from "@/lib/companies/catalogue";
+import { resolveAssetEntry } from "@/lib/assets/resolver";
 import { useDashboardPrefsStore } from "@/lib/dashboard";
 import { useCollapsePanelsBelowLg } from "@/lib/a11y";
 
@@ -277,12 +278,26 @@ export function CompanyAnalysisWorkspace() {
       const generation = ++analyseGeneration.current;
       const requestedSymbol = symbol;
       const match = resolveCatalogue(requestedSymbol);
+      const asset = !match ? resolveAssetEntry(requestedSymbol, searchParams.get("exchange")) : null;
+
+      if (asset && !asset.allowsEquityValuation) {
+        throw new Error(
+          `${asset.name} is classified as a ${asset.assetClass}. Fundamental equity valuation (DCF, Buffett Indicator, Earnings Quality) is restricted to corporate equities and cannot be computed for ${asset.assetClass} assets.`
+        );
+      }
+      if (asset?.ambiguous && asset.candidates?.length) {
+        const names = asset.candidates.map((c) => `${c.name} (${c.symbol})`).join(", ");
+        throw new Error(
+          `Multiple assets match "${requestedSymbol}": ${names}. Please specify an exact ticker or company name.`
+        );
+      }
+
       // The existing ticker-only API resolves verified sources and calculates
       // authoritative DSP results server-side. The client sends identity only.
       const body: AnalyseRequest = {
-        ticker: requestedSymbol,
-        exchange: match?.exchange,
-        company: match?.name,
+        ticker: asset?.symbol || requestedSymbol,
+        exchange: match?.exchange || asset?.exchange,
+        company: match?.name || asset?.name,
       };
       const response = await api.analyse(body, { token });
       return { body, response, generation, requestedSymbol };
@@ -349,9 +364,15 @@ export function CompanyAnalysisWorkspace() {
     // eslint-disable-next-line react-hooks/exhaustive-deps -- intentional symbol-driven refresh
   }, [symbol, token]);
 
+  const resolvedAsset = useMemo(
+    () => resolveAssetEntry(symbol, searchParams.get("exchange")),
+    [symbol, searchParams],
+  );
+  const activeExchange = catalogue?.exchange || resolvedAsset?.exchange;
+
   const marketQuery = useQuery({
-    queryKey: ["company-analysis", "market", symbol, catalogue?.exchange],
-    queryFn: () => api.marketQuote(symbol, { token, exchange: catalogue?.exchange }),
+    queryKey: ["company-analysis", "market", symbol, activeExchange],
+    queryFn: () => api.marketQuote(symbol, { token, exchange: activeExchange }),
     enabled: Boolean(token && symbol),
     retry: false,
     staleTime: 60_000,
@@ -359,14 +380,14 @@ export function CompanyAnalysisWorkspace() {
 
   // EPIC-D002 — header enrichment only (Market Cap/52wk/ROE); independent of /analyse.
   const financialStatementsQuery = useQuery({
-    queryKey: ["company-analysis", "financial-statements", symbol, catalogue?.exchange],
+    queryKey: ["company-analysis", "financial-statements", symbol, activeExchange],
     queryFn: () =>
       api.financialStatements(symbol, {
         token,
         limit: 1,
-        exchange: catalogue?.exchange,
+        exchange: activeExchange,
       }),
-    enabled: Boolean(token && symbol),
+    enabled: Boolean(token && symbol && (!resolvedAsset || resolvedAsset.allowsEquityValuation)),
     retry: false,
     staleTime: 60_000,
   });

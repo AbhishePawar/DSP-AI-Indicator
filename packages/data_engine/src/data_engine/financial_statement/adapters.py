@@ -414,7 +414,10 @@ class ConfiguredHttpStatementAdapter(FinancialStatementPort):
 
     def resolve_company(self, instrument: Instrument) -> CompanyIdentity | None:
         symbol = instrument.symbol.strip().upper()
-        params = urlencode({"symbol": symbol})
+        query_dict = {"symbol": symbol}
+        if instrument.exchange:
+            query_dict["exchange"] = instrument.exchange.strip().upper()
+        params = urlencode(query_dict)
         payload = self._request(f"/resolve?{params}")
         if payload is None:
             return None

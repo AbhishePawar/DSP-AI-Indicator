@@ -7,6 +7,8 @@ Provider HTTP stays in adapters. DSP engines stay behind ToolCallBoundary.
 """
 
 from __future__ import annotations
+import contextvars
+import threading
 
 from collections.abc import Mapping
 from dataclasses import dataclass
@@ -89,6 +91,11 @@ class _AttemptMemory:
     identity: str = ""
 
 
+_orchestrator_memory_var: contextvars.ContextVar[_AttemptMemory | None] = (
+    contextvars.ContextVar("_orchestrator_memory", default=None)
+)
+
+
 class ResearchOrchestrator:
     """Server-side research loop. Not connected to the live research HTTP endpoint."""
 
@@ -111,6 +118,18 @@ class ResearchOrchestrator:
         self._loop_limits = loop_limits or DEFAULT_TOOL_LOOP_LIMITS
         self._dual_verification = dual_verification
         self._memory = _AttemptMemory()
+
+    @property
+    def _memory(self) -> _AttemptMemory:
+        mem = _orchestrator_memory_var.get()
+        if mem is None:
+            mem = _AttemptMemory()
+            _orchestrator_memory_var.set(mem)
+        return mem
+
+    @_memory.setter
+    def _memory(self, value: _AttemptMemory) -> None:
+        _orchestrator_memory_var.set(value)
 
     def run(self, request: UserResearchRequest) -> OrchestratorResult:
         spec = ResearchSpecification.from_user_request(

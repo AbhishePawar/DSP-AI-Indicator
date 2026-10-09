@@ -9,6 +9,13 @@ Python's standard-library ``platform`` module.
 
 from __future__ import annotations
 
+from dsp_platform.asset_resolution import (
+    AssetIdentity,
+    AssetResolutionService,
+    get_asset_resolver,
+    resolve_asset,
+)
+
 from comparison import (
     ComparisonDimensionResult,
     ComparisonError,
@@ -718,6 +725,10 @@ from workflow import (
 )
 
 __all__ = [
+    "AssetIdentity",
+    "AssetResolutionService",
+    "get_asset_resolver",
+    "resolve_asset",
     "ALLOWED_APPLICATION_PACKAGES",
     "AnalysisRequest",
     "ApplicabilityGroup",

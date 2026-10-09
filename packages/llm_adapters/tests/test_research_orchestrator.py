@@ -628,3 +628,50 @@ def test_unavailable_recommendation_does_not_invent_buy() -> None:
     result = _orchestrator(backend=StubBackend(empty_rec=True)).run(_request())
     assert result.status is OrchestratorStatus.FAILED_CLOSED
     assert result.public.recommendation == "Unable to complete."
+
+
+def test_concurrent_orchestrator_runs_maintain_isolated_memory() -> None:
+    import concurrent.futures
+    orc = _orchestrator()
+
+    def run_with_ticker(ticker: str):
+        req = UserResearchRequest(
+            symbol=ticker,
+            question=f"Is {ticker} a compounder?",
+            request_id=f"req-{ticker}",
+        )
+        res = orc.run(req)
+        return req.symbol, res.status
+
+    with concurrent.futures.ThreadPoolExecutor(max_workers=4) as executor:
+        futures = [executor.submit(run_with_ticker, t) for t in ["AAPL", "MSFT", "GOOGL", "NVDA"]]
+        results = [f.result() for f in futures]
+
+    assert len(results) == 4
+    for ticker, status in results:
+        assert status is OrchestratorStatus.ACCEPTED
+
+
+def test_async_task_orchestrator_runs_maintain_isolated_memory() -> None:
+    import asyncio
+    orc = _orchestrator()
+
+    async def run_async(ticker: str):
+        req = UserResearchRequest(
+            symbol=ticker,
+            question=f"Is {ticker} a compounder?",
+            request_id=f"req-async-{ticker}",
+        )
+        return await asyncio.to_thread(orc.run, req)
+
+    async def main():
+        return await asyncio.gather(
+            run_async("TCS"),
+            run_async("INFY"),
+            run_async("RELIANCE"),
+        )
+
+    results = asyncio.run(main())
+    assert len(results) == 3
+    for res in results:
+        assert res.status is OrchestratorStatus.ACCEPTED

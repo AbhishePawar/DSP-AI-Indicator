@@ -88,7 +88,7 @@ class DSPPlatformToolAdapter(DSPToolBackend):
         )
 
     @staticmethod
-    def _default_request_builder(symbol: str) -> Any | None:
+    def _default_request_builder(symbol: str, exchange: str | None = None) -> Any | None:
         """Try to build a canonical analysis request; return ``None`` if
         the platform does not expose the expected types in this env.
         """
@@ -100,12 +100,20 @@ class DSPPlatformToolAdapter(DSPToolBackend):
         try:
             from dsp_platform import Instrument  # type: ignore
 
-            instrument = Instrument(symbol=symbol)
+            instrument = (
+                Instrument(symbol=symbol, exchange=exchange)
+                if exchange
+                else Instrument(symbol=symbol)
+            )
         except Exception:
             try:
                 from contracts.domain.instrument import Instrument  # type: ignore
 
-                instrument = Instrument(symbol=symbol)
+                instrument = (
+                Instrument(symbol=symbol, exchange=exchange)
+                if exchange
+                else Instrument(symbol=symbol)
+            )
             except Exception:
                 return None
         try:
@@ -130,6 +138,21 @@ class DSPPlatformToolAdapter(DSPToolBackend):
 
     def get_research_snapshot(self, snapshot_id: str) -> Any:
         return self._platform.get_research_snapshot(snapshot_id)
+
+    def resolve_asset_identity(
+        self, query: str, *, exchange: str | None = None, currency: str = "INR"
+    ) -> Any:
+        if hasattr(self._platform, "resolve_asset_identity"):
+            return self._platform.resolve_asset_identity(
+                query, exchange=exchange, currency=currency
+            )
+        try:
+            from dsp_platform import resolve_asset
+
+            res = resolve_asset(query, preferred_exchange=exchange, currency=currency)
+            return res.to_dict() if res is not None else None
+        except Exception:
+            return None
 
     def run_copilot_v2(self, **kwargs: Any) -> Any:
         return self._platform.run_copilot_v2(**kwargs)

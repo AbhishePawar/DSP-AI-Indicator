@@ -2,6 +2,10 @@
 
 from __future__ import annotations
 
+from data_engine.historical_series.upstox_adapter import (
+    UpstoxCandle,
+    UpstoxHistoricalAdapter,
+)
 from data_engine.historical_series.adapters import (
     ConfiguredHttpHistoricalAdapter,
     InMemoryAuthenticatedHistoricalAdapter,
@@ -54,6 +58,8 @@ __all__ = [
     "NullAuthenticatedHistoricalAdapter",
     "build_default_historical_adapter_from_env",
     "build_historical_bundle_from_mapping",
+    "UpstoxCandle",
+    "UpstoxHistoricalAdapter",
     "utc_now",
     "validate_authenticated_historical_bundle",
 ]

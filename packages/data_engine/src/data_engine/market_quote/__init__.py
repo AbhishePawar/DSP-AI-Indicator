@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from data_engine.market_quote.upstox_adapter import UpstoxQuoteAdapter
 from data_engine.market_quote.adapters import (
     ConfiguredHttpQuoteAdapter,
     InMemoryAuthenticatedQuoteAdapter,
@@ -46,6 +47,7 @@ __all__ = [
     "RetryPolicy",
     "build_default_quote_adapter_from_env",
     "build_quote_from_mapping",
+    "UpstoxQuoteAdapter",
     "utc_now",
     "validate_authenticated_quote",
 ]

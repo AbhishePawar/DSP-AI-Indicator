@@ -227,6 +227,27 @@ def build_default_quote_adapter_from_env() -> MarketQuotePort:
     base_url = os.environ.get("DSP_MARKET_QUOTE_BASE_URL", "").strip()
     if api_key and base_url:
         return ConfiguredHttpQuoteAdapter(base_url=base_url, api_key=api_key)
+
+    quote_provider = os.environ.get("DSP_MARKET_QUOTE_PROVIDER", "").strip().lower()
+    inv_provider = os.environ.get("DSP_INVESTMENT_DATA_PROVIDER", "").strip().lower()
+    upstox_token = (
+        os.environ.get("UPSTOX_ACCESS_TOKEN", "").strip()
+        or os.environ.get("DSP_UPSTOX_ACCESS_TOKEN", "").strip()
+        or os.environ.get("DSP_UPSTOX_ANALYTICS_TOKEN", "").strip()
+    )
+
+    if quote_provider == "upstox" or inv_provider == "upstox":
+        if upstox_token:
+            from data_engine.market_quote.upstox_adapter import UpstoxQuoteAdapter
+
+            return UpstoxQuoteAdapter(access_token=upstox_token)
+        return NullAuthenticatedQuoteAdapter()
+
+    if os.environ.get("UPSTOX_ACCESS_TOKEN", "").strip():
+        from data_engine.market_quote.upstox_adapter import UpstoxQuoteAdapter
+
+        return UpstoxQuoteAdapter(access_token=os.environ.get("UPSTOX_ACCESS_TOKEN", "").strip())
+
     if memory_adapter_allowed("DSP_MARKET_QUOTE_MEMORY", connector="market_quote"):
         return InMemoryAuthenticatedQuoteAdapter(api_key=api_key or "dev-memory-key")
     return NullAuthenticatedQuoteAdapter()

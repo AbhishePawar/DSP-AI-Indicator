@@ -113,6 +113,7 @@ class PlatformHealthService:
             self._check_provider_settings(),
             self._check_provider_registry(),
             composition,
+            self._check_investment_data_provider(),
             self._check_wiring(canonical_ready=composition.status is CheckStatus.PASS),
         ]
         blocking_failed = any(
@@ -302,6 +303,38 @@ class PlatformHealthService:
             ),
         )
 
+
+    def _check_investment_data_provider(self) -> HealthCheckResult:
+        """Report investment connector configuration without blocking API readiness."""
+        import os
+
+        if str(os.environ.get("DSP_ENVIRONMENT") or "").strip().lower() != "production":
+            return HealthCheckResult(
+                name="investment_data_provider",
+                status=CheckStatus.SKIP,
+                message="production investment connector check not required",
+            )
+        try:
+            from data_engine.connector_framework.production_profile import (
+                assert_production_investment_connectors_configured,
+            )
+
+            selected = assert_production_investment_connectors_configured()
+        except Exception as exc:  # noqa: BLE001 — health must report missing configuration
+            return HealthCheckResult(
+                name="investment_data_provider",
+                status=CheckStatus.FAIL,
+                message=str(exc),
+            )
+        return HealthCheckResult(
+            name="investment_data_provider",
+            status=CheckStatus.PASS,
+            message=(
+                "configured: market_quote="
+                f"{selected['market_quote']}, financial_statement="
+                f"{selected['financial_statement']}"
+            ),
+        )
 
     def _check_wiring(self, *, canonical_ready: bool = False) -> HealthCheckResult:
         if self._platform is None:

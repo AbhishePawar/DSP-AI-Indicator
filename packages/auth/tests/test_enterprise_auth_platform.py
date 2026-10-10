@@ -76,6 +76,27 @@ def test_admin_seed_only_when_missing() -> None:
     assert len(again) == 1
 
 
+def test_production_admin_seed_requires_explicit_password(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setenv("DSP_ENVIRONMENT", "production")
+    monkeypatch.setenv("DSP_FORCE_ADMIN_SEED", "1")
+    monkeypatch.delenv("DSP_SEED_ADMIN_PASSWORD", raising=False)
+    monkeypatch.delenv("DSP_P109_PASSWORD", raising=False)
+
+    store = InMemoryStorageProvider()
+    registry = RepositoryRegistry(storage=store)
+    ps = PersistenceService(registry)
+    auth = AuthService(ps, jwt_secret="test-secret")
+
+    with pytest.raises(RuntimeError, match="DSP_SEED_ADMIN_PASSWORD is required"):
+        EnterpriseAuthPlatform(
+            auth,
+            oauth=OAuthProviderRegistry({}),
+            otp=OtpService(DevSmsAdapter()),
+        )
+
+
 def test_registration_verify_and_login() -> None:
     platform = _platform()
     reg = platform.register_email(

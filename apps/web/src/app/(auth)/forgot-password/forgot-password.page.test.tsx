@@ -62,7 +62,7 @@ describe("Forgot password page", () => {
     fireEvent.change(screen.getByLabelText(/username, email or mobile number/i), {
       target: { value: "person@example.com" },
     });
-    fireEvent.click(screen.getByRole("button", { name: /send otp/i }));
+    fireEvent.click(screen.getByRole("button", { name: /send reset link/i }));
     await waitFor(() =>
       expect(forgotPasswordMock).toHaveBeenCalledWith("person@example.com"),
     );
@@ -91,7 +91,7 @@ describe("Forgot password page", () => {
     fireEvent.change(screen.getByLabelText(/username, email or mobile number/i), {
       target: { value: "person@example.com" },
     });
-    fireEvent.click(screen.getByRole("button", { name: /send otp/i }));
+    fireEvent.click(screen.getByRole("button", { name: /send reset link/i }));
     expect(
       await screen.findByText(/email password recovery is not configured/i),
     ).toBeTruthy();

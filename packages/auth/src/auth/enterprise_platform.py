@@ -1176,6 +1176,14 @@ class EnterpriseAuthPlatform:
         self, email: str, *, ip_hint: str | None = None
     ) -> dict[str, Any]:
         self._rate_check(f"reset:{ip_hint or email}", limit=5, window_sec=3600)
+        # Report a global configuration state before looking up the account so
+        # this cannot become an account-enumeration side channel.
+        if not self.email.is_available():
+            return {
+                "ok": True,
+                "message": "Password recovery is temporarily unavailable. Contact support.",
+                "recovery_available": False,
+            }
         mail = email.strip().lower()
         user = self._get_by_email(mail)
         # Always opaque success

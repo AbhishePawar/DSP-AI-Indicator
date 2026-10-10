@@ -201,6 +201,7 @@ class MarketQuoteService:
         circuit_breaker: CircuitBreaker | None = None,
         retry: RetryPolicy | None = None,
         timeout_seconds: float = 10.0,
+        freshness_policy: Any | None = None,
     ) -> None:
         self._provider = provider
         self._cache = cache or InMemoryCache()
@@ -209,6 +210,7 @@ class MarketQuoteService:
         self._breaker = circuit_breaker or CircuitBreaker()
         self._retry = retry or RetryPolicy()
         self._timeout = timeout_seconds
+        self._freshness_policy = freshness_policy
         self.metrics = MarketQuoteServiceMetrics()
 
     @property
@@ -218,16 +220,31 @@ class MarketQuoteService:
     def get_quote(self, instrument: Instrument) -> AuthenticatedMarketQuote | None:
         self.metrics.requests += 1
         symbol = instrument.symbol.strip().upper()
-        cache_key = f"market_quote:{self.provider_id}:{symbol}"
+        exchange = (instrument.exchange or "").strip().upper()
+        currency = (instrument.currency or "").strip().upper()
+        cache_key = f"market_quote:{self.provider_id}:{exchange}:{symbol}:{currency}"
         cached = self._cache.get(cache_key)
         if isinstance(cached, AuthenticatedMarketQuote):
-            self.metrics.cache_hits += 1
-            self.metrics.successes += 1
-            _LOG.info(
-                "market_quote_cache_hit",
-                extra={"symbol": symbol, "provider": self.provider_id},
-            )
-            return cached
+            try:
+                validate_authenticated_quote(
+                    cached,
+                    requested_instrument=instrument,
+                    freshness_policy=self._freshness_policy,
+                )
+                self.metrics.cache_hits += 1
+                self.metrics.successes += 1
+                _LOG.info(
+                    "market_quote_cache_hit",
+                    extra={"symbol": symbol, "exchange": exchange, "provider": self.provider_id},
+                )
+                return cached
+            except Exception as exc:
+                _LOG.info(
+                    "market_quote_cached_invalid_or_stale",
+                    extra={"symbol": symbol, "exchange": exchange, "error": str(exc)},
+                )
+                if hasattr(self._cache, "delete"):
+                    self._cache.delete(cache_key)
 
         def _call() -> AuthenticatedMarketQuote | None:
             self._breaker.before_call()
@@ -247,7 +264,11 @@ class MarketQuoteService:
                 self._breaker.record_success()
                 return None
             try:
-                validate_authenticated_quote(quote, requested_instrument=instrument)
+                validate_authenticated_quote(
+                    quote,
+                    requested_instrument=instrument,
+                    freshness_policy=self._freshness_policy,
+                )
             except Exception:
                 self.metrics.rejected_invalid += 1
                 self._breaker.record_failure()

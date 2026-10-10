@@ -42,6 +42,7 @@ class QuoteFreshnessPolicy:
 
     max_age_seconds: float | None = None
     allow_market_closed: bool = True
+    max_closed_age_seconds: float | None = 604800.0  # 7 days max for market-closed/weekend data
     max_future_seconds: float = 300.0  # 5 minutes clock skew tolerance
     require_timestamp: bool = False
 
@@ -238,4 +239,8 @@ def validate_authenticated_quote(
                 if not policy.allow_market_closed:
                     raise InvalidProviderDataError(
                         f"quote timestamp is stale: age {age:.1f}s exceeds max_age {policy.max_age_seconds}s"
+                    )
+                if policy.max_closed_age_seconds is not None and age > policy.max_closed_age_seconds:
+                    raise InvalidProviderDataError(
+                        f"quote timestamp exceeds maximum market-closed age: age {age:.1f}s exceeds {policy.max_closed_age_seconds}s"
                     )

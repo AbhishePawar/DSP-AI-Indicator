@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import math
+
 import os
 from typing import Any
 
@@ -38,9 +40,47 @@ from api_platform.api.ops import metrics_registry
 from api_platform.api.research_report_schema import validate_public_research_report
 from llm_adapters.orchestrator.orchestrator import OrchestratorStatus
 
+def _parse_max_workers(default: int = 4, min_w: int = 1, max_w: int = 32) -> int:
+    raw = os.environ.get("DSP_RESEARCH_MAX_WORKERS", "").strip()
+    if not raw:
+        return default
+    try:
+        val = int(raw)
+        if val < min_w:
+            return min_w
+        if val > max_w:
+            return max_w
+        return val
+    except (ValueError, TypeError):
+        return default
+
+_MAX_ORCHESTRATION_WORKERS = _parse_max_workers()
+_ORCHESTRATION_SEMAPHORE = threading.BoundedSemaphore(value=_MAX_ORCHESTRATION_WORKERS)
 _RESEARCH_ORCHESTRATOR_EXECUTOR = concurrent.futures.ThreadPoolExecutor(
-    max_workers=4, thread_name_prefix="dsp-research-orch"
+    max_workers=_MAX_ORCHESTRATION_WORKERS, thread_name_prefix="dsp-research-orch"
 )
+
+def parse_orchestration_timeout(
+    env_name: str = "DSP_RESEARCH_ORCHESTRATION_TIMEOUT_SECONDS",
+    fallback_name: str = "DSP_AI_REQUEST_TIMEOUT_SECONDS",
+    default: float = 15.0,
+    min_timeout: float = 0.01,
+    max_timeout: float = 120.0,
+) -> float:
+    raw = os.environ.get(env_name, os.environ.get(fallback_name, "")).strip()
+    if not raw:
+        return default
+    try:
+        val = float(raw)
+        if not math.isfinite(val) or val <= 0:
+            return default
+        if val < min_timeout:
+            return min_timeout
+        if val > max_timeout:
+            return max_timeout
+        return val
+    except (ValueError, TypeError):
+        return default
 
 def _invoke_orchestrator(
     orchestrator: Any,
@@ -49,7 +89,7 @@ def _invoke_orchestrator(
     timeout_seconds: float,
     cancellation_event: threading.Event,
 ) -> Any:
-    """Invoke orchestrator preserving backward compatibility with legacy run(request)."""
+    """Invoke orchestrator with strict bounded execution."""
     try:
         return orchestrator.run(
             request,
@@ -57,9 +97,27 @@ def _invoke_orchestrator(
             cancellation_event=cancellation_event,
         )
     except TypeError as err:
-        if "unexpected keyword" in str(err) or "timeout_seconds" in str(err):
-            return orchestrator.run(request)
+        if "unexpected keyword" in str(err) or "timeout_seconds" in str(err) or "cancellation_event" in str(err):
+            _LOG.warning("legacy_orchestrator_lacks_bounded_execution", extra={"error": str(err)})
+            raise RuntimeError("Legacy orchestrator does not support bounded execution deadlines; failing closed.") from err
         raise
+
+def _worker_wrapper(
+    orchestrator: Any,
+    request: UserResearchRequest,
+    *,
+    timeout_seconds: float,
+    cancellation_event: threading.Event,
+) -> Any:
+    try:
+        return _invoke_orchestrator(
+            orchestrator,
+            request,
+            timeout_seconds=timeout_seconds,
+            cancellation_event=cancellation_event,
+        )
+    finally:
+        _ORCHESTRATION_SEMAPHORE.release()
 
 router = APIRouter(tags=["composition"])
 
@@ -142,66 +200,77 @@ def analyse(
         orchestrator = getattr(state, "research_orchestrator", None)
         if orchestrator is not None:
             metrics_registry.record_research_orchestration_event("attempted")
-            timeout_seconds = float(
-                os.environ.get(
-                    "DSP_RESEARCH_ORCHESTRATION_TIMEOUT_SECONDS",
-                    os.environ.get("DSP_AI_REQUEST_TIMEOUT_SECONDS", "15.0"),
-                )
-            )
-            research_req = UserResearchRequest(
-                symbol=body.ticker,
-                question=f"Synthesize deterministic evidence and research findings for {body.company or body.ticker}.",
-                exchange=body.exchange,
-                request_id=correlation_id or f"req-{body.ticker}",
-            )
-            cancel_event = threading.Event()
-            future = _RESEARCH_ORCHESTRATOR_EXECUTOR.submit(
-                _invoke_orchestrator,
-                orchestrator,
-                research_req,
-                timeout_seconds=timeout_seconds,
-                cancellation_event=cancel_event,
-            )
-            try:
-                orchestrator_outcome = future.result(timeout=timeout_seconds)
-            except concurrent.futures.TimeoutError:
-                cancel_event.set()
+            timeout_seconds = parse_orchestration_timeout()
+
+            if not _ORCHESTRATION_SEMAPHORE.acquire(blocking=False):
                 public_payload["research_report"] = None
-                metrics_registry.record_research_orchestration_event("timed_out")
+                metrics_registry.record_research_orchestration_event("capacity_exhausted")
                 metrics_registry.record_research_orchestration_event("deterministic_fallback")
-                orchestration_limitations.append("Research orchestrator timed out.")
-            except Exception:
-                cancel_event.set()
-                public_payload["research_report"] = None
-                metrics_registry.record_research_orchestration_event("provider_failed")
-                metrics_registry.record_research_orchestration_event("deterministic_fallback")
-                orchestration_limitations.append("Research orchestrator unavailable.")
+                orchestration_limitations.append("Research orchestrator capacity exhausted.")
             else:
-                if getattr(orchestrator_outcome, "status", None) == OrchestratorStatus.FAILED_CLOSED:
+                research_req = UserResearchRequest(
+                    symbol=body.ticker,
+                    question=f"Synthesize deterministic evidence and research findings for {body.company or body.ticker}.",
+                    exchange=body.exchange,
+                    request_id=correlation_id or f"req-{body.ticker}",
+                )
+                cancel_event = threading.Event()
+                try:
+                    future = _RESEARCH_ORCHESTRATOR_EXECUTOR.submit(
+                        _worker_wrapper,
+                        orchestrator,
+                        research_req,
+                        timeout_seconds=timeout_seconds,
+                        cancellation_event=cancel_event,
+                    )
+                except Exception:
+                    _ORCHESTRATION_SEMAPHORE.release()
+                    cancel_event.set()
                     public_payload["research_report"] = None
                     metrics_registry.record_research_orchestration_event("provider_failed")
                     metrics_registry.record_research_orchestration_event("deterministic_fallback")
-                    if "limitations" in public_payload and isinstance(public_payload["limitations"], list):
-                        public_payload["limitations"].append("Research orchestrator unavailable.")
+                    orchestration_limitations.append("Research orchestrator unavailable.")
                 else:
                     try:
-                        public_decision_pack = orchestrator_outcome.to_public()
-                        raw_dict = public_decision_pack.to_dict()
-                        valid_report, err = validate_public_research_report(raw_dict)
-                        if valid_report is not None:
-                            public_payload["research_report"] = valid_report
-                            metrics_registry.record_research_orchestration_event("succeeded")
-                        else:
-                            public_payload["research_report"] = None
-                            metrics_registry.record_research_orchestration_event("validation_failed")
-                            metrics_registry.record_research_orchestration_event("deterministic_fallback")
-                            orchestration_limitations.append("Research report failed schema validation.")
-                    except Exception:
+                        orchestrator_outcome = future.result(timeout=timeout_seconds)
+                    except concurrent.futures.TimeoutError:
+                        cancel_event.set()
                         public_payload["research_report"] = None
-                        metrics_registry.record_research_orchestration_event("validation_failed")
+                        metrics_registry.record_research_orchestration_event("timed_out")
                         metrics_registry.record_research_orchestration_event("deterministic_fallback")
-                        if "limitations" in public_payload and isinstance(public_payload["limitations"], list):
-                            public_payload["limitations"].append("Research report failed schema validation.")
+                        orchestration_limitations.append("Research orchestrator timed out.")
+                    except Exception:
+                        cancel_event.set()
+                        public_payload["research_report"] = None
+                        metrics_registry.record_research_orchestration_event("provider_failed")
+                        metrics_registry.record_research_orchestration_event("deterministic_fallback")
+                        orchestration_limitations.append("Research orchestrator unavailable.")
+                    else:
+                        if getattr(orchestrator_outcome, "status", None) == OrchestratorStatus.FAILED_CLOSED:
+                            public_payload["research_report"] = None
+                            metrics_registry.record_research_orchestration_event("provider_failed")
+                            metrics_registry.record_research_orchestration_event("deterministic_fallback")
+                            if "limitations" in public_payload and isinstance(public_payload["limitations"], list):
+                                public_payload["limitations"].append("Research orchestrator unavailable.")
+                        else:
+                            try:
+                                public_decision_pack = orchestrator_outcome.to_public()
+                                raw_dict = public_decision_pack.to_dict()
+                                valid_report, err = validate_public_research_report(raw_dict)
+                                if valid_report is not None:
+                                    public_payload["research_report"] = valid_report
+                                    metrics_registry.record_research_orchestration_event("succeeded")
+                                else:
+                                    public_payload["research_report"] = None
+                                    metrics_registry.record_research_orchestration_event("validation_failed")
+                                    metrics_registry.record_research_orchestration_event("deterministic_fallback")
+                                    orchestration_limitations.append("Research report failed schema validation.")
+                            except Exception:
+                                public_payload["research_report"] = None
+                                metrics_registry.record_research_orchestration_event("validation_failed")
+                                metrics_registry.record_research_orchestration_event("deterministic_fallback")
+                                if "limitations" in public_payload and isinstance(public_payload["limitations"], list):
+                                    public_payload["limitations"].append("Research report failed schema validation.")
         else:
             public_payload["research_report"] = None
             metrics_registry.record_research_orchestration_event("deterministic_fallback")

@@ -49,7 +49,14 @@ class MockOrchestrator:
         self.should_fail = should_fail
         self.calls: list[UserResearchRequest] = []
 
-    def run(self, request: UserResearchRequest) -> Any:
+    def run(
+        self,
+        request: UserResearchRequest,
+        *,
+        timeout_seconds: float | None = None,
+        cancellation_event: Any | None = None,
+        **kwargs: Any,
+    ) -> Any:
         self.calls.append(request)
         if self.should_fail:
             raise RuntimeError("Internal provider failure")
@@ -553,3 +560,294 @@ def test_metrics_registry_prometheus_rendering_has_bounded_labels():
     # Confirm bounded names and no raw tickers/canaries in metric declarations
     assert "TATAMOTORS" not in rendered
     assert "canary" not in rendered
+
+
+def test_route_fetches_verified_upstox_quote_in_ticker_only_mode():
+    """Verify Upstox quote endpoint output and its handoff to deterministic composition."""
+    from dsp_platform.market_quotes import reset_market_quote_service_for_tests
+    from dsp_platform.financial_statements import (
+        reset_financial_statement_service_for_tests,
+        FinancialStatementService,
+    )
+    from data_engine import InMemoryAuthenticatedStatementAdapter, build_statements_from_mapping, FinancialStatementProvenance
+    from datetime import datetime, timezone
+    from data_engine.market_quote.service import MarketQuoteService
+    from data_engine.cache import InMemoryCache
+
+    record = UpstoxInstrumentRecord(
+        instrument_key="NSE_EQ|INE155A01022",
+        symbol="TATAMOTORS",
+        name="Tata Motors Limited",
+        exchange="NSE",
+        instrument_type="EQUITY",
+        isin="INE155A01022",
+        segment="NSE_EQ",
+    )
+    resolver = UpstoxInstrumentResolver(records=[record])
+    adapter = UpstoxQuoteAdapter(access_token="mock_token", resolver=resolver)
+
+    v3_payload = {
+        "status": "success",
+        "data": {
+            "NSE_EQ:TATAMOTORS": {
+                "symbol": "NSE_EQ:TATAMOTORS",
+                "instrument_token": "NSE_EQ|INE155A01022",
+                "last_price": 985.50,
+                "ohlc": {"open": 980.0, "high": 990.0, "low": 975.0, "close": 985.50, "volume": 500000},
+                "timestamp": int(datetime.now(timezone.utc).timestamp() * 1000),
+            }
+        }
+    }
+
+    def mock_urlopen(req, timeout=None):
+        mock_resp = MagicMock()
+        mock_resp.read.return_value = json.dumps(v3_payload).encode("utf-8")
+        mock_resp.status = 200
+        mock_resp.__enter__.return_value = mock_resp
+        mock_resp.__exit__.return_value = False
+        return mock_resp
+
+    # Seed authenticated statements for TATAMOTORS
+    stmt_adapter = InMemoryAuthenticatedStatementAdapter(api_key="test-key")
+    stmt_adapter.put(build_statements_from_mapping(
+        symbol="TATAMOTORS",
+        payload={
+            "identity": {"symbol": "TATAMOTORS", "exchange": "NSE", "currency": "INR"},
+            "reporting_currency": "INR",
+            "statement_basis": "consolidated",
+            "unit_scale": "actual",
+            "periods": [
+                {
+                    "period_type": "annual",
+                    "fiscal_year": 2024,
+                    "period_end": "2024-12-31",
+                    "reporting_currency": "INR",
+                    "income_statement": {"revenue": 500000.0, "net_income": 100000.0, "eps_basic": 26.0, "operating_income": 120000.0},
+                    "balance_sheet": {"cash": 50000.0, "total_assets": 1500000.0, "total_liabilities": 500000.0, "equity": 1000000.0, "total_debt": 200000.0},
+                    "cash_flow": {"operating_cash_flow": 150000.0, "free_cash_flow": 100000.0, "capex": -50000.0},
+                    "ratios": {},
+                },
+                {
+                    "period_type": "annual",
+                    "fiscal_year": 2023,
+                    "period_end": "2023-12-31",
+                    "reporting_currency": "INR",
+                    "income_statement": {"revenue": 450000.0, "net_income": 80000.0, "eps_basic": 21.0, "operating_income": 100000.0},
+                    "balance_sheet": {"cash": 40000.0, "total_assets": 1400000.0, "total_liabilities": 500000.0, "equity": 900000.0, "total_debt": 200000.0},
+                    "cash_flow": {"operating_cash_flow": 130000.0, "free_cash_flow": 90000.0, "capex": -40000.0},
+                    "ratios": {},
+                },
+            ],
+        },
+        provenance=FinancialStatementProvenance(
+            provider_id="memory_authenticated_statements",
+            provider_name="Memory Statements",
+            source_type="licensed_vendor",
+            retrieved_at=datetime.now(timezone.utc),
+            auth_mode="api_key",
+        ),
+    ))
+    stmt_service = FinancialStatementService(stmt_adapter)
+    reset_financial_statement_service_for_tests(stmt_service)
+
+    quote_service = MarketQuoteService(adapter, cache=InMemoryCache())
+    reset_market_quote_service_for_tests(quote_service)
+
+    try:
+        platform = (
+            PlatformBuilder()
+            .with_configuration(PlatformConfiguration(require_analysis_service=False))
+            .auto_ready(True)
+            .build()
+        )
+        app = create_app(platform=platform)
+        custom_pack = PublicDecisionPack(
+            recommendation="BUY",
+            valuation="Intrinsic value ₹1100 vs market price ₹985.50",
+            analysis="Robust operational execution.",
+            risks=["Raw material inflation"],
+            evidence_citations=["upstox.market_quote:last_price=985.50"],
+            confidence=0.88,
+            limitations=[],
+        )
+        app.state.api.research_orchestrator = MockOrchestrator(public_pack=custom_pack)
+        client = TestClient(app)
+
+        with patch("urllib.request.urlopen", side_effect=mock_urlopen):
+            # 1. Fetch verified quote via /api/v1/market/quote
+            quote_resp = client.get("/api/v1/market/quote?symbol=TATAMOTORS&exchange=NSE")
+            assert quote_resp.status_code == 200
+            q_data = quote_resp.json()
+            assert q_data["ok"] is True
+            assert q_data["available"] is True
+            assert q_data["authenticated"] is True
+            assert q_data["symbol"] == "TATAMOTORS"
+            assert q_data["exchange"] == "NSE"
+            assert q_data["fields"]["current_price"] == 985.50
+            assert q_data["provenance"]["provider_id"] == "upstox"
+            assert q_data["provenance"]["metadata"]["instrument_key"] == "NSE_EQ|INE155A01022"
+
+            # 2. Feed verified quote into deterministic composition and research report
+            resp = client.post("/api/v1/analyse", json=_sample_analyse_body(
+                ticker="TATAMOTORS",
+                exchange="NSE",
+                current_market_price=q_data["fields"]["current_price"],
+            ))
+            assert resp.status_code == 200
+            data = resp.json()
+            assert data["ok"] is True
+            payload = data["payload"]
+            assert payload["research_report"] is not None
+            assert payload["research_report"]["recommendation"] == "BUY"
+            assert payload["server_valuation"]["current_market_price"] == 985.50
+    finally:
+        reset_market_quote_service_for_tests(None)
+        reset_financial_statement_service_for_tests(None)
+
+
+def test_quote_failure_paths_fail_closed_without_fabrication():
+    """Provider failure or invalid data fails closed without fabricating market quotes."""
+    from dsp_platform.market_quotes import reset_market_quote_service_for_tests
+    from data_engine.market_quote.service import MarketQuoteService, RetryPolicy
+    from data_engine.cache import InMemoryCache
+    import urllib.error
+
+    record = UpstoxInstrumentRecord(
+        instrument_key="NSE_EQ|INE155A01022",
+        symbol="TATAMOTORS",
+        name="Tata Motors Limited",
+        exchange="NSE",
+        instrument_type="EQUITY",
+        isin="INE155A01022",
+        segment="NSE_EQ",
+    )
+    resolver = UpstoxInstrumentResolver(records=[record])
+    adapter = UpstoxQuoteAdapter(access_token="mock_token", resolver=resolver)
+
+    def mock_401(req, timeout=None):
+        raise urllib.error.HTTPError(req.full_url, 401, "Unauthorized", {}, None)
+
+    quote_service = MarketQuoteService(adapter, cache=InMemoryCache(), retry=RetryPolicy(max_attempts=1))
+    reset_market_quote_service_for_tests(quote_service)
+
+    try:
+        platform = (
+            PlatformBuilder()
+            .with_configuration(PlatformConfiguration(require_analysis_service=False))
+            .auto_ready(True)
+            .build()
+        )
+        app = create_app(platform=platform)
+        client = TestClient(app)
+
+        with patch("urllib.request.urlopen", side_effect=mock_401):
+            resp = client.post("/api/v1/analyse", json={
+                "ticker": "TATAMOTORS",
+                "exchange": "NSE",
+            })
+            assert resp.status_code == 200
+            data = resp.json()
+            # Fails closed without fabricating a market price
+            assert data["ok"] is False
+            payload = data.get("payload")
+            if isinstance(payload, dict):
+                assert payload.get("ok") is False
+                val = payload.get("server_valuation") or {}
+                assert val.get("current_market_price") is None
+    finally:
+        reset_market_quote_service_for_tests(None)
+
+
+def test_orchestration_capacity_exhaustion_fallback():
+    """When all worker slots are occupied, additional requests degrade gracefully with deterministic fallback."""
+    from api_platform.api.routers import composition
+    from api_platform.api.ops import metrics_registry
+
+    initial_exhausted = metrics_registry._counters["dsp_research_orchestration_capacity_exhausted_total"]
+
+    # Acquire all permits from the semaphore to simulate saturated worker capacity
+    acquired = []
+    for _ in range(composition._MAX_ORCHESTRATION_WORKERS):
+        acquired.append(composition._ORCHESTRATION_SEMAPHORE.acquire(blocking=False))
+    assert all(acquired), "Should acquire all worker permits"
+
+    try:
+        platform = (
+            PlatformBuilder()
+            .with_configuration(PlatformConfiguration(require_analysis_service=False))
+            .auto_ready(True)
+            .build()
+        )
+        app = create_app(platform=platform)
+        app.state.api.research_orchestrator = MockOrchestrator()
+        client = TestClient(app)
+
+        # 5th request should immediately fall back without queuing
+        resp = client.post("/api/v1/analyse", json=_sample_analyse_body())
+        assert resp.status_code == 200
+        data = resp.json()
+        assert data["ok"] is True
+        assert data["payload"]["research_report"] is None
+        assert any("capacity exhausted" in lim.lower() for lim in data["limitations"])
+        assert metrics_registry._counters["dsp_research_orchestration_capacity_exhausted_total"] == initial_exhausted + 1
+    finally:
+        # Release the permits
+        for _ in acquired:
+            composition._ORCHESTRATION_SEMAPHORE.release()
+
+
+def test_invalid_timeout_env_values_handled_safely():
+    """Non-finite, negative, or malformed timeout env vars fallback to safe default."""
+    from api_platform.api.routers.composition import parse_orchestration_timeout
+    import os
+
+    with patch.dict(os.environ, {"DSP_RESEARCH_ORCHESTRATION_TIMEOUT_SECONDS": "0"}):
+        assert parse_orchestration_timeout() == 15.0
+
+    with patch.dict(os.environ, {"DSP_RESEARCH_ORCHESTRATION_TIMEOUT_SECONDS": "-10"}):
+        assert parse_orchestration_timeout() == 15.0
+
+    with patch.dict(os.environ, {"DSP_RESEARCH_ORCHESTRATION_TIMEOUT_SECONDS": "nan"}):
+        assert parse_orchestration_timeout() == 15.0
+
+    with patch.dict(os.environ, {"DSP_RESEARCH_ORCHESTRATION_TIMEOUT_SECONDS": "inf"}):
+        assert parse_orchestration_timeout() == 15.0
+
+    with patch.dict(os.environ, {"DSP_RESEARCH_ORCHESTRATION_TIMEOUT_SECONDS": "malformed_string"}):
+        assert parse_orchestration_timeout() == 15.0
+
+    # Unreasonably large timeout clamped to 120.0
+    with patch.dict(os.environ, {"DSP_RESEARCH_ORCHESTRATION_TIMEOUT_SECONDS": "500.0"}):
+        assert parse_orchestration_timeout() == 120.0
+
+    # Valid positive timeout accepted
+    with patch.dict(os.environ, {"DSP_RESEARCH_ORCHESTRATION_TIMEOUT_SECONDS": "25.5"}):
+        assert parse_orchestration_timeout() == 25.5
+
+
+def test_concurrency_safe_metrics_updates():
+    """Concurrent threads updating metrics cannot corrupt counters or raise exceptions."""
+    from api_platform.api.ops import metrics_registry
+    import threading
+
+    initial = metrics_registry._counters["dsp_research_orchestration_attempted_total"]
+    threads = []
+    n_threads = 10
+    increments_per_thread = 50
+
+    def worker():
+        for _ in range(increments_per_thread):
+            metrics_registry.record_research_orchestration_event("attempted")
+            _ = metrics_registry.snapshot()
+            _ = metrics_registry.render_prometheus()
+
+    for _ in range(n_threads):
+        t = threading.Thread(target=worker)
+        threads.append(t)
+        t.start()
+
+    for t in threads:
+        t.join()
+
+    expected = initial + (n_threads * increments_per_thread)
+    assert metrics_registry._counters["dsp_research_orchestration_attempted_total"] == expected

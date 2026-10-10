@@ -186,3 +186,60 @@ def test_stale_timestamp_rejection_and_market_closed_acceptance():
     # When market closed data is allowed (weekend/after-hours):
     market_closed_policy = QuoteFreshnessPolicy(max_age_seconds=3600, allow_market_closed=True)
     validate_authenticated_quote(quote, freshness_policy=market_closed_policy)
+
+
+def test_market_closed_excessive_stale_rejected():
+    now = datetime.now(UTC)
+    ten_days_old = now - timedelta(days=10)
+    quote = _valid_quote(retrieved_at=now, as_of=ten_days_old)
+
+    policy = QuoteFreshnessPolicy(max_age_seconds=3600, allow_market_closed=True, max_closed_age_seconds=86400 * 7)
+    with pytest.raises(InvalidProviderDataError, match="exceeds maximum market-closed age"):
+        validate_authenticated_quote(quote, freshness_policy=policy)
+
+
+def test_cache_isolates_by_exchange_and_currency():
+    from data_engine.cache import InMemoryCache
+    from data_engine.market_quote.service import MarketQuotePort, MarketQuoteService, QuoteProviderHealth
+
+    class MockPort(MarketQuotePort):
+        def __init__(self):
+            self.calls = []
+
+        @property
+        def provider_id(self) -> str:
+            return "mock"
+
+        def health(self) -> QuoteProviderHealth:
+            return QuoteProviderHealth(provider_id="mock", healthy=True, authenticated=True, detail="ok")
+
+        def get_quote(self, inst: Instrument) -> AuthenticatedMarketQuote | None:
+            self.calls.append((inst.symbol, inst.exchange, inst.currency))
+            return _valid_quote(
+                symbol=inst.symbol,
+                exchange=inst.exchange,
+                currency=inst.currency,
+                current_price=Decimal("1500.0") if inst.exchange == "NSE" else Decimal("1505.0"),
+                metadata={"instrument_key": f"{inst.exchange}_EQ|INE009A01021"},
+            )
+
+    port = MockPort()
+    cache = InMemoryCache()
+    service = MarketQuoteService(port, cache=cache, cache_ttl_seconds=60)
+
+    inst_nse = Instrument(symbol="INFY", exchange="NSE", currency="INR", asset_class=AssetClass.EQUITY)
+    inst_bse = Instrument(symbol="INFY", exchange="BSE", currency="INR", asset_class=AssetClass.EQUITY)
+
+    q1 = service.get_quote(inst_nse)
+    assert q1.current_price.value == Decimal("1500.0")
+    assert len(port.calls) == 1
+
+    # Same symbol on different exchange must NOT hit cache of NSE!
+    q2 = service.get_quote(inst_bse)
+    assert q2.current_price.value == Decimal("1505.0")
+    assert len(port.calls) == 2
+
+    # Second request to NSE should hit cache
+    q3 = service.get_quote(inst_nse)
+    assert q3.current_price.value == Decimal("1500.0")
+    assert len(port.calls) == 2

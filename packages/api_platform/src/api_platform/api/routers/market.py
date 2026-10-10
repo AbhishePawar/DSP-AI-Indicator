@@ -16,6 +16,7 @@ router = APIRouter(tags=["market"])
 def market_quote(
     symbol: str = Query(..., min_length=1, max_length=32),
     exchange: str | None = Query(None, max_length=32),
+    currency: str | None = Query(None, max_length=8),
     state: ApiState = Depends(get_api_state),
 ) -> JSONResponse:
     """Return an authenticated market quote snapshot (RS-002).
@@ -25,7 +26,7 @@ def market_quote(
     """
     try:
         payload = state.platform.get_authenticated_market_quote(
-            symbol, exchange=exchange
+            symbol, exchange=exchange, currency=currency
         )
     except Exception as exc:  # noqa: BLE001 — map provider failures honestly
         return JSONResponse(

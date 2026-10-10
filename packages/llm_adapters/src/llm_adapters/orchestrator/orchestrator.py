@@ -8,7 +8,9 @@ Provider HTTP stays in adapters. DSP engines stay behind ToolCallBoundary.
 
 from __future__ import annotations
 import contextvars
+import math
 import os
+import time
 import threading
 
 from collections.abc import Mapping
@@ -143,30 +145,49 @@ class ResearchOrchestrator:
         timeout_seconds: float | None = None,
         cancellation_event: threading.Event | None = None,
     ) -> OrchestratorResult:
+        start_time = time.monotonic()
         eff_timeout = timeout_seconds if timeout_seconds is not None else self._timeout_seconds
+        if eff_timeout is not None and not math.isfinite(eff_timeout):
+            eff_timeout = self._timeout_seconds
+        deadline = start_time + eff_timeout if eff_timeout is not None else None
+
         spec = ResearchSpecification.from_user_request(
             request,
             allowed_tools=self._boundary.allowed_names(),
         )
         routing = decide_routing(spec.complexity_signals)
+
+        if cancellation_event is not None and cancellation_event.is_set():
+            return self._fail_closed(spec, routing, ErrorCategory.TIMEOUT, "orchestration cancelled")
+
         prefetched = gather_specified_tools(spec, self._boundary)
         self._memory = _AttemptMemory(outcomes=prefetched)
+
+        if cancellation_event is not None and cancellation_event.is_set():
+            return self._fail_closed(spec, routing, ErrorCategory.TIMEOUT, "orchestration cancelled")
+
+        if eff_timeout is not None and eff_timeout <= 0:
+            return self._fail_closed(spec, routing, ErrorCategory.TIMEOUT, f"timeout before tier execution: {eff_timeout}s")
+
+        if deadline is not None and time.monotonic() >= deadline:
+            return self._fail_closed(spec, routing, ErrorCategory.TIMEOUT, f"timeout before tier execution: {eff_timeout}s")
 
         try:
             if self._dual_verification:
                 return self._run_dual(
                     spec,
                     routing,
-                    timeout_seconds=eff_timeout,
+                    deadline=deadline,
                     cancellation_event=cancellation_event,
                 )
 
             def run_at_tier(tier: ModelTier) -> EvaluationResult:
+                rem_timeout = max(0.0, deadline - time.monotonic()) if deadline is not None else None
                 return self._run_tier(
                     tier,
                     spec,
                     routing,
-                    timeout_seconds=eff_timeout,
+                    timeout_seconds=rem_timeout,
                     cancellation_event=cancellation_event,
                 )
 
@@ -179,12 +200,29 @@ class ResearchOrchestrator:
         finally:
             _orchestrator_memory_var.set(None)
 
+    def _fail_closed(
+        self,
+        spec: ResearchSpecification,
+        routing: RoutingDecision,
+        category: ErrorCategory,
+        reason: str,
+    ) -> OrchestratorResult:
+        verdict = GateVerdict(
+            outcome=GateOutcome.FAILED_CLOSED,
+            tier=routing.routing_tier,
+            quality_score=0.0,
+            meets_floor=False,
+            reason=f"{category.value}: {reason}" if category else reason,
+            requires_escalation=False,
+        )
+        return self._finalize(spec, routing, verdict, accepted=None)
+
     def _run_dual(
         self,
         spec: ResearchSpecification,
         routing: RoutingDecision,
         *,
-        timeout_seconds: float | None = None,
+        deadline: float | None = None,
         cancellation_event: threading.Event | None = None,
     ) -> OrchestratorResult:
         """Run both configured tiers independently over the same evidence snapshot."""
@@ -192,12 +230,17 @@ class ResearchOrchestrator:
         attempts: list[tuple[EvaluationResult, _AttemptMemory]] = []
         initial_outcomes = self._memory.outcomes
         for tier in tiers:
+            if cancellation_event is not None and cancellation_event.is_set():
+                break
+            rem_timeout = max(0.0, deadline - time.monotonic()) if deadline is not None else None
+            if rem_timeout is not None and rem_timeout <= 0.0:
+                break
             self._memory = _AttemptMemory(outcomes=initial_outcomes)
             evaluation = self._run_tier(
                 tier,
                 spec,
                 routing,
-                timeout_seconds=timeout_seconds,
+                timeout_seconds=rem_timeout,
                 cancellation_event=cancellation_event,
             )
             attempts.append((evaluation, self._memory))

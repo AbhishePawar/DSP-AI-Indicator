@@ -2,8 +2,10 @@
 
 from __future__ import annotations
 
+import math
 import pytest
 from api_platform.api.research_report_schema import (
+    ALLOWED_RECOMMENDATIONS,
     PublicResearchReportDTO,
     validate_public_research_report,
 )
@@ -35,6 +37,98 @@ def test_valid_report_passes_validation():
     assert len(dto_dict["evidence_citations"]) == 2
 
 
+@pytest.mark.parametrize("rec", sorted(ALLOWED_RECOMMENDATIONS))
+def test_all_allowed_recommendations(rec: str):
+    data = _valid_report_dict()
+    data["recommendation"] = rec
+    dto_dict, err = validate_public_research_report(data)
+    assert err is None
+    assert dto_dict is not None
+    assert dto_dict["recommendation"] == rec
+
+
+@pytest.mark.parametrize(
+    ("input_rec", "expected_rec"),
+    [
+        ("buy", "BUY"),
+        ("Buy", "BUY"),
+        ("sell", "SELL"),
+        ("Sell", "SELL"),
+        ("hold", "HOLD"),
+        ("Hold", "HOLD"),
+        ("neutral", "NEUTRAL"),
+        ("avoid", "AVOID"),
+        ("watchlist", "WATCHLIST"),
+        ("unavailable", "UNAVAILABLE"),
+    ],
+)
+def test_recommendation_case_normalization(input_rec: str, expected_rec: str):
+    data = _valid_report_dict()
+    data["recommendation"] = input_rec
+    dto_dict, err = validate_public_research_report(data)
+    assert err is None
+    assert dto_dict is not None
+    assert dto_dict["recommendation"] == expected_rec
+
+
+@pytest.mark.parametrize("bad_rec", ["STRONG_BUY", "UNDERPERFORM", "OUTPERFORM", "UNKNOWN", "random"])
+def test_unknown_recommendations_rejected(bad_rec: str):
+    data = _valid_report_dict()
+    data["recommendation"] = bad_rec
+    dto_dict, err = validate_public_research_report(data)
+    assert dto_dict is None
+    assert "schema validation failed" in err
+
+
+def test_blank_strings_rejected():
+    # Blank recommendation
+    data = _valid_report_dict()
+    data["recommendation"] = "   "
+    dto_dict, err = validate_public_research_report(data)
+    assert dto_dict is None
+    assert "schema validation failed" in err
+
+    # Blank analysis
+    data = _valid_report_dict()
+    data["analysis"] = "   "
+    dto_dict, err = validate_public_research_report(data)
+    assert dto_dict is None
+    assert "schema validation failed" in err
+
+    # Blank item in risks
+    data = _valid_report_dict()
+    data["risks"] = ["Valid risk", "   "]
+    dto_dict, err = validate_public_research_report(data)
+    assert dto_dict is None
+    assert "schema validation failed" in err
+
+    # Blank item in evidence_citations
+    data = _valid_report_dict()
+    data["evidence_citations"] = ["   "]
+    dto_dict, err = validate_public_research_report(data)
+    assert dto_dict is None
+    assert "schema validation failed" in err
+
+    # Blank item in limitations
+    data = _valid_report_dict()
+    data["limitations"] = ["  "]
+    dto_dict, err = validate_public_research_report(data)
+    assert dto_dict is None
+    assert "schema validation failed" in err
+
+
+def test_tuple_collections_accepted_from_decision_pack():
+    data = _valid_report_dict()
+    data["risks"] = ("Risk 1", "Risk 2")
+    data["evidence_citations"] = ("Source 1", "Source 2")
+    data["limitations"] = ("Limitation 1",)
+    dto_dict, err = validate_public_research_report(data)
+    assert err is None
+    assert dto_dict is not None
+    assert isinstance(dto_dict["risks"], list)
+    assert len(dto_dict["risks"]) == 2
+
+
 def test_missing_required_fields_rejected():
     for req_field in ["recommendation", "analysis", "confidence"]:
         data = _valid_report_dict()
@@ -45,6 +139,13 @@ def test_missing_required_fields_rejected():
 
 
 def test_wrong_field_types_rejected():
+    # confidence as boolean (must not coerce True to 1.0)
+    data = _valid_report_dict()
+    data["confidence"] = True
+    dto_dict, err = validate_public_research_report(data)
+    assert dto_dict is None
+    assert "schema validation failed" in err
+
     # confidence as string
     data = _valid_report_dict()
     data["confidence"] = "very_confident"
@@ -87,11 +188,13 @@ def test_invalid_confidence_bounds_rejected():
     data["confidence"] = float("nan")
     dto_dict, err = validate_public_research_report(data)
     assert dto_dict is None
+    assert "schema validation failed" in err
 
     data = _valid_report_dict()
     data["confidence"] = float("inf")
     dto_dict, err = validate_public_research_report(data)
     assert dto_dict is None
+    assert "schema validation failed" in err
 
 
 def test_malformed_evidence_citations_rejected():
@@ -100,14 +203,14 @@ def test_malformed_evidence_citations_rejected():
     data["evidence_citations"] = [""]
     dto_dict, err = validate_public_research_report(data)
     assert dto_dict is None
-    assert "non-empty string" in err
+    assert "schema validation failed" in err
 
     # Citation with invalid control characters
     data = _valid_report_dict()
     data["evidence_citations"] = ["valid_source\x00_null_byte"]
     dto_dict, err = validate_public_research_report(data)
     assert dto_dict is None
-    assert "control characters" in err
+    assert "schema validation failed" in err
 
 
 def test_private_fields_and_canaries_rejected():
@@ -117,7 +220,7 @@ def test_private_fields_and_canaries_rejected():
         data[priv] = "secret_value"
         dto_dict, err = validate_public_research_report(data)
         assert dto_dict is None
-        assert "privacy boundary violation" in err or "extra" in err
+        assert "privacy boundary violation" in err or "schema validation failed" in err
 
     # Secret canary pattern in analysis text
     data = _valid_report_dict()
@@ -165,3 +268,12 @@ def test_non_serializable_values_rejected():
     dto_dict, err = validate_public_research_report(data)
     assert dto_dict is None
     assert err is not None
+
+
+def test_validation_error_message_does_not_leak_payload_or_secrets():
+    data = _valid_report_dict()
+    data["confidence"] = "SUPER_SECRET_CANARY_VALUE_12345"
+    dto_dict, err = validate_public_research_report(data)
+    assert dto_dict is None
+    assert err is not None
+    assert "SUPER_SECRET_CANARY_VALUE_12345" not in err

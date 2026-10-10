@@ -916,7 +916,7 @@ class DSPPlatform:
         symbol: str,
         *,
         exchange: str | None = None,
-        currency: str = "USD",
+        currency: str | None = None,
     ) -> dict[str, object] | None:
         from dsp_platform.market_quotes import get_authenticated_market_quote
 

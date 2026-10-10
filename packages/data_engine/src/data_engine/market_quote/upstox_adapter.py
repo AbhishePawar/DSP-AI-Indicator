@@ -184,12 +184,7 @@ class UpstoxQuoteAdapter(MarketQuotePort):
                     if k.upper().endswith(f":{sym}") or k.upper() == sym:
                         return val
 
-        # 4. If single quote was requested and data has exactly one item
-        if len(data) == 1:
-            val = next(iter(data.values()))
-            if isinstance(val, Mapping):
-                return val
-
+        # Strict match only — never accept an unrelated single quote
         return None
 
     def get_quote(self, instrument: Instrument) -> AuthenticatedMarketQuote | None:
@@ -268,11 +263,30 @@ class UpstoxQuoteAdapter(MarketQuotePort):
                     raise InvalidProviderDataError(f"malformed ohlc.ts in quote: {raw_ohlc_ts!r}")
             else:
                 as_of = None
-        token_identity = str(quote_data.get("instrument_token") or instrument_key)
+        ret_token = quote_data.get("instrument_token")
+        if ret_token is not None:
+            str_ret = str(ret_token).strip()
+            valid_tokens = {instrument_key}
+            if getattr(res, "isin", None):
+                valid_tokens.add(res.isin)
+            if "|" in instrument_key:
+                valid_tokens.add(instrument_key.split("|")[-1])
+            if str_ret not in valid_tokens:
+                raise InvalidProviderDataError(
+                    f"Upstox instrument token mismatch: expected '{instrument_key}', got '{str_ret}'"
+                )
+            token_identity = str_ret
+        else:
+            token_identity = instrument_key
 
+        raw_ohlc_ts = ohlc.get("ts") if isinstance(ohlc, Mapping) else None
+        ohlc_as_of = _parse_timestamp(raw_ohlc_ts) if raw_ohlc_ts else None
+        q_ts_str = as_of.isoformat() if as_of else None
         meta: dict[str, Any] = {
             "instrument_key": instrument_key,
             "instrument_token": token_identity,
+            "quote_timestamp": q_ts_str,
+            "ohlc_timestamp": ohlc_as_of.isoformat() if ohlc_as_of else None,
         }
         if quote_data.get("average_price") is not None:
             meta["average_price"] = _parse_number(quote_data.get("average_price"))

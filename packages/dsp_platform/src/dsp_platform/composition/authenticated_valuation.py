@@ -395,10 +395,15 @@ def load_authenticated_valuation_bundle(
         statement_service=statement_service,
         get_statements=get_statements,
     )
+    quote_currency = (
+        getattr(statements.identity, "currency", None)
+        or getattr(statements, "reporting_currency", None)
+        or currency
+    )
     quote = _fetch_quote(
         symbol,
         exchange=exchange,
-        currency=currency,
+        currency=quote_currency,
         quote_service=quote_service,
         get_quote=get_quote,
     )

@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import threading
+
 import json
 import logging
 import os
@@ -331,6 +333,7 @@ class MetricsRegistry:
     """In-process Prometheus-compatible metrics registry."""
 
     def __init__(self) -> None:
+        self._lock = threading.Lock()
         self._counters: dict[str, float] = {
             "dsp_http_requests_total": 0,
             "dsp_http_errors_total": 0,
@@ -348,6 +351,7 @@ class MetricsRegistry:
             "dsp_research_orchestration_provider_failed_total": 0,
             "dsp_research_report_validation_failed_total": 0,
             "dsp_research_deterministic_fallback_used_total": 0,
+            "dsp_research_orchestration_capacity_exhausted_total": 0,
         }
         self._gauges: dict[str, float] = {
             "dsp_uptime_seconds": 0,
@@ -360,19 +364,23 @@ class MetricsRegistry:
         self._latency_count = 0
 
     def inc_requests(self) -> None:
-        self._counters["dsp_http_requests_total"] += 1
+        with self._lock:
+            self._counters["dsp_http_requests_total"] += 1
 
     def inc_errors(self) -> None:
-        self._counters["dsp_http_errors_total"] += 1
+        with self._lock:
+            self._counters["dsp_http_errors_total"] += 1
 
     def observe_latency_ms(self, elapsed_ms: float) -> None:
-        self._gauges["dsp_api_latency_ms_last"] = round(elapsed_ms, 2)
-        self._latency_sum_ms += elapsed_ms
-        self._latency_count += 1
+        with self._lock:
+            self._gauges["dsp_api_latency_ms_last"] = round(elapsed_ms, 2)
+            self._latency_sum_ms += elapsed_ms
+            self._latency_count += 1
 
     def inc(self, name: str, amount: float = 1) -> None:
-        if name in self._counters:
-            self._counters[name] += amount
+        with self._lock:
+            if name in self._counters:
+                self._counters[name] += amount
 
     def record_research_orchestration_event(self, event: str) -> None:
         """Record bounded, privacy-safe research orchestration event.
@@ -392,19 +400,26 @@ class MetricsRegistry:
             "provider_failed": "dsp_research_orchestration_provider_failed_total",
             "validation_failed": "dsp_research_report_validation_failed_total",
             "deterministic_fallback": "dsp_research_deterministic_fallback_used_total",
+            "capacity_exhausted": "dsp_research_orchestration_capacity_exhausted_total",
         }
         metric_name = mapping.get(event)
-        if metric_name and metric_name in self._counters:
-            self._counters[metric_name] += 1
-            _LOG.info(
-                "research_orchestration_event",
-                extra={"event": event, "metric": metric_name},
-            )
+        try:
+            with self._lock:
+                if metric_name and metric_name in self._counters:
+                    self._counters[metric_name] += 1
+            if metric_name:
+                _LOG.info(
+                    "research_orchestration_event",
+                    extra={"event": event, "metric": metric_name},
+                )
+        except Exception:  # noqa: BLE001 — observability must not break research flow
+            pass
 
 
     def set_gauge(self, name: str, value: float) -> None:
-        if name in self._gauges:
-            self._gauges[name] = value
+        with self._lock:
+            if name in self._gauges:
+                self._gauges[name] = value
 
     def note_path(self, path: str, *, status_code: int, elapsed_ms: float) -> None:
         """Classify operational counters from path — no business logic."""
@@ -428,17 +443,30 @@ class MetricsRegistry:
         if status_code == 429:
             self.inc("dsp_rate_limit_events_total")
 
+    def snapshot(self) -> dict[str, Any]:
+        with self._lock:
+            return {
+                "counters": dict(self._counters),
+                "gauges": dict(self._gauges),
+                "latency_sum_ms": self._latency_sum_ms,
+                "latency_count": self._latency_count,
+            }
+
     def render_prometheus(self) -> str:
-        self._gauges["dsp_uptime_seconds"] = round(time.time() - _START_TIME, 2)
+        with self._lock:
+            self._gauges["dsp_uptime_seconds"] = round(time.time() - _START_TIME, 2)
+            counters_copy = list(self._counters.items())
+            gauges_copy = list(self._gauges.items())
+            avg = (self._latency_sum_ms / self._latency_count) if self._latency_count else None
+
         lines: list[str] = []
-        for name, value in self._counters.items():
+        for name, value in counters_copy:
             lines.append(f"# TYPE {name} counter")
             lines.append(f"{name} {value}")
-        for name, value in self._gauges.items():
+        for name, value in gauges_copy:
             lines.append(f"# TYPE {name} gauge")
             lines.append(f"{name} {value}")
-        if self._latency_count:
-            avg = self._latency_sum_ms / self._latency_count
+        if avg is not None:
             lines.append("# TYPE dsp_api_latency_ms_avg gauge")
             lines.append(f"dsp_api_latency_ms_avg {round(avg, 2)}")
         build = get_build_metadata()

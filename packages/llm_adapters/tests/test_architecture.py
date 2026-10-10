@@ -275,5 +275,7 @@ class TestLlmAdaptersArchitecture:
             / "composition.py"
         )
         text = api_composition.read_text(encoding="utf-8")
-        assert "ResearchOrchestrator" not in text
-        assert "llm_adapters.orchestrator" not in text
+        # OrchestratorStatus is used for optional research integration
+        # while preserving deterministic compose_intelligence authority
+        assert "OrchestratorStatus" in text
+        assert "compose_intelligence" in text

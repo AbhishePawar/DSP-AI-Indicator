@@ -495,3 +495,73 @@ def test_v3_quote_symbol_mismatch_raises_error(test_resolver: UpstoxInstrumentRe
         with pytest.raises(InvalidProviderDataError) as exc:
             adapter.get_quote(inst)
         assert "mismatch" in str(exc.value)
+
+
+def test_v3_quote_single_item_unrelated_not_accepted(test_resolver: UpstoxInstrumentResolver) -> None:
+    adapter = UpstoxQuoteAdapter(
+        access_token="valid_token",
+        resolver=test_resolver,
+    )
+    inst = Instrument(
+        symbol="NHPC",
+        exchange="NSE",
+        asset_class=AssetClass.EQUITY,
+        currency="INR",
+    )
+
+    # Response has single item, but with an unrelated symbol/key
+    v3_payload = {
+        "status": "success",
+        "data": {
+            "NSE_EQ:RELIANCE": {
+                "symbol": "NSE_EQ:RELIANCE",
+                "instrument_token": "NSE_EQ|INE002A01018",
+                "last_price": 2500.0,
+            }
+        }
+    }
+    resp = MagicMock()
+    resp.read.return_value = json.dumps(v3_payload).encode("utf-8")
+    resp.status = 200
+    resp.__enter__.return_value = resp
+    resp.__exit__.return_value = False
+
+    with patch("urllib.request.urlopen", return_value=resp):
+        quote = adapter.get_quote(inst)
+        # Must return None because it does not match NHPC
+        assert quote is None
+
+
+def test_v3_quote_token_mismatch_raises_error(test_resolver: UpstoxInstrumentResolver) -> None:
+    adapter = UpstoxQuoteAdapter(
+        access_token="valid_token",
+        resolver=test_resolver,
+    )
+    inst = Instrument(
+        symbol="NHPC",
+        exchange="NSE",
+        asset_class=AssetClass.EQUITY,
+        currency="INR",
+    )
+
+    # Response has matching key but different instrument token
+    v3_payload = {
+        "status": "success",
+        "data": {
+            "NSE_EQ:NHPC": {
+                "symbol": "NSE_EQ:NHPC",
+                "instrument_token": "BSE_EQ|INE848E01016",
+                "last_price": 95.0,
+            }
+        }
+    }
+    resp = MagicMock()
+    resp.read.return_value = json.dumps(v3_payload).encode("utf-8")
+    resp.status = 200
+    resp.__enter__.return_value = resp
+    resp.__exit__.return_value = False
+
+    with patch("urllib.request.urlopen", return_value=resp):
+        with pytest.raises(InvalidProviderDataError) as exc:
+            adapter.get_quote(inst)
+        assert "instrument token mismatch" in str(exc.value)

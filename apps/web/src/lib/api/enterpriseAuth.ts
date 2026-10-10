@@ -186,6 +186,7 @@ export const enterpriseAuthApi = {
     enterpriseRequest<{
       ok?: boolean;
       message?: string;
+      recovery_available?: boolean;
       challenge_id?: string;
       expires_at?: string;
       reset_token?: string;

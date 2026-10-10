@@ -497,11 +497,30 @@ def build_default_statement_adapter_from_env() -> FinancialStatementPort:
     route. Explicit development memory remains test-only.
     """
     from data_engine.connector_framework.production_profile import (
+        ConnectorConfigurationError,
+        is_production_environment,
         memory_adapter_allowed,
     )
 
     api_key = os.environ.get("DSP_FINANCIAL_STATEMENT_API_KEY", "").strip()
     base_url = os.environ.get("DSP_FINANCIAL_STATEMENT_BASE_URL", "").strip()
+    if is_production_environment():
+        selected = os.environ.get("DSP_INVESTMENT_DATA_PROVIDER", "").strip().lower()
+        if selected and selected not in {"http", "auto"}:
+            raise ConnectorConfigurationError(
+                f"P1-03: invalid DSP_INVESTMENT_DATA_PROVIDER={selected!r}; "
+                "allowed values: http, auto (or unset); commercial vendors are disabled"
+            )
+        if not api_key:
+            raise ConnectorConfigurationError(
+                "P1-03: production financial_statement requires "
+                "DSP_FINANCIAL_STATEMENT_API_KEY"
+            )
+        if not base_url:
+            raise ConnectorConfigurationError(
+                "P1-03: production financial_statement requires "
+                "DSP_FINANCIAL_STATEMENT_BASE_URL"
+            )
     if api_key and base_url:
         return ConfiguredHttpStatementAdapter(base_url=base_url, api_key=api_key)
     if memory_adapter_allowed(

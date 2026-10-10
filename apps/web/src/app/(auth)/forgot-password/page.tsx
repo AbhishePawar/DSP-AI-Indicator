@@ -141,7 +141,7 @@ export default function ForgotPasswordPage() {
           {step === "emailSent" ? (
             <>
               <Alert variant="success" title="Check your email">
-                If an account with that email exists, a password reset link has been sent.
+                If an account with that email exists and email delivery is available, you will receive a reset link.
                 Check your inbox and spam folder.
               </Alert>
               <Link href="/login">

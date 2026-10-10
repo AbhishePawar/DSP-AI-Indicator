@@ -32,6 +32,7 @@ from data_engine.market_quote.models import (
     utc_now,
 )
 from data_engine.market_quote.service import MarketQuotePort, QuoteProviderHealth
+from data_engine.market_quote.validation import validate_authenticated_quote
 from data_engine.upstox.instrument_resolver import (
     UpstoxInstrumentResolver,
     get_upstox_resolver,
@@ -254,7 +255,19 @@ class UpstoxQuoteAdapter(MarketQuotePort):
         if ohlc is not None and not isinstance(ohlc, Mapping):
             raise InvalidProviderDataError("Upstox quote OHLC must be an object")
         ohlc = ohlc if isinstance(ohlc, Mapping) else {}
-        as_of = _parse_timestamp(quote_data.get("timestamp")) or _parse_timestamp(ohlc.get("ts"))
+        raw_ts = quote_data.get("timestamp")
+        if raw_ts is not None:
+            as_of = _parse_timestamp(raw_ts)
+            if as_of is None:
+                raise InvalidProviderDataError(f"malformed timestamp in quote: {raw_ts!r}")
+        else:
+            raw_ohlc_ts = ohlc.get("ts")
+            if raw_ohlc_ts is not None:
+                as_of = _parse_timestamp(raw_ohlc_ts)
+                if as_of is None:
+                    raise InvalidProviderDataError(f"malformed ohlc.ts in quote: {raw_ohlc_ts!r}")
+            else:
+                as_of = None
         token_identity = str(quote_data.get("instrument_token") or instrument_key)
 
         meta: dict[str, Any] = {
@@ -293,7 +306,15 @@ class UpstoxQuoteAdapter(MarketQuotePort):
         clean_symbol = instrument.symbol.strip().upper()
         prev_close_val = quote_data.get("prev_close_price")
 
-        return AuthenticatedMarketQuote(
+        resp_sym = quote_data.get("symbol")
+        if resp_sym is not None:
+            clean_resp_sym = str(resp_sym).split(":")[-1].strip().upper()
+            if clean_resp_sym != clean_symbol:
+                raise InvalidProviderDataError(
+                    f"Upstox quote symbol mismatch: expected '{clean_symbol}', got '{resp_sym}'"
+                )
+
+        quote = AuthenticatedMarketQuote(
             symbol=clean_symbol,
             exchange=instrument.exchange or res.exchange,
             currency=instrument.currency or "INR",
@@ -313,6 +334,8 @@ class UpstoxQuoteAdapter(MarketQuotePort):
             beta=QuoteField.missing(),
             provenance=provenance,
         )
+        validate_authenticated_quote(quote, requested_instrument=instrument)
+        return quote
 
 
 def build_upstox_quote_adapter_from_env() -> UpstoxQuoteAdapter | None:

@@ -8,6 +8,7 @@ Provider HTTP stays in adapters. DSP engines stay behind ToolCallBoundary.
 
 from __future__ import annotations
 import contextvars
+import os
 import threading
 
 from collections.abc import Mapping
@@ -108,6 +109,7 @@ class ResearchOrchestrator:
         tier_registry: Mapping[ModelTier, TierConfig] | None = None,
         loop_limits: ToolLoopLimits | None = None,
         dual_verification: bool = False,
+        timeout_seconds: float | None = None,
     ) -> None:
         self._registry = registry or ToolRegistry.default()
         self._boundary = ToolCallBoundary(self._registry, backend)
@@ -117,6 +119,9 @@ class ResearchOrchestrator:
         )
         self._loop_limits = loop_limits or DEFAULT_TOOL_LOOP_LIMITS
         self._dual_verification = dual_verification
+        self._timeout_seconds = timeout_seconds if timeout_seconds is not None else float(
+            os.environ.get("DSP_RESEARCH_ORCHESTRATION_TIMEOUT_SECONDS", os.environ.get("DSP_AI_REQUEST_TIMEOUT_SECONDS", "20.0"))
+        )
         self._memory = _AttemptMemory()
 
     @property
@@ -131,7 +136,14 @@ class ResearchOrchestrator:
     def _memory(self, value: _AttemptMemory) -> None:
         _orchestrator_memory_var.set(value)
 
-    def run(self, request: UserResearchRequest) -> OrchestratorResult:
+    def run(
+        self,
+        request: UserResearchRequest,
+        *,
+        timeout_seconds: float | None = None,
+        cancellation_event: threading.Event | None = None,
+    ) -> OrchestratorResult:
+        eff_timeout = timeout_seconds if timeout_seconds is not None else self._timeout_seconds
         spec = ResearchSpecification.from_user_request(
             request,
             allowed_tools=self._boundary.allowed_names(),
@@ -140,23 +152,40 @@ class ResearchOrchestrator:
         prefetched = gather_specified_tools(spec, self._boundary)
         self._memory = _AttemptMemory(outcomes=prefetched)
 
-        if self._dual_verification:
-            return self._run_dual(spec, routing)
+        try:
+            if self._dual_verification:
+                return self._run_dual(
+                    spec,
+                    routing,
+                    timeout_seconds=eff_timeout,
+                    cancellation_event=cancellation_event,
+                )
 
-        def run_at_tier(tier: ModelTier) -> EvaluationResult:
-            return self._run_tier(tier, spec, routing)
+            def run_at_tier(tier: ModelTier) -> EvaluationResult:
+                return self._run_tier(
+                    tier,
+                    spec,
+                    routing,
+                    timeout_seconds=eff_timeout,
+                    cancellation_event=cancellation_event,
+                )
 
-        verdict, accepted = run_with_escalation(
-            decision=routing,
-            run_at_tier=run_at_tier,
-            tier_registry=self._tier_registry,
-        )
-        return self._finalize(spec, routing, verdict, accepted)
+            verdict, accepted = run_with_escalation(
+                decision=routing,
+                run_at_tier=run_at_tier,
+                tier_registry=self._tier_registry,
+            )
+            return self._finalize(spec, routing, verdict, accepted)
+        finally:
+            _orchestrator_memory_var.set(None)
 
     def _run_dual(
         self,
         spec: ResearchSpecification,
         routing: RoutingDecision,
+        *,
+        timeout_seconds: float | None = None,
+        cancellation_event: threading.Event | None = None,
     ) -> OrchestratorResult:
         """Run both configured tiers independently over the same evidence snapshot."""
         tiers = (ModelTier.COST_EFFICIENT, ModelTier.PREMIUM)
@@ -164,7 +193,13 @@ class ResearchOrchestrator:
         initial_outcomes = self._memory.outcomes
         for tier in tiers:
             self._memory = _AttemptMemory(outcomes=initial_outcomes)
-            evaluation = self._run_tier(tier, spec, routing)
+            evaluation = self._run_tier(
+                tier,
+                spec,
+                routing,
+                timeout_seconds=timeout_seconds,
+                cancellation_event=cancellation_event,
+            )
             attempts.append((evaluation, self._memory))
 
         successful = [
@@ -247,6 +282,9 @@ class ResearchOrchestrator:
         tier: ModelTier,
         spec: ResearchSpecification,
         routing: RoutingDecision,
+        *,
+        timeout_seconds: float | None = None,
+        cancellation_event: threading.Event | None = None,
     ) -> EvaluationResult:
         del routing
         provider = self._providers.get(tier)
@@ -265,6 +303,8 @@ class ResearchOrchestrator:
             boundary=self._boundary,
             initial_outcomes=self._memory.outcomes,
             limits=self._loop_limits,
+            timeout_seconds=timeout_seconds,
+            cancellation_event=cancellation_event,
         )
         completion = loop.completion
         self._memory.completion = completion

@@ -32,6 +32,34 @@ from dsp_platform.investment_provenance import (
     new_analysis_id,
 )
 from llm_adapters import UserResearchRequest, build_research_team_metadata
+import concurrent.futures
+import threading
+from api_platform.api.ops import metrics_registry
+from api_platform.api.research_report_schema import validate_public_research_report
+from llm_adapters.orchestrator.orchestrator import OrchestratorStatus
+
+_RESEARCH_ORCHESTRATOR_EXECUTOR = concurrent.futures.ThreadPoolExecutor(
+    max_workers=4, thread_name_prefix="dsp-research-orch"
+)
+
+def _invoke_orchestrator(
+    orchestrator: Any,
+    request: UserResearchRequest,
+    *,
+    timeout_seconds: float,
+    cancellation_event: threading.Event,
+) -> Any:
+    """Invoke orchestrator preserving backward compatibility with legacy run(request)."""
+    try:
+        return orchestrator.run(
+            request,
+            timeout_seconds=timeout_seconds,
+            cancellation_event=cancellation_event,
+        )
+    except TypeError as err:
+        if "unexpected keyword" in str(err) or "timeout_seconds" in str(err):
+            return orchestrator.run(request)
+        raise
 
 router = APIRouter(tags=["composition"])
 
@@ -110,26 +138,80 @@ def analyse(
             company=body.company,
             exchange=body.exchange,
         )
+        orchestration_limitations: list[str] = []
         orchestrator = getattr(state, "research_orchestrator", None)
         if orchestrator is not None:
-            try:
-                research_req = UserResearchRequest(
-                    symbol=body.ticker,
-                    question=f"Synthesize deterministic evidence and research findings for {body.company or body.ticker}.",
-                    exchange=body.exchange,
-                    request_id=correlation_id or f"req-{body.ticker}",
+            metrics_registry.record_research_orchestration_event("attempted")
+            timeout_seconds = float(
+                os.environ.get(
+                    "DSP_RESEARCH_ORCHESTRATION_TIMEOUT_SECONDS",
+                    os.environ.get("DSP_AI_REQUEST_TIMEOUT_SECONDS", "15.0"),
                 )
-                orchestrator_outcome = orchestrator.run(research_req)
-                public_decision_pack = orchestrator_outcome.to_public()
-                public_payload["research_report"] = public_decision_pack.to_dict()
-            except Exception:  # noqa: BLE001
+            )
+            research_req = UserResearchRequest(
+                symbol=body.ticker,
+                question=f"Synthesize deterministic evidence and research findings for {body.company or body.ticker}.",
+                exchange=body.exchange,
+                request_id=correlation_id or f"req-{body.ticker}",
+            )
+            cancel_event = threading.Event()
+            future = _RESEARCH_ORCHESTRATOR_EXECUTOR.submit(
+                _invoke_orchestrator,
+                orchestrator,
+                research_req,
+                timeout_seconds=timeout_seconds,
+                cancellation_event=cancel_event,
+            )
+            try:
+                orchestrator_outcome = future.result(timeout=timeout_seconds)
+            except concurrent.futures.TimeoutError:
+                cancel_event.set()
                 public_payload["research_report"] = None
-                if "limitations" in public_payload and isinstance(public_payload["limitations"], list):
-                    public_payload["limitations"].append(
-                        "Research orchestrator unavailable."
-                    )
+                metrics_registry.record_research_orchestration_event("timed_out")
+                metrics_registry.record_research_orchestration_event("deterministic_fallback")
+                orchestration_limitations.append("Research orchestrator timed out.")
+            except Exception:
+                cancel_event.set()
+                public_payload["research_report"] = None
+                metrics_registry.record_research_orchestration_event("provider_failed")
+                metrics_registry.record_research_orchestration_event("deterministic_fallback")
+                orchestration_limitations.append("Research orchestrator unavailable.")
+            else:
+                if getattr(orchestrator_outcome, "status", None) == OrchestratorStatus.FAILED_CLOSED:
+                    public_payload["research_report"] = None
+                    metrics_registry.record_research_orchestration_event("provider_failed")
+                    metrics_registry.record_research_orchestration_event("deterministic_fallback")
+                    if "limitations" in public_payload and isinstance(public_payload["limitations"], list):
+                        public_payload["limitations"].append("Research orchestrator unavailable.")
+                else:
+                    try:
+                        public_decision_pack = orchestrator_outcome.to_public()
+                        raw_dict = public_decision_pack.to_dict()
+                        valid_report, err = validate_public_research_report(raw_dict)
+                        if valid_report is not None:
+                            public_payload["research_report"] = valid_report
+                            metrics_registry.record_research_orchestration_event("succeeded")
+                        else:
+                            public_payload["research_report"] = None
+                            metrics_registry.record_research_orchestration_event("validation_failed")
+                            metrics_registry.record_research_orchestration_event("deterministic_fallback")
+                            orchestration_limitations.append("Research report failed schema validation.")
+                    except Exception:
+                        public_payload["research_report"] = None
+                        metrics_registry.record_research_orchestration_event("validation_failed")
+                        metrics_registry.record_research_orchestration_event("deterministic_fallback")
+                        if "limitations" in public_payload and isinstance(public_payload["limitations"], list):
+                            public_payload["limitations"].append("Research report failed schema validation.")
         else:
             public_payload["research_report"] = None
+            metrics_registry.record_research_orchestration_event("deterministic_fallback")
+
+        if orchestration_limitations:
+            if "limitations" in public_payload and isinstance(public_payload["limitations"], list):
+                public_payload["limitations"].extend(orchestration_limitations)
+            else:
+                public_payload["limitations"] = list(orchestration_limitations)
+
     response = map_platform_result(
         platform_result,
         api_version=state.api_version,
@@ -137,6 +219,10 @@ def analyse(
         public_payload=public_payload,
         mode=body.mode,
     )
+    if isinstance(public_payload, dict) and "limitations" in public_payload:
+        for lim in public_payload["limitations"]:
+            if lim not in response.limitations:
+                response.limitations.append(lim)
 
     if not platform_result.ok:
         failed = getattr(getattr(pipeline, "metadata", None), "failed_stage", None)
@@ -173,7 +259,7 @@ def analyse(
                 exchange=body.exchange,
                 allow_duplicate=True,
             )
-    except Exception:  # noqa: BLE001
+    except Exception:
         pass
 
     return response
@@ -373,7 +459,7 @@ def _persist_investment_provenance(
             "P1-06: investment provenance not persisted (degraded non-production mode)"
         ]
         return
-    except Exception as exc:  # noqa: BLE001
+    except Exception:  # noqa: BLE001
         if production:
             raise CompositionApiError(
                 "investment provenance persistence failed — "
@@ -417,5 +503,5 @@ def _optional_actor(request: Request) -> dict[str, Any] | None:
         if not uid:
             return None
         return {"user_id": uid, "user": user}
-    except Exception:  # noqa: BLE001
+    except Exception:
         return None

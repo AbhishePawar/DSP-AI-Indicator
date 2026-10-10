@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import time
+
 import json
 from decimal import Decimal
 from typing import Any
@@ -388,3 +390,166 @@ def test_end_to_end_upstox_to_research_report_flow():
     assert any("upstox.provenance" in c for c in report["evidence_citations"])
     assert report["confidence"] == 0.85
     assert_no_private_leakage(report)
+
+
+def test_orchestration_timeout_bounds_execution_and_falls_back(monkeypatch):
+    """When research orchestration exceeds timeout, deterministic fallback is preserved."""
+    from api_platform.api.ops import metrics_registry
+
+    initial_timeouts = metrics_registry._counters.get("dsp_research_orchestration_timed_out_total", 0)
+
+    class SlowOrchestrator:
+        def __init__(self):
+            self.cancelled = False
+
+        def run(self, request, timeout_seconds=None, cancellation_event=None):
+            # Sleep longer than the configured timeout
+            for _ in range(20):
+                if cancellation_event and cancellation_event.is_set():
+                    self.cancelled = True
+                    break
+                time.sleep(0.05)
+            outcome = MagicMock()
+            outcome.to_public.return_value = PublicDecisionPack(
+                recommendation="BUY",
+                valuation="Delayed",
+                analysis="Delayed",
+                risks=[],
+                evidence_citations=[],
+                confidence=0.9,
+                limitations=[],
+            )
+            return outcome
+
+    monkeypatch.setenv("DSP_RESEARCH_ORCHESTRATION_TIMEOUT_SECONDS", "0.1")
+    platform = (
+        PlatformBuilder()
+        .with_configuration(PlatformConfiguration(require_analysis_service=False))
+        .auto_ready(True)
+        .build()
+    )
+    app = create_app(platform=platform)
+    slow_orch = SlowOrchestrator()
+    app.state.api.research_orchestrator = slow_orch
+    client = TestClient(app)
+
+    body = _sample_analyse_body()
+    resp = client.post("/api/v1/analyse", json=body)
+    assert resp.status_code == 200
+    data = resp.json()
+    assert data["ok"] is True
+    payload = data["payload"]
+
+    assert payload["research_report"] is None
+    assert any("Research orchestrator timed out." in lim for lim in payload.get("limitations", []))
+    assert metrics_registry._counters["dsp_research_orchestration_timed_out_total"] > initial_timeouts
+
+
+def test_orchestration_report_schema_validation_failures():
+    """Malformed schema or invalid confidence drops report safely."""
+    from api_platform.api.ops import metrics_registry
+
+    initial_fails = metrics_registry._counters.get("dsp_research_report_validation_failed_total", 0)
+
+    class MalformedOrchestrator:
+        def __init__(self, pack_dict):
+            self.pack_dict = pack_dict
+
+        def run(self, request, **kwargs):
+            outcome = MagicMock()
+            pack_mock = MagicMock()
+            pack_mock.to_dict.return_value = self.pack_dict
+            outcome.to_public.return_value = pack_mock
+            return outcome
+
+    platform = (
+        PlatformBuilder()
+        .with_configuration(PlatformConfiguration(require_analysis_service=False))
+        .auto_ready(True)
+        .build()
+    )
+    app = create_app(platform=platform)
+
+    # 1. Missing required field 'analysis'
+    malformed_orch = MalformedOrchestrator({
+        "recommendation": "BUY",
+        "valuation": "Value",
+        "risks": [],
+        "evidence_citations": ["c1"],
+        "confidence": 0.8,
+        "limitations": [],
+        "schema_version": "public_decision_pack_v1",
+    })
+    app.state.api.research_orchestrator = malformed_orch
+    client = TestClient(app)
+    resp = client.post("/api/v1/analyse", json=_sample_analyse_body())
+    assert resp.status_code == 200
+    assert resp.json()["payload"]["research_report"] is None
+    assert any("schema validation" in l for l in resp.json()["payload"].get("limitations", []))
+
+    # 2. Out-of-bounds confidence (e.g. 1.5)
+    invalid_conf_orch = MalformedOrchestrator({
+        "recommendation": "BUY",
+        "valuation": "Value",
+        "analysis": "Valid analysis text",
+        "risks": [],
+        "evidence_citations": ["c1"],
+        "confidence": 1.5,
+        "limitations": [],
+        "schema_version": "public_decision_pack_v1",
+    })
+    app.state.api.research_orchestrator = invalid_conf_orch
+    resp = client.post("/api/v1/analyse", json=_sample_analyse_body())
+    assert resp.status_code == 200
+    assert resp.json()["payload"]["research_report"] is None
+
+    # 3. Privacy violation: forbidden key 'chain_of_thought'
+    leak_orch = MalformedOrchestrator({
+        "recommendation": "BUY",
+        "valuation": "Value",
+        "analysis": "Valid analysis text",
+        "risks": [],
+        "evidence_citations": ["c1"],
+        "confidence": 0.8,
+        "limitations": [],
+        "schema_version": "public_decision_pack_v1",
+        "chain_of_thought": "Private reasoning steps",
+    })
+    app.state.api.research_orchestrator = leak_orch
+    resp = client.post("/api/v1/analyse", json=_sample_analyse_body())
+    assert resp.status_code == 200
+    assert resp.json()["payload"]["research_report"] is None
+
+    # 4. Privacy violation: secret canary in text
+    canary_orch = MalformedOrchestrator({
+        "recommendation": "BUY",
+        "valuation": "Value",
+        "analysis": "Here is canary_secret_99887766 that leaked",
+        "risks": [],
+        "evidence_citations": ["c1"],
+        "confidence": 0.8,
+        "limitations": [],
+        "schema_version": "public_decision_pack_v1",
+    })
+    app.state.api.research_orchestrator = canary_orch
+    resp = client.post("/api/v1/analyse", json=_sample_analyse_body())
+    assert resp.status_code == 200
+    assert resp.json()["payload"]["research_report"] is None
+
+    assert metrics_registry._counters["dsp_research_report_validation_failed_total"] >= initial_fails + 4
+
+
+def test_metrics_registry_prometheus_rendering_has_bounded_labels():
+    """Prometheus output includes research orchestration counters without sensitive labels."""
+    from api_platform.api.ops import metrics_registry
+
+    rendered = metrics_registry.render_prometheus()
+    assert "dsp_research_orchestration_attempted_total" in rendered
+    assert "dsp_research_orchestration_succeeded_total" in rendered
+    assert "dsp_research_orchestration_timed_out_total" in rendered
+    assert "dsp_research_orchestration_provider_failed_total" in rendered
+    assert "dsp_research_report_validation_failed_total" in rendered
+    assert "dsp_research_deterministic_fallback_used_total" in rendered
+    # Confirm bounded names and no raw tickers/canaries in metric declarations
+    assert "TATAMOTORS" not in rendered
+    assert "canary" not in rendered

@@ -675,3 +675,29 @@ def test_async_task_orchestrator_runs_maintain_isolated_memory() -> None:
     assert len(results) == 3
     for res in results:
         assert res.status is OrchestratorStatus.ACCEPTED
+
+
+def test_orchestrator_cancellation_event_halts_loop() -> None:
+    import threading
+    cancel_event = threading.Event()
+    cancel_event.set()
+    orc = _orchestrator()
+    req = UserResearchRequest(
+        symbol="TATAMOTORS",
+        question="Is Tata Motors a good buy?",
+        request_id="req-cancel-test",
+    )
+    outcome = orc.run(req, cancellation_event=cancel_event)
+    assert outcome.status is OrchestratorStatus.FAILED_CLOSED
+
+
+def test_orchestrator_timeout_bounds_loop() -> None:
+    orc = _orchestrator()
+    req = UserResearchRequest(
+        symbol="TATAMOTORS",
+        question="Is Tata Motors a good buy?",
+        request_id="req-timeout-test",
+    )
+    # Passing 0.0s forces immediate timeout in loop
+    outcome = orc.run(req, timeout_seconds=0.0)
+    assert outcome.status is OrchestratorStatus.FAILED_CLOSED

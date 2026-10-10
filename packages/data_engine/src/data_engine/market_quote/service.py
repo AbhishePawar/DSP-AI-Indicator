@@ -247,7 +247,7 @@ class MarketQuoteService:
                 self._breaker.record_success()
                 return None
             try:
-                validate_authenticated_quote(quote)
+                validate_authenticated_quote(quote, requested_instrument=instrument)
             except Exception:
                 self.metrics.rejected_invalid += 1
                 self._breaker.record_failure()

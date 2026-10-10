@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import logging
 import os
 import time
 from dataclasses import dataclass
@@ -14,6 +15,8 @@ from api_platform.api.monitoring import (
     get_lifecycle_state,
     get_resource_snapshot,
 )
+
+_LOG = logging.getLogger("api_platform.ops")
 
 __all__ = [
     "BuildMetadata",
@@ -339,6 +342,12 @@ class MetricsRegistry:
             "dsp_authz_denials_total": 0,
             "dsp_rate_limit_events_total": 0,
             "dsp_system_restarts_total": 0,
+            "dsp_research_orchestration_attempted_total": 0,
+            "dsp_research_orchestration_succeeded_total": 0,
+            "dsp_research_orchestration_timed_out_total": 0,
+            "dsp_research_orchestration_provider_failed_total": 0,
+            "dsp_research_report_validation_failed_total": 0,
+            "dsp_research_deterministic_fallback_used_total": 0,
         }
         self._gauges: dict[str, float] = {
             "dsp_uptime_seconds": 0,
@@ -364,6 +373,34 @@ class MetricsRegistry:
     def inc(self, name: str, amount: float = 1) -> None:
         if name in self._counters:
             self._counters[name] += amount
+
+    def record_research_orchestration_event(self, event: str) -> None:
+        """Record bounded, privacy-safe research orchestration event.
+
+        Events:
+            - 'attempted'
+            - 'succeeded'
+            - 'timed_out'
+            - 'provider_failed'
+            - 'validation_failed'
+            - 'deterministic_fallback'
+        """
+        mapping = {
+            "attempted": "dsp_research_orchestration_attempted_total",
+            "succeeded": "dsp_research_orchestration_succeeded_total",
+            "timed_out": "dsp_research_orchestration_timed_out_total",
+            "provider_failed": "dsp_research_orchestration_provider_failed_total",
+            "validation_failed": "dsp_research_report_validation_failed_total",
+            "deterministic_fallback": "dsp_research_deterministic_fallback_used_total",
+        }
+        metric_name = mapping.get(event)
+        if metric_name and metric_name in self._counters:
+            self._counters[metric_name] += 1
+            _LOG.info(
+                "research_orchestration_event",
+                extra={"event": event, "metric": metric_name},
+            )
+
 
     def set_gauge(self, name: str, value: float) -> None:
         if name in self._gauges:

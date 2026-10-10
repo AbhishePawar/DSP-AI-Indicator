@@ -10,7 +10,7 @@ from unittest.mock import MagicMock, patch
 import pytest
 from contracts.domain.instrument import Instrument
 from contracts.enums import AssetClass
-from data_engine.exceptions import InvalidProviderDataError, ProviderRequestError
+from data_engine.exceptions import DataEngineError, InvalidProviderDataError, ProviderRequestError
 from data_engine.market_quote.adapters import build_default_quote_adapter_from_env
 from data_engine.market_quote.upstox_adapter import UpstoxQuoteAdapter
 from data_engine.upstox.instrument_resolver import (
@@ -430,3 +430,68 @@ def test_factory_selection_with_upstox_access_token(monkeypatch: pytest.MonkeyPa
     assert isinstance(adapter, UpstoxQuoteAdapter)
     assert adapter.is_configured()
     assert adapter.provider_id == "upstox"
+
+def test_v3_quote_malformed_timestamp_raises_error(test_resolver: UpstoxInstrumentResolver) -> None:
+    adapter = UpstoxQuoteAdapter(
+        access_token="valid_token",
+        resolver=test_resolver,
+    )
+    inst = Instrument(
+        symbol="NHPC",
+        exchange="NSE",
+        asset_class=AssetClass.EQUITY,
+        currency="INR",
+    )
+
+    v3_payload = {
+        "status": "success",
+        "data": {
+            "NSE_EQ:NHPC": {
+                "last_price": 94.2,
+                "timestamp": "not-a-valid-timestamp",
+            }
+        }
+    }
+    resp = MagicMock()
+    resp.read.return_value = json.dumps(v3_payload).encode("utf-8")
+    resp.status = 200
+    resp.__enter__.return_value = resp
+    resp.__exit__.return_value = False
+
+    with patch("urllib.request.urlopen", return_value=resp):
+        with pytest.raises(DataEngineError) as exc:
+            adapter.get_quote(inst)
+        assert "malformed timestamp" in str(exc.value)
+
+
+def test_v3_quote_symbol_mismatch_raises_error(test_resolver: UpstoxInstrumentResolver) -> None:
+    adapter = UpstoxQuoteAdapter(
+        access_token="valid_token",
+        resolver=test_resolver,
+    )
+    inst = Instrument(
+        symbol="NHPC",
+        exchange="NSE",
+        asset_class=AssetClass.EQUITY,
+        currency="INR",
+    )
+
+    v3_payload = {
+        "status": "success",
+        "data": {
+            "NSE_EQ:NHPC": {
+                "symbol": "NSE_EQ:INFY",
+                "last_price": 94.2,
+            }
+        }
+    }
+    resp = MagicMock()
+    resp.read.return_value = json.dumps(v3_payload).encode("utf-8")
+    resp.status = 200
+    resp.__enter__.return_value = resp
+    resp.__exit__.return_value = False
+
+    with patch("urllib.request.urlopen", return_value=resp):
+        with pytest.raises(InvalidProviderDataError) as exc:
+            adapter.get_quote(inst)
+        assert "mismatch" in str(exc.value)

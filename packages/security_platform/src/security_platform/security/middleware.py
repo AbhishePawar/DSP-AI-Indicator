@@ -224,6 +224,7 @@ def _authenticate_enterprise_bearer(authorization: str | None) -> UserPrincipal 
     except Exception:  # noqa: BLE001 — invalid or unavailable identity fails closed
         return None
 
+
 def _authorization_from_request(request: Request) -> str | None:
     """Prefer Authorization header; fall back to HttpOnly access cookie (EPIC-016)."""
     header = request.headers.get("authorization")

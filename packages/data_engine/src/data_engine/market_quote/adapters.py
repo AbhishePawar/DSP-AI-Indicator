@@ -228,6 +228,9 @@ def build_default_quote_adapter_from_env() -> MarketQuotePort:
     api_key = os.environ.get("DSP_MARKET_QUOTE_API_KEY", "").strip()
     base_url = os.environ.get("DSP_MARKET_QUOTE_BASE_URL", "").strip()
     if is_production_environment():
+        # Preserve the explicit test failure for attempted memory-adapter use,
+        # even when its credentials are also absent.
+        memory_adapter_allowed("DSP_MARKET_QUOTE_MEMORY", connector="market_quote")
         selected = os.environ.get("DSP_INVESTMENT_DATA_PROVIDER", "").strip().lower()
         quote_selected = os.environ.get("DSP_MARKET_QUOTE_PROVIDER", "").strip().lower()
         for variable, value in (

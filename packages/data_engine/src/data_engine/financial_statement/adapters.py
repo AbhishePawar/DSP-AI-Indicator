@@ -505,6 +505,11 @@ def build_default_statement_adapter_from_env() -> FinancialStatementPort:
     api_key = os.environ.get("DSP_FINANCIAL_STATEMENT_API_KEY", "").strip()
     base_url = os.environ.get("DSP_FINANCIAL_STATEMENT_BASE_URL", "").strip()
     if is_production_environment():
+        # Preserve the explicit test failure for attempted memory-adapter use,
+        # even when its credentials are also absent.
+        memory_adapter_allowed(
+            "DSP_FINANCIAL_STATEMENT_MEMORY", connector="financial_statement"
+        )
         selected = os.environ.get("DSP_INVESTMENT_DATA_PROVIDER", "").strip().lower()
         if selected and selected not in {"http", "auto"}:
             raise ConnectorConfigurationError(

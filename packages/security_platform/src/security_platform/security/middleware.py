@@ -17,6 +17,8 @@ from security_platform.security.exceptions import (
     SecurityError,
 )
 from security_platform.security.permissions import Permission
+from security_platform.security.roles import ROLE_PERMISSIONS, Role
+from security_platform.security.users import UserPrincipal
 
 __all__ = [
     "SecurityMiddleware",
@@ -121,11 +123,20 @@ class SecurityMiddleware(BaseHTTPMiddleware):
             return await call_next(request)
 
         try:
-            principal = self._bundle.authentication.authenticate_headers(
-                authorization=auth_header,
-                api_key_id=request.headers.get("x-api-key-id"),
-                api_key_secret=request.headers.get("x-api-key-secret"),
-            )
+            try:
+                principal = self._bundle.authentication.authenticate_headers(
+                    authorization=auth_header,
+                    api_key_id=request.headers.get("x-api-key-id"),
+                    api_key_secret=request.headers.get("x-api-key-secret"),
+                )
+            except AuthenticationError:
+                # The public login UI uses the enterprise AuthService. Accept
+                # its signed bearer token here as well, then apply this
+                # middleware's normal role-to-permission checks. Do not accept
+                # a token unless the canonical AuthService validates it.
+                principal = _authenticate_enterprise_bearer(auth_header)
+                if principal is None:
+                    raise
             self._bundle.rate_limiter.check(principal.subject)
             permission = _permission_for_path(path)
             if permission is not None:
@@ -168,6 +179,50 @@ class SecurityMiddleware(BaseHTTPMiddleware):
 
         return await call_next(request)
 
+
+
+
+def _authenticate_enterprise_bearer(authorization: str | None) -> UserPrincipal | None:
+    """Validate an enterprise AuthService bearer token for the API gateway.
+
+    Login and user persistence are owned by the auth package; the standalone
+    SecurityBundle JWT is a separate offline/CI identity system. This bridge
+    validates through the canonical AuthService and maps roles conservatively
+    into the gateway's frozen permission model. Unknown roles fail closed.
+    """
+    scheme, _, token = (authorization or "").partition(" ")
+    if scheme.strip().lower() != "bearer" or not token.strip():
+        return None
+    try:
+        from auth import get_auth_service
+
+        user = get_auth_service().current_user(token.strip())
+        roles = {str(role).strip().lower() for role in (user.get("roles") or [])}
+        if roles.intersection({"super_admin", "administrator", "admin"}):
+            role = Role.ADMIN
+        elif roles.intersection({"advisor", "analyst"}):
+            role = Role.ADVISOR
+        elif "researcher" in roles:
+            role = Role.RESEARCHER
+        elif "api" in roles:
+            role = Role.API
+        elif roles.intersection({"client", "enterprise_client", "read_only", "viewer"}):
+            role = Role.CLIENT
+        else:
+            return None
+        subject = str(user.get("user_id") or "").strip()
+        username = str(user.get("username") or "").strip()
+        if not subject or not username:
+            return None
+        return UserPrincipal(
+            subject=subject,
+            role=role,
+            permissions=ROLE_PERMISSIONS[role],
+            auth_method="enterprise_jwt",
+            username=username,
+        )
+    except Exception:  # noqa: BLE001 — invalid or unavailable identity fails closed
+        return None
 
 def _authorization_from_request(request: Request) -> str | None:
     """Prefer Authorization header; fall back to HttpOnly access cookie (EPIC-016)."""

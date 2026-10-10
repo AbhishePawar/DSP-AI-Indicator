@@ -1,5 +1,7 @@
-import { ResearchOverview } from "@/components/dashboard/ResearchOverview";
+"use client";
+
+import { SearchFirstDashboard } from "@/components/dashboard/SearchFirstDashboard";
 
 export default function DashboardPage() {
-  return <ResearchOverview />;
+  return <SearchFirstDashboard />;
 }

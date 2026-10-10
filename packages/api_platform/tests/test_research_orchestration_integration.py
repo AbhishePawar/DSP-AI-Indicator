@@ -700,6 +700,25 @@ def test_route_fetches_verified_upstox_quote_in_ticker_only_mode():
             assert payload["research_report"] is not None
             assert payload["research_report"]["recommendation"] == "BUY"
             assert payload["server_valuation"]["current_market_price"] == 985.50
+
+            # 3. True route-level verification of ticker-only execution without client price:
+            # Demonstrates that /analyse autonomously invokes the registered Upstox quote adapter.
+            # Because Upstox V3 quote API provides OHLC/last_price but omits shares_outstanding,
+            # the platform pipeline fails closed honestly without fabricating share counts.
+            ticker_only_resp = client.post("/api/v1/analyse", json={
+                "ticker": "TATAMOTORS",
+                "exchange": "NSE",
+            })
+            assert ticker_only_resp.status_code == 200
+            t_data = ticker_only_resp.json()
+            # Graceful degradation with honest disclosure of missing share count
+            assert t_data["ok"] is False
+            assert any("shares outstanding unavailable" in err.lower() for err in t_data.get("errors", []))
+            assert t_data["payload"]["research_report"] is not None
+            payload = data["payload"]
+            assert payload["research_report"] is not None
+            assert payload["research_report"]["recommendation"] == "BUY"
+            assert payload["server_valuation"]["current_market_price"] == 985.50
     finally:
         reset_market_quote_service_for_tests(None)
         reset_financial_statement_service_for_tests(None)
@@ -851,3 +870,44 @@ def test_concurrency_safe_metrics_updates():
 
     expected = initial + (n_threads * increments_per_thread)
     assert metrics_registry._counters["dsp_research_orchestration_attempted_total"] == expected
+
+
+def test_research_orchestration_service_boundary_isolation():
+    """Verify that ResearchOrchestrationService cleanly encapsulates worker pool, admission control, and execution."""
+    from api_platform.api.research_orchestration_service import ResearchOrchestrationService
+    import threading
+
+    custom_sem = threading.BoundedSemaphore(value=2)
+    service = ResearchOrchestrationService(semaphore=custom_sem)
+
+    # 1. Successful execution through service boundary
+    mock_orch = MockOrchestrator()
+    report, limitations = service.execute(
+        mock_orch,
+        ticker="INFY",
+        company="Infosys Limited",
+        exchange="NSE",
+        correlation_id="test-boundary-1",
+        timeout_seconds=5.0,
+    )
+    assert report is not None
+    assert report["recommendation"] == "BUY"
+    assert limitations == []
+
+    # 2. Capacity exhaustion through service boundary
+    custom_sem.acquire(blocking=False)
+    custom_sem.acquire(blocking=False)
+    try:
+        report, limitations = service.execute(
+            mock_orch,
+            ticker="INFY",
+            company="Infosys Limited",
+            exchange="NSE",
+            correlation_id="test-boundary-2",
+            timeout_seconds=5.0,
+        )
+        assert report is None
+        assert any("capacity exhausted" in lim.lower() for lim in limitations)
+    finally:
+        custom_sem.release()
+        custom_sem.release()

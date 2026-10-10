@@ -24,7 +24,7 @@ import {
 import { enterpriseAuthApi } from "@/lib/api/enterpriseAuth";
 import { SUPPORT_CONTACT } from "@/lib/commercial";
 
-type Step = "identifier" | "otp" | "password" | "done";
+type Step = "identifier" | "otp" | "password" | "emailSent" | "done";
 
 export default function ForgotPasswordPage() {
   const [step, setStep] = useState<Step>("identifier");
@@ -41,13 +41,22 @@ export default function ForgotPasswordPage() {
     event.preventDefault();
     setError(null);
     const id = normalizeLoginIdentifier(identifier);
-    if (!id || !isPlausibleLoginIdentifier(identifier) || id.includes("@")) {
-      setError("Enter a valid username or India mobile number.");
+    if (!id || !isPlausibleLoginIdentifier(identifier)) {
+      setError("Enter a valid username, email address or India mobile number.");
       return;
     }
     setPending(true);
     try {
       const envelope = await enterpriseAuthApi.forgotPassword(id);
+      if (!envelope.ok) {
+        throw new Error(envelope.error || "Unable to start password recovery.");
+      }
+      if (id.includes("@")) {
+        // The backend intentionally returns an opaque success response for
+        // email recovery; never reveal whether an account exists.
+        setStep("emailSent");
+        return;
+      }
       const cid = envelope.result?.challenge_id;
       if (!cid) {
         throw new Error(envelope.error || "Unable to start password recovery.");
@@ -110,9 +119,21 @@ export default function ForgotPasswordPage() {
     <AuthShell>
       <AuthCard
         title="Forgot password"
-        description="Recover access using the verified mobile number already stored on the account."
+        description="Recover access using the email address or verified mobile number already stored on your account."
       >
         <Stack gap={4}>
+          {step === "emailSent" ? (
+            <>
+              <Alert variant="success" title="Check your email">
+                If an account with that email exists, a password reset link has been sent.
+                Check your inbox and spam folder.
+              </Alert>
+              <Link href="/login">
+                <Button className="w-full">Back to sign in</Button>
+              </Link>
+            </>
+          ) : null}
+
           {step === "done" ? (
             <>
               <Alert variant="success" title="Password updated">
@@ -127,7 +148,7 @@ export default function ForgotPasswordPage() {
           {step === "identifier" ? (
             <form className="space-y-4" onSubmit={onRequest} noValidate>
               <FormField
-                label="Username or Mobile Number"
+                label="Username, Email or Mobile Number"
                 htmlFor="forgot-identifier"
                 required
               >
@@ -208,7 +229,7 @@ export default function ForgotPasswordPage() {
             </form>
           ) : null}
 
-          {step !== "done" ? (
+          {step !== "done" && step !== "emailSent" ? (
             <Link href="/login" className="text-center text-sm text-[var(--accent)] underline">
               Back to sign in
             </Link>

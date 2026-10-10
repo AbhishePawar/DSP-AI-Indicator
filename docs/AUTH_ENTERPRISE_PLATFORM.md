@@ -63,6 +63,23 @@ Dev seed (only if no Super Admin / Administrator exists):
 - Password source: `DSP_SEED_ADMIN_PASSWORD` (no checked-in default)
 - Role: `administrator`
 
+Production first-admin bootstrap is an explicit one-time operation: set
+`DSP_FORCE_ADMIN_SEED=1` and provide `DSP_SEED_ADMIN_PASSWORD` through the
+deployment secret manager, then restart the API once. Production refuses to
+seed if the canonical password is absent; it never uses the development
+default or the legacy Playwright-only `DSP_P109_PASSWORD`. Remove
+`DSP_FORCE_ADMIN_SEED` after the first administrator is created. This seed
+does not reset an existing administrator's password.
+
+Password recovery:
+- Email recovery uses `DSP_FRONTEND_URL` and the configured email delivery
+  adapter; verify the reset email reaches the account before relying on it.
+- Username/mobile recovery requires an already-verified mobile number and a
+  configured production SMS provider. Development OTP hints must never be
+  enabled in production.
+- Both flows return generic account-existence messaging and password resets
+  revoke active sessions.
+
 For the P1-09 browser journey, `apps/web/playwright.config.ts` explicitly loads `apps/web/.env.local`. The reusable validator in `apps/web/e2e/browser/p109/env.ts` resolves credentials in this order:
 
 1. `DSP_SEED_ADMIN_PASSWORD` — canonical source

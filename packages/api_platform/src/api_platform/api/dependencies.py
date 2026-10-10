@@ -25,6 +25,7 @@ try:
         AdapterBackedAIProvider,
         ResearchOrchestrator,
     )
+    from llm_adapters.tools.dsp_platform_adapter import DSPPlatformToolAdapter
 except ImportError:  # pragma: no cover - optional during partial installs
     CopilotCompleteService = None  # type: ignore[misc, assignment]
     build_default_registry = None  # type: ignore[misc, assignment]
@@ -32,6 +33,7 @@ except ImportError:  # pragma: no cover - optional during partial installs
     TierConfig = None  # type: ignore[misc, assignment]
     AdapterBackedAIProvider = None  # type: ignore[misc, assignment]
     ResearchOrchestrator = None  # type: ignore[misc, assignment]
+    DSPPlatformToolAdapter = None  # type: ignore[misc, assignment]
 
 __all__ = [
     "ApiState",
@@ -234,8 +236,13 @@ def build_research_orchestrator(platform: DSPPlatform) -> Any | None:
     openai = registry.get("openai")
     if gemini is None or openai is None:
         return None
+    backend = (
+        platform
+        if hasattr(platform, "get_valuation")
+        else (DSPPlatformToolAdapter(platform) if DSPPlatformToolAdapter is not None else platform)
+    )
     return ResearchOrchestrator(
-        backend=platform,
+        backend=backend,
         providers={
             ModelTier.COST_EFFICIENT: AdapterBackedAIProvider(gemini),
             ModelTier.PREMIUM: AdapterBackedAIProvider(openai),

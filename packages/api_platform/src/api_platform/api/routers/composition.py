@@ -31,7 +31,7 @@ from dsp_platform.investment_provenance import (
     get_investment_provenance_store,
     new_analysis_id,
 )
-from llm_adapters import build_research_team_metadata
+from llm_adapters import UserResearchRequest, build_research_team_metadata
 
 router = APIRouter(tags=["composition"])
 
@@ -110,6 +110,26 @@ def analyse(
             company=body.company,
             exchange=body.exchange,
         )
+        orchestrator = getattr(state, "research_orchestrator", None)
+        if orchestrator is not None:
+            try:
+                research_req = UserResearchRequest(
+                    symbol=body.ticker,
+                    question=f"Synthesize deterministic evidence and research findings for {body.company or body.ticker}.",
+                    exchange=body.exchange,
+                    request_id=correlation_id or f"req-{body.ticker}",
+                )
+                orchestrator_outcome = orchestrator.run(research_req)
+                public_decision_pack = orchestrator_outcome.to_public()
+                public_payload["research_report"] = public_decision_pack.to_dict()
+            except Exception:  # noqa: BLE001
+                public_payload["research_report"] = None
+                if "limitations" in public_payload and isinstance(public_payload["limitations"], list):
+                    public_payload["limitations"].append(
+                        "Research orchestrator unavailable."
+                    )
+        else:
+            public_payload["research_report"] = None
     response = map_platform_result(
         platform_result,
         api_version=state.api_version,

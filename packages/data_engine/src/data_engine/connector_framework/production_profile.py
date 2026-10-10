@@ -22,6 +22,7 @@ __all__ = [
     "classify_provider_id",
     "adapter_is_production_unsafe",
     "adapter_is_production_unsafe_name",
+    "assert_production_investment_connectors_configured",
 ]
 
 P = TypeVar("P")
@@ -113,3 +114,37 @@ def adapter_is_production_unsafe_name(class_name: str) -> bool:
 def adapter_is_production_unsafe(adapter: Any) -> bool:
     """True when an adapter instance is Null/memory/demo class."""
     return adapter_is_production_unsafe_name(type(adapter).__name__)
+
+
+def assert_production_investment_connectors_configured() -> dict[str, str]:
+    """Fail closed unless both investment data adapters are real and configured."""
+    raw_provider = os.environ.get("DSP_INVESTMENT_DATA_PROVIDER", "").strip().lower()
+    if raw_provider not in {"", "auto", "http"}:
+        raise ConnectorConfigurationError(
+            f"P1-03: invalid DSP_INVESTMENT_DATA_PROVIDER={raw_provider!r}; "
+            "allowed values: http, auto (or unset); commercial vendors are disabled"
+        )
+
+    from data_engine.market_quote.adapters import build_default_quote_adapter_from_env
+    from data_engine.financial_statement.adapters import (
+        build_default_statement_adapter_from_env,
+    )
+
+    quote = build_default_quote_adapter_from_env()
+    statements = build_default_statement_adapter_from_env()
+    if is_production_environment():
+        if adapter_is_production_unsafe(quote):
+            raise ConnectorConfigurationError(
+                "P1-03: production market_quote connector is not configured; "
+                "configure DSP_MARKET_QUOTE_API_KEY and DSP_MARKET_QUOTE_BASE_URL"
+            )
+        if adapter_is_production_unsafe(statements):
+            raise ConnectorConfigurationError(
+                "P1-03: production financial_statement connector is not configured; "
+                "configure DSP_FINANCIAL_STATEMENT_API_KEY and "
+                "DSP_FINANCIAL_STATEMENT_BASE_URL"
+            )
+    return {
+        "market_quote": type(quote).__name__,
+        "financial_statement": type(statements).__name__,
+    }

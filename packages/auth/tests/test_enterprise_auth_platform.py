@@ -16,6 +16,7 @@ from auth import (
     reset_role_registry_for_tests,
 )
 from auth.oauth_providers import OAuthProfile, OAuthProviderRegistry
+from auth.email_delivery import NullEmailAdapter
 from auth.otp import OtpService
 from auth.sms import DevSmsAdapter
 from persistence import (
@@ -95,6 +96,20 @@ def test_production_admin_seed_requires_explicit_password(
             oauth=OAuthProviderRegistry({}),
             otp=OtpService(DevSmsAdapter()),
         )
+
+
+def test_email_recovery_reports_unavailable_before_account_lookup() -> None:
+    platform = _platform()
+    platform.email = NullEmailAdapter()
+
+    def unexpected_lookup(_email: str):
+        pytest.fail("email recovery must check provider availability before lookup")
+
+    platform._get_by_email = unexpected_lookup  # type: ignore[method-assign]
+    result = platform.request_password_reset("person@example.com")
+
+    assert result["ok"] is True
+    assert result["recovery_available"] is False
 
 
 def test_registration_verify_and_login() -> None:

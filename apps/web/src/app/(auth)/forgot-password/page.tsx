@@ -24,7 +24,7 @@ import {
 import { enterpriseAuthApi } from "@/lib/api/enterpriseAuth";
 import { SUPPORT_CONTACT } from "@/lib/commercial";
 
-type Step = "identifier" | "otp" | "password" | "emailSent" | "done";
+type Step = "identifier" | "otp" | "password" | "emailSent" | "emailUnavailable" | "done";
 
 export default function ForgotPasswordPage() {
   const [step, setStep] = useState<Step>("identifier");
@@ -52,9 +52,13 @@ export default function ForgotPasswordPage() {
         throw new Error(envelope.error || "Unable to start password recovery.");
       }
       if (id.includes("@")) {
-        // The backend intentionally returns an opaque success response for
-        // email recovery; never reveal whether an account exists.
-        setStep("emailSent");
+        // The backend reports provider availability before account lookup, so
+        // this status does not reveal whether the email belongs to an account.
+        setStep(
+          envelope.result?.recovery_available === false
+            ? "emailUnavailable"
+            : "emailSent",
+        );
         return;
       }
       const cid = envelope.result?.challenge_id;
@@ -122,6 +126,18 @@ export default function ForgotPasswordPage() {
         description="Recover access using the email address or verified mobile number already stored on your account."
       >
         <Stack gap={4}>
+          {step === "emailUnavailable" ? (
+            <>
+              <Alert variant="info" title="Email recovery unavailable">
+                Email password recovery is not configured for this deployment.
+                Contact your administrator or support team to regain access.
+              </Alert>
+              <Link href="/login">
+                <Button className="w-full">Back to sign in</Button>
+              </Link>
+            </>
+          ) : null}
+
           {step === "emailSent" ? (
             <>
               <Alert variant="success" title="Check your email">
@@ -229,7 +245,7 @@ export default function ForgotPasswordPage() {
             </form>
           ) : null}
 
-          {step !== "done" && step !== "emailSent" ? (
+          {step !== "done" && step !== "emailSent" && step !== "emailUnavailable" ? (
             <Link href="/login" className="text-center text-sm text-[var(--accent)] underline">
               Back to sign in
             </Link>

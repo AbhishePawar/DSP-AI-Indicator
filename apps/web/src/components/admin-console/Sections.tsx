@@ -166,11 +166,12 @@ export function IdentitySection({
       if (token && token !== "__cookie__") {
         (headers as Record<string, string>).Authorization = `Bearer ${token}`;
       }
-      const base =
-        (await import("@/lib/env")).env.apiBaseUrl +
+      const { buildApiUrl } = await import("@/lib/env");
+      const base = buildApiUrl(
         `/auth/enterprise/admin/login-history${
           selectedUserId ? `?user_id=${encodeURIComponent(selectedUserId)}` : ""
-        }`;
+        }`,
+      );
       const { cookieAuthPreferred, cookieFetchInit } = await import(
         "@/lib/auth/cookieSession"
       );

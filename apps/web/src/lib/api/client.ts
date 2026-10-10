@@ -1,6 +1,6 @@
 /** HTTP client for `/api/v1` only — no DSP Platform imports. */
 
-import { buildApiUrl, env } from "@/lib/env";
+import { buildApiUrl } from "@/lib/env";
 import type {
   AnalyseRequest,
   AnalyseResponse,
@@ -457,19 +457,59 @@ export const api = {
     body: import("@/lib/api/copilotTypes").CopilotCompleteRequestBody,
     options?: RequestOptions,
   ) => {
+    const token = options?.token;
+    const cookieMode =
+      process.env.NEXT_PUBLIC_COOKIE_AUTH !== "false" &&
+      process.env.NEXT_PUBLIC_COOKIE_AUTH !== "0";
+
     const headers = new Headers();
     headers.set("Accept", "text/event-stream");
     headers.set("Content-Type", "application/json");
-    if (options?.token) {
-      headers.set("Authorization", `Bearer ${options.token}`);
+
+    if (!cookieMode && token && token !== "__cookie__") {
+      headers.set("Authorization", `Bearer ${token}`);
     }
-    const url = `${env.apiBaseUrl}/copilot/stream`;
-    const response = await fetch(url, {
-      method: "POST",
-      headers,
-      body: JSON.stringify(body),
-      signal: options?.signal,
-    });
+
+    if (cookieMode && typeof window !== "undefined") {
+      try {
+        const { csrfHeaders } = await import("@/lib/auth/cookieSession");
+        const csrf = csrfHeaders();
+        for (const [k, v] of Object.entries(csrf)) {
+          if (!headers.has(k)) headers.set(k, v);
+        }
+      } catch {
+        // CSRF token storage unavailable
+      }
+    }
+
+    const url = buildApiUrl("/copilot/stream");
+    let response: Response;
+    try {
+      response = await fetch(url, {
+        method: "POST",
+        headers,
+        body: JSON.stringify(body),
+        signal: options?.signal,
+        credentials: cookieMode ? "include" : undefined,
+      });
+    } catch (err) {
+      const aborted =
+        options?.signal?.aborted ||
+        (err instanceof DOMException && err.name === "AbortError");
+      throw new ApiClientError(
+        aborted ? "Request timed out or was cancelled" : "API unavailable",
+        aborted ? 408 : 0,
+        {
+          ok: false,
+          error: aborted ? "TIMEOUT" : "NETWORK_ERROR",
+          detail: aborted
+            ? "Request timed out or was cancelled"
+            : "Unable to reach the API service",
+          api_version: "v1",
+          status_code: aborted ? 408 : 0,
+        },
+      );
+    }
     if (!response.ok || !response.body) {
       throw new ApiClientError(`HTTP ${response.status}`, response.status);
     }
@@ -1870,8 +1910,16 @@ export const api = {
         clearStoredSession();
       } catch {}
       try {
+        const { useAuthStore } = await import("@/lib/auth/authStore");
+        useAuthStore.getState().reset();
+      } catch {}
+      try {
         const { clearResearchSession } = await import("@/lib/research/sessionStore");
         clearResearchSession();
+      } catch {}
+      try {
+        const { clearResearchArchive } = await import("@/lib/copilot/sessionArchive");
+        clearResearchArchive();
       } catch {}
       try {
         const { clearRecentAnalyses } = await import("@/lib/analysis/recentAnalyses");
@@ -1880,6 +1928,9 @@ export const api = {
       try {
         const { clearMarketCache } = await import("@/lib/market/cache");
         clearMarketCache();
+      } catch {}
+      try {
+        window.sessionStorage.removeItem("dsp.oauth.pending");
       } catch {}
     }
     return result;

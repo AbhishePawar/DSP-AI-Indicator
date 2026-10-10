@@ -1,6 +1,6 @@
 /** Enterprise multi-provider auth client — `/auth/enterprise/*`. */
 
-import { env } from "@/lib/env";
+import { buildApiUrl } from "@/lib/env";
 import { ApiClientError, type ApiErrorBody } from "@/lib/api/types";
 import {
   cookieAuthPreferred,
@@ -65,7 +65,7 @@ async function enterpriseRequest<T>(
     headers.set("Authorization", `Bearer ${token}`);
   }
 
-  const url = `${env.apiBaseUrl}${path.startsWith("/") ? path : `/${path}`}`;
+  const url = buildApiUrl(path);
   const fetchInit = cookieAuthPreferred()
     ? cookieFetchInit({ ...init, headers })
     : { ...init, headers };

@@ -337,6 +337,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     clearResearchSession();
     clearRecentAnalyses();
     clearMarketCache();
+    try {
+      const { clearResearchArchive } = await import("@/lib/copilot/sessionArchive");
+      clearResearchArchive();
+    } catch {}
+    if (typeof window !== "undefined") {
+      try {
+        window.sessionStorage.removeItem("dsp.oauth.pending");
+      } catch {}
+    }
     logger.info("User signed out", { subject });
   }, [applySession, session]);
 

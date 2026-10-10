@@ -6,7 +6,7 @@
  * compatibility fallback when cookie auth is disabled.
  */
 
-import { env } from "@/lib/env";
+import { buildApiUrl } from "@/lib/env";
 
 const CSRF_STORAGE_KEY = "dsp.auth.csrf.v1";
 const META_STORAGE_KEY = "dsp.auth.meta.v1";
@@ -120,7 +120,7 @@ export async function probeCookieSession(): Promise<{
       : null;
     let response: Response;
     try {
-      response = await fetch(`${env.apiBaseUrl}/auth/session`, {
+      response = await fetch(buildApiUrl("/auth/session"), {
         method: "GET",
         credentials: "include",
         headers: { Accept: "application/json" },

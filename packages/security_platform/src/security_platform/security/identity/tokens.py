@@ -225,16 +225,64 @@ class TokenService:
             raise AuthenticationError("refresh token expired")
         if rec.user_id != user.user_id:
             raise AuthenticationError("refresh token user mismatch")
+        session_id = rec.session_id
+        session = self._sessions.get(session_id) if session_id else None
+        if session_id and session is None:
+            raise AuthenticationError("session revoked or expired")
+        remember = session.remember_me if session else False
         self._refresh.revoke(rec.token_hash)
-        remember = False
-        session = self._sessions.get(rec.session_id)
-        if session is not None:
-            remember = session.remember_me
-            self._sessions.delete(rec.session_id)
-        return self.issue_pair(user, remember_me=remember)
+
+        now = datetime.now(tz=UTC)
+        refresh_ttl = self._remember_ttl if remember else self._refresh_ttl
+        if not session_id:
+            session_id = str(uuid.uuid4())
+            session = SessionRecord(
+                session_id=session_id,
+                user_id=user.user_id,
+                expires_at=now + timedelta(seconds=refresh_ttl),
+                remember_me=remember,
+            )
+            self._sessions.create(session)
+        else:
+            self._sessions.touch(session_id)
+
+        jti = str(uuid.uuid4())
+        access = self._jwt.issue(
+            subject=user.user_id,
+            role=user.role,
+            username=user.username,
+            ttl_seconds=self._access_ttl,
+            token_id=jti,
+            extra={"sid": session_id},
+        )
+        raw_refresh = secrets.token_urlsafe(48)
+        self._refresh.save(
+            RefreshTokenRecord(
+                token_hash=hash_token(raw_refresh),
+                user_id=user.user_id,
+                session_id=session_id,
+                expires_at=now + timedelta(seconds=refresh_ttl),
+                family_id=rec.family_id or str(uuid.uuid4()),
+            )
+        )
+        return TokenPair(
+            access_token=access,
+            refresh_token=raw_refresh,
+            expires_in=self._access_ttl,
+            session_id=session_id,
+        )
+
+    def get_refresh_record(self, refresh_token: str) -> RefreshTokenRecord | None:
+        return self._refresh.get(hash_token(refresh_token))
 
     def revoke_refresh(self, refresh_token: str) -> None:
         self._refresh.revoke(hash_token(refresh_token))
+
+    def revoke_session(self, session_id: str) -> None:
+        self._sessions.delete(session_id)
+
+    def get_session(self, session_id: str) -> SessionRecord | None:
+        return self._sessions.get(session_id)
 
     def revoke_user(self, user_id: str) -> None:
         self._refresh.revoke_all_for_user(user_id)

@@ -231,4 +231,26 @@ describe("cookie-preferred JWT Web Storage restriction", () => {
     );
     expect(legacy.accessToken).toBe("legacy-access");
   });
+  it("sessionFromLoginPayload supports cookie auth and CSRF without storing raw JWT", () => {
+    const session = sessionFromLoginPayload(
+      {
+        access_token: "backend-token",
+        token_type: "bearer",
+        role: "admin",
+        subject: "u-legacy",
+        username: "admin",
+        auth_method: "username",
+        cookie_auth: true,
+        csrf_token: "csrf-legacy-token",
+      },
+      false,
+    );
+    expect(session.accessToken).toBe(COOKIE_TOKEN_PLACEHOLDER);
+    expect(session.refreshToken).toBeNull();
+    expect(session.authMethod).toBe("cookie");
+    persistSession(session);
+    expect(readStoredSession()?.accessToken).toBe(COOKIE_TOKEN_PLACEHOLDER);
+    expect(readCsrfToken()).toBe("csrf-legacy-token");
+    expect(window.sessionStorage.getItem("dsp.auth.session.v3")).toBeNull();
+  });
 });

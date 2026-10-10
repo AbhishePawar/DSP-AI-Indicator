@@ -1,6 +1,6 @@
 /** HTTP client for `/api/v1` only — no DSP Platform imports. */
 
-import { env } from "@/lib/env";
+import { buildApiUrl, env } from "@/lib/env";
 import type {
   AnalyseRequest,
   AnalyseResponse,
@@ -252,7 +252,7 @@ async function request<T>(
     headers.set("Authorization", `Bearer ${token}`);
   }
 
-  const url = `${env.apiBaseUrl}${path.startsWith("/") ? path : `/${path}`}`;
+  const url = buildApiUrl(path);
 
   let response: Response;
   try {
@@ -1849,4 +1849,39 @@ export const api = {
       { method: "POST", body: JSON.stringify(body) },
       options,
     ),
+  /**
+   * Terminate session on backend and clear local session / research caches.
+   * Sends CSRF token and credentials in cookie mode.
+   */
+  logout: async (options?: RequestOptions): Promise<{ ok: boolean }> => {
+    let result = { ok: false };
+    try {
+      result = await request<{ ok: boolean }>(
+        "/auth/logout",
+        { method: "POST" },
+        options,
+      );
+    } catch {
+      // Continue client cleanup even if network or server logout fails
+    }
+    if (typeof window !== "undefined") {
+      try {
+        const { clearStoredSession } = await import("@/lib/auth/sessionStore");
+        clearStoredSession();
+      } catch {}
+      try {
+        const { clearResearchSession } = await import("@/lib/research/sessionStore");
+        clearResearchSession();
+      } catch {}
+      try {
+        const { clearRecentAnalyses } = await import("@/lib/analysis/recentAnalyses");
+        clearRecentAnalyses();
+      } catch {}
+      try {
+        const { clearMarketCache } = await import("@/lib/market/cache");
+        clearMarketCache();
+      } catch {}
+    }
+    return result;
+  },
 };

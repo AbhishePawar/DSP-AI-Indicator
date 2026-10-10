@@ -31,8 +31,9 @@ import {
   extractMfaChallenge,
   navigateAfterLogin,
   persistEnterpriseSession,
+  resolvePostLoginDestination,
 } from "@/lib/auth/finishEnterpriseSession";
-import { isAuthPublicPath, isMarketingPath, normalizePath } from "@/lib/auth/routeGuards";
+import { normalizePath } from "@/lib/auth/routeGuards";
 import { sessionFromRbacLogin } from "@/lib/auth/sessionStore";
 import type { MfaChallengeInfo } from "@/lib/auth/types";
 import { useAuthProviders } from "@/lib/auth/useAuthProviders";
@@ -80,8 +81,8 @@ export default function LoginForm() {
 
   useEffect(() => {
     if (status === "authenticated" && session && !mfaChallenge) {
-      const isAuthScreen = !isMarketingPath(nextPath) && isAuthPublicPath(nextPath);
-      router.replace(isAuthScreen ? "/dashboard" : nextPath);
+      const destination = resolvePostLoginDestination(nextPath);
+      router.replace(destination);
     }
   }, [status, session, mfaChallenge, nextPath, router]);
 

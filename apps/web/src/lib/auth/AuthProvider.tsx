@@ -11,11 +11,11 @@ import {
   type ReactNode,
 } from "react";
 
-import { api, setApiAuthFailureHandler } from "@/lib/api/client";
+import { setApiAuthFailureHandler } from "@/lib/api/client";
 import { enterpriseAuthApi } from "@/lib/api/enterpriseAuth";
 import { rbacAuthApi } from "@/lib/api/rbacAuth";
 import { ApiClientError } from "@/lib/api/types";
-import { env } from "@/lib/env";
+import { buildApiUrl } from "@/lib/env";
 import { logger } from "@/lib/observability/logger";
 import { useAuthStore } from "./authStore";
 import {
@@ -326,7 +326,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         method: "POST",
         headers: { Accept: "application/json" },
       });
-      await fetch(`${env.apiBaseUrl}/auth/logout`, logoutInit);
+      await fetch(buildApiUrl("/auth/logout"), logoutInit);
     } catch (error) {
       logger.warn("Cookie logout failed — clearing local session", {
         error: error instanceof Error ? error.message : String(error),

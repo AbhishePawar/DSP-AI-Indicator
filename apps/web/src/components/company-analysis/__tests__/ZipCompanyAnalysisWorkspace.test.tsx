@@ -512,16 +512,25 @@ describe("Stage 3 Research Workspace Data-State and Adapter Contract", () => {
   });
 
   describe("Company Analysis Navigation and Information Architecture", () => {
-    const renderWorkspace = () => {
+    const renderWorkspace = (initialResponse?: AnalyseResponse) => {
       const queryClient = new QueryClient({
         defaultOptions: {
           queries: { retry: false },
           mutations: { retry: false },
         },
       });
+      const response =
+        initialResponse ??
+        ({
+          ok: true,
+          schema_version: "2.0.0",
+          ticker: "TCS",
+          exchange: "NSE",
+          payload: { company: "Tata Consultancy Services" },
+        } as unknown as AnalyseResponse);
       return render(
         <QueryClientProvider client={queryClient}>
-          <ZipCompanyAnalysisWorkspace />
+          <ZipCompanyAnalysisWorkspace initialResponse={response} />
         </QueryClientProvider>
       );
     };

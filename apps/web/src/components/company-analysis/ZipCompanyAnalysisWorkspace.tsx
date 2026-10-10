@@ -4,6 +4,7 @@ import React, { useState, useRef, useEffect, useCallback, useMemo } from "react"
 import { useRouter, useSearchParams } from "next/navigation";
 import { useMutation } from "@tanstack/react-query";
 import { api } from "@/lib/api/client";
+import { ApiClientError } from "@/lib/api/types";
 import type { AnalyseRequest, AnalyseResponse } from "@/lib/api/compositionTypes";
 import {
   mapZipResearchView,
@@ -26,7 +27,8 @@ export type AnalysisPhase =
   | "simple-loading"
   | "simple-result"
   | "buffett-loading"
-  | "buffett-result";
+  | "buffett-result"
+  | "error";
 
 export const SIMPLE_TOC_GROUPS = [
   {
@@ -2424,17 +2426,194 @@ export function ResearchChatDrawer({
   );
 }
 
+function getStatusCode(error: unknown): number {
+  if (error && typeof error === "object") {
+    if ("status" in error && typeof (error as { status: unknown }).status === "number") {
+      return (error as { status: number }).status;
+    }
+    if ("status_code" in error && typeof (error as { status_code: unknown }).status_code === "number") {
+      return (error as { status_code: number }).status_code;
+    }
+  }
+  return 0;
+}
+
+function AnalysisErrorState({
+  error,
+  symbol,
+  onRetry,
+  onBack,
+}: {
+  error: Error | ApiClientError | null;
+  symbol: string;
+  onRetry: () => void;
+  onBack: () => void;
+}) {
+  const router = useRouter();
+  const statusCode = getStatusCode(error);
+
+  const isAuth = statusCode === 401;
+  const isForbidden = statusCode === 403;
+  const isTimeout = statusCode === 408;
+  const isValidation = statusCode === 422;
+
+  const title = isAuth
+    ? "Authentication Required"
+    : isForbidden
+    ? "Access Forbidden"
+    : isTimeout
+    ? "Request Timed Out"
+    : isValidation
+    ? "Invalid Request"
+    : "Analysis Failed";
+
+  const message =
+    isAuth
+      ? "Please sign in to access stock research and financial analysis."
+      : isForbidden
+      ? "You do not have permission to access research for this instrument."
+      : isTimeout
+      ? "The analysis request took too long to complete. Please try again."
+      : isValidation
+      ? error?.message || "Invalid symbol or parameter provided."
+      : error?.message || "An unexpected error occurred while analysing the requested company.";
+
+  return (
+    <div
+      role="alert"
+      style={{
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        justifyContent: "center",
+        minHeight: "60vh",
+        padding: "32px 16px",
+        textAlign: "center",
+      }}
+    >
+      <div
+        style={{
+          maxWidth: 520,
+          width: "100%",
+          padding: 32,
+          borderRadius: 8,
+          border: "1px solid var(--border)",
+          background: "var(--card)",
+        }}
+      >
+        <div
+          style={{
+            fontSize: 11,
+            fontFamily: "var(--font-data)",
+            color: "var(--muted-foreground)",
+            letterSpacing: "0.1em",
+            textTransform: "uppercase",
+            marginBottom: 8,
+          }}
+        >
+          {statusCode ? `Error ${statusCode}` : "Error"}
+        </div>
+        <h2
+          style={{
+            fontSize: 20,
+            fontWeight: 600,
+            color: "var(--foreground)",
+            marginBottom: 12,
+          }}
+        >
+          {title}
+        </h2>
+        <p
+          style={{
+            fontSize: 14,
+            color: "var(--muted-foreground)",
+            lineHeight: 1.6,
+            marginBottom: 24,
+          }}
+        >
+          {message}
+        </p>
+
+        <div style={{ display: "flex", gap: 12, justifyContent: "center" }}>
+          {isAuth ? (
+            <button
+              type="button"
+              onClick={() => {
+                const current =
+                  typeof window !== "undefined"
+                    ? window.location.pathname + window.location.search
+                    : `/analysis?symbol=${encodeURIComponent(symbol)}`;
+                router.push(`/login?next=${encodeURIComponent(current)}`);
+              }}
+              style={{
+                padding: "8px 20px",
+                borderRadius: 6,
+                background: "var(--c-dsp, #3b82f6)",
+                color: "#fff",
+                border: "none",
+                fontWeight: 500,
+                cursor: "pointer",
+              }}
+            >
+              Sign In
+            </button>
+          ) : (
+            <button
+              type="button"
+              onClick={onRetry}
+              style={{
+                padding: "8px 20px",
+                borderRadius: 6,
+                background: "var(--c-dsp, #3b82f6)",
+                color: "#fff",
+                border: "none",
+                fontWeight: 500,
+                cursor: "pointer",
+              }}
+            >
+              Retry Analysis
+            </button>
+          )}
+          <button
+            type="button"
+            onClick={onBack}
+            style={{
+              padding: "8px 16px",
+              borderRadius: 6,
+              background: "transparent",
+              color: "var(--foreground)",
+              border: "1px solid var(--border)",
+              cursor: "pointer",
+            }}
+          >
+            Back
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ─── Main Workspace Root ─────────────────────────────────────────────────────
 
-export function ZipCompanyAnalysisWorkspace() {
-  const router = useRouter();
+export function ZipCompanyAnalysisWorkspace({
+  initialResponse,
+}: {
+  initialResponse?: AnalyseResponse;
+} = {}) {
   const searchParams = useSearchParams();
   const searchParamSymbol = searchParams.get("symbol") || searchParams.get("ticker");
   const initialSymbol = searchParamSymbol || "TCS.NS";
 
-  const [phase, setPhase] = useState<AnalysisPhase>(
-    searchParamSymbol ? "workspace-ready" : "select"
+  const [loadedData, setLoadedData] = useState<AnalyseResponse | null>(
+    initialResponse ?? null
   );
+  const [analysisError, setAnalysisError] = useState<ApiClientError | Error | null>(null);
+
+  const [phase, setPhase] = useState<AnalysisPhase>(() => {
+    if (initialResponse) return "workspace-ready";
+    return searchParamSymbol ? "simple-loading" : "select";
+  });
   const [symbol, setSymbol] = useState(initialSymbol);
   const initialMode: ResearchMode =
     searchParams.get("mode") === "simple" ? "simple" : "buffett";
@@ -2448,6 +2627,7 @@ export function ZipCompanyAnalysisWorkspace() {
   const mobileNavTriggerRef = useRef<HTMLButtonElement | null>(null);
   const closeButtonRef = useRef<HTMLButtonElement | null>(null);
   const prevTocOpen = useRef(false);
+  const executedSymbolRef = useRef<string | null>(null);
 
   useEffect(() => {
     if (tocOpen) {
@@ -2473,21 +2653,44 @@ export function ZipCompanyAnalysisWorkspace() {
 
   const sectionRefs = useRef<Record<string, HTMLDivElement | null>>({});
 
-  const { runWithDisclaimer, gate } = useResearchDisclaimerGate();
+  const { gate } = useResearchDisclaimerGate();
 
   const analyseMutation = useMutation({
     mutationFn: async (req: AnalyseRequest) => {
       const resp = await api.analyse(req);
+      if (!resp || !resp.ok) {
+        const errMsg = resp?.errors?.[0] || "Analysis request failed";
+        throw new ApiClientError(
+          errMsg,
+          500,
+          {
+            ok: false,
+            error: "AnalysisError",
+            detail: errMsg,
+            message: errMsg,
+            api_version: "v1",
+            status_code: 500,
+          }
+        );
+      }
       return resp;
     },
     onSuccess: (data, variables) => {
+      setLoadedData(data);
+      setAnalysisError(null);
+      setPhase(mode === "simple" ? "simple-result" : "buffett-result");
       pushRecentAnalysis({
         ticker: variables.ticker,
-        company: variables.ticker,
+        company: (data.payload as { company?: string } | undefined)?.company || variables.ticker,
         exchange: variables.exchange || "US",
         recommendation: "Analysed",
         analysedAt: new Date().toISOString(),
       });
+    },
+    onError: (err: ApiClientError | Error) => {
+      setAnalysisError(err);
+      setLoadedData(null);
+      setPhase("error");
     },
   });
 
@@ -2500,6 +2703,7 @@ export function ZipCompanyAnalysisWorkspace() {
       const targetMode: ResearchMode = targetPhase === "simple-loading" ? "simple" : "buffett";
       setMode(targetMode);
       setPhase(targetPhase);
+      setAnalysisError(null);
       if (targetMode === "simple") {
         setChatOpen(false);
         setChatCtx("");
@@ -2511,7 +2715,7 @@ export function ZipCompanyAnalysisWorkspace() {
           url.searchParams.set("mode", targetMode === "simple" ? "simple" : "full");
           url.searchParams.set("intent", targetMode === "simple" ? ANALYSIS_INTENTS.company : ANALYSIS_INTENTS.dspIndicator);
           window.history.replaceState({}, "", url.toString());
-        } catch (_) {}
+        } catch {}
       }
       const req: AnalyseRequest = {
         ticker: sym,
@@ -2520,6 +2724,15 @@ export function ZipCompanyAnalysisWorkspace() {
     },
     [symbol, analyseMutation]
   );
+
+  useEffect(() => {
+    if (initialResponse) return;
+    if (searchParamSymbol && executedSymbolRef.current !== searchParamSymbol) {
+      executedSymbolRef.current = searchParamSymbol;
+      const targetPhase = initialMode === "simple" ? "simple-loading" : "buffett-loading";
+      runAnalysis(targetPhase, searchParamSymbol);
+    }
+  }, [searchParamSymbol, initialMode, initialResponse, runAnalysis]);
 
   useEffect(() => {
     if (phase !== "buffett-result" && phase !== "simple-result" && phase !== "workspace-ready") return;
@@ -2554,14 +2767,20 @@ export function ZipCompanyAnalysisWorkspace() {
     sectionRefs.current[id] = el;
   };
 
-  const viewModel: ZipResearchViewModel = useMemo(() => {
-    const raw = analyseMutation.data;
-    const req: AnalyseRequest = { ticker: symbol };
-    if (raw) {
-      return mapZipResearchView(raw, req);
+  const activeResponse = loadedData ?? analyseMutation.data;
+  const hasValidResult = Boolean(
+    activeResponse &&
+      activeResponse.ok &&
+      (phase === "buffett-result" || phase === "simple-result" || phase === "workspace-ready")
+  );
+
+  const viewModel: ZipResearchViewModel | null = useMemo(() => {
+    if (!activeResponse || !activeResponse.ok) {
+      return null;
     }
-    return mapZipResearchView({} as AnalyseResponse, req);
-  }, [analyseMutation.data, symbol]);
+    const req: AnalyseRequest = { ticker: symbol };
+    return mapZipResearchView(activeResponse, req);
+  }, [activeResponse, symbol]);
 
   return (
     <div
@@ -2576,6 +2795,18 @@ export function ZipCompanyAnalysisWorkspace() {
     >
       {gate}
 
+      {phase === "error" && (
+        <AnalysisErrorState
+          error={analysisError}
+          symbol={symbol}
+          onRetry={() => {
+            executedSymbolRef.current = null;
+            runAnalysis(mode === "simple" ? "simple-loading" : "buffett-loading");
+          }}
+          onBack={() => setPhase("select")}
+        />
+      )}
+
       {phase === "select" && (
         <SelectionScreen
           symbol={symbol}
@@ -2588,13 +2819,10 @@ export function ZipCompanyAnalysisWorkspace() {
         <StagedLoader
           steps={phase === "simple-loading" ? LOADING_STEPS.slice(0, 4) : LOADING_STEPS}
           active={true}
-          onDone={() => {
-            setPhase(phase === "simple-loading" ? "simple-result" : "buffett-result");
-          }}
         />
       )}
 
-      {(phase === "buffett-result" || phase === "simple-result" || phase === "workspace-ready") && (
+      {hasValidResult && viewModel && (
         <div style={{ display: "flex", flex: 1, flexDirection: "column", overflow: "hidden" }}>
           <CompanyHeader
             model={viewModel}
@@ -3061,11 +3289,11 @@ export function ZipCompanyAnalysisWorkspace() {
           {mode === "buffett" && phase === "buffett-result" && (
             <ResearchChatDrawer
               symbol={symbol}
-              analysisId={analyseMutation.data?.analysis_id ? analyseMutation.data.analysis_id : undefined}
+              analysisId={activeResponse?.analysis_id ? activeResponse.analysis_id : undefined}
               open={chatOpen}
               onClose={() => setChatOpen(false)}
               initCtx={chatCtx}
-              analyseResponse={analyseMutation.data}
+              analyseResponse={activeResponse ?? undefined}
             />
           )}
         </div>

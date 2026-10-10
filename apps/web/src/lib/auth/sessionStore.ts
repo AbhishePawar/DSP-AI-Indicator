@@ -109,18 +109,30 @@ function normalizeLegacy(raw: Record<string, unknown>): Session | null {
 }
 
 export function sessionFromLoginPayload(
-  payload: LoginPayload & { refresh_token?: string; session_id?: string },
+  payload: LoginPayload & {
+    refresh_token?: string;
+    session_id?: string;
+    csrf_token?: string;
+    cookie_auth?: boolean;
+  },
   rememberMe: boolean,
 ): Session {
-  if (cookieAuthPreferred()) {
+  if (cookieAuthPreferred() && !cookieAuthConfirmed(payload)) {
     throw new CookieSessionUnavailableError();
+  }
+  const useCookies = cookieAuthPreferred() && cookieAuthConfirmed(payload);
+  if (payload.csrf_token) {
+    persistCsrfToken(payload.csrf_token, rememberMe);
   }
   const issuedAt = new Date().toISOString();
   const username = payload.username ?? payload.subject;
-  const accessToken = payload.access_token;
+  const accessToken = useCookies
+    ? COOKIE_TOKEN_PLACEHOLDER
+    : payload.access_token;
+  const refreshToken = useCookies ? null : (payload.refresh_token ?? null);
   return {
     accessToken,
-    refreshToken: payload.refresh_token ?? null,
+    refreshToken,
     tokenType: payload.token_type,
     role: payload.role,
     roles: [payload.role],
@@ -129,10 +141,10 @@ export function sessionFromLoginPayload(
     username,
     displayName: username,
     email: null,
-    authMethod: payload.auth_method,
+    authMethod: useCookies ? "cookie" : payload.auth_method,
     sessionId: payload.session_id ?? null,
     issuedAt,
-    expiresAt: resolveExpiry(accessToken, issuedAt, rememberMe),
+    expiresAt: resolveExpiry(payload.access_token, issuedAt, rememberMe),
     rememberMe,
   };
 }

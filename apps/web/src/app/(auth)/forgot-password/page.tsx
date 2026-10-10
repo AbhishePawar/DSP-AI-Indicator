@@ -181,7 +181,7 @@ export default function ForgotPasswordPage() {
                 <ValidationMessage tone="error">{error}</ValidationMessage>
               ) : null}
               <Button type="submit" className="w-full" disabled={pending}>
-                {pending ? "Sending…" : "Send OTP"}
+                {pending ? "Sending…" : identifier.includes("@") ? "Send reset link" : "Send OTP"}
               </Button>
             </form>
           ) : null}

@@ -6,8 +6,8 @@ Mocked providers and DSP tools only. No paid API calls.
 from __future__ import annotations
 
 import json
-from typing import Any
 import threading
+from typing import Any
 
 from llm_adapters.model_tiers import ModelTier
 from llm_adapters.orchestrator import (
@@ -332,7 +332,9 @@ def _orchestrator(
 
 
 class BarrierProvider(ScriptedProvider):
-    def __init__(self, provider_id: str, model_label: str, barrier: threading.Barrier):
+    def __init__(
+        self, provider_id: str, model_label: str, barrier: threading.Barrier
+    ):
         super().__init__(provider_id, model_label, ["json"])
         self._barrier = barrier
 
@@ -714,7 +716,6 @@ def test_orchestrator_timeout_bounds_loop() -> None:
     # Passing 0.0s forces immediate timeout in loop
     outcome = orc.run(req, timeout_seconds=0.0)
     assert outcome.status is OrchestratorStatus.FAILED_CLOSED
-
 
 
 def test_dual_verification_runs_both_providers_concurrently() -> None:

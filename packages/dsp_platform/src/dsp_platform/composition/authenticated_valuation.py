@@ -235,6 +235,7 @@ def _resolve_shares(
     statement_shares = _sf(
         getattr(latest, "shares_outstanding", StatementField.missing())
     )
+    quote_shares = _qf(quote.shares_outstanding)
     if supplemental is not None:
         if supplemental.ticker.strip().upper() != ticker.strip().upper():
             raise AuthenticatedValuationError(
@@ -246,14 +247,18 @@ def _resolve_shares(
             supplemental = None
 
     if statement_shares is not None and statement_shares > 0:
-        if supplemental is not None:
-            relative_delta = abs(statement_shares - supplemental.shares) / max(
-                statement_shares, supplemental.shares
-            )
-            if relative_delta > 0.05:
-                raise AuthenticatedValuationError(
-                    f"{DATA_UNAVAILABLE} (verified share-count sources disagree)"
+        for other_shares in (
+            quote_shares,
+            supplemental.shares if supplemental is not None else None,
+        ):
+            if other_shares is not None and other_shares > 0:
+                relative_delta = abs(statement_shares - other_shares) / max(
+                    statement_shares, other_shares
                 )
+                if relative_delta > 0.05:
+                    raise AuthenticatedValuationError(
+                        f"{DATA_UNAVAILABLE} (share-count sources disagree)"
+                    )
         return float(statement_shares), {
             "source": "authenticated_financial_statement",
             "as_of": latest.period_end.isoformat(),
@@ -264,6 +269,14 @@ def _resolve_shares(
         ticker, (supplemental,) if supplemental is not None else ()
     )
     if resolved is not None:
+        if quote_shares is not None and quote_shares > 0:
+            relative_delta = abs(resolved.shares - quote_shares) / max(
+                resolved.shares, quote_shares
+            )
+            if relative_delta > 0.05:
+                raise AuthenticatedValuationError(
+                    f"{DATA_UNAVAILABLE} (share-count sources disagree)"
+                )
         return float(resolved.shares), resolved.to_dict()
 
     # Do not use quote.shares_outstanding here: Upstox is approved for market

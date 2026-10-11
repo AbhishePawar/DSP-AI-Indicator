@@ -214,11 +214,25 @@ def _resolve_shares(
     quote: AuthenticatedMarketQuote,
     latest: AuthenticatedStatementPeriod,
 ) -> float:
-    """Require authenticated quote shares — never invent from NI/EPS."""
-    _ = latest  # EPS integrity checked separately against quote shares
-    shares = _qf(quote.shares_outstanding)
-    if shares is not None and shares > 0:
-        return float(shares)
+    """Resolve shares from verified fundamentals first; never infer from NI/EPS."""
+    statement_shares = _sf(latest.shares_outstanding)
+    quote_shares = _qf(quote.shares_outstanding)
+
+    if statement_shares is not None and statement_shares > 0:
+        # If both sources provide the same metric but materially disagree, do not
+        # silently choose a number: the source contract may be mixing definitions.
+        if quote_shares is not None and quote_shares > 0:
+            relative_delta = abs(statement_shares - quote_shares) / max(
+                statement_shares, quote_shares
+            )
+            if relative_delta > 0.05:
+                raise AuthenticatedValuationError(
+                    f"{DATA_UNAVAILABLE} (share-count sources disagree)"
+                )
+        return float(statement_shares)
+
+    if quote_shares is not None and quote_shares > 0:
+        return float(quote_shares)
     raise AuthenticatedValuationError(
         f"{DATA_UNAVAILABLE} (authenticated shares outstanding unavailable)"
     )

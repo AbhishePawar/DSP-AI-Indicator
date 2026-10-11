@@ -255,6 +255,18 @@ export function ResearchResponse({ view }: { view: ResearchView }) {
                   : view.sourceAttribution.sharesOutstanding.toLocaleString(),
             },
             {
+              label: "Share-count source",
+              value: view.sourceAttribution.sharesSource,
+            },
+            {
+              label: "Share-count as of",
+              value: view.sourceAttribution.sharesAsOf,
+            },
+            {
+              label: "Share count verified",
+              value: view.sourceAttribution.sharesVerified ? "Yes" : "No / unavailable",
+            },
+            {
               label: "Source verification",
               value: view.sourceAttribution.status,
             },

@@ -71,6 +71,7 @@ def _seed_bundle():
                     "filing_date": "2025-02-01",
                     "reporting_currency": "USD",
                     "restated": False,
+                    "shares_outstanding": 100.0,
                     "income_statement": {
                         "revenue": 500.0,
                         "net_income": 100.0,

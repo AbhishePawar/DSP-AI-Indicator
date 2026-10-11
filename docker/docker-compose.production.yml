@@ -133,6 +133,40 @@ services:
       retries: 5
       start_period: 45s
 
+  # Optional internal Upstox market-data gateway. Disabled in the default
+  # production profile; enable explicitly after configuring server-side secrets.
+  market-data-gateway:
+    profiles: ["market-data"]
+    image: ${DSP_MARKET_GATEWAY_IMAGE:-dsp-market-data-gateway}:${DSP_MARKET_GATEWAY_TAG:-2.0.0}
+    build:
+      context: ..
+      dockerfile: docker/market-data-gateway.Dockerfile
+    restart: unless-stopped
+    environment:
+      DSP_MARKET_GATEWAY_API_KEY: ${DSP_MARKET_GATEWAY_API_KEY:-}
+      UPSTOX_ACCESS_TOKEN: ${UPSTOX_ACCESS_TOKEN:-${DSP_UPSTOX_ANALYTICS_TOKEN:-}}
+      UPSTOX_BASE_URL: ${UPSTOX_BASE_URL:-https://api.upstox.com}
+      DSP_MARKET_GATEWAY_FALLBACK_BASE_URL: ${DSP_MARKET_GATEWAY_FALLBACK_BASE_URL:-}
+      DSP_MARKET_GATEWAY_FALLBACK_API_KEY: ${DSP_MARKET_GATEWAY_FALLBACK_API_KEY:-}
+    expose:
+      - "8081"
+    networks:
+      - dsp_prod
+    read_only: true
+    tmpfs:
+      - /tmp:size=16m,noexec,nosuid
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    logging: *default-logging
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://127.0.0.1:8081/health/ready"]
+      interval: 20s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
+
   postgres:
     image: postgres:16-alpine
     restart: unless-stopped

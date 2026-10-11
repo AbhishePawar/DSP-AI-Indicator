@@ -30,7 +30,7 @@ from data_engine.financial_statement.service import (
 from data_engine.market_quote.models import AuthenticatedMarketQuote, QuoteField
 from data_engine.market_quote.service import MarketQuoteService
 from data_engine.source_governance import is_approved_source
-from dsp_platform.research_assembly.share_count import (
+from data_engine.share_count import (
     ShareCount,
     ShareCountPort,
     resolve_verified_share_count,

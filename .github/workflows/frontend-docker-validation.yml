@@ -1,0 +1,99 @@
+name: Frontend Docker Validation
+
+on:
+  push:
+    branches:
+      - fix/frontend-docker-build-context
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  EXPECTED_BRANCH: fix/frontend-docker-build-context
+
+jobs:
+  validate-frontend-docker:
+    name: Validate Frontend Docker Image
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Enforce branch guard (fail closed)
+        run: |
+          echo "Current ref_name: ${GITHUB_REF_NAME}"
+          echo "Expected branch: ${EXPECTED_BRANCH}"
+          if [ "${GITHUB_REF_NAME}" != "${EXPECTED_BRANCH}" ]; then
+            echo "::error::Target branch ${GITHUB_REF_NAME} does not match expected branch ${EXPECTED_BRANCH}. Halting."
+            exit 1
+          fi
+          echo "Commit SHA: ${GITHUB_SHA}"
+          git log -1 --format="Commit: %H%nAuthor: %an <%ae>%nDate: %ad%nSubject: %s"
+
+      - name: Verify template files and stage synthetic environment
+        run: |
+          set -euo pipefail
+          test -f .env.example
+          test -f .env.production.example
+          if grep -iE 'AKIA[0-9A-Z]{16}|ghp_[0-9a-zA-Z]{36}' .env.example .env.production.example; then
+            echo "::error::Templates contain potential credentials."
+            exit 1
+          fi
+          cp .env.example .env
+          cp .env.production.example .env.production
+          echo "Synthetic environment files staged from committed templates."
+
+      - name: Validate Compose configurations
+        run: |
+          set -euo pipefail
+          echo "=== 1. Validating local docker-compose.yml config ==="
+          docker compose -f docker/docker-compose.yml config -q
+          echo "Base compose configuration syntax valid."
+          echo "=== 2. Validating docker-compose.yml + prod overlay config ==="
+          docker compose -f docker/docker-compose.yml -f docker/docker-compose.prod.yml config -q
+          echo "Compose prod overlay configuration syntax valid."
+          echo "=== 3. Validating docker-compose.production.yml config ==="
+          docker compose -f docker/docker-compose.production.yml config -q
+          echo "Production compose configuration syntax valid."
+
+      - name: Build frontend with production Compose
+        run: |
+          set -euo pipefail
+          echo "=== Building web service via docker-compose.production.yml ==="
+          docker compose -f docker/docker-compose.production.yml build --progress=plain web
+
+      - name: Build frontend standalone directly
+        run: |
+          set -euo pipefail
+          echo "=== Building standalone frontend image with apps/web context ==="
+          docker build \
+            --progress=plain \
+            -f docker/frontend/Dockerfile \
+            --build-arg NEXT_PUBLIC_API_BASE_URL=/api/v1 \
+            --build-arg NEXT_PUBLIC_BUILD_TIMESTAMP=${GITHUB_SHA} \
+            -t dsp-web:validation-test \
+            apps/web
+
+      - name: Build backend API image (compatibility check)
+        run: |
+          set -euo pipefail
+          echo "=== Building API image from repository root ==="
+          docker build \
+            --progress=plain \
+            -f docker/backend/Dockerfile \
+            -t dsp-api:validation-test \
+            .
+
+      - name: Inspect generated images
+        run: |
+          set -euo pipefail
+          echo "=== Inspecting produced image tags and architecture metadata ==="
+          docker image inspect dsp-web:validation-test --format 'RepoTags: {{json .RepoTags}}, Size: {{.Size}}, Architecture: {{.Architecture}}'
+          docker image inspect dsp-api:validation-test --format 'RepoTags: {{json .RepoTags}}, Size: {{.Size}}, Architecture: {{.Architecture}}'
+
+      - name: Cleanup synthetic environment files
+        if: always()
+        run: |
+          rm -f .env .env.production
+          echo "Synthetic environment files removed."

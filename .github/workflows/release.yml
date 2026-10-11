@@ -280,7 +280,7 @@ jobs:
           docker build -f docker/backend/Dockerfile -t dsp-api:${{ github.ref_name }} .
           docker build -f docker/frontend/Dockerfile \
             --build-arg NEXT_PUBLIC_BUILD_TIMESTAMP=${{ github.sha }} \
-            -t dsp-web:${{ github.ref_name }} .
+            -t dsp-web:${{ github.ref_name }} apps/web
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2

@@ -22,6 +22,7 @@ from dsp_platform.research_assembly.share_count import (
     InMemoryShareCountPort,
     ShareCount,
     ShareCountPort,
+    resolve_verified_share_count,
 )
 
 __all__ = [
@@ -40,4 +41,5 @@ __all__ = [
     "InMemoryShareCountPort",
     "ShareCount",
     "ShareCountPort",
+    "resolve_verified_share_count",
 ]

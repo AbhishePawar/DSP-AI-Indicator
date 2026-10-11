@@ -88,7 +88,9 @@ def resolve_verified_share_count(
         source = candidate.source.strip().upper()
         if not is_approved_source(source, purpose=candidate.purpose):
             continue
-        if source in SECONDARY_SOURCES and candidate.purpose not in {"cross_check", "verification"}:
+        if source in SECONDARY_SOURCES and candidate.purpose not in {
+            "cross_check", "verification"
+        }:
             continue
         if source not in PRIMARY_SOURCES and source not in SECONDARY_SOURCES:
             continue
@@ -97,10 +99,14 @@ def resolve_verified_share_count(
     primary = [row for row in accepted if row.source.strip().upper() in PRIMARY_SOURCES]
     if not primary:
         return None
-    primary.sort(key=lambda row: (row.as_of, row.source.strip().upper()), reverse=True)
+    primary.sort(
+        key=lambda row: (row.as_of, row.source.strip().upper()), reverse=True
+    )
     chosen = primary[0]
     for other in accepted:
-        relative_delta = abs(chosen.shares - other.shares) / max(chosen.shares, other.shares)
+        relative_delta = abs(chosen.shares - other.shares) / max(
+            chosen.shares, other.shares
+        )
         if relative_delta > tolerance:
             raise ValueError("verified share-count sources disagree beyond tolerance")
     return chosen

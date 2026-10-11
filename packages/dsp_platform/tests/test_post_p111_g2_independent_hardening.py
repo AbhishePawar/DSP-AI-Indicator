@@ -111,5 +111,7 @@ def test_material_share_count_conflict_fails_closed() -> None:
         eps_basic=SimpleNamespace(available=True, value=1.0),
         eps_diluted=SimpleNamespace(available=True, value=1.0),
     )
-    with pytest.raises(AuthenticatedValuationError, match="share-count sources disagree"):
+    with pytest.raises(
+        AuthenticatedValuationError, match="share-count sources disagree"
+    ):
         _resolve_shares(quote, latest)  # type: ignore[arg-type]

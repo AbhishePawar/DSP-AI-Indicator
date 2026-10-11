@@ -167,12 +167,18 @@ describe("mapResearchView", () => {
       quote_source_type: "market_data",
       quote_retrieved_at: "2026-10-11T10:01:00Z",
       shares_outstanding: 123456,
+      share_count_source: "NSE",
+      share_count_as_of: "2026-03-31",
+      share_count_verified: true,
     };
     const view = mapResearchView(response, SAMPLE_ANALYSE_REQUEST);
     expect(view.sourceAttribution.authenticated).toBe(true);
     expect(view.sourceAttribution.statementProvider).toBe("NSE");
     expect(view.sourceAttribution.quoteProvider).toBe("UPSTOX");
     expect(view.sourceAttribution.sharesOutstanding).toBe(123456);
+    expect(view.sourceAttribution.sharesSource).toBe("NSE");
+    expect(view.sourceAttribution.sharesAsOf).toBe("2026-03-31");
+    expect(view.sourceAttribution.sharesVerified).toBe(true);
 
     const unavailable = mapResearchView(sampleResponse(), SAMPLE_ANALYSE_REQUEST);
     expect(unavailable.sourceAttribution.authenticated).toBe(false);

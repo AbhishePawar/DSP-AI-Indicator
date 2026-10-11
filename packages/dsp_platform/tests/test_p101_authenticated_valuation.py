@@ -205,7 +205,10 @@ def test_load_bundle_positive(seeded_services) -> None:
     assert bundle.ticker == TICKER
     assert bundle.current_market_price == pytest.approx(8.0)
     assert bundle.shares_outstanding == pytest.approx(100.0)
-    assert bundle.share_count_provenance["source"] == "authenticated_financial_statement"
+    assert (
+        bundle.share_count_provenance["source"]
+        == "authenticated_financial_statement"
+    )
     assert bundle.share_count_provenance["verified"] is True
     assert bundle.reporting_currency == "USD"
     assert bundle.period_kind == "annual"
@@ -424,8 +427,7 @@ def test_invalid_period_rejected() -> None:
         )
 
 
-
-def test_verified_primary_share_count_port_is_used_when_statement_metric_missing() -> None:
+def test_verified_primary_share_count_port_used_when_statement_metric_missing() -> None:
     latest = replace(
         _seed_statements().periods[0],
         shares_outstanding=StatementField.missing(),
@@ -457,5 +459,7 @@ def test_quote_share_count_is_not_promoted_to_valuation_authority() -> None:
         shares_outstanding=StatementField.missing(),
     )
 
-    with pytest.raises(AuthenticatedValuationError, match="verified primary-source"):
+    with pytest.raises(
+        AuthenticatedValuationError, match="verified primary-source"
+    ):
         _resolve_shares(_seed_quote(), latest, ticker=TICKER)

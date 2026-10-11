@@ -215,7 +215,9 @@ def _resolve_shares(
     latest: AuthenticatedStatementPeriod,
 ) -> float:
     """Resolve shares from verified fundamentals first; never infer from NI/EPS."""
-    statement_shares = _sf(getattr(latest, "shares_outstanding", StatementField.missing()))
+    statement_shares = _sf(
+        getattr(latest, "shares_outstanding", StatementField.missing())
+    )
     quote_shares = _qf(quote.shares_outstanding)
 
     if statement_shares is not None and statement_shares > 0:

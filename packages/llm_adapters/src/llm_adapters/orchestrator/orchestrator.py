@@ -252,16 +252,17 @@ class ResearchOrchestrator:
         ]
         if len(successful) >= 2:
             selected = self._select_evidence_supported(successful)
-            self._memory = selected[1]
+            merged_evaluation, merged_memory = self._merge_successful_attempts(successful, selected)
+            self._memory = merged_memory
             verdict = GateVerdict(
                 outcome=GateOutcome.ACCEPTED,
                 tier=self._tier_for_memory(selected[1], attempts),
-                reason="independent provider analyses reconciled against DSP evidence",
-                quality_score=100.0,
+                reason="validated provider findings merged; unresolved narrative differences retained as limitations",
+                quality_score=min(item[0].quality.evidence_correctness for item in successful) * 100.0,
                 meets_floor=True,
                 requires_escalation=False,
             )
-            return self._finalize(spec, routing, verdict, selected[0])
+            return self._finalize(spec, routing, verdict, merged_evaluation)
         if successful:
             selected = successful[0]
             self._memory = selected[1]
@@ -285,6 +286,153 @@ class ResearchOrchestrator:
             requires_escalation=False,
         )
         return self._finalize(spec, routing, verdict, None)
+
+    @staticmethod
+    def _merge_texts(values: list[str]) -> str:
+        """Merge unique, already-validated narrative text without choosing a winner."""
+        unique: list[str] = []
+        seen: set[str] = set()
+        for value in values:
+            text = str(value or "").strip()
+            key = " ".join(text.casefold().split())
+            if text and key not in seen:
+                seen.add(key)
+                unique.append(text)
+        if not unique:
+            return "Evidence unavailable."
+        if len(unique) == 1:
+            return unique[0]
+        return "\n\n".join(f"- {item}" for item in unique)
+
+    @classmethod
+    def _merge_successful_attempts(
+        cls,
+        successful: list[tuple[EvaluationResult, _AttemptMemory]],
+        selected: tuple[EvaluationResult, _AttemptMemory],
+    ) -> tuple[EvaluationResult, _AttemptMemory]:
+        """Union independently validated findings while preserving DSP authority.
+
+        This method does not attempt to decide which conflicting narrative is
+        true. Distinct model summaries are retained and explicitly disclosed
+        as a limitation; deterministic recommendation and valuation fields
+        remain those from the selected, independently validated result.
+        """
+        from dataclasses import replace
+
+        from llm_adapters.orchestrator.validation import ValidationSuccess
+
+        selected_eval, selected_memory = selected
+        selected_validation = selected_memory.validation
+        if not isinstance(selected_validation, ValidationSuccess):
+            return selected
+
+        validations = [
+            memory.validation
+            for _, memory in successful
+            if isinstance(memory.validation, ValidationSuccess)
+        ]
+        outputs = [validation.output for validation in validations]
+        packs = [validation.pack for validation in validations]
+        if len(outputs) < 2 or len(packs) < 2:
+            return selected
+
+        section_names = (
+            "business_quality", "moat", "management", "financial_strength",
+            "earnings_quality", "growth_quality", "industry", "risk",
+            "buffett_analysis",
+        )
+        output_updates: dict[str, Any] = {}
+        divergent_sections: list[str] = []
+        for name in section_names:
+            sections = [getattr(output, name) for output in outputs]
+            summaries = [section.summary for section in sections]
+            if len({" ".join(s.casefold().split()) for s in summaries}) > 1:
+                divergent_sections.append(name)
+            ids = list(dict.fromkeys(
+                evidence_id for section in sections for evidence_id in section.evidence_ids
+            ))
+            output_updates[name] = sections[0].model_copy(update={
+                "summary": cls._merge_texts(summaries),
+                "evidence_ids": ids,
+                "unavailable": all(section.unavailable for section in sections),
+            })
+
+        # Valuation is deliberately not merged: each model's figures must remain
+        # bound to the deterministic DSP valuation tool, never AI-derived.
+        all_evidence: list[Any] = []
+        evidence_keys: set[tuple[str, str, str]] = set()
+        for output in outputs:
+            for evidence in output.evidence:
+                key = (evidence.id, evidence.source, evidence.claim)
+                if key not in evidence_keys:
+                    evidence_keys.add(key)
+                    all_evidence.append(evidence)
+
+        limitations = list(dict.fromkeys(
+            limitation for output in outputs for limitation in output.limitations
+        ))
+        if divergent_sections:
+            limitations.append(
+                "Unresolved differences between validated model narratives in: "
+                + ", ".join(divergent_sections)
+                + ". Both evidence-backed perspectives are retained; review cited sources."
+            )
+
+        base_output = selected_validation.output
+        merged_output = base_output.model_copy(update={
+            **output_updates,
+            "decision_brief": cls._merge_texts([output.decision_brief for output in outputs]),
+            "evidence": all_evidence,
+            "limitations": list(dict.fromkeys(limitations)),
+            "confidence": min(output.confidence for output in outputs),
+            "research_status": (
+                "partial" if divergent_sections or any(output.research_status != "complete" for output in outputs)
+                else "complete"
+            ),
+        })
+
+        base_pack = selected_validation.pack
+        pack_limitations = list(dict.fromkeys(
+            limitation for pack in packs for limitation in pack.limitations
+        ))
+        if divergent_sections:
+            pack_limitations.append(
+                "Unresolved differences between model narratives are retained for review."
+            )
+        merged_pack = replace(
+            base_pack,
+            analysis=cls._merge_texts([pack.analysis for pack in packs]),
+            risks=tuple(dict.fromkeys(risk for pack in packs for risk in pack.risks)),
+            evidence_citations=tuple(dict.fromkeys(
+                citation for pack in packs for citation in pack.evidence_citations
+            )),
+            confidence=min(pack.confidence for pack in packs),
+            limitations=tuple(pack_limitations),
+        )
+
+        merged_validation = ValidationSuccess(output=merged_output, pack=merged_pack)
+        merged_outcomes = tuple(dict.fromkeys(
+            outcome
+            for _, memory in successful
+            for outcome in memory.outcomes
+        ))
+        merged_catalog_rows: list[dict[str, Any]] = []
+        catalog_keys: set[str] = set()
+        for _, memory in successful:
+            for row in memory.catalog:
+                key = str(row.get("id", ""))
+                if key and key not in catalog_keys:
+                    catalog_keys.add(key)
+                    merged_catalog_rows.append(row)
+        merged_memory = _AttemptMemory(
+            completion=selected_memory.completion,
+            prompt=selected_memory.prompt,
+            outcomes=merged_outcomes,
+            catalog=tuple(merged_catalog_rows),
+            validation=merged_validation,
+            identity=selected_memory.identity,
+        )
+        return selected_eval, merged_memory
 
     @staticmethod
     def _tier_for_memory(

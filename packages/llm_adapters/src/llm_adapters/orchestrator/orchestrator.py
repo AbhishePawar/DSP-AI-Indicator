@@ -12,6 +12,7 @@ import math
 import os
 import time
 import threading
+from concurrent.futures import ThreadPoolExecutor, as_completed
 
 from collections.abc import Mapping
 from dataclasses import dataclass
@@ -229,23 +230,49 @@ class ResearchOrchestrator:
     ) -> OrchestratorResult:
         """Run both configured tiers independently over the same evidence snapshot."""
         tiers = (ModelTier.COST_EFFICIENT, ModelTier.PREMIUM)
-        attempts: list[tuple[EvaluationResult, _AttemptMemory]] = []
         initial_outcomes = self._memory.outcomes
-        for tier in tiers:
+
+        def run_provider(
+            tier: ModelTier,
+        ) -> tuple[EvaluationResult, _AttemptMemory] | None:
+            # Each worker owns its ContextVar memory. Both providers receive the
+            # exact same immutable prefetched evidence snapshot.
             if cancellation_event is not None and cancellation_event.is_set():
-                break
-            rem_timeout = max(0.0, deadline - time.monotonic()) if deadline is not None else None
-            if rem_timeout is not None and rem_timeout <= 0.0:
-                break
+                return None
+            remaining = (
+                max(0.0, deadline - time.monotonic())
+                if deadline is not None
+                else None
+            )
+            if remaining is not None and remaining <= 0.0:
+                return None
             self._memory = _AttemptMemory(outcomes=initial_outcomes)
             evaluation = self._run_tier(
                 tier,
                 spec,
                 routing,
-                timeout_seconds=rem_timeout,
+                timeout_seconds=remaining,
                 cancellation_event=cancellation_event,
             )
-            attempts.append((evaluation, self._memory))
+            return evaluation, self._memory
+
+        attempts_by_tier: dict[
+            ModelTier, tuple[EvaluationResult, _AttemptMemory]
+        ] = {}
+        # Gemini and OpenAI are independent verifiers, not a sequential fallback
+        # chain. Run both concurrently to reduce latency while preserving a
+        # deterministic result ordering after both attempts finish.
+        with ThreadPoolExecutor(
+            max_workers=len(tiers), thread_name_prefix="dsp-dual-research"
+        ) as executor:
+            futures = {executor.submit(run_provider, tier): tier for tier in tiers}
+            for future in as_completed(futures):
+                result = future.result()
+                if result is not None:
+                    attempts_by_tier[futures[future]] = result
+        attempts = [
+            attempts_by_tier[tier] for tier in tiers if tier in attempts_by_tier
+        ]
 
         successful = [
             item for item in attempts

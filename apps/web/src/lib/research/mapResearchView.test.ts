@@ -155,6 +155,31 @@ describe("mapResearchView", () => {
     );
   });
 
+  it("maps server-derived source attribution without inferring missing providers", () => {
+    const response = sampleResponse();
+    response.payload.source_evidence = {
+      authenticated: true,
+      status: "authenticated",
+      statement_provider: "NSE",
+      statement_source_type: "primary",
+      statement_retrieved_at: "2026-10-11T10:00:00Z",
+      quote_provider: "UPSTOX",
+      quote_source_type: "market_data",
+      quote_retrieved_at: "2026-10-11T10:01:00Z",
+      shares_outstanding: 123456,
+    };
+    const view = mapResearchView(response, SAMPLE_ANALYSE_REQUEST);
+    expect(view.sourceAttribution.authenticated).toBe(true);
+    expect(view.sourceAttribution.statementProvider).toBe("NSE");
+    expect(view.sourceAttribution.quoteProvider).toBe("UPSTOX");
+    expect(view.sourceAttribution.sharesOutstanding).toBe(123456);
+
+    const unavailable = mapResearchView(sampleResponse(), SAMPLE_ANALYSE_REQUEST);
+    expect(unavailable.sourceAttribution.authenticated).toBe(false);
+    expect(unavailable.sourceAttribution.statementProvider).toBeNull();
+    expect(unavailable.sourceAttribution.quoteProvider).toBeNull();
+  });
+
   it("RC3-001 — does not alias Management/Moat into Business Quality metrics", () => {
     const view = mapResearchView(
       sampleResponse(),

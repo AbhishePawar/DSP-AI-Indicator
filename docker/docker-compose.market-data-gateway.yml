@@ -21,7 +21,7 @@ services:
     restart: unless-stopped
     environment:
       DSP_MARKET_GATEWAY_API_KEY: ${DSP_MARKET_GATEWAY_API_KEY:?Set a private gateway API key}
-      UPSTOX_ACCESS_TOKEN: ${UPSTOX_ACCESS_TOKEN:?Set the Upstox token in the local environment}
+      UPSTOX_ACCESS_TOKEN: ${UPSTOX_ACCESS_TOKEN:-}
       UPSTOX_BASE_URL: ${UPSTOX_BASE_URL:-https://api.upstox.com}
       DSP_MARKET_GATEWAY_FALLBACK_BASE_URL: ${DSP_MARKET_GATEWAY_FALLBACK_BASE_URL:-}
       DSP_MARKET_GATEWAY_FALLBACK_API_KEY: ${DSP_MARKET_GATEWAY_FALLBACK_API_KEY:-}

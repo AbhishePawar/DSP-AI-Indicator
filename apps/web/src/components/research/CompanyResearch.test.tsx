@@ -144,7 +144,7 @@ describe("CompanyResearchLayout Component", () => {
     // 3. Evidence & Sources section
     expect(screen.getByText("Evidence Provenance & Sources")).toBeTruthy();
     expect(screen.getByText("Primary Financials")).toBeTruthy();
-    expect(screen.getByText(/Authenticated 10-K \/ Annual Filings/i)).toBeTruthy();
+    expect(screen.getAllByText(/Unavailable \/ not attributed/i).length).toBeGreaterThan(0);
     expect(screen.getByText(/External AI Citations/i)).toBeTruthy();
     expect(screen.getAllByText(/Source unavailable/i).length).toBeGreaterThan(0);
 

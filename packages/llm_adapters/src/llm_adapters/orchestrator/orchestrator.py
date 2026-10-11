@@ -411,11 +411,14 @@ class ResearchOrchestrator:
         )
 
         merged_validation = ValidationSuccess(output=merged_output, pack=merged_pack)
-        merged_outcomes = tuple(dict.fromkeys(
-            outcome
-            for _, memory in successful
-            for outcome in memory.outcomes
-        ))
+        merged_outcome_rows: list[ToolCallOutcome] = []
+        outcome_ids: set[str] = set()
+        for _, memory in successful:
+            for outcome in memory.outcomes:
+                if outcome.call_id not in outcome_ids:
+                    outcome_ids.add(outcome.call_id)
+                    merged_outcome_rows.append(outcome)
+        merged_outcomes = tuple(merged_outcome_rows)
         merged_catalog_rows: list[dict[str, Any]] = []
         catalog_keys: set[str] = set()
         for _, memory in successful:

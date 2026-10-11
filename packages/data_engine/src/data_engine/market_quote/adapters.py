@@ -192,6 +192,19 @@ class ConfiguredHttpQuoteAdapter(MarketQuotePort):
             return None
         fields = payload.get("fields")
         data = fields if isinstance(fields, dict) else payload
+        gateway = payload.get("gateway")
+        upstream = payload.get("provenance")
+        provenance_metadata = {"base_url": self.base_url}
+        if isinstance(upstream, Mapping):
+            for key in ("provider_id", "provider_name", "as_of", "retrieved_at"):
+                value = upstream.get(key)
+                if value is not None:
+                    provenance_metadata[f"upstream_{key}"] = str(value)
+        if isinstance(gateway, Mapping):
+            for key in ("selected_source", "fallback_used", "fallback_reason"):
+                value = gateway.get(key)
+                if value is not None:
+                    provenance_metadata[f"gateway_{key}"] = str(value)
         provenance = MarketQuoteProvenance(
             provider_id=self.provider_id,
             provider_name=self.provider_name,
@@ -199,7 +212,7 @@ class ConfiguredHttpQuoteAdapter(MarketQuotePort):
             retrieved_at=utc_now(),
             as_of=None,
             auth_mode="api_key",
-            metadata={"base_url": self.base_url},
+            metadata=provenance_metadata,
         )
         return build_quote_from_mapping(
             symbol=symbol, payload=data, provenance=provenance

@@ -46,7 +46,9 @@ def _fallback() -> ConfiguredHttpQuoteAdapter | None:
     return ConfiguredHttpQuoteAdapter(base_url=base_url, api_key=api_key)
 
 
-def _public_quote(quote: Any, *, selected_source: str, fallback_reason: str | None) -> dict[str, Any]:
+def _public_quote(
+    quote: Any, *, selected_source: str, fallback_reason: str | None
+) -> dict[str, Any]:
     result = quote.to_public_dict()
     # Preserve the upstream provider in nested provenance, while exposing the
     # gateway's selected source and fallback reason as explicit top-level metadata.
@@ -98,7 +100,9 @@ def get_quote(
             country="IN",
         )
     except Exception as exc:
-        raise HTTPException(status_code=422, detail="invalid instrument identity") from exc
+        raise HTTPException(
+            status_code=422, detail="invalid instrument identity"
+        ) from exc
 
     fallback_reason: str | None = None
     try:
@@ -109,7 +113,10 @@ def get_quote(
     except DataEngineError as exc:
         # Do not expose provider errors, URLs, or credential-adjacent details to callers.
         fallback_reason = type(exc).__name__
-        _LOG.warning("upstox_quote_unavailable", extra={"symbol": instrument.symbol, "reason": fallback_reason})
+        _LOG.warning(
+            "upstox_quote_unavailable",
+            extra={"symbol": instrument.symbol, "reason": fallback_reason},
+        )
     except Exception as exc:  # noqa: BLE001
         fallback_reason = type(exc).__name__
         _LOG.warning("upstox_quote_unavailable", extra={"symbol": instrument.symbol, "reason": fallback_reason})

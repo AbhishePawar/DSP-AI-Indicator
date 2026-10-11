@@ -28,6 +28,7 @@ class FakeQuote:
 
 def test_gateway_prefers_upstox_when_usable(monkeypatch):
     monkeypatch.setenv("DSP_MARKET_GATEWAY_API_KEY", "test-gateway-key")
+    monkeypatch.setattr(gateway_app, "is_approved_source", lambda source, purpose: True)
     monkeypatch.setattr(
         gateway_app, "_upstox",
         lambda: SimpleNamespace(
@@ -53,6 +54,7 @@ def test_gateway_prefers_upstox_when_usable(monkeypatch):
 
 def test_gateway_falls_back_when_upstox_fails(monkeypatch):
     monkeypatch.setenv("DSP_MARKET_GATEWAY_API_KEY", "test-gateway-key")
+    monkeypatch.setattr(gateway_app, "is_approved_source", lambda source, purpose: True)
 
     def raise_provider_error(instrument):
         raise RuntimeError("provider unavailable")
@@ -100,3 +102,34 @@ def test_gateway_rejects_missing_or_invalid_internal_key(monkeypatch):
             authorization="Bearer wrong-key",
         )
     assert exc.value.status_code == 401
+
+
+def test_gateway_does_not_use_unapproved_upstox_source(monkeypatch):
+    monkeypatch.setenv("DSP_MARKET_GATEWAY_API_KEY", "test-gateway-key")
+    monkeypatch.setattr(
+        gateway_app, "is_approved_source", lambda source, purpose: False
+    )
+    upstox_called = False
+
+    def upstox_quote(instrument):
+        nonlocal upstox_called
+        upstox_called = True
+        return FakeQuote(instrument.symbol)
+
+    monkeypatch.setattr(
+        gateway_app, "_upstox",
+        lambda: SimpleNamespace(get_quote=upstox_quote),
+    )
+    monkeypatch.setattr(
+        gateway_app, "_fallback",
+        lambda: SimpleNamespace(
+            get_quote=lambda instrument: FakeQuote(instrument.symbol, 99.0)
+        ),
+    )
+    result = gateway_app.get_quote(
+        symbol="INFY", exchange="NSE", currency="INR",
+        authorization="Bearer test-gateway-key",
+    )
+    assert result["gateway"]["selected_source"] == "approved_http_fallback"
+    assert result["gateway"]["fallback_reason"] == "upstox_not_approved_by_source_governance"
+    assert upstox_called is False

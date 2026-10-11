@@ -111,7 +111,8 @@ def get_quote(
             return _public_quote(quote, selected_source="upstox", fallback_reason=None)
         fallback_reason = "upstox_quote_unavailable"
     except DataEngineError as exc:
-        # Do not expose provider errors, URLs, or credential-adjacent details to callers.
+        # Do not expose provider errors, URLs, or credential-adjacent
+        # details to callers.
         fallback_reason = type(exc).__name__
         _LOG.warning(
             "upstox_quote_unavailable",
@@ -119,7 +120,10 @@ def get_quote(
         )
     except Exception as exc:  # noqa: BLE001
         fallback_reason = type(exc).__name__
-        _LOG.warning("upstox_quote_unavailable", extra={"symbol": instrument.symbol, "reason": fallback_reason})
+        _LOG.warning(
+            "upstox_quote_unavailable",
+            extra={"symbol": instrument.symbol, "reason": fallback_reason},
+        )
 
     fallback = _fallback()
     if fallback is not None:

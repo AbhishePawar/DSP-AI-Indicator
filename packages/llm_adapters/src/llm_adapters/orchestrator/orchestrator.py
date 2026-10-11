@@ -92,6 +92,8 @@ class _AttemptMemory:
     catalog: tuple[dict[str, Any], ...] = ()
     validation: ValidationSuccess | ValidationFailure | None = None
     identity: str = ""
+    contributing_models: tuple[str, ...] = ()
+    conflicting_sections: tuple[str, ...] = ()
 
 
 _orchestrator_memory_var: contextvars.ContextVar[_AttemptMemory | None] = (
@@ -463,6 +465,10 @@ class ResearchOrchestrator:
             catalog=tuple(merged_catalog_rows),
             validation=merged_validation,
             identity=selected_memory.identity,
+            contributing_models=tuple(
+                dict.fromkeys(memory.identity for _, memory in successful if memory.identity)
+            ),
+            conflicting_sections=tuple(divergent_sections),
         )
         return selected_eval, merged_memory
 
@@ -657,7 +663,18 @@ class ResearchOrchestrator:
             raw_ai_response=raw or "",
             internal_validation=internal_validation,
             chain_of_thought="",
-            audit={"spec_id": spec.spec_id, "spec_version": spec.spec_version},
+            audit={
+                "spec_id": spec.spec_id,
+                "spec_version": spec.spec_version,
+                "contributing_models": self._memory.contributing_models
+                or ((identity,) if identity else ()),
+                "conflicting_sections": self._memory.conflicting_sections,
+                "reconciliation_mode": (
+                    "complementary_merge"
+                    if len(self._memory.contributing_models) > 1
+                    else "single_provider_or_deterministic"
+                ),
+            },
         )
         assert_no_private_leakage(public.to_dict())
         return OrchestratorResult(

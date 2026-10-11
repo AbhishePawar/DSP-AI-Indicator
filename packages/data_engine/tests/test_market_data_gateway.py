@@ -80,6 +80,7 @@ def test_gateway_falls_back_when_upstox_fails(monkeypatch):
 
 def test_gateway_returns_unavailable_when_all_sources_fail(monkeypatch):
     monkeypatch.setenv("DSP_MARKET_GATEWAY_API_KEY", "test-gateway-key")
+    monkeypatch.setattr(gateway_app, "is_approved_source", lambda source, purpose: True)
     monkeypatch.setattr(
         gateway_app, "_upstox",
         lambda: SimpleNamespace(get_quote=lambda instrument: None),
@@ -133,3 +134,10 @@ def test_gateway_does_not_use_unapproved_upstox_source(monkeypatch):
     assert result["gateway"]["selected_source"] == "approved_http_fallback"
     assert result["gateway"]["fallback_reason"] == "upstox_not_approved_by_source_governance"
     assert upstox_called is False
+
+
+
+def test_upstox_is_not_currently_approved_by_source_governance():
+    from data_engine.source_governance import is_approved_source
+
+    assert is_approved_source("UPSTOX", purpose="market_quote") is False

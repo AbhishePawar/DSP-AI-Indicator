@@ -109,6 +109,9 @@ export type ResearchView = IntelligenceView & {
     quoteSourceType: string | null;
     quoteRetrievedAt: string | null;
     sharesOutstanding: number | null;
+    sharesSource: string | null;
+    sharesAsOf: string | null;
+    sharesVerified: boolean;
   };
 };
 
@@ -204,6 +207,9 @@ export function mapResearchView(
         quote_source_type?: string | null;
         quote_retrieved_at?: string | null;
         shares_outstanding?: number | null;
+        share_count_source?: string | null;
+        share_count_as_of?: string | null;
+        share_count_verified?: boolean;
       } | null;
     }
   ).server_valuation;
@@ -220,6 +226,9 @@ export function mapResearchView(
         quote_source_type?: string | null;
         quote_retrieved_at?: string | null;
         shares_outstanding?: number | null;
+        share_count_source?: string | null;
+        share_count_as_of?: string | null;
+        share_count_verified?: boolean;
       } | null;
     }
   ).source_evidence;
@@ -331,6 +340,9 @@ export function mapResearchView(
         Number.isFinite(sourceEvidence.shares_outstanding)
           ? sourceEvidence.shares_outstanding
           : null,
+      sharesSource: sourceEvidence?.share_count_source ?? null,
+      sharesAsOf: sourceEvidence?.share_count_as_of ?? null,
+      sharesVerified: sourceEvidence?.share_count_verified === true,
     },
     valuation: {
       intrinsicValue: money(serverValuation?.intrinsic_value_per_share ?? null),

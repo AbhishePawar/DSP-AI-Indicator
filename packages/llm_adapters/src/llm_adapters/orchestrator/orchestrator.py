@@ -284,11 +284,18 @@ class ResearchOrchestrator:
             )
             return self._finalize(spec, routing, verdict, selected[0])
 
-        self._memory = attempts[0][1] if attempts else _AttemptMemory(outcomes=initial_outcomes)
+        self._memory = (
+            attempts[0][1]
+            if attempts
+            else _AttemptMemory(outcomes=initial_outcomes)
+        )
         verdict = GateVerdict(
             outcome=GateOutcome.FAILED_CLOSED,
             tier=ModelTier.PREMIUM,
-            reason="both independent providers failed; deterministic result remains authoritative",
+            reason=(
+                "both independent providers failed; deterministic result "
+                "remains authoritative"
+            ),
             quality_score=0.0,
             meets_floor=False,
             requires_escalation=False,
@@ -416,7 +423,10 @@ class ResearchOrchestrator:
         ))
         if divergent_sections:
             pack_limitations.append(
-                "Unresolved differences between model narratives are retained for review."
+                (
+                    "Unresolved differences between model narratives are "
+                    "retained for review."
+                )
             )
         merged_pack = replace(
             base_pack,

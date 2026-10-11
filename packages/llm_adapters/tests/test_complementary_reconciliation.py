@@ -3,12 +3,18 @@
 from types import SimpleNamespace
 
 from llm_adapters.orchestrator.orchestrator import ResearchOrchestrator, _AttemptMemory
-from llm_adapters.orchestrator.schema import AIResearchOutput, EvidenceItem, ResearchSection
+from llm_adapters.orchestrator.schema import (
+    AIResearchOutput,
+    EvidenceItem,
+    ResearchSection,
+)
 from llm_adapters.orchestrator.validation import ValidationSuccess
 from llm_adapters.privacy_boundary import PublicDecisionPack
 
 
-def _output(*, business: str, risk: str, brief: str, evidence_id: str) -> AIResearchOutput:
+def _output(
+    *, business: str, risk: str, brief: str, evidence_id: str
+) -> AIResearchOutput:
     section = lambda summary: ResearchSection(  # noqa: E731
         summary=summary, evidence_ids=[evidence_id], unavailable=False
     )
@@ -27,7 +33,11 @@ def _output(*, business: str, risk: str, brief: str, evidence_id: str) -> AIRese
         industry=section("Industry evidence reviewed."),
         risk=section(risk),
         buffett_analysis=section("Buffett framework evidence reviewed."),
-        evidence=[EvidenceItem(id=evidence_id, source="dsp.business_quality", claim=business)],
+        evidence=[
+            EvidenceItem(
+                id=evidence_id, source="dsp.business_quality", claim=business
+            )
+        ],
         decision_brief=brief,
         limitations=[],
         assurance="All claims cite validated tool evidence.",

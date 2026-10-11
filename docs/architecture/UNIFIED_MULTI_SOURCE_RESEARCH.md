@@ -13,11 +13,14 @@ HTTP endpoint behind that adapter:
 
 `DSP API -> ConfiguredHttpQuoteAdapter -> internal market-data gateway -> Upstox`
 
-The gateway uses Upstox first for supported Indian-equity quotes. If Upstox
-returns no usable quote or a provider error, the gateway attempts the separately
-configured approved HTTP fallback source. The gateway validates a usable price
-before returning it. If both sources are unavailable, it returns an explicit
-503; it does not invent or silently reuse a price.
+The intended priority is Upstox first for supported Indian-equity quotes,
+followed by a separately configured approved HTTP fallback. However, GOV-001
+currently does not list Upstox as an approved source. The gateway therefore
+checks the centralized source-governance registry and refuses to call Upstox
+until the required governance approval and registry update exist. Until then,
+only the approved HTTP fallback may serve quotes. The gateway validates a
+usable price before returning it. If no approved source is available, it
+returns an explicit 503; it does not invent or silently reuse a price.
 
 The gateway requires a private bearer key, reads Upstox credentials only from
 server-side environment variables, disables public API documentation, and
@@ -30,6 +33,10 @@ existing external Docker network; verify the actual network name before use.
 - The gateway currently covers quotes only. Historical candles still use the
   existing historical-series adapter and need their own gateway route before
   production can use Upstox for candles under P1-03.
+- Upstox is not currently listed in GOV-001's approved source registry. The
+  gateway blocks Upstox calls until governance approves the source and the
+  centralized registry is amended; a product/engineering decision alone does
+  not bypass this policy.
 - Upstox token refresh is not implemented. The gateway uses the configured
   server-side access token and requires an operational token lifecycle plan.
 - A configured approved HTTP fallback is required for quote failover. Without

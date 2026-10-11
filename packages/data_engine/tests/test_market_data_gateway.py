@@ -137,7 +137,13 @@ def test_gateway_does_not_use_unapproved_upstox_source(monkeypatch):
 
 
 
-def test_upstox_is_not_currently_approved_by_source_governance():
-    from data_engine.source_governance import is_approved_source
+def test_upstox_is_approved_for_market_data_only():
+    from data_engine.source_governance import DataProvenance, is_approved_source
 
-    assert is_approved_source("UPSTOX", purpose="market_quote") is False
+    assert is_approved_source("UPSTOX", purpose="market_quote") is True
+    assert is_approved_source("UPSTOX", purpose="historical_series") is True
+    assert is_approved_source("UPSTOX", purpose="financial_statements") is False
+    with pytest.raises(ValueError, match="unapproved financial source"):
+        DataProvenance(
+            source="UPSTOX", source_type="primary", purpose="financial_statements"
+        )

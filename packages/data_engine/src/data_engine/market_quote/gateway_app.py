@@ -19,6 +19,7 @@ from contracts.enums import AssetClass
 from data_engine.exceptions import DataEngineError
 from data_engine.market_quote.adapters import ConfiguredHttpQuoteAdapter
 from data_engine.market_quote.upstox_adapter import UpstoxQuoteAdapter
+from data_engine.source_governance import is_approved_source
 
 _LOG = logging.getLogger("dsp.market_data_gateway")
 app = FastAPI(
@@ -62,8 +63,9 @@ def _public_quote(
 
 @app.get("/health/ready")
 def readiness() -> dict[str, Any]:
+    upstox_allowed = is_approved_source("UPSTOX", purpose="market_quote")
     configured = bool(_gateway_key()) and (
-        bool((os.environ.get("UPSTOX_ACCESS_TOKEN") or "").strip())
+        (upstox_allowed and bool((os.environ.get("UPSTOX_ACCESS_TOKEN") or "").strip()))
         or _fallback() is not None
     )
     if not configured:
@@ -105,25 +107,29 @@ def get_quote(
         ) from exc
 
     fallback_reason: str | None = None
-    try:
-        quote = _upstox().get_quote(instrument)
-        if quote is not None and quote.has_any_price():
-            return _public_quote(quote, selected_source="upstox", fallback_reason=None)
-        fallback_reason = "upstox_quote_unavailable"
-    except DataEngineError as exc:
-        # Do not expose provider errors, URLs, or credential-adjacent
-        # details to callers.
-        fallback_reason = type(exc).__name__
-        _LOG.warning(
-            "upstox_quote_unavailable",
-            extra={"symbol": instrument.symbol, "reason": fallback_reason},
-        )
-    except Exception as exc:  # noqa: BLE001
-        fallback_reason = type(exc).__name__
-        _LOG.warning(
-            "upstox_quote_unavailable",
-            extra={"symbol": instrument.symbol, "reason": fallback_reason},
-        )
+    if not is_approved_source("UPSTOX", purpose="market_quote"):
+        # GOV-001 blocks unlisted sources until governance approves them.
+        fallback_reason = "upstox_not_approved_by_source_governance"
+    else:
+        try:
+            quote = _upstox().get_quote(instrument)
+            if quote is not None and quote.has_any_price():
+                return _public_quote(quote, selected_source="upstox", fallback_reason=None)
+            fallback_reason = "upstox_quote_unavailable"
+        except DataEngineError as exc:
+            # Do not expose provider errors, URLs, or credential-adjacent
+            # details to callers.
+            fallback_reason = type(exc).__name__
+            _LOG.warning(
+                "upstox_quote_unavailable",
+                extra={"symbol": instrument.symbol, "reason": fallback_reason},
+            )
+        except Exception as exc:  # noqa: BLE001
+            fallback_reason = type(exc).__name__
+            _LOG.warning(
+                "upstox_quote_unavailable",
+                extra={"symbol": instrument.symbol, "reason": fallback_reason},
+            )
 
     fallback = _fallback()
     if fallback is not None:

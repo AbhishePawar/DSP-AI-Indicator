@@ -252,13 +252,21 @@ class ResearchOrchestrator:
         ]
         if len(successful) >= 2:
             selected = self._select_evidence_supported(successful)
-            merged_evaluation, merged_memory = self._merge_successful_attempts(successful, selected)
+            merged_evaluation, merged_memory = self._merge_successful_attempts(
+                successful, selected
+            )
             self._memory = merged_memory
             verdict = GateVerdict(
                 outcome=GateOutcome.ACCEPTED,
                 tier=self._tier_for_memory(selected[1], attempts),
-                reason="validated provider findings merged; unresolved narrative differences retained as limitations",
-                quality_score=min(item[0].quality.evidence_correctness for item in successful) * 100.0,
+                reason=(
+                    "validated provider findings merged; unresolved narrative "
+                    "differences retained as limitations"
+                ),
+                quality_score=(
+                    min(item[0].quality.evidence_correctness for item in successful)
+                    * 100.0
+                ),
                 meets_floor=True,
                 requires_escalation=False,
             )
@@ -348,9 +356,13 @@ class ResearchOrchestrator:
             summaries = [section.summary for section in sections]
             if len({" ".join(s.casefold().split()) for s in summaries}) > 1:
                 divergent_sections.append(name)
-            ids = list(dict.fromkeys(
-                evidence_id for section in sections for evidence_id in section.evidence_ids
-            ))
+            ids = list(
+                dict.fromkeys(
+                    evidence_id
+                    for section in sections
+                    for evidence_id in section.evidence_ids
+                )
+            )
             output_updates[name] = sections[0].model_copy(update={
                 "summary": cls._merge_texts(summaries),
                 "evidence_ids": ids,
@@ -375,18 +387,25 @@ class ResearchOrchestrator:
             limitations.append(
                 "Unresolved differences between validated model narratives in: "
                 + ", ".join(divergent_sections)
-                + ". Both evidence-backed perspectives are retained; review cited sources."
+                + (
+                    ". Both evidence-backed perspectives are retained; "
+                    "review cited sources."
+                )
             )
 
         base_output = selected_validation.output
         merged_output = base_output.model_copy(update={
             **output_updates,
-            "decision_brief": cls._merge_texts([output.decision_brief for output in outputs]),
+            "decision_brief": cls._merge_texts(
+                [output.decision_brief for output in outputs]
+            ),
             "evidence": all_evidence,
             "limitations": list(dict.fromkeys(limitations)),
             "confidence": min(output.confidence for output in outputs),
             "research_status": (
-                "partial" if divergent_sections or any(output.research_status != "complete" for output in outputs)
+                "partial"
+                if divergent_sections
+                or any(output.research_status != "complete" for output in outputs)
                 else "complete"
             ),
         })

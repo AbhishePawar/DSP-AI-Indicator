@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from dataclasses import replace
 from datetime import UTC, date, datetime
 
 import pytest
@@ -25,7 +26,12 @@ from dsp_platform import (
     PlatformOrchestrator,
     load_authenticated_valuation_bundle,
 )
-from dsp_platform.composition.authenticated_valuation import signals_from_assessment
+from data_engine.financial_statement.models import StatementField
+from dsp_platform.composition.authenticated_valuation import (
+    _resolve_shares,
+    signals_from_assessment,
+)
+from dsp_platform.research_assembly import ShareCount
 from dsp_platform.financial_statements import (
     reset_financial_statement_service_for_tests,
 )
@@ -414,3 +420,40 @@ def test_invalid_period_rejected() -> None:
             get_statements=lambda _s: bad,
             get_quote=lambda _s: _seed_quote(),
         )
+
+
+
+def test_verified_primary_share_count_port_is_used_when_statement_metric_missing() -> None:
+    latest = replace(
+        _seed_statements().periods[0],
+        shares_outstanding=StatementField.missing(),
+    )
+    candidate = ShareCount(
+        TICKER,
+        100.0,
+        date(2026, 3, 31),
+        "NSE",
+        verified=True,
+        purpose="fundamental",
+    )
+
+    shares, provenance = _resolve_shares(
+        _seed_quote(),
+        latest,
+        ticker=TICKER,
+        supplemental=candidate,
+    )
+
+    assert shares == pytest.approx(100.0)
+    assert provenance["source"] == "NSE"
+    assert provenance["verified"] is True
+
+
+def test_quote_share_count_is_not_promoted_to_valuation_authority() -> None:
+    latest = replace(
+        _seed_statements().periods[0],
+        shares_outstanding=StatementField.missing(),
+    )
+
+    with pytest.raises(AuthenticatedValuationError, match="verified primary-source"):
+        _resolve_shares(_seed_quote(), latest, ticker=TICKER)

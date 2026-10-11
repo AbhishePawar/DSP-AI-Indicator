@@ -18,7 +18,7 @@ from dsp_platform.research_assembly.models import (
     AssemblyOutcome,
     CanonicalResearchAssembly,
 )
-from dsp_platform.research_assembly.share_count import (
+from data_engine.share_count import (
     InMemoryShareCountPort,
     ShareCount,
     ShareCountPort,

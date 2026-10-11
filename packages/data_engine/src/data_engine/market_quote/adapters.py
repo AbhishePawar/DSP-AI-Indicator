@@ -151,7 +151,12 @@ class ConfiguredHttpQuoteAdapter(MarketQuotePort):
         if not self.api_key.strip():
             raise ProviderRequestError("market quote api_key required")
         symbol = instrument.symbol.strip().upper()
-        url = f"{self.base_url.rstrip('/')}?{urlencode({'symbol': symbol})}"
+        params = {"symbol": symbol}
+        if instrument.exchange:
+            params["exchange"] = str(instrument.exchange).strip().upper()
+        if instrument.currency:
+            params["currency"] = str(instrument.currency).strip().upper()
+        url = f"{self.base_url.rstrip('/')}?{urlencode(params)}"
         req = urllib.request.Request(
             url,
             headers={

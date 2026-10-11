@@ -14,13 +14,12 @@ HTTP endpoint behind that adapter:
 `DSP API -> ConfiguredHttpQuoteAdapter -> internal market-data gateway -> Upstox`
 
 The intended priority is Upstox first for supported Indian-equity quotes,
-followed by a separately configured approved HTTP fallback. However, GOV-001
-currently does not list Upstox as an approved source. The gateway therefore
-checks the centralized source-governance registry and refuses to call Upstox
-until the required governance approval and registry update exist. Until then,
-only the approved HTTP fallback may serve quotes. The gateway validates a
-usable price before returning it. If no approved source is available, it
-returns an explicit 503; it does not invent or silently reuse a price.
+followed by a separately configured approved HTTP fallback. The centralized
+source-governance helper approves Upstox only for market-data purposes
+(`market_quote`, `historical_series`, and `historical_market_data`). It remains
+excluded from the financial-statement `DataProvenance` allowlist. The gateway
+validates a usable price before returning it. If no approved source is available,
+it returns an explicit 503; it does not invent or silently reuse a price.
 
 The gateway requires a private bearer key, reads Upstox credentials only from
 server-side environment variables, disables public API documentation, and
@@ -33,10 +32,10 @@ existing external Docker network; verify the actual network name before use.
 - The gateway currently covers quotes only. Historical candles still use the
   existing historical-series adapter and need their own gateway route before
   production can use Upstox for candles under P1-03.
-- Upstox is not currently listed in GOV-001's approved source registry. The
-  gateway blocks Upstox calls until governance approves the source and the
-  centralized registry is amended; a product/engineering decision alone does
-  not bypass this policy.
+- The gateway currently covers quotes only. Although the source-governance
+  helper permits Upstox for market-data purposes, production must still use the
+  gateway through the existing vendor-neutral HTTP adapter and must not inject
+  direct Upstox credentials into the DSP API container.
 - Upstox token refresh is not implemented. The gateway uses the configured
   server-side access token and requires an operational token lifecycle plan.
 - A configured approved HTTP fallback is required for quote failover. Without

@@ -67,7 +67,7 @@ describe("ResearchResponse Component", () => {
 
     expect(screen.getByText("Executive Summary")).toBeTruthy();
     expect(screen.getByText("Research Evidence & AI Boundary")).toBeTruthy();
-    expect(screen.getByText(/Provider Unavailable \(Deterministic Research Only\)/i)).toBeTruthy();
+    expect(screen.getByText(/Source attribution unavailable/i)).toBeTruthy();
     expect(screen.getByText("Valuation")).toBeTruthy();
     expect(screen.getByText("Evidence & Sources")).toBeTruthy();
     expect(screen.getByText("Data Provenance")).toBeTruthy();

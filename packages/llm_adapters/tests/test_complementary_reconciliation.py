@@ -99,6 +99,8 @@ def test_dual_reconciliation_retains_unique_findings_and_citations():
     assert "Input-cost volatility." in pack.risks
     assert set(pack.evidence_citations) == {"gemini-evidence-1", "openai-evidence-2"}
     assert any("Unresolved differences" in item for item in pack.limitations)
+    assert set(merged.contributing_models) == {"gemini:model", "openai:model"}
+    assert set(merged.conflicting_sections) >= {"business_quality", "risk"}
 
 
 def test_dual_reconciliation_preserves_deterministic_decision_and_valuation():

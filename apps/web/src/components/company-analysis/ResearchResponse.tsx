@@ -101,8 +101,12 @@ export function ResearchResponse({ view }: { view: ResearchView }) {
   return (
     <article className="overflow-hidden rounded-xl border border-[var(--border)] bg-[var(--surface)] shadow-[var(--shadow-sm)]">
       <div className="border-b border-[var(--border)] bg-[var(--surface-2)] px-4 py-2 text-xs text-[var(--muted)] flex items-center justify-between gap-2">
-        <span className="font-semibold uppercase tracking-wider">Deep Research &amp; AI Boundary</span>
-        <span className="rounded bg-[var(--surface)] px-2 py-0.5 text-[11px] font-medium border border-[var(--border)]">Provider Unavailable (Deterministic Research Only)</span>
+        <span className="font-semibold uppercase tracking-wider">Research Evidence &amp; AI Boundary</span>
+        <span className="rounded bg-[var(--surface)] px-2 py-0.5 text-[11px] font-medium border border-[var(--border)]">
+          {view.sourceAttribution.authenticated
+            ? "Authenticated source data"
+            : "Source attribution unavailable"}
+        </span>
       </div>
       <Section title="Executive Summary">
         <p className="text-sm leading-6 text-[var(--ink)]">
@@ -212,6 +216,51 @@ export function ResearchResponse({ view }: { view: ResearchView }) {
           />
         </Section>
       ) : null}
+
+      <Section title="Data Provenance">
+        <p className="mb-3 text-xs leading-5 text-[var(--muted)]">
+          Source labels and retrieval timestamps are supplied by the server. Missing attribution is shown as unavailable rather than inferred.
+        </p>
+        <FieldGrid
+          fields={[
+            {
+              label: "Fundamental source",
+              value: view.sourceAttribution.statementProvider,
+            },
+            {
+              label: "Fundamental source type",
+              value: view.sourceAttribution.statementSourceType,
+            },
+            {
+              label: "Fundamentals retrieved",
+              value: view.sourceAttribution.statementRetrievedAt,
+            },
+            {
+              label: "Market-data source",
+              value: view.sourceAttribution.quoteProvider,
+            },
+            {
+              label: "Market-data source type",
+              value: view.sourceAttribution.quoteSourceType,
+            },
+            {
+              label: "Market data retrieved",
+              value: view.sourceAttribution.quoteRetrievedAt,
+            },
+            {
+              label: "Shares outstanding",
+              value:
+                view.sourceAttribution.sharesOutstanding == null
+                  ? null
+                  : view.sourceAttribution.sharesOutstanding.toLocaleString(),
+            },
+            {
+              label: "Source verification",
+              value: view.sourceAttribution.status,
+            },
+          ]}
+        />
+      </Section>
 
       {limitations.length ? (
         <Section title="Methodology &amp; Caveats">

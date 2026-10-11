@@ -205,6 +205,8 @@ def test_load_bundle_positive(seeded_services) -> None:
     assert bundle.ticker == TICKER
     assert bundle.current_market_price == pytest.approx(8.0)
     assert bundle.shares_outstanding == pytest.approx(100.0)
+    assert bundle.share_count_provenance["source"] == "authenticated_financial_statement"
+    assert bundle.share_count_provenance["verified"] is True
     assert bundle.reporting_currency == "USD"
     assert bundle.period_kind == "annual"
     assert bundle.financial_snapshot.latest.total_equity == pytest.approx(1000.0)

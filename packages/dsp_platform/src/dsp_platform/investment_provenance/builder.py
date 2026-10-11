@@ -35,6 +35,7 @@ def source_evidence_from_trace(trace: Mapping[str, Any] | None) -> dict[str, Any
         }
     stmt = dict(trace.get("statement_provenance") or {})
     quote = dict(trace.get("quote_provenance") or {})
+    share_count = dict(trace.get("share_count_provenance") or {})
     authenticated = bool(trace.get("authenticated"))
     return dict(
         redact_secrets(
@@ -48,6 +49,10 @@ def source_evidence_from_trace(trace: Mapping[str, Any] | None) -> dict[str, Any
                 "unit_scale": trace.get("unit_scale"),
                 "current_market_price": trace.get("current_market_price"),
                 "shares_outstanding": trace.get("shares_outstanding"),
+                "share_count_source": share_count.get("source"),
+                "share_count_as_of": share_count.get("as_of"),
+                "share_count_verified": share_count.get("verified", False),
+                "share_count_provenance": share_count,
                 "statement_provider": stmt.get("provider_id")
                 or stmt.get("provider_name")
                 or stmt.get("provider")

@@ -56,7 +56,7 @@ function mockResponse(): AnalyseResponse {
 }
 
 describe("ResearchResponse Component", () => {
-  it("renders executive summary, deep research boundary note, and evidence counts", () => {
+  it("renders executive summary, source-attribution status, and evidence counts", () => {
     const view = mapResearchView(
       mockResponse(),
       SAMPLE_ANALYSE_REQUEST,
@@ -66,10 +66,12 @@ describe("ResearchResponse Component", () => {
     render(<ResearchResponse view={view} />);
 
     expect(screen.getByText("Executive Summary")).toBeTruthy();
-    expect(screen.getByText("Deep Research & AI Boundary")).toBeTruthy();
-    expect(screen.getByText(/Provider Unavailable \(Deterministic Research Only\)/i)).toBeTruthy();
+    expect(screen.getByText("Research Evidence & AI Boundary")).toBeTruthy();
+    expect(screen.getByText(/Source attribution unavailable/i)).toBeTruthy();
     expect(screen.getByText("Valuation")).toBeTruthy();
     expect(screen.getByText("Evidence & Sources")).toBeTruthy();
+    expect(screen.getByText("Data Provenance")).toBeTruthy();
+    expect(screen.getByText("Fundamental source")).toBeTruthy();
     expect(screen.getByText("statements")).toBeTruthy();
   });
 });

@@ -269,16 +269,16 @@ export function CompanyResearchLayout({ view, request, response }: { view: Resea
               description="Verification sources and data contracts backing this research run"
             />
             <CardBody className="space-y-4">
-              <div className="grid gap-3 sm:grid-cols-3">
+              <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
                 <div className="rounded-[var(--radius-md)] border border-[var(--border)] bg-[var(--surface-2)] p-3">
                   <p className="text-[11px] font-semibold uppercase tracking-wider text-[var(--muted)]">
                     Primary Financials
                   </p>
                   <p className="mt-1 text-sm font-medium text-[var(--fg)]">
-                    Authenticated 10-K / Annual Filings
+                    {view.sourceAttribution.statementProvider || "Source unavailable"}
                   </p>
                   <p className="mt-0.5 text-xs text-[var(--muted)]">
-                    Status: Validated
+                    Status: {view.sourceAttribution.authenticated && view.sourceAttribution.statementProvider ? "Authenticated metadata" : "Unavailable / not attributed"}
                   </p>
                 </div>
 
@@ -287,10 +287,29 @@ export function CompanyResearchLayout({ view, request, response }: { view: Resea
                     Market Quote Data
                   </p>
                   <p className="mt-1 text-sm font-medium text-[var(--fg)]">
-                    Exchange Feeds ({view.exchange || "Verified"})
+                    {view.sourceAttribution.quoteProvider || "Source unavailable"}
                   </p>
                   <p className="mt-0.5 text-xs text-[var(--muted)]">
-                    Status: Validated
+                    Status: {view.sourceAttribution.authenticated && view.sourceAttribution.quoteProvider ? "Authenticated metadata" : "Unavailable / not attributed"}
+                  </p>
+                </div>
+
+                <div className="rounded-[var(--radius-md)] border border-[var(--border)] bg-[var(--surface-2)] p-3">
+                  <p className="text-[11px] font-semibold uppercase tracking-wider text-[var(--muted)]">
+                    Shares Outstanding
+                  </p>
+                  <p className="mt-1 text-sm font-medium text-[var(--fg)]">
+                    {view.sourceAttribution.sharesOutstanding == null
+                      ? "Source unavailable"
+                      : view.sourceAttribution.sharesOutstanding.toLocaleString()}
+                  </p>
+                  <p className="mt-0.5 text-xs text-[var(--muted)]">
+                    {view.sourceAttribution.sharesVerified
+                      ? `Verified source: ${view.sourceAttribution.sharesSource || "not attributed"}`
+                      : "Verified share-count source unavailable"}
+                    {view.sourceAttribution.sharesAsOf
+                      ? ` · As of ${view.sourceAttribution.sharesAsOf}`
+                      : ""}
                   </p>
                 </div>
 

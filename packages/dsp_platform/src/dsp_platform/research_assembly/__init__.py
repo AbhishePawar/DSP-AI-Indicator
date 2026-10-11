@@ -18,10 +18,11 @@ from dsp_platform.research_assembly.models import (
     AssemblyOutcome,
     CanonicalResearchAssembly,
 )
-from dsp_platform.research_assembly.share_count import (
+from data_engine.share_count import (
     InMemoryShareCountPort,
     ShareCount,
     ShareCountPort,
+    resolve_verified_share_count,
 )
 
 __all__ = [
@@ -40,4 +41,5 @@ __all__ = [
     "InMemoryShareCountPort",
     "ShareCount",
     "ShareCountPort",
+    "resolve_verified_share_count",
 ]

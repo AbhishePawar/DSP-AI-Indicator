@@ -30,7 +30,9 @@ def test_gateway_prefers_upstox_when_usable(monkeypatch):
     monkeypatch.setenv("DSP_MARKET_GATEWAY_API_KEY", "test-gateway-key")
     monkeypatch.setattr(
         gateway_app, "_upstox",
-        lambda: SimpleNamespace(get_quote=lambda instrument: FakeQuote(instrument.symbol)),
+        lambda: SimpleNamespace(
+            get_quote=lambda instrument: FakeQuote(instrument.symbol)
+        ),
     )
     fallback_called = False
 

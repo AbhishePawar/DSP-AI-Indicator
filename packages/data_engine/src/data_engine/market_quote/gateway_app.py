@@ -87,12 +87,14 @@ def get_quote(
             detail="invalid gateway credentials",
         )
 
+    exchange_code = exchange.strip().upper()
+    exchange_code = {"NSE_EQ": "NSE", "BSE_EQ": "BSE"}.get(exchange_code, exchange_code)
     try:
         instrument = Instrument(
             symbol=symbol,
             asset_class=AssetClass.EQUITY,
             currency=currency,
-            exchange=exchange,
+            exchange=exchange_code,
             country="IN",
         )
     except Exception as exc:

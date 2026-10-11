@@ -155,6 +155,9 @@ def build_period_from_mapping(
         eps_growth=_sf(ratios_m, "eps_growth"),
         statement_basis=statement_basis,
         unit_scale=unit_scale,
+        shares_outstanding=_sf(
+            payload, "shares_outstanding", "issued_shares", "total_shares_outstanding"
+        ),
     )
 
 

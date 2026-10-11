@@ -28,6 +28,7 @@ from data_engine.financial_statement.service import (
     StatementQuery,
 )
 from data_engine.market_quote.models import AuthenticatedMarketQuote, QuoteField
+from data_engine.exceptions import InvalidProviderDataError
 from data_engine.market_quote.service import MarketQuoteService
 from data_engine.source_governance import is_approved_source
 from data_engine.share_count import (
@@ -658,7 +659,12 @@ def _fetch_quote(
             currency=currency,
             exchange=exchange,
         )
-        quote = service.get_quote(instrument)
+        try:
+            quote = service.get_quote(instrument)
+        except InvalidProviderDataError as exc:
+            # Keep connector validation failures inside the valuation boundary.
+            # Callers depend on a single domain exception and a fail-closed result.
+            raise AuthenticatedValuationError(str(exc)) from exc
     if quote is None:
         raise AuthenticatedValuationError(f"{DATA_UNAVAILABLE} (market quote)")
     if not quote.has_any_price():

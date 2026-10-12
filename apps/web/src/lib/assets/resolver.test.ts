@@ -63,10 +63,22 @@ describe("Dynamic Asset Resolver (Frontend)", () => {
     expect(asset?.candidates && asset.candidates.length > 1).toBe(true);
   });
 
-  it("falls back to single-token ticker safely", () => {
+  it("falls back to single-token ticker without inventing an exchange", () => {
     const asset = resolveAssetEntry("ANYTICKER");
     expect(asset).not.toBeNull();
     expect(asset?.symbol).toBe("ANYTICKER");
     expect(asset?.assetClass).toBe("equity");
+    expect(asset?.exchange).toBe("");
+  });
+
+  it("preserves an explicitly supplied exchange for an uncatalogued ticker", () => {
+    const asset = resolveAssetEntry("ANYTICKER", "BSE");
+    expect(asset?.exchange).toBe("BSE");
+  });
+
+  it("does not invent an exchange for ambiguous asset matches", () => {
+    const asset = resolveAssetEntry("Tata");
+    expect(asset?.ambiguous).toBe(true);
+    expect(asset?.exchange).toBe("");
   });
 });

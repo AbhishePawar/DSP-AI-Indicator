@@ -145,18 +145,96 @@ def test_maps_genuine_quote_fields_and_source_timestamp(
     assert captured["api_version"] == "3.0"
 
 
-def test_unresolved_instrument_does_not_call_network(
+def test_unresolved_instrument_returns_unavailable_after_empty_search(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    monkeypatch.setattr(
-        urllib.request,
-        "urlopen",
-        lambda *args, **kwargs: pytest.fail("network must not be called"),
-    )
+    calls: list[str] = []
+
+    def fake_urlopen(
+        request: urllib.request.Request, timeout: float
+    ) -> _Response:
+        calls.append(request.full_url)
+        return _Response({"status": "success", "data": []})
+
+    monkeypatch.setattr(urllib.request, "urlopen", fake_urlopen)
     quote = UpstoxQuoteAdapter(access_token="test-token").get_quote(
         _instrument(isin=None)
     )
     assert quote is None
+    assert len(calls) == 1
+    assert "/v2/instruments/search?" in calls[0]
+
+
+def test_ticker_only_instrument_resolves_uniquely_then_fetches_quote(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    calls: list[str] = []
+
+    def fake_urlopen(
+        request: urllib.request.Request, timeout: float
+    ) -> _Response:
+        calls.append(request.full_url)
+        if "/v2/instruments/search?" in request.full_url:
+            return _Response(
+                {
+                    "status": "success",
+                    "data": [
+                        {
+                            "trading_symbol": "NHPC",
+                            "segment": "NSE_EQ",
+                            "instrument_key": "NSE_EQ|INE848E01016",
+                        }
+                    ],
+                }
+            )
+        return _Response(
+            {
+                "status": "success",
+                "data": {
+                    "NSE_EQ:NHPC": {
+                        "last_price": 73.4,
+                        "volume": 1000,
+                        "timestamp": "2026-10-12T15:45:00+05:30",
+                        "ohlc": {
+                            "open": 72.9,
+                            "high": 73.47,
+                            "low": 72.15,
+                            "close": 73.4,
+                        },
+                    }
+                },
+            }
+        )
+
+    monkeypatch.setattr(urllib.request, "urlopen", fake_urlopen)
+    quote = UpstoxQuoteAdapter(access_token="test-token").get_quote(
+        _instrument(isin=None)
+    )
+    assert quote is not None
+    assert float(quote.current_price.value) == pytest.approx(73.4)
+    assert len(calls) == 2
+    assert "/v2/instruments/search?" in calls[0]
+    assert "instrument_key=NSE_EQ%7CINE848E01016" in calls[1]
+
+
+def test_instrument_search_permission_failure_is_clear_and_sanitized(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    def forbidden(*args: object, **kwargs: object) -> None:
+        raise urllib.error.HTTPError(
+            "https://api.upstox.com/v2/instruments/search",
+            403,
+            "Forbidden",
+            hdrs=None,
+            fp=None,
+        )
+
+    monkeypatch.setattr(urllib.request, "urlopen", forbidden)
+    with pytest.raises(ProviderRequestError, match="search access denied") as error:
+        UpstoxQuoteAdapter(access_token="sensitive-test-token").get_quote(
+            _instrument(isin=None)
+        )
+    assert "sensitive-test-token" not in str(error.value)
 
 
 def test_malformed_json_is_rejected(monkeypatch: pytest.MonkeyPatch) -> None:

@@ -356,7 +356,7 @@ export function resolveAssetEntry(
     return {
       symbol: upper,
       name: query,
-      exchange: preferredExchange ? preferredExchange.toUpperCase() : "NSE",
+      exchange: preferredExchange ? preferredExchange.toUpperCase() : "",
       assetClass: "equity",
       currency: "INR",
       ambiguous: true,
@@ -377,7 +377,7 @@ export function resolveAssetEntry(
     return {
       symbol: upper,
       name: upper,
-      exchange: preferredExchange ? preferredExchange.toUpperCase() : "NSE",
+      exchange: preferredExchange ? preferredExchange.toUpperCase() : "",
       assetClass: "equity",
       currency: "INR",
       allowsEquityValuation: true,

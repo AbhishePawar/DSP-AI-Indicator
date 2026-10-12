@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import urllib.error
 import urllib.request
 from datetime import datetime
 
@@ -170,6 +171,46 @@ def test_malformed_json_is_rejected(monkeypatch: pytest.MonkeyPatch) -> None:
     )
     with pytest.raises(ProviderRequestError, match="not valid JSON"):
         UpstoxQuoteAdapter(access_token="test-token").get_quote(_instrument())
+
+
+@pytest.mark.parametrize(
+    ("status", "message"),
+    [
+        (401, "authentication/permission failure"),
+        (403, "authentication/permission failure"),
+        (429, "rate limit exceeded"),
+        (503, "HTTP 503"),
+    ],
+)
+def test_http_errors_are_sanitized_and_never_include_token(
+    monkeypatch: pytest.MonkeyPatch, status: int, message: str
+) -> None:
+    token = "sensitive-test-token"
+
+    def fail_request(*args: object, **kwargs: object) -> None:
+        raise urllib.error.HTTPError(
+            "https://api.upstox.com/v3/market-quote/quotes",
+            status,
+            "test error",
+            hdrs=None,
+            fp=None,
+        )
+
+    monkeypatch.setattr(urllib.request, "urlopen", fail_request)
+    with pytest.raises(ProviderRequestError, match=message) as error:
+        UpstoxQuoteAdapter(access_token=token).get_quote(_instrument())
+    assert token not in str(error.value)
+
+
+def test_timeout_error_is_sanitized(monkeypatch: pytest.MonkeyPatch) -> None:
+    def timeout(*args: object, **kwargs: object) -> None:
+        raise TimeoutError("socket timeout")
+
+    monkeypatch.setattr(urllib.request, "urlopen", timeout)
+    with pytest.raises(ProviderRequestError, match="timed out"):
+        UpstoxQuoteAdapter(access_token="sensitive-test-token").get_quote(
+            _instrument()
+        )
 
 
 def test_health_does_not_claim_live_connectivity() -> None:

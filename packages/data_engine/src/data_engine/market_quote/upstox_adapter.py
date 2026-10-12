@@ -11,8 +11,9 @@ import re
 import urllib.error
 import urllib.request
 from collections.abc import Mapping
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from datetime import UTC, datetime
+from threading import Lock
 from typing import Any
 from urllib.parse import urlencode
 
@@ -63,7 +64,7 @@ def resolve_upstox_instrument_key(instrument: Instrument) -> str | None:
     isin = str(instrument.isin or "").strip().upper()
     exchange = str(instrument.exchange or "").strip().upper()
     segment = _EXCHANGE_SEGMENTS.get(exchange)
-    if not segment or not _ISIN_RE.fullmatch(isin):
+    if not segment or not isin.startswith("IN") or not _ISIN_RE.fullmatch(isin):
         return None
     return f"{segment}|{isin}"
 
@@ -94,10 +95,114 @@ class UpstoxQuoteAdapter(MarketQuotePort):
     base_url: str = _UPSTOX_QUOTES_URL
     _provider_id: str = "upstox_market_quote"
     provider_name: str = "Upstox Market Quote"
+    _instrument_key_cache: dict[str, str] = field(default_factory=dict, repr=False)
+    _cache_lock: Lock = field(default_factory=Lock, repr=False)
 
     @property
     def provider_id(self) -> str:
         return self._provider_id
+
+    def _search_instrument_key(
+        self, instrument: Instrument, token: str
+    ) -> str | None:
+        """Resolve ticker-only equity requests via Upstox's official search API."""
+        symbol = instrument.symbol.strip().upper()
+        exchange = str(instrument.exchange or "").strip().upper()
+        exchange_filter = (
+            "NSE" if exchange in {"NSE", "NSE_EQ", "NSE EQUITY"}
+            else "BSE" if exchange in {"BSE", "BSE_EQ", "BSE EQUITY"}
+            else "ALL"
+        )
+        cache_key = f"{exchange_filter}:{symbol}"
+        with self._cache_lock:
+            cached = self._instrument_key_cache.get(cache_key)
+        if cached:
+            return cached
+
+        query = urlencode({
+            "query": symbol,
+            "exchanges": exchange_filter,
+            "segments": "EQ",
+            "page_number": "1",
+            "records": "30",
+        })
+        request = urllib.request.Request(
+            f"https://api.upstox.com/v2/instruments/search?{query}",
+            headers={
+                "Authorization": f"Bearer {token}",
+                "Accept": "application/json",
+                "Api-Version": "2.0",
+                "User-Agent": "dsp-data-engine-upstox-quote/1.0",
+            },
+            method="GET",
+        )
+        try:
+            with urllib.request.urlopen(
+                request, timeout=self.timeout_seconds
+            ) as response:
+                raw = response.read().decode("utf-8")
+        except urllib.error.HTTPError as exc:
+            if exc.code in (401, 403):
+                raise ProviderRequestError(
+                    f"Upstox instrument search access denied (HTTP {exc.code}); "
+                    "verify token permissions or provide a verified ISIN"
+                ) from None
+            if exc.code == 429:
+                raise ProviderRequestError(
+                    "Upstox instrument search rate limit exceeded (HTTP 429)"
+                ) from None
+            raise ProviderRequestError(
+                f"Upstox instrument search failed (HTTP {exc.code})"
+            ) from None
+        except (TimeoutError, urllib.error.URLError) as exc:
+            reason = getattr(exc, "reason", None)
+            if isinstance(reason, TimeoutError) or isinstance(exc, TimeoutError):
+                raise ProviderRequestError(
+                    "Upstox instrument search timed out"
+                ) from None
+            raise ProviderRequestError(
+                "Upstox instrument search could not be completed"
+            ) from None
+        except Exception:
+            raise ProviderRequestError("Upstox instrument search failed") from None
+
+        try:
+            payload = json.loads(raw)
+        except (json.JSONDecodeError, UnicodeDecodeError):
+            raise ProviderRequestError(
+                "Upstox instrument search response is not valid JSON"
+            ) from None
+        if not isinstance(payload, Mapping) or str(
+            payload.get("status", "")
+        ).lower() == "error":
+            raise ProviderRequestError("Upstox instrument search returned an invalid response")
+        data = payload.get("data")
+        if not isinstance(data, list):
+            raise ProviderRequestError("Upstox instrument search data is not a list")
+
+        candidates = [
+            row for row in data
+            if isinstance(row, Mapping)
+            and str(row.get("trading_symbol") or "").strip().upper() == symbol
+            and str(row.get("segment") or "").strip().upper()
+            in {"NSE_EQ", "BSE_EQ"}
+            and str(row.get("instrument_key") or "").strip()
+        ]
+        if exchange_filter != "ALL":
+            expected_segment = "NSE_EQ" if exchange_filter == "NSE" else "BSE_EQ"
+            candidates = [
+                row for row in candidates
+                if str(row.get("segment") or "").strip().upper() == expected_segment
+            ]
+        # Never choose arbitrarily between duplicate listings or search matches.
+        if len(candidates) != 1:
+            return None
+        key = str(candidates[0]["instrument_key"]).strip()
+        if "|" not in key or key.split("|", 1)[0] not in {"NSE_EQ", "BSE_EQ"}:
+            return None
+        with self._cache_lock:
+            self._instrument_key_cache[cache_key] = key
+        return key
 
     def get_quote(self, instrument: Instrument) -> AuthenticatedMarketQuote | None:
         token = self.access_token.strip()
@@ -105,6 +210,8 @@ class UpstoxQuoteAdapter(MarketQuotePort):
             raise ProviderRequestError("Upstox access token is required")
 
         instrument_key = resolve_upstox_instrument_key(instrument)
+        if instrument_key is None:
+            instrument_key = self._search_instrument_key(instrument, token)
         if instrument_key is None:
             return None
 

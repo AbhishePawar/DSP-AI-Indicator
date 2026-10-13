@@ -7,10 +7,13 @@ providers, then maps it into ``fundamental.FinancialSnapshot`` for
 
 from __future__ import annotations
 
+import logging
 from collections.abc import Callable
 from dataclasses import dataclass
 from datetime import date
 from typing import Any
+
+_LOG = logging.getLogger("dsp.composition.authenticated_valuation")
 
 from contracts.domain.fundamental_statement import FundamentalStatement
 from contracts.domain.instrument import Instrument
@@ -63,6 +66,7 @@ __all__ = [
     "load_authenticated_valuation_bundle",
     "signals_from_assessment",
     "to_financial_statements",
+    "to_financial_statements_from_period",
 ]
 
 DATA_UNAVAILABLE = "Data unavailable."
@@ -233,8 +237,17 @@ def _resolve_shares(
                 )
         return float(statement_shares)
 
+    # P1-03: Upstox is quote-only; quote-derived shares cannot authorize valuation.
+    quote_prov = getattr(quote, "provenance", None)
+    quote_provider = str(getattr(quote_prov, "provider_id", "") or "").strip().lower()
+    if quote_provider in ("upstox", "upstox_quote", "yahoo", "fred"):
+        raise AuthenticatedValuationError(
+            f"{DATA_UNAVAILABLE} (quote-derived shares from {quote_provider} cannot authorize per-share valuation; authenticated shares outstanding unavailable)"
+        )
+
     if quote_shares is not None and quote_shares > 0:
         return float(quote_shares)
+
     raise AuthenticatedValuationError(
         f"{DATA_UNAVAILABLE} (authenticated shares outstanding unavailable)"
     )
@@ -349,6 +362,73 @@ def to_financial_statements(
             capex=(
                 -abs(latest.capital_expenditures)
                 if latest.capital_expenditures is not None
+                else None
+            ),
+            free_cash_flow=fcf,
+        ),
+        statement_metadata=StatementMetadata(unit_scale=UnitScale.ACTUAL),
+    )
+
+
+def to_financial_statements_from_period(
+    period: AuthenticatedStatementPeriod,
+    instrument: Instrument,
+    *,
+    shares: float | None = None,
+    source: str = "authenticated_provider",
+) -> FinancialStatements:
+    """Map a single AuthenticatedStatementPeriod directly into financial.FinancialStatements."""
+    fund_stmt = _to_fundamental_statement(period, instrument)
+    try:
+        period_type = PeriodType(period.period_type)
+    except ValueError as exc:
+        raise AuthenticatedValuationError(f"{DATA_UNAVAILABLE} (period kind)") from exc
+    currency = CurrencyRef.parse(fund_stmt.currency)
+    shares_count = shares
+    if shares_count is None:
+        shares_sf = _sf(period.shares_outstanding)
+        shares_count = (
+            float(shares_sf) if shares_sf is not None and shares_sf > 0 else None
+        )
+    fcf = None
+    if (
+        fund_stmt.operating_cash_flow is not None
+        and fund_stmt.capital_expenditures is not None
+    ):
+        fcf = fund_stmt.operating_cash_flow - abs(fund_stmt.capital_expenditures)
+    return FinancialStatements(
+        period=FinancialPeriod(
+            period_type=period_type,
+            period_end=fund_stmt.period_end,
+            fiscal_year=fund_stmt.fiscal_year,
+            currency=currency,
+            source=source,
+        ),
+        income_statement=IncomeStatement(
+            revenue=fund_stmt.revenue,
+            cogs=fund_stmt.cost_of_revenue,
+            gross_profit=fund_stmt.gross_profit,
+            ebit=fund_stmt.operating_income,
+            net_income=fund_stmt.net_income,
+            eps=fund_stmt.eps_basic,
+            diluted_eps=fund_stmt.eps_diluted,
+            weighted_shares=shares_count,
+        ),
+        balance_sheet=BalanceSheet(
+            cash=fund_stmt.cash_and_equivalents,
+            total_assets=fund_stmt.total_assets,
+            total_liabilities=fund_stmt.total_liabilities,
+            equity=fund_stmt.total_equity,
+            total_equity=fund_stmt.total_equity,
+            long_term_debt=fund_stmt.total_debt,
+        ),
+        cash_flow=CashFlowStatement(
+            operating_cash_flow=fund_stmt.operating_cash_flow,
+            investing_cash_flow=fund_stmt.investing_cash_flow,
+            financing_cash_flow=fund_stmt.financing_cash_flow,
+            capex=(
+                -abs(fund_stmt.capital_expenditures)
+                if fund_stmt.capital_expenditures is not None
                 else None
             ),
             free_cash_flow=fcf,
@@ -540,6 +620,7 @@ def _fetch_statements(
     statement_service: FinancialStatementService | None,
     get_statements: Callable[[str], AuthenticatedFinancialStatements | None] | None,
 ) -> AuthenticatedFinancialStatements:
+    bundle: AuthenticatedFinancialStatements | None = None
     if get_statements is not None:
         bundle = get_statements(symbol)
     else:
@@ -549,20 +630,58 @@ def _fetch_statements(
 
             service = _service()
         health = service.health()
+        if health.authenticated:
+            _reject_null_provider(health.provider_id, connector="statements")
+            instrument = Instrument(
+                symbol=symbol,
+                asset_class=AssetClass.EQUITY,
+                currency=currency,
+                exchange=exchange,
+            )
+            try:
+                bundle = service.get_statements(
+                    StatementQuery(
+                        instrument=instrument, limit=8, include_restated=False
+                    )
+                )
+            except Exception as exc:
+                _LOG.warning(
+                    "statement_service_get_statements_failed",
+                    extra={"symbol": symbol, "error": str(exc)},
+                )
+                bundle = None
+
+    if bundle is not None and bundle.has_any_period():
+        return bundle
+
+    # Targeted recovery from authoritative filings
+    try:
+        from dsp_platform.recovery import get_statement_recovery_service
+
+        recovery_svc = get_statement_recovery_service()
+        recovery_result = recovery_svc.recover(
+            symbol=symbol,
+            exchange=exchange,
+            currency=currency,
+        )
+        if (
+            recovery_result.is_usable()
+            and recovery_result.recovered_statements is not None
+        ):
+            return recovery_result.recovered_statements
+    except Exception as exc:
+        _LOG.warning(
+            "statement_recovery_failed", extra={"symbol": symbol, "error": str(exc)}
+        )
+
+    # Fallback to fail-closed error reporting
+    if get_statements is None:
+        service = statement_service or _service()
+        health = service.health()
         if not health.authenticated:
             raise AuthenticatedValuationError(
                 f"{DATA_UNAVAILABLE} (statement provider unauthenticated)"
             )
-        _reject_null_provider(health.provider_id, connector="statements")
-        instrument = Instrument(
-            symbol=symbol,
-            asset_class=AssetClass.EQUITY,
-            currency=currency,
-            exchange=exchange,
-        )
-        bundle = service.get_statements(
-            StatementQuery(instrument=instrument, limit=8, include_restated=False)
-        )
     if bundle is None:
         raise AuthenticatedValuationError(f"{DATA_UNAVAILABLE} (financial statements)")
     if not bundle.has_any_period():
@@ -600,7 +719,10 @@ def _fetch_quote(
             currency=currency,
             exchange=exchange,
         )
-        quote = service.get_quote(instrument)
+        try:
+            quote = service.get_quote(instrument)
+        except Exception as exc:
+            raise AuthenticatedValuationError(f"{DATA_UNAVAILABLE} ({exc})") from exc
     if quote is None:
         raise AuthenticatedValuationError(f"{DATA_UNAVAILABLE} (market quote)")
     if not quote.has_any_price():

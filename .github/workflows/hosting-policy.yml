@@ -1,4 +1,4 @@
-name: No Vercel Hosting Dependency
+name: Hosting Dependency Policy
 
 on:
   push:
@@ -10,8 +10,8 @@ permissions:
   contents: read
 
 jobs:
-  no-vercel-hosting:
-    name: No hosted deployment dependency
+  hosting-policy:
+    name: Hosting dependency policy
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4

@@ -65,15 +65,14 @@ def load_llm_config() -> LLMPlatformConfig:
         default_raw if default_raw in allowed else "deterministic"
     )
 
-    # Only direct provider APIs are supported; legacy AI_GATEWAY_* values are ignored.
     mode_raw = (_read_env("AI_PROVIDER_MODE", "DSP_AI_PROVIDER_MODE") or "direct").lower()
     provider_mode: ProviderMode = (
-        "deterministic" if mode_raw == "deterministic" else "direct"
+        mode_raw if mode_raw in {"direct", "deterministic"} else "direct"
     )
 
     return LLMPlatformConfig(
         default_provider=default_provider,
-        openai_api_key=_read_env("OPENAI_API_KEY", "DSP_AI_OPENAI_API_KEY", "OPENAI_API_KEY_5"),
+        openai_api_key=_read_env("OPENAI_API_KEY_5"),
         anthropic_api_key=_read_env("ANTHROPIC_API_KEY", "DSP_AI_ANTHROPIC_API_KEY"),
         gemini_api_key=_read_env("GEMINI_API_KEY", "DSP_AI_GEMINI_API_KEY"),
         deepseek_api_key=_read_env("DEEPSEEK_API_KEY", "DSP_AI_DEEPSEEK_API_KEY"),

@@ -12,11 +12,8 @@ import time
 import urllib.error
 import urllib.parse
 import urllib.request
-from typing import Any
 
 from llm_adapters.provider_health import (
-    ProviderDiagnostics,
-    ProviderHealthStatus,
     classify_provider_error,
 )
 

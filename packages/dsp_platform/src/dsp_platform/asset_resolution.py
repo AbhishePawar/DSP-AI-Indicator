@@ -15,8 +15,8 @@ from __future__ import annotations
 
 import re
 import threading
-from dataclasses import dataclass, field
-from typing import Any, Mapping
+from dataclasses import dataclass
+from typing import Any
 
 from contracts.enums import AssetClass
 

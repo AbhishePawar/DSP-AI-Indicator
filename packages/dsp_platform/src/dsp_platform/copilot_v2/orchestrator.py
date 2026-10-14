@@ -2,10 +2,11 @@
 
 from __future__ import annotations
 
-import uuid
 from collections.abc import Mapping
 from datetime import UTC, datetime
+import threading
 from typing import Any, cast
+import uuid
 
 from dsp_platform.copilot_v2.intent import (
     COPILOT_MODES,
@@ -14,7 +15,6 @@ from dsp_platform.copilot_v2.intent import (
     source_ref,
 )
 from dsp_platform.copilot_v2.memory import get_copilot_memory_store
-import threading
 from persistence.research_session import compute_session_id, get_research_session_service
 
 _IDEMPOTENCY_LOCKS_GUARD = threading.Lock()

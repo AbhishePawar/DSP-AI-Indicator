@@ -2,10 +2,10 @@
 
 from __future__ import annotations
 
-import uuid
 from collections.abc import Iterator
 from typing import Any
 from urllib.parse import urlsplit, urlunsplit
+import uuid
 
 import httpx
 

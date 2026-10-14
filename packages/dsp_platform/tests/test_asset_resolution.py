@@ -1,6 +1,5 @@
 from contracts.enums import AssetClass
 from dsp_platform.asset_resolution import (
-    AssetResolutionService,
     resolve_asset,
 )
 from dsp_platform.platform import DSPPlatform

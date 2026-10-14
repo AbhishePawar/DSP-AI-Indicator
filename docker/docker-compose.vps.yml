@@ -64,6 +64,8 @@ services:
       DSP_TEMP_DIR: /tmp/dsp
       DSP_BACKUP_DIR: /var/backups/dsp
       DSP_BACKUP_ADAPTER: ${DSP_BACKUP_ADAPTER:-auto}
+      DSP_OBJECT_STORAGE_PROVIDER: ${DSP_OBJECT_STORAGE_PROVIDER:-local}
+      DSP_OBJECT_STORAGE_LOCAL_ROOT: ${DSP_OBJECT_STORAGE_LOCAL_ROOT:-/var/lib/dsp/object-storage}
       DSP_DATABASE_URL: ${DSP_DATABASE_URL}
       DSP_REDIS_URL: ${DSP_REDIS_URL:-}
       DSP_REDIS_FALLBACK: ${DSP_REDIS_FALLBACK:-true}
@@ -72,6 +74,7 @@ services:
     volumes:
       - dsp_api_tmp:/tmp/dsp
       - dsp_backups:/var/backups/dsp
+      - dsp_object_storage:/var/lib/dsp/object-storage
     networks: [proxy_api]
     expose: ["8000"]
     deploy:
@@ -124,6 +127,7 @@ networks:
 volumes:
   dsp_api_tmp:
   dsp_backups:
+  dsp_object_storage:
   caddy_data:
   caddy_config:
   caddy_logs:

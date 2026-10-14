@@ -7,7 +7,6 @@ from typing import Any
 from llm_adapters.anthropic_adapter import AnthropicAdapter
 from llm_adapters.config import LLMPlatformConfig, ProviderName, load_llm_config
 from llm_adapters.deepseek_adapter import DeepSeekAdapter
-from llm_adapters.gateway_adapter import gateway_provider
 from llm_adapters.gemini_adapter import GeminiDirectAdapter
 from llm_adapters.generic_openai_adapter import GenericOpenAIAdapter
 from llm_adapters.interfaces import ProviderAdapter
@@ -57,9 +56,6 @@ class ProviderRegistry:
                 deepseek_model=self._config.deepseek_model,
                 request_timeout_seconds=self._config.request_timeout_seconds,
                 max_retries=self._config.max_retries,
-                ai_gateway_api_key=self._config.ai_gateway_api_key,
-                ai_gateway_base_url=self._config.ai_gateway_base_url,
-                direct_provider_fallback=self._config.direct_provider_fallback,
                 provider_mode=self._config.provider_mode,
             )
 
@@ -79,9 +75,6 @@ class ProviderRegistry:
                 deepseek_model=self._config.deepseek_model,
                 request_timeout_seconds=self._config.request_timeout_seconds,
                 max_retries=self._config.max_retries,
-                ai_gateway_api_key=self._config.ai_gateway_api_key,
-                ai_gateway_base_url=self._config.ai_gateway_base_url,
-                direct_provider_fallback=self._config.direct_provider_fallback,
                 provider_mode=self._config.provider_mode,
             )
 
@@ -101,9 +94,6 @@ class ProviderRegistry:
                 deepseek_model=self._config.deepseek_model,
                 request_timeout_seconds=self._config.request_timeout_seconds,
                 max_retries=self._config.max_retries,
-                ai_gateway_api_key=self._config.ai_gateway_api_key,
-                ai_gateway_base_url=self._config.ai_gateway_base_url,
-                direct_provider_fallback=self._config.direct_provider_fallback,
                 provider_mode=self._config.provider_mode,
             )
 
@@ -123,9 +113,6 @@ class ProviderRegistry:
                 deepseek_model=(deepseek_model.selected_model if deepseek_model and deepseek_model.selected_model else self._config.deepseek_model),
                 request_timeout_seconds=self._config.request_timeout_seconds,
                 max_retries=self._config.max_retries,
-                ai_gateway_api_key=self._config.ai_gateway_api_key,
-                ai_gateway_base_url=self._config.ai_gateway_base_url,
-                direct_provider_fallback=self._config.direct_provider_fallback,
                 provider_mode=self._config.provider_mode,
             )
 
@@ -136,20 +123,8 @@ class ProviderRegistry:
             "deepseek": DeepSeekAdapter(deepseek_cfg),
         }
 
-        self._adapters = {
-            "openai": (
-                gateway_provider(self._config, "openai")
-                if self._config.provider_mode == "gateway" and not openai_secret
-                else self._direct_adapters["openai"]
-            ),
-            "anthropic": self._direct_adapters["anthropic"],
-            "gemini": (
-                gateway_provider(self._config, "gemini")
-                if self._config.provider_mode == "gateway" and not gemini_secret
-                else self._direct_adapters["gemini"]
-            ),
-            "deepseek": self._direct_adapters["deepseek"],
-        }
+        # Core providers always call their official direct APIs.
+        self._adapters = dict(self._direct_adapters)
 
         # Dynamically register OpenAI-compatible extended providers
         for pid, (base_url, extra_hdrs) in _OPENAI_COMPATIBLE_BASES.items():
@@ -186,11 +161,9 @@ class ProviderRegistry:
         return self._extended_adapters.get(pid)
 
     def direct_fallback(self, provider_id: str) -> ProviderAdapter | None:
-        """Return the configured direct adapter for an AI Gateway provider."""
-        if not self._config.direct_provider_fallback:
-            return None
-        adapter = self._direct_adapters.get(provider_id.lower())
-        return adapter if adapter and adapter.is_configured() else None
+        """Return no secondary adapter: registered core providers are already direct."""
+        del provider_id
+        return None
 
     def list_providers(self, include_all: bool = False) -> list[dict[str, object]]:
         if not include_all:

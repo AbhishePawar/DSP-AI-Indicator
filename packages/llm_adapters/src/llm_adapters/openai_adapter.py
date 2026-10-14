@@ -32,14 +32,10 @@ class OpenAIAdapter(OpenAICompatibleToolCalling):
 
     def __init__(self, config: LLMPlatformConfig) -> None:
         self._config = config
-        self.model_label = (
-            config.openai_model
-            if config.has_configured_gateway
-            else config.openai_model.removeprefix("openai/")
-        )
+        self.model_label = config.openai_model.removeprefix("openai/")
 
     def is_configured(self) -> bool:
-        return bool(self._config.has_configured_gateway or self._config.openai_api_key)
+        return bool(self._config.openai_api_key)
 
     def invoke(self, request: LanguageModelRequest) -> LanguageModelResult:
         result, _ = self._chat(request, tools=None, allow_tool_only=False)
@@ -66,15 +62,8 @@ class OpenAIAdapter(OpenAICompatibleToolCalling):
             return self._unavailable("OpenAI API credentials are not configured"), None
 
         prompt = "\n\n".join(request.prompt_parts)
-        use_gateway = self._config.has_configured_gateway
-        api_key = (
-            self._config.ai_gateway_api_key if use_gateway else self._config.openai_api_key
-        ) or ""
-        base_url = (
-            self._config.ai_gateway_base_url
-            if use_gateway
-            else "https://api.openai.com/v1"
-        )
+        api_key = self._config.openai_api_key or ""
+        base_url = "https://api.openai.com/v1"
 
         payload: dict[str, Any] = {
             "model": self.model_label,
@@ -126,15 +115,8 @@ class OpenAIAdapter(OpenAICompatibleToolCalling):
             return
 
         prompt = "\n\n".join(request.prompt_parts)
-        use_gateway = self._config.has_configured_gateway
-        api_key = (
-            self._config.ai_gateway_api_key if use_gateway else self._config.openai_api_key
-        ) or ""
-        base_url = (
-            self._config.ai_gateway_base_url
-            if use_gateway
-            else "https://api.openai.com/v1"
-        )
+        api_key = self._config.openai_api_key or ""
+        base_url = "https://api.openai.com/v1"
         payload = {
             "model": self.model_label,
             "stream": True,

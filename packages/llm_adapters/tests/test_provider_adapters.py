@@ -8,7 +8,6 @@ latency, error normalization, and privacy leakage.
 from __future__ import annotations
 
 import json
-from dataclasses import replace
 from typing import Any
 from unittest.mock import MagicMock, patch
 
@@ -396,69 +395,29 @@ def test_adapters_return_free_text_not_structured() -> None:
         assert result.narrative_text == "ok"
 
 
-def test_legacy_vercel_gateway_environment_is_ignored(monkeypatch: Any) -> None:
+def test_legacy_gateway_environment_is_ignored(monkeypatch: Any) -> None:
+    """Legacy gateway settings must not change the direct-provider routing mode."""
+    monkeypatch.setenv("DEFAULT_AI_PROVIDER", "gemini")
     monkeypatch.setenv("AI_PROVIDER_MODE", "gateway")
     monkeypatch.setenv("AI_GATEWAY_API_KEY", "legacy-gateway-key")
-    monkeypatch.setenv("AI_GATEWAY_BASE_URL", "https://ai-gateway.vercel.sh/v1")
+    monkeypatch.setenv("AI_GATEWAY_BASE_URL", "https://gateway.invalid/v1")
+    for name in (
+        "OPENAI_API_KEY",
+        "DSP_AI_OPENAI_API_KEY",
+        "OPENAI_API_KEY_5",
+        "ANTHROPIC_API_KEY",
+        "DSP_AI_ANTHROPIC_API_KEY",
+        "GEMINI_API_KEY",
+        "DSP_AI_GEMINI_API_KEY",
+        "DEEPSEEK_API_KEY",
+        "DSP_AI_DEEPSEEK_API_KEY",
+    ):
+        monkeypatch.delenv(name, raising=False)
 
     config = load_llm_config()
 
     assert config.provider_mode == "direct"
-    assert config.ai_gateway_api_key is None
-    assert config.ai_gateway_base_url == ""
-    assert not config.has_configured_gateway
-
-
-def test_vendor_neutral_gateway_requires_explicit_key_and_url(monkeypatch: Any) -> None:
-    monkeypatch.setenv("AI_PROVIDER_MODE", "gateway")
-    monkeypatch.setenv("AI_GATEWAY_API_KEY", "explicit-gateway-key")
-    monkeypatch.setenv("AI_GATEWAY_BASE_URL", "https://gateway.example/v1")
-
-    config = load_llm_config()
-
-    assert config.provider_mode == "gateway"
-    assert config.has_configured_gateway
-
-
-def test_openai_uses_direct_api_when_legacy_gateway_url_is_missing() -> None:
-    config = replace(
-        _config(),
-        ai_gateway_api_key="legacy-gateway-key",
-        ai_gateway_base_url="",
-        provider_mode="gateway",
-    )
-    adapter = OpenAIAdapter(config)
-    body = {"choices": [{"message": {"content": "Direct OpenAI response."}}]}
-
-    with patch("llm_adapters.openai_adapter.httpx.Client") as client_cls:
-        client = client_cls.return_value.__enter__.return_value
-        client.post.return_value = _mock_response(body)
-        result = adapter.invoke(_request())
-
-    assert result.status is LanguageModelStatus.COMPLETE
-    assert client.post.call_args.args[0] == "https://api.openai.com/v1/chat/completions"
-    assert client.post.call_args.kwargs["headers"]["Authorization"] == "Bearer test-openai"
-
-
-def test_gemini_uses_direct_api_when_legacy_gateway_url_is_missing() -> None:
-    config = replace(
-        _config(),
-        gemini_model="google/gemini-1.5-flash",
-        ai_gateway_api_key="legacy-gateway-key",
-        ai_gateway_base_url="",
-        provider_mode="gateway",
-    )
-    adapter = GeminiAdapter(config)
-    body = {"candidates": [{"content": {"parts": [{"text": "Direct Gemini response."}]}}]}
-
-    with patch("llm_adapters.gemini_adapter.httpx.Client") as client_cls:
-        client = client_cls.return_value.__enter__.return_value
-        client.post.return_value = _mock_response(body)
-        result = adapter.invoke(_request())
-
-    assert result.status is LanguageModelStatus.COMPLETE
-    assert client.post.call_args.args[0] == (
-        "https://generativelanguage.googleapis.com/v1beta/models/"
-        "gemini-1.5-flash:generateContent"
-    )
-    assert client.post.call_args.kwargs["headers"]["x-goog-api-key"] == "test-gemini"
+    assert not config.has_external_provider
+    assert not hasattr(config, "ai_gateway_api_key")
+    assert not hasattr(config, "ai_gateway_base_url")
+    assert not hasattr(config, "has_configured_gateway")

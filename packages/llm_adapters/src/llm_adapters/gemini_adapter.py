@@ -38,14 +38,10 @@ class GeminiAdapter(GeminiToolCalling):
 
     def __init__(self, config: LLMPlatformConfig) -> None:
         self._config = config
-        self.model_label = (
-            config.gemini_model
-            if config.has_configured_gateway
-            else config.gemini_model.removeprefix("google/")
-        )
+        self.model_label = config.gemini_model.removeprefix("google/")
 
     def is_configured(self) -> bool:
-        return bool(self._config.has_configured_gateway or self._config.gemini_api_key)
+        return bool(self._config.gemini_api_key)
 
     def invoke(self, request: LanguageModelRequest) -> LanguageModelResult:
         result, _ = self._generate(request, tools=None, allow_tool_only=False)
@@ -76,30 +72,14 @@ class GeminiAdapter(GeminiToolCalling):
 
         system_content, *user_parts = request.prompt_parts
         user_text = "\n\n".join(user_parts)
-        use_gateway = self._config.has_configured_gateway
-        url = (
-            f"{self._config.ai_gateway_base_url.rstrip('/')}/chat/completions"
-            if use_gateway
-            else f"{_BASE_URL}/{self.model_label}:generateContent"
-        )
-        payload: dict[str, Any] = (
-            {
-                "model": self.model_label,
-                "messages": [
-                    {"role": "system", "content": system_content},
-                    {"role": "user", "content": user_text},
-                ],
-                "temperature": 0.2,
-            }
-            if use_gateway
-            else {
-                "contents": [
-                    {"role": "user", "parts": [{"text": user_text}]}
-                ],
-                "generationConfig": {"temperature": 0.2},
-            }
-        )
-        if system_content and not use_gateway:
+        url = f"{_BASE_URL}/{self.model_label}:generateContent"
+        payload: dict[str, Any] = {
+            "contents": [
+                {"role": "user", "parts": [{"text": user_text}]}
+            ],
+            "generationConfig": {"temperature": 0.2},
+        }
+        if system_content:
             payload["systemInstruction"] = {
                 "role": "system",
                 "parts": [{"text": system_content}],
@@ -113,14 +93,7 @@ class GeminiAdapter(GeminiToolCalling):
                     "Content-Type": "application/json",
                 }
 
-                if use_gateway:
-                    headers["Authorization"] = (
-                        f"Bearer {self._config.ai_gateway_api_key}"
-                    )
-                else:
-                    headers["x-goog-api-key"] = (
-                        self._config.gemini_api_key or ""
-                    )
+                headers["x-goog-api-key"] = self._config.gemini_api_key or ""
 
                 response = client.post(
                     url,
@@ -137,7 +110,7 @@ class GeminiAdapter(GeminiToolCalling):
 
         if not isinstance(data, dict):
             return self._failed("malformed_response: TypeError"), None
-        text = self._extract_gateway_text(data) if use_gateway else self._extract_text(data)
+        text = self._extract_text(data)
         has_tools = gemini_payload_contains_function_calls(data)
         if not text and not (allow_tool_only and has_tools):
             return self._failed("empty Gemini response"), data
@@ -198,14 +171,6 @@ class GeminiAdapter(GeminiToolCalling):
                             yield text
         except httpx.HTTPError:
             return
-
-    def _extract_gateway_text(self, data: dict[str, Any]) -> str | None:
-        choices = data.get("choices") or []
-        if not choices:
-            return None
-        message = choices[0].get("message") or {}
-        content = message.get("content")
-        return str(content).strip() if content else None
 
     def _extract_text(self, data: dict[str, Any]) -> str | None:
         candidates = data.get("candidates") or []

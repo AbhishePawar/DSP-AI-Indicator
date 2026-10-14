@@ -1,7 +1,7 @@
 /**
  * @vitest-environment jsdom
  */
-import type { ReactNode } from "react";
+import type { ComponentProps, ReactNode } from "react";
 import { describe, expect, it, vi } from "vitest";
 import { render, screen } from "@testing-library/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
@@ -101,7 +101,7 @@ describe("CompanyComparisonWorkspace render", () => {
         },
       ],
       tradeOffs: [],
-    } as unknown as React.ComponentProps<typeof WinnerMatrixSection>["model"];
+    } as unknown as ComponentProps<typeof WinnerMatrixSection>["model"];
 
     render(<WinnerMatrixSection model={dynamicModel} />);
 

@@ -24,6 +24,19 @@ set +a
 echo "[deploy] validating production environment"
 python "${ROOT}/scripts/validate_env.py" production
 
+if [[ -n "${DSP_PREVIOUS_IMAGE_TAG:-}" && "${DSP_PREVIOUS_IMAGE_TAG}" == "${DSP_IMAGE_TAG:-}" ]]; then
+  echo "[deploy] ERROR: API image tag must differ from the previous known-good tag" >&2
+  exit 1
+fi
+if [[ -n "${DSP_PREVIOUS_IMAGE_TAG_WEB:-}" && "${DSP_PREVIOUS_IMAGE_TAG_WEB}" == "${DSP_IMAGE_TAG_WEB:-}" ]]; then
+  echo "[deploy] ERROR: web image tag must differ from the previous known-good tag" >&2
+  exit 1
+fi
+if [[ "${DSP_IMAGE_TAG:-}" =~ ^(latest|stable|main)$ || "${DSP_IMAGE_TAG_WEB:-}" =~ ^(latest|stable|main)$ ]]; then
+  echo "[deploy] ERROR: use immutable version tags, not latest/stable/main" >&2
+  exit 1
+fi
+
 echo "[deploy] validating Compose configuration"
 docker compose --env-file "${ENV_FILE}" -f "${COMPOSE_FILE}" config --quiet
 

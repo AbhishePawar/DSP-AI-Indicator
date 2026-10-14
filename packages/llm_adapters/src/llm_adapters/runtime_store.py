@@ -545,7 +545,11 @@ class RuntimeProviderStore:
             except Exception as exc:
                 logger.error("Failed loading configuration from PostgreSQL: %s; trying disk", exc)
 
-        # Fallback to local encrypted disk file
+        # Local fallback is forbidden in production; PostgreSQL initialization/read failures
+        # must not silently change the persistence backend.
+        if any(os.environ.get(name, "").strip().lower() in {"production", "prod"}
+               for name in ("DSP_ENV", "APP_ENV", "ENVIRONMENT", "NODE_ENV")):
+            raise RuntimeError("PostgreSQL provider store could not be loaded in production.")
         if not os.path.exists(self._store_path):
             return
 
@@ -578,6 +582,14 @@ class RuntimeProviderStore:
                         except Exception as exc:
                             logger.error("Failed to decrypt stored credential for %s: %s", pid, exc)
 
+                # Apply durable revocation tombstones after environment/disk secrets are loaded.
+                for pid in data.get("revoked_credentials", []):
+                    self._credential_revoked.add(pid)
+                    self._secrets.pop(pid, None)
+                    if pid in self._providers:
+                        self._providers[pid].has_credential = False
+                        self._providers[pid].health_status = ProviderHealthStatus.NOT_CONFIGURED
+
                 # Load audit log
                 for a in data.get("audit_log", []):
                     self._audit_log.append(AuditRecord(**a))
@@ -594,6 +606,12 @@ class RuntimeProviderStore:
             pid: encrypt_at_rest(self._secrets[pid])
             for pid in target_ids
             if self._secrets.get(pid)
+        }
+        # Local development storage is a complete snapshot, unlike targeted DB writes.
+        all_encrypted_credentials = {
+            pid: encrypt_at_rest(secret)
+            for pid, secret in self._secrets.items()
+            if secret and pid not in self._credential_revoked
         }
 
         if self._postgres_enabled and self._postgres_pool is not None:
@@ -640,7 +658,8 @@ class RuntimeProviderStore:
 
             data = {
                 "providers": providers_data,
-                "credentials": encrypted_credentials,
+                "credentials": all_encrypted_credentials,
+                "revoked_credentials": sorted(self._credential_revoked),
                 "history": self._history,
                 "audit_log": [a.to_dict() for a in self._audit_log[-100:]],
                 "updated_at": self._now_iso(),
@@ -680,6 +699,20 @@ class RuntimeProviderStore:
                             "credential_revoked FROM dsp_runtime_providers"
                         )
                         rows = cur.fetchall()
+                        cur.execute(
+                            "SELECT timestamp, author, action, provider_id, version, "
+                            "validation_result, sanitized_metadata FROM dsp_runtime_provider_audits "
+                            "ORDER BY timestamp DESC LIMIT 100"
+                        )
+                        audit_rows = cur.fetchall()
+                self._audit_log = [
+                    AuditRecord(
+                        timestamp=tstamp.isoformat() if hasattr(tstamp, "isoformat") else str(tstamp),
+                        author=author, action=action, provider_id=pid, version=ver,
+                        validation_result=result, sanitized_metadata=metadata or {},
+                    )
+                    for tstamp, author, action, pid, ver, result, metadata in reversed(audit_rows)
+                ]
                 for pid, cfg_json, enc_cred, version, revoked in rows:
                     if pid not in self._providers:
                         continue

@@ -1,6 +1,6 @@
 # Production Deployment — Infrastructure (PEP-002)
 
-> **Current deployment target (2026-10-14):** Use [`docs/VPS_DEPLOYMENT_RUNBOOK.md` ](VPS_DEPLOYMENT_RUNBOOK.md) as the authoritative VPS procedure. This document describes the alternate full production/observability profile; its local PostgreSQL and Redis steps are not the selected initial Neon/no-Redis VPS profile.
+> **Current deployment target (2026-10-14):** Use [`VPS_DEPLOYMENT_RUNBOOK.md`](VPS_DEPLOYMENT_RUNBOOK.md) as the authoritative VPS procedure. This document describes the alternate full production/observability profile; its local PostgreSQL and Redis steps are not the selected initial Neon/no-Redis VPS profile.
 
 
 ## Mandatory India posture

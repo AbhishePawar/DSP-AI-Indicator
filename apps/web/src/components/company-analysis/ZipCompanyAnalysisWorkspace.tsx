@@ -1169,7 +1169,7 @@ export function InvestmentSummary({
               style={{
                 fontSize: 20,
                 fontWeight: 700,
-                color: (m as any).color || "var(--foreground)",
+                color: m.color || "var(--foreground)",
                 fontFamily: "var(--font-data)",
                 fontVariantNumeric: "tabular-nums",
                 lineHeight: 1.2,
@@ -2262,11 +2262,10 @@ export function ResearchChatDrawer({
 
       const reply =
         res?.content ||
-        (res as any)?.text ||
         `Analysis for ${symbol}: ${text} has been processed against server evidence.`;
       const citations = Array.isArray(res?.citations) && res.citations.length > 0 ? res.citations : undefined;
       setMessages((prev) => [...prev, { role: "dsp", text: reply, citations }]);
-    } catch (e: any) {
+    } catch {
       setMessages((prev) => [
         ...prev,
         {
@@ -2764,6 +2763,9 @@ export function ZipCompanyAnalysisWorkspace({
   };
 
   const sectionRef = (id: string) => (el: HTMLDivElement | null) => {
+    // Callback refs run during React's commit phase, not render; this assignment
+    // records the committed element for the IntersectionObserver effect.
+    // eslint-disable-next-line react-hooks/refs
     sectionRefs.current[id] = el;
   };
 

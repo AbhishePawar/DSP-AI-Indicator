@@ -2,7 +2,7 @@
 
 import type { StageSummary } from "@/lib/api/compositionTypes";
 
-export type PipelineUiStatus = "Pending" | "Running" | "Completed" | "Failed";
+export type PipelineUiStatus = "Pending" | "Running" | "Completed" | "Failed" | "Degraded" | "Unavailable" | "Skipped";
 
 export type PipelineStageView = {
   id: string;
@@ -50,6 +50,9 @@ export const PIPELINE_STAGE_DEFS = [
 function mapApiStatus(status: string | undefined): PipelineUiStatus {
   const s = (status ?? "").toLowerCase();
   if (s === "succeeded" || s === "completed" || s === "ok") return "Completed";
+  if (s === "degraded") return "Degraded";
+  if (s === "unavailable") return "Unavailable";
+  if (s === "skipped") return "Skipped";
   if (s === "failed" || s === "error") return "Failed";
   if (s === "running" || s === "in_progress") return "Running";
   return "Pending";

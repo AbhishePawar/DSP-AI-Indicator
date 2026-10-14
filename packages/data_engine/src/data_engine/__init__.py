@@ -308,6 +308,7 @@ from data_engine.services import (
     FundamentalsDataService,
     MarketDataService,
 )
+from data_engine.upstox import register_upstox_asset_resolver
 from data_engine.transcripts import (
     AuthenticatedTranscripts,
     EarningsCallTranscript,
@@ -586,6 +587,7 @@ __all__ = [
     "register_fred",
     "register_yahoo_finance",
     "register_yahoo_finance_fundamentals",
+    "register_upstox_asset_resolver",
     "supported_indicator_codes",
     "utc_now",
     "validate_authenticated_corporate_actions",

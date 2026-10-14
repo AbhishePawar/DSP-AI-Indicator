@@ -16,6 +16,7 @@ import { api } from "@/lib/api/client";
 import { useAuth } from "@/lib/auth/AuthProvider";
 import { featureFlags } from "@/lib/featureFlags";
 import { dashboardSurfaceTrust } from "@/lib/trust/surfaceTrust";
+import { ProviderManagement } from "@/components/admin/ProviderManagement";
 
 const LazyJsonPanel = lazy(() =>
   import("./ControlCenterPanels").then((m) => ({
@@ -486,19 +487,8 @@ export function ControlCenter() {
         ) : null}
 
         {tab === "ai" ? (
-          <div className="space-y-3">
-            <p className="text-sm text-[var(--dsp-text-muted)]">
-              AI provider/model/temperature overlays — secrets never stored here.
-            </p>
-            <textarea
-              className="w-full max-w-2xl rounded-md border border-[var(--dsp-border)] bg-[var(--dsp-surface)] p-2 font-mono text-xs"
-              rows={8}
-              value={jsonPatch}
-              onChange={(e) => setJsonPatch(e.target.value)}
-            />
-            <Button type="button" onClick={() => aiMut.mutate()}>
-              Save AI config
-            </Button>
+          <div className="space-y-4">
+            <ProviderManagement />
           </div>
         ) : null}
 

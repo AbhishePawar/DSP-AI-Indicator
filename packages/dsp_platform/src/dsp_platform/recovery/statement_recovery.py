@@ -6,6 +6,7 @@ and maintains P1-03 without fabricating data or weakening valuation authority.
 """
 
 from __future__ import annotations
+import concurrent.futures
 
 import json
 import logging
@@ -175,21 +176,55 @@ class StatementRecoveryResult:
         )
 
 
+def _safe_parse_date(val: Any) -> date | None:
+    if val is None:
+        return None
+    if isinstance(val, date):
+        return val
+    if not isinstance(val, str):
+        return None
+    s = val.strip()
+    if not s:
+        return None
+    try:
+        return date.fromisoformat(s)
+    except Exception:
+        pass
+    try:
+        if "T" in s:
+            return date.fromisoformat(s.split("T")[0])
+        if " " in s:
+            return date.fromisoformat(s.split(" ")[0])
+    except Exception:
+        pass
+    return None
+
 def _safe_decimal(value: Any) -> Decimal | None:
     if value is None:
         return None
     if isinstance(value, Decimal):
+        if value.is_nan() or value.is_infinite():
+            return None
         return value
     if isinstance(value, (int, float)):
         if isinstance(value, float) and (math.isnan(value) or math.isinf(value)):
             return None
-        return Decimal(str(value))
+        try:
+            d = Decimal(str(value))
+            if d.is_nan() or d.is_infinite():
+                return None
+            return d
+        except Exception:
+            return None
     if isinstance(value, str):
         cleaned = value.strip().replace(",", "")
         if not cleaned:
             return None
         try:
-            return Decimal(cleaned)
+            d = Decimal(cleaned)
+            if d.is_nan() or d.is_infinite():
+                return None
+            return d
         except Exception:
             return None
     return None
@@ -282,16 +317,17 @@ class StatementRecoveryService:
         # 1. Resolve filing evidence
         active_filing = filing
         active_text = filing_text
+        checked_filings = 1 if active_filing else 0
 
         if active_filing is None and active_text is None:
-            active_filing, active_text = self._find_best_filing(sym, exchange=exchange)
+            active_filing, active_text, checked_filings = self._find_filing_evidence(sym, exchange=exchange)
 
         # Enforce that evidence must be actual document content, not empty metadata
         if not active_text or not active_text.strip():
             elapsed = (datetime.now(tz=UTC) - start_time).total_seconds() * 1000.0
             diag = RecoveryDiagnostics(
                 attempted=True,
-                filings_checked=1 if active_filing else 0,
+                filings_checked=checked_filings,
                 total_latency_ms=elapsed,
                 errors=("Authoritative filing content unavailable for extraction",),
             )
@@ -400,51 +436,55 @@ class StatementRecoveryService:
             provenance=("dsp_platform.recovery.statement_recovery",),
         )
 
+        def _call_model(name: str, model: Any) -> tuple[str, dict[str, Any] | None, str | None]:
+            try:
+                res = model.invoke(req)
+                if res and res.status == LanguageModelStatus.COMPLETE:
+                    text_out = getattr(res, "narrative_text", None) or getattr(
+                        res, "content", None
+                    )
+                    parsed = self._parse_json_response(text_out)
+                    if parsed:
+                        return name, parsed, None
+                    return name, None, f"{name.capitalize()} returned invalid or unparseable JSON"
+                return name, None, f"{name.capitalize()} invocation unsuccessful"
+            except Exception as exc:
+                return name, None, f"{name.capitalize()} error: {type(exc).__name__}"
+
+        models_to_run: list[tuple[str, Any]] = []
         if gemini_model is not None:
             diag_models_called.append("gemini")
-            try:
-                res = gemini_model.invoke(req)
-                if res and res.status == LanguageModelStatus.COMPLETE:
-                    text_out = getattr(res, "narrative_text", None) or getattr(
-                        res, "content", None
-                    )
-                    gemini_raw = self._parse_json_response(text_out)
-                    if gemini_raw:
-                        diag_models_succeeded.append("gemini")
-                    else:
-                        diag_models_failed.append("gemini")
-                        diag_errors.append(
-                            "Gemini returned invalid or unparseable JSON"
-                        )
-                else:
-                    diag_models_failed.append("gemini")
-                    diag_errors.append("Gemini invocation unsuccessful")
-            except Exception as exc:
-                diag_models_failed.append("gemini")
-                diag_errors.append(f"Gemini error: {type(exc).__name__}")
-
+            models_to_run.append(("gemini", gemini_model))
         if openai_model is not None:
             diag_models_called.append("openai")
-            try:
-                res = openai_model.invoke(req)
-                if res and res.status == LanguageModelStatus.COMPLETE:
-                    text_out = getattr(res, "narrative_text", None) or getattr(
-                        res, "content", None
-                    )
-                    openai_raw = self._parse_json_response(text_out)
-                    if openai_raw:
-                        diag_models_succeeded.append("openai")
-                    else:
-                        diag_models_failed.append("openai")
-                        diag_errors.append(
-                            "OpenAI returned invalid or unparseable JSON"
-                        )
-                else:
-                    diag_models_failed.append("openai")
-                    diag_errors.append("OpenAI invocation unsuccessful")
-            except Exception as exc:
-                diag_models_failed.append("openai")
-                diag_errors.append(f"OpenAI error: {type(exc).__name__}")
+            models_to_run.append(("openai", openai_model))
+
+        if models_to_run:
+            with concurrent.futures.ThreadPoolExecutor(max_workers=len(models_to_run)) as executor:
+                fut_map = {executor.submit(_call_model, mname, mmod): mname for mname, mmod in models_to_run}
+                try:
+                    for fut in concurrent.futures.as_completed(fut_map, timeout=30.0):
+                        mname = fut_map[fut]
+                        try:
+                            mod_name, data, err = fut.result()
+                            if data is not None:
+                                diag_models_succeeded.append(mod_name)
+                                if mod_name == "gemini":
+                                    gemini_raw = data
+                                else:
+                                    openai_raw = data
+                            else:
+                                diag_models_failed.append(mod_name)
+                                if err:
+                                    diag_errors.append(err)
+                        except Exception as exc:
+                            diag_models_failed.append(mname)
+                            diag_errors.append(f"{mname.capitalize()} error: {type(exc).__name__}")
+                except (TimeoutError, concurrent.futures.TimeoutError):
+                    for fut, mname in fut_map.items():
+                        if not fut.done() and mname not in diag_models_failed and mname not in diag_models_succeeded:
+                            diag_models_failed.append(mname)
+                            diag_errors.append(f"{mname.capitalize()} error: TimeoutError")
 
         elapsed = (datetime.now(tz=UTC) - start_time).total_seconds() * 1000.0
 
@@ -581,9 +621,11 @@ class StatementRecoveryService:
                     pass
         return None
 
-    def _find_best_filing(
+    def _find_filing_evidence(
         self, symbol: str, exchange: str | None = None
-    ) -> tuple[Filing | None, str | None]:
+    ) -> tuple[Filing | None, str | None, int]:
+        """Search filing candidates, skipping metadata-only or malformed candidates until valid document content is found."""
+        checked_count = 0
         try:
             from dsp_platform.filings import get_authenticated_filings
 
@@ -591,40 +633,51 @@ class StatementRecoveryService:
             if result and result.get("filings"):
                 filings = result["filings"]
                 for f in filings:
-                    # Look for content in filing
-                    content = (
-                        f.get("content")
-                        or f.get("text")
-                        or (f.get("metadata") or {}).get("content")
-                    )
-                    url = f.get("url")
-                    title = f.get("title") or ""
-                    filed_at = f.get("filed_at")
-                    filing_id = f.get("filing_id") or f"{symbol}-filing"
-                    period_of_report = f.get("period_of_report")
-                    filing_obj = Filing(
-                        filing_id=filing_id,
-                        filing_type=f.get("filing_type") or "annual_report",
-                        title=title,
-                        url=url or "",
-                        filed_at=date.fromisoformat(filed_at)
-                        if filed_at
-                        else date.today(),
-                        period_of_report=date.fromisoformat(period_of_report)
-                        if period_of_report
-                        else None,
-                        source="Regulatory Filings",
-                    )
-                    if content and str(content).strip():
-                        return filing_obj, str(content).strip()
-                    # If filing has no document body, do not pretend evidence exists
-                    return filing_obj, None
+                    checked_count += 1
+                    try:
+                        content = (
+                            f.get("content")
+                            or f.get("text")
+                            or (f.get("metadata") or {}).get("content")
+                        )
+                        if not content or not str(content).strip():
+                            # Candidate has metadata only; continue searching remaining candidates
+                            continue
+
+                        url = f.get("url")
+                        title = f.get("title") or ""
+                        filed_at = f.get("filed_at")
+                        filing_id = f.get("filing_id") or f"{symbol}-filing"
+                        period_of_report = f.get("period_of_report")
+
+                        filed_at_date = _safe_parse_date(filed_at) or date.today()
+                        period_of_report_date = _safe_parse_date(period_of_report)
+
+                        filing_obj = Filing(
+                            filing_id=filing_id,
+                            filing_type=f.get("filing_type") or "annual_report",
+                            title=title,
+                            url=url or "",
+                            filed_at=filed_at_date,
+                            period_of_report=period_of_report_date,
+                            source="Regulatory Filings",
+                        )
+                        return filing_obj, str(content).strip(), checked_count
+                    except Exception:
+                        continue
         except Exception as exc:
             _LOG.warning(
                 "filings_lookup_failed",
                 extra={"symbol": symbol, "error": type(exc).__name__},
             )
-        return None, None
+        return None, None, checked_count
+
+    def _find_best_filing(
+        self, symbol: str, exchange: str | None = None
+    ) -> tuple[Filing | None, str | None]:
+        """Backward-compatible alias returning (Filing, content) or (None, None)."""
+        filing, content, _ = self._find_filing_evidence(symbol, exchange=exchange)
+        return filing, content
 
     def _reconcile_extractions(
         self,

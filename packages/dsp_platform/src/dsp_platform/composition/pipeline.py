@@ -277,6 +277,8 @@ def run_execution_pipeline(
             for warning in warnings:
                 ctx.warnings.append(warning)
             ctx.results[stage.value] = result
+            if status in (StageStatus.FAILED, StageStatus.UNAVAILABLE) and ctx.failed_stage is None:
+                ctx.failed_stage = stage.value
             outcomes.append(
                 StageOutcome(
                     stage=stage.value,
@@ -387,15 +389,11 @@ def _stage_financial(
 
     ticker = str(ctx.request.ticker or "").strip()
     auth_err = ctx.results.get(_AUTH_ERROR_KEY)
-    if production_requires_authenticated_bundle() and ticker:
-        raise ValueError(str(auth_err) if auth_err else DATA_UNAVAILABLE)
-
-    if ctx.request.financial_statements is None:
-        raise ValueError(
-            str(auth_err)
-            if auth_err
-            else "financial_statements or financial_analysis is required"
-        )
+    if (production_requires_authenticated_bundle() and ticker) or ctx.request.financial_statements is None:
+        err_msg = str(auth_err) if auth_err else DATA_UNAVAILABLE
+        warnings.append(f"financial stage unavailable: {err_msg}")
+        ctx.errors.append(f"financial: {err_msg}")
+        return None, warnings, StageStatus.UNAVAILABLE
 
     fa = FinancialEngine().analyze_financials(ctx.request.financial_statements)
     bq = BusinessQualityEngine().analyze(fa)
@@ -459,7 +457,25 @@ def _stage_valuation(
         and not ctx.results.get(_AUTH_STATEMENTS_KEY)
         and ctx.request.financial_snapshot is None
     ):
-        raise ValueError(str(auth_err) if auth_err else DATA_UNAVAILABLE)
+        if price is not None:
+            signals = ValuationSignals(
+                intrinsic_value_per_share=None,
+                current_market_price=float(price),
+                confidence=0.0,
+            )
+            ctx.results["valuation_signals"] = signals
+            warnings.append(
+                "valuation degraded: no authenticated statements/IV source — "
+                "ValuationSignals price-only (P1-03: IV null, confidence 0.0)"
+            )
+            if auth_err:
+                warnings.append(f"authenticated valuation unavailable: {auth_err}")
+            return signals, warnings, StageStatus.DEGRADED
+
+        err_msg = str(auth_err) if auth_err else DATA_UNAVAILABLE
+        warnings.append(f"valuation stage unavailable: {err_msg}")
+        ctx.errors.append(f"valuation: {err_msg}")
+        return None, warnings, StageStatus.UNAVAILABLE
 
     if ctx.request.financial_snapshot is not None:
         assessment = ValuationEngine().analyze(

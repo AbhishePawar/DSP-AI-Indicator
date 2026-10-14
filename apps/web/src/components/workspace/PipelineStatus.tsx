@@ -13,6 +13,7 @@ function toneFor(
   if (status === "Completed") return "success";
   if (status === "Running") return "accent";
   if (status === "Failed") return "danger";
+  if (status === "Degraded") return "warning";
   return "neutral";
 }
 
@@ -41,7 +42,9 @@ export function PipelineStatus({ stages }: { stages: PipelineStageView[] }) {
                       ? "bg-[var(--accent)] shadow-[0_0_0_3px_var(--accent-soft)]"
                       : stage.status === "Failed"
                         ? "bg-[var(--danger-fg)]"
-                        : "bg-[var(--border)]"
+                        : stage.status === "Degraded"
+                          ? "bg-[var(--warning-fg,#f59e0b)]"
+                          : "bg-[var(--border)]"
                 }`}
                 aria-hidden
               />

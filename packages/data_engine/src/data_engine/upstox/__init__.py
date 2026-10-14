@@ -15,6 +15,7 @@ from data_engine.upstox.instrument_resolver import (
     UpstoxInstrumentResolver,
     UpstoxResolutionResult,
     get_upstox_resolver,
+    register_upstox_asset_resolver,
 )
 
 __all__ = [
@@ -22,4 +23,5 @@ __all__ = [
     "UpstoxInstrumentResolver",
     "UpstoxResolutionResult",
     "get_upstox_resolver",
+    "register_upstox_asset_resolver",
 ]

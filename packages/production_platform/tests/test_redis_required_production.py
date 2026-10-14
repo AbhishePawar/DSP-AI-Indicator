@@ -164,8 +164,10 @@ class TestHealthAndOfflineBehavior:
             storage=MagicMock(),
             job_queue=MagicMock(),
             background_tasks=MagicMock(),
-            clock=MagicMock(),
             secrets=MagicMock(),
+            clock=MagicMock(),
+            india=MagicMock(),
+            cache_invalidation=MagicMock(),
             diagnostics=diag,
         )
         health = bundle.health_check()

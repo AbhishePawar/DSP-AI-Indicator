@@ -16,7 +16,7 @@ from __future__ import annotations
 
 import re
 import threading
-from collections.abc import Iterable, Mapping
+from collections.abc import Callable, Iterable, Mapping
 from dataclasses import dataclass, field
 from typing import Any
 
@@ -131,10 +131,28 @@ _COMMODITY_KEYS: dict[str, str] = {
 }
 
 
+_GLOBAL_ASSET_RESOLVER: Callable[..., Any] | None = None
+
+
+def register_upstox_asset_resolver(resolver: Callable[..., Any] | None) -> None:
+    """Register an external asset resolver callable (e.g. from dsp_platform).
+
+    Preserves Clean Architecture boundaries so data_engine does not import dsp_platform.
+    """
+    global _GLOBAL_ASSET_RESOLVER
+    _GLOBAL_ASSET_RESOLVER = resolver
+
+
 class UpstoxInstrumentResolver:
     """Dynamic Upstox Instrument Resolver."""
 
-    def __init__(self, records: Iterable[UpstoxInstrumentRecord | Mapping[str, Any]] | None = None) -> None:
+    def __init__(
+        self,
+        records: Iterable[UpstoxInstrumentRecord | Mapping[str, Any]] | None = None,
+        *,
+        asset_resolver: Callable[..., Any] | None = None,
+    ) -> None:
+        self._asset_resolver = asset_resolver
         self._lock = threading.Lock()
         # Keyed by (exchange, tradingsymbol)
         self._records_by_symbol: dict[tuple[str, str], list[UpstoxInstrumentRecord]] = {}
@@ -268,9 +286,8 @@ class UpstoxInstrumentResolver:
                     return self._resolve_from_matches(all_matches, exchange=None)
 
         # 2. Dynamic Asset Resolver Integration
-        from dsp_platform.asset_resolution import resolve_asset
-
-        asset_id = resolve_asset(symbol, preferred_exchange=exchange)
+        resolver_fn = self._asset_resolver or _GLOBAL_ASSET_RESOLVER
+        asset_id = resolver_fn(symbol, preferred_exchange=exchange) if resolver_fn is not None else None
         if asset_id is not None:
             if asset_id.ambiguous:
                 return UpstoxResolutionResult(

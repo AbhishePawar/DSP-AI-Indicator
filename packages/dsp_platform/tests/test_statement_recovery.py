@@ -574,3 +574,130 @@ def test_independent_stages_continue_when_financial_fails_and_no_secret_leak(
         reset_financial_statement_service_for_tests(None)
         reset_market_quote_service_for_tests(None)
         reset_statement_recovery_service_for_tests(None)
+
+
+
+def test_filing_candidate_search_skips_metadata_only_to_find_valid_filing(monkeypatch):
+    """Metadata-only first filing must be skipped, finding subsequent valid candidate."""
+    from dsp_platform.recovery.statement_recovery import StatementRecoveryService
+
+    mock_filings = [
+        {
+            "filing_id": "FILING-META-ONLY",
+            "title": "Empty Metadata Filing",
+            "url": "https://example.com/meta-only",
+            "filed_at": "2024-03-31",
+            "content": "   ",  # empty content
+        },
+        {
+            "filing_id": "FILING-VALID-2",
+            "title": "Valid Filing With Body",
+            "url": "https://example.com/valid-2",
+            "filed_at": "2024-03-31",
+            "content": "Real full filing financial statements and disclosures text.",
+        },
+    ]
+
+    import dsp_platform.filings
+    monkeypatch.setattr(
+        dsp_platform.filings,
+        "get_authenticated_filings",
+        lambda sym, exchange=None, limit=10: {"filings": mock_filings},
+    )
+
+    svc = StatementRecoveryService()
+    filing, content, checked = svc._find_filing_evidence("AAPL")
+    assert filing is not None
+    assert filing.filing_id == "FILING-VALID-2"
+    assert content == "Real full filing financial statements and disclosures text."
+    assert checked == 2
+
+
+def test_filing_candidate_search_handles_malformed_candidate_dates_gracefully(monkeypatch):
+    """Malformed date strings on candidates do not terminate the search."""
+    from dsp_platform.recovery.statement_recovery import StatementRecoveryService
+
+    mock_filings = [
+        {
+            "filing_id": "FILING-BAD-DATE",
+            "title": "Bad Date Filing",
+            "url": "https://example.com/bad-date",
+            "filed_at": "NOT_A_DATE_2024",
+            "period_of_report": "CORRUPTED_DATE",
+            "content": "Filing with malformed dates but valid content.",
+        }
+    ]
+
+    import dsp_platform.filings
+    monkeypatch.setattr(
+        dsp_platform.filings,
+        "get_authenticated_filings",
+        lambda sym, exchange=None, limit=10: {"filings": mock_filings},
+    )
+
+    svc = StatementRecoveryService()
+    filing, content, checked = svc._find_filing_evidence("AAPL")
+    assert filing is not None
+    assert filing.filing_id == "FILING-BAD-DATE"
+    assert filing.filed_at is not None  # safely defaulted to today
+    assert filing.period_of_report is None
+    assert content == "Filing with malformed dates but valid content."
+    assert checked == 1
+
+
+def test_filing_candidate_search_all_unusable_returns_unavailable(monkeypatch):
+    """When all candidates have only metadata or empty content, return None and record checked count."""
+    from dsp_platform.recovery.statement_recovery import StatementRecoveryService
+
+    mock_filings = [
+        {"filing_id": "F1", "content": ""},
+        {"filing_id": "F2", "content": None},
+        {"filing_id": "F3", "text": "   "},
+    ]
+
+    import dsp_platform.filings
+    monkeypatch.setattr(
+        dsp_platform.filings,
+        "get_authenticated_filings",
+        lambda sym, exchange=None, limit=10: {"filings": mock_filings},
+    )
+
+    svc = StatementRecoveryService()
+    filing, content, checked = svc._find_filing_evidence("AAPL")
+    assert filing is None
+    assert content is None
+    assert checked == 3
+
+
+def test_filing_candidate_search_extraction_exception_continues_to_later_valid_candidate(monkeypatch):
+    """A local exception while parsing one candidate does not stop evaluating subsequent candidates."""
+    from dsp_platform.recovery.statement_recovery import StatementRecoveryService
+
+    class BrokenDict(dict):
+        def get(self, key, default=None):
+            if key == "content":
+                raise RuntimeError("Simulated extraction crash on candidate")
+            return super().get(key, default)
+
+    mock_filings = [
+        BrokenDict({"filing_id": "F-BROKEN"}),
+        {
+            "filing_id": "F-RELIABLE",
+            "content": "Valid filing report text after broken candidate.",
+            "filed_at": "2024-06-30",
+        },
+    ]
+
+    import dsp_platform.filings
+    monkeypatch.setattr(
+        dsp_platform.filings,
+        "get_authenticated_filings",
+        lambda sym, exchange=None, limit=10: {"filings": mock_filings},
+    )
+
+    svc = StatementRecoveryService()
+    filing, content, checked = svc._find_filing_evidence("AAPL")
+    assert filing is not None
+    assert filing.filing_id == "F-RELIABLE"
+    assert content == "Valid filing report text after broken candidate."
+    assert checked == 2

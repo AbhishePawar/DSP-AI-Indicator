@@ -19,13 +19,15 @@ from dsp_platform import (
 )
 
 try:
-    from llm_adapters import CopilotCompleteService, build_default_registry
-    from llm_adapters.model_tiers import ModelTier, TierConfig
-    from llm_adapters.orchestrator import (
+    from llm_adapters import (
         AdapterBackedAIProvider,
+        CopilotCompleteService,
+        DSPPlatformToolAdapter,
+        ModelTier,
         ResearchOrchestrator,
+        TierConfig,
+        build_default_registry,
     )
-    from llm_adapters.tools.dsp_platform_adapter import DSPPlatformToolAdapter
 except ImportError:  # pragma: no cover - optional during partial installs
     CopilotCompleteService = None  # type: ignore[misc, assignment]
     build_default_registry = None  # type: ignore[misc, assignment]

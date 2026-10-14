@@ -35,6 +35,7 @@ from api_platform.api.ops_middleware import (
     SecurityHeadersMiddleware,
 )
 from api_platform.api.routers import (
+    admin_providers,
     analysis,
     auth,
     beta_programme,
@@ -259,6 +260,7 @@ def _register_routers(application: FastAPI) -> None:
         enterprise_auth_platform.router,
         institutional_admin.router,
         control_center.router,
+        admin_providers.router,
         beta_programme.public_router,
         beta_programme.admin_router,
         enterprise.router,

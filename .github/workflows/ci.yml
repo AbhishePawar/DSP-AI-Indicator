@@ -15,6 +15,21 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  no-vercel-hosting:
+    name: No hosted deployment dependency
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Scan tracked repository files
+        run: python scripts/ops/assert_no_vercel_hosting.py
+      - name: Verify gateway removal contract
+        run: |
+          python -m pip install pytest
+          pytest tests/test_no_vercel_hosting.py -q --tb=short -p no:cov
+
   frontend:
     name: Frontend lint and type checks
     runs-on: ubuntu-latest

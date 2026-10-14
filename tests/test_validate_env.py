@@ -1,0 +1,65 @@
+from __future__ import annotations
+
+import os
+import subprocess
+import sys
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parents[1]
+VALIDATOR = ROOT / "scripts" / "validate_env.py"
+
+
+def production_env(**overrides: str) -> dict[str, str]:
+    env = {
+        "DSP_ENVIRONMENT": "production",
+        "DSP_JWT_SECRET": "x" * 48,
+        "DSP_CORS_ORIGINS": "https://app.example.com",
+        "DSP_ENABLE_SECURITY": "true",
+        "DSP_REQUIRE_ADMIN_AUTH": "true",
+        "DSP_RATE_LIMIT_ENABLED": "true",
+        "DSP_HSTS_ENABLED": "true",
+        "DSP_INDIA_TIMEZONE": "Asia/Kolkata",
+        "DSP_INDIA_CURRENCY": "INR",
+        "DSP_APP_VERSION": "2.0.0-rc.1",
+        "DSP_DATABASE_URL": "postgresql://dsp:SecurePass123@ep-test.neon.tech/dsp?sslmode=require",
+        "DSP_PUBLIC_DOMAIN": "app.example.com",
+    }
+    env.update(overrides)
+    return {**os.environ, **env}
+
+
+def run_validator(**overrides: str) -> subprocess.CompletedProcess[str]:
+    return subprocess.run(
+        [sys.executable, str(VALIDATOR), "production"],
+        env=production_env(**overrides),
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+
+
+def test_accepts_external_tls_postgres_and_real_domain() -> None:
+    result = run_validator()
+    assert result.returncode == 0, result.stdout + result.stderr
+
+
+def test_rejects_placeholder_production_domain() -> None:
+    result = run_validator(DSP_PUBLIC_DOMAIN="app.your-domain.example")
+    assert result.returncode != 0
+    assert "real public hostname" in result.stderr
+
+
+def test_rejects_placeholder_database_host() -> None:
+    result = run_validator(
+        DSP_DATABASE_URL="postgresql://USER:PASSWORD@YOUR-NEON-HOST/DBNAME?sslmode=require"
+    )
+    assert result.returncode != 0
+    assert "real external PostgreSQL hostname" in result.stderr
+
+
+def test_rejects_database_without_tls() -> None:
+    result = run_validator(
+        DSP_DATABASE_URL="postgresql://dsp:SecurePass123@ep-test.neon.tech/dsp"
+    )
+    assert result.returncode != 0
+    assert "must require TLS" in result.stderr

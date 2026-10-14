@@ -555,7 +555,7 @@ def _generate_ai_copilot_response(
         elif dsp_iv and f"**Valuation:** {dsp_iv}" not in narrative:
             narrative = f"{narrative}\n\n{auth_block}"
 
-    sources = [*evidence_sources, source_ref("ai_provider", f"{provider_used or "gemini"}:{model_used or "default"}")]
+    sources = [*evidence_sources, source_ref("ai_provider", f"{provider_used or 'gemini'}:{model_used or 'default'}")]
     return (narrative, sources, False, evidence_payload)
 
 

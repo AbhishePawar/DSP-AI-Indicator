@@ -634,13 +634,18 @@ class RuntimeProviderStore:
                                     encrypted_credential = EXCLUDED.encrypted_credential,
                                     credential_revoked = EXCLUDED.credential_revoked,
                                     version = EXCLUDED.version,
-                                    updated_at = NOW();
+                                    updated_at = NOW()
+                                WHERE dsp_runtime_providers.version < EXCLUDED.version;
                                 """,
                                 (
                                     pid, cfg_json, enc_cred,
                                     pid in self._credential_revoked, prov.version,
                                 ),
                             )
+                            if cur.rowcount != 1:
+                                raise RuntimeError(
+                                    f"Concurrent provider update detected for '{pid}'; refresh and retry."
+                                )
             except Exception as exc:
                 logger.error("Failed writing provider state to PostgreSQL.")
                 if any(os.environ.get(name, "").strip().lower() in {"production", "prod"}

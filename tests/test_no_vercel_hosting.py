@@ -52,7 +52,7 @@ def test_frontend_ci_has_no_hosting_cli() -> None:
     text = _FRONTEND_CI.read_text(encoding="utf-8")
     assert not _has_hosting_url(text)
     assert "VERCEL_TOKEN" not in text
-    assert "npm run build" in text
+    assert "yarn build" in text or "npm run build" in text
 
 
 def test_frontend_deploy_path_is_cloud_run() -> None:

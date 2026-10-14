@@ -77,7 +77,7 @@ function NavLink({
       onClick={onNavigate}
       aria-current={active ? "page" : undefined}
       className={cn(
-        "flex min-h-9 w-full items-center gap-2.5 rounded-lg px-2.5 text-[13px] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] motion-reduce:transition-none",
+        "flex min-h-11 w-full items-center gap-2.5 rounded-lg px-2.5 text-[13px] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] motion-reduce:transition-none",
         hideLabel ? "justify-center" : "justify-start",
         nested && !hideLabel ? "pl-8" : null,
         active
@@ -255,7 +255,7 @@ export function Sidebar({
         {!(collapsed && !mobile) && <span className="mt-1 block font-mono text-[10px] tracking-wider text-[var(--muted)]">AI RESEARCH</span>}
       </Link>
       <div className="border-b border-[var(--border)] p-3">
-        <Link href="/analysis" onClick={onNavigate} data-testid={`sidebar-${mobile ? "mobile" : "desktop"}-new-research`} title="Start New Research" className="flex min-h-10 items-center justify-center gap-2 rounded-[10px] border border-[var(--border)] bg-[var(--surface-2)] px-2 text-[13px] transition-colors hover:border-[var(--accent)]">
+        <Link href="/analysis" onClick={onNavigate} data-testid={`sidebar-${mobile ? "mobile" : "desktop"}-new-research`} title="Start New Research" className="flex min-h-11 items-center justify-center gap-2 rounded-[10px] border border-[var(--border)] bg-[var(--surface-2)] px-2 text-[13px] transition-colors hover:border-[var(--accent)]">
           <Plus className="size-4 shrink-0" />{!(collapsed && !mobile) && "Start New Research"}
         </Link>
       </div>
@@ -308,9 +308,9 @@ export function Sidebar({
           { href: "/profile", label: "Financial Profile", icon: User },
           { href: "/pricing", label: "Pricing", icon: Ticket },
           { href: "/settings", label: "Settings", icon: Settings },
-        ].map(({ href, label, icon: Icon }) => <Link key={href} href={href} title={label} onClick={onNavigate} data-testid={`sidebar-${mobile ? "mobile" : "desktop"}-account-${label.toLowerCase().replaceAll(" ", "-")}`} className="flex min-h-9 items-center gap-2.5 rounded-lg px-2.5 text-xs text-[var(--muted)] transition-colors hover:bg-[var(--surface-2)] hover:text-[var(--fg)]"><Icon className="size-4 shrink-0" />{!(collapsed && !mobile) && label}</Link>)}
+        ].map(({ href, label, icon: Icon }) => <Link key={href} href={href} title={label} onClick={onNavigate} data-testid={`sidebar-${mobile ? "mobile" : "desktop"}-account-${label.toLowerCase().replaceAll(" ", "-")}`} className="flex min-h-11 items-center gap-2.5 rounded-lg px-2.5 text-xs text-[var(--muted)] transition-colors hover:bg-[var(--surface-2)] hover:text-[var(--fg)]"><Icon className="size-4 shrink-0" />{!(collapsed && !mobile) && label}</Link>)}
         <div className="flex items-center justify-between gap-2 border-t border-[var(--border)] px-2 pt-3">
-          <Link href={session ? "/profile" : "/login"} onClick={onNavigate} data-testid={`sidebar-${mobile ? "mobile" : "desktop"}-account`} className="flex min-h-9 min-w-0 items-center gap-2 text-xs">
+          <Link href={session ? "/profile" : "/login"} onClick={onNavigate} data-testid={`sidebar-${mobile ? "mobile" : "desktop"}-account`} className="flex min-h-11 min-w-0 items-center gap-2 text-xs">
             <span className="grid size-7 shrink-0 place-items-center rounded-full border border-[var(--border)] bg-[var(--accent-soft)] text-[var(--accent)]">{user ? user.displayName.slice(0, 2).toUpperCase() : <User className="size-4" />}</span>
             {!(collapsed && !mobile) && <span className="truncate">{user?.displayName || "Log in"}</span>}
           </Link>

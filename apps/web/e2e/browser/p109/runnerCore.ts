@@ -123,7 +123,7 @@ function inspectPortProcessPosix(port: number, expectedDir?: string): PortProces
     if (!pid) return null;
 
     let commandLine = "";
-    let workingDirectory = "";
+    const workingDirectory = "";
 
     try {
       if (fs.existsSync(`/proc/${pid}/cwd`)) {
@@ -296,7 +296,7 @@ export async function boundedHttpCheck(
     const res = await fetchFn(url, { signal: controller.signal });
     clearTimeout(timer);
     return { ok: res.status >= 200 && res.status < 500, status: res.status };
-  } catch (err: any) {
+  } catch (err: unknown) {
     const isTimeout = err?.name === "AbortError" || String(err).includes("aborted");
     return {
       ok: false,

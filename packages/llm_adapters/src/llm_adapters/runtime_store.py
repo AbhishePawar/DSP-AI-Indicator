@@ -370,7 +370,7 @@ class RuntimeProviderStore:
         )
         production_mode = any(
             os.environ.get(name, "").strip().lower() in {"production", "prod"}
-            for name in ("DSP_ENV", "APP_ENV", "ENVIRONMENT", "NODE_ENV")
+            for name in ("DSP_ENV", "APP_ENV", "ENVIRONMENT", "NODE_ENV", "ENV")
         )
         if not dsn or not dsn.strip():
             if production_mode:
@@ -548,7 +548,7 @@ class RuntimeProviderStore:
         # Local fallback is forbidden in production; PostgreSQL initialization/read failures
         # must not silently change the persistence backend.
         if any(os.environ.get(name, "").strip().lower() in {"production", "prod"}
-               for name in ("DSP_ENV", "APP_ENV", "ENVIRONMENT", "NODE_ENV")):
+               for name in ("DSP_ENV", "APP_ENV", "ENVIRONMENT", "NODE_ENV", "ENV")):
             raise RuntimeError("PostgreSQL provider store could not be loaded in production.")
         if not os.path.exists(self._store_path):
             return
@@ -644,12 +644,12 @@ class RuntimeProviderStore:
             except Exception as exc:
                 logger.error("Failed writing provider state to PostgreSQL.")
                 if any(os.environ.get(name, "").strip().lower() in {"production", "prod"}
-                       for name in ("DSP_ENV", "APP_ENV", "ENVIRONMENT", "NODE_ENV")):
+                       for name in ("DSP_ENV", "APP_ENV", "ENVIRONMENT", "NODE_ENV", "ENV")):
                     raise RuntimeError("Required PostgreSQL provider-store write failed.") from exc
 
         # Local file is only a single-instance development fallback, never a production fallback.
         if any(os.environ.get(name, "").strip().lower() in {"production", "prod"}
-               for name in ("DSP_ENV", "APP_ENV", "ENVIRONMENT", "NODE_ENV")):
+               for name in ("DSP_ENV", "APP_ENV", "ENVIRONMENT", "NODE_ENV", "ENV")):
             return
         try:
             providers_data = {}
@@ -740,7 +740,7 @@ class RuntimeProviderStore:
             except Exception as exc:
                 logger.error("Runtime provider PostgreSQL refresh failed.")
                 if any(os.environ.get(name, "").strip().lower() in {"production", "prod"}
-                       for name in ("DSP_ENV", "APP_ENV", "ENVIRONMENT", "NODE_ENV")):
+                       for name in ("DSP_ENV", "APP_ENV", "ENVIRONMENT", "NODE_ENV", "ENV")):
                     raise RuntimeError("Required PostgreSQL provider-store refresh failed.") from exc
 
     def get_provider(self, provider_id: str) -> dict[str, Any] | None:

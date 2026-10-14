@@ -138,3 +138,37 @@ def test_production_store_requires_explicit_encryption_master_key(tmp_path):
         with pytest.raises(RuntimeError, match="DSP_CREDENTIAL_MASTER_KEY"):
             RuntimeProviderStore(store_path=store_file)
 
+
+def test_targeted_provider_save_does_not_overwrite_other_providers(tmp_path):
+    store_file = str(tmp_path / "targeted_store.json")
+    store = RuntimeProviderStore(store_path=store_file)
+
+    saved_targets = []
+    original_save = store._save_to_storage
+
+    def tracking_save(provider_id=None):
+        saved_targets.append(provider_id)
+        return original_save(provider_id)
+
+    store._save_to_storage = tracking_save
+
+    # Replace credential on gemini
+    store.replace_credential(
+        "gemini",
+        new_secret="test-gemini-targeted-key",
+        author="admin_test",
+        validate=False,
+    )
+    assert saved_targets[-1] == "gemini"
+
+    # Revoke credential on gemini
+    store.revoke_credential("gemini", author="admin_test")
+    assert saved_targets[-1] == "gemini"
+
+    # Update config on openai
+    store.update_config("openai", selected_model="gpt-4o", author="admin_test")
+    assert saved_targets[-1] == "openai"
+
+    # Rollback openai
+    store.rollback("openai", target_version=1, author="admin_test")
+    assert saved_targets[-1] == "openai"

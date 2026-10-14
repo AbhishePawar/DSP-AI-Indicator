@@ -921,7 +921,7 @@ class RuntimeProviderStore:
                 validation_result="REVOKED",
                 metadata={"reason": "administrator_revocation"},
             )
-            self._save_to_storage()
+            self._save_to_storage(pid)
             return copy.deepcopy(prov)
 
     # -----------------------------------------------------------------------
@@ -982,7 +982,7 @@ class RuntimeProviderStore:
                 validation_result="OK",
                 metadata=changed,
             )
-            self._save_to_storage()
+            self._save_to_storage(pid)
             return copy.deepcopy(prov)
 
     # -----------------------------------------------------------------------
@@ -1037,7 +1037,7 @@ class RuntimeProviderStore:
                     prov.last_error_sanitized = diag.sanitized_reason if diag else None
                     prov.recommended_action = diag.recommended_action if diag else None
 
-            self._save_to_storage()
+            self._save_to_storage(pid)
             status_val = prov.health_status.value
             err_sanitized = prov.last_error_sanitized
             rec_act = prov.recommended_action
@@ -1123,7 +1123,7 @@ class RuntimeProviderStore:
                 validation_result="OK",
                 metadata={"target_version": target_version},
             )
-            self._save_to_storage()
+            self._save_to_storage(pid)
             return copy.deepcopy(prov)
 
     def _record_audit(

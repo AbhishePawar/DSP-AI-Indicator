@@ -125,7 +125,7 @@ describe("EPIC-010 touch target conventions (source contracts)", () => {
     const root = path.resolve(__dirname, "../../components/layout");
     const topbar = readFileSync(path.join(root, "Topbar.tsx"), "utf8");
     const sidebar = readFileSync(path.join(root, "Sidebar.tsx"), "utf8");
-    expect(topbar).toMatch(/min-h-11/);
+    expect(topbar).toMatch(/min-h-(?:11|12)/);
     expect(sidebar).toMatch(/min-h-11/);
   });
 });

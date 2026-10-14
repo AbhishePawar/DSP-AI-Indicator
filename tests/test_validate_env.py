@@ -90,3 +90,10 @@ def test_rejects_weak_seed_admin_password() -> None:
     result = run_validator(DSP_SEED_ADMIN_PASSWORD="short")
     assert result.returncode != 0
     assert "DSP_SEED_ADMIN_PASSWORD looks like a template" in result.stderr
+
+def test_rejects_template_jwt_secret() -> None:
+    result = run_validator(
+        DSP_JWT_SECRET="CHANGE_ME_USE_SECRET_MANAGER_MIN_32_CHARS"
+    )
+    assert result.returncode != 0
+    assert "DSP_JWT_SECRET must be a strong secret" in result.stderr

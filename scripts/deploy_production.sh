@@ -3,7 +3,7 @@
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-COMPOSE_FILE="${ROOT}/docker/docker-compose.production.yml"
+COMPOSE_FILE="${ROOT}/docker/docker-compose.vps.yml"
 ENV_FILE="${ROOT}/.env.production"
 PREV_TAG_FILE="${ROOT}/.dsp_production_previous_tags"
 
@@ -24,10 +24,13 @@ set +a
 echo "[deploy] validating production environment"
 python "${ROOT}/scripts/validate_env.py" production
 
-echo "[deploy] recording previous image tags (for rollback)"
+echo "[deploy] validating Compose configuration"
+docker compose --env-file "${ENV_FILE}" -f "${COMPOSE_FILE}" config --quiet
+
+echo "[deploy] recording explicitly configured previous image tags (for rollback)"
 {
-  echo "DSP_IMAGE_TAG=${DSP_IMAGE_TAG:-1.7.0}"
-  echo "DSP_IMAGE_TAG_WEB=${DSP_IMAGE_TAG_WEB:-2.0.0}"
+  echo "DSP_IMAGE_TAG=${DSP_PREVIOUS_IMAGE_TAG:-}"
+  echo "DSP_IMAGE_TAG_WEB=${DSP_PREVIOUS_IMAGE_TAG_WEB:-}"
   echo "RECORDED_AT=$(date -u +%Y%m%dT%H%M%SZ)"
 } > "${PREV_TAG_FILE}.next"
 if [[ -f "${PREV_TAG_FILE}" ]]; then
@@ -41,24 +44,38 @@ echo "[deploy] starting stack"
 docker compose --env-file "${ENV_FILE}" -f "${COMPOSE_FILE}" up -d --remove-orphans
 
 echo "[deploy] waiting for API health"
+API_READY=false
 for _ in $(seq 1 60); do
   if docker compose --env-file "${ENV_FILE}" -f "${COMPOSE_FILE}" exec -T api \
     curl -fsS "http://127.0.0.1:8000/health/ready" >/dev/null 2>&1; then
+    API_READY=true
     echo "[deploy] API ready"
     break
   fi
   sleep 2
 done
+if [[ "${API_READY}" != "true" ]]; then
+  echo "[deploy] ERROR: API did not become healthy; recent logs follow" >&2
+  docker compose --env-file "${ENV_FILE}" -f "${COMPOSE_FILE}" logs --tail=100 api >&2 || true
+  exit 1
+fi
 
 echo "[deploy] waiting for web health"
+WEB_READY=false
 for _ in $(seq 1 60); do
   if docker compose --env-file "${ENV_FILE}" -f "${COMPOSE_FILE}" exec -T web \
     wget -qO- "http://127.0.0.1:3000/api/health" >/dev/null 2>&1; then
+    WEB_READY=true
     echo "[deploy] Web ready"
     break
   fi
   sleep 2
 done
+if [[ "${WEB_READY}" != "true" ]]; then
+  echo "[deploy] ERROR: web did not become healthy; recent logs follow" >&2
+  docker compose --env-file "${ENV_FILE}" -f "${COMPOSE_FILE}" logs --tail=100 web >&2 || true
+  exit 1
+fi
 
 mv -f "${PREV_TAG_FILE}.next" "${PREV_TAG_FILE}"
 
@@ -71,8 +88,7 @@ docker compose --env-file "${ENV_FILE}" -f "${COMPOSE_FILE}" exec -T api \
 
 if [[ "${DSP_SMOKE_REQUIRE_HTTPS:-true}" == "true" && "${DOMAIN}" != "localhost" ]]; then
   echo "[deploy] external HTTPS smoke → https://${DOMAIN}"
-  curl -fsS "https://${DOMAIN}/api/health" >/dev/null || \
-    echo "[deploy] WARN: external HTTPS smoke failed — check DNS/ACME" >&2
+  curl --retry 5 --retry-delay 2 --retry-connrefused -fsS "https://${DOMAIN}/api/health" >/dev/null
 fi
 
 echo "[deploy] OK — production stack is up"

@@ -130,7 +130,7 @@ def main() -> int:
             "DSP_INDIA_TIMEZONE": "Asia/Kolkata",
             "DSP_INDIA_CURRENCY": "INR",
             "DSP_APP_VERSION": expected["frontend"],
-            "DSP_DATABASE_URL": "postgresql://dsp:strongpass@postgres:5432/dsp",
+            "DSP_DATABASE_URL": "postgresql://dsp:strongpass@ep-test.neon.tech/dsp?sslmode=require",
             "DSP_PUBLIC_DOMAIN": "app.example.com",
             "DSP_SEED_ADMIN_PASSWORD": "unit-test-admin-password-ok",
             "POSTGRES_PASSWORD": "unit-test-db-password-ok",

@@ -24,7 +24,9 @@ def production_env(**overrides: str) -> dict[str, str]:
         "DSP_INDIA_TIMEZONE": "Asia/Kolkata",
         "DSP_INDIA_CURRENCY": "INR",
         "DSP_APP_VERSION": "2.0.0-rc.1",
-        "DSP_DATABASE_URL": "postgresql://dsp:SecurePass123@ep-test.neon.tech/dsp?sslmode=require",
+        "DSP_DATABASE_URL": (
+            "postgresql://dsp:SecurePass123@ep-test.neon.tech/dsp?sslmode=require"
+        ),
         "DSP_PUBLIC_DOMAIN": "app.example.com",
     }
     env.update(overrides)
@@ -54,7 +56,9 @@ def test_rejects_placeholder_production_domain() -> None:
 
 def test_rejects_placeholder_database_host() -> None:
     result = run_validator(
-        DSP_DATABASE_URL="postgresql://USER:PASSWORD@YOUR-NEON-HOST/DBNAME?sslmode=require"
+        DSP_DATABASE_URL=(
+            "postgresql://USER:PASSWORD@YOUR-NEON-HOST/DBNAME?sslmode=require"
+        )
     )
     assert result.returncode != 0
     assert "real external PostgreSQL hostname" in result.stderr
@@ -80,10 +84,13 @@ def test_rejects_domain_with_scheme_or_path() -> None:
     assert result.returncode != 0
     assert "hostname only" in result.stderr
 
-def test_requires_at_least_one_direct_ai_provider_key() -> None:
+def test_requires_both_direct_ai_provider_keys() -> None:
     result = run_validator(GEMINI_API_KEY="", OPENAI_API_KEY_5="")
     assert result.returncode != 0
-    assert "Dual-provider verification requires both direct provider keys" in result.stderr
+    assert (
+        "Dual-provider verification requires both direct provider keys"
+        in result.stderr
+    )
 
 
 def test_rejects_weak_seed_admin_password() -> None:

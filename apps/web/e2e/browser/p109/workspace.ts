@@ -148,9 +148,9 @@ export async function assertValuationVisible(
   payload: Record<string, unknown>,
 ): Promise<void> {
   await openAnalysisSection(page, /^Valuation(\s+\d|\d)?$/i, /^Valuation$/i);
-  await expect(page.getByText("Intrinsic Value", { exact: true })).toBeVisible();
-  await expect(page.getByText("Current Price", { exact: true })).toBeVisible();
-  await expect(page.getByText("Margin of Safety", { exact: true })).toBeVisible();
+  await expect(page.getByTestId("analysis-detail-content").getByText("Intrinsic Value", { exact: true })).toBeVisible();
+  await expect(page.getByTestId("analysis-detail-content").getByText("Current Price", { exact: true })).toBeVisible();
+  await expect(page.getByTestId("analysis-detail-content").getByText("Margin of Safety", { exact: true })).toBeVisible();
 
   const stages = (payload.stage_summaries ?? []) as Array<
     Record<string, unknown>
@@ -160,7 +160,7 @@ export async function assertValuationVisible(
   expect(["succeeded", "degraded", "unavailable"]).toContain(
     String(valuation!.status),
   );
-  await expect(page.getByText("Stage status", { exact: true })).toBeVisible();
+  await expect(page.getByTestId("analysis-detail-content").getByText("Stage status", { exact: true })).toBeVisible();
 }
 
 export async function assertBuffettVisible(
@@ -173,7 +173,7 @@ export async function assertBuffettVisible(
     /Buffett Indicator/i,
     /Buffett Indicator Analysis/i,
   );
-  const buffettMain = analysisMain(page);
+  const buffettMain = page.getByTestId("analysis-detail-content");
   await expect(
     buffettMain.getByText(/Presentation synthesis of existing/i),
   ).toBeVisible();
@@ -204,8 +204,8 @@ export async function assertEvidenceVisible(
     /Supporting Evidence/i,
     /Research objects/i,
   );
-  await expect(page.getByText("Analysis ID", { exact: true })).toBeVisible();
-  await expect(analysisMain(page)).toContainText(analysisId);
+  await expect(page.getByTestId("analysis-detail-content").getByText("Analysis ID", { exact: true })).toBeVisible();
+  await expect(page.getByTestId("analysis-detail-content")).toContainText(analysisId);
 }
 
 export async function fetchProvenanceFromSession(

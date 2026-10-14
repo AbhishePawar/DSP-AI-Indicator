@@ -32,7 +32,7 @@ class OpenAIAdapter(OpenAICompatibleToolCalling):
 
     def __init__(self, config: LLMPlatformConfig) -> None:
         self._config = config
-        self.model_label = config.openai_model.removeprefix("openai/")
+        self.model_label = config.openai_model
 
     def is_configured(self) -> bool:
         return bool(self._config.openai_api_key)
@@ -115,8 +115,8 @@ class OpenAIAdapter(OpenAICompatibleToolCalling):
             return
 
         prompt = "\n\n".join(request.prompt_parts)
-        api_key = self._config.openai_api_key or ""
-        base_url = "https://api.openai.com/v1"
+        api_key = self._config.ai_gateway_api_key or self._config.openai_api_key or ""
+        base_url = self._config.ai_gateway_base_url if self._config.ai_gateway_api_key else "https://api.openai.com/v1"
         payload = {
             "model": self.model_label,
             "stream": True,

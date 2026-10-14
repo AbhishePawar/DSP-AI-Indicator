@@ -411,15 +411,16 @@ describe("EPIC-F005 workspace UI", () => {
     });
     const body = analyseMock.mock.calls[0]?.[0] as {
       ticker: string;
-      financial_statements: { income_statement?: { revenue?: number } };
+      exchange?: string;
+      company?: string;
+      financial_statements?: unknown;
       valuation_signals?: unknown;
       current_market_price?: number;
     };
     expect(body.ticker).toBe("AAPL");
-    expect(body.financial_statements.income_statement?.revenue).toBe(391_035);
-    expect(body.financial_statements.income_statement?.revenue).not.toBe(1000);
+    expect(body.financial_statements).toBeUndefined();
     expect(body.valuation_signals).toBeUndefined();
-    expect(body.current_market_price).toBe(190.5);
+    expect(body.current_market_price).toBeUndefined();
     expect(marketQuoteMock).toHaveBeenCalled();
   });
 

@@ -13,7 +13,7 @@ Browser → Caddy (HTTPS) → Next.js web
 - Redis: intentionally not started in the initial VPS profile. The app uses its configured fallback adapters when Redis is unset; these may be process-local and can reset after a restart. Treat this as a known limitation until a durable Redis service is explicitly approved.
 - Object storage: local persistent Docker volume; no S3/GCS/Azure service is required by this profile.
 - AI providers: Gemini and OpenAI direct server-side APIs. Keep their keys out of `NEXT_PUBLIC_*` variables.
-- This profile does not require Vercel, Vercel AI Gateway, or Google Cloud deployment services. Existing Google-hosted production and DNS should remain untouched until the VPS passes acceptance.
+- This profile has no hosted frontend deployment or AI gateway dependency. Existing Google-hosted production and DNS should remain untouched until the VPS passes acceptance.
 
 ## 1. VPS prerequisites
 

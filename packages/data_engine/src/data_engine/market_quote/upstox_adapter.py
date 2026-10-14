@@ -23,7 +23,6 @@ from decimal import Decimal, InvalidOperation
 from typing import Any
 
 from contracts.domain.instrument import Instrument
-from contracts.enums import AssetClass
 from data_engine.exceptions import InvalidProviderDataError, ProviderRequestError
 from data_engine.market_quote.models import (
     AuthenticatedMarketQuote,

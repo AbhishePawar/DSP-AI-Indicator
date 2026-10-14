@@ -4,10 +4,11 @@ from __future__ import annotations
 
 import io
 import json
-import urllib.error
 from unittest.mock import MagicMock, patch
+import urllib.error
 
 import pytest
+
 from contracts.domain.instrument import Instrument
 from contracts.enums import AssetClass
 from data_engine.exceptions import DataEngineError, InvalidProviderDataError, ProviderRequestError

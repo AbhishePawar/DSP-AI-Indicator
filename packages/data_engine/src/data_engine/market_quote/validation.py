@@ -2,11 +2,10 @@
 
 from __future__ import annotations
 
-import math
 from dataclasses import dataclass
 from datetime import UTC, datetime, timedelta
 from decimal import Decimal
-from typing import Any
+import math
 
 from contracts.domain.instrument import Instrument
 from data_engine.exceptions import InvalidProviderDataError

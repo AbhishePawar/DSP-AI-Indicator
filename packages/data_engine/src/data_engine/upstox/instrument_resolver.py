@@ -17,7 +17,7 @@ from __future__ import annotations
 import re
 import threading
 from collections.abc import Callable, Iterable, Mapping
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from typing import Any
 
 from contracts.domain.instrument import Instrument

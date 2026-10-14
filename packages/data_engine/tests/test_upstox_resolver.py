@@ -2,14 +2,11 @@
 
 from __future__ import annotations
 
-import pytest
 from contracts.domain.instrument import Instrument
 from contracts.enums import AssetClass
 from data_engine.upstox.instrument_resolver import (
     UpstoxInstrumentRecord,
     UpstoxInstrumentResolver,
-    UpstoxResolutionResult,
-    get_upstox_resolver,
 )
 
 

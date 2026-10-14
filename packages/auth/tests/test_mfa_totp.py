@@ -100,8 +100,12 @@ def test_totp_adapter_enroll_confirm_verify_cycle() -> None:
 
 def test_totp_platform_enroll_and_login_stepup_flow(
     _reset: EnterpriseAuthPlatform,
+    monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     platform = _reset
+    current_time = 1_700_000_000.0
+    monkeypatch.setattr(time, "time", lambda: current_time)
+
     reg = platform.register_email(
         name="MFA User",
         email="mfa@example.com",
@@ -127,7 +131,8 @@ def test_totp_platform_enroll_and_login_stepup_flow(
     # Advance one full TOTP step so the step-up code differs from the one
     # already consumed by enrollment confirmation (replay protection would
     # otherwise correctly reject an identical code within the same window).
-    stepup_code = totp_at(begin["secret"], for_time=time.time() + 31)
+    current_time += 30.0
+    stepup_code = totp_at(begin["secret"])
     result = platform.mfa_totp_verify_stepup(mfa_token=mfa_token, code=stepup_code)
     assert result["ok"] is True
 

@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import os
 import sys
+from urllib.parse import parse_qs, urlsplit
 
 FORBIDDEN_JWT = {
     "dev-only-change-me",
@@ -119,11 +120,18 @@ def main(argv: list[str] | None = None) -> int:
             return 1
 
         domain = (os.environ.get("DSP_PUBLIC_DOMAIN") or "").strip()
-        if not domain or domain in {"localhost", "your-domain.example"}:
+        if (
+            not domain
+            or domain == "localhost"
+            or domain.endswith(".example")
+            or "your-domain" in domain.lower()
+        ):
             print(
-                "[production] Warning: DSP_PUBLIC_DOMAIN looks like a placeholder "
-                f"({domain!r}) — set a real public hostname before launch",
+                "[production] DSP_PUBLIC_DOMAIN must be a real public hostname "
+                "before production deployment",
+                file=sys.stderr,
             )
+            return 1
         if domain.startswith("http://") or domain.startswith("https://"):
             print(
                 "[production] DSP_PUBLIC_DOMAIN must be a hostname only "
@@ -133,9 +141,30 @@ def main(argv: list[str] | None = None) -> int:
             return 1
 
         db_url = os.environ.get("DSP_DATABASE_URL", "")
-        if not db_url.startswith(("postgresql://", "postgres://")):
+        parsed_db_url = urlsplit(db_url)
+        if (
+            parsed_db_url.scheme not in {"postgresql", "postgres"}
+            or not parsed_db_url.hostname
+            or not parsed_db_url.username
+            or not parsed_db_url.password
+            or parsed_db_url.hostname in {"localhost", "127.0.0.1", "postgres"}
+            or parsed_db_url.hostname.endswith(".example")
+            or "YOUR-NEON-HOST" in db_url
+            or "USER:PASSWORD" in db_url
+            or "CHANGE_ME" in db_url
+        ):
             print(
-                "[production] DSP_DATABASE_URL must be a postgresql:// URL",
+                "[production] DSP_DATABASE_URL must contain a real external "
+                "PostgreSQL hostname and credentials",
+                file=sys.stderr,
+            )
+            return 1
+
+        sslmode = parse_qs(parsed_db_url.query).get("sslmode", [""])[0].lower()
+        if sslmode not in {"require", "verify-ca", "verify-full"}:
+            print(
+                "[production] DSP_DATABASE_URL must require TLS "
+                "(sslmode=require, verify-ca, or verify-full)",
                 file=sys.stderr,
             )
             return 1

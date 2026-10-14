@@ -171,7 +171,7 @@ describe("P1-09 runner lifecycle & health configuration", () => {
       { timeoutMs: 2000, intervalMs: 500 },
       {
         webDir: "/workspace/apps/web",
-        spawnFn: spawnFn as any,
+        spawnFn: spawnFn as unknown as typeof import("node:child_process").spawn,
         checkUrlFn,
         inspectPortFn: mockInspector,
       }

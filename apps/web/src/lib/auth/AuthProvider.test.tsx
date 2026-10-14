@@ -4,7 +4,7 @@
 import { cleanup, render, waitFor } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import { AuthProvider } from "./AuthProvider";
+import { AuthProvider, useAuth } from "./AuthProvider";
 import {
   clearCookieMeta,
   clearCsrfToken,
@@ -139,8 +139,7 @@ describe("AuthProvider cookie-session restoration", () => {
     const fetchMock = vi.fn().mockResolvedValue(new Response("{}", { status: 200 }));
     vi.stubGlobal("fetch", fetchMock);
 
-    const { useAuth } = await import("./AuthProvider");
-    let authContext: unknown;
+    let authContext: ReturnType<typeof useAuth> | null = null;
     function Consumer() {
       authContext = useAuth();
       return <div>consumer</div>;

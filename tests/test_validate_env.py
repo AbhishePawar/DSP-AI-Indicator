@@ -14,7 +14,8 @@ def production_env(**overrides: str) -> dict[str, str]:
         "DSP_ENVIRONMENT": "production",
         "DSP_JWT_SECRET": "x" * 48,
         "DSP_SEED_ADMIN_PASSWORD": "Synthetic-Admin-Password-2026",
-        "GEMINI_API_KEY": "synthetic-test-provider-key",
+        "GEMINI_API_KEY": "synthetic-gemini-test-key",
+        "OPENAI_API_KEY_5": "synthetic-openai-test-key",
         "DSP_CORS_ORIGINS": "https://app.example.com",
         "DSP_ENABLE_SECURITY": "true",
         "DSP_REQUIRE_ADMIN_AUTH": "true",
@@ -82,7 +83,7 @@ def test_rejects_domain_with_scheme_or_path() -> None:
 def test_requires_at_least_one_direct_ai_provider_key() -> None:
     result = run_validator(GEMINI_API_KEY="", OPENAI_API_KEY_5="")
     assert result.returncode != 0
-    assert "at least one direct AI provider key" in result.stderr
+    assert "Dual-provider verification requires both direct provider keys" in result.stderr
 
 
 def test_rejects_weak_seed_admin_password() -> None:

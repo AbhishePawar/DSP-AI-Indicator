@@ -63,3 +63,16 @@ def test_rejects_database_without_tls() -> None:
     )
     assert result.returncode != 0
     assert "must require TLS" in result.stderr
+
+def test_rejects_mixed_http_cors_origins() -> None:
+    result = run_validator(
+        DSP_CORS_ORIGINS="https://app.example.com,http://localhost:3000"
+    )
+    assert result.returncode != 0
+    assert "exact HTTPS origins" in result.stderr
+
+
+def test_rejects_domain_with_scheme_or_path() -> None:
+    result = run_validator(DSP_PUBLIC_DOMAIN="https://app.example.com/path")
+    assert result.returncode != 0
+    assert "hostname only" in result.stderr

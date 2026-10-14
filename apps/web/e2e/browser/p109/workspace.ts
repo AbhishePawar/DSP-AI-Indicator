@@ -4,8 +4,8 @@ import fs from "node:fs";
 /**
  * Company Analysis Workspace contracts (WorkspaceLeftNav + ANALYSIS_SECTIONS):
  *   nav "Analysis sections"
- *   region "Main analysis area"
- *   search aria-label "Company search"
+ *   modern analysis root data-testid="company-analysis"
+ *   search label "Company ticker"
  *   Analyze button
  *   section buttons include shortcut kbd, so names are "Valuation 2", "Buffett Indicator B", …
  *
@@ -17,7 +17,7 @@ export function analysisNav(page: Page) {
 }
 
 export function analysisMain(page: Page) {
-  return page.getByRole("region", { name: "Main analysis area" });
+  return page.getByTestId("company-analysis");
 }
 
 export async function openAnalysisWorkspace(
@@ -29,7 +29,7 @@ export async function openAnalysisWorkspace(
   });
   await expect(analysisNav(page)).toBeVisible({ timeout: 30_000 });
   await expect(analysisMain(page)).toBeVisible();
-  await expect(page.getByLabel(/Company search/i)).toBeVisible();
+  await expect(page.getByLabel(/Company ticker/i)).toBeVisible();
 }
 
 /** Section buttons concatenate label + shortcut; match label, not incidental order. */

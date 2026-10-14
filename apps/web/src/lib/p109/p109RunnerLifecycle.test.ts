@@ -1,4 +1,5 @@
 import { EventEmitter } from "node:events";
+import type { ChildProcess } from "node:child_process";
 import { describe, expect, it, vi } from "vitest";
 
 import {
@@ -16,16 +17,23 @@ import {
 } from "../../../e2e/browser/p109/runnerCore";
 
 function createMockProcess(exitCode: number | null = null) {
-  const proc = Object.assign(new EventEmitter(), { exitCode, killed: false, stdout: new EventEmitter(), stderr: new EventEmitter(), kill: vi.fn((sig?: string) => { proc.killed = true; proc.emit("close", 0); }) });
+  const proc = new EventEmitter() as EventEmitter & {
+    exitCode: number | null;
+    killed: boolean;
+    stdout: EventEmitter;
+    stderr: EventEmitter;
+    kill: (signal?: NodeJS.Signals | number) => boolean;
+  };
   proc.exitCode = exitCode;
   proc.killed = false;
   proc.stdout = new EventEmitter();
   proc.stderr = new EventEmitter();
-  proc.kill = vi.fn((sig?: string) => {
+  proc.kill = vi.fn((_signal?: NodeJS.Signals | number) => {
     proc.killed = true;
     proc.emit("close", 0);
+    return true;
   });
-  return proc;
+  return proc as unknown as ChildProcess & { killed: boolean };
 }
 
 describe("P1-09 runner lifecycle & health configuration", () => {
@@ -133,7 +141,7 @@ describe("P1-09 runner lifecycle & health configuration", () => {
       { timeoutMs: 2000, intervalMs: 500 },
       {
         webDir: "/workspace/apps/web",
-        spawnFn: spawnFn as any,
+        spawnFn: spawnFn as unknown as typeof import("node:child_process").spawn,
         checkUrlFn,
         inspectPortFn: mockInspector,
       }

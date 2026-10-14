@@ -101,7 +101,9 @@ docker compose --env-file "${ENV_FILE}" -f "${COMPOSE_FILE}" exec -T api \
 
 if [[ "${DSP_SMOKE_REQUIRE_HTTPS:-true}" == "true" && "${DOMAIN}" != "localhost" ]]; then
   echo "[deploy] external HTTPS smoke → https://${DOMAIN}"
-  curl --retry 5 --retry-delay 2 --retry-connrefused -fsS "https://${DOMAIN}/api/health" >/dev/null
+  curl --retry 15 --retry-delay 4 --retry-connrefused -fsS "https://${DOMAIN}/health/ready" >/dev/null
+  curl --retry 15 --retry-delay 4 --retry-connrefused -fsS "https://${DOMAIN}/api/v1/health/ready" >/dev/null
+  curl --retry 15 --retry-delay 4 --retry-connrefused -fsS "https://${DOMAIN}/api/health" >/dev/null
 fi
 
 echo "[deploy] OK — production stack is up"

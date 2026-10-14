@@ -94,7 +94,7 @@ def main(argv: list[str] | None = None) -> int:
             return 1
 
         jwt = os.environ.get("DSP_JWT_SECRET", "")
-        if jwt in FORBIDDEN_JWT or len(jwt) < 32:
+        if jwt in FORBIDDEN_JWT or jwt.startswith("CHANGE_ME") or len(jwt) < 32:
             print(
                 "[production] DSP_JWT_SECRET must be a strong secret "
                 "(≥32 chars, not a template/default)",

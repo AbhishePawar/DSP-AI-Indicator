@@ -134,15 +134,11 @@ export async function waitForAnalyseSuccess(
   }
 
   await expect(
-    page.getByRole("heading", { name: /Executive Summary|Summary/i }).first(),
+    page.getByRole("heading", { name: /What the research says/i }).first(),
     "[P1-09 ANALYSIS] executive summary must be visible",
   ).toBeVisible({ timeout: 30_000 });
 
-  const mainText = await analysisMain(page).innerText();
-  expect(
-    mainText.toUpperCase(),
-    "[P1-09 ANALYSIS] workspace must show the fixture ticker",
-  ).toContain(ticker.toUpperCase());
+  await expect(page.getByTestId("analysis-symbol")).toHaveValue(ticker.toUpperCase());
 
   return { analysisId, payload };
 }
@@ -196,8 +192,7 @@ export async function assertBuffettVisible(
     "[P1-09 BUFFETT] analyse payload must include Buffett outputs",
   ).toBeGreaterThan(0);
 
-  const mainText = await analysisMain(page).innerText();
-  expect(mainText.toUpperCase()).toContain(ticker.toUpperCase());
+  await expect(page.getByTestId("analysis-symbol")).toHaveValue(ticker.toUpperCase());
 }
 
 export async function assertEvidenceVisible(

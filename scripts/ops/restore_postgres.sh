@@ -24,9 +24,20 @@ if [[ -z "${DSP_DATABASE_URL:-}" && -z "${PGDATABASE:-}" ]]; then
 fi
 
 echo "[restore] restoring ${ARCHIVE}"
-if [[ -n "${DSP_DATABASE_URL:-}" ]]; then
+if [[ -n "${DSP_DATABASE_URL:-}" && "${DSP_PG_CLIENT_USE_DOCKER:-true}" == "true" ]]; then
+  command -v docker >/dev/null 2>&1 || {
+    echo "Docker is required for the configured PostgreSQL client container" >&2
+    exit 1
+  }
+  CLIENT_IMAGE="${DSP_PG_CLIENT_IMAGE:-postgres:18-alpine}"
+  echo "[restore] using client image ${CLIENT_IMAGE}"
+  gunzip -c "${ARCHIVE}" | docker run --rm -i --network host -e DSP_DATABASE_URL "${CLIENT_IMAGE}" \
+    sh -lc 'psql "$DSP_DATABASE_URL"'
+elif [[ -n "${DSP_DATABASE_URL:-}" ]]; then
+  command -v psql >/dev/null 2>&1 || { echo "psql not found; set DSP_PG_CLIENT_USE_DOCKER=true" >&2; exit 1; }
   gunzip -c "${ARCHIVE}" | psql "${DSP_DATABASE_URL}"
 else
+  command -v psql >/dev/null 2>&1 || { echo "psql not found and DSP_DATABASE_URL is unset" >&2; exit 1; }
   gunzip -c "${ARCHIVE}" | psql
 fi
 

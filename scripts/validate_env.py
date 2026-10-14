@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import os
 import sys
+from urllib.parse import parse_qs, urlsplit
 
 FORBIDDEN_JWT = {
     "dev-only-change-me",
@@ -26,6 +27,7 @@ PROFILES = {
         "required": [
             "DSP_ENVIRONMENT",
             "DSP_JWT_SECRET",
+            "DSP_SEED_ADMIN_PASSWORD",
             "DSP_CORS_ORIGINS",
             "DSP_ENABLE_SECURITY",
             "DSP_REQUIRE_ADMIN_AUTH",
@@ -40,13 +42,11 @@ PROFILES = {
         "recommended": [
             "BUILD_TIMESTAMP",
             "GIT_SHA",
-            "DSP_REDIS_URL",
             "DSP_REGION",
             "DSP_BACKUP_DIR",
             "DSP_TEMP_DIR",
             "DEFAULT_AI_PROVIDER",
             "NEXT_PUBLIC_API_BASE_URL",
-            "DSP_API_DOMAIN",
             "DSP_ACME_EMAIL",
             "DSP_PLATFORM_VERSION",
         ],
@@ -94,10 +94,10 @@ def main(argv: list[str] | None = None) -> int:
             return 1
 
         jwt = os.environ.get("DSP_JWT_SECRET", "")
-        if jwt in FORBIDDEN_JWT or len(jwt) < 24:
+        if jwt in FORBIDDEN_JWT or jwt.startswith("CHANGE_ME") or len(jwt) < 32:
             print(
                 "[production] DSP_JWT_SECRET must be a strong secret "
-                "(≥24 chars, not a template/default)",
+                "(≥32 chars, not a template/default)",
                 file=sys.stderr,
             )
             return 1
@@ -111,31 +111,80 @@ def main(argv: list[str] | None = None) -> int:
                 return 1
 
         cors = os.environ.get("DSP_CORS_ORIGINS", "")
-        if "http://" in cors and "https://" not in cors:
+        origins = [origin.strip() for origin in cors.split(",") if origin.strip()]
+        if not origins or any(
+            not origin.startswith("https://") or "*" in origin for origin in origins
+        ):
             print(
-                "[production] DSP_CORS_ORIGINS should use HTTPS origins",
+                "[production] DSP_CORS_ORIGINS must contain exact HTTPS origins "
+                "only (no HTTP or wildcard)",
                 file=sys.stderr,
             )
             return 1
 
         domain = (os.environ.get("DSP_PUBLIC_DOMAIN") or "").strip()
-        if not domain or domain in {"localhost", "your-domain.example"}:
+        if (
+            not domain
+            or domain == "localhost"
+            or domain.endswith(".example")
+            or "your-domain" in domain.lower()
+        ):
             print(
-                "[production] Warning: DSP_PUBLIC_DOMAIN looks like a placeholder "
-                f"({domain!r}) — set a real public hostname before launch",
+                "[production] DSP_PUBLIC_DOMAIN must be a real public hostname "
+                "before production deployment",
+                file=sys.stderr,
             )
-        if domain.startswith("http://") or domain.startswith("https://"):
+            return 1
+        if (
+            domain.startswith("http://")
+            or domain.startswith("https://")
+            or any(char in domain for char in "/:@ ")
+        ):
             print(
                 "[production] DSP_PUBLIC_DOMAIN must be a hostname only "
-                "(no scheme)",
+                "(no scheme, port, path, or spaces)",
                 file=sys.stderr,
             )
             return 1
 
         db_url = os.environ.get("DSP_DATABASE_URL", "")
-        if not db_url.startswith(("postgresql://", "postgres://")):
+        parsed_db_url = urlsplit(db_url)
+        if (
+            parsed_db_url.scheme not in {"postgresql", "postgres"}
+            or not parsed_db_url.hostname
+            or not parsed_db_url.username
+            or not parsed_db_url.password
+            or parsed_db_url.hostname in {"localhost", "127.0.0.1", "postgres"}
+            or parsed_db_url.hostname.endswith(".example")
+            or "YOUR-NEON-HOST" in db_url
+            or "USER:PASSWORD" in db_url
+            or "CHANGE_ME" in db_url
+        ):
             print(
-                "[production] DSP_DATABASE_URL must be a postgresql:// URL",
+                "[production] DSP_DATABASE_URL must contain a real external "
+                "PostgreSQL hostname and credentials",
+                file=sys.stderr,
+            )
+            return 1
+
+        sslmode = parse_qs(parsed_db_url.query).get("sslmode", [""])[0].lower()
+        if sslmode not in {"require", "verify-ca", "verify-full"}:
+            print(
+                "[production] DSP_DATABASE_URL must require TLS "
+                "(sslmode=require, verify-ca, or verify-full)",
+                file=sys.stderr,
+            )
+            return 1
+
+        missing_ai_keys = [
+            key
+            for key in ("GEMINI_API_KEY", "OPENAI_API_KEY_5")
+            if not os.environ.get(key, "").strip()
+        ]
+        if missing_ai_keys:
+            print(
+                "[production] Dual-provider verification requires both direct "
+                f"provider keys; missing: {', '.join(missing_ai_keys)}",
                 file=sys.stderr,
             )
             return 1
@@ -148,8 +197,10 @@ def main(argv: list[str] | None = None) -> int:
             )
 
         seed = os.environ.get("DSP_SEED_ADMIN_PASSWORD", "")
-        if seed and (
-            seed.startswith("CHANGE_ME") or seed in {"admin", "password", "dsp"}
+        if (
+            len(seed) < 16
+            or seed.startswith("CHANGE_ME")
+            or seed in {"admin", "password", "dsp"}
         ):
             print(
                 "[production] DSP_SEED_ADMIN_PASSWORD looks like a template "

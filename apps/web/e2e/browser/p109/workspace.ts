@@ -4,8 +4,8 @@ import fs from "node:fs";
 /**
  * Company Analysis Workspace contracts (WorkspaceLeftNav + ANALYSIS_SECTIONS):
  *   nav "Analysis sections"
- *   region "Main analysis area"
- *   search aria-label "Company search"
+ *   modern analysis root data-testid="company-analysis"
+ *   search label "Company ticker"
  *   Analyze button
  *   section buttons include shortcut kbd, so names are "Valuation 2", "Buffett Indicator B", …
  *
@@ -17,7 +17,7 @@ export function analysisNav(page: Page) {
 }
 
 export function analysisMain(page: Page) {
-  return page.getByRole("region", { name: "Main analysis area" });
+  return page.getByTestId("company-analysis");
 }
 
 export async function openAnalysisWorkspace(
@@ -29,26 +29,27 @@ export async function openAnalysisWorkspace(
   });
   await expect(analysisNav(page)).toBeVisible({ timeout: 30_000 });
   await expect(analysisMain(page)).toBeVisible();
-  await expect(page.getByLabel(/Company search/i)).toBeVisible();
+  await expect(page.getByLabel(/Company ticker/i)).toBeVisible();
 }
 
 /** Section buttons concatenate label + shortcut; match label, not incidental order. */
 export async function openAnalysisSection(
   page: Page,
   label: RegExp,
-  heading: string | RegExp,
+  heading: RegExp,
+  toolId?: string,
 ): Promise<void> {
-  const button = analysisNav(page).getByRole("button", { name: label });
+  const nav = analysisNav(page);
+  if (toolId) {
+    await nav.getByLabel(/More research tools/i).selectOption(toolId);
+  } else {
+    const button = nav.getByRole("button", { name: label });
+    await expect(button).toBeVisible();
+    await button.click();
+  }
   await expect(
-    button,
-    `[P1-09] section control ${label} must exist`,
+    page.getByTestId("analysis-detail-content").getByRole("heading", { name: heading }),
   ).toBeVisible();
-  await button.click();
-  await expect(analysisMain(page)).toBeVisible();
-  await expect(
-    page.getByRole("heading", { name: heading }).first(),
-    `[P1-09] section heading ${String(heading)} must render`,
-  ).toBeVisible({ timeout: 20_000 });
 }
 
 export type AnalyseCapture = {
@@ -134,15 +135,11 @@ export async function waitForAnalyseSuccess(
   }
 
   await expect(
-    page.getByRole("heading", { name: /Executive Summary|Summary/i }).first(),
+    page.getByRole("heading", { name: /What the research says/i }).first(),
     "[P1-09 ANALYSIS] executive summary must be visible",
   ).toBeVisible({ timeout: 30_000 });
 
-  const mainText = await analysisMain(page).innerText();
-  expect(
-    mainText.toUpperCase(),
-    "[P1-09 ANALYSIS] workspace must show the fixture ticker",
-  ).toContain(ticker.toUpperCase());
+  await expect(page.getByTestId("analysis-symbol")).toHaveValue(ticker.toUpperCase());
 
   return { analysisId, payload };
 }
@@ -152,9 +149,9 @@ export async function assertValuationVisible(
   payload: Record<string, unknown>,
 ): Promise<void> {
   await openAnalysisSection(page, /^Valuation(\s+\d|\d)?$/i, /^Valuation$/i);
-  await expect(page.getByText("Intrinsic Value", { exact: true })).toBeVisible();
-  await expect(page.getByText("Current Price", { exact: true })).toBeVisible();
-  await expect(page.getByText("Margin of Safety", { exact: true })).toBeVisible();
+  await expect(page.getByTestId("analysis-detail-content").getByText("Intrinsic Value", { exact: true })).toBeVisible();
+  await expect(page.getByTestId("analysis-detail-content").getByText("Current Price", { exact: true })).toBeVisible();
+  await expect(page.getByTestId("analysis-detail-content").getByText("Margin of Safety", { exact: true })).toBeVisible();
 
   const stages = (payload.stage_summaries ?? []) as Array<
     Record<string, unknown>
@@ -164,7 +161,7 @@ export async function assertValuationVisible(
   expect(["succeeded", "degraded", "unavailable"]).toContain(
     String(valuation!.status),
   );
-  await expect(page.getByText("Stage status", { exact: true })).toBeVisible();
+  await expect(page.getByTestId("analysis-detail-content").getByText("Stage status", { exact: true })).toBeVisible();
 }
 
 export async function assertBuffettVisible(
@@ -174,10 +171,10 @@ export async function assertBuffettVisible(
 ): Promise<void> {
   await openAnalysisSection(
     page,
-    /Buffett Indicator/i,
+    /Buffett Assessment/i,
     /Buffett Indicator Analysis/i,
   );
-  const buffettMain = analysisMain(page);
+  const buffettMain = page.getByTestId("analysis-detail-content");
   await expect(
     buffettMain.getByText(/Presentation synthesis of existing/i),
   ).toBeVisible();
@@ -196,8 +193,7 @@ export async function assertBuffettVisible(
     "[P1-09 BUFFETT] analyse payload must include Buffett outputs",
   ).toBeGreaterThan(0);
 
-  const mainText = await analysisMain(page).innerText();
-  expect(mainText.toUpperCase()).toContain(ticker.toUpperCase());
+  await expect(page.getByTestId("analysis-symbol")).toHaveValue(ticker.toUpperCase());
 }
 
 export async function assertEvidenceVisible(
@@ -206,11 +202,11 @@ export async function assertEvidenceVisible(
 ): Promise<void> {
   await openAnalysisSection(
     page,
-    /Supporting Evidence/i,
+    /^Evidence$/i,
     /Research objects/i,
   );
-  await expect(page.getByText("Analysis ID", { exact: true })).toBeVisible();
-  await expect(analysisMain(page)).toContainText(analysisId);
+  await expect(page.getByTestId("analysis-detail-content").getByText("Analysis ID", { exact: true })).toBeVisible();
+  await expect(page.getByTestId("analysis-detail-content")).toContainText(analysisId);
 }
 
 export async function fetchProvenanceFromSession(
@@ -273,7 +269,7 @@ export async function exportJsonSnapshot(
   ticker: string,
   analysisId: string,
 ): Promise<Record<string, unknown>> {
-  await openAnalysisSection(page, /Downloads/i, /^Downloads$/i);
+  await openAnalysisSection(page, /Export/i, /^Downloads$/i, "export");
   const exportJson = page.getByRole("button", { name: /Export JSON/i });
   await expect(exportJson).toBeVisible({ timeout: 15_000 });
   const downloadPromise = page.waitForEvent("download", { timeout: 30_000 });

@@ -4,7 +4,7 @@ set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 ENV_FILE="${ROOT}/.env.production"
-COMPOSE_FILE="${ROOT}/docker/docker-compose.production.yml"
+COMPOSE_FILE="${ROOT}/docker/docker-compose.vps.yml"
 
 cd "${ROOT}"
 
@@ -15,7 +15,7 @@ if [[ -f "${ENV_FILE}" ]]; then
   set +a
 fi
 
-BACKUP_DIR="${DSP_BACKUP_DIR:-${ROOT}/backups}"
+BACKUP_DIR="${DSP_HOST_BACKUP_DIR:-${ROOT}/backups}"
 mkdir -p "${BACKUP_DIR}"
 export DSP_BACKUP_DIR="${BACKUP_DIR}"
 

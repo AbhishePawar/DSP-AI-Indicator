@@ -1,5 +1,8 @@
 # Production Deployment Guide (EPIC-017)
 
+> **Current deployment target (2026-10-14):** Use [`docs/VPS_DEPLOYMENT_RUNBOOK.md`](../VPS_DEPLOYMENT_RUNBOOK.md) as the authoritative VPS procedure. This document describes the alternate full production/observability profile; its local PostgreSQL and Redis steps are not the selected initial Neon/no-Redis VPS profile.
+
+
 **Status:** Production-deployable readiness improved (ops packaging).  
 **Not claimed:** Commercial GA APPROVED.  
 **Architecture freeze:** No valuation, REP-002, Buffett, Research Intelligence/OS, or Enterprise API behaviour changes.

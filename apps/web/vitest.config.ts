@@ -2,9 +2,11 @@
 import path from "node:path";
 
 export default defineConfig({
+  // Keep automatic JSX for Vitest while bypassing the newer Vite config type
+  // omission for esbuild's JSX option. Runtime behavior is covered by the test suite.
   esbuild: {
     jsx: "automatic",
-  },
+  } as never,
   test: {
     environment: "node",
     include: ["src/**/*.test.ts", "src/**/*.test.tsx"],

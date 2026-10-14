@@ -4,7 +4,7 @@ set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 ENV_FILE="${ROOT}/.env.production"
-COMPOSE_FILE="${ROOT}/docker/docker-compose.production.yml"
+COMPOSE_FILE="${ROOT}/docker/docker-compose.vps.yml"
 ARCHIVE="${1:-}"
 
 cd "${ROOT}"

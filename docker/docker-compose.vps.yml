@@ -1,0 +1,133 @@
+# Lean VPS production stack: Caddy + FastAPI + Next.js.
+# PostgreSQL is external (Neon); Redis is deliberately not started in this profile.
+# Run from repository root: ./scripts/deploy_production.sh
+
+name: dsp-vps-production
+
+x-logging: &default-logging
+  driver: json-file
+  options:
+    max-size: "20m"
+    max-file: "5"
+
+services:
+  proxy:
+    image: caddy:2.8-alpine
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp"
+    environment:
+      DSP_PUBLIC_DOMAIN: ${DSP_PUBLIC_DOMAIN:-localhost}
+      DSP_ACME_EMAIL: ${DSP_ACME_EMAIL:-ops@localhost}
+      DSP_AUTO_HTTPS: ${DSP_AUTO_HTTPS:-on}
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+      - caddy_logs:/var/log/caddy
+    depends_on:
+      api:
+        condition: service_healthy
+      web:
+        condition: service_healthy
+    networks: [proxy_api, proxy_web]
+    logging: *default-logging
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1:2019/metrics"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
+
+  api:
+    image: ${DSP_API_IMAGE:-dsp-api}:${DSP_IMAGE_TAG:-2.0.0-rc.1}
+    build:
+      context: ..
+      dockerfile: docker/backend/Dockerfile
+    restart: unless-stopped
+    env_file:
+      - ../.env.production
+    environment:
+      DSP_ENVIRONMENT: production
+      DSP_APP_VERSION: ${DSP_APP_VERSION:-2.0.0-rc.1}
+      DSP_PLATFORM_VERSION: ${DSP_PLATFORM_VERSION:-2.0.0}
+      DSP_ENABLE_SECURITY: "true"
+      DSP_REQUIRE_ADMIN_AUTH: "true"
+      DSP_RATE_LIMIT_ENABLED: "true"
+      DSP_HSTS_ENABLED: "true"
+      DSP_INDIA_TIMEZONE: Asia/Kolkata
+      DSP_INDIA_CURRENCY: INR
+      DSP_REGION: ${DSP_REGION:-ap-south-1}
+      TZ: Asia/Kolkata
+      DSP_TEMP_DIR: /tmp/dsp
+      DSP_BACKUP_DIR: /var/backups/dsp
+      DSP_BACKUP_ADAPTER: ${DSP_BACKUP_ADAPTER:-auto}
+      DSP_OBJECT_STORAGE_PROVIDER: ${DSP_OBJECT_STORAGE_PROVIDER:-local}
+      DSP_OBJECT_STORAGE_LOCAL_ROOT: ${DSP_OBJECT_STORAGE_LOCAL_ROOT:-/var/lib/dsp/object-storage}
+      DSP_DATABASE_URL: ${DSP_DATABASE_URL}
+      DSP_REDIS_URL: ${DSP_REDIS_URL:-}
+      DSP_REDIS_FALLBACK: ${DSP_REDIS_FALLBACK:-true}
+      # Only Caddy and the API share proxy_api; trust forwarded headers on that private network.
+      DSP_FORWARDED_ALLOW_IPS: "*"
+    volumes:
+      - dsp_api_tmp:/tmp/dsp
+      - dsp_backups:/var/backups/dsp
+      - dsp_object_storage:/var/lib/dsp/object-storage
+    networks: [proxy_api]
+    expose: ["8000"]
+    deploy:
+      resources:
+        limits:
+          cpus: "2"
+          memory: 2G
+    logging: *default-logging
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://127.0.0.1:8000/health/ready"]
+      interval: 20s
+      timeout: 5s
+      retries: 5
+      start_period: 40s
+
+  web:
+    image: ${DSP_WEB_IMAGE:-dsp-web}:${DSP_IMAGE_TAG_WEB:-2.0.0-rc.1}
+    build:
+      context: ..
+      dockerfile: docker/frontend/Dockerfile
+      args:
+        NEXT_PUBLIC_API_BASE_URL: ${NEXT_PUBLIC_API_BASE_URL:-https://${DSP_PUBLIC_DOMAIN:-localhost}/api/v1}
+        NEXT_PUBLIC_APP_NAME: ${NEXT_PUBLIC_APP_NAME:-DSP AI Indicator}
+        NEXT_PUBLIC_BUILD_TIMESTAMP: ${BUILD_TIMESTAMP:-}
+        NEXT_PUBLIC_AI_PROVIDER: backend
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      TZ: Asia/Kolkata
+    networks: [proxy_web]
+    deploy:
+      resources:
+        limits:
+          cpus: "1"
+          memory: 1G
+    logging: *default-logging
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1:3000/api/health"]
+      interval: 20s
+      timeout: 5s
+      retries: 5
+      start_period: 40s
+
+networks:
+  proxy_api:
+    driver: bridge
+  proxy_web:
+    driver: bridge
+
+volumes:
+  dsp_api_tmp:
+  dsp_backups:
+  dsp_object_storage:
+  caddy_data:
+  caddy_config:
+  caddy_logs:

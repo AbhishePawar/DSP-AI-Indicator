@@ -29,11 +29,11 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: "22"
-          cache: yarn
-          cache-dependency-path: apps/web/yarn.lock
+          cache: npm
+          cache-dependency-path: apps/web/package-lock.json
 
       - name: Install dependencies
-        run: corepack enable && yarn install --frozen-lockfile
+        run: npm ci
 
       - name: Lint
         run: yarn lint

@@ -101,7 +101,7 @@ describe("CompanyComparisonWorkspace render", () => {
         },
       ],
       tradeOffs: [],
-    } as any;
+    } as unknown as React.ComponentProps<typeof WinnerMatrixSection>["model"];
 
     render(<WinnerMatrixSection model={dynamicModel} />);
 

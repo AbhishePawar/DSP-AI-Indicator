@@ -3,7 +3,7 @@
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-COMPOSE_FILE="${ROOT}/docker/docker-compose.production.yml"
+COMPOSE_FILE="${ROOT}/docker/docker-compose.vps.yml"
 ENV_FILE="${ROOT}/.env.production"
 PREV_TAG_FILE="${ROOT}/.dsp_production_previous_tags"
 

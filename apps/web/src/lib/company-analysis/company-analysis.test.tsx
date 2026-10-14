@@ -404,7 +404,7 @@ describe("EPIC-F005 workspace UI", () => {
     );
     wrap(<CompanyAnalysisWorkspace />);
     expect(screen.getByRole("textbox", { name: "Company ticker" })).toBeTruthy();
-    expect(screen.getByRole("button", { name: "Refresh analysis" })).toBeTruthy();
+    expect(screen.getByRole("button", { name: "Analyze" })).toBeTruthy();
     await waitFor(() => {
       expect(financialStatementsMock).toHaveBeenCalled();
       expect(analyseMock).toHaveBeenCalled();
@@ -475,7 +475,7 @@ describe("EPIC-F005 workspace UI", () => {
     expect(body.exchange == null || body.exchange === "").toBe(true);
   });
 
-  it("does not call analyse when authenticated statements are unavailable", async () => {
+  it("keeps analyse server-authoritative when optional client statement enrichment is unavailable", async () => {
     financialStatementsMock.mockResolvedValue({
       ok: true,
       available: false,
@@ -489,8 +489,12 @@ describe("EPIC-F005 workspace UI", () => {
     wrap(<CompanyAnalysisWorkspace />);
     await waitFor(() => {
       expect(financialStatementsMock).toHaveBeenCalled();
+      expect(analyseMock).toHaveBeenCalled();
     });
-    expect(analyseMock).not.toHaveBeenCalled();
+    const body = analyseMock.mock.calls[0]?.[0] as Record<string, unknown>;
+    expect(body.ticker).toBe("AAPL");
+    expect(body).not.toHaveProperty("financial_statements");
+    expect(body).not.toHaveProperty("current_market_price");
   });
 
   it("blocks analyse until research disclaimer is acknowledged", async () => {
@@ -542,7 +546,8 @@ describe("EPIC-F005 workspace UI", () => {
     );
     wrap(<CompanyAnalysisWorkspace />);
     await waitFor(() => expect(analyseMock).toHaveBeenCalled());
-    expect(await screen.findByText(/source-led analysis surface/i)).toBeTruthy();
+    expect(await screen.findByTestId("analysis-title")).toBeTruthy();
+    expect(screen.getByTestId("analysis-search-form")).toBeTruthy();
     expect(screen.queryByLabelText("Company navigation")).toBeNull();
     expect(screen.queryByLabelText("Context panel")).toBeNull();
   });

@@ -34,8 +34,16 @@ jobs:
             packages/dsp_platform/tests/test_production_ops.py \
             packages/api_platform/tests/test_ops_api.py \
             -q --import-mode=importlib -p no:cov --tb=short
-      - name: Env validation (production profile dry-run)
-        run: python scripts/validate_env.py --profile development || true
+      - name: Validate deployment environment rules
+        run: |
+          python scripts/validate_env.py development
+          pytest tests/test_validate_env.py -q --tb=short -p no:cov
+      - name: Validate VPS Compose syntax and deploy scripts
+        run: |
+          cp .env.production.example .env.production
+          docker compose --env-file .env.production -f docker/docker-compose.vps.yml config --quiet
+          bash -n scripts/deploy_production.sh scripts/rollback_production.sh
+          rm -f .env.production
 
   security-scan:
     name: Dependency / security scan pointer

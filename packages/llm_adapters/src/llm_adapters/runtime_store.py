@@ -44,33 +44,50 @@ def _derive_fernet_key(passphrase: str) -> bytes:
     return base64.urlsafe_b64encode(digest)
 
 
+def _is_production_environment() -> bool:
+    """Return whether this process is configured to run in production."""
+    return any(
+        os.environ.get(name, "").strip().lower() in {"production", "prod"}
+        for name in ("DSP_ENV", "APP_ENV", "ENVIRONMENT", "NODE_ENV", "ENV")
+    )
+
+
 def _get_active_encryption_key() -> bytes:
-    """Retrieve or derive the encryption key for credential encryption at rest."""
+    """Retrieve the credential-encryption key without unsafe production fallbacks."""
     from cryptography.fernet import Fernet
 
-    # 1. Master credential encryption key
     configured = (os.environ.get("DSP_CREDENTIAL_MASTER_KEY") or "").strip()
     if configured:
         try:
-            Fernet(configured.encode("ascii"))
-            return configured.encode("ascii")
-        except Exception:
+            key = configured.encode("ascii")
+            Fernet(key)
+            return key
+        except Exception as exc:
+            # A typo in a configured production key must never silently derive a
+            # different key, which would make existing credentials unreadable.
+            if _is_production_environment():
+                raise RuntimeError(
+                    "DSP_CREDENTIAL_MASTER_KEY must be a valid Fernet key in production."
+                ) from exc
             return _derive_fernet_key(configured)
 
-    # 2. MFA secret key fallback
+    if _is_production_environment():
+        raise RuntimeError(
+            "DSP_CREDENTIAL_MASTER_KEY must be configured in production; "
+            "credential encryption will not fall back to JWT/MFA or a default key."
+        )
+
+    # Development-only compatibility with existing local setups.
     mfa_key = (os.environ.get("DSP_MFA_SECRET_KEY") or "").strip()
     if mfa_key:
         try:
-            Fernet(mfa_key.encode("ascii"))
-            return mfa_key.encode("ascii")
+            key = mfa_key.encode("ascii")
+            Fernet(key)
+            return key
         except Exception:
             return _derive_fernet_key(mfa_key)
 
-    # 3. JWT Secret or platform secret key derivation
-    jwt_secret = (
-        os.environ.get("DSP_AUTH_JWT_SECRET")
-        or "dsp-production-secret-deterministic-key-fallback"
-    ).strip()
+    jwt_secret = (os.environ.get("DSP_AUTH_JWT_SECRET") or "dsp-local-development-key").strip()
     return _derive_fernet_key(jwt_secret)
 
 
@@ -354,6 +371,10 @@ class RuntimeProviderStore:
             0.25, float(os.environ.get("DSP_RUNTIME_STORE_REFRESH_SECONDS", "1.0"))
         )
 
+        # Fail during startup, not on the first credential write, if production
+        # would otherwise use an implicit or invalid encryption key.
+        if _is_production_environment():
+            _get_active_encryption_key()
         self._check_persistence_backend()
         self._initialize_from_catalog_and_env()
         self._load_from_storage_if_present()
@@ -368,10 +389,7 @@ class RuntimeProviderStore:
             or os.environ.get("DSP_DATABASE_URL")
             or os.environ.get("DATABASE_URL")
         )
-        production_mode = any(
-            os.environ.get(name, "").strip().lower() in {"production", "prod"}
-            for name in ("DSP_ENV", "APP_ENV", "ENVIRONMENT", "NODE_ENV", "ENV")
-        )
+        production_mode = _is_production_environment()
         if not dsn or not dsn.strip():
             if production_mode:
                 raise RuntimeError(

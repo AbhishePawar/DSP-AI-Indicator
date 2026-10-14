@@ -185,7 +185,7 @@ function inspectPortProcessWin32(port: number, expectedDir?: string): PortProces
     if (!pid) return null;
 
     let commandLine = "";
-    let workingDirectory = "";
+    const workingDirectory = "";
 
     try {
       const psCmd = `powershell -NoProfile -NonInteractive -Command "Get-CimInstance Win32_Process -Filter \\"ProcessId = ${pid}\\" | Select-Object -Property CommandLine, ExecutablePath | ConvertTo-Json"`;

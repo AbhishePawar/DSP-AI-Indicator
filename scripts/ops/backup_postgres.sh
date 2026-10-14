@@ -14,9 +14,20 @@ if [[ -z "${DSP_DATABASE_URL:-}" && -z "${PGDATABASE:-}" ]]; then
 fi
 
 echo "[backup] writing ${OUT}"
-if [[ -n "${DSP_DATABASE_URL:-}" ]]; then
+if [[ -n "${DSP_DATABASE_URL:-}" && "${DSP_PG_CLIENT_USE_DOCKER:-true}" == "true" ]]; then
+  command -v docker >/dev/null 2>&1 || {
+    echo "Docker is required for the configured PostgreSQL client container" >&2
+    exit 1
+  }
+  CLIENT_IMAGE="${DSP_PG_CLIENT_IMAGE:-postgres:18-alpine}"
+  echo "[backup] using client image ${CLIENT_IMAGE}"
+  docker run --rm --network host -e DSP_DATABASE_URL "${CLIENT_IMAGE}" \
+    sh -lc 'pg_dump --no-owner --format=plain "$DSP_DATABASE_URL"' | gzip -c > "${OUT}"
+elif [[ -n "${DSP_DATABASE_URL:-}" ]]; then
+  command -v pg_dump >/dev/null 2>&1 || { echo "pg_dump not found; set DSP_PG_CLIENT_USE_DOCKER=true" >&2; exit 1; }
   pg_dump --no-owner --format=plain "${DSP_DATABASE_URL}" | gzip -c > "${OUT}"
 else
+  command -v pg_dump >/dev/null 2>&1 || { echo "pg_dump not found and DSP_DATABASE_URL is unset" >&2; exit 1; }
   pg_dump --no-owner --format=plain | gzip -c > "${OUT}"
 fi
 

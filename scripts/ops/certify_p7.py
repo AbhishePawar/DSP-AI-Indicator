@@ -133,7 +133,8 @@ def main() -> int:
             "DSP_DATABASE_URL": "postgresql://dsp:strongpass@ep-test.neon.tech/dsp?sslmode=require",
             "DSP_PUBLIC_DOMAIN": "app.example.com",
             "DSP_SEED_ADMIN_PASSWORD": "unit-test-admin-password-ok",
-            "GEMINI_API_KEY": "synthetic-test-provider-key",
+            "GEMINI_API_KEY": "synthetic-gemini-test-key",
+            "OPENAI_API_KEY_5": "synthetic-openai-test-key",
             "POSTGRES_PASSWORD": "unit-test-db-password-ok",
         }
     )

@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import uuid
+
 import pytest
 from starlette.testclient import TestClient
 
@@ -14,6 +15,7 @@ from dsp_platform import PlatformBuilder, PlatformConfiguration
 from dsp_platform.copilot_v2 import reset_copilot_memory_store_for_tests
 from dsp_platform.copilot_v2.memory import CopilotMemoryStore
 from llm_adapters.config import load_llm_config
+from llm_adapters.model_tiers import ModelTier
 from llm_adapters.orchestrator import (
     OrchestratorResult,
     OrchestratorStatus,
@@ -21,7 +23,6 @@ from llm_adapters.orchestrator import (
 )
 from llm_adapters.privacy_boundary import PublicDecisionPack
 from llm_adapters.quality_gate import GateOutcome, GateVerdict
-from llm_adapters.model_tiers import ModelTier
 from llm_adapters.registry import ProviderRegistry
 from persistence.research_session import (
     ResearchSessionService,
@@ -103,7 +104,11 @@ class FakeResearchOrchestrator:
             raise RuntimeError("Provider dual verification failed closed")
 
         verdict = GateVerdict(
-            outcome=GateOutcome.ACCEPTED if self.status == OrchestratorStatus.ACCEPTED else GateOutcome.FAILED_CLOSED,
+            outcome=(
+                GateOutcome.ACCEPTED
+                if self.status == OrchestratorStatus.ACCEPTED
+                else GateOutcome.FAILED_CLOSED
+            ),
             tier=ModelTier.PREMIUM,
             reason="verified",
             quality_score=100.0,
@@ -112,7 +117,9 @@ class FakeResearchOrchestrator:
         )
         return OrchestratorResult(
             status=self.status,
-            public=self.public_pack if self.status == OrchestratorStatus.ACCEPTED else None,
+            public=(
+                self.public_pack if self.status == OrchestratorStatus.ACCEPTED else None
+            ),
             private=None,
             gate=verdict,
         )
@@ -137,7 +144,11 @@ def base_platform():
     )
 
 
-def _build_test_app(base_platform, gemini_adapter: MockProviderAdapter, openai_adapter: MockProviderAdapter):
+def _build_test_app(
+    base_platform,
+    gemini_adapter: MockProviderAdapter,
+    openai_adapter: MockProviderAdapter,
+):
     """Wire real ProviderRegistry with injected adapters into the application."""
     app = create_app(platform=base_platform)
     registry = ProviderRegistry(load_llm_config())
@@ -155,20 +166,33 @@ def _build_test_app(base_platform, gemini_adapter: MockProviderAdapter, openai_a
 # ---------------------------------------------------------------------------
 
 
-def test_minimal_http_gemini_success_proves_provider_registry(session_service, base_platform):
+def test_minimal_http_gemini_success_proves_provider_registry(
+    session_service, base_platform
+):
     """TEST 1: Authenticated POST /copilot/chat exercises ProviderRegistry -> Gemini mock -> HTTP 200."""
-    gemini_mock = MockProviderAdapter("gemini", canned_response="MOCK_GEMINI_COPILOT_RESPONSE_001")
-    openai_mock = MockProviderAdapter("openai", canned_response="MOCK_OPENAI_COPILOT_RESPONSE_001")
+    gemini_mock = MockProviderAdapter(
+        "gemini", canned_response="MOCK_GEMINI_COPILOT_RESPONSE_001"
+    )
+    openai_mock = MockProviderAdapter(
+        "openai", canned_response="MOCK_OPENAI_COPILOT_RESPONSE_001"
+    )
 
     app = _build_test_app(base_platform, gemini_mock, openai_mock)
     client = TestClient(app)
 
     user_id = "usr_min_proof"
-    app.dependency_overrides[require_authenticated_actor] = lambda: {"user_id": user_id, "user": {}}
+    app.dependency_overrides[require_authenticated_actor] = lambda: {
+        "user_id": user_id,
+        "user": {},
+    }
 
     res = client.post(
         "/api/v1/copilot/chat",
-        json={"message": "Tell me about Reliance", "symbol": "RELIANCE", "analysis_id": "an-min-proof"},
+        json={
+            "message": "Tell me about Reliance",
+            "symbol": "RELIANCE",
+            "analysis_id": "an-min-proof",
+        },
     )
     assert res.status_code == 200
     data = res.json()
@@ -191,11 +215,18 @@ def test_gemini_success_does_not_call_openai(session_service, base_platform):
     app = _build_test_app(base_platform, gemini_mock, openai_mock)
     client = TestClient(app)
 
-    app.dependency_overrides[require_authenticated_actor] = lambda: {"user_id": "usr_cost", "user": {}}
+    app.dependency_overrides[require_authenticated_actor] = lambda: {
+        "user_id": "usr_cost",
+        "user": {},
+    }
 
     res = client.post(
         "/api/v1/copilot/chat",
-        json={"message": "What is INFY revenue?", "symbol": "INFY", "analysis_id": "an-cost"},
+        json={
+            "message": "What is INFY revenue?",
+            "symbol": "INFY",
+            "analysis_id": "an-cost",
+        },
     )
     assert res.status_code == 200
     assert gemini_mock.call_count == 1
@@ -206,12 +237,17 @@ def test_gemini_success_does_not_call_openai(session_service, base_platform):
 def test_openai_fallback_when_gemini_fails(session_service, base_platform):
     """TEST 3: When Gemini fails, ProviderRegistry falls back to OpenAI and returns OpenAI answer."""
     gemini_mock = MockProviderAdapter("gemini", should_fail=True)
-    openai_mock = MockProviderAdapter("openai", canned_response="MOCK_OPENAI_COPILOT_RESPONSE_001")
+    openai_mock = MockProviderAdapter(
+        "openai", canned_response="MOCK_OPENAI_COPILOT_RESPONSE_001"
+    )
 
     app = _build_test_app(base_platform, gemini_mock, openai_mock)
     client = TestClient(app)
 
-    app.dependency_overrides[require_authenticated_actor] = lambda: {"user_id": "usr_fb", "user": {}}
+    app.dependency_overrides[require_authenticated_actor] = lambda: {
+        "user_id": "usr_fb",
+        "user": {},
+    }
 
     res = client.post(
         "/api/v1/copilot/chat",
@@ -228,7 +264,9 @@ def test_openai_fallback_when_gemini_fails(session_service, base_platform):
 # ---------------------------------------------------------------------------
 
 
-def test_total_ai_failure_fails_closed_no_deterministic_bypass(session_service, base_platform):
+def test_total_ai_failure_fails_closed_no_deterministic_bypass(
+    session_service, base_platform
+):
     """TEST 4: When all AI providers fail, returns sanitized AI-unavailable with no deterministic bypass."""
     failing_gemini = MockProviderAdapter("gemini", should_fail=True)
     failing_openai = MockProviderAdapter("openai", should_fail=True)
@@ -237,7 +275,10 @@ def test_total_ai_failure_fails_closed_no_deterministic_bypass(session_service, 
     client = TestClient(app)
 
     user_id = "usr_fail_closed"
-    app.dependency_overrides[require_authenticated_actor] = lambda: {"user_id": user_id, "user": {}}
+    app.dependency_overrides[require_authenticated_actor] = lambda: {
+        "user_id": user_id,
+        "user": {},
+    }
     sid = compute_session_id(user_id, "TCS", "an-fc")
 
     res = client.post(
@@ -270,16 +311,25 @@ def test_total_ai_failure_fails_closed_no_deterministic_bypass(session_service, 
 
 def test_company_overview_path_returns_ai_output(session_service, base_platform):
     """TEST 5: Company overview query invokes AI and returns distinctive output."""
-    gemini_mock = MockProviderAdapter("gemini", canned_response="MOCK_AI_COMPANY_OVERVIEW_001")
+    gemini_mock = MockProviderAdapter(
+        "gemini", canned_response="MOCK_AI_COMPANY_OVERVIEW_001"
+    )
     openai_mock = MockProviderAdapter("openai")
     app = _build_test_app(base_platform, gemini_mock, openai_mock)
     client = TestClient(app)
 
-    app.dependency_overrides[require_authenticated_actor] = lambda: {"user_id": "usr_overview", "user": {}}
+    app.dependency_overrides[require_authenticated_actor] = lambda: {
+        "user_id": "usr_overview",
+        "user": {},
+    }
 
     res = client.post(
         "/api/v1/copilot/chat",
-        json={"message": "Give me an overview of TCS", "symbol": "TCS", "analysis_id": "an-overview"},
+        json={
+            "message": "Give me an overview of TCS",
+            "symbol": "TCS",
+            "analysis_id": "an-overview",
+        },
     )
     assert res.status_code == 200
     assert gemini_mock.call_count == 1
@@ -288,16 +338,25 @@ def test_company_overview_path_returns_ai_output(session_service, base_platform)
 
 def test_financial_metrics_path_returns_ai_output(session_service, base_platform):
     """TEST 6: Financial metrics query invokes AI and returns distinctive output."""
-    gemini_mock = MockProviderAdapter("gemini", canned_response="MOCK_AI_FINANCIAL_METRICS_001")
+    gemini_mock = MockProviderAdapter(
+        "gemini", canned_response="MOCK_AI_FINANCIAL_METRICS_001"
+    )
     openai_mock = MockProviderAdapter("openai")
     app = _build_test_app(base_platform, gemini_mock, openai_mock)
     client = TestClient(app)
 
-    app.dependency_overrides[require_authenticated_actor] = lambda: {"user_id": "usr_metrics", "user": {}}
+    app.dependency_overrides[require_authenticated_actor] = lambda: {
+        "user_id": "usr_metrics",
+        "user": {},
+    }
 
     res = client.post(
         "/api/v1/copilot/chat",
-        json={"message": "What is the revenue and margin of Reliance?", "symbol": "RELIANCE", "analysis_id": "an-metrics"},
+        json={
+            "message": "What is the revenue and margin of Reliance?",
+            "symbol": "RELIANCE",
+            "analysis_id": "an-metrics",
+        },
     )
     assert res.status_code == 200
     assert gemini_mock.call_count == 1
@@ -306,12 +365,17 @@ def test_financial_metrics_path_returns_ai_output(session_service, base_platform
 
 def test_valuation_path_returns_ai_output(session_service, base_platform):
     """TEST 7: Valuation query invokes AI and returns distinctive output."""
-    gemini_mock = MockProviderAdapter("gemini", canned_response="MOCK_AI_VALUATION_EXPLANATION_001")
+    gemini_mock = MockProviderAdapter(
+        "gemini", canned_response="MOCK_AI_VALUATION_EXPLANATION_001"
+    )
     openai_mock = MockProviderAdapter("openai")
     app = _build_test_app(base_platform, gemini_mock, openai_mock)
     client = TestClient(app)
 
-    app.dependency_overrides[require_authenticated_actor] = lambda: {"user_id": "usr_val", "user": {}}
+    app.dependency_overrides[require_authenticated_actor] = lambda: {
+        "user_id": "usr_val",
+        "user": {},
+    }
     dsp_analyse = {
         "valuation": {"intrinsic_value": "1842", "margin_of_safety": "18%"},
         "recommendation_summary": {"decision": "BUY", "label": "BUY"},
@@ -333,16 +397,25 @@ def test_valuation_path_returns_ai_output(session_service, base_platform):
 
 def test_recommendation_path_returns_ai_output(session_service, base_platform):
     """TEST 8: Recommendation query invokes AI and returns distinctive output."""
-    gemini_mock = MockProviderAdapter("gemini", canned_response="MOCK_AI_RECOMMENDATION_001")
+    gemini_mock = MockProviderAdapter(
+        "gemini", canned_response="MOCK_AI_RECOMMENDATION_001"
+    )
     openai_mock = MockProviderAdapter("openai")
     app = _build_test_app(base_platform, gemini_mock, openai_mock)
     client = TestClient(app)
 
-    app.dependency_overrides[require_authenticated_actor] = lambda: {"user_id": "usr_rec", "user": {}}
+    app.dependency_overrides[require_authenticated_actor] = lambda: {
+        "user_id": "usr_rec",
+        "user": {},
+    }
 
     res = client.post(
         "/api/v1/copilot/chat",
-        json={"message": "Should I buy Reliance?", "symbol": "RELIANCE", "analysis_id": "an-rec"},
+        json={
+            "message": "Should I buy Reliance?",
+            "symbol": "RELIANCE",
+            "analysis_id": "an-rec",
+        },
     )
     assert res.status_code == 200
     assert gemini_mock.call_count == 1
@@ -351,12 +424,17 @@ def test_recommendation_path_returns_ai_output(session_service, base_platform):
 
 def test_portfolio_path_returns_ai_output(session_service, base_platform):
     """TEST 9: Portfolio query invokes AI and returns distinctive output."""
-    gemini_mock = MockProviderAdapter("gemini", canned_response="MOCK_AI_PORTFOLIO_REVIEW_001")
+    gemini_mock = MockProviderAdapter(
+        "gemini", canned_response="MOCK_AI_PORTFOLIO_REVIEW_001"
+    )
     openai_mock = MockProviderAdapter("openai")
     app = _build_test_app(base_platform, gemini_mock, openai_mock)
     client = TestClient(app)
 
-    app.dependency_overrides[require_authenticated_actor] = lambda: {"user_id": "usr_port", "user": {}}
+    app.dependency_overrides[require_authenticated_actor] = lambda: {
+        "user_id": "usr_port",
+        "user": {},
+    }
 
     res = client.post(
         "/api/v1/copilot/chat",
@@ -374,12 +452,17 @@ def test_portfolio_path_returns_ai_output(session_service, base_platform):
 
 def test_buffett_path_returns_ai_output(session_service, base_platform):
     """TEST 10: Buffett query invokes AI and returns distinctive output."""
-    gemini_mock = MockProviderAdapter("gemini", canned_response="MOCK_AI_BUFFETT_ANALYSIS_001")
+    gemini_mock = MockProviderAdapter(
+        "gemini", canned_response="MOCK_AI_BUFFETT_ANALYSIS_001"
+    )
     openai_mock = MockProviderAdapter("openai")
     app = _build_test_app(base_platform, gemini_mock, openai_mock)
     client = TestClient(app)
 
-    app.dependency_overrides[require_authenticated_actor] = lambda: {"user_id": "usr_buf", "user": {}}
+    app.dependency_overrides[require_authenticated_actor] = lambda: {
+        "user_id": "usr_buf",
+        "user": {},
+    }
 
     res = client.post(
         "/api/v1/copilot/chat",
@@ -404,11 +487,18 @@ def test_research_path_returns_orchestrator_output(session_service, base_platfor
     app.state.api.research_orchestrator = fake_orch
     client = TestClient(app)
 
-    app.dependency_overrides[require_authenticated_actor] = lambda: {"user_id": "usr_res", "user": {}}
+    app.dependency_overrides[require_authenticated_actor] = lambda: {
+        "user_id": "usr_res",
+        "user": {},
+    }
 
     res = client.post(
         "/api/v1/copilot/chat",
-        json={"message": "Do deep research on Reliance", "symbol": "RELIANCE", "analysis_id": "an-res"},
+        json={
+            "message": "Do deep research on Reliance",
+            "symbol": "RELIANCE",
+            "analysis_id": "an-res",
+        },
     )
     assert res.status_code == 200
     assert fake_orch.call_count == 1
@@ -417,16 +507,25 @@ def test_research_path_returns_orchestrator_output(session_service, base_platfor
 
 def test_general_question_path_returns_ai_output(session_service, base_platform):
     """TEST 12: General question query invokes AI and returns distinctive output."""
-    gemini_mock = MockProviderAdapter("gemini", canned_response="MOCK_AI_GENERAL_QUESTION_001")
+    gemini_mock = MockProviderAdapter(
+        "gemini", canned_response="MOCK_AI_GENERAL_QUESTION_001"
+    )
     openai_mock = MockProviderAdapter("openai")
     app = _build_test_app(base_platform, gemini_mock, openai_mock)
     client = TestClient(app)
 
-    app.dependency_overrides[require_authenticated_actor] = lambda: {"user_id": "usr_gen", "user": {}}
+    app.dependency_overrides[require_authenticated_actor] = lambda: {
+        "user_id": "usr_gen",
+        "user": {},
+    }
 
     res = client.post(
         "/api/v1/copilot/chat",
-        json={"message": "How does Reliance compete in retail?", "symbol": "RELIANCE", "analysis_id": "an-gen"},
+        json={
+            "message": "How does Reliance compete in retail?",
+            "symbol": "RELIANCE",
+            "analysis_id": "an-gen",
+        },
     )
     assert res.status_code == 200
     assert gemini_mock.call_count == 1
@@ -451,7 +550,10 @@ def test_dsp_authority_overrides_conflicting_ai_values(session_service, base_pla
     client = TestClient(app)
 
     user_id = "usr_auth_override"
-    app.dependency_overrides[require_authenticated_actor] = lambda: {"user_id": user_id, "user": {}}
+    app.dependency_overrides[require_authenticated_actor] = lambda: {
+        "user_id": user_id,
+        "user": {},
+    }
 
     dsp_analyse = {
         "recommendation_summary": {
@@ -497,7 +599,10 @@ def test_regex_word_boundary_does_not_corrupt_subwords(session_service, base_pla
     client = TestClient(app)
 
     user_id = "usr_subword"
-    app.dependency_overrides[require_authenticated_actor] = lambda: {"user_id": user_id, "user": {}}
+    app.dependency_overrides[require_authenticated_actor] = lambda: {
+        "user_id": user_id,
+        "user": {},
+    }
 
     dsp_analyse = {
         "recommendation_summary": {"decision": "HOLD", "label": "HOLD"},
@@ -521,18 +626,29 @@ def test_regex_word_boundary_does_not_corrupt_subwords(session_service, base_pla
     assert "HOLDBACK" not in ans
 
 
-def test_missing_dsp_evidence_remains_unavailable_not_hallucinated(session_service, base_platform):
+def test_missing_dsp_evidence_remains_unavailable_not_hallucinated(
+    session_service, base_platform
+):
     """TEST 15: Missing DSP evidence remains 'Data unavailable' and is not invented."""
-    mock_gemini = MockProviderAdapter("gemini", canned_response="I invented some comparison numbers")
+    mock_gemini = MockProviderAdapter(
+        "gemini", canned_response="I invented some comparison numbers"
+    )
     openai_mock = MockProviderAdapter("openai")
     app = _build_test_app(base_platform, mock_gemini, openai_mock)
     client = TestClient(app)
 
-    app.dependency_overrides[require_authenticated_actor] = lambda: {"user_id": "usr_missing", "user": {}}
+    app.dependency_overrides[require_authenticated_actor] = lambda: {
+        "user_id": "usr_missing",
+        "user": {},
+    }
 
     res = client.post(
         "/api/v1/copilot/chat",
-        json={"message": "Compare TCS vs INFY", "symbol": "TCS", "analysis_id": "an-comp"},
+        json={
+            "message": "Compare TCS vs INFY",
+            "symbol": "TCS",
+            "analysis_id": "an-comp",
+        },
     )
     assert res.status_code == 200
     data = res.json()
@@ -545,7 +661,9 @@ def test_missing_dsp_evidence_remains_unavailable_not_hallucinated(session_servi
 # ---------------------------------------------------------------------------
 
 
-def test_failed_ai_does_not_poison_idempotency_and_retry_succeeds(session_service, base_platform):
+def test_failed_ai_does_not_poison_idempotency_and_retry_succeeds(
+    session_service, base_platform
+):
     """TEST 16: Failed AI request does not replay as failure; fixed retry succeeds and binds idempotency."""
     failing_gemini = MockProviderAdapter("gemini", should_fail=True)
     failing_openai = MockProviderAdapter("openai", should_fail=True)
@@ -554,13 +672,20 @@ def test_failed_ai_does_not_poison_idempotency_and_retry_succeeds(session_servic
     client = TestClient(app)
 
     user_id = "usr_idem_recovery"
-    app.dependency_overrides[require_authenticated_actor] = lambda: {"user_id": user_id, "user": {}}
+    app.dependency_overrides[require_authenticated_actor] = lambda: {
+        "user_id": user_id,
+        "user": {},
+    }
     sid = compute_session_id(user_id, "AAPL", "an-recovery")
 
     # Attempt 1: Total AI failure
     res1 = client.post(
         "/api/v1/copilot/chat",
-        json={"message": "Analyze AAPL", "symbol": "AAPL", "analysis_id": "an-recovery"},
+        json={
+            "message": "Analyze AAPL",
+            "symbol": "AAPL",
+            "analysis_id": "an-recovery",
+        },
         headers={"Idempotency-Key": "key-fail-recover"},
     )
     assert res1.status_code == 200
@@ -574,14 +699,20 @@ def test_failed_ai_does_not_poison_idempotency_and_retry_succeeds(session_servic
     assert turns1[1].get("metadata", {}).get("idempotency_key") is None
 
     # Now restore working AI provider
-    working_gemini = MockProviderAdapter("gemini", canned_response="SUCCESSFUL_AI_RECOVERY_RESPONSE")
+    working_gemini = MockProviderAdapter(
+        "gemini", canned_response="SUCCESSFUL_AI_RECOVERY_RESPONSE"
+    )
     app.state.api.provider_registry._adapters["gemini"] = working_gemini
     app.state.api.provider_registry._adapters["openai"] = MockProviderAdapter("openai")
 
     # Attempt 2: Retry with SAME idempotency key must NOT replay the failure
     res2 = client.post(
         "/api/v1/copilot/chat",
-        json={"message": "Analyze AAPL", "symbol": "AAPL", "analysis_id": "an-recovery"},
+        json={
+            "message": "Analyze AAPL",
+            "symbol": "AAPL",
+            "analysis_id": "an-recovery",
+        },
         headers={"Idempotency-Key": "key-fail-recover"},
     )
     assert res2.status_code == 200
@@ -592,7 +723,11 @@ def test_failed_ai_does_not_poison_idempotency_and_retry_succeeds(session_servic
     # Attempt 3: Subsequent retry with same idempotency key now REPLAYS the successful answer
     res3 = client.post(
         "/api/v1/copilot/chat",
-        json={"message": "Analyze AAPL", "symbol": "AAPL", "analysis_id": "an-recovery"},
+        json={
+            "message": "Analyze AAPL",
+            "symbol": "AAPL",
+            "analysis_id": "an-recovery",
+        },
         headers={"Idempotency-Key": "key-fail-recover"},
     )
     assert res3.status_code == 200
@@ -609,7 +744,9 @@ def test_failed_ai_does_not_poison_idempotency_and_retry_succeeds(session_servic
 
 def test_authentication_mandatory_and_session_isolated(session_service, base_platform):
     """TEST 17: Authentication is mandatory and cross-user sessions are strictly isolated."""
-    gemini_mock = MockProviderAdapter("gemini", canned_response="User isolated AI answer")
+    gemini_mock = MockProviderAdapter(
+        "gemini", canned_response="User isolated AI answer"
+    )
     openai_mock = MockProviderAdapter("openai")
     app = _build_test_app(base_platform, gemini_mock, openai_mock)
     client = TestClient(app)
@@ -622,7 +759,10 @@ def test_authentication_mandatory_and_session_isolated(session_service, base_pla
     assert res_unauth.status_code == 401
 
     # 2. User A
-    app.dependency_overrides[require_authenticated_actor] = lambda: {"user_id": "user_1", "user": {}}
+    app.dependency_overrides[require_authenticated_actor] = lambda: {
+        "user_id": "user_1",
+        "user": {},
+    }
     res_a = client.post(
         "/api/v1/copilot/chat",
         json={"message": "User 1 query", "symbol": "AAPL", "analysis_id": "an-iso"},
@@ -631,7 +771,10 @@ def test_authentication_mandatory_and_session_isolated(session_service, base_pla
     sid_a = res_a.json()["result"]["conversation_id"]
 
     # 3. User B
-    app.dependency_overrides[require_authenticated_actor] = lambda: {"user_id": "user_2", "user": {}}
+    app.dependency_overrides[require_authenticated_actor] = lambda: {
+        "user_id": "user_2",
+        "user": {},
+    }
     res_b = client.post(
         "/api/v1/copilot/chat",
         json={"message": "User 2 query", "symbol": "AAPL", "analysis_id": "an-iso"},
@@ -648,12 +791,17 @@ def test_authentication_mandatory_and_session_isolated(session_service, base_pla
 
 def test_no_secrets_raw_payloads_prompts_leak(session_service, base_platform):
     """TEST 18: No API keys, tokens, Authorization headers, or internal prompts leak."""
-    gemini_mock = MockProviderAdapter("gemini", canned_response="Clean public answer with no secrets.")
+    gemini_mock = MockProviderAdapter(
+        "gemini", canned_response="Clean public answer with no secrets."
+    )
     openai_mock = MockProviderAdapter("openai")
     app = _build_test_app(base_platform, gemini_mock, openai_mock)
     client = TestClient(app)
 
-    app.dependency_overrides[require_authenticated_actor] = lambda: {"user_id": "usr_sec", "user": {}}
+    app.dependency_overrides[require_authenticated_actor] = lambda: {
+        "user_id": "usr_sec",
+        "user": {},
+    }
 
     res = client.post(
         "/api/v1/copilot/chat",
@@ -678,7 +826,10 @@ def test_fifo_turn_retention_preserved(session_service, base_platform):
     client = TestClient(app)
 
     user_id = "usr_fifo"
-    app.dependency_overrides[require_authenticated_actor] = lambda: {"user_id": user_id, "user": {}}
+    app.dependency_overrides[require_authenticated_actor] = lambda: {
+        "user_id": user_id,
+        "user": {},
+    }
     sid = compute_session_id(user_id, "AAPL", "an-fifo")
 
     for i in range(12):

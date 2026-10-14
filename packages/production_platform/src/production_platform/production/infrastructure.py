@@ -301,6 +301,9 @@ class InfrastructureBundle:
             notes=notes,
         )
 
+    def health_check(self) -> dict[str, Any]:
+        return self.health_checks()
+
     def health_checks(self) -> dict[str, Any]:
         """Lightweight infra probes for readiness aggregation."""
         redis_configured = bool(self.configuration.get().redis.url)

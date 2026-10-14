@@ -6,7 +6,6 @@ import math
 from dataclasses import dataclass
 from datetime import UTC, datetime, timedelta
 from decimal import Decimal
-from typing import Any
 
 from contracts.domain.instrument import Instrument
 from data_engine.exceptions import InvalidProviderDataError
@@ -42,7 +41,9 @@ class QuoteFreshnessPolicy:
 
     max_age_seconds: float | None = None
     allow_market_closed: bool = True
-    max_closed_age_seconds: float | None = 604800.0  # 7 days max for market-closed/weekend data
+    max_closed_age_seconds: float | None = (
+        604800.0  # 7 days max for market-closed/weekend data
+    )
     max_future_seconds: float = 300.0  # 5 minutes clock skew tolerance
     require_timestamp: bool = False
 
@@ -113,7 +114,12 @@ def validate_authenticated_quote(
     # 3. Unambiguous association with instrument_key in metadata
     if quote.provenance.metadata and isinstance(quote.provenance.metadata, dict):
         key = quote.provenance.metadata.get("instrument_key")
-        if key and "|" in key and requested_instrument and requested_instrument.exchange:
+        if (
+            key
+            and "|" in key
+            and requested_instrument
+            and requested_instrument.exchange
+        ):
             segment = key.split("|")[0].upper()
             req_ex = requested_instrument.exchange.strip().upper()
             if req_ex == "NSE" and not segment.startswith("NSE"):
@@ -240,7 +246,10 @@ def validate_authenticated_quote(
                     raise InvalidProviderDataError(
                         f"quote timestamp is stale: age {age:.1f}s exceeds max_age {policy.max_age_seconds}s"
                     )
-                if policy.max_closed_age_seconds is not None and age > policy.max_closed_age_seconds:
+                if (
+                    policy.max_closed_age_seconds is not None
+                    and age > policy.max_closed_age_seconds
+                ):
                     raise InvalidProviderDataError(
                         f"quote timestamp exceeds maximum market-closed age: age {age:.1f}s exceeds {policy.max_closed_age_seconds}s"
                     )

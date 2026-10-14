@@ -36,11 +36,18 @@ def source_evidence_from_trace(trace: Mapping[str, Any] | None) -> dict[str, Any
     stmt = dict(trace.get("statement_provenance") or {})
     quote = dict(trace.get("quote_provenance") or {})
     authenticated = bool(trace.get("authenticated"))
+    is_recovered = bool(trace.get("recovered"))
+    status = (
+        "authenticated"
+        if authenticated
+        else ("recovered" if is_recovered else "unavailable")
+    )
     return dict(
         redact_secrets(
             {
                 "authenticated": authenticated,
-                "status": "authenticated" if authenticated else "unavailable",
+                "recovered": is_recovered,
+                "status": status,
                 "ticker": trace.get("ticker"),
                 "reporting_currency": trace.get("reporting_currency"),
                 "period_kind": trace.get("period_kind"),
@@ -62,6 +69,7 @@ def source_evidence_from_trace(trace: Mapping[str, Any] | None) -> dict[str, Any
                 "quote_retrieved_at": quote.get("retrieved_at") or quote.get("as_of"),
                 "statement_provenance": stmt,
                 "quote_provenance": quote,
+                "recovery_provenance": trace.get("recovery_provenance"),
             }
         )
     )

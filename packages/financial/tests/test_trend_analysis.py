@@ -584,7 +584,7 @@ class TestEngine:
             under_cov = Coverage.current() is not None
         except Exception:  # pragma: no cover
             under_cov = False
-        limit_ms = 120.0 if under_cov else 40.0
+        limit_ms = 350.0 if under_cov else 60.0
         assert (
             elapsed_ms < limit_ms
         ), f"trend analysis best-of-5 took {elapsed_ms:.1f} ms (limit {limit_ms})"

@@ -4,7 +4,7 @@
 import { cleanup, render, waitFor } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import { AuthProvider } from "./AuthProvider";
+import { AuthProvider, useAuth } from "./AuthProvider";
 import {
   clearCookieMeta,
   clearCsrfToken,
@@ -139,10 +139,9 @@ describe("AuthProvider cookie-session restoration", () => {
     const fetchMock = vi.fn().mockResolvedValue(new Response("{}", { status: 200 }));
     vi.stubGlobal("fetch", fetchMock);
 
-    const { useAuth } = await import("./AuthProvider");
-    let authContext: any;
+    const authContext: { current: ReturnType<typeof useAuth> | null } = { current: null };
     function Consumer() {
-      authContext = useAuth();
+      authContext.current = useAuth();
       return <div>consumer</div>;
     }
 
@@ -156,7 +155,11 @@ describe("AuthProvider cookie-session restoration", () => {
       expect(readCsrfToken()).toBe("csrf-restored");
     });
 
-    await authContext.logout();
+    const context = authContext.current;
+    if (!context) {
+      throw new Error("AuthProvider did not expose the auth context");
+    }
+    await context.logout();
 
     expect(fetchMock).toHaveBeenCalledWith(
       expect.stringContaining("/auth/logout"),

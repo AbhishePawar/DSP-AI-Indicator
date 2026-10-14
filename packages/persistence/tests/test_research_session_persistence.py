@@ -3,15 +3,15 @@
 from __future__ import annotations
 
 import concurrent.futures
+
 import pytest
 
 from persistence import (
+    DEFAULT_MAX_TURNS,
     InMemoryStorageProvider,
     ResearchSessionService,
     ValidationError,
-    NotFoundError,
     compute_session_id,
-    DEFAULT_MAX_TURNS,
 )
 
 
@@ -176,7 +176,11 @@ def test_chronological_ordering(service: ResearchSessionService) -> None:
 
     turns = service.get_turns(sid, user_id="user-eve")
     assert len(turns) == 3
-    assert [t["turn_id"] for t in turns] == [turn1["turn_id"], turn2["turn_id"], turn3["turn_id"]]
+    assert [t["turn_id"] for t in turns] == [
+        turn1["turn_id"],
+        turn2["turn_id"],
+        turn3["turn_id"],
+    ]
 
 
 def test_twenty_turn_fifo_retention(service: ResearchSessionService) -> None:

@@ -477,8 +477,21 @@ export function ValuationSection({ view }: { view: ResearchView }) {
     "Residual",
   ]);
   const epv = valuationMethodValue(vt.methods, ["EPV"]);
+  const isIntrinsicUnavailable =
+    view.valuation.intrinsicValue === "Unavailable" ||
+    view.valuation.intrinsicValue === "—" ||
+    view.valuation.intrinsicValue === null;
   return (
     <div className="space-y-4">
+      {isIntrinsicUnavailable && (
+        <div className="rounded-md border border-[var(--warning-border,#d97706)] bg-[var(--warning-soft,#fef3c7)]/20 p-3 text-sm text-[var(--warning-fg,#b45309)]">
+          <p className="font-semibold">Intrinsic Valuation Unavailable</p>
+          <p className="mt-0.5 text-xs text-[var(--muted-fg)]">
+            Authoritative financial statements were not found or authenticated.
+            The current price displayed is live CMP/quote data and must not be treated as an intrinsic valuation.
+          </p>
+        </div>
+      )}
       <SectionCard
         title="Valuation"
         description="Mapped engine outputs only — no client recalculation. Missing methods show Data unavailable."

@@ -28,7 +28,7 @@ test("tabs through every Company Workspace section without crashing", async ({
     },
   );
 
-  const response = await page.goto("/analysis", {
+  const response = await page.goto("/analysis?symbol=DSPFIX", {
     waitUntil: "domcontentloaded",
   });
   expect(response).toBeTruthy();

@@ -16,6 +16,7 @@ import {
 } from "@/components/ds";
 import { adminApi } from "@/lib/api/adminClient";
 import { enterpriseAuthApi } from "@/lib/api/enterpriseAuth";
+import { ProviderManagement } from "@/components/admin/ProviderManagement";
 import type {
   AdminDashboard,
   AdminEntity,
@@ -962,6 +963,13 @@ export function PlatformSection({ token }: { token?: string | null }) {
             value="v1.0.0"
           />
         </dl>
+      </SectionCard>
+
+      <SectionCard
+        title="AI & Market Data Provider Management"
+        description="Runtime key testing, credential replacement, model configuration, and task fallback routing."
+      >
+        <ProviderManagement />
       </SectionCard>
     </div>
   );

@@ -2,14 +2,13 @@
 
 from __future__ import annotations
 
-import time
-
 import json
+import time
+from datetime import UTC
 from decimal import Decimal
 from typing import Any
 from unittest.mock import MagicMock, patch
 
-import pytest
 from fastapi.testclient import TestClient
 
 from api_platform import create_app
@@ -178,7 +177,10 @@ def test_analyse_graceful_degradation_when_orchestrator_raises():
     assert payload.get("has_valuation") is True
     assert payload["research_report"] is None
     # Limitations should explain unavailable status without leaking internal exception trace
-    assert any("Research orchestrator unavailable" in lim for lim in payload.get("limitations", []))
+    assert any(
+        "Research orchestrator unavailable" in lim
+        for lim in payload.get("limitations", [])
+    )
 
 
 def test_analyse_configured_orchestration_populates_research_report():
@@ -211,7 +213,10 @@ def test_analyse_configured_orchestration_populates_research_report():
     assert "intrinsic value" in report["valuation"]
     assert "Strong economic moat" in report["analysis"]
     assert report["risks"] == ["Currency volatility", "Commodity input costs"]
-    assert report["evidence_citations"] == ["dsp.valuation:1150.0", "dsp.economic_moat:Wide"]
+    assert report["evidence_citations"] == [
+        "dsp.valuation:1150.0",
+        "dsp.economic_moat:Wide",
+    ]
     assert report["confidence"] == 0.88
 
 
@@ -393,7 +398,10 @@ def test_end_to_end_upstox_to_research_report_flow():
     assert report is not None
     assert report["recommendation"] == "BUY"
     assert "950.0" in report["valuation"]
-    assert any("upstox.market_quote:last_price=950.0" in c for c in report["evidence_citations"])
+    assert any(
+        "upstox.market_quote:last_price=950.0" in c
+        for c in report["evidence_citations"]
+    )
     assert any("upstox.provenance" in c for c in report["evidence_citations"])
     assert report["confidence"] == 0.85
     assert_no_private_leakage(report)
@@ -403,7 +411,9 @@ def test_orchestration_timeout_bounds_execution_and_falls_back(monkeypatch):
     """When research orchestration exceeds timeout, deterministic fallback is preserved."""
     from api_platform.api.ops import metrics_registry
 
-    initial_timeouts = metrics_registry._counters.get("dsp_research_orchestration_timed_out_total", 0)
+    initial_timeouts = metrics_registry._counters.get(
+        "dsp_research_orchestration_timed_out_total", 0
+    )
 
     class SlowOrchestrator:
         def __init__(self):
@@ -448,15 +458,23 @@ def test_orchestration_timeout_bounds_execution_and_falls_back(monkeypatch):
     payload = data["payload"]
 
     assert payload["research_report"] is None
-    assert any("Research orchestrator timed out." in lim for lim in payload.get("limitations", []))
-    assert metrics_registry._counters["dsp_research_orchestration_timed_out_total"] > initial_timeouts
+    assert any(
+        "Research orchestrator timed out." in lim
+        for lim in payload.get("limitations", [])
+    )
+    assert (
+        metrics_registry._counters["dsp_research_orchestration_timed_out_total"]
+        > initial_timeouts
+    )
 
 
 def test_orchestration_report_schema_validation_failures():
     """Malformed schema or invalid confidence drops report safely."""
     from api_platform.api.ops import metrics_registry
 
-    initial_fails = metrics_registry._counters.get("dsp_research_report_validation_failed_total", 0)
+    initial_fails = metrics_registry._counters.get(
+        "dsp_research_report_validation_failed_total", 0
+    )
 
     class MalformedOrchestrator:
         def __init__(self, pack_dict):
@@ -478,72 +496,85 @@ def test_orchestration_report_schema_validation_failures():
     app = create_app(platform=platform)
 
     # 1. Missing required field 'analysis'
-    malformed_orch = MalformedOrchestrator({
-        "recommendation": "BUY",
-        "valuation": "Value",
-        "risks": [],
-        "evidence_citations": ["c1"],
-        "confidence": 0.8,
-        "limitations": [],
-        "schema_version": "public_decision_pack_v1",
-    })
+    malformed_orch = MalformedOrchestrator(
+        {
+            "recommendation": "BUY",
+            "valuation": "Value",
+            "risks": [],
+            "evidence_citations": ["c1"],
+            "confidence": 0.8,
+            "limitations": [],
+            "schema_version": "public_decision_pack_v1",
+        }
+    )
     app.state.api.research_orchestrator = malformed_orch
     client = TestClient(app)
     resp = client.post("/api/v1/analyse", json=_sample_analyse_body())
     assert resp.status_code == 200
     assert resp.json()["payload"]["research_report"] is None
-    assert any("schema validation" in l for l in resp.json()["payload"].get("limitations", []))
+    assert any(
+        "schema validation" in l for l in resp.json()["payload"].get("limitations", [])
+    )
 
     # 2. Out-of-bounds confidence (e.g. 1.5)
-    invalid_conf_orch = MalformedOrchestrator({
-        "recommendation": "BUY",
-        "valuation": "Value",
-        "analysis": "Valid analysis text",
-        "risks": [],
-        "evidence_citations": ["c1"],
-        "confidence": 1.5,
-        "limitations": [],
-        "schema_version": "public_decision_pack_v1",
-    })
+    invalid_conf_orch = MalformedOrchestrator(
+        {
+            "recommendation": "BUY",
+            "valuation": "Value",
+            "analysis": "Valid analysis text",
+            "risks": [],
+            "evidence_citations": ["c1"],
+            "confidence": 1.5,
+            "limitations": [],
+            "schema_version": "public_decision_pack_v1",
+        }
+    )
     app.state.api.research_orchestrator = invalid_conf_orch
     resp = client.post("/api/v1/analyse", json=_sample_analyse_body())
     assert resp.status_code == 200
     assert resp.json()["payload"]["research_report"] is None
 
     # 3. Privacy violation: forbidden key 'chain_of_thought'
-    leak_orch = MalformedOrchestrator({
-        "recommendation": "BUY",
-        "valuation": "Value",
-        "analysis": "Valid analysis text",
-        "risks": [],
-        "evidence_citations": ["c1"],
-        "confidence": 0.8,
-        "limitations": [],
-        "schema_version": "public_decision_pack_v1",
-        "chain_of_thought": "Private reasoning steps",
-    })
+    leak_orch = MalformedOrchestrator(
+        {
+            "recommendation": "BUY",
+            "valuation": "Value",
+            "analysis": "Valid analysis text",
+            "risks": [],
+            "evidence_citations": ["c1"],
+            "confidence": 0.8,
+            "limitations": [],
+            "schema_version": "public_decision_pack_v1",
+            "chain_of_thought": "Private reasoning steps",
+        }
+    )
     app.state.api.research_orchestrator = leak_orch
     resp = client.post("/api/v1/analyse", json=_sample_analyse_body())
     assert resp.status_code == 200
     assert resp.json()["payload"]["research_report"] is None
 
     # 4. Privacy violation: secret canary in text
-    canary_orch = MalformedOrchestrator({
-        "recommendation": "BUY",
-        "valuation": "Value",
-        "analysis": "Here is canary_secret_99887766 that leaked",
-        "risks": [],
-        "evidence_citations": ["c1"],
-        "confidence": 0.8,
-        "limitations": [],
-        "schema_version": "public_decision_pack_v1",
-    })
+    canary_orch = MalformedOrchestrator(
+        {
+            "recommendation": "BUY",
+            "valuation": "Value",
+            "analysis": "Here is canary_secret_99887766 that leaked",
+            "risks": [],
+            "evidence_citations": ["c1"],
+            "confidence": 0.8,
+            "limitations": [],
+            "schema_version": "public_decision_pack_v1",
+        }
+    )
     app.state.api.research_orchestrator = canary_orch
     resp = client.post("/api/v1/analyse", json=_sample_analyse_body())
     assert resp.status_code == 200
     assert resp.json()["payload"]["research_report"] is None
 
-    assert metrics_registry._counters["dsp_research_report_validation_failed_total"] >= initial_fails + 4
+    assert (
+        metrics_registry._counters["dsp_research_report_validation_failed_total"]
+        >= initial_fails + 4
+    )
 
 
 def test_metrics_registry_prometheus_rendering_has_bounded_labels():
@@ -564,15 +595,20 @@ def test_metrics_registry_prometheus_rendering_has_bounded_labels():
 
 def test_route_fetches_verified_upstox_quote_in_ticker_only_mode():
     """Verify Upstox quote endpoint output and its handoff to deterministic composition."""
-    from dsp_platform.market_quotes import reset_market_quote_service_for_tests
-    from dsp_platform.financial_statements import (
-        reset_financial_statement_service_for_tests,
-        FinancialStatementService,
+    from datetime import datetime
+
+    from data_engine import (
+        FinancialStatementProvenance,
+        InMemoryAuthenticatedStatementAdapter,
+        build_statements_from_mapping,
     )
-    from data_engine import InMemoryAuthenticatedStatementAdapter, build_statements_from_mapping, FinancialStatementProvenance
-    from datetime import datetime, timezone
-    from data_engine.market_quote.service import MarketQuoteService
     from data_engine.cache import InMemoryCache
+    from data_engine.market_quote.service import MarketQuoteService
+    from dsp_platform.financial_statements import (
+        FinancialStatementService,
+        reset_financial_statement_service_for_tests,
+    )
+    from dsp_platform.market_quotes import reset_market_quote_service_for_tests
 
     record = UpstoxInstrumentRecord(
         instrument_key="NSE_EQ|INE155A01022",
@@ -593,10 +629,16 @@ def test_route_fetches_verified_upstox_quote_in_ticker_only_mode():
                 "symbol": "NSE_EQ:TATAMOTORS",
                 "instrument_token": "NSE_EQ|INE155A01022",
                 "last_price": 985.50,
-                "ohlc": {"open": 980.0, "high": 990.0, "low": 975.0, "close": 985.50, "volume": 500000},
-                "timestamp": int(datetime.now(timezone.utc).timestamp() * 1000),
+                "ohlc": {
+                    "open": 980.0,
+                    "high": 990.0,
+                    "low": 975.0,
+                    "close": 985.50,
+                    "volume": 500000,
+                },
+                "timestamp": int(datetime.now(UTC).timestamp() * 1000),
             }
-        }
+        },
     }
 
     def mock_urlopen(req, timeout=None):
@@ -609,44 +651,80 @@ def test_route_fetches_verified_upstox_quote_in_ticker_only_mode():
 
     # Seed authenticated statements for TATAMOTORS
     stmt_adapter = InMemoryAuthenticatedStatementAdapter(api_key="test-key")
-    stmt_adapter.put(build_statements_from_mapping(
-        symbol="TATAMOTORS",
-        payload={
-            "identity": {"symbol": "TATAMOTORS", "exchange": "NSE", "currency": "INR"},
-            "reporting_currency": "INR",
-            "statement_basis": "consolidated",
-            "unit_scale": "actual",
-            "periods": [
-                {
-                    "period_type": "annual",
-                    "fiscal_year": 2024,
-                    "period_end": "2024-12-31",
-                    "reporting_currency": "INR",
-                    "income_statement": {"revenue": 500000.0, "net_income": 100000.0, "eps_basic": 26.0, "operating_income": 120000.0},
-                    "balance_sheet": {"cash": 50000.0, "total_assets": 1500000.0, "total_liabilities": 500000.0, "equity": 1000000.0, "total_debt": 200000.0},
-                    "cash_flow": {"operating_cash_flow": 150000.0, "free_cash_flow": 100000.0, "capex": -50000.0},
-                    "ratios": {},
+    stmt_adapter.put(
+        build_statements_from_mapping(
+            symbol="TATAMOTORS",
+            payload={
+                "identity": {
+                    "symbol": "TATAMOTORS",
+                    "exchange": "NSE",
+                    "currency": "INR",
                 },
-                {
-                    "period_type": "annual",
-                    "fiscal_year": 2023,
-                    "period_end": "2023-12-31",
-                    "reporting_currency": "INR",
-                    "income_statement": {"revenue": 450000.0, "net_income": 80000.0, "eps_basic": 21.0, "operating_income": 100000.0},
-                    "balance_sheet": {"cash": 40000.0, "total_assets": 1400000.0, "total_liabilities": 500000.0, "equity": 900000.0, "total_debt": 200000.0},
-                    "cash_flow": {"operating_cash_flow": 130000.0, "free_cash_flow": 90000.0, "capex": -40000.0},
-                    "ratios": {},
-                },
-            ],
-        },
-        provenance=FinancialStatementProvenance(
-            provider_id="memory_authenticated_statements",
-            provider_name="Memory Statements",
-            source_type="licensed_vendor",
-            retrieved_at=datetime.now(timezone.utc),
-            auth_mode="api_key",
-        ),
-    ))
+                "reporting_currency": "INR",
+                "statement_basis": "consolidated",
+                "unit_scale": "actual",
+                "periods": [
+                    {
+                        "period_type": "annual",
+                        "fiscal_year": 2024,
+                        "period_end": "2024-12-31",
+                        "reporting_currency": "INR",
+                        "income_statement": {
+                            "revenue": 500000.0,
+                            "net_income": 100000.0,
+                            "eps_basic": 26.0,
+                            "operating_income": 120000.0,
+                        },
+                        "balance_sheet": {
+                            "cash": 50000.0,
+                            "total_assets": 1500000.0,
+                            "total_liabilities": 500000.0,
+                            "equity": 1000000.0,
+                            "total_debt": 200000.0,
+                        },
+                        "cash_flow": {
+                            "operating_cash_flow": 150000.0,
+                            "free_cash_flow": 100000.0,
+                            "capex": -50000.0,
+                        },
+                        "ratios": {},
+                    },
+                    {
+                        "period_type": "annual",
+                        "fiscal_year": 2023,
+                        "period_end": "2023-12-31",
+                        "reporting_currency": "INR",
+                        "income_statement": {
+                            "revenue": 450000.0,
+                            "net_income": 80000.0,
+                            "eps_basic": 21.0,
+                            "operating_income": 100000.0,
+                        },
+                        "balance_sheet": {
+                            "cash": 40000.0,
+                            "total_assets": 1400000.0,
+                            "total_liabilities": 500000.0,
+                            "equity": 900000.0,
+                            "total_debt": 200000.0,
+                        },
+                        "cash_flow": {
+                            "operating_cash_flow": 130000.0,
+                            "free_cash_flow": 90000.0,
+                            "capex": -40000.0,
+                        },
+                        "ratios": {},
+                    },
+                ],
+            },
+            provenance=FinancialStatementProvenance(
+                provider_id="memory_authenticated_statements",
+                provider_name="Memory Statements",
+                source_type="licensed_vendor",
+                retrieved_at=datetime.now(UTC),
+                auth_mode="api_key",
+            ),
+        )
+    )
     stmt_service = FinancialStatementService(stmt_adapter)
     reset_financial_statement_service_for_tests(stmt_service)
 
@@ -675,7 +753,9 @@ def test_route_fetches_verified_upstox_quote_in_ticker_only_mode():
 
         with patch("urllib.request.urlopen", side_effect=mock_urlopen):
             # 1. Fetch verified quote via /api/v1/market/quote
-            quote_resp = client.get("/api/v1/market/quote?symbol=TATAMOTORS&exchange=NSE")
+            quote_resp = client.get(
+                "/api/v1/market/quote?symbol=TATAMOTORS&exchange=NSE"
+            )
             assert quote_resp.status_code == 200
             q_data = quote_resp.json()
             assert q_data["ok"] is True
@@ -685,14 +765,20 @@ def test_route_fetches_verified_upstox_quote_in_ticker_only_mode():
             assert q_data["exchange"] == "NSE"
             assert q_data["fields"]["current_price"] == 985.50
             assert q_data["provenance"]["provider_id"] == "upstox"
-            assert q_data["provenance"]["metadata"]["instrument_key"] == "NSE_EQ|INE155A01022"
+            assert (
+                q_data["provenance"]["metadata"]["instrument_key"]
+                == "NSE_EQ|INE155A01022"
+            )
 
             # 2. Feed verified quote into deterministic composition and research report
-            resp = client.post("/api/v1/analyse", json=_sample_analyse_body(
-                ticker="TATAMOTORS",
-                exchange="NSE",
-                current_market_price=q_data["fields"]["current_price"],
-            ))
+            resp = client.post(
+                "/api/v1/analyse",
+                json=_sample_analyse_body(
+                    ticker="TATAMOTORS",
+                    exchange="NSE",
+                    current_market_price=q_data["fields"]["current_price"],
+                ),
+            )
             assert resp.status_code == 200
             data = resp.json()
             assert data["ok"] is True
@@ -705,15 +791,21 @@ def test_route_fetches_verified_upstox_quote_in_ticker_only_mode():
             # Demonstrates that /analyse autonomously invokes the registered Upstox quote adapter.
             # Because Upstox V3 quote API provides OHLC/last_price but omits shares_outstanding,
             # the platform pipeline fails closed honestly without fabricating share counts.
-            ticker_only_resp = client.post("/api/v1/analyse", json={
-                "ticker": "TATAMOTORS",
-                "exchange": "NSE",
-            })
+            ticker_only_resp = client.post(
+                "/api/v1/analyse",
+                json={
+                    "ticker": "TATAMOTORS",
+                    "exchange": "NSE",
+                },
+            )
             assert ticker_only_resp.status_code == 200
             t_data = ticker_only_resp.json()
             # Graceful degradation with honest disclosure of missing share count
             assert t_data["ok"] is False
-            assert any("shares outstanding unavailable" in err.lower() for err in t_data.get("errors", []))
+            assert any(
+                "shares outstanding unavailable" in err.lower()
+                for err in t_data.get("errors", [])
+            )
             assert t_data["payload"]["research_report"] is not None
             payload = data["payload"]
             assert payload["research_report"] is not None
@@ -726,10 +818,11 @@ def test_route_fetches_verified_upstox_quote_in_ticker_only_mode():
 
 def test_quote_failure_paths_fail_closed_without_fabrication():
     """Provider failure or invalid data fails closed without fabricating market quotes."""
-    from dsp_platform.market_quotes import reset_market_quote_service_for_tests
-    from data_engine.market_quote.service import MarketQuoteService, RetryPolicy
-    from data_engine.cache import InMemoryCache
     import urllib.error
+
+    from data_engine.cache import InMemoryCache
+    from data_engine.market_quote.service import MarketQuoteService, RetryPolicy
+    from dsp_platform.market_quotes import reset_market_quote_service_for_tests
 
     record = UpstoxInstrumentRecord(
         instrument_key="NSE_EQ|INE155A01022",
@@ -746,7 +839,9 @@ def test_quote_failure_paths_fail_closed_without_fabrication():
     def mock_401(req, timeout=None):
         raise urllib.error.HTTPError(req.full_url, 401, "Unauthorized", {}, None)
 
-    quote_service = MarketQuoteService(adapter, cache=InMemoryCache(), retry=RetryPolicy(max_attempts=1))
+    quote_service = MarketQuoteService(
+        adapter, cache=InMemoryCache(), retry=RetryPolicy(max_attempts=1)
+    )
     reset_market_quote_service_for_tests(quote_service)
 
     try:
@@ -760,10 +855,13 @@ def test_quote_failure_paths_fail_closed_without_fabrication():
         client = TestClient(app)
 
         with patch("urllib.request.urlopen", side_effect=mock_401):
-            resp = client.post("/api/v1/analyse", json={
-                "ticker": "TATAMOTORS",
-                "exchange": "NSE",
-            })
+            resp = client.post(
+                "/api/v1/analyse",
+                json={
+                    "ticker": "TATAMOTORS",
+                    "exchange": "NSE",
+                },
+            )
             assert resp.status_code == 200
             data = resp.json()
             # Fails closed without fabricating a market price
@@ -779,10 +877,12 @@ def test_quote_failure_paths_fail_closed_without_fabrication():
 
 def test_orchestration_capacity_exhaustion_fallback():
     """When all worker slots are occupied, additional requests degrade gracefully with deterministic fallback."""
-    from api_platform.api.routers import composition
     from api_platform.api.ops import metrics_registry
+    from api_platform.api.routers import composition
 
-    initial_exhausted = metrics_registry._counters["dsp_research_orchestration_capacity_exhausted_total"]
+    initial_exhausted = metrics_registry._counters[
+        "dsp_research_orchestration_capacity_exhausted_total"
+    ]
 
     # Acquire all permits from the semaphore to simulate saturated worker capacity
     acquired = []
@@ -808,7 +908,12 @@ def test_orchestration_capacity_exhaustion_fallback():
         assert data["ok"] is True
         assert data["payload"]["research_report"] is None
         assert any("capacity exhausted" in lim.lower() for lim in data["limitations"])
-        assert metrics_registry._counters["dsp_research_orchestration_capacity_exhausted_total"] == initial_exhausted + 1
+        assert (
+            metrics_registry._counters[
+                "dsp_research_orchestration_capacity_exhausted_total"
+            ]
+            == initial_exhausted + 1
+        )
     finally:
         # Release the permits
         for _ in acquired:
@@ -817,8 +922,9 @@ def test_orchestration_capacity_exhaustion_fallback():
 
 def test_invalid_timeout_env_values_handled_safely():
     """Non-finite, negative, or malformed timeout env vars fallback to safe default."""
-    from api_platform.api.routers.composition import parse_orchestration_timeout
     import os
+
+    from api_platform.api.routers.composition import parse_orchestration_timeout
 
     with patch.dict(os.environ, {"DSP_RESEARCH_ORCHESTRATION_TIMEOUT_SECONDS": "0"}):
         assert parse_orchestration_timeout() == 15.0
@@ -832,11 +938,15 @@ def test_invalid_timeout_env_values_handled_safely():
     with patch.dict(os.environ, {"DSP_RESEARCH_ORCHESTRATION_TIMEOUT_SECONDS": "inf"}):
         assert parse_orchestration_timeout() == 15.0
 
-    with patch.dict(os.environ, {"DSP_RESEARCH_ORCHESTRATION_TIMEOUT_SECONDS": "malformed_string"}):
+    with patch.dict(
+        os.environ, {"DSP_RESEARCH_ORCHESTRATION_TIMEOUT_SECONDS": "malformed_string"}
+    ):
         assert parse_orchestration_timeout() == 15.0
 
     # Unreasonably large timeout clamped to 120.0
-    with patch.dict(os.environ, {"DSP_RESEARCH_ORCHESTRATION_TIMEOUT_SECONDS": "500.0"}):
+    with patch.dict(
+        os.environ, {"DSP_RESEARCH_ORCHESTRATION_TIMEOUT_SECONDS": "500.0"}
+    ):
         assert parse_orchestration_timeout() == 120.0
 
     # Valid positive timeout accepted
@@ -846,8 +956,9 @@ def test_invalid_timeout_env_values_handled_safely():
 
 def test_concurrency_safe_metrics_updates():
     """Concurrent threads updating metrics cannot corrupt counters or raise exceptions."""
-    from api_platform.api.ops import metrics_registry
     import threading
+
+    from api_platform.api.ops import metrics_registry
 
     initial = metrics_registry._counters["dsp_research_orchestration_attempted_total"]
     threads = []
@@ -869,13 +980,19 @@ def test_concurrency_safe_metrics_updates():
         t.join()
 
     expected = initial + (n_threads * increments_per_thread)
-    assert metrics_registry._counters["dsp_research_orchestration_attempted_total"] == expected
+    assert (
+        metrics_registry._counters["dsp_research_orchestration_attempted_total"]
+        == expected
+    )
 
 
 def test_research_orchestration_service_boundary_isolation():
     """Verify that ResearchOrchestrationService cleanly encapsulates worker pool, admission control, and execution."""
-    from api_platform.api.research_orchestration_service import ResearchOrchestrationService
     import threading
+
+    from api_platform.api.research_orchestration_service import (
+        ResearchOrchestrationService,
+    )
 
     custom_sem = threading.BoundedSemaphore(value=2)
     service = ResearchOrchestrationService(semaphore=custom_sem)

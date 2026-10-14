@@ -2,6 +2,21 @@
 
 import { buildApiUrl } from "@/lib/env";
 import type {
+  ConnectionTestRequest,
+  ConnectionTestResponse,
+  ProviderAuditResponse,
+  ProviderRecord,
+  ProvidersListResponse,
+  SaveCredentialRequest,
+  SaveCredentialResponse,
+  TaskRoutingPolicy,
+  TaskRoutingResponse,
+  UpdateModelRequest,
+  UpdateRoutingRequest,
+  UpdateStatusRequest,
+} from "@/lib/api/providerTypes";
+
+import type {
   AnalyseRequest,
   AnalyseResponse,
   CapabilitiesResponse,
@@ -1935,4 +1950,99 @@ export const api = {
     }
     return result;
   },
+
+  // --- Provider & API Management (Admin) ---
+  adminListProviders: (category?: string, options?: RequestOptions) =>
+    request<ProvidersListResponse>(
+      category ? `/admin/providers?category=${encodeURIComponent(category)}` : "/admin/providers",
+      { method: "GET" },
+      options,
+    ),
+
+  adminGetProvider: (providerId: string, options?: RequestOptions) =>
+    request<{ provider: ProviderRecord }>(
+      `/admin/providers/${encodeURIComponent(providerId)}`,
+      { method: "GET" },
+      options,
+    ),
+
+  adminTestProvider: (
+    providerId: string,
+    body?: ConnectionTestRequest,
+    options?: RequestOptions,
+  ) =>
+    request<ConnectionTestResponse>(
+      `/admin/providers/${encodeURIComponent(providerId)}/test`,
+      { method: "POST", body: body ? JSON.stringify(body) : undefined },
+      options,
+    ),
+
+  adminSaveProviderCredential: (
+    providerId: string,
+    body: SaveCredentialRequest,
+    options?: RequestOptions,
+  ) =>
+    request<SaveCredentialResponse>(
+      `/admin/providers/${encodeURIComponent(providerId)}/credential`,
+      { method: "POST", body: JSON.stringify(body) },
+      options,
+    ),
+
+  adminRevokeProviderCredential: (providerId: string, options?: RequestOptions) =>
+    request<{ ok: boolean; provider_id: string; health_status: string; provider: ProviderRecord }>(
+      `/admin/providers/${encodeURIComponent(providerId)}/credential`,
+      { method: "DELETE" },
+      options,
+    ),
+
+  adminUpdateProviderStatus: (
+    providerId: string,
+    body: UpdateStatusRequest,
+    options?: RequestOptions,
+  ) =>
+    request<{ ok: boolean; provider: ProviderRecord }>(
+      `/admin/providers/${encodeURIComponent(providerId)}/status`,
+      { method: "POST", body: JSON.stringify(body) },
+      options,
+    ),
+
+  adminUpdateProviderModel: (
+    providerId: string,
+    body: UpdateModelRequest,
+    options?: RequestOptions,
+  ) =>
+    request<{ ok: boolean; provider: ProviderRecord }>(
+      `/admin/providers/${encodeURIComponent(providerId)}/model`,
+      { method: "POST", body: JSON.stringify(body) },
+      options,
+    ),
+
+  adminRollbackProvider: (providerId: string, options?: RequestOptions) =>
+    request<{ ok: boolean; provider: ProviderRecord }>(
+      `/admin/providers/${encodeURIComponent(providerId)}/rollback`,
+      { method: "POST" },
+      options,
+    ),
+
+  adminGetProviderAudit: (providerId: string, options?: RequestOptions) =>
+    request<ProviderAuditResponse>(
+      `/admin/providers/${encodeURIComponent(providerId)}/audit`,
+      { method: "GET" },
+      options,
+    ),
+
+  adminGetRoutingPolicies: (options?: RequestOptions) =>
+    request<TaskRoutingResponse>("/admin/routing", { method: "GET" }, options),
+
+  adminUpdateTaskRouting: (
+    taskName: string,
+    body: UpdateRoutingRequest,
+    options?: RequestOptions,
+  ) =>
+    request<{ ok: boolean; task: string; policy: TaskRoutingPolicy }>(
+      `/admin/routing/${encodeURIComponent(taskName)}`,
+      { method: "POST", body: JSON.stringify(body) },
+      options,
+    ),
+
 };

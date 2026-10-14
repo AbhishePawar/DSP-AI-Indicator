@@ -27,7 +27,10 @@ from industry.characteristics_registry import InvestmentCharacteristicsRegistry
 from industry.enums import PeerEligibilityStatus
 from industry.methodology_registry import IndustryMethodologyRegistry
 from industry.peer_evaluator import PeerEligibilityEvaluator
-from industry.peer_registry import InstrumentIndustryRegistry, PeerEligibilityPolicyRegistry
+from industry.peer_registry import (
+    InstrumentIndustryRegistry,
+    PeerEligibilityPolicyRegistry,
+)
 from industry.peer_seeds import seed_peer_eligibility_context
 from industry.taxonomy import IndustryTaxonomy
 
@@ -48,6 +51,7 @@ def client() -> TestClient:
 # 1 & 2: Search mode routing verification
 def test_search_mode_routing_query_handling():
     """Verify routing URLs preserve mode=dsp (default) and mode=simple contracts."""
+
     def parse_mode(url_or_query: str) -> str:
         if "mode=simple" in url_or_query:
             return "simple"
@@ -65,13 +69,29 @@ def test_research_session_creation_and_isolation():
 
     # Create session for User 1 on TCS analysis-1
     cid_u1_tcs_1 = store.ensure("user1::TCS::analysis-1")
-    store.append(cid_u1_tcs_1, {"role": "user", "content": "What is the economic moat of TCS?", "created_at": "2026-10-03T10:00:00Z"})
-    store.append(cid_u1_tcs_1, {"role": "assistant", "content": "TCS has a Wide Moat driven by switching costs.", "created_at": "2026-10-03T10:00:05Z"})
+    store.append(
+        cid_u1_tcs_1,
+        {
+            "role": "user",
+            "content": "What is the economic moat of TCS?",
+            "created_at": "2026-10-03T10:00:00Z",
+        },
+    )
+    store.append(
+        cid_u1_tcs_1,
+        {
+            "role": "assistant",
+            "content": "TCS has a Wide Moat driven by switching costs.",
+            "created_at": "2026-10-03T10:00:05Z",
+        },
+    )
 
     # User 1 switches to INFY analysis-1
     cid_u1_infy_1 = store.ensure("user1::INFY::analysis-1")
     infy_history = store.history(cid_u1_infy_1)
-    assert len(infy_history) == 0, "INFY session must not inherit TCS conversation history"
+    assert (
+        len(infy_history) == 0
+    ), "INFY session must not inherit TCS conversation history"
 
     # User 1 returns to TCS analysis-1
     tcs_history = store.history(cid_u1_tcs_1)
@@ -86,29 +106,42 @@ def test_research_session_creation_and_isolation():
     # User 2 attempts to access User 1's session
     cid_u2_tcs_1 = store.ensure("user2::TCS::analysis-1")
     u2_history = store.history(cid_u2_tcs_1)
-    assert len(u2_history) == 0, "Different user must not share session conversation context"
+    assert (
+        len(u2_history) == 0
+    ), "Different user must not share session conversation context"
 
 
 # 5 & 12: P1-09 state hardening & suggestion guards
 def test_p109_state_suggestion_guards():
     """Verify questions allowed and suppressed based on P1-09 execution state."""
+
     def get_allowed_question_categories(p109_state: str) -> set[str]:
-        if p109_state == "COMPLETE":
-            return {"fundamentals", "economic_moat", "growth", "peers", "valuation"}
-        elif p109_state == "PARTIAL_DATA":
-            return {"fundamentals", "economic_moat", "peers", "limitations"}
-        elif p109_state == "INSUFFICIENT_DATA":
-            return {"preliminary_signals", "missing_filings", "limitations"}
-        elif p109_state == "SYSTEM_ERROR":
-            return set()
-        return set()
+        categories: dict[str, set[str]] = {
+            "COMPLETE": {
+                "fundamentals",
+                "economic_moat",
+                "growth",
+                "peers",
+                "valuation",
+            },
+            "PARTIAL_DATA": {"fundamentals", "economic_moat", "peers", "limitations"},
+            "INSUFFICIENT_DATA": {
+                "preliminary_signals",
+                "missing_filings",
+                "limitations",
+            },
+            "SYSTEM_ERROR": set(),
+        }
+        return categories.get(p109_state, set())
 
     complete_cats = get_allowed_question_categories("COMPLETE")
     assert "valuation" in complete_cats
     assert "economic_moat" in complete_cats
 
     partial_cats = get_allowed_question_categories("PARTIAL_DATA")
-    assert "valuation" not in partial_cats, "DCF / intrinsic valuation questions must be suppressed under PARTIAL_DATA"
+    assert (
+        "valuation" not in partial_cats
+    ), "DCF / intrinsic valuation questions must be suppressed under PARTIAL_DATA"
     assert "limitations" in partial_cats
 
     insufficient_cats = get_allowed_question_categories("INSUFFICIENT_DATA")
@@ -116,7 +149,9 @@ def test_p109_state_suggestion_guards():
     assert "missing_filings" in insufficient_cats
 
     system_error_cats = get_allowed_question_categories("SYSTEM_ERROR")
-    assert len(system_error_cats) == 0, "SYSTEM_ERROR must not display normal analytical questions"
+    assert (
+        len(system_error_cats) == 0
+    ), "SYSTEM_ERROR must not display normal analytical questions"
 
 
 # 6 & 7: Deterministic Peer Intelligence & Eligibility
@@ -137,7 +172,10 @@ def test_deterministic_peer_discovery_and_context():
     # TCS ↔ INFY (Same industry: Information Technology)
     res_tcs_infy = evaluator.evaluate_pair("TCS", "INFY")
     assert res_tcs_infy.comparable is True
-    assert res_tcs_infy.status in (PeerEligibilityStatus.DIRECT_PEER, PeerEligibilityStatus.RELATED_PEER)
+    assert res_tcs_infy.status in (
+        PeerEligibilityStatus.DIRECT_PEER,
+        PeerEligibilityStatus.RELATED_PEER,
+    )
 
     # HDFCBANK ↔ BAJFINANCE (Banking vs NBFC)
     res_bank = evaluator.evaluate_pair("HDFCBANK", "BAJFINANCE")
@@ -145,7 +183,10 @@ def test_deterministic_peer_discovery_and_context():
 
     # Cross-sector: TCS vs HDFCBANK (IT vs Banking)
     res_cross = evaluator.evaluate_pair("TCS", "HDFCBANK")
-    assert res_cross.comparable is False or res_cross.status != PeerEligibilityStatus.DIRECT_PEER
+    assert (
+        res_cross.comparable is False
+        or res_cross.status != PeerEligibilityStatus.DIRECT_PEER
+    )
 
     # Unknown symbol
     res_unknown = evaluator.evaluate_pair("TCS", "UNKNOWN_SYMBOL")
@@ -156,10 +197,13 @@ def test_deterministic_peer_discovery_and_context():
 def test_assistant_grounding_and_missing_metric_handling(client: TestClient):
     """Verify assistant explains present metrics and strictly reports unavailable metrics."""
     # Test through Copilot complete endpoint with schema-valid payload
-    response_present = client.post("/api/v1/copilot/complete", json={
-        "question_id": "freeform",
-        "freeform": "What is the return on equity?",
-    })
+    response_present = client.post(
+        "/api/v1/copilot/complete",
+        json={
+            "question_id": "freeform",
+            "freeform": "What is the return on equity?",
+        },
+    )
     # Must respond with 200 and a valid Copilot response structure
     assert response_present.status_code == 200
     data = response_present.json()
@@ -172,4 +216,7 @@ def test_assistant_grounding_and_missing_metric_handling(client: TestClient):
         return f"{metric_name} was not available in the authenticated DSP analysis."
 
     assert format_metric_answer("ROCE", 0.482) == "ROCE is 48.2% in the DSP analysis."
-    assert format_metric_answer("ROCE", None) == "ROCE was not available in the authenticated DSP analysis."
+    assert (
+        format_metric_answer("ROCE", None)
+        == "ROCE was not available in the authenticated DSP analysis."
+    )

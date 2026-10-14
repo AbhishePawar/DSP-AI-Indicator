@@ -8,6 +8,8 @@ from typing import Any
 
 from business_quality import BusinessQualityEngine
 from business_quality_aggregator import BusinessQualityAggregatorEngine
+from contracts.domain.instrument import Instrument
+from contracts.enums import AssetClass
 from dsp_platform.composition.authenticated_valuation import (
     DATA_UNAVAILABLE,
     AuthenticatedValuationBundle,
@@ -139,25 +141,83 @@ def _preload_authenticated_valuation_bundle(ctx: ExecutionContext) -> None:
     exchange = str(exchange).strip().upper() if exchange else None
     try:
         bundle = load_authenticated_valuation_bundle(ticker, exchange=exchange)
+        ctx.results[_AUTH_BUNDLE_KEY] = bundle
+        ctx.results[_AUTH_STATEMENTS_KEY] = to_financial_statements(bundle)
+        ctx.results["authenticated_valuation_trace"] = bundle.to_trace_dict()
+        return
     except AuthenticatedValuationError as exc:
         ctx.results[_AUTH_ERROR_KEY] = str(exc) or DATA_UNAVAILABLE
-        return
     except Exception as exc:  # noqa: BLE001 — map provider faults to unavailable
-        # Preserve the provider's (secret-redacted) reason so the fail-closed
-        # financial stage reports why, instead of an opaque generic message.
         reason = str(exc).strip()
         ctx.results[_AUTH_ERROR_KEY] = (
             f"{DATA_UNAVAILABLE} ({type(exc).__name__}: {reason})"
             if reason
             else f"{DATA_UNAVAILABLE} ({type(exc).__name__})"
         )
-        return
-    ctx.results[_AUTH_BUNDLE_KEY] = bundle
-    try:
-        ctx.results[_AUTH_STATEMENTS_KEY] = to_financial_statements(bundle)
-    except AuthenticatedValuationError as exc:
-        ctx.results[_AUTH_ERROR_KEY] = str(exc) or DATA_UNAVAILABLE
-        ctx.results.pop(_AUTH_BUNDLE_KEY, None)
+
+    # When full valuation bundle fails (e.g. quote-only without shares, or statement provider offline),
+    # attempt independent statement recovery or statement fetch so financial analysis does not block.
+    if ctx.results.get(_AUTH_STATEMENTS_KEY) is None:
+        try:
+            from dsp_platform.composition.authenticated_valuation import (
+                _fetch_statements,
+                _select_homogeneous_periods,
+                assert_duplicate_periods,
+                assert_unit_homogeneous,
+                normalize_periods_to_actual,
+                to_financial_statements_from_period,
+            )
+
+            stmts = _fetch_statements(
+                ticker,
+                exchange=exchange,
+                currency="USD",
+                statement_service=None,
+                get_statements=None,
+            )
+            selected = _select_homogeneous_periods(stmts.periods)
+            source_unit = assert_unit_homogeneous(selected)
+            assert_duplicate_periods(selected)
+            selected = normalize_periods_to_actual(selected, source_unit=source_unit)
+            latest_period = selected[0]
+            instrument = Instrument(
+                symbol=ticker,
+                asset_class=AssetClass.EQUITY,
+                currency=latest_period.reporting_currency or "USD",
+                exchange=exchange,
+            )
+            ctx.results[_AUTH_STATEMENTS_KEY] = to_financial_statements_from_period(
+                latest_period,
+                instrument,
+            )
+            is_rec = getattr(stmts.provenance, "provider_id", "") == "recovery_service"
+            stmt_prov = (
+                stmts.provenance.to_dict() if getattr(stmts, "provenance", None) else {}
+            )
+            shares_val = (
+                float(latest_period.shares_outstanding.value)
+                if latest_period.shares_outstanding.available
+                and latest_period.shares_outstanding.value
+                else None
+            )
+            ctx.results["authenticated_valuation_trace"] = {
+                "authenticated": not is_rec
+                and stmts.provenance.provider_id != "null_provider",
+                "recovered": is_rec,
+                "ticker": ticker,
+                "reporting_currency": latest_period.reporting_currency,
+                "period_kind": latest_period.period_type,
+                "statement_basis": latest_period.statement_basis,
+                "statement_provenance": stmt_prov,
+                "shares_outstanding": shares_val,
+                "recovery_provenance": (
+                    stmt_prov.get("metadata", {}).get("recovery_provenance")
+                    if is_rec
+                    else None
+                ),
+            }
+        except Exception:
+            pass
 
 
 def run_execution_pipeline(
@@ -217,6 +277,11 @@ def run_execution_pipeline(
             for warning in warnings:
                 ctx.warnings.append(warning)
             ctx.results[stage.value] = result
+            if (
+                status in (StageStatus.FAILED, StageStatus.UNAVAILABLE)
+                and ctx.failed_stage is None
+            ):
+                ctx.failed_stage = stage.value
             outcomes.append(
                 StageOutcome(
                     stage=stage.value,
@@ -327,15 +392,13 @@ def _stage_financial(
 
     ticker = str(ctx.request.ticker or "").strip()
     auth_err = ctx.results.get(_AUTH_ERROR_KEY)
-    if production_requires_authenticated_bundle() and ticker:
-        raise ValueError(str(auth_err) if auth_err else DATA_UNAVAILABLE)
-
-    if ctx.request.financial_statements is None:
-        raise ValueError(
-            str(auth_err)
-            if auth_err
-            else "financial_statements or financial_analysis is required"
-        )
+    if (
+        production_requires_authenticated_bundle() and ticker
+    ) or ctx.request.financial_statements is None:
+        err_msg = str(auth_err) if auth_err else DATA_UNAVAILABLE
+        warnings.append(f"financial stage unavailable: {err_msg}")
+        ctx.errors.append(f"financial: {err_msg}")
+        return None, warnings, StageStatus.UNAVAILABLE
 
     fa = FinancialEngine().analyze_financials(ctx.request.financial_statements)
     bq = BusinessQualityEngine().analyze(fa)
@@ -396,8 +459,28 @@ def _stage_valuation(
     if (
         production_requires_authenticated_bundle()
         and str(ctx.request.ticker or "").strip()
+        and not ctx.results.get(_AUTH_STATEMENTS_KEY)
+        and ctx.request.financial_snapshot is None
     ):
-        raise ValueError(str(auth_err) if auth_err else DATA_UNAVAILABLE)
+        if price is not None:
+            signals = ValuationSignals(
+                intrinsic_value_per_share=None,
+                current_market_price=float(price),
+                confidence=0.0,
+            )
+            ctx.results["valuation_signals"] = signals
+            warnings.append(
+                "valuation degraded: no authenticated statements/IV source — "
+                "ValuationSignals price-only (P1-03: IV null, confidence 0.0)"
+            )
+            if auth_err:
+                warnings.append(f"authenticated valuation unavailable: {auth_err}")
+            return signals, warnings, StageStatus.DEGRADED
+
+        err_msg = str(auth_err) if auth_err else DATA_UNAVAILABLE
+        warnings.append(f"valuation stage unavailable: {err_msg}")
+        ctx.errors.append(f"valuation: {err_msg}")
+        return None, warnings, StageStatus.UNAVAILABLE
 
     if ctx.request.financial_snapshot is not None:
         assessment = ValuationEngine().analyze(
@@ -434,7 +517,8 @@ def _stage_valuation(
                 "are unavailable; client valuation conclusions are not accepted"
             )
         )
-    # Graceful degradation (non-production): price-only signals (IV unknown)
+
+    # Graceful degradation: price-only signals (IV unknown)
     signals = ValuationSignals(
         intrinsic_value_per_share=None,
         current_market_price=float(price),
@@ -442,8 +526,7 @@ def _stage_valuation(
     )
     ctx.results["valuation_signals"] = signals
     warnings.append(
-        "valuation degraded: no authenticated IV source — "
-        "ValuationSignals price-only"
+        "valuation degraded: no authenticated IV source — ValuationSignals price-only"
     )
     if auth_err:
         warnings.append(f"authenticated valuation unavailable: {auth_err}")
@@ -458,8 +541,10 @@ def _stage_domain(
     fa = ctx.results.get(PipelineStage.FINANCIAL.value)
     bq = ctx.results.get("business_quality_analysis")
     if fa is None or bq is None:
-        raise ValueError(
-            f"{key} requires financial_analysis and business_quality_analysis"
+        return (
+            None,
+            [f"{key} skipped: required financial_analysis unavailable"],
+            StageStatus.SKIPPED,
         )
     return analyze(fa, bq), [], StageStatus.SUCCEEDED
 
@@ -475,7 +560,11 @@ def _stage_risk(
     """
     financial_strength = ctx.results.get(PipelineStage.FINANCIAL_STRENGTH.value)
     if financial_strength is None:
-        raise ValueError("risk requires financial_strength")
+        return (
+            None,
+            ["risk skipped: financial_strength unavailable"],
+            StageStatus.SKIPPED,
+        )
     economic_moat = ctx.results.get(PipelineStage.ECONOMIC_MOAT.value)
     warnings: list[str] = []
     if economic_moat is None:
@@ -503,7 +592,11 @@ def _stage_aggregator(
     )
     missing = [k for k in required if ctx.results.get(k) is None]
     if missing:
-        raise ValueError(f"aggregator missing domain outputs: {missing}")
+        return (
+            None,
+            [f"aggregator skipped: missing domain outputs: {missing}"],
+            StageStatus.SKIPPED,
+        )
     result = BusinessQualityAggregatorEngine().analyze(
         economic_moat=ctx.results[PipelineStage.ECONOMIC_MOAT.value],
         management_quality=ctx.results[PipelineStage.MANAGEMENT_QUALITY.value],
@@ -520,7 +613,11 @@ def _stage_recommendation(
     signals = ctx.results.get("valuation_signals")
     bq = ctx.results.get(PipelineStage.BUSINESS_QUALITY_AGGREGATOR.value)
     if signals is None or bq is None:
-        raise ValueError("recommendation requires valuation_signals and aggregator")
+        return (
+            None,
+            ["recommendation skipped: valuation_signals or aggregator unavailable"],
+            StageStatus.SKIPPED,
+        )
     for key in (
         PipelineStage.ECONOMIC_MOAT.value,
         PipelineStage.MANAGEMENT_QUALITY.value,
@@ -529,7 +626,11 @@ def _stage_recommendation(
         PipelineStage.GROWTH_QUALITY.value,
     ):
         if ctx.results.get(key) is None:
-            raise ValueError(f"recommendation missing {key}")
+            return (
+                None,
+                [f"recommendation skipped: missing {key}"],
+                StageStatus.SKIPPED,
+            )
     result = InvestmentRecommendationEngine().analyze(
         valuation=signals,
         business_quality=bq,
@@ -548,6 +649,12 @@ def _stage_committee(
     ir = ctx.results.get(PipelineStage.INVESTMENT_RECOMMENDATION.value)
     signals = ctx.results.get("valuation_signals")
     bq = ctx.results.get(PipelineStage.BUSINESS_QUALITY_AGGREGATOR.value)
+    if ir is None:
+        return (
+            None,
+            ["investment_committee skipped: recommendation unavailable"],
+            StageStatus.SKIPPED,
+        )
     if ir is None or signals is None or bq is None:
         raise ValueError("committee requires recommendation, signals, aggregator")
     result = InvestmentCommitteeEngine().analyze(

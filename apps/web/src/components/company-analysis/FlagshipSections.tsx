@@ -239,8 +239,22 @@ export function RiskSection({ view }: { view: ResearchView }) {
 
 export function FinancialSection({ view }: { view: ResearchView }) {
   const fin = view.financial;
+  const isUnavailable =
+    fin.status === "unavailable" ||
+    fin.score === "Unavailable" ||
+    fin.score === "—" ||
+    fin.score === null;
   return (
     <div className="space-y-4">
+      {isUnavailable && (
+        <div className="rounded-md border border-[var(--border)] bg-[var(--surface-muted,#f3f4f6)]/40 p-3 text-sm text-[var(--muted-fg)]">
+          <p className="font-semibold text-[var(--fg)]">Financial Statements Unavailable</p>
+          <p className="mt-0.5 text-xs">
+            Authenticated financial statements could not be loaded or corroborated from regulatory filings.
+            Independent qualitative analysis, market quote data, and non-financial research remain available.
+          </p>
+        </div>
+      )}
       <SectionCard
         title="Financial Performance"
         description="Values from the financial stage only — line-item history requires filings APIs not wired here. No cross-stage substitutes."

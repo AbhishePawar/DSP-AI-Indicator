@@ -27,6 +27,7 @@ class StageStatus(str, Enum):
     FAILED = "failed"
     SKIPPED = "skipped"
     DEGRADED = "degraded"
+    UNAVAILABLE = "unavailable"
 
 
 @dataclass(frozen=True, slots=True)

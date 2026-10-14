@@ -40,6 +40,7 @@ const FORBIDDEN_FILENAME_RE =
 const LIB_ALLOWLIST = new Set([
   "a11y",
   "admin-console",
+  "assets",
   "advisor",
   "ai",
   "analysis",

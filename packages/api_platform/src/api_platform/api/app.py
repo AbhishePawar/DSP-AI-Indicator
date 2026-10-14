@@ -35,6 +35,7 @@ from api_platform.api.ops_middleware import (
     SecurityHeadersMiddleware,
 )
 from api_platform.api.routers import (
+    admin_providers,
     analysis,
     auth,
     beta_programme,
@@ -202,7 +203,9 @@ def create_app(
         contexts=ContextStore(),
         api_version=api_version,
         copilot_service=(copilot_svc := build_copilot_service()),
-        provider_registry=getattr(copilot_svc, "_registry", None) if copilot_svc else None,
+        provider_registry=(
+            getattr(copilot_svc, "_registry", None) if copilot_svc else None
+        ),
         research_orchestrator=build_research_orchestrator(resolved),
         language_model=build_language_model(),
         infrastructure=boot.infrastructure,
@@ -259,6 +262,7 @@ def _register_routers(application: FastAPI) -> None:
         enterprise_auth_platform.router,
         institutional_admin.router,
         control_center.router,
+        admin_providers.router,
         beta_programme.public_router,
         beta_programme.admin_router,
         enterprise.router,

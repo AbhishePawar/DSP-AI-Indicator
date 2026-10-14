@@ -15,8 +15,8 @@ from auth import (
     reset_enterprise_auth_platform_for_tests,
     reset_role_registry_for_tests,
 )
-from auth.oauth_providers import OAuthProfile, OAuthProviderRegistry
 from auth.email_delivery import NullEmailAdapter
+from auth.oauth_providers import OAuthProfile, OAuthProviderRegistry
 from auth.otp import OtpService
 from auth.sms import DevSmsAdapter
 from persistence import (

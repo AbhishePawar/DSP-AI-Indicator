@@ -217,7 +217,7 @@ describe("Stage 3 Research Workspace Data-State and Adapter Contract", () => {
           confidence: "High",
         },
       ],
-    } as any;
+    } as unknown as React.ComponentProps<typeof EvidenceExplorerSection>["model"];
 
     const { getByText, getByRole } = render(
       <EvidenceExplorerSection model={mockModel} analysisId="test-analysis-123" />
@@ -252,7 +252,7 @@ describe("Stage 3 Research Workspace Data-State and Adapter Contract", () => {
       analysisId: "empty-analysis",
       auditReference: null,
       evidence: [],
-    } as any;
+    } as unknown as React.ComponentProps<typeof EvidenceExplorerSection>["model"];
 
     const { getByRole, getByText } = render(
       <EvidenceExplorerSection model={emptyModel} />
@@ -280,7 +280,7 @@ describe("Stage 3 Research Workspace Data-State and Adapter Contract", () => {
           confidence: "Low",
         },
       ],
-    } as any;
+    } as unknown as React.ComponentProps<typeof EvidenceExplorerSection>["model"];
 
     const { getByRole, getByText } = render(
       <EvidenceExplorerSection model={noSourceModel} />
@@ -338,7 +338,7 @@ describe("Stage 3 Research Workspace Data-State and Adapter Contract", () => {
               confidence: "High",
             },
           ],
-        } as any;
+        } as unknown as React.ComponentProps<typeof InvestmentSummary>["model"];
 
         const { container } = render(
           <div>
@@ -396,7 +396,7 @@ describe("Stage 3 Research Workspace Data-State and Adapter Contract", () => {
           confidence: "High",
         },
       ],
-    } as any;
+    } as unknown as React.ComponentProps<typeof InvestmentSummary>["model"];
 
     const { container, getAllByText, getByRole } = render(
       <div>
@@ -433,7 +433,7 @@ describe("Stage 3 Research Workspace Data-State and Adapter Contract", () => {
         analysisId: null,
         auditReference: "REF-VALID",
         evidence: [],
-      } as any;
+      } as unknown as React.ComponentProps<typeof EvidenceExplorerSection>["model"];
 
       const { getByText } = render(
         <EvidenceExplorerSection model={model} />
@@ -447,7 +447,7 @@ describe("Stage 3 Research Workspace Data-State and Adapter Contract", () => {
         analysisId: "test-id-123",
         auditReference: null,
         evidence: [],
-      } as any;
+      } as unknown as React.ComponentProps<typeof EvidenceExplorerSection>["model"];
 
       const { container } = render(
         <EvidenceExplorerSection model={model} />
@@ -498,7 +498,7 @@ describe("Stage 3 Research Workspace Data-State and Adapter Contract", () => {
             confidence: "Medium",
           },
         ],
-      } as any;
+      } as unknown as React.ComponentProps<typeof EvidenceExplorerSection>["model"];
 
       const { getByRole, getByText } = render(
         <EvidenceExplorerSection model={emptySourceModel} />

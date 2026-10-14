@@ -180,8 +180,6 @@ class SecurityMiddleware(BaseHTTPMiddleware):
         return await call_next(request)
 
 
-
-
 def _authenticate_enterprise_bearer(authorization: str | None) -> UserPrincipal | None:
     """Validate an enterprise AuthService bearer token for the API gateway.
 

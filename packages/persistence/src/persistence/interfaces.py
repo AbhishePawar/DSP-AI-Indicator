@@ -96,7 +96,6 @@ class StorageProviderPort(Protocol):
         """
         ...
 
-
     def append_research_turn_atomic(
         self,
         *,

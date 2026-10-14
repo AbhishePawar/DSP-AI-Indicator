@@ -632,6 +632,7 @@ def test_unavailable_recommendation_does_not_invent_buy() -> None:
 
 def test_concurrent_orchestrator_runs_maintain_isolated_memory() -> None:
     import concurrent.futures
+
     orc = _orchestrator()
 
     def run_with_ticker(ticker: str):
@@ -644,7 +645,10 @@ def test_concurrent_orchestrator_runs_maintain_isolated_memory() -> None:
         return req.symbol, res.status
 
     with concurrent.futures.ThreadPoolExecutor(max_workers=4) as executor:
-        futures = [executor.submit(run_with_ticker, t) for t in ["AAPL", "MSFT", "GOOGL", "NVDA"]]
+        futures = [
+            executor.submit(run_with_ticker, t)
+            for t in ["AAPL", "MSFT", "GOOGL", "NVDA"]
+        ]
         results = [f.result() for f in futures]
 
     assert len(results) == 4
@@ -654,6 +658,7 @@ def test_concurrent_orchestrator_runs_maintain_isolated_memory() -> None:
 
 def test_async_task_orchestrator_runs_maintain_isolated_memory() -> None:
     import asyncio
+
     orc = _orchestrator()
 
     async def run_async(ticker: str):
@@ -679,6 +684,7 @@ def test_async_task_orchestrator_runs_maintain_isolated_memory() -> None:
 
 def test_orchestrator_cancellation_event_halts_loop() -> None:
     import threading
+
     cancel_event = threading.Event()
     cancel_event.set()
     orc = _orchestrator()

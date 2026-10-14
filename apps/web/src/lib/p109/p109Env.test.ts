@@ -50,7 +50,7 @@ describe("P1-09 automated preflight and environment contract", () => {
 
   it("C. Missing both produces MISSING_CONFIGURATION", () => {
     withEnv(
-      { DSP_SEED_ADMIN_PASSWORD: undefined, DSP_P109_PASSWORD: undefined },
+      { DSP_SEED_ADMIN_PASSWORD: undefined, DSP_P109_PASSWORD: undefined, DSP_P109_ENV_FILE: "/dev/null" },
       () => {
         expect(resolveP109AdminPassword()).toBeUndefined();
         try {

@@ -1,0 +1,42 @@
+{
+  "ok": true,
+  "gate": "P1-09",
+  "evidence_class": "test_fixture",
+  "g2_claim": false,
+  "ticker": "DSPFIX",
+  "analysis_id": "099000c9-2fcd-4ba3-98ee-0d0fe637a500",
+  "release_identity": {
+    "epic": "EPS-003",
+    "product_version": "2.0.0-rc.1",
+    "channel": "rc",
+    "decision": "RELEASE_CANDIDATE",
+    "label": "EPS-003 · 2.0.0-rc.1 · rc · RELEASE_CANDIDATE"
+  },
+  "browser": "chromium",
+  "stages": [
+    {
+      "stage": "LOGIN",
+      "status": "passed"
+    },
+    {
+      "stage": "ANALYSIS",
+      "status": "passed"
+    },
+    {
+      "stage": "VALUATION",
+      "status": "passed"
+    },
+    {
+      "stage": "BUFFETT",
+      "status": "passed"
+    },
+    {
+      "stage": "PROVENANCE",
+      "status": "passed"
+    },
+    {
+      "stage": "EXPORT",
+      "status": "passed"
+    }
+  ]
+}

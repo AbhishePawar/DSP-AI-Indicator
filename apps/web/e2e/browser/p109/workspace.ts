@@ -148,9 +148,9 @@ export async function assertValuationVisible(
   payload: Record<string, unknown>,
 ): Promise<void> {
   await openAnalysisSection(page, /^Valuation(\s+\d|\d)?$/i, /^Valuation$/i);
-  await expect(page.getByText("Intrinsic Value", { exact: true })).toBeVisible();
-  await expect(page.getByText("Current Price", { exact: true })).toBeVisible();
-  await expect(page.getByText("Margin of Safety", { exact: true })).toBeVisible();
+  await expect(page.getByText("Intrinsic value", { exact: true })).toBeVisible();
+  await expect(page.getByText("Current price", { exact: true })).toBeVisible();
+  await expect(page.getByText("Margin of safety", { exact: true })).toBeVisible();
 
   const stages = (payload.stage_summaries ?? []) as Array<
     Record<string, unknown>
@@ -160,7 +160,7 @@ export async function assertValuationVisible(
   expect(["succeeded", "degraded", "unavailable"]).toContain(
     String(valuation!.status),
   );
-  await expect(page.getByText("Stage status", { exact: true })).toBeVisible();
+  await expect(page.getByText("Valuation summary", { exact: true })).toBeVisible();
 }
 
 export async function assertBuffettVisible(

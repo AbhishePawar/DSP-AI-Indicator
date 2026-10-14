@@ -48,6 +48,7 @@ Edit `.env.production` and replace every placeholder, including:
 - `OPENAI_API_KEY_5` and/or `GEMINI_API_KEY`: valid server-side provider keys.
 - `DSP_CORS_ORIGINS`: exact HTTPS origin(s), no wildcard.
 - `DSP_IMAGE_TAG` and `DSP_IMAGE_TAG_WEB`: unique immutable release tags.
+- `DSP_APP_VERSION`: match the incoming release tag; keep it synchronized with the version manifests.
 
 Keep `DSP_REDIS_URL` empty and `DSP_REDIS_FALLBACK=true` for the agreed no-Redis initial profile. The resulting fallback is a deliberate limitation, not equivalent to durable shared Redis state.
 

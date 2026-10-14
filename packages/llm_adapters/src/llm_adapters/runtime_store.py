@@ -347,6 +347,12 @@ class RuntimeProviderStore:
         self._audit_log: list[AuditRecord] = []
         self._postgres_enabled: bool = False
         self._postgres_dsn: str | None = None
+        self._postgres_pool: Any | None = None
+        self._credential_revoked: set[str] = set()
+        self._last_refresh_monotonic: float = 0.0
+        self._refresh_interval_seconds: float = max(
+            0.25, float(os.environ.get("DSP_RUNTIME_STORE_REFRESH_SECONDS", "1.0"))
+        )
 
         self._check_persistence_backend()
         self._initialize_from_catalog_and_env()
@@ -357,14 +363,37 @@ class RuntimeProviderStore:
 
     def _check_persistence_backend(self) -> None:
         """Inspect environment for PostgreSQL persistence connectivity."""
-        dsn = os.environ.get("DSP_RUNTIME_STORE_DSN") or os.environ.get("DATABASE_URL")
-        if dsn and dsn.strip():
-            self._postgres_dsn = dsn.strip()
-            # Try connecting if psycopg is available
-            try:
-                import psycopg
-                # Check connection attempt
-                conn = psycopg.connect(self._postgres_dsn, connect_timeout=2)
+        dsn = (
+            os.environ.get("DSP_RUNTIME_STORE_DSN")
+            or os.environ.get("DSP_DATABASE_URL")
+            or os.environ.get("DATABASE_URL")
+        )
+        production_mode = any(
+            os.environ.get(name, "").strip().lower() in {"production", "prod"}
+            for name in ("DSP_ENV", "APP_ENV", "ENVIRONMENT", "NODE_ENV")
+        )
+        if not dsn or not dsn.strip():
+            if production_mode:
+                raise RuntimeError(
+                    "Runtime provider store requires PostgreSQL in production; "
+                    "configure DSP_RUNTIME_STORE_DSN or DSP_DATABASE_URL."
+                )
+            self._postgres_enabled = False
+            return
+
+        self._postgres_dsn = dsn.strip()
+        try:
+            from psycopg_pool import ConnectionPool
+
+            self._postgres_pool = ConnectionPool(
+                conninfo=self._postgres_dsn,
+                min_size=1,
+                max_size=max(2, int(os.environ.get("DSP_RUNTIME_STORE_POOL_MAX_SIZE", "8"))),
+                timeout=3,
+                kwargs={"connect_timeout": 3},
+                open=True,
+            )
+            with self._postgres_pool.connection() as conn:
                 with conn.cursor() as cur:
                     cur.execute(
                         """
@@ -372,9 +401,12 @@ class RuntimeProviderStore:
                             provider_id TEXT PRIMARY KEY,
                             config_json TEXT NOT NULL,
                             encrypted_credential TEXT,
+                            credential_revoked BOOLEAN NOT NULL DEFAULT FALSE,
                             version INT NOT NULL DEFAULT 1,
                             updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
                         );
+                        ALTER TABLE dsp_runtime_providers
+                            ADD COLUMN IF NOT EXISTS credential_revoked BOOLEAN NOT NULL DEFAULT FALSE;
                         CREATE TABLE IF NOT EXISTS dsp_runtime_provider_audits (
                             id BIGSERIAL PRIMARY KEY,
                             timestamp TIMESTAMPTZ NOT NULL DEFAULT NOW(),
@@ -388,17 +420,23 @@ class RuntimeProviderStore:
                         """
                     )
                 conn.commit()
-                conn.close()
-                self._postgres_enabled = True
-                logger.info("PostgreSQL runtime provider persistence initialized and verified.")
-            except Exception as exc:
-                logger.warning(
-                    "PostgreSQL persistence configured but connection failed (%s); "
-                    "falling back to server-isolated encrypted disk storage.",
-                    exc,
-                )
-                self._postgres_enabled = False
-        else:
+            self._postgres_enabled = True
+            logger.info("PostgreSQL runtime provider persistence initialized and verified.")
+        except Exception as exc:
+            if self._postgres_pool is not None:
+                try:
+                    self._postgres_pool.close()
+                except Exception:
+                    pass
+                self._postgres_pool = None
+            if production_mode:
+                raise RuntimeError(
+                    "PostgreSQL runtime provider storage is required in production "
+                    "and could not be initialized."
+                ) from exc
+            logger.warning(
+                "PostgreSQL persistence unavailable; using local storage only outside production."
+            )
             self._postgres_enabled = False
 
     def _initialize_from_catalog_and_env(self) -> None:
@@ -448,15 +486,17 @@ class RuntimeProviderStore:
 
     def _load_from_storage_if_present(self) -> None:
         """Load persisted configuration from PostgreSQL or encrypted isolated server disk file."""
-        if self._postgres_enabled and self._postgres_dsn:
+        if self._postgres_enabled and self._postgres_pool is not None:
             try:
-                import psycopg
-                with psycopg.connect(self._postgres_dsn, connect_timeout=3) as conn:
+                with self._postgres_pool.connection() as conn:
                     with conn.cursor() as cur:
-                        cur.execute("SELECT provider_id, config_json, encrypted_credential, version FROM dsp_runtime_providers")
+                        cur.execute(
+                            "SELECT provider_id, config_json, encrypted_credential, version, "
+                            "credential_revoked FROM dsp_runtime_providers"
+                        )
                         rows = cur.fetchall()
                         with self._lock:
-                            for pid, cfg_str, enc_cred, ver in rows:
+                            for pid, cfg_str, enc_cred, ver, credential_revoked in rows:
                                 if pid in self._providers:
                                     prov = self._providers[pid]
                                     pdata = json.loads(cfg_str)
@@ -469,15 +509,22 @@ class RuntimeProviderStore:
                                     prov.max_retries = pdata.get("max_retries", prov.max_retries)
                                     prov.version = ver
 
-                                if enc_cred:
+                                if credential_revoked:
+                                    self._credential_revoked.add(pid)
+                                    self._secrets.pop(pid, None)
+                                    if pid in self._providers:
+                                        self._providers[pid].has_credential = False
+                                        self._providers[pid].health_status = ProviderHealthStatus.NOT_CONFIGURED
+                                elif enc_cred:
+                                    self._credential_revoked.discard(pid)
                                     try:
                                         decrypted = decrypt_at_rest(enc_cred)
                                         if decrypted:
                                             self._secrets[pid] = decrypted
                                             if pid in self._providers:
                                                 self._providers[pid].has_credential = True
-                                    except Exception as exc:
-                                        logger.error("Failed to decrypt credentials for %s from db: %s", pid, exc)
+                                    except Exception:
+                                        logger.error("Failed to decrypt credentials for %s from db.", pid)
 
                         # Load audits
                         cur.execute("SELECT timestamp, author, action, provider_id, version, validation_result, sanitized_metadata FROM dsp_runtime_provider_audits ORDER BY timestamp ASC LIMIT 100")
@@ -540,39 +587,52 @@ class RuntimeProviderStore:
         except Exception as e:
             logger.error("Failed to load runtime store from disk: %s", e)
 
-    def _save_to_storage(self) -> None:
-        """Atomically persist configuration to PostgreSQL and/or encrypted server-isolated file (0600)."""
-        # Encrypt all credentials at rest before persisting
+    def _save_to_storage(self, provider_id: str | None = None) -> None:
+        """Persist state. PostgreSQL writes are provider-targeted to prevent stale-catalog overwrites."""
+        target_ids = [provider_id.lower()] if provider_id else list(self._providers)
         encrypted_credentials = {
-            pid: encrypt_at_rest(secret) for pid, secret in self._secrets.items() if secret
+            pid: encrypt_at_rest(self._secrets[pid])
+            for pid in target_ids
+            if self._secrets.get(pid)
         }
 
-        # 1. PostgreSQL synchronization if enabled
-        if self._postgres_enabled and self._postgres_dsn:
+        if self._postgres_enabled and self._postgres_pool is not None:
             try:
-                import psycopg
-                with psycopg.connect(self._postgres_dsn, connect_timeout=3) as conn:
+                with self._postgres_pool.connection() as conn:
                     with conn.cursor() as cur:
-                        for pid, prov in self._providers.items():
+                        for pid in target_ids:
+                            prov = self._providers.get(pid)
+                            if prov is None:
+                                continue
                             cfg_json = json.dumps(prov.to_public_dict())
                             enc_cred = encrypted_credentials.get(pid)
                             cur.execute(
                                 """
-                                INSERT INTO dsp_runtime_providers (provider_id, config_json, encrypted_credential, version, updated_at)
-                                VALUES (%s, %s, %s, %s, NOW())
+                                INSERT INTO dsp_runtime_providers
+                                    (provider_id, config_json, encrypted_credential, credential_revoked, version, updated_at)
+                                VALUES (%s, %s, %s, %s, %s, NOW())
                                 ON CONFLICT (provider_id) DO UPDATE SET
                                     config_json = EXCLUDED.config_json,
                                     encrypted_credential = EXCLUDED.encrypted_credential,
+                                    credential_revoked = EXCLUDED.credential_revoked,
                                     version = EXCLUDED.version,
                                     updated_at = NOW();
                                 """,
-                                (pid, cfg_json, enc_cred, prov.version),
+                                (
+                                    pid, cfg_json, enc_cred,
+                                    pid in self._credential_revoked, prov.version,
+                                ),
                             )
-                    conn.commit()
             except Exception as exc:
-                logger.error("Failed writing provider state to PostgreSQL: %s", exc)
+                logger.error("Failed writing provider state to PostgreSQL.")
+                if any(os.environ.get(name, "").strip().lower() in {"production", "prod"}
+                       for name in ("DSP_ENV", "APP_ENV", "ENVIRONMENT", "NODE_ENV")):
+                    raise RuntimeError("Required PostgreSQL provider-store write failed.") from exc
 
-        # 2. Local encrypted atomic file persistence (always kept as isolated local replica / fallback)
+        # Local file is only a single-instance development fallback, never a production fallback.
+        if any(os.environ.get(name, "").strip().lower() in {"production", "prod"}
+               for name in ("DSP_ENV", "APP_ENV", "ENVIRONMENT", "NODE_ENV")):
+            return
         try:
             providers_data = {}
             for pid, prov in self._providers.items():
@@ -601,7 +661,57 @@ class RuntimeProviderStore:
     # Public Safe Inspection
     # -----------------------------------------------------------------------
 
+    def _refresh_from_storage_if_stale(self, *, force: bool = False) -> None:
+        """Refresh shared PostgreSQL state periodically so workers observe other workers' updates."""
+        if not self._postgres_enabled or self._postgres_pool is None:
+            return
+        now = time.monotonic()
+        if not force and now - self._last_refresh_monotonic < self._refresh_interval_seconds:
+            return
+        with self._lock:
+            now = time.monotonic()
+            if not force and now - self._last_refresh_monotonic < self._refresh_interval_seconds:
+                return
+            try:
+                with self._postgres_pool.connection() as conn:
+                    with conn.cursor() as cur:
+                        cur.execute(
+                            "SELECT provider_id, config_json, encrypted_credential, version, "
+                            "credential_revoked FROM dsp_runtime_providers"
+                        )
+                        rows = cur.fetchall()
+                for pid, cfg_json, enc_cred, version, revoked in rows:
+                    if pid not in self._providers:
+                        continue
+                    data = json.loads(cfg_json)
+                    prov = self._providers[pid]
+                    prov.is_active = data.get("is_active", prov.is_active)
+                    prov.selected_model = data.get("selected_model", prov.selected_model)
+                    prov.temperature = data.get("temperature", prov.temperature)
+                    prov.max_tokens = data.get("max_tokens", prov.max_tokens)
+                    prov.base_url = data.get("base_url", prov.base_url)
+                    prov.timeout_seconds = data.get("timeout_seconds", prov.timeout_seconds)
+                    prov.max_retries = data.get("max_retries", prov.max_retries)
+                    prov.version = version
+                    if revoked:
+                        self._credential_revoked.add(pid)
+                        self._secrets.pop(pid, None)
+                        prov.has_credential = False
+                        prov.health_status = ProviderHealthStatus.NOT_CONFIGURED
+                    elif enc_cred:
+                        secret = decrypt_at_rest(enc_cred)
+                        self._credential_revoked.discard(pid)
+                        self._secrets[pid] = secret
+                        prov.has_credential = True
+                self._last_refresh_monotonic = now
+            except Exception as exc:
+                logger.error("Runtime provider PostgreSQL refresh failed.")
+                if any(os.environ.get(name, "").strip().lower() in {"production", "prod"}
+                       for name in ("DSP_ENV", "APP_ENV", "ENVIRONMENT", "NODE_ENV")):
+                    raise RuntimeError("Required PostgreSQL provider-store refresh failed.") from exc
+
     def get_provider(self, provider_id: str) -> dict[str, Any] | None:
+        self._refresh_from_storage_if_stale()
         with self._lock:
             pid = provider_id.lower()
             p = self._providers.get(pid)
@@ -611,11 +721,13 @@ class RuntimeProviderStore:
             return p.to_public_dict(masked)
 
     def get_provider_config(self, provider_id: str) -> ProviderConfig | None:
+        self._refresh_from_storage_if_stale()
         with self._lock:
             p = self._providers.get(provider_id.lower())
             return copy.deepcopy(p) if p else None
 
     def list_providers(self, category: str | None = None) -> list[dict[str, Any]]:
+        self._refresh_from_storage_if_stale()
         with self._lock:
             result = []
             for p in self._providers.values():
@@ -626,6 +738,7 @@ class RuntimeProviderStore:
 
     def get_credential(self, provider_id: str) -> str | None:
         """Internal retrieval of active decrypted credential for execution."""
+        self._refresh_from_storage_if_stale()
         with self._lock:
             return self._secrets.get(provider_id.lower())
 
@@ -693,6 +806,7 @@ class RuntimeProviderStore:
 
             # Store validated secret
             self._secrets[pid] = clean_secret
+            self._credential_revoked.discard(pid)
             prov.has_credential = True
             prov.version += 1
             if validate:
@@ -712,7 +826,7 @@ class RuntimeProviderStore:
                 validation_result="VALIDATED" if validate else "SKIPPED",
                 metadata={"status": prov.health_status.value},
             )
-            self._save_to_storage()
+            self._save_to_storage(pid)
             return copy.deepcopy(prov)
 
     def revoke_credential(
@@ -731,8 +845,9 @@ class RuntimeProviderStore:
             prev_snapshot = prov.to_public_dict(mask_secret(self._secrets.get(pid)))
             self._history.setdefault(pid, []).append(prev_snapshot)
 
-            # Purge in-memory secret
+            # Keep a durable tombstone so environment variables cannot reactivate this key.
             self._secrets.pop(pid, None)
+            self._credential_revoked.add(pid)
             prov.has_credential = False
             prov.health_status = ProviderHealthStatus.NOT_CONFIGURED
             prov.last_test_timestamp = None
@@ -975,10 +1090,9 @@ class RuntimeProviderStore:
             sanitized_metadata=metadata,
         )
         self._audit_log.append(rec)
-        if self._postgres_enabled and self._postgres_dsn:
+        if self._postgres_enabled and self._postgres_pool is not None:
             try:
-                import psycopg
-                with psycopg.connect(self._postgres_dsn, connect_timeout=3) as conn:
+                with self._postgres_pool.connection() as conn:
                     with conn.cursor() as cur:
                         cur.execute(
                             """
@@ -1002,6 +1116,7 @@ class RuntimeProviderStore:
     def get_audit_log(
         self, provider_id: str | None = None, limit: int = 50
     ) -> list[dict[str, Any]]:
+        self._refresh_from_storage_if_stale()
         with self._lock:
             logs = self._audit_log
             if provider_id:

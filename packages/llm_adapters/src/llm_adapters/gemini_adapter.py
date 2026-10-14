@@ -38,7 +38,7 @@ class GeminiAdapter(GeminiToolCalling):
 
     def __init__(self, config: LLMPlatformConfig) -> None:
         self._config = config
-        self.model_label = config.gemini_model.removeprefix("google/")
+        self.model_label = config.gemini_model
 
     def is_configured(self) -> bool:
         return bool(self._config.gemini_api_key)
@@ -74,9 +74,7 @@ class GeminiAdapter(GeminiToolCalling):
         user_text = "\n\n".join(user_parts)
         url = f"{_BASE_URL}/{self.model_label}:generateContent"
         payload: dict[str, Any] = {
-            "contents": [
-                {"role": "user", "parts": [{"text": user_text}]}
-            ],
+            "contents": [{"role": "user", "parts": [{"text": user_text}]}],
             "generationConfig": {"temperature": 0.2},
         }
         if system_content:
@@ -89,20 +87,16 @@ class GeminiAdapter(GeminiToolCalling):
 
         try:
             with httpx.Client(timeout=self._config.request_timeout_seconds) as client:
-                headers = {
-                    "Content-Type": "application/json",
-                }
-
-                headers["x-goog-api-key"] = self._config.gemini_api_key or ""
-
                 response = client.post(
                     url,
-                    headers=headers,
+                    headers={
+                        "x-goog-api-key": self._config.gemini_api_key or "",
+                        "Content-Type": "application/json",
+                    },
                     json=payload,
                 )
                 response.raise_for_status()
                 data = response.json()
-
         except httpx.HTTPError as exc:
             return self._failed(f"http_error: {exc.__class__.__name__}"), None
         except (ValueError, KeyError) as exc:
@@ -127,7 +121,7 @@ class GeminiAdapter(GeminiToolCalling):
         )
 
     def stream_invoke(self, request: LanguageModelRequest) -> Iterator[str]:
-        if not self._config.gemini_api_key:
+        if not self.is_configured():
             return
         if not request.prompt_parts:
             return

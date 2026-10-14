@@ -45,7 +45,7 @@ Edit `.env.production` and replace every placeholder, including. This file is re
 - `DSP_DATABASE_URL`: real Neon URL with TLS.
 - `DSP_JWT_SECRET`: strong random value, at least 32 characters.
 - `DSP_SEED_ADMIN_PASSWORD`: unique strong password.
-- `OPENAI_API_KEY_5` and/or `GEMINI_API_KEY`: valid server-side provider keys.
+- `OPENAI_API_KEY_5` and `GEMINI_API_KEY`: both valid server-side provider keys, because this deployment is configured for dual-provider verification.
 - `DSP_CORS_ORIGINS`: exact HTTPS origin(s), no wildcard.
 - `DSP_IMAGE_TAG` and `DSP_IMAGE_TAG_WEB`: unique immutable release tags.
 - `DSP_APP_VERSION`: match the incoming release tag; keep it synchronized with the version manifests.

@@ -26,35 +26,50 @@ router = APIRouter(
 
 
 class SaveCredentialRequest(BaseModel):
-    secret: str = Field(..., min_length=1, description="API key or token to store securely")
+    secret: str = Field(
+        ..., min_length=1, description="API key or token to store securely"
+    )
     validate_connection: bool = Field(
         default=True,
         alias="validate",
         description="Whether to execute pre-flight connection test before saving",
     )
-    selected_model: str | None = Field(default=None, description="Optional model to validate against")
+    selected_model: str | None = Field(
+        default=None, description="Optional model to validate against"
+    )
 
     model_config = {"populate_by_name": True}
 
 
 class TestConnectionRequest(BaseModel):
-    secret: str | None = Field(default=None, description="Candidate secret to test without saving")
+    secret: str | None = Field(
+        default=None, description="Candidate secret to test without saving"
+    )
     model: str | None = Field(default=None, description="Specific model to test")
 
 
 class SetStatusRequest(BaseModel):
-    is_active: bool = Field(..., description="Enable or disable provider for live routing")
+    is_active: bool = Field(
+        ..., description="Enable or disable provider for live routing"
+    )
 
 
 class SetModelRequest(BaseModel):
-    model: str = Field(..., min_length=1, description="Model identifier to set as default")
+    model: str = Field(
+        ..., min_length=1, description="Model identifier to set as default"
+    )
 
 
 class UpdateRoutingRequest(BaseModel):
-    primary_provider: str = Field(..., description="Default primary provider for this task")
-    fallback_providers: list[str] = Field(default_factory=list, description="Ordered fallbacks")
+    primary_provider: str = Field(
+        ..., description="Default primary provider for this task"
+    )
+    fallback_providers: list[str] = Field(
+        default_factory=list, description="Ordered fallbacks"
+    )
     require_independent_corroboration: bool = Field(
-        default=False, description="Whether statement extraction requires independent dual models"
+        default=False,
+        description="Whether statement extraction requires independent dual models",
     )
     timeout_seconds: float = Field(default=30.0, ge=1.0, le=300.0)
     max_retries: int = Field(default=2, ge=0, le=5)
@@ -62,7 +77,9 @@ class UpdateRoutingRequest(BaseModel):
 
 @router.get("/providers")
 async def list_providers(
-    category: str | None = Query(default=None, description="Filter by category ('ai' or 'market_data')"),
+    category: str | None = Query(
+        default=None, description="Filter by category ('ai' or 'market_data')"
+    ),
 ) -> dict[str, Any]:
     """List all registered providers and their sanitized runtime configuration/health."""
     store = get_runtime_store()
@@ -79,7 +96,9 @@ async def get_provider(provider_id: str) -> dict[str, Any]:
     store = get_runtime_store()
     rec = store.get_provider(provider_id)
     if rec is None:
-        raise HTTPException(status_code=404, detail=f"Provider '{provider_id}' not found")
+        raise HTTPException(
+            status_code=404, detail=f"Provider '{provider_id}' not found"
+        )
     return {"provider": rec}
 
 
@@ -111,7 +130,9 @@ async def save_credential(
     except ValidationFailedError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
     except Exception as exc:
-        raise HTTPException(status_code=500, detail=f"Failed to update credential: {exc}") from exc
+        raise HTTPException(
+            status_code=500, detail=f"Failed to update credential: {exc}"
+        ) from exc
 
 
 @router.delete("/providers/{provider_id}/credential")
@@ -143,12 +164,16 @@ async def run_connection_test(
     store = get_runtime_store()
     rec = store.get_provider(provider_id)
     if rec is None:
-        raise HTTPException(status_code=404, detail=f"Provider '{provider_id}' not found")
+        raise HTTPException(
+            status_code=404, detail=f"Provider '{provider_id}' not found"
+        )
 
     secret = payload.secret if payload and payload.secret else None
     model = payload.model if payload and payload.model else None
 
-    res = store.test_connection(provider_id, candidate_secret=secret, candidate_model=model)
+    res = store.test_connection(
+        provider_id, candidate_secret=secret, candidate_model=model
+    )
     return {
         "success": res["ok"],
         "status": res["status"],
@@ -169,7 +194,9 @@ async def update_provider_status(
     store = get_runtime_store()
     actor_id = admin_actor.get("user_id") or "admin"
     try:
-        rec = store.set_active_status(provider_id, is_active=payload.is_active, author=actor_id)
+        rec = store.set_active_status(
+            provider_id, is_active=payload.is_active, author=actor_id
+        )
         return {"ok": True, "provider": store.get_provider(provider_id)}
     except (ProviderNotFoundError, KeyError) as exc:
         raise HTTPException(status_code=404, detail=str(exc)) from exc
@@ -214,7 +241,9 @@ async def get_provider_audit(provider_id: str) -> dict[str, Any]:
     store = get_runtime_store()
     rec = store.get_provider(provider_id)
     if rec is None:
-        raise HTTPException(status_code=404, detail=f"Provider '{provider_id}' not found")
+        raise HTTPException(
+            status_code=404, detail=f"Provider '{provider_id}' not found"
+        )
     logs = store.get_audit_log(provider_id=provider_id)
     return {"provider_id": provider_id, "audit_log": logs}
 

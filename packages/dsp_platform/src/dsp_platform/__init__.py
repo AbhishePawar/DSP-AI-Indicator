@@ -18,6 +18,7 @@ from dsp_platform.asset_resolution import (
 
 try:
     from data_engine import register_upstox_asset_resolver
+
     register_upstox_asset_resolver(resolve_asset)
 except Exception:  # pragma: no cover
     pass

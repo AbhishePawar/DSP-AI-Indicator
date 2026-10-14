@@ -2,8 +2,8 @@
 
 from __future__ import annotations
 
-from collections.abc import Iterator
 import json
+from collections.abc import Iterator
 from typing import Any
 
 from fastapi import APIRouter, Depends, Header
@@ -15,8 +15,11 @@ from api_platform.api.copilot_schemas import (
     CopilotProviderInfo,
 )
 from api_platform.api.copilot_v2_schemas import CopilotV2Request
-from api_platform.api.dependencies import ApiState, get_api_state
-from api_platform.api.dependencies import require_authenticated_actor
+from api_platform.api.dependencies import (
+    ApiState,
+    get_api_state,
+    require_authenticated_actor,
+)
 from api_platform.api.exceptions import ApiValidationError
 from api_platform.api.schemas import ApiResponse, CopilotChatRequest
 
@@ -67,7 +70,12 @@ def _run_v2(
             buffett_mode=body.buffett_mode,
             research_orchestrator=state.research_orchestrator,
             language_model=state.language_model,
-            provider_registry=getattr(state, "provider_registry", None) or (getattr(state.copilot_service, "_registry", None) if state.copilot_service else None),
+            provider_registry=getattr(state, "provider_registry", None)
+            or (
+                getattr(state.copilot_service, "_registry", None)
+                if state.copilot_service
+                else None
+            ),
             require_ai=require_ai,
         )
     except ValueError as exc:
@@ -78,7 +86,11 @@ def _run_v2(
     except Exception as exc:  # noqa: BLE001
         return JSONResponse(
             status_code=503,
-            content={"ok": False, "error": "Generation failed.", "message": "Data unavailable."},
+            content={
+                "ok": False,
+                "error": "Generation failed.",
+                "message": "Data unavailable.",
+            },
         )
     return JSONResponse(
         {"ok": True, "result": result, "message": result.get("message")}
@@ -262,12 +274,23 @@ def copilot_complete(
     if state.copilot_service is None:
         raise ApiValidationError("Copilot service is not configured")
     req = body.request
-    if (not req or not req.get("ticker")) and body.response and isinstance(body.response, dict):
+    if (
+        (not req or not req.get("ticker"))
+        and body.response
+        and isinstance(body.response, dict)
+    ):
         payload = body.response.get("payload") or {}
         req = {
-            "ticker": (req.get("ticker") if req else None) or payload.get("ticker") or (body.market_context or {}).get("symbol") or "",
-            "company": (req.get("company") if req else None) or payload.get("company") or (body.market_context or {}).get("symbol") or "",
-            "exchange": (req.get("exchange") if req else None) or payload.get("exchange"),
+            "ticker": (req.get("ticker") if req else None)
+            or payload.get("ticker")
+            or (body.market_context or {}).get("symbol")
+            or "",
+            "company": (req.get("company") if req else None)
+            or payload.get("company")
+            or (body.market_context or {}).get("symbol")
+            or "",
+            "exchange": (req.get("exchange") if req else None)
+            or payload.get("exchange"),
         }
     result = state.copilot_service.complete(
         question_id=body.question_id,

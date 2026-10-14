@@ -6,8 +6,8 @@ and maintains P1-03 without fabricating data or weakening valuation authority.
 """
 
 from __future__ import annotations
-import concurrent.futures
 
+import concurrent.futures
 import json
 import logging
 import math
@@ -199,6 +199,7 @@ def _safe_parse_date(val: Any) -> date | None:
         pass
     return None
 
+
 def _safe_decimal(value: Any) -> Decimal | None:
     if value is None:
         return None
@@ -320,7 +321,9 @@ class StatementRecoveryService:
         checked_filings = 1 if active_filing else 0
 
         if active_filing is None and active_text is None:
-            active_filing, active_text, checked_filings = self._find_filing_evidence(sym, exchange=exchange)
+            active_filing, active_text, checked_filings = self._find_filing_evidence(
+                sym, exchange=exchange
+            )
 
         # Enforce that evidence must be actual document content, not empty metadata
         if not active_text or not active_text.strip():
@@ -334,9 +337,11 @@ class StatementRecoveryService:
             prov = RecoveryProvenance(
                 status=StatementRecoveryStatus.UNAVAILABLE,
                 source_url=active_filing.url if active_filing else None,
-                filing_date=active_filing.filed_at.isoformat()
-                if active_filing and active_filing.filed_at
-                else None,
+                filing_date=(
+                    active_filing.filed_at.isoformat()
+                    if active_filing and active_filing.filed_at
+                    else None
+                ),
                 exchange=exchange,
                 reporting_currency=currency,
                 retrieval_timestamp=start_time.isoformat(),
@@ -365,9 +370,11 @@ class StatementRecoveryService:
             prov = RecoveryProvenance(
                 status=StatementRecoveryStatus.UNAVAILABLE,
                 source_url=active_filing.url if active_filing else None,
-                filing_date=active_filing.filed_at.isoformat()
-                if active_filing and active_filing.filed_at
-                else None,
+                filing_date=(
+                    active_filing.filed_at.isoformat()
+                    if active_filing and active_filing.filed_at
+                    else None
+                ),
                 exchange=exchange,
                 reporting_currency=currency,
                 retrieval_timestamp=start_time.isoformat(),
@@ -436,17 +443,27 @@ class StatementRecoveryService:
             provenance=("dsp_platform.recovery.statement_recovery",),
         )
 
-        def _call_model(name: str, model: Any) -> tuple[str, dict[str, Any] | None, str | None]:
+        def _call_model(
+            name: str, model: Any
+        ) -> tuple[str, dict[str, Any] | None, str | None]:
             try:
                 res = model.invoke(req)
                 if res and res.status == LanguageModelStatus.COMPLETE:
                     text_out = getattr(res, "narrative_text", None) or getattr(
                         res, "content", None
                     )
-                    parsed = self._parse_json_response(text_out)
+                    parsed = (
+                        self._parse_json_response(text_out)
+                        if isinstance(text_out, str)
+                        else None
+                    )
                     if parsed:
                         return name, parsed, None
-                    return name, None, f"{name.capitalize()} returned invalid or unparseable JSON"
+                    return (
+                        name,
+                        None,
+                        f"{name.capitalize()} returned invalid or unparseable JSON",
+                    )
                 return name, None, f"{name.capitalize()} invocation unsuccessful"
             except Exception as exc:
                 return name, None, f"{name.capitalize()} error: {type(exc).__name__}"
@@ -460,8 +477,13 @@ class StatementRecoveryService:
             models_to_run.append(("openai", openai_model))
 
         if models_to_run:
-            with concurrent.futures.ThreadPoolExecutor(max_workers=len(models_to_run)) as executor:
-                fut_map = {executor.submit(_call_model, mname, mmod): mname for mname, mmod in models_to_run}
+            with concurrent.futures.ThreadPoolExecutor(
+                max_workers=len(models_to_run)
+            ) as executor:
+                fut_map = {
+                    executor.submit(_call_model, mname, mmod): mname
+                    for mname, mmod in models_to_run
+                }
                 try:
                     for fut in concurrent.futures.as_completed(fut_map, timeout=30.0):
                         mname = fut_map[fut]
@@ -479,12 +501,20 @@ class StatementRecoveryService:
                                     diag_errors.append(err)
                         except Exception as exc:
                             diag_models_failed.append(mname)
-                            diag_errors.append(f"{mname.capitalize()} error: {type(exc).__name__}")
+                            diag_errors.append(
+                                f"{mname.capitalize()} error: {type(exc).__name__}"
+                            )
                 except (TimeoutError, concurrent.futures.TimeoutError):
                     for fut, mname in fut_map.items():
-                        if not fut.done() and mname not in diag_models_failed and mname not in diag_models_succeeded:
+                        if (
+                            not fut.done()
+                            and mname not in diag_models_failed
+                            and mname not in diag_models_succeeded
+                        ):
                             diag_models_failed.append(mname)
-                            diag_errors.append(f"{mname.capitalize()} error: TimeoutError")
+                            diag_errors.append(
+                                f"{mname.capitalize()} error: TimeoutError"
+                            )
 
         elapsed = (datetime.now(tz=UTC) - start_time).total_seconds() * 1000.0
 
@@ -502,9 +532,11 @@ class StatementRecoveryService:
             prov = RecoveryProvenance(
                 status=StatementRecoveryStatus.UNAVAILABLE,
                 source_url=active_filing.url if active_filing else None,
-                filing_date=active_filing.filed_at.isoformat()
-                if active_filing and active_filing.filed_at
-                else None,
+                filing_date=(
+                    active_filing.filed_at.isoformat()
+                    if active_filing and active_filing.filed_at
+                    else None
+                ),
                 exchange=exchange,
                 reporting_currency=currency,
                 retrieval_timestamp=start_time.isoformat(),
@@ -577,9 +609,11 @@ class StatementRecoveryService:
             source_url=filing_url,
             source_type="regulatory_filing",
             filing_date=filing_d,
-            period_end=reconciled["period_end"].isoformat()
-            if reconciled.get("period_end")
-            else None,
+            period_end=(
+                reconciled["period_end"].isoformat()
+                if reconciled.get("period_end")
+                else None
+            ),
             period_type=reconciled["period_type"],
             exchange=exchange,
             reporting_currency=reconciled["currency"],
@@ -1035,13 +1069,15 @@ class StatementRecoveryService:
             "validated_keys": validated_keys,
             "rejected_keys": rejected_keys,
             "conflicts": conflicts,
-            "reason": None
-            if status
-            in (
-                StatementRecoveryStatus.RECOVERED_AND_VALIDATED,
-                StatementRecoveryStatus.PARTIALLY_RECOVERED,
-            )
-            else "No fields survived cross-validation and integrity checks",
+            "reason": (
+                None
+                if status
+                in (
+                    StatementRecoveryStatus.RECOVERED_AND_VALIDATED,
+                    StatementRecoveryStatus.PARTIALLY_RECOVERED,
+                )
+                else "No fields survived cross-validation and integrity checks"
+            ),
         }
 
     def _build_statement_bundle(

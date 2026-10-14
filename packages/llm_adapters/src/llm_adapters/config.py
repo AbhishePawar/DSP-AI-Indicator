@@ -66,21 +66,27 @@ def load_llm_config() -> LLMPlatformConfig:
     )
 
     # Only direct provider APIs are supported; legacy AI_GATEWAY_* values are ignored.
-    mode_raw = (_read_env("AI_PROVIDER_MODE", "DSP_AI_PROVIDER_MODE") or "direct").lower()
+    mode_raw = (
+        _read_env("AI_PROVIDER_MODE", "DSP_AI_PROVIDER_MODE") or "direct"
+    ).lower()
     provider_mode: ProviderMode = (
         "deterministic" if mode_raw == "deterministic" else "direct"
     )
 
     return LLMPlatformConfig(
         default_provider=default_provider,
-        openai_api_key=_read_env("OPENAI_API_KEY", "DSP_AI_OPENAI_API_KEY", "OPENAI_API_KEY_5"),
+        openai_api_key=_read_env(
+            "OPENAI_API_KEY", "DSP_AI_OPENAI_API_KEY", "OPENAI_API_KEY_5"
+        ),
         anthropic_api_key=_read_env("ANTHROPIC_API_KEY", "DSP_AI_ANTHROPIC_API_KEY"),
         gemini_api_key=_read_env("GEMINI_API_KEY", "DSP_AI_GEMINI_API_KEY"),
         deepseek_api_key=_read_env("DEEPSEEK_API_KEY", "DSP_AI_DEEPSEEK_API_KEY"),
-        openai_model=_read_env("OPENAI_MODEL", "DSP_AI_OPENAI_MODEL") or DEFAULT_OPENAI_MODEL,
+        openai_model=_read_env("OPENAI_MODEL", "DSP_AI_OPENAI_MODEL")
+        or DEFAULT_OPENAI_MODEL,
         anthropic_model=_read_env("ANTHROPIC_MODEL", "DSP_AI_ANTHROPIC_MODEL")
         or "claude-3-5-sonnet-20241022",
-        gemini_model=_read_env("GEMINI_MODEL", "DSP_AI_GEMINI_MODEL") or DEFAULT_GEMINI_MODEL,
+        gemini_model=_read_env("GEMINI_MODEL", "DSP_AI_GEMINI_MODEL")
+        or DEFAULT_GEMINI_MODEL,
         deepseek_model=_read_env("DEEPSEEK_MODEL", "DSP_AI_DEEPSEEK_MODEL")
         or "deepseek-chat",
         request_timeout_seconds=float(_read_env("DSP_AI_LLM_TIMEOUT_SECONDS") or "30"),

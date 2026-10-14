@@ -11,8 +11,7 @@ import json
 import logging
 import os
 import threading
-from dataclasses import asdict, dataclass, field
-from datetime import datetime, timezone
+from dataclasses import asdict, dataclass
 from typing import Any
 
 logger = logging.getLogger(__name__)
@@ -135,20 +134,36 @@ class TaskRoutingManager:
         if not os.path.exists(self._store_path):
             return
         try:
-            with open(self._store_path, "r", encoding="utf-8") as f:
+            with open(self._store_path, encoding="utf-8") as f:
                 data = json.load(f)
             with self._lock:
                 for tid, pdata in data.items():
                     if tid in self._policies:
                         curr = self._policies[tid]
-                        curr.primary_provider = pdata.get("primary_provider", curr.primary_provider)
-                        curr.primary_model = pdata.get("primary_model", curr.primary_model)
-                        curr.fallback_provider = pdata.get("fallback_provider", curr.fallback_provider)
-                        curr.fallback_model = pdata.get("fallback_model", curr.fallback_model)
-                        curr.require_corroboration = pdata.get("require_corroboration", curr.require_corroboration)
-                        curr.secondary_provider = pdata.get("secondary_provider", curr.secondary_provider)
-                        curr.secondary_model = pdata.get("secondary_model", curr.secondary_model)
-                        curr.timeout_seconds = pdata.get("timeout_seconds", curr.timeout_seconds)
+                        curr.primary_provider = pdata.get(
+                            "primary_provider", curr.primary_provider
+                        )
+                        curr.primary_model = pdata.get(
+                            "primary_model", curr.primary_model
+                        )
+                        curr.fallback_provider = pdata.get(
+                            "fallback_provider", curr.fallback_provider
+                        )
+                        curr.fallback_model = pdata.get(
+                            "fallback_model", curr.fallback_model
+                        )
+                        curr.require_corroboration = pdata.get(
+                            "require_corroboration", curr.require_corroboration
+                        )
+                        curr.secondary_provider = pdata.get(
+                            "secondary_provider", curr.secondary_provider
+                        )
+                        curr.secondary_model = pdata.get(
+                            "secondary_model", curr.secondary_model
+                        )
+                        curr.timeout_seconds = pdata.get(
+                            "timeout_seconds", curr.timeout_seconds
+                        )
                         curr.max_retries = pdata.get("max_retries", curr.max_retries)
                         curr.version = pdata.get("version", curr.version)
         except Exception as e:
@@ -215,13 +230,17 @@ class TaskRoutingManager:
             if primary_model is not None:
                 policy.primary_model = primary_model
             if fallback_provider is not None:
-                policy.fallback_provider = fallback_provider.lower() if fallback_provider else None
+                policy.fallback_provider = (
+                    fallback_provider.lower() if fallback_provider else None
+                )
             if fallback_model is not None:
                 policy.fallback_model = fallback_model
             if require_corroboration is not None:
                 policy.require_corroboration = require_corroboration
             if secondary_provider is not None:
-                policy.secondary_provider = secondary_provider.lower() if secondary_provider else None
+                policy.secondary_provider = (
+                    secondary_provider.lower() if secondary_provider else None
+                )
             if secondary_model is not None:
                 policy.secondary_model = secondary_model
             if timeout_seconds is not None:

@@ -40,7 +40,10 @@ class GenericOpenAIAdapter(OpenAICompatibleToolCalling):
         self.model_label = model_label
         self.timeout_seconds = timeout_seconds
         self.extra_headers = extra_headers or {}
-        self._provenance = (f"llm_adapters.{self.provider_id}", f"dsp.llm.{self.provider_id}.v1")
+        self._provenance = (
+            f"llm_adapters.{self.provider_id}",
+            f"dsp.llm.{self.provider_id}.v1",
+        )
 
     def is_configured(self) -> bool:
         if self.provider_id == "ollama":
@@ -69,7 +72,12 @@ class GenericOpenAIAdapter(OpenAICompatibleToolCalling):
         allow_tool_only: bool,
     ) -> tuple[LanguageModelResult, dict[str, Any] | None]:
         if not self.is_configured():
-            return self._unavailable(f"{self.provider_id.upper()} credentials not configured"), None
+            return (
+                self._unavailable(
+                    f"{self.provider_id.upper()} credentials not configured"
+                ),
+                None,
+            )
 
         if not request.prompt_parts:
             return self._failed("empty prompt parts"), None
@@ -97,7 +105,11 @@ class GenericOpenAIAdapter(OpenAICompatibleToolCalling):
             headers["Authorization"] = f"Bearer {self.api_key}"
 
         url = f"{self.base_url}/chat/completions"
-        if not self.base_url.endswith("/v1") and not self.base_url.endswith("/v2") and "api" not in self.base_url:
+        if (
+            not self.base_url.endswith("/v1")
+            and not self.base_url.endswith("/v2")
+            and "api" not in self.base_url
+        ):
             url = f"{self.base_url}/v1/chat/completions"
 
         try:
@@ -152,12 +164,18 @@ class GenericOpenAIAdapter(OpenAICompatibleToolCalling):
             headers["Authorization"] = f"Bearer {self.api_key}"
 
         url = f"{self.base_url}/chat/completions"
-        if not self.base_url.endswith("/v1") and not self.base_url.endswith("/v2") and "api" not in self.base_url:
+        if (
+            not self.base_url.endswith("/v1")
+            and not self.base_url.endswith("/v2")
+            and "api" not in self.base_url
+        ):
             url = f"{self.base_url}/v1/chat/completions"
 
         try:
             with httpx.Client(timeout=self.timeout_seconds) as client:
-                with client.stream("POST", url, headers=headers, json=payload) as response:
+                with client.stream(
+                    "POST", url, headers=headers, json=payload
+                ) as response:
                     response.raise_for_status()
                     for line in response.iter_lines():
                         if not line or not line.startswith("data: "):
@@ -169,7 +187,11 @@ class GenericOpenAIAdapter(OpenAICompatibleToolCalling):
                             chunk = json.loads(chunk_raw)
                         except json.JSONDecodeError:
                             continue
-                        delta = chunk.get("choices", [{}])[0].get("delta", {}).get("content")
+                        delta = (
+                            chunk.get("choices", [{}])[0]
+                            .get("delta", {})
+                            .get("content")
+                        )
                         if delta:
                             yield str(delta)
         except httpx.HTTPError:

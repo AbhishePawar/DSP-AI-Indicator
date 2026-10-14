@@ -25,11 +25,19 @@ from api_platform.api.mappers import (
 )
 from api_platform.api.research_orchestration_service import (
     _MAX_ORCHESTRATION_WORKERS as _MAX_ORCHESTRATION_WORKERS,
+)
+from api_platform.api.research_orchestration_service import (
     _ORCHESTRATION_SEMAPHORE as _ORCHESTRATION_SEMAPHORE,
+)
+from api_platform.api.research_orchestration_service import (
     execute_research_orchestration,
+)
+from api_platform.api.research_orchestration_service import (
     parse_orchestration_timeout as parse_orchestration_timeout,
 )
-from api_platform.api.validation import validate_analyse_request as validate_analyse_request
+from api_platform.api.validation import (
+    validate_analyse_request as validate_analyse_request,
+)
 from dsp_platform import CompositionInputError, build_composition_request
 from dsp_platform.investment_provenance import (
     InvestmentProvenanceError,
@@ -134,7 +142,9 @@ def analyse(
             orchestration_limitations.extend(lims)
 
         if orchestration_limitations:
-            if "limitations" in public_payload and isinstance(public_payload["limitations"], list):
+            if "limitations" in public_payload and isinstance(
+                public_payload["limitations"], list
+            ):
                 public_payload["limitations"].extend(orchestration_limitations)
             else:
                 public_payload["limitations"] = list(orchestration_limitations)
@@ -386,7 +396,7 @@ def _persist_investment_provenance(
             "P1-06: investment provenance not persisted (degraded non-production mode)"
         ]
         return
-    except Exception:  # noqa: BLE001
+    except Exception as exc:  # noqa: BLE001
         if production:
             raise CompositionApiError(
                 "investment provenance persistence failed — "

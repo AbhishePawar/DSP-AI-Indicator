@@ -8,13 +8,6 @@ layer. Concrete adapters: Yahoo Finance (OHLCV + fundamentals) and FRED
 from __future__ import annotations
 
 from data_engine.adapters import BaseAdapter
-from data_engine.source_governance import (
-    APPROVED_SOURCES as APPROVED_SOURCES,
-    PRIMARY_SOURCES as PRIMARY_SOURCES,
-    SECONDARY_SOURCES as SECONDARY_SOURCES,
-    DataProvenance as DataProvenance,
-    is_approved_source as is_approved_source,
-)
 from data_engine.adapters.fred import (
     CANONICAL_INDICATOR_CODES,
     FRED_METADATA,
@@ -308,7 +301,21 @@ from data_engine.services import (
     FundamentalsDataService,
     MarketDataService,
 )
-from data_engine.upstox import register_upstox_asset_resolver
+from data_engine.source_governance import (
+    APPROVED_SOURCES as APPROVED_SOURCES,
+)
+from data_engine.source_governance import (
+    PRIMARY_SOURCES as PRIMARY_SOURCES,
+)
+from data_engine.source_governance import (
+    SECONDARY_SOURCES as SECONDARY_SOURCES,
+)
+from data_engine.source_governance import (
+    DataProvenance as DataProvenance,
+)
+from data_engine.source_governance import (
+    is_approved_source as is_approved_source,
+)
 from data_engine.transcripts import (
     AuthenticatedTranscripts,
     EarningsCallTranscript,
@@ -324,6 +331,7 @@ from data_engine.transcripts import (
     build_transcripts_bundle_from_mapping,
     validate_authenticated_transcripts,
 )
+from data_engine.upstox import register_upstox_asset_resolver
 
 __all__ = [
     "ACTION_TYPES",

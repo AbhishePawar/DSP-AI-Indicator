@@ -1,13 +1,14 @@
 import json
 import os
 from unittest.mock import patch
+
 import pytest
 
 from llm_adapters.runtime_store import (
     RuntimeProviderStore,
     ValidationFailedError,
-    encrypt_at_rest,
     decrypt_at_rest,
+    encrypt_at_rest,
     mask_secret,
 )
 
@@ -33,7 +34,7 @@ def test_mask_secret():
 def test_store_replace_and_revoke_credential(tmp_path):
     store_file = str(tmp_path / "test_store.json")
     store = RuntimeProviderStore(store_path=store_file)
-    
+
     # Initially not configured
     gemini = store.get_provider("gemini")
     assert gemini is not None
@@ -52,7 +53,7 @@ def test_store_replace_and_revoke_credential(tmp_path):
     assert updated.version == 2
 
     # Check persisted file on disk is encrypted
-    with open(store_file, "r") as f:
+    with open(store_file) as f:
         disk_content = f.read()
     assert "test-gemini-key-999999" not in disk_content
     assert "enc:v1:" in disk_content
@@ -81,9 +82,13 @@ def test_store_replace_and_revoke_credential(tmp_path):
 
 def test_revoked_environment_credential_stays_revoked_after_restart(tmp_path):
     store_file = str(tmp_path / "revocation_store.json")
-    with patch.dict(os.environ, {"OPENAI_API_KEY": "environment-key-that-must-stay-revoked"}):
+    with patch.dict(
+        os.environ, {"OPENAI_API_KEY": "environment-key-that-must-stay-revoked"}
+    ):
         first = RuntimeProviderStore(store_path=store_file)
-        assert first.get_credential("openai") == "environment-key-that-must-stay-revoked"
+        assert (
+            first.get_credential("openai") == "environment-key-that-must-stay-revoked"
+        )
 
         first.revoke_credential("openai", author="admin_test")
         assert first.get_credential("openai") is None
@@ -107,7 +112,16 @@ def test_failed_candidate_preserves_existing_credential(tmp_path):
     assert store.get_provider("openai")["version"] == 2
 
     # Now attempt replacement with candidate that fails validation
-    with patch.object(store, "test_connection", return_value={"ok": False, "status": "auth_failure", "latency_ms": 50, "sanitized_error": "Invalid API Key"}):
+    with patch.object(
+        store,
+        "test_connection",
+        return_value={
+            "ok": False,
+            "status": "auth_failure",
+            "latency_ms": 50,
+            "sanitized_error": "Invalid API Key",
+        },
+    ):
         with pytest.raises(ValidationFailedError):
             store.replace_credential(
                 "openai",
@@ -119,6 +133,7 @@ def test_failed_candidate_preserves_existing_credential(tmp_path):
     # Existing key must be preserved!
     assert store.get_credential("openai") == "good-openai-key-111111"
     assert store.get_provider("openai")["version"] == 2
+
 
 def test_production_store_requires_explicit_encryption_master_key(tmp_path):
     store_file = str(tmp_path / "production_store.json")

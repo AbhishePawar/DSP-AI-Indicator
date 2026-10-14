@@ -55,7 +55,9 @@ def compute_session_id(user_id: str, symbol: str, analysis_id: str) -> str:
 class ResearchSessionService:
     """Service managing durable research session persistence and turn streaming."""
 
-    def __init__(self, storage: StorageProviderPort, *, max_turns: int = DEFAULT_MAX_TURNS) -> None:
+    def __init__(
+        self, storage: StorageProviderPort, *, max_turns: int = DEFAULT_MAX_TURNS
+    ) -> None:
         self._storage = storage
         self._max_turns = max_turns
 
@@ -212,6 +214,7 @@ def get_research_session_service() -> ResearchSessionService:
     global _RESEARCH_SESSION_SERVICE
     if _RESEARCH_SESSION_SERVICE is None:
         from persistence.registry import build_default_storage
+
         _RESEARCH_SESSION_SERVICE = ResearchSessionService(build_default_storage())
     return _RESEARCH_SESSION_SERVICE
 

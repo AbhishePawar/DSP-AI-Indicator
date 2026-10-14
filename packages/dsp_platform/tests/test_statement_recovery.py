@@ -576,7 +576,6 @@ def test_independent_stages_continue_when_financial_fails_and_no_secret_leak(
         reset_statement_recovery_service_for_tests(None)
 
 
-
 def test_filing_candidate_search_skips_metadata_only_to_find_valid_filing(monkeypatch):
     """Metadata-only first filing must be skipped, finding subsequent valid candidate."""
     from dsp_platform.recovery.statement_recovery import StatementRecoveryService
@@ -599,6 +598,7 @@ def test_filing_candidate_search_skips_metadata_only_to_find_valid_filing(monkey
     ]
 
     import dsp_platform.filings
+
     monkeypatch.setattr(
         dsp_platform.filings,
         "get_authenticated_filings",
@@ -613,7 +613,9 @@ def test_filing_candidate_search_skips_metadata_only_to_find_valid_filing(monkey
     assert checked == 2
 
 
-def test_filing_candidate_search_handles_malformed_candidate_dates_gracefully(monkeypatch):
+def test_filing_candidate_search_handles_malformed_candidate_dates_gracefully(
+    monkeypatch,
+):
     """Malformed date strings on candidates do not terminate the search."""
     from dsp_platform.recovery.statement_recovery import StatementRecoveryService
 
@@ -629,6 +631,7 @@ def test_filing_candidate_search_handles_malformed_candidate_dates_gracefully(mo
     ]
 
     import dsp_platform.filings
+
     monkeypatch.setattr(
         dsp_platform.filings,
         "get_authenticated_filings",
@@ -656,6 +659,7 @@ def test_filing_candidate_search_all_unusable_returns_unavailable(monkeypatch):
     ]
 
     import dsp_platform.filings
+
     monkeypatch.setattr(
         dsp_platform.filings,
         "get_authenticated_filings",
@@ -669,7 +673,9 @@ def test_filing_candidate_search_all_unusable_returns_unavailable(monkeypatch):
     assert checked == 3
 
 
-def test_filing_candidate_search_extraction_exception_continues_to_later_valid_candidate(monkeypatch):
+def test_filing_candidate_search_extraction_exception_continues_to_later_valid_candidate(
+    monkeypatch,
+):
     """A local exception while parsing one candidate does not stop evaluating subsequent candidates."""
     from dsp_platform.recovery.statement_recovery import StatementRecoveryService
 
@@ -689,6 +695,7 @@ def test_filing_candidate_search_extraction_exception_continues_to_later_valid_c
     ]
 
     import dsp_platform.filings
+
     monkeypatch.setattr(
         dsp_platform.filings,
         "get_authenticated_filings",

@@ -15,12 +15,11 @@ import hashlib
 import json
 import logging
 import os
-import stat
 import threading
 import time
 from dataclasses import asdict, dataclass, field
-from datetime import datetime, timezone
-from typing import Any, Callable
+from datetime import UTC, datetime
+from typing import Any
 
 from llm_adapters.connection_tester import test_provider_connection
 from llm_adapters.provider_health import (
@@ -87,7 +86,9 @@ def _get_active_encryption_key() -> bytes:
         except Exception:
             return _derive_fernet_key(mfa_key)
 
-    jwt_secret = (os.environ.get("DSP_AUTH_JWT_SECRET") or "dsp-local-development-key").strip()
+    jwt_secret = (
+        os.environ.get("DSP_AUTH_JWT_SECRET") or "dsp-local-development-key"
+    ).strip()
     return _derive_fernet_key(jwt_secret)
 
 
@@ -116,7 +117,9 @@ def decrypt_at_rest(stored: str) -> str:
     try:
         return Fernet(key).decrypt(token).decode("utf-8")
     except InvalidToken as exc:
-        logger.error("Failed to decrypt stored credential: key mismatch or ciphertext corrupted.")
+        logger.error(
+            "Failed to decrypt stored credential: key mismatch or ciphertext corrupted."
+        )
         raise ValueError("Stored credential could not be decrypted.") from exc
 
 
@@ -142,6 +145,7 @@ class ValidationFailedError(Exception):
 
 class ProviderNotFoundError(KeyError):
     """Raised when requested provider is not in the registry."""
+
     pass
 
 
@@ -279,7 +283,11 @@ DEFAULT_PROVIDERS: list[ProviderConfig] = [
         category="ai",
         is_active=True,
         selected_model="mistral-large-latest",
-        supported_models=["mistral-large-latest", "mistral-small-latest", "codestral-latest"],
+        supported_models=[
+            "mistral-large-latest",
+            "mistral-small-latest",
+            "codestral-latest",
+        ],
         supported_capabilities=["chat", "structured_output"],
     ),
     ProviderConfig(
@@ -380,7 +388,7 @@ class RuntimeProviderStore:
         self._load_from_storage_if_present()
 
     def _now_iso(self) -> str:
-        return datetime.now(timezone.utc).isoformat()
+        return datetime.now(UTC).isoformat()
 
     def _check_persistence_backend(self) -> None:
         """Inspect environment for PostgreSQL persistence connectivity."""
@@ -406,15 +414,16 @@ class RuntimeProviderStore:
             self._postgres_pool = ConnectionPool(
                 conninfo=self._postgres_dsn,
                 min_size=1,
-                max_size=max(2, int(os.environ.get("DSP_RUNTIME_STORE_POOL_MAX_SIZE", "8"))),
+                max_size=max(
+                    2, int(os.environ.get("DSP_RUNTIME_STORE_POOL_MAX_SIZE", "8"))
+                ),
                 timeout=3,
                 kwargs={"connect_timeout": 3},
                 open=True,
             )
             with self._postgres_pool.connection() as conn:
                 with conn.cursor() as cur:
-                    cur.execute(
-                        """
+                    cur.execute("""
                         CREATE TABLE IF NOT EXISTS dsp_runtime_providers (
                             provider_id TEXT PRIMARY KEY,
                             config_json TEXT NOT NULL,
@@ -435,11 +444,12 @@ class RuntimeProviderStore:
                             validation_result TEXT NOT NULL,
                             sanitized_metadata JSONB NOT NULL
                         );
-                        """
-                    )
+                        """)
                 conn.commit()
             self._postgres_enabled = True
-            logger.info("PostgreSQL runtime provider persistence initialized and verified.")
+            logger.info(
+                "PostgreSQL runtime provider persistence initialized and verified."
+            )
         except Exception as exc:
             if self._postgres_pool is not None:
                 try:
@@ -518,13 +528,25 @@ class RuntimeProviderStore:
                                 if pid in self._providers:
                                     prov = self._providers[pid]
                                     pdata = json.loads(cfg_str)
-                                    prov.is_active = pdata.get("is_active", prov.is_active)
-                                    prov.selected_model = pdata.get("selected_model", prov.selected_model)
-                                    prov.temperature = pdata.get("temperature", prov.temperature)
-                                    prov.max_tokens = pdata.get("max_tokens", prov.max_tokens)
+                                    prov.is_active = pdata.get(
+                                        "is_active", prov.is_active
+                                    )
+                                    prov.selected_model = pdata.get(
+                                        "selected_model", prov.selected_model
+                                    )
+                                    prov.temperature = pdata.get(
+                                        "temperature", prov.temperature
+                                    )
+                                    prov.max_tokens = pdata.get(
+                                        "max_tokens", prov.max_tokens
+                                    )
                                     prov.base_url = pdata.get("base_url", prov.base_url)
-                                    prov.timeout_seconds = pdata.get("timeout_seconds", prov.timeout_seconds)
-                                    prov.max_retries = pdata.get("max_retries", prov.max_retries)
+                                    prov.timeout_seconds = pdata.get(
+                                        "timeout_seconds", prov.timeout_seconds
+                                    )
+                                    prov.max_retries = pdata.get(
+                                        "max_retries", prov.max_retries
+                                    )
                                     prov.version = ver
 
                                 if credential_revoked:
@@ -532,7 +554,9 @@ class RuntimeProviderStore:
                                     self._secrets.pop(pid, None)
                                     if pid in self._providers:
                                         self._providers[pid].has_credential = False
-                                        self._providers[pid].health_status = ProviderHealthStatus.NOT_CONFIGURED
+                                        self._providers[pid].health_status = (
+                                            ProviderHealthStatus.NOT_CONFIGURED
+                                        )
                                 elif enc_cred:
                                     self._credential_revoked.discard(pid)
                                     try:
@@ -540,17 +564,36 @@ class RuntimeProviderStore:
                                         if decrypted:
                                             self._secrets[pid] = decrypted
                                             if pid in self._providers:
-                                                self._providers[pid].has_credential = True
+                                                self._providers[pid].has_credential = (
+                                                    True
+                                                )
                                     except Exception:
-                                        logger.error("Failed to decrypt credentials for %s from db.", pid)
+                                        logger.error(
+                                            "Failed to decrypt credentials for %s from db.",
+                                            pid,
+                                        )
 
                         # Load audits
-                        cur.execute("SELECT timestamp, author, action, provider_id, version, validation_result, sanitized_metadata FROM dsp_runtime_provider_audits ORDER BY timestamp ASC LIMIT 100")
+                        cur.execute(
+                            "SELECT timestamp, author, action, provider_id, version, validation_result, sanitized_metadata FROM dsp_runtime_provider_audits ORDER BY timestamp ASC LIMIT 100"
+                        )
                         audit_rows = cur.fetchall()
-                        for tstamp, author, action, pid, ver, val_res, meta in audit_rows:
+                        for (
+                            tstamp,
+                            author,
+                            action,
+                            pid,
+                            ver,
+                            val_res,
+                            meta,
+                        ) in audit_rows:
                             self._audit_log.append(
                                 AuditRecord(
-                                    timestamp=tstamp.isoformat() if hasattr(tstamp, "isoformat") else str(tstamp),
+                                    timestamp=(
+                                        tstamp.isoformat()
+                                        if hasattr(tstamp, "isoformat")
+                                        else str(tstamp)
+                                    ),
                                     author=author,
                                     action=action,
                                     provider_id=pid,
@@ -561,18 +604,24 @@ class RuntimeProviderStore:
                             )
                 return
             except Exception as exc:
-                logger.error("Failed loading configuration from PostgreSQL: %s; trying disk", exc)
+                logger.error(
+                    "Failed loading configuration from PostgreSQL: %s; trying disk", exc
+                )
 
         # Local fallback is forbidden in production; PostgreSQL initialization/read failures
         # must not silently change the persistence backend.
-        if any(os.environ.get(name, "").strip().lower() in {"production", "prod"}
-               for name in ("DSP_ENV", "APP_ENV", "ENVIRONMENT", "NODE_ENV", "ENV")):
-            raise RuntimeError("PostgreSQL provider store could not be loaded in production.")
+        if any(
+            os.environ.get(name, "").strip().lower() in {"production", "prod"}
+            for name in ("DSP_ENV", "APP_ENV", "ENVIRONMENT", "NODE_ENV", "ENV")
+        ):
+            raise RuntimeError(
+                "PostgreSQL provider store could not be loaded in production."
+            )
         if not os.path.exists(self._store_path):
             return
 
         try:
-            with open(self._store_path, "r", encoding="utf-8") as f:
+            with open(self._store_path, encoding="utf-8") as f:
                 data = json.load(f)
 
             with self._lock:
@@ -580,11 +629,15 @@ class RuntimeProviderStore:
                     if pid in self._providers:
                         prov = self._providers[pid]
                         prov.is_active = pdata.get("is_active", prov.is_active)
-                        prov.selected_model = pdata.get("selected_model", prov.selected_model)
+                        prov.selected_model = pdata.get(
+                            "selected_model", prov.selected_model
+                        )
                         prov.temperature = pdata.get("temperature", prov.temperature)
                         prov.max_tokens = pdata.get("max_tokens", prov.max_tokens)
                         prov.base_url = pdata.get("base_url", prov.base_url)
-                        prov.timeout_seconds = pdata.get("timeout_seconds", prov.timeout_seconds)
+                        prov.timeout_seconds = pdata.get(
+                            "timeout_seconds", prov.timeout_seconds
+                        )
                         prov.max_retries = pdata.get("max_retries", prov.max_retries)
                         prov.version = pdata.get("version", prov.version)
 
@@ -598,7 +651,11 @@ class RuntimeProviderStore:
                                 if pid in self._providers:
                                     self._providers[pid].has_credential = True
                         except Exception as exc:
-                            logger.error("Failed to decrypt stored credential for %s: %s", pid, exc)
+                            logger.error(
+                                "Failed to decrypt stored credential for %s: %s",
+                                pid,
+                                exc,
+                            )
 
                 # Apply durable revocation tombstones after environment/disk secrets are loaded.
                 for pid in data.get("revoked_credentials", []):
@@ -606,7 +663,9 @@ class RuntimeProviderStore:
                     self._secrets.pop(pid, None)
                     if pid in self._providers:
                         self._providers[pid].has_credential = False
-                        self._providers[pid].health_status = ProviderHealthStatus.NOT_CONFIGURED
+                        self._providers[pid].health_status = (
+                            ProviderHealthStatus.NOT_CONFIGURED
+                        )
 
                 # Load audit log
                 for a in data.get("audit_log", []):
@@ -656,8 +715,11 @@ class RuntimeProviderStore:
                                 WHERE dsp_runtime_providers.version < EXCLUDED.version;
                                 """,
                                 (
-                                    pid, cfg_json, enc_cred,
-                                    pid in self._credential_revoked, prov.version,
+                                    pid,
+                                    cfg_json,
+                                    enc_cred,
+                                    pid in self._credential_revoked,
+                                    prov.version,
                                 ),
                             )
                             if cur.rowcount != 1:
@@ -666,18 +728,26 @@ class RuntimeProviderStore:
                                 )
             except Exception as exc:
                 logger.error("Failed writing provider state to PostgreSQL.")
-                if any(os.environ.get(name, "").strip().lower() in {"production", "prod"}
-                       for name in ("DSP_ENV", "APP_ENV", "ENVIRONMENT", "NODE_ENV", "ENV")):
-                    raise RuntimeError("Required PostgreSQL provider-store write failed.") from exc
+                if any(
+                    os.environ.get(name, "").strip().lower() in {"production", "prod"}
+                    for name in ("DSP_ENV", "APP_ENV", "ENVIRONMENT", "NODE_ENV", "ENV")
+                ):
+                    raise RuntimeError(
+                        "Required PostgreSQL provider-store write failed."
+                    ) from exc
 
         # Local file is only a single-instance development fallback, never a production fallback.
-        if any(os.environ.get(name, "").strip().lower() in {"production", "prod"}
-               for name in ("DSP_ENV", "APP_ENV", "ENVIRONMENT", "NODE_ENV", "ENV")):
+        if any(
+            os.environ.get(name, "").strip().lower() in {"production", "prod"}
+            for name in ("DSP_ENV", "APP_ENV", "ENVIRONMENT", "NODE_ENV", "ENV")
+        ):
             return
         try:
             providers_data = {}
             for pid, prov in self._providers.items():
-                providers_data[pid] = prov.to_public_dict(mask_secret(self._secrets.get(pid)))
+                providers_data[pid] = prov.to_public_dict(
+                    mask_secret(self._secrets.get(pid))
+                )
 
             data = {
                 "providers": providers_data,
@@ -708,11 +778,17 @@ class RuntimeProviderStore:
         if not self._postgres_enabled or self._postgres_pool is None:
             return
         now = time.monotonic()
-        if not force and now - self._last_refresh_monotonic < self._refresh_interval_seconds:
+        if (
+            not force
+            and now - self._last_refresh_monotonic < self._refresh_interval_seconds
+        ):
             return
         with self._lock:
             now = time.monotonic()
-            if not force and now - self._last_refresh_monotonic < self._refresh_interval_seconds:
+            if (
+                not force
+                and now - self._last_refresh_monotonic < self._refresh_interval_seconds
+            ):
                 return
             try:
                 with self._postgres_pool.connection() as conn:
@@ -730,11 +806,21 @@ class RuntimeProviderStore:
                         audit_rows = cur.fetchall()
                 self._audit_log = [
                     AuditRecord(
-                        timestamp=tstamp.isoformat() if hasattr(tstamp, "isoformat") else str(tstamp),
-                        author=author, action=action, provider_id=pid, version=ver,
-                        validation_result=result, sanitized_metadata=metadata or {},
+                        timestamp=(
+                            tstamp.isoformat()
+                            if hasattr(tstamp, "isoformat")
+                            else str(tstamp)
+                        ),
+                        author=author,
+                        action=action,
+                        provider_id=pid,
+                        version=ver,
+                        validation_result=result,
+                        sanitized_metadata=metadata or {},
                     )
-                    for tstamp, author, action, pid, ver, result, metadata in reversed(audit_rows)
+                    for tstamp, author, action, pid, ver, result, metadata in reversed(
+                        audit_rows
+                    )
                 ]
                 for pid, cfg_json, enc_cred, version, revoked in rows:
                     if pid not in self._providers:
@@ -742,11 +828,15 @@ class RuntimeProviderStore:
                     data = json.loads(cfg_json)
                     prov = self._providers[pid]
                     prov.is_active = data.get("is_active", prov.is_active)
-                    prov.selected_model = data.get("selected_model", prov.selected_model)
+                    prov.selected_model = data.get(
+                        "selected_model", prov.selected_model
+                    )
                     prov.temperature = data.get("temperature", prov.temperature)
                     prov.max_tokens = data.get("max_tokens", prov.max_tokens)
                     prov.base_url = data.get("base_url", prov.base_url)
-                    prov.timeout_seconds = data.get("timeout_seconds", prov.timeout_seconds)
+                    prov.timeout_seconds = data.get(
+                        "timeout_seconds", prov.timeout_seconds
+                    )
                     prov.max_retries = data.get("max_retries", prov.max_retries)
                     prov.version = version
                     if revoked:
@@ -762,9 +852,13 @@ class RuntimeProviderStore:
                 self._last_refresh_monotonic = now
             except Exception as exc:
                 logger.error("Runtime provider PostgreSQL refresh failed.")
-                if any(os.environ.get(name, "").strip().lower() in {"production", "prod"}
-                       for name in ("DSP_ENV", "APP_ENV", "ENVIRONMENT", "NODE_ENV", "ENV")):
-                    raise RuntimeError("Required PostgreSQL provider-store refresh failed.") from exc
+                if any(
+                    os.environ.get(name, "").strip().lower() in {"production", "prod"}
+                    for name in ("DSP_ENV", "APP_ENV", "ENVIRONMENT", "NODE_ENV", "ENV")
+                ):
+                    raise RuntimeError(
+                        "Required PostgreSQL provider-store refresh failed."
+                    ) from exc
 
     def get_provider(self, provider_id: str) -> dict[str, Any] | None:
         self._refresh_from_storage_if_stale()
@@ -790,7 +884,9 @@ class RuntimeProviderStore:
                 if category is None or p.category == category:
                     masked = mask_secret(self._secrets.get(p.provider_id))
                     result.append(p.to_public_dict(masked))
-            return sorted(result, key=lambda x: (x["category"] != "ai", x["provider_id"]))
+            return sorted(
+                result, key=lambda x: (x["category"] != "ai", x["provider_id"])
+            )
 
     def get_credential(self, provider_id: str) -> str | None:
         """Internal retrieval of active decrypted credential for execution."""
@@ -1000,8 +1096,14 @@ class RuntimeProviderStore:
         with self._lock:
             prov = self._providers.get(pid)
             if not prov:
-                raise ProviderNotFoundError(f"Provider '{provider_id}' is not registered.")
-            secret = candidate_secret if candidate_secret is not None else self._secrets.get(pid)
+                raise ProviderNotFoundError(
+                    f"Provider '{provider_id}' is not registered."
+                )
+            secret = (
+                candidate_secret
+                if candidate_secret is not None
+                else self._secrets.get(pid)
+            )
 
         if not secret:
             return {
@@ -1012,7 +1114,9 @@ class RuntimeProviderStore:
                 "recommended_action": f"Save an API key for {prov.display_name}.",
             }
 
-        target_model = candidate_model if candidate_model is not None else prov.selected_model
+        target_model = (
+            candidate_model if candidate_model is not None else prov.selected_model
+        )
         success, latency_ms, error_msg = test_provider_connection(
             pid,
             secret,
@@ -1021,7 +1125,9 @@ class RuntimeProviderStore:
             timeout=prov.timeout_seconds,
         )
 
-        diag = classify_provider_error(error_msg, provider_id=pid) if not success else None
+        diag = (
+            classify_provider_error(error_msg, provider_id=pid) if not success else None
+        )
 
         if candidate_secret is None:
             with self._lock:
@@ -1033,7 +1139,9 @@ class RuntimeProviderStore:
                     prov.last_error_sanitized = None
                     prov.recommended_action = None
                 else:
-                    prov.health_status = diag.status if diag else ProviderHealthStatus.CONFIG_ERROR
+                    prov.health_status = (
+                        diag.status if diag else ProviderHealthStatus.CONFIG_ERROR
+                    )
                     prov.last_error_sanitized = diag.sanitized_reason if diag else None
                     prov.recommended_action = diag.recommended_action if diag else None
 
@@ -1046,7 +1154,11 @@ class RuntimeProviderStore:
             status_val = (
                 ProviderHealthStatus.HEALTHY.value
                 if success
-                else (diag.status.value if diag else ProviderHealthStatus.CONFIG_ERROR.value)
+                else (
+                    diag.status.value
+                    if diag
+                    else ProviderHealthStatus.CONFIG_ERROR.value
+                )
             )
             err_sanitized = diag.sanitized_reason if diag else None
             rec_act = diag.recommended_action if diag else None
@@ -1085,7 +1197,11 @@ class RuntimeProviderStore:
         return self.update_config(provider_id, is_active=is_active, author=author)
 
     def rollback(
-        self, provider_id: str, target_version: int | None = None, *, author: str = "administrator"
+        self,
+        provider_id: str,
+        target_version: int | None = None,
+        *,
+        author: str = "administrator",
     ) -> ProviderConfig:
         """Rollback configuration to a previous version."""
         pid = provider_id.lower()
@@ -1097,11 +1213,15 @@ class RuntimeProviderStore:
             snapshots = self._history.get(pid, [])
             if target_version is None:
                 if not snapshots:
-                    raise ValueError(f"No history available to rollback provider '{provider_id}'.")
+                    raise ValueError(
+                        f"No history available to rollback provider '{provider_id}'."
+                    )
                 match = snapshots[-1]
                 target_version = match.get("version", 1)
             else:
-                match = next((s for s in snapshots if s.get("version") == target_version), None)
+                match = next(
+                    (s for s in snapshots if s.get("version") == target_version), None
+                )
                 if not match:
                     raise ValueError(
                         f"Version {target_version} not found in history for {provider_id}."

@@ -289,7 +289,9 @@ def build_default_quote_adapter_from_env() -> MarketQuotePort:
     if os.environ.get("UPSTOX_ACCESS_TOKEN", "").strip():
         from data_engine.market_quote.upstox_adapter import UpstoxQuoteAdapter
 
-        return UpstoxQuoteAdapter(access_token=os.environ.get("UPSTOX_ACCESS_TOKEN", "").strip())
+        return UpstoxQuoteAdapter(
+            access_token=os.environ.get("UPSTOX_ACCESS_TOKEN", "").strip()
+        )
 
     if memory_adapter_allowed("DSP_MARKET_QUOTE_MEMORY", connector="market_quote"):
         return InMemoryAuthenticatedQuoteAdapter(api_key=api_key or "dev-memory-key")

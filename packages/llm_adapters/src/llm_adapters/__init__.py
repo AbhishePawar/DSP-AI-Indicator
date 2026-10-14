@@ -6,8 +6,7 @@ from llm_adapters.benchmark import (
     run_case_against_model,
 )
 from llm_adapters.config import LLMPlatformConfig, load_llm_config
-from llm_adapters.gemini_adapter import GeminiDirectAdapter
-from llm_adapters.openai_adapter import OpenAIDirectAdapter
+from llm_adapters.connection_tester import test_provider_connection
 from llm_adapters.cost_scoring import (
     ScoredEvaluation,
     calculate_cost_score,
@@ -24,6 +23,7 @@ from llm_adapters.evaluation import (
     QualityEvaluation,
     TokenUsage,
 )
+from llm_adapters.gemini_adapter import GeminiDirectAdapter
 from llm_adapters.model_catalog import (
     DEFAULT_CATALOG,
     ModelCapabilities,
@@ -39,6 +39,7 @@ from llm_adapters.model_tiers import (
     TierConfig,
     get_tier_config,
 )
+from llm_adapters.openai_adapter import OpenAIDirectAdapter
 from llm_adapters.orchestrator import (
     AdapterBackedAIProvider,
     AICompletion,
@@ -62,15 +63,6 @@ from llm_adapters.quality_gate import (
     run_with_escalation,
 )
 from llm_adapters.registry import ProviderRegistry, build_default_registry
-from llm_adapters.runtime_store import (
-    ProviderConfig,
-    ProviderNotFoundError,
-    ValidationFailedError,
-    get_runtime_store,
-)
-from llm_adapters.task_routing import TaskPolicy, get_task_routing_manager
-from llm_adapters.connection_tester import test_provider_connection
-
 from llm_adapters.research_team import (
     AgentOutcome,
     ResearchAgentStatus,
@@ -84,7 +76,14 @@ from llm_adapters.routing import (
     RoutingDecision,
     decide_routing,
 )
+from llm_adapters.runtime_store import (
+    ProviderConfig,
+    ProviderNotFoundError,
+    ValidationFailedError,
+    get_runtime_store,
+)
 from llm_adapters.service import CopilotCompleteResult, CopilotCompleteService
+from llm_adapters.task_routing import TaskPolicy, get_task_routing_manager
 from llm_adapters.tools import (
     AUTHENTICATION_REQUIRED,
     DEFAULT_TOOL_NAMES,

@@ -5,6 +5,7 @@ Upstox is preferred for Indian equity quotes; an independently configured,
 approved HTTP quote source is used when Upstox is unavailable or returns
 unusable data. This service never exposes upstream credentials.
 """
+
 from __future__ import annotations
 
 import hmac
@@ -114,7 +115,9 @@ def get_quote(
         try:
             quote = _upstox().get_quote(instrument)
             if quote is not None and quote.has_any_price():
-                return _public_quote(quote, selected_source="upstox", fallback_reason=None)
+                return _public_quote(
+                    quote, selected_source="upstox", fallback_reason=None
+                )
             fallback_reason = "upstox_quote_unavailable"
         except DataEngineError as exc:
             # Do not expose provider errors, URLs, or credential-adjacent

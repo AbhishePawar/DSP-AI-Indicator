@@ -30,7 +30,8 @@ def test_gateway_prefers_upstox_when_usable(monkeypatch):
     monkeypatch.setenv("DSP_MARKET_GATEWAY_API_KEY", "test-gateway-key")
     monkeypatch.setattr(gateway_app, "is_approved_source", lambda source, purpose: True)
     monkeypatch.setattr(
-        gateway_app, "_upstox",
+        gateway_app,
+        "_upstox",
         lambda: SimpleNamespace(
             get_quote=lambda instrument: FakeQuote(instrument.symbol)
         ),
@@ -44,7 +45,9 @@ def test_gateway_prefers_upstox_when_usable(monkeypatch):
 
     monkeypatch.setattr(gateway_app, "_fallback", fallback)
     result = gateway_app.get_quote(
-        symbol="RELIANCE", exchange="NSE", currency="INR",
+        symbol="RELIANCE",
+        exchange="NSE",
+        currency="INR",
         authorization="Bearer test-gateway-key",
     )
     assert result["gateway"]["selected_source"] == "upstox"
@@ -60,17 +63,21 @@ def test_gateway_falls_back_when_upstox_fails(monkeypatch):
         raise RuntimeError("provider unavailable")
 
     monkeypatch.setattr(
-        gateway_app, "_upstox",
+        gateway_app,
+        "_upstox",
         lambda: SimpleNamespace(get_quote=raise_provider_error),
     )
     monkeypatch.setattr(
-        gateway_app, "_fallback",
+        gateway_app,
+        "_fallback",
         lambda: SimpleNamespace(
             get_quote=lambda instrument: FakeQuote(instrument.symbol, 99.0)
         ),
     )
     result = gateway_app.get_quote(
-        symbol="TCS", exchange="NSE", currency="INR",
+        symbol="TCS",
+        exchange="NSE",
+        currency="INR",
         authorization="Bearer test-gateway-key",
     )
     assert result["gateway"]["selected_source"] == "approved_http_fallback"
@@ -82,13 +89,16 @@ def test_gateway_returns_unavailable_when_all_sources_fail(monkeypatch):
     monkeypatch.setenv("DSP_MARKET_GATEWAY_API_KEY", "test-gateway-key")
     monkeypatch.setattr(gateway_app, "is_approved_source", lambda source, purpose: True)
     monkeypatch.setattr(
-        gateway_app, "_upstox",
+        gateway_app,
+        "_upstox",
         lambda: SimpleNamespace(get_quote=lambda instrument: None),
     )
     monkeypatch.setattr(gateway_app, "_fallback", lambda: None)
     with pytest.raises(HTTPException) as exc:
         gateway_app.get_quote(
-            symbol="INFY", exchange="NSE", currency="INR",
+            symbol="INFY",
+            exchange="NSE",
+            currency="INR",
             authorization="Bearer test-gateway-key",
         )
     assert exc.value.status_code == 503
@@ -99,7 +109,9 @@ def test_gateway_rejects_missing_or_invalid_internal_key(monkeypatch):
     monkeypatch.setenv("DSP_MARKET_GATEWAY_API_KEY", "test-gateway-key")
     with pytest.raises(HTTPException) as exc:
         gateway_app.get_quote(
-            symbol="INFY", exchange="NSE", currency="INR",
+            symbol="INFY",
+            exchange="NSE",
+            currency="INR",
             authorization="Bearer wrong-key",
         )
     assert exc.value.status_code == 401
@@ -118,23 +130,29 @@ def test_gateway_does_not_use_unapproved_upstox_source(monkeypatch):
         return FakeQuote(instrument.symbol)
 
     monkeypatch.setattr(
-        gateway_app, "_upstox",
+        gateway_app,
+        "_upstox",
         lambda: SimpleNamespace(get_quote=upstox_quote),
     )
     monkeypatch.setattr(
-        gateway_app, "_fallback",
+        gateway_app,
+        "_fallback",
         lambda: SimpleNamespace(
             get_quote=lambda instrument: FakeQuote(instrument.symbol, 99.0)
         ),
     )
     result = gateway_app.get_quote(
-        symbol="INFY", exchange="NSE", currency="INR",
+        symbol="INFY",
+        exchange="NSE",
+        currency="INR",
         authorization="Bearer test-gateway-key",
     )
     assert result["gateway"]["selected_source"] == "approved_http_fallback"
-    assert result["gateway"]["fallback_reason"] == "upstox_not_approved_by_source_governance"
+    assert (
+        result["gateway"]["fallback_reason"]
+        == "upstox_not_approved_by_source_governance"
+    )
     assert upstox_called is False
-
 
 
 def test_upstox_is_approved_for_market_data_only():

@@ -13,12 +13,12 @@ Verifies:
 from __future__ import annotations
 
 import json
+import os
 from unittest.mock import patch
 
 import pytest
 from fastapi.testclient import TestClient
 
-import os
 from api_platform.api.app import create_app
 from auth import get_auth_service
 from llm_adapters.provider_health import ProviderHealthStatus
@@ -28,7 +28,14 @@ from llm_adapters.runtime_store import get_runtime_store
 @pytest.fixture(autouse=True)
 def clean_runtime_store():
     # Teardown any test-created store files so other suites remain unpolluted
-    for key in ["GEMINI_API_KEY", "OPENAI_API_KEY", "ANTHROPIC_API_KEY", "DEEPSEEK_API_KEY", "UPSTOX_ACCESS_TOKEN", "GROQ_API_KEY"]:
+    for key in [
+        "GEMINI_API_KEY",
+        "OPENAI_API_KEY",
+        "ANTHROPIC_API_KEY",
+        "DEEPSEEK_API_KEY",
+        "UPSTOX_ACCESS_TOKEN",
+        "GROQ_API_KEY",
+    ]:
         os.environ.pop(key, None)
     store = get_runtime_store()
     with store._lock:
@@ -37,7 +44,9 @@ def clean_runtime_store():
             p.has_credential = False
             p.health_status = ProviderHealthStatus.NOT_CONFIGURED
     yield
-    store_path = os.environ.get("DSP_RUNTIME_STORE_PATH", "/tmp/dsp_runtime_providers.json")
+    store_path = os.environ.get(
+        "DSP_RUNTIME_STORE_PATH", "/tmp/dsp_runtime_providers.json"
+    )
     if os.path.exists(store_path):
         os.remove(store_path)
     with store._lock:
@@ -45,8 +54,16 @@ def clean_runtime_store():
         for p in store._providers.values():
             p.has_credential = False
             p.health_status = ProviderHealthStatus.NOT_CONFIGURED
-    for key in ["GEMINI_API_KEY", "OPENAI_API_KEY", "ANTHROPIC_API_KEY", "DEEPSEEK_API_KEY", "UPSTOX_ACCESS_TOKEN", "GROQ_API_KEY"]:
+    for key in [
+        "GEMINI_API_KEY",
+        "OPENAI_API_KEY",
+        "ANTHROPIC_API_KEY",
+        "DEEPSEEK_API_KEY",
+        "UPSTOX_ACCESS_TOKEN",
+        "GROQ_API_KEY",
+    ]:
         os.environ.pop(key, None)
+
 
 @pytest.fixture
 def test_client() -> TestClient:
@@ -105,7 +122,9 @@ class TestAdminProviderSecurity:
         resp = test_client.get("/api/v1/admin/providers", headers=non_admin_headers)
         assert resp.status_code == 403
 
-    def test_forged_header_without_token_rejected(self, test_client: TestClient) -> None:
+    def test_forged_header_without_token_rejected(
+        self, test_client: TestClient
+    ) -> None:
         """Client-supplied spoofed identity headers must be ignored."""
         resp = test_client.get(
             "/api/v1/admin/providers",
@@ -118,7 +137,9 @@ class TestAdminProviderSecurity:
     ) -> None:
         """Provider listing must NEVER return API keys or credentials."""
         store = get_runtime_store()
-        store.replace_credential("gemini", "super-secret-gemini-key-12345", validate=False)
+        store.replace_credential(
+            "gemini", "super-secret-gemini-key-12345", validate=False
+        )
 
         resp = test_client.get("/api/v1/admin/providers", headers=admin_headers)
         assert resp.status_code == 200
@@ -304,4 +325,7 @@ class TestTaskRoutingAndFallback:
             },
         )
         assert resp.status_code == 400
-        assert "Independent corroboration requires at least one distinct fallback provider" in resp.json()["detail"]
+        assert (
+            "Independent corroboration requires at least one distinct fallback provider"
+            in resp.json()["detail"]
+        )

@@ -277,7 +277,10 @@ def run_execution_pipeline(
             for warning in warnings:
                 ctx.warnings.append(warning)
             ctx.results[stage.value] = result
-            if status in (StageStatus.FAILED, StageStatus.UNAVAILABLE) and ctx.failed_stage is None:
+            if (
+                status in (StageStatus.FAILED, StageStatus.UNAVAILABLE)
+                and ctx.failed_stage is None
+            ):
                 ctx.failed_stage = stage.value
             outcomes.append(
                 StageOutcome(
@@ -389,7 +392,9 @@ def _stage_financial(
 
     ticker = str(ctx.request.ticker or "").strip()
     auth_err = ctx.results.get(_AUTH_ERROR_KEY)
-    if (production_requires_authenticated_bundle() and ticker) or ctx.request.financial_statements is None:
+    if (
+        production_requires_authenticated_bundle() and ticker
+    ) or ctx.request.financial_statements is None:
         err_msg = str(auth_err) if auth_err else DATA_UNAVAILABLE
         warnings.append(f"financial stage unavailable: {err_msg}")
         ctx.errors.append(f"financial: {err_msg}")

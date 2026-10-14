@@ -139,7 +139,9 @@ class ResearchOrchestrationService:
         """Run bounded orchestration, validate public report, and record metrics."""
         limitations: list[str] = []
         if orchestrator is None:
-            metrics_registry.record_research_orchestration_event("deterministic_fallback")
+            metrics_registry.record_research_orchestration_event(
+                "deterministic_fallback"
+            )
             return None, ["Research orchestrator not configured or unavailable."]
 
         metrics_registry.record_research_orchestration_event("attempted")
@@ -151,7 +153,9 @@ class ResearchOrchestrationService:
 
         if not self._semaphore.acquire(blocking=False):
             metrics_registry.record_research_orchestration_event("capacity_exhausted")
-            metrics_registry.record_research_orchestration_event("deterministic_fallback")
+            metrics_registry.record_research_orchestration_event(
+                "deterministic_fallback"
+            )
             limitations.append("Research orchestrator capacity exhausted.")
             return None, limitations
 
@@ -176,7 +180,9 @@ class ResearchOrchestrationService:
             self._semaphore.release()
             cancel_event.set()
             metrics_registry.record_research_orchestration_event("provider_failed")
-            metrics_registry.record_research_orchestration_event("deterministic_fallback")
+            metrics_registry.record_research_orchestration_event(
+                "deterministic_fallback"
+            )
             limitations.append("Research orchestrator unavailable.")
             return None, limitations
 
@@ -185,19 +191,28 @@ class ResearchOrchestrationService:
         except concurrent.futures.TimeoutError:
             cancel_event.set()
             metrics_registry.record_research_orchestration_event("timed_out")
-            metrics_registry.record_research_orchestration_event("deterministic_fallback")
+            metrics_registry.record_research_orchestration_event(
+                "deterministic_fallback"
+            )
             limitations.append("Research orchestrator timed out.")
             return None, limitations
         except Exception:
             cancel_event.set()
             metrics_registry.record_research_orchestration_event("provider_failed")
-            metrics_registry.record_research_orchestration_event("deterministic_fallback")
+            metrics_registry.record_research_orchestration_event(
+                "deterministic_fallback"
+            )
             limitations.append("Research orchestrator unavailable.")
             return None, limitations
 
-        if getattr(orchestrator_outcome, "status", None) == OrchestratorStatus.FAILED_CLOSED:
+        if (
+            getattr(orchestrator_outcome, "status", None)
+            == OrchestratorStatus.FAILED_CLOSED
+        ):
             metrics_registry.record_research_orchestration_event("provider_failed")
-            metrics_registry.record_research_orchestration_event("deterministic_fallback")
+            metrics_registry.record_research_orchestration_event(
+                "deterministic_fallback"
+            )
             limitations.append("Research orchestrator unavailable.")
             return None, limitations
 
@@ -209,12 +224,16 @@ class ResearchOrchestrationService:
                 metrics_registry.record_research_orchestration_event("succeeded")
                 return valid_report, []
             metrics_registry.record_research_orchestration_event("validation_failed")
-            metrics_registry.record_research_orchestration_event("deterministic_fallback")
+            metrics_registry.record_research_orchestration_event(
+                "deterministic_fallback"
+            )
             limitations.append("Research report failed schema validation.")
             return None, limitations
         except Exception:
             metrics_registry.record_research_orchestration_event("validation_failed")
-            metrics_registry.record_research_orchestration_event("deterministic_fallback")
+            metrics_registry.record_research_orchestration_event(
+                "deterministic_fallback"
+            )
             limitations.append("Research report failed schema validation.")
             return None, limitations
 

@@ -2,12 +2,12 @@
 
 from __future__ import annotations
 
-from datetime import UTC, datetime
 import json
+from datetime import UTC, datetime
 from typing import Any
 
-from fastapi.testclient import TestClient
 import pytest
+from fastapi.testclient import TestClient
 
 from api_platform import create_app
 from copilot.enums import LanguageModelStatus
@@ -37,7 +37,11 @@ from dsp_platform.recovery import (
 
 
 class MockLLMAdapter:
-    def __init__(self, response_dict: dict[str, Any] | None, status: LanguageModelStatus = LanguageModelStatus.COMPLETE):
+    def __init__(
+        self,
+        response_dict: dict[str, Any] | None,
+        status: LanguageModelStatus = LanguageModelStatus.COMPLETE,
+    ):
         self._dict = response_dict
         self._status = status
 
@@ -65,7 +69,9 @@ def client() -> TestClient:
     return TestClient(create_app(platform=platform))
 
 
-def test_api_quote_succeeds_financials_unavailable_and_unrecoverable(client: TestClient, monkeypatch):
+def test_api_quote_succeeds_financials_unavailable_and_unrecoverable(
+    client: TestClient, monkeypatch
+):
     """Scenario 1: Market quote succeeds, statements unavailable and recovery fails.
 
     Endpoint must return HTTP 200, financial stage unavailable, valuation degraded (CMP price-only,
@@ -200,6 +206,7 @@ def test_api_statement_recovery_succeeds_corroborated(client: TestClient, monkey
 
     # Provide mocked filing text
     import dsp_platform.filings
+
     monkeypatch.setattr(
         dsp_platform.filings,
         "get_authenticated_filings",
@@ -248,7 +255,9 @@ def test_api_statement_recovery_succeeds_corroborated(client: TestClient, monkey
         reset_statement_recovery_service_for_tests(None)
 
 
-def test_api_conflicting_extractions_fails_closed_no_secret_leak(client: TestClient, monkeypatch):
+def test_api_conflicting_extractions_fails_closed_no_secret_leak(
+    client: TestClient, monkeypatch
+):
     """Scenario 3: Gemini and OpenAI provide irreconcilable conflicting values (>5% conflict).
 
     Recovery fails closed, valuation does not average or fabricate, returns degraded response.
@@ -276,6 +285,7 @@ def test_api_conflicting_extractions_fails_closed_no_secret_leak(client: TestCli
     }
 
     import dsp_platform.filings
+
     monkeypatch.setattr(
         dsp_platform.filings,
         "get_authenticated_filings",

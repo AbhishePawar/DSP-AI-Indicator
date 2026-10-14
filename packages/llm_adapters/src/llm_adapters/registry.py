@@ -2,8 +2,6 @@
 
 from __future__ import annotations
 
-from typing import Any
-
 from llm_adapters.anthropic_adapter import AnthropicAdapter
 from llm_adapters.config import LLMPlatformConfig, ProviderName, load_llm_config
 from llm_adapters.deepseek_adapter import DeepSeekAdapter
@@ -14,7 +12,10 @@ from llm_adapters.openai_adapter import OpenAIDirectAdapter
 from llm_adapters.runtime_store import get_runtime_store
 
 _OPENAI_COMPATIBLE_BASES = {
-    "openrouter": ("https://openrouter.ai/api/v1", {"HTTP-Referer": "https://dspaiindicator.com"}),
+    "openrouter": (
+        "https://openrouter.ai/api/v1",
+        {"HTTP-Referer": "https://dspaiindicator.com"},
+    ),
     "groq": ("https://api.groq.com/openai/v1", {}),
     "mistral": ("https://api.mistral.ai/v1", {}),
     "xai": ("https://api.x.ai/v1", {}),
@@ -52,7 +53,11 @@ class ProviderRegistry:
                 deepseek_api_key=self._config.deepseek_api_key,
                 openai_model=self._config.openai_model,
                 anthropic_model=self._config.anthropic_model,
-                gemini_model=(gemini_model.selected_model if gemini_model and gemini_model.selected_model else self._config.gemini_model),
+                gemini_model=(
+                    gemini_model.selected_model
+                    if gemini_model and gemini_model.selected_model
+                    else self._config.gemini_model
+                ),
                 deepseek_model=self._config.deepseek_model,
                 request_timeout_seconds=self._config.request_timeout_seconds,
                 max_retries=self._config.max_retries,
@@ -69,7 +74,11 @@ class ProviderRegistry:
                 anthropic_api_key=self._config.anthropic_api_key,
                 gemini_api_key=self._config.gemini_api_key,
                 deepseek_api_key=self._config.deepseek_api_key,
-                openai_model=(openai_model.selected_model if openai_model and openai_model.selected_model else self._config.openai_model),
+                openai_model=(
+                    openai_model.selected_model
+                    if openai_model and openai_model.selected_model
+                    else self._config.openai_model
+                ),
                 anthropic_model=self._config.anthropic_model,
                 gemini_model=self._config.gemini_model,
                 deepseek_model=self._config.deepseek_model,
@@ -89,7 +98,11 @@ class ProviderRegistry:
                 gemini_api_key=self._config.gemini_api_key,
                 deepseek_api_key=self._config.deepseek_api_key,
                 openai_model=self._config.openai_model,
-                anthropic_model=(anthropic_model.selected_model if anthropic_model and anthropic_model.selected_model else self._config.anthropic_model),
+                anthropic_model=(
+                    anthropic_model.selected_model
+                    if anthropic_model and anthropic_model.selected_model
+                    else self._config.anthropic_model
+                ),
                 gemini_model=self._config.gemini_model,
                 deepseek_model=self._config.deepseek_model,
                 request_timeout_seconds=self._config.request_timeout_seconds,
@@ -110,7 +123,11 @@ class ProviderRegistry:
                 openai_model=self._config.openai_model,
                 anthropic_model=self._config.anthropic_model,
                 gemini_model=self._config.gemini_model,
-                deepseek_model=(deepseek_model.selected_model if deepseek_model and deepseek_model.selected_model else self._config.deepseek_model),
+                deepseek_model=(
+                    deepseek_model.selected_model
+                    if deepseek_model and deepseek_model.selected_model
+                    else self._config.deepseek_model
+                ),
                 request_timeout_seconds=self._config.request_timeout_seconds,
                 max_retries=self._config.max_retries,
                 provider_mode=self._config.provider_mode,
@@ -131,7 +148,9 @@ class ProviderRegistry:
             prov_rec = store.get_provider_config(pid)
             sec = store.get_credential(pid)
             model_label = prov_rec.selected_model if prov_rec else ""
-            eff_base_url = (prov_rec.base_url if prov_rec and prov_rec.base_url else base_url)
+            eff_base_url = (
+                prov_rec.base_url if prov_rec and prov_rec.base_url else base_url
+            )
             self._extended_adapters[pid] = GenericOpenAIAdapter(
                 pid,
                 base_url=eff_base_url,
@@ -182,15 +201,17 @@ class ProviderRegistry:
         for p in store.list_providers(category="ai"):
             adapter = self.get(p.provider_id)
             configured = adapter.is_configured() if adapter else p.has_credential
-            res.append({
-                "id": p.provider_id,
-                "name": p.display_name,
-                "model": p.selected_model,
-                "configured": configured,
-                "is_active": p.is_active,
-                "health_status": p.health_status.value,
-                "capabilities": p.supported_capabilities,
-            })
+            res.append(
+                {
+                    "id": p.provider_id,
+                    "name": p.display_name,
+                    "model": p.selected_model,
+                    "configured": configured,
+                    "is_active": p.is_active,
+                    "health_status": p.health_status.value,
+                    "capabilities": p.supported_capabilities,
+                }
+            )
         return res
 
     def resolve_active(self) -> tuple[ProviderName, ProviderAdapter | None]:

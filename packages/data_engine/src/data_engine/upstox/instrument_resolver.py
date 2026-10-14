@@ -155,7 +155,9 @@ class UpstoxInstrumentResolver:
         self._asset_resolver = asset_resolver
         self._lock = threading.Lock()
         # Keyed by (exchange, tradingsymbol)
-        self._records_by_symbol: dict[tuple[str, str], list[UpstoxInstrumentRecord]] = {}
+        self._records_by_symbol: dict[tuple[str, str], list[UpstoxInstrumentRecord]] = (
+            {}
+        )
         # Keyed by ISIN
         self._records_by_isin: dict[str, list[UpstoxInstrumentRecord]] = {}
         # Keyed by exchange_token
@@ -168,7 +170,9 @@ class UpstoxInstrumentResolver:
         with self._lock:
             return sum(len(v) for v in self._records_by_symbol.values())
 
-    def load_instruments(self, records: Iterable[UpstoxInstrumentRecord | Mapping[str, Any]]) -> int:
+    def load_instruments(
+        self, records: Iterable[UpstoxInstrumentRecord | Mapping[str, Any]]
+    ) -> int:
         """Load official Upstox instrument reference data into the resolver."""
         count = 0
         with self._lock:
@@ -181,13 +185,31 @@ class UpstoxInstrumentResolver:
                         continue
                     ex = str(r.get("exchange") or "").strip().upper()
                     seg = str(r.get("segment") or "").strip().upper()
-                    sym = str(r.get("tradingsymbol") or r.get("symbol") or "").strip().upper()
-                    isin = str(r.get("isin") or "").strip().upper() if r.get("isin") else None
-                    tok = str(r.get("exchange_token") or "").strip() if r.get("exchange_token") else None
-                    inst_type = str(r.get("instrument_type") or "").strip().upper() if r.get("instrument_type") else None
+                    sym = (
+                        str(r.get("tradingsymbol") or r.get("symbol") or "")
+                        .strip()
+                        .upper()
+                    )
+                    isin = (
+                        str(r.get("isin") or "").strip().upper()
+                        if r.get("isin")
+                        else None
+                    )
+                    tok = (
+                        str(r.get("exchange_token") or "").strip()
+                        if r.get("exchange_token")
+                        else None
+                    )
+                    inst_type = (
+                        str(r.get("instrument_type") or "").strip().upper()
+                        if r.get("instrument_type")
+                        else None
+                    )
                     name = str(r.get("name") or "").strip() if r.get("name") else None
                     lot = int(r["lot_size"]) if r.get("lot_size") is not None else None
-                    expiry = str(r.get("expiry") or "").strip() if r.get("expiry") else None
+                    expiry = (
+                        str(r.get("expiry") or "").strip() if r.get("expiry") else None
+                    )
 
                     rec = UpstoxInstrumentRecord(
                         instrument_key=key,
@@ -249,7 +271,9 @@ class UpstoxInstrumentResolver:
             cls = asset_class
 
         if not symbol:
-            return UpstoxResolutionResult(status="not_found", detail="Empty instrument target")
+            return UpstoxResolutionResult(
+                status="not_found", detail="Empty instrument target"
+            )
 
         # 1. Check loaded reference records first (by ISIN, token, or symbol)
         with self._lock:
@@ -287,7 +311,11 @@ class UpstoxInstrumentResolver:
 
         # 2. Dynamic Asset Resolver Integration
         resolver_fn = self._asset_resolver or _GLOBAL_ASSET_RESOLVER
-        asset_id = resolver_fn(symbol, preferred_exchange=exchange) if resolver_fn is not None else None
+        asset_id = (
+            resolver_fn(symbol, preferred_exchange=exchange)
+            if resolver_fn is not None
+            else None
+        )
         if asset_id is not None:
             if asset_id.ambiguous:
                 return UpstoxResolutionResult(
@@ -309,7 +337,10 @@ class UpstoxInstrumentResolver:
 
             # Handle Commodities
             if asset_id.asset_class is AssetClass.COMMODITY:
-                key = _COMMODITY_KEYS.get(asset_id.symbol) or f"MCX_COMM|{asset_id.symbol}"
+                key = (
+                    _COMMODITY_KEYS.get(asset_id.symbol)
+                    or f"MCX_COMM|{asset_id.symbol}"
+                )
                 return UpstoxResolutionResult(
                     status="resolved",
                     instrument_key=key,
@@ -427,9 +458,7 @@ class UpstoxInstrumentResolver:
             cls = (
                 AssetClass.COMMODITY
                 if rec.segment.startswith("MCX")
-                else AssetClass.INDEX
-                if "INDEX" in rec.segment
-                else AssetClass.EQUITY
+                else AssetClass.INDEX if "INDEX" in rec.segment else AssetClass.EQUITY
             )
             return UpstoxResolutionResult(
                 status="resolved",
@@ -442,7 +471,9 @@ class UpstoxInstrumentResolver:
             )
 
         # If multiple, prefer EQ segment (standard equity series) over derivatives/rights
-        eq_series = [m for m in matches if m.instrument_type == "EQ" or m.segment.endswith("_EQ")]
+        eq_series = [
+            m for m in matches if m.instrument_type == "EQ" or m.segment.endswith("_EQ")
+        ]
         if len(eq_series) == 1:
             rec = eq_series[0]
             return UpstoxResolutionResult(

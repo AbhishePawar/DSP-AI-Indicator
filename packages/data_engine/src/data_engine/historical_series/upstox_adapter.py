@@ -58,7 +58,24 @@ VALID_UNITS = frozenset({"minutes", "hours", "days", "weeks", "months"})
 
 # Valid intervals per unit
 VALID_INTERVALS: dict[str, set[str | int]] = {
-    "minutes": {1, 3, 5, 10, 15, 30, 60, "1", "3", "5", "10", "15", "30", "60", "1minute", "30minute"},
+    "minutes": {
+        1,
+        3,
+        5,
+        10,
+        15,
+        30,
+        60,
+        "1",
+        "3",
+        "5",
+        "10",
+        "15",
+        "30",
+        "60",
+        "1minute",
+        "30minute",
+    },
     "hours": {1, 2, 3, 4, "1", "2", "3", "4", "1hour"},
     "days": {1, "1", "1day", "day"},
     "weeks": {1, "1", "1week", "week"},
@@ -69,8 +86,8 @@ VALID_INTERVALS: dict[str, set[str | int]] = {
 MAX_WINDOW_DAYS: dict[str, int] = {
     "minutes": 100,
     "hours": 365,
-    "days": 3650,    # 10 years
-    "weeks": 3650,   # 10 years
+    "days": 3650,  # 10 years
+    "weeks": 3650,  # 10 years
     "months": 7300,  # 20 years
 }
 
@@ -141,12 +158,16 @@ class UpstoxHistoricalAdapter(HistoricalSeriesPort):
     """Authenticated Upstox V3 Historical Candle Adapter."""
 
     base_url: str = field(
-        default_factory=lambda: os.environ.get("UPSTOX_BASE_URL", DEFAULT_UPSTOX_BASE_URL)
+        default_factory=lambda: os.environ.get(
+            "UPSTOX_BASE_URL", DEFAULT_UPSTOX_BASE_URL
+        )
     )
     access_token: str | None = field(
         default_factory=lambda: os.environ.get(
             "UPSTOX_ACCESS_TOKEN",
-            os.environ.get("DSP_UPSTOX_ACCESS_TOKEN", os.environ.get("DSP_UPSTOX_ANALYTICS_TOKEN")),
+            os.environ.get(
+                "DSP_UPSTOX_ACCESS_TOKEN", os.environ.get("DSP_UPSTOX_ANALYTICS_TOKEN")
+            ),
         ),
         repr=False,
     )
@@ -202,9 +223,7 @@ class UpstoxHistoricalAdapter(HistoricalSeriesPort):
         norm_interval = str(interval)
         if norm_unit in ("days", "weeks", "months"):
             norm_interval = "1"
-        elif norm_unit == "minutes":
-            norm_interval = re.sub(r"[^\d]", "", norm_interval) or "1"
-        elif norm_unit == "hours":
+        elif norm_unit == "minutes" or norm_unit == "hours":
             norm_interval = re.sub(r"[^\d]", "", norm_interval) or "1"
 
         to_str, to_d = _normalize_date_str(to_date)
@@ -287,10 +306,14 @@ class UpstoxHistoricalAdapter(HistoricalSeriesPort):
         if last_error is not None:
             if isinstance(last_error, urllib.error.HTTPError):
                 if last_error.code in (401, 403):
-                    raise ProviderRequestError(f"Upstox authentication failed: HTTP {last_error.code}")
+                    raise ProviderRequestError(
+                        f"Upstox authentication failed: HTTP {last_error.code}"
+                    )
                 if last_error.code == 404:
                     return []
-            raise ProviderRequestError(f"Upstox historical candle request failed: {last_error}")
+            raise ProviderRequestError(
+                f"Upstox historical candle request failed: {last_error}"
+            )
 
         if not raw:
             return []
@@ -298,13 +321,17 @@ class UpstoxHistoricalAdapter(HistoricalSeriesPort):
         try:
             payload = json.loads(raw)
         except json.JSONDecodeError as exc:
-            raise InvalidProviderDataError("Upstox historical candle response is not valid JSON") from exc
+            raise InvalidProviderDataError(
+                "Upstox historical candle response is not valid JSON"
+            ) from exc
 
         if not isinstance(payload, dict):
             raise InvalidProviderDataError("Upstox response must be a JSON object")
 
         if payload.get("status") != "success":
-            err_msg = payload.get("message") or payload.get("error") or "status not success"
+            err_msg = (
+                payload.get("message") or payload.get("error") or "status not success"
+            )
             raise ProviderRequestError(f"Upstox candle request error: {err_msg}")
 
         data_obj = payload.get("data")
@@ -320,7 +347,9 @@ class UpstoxHistoricalAdapter(HistoricalSeriesPort):
         parsed_candles: list[UpstoxCandle] = []
         for i, c in enumerate(raw_candles):
             if not isinstance(c, (list, tuple)) or len(c) < 5:
-                raise InvalidProviderDataError(f"Candle at index {i} has invalid structure: {c!r}")
+                raise InvalidProviderDataError(
+                    f"Candle at index {i} has invalid structure: {c!r}"
+                )
             ts_str = str(c[0])
             dt, d = _parse_candle_timestamp(c[0])
             try:
@@ -331,7 +360,9 @@ class UpstoxHistoricalAdapter(HistoricalSeriesPort):
                 vol = int(c[5]) if len(c) > 5 and c[5] is not None else 0
                 oi = float(c[6]) if len(c) > 6 and c[6] is not None else None
             except (ValueError, TypeError) as exc:
-                raise InvalidProviderDataError(f"Candle values at index {i} are invalid: {c!r}") from exc
+                raise InvalidProviderDataError(
+                    f"Candle values at index {i} are invalid: {c!r}"
+                ) from exc
 
             candle = UpstoxCandle(
                 timestamp=ts_str,
@@ -351,7 +382,9 @@ class UpstoxHistoricalAdapter(HistoricalSeriesPort):
         parsed_candles.sort(key=lambda c: (c.bar_date or date.min, c.timestamp))
         return parsed_candles
 
-    def resolve_company(self, instrument: Instrument) -> HistoricalCompanyIdentity | None:
+    def resolve_company(
+        self, instrument: Instrument
+    ) -> HistoricalCompanyIdentity | None:
         """Resolve company identity for historical series."""
         res = self.resolver.resolve(instrument)
         if not res.is_resolved:
@@ -363,7 +396,9 @@ class UpstoxHistoricalAdapter(HistoricalSeriesPort):
             currency=instrument.currency or "INR",
         )
 
-    def get_series(self, query: HistoricalSeriesQuery) -> AuthenticatedHistoricalBundle | None:
+    def get_series(
+        self, query: HistoricalSeriesQuery
+    ) -> AuthenticatedHistoricalBundle | None:
         """Implement HistoricalSeriesPort for 'ohlcv' series."""
         if not self.is_configured():
             return None
@@ -423,7 +458,7 @@ class UpstoxHistoricalAdapter(HistoricalSeriesPort):
         # Enforce chronological ordering ascending
         bars.sort(key=lambda b: b.bar_date)
         if query.limit and len(bars) > query.limit:
-            bars = bars[-query.limit:]
+            bars = bars[-query.limit :]
 
         identity = HistoricalCompanyIdentity(
             symbol=query.instrument.symbol.strip().upper(),

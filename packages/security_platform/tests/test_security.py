@@ -12,7 +12,6 @@ from dsp_platform import (
     PlatformBuilder,
     PlatformConfiguration,
 )
-from security_platform.security.middleware import _is_institutional_auth_zone
 from security_platform import (
     AuthenticationError,
     AuthorizationError,
@@ -27,6 +26,7 @@ from security_platform import (
     UserRecord,
     __version__,
 )
+from security_platform.security.middleware import _is_institutional_auth_zone
 
 
 def test_version() -> None:
@@ -143,7 +143,9 @@ class TestInstitutionalAuthZones:
             "/api/v1/auth/enterprise/oauth/callback",
         ],
     )
-    def test_enterprise_auth_bootstrap_routes_are_institutional(self, path: str) -> None:
+    def test_enterprise_auth_bootstrap_routes_are_institutional(
+        self, path: str
+    ) -> None:
         assert _is_institutional_auth_zone(path) is True
 
     def test_unrelated_api_route_is_not_institutional(self) -> None:

@@ -74,9 +74,7 @@ class GeminiAdapter(GeminiToolCalling):
         user_text = "\n\n".join(user_parts)
         url = f"{_BASE_URL}/{self.model_label}:generateContent"
         payload: dict[str, Any] = {
-            "contents": [
-                {"role": "user", "parts": [{"text": user_text}]}
-            ],
+            "contents": [{"role": "user", "parts": [{"text": user_text}]}],
             "generationConfig": {"temperature": 0.2},
         }
         if system_content:

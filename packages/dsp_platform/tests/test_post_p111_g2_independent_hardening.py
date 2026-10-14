@@ -83,7 +83,6 @@ def test_shares_from_authenticated_quote() -> None:
     assert _resolve_shares(quote, latest) == 50_000_000.0  # type: ignore[arg-type]
 
 
-
 def test_shares_prefer_verified_statement_source_when_quote_omits_it() -> None:
     from data_engine.financial_statement.models import StatementField
 

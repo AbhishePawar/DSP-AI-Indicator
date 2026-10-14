@@ -7,12 +7,12 @@ Provider HTTP stays in adapters. DSP engines stay behind ToolCallBoundary.
 """
 
 from __future__ import annotations
+
 import contextvars
 import math
 import os
-import time
 import threading
-
+import time
 from collections.abc import Mapping
 from dataclasses import dataclass
 from enum import Enum
@@ -123,8 +123,15 @@ class ResearchOrchestrator:
         )
         self._loop_limits = loop_limits or DEFAULT_TOOL_LOOP_LIMITS
         self._dual_verification = dual_verification
-        self._timeout_seconds = timeout_seconds if timeout_seconds is not None else float(
-            os.environ.get("DSP_RESEARCH_ORCHESTRATION_TIMEOUT_SECONDS", os.environ.get("DSP_AI_REQUEST_TIMEOUT_SECONDS", "20.0"))
+        self._timeout_seconds = (
+            timeout_seconds
+            if timeout_seconds is not None
+            else float(
+                os.environ.get(
+                    "DSP_RESEARCH_ORCHESTRATION_TIMEOUT_SECONDS",
+                    os.environ.get("DSP_AI_REQUEST_TIMEOUT_SECONDS", "20.0"),
+                )
+            )
         )
         self._memory = _AttemptMemory()
 
@@ -148,7 +155,9 @@ class ResearchOrchestrator:
         cancellation_event: threading.Event | None = None,
     ) -> OrchestratorResult:
         start_time = time.monotonic()
-        eff_timeout = timeout_seconds if timeout_seconds is not None else self._timeout_seconds
+        eff_timeout = (
+            timeout_seconds if timeout_seconds is not None else self._timeout_seconds
+        )
         if eff_timeout is not None and not math.isfinite(eff_timeout):
             eff_timeout = self._timeout_seconds
         deadline = start_time + eff_timeout if eff_timeout is not None else None
@@ -160,19 +169,33 @@ class ResearchOrchestrator:
         routing = decide_routing(spec.complexity_signals)
 
         if cancellation_event is not None and cancellation_event.is_set():
-            return self._fail_closed(spec, routing, ErrorCategory.TIMEOUT, "orchestration cancelled")
+            return self._fail_closed(
+                spec, routing, ErrorCategory.TIMEOUT, "orchestration cancelled"
+            )
 
         prefetched = gather_specified_tools(spec, self._boundary)
         self._memory = _AttemptMemory(outcomes=prefetched)
 
         if cancellation_event is not None and cancellation_event.is_set():
-            return self._fail_closed(spec, routing, ErrorCategory.TIMEOUT, "orchestration cancelled")
+            return self._fail_closed(
+                spec, routing, ErrorCategory.TIMEOUT, "orchestration cancelled"
+            )
 
         if eff_timeout is not None and eff_timeout <= 0:
-            return self._fail_closed(spec, routing, ErrorCategory.TIMEOUT, f"timeout before tier execution: {eff_timeout}s")
+            return self._fail_closed(
+                spec,
+                routing,
+                ErrorCategory.TIMEOUT,
+                f"timeout before tier execution: {eff_timeout}s",
+            )
 
         if deadline is not None and time.monotonic() >= deadline:
-            return self._fail_closed(spec, routing, ErrorCategory.TIMEOUT, f"timeout before tier execution: {eff_timeout}s")
+            return self._fail_closed(
+                spec,
+                routing,
+                ErrorCategory.TIMEOUT,
+                f"timeout before tier execution: {eff_timeout}s",
+            )
 
         try:
             if self._dual_verification:
@@ -184,7 +207,11 @@ class ResearchOrchestrator:
                 )
 
             def run_at_tier(tier: ModelTier) -> EvaluationResult:
-                rem_timeout = max(0.0, deadline - time.monotonic()) if deadline is not None else None
+                rem_timeout = (
+                    max(0.0, deadline - time.monotonic())
+                    if deadline is not None
+                    else None
+                )
                 return self._run_tier(
                     tier,
                     spec,
@@ -234,7 +261,9 @@ class ResearchOrchestrator:
         for tier in tiers:
             if cancellation_event is not None and cancellation_event.is_set():
                 break
-            rem_timeout = max(0.0, deadline - time.monotonic()) if deadline is not None else None
+            rem_timeout = (
+                max(0.0, deadline - time.monotonic()) if deadline is not None else None
+            )
             if rem_timeout is not None and rem_timeout <= 0.0:
                 break
             self._memory = _AttemptMemory(outcomes=initial_outcomes)
@@ -248,7 +277,8 @@ class ResearchOrchestrator:
             attempts.append((evaluation, self._memory))
 
         successful = [
-            item for item in attempts
+            item
+            for item in attempts
             if item[0].status is EvaluationStatus.SUCCESS
             and isinstance(item[1].validation, ValidationSuccess)
         ]
@@ -287,9 +317,7 @@ class ResearchOrchestrator:
             return self._finalize(spec, routing, verdict, selected[0])
 
         self._memory = (
-            attempts[0][1]
-            if attempts
-            else _AttemptMemory(outcomes=initial_outcomes)
+            attempts[0][1] if attempts else _AttemptMemory(outcomes=initial_outcomes)
         )
         verdict = GateVerdict(
             outcome=GateOutcome.FAILED_CLOSED,
@@ -354,8 +382,14 @@ class ResearchOrchestrator:
             return selected
 
         section_names = (
-            "business_quality", "moat", "management", "financial_strength",
-            "earnings_quality", "growth_quality", "industry", "risk",
+            "business_quality",
+            "moat",
+            "management",
+            "financial_strength",
+            "earnings_quality",
+            "growth_quality",
+            "industry",
+            "risk",
             "buffett_analysis",
         )
         output_updates: dict[str, Any] = {}
@@ -372,11 +406,13 @@ class ResearchOrchestrator:
                     for evidence_id in section.evidence_ids
                 )
             )
-            output_updates[name] = sections[0].model_copy(update={
-                "summary": cls._merge_texts(summaries),
-                "evidence_ids": ids,
-                "unavailable": all(section.unavailable for section in sections),
-            })
+            output_updates[name] = sections[0].model_copy(
+                update={
+                    "summary": cls._merge_texts(summaries),
+                    "evidence_ids": ids,
+                    "unavailable": all(section.unavailable for section in sections),
+                }
+            )
 
         # Valuation is deliberately not merged: each model's figures must remain
         # bound to the deterministic DSP valuation tool, never AI-derived.
@@ -389,9 +425,11 @@ class ResearchOrchestrator:
                     evidence_keys.add(key)
                     all_evidence.append(evidence)
 
-        limitations = list(dict.fromkeys(
-            limitation for output in outputs for limitation in output.limitations
-        ))
+        limitations = list(
+            dict.fromkeys(
+                limitation for output in outputs for limitation in output.limitations
+            )
+        )
         if divergent_sections:
             limitations.append(
                 "Unresolved differences between validated model narratives in: "
@@ -403,40 +441,44 @@ class ResearchOrchestrator:
             )
 
         base_output = selected_validation.output
-        merged_output = base_output.model_copy(update={
-            **output_updates,
-            "decision_brief": cls._merge_texts(
-                [output.decision_brief for output in outputs]
-            ),
-            "evidence": all_evidence,
-            "limitations": list(dict.fromkeys(limitations)),
-            "confidence": min(output.confidence for output in outputs),
-            "research_status": (
-                "partial"
-                if divergent_sections
-                or any(output.research_status != "complete" for output in outputs)
-                else "complete"
-            ),
-        })
+        merged_output = base_output.model_copy(
+            update={
+                **output_updates,
+                "decision_brief": cls._merge_texts(
+                    [output.decision_brief for output in outputs]
+                ),
+                "evidence": all_evidence,
+                "limitations": list(dict.fromkeys(limitations)),
+                "confidence": min(output.confidence for output in outputs),
+                "research_status": (
+                    "partial"
+                    if divergent_sections
+                    or any(output.research_status != "complete" for output in outputs)
+                    else "complete"
+                ),
+            }
+        )
 
         base_pack = selected_validation.pack
-        pack_limitations = list(dict.fromkeys(
-            limitation for pack in packs for limitation in pack.limitations
-        ))
+        pack_limitations = list(
+            dict.fromkeys(
+                limitation for pack in packs for limitation in pack.limitations
+            )
+        )
         if divergent_sections:
             pack_limitations.append(
-                (
-                    "Unresolved differences between model narratives are "
-                    "retained for review."
-                )
+                "Unresolved differences between model narratives are "
+                "retained for review."
             )
         merged_pack = replace(
             base_pack,
             analysis=cls._merge_texts([pack.analysis for pack in packs]),
             risks=tuple(dict.fromkeys(risk for pack in packs for risk in pack.risks)),
-            evidence_citations=tuple(dict.fromkeys(
-                citation for pack in packs for citation in pack.evidence_citations
-            )),
+            evidence_citations=tuple(
+                dict.fromkeys(
+                    citation for pack in packs for citation in pack.evidence_citations
+                )
+            ),
             confidence=min(pack.confidence for pack in packs),
             limitations=tuple(pack_limitations),
         )
@@ -466,7 +508,9 @@ class ResearchOrchestrator:
             validation=merged_validation,
             identity=selected_memory.identity,
             contributing_models=tuple(
-                dict.fromkeys(memory.identity for _, memory in successful if memory.identity)
+                dict.fromkeys(
+                    memory.identity for _, memory in successful if memory.identity
+                )
             ),
             conflicting_sections=tuple(divergent_sections),
         )
@@ -498,9 +542,11 @@ class ResearchOrchestrator:
             key=lambda item: (
                 item[0].quality.evidence_correctness,
                 item[0].quality.factual_accuracy,
-                -item[1].validation.output.confidence
-                if isinstance(item[1].validation, ValidationSuccess)
-                else 0.0,
+                (
+                    -item[1].validation.output.confidence
+                    if isinstance(item[1].validation, ValidationSuccess)
+                    else 0.0
+                ),
             ),
             reverse=True,
         )

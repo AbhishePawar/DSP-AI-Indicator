@@ -967,7 +967,9 @@ class DSPPlatform:
         try:
             from dsp_platform.asset_resolution import resolve_asset
 
-            asset = resolve_asset(symbol, preferred_exchange=exchange, currency=currency)
+            asset = resolve_asset(
+                symbol, preferred_exchange=exchange, currency=currency
+            )
             if asset is not None:
                 return {
                     "symbol": asset.symbol,

@@ -50,13 +50,41 @@ def _valid_quote(
         exchange=exchange,
         currency=currency,
         current_price=QuoteField(available=True, value=current_price),
-        open=QuoteField(available=True, value=open_price) if open_price is not None else QuoteField.missing(),
-        high=QuoteField(available=True, value=high) if high is not None else QuoteField.missing(),
-        low=QuoteField(available=True, value=low) if low is not None else QuoteField.missing(),
-        previous_close=QuoteField(available=True, value=prev_close) if prev_close is not None else QuoteField.missing(),
-        week_52_high=QuoteField(available=True, value=week_52_high) if week_52_high is not None else QuoteField.missing(),
-        week_52_low=QuoteField(available=True, value=week_52_low) if week_52_low is not None else QuoteField.missing(),
-        volume=QuoteField(available=True, value=volume) if volume is not None else QuoteField.missing(),
+        open=(
+            QuoteField(available=True, value=open_price)
+            if open_price is not None
+            else QuoteField.missing()
+        ),
+        high=(
+            QuoteField(available=True, value=high)
+            if high is not None
+            else QuoteField.missing()
+        ),
+        low=(
+            QuoteField(available=True, value=low)
+            if low is not None
+            else QuoteField.missing()
+        ),
+        previous_close=(
+            QuoteField(available=True, value=prev_close)
+            if prev_close is not None
+            else QuoteField.missing()
+        ),
+        week_52_high=(
+            QuoteField(available=True, value=week_52_high)
+            if week_52_high is not None
+            else QuoteField.missing()
+        ),
+        week_52_low=(
+            QuoteField(available=True, value=week_52_low)
+            if week_52_low is not None
+            else QuoteField.missing()
+        ),
+        volume=(
+            QuoteField(available=True, value=volume)
+            if volume is not None
+            else QuoteField.missing()
+        ),
         average_volume=QuoteField.missing(),
         market_cap=QuoteField.missing(),
         enterprise_value=QuoteField.missing(),
@@ -69,35 +97,56 @@ def _valid_quote(
 
 def test_valid_quote_passes():
     quote = _valid_quote()
-    inst = Instrument(symbol="INFY", exchange="NSE", currency="INR", asset_class=AssetClass.EQUITY)
+    inst = Instrument(
+        symbol="INFY", exchange="NSE", currency="INR", asset_class=AssetClass.EQUITY
+    )
     validate_authenticated_quote(quote, requested_instrument=inst)
 
 
 def test_identity_symbol_mismatch_rejected():
     quote = _valid_quote(symbol="INFY")
-    inst = Instrument(symbol="TCS", exchange="NSE", currency="INR", asset_class=AssetClass.EQUITY)
-    with pytest.raises(InvalidProviderDataError, match="quote symbol 'INFY' does not match requested symbol 'TCS'"):
+    inst = Instrument(
+        symbol="TCS", exchange="NSE", currency="INR", asset_class=AssetClass.EQUITY
+    )
+    with pytest.raises(
+        InvalidProviderDataError,
+        match="quote symbol 'INFY' does not match requested symbol 'TCS'",
+    ):
         validate_authenticated_quote(quote, requested_instrument=inst)
 
 
 def test_identity_exchange_mismatch_rejected():
     quote = _valid_quote(exchange="BSE")
-    inst = Instrument(symbol="INFY", exchange="NSE", currency="INR", asset_class=AssetClass.EQUITY)
-    with pytest.raises(InvalidProviderDataError, match="quote exchange 'BSE' does not match requested exchange 'NSE'"):
+    inst = Instrument(
+        symbol="INFY", exchange="NSE", currency="INR", asset_class=AssetClass.EQUITY
+    )
+    with pytest.raises(
+        InvalidProviderDataError,
+        match="quote exchange 'BSE' does not match requested exchange 'NSE'",
+    ):
         validate_authenticated_quote(quote, requested_instrument=inst)
 
 
 def test_identity_currency_mismatch_rejected():
     quote = _valid_quote(currency="USD")
-    inst = Instrument(symbol="INFY", exchange="NSE", currency="INR", asset_class=AssetClass.EQUITY)
-    with pytest.raises(InvalidProviderDataError, match="does not match requested currency"):
+    inst = Instrument(
+        symbol="INFY", exchange="NSE", currency="INR", asset_class=AssetClass.EQUITY
+    )
+    with pytest.raises(
+        InvalidProviderDataError, match="does not match requested currency"
+    ):
         validate_authenticated_quote(quote, requested_instrument=inst)
 
 
 def test_instrument_key_segment_mismatch_rejected():
     quote = _valid_quote(metadata={"instrument_key": "BSE_EQ|INE009A01021"})
-    inst = Instrument(symbol="INFY", exchange="NSE", currency="INR", asset_class=AssetClass.EQUITY)
-    with pytest.raises(InvalidProviderDataError, match="instrument key segment 'BSE_EQ' does not match requested exchange 'NSE'"):
+    inst = Instrument(
+        symbol="INFY", exchange="NSE", currency="INR", asset_class=AssetClass.EQUITY
+    )
+    with pytest.raises(
+        InvalidProviderDataError,
+        match="instrument key segment 'BSE_EQ' does not match requested exchange 'NSE'",
+    ):
         validate_authenticated_quote(quote, requested_instrument=inst)
 
 
@@ -121,19 +170,28 @@ def test_ohlc_open_below_low_rejected():
 
 def test_current_price_above_high_rejected():
     quote = _valid_quote(current_price=Decimal("1550.00"), high=Decimal("1520.00"))
-    with pytest.raises(InvalidProviderDataError, match="quote current price .* exceeds high"):
+    with pytest.raises(
+        InvalidProviderDataError, match="quote current price .* exceeds high"
+    ):
         validate_authenticated_quote(quote)
 
 
 def test_current_price_below_low_rejected():
     quote = _valid_quote(current_price=Decimal("1450.00"), low=Decimal("1490.00"))
-    with pytest.raises(InvalidProviderDataError, match="quote current price .* is below low"):
+    with pytest.raises(
+        InvalidProviderDataError, match="quote current price .* is below low"
+    ):
         validate_authenticated_quote(quote)
 
 
 def test_52w_high_below_low_rejected():
-    quote = _valid_quote(week_52_high=Decimal("1200.00"), week_52_low=Decimal("1500.00"))
-    with pytest.raises(InvalidProviderDataError, match="52-week high .* cannot be lower than 52-week low"):
+    quote = _valid_quote(
+        week_52_high=Decimal("1200.00"), week_52_low=Decimal("1500.00")
+    )
+    with pytest.raises(
+        InvalidProviderDataError,
+        match="52-week high .* cannot be lower than 52-week low",
+    ):
         validate_authenticated_quote(quote)
 
 
@@ -145,7 +203,9 @@ def test_nan_or_infinite_rejected():
 
 def test_negative_current_price_rejected():
     quote = _valid_quote(current_price=Decimal("-10.00"))
-    with pytest.raises(InvalidProviderDataError, match="current_price must be positive"):
+    with pytest.raises(
+        InvalidProviderDataError, match="current_price must be positive"
+    ):
         validate_authenticated_quote(quote)
 
 
@@ -180,12 +240,16 @@ def test_stale_timestamp_rejection_and_market_closed_acceptance():
     quote = _valid_quote(retrieved_at=now, as_of=old)
 
     # When market closed data is disallowed and policy enforces freshness:
-    strict_policy = QuoteFreshnessPolicy(max_age_seconds=3600, allow_market_closed=False)
+    strict_policy = QuoteFreshnessPolicy(
+        max_age_seconds=3600, allow_market_closed=False
+    )
     with pytest.raises(InvalidProviderDataError, match="is stale"):
         validate_authenticated_quote(quote, freshness_policy=strict_policy)
 
     # When market closed data is allowed (weekend/after-hours):
-    market_closed_policy = QuoteFreshnessPolicy(max_age_seconds=3600, allow_market_closed=True)
+    market_closed_policy = QuoteFreshnessPolicy(
+        max_age_seconds=3600, allow_market_closed=True
+    )
     validate_authenticated_quote(quote, freshness_policy=market_closed_policy)
 
 
@@ -194,14 +258,22 @@ def test_market_closed_excessive_stale_rejected():
     ten_days_old = now - timedelta(days=10)
     quote = _valid_quote(retrieved_at=now, as_of=ten_days_old)
 
-    policy = QuoteFreshnessPolicy(max_age_seconds=3600, allow_market_closed=True, max_closed_age_seconds=86400 * 7)
-    with pytest.raises(InvalidProviderDataError, match="exceeds maximum market-closed age"):
+    policy = QuoteFreshnessPolicy(
+        max_age_seconds=3600, allow_market_closed=True, max_closed_age_seconds=86400 * 7
+    )
+    with pytest.raises(
+        InvalidProviderDataError, match="exceeds maximum market-closed age"
+    ):
         validate_authenticated_quote(quote, freshness_policy=policy)
 
 
 def test_cache_isolates_by_exchange_and_currency():
     from data_engine.cache import InMemoryCache
-    from data_engine.market_quote.service import MarketQuotePort, MarketQuoteService, QuoteProviderHealth
+    from data_engine.market_quote.service import (
+        MarketQuotePort,
+        MarketQuoteService,
+        QuoteProviderHealth,
+    )
 
     class MockPort(MarketQuotePort):
         def __init__(self):
@@ -212,7 +284,9 @@ def test_cache_isolates_by_exchange_and_currency():
             return "mock"
 
         def health(self) -> QuoteProviderHealth:
-            return QuoteProviderHealth(provider_id="mock", healthy=True, authenticated=True, detail="ok")
+            return QuoteProviderHealth(
+                provider_id="mock", healthy=True, authenticated=True, detail="ok"
+            )
 
         def get_quote(self, inst: Instrument) -> AuthenticatedMarketQuote | None:
             self.calls.append((inst.symbol, inst.exchange, inst.currency))
@@ -220,7 +294,9 @@ def test_cache_isolates_by_exchange_and_currency():
                 symbol=inst.symbol,
                 exchange=inst.exchange,
                 currency=inst.currency,
-                current_price=Decimal("1500.0") if inst.exchange == "NSE" else Decimal("1505.0"),
+                current_price=(
+                    Decimal("1500.0") if inst.exchange == "NSE" else Decimal("1505.0")
+                ),
                 metadata={"instrument_key": f"{inst.exchange}_EQ|INE009A01021"},
             )
 
@@ -228,8 +304,12 @@ def test_cache_isolates_by_exchange_and_currency():
     cache = InMemoryCache()
     service = MarketQuoteService(port, cache=cache, cache_ttl_seconds=60)
 
-    inst_nse = Instrument(symbol="INFY", exchange="NSE", currency="INR", asset_class=AssetClass.EQUITY)
-    inst_bse = Instrument(symbol="INFY", exchange="BSE", currency="INR", asset_class=AssetClass.EQUITY)
+    inst_nse = Instrument(
+        symbol="INFY", exchange="NSE", currency="INR", asset_class=AssetClass.EQUITY
+    )
+    inst_bse = Instrument(
+        symbol="INFY", exchange="BSE", currency="INR", asset_class=AssetClass.EQUITY
+    )
 
     q1 = service.get_quote(inst_nse)
     assert q1.current_price.value == Decimal("1500.0")

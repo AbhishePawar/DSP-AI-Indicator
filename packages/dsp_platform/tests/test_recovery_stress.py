@@ -607,7 +607,10 @@ def test_stress_pipeline_continuation_matrix_quote_ok_statements_failed(
         stages_by_name = {s.stage: s for s in result.stages}
 
         # Financial failed
-        assert stages_by_name["financial"].status in {StageStatus.FAILED, StageStatus.UNAVAILABLE}
+        assert stages_by_name["financial"].status in {
+            StageStatus.FAILED,
+            StageStatus.UNAVAILABLE,
+        }
         # Valuation degraded (price-only signals)
         assert stages_by_name["valuation"].status == StageStatus.DEGRADED
         assert result.valuation_signals is not None

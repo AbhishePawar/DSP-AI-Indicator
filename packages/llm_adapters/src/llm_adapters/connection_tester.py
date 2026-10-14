@@ -35,7 +35,9 @@ def _validate_safe_url(url: str, allow_local: bool = True) -> str:
         raise ValueError("Invalid URL scheme: must be http or https.")
     hostname = (parsed.hostname or "").lower()
     if hostname in _SSRF_BLOCKED_HOSTS:
-        raise ValueError("Connection to cloud metadata service is prohibited by SSRF policy.")
+        raise ValueError(
+            "Connection to cloud metadata service is prohibited by SSRF policy."
+        )
     if not allow_local and hostname in ("localhost", "127.0.0.1", "::1"):
         raise ValueError("Connection to localhost is prohibited in this mode.")
     return url
@@ -67,7 +69,10 @@ def test_provider_connection(
             url = f"https://generativelanguage.googleapis.com/v1beta/models?key={urllib.parse.quote(secret)}"
             req = urllib.request.Request(
                 url,
-                headers={"Accept": "application/json", "User-Agent": "dsp-ai-indicator/1.0"},
+                headers={
+                    "Accept": "application/json",
+                    "User-Agent": "dsp-ai-indicator/1.0",
+                },
                 method="GET",
             )
             with urllib.request.urlopen(req, timeout=timeout) as resp:
@@ -101,11 +106,13 @@ def test_provider_connection(
             # Anthropic test probe (ping with 1 token)
             url = "https://api.anthropic.com/v1/messages"
             test_model = model or "claude-3-haiku-20240307"
-            payload = json.dumps({
-                "model": test_model,
-                "max_tokens": 1,
-                "messages": [{"role": "user", "content": "ping"}],
-            }).encode("utf-8")
+            payload = json.dumps(
+                {
+                    "model": test_model,
+                    "max_tokens": 1,
+                    "messages": [{"role": "user", "content": "ping"}],
+                }
+            ).encode("utf-8")
             req = urllib.request.Request(
                 url,
                 data=payload,
@@ -224,11 +231,13 @@ def test_provider_connection(
             }
             target_url = endpoints[pid]
             if pid == "perplexity":
-                payload = json.dumps({
-                    "model": model or "sonar",
-                    "messages": [{"role": "user", "content": "ping"}],
-                    "max_tokens": 1,
-                }).encode("utf-8")
+                payload = json.dumps(
+                    {
+                        "model": model or "sonar",
+                        "messages": [{"role": "user", "content": "ping"}],
+                        "max_tokens": 1,
+                    }
+                ).encode("utf-8")
                 req = urllib.request.Request(
                     target_url,
                     data=payload,
@@ -258,7 +267,9 @@ def test_provider_connection(
         elif pid == "ollama":
             endpoint = _validate_safe_url(base_url or "http://localhost:11434")
             url = f"{endpoint.rstrip('/')}/api/tags"
-            req = urllib.request.Request(url, headers={"Accept": "application/json"}, method="GET")
+            req = urllib.request.Request(
+                url, headers={"Accept": "application/json"}, method="GET"
+            )
             with urllib.request.urlopen(req, timeout=timeout) as resp:
                 status = resp.status
                 latency_ms = (time.monotonic() - start_time) * 1000.0

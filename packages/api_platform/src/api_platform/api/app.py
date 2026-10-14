@@ -203,7 +203,9 @@ def create_app(
         contexts=ContextStore(),
         api_version=api_version,
         copilot_service=(copilot_svc := build_copilot_service()),
-        provider_registry=getattr(copilot_svc, "_registry", None) if copilot_svc else None,
+        provider_registry=(
+            getattr(copilot_svc, "_registry", None) if copilot_svc else None
+        ),
         research_orchestrator=build_research_orchestrator(resolved),
         language_model=build_language_model(),
         infrastructure=boot.infrastructure,

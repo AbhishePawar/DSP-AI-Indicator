@@ -27,7 +27,7 @@ class AIGatewayAdapter:
         self.model_label = model
 
     def is_configured(self) -> bool:
-        return bool(self._config.ai_gateway_api_key)
+        return self._config.has_configured_gateway
 
     def invoke(self, request: LanguageModelRequest) -> LanguageModelResult:
         if not self.is_configured():

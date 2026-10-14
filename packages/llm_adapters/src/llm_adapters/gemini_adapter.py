@@ -38,10 +38,14 @@ class GeminiAdapter(GeminiToolCalling):
 
     def __init__(self, config: LLMPlatformConfig) -> None:
         self._config = config
-        self.model_label = config.gemini_model
+        self.model_label = (
+            config.gemini_model
+            if config.has_configured_gateway
+            else config.gemini_model.removeprefix("google/")
+        )
 
     def is_configured(self) -> bool:
-        return bool(self._config.ai_gateway_api_key or self._config.gemini_api_key)
+        return bool(self._config.has_configured_gateway or self._config.gemini_api_key)
 
     def invoke(self, request: LanguageModelRequest) -> LanguageModelResult:
         result, _ = self._generate(request, tools=None, allow_tool_only=False)
@@ -65,14 +69,14 @@ class GeminiAdapter(GeminiToolCalling):
         allow_tool_only: bool,
     ) -> tuple[LanguageModelResult, dict[str, Any] | None]:
         if not self.is_configured():
-            return self._unavailable("AI Gateway is not configured"), None
+            return self._unavailable("Gemini API credentials are not configured"), None
 
         if not request.prompt_parts:
             return self._failed("empty prompt parts"), None
 
         system_content, *user_parts = request.prompt_parts
         user_text = "\n\n".join(user_parts)
-        use_gateway = bool(self._config.ai_gateway_api_key)
+        use_gateway = self._config.has_configured_gateway
         url = (
             f"{self._config.ai_gateway_base_url.rstrip('/')}/chat/completions"
             if use_gateway
@@ -150,7 +154,7 @@ class GeminiAdapter(GeminiToolCalling):
         )
 
     def stream_invoke(self, request: LanguageModelRequest) -> Iterator[str]:
-        if not self.is_configured():
+        if not self._config.gemini_api_key:
             return
         if not request.prompt_parts:
             return

@@ -119,3 +119,22 @@ def test_failed_candidate_preserves_existing_credential(tmp_path):
     # Existing key must be preserved!
     assert store.get_credential("openai") == "good-openai-key-111111"
     assert store.get_provider("openai")["version"] == 2
+
+def test_production_store_requires_explicit_encryption_master_key(tmp_path):
+    store_file = str(tmp_path / "production_store.json")
+    with patch.dict(
+        os.environ,
+        {
+            "DSP_ENV": "production",
+            "DATABASE_URL": "",
+            "DSP_DATABASE_URL": "",
+            "DSP_RUNTIME_STORE_DSN": "",
+            "DSP_CREDENTIAL_MASTER_KEY": "",
+            "DSP_MFA_SECRET_KEY": "",
+            "DSP_AUTH_JWT_SECRET": "jwt-secret-must-not-be-used-for-credential-encryption",
+        },
+        clear=False,
+    ):
+        with pytest.raises(RuntimeError, match="DSP_CREDENTIAL_MASTER_KEY"):
+            RuntimeProviderStore(store_path=store_file)
+

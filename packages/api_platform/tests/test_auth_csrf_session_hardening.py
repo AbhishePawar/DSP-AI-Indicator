@@ -3,13 +3,11 @@
 from __future__ import annotations
 
 import os
-import pytest
+
 from fastapi.testclient import TestClient
-from starlette.requests import Request
-from starlette.responses import JSONResponse
 
 from api_platform.api.app import create_app
-from api_platform.api.csrf_middleware import _AUTH_EXEMPT, CsrfMiddleware
+from api_platform.api.csrf_middleware import _AUTH_EXEMPT
 from security_platform import Role, SecurityBundle, SecuritySettings
 from security_platform.security.cookies import ACCESS_COOKIE, CSRF_COOKIE, CSRF_HEADER
 

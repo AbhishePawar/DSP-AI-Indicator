@@ -7,18 +7,15 @@ from __future__ import annotations
 
 from typing import Any
 
-from fastapi import APIRouter, Depends, HTTPException, Query, Request
-from fastapi.responses import JSONResponse
+from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel, Field
 
 from api_platform.api.dependencies import require_admin_access
 from llm_adapters import (
     ProviderNotFoundError,
-    TaskPolicy,
     ValidationFailedError,
     get_runtime_store,
     get_task_routing_manager,
-    test_provider_connection as test_connection,
 )
 
 router = APIRouter(

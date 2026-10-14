@@ -2,14 +2,13 @@
 
 from __future__ import annotations
 
-import threading
-
+from dataclasses import dataclass
 import json
 import logging
 import os
-import time
-from dataclasses import dataclass
 from pathlib import Path
+import threading
+import time
 from typing import Any
 
 from api_platform.api.monitoring import (

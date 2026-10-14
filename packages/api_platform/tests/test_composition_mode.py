@@ -1,6 +1,5 @@
 """Tests for AnalyseRequest mode contract and backward compatibility."""
 
-import pytest
 from api_platform.api.composition_schemas import AnalyseRequest, AnalyseResponse
 
 

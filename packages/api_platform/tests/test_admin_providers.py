@@ -13,7 +13,7 @@ Verifies:
 from __future__ import annotations
 
 import json
-from unittest.mock import MagicMock, patch
+from unittest.mock import patch
 
 import pytest
 from fastapi.testclient import TestClient
@@ -23,7 +23,6 @@ from api_platform.api.app import create_app
 from auth import get_auth_service
 from llm_adapters.provider_health import ProviderHealthStatus
 from llm_adapters.runtime_store import get_runtime_store
-from llm_adapters.task_routing import get_task_routing_manager
 
 
 @pytest.fixture(autouse=True)

@@ -110,9 +110,13 @@ def main(argv: list[str] | None = None) -> int:
                 return 1
 
         cors = os.environ.get("DSP_CORS_ORIGINS", "")
-        if "http://" in cors and "https://" not in cors:
+        origins = [origin.strip() for origin in cors.split(",") if origin.strip()]
+        if not origins or any(
+            not origin.startswith("https://") or "*" in origin for origin in origins
+        ):
             print(
-                "[production] DSP_CORS_ORIGINS should use HTTPS origins",
+                "[production] DSP_CORS_ORIGINS must contain exact HTTPS origins "
+                "only (no HTTP or wildcard)",
                 file=sys.stderr,
             )
             return 1
@@ -130,10 +134,14 @@ def main(argv: list[str] | None = None) -> int:
                 file=sys.stderr,
             )
             return 1
-        if domain.startswith("http://") or domain.startswith("https://"):
+        if (
+            domain.startswith("http://")
+            or domain.startswith("https://")
+            or any(char in domain for char in "/:@ ")
+        ):
             print(
                 "[production] DSP_PUBLIC_DOMAIN must be a hostname only "
-                "(no scheme)",
+                "(no scheme, port, path, or spaces)",
                 file=sys.stderr,
             )
             return 1

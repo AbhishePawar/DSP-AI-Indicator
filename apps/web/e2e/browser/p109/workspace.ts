@@ -268,7 +268,7 @@ export async function exportJsonSnapshot(
   ticker: string,
   analysisId: string,
 ): Promise<Record<string, unknown>> {
-  await openAnalysisSection(page, /Downloads/i, /^Downloads$/i);
+  await openAnalysisSection(page, /Export/i, /^Downloads$/i);
   const exportJson = page.getByRole("button", { name: /Export JSON/i });
   await expect(exportJson).toBeVisible({ timeout: 15_000 });
   const downloadPromise = page.waitForEvent("download", { timeout: 30_000 });

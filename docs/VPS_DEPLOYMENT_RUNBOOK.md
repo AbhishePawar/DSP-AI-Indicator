@@ -38,7 +38,7 @@ cp .env.production.example .env.production
 chmod 600 .env.production
 ```
 
-Edit `.env.production` and replace every placeholder, including:
+Edit `.env.production` and replace every placeholder, including. This file is read by both Docker Compose and shell deployment/backup scripts: **single-quote values containing spaces or shell metacharacters** (especially the database URL, API keys, and passwords). URL-encode special characters in the Neon username/password. The template quotes these values to show the required format.
 
 - `DSP_PUBLIC_DOMAIN`: real hostname only (no scheme).
 - `DSP_ACME_EMAIL`: monitored email for certificate expiry/ACME notices.

@@ -2,14 +2,12 @@
 
 from __future__ import annotations
 
-import time
-
-import json
 from decimal import Decimal
+import json
+import time
 from typing import Any
 from unittest.mock import MagicMock, patch
 
-import pytest
 from fastapi.testclient import TestClient
 
 from api_platform import create_app

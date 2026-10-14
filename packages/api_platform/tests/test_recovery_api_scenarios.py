@@ -2,41 +2,38 @@
 
 from __future__ import annotations
 
+from datetime import UTC, datetime
 import json
-from datetime import UTC, date, datetime
-from decimal import Decimal
 from typing import Any
-import pytest
+
 from fastapi.testclient import TestClient
+import pytest
 
 from api_platform import create_app
-from dsp_platform import (
-    PlatformBuilder,
-    PlatformConfiguration,
-)
-from dsp_platform.composition.models import StageStatus
+from copilot.enums import LanguageModelStatus
+from copilot.models import LanguageModelRequest, LanguageModelResult
 from data_engine import (
     FinancialStatementService,
     InMemoryAuthenticatedQuoteAdapter,
     NullAuthenticatedStatementAdapter,
 )
+from data_engine.market_quote.adapters import build_quote_from_mapping
+from data_engine.market_quote.models import MarketQuoteProvenance
+from dsp_platform import (
+    PlatformBuilder,
+    PlatformConfiguration,
+)
 from dsp_platform.financial_statements import (
     reset_financial_statement_service_for_tests,
 )
-from data_engine.market_quote.adapters import build_quote_from_mapping
-from data_engine.market_quote.models import MarketQuoteProvenance
 from dsp_platform.market_quotes import (
     MarketQuoteService,
     reset_market_quote_service_for_tests,
 )
 from dsp_platform.recovery import (
-    StatementRecoveryResult,
     StatementRecoveryService,
-    StatementRecoveryStatus,
     reset_statement_recovery_service_for_tests,
 )
-from copilot.enums import LanguageModelStatus
-from copilot.models import LanguageModelRequest, LanguageModelResult
 
 
 class MockLLMAdapter:

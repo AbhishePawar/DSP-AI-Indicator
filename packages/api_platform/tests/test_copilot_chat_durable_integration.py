@@ -3,8 +3,9 @@
 from __future__ import annotations
 
 import threading
-import pytest
+
 from fastapi.testclient import TestClient
+import pytest
 
 from api_platform import create_app
 from api_platform.api.dependencies import require_authenticated_actor
@@ -12,12 +13,12 @@ from dsp_platform import DSPPlatform, PlatformBuilder, PlatformConfiguration
 from dsp_platform.copilot_v2 import reset_copilot_memory_store_for_tests
 from dsp_platform.copilot_v2.memory import CopilotMemoryStore
 from persistence.interfaces import StorageProviderPort
-from persistence.storage import InMemoryStorageProvider
 from persistence.research_session import (
     ResearchSessionService,
     compute_session_id,
     reset_research_session_service_for_tests,
 )
+from persistence.storage import InMemoryStorageProvider
 
 
 @pytest.fixture

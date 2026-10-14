@@ -2,11 +2,10 @@
 
 from __future__ import annotations
 
-import math
 import pytest
+
 from api_platform.api.research_report_schema import (
     ALLOWED_RECOMMENDATIONS,
-    PublicResearchReportDTO,
     validate_public_research_report,
 )
 

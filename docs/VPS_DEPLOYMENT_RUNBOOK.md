@@ -92,6 +92,10 @@ For an existing deployment, supply the known-good image tags recorded before the
 
 Verify API and web health after rollback. Do not switch DNS or decommission the old deployment until acceptance checks pass and a backup/restore drill is successful.
 
+## Dependency audit note
+
+The current full npm audit identifies the high-severity `braces` stack-exhaustion advisory (GHSA-vfj7-8cjw-p6xm) through the development-only Next.js ESLint tooling. As of this audit, the upstream advisory lists no patched release. The release gate therefore fails on high-severity **production** dependency findings and on any **critical** finding in the full tree; the full audit still reports this known development-tooling exception. Do not expose the ESLint/dev-server tooling in production. Recheck the advisory before each release.
+
 ## Release blockers
 
 - A real Neon URL and real public hostname are mandatory; the checked-in template intentionally fails production validation.

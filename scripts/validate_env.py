@@ -176,13 +176,15 @@ def main(argv: list[str] | None = None) -> int:
             )
             return 1
 
-        if not any(
-            os.environ.get(key, "").strip()
+        missing_ai_keys = [
+            key
             for key in ("GEMINI_API_KEY", "OPENAI_API_KEY_5")
-        ):
+            if not os.environ.get(key, "").strip()
+        ]
+        if missing_ai_keys:
             print(
-                "[production] Configure at least one direct AI provider key "
-                "(GEMINI_API_KEY or OPENAI_API_KEY_5)",
+                "[production] Dual-provider verification requires both direct "
+                f"provider keys; missing: {', '.join(missing_ai_keys)}",
                 file=sys.stderr,
             )
             return 1

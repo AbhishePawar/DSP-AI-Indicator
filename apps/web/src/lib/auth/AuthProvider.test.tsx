@@ -155,6 +155,9 @@ describe("AuthProvider cookie-session restoration", () => {
       expect(readCsrfToken()).toBe("csrf-restored");
     });
 
+    if (!authContext) {
+      throw new Error("AuthProvider did not expose the auth context");
+    }
     await authContext.logout();
 
     expect(fetchMock).toHaveBeenCalledWith(

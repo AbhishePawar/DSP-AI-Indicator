@@ -36,19 +36,20 @@ export async function openAnalysisWorkspace(
 export async function openAnalysisSection(
   page: Page,
   label: RegExp,
-  heading: string | RegExp,
+  heading: RegExp,
+  toolId?: string,
 ): Promise<void> {
-  const button = analysisNav(page).getByRole("button", { name: label });
+  const nav = analysisNav(page);
+  if (toolId) {
+    await nav.getByLabel(/More research tools/i).selectOption(toolId);
+  } else {
+    const button = nav.getByRole("button", { name: label });
+    await expect(button).toBeVisible();
+    await button.click();
+  }
   await expect(
-    button,
-    `[P1-09] section control ${label} must exist`,
+    page.getByTestId("analysis-detail-content").getByRole("heading", { name: heading }),
   ).toBeVisible();
-  await button.click();
-  await expect(analysisMain(page)).toBeVisible();
-  await expect(
-    page.getByRole("heading", { name: heading }).first(),
-    `[P1-09] section heading ${String(heading)} must render`,
-  ).toBeVisible({ timeout: 20_000 });
 }
 
 export type AnalyseCapture = {
@@ -268,7 +269,7 @@ export async function exportJsonSnapshot(
   ticker: string,
   analysisId: string,
 ): Promise<Record<string, unknown>> {
-  await openAnalysisSection(page, /Export/i, /^Downloads$/i);
+  await openAnalysisSection(page, /Export/i, /^Downloads$/i, "export");
   const exportJson = page.getByRole("button", { name: /Export JSON/i });
   await expect(exportJson).toBeVisible({ timeout: 15_000 });
   const downloadPromise = page.waitForEvent("download", { timeout: 30_000 });

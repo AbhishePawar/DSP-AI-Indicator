@@ -34,8 +34,7 @@ class ProviderRegistry:
         return self._adapters.get(provider_id)
 
     def direct_fallback(self, provider_id: str) -> ProviderAdapter | None:
-        """Retired gateway fallback; providers are registered directly."""
-        del provider_id
+        """No separate gateway fallback exists; direct adapters are authoritative."""
         return None
 
     def list_providers(self) -> list[dict[str, object]]:

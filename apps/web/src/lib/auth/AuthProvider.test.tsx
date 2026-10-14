@@ -140,7 +140,7 @@ describe("AuthProvider cookie-session restoration", () => {
     vi.stubGlobal("fetch", fetchMock);
 
     const { useAuth } = await import("./AuthProvider");
-    let authContext: ReturnType<typeof useAuth> | undefined;
+    let authContext: unknown;
     function Consumer() {
       authContext = useAuth();
       return <div>consumer</div>;

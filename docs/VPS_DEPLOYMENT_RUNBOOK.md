@@ -82,7 +82,23 @@ Also verify manually:
 - Caddy certificate issuance and renewal.
 - Logs contain no credentials or raw provider keys.
 
-## 6. Rollback
+## 6. Backup and restore
+
+Create a database backup to the host-side `./backups` directory (separate from the API container volume):
+
+\`\`\`bash
+./scripts/backup_database.sh
+\`\`\`
+
+The wrapper uses a temporary PostgreSQL client container (`DSP_PG_CLIENT_IMAGE`, default `postgres:18-alpine`) to connect to Neon, so the VPS host does not need `pg_dump` installed. Match the client major version to the Neon server version. Restore is destructive and requires explicit confirmation:
+
+\`\`\`bash
+DSP_RESTORE_CONFIRM=YES ./scripts/restore_database.sh ./backups/dsp_pg_YYYYMMDDTHHMMSSZ.sql.gz
+\`\`\`
+
+Run a restore drill against a separate disposable database first. Never test restore against the live production database.
+
+## 7. Rollback
 
 For an existing deployment, supply the known-good image tags recorded before the upgrade:
 

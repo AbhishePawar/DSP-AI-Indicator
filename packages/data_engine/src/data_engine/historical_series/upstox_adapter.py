@@ -24,13 +24,11 @@ import time
 import urllib.error
 import urllib.parse
 import urllib.request
-from collections.abc import Mapping
 from dataclasses import dataclass, field
 from datetime import UTC, date, datetime, timedelta
 from typing import Any
 
 from contracts.domain.instrument import Instrument
-from contracts.enums import AssetClass
 from data_engine.exceptions import InvalidProviderDataError, ProviderRequestError
 from data_engine.historical_series.models import (
     AuthenticatedHistoricalBundle,

@@ -2,10 +2,6 @@
 
 from __future__ import annotations
 
-from data_engine.historical_series.upstox_adapter import (
-    UpstoxCandle,
-    UpstoxHistoricalAdapter,
-)
 from data_engine.historical_series.adapters import (
     ConfiguredHttpHistoricalAdapter,
     InMemoryAuthenticatedHistoricalAdapter,
@@ -32,6 +28,10 @@ from data_engine.historical_series.service import (
     HistoricalSeriesQuery,
     HistoricalSeriesService,
     HistoricalSeriesServiceMetrics,
+)
+from data_engine.historical_series.upstox_adapter import (
+    UpstoxCandle,
+    UpstoxHistoricalAdapter,
 )
 from data_engine.historical_series.validation import (
     validate_authenticated_historical_bundle,

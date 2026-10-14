@@ -27,6 +27,7 @@ PROFILES = {
         "required": [
             "DSP_ENVIRONMENT",
             "DSP_JWT_SECRET",
+            "DSP_SEED_ADMIN_PASSWORD",
             "DSP_CORS_ORIGINS",
             "DSP_ENABLE_SECURITY",
             "DSP_REQUIRE_ADMIN_AUTH",
@@ -93,7 +94,7 @@ def main(argv: list[str] | None = None) -> int:
             return 1
 
         jwt = os.environ.get("DSP_JWT_SECRET", "")
-        if jwt in FORBIDDEN_JWT or len(jwt) < 24:
+        if jwt in FORBIDDEN_JWT or len(jwt) < 32:
             print(
                 "[production] DSP_JWT_SECRET must be a strong secret "
                 "(≥24 chars, not a template/default)",
@@ -175,6 +176,17 @@ def main(argv: list[str] | None = None) -> int:
             )
             return 1
 
+        if not any(
+            os.environ.get(key, "").strip()
+            for key in ("GEMINI_API_KEY", "OPENAI_API_KEY_5")
+        ):
+            print(
+                "[production] Configure at least one direct AI provider key "
+                "(GEMINI_API_KEY or OPENAI_API_KEY_5)",
+                file=sys.stderr,
+            )
+            return 1
+
         tz = os.environ.get("DSP_INDIA_TIMEZONE", "")
         if tz and tz != "Asia/Kolkata":
             print(
@@ -183,9 +195,7 @@ def main(argv: list[str] | None = None) -> int:
             )
 
         seed = os.environ.get("DSP_SEED_ADMIN_PASSWORD", "")
-        if seed and (
-            seed.startswith("CHANGE_ME") or seed in {"admin", "password", "dsp"}
-        ):
+        if len(seed) < 16 or seed.startswith("CHANGE_ME") or seed in {"admin", "password", "dsp"}:
             print(
                 "[production] DSP_SEED_ADMIN_PASSWORD looks like a template "
                 "or weak password",

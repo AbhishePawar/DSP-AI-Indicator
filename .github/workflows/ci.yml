@@ -26,10 +26,19 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: "22"
-      - run: corepack enable
-      - run: yarn install --frozen-lockfile
-      - run: yarn lint
-      - run: yarn tsc --noEmit
+          cache: npm
+          cache-dependency-path: apps/web/package-lock.json
+      - name: Install frontend dependencies
+        run: npm ci
+      - name: Lint frontend
+        run: npm run lint
+      - name: Type check frontend
+        run: npx tsc --noEmit
+      - name: Build production frontend
+        env:
+          NEXT_PUBLIC_API_BASE_URL: /api/v1
+          NEXT_PUBLIC_BUILD_TIMESTAMP: ${{ github.run_id }}
+        run: npm run build
 
   quality:
     name: Quality gates (Python ${{ matrix.python-version }})

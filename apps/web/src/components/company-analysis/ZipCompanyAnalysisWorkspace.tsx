@@ -1299,7 +1299,7 @@ export function FinancialAnalysisSection({
             <div style={{ fontSize: 10, color: "var(--muted-foreground)", fontFamily: "var(--font-data)", letterSpacing: "0.06em", marginBottom: 4 }}>
               {m.label}
             </div>
-            <div style={{ fontSize: 15, fontWeight: 600, color: (m as any).color || "var(--foreground)", fontFamily: "var(--font-data)" }}>
+            <div style={{ fontSize: 15, fontWeight: 600, color: m.color || "var(--foreground)", fontFamily: "var(--font-data)" }}>
               {m.value}
             </div>
           </div>

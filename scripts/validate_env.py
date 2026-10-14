@@ -197,7 +197,11 @@ def main(argv: list[str] | None = None) -> int:
             )
 
         seed = os.environ.get("DSP_SEED_ADMIN_PASSWORD", "")
-        if len(seed) < 16 or seed.startswith("CHANGE_ME") or seed in {"admin", "password", "dsp"}:
+        if (
+            len(seed) < 16
+            or seed.startswith("CHANGE_ME")
+            or seed in {"admin", "password", "dsp"}
+        ):
             print(
                 "[production] DSP_SEED_ADMIN_PASSWORD looks like a template "
                 "or weak password",

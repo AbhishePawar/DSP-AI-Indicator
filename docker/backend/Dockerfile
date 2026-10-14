@@ -53,7 +53,8 @@ COPY scripts/start-api.sh /app/scripts/start-api.sh
 
 RUN chmod +x /app/scripts/start-api.sh && \
     useradd --create-home --shell /bin/bash dsp && \
-    chown -R dsp:dsp /app
+    mkdir -p /tmp/dsp /var/backups/dsp /var/lib/dsp/object-storage && \
+    chown -R dsp:dsp /app /tmp/dsp /var/backups/dsp /var/lib/dsp/object-storage
 
 USER dsp
 EXPOSE 8000

@@ -46,7 +46,7 @@ jobs:
 
       - name: Resolve updated frontend lockfile
         if: github.event_name == 'pull_request' && github.head_ref == 'fix/deployment-readiness-20261014'
-        run: rm -f package-lock.json && npm install --package-lock-only --ignore-scripts --no-audit --no-fund
+        run: rm -f package-lock.json && npm install --package-lock-only --ignore-scripts --no-audit --no-fund --legacy-peer-deps
 
       - name: Commit refreshed lockfile
         if: github.event_name == 'pull_request' && github.head_ref == 'fix/deployment-readiness-20261014'

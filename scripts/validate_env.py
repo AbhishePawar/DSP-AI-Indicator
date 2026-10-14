@@ -97,7 +97,7 @@ def main(argv: list[str] | None = None) -> int:
         if jwt in FORBIDDEN_JWT or len(jwt) < 32:
             print(
                 "[production] DSP_JWT_SECRET must be a strong secret "
-                "(≥24 chars, not a template/default)",
+                "(≥32 chars, not a template/default)",
                 file=sys.stderr,
             )
             return 1

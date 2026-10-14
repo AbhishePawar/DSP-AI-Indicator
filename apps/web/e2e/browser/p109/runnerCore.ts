@@ -296,7 +296,7 @@ export async function boundedHttpCheck(
     const res = await fetchFn(url, { signal: controller.signal });
     clearTimeout(timer);
     return { ok: res.status >= 200 && res.status < 500, status: res.status };
-  } catch (err: unknown) {
+  } catch {
     const isTimeout = err?.name === "AbortError" || String(err).includes("aborted");
     return {
       ok: false,

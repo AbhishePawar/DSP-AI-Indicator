@@ -79,6 +79,21 @@ def test_store_replace_and_revoke_credential(tmp_path):
         assert "test-gemini-key-999999" not in log_str
 
 
+def test_revoked_environment_credential_stays_revoked_after_restart(tmp_path):
+    store_file = str(tmp_path / "revocation_store.json")
+    with patch.dict(os.environ, {"OPENAI_API_KEY": "environment-key-that-must-stay-revoked"}):
+        first = RuntimeProviderStore(store_path=store_file)
+        assert first.get_credential("openai") == "environment-key-that-must-stay-revoked"
+
+        first.revoke_credential("openai", author="admin_test")
+        assert first.get_credential("openai") is None
+
+        # Simulate a process restart while the original environment variable remains set.
+        restarted = RuntimeProviderStore(store_path=store_file)
+        assert restarted.get_credential("openai") is None
+        assert restarted.get_provider("openai")["has_credential"] is False
+
+
 def test_failed_candidate_preserves_existing_credential(tmp_path):
     store_file = str(tmp_path / "test_store.json")
     store = RuntimeProviderStore(store_path=store_file)

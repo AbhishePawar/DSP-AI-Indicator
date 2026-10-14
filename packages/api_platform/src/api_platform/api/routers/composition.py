@@ -24,8 +24,12 @@ from api_platform.api.mappers import (
     map_platform_result,
 )
 from api_platform.api.research_orchestration_service import (
+    _MAX_ORCHESTRATION_WORKERS as _MAX_ORCHESTRATION_WORKERS,
+    _ORCHESTRATION_SEMAPHORE as _ORCHESTRATION_SEMAPHORE,
     execute_research_orchestration,
+    parse_orchestration_timeout as parse_orchestration_timeout,
 )
+from api_platform.api.validation import validate_analyse_request as validate_analyse_request
 from dsp_platform import CompositionInputError, build_composition_request
 from dsp_platform.investment_provenance import (
     InvestmentProvenanceError,

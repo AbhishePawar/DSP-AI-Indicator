@@ -139,9 +139,9 @@ describe("AuthProvider cookie-session restoration", () => {
     const fetchMock = vi.fn().mockResolvedValue(new Response("{}", { status: 200 }));
     vi.stubGlobal("fetch", fetchMock);
 
-    let authContext: ReturnType<typeof useAuth> | null = null;
+    const authContext: { current: ReturnType<typeof useAuth> | null } = { current: null };
     function Consumer() {
-      authContext = useAuth();
+      authContext.current = useAuth();
       return <div>consumer</div>;
     }
 
@@ -155,10 +155,11 @@ describe("AuthProvider cookie-session restoration", () => {
       expect(readCsrfToken()).toBe("csrf-restored");
     });
 
-    if (!authContext) {
+    const context = authContext.current;
+    if (!context) {
       throw new Error("AuthProvider did not expose the auth context");
     }
-    await authContext.logout();
+    await context.logout();
 
     expect(fetchMock).toHaveBeenCalledWith(
       expect.stringContaining("/auth/logout"),

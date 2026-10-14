@@ -41,13 +41,11 @@ PROFILES = {
         "recommended": [
             "BUILD_TIMESTAMP",
             "GIT_SHA",
-            "DSP_REDIS_URL",
             "DSP_REGION",
             "DSP_BACKUP_DIR",
             "DSP_TEMP_DIR",
             "DEFAULT_AI_PROVIDER",
             "NEXT_PUBLIC_API_BASE_URL",
-            "DSP_API_DOMAIN",
             "DSP_ACME_EMAIL",
             "DSP_PLATFORM_VERSION",
         ],

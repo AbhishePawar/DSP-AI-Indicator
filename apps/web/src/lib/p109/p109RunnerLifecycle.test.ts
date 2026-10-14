@@ -269,7 +269,7 @@ describe("P1-09 runner lifecycle & health configuration", () => {
         webDir: expectedWorktreeDir,
         autoFallbackPort: 3001,
         inspectPortFn,
-        spawnFn: spawnFn as any,
+        spawnFn: spawnFn as unknown as typeof import("node:child_process").spawn,
         checkUrlFn,
       }
     );

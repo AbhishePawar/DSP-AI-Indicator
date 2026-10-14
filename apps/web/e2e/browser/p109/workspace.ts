@@ -170,7 +170,7 @@ export async function assertBuffettVisible(
 ): Promise<void> {
   await openAnalysisSection(
     page,
-    /Buffett Indicator/i,
+    /Buffett Assessment/i,
     /Buffett Indicator Analysis/i,
   );
   const buffettMain = page.getByTestId("analysis-detail-content");
@@ -201,7 +201,7 @@ export async function assertEvidenceVisible(
 ): Promise<void> {
   await openAnalysisSection(
     page,
-    /Supporting Evidence/i,
+    /^Evidence$/i,
     /Research objects/i,
   );
   await expect(page.getByTestId("analysis-detail-content").getByText("Analysis ID", { exact: true })).toBeVisible();

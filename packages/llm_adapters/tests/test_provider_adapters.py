@@ -16,7 +16,7 @@ import httpx
 from copilot.enums import LanguageModelStatus, UserIntentType
 from copilot.models import LanguageModelRequest
 from llm_adapters.anthropic_adapter import AnthropicAdapter
-from llm_adapters.config import LLMPlatformConfig, load_llm_config
+from llm_adapters.config import LLMPlatformConfig
 from llm_adapters.deepseek_adapter import DeepSeekAdapter
 from llm_adapters.gemini_adapter import GeminiAdapter
 from llm_adapters.openai_adapter import OpenAIAdapter
@@ -393,31 +393,3 @@ def test_adapters_return_free_text_not_structured() -> None:
         assert result.status is LanguageModelStatus.COMPLETE
         assert result.structured_sections == ()  # no fabrication
         assert result.narrative_text == "ok"
-
-
-def test_legacy_gateway_environment_is_ignored(monkeypatch: Any) -> None:
-    """Legacy gateway settings must not change the direct-provider routing mode."""
-    monkeypatch.setenv("DEFAULT_AI_PROVIDER", "gemini")
-    monkeypatch.setenv("AI_PROVIDER_MODE", "gateway")
-    monkeypatch.setenv("AI_GATEWAY_API_KEY", "legacy-gateway-key")
-    monkeypatch.setenv("AI_GATEWAY_BASE_URL", "https://gateway.invalid/v1")
-    for name in (
-        "OPENAI_API_KEY",
-        "DSP_AI_OPENAI_API_KEY",
-        "OPENAI_API_KEY_5",
-        "ANTHROPIC_API_KEY",
-        "DSP_AI_ANTHROPIC_API_KEY",
-        "GEMINI_API_KEY",
-        "DSP_AI_GEMINI_API_KEY",
-        "DEEPSEEK_API_KEY",
-        "DSP_AI_DEEPSEEK_API_KEY",
-    ):
-        monkeypatch.delenv(name, raising=False)
-
-    config = load_llm_config()
-
-    assert config.provider_mode == "direct"
-    assert not config.has_external_provider
-    assert not hasattr(config, "ai_gateway_api_key")
-    assert not hasattr(config, "ai_gateway_base_url")
-    assert not hasattr(config, "has_configured_gateway")

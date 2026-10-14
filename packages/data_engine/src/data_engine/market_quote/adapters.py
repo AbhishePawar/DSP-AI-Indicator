@@ -223,6 +223,27 @@ def build_default_quote_adapter_from_env() -> MarketQuotePort:
         memory_adapter_allowed,
         require_authenticated_http_adapter,
     )
+    selected_provider = os.environ.get("DSP_INVESTMENT_DATA_PROVIDER", "").strip().lower()
+    if selected_provider == "upstox":
+        from data_engine.connector_framework.production_profile import (
+            ConnectorConfigurationError,
+        )
+        from data_engine.market_quote.upstox_adapter import UpstoxQuoteAdapter
+
+        # Prefer the canonical application credential. Legacy aliases remain
+        # supported for existing deployments; values are never logged.
+        token = (
+            os.environ.get("DSP_UPSTOX_ANALYTICS_TOKEN", "").strip()
+            or os.environ.get("DSP_UPSTOX_ACCESS_TOKEN", "").strip()
+            or os.environ.get("UPSTOX_ACCESS_TOKEN", "").strip()
+        )
+        if not token:
+            raise ConnectorConfigurationError(
+                "Upstox selected but credentials are missing; set "
+                "DSP_UPSTOX_ANALYTICS_TOKEN."
+            )
+        return UpstoxQuoteAdapter(access_token=token)
+
     from data_engine.investment_data_provider import resolve_investment_data_provider
 
     resolve_investment_data_provider()

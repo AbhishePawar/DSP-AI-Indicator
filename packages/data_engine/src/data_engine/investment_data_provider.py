@@ -1,8 +1,8 @@
 """Investment data provider selection for authenticated quote + statements.
 
-``DSP_INVESTMENT_DATA_PROVIDER`` accepts unset/``auto`` or ``http`` for the
-vendor-neutral authenticated HTTP route. Commercial vendor selection is not
-supported. Missing verified data remains unavailable, never a vendor fallback.
+``DSP_INVESTMENT_DATA_PROVIDER`` accepts unset/``auto``, ``http``, or ``upstox``.
+Upstox selection applies to market quotes only; financial statements retain their
+separately configured authenticated HTTP route. Missing data is never fabricated.
 """
 
 from __future__ import annotations
@@ -23,7 +23,7 @@ __all__ = [
 DSP_INVESTMENT_DATA_PROVIDER_ENV = "DSP_INVESTMENT_DATA_PROVIDER"
 
 # Normalized selection values
-InvestmentDataProvider = str  # "auto" | "http"
+InvestmentDataProvider = str  # "auto" | "http" | "upstox"
 
 
 def resolve_investment_data_provider(
@@ -34,9 +34,9 @@ def resolve_investment_data_provider(
     raw = str(env_map.get(DSP_INVESTMENT_DATA_PROVIDER_ENV) or "").strip().lower()
     if not raw or raw in {"auto", "default"}:
         return "auto"
-    if raw == "http":
+    if raw in {"http", "upstox"}:
         return raw
     raise ConnectorConfigurationError(
         f"P1-03: invalid {DSP_INVESTMENT_DATA_PROVIDER_ENV}={raw!r}; "
-        "allowed values: http, auto (or unset); commercial vendors are disabled"
+        "allowed values: auto, http, upstox (or unset)"
     )

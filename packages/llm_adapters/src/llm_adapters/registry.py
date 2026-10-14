@@ -4,7 +4,6 @@ from __future__ import annotations
 
 from llm_adapters.anthropic_adapter import AnthropicAdapter
 from llm_adapters.config import LLMPlatformConfig, ProviderName, load_llm_config
-from llm_adapters.gateway_adapter import gateway_provider
 from llm_adapters.deepseek_adapter import DeepSeekAdapter
 from llm_adapters.gemini_adapter import GeminiDirectAdapter
 from llm_adapters.interfaces import ProviderAdapter
@@ -21,13 +20,9 @@ class ProviderRegistry:
             "gemini": GeminiDirectAdapter(self._config),
         }
         self._adapters: dict[str, ProviderAdapter] = {
-            "openai": gateway_provider(self._config, "openai")
-            if self._config.provider_mode == "gateway"
-            else self._direct_adapters["openai"],
+            "openai": self._direct_adapters["openai"],
             "anthropic": AnthropicAdapter(self._config),
-            "gemini": gateway_provider(self._config, "gemini")
-            if self._config.provider_mode == "gateway"
-            else self._direct_adapters["gemini"],
+            "gemini": self._direct_adapters["gemini"],
             "deepseek": DeepSeekAdapter(self._config),
         }
 
@@ -39,7 +34,7 @@ class ProviderRegistry:
         return self._adapters.get(provider_id)
 
     def direct_fallback(self, provider_id: str) -> ProviderAdapter | None:
-        """Return the configured direct adapter for an AI Gateway provider."""
+        """Return a configured direct provider adapter."""
         if not self._config.direct_provider_fallback:
             return None
         adapter = self._direct_adapters.get(provider_id)

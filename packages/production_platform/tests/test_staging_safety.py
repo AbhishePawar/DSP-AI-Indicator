@@ -14,6 +14,7 @@ from production_platform.production.exceptions import (
     DatabaseUnavailableError,
     ProviderError,
     StorageUnavailableError,
+    StartupError,
 )
 from production_platform.production.infrastructure import InfrastructureBundle
 from production_platform.production.product_state_backup import (
@@ -58,11 +59,24 @@ def test_development_offline_allowed():
     assert "force_offline=true" in bundle.notes
 
 
-def test_staging_requires_s3_for_persistent_storage():
-    """Staging must not silently accept the default in-memory storage provider."""
+def test_staging_requires_database_configuration():
+    """Staging must fail closed instead of silently using an in-memory database."""
     env = {"DSP_ENVIRONMENT": "staging"}
-    with pytest.raises(StorageUnavailableError, match="requires DSP_OBJECT_STORAGE_PROVIDER=s3"):
+    with pytest.raises(StartupError, match="DSP_DATABASE_URL"):
         build_runtime_infrastructure(environ=env)
+
+
+def test_staging_local_storage_is_supported_and_persistent(tmp_path):
+    """Local filesystem storage is the configured primary artifact store."""
+    env = {
+        "DSP_ENVIRONMENT": "staging",
+        "DSP_OBJECT_STORAGE_PROVIDER": "local",
+        "DSP_OBJECT_STORAGE_LOCAL_ROOT": str(tmp_path),
+    }
+    bundle = InfrastructureBundle.from_environment(environ=env)
+    assert bundle.diagnostics.storage_adapter == "LocalFilesystemStoragePort"
+    bundle.storage.put("reports/staging-check.txt", b"local-storage-ok")
+    assert bundle.storage.get("reports/staging-check.txt") == b"local-storage-ok"
 
 
 def test_staging_database_failure_fails_closed():
@@ -87,30 +101,27 @@ def test_build_s3_storage_requires_bucket():
         build_s3_storage(bucket=None)
 
 
-def test_staging_storage_fails_closed_when_s3_configured_without_bucket():
-    """Staging with s3 provider fails closed if bucket is missing."""
+def test_staging_rejects_s3_as_primary_storage(monkeypatch):
+    """S3 is an offsite backup/overflow target, not the primary artifact store."""
+    from production_platform.production.database import InMemoryDatabasePort
+
     env = {
         "DSP_ENVIRONMENT": "staging",
-        "DSP_OBJECT_STORAGE_PROVIDER": "s3",
-        "DSP_OBJECT_STORAGE_BUCKET": "",
-    }
-    with pytest.raises((ConfigurationError, StorageUnavailableError)):
-        build_runtime_infrastructure(environ=env)
-
-
-def test_staging_storage_fails_closed_when_s3_unavailable():
-    """Staging with s3 provider fails closed if boto3 or S3 init fails."""
-    env = {
-        "DSP_ENVIRONMENT": "staging",
+        "DSP_DATABASE_URL": "postgresql://test:test@127.0.0.1:5432/test",
         "DSP_OBJECT_STORAGE_PROVIDER": "s3",
         "DSP_OBJECT_STORAGE_BUCKET": "test-bucket",
+        "DSP_OBJECT_STORAGE_REGION": "ap-south-1",
     }
-    with patch(
-        "production_platform.adapters.object_storage._load_boto3",
-        side_effect=ProviderError("boto3 missing"),
-    ):
-        with pytest.raises(StorageUnavailableError):
-            build_runtime_infrastructure(environ=env)
+    monkeypatch.setattr(
+        "production_platform.adapters.postgres.build_postgres",
+        lambda *args, **kwargs: InMemoryDatabasePort(),
+    )
+    monkeypatch.setattr(
+        "production_platform.adapters.object_storage.build_s3_storage",
+        lambda **kwargs: object(),
+    )
+    with pytest.raises(StorageUnavailableError, match="requires DSP_OBJECT_STORAGE_PROVIDER=local"):
+        build_runtime_infrastructure(environ=env)
 
 
 def test_development_storage_falls_back_with_note():

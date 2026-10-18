@@ -6,7 +6,7 @@ name: CI
 
 on:
   push:
-    branches: [main, master, 'feature/unified-multi-source-research', 'recovery/staging-fail-closed-20261018']
+    branches: [main, master, 'feature/unified-multi-source-research']
   pull_request:
     branches: [main, master, 'copilot/frontend-auth-research-integration']
 

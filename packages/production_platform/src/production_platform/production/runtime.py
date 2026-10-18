@@ -83,7 +83,7 @@ def required_env_vars(environment: Environment | str) -> tuple[str, ...]:
     if env is Environment.PRODUCTION:
         return _PRODUCTION_REQUIRED
     if env is Environment.STAGING:
-        return ("DSP_ENVIRONMENT",)
+        return ("DSP_ENVIRONMENT", "DSP_DATABASE_URL")
     return ()
 
 
@@ -116,7 +116,10 @@ def validate_runtime_environment(
             notes=(f"unknown DSP_ENVIRONMENT: {profile}",),
         )
 
-    is_strict = strict if strict is not None else environment is Environment.PRODUCTION
+    is_strict = strict if strict is not None else environment in {
+        Environment.STAGING,
+        Environment.PRODUCTION,
+    }
     required = required_env_vars(environment)
 
     for key in required:
@@ -238,8 +241,7 @@ def build_runtime_infrastructure(
         require_database
         if require_database is not None
         else (
-            env is Environment.PRODUCTION
-            or (env is Environment.STAGING and bool(cfg.database.url))
+            env in {Environment.STAGING, Environment.PRODUCTION}
         )
     )
     need_redis = require_redis is True or (
@@ -253,30 +255,25 @@ def build_runtime_infrastructure(
                 "PostgreSQL required for this profile but adapter is unavailable"
             )
 
-    # Staging and production must not silently use process memory or local disk
-    # for persistent report/export artifacts. Require the explicitly configured
-    # AWS S3 bucket and region after database validation, so DB failures remain
-    # the primary diagnostic when the database itself is unavailable.
+    # Local filesystem is the primary artifact store. S3 is configured
+    # separately for off-server backups/overflow and must not be required for
+    # normal application startup.
     if env in (Environment.PRODUCTION, Environment.STAGING):
-        if cfg.object_storage.provider != "s3":
+        if cfg.object_storage.provider != "local":
             raise StorageUnavailableError(
-                f"{env.value} requires DSP_OBJECT_STORAGE_PROVIDER=s3; "
+                f"{env.value} requires DSP_OBJECT_STORAGE_PROVIDER=local for primary artifacts; "
                 f"configured provider={cfg.object_storage.provider}"
             )
-        if not (cfg.object_storage.bucket or "").strip():
+        if not (cfg.object_storage.local_root or "").strip():
             raise StorageUnavailableError(
-                f"{env.value} requires DSP_OBJECT_STORAGE_BUCKET"
-            )
-        if not (cfg.object_storage.region or "").strip():
-            raise StorageUnavailableError(
-                f"{env.value} requires DSP_OBJECT_STORAGE_REGION"
+                f"{env.value} requires DSP_OBJECT_STORAGE_LOCAL_ROOT"
             )
 
-    need_storage = cfg.object_storage.provider == "s3"
+    need_storage = cfg.object_storage.provider == "local"
     storage_adapter = infra.diagnostics.storage_adapter
-    if need_storage and storage_adapter == "InMemoryStoragePort":
+    if need_storage and storage_adapter != "LocalFilesystemStoragePort":
         raise StorageUnavailableError(
-            f"Object storage provider={cfg.object_storage.provider} required for this profile but adapter is unavailable"
+            f"Local artifact storage required for this profile but adapter is unavailable"
         )
 
     if need_redis and infra.diagnostics.redis_fallback_active:

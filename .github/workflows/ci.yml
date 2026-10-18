@@ -186,6 +186,8 @@ jobs:
             --import-mode=importlib \
             -p no:cov \
             --tb=short
+          python -m py_compile scripts/ops/verify_s3_staging.py scripts/ops/upload_backup_to_s3.py
+          bash -n scripts/ops/backup_postgres.sh
 
       - name: Staging safety regression summary
         if: always()

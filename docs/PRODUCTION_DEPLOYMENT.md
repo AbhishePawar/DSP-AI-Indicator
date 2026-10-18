@@ -25,6 +25,7 @@ DSP_OBJECT_STORAGE_PROVIDER=local
 DSP_OBJECT_STORAGE_LOCAL_ROOT=/var/lib/dsp/artifacts
 DSP_BACKUP_S3_BUCKET=<verified-existing-production-bucket>
 DSP_BACKUP_S3_REGION=ap-south-1
+DSP_STORAGE_OVERFLOW_THRESHOLD=0.95
 DSP_CERT_IN_LOG_RETENTION_DAYS=180
 DSP_INDIA_TIMEZONE=Asia/Kolkata
 DSP_INDIA_CURRENCY=INR
@@ -48,8 +49,9 @@ bundle = ProductionBundle.create(
 )
 ```
 
-## Health
+## Off-server backup verification
 
+`DSP_BACKUP_S3_BUCKET` must be an existing bucket with least-privilege permissions for the VPS role. Run `python3 scripts/ops/verify_s3_staging.py --confirm-staging-s3-write` on the staging VPS with `DSP_ENVIRONMENT=staging`, `DSP_BACKUP_S3_BUCKET`, and `DSP_BACKUP_S3_REGION` configured. This performs a temporary object put/get/delete test and verifies cleanup. The application is not considered AWS-connected until this passes using the intended VPS credentials.\n\n## Health\n
 - Liveness: process + configuration (no external deps)
 - Readiness: ports registered + optional `database.ping()` when infra attached
 

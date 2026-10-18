@@ -13,6 +13,8 @@ x-logging: &default-logging
 
 services:
   api:
+    env_file:
+      - ../.env.production
     image: ${DSP_API_IMAGE:-dsp-api}:${DSP_IMAGE_TAG:-1.7.3}
     environment:
       DSP_ENVIRONMENT: production

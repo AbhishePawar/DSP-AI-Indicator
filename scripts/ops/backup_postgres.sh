@@ -34,9 +34,15 @@ fi
 
 echo "[backup] OK ${OUT} (${BYTES} bytes)"
 
-# Off-server copy is opt-in by setting the dedicated backup bucket. The uploader
-# verifies the local checksum and fails loudly if S3 upload is configured but
-# credentials, permissions, or the bucket are wrong.
+# Staging/production backups are not considered complete without an off-server copy.
+if [[ "${DSP_ENVIRONMENT:-development}" == "staging" || "${DSP_ENVIRONMENT:-development}" == "production" ]]; then
+  if [[ -z "${DSP_BACKUP_S3_BUCKET:-}" ]]; then
+    echo "[backup] FAILED: DSP_BACKUP_S3_BUCKET is required in staging/production" >&2
+    exit 1
+  fi
+fi
+
+# The uploader verifies the local checksum and fails loudly on AWS/IAM/bucket errors.
 if [[ -n "${DSP_BACKUP_S3_BUCKET:-}" ]]; then
   python3 "${SCRIPT_DIR}/upload_backup_to_s3.py" "${OUT}"
 fi

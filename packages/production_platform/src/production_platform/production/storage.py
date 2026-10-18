@@ -119,9 +119,14 @@ class LocalFirstS3OverflowStoragePort(LocalFilesystemStoragePort):
         self._overflow_prefix = prefix.strip("/")
 
     @property
+    def overflow_configured(self) -> bool:
+        """Whether an S3 overflow adapter was constructed (not proof of access)."""
+        return self._overflow_storage is not None
+
+    @property
     def overflow_available(self) -> bool:
         """True only after this process has completed a successful S3 operation."""
-        return self._overflow_storage is not None and self._overflow_verified
+        return self.overflow_configured and self._overflow_verified
 
     def _overflow_key(self, key: str) -> str:
         cleaned = key.replace("\\", "/").lstrip("/")

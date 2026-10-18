@@ -81,12 +81,19 @@ class ObjectStorageSettings:
     endpoint_url: str | None = None
     region: str | None = None
     local_root: str | None = None
+    overflow_bucket: str | None = None
+    overflow_region: str | None = None
+    overflow_threshold: float = 0.95
 
     def __post_init__(self) -> None:
         allowed = {"memory", "local", "s3", "minio", "azure", "gcs"}
         if self.provider not in allowed:
             raise ConfigurationError(
                 f"object_storage.provider must be one of {sorted(allowed)}"
+            )
+        if not 0 < self.overflow_threshold < 1:
+            raise ConfigurationError(
+                "object_storage.overflow_threshold must be between 0 and 1"
             )
 
 
@@ -338,6 +345,9 @@ def load_configuration_from_environ(
             endpoint_url=env.get("DSP_OBJECT_STORAGE_ENDPOINT"),
             region=env.get("DSP_OBJECT_STORAGE_REGION"),
             local_root=env.get("DSP_OBJECT_STORAGE_LOCAL_ROOT"),
+            overflow_bucket=env.get("DSP_BACKUP_S3_BUCKET"),
+            overflow_region=env.get("DSP_BACKUP_S3_REGION"),
+            overflow_threshold=float(env.get("DSP_STORAGE_OVERFLOW_THRESHOLD", "0.95")),
         ),
         job_queue=JobQueueSettings(
             backend=job_backend,

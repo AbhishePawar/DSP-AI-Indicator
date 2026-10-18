@@ -74,7 +74,7 @@ def test_staging_local_storage_is_supported_and_persistent(tmp_path):
         "DSP_OBJECT_STORAGE_LOCAL_ROOT": str(tmp_path),
     }
     bundle = InfrastructureBundle.from_environment(environ=env)
-    assert bundle.diagnostics.storage_adapter == "LocalFilesystemStoragePort"
+    assert bundle.diagnostics.storage_adapter == "LocalFirstS3OverflowStoragePort"
     bundle.storage.put("reports/staging-check.txt", b"local-storage-ok")
     assert bundle.storage.get("reports/staging-check.txt") == b"local-storage-ok"
 
@@ -99,6 +99,66 @@ def test_build_s3_storage_requires_bucket():
 
     with pytest.raises(ConfigurationError, match="bucket must not be empty"):
         build_s3_storage(bucket=None)
+
+
+def test_local_storage_overflow_uses_s3_only_for_new_objects(tmp_path, monkeypatch):
+    """At 95% disk use, only new objects overflow to the separate S3 prefix."""
+    from types import SimpleNamespace
+
+    from production_platform.production.storage import LocalFirstS3OverflowStoragePort
+
+    class FakeS3:
+        def __init__(self):
+            self.objects = {}
+
+        def put(self, key, data, *, content_type=None):
+            self.objects[key] = data
+
+        def get(self, key):
+            return self.objects.get(key)
+
+        def delete(self, key):
+            self.objects.pop(key, None)
+
+    fake_s3 = FakeS3()
+    monkeypatch.setattr(
+        "production_platform.production.storage.shutil.disk_usage",
+        lambda _path: SimpleNamespace(total=100, used=95, free=5),
+    )
+    store = LocalFirstS3OverflowStoragePort(tmp_path, overflow_storage=fake_s3)
+    store.put("reports/new.txt", b"overflow")
+    assert fake_s3.objects == {"overflow/reports/new.txt": b"overflow"}
+    assert store.get("reports/new.txt") == b"overflow"
+
+    # Existing local files are updated in place and are never moved to S3.
+    local = LocalFirstS3OverflowStoragePort(tmp_path, overflow_storage=fake_s3, threshold=0.99)
+    monkeypatch.setattr(
+        "production_platform.production.storage.shutil.disk_usage",
+        lambda _path: SimpleNamespace(total=100, used=50, free=50),
+    )
+    local.put("reports/existing.txt", b"old")
+    monkeypatch.setattr(
+        "production_platform.production.storage.shutil.disk_usage",
+        lambda _path: SimpleNamespace(total=100, used=99, free=1),
+    )
+    local.put("reports/existing.txt", b"updated")
+    assert local.get("reports/existing.txt") == b"updated"
+    assert "overflow/reports/existing.txt" not in fake_s3.objects
+
+
+def test_local_storage_overflow_fails_explicitly_without_s3(tmp_path, monkeypatch):
+    """Never silently fill the disk past the configured overflow threshold."""
+    from types import SimpleNamespace
+
+    from production_platform.production.storage import LocalFirstS3OverflowStoragePort
+
+    monkeypatch.setattr(
+        "production_platform.production.storage.shutil.disk_usage",
+        lambda _path: SimpleNamespace(total=100, used=95, free=5),
+    )
+    store = LocalFirstS3OverflowStoragePort(tmp_path)
+    with pytest.raises(ProviderError, match="95% overflow threshold"):
+        store.put("reports/new.txt", b"data")
 
 
 def test_staging_rejects_s3_as_primary_storage(monkeypatch):

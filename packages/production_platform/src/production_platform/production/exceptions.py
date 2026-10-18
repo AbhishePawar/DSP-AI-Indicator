@@ -16,6 +16,7 @@ __all__ = [
     "ProductionError",
     "ProviderError",
     "RedisUnavailableError",
+    "StorageUnavailableError",
     "StartupError",
     "safe_public_message",
 ]
@@ -61,6 +62,13 @@ class DatabaseUnavailableError(DependencyError):
 
     public_code = "DATABASE_UNAVAILABLE"
     public_message = "database dependency is unavailable"
+
+
+class StorageUnavailableError(DependencyError):
+    """Object storage adapter unavailable when required."""
+
+    public_code = "STORAGE_UNAVAILABLE"
+    public_message = "storage dependency is unavailable"
 
 
 class RedisUnavailableError(DependencyError):

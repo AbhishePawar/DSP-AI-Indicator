@@ -192,9 +192,9 @@ class InfrastructureBundle:
                     application_name=cfg.database.application_name,
                 )
             except (ConfigurationError, ProviderError, ImportError) as exc:
-                # Production must never silently degrade to InMemoryDatabasePort;
+                # Production and staging must never silently degrade to InMemoryDatabasePort;
                 # the real reason has to reach startup logs.
-                if cfg.environment is Environment.PRODUCTION:
+                if cfg.environment in (Environment.PRODUCTION, Environment.STAGING):
                     raise
                 notes.append(
                     f"PostgreSQL unavailable or driver missing ({exc}); "
@@ -242,19 +242,29 @@ class InfrastructureBundle:
         if provider == "local" and cfg.object_storage.local_root:
             storage = LocalFilesystemStoragePort(cfg.object_storage.local_root)
         elif provider in {"s3", "minio"}:
-            from production_platform.adapters.object_storage import try_build_s3_storage
-
-            s3 = try_build_s3_storage(
-                bucket=cfg.object_storage.bucket,
-                endpoint_url=cfg.object_storage.endpoint_url,
-                region=cfg.object_storage.region,
+            from production_platform.adapters.object_storage import (
+                build_s3_storage,
+                try_build_s3_storage,
             )
-            if s3 is not None:
-                storage = s3
-            else:
-                notes.append(
-                    f"Object storage provider={provider} unavailable; using InMemoryStoragePort"
+
+            if cfg.environment in (Environment.PRODUCTION, Environment.STAGING):
+                storage = build_s3_storage(
+                    bucket=cfg.object_storage.bucket,
+                    endpoint_url=cfg.object_storage.endpoint_url,
+                    region=cfg.object_storage.region,
                 )
+            else:
+                s3 = try_build_s3_storage(
+                    bucket=cfg.object_storage.bucket,
+                    endpoint_url=cfg.object_storage.endpoint_url,
+                    region=cfg.object_storage.region,
+                )
+                if s3 is not None:
+                    storage = s3
+                else:
+                    notes.append(
+                        f"Object storage provider={provider} unavailable; using InMemoryStoragePort"
+                    )
 
         queue = InMemoryJobQueuePort(
             retry_policy=RetryPolicy(
@@ -317,6 +327,25 @@ class InfrastructureBundle:
                 redis_status = "pass"
             else:
                 redis_status = "fail"
+        storage_provider = self.configuration.get().object_storage.provider
+        storage_adapter = type(self.storage).__name__
+        storage_status = "pass"
+        if storage_provider in {"s3", "minio"}:
+            storage_status = (
+                "pass" if storage_adapter == "S3CompatibleStoragePort" else "fail"
+            )
+        elif storage_provider == "local":
+            storage_status = (
+                "pass" if storage_adapter == "LocalFilesystemStoragePort" else "fail"
+            )
+        elif (
+            storage_adapter == "InMemoryStoragePort"
+            and self.configuration.get().environment
+            in (Environment.PRODUCTION, Environment.STAGING)
+            and storage_provider != "memory"
+        ):
+            storage_status = "fail"
+
         return {
             "database": self.database.ping(),
             "database_adapter": self.diagnostics.database_adapter,
@@ -329,7 +358,12 @@ class InfrastructureBundle:
                 "lock_adapter": self.diagnostics.lock_adapter,
                 "session_adapter": self.diagnostics.session_adapter,
             },
-            "storage_adapter": type(self.storage).__name__,
+            "storage": {
+                "provider": storage_provider,
+                "adapter": storage_adapter,
+                "status": storage_status,
+            },
+            "storage_adapter": storage_adapter,
             "india_timezone": self.india.timezone,
             "india_currency": self.india.currency,
             "diagnostics": {

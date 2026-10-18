@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import os
 from typing import Any
 
 from fastapi import APIRouter, Depends
@@ -66,10 +67,21 @@ def _append_infra_checks(state: ApiState, checks: list[dict[str, Any]]) -> None:
             }
         )
         return
+    db_status = "pass" if probes.get("database") else "fail"
+    env = (os.environ.get("DSP_ENVIRONMENT") or "development").lower()
+    if env in {"staging", "production"}:
+        db_url_configured = bool(
+            os.environ.get("DSP_DATABASE_URL") or os.environ.get("DATABASE_URL")
+        )
+        if probes.get("database_adapter") == "InMemoryDatabasePort" and (
+            db_url_configured or env == "production"
+        ):
+            db_status = "fail"
+
     checks.append(
         {
             "name": "database",
-            "status": "pass" if probes.get("database") else "fail",
+            "status": db_status,
             "message": f"adapter={probes.get('database_adapter', 'unknown')}",
         }
     )
@@ -81,6 +93,25 @@ def _append_infra_checks(state: ApiState, checks: list[dict[str, Any]]) -> None:
             "message": (
                 f"cache={probes.get('cache_adapter')} "
                 f"fallback={redis.get('fallback_active')}"
+            ),
+        }
+    )
+    storage = probes.get("storage") or {}
+    storage_status = str(storage.get("status", "pass"))
+    if env in {"staging", "production"}:
+        storage_provider = storage.get("provider") or os.environ.get(
+            "DSP_OBJECT_STORAGE_PROVIDER"
+        )
+        if storage_provider in {"s3", "minio"}:
+            if storage.get("adapter") != "S3CompatibleStoragePort":
+                storage_status = "fail"
+    checks.append(
+        {
+            "name": "storage",
+            "status": storage_status,
+            "message": (
+                f"provider={storage.get('provider', 'memory')} "
+                f"adapter={probes.get('storage_adapter', 'unknown')}"
             ),
         }
     )
@@ -145,11 +176,22 @@ def health_ready(state: ApiState = Depends(get_api_state)) -> JSONResponse:
     platform_status = resolve_platform_status(
         platform_ready=platform_ready, components=components
     )
+    has_failed_infra = any(
+        c.get("name") in {"database", "storage"} and c.get("status") == "fail"
+        for c in checks
+    )
+    if has_failed_infra:
+        platform_status = PlatformLifecycleState.UNHEALTHY
+
     # Soft-fail: accept traffic when platform is ready even if optional copilot
     # or Redis are degraded (EPIC-011A).
     copilot_ok = bool(snapshot.get("service_readiness", {}).get("copilot_service"))
-    accept = platform_ready or copilot_ok
-    snapshot["status"] = "pass" if accept and platform_ready else status
+    accept = (platform_ready or copilot_ok) and not has_failed_infra
+    snapshot["status"] = (
+        "pass"
+        if accept and platform_ready
+        else ("fail" if has_failed_infra else status)
+    )
     snapshot["ready"] = accept
     snapshot["platform_ready"] = platform_ready
     snapshot["platform_status"] = platform_status.value
@@ -178,9 +220,10 @@ def health_startup(state: ApiState = Depends(get_api_state)) -> JSONResponse:
     result = state.platform.run_production_ops(
         "startup", api_state=state, deps=build_production_ops_deps()
     )
-    code = (
-        200 if result.get("ok") and (result.get("result") or {}).get("started") else 503
-    )
+    res_dict: dict[str, Any] = result if isinstance(result, dict) else {}
+    res_inner = res_dict.get("result")
+    started = res_inner.get("started") if isinstance(res_inner, dict) else False
+    code = 200 if res_dict.get("ok") and started else 503
     return JSONResponse(result, status_code=code)
 
 

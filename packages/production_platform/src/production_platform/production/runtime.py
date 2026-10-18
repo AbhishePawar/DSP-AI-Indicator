@@ -21,6 +21,7 @@ from production_platform.production.exceptions import (
     ProviderError,
     RedisUnavailableError,
     StartupError,
+    StorageUnavailableError,
 )
 from production_platform.production.infrastructure import InfrastructureBundle
 from production_platform.production.versioning import resolve_application_version
@@ -197,7 +198,14 @@ def build_runtime_infrastructure(
     - Redis: optional unless ``require_redis=True`` or graceful_fallback=false.
     """
     env_map = dict(environ if environ is not None else os.environ)
+    env_name = (
+        env_map.get("DSP_ENVIRONMENT") or env_map.get("ENVIRONMENT") or "development"
+    ).lower()
     if force_offline or _truthy(env_map.get("DSP_INFRA_OFFLINE")):
+        if env_name in {"production", "staging"}:
+            raise ConfigurationError(
+                f"explicit offline infrastructure is not permitted in {env_name}"
+            )
         report = validate_runtime_environment(env_map, strict=False)
         cfg = load_configuration_from_environ(env_map)
         bundle = InfrastructureBundle.create_offline(configuration=cfg)
@@ -210,9 +218,14 @@ def build_runtime_infrastructure(
 
     try:
         infra = InfrastructureBundle.from_environment(environ=env_map)
+    except (ConfigurationError, StorageUnavailableError):
+        raise
     except ProviderError as exc:
-        # Only the database adapter propagates ProviderError from composition;
-        # report why PostgreSQL could not be built instead of a generic error.
+        msg = str(exc).lower()
+        if "s3" in msg or "storage" in msg or "boto3" in msg or "bucket" in msg:
+            raise StorageUnavailableError(
+                f"Object storage required for this profile but adapter is unavailable: {exc}"
+            ) from exc
         raise DatabaseUnavailableError(
             f"PostgreSQL required for this profile but adapter is unavailable: {exc}"
         ) from exc
@@ -224,7 +237,10 @@ def build_runtime_infrastructure(
     need_db = (
         require_database
         if require_database is not None
-        else env is Environment.PRODUCTION
+        else (
+            env is Environment.PRODUCTION
+            or (env is Environment.STAGING and bool(cfg.database.url))
+        )
     )
     need_redis = require_redis is True or (
         bool(cfg.redis.url) and not cfg.redis.graceful_fallback
@@ -236,6 +252,16 @@ def build_runtime_infrastructure(
             raise DatabaseUnavailableError(
                 "PostgreSQL required for this profile but adapter is unavailable"
             )
+
+    need_storage = cfg.object_storage.provider in {"s3", "minio"} or (
+        env in (Environment.PRODUCTION, Environment.STAGING)
+        and cfg.object_storage.provider not in {"memory", "local"}
+    )
+    storage_adapter = infra.diagnostics.storage_adapter
+    if need_storage and storage_adapter == "InMemoryStoragePort":
+        raise StorageUnavailableError(
+            f"Object storage provider={cfg.object_storage.provider} required for this profile but adapter is unavailable"
+        )
 
     if need_redis and infra.diagnostics.redis_fallback_active:
         raise RedisUnavailableError(

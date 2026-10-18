@@ -9,6 +9,7 @@ on:
     branches: [main, master, 'feature/unified-multi-source-research']
   pull_request:
     branches: [main, master, 'copilot/frontend-auth-research-integration']
+  workflow_dispatch:
 
 concurrency:
   group: ci-${{ github.workflow }}-${{ github.ref }}
@@ -143,4 +144,58 @@ jobs:
             echo "| Smoke | ${{ steps.smoke.outcome }} |"
             echo "| Full tests | ${{ steps.tests.outcome }} |"
             echo "| Python | ${{ matrix.python-version }} |"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+
+
+  staging-safety:
+    name: Staging safety, readiness, and backup-restore (local fixtures)
+    runs-on: ubuntu-latest
+    env:
+      DSP_ENVIRONMENT: development
+      DSP_OBJECT_STORAGE_PROVIDER: memory
+      DSP_INFRA_OFFLINE: "0"
+      PYTHONUNBUFFERED: "1"
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install monorepo (editable + dev/CI deps)
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e ".[dev]"
+
+      - name: Run staging safety, readiness, and backup-restore regressions
+        id: regressions
+        run: |
+          pytest \
+            packages/production_platform/tests/test_staging_safety.py \
+            packages/api_platform/tests/test_staging_safety_api.py \
+            packages/production_platform/tests/test_product_state_backup.py \
+            packages/api_platform/tests/test_p108_backup_restore.py \
+            packages/api_platform/tests/test_health_rc1.py \
+            packages/api_platform/tests/test_ops_api.py \
+            -v \
+            --import-mode=importlib \
+            -p no:cov \
+            --tb=short
+
+      - name: Staging safety regression summary
+        if: always()
+        run: |
+          {
+            echo "## Staging safety & backup-restore regressions"
+            echo ""
+            echo "| Field | Value |"
+            echo "|---|---|"
+            echo "| Status | ${{ steps.regressions.outcome }} |"
+            echo "| Scope | Staging fail-closed, health/readiness, logical backup-restore |"
+            echo "| Fixtures | Local mocks / in-memory fakes only (no external services) |"
           } >> "$GITHUB_STEP_SUMMARY"

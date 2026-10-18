@@ -41,6 +41,13 @@ def platform() -> DSPPlatform:
 
 
 def _strip_investment_credentials(monkeypatch: pytest.MonkeyPatch) -> None:
+    # These tests exercise auth/investment boundaries, not infrastructure boot.
+    from api_platform.api.infra_bootstrap import InfraBootstrapResult
+
+    monkeypatch.setattr(
+        "api_platform.api.app.bootstrap_production_infrastructure",
+        lambda: InfraBootstrapResult(None, None, ("unit-test isolated bootstrap",)),
+    )
     monkeypatch.setenv("DSP_ENVIRONMENT", "production")
     monkeypatch.setenv("DSP_JWT_SECRET", "unit-test-production-secret-not-default")
     monkeypatch.setenv("DSP_AUTH_JWT_SECRET", "unit-test-production-secret-not-default")

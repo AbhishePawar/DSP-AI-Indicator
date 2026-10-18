@@ -167,6 +167,9 @@ def test_staging_rejects_s3_as_primary_storage(monkeypatch):
     """S3 is an offsite backup/overflow target, not the primary artifact store."""
     from production_platform.production.database import InMemoryDatabasePort
 
+    class FakePostgresPort(InMemoryDatabasePort):
+        """Local test double whose adapter name is not the memory fallback."""
+
     env = {
         "DSP_ENVIRONMENT": "staging",
         "DSP_DATABASE_URL": "postgresql://test:test@127.0.0.1:5432/test",
@@ -176,7 +179,7 @@ def test_staging_rejects_s3_as_primary_storage(monkeypatch):
     }
     monkeypatch.setattr(
         "production_platform.adapters.postgres.build_postgres",
-        lambda *args, **kwargs: InMemoryDatabasePort(),
+        lambda *args, **kwargs: FakePostgresPort(),
     )
     monkeypatch.setattr(
         "production_platform.adapters.object_storage.build_s3_storage",

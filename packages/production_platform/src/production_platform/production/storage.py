@@ -110,7 +110,9 @@ class LocalFirstS3OverflowStoragePort(LocalFilesystemStoragePort):
     ) -> None:
         super().__init__(root)
         if not 0 < threshold < 1:
-            raise ConfigurationError("storage overflow threshold must be between 0 and 1")
+            raise ConfigurationError(
+                "storage overflow threshold must be between 0 and 1"
+            )
         self._overflow_storage = overflow_storage
         self._overflow_threshold = threshold
         self._overflow_prefix = prefix.strip("/")
@@ -123,7 +125,9 @@ class LocalFirstS3OverflowStoragePort(LocalFilesystemStoragePort):
         cleaned = key.replace("\\", "/").lstrip("/")
         if ".." in cleaned.split("/"):
             raise ProviderError("invalid object key")
-        return f"{self._overflow_prefix}/{cleaned}" if self._overflow_prefix else cleaned
+        if self._overflow_prefix:
+            return f"{self._overflow_prefix}/{cleaned}"
+        return cleaned
 
     def _disk_threshold_reached(self) -> bool:
         usage = shutil.disk_usage(self._root)

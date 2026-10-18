@@ -241,7 +241,8 @@ class InfrastructureBundle:
             elif cfg.redis.graceful_fallback:
                 redis_fallback = True
                 notes.append(
-                    "Redis unavailable or driver missing; cache/rate/lock/session degraded to memory"
+                    "Redis unavailable or driver missing; "
+                    "cache/rate/lock/session degraded to memory"
                 )
             else:
                 notes.append("Redis unavailable and graceful_fallback=false")
@@ -261,7 +262,9 @@ class InfrastructureBundle:
                     "DSP_OBJECT_STORAGE_PROVIDER=local in staging/production"
                 )
             else:
-                notes.append("Local object storage root missing; using InMemoryStoragePort")
+                notes.append(
+                    "Local object storage root missing; using InMemoryStoragePort"
+                )
         elif provider in {"s3", "minio"}:
             if strict_environment:
                 if not cfg.object_storage.bucket:
@@ -269,8 +272,11 @@ class InfrastructureBundle:
                         "DSP_OBJECT_STORAGE_BUCKET is required when "
                         f"DSP_OBJECT_STORAGE_PROVIDER={provider} in staging/production"
                     )
-                from production_platform.adapters.object_storage import S3CompatibleStoragePort
-                # The best-effort builder intentionally swallows errors for local development.
+                from production_platform.adapters.object_storage import (
+                    S3CompatibleStoragePort,
+                )
+                # The best-effort builder intentionally swallows errors for local
+                # development.
                 try:
                     storage = S3CompatibleStoragePort(
                         bucket=cfg.object_storage.bucket,
@@ -282,7 +288,9 @@ class InfrastructureBundle:
                         f"Object storage provider={provider} unavailable: {exc}"
                     ) from exc
             else:
-                from production_platform.adapters.object_storage import try_build_s3_storage
+                from production_platform.adapters.object_storage import (
+                    try_build_s3_storage,
+                )
                 s3 = try_build_s3_storage(
                     bucket=cfg.object_storage.bucket,
                     endpoint_url=cfg.object_storage.endpoint_url,
@@ -292,15 +300,18 @@ class InfrastructureBundle:
                     storage = s3
                 else:
                     notes.append(
-                        f"Object storage provider={provider} unavailable; using InMemoryStoragePort"
+                        f"Object storage provider={provider} unavailable; "
+                        "using InMemoryStoragePort"
                     )
         elif provider in {"azure", "gcs"}:
             if strict_environment:
                 raise ProviderError(
-                    f"Object storage provider={provider} is configured but no adapter is implemented"
+                    f"Object storage provider={provider} is configured but no "
+                    "adapter is implemented"
                 )
             notes.append(
-                f"Object storage provider={provider} has no adapter; using InMemoryStoragePort"
+                f"Object storage provider={provider} has no adapter; "
+                "using InMemoryStoragePort"
             )
 
         queue = InMemoryJobQueuePort(
@@ -311,7 +322,8 @@ class InfrastructureBundle:
         )
         if cfg.job_queue.backend != "memory":
             notes.append(
-                f"job_queue.backend={cfg.job_queue.backend} reserved; using InMemoryJobQueuePort until worker epic"
+                f"job_queue.backend={cfg.job_queue.backend} reserved; "
+                "using InMemoryJobQueuePort until worker epic"
             )
 
         config_mgr = ConfigurationManager(cfg, secrets=secrets)

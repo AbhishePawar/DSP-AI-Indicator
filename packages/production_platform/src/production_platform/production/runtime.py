@@ -261,7 +261,8 @@ def build_runtime_infrastructure(
     if env in (Environment.PRODUCTION, Environment.STAGING):
         if cfg.object_storage.provider != "local":
             raise StorageUnavailableError(
-                f"{env.value} requires DSP_OBJECT_STORAGE_PROVIDER=local for primary artifacts; "
+                f"{env.value} requires DSP_OBJECT_STORAGE_PROVIDER=local "
+                "for primary artifacts; "
                 f"configured provider={cfg.object_storage.provider}"
             )
         if not (cfg.object_storage.local_root or "").strip():
@@ -276,7 +277,8 @@ def build_runtime_infrastructure(
         "LocalFirstS3OverflowStoragePort",
     }:
         raise StorageUnavailableError(
-            f"Local artifact storage required for this profile but adapter is unavailable"
+            "Local artifact storage required for this profile but adapter "
+            "is unavailable"
         )
 
     if need_redis and infra.diagnostics.redis_fallback_active:

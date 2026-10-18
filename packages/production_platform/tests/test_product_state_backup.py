@@ -1032,14 +1032,15 @@ def test_table_exists_identifies_genuinely_missing_table(tmp_path: Path) -> None
     assert adapter._table_exists("api_report_records") is False
     assert adapter._table_exists("non_existent_table") is False
 
-    import psycopg.errors
+    class UndefinedTable(Exception):
+        """Stand-in for psycopg's UndefinedTable without an optional dependency."""
 
     class MissingTableDatabasePort:
         def ping(self) -> bool:
             return True
 
         def fetchall(self, statement: str, params: Any = None) -> list[dict[str, Any]]:
-            raise psycopg.errors.UndefinedTable(
+            raise UndefinedTable(
                 'relation "api_report_records" does not exist'
             )
 
@@ -1070,7 +1071,8 @@ def test_table_exists_identifies_genuinely_missing_table(tmp_path: Path) -> None
 def test_table_exists_propagates_connection_permission_and_query_failures(
     tmp_path: Path,
 ) -> None:
-    import psycopg.errors
+    class InsufficientPrivilege(Exception):
+        """Stand-in for psycopg's permission error without an optional dependency."""
 
     from production_platform.production.exceptions import ProviderError
 
@@ -1097,7 +1099,7 @@ def test_table_exists_propagates_connection_permission_and_query_failures(
             return True
 
         def fetchall(self, statement: str, params: Any = None) -> list[dict[str, Any]]:
-            raise psycopg.errors.InsufficientPrivilege(
+            raise InsufficientPrivilege(
                 "permission denied for table api_report_records"
             )
 
@@ -1107,7 +1109,7 @@ def test_table_exists_propagates_connection_permission_and_query_failures(
     perm_adapter = LogicalProductStateBackupAdapter(
         PermissionDeniedPort(), backup_root=tmp_path
     )
-    with pytest.raises(psycopg.errors.InsufficientPrivilege, match="permission denied"):
+    with pytest.raises(InsufficientPrivilege, match="permission denied"):
         perm_adapter._table_exists("api_report_records")
 
     # 3. Unexpected query failure must propagate

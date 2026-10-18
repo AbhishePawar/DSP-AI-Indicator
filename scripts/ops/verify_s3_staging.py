@@ -30,13 +30,17 @@ def main() -> int:
     region = os.environ.get("DSP_BACKUP_S3_REGION", "").strip()
 
     if not args.confirm_staging_s3_write:
-        print(\n            "REFUSED: pass --confirm-staging-s3-write to authorize the temporary test."\n        )
+        print(
+            "REFUSED: pass --confirm-staging-s3-write to authorize the temporary test."
+        )
         return 2
     if environment != "staging":
         print("REFUSED: DSP_ENVIRONMENT must be exactly 'staging'.")
         return 2
     if not bucket or bucket.startswith("CHANGE_ME_"):
-        print(\n            "REFUSED: set DSP_BACKUP_S3_BUCKET to the existing staging backup bucket."\n        )
+        print(
+            "REFUSED: set DSP_BACKUP_S3_BUCKET to the existing staging backup bucket."
+        )
         return 2
     if not region:
         print("REFUSED: DSP_BACKUP_S3_REGION must be set.")

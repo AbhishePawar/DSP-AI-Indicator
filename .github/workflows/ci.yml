@@ -6,7 +6,7 @@ name: CI
 
 on:
   push:
-    branches: [main, master, 'feature/unified-multi-source-research']
+    branches: [main, master, 'feature/unified-multi-source-research', 'fix/ci-blockers-direct-20261019']
   pull_request:
     branches: [main, master, 'copilot/frontend-auth-research-integration']
   workflow_dispatch:

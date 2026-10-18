@@ -187,7 +187,9 @@ class LocalFirstS3OverflowStoragePort(LocalFilesystemStoragePort):
             return None
         result = self._overflow_storage.get(self._overflow_key(key))
         self._overflow_verified = True
-        return result(self, key: str) -> None:
+        return result
+
+    def delete(self, key: str) -> None:
         target = self._resolve(key)
         if target.is_file():
             super().delete(key)

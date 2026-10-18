@@ -195,8 +195,8 @@ jobs:
           cp .env.example .env
           cp deploy/docker/staging.env.example .env.staging
           cp .env.production.example .env.production
-          docker compose --env-file .env.staging -f docker/docker-compose.yml -f docker/docker-compose.staging.yml config --format json > /tmp/dsp-staging-compose.json
-          docker compose --env-file .env.production -f docker/docker-compose.yml -f docker/docker-compose.prod.yml config --format json > /tmp/dsp-production-compose.json
+          env -u DSP_ENVIRONMENT -u DSP_OBJECT_STORAGE_PROVIDER -u DSP_INFRA_OFFLINE docker compose --env-file .env.staging -f docker/docker-compose.yml -f docker/docker-compose.staging.yml config --format json > /tmp/dsp-staging-compose.json
+          env -u DSP_ENVIRONMENT -u DSP_OBJECT_STORAGE_PROVIDER -u DSP_INFRA_OFFLINE docker compose --env-file .env.production -f docker/docker-compose.yml -f docker/docker-compose.prod.yml config --format json > /tmp/dsp-production-compose.json
           python - <<'PY'
           import json
           from pathlib import Path

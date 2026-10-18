@@ -2,8 +2,8 @@
 """Verify staging S3 write/read/delete using one unique, temporary object.
 
 Run only on the staging VPS after setting DSP_ENVIRONMENT=staging,
-DSP_OBJECT_STORAGE_PROVIDER=s3, DSP_OBJECT_STORAGE_BUCKET, and
-DSP_OBJECT_STORAGE_REGION. AWS credentials should come from the normal
+DSP_BACKUP_S3_BUCKET and DSP_BACKUP_S3_REGION. Primary artifact storage
+remains local; this script verifies only the separate offsite backup bucket. AWS credentials should come from the normal
 boto3 credential chain (prefer the VPS role/instance profile); never pass
 secrets on the command line.
 """
@@ -26,9 +26,8 @@ def main() -> int:
     args = parser.parse_args()
 
     environment = os.environ.get("DSP_ENVIRONMENT", "").strip().lower()
-    provider = os.environ.get("DSP_OBJECT_STORAGE_PROVIDER", "").strip().lower()
-    bucket = os.environ.get("DSP_OBJECT_STORAGE_BUCKET", "").strip()
-    region = os.environ.get("DSP_OBJECT_STORAGE_REGION", "").strip()
+    bucket = os.environ.get("DSP_BACKUP_S3_BUCKET", "").strip()
+    region = os.environ.get("DSP_BACKUP_S3_REGION", "").strip()
 
     if not args.confirm_staging_s3_write:
         print("REFUSED: pass --confirm-staging-s3-write to authorize the temporary test.")
@@ -36,14 +35,11 @@ def main() -> int:
     if environment != "staging":
         print("REFUSED: DSP_ENVIRONMENT must be exactly 'staging'.")
         return 2
-    if provider != "s3":
-        print("REFUSED: DSP_OBJECT_STORAGE_PROVIDER must be exactly 's3'.")
-        return 2
     if not bucket or bucket.startswith("CHANGE_ME_"):
-        print("REFUSED: set DSP_OBJECT_STORAGE_BUCKET to the existing staging bucket.")
+        print("REFUSED: set DSP_BACKUP_S3_BUCKET to the existing staging backup bucket.")
         return 2
     if not region:
-        print("REFUSED: DSP_OBJECT_STORAGE_REGION must be set.")
+        print("REFUSED: DSP_BACKUP_S3_REGION must be set.")
         return 2
 
     key = f"ops-verification/{uuid.uuid4().hex}.txt"

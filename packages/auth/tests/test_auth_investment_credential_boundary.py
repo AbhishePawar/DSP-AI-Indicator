@@ -70,6 +70,13 @@ def _strip_investment(monkeypatch: pytest.MonkeyPatch) -> None:
 
 
 def _auth_boot_env(monkeypatch: pytest.MonkeyPatch) -> None:
+    # These tests exercise auth credential boundaries, not infrastructure boot.
+    from api_platform.api.infra_bootstrap import InfraBootstrapResult
+
+    monkeypatch.setattr(
+        "api_platform.api.app.bootstrap_production_infrastructure",
+        lambda: InfraBootstrapResult(None, None, ("unit-test isolated bootstrap",)),
+    )
     monkeypatch.setenv("DSP_ENVIRONMENT", "production")
     monkeypatch.setenv(AUTH_JWT_SECRET_ENV, _AUTH_JWT)
     monkeypatch.setenv(RESEND_API_KEY_ENV, _RESEND_KEY)

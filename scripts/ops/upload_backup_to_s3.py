@@ -57,7 +57,9 @@ def main() -> int:
         )
         return 2
 
-    prefix = os.environ.get("DSP_BACKUP_S3_PREFIX", "backups/postgres").strip("/")
+    environment = os.environ.get("DSP_ENVIRONMENT", "development").strip().lower()
+    default_prefix = f"backups/{environment}/postgres"
+    prefix = os.environ.get("DSP_BACKUP_S3_PREFIX", default_prefix).strip("/")
     key = f"{prefix}/{archive.name}" if prefix else archive.name
     checksum_key = f"{key}.sha256"
 

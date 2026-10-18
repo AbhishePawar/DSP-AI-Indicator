@@ -3,7 +3,8 @@
 # Requires: pg_dump, DSP_DATABASE_URL or PG* env vars.
 set -euo pipefail
 
-SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"\nBACKUP_DIR="${DSP_BACKUP_DIR:-./backups}"
+SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+BACKUP_DIR="${DSP_BACKUP_DIR:-./backups}"
 STAMP="$(date -u +%Y%m%dT%H%M%SZ)"
 mkdir -p "${BACKUP_DIR}"
 OUT="${BACKUP_DIR}/dsp_pg_${STAMP}.sql.gz"

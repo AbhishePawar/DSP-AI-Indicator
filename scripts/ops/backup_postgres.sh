@@ -3,7 +3,7 @@
 # Requires: pg_dump, DSP_DATABASE_URL or PG* env vars.
 set -euo pipefail
 
-BACKUP_DIR="${DSP_BACKUP_DIR:-./backups}"
+SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"\nBACKUP_DIR="${DSP_BACKUP_DIR:-./backups}"
 STAMP="$(date -u +%Y%m%dT%H%M%SZ)"
 mkdir -p "${BACKUP_DIR}"
 OUT="${BACKUP_DIR}/dsp_pg_${STAMP}.sql.gz"
@@ -38,7 +38,7 @@ echo "[backup] OK ${OUT} (${BYTES} bytes)"
 # verifies the local checksum and fails loudly if S3 upload is configured but
 # credentials, permissions, or the bucket are wrong.
 if [[ -n "${DSP_BACKUP_S3_BUCKET:-}" ]]; then
-  python scripts/ops/upload_backup_to_s3.py "${OUT}"
+  python3 "${SCRIPT_DIR}/upload_backup_to_s3.py" "${OUT}"
 fi
 
 echo "${OUT}"

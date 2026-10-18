@@ -114,12 +114,14 @@ class LocalFirstS3OverflowStoragePort(LocalFilesystemStoragePort):
                 "storage overflow threshold must be between 0 and 1"
             )
         self._overflow_storage = overflow_storage
+        self._overflow_verified = False
         self._overflow_threshold = threshold
         self._overflow_prefix = prefix.strip("/")
 
     @property
     def overflow_available(self) -> bool:
-        return self._overflow_storage is not None
+        """True only after this process has completed a successful S3 operation."""
+        return self._overflow_storage is not None and self._overflow_verified
 
     def _overflow_key(self, key: str) -> str:
         cleaned = key.replace("\\", "/").lstrip("/")
@@ -157,6 +159,7 @@ class LocalFirstS3OverflowStoragePort(LocalFilesystemStoragePort):
             self._overflow_storage.put(
                 self._overflow_key(key), data, content_type=content_type
             )
+            self._overflow_verified = True
             return
 
         try:
@@ -174,6 +177,7 @@ class LocalFirstS3OverflowStoragePort(LocalFilesystemStoragePort):
             self._overflow_storage.put(
                 self._overflow_key(key), data, content_type=content_type
             )
+            self._overflow_verified = True
 
     def get(self, key: str) -> bytes | None:
         local = super().get(key)
@@ -181,15 +185,16 @@ class LocalFirstS3OverflowStoragePort(LocalFilesystemStoragePort):
             return local
         if self._overflow_storage is None:
             return None
-        return self._overflow_storage.get(self._overflow_key(key))
-
-    def delete(self, key: str) -> None:
+        result = self._overflow_storage.get(self._overflow_key(key))
+        self._overflow_verified = True
+        return result(self, key: str) -> None:
         target = self._resolve(key)
         if target.is_file():
             super().delete(key)
             return
         if self._overflow_storage is not None:
             self._overflow_storage.delete(self._overflow_key(key))
+            self._overflow_verified = True
 
 
 def ensure_storage_port(port: StoragePort | None) -> StoragePort:

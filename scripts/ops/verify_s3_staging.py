@@ -3,7 +3,7 @@
 
 Run only on the staging VPS after setting DSP_ENVIRONMENT=staging,
 DSP_BACKUP_S3_BUCKET and DSP_BACKUP_S3_REGION. Primary artifact storage
-remains local; this script verifies only the separate offsite backup bucket. AWS credentials should come from the normal
+remains local; this script verifies only the separate offsite backup bucket.\nAWS credentials should come from the normal
 boto3 credential chain (prefer the VPS role/instance profile); never pass
 secrets on the command line.
 """
@@ -30,13 +30,13 @@ def main() -> int:
     region = os.environ.get("DSP_BACKUP_S3_REGION", "").strip()
 
     if not args.confirm_staging_s3_write:
-        print("REFUSED: pass --confirm-staging-s3-write to authorize the temporary test.")
+        print(\n            "REFUSED: pass --confirm-staging-s3-write to authorize the temporary test."\n        )
         return 2
     if environment != "staging":
         print("REFUSED: DSP_ENVIRONMENT must be exactly 'staging'.")
         return 2
     if not bucket or bucket.startswith("CHANGE_ME_"):
-        print("REFUSED: set DSP_BACKUP_S3_BUCKET to the existing staging backup bucket.")
+        print(\n            "REFUSED: set DSP_BACKUP_S3_BUCKET to the existing staging backup bucket."\n        )
         return 2
     if not region:
         print("REFUSED: DSP_BACKUP_S3_REGION must be set.")

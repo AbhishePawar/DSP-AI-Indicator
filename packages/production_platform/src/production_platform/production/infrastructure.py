@@ -257,7 +257,8 @@ class InfrastructureBundle:
                         )
                     except (ConfigurationError, ProviderError, ImportError) as exc:
                         notes.append(
-                            f"S3 overflow unavailable; local storage remains primary ({type(exc).__name__})"
+                            "S3 overflow unavailable; local storage remains primary "
+                            f"({type(exc).__name__})"
                         )
                 else:
                     overflow_storage = try_build_s3_storage(
@@ -271,7 +272,8 @@ class InfrastructureBundle:
             )
             if overflow_storage is None:
                 notes.append(
-                    "S3 overflow is not configured/available; new artifact writes will fail at the local disk threshold"
+                    "S3 overflow is not configured/available; new artifact writes "
+                    "will fail at the local disk threshold"
                 )
         elif provider in {"s3", "minio"}:
             from production_platform.adapters.object_storage import (

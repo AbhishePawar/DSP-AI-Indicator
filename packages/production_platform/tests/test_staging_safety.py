@@ -140,7 +140,9 @@ def test_local_storage_overflow_uses_s3_only_for_new_objects(tmp_path, monkeypat
         lambda _path: SimpleNamespace(total=100, used=95, free=5),
     )
     store = LocalFirstS3OverflowStoragePort(tmp_path, overflow_storage=fake_s3)
+    assert store.overflow_available is False
     store.put("reports/new.txt", b"overflow")
+    assert store.overflow_available is True
     assert fake_s3.objects == {"overflow/reports/new.txt": b"overflow"}
     assert store.get("reports/new.txt") == b"overflow"
 

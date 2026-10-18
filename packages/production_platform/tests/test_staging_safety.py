@@ -131,7 +131,9 @@ def test_local_storage_overflow_uses_s3_only_for_new_objects(tmp_path, monkeypat
     assert store.get("reports/new.txt") == b"overflow"
 
     # Existing local files are updated in place and are never moved to S3.
-    local = LocalFirstS3OverflowStoragePort(tmp_path, overflow_storage=fake_s3, threshold=0.99)
+    local = LocalFirstS3OverflowStoragePort(
+        tmp_path, overflow_storage=fake_s3, threshold=0.99
+    )
     monkeypatch.setattr(
         "production_platform.production.storage.shutil.disk_usage",
         lambda _path: SimpleNamespace(total=100, used=50, free=50),
@@ -180,7 +182,10 @@ def test_staging_rejects_s3_as_primary_storage(monkeypatch):
         "production_platform.adapters.object_storage.build_s3_storage",
         lambda **kwargs: object(),
     )
-    with pytest.raises(StorageUnavailableError, match="requires DSP_OBJECT_STORAGE_PROVIDER=local"):
+    with pytest.raises(
+        StorageUnavailableError,
+        match="requires DSP_OBJECT_STORAGE_PROVIDER=local",
+    ):
         build_runtime_infrastructure(environ=env)
 
 

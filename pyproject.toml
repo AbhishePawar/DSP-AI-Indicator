@@ -31,7 +31,7 @@ api = [
     # packages/auth extras are not installed by docker/backend/Dockerfile
     # (`pip install ".[api]"`), so this extra must carry the dependency.
     "cryptography>=42.0",
-    # S3 is the configured persistent object store for staging/production.
+    # S3 is the off-server backup and overflow target; local disk is primary.
     "boto3>=1.34",
 ]
 dev = [

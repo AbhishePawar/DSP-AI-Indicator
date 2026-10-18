@@ -33,4 +33,12 @@ elif command -v shasum >/dev/null 2>&1; then
 fi
 
 echo "[backup] OK ${OUT} (${BYTES} bytes)"
+
+# Off-server copy is opt-in by setting the dedicated backup bucket. The uploader
+# verifies the local checksum and fails loudly if S3 upload is configured but
+# credentials, permissions, or the bucket are wrong.
+if [[ -n "${DSP_BACKUP_S3_BUCKET:-}" ]]; then
+  python scripts/ops/upload_backup_to_s3.py "${OUT}"
+fi
+
 echo "${OUT}"

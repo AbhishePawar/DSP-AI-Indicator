@@ -164,6 +164,9 @@ class LocalFirstS3OverflowStoragePort(LocalFilesystemStoragePort):
         except OSError as exc:
             if exc.errno != errno.ENOSPC:
                 raise
+            # This was a new key, so any partial file was created by this failed
+            # write. Remove only that partial file before falling back to S3.
+            target.unlink(missing_ok=True)
             if self._overflow_storage is None:
                 raise ProviderError(
                     "local disk is full and S3 overflow storage is unavailable"

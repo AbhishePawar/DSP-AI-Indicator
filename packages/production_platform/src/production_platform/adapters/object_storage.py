@@ -43,6 +43,14 @@ class S3CompatibleStoragePort:
             raise ProviderError(f"s3 client init failed: {exc}") from exc
         self._bucket = bucket
 
+    def ping(self) -> bool:
+        """Check bucket reachability without reading or writing application data."""
+        try:
+            self._client.head_bucket(Bucket=self._bucket)
+            return True
+        except Exception:  # noqa: BLE001
+            return False
+
     def put(self, key: str, data: bytes, *, content_type: str | None = None) -> None:
         extra: dict[str, Any] = {}
         if content_type:

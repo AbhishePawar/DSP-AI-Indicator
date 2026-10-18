@@ -106,3 +106,60 @@ class TestInfrastructureHealthProbes:
         assert "redis" in probes
         assert probes["redis"]["status"] == "skip"
         assert probes["database"] is True
+        assert probes["database_status"] == "pass"
+        assert probes["storage"]["status"] == "skip"
+
+
+class TestStagingFailClosed:
+    def test_staging_configured_database_failure_does_not_fall_back(self) -> None:
+        with pytest.raises((DatabaseUnavailableError, StartupError)):
+            build_runtime_infrastructure(
+                environ={
+                    "DSP_ENVIRONMENT": "staging",
+                    "DSP_REGION": "ap-south-1",
+                    "DSP_DATABASE_URL": "postgresql://invalid:invalid@127.0.0.1:1/dsp",
+                    "DSP_DATABASE_TIMEOUT": "0.05",
+                }
+            )
+
+    def test_staging_storage_failure_does_not_fall_back(self, monkeypatch) -> None:
+        from production_platform.adapters import object_storage
+        from production_platform.production.exceptions import ProviderError
+
+        def fail_boto3():
+            raise ProviderError("boto3 missing in test")
+
+        monkeypatch.setattr(object_storage, "_load_boto3", fail_boto3)
+        with pytest.raises(ProviderError):
+            InfrastructureBundle.from_environment(
+                environ={
+                    "DSP_ENVIRONMENT": "staging",
+                    "DSP_OBJECT_STORAGE_PROVIDER": "s3",
+                    "DSP_OBJECT_STORAGE_BUCKET": "dsp-test-bucket",
+                }
+            )
+
+    def test_staging_requires_database_and_region_by_default(self) -> None:
+        report = validate_runtime_environment({"DSP_ENVIRONMENT": "staging"})
+        assert report.ok is False
+        assert "DSP_DATABASE_URL" in report.missing_required
+        assert "DSP_REGION" in report.missing_required
+
+    def test_staging_rejects_offline_override(self) -> None:
+        with pytest.raises(StartupError, match="only permitted for development/test"):
+            build_runtime_infrastructure(
+                environ={"DSP_ENVIRONMENT": "staging"},
+                force_offline=True,
+            )
+
+    def test_staging_rejects_missing_bucket_for_explicit_s3_provider(self) -> None:
+        report = validate_runtime_environment(
+            {
+                "DSP_ENVIRONMENT": "staging",
+                "DSP_REGION": "ap-south-1",
+                "DSP_DATABASE_URL": "postgresql://user:pass@localhost:5432/dsp",
+                "DSP_OBJECT_STORAGE_PROVIDER": "s3",
+            }
+        )
+        assert report.ok is False
+        assert "DSP_OBJECT_STORAGE_BUCKET" in report.missing_required

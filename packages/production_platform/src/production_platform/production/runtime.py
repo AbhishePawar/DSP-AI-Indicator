@@ -82,7 +82,7 @@ def required_env_vars(environment: Environment | str) -> tuple[str, ...]:
     if env is Environment.PRODUCTION:
         return _PRODUCTION_REQUIRED
     if env is Environment.STAGING:
-        return ("DSP_ENVIRONMENT",)
+        return ("DSP_ENVIRONMENT", "DSP_REGION", "DSP_DATABASE_URL")
     return ()
 
 
@@ -115,7 +115,11 @@ def validate_runtime_environment(
             notes=(f"unknown DSP_ENVIRONMENT: {profile}",),
         )
 
-    is_strict = strict if strict is not None else environment is Environment.PRODUCTION
+    is_strict = (
+        strict
+        if strict is not None
+        else environment in {Environment.STAGING, Environment.PRODUCTION}
+    )
     required = required_env_vars(environment)
 
     for key in required:
@@ -164,6 +168,10 @@ def validate_runtime_environment(
         cfg = None
     else:
         notes.append(f"service={cfg.service_name} version={cfg.service_version}")
+        if cfg.object_storage.provider in {"s3", "minio"} and not cfg.object_storage.bucket:
+            missing.append("DSP_OBJECT_STORAGE_BUCKET")
+        elif cfg.object_storage.provider == "local" and not cfg.object_storage.local_root:
+            missing.append("DSP_OBJECT_STORAGE_LOCAL_ROOT")
 
     ok = not missing if is_strict else True
     if missing and not is_strict:
@@ -197,7 +205,16 @@ def build_runtime_infrastructure(
     - Redis: optional unless ``require_redis=True`` or graceful_fallback=false.
     """
     env_map = dict(environ if environ is not None else os.environ)
-    if force_offline or _truthy(env_map.get("DSP_INFRA_OFFLINE")):
+    profile = (
+        env_map.get("DSP_ENVIRONMENT") or env_map.get("ENVIRONMENT") or "development"
+    ).strip().lower()
+    offline_requested = force_offline or _truthy(env_map.get("DSP_INFRA_OFFLINE"))
+    if offline_requested and profile not in {"development", "test"}:
+        raise StartupError(
+            "offline infrastructure is only permitted for development/test; "
+            f"refusing environment={profile}"
+        )
+    if offline_requested:
         report = validate_runtime_environment(env_map, strict=False)
         cfg = load_configuration_from_environ(env_map)
         bundle = InfrastructureBundle.create_offline(configuration=cfg)
@@ -224,7 +241,7 @@ def build_runtime_infrastructure(
     need_db = (
         require_database
         if require_database is not None
-        else env is Environment.PRODUCTION
+        else env in {Environment.STAGING, Environment.PRODUCTION}
     )
     need_redis = require_redis is True or (
         bool(cfg.redis.url) and not cfg.redis.graceful_fallback

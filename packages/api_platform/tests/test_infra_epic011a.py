@@ -56,3 +56,19 @@ def test_ready_snapshot_includes_dependencies() -> None:
     data = response.json()
     assert "dependencies" in data
     assert data["service_readiness"].get("infrastructure") is True
+
+
+def test_staging_bootstrap_does_not_degrade_to_offline(monkeypatch) -> None:
+    from production_platform.production.exceptions import StartupError
+
+    monkeypatch.setenv("DSP_ENVIRONMENT", "staging")
+    monkeypatch.delenv("DSP_INFRA_OFFLINE", raising=False)
+    monkeypatch.delenv("DSP_DATABASE_URL", raising=False)
+    monkeypatch.delenv("DATABASE_URL", raising=False)
+    monkeypatch.delenv("DSP_REGION", raising=False)
+    try:
+        bootstrap_production_infrastructure(force_offline=False)
+    except StartupError:
+        pass
+    else:
+        raise AssertionError("staging bootstrap unexpectedly accepted offline fallback")

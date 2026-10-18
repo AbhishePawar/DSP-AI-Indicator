@@ -69,8 +69,24 @@ def _append_infra_checks(state: ApiState, checks: list[dict[str, Any]]) -> None:
     checks.append(
         {
             "name": "database",
-            "status": "pass" if probes.get("database") else "fail",
+            "status": str(
+                probes.get(
+                    "database_status",
+                    "pass" if probes.get("database") else "fail",
+                )
+            ),
             "message": f"adapter={probes.get('database_adapter', 'unknown')}",
+        }
+    )
+    storage = probes.get("storage") or {}
+    checks.append(
+        {
+            "name": "storage",
+            "status": str(storage.get("status", "skip")),
+            "message": (
+                f"provider={storage.get('provider', 'unknown')} "
+                f"adapter={storage.get('adapter', probes.get('storage_adapter', 'unknown'))}"
+            ),
         }
     )
     redis = probes.get("redis") or {}
@@ -86,11 +102,22 @@ def _append_infra_checks(state: ApiState, checks: list[dict[str, Any]]) -> None:
     )
 
 
+def _mandatory_infra_failed(checks: list[dict[str, Any]]) -> bool:
+    """Return whether a mandatory infrastructure dependency blocks readiness."""
+    return any(
+        check.get("name") in {"database", "storage", "infrastructure"}
+        and check.get("status") == "fail"
+        for check in checks
+    )
+
+
 @router.get("/health", response_model=HealthResponse)
 def health(state: ApiState = Depends(get_api_state)) -> HealthResponse:
     """Offline platform health check via ``DSPPlatform.health_check``."""
     ready, status, checks = _platform_health(state)
     _append_infra_checks(state, checks)
+    if _mandatory_infra_failed(checks):
+        ready, status = False, "fail"
     result = state.platform.health_check()
     meta = result.metadata
     components = collect_component_statuses(state, platform_ready=ready)
@@ -140,6 +167,7 @@ def health_ready(state: ApiState = Depends(get_api_state)) -> JSONResponse:
     """Readiness probe — platform and ops dependencies available."""
     platform_ready, status, checks = _platform_health(state)
     _append_infra_checks(state, checks)
+    mandatory_infra_failed = _mandatory_infra_failed(checks)
     snapshot = collect_health_snapshot(state)
     components = collect_component_statuses(state, platform_ready=platform_ready)
     platform_status = resolve_platform_status(
@@ -148,8 +176,10 @@ def health_ready(state: ApiState = Depends(get_api_state)) -> JSONResponse:
     # Soft-fail: accept traffic when platform is ready even if optional copilot
     # or Redis are degraded (EPIC-011A).
     copilot_ok = bool(snapshot.get("service_readiness", {}).get("copilot_service"))
-    accept = platform_ready or copilot_ok
-    snapshot["status"] = "pass" if accept and platform_ready else status
+    accept = (platform_ready or copilot_ok) and not mandatory_infra_failed
+    snapshot["status"] = "pass" if accept and platform_ready else (
+        "fail" if mandatory_infra_failed else status
+    )
     snapshot["ready"] = accept
     snapshot["platform_ready"] = platform_ready
     snapshot["platform_status"] = platform_status.value

@@ -194,7 +194,7 @@ class InfrastructureBundle:
             except (ConfigurationError, ProviderError, ImportError) as exc:
                 # Production must never silently degrade to InMemoryDatabasePort;
                 # the real reason has to reach startup logs.
-                if cfg.environment is Environment.PRODUCTION:
+                if cfg.environment in {Environment.STAGING, Environment.PRODUCTION}:
                     raise
                 notes.append(
                     f"PostgreSQL unavailable or driver missing ({exc}); "
@@ -239,22 +239,55 @@ class InfrastructureBundle:
 
         storage: StoragePort = InMemoryStoragePort()
         provider = cfg.object_storage.provider
-        if provider == "local" and cfg.object_storage.local_root:
-            storage = LocalFilesystemStoragePort(cfg.object_storage.local_root)
-        elif provider in {"s3", "minio"}:
-            from production_platform.adapters.object_storage import try_build_s3_storage
-
-            s3 = try_build_s3_storage(
-                bucket=cfg.object_storage.bucket,
-                endpoint_url=cfg.object_storage.endpoint_url,
-                region=cfg.object_storage.region,
-            )
-            if s3 is not None:
-                storage = s3
-            else:
-                notes.append(
-                    f"Object storage provider={provider} unavailable; using InMemoryStoragePort"
+        strict_environment = cfg.environment in {
+            Environment.STAGING,
+            Environment.PRODUCTION,
+        }
+        if provider == "local":
+            if cfg.object_storage.local_root:
+                storage = LocalFilesystemStoragePort(cfg.object_storage.local_root)
+            elif strict_environment:
+                raise ConfigurationError(
+                    "DSP_OBJECT_STORAGE_LOCAL_ROOT is required when "
+                    "DSP_OBJECT_STORAGE_PROVIDER=local in staging/production"
                 )
+            else:
+                notes.append("Local object storage root missing; using InMemoryStoragePort")
+        elif provider in {"s3", "minio"}:
+            if strict_environment:
+                if not cfg.object_storage.bucket:
+                    raise ConfigurationError(
+                        "DSP_OBJECT_STORAGE_BUCKET is required when "
+                        f"DSP_OBJECT_STORAGE_PROVIDER={provider} in staging/production"
+                    )
+                from production_platform.adapters.object_storage import S3CompatibleStoragePort
+                # The best-effort builder intentionally swallows errors for local development.
+                storage = S3CompatibleStoragePort(
+                    bucket=cfg.object_storage.bucket,
+                    endpoint_url=cfg.object_storage.endpoint_url,
+                    region=cfg.object_storage.region,
+                )
+            else:
+                from production_platform.adapters.object_storage import try_build_s3_storage
+                s3 = try_build_s3_storage(
+                    bucket=cfg.object_storage.bucket,
+                    endpoint_url=cfg.object_storage.endpoint_url,
+                    region=cfg.object_storage.region,
+                )
+                if s3 is not None:
+                    storage = s3
+                else:
+                    notes.append(
+                        f"Object storage provider={provider} unavailable; using InMemoryStoragePort"
+                    )
+        elif provider in {"azure", "gcs"}:
+            if strict_environment:
+                raise ProviderError(
+                    f"Object storage provider={provider} is configured but no adapter is implemented"
+                )
+            notes.append(
+                f"Object storage provider={provider} has no adapter; using InMemoryStoragePort"
+            )
 
         queue = InMemoryJobQueuePort(
             retry_policy=RetryPolicy(
@@ -317,8 +350,42 @@ class InfrastructureBundle:
                 redis_status = "pass"
             else:
                 redis_status = "fail"
+        cfg = self.configuration.get()
+        try:
+            database_ping = bool(self.database.ping())
+        except Exception:  # noqa: BLE001
+            database_ping = False
+        strict_environment = cfg.environment in {
+            Environment.STAGING,
+            Environment.PRODUCTION,
+        }
+        database_status = (
+            "fail"
+            if not database_ping
+            or (
+                strict_environment
+                and self.diagnostics.database_adapter == "InMemoryDatabasePort"
+            )
+            else "pass"
+        )
+        storage_provider = cfg.object_storage.provider
+        storage_adapter = type(self.storage).__name__
+        if storage_provider == "memory":
+            storage_status = "skip"
+        elif storage_adapter == "InMemoryStoragePort":
+            storage_status = "fail" if strict_environment else "degraded"
+        else:
+            storage_ping = getattr(self.storage, "ping", None)
+            if callable(storage_ping):
+                try:
+                    storage_status = "pass" if storage_ping() else "fail"
+                except Exception:  # noqa: BLE001
+                    storage_status = "fail"
+            else:
+                storage_status = "pass"
         return {
-            "database": self.database.ping(),
+            "database": database_ping,
+            "database_status": database_status,
             "database_adapter": self.diagnostics.database_adapter,
             "cache_adapter": type(self.cache).__name__,
             "redis": {
@@ -329,7 +396,13 @@ class InfrastructureBundle:
                 "lock_adapter": self.diagnostics.lock_adapter,
                 "session_adapter": self.diagnostics.session_adapter,
             },
-            "storage_adapter": type(self.storage).__name__,
+            "storage": {
+                "provider": storage_provider,
+                "adapter": storage_adapter,
+                "status": storage_status,
+                "configured": storage_provider != "memory",
+            },
+            "storage_adapter": storage_adapter,
             "india_timezone": self.india.timezone,
             "india_currency": self.india.currency,
             "diagnostics": {

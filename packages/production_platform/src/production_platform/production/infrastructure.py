@@ -269,6 +269,7 @@ class InfrastructureBundle:
                 cfg.object_storage.local_root,
                 overflow_storage=overflow_storage,
                 threshold=cfg.object_storage.overflow_threshold,
+                prefix=f"overflow/{cfg.environment.value}",
             )
             if overflow_storage is None:
                 notes.append(

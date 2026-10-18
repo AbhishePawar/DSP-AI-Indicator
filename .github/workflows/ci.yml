@@ -189,6 +189,15 @@ jobs:
           python -m py_compile scripts/ops/verify_s3_staging.py scripts/ops/upload_backup_to_s3.py
           bash -n scripts/ops/backup_postgres.sh
 
+      - name: Validate staging and production Compose configuration
+        id: compose-config
+        run: |
+          cp .env.example .env
+          cp deploy/docker/staging.env.example .env.staging
+          cp .env.production.example .env.production
+          docker compose --env-file .env.staging -f docker/docker-compose.yml -f docker/docker-compose.staging.yml config --quiet
+          docker compose --env-file .env.production -f docker/docker-compose.yml -f docker/docker-compose.prod.yml config --quiet
+
       - name: Staging safety regression summary
         if: always()
         run: |

@@ -24,10 +24,12 @@ Load from environment via `load_configuration_from_environ()`.
 | `DSP_DATABASE_URL` | Postgres DSN | unset → memory |
 | `DSP_REDIS_URL` | Redis URL | unset → memory |
 | `DSP_REDIS_FALLBACK` | Degrade to memory if Redis down | `true` |
-| `DSP_OBJECT_STORAGE_PROVIDER` | `memory` \| `local` \| `s3` \| `minio` \| `azure` \| `gcs` | `memory` |
-| `DSP_OBJECT_STORAGE_BUCKET` | Bucket name | — |
+| `DSP_OBJECT_STORAGE_PROVIDER` | Primary artifacts: `local` in staging/production; memory for development/test | `memory` |
 | `DSP_OBJECT_STORAGE_ENDPOINT` | MinIO / custom endpoint | — |
-| `DSP_OBJECT_STORAGE_LOCAL_ROOT` | Persistent local artifact directory (required in staging/production) | — |\n| `DSP_BACKUP_S3_BUCKET` | Separate S3 bucket for off-server backups and overflow; use exact existing bucket only | — |\n| `DSP_BACKUP_S3_REGION` | S3 backup/overflow region, normally `ap-south-1` | — |\n| `DSP_STORAGE_OVERFLOW_THRESHOLD` | Disk usage fraction at which new objects overflow to S3 | `0.95` |
+| `DSP_OBJECT_STORAGE_LOCAL_ROOT` | Persistent local artifact directory (required in staging/production) | — |
+| `DSP_BACKUP_S3_BUCKET` | Separate S3 bucket for off-server backups and overflow; use exact existing bucket only | — |
+| `DSP_BACKUP_S3_REGION` | S3 backup/overflow region, normally `ap-south-1` | — |
+| `DSP_STORAGE_OVERFLOW_THRESHOLD` | Disk usage fraction at which new objects overflow to S3 | `0.95` |
 | `DSP_JOB_QUEUE_BACKEND` | `memory` (others reserved) | `memory` |
 | `DSP_INDIA_TIMEZONE` | Presentation TZ | `Asia/Kolkata` |
 | `DSP_INDIA_CURRENCY` | Presentation currency | `INR` |

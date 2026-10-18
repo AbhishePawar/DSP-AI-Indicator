@@ -124,13 +124,13 @@ class TestStagingFailClosed:
 
     def test_staging_storage_failure_does_not_fall_back(self, monkeypatch) -> None:
         from production_platform.adapters import object_storage
-        from production_platform.production.exceptions import ProviderError
+        from production_platform.production.exceptions import StartupError
 
         def fail_boto3():
-            raise ProviderError("boto3 missing in test")
+            raise ImportError("boto3 missing in test")
 
         monkeypatch.setattr(object_storage, "_load_boto3", fail_boto3)
-        with pytest.raises(ProviderError):
+        with pytest.raises(StartupError, match="Object storage provider=s3 unavailable"):
             InfrastructureBundle.from_environment(
                 environ={
                     "DSP_ENVIRONMENT": "staging",
@@ -163,3 +163,13 @@ class TestStagingFailClosed:
         )
         assert report.ok is False
         assert "DSP_OBJECT_STORAGE_BUCKET" in report.missing_required
+
+
+    def test_direct_offline_builder_rejects_staging(self) -> None:
+        from production_platform.production.exceptions import ConfigurationError
+
+        with pytest.raises(ConfigurationError, match="only permitted for development/test"):
+            InfrastructureBundle.from_environment(
+                environ={"DSP_ENVIRONMENT": "staging"},
+                force_offline=True,
+            )

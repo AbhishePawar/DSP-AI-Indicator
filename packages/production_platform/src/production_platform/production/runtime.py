@@ -227,6 +227,8 @@ def build_runtime_infrastructure(
 
     try:
         infra = InfrastructureBundle.from_environment(environ=env_map)
+    except StartupError:
+        raise
     except ProviderError as exc:
         # Only the database adapter propagates ProviderError from composition;
         # report why PostgreSQL could not be built instead of a generic error.

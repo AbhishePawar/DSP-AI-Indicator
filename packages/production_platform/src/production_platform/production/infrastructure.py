@@ -32,7 +32,11 @@ from production_platform.production.database import (
     InMemoryDatabasePort,
     ensure_database_port,
 )
-from production_platform.production.exceptions import ConfigurationError, ProviderError
+from production_platform.production.exceptions import (
+    ConfigurationError,
+    ProviderError,
+    StartupError,
+)
 from production_platform.production.india import (
     IndiaOperationalProfile,
     build_india_profile,
@@ -172,6 +176,11 @@ class InfrastructureBundle:
                 if environ is not None
                 else ProductionConfiguration()
             )
+            if cfg.environment not in {Environment.DEVELOPMENT, Environment.TEST}:
+                raise ConfigurationError(
+                    "offline infrastructure is only permitted for development/test; "
+                    f"refusing environment={cfg.environment.value}"
+                )
             return cls.create_offline(configuration=cfg)
 
         cfg = load_configuration_from_environ(environ)
@@ -262,11 +271,16 @@ class InfrastructureBundle:
                     )
                 from production_platform.adapters.object_storage import S3CompatibleStoragePort
                 # The best-effort builder intentionally swallows errors for local development.
-                storage = S3CompatibleStoragePort(
-                    bucket=cfg.object_storage.bucket,
-                    endpoint_url=cfg.object_storage.endpoint_url,
-                    region=cfg.object_storage.region,
-                )
+                try:
+                    storage = S3CompatibleStoragePort(
+                        bucket=cfg.object_storage.bucket,
+                        endpoint_url=cfg.object_storage.endpoint_url,
+                        region=cfg.object_storage.region,
+                    )
+                except ProviderError as exc:
+                    raise StartupError(
+                        f"Object storage provider={provider} unavailable: {exc}"
+                    ) from exc
             else:
                 from production_platform.adapters.object_storage import try_build_s3_storage
                 s3 = try_build_s3_storage(

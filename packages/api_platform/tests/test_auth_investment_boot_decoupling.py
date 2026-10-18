@@ -42,10 +42,14 @@ def platform() -> DSPPlatform:
 
 def _strip_investment_credentials(monkeypatch: pytest.MonkeyPatch) -> None:
     # These tests exercise auth/investment boundaries, not infrastructure boot.
+    import importlib
+
     from api_platform.api.infra_bootstrap import InfraBootstrapResult
 
+    app_module = importlib.import_module("api_platform.api.app")
     monkeypatch.setattr(
-        "api_platform.api.app.bootstrap_production_infrastructure",
+        app_module,
+        "bootstrap_production_infrastructure",
         lambda: InfraBootstrapResult(None, None, ("unit-test isolated bootstrap",)),
     )
     monkeypatch.setenv("DSP_ENVIRONMENT", "production")
@@ -159,14 +163,7 @@ def test_d_valid_http_configuration_still_works(
 ) -> None:
     from api_platform import create_app
 
-    monkeypatch.setenv("DSP_ENVIRONMENT", "production")
-    monkeypatch.setenv("DSP_JWT_SECRET", "unit-test-production-secret-not-default")
-    monkeypatch.setenv("DSP_AUTH_JWT_SECRET", "unit-test-production-secret-not-default")
-    monkeypatch.setenv("DSP_INFRA_OFFLINE", "1")
-    monkeypatch.setattr(
-        "api_platform.api.durable_product_stores.require_durable_product_database",
-        lambda database: None,
-    )
+    _strip_investment_credentials(monkeypatch)
     monkeypatch.setenv("DSP_INVESTMENT_DATA_PROVIDER", "http")
     monkeypatch.setenv("DSP_MARKET_QUOTE_API_KEY", _SOURCE_KEY)
     monkeypatch.setenv("DSP_MARKET_QUOTE_BASE_URL", "https://source.example/quotes")

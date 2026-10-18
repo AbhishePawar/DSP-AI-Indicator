@@ -101,6 +101,20 @@ def test_build_s3_storage_requires_bucket():
         build_s3_storage(bucket=None)
 
 
+def test_health_marks_local_storage_degraded_without_s3_overflow(tmp_path):
+    """Local storage can serve, but readiness exposes missing S3 overflow."""
+    env = {
+        "DSP_ENVIRONMENT": "staging",
+        "DSP_OBJECT_STORAGE_PROVIDER": "local",
+        "DSP_OBJECT_STORAGE_LOCAL_ROOT": str(tmp_path),
+    }
+    bundle = InfrastructureBundle.from_environment(environ=env)
+    storage = bundle.health_checks()["storage"]
+    assert storage["provider"] == "local"
+    assert storage["status"] == "degraded"
+    assert storage["overflow_available"] is False
+
+
 def test_local_storage_overflow_uses_s3_only_for_new_objects(tmp_path, monkeypatch):
     """At 95% disk use, only new objects overflow to the separate S3 prefix."""
     from types import SimpleNamespace

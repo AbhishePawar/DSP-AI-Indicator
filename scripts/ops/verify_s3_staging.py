@@ -67,7 +67,6 @@ def main() -> int:
         if body != payload:
             raise RuntimeError("S3 read-after-write payload mismatch")
         client.delete_object(Bucket=bucket, Key=key)
-        uploaded = False
         try:
             client.head_object(Bucket=bucket, Key=key)
         except Exception as exc:  # noqa: BLE001
@@ -76,6 +75,7 @@ def main() -> int:
                 "HTTPStatusCode"
             )
             if code in {"404", "NoSuchKey", "NotFound"} or status == 404:
+                uploaded = False
                 print(
                     f"PASS: S3 put/get/delete verified; bucket={bucket}; "
                     f"region={region}; key_prefix=ops-verification/"

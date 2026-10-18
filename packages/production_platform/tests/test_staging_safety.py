@@ -58,6 +58,13 @@ def test_development_offline_allowed():
     assert "force_offline=true" in bundle.notes
 
 
+def test_staging_requires_s3_for_persistent_storage():
+    """Staging must not silently accept the default in-memory storage provider."""
+    env = {"DSP_ENVIRONMENT": "staging"}
+    with pytest.raises(StorageUnavailableError, match="requires DSP_OBJECT_STORAGE_PROVIDER=s3"):
+        build_runtime_infrastructure(environ=env)
+
+
 def test_staging_database_failure_fails_closed():
     """Staging with configured DB fails closed when Postgres is unavailable."""
     env = {

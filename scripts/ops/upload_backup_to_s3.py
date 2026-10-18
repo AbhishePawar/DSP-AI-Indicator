@@ -15,13 +15,19 @@ from pathlib import Path
 
 def main() -> int:
     if len(sys.argv) != 2:
-        print("Usage: upload_backup_to_s3.py /path/to/dsp_pg_<UTC>.sql.gz", file=sys.stderr)
+        print(
+            "Usage: upload_backup_to_s3.py /path/to/dsp_pg_<UTC>.sql.gz",
+            file=sys.stderr,
+        )
         return 2
 
     bucket = os.environ.get("DSP_BACKUP_S3_BUCKET", "").strip()
     region = os.environ.get("DSP_BACKUP_S3_REGION", "").strip()
     if not bucket or bucket.startswith("CHANGE_ME_"):
-        print("FAIL: set DSP_BACKUP_S3_BUCKET to the verified existing backup bucket.", file=sys.stderr)
+        print(
+            "FAIL: set DSP_BACKUP_S3_BUCKET to the verified existing backup bucket.",
+            file=sys.stderr,
+        )
         return 2
     if not region:
         print("FAIL: DSP_BACKUP_S3_REGION must be set.", file=sys.stderr)
@@ -32,13 +38,23 @@ def main() -> int:
         print("FAIL: backup archive is missing or too small.", file=sys.stderr)
         return 2
     checksum = archive.with_name(archive.name + ".sha256")
-    digest = hashlib.sha256(archive.read_bytes()).hexdigest()
+    hasher = hashlib.sha256()
+    with archive.open("rb") as source:
+        for chunk in iter(lambda: source.read(1024 * 1024), b""):
+            hasher.update(chunk)
+    digest = hasher.hexdigest()
     if not checksum.is_file():
-        print("FAIL: local SHA-256 sidecar is missing; refusing upload.", file=sys.stderr)
+        print(
+            "FAIL: local SHA-256 sidecar is missing; refusing upload.",
+            file=sys.stderr,
+        )
         return 2
     recorded = checksum.read_text(encoding="utf-8").split()[0].strip().lower()
     if recorded != digest:
-        print("FAIL: local SHA-256 sidecar does not match the archive.", file=sys.stderr)
+        print(
+            "FAIL: local SHA-256 sidecar does not match the archive.",
+            file=sys.stderr,
+        )
         return 2
 
     prefix = os.environ.get("DSP_BACKUP_S3_PREFIX", "backups/postgres").strip("/")
@@ -49,17 +65,29 @@ def main() -> int:
         import boto3
 
         client = boto3.client("s3", region_name=region)
-        client.upload_file(str(archive), bucket, key, ExtraArgs={"Metadata": {"sha256": digest}})
+        client.upload_file(
+            str(archive),
+            bucket,
+            key,
+            ExtraArgs={"Metadata": {"sha256": digest}},
+        )
         client.upload_file(str(checksum), bucket, checksum_key)
         head = client.head_object(Bucket=bucket, Key=key)
         metadata_digest = head.get("Metadata", {}).get("sha256")
         if metadata_digest and metadata_digest != digest:
             raise RuntimeError("uploaded archive SHA-256 metadata mismatch")
-        print(f"PASS: offsite backup uploaded and verified; bucket={bucket}; region={region}; key={key}")
+        print(
+            "PASS: offsite backup uploaded and verified; "
+            f"bucket={bucket}; region={region}; key={key}"
+        )
         print(f"PASS: checksum uploaded; key={checksum_key}")
         return 0
     except Exception as exc:  # noqa: BLE001
-        print(f"FAIL: S3 offsite backup upload/verification failed: {type(exc).__name__}: {exc}", file=sys.stderr)
+        print(
+            "FAIL: S3 offsite backup upload/verification failed: "
+            f"{type(exc).__name__}: {exc}",
+            file=sys.stderr,
+        )
         return 1
 
 

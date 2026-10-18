@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import errno
+import shutil
 from dataclasses import dataclass
 from pathlib import Path
 from threading import Lock
@@ -12,6 +14,7 @@ from production_platform.production.interfaces import StoragePort
 __all__ = [
     "InMemoryStoragePort",
     "LocalFilesystemStoragePort",
+    "LocalFirstS3OverflowStoragePort",
     "StoredObject",
     "ensure_storage_port",
 ]
@@ -86,6 +89,100 @@ class LocalFilesystemStoragePort:
         path = self._resolve(key)
         if path.is_file():
             path.unlink()
+
+
+class LocalFirstS3OverflowStoragePort(LocalFilesystemStoragePort):
+    """Local-first storage; send only new objects to S3 at the disk threshold.
+
+    Existing local files are never migrated or deleted by this adapter. S3
+    objects use a dedicated prefix and are read only when the local key is absent.
+    If local storage reaches the threshold without a working S3 adapter, new
+    writes fail explicitly rather than silently consuming the remaining disk.
+    """
+
+    def __init__(
+        self,
+        root: str | Path,
+        *,
+        overflow_storage: StoragePort | None = None,
+        threshold: float = 0.95,
+        prefix: str = "overflow",
+    ) -> None:
+        super().__init__(root)
+        if not 0 < threshold < 1:
+            raise ConfigurationError("storage overflow threshold must be between 0 and 1")
+        self._overflow_storage = overflow_storage
+        self._overflow_threshold = threshold
+        self._overflow_prefix = prefix.strip("/")
+
+    @property
+    def overflow_available(self) -> bool:
+        return self._overflow_storage is not None
+
+    def _overflow_key(self, key: str) -> str:
+        cleaned = key.replace("\\", "/").lstrip("/")
+        if ".." in cleaned.split("/"):
+            raise ProviderError("invalid object key")
+        return f"{self._overflow_prefix}/{cleaned}" if self._overflow_prefix else cleaned
+
+    def _disk_threshold_reached(self) -> bool:
+        usage = shutil.disk_usage(self._root)
+        return usage.total > 0 and usage.used / usage.total >= self._overflow_threshold
+
+    def put(self, key: str, data: bytes, *, content_type: str | None = None) -> None:
+        target = self._resolve(key)
+        # Never relocate/overflow an existing local file: updates remain local.
+        if target.is_file():
+            try:
+                super().put(key, data, content_type=content_type)
+            except OSError as exc:
+                if exc.errno == errno.ENOSPC:
+                    raise ProviderError(
+                        "local disk is full while updating an existing local object; "
+                        "existing files were not moved to S3"
+                    ) from exc
+                raise
+            return
+
+        if self._disk_threshold_reached():
+            if self._overflow_storage is None:
+                raise ProviderError(
+                    "local artifact storage reached the 95% overflow threshold, "
+                    "but DSP_BACKUP_S3_BUCKET is not configured or S3 is unavailable"
+                )
+            self._overflow_storage.put(
+                self._overflow_key(key), data, content_type=content_type
+            )
+            return
+
+        try:
+            super().put(key, data, content_type=content_type)
+        except OSError as exc:
+            if exc.errno != errno.ENOSPC:
+                raise
+            if self._overflow_storage is None:
+                raise ProviderError(
+                    "local disk is full and S3 overflow storage is unavailable"
+                ) from exc
+            self._overflow_storage.put(
+                self._overflow_key(key), data, content_type=content_type
+            )
+
+    def get(self, key: str) -> bytes | None:
+        local = super().get(key)
+        if local is not None:
+            return local
+        if self._overflow_storage is None:
+            return None
+        return self._overflow_storage.get(self._overflow_key(key))
+
+    def delete(self, key: str) -> None:
+        target = self._resolve(key)
+        if target.is_file():
+            super().delete(key)
+            return
+        if self._overflow_storage is not None:
+            self._overflow_storage.delete(self._overflow_key(key))
 
 
 def ensure_storage_port(port: StoragePort | None) -> StoragePort:

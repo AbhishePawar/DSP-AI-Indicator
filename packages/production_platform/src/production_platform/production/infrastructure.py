@@ -68,6 +68,7 @@ from production_platform.production.session import (
 from production_platform.production.storage import (
     InMemoryStoragePort,
     LocalFilesystemStoragePort,
+    LocalFirstS3OverflowStoragePort,
     ensure_storage_port,
 )
 
@@ -240,7 +241,38 @@ class InfrastructureBundle:
         storage: StoragePort = InMemoryStoragePort()
         provider = cfg.object_storage.provider
         if provider == "local" and cfg.object_storage.local_root:
-            storage = LocalFilesystemStoragePort(cfg.object_storage.local_root)
+            overflow_storage: StoragePort | None = None
+            overflow_bucket = (cfg.object_storage.overflow_bucket or "").strip()
+            if overflow_bucket and not overflow_bucket.startswith("CHANGE_ME_"):
+                from production_platform.adapters.object_storage import (
+                    build_s3_storage,
+                    try_build_s3_storage,
+                )
+
+                if cfg.environment in (Environment.PRODUCTION, Environment.STAGING):
+                    try:
+                        overflow_storage = build_s3_storage(
+                            bucket=overflow_bucket,
+                            region=cfg.object_storage.overflow_region or "ap-south-1",
+                        )
+                    except (ConfigurationError, ProviderError, ImportError) as exc:
+                        notes.append(
+                            f"S3 overflow unavailable; local storage remains primary ({type(exc).__name__})"
+                        )
+                else:
+                    overflow_storage = try_build_s3_storage(
+                        bucket=overflow_bucket,
+                        region=cfg.object_storage.overflow_region or "ap-south-1",
+                    )
+            storage = LocalFirstS3OverflowStoragePort(
+                cfg.object_storage.local_root,
+                overflow_storage=overflow_storage,
+                threshold=cfg.object_storage.overflow_threshold,
+            )
+            if overflow_storage is None:
+                notes.append(
+                    "S3 overflow is not configured/available; new artifact writes will fail at the local disk threshold"
+                )
         elif provider in {"s3", "minio"}:
             from production_platform.adapters.object_storage import (
                 build_s3_storage,
@@ -336,7 +368,10 @@ class InfrastructureBundle:
             )
         elif storage_provider == "local":
             storage_status = (
-                "pass" if storage_adapter == "LocalFilesystemStoragePort" else "fail"
+                "pass"
+                if storage_adapter
+                in {"LocalFilesystemStoragePort", "LocalFirstS3OverflowStoragePort"}
+                else "fail"
             )
         elif (
             storage_adapter == "InMemoryStoragePort"

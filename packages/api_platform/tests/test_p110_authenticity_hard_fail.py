@@ -265,6 +265,14 @@ class TestProductionConnectorAuthenticity:
         ):
             monkeypatch.delenv(key, raising=False)
 
+        # This test verifies connector fail-closed behavior; isolate the unrelated
+        # infrastructure bootstrap so production offline mode remains forbidden.
+        from api_platform.api.infra_bootstrap import InfraBootstrapResult
+
+        monkeypatch.setattr(
+            "api_platform.api.app.bootstrap_production_infrastructure",
+            lambda: InfraBootstrapResult(None, None, ("unit-test isolated bootstrap",)),
+        )
         platform = (
             PlatformBuilder()
             .with_configuration(PlatformConfiguration(require_analysis_service=False))

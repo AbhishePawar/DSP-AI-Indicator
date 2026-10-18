@@ -8,6 +8,8 @@ services:
       - "8000:8000"
     env_file:
       - ../.env
+    volumes:
+      - dsp_artifacts:/var/lib/dsp/artifacts
     environment:
       DSP_ENVIRONMENT: ${DSP_ENVIRONMENT:-development}
       DSP_CORS_ORIGINS: http://localhost:3000,http://127.0.0.1:3000
@@ -79,4 +81,5 @@ services:
     restart: unless-stopped
 
 volumes:
+  dsp_artifacts:
   dsp_pg_data:

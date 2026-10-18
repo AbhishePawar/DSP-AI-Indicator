@@ -384,13 +384,16 @@ class InfrastructureBundle:
         ):
             storage_status = "fail"
 
+        overflow_configured = getattr(self.storage, "overflow_configured", None)
         overflow_available = getattr(self.storage, "overflow_available", None)
-        if (
-            storage_provider == "local"
-            and storage_adapter == "LocalFirstS3OverflowStoragePort"
-            and not overflow_available
-        ):
-            storage_status = "degraded"
+        if overflow_available is True:
+            overflow_status = "verified"
+        elif overflow_configured is True:
+            overflow_status = "unverified"
+        elif storage_provider == "local":
+            overflow_status = "not_configured"
+        else:
+            overflow_status = "not_applicable"
 
         return {
             "database": self.database.ping(),
@@ -408,7 +411,9 @@ class InfrastructureBundle:
                 "provider": storage_provider,
                 "adapter": storage_adapter,
                 "status": storage_status,
+                "overflow_configured": overflow_configured,
                 "overflow_available": overflow_available,
+                "overflow_status": overflow_status,
             },
             "storage_adapter": storage_adapter,
             "india_timezone": self.india.timezone,

@@ -26,6 +26,13 @@ def platform() -> DSPPlatform:
 
 
 def _clear_investment_env(monkeypatch: pytest.MonkeyPatch) -> None:
+    # These tests exercise connector selection, not production infrastructure boot.
+    from api_platform.api.infra_bootstrap import InfraBootstrapResult
+
+    monkeypatch.setattr(
+        "api_platform.api.app.bootstrap_production_infrastructure",
+        lambda: InfraBootstrapResult(None, None, ("unit-test isolated bootstrap",)),
+    )
     monkeypatch.setenv("DSP_ENVIRONMENT", "production")
     monkeypatch.setenv("DSP_JWT_SECRET", "unit-test-production-secret-not-default")
     # Isolate investment-decoupling from Postgres/region runtime gates.

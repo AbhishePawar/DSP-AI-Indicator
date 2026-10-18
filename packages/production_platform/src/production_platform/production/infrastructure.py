@@ -305,7 +305,7 @@ class InfrastructureBundle:
                     )
         elif provider in {"azure", "gcs"}:
             if strict_environment:
-                raise ProviderError(
+                raise StartupError(
                     f"Object storage provider={provider} is configured but no "
                     "adapter is implemented"
                 )

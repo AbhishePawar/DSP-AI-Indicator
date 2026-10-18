@@ -271,7 +271,10 @@ def build_runtime_infrastructure(
 
     need_storage = cfg.object_storage.provider == "local"
     storage_adapter = infra.diagnostics.storage_adapter
-    if need_storage and storage_adapter != "LocalFilesystemStoragePort":
+    if need_storage and storage_adapter not in {
+        "LocalFilesystemStoragePort",
+        "LocalFirstS3OverflowStoragePort",
+    }:
         raise StorageUnavailableError(
             f"Local artifact storage required for this profile but adapter is unavailable"
         )

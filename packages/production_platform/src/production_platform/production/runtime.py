@@ -253,10 +253,26 @@ def build_runtime_infrastructure(
                 "PostgreSQL required for this profile but adapter is unavailable"
             )
 
-    need_storage = cfg.object_storage.provider in {"s3", "minio"} or (
-        env in (Environment.PRODUCTION, Environment.STAGING)
-        and cfg.object_storage.provider not in {"memory", "local"}
-    )
+    # Staging and production must not silently use process memory or local disk
+    # for persistent report/export artifacts. Require the explicitly configured
+    # AWS S3 bucket and region after database validation, so DB failures remain
+    # the primary diagnostic when the database itself is unavailable.
+    if env in (Environment.PRODUCTION, Environment.STAGING):
+        if cfg.object_storage.provider != "s3":
+            raise StorageUnavailableError(
+                f"{env.value} requires DSP_OBJECT_STORAGE_PROVIDER=s3; "
+                f"configured provider={cfg.object_storage.provider}"
+            )
+        if not (cfg.object_storage.bucket or "").strip():
+            raise StorageUnavailableError(
+                f"{env.value} requires DSP_OBJECT_STORAGE_BUCKET"
+            )
+        if not (cfg.object_storage.region or "").strip():
+            raise StorageUnavailableError(
+                f"{env.value} requires DSP_OBJECT_STORAGE_REGION"
+            )
+
+    need_storage = cfg.object_storage.provider == "s3"
     storage_adapter = infra.diagnostics.storage_adapter
     if need_storage and storage_adapter == "InMemoryStoragePort":
         raise StorageUnavailableError(

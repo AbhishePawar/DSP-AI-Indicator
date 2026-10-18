@@ -60,7 +60,6 @@ def main() -> int:
             Key=key,
             Body=payload,
             ContentType="text/plain; charset=utf-8",
-            ServerSideEncryption="AES256",
         )
         uploaded = True
         response = client.get_object(Bucket=bucket, Key=key)

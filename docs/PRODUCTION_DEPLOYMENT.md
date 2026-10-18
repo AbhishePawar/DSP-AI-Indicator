@@ -9,7 +9,7 @@
 | Currency default | `INR` |
 | DB | Managed PostgreSQL (India residency) |
 | Cache | Managed Redis (same region) |
-| Object storage | S3-compatible in India region |
+| Primary artifacts | Persistent VPS local filesystem |\n| Off-server backup / overflow | S3 in `ap-south-1`; new objects overflow at 95% local disk use |
 | Log retention | ≥180 days (CERT-In) |
 | Secrets | Cloud KMS + Secrets Manager behind `SecretsPort` |
 

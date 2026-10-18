@@ -195,8 +195,32 @@ jobs:
           cp .env.example .env
           cp deploy/docker/staging.env.example .env.staging
           cp .env.production.example .env.production
-          docker compose --env-file .env.staging -f docker/docker-compose.yml -f docker/docker-compose.staging.yml config --quiet
-          docker compose --env-file .env.production -f docker/docker-compose.yml -f docker/docker-compose.prod.yml config --quiet
+          docker compose --env-file .env.staging -f docker/docker-compose.yml -f docker/docker-compose.staging.yml config --format json > /tmp/dsp-staging-compose.json
+          docker compose --env-file .env.production -f docker/docker-compose.yml -f docker/docker-compose.prod.yml config --format json > /tmp/dsp-production-compose.json
+          python - <<'PY'
+          import json
+          from pathlib import Path
+
+          for profile, path in (
+              ("staging", "/tmp/dsp-staging-compose.json"),
+              ("production", "/tmp/dsp-production-compose.json"),
+          ):
+              config = json.loads(Path(path).read_text(encoding="utf-8"))
+              api = config["services"]["api"]
+              env = api["environment"]
+              assert env["DSP_ENVIRONMENT"] == profile, (profile, env.get("DSP_ENVIRONMENT"))
+              assert env["DSP_OBJECT_STORAGE_PROVIDER"] == "local", profile
+              assert env["DSP_OBJECT_STORAGE_LOCAL_ROOT"] == "/var/lib/dsp/artifacts", profile
+              assert "CHANGE_ME_NEON_HOST" in env["DSP_DATABASE_URL"], profile
+              assert env["DSP_BACKUP_S3_BUCKET"].startswith("CHANGE_ME_"), profile
+              mounts = api.get("volumes", [])
+              assert any(
+                  mount.get("target") == "/var/lib/dsp/artifacts"
+                  for mount in mounts
+                  if isinstance(mount, dict)
+              ), profile
+          print("PASS: staging and production containers receive local storage, Neon DSN, S3 backup config, and persistent artifact volume")
+          PY
 
       - name: Staging safety regression summary
         if: always()

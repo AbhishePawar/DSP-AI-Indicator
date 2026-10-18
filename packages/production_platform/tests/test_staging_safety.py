@@ -111,8 +111,10 @@ def test_health_marks_local_storage_degraded_without_s3_overflow(tmp_path):
     bundle = InfrastructureBundle.from_environment(environ=env)
     storage = bundle.health_checks()["storage"]
     assert storage["provider"] == "local"
-    assert storage["status"] == "degraded"
+    assert storage["status"] == "pass"
+    assert storage["overflow_configured"] is False
     assert storage["overflow_available"] is False
+    assert storage["overflow_status"] == "not_configured"
 
 
 def test_local_storage_overflow_uses_s3_only_for_new_objects(tmp_path, monkeypatch):

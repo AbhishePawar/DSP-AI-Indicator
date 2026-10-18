@@ -7,7 +7,7 @@ from typing import Any
 
 from production_platform.production.exceptions import ConfigurationError, ProviderError
 
-__all__ = ["S3CompatibleStoragePort", "try_build_s3_storage"]
+__all__ = ["S3CompatibleStoragePort", "build_s3_storage", "try_build_s3_storage"]
 
 
 def _load_boto3() -> Any:
@@ -70,6 +70,21 @@ class S3CompatibleStoragePort:
             self._client.delete_object(Bucket=self._bucket, Key=key)
         except Exception as exc:  # noqa: BLE001
             raise ProviderError(f"s3 delete failed: {exc}") from exc
+
+
+def build_s3_storage(
+    *,
+    bucket: str | None,
+    endpoint_url: str | None = None,
+    region: str | None = None,
+) -> S3CompatibleStoragePort:
+    if not bucket or not str(bucket).strip():
+        raise ConfigurationError("object storage bucket must not be empty")
+    return S3CompatibleStoragePort(
+        bucket=str(bucket).strip(),
+        endpoint_url=endpoint_url,
+        region=region,
+    )
 
 
 def try_build_s3_storage(

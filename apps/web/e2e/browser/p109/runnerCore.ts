@@ -185,7 +185,7 @@ function inspectPortProcessWin32(port: number, expectedDir?: string): PortProces
     if (!pid) return null;
 
     let commandLine = "";
-    let workingDirectory = "";
+    const workingDirectory = "";
 
     try {
       const psCmd = `powershell -NoProfile -NonInteractive -Command "Get-CimInstance Win32_Process -Filter \\"ProcessId = ${pid}\\" | Select-Object -Property CommandLine, ExecutablePath | ConvertTo-Json"`;
@@ -296,13 +296,14 @@ export async function boundedHttpCheck(
     const res = await fetchFn(url, { signal: controller.signal });
     clearTimeout(timer);
     return { ok: res.status >= 200 && res.status < 500, status: res.status };
-  } catch (err: any) {
-    const isTimeout = err?.name === "AbortError" || String(err).includes("aborted");
+  } catch (err: unknown) {
+    const error = err instanceof Error ? err : new Error(String(err));
+    const isTimeout = error.name === "AbortError" || error.message.includes("aborted");
     return {
       ok: false,
       error: isTimeout
         ? `Request timed out after ${timeoutMs}ms (server accepted TCP connection but returned no HTTP response)`
-        : err?.message || String(err),
+        : error.message,
     };
   }
 }

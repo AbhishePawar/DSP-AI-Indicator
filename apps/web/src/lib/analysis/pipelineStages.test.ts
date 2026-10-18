@@ -43,6 +43,17 @@ describe("pipeline stages", () => {
     expect(stages[1]?.status).toBe("Failed");
     expect(stages[2]?.status).toBe("Pending");
   });
+
+  it("maps degraded, unavailable, and skipped stage statuses", () => {
+    const stages = buildPipelineStages([
+      { stage: "financial", status: "unavailable", has_result: false },
+      { stage: "valuation", status: "degraded", has_result: true },
+      { stage: "economic_moat", status: "skipped", has_result: false },
+    ]);
+    expect(stages[0]?.status).toBe("Unavailable");
+    expect(stages[1]?.status).toBe("Degraded");
+    expect(stages[2]?.status).toBe("Skipped");
+  });
 });
 
 describe("recent analyses session store", () => {

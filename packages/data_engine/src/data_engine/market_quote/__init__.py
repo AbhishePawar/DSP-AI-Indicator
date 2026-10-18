@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-from data_engine.market_quote.upstox_adapter import UpstoxQuoteAdapter
 from data_engine.market_quote.adapters import (
     ConfiguredHttpQuoteAdapter,
     InMemoryAuthenticatedQuoteAdapter,
@@ -27,6 +26,7 @@ from data_engine.market_quote.service import (
     RateLimiter,
     RetryPolicy,
 )
+from data_engine.market_quote.upstox_adapter import UpstoxQuoteAdapter
 from data_engine.market_quote.validation import validate_authenticated_quote
 
 __all__ = [

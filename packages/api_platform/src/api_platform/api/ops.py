@@ -2,11 +2,10 @@
 
 from __future__ import annotations
 
-import threading
-
 import json
 import logging
 import os
+import threading
 import time
 from dataclasses import dataclass
 from pathlib import Path
@@ -141,9 +140,17 @@ def collect_component_statuses(
             "message": message or ("ok" if ok else "unhealthy"),
         }
 
+    env = (os.environ.get("DSP_ENVIRONMENT") or "development").lower()
     if probes:
+        db_adapter = probes.get("database_adapter", "unknown")
         db_ok = bool(probes.get("database"))
-        db_msg = f"adapter={probes.get('database_adapter', 'unknown')}"
+        if (
+            env in {"staging", "production"}
+            and db_adapter == "InMemoryDatabasePort"
+            and (db_env or env == "production")
+        ):
+            db_ok = False
+        db_msg = f"adapter={db_adapter}"
         db_skip = False
     elif db_env:
         db_ok, db_msg, db_skip = True, "configured", False
@@ -193,7 +200,17 @@ def collect_component_statuses(
             skip=not probes,
         ),
         "storage": status(
-            True,
+            (
+                probes.get("storage", {}).get("status") != "fail"
+                if isinstance(probes.get("storage"), dict)
+                else not (
+                    env in {"staging", "production"}
+                    and (
+                        os.environ.get("DSP_OBJECT_STORAGE_PROVIDER") in {"s3", "minio"}
+                    )
+                    and probes.get("storage_adapter") != "S3CompatibleStoragePort"
+                )
+            ),
             skip=storage is None and not probes,
             message=(
                 str(probes.get("storage_adapter", "configured"))
@@ -237,6 +254,10 @@ def resolve_platform_status(
     if components.get("api", {}).get("status") == "fail":
         return PlatformLifecycleState.UNHEALTHY
     if components.get("application", {}).get("status") == "fail":
+        return PlatformLifecycleState.UNHEALTHY
+    if components.get("database", {}).get("status") == "fail":
+        return PlatformLifecycleState.UNHEALTHY
+    if components.get("storage", {}).get("status") == "fail":
         return PlatformLifecycleState.UNHEALTHY
     if not platform_ready or components.get("overall", {}).get("status") != "pass":
         return PlatformLifecycleState.DEGRADED
@@ -415,7 +436,6 @@ class MetricsRegistry:
         except Exception:  # noqa: BLE001 — observability must not break research flow
             pass
 
-
     def set_gauge(self, name: str, value: float) -> None:
         with self._lock:
             if name in self._gauges:
@@ -457,7 +477,11 @@ class MetricsRegistry:
             self._gauges["dsp_uptime_seconds"] = round(time.time() - _START_TIME, 2)
             counters_copy = list(self._counters.items())
             gauges_copy = list(self._gauges.items())
-            avg = (self._latency_sum_ms / self._latency_count) if self._latency_count else None
+            avg = (
+                (self._latency_sum_ms / self._latency_count)
+                if self._latency_count
+                else None
+            )
 
         lines: list[str] = []
         for name, value in counters_copy:

@@ -59,6 +59,9 @@ def bootstrap_production_infrastructure(
         else os.environ.get("DSP_INFRA_OFFLINE", "").lower()
         in {"1", "true", "yes", "on"}
     )
+    env = (os.environ.get("DSP_ENVIRONMENT") or "development").lower()
+    if offline_flag and env in {"production", "staging"}:
+        raise RuntimeError(f"offline infrastructure is not permitted in {env}")
     try:
         production_platform = importlib.import_module("production_platform")
     except ImportError:
@@ -90,9 +93,9 @@ def bootstrap_production_infrastructure(
         )
     except Exception as exc:  # noqa: BLE001
         code, message = public_startup_error(exc)
-        # Non-production: degrade to offline rather than crash the API.
+        # Non-production/non-staging: degrade to offline rather than crash the API.
         env = (os.environ.get("DSP_ENVIRONMENT") or "development").lower()
-        if env != "production" and not offline_flag:
+        if env not in {"production", "staging"} and not offline_flag:
             try:
                 infra = production_platform.build_runtime_infrastructure(
                     force_offline=True

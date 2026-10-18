@@ -167,8 +167,14 @@ def run_trusted_tool_loop(
     while True:
         if cancellation_event is not None and cancellation_event.is_set():
             return snapshot(ErrorCategory.TIMEOUT, "orchestration cancelled")
-        if timeout_seconds is not None and (time.monotonic() - start_time) > timeout_seconds:
-            return snapshot(ErrorCategory.TIMEOUT, f"tool loop exceeded timeout of {timeout_seconds}s")
+        if (
+            timeout_seconds is not None
+            and (time.monotonic() - start_time) > timeout_seconds
+        ):
+            return snapshot(
+                ErrorCategory.TIMEOUT,
+                f"tool loop exceeded timeout of {timeout_seconds}s",
+            )
         if round_trips >= caps.max_provider_round_trips:
             return snapshot(
                 ErrorCategory.LOOP_LIMIT_EXCEEDED,
@@ -194,8 +200,14 @@ def run_trusted_tool_loop(
         round_trips += 1
         if cancellation_event is not None and cancellation_event.is_set():
             return snapshot(ErrorCategory.TIMEOUT, "orchestration cancelled")
-        if timeout_seconds is not None and (time.monotonic() - start_time) > timeout_seconds:
-            return snapshot(ErrorCategory.TIMEOUT, f"tool loop exceeded timeout of {timeout_seconds}s")
+        if (
+            timeout_seconds is not None
+            and (time.monotonic() - start_time) > timeout_seconds
+        ):
+            return snapshot(
+                ErrorCategory.TIMEOUT,
+                f"tool loop exceeded timeout of {timeout_seconds}s",
+            )
 
         if completion.status == "unavailable":
             return snapshot(
@@ -242,8 +254,14 @@ def run_trusted_tool_loop(
 
         if cancellation_event is not None and cancellation_event.is_set():
             return snapshot(ErrorCategory.TIMEOUT, "orchestration cancelled")
-        if timeout_seconds is not None and (time.monotonic() - start_time) > timeout_seconds:
-            return snapshot(ErrorCategory.TIMEOUT, f"tool loop exceeded timeout of {timeout_seconds}s")
+        if (
+            timeout_seconds is not None
+            and (time.monotonic() - start_time) > timeout_seconds
+        ):
+            return snapshot(
+                ErrorCategory.TIMEOUT,
+                f"tool loop exceeded timeout of {timeout_seconds}s",
+            )
 
         fatal = fatal_tool_category(executed)
         catalog = evidence_catalog(tuple(outcomes))

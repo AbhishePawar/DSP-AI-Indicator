@@ -88,7 +88,9 @@ class DSPPlatformToolAdapter(DSPToolBackend):
         )
 
     @staticmethod
-    def _default_request_builder(symbol: str, exchange: str | None = None) -> Any | None:
+    def _default_request_builder(
+        symbol: str, exchange: str | None = None
+    ) -> Any | None:
         """Try to build a canonical analysis request; return ``None`` if
         the platform does not expose the expected types in this env.
         """
@@ -110,10 +112,10 @@ class DSPPlatformToolAdapter(DSPToolBackend):
                 from contracts.domain.instrument import Instrument  # type: ignore
 
                 instrument = (
-                Instrument(symbol=symbol, exchange=exchange)
-                if exchange
-                else Instrument(symbol=symbol)
-            )
+                    Instrument(symbol=symbol, exchange=exchange)
+                    if exchange
+                    else Instrument(symbol=symbol)
+                )
             except Exception:
                 return None
         try:

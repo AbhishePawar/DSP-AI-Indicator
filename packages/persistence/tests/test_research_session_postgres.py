@@ -18,14 +18,13 @@ from __future__ import annotations
 import concurrent.futures
 import os
 import uuid
+
 import pytest
 
 from persistence import (
+    DEFAULT_MAX_TURNS,
     PostgresStorageProvider,
     ResearchSessionService,
-    ValidationError,
-    NotFoundError,
-    DEFAULT_MAX_TURNS,
 )
 
 DATABASE_URL = os.environ.get("DSP_DATABASE_URL", "").strip()
@@ -66,7 +65,9 @@ def pg_service(pg_namespace) -> ResearchSessionService:
     return ResearchSessionService(store)
 
 
-def test_postgres_session_lifecycle(pg_service: ResearchSessionService, pg_namespace: str) -> None:
+def test_postgres_session_lifecycle(
+    pg_service: ResearchSessionService, pg_namespace: str
+) -> None:
     user_id = f"user_{pg_namespace}"
     symbol = "NVDA"
     analysis_id = f"an_{pg_namespace}"
@@ -89,7 +90,9 @@ def test_postgres_session_lifecycle(pg_service: ResearchSessionService, pg_names
     assert fetched["metadata"] == {"env": "test"}
 
 
-def test_postgres_append_and_fifo_eviction(pg_service: ResearchSessionService, pg_namespace: str) -> None:
+def test_postgres_append_and_fifo_eviction(
+    pg_service: ResearchSessionService, pg_namespace: str
+) -> None:
     user_id = f"user_{pg_namespace}"
     symbol = "AAPL"
     analysis_id = f"an_{pg_namespace}"
@@ -124,7 +127,9 @@ def test_postgres_append_and_fifo_eviction(pg_service: ResearchSessionService, p
         assert t["metadata"]["seq"] == expected_seq
 
 
-def test_postgres_concurrent_appends(pg_service: ResearchSessionService, pg_namespace: str) -> None:
+def test_postgres_concurrent_appends(
+    pg_service: ResearchSessionService, pg_namespace: str
+) -> None:
     user_id = f"user_{pg_namespace}"
     symbol = "MSFT"
     analysis_id = f"an_{pg_namespace}"

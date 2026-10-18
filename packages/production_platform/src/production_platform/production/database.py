@@ -48,9 +48,8 @@ class InMemoryTransaction:
         self, statement: str, params: tuple[Any, ...] | dict[str, Any] | None = None
     ) -> None:
         self._ensure_open()
-        _ = params
         # In-memory adapter supports a tiny SQL dialect for migrations/tests.
-        InMemoryDatabasePort._apply(self._store, statement, self._lock)
+        InMemoryDatabasePort._apply(self._store, statement, self._lock, params=params)
 
     def fetchall(
         self, statement: str, params: tuple[Any, ...] | dict[str, Any] | None = None
@@ -91,8 +90,7 @@ class InMemoryDatabasePort:
     def execute(
         self, statement: str, params: tuple[Any, ...] | dict[str, Any] | None = None
     ) -> None:
-        _ = params
-        self._apply(self._tables, statement, self._lock)
+        self._apply(self._tables, statement, self._lock, params=params)
 
     def fetchall(
         self, statement: str, params: tuple[Any, ...] | dict[str, Any] | None = None
@@ -113,7 +111,12 @@ class InMemoryDatabasePort:
             raise
 
     @staticmethod
-    def _apply(store: dict[str, _Table], statement: str, lock: Lock) -> None:
+    def _apply(
+        store: dict[str, _Table],
+        statement: str,
+        lock: Lock,
+        params: tuple[Any, ...] | dict[str, Any] | None = None,
+    ) -> None:
         sql = " ".join(statement.strip().split())
         upper = sql.upper()
         with lock:
@@ -122,7 +125,7 @@ class InMemoryDatabasePort:
                 store.setdefault(name, _Table())
                 return
             if upper.startswith("INSERT INTO"):
-                table, row = _parse_insert(sql)
+                table, row = _parse_insert(sql, params=params)
                 store.setdefault(table, _Table()).rows.append(row)
                 return
             if upper.startswith("DELETE FROM"):
@@ -186,7 +189,10 @@ def _parse_create_table(sql: str) -> str:
     return tokens[idx + 1].strip('"')
 
 
-def _parse_insert(sql: str) -> tuple[str, dict[str, Any]]:
+def _parse_insert(
+    sql: str,
+    params: tuple[Any, ...] | list[Any] | dict[str, Any] | None = None,
+) -> tuple[str, dict[str, Any]]:
     # INSERT INTO name (a, b) VALUES ('x', 'y')
     upper = sql.upper()
     into = upper.index("INTO") + 4
@@ -197,6 +203,11 @@ def _parse_insert(sql: str) -> tuple[str, dict[str, Any]]:
         c.strip().strip('"')
         for c in cols_part[cols_part.index("(") + 1 : cols_part.rindex(")")].split(",")
     ]
+    if params is not None:
+        if isinstance(params, (tuple, list)):
+            return table, dict(zip(cols, params, strict=True))
+        if isinstance(params, dict):
+            return table, {c: params.get(c) for c in cols}
     raw_vals = vals_part[vals_part.index("(") + 1 : vals_part.rindex(")")].split(",")
     values: list[Any] = []
     for v in raw_vals:

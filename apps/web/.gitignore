@@ -7,4 +7,3 @@ out
 !.env.example
 npm-debug.log*
 *.tsbuildinfo
-.vercel

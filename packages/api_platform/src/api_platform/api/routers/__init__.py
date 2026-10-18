@@ -1,4 +1,5 @@
 from api_platform.api.routers import (
+    admin_providers,
     analysis,
     auth,
     beta_programme,
@@ -37,6 +38,7 @@ from api_platform.api.routers import (
 )
 
 __all__ = [
+    "admin_providers",
     "analysis",
     "auth",
     "beta_programme",

@@ -91,9 +91,10 @@ test.describe("P1-09 critical investment journey", () => {
           `P1-09 frontend unavailable: ${P109.baseUrl} returned HTTP ${response.status()}`
         );
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : String(err);
       throw new Error(
-        `P1-09 frontend unreachable at ${P109.baseUrl} within 10s: ${err.message}. Ensure the frontend service is running and responsive.`
+        `P1-09 frontend unreachable at ${P109.baseUrl} within 10s: ${message}. Ensure the frontend service is running and responsive.`
       );
     }
   });

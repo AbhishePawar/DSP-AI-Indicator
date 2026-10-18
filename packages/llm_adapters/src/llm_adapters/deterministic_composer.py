@@ -115,7 +115,13 @@ def extract_research_payload(
 
     team = payload.get("research_team") or {}
     ticker = str(req.get("ticker") or payload.get("ticker") or team.get("ticker") or "")
-    company = str(req.get("company") or payload.get("company") or team.get("company") or ticker or "Unknown")
+    company = str(
+        req.get("company")
+        or payload.get("company")
+        or team.get("company")
+        or ticker
+        or "Unknown"
+    )
     exchange = req.get("exchange") or payload.get("exchange") or team.get("exchange")
 
     return ResearchPayload(

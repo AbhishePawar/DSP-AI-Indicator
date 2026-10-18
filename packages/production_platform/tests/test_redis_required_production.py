@@ -15,12 +15,9 @@ F. Offline/development behavior: InMemoryCachePort remains valid for explicitly
 
 from __future__ import annotations
 
-import sys
 import tomllib
 from pathlib import Path
 from unittest.mock import MagicMock
-
-import pytest
 
 from production_platform.adapters.redis_stack import (
     RedisCachePort,
@@ -33,7 +30,6 @@ from production_platform.production.configuration import (
     ProductionConfiguration,
     RedisSettings,
 )
-from production_platform.production.health import HealthManager, HealthStatus
 from production_platform.production.infrastructure import (
     InfrastructureBundle,
     InfrastructureDiagnostics,
@@ -75,6 +71,7 @@ class TestRedisAdapterAndStack:
         mock_redis.Redis.from_url.return_value = mock_client
 
         from production_platform.adapters import redis_stack
+
         monkeypatch.setattr(redis_stack, "_load_redis", lambda: mock_redis)
 
         cache = RedisCachePort("redis://127.0.0.1:6379/0", key_prefix="test")
@@ -91,6 +88,7 @@ class TestRedisAdapterAndStack:
         mock_redis.Redis.from_url.return_value = mock_client
 
         from production_platform.adapters import redis_stack
+
         monkeypatch.setattr(redis_stack, "_load_redis", lambda: mock_redis)
 
         stack = try_build_redis_stack("redis://127.0.0.1:6379/0")
@@ -104,10 +102,14 @@ class TestRedisAdapterAndStack:
         assert try_build_redis_stack(None) is None
         assert try_build_redis_stack("") is None
 
-    def test_try_build_redis_stack_logs_and_returns_none_on_failure(self, monkeypatch) -> None:
+    def test_try_build_redis_stack_logs_and_returns_none_on_failure(
+        self, monkeypatch
+    ) -> None:
         from production_platform.adapters import redis_stack
+
         def _fail():
             raise ImportError("No module named redis")
+
         monkeypatch.setattr(redis_stack, "_load_redis", _fail)
 
         stack = try_build_redis_stack("redis://127.0.0.1:6379/0")
@@ -164,8 +166,10 @@ class TestHealthAndOfflineBehavior:
             storage=MagicMock(),
             job_queue=MagicMock(),
             background_tasks=MagicMock(),
-            clock=MagicMock(),
             secrets=MagicMock(),
+            clock=MagicMock(),
+            india=MagicMock(),
+            cache_invalidation=MagicMock(),
             diagnostics=diag,
         )
         health = bundle.health_check()

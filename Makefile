@@ -1,4 +1,4 @@
-.PHONY: install lint format test test-cov test-arch test-smoke test-integrity ci-local clean
+.PHONY: install lint format test test-cov test-arch test-smoke test-integrity test-staging-safety ci-local clean
 
 install:
 	pip install -e ".[dev]"
@@ -25,6 +25,17 @@ test-smoke:
 
 test-integrity:
 	python scripts/ci_repository_integrity.py
+
+
+test-staging-safety:
+	pytest \
+		packages/production_platform/tests/test_staging_safety.py \
+		packages/api_platform/tests/test_staging_safety_api.py \
+		packages/production_platform/tests/test_product_state_backup.py \
+		packages/api_platform/tests/test_p108_backup_restore.py \
+		packages/api_platform/tests/test_health_rc1.py \
+		packages/api_platform/tests/test_ops_api.py \
+		-v --import-mode=importlib -p no:cov --tb=short
 
 # Local parity with ASI-007 quality gates (excluding codecov upload).
 ci-local: test-integrity test-arch test-smoke

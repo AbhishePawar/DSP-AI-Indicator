@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import threading
+
 import pytest
 from fastapi.testclient import TestClient
 
@@ -12,12 +13,12 @@ from dsp_platform import DSPPlatform, PlatformBuilder, PlatformConfiguration
 from dsp_platform.copilot_v2 import reset_copilot_memory_store_for_tests
 from dsp_platform.copilot_v2.memory import CopilotMemoryStore
 from persistence.interfaces import StorageProviderPort
-from persistence.storage import InMemoryStorageProvider
 from persistence.research_session import (
     ResearchSessionService,
     compute_session_id,
     reset_research_session_service_for_tests,
 )
+from persistence.storage import InMemoryStorageProvider
 
 
 @pytest.fixture
@@ -68,7 +69,10 @@ def test_authenticated_request_succeeds_and_session_created(
 ):
     """2. Authenticated request succeeds, deterministic session identity."""
     user_id = "usr_authenticated_1"
-    app.dependency_overrides[require_authenticated_actor] = lambda: {"user_id": user_id, "user": {"user_id": user_id}}
+    app.dependency_overrides[require_authenticated_actor] = lambda: {
+        "user_id": user_id,
+        "user": {"user_id": user_id},
+    }
 
     res = client.post(
         "/api/v1/copilot/chat",
@@ -91,7 +95,10 @@ def test_authenticated_request_succeeds_and_session_created(
 
 def test_client_user_id_injection_rejected(app, client: TestClient):
     """3. Client user_id injection rejected by schema extra='forbid'."""
-    app.dependency_overrides[require_authenticated_actor] = lambda: {"user_id": "real_user", "user": {}}
+    app.dependency_overrides[require_authenticated_actor] = lambda: {
+        "user_id": "real_user",
+        "user": {},
+    }
 
     res = client.post(
         "/api/v1/copilot/chat",
@@ -105,9 +112,14 @@ def test_client_user_id_injection_rejected(app, client: TestClient):
     assert res.status_code == 422
 
 
-def test_cross_user_isolation(app, client: TestClient, session_service: ResearchSessionService):
+def test_cross_user_isolation(
+    app, client: TestClient, session_service: ResearchSessionService
+):
     """4. Cross-user isolation: different users get isolated sessions."""
-    app.dependency_overrides[require_authenticated_actor] = lambda: {"user_id": "user_A", "user": {}}
+    app.dependency_overrides[require_authenticated_actor] = lambda: {
+        "user_id": "user_A",
+        "user": {},
+    }
     res_a = client.post(
         "/api/v1/copilot/chat",
         json={"message": "User A query", "symbol": "MSFT", "analysis_id": "an-common"},
@@ -115,7 +127,10 @@ def test_cross_user_isolation(app, client: TestClient, session_service: Research
     assert res_a.status_code == 200
     sid_a = res_a.json()["result"]["conversation_id"]
 
-    app.dependency_overrides[require_authenticated_actor] = lambda: {"user_id": "user_B", "user": {}}
+    app.dependency_overrides[require_authenticated_actor] = lambda: {
+        "user_id": "user_B",
+        "user": {},
+    }
     res_b = client.post(
         "/api/v1/copilot/chat",
         json={"message": "User B query", "symbol": "MSFT", "analysis_id": "an-common"},
@@ -137,7 +152,10 @@ def test_idempotency_replay_and_isolation(
 ):
     """5. Idempotency replay returns same answer without duplicate turns; cross-tenant isolated."""
     user_id = "user_idem"
-    app.dependency_overrides[require_authenticated_actor] = lambda: {"user_id": user_id, "user": {}}
+    app.dependency_overrides[require_authenticated_actor] = lambda: {
+        "user_id": user_id,
+        "user": {},
+    }
     sid = compute_session_id(user_id, "NVDA", "an-nvda")
 
     # First call with idempotency header
@@ -165,14 +183,24 @@ def test_idempotency_replay_and_isolation(
     assert len(turns) == 2
 
     # Different user using same key must NOT get user_idem's session or replay
-    app.dependency_overrides[require_authenticated_actor] = lambda: {"user_id": "other_user", "user": {}}
+    app.dependency_overrides[require_authenticated_actor] = lambda: {
+        "user_id": "other_user",
+        "user": {},
+    }
     res_other = client.post(
         "/api/v1/copilot/chat",
-        json={"message": "Different user NVDA query", "symbol": "NVDA", "analysis_id": "an-nvda"},
+        json={
+            "message": "Different user NVDA query",
+            "symbol": "NVDA",
+            "analysis_id": "an-nvda",
+        },
         headers={"Idempotency-Key": "key-12345"},
     )
     assert res_other.status_code == 200
-    assert res_other.json()["result"]["provenance"].get("replayed_from_idempotency") is not True
+    assert (
+        res_other.json()["result"]["provenance"].get("replayed_from_idempotency")
+        is not True
+    )
 
 
 def test_failed_generation_preserves_user_turn_no_assistant_turn(
@@ -180,7 +208,10 @@ def test_failed_generation_preserves_user_turn_no_assistant_turn(
 ):
     """6. Failed generation: preserves user turn, no assistant turn, allows safe retry."""
     user_id = "user_fail_test"
-    app.dependency_overrides[require_authenticated_actor] = lambda: {"user_id": user_id, "user": {}}
+    app.dependency_overrides[require_authenticated_actor] = lambda: {
+        "user_id": user_id,
+        "user": {},
+    }
     sid = compute_session_id(user_id, "GOOGL", "an-fail")
 
     from dsp_platform.copilot_v2 import orchestrator
@@ -221,7 +252,10 @@ def test_concurrent_same_key_requests(
 ):
     """7. Concurrent requests using same key do not create duplicate assistant turns."""
     user_id = "user_concurrent"
-    app.dependency_overrides[require_authenticated_actor] = lambda: {"user_id": user_id, "user": {}}
+    app.dependency_overrides[require_authenticated_actor] = lambda: {
+        "user_id": user_id,
+        "user": {},
+    }
     sid = compute_session_id(user_id, "AMZN", "an-amzn")
 
     results = []
@@ -229,7 +263,11 @@ def test_concurrent_same_key_requests(
     def make_call():
         res = client.post(
             "/api/v1/copilot/chat",
-            json={"message": "AMZN concurrent query", "symbol": "AMZN", "analysis_id": "an-amzn"},
+            json={
+                "message": "AMZN concurrent query",
+                "symbol": "AMZN",
+                "analysis_id": "an-amzn",
+            },
             headers={"Idempotency-Key": "concurrent-key-99"},
         )
         results.append(res)
@@ -249,12 +287,13 @@ def test_concurrent_same_key_requests(
     assert len(asst_turns) == 1
 
 
-def test_dsp_authority_and_secret_isolation(
-    app, client: TestClient
-):
+def test_dsp_authority_and_secret_isolation(app, client: TestClient):
     """8. DSP Authority preserved and secrets isolated."""
     user_id = "user_authority"
-    app.dependency_overrides[require_authenticated_actor] = lambda: {"user_id": user_id, "user": {}}
+    app.dependency_overrides[require_authenticated_actor] = lambda: {
+        "user_id": user_id,
+        "user": {},
+    }
 
     res = client.post(
         "/api/v1/copilot/chat",
@@ -271,5 +310,11 @@ def test_dsp_authority_and_secret_isolation(
 
     # Check secret isolation
     text_content = str(res.json())
-    for secret_keyword in ("sk-", "api_key", "password_salt", "Authorization:", "postgres://"):
+    for secret_keyword in (
+        "sk-",
+        "api_key",
+        "password_salt",
+        "Authorization:",
+        "postgres://",
+    ):
         assert secret_keyword not in text_content

@@ -3,13 +3,11 @@
 from __future__ import annotations
 
 import os
-import pytest
+
 from fastapi.testclient import TestClient
-from starlette.requests import Request
-from starlette.responses import JSONResponse
 
 from api_platform.api.app import create_app
-from api_platform.api.csrf_middleware import _AUTH_EXEMPT, CsrfMiddleware
+from api_platform.api.csrf_middleware import _AUTH_EXEMPT
 from security_platform import Role, SecurityBundle, SecuritySettings
 from security_platform.security.cookies import ACCESS_COOKIE, CSRF_COOKIE, CSRF_HEADER
 
@@ -153,7 +151,10 @@ def test_csrf_middleware_allows_oauth_begin_even_with_stale_access_cookie() -> N
         # It will reach the route handler (which returns 200 with unavailable message if Google is unconfigured).
         res = client.post(
             "/api/v1/auth/enterprise/oauth/begin",
-            json={"provider": "GOOGLE", "redirect_uri": "https://example.com/oauth/callback"},
+            json={
+                "provider": "GOOGLE",
+                "redirect_uri": "https://example.com/oauth/callback",
+            },
             cookies={ACCESS_COOKIE: "stale-access-cookie"},
         )
         assert res.status_code != 403
@@ -165,7 +166,9 @@ def test_csrf_middleware_allows_oauth_begin_even_with_stale_access_cookie() -> N
                 os.environ[k] = v
 
 
-def test_csrf_middleware_still_rejects_mutating_requests_with_access_cookie_missing_csrf() -> None:
+def test_csrf_middleware_still_rejects_mutating_requests_with_access_cookie_missing_csrf() -> (
+    None
+):
     keys = ("DSP_COOKIE_AUTH", "DSP_CSRF_ENABLED")
     prior = {k: os.environ.get(k) for k in keys}
     try:

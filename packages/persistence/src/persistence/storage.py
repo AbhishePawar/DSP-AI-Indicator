@@ -168,7 +168,6 @@ class InMemoryStorageProvider:
             bucket[key] = to_plain_jsonable(row)
             return deepcopy(bucket[key])
 
-
     def append_research_turn_atomic(
         self,
         *,
@@ -188,12 +187,20 @@ class InMemoryStorageProvider:
             if session_row is None:
                 raise NotFoundError(f"Research session not found: {session_id}")
 
-            if expected_user_id is not None and str(session_row.get("user_id", "")) != str(expected_user_id):
+            if expected_user_id is not None and str(
+                session_row.get("user_id", "")
+            ) != str(expected_user_id):
                 raise ValidationError("Ownership validation failed: unauthorized user")
 
-            if expected_symbol is not None and str(session_row.get("symbol", "")).upper() != str(expected_symbol).upper():
+            if (
+                expected_symbol is not None
+                and str(session_row.get("symbol", "")).upper()
+                != str(expected_symbol).upper()
+            ):
                 raise ValidationError("Context validation failed: symbol mismatch")
-            if expected_analysis_id is not None and str(session_row.get("analysis_id", "")) != str(expected_analysis_id):
+            if expected_analysis_id is not None and str(
+                session_row.get("analysis_id", "")
+            ) != str(expected_analysis_id):
                 raise ValidationError("Context validation failed: analysis_id mismatch")
 
             turn_ids = list(session_row.get("turn_ids") or [])

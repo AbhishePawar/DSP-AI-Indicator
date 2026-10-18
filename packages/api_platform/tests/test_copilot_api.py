@@ -184,7 +184,11 @@ def test_copilot_complete_with_authoritative_response() -> None:
                 },
                 "committee_summary": {"decision": "Approve", "confidence": 0.88},
                 "stage_summaries": [
-                    {"stage": "business_quality_aggregator", "has_result": True, "label": "High Quality"}
+                    {
+                        "stage": "business_quality_aggregator",
+                        "has_result": True,
+                        "label": "High Quality",
+                    }
                 ],
             },
         },

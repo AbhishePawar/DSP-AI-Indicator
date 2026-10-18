@@ -103,6 +103,7 @@ def finalize_provider_registry(
     )
     return registry
 
+
 def adapter_is_production_unsafe_name(class_name: str) -> bool:
     name = str(class_name or "").lower()
     return any(
@@ -125,10 +126,10 @@ def assert_production_investment_connectors_configured() -> dict[str, str]:
             "allowed values: http, auto (or unset); commercial vendors are disabled"
         )
 
-    from data_engine.market_quote.adapters import build_default_quote_adapter_from_env
     from data_engine.financial_statement.adapters import (
         build_default_statement_adapter_from_env,
     )
+    from data_engine.market_quote.adapters import build_default_quote_adapter_from_env
 
     quote = build_default_quote_adapter_from_env()
     statements = build_default_statement_adapter_from_env()

@@ -238,4 +238,4 @@ cfg = load_configuration_from_environ()
 ConfigurationManager(cfg).validate()
 ```
 
-Production profile rejects `region=local`.
+Staging and production require a PostgreSQL URL and local persistent artifact storage. `DSP_BACKUP_S3_BUCKET` is separate from primary storage and must be verified in AWS before enabling off-server uploads. Production profile rejects `region=local`.

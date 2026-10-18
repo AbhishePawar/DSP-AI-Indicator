@@ -85,7 +85,8 @@ def _append_infra_checks(state: ApiState, checks: list[dict[str, Any]]) -> None:
             "status": str(storage.get("status", "skip")),
             "message": (
                 f"provider={storage.get('provider', 'unknown')} "
-                f"adapter={storage.get('adapter', probes.get('storage_adapter', 'unknown'))}"
+                "adapter="
+                f"{storage.get('adapter', probes.get('storage_adapter', 'unknown'))}"
             ),
         }
     )

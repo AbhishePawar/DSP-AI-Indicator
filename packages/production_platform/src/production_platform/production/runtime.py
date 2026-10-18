@@ -168,9 +168,15 @@ def validate_runtime_environment(
         cfg = None
     else:
         notes.append(f"service={cfg.service_name} version={cfg.service_version}")
-        if cfg.object_storage.provider in {"s3", "minio"} and not cfg.object_storage.bucket:
+        if (
+            cfg.object_storage.provider in {"s3", "minio"}
+            and not cfg.object_storage.bucket
+        ):
             missing.append("DSP_OBJECT_STORAGE_BUCKET")
-        elif cfg.object_storage.provider == "local" and not cfg.object_storage.local_root:
+        elif (
+            cfg.object_storage.provider == "local"
+            and not cfg.object_storage.local_root
+        ):
             missing.append("DSP_OBJECT_STORAGE_LOCAL_ROOT")
 
     ok = not missing if is_strict else True

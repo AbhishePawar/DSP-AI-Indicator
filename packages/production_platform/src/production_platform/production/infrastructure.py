@@ -277,7 +277,7 @@ class InfrastructureBundle:
                         endpoint_url=cfg.object_storage.endpoint_url,
                         region=cfg.object_storage.region,
                     )
-                except ProviderError as exc:
+                except (ProviderError, ImportError) as exc:
                     raise StartupError(
                         f"Object storage provider={provider} unavailable: {exc}"
                     ) from exc

@@ -130,7 +130,9 @@ class TestStagingFailClosed:
             raise ImportError("boto3 missing in test")
 
         monkeypatch.setattr(object_storage, "_load_boto3", fail_boto3)
-        with pytest.raises(StartupError, match="Object storage provider=s3 unavailable"):
+        with pytest.raises(
+            StartupError, match="Object storage provider=s3 unavailable"
+        ):
             InfrastructureBundle.from_environment(
                 environ={
                     "DSP_ENVIRONMENT": "staging",
@@ -168,7 +170,9 @@ class TestStagingFailClosed:
     def test_direct_offline_builder_rejects_staging(self) -> None:
         from production_platform.production.exceptions import ConfigurationError
 
-        with pytest.raises(ConfigurationError, match="only permitted for development/test"):
+        with pytest.raises(
+            ConfigurationError, match="only permitted for development/test"
+        ):
             InfrastructureBundle.from_environment(
                 environ={"DSP_ENVIRONMENT": "staging"},
                 force_offline=True,

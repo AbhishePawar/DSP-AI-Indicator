@@ -20,10 +20,11 @@ from dsp_platform import ShareCountResearchEvidence
 from llm_adapters import AdapterBackedAIProvider, build_default_registry
 
 _NSE_HOME = "https://www.nseindia.com/"
-_NSE_API = "https://www.nseindia.com/api/corporate-share-holdings"
+_NSE_API = "https://www.nseindia.com/api/quote-equity"
 _MAX_RESPONSE_BYTES = 2_000_000
 _MAX_AGE_DAYS = 120
 _COUNT_KEYS = (
+    "issuedSize",
     "totalNoOfShares",
     "totalNumberOfShares",
     "totalSharesOutstanding",
@@ -49,7 +50,7 @@ def _fetch_nse_record(symbol: str) -> tuple[str, str] | None:
         warm = Request(_NSE_HOME, headers={**headers, "Accept": "text/html,*/*"})
         with opener.open(warm, timeout=8) as response:
             response.read(256_000)
-        url = f"{_NSE_API}?index=equities&symbol={quote(ticker, safe='')}"
+        url = f"{_NSE_API}?symbol={quote(ticker, safe='')}"
         req = Request(url, headers=headers)
         with opener.open(req, timeout=8) as response:
             if response.geturl().split("?", 1)[0] != _NSE_API:
@@ -59,10 +60,21 @@ def _fetch_nse_record(symbol: str) -> tuple[str, str] | None:
             return None
         text = raw.decode("utf-8", errors="strict")
         payload = json.loads(text)
-        if not isinstance(payload, (dict, list)) or not payload:
+        if not isinstance(payload, dict) or not payload:
             return None
-        # Require the requested symbol to appear in the response identity/data.
-        if ticker not in text.upper():
+        info = payload.get("info")
+        security = payload.get("securityInfo")
+        metadata = payload.get("metadata")
+        if not isinstance(info, dict) or str(info.get("symbol") or "").upper() != ticker:
+            return None
+        if not isinstance(security, dict) or not isinstance(metadata, dict):
+            return None
+        issued_size = security.get("issuedSize")
+        if isinstance(issued_size, bool) or not isinstance(issued_size, (int, float)):
+            return None
+        if not math.isfinite(float(issued_size)) or float(issued_size) <= 0:
+            return None
+        if not _as_date(metadata.get("lastUpdateTime")):
             return None
         return text, url
     except Exception:  # noqa: BLE001 - external source must fail closed
@@ -96,7 +108,7 @@ def _as_date(value: Any) -> date | None:
         return date.fromisoformat(raw[:10])
     except ValueError:
         pass
-    for fmt in ("%d-%b-%Y", "%d/%m/%Y", "%d-%m-%Y"):
+    for fmt in ("%d-%b-%Y %H:%M:%S", "%d-%b-%Y", "%d/%m/%Y", "%d-%m-%Y"):
         try:
             return datetime.strptime(raw, fmt).date()
         except ValueError:
@@ -105,7 +117,10 @@ def _as_date(value: Any) -> date | None:
 
 
 def _evidence_is_grounded(
-    result: dict[str, Any], source_text: str, ticker: str
+    result: dict[str, Any],
+    source_text: str,
+    ticker: str,
+    expected_as_of: date | None = None,
 ) -> tuple[float, date] | None:
     if str(result.get("ticker") or "").strip().upper() != ticker:
         return None
@@ -142,6 +157,7 @@ def _evidence_is_grounded(
         as_of is None
         or as_of > date.today()
         or (date.today() - as_of).days > _MAX_AGE_DAYS
+        or (expected_as_of is not None and as_of != expected_as_of)
     ):
         return None
     return quoted_count, as_of
@@ -175,16 +191,26 @@ def build_share_count_researcher():
         if fetched is None:
             return None
         source_text, source_url = fetched
-        # Avoid sending an unbounded disclosure payload to an LLM.
+        try:
+            source_payload = json.loads(source_text)
+            source_date = _as_date(
+                (source_payload.get("metadata") or {}).get("lastUpdateTime")
+            )
+            source_count = (source_payload.get("securityInfo") or {}).get("issuedSize")
+        except (TypeError, ValueError, AttributeError):
+            return None
+        if source_date is None or source_count is None:
+            return None
+        # Avoid sending an unbounded source payload to an LLM.
         prompt = (
-            "Extract the current total issued/outstanding equity share count for this "
-            "listed company from the official NSE shareholding-pattern JSON below. "
-            "Do not use promoter/public category holdings, weighted-average EPS shares, "
-            "or fully-diluted shares. Only accept an explicit company-level total-share "
-            "field. Return JSON only with keys ticker, shares_outstanding, as_of, "
-            "evidence_excerpt. evidence_excerpt MUST be copied verbatim from the source "
-            "and include the exact total-share field name and numeric value. If no "
-            "unambiguous company-level total is present, return null for shares_outstanding.\n"
+            "Read the official NSE quote-equity JSON below. The authoritative field "
+            "for issued equity shares is securityInfo.issuedSize. Return that exact "
+            "number, not market cap, promoter shares, weighted-average EPS shares, "
+            "or fully diluted shares. Return JSON only with keys ticker, "
+            "shares_outstanding, as_of, evidence_excerpt. evidence_excerpt MUST be "
+            "copied verbatim from the JSON and include the exact issuedSize key and "
+            "numeric value. as_of must match metadata.lastUpdateTime's calendar date. "
+            "If the field is absent or ambiguous, return null for shares_outstanding.\n"
             f"Expected ticker: {symbol}\nCompany: {company_name or 'unknown'}\n"
             f"Exchange: {exchange or 'NSE'}\nSource URL: {source_url}\n"
             f"Source JSON:\n{source_text}"
@@ -193,7 +219,7 @@ def build_share_count_researcher():
         if any(item is None for item in parsed):
             return None
         grounded = [
-            _evidence_is_grounded(item, source_text, symbol)
+            _evidence_is_grounded(item, source_text, symbol, source_date)
             for item in parsed
             if item
         ]
@@ -211,7 +237,7 @@ def build_share_count_researcher():
         return ShareCountResearchEvidence(
             ticker=symbol,
             shares_outstanding=count_a,
-            source="NSE official corporate shareholding API; independently interpreted by Gemini and OpenAI",
+            source="NSE official quote-equity securityInfo.issuedSize; independently verified by Gemini and OpenAI",
             evidence_url=source_url,
             as_of=date_a.isoformat(),
         )

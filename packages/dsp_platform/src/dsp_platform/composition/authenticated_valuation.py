@@ -543,12 +543,12 @@ def load_authenticated_valuation_bundle(
     market_cap = _qf(quote.market_cap)
     if market_cap is None or market_cap <= 0:
         market_cap = price * shares
-    elif quote_shares is not None and quote_shares > 0:
-        # Reject market_cap that implies a materially different share count.
+    elif shares > 0:
+        # Check market cap against the resolved count, including researched fallback.
         implied_shares = float(market_cap) / price
         try:
             assert_share_count_integrity(
-                quote_shares=quote_shares,
+                quote_shares=shares,
                 derived_shares=implied_shares,
                 tolerance=0.25,
             )

@@ -215,8 +215,6 @@ def build_share_count_researcher() -> (
             f"Source JSON:\n{source_text}"
         )
         parsed = [_json_completion(provider, prompt) for provider in providers]
-        if any(item is None for item in parsed):
-            return None
         grounded = [
             _evidence_is_grounded(item, source_text, symbol, source_date)
             if item is not None
@@ -243,7 +241,7 @@ def build_share_count_researcher() -> (
             shares_outstanding=count_a,
             source=(
                 "NSE quote-equity securityInfo.issuedSize; "
-                "independently verified by Gemini and OpenAI"
+                "AI-verified exact source excerpt"
             ),
             evidence_url=source_url,
             as_of=date_a.isoformat(),

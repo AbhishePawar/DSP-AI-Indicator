@@ -3,17 +3,26 @@ from __future__ import annotations
 
 from typing import Any
 
+import pytest
+
 from dsp_platform import CompositionRequest
 from dsp_platform.composition.context import ExecutionContext
 from dsp_platform.composition import pipeline
 
 
-def test_pipeline_passes_researcher_to_authenticated_loader(monkeypatch) -> None:
+def test_pipeline_passes_researcher_to_authenticated_loader(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
     callback = lambda ticker, company_name, exchange: None
     bundle = object()
     seen: dict[str, Any] = {}
 
-    def fake_load(ticker, *, exchange, research_missing_shares):
+    def fake_load(
+        ticker: str,
+        *,
+        exchange: str | None,
+        research_missing_shares: Any,
+    ) -> object:
         seen["ticker"] = ticker
         seen["exchange"] = exchange
         seen["research_missing_shares"] = research_missing_shares

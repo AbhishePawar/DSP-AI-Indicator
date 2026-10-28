@@ -23,8 +23,8 @@ from api_platform.api.mappers import (
     map_pipeline_payload,
     map_platform_result,
 )
-from api_platform.api.validation import validate_analyse_request
 from api_platform.api.share_count_research import build_share_count_researcher
+from api_platform.api.validation import validate_analyse_request
 from dsp_platform import CompositionInputError, build_composition_request
 from dsp_platform.investment_provenance import (
     InvestmentProvenanceError,

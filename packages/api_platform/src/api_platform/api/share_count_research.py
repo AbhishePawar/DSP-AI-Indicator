@@ -14,7 +14,7 @@ import re
 from datetime import date, datetime
 from typing import Any
 from urllib.parse import quote
-from urllib.request import Request, build_opener
+from urllib.request import HTTPCookieProcessor, Request, build_opener
 
 from dsp_platform import ShareCountResearchEvidence
 from llm_adapters import AdapterBackedAIProvider, build_default_registry
@@ -38,7 +38,7 @@ def _fetch_nse_record(symbol: str) -> tuple[str, str] | None:
     if not re.fullmatch(r"[A-Z0-9&._-]{1,32}", ticker):
         return None
     jar = http.cookiejar.CookieJar()
-    opener = build_opener(__import__("urllib.request", fromlist=["HTTPCookieProcessor"]).HTTPCookieProcessor(jar))
+    opener = build_opener(HTTPCookieProcessor(jar))
     headers = {
         "User-Agent": "Mozilla/5.0 (compatible; DSP-AI-Indicator/1.0; research)",
         "Accept": "application/json,text/plain,*/*",
@@ -69,7 +69,9 @@ def _fetch_nse_record(symbol: str) -> tuple[str, str] | None:
         return None
 
 
-def _json_completion(provider: AdapterBackedAIProvider, prompt: str) -> dict[str, Any] | None:
+def _json_completion(
+    provider: AdapterBackedAIProvider, prompt: str
+) -> dict[str, Any] | None:
     try:
         result = provider.complete(
             prompt_parts=(prompt,),
@@ -149,7 +151,12 @@ def build_share_count_researcher():
             return None
         gemini = registry.get("gemini")
         openai = registry.get("openai")
-        if gemini is None or openai is None or not gemini.is_configured() or not openai.is_configured():
+        if (
+            gemini is None
+            or openai is None
+            or not gemini.is_configured()
+            or not openai.is_configured()
+        ):
             return None
         providers = (
             AdapterBackedAIProvider(gemini),
@@ -181,14 +188,21 @@ def build_share_count_researcher():
         parsed = [_json_completion(provider, prompt) for provider in providers]
         if any(item is None for item in parsed):
             return None
-        grounded = [_evidence_is_grounded(item, source_text, symbol) for item in parsed if item]
+        grounded = [
+            _evidence_is_grounded(item, source_text, symbol)
+            for item in parsed
+            if item
+        ]
         if len(grounded) != 2 or any(item is None for item in grounded):
             return None
         first, second = grounded
         assert first is not None and second is not None
         count_a, date_a = first
         count_b, date_b = second
-        if date_a != date_b or abs(count_a - count_b) / max(count_a, count_b) > 0.000001:
+        if (
+            date_a != date_b
+            or abs(count_a - count_b) / max(count_a, count_b) > 0.000001
+        ):
             return None
         return ShareCountResearchEvidence(
             ticker=symbol,

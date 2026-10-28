@@ -138,7 +138,11 @@ def _evidence_is_grounded(
     ):
         return None
     as_of = _as_date(result.get("as_of"))
-    if as_of is None or as_of > date.today() or (date.today() - as_of).days > _MAX_AGE_DAYS:
+    if (
+        as_of is None
+        or as_of > date.today()
+        or (date.today() - as_of).days > _MAX_AGE_DAYS
+    ):
         return None
     return quoted_count, as_of
 

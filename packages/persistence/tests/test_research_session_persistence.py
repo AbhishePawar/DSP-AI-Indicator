@@ -3,15 +3,15 @@
 from __future__ import annotations
 
 import concurrent.futures
+
 import pytest
 
 from persistence import (
+    DEFAULT_MAX_TURNS,
     InMemoryStorageProvider,
     ResearchSessionService,
     ValidationError,
-    NotFoundError,
     compute_session_id,
-    DEFAULT_MAX_TURNS,
 )
 
 

@@ -2,16 +2,15 @@
 
 from __future__ import annotations
 
-import pytest
 from datetime import date
+
+import pytest
 
 from data_engine.share_count import ShareCount
 from dsp_platform.research_retrieval import (
-    ConflictingClaim,
     DeduplicationEngine,
     DiscoveredSource,
     DocumentValidator,
-    EvidenceFreshness,
     EvidenceStatus,
     FetchedDocument,
     ResearchEvidenceRecord,
@@ -20,13 +19,11 @@ from dsp_platform.research_retrieval import (
     RetrievalShareCountResolver,
     SourceTier,
     UrlSafetyError,
-    UrlSafetyPolicy,
     ValidationFailureReason,
     assert_evidence_privacy,
     canonicalize_url,
     detect_prompt_injection,
     is_safe_ip_address,
-    parse_indian_and_western_number,
     validate_url_safety,
 )
 
@@ -283,6 +280,66 @@ class TestDeduplicationAndConflicts:
         assert conflict.discrepancy_pct == 20.0
 
 
+def _metric_record(evidence_id: str, url: str, value: float, *, claim: str = "Revenue FY25",
+                   source: str = "BSE", tier: SourceTier = SourceTier.PRIMARY) -> ResearchEvidenceRecord:
+    from dsp_platform.research_retrieval.models import ProvenanceRecord
+    return ResearchEvidenceRecord(
+        evidence_id=evidence_id,
+        ticker="RELIANCE",
+        claim=claim,
+        status=EvidenceStatus.VERIFIED,
+        provenance=ProvenanceRecord(
+            source=source,
+            source_tier=tier,
+            provider=source,
+            retrieved_at="2026-10-12T10:00:00Z",
+            canonical_url=url,
+            original_url=url,
+            effective_period="FY25",
+        ),
+        metric_name="REVENUE",
+        metric_value=value,
+    )
+
+
+class TestFactIdentityAndCorroboration:
+    """R05/R06: distinct facts survive dedup; corroborations accumulate."""
+
+    def test_distinct_values_in_same_document_are_not_dropped(self) -> None:
+        rec1 = _metric_record("ev_a", "https://bse.in/doc", 100.0)
+        rec2 = _metric_record("ev_a", "https://bse.in/doc", 200.0)
+        res = DeduplicationEngine(conflict_tolerance=0.02).process_evidence([rec1, rec2])
+        assert res.duplicate_count == 0
+        assert len(res.unique_evidence) == 2
+        assert len(res.conflicts) == 1
+        assert res.conflicts[0].discrepancy_pct == 100.0
+
+    def test_true_duplicate_is_still_collapsed(self) -> None:
+        rec = _metric_record("ev_a", "https://bse.in/doc", 100.0)
+        res = DeduplicationEngine().process_evidence([rec, rec])
+        assert res.duplicate_count == 1
+        assert len(res.unique_evidence) == 1
+
+    def test_three_corroborating_sources_all_linked_in_order(self) -> None:
+        base = _metric_record("ev_1", "https://bse.in/1", 100.0)
+        c2 = _metric_record("ev_2", "https://nse.in/2", 100.5, source="NSE")
+        c3 = _metric_record("ev_3", "https://screener.in/3", 100.0, source="SCREENER",
+                            tier=SourceTier.SECONDARY)
+        res = DeduplicationEngine(conflict_tolerance=0.02).process_evidence([base, c2, c3])
+        first = next(r for r in res.unique_evidence if r.evidence_id == "ev_1")
+        assert first.corroborated_by == ("ev_2", "ev_3")
+        assert res.conflicts == ()
+
+    def test_evidence_id_distinguishes_metric_values(self) -> None:
+        from dsp_platform.research_retrieval.service import generate_stable_evidence_id
+        args = ("RELIANCE", "BSE", "https://bse.in/doc", "Revenue")
+        legacy = generate_stable_evidence_id(*args)
+        assert legacy == generate_stable_evidence_id(*args)  # unchanged without metric fields
+        a = generate_stable_evidence_id(*args, metric_name="REVENUE", metric_value=100.0, period="FY25")
+        b = generate_stable_evidence_id(*args, metric_name="REVENUE", metric_value=200.0, period="FY25")
+        assert a != b
+
+
 class TestShareCountRetrieval:
     def setup_method(self) -> None:
         self.resolver = RetrievalShareCountResolver(tolerance=0.05)
@@ -358,3 +415,100 @@ class TestResearchRetrievalServiceE2E:
         assert outcome.share_count.shares == 6760000000.0
         # Assert complete privacy
         assert_evidence_privacy(outcome)
+
+
+def _doc(text: str, url: str = "https://www.bseindia.com/a") -> FetchedDocument:
+    return FetchedDocument(url, url, 200, "text/plain", text, "hash", "2026-10-12")
+
+
+class TestEvidenceGroundingRules:
+    """R01/R02/R07: status, metric, units and period must match the document and source governance."""
+
+    def setup_method(self) -> None:
+        self.validator = DocumentValidator(tolerance=0.02)
+
+    def test_number_from_unrelated_metric_is_rejected(self) -> None:
+        res = self.validator.validate_claim(
+            _doc("RELIANCE employees 100 in FY2020"), "RELIANCE", "revenue 100",
+            metric_name="revenue", claimed_value=100,
+        )
+        assert not res.is_valid
+        assert res.failure_reason == ValidationFailureReason.METRIC_NOT_FOUND
+
+    def test_metric_far_from_value_is_rejected(self) -> None:
+        text = "RELIANCE revenue grew strongly this year. " + "x" * 200 + " Headcount was 100."
+        res = self.validator.validate_claim(_doc(text), "RELIANCE", "rev", metric_name="REVENUE", claimed_value=100)
+        assert res.failure_reason == ValidationFailureReason.METRIC_NOT_FOUND
+
+    def test_metric_beside_value_is_verified(self) -> None:
+        res = self.validator.validate_claim(
+            _doc("RELIANCE net profit was 19,000 cr in FY2026"), "RELIANCE", "Net profit",
+            metric_name="NET_PROFIT", claimed_value=19_000, units="INR crore", claimed_period="FY2026",
+        )
+        assert res.is_valid
+        assert res.status == EvidenceStatus.VERIFIED
+
+    def test_units_scale_the_claimed_value(self) -> None:
+        # Claim 50,000 lakh = 5,000 cr; document says 50,000 cr, so units disagree.
+        res = self.validator.validate_claim(
+            _doc("RELIANCE revenue 50,000 cr"), "RELIANCE", "Revenue",
+            metric_name="revenue", claimed_value=50_000, units="lakh",
+        )
+        assert res.failure_reason == ValidationFailureReason.VALUE_MISMATCH
+
+    def test_claimed_period_absent_from_document_is_rejected(self) -> None:
+        res = self.validator.validate_claim(
+            _doc("RELIANCE revenue 100 in FY2020"), "RELIANCE", "revenue",
+            metric_name="revenue", claimed_value=100, claimed_period="FY2026",
+        )
+        assert not res.is_valid
+        assert res.failure_reason == ValidationFailureReason.PERIOD_MISMATCH
+
+    @pytest.mark.parametrize("written", ["FY2026", "FY 2025-26", "FY26", "fy2026"])
+    def test_period_spellings_are_accepted(self, written: str) -> None:
+        res = self.validator.validate_claim(
+            _doc(f"RELIANCE revenue 100 for {written}"), "RELIANCE", "revenue",
+            metric_name="revenue", claimed_value=100, claimed_period="FY2026",
+        )
+        assert res.is_valid
+
+    def test_unsupported_prose_claim_is_rejected(self) -> None:
+        res = self.validator.validate_claim(_doc("RELIANCE employees 100 in FY2020"), "RELIANCE", "RELIANCE acquired Apple")
+        assert not res.is_valid
+        assert res.failure_reason == ValidationFailureReason.UNGROUNDED_CLAIM
+
+    def test_supported_prose_claim_is_verified(self) -> None:
+        res = self.validator.validate_claim(_doc("RELIANCE acquired Apple Holdings"), "RELIANCE", "RELIANCE acquired Apple")
+        assert res.is_valid
+
+
+class _OneDocFetcher:
+    def __init__(self, doc: FetchedDocument) -> None:
+        self.doc = doc
+
+    def fetch(self, url: str) -> FetchedDocument:
+        return self.doc
+
+
+class TestServiceStatusFollowsGovernance:
+    def test_secondary_source_with_matching_text_stays_unverified(self) -> None:
+        service = ResearchRetrievalService(fetcher=_OneDocFetcher(_doc("RELIANCE revenue 100", "https://www.screener.in/company/RELIANCE")))
+        source = DiscoveredSource(
+            "https://www.screener.in/company/RELIANCE", "SCREENER", title="revenue",
+            metadata={"metric_name": "revenue", "metric_value": "100"},
+        )
+        outcome = service.process_discovered_sources("RELIANCE", [source])
+        assert outcome.evidence_items == ()
+        assert [r.status for r in outcome.unverified_items] == [EvidenceStatus.UNVERIFIED]
+        assert outcome.unverified_items[0].provenance.source_tier == SourceTier.SECONDARY
+
+    def test_bad_metric_value_rejects_only_that_source(self) -> None:
+        doc = _doc("RELIANCE revenue 50000 cr for FY2026")
+        service = ResearchRetrievalService(fetcher=_OneDocFetcher(doc))
+        bad = DiscoveredSource("https://www.bseindia.com/a", publisher="BSE", title="bad", source_tier=SourceTier.PRIMARY,
+                               metadata={"metric_name": "revenue", "metric_value": "N/A"})
+        good = DiscoveredSource("https://www.bseindia.com/b", publisher="BSE", title="good", source_tier=SourceTier.PRIMARY,
+                                metadata={"metric_name": "revenue", "metric_value": "500000000000", "period": "FY2026"})
+        outcome = service.process_discovered_sources("RELIANCE", [bad, good])
+        assert [r.claim for r in outcome.evidence_items] == ["good"]
+        assert [r.claim for r in outcome.rejected_items] == ["bad"]

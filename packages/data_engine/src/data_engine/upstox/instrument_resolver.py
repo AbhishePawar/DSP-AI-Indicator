@@ -16,12 +16,23 @@ from __future__ import annotations
 
 import re
 import threading
-from collections.abc import Iterable, Mapping
-from dataclasses import dataclass, field
+from collections.abc import Callable, Iterable, Mapping
+from dataclasses import dataclass
 from typing import Any
 
 from contracts.domain.instrument import Instrument
 from contracts.enums import AssetClass
+
+# Optional asset resolver injected by a higher layer (dsp_platform registers
+# ``resolve_asset`` on import). Keeps data_engine free of upward imports.
+_ASSET_RESOLVER: Callable[..., Any] | None = None
+
+
+def register_asset_resolver(resolver: Callable[..., Any] | None) -> None:
+    """Register (or clear) the platform asset resolver used for dynamic lookups."""
+    global _ASSET_RESOLVER
+    _ASSET_RESOLVER = resolver
+
 
 _BSE_SCRIP_RE = re.compile(r"^\d{5,6}$")
 _ISIN_RE = re.compile(r"^[A-Z]{2}[A-Z0-9]{9}\d$")
@@ -267,10 +278,10 @@ class UpstoxInstrumentResolver:
                 if all_matches:
                     return self._resolve_from_matches(all_matches, exchange=None)
 
-        # 2. Dynamic Asset Resolver Integration
-        from dsp_platform.asset_resolution import resolve_asset
-
-        asset_id = resolve_asset(symbol, preferred_exchange=exchange)
+        # 2. Dynamic Asset Resolver Integration (registered by the platform layer;
+        # data_engine must not import dsp_platform directly).
+        resolver = _ASSET_RESOLVER
+        asset_id = resolver(symbol, preferred_exchange=exchange) if resolver is not None else None
         if asset_id is not None:
             if asset_id.ambiguous:
                 return UpstoxResolutionResult(

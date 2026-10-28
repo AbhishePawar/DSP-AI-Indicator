@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import uuid
+
 import pytest
 from starlette.testclient import TestClient
 
@@ -14,6 +15,7 @@ from dsp_platform import PlatformBuilder, PlatformConfiguration
 from dsp_platform.copilot_v2 import reset_copilot_memory_store_for_tests
 from dsp_platform.copilot_v2.memory import CopilotMemoryStore
 from llm_adapters.config import load_llm_config
+from llm_adapters.model_tiers import ModelTier
 from llm_adapters.orchestrator import (
     OrchestratorResult,
     OrchestratorStatus,
@@ -21,7 +23,6 @@ from llm_adapters.orchestrator import (
 )
 from llm_adapters.privacy_boundary import PublicDecisionPack
 from llm_adapters.quality_gate import GateOutcome, GateVerdict
-from llm_adapters.model_tiers import ModelTier
 from llm_adapters.registry import ProviderRegistry
 from persistence.research_session import (
     ResearchSessionService,

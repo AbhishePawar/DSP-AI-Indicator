@@ -5,13 +5,11 @@ from __future__ import annotations
 from dataclasses import dataclass
 from urllib.parse import urlparse
 
-from data_engine.source_governance import (
-    APPROVED_SOURCES,
+from data_engine import (
     MARKET_DATA_PURPOSES,
     MARKET_DATA_SOURCES,
     PRIMARY_SOURCES,
     SECONDARY_SOURCES,
-    is_approved_source as is_approved_engine_source,
 )
 from dsp_platform.research_retrieval.models import EvidenceStatus, SourceTier
 

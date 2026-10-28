@@ -110,7 +110,7 @@ class AIGatewayAdapter:
             model_label=self.model_label,
         )
 
-    
+
 def _chat_completions_url(base_url: str) -> str:
     """Normalize supported Gateway base URL forms to one endpoint."""
     parsed = urlsplit(base_url.strip())

@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import inspect
 import sys
-import pytest
 
 from dsp_platform import research_retrieval
 
@@ -64,7 +63,6 @@ class TestResearchRetrievalArchitecture:
 
     def test_no_valuation_or_recommendation_overrides_in_retrieval(self) -> None:
         """Ensure research retrieval does not import or alter DSP valuation or recommendation engines."""
-        import dsp_platform.research_retrieval as rr
         modules = [
             "dsp_platform.research_retrieval.models",
             "dsp_platform.research_retrieval.url_safety",

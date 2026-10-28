@@ -12,7 +12,6 @@ from dsp_platform import (
     PlatformBuilder,
     PlatformConfiguration,
 )
-from security_platform.security.middleware import _is_institutional_auth_zone
 from security_platform import (
     AuthenticationError,
     AuthorizationError,
@@ -27,6 +26,7 @@ from security_platform import (
     UserRecord,
     __version__,
 )
+from security_platform.security.middleware import _is_institutional_auth_zone
 
 
 def test_version() -> None:

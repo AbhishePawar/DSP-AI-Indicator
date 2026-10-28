@@ -8,9 +8,14 @@ import urllib.error
 from unittest.mock import MagicMock, patch
 
 import pytest
+
 from contracts.domain.instrument import Instrument
 from contracts.enums import AssetClass
-from data_engine.exceptions import DataEngineError, InvalidProviderDataError, ProviderRequestError
+from data_engine.exceptions import (
+    DataEngineError,
+    InvalidProviderDataError,
+    ProviderRequestError,
+)
 from data_engine.market_quote.adapters import build_default_quote_adapter_from_env
 from data_engine.market_quote.upstox_adapter import UpstoxQuoteAdapter
 from data_engine.upstox.instrument_resolver import (

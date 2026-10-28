@@ -3,9 +3,8 @@
 from __future__ import annotations
 
 from collections.abc import Iterable
-from datetime import date
 
-from data_engine.share_count import ShareCount, resolve_verified_share_count
+from data_engine import ShareCount, resolve_verified_share_count
 from dsp_platform.research_retrieval.models import ShareCountEvidence
 
 __all__ = [

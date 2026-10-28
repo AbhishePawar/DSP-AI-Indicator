@@ -44,6 +44,7 @@ const LIB_ALLOWLIST = new Set([
   "ai",
   "analysis",
   "api",
+  "assets",
   "business-education",
   "company-comparison",
   "auth",

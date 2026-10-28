@@ -15,12 +15,9 @@ F. Offline/development behavior: InMemoryCachePort remains valid for explicitly
 
 from __future__ import annotations
 
-import sys
 import tomllib
 from pathlib import Path
 from unittest.mock import MagicMock
-
-import pytest
 
 from production_platform.adapters.redis_stack import (
     RedisCachePort,
@@ -33,7 +30,6 @@ from production_platform.production.configuration import (
     ProductionConfiguration,
     RedisSettings,
 )
-from production_platform.production.health import HealthManager, HealthStatus
 from production_platform.production.infrastructure import (
     InfrastructureBundle,
     InfrastructureDiagnostics,
@@ -127,7 +123,7 @@ class TestRequiredRedisBehavior:
                 "DSP_REDIS_TIMEOUT": "0.05",
             }
         )
-        health = infra.health_check()
+        health = infra.health_checks()
         assert health["redis"]["status"] == "fail"
         assert health["redis"]["fallback_active"] is False
         assert infra.diagnostics.redis_fallback_active is False
@@ -166,9 +162,11 @@ class TestHealthAndOfflineBehavior:
             background_tasks=MagicMock(),
             clock=MagicMock(),
             secrets=MagicMock(),
+            india=MagicMock(),
+            cache_invalidation=MagicMock(),
             diagnostics=diag,
         )
-        health = bundle.health_check()
+        health = bundle.health_checks()
         assert health["redis"]["configured"] is True
         assert health["redis"]["status"] == "pass"
         assert health["redis"]["fallback_active"] is False

@@ -3,11 +3,10 @@
 from __future__ import annotations
 
 import hashlib
+import math
 from collections.abc import Callable, Iterable
-from dataclasses import dataclass
-from typing import Any
 
-from data_engine.share_count import ShareCount
+from data_engine import ShareCount
 from dsp_platform.research_retrieval.deduplication import (
     DeduplicationEngine,
     canonicalize_url,
@@ -21,11 +20,9 @@ from dsp_platform.research_retrieval.models import (
     DiscoveredSource,
     EvidenceFreshness,
     EvidenceStatus,
-    FetchedDocument,
     ProvenanceRecord,
     ResearchEvidenceRecord,
     RetrievalOutcome,
-    SourceTier,
     assert_evidence_privacy,
     utc_now_iso,
 )
@@ -45,9 +42,30 @@ __all__ = [
 ]
 
 
-def generate_stable_evidence_id(ticker: str, source: str, canonical_url: str, claim: str) -> str:
-    """Generate a deterministic, stable evidence ID based on core provenance."""
-    raw = f"{ticker.strip().upper()}|{source.strip().upper()}|{canonical_url.strip()}|{claim.strip()}".encode("utf-8")
+def generate_stable_evidence_id(
+    ticker: str,
+    source: str,
+    canonical_url: str,
+    claim: str,
+    *,
+    metric_name: str | None = None,
+    metric_value: float | None = None,
+    units: str | None = None,
+    period: str | None = None,
+) -> str:
+    """Generate a deterministic, stable evidence ID based on core provenance.
+
+    Metric identity (name, value, units, period) is part of the ID so two
+    different facts published in the same document never collapse into one.
+    Calls without metric fields keep their previous IDs.
+    """
+    raw_text = f"{ticker.strip().upper()}|{source.strip().upper()}|{canonical_url.strip()}|{claim.strip()}"
+    if metric_name or metric_value is not None or units or period:
+        raw_text += (
+            f"|{(metric_name or '').strip().upper()}|{'' if metric_value is None else repr(float(metric_value))}"
+            f"|{(units or '').strip().upper()}|{(period or '').strip().upper()}"
+        )
+    raw = raw_text.encode()
     digest = hashlib.sha256(raw).hexdigest()[:16]
     return f"ev_{digest}"
 
@@ -169,20 +187,63 @@ class ResearchRetrievalService:
                 continue
 
             # 4. Document Content Validation
+            claimed_value, value_error = _parse_metric_value(candidate.metadata.get("metric_value"))
+            if value_error:
+                evidence_records.append(
+                    ResearchEvidenceRecord(
+                        evidence_id=generate_stable_evidence_id(symbol, norm_source, canon_url, candidate.title),
+                        ticker=symbol,
+                        claim=candidate.title or "Discovered source",
+                        status=EvidenceStatus.REJECTED,
+                        provenance=ProvenanceRecord(
+                            source=norm_source,
+                            source_tier=gov_decision.source_tier,
+                            provider=candidate.discovered_by,
+                            publisher=candidate.publisher,
+                            retrieved_at=now_str,
+                            canonical_url=canon_url,
+                            original_url=candidate.url,
+                            content_hash=fetched_doc.content_hash,
+                        ),
+                        rejection_reason=value_error,
+                    )
+                )
+                limitations.append(f"Skipped source '{candidate.url}': {value_error}")
+                continue
+
             val_result = self.validator.validate_claim(
                 document=fetched_doc,
                 ticker=symbol,
                 claim=candidate.title or candidate.metadata.get("claim", ""),
                 metric_name=candidate.metadata.get("metric_name"),
-                claimed_value=float(candidate.metadata["metric_value"]) if "metric_value" in candidate.metadata else None,
+                claimed_value=claimed_value,
                 units=candidate.metadata.get("units"),
                 claimed_period=candidate.metadata.get("period"),
             )
 
-            rec_status = EvidenceStatus.VERIFIED if val_result.is_valid else EvidenceStatus.REJECTED
+            # Grounded content never upgrades the source: a source governance only allows
+            # for cross-checking stays UNVERIFIED even when its text matches.
+            if not val_result.is_valid:
+                rec_status = EvidenceStatus.REJECTED
+                rec_reason: str | None = str(val_result.failure_reason.value)
+            elif gov_decision.status is EvidenceStatus.VERIFIED:
+                rec_status = EvidenceStatus.VERIFIED
+                rec_reason = None
+            else:
+                rec_status = EvidenceStatus.UNVERIFIED
+                rec_reason = gov_decision.rejection_reason or "Source not approved as primary authority"
             evidence_records.append(
                 ResearchEvidenceRecord(
-                    evidence_id=generate_stable_evidence_id(symbol, norm_source, canon_url, candidate.title),
+                    evidence_id=generate_stable_evidence_id(
+                        symbol,
+                        norm_source,
+                        canon_url,
+                        candidate.title,
+                        metric_name=candidate.metadata.get("metric_name"),
+                        metric_value=claimed_value,
+                        units=candidate.metadata.get("units"),
+                        period=candidate.metadata.get("period"),
+                    ),
                     ticker=symbol,
                     claim=candidate.title or "Discovered source",
                     status=rec_status,
@@ -200,11 +261,11 @@ class ResearchRetrievalService:
                     ),
                     freshness=val_result.freshness,
                     metric_name=candidate.metadata.get("metric_name"),
-                    metric_value=float(candidate.metadata["metric_value"]) if "metric_value" in candidate.metadata else None,
+                    metric_value=claimed_value,
                     units=candidate.metadata.get("units"),
                     raw_excerpt=val_result.grounded_excerpt,
                     document_location=val_result.document_location,
-                    rejection_reason=None if val_result.is_valid else str(val_result.failure_reason.value),
+                    rejection_reason=rec_reason,
                 )
             )
 
@@ -240,3 +301,16 @@ class ResearchRetrievalService:
         assert_evidence_privacy(outcome)
 
         return outcome
+
+
+def _parse_metric_value(raw: object) -> tuple[float | None, str | None]:
+    """Parse a source's claimed metric value; returns (value, error) so one bad source cannot abort the batch."""
+    if raw is None or (isinstance(raw, str) and not raw.strip()):
+        return None, None
+    try:
+        value = float(str(raw).replace(",", "").strip())
+    except ValueError:
+        return None, f"Invalid metric_value {str(raw)[:40]!r}"
+    if not math.isfinite(value):
+        return None, f"Non-finite metric_value {str(raw)[:40]!r}"
+    return value, None

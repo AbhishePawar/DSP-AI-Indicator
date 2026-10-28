@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import threading
 import uuid
 from collections.abc import Mapping
 from datetime import UTC, datetime
@@ -14,8 +15,10 @@ from dsp_platform.copilot_v2.intent import (
     source_ref,
 )
 from dsp_platform.copilot_v2.memory import get_copilot_memory_store
-import threading
-from persistence.research_session import compute_session_id, get_research_session_service
+from persistence.research_session import (
+    compute_session_id,
+    get_research_session_service,
+)
 
 _IDEMPOTENCY_LOCKS_GUARD = threading.Lock()
 _IDEMPOTENCY_LOCKS: dict[tuple[str, str, str], threading.Lock] = {}
@@ -377,6 +380,7 @@ def _generate_ai_copilot_response(
 ) -> tuple[str, list[dict[str, Any]], bool, dict[str, Any] | None]:
     """Generate the user-facing Copilot answer using an AI provider while enforcing DSP authority."""
     import re
+
     from copilot.enums import LanguageModelStatus
     from copilot.models import LanguageModelRequest, LanguageModelResult
 
@@ -449,7 +453,7 @@ def _generate_ai_copilot_response(
         reg = provider_registry
         if reg is None:
             try:
-                from llm_adapters.registry import build_default_registry
+                from llm_adapters import build_default_registry
 
                 reg = build_default_registry()
             except Exception:
@@ -550,12 +554,10 @@ def _generate_ai_copilot_response(
 
     if auth_lines:
         auth_block = "\n".join(auth_lines)
-        if dsp_decision and f"**Authoritative Recommendation:** {dsp_decision}" not in narrative:
-            narrative = f"{narrative}\n\n{auth_block}"
-        elif dsp_iv and f"**Valuation:** {dsp_iv}" not in narrative:
+        if dsp_decision and f"**Authoritative Recommendation:** {dsp_decision}" not in narrative or dsp_iv and f"**Valuation:** {dsp_iv}" not in narrative:
             narrative = f"{narrative}\n\n{auth_block}"
 
-    sources = [*evidence_sources, source_ref("ai_provider", f"{provider_used or "gemini"}:{model_used or "default"}")]
+    sources = [*evidence_sources, source_ref("ai_provider", f"{provider_used or 'gemini'}:{model_used or 'default'}")]
     return (narrative, sources, False, evidence_payload)
 
 
@@ -1346,7 +1348,7 @@ def _handle_research(
             None,
         )
 
-    from llm_adapters.orchestrator import OrchestratorStatus, UserResearchRequest
+    from llm_adapters import OrchestratorStatus, UserResearchRequest
 
     req = UserResearchRequest(
         symbol=clean_sym,

@@ -7,7 +7,7 @@ import ipaddress
 import socket
 import ssl
 from collections.abc import Callable
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from typing import Protocol
 from urllib.parse import urljoin, urlparse
 
@@ -379,8 +379,8 @@ class DefaultSafeHttpFetcher:
 
         try:
             status_code = int(status_line[1])
-        except ValueError:
-            raise UrlSafetyError(f"Invalid HTTP status code: {status_line[1]}")
+        except ValueError as exc:
+            raise UrlSafetyError(f"Invalid HTTP status code: {status_line[1]}") from exc
 
         headers: dict[str, str] = {}
         for line in header_lines[1:]:

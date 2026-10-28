@@ -9,15 +9,15 @@ from datetime import date
 from unittest.mock import MagicMock, patch
 
 import pytest
+
 from contracts.domain.instrument import Instrument
 from contracts.enums import AssetClass
-from data_engine.exceptions import InvalidProviderDataError, ProviderRequestError
+from data_engine.exceptions import ProviderRequestError
 from data_engine.historical_series.adapters import (
     build_default_historical_adapter_from_env,
 )
 from data_engine.historical_series.service import HistoricalSeriesQuery
 from data_engine.historical_series.upstox_adapter import (
-    UpstoxCandle,
     UpstoxHistoricalAdapter,
 )
 from data_engine.upstox.instrument_resolver import (

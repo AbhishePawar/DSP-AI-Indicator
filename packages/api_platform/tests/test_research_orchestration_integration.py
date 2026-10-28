@@ -2,14 +2,13 @@
 
 from __future__ import annotations
 
-import time
-
 import json
+import time
+from datetime import UTC
 from decimal import Decimal
 from typing import Any
 from unittest.mock import MagicMock, patch
 
-import pytest
 from fastapi.testclient import TestClient
 
 from api_platform import create_app
@@ -564,15 +563,20 @@ def test_metrics_registry_prometheus_rendering_has_bounded_labels():
 
 def test_route_fetches_verified_upstox_quote_in_ticker_only_mode():
     """Verify Upstox quote endpoint output and its handoff to deterministic composition."""
-    from dsp_platform.market_quotes import reset_market_quote_service_for_tests
-    from dsp_platform.financial_statements import (
-        reset_financial_statement_service_for_tests,
-        FinancialStatementService,
+    from datetime import datetime
+
+    from data_engine import (
+        FinancialStatementProvenance,
+        InMemoryAuthenticatedStatementAdapter,
+        build_statements_from_mapping,
     )
-    from data_engine import InMemoryAuthenticatedStatementAdapter, build_statements_from_mapping, FinancialStatementProvenance
-    from datetime import datetime, timezone
-    from data_engine.market_quote.service import MarketQuoteService
     from data_engine.cache import InMemoryCache
+    from data_engine.market_quote.service import MarketQuoteService
+    from dsp_platform.financial_statements import (
+        FinancialStatementService,
+        reset_financial_statement_service_for_tests,
+    )
+    from dsp_platform.market_quotes import reset_market_quote_service_for_tests
 
     record = UpstoxInstrumentRecord(
         instrument_key="NSE_EQ|INE155A01022",
@@ -594,7 +598,7 @@ def test_route_fetches_verified_upstox_quote_in_ticker_only_mode():
                 "instrument_token": "NSE_EQ|INE155A01022",
                 "last_price": 985.50,
                 "ohlc": {"open": 980.0, "high": 990.0, "low": 975.0, "close": 985.50, "volume": 500000},
-                "timestamp": int(datetime.now(timezone.utc).timestamp() * 1000),
+                "timestamp": int(datetime.now(UTC).timestamp() * 1000),
             }
         }
     }
@@ -643,7 +647,7 @@ def test_route_fetches_verified_upstox_quote_in_ticker_only_mode():
             provider_id="memory_authenticated_statements",
             provider_name="Memory Statements",
             source_type="licensed_vendor",
-            retrieved_at=datetime.now(timezone.utc),
+            retrieved_at=datetime.now(UTC),
             auth_mode="api_key",
         ),
     ))
@@ -726,10 +730,11 @@ def test_route_fetches_verified_upstox_quote_in_ticker_only_mode():
 
 def test_quote_failure_paths_fail_closed_without_fabrication():
     """Provider failure or invalid data fails closed without fabricating market quotes."""
-    from dsp_platform.market_quotes import reset_market_quote_service_for_tests
-    from data_engine.market_quote.service import MarketQuoteService, RetryPolicy
-    from data_engine.cache import InMemoryCache
     import urllib.error
+
+    from data_engine.cache import InMemoryCache
+    from data_engine.market_quote.service import MarketQuoteService, RetryPolicy
+    from dsp_platform.market_quotes import reset_market_quote_service_for_tests
 
     record = UpstoxInstrumentRecord(
         instrument_key="NSE_EQ|INE155A01022",
@@ -779,8 +784,8 @@ def test_quote_failure_paths_fail_closed_without_fabrication():
 
 def test_orchestration_capacity_exhaustion_fallback():
     """When all worker slots are occupied, additional requests degrade gracefully with deterministic fallback."""
-    from api_platform.api.routers import composition
     from api_platform.api.ops import metrics_registry
+    from api_platform.api.routers import composition
 
     initial_exhausted = metrics_registry._counters["dsp_research_orchestration_capacity_exhausted_total"]
 
@@ -817,8 +822,9 @@ def test_orchestration_capacity_exhaustion_fallback():
 
 def test_invalid_timeout_env_values_handled_safely():
     """Non-finite, negative, or malformed timeout env vars fallback to safe default."""
-    from api_platform.api.routers.composition import parse_orchestration_timeout
     import os
+
+    from api_platform.api.routers.composition import parse_orchestration_timeout
 
     with patch.dict(os.environ, {"DSP_RESEARCH_ORCHESTRATION_TIMEOUT_SECONDS": "0"}):
         assert parse_orchestration_timeout() == 15.0
@@ -846,8 +852,9 @@ def test_invalid_timeout_env_values_handled_safely():
 
 def test_concurrency_safe_metrics_updates():
     """Concurrent threads updating metrics cannot corrupt counters or raise exceptions."""
-    from api_platform.api.ops import metrics_registry
     import threading
+
+    from api_platform.api.ops import metrics_registry
 
     initial = metrics_registry._counters["dsp_research_orchestration_attempted_total"]
     threads = []
@@ -874,8 +881,11 @@ def test_concurrency_safe_metrics_updates():
 
 def test_research_orchestration_service_boundary_isolation():
     """Verify that ResearchOrchestrationService cleanly encapsulates worker pool, admission control, and execution."""
-    from api_platform.api.research_orchestration_service import ResearchOrchestrationService
     import threading
+
+    from api_platform.api.research_orchestration_service import (
+        ResearchOrchestrationService,
+    )
 
     custom_sem = threading.BoundedSemaphore(value=2)
     service = ResearchOrchestrationService(semaphore=custom_sem)

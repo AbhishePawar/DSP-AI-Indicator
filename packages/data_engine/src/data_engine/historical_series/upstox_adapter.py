@@ -24,13 +24,11 @@ import time
 import urllib.error
 import urllib.parse
 import urllib.request
-from collections.abc import Mapping
 from dataclasses import dataclass, field
 from datetime import UTC, date, datetime, timedelta
 from typing import Any
 
 from contracts.domain.instrument import Instrument
-from contracts.enums import AssetClass
 from data_engine.exceptions import InvalidProviderDataError, ProviderRequestError
 from data_engine.historical_series.models import (
     AuthenticatedHistoricalBundle,
@@ -204,9 +202,7 @@ class UpstoxHistoricalAdapter(HistoricalSeriesPort):
         norm_interval = str(interval)
         if norm_unit in ("days", "weeks", "months"):
             norm_interval = "1"
-        elif norm_unit == "minutes":
-            norm_interval = re.sub(r"[^\d]", "", norm_interval) or "1"
-        elif norm_unit == "hours":
+        elif norm_unit == "minutes" or norm_unit == "hours":
             norm_interval = re.sub(r"[^\d]", "", norm_interval) or "1"
 
         to_str, to_d = _normalize_date_str(to_date)

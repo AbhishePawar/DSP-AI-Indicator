@@ -19,6 +19,7 @@ from data_engine import (
     build_quote_from_mapping,
     build_statements_from_mapping,
 )
+from data_engine.financial_statement.models import StatementField
 from dsp_platform import (
     DATA_UNAVAILABLE,
     AuthenticatedValuationError,
@@ -26,16 +27,15 @@ from dsp_platform import (
     PlatformOrchestrator,
     load_authenticated_valuation_bundle,
 )
-from data_engine.financial_statement.models import StatementField
 from dsp_platform.composition.authenticated_valuation import (
     _resolve_shares,
     signals_from_assessment,
 )
-from dsp_platform.research_assembly import ShareCount
 from dsp_platform.financial_statements import (
     reset_financial_statement_service_for_tests,
 )
 from dsp_platform.market_quotes import reset_market_quote_service_for_tests
+from dsp_platform.research_assembly import ShareCount
 from financial import (
     BalanceSheet,
     CashFlowStatement,

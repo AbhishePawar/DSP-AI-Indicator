@@ -27,7 +27,10 @@ from industry.characteristics_registry import InvestmentCharacteristicsRegistry
 from industry.enums import PeerEligibilityStatus
 from industry.methodology_registry import IndustryMethodologyRegistry
 from industry.peer_evaluator import PeerEligibilityEvaluator
-from industry.peer_registry import InstrumentIndustryRegistry, PeerEligibilityPolicyRegistry
+from industry.peer_registry import (
+    InstrumentIndustryRegistry,
+    PeerEligibilityPolicyRegistry,
+)
 from industry.peer_seeds import seed_peer_eligibility_context
 from industry.taxonomy import IndustryTaxonomy
 
@@ -93,14 +96,12 @@ def test_research_session_creation_and_isolation():
 def test_p109_state_suggestion_guards():
     """Verify questions allowed and suppressed based on P1-09 execution state."""
     def get_allowed_question_categories(p109_state: str) -> set[str]:
-        if p109_state == "COMPLETE":
-            return {"fundamentals", "economic_moat", "growth", "peers", "valuation"}
-        elif p109_state == "PARTIAL_DATA":
-            return {"fundamentals", "economic_moat", "peers", "limitations"}
-        elif p109_state == "INSUFFICIENT_DATA":
-            return {"preliminary_signals", "missing_filings", "limitations"}
-        elif p109_state == "SYSTEM_ERROR":
-            return set()
+        allowed = {
+            "COMPLETE": {"fundamentals", "economic_moat", "growth", "peers", "valuation"},
+            "PARTIAL_DATA": {"fundamentals", "economic_moat", "peers", "limitations"},
+            "INSUFFICIENT_DATA": {"preliminary_signals", "missing_filings", "limitations"},
+        }
+        return set(allowed.get(p109_state, set()))
         return set()
 
     complete_cats = get_allowed_question_categories("COMPLETE")

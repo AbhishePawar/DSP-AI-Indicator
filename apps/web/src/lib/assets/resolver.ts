@@ -377,7 +377,9 @@ export function resolveAssetEntry(
     return {
       symbol: upper,
       name: upper,
-      exchange: preferredExchange ? preferredExchange.toUpperCase() : "NSE",
+      // Unknown ticker: never invent a listing venue. Leave it empty unless the
+      // user supplied one, so the server resolves the exchange from sources.
+      exchange: preferredExchange ? preferredExchange.toUpperCase() : "",
       assetClass: "equity",
       currency: "INR",
       allowsEquityValuation: true,

@@ -8,7 +8,6 @@ from urllib.parse import parse_qs, urlencode, urlparse, urlunparse
 
 from dsp_platform.research_retrieval.models import (
     ConflictingClaim,
-    EvidenceStatus,
     ResearchEvidenceRecord,
     SourceTier,
 )
@@ -74,6 +73,28 @@ class DeduplicationResult:
     duplicate_count: int
 
 
+def _fact_key(record: ResearchEvidenceRecord) -> str:
+    """Identity of a fact: same document and claim *and* same metric/value/units/period/revision.
+
+    Two different numbers in one document are distinct facts, so they must survive
+    deduplication and reach conflict detection.
+    """
+    prov = record.provenance
+    value = "" if record.metric_value is None else repr(float(record.metric_value))
+    return "|".join(
+        (
+            record.ticker.strip().upper(),
+            prov.canonical_url,
+            record.claim,
+            (record.metric_name or "").strip().upper(),
+            value,
+            (record.units or "").strip().upper(),
+            (prov.effective_period or "").strip().upper(),
+            prov.content_hash or "",
+        )
+    )
+
+
 class DeduplicationEngine:
     """Detects duplicates, links corroborations, and preserves conflicting claims."""
 
@@ -93,7 +114,7 @@ class DeduplicationEngine:
         metric_groups: dict[tuple[str, str, str], list[ResearchEvidenceRecord]] = {}
 
         for record in items:
-            key = f"{record.ticker}:{record.provenance.canonical_url}:{record.claim}"
+            key = _fact_key(record)
             if key in unique_map:
                 duplicates += 1
                 continue
@@ -118,7 +139,7 @@ class DeduplicationEngine:
 
             base = primaries[0] if primaries else group[0]
             for other in group:
-                if other.evidence_id == base.evidence_id:
+                if other is base:
                     continue
 
                 diff = abs((other.metric_value or 0.0) - (base.metric_value or 0.0))
@@ -145,8 +166,11 @@ class DeduplicationEngine:
                     )
                 else:
                     # Corroboration: link evidence IDs
-                    if other.evidence_id not in base.corroborated_by:
-                        # Update unique_map with corroborated tuple
+                    base_key = _fact_key(base)
+                    current = unique_map[base_key]
+                    if other.evidence_id not in current.corroborated_by:
+                        # Accumulate links on the latest copy so earlier corroborations
+                        # are kept; preserve first-seen order for stable output.
                         updated_base = ResearchEvidenceRecord(
                             evidence_id=base.evidence_id,
                             ticker=base.ticker,
@@ -160,10 +184,10 @@ class DeduplicationEngine:
                             raw_excerpt=base.raw_excerpt,
                             document_location=base.document_location,
                             rejection_reason=base.rejection_reason,
-                            corroborated_by=tuple(set(base.corroborated_by) | {other.evidence_id}),
+                            corroborated_by=(*current.corroborated_by, other.evidence_id),
                             conflicts_with=base.conflicts_with,
                         )
-                        unique_map[f"{base.ticker}:{base.provenance.canonical_url}:{base.claim}"] = updated_base
+                        unique_map[base_key] = updated_base
 
         return DeduplicationResult(
             unique_evidence=tuple(unique_map.values()),

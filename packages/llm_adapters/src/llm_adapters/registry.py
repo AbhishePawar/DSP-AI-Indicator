@@ -4,8 +4,8 @@ from __future__ import annotations
 
 from llm_adapters.anthropic_adapter import AnthropicAdapter
 from llm_adapters.config import LLMPlatformConfig, ProviderName, load_llm_config
-from llm_adapters.gateway_adapter import gateway_provider
 from llm_adapters.deepseek_adapter import DeepSeekAdapter
+from llm_adapters.gateway_adapter import gateway_provider
 from llm_adapters.gemini_adapter import GeminiDirectAdapter
 from llm_adapters.interfaces import ProviderAdapter
 from llm_adapters.openai_adapter import OpenAIDirectAdapter

@@ -15,8 +15,8 @@ from __future__ import annotations
 
 import re
 import threading
-from dataclasses import dataclass, field
-from typing import Any, Mapping
+from dataclasses import dataclass
+from typing import Any
 
 from contracts.enums import AssetClass
 
@@ -730,3 +730,14 @@ def resolve_asset(
         preferred_exchange=preferred_exchange,
         currency=currency,
     )
+
+
+# Let data_engine's Upstox instrument resolver use platform asset resolution
+# without importing dsp_platform (keeps the layer dependency one-way).
+def _register_with_data_engine() -> None:
+    from data_engine import register_asset_resolver
+
+    register_asset_resolver(resolve_asset)
+
+
+_register_with_data_engine()

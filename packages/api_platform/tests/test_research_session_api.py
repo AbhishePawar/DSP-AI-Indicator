@@ -15,6 +15,7 @@ from __future__ import annotations
 
 import datetime
 from typing import Any
+
 import pytest
 from fastapi.testclient import TestClient
 
@@ -53,7 +54,7 @@ class CanonicalResearchSessionManager:
                 "analysis_id": analysis_id,
                 "p109_state": p109_state,
                 "explored_topics": [],
-                "created_at": datetime.datetime.now(datetime.timezone.utc).isoformat(),
+                "created_at": datetime.datetime.now(datetime.UTC).isoformat(),
                 "conversation_id": cid,
             }
         return dict(self._sessions[session_id])
@@ -95,7 +96,7 @@ class CanonicalResearchSessionManager:
         turn = {
             "role": role,
             "content": content,
-            "created_at": datetime.datetime.now(datetime.timezone.utc).isoformat(),
+            "created_at": datetime.datetime.now(datetime.UTC).isoformat(),
         }
         self.store.append(session_id, turn)
         session = self._sessions.get(session_id)

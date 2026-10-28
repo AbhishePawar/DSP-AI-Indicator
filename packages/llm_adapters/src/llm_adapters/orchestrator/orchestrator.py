@@ -7,14 +7,14 @@ Provider HTTP stays in adapters. DSP engines stay behind ToolCallBoundary.
 """
 
 from __future__ import annotations
+
 import contextvars
 import math
 import os
-import time
 import threading
-from concurrent.futures import ThreadPoolExecutor, as_completed
-
+import time
 from collections.abc import Mapping
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from dataclasses import dataclass
 from enum import Enum
 from typing import Any
@@ -452,10 +452,10 @@ class ResearchOrchestrator:
         ))
         if divergent_sections:
             pack_limitations.append(
-                (
+
                     "Unresolved differences between model narratives are "
                     "retained for review."
-                )
+
             )
         merged_pack = replace(
             base_pack,

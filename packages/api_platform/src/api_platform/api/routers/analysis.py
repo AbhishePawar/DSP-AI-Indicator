@@ -19,7 +19,7 @@ from contracts import Instrument
 from contracts.enums import AssetClass
 
 try:
-    from llm_adapters.orchestrator import UserResearchRequest
+    from llm_adapters import UserResearchRequest
 except ImportError:  # pragma: no cover - optional during partial installs
     UserResearchRequest = None  # type: ignore[misc, assignment]
 

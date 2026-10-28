@@ -1,5 +1,6 @@
 from datetime import UTC, datetime, timedelta
 from decimal import Decimal
+
 import pytest
 
 from contracts.domain.instrument import AssetClass, Instrument
@@ -200,7 +201,11 @@ def test_market_closed_excessive_stale_rejected():
 
 def test_cache_isolates_by_exchange_and_currency():
     from data_engine.cache import InMemoryCache
-    from data_engine.market_quote.service import MarketQuotePort, MarketQuoteService, QuoteProviderHealth
+    from data_engine.market_quote.service import (
+        MarketQuotePort,
+        MarketQuoteService,
+        QuoteProviderHealth,
+    )
 
     class MockPort(MarketQuotePort):
         def __init__(self):

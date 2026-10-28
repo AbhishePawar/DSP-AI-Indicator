@@ -9,13 +9,6 @@ Python's standard-library ``platform`` module.
 
 from __future__ import annotations
 
-from dsp_platform.asset_resolution import (
-    AssetIdentity,
-    AssetResolutionService,
-    get_asset_resolver,
-    resolve_asset,
-)
-
 from comparison import (
     ComparisonDimensionResult,
     ComparisonError,
@@ -131,6 +124,12 @@ from decision_intelligence import (
     GuidanceStance,
     attach_evidence_bundle_ref,
     present_decision_pack,
+)
+from dsp_platform.asset_resolution import (
+    AssetIdentity,
+    AssetResolutionService,
+    get_asset_resolver,
+    resolve_asset,
 )
 from dsp_platform.boundaries import (
     ALLOWED_APPLICATION_PACKAGES,

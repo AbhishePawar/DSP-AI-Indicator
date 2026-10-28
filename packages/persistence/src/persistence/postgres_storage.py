@@ -288,7 +288,9 @@ class PostgresStorageProvider:
                 found = cur.fetchone()
             conn.commit()
         if found is None:
-            from persistence.exceptions import NotFoundError, PersistenceError, ValidationError
+            from persistence.exceptions import (
+                PersistenceError,
+            )
 
             raise PersistenceError("A008 atomic insert returned no document")
         payload = found[0]

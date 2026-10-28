@@ -6,9 +6,8 @@ import json
 from collections.abc import Iterator
 from typing import Any
 
-from fastapi import APIRouter, Depends, Header, Request
+from fastapi import APIRouter, Depends, Header
 from fastapi.responses import JSONResponse, StreamingResponse
-from api_platform.api.dependencies import require_authenticated_actor
 
 from api_platform.api.copilot_schemas import (
     CopilotCompleteRequest,
@@ -16,7 +15,11 @@ from api_platform.api.copilot_schemas import (
     CopilotProviderInfo,
 )
 from api_platform.api.copilot_v2_schemas import CopilotV2Request
-from api_platform.api.dependencies import ApiState, get_api_state
+from api_platform.api.dependencies import (
+    ApiState,
+    get_api_state,
+    require_authenticated_actor,
+)
 from api_platform.api.exceptions import ApiValidationError
 from api_platform.api.schemas import ApiResponse, CopilotChatRequest
 

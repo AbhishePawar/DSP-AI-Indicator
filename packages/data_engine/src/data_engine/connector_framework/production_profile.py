@@ -125,10 +125,10 @@ def assert_production_investment_connectors_configured() -> dict[str, str]:
             "allowed values: http, auto (or unset); commercial vendors are disabled"
         )
 
-    from data_engine.market_quote.adapters import build_default_quote_adapter_from_env
     from data_engine.financial_statement.adapters import (
         build_default_statement_adapter_from_env,
     )
+    from data_engine.market_quote.adapters import build_default_quote_adapter_from_env
 
     quote = build_default_quote_adapter_from_env()
     statements = build_default_statement_adapter_from_env()

@@ -16,8 +16,7 @@ from typing import Any
 
 from api_platform.api.ops import metrics_registry
 from api_platform.api.research_report_schema import validate_public_research_report
-from llm_adapters.orchestrator.orchestrator import OrchestratorStatus
-from llm_adapters.orchestrator.specification import UserResearchRequest
+from llm_adapters import OrchestratorStatus, UserResearchRequest
 
 _LOG = logging.getLogger("dsp.api.research_orchestration")
 

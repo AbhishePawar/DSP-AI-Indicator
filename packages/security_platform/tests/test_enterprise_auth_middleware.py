@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import auth
-
 from security_platform.security.middleware import _authenticate_enterprise_bearer
 from security_platform.security.permissions import Permission
 from security_platform.security.roles import Role

@@ -6,8 +6,6 @@ from llm_adapters.benchmark import (
     run_case_against_model,
 )
 from llm_adapters.config import LLMPlatformConfig, load_llm_config
-from llm_adapters.gemini_adapter import GeminiDirectAdapter
-from llm_adapters.openai_adapter import OpenAIDirectAdapter
 from llm_adapters.cost_scoring import (
     ScoredEvaluation,
     calculate_cost_score,
@@ -24,6 +22,7 @@ from llm_adapters.evaluation import (
     QualityEvaluation,
     TokenUsage,
 )
+from llm_adapters.gemini_adapter import GeminiDirectAdapter
 from llm_adapters.model_catalog import (
     DEFAULT_CATALOG,
     ModelCapabilities,
@@ -39,6 +38,7 @@ from llm_adapters.model_tiers import (
     TierConfig,
     get_tier_config,
 )
+from llm_adapters.openai_adapter import OpenAIDirectAdapter
 from llm_adapters.orchestrator import (
     AdapterBackedAIProvider,
     AICompletion,

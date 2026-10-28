@@ -15,6 +15,13 @@ from typing import Any
 from contracts.domain.fundamental_statement import FundamentalStatement
 from contracts.domain.instrument import Instrument
 from contracts.enums import AssetClass, StatementPeriodType
+from data_engine import (
+    InvalidProviderDataError,
+    ShareCount,
+    ShareCountPort,
+    is_approved_source,
+    resolve_verified_share_count,
+)
 from data_engine.connector_framework.production_profile import (
     is_production_environment,
 )
@@ -28,14 +35,7 @@ from data_engine.financial_statement.service import (
     StatementQuery,
 )
 from data_engine.market_quote.models import AuthenticatedMarketQuote, QuoteField
-from data_engine.exceptions import InvalidProviderDataError
 from data_engine.market_quote.service import MarketQuoteService
-from data_engine.source_governance import is_approved_source
-from data_engine.share_count import (
-    ShareCount,
-    ShareCountPort,
-    resolve_verified_share_count,
-)
 from dsp_platform.composition.financial_integrity import (
     FinancialIntegrityError,
     assert_balance_sheet_integrity,

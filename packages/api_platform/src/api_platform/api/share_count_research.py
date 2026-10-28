@@ -1,4 +1,4 @@
-"""Evidence-grounded share-count fallback using official NSE data and existing AI adapters.
+"""Evidence-grounded share-count fallback using official NSE data and AI adapters.
 
 This adapter is invoked only when the authenticated quote provider omits shares.
 The models may interpret a retrieved official record; they cannot supply an
@@ -21,7 +21,7 @@ from llm_adapters import AdapterBackedAIProvider, build_default_registry
 
 _NSE_HOME = "https://www.nseindia.com/"
 _NSE_API = "https://www.nseindia.com/api/quote-equity"
-_MAX_RESPONSE_BYTES = 2_000_000
+_MAX_RESPONSE_BYTES = 256_000
 _MAX_AGE_DAYS = 120
 _COUNT_KEYS = (
     "issuedSize",
@@ -65,7 +65,10 @@ def _fetch_nse_record(symbol: str) -> tuple[str, str] | None:
         info = payload.get("info")
         security = payload.get("securityInfo")
         metadata = payload.get("metadata")
-        if not isinstance(info, dict) or str(info.get("symbol") or "").upper() != ticker:
+        if (
+            not isinstance(info, dict)
+            or str(info.get("symbol") or "").upper() != ticker
+        ):
             return None
         if not isinstance(security, dict) or not isinstance(metadata, dict):
             return None
@@ -237,7 +240,10 @@ def build_share_count_researcher():
         return ShareCountResearchEvidence(
             ticker=symbol,
             shares_outstanding=count_a,
-            source="NSE official quote-equity securityInfo.issuedSize; independently verified by Gemini and OpenAI",
+            source=(
+                "NSE quote-equity securityInfo.issuedSize; "
+                "independently verified by Gemini and OpenAI"
+            ),
             evidence_url=source_url,
             as_of=date_a.isoformat(),
         )

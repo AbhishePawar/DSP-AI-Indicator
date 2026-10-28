@@ -8,6 +8,7 @@ returns None so the valuation path remains fail-closed.
 from __future__ import annotations
 
 import http.cookiejar
+from concurrent.futures import ThreadPoolExecutor
 import json
 import math
 import re
@@ -214,7 +215,10 @@ def build_share_count_researcher() -> (
             f"Exchange: {exchange or 'NSE'}\nSource URL: {source_url}\n"
             f"Source JSON:\n{source_text}"
         )
-        parsed = [_json_completion(provider, prompt) for provider in providers]
+        with ThreadPoolExecutor(max_workers=len(providers)) as pool:
+            parsed = list(
+                pool.map(_json_completion, providers, [prompt] * len(providers))
+            )
         grounded = [
             _evidence_is_grounded(item, source_text, symbol, source_date)
             if item is not None

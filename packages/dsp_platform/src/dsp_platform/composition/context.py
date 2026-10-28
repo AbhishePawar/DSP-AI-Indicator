@@ -2,8 +2,11 @@
 
 from __future__ import annotations
 
+from collections.abc import Callable
 from dataclasses import dataclass, field
 from typing import Any
+
+from data_engine import ShareCount
 
 from dsp_platform.composition.models import CompositionRequest, ExecutionTraceEntry
 
@@ -23,3 +26,5 @@ class ExecutionContext:
     evidence_counts: dict[str, int] = field(default_factory=dict)
     confidence_summary: dict[str, float | None] = field(default_factory=dict)
     failed_stage: str | None = None
+    # Optional server-side AI research hook used only when authoritative share count is missing.
+    share_count_researcher: Callable[[str], ShareCount | None] | None = None

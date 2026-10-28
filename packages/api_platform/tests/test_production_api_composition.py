@@ -260,20 +260,33 @@ class TestProductionFailClosed:
         assert result.payload.ready is True
         assert "investment_data_provider" in " ".join(result.limitations)
 
-    def test_commercial_provider_selection_rejected(
+    def test_upstox_provider_selection_accepted(
         self, monkeypatch: pytest.MonkeyPatch
     ) -> None:
-        """Commercial vendor selection values are no longer accepted."""
+        """Upstox supplies quotes while statements use authenticated HTTP."""
         from data_engine.connector_framework.production_profile import (
-            ConnectorConfigurationError,
             assert_production_investment_connectors_configured,
         )
 
         monkeypatch.setenv("DSP_ENVIRONMENT", "production")
         monkeypatch.setenv("DSP_INVESTMENT_DATA_PROVIDER", "upstox")
         monkeypatch.setenv("DSP_UPSTOX_ANALYTICS_TOKEN", _SECRET)
-        with pytest.raises(ConnectorConfigurationError, match="commercial vendors"):
-            assert_production_investment_connectors_configured()
+        monkeypatch.setenv(
+            "DSP_FINANCIAL_STATEMENT_API_KEY", "test-statement-key"
+        )
+        monkeypatch.setenv(
+            "DSP_FINANCIAL_STATEMENT_BASE_URL",
+            "https://statements.example.test",
+        )
+        monkeypatch.delenv("DSP_MARKET_QUOTE_MEMORY", raising=False)
+        monkeypatch.delenv("DSP_FINANCIAL_STATEMENT_MEMORY", raising=False)
+
+        selected = assert_production_investment_connectors_configured()
+
+        assert selected["market_quote"] == "UpstoxQuoteAdapter"
+        assert (
+            selected["financial_statement"] == "ConfiguredHttpStatementAdapter"
+        )
 
     def test_no_in_memory_analysis_fallback_in_production(
         self, monkeypatch: pytest.MonkeyPatch

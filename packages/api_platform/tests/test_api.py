@@ -333,8 +333,19 @@ class TestCompareWorkflowCopilot:
         self, client: TestClient
     ) -> None:
         """RC1 M7 — /copilot/chat orchestrates without J1 context_ref."""
-        response = client.post("/copilot/chat", json={"user_text": "hi"})
-        assert response.status_code == 200
+        headers = self._headers(client, "copilot-freeform")
+        response = client.post(
+            "/copilot/chat",
+            headers=headers,
+            json={
+                "user_text": "hi",
+                "symbol": "TCS",
+                "analysis_id": "copilot-freeform-analysis",
+            },
+        )
+        assert response.status_code == 200, (
+            f"Copilot returned HTTP {response.status_code}: {response.text}"
+        )
         body = response.json()
         assert body["ok"] is True
         assert body["result"]["unavailable"] is True

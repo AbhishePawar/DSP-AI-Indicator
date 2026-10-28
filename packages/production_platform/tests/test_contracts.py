@@ -93,6 +93,32 @@ class TestStorageContract:
         storage.delete("f/a.txt")
         assert storage.get("f/a.txt") is None
 
+    def test_local_storage_rejects_path_traversal(self, tmp_path: Path) -> None:
+        from production_platform.production.exceptions import ProviderError
+
+        storage_root = tmp_path / "artifacts"
+        storage = LocalFilesystemStoragePort(storage_root)
+
+        for key in ("../outside.txt", "nested/../../outside.txt"):
+            with pytest.raises(ProviderError):
+                storage.put(key, b"blocked")
+
+        outside = tmp_path / "outside.txt"
+        assert not outside.exists()
+
+    def test_local_storage_rejects_sibling_prefix_escape(self, tmp_path: Path) -> None:
+        from production_platform.production.exceptions import ProviderError
+
+        storage_root = tmp_path / "artifacts"
+        storage = LocalFilesystemStoragePort(storage_root)
+        sibling = tmp_path / "artifacts-escape" / "outside.txt"
+        sibling.parent.mkdir()
+
+        # A resolved path whose name merely shares the root's string prefix
+        # must never be treated as a child of the storage root.
+        with pytest.raises(ProviderError):
+            storage._resolve("../artifacts-escape/outside.txt")
+
 
 class TestDatabaseContract:
     def test_ping_and_migration(self) -> None:

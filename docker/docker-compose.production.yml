@@ -78,6 +78,7 @@ services:
     volumes:
       - dsp_api_tmp:/tmp/dsp
       - dsp_backups:/var/backups/dsp
+      - dsp_artifacts:/var/lib/dsp/artifacts
     depends_on:
       postgres:
         condition: service_healthy
@@ -295,6 +296,7 @@ volumes:
   dsp_redis_data:
   dsp_api_tmp:
   dsp_backups:
+  dsp_artifacts:
   caddy_data:
   caddy_config:
   caddy_logs:

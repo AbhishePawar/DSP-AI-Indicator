@@ -449,7 +449,7 @@ def _generate_ai_copilot_response(
         reg = provider_registry
         if reg is None:
             try:
-                from llm_adapters.registry import build_default_registry
+                from llm_adapters import build_default_registry
 
                 reg = build_default_registry()
             except Exception:
@@ -1346,7 +1346,7 @@ def _handle_research(
             None,
         )
 
-    from llm_adapters.orchestrator import OrchestratorStatus, UserResearchRequest
+    from llm_adapters import OrchestratorStatus, UserResearchRequest
 
     req = UserResearchRequest(
         symbol=clean_sym,

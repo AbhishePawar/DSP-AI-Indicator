@@ -36,8 +36,6 @@ def _config(**overrides: Any) -> LLMPlatformConfig:
         anthropic_api_key=overrides.get("anthropic", "test-anthropic"),
         gemini_api_key=overrides.get("gemini", "test-gemini"),
         deepseek_api_key=overrides.get("deepseek", "test-deepseek"),
-        ai_gateway_api_key=overrides.get("ai_gateway", None),
-        ai_gateway_base_url="https://ai-gateway.vercel.sh/v1",
         openai_model="gpt-4o-mini",
         anthropic_model="claude-3-5-sonnet-20241022",
         gemini_model="gemini-1.5-flash",

@@ -112,6 +112,7 @@ class PlatformHealthService:
             self._check_feature_flags(),
             self._check_provider_settings(),
             self._check_provider_registry(),
+            self._check_investment_data_provider(),
             composition,
             self._check_wiring(canonical_ready=composition.status is CheckStatus.PASS),
         ]
@@ -239,6 +240,47 @@ class PlatformHealthService:
             name="provider_registry",
             status=CheckStatus.PASS,
             message=f"required providers present: {list(required)}",
+        )
+
+    def _check_investment_data_provider(self) -> HealthCheckResult:
+        """Report investment connector configuration without blocking API boot.
+
+        Authentication and core API health must remain available when vendor
+        credentials are absent. Investment use paths still fail closed through
+        the adapter factories; this check makes that degraded capability visible.
+        """
+        import os
+
+        if str(os.environ.get("DSP_ENVIRONMENT", "")).strip().lower() != "production":
+            return HealthCheckResult(
+                name="investment_data_provider",
+                status=CheckStatus.SKIP,
+                message="production investment connector check not applicable",
+            )
+
+        try:
+            from data_engine.connector_framework.production_profile import (
+                assert_production_investment_connectors_configured,
+            )
+
+            selected = assert_production_investment_connectors_configured()
+        except Exception as exc:  # noqa: BLE001 — health must surface safe config errors
+            return HealthCheckResult(
+                name="investment_data_provider",
+                status=CheckStatus.FAIL,
+                message=(
+                    "investment_capability: degraded; "
+                    "does not block auth; " + str(exc)
+                ),
+            )
+        return HealthCheckResult(
+            name="investment_data_provider",
+            status=CheckStatus.PASS,
+            message=(
+                "configured authenticated connectors: "
+                f"market_quote={selected.get('market_quote', 'unknown')}, "
+                f"financial_statement={selected.get('financial_statement', 'unknown')}"
+            ),
         )
 
     def _check_composition_pipeline(self) -> HealthCheckResult:

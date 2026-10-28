@@ -28,6 +28,10 @@ RUN python -m pip show psycopg psycopg-binary && \
 RUN python -m pip show redis && \
     python -c "import redis; print('BUILDER REDIS OK:', redis.__version__, redis.__file__)"
 
+# Require S3 dependencies in the builder image.
+RUN python -m pip show boto3 && \
+    python -c "import boto3; print('BUILDER BOTO3 OK:', boto3.__version__, boto3.__file__)"
+
 # Fail the image build if api_platform cannot be imported after install
 RUN python -c "import api_platform; from api_platform.api.app import app; print('API IMPORT OK:', api_platform.__file__); print('APP OK:', app.title)"
 
@@ -51,6 +55,10 @@ RUN python -m pip show psycopg psycopg-binary && \
     python -c "import sys, psycopg, psycopg.pq; print('RUNTIME PSYCOPG OK:', psycopg.__version__, psycopg.__file__); print('RUNTIME PQ IMPL:', psycopg.pq.__impl__); print('RUNTIME PQ VERSION:', psycopg.pq.version()); print('RUNTIME PYTHON:', sys.executable)"
 RUN python -m pip show redis && \
     python -c "import sys, redis; print('RUNTIME REDIS OK:', redis.__version__, redis.__file__); print('RUNTIME PYTHON:', sys.executable)"
+
+# Require S3 dependencies in the final runtime image.
+RUN python -m pip show boto3 && \
+    python -c "import sys, boto3; print('RUNTIME BOTO3 OK:', boto3.__version__, boto3.__file__); print('RUNTIME PYTHON:', sys.executable)"
 # Development override: create_app() must not require Cloud SQL/secrets at build time.
 RUN DSP_ENVIRONMENT=development python -c "import sys, api_platform; from api_platform.api.app import app; print('RUNTIME API IMPORT OK:', api_platform.__file__); print('RUNTIME APP OK:', app.title); print('RUNTIME PYTHON:', sys.executable)"
 COPY pyproject.toml README.md ./

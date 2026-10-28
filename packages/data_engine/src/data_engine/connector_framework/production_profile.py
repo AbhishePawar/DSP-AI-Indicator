@@ -88,9 +88,9 @@ def require_authenticated_http_adapter(
         return
     # Financial data is source-neutral; no commercial key bypasses validation.
     raise ConnectorConfigurationError(
-        f"P1-03: production requires authenticated {connector} provider; "
-        f"set {api_key_env} and {base_url_env}, "
-        "Null/demo/seed adapters are not permitted on the production path."
+        f"P1-03: production requires an authenticated live {connector} provider; "
+        f"set {api_key_env} and {base_url_env}. "
+        "Non-production adapters are prohibited in production."
     )
 
 

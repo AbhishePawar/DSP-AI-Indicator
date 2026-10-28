@@ -103,7 +103,9 @@ class ShareCountResearchEvidence:
     as_of: str | None = None
 
 
-ShareCountResearcher = Callable[[str, str | None, str | None], ShareCountResearchEvidence | None]
+ShareCountResearcher = Callable[
+    [str, str | None, str | None], ShareCountResearchEvidence | None
+]
 
 
 def _resolve_researched_shares(

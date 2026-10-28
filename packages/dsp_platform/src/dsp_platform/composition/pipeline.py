@@ -138,7 +138,11 @@ def _preload_authenticated_valuation_bundle(ctx: ExecutionContext) -> None:
     exchange = getattr(ctx.request, "exchange", None)
     exchange = str(exchange).strip().upper() if exchange else None
     try:
-        bundle = load_authenticated_valuation_bundle(ticker, exchange=exchange)
+        bundle = load_authenticated_valuation_bundle(
+            ticker,
+            exchange=exchange,
+            research_missing_shares=ctx.request.research_missing_shares,
+        )
     except AuthenticatedValuationError as exc:
         ctx.results[_AUTH_ERROR_KEY] = str(exc) or DATA_UNAVAILABLE
         return

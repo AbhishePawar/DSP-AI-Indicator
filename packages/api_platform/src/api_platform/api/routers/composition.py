@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import os
+from dataclasses import replace
 from typing import Any
 
 from fastapi import APIRouter, Depends, Query, Request
@@ -23,6 +24,7 @@ from api_platform.api.mappers import (
     map_platform_result,
 )
 from api_platform.api.validation import validate_analyse_request
+from api_platform.api.share_count_research import build_share_count_researcher
 from dsp_platform import CompositionInputError, build_composition_request
 from dsp_platform.investment_provenance import (
     InvestmentProvenanceError,
@@ -92,6 +94,14 @@ def analyse(
             correlation_id=correlation_id,
             detail=str(exc),
         ) from None
+
+    # Server-only fallback: invoked by the authenticated valuation loader only if
+    # Upstox omits shares. The callback is never accepted from the HTTP body.
+    researcher = build_share_count_researcher()
+    if researcher is not None:
+        composition_request = replace(
+            composition_request, research_missing_shares=researcher
+        )
 
     platform_result = state.platform.compose_intelligence(composition_request)
     pipeline = platform_result.payload

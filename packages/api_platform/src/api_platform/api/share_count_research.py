@@ -24,14 +24,7 @@ _NSE_HOME = "https://www.nseindia.com/"
 _NSE_API = "https://www.nseindia.com/api/quote-equity"
 _MAX_RESPONSE_BYTES = 256_000
 _MAX_AGE_DAYS = 120
-_COUNT_KEYS = (
-    "issuedSize",
-    "totalNoOfShares",
-    "totalNumberOfShares",
-    "totalSharesOutstanding",
-    "totalEquityShares",
-    "totalPaidUpEquityShares",
-)
+_COUNT_KEYS = ("issuedSize",)
 
 
 def _fetch_nse_record(symbol: str) -> tuple[str, str] | None:
@@ -73,6 +66,8 @@ def _fetch_nse_record(symbol: str) -> tuple[str, str] | None:
             return None
         if not isinstance(security, dict) or not isinstance(metadata, dict):
             return None
+        if info.get("isDelisted") is True:
+            return None
         issued_size = security.get("issuedSize")
         if isinstance(issued_size, bool) or not isinstance(issued_size, (int, float)):
             return None
@@ -97,7 +92,7 @@ def _json_completion(
             return None
         text = result.text.strip()
         if text.startswith("```"):
-            text = re.sub(r"^\`\`\`(?:json)?\s*|\s*\`\`\`$", "", text, flags=re.I)
+            text = re.sub(r"^```(?:json)?\s*|\s*```$", "", text, flags=re.I)
         parsed = json.loads(text)
         return parsed if isinstance(parsed, dict) else None
     except Exception:  # noqa: BLE001 - provider failures must not interrupt analysis
@@ -176,19 +171,14 @@ def build_share_count_researcher() -> (
         registry = build_default_registry()
         if registry.config.provider_mode == "deterministic":
             return None
-        gemini = registry.get("gemini")
-        openai = registry.get("openai")
-        if (
-            gemini is None
-            or openai is None
-            or not gemini.is_configured()
-            or not openai.is_configured()
-        ):
-            return None
-        providers = (
-            AdapterBackedAIProvider(gemini),
-            AdapterBackedAIProvider(openai),
+        adapters = (registry.get("gemini"), registry.get("openai"))
+        providers = tuple(
+            AdapterBackedAIProvider(adapter)
+            for adapter in adapters
+            if adapter is not None and adapter.is_configured()
         )
+        if not providers:
+            return None
     except Exception:  # noqa: BLE001 - optional AI adapters are not mandatory to boot
         return None
 

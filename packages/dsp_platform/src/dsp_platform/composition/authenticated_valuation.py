@@ -225,6 +225,7 @@ def _resolve_shares(
     *,
     ticker: str,
     supplemental: ShareCount | None = None,
+    research_fallback: Callable[[str], ShareCount | None] | None = None,
 ) -> tuple[float, dict[str, Any]]:
     """Resolve shares from verified fundamentals, never from a quote field.
 
@@ -280,11 +281,47 @@ def _resolve_shares(
                 )
         return float(resolved.shares), resolved.to_dict()
 
+    # If authenticated statements and the configured share-count provider are
+    # missing the metric, request a ticker-specific candidate from the AI research
+    # adapter. The adapter must return a ShareCount with real source provenance;
+    # AI-generated prose or an unsupported estimate is never accepted as evidence.
+    research_error: Exception | None = None
+    if research_fallback is not None:
+        try:
+            researched = research_fallback(ticker)
+        except Exception as exc:  # noqa: BLE001 — research failure must not fabricate data
+            researched = None
+            research_error = exc
+        if researched is not None:
+            if researched.ticker.strip().upper() != ticker.strip().upper():
+                raise AuthenticatedValuationError(
+                    f"{DATA_UNAVAILABLE} (AI share-count research identity mismatch)"
+                )
+            resolved = resolve_verified_share_count(ticker, (researched,))
+            if resolved is not None:
+                if quote_shares is not None and quote_shares > 0:
+                    relative_delta = abs(resolved.shares - quote_shares) / max(
+                        resolved.shares, quote_shares
+                    )
+                    if relative_delta > 0.05:
+                        raise AuthenticatedValuationError(
+                            f"{DATA_UNAVAILABLE} (share-count sources disagree)"
+                        )
+                provenance = resolved.to_dict()
+                provenance["retrieval"] = "ai_research_fallback"
+                return float(resolved.shares), provenance
+
     # Do not use quote.shares_outstanding here: Upstox is approved for market
     # data only, not as an authoritative fundamental share-count source.
-    raise AuthenticatedValuationError(
-        f"{DATA_UNAVAILABLE} (verified primary-source shares outstanding unavailable)"
+    reason = (
+        "AI share-count research was attempted but did not return a verified "
+        "approved primary-source value"
+        if research_fallback is not None
+        else "verified primary-source shares outstanding unavailable; AI research hook is not configured"
     )
+    if research_error is not None:
+        reason += f" ({type(research_error).__name__})"
+    raise AuthenticatedValuationError(f"{DATA_UNAVAILABLE} ({reason})")
 
 
 def _resolve_price(quote: AuthenticatedMarketQuote) -> float:
@@ -442,6 +479,7 @@ def load_authenticated_valuation_bundle(
     ) = None,
     get_quote: Callable[[str], AuthenticatedMarketQuote | None] | None = None,
     share_count_port: ShareCountPort | None = None,
+    share_count_researcher: Callable[[str], ShareCount | None] | None = None,
 ) -> AuthenticatedValuationBundle:
     """Fetch + validate authenticated statements and quote for ``ticker``.
 
@@ -529,6 +567,7 @@ def load_authenticated_valuation_bundle(
         latest_period,
         ticker=symbol,
         supplemental=supplemental_share_count,
+        research_fallback=share_count_researcher,
     )
     try:
         assert_eps_share_integrity(latest_period, shares)

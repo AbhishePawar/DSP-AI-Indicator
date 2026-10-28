@@ -10,6 +10,7 @@ from __future__ import annotations
 from collections.abc import Callable
 from dataclasses import dataclass
 from datetime import date
+import math
 from typing import Any
 
 from contracts.domain.fundamental_statement import FundamentalStatement
@@ -60,6 +61,7 @@ from valuation import MarketSnapshot, ValuationAssessment, ValuationConfidence
 __all__ = [
     "AuthenticatedValuationBundle",
     "AuthenticatedValuationError",
+    "ShareCountResearchEvidence",
     "DATA_UNAVAILABLE",
     "load_authenticated_valuation_bundle",
     "production_investment_connectors",
@@ -88,6 +90,72 @@ class AuthenticatedValuationError(ValueError):
 
     def __init__(self, message: str = DATA_UNAVAILABLE) -> None:
         super().__init__(message if message else DATA_UNAVAILABLE)
+
+
+@dataclass(frozen=True, slots=True)
+class ShareCountResearchEvidence:
+    """A share count returned by a research adapter, with auditable evidence."""
+
+    ticker: str
+    shares_outstanding: float
+    source: str
+    evidence_url: str
+    as_of: str | None = None
+
+
+ShareCountResearcher = Callable[[str, str | None, str | None], ShareCountResearchEvidence | None]
+
+
+def _resolve_researched_shares(
+    ticker: str,
+    company_name: str | None,
+    exchange: str | None,
+    researcher: ShareCountResearcher | None,
+) -> tuple[float, dict[str, Any]]:
+    """Use AI/web research only as a sourced fallback; reject ungrounded output."""
+    if researcher is None:
+        raise AuthenticatedValuationError(
+            f"{DATA_UNAVAILABLE} (authenticated shares outstanding unavailable; "
+            "share-count research adapter is not configured)"
+        )
+    try:
+        evidence = researcher(ticker, company_name, exchange)
+    except Exception as exc:  # noqa: BLE001 — research failure must degrade safely
+        raise AuthenticatedValuationError(
+            f"{DATA_UNAVAILABLE} (share-count research failed: {type(exc).__name__})"
+        ) from exc
+    if not isinstance(evidence, ShareCountResearchEvidence):
+        raise AuthenticatedValuationError(
+            f"{DATA_UNAVAILABLE} (share-count research returned no validated evidence)"
+        )
+    if str(evidence.ticker or "").strip().upper() != ticker:
+        raise AuthenticatedValuationError(
+            f"{DATA_UNAVAILABLE} (researched share-count company identity mismatch)"
+        )
+    shares = evidence.shares_outstanding
+    if isinstance(shares, bool) or not isinstance(shares, (int, float)):
+        raise AuthenticatedValuationError(
+            f"{DATA_UNAVAILABLE} (researched share count is not numeric)"
+        )
+    if not math.isfinite(float(shares)) or float(shares) <= 0:
+        raise AuthenticatedValuationError(
+            f"{DATA_UNAVAILABLE} (researched share count is invalid)"
+        )
+    source = str(evidence.source or "").strip()
+    url = str(evidence.evidence_url or "").strip()
+    if not source or not url.startswith(("https://", "http://")):
+        raise AuthenticatedValuationError(
+            f"{DATA_UNAVAILABLE} (share-count evidence source or URL missing)"
+        )
+    return float(shares), {
+        "provider_id": "ai_research_fallback",
+        "ticker": ticker,
+        "shares_outstanding": float(shares),
+        "source": source,
+        "evidence_url": url,
+        "as_of": evidence.as_of,
+        "evidence_class": "public_research_unverified_for_g2",
+    }
 
 
 @dataclass(frozen=True, slots=True)
@@ -380,6 +448,7 @@ def load_authenticated_valuation_bundle(
         Callable[[str], AuthenticatedFinancialStatements | None] | None
     ) = None,
     get_quote: Callable[[str], AuthenticatedMarketQuote | None] | None = None,
+    research_missing_shares: ShareCountResearcher | None = None,
 ) -> AuthenticatedValuationBundle:
     """Fetch + validate authenticated statements and quote for ``ticker``.
 
@@ -452,7 +521,20 @@ def load_authenticated_valuation_bundle(
     except FinancialIntegrityError as exc:
         raise AuthenticatedValuationError(str(exc)) from exc
 
-    shares = _resolve_shares(quote, latest_period)
+    shares_research_provenance: dict[str, Any] | None = None
+    try:
+        shares = _resolve_shares(quote, latest_period)
+    except AuthenticatedValuationError:
+        # Trigger the explicit research fallback only when the quote source
+        # does not provide a usable share count. The fallback must be sourced
+        # and identity-checked; it is not promoted to authenticated-provider
+        # evidence and cannot clear G2 by itself.
+        shares, shares_research_provenance = _resolve_researched_shares(
+            symbol,
+            statements.identity.company_name,
+            exchange or statements.identity.exchange or quote.exchange,
+            research_missing_shares,
+        )
     try:
         assert_eps_share_integrity(latest_period, shares)
     except FinancialIntegrityError as exc:
@@ -505,7 +587,14 @@ def load_authenticated_valuation_bundle(
         shares_outstanding=shares,
         reporting_currency=reporting_currency,
         statement_provenance=statements.provenance.to_dict(),
-        quote_provenance=quote.provenance.to_dict(),
+        quote_provenance={
+            **quote.provenance.to_dict(),
+            **(
+                {"shares_research_fallback": shares_research_provenance}
+                if shares_research_provenance is not None
+                else {}
+            ),
+        },
         period_kind=selected[0].period_type,
         statement_basis=statement_basis,
         unit_scale="actual",

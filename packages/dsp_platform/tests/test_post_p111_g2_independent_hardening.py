@@ -5,6 +5,8 @@ from __future__ import annotations
 from datetime import date
 from types import SimpleNamespace
 
+from data_engine import ShareCount
+
 import pytest
 
 from data_engine.evidence_classes import (
@@ -68,10 +70,10 @@ def test_shares_not_derived_from_ni_eps() -> None:
         eps_diluted=SimpleNamespace(available=True, value=2.0),
     )
     with pytest.raises(AuthenticatedValuationError, match="shares outstanding"):
-        _resolve_shares(quote, latest)  # type: ignore[arg-type]
+        _resolve_shares(quote, latest, ticker="RELIANCE")  # type: ignore[arg-type]
 
 
-def test_shares_from_authenticated_quote() -> None:
+def test_quote_share_count_alone_is_not_fundamental_authority() -> None:
     quote = SimpleNamespace(
         shares_outstanding=SimpleNamespace(available=True, value=50_000_000.0)
     )
@@ -80,8 +82,56 @@ def test_shares_from_authenticated_quote() -> None:
         eps_basic=SimpleNamespace(available=True, value=1.0),
         eps_diluted=SimpleNamespace(available=True, value=1.0),
     )
-    assert _resolve_shares(quote, latest) == 50_000_000.0  # type: ignore[arg-type]
+    with pytest.raises(AuthenticatedValuationError, match="shares outstanding"):
+        _resolve_shares(quote, latest, ticker="RELIANCE")  # type: ignore[arg-type]
 
+
+def test_missing_share_count_triggers_verified_ai_research_fallback() -> None:
+    quote = SimpleNamespace(
+        shares_outstanding=SimpleNamespace(available=False, value=None)
+    )
+    latest = SimpleNamespace(
+        net_income=SimpleNamespace(available=True, value=1.0),
+        eps_basic=SimpleNamespace(available=True, value=1.0),
+        eps_diluted=SimpleNamespace(available=True, value=1.0),
+    )
+    candidate = ShareCount(
+        "RELIANCE", 75_000_000.0, date(2026, 3, 31), "BSE",
+        verified=True, purpose="fundamental",
+    )
+    requested: list[str] = []
+
+    def research(ticker: str) -> ShareCount:
+        requested.append(ticker)
+        return candidate
+
+    shares, provenance = _resolve_shares(
+        quote, latest, ticker="RELIANCE", research_fallback=research
+    )  # type: ignore[arg-type]
+    assert requested == ["RELIANCE"]
+    assert shares == 75_000_000.0
+    assert provenance["source"] == "BSE"
+    assert provenance["retrieval"] == "ai_research_fallback"
+
+
+def test_ai_research_candidate_for_wrong_ticker_is_rejected() -> None:
+    quote = SimpleNamespace(
+        shares_outstanding=SimpleNamespace(available=False, value=None)
+    )
+    latest = SimpleNamespace(
+        net_income=SimpleNamespace(available=True, value=1.0),
+        eps_basic=SimpleNamespace(available=True, value=1.0),
+        eps_diluted=SimpleNamespace(available=True, value=1.0),
+    )
+    candidate = ShareCount(
+        "TCS", 75_000_000.0, date(2026, 3, 31), "BSE",
+        verified=True, purpose="fundamental",
+    )
+    with pytest.raises(AuthenticatedValuationError, match="identity mismatch"):
+        _resolve_shares(
+            quote, latest, ticker="RELIANCE",
+            research_fallback=lambda _ticker: candidate,
+        )  # type: ignore[arg-type]
 
 
 def test_shares_prefer_verified_statement_source_when_quote_omits_it() -> None:
@@ -96,7 +146,11 @@ def test_shares_prefer_verified_statement_source_when_quote_omits_it() -> None:
         eps_basic=SimpleNamespace(available=True, value=1.0),
         eps_diluted=SimpleNamespace(available=True, value=1.0),
     )
-    assert _resolve_shares(quote, latest) == 75_000_000.0  # type: ignore[arg-type]
+    shares, provenance = _resolve_shares(
+        quote, latest, ticker="RELIANCE"
+    )  # type: ignore[arg-type]
+    assert shares == 75_000_000.0
+    assert provenance["source"] == "authenticated_financial_statement"
 
 
 def test_material_share_count_conflict_fails_closed() -> None:
@@ -114,4 +168,4 @@ def test_material_share_count_conflict_fails_closed() -> None:
     with pytest.raises(
         AuthenticatedValuationError, match="share-count sources disagree"
     ):
-        _resolve_shares(quote, latest)  # type: ignore[arg-type]
+        _resolve_shares(quote, latest, ticker="RELIANCE")  # type: ignore[arg-type]
